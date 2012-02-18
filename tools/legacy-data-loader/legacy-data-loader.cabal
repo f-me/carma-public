@@ -1,0 +1,22 @@
+
+Name:                legacy-data-loader
+Version:             0.1
+Synopsis:            Custom tool for transferring data from files to database.
+License:             PublicDomain
+Author:              max taldykin
+Maintainer:          max@formalmethods.ru
+
+Category:            Database
+Build-type:          Simple
+
+-- Constraint on the version of Cabal needed to build this package.
+Cabal-version:       >=1.2
+
+
+Executable legacy-data-loader
+  Main-is:           ldl.hs
+  
+  Build-depends:     base, containers, bytestring
+                    ,csv-enumerator == 0.10.*       
+  
+  
