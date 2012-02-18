@@ -16,7 +16,10 @@ Cabal-version:       >=1.2
 Executable legacy-data-loader
   Main-is:           ldl.hs
   
-  Build-depends:     base, containers, bytestring
-                    ,csv-enumerator == 0.10.*       
+  Build-depends:     base, time
+                    ,containers, bytestring, utf8-string
+                    ,transformers
+                    ,csv-enumerator == 0.10.*
+                    ,aeson == 0.4.*
   
   
