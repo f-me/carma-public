@@ -3,6 +3,7 @@
 .*.sw[a-z]
 
 # haskell's junk
+dist
 *.hi
 *.o
 
