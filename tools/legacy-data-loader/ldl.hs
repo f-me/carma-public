@@ -1,15 +1,11 @@
 
 {-# LANGUAGE OverloadedStrings, NoMonomorphismRestriction #-}
 {-# LANGUAGE DeriveDataTypeable #-}
-import Prelude hiding (catch)
-import Control.Applicative
-import Control.Monad (join, when)
 import Control.Exception
-import Data.Typeable
-
-import qualified Data.ByteString as B
+import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy.Char8 as L
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import Data.Maybe
 
 import Data.Time.Format (parseTime)
@@ -19,12 +15,12 @@ import Data.Time.LocalTime
 import System.Locale (defaultTimeLocale)
 import System.Environment (getArgs)
 
-import Data.Enumerator as E hiding (mapM, map)
-import qualified Data.Enumerator.Binary as E
+import Data.Enumerator as E hiding (map)
+import qualified Data.Enumerator.Binary as EB
 import Data.CSV.Enumerator as CSV
 import Data.Aeson
 import Data.Aeson.Types
-
+import Database.Redis
 
 -- Time to upgrade to GHC 7.4?
 -- 7.0.* still does not work properly with non-ascii filenames
@@ -38,28 +34,93 @@ fixName = UTF8.encodeString
 main = do
   dir:_ <- getArgs
   let f = fixName . (dir++)
-  fromCSV (f "/Журнал_звонков.csv") $ toRedis case_info
+  rConn <- connect defaultConnectInfo
+  fromCSV (f "/Партнеры.csv") mkPartner rConn
+    >> fromCSV (f "/Дилеры.csv") mkDealer rConn
+    `finally` runRedis rConn quit
+
+--  fromCSV (f "/Журнал_звонков.csv") $ toRedis case_info
 
 
-fromCSV fname f = do
-  E.run_ $ E.enumFile fname $$ iterCSV defCSVSettings act True
+fromCSV fname f rConn = E.run_
+  $  EB.enumFile fname
+  $$ iterCSV defCSVSettings (funToIterIO toRedis) rConn
   where
-    act x CSV.EOF = yield x E.EOF
-    act skip  (ParsedRow (Just row))
-        = when (not skip) (tryIO $ f row)
-        >> yield False (Chunks [])
+    toRedis c CSV.EOF = return c
+    toRedis c (ParsedRow (Just r)) = runRedis c (f r) >> return c
 
-toRedis f row = do
-  jsn <- (return $! f row) 
-    `catch`
-      \(Ex msg o) -> print msg >> L.putStrLn (encode $ Object o) >> return Nothing
-  L.putStrLn $ encode jsn
+
+pStrs o = T.strip . T.intercalate " " . map (pStr o)
+pStr  o = fromJust . parseMaybe (o .:) :: T.Text -> T.Text
+pList o = map (pStr o)
 
 mkObj :: [T.Text] -> [B.ByteString] -> Value
 mkObj = (object.) . zipWith (.=)
 
-case_info row = do
-  return $! object
+
+mkPartner row = set key jsn
+  where
+    Object o = mkObj [T.pack $ show i | i <- [0..]] row
+    (p,ps,pL) = (pStr o, pStrs o, pList o)
+    key = T.encodeUtf8 $ T.concat ["partner:", p "0"] -- 0 Code
+    jsn = B.concat $ L.toChunks $ encode $ object
+      ["cityRu"        .= p "1" -- 1 Город
+      ,"cityEn"        .= p "4" -- 4 City
+      ,"priority1"     .= p "2" -- 2 Приоритет за городом
+      ,"priority2"     .= p "3" -- 3 Приоритет город
+      ,"serviceRu"     .= p "5" -- 5 Услуга
+      ,"serviceEn"     .= p "6" -- 6 Service
+      ,"phones"        .= pL ["9","10","11","13"]  -- Телефон Диспетчерской 1-4
+      ,"companyName"   .= p "7" -- 7 Название компании
+      ,"addrDeJure"    .= p "8" -- 8 Юридический адрес
+      ,"addrDeFacto"   .= ps ["12","18"] -- 12 Фактический адрес индекс -- 18 Фактический адрес улица
+      ,"contactPerson" .= p "15" -- 15 Ответственное лицо
+      ,"contactPhone"  .= p "14" -- 14 Телефон Ответственного за Сотрудничество
+      ,"eMail"         .= p "16" -- 16 Электронная почта
+      ,"fax"           .= p "17" -- 17 Факс
+      ,"price"         .= p "19" -- 19 Тариф
+      ,"comment"       .= p "20" -- 20 Комментарий
+      ,"status"        .= p "21" -- 21 Статус
+      ]
+--
+
+mkDealer row = do
+  Right id <- incr "dealer:id"
+  set (B.concat ["dealer:",B.pack $ show id]) jsn
+  where  
+    Object o = mkObj [T.pack $ show i | i <- [0..]] row
+    (p,ps) = (pStr o, pStrs o)
+    key = T.encodeUtf8 $ T.concat ["partner:", p "0"] -- 0 Code
+    jsn = B.concat $ L.toChunks $ encode $ object
+      ["city"         .= ps ["0","2"] -- 0 Город -- 2 Округ
+      ,"type"         .= p "1" -- 1 Дилер
+      ,"name"         .= p "3" -- 3 Название дилера
+      ,"salesAddr"    .= p "4" -- 4 Адрес отдела продаж
+      ,"salesPhone"   .= p "5" -- 5 Телефон отдела продаж
+      ,"salesHours"   .= p "6" -- 6 Время работы
+      ,"techAddr"     .= p "7" -- 7 Адрес сервисного отдела
+      ,"techPhone"    .= p "8" -- 8 Телефон сервисного отдела
+      ,"techHours"    .= p "9" -- 9 Время работы сервисного отдела
+      ,"program"      .= p "10"-- 10 Код_Программы_Клиенты
+      ,"servicePhone" .= p "11"-- 11 тел для заказа услуги
+      ,"carModels"    .= p "12"-- 12 Автомобили
+      ,"service"      .= p "13"-- 13 предоставляемая услуга
+      ,"workingHours" .= p "14"-- 14 время работы по предоставлению услуги
+      ]
+
+
+
+
+{-
+caseInfo row = do
+  let Object o = mkObj [T.pack $ show i | i <- [0..]] row
+  let callInfo = mkCallInfo o
+  case callInfo `get` "callType" of
+    "ИНФОРМАЦИОННЫЙ ЗВОНОК" ->
+    
+
+case_info row
+  = return $! object
     ["timestamp" .= fromMaybe (err "timestamp") (mkTimestamp o) -- 0  Дата звонка -- 1  Время звонка
     ,"callTaker" .= pStr "2"  -- Сотрудник (Обязательное поле)
     ,"program"   .= pStr "3"  -- Клиент (Обязательное поле) FIXME: на самом деле, это программа
@@ -118,4 +179,4 @@ getCallTime o = do
   t <- pTm "%k:%M"    <$> o .: "1"
   let t' = maybe (Just midday) Just t
   return $ localTimeToUTC (read "+0400") <$> (LocalTime <$> d <*> t')
-
+-}

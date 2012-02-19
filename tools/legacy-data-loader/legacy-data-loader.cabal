@@ -13,13 +13,14 @@ Build-type:          Simple
 Cabal-version:       >=1.2
 
 
-Executable legacy-data-loader
+Executable ldl
   Main-is:           ldl.hs
   
-  Build-depends:     base, time
-                    ,containers, bytestring, utf8-string
-                    ,transformers
+  Build-depends:     base, time, old-locale
+                    ,containers, bytestring, utf8-string, text
+                    ,enumerator
                     ,csv-enumerator == 0.10.*
                     ,aeson == 0.4.*
+                    ,hedis == 0.3.*
   
   
