@@ -1,18 +1,13 @@
 function initBottomMenu() {
-    //FIXME: navigating browser history with back/forward buttons does not
-    //trigger routes.
     var MenuRouter = Backbone.Router.extend({
       routes: {
-        "/:section": "setMenu",
-        "/:section/*p": "setMenu"},
+        ":section": "updMenu",
+        ":section/*p": "updMenu"
+      },
 
-      setMenu: function(sect) {
-        if (sect.length == 0) {
-          this.navigate("/call", {trigger:true});
-        } else {
-          $("#menu a.menuitem.selected").removeClass("selected");
-          $("#menu a.menuitem[href='/"+sect+"']").addClass("selected");
-        }
+      updMenu: function(sect) {
+        $("#menu a.menuitem.selected").removeClass("selected");
+        $("#menu a.menuitem[href='"+sect+"']").addClass("selected");
       }
     });
 
@@ -20,7 +15,10 @@ function initBottomMenu() {
 
     $(".menuitem").click(function(e) {
       e.preventDefault();
-      menuRouter.navigate(this.pathname, {trigger:true});
+      //`pathname` contains leading slash, we need to remove it.
+      //otherwise route handler (updMenu) will receive empty argument
+      var path = this.pathname.substring(1);
+      menuRouter.navigate(path, {trigger:true});
     });
 
     KeyboardJS.bind.key("ctrl+left", null, function(){

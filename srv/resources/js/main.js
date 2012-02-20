@@ -9,15 +9,12 @@ $(function(){
     };
 
     var menuRouter = initBottomMenu();
-    menuRouter.bind("route:setMenu", function(sect) {
+    menuRouter.bind("route:updMenu", function(sect) {
       renderPage(global.meta.page[sect]); //FIXME: injection //TODO: pass `arguments`
     });
 
     Backbone.history.start({pushState: true});
 
-    //FIXME: it's strange that I need to do this, backbone should trigger route
-    //when starting History.
-    menuRouter.navigate(window.location.pathname, {trigger:true,replace:true});
     $(".field:first").focus();
 });
 
