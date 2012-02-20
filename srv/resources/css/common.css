@@ -1,0 +1,84 @@
+
+
+body {
+  margin:0;
+  background:#c8c8c8;
+  font:12px "Calibri";
+}
+
+
+#info-header {
+  top:50px;
+  width:100%;
+  height:60px;
+  background:#3b4d5d;
+  border-top:1px solid #4b5d6d;
+  position:absolute;
+}
+
+#program-logo {
+  padding:5px;
+  margin:0 auto;
+  display:block;
+  height:45px;
+}
+
+#info-bottom {
+  top:55px;
+  width:100%;
+  height:7px;
+  background:#d4ca9d;
+  position:absolute;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+#content {
+  position:absolute;
+  top:115px;
+  bottom:0;
+  width:100%;
+  margin:0 auto;
+}
+
+.column {
+  position:absolute;
+  top:0;
+  bottom:0;
+  margin:1% 1% 0 1%;
+  border:1px dashed green;
+}
+
+#left{
+  left:0;
+  width:32%;
+  margin:1% 1% 0 1%;
+  float:left;
+  overflow-y:scroll;
+}
+
+/* pretty scrollbar stuff */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-button:start:decrement,
+::-webkit-scrollbar-button:end:increment  {
+  height: 30px;
+  display: block;
+  background-color: transparent;
+}
+/**/
+
+#right{
+  left:33%;
+  width:48%;
+  margin:1% 1% 0 1%;
+  float:left;
+  overflow:hidden;
+}
+
+#warnings {
+  right:0;
+  width:16%;
+}

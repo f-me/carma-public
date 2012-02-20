@@ -4,6 +4,7 @@
 
 # haskell's junk
 dist
+cabal-dev
 *.hi
 *.o
 
