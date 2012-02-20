@@ -35,7 +35,7 @@ body {
 .column {
   position:absolute;
   top:115px;
-  bottom:0;
+  bottom:2em;
   margin:1% 1% 0 1%;
   border:1px dashed green;
 }
@@ -43,7 +43,6 @@ body {
 #left{
   left:0;
   width:32%;
-  margin:1% 1% 0 1%;
   float:left;
   overflow-y:auto;
 }
@@ -52,7 +51,6 @@ body {
 #right{
   left:33%;
   width:48%;
-  margin:1% 1% 0 1%;
   float:left;
   overflow:hidden;
 }
@@ -78,5 +76,40 @@ body {
   height:25px;
   border-radius:8px;
   background-color:#8b8b9d;
+}
+
+
+#footer {
+  bottom:0;
+  width:100%;
+  height:2em;
+  position:absolute;
+  background:#2d485b;
+}
+
+#menu {
+  margin:0 auto;
+  text-align:center;
+  width:33em;
+}
+
+#menu .menuitem {
+  font: 1em "Calibri", sans-serif;
+  float:left;
+  color:#dbedfd;
+  cursor:pointer;
+  padding:0.5em 1.2em 0.1em 1.2em;
+  text-decoration:none;
+}
+
+#menu .menuitem.selected {
+  background:#d9cea1;
+  color:black;
+  pointer-events: none;
+  cursor: default;
+}
+
+#menu .menuitem:hover {
+  font-weight:bold;
 }
 
