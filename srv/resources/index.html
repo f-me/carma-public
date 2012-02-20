@@ -10,6 +10,8 @@
     <script type='text/javascript' src='/s/js/3p/underscore-1.3.1.min.js'></script>
     <script type='text/javascript' src='/s/js/3p/backbone-0.5.3.min.js'></script>
     <script type='text/javascript' src='/s/js/3p/keyboard.0.2.2.min.js'></script>
+    <script type='text/javascript' src='/s/js/models/pages.js'></script>
+    <script type='text/javascript' src='/s/js/menu.js'></script>
     <script type='text/javascript' src='/s/js/main.js'></script>
   </head>
   <body>
@@ -19,10 +21,7 @@
     </div>
     <div id='left' class='column'></div>
     <div id='right' class='column'></div>
-    <div id='warnings' class='column'>
-      <label>Незаполненные поля</label>
-      <ul id='required-fields'></ul>
-    </div>
+    <div id='warnings' class='column'></div>
     <div id='footer'>
       <div id='menu'>
         <a href='/call'    class='menuitem'>Приём звонка</a>
@@ -32,5 +31,45 @@
       </div>
     </div>
   </body>
+
+  <!-- templates -->
+  <script type='text/html' id='textarea-template' class='field-template'>
+     <p><label>
+       <%=label%><br/>
+       <textarea class='field'
+         data-bind='value: <%=id%>, valueUpdate: "afterkeydown"'/>
+     </label></p>
+  </script>
+  <script type='text/html' id='text-template' class='field-template'>
+    <p><label>
+      <%if (label) {%> <%=label%><br/> <%}%>
+      <input type='text' class='field'
+        data-bind='value: <%=id%>, valueUpdate: "afterkeydown"'/>
+    </label></p>
+  </script>
+  <script type='text/html' id='checkbox-template' class='field-template'>
+    <p><label style='color:black;'>
+      <input type='checkbox' class='field'
+        data-bind='checked: <%=id%>'/>&nbsp;<%=label%>
+    </label></p>
+  </script>
+  <script type='text/html' id='radio-template' class='field-template'>
+    <p><label><%=label%></label><br/>
+      <%_.each(data, function(option,ix) {%>
+        <label style='color:black;'>
+          <input type='radio' name='<%=id%>' value='<%=ix%>'
+            data-bind='checked: <%=id%>'/>
+          <%=option%>
+        </label>
+        <br/>
+      <%});%>
+    <p>
+  </script>
+  <script type='text/html' id='link-template' class='field-template'>
+    <p><a href='#' data-bind='click: <%=id%>'><%=label%></a></p>
+  </script>
+  <script type='text/html' id='map-template' class='field-template'>
+    <div id="basicMap"></div>
+  </script>
 </html>
 

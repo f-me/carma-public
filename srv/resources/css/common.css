@@ -113,3 +113,37 @@ body {
   font-weight:bold;
 }
 
+p {
+  margin:5px 0 5px 0;
+}
+
+textarea, input[type=text] {
+  border:0;
+  border-radius:3px;
+  width:100%;
+  font-family:serif;
+}
+
+#column2 input[type=text] {
+  width:60%;
+}
+
+fieldset {
+  border:0;
+}
+
+legend {
+  font:1.2em sans-serif bold;
+  color:#666666;
+}
+
+textarea {
+  width:99%;
+  height:60px;
+}
+
+label {
+  font:1em sans-serif;
+  color:#666666;
+}
+
