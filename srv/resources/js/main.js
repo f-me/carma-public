@@ -39,18 +39,17 @@ function renderPage(pageModel) {
 function createForm(formName, formMeta) {
   var form = $("<fieldset/>");
   if (_.has(formMeta, "title")) {
-    form.append("<legend>"+ formMeta.title + "</legend>");
+    form.append("<legend>" + formMeta.title + "</legend>");
   }
 
   _.each(formMeta.fields, function(f) {
-    _.each(f, function(fieldMeta,fieldId) {
+    _.each(f, function(fieldMeta, fieldId) {
       //apply defaults to filed description
       fieldMeta = _.defaults(fieldMeta, {
-        type:"text",
-        id:formName+"."+fieldId
+        type: "text",
+        id: formName + "." + fieldId
       });
 
-      
       //apply field template to field description to create
       //corresponding html element
       var field = $(global.meta.fieldTemplate[fieldMeta.type](fieldMeta));
@@ -67,7 +66,7 @@ function createForm(formName, formMeta) {
 function getFieldTemplates() {
   return _.reduce(
     $(".field-template"),
-    function(res,tmp) {
+    function(res, tmp) {
       res[/\w+/.exec(tmp.id)] = _.template($(tmp).text());
       return res;
     },
