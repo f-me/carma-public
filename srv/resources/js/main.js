@@ -1,11 +1,12 @@
 $(function(){
-    global = {
+    window.global = {
+      fieldTemplate: getFieldTemplates(),
       meta: {
         page: metaPages(),
         form: metaForms(),
-        fieldTemplate: getFieldTemplates()
       },
-      ui: {form:{}}
+      view: {},
+      viewModel:{}
     };
 
     var menuRouter = initBottomMenu();
@@ -19,46 +20,71 @@ $(function(){
 });
 
 
+//FIXME: redirect somewhere when `pageModel` is undefined?
 function renderPage(pageModel) {
-  _.each(pageModel, function(containerModels, containerId) {
-      var cont = $("#"+containerId);
-      cont.children().detach(); //remove old forms from container
+  // remove all forms from all containers
+  $(".column").children().detach();
 
+  _.each(pageModel, function(containerModels, containerId) {
       _.each(containerModels, function(formName) {
-        var form = global.ui.form[formName];
+        var form = global.view[formName];
         if (_.isUndefined(form)) {
-          form = createForm(formName, global.meta.form[formName]);
-          global.ui.form[formName] = form;
+          var res = createForm(formName, global.meta.form[formName]);
+
+          global.view[formName] = res.form;
+          global.viewModel[formName] = res.viewModel; 
+          form = res.form;
+
+          //I'm applying bindings only to the body to prevent ko from binding
+          //something in field templates (they are placed outside of the body element).
+          //FIXME: It may be that rebinding everyting on each form creation is
+          //not vey efficient, but I don't know how to apply only new viewModel
+          //without breaking everyting else.
+          ko.applyBindings(global.viewModel, $("body")[0]);
         }
-        cont.append(form); //add new form to container
+        $("#"+containerId).append(form);
       });
   });
 }
 
 
-function createForm(formName, formMeta) {
+function createForm(formId, formMeta) {
   var form = $("<fieldset/>");
+  var vm = {};
+
   if (_.has(formMeta, "title")) {
     form.append("<legend>" + formMeta.title + "</legend>");
   }
 
   _.each(formMeta.fields, function(f) {
     _.each(f, function(fieldMeta, fieldId) {
-      //apply defaults to filed description
-      fieldMeta = _.defaults(fieldMeta, {
-        type: "text",
-        id: formName + "." + fieldId
-      });
+      try {
+        var field = createField(formId, fieldId, fieldMeta);
+        field.appendTo(form);
+        field = field.find(".field");
 
-      //apply field template to field description to create
-      //corresponding html element
-      var field = $(global.meta.fieldTemplate[fieldMeta.type](fieldMeta));
-      field.appendTo(form);
-      field = field.find(".field");
+        vm[fieldId] = ko.observable(fieldMeta.default);
+      } catch(e) {
+        console.log(e);
+      }
     });
   });
 
-  return form;
+  return {form:form, viewModel:vm};
+}
+
+function createField(formId,fieldId,fieldMeta) {
+  //apply defaults to filed description
+  fieldMeta = _.defaults(fieldMeta, {
+    type: "text",
+    id: formId + "." + fieldId,
+    default:""
+  });
+
+  //apply field template to field description to create
+  //corresponding html element
+  var field = $(global.fieldTemplate[fieldMeta.type](fieldMeta));
+  return field;
 }
 
 

@@ -8,7 +8,7 @@ function metaPages() {
       left: ["caseInfo", "services", "addService"],
       right: ["programInfo","caseHistory"],
       warnings: ["requiredFields"]
-    }
+    },
   };
 }
 

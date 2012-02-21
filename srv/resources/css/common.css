@@ -125,7 +125,8 @@ textarea, input[type=text] {
 }
 
 #column2 input[type=text] {
-  width:60%;
+  min-width:270px;
+  width:30%;
 }
 
 fieldset {
