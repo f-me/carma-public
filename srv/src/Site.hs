@@ -23,7 +23,6 @@ import           Snap.Util.FileServe
 import           Snap.Snaplet.RedisDB
 import           Data.Aeson as A
 import           Data.Aeson.Types as A
-import           Data.Attoparsec hiding (take)
 import           Database.Redis
 import           Application
 
