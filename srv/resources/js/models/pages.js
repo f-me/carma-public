@@ -32,7 +32,7 @@ function metaForms() {
         ],
       dependencies:
         {callerType: {
-          showType:"append", // "replace" "inline"
+          type:{append:"right"}, // "replace" "inline"
           value:
             ["generalContact"
             ,"selectContractor"

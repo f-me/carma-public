@@ -58,6 +58,7 @@ body {
 #warnings {
   right:0;
   width:16%;
+  max-width:200px;
 }
 
 ::-webkit-scrollbar {width:2%;}
@@ -124,7 +125,7 @@ textarea, input[type=text] {
   font-family:serif;
 }
 
-#column2 input[type=text] {
+#right input[type=text] {
   min-width:270px;
   width:30%;
 }

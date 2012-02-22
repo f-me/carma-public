@@ -26,23 +26,21 @@ function renderPage(pageModel) {
   $(".column").children().detach();
 
   _.each(pageModel, function(containerModels, containerId) {
-      _.each(containerModels, function(formName) {
-        var form = global.view[formName];
-        if (_.isUndefined(form)) {
-          var res = createForm(formName, global.meta.form[formName]);
-
-          global.view[formName] = res.form;
-          global.viewModel[formName] = res.viewModel; 
-          form = res.form;
-
-          //I'm applying bindings only to the body to prevent ko from binding
-          //something in field templates (they are placed outside of the body element).
-          //FIXME: It may be that rebinding everyting on each form creation is
-          //not vey efficient, but I don't know how to apply only new viewModel
-          //without breaking everyting else.
-          ko.applyBindings(global.viewModel, $("body")[0]);
+      _.each(containerModels, function(formId) {
+        if (_.isUndefined(global.view[formId])) {
+          var formMeta = global.meta.form[formId];
+          createForm(formId, formMeta);
+          processFormDependencies(formId,formMeta); 
         }
-        $("#"+containerId).append(form);
+        $("#"+containerId).append(global.view[formId]);
+
+        //FIXME:I'm applying bindings only to the body to prevent ko from
+        //binding something in field templates (they are placed outside of the
+        //body element).
+        //FIXME: It may be that rebinding everyting on each form creation is
+        //not vey efficient, but I don't know how to apply only new viewModel
+        //without breaking everyting else.
+        ko.applyBindings(global.viewModel, $("body")[0]);
       });
   });
 }
@@ -70,8 +68,43 @@ function createForm(formId, formMeta) {
     });
   });
 
-  return {form:form, viewModel:vm};
+  global.view[formId] = form;
+  global.viewModel[formId] = vm; 
 }
+
+//FIXME: OMG! seven levels of indentation!
+//And the code is quite ugly by itself.
+function processFormDependencies(formId, formMeta) {
+  _.each(formMeta.dependencies,function(depMeta, fieldId) {
+    _.each(depMeta.type, function(params, depType) {
+      if (depType === "append") {
+        var containerId = params;
+        var fieldVM = global.viewModel[formId][fieldId];
+        //Here is the closure that we use to store link to the current form
+        //element
+        (function() {
+          var form;
+          fieldVM.subscribe(function(val) {
+            if (!_.isUndefined(form)) {
+              form.detach();
+            }
+            var depId = depMeta.value[val];
+            if (!_.has(global.view, depId)) {
+              createForm(depId, global.meta.form[depId]);
+            }
+            form = global.view[depId];
+            $("#"+containerId).append(form);
+            //FIXME: see note above about applyBindings
+            ko.applyBindings(global.viewModel, $("body")[0]);
+          });
+        })();
+
+        fieldVM.notifySubscribers(fieldVM());
+      }
+    });
+  });
+}
+
 
 function createField(formId,fieldId,fieldMeta) {
   //apply defaults to filed description
