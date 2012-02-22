@@ -32,12 +32,11 @@ body {
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
 
-.column {
+div.column {
   position:absolute;
   top:115px;
   bottom:2em;
   margin:1% 1% 0 1%;
-  border:1px dashed green;
 }
 
 #left{
@@ -148,3 +147,14 @@ label {
   color:#666666;
 }
 
+.dataTables_wrapper {
+  position: relative;
+  clear: both;
+  zoom: 1; /* Feeling sorry for IE */
+}
+
+table.display {
+  margin: 0 auto;
+  clear: both;
+  width: 100%;
+}

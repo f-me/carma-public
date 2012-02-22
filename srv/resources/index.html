@@ -6,17 +6,22 @@
     <meta charset='utf-8' />
     <title>carma</title>
     <link   type='text/css' href='/s/css/common.css' rel='stylesheet'/>
-    <script type='text/javascript' src='/s/js/3p/jquery-1.7.1.min.js'></script>
+    <link   type='text/css' href='/s/css/jquery.dataTables.css' rel='stylesheet'/>
+    <script src='/s/js/3p/jquery-1.7.1.min.js'></script>
 
-    <script type='text/javascript' src='/s/js/3p/underscore-1.3.1.min.js'></script>
-    <script type='text/javascript' src='/s/js/3p/backbone-0.5.3.min.js'></script>
-    <script type='text/javascript' src='/s/js/3p/knockout-2.0.0.js'></script>
+    <script src='/s/js/3p/underscore-1.3.1.min.js'></script>
+    <script src='/s/js/3p/backbone-0.5.3.min.js'></script>
+    <script src='/s/js/3p/knockout-2.0.0.js'></script>
 
-    <script type='text/javascript' src='/s/js/3p/keyboard.0.2.2.min.js'></script>
+    <script src='/s/js/3p/keyboard.0.2.2.min.js'></script>
 
-    <script type='text/javascript' src='/s/js/models/pages.js'></script>
-    <script type='text/javascript' src='/s/js/menu.js'></script>
-    <script type='text/javascript' src='/s/js/main.js'></script>
+    <script src='/s/js/3p/jquery.dataTables.min.js'></script>
+    <script src='/s/js/3p/Scroller.min.js'></script>
+
+    <script src='/s/js/models/pages.js'></script>
+    <script src='/s/js/viewPlugins.js'></script>
+    <script src='/s/js/menu.js'></script>
+    <script src='/s/js/main.js'></script>
   </head>
   <body>
     <div id='info-header'>
@@ -72,8 +77,14 @@
   <script type='text/html' id='link-template' class='field-template'>
     <p><a href='#' data-bind='click: <%=id%>'><%=label%></a></p>
   </script>
+  <script type='text/html' id='searchTable-template' class='field-template'>
+    <table
+        cellpadding='0' cellspacing='0' border='0'
+        class='display field' id='<%=id%>'>
+    </table>
+  </script>
   <script type='text/html' id='map-template' class='field-template'>
-    <div id="basicMap"></div>
+    <p><div id='basicMap'></div></p>
   </script>
 </html>
 

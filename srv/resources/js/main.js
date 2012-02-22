@@ -1,6 +1,7 @@
 $(function(){
     window.global = {
-      fieldTemplate: getFieldTemplates(),
+      viewPlugin: viewPlugins(),
+      fieldTemplate: fieldTemplates(),
       meta: {
         page: metaPages(),
         form: metaForms(),
@@ -30,7 +31,6 @@ function renderPage(pageModel) {
         if (_.isUndefined(global.view[formId])) {
           var formMeta = global.meta.form[formId];
           createForm(formId, formMeta);
-          processFormDependencies(formId,formMeta); 
         }
         $("#"+containerId).append(global.view[formId]);
 
@@ -41,6 +41,7 @@ function renderPage(pageModel) {
         //not vey efficient, but I don't know how to apply only new viewModel
         //without breaking everyting else.
         ko.applyBindings(global.viewModel, $("body")[0]);
+        processFormDependencies(formId,formMeta); 
       });
   });
 }
@@ -56,15 +57,15 @@ function createForm(formId, formMeta) {
 
   _.each(formMeta.fields, function(f) {
     _.each(f, function(fieldMeta, fieldId) {
-      try {
+//      try {
         var field = createField(formId, fieldId, fieldMeta);
         field.appendTo(form);
         field = field.find(".field");
 
         vm[fieldId] = ko.observable(fieldMeta.default);
-      } catch(e) {
-        console.log(e);
-      }
+//      } catch(e) {
+//        console.log(e);
+//      }
     });
   });
 
@@ -111,18 +112,25 @@ function createField(formId,fieldId,fieldMeta) {
   fieldMeta = _.defaults(fieldMeta, {
     type: "text",
     id: formId + "." + fieldId,
-    default:""
+    default: ""
   });
 
   //apply field template to field description to create
   //corresponding html element
   var field = $(global.fieldTemplate[fieldMeta.type](fieldMeta));
+
+  //apply additional plugins
+  _.each(fieldMeta,function(val,key) {
+      if (_.has(global.viewPlugin, key)) {
+        global.viewPlugin[key](field,fieldMeta);
+      }
+  });
   return field;
 }
 
 
 //Find filed templates in html document and precompile them.
-function getFieldTemplates() {
+function fieldTemplates() {
   return _.reduce(
     $(".field-template"),
     function(res, tmp) {
