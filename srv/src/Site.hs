@@ -33,7 +33,7 @@ searchContractors = do
   ps <- rqParams <$> getRequest
   let s0 = head $ (M.!) ps "sSearch_0"
   let s2 = head $ (M.!) ps "sSearch_2"
-  let s4 = head $ (M.!) ps "sSearch_4"
+  let s3 = head $ (M.!) ps "sSearch_3"
 
   vals <- runRedisDB redisDB $ do
     let getMatch (k,s)
@@ -44,7 +44,7 @@ searchContractors = do
         <$> mapM getMatch
           [("partner:companyName:",s0)
           ,("partner:contactPerson:",s2)
-          ,("partner:contactPhone:",s4)
+          ,("partner:contactPhone:",s3)
           ]
     ks <- if null matchingKeys
           then fromRight <$> keys "partner:*"

@@ -60,7 +60,22 @@ function metaForms() {
         ,{name:{label:"ФИО"}}
         ,{phones:{label:"Контактные телефоны"}}
         ,{save:{label:"Сохранить",type:"link"}}
-        ,{contractor:{type:"searchTable",query:{"company":0,"name":2,"phones":4},data:"link to source"}}
+        ,{contractor:{
+          type:"searchTable",
+          searchTable:
+            {columns:
+              ["Компания"
+              ,"Город"
+              ,"ФИО"
+              ,"Телефон"
+              ,"Комментарий"]
+            ,query:
+              {"selectContractor.company":0
+              ,"selectContractor.name":2
+              ,"selectContractor.phones":3}
+            ,source:"/api/search_contractors"
+            }}
+          }
         ]
     },
     selectDealer: {
@@ -69,7 +84,20 @@ function metaForms() {
         ,{name:{label:"ФИО"}}
         ,{phones:{label:"Контактные телефоны"}}
         ,{save:{label:"Сохранить",type:"link"}}
-        ,{dealer:{type:"searchTable",query:{"company":0,"name":2,"phones":4},data:"link to source"}}
+        ,{dealer:{
+          type:"searchTable",
+          searchTable:
+            {columns:
+              ["Компания"
+              ,"Город"
+              ,"ФИО"
+              ,"Должность"
+              ,"Телефон"
+              ]
+            ,query:{"company":0,"name":2,"phones":4}
+            ,source:"/api/search_dealers"
+            }}
+          }
         ]
     }
   };
