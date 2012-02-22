@@ -11,7 +11,7 @@ table.dataTable {
 
 table.dataTable thead th {
 	padding: 3px 18px 3px 10px;
-	border-bottom: 1px solid black;
+  color:#666666;
 	font-weight: bold;
 	cursor: pointer;
 	*cursor: hand;
@@ -22,7 +22,6 @@ table.dataTable tfoot th {
 	border-top: 1px solid black;
 	font-weight: bold;
 }
-
 table.dataTable td {
 	padding: 3px 10px;
 }
@@ -32,7 +31,7 @@ table.dataTable td.dataTables_empty {
 	text-align: center;
 }
 
-table.dataTable tr.odd { background-color: #E2E4FF; }
+table.dataTable tr.odd { background-color: #f0f0ff; }
 table.dataTable tr.even { background-color: white; }
 
 table.dataTable tr.odd td.sorting_1 { background-color: #D3D6FF; }
@@ -67,6 +66,7 @@ table.dataTable tr.even td.sorting_3 { background-color: #F9F9FF; }
 .dataTables_filter {
 	float: right;
 	text-align: right;
+  display:none;
 }
 
 

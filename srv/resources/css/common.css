@@ -59,19 +59,19 @@ div.column {
   width:16%;
 }
 
-::-webkit-scrollbar {width:2%;}
-::-webkit-scrollbar-button:vertical,
-::-webkit-scrollbar-button:start:decrement,
-::-webkit-scrollbar-button:end:increment,
-::-webkit-scrollbar-button:vertical:start:increment,
-::-webkit-scrollbar-button:vertical:end:decrement,
-::-webkit-scrollbar-button:vertical:increment,
-::-webkit-scrollbar-button:vertical:decrement,
-::-webkit-scrollbar-track:vertical,
-::-webkit-scrollbar-track-piece:vertical:start.
-::-webkit-scrollbar-track-piece:vertical:end,
-::-webkit-scrollbar-track-piece {display:none;}
-::-webkit-scrollbar-thumb:vertical {
+#left::-webkit-scrollbar {width:2%;}
+#left::-webkit-scrollbar-button:vertical,
+#left::-webkit-scrollbar-button:start:decrement,
+#left::-webkit-scrollbar-button:end:increment,
+#left::-webkit-scrollbar-button:vertical:start:increment,
+#left::-webkit-scrollbar-button:vertical:end:decrement,
+#left::-webkit-scrollbar-button:vertical:increment,
+#left::-webkit-scrollbar-button:vertical:decrement,
+#left::-webkit-scrollbar-track:vertical,
+#left::-webkit-scrollbar-track-piece:vertical:start.
+#left::-webkit-scrollbar-track-piece:vertical:end,
+#left::-webkit-scrollbar-track-piece {display:none;}
+#left::-webkit-scrollbar-thumb:vertical {
   height:25px;
   border-radius:8px;
   background-color:#8b8b9d;
@@ -147,14 +147,4 @@ label {
   color:#666666;
 }
 
-.dataTables_wrapper {
-  position: relative;
-  clear: both;
-  zoom: 1; /* Feeling sorry for IE */
-}
 
-table.display {
-  margin: 0 auto;
-  clear: both;
-  width: 100%;
-}
