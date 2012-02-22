@@ -58,7 +58,6 @@ body {
 #warnings {
   right:0;
   width:16%;
-  max-width:200px;
 }
 
 ::-webkit-scrollbar {width:2%;}
