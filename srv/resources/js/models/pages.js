@@ -68,7 +68,7 @@ function metaForms() {
               ,"Город"
               ,"ФИО"
               ,"Телефон"
-              ,"Комментарий"]
+              ,"Услуга"]
             ,query:
               {"selectContractor.company":0
               ,"selectContractor.name":2

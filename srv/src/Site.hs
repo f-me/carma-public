@@ -55,8 +55,8 @@ searchContractors = do
           (catMaybes $ map (A.decode . L.fromChunks .(:[])) vals)
           $ A.parseMaybe (\o -> mapM (o .:)
             ["companyName","cityRu"
-            ,"contactPerson","phones"
-            ,"comment"]) :: [[A.Value]]
+            ,"contactPerson","contactPhone"
+            ,"serviceRu"]) :: [[A.Value]]
 
   let response = A.encode $ object
         ["iTotalRecords" .= length res
