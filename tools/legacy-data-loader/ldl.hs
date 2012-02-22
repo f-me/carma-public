@@ -50,20 +50,25 @@ fromCSV fname f rConn = E.run_
     toRedis c (ParsedRow (Just r)) = runRedis c (f r) >> return c
 
 
+pStr (Object o) = fromJust . parseMaybe (o .:) :: T.Text -> T.Text
 pStrs o = T.strip . T.intercalate " " . map (pStr o)
-pStr  o = fromJust . parseMaybe (o .:) :: T.Text -> T.Text
 pList o = map (pStr o)
 
 mkObj :: [T.Text] -> [B.ByteString] -> Value
 mkObj = (object.) . zipWith (.=)
 
+toBS = T.encodeUtf8 . T.concat :: [T.Text] -> B.ByteString
 
-mkPartner row = set key jsn
+mkPartner row = do
+  set key $ B.concat $ L.toChunks $ encode obj
+  lpush (toBS ["partner:companyName:", pStr obj "companyName"])     [key]
+  lpush (toBS ["partner:contactPerson:", pStr obj "contactPerson"]) [key]
+  lpush (toBS ["partner:contactPhone:", pStr obj "contactPhone"])   [key]
   where
-    Object o = mkObj [T.pack $ show i | i <- [0..]] row
+    o = mkObj [T.pack $ show i | i <- [0..]] row
     (p,ps,pL) = (pStr o, pStrs o, pList o)
-    key = T.encodeUtf8 $ T.concat ["partner:", p "0"] -- 0 Code
-    jsn = B.concat $ L.toChunks $ encode $ object
+    key = toBS ["partner:", p "0"]
+    obj =  object
       ["cityRu"        .= p "1" -- 1 Город
       ,"cityEn"        .= p "4" -- 4 City
       ,"priority1"     .= p "2" -- 2 Приоритет за городом
@@ -86,12 +91,14 @@ mkPartner row = set key jsn
 
 mkDealer row = do
   Right id <- incr "dealer:id"
-  set (B.concat ["dealer:",B.pack $ show id]) jsn
+  let key = B.concat ["dealer:",B.pack $ show id]
+  set key $ B.concat $ L.toChunks $ encode obj
+  lpush (toBS ["dealer:name:", pStr obj "name"])            [key]
+  lpush (toBS ["dealer:salesPhone:", pStr obj "salesPhone"]) [key]
   where  
-    Object o = mkObj [T.pack $ show i | i <- [0..]] row
+    o = mkObj [T.pack $ show i | i <- [0..]] row
     (p,ps) = (pStr o, pStrs o)
-    key = T.encodeUtf8 $ T.concat ["partner:", p "0"] -- 0 Code
-    jsn = B.concat $ L.toChunks $ encode $ object
+    obj = object
       ["city"         .= ps ["0","2"] -- 0 Город -- 2 Округ
       ,"type"         .= p "1" -- 1 Дилер
       ,"name"         .= p "3" -- 3 Название дилера
