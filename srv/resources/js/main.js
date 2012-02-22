@@ -57,15 +57,33 @@ function createForm(formId, formMeta) {
 
   _.each(formMeta.fields, function(f) {
     _.each(f, function(fieldMeta, fieldId) {
-//      try {
-        var field = createField(formId, fieldId, fieldMeta);
+      try {
+        //apply defaults to filed description
+        fieldMeta = _.defaults(fieldMeta, {
+          type: "text",
+          id: formId + "." + fieldId,
+          default: ""
+        });
+
+        //apply field template to field description to create
+        //corresponding html element
+        var field = $(global.fieldTemplate[fieldMeta.type](fieldMeta));
+
+        // var field = createField(formId, fieldId, fieldMeta);
+
         field.appendTo(form);
         field = field.find(".field");
+        //apply additional plugins
+        _.each(fieldMeta,function(val,key) {
+            if (_.has(global.viewPlugin, key)) {
+              global.viewPlugin[key](field, fieldMeta);
+            }
+        });
 
         vm[fieldId] = ko.observable(fieldMeta.default);
-//      } catch(e) {
-//        console.log(e);
-//      }
+      } catch(e) {
+        console.log(e);
+      }
     });
   });
 
@@ -119,12 +137,6 @@ function createField(formId,fieldId,fieldMeta) {
   //corresponding html element
   var field = $(global.fieldTemplate[fieldMeta.type](fieldMeta));
 
-  //apply additional plugins
-  _.each(fieldMeta,function(val,key) {
-      if (_.has(global.viewPlugin, key)) {
-        global.viewPlugin[key](field,fieldMeta);
-      }
-  });
   return field;
 }
 

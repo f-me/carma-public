@@ -51,7 +51,22 @@ function metaForms() {
     selectCase: {
       fields:
         [{query:{label:"Поиск в кейсах"}}
-        ,{cases:{type:"searchTable",query:"selectCase.query",data:"link to source"}}
+        ,{cases:{
+          type:"searchTable",
+          searchTable:
+            {columns:
+              ["#",
+              ,"Дата",
+              ,"Программа",
+              ,"Услуга",
+              ,"Госномер",
+              ,"Статус",
+              ,"ФИО",
+              ,"Телефон"]
+            ,query: {"selectCase.query":"*"}
+            ,source:"/api/search_case"
+            }}
+          }
         ]
     },
     selectContractor: {
@@ -73,7 +88,7 @@ function metaForms() {
               {"selectContractor.company":0
               ,"selectContractor.name":2
               ,"selectContractor.phones":3}
-            ,source:"/api/search_contractors"
+            ,source:"/api/search_contractor"
             }}
           }
         ]
@@ -95,7 +110,7 @@ function metaForms() {
               ,"Телефон"
               ]
             ,query:{"company":0,"name":2,"phones":4}
-            ,source:"/api/search_dealers"
+            ,source:"/api/search_dealer"
             }}
           }
         ]

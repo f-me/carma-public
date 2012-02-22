@@ -8,32 +8,34 @@ function viewPlugins() {
         field.dataTable({
           bInfo: false,
           bPaginate: false,
-          sScrollY: "350px",
+          sScrollY: "230px",
+          bScrollInfinite: true,
           bDeferRender: true,
           bSortClasses: false,
+          iTabIndex: -1,
           oLanguage: {
             sSearch: "",
             sZeroRecords: "Ничего не найдено"
           },
           aoColumns: aoColumns,
           sAjaxSource: fieldMeta.searchTable.source,
-          bServerSide: true,
-          sDom: "frtiS"
+          bServerSide: true
+        });
+
+        _.each(fieldMeta.searchTable.query, function(colId,fId) {
+          var fModel = _.reduce(fId.split("."), function(res,p) {
+            return res[p];
+          },
+          global.viewModel);
+
+          fModel.subscribe(function(val) {
+            field.fnFilter(val,colId === "*" ? undefined : colId);
+          });
         });
     }
   };
 }
 /*
-      _.each(fieldMeta.searchTable.query, function(colId,fId) {
-        var fModel = _.reduce(fId.split("."), function(res,p) {
-          return res[p];
-        },
-        global.viewModel);
-
-        fModel.subscribe(function(val) {
-          field.fnFilter(val,colId);
-        });
-      });
 */
 //   searchcase.$("td").hover(function() {
 //     $(this.parentNode).addClass("highlighted");

@@ -27,14 +27,25 @@ import           Database.Redis
 import           Application
 
 
+searchCase = do
+  let response = A.encode $ object
+        ["iTotalRecords" .= (0::Int)
+        ,"iTotalDisplayRecords" .= (0::Int)
+        ,"aaData" .= toJSON ([]::[T.Text])
+        ]
+  modifyResponse $ setContentType "application/json"
+  writeLBS response
 
-searchContractors = do
+searchDealer = searchCase
+
+
+searchContractor = do
   ps <- rqParams <$> getRequest
   let s0 = head $ (M.!) ps "sSearch_0"
   let s2 = head $ (M.!) ps "sSearch_2"
   let s3 = head $ (M.!) ps "sSearch_3"
 
-  vals <- runRedisDB redisDB $ do
+  (vals,total) <- runRedisDB redisDB $ do
     let getMatch (k,s)
           = if B.null s
           then return Nothing
@@ -49,7 +60,8 @@ searchContractors = do
           then fromRight <$> keys "partner:*"
           else return $ foldl' intersect [] matchingKeys
 
-    (catMaybes . fromRight) <$> (mget $ take 100 ks)
+    vals <- (catMaybes . fromRight) <$> (mget $ take 100 ks)
+    return (vals, length ks)
 
   let res = catMaybes $ flip map
           (catMaybes $ map (A.decode . L.fromChunks .(:[])) vals)
@@ -59,8 +71,8 @@ searchContractors = do
             ,"serviceRu"]) :: [[A.Value]]
 
   let response = A.encode $ object
-        ["iTotalRecords" .= length res
-        ,"iTotalDisplayRecords" .= length res
+        ["iTotalRecords" .= total
+        ,"iTotalDisplayRecords" .= (100::Int)
         ,"aaData" .= toJSON res
         ]
   modifyResponse $ setContentType "application/json"
@@ -75,7 +87,9 @@ fromRight = either (const []) id
 routes :: [(ByteString, Handler App App ())]
 routes = [("/s", serveDirectory "resources")
          ,("/",  serveFile "resources/index.html")
-         ,("/api/search_contractors", method GET searchContractors)
+         ,("/api/search_case", method GET searchCase)
+         ,("/api/search_dealer", method GET searchDealer)
+         ,("/api/search_contractor", method GET searchContractor)
          ]
 
 ------------------------------------------------------------------------------
