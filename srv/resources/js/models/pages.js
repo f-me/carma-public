@@ -1,23 +1,24 @@
 function metaPages() {
   return {
     "call": {
-      left: ["callInfo"],
-      right:["selectCase"]
+      left: ["CallInfo"],
+      right:["SelectCase","CallerDetails"],
+      warnings:[]
     },
     "case": {
-      left: ["caseInfo", "services", "addService"],
-      right: ["programInfo","caseHistory"],
-      warnings: ["requiredFields"]
+      left: ["CaseInfo", "Services", "AddService"],
+      right: ["ProgramInfo","CaseHistory"],
+      warnings: ["RequiredFields"]
     },
   };
 }
 
 function metaForms() {
   return {
-    callInfo: {
+    CallInfo: {
       fields:
-        [{wazzup: {label:"Что случилось", type:"textarea"}}
-        ,{callType: {label:"Тип звонка", data:"callTypes"}}
+        [{wazzup:{label:"Что случилось", type:"textarea"}}
+        ,{callType:{label:"Тип звонка", data:"callTypes"}}
         ,{callerType:
           {label:"Кто звонит?"
           ,type:"options"
@@ -26,29 +27,29 @@ function metaForms() {
             ,"Подрядчик"
             ,"Дилерский центр"
             ,"Заказчик программы"
-            ,"Другое"
-            ]
-          , default:0}}
-        ],
-      dependencies:
-        {callerType: {
-          type:{append:"right"}, // "replace" "inline"
-          value:
-            ["generalContact"
-            ,"selectContractor"
-            ,"selectDealer"
-            ,"generalContact"
-            ,"generalContact"
-            ]
-        }}
-    },
-    generalContact: {
-      fields:
-        [{name: {label:"ФИО"}}
-        ,{phone: {label:"Телефоны",validate:/^[+ ,;\d]*$/}}
+            ,"Другое"]
+          ,default:0}}
         ]
     },
-    selectCase: {
+    CallerDetails: {
+      fields:[{caller:{type:"form",exposeId:true}}],
+      dependencies:
+        {caller: {
+          dependsOn:"CallInfo.callerType",
+          value:
+            ["GeneralContact"
+            ,"SelectContractor"
+            ,"SelectDealer"
+            ,"GeneralContact"
+            ,"GeneralContact"]
+        }}
+    },
+    GeneralContact: {
+      fields:
+        [{name:{label:"ФИО"}}
+        ,{phone:{label:"Телефоны",validate:/^[+ ,;\d]*$/}}]
+    },
+    SelectCase: {
       fields:
         [{query:{label:"Поиск в кейсах"}}
         ,{cases:{
@@ -63,13 +64,13 @@ function metaForms() {
               ,"Статус",
               ,"ФИО",
               ,"Телефон"]
-            ,query: {"selectCase.query":"*"}
+            ,query: {"SelectCase.query":"*"}
             ,source:"/api/search_case"
             }}
           }
         ]
     },
-    selectContractor: {
+    SelectContractor: {
       fields:
         [{company:{label:"Компания"}}
         ,{name:{label:"ФИО"}}
@@ -85,15 +86,15 @@ function metaForms() {
               ,"Телефон"
               ,"Услуга"]
             ,query:
-              {"selectContractor.company":0
-              ,"selectContractor.name":2
-              ,"selectContractor.phones":3}
+              {"SelectContractor.company":0
+              ,"SelectContractor.name":2
+              ,"SelectContractor.phones":3}
             ,source:"/api/search_contractor"
             }}
           }
         ]
     },
-    selectDealer: {
+    SelectDealer: {
       fields:
         [{company:{label:"Компания"}}
         ,{name:{label:"ФИО"}}
@@ -107,13 +108,41 @@ function metaForms() {
               ,"Город"
               ,"ФИО"
               ,"Должность"
-              ,"Телефон"
-              ]
-            ,query:{"company":0,"name":2,"phones":4}
-            ,source:"/api/search_dealer"
-            }}
-          }
-        ]
+              ,"Телефон"]
+            ,query:
+              {"SelectDealer.company":0
+              ,"SelectDealer.name":2
+              ,"SelectDealer.phones":4}
+            ,source:"/api/search_dealer"}}
+          }]
+    },
+    CaseInfo: {
+      fields:
+        [{wazzup:{label:"Что случилось?", type:"textarea"}}
+        ,{program:{label:"Программа", data:"Programs", required:true}}
+        ,{vin:{label:"VIN",required:true}}
+        ,{car:{type:"staticText",ephemeral:true}}
+        ,{programConditions:{type:"form",dataInline:true}}
+        ,{plate:{label:"Госномер",required:true}}
+        ,{contactName:{label:"Контактное лицо",required:true}}
+        ,{contactPhone:{label:"Контактный телефон",required:true}}
+        ,{diagnosis1:{label:"Диагностика",data:"Diagnosis1"}}
+        ,{diagnodis2:{data:"Diagnosis2"}}
+        ,{diagnodis3:{data:"Diagnosis3"}}
+        ,{diagnodis4:{data:"Diagnosis4"}}
+        ],
+      dependencies: {
+        programConditions: {
+          dependsOn:"CaseInfo.program",
+          default:"EmptyForm",
+          value:["VWMotorConditions","VWTruckConditions"]
+        }}
+    },
+    VWMotorConditions: {
+      fields:
+        [{sellDateCheck1:{label:"Дата продажи > 15.01.2010",type:"check"}}
+        ,{sellDateCheck2:{label:"Дата продажи < 2 лет",type:"check"}}
+        ,{isMember:{label:"Клиент участвует в программе",type:"check"}}]
     }
   };
 }

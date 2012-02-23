@@ -28,22 +28,18 @@ function renderPage(pageModel) {
 
   _.each(pageModel, function(containerModels, containerId) {
       _.each(containerModels, function(formId) {
-        if (_.isUndefined(global.view[formId])) {
-          var formMeta = global.meta.form[formId];
-          createForm(formId, formMeta);
-        }
+        createForm(formId, global.meta.form[formId]);
         $("#"+containerId).append(global.view[formId]);
-
-        //FIXME:I'm applying bindings only to the body to prevent ko from
-        //binding something in field templates (they are placed outside of the
-        //body element).
-        //FIXME: It may be that rebinding everyting on each form creation is
-        //not vey efficient, but I don't know how to apply only new viewModel
-        //without breaking everyting else.
-        ko.applyBindings(global.viewModel, $("body")[0]);
-        processFormDependencies(formId,formMeta); 
       });
   });
+
+  _.each(pageModel, function(containerModels, containerId) {
+      _.each(containerModels, function(formId) {
+        processFormDependencies(formId,global.meta.form[formId]); 
+      });
+  });
+
+  ko.applyBindings(global.viewModel);
 }
 
 
@@ -51,13 +47,16 @@ function createForm(formId, formMeta) {
   var form = $("<fieldset/>");
   var vm = {};
 
+  global.view[formId] = form;
+  global.viewModel[formId] = vm; 
+
   if (_.has(formMeta, "title")) {
     form.append("<legend>" + formMeta.title + "</legend>");
   }
 
   _.each(formMeta.fields, function(f) {
     _.each(f, function(fieldMeta, fieldId) {
-      try {
+   //   try {
         //apply defaults to filed description
         fieldMeta = _.defaults(fieldMeta, {
           type: "text",
@@ -73,6 +72,10 @@ function createForm(formId, formMeta) {
 
         field.appendTo(form);
         field = field.find(".field");
+
+        if (fieldMeta.exposeId) {
+          field.attr("id", formId+"-"+fieldId);
+        }
         //apply additional plugins
         _.each(fieldMeta,function(val,key) {
             if (_.has(global.viewPlugin, key)) {
@@ -81,64 +84,42 @@ function createForm(formId, formMeta) {
         });
 
         vm[fieldId] = ko.observable(fieldMeta.default);
-      } catch(e) {
-        console.log(e);
-      }
+     // } catch(e) {
+     //   console.log(e);
+     // }
     });
   });
-
-  global.view[formId] = form;
-  global.viewModel[formId] = vm; 
 }
 
 //FIXME: OMG! seven levels of indentation!
 //And the code is quite ugly by itself.
 function processFormDependencies(formId, formMeta) {
-  _.each(formMeta.dependencies,function(depMeta, fieldId) {
-    _.each(depMeta.type, function(params, depType) {
-      if (depType === "append") {
-        var containerId = params;
-        var fieldVM = global.viewModel[formId][fieldId];
-        //Here is the closure that we use to store link to the current form
-        //element
-        (function() {
-          var form;
-          fieldVM.subscribe(function(val) {
-            if (!_.isUndefined(form)) {
-              form.detach();
-            }
-            var depId = depMeta.value[val];
-            if (!_.has(global.view, depId)) {
-              createForm(depId, global.meta.form[depId]);
-            }
-            form = global.view[depId];
-            $("#"+containerId).append(form);
-            //FIXME: see note above about applyBindings
-            ko.applyBindings(global.viewModel, $("body")[0]);
-          });
-        })();
+  _.each(formMeta.dependencies,function(depMeta, targetId) {
+      if (_.has(depMeta, "value")) {
+        var srcVM = _.reduce(
+          depMeta.dependsOn.split("."),
+          function(res,p) { return res[p]; },
+          global.viewModel);
 
-        fieldVM.notifySubscribers(fieldVM());
+        var tgtId = "#"+formId+"-"+targetId;
+        srcVM.subscribe(function(val) {
+          var tgtElem = $(tgtId);
+          var formId = depMeta.value[val];
+          if (!_.has(global.view, formId)) {
+            createForm(formId, global.meta.form[formId]);
+          }
+
+          var form = global.view[formId];
+          tgtElem.children().detach();
+          tgtElem.append(form);
+          ko.applyBindings(global.viewModel, form[0]);
+        });
+
+        srcVM.notifySubscribers(srcVM());
       }
-    });
   });
 }
 
-
-function createField(formId,fieldId,fieldMeta) {
-  //apply defaults to filed description
-  fieldMeta = _.defaults(fieldMeta, {
-    type: "text",
-    id: formId + "." + fieldId,
-    default: ""
-  });
-
-  //apply field template to field description to create
-  //corresponding html element
-  var field = $(global.fieldTemplate[fieldMeta.type](fieldMeta));
-
-  return field;
-}
 
 
 //Find filed templates in html document and precompile them.
