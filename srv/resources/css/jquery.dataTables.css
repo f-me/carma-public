@@ -31,8 +31,12 @@ table.dataTable td.dataTables_empty {
 	text-align: center;
 }
 
-table.dataTable tr.odd { background-color: #f0f0ff; }
+table.dataTable tr {cursor:pointer;}
+table.dataTable tr.odd { background-color: #e0e0ee; }
 table.dataTable tr.even { background-color: white; }
+table.dataTable tr.odd:hover:not(.row_selected) { background-color: #e0eee0; }
+table.dataTable tr.even:hover:not(.row_selected) { background-color: #e0eee0; }
+table.dataTable tr.row_selected { background-color: #c0c0dd; }
 
 table.dataTable tr.odd td.sorting_1 { background-color: #D3D6FF; }
 table.dataTable tr.odd td.sorting_2 { background-color: #DADCFF; }

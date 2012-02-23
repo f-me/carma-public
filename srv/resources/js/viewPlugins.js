@@ -8,7 +8,7 @@ function viewPlugins() {
         field.dataTable({
           bInfo: false,
           bPaginate: false,
-          sScrollY: "230px",
+          sScrollY: "220px",
           bScrollInfinite: true,
           bDeferRender: true,
           bSortClasses: false,
@@ -23,34 +23,23 @@ function viewPlugins() {
         });
 
         _.each(fieldMeta.searchTable.query, function(colId,fId) {
-          var fModel = _.reduce(fId.split("."), function(res,p) {
-            return res[p];
-          },
-          global.viewModel);
+          var fModel = _.reduce(
+            fId.split("."),
+            function(res,p) { return res[p]; },
+            global.viewModel);
 
-          fModel.subscribe(function(val) {
-            field.fnFilter(val,colId === "*" ? undefined : colId);
-          });
+          fModel.subscribe(_.throttle(
+            function(val) {
+              field.fnFilter(val,colId === "*" ? undefined : colId);
+            },
+            2000));
+        });
+
+        field.on("click", "tr", function() {
+            field.find("tr").removeClass("row_selected");
+            $(this).addClass("row_selected");
         });
     }
   };
 }
-/*
-*/
-//   searchcase.$("td").hover(function() {
-//     $(this.parentNode).addClass("highlighted");
-//   }, function() {
-//     searchcase.$("tr.highlighted").removeClass('highlighted');
-//   } );
-// 
-//   $("#searchcase tbody tr").click( function(e) {
-//     if ($(this).hasClass('row_selected')) {
-//       $(this).removeClass('row_selected');
-//     }
-//     else {
-//       searchcase.$('tr.row_selected').removeClass('row_selected');
-//       $(this).addClass('row_selected');
-//       window.location.href="newcase.html";
-//     }
-//   });
-// 
+
