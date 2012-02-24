@@ -97,8 +97,8 @@ function metaForms() {
     SelectDealer: {
       fields:
         [{company:{label:"Компания"}}
+        ,{city:{label:"Город"}}
         ,{program:{label:"Программа"}}
-        ,{phones:{label:"Контактные телефоны"}}
         ,{save:{label:"Сохранить",type:"link"}}
         ,{dealer:{
           type:"searchTable",
@@ -111,8 +111,8 @@ function metaForms() {
               ,"Телефон"]
             ,query:
               {"SelectDealer.company":0
-              ,"SelectDealer.program":2
-              ,"SelectDealer.phones":4}
+              ,"SelectDealer.city":1
+              ,"SelectDealer.program":2}
             ,source:"/api/search_dealer"}}
           }]
     },

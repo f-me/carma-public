@@ -10,6 +10,8 @@ function viewPlugins() {
           bPaginate: false,
           sScrollY: "220px",
           bScrollInfinite: true,
+          iScrollLoadGap: 100,
+          iDisplayLength: 100,
           bDeferRender: true,
           bSortClasses: false,
           iTabIndex: -1,
@@ -30,9 +32,9 @@ function viewPlugins() {
 
           fModel.subscribe(_.throttle(
             function(val) {
-              field.fnFilter(val,colId === "*" ? undefined : colId);
+              field.fnFilter(val.toUpperCase(),colId === "*" ? undefined : colId);
             },
-            2000));
+            500));
         });
 
         field.on("click", "tr", function() {

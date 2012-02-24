@@ -14,7 +14,7 @@ import qualified Data.ByteString.Lazy as L
 import qualified Data.Text as T
 import           Data.Lens.Common
 import qualified Data.Map as M
-import           Data.List (foldl', intersect)
+import           Data.List
 import           Data.Maybe (catMaybes)
 import           Data.Either (rights)
 import           Snap.Core
@@ -37,76 +37,45 @@ searchCase = do
   writeLBS response
 
 
-searchDealer = do
-  let keyPrefix = "dealer"
-  let outFields = ["name","city","program","salesAddr", "salesPhone"]
-  let searchFields =
-        [("name","sSearch_0")
-        ,("program","sSearch_2")
-        ,("salesPhone","sSearch_4")]
+searchDealer = search "dealer"
+  ["name","city","program","salesAddr", "salesPhone"]
+  [("name","sSearch_0")
+    ,("city","sSearch_1")
+    ,("program","sSearch_2")]
+
+
+searchContractor = search "partner"
+  ["companyName","cityRu","contactPerson","contactPhone","serviceRu"]
+  [("companyName","sSearch_0")
+    ,("contactPerson","sSearch_2")
+    ,("contactPhone","sSearch_3")]
+
+
+search keyPrefix outFields searchFields = do
   let (attrs,pats) = unzip searchFields
 
   ps <- rqParams <$> getRequest
   let si = map (head . (M.!) ps) pats
-  
+  let displayStart = head $ (M.!) ps "iDisplayStart"
+
   (vals,total) <- runRedisDB redisDB $ do
     let searchKeys = catMaybes $ zipWith
           (\k s -> if B.null s
             then Nothing
             else Just $ B.concat [keyPrefix,":",k,":*",s,"*"])
           attrs si
-    
     matchingKeys <- if null searchKeys
         then fromRight <$> keys (B.concat [keyPrefix,":*"])
-        else (foldl' intersect [] . rights) <$> mapM keys searchKeys
-
-    vals <- (catMaybes . fromRight) <$> (mget $ take 100 matchingKeys)
-    return (vals, length matchingKeys)
+        else (foldl1' intersect . rights) <$> mapM keys searchKeys
+    
+    keys' <- foldl' union [] . rights <$> forM matchingKeys (\k -> lrange k 0 (-1))
+    vals  <- (catMaybes . fromRight) <$>  mget (take 100 keys')
+    return (vals, length keys')
 
   let res = catMaybes $ flip map
         (catMaybes $ map (A.decode . L.fromChunks .(:[])) vals)
         $ A.parseMaybe (\o -> mapM (o .:) outFields)
         :: [[A.Value]]
-
-  let response = A.encode $ object
-        ["iTotalRecords" .= total
-        ,"iTotalDisplayRecords" .= (100::Int)
-        ,"aaData" .= toJSON res
-        ]
-  modifyResponse $ setContentType "application/json"
-  writeLBS response
-
-
-searchContractor = do
-  ps <- rqParams <$> getRequest
-  let s0 = head $ (M.!) ps "sSearch_0"
-  let s2 = head $ (M.!) ps "sSearch_2"
-  let s3 = head $ (M.!) ps "sSearch_3"
-
-  (vals,total) <- runRedisDB redisDB $ do
-    let getMatch (k,s)
-          = if B.null s
-          then return Nothing
-          else Just <$> (keys $ B.concat [k,"*",s,"*"])
-    matchingKeys  <- rights . catMaybes
-        <$> mapM getMatch
-          [("partner:companyName:",s0)
-          ,("partner:contactPerson:",s2)
-          ,("partner:contactPhone:",s3)
-          ]
-    ks <- if null matchingKeys
-          then fromRight <$> keys "partner:*"
-          else return $ foldl' intersect [] matchingKeys
-
-    vals <- (catMaybes . fromRight) <$> (mget $ take 100 ks)
-    return (vals, length ks)
-
-  let res = catMaybes $ flip map
-          (catMaybes $ map (A.decode . L.fromChunks .(:[])) vals)
-          $ A.parseMaybe (\o -> mapM (o .:)
-            ["companyName","cityRu"
-            ,"contactPerson","contactPhone"
-            ,"serviceRu"]) :: [[A.Value]]
 
   let response = A.encode $ object
         ["iTotalRecords" .= total
