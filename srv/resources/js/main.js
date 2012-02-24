@@ -56,7 +56,7 @@ function createForm(formId, formMeta) {
 
   _.each(formMeta.fields, function(f) {
     _.each(f, function(fieldMeta, fieldId) {
-   //   try {
+      try {
         //apply defaults to filed description
         fieldMeta = _.defaults(fieldMeta, {
           type: "text",
@@ -84,9 +84,9 @@ function createForm(formId, formMeta) {
         });
 
         vm[fieldId] = ko.observable(fieldMeta.default);
-     // } catch(e) {
-     //   console.log(e);
-     // }
+      } catch(e) {
+        console.log(e);
+      }
     });
   });
 }

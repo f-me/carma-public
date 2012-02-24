@@ -54,7 +54,7 @@
   </script>
   <script type='text/html' id='text-template' class='field-template'>
     <p><label>
-      <%if (label) {%> <%=label%><br/> <%}%>
+      <%if (typeof label !== "undefined") {%> <%=label%><br/> <%}%>
       <input type='text' class='field'
         data-bind='value: <%=id%>, valueUpdate: "afterkeydown"'/>
     </label></p>
