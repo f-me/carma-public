@@ -97,7 +97,7 @@ function metaForms() {
     SelectDealer: {
       fields:
         [{company:{label:"Компания"}}
-        ,{name:{label:"ФИО"}}
+        ,{program:{label:"Программа"}}
         ,{phones:{label:"Контактные телефоны"}}
         ,{save:{label:"Сохранить",type:"link"}}
         ,{dealer:{
@@ -106,12 +106,12 @@ function metaForms() {
             {columns:
               ["Компания"
               ,"Город"
-              ,"ФИО"
-              ,"Должность"
+              ,"Программа"
+              ,"Адрес сервисного отдела"
               ,"Телефон"]
             ,query:
               {"SelectDealer.company":0
-              ,"SelectDealer.name":2
+              ,"SelectDealer.program":2
               ,"SelectDealer.phones":4}
             ,source:"/api/search_dealer"}}
           }]

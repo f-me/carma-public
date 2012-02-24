@@ -35,6 +35,7 @@ main = do
   dir:_ <- getArgs
   let f = fixName . (dir++)
   rConn <- connect defaultConnectInfo
+  runRedis rConn flushdb
   fromCSV (f "/Партнеры.csv") mkPartner rConn
     >> fromCSV (f "/Дилеры.csv") mkDealer rConn
     `finally` runRedis rConn quit
@@ -51,6 +52,7 @@ fromCSV fname f rConn = E.run_
 
 
 pStr (Object o) = fromJust . parseMaybe (o .:) :: T.Text -> T.Text
+pKey  o = T.toUpper . T.strip . pStr o
 pStrs o = T.strip . T.intercalate " " . map (pStr o)
 pList o = map (pStr o)
 
@@ -93,8 +95,9 @@ mkDealer row = do
   Right id <- incr "dealer:id"
   let key = B.concat ["dealer:",B.pack $ show id]
   set key $ B.concat $ L.toChunks $ encode obj
-  lpush (toBS ["dealer:name:", pStr obj "name"])            [key]
-  lpush (toBS ["dealer:salesPhone:", pStr obj "salesPhone"]) [key]
+  lpush (toBS ["dealer:name:", pKey obj "name"])             [key]
+  lpush (toBS ["dealer:program:", pKey obj "program"])       [key]
+  lpush (toBS ["dealer:salesPhone:", pKey obj "salesPhone"]) [key]
   where  
     o = mkObj [T.pack $ show i | i <- [0..]] row
     (p,ps) = (pStr o, pStrs o)

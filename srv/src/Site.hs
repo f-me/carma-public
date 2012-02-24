@@ -36,7 +36,45 @@ searchCase = do
   modifyResponse $ setContentType "application/json"
   writeLBS response
 
-searchDealer = searchCase
+
+searchDealer = do
+  let keyPrefix = "dealer"
+  let outFields = ["name","city","program","salesAddr", "salesPhone"]
+  let searchFields =
+        [("name","sSearch_0")
+        ,("program","sSearch_2")
+        ,("salesPhone","sSearch_4")]
+  let (attrs,pats) = unzip searchFields
+
+  ps <- rqParams <$> getRequest
+  let si = map (head . (M.!) ps) pats
+  
+  (vals,total) <- runRedisDB redisDB $ do
+    let searchKeys = catMaybes $ zipWith
+          (\k s -> if B.null s
+            then Nothing
+            else Just $ B.concat [keyPrefix,":",k,":*",s,"*"])
+          attrs si
+    
+    matchingKeys <- if null searchKeys
+        then fromRight <$> keys (B.concat [keyPrefix,":*"])
+        else (foldl' intersect [] . rights) <$> mapM keys searchKeys
+
+    vals <- (catMaybes . fromRight) <$> (mget $ take 100 matchingKeys)
+    return (vals, length matchingKeys)
+
+  let res = catMaybes $ flip map
+        (catMaybes $ map (A.decode . L.fromChunks .(:[])) vals)
+        $ A.parseMaybe (\o -> mapM (o .:) outFields)
+        :: [[A.Value]]
+
+  let response = A.encode $ object
+        ["iTotalRecords" .= total
+        ,"iTotalDisplayRecords" .= (100::Int)
+        ,"aaData" .= toJSON res
+        ]
+  modifyResponse $ setContentType "application/json"
+  writeLBS response
 
 
 searchContractor = do
