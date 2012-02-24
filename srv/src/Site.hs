@@ -64,11 +64,15 @@ search keyPrefix outFields searchFields = do
             then Nothing
             else Just $ B.concat [keyPrefix,":",k,":*",s,"*"])
           attrs si
+
     matchingKeys <- if null searchKeys
-        then fromRight <$> keys (B.concat [keyPrefix,":*"])
-        else (foldl1' intersect . rights) <$> mapM keys searchKeys
+        then (:[]). fromRight <$> keys (B.concat [keyPrefix,":*"])
+        else rights <$> mapM keys searchKeys
     
-    keys' <- foldl' union [] . rights <$> forM matchingKeys (\k -> lrange k 0 (-1))
+    keys' <- foldl1' intersect . map (foldl' union [])
+          <$> forM matchingKeys
+            ((rights <$>) . mapM (\k ->lrange k 0 (-1)))
+
     vals  <- (catMaybes . fromRight) <$>  mget (take 100 keys')
     return (vals, length keys')
 

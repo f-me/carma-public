@@ -97,7 +97,7 @@ mkDealer row = do
   set key $ B.concat $ L.toChunks $ encode obj
   lpush (toBS ["dealer:name:", pKey obj "name"])             [key]
   lpush (toBS ["dealer:program:", pKey obj "program"])       [key]
-  lpush (toBS ["dealer:salesPhone:", pKey obj "salesPhone"]) [key]
+  lpush (toBS ["dealer:city:", pKey obj "city"])             [key]
   where  
     o = mkObj [T.pack $ show i | i <- [0..]] row
     (p,ps) = (pStr o, pStrs o)
