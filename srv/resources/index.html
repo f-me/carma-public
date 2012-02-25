@@ -14,12 +14,17 @@
 
     <script src='/s/js/3p/keyboard.0.2.2.min.js'></script>
 
-    <link   type='text/css' href='/s/css/jquery.dataTables.css' rel='stylesheet'/>
+    <link type='text/css' href='/s/css/overcast/jquery-ui-1.8.17.custom.css'
+    rel='stylesheet'/>
+    <script src='/s/js/3p/jquery-ui-1.8.17.custom.min.js'></script>
+
+    <link type='text/css' href='/s/css/jquery.dataTables.css' rel='stylesheet'/>
     <script src='/s/js/3p/jquery.dataTables.min.js'></script>
     <script src='/s/js/3p/Scroller.min.js'></script>
 
     <script src='/s/js/models/dictionaries.js'></script>
     <script src='/s/js/models/pages.js'></script>
+    <script src='/s/js/catcomplete.js'></script>
     <script src='/s/js/viewPlugins.js'></script>
     <script src='/s/js/menu.js'></script>
     <script src='/s/js/main.js'></script>
@@ -60,6 +65,9 @@
         data-bind='value: <%=id%>, valueUpdate: "afterkeydown"'/>
     </label></p>
   </script>
+  <script type='text/html' id='staticText-template' class='field-template'>
+    <p><span data-bind='text: <%=id%>'></span></p>
+  </script>
   <script type='text/html' id='checkbox-template' class='field-template'>
     <p><label style='color:black;'>
       <input type='checkbox' class='field'
@@ -79,7 +87,7 @@
     <p>
   </script>
   <script type='text/html' id='link-template' class='field-template'>
-    <p><a href='#' data-bind='click: <%=id%>'><%=label%></a></p>
+    <p><a href='#' data-bind='click: <%=id%>' class='field'><%=label%></a></p>
   </script>
   <script type='text/html' id='searchTable-template' class='field-template'>
     <div><table
