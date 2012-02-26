@@ -24,16 +24,32 @@ $(function(){
     $elem("SelectCase.new").live("click", function(e) {
       e.preventDefault();
       var newcase = {
-        wazzup: elem("CallInfo.wazzup").value,
-        contactName: elem("GeneralContact.name").value,
-        contactPhone: elem("GeneralContact.phone").value};
+        wazzup: $elem("CallInfo.wazzup").val(),
+        contactName: $elem("GeneralContact.name").val(),
+        contactPhone: $elem("GeneralContact.phone").val()};
       ajaxPOST("/api/case", newcase, function(id) {
-        menuRouter.navigate("/case/"+id, {trigger:true});
+        // menuRouter.navigate("/case/"+id, {trigger:true});
+        window.location.replace("/case/"+id);
       });
     });
     $elem("CaseInfo.addService").live("click", function(e) {
       e.preventDefault();
-      var svc = 
+      var chooseSvc = $elem("CaseInfo.chooseService");
+      var svcMeta = chooseSvc.data("data");
+      var svcId = "Svc" + global.viewModel.CaseInfo.services.length;
+
+      var svc = $("<fieldset/>");
+      svc.attr("id", svcId);
+      svc.append("<legend>" + chooseSvc.val() + "</legend>")
+
+      _.each(svcMeta.conditions, function(f) {
+        var field = createField(svcId, {}, f);
+        svc.append(field);
+      });
+      $elem("CaseInfo.services").append(svc);
+      $elem(svcId + "." + "serviceType").val(chooseSvc.val());
+      chooseSvc.val("");
+      svc.find(".field:first").focus();
     });
 });
 
@@ -41,7 +57,7 @@ function ajaxPOST(url, data, callback) {
   return $.ajax({
     type:"POST",
     url:url,
-    contentType: "application/json; charset=utf-8",
+    contentType:"application/json; charset=utf-8",
     data:JSON.stringify(data),
     processData:false,
     dataType:"json",
@@ -53,7 +69,7 @@ function ajaxPOST(url, data, callback) {
 //FIXME: redirect somewhere when `pageModel` is undefined?
 function renderPage(pageModel) {
   // remove all forms from all containers
-  $(".column").children().detach();
+  $("#left, #right").children().detach();
 
   _.each(pageModel, function(containerModels, containerId) {
       _.each(containerModels, function(formId) {
@@ -77,12 +93,8 @@ function createForm(formId, formMeta) {
   }
 
   _.each(formMeta.fields, function(f) {
-        var field = createField(formId, vm, f);
-        field.appendTo(form);
-      try {
-      } catch(e) {
-        console.log(e);
-      }
+    var field = createField(formId, vm, f);
+    field.appendTo(form);
   });
   return form;
 }
@@ -138,3 +150,14 @@ function fieldTemplates() {
     {});
 }
 
+function initOSM() {
+      window.osmap = new OpenLayers.Map("basicMap");
+      var mapnik = new OpenLayers.Layer.OSM();
+      osmap.addLayer(mapnik);
+      osmap.setCenter(new OpenLayers.LonLat(37.617874,55.757549) // Center of the map
+        .transform(
+          new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
+          new OpenLayers.Projection("EPSG:900913") // to Spherical Mercator Projection
+        ), 16 // Zoom level
+      );
+}

@@ -10,7 +10,8 @@ function createCatComplete(elem, data) {
         var item = ui.item;
         var cat = item.category;
         item.value = (cat ? cat + " / " : "") + item.text;
-        $.data(this, 'data', item.data);
+        $.data(this, "data", item.data);
+        $.data(this, "item", item);
       }
     })
     .focus(function() {

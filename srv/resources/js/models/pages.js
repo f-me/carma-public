@@ -7,8 +7,7 @@ function metaPages() {
     },
     "case": {
       left: ["CaseInfo"],
-      right: ["ProgramInfo","CaseHistory"],
-      warnings: ["RequiredFields"]
+      right: ["ProgramInfo","subform","CaseHistory"],
     },
   };
 }
@@ -67,7 +66,7 @@ function metaForms() {
         ,{"new":{label:"Новый кейс",type:"link"}}
         ]
     },
-    SelectContractor: {
+    Contractor: {
       fields:
         [{company:{label:"Компания"}}
         ,{name:{label:"ФИО"}}
@@ -83,15 +82,15 @@ function metaForms() {
               ,"Телефон"
               ,"Услуга"]
             ,query:
-              {"SelectContractor.company":0
-              ,"SelectContractor.name":2
-              ,"SelectContractor.phones":3}
+              {"Contractor.company":0
+              ,"Contractor.name":2
+              ,"Contractor.phones":3}
             ,source:"/api/search_contractor"
             }}
           }
         ]
     },
-    SelectDealer: {
+    Dealer: {
       fields:
         [{company:{label:"Компания"}}
         ,{city:{label:"Город"}}
@@ -107,9 +106,9 @@ function metaForms() {
               ,"Адрес сервисного отдела"
               ,"Телефон"]
             ,query:
-              {"SelectDealer.company":0
-              ,"SelectDealer.city":1
-              ,"SelectDealer.program":2}
+              {"Dealer.company":0
+              ,"Dealer.city":1
+              ,"Dealer.program":2}
             ,source:"/api/search_dealer"}}
           }]
     },
@@ -117,7 +116,7 @@ function metaForms() {
       fields:
         [{wazzup:{label:"Что случилось?", type:"textarea"}}
         ,{program:{label:"Программа", data:Programs(), levels:2}}
-        ,{vin:{label:"VIN",required:true}}
+        ,{vin:{label:"VIN",subform:"CarDetails",required:true}}
         ,{car:{type:"staticText",ephemeral:true}}
         ,{programConditions:{type:"form",dependsOn:"CaseInfo.program:conditions"}}
         ,{plate:{label:"Госномер",required:true}}
@@ -132,21 +131,39 @@ function metaForms() {
         ,{addService:{label:"Добавить",type:"link"}}
         ]
     },
-    
-	Service: {
-		fields:
-			[{status:{label:"Статус услуги",data:"ServiceStatuses",required:true}}
-			,{paymentType:{label:"Тип оплаты",data:"PaymentTypes",type:"options"}}
-			,{cost:{label:"Стоимость"}}
-			,{requiredTime:{label:"Ожидаемое время оказания услуги",datetime:true}}
-			,{falseServices:{label:"Ложный вызов",data:"FalseStatuses"}}
-			,{caseAddress:{label:"Адрес кейса",type:"Address"}}
-			,{serviceConditions:{type:"form"}}
-			]
-	},
+    CarDetails: {
+      title:"Информация о машине",
+      fields:
+        [ {model: {label:"Модель",data: "CarModels",hotkey:"alt+z"}}
+        , {transmission:
+          {type:"options"
+          ,label:"Коробка передач"
+          ,default:0
+          ,data:"Transmission"
+          }}
+        , {sell_date: {label:"Дата продажи",required:true,datepicker:true}}
+        , {checkup_date: {label:"Дата последнего ТО",datepicker:true}}
+        , {mileage_at_checkup: {label:"Пробег на последнем ТО",validate:/^[ \d]*$/}}
+        , {current_mileage: {label:"Текущий пробег",validate:/^[ \d]*$/}}
+        , {plate_number:
+          {label:"Госномер"
+          ,required:true
+          }}
+        ]
+    },
+    Address: {
+      title: "Адрес",
+      fields:
+        [ {addr: {label:"Адрес"}}
+        , {coords: {label:"Координаты"}}
+        , {notes: {label:"Примечания", type:"textarea"}}
+        , {map: {type:"map"}}
+        ]
+    },
     ProgramInfo:{fields:[]},
     CaseHistory:{fields:[]},
     RequiredFields:{fields:[]},
-    EmptyForm:{fields:[]}
+    EmptyForm:{fields:[]},
+    subform:{fields:[]}
   };
 }

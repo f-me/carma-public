@@ -9,6 +9,31 @@ function viewPlugins() {
               : transformForCatComplete(meta.data));
       }
     },
+    subform: function(field,meta) {
+      field.focus(function() {
+        $("#subform").children().detach();
+        var formName = meta.subform;
+        var form = createForm(formName, global.meta.form[formName]);
+        $("#subform").append(form).fadeIn("slow");
+        if (elem("basicMap")) {
+          initOSM();
+        }
+      });
+    },
+    required: function(field,meta) {
+      var li = $("<li/>").html(meta.label);
+      li.click(function(){
+        field.focus();
+      });
+      field.change(function(){
+        if (this.value) {
+          li.fadeOut("slow");
+        } else {
+          li.fadeIn("slow");
+        }
+      });
+      $("#required").append(li);
+    },
     dependsOn: function(field,meta) {
       var srcPath = meta.dependsOn.split(":");
       var srcElemPath = srcPath[0];
@@ -39,7 +64,6 @@ function viewPlugins() {
           createCatComplete(tgtElem, mk2LevelList(data[dataTag]));
         }
       });
-      
     },
     searchTable: function (field,fieldMeta) {
         var aoColumns = _.map(

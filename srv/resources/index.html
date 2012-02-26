@@ -22,6 +22,8 @@
     <script src='/s/js/3p/jquery.dataTables.min.js'></script>
     <script src='/s/js/3p/Scroller.min.js'></script>
 
+    <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
+
     <script src='/s/js/models/dictionaries.js'></script>
     <script src='/s/js/models/programs.js'></script>
     <script src='/s/js/models/pages.js'></script>
@@ -37,7 +39,9 @@
     </div>
     <div id='left' class='column'></div>
     <div id='right' class='column'></div>
-    <div id='warnings' class='column'></div>
+    <div id='warnings' class='column'>
+      <ul id='required'></ul>
+    </div>
     <div id='footer'>
       <div id='menu'>
         <a href='call'   class='menuitem'>Приём звонка</a>
@@ -53,7 +57,7 @@
     <div><div class='field'></div></div>
   </script>
   <script type='text/html' id='container-template' class='field-template'>
-    <div class='field'></div>
+    <div id='<%=id%>' class='field'></div>
   </script>
   <script type='text/html' id='textarea-template' class='field-template'>
      <p><label>
@@ -100,7 +104,7 @@
     </table></div>
   </script>
   <script type='text/html' id='map-template' class='field-template'>
-    <p><div id='basicMap'></div></p>
+    <div id='basicMap'></div>
   </script>
 </html>
 
