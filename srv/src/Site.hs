@@ -9,7 +9,7 @@ import           Control.Applicative
 import           Control.Monad.Trans
 import           Control.Monad.State
 import           Data.ByteString (ByteString)
-import qualified Data.ByteString as B
+import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as L
 import qualified Data.Text as T
 import           Data.Lens.Common
@@ -31,7 +31,7 @@ searchCase = do
   let response = A.encode $ object
         ["iTotalRecords" .= (0::Int)
         ,"iTotalDisplayRecords" .= (0::Int)
-        ,"aaData" .= toJSON ([]::[T.Text])
+        ,"aaData" .= A.toJSON ([]::[T.Text])
         ]
   modifyResponse $ setContentType "application/json"
   writeLBS response
@@ -93,6 +93,22 @@ search keyPrefix outFields searchFields = do
 fromRight = either (const []) id
 
 
+newCase :: Handler App App ()
+newCase = do
+  rq <- getRequestBody
+  case A.decode rq of
+    Nothing -> writeLBS "error" -- FIXME: return some http status != 200
+    Just json -> do
+        i <- runRedisDB redisDB $ do
+          Right i <- incr "case:lastId"
+          let key = B.concat ["case:", B.pack $ show i]
+          set key $ B.concat $ L.toChunks $ A.encode (json :: Value)
+          return i
+        modifyResponse $ setContentType "application/json"
+        writeLBS $ A.encode i
+
+getCase = undefined
+
 ------------------------------------------------------------------------------
 -- | The application's routes.
 routes :: [(ByteString, Handler App App ())]
@@ -101,6 +117,8 @@ routes = [("/s", serveDirectory "resources")
          ,("/api/search_case", method GET searchCase)
          ,("/api/search_dealer", method GET searchDealer)
          ,("/api/search_contractor", method GET searchContractor)
+         ,("/api/case", method POST newCase)
+         ,("/api/case/:id", method GET getCase)
          ]
 
 ------------------------------------------------------------------------------

@@ -5,7 +5,11 @@ function initBottomMenu() {
         ":section/*p": "updMenu"
       },
 
-      updMenu: function(sect) {
+      updMenu: function(sect, url) {
+        if (sect === "") {
+          var parts = url.split('/');
+          sect = parts.length > 0 ? parts[0] : sect; 
+        }
         $("#menu a.menuitem.selected").removeClass("selected");
         $("#menu a.menuitem[href='"+sect+"']").addClass("selected");
       }

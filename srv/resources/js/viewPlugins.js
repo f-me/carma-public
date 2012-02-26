@@ -1,5 +1,17 @@
 function viewPlugins() {
   return {
+    data: function(field,meta) {
+      if (meta.type === "text") {
+        createCatComplete(field,
+          transformForCatComplete(meta.data),
+          {select:function(e, ui) {
+            var item = ui.item;
+            var cat = item.category;
+            item.value = (cat ? cat + " / " : "") + item.text;
+            jQuery.data(this, 'selectedIndex', item.id);
+         }});
+      }
+    },
     searchTable: function (field,fieldMeta) {
         var aoColumns = _.map(
             fieldMeta.searchTable.columns,

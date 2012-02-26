@@ -1,24 +1,49 @@
 $(function(){
-    window.global = {
-      viewPlugin: viewPlugins(),
-      fieldTemplate: fieldTemplates(),
-      meta: {
+    window.global = window.global || {};
+    window.global.viewPlugin = viewPlugins();
+    window.global.fieldTemplate = fieldTemplates();
+    window.global.dictionary = dictionaries();
+    window.global.meta = {
         page: metaPages(),
         form: metaForms(),
-      },
-      view: {},
-      viewModel:{}
-    };
+      };
+    window.global.viewModel:{}
 
     var menuRouter = initBottomMenu();
     menuRouter.bind("route:updMenu", function(sect) {
+      if (sect === "") {
+        var parts = window.location.pathname.split("/");
+        sect = parts.length > 1 ? parts[1] : sect;
+      }
       renderPage(global.meta.page[sect]); //FIXME: injection //TODO: pass `arguments`
     });
 
     Backbone.history.start({pushState: true});
-
     $(".field:first").focus();
+
+    $elem("SelectCase.new").live("click", function(e) {
+      e.preventDefault();
+      var newcase = {
+        wazzup: elem("CallInfo.wazzup").value,
+        contactName: elem("GeneralContact.name").value,
+        contactPhone: elem("GeneralContact.phone").value};
+      ajaxPOST("/api/case", newcase, function(id) {
+        menuRouter.navigate("/case/"+id, {trigger:true});
+      });
+    });
 });
+
+function ajaxPOST(url, data, callback) {
+  return $.ajax({
+    type:"POST",
+    url:url,
+    contentType: "application/json; charset=utf-8",
+    data:JSON.stringify(data),
+    processData:false,
+    dataType:"json",
+    success:callback
+  });
+}
 
 
 //FIXME: redirect somewhere when `pageModel` is undefined?
@@ -28,8 +53,8 @@ function renderPage(pageModel) {
 
   _.each(pageModel, function(containerModels, containerId) {
       _.each(containerModels, function(formId) {
-        createForm(formId, global.meta.form[formId]);
-        $("#"+containerId).append(global.view[formId]);
+        var form = createForm(formId, global.meta.form[formId]);
+        $("#"+containerId).append(form);
       });
   });
 
@@ -45,9 +70,9 @@ function renderPage(pageModel) {
 
 function createForm(formId, formMeta) {
   var form = $("<fieldset/>");
+  form.attr("id",formId);
   var vm = {};
 
-  global.view[formId] = form;
   global.viewModel[formId] = vm; 
 
   if (_.has(formMeta, "title")) {
@@ -61,8 +86,11 @@ function createForm(formId, formMeta) {
         fieldMeta = _.defaults(fieldMeta, {
           type: "text",
           id: formId + "." + fieldId,
-          default: ""
+          default: "",
         });
+        if (fieldMeta.data) {
+          fieldMeta.data = global.dictionary[fieldMeta.data]; 
+        }
 
         //apply field template to field description to create
         //corresponding html element
@@ -72,10 +100,8 @@ function createForm(formId, formMeta) {
 
         field.appendTo(form);
         field = field.find(".field");
+        field.attr('id',fieldMeta.id);
 
-        if (fieldMeta.exposeId) {
-          field.attr("id", formId+"-"+fieldId);
-        }
         //apply additional plugins
         _.each(fieldMeta,function(val,key) {
             if (_.has(global.viewPlugin, key)) {
@@ -89,38 +115,52 @@ function createForm(formId, formMeta) {
       }
     });
   });
+  return form;
 }
 
 //FIXME: OMG! seven levels of indentation!
 //And the code is quite ugly by itself.
 function processFormDependencies(formId, formMeta) {
   _.each(formMeta.dependencies,function(depMeta, targetId) {
-      if (_.has(depMeta, "value")) {
+      _.each(depMeta.dependsOnValue, function(valDep) {
         var srcVM = _.reduce(
-          depMeta.dependsOn.split("."),
-          function(res,p) { return res[p]; },
-          global.viewModel);
+            valDep.field.split("."),
+            function(res, p) { return res[p]; },
+            global.viewModel);
+          
+        var src = $elem(valDep.field);
+        var tgt = $elem(formId+"."+targetId);
 
-        var tgtId = "#"+formId+"-"+targetId;
         srcVM.subscribe(function(val) {
-          var tgtElem = $(tgtId);
-          var formId = depMeta.value[val];
-          if (!_.has(global.view, formId)) {
-            createForm(formId, global.meta.form[formId]);
+          // if (fromMeta->targetId).type == "form" then create form
+          if (!(parseInt(val) >= 0)) {
+            val = src.data("selectedIndex");
+          }
+          var formId = valDep.value[val] || valDep.default;
+          var form = elem(formId);
+          if (form == null) {
+            form = createForm(formId, global.meta.form[formId]);
+            form = form[0];
           }
 
-          var form = global.view[formId];
-          tgtElem.children().detach();
-          tgtElem.append(form);
-          ko.applyBindings(global.viewModel, form[0]);
+          tgt.children().detach();
+          tgt.append(form);
+          ko.applyBindings(global.viewModel, form);
         });
 
         srcVM.notifySubscribers(srcVM());
-      }
+      });
   });
 }
 
 
+
+function elem(id) {
+  return document.getElementById(id);
+}
+function $elem(id) {
+  return $(elem(id));
+}
 
 //Find filed templates in html document and precompile them.
 function fieldTemplates() {

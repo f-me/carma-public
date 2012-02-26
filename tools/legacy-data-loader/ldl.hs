@@ -1,6 +1,7 @@
 
 {-# LANGUAGE OverloadedStrings, NoMonomorphismRestriction #-}
 {-# LANGUAGE DeriveDataTypeable #-}
+import Control.Applicative
 import Control.Exception
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy.Char8 as L
@@ -38,9 +39,9 @@ main = do
   runRedis rConn flushdb
   fromCSV (f "/Партнеры.csv") mkPartner rConn
     >> fromCSV (f "/Дилеры.csv") mkDealer rConn
+    >> fromCSV (f "/Журнал_звонков.csv") mkCase rConn
     `finally` runRedis rConn quit
 
---  fromCSV (f "/Журнал_звонков.csv") $ toRedis case_info
 
 
 fromCSV fname f rConn = E.run_
@@ -119,74 +120,61 @@ mkDealer row = do
       ]
 
 
-
-
-{-
-caseInfo row = do
-  let Object o = mkObj [T.pack $ show i | i <- [0..]] row
-  let callInfo = mkCallInfo o
-  case callInfo `get` "callType" of
-    "ИНФОРМАЦИОННЫЙ ЗВОНОК" ->
-    
-
-case_info row
-  = return $! object
-    ["timestamp" .= fromMaybe (err "timestamp") (mkTimestamp o) -- 0  Дата звонка -- 1  Время звонка
-    ,"callTaker" .= pStr "2"  -- Сотрудник (Обязательное поле)
-    ,"program"   .= pStr "3"  -- Клиент (Обязательное поле) FIXME: на самом деле, это программа
-    ,"service"   .= pStr "4"  -- Услуга  (Обязательное поле)
-    ,"client"    .= pStrs ["5","6"] -- 5  Фамилия звонящего -- 6  Имя отчество звонящего
-    ,"carOwner"  .= pStrs ["7","8"] -- 7  Фамилия владельца -- 8  Имя отчество владельца
-    ,"phones"    .= pStrs ["9","10"] -- 9  Мобильный телефон -- 10 Дополнительный телефон
-    ,"carModel"  .= pStrs ["11","12","13"]  -- 11 Марка автомобиля -- 12 Модель автомобиля -- 13 Другая марка / модель авто
-    ,"plateNum"  .= pStr "14" -- Регистрационный номер автомобиля
-    ,"color"     .= pStr "15" -- Цвет
-    ,"vin"       .= pStr "16" -- VIN автомобиля
-    ,"vinCheck"  .= pStr "17" -- 17 VIN Проверен
-      -- 18 Дата покупки автомобиля
-      -- 19 Дата  прохождения ТО FORD
-      -- 20 Пробег автомобиля (км)
-      -- 21 Пробег автомобиля на момент прохождения ТО (только для FORD)
-      -- 22 Дилер продавший авто / прохождение ТО FORD
-      -- 23 Описание неисправности со слов клиента
-      -- 24 Система в которой произошла неисправность
-      -- 25 Неисправная деталь
-      -- 26 Адрес места поломки
-      -- 27 Введите дату в формате + или - число -- FIXME: ерунда какая-то
-      -- 28 Город дилера куда эвакуируют автомобиль
-      -- 29 Название дилера куда эвакуируют автомобиль
-      -- 30 Адрес куда эвакуируют автомобиль
-      -- 31 Номер происшествия в Arc Time
-      -- 32 Название партнёра
-      -- 33 Реальное время прибытия на место поломки
-      -- 34 Реальное время окончания услуги
-      -- 35 Стоимость услуги у партнёра
-      -- 36 Расшифровка стоимости
-      -- 37 Перепробег (информация от партнера)
-      -- 38 Номер заказ-наряда Saga (только для VW)
-      -- 39 Статус случая от дилера (Только для VW)
-      -- 40 Дата окончания ремонта автомобиля у дилера (только VW)
-      -- 41 Описание причины неисправности со слов дилера (только VW)
-      -- 42 Комментарий
-      -- 43 Статус звонка (Обязательное поле)
-    ]
+mkCase row = do
+  Right id <- incr "case:id"
+  let key = B.concat ["case:",B.pack $ show id]
+  set key $ B.concat $ L.toChunks $ encode obj
+  mapM_ (\w -> lpush (B.concat ["case:txt:",w]) [key]) row 
   where
-    pStrs = T.strip . T.intercalate " " . map pStr
-    pStr :: T.Text -> T.Text
-    pStr  = fromJust . parseMaybe (o .:)
-    err msg = throw $ Ex msg o
-    Object o = mkObj [T.pack $ show i | i <- [0..]] row
-    key = "call"
+    o = mkObj [T.pack $ show i | i <- [0..]] row
+    (p,ps) = (pStr o, pStrs o)
+    obj = object
+      ["timestamp" .= mkTimestamp (p"0") (p"1") -- 0  Дата звонка -- 1  Время звонка
+      ,"callTaker" .= p "2"  -- Сотрудник (Обязательное поле)
+      ,"program"   .= p "3"  -- Клиент (Обязательное поле) FIXME: на самом деле, это программа
+      ,"service"   .= p "4"  -- Услуга  (Обязательное поле)
+      ,"client"    .= ps ["5","6"] -- 5  Фамилия звонящего -- 6  Имя отчество звонящего
+      ,"carOwner"  .= ps ["7","8"] -- 7  Фамилия владельца -- 8  Имя отчество владельца
+      ,"phones"    .= ps ["9","10"] -- 9  Мобильный телефон -- 10 Дополнительный телефон
+      ,"carModel"  .= ps ["11","12","13"]  -- 11 Марка автомобиля -- 12 Модель автомобиля -- 13 Другая марка / модель авто
+      ,"plateNum"  .= p "14" -- Регистрационный номер автомобиля
+      ,"color"     .= p "15" -- Цвет
+      ,"vin"       .= p "16" -- VIN автомобиля
+      ,"vinCheck"  .= p "17" -- 17 VIN Проверен
+        -- 18 Дата покупки автомобиля
+        -- 19 Дата  прохождения ТО FORD
+        -- 20 Пробег автомобиля (км)
+        -- 21 Пробег автомобиля на момент прохождения ТО (только для FORD)
+        -- 22 Дилер продавший авто / прохождение ТО FORD
+        -- 23 Описание неисправности со слов клиента
+        -- 24 Система в которой произошла неисправность
+        -- 25 Неисправная деталь
+        -- 26 Адрес места поломки
+        -- 27 Введите дату в формате + или - число -- FIXME: ерунда какая-то
+        -- 28 Город дилера куда эвакуируют автомобиль
+        -- 29 Название дилера куда эвакуируют автомобиль
+        -- 30 Адрес куда эвакуируют автомобиль
+        -- 31 Номер происшествия в Arc Time
+        -- 32 Название партнёра
+        -- 33 Реальное время прибытия на место поломки
+        -- 34 Реальное время окончания услуги
+        -- 35 Стоимость услуги у партнёра
+        -- 36 Расшифровка стоимости
+        -- 37 Перепробег (информация от партнера)
+        -- 38 Номер заказ-наряда Saga (только для VW)
+        -- 39 Статус случая от дилера (Только для VW)
+        -- 40 Дата окончания ремонта автомобиля у дилера (только VW)
+        -- 41 Описание причины неисправности со слов дилера (только VW)
+      ,"comment"    .= p "42" -- 42 Комментарий
+      ,"status"     .= p "43"  -- 43 Статус звонка (Обязательное поле)
+      ]
 
-data Ex = Ex String Object deriving (Show, Typeable)
-instance Exception Ex
 
-mkTimestamp :: Object -> Maybe UTCTime
-mkTimestamp = join . parseMaybe getCallTime
-getCallTime o = do
-  let pTm = parseTime defaultTimeLocale 
-  d <- pTm "%m/%d/%Y" <$> o .: "0"
-  t <- pTm "%k:%M"    <$> o .: "1"
-  let t' = maybe (Just midday) Just t
-  return $ localTimeToUTC (read "+0400") <$> (LocalTime <$> d <*> t')
--}
+mkTimestamp :: T.Text -> T.Text -> UTCTime
+mkTimestamp d t
+  = fromJust $ localTimeToUTC (read "+0400")
+  <$> (LocalTime
+    <$> (maybe (pTm "%m/%d/%Y" "01/02/2003") Just (pTm "%m/%d/%Y" d))
+    <*> (maybe (Just midday) Just (pTm "%k:%M" t)))
+  where
+    pTm f = parseTime defaultTimeLocale f . T.unpack

@@ -64,6 +64,7 @@ function metaForms() {
             ,source:"/api/search_case"
             }}
           }
+        ,{"new":{label:"Новый кейс",type:"link"}}
         ]
     },
     SelectContractor: {
@@ -130,7 +131,7 @@ function metaForms() {
       dependencies: {
         programConditions: {
           dependsOnValue:[{
-            field: "CaseInfo.program",
+            field:"CaseInfo.program",
             default:"EmptyForm",
             value:["VWMotorConditions","VWTruckConditions"]
           }]

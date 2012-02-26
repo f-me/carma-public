@@ -4,6 +4,7 @@ body {
   margin:0;
   background:#c8c8c8;
   font:12px "Calibri";
+  overflow-y:hidden;
 }
 
 
@@ -49,14 +50,14 @@ div.column {
 
 #right{
   left:33%;
-  width:48%;
+  width:55%;
   float:left;
   overflow:hidden;
 }
 
 #warnings {
   right:0;
-  width:16%;
+  width:9%;
 }
 
 #left::-webkit-scrollbar {width:2%;}
@@ -147,4 +148,23 @@ label {
   color:#666666;
 }
 
+.ui-menu .ui-menu-item {
+  font:10px "", sans-serif;
+}
+
+.ui-autocomplete {
+  max-height:30%;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding-right:20px;
+  font:10px "", sans-serif;
+}
+
+.ui-autocomplete-category {
+  font: 12px "", sans-serif;
+  font-weight: bold;
+  padding: .2em .4em;
+  margin: .8em 0 .2em;
+  line-height: 1.5;
+}
 
