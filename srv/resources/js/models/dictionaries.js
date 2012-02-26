@@ -51,34 +51,6 @@ function dictionaries() {
       ,"Заказ билетов"
       ,"Техпомощь"
       ,"Слив топлива"],
-    Programs: 
-      [ {cat:"VW",sub:
-          ["VW легковые автомобили"
-          ,"VW коммерческие автомобили"]}
-      , {cat:"GM",sub:
-          ["Chevrolet Korea"
-          ,"Chevrolet NA"
-          ,"Cadillac до 2012"
-          ,"Opel (после 01.04.2011)"
-          ,"Hummer"
-          ,"Caddilac после 2012"]}
-      , {cat:"B2B",sub:
-          ["Arc B2B"
-          ,"RTR Hyundai"
-          ,"АРВАЛ"
-          ,"Дженсер Ясенево"
-          ,"ИП Трубкин"
-          ,"ДЦ Автоимпорт"
-          ,"ДЦ ТВД-Авто"
-          ,"3S Телематика"]}
-      , {cat:"ACTA",sub:["Bentley", "Aston Martin"]}
-      , {cat:"", sub:
-          ["Заказ билетов"
-          ,"B2C","Ford","BP"
-          ,"Рус Лан","Атлант М"
-          ,"Chartis Assistance"
-          ,"Autokraft Assistance"]}
-      ],
     ServiceStatus:
       ["Создание"
       ,"Передана в Back Office"

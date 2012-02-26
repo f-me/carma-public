@@ -7,7 +7,7 @@ $(function(){
         page: metaPages(),
         form: metaForms(),
       };
-    window.global.viewModel:{}
+    window.global.viewModel = {};
 
     var menuRouter = initBottomMenu();
     menuRouter.bind("route:updMenu", function(sect) {
@@ -30,6 +30,10 @@ $(function(){
       ajaxPOST("/api/case", newcase, function(id) {
         menuRouter.navigate("/case/"+id, {trigger:true});
       });
+    });
+    $elem("CaseInfo.addService").live("click", function(e) {
+      e.preventDefault();
+      var svc = 
     });
 });
 
@@ -57,13 +61,6 @@ function renderPage(pageModel) {
         $("#"+containerId).append(form);
       });
   });
-
-  _.each(pageModel, function(containerModels, containerId) {
-      _.each(containerModels, function(formId) {
-        processFormDependencies(formId,global.meta.form[formId]); 
-      });
-  });
-
   ko.applyBindings(global.viewModel);
 }
 
@@ -80,79 +77,47 @@ function createForm(formId, formMeta) {
   }
 
   _.each(formMeta.fields, function(f) {
-    _.each(f, function(fieldMeta, fieldId) {
-      try {
-        //apply defaults to filed description
-        fieldMeta = _.defaults(fieldMeta, {
-          type: "text",
-          id: formId + "." + fieldId,
-          default: "",
-        });
-        if (fieldMeta.data) {
-          fieldMeta.data = global.dictionary[fieldMeta.data]; 
-        }
-
-        //apply field template to field description to create
-        //corresponding html element
-        var field = $(global.fieldTemplate[fieldMeta.type](fieldMeta));
-
-        // var field = createField(formId, fieldId, fieldMeta);
-
+        var field = createField(formId, vm, f);
         field.appendTo(form);
-        field = field.find(".field");
-        field.attr('id',fieldMeta.id);
-
-        //apply additional plugins
-        _.each(fieldMeta,function(val,key) {
-            if (_.has(global.viewPlugin, key)) {
-              global.viewPlugin[key](field, fieldMeta);
-            }
-        });
-
-        vm[fieldId] = ko.observable(fieldMeta.default);
+      try {
       } catch(e) {
         console.log(e);
       }
-    });
   });
   return form;
 }
 
-//FIXME: OMG! seven levels of indentation!
-//And the code is quite ugly by itself.
-function processFormDependencies(formId, formMeta) {
-  _.each(formMeta.dependencies,function(depMeta, targetId) {
-      _.each(depMeta.dependsOnValue, function(valDep) {
-        var srcVM = _.reduce(
-            valDep.field.split("."),
-            function(res, p) { return res[p]; },
-            global.viewModel);
-          
-        var src = $elem(valDep.field);
-        var tgt = $elem(formId+"."+targetId);
+function createField(formId, vm, f) {
+  var field;
+  _.each(f, function(fieldMeta, fieldId) {
+    //apply defaults to filed description
+    fieldMeta = _.defaults(fieldMeta, {
+      type: "text",
+      id: formId + "." + fieldId,
+      default: "",
+    });
+    if (fieldMeta.data) {
+      var data = global.dictionary[fieldMeta.data]; 
+      fieldMeta.data = data || fieldMeta.data; 
+    }
 
-        srcVM.subscribe(function(val) {
-          // if (fromMeta->targetId).type == "form" then create form
-          if (!(parseInt(val) >= 0)) {
-            val = src.data("selectedIndex");
-          }
-          var formId = valDep.value[val] || valDep.default;
-          var form = elem(formId);
-          if (form == null) {
-            form = createForm(formId, global.meta.form[formId]);
-            form = form[0];
-          }
+    //apply field template to field description to create
+    //corresponding html element
+    field = $(global.fieldTemplate[fieldMeta.type](fieldMeta));
+    var realField = field.find(".field");
+    realField.attr('id',fieldMeta.id);
 
-          tgt.children().detach();
-          tgt.append(form);
-          ko.applyBindings(global.viewModel, form);
-        });
+    //apply additional plugins
+    _.each(fieldMeta,function(val,key) {
+        if (_.has(global.viewPlugin, key)) {
+          global.viewPlugin[key](realField,fieldMeta);
+        }
+    });
 
-        srcVM.notifySubscribers(srcVM());
-      });
+    vm[fieldId] = ko.observable(fieldMeta.default);
   });
+  return field;
 }
-
 
 
 function elem(id) {

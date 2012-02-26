@@ -1,18 +1,40 @@
 
-function createCatComplete(elem, data, params) {
+function createCatComplete(elem, data) {
 
   return elem.catcomplete(
-    _.extend(
-      {
-        delay: 0,
-        source: data,
-        minLength: 0,
-        autoFocus: true
-      },
-      params))
+      {delay: 0
+      ,source: data
+      ,minLength: 0
+      ,autoFocus: true
+      ,select: function(e,ui) {
+        var item = ui.item;
+        var cat = item.category;
+        item.value = (cat ? cat + " / " : "") + item.text;
+        $.data(this, 'data', item.data);
+      }
+    })
     .focus(function() {
       $(this).trigger("keydown.autocomplete");
     });
+}
+
+function mk2LevelList(data) {
+  var items = [];
+  _.each(data, function(cat) {
+    _.each(cat, function (subcats,catName) {
+      _.each(subcats, function(subcat) {
+        _.each(subcat, function(val, subcatName) {
+          var i = items.length;
+           items[i] = {
+              category: catName,
+              text: subcatName,
+              label: (i+1) + " " + subcatName,
+              data: val};
+        });
+      });
+    });
+  });
+  return items;
 }
 
 function transformForCatComplete(items) {  
