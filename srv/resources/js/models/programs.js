@@ -1276,9 +1276,10 @@ function Programs() {
               ,{"Информирование о происшествии":{
                conditions: [].concat(ServiceCommon.fields, SoberDriverCommon.fields)
               }}
-             ]}
             ]}
-           }           
+          ]
+        }}
+      ]}
     ,{"ACTA":
       [{"Bentley":{conditions:
           [{companyApproved:{label:"Обращение компании ACTA",type:"checkbox"}}
@@ -1739,7 +1740,6 @@ function Programs() {
             ]}
             ]}}
       ]}
-    ]}
   ]
 );
 }
