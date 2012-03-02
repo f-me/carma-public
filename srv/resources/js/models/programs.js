@@ -9,7 +9,7 @@
               "name": "",
               "services": [
                 {
-                  "Эвакуация": {
+                    "name": "Эвакуация",
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -46,12 +46,13 @@
                       ],
                       "TowageCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             },
             {
-              "Техпомощь": [
+              "name":"Техпомощь",
+                "services":[
                 {
                   "Замена колеса": {
                     "fieldgroup": [
@@ -86,13 +87,9 @@
                       "TechSelectedCommon.fields"
                     ]
                   }
-                }
-              ]
-            },
-            {
-              "Техпомощь": [
-                {
-                  "Зарядка АКБ": {
+                },
+                    {
+                  "name":"Зарядка АКБ", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -119,7 +116,7 @@
                       ],
                       "TechSelectedCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             },
@@ -127,7 +124,7 @@
               "name": "",
               "services": [
                 {
-                  "Подменный автомобиль": {
+                  "name":"Подменный автомобиль", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -179,7 +176,7 @@
                       ],
                       "ReplacementVehicleCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             },
@@ -187,7 +184,7 @@
               "name": "",
               "services": [
                 {
-                  "Гостиница": {
+                  "name":"Гостиница", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -234,11 +231,11 @@
                       ],
                       "HotelCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             }
-          ],
+          ]},{
           "name": "Легковые автомобили",
           "conditions": [
             {
@@ -270,7 +267,7 @@
               "name": "",
               "services": [
                 {
-                  "Эвакуация": {
+                  "name":"Эвакуация", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -297,14 +294,14 @@
                       ],
                       "TowageCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             },
             {
               "Техпомощь": [
                 {
-                  "Замена колеса": {
+                  "name":"Замена колеса", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -336,14 +333,14 @@
                       ],
                       "TechSelectedCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             },
             {
               "Техпомощь": [
                 {
-                  "Зарядка АКБ": {
+                  "name":"Зарядка АКБ", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -370,7 +367,7 @@
                       ],
                       "TechSelectedCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             },
@@ -378,7 +375,7 @@
               "name": "",
               "services": [
                 {
-                  "Подменный автомобиль": {
+                  "name":"Подменный автомобиль", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -430,7 +427,7 @@
                       ],
                       "ReplacementVehicleCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             },
@@ -438,7 +435,7 @@
               "name": "",
               "services": [
                 {
-                  "Гостиница": {
+                  "name":"Гостиница", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -485,7 +482,7 @@
                       ],
                       "HotelCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             }
@@ -546,56 +543,56 @@
               "name": "",
               "services": [
                 {
-                  "Эвакуация": {
+                  "name":"Эвакуация", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TowageCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Подменный автомобиль": {
+                  "name":"Подменный автомобиль", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "ReplacementVehicleCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Гостиница": {
+                  "name":"Гостиница", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "HotelCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Такси": {
+                  "name":"Такси", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TaxiCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка ТС": {
+                  "name":"Доставка ТС", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TransportDeliveryCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             },
             {
               "Транспортировка": [
                 {
-                  "Путешествие": {
+                  "name":"Путешествие", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TransportationSelectedCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             }
@@ -630,64 +627,64 @@
               "name": "",
               "services": [
                 {
-                  "Эвакуация": {
+                  "name":"Эвакуация", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TowageCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Техпомощь": {
+                  "name":"Техпомощь", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TechCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Подменный автомобиль": {
+                  "name":"Подменный автомобиль", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "ReplacementVehicleCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Гостиница": {
+                  "name":"Гостиница", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "HotelCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Такси": {
+                  "name":"Такси", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TaxiCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка ТС": {
+                  "name":"Доставка ТС", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TransportDeliveryCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             },
             {
               "Транспортировка": [
                 {
-                  "Путешествие": {
+                  "name":"Путешествие", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TransportationSelectedCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             }
@@ -727,39 +724,39 @@
               "name": "",
               "services": [
                 {
-                  "Техническая помошь": {
+                  "name":"Техническая помошь", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TechCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Эвакуация": {
+                  "name":"Эвакуация", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TowageCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Подменный автомобиль": {
+                  "name":"Подменный автомобиль", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "ReplacementVehicleCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Гостиница": {
+                  "name":"Гостиница", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "HotelCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Такси": {
+                  "name":"Такси", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -776,47 +773,47 @@
                       ],
                       "TaxiCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Транспортировка": {
+                  "name":"Транспортировка", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TransportationCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка ТС": {
+                  "name":"Доставка ТС", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TransportDeliveryCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка запчастей": {
+                  "name":"Доставка запчастей", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "SparesCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Информирование о происшествии": {
+                  "name":"Информирование о происшествии", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "NotificationCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Информирование о происшествии": {
+                  "name":"Информирование о происшествии", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "SoberDriverCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             }
@@ -841,39 +838,39 @@
               "name": "",
               "services": [
                 {
-                  "Техническая помошь": {
+                  "name":"Техническая помошь", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TechCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Эвакуация": {
+                  "name":"Эвакуация", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TowageCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Подменный автомобиль": {
+                  "name":"Подменный автомобиль", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "ReplacementVehicleCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Гостиница": {
+                  "name":"Гостиница", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "HotelCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Такси": {
+                  "name":"Такси", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -890,47 +887,47 @@
                       ],
                       "TaxiCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Транспортировка": {
+                  "name":"Транспортировка", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TransportationCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка ТС": {
+                  "name":"Доставка ТС", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TransportDeliveryCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка запчастей": {
+                  "name":"Доставка запчастей", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "SparesCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Информирование о происшествии": {
+                  "name":"Информирование о происшествии", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "NotificationCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Информирование о происшествии": {
+                  "name":"Информирование о происшествии", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "SoberDriverCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             }
@@ -955,39 +952,39 @@
               "name": "",
               "services": [
                 {
-                  "Техническая помошь": {
+                  "name":"Техническая помошь", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TechCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Эвакуация": {
+                  "name":"Эвакуация", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TowageCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Подменный автомобиль": {
+                  "name":"Подменный автомобиль", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "ReplacementVehicleCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Гостиница": {
+                  "name":"Гостиница", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "HotelCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Такси": {
+                  "name":"Такси", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -1004,47 +1001,47 @@
                       ],
                       "TaxiCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Транспортировка": {
+                  "name":"Транспортировка", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TransportationCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка ТС": {
+                  "name":"Доставка ТС", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TransportDeliveryCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка запчастей": {
+                  "name":"Доставка запчастей", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "SparesCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Информирование о происшествии": {
+                  "name":"Информирование о происшествии", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "NotificationCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Информирование о происшествии": {
+                  "name":"Информирование о происшествии", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "SoberDriverCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             }
@@ -1069,39 +1066,39 @@
               "name": "",
               "services": [
                 {
-                  "Техническая помошь": {
+                  "name":"Техническая помошь", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TechCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Эвакуация": {
+                  "name":"Эвакуация", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TowageCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Подменный автомобиль": {
+                  "name":"Подменный автомобиль", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "ReplacementVehicleCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Гостиница": {
+                  "name":"Гостиница", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "HotelCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Такси": {
+                  "name":"Такси", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -1118,47 +1115,47 @@
                       ],
                       "TaxiCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Транспортировка": {
+                  "name":"Транспортировка", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TransportationCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка ТС": {
+                  "name":"Доставка ТС", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TransportDeliveryCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка запчастей": {
+                  "name":"Доставка запчастей", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "SparesCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Информирование о происшествии": {
+                  "name":"Информирование о происшествии", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "NotificationCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Информирование о происшествии": {
+                  "name":"Информирование о происшествии", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "SoberDriverCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             }
@@ -1183,39 +1180,39 @@
               "name": "",
               "services": [
                 {
-                  "Техническая помошь": {
+                  "name":"Техническая помошь", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TechCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Эвакуация": {
+                  "name":"Эвакуация", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TowageCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Подменный автомобиль": {
+                  "name":"Подменный автомобиль", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "ReplacementVehicleCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Гостиница": {
+                  "name":"Гостиница", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "HotelCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Такси": {
+                  "name":"Такси", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -1232,47 +1229,47 @@
                       ],
                       "TaxiCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Транспортировка": {
+                  "name":"Транспортировка", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TransportationCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка ТС": {
+                  "name":"Доставка ТС", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TransportDeliveryCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка запчастей": {
+                  "name":"Доставка запчастей", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "SparesCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Информирование о происшествии": {
+                  "name":"Информирование о происшествии", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "NotificationCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Информирование о происшествии": {
+                  "name":"Информирование о происшествии", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "SoberDriverCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             }
@@ -1297,39 +1294,39 @@
               "name": "",
               "services": [
                 {
-                  "Техническая помошь": {
+                  "name":"Техническая помошь", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TechCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Эвакуация": {
+                  "name":"Эвакуация", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TowageCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Подменный автомобиль": {
+                  "name":"Подменный автомобиль", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "ReplacementVehicleCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Гостиница": {
+                  "name":"Гостиница", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "HotelCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Такси": {
+                  "name":"Такси", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -1346,47 +1343,47 @@
                       ],
                       "TaxiCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Транспортировка": {
+                  "name":"Транспортировка", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TransportationCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка ТС": {
+                  "name":"Доставка ТС", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TransportDeliveryCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка запчастей": {
+                  "name":"Доставка запчастей", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "SparesCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Информирование о происшествии": {
+                  "name":"Информирование о происшествии", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "NotificationCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Информирование о происшествии": {
+                  "name":"Информирование о происшествии", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "SoberDriverCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             }
@@ -1411,28 +1408,28 @@
               "name": "",
               "services": [
                 {
-                  "Техническая помошь": {
+                  "name":"Техническая помошь", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TechCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Эвакуация": {
+                  "name":"Эвакуация", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TowageCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Гостиница": {
+                  "name":"Гостиница", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "HotelCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             }
@@ -1457,39 +1454,39 @@
               "name": "",
               "services": [
                 {
-                  "Техническая помошь": {
+                  "name":"Техническая помошь", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TechCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Эвакуация": {
+                  "name":"Эвакуация", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TowageCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Подменный автомобиль": {
+                  "name":"Подменный автомобиль", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "ReplacementVehicleCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Гостиница": {
+                  "name":"Гостиница", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "HotelCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Такси": {
+                  "name":"Такси", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -1506,47 +1503,47 @@
                       ],
                       "TaxiCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Транспортировка": {
+                  "name":"Транспортировка", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TransportationCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка ТС": {
+                  "name":"Доставка ТС", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "TransportDeliveryCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка запчастей": {
+                  "name":"Доставка запчастей", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "SparesCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Информирование о происшествии": {
+                  "name":"Информирование о происшествии", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "NotificationCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Информирование о происшествии": {
+                  "name":"Информирование о происшествии", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       "SoberDriverCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             }
@@ -1586,7 +1583,7 @@
               "name": "",
               "services": [
                 {
-                  "Техническая помошь": {
+                  "name":"Техническая помошь", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -1608,10 +1605,10 @@
                       ],
                       "TechCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Эвакуация": {
+                  "name":"Эвакуация", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -1653,10 +1650,10 @@
                       ],
                       "TowageCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Подменный автомобиль": {
+                  "name":"Подменный автомобиль", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -1693,10 +1690,10 @@
                       ],
                       "ReplacementVehicleCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Гостиница": {
+                  "name":"Гостиница", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -1748,10 +1745,10 @@
                       ],
                       "HotelCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Такси": {
+                  "name":"Такси", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -1768,10 +1765,10 @@
                       ],
                       "TaxiCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка запчастей": {
+                  "name":"Доставка запчастей", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -1788,14 +1785,14 @@
                       ],
                       "SparesCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             },
             {
               "Транспортировка": [
                 {
-                  "Путешествие": {
+                  "name":"Путешествие", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -1842,10 +1839,10 @@
                       ],
                       "TransportationSelectedCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка к ТС": {
+                  "name":"Доставка к ТС", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -1882,7 +1879,7 @@
                       ],
                       "TransportationSelectedCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             }
@@ -1917,7 +1914,7 @@
               "name": "",
               "services": [
                 {
-                  "Техническая помошь": {
+                  "name":"Техническая помошь", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -1939,10 +1936,10 @@
                       ],
                       "TechCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Эвакуация": {
+                  "name":"Эвакуация", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -1984,10 +1981,10 @@
                       ],
                       "TowageCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Подменный автомобиль": {
+                  "name":"Подменный автомобиль", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -2024,10 +2021,10 @@
                       ],
                       "ReplacementVehicleCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Гостиница": {
+                  "name":"Гостиница", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -2079,10 +2076,10 @@
                       ],
                       "HotelCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Такси": {
+                  "name":"Такси", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -2099,10 +2096,10 @@
                       ],
                       "TaxiCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка запчастей": {
+                  "name":"Доставка запчастей", {
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -2119,14 +2116,14 @@
                       ],
                       "SparesCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             },
             {
               "Транспортировка": [
                 {
-                  "Путешествие": {
+                  "name":"Путешествие", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -2173,10 +2170,10 @@
                       ],
                       "TransportationSelectedCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка к ТС": {
+                  "name":"Доставка к ТС", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -2213,7 +2210,7 @@
                       ],
                       "TransportationSelectedCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             }
@@ -2248,7 +2245,7 @@
               "name": "",
               "services": [
                 {
-                  "Техническая помошь": {
+                  "name":"Техническая помошь", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -2270,10 +2267,10 @@
                       ],
                       "TechCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Эвакуация": {
+                  "name":"Эвакуация", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -2315,10 +2312,10 @@
                       ],
                       "TowageCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Подменный автомобиль": {
+                  "name":"Подменный автомобиль", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -2355,10 +2352,10 @@
                       ],
                       "ReplacementVehicleCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Гостиница": {
+                  "name":"Гостиница", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -2410,10 +2407,10 @@
                       ],
                       "HotelCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Такси": {
+                  "name":"Такси", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -2430,10 +2427,10 @@
                       ],
                       "TaxiCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка запчастей": {
+                  "name":"Доставка запчастей", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -2450,14 +2447,14 @@
                       ],
                       "SparesCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             },
             {
               "Транспортировка": [
                 {
-                  "Путешествие": {
+                  "name":"Путешествие", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -2504,10 +2501,10 @@
                       ],
                       "TransportationSelectedCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка к ТС": {
+                  "name":"Доставка к ТС", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -2544,7 +2541,7 @@
                       ],
                       "TransportationSelectedCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             }
@@ -2599,7 +2596,7 @@
               "name": "",
               "services": [
                 {
-                  "Техническая помошь": {
+                  "name":"Техническая помошь", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -2621,10 +2618,10 @@
                       ],
                       "TechCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Эвакуация": {
+                  "name":"Эвакуация", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -2666,10 +2663,10 @@
                       ],
                       "TowageCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Подменный автомобиль": {
+                  "name":"Подменный автомобиль", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -2706,10 +2703,10 @@
                       ],
                       "ReplacementVehicleCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Гостиница": {
+                  "name":"Гостиница", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -2761,10 +2758,10 @@
                       ],
                       "HotelCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Такси": {
+                  "name":"Такси", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -2781,10 +2778,10 @@
                       ],
                       "TaxiCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка запчастей": {
+                  "name":"Доставка запчастей", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -2801,14 +2798,14 @@
                       ],
                       "SparesCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             },
             {
               "Транспортировка": [
                 {
-                  "Путешествие": {
+                  "name":"Путешествие", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -2855,10 +2852,10 @@
                       ],
                       "TransportationSelectedCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка к ТС": {
+                  "name":"Доставка к ТС", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -2895,7 +2892,7 @@
                       ],
                       "TransportationSelectedCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             }
@@ -2950,7 +2947,7 @@
               "name": "",
               "services": [
                 {
-                  "Техническая помошь": {
+                  "name":"Техническая помошь", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -2972,10 +2969,10 @@
                       ],
                       "TechCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Эвакуация": {
+                  "name":"Эвакуация", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -3017,10 +3014,10 @@
                       ],
                       "TowageCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Подменный автомобиль": {
+                  "name":"Подменный автомобиль", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -3057,10 +3054,10 @@
                       ],
                       "ReplacementVehicleCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Гостиница": {
+                  "name":"Гостиница", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -3112,10 +3109,10 @@
                       ],
                       "HotelCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Такси": {
+                  "name":"Такси", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -3132,10 +3129,10 @@
                       ],
                       "TaxiCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка запчастей": {
+                  "name":"Доставка запчастей", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -3152,14 +3149,14 @@
                       ],
                       "SparesCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             },
             {
               "Транспортировка": [
                 {
-                  "Путешествие": {
+                  "name":"Путешествие", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -3206,10 +3203,10 @@
                       ],
                       "TransportationSelectedCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка к ТС": {
+                  "name":"Доставка к ТС", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -3246,7 +3243,7 @@
                       ],
                       "TransportationSelectedCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             }
@@ -3301,7 +3298,7 @@
               "name": "",
               "services": [
                 {
-                  "Техническая помошь": {
+                  "name":"Техническая помошь", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -3323,10 +3320,10 @@
                       ],
                       "TechCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Эвакуация": {
+                  "name":"Эвакуация", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -3358,10 +3355,10 @@
                       ],
                       "TowageCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Подменный автомобиль": {
+                  "name":"Подменный автомобиль", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -3398,10 +3395,10 @@
                       ],
                       "ReplacementVehicleCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Гостиница": {
+                  "name":"Гостиница", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -3453,10 +3450,10 @@
                       ],
                       "HotelCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Такси": {
+                  "name":"Такси", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -3473,10 +3470,10 @@
                       ],
                       "TaxiCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка запчастей": {
+                  "name":"Доставка запчастей", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -3493,10 +3490,10 @@
                       ],
                       "SparesCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Трезвый водитель": {
+                  "name":"Трезвый водитель", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -3536,15 +3533,15 @@
                       ],
                       "SoberDriverCommon.fields"
                     ]
-                  }
+                  
                 }
               ]
             },
             {
-              "Транспортировка": [
+              "name":"Транспортировка", 
                 {
-                  "Путешествие": {
-                    "fieldgroup": [
+                  "name":"Путешествие", {
+                    "fieldgroup": 
                       "ServiceCommon.fields",
                       [
                         {
@@ -3590,10 +3587,10 @@
                       ],
                       "TransportationSelectedCommon.fields"
                     ]
-                  }
+                  
                 },
                 {
-                  "Доставка к ТС": {
+                  "name":"Доставка к ТС", 
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -3630,14 +3627,14 @@
                       ],
                       "TransportationSelectedCommon.fields"
                     ]
-                  }
+                  
                 }
-              ]
+              
             },
             {
-              "Техпомощь": [
+              "name":"Техпомощь", 
                 {
-                  "Доставка топлива": {
+                  "name":"Доставка топлива", {
                     "fieldgroup": [
                       "ServiceCommon.fields",
                       [
@@ -3664,9 +3661,9 @@
                       ],
                       "TechSelectedCommon.fields"
                     ]
-                  }
+                  
                 }
-              ]
+              
             }
           ],
           "name": "Caddilac после 2012",
@@ -3719,514 +3716,515 @@
       "name": "Другие",
       "subprograms": [
         {
-          "Заказ билетов": {}
+          "name":"Заказ билетов",
+            "serviceGroups": []
         },
         {
-          "B2C": {
+          "name":"B2C", 
             "serviceGroups": [
               {
                 "name": "",
                 "services": [
                   {
-                    "Эвакуация": {
-                      "fieldgroup": [
+                    "name":"Эвакуация", {
+                      "fieldgroup": 
                         "ServiceCommon.fields",
                         [
                           {
-                            "serviceProvided": {
+                            "name":"serviceProvided", 
                               "label": "Сколько раз услуга Эвакуация предоставлена"
-                            }
+                            
                           },
                           {
-                            "serviceRestriction": {
+                            "name":"serviceRestriction", 
                               "label": "Ограничение по количеству раз предоставления услуги"
-                            }
+                            
                           },
                           {
-                            "restrictionApproved": {
+                            "name":"restrictionApproved", 
                               "type": "checkbox",
                               "label": "Лимит не исчерпан"
-                            }
+                            
                           },
                           {
-                            "caseAddress": {
+                            "name":"caseAddress", 
                               "label": "Адрес кейса",
                               "subform": "Address"
-                            }
+                            
                           },
                           {
-                            "distanceApproved": {
+                            "name":"distanceApproved", 
                               "type": "checkbox",
                               "label": "Кейс на расстоянии < 50 км до Москвы или < 30 км до города"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "TowageCommon.fields"
                       ]
-                    }
+                    
                   }
                 ]
               },
               {
                 "Техпомощь": [
                   {
-                    "Подвоз топлива": {
+                    "name":"Подвоз топлива", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "serviceProvided": {
+                            "name":"serviceProvided", 
                               "label": "Сколько раз услуга Техпомощь - Подвоз топлива предоставлена"
-                            }
+                            
                           },
                           {
-                            "serviceRestriction": {
+                            "name":"serviceRestriction", 
                               "label": "Ограничение по количеству раз предоставления услуги"
-                            }
+                            
                           },
                           {
-                            "restrictionApproved": {
+                            "name":"restrictionApproved", 
                               "type": "checkbox",
                               "label": "Лимит не исчерпан"
-                            }
+                            
                           },
                           {
-                            "caseAddress": {
+                            "name":"caseAddress", 
                               "label": "Адрес кейса",
                               "subform": "Address"
-                            }
+                            
                           },
                           {
-                            "distanceApproved": {
+                            "name":"distanceApproved", 
                               "type": "checkbox",
                               "label": "Кейс на расстоянии < 50 км до Москвы или < 30 км до города"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "TechSelectedCommon.fields"
                       ]
-                    }
+                    
                   },
                   {
-                    "Запуск двигателя": {
+                    "name":"Запуск двигателя", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "serviceProvided": {
+                            "name":"serviceProvided", 
                               "label": "Сколько раз услуга Техпомощь - Запуск двигателя предоставлена"
-                            }
+                            
                           },
                           {
-                            "serviceRestriction": {
+                            "name":"serviceRestriction", 
                               "label": "Ограничение по количеству раз предоставления услуги"
-                            }
+                            
                           },
                           {
-                            "restrictionApproved": {
+                            "name":"restrictionApproved", 
                               "type": "checkbox",
                               "label": "Лимит не исчерпан"
-                            }
+                            
                           },
                           {
-                            "caseAddress": {
+                            "name":"caseAddress", 
                               "label": "Адрес кейса",
                               "subform": "Address"
-                            }
+                            
                           },
                           {
-                            "distanceApproved": {
+                            "name":"distanceApproved", 
                               "type": "checkbox",
                               "label": "Кейс на расстоянии < 50 км до Москвы или < 30 км до города"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "TechSelectedCommon.fields"
                       ]
-                    }
+                    
                   },
                   {
-                    "Замена колеса": {
+                    "name":"Замена колеса", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "serviceProvided": {
+                            "name":"serviceProvided", 
                               "label": "Сколько раз услуга Техпомощь - Замена колеса предоставлена"
-                            }
+                            
                           },
                           {
-                            "serviceRestriction": {
+                            "name":"serviceRestriction", 
                               "label": "Ограничение по количеству раз предоставления услуги"
-                            }
+                            
                           },
                           {
-                            "restrictionApproved": {
+                            "name":"restrictionApproved", 
                               "type": "checkbox",
                               "label": "Лимит не исчерпан"
-                            }
+                            
                           },
                           {
-                            "caseAddress": {
+                            "name":"caseAddress", 
                               "label": "Адрес кейса",
                               "subform": "Address"
-                            }
+                            
                           },
                           {
-                            "distanceApproved": {
+                            "name":"distanceApproved", 
                               "type": "checkbox",
                               "label": "Кейс на расстоянии < 50 км до Москвы или < 30 км до города"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "TechSelectedCommon.fields"
                       ]
-                    }
+                    
                   },
                   {
-                    "Вскрытие автомобиля": {
+                    "name":"Вскрытие автомобиля", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "serviceProvided": {
+                            "name":"serviceProvided", 
                               "label": "Сколько раз услуга Техпомощь - Вскрытие автомобиля предоставлена"
-                            }
+                            
                           },
                           {
-                            "serviceRestriction": {
+                            "name":"serviceRestriction", 
                               "label": "Ограничение по количеству раз предоставления услуги"
-                            }
+                            
                           },
                           {
-                            "restrictionApproved": {
+                            "name":"restrictionApproved", 
                               "type": "checkbox",
                               "label": "Лимит не исчерпан"
-                            }
+                            
                           },
                           {
-                            "caseAddress": {
+                            "name":"caseAddress", 
                               "label": "Адрес кейса",
                               "subform": "Address"
-                            }
+                            
                           },
                           {
-                            "distanceApproved": {
+                            "name":"distanceApproved", 
                               "type": "checkbox",
                               "label": "Кейс на расстоянии < 50 км до Москвы или < 30 км до города"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "TechSelectedCommon.fields"
                       ]
-                    }
+                    
                   }
                 ]
               }
             ],
             "conditions": [
               {
-                "memberNumber": {
+                "name":"memberNumber", 
                   "label": "Карта участника"
-                }
+                
               },
               {
-                "memberApproved": {
+                "name":"memberApproved", 
                   "type": "checkbox",
                   "label": "Участник программы"
-                }
+                
               },
               {
-                "isMember": {
+                "name":"isMember", 
                   "type": "checkbox",
                   "label": "Клиент участвует в программе"
-                }
+                
               }
             ]
-          }
+          
         },
         {
-          "Ford": {
+          "name":"Ford", 
             "serviceGroups": [
               {
                 "name": "",
                 "services": [
                   {
-                    "Эвакуация": {
+                    "name":"Эвакуация", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "caseAddress": {
+                            "name":"caseAddress", 
                               "label": "Адрес кейса",
                               "subform": "Address"
-                            }
+                            
                           },
                           {
-                            "closeDealersPresent": {
+                            "name":"closeDealersPresent", 
                               "type": "checkbox",
                               "label": "Есть дилеры на расстоянии <200 км"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "TowageCommon.fields"
                       ]
-                    }
+                    
                   },
                   {
-                    "Техническая помощь": {
+                    "name":"Техническая помощь", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "caseAddress": {
+                            "name":"caseAddress", 
                               "label": "Адрес кейса",
                               "subform": "Address"
-                            }
+                            
                           },
                           {
-                            "contractor": {
+                            "name":"contractor", 
                               "label": "Подрядчик",
                               "subform": "Contractor"
-                            }
+                            
                           },
                           {
-                            "closeContractorsPresent": {
+                            "name":"closeContractorsPresent", 
                               "type": "checkbox",
                               "label": "Есть мастерские на расстоянии <200 км"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "TechCommon.fields"
                       ]
-                    }
+                    
                   },
                   {
-                    "Информирование о происшествии": {
+                    "name":"Информирование о происшествии", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "RAMCtow": {
+                            "name":"RAMCtow", 
                               "type": "checkbox",
                               "label": "Эвакуация РАМК"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "NotificationCommon.fields"
                       ]
-                    }
+                    
                   },
                   {
-                    "Подменный автомобиль": {
+                    "name":"Подменный автомобиль", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "RAMCtow": {
+                            "name":"RAMCtow", 
                               "type": "checkbox",
                               "label": "Эвакуация РАМК"
-                            }
+                            
                           },
                           {
-                            "towDealer": {
+                            "name":"towDealer", 
                               "label": "Дилер",
                               "subform": "Dealer"
-                            }
+                            
                           },
                           {
-                            "startRepairDate": {
+                            "name":"startRepairDate", 
                               "label": "Дата начала ремонта",
                               "datepicker": true
-                            }
+                            
                           },
                           {
-                            "plannedRepairDate": {
+                            "name":"plannedRepairDate", 
                               "label": "Предполагаемая дата исправления автомобиля",
                               "datepicker": true
-                            }
+                            
                           },
                           {
-                            "longRepair": {
+                            "name":"longRepair", 
                               "type": "checkbox",
                               "label": "Неисправность не может быть исправлена в день обращения"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "ReplacementVehicleCommon.fields"
                       ]
-                    }
+                    
                   },
                   {
-                    "Такси": {
+                    "name":"Такси", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "RAMCtow": {
+                            "name":"RAMCtow", 
                               "type": "checkbox",
                               "label": "Эвакуация РАМК"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "TaxiCommon.fields"
                       ]
-                    }
+                    
                   }
                 ]
               }
             ],
             "conditions": [
               {
-                "VINApproved": {
+                "name":"VINApproved", 
                   "type": "checkbox",
                   "label": "VIN в списке участников программы"
-                }
+                
               },
               {
-                "lastTODate": {
+                "name":"lastTODate", 
                   "label": "Дата последнего ТО",
                   "datepicker": true
-                }
+                
               },
               {
-                "TOApproved": {
+                "name":"TOApproved", 
                   "type": "checkbox",
                   "label": "Дата последнего ТО < 1 года"
-                }
+                
               },
               {
-                "milageTO": {
+                "name":"milageTO", 
                   "label": "Пробег на последнем ТО"
-                }
+                
               },
               {
-                "milage": {
+                "name":"milage", 
                   "label": "Пробег"
-                }
+                
               },
               {
-                "milageApproved": {
+                "name":"milageApproved", 
                   "type": "checkbox",
                   "label": "Межсервисный интервал не пройден"
-                }
+                
               },
               {
-                "isMember": {
+                "name":"isMember", 
                   "type": "checkbox",
                   "label": "Клиент участвует в программе"
-                }
+                
               }
             ]
-          }
+          
         },
         {
-          "BP": {
+          "name":"BP", 
             "serviceGroups": [
               {
                 "name": "",
                 "services": [
                   {
-                    "Эвакуация": {
+                    "name":"Эвакуация", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         "TowageCommon.fields"
                       ]
-                    }
+                    
                   }
                 ]
               },
               {
                 "Техпомощь": [
                   {
-                    "Слив топлива": {
+                    "name":"Слив топлива", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         "TechSelectedCommon.fields"
                       ]
-                    }
+                    
                   }
                 ]
               }
             ],
             "conditions": [
               {
-                "companyApproved": {
+                "name":"companyApproved", 
                   "type": "checkbox",
                   "label": "Обращение компании BP"
-                }
+                
               },
               {
-                "isMember": {
+                "name":"isMember", 
                   "type": "checkbox",
                   "label": "Клиент участвует в программе"
-                }
+                
               }
             ]
-          }
+          
         },
         {
-          "Рус Лан": {
+          "name":"Рус Лан", 
             "serviceGroups": [
               {
                 "name": "",
@@ -4234,826 +4232,826 @@
                   {
                     "Техпомощь": [
                       {
-                        "Замена колеса": {
+                        "name":"Замена колеса", 
                           "fieldgroup": [
                             "ServiceCommon.fields",
                             [
                               {
-                                "caseAddress": {
+                                "name":"caseAddress", 
                                   "label": "Адрес кейса",
                                   "subform": "Address"
-                                }
+                                
                               },
                               {
-                                "contractor": {
+                                "name":"contractor", 
                                   "label": "Подрядчик",
                                   "subform": "Contractor"
-                                }
+                                
                               },
                               {
-                                "closeContractorsPresent": {
+                                "name":"closeContractorsPresent", 
                                   "type": "checkbox",
                                   "label": "Есть мастерские на расстоянии <125 км"
-                                }
+                                
                               },
                               {
-                                "serviceApproved": {
+                                "name":"serviceApproved", 
                                   "type": "checkbox",
                                   "label": "Услуга может быть оказана по программе"
-                                }
+                                
                               }
                             ],
                             "TechSelectedCommon.fields"
                           ]
-                        }
+                        
                       }
                     ]
                   },
                   {
                     "Техпомощь": [
                       {
-                        "Зарядка АКБ": {
+                        "name":"Зарядка АКБ", 
                           "fieldgroup": [
                             "ServiceCommon.fields",
                             [
                               {
-                                "caseAddress": {
+                                "name":"caseAddress", 
                                   "label": "Адрес кейса",
                                   "subform": "Address"
-                                }
+                                
                               },
                               {
-                                "contractor": {
+                                "name":"contractor", 
                                   "label": "Подрядчик",
                                   "subform": "Contractor"
-                                }
+                                
                               },
                               {
-                                "closeContractorsPresent": {
+                                "name":"closeContractorsPresent", 
                                   "type": "checkbox",
                                   "label": "Есть мастерские на расстоянии <125 км"
-                                }
+                                
                               },
                               {
-                                "serviceApproved": {
+                                "name":"serviceApproved", 
                                   "type": "checkbox",
                                   "label": "Услуга может быть оказана по программе"
-                                }
+                                
                               }
                             ],
                             "TechSelectedCommon.fields"
                           ]
-                        }
+                        
                       }
                     ]
                   },
                   {
-                    "Техпомощь": {
+                    "name":"Техпомощь", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "caseAddress": {
+                            "name":"caseAddress", 
                               "label": "Адрес кейса",
                               "subform": "Address"
-                            }
+                            
                           },
                           {
-                            "contractor": {
+                            "name":"contractor", 
                               "label": "Подрядчик",
                               "subform": "Contractor"
-                            }
+                            
                           },
                           {
-                            "closeContractorsPresent": {
+                            "name":"closeContractorsPresent", 
                               "type": "checkbox",
                               "label": "Есть мастерские на расстоянии <125 км"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "TechCommon.fields"
                       ]
-                    }
+                    
                   },
                   {
-                    "Эвакуация": {
+                    "name":"Эвакуация", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "caseAddress": {
+                            "name":"caseAddress", 
                               "label": "Адрес кейса",
                               "subform": "Address"
-                            }
+                            
                           },
                           {
-                            "contractor": {
+                            "name":"contractor", 
                               "label": "Подрядчик",
                               "subform": "Contractor"
-                            }
+                            
                           },
                           {
-                            "closeContractorsPresent": {
+                            "name":"closeContractorsPresent", 
                               "type": "checkbox",
                               "label": "Есть мастерские на расстоянии < 125 км"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "TowageCommon.fields"
                       ]
-                    }
+                    
                   }
                 ]
               }
             ],
             "conditions": [
               {
-                "caseAddress": {
+                "name":"caseAddress", 
                   "label": "Адрес кейса",
                   "subform": "Address"
-                }
+                
               },
               {
-                "contractor": {
+                "name":"contractor", 
                   "label": "Подрядчик",
                   "subform": "Contractor"
-                }
+                
               },
               {
-                "closeContractorsPresent": {
+                "name":"closeContractorsPresent", 
                   "type": "checkbox",
                   "label": "Есть мастерские на расстоянии <125 км"
-                }
+                
               },
               {
-                "serviceApproved": {
+                "name":"serviceApproved", 
                   "type": "checkbox",
                   "label": "Услуга может быть оказана по программе"
-                }
+                
               }
             ]
-          }
+          
         },
         {
-          "Атлант М": {
+          "name":"Атлант М", 
             "serviceGroups": [
               {
                 "name": "",
                 "services": [
                   {
-                    "Техпомощь": {
+                    "name":"Техпомощь", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "caseAddress": {
+                            "name":"caseAddress", 
                               "label": "Адрес кейса",
                               "subform": "Address"
-                            }
+                            
                           },
                           {
-                            "contractor": {
+                            "name":"contractor", 
                               "label": "Подрядчик",
                               "subform": "Contractor"
-                            }
+                            
                           },
                           {
-                            "closeContractorsPresent": {
+                            "name":"closeContractorsPresent", 
                               "type": "checkbox",
                               "label": "Есть мастерские на расстоянии <125 км"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "TechCommon.fields"
                       ]
-                    }
+                    
                   },
                   {
-                    "Эвакуация": {
+                    "name":"Эвакуация", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "caseAddress": {
+                            "name":"caseAddress", 
                               "label": "Адрес кейса",
                               "subform": "Address"
-                            }
+                            
                           },
                           {
-                            "contractor": {
+                            "name":"contractor", 
                               "label": "Подрядчик",
                               "subform": "Contractor"
-                            }
+                            
                           },
                           {
-                            "closeContractorsPresent": {
+                            "name":"closeContractorsPresent", 
                               "type": "checkbox",
                               "label": "Есть мастерские на расстоянии < 125 км"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "TowageCommon.fields"
                       ]
-                    }
+                    
                   },
                   {
-                    "Информирование о происшествии": {
+                    "name":"Информирование о происшествии", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         "NotificationCommon.fields"
                       ]
-                    }
+                    
                   }
                 ]
               }
             ],
             "conditions": [
               {
-                "VINApproved": {
+                "name":"VINApproved", 
                   "type": "checkbox",
                   "label": "VIN в списке участников программы"
-                }
+                
               },
               {
-                "programEndDate": {
+                "name":"programEndDate", 
                   "label": "Срок действия программы",
                   "datepicker": true
-                }
+                
               },
               {
-                "programNotExpired": {
+                "name":"programNotExpired", 
                   "type": "checkbox",
                   "label": "Программа действует"
-                }
+                
               },
               {
-                "programEndMilage": {
+                "name":"programEndMilage", 
                   "label": "Ограничение по пробегу"
-                }
+                
               },
               {
-                "milage": {
+                "name":"milage", 
                   "label": "Пробег"
-                }
+                
               },
               {
-                "milageApproved": {
+                "name":"milageApproved", 
                   "type": "checkbox",
                   "label": "Межсервисный интервал не пройден"
-                }
+                
               },
               {
-                "isMember": {
+                "name":"isMember", 
                   "type": "checkbox",
                   "label": "Клиент участвует в программе"
-                }
+                
               }
             ]
-          }
+          
         },
         {
-          "Chartis Assistance": {
+          "name":"Chartis Assistance", 
             "serviceGroups": [
               {
                 "name": "",
                 "services": [
                   {
-                    "Эвакуация": {
-                      "fieldgroup": [
+                    "name":"Эвакуация", {
+                      "fieldgroup": 
                         "ServiceCommon.fields",
                         [
                           {
-                            "caseAddress": {
+                            "name":"caseAddress", 
                               "label": "Адрес кейса",
                               "subform": "Address"
-                            }
+                            
                           },
                           {
-                            "distanceMskSpbApproved": {
+                            "name":"distanceMskSpbApproved", 
                               "type": "checkbox",
                               "label": "Кейс на расстоянии < 100 км до Москвы или < 100 км до Санкт-Петербурга"
-                            }
+                            
                           },
                           {
-                            "nonAccident": {
+                            "name":"nonAccident", 
                               "type": "checkbox",
                               "label": "Не ДТП"
-                            }
+                            
                           },
                           {
-                            "nonVandal": {
+                            "name":"nonVandal", 
                               "type": "checkbox",
                               "label": "Не вандализм"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "TowageCommon.fields"
                       ]
-                    }
+                    
                   },
                   {
-                    "Подменный автомобиль": {
+                    "name":"Подменный автомобиль", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "RAMCtow": {
+                            "name":"RAMCtow", 
                               "type": "checkbox",
                               "label": "Эвакуация РАМК"
-                            }
+                            
                           },
                           {
-                            "towDealer": {
+                            "name":"towDealer", 
                               "label": "Дилер",
                               "subform": "Dealer"
-                            }
+                            
                           },
                           {
-                            "startRepairDate": {
+                            "name":"startRepairDate", 
                               "label": "Дата начала ремонта",
                               "datepicker": true
-                            }
+                            
                           },
                           {
-                            "plannedRepairDate": {
+                            "name":"plannedRepairDate", 
                               "label": "Предполагаемая дата исправления автомобиля",
                               "datepicker": true
-                            }
+                            
                           },
                           {
-                            "longRepair": {
+                            "name":"longRepair", 
                               "type": "checkbox",
                               "label": "Неисправность не может быть исправлена в день обращения"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "ReplacementVehicleCommon.fields"
                       ]
-                    }
+                    
                   },
                   {
-                    "Такси": {
+                    "name":"Такси", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "RAMCtow": {
+                            "name":"RAMCtow", 
                               "type": "checkbox",
                               "label": "Эвакуация РАМК"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "TaxiCommon.fields"
                       ]
-                    }
+                    
                   }
                 ]
               },
               {
                 "Техпомощь": [
                   {
-                    "Зарядка АКБ": {
+                    "name":"Зарядка АКБ", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "caseAddress": {
+                            "name":"caseAddress", 
                               "label": "Адрес кейса",
                               "subform": "Address"
-                            }
+                            
                           },
                           {
-                            "distanceMskSpbApproved": {
+                            "name":"distanceMskSpbApproved", 
                               "type": "checkbox",
                               "label": "Кейса на расстоянии < 100 км до Москвы или < 100 км до Санкт-Петербурга"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "TechSelectedCommon.fields"
                       ]
-                    }
+                    
                   },
                   {
-                    "Замена колеса": {
+                    "name":"Замена колеса", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "caseAddress": {
+                            "name":"caseAddress", 
                               "label": "Адрес кейса",
                               "subform": "Address"
-                            }
+                            
                           },
                           {
-                            "distanceMskSpbApproved": {
+                            "name":"distanceMskSpbApproved", 
                               "type": "checkbox",
                               "label": "Кейса на расстоянии < 100 км до Москвы или < 100 км до Санкт-Петербурга"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "TechSelectedCommon.fields"
                       ]
-                    }
+                    
                   },
                   {
-                    "Вскрытие автомобиля": {
+                    "name":"Вскрытие автомобиля", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "caseAddress": {
+                            "name":"caseAddress", 
                               "label": "Адрес кейса",
                               "subform": "Address"
-                            }
+                            
                           },
                           {
-                            "distanceMskSpbApproved": {
+                            "name":"distanceMskSpbApproved", 
                               "type": "checkbox",
                               "label": "Кейса на расстоянии < 100 км до Москвы или < 100 км до Санкт-Петербурга"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "TechSelectedCommon.fields"
                       ]
-                    }
+                    
                   },
                   {
-                    "Подвоз топлива": {
+                    "name":"Подвоз топлива", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "caseAddress": {
+                            "name":"caseAddress", 
                               "label": "Адрес кейса",
                               "subform": "Address"
-                            }
+                            
                           },
                           {
-                            "distanceMskSpbApproved": {
+                            "name":"distanceMskSpbApproved", 
                               "type": "checkbox",
                               "label": "Кейса на расстоянии < 100 км до Москвы или < 100 км до Санкт-Петербурга"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "TechSelectedCommon.fields"
                       ]
-                    }
+                    
                   }
                 ]
               },
               {
                 "Транспортировка": [
                   {
-                    "Путешествие": {
+                    "name":"Путешествие", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "RAMCtow": {
+                            "name":"RAMCtow", 
                               "type": "checkbox",
                               "label": "Эвакуация РАМК"
-                            }
+                            
                           },
                           {
-                            "caseAddress": {
+                            "name":"caseAddress", 
                               "label": "Адрес кейса",
                               "subform": "Address"
-                            }
+                            
                           },
                           {
-                            "clientAddress": {
+                            "name":"clientAddress", 
                               "label": "Место жительства",
                               "subform": "Address"
-                            }
+                            
                           },
                           {
-                            "towDealer": {
+                            "name":"towDealer", 
                               "label": "Дилер",
                               "subform": "Dealer"
-                            }
+                            
                           },
                           {
-                            "dealerClientDistanceApproved": {
+                            "name":"dealerClientDistanceApproved", 
                               "type": "checkbox",
                               "label": "Дилер в 100 км от местра проживания клиента"
-                            }
+                            
                           },
                           {
-                            "startRepairDate": {
+                            "name":"startRepairDate", 
                               "label": "Дата начала ремонта",
                               "datepicker": true
-                            }
+                            
                           },
                           {
-                            "plannedRepairDate": {
+                            "name":"plannedRepairDate", 
                               "label": "Предполагаемая дата исправления автомобиля",
                               "datepicker": true
-                            }
+                            
                           },
                           {
-                            "longRepair": {
+                            "name":"longRepair", 
                               "type": "checkbox",
                               "label": "Неисправность не может быть исправлена в день обращения"
-                            }
+                            
                           },
                           {
-                            "attachedFiles": {
+                            "name":"attachedFiles", 
                               "type": "files",
                               "label": "Приложенные файлы"
-                            }
+                            
                           },
                           {
-                            "TravelApproved": {
+                            "name":"TravelApproved", 
                               "type": "checkbox",
                               "label": "Подтверждение путешествия предоставлено"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "TransportationSelectedCommon.fields"
                       ]
-                    }
+                    
                   },
                   {
-                    "Доставка к ТС": {
+                    "name":"Доставка к ТС", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "RAMCtow": {
+                            "name":"RAMCtow", 
                               "type": "checkbox",
                               "label": "Эвакуация РАМК"
-                            }
+                            
                           },
                           {
-                            "caseAddress": {
+                            "name":"caseAddress", 
                               "label": "Адрес кейса",
                               "subform": "Address"
-                            }
+                            
                           },
                           {
-                            "clientAddress": {
+                            "name":"clientAddress", 
                               "label": "Место жительства",
                               "subform": "Address"
-                            }
+                            
                           },
                           {
-                            "towDealer": {
+                            "name":"towDealer", 
                               "label": "Дилер",
                               "subform": "Dealer"
-                            }
+                            
                           },
                           {
-                            "dealerClientDistanceApproved": {
+                            "name":"dealerClientDistanceApproved", 
                               "type": "checkbox",
                               "label": "Дилер в 100 км от местра проживания клиента"
-                            }
+                            
                           },
                           {
-                            "startRepairDate": {
+                            "name":"startRepairDate", 
                               "label": "Дата начала ремонта",
                               "datepicker": true
-                            }
+                            
                           },
                           {
-                            "plannedRepairDate": {
+                            "name":"plannedRepairDate", 
                               "label": "Предполагаемая дата исправления автомобиля",
                               "datepicker": true
-                            }
+                            
                           },
                           {
-                            "longRepair": {
+                            "name":"longRepair", 
                               "type": "checkbox",
                               "label": "Неисправность не может быть исправлена в день обращения"
-                            }
+                            
                           },
                           {
-                            "attachedFiles": {
+                            "name":"attachedFiles", 
                               "type": "files",
                               "label": "Приложенные файлы"
-                            }
+                            
                           },
                           {
-                            "TravelApproved": {
+                            "name":"TravelApproved", 
                               "type": "checkbox",
                               "label": "Подтверждение путешествия предоставлено"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "TransportationSelectedCommon.fields"
                       ]
-                    }
+                    
                   }
                 ]
               }
             ],
             "conditions": [
               {
-                "VINApproved": {
+                "name":"VINApproved", 
                   "type": "checkbox",
                   "label": "VIN в списке участников программы"
-                }
+                
               },
               {
-                "isMember": {
+                "name":"isMember", 
                   "type": "checkbox",
                   "label": "Клиент участвует в программе"
-                }
+                
               }
             ]
-          }
+          
         },
         {
-          "Autokraft Assistance": {
+          "name":"Autokraft Assistance", 
             "serviceGroups": [
               {
                 "name": "",
                 "services": [
                   {
-                    "Эвакуация": {
+                    "name":"Эвакуация", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "caseAddress": {
+                            "name":"caseAddress", 
                               "label": "Адрес кейса",
                               "subform": "Address"
-                            }
+                            
                           },
                           {
-                            "distanceMoscowApproved": {
+                            "name":"distanceMoscowApproved", 
                               "type": "checkbox",
                               "label": "Кейс на расстоянии < 100 км до Москвы"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "TowageCommon.fields"
                       ]
-                    }
+                    
                   },
                   {
-                    "Техническая помощь": {
+                    "name":"Техническая помощь", 
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "caseAddress": {
+                            "name":"caseAddress", 
                               "label": "Адрес кейса",
                               "subform": "Address"
-                            }
+                            
                           },
                           {
-                            "distanceMoscowApproved": {
+                            "name":"distanceMoscowApproved", 
                               "type": "checkbox",
                               "label": "Кейс на расстоянии < 100 км до Москвы"
-                            }
+                            
                           },
                           {
-                            "serviceApproved": {
+                            "name":"serviceApproved", 
                               "type": "checkbox",
                               "label": "Услуга может быть оказана по программе"
-                            }
+                            
                           }
                         ],
                         "TechCommon.fields"
                       ]
-                    }
+                    
                   }
                 ]
               }
             ],
             "conditions": [
               {
-                "VINApproved": {
+                "name":"VINApproved", 
                   "type": "checkbox",
                   "label": "VIN в списке участников программы"
-                }
+                
               },
               {
-                "programEndDate": {
+                "name":"programEndDate", 
                   "label": "Срок действия программы",
                   "datepicker": true
-                }
+                
               },
               {
-                "programNotExpired": {
+                "name":"programNotExpired", 
                   "type": "checkbox",
                   "label": "Программа действует"
-                }
+                
               },
               {
-                "programEndMilage": {
+                "name":"programEndMilage", 
                   "label": "Ограничение по пробегу"
-                }
+                
               },
               {
-                "milage": {
+                "name":"milage", 
                   "label": "Пробег"
-                }
+                
               },
               {
-                "milageApproved": {
+                "name":"milageApproved", 
                   "type": "checkbox",
                   "label": "Межсервисный интервал не пройден"
-                }
+                
               },
               {
-                "isMember": {
+                "name":"isMember", 
                   "type": "checkbox",
                   "label": "Клиент участвует в программе"
-                }
+                
               }
             ]
-          }
+          
         }
       ]
     }
   ],
-  "commons": {
-    "TaxiCommon": {
+  "name":"commons", 
+    "name":"TaxiCommon", {
       "fields": [
         {
           "name": "taxiFrom",
@@ -5066,18 +5064,18 @@
           "subform": "Address"
         }
       ]
-    },
-    "HotelCommon": {
-      "fields": [
+    ,
+    "name":"otelCommon", {
+      "fields": 
         {
           "name": "caseAddress",
           "label": "Адрес кейса",
           "subform": "Address"
         }
       ]
-    },
-    "TechCommon": {
-      "fields": [
+    ,
+    "name":"TechCommon", {
+      "fields": 
         {
           "name": "techType",
           "data": "TechTypes",
@@ -5099,9 +5097,9 @@
           "label": "Примечания"
         }
       ]
-    },
-    "TransportationCommon": {
-      "fields": [
+    ,
+    "name":"TransportationCommon", {
+      "fields": 
         {
           "name": "transportType",
           "data": "TransportTypes",
@@ -5118,9 +5116,9 @@
           "subform": "Address"
         }
       ]
-    },
-    "ReplacementVehicleCommon": {
-      "fields": [
+    ,
+    "name":"ReplacementVehicleCommon", {
+      "fields": 
         {
           "name": "towDealer",
           "label": "Дилер",
@@ -5142,9 +5140,9 @@
           "subform": "Contractor"
         }
       ]
-    },
-    "SparesCommon": {
-      "fields": [
+    ,
+    "name":"SparesCommon", {
+      "fields": 
         {
           "name": "parts",
           "type": "textarea",
@@ -5156,9 +5154,9 @@
           "subform": "Address"
         }
       ]
-    },
-    "NotificationCommon": {
-      "fields": [
+    ,
+    "name":"NotificationCommon", {
+      "fields": 
         {
           "name": "infoContact1",
           "label": "Контакт 1"
@@ -5199,9 +5197,9 @@
           "label": "Что сказать 3"
         }
       ]
-    },
-    "ServiceCommon": {
-      "fields": [
+    ,
+    "name":"ServiceCommon", {
+      "fields": 
         {
           "required": true,
           "name": "status",
@@ -5235,9 +5233,9 @@
           "subform": "Address"
         }
       ]
-    },
-    "TechSelectedCommon": {
-      "fields": [
+    ,
+    "name":"TechSelectedCommon", {
+      "fields": 
         {
           "name": "caseAddress",
           "label": "Адрес кейса",
@@ -5254,9 +5252,9 @@
           "label": "Примечания"
         }
       ]
-    },
-    "TowageCommon": {
-      "fields": [
+    ,
+    "name":"TowageCommon", {
+      "fields": 
         {
           "required": true,
           "name": "towerType",
@@ -5300,18 +5298,18 @@
           "label": "Есть место для манипулятора"
         }
       ]
-    },
-    "TransportDeliveryCommon": {
-      "fields": [
+    ,
+    "name":"TransportDeliveryCommon", {
+      "fields": 
         {
           "name": "transportCarTo",
           "label": "Куда доставить",
           "subform": "Address"
         }
       ]
-    },
-    "SoberDriverCommon": {
-      "fields": [
+    ,
+    "name":"SoberDriverCommon", {
+      "fields": 
         {
           "name": "fromAddress",
           "label": "Откуда",
@@ -5328,9 +5326,9 @@
           "label": "Каско МУЛЬТИДРАЙВ"
         }
       ]
-    },
-    "TransportationSelectedCommon": {
-      "fields": [
+    ,
+    "name":"TransportationSelectedCommon", {
+      "fields": 
         {
           "name": "transportFrom",
           "label": "Откуда",
@@ -5342,6 +5340,6 @@
           "subform": "Address"
         }
       ]
-    }
-  }
+    
+  
 }
