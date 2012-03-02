@@ -1,4 +1,3 @@
--*- mode: org -*-
 #+SEQ_TODO: MAYBE SOMEDAY BLOCKED TODO IN_PROGRESS | DONE
 
 * Prerequisites
