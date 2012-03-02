@@ -28,6 +28,31 @@
     <script src="/s/js/load-model.js" />
   </head>
   <body>
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <ul class="nav">
+            <a class="brand" href="#">
+              CaRMa
+            </a>
+            <li class="divider-vertical" />
+            <li class="active">
+              <a href="call/">Приём звонка</a>
+            </li>
+            <li>
+              <a href="case/">Новый кейс</a>
+            </li>
+            <li>
+              <a href="search/">Поиск</a>
+            </li>
+            <li>
+              <a href="help/">Справка</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
     <div class="container-fluid">
       <div class="row-fluid">
         <div class="span2">
@@ -47,8 +72,6 @@
            <div class="box">
              <ul class="nav nav-list" id="menu" />
            </div>
-          <div class="box" id="messages" />
-
           <div class="box" id="timeline" />
         </div>
 
