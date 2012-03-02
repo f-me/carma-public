@@ -9,11 +9,15 @@
     <!-- DOM manipulation -->
     <script src="/s/js/3p/jquery-1.7.1.min.js" />
 
+    <!-- Rich UI -->
+    <script src="/s/js/3p/bootstrap.min.js" />
+
     <!-- Responsive UI javascript library -->
     <script src="/s/js/3p/knockout-2.0.0.js" />
 
     <!-- Utility library, Backbone dependency -->
-    <script src="/s/js/3p/underscore-min.js" />
+    <script src="/s/js/3p/underscore-1.3.1.min.js" />
+
     <!-- Loose MVC -->
     <script src="/s/js/3p/backbone-0.9.1.min.js" />
 
@@ -28,53 +32,53 @@
     <script src="/s/js/load-model.js" />
   </head>
   <body>
+    <!-- Navigation bar on top -->
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
           <ul class="nav">
-            <a class="brand" href="#">
+            <a class="brand" href="/">
               CaRMa
             </a>
             <li class="divider-vertical" />
             <li class="active">
-              <a href="call/">Приём звонка</a>
+              <a href="/call/">Приём звонка</a>
             </li>
             <li>
-              <a href="case/">Новый кейс</a>
+              <a href="/case/">Новый кейс</a>
             </li>
             <li>
-              <a href="search/">Поиск</a>
+              <a href="/search/">Поиск</a>
             </li>
             <li>
-              <a href="help/">Справка</a>
+              <a href="/help/">Справка</a>
             </li>
           </ul>
+            <ifLoggedIn>
+              <ul class="nav pull-right">
+                <li class="divider-vertical" />
+                <li class="dropdown">
+                  <a href="#"
+                     class="dropdown-toggle"
+                     data-toggle="dropdown">
+                    <i class="icon-user icon-white" />&nbsp;<loggedInUser />
+                    <b class="caret"></b>
+                  </a>
+                  <ul class="dropdown-menu">
+                    <li>
+                      <a href="/logout/">
+                        <i class="icon-off icon-black" />&nbsp;Выход
+                      </a>
+                  </ul>
+                </li>
+              </ul>
+            </ifLoggedIn>
         </div>
       </div>
     </div>
 
     <div class="container-fluid">
       <div class="row-fluid">
-        <div class="span2">
-          <div class="box" id="login">
-            <ifLoggedIn>
-              <div style="float:left;">
-                <i class="icon-user" /><loggedInUser /><br />
-              </div>
-              <div style="float: right;">
-                <a href="/logout/">
-                  <i class="icon-off" />
-                </a>
-              </div>
-              <div style="clear: both;" />
-            </ifLoggedIn>
-          </div>
-           <div class="box">
-             <ul class="nav nav-list" id="menu" />
-           </div>
-          <div class="box" id="timeline" />
-        </div>
-
         <div class="span8">
           <div class="box">
             <fieldset>
