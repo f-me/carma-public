@@ -1,0 +1,13 @@
+.box {
+    border: 2px solid rgba(0, 0, 0, 0.05);
+    border-radius: 10px 4px 4px 4px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    min-height: 20px;
+    padding: 19px;
+}
+
+#loginlogo {
+  text-align: center;
+  margin-bottom: 20pt;
+}

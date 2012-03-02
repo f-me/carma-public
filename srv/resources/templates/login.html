@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Вход в систему</title>
+    <link rel="stylesheet" href="/s/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/s/css/local.css" />
+  </head>
+  <body>
+    <div class="row-fluid">
+      <div class="span4"> </div>
+      <div id="loginblock" class="box span4">
+        <div id="loginlogo">
+          <img src="/s/img/logo.png" />
+        </div>
+        <form class="form-horizontal" action="/login/" method="POST">
+          <fieldset>
+            <legend>Вход в систему</legend>
+            <div class="control-group">
+              <div class="control-label">
+                <label>Имя пользователя</label>
+              </div>
+              <div class="controls">
+                <input type="text" class="field" name="login" />
+              </div>
+            </div>
+
+            <div class="control-group">
+              <div class="control-label">
+                <label>Пароль</label>
+              </div>
+              <div class="controls">
+                <input type="text" class="field" name="password" />
+              </div>
+            </div>
+
+            <div class="control-group">
+              <div class="controls">
+                <label class="checkbox inline">
+                  <input type="checkbox" class="field" name="remember" />
+                  Запомнить меня
+                </label>
+              </div>
+            </div>
+          <div class="form-actions">
+            <button class="btn btn-large btn-success" type="submit">Войти</button>
+          </div>
+          </fieldset>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
