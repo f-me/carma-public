@@ -1,13 +1,13 @@
 {
-  "programClasses": [
+  "programs": [
     {
-      "name": "VW",
-      "programs": [
+      "programName": "VW",
+      "subprograms": [
         {
-          "name": "Легковые автомобили",
+          "subprogramName": "Легковые автомобили",
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
@@ -46,12 +46,12 @@
                     ],
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 }
               ]
             },
             {
-              "name": "Техпомощь",
+              "groupName": "Техпомощь",
               "services": [
                 {
                   "fieldgroup": [
@@ -85,7 +85,7 @@
                     ],
                     "TechSelectedCommon"
                   ],
-                  "name": "Замена колеса"
+                  "serviceName": "Замена колеса"
                 },
                 {
                   "fieldgroup": [
@@ -114,12 +114,12 @@
                     ],
                     "TechSelectedCommon"
                   ],
-                  "name": "Зарядка АКБ"
+                  "serviceName": "Зарядка АКБ"
                 }
               ]
             },
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
@@ -173,12 +173,12 @@
                     ],
                     "ReplacementVehicleCommon"
                   ],
-                  "name": "Подменный автомобиль"
+                  "serviceName": "Подменный автомобиль"
                 }
               ]
             },
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
@@ -227,17 +227,17 @@
                     ],
                     "HotelCommon"
                   ],
-                  "name": "Гостиница"
+                  "serviceName": "Гостиница"
                 }
               ]
             }
           ]
         },
         {
-          "name": "Коммерческие автомобили",
+          "subprogramName": "Коммерческие автомобили",
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
@@ -266,12 +266,12 @@
                     ],
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 }
               ]
             },
             {
-              "name": "Техпомощь",
+              "groupName": "Техпомощь",
               "services": [
                 {
                   "fieldgroup": [
@@ -305,7 +305,7 @@
                     ],
                     "TechSelectedCommon"
                   ],
-                  "name": "Замена колеса"
+                  "serviceName": "Замена колеса"
                 },
                 {
                   "fieldgroup": [
@@ -334,12 +334,12 @@
                     ],
                     "TechSelectedCommon"
                   ],
-                  "name": "Зарядка АКБ"
+                  "serviceName": "Зарядка АКБ"
                 }
               ]
             },
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
@@ -393,12 +393,12 @@
                     ],
                     "ReplacementVehicleCommon"
                   ],
-                  "name": "Подменный автомобиль"
+                  "serviceName": "Подменный автомобиль"
                 }
               ]
             },
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
@@ -447,7 +447,7 @@
                     ],
                     "HotelCommon"
                   ],
-                  "name": "Гостиница"
+                  "serviceName": "Гостиница"
                 }
               ]
             }
@@ -499,60 +499,60 @@
       ]
     },
     {
-      "name": "ACTA",
-      "programs": [
+      "programName": "ACTA",
+      "subprograms": [
         {
-          "name": "Bentley",
+          "subprogramName": "Bentley",
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "ReplacementVehicleCommon"
                   ],
-                  "name": "Подменный автомобиль"
+                  "serviceName": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "HotelCommon"
                   ],
-                  "name": "Гостиница"
+                  "serviceName": "Гостиница"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TaxiCommon"
                   ],
-                  "name": "Такси"
+                  "serviceName": "Такси"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TransportDeliveryCommon"
                   ],
-                  "name": "Доставка ТС"
+                  "serviceName": "Доставка ТС"
                 }
               ]
             },
             {
-              "name": "Транспортировка",
+              "groupName": "Транспортировка",
               "services": [
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TransportationSelectedCommon"
                   ],
-                  "name": "Путешествие"
+                  "serviceName": "Путешествие"
                 }
               ]
             }
@@ -581,64 +581,64 @@
           ]
         },
         {
-          "name": "Aston Martin",
+          "subprogramName": "Aston Martin",
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TechCommon"
                   ],
-                  "name": "Техпомощь"
+                  "serviceName": "Техпомощь"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "ReplacementVehicleCommon"
                   ],
-                  "name": "Подменный автомобиль"
+                  "serviceName": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "HotelCommon"
                   ],
-                  "name": "Гостиница"
+                  "serviceName": "Гостиница"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TaxiCommon"
                   ],
-                  "name": "Такси"
+                  "serviceName": "Такси"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TransportDeliveryCommon"
                   ],
-                  "name": "Доставка ТС"
+                  "serviceName": "Доставка ТС"
                 }
               ]
             },
             {
-              "name": "Транспортировка",
+              "groupName": "Транспортировка",
               "services": [
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TransportationSelectedCommon"
                   ],
-                  "name": "Путешествие"
+                  "serviceName": "Путешествие"
                 }
               ]
             }
@@ -669,40 +669,40 @@
       ]
     },
     {
-      "name": "B2B",
-      "programs": [
+      "programName": "B2B",
+      "subprograms": [
         {
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TechCommon"
                   ],
-                  "name": "Техническая помошь"
+                  "serviceName": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "ReplacementVehicleCommon"
                   ],
-                  "name": "Подменный автомобиль"
+                  "serviceName": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "HotelCommon"
                   ],
-                  "name": "Гостиница"
+                  "serviceName": "Гостиница"
                 },
                 {
                   "fieldgroup": [
@@ -721,47 +721,47 @@
                     ],
                     "TaxiCommon"
                   ],
-                  "name": "Такси"
+                  "serviceName": "Такси"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TransportationCommon"
                   ],
-                  "name": "Транспортировка"
+                  "serviceName": "Транспортировка"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TransportDeliveryCommon"
                   ],
-                  "name": "Доставка ТС"
+                  "serviceName": "Доставка ТС"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "SparesCommon"
                   ],
-                  "name": "Доставка запчастей"
+                  "serviceName": "Доставка запчастей"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "NotificationCommon"
                   ],
-                  "name": "Информирование о происшествии"
+                  "serviceName": "Информирование о происшествии"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "SoberDriverCommon"
                   ],
-                  "name": "Информирование о происшествии"
+                  "serviceName": "Информирование о происшествии"
                 }
               ]
             }
           ],
-          "name": "Arc B2B",
+          "subprogramName": "Arc B2B",
           "conditions": [
             {
               "name": "companyApproved",
@@ -778,35 +778,35 @@
         {
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TechCommon"
                   ],
-                  "name": "Техническая помошь"
+                  "serviceName": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "ReplacementVehicleCommon"
                   ],
-                  "name": "Подменный автомобиль"
+                  "serviceName": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "HotelCommon"
                   ],
-                  "name": "Гостиница"
+                  "serviceName": "Гостиница"
                 },
                 {
                   "fieldgroup": [
@@ -825,47 +825,47 @@
                     ],
                     "TaxiCommon"
                   ],
-                  "name": "Такси"
+                  "serviceName": "Такси"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TransportationCommon"
                   ],
-                  "name": "Транспортировка"
+                  "serviceName": "Транспортировка"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TransportDeliveryCommon"
                   ],
-                  "name": "Доставка ТС"
+                  "serviceName": "Доставка ТС"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "SparesCommon"
                   ],
-                  "name": "Доставка запчастей"
+                  "serviceName": "Доставка запчастей"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "NotificationCommon"
                   ],
-                  "name": "Информирование о происшествии"
+                  "serviceName": "Информирование о происшествии"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "SoberDriverCommon"
                   ],
-                  "name": "Информирование о происшествии"
+                  "serviceName": "Информирование о происшествии"
                 }
               ]
             }
           ],
-          "name": "RTR Hyundai",
+          "subprogramName": "RTR Hyundai",
           "conditions": [
             {
               "name": "companyApproved",
@@ -882,35 +882,35 @@
         {
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TechCommon"
                   ],
-                  "name": "Техническая помошь"
+                  "serviceName": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "ReplacementVehicleCommon"
                   ],
-                  "name": "Подменный автомобиль"
+                  "serviceName": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "HotelCommon"
                   ],
-                  "name": "Гостиница"
+                  "serviceName": "Гостиница"
                 },
                 {
                   "fieldgroup": [
@@ -929,47 +929,47 @@
                     ],
                     "TaxiCommon"
                   ],
-                  "name": "Такси"
+                  "serviceName": "Такси"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TransportationCommon"
                   ],
-                  "name": "Транспортировка"
+                  "serviceName": "Транспортировка"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TransportDeliveryCommon"
                   ],
-                  "name": "Доставка ТС"
+                  "serviceName": "Доставка ТС"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "SparesCommon"
                   ],
-                  "name": "Доставка запчастей"
+                  "serviceName": "Доставка запчастей"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "NotificationCommon"
                   ],
-                  "name": "Информирование о происшествии"
+                  "serviceName": "Информирование о происшествии"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "SoberDriverCommon"
                   ],
-                  "name": "Информирование о происшествии"
+                  "serviceName": "Информирование о происшествии"
                 }
               ]
             }
           ],
-          "name": "Дженсер Ясенево",
+          "subprogramName": "Дженсер Ясенево",
           "conditions": [
             {
               "name": "companyApproved",
@@ -986,35 +986,35 @@
         {
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TechCommon"
                   ],
-                  "name": "Техническая помошь"
+                  "serviceName": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "ReplacementVehicleCommon"
                   ],
-                  "name": "Подменный автомобиль"
+                  "serviceName": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "HotelCommon"
                   ],
-                  "name": "Гостиница"
+                  "serviceName": "Гостиница"
                 },
                 {
                   "fieldgroup": [
@@ -1033,47 +1033,47 @@
                     ],
                     "TaxiCommon"
                   ],
-                  "name": "Такси"
+                  "serviceName": "Такси"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TransportationCommon"
                   ],
-                  "name": "Транспортировка"
+                  "serviceName": "Транспортировка"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TransportDeliveryCommon"
                   ],
-                  "name": "Доставка ТС"
+                  "serviceName": "Доставка ТС"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "SparesCommon"
                   ],
-                  "name": "Доставка запчастей"
+                  "serviceName": "Доставка запчастей"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "NotificationCommon"
                   ],
-                  "name": "Информирование о происшествии"
+                  "serviceName": "Информирование о происшествии"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "SoberDriverCommon"
                   ],
-                  "name": "Информирование о происшествии"
+                  "serviceName": "Информирование о происшествии"
                 }
               ]
             }
           ],
-          "name": "ИП Трубкин",
+          "subprogramName": "ИП Трубкин",
           "conditions": [
             {
               "name": "companyApproved",
@@ -1090,35 +1090,35 @@
         {
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TechCommon"
                   ],
-                  "name": "Техническая помошь"
+                  "serviceName": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "ReplacementVehicleCommon"
                   ],
-                  "name": "Подменный автомобиль"
+                  "serviceName": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "HotelCommon"
                   ],
-                  "name": "Гостиница"
+                  "serviceName": "Гостиница"
                 },
                 {
                   "fieldgroup": [
@@ -1137,47 +1137,47 @@
                     ],
                     "TaxiCommon"
                   ],
-                  "name": "Такси"
+                  "serviceName": "Такси"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TransportationCommon"
                   ],
-                  "name": "Транспортировка"
+                  "serviceName": "Транспортировка"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TransportDeliveryCommon"
                   ],
-                  "name": "Доставка ТС"
+                  "serviceName": "Доставка ТС"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "SparesCommon"
                   ],
-                  "name": "Доставка запчастей"
+                  "serviceName": "Доставка запчастей"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "NotificationCommon"
                   ],
-                  "name": "Информирование о происшествии"
+                  "serviceName": "Информирование о происшествии"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "SoberDriverCommon"
                   ],
-                  "name": "Информирование о происшествии"
+                  "serviceName": "Информирование о происшествии"
                 }
               ]
             }
           ],
-          "name": "ДЦ Автоимпорт",
+          "subprogramName": "ДЦ Автоимпорт",
           "conditions": [
             {
               "name": "companyApproved",
@@ -1194,35 +1194,35 @@
         {
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TechCommon"
                   ],
-                  "name": "Техническая помошь"
+                  "serviceName": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "ReplacementVehicleCommon"
                   ],
-                  "name": "Подменный автомобиль"
+                  "serviceName": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "HotelCommon"
                   ],
-                  "name": "Гостиница"
+                  "serviceName": "Гостиница"
                 },
                 {
                   "fieldgroup": [
@@ -1241,47 +1241,47 @@
                     ],
                     "TaxiCommon"
                   ],
-                  "name": "Такси"
+                  "serviceName": "Такси"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TransportationCommon"
                   ],
-                  "name": "Транспортировка"
+                  "serviceName": "Транспортировка"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TransportDeliveryCommon"
                   ],
-                  "name": "Доставка ТС"
+                  "serviceName": "Доставка ТС"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "SparesCommon"
                   ],
-                  "name": "Доставка запчастей"
+                  "serviceName": "Доставка запчастей"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "NotificationCommon"
                   ],
-                  "name": "Информирование о происшествии"
+                  "serviceName": "Информирование о происшествии"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "SoberDriverCommon"
                   ],
-                  "name": "Информирование о происшествии"
+                  "serviceName": "Информирование о происшествии"
                 }
               ]
             }
           ],
-          "name": "ДЦ ТВД-Авто",
+          "subprogramName": "ДЦ ТВД-Авто",
           "conditions": [
             {
               "name": "companyApproved",
@@ -1298,33 +1298,33 @@
         {
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TechCommon"
                   ],
-                  "name": "Техническая помошь"
+                  "serviceName": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "HotelCommon"
                   ],
-                  "name": "Гостиница"
+                  "serviceName": "Гостиница"
                 }
               ]
             }
           ],
-          "name": "АРВАЛ",
+          "subprogramName": "АРВАЛ",
           "conditions": [
             {
               "name": "companyApproved",
@@ -1341,35 +1341,35 @@
         {
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TechCommon"
                   ],
-                  "name": "Техническая помошь"
+                  "serviceName": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "ReplacementVehicleCommon"
                   ],
-                  "name": "Подменный автомобиль"
+                  "serviceName": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "HotelCommon"
                   ],
-                  "name": "Гостиница"
+                  "serviceName": "Гостиница"
                 },
                 {
                   "fieldgroup": [
@@ -1388,47 +1388,47 @@
                     ],
                     "TaxiCommon"
                   ],
-                  "name": "Такси"
+                  "serviceName": "Такси"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TransportationCommon"
                   ],
-                  "name": "Транспортировка"
+                  "serviceName": "Транспортировка"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TransportDeliveryCommon"
                   ],
-                  "name": "Доставка ТС"
+                  "serviceName": "Доставка ТС"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "SparesCommon"
                   ],
-                  "name": "Доставка запчастей"
+                  "serviceName": "Доставка запчастей"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "NotificationCommon"
                   ],
-                  "name": "Информирование о происшествии"
+                  "serviceName": "Информирование о происшествии"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "SoberDriverCommon"
                   ],
-                  "name": "Информирование о происшествии"
+                  "serviceName": "Информирование о происшествии"
                 }
               ]
             }
           ],
-          "name": "3S Телематика",
+          "subprogramName": "3S Телематика",
           "conditions": [
             {
               "name": "companyApproved",
@@ -1455,12 +1455,12 @@
       ]
     },
     {
-      "name": "GM",
-      "programs": [
+      "programName": "GM",
+      "subprograms": [
         {
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
@@ -1484,7 +1484,7 @@
                     ],
                     "TechCommon"
                   ],
-                  "name": "Техническая помошь"
+                  "serviceName": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
@@ -1528,7 +1528,7 @@
                     ],
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
@@ -1567,7 +1567,7 @@
                     ],
                     "ReplacementVehicleCommon"
                   ],
-                  "name": "Подменный автомобиль"
+                  "serviceName": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
@@ -1621,7 +1621,7 @@
                     ],
                     "HotelCommon"
                   ],
-                  "name": "Гостиница"
+                  "serviceName": "Гостиница"
                 },
                 {
                   "fieldgroup": [
@@ -1640,7 +1640,7 @@
                     ],
                     "TaxiCommon"
                   ],
-                  "name": "Такси"
+                  "serviceName": "Такси"
                 },
                 {
                   "fieldgroup": [
@@ -1659,12 +1659,12 @@
                     ],
                     "SparesCommon"
                   ],
-                  "name": "Доставка запчастей"
+                  "serviceName": "Доставка запчастей"
                 }
               ]
             },
             {
-              "name": "Транспортировка",
+              "groupName": "Транспортировка",
               "services": [
                 {
                   "fieldgroup": [
@@ -1713,7 +1713,7 @@
                     ],
                     "TransportationSelectedCommon"
                   ],
-                  "name": "Путешествие"
+                  "serviceName": "Путешествие"
                 },
                 {
                   "fieldgroup": [
@@ -1752,12 +1752,12 @@
                     ],
                     "TransportationSelectedCommon"
                   ],
-                  "name": "Доставка к ТС"
+                  "serviceName": "Доставка к ТС"
                 }
               ]
             }
           ],
-          "name": "Chevrolet Korea",
+          "subprogramName": "Chevrolet Korea",
           "conditions": [
             {
               "name": "sellDate",
@@ -1782,10 +1782,10 @@
           ]
         },
         {
-          "name": "Chevrolet NA",
+          "subprogramName": "Chevrolet NA",
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
@@ -1809,7 +1809,7 @@
                     ],
                     "TechCommon"
                   ],
-                  "name": "Техническая помошь"
+                  "serviceName": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
@@ -1853,7 +1853,7 @@
                     ],
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
@@ -1892,7 +1892,7 @@
                     ],
                     "ReplacementVehicleCommon"
                   ],
-                  "name": "Подменный автомобиль"
+                  "serviceName": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
@@ -1946,7 +1946,7 @@
                     ],
                     "HotelCommon"
                   ],
-                  "name": "Гостиница"
+                  "serviceName": "Гостиница"
                 },
                 {
                   "fieldgroup": [
@@ -1965,7 +1965,7 @@
                     ],
                     "TaxiCommon"
                   ],
-                  "name": "Такси"
+                  "serviceName": "Такси"
                 },
                 {
                   "fieldgroup": [
@@ -1984,7 +1984,7 @@
                     ],
                     "SparesCommon"
                   ],
-                  "name": "Доставка запчастей"
+                  "serviceName": "Доставка запчастей"
                 }
               ]
             },
@@ -2037,7 +2037,7 @@
                     ],
                     "TransportationSelectedCommon"
                   ],
-                  "name": "Путешествие"
+                  "serviceName": "Путешествие"
                 },
                 {
                   "fieldgroup": [
@@ -2076,7 +2076,7 @@
                     ],
                     "TransportationSelectedCommon"
                   ],
-                  "name": "Доставка к ТС"
+                  "serviceName": "Доставка к ТС"
                 }
               ]
             }
@@ -2107,7 +2107,7 @@
         {
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
@@ -2131,7 +2131,7 @@
                     ],
                     "TechCommon"
                   ],
-                  "name": "Техническая помошь"
+                  "serviceName": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
@@ -2175,7 +2175,7 @@
                     ],
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
@@ -2214,7 +2214,7 @@
                     ],
                     "ReplacementVehicleCommon"
                   ],
-                  "name": "Подменный автомобиль"
+                  "serviceName": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
@@ -2268,7 +2268,7 @@
                     ],
                     "HotelCommon"
                   ],
-                  "name": "Гостиница"
+                  "serviceName": "Гостиница"
                 },
                 {
                   "fieldgroup": [
@@ -2287,7 +2287,7 @@
                     ],
                     "TaxiCommon"
                   ],
-                  "name": "Такси"
+                  "serviceName": "Такси"
                 },
                 {
                   "fieldgroup": [
@@ -2306,7 +2306,7 @@
                     ],
                     "SparesCommon"
                   ],
-                  "name": "Доставка запчастей"
+                  "serviceName": "Доставка запчастей"
                 }
               ]
             },
@@ -2359,7 +2359,7 @@
                     ],
                     "TransportationSelectedCommon"
                   ],
-                  "name": "Путешествие"
+                  "serviceName": "Путешествие"
                 },
                 {
                   "fieldgroup": [
@@ -2398,12 +2398,12 @@
                     ],
                     "TransportationSelectedCommon"
                   ],
-                  "name": "Доставка к ТС"
+                  "serviceName": "Доставка к ТС"
                 }
               ]
             }
           ],
-          "name": "Cadillac до 2012",
+          "subprogramName": "Cadillac до 2012",
           "conditions": [
             {
               "name": "sellDate",
@@ -2450,7 +2450,7 @@
         {
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
@@ -2474,7 +2474,7 @@
                     ],
                     "TechCommon"
                   ],
-                  "name": "Техническая помошь"
+                  "serviceName": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
@@ -2518,7 +2518,7 @@
                     ],
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
@@ -2557,7 +2557,7 @@
                     ],
                     "ReplacementVehicleCommon"
                   ],
-                  "name": "Подменный автомобиль"
+                  "serviceName": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
@@ -2611,7 +2611,7 @@
                     ],
                     "HotelCommon"
                   ],
-                  "name": "Гостиница"
+                  "serviceName": "Гостиница"
                 },
                 {
                   "fieldgroup": [
@@ -2630,7 +2630,7 @@
                     ],
                     "TaxiCommon"
                   ],
-                  "name": "Такси"
+                  "serviceName": "Такси"
                 },
                 {
                   "fieldgroup": [
@@ -2649,7 +2649,7 @@
                     ],
                     "SparesCommon"
                   ],
-                  "name": "Доставка запчастей"
+                  "serviceName": "Доставка запчастей"
                 }
               ]
             },
@@ -2702,7 +2702,7 @@
                     ],
                     "TransportationSelectedCommon"
                   ],
-                  "name": "Путешествие"
+                  "serviceName": "Путешествие"
                 },
                 {
                   "fieldgroup": [
@@ -2741,12 +2741,12 @@
                     ],
                     "TransportationSelectedCommon"
                   ],
-                  "name": "Доставка к ТС"
+                  "serviceName": "Доставка к ТС"
                 }
               ]
             }
           ],
-          "name": "Opel (после 01.04.2011]",
+          "subprogramName": "Opel (после 01.04.2011]",
           "conditions": [
             {
               "name": "sellDate",
@@ -2793,7 +2793,7 @@
         {
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
@@ -2817,7 +2817,7 @@
                     ],
                     "TechCommon"
                   ],
-                  "name": "Техническая помошь"
+                  "serviceName": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
@@ -2851,7 +2851,7 @@
                     ],
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
@@ -2890,7 +2890,7 @@
                     ],
                     "ReplacementVehicleCommon"
                   ],
-                  "name": "Подменный автомобиль"
+                  "serviceName": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
@@ -2944,7 +2944,7 @@
                     ],
                     "HotelCommon"
                   ],
-                  "name": "Гостиница"
+                  "serviceName": "Гостиница"
                 },
                 {
                   "fieldgroup": [
@@ -2963,7 +2963,7 @@
                     ],
                     "TaxiCommon"
                   ],
-                  "name": "Такси"
+                  "serviceName": "Такси"
                 },
                 {
                   "fieldgroup": [
@@ -2982,7 +2982,7 @@
                     ],
                     "SparesCommon"
                   ],
-                  "name": "Доставка запчастей"
+                  "serviceName": "Доставка запчастей"
                 },
                 {
                   "fieldgroup": [
@@ -3024,12 +3024,12 @@
                     ],
                     "SoberDriverCommon"
                   ],
-                  "name": "Трезвый водитель"
+                  "serviceName": "Трезвый водитель"
                 }
               ]
             },
             {
-              "name": "Транспортировка",
+              "groupName": "Транспортировка",
               "services": [
                 {
                   "fieldgroup": [
@@ -3078,7 +3078,7 @@
                     ],
                     "TransportationSelectedCommon"
                   ],
-                  "name": "Путешествие"
+                  "serviceName": "Путешествие"
                 },
                 {
                   "fieldgroup": [
@@ -3117,12 +3117,12 @@
                     ],
                     "TransportationSelectedCommon"
                   ],
-                  "name": "Доставка к ТС"
+                  "serviceName": "Доставка к ТС"
                 }
               ]
             },
             {
-              "name": "Техпомощь",
+              "groupName": "Техпомощь",
               "services": [
                 {
                   "fieldgroup": [
@@ -3151,12 +3151,12 @@
                     ],
                     "TechSelectedCommon"
                   ],
-                  "name": "Доставка топлива"
+                  "serviceName": "Доставка топлива"
                 }
               ]
             }
           ],
-          "name": "Hummer",
+          "subprogramName": "Hummer",
           "conditions": [
             {
               "name": "sellDate",
@@ -3203,7 +3203,7 @@
         {
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
@@ -3227,7 +3227,7 @@
                     ],
                     "TechCommon"
                   ],
-                  "name": "Техническая помошь"
+                  "serviceName": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
@@ -3271,7 +3271,7 @@
                     ],
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
@@ -3310,7 +3310,7 @@
                     ],
                     "ReplacementVehicleCommon"
                   ],
-                  "name": "Подменный автомобиль"
+                  "serviceName": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
@@ -3364,7 +3364,7 @@
                     ],
                     "HotelCommon"
                   ],
-                  "name": "Гостиница"
+                  "serviceName": "Гостиница"
                 },
                 {
                   "fieldgroup": [
@@ -3383,7 +3383,7 @@
                     ],
                     "TaxiCommon"
                   ],
-                  "name": "Такси"
+                  "serviceName": "Такси"
                 },
                 {
                   "fieldgroup": [
@@ -3402,12 +3402,12 @@
                     ],
                     "SparesCommon"
                   ],
-                  "name": "Доставка запчастей"
+                  "serviceName": "Доставка запчастей"
                 }
               ]
             },
             {
-              "name": "Транспортировка",
+              "groupName": "Транспортировка",
               "services": [
                 {
                   "fieldgroup": [
@@ -3456,7 +3456,7 @@
                     ],
                     "TransportationSelectedCommon"
                   ],
-                  "name": "Путешествие"
+                  "serviceName": "Путешествие"
                 },
                 {
                   "fieldgroup": [
@@ -3495,12 +3495,12 @@
                     ],
                     "TransportationSelectedCommon"
                   ],
-                  "name": "Доставка к ТС"
+                  "serviceName": "Доставка к ТС"
                 }
               ]
             }
           ],
-          "name": "Cadillac после 2012",
+          "subprogramName": "Cadillac после 2012",
           "conditions": [
             {
               "name": "sellDate",
@@ -3547,17 +3547,17 @@
       ]
     },
     {
-      "name": "Другие",
-      "programs": [
+      "programName": "Другие",
+      "subprograms": [
         {
           "serviceGroups": [],
-          "name": "Заказ билетов"
+          "subprogramName": "Заказ билетов"
         },
         {
-          "name": "B2C",
+          "subprogramName": "B2C",
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
@@ -3594,7 +3594,7 @@
                     ],
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 }
               ]
             },
@@ -3635,7 +3635,7 @@
                     ],
                     "TechSelectedCommon"
                   ],
-                  "name": "Подвоз топлива"
+                  "serviceName": "Подвоз топлива"
                 },
                 {
                   "fieldgroup": [
@@ -3672,7 +3672,7 @@
                     ],
                     "TechSelectedCommon"
                   ],
-                  "name": "Запуск двигателя"
+                  "serviceName": "Запуск двигателя"
                 },
                 {
                   "fieldgroup": [
@@ -3709,7 +3709,7 @@
                     ],
                     "TechSelectedCommon"
                   ],
-                  "name": "Замена колеса"
+                  "serviceName": "Замена колеса"
                 },
                 {
                   "fieldgroup": [
@@ -3746,7 +3746,7 @@
                     ],
                     "TechSelectedCommon"
                   ],
-                  "name": "Вскрытие автомобиля"
+                  "serviceName": "Вскрытие автомобиля"
                 }
               ]
             }
@@ -3771,7 +3771,7 @@
         {
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
@@ -3795,7 +3795,7 @@
                     ],
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
@@ -3824,7 +3824,7 @@
                     ],
                     "TechCommon"
                   ],
-                  "name": "Техническая помощь"
+                  "serviceName": "Техническая помощь"
                 },
                 {
                   "fieldgroup": [
@@ -3843,7 +3843,7 @@
                     ],
                     "NotificationCommon"
                   ],
-                  "name": "Информирование о происшествии"
+                  "serviceName": "Информирование о происшествии"
                 },
                 {
                   "fieldgroup": [
@@ -3882,7 +3882,7 @@
                     ],
                     "ReplacementVehicleCommon"
                   ],
-                  "name": "Подменный автомобиль"
+                  "serviceName": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
@@ -3901,12 +3901,12 @@
                     ],
                     "TaxiCommon"
                   ],
-                  "name": "Такси"
+                  "serviceName": "Такси"
                 }
               ]
             }
           ],
-          "name": "Ford",
+          "subprogramName": "Ford",
           "conditions": [
             {
               "name": "VINApproved",
@@ -3946,14 +3946,14 @@
         {
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 }
               ]
             },
@@ -3964,12 +3964,12 @@
                     "ServiceCommon",
                     "TechSelectedCommon"
                   ],
-                  "name": "Слив топлива"
+                  "serviceName": "Слив топлива"
                 }
               ]
             }
           ],
-          "name": "BP",
+          "subprogramName": "BP",
           "conditions": [
             {
               "name": "companyApproved",
@@ -3986,7 +3986,7 @@
         {
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "Техпомощь": [
@@ -4081,7 +4081,7 @@
                     ],
                     "TechCommon"
                   ],
-                  "name": "Техпомощь"
+                  "serviceName": "Техпомощь"
                 },
                 {
                   "fieldgroup": [
@@ -4110,12 +4110,12 @@
                     ],
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 }
               ]
             }
           ],
-          "name": "Рус Лан",
+          "subprogramName": "Рус Лан",
           "conditions": [
             {
               "name": "caseAddress",
@@ -4142,7 +4142,7 @@
         {
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
@@ -4171,7 +4171,7 @@
                     ],
                     "TechCommon"
                   ],
-                  "name": "Техпомощь"
+                  "serviceName": "Техпомощь"
                 },
                 {
                   "fieldgroup": [
@@ -4200,19 +4200,19 @@
                     ],
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
                     "ServiceCommon",
                     "NotificationCommon"
                   ],
-                  "name": "Информирование о происшествии"
+                  "serviceName": "Информирование о происшествии"
                 }
               ]
             }
           ],
-          "name": "Атлант М",
+          "subprogramName": "Атлант М",
           "conditions": [
             {
               "name": "VINApproved",
@@ -4252,7 +4252,7 @@
         {
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
@@ -4286,7 +4286,7 @@
                     ],
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
@@ -4325,7 +4325,7 @@
                     ],
                     "ReplacementVehicleCommon"
                   ],
-                  "name": "Подменный автомобиль"
+                  "serviceName": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
@@ -4344,7 +4344,7 @@
                     ],
                     "TaxiCommon"
                   ],
-                  "name": "Такси"
+                  "serviceName": "Такси"
                 }
               ]
             },
@@ -4372,7 +4372,7 @@
                     ],
                     "TechSelectedCommon"
                   ],
-                  "name": "Зарядка АКБ"
+                  "serviceName": "Зарядка АКБ"
                 },
                 {
                   "fieldgroup": [
@@ -4396,7 +4396,7 @@
                     ],
                     "TechSelectedCommon"
                   ],
-                  "name": "Замена колеса"
+                  "serviceName": "Замена колеса"
                 },
                 {
                   "fieldgroup": [
@@ -4420,7 +4420,7 @@
                     ],
                     "TechSelectedCommon"
                   ],
-                  "name": "Вскрытие автомобиля"
+                  "serviceName": "Вскрытие автомобиля"
                 },
                 {
                   "fieldgroup": [
@@ -4444,7 +4444,7 @@
                     ],
                     "TechSelectedCommon"
                   ],
-                  "name": "Подвоз топлива"
+                  "serviceName": "Подвоз топлива"
                 }
               ]
             },
@@ -4512,7 +4512,7 @@
                     ],
                     "TransportationSelectedCommon"
                   ],
-                  "name": "Путешествие"
+                  "serviceName": "Путешествие"
                 },
                 {
                   "fieldgroup": [
@@ -4576,12 +4576,12 @@
                     ],
                     "TransportationSelectedCommon"
                   ],
-                  "name": "Доставка к ТС"
+                  "serviceName": "Доставка к ТС"
                 }
               ]
             }
           ],
-          "name": "Chartis Assistance",
+          "subprogramName": "Chartis Assistance",
           "conditions": [
             {
               "name": "VINApproved",
@@ -4598,7 +4598,7 @@
         {
           "serviceGroups": [
             {
-              "name": "",
+              "groupName": "",
               "services": [
                 {
                   "fieldgroup": [
@@ -4622,7 +4622,7 @@
                     ],
                     "TowageCommon"
                   ],
-                  "name": "Эвакуация"
+                  "serviceName": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
@@ -4646,12 +4646,12 @@
                     ],
                     "TechCommon"
                   ],
-                  "name": "Техническая помощь"
+                  "serviceName": "Техническая помощь"
                 }
               ]
             }
           ],
-          "name": "Autokraft Assistance",
+          "subprogramName": "Autokraft Assistance",
           "conditions": [
             {
               "name": "VINApproved",
