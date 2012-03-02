@@ -4,55 +4,54 @@
       "name": "VW",
       "subprograms": [
         {
+          "name": "Легковые автомобили",
           "serviceGroups": [
             {
-              "name": "",
+              "name": "Эвакуация",
               "services": [
                 {
-                    "name": "Эвакуация",
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "DCapproved",
-                          "type": "checkbox",
-                          "label": "Клиент договорился с ДЦ"
-                        },
-                        {
-                          "name": "closeDealersPresent",
-                          "type": "checkbox",
-                          "label": "Есть дилеры на расстоянии <125 км"
-                        },
-                        {
-                          "name": "nonAccident",
-                          "type": "checkbox",
-                          "label": "Не ДТП"
-                        },
-                        {
-                          "name": "nonVandal",
-                          "type": "checkbox",
-                          "label": "Не вандализм"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TowageCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "DCapproved",
+                        "type": "checkbox",
+                        "label": "Клиент договорился с ДЦ"
+                      },
+                      {
+                        "name": "closeDealersPresent",
+                        "type": "checkbox",
+                        "label": "Есть дилеры на расстоянии <125 км"
+                      },
+                      {
+                        "name": "nonAccident",
+                        "type": "checkbox",
+                        "label": "Не ДТП"
+                      },
+                      {
+                        "name": "nonVandal",
+                        "type": "checkbox",
+                        "label": "Не вандализм"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TowageCommon.fields"
+                  ]
                 }
               ]
             },
             {
-              "name":"Техпомощь",
-                "services":[
+              "name": "Техпомощь",
+              "services": [
                 {
                   "Замена колеса": {
                     "fieldgroup": [
@@ -88,35 +87,34 @@
                     ]
                   }
                 },
-                    {
-                  "name":"Зарядка АКБ", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "caseAddress",
-                          "label": "Адрес кейса",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "contractor",
-                          "label": "Подрядчик",
-                          "subform": "Contractor"
-                        },
-                        {
-                          "name": "closeContractorsPresent",
-                          "type": "checkbox",
-                          "label": "Есть мастерские на расстоянии <125 км"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TechSelectedCommon.fields"
-                    ]
-                  
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "contractor",
+                        "label": "Подрядчик",
+                        "subform": "Contractor"
+                      },
+                      {
+                        "name": "closeContractorsPresent",
+                        "type": "checkbox",
+                        "label": "Есть мастерские на расстоянии <125 км"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TechSelectedCommon.fields"
+                  ],
+                  "name": "Зарядка АКБ"
                 }
               ]
             },
@@ -124,59 +122,58 @@
               "name": "",
               "services": [
                 {
-                  "name":"Подменный автомобиль", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "otherServiceNotUsed",
-                          "type": "checkbox",
-                          "label": "Клиент не пользовался услугой Гостиница"
-                        },
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "SelfTow",
-                          "type": "checkbox",
-                          "label": "Клиент самостоятельно добрался до дилера"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "dealerApprovedTow",
-                          "type": "checkbox",
-                          "label": "Дилер подтвердил самостоятельную эвакуацию клиента"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "ReplacementVehicleCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "otherServiceNotUsed",
+                        "type": "checkbox",
+                        "label": "Клиент не пользовался услугой Гостиница"
+                      },
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "SelfTow",
+                        "type": "checkbox",
+                        "label": "Клиент самостоятельно добрался до дилера"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "dealerApprovedTow",
+                        "type": "checkbox",
+                        "label": "Дилер подтвердил самостоятельную эвакуацию клиента"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "ReplacementVehicleCommon.fields"
+                  ],
+                  "name": "Подменный автомобиль"
                 }
               ]
             },
@@ -184,190 +181,163 @@
               "name": "",
               "services": [
                 {
-                  "name":"Гостиница", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "otherServiceNotUsed",
-                          "type": "checkbox",
-                          "label": "Клиент не пользовался услугой Подменный автомобиль"
-                        },
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "SelfTow",
-                          "type": "checkbox",
-                          "label": "Клиент самостоятельно добрался до дилера"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "HotelCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "otherServiceNotUsed",
+                        "type": "checkbox",
+                        "label": "Клиент не пользовался услугой Подменный автомобиль"
+                      },
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "SelfTow",
+                        "type": "checkbox",
+                        "label": "Клиент самостоятельно добрался до дилера"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "HotelCommon.fields"
+                  ],
+                  "name": "Гостиница"
                 }
               ]
             }
-          ]},{
-          "name": "Легковые автомобили",
-          "conditions": [
-            {
-              "dateSelector": true,
-              "name": "sellDate",
-              "label": "Дата продажи"
-            },
-            {
-              "name": "sellDateCheck1",
-              "type": "checkbox",
-              "label": "Дата продажи > 15.01.2010"
-            },
-            {
-              "name": "sellDateCheck2",
-              "type": "checkbox",
-              "label": "Дата продажи < 2 лет"
-            },
-            {
-              "name": "isMember",
-              "type": "checkbox",
-              "label": "Клиент участвует в программе"
-            }
-          ],
-          "info": "Описание программы в виде текста"
+          ]
         },
         {
+          "name": "Коммерческие автомобили",
           "serviceGroups": [
             {
               "name": "",
               "services": [
                 {
-                  "name":"Эвакуация", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "closeDealersPresent",
-                          "type": "checkbox",
-                          "label": "Есть дилеры на расстоянии <250 км"
-                        },
-                        {
-                          "name": "nonAccident",
-                          "type": "checkbox",
-                          "label": "Не ДТП"
-                        },
-                        {
-                          "name": "nonVandal",
-                          "type": "checkbox",
-                          "label": "Не вандализм"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TowageCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "closeDealersPresent",
+                        "type": "checkbox",
+                        "label": "Есть дилеры на расстоянии <250 км"
+                      },
+                      {
+                        "name": "nonAccident",
+                        "type": "checkbox",
+                        "label": "Не ДТП"
+                      },
+                      {
+                        "name": "nonVandal",
+                        "type": "checkbox",
+                        "label": "Не вандализм"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
                 }
               ]
             },
             {
               "Техпомощь": [
                 {
-                  "name":"Замена колеса", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "moreThan1Wheel",
-                          "type": "checkbox",
-                          "label": "Более одного колеса"
-                        },
-                        {
-                          "name": "caseAddress",
-                          "label": "Адрес кейса",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "contractor",
-                          "label": "Подрядчик",
-                          "subform": "Contractor"
-                        },
-                        {
-                          "name": "closeContractorsPresent",
-                          "type": "checkbox",
-                          "label": "Есть мастерские на расстоянии <250 км"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TechSelectedCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "moreThan1Wheel",
+                        "type": "checkbox",
+                        "label": "Более одного колеса"
+                      },
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "contractor",
+                        "label": "Подрядчик",
+                        "subform": "Contractor"
+                      },
+                      {
+                        "name": "closeContractorsPresent",
+                        "type": "checkbox",
+                        "label": "Есть мастерские на расстоянии <250 км"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TechSelectedCommon.fields"
+                  ],
+                  "name": "Замена колеса"
                 }
               ]
             },
             {
               "Техпомощь": [
                 {
-                  "name":"Зарядка АКБ", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "caseAddress",
-                          "label": "Адрес кейса",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "contractor",
-                          "label": "Подрядчик",
-                          "subform": "Contractor"
-                        },
-                        {
-                          "name": "closeContractorsPresent",
-                          "type": "checkbox",
-                          "label": "Есть мастерские на расстоянии <250 км"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TechSelectedCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "contractor",
+                        "label": "Подрядчик",
+                        "subform": "Contractor"
+                      },
+                      {
+                        "name": "closeContractorsPresent",
+                        "type": "checkbox",
+                        "label": "Есть мастерские на расстоянии <250 км"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TechSelectedCommon.fields"
+                  ],
+                  "name": "Зарядка АКБ"
                 }
               ]
             },
@@ -375,59 +345,58 @@
               "name": "",
               "services": [
                 {
-                  "name":"Подменный автомобиль", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "otherServiceNotUsed",
-                          "type": "checkbox",
-                          "label": "Клиент не пользовался услугой Гостиница"
-                        },
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "SelfTow",
-                          "type": "checkbox",
-                          "label": "Клиент самостоятельно добрался до дилера"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "dealerApprovedTow",
-                          "type": "checkbox",
-                          "label": "Дилер подтвердил самостоятельную эвакуацию клиента"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "ReplacementVehicleCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "otherServiceNotUsed",
+                        "type": "checkbox",
+                        "label": "Клиент не пользовался услугой Гостиница"
+                      },
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "SelfTow",
+                        "type": "checkbox",
+                        "label": "Клиент самостоятельно добрался до дилера"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "dealerApprovedTow",
+                        "type": "checkbox",
+                        "label": "Дилер подтвердил самостоятельную эвакуацию клиента"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "ReplacementVehicleCommon.fields"
+                  ],
+                  "name": "Подменный автомобиль"
                 }
               ]
             },
@@ -435,59 +404,57 @@
               "name": "",
               "services": [
                 {
-                  "name":"Гостиница", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "otherServiceNotUsed",
-                          "type": "checkbox",
-                          "label": "Клиент не пользовался услугой Подменный автомобиль"
-                        },
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "SelfTow",
-                          "type": "checkbox",
-                          "label": "Клиент самостоятельно добрался до дилера"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "HotelCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "otherServiceNotUsed",
+                        "type": "checkbox",
+                        "label": "Клиент не пользовался услугой Подменный автомобиль"
+                      },
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "SelfTow",
+                        "type": "checkbox",
+                        "label": "Клиент самостоятельно добрался до дилера"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "HotelCommon.fields"
+                  ],
+                  "name": "Гостиница"
                 }
               ]
             }
           ],
-          "name": "Коммерческие автомобили",
           "conditions": [
             {
               "name": "sellDate",
@@ -543,56 +510,50 @@
               "name": "",
               "services": [
                 {
-                  "name":"Эвакуация", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TowageCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
                 },
                 {
-                  "name":"Подменный автомобиль", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "ReplacementVehicleCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "ReplacementVehicleCommon.fields"
+                  ],
+                  "name": "Подменный автомобиль"
                 },
                 {
-                  "name":"Гостиница", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "HotelCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "HotelCommon.fields"
+                  ],
+                  "name": "Гостиница"
                 },
                 {
-                  "name":"Такси", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TaxiCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TaxiCommon.fields"
+                  ],
+                  "name": "Такси"
                 },
                 {
-                  "name":"Доставка ТС", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TransportDeliveryCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TransportDeliveryCommon.fields"
+                  ],
+                  "name": "Доставка ТС"
                 }
               ]
             },
             {
               "Транспортировка": [
                 {
-                  "name":"Путешествие", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TransportationSelectedCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TransportationSelectedCommon.fields"
+                  ],
+                  "name": "Путешествие"
                 }
               ]
             }
@@ -627,64 +588,57 @@
               "name": "",
               "services": [
                 {
-                  "name":"Эвакуация", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TowageCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
                 },
                 {
-                  "name":"Техпомощь", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TechCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TechCommon.fields"
+                  ],
+                  "name": "Техпомощь"
                 },
                 {
-                  "name":"Подменный автомобиль", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "ReplacementVehicleCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "ReplacementVehicleCommon.fields"
+                  ],
+                  "name": "Подменный автомобиль"
                 },
                 {
-                  "name":"Гостиница", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "HotelCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "HotelCommon.fields"
+                  ],
+                  "name": "Гостиница"
                 },
                 {
-                  "name":"Такси", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TaxiCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TaxiCommon.fields"
+                  ],
+                  "name": "Такси"
                 },
                 {
-                  "name":"Доставка ТС", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TransportDeliveryCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TransportDeliveryCommon.fields"
+                  ],
+                  "name": "Доставка ТС"
                 }
               ]
             },
             {
               "Транспортировка": [
                 {
-                  "name":"Путешествие", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TransportationSelectedCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TransportationSelectedCommon.fields"
+                  ],
+                  "name": "Путешествие"
                 }
               ]
             }
@@ -724,96 +678,86 @@
               "name": "",
               "services": [
                 {
-                  "name":"Техническая помошь", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TechCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TechCommon.fields"
+                  ],
+                  "name": "Техническая помошь"
                 },
                 {
-                  "name":"Эвакуация", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TowageCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
                 },
                 {
-                  "name":"Подменный автомобиль", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "ReplacementVehicleCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "ReplacementVehicleCommon.fields"
+                  ],
+                  "name": "Подменный автомобиль"
                 },
                 {
-                  "name":"Гостиница", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "HotelCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "HotelCommon.fields"
+                  ],
+                  "name": "Гостиница"
                 },
                 {
-                  "name":"Такси", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TaxiCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TaxiCommon.fields"
+                  ],
+                  "name": "Такси"
                 },
                 {
-                  "name":"Транспортировка", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TransportationCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TransportationCommon.fields"
+                  ],
+                  "name": "Транспортировка"
                 },
                 {
-                  "name":"Доставка ТС", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TransportDeliveryCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TransportDeliveryCommon.fields"
+                  ],
+                  "name": "Доставка ТС"
                 },
                 {
-                  "name":"Доставка запчастей", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "SparesCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "SparesCommon.fields"
+                  ],
+                  "name": "Доставка запчастей"
                 },
                 {
-                  "name":"Информирование о происшествии", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "NotificationCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "NotificationCommon.fields"
+                  ],
+                  "name": "Информирование о происшествии"
                 },
                 {
-                  "name":"Информирование о происшествии", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "SoberDriverCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "SoberDriverCommon.fields"
+                  ],
+                  "name": "Информирование о происшествии"
                 }
               ]
             }
@@ -838,96 +782,86 @@
               "name": "",
               "services": [
                 {
-                  "name":"Техническая помошь", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TechCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TechCommon.fields"
+                  ],
+                  "name": "Техническая помошь"
                 },
                 {
-                  "name":"Эвакуация", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TowageCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
                 },
                 {
-                  "name":"Подменный автомобиль", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "ReplacementVehicleCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "ReplacementVehicleCommon.fields"
+                  ],
+                  "name": "Подменный автомобиль"
                 },
                 {
-                  "name":"Гостиница", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "HotelCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "HotelCommon.fields"
+                  ],
+                  "name": "Гостиница"
                 },
                 {
-                  "name":"Такси", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TaxiCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TaxiCommon.fields"
+                  ],
+                  "name": "Такси"
                 },
                 {
-                  "name":"Транспортировка", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TransportationCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TransportationCommon.fields"
+                  ],
+                  "name": "Транспортировка"
                 },
                 {
-                  "name":"Доставка ТС", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TransportDeliveryCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TransportDeliveryCommon.fields"
+                  ],
+                  "name": "Доставка ТС"
                 },
                 {
-                  "name":"Доставка запчастей", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "SparesCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "SparesCommon.fields"
+                  ],
+                  "name": "Доставка запчастей"
                 },
                 {
-                  "name":"Информирование о происшествии", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "NotificationCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "NotificationCommon.fields"
+                  ],
+                  "name": "Информирование о происшествии"
                 },
                 {
-                  "name":"Информирование о происшествии", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "SoberDriverCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "SoberDriverCommon.fields"
+                  ],
+                  "name": "Информирование о происшествии"
                 }
               ]
             }
@@ -952,96 +886,86 @@
               "name": "",
               "services": [
                 {
-                  "name":"Техническая помошь", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TechCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TechCommon.fields"
+                  ],
+                  "name": "Техническая помошь"
                 },
                 {
-                  "name":"Эвакуация", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TowageCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
                 },
                 {
-                  "name":"Подменный автомобиль", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "ReplacementVehicleCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "ReplacementVehicleCommon.fields"
+                  ],
+                  "name": "Подменный автомобиль"
                 },
                 {
-                  "name":"Гостиница", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "HotelCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "HotelCommon.fields"
+                  ],
+                  "name": "Гостиница"
                 },
                 {
-                  "name":"Такси", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TaxiCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TaxiCommon.fields"
+                  ],
+                  "name": "Такси"
                 },
                 {
-                  "name":"Транспортировка", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TransportationCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TransportationCommon.fields"
+                  ],
+                  "name": "Транспортировка"
                 },
                 {
-                  "name":"Доставка ТС", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TransportDeliveryCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TransportDeliveryCommon.fields"
+                  ],
+                  "name": "Доставка ТС"
                 },
                 {
-                  "name":"Доставка запчастей", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "SparesCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "SparesCommon.fields"
+                  ],
+                  "name": "Доставка запчастей"
                 },
                 {
-                  "name":"Информирование о происшествии", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "NotificationCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "NotificationCommon.fields"
+                  ],
+                  "name": "Информирование о происшествии"
                 },
                 {
-                  "name":"Информирование о происшествии", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "SoberDriverCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "SoberDriverCommon.fields"
+                  ],
+                  "name": "Информирование о происшествии"
                 }
               ]
             }
@@ -1066,96 +990,86 @@
               "name": "",
               "services": [
                 {
-                  "name":"Техническая помошь", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TechCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TechCommon.fields"
+                  ],
+                  "name": "Техническая помошь"
                 },
                 {
-                  "name":"Эвакуация", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TowageCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
                 },
                 {
-                  "name":"Подменный автомобиль", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "ReplacementVehicleCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "ReplacementVehicleCommon.fields"
+                  ],
+                  "name": "Подменный автомобиль"
                 },
                 {
-                  "name":"Гостиница", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "HotelCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "HotelCommon.fields"
+                  ],
+                  "name": "Гостиница"
                 },
                 {
-                  "name":"Такси", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TaxiCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TaxiCommon.fields"
+                  ],
+                  "name": "Такси"
                 },
                 {
-                  "name":"Транспортировка", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TransportationCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TransportationCommon.fields"
+                  ],
+                  "name": "Транспортировка"
                 },
                 {
-                  "name":"Доставка ТС", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TransportDeliveryCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TransportDeliveryCommon.fields"
+                  ],
+                  "name": "Доставка ТС"
                 },
                 {
-                  "name":"Доставка запчастей", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "SparesCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "SparesCommon.fields"
+                  ],
+                  "name": "Доставка запчастей"
                 },
                 {
-                  "name":"Информирование о происшествии", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "NotificationCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "NotificationCommon.fields"
+                  ],
+                  "name": "Информирование о происшествии"
                 },
                 {
-                  "name":"Информирование о происшествии", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "SoberDriverCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "SoberDriverCommon.fields"
+                  ],
+                  "name": "Информирование о происшествии"
                 }
               ]
             }
@@ -1180,96 +1094,86 @@
               "name": "",
               "services": [
                 {
-                  "name":"Техническая помошь", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TechCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TechCommon.fields"
+                  ],
+                  "name": "Техническая помошь"
                 },
                 {
-                  "name":"Эвакуация", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TowageCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
                 },
                 {
-                  "name":"Подменный автомобиль", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "ReplacementVehicleCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "ReplacementVehicleCommon.fields"
+                  ],
+                  "name": "Подменный автомобиль"
                 },
                 {
-                  "name":"Гостиница", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "HotelCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "HotelCommon.fields"
+                  ],
+                  "name": "Гостиница"
                 },
                 {
-                  "name":"Такси", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TaxiCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TaxiCommon.fields"
+                  ],
+                  "name": "Такси"
                 },
                 {
-                  "name":"Транспортировка", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TransportationCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TransportationCommon.fields"
+                  ],
+                  "name": "Транспортировка"
                 },
                 {
-                  "name":"Доставка ТС", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TransportDeliveryCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TransportDeliveryCommon.fields"
+                  ],
+                  "name": "Доставка ТС"
                 },
                 {
-                  "name":"Доставка запчастей", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "SparesCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "SparesCommon.fields"
+                  ],
+                  "name": "Доставка запчастей"
                 },
                 {
-                  "name":"Информирование о происшествии", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "NotificationCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "NotificationCommon.fields"
+                  ],
+                  "name": "Информирование о происшествии"
                 },
                 {
-                  "name":"Информирование о происшествии", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "SoberDriverCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "SoberDriverCommon.fields"
+                  ],
+                  "name": "Информирование о происшествии"
                 }
               ]
             }
@@ -1294,96 +1198,86 @@
               "name": "",
               "services": [
                 {
-                  "name":"Техническая помошь", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TechCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TechCommon.fields"
+                  ],
+                  "name": "Техническая помошь"
                 },
                 {
-                  "name":"Эвакуация", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TowageCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
                 },
                 {
-                  "name":"Подменный автомобиль", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "ReplacementVehicleCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "ReplacementVehicleCommon.fields"
+                  ],
+                  "name": "Подменный автомобиль"
                 },
                 {
-                  "name":"Гостиница", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "HotelCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "HotelCommon.fields"
+                  ],
+                  "name": "Гостиница"
                 },
                 {
-                  "name":"Такси", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TaxiCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TaxiCommon.fields"
+                  ],
+                  "name": "Такси"
                 },
                 {
-                  "name":"Транспортировка", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TransportationCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TransportationCommon.fields"
+                  ],
+                  "name": "Транспортировка"
                 },
                 {
-                  "name":"Доставка ТС", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TransportDeliveryCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TransportDeliveryCommon.fields"
+                  ],
+                  "name": "Доставка ТС"
                 },
                 {
-                  "name":"Доставка запчастей", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "SparesCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "SparesCommon.fields"
+                  ],
+                  "name": "Доставка запчастей"
                 },
                 {
-                  "name":"Информирование о происшествии", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "NotificationCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "NotificationCommon.fields"
+                  ],
+                  "name": "Информирование о происшествии"
                 },
                 {
-                  "name":"Информирование о происшествии", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "SoberDriverCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "SoberDriverCommon.fields"
+                  ],
+                  "name": "Информирование о происшествии"
                 }
               ]
             }
@@ -1408,28 +1302,25 @@
               "name": "",
               "services": [
                 {
-                  "name":"Техническая помошь", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TechCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TechCommon.fields"
+                  ],
+                  "name": "Техническая помошь"
                 },
                 {
-                  "name":"Эвакуация", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TowageCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
                 },
                 {
-                  "name":"Гостиница", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "HotelCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "HotelCommon.fields"
+                  ],
+                  "name": "Гостиница"
                 }
               ]
             }
@@ -1454,96 +1345,86 @@
               "name": "",
               "services": [
                 {
-                  "name":"Техническая помошь", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TechCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TechCommon.fields"
+                  ],
+                  "name": "Техническая помошь"
                 },
                 {
-                  "name":"Эвакуация", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TowageCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
                 },
                 {
-                  "name":"Подменный автомобиль", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "ReplacementVehicleCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "ReplacementVehicleCommon.fields"
+                  ],
+                  "name": "Подменный автомобиль"
                 },
                 {
-                  "name":"Гостиница", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "HotelCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "HotelCommon.fields"
+                  ],
+                  "name": "Гостиница"
                 },
                 {
-                  "name":"Такси", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TaxiCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TaxiCommon.fields"
+                  ],
+                  "name": "Такси"
                 },
                 {
-                  "name":"Транспортировка", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TransportationCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TransportationCommon.fields"
+                  ],
+                  "name": "Транспортировка"
                 },
                 {
-                  "name":"Доставка ТС", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "TransportDeliveryCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TransportDeliveryCommon.fields"
+                  ],
+                  "name": "Доставка ТС"
                 },
                 {
-                  "name":"Доставка запчастей", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "SparesCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "SparesCommon.fields"
+                  ],
+                  "name": "Доставка запчастей"
                 },
                 {
-                  "name":"Информирование о происшествии", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "NotificationCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "NotificationCommon.fields"
+                  ],
+                  "name": "Информирование о происшествии"
                 },
                 {
-                  "name":"Информирование о происшествии", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      "SoberDriverCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "SoberDriverCommon.fields"
+                  ],
+                  "name": "Информирование о происшествии"
                 }
               ]
             }
@@ -1583,303 +1464,296 @@
               "name": "",
               "services": [
                 {
-                  "name":"Техническая помошь", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "caseAddress",
-                          "label": "Адрес кейса",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "closeDealersPresent",
-                          "type": "checkbox",
-                          "label": "Есть дилеры на расстоянии <130 км"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TechCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "closeDealersPresent",
+                        "type": "checkbox",
+                        "label": "Есть дилеры на расстоянии <130 км"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TechCommon.fields"
+                  ],
+                  "name": "Техническая помошь"
                 },
                 {
-                  "name":"Эвакуация", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "caseAddress",
-                          "label": "Адрес кейса",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "closeDealersPresent",
-                          "type": "checkbox",
-                          "label": "Есть дилеры на расстоянии <130 км"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "DCapproved",
-                          "type": "checkbox",
-                          "label": "Клиент договорился с ДЦ"
-                        },
-                        {
-                          "name": "nonAccident",
-                          "type": "checkbox",
-                          "label": "Не ДТП"
-                        },
-                        {
-                          "name": "nonVandal",
-                          "type": "checkbox",
-                          "label": "Не вандализм"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TowageCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "closeDealersPresent",
+                        "type": "checkbox",
+                        "label": "Есть дилеры на расстоянии <130 км"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "DCapproved",
+                        "type": "checkbox",
+                        "label": "Клиент договорился с ДЦ"
+                      },
+                      {
+                        "name": "nonAccident",
+                        "type": "checkbox",
+                        "label": "Не ДТП"
+                      },
+                      {
+                        "name": "nonVandal",
+                        "type": "checkbox",
+                        "label": "Не вандализм"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
                 },
                 {
-                  "name":"Подменный автомобиль", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "ReplacementVehicleCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "ReplacementVehicleCommon.fields"
+                  ],
+                  "name": "Подменный автомобиль"
                 },
                 {
-                  "name":"Гостиница", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "caseAddress",
-                          "label": "Адрес кейса",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "clientAddress",
-                          "label": "Место жительства",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "distanceApproved",
-                          "type": "checkbox",
-                          "label": "Неисправность возникла на расстоянии 130 км от дома"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "HotelCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "clientAddress",
+                        "label": "Место жительства",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "distanceApproved",
+                        "type": "checkbox",
+                        "label": "Неисправность возникла на расстоянии 130 км от дома"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "HotelCommon.fields"
+                  ],
+                  "name": "Гостиница"
                 },
                 {
-                  "name":"Такси", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TaxiCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TaxiCommon.fields"
+                  ],
+                  "name": "Такси"
                 },
                 {
-                  "name":"Доставка запчастей", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "parts",
-                          "type": "textarea",
-                          "label": "Запчасти"
-                        },
-                        {
-                          "name": "partsToAddress",
-                          "label": "Куда доставить",
-                          "subform": "Address"
-                        }
-                      ],
-                      "SparesCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "parts",
+                        "type": "textarea",
+                        "label": "Запчасти"
+                      },
+                      {
+                        "name": "partsToAddress",
+                        "label": "Куда доставить",
+                        "subform": "Address"
+                      }
+                    ],
+                    "SparesCommon.fields"
+                  ],
+                  "name": "Доставка запчастей"
                 }
               ]
             },
             {
-              "Транспортировка": [
+              "name": "Транспортировка",
+              "services": [
                 {
-                  "name":"Путешествие", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "attachedFiles",
-                          "type": "files",
-                          "label": "Приложенные файлы"
-                        },
-                        {
-                          "name": "TravelApproved",
-                          "type": "checkbox",
-                          "label": "Подтверждение путешествия предоставлено"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TransportationSelectedCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "attachedFiles",
+                        "type": "files",
+                        "label": "Приложенные файлы"
+                      },
+                      {
+                        "name": "TravelApproved",
+                        "type": "checkbox",
+                        "label": "Подтверждение путешествия предоставлено"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TransportationSelectedCommon.fields"
+                  ],
+                  "name": "Путешествие"
                 },
                 {
-                  "name":"Доставка к ТС", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TransportationSelectedCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TransportationSelectedCommon.fields"
+                  ],
+                  "name": "Доставка к ТС"
                 }
               ]
             }
@@ -1914,303 +1788,295 @@
               "name": "",
               "services": [
                 {
-                  "name":"Техническая помошь", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "caseAddress",
-                          "label": "Адрес кейса",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "closeDealersPresent",
-                          "type": "checkbox",
-                          "label": "Есть дилеры на расстоянии <130 км"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TechCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "closeDealersPresent",
+                        "type": "checkbox",
+                        "label": "Есть дилеры на расстоянии <130 км"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TechCommon.fields"
+                  ],
+                  "name": "Техническая помошь"
                 },
                 {
-                  "name":"Эвакуация", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "caseAddress",
-                          "label": "Адрес кейса",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "closeDealersPresent",
-                          "type": "checkbox",
-                          "label": "Есть дилеры на расстоянии <130 км"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "DCapproved",
-                          "type": "checkbox",
-                          "label": "Клиент договорился с ДЦ"
-                        },
-                        {
-                          "name": "nonAccident",
-                          "type": "checkbox",
-                          "label": "Не ДТП"
-                        },
-                        {
-                          "name": "nonVandal",
-                          "type": "checkbox",
-                          "label": "Не вандализм"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TowageCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "closeDealersPresent",
+                        "type": "checkbox",
+                        "label": "Есть дилеры на расстоянии <130 км"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "DCapproved",
+                        "type": "checkbox",
+                        "label": "Клиент договорился с ДЦ"
+                      },
+                      {
+                        "name": "nonAccident",
+                        "type": "checkbox",
+                        "label": "Не ДТП"
+                      },
+                      {
+                        "name": "nonVandal",
+                        "type": "checkbox",
+                        "label": "Не вандализм"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
                 },
                 {
-                  "name":"Подменный автомобиль", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "ReplacementVehicleCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "ReplacementVehicleCommon.fields"
+                  ],
+                  "name": "Подменный автомобиль"
                 },
                 {
-                  "name":"Гостиница", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "caseAddress",
-                          "label": "Адрес кейса",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "clientAddress",
-                          "label": "Место жительства",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "distanceApproved",
-                          "type": "checkbox",
-                          "label": "Неисправность возникла на расстоянии 130 км от дома"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "HotelCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "clientAddress",
+                        "label": "Место жительства",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "distanceApproved",
+                        "type": "checkbox",
+                        "label": "Неисправность возникла на расстоянии 130 км от дома"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "HotelCommon.fields"
+                  ],
+                  "name": "Гостиница"
                 },
                 {
-                  "name":"Такси", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TaxiCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TaxiCommon.fields"
+                  ],
+                  "name": "Такси"
                 },
                 {
-                  "name":"Доставка запчастей", {
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "parts",
-                          "type": "textarea",
-                          "label": "Запчасти"
-                        },
-                        {
-                          "name": "partsToAddress",
-                          "label": "Куда доставить",
-                          "subform": "Address"
-                        }
-                      ],
-                      "SparesCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "parts",
+                        "type": "textarea",
+                        "label": "Запчасти"
+                      },
+                      {
+                        "name": "partsToAddress",
+                        "label": "Куда доставить",
+                        "subform": "Address"
+                      }
+                    ],
+                    "SparesCommon.fields"
+                  ],
+                  "name": "Доставка запчастей"
                 }
               ]
             },
             {
               "Транспортировка": [
                 {
-                  "name":"Путешествие", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "attachedFiles",
-                          "type": "files",
-                          "label": "Приложенные файлы"
-                        },
-                        {
-                          "name": "TravelApproved",
-                          "type": "checkbox",
-                          "label": "Подтверждение путешествия предоставлено"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TransportationSelectedCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "attachedFiles",
+                        "type": "files",
+                        "label": "Приложенные файлы"
+                      },
+                      {
+                        "name": "TravelApproved",
+                        "type": "checkbox",
+                        "label": "Подтверждение путешествия предоставлено"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TransportationSelectedCommon.fields"
+                  ],
+                  "name": "Путешествие"
                 },
                 {
-                  "name":"Доставка к ТС", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TransportationSelectedCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TransportationSelectedCommon.fields"
+                  ],
+                  "name": "Доставка к ТС"
                 }
               ]
             }
@@ -2245,303 +2111,295 @@
               "name": "",
               "services": [
                 {
-                  "name":"Техническая помошь", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "caseAddress",
-                          "label": "Адрес кейса",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "closeDealersPresent",
-                          "type": "checkbox",
-                          "label": "Есть дилеры на расстоянии <130 км"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TechCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "closeDealersPresent",
+                        "type": "checkbox",
+                        "label": "Есть дилеры на расстоянии <130 км"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TechCommon.fields"
+                  ],
+                  "name": "Техническая помошь"
                 },
                 {
-                  "name":"Эвакуация", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "caseAddress",
-                          "label": "Адрес кейса",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "closeDealersPresent",
-                          "type": "checkbox",
-                          "label": "Есть дилеры на расстоянии <130 км"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "DCapproved",
-                          "type": "checkbox",
-                          "label": "Клиент договорился с ДЦ"
-                        },
-                        {
-                          "name": "nonAccident",
-                          "type": "checkbox",
-                          "label": "Не ДТП"
-                        },
-                        {
-                          "name": "nonVandal",
-                          "type": "checkbox",
-                          "label": "Не вандализм"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TowageCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "closeDealersPresent",
+                        "type": "checkbox",
+                        "label": "Есть дилеры на расстоянии <130 км"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "DCapproved",
+                        "type": "checkbox",
+                        "label": "Клиент договорился с ДЦ"
+                      },
+                      {
+                        "name": "nonAccident",
+                        "type": "checkbox",
+                        "label": "Не ДТП"
+                      },
+                      {
+                        "name": "nonVandal",
+                        "type": "checkbox",
+                        "label": "Не вандализм"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
                 },
                 {
-                  "name":"Подменный автомобиль", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "ReplacementVehicleCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "ReplacementVehicleCommon.fields"
+                  ],
+                  "name": "Подменный автомобиль"
                 },
                 {
-                  "name":"Гостиница", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "caseAddress",
-                          "label": "Адрес кейса",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "clientAddress",
-                          "label": "Место жительства",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "distanceApproved",
-                          "type": "checkbox",
-                          "label": "Неисправность возникла на расстоянии 130 км от дома"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "HotelCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "clientAddress",
+                        "label": "Место жительства",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "distanceApproved",
+                        "type": "checkbox",
+                        "label": "Неисправность возникла на расстоянии 130 км от дома"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "HotelCommon.fields"
+                  ],
+                  "name": "Гостиница"
                 },
                 {
-                  "name":"Такси", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TaxiCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TaxiCommon.fields"
+                  ],
+                  "name": "Такси"
                 },
                 {
-                  "name":"Доставка запчастей", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "parts",
-                          "type": "textarea",
-                          "label": "Запчасти"
-                        },
-                        {
-                          "name": "partsToAddress",
-                          "label": "Куда доставить",
-                          "subform": "Address"
-                        }
-                      ],
-                      "SparesCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "parts",
+                        "type": "textarea",
+                        "label": "Запчасти"
+                      },
+                      {
+                        "name": "partsToAddress",
+                        "label": "Куда доставить",
+                        "subform": "Address"
+                      }
+                    ],
+                    "SparesCommon.fields"
+                  ],
+                  "name": "Доставка запчастей"
                 }
               ]
             },
             {
               "Транспортировка": [
                 {
-                  "name":"Путешествие", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "attachedFiles",
-                          "type": "files",
-                          "label": "Приложенные файлы"
-                        },
-                        {
-                          "name": "TravelApproved",
-                          "type": "checkbox",
-                          "label": "Подтверждение путешествия предоставлено"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TransportationSelectedCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "attachedFiles",
+                        "type": "files",
+                        "label": "Приложенные файлы"
+                      },
+                      {
+                        "name": "TravelApproved",
+                        "type": "checkbox",
+                        "label": "Подтверждение путешествия предоставлено"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TransportationSelectedCommon.fields"
+                  ],
+                  "name": "Путешествие"
                 },
                 {
-                  "name":"Доставка к ТС", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TransportationSelectedCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TransportationSelectedCommon.fields"
+                  ],
+                  "name": "Доставка к ТС"
                 }
               ]
             }
@@ -2596,303 +2454,295 @@
               "name": "",
               "services": [
                 {
-                  "name":"Техническая помошь", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "caseAddress",
-                          "label": "Адрес кейса",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "closeDealersPresent",
-                          "type": "checkbox",
-                          "label": "Есть дилеры на расстоянии <130 км"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TechCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "closeDealersPresent",
+                        "type": "checkbox",
+                        "label": "Есть дилеры на расстоянии <130 км"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TechCommon.fields"
+                  ],
+                  "name": "Техническая помошь"
                 },
                 {
-                  "name":"Эвакуация", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "caseAddress",
-                          "label": "Адрес кейса",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "closeDealersPresent",
-                          "type": "checkbox",
-                          "label": "Есть дилеры на расстоянии <130 км"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "DCapproved",
-                          "type": "checkbox",
-                          "label": "Клиент договорился с ДЦ"
-                        },
-                        {
-                          "name": "nonAccident",
-                          "type": "checkbox",
-                          "label": "Не ДТП"
-                        },
-                        {
-                          "name": "nonVandal",
-                          "type": "checkbox",
-                          "label": "Не вандализм"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TowageCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "closeDealersPresent",
+                        "type": "checkbox",
+                        "label": "Есть дилеры на расстоянии <130 км"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "DCapproved",
+                        "type": "checkbox",
+                        "label": "Клиент договорился с ДЦ"
+                      },
+                      {
+                        "name": "nonAccident",
+                        "type": "checkbox",
+                        "label": "Не ДТП"
+                      },
+                      {
+                        "name": "nonVandal",
+                        "type": "checkbox",
+                        "label": "Не вандализм"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
                 },
                 {
-                  "name":"Подменный автомобиль", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "ReplacementVehicleCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "ReplacementVehicleCommon.fields"
+                  ],
+                  "name": "Подменный автомобиль"
                 },
                 {
-                  "name":"Гостиница", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "caseAddress",
-                          "label": "Адрес кейса",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "clientAddress",
-                          "label": "Место жительства",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "distanceApproved",
-                          "type": "checkbox",
-                          "label": "Неисправность возникла на расстоянии 130 км от дома"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "HotelCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "clientAddress",
+                        "label": "Место жительства",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "distanceApproved",
+                        "type": "checkbox",
+                        "label": "Неисправность возникла на расстоянии 130 км от дома"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "HotelCommon.fields"
+                  ],
+                  "name": "Гостиница"
                 },
                 {
-                  "name":"Такси", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TaxiCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TaxiCommon.fields"
+                  ],
+                  "name": "Такси"
                 },
                 {
-                  "name":"Доставка запчастей", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "parts",
-                          "type": "textarea",
-                          "label": "Запчасти"
-                        },
-                        {
-                          "name": "partsToAddress",
-                          "label": "Куда доставить",
-                          "subform": "Address"
-                        }
-                      ],
-                      "SparesCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "parts",
+                        "type": "textarea",
+                        "label": "Запчасти"
+                      },
+                      {
+                        "name": "partsToAddress",
+                        "label": "Куда доставить",
+                        "subform": "Address"
+                      }
+                    ],
+                    "SparesCommon.fields"
+                  ],
+                  "name": "Доставка запчастей"
                 }
               ]
             },
             {
               "Транспортировка": [
                 {
-                  "name":"Путешествие", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "attachedFiles",
-                          "type": "files",
-                          "label": "Приложенные файлы"
-                        },
-                        {
-                          "name": "TravelApproved",
-                          "type": "checkbox",
-                          "label": "Подтверждение путешествия предоставлено"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TransportationSelectedCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "attachedFiles",
+                        "type": "files",
+                        "label": "Приложенные файлы"
+                      },
+                      {
+                        "name": "TravelApproved",
+                        "type": "checkbox",
+                        "label": "Подтверждение путешествия предоставлено"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TransportationSelectedCommon.fields"
+                  ],
+                  "name": "Путешествие"
                 },
                 {
-                  "name":"Доставка к ТС", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TransportationSelectedCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TransportationSelectedCommon.fields"
+                  ],
+                  "name": "Доставка к ТС"
                 }
               ]
             }
@@ -2947,303 +2797,362 @@
               "name": "",
               "services": [
                 {
-                  "name":"Техническая помошь", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "caseAddress",
-                          "label": "Адрес кейса",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "closeDealersPresent",
-                          "type": "checkbox",
-                          "label": "Есть дилеры на расстоянии <130 км"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TechCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "closeDealersPresent",
+                        "type": "checkbox",
+                        "label": "Есть дилеры на расстоянии <130 км"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TechCommon.fields"
+                  ],
+                  "name": "Техническая помошь"
                 },
                 {
-                  "name":"Эвакуация", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "caseAddress",
-                          "label": "Адрес кейса",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "closeDealersPresent",
-                          "type": "checkbox",
-                          "label": "Есть дилеры на расстоянии <130 км"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "DCapproved",
-                          "type": "checkbox",
-                          "label": "Клиент договорился с ДЦ"
-                        },
-                        {
-                          "name": "nonAccident",
-                          "type": "checkbox",
-                          "label": "Не ДТП"
-                        },
-                        {
-                          "name": "nonVandal",
-                          "type": "checkbox",
-                          "label": "Не вандализм"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TowageCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "closeDealersPresent",
+                        "type": "checkbox",
+                        "label": "Есть дилеры на расстоянии <130 км"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "DCapproved",
+                        "type": "checkbox",
+                        "label": "Клиент договорился с ДЦ"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
                 },
                 {
-                  "name":"Подменный автомобиль", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "ReplacementVehicleCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "ReplacementVehicleCommon.fields"
+                  ],
+                  "name": "Подменный автомобиль"
                 },
                 {
-                  "name":"Гостиница", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "caseAddress",
-                          "label": "Адрес кейса",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "clientAddress",
-                          "label": "Место жительства",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "distanceApproved",
-                          "type": "checkbox",
-                          "label": "Неисправность возникла на расстоянии 130 км от дома"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "HotelCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "clientAddress",
+                        "label": "Место жительства",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "distanceApproved",
+                        "type": "checkbox",
+                        "label": "Неисправность возникла на расстоянии 130 км от дома"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "HotelCommon.fields"
+                  ],
+                  "name": "Гостиница"
                 },
                 {
-                  "name":"Такси", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TaxiCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TaxiCommon.fields"
+                  ],
+                  "name": "Такси"
                 },
                 {
-                  "name":"Доставка запчастей", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "parts",
-                          "type": "textarea",
-                          "label": "Запчасти"
-                        },
-                        {
-                          "name": "partsToAddress",
-                          "label": "Куда доставить",
-                          "subform": "Address"
-                        }
-                      ],
-                      "SparesCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "parts",
+                        "type": "textarea",
+                        "label": "Запчасти"
+                      },
+                      {
+                        "name": "partsToAddress",
+                        "label": "Куда доставить",
+                        "subform": "Address"
+                      }
+                    ],
+                    "SparesCommon.fields"
+                  ],
+                  "name": "Доставка запчастей"
+                },
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "serviceProvided",
+                        "label": "Сколько раз предоставлена услуга"
+                      },
+                      {
+                        "name": "serviceRestriction",
+                        "label": "Не более трёх раз за срок действия программы"
+                      },
+                      {
+                        "name": "restrictionApproved",
+                        "type": "checkbox",
+                        "label": "Лимит не исчерпан"
+                      },
+                      {
+                        "name": "fromAddress",
+                        "label": "Откуда",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "toAddress",
+                        "label": "Куда доставить",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "distanceFromToApproved",
+                        "type": "checkbox",
+                        "label": "Расстояние <130 км"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "SoberDriverCommon.fields"
+                  ],
+                  "name": "Трезвый водитель"
                 }
               ]
             },
             {
-              "Транспортировка": [
+              "name": "Транспортировка",
+              "services": [
                 {
-                  "name":"Путешествие", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "attachedFiles",
-                          "type": "files",
-                          "label": "Приложенные файлы"
-                        },
-                        {
-                          "name": "TravelApproved",
-                          "type": "checkbox",
-                          "label": "Подтверждение путешествия предоставлено"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TransportationSelectedCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "attachedFiles",
+                        "type": "files",
+                        "label": "Приложенные файлы"
+                      },
+                      {
+                        "name": "TravelApproved",
+                        "type": "checkbox",
+                        "label": "Подтверждение путешествия предоставлено"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TransportationSelectedCommon.fields"
+                  ],
+                  "name": "Путешествие"
                 },
                 {
-                  "name":"Доставка к ТС", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TransportationSelectedCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TransportationSelectedCommon.fields"
+                  ],
+                  "name": "Доставка к ТС"
+                }
+              ]
+            },
+            {
+              "name": "Техпомощь",
+              "services": [
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "contractor",
+                        "label": "Подрядчик",
+                        "subform": "Contractor"
+                      },
+                      {
+                        "name": "closeContractorsPresent",
+                        "type": "checkbox",
+                        "label": "Есть мастерские на расстоянии <130 км"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TechSelectedCommon.fields"
+                  ],
+                  "name": "Доставка топлива"
                 }
               ]
             }
@@ -3298,375 +3207,301 @@
               "name": "",
               "services": [
                 {
-                  "name":"Техническая помошь", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "caseAddress",
-                          "label": "Адрес кейса",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "closeDealersPresent",
-                          "type": "checkbox",
-                          "label": "Есть дилеры на расстоянии <130 км"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TechCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "closeDealersPresent",
+                        "type": "checkbox",
+                        "label": "Есть дилеры на расстоянии <130 км"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TechCommon.fields"
+                  ],
+                  "name": "Техническая помошь"
                 },
                 {
-                  "name":"Эвакуация", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "caseAddress",
-                          "label": "Адрес кейса",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "closeDealersPresent",
-                          "type": "checkbox",
-                          "label": "Есть дилеры на расстоянии <130 км"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "DCapproved",
-                          "type": "checkbox",
-                          "label": "Клиент договорился с ДЦ"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TowageCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "closeDealersPresent",
+                        "type": "checkbox",
+                        "label": "Есть дилеры на расстоянии <130 км"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "DCapproved",
+                        "type": "checkbox",
+                        "label": "Клиент договорился с ДЦ"
+                      },
+                      {
+                        "name": "nonAccident",
+                        "type": "checkbox",
+                        "label": "Не ДТП"
+                      },
+                      {
+                        "name": "nonVandal",
+                        "type": "checkbox",
+                        "label": "Не вандализм"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
                 },
                 {
-                  "name":"Подменный автомобиль", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "ReplacementVehicleCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "ReplacementVehicleCommon.fields"
+                  ],
+                  "name": "Подменный автомобиль"
                 },
                 {
-                  "name":"Гостиница", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "caseAddress",
-                          "label": "Адрес кейса",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "clientAddress",
-                          "label": "Место жительства",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "distanceApproved",
-                          "type": "checkbox",
-                          "label": "Неисправность возникла на расстоянии 130 км от дома"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "HotelCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "clientAddress",
+                        "label": "Место жительства",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "distanceApproved",
+                        "type": "checkbox",
+                        "label": "Неисправность возникла на расстоянии 130 км от дома"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "HotelCommon.fields"
+                  ],
+                  "name": "Гостиница"
                 },
                 {
-                  "name":"Такси", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TaxiCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TaxiCommon.fields"
+                  ],
+                  "name": "Такси"
                 },
                 {
-                  "name":"Доставка запчастей", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "parts",
-                          "type": "textarea",
-                          "label": "Запчасти"
-                        },
-                        {
-                          "name": "partsToAddress",
-                          "label": "Куда доставить",
-                          "subform": "Address"
-                        }
-                      ],
-                      "SparesCommon.fields"
-                    ]
-                  
-                },
-                {
-                  "name":"Трезвый водитель", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "serviceProvided",
-                          "label": "Сколько раз предоставлена услуга"
-                        },
-                        {
-                          "name": "serviceRestriction",
-                          "label": "Не более трёх раз за срок действия программы"
-                        },
-                        {
-                          "name": "restrictionApproved",
-                          "type": "checkbox",
-                          "label": "Лимит не исчерпан"
-                        },
-                        {
-                          "name": "fromAddress",
-                          "label": "Откуда",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "toAddress",
-                          "label": "Куда доставить",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "distanceFromToApproved",
-                          "type": "checkbox",
-                          "label": "Расстояние <130 км"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "SoberDriverCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "parts",
+                        "type": "textarea",
+                        "label": "Запчасти"
+                      },
+                      {
+                        "name": "partsToAddress",
+                        "label": "Куда доставить",
+                        "subform": "Address"
+                      }
+                    ],
+                    "SparesCommon.fields"
+                  ],
+                  "name": "Доставка запчастей"
                 }
               ]
             },
             {
-              "name":"Транспортировка", 
+              "name": "Транспортировка",
+              "services": [
                 {
-                  "name":"Путешествие", {
-                    "fieldgroup": 
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "attachedFiles",
-                          "type": "files",
-                          "label": "Приложенные файлы"
-                        },
-                        {
-                          "name": "TravelApproved",
-                          "type": "checkbox",
-                          "label": "Подтверждение путешествия предоставлено"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TransportationSelectedCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "attachedFiles",
+                        "type": "files",
+                        "label": "Приложенные файлы"
+                      },
+                      {
+                        "name": "TravelApproved",
+                        "type": "checkbox",
+                        "label": "Подтверждение путешествия предоставлено"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TransportationSelectedCommon.fields"
+                  ],
+                  "name": "Путешествие"
                 },
                 {
-                  "name":"Доставка к ТС", 
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "RAMCtow",
-                          "type": "checkbox",
-                          "label": "Эвакуация РАМК"
-                        },
-                        {
-                          "name": "towDealer",
-                          "label": "Дилер",
-                          "subform": "Dealer"
-                        },
-                        {
-                          "name": "startRepairDate",
-                          "label": "Дата начала ремонта",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "plannedRepairDate",
-                          "label": "Предполагаемая дата исправления автомобиля",
-                          "datepicker": true
-                        },
-                        {
-                          "name": "longRepair",
-                          "type": "checkbox",
-                          "label": "Неисправность не может быть исправлена в день обращения"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TransportationSelectedCommon.fields"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TransportationSelectedCommon.fields"
+                  ],
+                  "name": "Доставка к ТС"
                 }
-              
-            },
-            {
-              "name":"Техпомощь", 
-                {
-                  "name":"Доставка топлива", {
-                    "fieldgroup": [
-                      "ServiceCommon.fields",
-                      [
-                        {
-                          "name": "caseAddress",
-                          "label": "Адрес кейса",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "contractor",
-                          "label": "Подрядчик",
-                          "subform": "Contractor"
-                        },
-                        {
-                          "name": "closeContractorsPresent",
-                          "type": "checkbox",
-                          "label": "Есть мастерские на расстоянии <130 км"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TechSelectedCommon.fields"
-                    ]
-                  
-                }
-              
+              ]
             }
           ],
-          "name": "Caddilac после 2012",
+          "name": "Cadillac после 2012",
           "conditions": [
             {
               "name": "sellDate",
@@ -3716,1342 +3551,1149 @@
       "name": "Другие",
       "subprograms": [
         {
-          "name":"Заказ билетов",
-            "serviceGroups": []
+          "serviceGroups": [],
+          "name": "Заказ билетов"
         },
         {
-          "name":"B2C", 
-            "serviceGroups": [
-              {
-                "name": "",
-                "services": [
-                  {
-                    "name":"Эвакуация", {
-                      "fieldgroup": 
-                        "ServiceCommon.fields",
-                        [
-                          {
-                            "name":"serviceProvided", 
-                              "label": "Сколько раз услуга Эвакуация предоставлена"
-                            
-                          },
-                          {
-                            "name":"serviceRestriction", 
-                              "label": "Ограничение по количеству раз предоставления услуги"
-                            
-                          },
-                          {
-                            "name":"restrictionApproved", 
-                              "type": "checkbox",
-                              "label": "Лимит не исчерпан"
-                            
-                          },
-                          {
-                            "name":"caseAddress", 
-                              "label": "Адрес кейса",
-                              "subform": "Address"
-                            
-                          },
-                          {
-                            "name":"distanceApproved", 
-                              "type": "checkbox",
-                              "label": "Кейс на расстоянии < 50 км до Москвы или < 30 км до города"
-                            
-                          },
-                          {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
-                          }
-                        ],
-                        "TowageCommon.fields"
-                      ]
-                    
-                  }
-                ]
-              },
-              {
-                "Техпомощь": [
-                  {
-                    "name":"Подвоз топлива", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        [
-                          {
-                            "name":"serviceProvided", 
-                              "label": "Сколько раз услуга Техпомощь - Подвоз топлива предоставлена"
-                            
-                          },
-                          {
-                            "name":"serviceRestriction", 
-                              "label": "Ограничение по количеству раз предоставления услуги"
-                            
-                          },
-                          {
-                            "name":"restrictionApproved", 
-                              "type": "checkbox",
-                              "label": "Лимит не исчерпан"
-                            
-                          },
-                          {
-                            "name":"caseAddress", 
-                              "label": "Адрес кейса",
-                              "subform": "Address"
-                            
-                          },
-                          {
-                            "name":"distanceApproved", 
-                              "type": "checkbox",
-                              "label": "Кейс на расстоянии < 50 км до Москвы или < 30 км до города"
-                            
-                          },
-                          {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
-                          }
-                        ],
-                        "TechSelectedCommon.fields"
-                      ]
-                    
-                  },
-                  {
-                    "name":"Запуск двигателя", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        [
-                          {
-                            "name":"serviceProvided", 
-                              "label": "Сколько раз услуга Техпомощь - Запуск двигателя предоставлена"
-                            
-                          },
-                          {
-                            "name":"serviceRestriction", 
-                              "label": "Ограничение по количеству раз предоставления услуги"
-                            
-                          },
-                          {
-                            "name":"restrictionApproved", 
-                              "type": "checkbox",
-                              "label": "Лимит не исчерпан"
-                            
-                          },
-                          {
-                            "name":"caseAddress", 
-                              "label": "Адрес кейса",
-                              "subform": "Address"
-                            
-                          },
-                          {
-                            "name":"distanceApproved", 
-                              "type": "checkbox",
-                              "label": "Кейс на расстоянии < 50 км до Москвы или < 30 км до города"
-                            
-                          },
-                          {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
-                          }
-                        ],
-                        "TechSelectedCommon.fields"
-                      ]
-                    
-                  },
-                  {
-                    "name":"Замена колеса", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        [
-                          {
-                            "name":"serviceProvided", 
-                              "label": "Сколько раз услуга Техпомощь - Замена колеса предоставлена"
-                            
-                          },
-                          {
-                            "name":"serviceRestriction", 
-                              "label": "Ограничение по количеству раз предоставления услуги"
-                            
-                          },
-                          {
-                            "name":"restrictionApproved", 
-                              "type": "checkbox",
-                              "label": "Лимит не исчерпан"
-                            
-                          },
-                          {
-                            "name":"caseAddress", 
-                              "label": "Адрес кейса",
-                              "subform": "Address"
-                            
-                          },
-                          {
-                            "name":"distanceApproved", 
-                              "type": "checkbox",
-                              "label": "Кейс на расстоянии < 50 км до Москвы или < 30 км до города"
-                            
-                          },
-                          {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
-                          }
-                        ],
-                        "TechSelectedCommon.fields"
-                      ]
-                    
-                  },
-                  {
-                    "name":"Вскрытие автомобиля", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        [
-                          {
-                            "name":"serviceProvided", 
-                              "label": "Сколько раз услуга Техпомощь - Вскрытие автомобиля предоставлена"
-                            
-                          },
-                          {
-                            "name":"serviceRestriction", 
-                              "label": "Ограничение по количеству раз предоставления услуги"
-                            
-                          },
-                          {
-                            "name":"restrictionApproved", 
-                              "type": "checkbox",
-                              "label": "Лимит не исчерпан"
-                            
-                          },
-                          {
-                            "name":"caseAddress", 
-                              "label": "Адрес кейса",
-                              "subform": "Address"
-                            
-                          },
-                          {
-                            "name":"distanceApproved", 
-                              "type": "checkbox",
-                              "label": "Кейс на расстоянии < 50 км до Москвы или < 30 км до города"
-                            
-                          },
-                          {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
-                          }
-                        ],
-                        "TechSelectedCommon.fields"
-                      ]
-                    
-                  }
-                ]
-              }
-            ],
-            "conditions": [
-              {
-                "name":"memberNumber", 
-                  "label": "Карта участника"
-                
-              },
-              {
-                "name":"memberApproved", 
-                  "type": "checkbox",
-                  "label": "Участник программы"
-                
-              },
-              {
-                "name":"isMember", 
-                  "type": "checkbox",
-                  "label": "Клиент участвует в программе"
-                
-              }
-            ]
-          
-        },
-        {
-          "name":"Ford", 
-            "serviceGroups": [
-              {
-                "name": "",
-                "services": [
-                  {
-                    "name":"Эвакуация", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        [
-                          {
-                            "name":"caseAddress", 
-                              "label": "Адрес кейса",
-                              "subform": "Address"
-                            
-                          },
-                          {
-                            "name":"closeDealersPresent", 
-                              "type": "checkbox",
-                              "label": "Есть дилеры на расстоянии <200 км"
-                            
-                          },
-                          {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
-                          }
-                        ],
-                        "TowageCommon.fields"
-                      ]
-                    
-                  },
-                  {
-                    "name":"Техническая помощь", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        [
-                          {
-                            "name":"caseAddress", 
-                              "label": "Адрес кейса",
-                              "subform": "Address"
-                            
-                          },
-                          {
-                            "name":"contractor", 
-                              "label": "Подрядчик",
-                              "subform": "Contractor"
-                            
-                          },
-                          {
-                            "name":"closeContractorsPresent", 
-                              "type": "checkbox",
-                              "label": "Есть мастерские на расстоянии <200 км"
-                            
-                          },
-                          {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
-                          }
-                        ],
-                        "TechCommon.fields"
-                      ]
-                    
-                  },
-                  {
-                    "name":"Информирование о происшествии", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        [
-                          {
-                            "name":"RAMCtow", 
-                              "type": "checkbox",
-                              "label": "Эвакуация РАМК"
-                            
-                          },
-                          {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
-                          }
-                        ],
-                        "NotificationCommon.fields"
-                      ]
-                    
-                  },
-                  {
-                    "name":"Подменный автомобиль", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        [
-                          {
-                            "name":"RAMCtow", 
-                              "type": "checkbox",
-                              "label": "Эвакуация РАМК"
-                            
-                          },
-                          {
-                            "name":"towDealer", 
-                              "label": "Дилер",
-                              "subform": "Dealer"
-                            
-                          },
-                          {
-                            "name":"startRepairDate", 
-                              "label": "Дата начала ремонта",
-                              "datepicker": true
-                            
-                          },
-                          {
-                            "name":"plannedRepairDate", 
-                              "label": "Предполагаемая дата исправления автомобиля",
-                              "datepicker": true
-                            
-                          },
-                          {
-                            "name":"longRepair", 
-                              "type": "checkbox",
-                              "label": "Неисправность не может быть исправлена в день обращения"
-                            
-                          },
-                          {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
-                          }
-                        ],
-                        "ReplacementVehicleCommon.fields"
-                      ]
-                    
-                  },
-                  {
-                    "name":"Такси", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        [
-                          {
-                            "name":"RAMCtow", 
-                              "type": "checkbox",
-                              "label": "Эвакуация РАМК"
-                            
-                          },
-                          {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
-                          }
-                        ],
-                        "TaxiCommon.fields"
-                      ]
-                    
-                  }
-                ]
-              }
-            ],
-            "conditions": [
-              {
-                "name":"VINApproved", 
-                  "type": "checkbox",
-                  "label": "VIN в списке участников программы"
-                
-              },
-              {
-                "name":"lastTODate", 
-                  "label": "Дата последнего ТО",
-                  "datepicker": true
-                
-              },
-              {
-                "name":"TOApproved", 
-                  "type": "checkbox",
-                  "label": "Дата последнего ТО < 1 года"
-                
-              },
-              {
-                "name":"milageTO", 
-                  "label": "Пробег на последнем ТО"
-                
-              },
-              {
-                "name":"milage", 
-                  "label": "Пробег"
-                
-              },
-              {
-                "name":"milageApproved", 
-                  "type": "checkbox",
-                  "label": "Межсервисный интервал не пройден"
-                
-              },
-              {
-                "name":"isMember", 
-                  "type": "checkbox",
-                  "label": "Клиент участвует в программе"
-                
-              }
-            ]
-          
-        },
-        {
-          "name":"BP", 
-            "serviceGroups": [
-              {
-                "name": "",
-                "services": [
-                  {
-                    "name":"Эвакуация", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        "TowageCommon.fields"
-                      ]
-                    
-                  }
-                ]
-              },
-              {
-                "Техпомощь": [
-                  {
-                    "name":"Слив топлива", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        "TechSelectedCommon.fields"
-                      ]
-                    
-                  }
-                ]
-              }
-            ],
-            "conditions": [
-              {
-                "name":"companyApproved", 
-                  "type": "checkbox",
-                  "label": "Обращение компании BP"
-                
-              },
-              {
-                "name":"isMember", 
-                  "type": "checkbox",
-                  "label": "Клиент участвует в программе"
-                
-              }
-            ]
-          
-        },
-        {
-          "name":"Рус Лан", 
-            "serviceGroups": [
-              {
-                "name": "",
-                "services": [
-                  {
-                    "Техпомощь": [
+          "serviceGroups": [
+            {
+              "name": "",
+              "services": [
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
                       {
-                        "name":"Замена колеса", 
-                          "fieldgroup": [
-                            "ServiceCommon.fields",
-                            [
-                              {
-                                "name":"caseAddress", 
-                                  "label": "Адрес кейса",
-                                  "subform": "Address"
-                                
-                              },
-                              {
-                                "name":"contractor", 
-                                  "label": "Подрядчик",
-                                  "subform": "Contractor"
-                                
-                              },
-                              {
-                                "name":"closeContractorsPresent", 
-                                  "type": "checkbox",
-                                  "label": "Есть мастерские на расстоянии <125 км"
-                                
-                              },
-                              {
-                                "name":"serviceApproved", 
-                                  "type": "checkbox",
-                                  "label": "Услуга может быть оказана по программе"
-                                
-                              }
-                            ],
-                            "TechSelectedCommon.fields"
-                          ]
-                        
-                      }
-                    ]
-                  },
-                  {
-                    "Техпомощь": [
+                        "name": "serviceProvided",
+                        "label": "Сколько раз услуга Эвакуация предоставлена"
+                      },
                       {
-                        "name":"Зарядка АКБ", 
-                          "fieldgroup": [
-                            "ServiceCommon.fields",
-                            [
-                              {
-                                "name":"caseAddress", 
-                                  "label": "Адрес кейса",
-                                  "subform": "Address"
-                                
-                              },
-                              {
-                                "name":"contractor", 
-                                  "label": "Подрядчик",
-                                  "subform": "Contractor"
-                                
-                              },
-                              {
-                                "name":"closeContractorsPresent", 
-                                  "type": "checkbox",
-                                  "label": "Есть мастерские на расстоянии <125 км"
-                                
-                              },
-                              {
-                                "name":"serviceApproved", 
-                                  "type": "checkbox",
-                                  "label": "Услуга может быть оказана по программе"
-                                
-                              }
-                            ],
-                            "TechSelectedCommon.fields"
-                          ]
-                        
+                        "name": "serviceRestriction",
+                        "label": "Ограничение по количеству раз предоставления услуги"
+                      },
+                      {
+                        "name": "restrictionApproved",
+                        "type": "checkbox",
+                        "label": "Лимит не исчерпан"
+                      },
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "distanceApproved",
+                        "type": "checkbox",
+                        "label": "Кейс на расстоянии < 50 км до Москвы или < 30 км до города"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
                       }
-                    ]
-                  },
-                  {
-                    "name":"Техпомощь", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        [
-                          {
-                            "name":"caseAddress", 
-                              "label": "Адрес кейса",
-                              "subform": "Address"
-                            
-                          },
-                          {
-                            "name":"contractor", 
-                              "label": "Подрядчик",
-                              "subform": "Contractor"
-                            
-                          },
-                          {
-                            "name":"closeContractorsPresent", 
-                              "type": "checkbox",
-                              "label": "Есть мастерские на расстоянии <125 км"
-                            
-                          },
-                          {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
-                          }
-                        ],
-                        "TechCommon.fields"
-                      ]
-                    
-                  },
-                  {
-                    "name":"Эвакуация", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        [
-                          {
-                            "name":"caseAddress", 
-                              "label": "Адрес кейса",
-                              "subform": "Address"
-                            
-                          },
-                          {
-                            "name":"contractor", 
-                              "label": "Подрядчик",
-                              "subform": "Contractor"
-                            
-                          },
-                          {
-                            "name":"closeContractorsPresent", 
-                              "type": "checkbox",
-                              "label": "Есть мастерские на расстоянии < 125 км"
-                            
-                          },
-                          {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
-                          }
-                        ],
-                        "TowageCommon.fields"
-                      ]
-                    
-                  }
-                ]
-              }
-            ],
-            "conditions": [
-              {
-                "name":"caseAddress", 
-                  "label": "Адрес кейса",
-                  "subform": "Address"
-                
-              },
-              {
-                "name":"contractor", 
-                  "label": "Подрядчик",
-                  "subform": "Contractor"
-                
-              },
-              {
-                "name":"closeContractorsPresent", 
-                  "type": "checkbox",
-                  "label": "Есть мастерские на расстоянии <125 км"
-                
-              },
-              {
-                "name":"serviceApproved", 
-                  "type": "checkbox",
-                  "label": "Услуга может быть оказана по программе"
-                
-              }
-            ]
-          
+                    ],
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
+                }
+              ]
+            },
+            {
+              "Техпомощь": [
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "serviceProvided",
+                        "label": "Сколько раз услуга Техпомощь - Подвоз топлива предоставлена"
+                      },
+                      {
+                        "name": "serviceRestriction",
+                        "label": "Ограничение по количеству раз предоставления услуги"
+                      },
+                      {
+                        "name": "restrictionApproved",
+                        "type": "checkbox",
+                        "label": "Лимит не исчерпан"
+                      },
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "distanceApproved",
+                        "type": "checkbox",
+                        "label": "Кейс на расстоянии < 50 км до Москвы или < 30 км до города"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TechSelectedCommon.fields"
+                  ],
+                  "name": "Подвоз топлива"
+                },
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "serviceProvided",
+                        "label": "Сколько раз услуга Техпомощь - Запуск двигателя предоставлена"
+                      },
+                      {
+                        "name": "serviceRestriction",
+                        "label": "Ограничение по количеству раз предоставления услуги"
+                      },
+                      {
+                        "name": "restrictionApproved",
+                        "type": "checkbox",
+                        "label": "Лимит не исчерпан"
+                      },
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "distanceApproved",
+                        "type": "checkbox",
+                        "label": "Кейс на расстоянии < 50 км до Москвы или < 30 км до города"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TechSelectedCommon.fields"
+                  ],
+                  "name": "Запуск двигателя"
+                },
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "serviceProvided",
+                        "label": "Сколько раз услуга Техпомощь - Замена колеса предоставлена"
+                      },
+                      {
+                        "name": "serviceRestriction",
+                        "label": "Ограничение по количеству раз предоставления услуги"
+                      },
+                      {
+                        "name": "restrictionApproved",
+                        "type": "checkbox",
+                        "label": "Лимит не исчерпан"
+                      },
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "distanceApproved",
+                        "type": "checkbox",
+                        "label": "Кейс на расстоянии < 50 км до Москвы или < 30 км до города"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TechSelectedCommon.fields"
+                  ],
+                  "name": "Замена колеса"
+                },
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "serviceProvided",
+                        "label": "Сколько раз услуга Техпомощь - Вскрытие автомобиля предоставлена"
+                      },
+                      {
+                        "name": "serviceRestriction",
+                        "label": "Ограничение по количеству раз предоставления услуги"
+                      },
+                      {
+                        "name": "restrictionApproved",
+                        "type": "checkbox",
+                        "label": "Лимит не исчерпан"
+                      },
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "distanceApproved",
+                        "type": "checkbox",
+                        "label": "Кейс на расстоянии < 50 км до Москвы или < 30 км до города"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TechSelectedCommon.fields"
+                  ],
+                  "name": "Вскрытие автомобиля"
+                }
+              ]
+            }
+          ],
+          "name": "B2C",
+          "conditions": [
+            {
+              "name": "memberNumber",
+              "label": "Карта участника"
+            },
+            {
+              "name": "memberApproved",
+              "type": "checkbox",
+              "label": "Участник программы"
+            },
+            {
+              "name": "isMember",
+              "type": "checkbox",
+              "label": "Клиент участвует в программе"
+            }
+          ]
         },
         {
-          "name":"Атлант М", 
-            "serviceGroups": [
-              {
-                "name": "",
-                "services": [
-                  {
-                    "name":"Техпомощь", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        [
-                          {
-                            "name":"caseAddress", 
-                              "label": "Адрес кейса",
-                              "subform": "Address"
-                            
-                          },
-                          {
-                            "name":"contractor", 
-                              "label": "Подрядчик",
-                              "subform": "Contractor"
-                            
-                          },
-                          {
-                            "name":"closeContractorsPresent", 
-                              "type": "checkbox",
-                              "label": "Есть мастерские на расстоянии <125 км"
-                            
-                          },
-                          {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
-                          }
-                        ],
-                        "TechCommon.fields"
-                      ]
-                    
-                  },
-                  {
-                    "name":"Эвакуация", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        [
-                          {
-                            "name":"caseAddress", 
-                              "label": "Адрес кейса",
-                              "subform": "Address"
-                            
-                          },
-                          {
-                            "name":"contractor", 
-                              "label": "Подрядчик",
-                              "subform": "Contractor"
-                            
-                          },
-                          {
-                            "name":"closeContractorsPresent", 
-                              "type": "checkbox",
-                              "label": "Есть мастерские на расстоянии < 125 км"
-                            
-                          },
-                          {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
-                          }
-                        ],
-                        "TowageCommon.fields"
-                      ]
-                    
-                  },
-                  {
-                    "name":"Информирование о происшествии", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        "NotificationCommon.fields"
-                      ]
-                    
-                  }
-                ]
-              }
-            ],
-            "conditions": [
-              {
-                "name":"VINApproved", 
-                  "type": "checkbox",
-                  "label": "VIN в списке участников программы"
-                
-              },
-              {
-                "name":"programEndDate", 
-                  "label": "Срок действия программы",
-                  "datepicker": true
-                
-              },
-              {
-                "name":"programNotExpired", 
-                  "type": "checkbox",
-                  "label": "Программа действует"
-                
-              },
-              {
-                "name":"programEndMilage", 
-                  "label": "Ограничение по пробегу"
-                
-              },
-              {
-                "name":"milage", 
-                  "label": "Пробег"
-                
-              },
-              {
-                "name":"milageApproved", 
-                  "type": "checkbox",
-                  "label": "Межсервисный интервал не пройден"
-                
-              },
-              {
-                "name":"isMember", 
-                  "type": "checkbox",
-                  "label": "Клиент участвует в программе"
-                
-              }
-            ]
-          
+          "serviceGroups": [
+            {
+              "name": "",
+              "services": [
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "closeDealersPresent",
+                        "type": "checkbox",
+                        "label": "Есть дилеры на расстоянии <200 км"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
+                },
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "contractor",
+                        "label": "Подрядчик",
+                        "subform": "Contractor"
+                      },
+                      {
+                        "name": "closeContractorsPresent",
+                        "type": "checkbox",
+                        "label": "Есть мастерские на расстоянии <200 км"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TechCommon.fields"
+                  ],
+                  "name": "Техническая помощь"
+                },
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "NotificationCommon.fields"
+                  ],
+                  "name": "Информирование о происшествии"
+                },
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "ReplacementVehicleCommon.fields"
+                  ],
+                  "name": "Подменный автомобиль"
+                },
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TaxiCommon.fields"
+                  ],
+                  "name": "Такси"
+                }
+              ]
+            }
+          ],
+          "name": "Ford",
+          "conditions": [
+            {
+              "name": "VINApproved",
+              "type": "checkbox",
+              "label": "VIN в списке участников программы"
+            },
+            {
+              "name": "lastTODate",
+              "label": "Дата последнего ТО",
+              "datepicker": true
+            },
+            {
+              "name": "TOApproved",
+              "type": "checkbox",
+              "label": "Дата последнего ТО < 1 года"
+            },
+            {
+              "name": "milageTO",
+              "label": "Пробег на последнем ТО"
+            },
+            {
+              "name": "milage",
+              "label": "Пробег"
+            },
+            {
+              "name": "milageApproved",
+              "type": "checkbox",
+              "label": "Межсервисный интервал не пройден"
+            },
+            {
+              "name": "isMember",
+              "type": "checkbox",
+              "label": "Клиент участвует в программе"
+            }
+          ]
         },
         {
-          "name":"Chartis Assistance", 
-            "serviceGroups": [
-              {
-                "name": "",
-                "services": [
-                  {
-                    "name":"Эвакуация", {
-                      "fieldgroup": 
-                        "ServiceCommon.fields",
-                        [
-                          {
-                            "name":"caseAddress", 
-                              "label": "Адрес кейса",
-                              "subform": "Address"
-                            
-                          },
-                          {
-                            "name":"distanceMskSpbApproved", 
-                              "type": "checkbox",
-                              "label": "Кейс на расстоянии < 100 км до Москвы или < 100 км до Санкт-Петербурга"
-                            
-                          },
-                          {
-                            "name":"nonAccident", 
-                              "type": "checkbox",
-                              "label": "Не ДТП"
-                            
-                          },
-                          {
-                            "name":"nonVandal", 
-                              "type": "checkbox",
-                              "label": "Не вандализм"
-                            
-                          },
-                          {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
-                          }
-                        ],
-                        "TowageCommon.fields"
-                      ]
-                    
-                  },
-                  {
-                    "name":"Подменный автомобиль", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        [
-                          {
-                            "name":"RAMCtow", 
-                              "type": "checkbox",
-                              "label": "Эвакуация РАМК"
-                            
-                          },
-                          {
-                            "name":"towDealer", 
-                              "label": "Дилер",
-                              "subform": "Dealer"
-                            
-                          },
-                          {
-                            "name":"startRepairDate", 
-                              "label": "Дата начала ремонта",
-                              "datepicker": true
-                            
-                          },
-                          {
-                            "name":"plannedRepairDate", 
-                              "label": "Предполагаемая дата исправления автомобиля",
-                              "datepicker": true
-                            
-                          },
-                          {
-                            "name":"longRepair", 
-                              "type": "checkbox",
-                              "label": "Неисправность не может быть исправлена в день обращения"
-                            
-                          },
-                          {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
-                          }
-                        ],
-                        "ReplacementVehicleCommon.fields"
-                      ]
-                    
-                  },
-                  {
-                    "name":"Такси", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        [
-                          {
-                            "name":"RAMCtow", 
-                              "type": "checkbox",
-                              "label": "Эвакуация РАМК"
-                            
-                          },
-                          {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
-                          }
-                        ],
-                        "TaxiCommon.fields"
-                      ]
-                    
-                  }
-                ]
-              },
-              {
-                "Техпомощь": [
-                  {
-                    "name":"Зарядка АКБ", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        [
-                          {
-                            "name":"caseAddress", 
-                              "label": "Адрес кейса",
-                              "subform": "Address"
-                            
-                          },
-                          {
-                            "name":"distanceMskSpbApproved", 
-                              "type": "checkbox",
-                              "label": "Кейса на расстоянии < 100 км до Москвы или < 100 км до Санкт-Петербурга"
-                            
-                          },
-                          {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
-                          }
-                        ],
-                        "TechSelectedCommon.fields"
-                      ]
-                    
-                  },
-                  {
-                    "name":"Замена колеса", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        [
-                          {
-                            "name":"caseAddress", 
-                              "label": "Адрес кейса",
-                              "subform": "Address"
-                            
-                          },
-                          {
-                            "name":"distanceMskSpbApproved", 
-                              "type": "checkbox",
-                              "label": "Кейса на расстоянии < 100 км до Москвы или < 100 км до Санкт-Петербурга"
-                            
-                          },
-                          {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
-                          }
-                        ],
-                        "TechSelectedCommon.fields"
-                      ]
-                    
-                  },
-                  {
-                    "name":"Вскрытие автомобиля", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        [
-                          {
-                            "name":"caseAddress", 
-                              "label": "Адрес кейса",
-                              "subform": "Address"
-                            
-                          },
-                          {
-                            "name":"distanceMskSpbApproved", 
-                              "type": "checkbox",
-                              "label": "Кейса на расстоянии < 100 км до Москвы или < 100 км до Санкт-Петербурга"
-                            
-                          },
-                          {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
-                          }
-                        ],
-                        "TechSelectedCommon.fields"
-                      ]
-                    
-                  },
-                  {
-                    "name":"Подвоз топлива", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        [
-                          {
-                            "name":"caseAddress", 
-                              "label": "Адрес кейса",
-                              "subform": "Address"
-                            
-                          },
-                          {
-                            "name":"distanceMskSpbApproved", 
-                              "type": "checkbox",
-                              "label": "Кейса на расстоянии < 100 км до Москвы или < 100 км до Санкт-Петербурга"
-                            
-                          },
-                          {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
-                          }
-                        ],
-                        "TechSelectedCommon.fields"
-                      ]
-                    
-                  }
-                ]
-              },
-              {
-                "Транспортировка": [
-                  {
-                    "name":"Путешествие", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        [
-                          {
-                            "name":"RAMCtow", 
-                              "type": "checkbox",
-                              "label": "Эвакуация РАМК"
-                            
-                          },
-                          {
-                            "name":"caseAddress", 
-                              "label": "Адрес кейса",
-                              "subform": "Address"
-                            
-                          },
-                          {
-                            "name":"clientAddress", 
-                              "label": "Место жительства",
-                              "subform": "Address"
-                            
-                          },
-                          {
-                            "name":"towDealer", 
-                              "label": "Дилер",
-                              "subform": "Dealer"
-                            
-                          },
-                          {
-                            "name":"dealerClientDistanceApproved", 
-                              "type": "checkbox",
-                              "label": "Дилер в 100 км от местра проживания клиента"
-                            
-                          },
-                          {
-                            "name":"startRepairDate", 
-                              "label": "Дата начала ремонта",
-                              "datepicker": true
-                            
-                          },
-                          {
-                            "name":"plannedRepairDate", 
-                              "label": "Предполагаемая дата исправления автомобиля",
-                              "datepicker": true
-                            
-                          },
-                          {
-                            "name":"longRepair", 
-                              "type": "checkbox",
-                              "label": "Неисправность не может быть исправлена в день обращения"
-                            
-                          },
-                          {
-                            "name":"attachedFiles", 
-                              "type": "files",
-                              "label": "Приложенные файлы"
-                            
-                          },
-                          {
-                            "name":"TravelApproved", 
-                              "type": "checkbox",
-                              "label": "Подтверждение путешествия предоставлено"
-                            
-                          },
-                          {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
-                          }
-                        ],
-                        "TransportationSelectedCommon.fields"
-                      ]
-                    
-                  },
-                  {
-                    "name":"Доставка к ТС", 
-                      "fieldgroup": [
-                        "ServiceCommon.fields",
-                        [
-                          {
-                            "name":"RAMCtow", 
-                              "type": "checkbox",
-                              "label": "Эвакуация РАМК"
-                            
-                          },
-                          {
-                            "name":"caseAddress", 
-                              "label": "Адрес кейса",
-                              "subform": "Address"
-                            
-                          },
-                          {
-                            "name":"clientAddress", 
-                              "label": "Место жительства",
-                              "subform": "Address"
-                            
-                          },
-                          {
-                            "name":"towDealer", 
-                              "label": "Дилер",
-                              "subform": "Dealer"
-                            
-                          },
-                          {
-                            "name":"dealerClientDistanceApproved", 
-                              "type": "checkbox",
-                              "label": "Дилер в 100 км от местра проживания клиента"
-                            
-                          },
-                          {
-                            "name":"startRepairDate", 
-                              "label": "Дата начала ремонта",
-                              "datepicker": true
-                            
-                          },
-                          {
-                            "name":"plannedRepairDate", 
-                              "label": "Предполагаемая дата исправления автомобиля",
-                              "datepicker": true
-                            
-                          },
-                          {
-                            "name":"longRepair", 
-                              "type": "checkbox",
-                              "label": "Неисправность не может быть исправлена в день обращения"
-                            
-                          },
-                          {
-                            "name":"attachedFiles", 
-                              "type": "files",
-                              "label": "Приложенные файлы"
-                            
-                          },
-                          {
-                            "name":"TravelApproved", 
-                              "type": "checkbox",
-                              "label": "Подтверждение путешествия предоставлено"
-                            
-                          },
-                          {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
-                          }
-                        ],
-                        "TransportationSelectedCommon.fields"
-                      ]
-                    
-                  }
-                ]
-              }
-            ],
-            "conditions": [
-              {
-                "name":"VINApproved", 
-                  "type": "checkbox",
-                  "label": "VIN в списке участников программы"
-                
-              },
-              {
-                "name":"isMember", 
-                  "type": "checkbox",
-                  "label": "Клиент участвует в программе"
-                
-              }
-            ]
-          
+          "serviceGroups": [
+            {
+              "name": "",
+              "services": [
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
+                }
+              ]
+            },
+            {
+              "Техпомощь": [
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "TechSelectedCommon.fields"
+                  ],
+                  "name": "Слив топлива"
+                }
+              ]
+            }
+          ],
+          "name": "BP",
+          "conditions": [
+            {
+              "name": "companyApproved",
+              "type": "checkbox",
+              "label": "Обращение компании BP"
+            },
+            {
+              "name": "isMember",
+              "type": "checkbox",
+              "label": "Клиент участвует в программе"
+            }
+          ]
         },
         {
-          "name":"Autokraft Assistance", 
-            "serviceGroups": [
-              {
-                "name": "",
-                "services": [
-                  {
-                    "name":"Эвакуация", 
+          "serviceGroups": [
+            {
+              "name": "",
+              "services": [
+                {
+                  "Техпомощь": [
+                    {
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "name":"caseAddress", 
-                              "label": "Адрес кейса",
-                              "subform": "Address"
-                            
+                            "name": "caseAddress",
+                            "label": "Адрес кейса",
+                            "subform": "Address"
                           },
                           {
-                            "name":"distanceMoscowApproved", 
-                              "type": "checkbox",
-                              "label": "Кейс на расстоянии < 100 км до Москвы"
-                            
+                            "name": "contractor",
+                            "label": "Подрядчик",
+                            "subform": "Contractor"
                           },
                           {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
+                            "name": "closeContractorsPresent",
+                            "type": "checkbox",
+                            "label": "Есть мастерские на расстоянии <125 км"
+                          },
+                          {
+                            "name": "serviceApproved",
+                            "type": "checkbox",
+                            "label": "Услуга может быть оказана по программе"
                           }
                         ],
-                        "TowageCommon.fields"
-                      ]
-                    
-                  },
-                  {
-                    "name":"Техническая помощь", 
+                        "TechSelectedCommon.fields"
+                      ],
+                      "name": "Замена колеса"
+                    }
+                  ]
+                },
+                {
+                  "Техпомощь": [
+                    {
                       "fieldgroup": [
                         "ServiceCommon.fields",
                         [
                           {
-                            "name":"caseAddress", 
-                              "label": "Адрес кейса",
-                              "subform": "Address"
-                            
+                            "name": "caseAddress",
+                            "label": "Адрес кейса",
+                            "subform": "Address"
                           },
                           {
-                            "name":"distanceMoscowApproved", 
-                              "type": "checkbox",
-                              "label": "Кейс на расстоянии < 100 км до Москвы"
-                            
+                            "name": "contractor",
+                            "label": "Подрядчик",
+                            "subform": "Contractor"
                           },
                           {
-                            "name":"serviceApproved", 
-                              "type": "checkbox",
-                              "label": "Услуга может быть оказана по программе"
-                            
+                            "name": "closeContractorsPresent",
+                            "type": "checkbox",
+                            "label": "Есть мастерские на расстоянии <125 км"
+                          },
+                          {
+                            "name": "serviceApproved",
+                            "type": "checkbox",
+                            "label": "Услуга может быть оказана по программе"
                           }
                         ],
-                        "TechCommon.fields"
-                      ]
-                    
-                  }
-                ]
-              }
-            ],
-            "conditions": [
-              {
-                "name":"VINApproved", 
-                  "type": "checkbox",
-                  "label": "VIN в списке участников программы"
-                
-              },
-              {
-                "name":"programEndDate", 
-                  "label": "Срок действия программы",
-                  "datepicker": true
-                
-              },
-              {
-                "name":"programNotExpired", 
-                  "type": "checkbox",
-                  "label": "Программа действует"
-                
-              },
-              {
-                "name":"programEndMilage", 
-                  "label": "Ограничение по пробегу"
-                
-              },
-              {
-                "name":"milage", 
-                  "label": "Пробег"
-                
-              },
-              {
-                "name":"milageApproved", 
-                  "type": "checkbox",
-                  "label": "Межсервисный интервал не пройден"
-                
-              },
-              {
-                "name":"isMember", 
-                  "type": "checkbox",
-                  "label": "Клиент участвует в программе"
-                
-              }
-            ]
-          
+                        "TechSelectedCommon.fields"
+                      ],
+                      "name": "Зарядка АКБ"
+                    }
+                  ]
+                },
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "contractor",
+                        "label": "Подрядчик",
+                        "subform": "Contractor"
+                      },
+                      {
+                        "name": "closeContractorsPresent",
+                        "type": "checkbox",
+                        "label": "Есть мастерские на расстоянии <125 км"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TechCommon.fields"
+                  ],
+                  "name": "Техпомощь"
+                },
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "contractor",
+                        "label": "Подрядчик",
+                        "subform": "Contractor"
+                      },
+                      {
+                        "name": "closeContractorsPresent",
+                        "type": "checkbox",
+                        "label": "Есть мастерские на расстоянии < 125 км"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
+                }
+              ]
+            }
+          ],
+          "name": "Рус Лан",
+          "conditions": [
+            {
+              "name": "caseAddress",
+              "label": "Адрес кейса",
+              "subform": "Address"
+            },
+            {
+              "name": "contractor",
+              "label": "Подрядчик",
+              "subform": "Contractor"
+            },
+            {
+              "name": "closeContractorsPresent",
+              "type": "checkbox",
+              "label": "Есть мастерские на расстоянии <125 км"
+            },
+            {
+              "name": "serviceApproved",
+              "type": "checkbox",
+              "label": "Услуга может быть оказана по программе"
+            }
+          ]
+        },
+        {
+          "serviceGroups": [
+            {
+              "name": "",
+              "services": [
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "contractor",
+                        "label": "Подрядчик",
+                        "subform": "Contractor"
+                      },
+                      {
+                        "name": "closeContractorsPresent",
+                        "type": "checkbox",
+                        "label": "Есть мастерские на расстоянии <125 км"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TechCommon.fields"
+                  ],
+                  "name": "Техпомощь"
+                },
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "contractor",
+                        "label": "Подрядчик",
+                        "subform": "Contractor"
+                      },
+                      {
+                        "name": "closeContractorsPresent",
+                        "type": "checkbox",
+                        "label": "Есть мастерские на расстоянии < 125 км"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
+                },
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    "NotificationCommon.fields"
+                  ],
+                  "name": "Информирование о происшествии"
+                }
+              ]
+            }
+          ],
+          "name": "Атлант М",
+          "conditions": [
+            {
+              "name": "VINApproved",
+              "type": "checkbox",
+              "label": "VIN в списке участников программы"
+            },
+            {
+              "name": "programEndDate",
+              "label": "Срок действия программы",
+              "datepicker": true
+            },
+            {
+              "name": "programNotExpired",
+              "type": "checkbox",
+              "label": "Программа действует"
+            },
+            {
+              "name": "programEndMilage",
+              "label": "Ограничение по пробегу"
+            },
+            {
+              "name": "milage",
+              "label": "Пробег"
+            },
+            {
+              "name": "milageApproved",
+              "type": "checkbox",
+              "label": "Межсервисный интервал не пройден"
+            },
+            {
+              "name": "isMember",
+              "type": "checkbox",
+              "label": "Клиент участвует в программе"
+            }
+          ]
+        },
+        {
+          "serviceGroups": [
+            {
+              "name": "",
+              "services": [
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "distanceMskSpbApproved",
+                        "type": "checkbox",
+                        "label": "Кейс на расстоянии < 100 км до Москвы или < 100 км до Санкт-Петербурга"
+                      },
+                      {
+                        "name": "nonAccident",
+                        "type": "checkbox",
+                        "label": "Не ДТП"
+                      },
+                      {
+                        "name": "nonVandal",
+                        "type": "checkbox",
+                        "label": "Не вандализм"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
+                },
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "ReplacementVehicleCommon.fields"
+                  ],
+                  "name": "Подменный автомобиль"
+                },
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TaxiCommon.fields"
+                  ],
+                  "name": "Такси"
+                }
+              ]
+            },
+            {
+              "Техпомощь": [
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "distanceMskSpbApproved",
+                        "type": "checkbox",
+                        "label": "Кейса на расстоянии < 100 км до Москвы или < 100 км до Санкт-Петербурга"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TechSelectedCommon.fields"
+                  ],
+                  "name": "Зарядка АКБ"
+                },
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "distanceMskSpbApproved",
+                        "type": "checkbox",
+                        "label": "Кейса на расстоянии < 100 км до Москвы или < 100 км до Санкт-Петербурга"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TechSelectedCommon.fields"
+                  ],
+                  "name": "Замена колеса"
+                },
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "distanceMskSpbApproved",
+                        "type": "checkbox",
+                        "label": "Кейса на расстоянии < 100 км до Москвы или < 100 км до Санкт-Петербурга"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TechSelectedCommon.fields"
+                  ],
+                  "name": "Вскрытие автомобиля"
+                },
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "distanceMskSpbApproved",
+                        "type": "checkbox",
+                        "label": "Кейса на расстоянии < 100 км до Москвы или < 100 км до Санкт-Петербурга"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TechSelectedCommon.fields"
+                  ],
+                  "name": "Подвоз топлива"
+                }
+              ]
+            },
+            {
+              "Транспортировка": [
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "clientAddress",
+                        "label": "Место жительства",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "dealerClientDistanceApproved",
+                        "type": "checkbox",
+                        "label": "Дилер в 100 км от местра проживания клиента"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "attachedFiles",
+                        "type": "files",
+                        "label": "Приложенные файлы"
+                      },
+                      {
+                        "name": "TravelApproved",
+                        "type": "checkbox",
+                        "label": "Подтверждение путешествия предоставлено"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TransportationSelectedCommon.fields"
+                  ],
+                  "name": "Путешествие"
+                },
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "RAMCtow",
+                        "type": "checkbox",
+                        "label": "Эвакуация РАМК"
+                      },
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "clientAddress",
+                        "label": "Место жительства",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "towDealer",
+                        "label": "Дилер",
+                        "subform": "Dealer"
+                      },
+                      {
+                        "name": "dealerClientDistanceApproved",
+                        "type": "checkbox",
+                        "label": "Дилер в 100 км от местра проживания клиента"
+                      },
+                      {
+                        "name": "startRepairDate",
+                        "label": "Дата начала ремонта",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "plannedRepairDate",
+                        "label": "Предполагаемая дата исправления автомобиля",
+                        "datepicker": true
+                      },
+                      {
+                        "name": "longRepair",
+                        "type": "checkbox",
+                        "label": "Неисправность не может быть исправлена в день обращения"
+                      },
+                      {
+                        "name": "attachedFiles",
+                        "type": "files",
+                        "label": "Приложенные файлы"
+                      },
+                      {
+                        "name": "TravelApproved",
+                        "type": "checkbox",
+                        "label": "Подтверждение путешествия предоставлено"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TransportationSelectedCommon.fields"
+                  ],
+                  "name": "Доставка к ТС"
+                }
+              ]
+            }
+          ],
+          "name": "Chartis Assistance",
+          "conditions": [
+            {
+              "name": "VINApproved",
+              "type": "checkbox",
+              "label": "VIN в списке участников программы"
+            },
+            {
+              "name": "isMember",
+              "type": "checkbox",
+              "label": "Клиент участвует в программе"
+            }
+          ]
+        },
+        {
+          "serviceGroups": [
+            {
+              "name": "",
+              "services": [
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "distanceMoscowApproved",
+                        "type": "checkbox",
+                        "label": "Кейс на расстоянии < 100 км до Москвы"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TowageCommon.fields"
+                  ],
+                  "name": "Эвакуация"
+                },
+                {
+                  "fieldgroup": [
+                    "ServiceCommon.fields",
+                    [
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "distanceMoscowApproved",
+                        "type": "checkbox",
+                        "label": "Кейс на расстоянии < 100 км до Москвы"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TechCommon.fields"
+                  ],
+                  "name": "Техническая помощь"
+                }
+              ]
+            }
+          ],
+          "name": "Autokraft Assistance",
+          "conditions": [
+            {
+              "name": "VINApproved",
+              "type": "checkbox",
+              "label": "VIN в списке участников программы"
+            },
+            {
+              "name": "programEndDate",
+              "label": "Срок действия программы",
+              "datepicker": true
+            },
+            {
+              "name": "programNotExpired",
+              "type": "checkbox",
+              "label": "Программа действует"
+            },
+            {
+              "name": "programEndMilage",
+              "label": "Ограничение по пробегу"
+            },
+            {
+              "name": "milage",
+              "label": "Пробег"
+            },
+            {
+              "name": "milageApproved",
+              "type": "checkbox",
+              "label": "Межсервисный интервал не пройден"
+            },
+            {
+              "name": "isMember",
+              "type": "checkbox",
+              "label": "Клиент участвует в программе"
+            }
+          ]
         }
       ]
     }
   ],
-  "name":"commons", 
-    "name":"TaxiCommon", {
+  "commons": [
+    {
       "fields": [
         {
           "name": "taxiFrom",
@@ -5063,19 +4705,21 @@
           "label": "Куда доставить",
           "subform": "Address"
         }
-      ]
-    ,
-    "name":"otelCommon", {
-      "fields": 
+      ],
+      "name": "TaxiCommon"
+    },
+    {
+      "fields": [
         {
           "name": "caseAddress",
           "label": "Адрес кейса",
           "subform": "Address"
         }
-      ]
-    ,
-    "name":"TechCommon", {
-      "fields": 
+      ],
+      "name": "otelCommon"
+    },
+    {
+      "fields": [
         {
           "name": "techType",
           "data": "TechTypes",
@@ -5096,10 +4740,11 @@
           "type": "textarea",
           "label": "Примечания"
         }
-      ]
-    ,
-    "name":"TransportationCommon", {
-      "fields": 
+      ],
+      "name": "TechCommon"
+    },
+    {
+      "fields": [
         {
           "name": "transportType",
           "data": "TransportTypes",
@@ -5115,10 +4760,11 @@
           "label": "Куда доставить",
           "subform": "Address"
         }
-      ]
-    ,
-    "name":"ReplacementVehicleCommon", {
-      "fields": 
+      ],
+      "name": "TransportationCommon"
+    },
+    {
+      "fields": [
         {
           "name": "towDealer",
           "label": "Дилер",
@@ -5139,10 +4785,11 @@
           "label": "Подрядчик",
           "subform": "Contractor"
         }
-      ]
-    ,
-    "name":"SparesCommon", {
-      "fields": 
+      ],
+      "name": "ReplacementVehicleCommon"
+    },
+    {
+      "fields": [
         {
           "name": "parts",
           "type": "textarea",
@@ -5153,10 +4800,11 @@
           "label": "Куда доставить",
           "subform": "Address"
         }
-      ]
-    ,
-    "name":"NotificationCommon", {
-      "fields": 
+      ],
+      "name": "SparesCommon"
+    },
+    {
+      "fields": [
         {
           "name": "infoContact1",
           "label": "Контакт 1"
@@ -5196,10 +4844,11 @@
           "type": "textarea",
           "label": "Что сказать 3"
         }
-      ]
-    ,
-    "name":"ServiceCommon", {
-      "fields": 
+      ],
+      "name": "NotificationCommon"
+    },
+    {
+      "fields": [
         {
           "required": true,
           "name": "status",
@@ -5232,10 +4881,11 @@
           "label": "Адрес кейса",
           "subform": "Address"
         }
-      ]
-    ,
-    "name":"TechSelectedCommon", {
-      "fields": 
+      ],
+      "name": "ServiceCommon"
+    },
+    {
+      "fields": [
         {
           "name": "caseAddress",
           "label": "Адрес кейса",
@@ -5251,10 +4901,11 @@
           "type": "textarea",
           "label": "Примечания"
         }
-      ]
-    ,
-    "name":"TowageCommon", {
-      "fields": 
+      ],
+      "name": "TechSelectedCommon"
+    },
+    {
+      "fields": [
         {
           "required": true,
           "name": "towerType",
@@ -5297,19 +4948,21 @@
           "type": "checkbox",
           "label": "Есть место для манипулятора"
         }
-      ]
-    ,
-    "name":"TransportDeliveryCommon", {
-      "fields": 
+      ],
+      "name": "TowageCommon"
+    },
+    {
+      "fields": [
         {
           "name": "transportCarTo",
           "label": "Куда доставить",
           "subform": "Address"
         }
-      ]
-    ,
-    "name":"SoberDriverCommon", {
-      "fields": 
+      ],
+      "name": "TransportDeliveryCommon"
+    },
+    {
+      "fields": [
         {
           "name": "fromAddress",
           "label": "Откуда",
@@ -5325,10 +4978,11 @@
           "type": "checkbox",
           "label": "Каско МУЛЬТИДРАЙВ"
         }
-      ]
-    ,
-    "name":"TransportationSelectedCommon", {
-      "fields": 
+      ],
+      "name": "SoberDriverCommon"
+    },
+    {
+      "fields": [
         {
           "name": "transportFrom",
           "label": "Откуда",
@@ -5339,7 +4993,8 @@
           "label": "Куда доставить",
           "subform": "Address"
         }
-      ]
-    
-  
+      ],
+      "name": "TransportationSelectedCommon"
+    }
+  ]
 }
