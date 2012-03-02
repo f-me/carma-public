@@ -10,7 +10,6 @@
               "name": "",
               "services": [
                 {
-                  "name": "Эвакуация",
                   "fieldgroup": [
                     "ServiceCommon",
                     [
@@ -46,7 +45,8 @@
                       }
                     ],
                     "TowageCommon"
-                  ]
+                  ],
+                  "name": "Эвакуация"
                 }
               ]
             },
@@ -54,39 +54,38 @@
               "name": "Техпомощь",
               "services": [
                 {
-                  "name": "Замена колеса",
-                    "fieldgroup": [
-                      "ServiceCommon",
-                      [
-                        {
-                          "name": "moreThan1Wheel",
-                          "type": "checkbox",
-                          "label": "Более одного колеса"
-                        },
-                        {
-                          "name": "caseAddress",
-                          "label": "Адрес кейса",
-                          "subform": "Address"
-                        },
-                        {
-                          "name": "contractor",
-                          "label": "Подрядчик",
-                          "subform": "Contractor"
-                        },
-                        {
-                          "name": "closeContractorsPresent",
-                          "type": "checkbox",
-                          "label": "Есть мастерские на расстоянии <125 км"
-                        },
-                        {
-                          "name": "serviceApproved",
-                          "type": "checkbox",
-                          "label": "Услуга может быть оказана по программе"
-                        }
-                      ],
-                      "TechSelectedCommon"
-                    ]
-                  
+                  "fieldgroup": [
+                    "ServiceCommon",
+                    [
+                      {
+                        "name": "moreThan1Wheel",
+                        "type": "checkbox",
+                        "label": "Более одного колеса"
+                      },
+                      {
+                        "name": "caseAddress",
+                        "label": "Адрес кейса",
+                        "subform": "Address"
+                      },
+                      {
+                        "name": "contractor",
+                        "label": "Подрядчик",
+                        "subform": "Contractor"
+                      },
+                      {
+                        "name": "closeContractorsPresent",
+                        "type": "checkbox",
+                        "label": "Есть мастерские на расстоянии <125 км"
+                      },
+                      {
+                        "name": "serviceApproved",
+                        "type": "checkbox",
+                        "label": "Услуга может быть оказана по программе"
+                      }
+                    ],
+                    "TechSelectedCommon"
+                  ],
+                  "name": "Замена колеса"
                 },
                 {
                   "fieldgroup": [
@@ -275,7 +274,6 @@
               "name": "Техпомощь",
               "services": [
                 {
-                  "name": "Замена колеса",
                   "fieldgroup": [
                     "ServiceCommon",
                     [
@@ -306,10 +304,10 @@
                       }
                     ],
                     "TechSelectedCommon"
-                  ]
+                  ],
+                  "name": "Замена колеса"
                 },
                 {
-                  "name": "Зарядка АКБ",
                   "fieldgroup": [
                     "ServiceCommon",
                     [
@@ -335,7 +333,8 @@
                       }
                     ],
                     "TechSelectedCommon"
-                  ]
+                  ],
+                  "name": "Зарядка АКБ"
                 }
               ]
             },
@@ -548,7 +547,7 @@
             {
               "name": "Транспортировка",
               "services": [
-                  {
+                {
                   "fieldgroup": [
                     "ServiceCommon",
                     "TransportationSelectedCommon"
@@ -3555,6 +3554,7 @@
           "name": "Заказ билетов"
         },
         {
+          "name": "B2C",
           "serviceGroups": [
             {
               "name": "",
@@ -3751,7 +3751,6 @@
               ]
             }
           ],
-          "name": "B2C",
           "conditions": [
             {
               "name": "memberNumber",
