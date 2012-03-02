@@ -1,2 +1,42 @@
+-*- mode: org -*-
+#+SEQ_TODO: MAYBE SOMEDAY BLOCKED TODO IN_PROGRESS | DONE
 
-nothing here yet
+* Prerequisites
+  - we aim at GHC 7.4.1 compatibility;
+  
+  - snap-0.7.1 is required (available in [[https://github.com/f-me/carma/downloads][Downloads]]);
+
+  - Backbone 0.9.1 is included with backported [[https://github.com/documentcloud/backbone/commit/a865aa41f13c371d104da9446c3ccb6a16671658][patch]] from upstream;
+
+* Accounts
+
+  Sample user db is included under `resources/private/users.json`.
+
+  Available accounts:
+
+  - admin @ <empty password>
+
+  User management is available via [[https://github.com/dzhus/snap-auth-cli][snap-auth-cli]].
+  
+* To do
+** TODO Provide case model
+** TODO Provide dealer and partner models
+   With proper field index annotations for redson search API.
+
+** TODO Dependant fields
+** TODO Client settings
+   Some settings need to be served to client code (to use in JS):
+   
+    - serverSyncThrottle;
+    - serverSyncDelay;
+    - timelineUpdateInterval;
+
+** TODO Indexed fields
+   Fields should support "index" boolean attribute, in which case
+   inverse index for that field should be created in Redis.
+
+   Consider {"name": "code", "index": true} field for `scp` model,
+   then if code field of model N is set to K, update must append N to
+   `scp:code:K` to N. This will allow faster searching by field
+   contents.
+
