@@ -7,11 +7,12 @@
           "name": "Легковые автомобили",
           "serviceGroups": [
             {
-              "name": "Эвакуация",
+              "name": "",
               "services": [
                 {
+                  "name": "Эвакуация",
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "towDealer",
@@ -44,7 +45,7 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TowageCommon.fields"
+                    "TowageCommon"
                   ]
                 }
               ]
@@ -53,9 +54,9 @@
               "name": "Техпомощь",
               "services": [
                 {
-                  "Замена колеса": {
+                  "name": "Замена колеса",
                     "fieldgroup": [
-                      "ServiceCommon.fields",
+                      "ServiceCommon",
                       [
                         {
                           "name": "moreThan1Wheel",
@@ -83,13 +84,13 @@
                           "label": "Услуга может быть оказана по программе"
                         }
                       ],
-                      "TechSelectedCommon.fields"
+                      "TechSelectedCommon"
                     ]
-                  }
+                  
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -112,7 +113,7 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TechSelectedCommon.fields"
+                    "TechSelectedCommon"
                   ],
                   "name": "Зарядка АКБ"
                 }
@@ -123,7 +124,7 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "otherServiceNotUsed",
@@ -171,7 +172,7 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "ReplacementVehicleCommon.fields"
+                    "ReplacementVehicleCommon"
                   ],
                   "name": "Подменный автомобиль"
                 }
@@ -182,7 +183,7 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "otherServiceNotUsed",
@@ -225,7 +226,7 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "HotelCommon.fields"
+                    "HotelCommon"
                   ],
                   "name": "Гостиница"
                 }
@@ -241,7 +242,7 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "closeDealersPresent",
@@ -264,17 +265,19 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TowageCommon.fields"
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 }
               ]
             },
             {
-              "Техпомощь": [
+              "name": "Техпомощь",
+              "services": [
                 {
+                  "name": "Замена колеса",
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "moreThan1Wheel",
@@ -302,17 +305,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TechSelectedCommon.fields"
-                  ],
-                  "name": "Замена колеса"
-                }
-              ]
-            },
-            {
-              "Техпомощь": [
+                    "TechSelectedCommon"
+                  ]
+                },
                 {
+                  "name": "Зарядка АКБ",
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -335,9 +334,8 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TechSelectedCommon.fields"
-                  ],
-                  "name": "Зарядка АКБ"
+                    "TechSelectedCommon"
+                  ]
                 }
               ]
             },
@@ -346,7 +344,7 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "otherServiceNotUsed",
@@ -394,7 +392,7 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "ReplacementVehicleCommon.fields"
+                    "ReplacementVehicleCommon"
                   ],
                   "name": "Подменный автомобиль"
                 }
@@ -405,7 +403,7 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "otherServiceNotUsed",
@@ -448,7 +446,7 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "HotelCommon.fields"
+                    "HotelCommon"
                   ],
                   "name": "Гостиница"
                 }
@@ -512,47 +510,48 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TowageCommon.fields"
+                    "ServiceCommon",
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "ReplacementVehicleCommon.fields"
+                    "ServiceCommon",
+                    "ReplacementVehicleCommon"
                   ],
                   "name": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "HotelCommon.fields"
+                    "ServiceCommon",
+                    "HotelCommon"
                   ],
                   "name": "Гостиница"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TaxiCommon.fields"
+                    "ServiceCommon",
+                    "TaxiCommon"
                   ],
                   "name": "Такси"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TransportDeliveryCommon.fields"
+                    "ServiceCommon",
+                    "TransportDeliveryCommon"
                   ],
                   "name": "Доставка ТС"
                 }
               ]
             },
             {
-              "Транспортировка": [
-                {
+              "name": "Транспортировка",
+              "services": [
+                  {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TransportationSelectedCommon.fields"
+                    "ServiceCommon",
+                    "TransportationSelectedCommon"
                   ],
                   "name": "Путешествие"
                 }
@@ -590,54 +589,55 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TowageCommon.fields"
+                    "ServiceCommon",
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TechCommon.fields"
+                    "ServiceCommon",
+                    "TechCommon"
                   ],
                   "name": "Техпомощь"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "ReplacementVehicleCommon.fields"
+                    "ServiceCommon",
+                    "ReplacementVehicleCommon"
                   ],
                   "name": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "HotelCommon.fields"
+                    "ServiceCommon",
+                    "HotelCommon"
                   ],
                   "name": "Гостиница"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TaxiCommon.fields"
+                    "ServiceCommon",
+                    "TaxiCommon"
                   ],
                   "name": "Такси"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TransportDeliveryCommon.fields"
+                    "ServiceCommon",
+                    "TransportDeliveryCommon"
                   ],
                   "name": "Доставка ТС"
                 }
               ]
             },
             {
-              "Транспортировка": [
+              "name": "Транспортировка",
+              "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TransportationSelectedCommon.fields"
+                    "ServiceCommon",
+                    "TransportationSelectedCommon"
                   ],
                   "name": "Путешествие"
                 }
@@ -679,35 +679,35 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TechCommon.fields"
+                    "ServiceCommon",
+                    "TechCommon"
                   ],
                   "name": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TowageCommon.fields"
+                    "ServiceCommon",
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "ReplacementVehicleCommon.fields"
+                    "ServiceCommon",
+                    "ReplacementVehicleCommon"
                   ],
                   "name": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "HotelCommon.fields"
+                    "ServiceCommon",
+                    "HotelCommon"
                   ],
                   "name": "Гостиница"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -720,42 +720,42 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TaxiCommon.fields"
+                    "TaxiCommon"
                   ],
                   "name": "Такси"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TransportationCommon.fields"
+                    "ServiceCommon",
+                    "TransportationCommon"
                   ],
                   "name": "Транспортировка"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TransportDeliveryCommon.fields"
+                    "ServiceCommon",
+                    "TransportDeliveryCommon"
                   ],
                   "name": "Доставка ТС"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "SparesCommon.fields"
+                    "ServiceCommon",
+                    "SparesCommon"
                   ],
                   "name": "Доставка запчастей"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "NotificationCommon.fields"
+                    "ServiceCommon",
+                    "NotificationCommon"
                   ],
                   "name": "Информирование о происшествии"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "SoberDriverCommon.fields"
+                    "ServiceCommon",
+                    "SoberDriverCommon"
                   ],
                   "name": "Информирование о происшествии"
                 }
@@ -783,35 +783,35 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TechCommon.fields"
+                    "ServiceCommon",
+                    "TechCommon"
                   ],
                   "name": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TowageCommon.fields"
+                    "ServiceCommon",
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "ReplacementVehicleCommon.fields"
+                    "ServiceCommon",
+                    "ReplacementVehicleCommon"
                   ],
                   "name": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "HotelCommon.fields"
+                    "ServiceCommon",
+                    "HotelCommon"
                   ],
                   "name": "Гостиница"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -824,42 +824,42 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TaxiCommon.fields"
+                    "TaxiCommon"
                   ],
                   "name": "Такси"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TransportationCommon.fields"
+                    "ServiceCommon",
+                    "TransportationCommon"
                   ],
                   "name": "Транспортировка"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TransportDeliveryCommon.fields"
+                    "ServiceCommon",
+                    "TransportDeliveryCommon"
                   ],
                   "name": "Доставка ТС"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "SparesCommon.fields"
+                    "ServiceCommon",
+                    "SparesCommon"
                   ],
                   "name": "Доставка запчастей"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "NotificationCommon.fields"
+                    "ServiceCommon",
+                    "NotificationCommon"
                   ],
                   "name": "Информирование о происшествии"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "SoberDriverCommon.fields"
+                    "ServiceCommon",
+                    "SoberDriverCommon"
                   ],
                   "name": "Информирование о происшествии"
                 }
@@ -887,35 +887,35 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TechCommon.fields"
+                    "ServiceCommon",
+                    "TechCommon"
                   ],
                   "name": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TowageCommon.fields"
+                    "ServiceCommon",
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "ReplacementVehicleCommon.fields"
+                    "ServiceCommon",
+                    "ReplacementVehicleCommon"
                   ],
                   "name": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "HotelCommon.fields"
+                    "ServiceCommon",
+                    "HotelCommon"
                   ],
                   "name": "Гостиница"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -928,42 +928,42 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TaxiCommon.fields"
+                    "TaxiCommon"
                   ],
                   "name": "Такси"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TransportationCommon.fields"
+                    "ServiceCommon",
+                    "TransportationCommon"
                   ],
                   "name": "Транспортировка"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TransportDeliveryCommon.fields"
+                    "ServiceCommon",
+                    "TransportDeliveryCommon"
                   ],
                   "name": "Доставка ТС"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "SparesCommon.fields"
+                    "ServiceCommon",
+                    "SparesCommon"
                   ],
                   "name": "Доставка запчастей"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "NotificationCommon.fields"
+                    "ServiceCommon",
+                    "NotificationCommon"
                   ],
                   "name": "Информирование о происшествии"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "SoberDriverCommon.fields"
+                    "ServiceCommon",
+                    "SoberDriverCommon"
                   ],
                   "name": "Информирование о происшествии"
                 }
@@ -991,35 +991,35 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TechCommon.fields"
+                    "ServiceCommon",
+                    "TechCommon"
                   ],
                   "name": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TowageCommon.fields"
+                    "ServiceCommon",
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "ReplacementVehicleCommon.fields"
+                    "ServiceCommon",
+                    "ReplacementVehicleCommon"
                   ],
                   "name": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "HotelCommon.fields"
+                    "ServiceCommon",
+                    "HotelCommon"
                   ],
                   "name": "Гостиница"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -1032,42 +1032,42 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TaxiCommon.fields"
+                    "TaxiCommon"
                   ],
                   "name": "Такси"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TransportationCommon.fields"
+                    "ServiceCommon",
+                    "TransportationCommon"
                   ],
                   "name": "Транспортировка"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TransportDeliveryCommon.fields"
+                    "ServiceCommon",
+                    "TransportDeliveryCommon"
                   ],
                   "name": "Доставка ТС"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "SparesCommon.fields"
+                    "ServiceCommon",
+                    "SparesCommon"
                   ],
                   "name": "Доставка запчастей"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "NotificationCommon.fields"
+                    "ServiceCommon",
+                    "NotificationCommon"
                   ],
                   "name": "Информирование о происшествии"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "SoberDriverCommon.fields"
+                    "ServiceCommon",
+                    "SoberDriverCommon"
                   ],
                   "name": "Информирование о происшествии"
                 }
@@ -1095,35 +1095,35 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TechCommon.fields"
+                    "ServiceCommon",
+                    "TechCommon"
                   ],
                   "name": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TowageCommon.fields"
+                    "ServiceCommon",
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "ReplacementVehicleCommon.fields"
+                    "ServiceCommon",
+                    "ReplacementVehicleCommon"
                   ],
                   "name": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "HotelCommon.fields"
+                    "ServiceCommon",
+                    "HotelCommon"
                   ],
                   "name": "Гостиница"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -1136,42 +1136,42 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TaxiCommon.fields"
+                    "TaxiCommon"
                   ],
                   "name": "Такси"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TransportationCommon.fields"
+                    "ServiceCommon",
+                    "TransportationCommon"
                   ],
                   "name": "Транспортировка"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TransportDeliveryCommon.fields"
+                    "ServiceCommon",
+                    "TransportDeliveryCommon"
                   ],
                   "name": "Доставка ТС"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "SparesCommon.fields"
+                    "ServiceCommon",
+                    "SparesCommon"
                   ],
                   "name": "Доставка запчастей"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "NotificationCommon.fields"
+                    "ServiceCommon",
+                    "NotificationCommon"
                   ],
                   "name": "Информирование о происшествии"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "SoberDriverCommon.fields"
+                    "ServiceCommon",
+                    "SoberDriverCommon"
                   ],
                   "name": "Информирование о происшествии"
                 }
@@ -1199,35 +1199,35 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TechCommon.fields"
+                    "ServiceCommon",
+                    "TechCommon"
                   ],
                   "name": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TowageCommon.fields"
+                    "ServiceCommon",
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "ReplacementVehicleCommon.fields"
+                    "ServiceCommon",
+                    "ReplacementVehicleCommon"
                   ],
                   "name": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "HotelCommon.fields"
+                    "ServiceCommon",
+                    "HotelCommon"
                   ],
                   "name": "Гостиница"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -1240,42 +1240,42 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TaxiCommon.fields"
+                    "TaxiCommon"
                   ],
                   "name": "Такси"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TransportationCommon.fields"
+                    "ServiceCommon",
+                    "TransportationCommon"
                   ],
                   "name": "Транспортировка"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TransportDeliveryCommon.fields"
+                    "ServiceCommon",
+                    "TransportDeliveryCommon"
                   ],
                   "name": "Доставка ТС"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "SparesCommon.fields"
+                    "ServiceCommon",
+                    "SparesCommon"
                   ],
                   "name": "Доставка запчастей"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "NotificationCommon.fields"
+                    "ServiceCommon",
+                    "NotificationCommon"
                   ],
                   "name": "Информирование о происшествии"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "SoberDriverCommon.fields"
+                    "ServiceCommon",
+                    "SoberDriverCommon"
                   ],
                   "name": "Информирование о происшествии"
                 }
@@ -1303,22 +1303,22 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TechCommon.fields"
+                    "ServiceCommon",
+                    "TechCommon"
                   ],
                   "name": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TowageCommon.fields"
+                    "ServiceCommon",
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "HotelCommon.fields"
+                    "ServiceCommon",
+                    "HotelCommon"
                   ],
                   "name": "Гостиница"
                 }
@@ -1346,35 +1346,35 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TechCommon.fields"
+                    "ServiceCommon",
+                    "TechCommon"
                   ],
                   "name": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TowageCommon.fields"
+                    "ServiceCommon",
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "ReplacementVehicleCommon.fields"
+                    "ServiceCommon",
+                    "ReplacementVehicleCommon"
                   ],
                   "name": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "HotelCommon.fields"
+                    "ServiceCommon",
+                    "HotelCommon"
                   ],
                   "name": "Гостиница"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -1387,42 +1387,42 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TaxiCommon.fields"
+                    "TaxiCommon"
                   ],
                   "name": "Такси"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TransportationCommon.fields"
+                    "ServiceCommon",
+                    "TransportationCommon"
                   ],
                   "name": "Транспортировка"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TransportDeliveryCommon.fields"
+                    "ServiceCommon",
+                    "TransportDeliveryCommon"
                   ],
                   "name": "Доставка ТС"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "SparesCommon.fields"
+                    "ServiceCommon",
+                    "SparesCommon"
                   ],
                   "name": "Доставка запчастей"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "NotificationCommon.fields"
+                    "ServiceCommon",
+                    "NotificationCommon"
                   ],
                   "name": "Информирование о происшествии"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "SoberDriverCommon.fields"
+                    "ServiceCommon",
+                    "SoberDriverCommon"
                   ],
                   "name": "Информирование о происшествии"
                 }
@@ -1465,7 +1465,7 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -1483,13 +1483,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TechCommon.fields"
+                    "TechCommon"
                   ],
                   "name": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -1527,13 +1527,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TowageCommon.fields"
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -1566,13 +1566,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "ReplacementVehicleCommon.fields"
+                    "ReplacementVehicleCommon"
                   ],
                   "name": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -1620,13 +1620,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "HotelCommon.fields"
+                    "HotelCommon"
                   ],
                   "name": "Гостиница"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -1639,13 +1639,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TaxiCommon.fields"
+                    "TaxiCommon"
                   ],
                   "name": "Такси"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "parts",
@@ -1658,7 +1658,7 @@
                         "subform": "Address"
                       }
                     ],
-                    "SparesCommon.fields"
+                    "SparesCommon"
                   ],
                   "name": "Доставка запчастей"
                 }
@@ -1669,7 +1669,7 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -1712,13 +1712,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TransportationSelectedCommon.fields"
+                    "TransportationSelectedCommon"
                   ],
                   "name": "Путешествие"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -1751,7 +1751,7 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TransportationSelectedCommon.fields"
+                    "TransportationSelectedCommon"
                   ],
                   "name": "Доставка к ТС"
                 }
@@ -1783,13 +1783,14 @@
           ]
         },
         {
+          "name": "Chevrolet NA",
           "serviceGroups": [
             {
               "name": "",
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -1807,13 +1808,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TechCommon.fields"
+                    "TechCommon"
                   ],
                   "name": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -1851,13 +1852,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TowageCommon.fields"
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -1890,13 +1891,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "ReplacementVehicleCommon.fields"
+                    "ReplacementVehicleCommon"
                   ],
                   "name": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -1944,13 +1945,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "HotelCommon.fields"
+                    "HotelCommon"
                   ],
                   "name": "Гостиница"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -1963,13 +1964,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TaxiCommon.fields"
+                    "TaxiCommon"
                   ],
                   "name": "Такси"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "parts",
@@ -1982,7 +1983,7 @@
                         "subform": "Address"
                       }
                     ],
-                    "SparesCommon.fields"
+                    "SparesCommon"
                   ],
                   "name": "Доставка запчастей"
                 }
@@ -1992,7 +1993,7 @@
               "Транспортировка": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -2035,13 +2036,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TransportationSelectedCommon.fields"
+                    "TransportationSelectedCommon"
                   ],
                   "name": "Путешествие"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -2074,14 +2075,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TransportationSelectedCommon.fields"
+                    "TransportationSelectedCommon"
                   ],
                   "name": "Доставка к ТС"
                 }
               ]
             }
           ],
-          "name": "Chevrolet NA",
           "conditions": [
             {
               "name": "sellDate",
@@ -2112,7 +2112,7 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -2130,13 +2130,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TechCommon.fields"
+                    "TechCommon"
                   ],
                   "name": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -2174,13 +2174,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TowageCommon.fields"
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -2213,13 +2213,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "ReplacementVehicleCommon.fields"
+                    "ReplacementVehicleCommon"
                   ],
                   "name": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -2267,13 +2267,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "HotelCommon.fields"
+                    "HotelCommon"
                   ],
                   "name": "Гостиница"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -2286,13 +2286,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TaxiCommon.fields"
+                    "TaxiCommon"
                   ],
                   "name": "Такси"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "parts",
@@ -2305,7 +2305,7 @@
                         "subform": "Address"
                       }
                     ],
-                    "SparesCommon.fields"
+                    "SparesCommon"
                   ],
                   "name": "Доставка запчастей"
                 }
@@ -2315,7 +2315,7 @@
               "Транспортировка": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -2358,13 +2358,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TransportationSelectedCommon.fields"
+                    "TransportationSelectedCommon"
                   ],
                   "name": "Путешествие"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -2397,7 +2397,7 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TransportationSelectedCommon.fields"
+                    "TransportationSelectedCommon"
                   ],
                   "name": "Доставка к ТС"
                 }
@@ -2455,7 +2455,7 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -2473,13 +2473,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TechCommon.fields"
+                    "TechCommon"
                   ],
                   "name": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -2517,13 +2517,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TowageCommon.fields"
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -2556,13 +2556,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "ReplacementVehicleCommon.fields"
+                    "ReplacementVehicleCommon"
                   ],
                   "name": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -2610,13 +2610,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "HotelCommon.fields"
+                    "HotelCommon"
                   ],
                   "name": "Гостиница"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -2629,13 +2629,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TaxiCommon.fields"
+                    "TaxiCommon"
                   ],
                   "name": "Такси"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "parts",
@@ -2648,7 +2648,7 @@
                         "subform": "Address"
                       }
                     ],
-                    "SparesCommon.fields"
+                    "SparesCommon"
                   ],
                   "name": "Доставка запчастей"
                 }
@@ -2658,7 +2658,7 @@
               "Транспортировка": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -2701,13 +2701,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TransportationSelectedCommon.fields"
+                    "TransportationSelectedCommon"
                   ],
                   "name": "Путешествие"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -2740,7 +2740,7 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TransportationSelectedCommon.fields"
+                    "TransportationSelectedCommon"
                   ],
                   "name": "Доставка к ТС"
                 }
@@ -2798,7 +2798,7 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -2816,13 +2816,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TechCommon.fields"
+                    "TechCommon"
                   ],
                   "name": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -2850,13 +2850,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TowageCommon.fields"
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -2889,13 +2889,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "ReplacementVehicleCommon.fields"
+                    "ReplacementVehicleCommon"
                   ],
                   "name": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -2943,13 +2943,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "HotelCommon.fields"
+                    "HotelCommon"
                   ],
                   "name": "Гостиница"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -2962,13 +2962,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TaxiCommon.fields"
+                    "TaxiCommon"
                   ],
                   "name": "Такси"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "parts",
@@ -2981,13 +2981,13 @@
                         "subform": "Address"
                       }
                     ],
-                    "SparesCommon.fields"
+                    "SparesCommon"
                   ],
                   "name": "Доставка запчастей"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "serviceProvided",
@@ -3023,7 +3023,7 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "SoberDriverCommon.fields"
+                    "SoberDriverCommon"
                   ],
                   "name": "Трезвый водитель"
                 }
@@ -3034,7 +3034,7 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -3077,13 +3077,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TransportationSelectedCommon.fields"
+                    "TransportationSelectedCommon"
                   ],
                   "name": "Путешествие"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -3116,7 +3116,7 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TransportationSelectedCommon.fields"
+                    "TransportationSelectedCommon"
                   ],
                   "name": "Доставка к ТС"
                 }
@@ -3127,7 +3127,7 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -3150,7 +3150,7 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TechSelectedCommon.fields"
+                    "TechSelectedCommon"
                   ],
                   "name": "Доставка топлива"
                 }
@@ -3208,7 +3208,7 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -3226,13 +3226,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TechCommon.fields"
+                    "TechCommon"
                   ],
                   "name": "Техническая помошь"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -3270,13 +3270,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TowageCommon.fields"
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -3309,13 +3309,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "ReplacementVehicleCommon.fields"
+                    "ReplacementVehicleCommon"
                   ],
                   "name": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -3363,13 +3363,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "HotelCommon.fields"
+                    "HotelCommon"
                   ],
                   "name": "Гостиница"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -3382,13 +3382,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TaxiCommon.fields"
+                    "TaxiCommon"
                   ],
                   "name": "Такси"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "parts",
@@ -3401,7 +3401,7 @@
                         "subform": "Address"
                       }
                     ],
-                    "SparesCommon.fields"
+                    "SparesCommon"
                   ],
                   "name": "Доставка запчастей"
                 }
@@ -3412,7 +3412,7 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -3455,13 +3455,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TransportationSelectedCommon.fields"
+                    "TransportationSelectedCommon"
                   ],
                   "name": "Путешествие"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -3494,7 +3494,7 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TransportationSelectedCommon.fields"
+                    "TransportationSelectedCommon"
                   ],
                   "name": "Доставка к ТС"
                 }
@@ -3561,7 +3561,7 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "serviceProvided",
@@ -3592,7 +3592,7 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TowageCommon.fields"
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 }
@@ -3602,7 +3602,7 @@
               "Техпомощь": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "serviceProvided",
@@ -3633,13 +3633,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TechSelectedCommon.fields"
+                    "TechSelectedCommon"
                   ],
                   "name": "Подвоз топлива"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "serviceProvided",
@@ -3670,13 +3670,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TechSelectedCommon.fields"
+                    "TechSelectedCommon"
                   ],
                   "name": "Запуск двигателя"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "serviceProvided",
@@ -3707,13 +3707,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TechSelectedCommon.fields"
+                    "TechSelectedCommon"
                   ],
                   "name": "Замена колеса"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "serviceProvided",
@@ -3744,7 +3744,7 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TechSelectedCommon.fields"
+                    "TechSelectedCommon"
                   ],
                   "name": "Вскрытие автомобиля"
                 }
@@ -3776,7 +3776,7 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -3794,13 +3794,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TowageCommon.fields"
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -3823,13 +3823,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TechCommon.fields"
+                    "TechCommon"
                   ],
                   "name": "Техническая помощь"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -3842,13 +3842,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "NotificationCommon.fields"
+                    "NotificationCommon"
                   ],
                   "name": "Информирование о происшествии"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -3881,13 +3881,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "ReplacementVehicleCommon.fields"
+                    "ReplacementVehicleCommon"
                   ],
                   "name": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -3900,7 +3900,7 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TaxiCommon.fields"
+                    "TaxiCommon"
                   ],
                   "name": "Такси"
                 }
@@ -3951,8 +3951,8 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TowageCommon.fields"
+                    "ServiceCommon",
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 }
@@ -3962,8 +3962,8 @@
               "Техпомощь": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "TechSelectedCommon.fields"
+                    "ServiceCommon",
+                    "TechSelectedCommon"
                   ],
                   "name": "Слив топлива"
                 }
@@ -3993,7 +3993,7 @@
                   "Техпомощь": [
                     {
                       "fieldgroup": [
-                        "ServiceCommon.fields",
+                        "ServiceCommon",
                         [
                           {
                             "name": "caseAddress",
@@ -4016,7 +4016,7 @@
                             "label": "Услуга может быть оказана по программе"
                           }
                         ],
-                        "TechSelectedCommon.fields"
+                        "TechSelectedCommon"
                       ],
                       "name": "Замена колеса"
                     }
@@ -4026,7 +4026,7 @@
                   "Техпомощь": [
                     {
                       "fieldgroup": [
-                        "ServiceCommon.fields",
+                        "ServiceCommon",
                         [
                           {
                             "name": "caseAddress",
@@ -4049,7 +4049,7 @@
                             "label": "Услуга может быть оказана по программе"
                           }
                         ],
-                        "TechSelectedCommon.fields"
+                        "TechSelectedCommon"
                       ],
                       "name": "Зарядка АКБ"
                     }
@@ -4057,7 +4057,7 @@
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -4080,13 +4080,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TechCommon.fields"
+                    "TechCommon"
                   ],
                   "name": "Техпомощь"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -4109,7 +4109,7 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TowageCommon.fields"
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 }
@@ -4147,7 +4147,7 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -4170,13 +4170,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TechCommon.fields"
+                    "TechCommon"
                   ],
                   "name": "Техпомощь"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -4199,14 +4199,14 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TowageCommon.fields"
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
-                    "NotificationCommon.fields"
+                    "ServiceCommon",
+                    "NotificationCommon"
                   ],
                   "name": "Информирование о происшествии"
                 }
@@ -4257,7 +4257,7 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -4285,13 +4285,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TowageCommon.fields"
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -4324,13 +4324,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "ReplacementVehicleCommon.fields"
+                    "ReplacementVehicleCommon"
                   ],
                   "name": "Подменный автомобиль"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -4343,7 +4343,7 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TaxiCommon.fields"
+                    "TaxiCommon"
                   ],
                   "name": "Такси"
                 }
@@ -4353,7 +4353,7 @@
               "Техпомощь": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -4371,13 +4371,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TechSelectedCommon.fields"
+                    "TechSelectedCommon"
                   ],
                   "name": "Зарядка АКБ"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -4395,13 +4395,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TechSelectedCommon.fields"
+                    "TechSelectedCommon"
                   ],
                   "name": "Замена колеса"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -4419,13 +4419,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TechSelectedCommon.fields"
+                    "TechSelectedCommon"
                   ],
                   "name": "Вскрытие автомобиля"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -4443,7 +4443,7 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TechSelectedCommon.fields"
+                    "TechSelectedCommon"
                   ],
                   "name": "Подвоз топлива"
                 }
@@ -4453,7 +4453,7 @@
               "Транспортировка": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -4511,13 +4511,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TransportationSelectedCommon.fields"
+                    "TransportationSelectedCommon"
                   ],
                   "name": "Путешествие"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "RAMCtow",
@@ -4575,7 +4575,7 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TransportationSelectedCommon.fields"
+                    "TransportationSelectedCommon"
                   ],
                   "name": "Доставка к ТС"
                 }
@@ -4603,7 +4603,7 @@
               "services": [
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -4621,13 +4621,13 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TowageCommon.fields"
+                    "TowageCommon"
                   ],
                   "name": "Эвакуация"
                 },
                 {
                   "fieldgroup": [
-                    "ServiceCommon.fields",
+                    "ServiceCommon",
                     [
                       {
                         "name": "caseAddress",
@@ -4645,7 +4645,7 @@
                         "label": "Услуга может быть оказана по программе"
                       }
                     ],
-                    "TechCommon.fields"
+                    "TechCommon"
                   ],
                   "name": "Техническая помощь"
                 }
