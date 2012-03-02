@@ -3,7 +3,8 @@
 
 {-|
 
-Build application from Redson snaplet and utility handlers.
+Top-level application with AuthManager, Redson and utility handlers.
+Serve index page, check user login.
 
 -}
 
@@ -57,8 +58,8 @@ instance HasHeist App where
 
 ------------------------------------------------------------------------------
 -- | Render empty form for model.
-emptyForm :: AppHandler ()
-emptyForm = ifTop $ render "index"
+indexPage :: AppHandler ()
+indexPage = ifTop $ render "index"
 
 
 ------------------------------------------------------------------------------
@@ -99,7 +100,7 @@ doLogin = ifTop $ do
 ------------------------------------------------------------------------------
 -- | The application's routes.
 routes :: [(ByteString, AppHandler ())]
-routes = [ ("/", method GET $ authOrLogin empty)
+routes = [ ("/", method GET $ authOrLogin indexPage)
          , ("/login/", method GET loginForm)
          , ("/login/", method POST doLogin)
          , ("/logout/", with auth $ logout >> redirectToLogin)
@@ -147,3 +148,70 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   addRoutes routes
 
   return $ App h r s a sTime
+
+-- {- Unported code. -}
+--
+-- searchCase = do
+--   let response = A.encode $ object
+--         ["iTotalRecords" .= (0::Int)
+--         ,"iTotalDisplayRecords" .= (0::Int)
+--         ,"aaData" .= A.toJSON ([]::[T.Text])
+--         ]
+--   modifyResponse $ setContentType "application/json"
+--   writeLBS response
+
+
+-- searchDealer = search "dealer"
+--   ["name","city","program","salesAddr", "salesPhone"]
+--   [("name","sSearch_0")
+--     ,("city","sSearch_1")
+--     ,("program","sSearch_2")]
+
+
+-- searchContractor = search "partner"
+--   ["companyName","cityRu","contactPerson","contactPhone","serviceRu"]
+--   [("companyName","sSearch_0")
+--     ,("contactPerson","sSearch_2")
+--     ,("contactPhone","sSearch_3")]
+
+
+-- search keyPrefix outFields searchFields = do
+--   let (attrs,pats) = unzip searchFields
+
+--   ps <- rqParams <$> getRequest
+--   let si = map (head . (M.!) ps) pats
+--   let displayStart = head $ (M.!) ps "iDisplayStart"
+
+--   (vals,total) <- runRedisDB redisDB $ do
+--     let searchKeys = catMaybes $ zipWith
+--           (\k s -> if B.null s
+--             then Nothing
+--             else Just $ B.concat [keyPrefix,":",k,":*",s,"*"])
+--           attrs si
+
+--     matchingKeys <- if null searchKeys
+--         then (:[]). fromRight <$> keys (B.concat [keyPrefix,":*"])
+--         else rights <$> mapM keys searchKeys
+    
+--     keys' <- foldl1' intersect . map (foldl' union [])
+--           <$> forM matchingKeys
+--             ((rights <$>) . mapM (\k ->lrange k 0 (-1)))
+
+--     vals  <- (catMaybes . fromRight) <$>  mget (take 100 keys')
+--     return (vals, length keys')
+
+--   let res = catMaybes $ flip map
+--         (catMaybes $ map (A.decode . L.fromChunks .(:[])) vals)
+--         $ A.parseMaybe (\o -> mapM (o .:) outFields)
+--         :: [[A.Value]]
+
+--   let response = A.encode $ object
+--         ["iTotalRecords" .= total
+--         ,"iTotalDisplayRecords" .= (100::Int)
+--         ,"aaData" .= toJSON res
+--         ]
+--   modifyResponse $ setContentType "application/json"
+--   writeLBS response
+
+
+-- fromRight = either (const []) id
