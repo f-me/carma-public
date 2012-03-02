@@ -19,7 +19,6 @@ import Data.Functor
 import Data.Maybe
 
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.UTF8 as BU (toString)
 import Data.Configurator
 import Data.Lens.Template
 import Data.Time.Clock
@@ -32,8 +31,6 @@ import Snap.Snaplet.Heist
 import Snap.Snaplet.Session
 import Snap.Snaplet.Session.Backends.CookieSession
 import Snap.Util.FileServe
-
-import Web.ClientSession
 
 import Snap.Snaplet.Redson
 
