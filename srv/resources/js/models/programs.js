@@ -1,8 +1,8 @@
 {
-  "programs": [
+  "programClasses": [
     {
       "name": "VW",
-      "subprograms": [
+      "programs": [
         {
           "name": "Легковые автомобили",
           "serviceGroups": [
@@ -503,8 +503,9 @@
     },
     {
       "name": "ACTA",
-      "subprograms": [
+      "programs": [
         {
+          "name": "Bentley",
           "serviceGroups": [
             {
               "name": "",
@@ -558,7 +559,6 @@
               ]
             }
           ],
-          "name": "Bentley",
           "conditions": [
             {
               "name": "companyApproved",
@@ -583,6 +583,7 @@
           ]
         },
         {
+          "name": "Aston Martin",
           "serviceGroups": [
             {
               "name": "",
@@ -643,7 +644,6 @@
               ]
             }
           ],
-          "name": "Aston Martin",
           "conditions": [
             {
               "name": "companyApproved",
@@ -671,7 +671,7 @@
     },
     {
       "name": "B2B",
-      "subprograms": [
+      "programs": [
         {
           "serviceGroups": [
             {
@@ -1457,7 +1457,7 @@
     },
     {
       "name": "GM",
-      "subprograms": [
+      "programs": [
         {
           "serviceGroups": [
             {
@@ -3549,7 +3549,7 @@
     },
     {
       "name": "Другие",
-      "subprograms": [
+      "programs": [
         {
           "serviceGroups": [],
           "name": "Заказ билетов"
