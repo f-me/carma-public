@@ -1,69 +1,57 @@
-$(function(){
-    window.global = window.global || {};
-    window.global.viewPlugin = viewPlugins();
-    window.global.fieldTemplate = fieldTemplates();
-    window.global.dictionary = dictionaries();
-    window.global.meta = {
-        page: metaPages(),
-        form: metaForms(),
-      };
-    window.global.viewModel = {};
+/// Page layout rendering, loading models.
 
-    var menuRouter = initBottomMenu();
-    menuRouter.bind("route:updMenu", function(sect) {
-      if (sect === "") {
-        var parts = window.location.pathname.split("/");
-        sect = parts.length > 1 ? parts[1] : sect;
-      }
-      renderPage(global.meta.page[sect]); //FIXME: injection //TODO: pass `arguments`
-    });
+/// Setup routing
+$(function(){
+    var Pages = {
+        "case": 
+            {
+                "template": "case-page-template",
+                "views":
+                    {
+                        "left": renderCase
+                    }
+            },
+        "search":
+            {
+                "template": "searchLayout",
+                "views":
+                    {
+                        "main": renderSearch
+                    }
+            }
+    }
+
+    var MenuRouter = Backbone.Router.extend({
+        routes: {
+            "case/:id/": "loadCase",
+            "case/":     "newCase"
+        },
+
+        loadCase: function (id) {
+            loadCase(m);
+        },
+        
+        newCase: function (m, id) {
+            if ("case" == global.modelName)
+                restore(id);
+            else
+                loadModel(m, id);
+        }
+    });    
+
+    window.global = {
+        formElement: $("#form"),
+        knockVM: {},
+        loadedModel: {},
+        modelName: null,
+        mkBackboneModel: null,
+        router: new MenuRouter,
+        timeliner: null,
+    };
 
     Backbone.history.start({pushState: true});
-    $(".field:first").focus();
 
-    $elem("SelectCase.new").live("click", function(e) {
-      e.preventDefault();
-      var newcase = {
-        wazzup: $elem("CallInfo.wazzup").val(),
-        contactName: $elem("GeneralContact.name").val(),
-        contactPhone: $elem("GeneralContact.phone").val()};
-      ajaxPOST("/api/case", newcase, function(id) {
-        // menuRouter.navigate("/case/"+id, {trigger:true});
-        window.location.replace("/case/"+id);
-      });
-    });
-    $elem("CaseInfo.addService").live("click", function(e) {
-      e.preventDefault();
-      var chooseSvc = $elem("CaseInfo.chooseService");
-      var svcMeta = chooseSvc.data("data");
-      var svcId = "Svc" + global.viewModel.CaseInfo.services.length;
-
-      var svc = $("<fieldset/>");
-      svc.attr("id", svcId);
-      svc.append("<legend>" + chooseSvc.val() + "</legend>")
-
-      _.each(svcMeta.conditions, function(f) {
-        var field = createField(svcId, {}, f);
-        svc.append(field);
-      });
-      $elem("CaseInfo.services").append(svc);
-      $elem(svcId + "." + "serviceType").val(chooseSvc.val());
-      chooseSvc.val("");
-      svc.find(".field:first").focus();
-    });
 });
-
-function ajaxPOST(url, data, callback) {
-  return $.ajax({
-    type:"POST",
-    url:url,
-    contentType:"application/json; charset=utf-8",
-    data:JSON.stringify(data),
-    processData:false,
-    dataType:"json",
-    success:callback
-  });
-}
 
 
 //FIXME: redirect somewhere when `pageModel` is undefined?
@@ -81,75 +69,6 @@ function renderPage(pageModel) {
 }
 
 
-function createForm(formId, formMeta) {
-  var form = $("<fieldset/>");
-  form.attr("id",formId);
-  var vm = {};
-
-  global.viewModel[formId] = vm; 
-
-  if (_.has(formMeta, "title")) {
-    form.append("<legend>" + formMeta.title + "</legend>");
-  }
-
-  _.each(formMeta.fields, function(f) {
-    var field = createField(formId, vm, f);
-    field.appendTo(form);
-  });
-  return form;
-}
-
-function createField(formId, vm, f) {
-  var field;
-  _.each(f, function(fieldMeta, fieldId) {
-    //apply defaults to filed description
-    fieldMeta = _.defaults(fieldMeta, {
-      type: "text",
-      id: formId + "." + fieldId,
-      default: "",
-    });
-    if (fieldMeta.data) {
-      var data = global.dictionary[fieldMeta.data]; 
-      fieldMeta.data = data || fieldMeta.data; 
-    }
-
-    //apply field template to field description to create
-    //corresponding html element
-    field = $(global.fieldTemplate[fieldMeta.type](fieldMeta));
-    var realField = field.find(".field");
-    realField.attr('id',fieldMeta.id);
-
-    //apply additional plugins
-    _.each(fieldMeta,function(val,key) {
-        if (_.has(global.viewPlugin, key)) {
-          global.viewPlugin[key](realField,fieldMeta);
-        }
-    });
-
-    vm[fieldId] = ko.observable(fieldMeta.default);
-  });
-  return field;
-}
-
-
-function elem(id) {
-  return document.getElementById(id);
-}
-function $elem(id) {
-  return $(elem(id));
-}
-
-//Find filed templates in html document and precompile them.
-function fieldTemplates() {
-  return _.reduce(
-    $(".field-template"),
-    function(res, tmp) {
-      res[/\w+/.exec(tmp.id)] = _.template($(tmp).text());
-      return res;
-    },
-    {});
-}
-
 function initOSM() {
       window.osmap = new OpenLayers.Map("basicMap");
       var mapnik = new OpenLayers.Layer.OSM();
@@ -160,4 +79,83 @@ function initOSM() {
           new OpenLayers.Projection("EPSG:900913") // to Spherical Mercator Projection
         ), 16 // Zoom level
       );
+}
+
+
+/// Model functions.
+
+// Model method HTTP access point wrt redson location
+function modelMethod(modelName, method) {
+    return "/_/" + modelName + "/" + method;
+}
+
+// Load model definition, set up globals and timeline updater. If id
+// is not null, render form for instance, otherwise render empty
+// form. Highlight active model menu item.
+function loadModel(modelName, id) {
+    $("#menu-" + global.modelName).removeClass("active");
+    $("#menu-" + modelName).addClass("active");
+
+    $.getJSON(modelMethod(modelName, "model"),
+              function(model) {
+                  global.loadedModel = model;
+                  global.modelName = modelName;
+                  global.mkBackboneModel = backbonizeModel(model, modelName);
+                  $("#model-name").text(model.title);
+
+                  if (_.isNull(global.timeliner))
+                      global.timeliner = window.setInterval(refreshTimeline, 5000);
+
+                  var idHash = {};
+                  if (id)
+                      idHash = {id: String(id)}
+                  setupView(new global.mkBackboneModel(idHash));
+              });
+}
+
+// Delete form, release observables
+function forgetView() {
+    kb.vmRelease(global.knockVM);
+    global.formElement.empty();
+}
+
+// Render form for model and bind it
+function setupView(instance) {
+    global.knockVM = new kb.ViewModel(instance);
+
+    refreshTimeline();
+
+    global.formElement.html(renderFormView(global.loadedModel));
+    ko.applyBindings(global.knockVM);
+
+    // Wait a bit to populate model fields and bind form elements
+    // without PUT-backs to server
+    window.setTimeout(function () {
+        global.knockVM._kb_vm.model.setupServerSync();
+    }, 1000);
+}
+
+// Save current model instance
+function save() {
+    global.knockVM._kb_vm.model.save();
+}
+
+// Save current model instance and start fresh form
+function proceed() {
+    save();
+    forgetView();
+    setupView(new global.mkBackboneModel);
+}
+
+// Load existing model instance
+function restore(id) {
+    forgetView();
+    setupView(new global.mkBackboneModel({"id": String(id)}));
+}
+
+// Remove currently loaded instance from storage and start fresh form
+function remove(id) {
+    global.knockVM._kb_vm.model.destroy();
+    forgetView();
+    setupView(new global.mkBackboneModel);
 }
