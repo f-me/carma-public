@@ -45,7 +45,7 @@
               <a href="/call/">Приём звонка</a>
             </li>
             <li>
-              <a href="/case/">Новый кейс</a>
+              <a href="/case/">Кейс</a>
             </li>
             <li>
               <a href="/search/">Поиск</a>
