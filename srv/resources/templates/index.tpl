@@ -43,6 +43,9 @@
             </a>
             <li class="divider-vertical" />
             <li class="active">
+              <a href="/call/">Диспетчер</a>
+            </li>
+            <li>
               <a href="/call/">Приём звонка</a>
             </li>
             <li>
