@@ -91,26 +91,22 @@
             class="screen-template"
             id="case-screen-template">
       <!-- Main case form -->
-      <div class="span8" id="left">
-        <div class="box">
+      <div class="box span6" id="left">
           <fieldset>
             <legend>
               <span id="form-title" />
             </legend>
             <form id="form" class="form-horizontal" />
           </fieldset>
-        </div>
       </div>
       <!-- Subform -->
-      <div class="span4" id="right">
-        <div class="box">
+      <div class="box span5" id="right">
           <fieldset>
             <legend>
               <span id="subform-title" />
             </legend>
             <form id="subform" class="form-horizontal" />
           </fieldset>
-        </div>
       </div>
     </script>
 
