@@ -86,10 +86,10 @@
       <div class="row-fluid" id="layout" />
     </div>
 
-    <!-- Case page layout -->
+    <!-- Case screen layout -->
     <script type="text/template" 
-            class="page-template"
-            id="case-page-template">
+            class="screen-template"
+            id="case-screen-template">
       <!-- Main case form -->
       <div class="span8" id="left">
         <div class="box">
