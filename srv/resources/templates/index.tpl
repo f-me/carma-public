@@ -29,9 +29,10 @@
 
     <!-- Model processing -->
     <script src="/s/js/metamodel.js" />
-    <script src="/s/js/load-model.js" />
+    <script src="/s/js/main.js" />
   </head>
   <body>
+    
     <!-- Navigation bar on top -->
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
@@ -77,20 +78,38 @@
       </div>
     </div>
 
+    <!-- Main container for dynamically rendered layouts -->
     <div class="container-fluid">
-      <div class="row-fluid">
-        <div class="span8">
-          <div class="box">
-            <fieldset>
-              <legend>
-                <span id="model-name" />
-              </legend>
-              <form id="form" class="form-horizontal" />
-            </fieldset>
-          </div>
+      <div class="row-fluid" id="layout" />
+    </div>
+
+    <!-- Case page layout -->
+    <script type="text/template" 
+            class="page-template"
+            id="case-page-template">
+      <!-- Main case form -->
+      <div class="span8" id="left">
+        <div class="box">
+          <fieldset>
+            <legend>
+              <span id="form-title" />
+            </legend>
+            <form id="form" class="form-horizontal" />
+          </fieldset>
         </div>
       </div>
-    </div>
+      <!-- Subform -->
+      <div class="span4" id="right">
+        <div class="box">
+          <fieldset>
+            <legend>
+              <span id="subform-title" />
+            </legend>
+            <form id="subform" class="form-horizontal" />
+          </fieldset>
+        </div>
+      </div>
+    </script>
 
     <!-- Form field templates -->
     <script type="text/template" 
@@ -202,34 +221,6 @@
         {{/ canDelete }}
         <div style="clear: both;" />
       </div>
-    </script>
-
-    <!-- Form selection menu template -->
-    <script type="text/template" id="model-menu-template">
-      <li class="nav-header">
-        Доступные формы
-      </li>
-      {{# models }}
-      <li id="menu-{{ name }}">
-        <a href="/#{{ name }}/">{{ title }}</a>
-      </li>
-      {{/ models }}
-    </script>
-
-    
-    <script type="text/template" id="timeline-item-template">
-      <a class="btn{{# sel }} btn-info{{/ sel }}"
-         id="timeline-{{id}}"
-         href="#{{modelName}}/{{ id }}/">{{ id }}</a> 
-    </script>
-
-    <!-- WebSocket notifications -->
-    <script type="text/template" id="message-create">
-      <li style="color: green;">+{{ id }}</li>
-    </script>
-
-    <script type="text/template" id="message-delete">
-      <li style="color: red;">-{{ id }}</li>
     </script>
   </body>
 </html>
