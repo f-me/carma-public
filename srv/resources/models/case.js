@@ -19,21 +19,24 @@
         },
         {
             "name": "staff",
-            "label": "Сотрудник РАМК (Обязательное поле)",
+            "label": "Сотрудник РАМК",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "required": true
         },
         {
             "name": "client",
-            "label": "Клиент (Обязательное поле)",
+            "label": "Клиент",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "required": true
         },
         {
             "name": "service",
-            "label": "Услуга  (Обязательное поле)",
+            "label": "Услуга",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "required": true
         },
         {
             "name": "callSurname",
@@ -265,9 +268,10 @@
         },
         {
             "name": "callStatus",
-            "label": "Статус звонка (Обязательное поле)",
+            "label": "Статус звонка",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "required": true
         }
     ]
 }
