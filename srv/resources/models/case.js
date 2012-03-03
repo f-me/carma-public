@@ -18,14 +18,14 @@
             "canRead": true
         },
         {
-            "name": "staff",
+            "name": "callTaker",
             "label": "Сотрудник РАМК",
             "canWrite": true,
             "canRead": true,
             "required": true
         },
         {
-            "name": "client",
+            "name": "program",
             "label": "Клиент",
             "canWrite": true,
             "canRead": true,
@@ -93,25 +93,25 @@
             "canRead": true
         },
         {
-            "name": "carNumber",
+            "name": "plateNum",
             "label": "Регистрационный номер автомобиля",
             "canWrite": true,
             "canRead": true
         },
         {
-            "name": "carColor",
+            "name": "color",
             "label": "Цвет",
             "canWrite": true,
             "canRead": true
         },
         {
-            "name": "VIN",
+            "name": "vin",
             "label": "VIN автомобиля",
             "canWrite": true,
             "canRead": true
         },
         {
-            "name": "VINcheck",
+            "name": "vinCheck",
             "label": "VIN Проверен",
             "canWrite": true,
             "canRead": true
@@ -267,7 +267,7 @@
             "canRead": true
         },
         {
-            "name": "callStatus",
+            "name": "status",
             "label": "Статус звонка",
             "canWrite": true,
             "canRead": true,
