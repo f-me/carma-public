@@ -4,7 +4,10 @@
 
 {-|
 
-Bulk post legacy data directly to Redis, cases only.
+Post legacy data directly to Redis hashes, cases only.
+
+TODO: Factor out Snap-agnostic instance creation code from Redson and
+use it here.
 
 |-}
 
@@ -75,7 +78,7 @@ main =
         sample = Options
                  { caseFile = def &= help "Path to CSV case archive file"
                  }
-                 &= program "bulk-poster"
+                 &= program "hmset-poster"
     in do
       Options{..} <- cmdArgs $ sample
       case caseFile of
