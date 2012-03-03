@@ -1,16 +1,18 @@
 /// Screen layout rendering, loading models.
-///
-/// We assume that two models can be loaded at once (main and child).
 
 $(function(){
-    /// Screens have top-level template and a number of views.
+    // Screens have top-level template and a number of views.
+    //
+    // Each view has setup function which accepts DOM element, screen
+    // arguments and renders HTML to element and returns viewsWare
+    // value for the view element.
     var Screens = {
         "case": 
             {
                 "template": "case-screen-template",
                 "views":
                     {
-                        "left": renderCase
+                        "left": setupCaseMain,
                     }
             },
         "search":
@@ -23,7 +25,7 @@ $(function(){
             }
     }
 
-    /// Setup routing
+    // Setup routing
     var MenuRouter = Backbone.Router.extend({
         routes: {
             "case/:id/": "loadCase",
@@ -43,6 +45,14 @@ $(function(){
     });    
 
     window.global = {
+        // «Screen» element which holds all views
+        topElement: $el("layout"),
+        screens: Screens,
+        router: new MenuRouter, 
+        
+        activeScreen: null,
+        // viewWare is for bookkeeping of views in current screen.
+        //
         // Hash keys are DOM tree element IDs associated with the
         // model (view names). Values are hashes which contain the
         // following keys:
@@ -51,12 +61,11 @@ $(function(){
         // - modelName;
         // - mkBackboneModel (Backbone constructor);
         // - knockVM (Knockout ViewModel bound to view).
-        views: {},
-        screens: Screens,
-        activeScreen: null,
-        topElement: $el("layout"),
-        router: new MenuRouter, 
-   };
+        //
+        // When screen is loaded, viewsWare should generally contain
+        // only keys which correspond to that screen views.
+        viewsWare: {}
+    };
 
     Backbone.history.start({pushState: true});
 });
@@ -69,21 +78,78 @@ function $el(id) {
     return $(el(id));
 }
 
-// Release observables, clean up everything
+// Render top-level screen template (static)
+// 
+// args object is passed further to all view setup functions.
+function renderScreen(screenName, args) {
+    var screen = global.screens[screenName];
+    global.activeScreen = screen;
+    var tpl = $el(screen.template).html();
+    global.topElement.html(tpl);
+    for (viewName in screen.views) {
+        global.viewsWare[viewName] = 
+            screen.views[viewName]($el(viewName), args);
+    }
+}
+
+// Remove all content of view and clean up wares.
+function forgetView(viewName) {
+    var vW = global.viewsWare[viewName];
+    kb.vmRelease(vW.knockVM);
+    vW = {};
+    $el(viewName).empty();
+}
+
+// Clean up all views on screen and everything.
 function forgetScreen() {
-    for (view in global.views) {
-        kb.vmRelease(view.knockVM);
-        $elem("view").empty();
+    for (viewName in global.viewsWare) {
+        forgetView(viewName);
     };
+    global.topElement.empty();
+    global.viewsWare = {};
     global.activeScreen = null;
 }
 
-// Render top-level screen template (static)
-function renderScreen(screen) {
-    var tpl = $el(screen.template).html();
-    global.topElement.html(tpl);
+
+function setupCaseMain(el, args) {
+    return modelSetup("case")(el, args.id);
 }
 
+// Return function which will setup views for that model given its
+// view element and instance id.
+function modelSetup(modelName) {
+    return function(el, id) {
+        $.getJSON(modelMethod(modelName, "model"),
+            function(model) {
+                mkBackboneModel = backbonizeModel(model, modelName);
+                
+                var idHash = {};
+                if (id)
+                    idHash = {id: String(id)}
+                instance = new mkBackboneModel(idHash);
+                knockVM = new kb.ViewModel(instance);
+
+                el.html(renderFormView(model));
+                ko.applyBindings(knockVM);
+
+                // Wait a bit to populate model fields and bind form
+                // elements without PUT-backs to server
+                window.setTimeout(function () {
+                    knockVM._kb_vm.model.setupServerSync();
+                }, 1000);
+                
+                // Return wares produced by view
+                return {
+                    "model": model,
+                    "modelName": modelName,
+                    "mkBackboneModel": mkBackboneModel,
+                    "knockVM": knockVM
+                };
+            });
+    }
+}
+
+function renderSearch(args) {}
 
 function initOSM() {
       window.osmap = new OpenLayers.Map("basicMap");
@@ -97,51 +163,11 @@ function initOSM() {
       );
 }
 
-
 /// Model functions.
 
 // Model method HTTP access point wrt redson location
 function modelMethod(modelName, method) {
     return "/_/" + modelName + "/" + method;
-}
-
-// Load model definition, set up globals. 
-
-// If id is not null, render form for instance, otherwise render empty
-// form.
-function loadModel(modelName, id) {
-    $.getJSON(modelMethod(modelName, "model"),
-              function(model) {
-                  global.loadedModel = model;
-                  global.modelName = modelName;
-                  global.mkBackboneModel = backbonizeModel(model, modelName);
-                  $("#model-name").text(model.title);
-
-                  var idHash = {};
-                  if (id)
-                      idHash = {id: String(id)}
-                  setupView(new global.mkBackboneModel(idHash));
-              });
-}
-
-// Delete form, release observables
-function forgetView() {
-    kb.vmRelease(global.knockVM);
-    global.formElement.empty();
-}
-
-// Render form for model and bind it
-function setupView(instance) {
-    global.knockVM = new kb.ViewModel(instance);
-
-    global.formElement.html(renderFormView(global.loadedModel));
-    ko.applyBindings(global.knockVM);
-
-    // Wait a bit to populate model fields and bind form elements
-    // without PUT-backs to server
-    window.setTimeout(function () {
-        global.knockVM._kb_vm.model.setupServerSync();
-    }, 1000);
 }
 
 // Save current model instance
