@@ -1,11 +1,13 @@
-/// Page layout rendering, loading models.
+/// Screen layout rendering, loading models.
+///
+/// We assume that two models can be loaded at once (main and child).
 
-/// Setup routing
 $(function(){
-    var Pages = {
+    /// Screens have top-level template and a number of views.
+    var Screens = {
         "case": 
             {
-                "template": "case-page-template",
+                "template": "case-screen-template",
                 "views":
                     {
                         "left": renderCase
@@ -13,7 +15,7 @@ $(function(){
             },
         "search":
             {
-                "template": "searchLayout",
+                "template": "search-screen-template",
                 "views":
                     {
                         "main": renderSearch
@@ -21,6 +23,7 @@ $(function(){
             }
     }
 
+    /// Setup routing
     var MenuRouter = Backbone.Router.extend({
         routes: {
             "case/:id/": "loadCase",
@@ -40,32 +43,45 @@ $(function(){
     });    
 
     window.global = {
-        formElement: $("#form"),
-        knockVM: {},
-        loadedModel: {},
-        modelName: null,
-        mkBackboneModel: null,
-        router: new MenuRouter,
-        timeliner: null,
-    };
+        // Hash keys are DOM tree element IDs associated with the
+        // model (view names). Values are hashes which contain the
+        // following keys:
+        //
+        // - model (model definition);
+        // - modelName;
+        // - mkBackboneModel (Backbone constructor);
+        // - knockVM (Knockout ViewModel bound to view).
+        views: {},
+        screens: Screens,
+        activeScreen: null,
+        topElement: $el("layout"),
+        router: new MenuRouter, 
+   };
 
     Backbone.history.start({pushState: true});
-
 });
 
+function el(id) {
+    return document.getElementById(id);
+}
 
-//FIXME: redirect somewhere when `pageModel` is undefined?
-function renderPage(pageModel) {
-  // remove all forms from all containers
-  $("#left, #right").children().detach();
+function $el(id) {
+    return $(el(id));
+}
 
-  _.each(pageModel, function(containerModels, containerId) {
-      _.each(containerModels, function(formId) {
-        var form = createForm(formId, global.meta.form[formId]);
-        $("#"+containerId).append(form);
-      });
-  });
-  ko.applyBindings(global.viewModel);
+// Release observables, clean up everything
+function forgetScreen() {
+    for (view in global.views) {
+        kb.vmRelease(view.knockVM);
+        $elem("view").empty();
+    };
+    global.activeScreen = null;
+}
+
+// Render top-level screen template (static)
+function renderScreen(screen) {
+    var tpl = $el(screen.template).html();
+    global.topElement.html(tpl);
 }
 
 
@@ -89,22 +105,17 @@ function modelMethod(modelName, method) {
     return "/_/" + modelName + "/" + method;
 }
 
-// Load model definition, set up globals and timeline updater. If id
-// is not null, render form for instance, otherwise render empty
-// form. Highlight active model menu item.
-function loadModel(modelName, id) {
-    $("#menu-" + global.modelName).removeClass("active");
-    $("#menu-" + modelName).addClass("active");
+// Load model definition, set up globals. 
 
+// If id is not null, render form for instance, otherwise render empty
+// form.
+function loadModel(modelName, id) {
     $.getJSON(modelMethod(modelName, "model"),
               function(model) {
                   global.loadedModel = model;
                   global.modelName = modelName;
                   global.mkBackboneModel = backbonizeModel(model, modelName);
                   $("#model-name").text(model.title);
-
-                  if (_.isNull(global.timeliner))
-                      global.timeliner = window.setInterval(refreshTimeline, 5000);
 
                   var idHash = {};
                   if (id)
@@ -122,8 +133,6 @@ function forgetView() {
 // Render form for model and bind it
 function setupView(instance) {
     global.knockVM = new kb.ViewModel(instance);
-
-    refreshTimeline();
 
     global.formElement.html(renderFormView(global.loadedModel));
     ko.applyBindings(global.knockVM);
