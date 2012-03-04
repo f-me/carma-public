@@ -101,7 +101,8 @@
             "name": "plateNum",
             "label": "Регистрационный номер автомобиля",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "index": true
         },
         {
             "name": "color",
@@ -119,7 +120,8 @@
             "name": "vinCheck",
             "label": "VIN Проверен",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "type": "checkbox"
         },
         {
             "name": "purchased",
@@ -253,7 +255,8 @@
             "label": "Статус случая от дилера (Только для VW)",
             "canWrite": true,
             "canRead": true,
-            "invisible": true
+            "invisible": true,
+            "index": true
         },
         {
             "name": "fixDate",
