@@ -4,13 +4,16 @@
     <meta charset="utf-8" />
     <title>CaRMa</title>
     <link rel="stylesheet" href="/s/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/s/css/jquery.dataTables.css" />
     <link rel="stylesheet" href="/s/css/local.css" />
-
     <!-- DOM manipulation -->
     <script src="/s/js/3p/jquery-1.7.1.min.js" />
 
     <!-- Rich UI -->
     <script src="/s/js/3p/bootstrap.min.js" />
+    
+    <!-- Tabular display -->
+    <script src="/s/js/3p/jquery.dataTables.min.js" />
 
     <!-- Responsive UI javascript library -->
     <script src="/s/js/3p/knockout-2.0.0.js" />
@@ -109,6 +112,46 @@
           </fieldset>
       </div>
     </script>
+
+
+    <script type="text/template" 
+            id="search-screen-template" 
+            class="screen-template">
+      <div class="box span12" id="tableView" />
+    </script>
+
+
+    <script type="text/template" 
+            id="search-table-template" 
+            class="view-template">
+      <div style="text-align:center;">
+      <fieldset>
+        <legend>Поиск</legend>
+        <form class="form-inline">
+          <!-- ID magically cannot being with "searchtable" -->
+          <input type="text" class="span6" id="table-query" />
+          <button class="btn btn-success" onclick="doSearch();" type="button">
+            Поиск
+          </button>
+        </form>
+      </fieldset>
+      </div>
+      <table id="searchtable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>ФИО</th>
+            <th>Дата звонка</th>
+            <th>Телефон</th>
+            <th>Номер машины</th>
+            <th>Программа</th>
+            <th>Услуга</th>
+          </tr>
+        </thead>
+        <tbody/>
+      </table>
+    </script>
+
 
     <!-- Form field templates -->
     <script type="text/template" 

@@ -20,6 +20,10 @@ $(function(){
         "search":
             {
                 "template": "search-screen-template",
+                "views":
+                    {
+                        "tableView": setupSearchTable
+                    }
             }
     };
 
@@ -110,11 +114,56 @@ function forgetScreen() {
     global.activeScreen = null;
 }
 
-
 function setupCaseMain(el, args) {
     return modelSetup("case")(el, args.id);
 }
 
+function setupSearchTable(el, args) {
+    el.html($el("search-table-template").html());
+    $el("searchtable").dataTable({
+        oLanguage: {
+            sSearch: "Фильтр",
+            oPaginate: {
+                sNext: "Вперёд",
+                sPrevious: "Назад"
+            },
+            sInfo: "Показаны записи с _START_ по _END_ (всего _TOTAL_)",
+            sInfoEmpty: "",
+            sZeroRecords: "Ничего не найдено"
+        }});
+    return {};
+}
+
+// Manually load JSON data from server and add it to table
+//
+// TODO Allow adjusting of search fields etc.
+function doSearch() {
+    var t = $el("searchtable").dataTable();
+    var term = $el("table-query").val();
+    var method = "search/?";
+    var fields = ["id", "ownerSurname", "callDate", "phone", "plateNum", "program", "service"];
+    for (f in fields) {
+        method += (fields[f] + "=" + term + "&");
+    };
+    method += "_matchType=s&_searchType=or&_limit=100";
+    $.getJSON(modelMethod("case", method),
+              function(results) {
+                  var data = []
+                  for (i = 0; i < results.length; i++) {
+                      var o = results[i];
+                      var row = [];
+                      for (j = 0; j < fields.length; j++) {
+                          if (_.isUndefined(o[fields[j]]))
+                              row[j] = "—";
+                          else
+                              row[j] = o[fields[j]];
+                      }
+                      data[i] = row;
+                  }
+                  t.fnClearTable();
+                  t.fnAddData(data);
+              });
+}
 
 // Return function which will setup views for that model given its
 // view element and instance id.
@@ -148,8 +197,6 @@ function modelSetup(modelName) {
             });
     }
 }
-
-function renderSearch(args) {}
 
 function initOSM() {
       window.osmap = new OpenLayers.Map("basicMap");
