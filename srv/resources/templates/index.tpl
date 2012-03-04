@@ -45,19 +45,19 @@
               CaRMa
             </a>
             <li class="divider-vertical" />
-            <li class="active">
-              <a href="/call/">Диспетчер</a>
+            <li id="main-screen-nav">
+              <a href="/">Диспетчер</a>
             </li>
-            <li>
+            <li id="call-screen-nav">
               <a href="/call/">Приём звонка</a>
             </li>
-            <li>
-              <a href="/case/">Кейс</a>
+            <li id="case-screen-nav">
+              <a href="#" onclick="renderScreen('case', {});">Кейс</a>
             </li>
-            <li>
-              <a href="/search/">Поиск</a>
+            <li id="search-screen-nav">
+              <a href="#" onclick="renderScreen('search');">Поиск</a>
             </li>
-            <li>
+            <li id="help-screen-nav">
               <a href="/help/">Справка</a>
             </li>
           </ul>
