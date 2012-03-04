@@ -6,9 +6,6 @@
 
 Post legacy data directly to Redis hashes, cases only.
 
-TODO: Factor out Snap-agnostic instance creation code from Redson and
-use it here.
-
 |-}
 
 import Control.Monad.IO.Class (liftIO)
@@ -22,15 +19,18 @@ import qualified Data.Enumerator.Binary as EB
 
 import Data.Map as M
 
-import Data.Aeson
 import Data.CSV.Enumerator as CSV
 
 import Database.Redis
 
 import System.Console.CmdArgs.Implicit
 
+import Snap.Snaplet.Redson.CRUD
+import Snap.Snaplet.Redson.Metamodel
+
 data Options = Options
     { caseFile :: Maybe FilePath
+    , index    :: [String]
     }
     deriving (Show, Data, Typeable)
 
@@ -52,40 +52,39 @@ filterCaseRow row = snd $ M.mapEither
 -- TODO: Split service / program / client references.
 --
 -- This is like 'mapIntoHandle', but for non-CSV output data.
-caseAction :: Connection -> ParsedRow MapRow -> Iteratee B.ByteString IO Connection
-caseAction h (ParsedRow Nothing) = return h
-caseAction h CSV.EOF             = return h
-caseAction h (ParsedRow (Just r)) =
+caseAction :: ([FieldName], Connection) 
+           -> ParsedRow MapRow 
+           -> Iteratee B.ByteString IO ([FieldName], Connection)
+caseAction h      (ParsedRow Nothing)  = return h
+caseAction h       CSV.EOF             = return h
+caseAction (i, c) (ParsedRow (Just r)) =
     let
-      c = M.toList (filterCaseRow r)
-      -- -- TODO Find out why rubbish is posted when using HTTP.
-      -- body = encode $ filterCaseRow r
-      -- post = LBU.toString body
-      -- req = postRequestWithBody casePath "application/json" post
+      commit = filterCaseRow r
     in do
-      liftIO $ runRedis h $ do
-         Right n <- incr "global:case:id"
-         newId <- return $ (BU.fromString . show) n
-         _ <- hmset (B.append "case:" newId) c
-         _ <- lpush "global:case:timeline" [newId]
-         return ()
-      return h
+      liftIO $ runRedis c $
+             create "case" commit i
+      return (i, c)
 
 
 main :: IO ()
 main =
     let
         sample = Options
-                 { caseFile = def &= help "Path to CSV case archive file"
+                 { caseFile = def 
+                   &= help "Path to CSV case archive file"
+                   &= typFile
+                 , index = [] &= help "Generate index on the field."
                  }
                  &= program "hmset-poster"
+                 &= help "hmset-poster -c journal.csv -i field1 -i field2 ..."
     in do
       Options{..} <- cmdArgs $ sample
       case caseFile of
         Just fname -> do
           rConn <- connect defaultConnectInfo
-          res <- foldCSVFile fname defCSVSettings caseAction rConn
+          res <- foldCSVFile fname defCSVSettings caseAction 
+                 (Prelude.map BU.fromString index, rConn)
           case res of
             Left e -> error "Failed to process case archive"
             Right h -> return ()
-        Nothing -> return ()
+        Nothing -> error "No file selected"

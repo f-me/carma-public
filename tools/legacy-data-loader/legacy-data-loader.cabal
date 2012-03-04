@@ -19,7 +19,16 @@ Executable ldl
                     ,containers, bytestring, utf8-string, text
                     ,enumerator
                     ,csv-enumerator == 0.10.*
-                    ,aeson == 0.4.*
+                    ,aeson == 0.6.*
                     ,hedis == 0.3.*
   
   
+executable hmset-poster
+  main-is:              hmset-poster.hs
+  build-depends:
+    base                == 4.*,
+    cmdargs             == 0.9.*,
+    csv-enumerator      == 0.10.*,
+    hedis               == 0.3.*,
+    snaplet-redson      == 0.1.*,
+    transformers        == 0.2.*
