@@ -46,7 +46,8 @@ function backbonizeModel(model, modelName) {
             for (k in attrs)
                 if (k != "id" &&
                     this.model.canUpdate &&
-                    this.fieldHash[k].canWrite)
+                    this.fieldHash[k].canWrite &&
+                    (!_.isNull(attrs[k])))
                     this.attributeQueue[k] = attrs[k];
         },
         /// Do not send empty updates to server
