@@ -113,13 +113,12 @@
       </div>
     </script>
 
-
+    <!-- Search screen -->
     <script type="text/template" 
             id="search-screen-template" 
             class="screen-template">
       <div class="box span12" id="tableView" />
     </script>
-
 
     <script type="text/template" 
             id="search-table-template" 
