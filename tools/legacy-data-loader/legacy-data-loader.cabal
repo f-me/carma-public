@@ -1,9 +1,8 @@
-
 Name:                legacy-data-loader
 Version:             0.1
 Synopsis:            Custom tool for transferring data from files to database.
 License:             PublicDomain
-Author:              max taldykin
+Author:              Max Taldykin
 Maintainer:          max@formalmethods.ru
 
 Category:            Database
