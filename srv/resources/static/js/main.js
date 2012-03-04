@@ -70,6 +70,7 @@ $(function(){
         // only keys which correspond to that screen views.
         viewsWare: {}
     };
+    renderScreen("search");
 
     Backbone.history.start({pushState: false});
 });
@@ -88,6 +89,11 @@ function $el(id) {
 function renderScreen(screenName, args) {
     var screen = global.screens[screenName];
     global.activeScreen = screen;
+
+    // Highlight the new item in navbar
+    $("li.active").removeClass("active");
+    $el(screenName + "-screen-nav").addClass("active");
+
     var tpl = $el(screen.template).html();
     global.topElement.html(tpl);
     for (viewName in screen.views) {
@@ -121,6 +127,14 @@ function setupCaseMain(el, args) {
 function setupSearchTable(el, args) {
     el.html($el("search-table-template").html());
     $el("searchtable").dataTable({
+        aoColumnDefs: [{
+            // Render case id as link to case page
+            fnRender: function (o, val) {
+                return "<a href='#' onclick=\"renderScreen('case', {id:" + 
+                    val + "});\">" + val + "<a/>";
+            },
+            aTargets: [0]
+        }], 
         oLanguage: {
             sSearch: "Фильтр",
             oPaginate: {
@@ -152,6 +166,8 @@ function doSearch() {
                   for (i = 0; i < results.length; i++) {
                       var o = results[i];
                       var row = [];
+                      // Extract fields data from JSON, show dash in
+                      // case of undefined field
                       for (j = 0; j < fields.length; j++) {
                           if (_.isUndefined(o[fields[j]]))
                               row[j] = "—";
