@@ -7,7 +7,7 @@ $(function(){
     // arguments and renders HTML to element and returns viewsWare
     // value for the view element.
     var Screens = {
-        "case": 
+        "case":
             {
                 "template": "case-screen-template",
                 "views":
@@ -23,7 +23,7 @@ $(function(){
                         "main": renderSearch
                     }
             }
-    }
+    };
 
     // Setup routing
     var MenuRouter = Backbone.Router.extend({
@@ -33,23 +33,20 @@ $(function(){
         },
 
         loadCase: function (id) {
-            loadCase(m);
+            renderScreen("case", {"id": id});
         },
-        
-        newCase: function (m, id) {
-            if ("case" == global.modelName)
-                restore(id);
-            else
-                loadModel(m, id);
+
+        newCase: function () {
+            renderScreen("case", {"id": null});
         }
-    });    
+    });
 
     window.global = {
         // «Screen» element which holds all views
         topElement: $el("layout"),
         screens: Screens,
-        router: new MenuRouter, 
-        
+        router: new MenuRouter,
+
         activeScreen: null,
         // viewWare is for bookkeeping of views in current screen.
         //
@@ -67,7 +64,7 @@ $(function(){
         viewsWare: {}
     };
 
-    Backbone.history.start({pushState: true});
+    Backbone.history.start({pushState: false});
 });
 
 function el(id) {
@@ -79,7 +76,7 @@ function $el(id) {
 }
 
 // Render top-level screen template (static)
-// 
+//
 // args object is passed further to all view setup functions.
 function renderScreen(screenName, args) {
     var screen = global.screens[screenName];
@@ -87,7 +84,7 @@ function renderScreen(screenName, args) {
     var tpl = $el(screen.template).html();
     global.topElement.html(tpl);
     for (viewName in screen.views) {
-        global.viewsWare[viewName] = 
+        global.viewsWare[viewName] =
             screen.views[viewName]($el(viewName), args);
     }
 }
@@ -122,7 +119,7 @@ function modelSetup(modelName) {
         $.getJSON(modelMethod(modelName, "model"),
             function(model) {
                 mkBackboneModel = backbonizeModel(model, modelName);
-                
+
                 var idHash = {};
                 if (id)
                     idHash = {id: String(id)}
@@ -137,7 +134,7 @@ function modelSetup(modelName) {
                 window.setTimeout(function () {
                     knockVM._kb_vm.model.setupServerSync();
                 }, 1000);
-                
+
                 // Return wares produced by view
                 return {
                     "model": model,
