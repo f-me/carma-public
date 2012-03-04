@@ -9,7 +9,8 @@
             "name": "callDate",
             "label": "Дата звонка",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "index": true
         },
         {
             "name": "callTime",
@@ -20,23 +21,25 @@
         {
             "name": "callTaker",
             "label": "Сотрудник РАМК",
-            "canWrite": true,
+            "canWrite": false,
             "canRead": true,
             "required": true
         },
         {
             "name": "program",
-            "label": "Клиент",
+            "label": "Программа",
             "canWrite": true,
             "canRead": true,
-            "required": true
+            "required": true,
+            "index": true
         },
         {
             "name": "service",
             "label": "Услуга",
             "canWrite": true,
             "canRead": true,
-            "required": true
+            "required": true,
+            "index": true
         },
         {
             "name": "callSurname",
@@ -54,7 +57,8 @@
             "name": "ownerSurname",
             "label": "Фамилия владельца",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "index": true
         },
         {
             "name": "ownerName",
@@ -66,7 +70,8 @@
             "name": "phone",
             "label": "Мобильный телефон",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "index": true
         },
         {
             "name": "extraPhone",
@@ -240,29 +245,34 @@
             "name": "sagaNum",
             "label": "Номер заказ-наряда Saga (только для VW)",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "invisible": true
         },
         {
             "name": "caseStatus",
             "label": "Статус случая от дилера (Только для VW)",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "invisible": true
         },
         {
             "name": "fixDate",
             "label": "Дата окончания ремонта автомобиля у дилера (только VW)",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "invisible": true
         },
         {
             "name": "failReason",
             "label": "Описание причины неисправности со слов дилера (только VW)",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "invisible": true
         },
         {
             "name": "comment",
             "label": "Комментарий",
+            "type": "textarea",
             "canWrite": true,
             "canRead": true
         },
