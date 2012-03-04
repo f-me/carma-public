@@ -6,22 +6,20 @@ $(function(){
     // Each view has setup function which accepts DOM element, screen
     // arguments and renders HTML to element and returns viewsWare
     // value for the view element.
+    //
+    // Screen rendering is called through router.
     var Screens = {
         "case":
             {
                 "template": "case-screen-template",
                 "views":
                     {
-                        "left": setupCaseMain,
+                        "form": setupCaseMain
                     }
             },
         "search":
             {
                 "template": "search-screen-template",
-                "views":
-                    {
-                        "main": renderSearch
-                    }
             }
     };
 
@@ -29,7 +27,8 @@ $(function(){
     var MenuRouter = Backbone.Router.extend({
         routes: {
             "case/:id/": "loadCase",
-            "case/":     "newCase"
+            "case/": "newCase",
+            "search/": "search"
         },
 
         loadCase: function (id) {
@@ -38,6 +37,10 @@ $(function(){
 
         newCase: function () {
             renderScreen("case", {"id": null});
+        },
+
+        search: function () {
+            renderScreen("search");
         }
     });
 
@@ -112,6 +115,7 @@ function setupCaseMain(el, args) {
     return modelSetup("case")(el, args.id);
 }
 
+
 // Return function which will setup views for that model given its
 // view element and instance id.
 function modelSetup(modelName) {
@@ -119,7 +123,6 @@ function modelSetup(modelName) {
         $.getJSON(modelMethod(modelName, "model"),
             function(model) {
                 mkBackboneModel = backbonizeModel(model, modelName);
-
                 var idHash = {};
                 if (id)
                     idHash = {id: String(id)}
