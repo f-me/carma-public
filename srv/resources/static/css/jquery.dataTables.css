@@ -6,12 +6,11 @@ table.dataTable {
 	margin: 0 auto;
 	clear: both;
 	width: 100%;
-  position: relative;
 }
 
 table.dataTable thead th {
 	padding: 3px 18px 3px 10px;
-  color:#666666;
+	border-bottom: 1px solid black;
 	font-weight: bold;
 	cursor: pointer;
 	*cursor: hand;
@@ -22,6 +21,7 @@ table.dataTable tfoot th {
 	border-top: 1px solid black;
 	font-weight: bold;
 }
+
 table.dataTable td {
 	padding: 3px 10px;
 }
@@ -31,12 +31,8 @@ table.dataTable td.dataTables_empty {
 	text-align: center;
 }
 
-table.dataTable tr {cursor:pointer;}
-table.dataTable tr.odd { background-color: #e0e0ee; }
+table.dataTable tr.odd { background-color: #E2E4FF; }
 table.dataTable tr.even { background-color: white; }
-table.dataTable tr.odd:hover:not(.row_selected) { background-color: #e0eee0; }
-table.dataTable tr.even:hover:not(.row_selected) { background-color: #e0eee0; }
-table.dataTable tr.row_selected { background-color: #c0c0dd; }
 
 table.dataTable tr.odd td.sorting_1 { background-color: #D3D6FF; }
 table.dataTable tr.odd td.sorting_2 { background-color: #DADCFF; }
@@ -70,7 +66,6 @@ table.dataTable tr.even td.sorting_3 { background-color: #F9F9FF; }
 .dataTables_filter {
 	float: right;
 	text-align: right;
-  display:none;
 }
 
 
