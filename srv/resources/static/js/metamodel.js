@@ -98,10 +98,13 @@ function backbonizeModel(model, modelName) {
 /// @return String with form HTML
 function renderFormView(model, viewName) {
     var templates = [];
+    // Class of templates and ID suffix for all templates
+    var tpl_namespace = "field-template";
 
-    _.each($(".field-template"),
+    // TODO Cache this
+    _.each($("." + tpl_namespace),
            function(tmp) {
-               templates[/\w+/.exec(tmp.id)[0]] = tmp.text;
+               templates[tmp.id.replace("-" + tpl_namespace, "")] = tmp.text;
            });
 
     var contents = "";
@@ -115,13 +118,22 @@ function renderFormView(model, viewName) {
     _.each(model.fields,
            function (f) {
              if (!f.invisible) {
-               if (_.isUndefined(templates[f.type]))
-                   fType = "unknown";
-               else
-                   fType = f.type;
-               readonly = !model.canUpdate || !f.canWrite;
-               contents += Mustache.render(templates[fType],
-                                           _.extend(f, {readonly: readonly}));
+                 var tpl;
+                 var typed_tpl = templates[f.type];
+                 var named_tpl = templates[f.name + "-" + f.type];
+                 if (_.isUndefined(named_tpl)) {
+                     if (_.isUndefined(typed_tpl))
+                         tpl = templates["unknown"];
+                     else
+                         tpl = typed_tpl;
+                 }
+                 else
+                     tpl = named_tpl;
+                 readonly = !model.canUpdate || !f.canWrite;
+                 // Add extra context prior to rendering
+                 var ctx = {readonly: readonly};
+
+                 contents += Mustache.render(tpl, _.extend(f, ctx));
              }
            });
     
