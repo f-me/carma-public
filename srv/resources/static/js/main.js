@@ -100,9 +100,10 @@ function renderScreen(screenName, args) {
 
     var tpl = $el(screen.template).html();
     global.topElement.html(tpl);
+    // Call setup functions for all views, assuming they will set
+    // their viewsWare
     for (viewName in screen.views) {
-        global.viewsWare[viewName] =
-            screen.views[viewName](viewName, args);
+        screen.views[viewName](viewName, args);
     }
 }
 
@@ -112,7 +113,9 @@ function renderScreen(screenName, args) {
 // screen.views[viewName]($el(viewName), args);
 function forgetView(viewName) {
     var vW = global.viewsWare[viewName];
-    kb.vmRelease(vW.knockVM);
+    // View may have not setup any knockVM (static views like search)
+    if (!_.isUndefined(vW.knockVM))
+        kb.vmRelease(vW.knockVM);
     vW = {};
     $el(viewName).empty();
 }
@@ -172,6 +175,7 @@ function modelSetup(modelName) {
 // Search main view
 function setupSearchTable(viewName, args) {
     $el(viewName).html($el("search-table-template").html());
+    global.viewsWare[viewName] = {};
     $el("searchtable").dataTable({
         aoColumnDefs: [{
             // Render case id as link to case page
@@ -253,13 +257,13 @@ function saveInstance(viewName) {
 // Load existing model instance
 function restoreInstance(viewName, id) {
     forgetView(viewName);
-    screen.views[viewName]($el(viewName), {"id": id});
+    global.activeScreen.views[viewName](viewName, {"id": id});
 }
 
-// Remove instance currently loaded in element from storage and start
-// fresh form
+// Remove instance currently loaded in view from storage and render
+// that view from scratch
 function removeInstance(viewName) {
     global.viewsWare[viewName].knockVM._kb_vm.model.destroy();
     forgetView(viewName);
-    screen.views[viewName]($el(viewName), {});
+    global.activeScreen.views[viewName](viewName, {});
 }
