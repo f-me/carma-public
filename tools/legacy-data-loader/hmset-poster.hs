@@ -177,9 +177,9 @@ towage4 = mkTransformation
 taxi = mkTransformation
        ["ТАКСИ"]
        serviceField "taxi" "service"
-       $ towageCommonMap ++ [ ("taxiFrom", Left "Адрес места поломки")
-                            , ("taxiTo", Left "Адрес куда эвакуируют автомобиль")
-                            ]
+       [ ("taxiFrom", Left "Адрес места поломки")
+       , ("taxiTo", Left "Адрес куда эвакуируют автомобиль")
+       ]
 
 rent = mkTransformation
        ["ПОДМЕННЫЙ АВТОМОБИЛЬ"]
