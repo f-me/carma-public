@@ -7,13 +7,13 @@
     "fields": [
         {
             "name": "taxiFrom",
-            "label": "Откуда везём",
+            "label": "Где забрать",
             "canWrite": true,
             "canRead": true
         },
         {
             "name": "taxiTo",
-            "label": "Место назначения",
+            "label": "Куда доставить",
             "canWrite": true,
             "canRead": true
         }
