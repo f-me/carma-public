@@ -5,7 +5,8 @@ $(function(){
     //
     // Each view has setup function which accepts DOM element, screen
     // arguments and renders HTML to element and returns viewsWare
-    // value for the view element.
+    // value for the view element. View name matches the ID of
+    // enclosing DOM element ($el(<viewName>) = viewName's DOM).
     //
     // Screen rendering is called through router.
     var Screens = {
@@ -70,6 +71,7 @@ $(function(){
         // only keys which correspond to that screen views.
         viewsWare: {}
     };
+    // TODO Fix router to actually work
     renderScreen("search");
 
     Backbone.history.start({pushState: false});
@@ -103,6 +105,9 @@ function renderScreen(screenName, args) {
 }
 
 // Remove all content of view and clean up wares.
+//
+// To setup view back again, call
+// screen.views[viewName]($el(viewName), args);
 function forgetView(viewName) {
     var vW = global.viewsWare[viewName];
     kb.vmRelease(vW.knockVM);
@@ -120,10 +125,14 @@ function forgetScreen() {
     global.activeScreen = null;
 }
 
+/// View setup functions
+
+// Case view
 function setupCaseMain(el, args) {
     return modelSetup("case")(el, args.id);
 }
 
+// Search main view
 function setupSearchTable(el, args) {
     el.html($el("search-table-template").html());
     $el("searchtable").dataTable({
@@ -182,7 +191,8 @@ function doSearch() {
 }
 
 // Return function which will setup views for that model given its
-// view element and instance id.
+// view element and instance id. Standard Backbone-metamodel renderer
+// is used to generate HTML contents in element.
 function modelSetup(modelName) {
     return function(el, id) {
         $.getJSON(modelMethod(modelName, "model"),
@@ -199,6 +209,8 @@ function modelSetup(modelName) {
 
                 // Wait a bit to populate model fields and bind form
                 // elements without PUT-backs to server
+                //
+                // TODO First POST is still broken somewhy.
                 window.setTimeout(function () {
                     knockVM._kb_vm.model.setupServerSync();
                 }, 1000);
@@ -233,27 +245,21 @@ function modelMethod(modelName, method) {
     return "/_/" + modelName + "/" + method;
 }
 
-// Save current model instance
-function save() {
-    global.knockVM._kb_vm.model.save();
-}
-
-// Save current model instance and start fresh form
-function proceed() {
-    save();
-    forgetView();
-    setupView(new global.mkBackboneModel);
+// Save instance loaded in view
+function saveInstance(viewName) {
+    global.viewsWare[viewName].knockVM._kb_vm.model.save();
 }
 
 // Load existing model instance
-function restore(id) {
-    forgetView();
-    setupView(new global.mkBackboneModel({"id": String(id)}));
+function restoreInstance(viewName, id) {
+    forgetView(viewName);
+    screen.views[viewName]($el(viewName), {"id": id});
 }
 
-// Remove currently loaded instance from storage and start fresh form
-function remove(id) {
-    global.knockVM._kb_vm.model.destroy();
-    forgetView();
-    setupView(new global.mkBackboneModel);
+// Remove instance currently loaded in element from storage and start
+// fresh form
+function removeInstance(viewName) {
+    global.viewsWare[viewName].knockVM._kb_vm.model.destroy();
+    forgetView(viewName);
+    screen.views[viewName]($el(viewName), {});
 }
