@@ -130,12 +130,8 @@ function forgetScreen() {
     global.activeScreen = null;
 }
 
-/// View setup functions
 
-// Case view
-function setupCaseMain(viewName, args) {
-    return modelSetup("case")(viewName, args.id);
-}
+/// Model functions.
 
 // Return function which will setup views for that model given its
 // view name and instance id. Standard Backbone-metamodel renderer
@@ -170,6 +166,45 @@ function modelSetup(modelName) {
                 };
             });
     }
+}
+
+// Model method HTTP access point wrt redson location
+function modelMethod(modelName, method) {
+    return "/_/" + modelName + "/" + method;
+}
+
+// Save instance loaded in view
+function saveInstance(viewName) {
+    global.viewsWare[viewName].knockVM._kb_vm.model.save();
+}
+
+// Load existing model instance
+function createInstance(viewName, id) {
+    saveInstance(viewName);
+    forgetView(viewName);
+    global.activeScreen.views[viewName](viewName, {});
+}
+
+// Load existing model instance
+function restoreInstance(viewName, id) {
+    forgetView(viewName);
+    global.activeScreen.views[viewName](viewName, {"id": id});
+}
+
+// Remove instance currently loaded in view from storage and render
+// that view from scratch
+function removeInstance(viewName) {
+    global.viewsWare[viewName].knockVM._kb_vm.model.destroy();
+    forgetView(viewName);
+    global.activeScreen.views[viewName](viewName, {});
+}
+
+
+/// View setup functions.
+
+// Case view
+function setupCaseMain(viewName, args) {
+    return modelSetup("case")(viewName, args.id);
 }
 
 // Search main view
@@ -240,37 +275,4 @@ function initOSM() {
           new OpenLayers.Projection("EPSG:900913") // to Spherical Mercator Projection
         ), 16 // Zoom level
       );
-}
-
-/// Model functions.
-
-// Model method HTTP access point wrt redson location
-function modelMethod(modelName, method) {
-    return "/_/" + modelName + "/" + method;
-}
-
-// Save instance loaded in view
-function saveInstance(viewName) {
-    global.viewsWare[viewName].knockVM._kb_vm.model.save();
-}
-
-// Load existing model instance
-function createInstance(viewName, id) {
-    saveInstance(viewName);
-    forgetView(viewName);
-    global.activeScreen.views[viewName](viewName, {});
-}
-
-// Load existing model instance
-function restoreInstance(viewName, id) {
-    forgetView(viewName);
-    global.activeScreen.views[viewName](viewName, {"id": id});
-}
-
-// Remove instance currently loaded in view from storage and render
-// that view from scratch
-function removeInstance(viewName) {
-    global.viewsWare[viewName].knockVM._kb_vm.model.destroy();
-    forgetView(viewName);
-    global.activeScreen.views[viewName](viewName, {});
 }
