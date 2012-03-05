@@ -8,8 +8,9 @@ Post legacy data directly to Redis hashes, cases only.
 
 TODO More row transformations.
 
-TODO Support everything.
+TODO Support models other than "case".
 
+TODO Support more than one dependant form.
 |-}
 
 import Control.Monad.IO.Class (liftIO)
