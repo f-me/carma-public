@@ -18,11 +18,19 @@
   User management is available via [[https://github.com/dzhus/snap-auth-cli][snap-auth-cli]].
   
 * To do
-** TODO Provide case model
+** IN_PROGRESS Provide case model
+** TODO Tech assistance model
+   - [ ] techType — dictionary
+** IN_PROGRESS [0/3] Towage model
+   - [ ] towerType & towType       — dictionaries
+   - [ ] towDealer & towContractor — references
+   - [ ] caseAddress & towAddress  — references
 ** TODO Provide dealer and partner models
    With proper field index annotations for redson search API.
 
 ** TODO Dependant fields
+** TODO Dictionaries
+   Special field type (will replace `choice`?)
 ** TODO Client settings
    Some settings need to be served to client code (to use in JS):
    
@@ -30,7 +38,7 @@
     - serverSyncDelay;
     - timelineUpdateInterval;
 
-** TODO Indexed fields
+** IN_PROGRESS Indexed fields
    Fields should support "index" boolean attribute, in which case
    inverse index for that field should be created in Redis.
 
