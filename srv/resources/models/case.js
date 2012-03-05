@@ -65,7 +65,7 @@
             "label": "Регистрационный номер автомобиля",
             "canWrite": true,
             "canRead": true,
-            "required": true
+            "required": true,
             "index": true
         },
         {
