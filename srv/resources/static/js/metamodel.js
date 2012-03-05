@@ -68,7 +68,7 @@ function backbonizeModel(model, modelName) {
                 }
             }
             return json;
-        },        
+        },
         toJSON: function () {
             /// Send only attributeQueue instead of the whole object
             var json = this.attributeQueue;
@@ -136,10 +136,10 @@ function renderFormView(model, viewName) {
                  contents += Mustache.render(tpl, _.extend(f, ctx));
              }
            });
-    
+
     var modelRo = !model.canUpdate && !model.canCreate && !model.canDelete;
     /// Add HTML to contents for non-false permissions
-    contents += Mustache.render($("#permission-template").text(), 
+    contents += Mustache.render($("#permission-template").text(),
                                 _.extend(model, {viewName: viewName,
                                                  readonly: modelRo}));
 
