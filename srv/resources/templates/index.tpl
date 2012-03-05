@@ -144,7 +144,6 @@
             <th>Телефон</th>
             <th>Номер машины</th>
             <th>Программа</th>
-            <th>Услуга</th>
           </tr>
         </thead>
         <tbody/>
@@ -172,7 +171,7 @@
           <label>{{ label }}</label>
         </div>
         <div class="controls">
-          <textarea class="{{ name }} field span5"
+          <textarea class="span5"
                     name="{{ name }}" 
                     {{# readonly }}disabled{{/ readonly }}
                     rows="7"
@@ -191,7 +190,7 @@
         </div>
         <div class="controls">
           <input type="text"
-                 class="{{ name }} field span5"
+                 class="span5"
                  name="{{ name }}"
                  {{# readonly }}disabled{{/ readonly }}
                  data-bind="value: {{ name }}, 
@@ -208,8 +207,7 @@
           <label>{{ label }}</label>
         </div>
         <div class="controls">
-          <select class="{{ name }} field"
-                  name="{{ name }}"
+          <select name="{{ name }}"
                   {{# readonly }}disabled{{/ readonly }}
                   data-bind="value: {{ name }},
                              valueUpdate: 'change'">
@@ -227,7 +225,6 @@
       <div class="control-group">
         <div class="controls">
           <label class="checkbox inline"><input type="checkbox" 
-                                                class="{{ name }} field"
                                                 name="{{ name }}"
                                                 {{# readonly }}disabled{{/ readonly }}
                                                 data-bind="checked: {{ name }},
@@ -242,8 +239,8 @@
     <script type="text/template"
             class="field-template"
             id="unknown-field-template">
-      <div class="{{ name }} item">
-        {{ name }}
+      <div>
+        (Поле {{ name }} неизвестного типа)
       </div>
     </script>
     
