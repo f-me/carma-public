@@ -43,11 +43,12 @@
             "name": "ownerName",
             "label": "ФИО владельца",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "index": true
         },
         {
             "name": "phone",
-            "label": "Мобильный телефон",
+            "label": "Телефон звонящего",
             "canWrite": true,
             "canRead": true,
             "index": true
@@ -58,6 +59,14 @@
             "canWrite": true,
             "canRead": true,
             "required": true
+        },
+        {
+            "name": "plateNum",
+            "label": "Регистрационный номер автомобиля",
+            "canWrite": true,
+            "canRead": true,
+            "required": true
+            "index": true
         },
         {
             "name": "comment",
