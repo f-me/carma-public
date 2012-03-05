@@ -254,7 +254,7 @@ caseAction :: ([FieldName], Connection)
            -> Iteratee B.ByteString IO ([FieldName], Connection)
 caseAction h      (ParsedRow Nothing)  = return h
 caseAction h       CSV.EOF             = return h
-caseAction (i, c) (ParsedRow (Just r)) =
+caseAction (idxs, c) (ParsedRow (Just r)) =
     let
       row = filterCaseRow r
       -- Commit only a fraction of original data for every case
@@ -267,7 +267,7 @@ caseAction (i, c) (ParsedRow (Just r)) =
     in do
       liftIO $ runRedis c $ case trs of
         -- No transformations matched
-        [] -> create "case" commit i >> return (i, c)
+        [] -> create "case" commit i >> return (idxs, c)
         -- Create dependant instance
         _ -> 
             let 
@@ -277,7 +277,7 @@ caseAction (i, c) (ParsedRow (Just r)) =
                  Right sid <- create depModel depCommit []
                  create "case" (M.insert (referenceField trans)
                                  (instanceKey depModel sid)
-                                 commit) i
+                                 commit) idxs
                  return (i, c)
 
 main :: IO ()
