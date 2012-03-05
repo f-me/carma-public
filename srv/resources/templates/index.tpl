@@ -262,7 +262,7 @@
         {{/ canUpdate }}
         {{# canCreate }}
         <button class="btn" type="button"
-                onClick="proceed();">
+                onClick="createInstance('{{ viewName }}');">
           <i class="icon-file" /> Начать новую</button>
         {{/ canCreate }}
         {{# canDelete }}

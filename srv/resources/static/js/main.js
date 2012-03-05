@@ -255,6 +255,13 @@ function saveInstance(viewName) {
 }
 
 // Load existing model instance
+function createInstance(viewName, id) {
+    saveInstance(viewName);
+    forgetView(viewName);
+    global.activeScreen.views[viewName](viewName, {});
+}
+
+// Load existing model instance
 function restoreInstance(viewName, id) {
     forgetView(viewName);
     global.activeScreen.views[viewName](viewName, {"id": id});
