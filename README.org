@@ -29,6 +29,8 @@
    With proper field index annotations for redson search API.
 
 ** TODO Support references
+   Perhaps referencables field should not be used at all (to support
+   dynamic lists of referencable models)
 ** TODO Dictionaries
    Special field type (will replace `choice`?)
 ** TODO Client settings
