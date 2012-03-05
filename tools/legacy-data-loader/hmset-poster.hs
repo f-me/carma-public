@@ -190,7 +190,7 @@ rent = mkTransformation
        , ("rentContractor", Left "Название дилера куда эвакуируют автомобиль")
        ]
 
-rent = mkTransformation
+sober = mkTransformation
        ["ТРЕЗВЫЙ ВОДИТЕЛЬ"]
        serviceField "sober" "service"
        [ ("fromAddress", Left "Адрес места поломки")
@@ -206,6 +206,7 @@ serviceTransformations = [ tech
                          , towage4
                          , taxi
                          , rent
+                         , sober
                          ]
 
 
