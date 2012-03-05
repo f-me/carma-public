@@ -18,5 +18,14 @@ body {
 
 .form-horizontal
 .control-group {
-  margin-bottom: 9px;
+  margin-bottom: 4px;
+}
+
+.form-horizontal
+.control-label {
+  padding-top: 2px;
+}
+
+input, textarea, select {
+  padding: 1px;
 }
