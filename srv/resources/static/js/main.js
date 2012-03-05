@@ -207,6 +207,15 @@ function setupCaseMain(viewName, args) {
     return modelSetup("case")(viewName, args.id);
 }
 
+// Show service in subform. Reference is '<modelname>:<id>'
+function setupService(viewName, reference) {
+    // O_o
+    var slices = /(\w+):(\w+)/.exec(reference);
+    var model = slices[1];
+    var id = slices[2];
+    return modelSetup(model)(viewName, id);
+}
+
 // Search main view
 function setupSearchTable(viewName, args) {
     $el(viewName).html($el("search-table-template").html());
