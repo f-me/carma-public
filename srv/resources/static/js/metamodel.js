@@ -89,10 +89,14 @@ function backbonizeModel(model, modelName) {
 /// Convert model to forest of HTML form elements with appropriate
 /// data-bind parameters for Knockout.
 ///
+/// To allow rendering of elements which depend on the name of view
+/// which will hold the instance (like save/remove instance), viewName
+/// argument is passed.
+///
 /// TODO: We can do this on server as well.
 ///
 /// @return String with form HTML
-function renderFormView(model) {
+function renderFormView(model, viewName) {
     var templates = [];
 
     _.each($(".field-template"),
@@ -124,7 +128,8 @@ function renderFormView(model) {
     var modelRo = !model.canUpdate && !model.canCreate && !model.canDelete;
     /// Add HTML to contents for non-false permissions
     contents += Mustache.render($("#permission-template").text(), 
-                                _.extend(model, {readonly: modelRo}));
+                                _.extend(model, {viewName: viewName,
+                                                 readonly: modelRo}));
 
     return contents;
 }
