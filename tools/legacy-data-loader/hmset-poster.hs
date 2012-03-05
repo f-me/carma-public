@@ -11,6 +11,7 @@ TODO More row transformations.
 TODO Support models other than "case".
 
 TODO Support more than one dependant form.
+
 |-}
 
 import Control.Monad.IO.Class (liftIO)
@@ -61,6 +62,9 @@ filterCaseRow row = snd $ M.mapEither
 --
 -- TODO allow arbitary transformation functions so that dictionaries
 -- may be supported.
+--
+-- TODO Should be written from left to right (csv → model,
+-- not model ← csv)
 type FieldMap = M.Map FieldName (Either FieldValue FieldName)
 
 -- 'FieldMap' with unfixed strings and in list form
@@ -170,7 +174,21 @@ towage4 = mkTransformation
                                , ("towType", Left "К дилеру")
                                ]
 
-serviceTransformations = [tech, hotel, towage1, towage2, towage3, towage4]
+taxi = mkTransformation
+       ["ТАКСИ"]
+       serviceField "taxi" "service"
+       $ towageCommonMap ++ [ ("taxiFrom", Left "Адрес места поломки")
+                            , ("taxiTo", Left "Адрес куда эвакуируют автомобиль")
+                            ]
+
+serviceTransformations = [ tech
+                         , hotel
+                         , towage1
+                         , towage2
+                         , towage3
+                         , towage4
+                         , taxi
+                         ]
 
 
 -- | How to remap columns of case.
@@ -184,6 +202,7 @@ caseMap = fixUtfMap $ map (\(k, v) -> (k, Right v)) $
           , ("callerName", "Фамилия звонящего")
           , ("ownerName", "Фамилия владельца")
           , ("phone", "Мобильный телефон")
+          , ("status", "Статус звонка (Обязательное поле)")
           ]
 
 -- | Build new commit from row and commit spec.
