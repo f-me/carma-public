@@ -28,7 +28,7 @@
 ** TODO Provide dealer and partner models
    With proper field index annotations for redson search API.
 
-** TODO Dependant fields
+** TODO Support references
 ** TODO Dictionaries
    Special field type (will replace `choice`?)
 ** TODO Client settings
