@@ -62,6 +62,9 @@ filterCaseRow row = snd $ M.mapEither
 -- may be supported.
 type FieldMap = M.Map FieldName (Either FieldValue FieldName)
 
+-- 'FieldMap' with unfixed strings and in list form
+type ProtoMap = [(String, Either String String)]
+
 -- | Describes how to build new commit for dependant instance and how it
 -- should be referenced from parent instance.
 data Transformation =
@@ -79,14 +82,21 @@ data Transformation =
                    -- ^ what field of case model will hold the
                    -- <service>:<id> reference
 
-                   , commitSpec :: FieldMap
+                   , commitMap :: FieldMap
                    }
 
 -- | Map field names 1-to-1, no name fixing
-bijectionMap :: [String] -> [(String, Either String String)]
+bijectionMap :: [String] -> ProtoMap
 bijectionMap fields = Prelude.map (\n -> (n, Right n)) fields
 
-serviceField = "Услуга  (Обязательное поле)"
+-- TODO Find out how to use <$> here
+fixUtfMap :: ProtoMap -> FieldMap
+fixUtfMap cmap = M.fromList 
+                 (map (\(k, v) -> (f k, case v of
+                                          Left s -> Left $ f s
+                                          Right s -> Right $ f s))
+                  cmap)
+    where f = BU.fromString
 
 -- | Build transformation using string literals
 --
@@ -95,17 +105,14 @@ mkTransformation :: [String]
                  -> String
                  -> ModelName 
                  -> FieldName
-                 -> [(String, Either String String)]
+                 -> ProtoMap
                  -> Transformation
 mkTransformation matchers mfield model rfield spec = 
-    Transformation (map BU.fromString matchers) (f mfield) model rfield $ 
-                   M.fromList
-                        -- TODO Find out how to use <$> here
-                        (map (\(k, v) -> (f k, case v of
-                                                 Left s -> Left $ f s
-                                                 Right s -> Right $ f s))
-                         spec)
+    Transformation (map f matchers) (f mfield) model rfield $ 
+                   fixUtfMap spec
         where f = BU.fromString
+
+serviceField = "Услуга  (Обязательное поле)"
 
 tech = mkTransformation
        ["ВСКРЫТИЕ ЗАМКОВ", "ДОСТАВКА ТОПЛИВА", 
@@ -164,7 +171,22 @@ towage4 = mkTransformation
 
 serviceTransformations = [tech, hotel, towage1, towage2, towage3, towage4]
 
+
+-- | How to remap columns of case.
+caseMap :: FieldMap
+caseMap = fixUtfMap $ map (\(k, v) -> (k, Right v)) $
+          [ ("callDate", "Дата звонка")
+          , ("callTime", "Время звонка")
+          , ("callTaker", "Сотрудник РАМК (Обязательное поле)")
+          , ("program", "Клиент (Обязательное поле)")
+          , ("service", "Услуга (Обязательное поле)")
+          , ("callerName", "Фамилия звонящего")
+          , ("ownerName", "Фамилия владельца")
+          , ("phone", "Мобильный телефон")
+          ]
+
 -- | Build new commit from row and commit spec.
+remapRow :: MapRow -> FieldMap -> MapRow
 remapRow row cspec = M.mapWithKey 
                      (\k v -> case v of
                                 Left val -> val
@@ -179,7 +201,7 @@ tryTransformation row transform =
     if (maybe False (flip elem $ matchers transform) 
                   (M.lookup (matchField transform) row))
     then Just (referenceModel transform,
-               remapRow row $ commitSpec transform)
+               remapRow row $ commitMap transform)
     else Nothing
 
 -- | Post case entries directly to Redis using connection provided as
@@ -195,10 +217,12 @@ caseAction h      (ParsedRow Nothing)  = return h
 caseAction h       CSV.EOF             = return h
 caseAction (i, c) (ParsedRow (Just r)) =
     let
-      commit = filterCaseRow r
+      row = filterCaseRow r
+      -- Commit only a fraction of original data for every case
+      commit = remapRow row caseMap
       -- Try all transformations and see which succeed
       trs = zip serviceTransformations
-                (catMaybes $ map (\t -> tryTransformation commit t) 
+                (catMaybes $ map (\t -> tryTransformation row t) 
                            serviceTransformations)
                 
     in do
