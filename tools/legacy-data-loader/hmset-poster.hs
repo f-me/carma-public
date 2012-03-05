@@ -181,6 +181,15 @@ taxi = mkTransformation
                             , ("taxiTo", Left "Адрес куда эвакуируют автомобиль")
                             ]
 
+rent = mkTransformation
+       ["ПОДМЕННЫЙ АВТОМОБИЛЬ"]
+       serviceField "rent" "service"
+       [ ("towDealer", Left "Название дилера куда эвакуируют автомобиль")
+       , ("rentAddress", Left "Адрес куда эвакуируют автомобиль")
+       , ("carClass", Right "")
+       , ("rentContractor", Left "Название дилера куда эвакуируют автомобиль")
+       ]
+
 serviceTransformations = [ tech
                          , hotel
                          , towage1
@@ -188,6 +197,7 @@ serviceTransformations = [ tech
                          , towage3
                          , towage4
                          , taxi
+                         , rent
                          ]
 
 
