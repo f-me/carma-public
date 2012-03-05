@@ -4,8 +4,8 @@ $(function(){
     // Screens have top-level template and a number of views.
     //
     // Each view has setup function which accepts DOM element, screen
-    // arguments and renders HTML to element and returns viewsWare
-    // value for the view element. View name matches the ID of
+    // arguments and renders HTML to element, and sets up viewsWare
+    // value for its view element. View name matches the ID of
     // enclosing DOM element ($el(<viewName>) = viewName's DOM).
     //
     // Screen rendering is called through router.
@@ -68,7 +68,8 @@ $(function(){
         // - knockVM (Knockout ViewModel bound to view).
         //
         // When screen is loaded, viewsWare should generally contain
-        // only keys which correspond to that screen views.
+        // only keys which correspond to that screen views. View
+        // renderers maintain their viewsWare.
         viewsWare: {}
     };
     // TODO Fix router to actually work
@@ -89,6 +90,7 @@ function $el(id) {
 //
 // args object is passed further to all view setup functions.
 function renderScreen(screenName, args) {
+    forgetScreen();
     var screen = global.screens[screenName];
     global.activeScreen = screen;
 
@@ -100,7 +102,7 @@ function renderScreen(screenName, args) {
     global.topElement.html(tpl);
     for (viewName in screen.views) {
         global.viewsWare[viewName] =
-            screen.views[viewName]($el(viewName), args);
+            screen.views[viewName](viewName, args);
     }
 }
 
@@ -128,13 +130,48 @@ function forgetScreen() {
 /// View setup functions
 
 // Case view
-function setupCaseMain(el, args) {
-    return modelSetup("case")(el, args.id);
+function setupCaseMain(viewName, args) {
+    return modelSetup("case")(viewName, args.id);
+}
+
+// Return function which will setup views for that model given its
+// view name and instance id. Standard Backbone-metamodel renderer
+// is used to generate HTML contents in element.
+function modelSetup(modelName) {
+    return function(viewName, id) {
+        $.getJSON(modelMethod(modelName, "model"),
+            function(model) {
+                mkBackboneModel = backbonizeModel(model, modelName);
+                var idHash = {};
+                if (id)
+                    idHash = {id: String(id)}
+                instance = new mkBackboneModel(idHash);
+                knockVM = new kb.ViewModel(instance);
+
+                $el(viewName).html(renderFormView(model, viewName));
+                ko.applyBindings(knockVM);
+
+                // Wait a bit to populate model fields and bind form
+                // elements without PUT-backs to server
+                //
+                // TODO First POST is still broken somewhy.
+                window.setTimeout(function () {
+                    knockVM._kb_vm.model.setupServerSync();
+                }, 1000);
+
+                global.viewsWare[viewName] = {
+                    "model": model,
+                    "modelName": modelName,
+                    "mkBackboneModel": mkBackboneModel,
+                    "knockVM": knockVM
+                };
+            });
+    }
 }
 
 // Search main view
-function setupSearchTable(el, args) {
-    el.html($el("search-table-template").html());
+function setupSearchTable(viewName, args) {
+    $el(viewName).html($el("search-table-template").html());
     $el("searchtable").dataTable({
         aoColumnDefs: [{
             // Render case id as link to case page
@@ -154,7 +191,6 @@ function setupSearchTable(el, args) {
             sInfoEmpty: "",
             sZeroRecords: "Ничего не найдено"
         }});
-    return {};
 }
 
 // Manually load JSON data from server and add it to table
@@ -188,42 +224,6 @@ function doSearch() {
                   t.fnClearTable();
                   t.fnAddData(data);
               });
-}
-
-// Return function which will setup views for that model given its
-// view element and instance id. Standard Backbone-metamodel renderer
-// is used to generate HTML contents in element.
-function modelSetup(modelName) {
-    return function(el, id) {
-        $.getJSON(modelMethod(modelName, "model"),
-            function(model) {
-                mkBackboneModel = backbonizeModel(model, modelName);
-                var idHash = {};
-                if (id)
-                    idHash = {id: String(id)}
-                instance = new mkBackboneModel(idHash);
-                knockVM = new kb.ViewModel(instance);
-
-                el.html(renderFormView(model));
-                ko.applyBindings(knockVM);
-
-                // Wait a bit to populate model fields and bind form
-                // elements without PUT-backs to server
-                //
-                // TODO First POST is still broken somewhy.
-                window.setTimeout(function () {
-                    knockVM._kb_vm.model.setupServerSync();
-                }, 1000);
-
-                // Return wares produced by view
-                return {
-                    "model": model,
-                    "modelName": modelName,
-                    "mkBackboneModel": mkBackboneModel,
-                    "knockVM": knockVM
-                };
-            });
-    }
 }
 
 function initOSM() {
