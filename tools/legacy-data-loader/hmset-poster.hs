@@ -267,7 +267,7 @@ caseAction (idxs, c) (ParsedRow (Just r)) =
     in do
       liftIO $ runRedis c $ case trs of
         -- No transformations matched
-        [] -> create "case" commit i >> return (idxs, c)
+        [] -> create "case" commit idxs >> return (idxs, c)
         -- Create dependant instance
         _ -> 
             let 
@@ -278,7 +278,7 @@ caseAction (idxs, c) (ParsedRow (Just r)) =
                  create "case" (M.insert (referenceField trans)
                                  (instanceKey depModel sid)
                                  commit) idxs
-                 return (i, c)
+                 return (idxs, c)
 
 main :: IO ()
 main =
