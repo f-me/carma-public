@@ -6,6 +6,10 @@
 
 Post legacy data directly to Redis hashes, cases only.
 
+TODO More row transformations.
+
+TODO Support everything.
+
 |-}
 
 import Control.Monad.IO.Class (liftIO)
