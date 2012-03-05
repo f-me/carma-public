@@ -57,7 +57,15 @@
             "default": true,
             "canWrite": true,
             "canRead": true
+        },
+        {
+            "name": "caseid",
+            "label": "Кейс, к которому привязана услуга",
+            "type": "reference",
+            "reference-model": "case",
+            "canWrite": true,
+            "canRead": true,
+            "invisible": true
         }
-        
     ]
 }
