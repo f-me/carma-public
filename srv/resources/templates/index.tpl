@@ -239,8 +239,12 @@
     <script type="text/template"
             class="field-template"
             id="unknown-field-template">
-      <div>
-        (Поле {{ name }} неизвестного типа)
+      <div class="control-group">
+        <div class="controls">
+          <span class="label label-important">
+            (Ошибка — поле {{ name }} неизвестного типа)
+          </span>
+        </div>
       </div>
     </script>
     
