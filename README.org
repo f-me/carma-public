@@ -19,7 +19,7 @@
   
 * To do
 ** IN_PROGRESS Provide case model
-** TODO Tech assistance model
+** IN_PROGRESS Tech assistance model
    - [ ] techType — dictionary
 ** IN_PROGRESS [0/3] Towage model
    - [ ] towerType & towType       — dictionaries
