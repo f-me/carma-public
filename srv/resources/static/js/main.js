@@ -8,6 +8,11 @@ $(function(){
     // value for its view element. View name matches the ID of
     // enclosing DOM element ($el(<viewName>) = viewName's DOM).
     //
+    // View may have no standard setup function, in which case it must
+    // be called from outside (e.g. after user took action in a
+    // different view). In this case noOp must be selected as view
+    // function.
+    //
     // Screen rendering is called through router.
     var Screens = {
         "case":
@@ -15,7 +20,8 @@ $(function(){
                 "template": "case-screen-template",
                 "views":
                     {
-                        "form": setupCaseMain
+                        "form": setupCaseMain,
+                        "subform": noOp
                     }
             },
         "search":
@@ -130,6 +136,8 @@ function forgetScreen() {
     global.activeScreen = null;
 }
 
+// Dumb setup for setupless views
+function noOp(viewName, args) {};
 
 /// Model functions.
 
@@ -148,7 +156,7 @@ function modelSetup(modelName) {
                 knockVM = new kb.ViewModel(instance);
 
                 $el(viewName).html(renderFormView(model, viewName));
-                ko.applyBindings(knockVM);
+                ko.applyBindings(knockVM, el(viewName));
 
                 // Wait a bit to populate model fields and bind form
                 // elements without PUT-backs to server
@@ -192,11 +200,13 @@ function restoreInstance(viewName, id) {
 }
 
 // Remove instance currently loaded in view from storage and render
-// that view from scratch
+// that view from scratch (if possible)
 function removeInstance(viewName) {
     global.viewsWare[viewName].knockVM._kb_vm.model.destroy();
     forgetView(viewName);
-    global.activeScreen.views[viewName](viewName, {});
+    var setup = global.activeScreen.views[viewName];
+    if (!_.isUndefined(setup))
+        setup(viewName, {});
 }
 
 
@@ -208,6 +218,8 @@ function setupCaseMain(viewName, args) {
 }
 
 // Show service in subform. Reference is '<modelname>:<id>'
+//
+// How to update parent reference value when new service is created?
 function setupService(viewName, reference) {
     // O_o
     var slices = /(\w+):(\w+)/.exec(reference);
@@ -245,14 +257,17 @@ function setupSearchTable(viewName, args) {
 //
 // TODO Allow adjusting of search fields etc.
 function doSearch() {
+    var fields = ["id", "ownerName", "callDate", "phone", "plateNum", "program"];
+    var sType = "or"
+    var limit = "100";
+
     var t = $el("searchtable").dataTable();
     var term = $el("table-query").val();
     var method = "search/?";
-    var fields = ["id", "ownerSurname", "callDate", "phone", "plateNum", "program"];
     for (f in fields) {
         method += (fields[f] + "=" + term + "&");
     };
-    method += "_matchType=s&_searchType=or&_limit=100";
+    method += "_matchType=s&_searchType=" + sType + "&_limit=" + limit;
     $.getJSON(modelMethod("case", method),
               function(results) {
                   var data = []
