@@ -152,7 +152,18 @@
     </script>
 
 
-    <!-- Form field templates -->
+    <!-- 
+         Form field templates.
+         
+         Field template must have id in form of <type>-field-template,
+         where <type> is field type to be rendered using this
+         template, or <name>-<type>-field-template, where <name> is
+         the name of field of given type which will be rendered with
+         this template. Client code must prefer named templates to
+         only-typed ones.
+         
+      -->
+    
     <script type="text/template" 
             class="field-template"
             id="textarea-field-template">
