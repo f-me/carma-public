@@ -257,7 +257,7 @@
         {{/ readonly }}
         {{# canUpdate }}
         <button class="btn btn-success" type="button"
-                onClick="save();">
+                onClick="saveInstance('{{ viewName }}');">
           <i class="icon-pencil icon-white" /> Сохранить</button>
         {{/ canUpdate }}
         {{# canCreate }}
@@ -268,7 +268,7 @@
         {{# canDelete }}
         <button class="btn btn-danger" type="button"
                 style="float:right;"
-                onClick="remove();">
+                onClick="removeInstance('{{ viewName }}');">
           <i class="icon-trash icon-white" /> Удалить</button>
         {{/ canDelete }}
         <div style="clear: both;" />
