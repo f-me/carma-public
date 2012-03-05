@@ -248,7 +248,7 @@ function doSearch() {
     var t = $el("searchtable").dataTable();
     var term = $el("table-query").val();
     var method = "search/?";
-    var fields = ["id", "ownerSurname", "callDate", "phone", "plateNum", "program", "service"];
+    var fields = ["id", "ownerSurname", "callDate", "phone", "plateNum", "program"];
     for (f in fields) {
         method += (fields[f] + "=" + term + "&");
     };
