@@ -1,4 +1,3 @@
-
 {-# LANGUAGE OverloadedStrings, NoMonomorphismRestriction #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 import Control.Applicative
