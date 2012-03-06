@@ -23,9 +23,9 @@ body {
 
 .form-horizontal
 .control-label {
-  padding-top: 2px;
+  padding-top: 4px;
 }
 
 input, textarea, select {
-  padding: 1px;
+  padding: 2px;
 }
