@@ -36,10 +36,11 @@ $(function(){
 
     // Setup routing
     var MenuRouter = Backbone.Router.extend({
+        // Must _not_ end with trailing slashes
         routes: {
-            "case/:id/": "loadCase",
-            "case/": "newCase",
-            "search/": "search"
+            "case/:id": "loadCase",
+            "case": "newCase",
+            "search": "search"
         },
 
         loadCase: function (id) {
@@ -78,9 +79,6 @@ $(function(){
         // renderers maintain their viewsWare.
         viewsWare: {}
     };
-    // TODO Fix router to actually work
-    renderScreen("search");
-
     Backbone.history.start({pushState: false});
 });
 

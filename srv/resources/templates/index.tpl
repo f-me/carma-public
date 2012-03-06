@@ -52,13 +52,13 @@
               <a href="/call/">Приём звонка</a>
             </li>
             <li id="case-screen-nav">
-              <a href="#" onclick="renderScreen('case', {});">Кейс</a>
+              <a href="#case">Кейс</a>
             </li>
             <li id="search-screen-nav">
-              <a href="#" onclick="renderScreen('search');">Поиск</a>
+              <a href="#search">Поиск</a>
             </li>
             <li id="help-screen-nav">
-              <a href="/help/">Справка</a>
+              <a href="#help">Справка</a>
             </li>
           </ul>
             <ifLoggedIn>
