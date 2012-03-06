@@ -245,11 +245,12 @@
             id="checkbox-field-template">
       <div class="control-group">
         <div class="controls">
-          <label class="checkbox inline"><input type="checkbox" 
-                                                name="{{ name }}"
-                                                {{# readonly }}disabled{{/ readonly }}
-                                                data-bind="checked: {{ name }},
-                                                           valueUpdate: 'change'" />
+          <label class="checkbox inline">
+            <input type="checkbox" 
+                   name="{{ name }}"
+                   {{# readonly }}disabled{{/ readonly }}
+                   data-bind="checked: {{ name }},
+                              valueUpdate: 'change'" />
             {{ label }}
           </label>
         </div>
