@@ -103,6 +103,9 @@
           </fieldset>
       </div>
       <!-- Subform -->
+      <!-- 
+      TODO Should be span6 when fluid containers are fixed in
+           Bootstrap upstream. -->
       <div class="box span5" id="right">
           <fieldset>
             <legend>
@@ -117,7 +120,8 @@
     <script type="text/template" 
             id="search-screen-template" 
             class="screen-template">
-      <div class="box span12" id="tableView" />
+      <!-- Can't use offsetN class here due to fluid layout. -->
+      <div class="box span11" id="tableView" />
     </script>
 
     <script type="text/template" 
@@ -135,7 +139,7 @@
         </form>
       </fieldset>
       </div>
-      <table id="searchtable">
+      <table id="searchtable" class="table table-striped table-bordered">
         <thead>
           <tr>
             <th>ID</th>
