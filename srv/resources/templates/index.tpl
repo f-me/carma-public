@@ -287,17 +287,6 @@
                 onClick="saveInstance('{{ viewName }}');">
           <i class="icon-pencil icon-white" /> Сохранить</button>
         {{/ canUpdate }}
-        {{# canCreate }}
-        <button class="btn" type="button"
-                onClick="createInstance('{{ viewName }}');">
-          <i class="icon-file" /> Начать новую</button>
-        {{/ canCreate }}
-        {{# canDelete }}
-        <button class="btn btn-danger" type="button"
-                style="float:right;"
-                onClick="removeInstance('{{ viewName }}');">
-          <i class="icon-trash icon-white" /> Удалить</button>
-        {{/ canDelete }}
         <div style="clear: both;" />
       </div>
     </script>
