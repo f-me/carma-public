@@ -175,7 +175,7 @@
           <label>{{ label }}</label>
         </div>
         <div class="controls">
-          <textarea class="span5"
+          <textarea class="pane-span"
                     name="{{ name }}" 
                     {{# readonly }}disabled{{/ readonly }}
                     rows="7"
@@ -194,7 +194,7 @@
         </div>
         <div class="controls">
           <input type="text"
-                 class="span5"
+                 class="pane-span"
                  name="{{ name }}"
                  {{# readonly }}disabled{{/ readonly }}
                  data-bind="value: {{ name }}, 

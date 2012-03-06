@@ -33,3 +33,13 @@ input, textarea, select {
 div.dataTables_length select {
     width: 75px;
 }
+
+input.pane-span,
+textarea.pane-span, 
+.uneditable-input.pane-span {
+  width: 99%;
+}
+
+.form-vertical .control-group {
+  margin-bottom: 0px;
+}
