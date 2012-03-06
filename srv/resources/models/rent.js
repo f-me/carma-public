@@ -19,7 +19,7 @@
         },
         {
             "name": "carClass",
-            "label": "Класс автомобиля"
+            "label": "Класс автомобиля",
             "canWrite": true,
             "canRead": true
         },
