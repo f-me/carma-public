@@ -255,9 +255,6 @@ function setupSearchTable(viewName, args) {
             sLengthMenu: "Показывать по _MENU_ записей",
             sZeroRecords: "Ничего не найдено"
         }});
-    
-    // Condense length menu horizontally
-    $("select[name=searchtable_length]").addClass("span1");
 }
 
 // Manually load JSON data from server and add it to table

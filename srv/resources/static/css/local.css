@@ -29,3 +29,7 @@ body {
 input, textarea, select {
   padding: 2px;
 }
+
+div.dataTables_length select {
+    width: 75px;
+}
