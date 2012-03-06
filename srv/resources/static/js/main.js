@@ -231,6 +231,11 @@ function setupService(viewName, reference) {
 function setupSearchTable(viewName, args) {
     $el(viewName).html($el("search-table-template").html());
     global.viewsWare[viewName] = {};
+    
+    // Show table controls with form-inline
+    $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline";
+    $.fn.dataTableExt.oStdClasses.sFilter = "dataTables_filter form-inline";
+
     $el("searchtable").dataTable({
         aoColumnDefs: [{
             // Render case id as link to case page
@@ -247,8 +252,12 @@ function setupSearchTable(viewName, args) {
             },
             sInfo: "Показаны записи с _START_ по _END_ (всего _TOTAL_)",
             sInfoEmpty: "",
+            sLengthMenu: "Показывать по _MENU_ записей",
             sZeroRecords: "Ничего не найдено"
         }});
+    
+    // Condense length menu horizontally
+    $("select[name=searchtable_length]").addClass("span1");
 }
 
 // Manually load JSON data from server and add it to table
