@@ -48,4 +48,4 @@
    then if code field of model N is set to K, update must append N to
    `scp:code:K` to N. This will allow faster searching by field
    contents.
-
+** MAYBE Better JavaScript tables solution
