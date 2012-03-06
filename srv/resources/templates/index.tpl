@@ -131,7 +131,7 @@
       <fieldset>
         <legend>Поиск</legend>
         <form class="form-inline">
-          <!-- ID magically cannot being with "searchtable" -->
+          <!-- ID magically cannot start with "searchtable" -->
           <input type="text" class="span6" id="table-query" />
           <button class="btn btn-success" onclick="doSearch();" type="button">
             Поиск
