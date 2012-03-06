@@ -235,8 +235,7 @@ function setupSearchTable(viewName, args) {
         aoColumnDefs: [{
             // Render case id as link to case page
             fnRender: function (o, val) {
-                return "<a href='#' onclick=\"renderScreen('case', {id:" +
-                    val + "});\">" + val + "<a/>";
+                return "<a href=\"/#case/" + val + "\">" + val + "</a>";
             },
             aTargets: [0]
         }],
