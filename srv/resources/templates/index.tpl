@@ -201,6 +201,27 @@
 
     <script type="text/template"
             class="field-template"
+            id="service-reference-field-template">
+      <div class="control-group">
+        <div class="control-label">
+          <label>{{ label }}</label>
+        </div>
+        <div class="controls">
+          <!-- Use computed observable here -->
+          <input type="text" name="{{ name }}"
+                 disabled data-bind="value: {{ name }}" />
+          <button type="button" class="btn btn-action" 
+                  name="{{ name }}"
+                  onclick="setupService('subform', $('[name={{name}}]').val());">
+            <i class="icon icon-eye-open" /> Услуга →
+          </button>
+        </div>
+        </div>
+      </div>
+    </script>
+
+    <script type="text/template"
+            class="field-template"
             id="select-field-template">
       <div class="control-group">
         <div class="control-label">

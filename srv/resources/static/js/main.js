@@ -153,6 +153,7 @@ function modelSetup(modelName) {
                 if (id)
                     idHash = {id: String(id)}
                 instance = new mkBackboneModel(idHash);
+
                 knockVM = new kb.ViewModel(instance);
 
                 $el(viewName).html(renderFormView(model, viewName));
