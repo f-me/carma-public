@@ -8,10 +8,8 @@ $(function(){
     // value for its view element. View name matches the ID of
     // enclosing DOM element ($el(<viewName>) = viewName's DOM).
     //
-    // View may have no standard setup function, in which case it must
-    // be called from outside (e.g. after user took action in a
-    // different view). In this case noOp must be selected as view
-    // function.
+    // In case view has no standard setup function, null must be
+    // specified instead.
     //
     // Screen rendering is called through router.
     var Screens = {
@@ -21,7 +19,7 @@ $(function(){
                 "views":
                     {
                         "form": setupCaseMain,
-                        "subform": noOp
+                        "subform": null
                     }
             },
         "search":
@@ -107,7 +105,9 @@ function renderScreen(screenName, args) {
     // Call setup functions for all views, assuming they will set
     // their viewsWare
     for (viewName in screen.views) {
-        screen.views[viewName](viewName, args);
+        var setup = screen.views[viewName];
+        if (!_.isNull(setup))
+            setup(viewName, args);
     }
 }
 
@@ -133,10 +133,6 @@ function forgetScreen() {
     global.viewsWare = {};
     global.activeScreen = null;
 }
-
-// Dumb setup for setupless views
-function noOp(viewName, args) {};
-
 /// Model functions.
 
 // Return function which will setup views for that model given its
@@ -204,7 +200,7 @@ function removeInstance(viewName) {
     global.viewsWare[viewName].knockVM._kb_vm.model.destroy();
     forgetView(viewName);
     var setup = global.activeScreen.views[viewName];
-    if (!_.isUndefined(setup))
+    if (!_.isNull(setup))
         setup(viewName, {});
 }
 
