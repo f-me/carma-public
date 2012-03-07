@@ -105,26 +105,7 @@ function addService(caseInstance, serviceModelName, servicesForest) {
                            refField: "services"},
                         tpls);
     $el(servicesForest).append(html);
-
-    // Fill view with submodel form, requesting its ID upon first
-    // callback and saving it in parent form.
-    //
-    // We heard you like callbacks...
-    var fetchCb = function(serviceInstance) {
-        var idChangeCb = function () {
-            if (serviceInstance.hasChanged("id")) {
-                serviceInstance.unbind("change", idChangeCb);
-                var newRef = serviceModelName + ":" + serviceInstance.id;
-                var newServices;
-                if (oldServices.length == 0)
-                    newServices = newRef;
-                else
-                    newServices = oldServices.concat(newRef).join(",");
-                caseInstance.set({services: newServices});
-            }
-        }
-        serviceInstance.bind("change", idChangeCb);
-    }
+    var fetchCb = mkRefFetchCb(caseInstance, "services");
     var subview = "services-view-" + refN;
 
     modelSetup(serviceModelName)(subview, null, fetchCb, [], subview + "-perms");

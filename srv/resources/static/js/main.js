@@ -98,6 +98,38 @@ function forgetScreen() {
     global.activeScreen = null;
 }
 
+
+// A helper to be used as referenced instance's fetchCb.
+//
+// It will add a reference to named field of parent instance when it
+// becomes available from referenced instance. (After first POST
+// usually.)
+// 
+// We heard you like callbacks...
+function mkRefFetchCb(parentInstance, field) {
+    var fetchCb = function(refInstance) {
+        var idChangeCb = function () {
+            if (refInstance.hasChanged("id")) {
+                refInstance.unbind("change", idChangeCb);
+
+                var newRef = refInstance.name + ":" + refInstance.id;
+                var newValue;
+                var oldValue = parentInstance.get(field);
+                if (_.isNull(oldValue) || (oldValue == ""))
+                    newValue = oldValue;
+                else
+                    newValue = oldValue + "," + newRef;
+
+                parentInstance.set({field: newValue});
+            }
+        }
+        // Have to use cb inside a cb becase fetchCb itself gets
+        // unbound after first change.
+        refInstance.bind("change", idChangeCb);
+    }
+    return fetchCb;
+}
+
 // Setup views for references stored in given instance fields.
 //
 // For every refFields rf key, generate a forest of views in element
