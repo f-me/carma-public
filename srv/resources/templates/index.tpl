@@ -263,7 +263,14 @@
 
     </script>
 
-    <!-- Template for one of service references -->
+    <!-- 
+    
+         Template for one of service references
+    
+         Must generate {{refField}}-view-{{refN}} element which will
+         hold contents of referenced model.
+
+    -->
     <script type="text/template"
             class="reference-template"
             id="-reference-template">
@@ -278,6 +285,7 @@
           <div class="accordion-inner {{ refField }}-view" 
                id="{{refField}}-view-{{ refN }}">
             <!-- Instance contents are rendered here -->
+
           </div>
         </div>
       </div>
