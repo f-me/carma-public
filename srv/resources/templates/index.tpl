@@ -107,20 +107,20 @@
             <div class="controls">
               <div class="accordion" id="case-service-references" />
               
-              <!-- This list should be generated automatically based
+              <!-- This list will be generated automatically based
                    on programs data.
               -->
               <select multiple="true" size="6" name="service-picker">
                 <option value="tech">Техпомощь</option>
                 <option value="towage">Буксировка</option>
                 <option value="taxi">Такси</option>
-                <option>Гостиница</option>
-                <option>Подменный автомобиль</option>
-                <option>Трезвый водитель</option>
+                <option value="hotel">Гостиница</option>
+                <option value="rent">Подменный автомобиль</option>
+                <option value="sober">Трезвый водитель</option>
               </select><br />
-              <button type="button" class="btn btn-action">
+              <button type="button" class="btn"
+                      onclick="addService();">
                 <i class="icon icon-plus" />Добавить услугу</button>
-              
             </div>
           </div>
           
@@ -300,7 +300,7 @@
         </div>
 
         <div id="{{refField}}-view-{{refN}}-head"
-             class="accordion-body collapse">
+             class="accordion-body collapse {{^refId}}in{{/refId}}">
           <div class="accordion-inner {{ refField }}-view" 
                id="{{refField}}-view-{{ refN }}">
             <!-- Instance contents are rendered here -->

@@ -79,11 +79,19 @@ function setupCaseMain(viewName, args) {
     modelSetup("case")(viewName, args.id, fetchCb, [], "case-permissions");
 }
 
+// Top-level wrapper for storeService, which grabs serviceModelName
+// from service-picker
+function addService() {
+    storeService(global.viewsWare["case-form"].bbInstance,
+                 $("[name=service-picker]").val(),
+                 "case-service-references");
+}
+
 // Add new service to case
 //
 // caseInstance is a Backbone model, servicesForest is ID of element
 // which holds views for services of model.
-function addService(caseInstance, serviceModelName, servicesForest) {
+function storeService(caseInstance, serviceModelName, servicesForest) {
     var oldServices = caseInstance.get("services");
     var tpls = getTemplates("reference-template");
     if (_.isNull(oldServices) || (oldServices == ""))

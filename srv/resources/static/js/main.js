@@ -119,8 +119,9 @@ function mkRefFetchCb(parentInstance, field) {
                     newValue = oldValue;
                 else
                     newValue = oldValue + "," + newRef;
-
-                parentInstance.set({field: newValue});
+                var hash = {};
+                hash[field] = newValue;
+                parentInstance.set(hash);
             }
         }
         // Have to use cb inside a cb becase fetchCb itself gets
