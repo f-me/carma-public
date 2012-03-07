@@ -60,6 +60,7 @@ function backbonizeModel(model, modelName) {
             // TODO _.extend doesn't work here
             for (k in attrs)
                 if (k != "id" &&
+                    (!_.isUndefined(this.fieldHash[k])) &&
                     this.model.canUpdate &&
                     this.fieldHash[k].canWrite &&
                     (!_.isNull(attrs[k])))
@@ -75,7 +76,10 @@ function backbonizeModel(model, modelName) {
         parse: function(json) {
             var m = this.model;
             for (k in json) {
-                if ((k != "id") && (this.fieldHash[k].type == "checkbox")) {
+                // TODO Perhaps inform client when unknown field occurs
+                if ((k != "id") && 
+                    (!_.isUndefined(this.fieldHash[k])) &&
+                    (this.fieldHash[k].type == "checkbox")) {
                     if (json[k] == "1")
                         json[k] = true;
                     else
