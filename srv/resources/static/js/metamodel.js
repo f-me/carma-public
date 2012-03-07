@@ -37,6 +37,8 @@ function backbonizeModel(model, modelName) {
         // representation of instance of original model) are not to be
         // confused!
         model: model,
+        // Name of model definition
+        name: modelName,
         // Hash of model fields as provided by model definition.
         fieldHash: fieldHash,
         // Bind model changes to server sync
