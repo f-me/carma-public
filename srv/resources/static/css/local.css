@@ -43,3 +43,7 @@ textarea.pane-span,
 .form-vertical .control-group {
   margin-bottom: 0px;
 }
+
+.accordion-toggle {
+  cursor: pointer;
+}

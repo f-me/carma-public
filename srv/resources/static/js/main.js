@@ -18,8 +18,7 @@ $(function(){
                 "template": "case-screen-template",
                 "views":
                     {
-                        "form": setupCaseMain,
-                        "subform": null
+                        "case-form": setupCaseMain
                     }
             },
         "search":
@@ -133,25 +132,105 @@ function forgetScreen() {
     global.viewsWare = {};
     global.activeScreen = null;
 }
+
+// Setup views for references stored in given instance fields.
+//
+// For every refFields rf key, generate a forest of views in element
+// refFields[rf] where each has id in form of <rf>-view-<N>, N = 0,1..
+// and class <rf>-view
+//
+// Return hash with books of views generated this way for every rf.
+// Every book contains array of object with keys refN, refModel,
+// refId.
+//
+// Example:
+// {service: [{refN: 0, refModel: "towage", refId: "2131"},..]}
+//
+// means that field service contained a reference to instance of
+// "towage" model with id "2131" and view "service-view-0" was
+// generated for it. If refFields was {"service": "foo"}, then view
+// was placed inside "foo" container.
+function setupRefs(instance, refFields) {
+    var tplNs = "reference-template";
+    var tpls = getTemplates(tplNs);
+    
+    var books = {};
+
+    for (rf in refFields) {
+        books[rf] = [];
+        // Generate a bunch of views to fill in
+        var refs = instance.get(rf).split(",");
+        if (refs[0] != "") {
+            var referenceViews = "";
+            for (i in refs) {
+                var slices = /(\w+):(\w+)/.exec(refs[i]);
+                var model = slices[1];
+                var id = slices[2];
+
+                var named_tpl = model + "-" + rf;
+                var typed_tpl = rf;
+                var refBook = {refN: i,
+                               refModel: model,
+                               refId: id,
+                               refField: rf};
+                books[rf][i] = refBook;
+
+                // Every view must set div with
+                // id=<refField>-view-<refN>
+                referenceViews
+                    += Mustache.render(pickTemplate(tpls, [named_tpl, typed_tpl, ""]),
+                                       refBook);
+            }
+            $el(refFields[rf]).html(referenceViews);
+        }
+    }
+    console.log(books);
+    return books;
+}
+
 /// Model functions.
 
 // Return function which will setup views for that model given its
-// view name and instance id. Standard Backbone-metamodel renderer
-// is used to generate HTML contents in element.
-function modelSetup(modelName) {
-    return function(viewName, id) {
+// form element name and instance id. Standard Backbone-metamodel
+// renderer is used to generate HTML contents in form view.
+//
+// multirefs argument is a hash where each key is the name of field
+// with type reference to be rendered immediately after the parent
+// model has been loaded and value is the element name to render
+// forest of reference templates into. No way to GO DEEPER yet.
+function modelSetup(modelName, refFields) {
+    return function(elName, id) {
         $.getJSON(modelMethod(modelName, "model"),
             function(model) {
                 mkBackboneModel = backbonizeModel(model, modelName);
                 var idHash = {};
                 if (id)
                     idHash = {id: String(id)}
+
                 instance = new mkBackboneModel(idHash);
+
+                // Do the same for all refFields after first fetch()
+                // is complete
+                var fetchCallback;
+                fetchCallback = function () {
+                    // Just once
+                    instance.unbind("change", fetchCallback);
+                    
+                    books = setupRefs(instance, refFields);
+                    for (rf in books) {
+                        for (rn in books[rf]) {
+                            var setup = modelSetup(books[rf][rn].refModel, {});
+                            setup(rf + "-view-" + rn, books[rf][rn].refId);
+                        }
+                    }
+
+                }
+                instance.bind("change", fetchCallback);
 
                 knockVM = new kb.ViewModel(instance);
 
-                $el(viewName).html(renderFormView(model, viewName));
-                ko.applyBindings(knockVM, el(viewName));
+                $el(elName).html(renderFields(model, elName));
+                ko.applyBindings(knockVM, el(elName));
 
                 // Wait a bit to populate model fields and bind form
                 // elements without PUT-backs to server
@@ -161,8 +240,9 @@ function modelSetup(modelName) {
                     knockVM._kb_vm.model.setupServerSync();
                 }, 1000);
 
-                global.viewsWare[viewName] = {
+                global.viewsWare[elName] = {
                     "model": model,
+                    "bbInstance": instance,
                     "modelName": modelName,
                     "mkBackboneModel": mkBackboneModel,
                     "knockVM": knockVM
@@ -209,17 +289,15 @@ function removeInstance(viewName) {
 
 // Case view
 function setupCaseMain(viewName, args) {
-    return modelSetup("case")(viewName, args.id);
+    modelSetup("case", 
+               {"service": "case-service-references"})(viewName, args.id);
 }
 
 // Show service in subform. Reference is '<modelname>:<id>'
 //
 // How to update parent reference value when new service is created?
 function setupService(viewName, reference) {
-    // O_o
-    var slices = /(\w+):(\w+)/.exec(reference);
-    var model = slices[1];
-    var id = slices[2];
+
     return modelSetup(model)(viewName, id);
 }
 

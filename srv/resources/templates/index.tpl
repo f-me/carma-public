@@ -11,7 +11,7 @@
 
     <!-- Rich UI -->
     <script src="/s/js/3p/bootstrap.min.js" />
-    
+
     <!-- Tabular display -->
     <script src="/s/js/3p/jquery.dataTables.min.js" />
 
@@ -36,7 +36,7 @@
     <script src="/s/js/main.js" />
   </head>
   <body>
-    
+
     <!-- Navigation bar on top -->
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
@@ -91,42 +91,53 @@
     </div>
 
     <!-- Case screen layout -->
-    <script type="text/template" 
+    <script type="text/template"
             class="screen-template"
             id="case-screen-template">
       <!-- Main case form -->
       <div class="box span6" id="left">
           <fieldset>
             <legend>
-              <span id="form-title" />
+              <span id="case-title" />
             </legend>
-            <form id="form" class="form-horizontal" />
+            <form class="form-horizontal">
+              <div id="case-form" />
+              <div class="control-group">
+                <div class="control-label">
+                  <label>Услуги</label>
+                </div>
+                <div class="controls">
+                  <div class="accordion" id="case-service-references" />
+                </div>
+              </div>
+              <div id="case-permissions" />
+            </form>
           </fieldset>
       </div>
-      <!-- Subform -->
-      <!-- 
+      <!-- Right pane with subform -->
+      <!--
       TODO Should be span6 when fluid containers are fixed in
            Bootstrap upstream. -->
       <div class="box span5" id="right">
           <fieldset>
             <legend>
-              <span id="subform-title" />
+              <span id="case-subform-title" />
             </legend>
-            <form id="subform" class="form-horizontal" />
+            <form id="case-subform" class="form-horizontal" />
           </fieldset>
       </div>
     </script>
 
     <!-- Search screen -->
-    <script type="text/template" 
-            id="search-screen-template" 
+    <script type="text/template"
+            id="search-screen-template"
             class="screen-template">
       <!-- Can't use offsetN class here due to fluid layout. -->
       <div class="box span11" id="tableView" />
     </script>
 
-    <script type="text/template" 
-            id="search-table-template" 
+    <script type="text/template"
+            id="search-table-template"
             class="view-template">
       <div style="text-align:center;">
       <fieldset>
@@ -156,19 +167,19 @@
     </script>
 
 
-    <!-- 
+    <!--
          Form field templates.
-         
+
          Field template must have id in form of <type>-field-template,
          where <type> is field type to be rendered using this
          template, or <name>-<type>-field-template, where <name> is
          the name of field of given type which will be rendered with
          this template. Client code must prefer named templates to
          only-typed ones.
-         
+
       -->
-    
-    <script type="text/template" 
+
+    <script type="text/template"
             class="field-template"
             id="textarea-field-template">
       <div class="control-group">
@@ -177,7 +188,7 @@
         </div>
         <div class="controls">
           <textarea class="pane-span"
-                    name="{{ name }}" 
+                    name="{{ name }}"
                     {{# readonly }}disabled{{/ readonly }}
                     rows="7"
                     data-bind="value: {{ name }},
@@ -198,29 +209,8 @@
                  class="pane-span"
                  name="{{ name }}"
                  {{# readonly }}disabled{{/ readonly }}
-                 data-bind="value: {{ name }}, 
+                 data-bind="value: {{ name }},
                             valueUpdate: 'afterkeydown'" />
-        </div>
-      </div>
-    </script>
-
-    <script type="text/template"
-            class="field-template"
-            id="service-reference-field-template">
-      <div class="control-group">
-        <div class="control-label">
-          <label>{{ label }}</label>
-        </div>
-        <div class="controls">
-          <!-- Use computed observable here -->
-          <input type="text" name="{{ name }}"
-                 disabled data-bind="value: {{ name }}" />
-          <button type="button" class="btn btn-action" 
-                  name="{{ name }}"
-                  onclick="setupService('subform', $('[name={{name}}]').val());">
-            <i class="icon icon-eye-open" /> Услуга →
-          </button>
-        </div>
         </div>
       </div>
     </script>
@@ -251,13 +241,44 @@
       <div class="control-group">
         <div class="controls">
           <label class="checkbox inline">
-            <input type="checkbox" 
+            <input type="checkbox"
                    name="{{ name }}"
                    {{# readonly }}disabled{{/ readonly }}
                    data-bind="checked: {{ name }},
                               valueUpdate: 'change'" />
             {{ label }}
           </label>
+        </div>
+      </div>
+    </script>
+
+    <!-- NOP here — references are rendered after model has loaded -->
+    <script type="text/template" class="field-template"
+    id="reference-field-template" />
+
+    <!-- Service field with accordion-style list of added services -->
+    <script type="text/template"
+            class="reference-group-template"
+            id="service-reference-group-template">
+
+    </script>
+
+    <!-- Template for one of service references -->
+    <script type="text/template"
+            class="reference-template"
+            id="-reference-template">
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <a class="accordion-toggle"
+             data-target="#accordion{{ refN }}"
+             data-toggle="collapse">{{ refField }}</a>
+        </div>
+
+        <div id="accordion{{refN}}" class="accordion-body collapse">
+          <div class="accordion-inner {{ refField }}-view" 
+               id="{{refField}}-view-{{ refN }}">
+            <!-- Instance contents are rendered here -->
+          </div>
         </div>
       </div>
     </script>
@@ -274,7 +295,7 @@
         </div>
       </div>
     </script>
-    
+
     <!-- Form controls wrt user permissions -->
     <script type="text/template"
             id="permission-template">

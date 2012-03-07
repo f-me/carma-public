@@ -4,6 +4,7 @@
 function backbonizeModel(model, modelName) {
     var defaults = {};
     var fieldHash = {};
+    var referenceFields = [];
     _.each(model.fields,
           function(f) {
               if (!(_.isUndefined(f.default)))
@@ -11,18 +12,29 @@ function backbonizeModel(model, modelName) {
               else
                   defaults[f.name] = null;
               fieldHash[f.name] = f;
+              if (f.type == "reference")
+                  referenceFields = referenceFields.concat(f.name);
           });
 
     var M = Backbone.Model.extend({
         defaults: defaults,
+        // List of field names which hold references to different
+        // models.
+        referenceFields: referenceFields,
         /// Temporary storage for attributes queued for sending to
-        /// server
+        /// server.
         attributeQueue: {},
         initialize: function() {
             if (!this.isNew())
                 this.fetch();
         },
+        // Original definition
+        //
+        // This model and Backbone model (which is actually a
+        // representation of instance of original model) are not to be
+        // confused!
         model: model,
+        // Hash of model fields as provided by model definition.
         fieldHash: fieldHash,
         /// Bind model changes to server sync
         setupServerSync: function () {
@@ -86,6 +98,25 @@ function backbonizeModel(model, modelName) {
     return M;
 }
 
+// Get all templates with given class
+//
+// TODO Cache this
+function getTemplates(cls) {
+    var templates = {};
+    _.each($("." + cls),
+           function(tmp) {
+               templates[tmp.id.replace("-" + cls, "")] = tmp.text;
+           });
+    return templates;
+}
+
+// Pick a template from cache which matches one of given names first.
+function pickTemplate(templates, names) {
+    for(i = 0; i < names.length; i++)
+        if (!_.isUndefined(templates[names[i]]))
+            return templates[names[i]];
+}
+
 /// Convert model to forest of HTML form elements with appropriate
 /// data-bind parameters for Knockout.
 ///
@@ -95,17 +126,9 @@ function backbonizeModel(model, modelName) {
 ///
 /// TODO: We can do this on server as well.
 ///
-/// @return String with form HTML
-function renderFormView(model, viewName) {
-    var templates = [];
-    // Class of templates and ID suffix for all templates
-    var tpl_namespace = "field-template";
-
-    // TODO Cache this
-    _.each($("." + tpl_namespace),
-           function(tmp) {
-               templates[tmp.id.replace("-" + tpl_namespace, "")] = tmp.text;
-           });
+/// @return String with HTML for form
+function renderFields(model, viewName) {
+    var templates = getTemplates("field-template");
 
     var contents = "";
     var fType = "";
@@ -118,17 +141,10 @@ function renderFormView(model, viewName) {
     _.each(model.fields,
            function (f) {
              if (!f.invisible) {
-                 var tpl;
-                 var typed_tpl = templates[f.type];
-                 var named_tpl = templates[f.name + "-" + f.type];
-                 if (_.isUndefined(named_tpl)) {
-                     if (_.isUndefined(typed_tpl))
-                         tpl = templates["unknown"];
-                     else
-                         tpl = typed_tpl;
-                 }
-                 else
-                     tpl = named_tpl;
+                 var typed_tpl = f.type;
+                 var named_tpl = f.name + "-" + f.type;
+                 var tpl = pickTemplate(templates, 
+                                        [named_tpl, typed_tpl, "unknown"]);
                  readonly = !model.canUpdate || !f.canWrite;
                  // Add extra context prior to rendering
                  var ctx = {readonly: readonly};
@@ -136,12 +152,22 @@ function renderFormView(model, viewName) {
                  contents += Mustache.render(tpl, _.extend(f, ctx));
              }
            });
+    return contents;
+}
 
+/// Render permissions controls for form holding an instance in given
+/// view.
+///
+/// @return String with HTML for form
+function renderPermissions(model, viewName) {
     var modelRo = !model.canUpdate && !model.canCreate && !model.canDelete;
     /// Add HTML to contents for non-false permissions
-    contents += Mustache.render($("#permission-template").text(),
-                                _.extend(model, {viewName: viewName,
-                                                 readonly: modelRo}));
+    return Mustache.render($("#permission-template").text(),
+                           _.extend(model, {viewName: viewName,
+                                            readonly: modelRo}));
+}
 
-    return contents;
+/// Render forms for references stored in the field of model
+function renderReferences(model, field, viewName) {
+
 }
