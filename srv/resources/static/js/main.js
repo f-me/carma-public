@@ -33,6 +33,7 @@ $(function(){
         // - model (model definition);
         // - modelName;
         // - mkBackboneModel (Backbone constructor);
+        // - bbInstance (Backbone model);
         // - knockVM (Knockout ViewModel bound to view).
         //
         // When screen is loaded, viewsWare should generally contain
