@@ -1,4 +1,5 @@
 {
+    "name": "towage",
     "title": "Эвакуация",
     "canCreate": true,
     "canRead": true,

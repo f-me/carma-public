@@ -1,4 +1,5 @@
 {
+    "name": "rent",
     "title": "Подменный автомобиль",
     "canCreate": true,
     "canRead": true,

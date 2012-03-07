@@ -1,4 +1,5 @@
 {
+    "name": "case",
     "title": "Кейс",
     "canCreate": true,
     "canRead": true,

@@ -1,4 +1,5 @@
 {
+    "name": "sober",
     "title": "Трезвый водитель",
     "canCreate": true,
     "canRead": true,

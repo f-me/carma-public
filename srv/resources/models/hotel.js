@@ -1,4 +1,5 @@
 {
+    "name": "hotel",
     "title": "Гостиница",
     "canCreate": true,
     "canRead": true,

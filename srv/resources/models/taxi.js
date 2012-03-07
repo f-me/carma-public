@@ -1,4 +1,5 @@
 {
+    "name": "taxi",
     "title": "Такси",
     "canCreate": true,
     "canRead": true,

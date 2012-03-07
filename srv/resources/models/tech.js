@@ -1,4 +1,5 @@
 {
+    "name": "tech",
     "title": "Техпомощь",
     "canCreate": true,
     "canRead": true,
