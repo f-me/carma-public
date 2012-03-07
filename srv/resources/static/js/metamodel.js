@@ -166,8 +166,3 @@ function renderPermissions(model, viewName) {
                            _.extend(model, {viewName: viewName,
                                             readonly: modelRo}));
 }
-
-/// Render forms for references stored in the field of model
-function renderReferences(model, field, viewName) {
-
-}
