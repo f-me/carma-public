@@ -106,16 +106,21 @@
             </div>
             <div class="controls">
               <div class="accordion" id="case-service-references" />
-              <select multiple="true" size="6">
-                <option>Техпомощь</option>
-                <option>Буксировка</option>
-                <option>Такси</option>
+              
+              <!-- This list should be generated automatically based
+                   on programs data.
+              -->
+              <select multiple="true" size="6" name="service-picker">
+                <option value="tech">Техпомощь</option>
+                <option value="towage">Буксировка</option>
+                <option value="taxi">Такси</option>
                 <option>Гостиница</option>
                 <option>Подменный автомобиль</option>
                 <option>Трезвый водитель</option>
               </select><br />
               <button type="button" class="btn btn-action">
                 <i class="icon icon-plus" />Добавить услугу</button>
+              
             </div>
           </div>
           
@@ -270,8 +275,9 @@
     
          Template for one of references.
     
-         Must generate id="{{refField}}-view-{{refN}}" element which will
-         hold contents of referenced model.
+         Must generate id="{{refField}}-view-{{refN}}" element which
+         will hold contents of referenced model. Its class is
+         {{refField}}-view.
 
          Also "{{refField}}-view-{{refN}}-link" element may be used
          which may contain link to model loading,
@@ -300,7 +306,7 @@
             <!-- Instance contents are rendered here -->
 
           </div>
-          <div id="{{refField}}-view-{{ refN }}-perms">
+          <div id="{{refField}}-view-{{ refN }}-perms" />
         </div>
       </div>
     </script>
