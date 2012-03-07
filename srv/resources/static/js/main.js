@@ -184,7 +184,6 @@ function setupRefs(instance, refFields) {
             $el(refFields[rf]).html(referenceViews);
         }
     }
-    console.log(books);
     return books;
 }
 
@@ -192,14 +191,36 @@ function setupRefs(instance, refFields) {
 
 // Return function which will setup views for that model given its
 // form element name and instance id. Standard Backbone-metamodel
-// renderer is used to generate HTML contents in form view.
+// renderer is used to generate HTML contents in form view. viewsWare
+// is updated properly after the model loading is finished.
+//
+// Permissions template for model is rendered in element permEl.
 //
 // multirefs argument is a hash where each key is the name of field
 // with type reference to be rendered immediately after the parent
 // model has been loaded and value is the element name to render
 // forest of reference templates into. No way to GO DEEPER yet.
+//
+// Example:
+// refFields = {"service": "bar-baz"}
+// 
+// will render a bunch of views for references stored in "service"
+// field of model in element with id "bar-baz". Referenced instances
+// are rendered with modelSetup as well which means that viewsWare
+// will be used for further proper cleanup.
+//
+// We must render reference views after the model has loaded because
+// the numer of refs is unknown when the model has not yet been
+// populated with data.
+//
+// slotsee is an array of element IDs:
+//
+// [foo-title", "overlook"]
+//
+// which will by ko.applyBindings'd to with model after it's finished
+// loading, in addition to elName.
 function modelSetup(modelName, refFields) {
-    return function(elName, id) {
+    return function(elName, id, slotsee, permEl) {
         $.getJSON(modelMethod(modelName, "model"),
             function(model) {
                 mkBackboneModel = backbonizeModel(model, modelName);
@@ -220,17 +241,22 @@ function modelSetup(modelName, refFields) {
                     for (rf in books) {
                         for (rn in books[rf]) {
                             var setup = modelSetup(books[rf][rn].refModel, {});
-                            setup(rf + "-view-" + rn, books[rf][rn].refId);
+                            setup(rf + "-view-" + rn, books[rf][rn].refId,
+                                  [rf + "-view-" + rn + "-link"]);
                         }
                     }
-
                 }
                 instance.bind("change", fetchCallback);
 
                 knockVM = new kb.ViewModel(instance);
 
                 $el(elName).html(renderFields(model, elName));
+                $el(permEl).html(renderPermissions(model, elName));
                 ko.applyBindings(knockVM, el(elName));
+
+                for (s in slotsee) {
+                    ko.applyBindings(knockVM, el(slotsee[s]));
+                }
 
                 // Wait a bit to populate model fields and bind form
                 // elements without PUT-backs to server
@@ -289,8 +315,9 @@ function removeInstance(viewName) {
 
 // Case view
 function setupCaseMain(viewName, args) {
-    modelSetup("case", 
-               {"service": "case-service-references"})(viewName, args.id);
+    modelSetup
+    ("case", {"service": "case-service-references"})
+    (viewName, args.id, [], "case-permissions");
 }
 
 // Show service in subform. Reference is '<modelname>:<id>'

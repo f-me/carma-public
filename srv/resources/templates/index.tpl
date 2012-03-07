@@ -96,24 +96,22 @@
             id="case-screen-template">
       <!-- Main case form -->
       <div class="box span6" id="left">
-          <fieldset>
-            <legend>
-              <span id="case-title" />
-            </legend>
-            <form class="form-horizontal">
-              <div id="case-form" />
-              <div class="control-group">
-                <div class="control-label">
-                  <label>Услуги</label>
-                </div>
-                <div class="controls">
-                  <div class="accordion" id="case-service-references" />
-                </div>
-              </div>
-              <div id="case-permissions" />
-            </form>
-          </fieldset>
+        <form class="form-horizontal">
+          <div id="case-form" />
+          
+          <div class="control-group">
+            <div class="control-label">
+              <label>Услуги</label>
+            </div>
+            <div class="controls">
+              <div class="accordion" id="case-service-references" />
+            </div>
+          </div>
+          
+          <div id="case-permissions" />
+        </form>
       </div>
+
       <!-- Right pane with subform -->
       <!--
       TODO Should be span6 when fluid containers are fixed in
@@ -253,22 +251,23 @@
     </script>
 
     <!-- NOP here — references are rendered after model has loaded -->
-    <script type="text/template" class="field-template"
-    id="reference-field-template" />
-
-    <!-- Service field with accordion-style list of added services -->
-    <script type="text/template"
-            class="reference-group-template"
-            id="service-reference-group-template">
-
-    </script>
+    <script type="text/template" 
+            class="field-template"
+            id="reference-field-template" />
 
     <!-- 
     
-         Template for one of service references
+         Template for one of references.
     
-         Must generate {{refField}}-view-{{refN}} element which will
+         Must generate id="{{refField}}-view-{{refN}}" element which will
          hold contents of referenced model.
+
+         Also "{{refField}}-view-{{refN}}-link" element may be used
+         which may contain link to model loading and
+         "{{refField}}-view-{{refN}}-head" which is top-level
+         container of referenced instance.
+
+         May setup on-demand loading function.
 
     -->
     <script type="text/template"
@@ -277,11 +276,13 @@
       <div class="accordion-group">
         <div class="accordion-heading">
           <a class="accordion-toggle"
-             data-target="#accordion{{ refN }}"
-             data-toggle="collapse">{{ refField }}</a>
+             id="{{refField}}-view-{{refN}}-link"
+             data-target="#{{refField}}-view-{{refN}}-head"
+             data-toggle="collapse">Услуга…</a>
         </div>
 
-        <div id="accordion{{refN}}" class="accordion-body collapse">
+        <div id="{{refField}}-view-{{refN}}-head"
+             class="accordion-body collapse">
           <div class="accordion-inner {{ refField }}-view" 
                id="{{refField}}-view-{{ refN }}">
             <!-- Instance contents are rendered here -->
