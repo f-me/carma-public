@@ -54,10 +54,7 @@ function setupCaseMain(viewName, args) {
     // will render a bunch of views for references stored in "services"
     // field of model in element with id "bar-baz". Referenced instances
     // are rendered with modelSetup as well which means that viewsWare
-    // will be used for further proper cleanup. Slotsee for every Nth
-    // referenced instance of field is set to {{field}}-view-{{refN}}-link
-    // (to be used as insight into referenced instance) and permissions
-    // will be rendered into {{field}}-view-{{refN}}-perms.
+    // will be used for further proper cleanup.
     //
     // We must render reference views after the model has loaded because
     // the numer of refs is unknown when the model has not yet been
