@@ -3,7 +3,6 @@
 /// localScreens and localRouter must be set prior to loading this
 /// module.
 
-
 $(function(){
     // Screens have top-level template and a number of views.
     //
@@ -109,11 +108,11 @@ function forgetScreen() {
 // refId.
 //
 // Example:
-// {service: [{refN: 0, refModel: "towage", refId: "2131"},..]}
+// {services: [{refN: 0, refModel: "towage", refId: "2131"},..]}
 //
-// means that field service contained a reference to instance of
-// "towage" model with id "2131" and view "service-view-0" was
-// generated for it. If refFields was {"service": "foo"}, then view
+// means that field services contained a reference to instance of
+// "towage" model with id "2131" and view "services-view-0" was
+// generated for it. If refFields was {"services": "foo"}, then view
 // was placed inside "foo" container.
 function setupRefs(instance, refFields) {
     var tplNs = "reference-template";
@@ -124,6 +123,8 @@ function setupRefs(instance, refFields) {
     for (rf in refFields) {
         books[rf] = [];
         // Generate a bunch of views to fill in
+        console.log(rf);
+        console.log(instance.get(rf));
         var refs = instance.get(rf).split(",");
         if (refs[0] != "") {
             var referenceViews = "";
@@ -167,9 +168,9 @@ function setupRefs(instance, refFields) {
 // forest of reference templates into. No way to GO DEEPER yet.
 //
 // Example:
-// refFields = {"service": "bar-baz"}
+// refFields = {"services": "bar-baz"}
 // 
-// will render a bunch of views for references stored in "service"
+// will render a bunch of views for references stored in "services"
 // field of model in element with id "bar-baz". Referenced instances
 // are rendered with modelSetup as well which means that viewsWare
 // will be used for further proper cleanup. Slotsee for every Nth

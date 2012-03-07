@@ -44,9 +44,10 @@ localRouter = Backbone.Router.extend({
 // Case view
 function setupCaseMain(viewName, args) {
     modelSetup
-    ("case", {"service": "case-service-references"})
+    ("case", {"services": "case-service-references"})
     (viewName, args.id, [], "case-permissions");
 }
+
 
 function initOSM() {
       window.osmap = new OpenLayers.Map("basicMap");
