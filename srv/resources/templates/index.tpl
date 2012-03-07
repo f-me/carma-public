@@ -263,9 +263,10 @@
          hold contents of referenced model.
 
          Also "{{refField}}-view-{{refN}}-link" element may be used
-         which may contain link to model loading and
+         which may contain link to model loading,
          "{{refField}}-view-{{refN}}-head" which is top-level
-         container of referenced instance.
+         container of referenced instance, and
+         "{{refField}}-view-{{refN}}-perms" for instance permissions.
 
          May setup on-demand loading function.
 
@@ -288,6 +289,7 @@
             <!-- Instance contents are rendered here -->
 
           </div>
+          <div id="{{refField}}-view-{{ refN }}-perms">
         </div>
       </div>
     </script>

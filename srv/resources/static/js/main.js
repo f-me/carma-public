@@ -137,7 +137,7 @@ function forgetScreen() {
 //
 // For every refFields rf key, generate a forest of views in element
 // refFields[rf] where each has id in form of <rf>-view-<N>, N = 0,1..
-// and class <rf>-view
+// and class <rf>-view.
 //
 // Return hash with books of views generated this way for every rf.
 // Every book contains array of object with keys refN, refModel,
@@ -207,7 +207,10 @@ function setupRefs(instance, refFields) {
 // will render a bunch of views for references stored in "service"
 // field of model in element with id "bar-baz". Referenced instances
 // are rendered with modelSetup as well which means that viewsWare
-// will be used for further proper cleanup.
+// will be used for further proper cleanup. Slotsee for every Nth
+// referenced instance of field is set to {{field}}-view-{{refN}}-link
+// (to be used as insight into referenced instance) and permissions
+// will be rendered into {{field}}-view-{{refN}}-perms.
 //
 // We must render reference views after the model has loaded because
 // the numer of refs is unknown when the model has not yet been
@@ -240,9 +243,11 @@ function modelSetup(modelName, refFields) {
                     books = setupRefs(instance, refFields);
                     for (rf in books) {
                         for (rn in books[rf]) {
+                            var subview = rf + "-view-" + rn;
                             var setup = modelSetup(books[rf][rn].refModel, {});
                             setup(rf + "-view-" + rn, books[rf][rn].refId,
-                                  [rf + "-view-" + rn + "-link"]);
+                                  [subview + "-link"],
+                                  subview + "-perms");
                         }
                     }
                 }
