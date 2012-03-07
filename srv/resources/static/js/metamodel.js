@@ -1,6 +1,9 @@
-/// Backbonize a model, set default values for model
-///
-/// @return Constructor of Backbone model
+/// Transfrom model definitions into Backbone models, render model
+/// forms, template helpers.
+
+// Backbonize a model, set default values for model
+//
+// @return Constructor of Backbone model
 function backbonizeModel(model, modelName) {
     var defaults = {};
     var fieldHash = {};
@@ -21,8 +24,8 @@ function backbonizeModel(model, modelName) {
         // List of field names which hold references to different
         // models.
         referenceFields: referenceFields,
-        /// Temporary storage for attributes queued for sending to
-        /// server.
+        // Temporary storage for attributes queued for sending to
+        // server.
         attributeQueue: {},
         initialize: function() {
             if (!this.isNew())
@@ -36,11 +39,11 @@ function backbonizeModel(model, modelName) {
         model: model,
         // Hash of model fields as provided by model definition.
         fieldHash: fieldHash,
-        /// Bind model changes to server sync
+        // Bind model changes to server sync
         setupServerSync: function () {
             var realUpdates = function () {
-                /// Do not resave model when id is set after
-                /// first POST
+                // Do not resave model when id is set after
+                // first POST
                 if (!this.hasChanged("id"))
                     this.save();
             };
@@ -49,12 +52,12 @@ function backbonizeModel(model, modelName) {
         },
         set: function(attrs, options){
             Backbone.Model.prototype.set.call(this, attrs, options);
-            /// Push new values in attributeQueue
-            ///
-            /// Never send "id", never send anything if user has no
-            /// canUpdate permission.
-            ///
-            /// TODO _.extend doesn't work here
+            // Push new values in attributeQueue
+            //
+            // Never send "id", never send anything if user has no
+            // canUpdate permission.
+            //
+            // TODO _.extend doesn't work here
             for (k in attrs)
                 if (k != "id" &&
                     this.model.canUpdate &&
@@ -62,13 +65,13 @@ function backbonizeModel(model, modelName) {
                     (!_.isNull(attrs[k])))
                     this.attributeQueue[k] = attrs[k];
         },
-        /// Do not send empty updates to server
+        // Do not send empty updates to server
         save: function(attrs, options) {
             if (!_.isEmpty(this.attributeQueue))
                 Backbone.Model.prototype.save.call(this, attrs, options);
         },
-        /// For checkbox fields, translate "0"/"1" to false/true
-        /// boolean.
+        // For checkbox fields, translate "0"/"1" to false/true
+        // boolean.
         parse: function(json) {
             var m = this.model;
             for (k in json) {
@@ -82,10 +85,10 @@ function backbonizeModel(model, modelName) {
             return json;
         },
         toJSON: function () {
-            /// Send only attributeQueue instead of the whole object
+            // Send only attributeQueue instead of the whole object
             var json = this.attributeQueue;
-            /// Map boolean values to string "0"/"1"'s for server
-            /// compatibility
+            // Map boolean values to string "0"/"1"'s for server
+            // compatibility
             for (k in json)
                 if (_.isBoolean(json[k]))
                     json[k] = String(json[k] ? "1" : "0");
@@ -117,27 +120,27 @@ function pickTemplate(templates, names) {
             return templates[names[i]];
 }
 
-/// Convert model to forest of HTML form elements with appropriate
-/// data-bind parameters for Knockout.
-///
-/// To allow rendering of elements which depend on the name of view
-/// which will hold the instance (like save/remove instance), viewName
-/// argument is passed.
-///
-/// TODO: We can do this on server as well.
-///
-/// @return String with HTML for form
+// Convert model to forest of HTML form elements with appropriate
+// data-bind parameters for Knockout.
+//
+// To allow rendering of elements which depend on the name of view
+// which will hold the instance (like save/remove instance), viewName
+// argument is passed.
+//
+// TODO: We can do this on server as well.
+//
+// @return String with HTML for form
 function renderFields(model, viewName) {
     var templates = getTemplates("field-template");
 
     var contents = "";
     var fType = "";
     var readonly = false;
-    /// Pick an appropriate form widget for each model
-    /// field type and render actual model value in it
-    ///
-    /// Set readonly context attribute for fields which have
-    /// canEdit=false in form description.
+    // Pick an appropriate form widget for each model
+    // field type and render actual model value in it
+    //
+    // Set readonly context attribute for fields which have
+    // canEdit=false in form description.
     _.each(model.fields,
            function (f) {
              if (!f.invisible) {
@@ -155,13 +158,13 @@ function renderFields(model, viewName) {
     return contents;
 }
 
-/// Render permissions controls for form holding an instance in given
-/// view.
-///
-/// @return String with HTML for form
+// Render permissions controls for form holding an instance in given
+// view.
+//
+// @return String with HTML for form
 function renderPermissions(model, viewName) {
     var modelRo = !model.canUpdate && !model.canCreate && !model.canDelete;
-    /// Add HTML to contents for non-false permissions
+    // Add HTML to contents for non-false permissions
     return Mustache.render($("#permission-template").text(),
                            _.extend(model, {viewName: viewName,
                                             readonly: modelRo}));
