@@ -12,52 +12,13 @@ $(function(){
     // specified instead.
     //
     // Screen rendering is called through router.
-    var Screens = {
-        "case":
-            {
-                "template": "case-screen-template",
-                "views":
-                    {
-                        "case-form": setupCaseMain
-                    }
-            },
-        "search":
-            {
-                "template": "search-screen-template",
-                "views":
-                    {
-                        "tableView": setupSearchTable
-                    }
-            }
-    };
-
-    // Setup routing
-    var MenuRouter = Backbone.Router.extend({
-        // Must _not_ end with trailing slashes
-        routes: {
-            "case/:id": "loadCase",
-            "case": "newCase",
-            "search": "search"
-        },
-
-        loadCase: function (id) {
-            renderScreen("case", {"id": id});
-        },
-
-        newCase: function () {
-            renderScreen("case", {"id": null});
-        },
-
-        search: function () {
-            renderScreen("search");
-        }
-    });
+    var Screens = localScreens;
 
     window.global = {
         // «Screen» element which holds all views
         topElement: $el("layout"),
         screens: Screens,
-        router: new MenuRouter,
+        router: new localRouter,
 
         activeScreen: null,
         // viewWare is for bookkeeping of views in current screen.
@@ -317,21 +278,6 @@ function removeInstance(viewName) {
 
 
 /// View setup functions.
-
-// Case view
-function setupCaseMain(viewName, args) {
-    modelSetup
-    ("case", {"service": "case-service-references"})
-    (viewName, args.id, [], "case-permissions");
-}
-
-// Show service in subform. Reference is '<modelname>:<id>'
-//
-// How to update parent reference value when new service is created?
-function setupService(viewName, reference) {
-
-    return modelSetup(model)(viewName, id);
-}
 
 function initOSM() {
       window.osmap = new OpenLayers.Map("basicMap");
