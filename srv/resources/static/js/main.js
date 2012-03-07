@@ -123,8 +123,9 @@ function setupRefs(instance, refFields) {
     for (rf in refFields) {
         books[rf] = [];
         // Generate a bunch of views to fill in
-        var refs = instance.get(rf).split(",");
-        if (refs[0] != "") {
+        var refs = instance.get(rf);
+        if (!_.isNull(refs) && (refs != "")) {
+            refs = refs.split(",");
             var referenceViews = "";
             for (i in refs) {
                 var slices = /(\w+):(\w+)/.exec(refs[i]);
@@ -196,12 +197,12 @@ function modelSetup(modelName) {
     return function(elName, id, fetchCb, slotsee, permEl) {
         $.getJSON(modelMethod(modelName, "model"),
             function(model) {
-                mkBackboneModel = backbonizeModel(model, modelName);
+                var mkBackboneModel = backbonizeModel(model, modelName);
                 var idHash = {};
                 if (id)
-                    idHash = {id: String(id)}
+                    var idHash = {id: String(id)}
 
-                instance = new mkBackboneModel(idHash);
+                var instance = new mkBackboneModel(idHash);
 
                 if (_.isFunction(fetchCb)) {
                     // Do the same for all refFields after first fetch()
@@ -210,13 +211,12 @@ function modelSetup(modelName) {
                     fetchCallback = function () {
                         // Just once
                         instance.unbind("change", fetchCallback);
-                        
                         fetchCb(instance);
                     }
                     instance.bind("change", fetchCallback);
                 }
                 
-                knockVM = new kb.ViewModel(instance);
+                var knockVM = new kb.ViewModel(instance);
 
                 $el(elName).html(renderFields(model, elName));
                 $el(permEl).html(renderPermissions(model, elName));
@@ -231,7 +231,7 @@ function modelSetup(modelName) {
                 //
                 // TODO First POST is still broken somewhy.
                 window.setTimeout(function () {
-                    knockVM._kb_vm.model.setupServerSync();
+                    instance.setupServerSync();
                 }, 1000);
 
                 global.viewsWare[elName] = {
