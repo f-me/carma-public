@@ -116,16 +116,13 @@ function forgetScreen() {
 // generated for it. If refFields was {"services": "foo"}, then view
 // was placed inside "foo" container.
 function setupRefs(instance, refFields) {
-    var tplNs = "reference-template";
-    var tpls = getTemplates(tplNs);
+    var tpls = getTemplates("reference-template");
     
     var books = {};
 
     for (rf in refFields) {
         books[rf] = [];
         // Generate a bunch of views to fill in
-        console.log(rf);
-        console.log(instance.get(rf));
         var refs = instance.get(rf).split(",");
         if (refs[0] != "") {
             var referenceViews = "";
@@ -142,17 +139,38 @@ function setupRefs(instance, refFields) {
                                refField: rf};
                 books[rf][i] = refBook;
 
-                // Every view must set div with
-                // id=<refField>-view-<refN>
-                referenceViews
-                    += Mustache.render(pickTemplate(tpls, [named_tpl, typed_tpl, ""]),
-                                       refBook);
+                referenceViews += renderRef(refBook, tpls);
             }
             $el(refFields[rf]).html(referenceViews);
         }
     }
     return books;
 }
+
+// Generate HTML contents for view which will be populated by
+// referenced instance described keys by refBook:
+//
+// refN - number of instance in reference field of parent model;
+// refModel - model being referenced;
+// refId - id of model instance being referenced;
+// refField - name of field of parent model which stores reference;
+//
+// refBook may contain any other keys as well and will be passed to
+// Mustache.render as a context.
+//
+// Templates will be pickTemplate'd against using either
+// <refModel>-<refField>, simply <refField> or default template.
+//
+// Every view template must set div with id=<refField>-view-<refN>,
+// where instance will be rendered after loading.
+function renderRef(refBook, templates) {
+    var named_tpl = refBook.refModel + "-" + refBook.refField;
+    var typed_tpl = refBook.refField;
+    return Mustache.render(pickTemplate(templates, 
+                                        [named_tpl, typed_tpl, ""]),
+                           refBook);
+}
+
 
 /// Model functions.
 
@@ -163,34 +181,19 @@ function setupRefs(instance, refFields) {
 //
 // Permissions template for model is rendered in element permEl.
 //
-// multirefs argument is a hash where each key is the name of field
-// with type reference to be rendered immediately after the parent
-// model has been loaded and value is the element name to render
-// forest of reference templates into. No way to GO DEEPER yet.
-//
-// Example:
-// refFields = {"services": "bar-baz"}
-// 
-// will render a bunch of views for references stored in "services"
-// field of model in element with id "bar-baz". Referenced instances
-// are rendered with modelSetup as well which means that viewsWare
-// will be used for further proper cleanup. Slotsee for every Nth
-// referenced instance of field is set to {{field}}-view-{{refN}}-link
-// (to be used as insight into referenced instance) and permissions
-// will be rendered into {{field}}-view-{{refN}}-perms.
-//
-// We must render reference views after the model has loaded because
-// the numer of refs is unknown when the model has not yet been
-// populated with data.
-//
 // slotsee is an array of element IDs:
 //
 // [foo-title", "overlook"]
 //
 // which will by ko.applyBindings'd to with model after it's finished
 // loading, in addition to elName.
-function modelSetup(modelName, refFields) {
-    return function(elName, id, slotsee, permEl) {
+//
+// fetchCb is a function to be called with Backbone instance as
+// argument after it emits first "change" event (which is usually
+// initial fetch() of data stored on server). Use this to generate
+// views for references.
+function modelSetup(modelName) {
+    return function(elName, id, fetchCb, slotsee, permEl) {
         $.getJSON(modelMethod(modelName, "model"),
             function(model) {
                 mkBackboneModel = backbonizeModel(model, modelName);
@@ -200,26 +203,19 @@ function modelSetup(modelName, refFields) {
 
                 instance = new mkBackboneModel(idHash);
 
-                // Do the same for all refFields after first fetch()
-                // is complete
-                var fetchCallback;
-                fetchCallback = function () {
-                    // Just once
-                    instance.unbind("change", fetchCallback);
-                    
-                    books = setupRefs(instance, refFields);
-                    for (rf in books) {
-                        for (rn in books[rf]) {
-                            var subview = rf + "-view-" + rn;
-                            var setup = modelSetup(books[rf][rn].refModel, {});
-                            setup(rf + "-view-" + rn, books[rf][rn].refId,
-                                  [subview + "-link"],
-                                  subview + "-perms");
-                        }
+                if (_.isFunction(fetchCb)) {
+                    // Do the same for all refFields after first fetch()
+                    // is complete
+                    var fetchCallback;
+                    fetchCallback = function () {
+                        // Just once
+                        instance.unbind("change", fetchCallback);
+                        
+                        fetchCb(instance);
                     }
+                    instance.bind("change", fetchCallback);
                 }
-                instance.bind("change", fetchCallback);
-
+                
                 knockVM = new kb.ViewModel(instance);
 
                 $el(elName).html(renderFields(model, elName));
