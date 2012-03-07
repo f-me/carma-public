@@ -77,7 +77,7 @@
             "canRead": true
         },
         {
-            "name": "service",
+            "name": "services",
             "label": "Услуги",
             "type": "reference",
             "canWrite": true,

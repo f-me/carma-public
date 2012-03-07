@@ -124,7 +124,7 @@ tech = mkTransformation
         "ЗАМЕНА КОЛЁС", "ПОДЗАРЯДКА АКБ",
         "ПОДМЕННЫЙ АВТОМОБИЛЬ", "СНЯТИЕ С ПАРКИНГА",
         "ТЕХНИЧЕСКАЯ ПОМОЩЬ"] 
-        serviceField "tech" "service"
+        serviceField "tech" "services"
        [ ("techType", Right "Услуга (Обязательное поле)")
        , ("caseAddress", Right "Адрес места поломки")
        , ("techContractor", Right "Название партнёра")
@@ -133,7 +133,7 @@ tech = mkTransformation
 
 hotel = mkTransformation
        ["ГОСТИНИЦА"] 
-       serviceField "hotel" "service"
+       serviceField "hotel" "services"
        [ ("caseAddress", Right "Адрес места поломки")
        ]
 
@@ -148,42 +148,42 @@ towageCommonMap = [ ("caseAddress", Right "Адрес места поломки"
 -- TODO towerType & towType must be dictionary references!
 towage1 = mkTransformation
           ["ЭВАКУАТОР", "ЭВАКУАЦИЯ В СЛУЧАЕ ДТП И ВАНДАЛИЗМА"]
-          serviceField "towage" "service"
+          serviceField "towage" "services"
           $ towageCommonMap ++ [ ("towerType", Left "Эвакуатор")
                                , ("towType", Left "К дилеру")
                                ]
 
 towage2 = mkTransformation
           ["ЭВАКУАЦИЯ ДО ДОМА В НОЧНОЕ ВРЕМЯ"] 
-          serviceField "towage" "service"
+          serviceField "towage" "services"
           $ towageCommonMap ++ [ ("towerType", Left "Эвакуатор")
                                , ("towType", Left "К дому в ночное время")
                                ]
 
 towage3 = mkTransformation
           ["ЭВАКУАЦИЯ ДО ШИНОМОНТАЖА"] 
-          serviceField "towage" "service"
+          serviceField "towage" "services"
           $ towageCommonMap ++ [ ("towerType", Left "Эвакуатор")
                                , ("towType", Left "До мастерской")
                                ]
 
 towage4 = mkTransformation
           ["МАНИПУЛЯТОР"]
-          serviceField "towage" "service"
+          serviceField "towage" "services"
           $ towageCommonMap ++ [ ("towerType", Left "Манипулятор")
                                , ("towType", Left "К дилеру")
                                ]
 
 taxi = mkTransformation
        ["ТАКСИ"]
-       serviceField "taxi" "service"
+       serviceField "taxi" "services"
        [ ("taxiFrom", Left "Адрес места поломки")
        , ("taxiTo", Left "Адрес куда эвакуируют автомобиль")
        ]
 
 rent = mkTransformation
        ["ПОДМЕННЫЙ АВТОМОБИЛЬ"]
-       serviceField "rent" "service"
+       serviceField "rent" "services"
        [ ("towDealer", Left "Название дилера куда эвакуируют автомобиль")
        , ("rentAddress", Left "Адрес куда эвакуируют автомобиль")
        , ("carClass", Right "")
@@ -192,7 +192,7 @@ rent = mkTransformation
 
 sober = mkTransformation
        ["ТРЕЗВЫЙ ВОДИТЕЛЬ"]
-       serviceField "sober" "service"
+       serviceField "sober" "services"
        [ ("fromAddress", Left "Адрес места поломки")
        , ("toAddress", Left "Адрес куда эвакуируют автомобиль")
        , ("multidrive", Right "1")
@@ -217,7 +217,7 @@ caseMap = fixUtfMap $ map (\(k, v) -> (k, Right v)) $
           , ("callTime", "Время звонка")
           , ("callTaker", "Сотрудник РАМК (Обязательное поле)")
           , ("program", "Клиент (Обязательное поле)")
-          , ("service", "Услуга (Обязательное поле)")
+          , ("services", "Услуга (Обязательное поле)")
           , ("callerName", "Фамилия звонящего")
           , ("ownerName", "Фамилия владельца")
           , ("phone", "Мобильный телефон")
