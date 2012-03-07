@@ -96,7 +96,7 @@
             class="screen-template"
             id="case-screen-template">
       <!-- Main case form -->
-      <div class="box span6" id="left">
+      <div class="box" id="left">
         <form class="form-horizontal">
           <div id="case-form" />
           
@@ -132,7 +132,7 @@
       <!--
       TODO Should be span6 when fluid containers are fixed in
            Bootstrap upstream. -->
-      <div class="box span5" id="right">
+      <div class="box" id="right">
           <fieldset>
             <legend>
               <span id="case-subform-title" />
