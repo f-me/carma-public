@@ -81,9 +81,7 @@
             "label": "Услуги",
             "type": "reference",
             "canWrite": true,
-            "canRead": true,
-            "required": true,
-            "index": true
+            "canRead": true
         }
     ]
 }
