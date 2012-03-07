@@ -78,10 +78,8 @@
         },
         {
             "name": "service",
-            "label": "Услуга",
+            "label": "Услуги",
             "type": "reference",
-            "referencables": ["tech", "towage", "hotel",
-                              "taxi", "rent", "sober"],
             "canWrite": true,
             "canRead": true,
             "required": true,
