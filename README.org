@@ -28,9 +28,13 @@
 ** TODO Provide dealer and partner models
    With proper field index annotations for redson search API.
 
-** TODO Support references
+** IN_PROGRESS Support references
    Perhaps referencables field should not be used at all (to support
    dynamic lists of referencable models)
+** MAYBE Generate navbar from screens description
+** TODO [/] More client-side caching
+   - [ ] templates;
+   - [ ] models;
 ** TODO Dictionaries
    Special field type (will replace `choice`?)
 ** TODO Client settings

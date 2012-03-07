@@ -33,6 +33,7 @@
     <!-- Model processing -->
     <script src="/s/js/metamodel.js" />
     <script src="/s/js/search.js" />
+    <script src="/s/js/local.js" />
     <script src="/s/js/main.js" />
   </head>
   <body>
@@ -105,6 +106,16 @@
             </div>
             <div class="controls">
               <div class="accordion" id="case-service-references" />
+              <select multiple="true" size="6">
+                <option>Техпомощь</option>
+                <option>Буксировка</option>
+                <option>Такси</option>
+                <option>Гостиница</option>
+                <option>Подменный автомобиль</option>
+                <option>Трезвый водитель</option>
+              </select><br />
+              <button type="button" class="btn btn-action">
+                <i class="icon icon-plus" />Добавить услугу</button>
             </div>
           </div>
           

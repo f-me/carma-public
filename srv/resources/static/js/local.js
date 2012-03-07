@@ -48,3 +48,14 @@ function setupCaseMain(viewName, args) {
     (viewName, args.id, [], "case-permissions");
 }
 
+function initOSM() {
+      window.osmap = new OpenLayers.Map("basicMap");
+      var mapnik = new OpenLayers.Layer.OSM();
+      osmap.addLayer(mapnik);
+      osmap.setCenter(new OpenLayers.LonLat(37.617874,55.757549) // Center of the map
+        .transform(
+          new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
+          new OpenLayers.Projection("EPSG:900913") // to Spherical Mercator Projection
+        ), 16 // Zoom level
+      );
+}

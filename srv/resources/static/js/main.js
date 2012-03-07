@@ -1,4 +1,8 @@
-/// Screen layout rendering, loading models.
+/// Screen layout rendering, loading models, frobnicating foobars.
+///
+/// localScreens and localRouter must be set prior to loading this
+/// module.
+
 
 $(function(){
     // Screens have top-level template and a number of views.
@@ -274,19 +278,4 @@ function removeInstance(viewName) {
     var setup = global.activeScreen.views[viewName];
     if (!_.isNull(setup))
         setup(viewName, {});
-}
-
-
-/// View setup functions.
-
-function initOSM() {
-      window.osmap = new OpenLayers.Map("basicMap");
-      var mapnik = new OpenLayers.Layer.OSM();
-      osmap.addLayer(mapnik);
-      osmap.setCenter(new OpenLayers.LonLat(37.617874,55.757549) // Center of the map
-        .transform(
-          new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
-          new OpenLayers.Projection("EPSG:900913") // to Spherical Mercator Projection
-        ), 16 // Zoom level
-      );
 }
