@@ -16,6 +16,11 @@ body {
   margin-bottom: 20pt;
 }
 
+#tableView {
+  width: 95%;
+  margin-left: 1.2%;
+}
+
 .form-horizontal
 .control-group {
   margin-bottom: 4px;

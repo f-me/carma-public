@@ -147,7 +147,7 @@
             id="search-screen-template"
             class="screen-template">
       <!-- Can't use offsetN class here due to fluid layout. -->
-      <div class="box span11" id="tableView" />
+      <div class="box" id="tableView" />
     </script>
 
     <script type="text/template"
