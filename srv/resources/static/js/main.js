@@ -213,20 +213,24 @@ function knockBackbone(instance) {
 // renderer is used to generate HTML contents in form view. viewsWare
 // is updated properly after the model loading is finished.
 //
-// Permissions template for model is rendered in element permEl.
+// Following keys are recognized in options argument:
+// 
+// - permEl: string, name of element to render permissions template
+// - for model into;
 //
-// slotsee is an array of element IDs:
+// - slotsee: array of element IDs:
 //
-// [foo-title", "overlook"]
+//   [foo-title", "overlook"]
 //
-// which will by ko.applyBindings'd to with model after it's finished
-// loading, in addition to elName.
+//   which will be ko.applyBindings'd to with model after it's
+//   finished loading, in addition to elName;
 //
-// fetchCb will be bound to "change" event of Backbone instance.
+// - fetchCb: function to be bound to "change" event of Backbone
+//   instance. Use this to generate views for references;
 //
-// Use this to generate views for references.
+// - focusFirst: boolean, focus on first field of model form if true.
 function modelSetup(modelName) {
-    return function(elName, id, fetchCb, slotsee, permEl, focusFirst) {
+    return function(elName, id, options) {
         $.getJSON(modelMethod(modelName, "model"),
             function(model) {
                 var mkBackboneModel = backbonizeModel(model, modelName);
@@ -236,17 +240,17 @@ function modelSetup(modelName) {
 
                 var instance = new mkBackboneModel(idHash);
 
-                if (_.isFunction(fetchCb)) {
-                    instance.bind("change", fetchCb);
+                if (_.isFunction(options.fetchCb)) {
+                    instance.bind("change", options.fetchCb);
                 }
                 var knockVM = knockBackbone(instance);
 
                 $el(elName).html(renderFields(model, elName));
-                $el(permEl).html(renderPermissions(model, elName));
+                $el(options.permEl).html(renderPermissions(model, elName));
                 ko.applyBindings(knockVM, el(elName));
 
-                for (s in slotsee) {
-                    ko.applyBindings(knockVM, el(slotsee[s]));
+                for (s in options.slotsee) {
+                    ko.applyBindings(knockVM, el(options.slotsee[s]));
                 }
 
                 // Wait a bit to populate model fields and bind form
@@ -257,7 +261,7 @@ function modelSetup(modelName) {
                     instance.setupServerSync();
                 }, 1000);
 
-                if (focusFirst)
+                if (options.focusFirst)
                     $el(elName).find("input")[0].focus();
 
                 global.viewsWare[elName] = {

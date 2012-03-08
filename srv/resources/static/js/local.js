@@ -94,15 +94,17 @@ function setupCaseMain(viewName, args) {
             for (rn in books[rf]) {
                 var subview = rf + "-view-" + rn;
                 var setup = modelSetup(books[rf][rn].refModel);
-                setup(rf + "-view-" + rn, books[rf][rn].refId, null,
-                      [subview + "-link"],
-                      subview + "-perms");
+                setup(rf + "-view-" + rn, books[rf][rn].refId,
+                      { slotsee: [subview + "-link"],
+                        permEl: subview + "-perms"});
             }
         }
         }
     }
 
-    modelSetup("case")(viewName, args.id, fetchCb, [], "case-permissions");
+    modelSetup("case")(viewName, args.id, 
+                       {fetchCb: fetchCb, 
+                        permEl: "case-permissions"});
 }
 
 // Top-level wrapper for storeService, which grabs serviceModelName
@@ -139,14 +141,17 @@ function storeService(caseInstance, serviceModelName, servicesForest) {
     var fetchCb = mkRefFetchCb(caseInstance, "services");
     var subview = "services-view-" + refN;
 
-    modelSetup(serviceModelName)(subview, null, fetchCb,
-                                 [subview + "-link"], subview + "-perms",
-                                true);
+    modelSetup(serviceModelName)(subview, null, 
+                                 {fetchCb: fetchCb,
+                                  slotsee: [subview + "-link"],
+                                  permEl: subview + "-perms",
+                                  focusFirst: true});
 }
 
 
 function setupCallForm (viewName, args) {
-    modelSetup("call")(viewName, null, null, [], "case-permissions");
+    modelSetup("call")(viewName, null,
+                       {permEl: "case-permissions"});
 }
 
 
