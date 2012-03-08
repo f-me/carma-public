@@ -54,6 +54,13 @@ localRouter = Backbone.Router.extend({
     }
 });
 
+$(function () {
+    $.getJSON("/s/js/data/dictionaries.json",
+          function(dicts) {
+              mainSetup(localScreens, localRouter, dicts);
+          });
+});
+
 // Case view
 function setupCaseMain(viewName, args) {
     // refFields argument is a hash where each key is the name of field
@@ -63,7 +70,7 @@ function setupCaseMain(viewName, args) {
     //
     // Example:
     // refFields = {"services": "bar-baz"}
-    // 
+    //
     // will render a bunch of views for references stored in "services"
     // field of model in element with id "bar-baz". Referenced instances
     // are rendered with modelSetup as well which means that viewsWare
@@ -88,7 +95,7 @@ function setupCaseMain(viewName, args) {
             }
         }
     }
-    
+
     modelSetup("case")(viewName, args.id, fetchCb, [], "case-permissions");
 }
 
@@ -126,7 +133,8 @@ function storeService(caseInstance, serviceModelName, servicesForest) {
     var fetchCb = mkRefFetchCb(caseInstance, "services");
     var subview = "services-view-" + refN;
 
-    modelSetup(serviceModelName)(subview, null, fetchCb, [], subview + "-perms");
+    modelSetup(serviceModelName)(subview, null, fetchCb,
+                                 [subview + "-link"], subview + "-perms");
 }
 
 

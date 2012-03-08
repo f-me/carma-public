@@ -1,0 +1,297 @@
+{
+    "CallerType": [
+        {
+            "name": "client",
+            "label": "Клиент"
+        },
+        {
+            "name": "contr",
+            "label": "Подрядчик"
+        },
+        {
+            "name": "dealer",
+            "label": "Дилерский центр"
+        },
+        {
+            "name": "partner",
+            "label": "Заказчик программы"
+        },
+        {
+            "name": "other",
+            "label": "Другое"
+        }
+    ],
+    "TechTypes": [
+        {
+            "name": "fuel",
+            "label": "Доставка топлива"
+        },
+        {
+            "name": "wheel",
+            "label": "Замена колеса"
+        },
+        {
+            "name": "charge",
+            "label": "Подзарядка АКБ"
+        },
+        {
+            "name": "alarm",
+            "label": "Отключение сигнализации"
+        },
+        {
+            "name": "unfuel",
+            "label": "Слив топлива"
+        },
+        {
+            "name": "unlock",
+            "label": "Вскрытие автомобиля"
+        },
+        {
+            "name": "start",
+            "label": "Запуск двигателя"
+        },
+        {
+            "name": "unpark",
+            "label": "Снятие с паркинга"
+        },
+        {
+            "name": "reroad",
+            "label": "Возвращение на дорогу"
+        },
+        {
+            "name": "wipers",
+            "label": "Замена дворников"
+        },
+        {
+            "name": "relamp",
+            "label": "Замена лампочек"
+        },
+        {
+            "name": "elrepair",
+            "label": "Ремонт электрооборудования"
+        },
+        {
+            "name": "unfreeze",
+            "label": "Разморозка"
+        }
+    ],
+    "PaymentTypes": [
+        {
+            "name": "ruamc",
+            "label": "РАМК"
+        },
+        {
+            "name": "client",
+            "label": "Клиент"
+        },
+        {
+            "name": "mixed",
+            "label": "Смешанный"
+        },
+        {
+            "name": "refund",
+            "label": "Клиент с возмещением"
+        }
+    ],
+    "TowTypes": [
+        {
+            "name": "dealer",
+            "label": "К дилеру"
+        },
+        {
+            "name": "hnight",
+            "label": "К дому в ночное время"
+        },
+        {
+            "name": "carshop",
+            "label": "До мастерской"
+        },
+        {
+            "name": "other",
+            "label": "В любое другое место"
+        }
+    ],
+    "FalseStatuses": [
+        {
+            "name": "none",
+            "label": "Нет"
+        },
+        {
+            "name": "bill",
+            "label": "С выставлением счёта"
+        },
+        {
+            "name": "nobill",
+            "label": "Без выставления счёта"
+        }
+    ],
+    "ServiceStatuses": [
+        {
+            "name": "create",
+            "label": "Создание"
+        },
+        {
+            "name": "back",
+            "label": "Передана в Back Office"
+        },
+        {
+            "name": "gop",
+            "label": "Ожидание GOP"
+        },
+        {
+            "name": "dealer",
+            "label": "Ожидание подтверждения дилера"
+        },
+        {
+            "name": "client",
+            "label": "Ожидание документов клиента"
+        },
+        {
+            "name": "serving",
+            "label": "В процессе оказания"
+        },
+        {
+            "name": "done",
+            "label": "Оказана"
+        }
+    ],
+    "TowerTypes": [
+        {
+            "name": "evac",
+            "label": "Эвакуатор"
+        },
+        {
+            "name": "manip",
+            "label": "Манипулятор"
+        },
+        {
+            "name": "carts",
+            "label": "Подкатные тележки"
+        },
+        {
+            "name": "heavy",
+            "label": "Грузовой эвакуатор"
+        },
+        {
+            "name": "longcat",
+            "label": "Длиннобазный автомобиль"
+        }
+    ],
+    "TransportTypes": [
+        {
+            "name": "continue",
+            "label": "Продолжение путешествия"
+        },
+        {
+            "name": "tocar",
+            "label": "Доставка к ТС"
+        }
+    ],
+    "CarClasses": [
+        {
+            "name":"a",
+            "label": "A"
+        },
+        {
+            "name":"b",
+            "label": "B"
+        },
+        {
+            "name":"c",
+            "label": "C"
+        },
+        {
+            "name":"d",
+            "label": "D"
+        },
+        {
+            "name":"e",
+            "label": "E"
+        }
+    ],
+    "Transmission": [
+        {
+            "name": "auto",
+            "label": "Автоматическая"
+        },
+        {
+            "name": "mech",
+            "label": "Механическая"
+        },
+        {
+            "name": "robot",
+            "label": "Роботизированная"
+        }
+    ],
+    "Services": [
+        {
+            "name": "evac",
+            "label": "Эвакуация"
+        },
+        {
+            "name": "rent",
+            "label": "Подменный автомобиль"
+        },
+        {
+            "name": "hotel",
+            "label": "Гостиница"
+        },
+        {
+            "name": "taxi",
+            "label": "Такси"
+        },
+        {
+            "name": "transport",
+            "label": "Транспортировка"
+        },
+        {
+            "name": "delivery",
+            "label": "Доставка ТС"
+        },
+        {
+            "name": "details",
+            "label": "Доставка запчастей"
+        },
+        {
+            "name": "ken",
+            "label": "Юридическая помощь"
+        },
+        {
+            "name": "tech",
+            "label": "ТО"
+        },
+        {
+            "name": "info",
+            "label": "Информирование о происшествии"
+        },
+        {
+            "name": "bank",
+            "label": "Банковская поддержка"
+        },
+        {
+            "name": "tickets",
+            "label": "Заказ билетов"
+        },
+        {
+            "name": "help",
+            "label": "Техпомощь"
+        },
+        {
+            "name": "unfuel",
+            "label": "Слив топлива"
+        }
+    ],
+    "Diagnosis1": [
+        {
+            "name": "steer",
+            "label": "Руль"
+        },
+        {
+            "name": "wheels",
+            "label": "Колёса"
+        }
+    ],
+    "Diagnosis2": [],
+    "Diagnosis3": [],
+    "Diagnosis4": []
+}

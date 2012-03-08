@@ -1,20 +1,20 @@
 /// Screen layout rendering, loading models, frobnicating foobars.
-///
-/// localScreens and localRouter must be set prior to loading this
-/// module.
-
-$(function(){
-    // Screens have top-level template and a number of views.
-    //
-    // Each view has setup function which accepts DOM element, screen
-    // arguments and renders HTML to element, and sets up viewsWare
-    // value for its view element. View name matches the ID of
-    // enclosing DOM element ($el(<viewName>) = viewName's DOM).
-    //
-    // In case view has no standard setup function, null must be
-    // specified instead.
-    //
-    // Screen rendering is called through router.
+//
+// Screens have top-level template and a number of views.
+//
+// Each view has setup function which accepts DOM element, screen
+// arguments and renders HTML to element, and sets up viewsWare
+// value for its view element. View name matches the ID of
+// enclosing DOM element ($el(<viewName>) = viewName's DOM).
+//
+// In case view has no standard setup function, null must be
+// specified instead.
+//
+// Screen rendering is called through router.
+//
+// Dictionaries are used by UI to map predefined keys to readable
+// values.
+function mainSetup(localScreens, localRouter, localDictionaries) {
     var Screens = localScreens;
 
     window.global = {
@@ -22,6 +22,7 @@ $(function(){
         topElement: $el("layout"),
         screens: Screens,
         router: new localRouter,
+        dictionaries: localDictionaries,
 
         activeScreen: null,
         // viewWare is for bookkeeping of views in current screen.
@@ -42,7 +43,7 @@ $(function(){
         viewsWare: {}
     };
     Backbone.history.start({pushState: false});
-});
+}
 
 function el(id) {
     return document.getElementById(id);
@@ -248,7 +249,6 @@ function modelSetup(modelName) {
                     }
                     instance.bind("change", fetchCallback);
                 }
-                
                 var knockVM = new kb.ViewModel(instance);
 
                 $el(elName).html(renderFields(model, elName));
