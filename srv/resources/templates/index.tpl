@@ -248,7 +248,7 @@
         </div>
         <div class="controls">
           <input type="text"
-                 class="pane-span"
+                 class="pane-span focusable"
                  data-source="global.dictionaries['{{dictionaryName}}']"
                  data-bind="value: {{ name }},
                             valueUpdate: 'afterkeydown'"
