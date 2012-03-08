@@ -40,7 +40,7 @@
             "name": "buyDate",
             "label": "Дата покупки",
             "canWrite": true,
-            "canRead": true,
+            "canRead": true
         },
         {
             "name": "mileage",
@@ -52,7 +52,7 @@
             "name": "checkupDate",
             "label": "Дата последнего ТО",
             "canWrite": true,
-            "canRead": true,
+            "canRead": true
         },
         {
             "name": "checkupMileage",
