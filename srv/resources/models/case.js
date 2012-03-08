@@ -65,13 +65,34 @@
             "required": true
         },
         {
-            "name": "plateNum",
-            "label": "Регистрационный номер автомобиля",
+            "name": "car",
+            "label": "Автомобиль",
             "canWrite": true,
             "canRead": true,
-            "required": true,
-            "index": true,
-            "indexCollate": true
+            "type": "reference"
+        },
+        {
+            "name": "diagnosis1",
+            "label": "Диагностика",
+            "canWrite": true,
+            "canRead": true,
+            "type": "dictionary",
+            "dictionaryName": "Diagnosis1"
+        },            
+        {
+            "name": "diagnosis2",
+            "canWrite": true,
+            "canRead": true
+        },
+        {
+            "name": "diagnosis3",
+            "canWrite": true,
+            "canRead": true
+        },
+        {
+            "name": "diagnosis4",
+            "canWrite": true,
+            "canRead": true
         },
         {
             "name": "comment",
