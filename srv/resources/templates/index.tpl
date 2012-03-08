@@ -248,6 +248,7 @@
         </div>
         <div class="controls">
           <input type="text"
+                 class="pane-span"
                  data-source="global.dictionaries['{{dictionaryName}}']"
                  data-bind="value: {{ name }}"
                  data-provide="typeahead" />
