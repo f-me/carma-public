@@ -84,12 +84,13 @@ function setupCaseMain(viewName, args) {
     };
 
     // Do the same for all refFields after first fetch()
-    // is complete
+    // is complete, but not if this case is new
     var fetchCb = function(instance) {
         // Just once
         instance.unbind("change", fetchCb);
-        books = setupRefs(instance, refFields);
-        for (rf in books) {
+        if (!instance.isNew()) {
+            books = setupRefs(instance, refFields);
+            for (rf in books) {
             for (rn in books[rf]) {
                 var subview = rf + "-view-" + rn;
                 var setup = modelSetup(books[rf][rn].refModel);
@@ -97,6 +98,7 @@ function setupCaseMain(viewName, args) {
                       [subview + "-link"],
                       subview + "-perms");
             }
+        }
         }
     }
 

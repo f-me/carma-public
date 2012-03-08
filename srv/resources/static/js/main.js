@@ -110,12 +110,11 @@ function mkRefFetchCb(parentInstance, field) {
     var fetchCb = function(refInstance) {
         if (refInstance.hasChanged("id")) {
             refInstance.unbind("change", fetchCb);
-
             var newRef = refInstance.name + ":" + refInstance.id;
             var newValue;
             var oldValue = parentInstance.get(field);
             if (_.isNull(oldValue) || (oldValue == ""))
-                newValue = oldValue;
+                newValue = newRef;
             else
                 newValue = oldValue + "," + newRef;
             var hash = {};
