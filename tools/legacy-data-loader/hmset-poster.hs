@@ -249,9 +249,9 @@ tryTransformation row transform =
 -- TODO: Split service / program / client references.
 --
 -- This is like 'mapIntoHandle', but for non-CSV output data.
-caseAction :: ([FieldName], Connection) 
+caseAction :: ([FieldIndex], Connection) 
            -> ParsedRow MapRow 
-           -> Iteratee B.ByteString IO ([FieldName], Connection)
+           -> Iteratee B.ByteString IO ([FieldIndex], Connection)
 caseAction h      (ParsedRow Nothing)  = return h
 caseAction h       CSV.EOF             = return h
 caseAction (idxs, c) (ParsedRow (Just r)) =
@@ -297,7 +297,7 @@ main =
         Just fname -> do
           rConn <- connect defaultConnectInfo
           res <- foldCSVFile fname defCSVSettings caseAction 
-                 (Prelude.map BU.fromString index, rConn)
+                 (Prelude.map (\s -> (BU.fromString s, True)) index, rConn)
           case res of
             Left e -> error "Failed to process case archive"
             Right h -> return ()
