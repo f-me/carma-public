@@ -187,7 +187,7 @@ function setupRefs(instance, refFields) {
 // refBook may contain any other keys as well and will be passed to
 // Mustache.render as a context.
 //
-// Templates will be pickTemplate'd against using either
+// Templates will be pickTemplate'd against using
 // <refModel>-<refField>, simply <refField> or default template.
 //
 // Every view template must set div with id=<refField>-view-<refN>,
