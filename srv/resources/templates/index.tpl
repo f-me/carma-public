@@ -239,7 +239,6 @@
       </div>
     </script>
 
-
     <script type="text/template"
             class="field-template"
             id="radio-field-template">
@@ -248,13 +247,11 @@
           <label>{{ label }}</label>
         </div>
         <div class="controls">
-          <!-- Is it possible to access outer context inside loop?
-              Just like `$parent` in underscore templates.
-          -->
           {{# choice }}
             <label style="color:black;" class="radio">
+              <!-- Mustache.js contexts support bubbling -->
               <input type="radio"
-                     name="name"
+                     name="{{ name }}"
                      value="{{.}}"
                      data-bind="value: name"></input>
               {{.}}
