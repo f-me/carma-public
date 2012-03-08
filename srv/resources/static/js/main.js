@@ -99,7 +99,6 @@ function forgetScreen() {
     global.activeScreen = null;
 }
 
-
 // A helper to be used as referenced instance's fetchCb.
 //
 // It will add a reference to named field of parent instance when it
@@ -109,25 +108,20 @@ function forgetScreen() {
 // We heard you like callbacks...
 function mkRefFetchCb(parentInstance, field) {
     var fetchCb = function(refInstance) {
-        var idChangeCb = function () {
-            if (refInstance.hasChanged("id")) {
-                refInstance.unbind("change", idChangeCb);
+        if (refInstance.hasChanged("id")) {
+            refInstance.unbind("change", fetchCb);
 
-                var newRef = refInstance.name + ":" + refInstance.id;
-                var newValue;
-                var oldValue = parentInstance.get(field);
-                if (_.isNull(oldValue) || (oldValue == ""))
-                    newValue = oldValue;
-                else
-                    newValue = oldValue + "," + newRef;
-                var hash = {};
-                hash[field] = newValue;
-                parentInstance.set(hash);
-            }
+            var newRef = refInstance.name + ":" + refInstance.id;
+            var newValue;
+            var oldValue = parentInstance.get(field);
+            if (_.isNull(oldValue) || (oldValue == ""))
+                newValue = oldValue;
+            else
+                newValue = oldValue + "," + newRef;
+            var hash = {};
+            hash[field] = newValue;
+            parentInstance.set(hash);
         }
-        // Have to use cb inside a cb becase fetchCb itself gets
-        // unbound after first change.
-        refInstance.bind("change", idChangeCb);
     }
     return fetchCb;
 }
@@ -139,7 +133,7 @@ function mkRefFetchCb(parentInstance, field) {
 // and class <rf>-view.
 //
 // Return hash with books of views generated this way for every rf.
-// Every book contains array of object with keys refN, refModel,
+// Every book contains array of objects with keys refN, refModel,
 // refId.
 //
 // Example:
@@ -149,6 +143,9 @@ function mkRefFetchCb(parentInstance, field) {
 // "towage" model with id "2131" and view "services-view-0" was
 // generated for it. If refFields was {"services": "foo"}, then view
 // was placed inside "foo" container.
+//
+// After views have been rendered, collected books may be used to
+// perform a modelSetup() inside every view.
 function setupRefs(instance, refFields) {
     var tpls = getTemplates("reference-template");
     
@@ -166,8 +163,6 @@ function setupRefs(instance, refFields) {
                 var model = slices[1];
                 var id = slices[2];
 
-                var named_tpl = model + "-" + rf;
-                var typed_tpl = rf;
                 var refBook = {refN: i,
                                refModel: model,
                                refId: id,
@@ -183,7 +178,7 @@ function setupRefs(instance, refFields) {
 }
 
 // Generate HTML contents for view which will be populated by
-// referenced instance described keys by refBook:
+// referenced instance described by keys of refBook:
 //
 // refN - number of instance in reference field of parent model;
 // refModel - model being referenced;
@@ -228,10 +223,9 @@ function knockBackbone(instance) {
 // which will by ko.applyBindings'd to with model after it's finished
 // loading, in addition to elName.
 //
-// fetchCb is a function to be called with Backbone instance as
-// argument after it emits first "change" event (which is usually
-// initial fetch() of data stored on server). Use this to generate
-// views for references.
+// fetchCb will be bound to "change" event of Backbone instance.
+//
+// Use this to generate views for references.
 function modelSetup(modelName) {
     return function(elName, id, fetchCb, slotsee, permEl) {
         $.getJSON(modelMethod(modelName, "model"),
@@ -244,15 +238,7 @@ function modelSetup(modelName) {
                 var instance = new mkBackboneModel(idHash);
 
                 if (_.isFunction(fetchCb)) {
-                    // Do the same for all refFields after first fetch()
-                    // is complete
-                    var fetchCallback;
-                    fetchCallback = function () {
-                        // Just once
-                        instance.unbind("change", fetchCallback);
-                        fetchCb(instance);
-                    }
-                    instance.bind("change", fetchCallback);
+                    instance.bind("change", fetchCb);
                 }
                 var knockVM = knockBackbone(instance);
 

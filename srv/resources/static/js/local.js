@@ -83,7 +83,11 @@ function setupCaseMain(viewName, args) {
         "services": "case-service-references"
     };
 
+    // Do the same for all refFields after first fetch()
+    // is complete
     var fetchCb = function(instance) {
+        // Just once
+        instance.unbind("change", fetchCb);
         books = setupRefs(instance, refFields);
         for (rf in books) {
             for (rn in books[rf]) {
