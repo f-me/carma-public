@@ -112,7 +112,8 @@ function backbonizeModel(model, modelName) {
     return M;
 }
 
-// Get all templates with given class
+// Get all templates with given class, stripping "-<class>" from id of
+// every template.
 //
 // TODO Cache this
 function getTemplates(cls) {
@@ -129,6 +130,8 @@ function pickTemplate(templates, names) {
     for(i = 0; i < names.length; i++)
         if (!_.isUndefined(templates[names[i]]))
             return templates[names[i]];
+    return Mustache.render($("#unknown-template").html(), 
+                           {names:names});
 }
 
 // Convert model to forest of HTML form elements with appropriate

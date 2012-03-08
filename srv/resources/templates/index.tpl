@@ -120,14 +120,14 @@
               <!-- This list will be generated automatically based
                    on programs data.
               -->
-              <select multiple="true" size="6" name="service-picker">
+              <select name="service-picker">
                 <option value="tech">Техпомощь</option>
                 <option value="towage">Буксировка</option>
                 <option value="taxi">Такси</option>
                 <option value="hotel">Гостиница</option>
                 <option value="rent">Подменный автомобиль</option>
                 <option value="sober">Трезвый водитель</option>
-              </select><br />
+              </select>&nbsp;
               <button type="button" class="btn"
                       onclick="addService();">
                 <i class="icon icon-plus" />Добавить услугу</button>
@@ -250,7 +250,8 @@
           <input type="text"
                  class="pane-span"
                  data-source="global.dictionaries['{{dictionaryName}}']"
-                 data-bind="value: {{ name }}"
+                 data-bind="value: {{ name }},
+                            valueUpdate: 'afterkeydown'"
                  data-provide="typeahead" />
         </div>
       </div>
@@ -265,20 +266,20 @@
         </div>
         <div class="controls">
           {{# dictionary }}
-            <label>
+            <label class="radio">
               <!-- Mustache.js contexts support bubbling -->
               <input type="radio"
                      name="{{ name }}"
                      value="{{ value }}"
                      data-bind="checked: {{ name }}"></input>
               {{ label }}
-            </label><br/>
+            </label>
           {{/ dictionary }}
         </div>
       </div>
     </script>
 
-
+    <!-- May be used for plain rendering of dictionaries as well -->
     <script type="text/template"
             class="field-template"
             id="select-field-template">
@@ -291,9 +292,9 @@
                   {{# readonly }}disabled{{/ readonly }}
                   data-bind="value: {{ name }},
                              valueUpdate: 'change'">
-            {{# choice }}
-            <option value="{{.}}">{{.}}</option>
-            {{/ choice }}
+            {{# dictionary }}
+            <option value="{{value}}">{{label}}</option>
+            {{/ dictionary }}
           </select>
         </div>
       </div>
@@ -316,10 +317,28 @@
       </div>
     </script>
 
-    <!-- NOP here — references are rendered after model has loaded -->
+    <!-- NOP here — service references are rendered after model has loaded -->
     <script type="text/template" 
             class="field-template"
-            id="reference-field-template" />
+            id="services-reference-field-template" />
+
+   <script type="text/template" 
+           class="field-template"
+           id="reference-field-template">
+     <div class="control-group">
+       <div class="control-label">
+         {{label}}
+       </div>
+       <div class="controls">
+           <input type="text"
+                  class="pane-span"
+                  name="{{ name }}"
+                  {{# readonly }}disabled{{/ readonly }}
+                  data-bind="checked: {{ name }},
+                             valueUpdate: 'change'" />
+       </div>
+     </div>
+   </script>
 
     <!-- 
     
@@ -340,7 +359,7 @@
     -->
     <script type="text/template"
             class="reference-template"
-            id="-reference-template">
+            id="services-reference-template">
       <div class="accordion-group">
         <div class="accordion-heading">
           <a class="accordion-toggle"
@@ -358,6 +377,15 @@
           </div>
           <div id="{{refField}}-view-{{ refN }}-perms" />
         </div>
+      </div>
+    </script>
+
+    <!-- A simpler template for single-instance references -->
+    <script type="text/template"
+            class="reference-template"
+            id="-reference-template">
+      <div class="{{ refField }}-view"
+           id="{{ refField }}-view-{{ refN }}">
       </div>
     </script>
 
@@ -389,6 +417,16 @@
         {{/ canUpdate }}
         <div style="clear: both;" />
       </div>
+    </script>
+
+
+    <!-- Fallback template for pickTemplate failures -->
+    <script type="text/template"
+            id="unknown-template">
+      <span class="label label-important">
+        Не удалось найти ни один из шаблонов:
+        {{#names}}{{.}}&nbsp;{{/names}}
+      </span>
     </script>
   </body>
 </html>
