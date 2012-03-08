@@ -1,293 +1,293 @@
 {
-    "CallerType": [
+    "CallerTypes": [
         {
-            "name": "client",
+            "value": "client",
             "label": "Клиент"
         },
         {
-            "name": "contr",
+            "value": "contr",
             "label": "Подрядчик"
         },
         {
-            "name": "dealer",
+            "value": "dealer",
             "label": "Дилерский центр"
         },
         {
-            "name": "partner",
+            "value": "partner",
             "label": "Заказчик программы"
         },
         {
-            "name": "other",
+            "value": "other",
             "label": "Другое"
         }
     ],
     "TechTypes": [
         {
-            "name": "fuel",
+            "value": "fuel",
             "label": "Доставка топлива"
         },
         {
-            "name": "wheel",
+            "value": "wheel",
             "label": "Замена колеса"
         },
         {
-            "name": "charge",
+            "value": "charge",
             "label": "Подзарядка АКБ"
         },
         {
-            "name": "alarm",
+            "value": "alarm",
             "label": "Отключение сигнализации"
         },
         {
-            "name": "unfuel",
+            "value": "unfuel",
             "label": "Слив топлива"
         },
         {
-            "name": "unlock",
+            "value": "unlock",
             "label": "Вскрытие автомобиля"
         },
         {
-            "name": "start",
+            "value": "start",
             "label": "Запуск двигателя"
         },
         {
-            "name": "unpark",
+            "value": "unpark",
             "label": "Снятие с паркинга"
         },
         {
-            "name": "reroad",
+            "value": "reroad",
             "label": "Возвращение на дорогу"
         },
         {
-            "name": "wipers",
+            "value": "wipers",
             "label": "Замена дворников"
         },
         {
-            "name": "relamp",
+            "value": "relamp",
             "label": "Замена лампочек"
         },
         {
-            "name": "elrepair",
+            "value": "elrepair",
             "label": "Ремонт электрооборудования"
         },
         {
-            "name": "unfreeze",
+            "value": "unfreeze",
             "label": "Разморозка"
         }
     ],
     "PaymentTypes": [
         {
-            "name": "ruamc",
+            "value": "ruamc",
             "label": "РАМК"
         },
         {
-            "name": "client",
+            "value": "client",
             "label": "Клиент"
         },
         {
-            "name": "mixed",
+            "value": "mixed",
             "label": "Смешанный"
         },
         {
-            "name": "refund",
+            "value": "refund",
             "label": "Клиент с возмещением"
         }
     ],
     "TowTypes": [
         {
-            "name": "dealer",
+            "value": "dealer",
             "label": "К дилеру"
         },
         {
-            "name": "hnight",
+            "value": "hnight",
             "label": "К дому в ночное время"
         },
         {
-            "name": "carshop",
+            "value": "carshop",
             "label": "До мастерской"
         },
         {
-            "name": "other",
+            "value": "other",
             "label": "В любое другое место"
         }
     ],
     "FalseStatuses": [
         {
-            "name": "none",
+            "value": "none",
             "label": "Нет"
         },
         {
-            "name": "bill",
+            "value": "bill",
             "label": "С выставлением счёта"
         },
         {
-            "name": "nobill",
+            "value": "nobill",
             "label": "Без выставления счёта"
         }
     ],
     "ServiceStatuses": [
         {
-            "name": "create",
+            "value": "create",
             "label": "Создание"
         },
         {
-            "name": "back",
+            "value": "back",
             "label": "Передана в Back Office"
         },
         {
-            "name": "gop",
+            "value": "gop",
             "label": "Ожидание GOP"
         },
         {
-            "name": "dealer",
+            "value": "dealer",
             "label": "Ожидание подтверждения дилера"
         },
         {
-            "name": "client",
+            "value": "client",
             "label": "Ожидание документов клиента"
         },
         {
-            "name": "serving",
+            "value": "serving",
             "label": "В процессе оказания"
         },
         {
-            "name": "done",
+            "value": "done",
             "label": "Оказана"
         }
     ],
     "TowerTypes": [
         {
-            "name": "evac",
+            "value": "evac",
             "label": "Эвакуатор"
         },
         {
-            "name": "manip",
+            "value": "manip",
             "label": "Манипулятор"
         },
         {
-            "name": "carts",
+            "value": "carts",
             "label": "Подкатные тележки"
         },
         {
-            "name": "heavy",
+            "value": "heavy",
             "label": "Грузовой эвакуатор"
         },
         {
-            "name": "longcat",
+            "value": "longcat",
             "label": "Длиннобазный автомобиль"
         }
     ],
     "TransportTypes": [
         {
-            "name": "continue",
+            "value": "continue",
             "label": "Продолжение путешествия"
         },
         {
-            "name": "tocar",
+            "value": "tocar",
             "label": "Доставка к ТС"
         }
     ],
     "CarClasses": [
         {
-            "name":"a",
+            "value":"a",
             "label": "A"
         },
         {
-            "name":"b",
+            "value":"b",
             "label": "B"
         },
         {
-            "name":"c",
+            "value":"c",
             "label": "C"
         },
         {
-            "name":"d",
+            "value":"d",
             "label": "D"
         },
         {
-            "name":"e",
+            "value":"e",
             "label": "E"
         }
     ],
     "Transmission": [
         {
-            "name": "auto",
+            "value": "auto",
             "label": "Автоматическая"
         },
         {
-            "name": "mech",
+            "value": "mech",
             "label": "Механическая"
         },
         {
-            "name": "robot",
+            "value": "robot",
             "label": "Роботизированная"
         }
     ],
     "Services": [
         {
-            "name": "evac",
+            "value": "evac",
             "label": "Эвакуация"
         },
         {
-            "name": "rent",
+            "value": "rent",
             "label": "Подменный автомобиль"
         },
         {
-            "name": "hotel",
+            "value": "hotel",
             "label": "Гостиница"
         },
         {
-            "name": "taxi",
+            "value": "taxi",
             "label": "Такси"
         },
         {
-            "name": "transport",
+            "value": "transport",
             "label": "Транспортировка"
         },
         {
-            "name": "delivery",
+            "value": "delivery",
             "label": "Доставка ТС"
         },
         {
-            "name": "details",
+            "value": "details",
             "label": "Доставка запчастей"
         },
         {
-            "name": "ken",
+            "value": "ken",
             "label": "Юридическая помощь"
         },
         {
-            "name": "tech",
+            "value": "tech",
             "label": "ТО"
         },
         {
-            "name": "info",
+            "value": "info",
             "label": "Информирование о происшествии"
         },
         {
-            "name": "bank",
+            "value": "bank",
             "label": "Банковская поддержка"
         },
         {
-            "name": "tickets",
+            "value": "tickets",
             "label": "Заказ билетов"
         },
         {
-            "name": "help",
+            "value": "help",
             "label": "Техпомощь"
         },
         {
-            "name": "unfuel",
+            "value": "unfuel",
             "label": "Слив топлива"
         }
     ],
     "Diagnosis1": [
         {
-            "name": "steer",
+            "value": "steer",
             "label": "Руль"
         },
         {
-            "name": "wheels",
+            "value": "wheels",
             "label": "Колёса"
         }
     ],
