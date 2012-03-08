@@ -63,48 +63,49 @@ $(function () {
 
 // Case view
 function setupCaseMain(viewName, args) {
-    // refFields argument is a hash where each key is the name of field
-    // with type reference to be rendered immediately after the parent
-    // model has been loaded and value is the element name to render
-    // forest of reference templates into. No way to GO DEEPER yet.
+    
+    var rf = "services";
+    // Where to render services views
+    var forest = "case-service-references";
+    
+    // Do the same for services field after first fetch() is complete,
+    // but not if this case is new.
+    // 
+    // We must render reference views after the model has loaded
+    // because the numer of refs is unknown when the model has not yet
+    // been populated with data.
     //
-    // Example:
-    // refFields = {"services": "bar-baz"}
+    // Forms for referenced instances are then rendered with
+    // modelSetup which means that viewsWare will be used for further
+    // proper cleanup.
     //
-    // will render a bunch of views for references stored in "services"
-    // field of model in element with id "bar-baz". Referenced instances
-    // are rendered with modelSetup as well which means that viewsWare
-    // will be used for further proper cleanup.
-    //
-    // We must render reference views after the model has loaded because
-    // the numer of refs is unknown when the model has not yet been
-    // populated with data.
-    var refFields = {
-        "services": "case-service-references"
-    };
-
-    // Do the same for all refFields after first fetch()
-    // is complete, but not if this case is new
+    // We have to GO DEEPER, but recursion is not supported.
     var fetchCb = function(instance) {
         // Just once
         instance.unbind("change", fetchCb);
         if (!instance.isNew()) {
-            books = setupMultiRefs(instance, refFields);
-            for (rf in books) {
-            for (rn in books[rf]) {
+            books = setupMultiRef(instance, rf, forest);
+            for (rn in books) {
                 var subview = rf + "-view-" + rn;
-                var setup = modelSetup(books[rf][rn].refModel);
-                setup(rf + "-view-" + rn, books[rf][rn].refId,
+                var setup = modelSetup(books[rn].refModel);
+                setup(rf + "-view-" + rn, books[rn].refId,
                       { slotsee: [subview + "-link"],
                         permEl: subview + "-perms"});
             }
-        }
         }
     }
 
     modelSetup("case")(viewName, args.id, 
                        {fetchCb: fetchCb, 
                         permEl: "case-permissions"});
+
+    var singleRefs = ["car"];
+    for (f in singleRefs) {
+        $("#right").append(
+            Mustache.render(pickTemplate(getTemplates("reference-template"),
+                                         [""]),
+                            {refN: f}));
+    }
 }
 
 // Top-level wrapper for storeService, which grabs serviceModelName

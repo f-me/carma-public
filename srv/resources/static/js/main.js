@@ -125,55 +125,49 @@ function mkRefFetchCb(parentInstance, field) {
     return fetchCb;
 }
 
-// Setup views for references stored in given instance fields.
+// Setup views for references stored in given instance field.
 //
-// For every refFields rf key, generate a forest of views in element
-// refFields[rf] where each has id in form of <rf>-view-<N>, N = 0,1..
-// and class <rf>-view.
+// We generate a forest of views in element refsForest where each view
+// has id in form of <rf>-view-<N>, N = 0,1.. and class <rf>-view.
+// renderRef is used to build every view.
 //
-// Return hash with books of views generated this way for every rf.
-// Every book contains array of objects with keys refN, refModel,
-// refId.
+// Return array with book for every view generated this way. Every
+// book is an object with keys refN, refModel, refId.
 //
-// Example:
-// {services: [{refN: 0, refModel: "towage", refId: "2131"},..]}
+// Example: [{refN: 0, refModel: "towage", refId: "2131"},..]
 //
-// means that field services contained a reference to instance of
+// means that instance field contained a reference to instance of
 // "towage" model with id "2131" and view "services-view-0" was
-// generated for it. If refFields was {"services": "foo"}, then view
-// was placed inside "foo" container.
+// generated for it. If refsForest was "foo", then view was placed
+// inside "foo" container.
 //
 // After views have been rendered, collected books may be used to
 // perform a modelSetup() inside every view.
 //
 // If refField is empty in instance, nothing is rendered.
-function setupMultiRefs(instance, refFields) {
+function setupMultiRef(instance, refField, refsForest) {
     var tpls = getTemplates("reference-template");
     
     var books = {};
 
-    for (rf in refFields) {
-        books[rf] = [];
-        // Generate a bunch of views to fill in
-        var refs = instance.get(rf);
-        if (!_.isNull(refs) && (refs != "")) {
-            refs = refs.split(",");
-            var referenceViews = "";
-            for (i in refs) {
-                var slices = /(\w+):(\w+)/.exec(refs[i]);
-                var model = slices[1];
-                var id = slices[2];
+    var refs = instance.get(refField);
+    if (!_.isNull(refs) && (refs != "")) {
+        refs = refs.split(",");
+        var referenceViews = "";
+        for (i in refs) {
+            var slices = /(\w+):(\w+)/.exec(refs[i]);
+            var model = slices[1];
+            var id = slices[2];
 
-                var refBook = {refN: i,
-                               refModel: model,
-                               refId: id,
-                               refField: rf};
-                books[rf][i] = refBook;
+            var refBook = {refN: i,
+                           refModel: model,
+                           refId: id,
+                           refField: refField};
+            books[i] = refBook;
 
-                referenceViews += renderRef(refBook, tpls);
-            }
-            $el(refFields[rf]).append(referenceViews);
+            referenceViews += renderRef(refBook, tpls);
         }
+        $el(refsForest).append(referenceViews);
     }
     return books;
 }
