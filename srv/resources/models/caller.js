@@ -1,5 +1,5 @@
 {
-    "name": "person",
+    "name": "caller",
     "title": "Звонящий",
     "canCreate": true,
     "canRead": true,
