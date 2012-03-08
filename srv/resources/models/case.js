@@ -11,7 +11,8 @@
             "label": "Дата звонка",
             "canWrite": true,
             "canRead": true,
-            "index": true
+            "index": true,
+            "indexCollate": true
         },
         {
             "name": "callTime",
@@ -45,14 +46,16 @@
             "label": "ФИО владельца",
             "canWrite": true,
             "canRead": true,
-            "index": true
+            "index": true,
+            "indexCollate": true
         },
         {
             "name": "phone",
             "label": "Телефон звонящего",
             "canWrite": true,
             "canRead": true,
-            "index": true
+            "index": true,
+            "indexCollate": true
         },
         {
             "name": "status",
@@ -67,7 +70,8 @@
             "canWrite": true,
             "canRead": true,
             "required": true,
-            "index": true
+            "index": true,
+            "indexCollate": true
         },
         {
             "name": "comment",
