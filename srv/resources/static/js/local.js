@@ -140,7 +140,8 @@ function storeService(caseInstance, serviceModelName, servicesForest) {
     var subview = "services-view-" + refN;
 
     modelSetup(serviceModelName)(subview, null, fetchCb,
-                                 [subview + "-link"], subview + "-perms");
+                                 [subview + "-link"], subview + "-perms",
+                                true);
 }
 
 

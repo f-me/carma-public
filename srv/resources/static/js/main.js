@@ -226,7 +226,7 @@ function knockBackbone(instance) {
 //
 // Use this to generate views for references.
 function modelSetup(modelName) {
-    return function(elName, id, fetchCb, slotsee, permEl) {
+    return function(elName, id, fetchCb, slotsee, permEl, focusFirst) {
         $.getJSON(modelMethod(modelName, "model"),
             function(model) {
                 var mkBackboneModel = backbonizeModel(model, modelName);
@@ -256,6 +256,9 @@ function modelSetup(modelName) {
                 window.setTimeout(function () {
                     instance.setupServerSync();
                 }, 1000);
+
+                if (focusFirst)
+                    $el(elName).find("input")[0].focus();
 
                 global.viewsWare[elName] = {
                     "model": model,
