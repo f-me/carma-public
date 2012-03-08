@@ -49,6 +49,10 @@ input, textarea, select {
   padding: 2px;
 }
 
+.input-append .add-on {
+  padding: 2px;
+}
+
 div.dataTables_length select {
     width: 75px;
 }
