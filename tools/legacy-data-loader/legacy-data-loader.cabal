@@ -27,6 +27,7 @@ executable hmset-poster
   main-is:              hmset-poster.hs
   build-depends:
     base                == 4.*,
+    filepath            == 1.3.*,
     cmdargs             == 0.9.*,
     csv-enumerator      == 0.10.*,
     hedis               == 0.3.*,
