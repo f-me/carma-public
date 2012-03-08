@@ -36,26 +36,11 @@
             "index": true
         },
         {
-            "name": "callerName",
-            "label": "ФИО звонящего",
-            "canWrite": true,
-            "canRead": true
-        },
-        {
-            "name": "ownerName",
-            "label": "ФИО владельца",
+            "name": "caller",
+            "label": "Звонящий",
             "canWrite": true,
             "canRead": true,
-            "index": true,
-            "indexCollate": true
-        },
-        {
-            "name": "phone",
-            "label": "Телефон звонящего",
-            "canWrite": true,
-            "canRead": true,
-            "index": true,
-            "indexCollate": true
+            "type": "reference"
         },
         {
             "name": "status",
