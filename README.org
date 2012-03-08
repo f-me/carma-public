@@ -51,4 +51,5 @@
     - serverSyncDelay;
     - timelineUpdateInterval;
 
+** TODO Field contents are not saved if autocomplete menu is clicked
 ** MAYBE Better JavaScript tables solution
