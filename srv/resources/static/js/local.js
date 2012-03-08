@@ -16,6 +16,14 @@ localScreens = {
         {
             "tableView": setupSearchTable
         }
+    },
+    "call":
+    {
+        "template": "call-screen-template",
+        "views":
+        {
+            "call-form": setupCallForm
+        }
     }
 };
 
@@ -25,7 +33,8 @@ localRouter = Backbone.Router.extend({
     routes: {
         "case/:id": "loadCase",
         "case": "newCase",
-        "search": "search"
+        "search": "search",
+        "call": "call"
     },
 
     loadCase: function (id) {
@@ -38,6 +47,10 @@ localRouter = Backbone.Router.extend({
 
     search: function () {
         renderScreen("search");
+    },
+
+    call: function () {
+        renderScreen("call");
     }
 });
 
@@ -114,6 +127,11 @@ function storeService(caseInstance, serviceModelName, servicesForest) {
     var subview = "services-view-" + refN;
 
     modelSetup(serviceModelName)(subview, null, fetchCb, [], subview + "-perms");
+}
+
+
+function setupCallForm (viewName, args) {
+    modelSetup("call")(viewName, null, null, [], "case-permissions");
 }
 
 

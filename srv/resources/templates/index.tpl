@@ -51,7 +51,7 @@
               <a href="/">Диспетчер</a>
             </li>
             <li id="call-screen-nav">
-              <a href="/call/">Приём звонка</a>
+              <a href="#call">Приём звонка</a>
             </li>
             <li id="case-screen-nav">
               <a href="#case">Кейс</a>
@@ -90,6 +90,16 @@
     <div class="container-fluid">
       <div class="row-fluid" id="layout" />
     </div>
+
+    <!-- Call handling screen layout -->
+    <script type="text/template"
+            class="screen-template"
+            id="call-screen-template">
+      <div class="box" id="left">
+        <div id="call-form"/>
+      </div>
+      <div class="box" id="right"/>
+    </script>
 
     <!-- Case screen layout -->
     <script type="text/template"
@@ -228,6 +238,32 @@
         </div>
       </div>
     </script>
+
+
+    <script type="text/template"
+            class="field-template"
+            id="radio-field-template">
+      <div class="control-group">
+        <div class="control-label">
+          <label>{{ label }}</label>
+        </div>
+        <div class="controls">
+          <!-- Is it possible to access outer context inside loop?
+              Just like `$parent` in underscore templates.
+          -->
+          {{# choice }}
+            <label style="color:black;" class="radio">
+              <input type="radio"
+                     name="name"
+                     value="{{.}}"
+                     data-bind="value: name"></input>
+              {{.}}
+            </label><br/>
+          {{/ choice }}
+        </div>
+      </div>
+    </script>
+
 
     <script type="text/template"
             class="field-template"
