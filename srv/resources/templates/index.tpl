@@ -241,22 +241,38 @@
 
     <script type="text/template"
             class="field-template"
-            id="radio-field-template">
+            id="dictionary-field-template">
       <div class="control-group">
         <div class="control-label">
           <label>{{ label }}</label>
         </div>
         <div class="controls">
-          {{# choice }}
-            <label style="color:black;" class="radio">
+          <input type="text"
+                 data-source="global.dictionaries['{{dictionaryName}}']"
+                 data-bind="value: {{ name }}"
+                 data-provide="typeahead" />
+        </div>
+      </div>
+    </script>
+
+    <script type="text/template"
+            class="field-template"
+            id="callerType-dictionary-field-template">
+      <div class="control-group">
+        <div class="control-label">
+          <label>{{ label }}</label>
+        </div>
+        <div class="controls">
+          {{# dictionary }}
+            <label>
               <!-- Mustache.js contexts support bubbling -->
               <input type="radio"
                      name="{{ name }}"
-                     value="{{.}}"
-                     data-bind="value: name"></input>
-              {{.}}
+                     value="{{ value }}"
+                     data-bind="checked: {{ name }}"></input>
+              {{ label }}
             </label><br/>
-          {{/ choice }}
+          {{/ dictionary }}
         </div>
       </div>
     </script>

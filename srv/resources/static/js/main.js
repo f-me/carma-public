@@ -206,6 +206,11 @@ function renderRef(refBook, templates) {
                            refBook);
 }
 
+function knockBackbone(instance) {
+    var knockVM = new kb.ViewModel(instance);
+    return knockVM;
+}
+
 
 /// Model functions.
 
@@ -249,7 +254,7 @@ function modelSetup(modelName) {
                     }
                     instance.bind("change", fetchCallback);
                 }
-                var knockVM = new kb.ViewModel(instance);
+                var knockVM = knockBackbone(instance);
 
                 $el(elName).html(renderFields(model, elName));
                 $el(permEl).html(renderPermissions(model, elName));

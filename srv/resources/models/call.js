@@ -22,13 +22,8 @@
         {
             "name": "callerType",
             "label": "Кто звонит?",
-            "type": "radio",
-            "choice": [
-                "Клиент",
-                "Подрядчик",
-                "Дилерский центр",
-                "Заказчик программы",
-                "Другое"],
+            "type": "dictionary",
+            "dictionaryName": "CallerTypes",
             "canWrite": true,
             "canRead": true
         },

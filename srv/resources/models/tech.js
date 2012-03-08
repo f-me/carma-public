@@ -11,6 +11,8 @@
             "label": "Услуга",
             "canWrite": true,
             "canRead": true,
+            "type": "dictionary",
+            "dictionaryName": "TechTypes",
             "index": true,
             "required": true
         },

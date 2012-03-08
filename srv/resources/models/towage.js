@@ -11,13 +11,17 @@
             "label": "Тип эвакуатора",
             "canWrite": true,
             "canRead": true,
-            "index": true
+            "index": true,
+            "type": "dictionary",
+            "dictionaryName": "TowerTypes"
         },
         {
             "name": "towType",
             "label": "Вид эвакуации",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "type": "dictionary",
+            "dictionaryName": "TowTypes"
         },
         {
             "name": "caseAddress",

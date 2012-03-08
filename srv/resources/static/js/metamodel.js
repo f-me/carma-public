@@ -7,6 +7,7 @@
 function backbonizeModel(model, modelName) {
     var defaults = {};
     var fieldHash = {};
+    var dictionaryFields = [];
     var referenceFields = [];
     _.each(model.fields,
           function(f) {
@@ -17,10 +18,14 @@ function backbonizeModel(model, modelName) {
               fieldHash[f.name] = f;
               if (f.type == "reference")
                   referenceFields = referenceFields.concat(f.name);
+              if (f.type == "dictionary")
+                  dictionaryFields = dictionaryFields.concat(f.name);
           });
 
     var M = Backbone.Model.extend({
         defaults: defaults,
+        // List of fields with dictionary type
+        dictionaryFields: dictionaryFields,
         // List of field names which hold references to different
         // models.
         referenceFields: referenceFields,
@@ -157,7 +162,9 @@ function renderFields(model, viewName) {
                  readonly = !model.canUpdate || !f.canWrite;
                  // Add extra context prior to rendering
                  var ctx = {readonly: readonly};
-
+                 if (f.type == "dictionary")
+                     ctx = _.extend(ctx, 
+                                    {dictionary: global.dictionaries[f.dictionaryName]});
                  contents += Mustache.render(tpl, _.extend(f, ctx));
              }
            });
