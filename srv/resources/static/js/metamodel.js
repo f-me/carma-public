@@ -64,6 +64,11 @@ function backbonizeModel(model, modelName) {
             // Never send "id", never send anything if user has no
             // canUpdate permission.
             //
+            // Note that when model is first populated with data from
+            // server, all attributes still make it to the queue,
+            // resulting in full PUT-back upon first model "change"
+            // event.
+            //
             // TODO _.extend doesn't work here
             for (k in attrs)
                 if (k != "id" &&
