@@ -99,108 +99,11 @@ function forgetScreen() {
     global.activeScreen = null;
 }
 
-// A helper to be used as referenced instance's fetchCb.
-//
-// It will add a reference to named field of parent instance when it
-// becomes available from referenced instance. (After first POST
-// usually.)
-// 
-// We heard you like callbacks...
-function mkRefFetchCb(parentInstance, field) {
-    var fetchCb = function(refInstance) {
-        if (refInstance.hasChanged("id")) {
-            refInstance.unbind("change", fetchCb);
-            var newRef = refInstance.name + ":" + refInstance.id;
-            var newValue;
-            var oldValue = parentInstance.get(field);
-            if (_.isNull(oldValue) || (oldValue == ""))
-                newValue = newRef;
-            else
-                newValue = oldValue + "," + newRef;
-            var hash = {};
-            hash[field] = newValue;
-            parentInstance.set(hash);
-        }
-    }
-    return fetchCb;
-}
-
-// Setup views for references stored in given instance field.
-//
-// We generate a forest of views in element refsForest where each view
-// has id in form of <rf>-view-<N>, N = 0,1.. and class <rf>-view.
-// renderRef is used to build every view.
-//
-// Return array with book for every view generated this way. Every
-// book is an object with keys refN, refModel, refId.
-//
-// Example: [{refN: 0, refModel: "towage", refId: "2131"},..]
-//
-// means that instance field contained a reference to instance of
-// "towage" model with id "2131" and view "services-view-0" was
-// generated for it. If refsForest was "foo", then view was placed
-// inside "foo" container.
-//
-// After views have been rendered, collected books may be used to
-// perform a modelSetup() inside every view.
-//
-// If refField is empty in instance, nothing is rendered.
-function setupMultiRef(instance, refField, refsForest) {
-    var tpls = getTemplates("reference-template");
-    
-    var books = {};
-
-    var refs = instance.get(refField);
-    if (!_.isNull(refs) && (refs != "")) {
-        refs = refs.split(",");
-        var referenceViews = "";
-        for (i in refs) {
-            var slices = /(\w+):(\w+)/.exec(refs[i]);
-            var model = slices[1];
-            var id = slices[2];
-
-            var refBook = {refN: i,
-                           refModel: model,
-                           refId: id,
-                           refField: refField};
-            books[i] = refBook;
-
-            referenceViews += renderRef(refBook, tpls);
-        }
-        $el(refsForest).append(referenceViews);
-    }
-    return books;
-}
-
-// Generate HTML contents for view which will be populated by
-// referenced instance described by keys of refBook:
-//
-// refN - number of instance in reference field of parent model;
-// refModel - model being referenced;
-// refId - id of model instance being referenced;
-// refField - name of field of parent model which stores reference;
-//
-// refBook may contain any other keys as well and will be passed to
-// Mustache.render as a context.
-//
-// Templates will be pickTemplate'd against using
-// <refModel>-<refField>, simply <refField> or default template.
-//
-// Every view template must set div with id=<refField>-view-<refN>,
-// where instance will be rendered after loading.
-function renderRef(refBook, templates) {
-    var named_tpl = refBook.refModel + "-" + refBook.refField;
-    var typed_tpl = refBook.refField;
-    return Mustache.render(pickTemplate(templates, 
-                                        [named_tpl, typed_tpl, ""]),
-                           refBook);
-}
 
 function knockBackbone(instance) {
     var knockVM = new kb.ViewModel(instance);
     return knockVM;
 }
-
 
 /// Model functions.
 
@@ -279,7 +182,7 @@ function modelMethod(modelName, method) {
 
 // Save instance loaded in view
 function saveInstance(viewName) {
-    global.viewsWare[viewName].knockVM._kb_vm.model.save();
+    global.viewsWare[viewName].bbInstance.save();
 }
 
 // Load existing model instance
@@ -303,4 +206,141 @@ function removeInstance(viewName) {
     var setup = global.activeScreen.views[viewName];
     if (!_.isNull(setup))
         setup(viewName, {});
+}
+
+
+/// Reference fiddlage routines
+
+// A helper to be used as referenced instance's fetchCb.
+//
+// It will add a reference to named field of parent instance when it
+// becomes available from referenced instance. (After first POST
+// usually.)
+// 
+// We heard you like callbacks...
+function mkRefFetchCb(parentInstance, field) {
+    var fetchCb = function(refInstance) {
+        if (refInstance.hasChanged("id")) {
+            refInstance.unbind("change", fetchCb);
+            var newRef = refInstance.name + ":" + refInstance.id;
+            var newValue;
+            var oldValue = parentInstance.get(field);
+            if (_.isNull(oldValue) || (oldValue == ""))
+                newValue = newRef;
+            else
+                newValue = oldValue + "," + newRef;
+            var hash = {};
+            hash[field] = newValue;
+            parentInstance.set(hash);
+        }
+    }
+    return fetchCb;
+}
+
+// Setup views for references stored in given instance field.
+//
+// We generate a forest of views in element refsForest where each view
+// has id in form of <rf>-view-<N>, N = 0,1.. and class <rf>-view.
+// renderRef is used to build every view.
+//
+// Return array with book for every view generated this way. Every
+// book is an object with keys refN, refModel, refId.
+//
+// Example: [{refN: 0, refModel: "towage", refId: "2131"},..]
+//
+// means that instance field contained a reference to instance of
+// "towage" model with id "2131" and view "services-view-0" was
+// generated for it. If refsForest was "foo", then view was placed
+// inside "foo" container.
+//
+// After views have been rendered, collected books may be used to
+// perform a modelSetup() inside every view.
+//
+// If refField is empty in instance, nothing is rendered.
+function setupMultiRef(instance, refField, refsForest) {
+    var tpls = getTemplates("reference-template");
+    
+    var books = {};
+
+    var refs = instance.get(refField);
+    if (!_.isNull(refs) && (refs != "")) {
+        refs = refs.split(",");
+        var referenceViews = "";
+        for (i in refs) {
+            var slices = /(\w+):(\w+)/.exec(refs[i]);
+            var model = slices[1];
+            var id = slices[2];
+
+            var refBook = {refN: i,
+                           refModelName: model,
+                           refId: id,
+                           refField: refField};
+            books[i] = refBook;
+
+            referenceViews += renderRef(refBook, tpls);
+        }
+        $el(refsForest).append(referenceViews);
+    }
+    return books;
+}
+
+// Add new reference to instance, render view and form for it.
+//
+// View template used 
+//
+// instance is a Backbone model, refField is the name of instance
+// field to store reference in, refModelName sets name of model to
+// create reference to, refsForest is ID of element which holds views
+// for services of model.
+function addReference(instance, refField, refModelName, refsForest) {
+    var oldValue = instance.get(refField);
+    var tpls = getTemplates("reference-template");
+    if (_.isNull(oldValue) || (oldValue == ""))
+        oldValue = [];
+    else
+        oldValue = oldValue.split(",");
+
+    // Cannot check against oldService.length because there may be
+    // more than 1 unsaved service
+    var refN = $("." + refField + "-view").length;
+
+    // Render view
+    var html = renderRef({refN: refN,
+                           refModelName: refModelName,
+                           refId: null,
+                           refField: refField},
+                        tpls);
+    $el(refsForest).append(html);
+    var fetchCb = mkRefFetchCb(instance, refField);
+    var subview = refField + "-view-" + refN;
+
+    modelSetup(refModelName)(subview, null, 
+                             {fetchCb: fetchCb,
+                              slotsee: [subview + "-link"],
+                              permEl: subview + "-perms",
+                              focusClass: "focusable"});
+}
+
+// Generate HTML contents for view which will be populated by
+// referenced instance described by keys of refBook:
+//
+// refN - number of instance in reference field of parent model;
+// refModelName - model being referenced;
+// refId - id of model instance being referenced;
+// refField - name of field of parent model which stores reference;
+//
+// refBook may contain any other keys as well and will be passed to
+// Mustache.render as a context.
+//
+// Templates will be pickTemplate'd against using
+// <refModelName>-<refField>, simply <refField> or default template.
+//
+// Every view template must set div with id=<refField>-view-<refN>,
+// where instance will be rendered after loading.
+function renderRef(refBook, templates) {
+    var named_tpl = refBook.refModelName + "-" + refBook.refField;
+    var typed_tpl = refBook.refField;
+    return Mustache.render(pickTemplate(templates, 
+                                        [named_tpl, typed_tpl, ""]),
+                           refBook);
 }

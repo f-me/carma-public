@@ -68,8 +68,8 @@ function setupCaseMain(viewName, args) {
     // Where to render services views
     var forest = "case-service-references";
     
-    // Do the same for services field after first fetch() is complete,
-    // but not if this case is new.
+    // Do the same for reference fields after first fetch() is
+    // complete, but not if this case is new.
     // 
     // We must render reference views after the model has loaded
     // because the numer of refs is unknown when the model has not yet
@@ -87,8 +87,8 @@ function setupCaseMain(viewName, args) {
             books = setupMultiRef(instance, rf, forest);
             for (rn in books) {
                 var subview = rf + "-view-" + rn;
-                var setup = modelSetup(books[rn].refModel);
-                setup(rf + "-view-" + rn, books[rn].refId,
+                var setup = modelSetup(books[rn].refModelName);
+                setup(subview, books[rn].refId,
                       { slotsee: [subview + "-link"],
                         permEl: subview + "-perms"});
             }
@@ -99,56 +99,16 @@ function setupCaseMain(viewName, args) {
                        {fetchCb: fetchCb, 
                         permEl: "case-permissions"});
 
-    var singleRefs = ["car"];
-    for (f in singleRefs) {
-        $("#right").append(
-            Mustache.render(pickTemplate(getTemplates("reference-template"),
-                                         [""]),
-                            {refN: f}));
-    }
 }
 
 // Top-level wrapper for storeService, which grabs serviceModelName
 // from service-picker
 function addService() {
-    storeService(global.viewsWare["case-form"].bbInstance,
+    addReference(global.viewsWare["case-form"].bbInstance,
+                 "services",
                  $("[name=service-picker]").val(),
                  "case-service-references");
 }
-
-// Add new service to case
-//
-// caseInstance is a Backbone model, servicesForest is ID of element
-// which holds views for services of model.
-function storeService(caseInstance, serviceModelName, servicesForest) {
-    var oldServices = caseInstance.get("services");
-    var tpls = getTemplates("reference-template");
-    if (_.isNull(oldServices) || (oldServices == ""))
-        oldServices = [];
-    else
-        oldServices = oldServices.split(",");
-
-    // Cannot check against oldService.length because there may be
-    // more than 1 unsaved service
-    var refN = $(".services-view").length;
-
-    // Render view
-    var html = renderRef({refN: refN,
-                           refModel: serviceModelName,
-                           refId: null,
-                           refField: "services"},
-                        tpls);
-    $el(servicesForest).append(html);
-    var fetchCb = mkRefFetchCb(caseInstance, "services");
-    var subview = "services-view-" + refN;
-
-    modelSetup(serviceModelName)(subview, null, 
-                                 {fetchCb: fetchCb,
-                                  slotsee: [subview + "-link"],
-                                  permEl: subview + "-perms",
-                                  focusClass: "focusable"});
-}
-
 
 function setupCallForm (viewName, args) {
     modelSetup("call")(viewName, null,
