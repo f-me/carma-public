@@ -89,7 +89,7 @@ function setupCaseMain(viewName, args) {
         // Just once
         instance.unbind("change", fetchCb);
         if (!instance.isNew()) {
-            books = setupRefs(instance, refFields);
+            books = setupMultiRefs(instance, refFields);
             for (rf in books) {
             for (rn in books[rf]) {
                 var subview = rf + "-view-" + rn;
@@ -145,7 +145,7 @@ function storeService(caseInstance, serviceModelName, servicesForest) {
                                  {fetchCb: fetchCb,
                                   slotsee: [subview + "-link"],
                                   permEl: subview + "-perms",
-                                  focusFirst: true});
+                                  focusClass: "focusable"});
 }
 
 

@@ -145,7 +145,9 @@ function mkRefFetchCb(parentInstance, field) {
 //
 // After views have been rendered, collected books may be used to
 // perform a modelSetup() inside every view.
-function setupRefs(instance, refFields) {
+//
+// If refField is empty in instance, nothing is rendered.
+function setupMultiRefs(instance, refFields) {
     var tpls = getTemplates("reference-template");
     
     var books = {};
@@ -170,7 +172,7 @@ function setupRefs(instance, refFields) {
 
                 referenceViews += renderRef(refBook, tpls);
             }
-            $el(refFields[rf]).html(referenceViews);
+            $el(refFields[rf]).append(referenceViews);
         }
     }
     return books;
@@ -228,7 +230,8 @@ function knockBackbone(instance) {
 // - fetchCb: function to be bound to "change" event of Backbone
 //   instance. Use this to generate views for references;
 //
-// - focusFirst: boolean, focus on first field of model form if true.
+// - focusClass: class of form field items; if used, first item of
+//   this class will get focus after form render.
 function modelSetup(modelName) {
     return function(elName, id, options) {
         $.getJSON(modelMethod(modelName, "model"),
@@ -261,8 +264,8 @@ function modelSetup(modelName) {
                     instance.setupServerSync();
                 }, 1000);
 
-                if (options.focusFirst)
-                    $el(elName).find("input")[0].focus();
+                if (options.focusClass)
+                    $el(elName).find("." + options.focusClass)[0].focus();
 
                 global.viewsWare[elName] = {
                     "model": model,
