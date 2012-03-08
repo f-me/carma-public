@@ -223,6 +223,108 @@
             "label": "Роботизированная"
         }
     ],
+    "CarModels": [
+        {
+            "value": "VW.passat",
+            "label": "VW Passat"
+        },
+        {
+            "value": "VW.touareg",
+            "label": "VW Touareg"
+        },
+        {
+            "value": "VW.tig",
+            "label": "VW Tiguan"
+        },
+        {
+            "value": "VW.jetta",
+            "label": "VW Jetta"
+        },
+        {
+            "value": "CH.Aveo",
+            "label": "Chevrolet Aveo"
+        },
+        {
+            "value": "CH.Blazer",
+            "label": "Chevrolet Blazer"
+        },
+        {
+            "value": "CH.Cruze",
+            "label": "Chevrolet Cruze"
+        },
+        {
+            "value": "CH.Epica",
+            "label": "Chevrolet Epica"
+        },
+        {
+            "value": "CH.Lacetti",
+            "label": "Chevrolet Lacetti"
+        },
+        {
+            "value": "CH.Aveo",
+            "label": "Chevrolet Aveo"
+        },
+        {
+            "value": "OP.Astra",
+            "label": "Opel Astra"
+        },
+        {
+            "value": "OP.Corsa",
+            "label": "Opel Corsa"
+        },
+        {
+            "value": "OP.Vectra",
+            "label": "Opel Vectra"
+        },
+        {
+            "value": "OP.Zafira",
+            "label": "Opel Zafira"
+        },
+        {
+            "value": "HM.H1",
+            "label": "Hummer H1"
+        },
+        {
+            "value": "HM.H2",
+            "label": "Hummer H2"
+        },
+        {
+            "value": "HM.H3",
+            "label": "Hummer H3"
+        },
+        {
+            "value": "Ford.Focus",
+            "label": "Ford Focus"
+        },
+        {
+            "value": "Ford.Mondeo",
+            "label": "Ford Mondeo"
+        },
+        {
+            "value": "Ford.CMAX",
+            "label": "Ford CMAX"
+        },
+        {
+            "value": "Ford.SMAX",
+            "label": "Ford SMAX"
+        },
+        {
+            "value": "BMW.1",
+            "label": "BMW 1"
+        },
+        {
+            "value": "BMW.3",
+            "label": "BMW 3"
+        },
+        {
+            "value": "BMW.5",
+            "label": "BMW 5"
+        },
+        {
+            "value": "BMW.7",
+            "label": "BMW 7"
+        }
+    ],
     "Services": [
         {
             "value": "evac",
