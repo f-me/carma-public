@@ -114,7 +114,7 @@ function knockBackbone(instance) {
 // is updated properly after the model loading is finished.
 //
 // Following keys are recognized in options argument:
-// 
+//
 // - permEl: string, name of element to render permissions template
 // - for model into;
 //
@@ -177,16 +177,16 @@ function modelSetup(modelName) {
                 var instance = new mkBackboneModel(idHash);
 
 
-                // Do the same for reference fields after first fetch() is
-                // complete, but not if this case is new.
-                // 
-                // We must render reference views after the model has loaded
-                // because the numer of refs is unknown when the model has not yet
-                // been populated with data.
+                // Do the same for reference fields after first
+                // fetch() is complete, but not if this case is new.
                 //
-                // Forms for referenced instances are then rendered with
-                // modelSetup which means that viewsWare will be used for further
-                // proper cleanup.
+                // We must render reference views after the model has
+                // loaded because the numer of refs is unknown when
+                // the model has not yet been populated with data.
+                //
+                // Forms for referenced instances are then rendered
+                // with modelSetup which means that viewsWare will be
+                // used for further proper cleanup.
                 //
                 // To let parent instance know about views created for
                 // references, we create refViews.
@@ -206,7 +206,7 @@ function modelSetup(modelName) {
                             // used later to perform modelSetup and
                             // addReference already does that.
                             var hardBook = addReference(instance,
-                                                        reference.field, 
+                                                        reference.field,
                                                         reference.hard,
                                                         reference.forest);
                             refViews[reference.field] = [hardBook.refView];
@@ -230,7 +230,7 @@ function modelSetup(modelName) {
                     }
                 }
                 instance.bind("change", refCb);
-                
+
                 // External fetch callback
                 if (_.isFunction(options.fetchCb)) {
                     instance.bind("change", options.fetchCb);
@@ -246,7 +246,7 @@ function modelSetup(modelName) {
                 // Set extra observable for inverse of every required
                 // parameters, with name <fieldName>Not
                 for (f in instance.requiredFields) {
-                    knockVM[instance.requiredFields[f] + "Not"] = 
+                    knockVM[instance.requiredFields[f] + "Not"] =
                     kb.observable(instance,
                                   {key: instance.requiredFields[f],
                                    read: function (k) {
@@ -326,7 +326,7 @@ function removeInstance(viewName) {
 // It will add a reference to named field of parent instance when it
 // becomes available from referenced instance. (After first POST
 // usually.) refId key of book will be set to instance id as well.
-// 
+//
 // We heard you like callbacks...
 function mkRefFetchCb(parentInstance, field, book) {
     var fetchCb = function(refInstance) {
@@ -351,7 +351,7 @@ function mkRefFetchCb(parentInstance, field, book) {
 // Build name of view for refN-th reference stored in refField of
 // instance of model name parentModelName with id parentId.
 function mkSubviewName(refField, refN, parentModelName, parentId) {
-    return parentModelName + "-" + parentId + "-" + 
+    return parentModelName + "-" + parentId + "-" +
         refField + "-view-" + refN;
 }
 
@@ -373,7 +373,10 @@ function mkSubviewClass(refField, parentModelName, parentId) {
 // Return array with book for every view generated this way. Every
 // book is an object with keys refN, refModel, refId and refView.
 //
-// Example: [{refN: 0, refModel: "towage", refId: "2131", refView: "services-view-0"},..]
+// Example: [{refN: 0,
+//            refModel: "towage",
+//            refId: "2131",
+//            refView: "services-view-0"},..]
 //
 // means that instance field contained a reference to instance of
 // "towage" model with id "2131" and view "services-view-0" was
@@ -386,7 +389,7 @@ function mkSubviewClass(refField, parentModelName, parentId) {
 // If refField is empty in instance, nothing is rendered.
 function setupMultiRef(instance, refField, refsForest) {
     var tpls = getTemplates("reference-template");
-    
+
     var books = {};
 
     var refs = instance.get(refField);
@@ -420,7 +423,7 @@ function setupMultiRef(instance, refField, refsForest) {
 
 // Add new reference to instance, render view and setup form for it.
 //
-// View template used 
+// View template used
 //
 // instance is a Backbone model, refField is the name of instance
 // field to store reference in, refModelName sets name of model to
@@ -471,13 +474,13 @@ function addReference(instance, refField, refModelName, refsForest) {
 // referenced instance described by keys of refBook:
 //
 // refN - number of instance in reference field of parent model;
-// 
+//
 // refModelName - model being referenced;
-// 
+//
 // refId - id of model instance being referenced;
-// 
+//
 // refField - name of field of parent model which stores reference;
-// 
+//
 // refView - name of reference view. where instance will be rendered
 // after loading.
 //
@@ -497,7 +500,7 @@ function addReference(instance, refField, refModelName, refsForest) {
 function renderRef(refBook, templates) {
     var named_tpl = refBook.refModelName + "-" + refBook.refField;
     var typed_tpl = refBook.refField;
-    return Mustache.render(pickTemplate(templates, 
+    return Mustache.render(pickTemplate(templates,
                                         [named_tpl, typed_tpl, ""]),
                            refBook);
 }
