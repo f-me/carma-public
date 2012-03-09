@@ -325,14 +325,13 @@ function removeInstance(viewName) {
 //
 // It will add a reference to named field of parent instance when it
 // becomes available from referenced instance. (After first POST
-// usually.) refId key of book will be set to instance id as well.
+// usually.)
 //
 // We heard you like callbacks...
-function mkRefFetchCb(parentInstance, field, book) {
+function mkRefFetchCb(parentInstance, field) {
     var fetchCb = function(refInstance) {
         if (refInstance.hasChanged("id")) {
             refInstance.unbind("change", fetchCb);
-            book.refId = refInstance.id;
             var newRef = refInstance.name + ":" + refInstance.id;
             var newValue;
             var oldValue = parentInstance.get(field);
@@ -460,7 +459,7 @@ function addReference(instance, refField, refModelName, refsForest) {
     var html = renderRef(book, tpls);
     $el(refsForest).append(html);
 
-    var fetchCb = mkRefFetchCb(instance, refField, book);
+    var fetchCb = mkRefFetchCb(instance, refField);
     modelSetup(refModelName)(refView, null,
                              {fetchCb: fetchCb,
                               slotsee: [refView + "-link"],

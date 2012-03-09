@@ -102,7 +102,7 @@ function scrollDown() {
 // stored in <fieldName> of model loaded into <parentView> there
 function showComplex(parentView, fieldName) {
     var refViewName = global.viewsWare[parentView].refViews[fieldName][0];
-//    $("#right").not("#" + refViewName).hide();
+    $(".complex-field").hide();
     $el(refViewName).show();
 }
 

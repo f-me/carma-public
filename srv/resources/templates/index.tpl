@@ -377,9 +377,10 @@
             id="-reference-template">
       <!-- Link is unused -->
       <span style="display:none;" id="{{refView}}-link"/>
-      <fieldset class="complex-field">
-        <form id="{{ refView }}" style="display:none;"
-              class="{{ refClass }} form-horizontal"/>
+      <fieldset>
+        <form id="{{ refView }}"
+              class="{{ refClass }} complex-field form-horizontal"
+              style="display: none;" />
       </fieldset>
     </script>
 
