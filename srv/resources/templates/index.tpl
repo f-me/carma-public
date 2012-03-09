@@ -417,15 +417,6 @@
       </div>
     </script>
 
-    <!-- Fallback template for pickTemplate failures -->
-    <script type="text/template"
-            id="unknown-template">
-      <span class="label label-important">
-        Не удалось найти ни один из шаблонов:
-        {{#names}}{{.}}&nbsp;{{/names}}
-      </span>
-    </script>
-
     <!-- Render service picker with services dictionary -->
     <script type="text/template"
             id="service-picker-template">
@@ -448,6 +439,15 @@
           </ul>
         </li>
       </ul>
+    </script>
+
+    <!-- Fallback template for pickTemplate failures -->
+    <script type="text/template"
+            id="unknown-template">
+      <span class="label label-important">
+        Не удалось найти ни один из шаблонов:
+        {{#names}}{{.}}&nbsp;{{/names}}
+      </span>
     </script>
   </body>
 </html>
