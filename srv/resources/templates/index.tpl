@@ -339,18 +339,13 @@
     
          Template for one of references.
     
-         Must generate id="{{refField}}-view-{{refN}}" element which
-         will hold contents of referenced model. Its class is
-         {{refField}}-view.
+         Must generate id="{{ refView }}" element which
+         will hold contents of referenced model. Its class must be is
+         {{ refClass }}.
 
-         Also "{{refField}}-view-{{refN}}-link" element may be used
-         which may contain link to model loading,
-         "{{refField}}-view-{{refN}}-head" which is top-level
-         container of referenced instance, and
-         "{{refField}}-view-{{refN}}-perms" for instance permissions.
+         "{{ refView }}-perms" will be used for instance permissions.
 
          May setup on-demand loading function.
-
     -->
     <script type="text/template"
             class="reference-template"
@@ -365,7 +360,7 @@
 
         <div id="{{ refView }}-head"
              class="accordion-body collapse {{^refId}}in{{/refId}}">
-          <div class="accordion-inner {{ refField }}-view" 
+          <div class="accordion-inner {{ refClass }}" 
                id="{{ refView }}">
             <!-- Instance contents are rendered here -->
 
@@ -383,7 +378,7 @@
       <span style="display:none;" id="{{refView}}-link"/>
       <fieldset class="complex-field">
         <form id="{{ refView }}" style="display:none;"
-              class="{{ refField }}-view form-horizontal"/>
+              class="{{ refClass }} form-horizontal"/>
       </fieldset>
     </script>
 
