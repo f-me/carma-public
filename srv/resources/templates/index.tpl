@@ -327,11 +327,9 @@
        <div class="controls">
            <input type="text"
                   class="pane-span"
-                  name="{{ name }}"
                   onfocus="showComplex('{{ viewName }}', '{{ name }}');"
                   {{# readonly }}disabled{{/ readonly }}
-                  data-bind="checked: {{ name }},
-                             valueUpdate: 'change'" />
+                  data-bind="text: {{ name }}Ref" />
        </div>
      </div>
    </script>

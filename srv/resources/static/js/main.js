@@ -101,8 +101,30 @@ function forgetScreen() {
 }
 
 
-function knockBackbone(instance) {
+// Backbone-Knockout bridge
+//
+function knockBackbone(instance, viewName) {
     var knockVM = new kb.ViewModel(instance);
+
+    // Set extra observable for inverse of every required
+    // parameters, with name <fieldName>Not
+    for (f in instance.requiredFields) {
+        knockVM[instance.requiredFields[f] + "Not"] =
+            kb.observable(instance,
+                          {key: instance.requiredFields[f],
+                           read: function (k) {
+                               return !instance.get(k)
+                           }});
+    }
+
+
+    // Insight-observables for references instances will be populated
+    // later by mkObservableCb
+    for (f in instance.referenceFields) {
+        var field = instance.referenceFields[f];
+        knockVM[field + "Ref"] = null;
+    }
+
     return knockVM;
 }
 
@@ -174,8 +196,9 @@ function modelSetup(modelName) {
                 if (id)
                     var idHash = {id: String(id)}
 
+                // Backbone and Knockout
                 var instance = new mkBackboneModel(idHash);
-
+                var knockVM = knockBackbone(instance, elName);
 
                 // Do the same for reference fields after first
                 // fetch() is complete, but not if this case is new.
@@ -199,7 +222,8 @@ function modelSetup(modelName) {
                         refViews[reference.field] = [];
                         var books = [];
                         if (reference.hard &&
-                            (instance.isNew() || _.isEmpty(instance.get(reference.field)))) {
+                            (instance.isNew() ||
+                             _.isEmpty(instance.get(reference.field)))) {
                             // Add non-existent hard reference
                             //
                             // We use hardBooks here because books are
@@ -225,6 +249,7 @@ function modelSetup(modelName) {
                             var setup = modelSetup(books[rn].refModelName);
                             setup(subview, books[rn].refId,
                                   {slotsee: [subview + "-link"],
+                                   fetchCb: mkObservableCb(knockVM, reference.field),
                                    permEl: subview + "-perms"});
                         }
                     }
@@ -236,23 +261,9 @@ function modelSetup(modelName) {
                     instance.bind("change", options.fetchCb);
                 }
 
-                // Bridge Backbone and Knockout
-                var knockVM = knockBackbone(instance);
-
                 // Render forms
                 $el(elName).html(renderFields(model, elName));
                 $el(options.permEl).html(renderPermissions(model, elName));
-
-                // Set extra observable for inverse of every required
-                // parameters, with name <fieldName>Not
-                for (f in instance.requiredFields) {
-                    knockVM[instance.requiredFields[f] + "Not"] =
-                    kb.observable(instance,
-                                  {key: instance.requiredFields[f],
-                                   read: function (k) {
-                                       return !instance.get(k)
-                                   }});
-                }
 
                 // Bind the model to Knockout UI
                 ko.applyBindings(knockVM, el(elName));
@@ -345,6 +356,22 @@ function mkRefFetchCb(parentInstance, field) {
         }
     }
     return fetchCb;
+}
+
+// Make fetchCb which will set an observable in parentKnock under name
+// <field>Ref which will evaluate to insight function for referenced
+// instance.
+function mkObservableCb(parentKnock, field) {
+    var refObservableCb = function(refInstance) {
+        refInstance.unbind("change", refObservableCb);
+        parentKnock[field + "Ref"]
+            = kb.observable(refInstance,
+                            {key: insightField(refInstance),
+                             read: function(k) {
+                                 return refInstance.get(k);
+                             }});
+    };
+    return refObservableCb;
 }
 
 // Build name of view for refN-th reference stored in refField of

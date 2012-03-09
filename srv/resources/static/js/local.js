@@ -106,6 +106,22 @@ function showComplex(parentView, fieldName) {
     $el(refViewName).show();
 }
 
+// Return name field of refInstance the insight observable of parent
+// instance must evaluate to.
+function insightField(refInstance) {
+    switch (refInstance.name) {
+        case "caller": {
+            return "callerName";
+            break;
+        }
+        case "car": {
+            return "vin";
+            break;
+        }
+    }
+    return "_none_";
+}
+
 // Top-level wrapper for storeService
 function addService(name) {
     addReference(global.viewsWare["case-form"].bbInstance,
