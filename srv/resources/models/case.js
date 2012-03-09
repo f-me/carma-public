@@ -7,6 +7,13 @@
     "canDelete": true,
     "fields": [
         {
+            "name": "comment",
+            "label": "Что случилось",
+            "type": "textarea",
+            "canWrite": true,
+            "canRead": true
+        },
+        {
             "name": "callDate",
             "label": "Дата звонка",
             "canWrite": true,
@@ -76,13 +83,6 @@
         },
         {
             "name": "diagnosis4",
-            "canWrite": true,
-            "canRead": true
-        },
-        {
-            "name": "comment",
-            "label": "Комментарий",
-            "type": "textarea",
             "canWrite": true,
             "canRead": true
         },
