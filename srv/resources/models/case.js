@@ -7,7 +7,7 @@
     "canDelete": true,
     "fields": [
         {
-            "name": "wazzup",
+            "name": "comment",
             "label": "Что случилось",
             "type": "textarea",
             "canWrite": true,

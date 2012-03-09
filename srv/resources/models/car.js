@@ -36,7 +36,9 @@
             "name": "transmission",
             "label": "Коробка передач",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "type": "dictionary",
+            "dictionaryName": "Transmission"
         },
         {
             "name": "buyDate",
