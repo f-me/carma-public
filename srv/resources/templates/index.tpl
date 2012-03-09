@@ -117,7 +117,7 @@
               <label>Услуги</label>
             </div>
             <div class="controls">
-              <div class="accordion" id="case-service-references" />
+              <span class="accordion" id="case-service-references" />
               
               <!-- This list will be generated automatically based
                    on programs data.
@@ -334,12 +334,18 @@
          {{label}}
        </div>
        <div class="controls">
+         <div class="input-append">
            <input type="text"
+                   style="width:92%;"
                   class="pane-span"
                   name="{{ name }}"
                   {{# readonly }}disabled{{/ readonly }}
                   data-bind="checked: {{ name }},
                              valueUpdate: 'change'" />
+           <span class="add-on" style="width:5%;">
+             <i class="icon-chevron-right" />
+           </span>
+         </div>
        </div>
      </div>
    </script>
