@@ -26,6 +26,12 @@ function setupSearchTable(viewName, args) {
             sLengthMenu: "Показывать по _MENU_ записей",
             sZeroRecords: "Ничего не найдено"
         }});
+    
+    $("#table-query").datepicker({
+	showOn: "button",
+        buttonImage: "/s/img/calendar.gif",
+	buttonImageOnly: true
+    });
 }
 
 // Manually load JSON data from server and add it to table

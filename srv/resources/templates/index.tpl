@@ -12,6 +12,8 @@
     <!-- Rich UI -->
     <script src="/s/js/3p/bootstrap.min.js" />
 
+    <script src="/s/js/3p/jquery-ui-1.8.17.custom.min.js" />
+
     <!-- Tabular display -->
     <script src="/s/js/3p/jquery.dataTables.min.js" />
 
@@ -380,8 +382,10 @@
             id="-reference-template">
       <!-- Link is unused -->
       <span style="display:none;" id="{{refView}}-link"/>
-      <form id="{{ refView }}" style="display:none;"
-            class="{{ refField }}-view form-horizontal"/>
+      <fieldset class="complex-field">
+        <form id="{{ refView }}" style="display:none;"
+              class="{{ refField }}-view form-horizontal"/>
+      </fieldset>
     </script>
 
     <!-- Template for fields with unknown type -->
