@@ -63,10 +63,27 @@ $(function () {
 
 // Case view
 function setupCaseMain(viewName, args) {
-    
-    var rf = "services";
-    // Where to render services views
-    var forest = "case-service-references";
+    // Describe what references model has, where to render their
+    // views. hard refs are rendered even for new instances of case.
+    // If ref is hard, then model key must be set for it, describing
+    // what model the field should store reference to.
+    //
+    // Think of hard refs as slots always storing reference to
+    // instance of the same model, while non-hard refs may store any
+    // number of refs to any models.
+    var refs = [
+        {
+            field: "services",
+            forest: "case-service-references",
+            hard: false
+        },
+        {
+            field: "car",
+            forest: "right",
+            hard: true,
+            model: "car"
+        }
+    ];
     
     // Do the same for reference fields after first fetch() is
     // complete, but not if this case is new.
@@ -83,10 +100,20 @@ function setupCaseMain(viewName, args) {
     var fetchCb = function(instance) {
         // Just once
         instance.unbind("change", fetchCb);
-        if (!instance.isNew()) {
-            books = setupMultiRef(instance, rf, forest);
+        for (rf in refs) {
+            var reference = refs[rf];
+            books = [];
+            if (reference.hard && 
+                (instance.isNew() || _.isEmpty(instance.get(reference.field))))
+                addReference(instance,
+                             reference.field, reference.model,
+                             reference.forest);
+            else
+                books = setupMultiRef(instance,
+                                      reference.field,
+                                      reference.forest);
             for (rn in books) {
-                var subview = rf + "-view-" + rn;
+                var subview = mkSubviewName(reference.field, rn);
                 var setup = modelSetup(books[rn].refModelName);
                 setup(subview, books[rn].refId,
                       { slotsee: [subview + "-link"],

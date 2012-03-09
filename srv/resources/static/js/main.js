@@ -148,7 +148,6 @@ function modelSetup(modelName) {
                 $el(elName).html(renderFields(model, elName));
                 $el(options.permEl).html(renderPermissions(model, elName));
                 ko.applyBindings(knockVM, el(elName));
-
                 for (s in options.slotsee) {
                     ko.applyBindings(knockVM, el(options.slotsee[s]));
                 }
@@ -237,21 +236,33 @@ function mkRefFetchCb(parentInstance, field) {
     return fetchCb;
 }
 
-// Setup views for references stored in given instance field.
+// Build name of view for refN-th reference stored in refField.
+function mkSubviewName(refField, refN) {
+    return refField + "-view-" + refN;
+}
+
+// Build selector for class of views for references stored in
+// refField.
+function mkSubviewClassSelector(refField) {
+    return "." + refField + "-view";
+}
+
+// Setup views for references stored in given instance field
 //
 // We generate a forest of views in element refsForest where each view
-// has id in form of <rf>-view-<N>, N = 0,1.. and class <rf>-view.
-// renderRef is used to build every view.
+// has id in form of <refField>-view-<N>, N = 0,1.. and class
+// <refField>-view. renderRef is used to build every view.
 //
 // Return array with book for every view generated this way. Every
-// book is an object with keys refN, refModel, refId.
+// book is an object with keys refN, refModel, refId and refView.
 //
-// Example: [{refN: 0, refModel: "towage", refId: "2131"},..]
+// Example: [{refN: 0, refModel: "towage", refId: "2131", refView: "services-view-0"},..]
 //
 // means that instance field contained a reference to instance of
 // "towage" model with id "2131" and view "services-view-0" was
 // generated for it. If refsForest was "foo", then view was placed
-// inside "foo" container.
+// inside "foo" container. Every view name is generated as
+// <refField>-view-<refN>.
 //
 // After views have been rendered, collected books may be used to
 // perform a modelSetup() inside every view.
@@ -274,7 +285,9 @@ function setupMultiRef(instance, refField, refsForest) {
             var refBook = {refN: i,
                            refModelName: model,
                            refId: id,
-                           refField: refField};
+                           refField: refField,
+                           refView: mkSubviewName(refField, i)
+                          };
             books[i] = refBook;
 
             referenceViews += renderRef(refBook, tpls);
@@ -291,30 +304,32 @@ function setupMultiRef(instance, refField, refsForest) {
 // instance is a Backbone model, refField is the name of instance
 // field to store reference in, refModelName sets name of model to
 // create reference to, refsForest is ID of element which holds views
-// for services of model.
+// for references.
 function addReference(instance, refField, refModelName, refsForest) {
     var oldValue = instance.get(refField);
     var tpls = getTemplates("reference-template");
-    if (_.isNull(oldValue) || (oldValue == ""))
+    if (_.isEmpty(oldValue))
         oldValue = [];
     else
         oldValue = oldValue.split(",");
 
     // Cannot check against oldService.length because there may be
     // more than 1 unsaved service
-    var refN = $("." + refField + "-view").length;
+    var refN = $(mkSubviewClassSelector(refField)).length;
+
+    var subview = mkSubviewName(refField, refN);
 
     // Render view
     var html = renderRef({refN: refN,
-                           refModelName: refModelName,
-                           refId: null,
-                           refField: refField},
-                        tpls);
+                          refModelName: refModelName,
+                          refId: null,
+                          refField: refField,
+                          refView: subview},
+                         tpls);
     $el(refsForest).append(html);
     var fetchCb = mkRefFetchCb(instance, refField);
-    var subview = refField + "-view-" + refN;
-
-    modelSetup(refModelName)(subview, null, 
+    console.log('to ' + subview);
+    modelSetup(refModelName)(subview, null,
                              {fetchCb: fetchCb,
                               slotsee: [subview + "-link"],
                               permEl: subview + "-perms",
@@ -325,9 +340,15 @@ function addReference(instance, refField, refModelName, refsForest) {
 // referenced instance described by keys of refBook:
 //
 // refN - number of instance in reference field of parent model;
+// 
 // refModelName - model being referenced;
+// 1
 // refId - id of model instance being referenced;
+// 
 // refField - name of field of parent model which stores reference;
+// 
+// refView - name of reference view. where instance will be rendered
+// after loading.
 //
 // refBook may contain any other keys as well and will be passed to
 // Mustache.render as a context.
@@ -335,8 +356,10 @@ function addReference(instance, refField, refModelName, refsForest) {
 // Templates will be pickTemplate'd against using
 // <refModelName>-<refField>, simply <refField> or default template.
 //
-// Every view template must set div with id=<refField>-view-<refN>,
-// where instance will be rendered after loading.
+// Every view template MUST set div with id=<refView> and
+// class=<refField>-view where model will be setup; and element with
+// id=<refView>-link which will be bound to KnockVM of referenced
+// instance.
 function renderRef(refBook, templates) {
     var named_tpl = refBook.refModelName + "-" + refBook.refField;
     var typed_tpl = refBook.refField;

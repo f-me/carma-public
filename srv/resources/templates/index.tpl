@@ -143,13 +143,7 @@
       TODO Should be span6 when fluid containers are fixed in
            Bootstrap upstream. -->
       <div class="box" id="right">
-          <fieldset>
-            <legend>
-              <span id="case-subform-title" />
-            </legend>
-            <form id="case-subform" class="form-horizontal" />
-          </fieldset>
-      </div>
+       </div>
     </script>
 
     <!-- Search screen -->
@@ -363,19 +357,19 @@
       <div class="accordion-group">
         <div class="accordion-heading">
           <a class="accordion-toggle"
-             id="{{refField}}-view-{{refN}}-link"
-             data-target="#{{refField}}-view-{{refN}}-head"
+             id="{{ refView }}-link"
+             data-target="#{{ refView }}-head"
              data-toggle="collapse">Услуга…</a>
         </div>
 
-        <div id="{{refField}}-view-{{refN}}-head"
+        <div id="{{ refView }}-head"
              class="accordion-body collapse {{^refId}}in{{/refId}}">
           <div class="accordion-inner {{ refField }}-view" 
-               id="{{refField}}-view-{{ refN }}">
+               id="{{ refView }}">
             <!-- Instance contents are rendered here -->
 
           </div>
-          <div id="{{refField}}-view-{{ refN }}-perms" />
+          <div id="{{ refView }}-perms" />
         </div>
       </div>
     </script>
@@ -384,9 +378,10 @@
     <script type="text/template"
             class="reference-template"
             id="-reference-template">
-      <div class="{{ refField }}-view"
-           id="{{ refField }}-view-{{ refN }}">
-      </div>
+      <!-- Link is unused -->
+      <span style="display:none;" id="{{refView}}-link"/>
+      <form id="{{ refView }}" style="display:none;"
+            class="{{ refField }}-view form-horizontal"/>
     </script>
 
     <!-- Template for fields with unknown type -->
