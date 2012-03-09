@@ -178,7 +178,8 @@ function renderFields(model, viewName) {
                                         [named_tpl, typed_tpl, "unknown"]);
                  readonly = !model.canUpdate || !f.canWrite;
                  // Add extra context prior to rendering
-                 var ctx = {readonly: readonly};
+                 var ctx = {readonly: readonly,
+                            viewName: viewName};
                  if (f.type == "dictionary")
                      ctx = _.extend(ctx, 
                                     {dictionary: global.dictionaries[f.dictionaryName]});
