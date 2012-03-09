@@ -63,14 +63,6 @@ $(function () {
 
 // Case view
 function setupCaseMain(viewName, args) {
-    // Describe what references model has, where to render their
-    // views. hard refs are rendered even for new instances of case.
-    // If ref is hard, then model key must be set for it, describing
-    // what model the field should store reference to.
-    //
-    // Think of hard refs as slots always storing reference to
-    // instance of the same model, while non-hard refs may store any
-    // number of refs to any models.
     var refs = [
         {
             field: "services",
@@ -80,51 +72,17 @@ function setupCaseMain(viewName, args) {
         {
             field: "car",
             forest: "right",
-            hard: true,
-            model: "car"
+            hard: "car",
+        },
+        {
+            field: "caller",
+            forest: "right",
+            hard: "caller",
         }
     ];
-    
-    // Do the same for reference fields after first fetch() is
-    // complete, but not if this case is new.
-    // 
-    // We must render reference views after the model has loaded
-    // because the numer of refs is unknown when the model has not yet
-    // been populated with data.
-    //
-    // Forms for referenced instances are then rendered with
-    // modelSetup which means that viewsWare will be used for further
-    // proper cleanup.
-    //
-    // We have to GO DEEPER, but recursion is not supported.
-    var fetchCb = function(instance) {
-        // Just once
-        instance.unbind("change", fetchCb);
-        for (rf in refs) {
-            var reference = refs[rf];
-            books = [];
-            if (reference.hard && 
-                (instance.isNew() || _.isEmpty(instance.get(reference.field))))
-                addReference(instance,
-                             reference.field, reference.model,
-                             reference.forest);
-            else
-                books = setupMultiRef(instance,
-                                      reference.field,
-                                      reference.forest);
-            for (rn in books) {
-                var subview = mkSubviewName(reference.field, rn);
-                var setup = modelSetup(books[rn].refModelName);
-                setup(subview, books[rn].refId,
-                      { slotsee: [subview + "-link"],
-                        permEl: subview + "-perms"});
-            }
-        }
-    }
-
     modelSetup("case")(viewName, args.id, 
-                       {fetchCb: fetchCb, 
-                        permEl: "case-permissions"});
+                       {permEl: "case-permissions",
+                        refs:refs});
 
     // Render service picker
     //
@@ -133,6 +91,16 @@ function setupCaseMain(viewName, args) {
     $("#service-picker-container").html(
         Mustache.render($("#service-picker-template").html(),
                         {dictionary: global.dictionaries["Services"]}));
+}
+
+// Scroll to the bottom of the page
+function scrollDown() {
+    window.scrollTo(0, document.body.scrollHeight);
+}
+
+// Hide all views on right pane and show view <fieldName>-view-0 there
+function showComplex(fieldName) {
+    $("#" + fieldName + "-view-0").show();
 }
 
 // Top-level wrapper for storeService

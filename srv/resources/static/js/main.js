@@ -125,10 +125,31 @@ function knockBackbone(instance) {
 //   finished loading, in addition to elName;
 //
 // - fetchCb: function to be bound to "change" event of Backbone
-//   instance. Use this to generate views for references;
+//   instance. Use this to update references of parent model when
+//   referenced instance views are set up.
 //
 // - focusClass: class of form field items; if used, first item of
 //   this class will get focus after form render.
+//
+// - refs: Describe what references model has and where to render
+//   their views. This key is an array of objects:
+//
+//   {
+//      field: "foo",
+//      forest: "foo-subrefs",
+//      hard: false
+//   }
+//
+//   field sets the field of parent model where references are stored,
+//   forest is the name of element to render views for references into.
+//
+//   If hard key is false, then if field has no value, nothing will be
+//   rendered. Otherwise, hard must must be set to the name of model
+//   the field stores reference to.
+//
+//   Think of hard refs as slots always storing reference to instance
+//   of some predefined model, while non-hard refs may store any
+//   number of refs to any models.
 function modelSetup(modelName) {
     return function(elName, id, options) {
         $.getJSON(modelMethod(modelName, "model"),
@@ -140,6 +161,44 @@ function modelSetup(modelName) {
 
                 var instance = new mkBackboneModel(idHash);
 
+
+                // Do the same for reference fields after first fetch() is
+                // complete, but not if this case is new.
+                // 
+                // We must render reference views after the model has loaded
+                // because the numer of refs is unknown when the model has not yet
+                // been populated with data.
+                //
+                // Forms for referenced instances are then rendered with
+                // modelSetup which means that viewsWare will be used for further
+                // proper cleanup.
+                var refCb = function(instance) {
+                    // Just once
+                    instance.unbind("change", refCb);
+                    for (rf in options.refs) {
+                        var reference = options.refs[rf];
+                        books = [];
+                        if (reference.hard && 
+                            (instance.isNew() || _.isEmpty(instance.get(reference.field))))
+                            addReference(instance,
+                                         reference.field, 
+                                         reference.hard,
+                                         reference.forest);
+                        else
+                            books = setupMultiRef(instance,
+                                                  reference.field,
+                                                  reference.forest);
+                        for (rn in books) {
+                            var subview = mkSubviewName(reference.field, rn);
+                            var setup = modelSetup(books[rn].refModelName);
+                            setup(subview, books[rn].refId,
+                                  { slotsee: [subview + "-link"],
+                                    permEl: subview + "-perms"});
+                        }
+                    }
+                }
+                instance.bind("change", refCb);
+                
                 if (_.isFunction(options.fetchCb)) {
                     instance.bind("change", options.fetchCb);
                 }
@@ -147,7 +206,6 @@ function modelSetup(modelName) {
 
                 $el(elName).html(renderFields(model, elName));
                 $el(options.permEl).html(renderPermissions(model, elName));
-
 
                 // Set extra observable for inverses of required
                 // parameters, with name <fieldName>Not
@@ -174,8 +232,10 @@ function modelSetup(modelName) {
                     instance.setupServerSync();
                 }, 1000);
 
-                if (options.focusClass)
+                if (options.focusClass) {
                     $el(elName).find("." + options.focusClass)[0].focus();
+                    scrollDown();
+                }
 
                 global.viewsWare[elName] = {
                     "model": model,
