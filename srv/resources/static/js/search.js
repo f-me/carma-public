@@ -26,11 +26,12 @@ function setupSearchTable(viewName, args) {
             sLengthMenu: "Показывать по _MENU_ записей",
             sZeroRecords: "Ничего не найдено"
         }});
-    
-    $("#table-query").datepicker({
-	showOn: "button",
-        buttonImage: "/s/img/calendar.gif",
-	buttonImageOnly: true
+    var d = new Date;
+    var sd = d.getDate() + '-' + (d.getMonth() + 1) + '-' + d.getFullYear();
+    console.log(sd);
+    $("#datepicker").data('date', sd);
+    $("#datepicker").datepicker({
+        weekStart: 1
     });
 }
 

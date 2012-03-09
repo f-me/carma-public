@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <title>CaRMa</title>
     <link rel="stylesheet" href="/s/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/s/css/datepicker.css" />
     <link rel="stylesheet" href="/s/css/jquery.dataTables.css" />
     <link rel="stylesheet" href="/s/css/local.css" />
     <!-- DOM manipulation -->
@@ -11,8 +12,7 @@
 
     <!-- Rich UI -->
     <script src="/s/js/3p/bootstrap.min.js" />
-
-    <script src="/s/js/3p/jquery-ui-1.8.17.custom.min.js" />
+    <script src="/s/js/3p/bootstrap-datepicker.js" />
 
     <!-- Tabular display -->
     <script src="/s/js/3p/jquery.dataTables.min.js" />
@@ -160,11 +160,19 @@
             id="search-table-template"
             class="view-template">
       <div style="text-align:center;">
-      <fieldset>
+      <fieldset style="width:50%; margin-left:25%;">
         <legend>Поиск</legend>
         <form class="form-inline">
-          <!-- ID magically cannot start with "searchtable" -->
-          <input type="text" class="span6" id="table-query" />
+          По дате<br />
+          <div data-date-format="dd-mm-yyyy" 
+               id="datepicker" 
+               class="input-append date">
+	    <input type="text"
+                   id="table-query"
+                   size="16" class="span2" id="acpro_inp2">
+	    <span class="add-on"><i class="icon-calendar"></i></span>
+          </div>
+          <br />
           <button class="btn btn-success" onclick="doSearch();" type="button">
             Поиск
           </button>
