@@ -98,9 +98,12 @@ function scrollDown() {
     window.scrollTo(0, document.body.scrollHeight);
 }
 
-// Hide all views on right pane and show view <fieldName>-view-0 there
-function showComplex(fieldName) {
-    $("#" + fieldName + "-view-0").show();
+// Hide all views on right pane and show view for first reference
+// stored in <fieldName> of model loaded into <parentView> there
+function showComplex(parentView, fieldName) {
+    var refViewName = global.viewsWare[parentView].refViews[fieldName][0];
+//    $("#right").not("#" + refViewName).hide();
+    $el(refViewName).show();
 }
 
 // Top-level wrapper for storeService

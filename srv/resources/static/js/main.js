@@ -199,16 +199,18 @@ function modelSetup(modelName) {
                         refViews[reference.field] = [];
                         var books = [];
                         if (reference.hard &&
-                            (instance.isNew() || _.isEmpty(instance.get(reference.field))))
+                            (instance.isNew() || _.isEmpty(instance.get(reference.field)))) {
                             // Add non-existent hard reference
                             //
                             // We use hardBooks here because books are
                             // used later to perform modelSetup and
                             // addReference already does that.
-                            refViews[reference.field] = [addReference(instance,
-                                                  reference.field, 
-                                                  reference.hard,
-                                                  reference.forest)];
+                            var hardBook = addReference(instance,
+                                                        reference.field, 
+                                                        reference.hard,
+                                                        reference.forest);
+                            refViews[reference.field] = [hardBook.refView];
+                        }
                         else
                             books = setupMultiRef(instance,
                                                   reference.field,
