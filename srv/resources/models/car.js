@@ -16,7 +16,9 @@
             "name": "model",
             "label": "Марка и модель",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "type": "dictionary",
+            "dictionaryName": "CarModels"
         },
         {
             "name": "plateNum",
