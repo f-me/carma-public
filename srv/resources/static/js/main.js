@@ -35,7 +35,8 @@ function mainSetup(localScreens, localRouter, localDictionaries) {
         // - modelName;
         // - mkBackboneModel (Backbone constructor);
         // - bbInstance (Backbone model);
-        // - knockVM (Knockout ViewModel bound to view).
+        // - knockVM (Knockout ViewModel bound to view);
+        // - refViews (hash with views for every reference field).
         //
         // When screen is loaded, viewsWare should generally contain
         // only keys which correspond to that screen views. View
@@ -156,8 +157,14 @@ function knockBackbone(instance) {
 //   of some predefined model, while non-hard refs may store any
 //   number of refs to any models.
 //
-//   refs are stored in viewsWare, so that parent instance can get
-//   access to its reference views.
+//   Views generated for references are stored in viewsWare, so that
+//   parent instance can get access to its reference views:
+//
+//   > viewsWare["parent-view"].refViews["some-ref-field"]
+//   ["view-1", "view-2"]
+//
+//   etc., where "view-1" and "view-2" were generated for instances
+//   which are referenced in "some-ref-field".
 function modelSetup(modelName) {
     return function(elName, id, options) {
         $.getJSON(modelMethod(modelName, "model"),
@@ -180,27 +187,39 @@ function modelSetup(modelName) {
                 // Forms for referenced instances are then rendered with
                 // modelSetup which means that viewsWare will be used for further
                 // proper cleanup.
+                //
+                // To let parent instance know about views created for
+                // references, we create refViews.
+                var refViews = {};
                 var refCb = function(instance) {
                     // Just once
                     instance.unbind("change", refCb);
                     for (rf in options.refs) {
                         var reference = options.refs[rf];
-                        books = [];
-                        if (reference.hard && 
+                        refViews[reference.field] = [];
+                        var books = [];
+                        if (reference.hard &&
                             (instance.isNew() || _.isEmpty(instance.get(reference.field))))
                             // Add non-existent hard reference
-                            addReference(instance,
-                                         reference.field, 
-                                         reference.hard,
-                                         reference.forest);
+                            //
+                            // We use hardBooks here because books are
+                            // used later to perform modelSetup and
+                            // addReference already does that.
+                            refViews[reference.field] = [addReference(instance,
+                                                  reference.field, 
+                                                  reference.hard,
+                                                  reference.forest)];
                         else
                             books = setupMultiRef(instance,
                                                   reference.field,
                                                   reference.forest);
+
                         // Now traverse views that have been generated
                         // for references and setup their models
                         for (rn in books) {
                             var subview = books[rn].refView;
+                            refViews[reference.field] =
+                                refViews[reference.field].concat(subview);
                             var setup = modelSetup(books[rn].refModelName);
                             setup(subview, books[rn].refId,
                                   {slotsee: [subview + "-link"],
@@ -210,11 +229,15 @@ function modelSetup(modelName) {
                 }
                 instance.bind("change", refCb);
                 
+                // External fetch callback
                 if (_.isFunction(options.fetchCb)) {
                     instance.bind("change", options.fetchCb);
                 }
+
+                // Bridge Backbone and Knockout
                 var knockVM = knockBackbone(instance);
 
+                // Render forms
                 $el(elName).html(renderFields(model, elName));
                 $el(options.permEl).html(renderPermissions(model, elName));
 
@@ -253,7 +276,8 @@ function modelSetup(modelName) {
                     "bbInstance": instance,
                     "modelName": modelName,
                     "mkBackboneModel": mkBackboneModel,
-                    "knockVM": knockVM
+                    "knockVM": knockVM,
+                    "refViews": refViews
                 };
             });
     }
@@ -299,13 +323,14 @@ function removeInstance(viewName) {
 //
 // It will add a reference to named field of parent instance when it
 // becomes available from referenced instance. (After first POST
-// usually.)
+// usually.) refId key of book will be set to instance id as well.
 // 
 // We heard you like callbacks...
-function mkRefFetchCb(parentInstance, field) {
+function mkRefFetchCb(parentInstance, field, book) {
     var fetchCb = function(refInstance) {
         if (refInstance.hasChanged("id")) {
             refInstance.unbind("change", fetchCb);
+            book.refId = refInstance.id;
             var newRef = refInstance.name + ":" + refInstance.id;
             var newValue;
             var oldValue = parentInstance.get(field);
@@ -430,7 +455,7 @@ function addReference(instance, refField, refModelName, refsForest) {
     var html = renderRef(book, tpls);
     $el(refsForest).append(html);
 
-    var fetchCb = mkRefFetchCb(instance, refField);
+    var fetchCb = mkRefFetchCb(instance, refField, book);
     modelSetup(refModelName)(refView, null,
                              {fetchCb: fetchCb,
                               slotsee: [refView + "-link"],
