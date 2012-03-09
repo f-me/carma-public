@@ -9,6 +9,7 @@ function backbonizeModel(model, modelName) {
     var fieldHash = {};
     var dictionaryFields = [];
     var referenceFields = [];
+    var requiredFields = [];
     _.each(model.fields,
           function(f) {
               if (!(_.isUndefined(f.default)))
@@ -20,15 +21,23 @@ function backbonizeModel(model, modelName) {
                   referenceFields = referenceFields.concat(f.name);
               if (f.type == "dictionary")
                   dictionaryFields = dictionaryFields.concat(f.name);
+              if ((!_.isUndefined(f.required)) && f.required)
+                  requiredFields = requiredFields.concat(f.name);
           });
 
     var M = Backbone.Model.extend({
         defaults: defaults,
+
+        // Field caches
+
         // List of fields with dictionary type
         dictionaryFields: dictionaryFields,
         // List of field names which hold references to different
         // models.
         referenceFields: referenceFields,
+        // List of required fields
+        requiredFields: requiredFields,
+
         // Temporary storage for attributes queued for sending to
         // server.
         attributeQueue: {},

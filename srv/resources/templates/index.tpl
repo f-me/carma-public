@@ -119,20 +119,7 @@
             <div class="controls">
               <span class="accordion" id="case-service-references" />
               
-              <!-- This list will be generated automatically based
-                   on programs data.
-              -->
-              <select name="service-picker">
-                <option value="tech">Техпомощь</option>
-                <option value="towage">Буксировка</option>
-                <option value="taxi">Такси</option>
-                <option value="hotel">Гостиница</option>
-                <option value="rent">Подменный автомобиль</option>
-                <option value="sober">Трезвый водитель</option>
-              </select>&nbsp;
-              <button type="button" class="btn"
-                      onclick="addService();">
-                <i class="icon icon-plus" />Добавить услугу</button>
+              <span id="service-picker-container" />
             </div>
           </div>
           
@@ -210,11 +197,13 @@
     <script type="text/template"
             class="field-template"
             id="textarea-field-template">
-      <div class="control-group">
+      <div class="control-group"
+           {{# required }}data-bind="css: { error: {{name}}Not }"{{/ required}}
+           >
         <div class="control-label">
           <label>{{ label }}</label>
         </div>
-        <div class="controls">
+        <div class="controls">             
           <textarea class="pane-span focusable"
                     name="{{ name }}"
                     {{# readonly }}disabled{{/ readonly }}
@@ -228,7 +217,9 @@
     <script type="text/template"
             class="field-template"
             id="text-field-template">
-      <div class="control-group">
+      <div class="control-group"
+           {{# required }}data-bind="css: { error: {{name}}Not }"{{/ required}}
+           >
         <div class="control-label">
           <label>{{ label }}</label>
         </div>
@@ -426,7 +417,6 @@
       </div>
     </script>
 
-
     <!-- Fallback template for pickTemplate failures -->
     <script type="text/template"
             id="unknown-template">
@@ -434,6 +424,30 @@
         Не удалось найти ни один из шаблонов:
         {{#names}}{{.}}&nbsp;{{/names}}
       </span>
+    </script>
+
+    <!-- Render service picker with services dictionary -->
+    <script type="text/template"
+            id="service-picker-template">
+      <ul class="nav nav-pills">
+        <li class="dropdown">
+          <button class="dropdown-toggle btn btn-action"
+                  type="button"
+                  data-toggle="dropdown">
+            <i class="icon icon-plus" />Добавить услугу
+          </button>
+          <ul class="dropdown-menu">
+            {{# dictionary }}
+            <li>
+              <a href="#" onclick="addService('{{value}}');">
+                <i class="icon-{{icon}} icon-black" />
+                {{label}}
+              </a>
+            </li>
+            {{/ dictionary }}
+          </ul>
+        </li>
+      </ul>
     </script>
   </body>
 </html>

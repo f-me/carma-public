@@ -126,22 +126,27 @@ function setupCaseMain(viewName, args) {
                        {fetchCb: fetchCb, 
                         permEl: "case-permissions"});
 
+    // Render service picker
+    //
+    // We use Bootstrap's glyphs if "icon" key is set in dictionary
+    // entry.
+    $("#service-picker-container").html(
+        Mustache.render($("#service-picker-template").html(),
+                        {dictionary: global.dictionaries["Services"]}));
 }
 
-// Top-level wrapper for storeService, which grabs serviceModelName
-// from service-picker
-function addService() {
+// Top-level wrapper for storeService
+function addService(name) {
     addReference(global.viewsWare["case-form"].bbInstance,
                  "services",
-                 $("[name=service-picker]").val(),
+                 name,
                  "case-service-references");
 }
 
-function setupCallForm (viewName, args) {
+function setupCallForm(viewName, args) {
     modelSetup("call")(viewName, null,
                        {permEl: "case-permissions"});
 }
-
 
 function initOSM() {
       window.osmap = new OpenLayers.Map("basicMap");

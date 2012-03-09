@@ -147,6 +147,20 @@ function modelSetup(modelName) {
 
                 $el(elName).html(renderFields(model, elName));
                 $el(options.permEl).html(renderPermissions(model, elName));
+
+
+                // Set extra observable for inverses of required
+                // parameters, with name <fieldName>Not
+                for (f in instance.requiredFields) {
+                    knockVM[instance.requiredFields[f] + "Not"] = 
+                    kb.observable(instance,
+                                  {key: instance.requiredFields[f],
+                                   read: function (k) {
+                                       return !instance.get(k)
+                                   }});
+                    console.log(instance.requiredFields[f]);
+                }
+                // Bind the model to Knockout UI
                 ko.applyBindings(knockVM, el(elName));
                 for (s in options.slotsee) {
                     ko.applyBindings(knockVM, el(options.slotsee[s]));

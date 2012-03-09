@@ -327,12 +327,18 @@
     ],
     "Services": [
         {
-            "value": "evac",
+            "value": "tech",
+            "label": "Техпомощь",
+            "icon": "cog"
+        },
+        {
+            "value": "towage",
             "label": "Эвакуация"
         },
         {
             "value": "rent",
-            "label": "Подменный автомобиль"
+            "label": "Подменный автомобиль",
+            "icon": "road"
         },
         {
             "value": "hotel",
@@ -341,6 +347,11 @@
         {
             "value": "taxi",
             "label": "Такси"
+        },
+        {
+            "value": "sober",
+            "label": "Трезвый водитель",
+            "icon": "glass"
         },
         {
             "value": "transport",
@@ -373,10 +384,6 @@
         {
             "value": "tickets",
             "label": "Заказ билетов"
-        },
-        {
-            "value": "help",
-            "label": "Техпомощь"
         },
         {
             "value": "unfuel",
