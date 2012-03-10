@@ -1,0 +1,22 @@
+#    -*- mode: org -*-
+
+
+Archived entries from file /home/sphinx/projects/carma/README.org
+
+
+* DONE Indexed fields
+  CLOSED: [2012-03-08 Чтв 15:55]
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2012-03-08 Чтв 15:55
+  :ARCHIVE_FILE: ~/projects/carma/README.org
+  :ARCHIVE_OLPATH: To do
+  :ARCHIVE_CATEGORY: README
+  :ARCHIVE_TODO: DONE
+  :END:
+  Fields should support "index" boolean attribute, in which case
+  inverse index for that field should be created in Redis.
+
+  Consider {"name": "code", "index": true} field for `scp` model,
+  then if code field of model N is set to K, update must append N to
+  `scp:code:K` to N. This will allow faster searching by field
+  contents.

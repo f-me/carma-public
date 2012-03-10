@@ -36,6 +36,8 @@
    dynamic lists of referencable models).
 
    Fix reference field mark to work everywhere.
+
+   {{refField}}Ref observable cannot be used from the interface.
 ** MAYBE Generate navbar from screens description
 ** TODO [/] More client-side caching
    - [ ] templates;
