@@ -179,15 +179,16 @@ function knockBackbone(instance, viewName) {
 //    {
 //      field: "bar",
 //      forest: "main-subref",
-//      hard: "bar"
+//      hard: true,
+//      modelName: "fooReferencedModel"
 //    }]
 //
 //   field sets the field of parent model where references are stored,
 //   forest is the name of element to render views for references into.
 //
 //   If hard key is false, then if field has no value, nothing will be
-//   rendered. Otherwise, hard must must be set to the name of model
-//   the field stores reference to.
+//   rendered. If hard is true, then modelName key must must be set to
+//   the name of model the field stores reference to.
 //
 //   Think of hard refs as slots always storing reference to instance
 //   of some predefined model, while non-hard refs may store any
@@ -232,10 +233,7 @@ function modelSetup(modelName) {
                         var reference = options.refs[rf];
                         if (reference.hard) {
                             var hardBook = 
-                                addReference(instance,
-                                             reference.field,
-                                             reference.hard,
-                                             reference.forest);
+                                addReference(instance, reference);
                             refViews[reference.field] = [hardBook.refView];
                             bares = bares.concat(reference.field);
                         }
@@ -270,10 +268,8 @@ function modelSetup(modelName) {
                             // We use hardBooks here because books are
                             // used later to perform modelSetup and
                             // addReference already does that.
-                            var hardBook = addReference(instance,
-                                                        reference.field,
-                                                        reference.hard,
-                                                        reference.forest);
+                            var hardBook =
+                                addReference(instance, reference);
                             refViews[reference.field] = [hardBook.refView];
                         }
                         else
@@ -491,45 +487,46 @@ function setupMultiRef(instance, refField, refsForest) {
 
 // Add new reference to instance, render view and setup form for it.
 //
-// View template used
+// instance is a Backbone model, reference is an object which contains:
 //
-// instance is a Backbone model, refField is the name of instance
-// field to store reference in, refModelName sets name of model to
-// create reference to, refsForest is ID of element which holds views
-// for references.
+// - field is the name of instance field to store reference in;
+// 
+// - modelName sets name of model to create reference to;
 //
-// Return single book of the same structure as in setupMultiRef
-// result (but without refId).
-function addReference(instance, refField, refModelName, refsForest) {
-    var oldValue = instance.get(refField);
+// - forest is ID of element which holds views for references.
+//
+// Return single book of the same structure as in setupMultiRef result
+// (but without refId).
+function addReference(instance, reference) {
+    var oldValue = instance.get(reference.field);
     var tpls = getTemplates("reference-template");
     if (_.isEmpty(oldValue))
         oldValue = [];
     else
         oldValue = oldValue.split(",");
 
-    var refClass = mkSubviewClass(refField, instance.name, instance.cid);
+    var refClass = mkSubviewClass(reference.field, instance.name, instance.cid);
 
     // Cannot check against oldService.length because there may be
     // more than 1 unsaved service
     var refN = $("." + refClass).length;
 
-    var refView = mkSubviewName(refField, refN, instance.name, instance.cid);
+    var refView = mkSubviewName(reference.field, refN, instance.name, instance.cid);
 
     var book = {refN: refN,
-                refModelName: refModelName,
+                refModelName: reference.modelName,
                 refId: null,
-                refField: refField,
+                refField: reference.field,
                 refClass: refClass,
                 refView: refView,
                };
 
     // Render view
     var html = renderRef(book, tpls);
-    $el(refsForest).append(html);
+    $el(reference.forest).append(html);
 
-    var fetchCb = mkRefFetchCb(instance, refField);
-    modelSetup(refModelName)(refView, null,
+    var fetchCb = mkRefFetchCb(instance, reference.field);
+    modelSetup(reference.modelName)(refView, null,
                              {fetchCb: fetchCb,
                               slotsee: [refView + "-link"],
                               permEl: refView + "-perms",

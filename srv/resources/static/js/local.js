@@ -72,17 +72,20 @@ function setupCaseMain(viewName, args) {
         {
             field: "car",
             forest: "right",
-            hard: "car",
+            hard: true,
+            modelName: "car"
         },
         {
             field: "caller",
             forest: "right",
-            hard: "caller",
+            hard: true,
+            modelName: "caller"
         },
         {
             field: "address",
             forest: "right",
-            hard: "address",
+            hard: true,
+            modelName: "address"
         }
     ];
     modelSetup("case")(viewName, args.id, 
@@ -131,9 +134,9 @@ function insightField(refInstance) {
 // Top-level wrapper for storeService
 function addService(name) {
     addReference(global.viewsWare["case-form"].bbInstance,
-                 "services",
-                 name,
-                 "case-service-references");
+                 {field: "services",
+                  modelName: name,
+                  forest: "case-service-references"});
 }
 
 function setupCallForm(viewName, args) {

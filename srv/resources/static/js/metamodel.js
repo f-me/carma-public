@@ -60,6 +60,8 @@ function backbonizeModel(model, modelName) {
             var realUpdates = function () {
                 // Do not resave model when id is set after
                 // first POST
+                //
+                // TODO Still PUT-backs
                 if (!this.hasChanged("id"))
                     this.save();
             };
