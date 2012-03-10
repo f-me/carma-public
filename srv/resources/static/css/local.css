@@ -60,7 +60,11 @@ div.dataTables_length select {
 input.pane-span,
 textarea.pane-span, 
 .uneditable-input.pane-span {
-  width: 99%;
+  width: 90%;
+}
+
+.input-append {
+  width: 96%;
 }
 
 .form-vertical .control-group {

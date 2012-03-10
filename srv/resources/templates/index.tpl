@@ -251,12 +251,16 @@
           <label>{{ label }}</label>
         </div>
         <div class="controls">
-          <input type="text"
-                 class="pane-span focusable"
-                 data-source="global.dictionaries['{{dictionaryName}}']"
-                 data-bind="value: {{ name }},
-                            valueUpdate: 'afterkeydown'"
-                 data-provide="typeahead" />
+          <div class="input-append">
+            <input type="text"
+                   class="pane-span focusable"
+                   name="{{ name }}"
+                   data-source="global.dictionaries['{{dictionaryName}}']"
+                   data-bind="value: {{ name }},
+                              valueUpdate: 'afterkeydown'"
+                   data-provide="typeahead" />
+            <span class="add-on"><i class="icon icon-chevron-down" /></span>
+          </div>
         </div>
       </div>
     </script>
@@ -334,11 +338,17 @@
          {{label}}
        </div>
        <div class="controls">
+         <div class="input-append">
            <input type="text"
                   class="pane-span"
                   onfocus="showComplex('{{ viewName }}', '{{ name }}');"
                   {{# readonly }}disabled{{/ readonly }}
                   data-bind="text: {{ name }}Ref" />
+           <span class="add-on">
+             <i onclick="showComplex('{{ viewName }}', '{{ name }}');"
+                class="icon icon-share" />
+           </span>
+         </div>
        </div>
      </div>
    </script>
