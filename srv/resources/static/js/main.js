@@ -201,6 +201,10 @@ function knockBackbone(instance, viewName) {
 //
 //   etc., where "view-1" and "view-2" were generated for instances
 //   which are referenced in "some-ref-field".
+//
+// If no instance id is provided, then bare views for hard refs are
+// not rendered (reference view rendering requires id of parent
+// instance to
 function modelSetup(modelName) {
     return function(elName, id, options) {
         $.getJSON(modelMethod(modelName, "model"),
@@ -214,6 +218,25 @@ function modelSetup(modelName) {
                 var instance = new mkBackboneModel(idHash);
                 var knockVM = knockBackbone(instance, elName);
 
+                // To let parent instance know about views created for
+                // references, we create refViews.
+                var refViews = {};
+
+                // Add hard refs for fresh view immediately
+                if (!id)
+                    for (rf in options.refs) {
+                        var reference = options.refs[rf];
+                        if (reference.hard) {
+                            var hardBook = 
+                                addReference(instance,
+                                             reference.field,
+                                             reference.hard,
+                                             reference.forest);
+                            refViews[reference.field] = [hardBook.refView];
+                        }
+                    }
+
+
                 // Do the same for reference fields after first
                 // fetch() is complete, but not if this case is new.
                 //
@@ -224,10 +247,6 @@ function modelSetup(modelName) {
                 // Forms for referenced instances are then rendered
                 // with modelSetup which means that viewsWare will be
                 // used for further proper cleanup.
-                //
-                // To let parent instance know about views created for
-                // references, we create refViews.
-                var refViews = {};
                 var refCb = function(instance) {
                     // Just once
                     instance.unbind("change", refCb);
@@ -235,9 +254,8 @@ function modelSetup(modelName) {
                         var reference = options.refs[rf];
                         refViews[reference.field] = [];
                         var books = [];
-                        if (reference.hard &&
-                            (instance.isNew() ||
-                             _.isEmpty(instance.get(reference.field)))) {
+                        if (reference.hard && 
+                            _.isEmpty(instance.get(reference.field))) {
                             // Add non-existent hard reference
                             //
                             // We use hardBooks here because books are
@@ -447,10 +465,10 @@ function setupMultiRef(instance, refField, refsForest) {
                            refField: refField,
                            refClass: mkSubviewClass(refField,
                                                     instance.name,
-                                                    instance.id),
+                                                    instance.cid),
                            refView: mkSubviewName(refField, i,
                                                   instance.name,
-                                                  instance.id)
+                                                  instance.cid)
                           };
             books[i] = refBook;
 
@@ -480,13 +498,13 @@ function addReference(instance, refField, refModelName, refsForest) {
     else
         oldValue = oldValue.split(",");
 
-    var refClass = mkSubviewClass(refField, instance.name, instance.id);
+    var refClass = mkSubviewClass(refField, instance.name, instance.cid);
 
     // Cannot check against oldService.length because there may be
     // more than 1 unsaved service
     var refN = $("." + refClass).length;
 
-    var refView = mkSubviewName(refField, refN, instance.name, instance.id);
+    var refView = mkSubviewName(refField, refN, instance.name, instance.cid);
 
     var book = {refN: refN,
                 refModelName: refModelName,
