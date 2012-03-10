@@ -43,6 +43,13 @@
             "index": true
         },
         {
+            "name": "address",
+            "label": "Адрес",
+            "canWrite": true,
+            "canRead": true,
+            "type": "reference"
+        },
+        {
             "name": "caller",
             "label": "Звонящий",
             "canWrite": true,
