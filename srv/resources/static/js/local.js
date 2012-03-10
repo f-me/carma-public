@@ -78,6 +78,11 @@ function setupCaseMain(viewName, args) {
             field: "caller",
             forest: "right",
             hard: "caller",
+        },
+        {
+            field: "address",
+            forest: "right",
+            hard: "address",
         }
     ];
     modelSetup("case")(viewName, args.id, 
