@@ -33,7 +33,9 @@
 
 ** IN_PROGRESS Support references
    Perhaps referencables field should not be used at all (to support
-   dynamic lists of referencable models)
+   dynamic lists of referencable models).
+
+   Fix reference field mark to work everywhere.
 ** MAYBE Generate navbar from screens description
 ** TODO [/] More client-side caching
    - [ ] templates;
@@ -44,6 +46,8 @@
    Must implement label←→value translation (at knockBackbone@main.js)
 
    Write data-api for jQuery Autocomplete as it's better.
+
+   Show dictionary when field is focused.
 ** TODO Client settings
    Some settings need to be served to client code (to use in JS):
    
