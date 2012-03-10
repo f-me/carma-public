@@ -1,12 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
-import           Control.Exception
+import           Control.Exception (finally)
+import           Control.Applicative
+import           Control.Monad.IO.Class (liftIO)
+import           Control.Monad.Instances -- Just for Functor (Either a) instance
 import           System.Environment (getArgs)
 import           System.FilePath ((</>))
+import           System.IO (stderr, hPrint)
 
+import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.UTF8 as B
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Map as M
+import           Data.Maybe
 
 import           Data.Time.Format (parseTime)
 import           Data.Time.Clock  (UTCTime)
@@ -22,56 +28,102 @@ import           Database.Redis as Redis
 main = do
   dir:_ <- getArgs
   rConn <- Redis.connect Redis.defaultConnectInfo
-  let  loadVinFile = loadXFile $ \m -> redisSetWithKey rConn (m M.! "vin") m
-  let  loadCSVFile = loadXFile $ \m -> redisSet rConn m
-  do   loadVinFile (dir </> "vin/VIN VW легковые.csv") vwMotor_map
-    >> loadVinFile (dir </> "vin/VIN VW коммерческие.csv") vwTruck_map
-    >> loadCSVFile (dir </> "Партнеры.csv") partner_map
-    >> loadCSVFile (dir </> "Дилеры.csv") dealer_map
-    `finally` runRedis rConn quit
+  loadFiles dir rConn `finally` runRedis rConn quit
+
+
+loadFiles dir rConn = do
+  let  loadVinFile = loadXFile $ redisSetVin rConn
+  let  loadCSVFile key = loadXFile $ redisSet rConn key
+  loadVinFile (dir </> "vin/VIN VW легковые.csv") vwMotor_map
+  loadVinFile (dir </> "vin/VIN VW коммерческие.csv") vwTruck_map
+  loadVinFile (dir </> "vin/VIN OPEL.csv") opel_map
+  loadCSVFile "partner" (dir </> "Партнеры.csv") partner_map
+  loadCSVFile "dealer"  (dir </> "Дилеры.csv") dealer_map
+
+
+-- FIXME: use `create` form snaplet-redson 
+redisSet c keyPrefix val = runRedis c $ do
+  Right keyInt <- incr $ B.concat ["global:", keyPrefix, ":id"]
+  let keyStr = B.concat [keyPrefix,":",B.pack $ show keyInt]
+  redisSetWithKey' keyStr val
+
+redisSetVin c val
+  = runRedis c $ redisSetWithKey' key val
+  where
+    key = B.concat ["vin:", val M.! "vin"]
+
+redisSetWithKey' key val = do
+  res <- hmset key $ M.toList val
+  case res of
+    Left err -> liftIO $ print err
+    _ -> return ()
 
 
 loadXFile store fName keyMap
   = foldCSVFile fName defCSVSettings run ()
-  >>= print -- Just to force evaluation
+  >>= hPrint stderr -- Just to force evaluation
   where
     run :: () -> ParsedRow MapRow -> E.Iteratee B.ByteString IO ()
-    run _ (ParsedRow (Just r))
-      = E.tryIO (store $ remap keyMap r) >> return ()
+    run _ (ParsedRow (Just r)) = E.tryIO
+      $ either (hPrint stderr) store
+      $ remap keyMap r
     run _ _ = return ()
 
+
 -- | convert MapRow according to transformations described in `keyMap`.
-remap keyMap m = M.fromList $ foldl f [] keyMap
+remap keyMap m = M.fromList <$> foldl f (Right []) keyMap
   where
-    f res (key',f) = case f m of
-      "" -> res
-      xs -> (key',xs):res
+    f err@(Left _) _ = err
+    f (Right res) (key',f)
+      = f m >>= \val -> return
+        (if B.null val then res else ((key',val):res))
 
 
-redisSetWithKey c key val = putStr "." --print val
-redisSet c val = putStr "." --print val
 
+getKey m k
+  = maybe (Left $ "Unknown key: " ++ show k) Right
+  $ M.lookup (B.fromString k) m
 
+str' :: [String] -> M.Map B.ByteString B.ByteString -> Either String T.Text
 str' keys m
-  = T.unwords 
-  $ concatMap (T.words . T.decodeUtf8)
-  $ map ((m M.!) . B.fromString) keys
+  = T.unwords . concatMap (T.words . T.decodeUtf8)
+  <$> sequence (map (getKey m) keys)
 
-str  = (T.encodeUtf8 .) . str'
-strU = ((T.encodeUtf8 . T.toUpper) .) . str'
-date = str
+str  ks m = T.encodeUtf8 <$> str' ks m
+strU ks m = T.encodeUtf8 . T.toUpper <$> str' ks m
+fixed = const . Right
+
+notEmpty f m = case f m of
+  Right "" -> Left $ "empty fields: " ++ show m
+  Right rs -> Right rs
+  err      -> err
+
+
+date keys m = case T.unpack <$> str' keys m of
+  Left err -> Left err
+  Right "" -> Right ""
+  Right dateStr ->
+    let tryParse :: String -> Maybe Day
+        tryParse format = parseTime defaultTimeLocale format dateStr
+    in case catMaybes $ map tryParse dateFormats of
+        res:_ -> Right . B.fromString $ show res
+        _     -> Left $ "Unknown date format: " ++ show dateStr
+
+dateFormats =
+  ["%m/%d/%Y", "%d.%m.%Y", "%e %b %Y" ,"%b %Y"]
 
 
 vwMotor_map =
-  [("carModel",     strU ["Модель"])
+  [("make",         fixed "VW")
+  ,("model",        strU ["Модель"])
+  ,("vin",          notEmpty $ strU ["VIN"])
+  ,("buyDate",      date ["Дата передачи АМ Клиенту"])
   ,("color",        str  ["Цвет авт"])
   ,("modelYear",    str  ["Модельный год"])
-  ,("vin",          strU ["VIN"])
   ,("dealerCode",   str  ["Код дилера получателя"])
   ,("dealerName",   str  ["Дилер получатель"])
   ,("contractNo",   str  ["No Дог продажи Клиенту"])
   ,("contractDate", date ["Дата договора продажи"])
-  ,("sellDate",     date ["Дата передачи АМ Клиенту"])
 --  ,("Отч неделя", -- skip
   ,("ownerCompany", str  ["Компания покупатель"])
   ,("ownerContact", str  ["Контактное лицо покупателя"])
@@ -81,18 +133,29 @@ vwMotor_map =
 
 
 vwTruck_map = 
-  [("sellDate",     date ["Дата продажи"])
+  [("make",         fixed "VW")
+  ,("model",        str  ["модель"])
+  ,("vin",          notEmpty $ strU ["VIN"])
+  ,("buyDate",      date ["Дата продажи"])
+  ,("plateNum",     strU ["госномер"])
   ,("validUntil",   date ["Дата окончания карты"])
   ,("dealerName",   str  ["Продавец"])
   ,("cardNumber",   str  ["№ карты"])
-  ,("VIN",          strU ["vin"]) -- toUpper
   ,("modelYear",    str  ["модельный год"])
-  ,("plateNumber",  strU ["госномер"]) -- toUpper
-  ,("carModel",     str  ["модель"])
   ,("ownerName",    str  ["имя", "фамилия", "отчество"])
   ,("ownerAddress", str  ["индекс","город","адрес частного лица или организации"])
   ,("ownerPhone",   str  ["тел1","тел2"])
   ,("ownerCompany", str  ["название организации"])
+  ]
+
+opel_map =
+  [("make",         fixed "OPEL")
+  ,("model",        str   ["Model"])
+  ,("vin",          notEmpty $ strU  ["VIN"])
+  ,("buyDate",      date  ["Retail Date"])
+  ,("oldVin",       strU  ["Previous VIN (SKD)"])
+--  ,("Brand",
+  ,("dealerCode",   strU  ["Retail Dealer"])
   ]
 
 partner_map =
@@ -135,14 +198,3 @@ dealer_map =
   ,("service",      str ["предоставляемая услуга"])
   ,("workingHours", str ["время работы по предоставлению услуги"])
   ]
-
-{-
-mkTimestamp :: T.Text -> T.Text -> UTCTime
-mkTimestamp d t
-  = fromJust $ localTimeToUTC (read "+0400")
-  <$> (LocalTime
-    <$> (maybe (pTm "%m/%d/%Y" "01/02/2003") Just (pTm "%m/%d/%Y" d))
-    <*> (maybe (Just midday) Just (pTm "%k:%M" t)))
-  where
-    pTm f = parseTime defaultTimeLocale f . T.unpack
--}
