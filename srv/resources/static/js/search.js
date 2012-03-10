@@ -27,7 +27,7 @@ function setupSearchTable(viewName, args) {
             sZeroRecords: "Ничего не найдено"
         }});
     var d = new Date;
-    var sd = d.getDate() + '-' + (d.getMonth() + 1) + '-' + d.getFullYear();
+    var sd = (d.getMonth() + 1) + '-' + d.getDate() + '-' + d.getFullYear();
     console.log(sd);
     $("#datepicker").data('date', sd);
     $("#datepicker").datepicker({
