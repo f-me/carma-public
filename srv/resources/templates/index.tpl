@@ -160,7 +160,7 @@
         <legend>Поиск</legend>
         <form class="form-inline">
           По дате<br />
-          <div data-date-format="dd-mm-yyyy" 
+          <div data-date-format="mm-dd-yyyy" 
                id="datepicker" 
                class="input-append date">
 	    <input type="text"
