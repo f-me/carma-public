@@ -123,6 +123,9 @@ mkTransformField matchers mfield model rfield spec =
                    fixUtfMap spec
         where f = BU.fromString
 
+-- | Build transformation using string literals
+--
+-- This will always match.
 mkTransformAlways :: ModelName 
                   -> FieldName
                   -> ProtoMap
@@ -213,12 +216,12 @@ sober = mkTransformField
 
 car = mkTransformAlways
       "car" "car"
-      [ ("plateNum", Left "Регистрационный номер автомобиля")
-      , ("model", Left "Модель автомобиля")
-      , ("color", Left "Цвет")
-      , ("vin", Left "VIN автомобиля")
-      , ("buyDate", Left "Дата покупки автомобиля")
-      , ("mileage", Left "Пробег автомобиля (км)") ]
+      [ ("plateNum", Right "Регистрационный номер автомобиля")
+      , ("model", Right "Модель автомобиля")
+      , ("color", Right "Цвет")
+      , ("vin", Right "VIN автомобиля")
+      , ("buyDate", Right "Дата покупки автомобиля")
+      , ("mileage", Right "Пробег автомобиля (км)") ]
 
 serviceTransformations = [ tech
                          , hotel
@@ -286,9 +289,11 @@ caseAction (idxs, c) (ParsedRow (Just r)) =
       -- Commit only a fraction of original data for every case
       bareCommit = remapRow row caseMap
       -- Try all transformations and see which succeed
-      trs = zip serviceTransformations
-                (catMaybes $ map (\t -> tryTransformation row t) 
-                           serviceTransformations)
+      trs = catMaybes $
+            map (\t -> case (tryTransformation row t) of
+                         Just r -> Just (t, r)
+                         Nothing -> Nothing
+                ) serviceTransformations
     in do
       liftIO $ runRedis c $ case trs of
         -- No transformations matched
