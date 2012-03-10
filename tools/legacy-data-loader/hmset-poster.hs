@@ -15,13 +15,13 @@ TODO Support more than one dependant form.
 |-}
 
 import Control.Monad.IO.Class (liftIO)
-import Control.Monad (when)
+import Control.Monad (foldM, when)
 
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.ByteString.UTF8 as BU (fromString)
 import qualified Data.ByteString.Lazy.UTF8 as LBU (toString)
-import Data.Enumerator as E hiding (map, head)
+import Data.Enumerator as E hiding (foldM, map, head)
 import qualified Data.Enumerator.Binary as EB
 
 import Data.Maybe (catMaybes)
@@ -70,16 +70,19 @@ type FieldMap = M.Map FieldName (Either FieldValue FieldName)
 -- 'FieldMap' with unfixed strings and in list form
 type ProtoMap = [(String, Either String String)]
 
+-- How to match transformation
+data Match = Match { matchers :: [FieldValue]
+                   -- ^ legacy data field values to match this
+                   -- transformation
+                     
+                   , matchField :: FieldName
+                   -- ^ name of field to match against
+                   }
+
 -- | Describes how to build new commit for dependant instance and how it
 -- should be referenced from parent instance.
 data Transformation =
-    Transformation { matchers :: [FieldValue]
-                   -- ^ legacy data service names to match this
-                   -- transformation ("service" CSV field)
-
-                   , matchField :: FieldName
-                   -- ^ name of "service" field in CSV
-
+    Transformation { match :: Match
                    , referenceModel :: ModelName
                    -- ^ reference to what model create on this commit
 
@@ -113,7 +116,7 @@ mkTransformation :: [String]
                  -> ProtoMap
                  -> Transformation
 mkTransformation matchers mfield model rfield spec = 
-    Transformation (map f matchers) (f mfield) model rfield $ 
+    Transformation (Match (map f matchers) (f mfield)) model rfield $ 
                    fixUtfMap spec
         where f = BU.fromString
 
@@ -125,7 +128,7 @@ tech = mkTransformation
         "ПОДМЕННЫЙ АВТОМОБИЛЬ", "СНЯТИЕ С ПАРКИНГА",
         "ТЕХНИЧЕСКАЯ ПОМОЩЬ"] 
         serviceField "tech" "services"
-       [ ("techType", Right "Услуга (Обязательное поле)")
+       [ ("techType", Right serviceField)
        , ("caseAddress", Right "Адрес места поломки")
        , ("techContractor", Right "Название партнёра")
        , ("techComments", Right "Описание неисправности со слов клиента")
@@ -237,8 +240,8 @@ remapRow row cspec = M.mapWithKey
 -- Return name of instance to be committed and its commit.
 tryTransformation :: MapRow -> Transformation -> Maybe (ModelName, Commit)
 tryTransformation row transform =
-    if (maybe False (flip elem $ matchers transform) 
-                  (M.lookup (matchField transform) row))
+    if (maybe False (flip elem $ matchers $ match transform) 
+                  (M.lookup (matchField $ match transform) row))
     then Just (referenceModel transform,
                remapRow row $ commitMap transform)
     else Nothing
@@ -258,27 +261,28 @@ caseAction (idxs, c) (ParsedRow (Just r)) =
     let
       row = filterCaseRow r
       -- Commit only a fraction of original data for every case
-      commit = remapRow row caseMap
+      bareCommit = remapRow row caseMap
       -- Try all transformations and see which succeed
       trs = zip serviceTransformations
                 (catMaybes $ map (\t -> tryTransformation row t) 
                            serviceTransformations)
-                
     in do
       liftIO $ runRedis c $ case trs of
         -- No transformations matched
-        [] -> create "case" commit idxs >> return (idxs, c)
-        -- Create dependant instance
+        [] -> create "case" bareCommit idxs >> return (idxs, c)
         _ -> 
-            let 
-                (trans, (depModel, depCommit)) = head trs
-            in
-               do
-                 Right sid <- create depModel depCommit []
-                 create "case" (M.insert (referenceField trans)
-                                 (instanceKey depModel sid)
-                                 commit) idxs
-                 return (idxs, c)
+            do
+              -- Store all dependant instances
+              commit <- foldM (\c (trans, (depModel, depCommit)) -> do
+                                 liftIO $ print depCommit
+                                 Right sid <- create depModel depCommit []
+                                 return $ M.insert 
+                                            (referenceField trans)
+                                            (instanceKey depModel sid)
+                                            c) bareCommit trs
+
+              create "case" commit idxs              
+              return (idxs, c)
 
 main :: IO ()
 main =
