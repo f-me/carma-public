@@ -78,6 +78,7 @@ data Match = Match { matchers :: [FieldValue]
                    , matchField :: FieldName
                    -- ^ name of field to match against
                    }
+           | AlwaysMatch
 
 -- | Describes how to build new commit for dependant instance and how it
 -- should be referenced from parent instance.
@@ -108,21 +109,30 @@ fixUtfMap cmap = M.fromList
 
 -- | Build transformation using string literals
 --
+-- This will match on given field and one of values.
+--
 -- TODO OverloadedStrings breaks UTF-8 literals.
-mkTransformation :: [String] 
+mkTransformField :: [String] 
                  -> String
                  -> ModelName 
                  -> FieldName
                  -> ProtoMap
                  -> Transformation
-mkTransformation matchers mfield model rfield spec = 
+mkTransformField matchers mfield model rfield spec = 
     Transformation (Match (map f matchers) (f mfield)) model rfield $ 
                    fixUtfMap spec
         where f = BU.fromString
 
+mkTransformAlways :: ModelName 
+                  -> FieldName
+                  -> ProtoMap
+                  -> Transformation
+mkTransformAlways model rfield spec =
+    Transformation AlwaysMatch model rfield $ fixUtfMap spec
+
 serviceField = "Услуга  (Обязательное поле)"
 
-tech = mkTransformation
+tech = mkTransformField
        ["ВСКРЫТИЕ ЗАМКОВ", "ДОСТАВКА ТОПЛИВА", 
         "ЗАМЕНА КОЛЁС", "ПОДЗАРЯДКА АКБ",
         "ПОДМЕННЫЙ АВТОМОБИЛЬ", "СНЯТИЕ С ПАРКИНГА",
@@ -134,7 +144,7 @@ tech = mkTransformation
        , ("techComments", Right "Описание неисправности со слов клиента")
        ]
 
-hotel = mkTransformation
+hotel = mkTransformField
        ["ГОСТИНИЦА"] 
        serviceField "hotel" "services"
        [ ("caseAddress", Right "Адрес места поломки")
@@ -149,42 +159,42 @@ towageCommonMap = [ ("caseAddress", Right "Адрес места поломки"
                   ]
 
 -- TODO towerType & towType must be dictionary references!
-towage1 = mkTransformation
+towage1 = mkTransformField
           ["ЭВАКУАТОР", "ЭВАКУАЦИЯ В СЛУЧАЕ ДТП И ВАНДАЛИЗМА"]
           serviceField "towage" "services"
           $ towageCommonMap ++ [ ("towerType", Left "Эвакуатор")
                                , ("towType", Left "К дилеру")
                                ]
 
-towage2 = mkTransformation
+towage2 = mkTransformField
           ["ЭВАКУАЦИЯ ДО ДОМА В НОЧНОЕ ВРЕМЯ"] 
           serviceField "towage" "services"
           $ towageCommonMap ++ [ ("towerType", Left "Эвакуатор")
                                , ("towType", Left "К дому в ночное время")
                                ]
 
-towage3 = mkTransformation
+towage3 = mkTransformField
           ["ЭВАКУАЦИЯ ДО ШИНОМОНТАЖА"] 
           serviceField "towage" "services"
           $ towageCommonMap ++ [ ("towerType", Left "Эвакуатор")
                                , ("towType", Left "До мастерской")
                                ]
 
-towage4 = mkTransformation
+towage4 = mkTransformField
           ["МАНИПУЛЯТОР"]
           serviceField "towage" "services"
           $ towageCommonMap ++ [ ("towerType", Left "Манипулятор")
                                , ("towType", Left "К дилеру")
                                ]
 
-taxi = mkTransformation
+taxi = mkTransformField
        ["ТАКСИ"]
        serviceField "taxi" "services"
        [ ("taxiFrom", Left "Адрес места поломки")
        , ("taxiTo", Left "Адрес куда эвакуируют автомобиль")
        ]
 
-rent = mkTransformation
+rent = mkTransformField
        ["ПОДМЕННЫЙ АВТОМОБИЛЬ"]
        serviceField "rent" "services"
        [ ("towDealer", Left "Название дилера куда эвакуируют автомобиль")
@@ -193,13 +203,22 @@ rent = mkTransformation
        , ("rentContractor", Left "Название дилера куда эвакуируют автомобиль")
        ]
 
-sober = mkTransformation
+sober = mkTransformField
        ["ТРЕЗВЫЙ ВОДИТЕЛЬ"]
        serviceField "sober" "services"
        [ ("fromAddress", Left "Адрес места поломки")
        , ("toAddress", Left "Адрес куда эвакуируют автомобиль")
        , ("multidrive", Right "1")
        ]
+
+car = mkTransformAlways
+      "car" "car"
+      [ ("plateNum", Left "Регистрационный номер автомобиля")
+      , ("model", Left "Модель автомобиля")
+      , ("color", Left "Цвет")
+      , ("vin", Left "VIN автомобиля")
+      , ("buyDate", Left "Дата покупки автомобиля")
+      , ("mileage", Left "Пробег автомобиля (км)") ]
 
 serviceTransformations = [ tech
                          , hotel
@@ -210,6 +229,7 @@ serviceTransformations = [ tech
                          , taxi
                          , rent
                          , sober
+                         , car
                          ]
 
 
@@ -239,6 +259,9 @@ remapRow row cspec = M.mapWithKey
 --
 -- Return name of instance to be committed and its commit.
 tryTransformation :: MapRow -> Transformation -> Maybe (ModelName, Commit)
+tryTransformation row tr@(Transformation AlwaysMatch _ _ _) =
+    Just (referenceModel tr,
+          remapRow row $ commitMap tr)
 tryTransformation row transform =
     if (maybe False (flip elem $ matchers $ match transform) 
                   (M.lookup (matchField $ match transform) row))
@@ -274,14 +297,13 @@ caseAction (idxs, c) (ParsedRow (Just r)) =
             do
               -- Store all dependant instances
               commit <- foldM (\c (trans, (depModel, depCommit)) -> do
-                                 liftIO $ print depCommit
                                  Right sid <- create depModel depCommit []
                                  return $ M.insert 
                                             (referenceField trans)
                                             (instanceKey depModel sid)
                                             c) bareCommit trs
 
-              create "case" commit idxs              
+              create "case" commit idxs
               return (idxs, c)
 
 main :: IO ()
