@@ -223,6 +223,10 @@ function modelSetup(modelName) {
                 var refViews = {};
 
                 // Add hard refs for fresh view immediately
+                //
+                // Bares holds all references which were rendered this
+                // way
+                var bares = [];
                 if (!id)
                     for (rf in options.refs) {
                         var reference = options.refs[rf];
@@ -233,6 +237,7 @@ function modelSetup(modelName) {
                                              reference.hard,
                                              reference.forest);
                             refViews[reference.field] = [hardBook.refView];
+                            bares = bares.concat(reference.field);
                         }
                     }
 
@@ -252,6 +257,10 @@ function modelSetup(modelName) {
                     instance.unbind("change", refCb);
                     for (rf in options.refs) {
                         var reference = options.refs[rf];
+                        
+                        // Do not re-GET previously rendered bare view
+                        if (bares.indexOf(reference.field) == -1) {
+
                         refViews[reference.field] = [];
                         var books = [];
                         if (reference.hard && 
@@ -283,6 +292,7 @@ function modelSetup(modelName) {
                                   {slotsee: [subview + "-link"],
                                    fetchCb: mkObservableCb(knockVM, reference.field),
                                    permEl: subview + "-perms"});
+                        }
                         }
                     }
                 }
