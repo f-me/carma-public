@@ -343,7 +343,7 @@
                   class="pane-span"
                   onfocus="showComplex('{{ viewName }}', '{{ name }}');"
                   {{# readonly }}disabled{{/ readonly }}
-                  data-bind="text: {{ name }}Ref" />
+                  data-bind="value: {{ name }}Ref" />
            <span class="add-on">
              <i onclick="showComplex('{{ viewName }}', '{{ name }}');"
                 class="icon icon-share" />
