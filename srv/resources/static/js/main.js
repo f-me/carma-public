@@ -103,6 +103,14 @@ function forgetScreen() {
 
 // Backbone-Knockout bridge
 //
+// Sets additional observables in Knockout model:
+//
+// - <field>Not for every required field;
+// 
+// - maybeId;
+// 
+// - <field>Ref for every reference field (null, to be updated by
+//   mkObservableCb);
 function knockBackbone(instance, viewName) {
     var knockVM = new kb.ViewModel(instance);
 
@@ -117,13 +125,19 @@ function knockBackbone(instance, viewName) {
                            }});
     }
 
-
     // Insight-observables for references instances will be populated
     // later by mkObservableCb
     for (f in instance.referenceFields) {
         var field = instance.referenceFields[f];
         knockVM[field + "Ref"] = null;
     }
+
+    knockVM["maybeId"] = 
+        kb.observable(instance,
+                      {key: "id",
+                       read: function (k) {
+                           return (instance.isNew()) ? "—" : instance.id;
+                       }});
 
     return knockVM;
 }

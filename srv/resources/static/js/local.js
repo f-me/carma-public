@@ -82,6 +82,7 @@ function setupCaseMain(viewName, args) {
     ];
     modelSetup("case")(viewName, args.id, 
                        {permEl: "case-permissions",
+                        slotsee: "case-number",
                         refs:refs});
 
     // Render service picker

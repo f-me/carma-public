@@ -110,6 +110,15 @@
       <!-- Main case form -->
       <div class="box" id="left">
         <form class="form-horizontal">
+          <div class="control-group">
+            <div class="control-label">
+              <label>Номер</label>
+            </div>
+            <div class="controls">
+              <input type="text" disabled id="case-number"
+                     data-bind="value: maybeId"/>
+            </div>
+          </div>
           <div id="case-form" />
           
           <div class="control-group">
