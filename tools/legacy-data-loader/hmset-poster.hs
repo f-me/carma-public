@@ -33,8 +33,8 @@ import Database.Redis
 
 import System.Console.CmdArgs.Implicit
 
-import Snap.Snaplet.Redson.CRUD
-import Snap.Snaplet.Redson.Metamodel
+import Snap.Snaplet.Redson.Snapless.CRUD
+import Snap.Snaplet.Redson.Snapless.Metamodel
 
 data Options = Options
     { caseFile :: Maybe FilePath
