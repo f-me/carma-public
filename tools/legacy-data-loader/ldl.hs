@@ -113,9 +113,36 @@ dateFormats =
   ["%m/%d/%Y", "%d.%m.%Y", "%e %b %Y" ,"%b %Y"]
 
 
+carModel keys m = do
+  m <- str keys m
+  case B.words m of
+    []  -> Left $ "empty car model in " ++ show m
+    model:_ -> maybe
+      (Left $ "unknown model: " ++ show model)
+      Right
+      (M.lookup model carModels)
+
+
+carModels = M.fromList [(k,v) | (v,ks) <- modelsMap, k <- ks] 
+modelsMap
+  =  map ok -- VW
+    ["Caddy", "Caddy", "Amarok"
+    ,"Crafter", "T5"]
+  ++ map ok -- Opel
+    ["Astra","Zafira","Corsa","Insignia"
+    ,"Combo","Meriva","Antara","Vectra"]
+  where
+    ok s = (s,[s])
+
+oneOf fs m = foldr
+  (\f res -> either (const res) Right $ f m)
+  (Left $ "`oneOf` failed: " ++ show m)
+  fs
+
 vwMotor_map =
   [("make",         fixed "VW")
-  ,("model",        strU ["Модель"])
+  ,("model",        carModel ["Модель"])
+  ,("modelFull",    str ["Модель"])
   ,("vin",          notEmpty $ strU ["VIN"])
   ,("buyDate",      date ["Дата передачи АМ Клиенту"])
   ,("color",        str  ["Цвет авт"])
@@ -134,7 +161,8 @@ vwMotor_map =
 
 vwTruck_map = 
   [("make",         fixed "VW")
-  ,("model",        str  ["модель"])
+  ,("model",        carModel ["модель"])
+  ,("modelFull",    str ["Модель"])
   ,("vin",          notEmpty $ strU ["VIN"])
   ,("buyDate",      date ["Дата продажи"])
   ,("plateNum",     strU ["госномер"])
@@ -142,18 +170,20 @@ vwTruck_map =
   ,("dealerName",   str  ["Продавец"])
   ,("cardNumber",   str  ["№ карты"])
   ,("modelYear",    str  ["модельный год"])
-  ,("ownerName",    str  ["имя", "фамилия", "отчество"])
-  ,("ownerAddress", str  ["индекс","город","адрес частного лица или организации"])
+  ,("ownerName",    str  ["фамилия", "имя", "отчество"])
+  ,("ownerAddress", str  ["индекс"
+                         ,"город"
+                         ,"адрес частного лица или организации"])
   ,("ownerPhone",   str  ["тел1","тел2"])
   ,("ownerCompany", str  ["название организации"])
   ]
 
 opel_map =
   [("make",         fixed "OPEL")
-  ,("model",        str   ["Model"])
-  ,("vin",          notEmpty $ strU  ["VIN"])
+  ,("model",        carModel ["Model"])
+  ,("vin",          oneOf $ map (notEmpty . strU) 
+                        [["VIN"], ["Previous VIN (SKD)"]])
   ,("buyDate",      date  ["Retail Date"])
-  ,("oldVin",       strU  ["Previous VIN (SKD)"])
 --  ,("Brand",
   ,("dealerCode",   strU  ["Retail Dealer"])
   ]
