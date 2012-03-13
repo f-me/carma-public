@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, FlexibleInstances #-}
 import           Control.Exception (finally)
 import           Control.Applicative
 import           Control.Monad.IO.Class (liftIO)
@@ -7,6 +7,7 @@ import           System.Environment (getArgs)
 import           System.FilePath ((</>))
 import           System.IO (stderr, hPrint)
 
+import           Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.UTF8 as B
 import qualified Data.Text as T
@@ -65,7 +66,7 @@ loadXFile store fName keyMap
   where
     run :: () -> ParsedRow MapRow -> E.Iteratee B.ByteString IO ()
     run _ (ParsedRow (Just r)) = E.tryIO
-      $ either (hPrint stderr) store
+      $ either (B.hPutStrLn stderr) store
       $ remap keyMap r
     run _ _ = return ()
 
@@ -79,12 +80,21 @@ remap keyMap m = M.fromList <$> foldl f (Right []) keyMap
         (if B.null val then res else ((key',val):res))
 
 
+class Err e where
+  err :: ByteString -> e -> Either ByteString a
+
+instance Err ByteString where
+  err a b = Left $ B.concat [a, ": ", b]  
+
+instance Err [Char] where
+  err a = err a . B.fromString
+
 
 getKey m k
-  = maybe (Left $ "Unknown key: " ++ show k) Right
+  = maybe (err "Unknown key" k) Right
   $ M.lookup (B.fromString k) m
 
-str' :: [String] -> M.Map B.ByteString B.ByteString -> Either String T.Text
+str' :: [String] -> M.Map ByteString ByteString -> Either ByteString T.Text
 str' keys m
   = T.unwords . concatMap (T.words . T.decodeUtf8)
   <$> sequence (map (getKey m) keys)
@@ -94,9 +104,9 @@ strU ks m = T.encodeUtf8 . T.toUpper <$> str' ks m
 fixed = const . Right
 
 notEmpty f m = case f m of
-  Right "" -> Left $ "empty fields: " ++ show m
+  Right "" -> err "empty fields" (show m)
   Right rs -> Right rs
-  err      -> err
+  e        -> e
 
 
 date keys m = case T.unpack <$> str' keys m of
@@ -107,27 +117,31 @@ date keys m = case T.unpack <$> str' keys m of
         tryParse format = parseTime defaultTimeLocale format dateStr
     in case catMaybes $ map tryParse dateFormats of
         res:_ -> Right . B.fromString $ show res
-        _     -> Left $ "Unknown date format: " ++ show dateStr
+        _     -> err "Unknown date format" (show dateStr)
 
 dateFormats =
   ["%m/%d/%Y", "%d.%m.%Y", "%e %b %Y" ,"%b %Y"]
 
 
 carModel keys m = do
-  m <- str keys m
-  case B.words m of
-    []  -> Left $ "empty car model in " ++ show m
+  mod <- str keys m
+  case B.words mod of
+    []  -> err "empty car model" (show m)
     model:_ -> maybe
-      (Left $ "unknown model: " ++ show model)
+      (err "unknown model" model)
       Right
       (M.lookup model carModels)
 
 
 carModels = M.fromList [(k,v) | (v,ks) <- modelsMap, k <- ks] 
 modelsMap
-  =  map ok -- VW
+  =  map ok -- VW truck
     ["Caddy", "Caddy", "Amarok"
     ,"Crafter", "T5"]
+  ++ map ok
+    ["Tiguan", "Polo", "Touareg"
+    ,"Passat", "Jetta", "Golf", "Touran"
+    ,"Phaeton", "Eos", "Scirocco"]
   ++ map ok -- Opel
     ["Astra","Zafira","Corsa","Insignia"
     ,"Combo","Meriva","Antara","Vectra"]
@@ -136,7 +150,7 @@ modelsMap
 
 oneOf fs m = foldr
   (\f res -> either (const res) Right $ f m)
-  (Left $ "`oneOf` failed: " ++ show m)
+  (err "`oneOf` failed" (show m))
   fs
 
 vwMotor_map =
@@ -162,7 +176,7 @@ vwMotor_map =
 vwTruck_map = 
   [("make",         fixed "VW")
   ,("model",        carModel ["модель"])
-  ,("modelFull",    str ["Модель"])
+  ,("modelFull",    str  ["модель"])
   ,("vin",          notEmpty $ strU ["VIN"])
   ,("buyDate",      date ["Дата продажи"])
   ,("plateNum",     strU ["госномер"])
