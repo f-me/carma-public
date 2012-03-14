@@ -64,14 +64,19 @@ date keys m = case T.unpack <$> str' keys m of
   Left err -> Left err
   Right "" -> Right ""
   Right dateStr ->
-    let tryParse :: String -> Maybe Day
-        tryParse format = parseTime defaultTimeLocale format dateStr
+    let tryParse :: (String, String -> String) -> Maybe Day
+        tryParse (fmt,tr) = parseTime defaultTimeLocale fmt $ tr dateStr
     in case catMaybes $ map tryParse dateFormats of
         res:_ -> Right . B.fromString $ show res
         _     -> err "Unknown date format" (show dateStr)
 
 dateFormats =
-  ["%m/%d/%Y", "%d.%m.%Y", "%e %b %Y" ,"%b %Y"]
+  [("%m/%d/%Y", id)
+  ,("%m/%e/%Y", head.words)        -- "10/16/2011 0:00"
+  ,("%m/%e/%Y", head.words.('0':)) -- "1/16/2011 0:00"
+  ,("%d.%m.%Y", id)
+  ,("%e %b %Y", id)
+  ,("%b %Y",    id)]
 
 
 carModel keys m = do
@@ -84,18 +89,36 @@ carModel keys m = do
       (M.lookup model carModels)
 
 
-carModels = M.fromList [(k,v) | (v,ks) <- modelsMap, k <- ks] 
-modelsMap
-  =  map ok -- VW truck
-    ["Caddy", "Caddy", "Amarok"
-    ,"Crafter", "T5"]
-  ++ map ok
-    ["Tiguan", "Polo", "Touareg"
-    ,"Passat", "Jetta", "Golf", "Touran"
-    ,"Phaeton", "Eos", "Scirocco"]
-  ++ map ok -- Opel
-    ["Astra","Zafira","Corsa","Insignia"
-    ,"Combo","Meriva","Antara","Vectra"]
-  where
-    ok s = (s,[s])
+v <=<= ks = map (\k -> (B.fromString k, B.fromString v)) $ v:ks
+carModels = M.fromList $ concat
+  -- VW truck
+  ["Caddy"     <=<= ["Кэдди","кедди","Кедди"]
+  ,"Amarok"    <=<= []
+  ,"Crafter"   <=<= ["Крафтер"]
+  ,"T5"        <=<= ["Т5"]
+  -- VW motor
+  ,"Tiguan"    <=<= ["Тигуан","тигуан"]
+  ,"Polo"      <=<= ["Поло"]
+  ,"Touareg"   <=<= ["Туарег","Тouareg"]
+  ,"Passat"    <=<= ["Пассат","пассат","Passft"]
+  ,"Jetta"     <=<= ["Джетта"]
+  ,"Golf"      <=<= ["Гольф","гольф","Гольф+"]
+  ,"Touran"    <=<= ["Туран"]
+  ,"Phaeton"   <=<= ["Фаэтон","фаэтон"]
+  ,"Eos"       <=<= ["Эос"]
+  ,"Scirocco"  <=<= ["Сирокко"]
+  ,"Caravelle" <=<= ["Каравелла"]
+  ,"Multivan"  <=<= ["Мультивен"]
+  ,"Tx"        <=<= ["Транспортер", "Transporter"]
+  ,"Sharan"    <=<= ["Шаран"]
+  -- Opel
+  ,"Astra"     <=<= []
+  ,"Zafira"    <=<= []
+  ,"Corsa"     <=<= []
+  ,"Insignia"  <=<= []
+  ,"Combo"     <=<= []
+  ,"Meriva"    <=<= []
+  ,"Antara"    <=<= []
+  ,"Vectra"    <=<= []
+  ]
 
