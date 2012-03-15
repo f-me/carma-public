@@ -47,14 +47,16 @@
             "label": "Адрес",
             "canWrite": true,
             "canRead": true,
-            "type": "reference"
+            "type": "group",
+            "groupName": "address"
         },
         {
             "name": "caller",
             "label": "Звонящий",
             "canWrite": true,
             "canRead": true,
-            "type": "reference"
+            "type": "group",
+            "groupName": "caller"
         },
         {
             "name": "status",
