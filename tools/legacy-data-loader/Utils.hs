@@ -26,7 +26,7 @@ redisSet c keyPrefix val = runRedis c $ do
 
 redisSetVin c val
   = runRedis c
-  $ mapM (\k -> redisSetWithKey' (mkKey k) val) vins
+  $ mapM_ (\k -> redisSetWithKey' (mkKey k) val) vins
   where
     -- Внезапно оказалось, что у машины может быть два VINа.
     -- В качестве быстрого решения, пусть записи о машине дублируются.

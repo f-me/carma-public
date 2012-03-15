@@ -76,6 +76,9 @@ dateFormats =
   ,("%m/%e/%Y", head.words.('0':)) -- "1/16/2011 0:00"
   ,("%d.%m.%Y", id)
   ,("%e %b %Y", id)
+  ,("%e-%b-%Y", id)
+  ,("%d-%b-%y", id)
+  ,("%m/%d/%y", id)
   ,("%b %Y",    id)]
 
 
@@ -92,33 +95,44 @@ carModel keys m = do
 v <=<= ks = map (\k -> (B.fromString k, B.fromString v)) $ v:ks
 carModels = M.fromList $ concat
   -- VW truck
-  ["Caddy"     <=<= ["Кэдди","кедди","Кедди"]
-  ,"Amarok"    <=<= []
-  ,"Crafter"   <=<= ["Крафтер"]
-  ,"T5"        <=<= ["Т5"]
+  ["Caddy"      <=<= ["Кэдди","кедди","Кедди"]
+  ,"Amarok"     <=<= []
+  ,"Crafter"    <=<= ["Крафтер"]
+  ,"Transporter"<=<= ["T5", "Т5", "Транспортер"]
   -- VW motor
-  ,"Tiguan"    <=<= ["Тигуан","тигуан"]
-  ,"Polo"      <=<= ["Поло"]
-  ,"Touareg"   <=<= ["Туарег","Тouareg"]
-  ,"Passat"    <=<= ["Пассат","пассат","Passft"]
-  ,"Jetta"     <=<= ["Джетта"]
-  ,"Golf"      <=<= ["Гольф","гольф","Гольф+"]
-  ,"Touran"    <=<= ["Туран"]
-  ,"Phaeton"   <=<= ["Фаэтон","фаэтон"]
-  ,"Eos"       <=<= ["Эос"]
-  ,"Scirocco"  <=<= ["Сирокко"]
-  ,"Caravelle" <=<= ["Каравелла"]
-  ,"Multivan"  <=<= ["Мультивен"]
-  ,"Tx"        <=<= ["Транспортер", "Transporter"]
-  ,"Sharan"    <=<= ["Шаран"]
+  ,"Tiguan"     <=<= ["Тигуан","тигуан"]
+  ,"Polo"       <=<= ["Поло"]
+  ,"Touareg"    <=<= ["Туарег","Тouareg"]
+  ,"Passat"     <=<= ["Пассат","пассат","Passft"]
+  ,"Jetta"      <=<= ["Джетта"]
+  ,"Golf"       <=<= ["Гольф","гольф","Гольф+"]
+  ,"Touran"     <=<= ["Туран"]
+  ,"Phaeton"    <=<= ["Фаэтон","фаэтон"]
+  ,"Eos"        <=<= ["Эос"]
+  ,"Scirocco"   <=<= ["Сирокко"]
+  ,"Caravelle"  <=<= ["Каравелла"]
+  ,"Multivan"   <=<= ["Мультивен"]
+  ,"Sharan"     <=<= ["Шаран"]
   -- Opel
-  ,"Astra"     <=<= []
-  ,"Zafira"    <=<= []
-  ,"Corsa"     <=<= []
-  ,"Insignia"  <=<= []
-  ,"Combo"     <=<= []
-  ,"Meriva"    <=<= []
-  ,"Antara"    <=<= []
-  ,"Vectra"    <=<= []
+  ,"Astra"      <=<= []
+  ,"Zafira"     <=<= []
+  ,"Corsa"      <=<= []
+  ,"Insignia"   <=<= []
+  ,"Combo"      <=<= []
+  ,"Meriva"     <=<= []
+  ,"Antara"     <=<= []
+  ,"Vectra"     <=<= []
+  -- Hummer
+  ,"FOCUS"      <=<= ["Фокус", "Focus"]
+  ,"ESCAPE"     <=<= []
+  ,"MONDEO"     <=<= ["Мондео","Mondeo"]
+  ,"FIESTA"     <=<= ["Fiesta"]
+  ,"FUSION"     <=<= ["Fusion"]
+  ,"COUGAR"     <=<= []
+  ,"KUGA"       <=<= []
+  ,"GALAXY"     <=<= []
+  ,"EXPLORER"   <=<= []
+  ,"MAVERICK"   <=<= []
+  ,"TRANSIT"    <=<= ["Transit"]
   ]
 
