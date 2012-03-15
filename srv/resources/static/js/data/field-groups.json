@@ -18,7 +18,9 @@
             "name": "plateNum",
             "label": "Регистрационный номер автомобиля",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "index": true,
+            "indexCollate": true
         },
         {
             "name": "color",
@@ -55,6 +57,46 @@
         {
             "name": "checkupMileage",
             "label": "Пробег на последнем ТО",
+            "canWrite": true,
+            "canRead": true
+        }
+    ],
+    "caller": [
+        {
+            "name": "callerName",
+            "label": "ФИО звонящего",
+            "canWrite": true,
+            "canRead": true,
+            "index": true,
+            "indexCollate": true
+        },
+        {
+            "name": "ownerName",
+            "label": "ФИО владельца",
+            "canWrite": true,
+            "canRead": true,
+            "index": true,
+            "indexCollate": true
+        },
+        {
+            "name": "phone",
+            "label": "Телефон звонящего",
+            "canWrite": true,
+            "canRead": true,
+            "index": true,
+            "indexCollate": true
+        }
+    ],
+    "address": [
+        {
+            "name": "address",
+            "label": "Адрес",
+            "canWrite": true,
+            "canRead": true
+        },
+        {
+            "name": "coords",
+            "label": "Координаты",
             "canWrite": true,
             "canRead": true
         }
