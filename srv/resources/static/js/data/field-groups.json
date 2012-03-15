@@ -1,11 +1,5 @@
-{
-    "name": "car",
-    "title": "Информация о машине",
-    "canCreate": true,
-    "canRead": true,
-    "canUpdate": true,
-    "canDelete": true,
-    "fields": [
+{ 
+    "car": [
         {
             "name": "vin",
             "label": "VIN",

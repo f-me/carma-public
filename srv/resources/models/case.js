@@ -65,10 +65,8 @@
         },
         {
             "name": "car",
-            "label": "Автомобиль",
-            "canWrite": true,
-            "canRead": true,
-            "type": "reference"
+            "groupName": "car",
+            "type": "group"
         },
         {
             "name": "diagnosis1",
