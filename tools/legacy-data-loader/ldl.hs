@@ -1,28 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 import           Control.Exception (finally)
-import           Control.Applicative
-import           Control.Monad.IO.Class (liftIO)
-import           Control.Monad.Instances -- Just for Functor (Either a) instance
 import           System.Environment (getArgs)
 import           System.FilePath ((</>))
-import           System.IO (stderr, hPrint)
 
-import qualified Data.ByteString.Char8 as B
-import qualified Data.ByteString.UTF8 as B
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
-import qualified Data.Map as M
-import           Data.Maybe
-
-import           Data.Time.Format (parseTime)
-import           Data.Time.Clock  (UTCTime)
-import           Data.Time.Calendar (Day)
-import           Data.Time.LocalTime 
-import           System.Locale (defaultTimeLocale)
-
-import qualified Data.Enumerator as E (tryIO, Iteratee())
-import           Data.CSV.Enumerator as CSV
 import           Database.Redis as Redis
+
+import Utils
+import FieldParsers
 
 
 main = do
@@ -34,88 +18,22 @@ main = do
 loadFiles dir rConn = do
   let  loadVinFile = loadXFile $ redisSetVin rConn
   let  loadCSVFile key = loadXFile $ redisSet rConn key
-  loadVinFile (dir </> "vin/VIN VW легковые.csv") vwMotor_map
-  loadVinFile (dir </> "vin/VIN VW коммерческие.csv") vwTruck_map
-  loadVinFile (dir </> "vin/VIN OPEL.csv") opel_map
-  loadCSVFile "partner" (dir </> "Партнеры.csv") partner_map
-  loadCSVFile "dealer"  (dir </> "Дилеры.csv") dealer_map
+  loadVinFile (dir </> "vin/VIN VW легковые.csv") vwMotor
+  loadVinFile (dir </> "vin/VIN VW коммерческие.csv") vwTruck
+  loadVinFile (dir </> "vin/VIN VW RUS-LAN.csv") vwRuslan
+  loadVinFile (dir </> "vin/VIN FORD.csv") ford
+  loadVinFile (dir </> "vin/VIN FORD+.csv") fordPlus
+  loadVinFile (dir </> "vin/VIN HUMMER.csv") hummer
+  loadVinFile (dir </> "vin/VIN OPEL.csv") opel
+  loadCSVFile "partner" (dir </> "Партнеры.csv") partner
+  loadCSVFile "dealer"  (dir </> "Дилеры.csv") dealer
 
 
--- FIXME: use `create` form snaplet-redson 
-redisSet c keyPrefix val = runRedis c $ do
-  Right keyInt <- incr $ B.concat ["global:", keyPrefix, ":id"]
-  let keyStr = B.concat [keyPrefix,":",B.pack $ show keyInt]
-  redisSetWithKey' keyStr val
-
-redisSetVin c val
-  = runRedis c $ redisSetWithKey' key val
-  where
-    key = B.concat ["vin:", val M.! "vin"]
-
-redisSetWithKey' key val = do
-  res <- hmset key $ M.toList val
-  case res of
-    Left err -> liftIO $ print err
-    _ -> return ()
-
-
-loadXFile store fName keyMap
-  = foldCSVFile fName defCSVSettings run ()
-  >>= hPrint stderr -- Just to force evaluation
-  where
-    run :: () -> ParsedRow MapRow -> E.Iteratee B.ByteString IO ()
-    run _ (ParsedRow (Just r)) = E.tryIO
-      $ either (hPrint stderr) store
-      $ remap keyMap r
-    run _ _ = return ()
-
-
--- | convert MapRow according to transformations described in `keyMap`.
-remap keyMap m = M.fromList <$> foldl f (Right []) keyMap
-  where
-    f err@(Left _) _ = err
-    f (Right res) (key',f)
-      = f m >>= \val -> return
-        (if B.null val then res else ((key',val):res))
-
-
-
-getKey m k
-  = maybe (Left $ "Unknown key: " ++ show k) Right
-  $ M.lookup (B.fromString k) m
-
-str' :: [String] -> M.Map B.ByteString B.ByteString -> Either String T.Text
-str' keys m
-  = T.unwords . concatMap (T.words . T.decodeUtf8)
-  <$> sequence (map (getKey m) keys)
-
-str  ks m = T.encodeUtf8 <$> str' ks m
-strU ks m = T.encodeUtf8 . T.toUpper <$> str' ks m
-fixed = const . Right
-
-notEmpty f m = case f m of
-  Right "" -> Left $ "empty fields: " ++ show m
-  Right rs -> Right rs
-  err      -> err
-
-
-date keys m = case T.unpack <$> str' keys m of
-  Left err -> Left err
-  Right "" -> Right ""
-  Right dateStr ->
-    let tryParse :: String -> Maybe Day
-        tryParse format = parseTime defaultTimeLocale format dateStr
-    in case catMaybes $ map tryParse dateFormats of
-        res:_ -> Right . B.fromString $ show res
-        _     -> Left $ "Unknown date format: " ++ show dateStr
-
-dateFormats =
-  ["%m/%d/%Y", "%d.%m.%Y", "%e %b %Y" ,"%b %Y"]
-
-
-vwMotor_map =
-  [("make",         fixed "VW")
-  ,("model",        strU ["Модель"])
+vwMotor =
+  [("program",      fixed "vwMotor")
+  ,("make",         fixed "VW")
+  ,("model",        carModel ["Модель"])
+  ,("modelFull",    str  ["Модель"])
   ,("vin",          notEmpty $ strU ["VIN"])
   ,("buyDate",      date ["Дата передачи АМ Клиенту"])
   ,("color",        str  ["Цвет авт"])
@@ -132,33 +50,90 @@ vwMotor_map =
   ]
 
 
-vwTruck_map = 
-  [("make",         fixed "VW")
-  ,("model",        str  ["модель"])
+vwTruck = 
+  [("program",      fixed "vwTruck")
+  ,("make",         fixed "VW")
+  ,("model",        carModel ["модель"])
+  ,("modelFull",    str  ["модель"])
   ,("vin",          notEmpty $ strU ["VIN"])
   ,("buyDate",      date ["Дата продажи"])
-  ,("plateNum",     strU ["госномер"])
+  ,("plateNumber",  strU ["госномер"])
   ,("validUntil",   date ["Дата окончания карты"])
   ,("dealerName",   str  ["Продавец"])
   ,("cardNumber",   str  ["№ карты"])
   ,("modelYear",    str  ["модельный год"])
-  ,("ownerName",    str  ["имя", "фамилия", "отчество"])
-  ,("ownerAddress", str  ["индекс","город","адрес частного лица или организации"])
+  ,("ownerName",    str  ["фамилия", "имя", "отчество"])
+  ,("ownerAddress", str  ["индекс"
+                         ,"город"
+                         ,"адрес частного лица или организации"])
   ,("ownerPhone",   str  ["тел1","тел2"])
   ,("ownerCompany", str  ["название организации"])
   ]
 
-opel_map =
-  [("make",         fixed "OPEL")
-  ,("model",        str   ["Model"])
-  ,("vin",          notEmpty $ strU  ["VIN"])
+
+vwRuslan =
+  [("program",         fixed "vwRuslan")
+  ,("make",            fixed "VW")
+  ,("model",           carModel ["Модель Автомобиля VW"])
+  ,("vin",             notEmpty $ strU ["VIN номер Автомобиля VW"])
+  ,("cardNumber",      str  ["№"])
+  ,("manager",         str  ["ФИО ответственного лица, внесшего данные в XLS файл"])
+  ,("serviceInterval", str  ["Межсервисный интервал"])
+  ,("validFrom",       date ["Дата прохождения ТО (Дата регистрации в программе)"])
+  ,("mileageTO",       str  ["Величина пробега на момент регистрации в Программе"])
+  ,("validUntil",      date ["Программа действует до (Дата)"])
+  -- ,("Программа действует до (Пробега)"
+  ]
+
+
+opel =
+  [("program",      fixed "opel")
+  ,("make",         fixed "OPEL")
+  ,("model",        carModel ["Model"])
+  ,("vin",          notEmpty $ strU ["VIN", "Previous VIN (SKD)"])
   ,("buyDate",      date  ["Retail Date"])
-  ,("oldVin",       strU  ["Previous VIN (SKD)"])
 --  ,("Brand",
   ,("dealerCode",   strU  ["Retail Dealer"])
   ]
 
-partner_map =
+hummer =
+  [("program",      fixed "hummer")
+  ,("make",         fixed "HUMMER")
+  ,("model",        str  ["Model"]) -- FIXME: carModel
+  ,("dealerCode",   strU ["Retail Dealer"])
+  ,("buyDate",      date ["Retail Date"])
+  ,("vin",          notEmpty $ strU ["VIN RUS", "VIN"])
+  ]
+
+
+ford =
+  [("program",      fixed "ford")
+  ,("make",         fixed "FORD")
+  ,("model",        carModel ["MODEL"])
+  ,("arcModelCode", str   ["ARC_MODEL_CODE"])
+  ,("fddsId",       str   ["FDDS_ID"])
+  ,("vin",          strU  ["VIN_NUMBER"])
+  ,("dealerCode",   str   ["DEALER_CODE"])
+  ,("dealerNameEn", str   ["DEALER_NAME"])
+  ,("validFrom",    date  ["VALID_FROM"])
+  ,("validUntil",   date  ["VALID_TO"])
+  ,("plateNumber",  str   ["LICENCE_PLATE_NO"])
+  ,("programRegistartionDate", str ["CREATION_DATE"])
+  ,("mileageTO",    str   ["MILEAGE"])
+  ]
+
+fordPlus =
+  [("program",      fixed "fordPlus")
+  ,("make",         fixed "FORD")
+  ,("model",        carModel ["Модель"])
+  ,("vin",          str  ["VIN"])
+  ,("fordUR",       str  ["UR"])
+  ,("buyDate",      date ["Дата первой продажи"])
+  ,("lastTODate",   date ["Дата прохождения ТО"])
+  ,("mileageTO",    str  ["Пробег на момент прохождения ТО"])
+  ]
+
+partner =
   [("code",         str ["Code"])
   ,("cityRu",       str ["Город"])
   ,("cityEn",       str ["City"])
@@ -182,7 +157,7 @@ partner_map =
   ,("status",       str ["Статус"])
   ]
 
-dealer_map = 
+dealer = 
   [("city",         str ["Город", "Округ"])
   ,("type",         str ["Дилер"])
   ,("name",         str ["Название дилера"])
