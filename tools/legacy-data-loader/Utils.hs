@@ -23,10 +23,16 @@ redisSet c keyPrefix val = runRedis c $ do
   let keyStr = B.concat [keyPrefix,":",B.pack $ show keyInt]
   redisSetWithKey' keyStr val
 
+
 redisSetVin c val
-  = runRedis c $ redisSetWithKey' key val
+  = runRedis c
+  $ mapM (\k -> redisSetWithKey' (mkKey k) val) vins
   where
-    key = B.concat ["vin:", val M.! "vin"]
+    -- Внезапно оказалось, что у машины может быть два VINа.
+    -- В качестве быстрого решения, пусть записи о машине дублируются.
+    vins = B.words $ val M.! "vin"
+    mkKey k = B.concat ["vin:", k]
+
 
 redisSetWithKey' key val = do
   res <- hmset key $ M.toList val
