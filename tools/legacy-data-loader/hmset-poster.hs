@@ -214,15 +214,6 @@ sober = mkTransformField
        , ("multidrive", Right "1")
        ]
 
-car = mkTransformAlways
-      "car" "car"
-      [ ("plateNum", Right "Регистрационный номер автомобиля")
-      , ("model", Right "Модель автомобиля")
-      , ("color", Right "Цвет")
-      , ("vin", Right "VIN автомобиля")
-      , ("buyDate", Right "Дата покупки автомобиля")
-      , ("mileage", Right "Пробег автомобиля (км)") ]
-
 serviceTransformations = [ tech
                          , hotel
                          , towage1
@@ -232,7 +223,6 @@ serviceTransformations = [ tech
                          , taxi
                          , rent
                          , sober
-                         , car
                          ]
 
 
@@ -248,6 +238,13 @@ caseMap = fixUtfMap $ map (\(k, v) -> (k, Right v)) $
           , ("ownerName", "Фамилия владельца")
           , ("phone", "Мобильный телефон")
           , ("status", "Статус звонка (Обязательное поле)")
+          , ("plateNum", "Регистрационный номер автомобиля")
+          , ("model", "Модель автомобиля")
+          , ("color", "Цвет")
+          , ("vin", "VIN автомобиля")
+          , ("buyDate", "Дата покупки автомобиля")
+          , ("mileage", "Пробег автомобиля (км)")
+          , ("comment", "Описание неисправности со слов клиента")
           ]
 
 -- | Build new commit from row and commit spec.
