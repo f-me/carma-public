@@ -109,7 +109,7 @@
             id="case-screen-template">
       <!-- Main case form -->
       <div class="box" id="left">
-        <form class="form-horizontal">
+        <form class="form-vertical">
           <div class="control-group">
             <div class="control-label">
               <label>Номер</label>
