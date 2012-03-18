@@ -25,10 +25,15 @@ class Err e where
   err :: ByteString -> e -> Either ByteString a
 
 instance Err ByteString where
-  err a b = Left $ B.concat [a, ": ", b]  
+  err a b = Left $ B.concat [a, ":\n", b]  
 
 instance Err [Char] where
   err a = err a . B.fromString
+
+instance Err (M.Map ByteString ByteString) where
+  err a = err a . B.unlines . map showKV . M.toList
+    where
+      showKV (k,v) = B.concat ["\t", k, ": ", v]
 
 
 
@@ -49,14 +54,14 @@ fixed = const . Right
 
 
 notEmpty f m = case f m of
-  Right "" -> err "empty fields" (show m)
+  Right "" -> err "empty fields" m
   Right rs -> Right rs
   e        -> e
 
 
 oneOf fs m = foldr
   (\f res -> either (const res) Right $ f m)
-  (err "`oneOf` failed" (show m))
+  (err "`oneOf` failed" m)
   fs
 
 
@@ -85,7 +90,7 @@ dateFormats =
 carModel keys m = do
   mod <- str keys m
   case B.words mod of
-    []  -> err "empty car model" (show m)
+    []  -> err "empty car model" m
     model:_ -> maybe
       (err "unknown model" model)
       Right
