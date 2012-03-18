@@ -372,6 +372,7 @@
         <div class="accordion-heading">
           <a class="accordion-toggle"
              id="{{ refView }}-link"
+             data-bind="text: modelTitle"
              data-target="#{{ refView }}-head"
              data-toggle="collapse">Услуга…</a>
         </div>
@@ -388,15 +389,13 @@
       </div>
     </script>
 
-    <!-- A simpler template for single-instance references -->
+    <!-- Group view container -->
     <script type="text/template"
-            class="reference-template"
-            id="-reference-template">
-      <!-- Link is unused -->
-      <span style="display:none;" id="{{refView}}-link"/>
+            class="group-template"
+            id="-group-template">
       <fieldset>
-        <form id="{{ refView }}"
-              class="{{ refClass }} complex-field form-horizontal"
+        <form class="complex-field form-horizontal"
+              id="{{ refView }}"
               style="display: none;" />
       </fieldset>
     </script>
