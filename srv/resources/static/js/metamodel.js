@@ -10,6 +10,7 @@ function backbonizeModel(model, modelName) {
     var dictionaryFields = [];
     var referenceFields = [];
     var requiredFields = [];
+    var groups = []
     _.each(model.fields,
           function(f) {
               if (!(_.isUndefined(f.default)))
@@ -23,6 +24,8 @@ function backbonizeModel(model, modelName) {
                   dictionaryFields = dictionaryFields.concat(f.name);
               if ((!_.isUndefined(f.required)) && f.required)
                   requiredFields = requiredFields.concat(f.name);
+              if (!_.isNull(f.groupName) && (groups.indexOf(f.groupName) == -1))
+                  groups = groups.concat(f.groupName);
           });
 
     var M = Backbone.Model.extend({
@@ -37,7 +40,9 @@ function backbonizeModel(model, modelName) {
         referenceFields: referenceFields,
         // List of required fields
         requiredFields: requiredFields,
-
+        // List of groups present in model
+        groups: groups,
+        
         // Temporary storage for attributes queued for sending to
         // server.
         attributeQueue: {},
@@ -53,6 +58,8 @@ function backbonizeModel(model, modelName) {
         model: model,
         // Name of model definition
         name: modelName,
+        // Readable model title
+        title: model.title,
         // Hash of model fields as provided by model definition.
         fieldHash: fieldHash,
         // Bind model changes to server sync
@@ -158,7 +165,8 @@ function pickTemplate(templates, names) {
 // argument is passed.
 //
 // Groups is a hash where keys are group names and values are views to
-// render the respected group in.
+// render the respected group in. First field of group is always
+// rendered in main view as well.
 //
 // TODO: We can do this on server as well.
 //
@@ -187,7 +195,6 @@ function renderFields(model, viewName, groups) {
 
                  group = f.groupName || "_";
 
-                 console.log(group);
                  // Add extra context prior to rendering
                  var ctx = {readonly: readonly,
                             viewName: viewName,
