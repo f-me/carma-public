@@ -67,7 +67,6 @@ function setupCaseMain(viewName, args) {
         {
             field: "services",
             forest: "case-service-references",
-            hard: false
         }
     ];
     modelSetup("case")(viewName, args.id, 

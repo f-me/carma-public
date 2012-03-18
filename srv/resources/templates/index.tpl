@@ -325,14 +325,14 @@
       </div>
     </script>
 
-    <!-- NOP here — service references are rendered after model has loaded -->
+    <!-- NOP here — references are rendered after model has loaded -->
     <script type="text/template" 
             class="field-template"
-            id="services-reference-field-template" />
+            id="reference-field-template" />
 
    <script type="text/template" 
            class="field-template"
-           id="reference-field-template">
+           id="group-field-template">
      <div class="control-group">
        <div class="control-label">
          {{label}}

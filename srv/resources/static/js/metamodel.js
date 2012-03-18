@@ -157,10 +157,13 @@ function pickTemplate(templates, names) {
 // which will hold the instance (like save/remove instance), viewName
 // argument is passed.
 //
+// Groups is a hash where keys are group names and values are views to
+// render the respected group in.
+//
 // TODO: We can do this on server as well.
 //
 // @return String with HTML for form
-function renderFields(model, viewName) {
+function renderFields(model, viewName, groups) {
     var templates = getTemplates("field-template");
 
     var contents = "";
