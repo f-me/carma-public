@@ -31,6 +31,7 @@ import Snap.Snaplet.Heist
 import Snap.Snaplet.Session
 import Snap.Snaplet.Session.Backends.CookieSession
 import Snap.Util.FileServe
+import Text.Templating.Heist.Splices.Json
 
 import Snap.Snaplet.Redson
 
@@ -56,7 +57,14 @@ instance HasHeist App where
 ------------------------------------------------------------------------------
 -- | Render empty form for model.
 indexPage :: AppHandler ()
-indexPage = ifTop $ render "index"
+indexPage = ifTop $ do
+  au <- with auth $ currentUser
+  case au of
+    Just user -> do
+            liftIO $ print $ userMeta user
+            renderWithSplices "index"
+                 [("userMeta", liftHeist $ bindJson $ userMeta user)]
+    Nothing -> render "index"
 
 
 ------------------------------------------------------------------------------
@@ -78,7 +86,7 @@ authOrLogin h = requireUser auth redirectToLogin h
 -- | Render empty login form.
 loginForm :: AppHandler ()
 loginForm = do
-  serveFile $ "resources/templates/login.html"
+  serveFile $ "snaplets/heist/resources/templates/login.html"
 
 
 ------------------------------------------------------------------------------

@@ -192,16 +192,14 @@ function knockBackbone(instance, viewName) {
 //   groups. Views generated for groups are stored in refViews under
 //   viewsWare entry for parent view.
 function modelSetup(modelName) {
-    return function(elName, id, options) {
+    return function(elName, args, options) {
         $.getJSON(modelMethod(modelName, "model"),
             function(model) {
                 var mkBackboneModel = backbonizeModel(model, modelName);
                 var idHash = {};
-                if (id)
-                    var idHash = {id: String(id)}
 
                 // Backbone and Knockout
-                var instance = new mkBackboneModel(idHash);
+                var instance = new mkBackboneModel(args);
                 var knockVM = knockBackbone(instance, elName);
 
                 // To let parent instance know about views created for
@@ -236,7 +234,7 @@ function modelSetup(modelName) {
                             refViews[reference.field] =
                                 refViews[reference.field].concat(subview);
                             var setup = modelSetup(books[rn].refModelName);
-                            setup(subview, books[rn].refId,
+                            setup(subview, {id: books[rn].refId},
                                   {permEl: subview + "-perms",
                                    slotsee: [subview + "-link"]});
                         }

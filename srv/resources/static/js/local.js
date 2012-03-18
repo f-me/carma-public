@@ -69,7 +69,8 @@ function setupCaseMain(viewName, args) {
             forest: "case-service-references",
         }
     ];
-    modelSetup("case")(viewName, args.id, 
+    _.extend(args, {callTaker: $("#realName").text()});
+    modelSetup("case")(viewName, args, 
                        {permEl: "case-permissions",
                         slotsee: ["case-number"],
                         groupsForest: "right",
