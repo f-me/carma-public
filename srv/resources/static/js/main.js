@@ -163,26 +163,16 @@ function knockBackbone(instance, viewName) {
 //
 //   [{
 //      field: "foo",
-//      forest: "foo-subrefs",
-//      hard: false
+//      forest: "foo-subrefs"
 //    },
 //    {
 //      field: "bar",
 //      forest: "main-subref",
-//      hard: true,
 //      modelName: "fooReferencedModel"
 //    }]
 //
 //   field sets the field of parent model where references are stored,
 //   forest is the name of element to render views for references into.
-//
-//   If hard key is false, then if field has no value, nothing will be
-//   rendered. If hard is true, then modelName key must must be set to
-//   the name of model the field stores reference to.
-//
-//   Think of hard refs as slots always storing reference to instance
-//   of some predefined model, while non-hard refs may store any
-//   number of refs to any models.
 //
 //   Views generated for references are stored in viewsWare, so that
 //   parent instance can get access to its reference views:
@@ -192,10 +182,6 @@ function knockBackbone(instance, viewName) {
 //
 //   etc., where "view-1" and "view-2" were generated for instances
 //   which are referenced in "some-ref-field".
-//
-// If no instance id is provided, then bare views for hard refs are
-// not rendered (reference view rendering requires id of parent
-// instance to
 function modelSetup(modelName) {
     return function(elName, id, options) {
         $.getJSON(modelMethod(modelName, "model"),
