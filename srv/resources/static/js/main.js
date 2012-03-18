@@ -254,7 +254,7 @@ function modelSetup(modelName) {
                 }
 
                 // Render forms
-                $el(elName).html(renderFields(model, elName));
+                $el(elName).html(renderFields(model, elName)["_"]);
                 $el(options.permEl).html(renderPermissions(model, elName));
 
                 // Bind the model to Knockout UI
@@ -271,6 +271,7 @@ function modelSetup(modelName) {
                     instance.setupServerSync();
                 }, 1000);
 
+                // Focus on first focusable field
                 if (options.focusClass) {
                     $el(elName).find("." + options.focusClass)[0].focus();
                     scrollDown();
