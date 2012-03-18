@@ -170,8 +170,9 @@ function pickTemplate(templates, names) {
 //
 // TODO: We can do this on server as well.
 //
-// @return Hash where keys are group names (or "_" for main group) and
-// values are string with HTML of forms.
+// @return Hash where keys are names of first fields in each group and
+// values are string with HTML of group forms. Groupless fields are
+// rendered into value stored under "_" key.
 function renderFields(model, viewName, groups) {
     var templates = getTemplates("field-template");
 
@@ -179,6 +180,15 @@ function renderFields(model, viewName, groups) {
     var fType = "";
     var group = "";
     var readonly = false;
+    var mainGroup = "_";
+
+    // Currently we store the name of «current group» while traversing
+    // all model fields. When this name changes, we consider the
+    // previous group closed. A better approach would be to include
+    // group information in served model.
+    var currentGroup = mainGroup;
+    var currentSection = mainGroup;
+
     // Pick an appropriate form widget for each model
     // field type and render actual model value in it
     //
@@ -187,30 +197,59 @@ function renderFields(model, viewName, groups) {
     _.each(model.fields,
            function (f) {
              if (!f.invisible) {
-                 var typed_tpl = f.type;
-                 var named_tpl = f.name + "-" + f.type;
-                 var tpl = pickTemplate(templates, 
-                                        [named_tpl, typed_tpl, "unknown"]);
                  readonly = !model.canUpdate || !f.canWrite;
 
-                 group = f.groupName || "_";
+                 group = f.groupName || mainGroup;
 
                  // Add extra context prior to rendering
                  var ctx = {readonly: readonly,
-                            viewName: viewName,
-                            groupName: group};
+                            viewName: viewName};
+
+                 var realType = f.type;
+                 var tpl;
+
                  if (f.type == "dictionary")
-                     ctx = _.extend(ctx, 
+                     ctx = _.extend(ctx,
                                     {dictionary: global.dictionaries[f.dictionaryName]});
+                 ctx = _.extend(f, ctx);
+
+                 // Put first field in group in main section, too.
+                 // Render it as if it had `group` type.
+                 if (group != currentGroup) {
+                     currentGroup = group;
+                     if (currentGroup == mainGroup)
+                         currentSection = mainGroup;
+                     else {
+                         currentSection = f.name;
+
+                         f.type = "group";
+                         tpl = chooseFieldTemplate(f, templates);
+                         contents[mainGroup]
+                             += Mustache.render(tpl, ctx);
+                     }
+                 }
 
                  // Initialiaze new group contents
-                 if (_.isUndefined(contents[group]))
-                     contents[group] = "";
+                 if (_.isUndefined(contents[currentSection]))
+                     contents[currentSection] = "";
 
-                 contents[group] += Mustache.render(tpl, _.extend(f, ctx));
+                 f.type = realType;
+                 tpl = chooseFieldTemplate(f, templates);
+
+                 // Put field HTML in appropriate view.
+                 contents[currentSection] += Mustache.render(tpl, ctx);
              }
            });
     return contents;
+}
+
+// Pick either field.type template or field.name-field.type template
+function chooseFieldTemplate(field, templates) {
+    var typed_tpl = field.type;
+    var named_tpl = field.name + "-" + field.type;
+    var tpl = pickTemplate(templates, 
+                           [named_tpl, typed_tpl, "unknown"]);
+    return tpl;
 }
 
 // Render permissions controls for form holding an instance in given

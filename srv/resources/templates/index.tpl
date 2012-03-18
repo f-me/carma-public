@@ -330,28 +330,33 @@
             class="field-template"
             id="reference-field-template" />
 
-   <script type="text/template" 
-           class="field-template"
-           id="group-field-template">
-     <div class="control-group">
-       <div class="control-label">
-         {{label}}
-       </div>
-       <div class="controls">
-         <div class="input-append">
-           <input type="text"
-                  class="pane-span"
-                  onfocus="showComplex('{{ viewName }}', '{{ name }}');"
-                  {{# readonly }}disabled{{/ readonly }}
-                  data-bind="value: {{ name }}Ref" />
-           <span class="add-on">
-             <i onclick="showComplex('{{ viewName }}', '{{ name }}');"
-                class="icon icon-share" />
-           </span>
-         </div>
-       </div>
-     </div>
-   </script>
+    <!-- 
+
+         Special template used to render first field of group in
+         parent view.
+    -->
+    <script type="text/template" 
+            class="field-template"
+            id="group-field-template">
+      <div class="control-group">
+        <div class="control-label">
+          {{label}}
+        </div>
+        <div class="controls">
+          <div class="input-append">
+            <input type="text"
+                   class="pane-span"
+                   onfocus="showComplex('{{ viewName }}', '{{ name }}');"
+                   {{# readonly }}disabled{{/ readonly }}
+                   data-bind="value: {{ name }}" />
+            <span class="add-on">
+              <i onclick="showComplex('{{ viewName }}', '{{ name }}');"
+                 class="icon icon-share" />
+            </span>
+          </div>
+        </div>
+      </div>
+    </script>
 
     <!-- 
     

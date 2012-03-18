@@ -188,7 +188,9 @@ function knockBackbone(instance, viewName) {
 //   etc., where "view-1" and "view-2" were generated for instances
 //   which are referenced in "some-ref-field".
 //
-// - groupsForest: The name of forest where to render views for field groups.
+// - groupsForest: The name of forest where to render views for field
+//   groups. Views generated for groups are stored in refViews under
+//   viewsWare entry for parent view.
 function modelSetup(modelName) {
     return function(elName, id, options) {
         $.getJSON(modelMethod(modelName, "model"),
@@ -247,13 +249,7 @@ function modelSetup(modelName) {
                     instance.bind("change", options.fetchCb);
                 }
 
-                // Build view names for groups
                 var groupViews = {};
-                for (g in instance.groups) {
-                    var gName = instance.groups[g];
-                    groupViews[gName] =
-                        [mkSubviewName(gName, 0, instance.name, instance.cid)];
-                }
 
                 // Render main forms and group field forms
                 var content = renderFields(model, elName);
@@ -266,23 +262,30 @@ function modelSetup(modelName) {
                     }
                     else
                     {
+                        var view =
+                            mkSubviewName(gName, 0, instance.name, instance.cid);
+                        refViews[gName] = [view];
+                        groupViews[gName] = view;
                         // Subforms for groups
                         $el(options.groupsForest).append(
                             renderRef({refField: gName,
                                        refN: 0,
-                                       refView: groupViews[gName]},
-                                     getTemplates("group-template")));
-                        $el(groupViews[gName]).html(content[gName]);
+                                       refView: view},
+                                      getTemplates("group-template")));
+                        $el(view).html(content[gName]);
                     }
                 }
 
                 // Bind the model to Knockout UI
                 ko.applyBindings(knockVM, el(elName));
+                // Bind group subforms (note that refs are bound
+                // separately)
+                for (s in groupViews) {
+                    ko.applyBindings(knockVM, el(groupViews[s]));
+                }
+                // Bind extra views if provided
                 for (s in options.slotsee) {
                     ko.applyBindings(knockVM, el(options.slotsee[s]));
-                }
-                for (s in groupViews) {
-                    ko.applyBindings(knockVM, el(groupViews[s][0]));
                 }
 
                 // Wait a bit to populate model fields and bind form
