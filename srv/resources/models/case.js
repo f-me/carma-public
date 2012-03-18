@@ -47,14 +47,16 @@
             "label": "Адрес",
             "canWrite": true,
             "canRead": true,
-            "type": "reference"
+            "type": "group",
+            "groupName": "address"
         },
         {
             "name": "caller",
             "label": "Звонящий",
             "canWrite": true,
             "canRead": true,
-            "type": "reference"
+            "type": "group",
+            "groupName": "caller"
         },
         {
             "name": "status",
@@ -65,10 +67,8 @@
         },
         {
             "name": "car",
-            "label": "Автомобиль",
-            "canWrite": true,
-            "canRead": true,
-            "type": "reference"
+            "groupName": "car",
+            "type": "group"
         },
         {
             "name": "diagnosis1",

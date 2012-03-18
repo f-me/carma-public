@@ -157,14 +157,19 @@ function pickTemplate(templates, names) {
 // which will hold the instance (like save/remove instance), viewName
 // argument is passed.
 //
+// Groups is a hash where keys are group names and values are views to
+// render the respected group in.
+//
 // TODO: We can do this on server as well.
 //
-// @return String with HTML for form
-function renderFields(model, viewName) {
+// @return Hash where keys are group names (or "_" for main group) and
+// values are string with HTML of forms.
+function renderFields(model, viewName, groups) {
     var templates = getTemplates("field-template");
 
-    var contents = "";
+    var contents = {};
     var fType = "";
+    var group = "";
     var readonly = false;
     // Pick an appropriate form widget for each model
     // field type and render actual model value in it
@@ -179,13 +184,23 @@ function renderFields(model, viewName) {
                  var tpl = pickTemplate(templates, 
                                         [named_tpl, typed_tpl, "unknown"]);
                  readonly = !model.canUpdate || !f.canWrite;
+
+                 group = f.groupName || "_";
+
+                 console.log(group);
                  // Add extra context prior to rendering
                  var ctx = {readonly: readonly,
-                            viewName: viewName};
+                            viewName: viewName,
+                            groupName: group};
                  if (f.type == "dictionary")
                      ctx = _.extend(ctx, 
                                     {dictionary: global.dictionaries[f.dictionaryName]});
-                 contents += Mustache.render(tpl, _.extend(f, ctx));
+
+                 // Initialiaze new group contents
+                 if (_.isUndefined(contents[group]))
+                     contents[group] = "";
+
+                 contents[group] += Mustache.render(tpl, _.extend(f, ctx));
              }
            });
     return contents;

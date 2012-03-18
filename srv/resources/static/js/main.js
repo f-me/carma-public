@@ -108,9 +108,6 @@ function forgetScreen() {
 // - <field>Not for every required field;
 // 
 // - maybeId;
-// 
-// - <field>Ref for every reference field (null, to be updated by
-//   mkObservableCb);
 function knockBackbone(instance, viewName) {
     var knockVM = new kb.ViewModel(instance);
 
@@ -123,13 +120,6 @@ function knockBackbone(instance, viewName) {
                            read: function (k) {
                                return !instance.get(k)
                            }});
-    }
-
-    // Insight-observables for references instances will be populated
-    // later by mkObservableCb
-    for (f in instance.referenceFields) {
-        var field = instance.referenceFields[f];
-        knockVM[field + "Ref"] = null;
     }
 
     knockVM["maybeId"] = 
@@ -223,25 +213,7 @@ function modelSetup(modelName) {
                 // references, we create refViews.
                 var refViews = {};
 
-                // Add hard refs for fresh view immediately
-                //
-                // Bares holds all references which were rendered this
-                // way
-                var bares = [];
-                if (!id)
-                    for (rf in options.refs) {
-                        var reference = options.refs[rf];
-                        if (reference.hard) {
-                            var hardBook = 
-                                addReference(instance, reference);
-                            refViews[reference.field] = [hardBook.refView];
-                            bares = bares.concat(reference.field);
-                        }
-                    }
-
-
-                // Do the same for reference fields after first
-                // fetch() is complete, but not if this case is new.
+                // Wait for first fetch() of parent model and render references
                 //
                 // We must render reference views after the model has
                 // loaded because the numer of refs is unknown when
@@ -255,27 +227,12 @@ function modelSetup(modelName) {
                     instance.unbind("change", refCb);
                     for (rf in options.refs) {
                         var reference = options.refs[rf];
-                        
-                        // Do not re-GET previously rendered bare view
-                        if (bares.indexOf(reference.field) == -1) {
 
                         refViews[reference.field] = [];
                         var books = [];
-                        if (reference.hard && 
-                            _.isEmpty(instance.get(reference.field))) {
-                            // Add non-existent hard reference
-                            //
-                            // We use hardBooks here because books are
-                            // used later to perform modelSetup and
-                            // addReference already does that.
-                            var hardBook =
-                                addReference(instance, reference);
-                            refViews[reference.field] = [hardBook.refView];
-                        }
-                        else
-                            books = setupMultiRef(instance,
-                                                  reference.field,
-                                                  reference.forest);
+                        books = setupMultiRef(instance,
+                                              reference.field,
+                                              reference.forest);
 
                         // Now traverse views that have been generated
                         // for references and setup their models
@@ -285,10 +242,7 @@ function modelSetup(modelName) {
                                 refViews[reference.field].concat(subview);
                             var setup = modelSetup(books[rn].refModelName);
                             setup(subview, books[rn].refId,
-                                  {slotsee: [subview + "-link"],
-                                   fetchCb: mkObservableCb(knockVM, reference.field),
-                                   permEl: subview + "-perms"});
-                        }
+                                  {permEl: subview + "-perms"});
                         }
                     }
                 }
@@ -300,7 +254,7 @@ function modelSetup(modelName) {
                 }
 
                 // Render forms
-                $el(elName).html(renderFields(model, elName));
+                $el(elName).html(renderFields(model, elName)["_"]);
                 $el(options.permEl).html(renderPermissions(model, elName));
 
                 // Bind the model to Knockout UI
@@ -317,6 +271,7 @@ function modelSetup(modelName) {
                     instance.setupServerSync();
                 }, 1000);
 
+                // Focus on first focusable field
                 if (options.focusClass) {
                     $el(elName).find("." + options.focusClass)[0].focus();
                     scrollDown();
@@ -394,22 +349,6 @@ function mkRefFetchCb(parentInstance, field) {
         }
     }
     return fetchCb;
-}
-
-// Make fetchCb which will set an observable in parentKnock under name
-// <field>Ref which will evaluate to insight function for referenced
-// instance.
-function mkObservableCb(parentKnock, field) {
-    var refObservableCb = function(refInstance) {
-        refInstance.unbind("change", refObservableCb);
-        parentKnock[field + "Ref"]
-            = kb.observable(refInstance,
-                            {key: insightField(refInstance),
-                             read: function(k) {
-                                 return refInstance.get(k);
-                             }});
-    };
-    return refObservableCb;
 }
 
 // Build name of view for refN-th reference stored in refField of

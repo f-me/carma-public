@@ -109,7 +109,7 @@
             id="case-screen-template">
       <!-- Main case form -->
       <div class="box" id="left">
-        <form class="form-horizontal">
+        <form class="form-vertical">
           <div class="control-group">
             <div class="control-label">
               <label>Номер</label>
@@ -325,14 +325,14 @@
       </div>
     </script>
 
-    <!-- NOP here — service references are rendered after model has loaded -->
+    <!-- NOP here — references are rendered after model has loaded -->
     <script type="text/template" 
             class="field-template"
-            id="services-reference-field-template" />
+            id="reference-field-template" />
 
    <script type="text/template" 
            class="field-template"
-           id="reference-field-template">
+           id="group-field-template">
      <div class="control-group">
        <div class="control-label">
          {{label}}

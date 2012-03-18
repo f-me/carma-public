@@ -67,25 +67,6 @@ function setupCaseMain(viewName, args) {
         {
             field: "services",
             forest: "case-service-references",
-            hard: false
-        },
-        {
-            field: "car",
-            forest: "right",
-            hard: true,
-            modelName: "car"
-        },
-        {
-            field: "caller",
-            forest: "right",
-            hard: true,
-            modelName: "caller"
-        },
-        {
-            field: "address",
-            forest: "right",
-            hard: true,
-            modelName: "address"
         }
     ];
     modelSetup("case")(viewName, args.id, 
