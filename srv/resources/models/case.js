@@ -43,7 +43,9 @@
             "canWrite": true,
             "canRead": true,
             "required": true,
-            "index": true
+            "index": true,
+            "type": "dictionary",
+            "dictionaryName": "Programs"
         },
         {
             "name": "address",
