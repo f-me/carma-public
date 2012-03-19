@@ -11,7 +11,7 @@
     <script src="/s/js/3p/jquery-1.7.1.min.js" />
 
     <!-- Rich UI -->
-    <script src="/s/js/3p/bootstrap-typeahead.js" />
+    <script src="/s/js/3p/bootstrap.min.js" />
     <script src="/s/js/3p/bootstrap-datepicker.js" />
 
     <!-- Tabular display -->
@@ -39,7 +39,9 @@
     <script src="/s/js/local.js" />
   </head>
   <body>
-    <!-- Auth information stored in DOM tree -->
+    <!-- 
+         Auth information stored in DOM tree. No whitespace in nodes!
+      -->
     <div style="display:none;">
       <span id="loggedInUser"><ifLoggedIn><loggedInUser /></ifLoggedIn></span>
       <span id="realName"><ifLoggedIn><userMeta><value:realName/></userMeta></ifLoggedIn></span>
