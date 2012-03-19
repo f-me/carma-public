@@ -197,7 +197,7 @@ function renderFields(model, viewName, groups) {
     _.each(model.fields,
            function (f) {
              if (!f.invisible) {
-                 readonly = !model.canUpdate || !f.canWrite;
+                 readonly = f.readonly || !model.canUpdate || !f.canWrite;
 
                  group = f.groupName || mainGroup;
 
