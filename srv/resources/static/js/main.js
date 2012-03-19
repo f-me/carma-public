@@ -236,6 +236,7 @@ function modelSetup(modelName) {
                             var setup = modelSetup(books[rn].refModelName);
                             setup(subview, {id: books[rn].refId},
                                   {permEl: subview + "-perms",
+                                   groupsForest: options.groupsForest,
                                    slotsee: [subview + "-link"]});
                         }
                     }
