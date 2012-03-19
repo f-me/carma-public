@@ -458,7 +458,10 @@ function setupMultiRef(instance, refField, refsForest) {
 //
 // Return single book of the same structure as in setupMultiRef result
 // (but without refId).
-function addReference(instance, reference) {
+//
+// groupsForest sets name of view to render groups of created
+// reference model in.
+function addReference(instance, reference, groupsForest) {
     var oldValue = instance.get(reference.field);
     var tpls = getTemplates("reference-template");
     if (_.isEmpty(oldValue))
@@ -489,6 +492,7 @@ function addReference(instance, reference) {
     var fetchCb = mkRefFetchCb(instance, reference.field);
     modelSetup(reference.modelName)(refView, null,
                              {fetchCb: fetchCb,
+                              groupsForest: groupsForest,
                               slotsee: [refView + "-link"],
                               permEl: refView + "-perms",
                               focusClass: "focusable"});

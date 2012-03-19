@@ -136,7 +136,8 @@ function addService(name) {
     addReference(global.viewsWare["case-form"].bbInstance,
                  {field: "services",
                   modelName: name,
-                  forest: "case-service-references"});
+                  forest: "case-service-references"},
+                "right");
 }
 
 function setupCallForm(viewName, args) {
