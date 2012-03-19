@@ -61,7 +61,6 @@ indexPage = ifTop $ do
   au <- with auth $ currentUser
   case au of
     Just user -> do
-            liftIO $ print $ userMeta user
             renderWithSplices "index"
                  [("userMeta", liftHeist $ bindJson $ userMeta user)]
     Nothing -> render "index"
