@@ -19,20 +19,23 @@
             "canWrite": true,
             "canRead": true,
             "index": true,
-            "indexCollate": true
+            "indexCollate": true,
+            "readonly": true
         },
         {
             "name": "callTime",
             "label": "Время звонка",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "readonly": true
         },
         {
             "name": "callTaker",
             "label": "Сотрудник РАМК",
             "canWrite": false,
             "canRead": true,
-            "required": true
+            "required": true,
+            "readonly": true
         },
         {
             "name": "program",
@@ -40,7 +43,9 @@
             "canWrite": true,
             "canRead": true,
             "required": true,
-            "index": true
+            "index": true,
+            "type": "dictionary",
+            "dictionaryName": "Programs"
         },
         {
             "name": "address",

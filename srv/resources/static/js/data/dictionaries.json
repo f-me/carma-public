@@ -402,5 +402,111 @@
     ],
     "Diagnosis2": [],
     "Diagnosis3": [],
-    "Diagnosis4": []
+    "Diagnosis4": [],
+    "Programs": [
+	{
+	    "value":"p1",
+            "label":"VW / Легковые автомобили"
+	},
+	{
+	    "value":"p2",
+            "label":"VW / Коммерческие автомобили"
+	},
+	{
+	    "value":"p3",
+            "label":"ACTA / Bentley"
+	},
+	{
+	    "value":"p4",
+            "label":"ACTA / Aston Martin"
+	},
+	{
+	    "value":"p5",
+            "label":"B2B / Arc B2B"
+	},
+	{
+	    "value":"p6",
+            "label":"B2B / RTR Hyundai"
+	},
+	{
+	    "value":"p7",
+            "label":"B2B / Дженсер Ясенево"
+	},
+	{
+	    "value":"p8",
+            "label":"B2B / ИП Трубкин"
+	},
+	{
+	    "value":"p9",
+            "label":"B2B / ДЦ Автоимпорт"
+	},
+	{
+	    "value":"p10",
+            "label":"B2B / ДЦ ТВД-Авто"
+	},
+	{
+	    "value":"p11",
+            "label":"B2B / АРВАЛ"
+	},
+	{
+	    "value":"p12",
+            "label":"B2B / 3S Телематика"
+	},
+	{
+	    "value":"p13",
+            "label":"GM / Chevrolet Korea"
+	},
+	{
+	    "value":"p14",
+            "label":"GM / Chevrolet NA"
+	},
+	{
+	    "value":"p15",
+            "label":"GM / Cadillac до 2012"
+	},
+	{
+	    "value":"p16",
+            "label":"GM / Opel (после 01.04.2011]"
+	},
+	{
+	    "value":"p17",
+            "label":"GM / Hummer"
+	},
+	{
+	    "value":"p18",
+            "label":"GM / Cadillac после 2012"
+	},
+	{
+	    "value":"p19",
+            "label":"Заказ билетов"
+	},
+	{
+	    "value":"p20",
+            "label":"B2C"
+	},
+	{
+	    "value":"p21",
+            "label":"Ford"
+	},
+	{
+	    "value":"p22",
+            "label":"BP"
+	},
+	{
+	    "value":"p23",
+            "label":"Рус Лан"
+	},
+	{
+	    "value":"p24",
+            "label":"Атлант М"
+	},
+	{
+	    "value":"p25",
+            "label":"Chartis Assistance"
+	},
+	{
+	    "value":"p26",
+            "label":"Autokraft Assistance"
+	}
+    ]
 }

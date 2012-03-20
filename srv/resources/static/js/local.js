@@ -69,9 +69,13 @@ function setupCaseMain(viewName, args) {
             forest: "case-service-references",
         }
     ];
-    modelSetup("case")(viewName, args.id, 
+    _.extend(args, {callTaker: $("#realName").text(),
+                    callDate: getFormatDate(),
+                    callTime: getFormatTime()});
+    modelSetup("case")(viewName, args, 
                        {permEl: "case-permissions",
-                        slotsee: "case-number",
+                        slotsee: ["case-number"],
+                        groupsForest: "right",
                         refs:refs});
 
     // Render service picker
@@ -82,6 +86,21 @@ function setupCaseMain(viewName, args) {
         Mustache.render($("#service-picker-template").html(),
                         {dictionary: global.dictionaries["Services"]}));
 }
+
+// Return MM-DD-YYYY
+function getFormatDate() {
+    var d = new Date;
+    var sd = (d.getMonth() + 1) + '-' + d.getDate() + '-' + d.getFullYear();
+    return sd;
+}
+
+// Return HH:MM
+function getFormatTime() {
+    var d = new Date;
+    var sd = d.getHours() + ':' + d.getMinutes();
+    return sd;
+}
+
 
 // Scroll to the bottom of the page
 function scrollDown() {
@@ -117,7 +136,8 @@ function addService(name) {
     addReference(global.viewsWare["case-form"].bbInstance,
                  {field: "services",
                   modelName: name,
-                  forest: "case-service-references"});
+                  forest: "case-service-references"},
+                "right");
 }
 
 function setupCallForm(viewName, args) {

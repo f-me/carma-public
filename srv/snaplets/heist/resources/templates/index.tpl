@@ -39,6 +39,13 @@
     <script src="/s/js/local.js" />
   </head>
   <body>
+    <!-- 
+         Auth information stored in DOM tree. No whitespace in nodes!
+      -->
+    <div style="display:none;">
+      <span id="loggedInUser"><ifLoggedIn><loggedInUser /></ifLoggedIn></span>
+      <span id="realName"><ifLoggedIn><userMeta><value:realName/></userMeta></ifLoggedIn></span>
+    </div>
 
     <!-- Navigation bar on top -->
     <div class="navbar navbar-fixed-top">
@@ -330,28 +337,33 @@
             class="field-template"
             id="reference-field-template" />
 
-   <script type="text/template" 
-           class="field-template"
-           id="group-field-template">
-     <div class="control-group">
-       <div class="control-label">
-         {{label}}
-       </div>
-       <div class="controls">
-         <div class="input-append">
-           <input type="text"
-                  class="pane-span"
-                  onfocus="showComplex('{{ viewName }}', '{{ name }}');"
-                  {{# readonly }}disabled{{/ readonly }}
-                  data-bind="value: {{ name }}Ref" />
-           <span class="add-on">
-             <i onclick="showComplex('{{ viewName }}', '{{ name }}');"
-                class="icon icon-share" />
-           </span>
-         </div>
-       </div>
-     </div>
-   </script>
+    <!-- 
+
+         Special template used to render first field of group in
+         parent view.
+    -->
+    <script type="text/template" 
+            class="field-template"
+            id="group-field-template">
+      <div class="control-group">
+        <div class="control-label">
+          {{label}}
+        </div>
+        <div class="controls">
+          <div class="input-append">
+            <input type="text"
+                   class="pane-span"
+                   onfocus="showComplex('{{ viewName }}', '{{ name }}');"
+                   {{# readonly }}disabled{{/ readonly }}
+                   data-bind="value: {{ name }}" />
+            <span class="add-on">
+              <i onclick="showComplex('{{ viewName }}', '{{ name }}');"
+                 class="icon icon-share" />
+            </span>
+          </div>
+        </div>
+      </div>
+    </script>
 
     <!-- 
     
@@ -372,6 +384,7 @@
         <div class="accordion-heading">
           <a class="accordion-toggle"
              id="{{ refView }}-link"
+             data-bind="text: modelTitle"
              data-target="#{{ refView }}-head"
              data-toggle="collapse">Услуга…</a>
         </div>
@@ -388,15 +401,13 @@
       </div>
     </script>
 
-    <!-- A simpler template for single-instance references -->
+    <!-- Group view container -->
     <script type="text/template"
-            class="reference-template"
-            id="-reference-template">
-      <!-- Link is unused -->
-      <span style="display:none;" id="{{refView}}-link"/>
+            class="group-template"
+            id="-group-template">
       <fieldset>
-        <form id="{{ refView }}"
-              class="{{ refClass }} complex-field form-horizontal"
+        <form class="complex-field form-horizontal"
+              id="{{ refView }}"
               style="display: none;" />
       </fieldset>
     </script>

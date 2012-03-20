@@ -122,6 +122,11 @@ function knockBackbone(instance, viewName) {
                            }});
     }
 
+    knockVM["modelTitle"] = kb.observable(instance,
+                                          {key: "title",
+                                           read: function (k) {
+                                               return instance.title;
+                                           }});
     knockVM["maybeId"] = 
         kb.observable(instance,
                       {key: "id",
@@ -163,26 +168,16 @@ function knockBackbone(instance, viewName) {
 //
 //   [{
 //      field: "foo",
-//      forest: "foo-subrefs",
-//      hard: false
+//      forest: "foo-subrefs"
 //    },
 //    {
 //      field: "bar",
 //      forest: "main-subref",
-//      hard: true,
 //      modelName: "fooReferencedModel"
 //    }]
 //
 //   field sets the field of parent model where references are stored,
 //   forest is the name of element to render views for references into.
-//
-//   If hard key is false, then if field has no value, nothing will be
-//   rendered. If hard is true, then modelName key must must be set to
-//   the name of model the field stores reference to.
-//
-//   Think of hard refs as slots always storing reference to instance
-//   of some predefined model, while non-hard refs may store any
-//   number of refs to any models.
 //
 //   Views generated for references are stored in viewsWare, so that
 //   parent instance can get access to its reference views:
@@ -193,20 +188,18 @@ function knockBackbone(instance, viewName) {
 //   etc., where "view-1" and "view-2" were generated for instances
 //   which are referenced in "some-ref-field".
 //
-// If no instance id is provided, then bare views for hard refs are
-// not rendered (reference view rendering requires id of parent
-// instance to
+// - groupsForest: The name of forest where to render views for field
+//   groups. Views generated for groups are stored in refViews under
+//   viewsWare entry for parent view.
 function modelSetup(modelName) {
-    return function(elName, id, options) {
+    return function(elName, args, options) {
         $.getJSON(modelMethod(modelName, "model"),
             function(model) {
                 var mkBackboneModel = backbonizeModel(model, modelName);
                 var idHash = {};
-                if (id)
-                    var idHash = {id: String(id)}
 
                 // Backbone and Knockout
-                var instance = new mkBackboneModel(idHash);
+                var instance = new mkBackboneModel(args);
                 var knockVM = knockBackbone(instance, elName);
 
                 // To let parent instance know about views created for
@@ -241,8 +234,10 @@ function modelSetup(modelName) {
                             refViews[reference.field] =
                                 refViews[reference.field].concat(subview);
                             var setup = modelSetup(books[rn].refModelName);
-                            setup(subview, books[rn].refId,
-                                  {permEl: subview + "-perms"});
+                            setup(subview, {id: books[rn].refId},
+                                  {permEl: subview + "-perms",
+                                   groupsForest: options.groupsForest,
+                                   slotsee: [subview + "-link"]});
                         }
                     }
                 }
@@ -253,12 +248,41 @@ function modelSetup(modelName) {
                     instance.bind("change", options.fetchCb);
                 }
 
-                // Render forms
-                $el(elName).html(renderFields(model, elName)["_"]);
-                $el(options.permEl).html(renderPermissions(model, elName));
+                var groupViews = {};
+
+                // Render main forms and group field forms
+                var content = renderFields(model, elName);
+                for (gName in content) {
+                    // Main form & permissions
+                    if (gName == "_") {
+                        $el(elName).html(content[gName]);
+                        $el(options.permEl).html(
+                            renderPermissions(model, elName));
+                    }
+                    else
+                    {
+                        var view =
+                            mkSubviewName(gName, 0, instance.name, instance.cid);
+                        refViews[gName] = [view];
+                        groupViews[gName] = view;
+                        // Subforms for groups
+                        $el(options.groupsForest).append(
+                            renderRef({refField: gName,
+                                       refN: 0,
+                                       refView: view},
+                                      getTemplates("group-template")));
+                        $el(view).html(content[gName]);
+                    }
+                }
 
                 // Bind the model to Knockout UI
                 ko.applyBindings(knockVM, el(elName));
+                // Bind group subforms (note that refs are bound
+                // separately)
+                for (s in groupViews) {
+                    ko.applyBindings(knockVM, el(groupViews[s]));
+                }
+                // Bind extra views if provided
                 for (s in options.slotsee) {
                     ko.applyBindings(knockVM, el(options.slotsee[s]));
                 }
@@ -360,8 +384,6 @@ function mkSubviewName(refField, refN, parentModelName, parentId) {
 
 // Build name of class of views for references stored in refField of
 // parentModelName with given id.
-//
-// If parent isNew(), then we're fucked.
 function mkSubviewClass(refField, parentModelName, parentId) {
     return parentModelName + "-" + parentId + "-" +
         refField + "-views";
@@ -436,7 +458,10 @@ function setupMultiRef(instance, refField, refsForest) {
 //
 // Return single book of the same structure as in setupMultiRef result
 // (but without refId).
-function addReference(instance, reference) {
+//
+// groupsForest sets name of view to render groups of created
+// reference model in.
+function addReference(instance, reference, groupsForest) {
     var oldValue = instance.get(reference.field);
     var tpls = getTemplates("reference-template");
     if (_.isEmpty(oldValue))
@@ -467,6 +492,7 @@ function addReference(instance, reference) {
     var fetchCb = mkRefFetchCb(instance, reference.field);
     modelSetup(reference.modelName)(refView, null,
                              {fetchCb: fetchCb,
+                              groupsForest: groupsForest,
                               slotsee: [refView + "-link"],
                               permEl: refView + "-perms",
                               focusClass: "focusable"});
@@ -478,8 +504,6 @@ function addReference(instance, reference) {
 // referenced instance described by keys of refBook:
 //
 // refN - number of instance in reference field of parent model;
-//
-// refModelName - model being referenced;
 //
 // refId - id of model instance being referenced;
 //
@@ -502,9 +526,7 @@ function addReference(instance, reference) {
 // instance; possibly <refView>-perms for rendering instance
 // permissions template.
 function renderRef(refBook, templates) {
-    var named_tpl = refBook.refModelName + "-" + refBook.refField;
     var typed_tpl = refBook.refField;
-    return Mustache.render(pickTemplate(templates,
-                                        [named_tpl, typed_tpl, ""]),
+    return Mustache.render(pickTemplate(templates, [typed_tpl, ""]),
                            refBook);
 }

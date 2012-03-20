@@ -3,7 +3,7 @@
 * Prerequisites
   - we aim at GHC 7.4.1 compatibility;
   
-  - snap-0.7.1 is required (available in [[https://github.com/f-me/carma/downloads][Downloads]]);
+  - snap-0.8 is required;
 
   - Backbone 0.9.1 is included with backported [[https://github.com/documentcloud/backbone/commit/a865aa41f13c371d104da9446c3ccb6a16671658][patch]] from upstream;
 
