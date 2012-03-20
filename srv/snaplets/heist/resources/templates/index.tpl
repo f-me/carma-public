@@ -32,6 +32,9 @@
     <!-- Simple templates -->
     <script src="/s/js/3p/mustache.js" />
 
+    <!-- OpenLayers library allows map rendering -->
+    <script src="http://www.openlayers.org/api/OpenLayers.js" />
+
     <!-- Model processing -->
     <script src="/s/js/metamodel.js" />
     <script src="/s/js/search.js" />
@@ -332,6 +335,23 @@
       </div>
     </script>
 
+    <script type="text/template"
+            class="field-template"
+            id="map-field-template">
+      <div class="control-group">
+        <div class="control-label">
+          <label>{{ label }}</label>
+        </div>
+        <div class="controls">
+          <input type="text"
+                 class="pane-span focusable" 
+                 name="{{ name }}"
+                 data-bind="value: {{ name }}" />
+          <div style="height:600px;" id="{{ name }}"></div>
+        </div>
+      </div>
+    </script>
+ 
     <!-- NOP here — references are rendered after model has loaded -->
     <script type="text/template" 
             class="field-template"

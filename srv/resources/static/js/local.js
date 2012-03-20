@@ -112,7 +112,13 @@ function scrollDown() {
 function showComplex(parentView, fieldName) {
     var refViewName = global.viewsWare[parentView].refViews[fieldName][0];
     $(".complex-field").hide();
-    $el(refViewName).show();
+
+    if (fieldName == "address") {
+      $el(refViewName).show(
+        function () { initOSM("coords"); });
+    } else {
+      $el(refViewName).show();
+    }
 }
 
 // Return name field of refInstance the insight observable of parent
@@ -145,14 +151,15 @@ function setupCallForm(viewName, args) {
                        {permEl: "case-permissions"});
 }
 
-function initOSM() {
-      window.osmap = new OpenLayers.Map("basicMap");
-      var mapnik = new OpenLayers.Layer.OSM();
-      osmap.addLayer(mapnik);
-      osmap.setCenter(new OpenLayers.LonLat(37.617874,55.757549) // Center of the map
-        .transform(
-          new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
-          new OpenLayers.Projection("EPSG:900913") // to Spherical Mercator Projection
-        ), 16 // Zoom level
+function initOSM(id) {
+      window.global.osmap = new OpenLayers.Map(id);
+      window.global.osmap.addLayer(new OpenLayers.Layer.OSM());
+      window.global.osmap.setCenter(
+        new OpenLayers.LonLat(37.617874,55.757549)
+          .transform( // from WGS 1984 to Spherical Mercator Projection
+            new OpenLayers.Projection("EPSG:4326"),
+            new OpenLayers.Projection("EPSG:900913")
+          ),
+        16 // Zoom level
       );
 }

@@ -97,6 +97,7 @@
         {
             "name": "coords",
             "label": "Координаты",
+            "type": "map",
             "canWrite": true,
             "canRead": true
         }
