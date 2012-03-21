@@ -8,58 +8,74 @@
     "fields": [
         {
             "name": "towerType",
-            "label": "Тип эвакуатора",
+            "meta": {
+                "dictionaryName": "TowerTypes",
+                "label": "Тип эвакуатора"
+            },
             "canWrite": true,
             "canRead": true,
             "index": true,
             "type": "dictionary",
-            "dictionaryName": "TowerTypes"
         },
         {
             "name": "towType",
-            "label": "Вид эвакуации",
+            "meta": {
+                "dictionaryName": "TowTypes",
+                "label": "Вид эвакуации"
+            },
             "canWrite": true,
             "canRead": true,
             "type": "dictionary",
-            "dictionaryName": "TowTypes"
         },
         {
             "name": "caseAddress",
-            "label": "Адрес места поломки",
+            "meta": {
+                "label": "Адрес места поломки"
+            },
             "canWrite": true,
             "canRead": true
         },
         {
             "name": "towDealer",
-            "label": "Дилер",
+            "meta": {
+                "label": "Дилер"
+            },
             "canWrite": true,
             "canRead": true
         },
         {
             "name": "towAddress",
-            "label": "Адрес доставки",
+            "meta": {
+                "label": "Адрес доставки"
+            },
             "canWrite": true,
             "canRead": true
         },
         {
             "name": "towContractor",
-            "label": "Подрядчик",
+            "meta": {
+                "label": "Подрядчик"
+            },
             "canWrite": true,
             "canRead": true
         },
         {
             "name": "wheelsUnblocked",
-            "label": "Колёса не заблокированы",
+            "meta": {
+                "default": true,
+                "label": "Колёса не заблокированы"
+            },
             "type": "checkbox",
-            "default": true,
             "canWrite": true,
             "canRead": true
         },
         {
             "name": "manipulatorPossible",
-            "label": "Есть место для манипулятора",
+            "meta": {
+                "default": true,
+                "label": "Есть место для манипулятора"
+            },
             "type": "checkbox",
-            "default": true,
             "canWrite": true,
             "canRead": true
         }
