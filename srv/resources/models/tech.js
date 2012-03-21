@@ -8,29 +8,37 @@
     "fields": [
         {
             "name": "techType",
-            "label": "Услуга",
+            "meta": {
+                "dictionaryName": "TechTypes",
+                "label": "Услуга",
+                "required": true
+            },
             "canWrite": true,
             "canRead": true,
             "type": "dictionary",
-            "dictionaryName": "TechTypes",
-            "index": true,
-            "required": true
+            "index": true
         },
         {
             "name": "caseAddress",
-            "label": "Адрес места поломки",
+            "meta": {
+                "label": "Адрес места поломки"
+            },
             "canWrite": true,
             "canRead": true
         },
         {
             "name": "techContractor",
-            "label": "Название партнёра",
+            "meta": {
+                "label": "Название партнёра"
+            },
             "canWrite": true,
             "canRead": true
         },
         {
             "name": "techComments",
-            "label": "Описание неисправности со слов клиента",
+            "meta": {
+                "label": "Описание неисправности со слов клиента"
+            },
             "type": "textarea",
             "canWrite": true,
             "canRead": true
