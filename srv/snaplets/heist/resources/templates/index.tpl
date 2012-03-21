@@ -426,7 +426,7 @@
             class="group-template"
             id="-group-template">
       <fieldset>
-        <form class="complex-field form-horizontal"
+        <form class="complex-field form-vertical"
               id="{{ refView }}"
               style="display: none;" />
       </fieldset>
