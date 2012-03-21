@@ -152,6 +152,7 @@ function setupCallForm(viewName, args) {
 }
 
 function initOSM(id) {
+      if (window.global.osmap) return;
       window.global.osmap = new OpenLayers.Map(id);
       window.global.osmap.addLayer(new OpenLayers.Layer.OSM());
       window.global.osmap.setCenter(
