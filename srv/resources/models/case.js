@@ -14,6 +14,29 @@
             "canRead": true
         },
         {
+            "name": "diagnosis1",
+            "label": "Диагностика",
+            "canWrite": true,
+            "canRead": true,
+            "type": "dictionary",
+            "dictionaryName": "Diagnosis1"
+        },            
+        {
+            "name": "diagnosis2",
+            "canWrite": true,
+            "canRead": true
+        },
+        {
+            "name": "diagnosis3",
+            "canWrite": true,
+            "canRead": true
+        },
+        {
+            "name": "diagnosis4",
+            "canWrite": true,
+            "canRead": true
+        },
+        {
             "name": "callDate",
             "label": "Дата звонка",
             "canWrite": true,
@@ -74,29 +97,6 @@
             "name": "car",
             "groupName": "car",
             "type": "group"
-        },
-        {
-            "name": "diagnosis1",
-            "label": "Диагностика",
-            "canWrite": true,
-            "canRead": true,
-            "type": "dictionary",
-            "dictionaryName": "Diagnosis1"
-        },            
-        {
-            "name": "diagnosis2",
-            "canWrite": true,
-            "canRead": true
-        },
-        {
-            "name": "diagnosis3",
-            "canWrite": true,
-            "canRead": true
-        },
-        {
-            "name": "diagnosis4",
-            "canWrite": true,
-            "canRead": true
         },
         {
             "name": "services",
