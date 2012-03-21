@@ -9,7 +9,8 @@
         {
             "name": "comment",
             "label": "Что случилось",
-            "type": "textarea",
+            "type": "dictionary",
+            "dictionaryName": "Wazzup",
             "canWrite": true,
             "canRead": true
         },
