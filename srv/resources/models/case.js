@@ -8,19 +8,23 @@
     "fields": [
         {
             "name": "comment",
-            "label": "Что случилось",
             "type": "dictionary",
-            "dictionaryName": "Wazzup",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "meta": {
+                "dictionaryName": "Wazzup",
+                "label": "Что случилось"
+            }
         },
         {
             "name": "diagnosis1",
-            "label": "Диагностика",
             "canWrite": true,
             "canRead": true,
             "type": "dictionary",
-            "dictionaryName": "Diagnosis1"
+            "meta": {
+                "dictionaryName": "Diagnosis1",
+                "label": "Диагностика"
+            }
         },            
         {
             "name": "diagnosis2",
@@ -39,72 +43,88 @@
         },
         {
             "name": "callDate",
-            "label": "Дата звонка",
             "canWrite": true,
             "canRead": true,
             "index": true,
             "indexCollate": true,
-            "readonly": true
+            "meta": {
+                "label": "Дата звонка",
+                "readonly": true
+            }
         },
         {
             "name": "callTime",
-            "label": "Время звонка",
             "canWrite": true,
             "canRead": true,
-            "readonly": true
+            "meta": {
+                "label": "Время звонка",
+                "readonly": true
+            }
         },
         {
             "name": "callTaker",
-            "label": "Сотрудник РАМК",
             "canWrite": false,
             "canRead": true,
-            "required": true,
-            "readonly": true
+            "meta": {
+                "label": "Сотрудник РАМК",
+                "required": true,
+                "readonly": true
+            }
         },
         {
             "name": "program",
-            "label": "Программа",
             "canWrite": true,
             "canRead": true,
-            "required": true,
             "index": true,
             "type": "dictionary",
-            "dictionaryName": "Programs"
+            "meta": {
+                "dictionaryName": "Programs",
+                "label": "Программа",
+                "required": true
+            }
         },
         {
             "name": "address",
-            "label": "Адрес",
             "canWrite": true,
             "canRead": true,
+            "groupName": "address",
             "type": "group",
-            "groupName": "address"
+            "meta": {
+                "label": "Адрес"
+            }
         },
         {
             "name": "caller",
-            "label": "Звонящий",
             "canWrite": true,
             "canRead": true,
+            "groupName": "caller",
             "type": "group",
-            "groupName": "caller"
+            "meta": {
+                "label": "Звонящий"
+            }
         },
         {
             "name": "status",
-            "label": "Статус звонка",
             "canWrite": true,
             "canRead": true,
-            "required": true
+            "meta": {
+                "required": true,
+                "label": "Статус звонка"
+            }
         },
         {
             "name": "car",
-            "groupName": "car",
-            "type": "group"
+            "type": "group",
+            "groupName": "car"
         },
         {
             "name": "services",
-            "label": "Услуги",
             "type": "reference",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "meta": {
+                "label": "Услуги"
+            }
         }
     ]
 }

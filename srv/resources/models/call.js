@@ -8,37 +8,47 @@
     "fields": [
         {
             "name": "wazzup",
-            "label": "Что случилось?",
             "type": "textarea",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "meta": {
+                "label": "Что случилось?"
+            }
         },
         {
             "name": "callType",
-            "label": "Тип звонка",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "meta": {
+                "label": "Тип звонка"
+            }
         },
         {
             "name": "callerType",
-            "label": "Кто звонит?",
             "type": "dictionary",
-            "dictionaryName": "CallerTypes",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "meta": {
+                "label": "Кто звонит?",
+                "dictionaryName": "CallerTypes"
+            }
         },
         {
             "name": "callerName",
-            "label": "ФИО",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "meta": {
+                "label": "ФИО"
+            }
         },
         {
             "name": "callerPhone",
-            "label": "Телефон",
             "canWrite": true,
             "canRead": true,
-            "index": true
+            "index": true,
+            "meta": {
+                "label": "Телефон"
+            }
         }
     ]
 }

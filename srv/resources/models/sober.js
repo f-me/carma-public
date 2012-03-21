@@ -8,19 +8,25 @@
     "fields": [
         {
             "name": "fromAddress",
-            "label": "Где забрать",
+            "meta": {
+                "label": "Где забрать"
+            },
             "canWrite": true,
             "canRead": true
         },
         {
             "name": "toAddress",
-            "label": "Куда доставить",
+            "meta": {
+                "label": "Куда доставить"
+            },
             "canWrite": true,
             "canRead": true
         },
         {
             "name": "multidrive",
-            "label": "Мультидрайв",
+            "meta": {
+                "label": "Мультидрайв"
+            },
             "type": "checkbox",
             "canWrite": true,
             "canRead": true

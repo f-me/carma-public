@@ -8,9 +8,11 @@
     "fields": [
         {
             "name": "caseAddress",
-            "label": "Откуда везём",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "meta": {
+                "label": "Откуда везём"
+            }
         }
     ]
 }
