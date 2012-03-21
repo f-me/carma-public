@@ -111,11 +111,12 @@ function scrollDown() {
 // stored in <fieldName> of model loaded into <parentView> there
 function showComplex(parentView, fieldName) {
     var refViewName = global.viewsWare[parentView].refViews[fieldName][0];
+
+    if ($el(refViewName).is(':visible')) return;
     $(".complex-field").hide();
 
     if (fieldName == "address") {
-      $el(refViewName).show(
-        function () { initOSM("coords"); });
+      $el(refViewName).show(function () { initOSM("coords") });
     } else {
       $el(refViewName).show();
     }
