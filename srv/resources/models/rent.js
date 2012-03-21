@@ -8,25 +8,33 @@
     "fields": [
         {
             "name": "towDealer",
-            "label": "Дилер",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "meta": {
+                "label": "Дилер"
+            }
         },
         {
             "name": "rentAddress",
-            "label": "Куда доставить",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "meta": {
+                "label": "Куда доставить",
+            }
         },
         {
             "name": "carClass",
-            "label": "Класс автомобиля",
+            "meta": {
+                "label": "Класс автомобиля",
+            },
             "canWrite": true,
             "canRead": true
         },
         {
             "name": "rentContractor",
-            "label": "Подрядчик",
+            "meta": {
+                "label": "Подрядчик"
+            },
             "canWrite": true,
             "canRead": true
         }
