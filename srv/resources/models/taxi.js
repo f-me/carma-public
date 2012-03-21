@@ -8,15 +8,19 @@
     "fields": [
         {
             "name": "taxiFrom",
-            "label": "Где забрать",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "meta": {
+                "label": "Где забрать"
+            }
         },
         {
             "name": "taxiTo",
-            "label": "Куда доставить",
             "canWrite": true,
-            "canRead": true
+            "canRead": true,
+            "meta": {
+                "label": "Куда доставить"
+            }
         }
     ]
 }
