@@ -74,3 +74,8 @@ textarea.pane-span,
 .accordion-toggle {
   cursor: pointer;
 }
+
+.typeahead {
+  max-height: 200px;
+  overflow-y: auto;
+}
