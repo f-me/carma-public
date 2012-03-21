@@ -72,12 +72,8 @@
 
       this.query = this.$element.val()
 
-      if (!this.query) {
-        return this.shown ? this.hide() : this
-      }
-
       items = $.grep(this.source, function (item) {
-        if (that.matcher(item)) return item
+        if (!that.query || that.matcher(item)) return item
       })
 
       items = this.sorter(items)
@@ -155,6 +151,7 @@
         .on('blur',     $.proxy(this.blur, this))
         .on('keypress', $.proxy(this.keypress, this))
         .on('keyup',    $.proxy(this.keyup, this))
+        .on('focus',    $.proxy(this.focus, this))
 
       if ($.browser.webkit || $.browser.msie) {
         this.$element.on('keydown', $.proxy(this.keypress, this))
@@ -174,6 +171,10 @@
         case 9: // tab
         case 13: // enter
           if (!this.shown) return
+          if (this.preventSelect) {
+            this.preventSelect = false;
+            return
+          }
           this.select()
           break
 
@@ -212,6 +213,11 @@
       }
 
       e.stopPropagation()
+    }
+
+  , focus: function (e) {
+      this.preventSelect = true
+      this.lookup()
     }
 
   , blur: function (e) {
