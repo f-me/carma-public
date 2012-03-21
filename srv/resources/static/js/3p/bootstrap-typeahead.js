@@ -28,7 +28,13 @@
     this.sorter = this.options.sorter || this.sorter
     this.highlighter = this.options.highlighter || this.highlighter
     this.$menu = $(this.options.menu).appendTo('body')
-    this.source = this.options.source
+
+    this.options.source = eval(this.options.source)
+    if (this.options.source.length > 0 && typeof this.options.source[0] == 'object')
+        this.source = this.labelsFor(this.options.source)
+    else
+        this.source = this.options.source
+
     this.shown = false
     this.listen()
   }
@@ -236,6 +242,12 @@
       $(e.currentTarget).addClass('active')
     }
 
+
+  , labelsFor: function(items) {
+      return $.makeArray($(items).map(function (i, item) {
+          return item.label
+      }))
+    }
   }
 
 
