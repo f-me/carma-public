@@ -115,8 +115,8 @@ function showComplex(parentView, fieldName) {
     if ($el(refViewName).is(':visible')) return;
     $(".complex-field").hide();
 
-    if (fieldName == "address") {
-      $el(refViewName).show(function () { initOSM("coords") });
+    if (fieldName == "address_address") {
+      $el(refViewName).show(function () { initOSM("address_coords") });
     } else {
       $el(refViewName).show();
     }
