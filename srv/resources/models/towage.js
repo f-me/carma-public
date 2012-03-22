@@ -15,7 +15,7 @@
             "canWrite": true,
             "canRead": true,
             "index": true,
-            "type": "dictionary",
+            "type": "dictionary"
         },
         {
             "name": "towType",
@@ -25,7 +25,7 @@
             },
             "canWrite": true,
             "canRead": true,
-            "type": "dictionary",
+            "type": "dictionary"
         },
         {
             "name": "caseAddress",

@@ -19,13 +19,13 @@
             "canWrite": true,
             "canRead": true,
             "meta": {
-                "label": "Куда доставить",
+                "label": "Куда доставить"
             }
         },
         {
             "name": "carClass",
             "meta": {
-                "label": "Класс автомобиля",
+                "label": "Класс автомобиля"
             },
             "canWrite": true,
             "canRead": true
