@@ -39,34 +39,24 @@ function setupSearchTable(viewName, args) {
 //
 // TODO Allow adjusting of search fields etc.
 function doSearch() {
-    var fields = ["id", "caller_ownerName", "callDate", "phone", "car_plateNum", "program"];
+    var searchFields = ["id", "caller_ownerName", "callDate",
+                        "caller_phone", "car_plateNum", "program"];
+    var serveFields = searchFields;
     var sType = "or"
     var limit = "100";
 
     var t = $el("searchtable").dataTable();
     var term = $el("table-query").val();
     var method = "search/?";
-    for (f in fields) {
-        method += (fields[f] + "=" + term + "&");
+    for (f in searchFields) {
+        method += (searchFields[f] + "=" + term + "&");
     };
-    method += "_matchType=s&_searchType=" + sType + "&_limit=" + limit;
+    method += "_matchType=s&_searchType=" + sType 
+        + "&_limit=" + limit
+        + "&_fields=" + serveFields.join(",");
     $.getJSON(modelMethod("case", method),
               function(results) {
-                  var data = []
-                  for (i = 0; i < results.length; i++) {
-                      var o = results[i];
-                      var row = [];
-                      // Extract fields data from JSON, show dash in
-                      // case of undefined field
-                      for (j = 0; j < fields.length; j++) {
-                          if (_.isUndefined(o[fields[j]]))
-                              row[j] = "—";
-                          else
-                              row[j] = o[fields[j]];
-                      }
-                      data[i] = row;
-                  }
                   t.fnClearTable();
-                  t.fnAddData(data);
+                  t.fnAddData(results);
               });
 }
