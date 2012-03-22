@@ -117,7 +117,7 @@
             class="screen-template"
             id="case-screen-template">
       <!-- Main case form -->
-      <div id="left">
+      <div id="left" class="nice-scrollbar">
         <form class="form-vertical">
           <div class="control-group">
             <div class="control-label">

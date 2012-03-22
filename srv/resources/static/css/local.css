@@ -79,3 +79,21 @@ textarea.pane-span,
   max-height: 200px;
   overflow-y: auto;
 }
+
+.nice-scrollbar::-webkit-scrollbar {width:.7em;}
+.nice-scrollbar::-webkit-scrollbar-button:vertical,
+.nice-scrollbar::-webkit-scrollbar-button:start:decrement,
+.nice-scrollbar::-webkit-scrollbar-button:end:increment,
+.nice-scrollbar::-webkit-scrollbar-button:vertical:start:increment,
+.nice-scrollbar::-webkit-scrollbar-button:vertical:end:decrement,
+.nice-scrollbar::-webkit-scrollbar-button:vertical:increment,
+.nice-scrollbar::-webkit-scrollbar-button:vertical:decrement,
+.nice-scrollbar::-webkit-scrollbar-track:vertical,
+.nice-scrollbar::-webkit-scrollbar-track-piece:vertical:start.
+.nice-scrollbar::-webkit-scrollbar-track-piece:vertical:end,
+.nice-scrollbar::-webkit-scrollbar-track-piece {display:none;}
+.nice-scrollbar::-webkit-scrollbar-thumb:vertical {
+  height:25px;
+  border-radius:3px;
+  background-color:whiteSmoke;
+}
