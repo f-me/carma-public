@@ -298,7 +298,6 @@ function modelSetup(modelName) {
                 // Focus on first focusable field
                 if (options.focusClass) {
                     $el(elName).find("." + options.focusClass)[0].focus();
-                    scrollDown();
                 }
 
                 global.viewsWare[elName] = {
