@@ -100,9 +100,7 @@
     </div>
 
     <!-- Main container for dynamically rendered layouts -->
-    <div class="container-fluid">
-      <div class="row-fluid" id="layout" />
-    </div>
+    <div class="container-fluid" id="layout" />
 
     <!-- Call handling screen layout -->
     <script type="text/template"
