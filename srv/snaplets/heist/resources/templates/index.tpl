@@ -308,6 +308,27 @@
 
     <script type="text/template"
             class="field-template"
+            id="picker-field-template">
+      <div class="control-group">
+        <div class="control-label">
+          <label>{{ meta.label }}</label>
+        </div>
+        <div class="controls">
+          <div class="input-append">
+            <input type="text"
+                   class="pane-span focusable"
+                   name="{{ name }}"
+                   data-bind="value: {{ name }},
+                              valueUpdate: 'afterkeydown'"/>
+            <span class="add-on"><i class="icon icon-search"
+                                    onclick="doPick('{{ meta.picker }}');"/></span>
+          </div>
+        </div>
+      </div>
+    </script>
+
+    <script type="text/template"
+            class="field-template"
             id="callerType-dictionary-field-template">
       <div class="control-group">
         <div class="control-label">

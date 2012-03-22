@@ -167,3 +167,38 @@ function initOSM(id) {
         16 // Zoom level
       );
 }
+
+// Dispatch on some picker type
+//
+// Available picks:
+//
+// - vinFiller
+function doPick(pickType) {
+    var pickers = {
+        
+        // Get car_vin field from case and try to fill some of its fields
+        // with data stored under this VIN in database.
+        vinFiller: function() {
+            // How vin fields map to case fields
+            var vinMap = 
+                {
+                    "program": "program",
+                    "make": "car_make",
+                    "model": "car_model",
+                    "plateNumber": "car_plateNum",
+                    "mileageTO": "checkupMileage"
+                };
+            var bb = global.viewsWare["case-form"].bbInstance;
+            var vin = bb.get('car_vin');
+            $.getJSON("/_/vin/" + vin, function (data) {
+                for (k in vinMap) {
+                    if (!_.isUndefined(data[k]))
+                        bb.set(vinMap[k], data[k]);
+                }
+            });
+        }
+    };
+    console.log(pickType);
+    pickers[pickType]();
+}
+

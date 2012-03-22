@@ -2,8 +2,10 @@
     "car": [
         {
             "name": "vin",
+            "type": "picker",
             "meta": {
-                "label": "VIN"
+                "label": "VIN",
+                "picker": "vinFiller"
             },
             "canWrite": true,
             "canRead": true
