@@ -8,11 +8,12 @@
     "fields": [
         {
             "name": "wazzup",
-            "type": "textarea",
+            "type": "dictionary",
             "canWrite": true,
             "canRead": true,
             "meta": {
-                "label": "Что случилось?"
+                "dictionaryName": "Wazzup",
+                "label": "Что случилось"
             }
         },
         {
