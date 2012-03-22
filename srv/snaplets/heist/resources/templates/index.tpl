@@ -172,7 +172,9 @@
         <form class="form-inline">
           По дате<br />
           <div data-date-format="mm-dd-yyyy" 
-               id="datepicker" 
+               id="search-datepicker"
+               data-provide="datepicker"
+               data-date-weekstart="1"
                class="input-append date">
 	    <input type="text"
                    id="table-query"
@@ -250,6 +252,33 @@
                  {{# meta.readonly }}disabled{{/ meta.readonly }}
                  data-bind="value: {{ name }},
                             valueUpdate: 'afterkeydown'" />
+        </div>
+      </div>
+    </script>
+
+    <!-- Like text-field-template, but with datepicker -->
+    <script type="text/template"
+            class="field-template"
+            id="date-field-template">
+      <div class="control-group"
+           {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
+           >
+        <div class="control-label">
+          <label>{{ meta.label }}</label>
+        </div>
+        <div class="controls">
+          <div class="input-append date"
+               data-provide="datepicker"
+               data-date-format="mm-dd-yyyy"
+               data-date-weekstart="1">
+            <input type="text"
+                   class="pane-span focusable" 
+                   name="{{ name }}"
+                   {{# meta.readonly }}disabled{{/ meta.readonly }}
+                   data-bind="value: {{ name }},
+                              valueUpdate: 'afterkeydown'" />
+            <span class="add-on"><i class="icon icon-calendar" /></span>
+          </div>
         </div>
       </div>
     </script>
