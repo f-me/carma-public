@@ -54,20 +54,23 @@ filterCaseRow row = snd $ M.mapEither
               row
 
 
--- | Describes how to build instance fields from CSV field names or literal
--- values.
+-- | Describes how to build instance fields from CSV row.
 
 -- Left field value is read as is while Right indicates the field of
 -- original row to populate the new instance field from.
---
--- TODO allow arbitary transformation functions so that dictionaries
--- may be supported.
---
--- TODO Should be written from left to right (csv → model,
--- not model ← csv)
-type FieldMap = M.Map FieldName (Either FieldValue FieldName)
+type FieldMap = M.Map FieldName FieldSource
 
--- 'FieldMap' with unfixed strings and in list form
+-- | Describes how every field is constructed from CSV row.
+data FieldSource = Value FieldValue
+                 -- ^ Just set field value as is
+                 | FromField FieldName
+                 -- ^ Take value of a named field in original row
+                 | Function (MapRow -> FieldValue)
+                 -- ^ Build field value by applying a function to the
+                 -- whole row
+
+-- 'FieldMap' with unfixed strings, without generic transformations
+-- and in list form
 type ProtoMap = [(String, Either String String)]
 
 -- How to match transformation
@@ -101,9 +104,10 @@ bijectionMap fields = Prelude.map (\n -> (n, Right n)) fields
 -- TODO Find out how to use <$> here
 fixUtfMap :: ProtoMap -> FieldMap
 fixUtfMap cmap = M.fromList 
-                 (map (\(k, v) -> (f k, case v of
-                                          Left s -> Left $ f s
-                                          Right s -> Right $ f s))
+                 (map (\(k, v) -> (f k,
+                                   case v of
+                                     Left s -> Value $ f s
+                                     Right s -> FromField $ f s))
                   cmap)
     where f = BU.fromString
 
@@ -252,8 +256,9 @@ caseMap = fixUtfMap $ map (\(k, v) -> (k, Right v)) $
 remapRow :: MapRow -> FieldMap -> MapRow
 remapRow row cspec = M.mapWithKey 
                      (\k v -> case v of
-                                Left val -> val
-                                Right f -> maybe "" id (M.lookup f row))
+                                Value val -> val
+                                FromField f -> maybe "" id (M.lookup f row)
+                                Function f -> f row)
                      cspec
 
 -- | Try to build commit for dependent instance.
