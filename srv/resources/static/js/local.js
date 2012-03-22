@@ -188,17 +188,29 @@ function doPick(pickType) {
                     "plateNumber": "car_plateNum",
                     "mileageTO": "checkupMileage"
                 };
+
             var bb = global.viewsWare["case-form"].bbInstance;
             var vin = bb.get('car_vin');
-            $.getJSON("/_/vin/" + vin, function (data) {
-                for (k in vinMap) {
-                    if (!_.isUndefined(data[k]))
-                        bb.set(vinMap[k], data[k]);
-                }
-            });
+
+            var vinGroup = $("[name=car_vin]").closest(".control-group");
+
+            $.ajax("/_/vin/" + vin,
+                   { 
+                       error: function () { 
+                           vinGroup.addClass("error")
+                       },
+
+                       success: function (data) {
+                           vinGroup.addClass("success");
+                           for (k in vinMap) {
+                               if (!_.isUndefined(data[k]))
+                                   bb.set(vinMap[k], data[k]);
+                           }
+                       }
+                   });
         }
     };
-    console.log(pickType);
+
     pickers[pickType]();
 }
 
