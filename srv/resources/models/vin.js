@@ -9,7 +9,7 @@
         {
             "name": "program",
             "canWrite": true,
-            "canRead": true,
+            "canRead": true
         },
         {
             "name": "make",
