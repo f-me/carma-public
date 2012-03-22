@@ -19,7 +19,7 @@ import Control.Monad (foldM, when)
 
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as LB
-import qualified Data.ByteString.UTF8 as BU (fromString)
+import qualified Data.ByteString.UTF8 as BU (fromString, toString)
 import qualified Data.ByteString.Lazy.UTF8 as LBU (toString)
 import Data.Enumerator as E hiding (foldM, map, head)
 import qualified Data.Enumerator.Binary as EB
@@ -29,9 +29,13 @@ import qualified Data.Map as M hiding (map)
 
 import Data.CSV.Enumerator as CSV
 
+import Data.Time.Clock
+import Data.Time.Format
+
 import Database.Redis
 
 import System.Console.CmdArgs.Implicit
+import System.Locale
 
 import Snap.Snaplet.Redson.Snapless.CRUD
 import Snap.Snaplet.Redson.Snapless.Metamodel
@@ -232,9 +236,9 @@ serviceTransformations = [ tech
 
 -- | How to remap columns of case.
 caseMap :: FieldMap
-caseMap = fixUtfMap $ map (\(k, v) -> (k, Right v)) $
-          [ ("callDate", "Дата звонка")
-          , ("callTime", "Время звонка")
+caseMap = let 
+    plain = fixUtfMap $ map (\(k, v) -> (k, Right v)) $
+          [ ("callTime", "Время звонка")
           , ("callTaker", "Сотрудник РАМК (Обязательное поле)")
           , ("program", "Клиент (Обязательное поле)")
           , ("services", "Услуга (Обязательное поле)")
@@ -251,6 +255,23 @@ caseMap = fixUtfMap $ map (\(k, v) -> (k, Right v)) $
           , ("address_address", "Адрес места поломки")
           , ("comment", "Описание неисправности со слов клиента")
           ]
+    locale = defaultTimeLocale
+    sourceFmt = "%m/%d/%Y"
+    targetFmt = "%d.%m.%Y"
+    -- Convert MM/DD/YYYY to DD.MM.YYYY
+    callDate :: MapRow -> FieldValue
+    callDate mr = case M.lookup (BU.fromString "Дата звонка") mr of
+                    Just v -> BU.fromString $
+                        let
+                            parsed :: Maybe UTCTime
+                            parsed = parseTime locale sourceFmt (BU.toString v)
+                        in
+                          case parsed of
+                            Just t -> formatTime locale targetFmt t
+                            Nothing -> ""
+                    Nothing -> ""
+    in
+      M.insert "callDate" (Function callDate) plain
 
 -- | Build new commit from row and commit spec.
 remapRow :: MapRow -> FieldMap -> MapRow
