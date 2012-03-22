@@ -187,6 +187,7 @@ function renderFields(model, viewName, groups) {
     var group = "";
     var readonly = false;
     var mainGroup = "_";
+    var slices;
 
     // Currently we store the name of «current group» while traversing
     // all model fields. When this name changes, we consider the
@@ -208,7 +209,14 @@ function renderFields(model, viewName, groups) {
                  }
                  readonly = f.readonly || !model.canUpdate || !f.canWrite;
 
-                 group = f.groupName || mainGroup;
+                 // If group ended, or group spliced for different
+                 // original field started, we'll put contents to
+                 // different section.
+                 slices = /(\w+)_(\w+)/.exec(f.name);
+                 if (!_.isNull(slices))
+                     group = slices[1];
+                 else
+                     group = mainGroup;
 
                  // Add extra context prior to rendering
                  var ctx = {readonly: readonly,
