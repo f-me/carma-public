@@ -104,7 +104,7 @@ function getFormatTime() {
 
 // Scroll to the bottom of the page
 function scrollDown() {
-    window.scrollTo(0, document.body.scrollHeight);
+    window.scrollTo(0, document.body.scrollHeight - 300);
 }
 
 // Hide all views on right pane and show view for first reference
@@ -145,6 +145,8 @@ function addService(name) {
                   modelName: name,
                   forest: "case-service-references"},
                 "right");
+    // FIXME (doesn't scroll properly)
+    scrollDown();
 }
 
 function setupCallForm(viewName, args) {
