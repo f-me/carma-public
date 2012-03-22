@@ -78,6 +78,7 @@ textarea.pane-span,
 .typeahead {
   max-height: 200px;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .nice-scrollbar::-webkit-scrollbar {width:.7em;}
