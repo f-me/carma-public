@@ -250,6 +250,7 @@
 								type: 'changeDate',
 								date: this.date
 							});
+                                                        this.hide();
 						}
 						break;
 				}
