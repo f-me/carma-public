@@ -38,6 +38,7 @@
 
     <!-- Model processing -->
     <script src="/s/js/metamodel.js" />
+    <script src="/s/js/util.js" />
     <script src="/s/js/search.js" />
     <script src="/s/js/main.js" />
     <script src="/s/js/local.js" />
@@ -171,7 +172,7 @@
         <legend>Поиск</legend>
         <form class="form-inline">
           По дате<br />
-          <div data-date-format="mm-dd-yyyy" 
+          <div data-date-format="dd.mm.yyyy" 
                id="search-datepicker"
                data-provide="datepicker"
                data-date-weekstart="1"
@@ -269,7 +270,7 @@
         <div class="controls">
           <div class="input-append date"
                data-provide="datepicker"
-               data-date-format="mm-dd-yyyy"
+               data-date-format="dd.mm.yyyy"
                data-date-weekstart="1">
             <input type="text"
                    class="pane-span focusable" 

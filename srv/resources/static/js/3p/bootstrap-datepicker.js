@@ -113,7 +113,10 @@
 		},
 		
 		update: function(){
-			this.date = DPGlobal.parseDate($(this.element).find("input").val(), this.format);
+                    console.log(this.isInput);
+			this.date = DPGlobal.parseDate(
+                                this.element.data('date') || this.element.find("input").val(),
+                                this.format);
 			this.viewDate = new Date(this.date);
 			this.fill();
 		},

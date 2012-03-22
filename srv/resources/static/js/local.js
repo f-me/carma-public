@@ -90,7 +90,7 @@ function setupCaseMain(viewName, args) {
 // Return MM-DD-YYYY
 function getFormatDate() {
     var d = new Date;
-    var sd = (d.getMonth() + 1) + '-' + d.getDate() + '-' + d.getFullYear();
+    var sd = d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear();
     return sd;
 }
 

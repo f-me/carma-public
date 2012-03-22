@@ -26,13 +26,8 @@ function setupSearchTable(viewName, args) {
             sLengthMenu: "Показывать по _MENU_ записей",
             sZeroRecords: "Ничего не найдено"
         }});
-    var d = new Date;
-    var sd = (d.getMonth() + 1) + '-' + d.getDate() + '-' + d.getFullYear();
 
-    $("#datepicker").data('date', sd);
-    $("#datepicker").datepicker({
-        weekStart: 1
-    });
+    $("#search-datepicker").data('date', getFormatDate());
 }
 
 // Manually load JSON data from server and add it to table
