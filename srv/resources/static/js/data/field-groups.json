@@ -2,21 +2,27 @@
     "car": [
         {
             "name": "vin",
-            "label": "VIN",
+            "meta": {
+                "label": "VIN"
+            },
             "canWrite": true,
             "canRead": true
         },
         {
             "name": "model",
-            "label": "Марка и модель",
+            "meta": {
+                "dictionaryName": "CarModels",
+                "label": "Марка и модель"
+            },
             "canWrite": true,
             "canRead": true,
-            "type": "dictionary",
-            "dictionaryName": "CarModels"
+            "type": "dictionary"
         },
         {
             "name": "plateNum",
-            "label": "Регистрационный номер автомобиля",
+            "meta": {
+                "label": "Регистрационный номер автомобиля"
+            },
             "canWrite": true,
             "canRead": true,
             "index": true,
@@ -24,39 +30,51 @@
         },
         {
             "name": "color",
-            "label": "Цвет",
+            "meta": {
+                "label": "Цвет"
+            },
             "canWrite": true,
             "canRead": true
         },
         {
             "name": "transmission",
-            "label": "Коробка передач",
+            "meta": {
+                "label": "Коробка передач",
+                "dictionaryName": "Transmission"
+            },
             "canWrite": true,
             "canRead": true,
-            "type": "dictionary",
-            "dictionaryName": "Transmission"
+            "type": "dictionary"
         },
         {
             "name": "buyDate",
-            "label": "Дата покупки",
+            "meta": {
+                "label": "Дата покупки"
+            },
             "canWrite": true,
             "canRead": true
         },
         {
             "name": "mileage",
-            "label": "Текущий пробег",
+            "meta": {
+                "label": "Текущий пробег"
+            },
             "canWrite": true,
             "canRead": true
         },
         {
             "name": "checkupDate",
-            "label": "Дата последнего ТО",
+            "meta": {
+                "label": "Дата последнего ТО"
+            },
             "canWrite": true,
             "canRead": true
         },
         {
             "name": "checkupMileage",
-            "label": "Пробег на последнем ТО",
+            "meta": {
+                "label": "Пробег на последнем ТО"
+            },
             "canWrite": true,
             "canRead": true
         }
@@ -64,7 +82,9 @@
     "caller": [
         {
             "name": "callerName",
-            "label": "ФИО звонящего",
+            "meta": {
+                "label": "ФИО звонящего"
+            },
             "canWrite": true,
             "canRead": true,
             "index": true,
@@ -72,7 +92,9 @@
         },
         {
             "name": "ownerName",
-            "label": "ФИО владельца",
+            "meta": {
+                "label": "ФИО владельца"
+            },
             "canWrite": true,
             "canRead": true,
             "index": true,
@@ -80,7 +102,9 @@
         },
         {
             "name": "phone",
-            "label": "Телефон звонящего",
+            "meta": {
+                "label": "Телефон звонящего"
+            },
             "canWrite": true,
             "canRead": true,
             "index": true,
@@ -90,13 +114,17 @@
     "address": [
         {
             "name": "address",
-            "label": "Адрес",
+            "meta": {
+                "label": "Адрес"
+            },
             "canWrite": true,
             "canRead": true
         },
         {
             "name": "coords",
-            "label": "Координаты",
+            "meta": {
+                "label": "Координаты"
+            },
             "type": "map",
             "canWrite": true,
             "canRead": true
