@@ -13,17 +13,19 @@ function backbonizeModel(model, modelName) {
     var groups = []
     _.each(model.fields,
           function(f) {
-              if (!(_.isUndefined(f.default)))
-                  defaults[f.name] = f.default;
-              else
-                  defaults[f.name] = null;
+              if (!_.isNull(f.meta) {
+                  if ((!_.isUndefined(f.meta.required)) && f.meta.required)
+                      requiredFields = requiredFields.concat(f.name);
+                  if (!(_.isUndefined(f.meta.default)))
+                      defaults[f.name] = f.default;
+                  else
+                      defaults[f.name] = null;
+              }
               fieldHash[f.name] = f;
               if (f.type == "reference")
                   referenceFields = referenceFields.concat(f.name);
               if (f.type == "dictionary")
                   dictionaryFields = dictionaryFields.concat(f.name);
-              if ((!_.isUndefined(f.required)) && f.required)
-                  requiredFields = requiredFields.concat(f.name);
               if (!_.isNull(f.groupName) && (groups.indexOf(f.groupName) == -1))
                   groups = groups.concat(f.groupName);
           });
@@ -196,7 +198,10 @@ function renderFields(model, viewName, groups) {
     // canEdit=false in form description.
     _.each(model.fields,
            function (f) {
-             if (!f.invisible) {
+             if (_.isNull(f.meta) || f.meta.invisible) {
+                 if (!_.isNull(f.meta)) {
+                     f.readonly = f.meta.readonly;
+                 }
                  readonly = f.readonly || !model.canUpdate || !f.canWrite;
 
                  group = f.groupName || mainGroup;
@@ -210,7 +215,8 @@ function renderFields(model, viewName, groups) {
 
                  if (f.type == "dictionary")
                      ctx = _.extend(ctx,
-                                    {dictionary: global.dictionaries[f.dictionaryName]});
+                                    {dictionary: 
+                                     global.dictionaries[f.meta.dictionaryName]});
                  ctx = _.extend(f, ctx);
 
                  // Put first field in group in main section, too.
