@@ -11,6 +11,10 @@ body {
     padding: 19px;
 }
 
+.icon {
+  cursor: pointer;
+}
+
 #left {
   float: left;
   width: 46%;
