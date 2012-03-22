@@ -39,7 +39,7 @@ function setupSearchTable(viewName, args) {
 //
 // TODO Allow adjusting of search fields etc.
 function doSearch() {
-    var fields = ["id", "caller:ownerName", "callDate", "phone", "car:plateNum", "program"];
+    var fields = ["id", "caller_ownerName", "callDate", "phone", "car_plateNum", "program"];
     var sType = "or"
     var limit = "100";
 
