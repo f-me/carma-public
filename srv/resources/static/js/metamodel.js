@@ -13,15 +13,19 @@ function backbonizeModel(model, modelName) {
     var groups = []
     _.each(model.fields,
           function(f) {
-              if (!_.isNull(f.meta) {
+              if (!_.isNull(f.meta)) {
                   if ((!_.isUndefined(f.meta.required)) && f.meta.required)
                       requiredFields = requiredFields.concat(f.name);
                   if (!(_.isUndefined(f.meta.default)))
                       defaults[f.name] = f.default;
                   else
                       defaults[f.name] = null;
-              }
+              } else
+                  // still add field to model even if meta is not present
+                  defaults[f.name] = null;
+
               fieldHash[f.name] = f;
+
               if (f.type == "reference")
                   referenceFields = referenceFields.concat(f.name);
               if (f.type == "dictionary")
@@ -198,7 +202,7 @@ function renderFields(model, viewName, groups) {
     // canEdit=false in form description.
     _.each(model.fields,
            function (f) {
-             if (_.isNull(f.meta) || f.meta.invisible) {
+             if (_.isNull(f.meta) || !f.meta.invisible) {
                  if (!_.isNull(f.meta)) {
                      f.readonly = f.meta.readonly;
                  }
