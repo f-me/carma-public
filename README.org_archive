@@ -20,3 +20,23 @@ Archived entries from file /home/sphinx/projects/carma/README.org
   then if code field of model N is set to K, update must append N to
   `scp:code:K` to N. This will allow faster searching by field
   contents.
+
+* DONE Address model
+  CLOSED: [2012-03-10 Сбт 15:54]
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2012-03-22 Чтв 15:55
+  :ARCHIVE_FILE: ~/projects/carma/README.org
+  :ARCHIVE_OLPATH: To do
+  :ARCHIVE_CATEGORY: README
+  :ARCHIVE_TODO: DONE
+  :END:
+
+* DONE VIN model
+  CLOSED: [2012-03-10 Сбт 15:54]
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2012-03-22 Чтв 15:55
+  :ARCHIVE_FILE: ~/projects/carma/README.org
+  :ARCHIVE_OLPATH: To do
+  :ARCHIVE_CATEGORY: README
+  :ARCHIVE_TODO: DONE
+  :END:
