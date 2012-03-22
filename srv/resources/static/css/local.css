@@ -1,5 +1,6 @@
 body {
   padding-top: 40px;
+  overflow:hidden;
 }
 
 .box {
@@ -12,12 +13,18 @@ body {
 }
 
 #left {
-  float: left;
+  position: absolute;
+  top: 40px;
+  bottom: 0px;
   width: 46%;
+  overflow-y: auto;
 }
 
 #right {
-  float: right;
+  position: absolute;
+  top: 40px;
+  bottom: 0px;
+  left: 50%;
   width: 46%;
 }
 
