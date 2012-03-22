@@ -9,10 +9,20 @@
             "canRead": true
         },
         {
+            "name": "make",
+            "meta": {
+                "dictionaryName": "CarMakers",
+                "label": "Производитель"
+            },
+            "canWrite": true,
+            "canRead": true,
+            "type": "dictionary"
+        },
+        {
             "name": "model",
             "meta": {
                 "dictionaryName": "CarModels",
-                "label": "Марка и модель"
+                "label": "Марка"
             },
             "canWrite": true,
             "canRead": true,

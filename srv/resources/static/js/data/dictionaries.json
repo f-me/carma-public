@@ -251,6 +251,26 @@
             "label": "Роботизированная"
         }
     ],
+    "CarMakers": [
+        {
+            "label": "Volkswagen"
+        },
+        {
+            "label": "Chevrolet"
+        },
+        {
+            "label": "Opel"
+        },
+        {
+            "label": "Hummer"
+        },
+        {
+            "label": "Ford"
+        },
+        {
+            "label": "BMW"
+        }
+    ],
     "CarModels": [
         {
             "value": "VW.passat",
