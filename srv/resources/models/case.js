@@ -105,8 +105,10 @@
             "name": "status",
             "canWrite": true,
             "canRead": true,
+            "type": "dictionary",
             "meta": {
                 "required": true,
+                "dictionaryName": "CaseStatuses",
                 "label": "Статус звонка"
             }
         },
