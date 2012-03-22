@@ -88,9 +88,8 @@
             "canWrite": true,
             "canRead": true,
             "groupName": "address",
-            "type": "group",
             "meta": {
-                "label": "Адрес"
+                "label": "Адрес кейса"
             }
         },
         {
@@ -98,7 +97,6 @@
             "canWrite": true,
             "canRead": true,
             "groupName": "caller",
-            "type": "group",
             "meta": {
                 "label": "Звонящий"
             }
@@ -114,7 +112,6 @@
         },
         {
             "name": "car",
-            "type": "group",
             "groupName": "car"
         },
         {
