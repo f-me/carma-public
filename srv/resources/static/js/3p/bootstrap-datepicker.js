@@ -397,5 +397,17 @@
 								'</table>'+
 							'</div>'+
 						'</div>';
+    function addPicker(e) {
+            var $this = $(this)
+            if ($this.data('datepicker')) return
+            e.preventDefault()
+            $this.datepicker($this.data())
+            $this.data('datepicker').show()
+    };
 
+    /* DATA-API */
+    $(function () {
+        $('body').on('focus.datepicker.data-api', '[data-provide="datepicker"]', addPicker)
+        $('body').on('click.datepicker.data-api', '[data-provide="datepicker"]', addPicker)
+    })
 }( window.jQuery )
