@@ -266,7 +266,7 @@
             <input type="text"
                    class="pane-span focusable"
                    name="{{ name }}"
-                   data-source="global.dictionaries['{{dictionaryName}}']"
+                   data-source="global.dictionaries['{{meta.dictionaryName}}']"
                    data-bind="value: {{ name }},
                               valueUpdate: 'afterkeydown'"
                    data-provide="typeahead" />
