@@ -125,37 +125,21 @@
             "label": "Без выставления счёта"
         }
     ],
-    "ServiceStatuses": [
+    "CaseStatuses": [
         {
-            "value": "create",
             "label": "Создание"
         },
         {
-            "value": "back",
-            "label": "Передана в Back Office"
+            "label": "Передан в Back Office"
         },
         {
-            "value": "gop",
-            "label": "Ожидание GOP"
+            "label": "Услуги оказаны"
         },
         {
-            "value": "dealer",
-            "label": "Ожидание подтверждения дилера"
-        },
-        {
-            "value": "client",
-            "label": "Ожидание документов клиента"
-        },
-        {
-            "value": "serving",
-            "label": "В процессе оказания"
-        },
-        {
-            "value": "done",
-            "label": "Оказана"
+            "label": "Закрыт"
         }
     ],
-    "CaseStatuses": [
+    "ServiceStatuses": [
         {
             "label": "Новый кейс (по умолчанию)"
         },
