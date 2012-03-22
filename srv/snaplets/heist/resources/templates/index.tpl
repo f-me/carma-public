@@ -218,15 +218,15 @@
             class="field-template"
             id="textarea-field-template">
       <div class="control-group"
-           {{# required }}data-bind="css: { error: {{name}}Not }"{{/ required}}
+           {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
            >
         <div class="control-label">
-          <label>{{ label }}</label>
+          <label>{{ meta.label }}</label>
         </div>
         <div class="controls">             
           <textarea class="pane-span focusable"
                     name="{{ name }}"
-                    {{# readonly }}disabled{{/ readonly }}
+                    {{# meta.readonly }}disabled{{/ meta.readonly }}
                     rows="7"
                     data-bind="value: {{ name }},
                                valueUpdate: 'afterkeydown'" />
@@ -238,16 +238,16 @@
             class="field-template"
             id="text-field-template">
       <div class="control-group"
-           {{# required }}data-bind="css: { error: {{name}}Not }"{{/ required}}
+           {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
            >
         <div class="control-label">
-          <label>{{ label }}</label>
+          <label>{{ meta.label }}</label>
         </div>
         <div class="controls">
           <input type="text"
                  class="pane-span focusable" 
                  name="{{ name }}"
-                 {{# readonly }}disabled{{/ readonly }}
+                 {{# meta.readonly }}disabled{{/ meta.readonly }}
                  data-bind="value: {{ name }},
                             valueUpdate: 'afterkeydown'" />
         </div>
@@ -259,7 +259,7 @@
             id="dictionary-field-template">
       <div class="control-group">
         <div class="control-label">
-          <label>{{ label }}</label>
+          <label>{{ meta.label }}</label>
         </div>
         <div class="controls">
           <div class="input-append">
@@ -281,7 +281,7 @@
             id="callerType-dictionary-field-template">
       <div class="control-group">
         <div class="control-label">
-          <label>{{ label }}</label>
+          <label>{{ meta.label }}</label>
         </div>
         <div class="controls">
           {{# dictionary }}
@@ -304,15 +304,15 @@
             id="select-field-template">
       <div class="control-group">
         <div class="control-label">
-          <label>{{ label }}</label>
+          <label>{{ meta.label }}</label>
         </div>
         <div class="controls">
           <select name="{{ name }}"
-                  {{# readonly }}disabled{{/ readonly }}
+                  {{# meta.readonly }}disabled{{/ meta.readonly }}
                   data-bind="value: {{ name }},
                              valueUpdate: 'change'">
             {{# dictionary }}
-            <option value="{{value}}">{{label}}</option>
+            <option value="{{value}}">{{meta.label}}</option>
             {{/ dictionary }}
           </select>
         </div>
@@ -327,10 +327,10 @@
           <label class="checkbox inline">
             <input type="checkbox"
                    name="{{ name }}"
-                   {{# readonly }}disabled{{/ readonly }}
+                   {{# meta.readonly }}disabled{{/ meta.readonly }}
                    data-bind="checked: {{ name }},
                               valueUpdate: 'change'" />
-            {{ label }}
+            {{ meta.label }}
           </label>
         </div>
       </div>
@@ -341,7 +341,7 @@
             id="map-field-template">
       <div class="control-group">
         <div class="control-label">
-          <label>{{ label }}</label>
+          <label>{{ meta.label }}</label>
         </div>
         <div class="controls">
           <input type="text"
@@ -368,14 +368,14 @@
             id="group-field-template">
       <div class="control-group">
         <div class="control-label">
-          {{label}}
+          {{meta.label}}
         </div>
         <div class="controls">
           <div class="input-append">
             <input type="text"
                    class="pane-span"
                    onfocus="showComplex('{{ viewName }}', '{{ name }}');"
-                   {{# readonly }}disabled{{/ readonly }}
+                   {{# meta.readonly }}disabled{{/ meta.readonly }}
                    data-bind="value: {{ name }}" />
             <span class="add-on">
               <i onclick="showComplex('{{ viewName }}', '{{ name }}');"
@@ -450,10 +450,10 @@
     <script type="text/template"
             id="permission-template">
       <div class="form-actions">
-        {{# readonly }}
+        {{# meta.readonly }}
         <button class="btn disabled" type="button">
           <i class="icon-ban-circle" /> Только для чтения</button>
-        {{/ readonly }}
+        {{/ meta.readonly }}
         {{# canUpdate }}
         <button class="btn btn-success" type="button"
                 onClick="saveInstance('{{ viewName }}');">
@@ -478,7 +478,7 @@
             <li>
               <a href="#" onclick="addService('{{value}}');">
                 <i class="icon-{{icon}} icon-black" />
-                {{label}}
+                {{meta.label}}
               </a>
             </li>
             {{/ dictionary }}
