@@ -106,10 +106,10 @@
     <script type="text/template"
             class="screen-template"
             id="call-screen-template">
-      <div class="box" id="left">
+      <div id="left">
         <div id="call-form"/>
       </div>
-      <div class="box" id="right"/>
+      <div id="right"/>
     </script>
 
     <!-- Case screen layout -->
@@ -117,7 +117,7 @@
             class="screen-template"
             id="case-screen-template">
       <!-- Main case form -->
-      <div class="box" id="left">
+      <div id="left">
         <form class="form-vertical">
           <div class="control-group">
             <div class="control-label">
@@ -149,7 +149,7 @@
       <!--
       TODO Should be span6 when fluid containers are fixed in
            Bootstrap upstream. -->
-      <div class="box" id="right">
+      <div id="right">
        </div>
     </script>
 
@@ -158,7 +158,7 @@
             id="search-screen-template"
             class="screen-template">
       <!-- Can't use offsetN class here due to fluid layout. -->
-      <div class="box" id="tableView" />
+      <div id="tableView" />
     </script>
 
     <script type="text/template"
