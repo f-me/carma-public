@@ -478,7 +478,7 @@
             <li>
               <a href="#" onclick="addService('{{value}}');">
                 <i class="icon-{{icon}} icon-black" />
-                {{meta.label}}
+                {{ label }}
               </a>
             </li>
             {{/ dictionary }}
