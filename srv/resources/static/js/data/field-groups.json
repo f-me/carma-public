@@ -14,7 +14,7 @@
             "name": "make",
             "meta": {
                 "dictionaryName": "CarMakers",
-                "label": "Производитель"
+                "label": "Марка"
             },
             "canWrite": true,
             "canRead": true,
@@ -24,7 +24,7 @@
             "name": "model",
             "meta": {
                 "dictionaryName": "CarModels",
-                "label": "Марка"
+                "label": "Модель"
             },
             "canWrite": true,
             "canRead": true,
@@ -57,6 +57,54 @@
             "canWrite": true,
             "canRead": true,
             "type": "dictionary"
+        },
+        {
+            "name": "engine",
+            "meta": {
+                "label": "Тип двигателя",
+            },
+            "canWrite": true,
+            "canRead": true,
+        },
+        {
+            "name": "liters",
+            "meta": {
+                "label": "Объём двигателя",
+            },
+            "canWrite": true,
+            "canRead": true
+        },
+        {
+            "name": "capacity",
+            "meta": {
+                "label": "Вместимость",
+            },
+            "canWrite": true,
+            "canRead": true
+        },
+        {
+            "name": "dims",
+            "meta": {
+                "label": "Габариты",
+            },
+            "canWrite": true,
+            "canRead": true
+        },
+        {
+            "name": "checkPeriod",
+            "meta": {
+                "label": "Межсервисный интервал",
+            },
+            "canWrite": true,
+            "canRead": true
+        },
+        {
+            "name": "class",
+            "meta": {
+                "label": "Класс автомобиля",
+            },
+            "canWrite": true,
+            "canRead": true
         },
         {
             "name": "buyDate",
