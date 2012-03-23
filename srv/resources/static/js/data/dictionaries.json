@@ -251,6 +251,14 @@
             "label": "Роботизированная"
         }
     ],
+    "EngineType": [
+        {
+            "label": "Бензин"
+        },
+        {
+            "label": "Дизель"
+        }
+    ]
     "CarMakers": [
         {
             "label": "Volkswagen"

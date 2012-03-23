@@ -52,7 +52,8 @@
             "name": "transmission",
             "meta": {
                 "label": "Коробка передач",
-                "dictionaryName": "Transmission"
+                "dictionaryName": "Transmission",
+                "widget": "radio"
             },
             "canWrite": true,
             "canRead": true,
@@ -61,7 +62,9 @@
         {
             "name": "engine",
             "meta": {
-                "label": "Тип двигателя"
+                "label": "Тип двигателя",
+                "dictionaryName": "EngineType",
+                "widget": "radio"
             },
             "canWrite": true,
             "canRead": true
