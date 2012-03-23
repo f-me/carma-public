@@ -13,6 +13,16 @@
             "meta": {
                 "label": "Откуда везём"
             }
+        },
+        {
+            "name": "status",
+            "canWrite": true,
+            "canRead": true,
+            "type": "dictionary",
+            "meta": {
+                "label": "Статус услуги",
+                "dictionaryName": "ServiceStatuses"
+            }
         }
     ]
 }

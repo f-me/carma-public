@@ -78,6 +78,16 @@
             "type": "checkbox",
             "canWrite": true,
             "canRead": true
+        },
+        {
+            "name": "status",
+            "canWrite": true,
+            "canRead": true,
+            "type": "dictionary",
+            "meta": {
+                "label": "Статус услуги",
+                "dictionaryName": "ServiceStatuses"
+            }
         }
     ]
 }
