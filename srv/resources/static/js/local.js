@@ -186,7 +186,8 @@ function doPick(pickType) {
                     "make": "car_make",
                     "model": "car_model",
                     "plateNumber": "car_plateNum",
-                    "mileageTO": "car_checkupMileage"
+                    "mileageTO": "car_checkupMileage",
+                    "serviceInterval": "car_checkPeriod"
                 };
 
             var bb = global.viewsWare["case-form"].bbInstance;
@@ -197,10 +198,12 @@ function doPick(pickType) {
             $.ajax("/_/vin/" + vin,
                    { 
                        error: function () { 
-                           vinGroup.addClass("error")
+                           vinGroup.removeClass("success");
+                           vinGroup.addClass("error");
                        },
 
                        success: function (data) {
+                           vinGroup.removeClass("error");
                            vinGroup.addClass("success");
                            for (k in vinMap) {
                                if (!_.isUndefined(data[k]))
