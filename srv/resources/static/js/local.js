@@ -186,7 +186,7 @@ function doPick(pickType) {
                     "make": "car_make",
                     "model": "car_model",
                     "plateNumber": "car_plateNum",
-                    "mileageTO": "checkupMileage"
+                    "mileageTO": "car_checkupMileage"
                 };
 
             var bb = global.viewsWare["case-form"].bbInstance;
