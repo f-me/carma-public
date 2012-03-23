@@ -261,12 +261,17 @@ function renderFields(model, viewName, groups) {
     return contents;
 }
 
-// Pick either field.type template or field.name-field.type template
+// Pick first template which matches: <field.name>-<field.type>,
+// <field.meta.widget>-<field.type>, <field.type>
 function chooseFieldTemplate(field, templates) {
     var typed_tpl = field.type;
     var named_tpl = field.name + "-" + field.type;
+    var widget_tpl = "";
+    if ((!_.isNull(field.meta)) && (!_.isUndefined(field.meta.widget)))
+        widget_tpl = field.meta.widget + "-" + field.type;
+
     var tpl = pickTemplate(templates, 
-                           [named_tpl, typed_tpl, "unknown"]);
+                           [named_tpl, widget_tpl, typed_tpl, "unknown"]);
     return tpl;
 }
 

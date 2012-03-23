@@ -327,9 +327,10 @@
       </div>
     </script>
 
+    <!-- radio widget for dictionary fields -->
     <script type="text/template"
             class="field-template"
-            id="callerType-dictionary-field-template">
+            id="radio-dictionary-field-template">
       <div class="control-group">
         <div class="control-label">
           <label>{{ meta.label }}</label>

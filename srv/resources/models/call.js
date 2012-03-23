@@ -31,7 +31,8 @@
             "canRead": true,
             "meta": {
                 "label": "Кто звонит?",
-                "dictionaryName": "CallerTypes"
+                "dictionaryName": "CallerTypes",
+                "widget": "radio"
             }
         },
         {
