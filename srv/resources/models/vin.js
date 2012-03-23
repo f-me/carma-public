@@ -70,6 +70,11 @@
             "name":"mileageTO",
             "canWrite": true,
             "canRead": true
+        },
+        {
+            "name":"serviceInterval",
+            "canWrite": true,
+            "canRead": true
         }
     ]
 }
