@@ -66,6 +66,7 @@
                 "dictionaryName": "EngineType",
                 "widget": "radio"
             },
+            "type": "dictionary",
             "canWrite": true,
             "canRead": true
         },
