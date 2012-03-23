@@ -20,7 +20,7 @@ Executable ldl
                     ,enumerator
                     ,csv-enumerator == 0.10.*
                     ,aeson == 0.6.*
-                    ,hedis == 0.3.*
+                    ,hedis == 0.4.*
   
   
 executable hmset-poster
