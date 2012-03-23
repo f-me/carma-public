@@ -18,9 +18,9 @@ import           Database.Redis as Redis
 
 
 -- FIXME: use `create` form snaplet-redson 
-redisSet c keyPrefix val = runRedis c $ do
-  Right keyInt <- incr $ B.concat ["global:", keyPrefix, ":id"]
-  let keyStr = B.concat [keyPrefix,":",B.pack $ show keyInt]
+redisSet c modelName val = runRedis c $ do
+  Right keyInt <- incr $ B.concat ["global:", modelName, ":id"]
+  let keyStr = B.concat [modelName,":",B.pack $ show keyInt]
   redisSetWithKey' keyStr val
 
 

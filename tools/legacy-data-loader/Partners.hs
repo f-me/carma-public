@@ -9,7 +9,7 @@ import Utils
 import FieldParsers
 
 loadFiles dir rConn = do
-  let  loadCSVFile key = loadXFile $ redisSet rConn key
+  let  loadCSVFile modelName = loadXFile $ redisSet rConn modelName
   loadCSVFile "partner" (dir </> "Партнеры.csv") partner
   loadCSVFile "dealer"  (dir </> "Дилеры.csv") dealer
 
