@@ -403,7 +403,8 @@
             if ($this.data('datepicker')) return
             e.preventDefault()
             $this.datepicker($this.data())
-            $this.data('datepicker').show()
+            if ($this.data('autoshow-datepicker'))
+                $this.data('datepicker').show()
     };
 
     /* DATA-API */
