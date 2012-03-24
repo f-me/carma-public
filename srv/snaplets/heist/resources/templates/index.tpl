@@ -170,14 +170,14 @@
       <div style="text-align:center;">
       <fieldset style="width:50%; margin-left:25%;">
         <legend>Поиск</legend>
-        <form class="form-inline" onsubmit="doSearch(); return false;">
-          По дате<br />
+        <form onsubmit="doSearch(); return false;">
           <div data-date-format="dd.mm.yyyy" 
                id="search-datepicker"
                data-provide="datepicker"
                data-date-weekstart="1"
                class="input-append date">
 	    <input type="text"
+                   style="width: 90%;"
                    id="table-query"
                    size="16" class="span2" id="acpro_inp2">
 	    <span class="add-on"><i class="icon-calendar"></i></span>
