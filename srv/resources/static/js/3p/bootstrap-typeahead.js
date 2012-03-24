@@ -130,6 +130,12 @@
       return this
     }
 
+  , inViewport: function (el) {
+      var m = this.$menu
+      var elOffset = el.offset().top - m.offset().top
+      return 0 < elOffset && elOffset < m.height()
+    }
+
   , next: function (event) {
       var active = this.$menu.find('.active').removeClass('active')
         , next = active.next()
@@ -139,6 +145,7 @@
       }
 
       next.addClass('active')
+      this.inViewport(next) || next[0].scrollIntoView()
     }
 
   , prev: function (event) {
@@ -150,6 +157,7 @@
       }
 
       prev.addClass('active')
+      this.inViewport(prev) || prev[0].scrollIntoView()
     }
 
   , listen: function () {

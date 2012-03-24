@@ -1,14 +1,6 @@
 body {
   padding-top: 40px;
-}
-
-.box {
-    border: 2px solid rgba(0, 0, 0, 0.05);
-    border-radius: 10px 4px 4px 4px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    min-height: 20px;
-    padding: 19px;
+  overflow:hidden;
 }
 
 .icon {
@@ -16,13 +8,21 @@ body {
 }
 
 #left {
-  float: left;
+  position: absolute;
+  top: 40px;
+  bottom: 0px;
   width: 46%;
+  overflow-y: auto;
+  padding: 1%;
 }
 
 #right {
-  float: right;
+  position: absolute;
+  top: 40px;
+  bottom: 0px;
+  left: 50%;
   width: 46%;
+  padding: 1%;
 }
 
 .container-fluid {
@@ -82,4 +82,23 @@ textarea.pane-span,
 .typeahead {
   max-height: 200px;
   overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.nice-scrollbar::-webkit-scrollbar {width:.7em;}
+.nice-scrollbar::-webkit-scrollbar-button:vertical,
+.nice-scrollbar::-webkit-scrollbar-button:start:decrement,
+.nice-scrollbar::-webkit-scrollbar-button:end:increment,
+.nice-scrollbar::-webkit-scrollbar-button:vertical:start:increment,
+.nice-scrollbar::-webkit-scrollbar-button:vertical:end:decrement,
+.nice-scrollbar::-webkit-scrollbar-button:vertical:increment,
+.nice-scrollbar::-webkit-scrollbar-button:vertical:decrement,
+.nice-scrollbar::-webkit-scrollbar-track:vertical,
+.nice-scrollbar::-webkit-scrollbar-track-piece:vertical:start.
+.nice-scrollbar::-webkit-scrollbar-track-piece:vertical:end,
+.nice-scrollbar::-webkit-scrollbar-track-piece {display:none;}
+.nice-scrollbar::-webkit-scrollbar-thumb:vertical {
+  height:25px;
+  border-radius:3px;
+  background-color:whiteSmoke;
 }
