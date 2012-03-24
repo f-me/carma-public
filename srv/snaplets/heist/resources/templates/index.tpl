@@ -270,6 +270,7 @@
         <div class="controls">
           <div class="input-append date"
                data-provide="datepicker"
+               data-autoshow-datepicker="true"
                data-date-format="dd.mm.yyyy"
                data-date-weekstart="1">
             <input type="text"
