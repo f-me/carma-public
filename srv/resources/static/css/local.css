@@ -21,7 +21,8 @@ body {
   top: 40px;
   bottom: 0px;
   left: 35%;
-  width: 56%;
+  width: 62%;
+  overflow-y: auto;
   padding: 1%;
 }
 
