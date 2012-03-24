@@ -300,7 +300,8 @@ function modelSetup(modelName) {
                     var x = $el(elName);
                     // Scroll group to the top of the screen
                     if (x.hasClass("accordion-inner") {
-                      x.parents(".accordion-group")[0].scrollIntoView();
+                      var grp = x.parents(".accordion-group")[0];
+                      grp.scrollIntoView();
                     }
                     x.find("." + options.focusClass)[0].focus();
                 }
