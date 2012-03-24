@@ -96,9 +96,9 @@
             "name": "caller",
             "canWrite": true,
             "canRead": true,
-            "groupName": "caller",
+            "groupName": "contact",
             "meta": {
-                "label": "Звонящий"
+                "label": "Клиент"
             }
         },
         {

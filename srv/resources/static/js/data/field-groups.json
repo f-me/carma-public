@@ -143,11 +143,11 @@
             "canRead": true
         }
     ],
-    "caller": [
+    "contact": [
         {
-            "name": "callerName",
+            "name": "name",
             "meta": {
-                "label": "ФИО звонящего"
+                "label": "ФИО"
             },
             "canWrite": true,
             "canRead": true,
@@ -155,24 +155,31 @@
             "indexCollate": true
         },
         {
-            "name": "ownerName",
+            "name": "phone1",
             "meta": {
-                "label": "ФИО владельца"
+                "label": "Контактные телефоны"
             },
             "canWrite": true,
             "canRead": true,
-            "index": true,
-            "indexCollate": true
+            "index": true
         },
         {
-            "name": "phone",
-            "meta": {
-                "label": "Телефон звонящего"
-            },
+            "name": "phone2",
             "canWrite": true,
             "canRead": true,
-            "index": true,
-            "indexCollate": true
+            "index": true
+        },
+        {
+            "name": "phone3",
+            "canWrite": true,
+            "canRead": true,
+            "index": true
+        },
+        {
+            "name": "phone4",
+            "canWrite": true,
+            "canRead": true,
+            "index": true
         }
     ],
     "address": [
