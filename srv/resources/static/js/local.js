@@ -85,6 +85,7 @@ function setupCaseMain(viewName, args) {
     $("#service-picker-container").html(
         Mustache.render($("#service-picker-template").html(),
                         {dictionary: global.dictionaries["Services"]}));
+    $(".tableTable").dataTable();
 }
 
 // Return MM-DD-YYYY

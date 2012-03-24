@@ -205,5 +205,39 @@
             "canWrite": true,
             "canRead": true
         }
-    ]
+    ],
+  "dealer": [
+        {
+            "name": "dealer",
+            "meta": {
+              "label": "Дилер"
+            },
+            "canWrite": true,
+            "canRead": true
+        },
+        {
+            "name": "dealerTable",
+            "type": "table",
+            "meta": {
+              "columns": [
+                    {
+                        "name": "name",
+                        "label": "Название"
+                    },
+                    {
+                        "name": "address",
+                        "label": "Адрес"
+                    }
+                ]
+            },
+            "canWrite": true,
+            "canRead": true
+        },
+        {
+            "name": "coords",
+            "type": "map",
+            "canWrite": true,
+            "canRead": true
+        }
+    ]  
 }

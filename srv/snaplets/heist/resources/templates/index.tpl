@@ -398,6 +398,23 @@
       </div>
     </script>
  
+    <script type="text/template"
+            class="field-template"
+            id="table-field-template">
+      <div class="control-group">
+        <div class="controls">
+          <table id="{{ name }}" class="dataTable table table-striped table-bordered">
+            <thead>
+              <tr>
+                {{# meta.columns }}<th>{{ label }}</th>{{/ meta.columns }}
+              </tr>
+            </thead>
+            <tbody/>
+          </table>
+        </div>
+      </div>
+    </script>
+
     <!-- NOP here — references are rendered after model has loaded -->
     <script type="text/template" 
             class="field-template"

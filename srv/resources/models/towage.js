@@ -37,6 +37,7 @@
         },
         {
             "name": "towDealer",
+            "groupName": "dealer",
             "meta": {
                 "label": "Дилер"
             },
