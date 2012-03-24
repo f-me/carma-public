@@ -296,12 +296,11 @@ function modelSetup(modelName) {
                 }, 1000);
 
                 // Focus on first focusable field
-                if (options.focusClass) {
+                if (options.focusClass)) {
                     var x = $el(elName);
                     // Scroll group to the top of the screen
-                    if (x.hasClass("accordion-inner") {
-                      var grp = x.parents(".accordion-group")[0];
-                      grp.scrollIntoView();
+                    if (x.hasClass("accordion-inner")) {
+                      x.parents(".accordion-group")[0].scrollIntoView();
                     }
                     x.find("." + options.focusClass)[0].focus();
                 }
