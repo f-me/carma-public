@@ -23,6 +23,11 @@ import           System.Locale (defaultTimeLocale)
 
 class Err e where
   err :: ByteString -> e -> Either ByteString a
+  error' :: ByteString -> e -> a
+  error' a b = error $ B.toString msg
+    where
+      Left msg = err a b 
+
 
 instance Err ByteString where
   err a b = Left $ B.concat [a, ":\n", b]  
@@ -38,7 +43,7 @@ instance Err (M.Map ByteString ByteString) where
 
 
 getKey m k
-  = maybe (err "Unknown key" k) Right
+  = maybe (error' "Unknown key" k) Right
   $ M.lookup (B.fromString k) m
 
 

@@ -41,15 +41,19 @@ redisSetWithKey' key val = do
     _ -> return ()
 
 
-loadXFile store fName keyMap
-  = foldCSVFile fName defCSVSettings run ()
-  >>= hPrint stderr -- Just to force evaluation
+loadXFile store = loadXFile' () (\_ v -> store v >> return ())
+
+
+loadXFile' arg store fName keyMap
+  = foldCSVFile fName defCSVSettings run arg
   where
-    run :: () -> ParsedRow MapRow -> E.Iteratee B.ByteString IO ()
-    run _ (ParsedRow (Just r)) = E.tryIO
-      $ either (B.hPutStrLn stderr) store
+--    run :: a -> ParsedRow MapRow -> E.Iteratee B.ByteString IO a
+    run a (ParsedRow (Just r)) = E.tryIO
+      $ either
+        (\msg -> B.hPutStrLn stderr msg >> return a)
+        (store a)
       $ remap keyMap r
-    run _ _ = return ()
+    run a _ = return a
 
 
 -- | convert MapRow according to transformations described in `keyMap`.

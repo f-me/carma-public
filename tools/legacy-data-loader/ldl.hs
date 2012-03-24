@@ -11,7 +11,7 @@ main = do
   dir:_ <- getArgs
   rConn <- Redis.connect Redis.defaultConnectInfo
   Partners.loadFiles dir rConn
-    >> VINs.loadFiles dir rConn
+--    >> VINs.loadFiles dir rConn
     `finally` runRedis rConn quit
 
 

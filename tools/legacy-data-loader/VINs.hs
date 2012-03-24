@@ -2,8 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module VINs where
 
-import           System.FilePath ((</>))
-
+import System.FilePath ((</>))
 import Utils
 import FieldParsers
 
