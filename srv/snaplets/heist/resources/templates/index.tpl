@@ -170,7 +170,7 @@
       <div style="text-align:center;">
       <fieldset style="width:50%; margin-left:25%;">
         <legend>Поиск</legend>
-        <form class="form-inline">
+        <form class="form-inline" onsubmit="doSearch(); return false;">
           По дате<br />
           <div data-date-format="dd.mm.yyyy" 
                id="search-datepicker"
@@ -182,8 +182,7 @@
                    size="16" class="span2" id="acpro_inp2">
 	    <span class="add-on"><i class="icon-calendar"></i></span>
           </div>
-          <br />
-          <button class="btn btn-success" onclick="doSearch();" type="button">
+          <button class="btn btn-success" type="submit">
             Поиск
           </button>
         </form>
