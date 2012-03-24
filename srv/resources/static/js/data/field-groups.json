@@ -185,10 +185,15 @@
             "canRead": true
         },
         {
-            "name": "coords",
+            "name": "comment",
             "meta": {
-                "label": "Координаты"
+                "label": "Примечания"
             },
+            "canWrite": true,
+            "canRead": true
+        },
+        {
+            "name": "coords",
             "type": "map",
             "canWrite": true,
             "canRead": true

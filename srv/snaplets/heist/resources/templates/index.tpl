@@ -392,14 +392,7 @@
             class="field-template"
             id="map-field-template">
       <div class="control-group">
-        <div class="control-label">
-          <label>{{ meta.label }}</label>
-        </div>
         <div class="controls">
-          <input type="text"
-                 class="pane-span focusable" 
-                 name="{{ name }}"
-                 data-bind="value: {{ name }}" />
           <div style="height:600px;" id="{{ name }}"></div>
         </div>
       </div>
