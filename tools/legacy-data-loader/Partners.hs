@@ -4,8 +4,10 @@
 module Partners where
 
 import           System.FilePath ((</>))
+import           Control.Monad (when)
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
+import qualified Data.ByteString.UTF8 as BU
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.Map as M
 import           Data.List
@@ -13,7 +15,6 @@ import           Control.Monad (forM_)
 import           Database.Redis
 import qualified Data.Aeson as Aeson
 
-import Debug.Trace
 import Utils
 import FieldParsers
 
@@ -32,28 +33,56 @@ addJsonArray name (item,array)
 lbs2sbs = B.concat . LB.toChunks
 
 
-processPartners partnerIx partnerMap = do
-  let pName = M.findWithDefault "---" "name" partnerMap
-  let partnerAndService = mapSnd (:[]) $ extract partnerMap
-        ["serviceRu", "serviceEn"
-        ,"code","price"
-        ,"priority1", "priority2"
-        ,"comment", "status"]
-  return $! M.insertWith' joinPartners pName
-      partnerAndService partnerIx
+processPartners partnerIx partnerMap
+  = case M.lookup "name" partnerMap of
+    Nothing -> do
+      B.putStrLn $ B.concat ["!!! Empty name in:\n\t", showMap partnerMap]
+      return partnerIx
+
+    Just pName -> do
+      let partnerAndService = mapSnd (:[]) $ extract partnerMap
+            ["serviceRu", "serviceEn"
+            ,"code","price"
+            ,"priority1", "priority2"
+            ,"comment", "status"]
+      case M.lookup pName partnerIx of
+        Nothing  -> return $! M.insert pName partnerAndService partnerIx
+        Just pns -> do
+          let res = joinPartners partnerAndService pns
+          when (not . null $ jWarnings res)
+            $ B.putStrLn $ B.unlines 
+              $ (B.concat ["!!! When joining services for ", pName])
+              : jWarnings res
+          return $! M.insert pName
+            (jPartner res, jServices res)
+             partnerIx
 
 
-joinPartners (m1,svc1) (m2,svc2)
-  = (M.fromList $ foldl' f [] allProps, svc1 ++ svc2)
+data JoinResult = JoinResult
+  {jPartner  :: M.Map ByteString ByteString
+  ,jServices :: [M.Map ByteString ByteString]
+  ,jWarnings :: [ByteString]
+  }
+
+joinPartners (m1,svc1) (m2,svc2) = JoinResult 
+  {jPartner  = M.fromList res
+  ,jServices = svc1 ++ svc2
+  ,jWarnings = errs
+  }
   where
+    (errs, res) = foldl' f ([], []) allProps
     allProps = nub $ M.keys m1 ++ M.keys m2
-    f res p = case (M.lookup p m1, M.lookup p m2) of
+    f (err,res) p = case (M.lookup p m1, M.lookup p m2) of
       (Just v1, Just v2)
-        | v1 == v2  -> (p,v1) : res
-        | otherwise -> trace (show v1 ++ " =/= " ++ show v2) (p,v1) : res
-      (Just v1, _)  -> (p,v1) : res
-      (_, Just v2)  -> (p,v2) : res
+        | v1 == v2  -> (err, (p,v1):res)
+        | otherwise -> 
+           let msg = B.concat ["\t", v1, " =/= ", v2]
+           in  (msg:err, (p,v1):res)
+      (Just v1, _)  -> (err, (p,v1):res)
+      (_, Just v2)  -> (err, (p,v2):res)
       _ -> error "impossible happened"
+
+    
 
 
 

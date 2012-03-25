@@ -19,7 +19,7 @@ import           Data.Time.Calendar (Day)
 import           Data.Time.LocalTime 
 import           System.Locale (defaultTimeLocale)
 
-
+import Utils
 
 class Err e where
   err :: ByteString -> e -> Either ByteString a
@@ -36,9 +36,7 @@ instance Err [Char] where
   err a = err a . B.fromString
 
 instance Err (M.Map ByteString ByteString) where
-  err a = err a . B.unlines . map showKV . M.toList
-    where
-      showKV (k,v) = B.concat ["\t", k, ": ", v]
+  err a = err a . showMap
 
 
 

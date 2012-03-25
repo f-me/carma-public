@@ -64,3 +64,7 @@ remap keyMap m = M.fromList <$> foldl f (Right []) keyMap
       = f m >>= \val -> return
         (if B.null val then res else ((key',val):res))
 
+
+showMap = B.unlines . map showKV . M.toList
+    where
+      showKV (k,v) = B.concat ["\t", k, ": ", v]
