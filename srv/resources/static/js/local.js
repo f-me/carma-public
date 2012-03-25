@@ -74,6 +74,7 @@ function setupCaseMain(viewName, args) {
                     callTime: getFormatTime()});
     modelSetup("case")(viewName, args, 
                        {permEl: "case-permissions",
+                        focusClass: "focusable",
                         slotsee: ["case-number"],
                         groupsForest: "right",
                         refs:refs});
@@ -152,7 +153,8 @@ function addService(name) {
 
 function setupCallForm(viewName, args) {
     modelSetup("call")(viewName, null,
-                       {permEl: "case-permissions"});
+                       {permEl: "case-permissions",
+                        focusClass: "focusable"});
 }
 
 function initOSM(id) {
