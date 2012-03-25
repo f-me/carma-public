@@ -15,6 +15,15 @@
             }
         },
         {
+            "name": "hotelContractor",
+            "groupName": "partner",
+            "meta": {
+                "label": "Название партнёра"
+            },
+            "canWrite": true,
+            "canRead": true
+        },
+        {
             "name": "status",
             "canWrite": true,
             "canRead": true,

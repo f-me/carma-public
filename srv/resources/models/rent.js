@@ -8,6 +8,7 @@
     "fields": [
         {
             "name": "towDealer",
+            "groupName": "partner",
             "canWrite": true,
             "canRead": true,
             "meta": {
@@ -32,6 +33,7 @@
         },
         {
             "name": "rentContractor",
+            "groupName": "partner",
             "meta": {
                 "label": "Подрядчик"
             },

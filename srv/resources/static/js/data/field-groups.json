@@ -206,17 +206,17 @@
             "canRead": true
         }
     ],
-  "dealer": [
+  "partner": [
         {
-            "name": "dealer",
+            "name": "partner",
             "meta": {
-              "label": "Дилер"
+              "label": "Партнёр"
             },
             "canWrite": true,
             "canRead": true
         },
         {
-            "name": "dealerTable",
+            "name": "partnerTable",
             "type": "table",
             "meta": {
               "columns": [
@@ -227,6 +227,22 @@
                     {
                         "name": "address",
                         "label": "Адрес"
+                    },
+                    {
+                        "name": "phones",
+                        "label": "Телефоны"
+                    },
+                    {
+                        "name": "workingHours",
+                        "label": "График работы"
+                    },
+                    {
+                        "name": "services",
+                        "label": "Услуги"
+                    },
+                    {
+                        "name": "address",
+                        "label": "Тариф"
                     }
                 ]
             },

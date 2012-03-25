@@ -28,6 +28,7 @@
         },
         {
             "name": "techContractor",
+            "groupName": "partner",
             "meta": {
                 "label": "Название партнёра"
             },

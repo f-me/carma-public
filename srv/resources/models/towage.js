@@ -37,7 +37,7 @@
         },
         {
             "name": "towDealer",
-            "groupName": "dealer",
+            "groupName": "partner",
             "meta": {
                 "label": "Дилер"
             },
@@ -54,6 +54,7 @@
         },
         {
             "name": "towContractor",
+            "groupName": "partner",
             "meta": {
                 "label": "Подрядчик"
             },
