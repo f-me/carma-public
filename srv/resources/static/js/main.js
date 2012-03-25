@@ -209,7 +209,7 @@ function modelSetup(modelName) {
                 // Wait for first fetch() of parent model and render references
                 //
                 // We must render reference views after the model has
-                // loaded because the numer of refs is unknown when
+                // loaded because the number of refs is unknown when
                 // the model has not yet been populated with data.
                 //
                 // Forms for referenced instances are then rendered
