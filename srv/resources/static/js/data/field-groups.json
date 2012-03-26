@@ -161,7 +161,8 @@
             },
             "canWrite": true,
             "canRead": true,
-            "index": true
+            "index": true,
+            "indexCollate": true
         },
         {
             "name": "phone2",
