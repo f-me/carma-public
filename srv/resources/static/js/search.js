@@ -8,6 +8,8 @@ function setupSearchTable(viewName, args) {
     $.fn.dataTableExt.oStdClasses.sFilter = "dataTables_filter form-inline";
 
     $el("searchtable").dataTable({
+	sScrollY: "400px",
+	iDisplayLength: 50,
         aoColumnDefs: [{
             // Render case id as link to case page
             fnRender: function (o, val) {
