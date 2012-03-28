@@ -84,15 +84,6 @@
             }
         },
         {
-            "name": "address",
-            "canWrite": true,
-            "canRead": true,
-            "groupName": "address",
-            "meta": {
-                "label": "Адрес кейса"
-            }
-        },
-        {
             "name": "caller",
             "canWrite": true,
             "canRead": true,

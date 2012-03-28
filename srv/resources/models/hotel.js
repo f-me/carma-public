@@ -8,6 +8,7 @@
     "fields": [
         {
             "name": "caseAddress",
+            "groupName": "address",
             "canWrite": true,
             "canRead": true,
             "meta": {

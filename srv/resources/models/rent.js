@@ -17,6 +17,7 @@
         },
         {
             "name": "rentAddress",
+            "groupName": "address",
             "canWrite": true,
             "canRead": true,
             "meta": {

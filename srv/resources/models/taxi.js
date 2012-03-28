@@ -8,6 +8,7 @@
     "fields": [
         {
             "name": "taxiFrom",
+            "groupName": "address",
             "canWrite": true,
             "canRead": true,
             "meta": {
@@ -16,6 +17,7 @@
         },
         {
             "name": "taxiTo",
+            "groupName": "address",
             "canWrite": true,
             "canRead": true,
             "meta": {

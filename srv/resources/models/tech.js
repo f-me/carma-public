@@ -20,6 +20,7 @@
         },
         {
             "name": "caseAddress",
+            "groupName": "address",
             "meta": {
                 "label": "Адрес места поломки"
             },

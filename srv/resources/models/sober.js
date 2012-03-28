@@ -8,6 +8,7 @@
     "fields": [
         {
             "name": "fromAddress",
+            "groupName": "address",
             "meta": {
                 "label": "Где забрать"
             },
@@ -16,6 +17,7 @@
         },
         {
             "name": "toAddress",
+            "groupName": "address",
             "meta": {
                 "label": "Куда доставить"
             },
