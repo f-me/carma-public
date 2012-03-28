@@ -113,15 +113,14 @@ function scrollDown() {
 // stored in <fieldName> of model loaded into <parentView> there
 function showComplex(parentView, fieldName) {
     var refViewName = global.viewsWare[parentView].refViews[fieldName][0];
+    var view = $el(refViewName);
 
-    if ($el(refViewName).is(':visible')) return;
+    if (view.is(':visible')) return;
     $(".complex-field").hide();
 
-    if (fieldName == "address_address") {
-      $el(refViewName).show(function () { initOSM("address_coords") });
-    } else {
-      $el(refViewName).show();
-    }
+    view.show(function() {
+      _.each(view.find(".osMap"), initOSM);
+    });
 }
 
 // Return name field of refInstance the insight observable of parent
@@ -157,11 +156,12 @@ function setupCallForm(viewName, args) {
                         focusClass: "focusable"});
 }
 
-function initOSM(id) {
-      if (window.global.osmap) return;
-      window.global.osmap = new OpenLayers.Map(id);
-      window.global.osmap.addLayer(new OpenLayers.Layer.OSM());
-      window.global.osmap.setCenter(
+function initOSM(el) {
+      if (el.className.contains("olMap")) return;
+
+      var osmap = new OpenLayers.Map(el.id);
+      osmap.addLayer(new OpenLayers.Layer.OSM());
+      osmap.setCenter(
         new OpenLayers.LonLat(37.617874,55.757549)
           .transform( // from WGS 1984 to Spherical Mercator Projection
             new OpenLayers.Projection("EPSG:4326"),

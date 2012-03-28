@@ -393,7 +393,7 @@
             id="map-field-template">
       <div class="control-group">
         <div class="controls">
-          <div style="height:600px;" id="{{ name }}"></div>
+          <div style="height:600px;" id="{{ name }}" class="osMap"></div>
         </div>
       </div>
     </script>
