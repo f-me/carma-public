@@ -5,12 +5,17 @@
     "canRead": true,
     "canUpdate": true,
     "canDelete": true,
+    "applications": [
+        {
+            "targets": true,
+            "canWrite": true,
+            "canRead": true
+        }
+    ],
     "fields": [
         {
             "name": "wazzup",
             "type": "dictionary",
-            "canWrite": true,
-            "canRead": true,
             "meta": {
                 "dictionaryName": "Wazzup",
                 "label": "Что случилось"
@@ -18,8 +23,6 @@
         },
         {
             "name": "callType",
-            "canWrite": true,
-            "canRead": true,
             "meta": {
                 "label": "Тип звонка"
             }
@@ -27,8 +30,6 @@
         {
             "name": "callerType",
             "type": "dictionary",
-            "canWrite": true,
-            "canRead": true,
             "meta": {
                 "label": "Кто звонит?",
                 "dictionaryName": "CallerTypes",
@@ -37,16 +38,12 @@
         },
         {
             "name": "callerName",
-            "canWrite": true,
-            "canRead": true,
             "meta": {
                 "label": "ФИО"
             }
         },
         {
             "name": "callerPhone",
-            "canWrite": true,
-            "canRead": true,
             "index": true,
             "meta": {
                 "label": "Телефон"

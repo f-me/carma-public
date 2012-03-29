@@ -5,6 +5,19 @@
     "canRead": true,
     "canUpdate": true,
     "canDelete": true,
+    "applications": [
+        {
+            "targets": true,
+            "canWrite": true,
+            "canRead": true
+        },
+        {
+            "targets": ["caseAddress_address"],
+            "meta": {
+                "label": "Адрес места поломки"
+            }
+        }
+    ],
     "fields": [
         {
             "name": "techType",
@@ -13,42 +26,29 @@
                 "label": "Услуга",
                 "required": true
             },
-            "canWrite": true,
-            "canRead": true,
             "type": "dictionary",
             "index": true
         },
         {
             "name": "caseAddress",
-            "groupName": "address",
-            "meta": {
-                "label": "Адрес места поломки"
-            },
-            "canWrite": true,
-            "canRead": true
+            "groupName": "address"
         },
         {
             "name": "techContractor",
             "groupName": "partner",
             "meta": {
                 "label": "Название партнёра"
-            },
-            "canWrite": true,
-            "canRead": true
+            }
         },
         {
             "name": "techComments",
             "meta": {
                 "label": "Описание неисправности со слов клиента"
             },
-            "type": "textarea",
-            "canWrite": true,
-            "canRead": true
+            "type": "textarea"
         },
         {
             "name": "status",
-            "canWrite": true,
-            "canRead": true,
             "type": "dictionary",
             "meta": {
                 "label": "Статус услуги",

@@ -5,38 +5,43 @@
     "canRead": true,
     "canUpdate": true,
     "canDelete": true,
-    "fields": [
+    "applications": [
         {
-            "name": "taxiFrom",
-            "groupName": "address",
+            "targets": true,
             "canWrite": true,
-            "canRead": true,
+            "canRead": true
+        },
+        {
+            "targets": ["taxiFrom_address"],
             "meta": {
                 "label": "Где забрать"
             }
         },
         {
-            "name": "taxiTo",
-            "groupName": "address",
-            "canWrite": true,
-            "canRead": true,
+            "targets": ["taxiTo_address"],
             "meta": {
                 "label": "Куда доставить"
             }
+        }
+    ],
+    "fields": [
+        {
+            "name": "taxiFrom",
+            "groupName": "address"
+        },
+        {
+            "name": "taxiTo",
+            "groupName": "address"
         },
         {
             "name": "taxiContractor",
             "groupName": "partner",
             "meta": {
                 "label": "Название партнёра"
-            },
-            "canWrite": true,
-            "canRead": true
+            }
         },
         {
             "name": "status",
-            "canWrite": true,
-            "canRead": true,
             "type": "dictionary",
             "meta": {
                 "label": "Статус услуги",

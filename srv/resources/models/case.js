@@ -5,21 +5,25 @@
     "canRead": true,
     "canUpdate": true,
     "canDelete": true,
+    "applications": [
+        {
+            "targets": true,
+            "canWrite": true,
+            "canRead": true
+        }
+    ],
     "fields": [
         {
             "name": "comment",
             "type": "dictionary",
-            "canWrite": true,
-            "canRead": true,
             "meta": {
                 "dictionaryName": "Wazzup",
-                "label": "Что случилось"
+                "label": "Что случилось",
+                "infoText": "comment"
             }
         },
         {
             "name": "diagnosis1",
-            "canWrite": true,
-            "canRead": true,
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "Diagnosis1",
@@ -27,24 +31,16 @@
             }
         },            
         {
-            "name": "diagnosis2",
-            "canWrite": true,
-            "canRead": true
+            "name": "diagnosis2"
         },
         {
-            "name": "diagnosis3",
-            "canWrite": true,
-            "canRead": true
+            "name": "diagnosis3"
         },
         {
-            "name": "diagnosis4",
-            "canWrite": true,
-            "canRead": true
+            "name": "diagnosis4"
         },
         {
             "name": "callDate",
-            "canWrite": true,
-            "canRead": true,
             "index": true,
             "indexCollate": true,
             "meta": {
@@ -54,8 +50,6 @@
         },
         {
             "name": "callTime",
-            "canWrite": true,
-            "canRead": true,
             "meta": {
                 "label": "Время звонка",
                 "readonly": true
@@ -63,8 +57,6 @@
         },
         {
             "name": "callTaker",
-            "canWrite": false,
-            "canRead": true,
             "meta": {
                 "label": "Сотрудник РАМК",
                 "required": true,
@@ -73,8 +65,6 @@
         },
         {
             "name": "program",
-            "canWrite": true,
-            "canRead": true,
             "index": true,
             "type": "dictionary",
             "meta": {
@@ -85,8 +75,6 @@
         },
         {
             "name": "caller",
-            "canWrite": true,
-            "canRead": true,
             "groupName": "contact",
             "meta": {
                 "label": "Клиент"
@@ -94,8 +82,6 @@
         },
         {
             "name": "status",
-            "canWrite": true,
-            "canRead": true,
             "type": "dictionary",
             "meta": {
                 "required": true,
@@ -110,8 +96,6 @@
         {
             "name": "services",
             "type": "reference",
-            "canWrite": true,
-            "canRead": true,
             "meta": {
                 "label": "Услуги"
             }

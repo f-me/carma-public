@@ -5,46 +5,49 @@
     "canRead": true,
     "canUpdate": true,
     "canDelete": true,
-    "fields": [
+    "applications": [
         {
-            "name": "towDealer",
-            "groupName": "partner",
+            "targets": true,
             "canWrite": true,
-            "canRead": true,
-            "meta": {
-                "label": "Дилер"
-            }
+            "canRead": true
         },
         {
-            "name": "rentAddress",
-            "groupName": "address",
-            "canWrite": true,
-            "canRead": true,
+            "targets": ["rentAddress_address"],
             "meta": {
                 "label": "Куда доставить"
             }
         },
         {
+            "targets": ["towDealer_partner"],
+            "meta": {
+                "label": "Дилер"
+            }
+        }
+    ],
+    "fields": [
+        {
+            "name": "towDealer",
+            "groupName": "partner"
+        },
+        {
+            "name": "rentAddress",
+            "groupName": "address"
+        },
+        {
             "name": "carClass",
             "meta": {
                 "label": "Класс автомобиля"
-            },
-            "canWrite": true,
-            "canRead": true
+            }
         },
         {
             "name": "rentContractor",
             "groupName": "partner",
             "meta": {
                 "label": "Подрядчик"
-            },
-            "canWrite": true,
-            "canRead": true
+            }
         },
         {
             "name": "status",
-            "canWrite": true,
-            "canRead": true,
             "type": "dictionary",
             "meta": {
                 "label": "Статус услуги",

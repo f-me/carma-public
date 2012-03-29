@@ -5,38 +5,43 @@
     "canRead": true,
     "canUpdate": true,
     "canDelete": true,
-    "fields": [
+    "applications": [
         {
-            "name": "fromAddress",
-            "groupName": "address",
-            "meta": {
-                "label": "Где забрать"
-            },
+            "targets": true,
             "canWrite": true,
             "canRead": true
         },
         {
-            "name": "toAddress",
-            "groupName": "address",
+            "targets": ["fromAddress_address"],
+            "meta": {
+                "label": "Где забрать"
+            }
+        },
+        {
+            "targets": ["toAddress_address"],
             "meta": {
                 "label": "Куда доставить"
-            },
-            "canWrite": true,
-            "canRead": true
+            }
+        }
+    ],
+    "fields": [
+        {
+            "name": "fromAddress",
+            "groupName": "address"
+        },
+        {
+            "name": "toAddress",
+            "groupName": "address"
         },
         {
             "name": "multidrive",
             "meta": {
                 "label": "Мультидрайв"
             },
-            "type": "checkbox",
-            "canWrite": true,
-            "canRead": true
+            "type": "checkbox"
         },
         {
             "name": "status",
-            "canWrite": true,
-            "canRead": true,
             "type": "dictionary",
             "meta": {
                 "label": "Статус услуги",

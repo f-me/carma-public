@@ -5,76 +5,55 @@
     "canRead": true,
     "canUpdate": false,
     "canDelete": false,
+    "applications": [
+        {
+            "targets": true,
+            "canWrite": false,
+            "canRead": true
+        }
+    ],
     "fields": [
         {
-            "name": "program",
-            "canWrite": true,
-            "canRead": true
+            "name": "program"
         },
         {
-            "name": "make",
-            "canWrite": true,
-            "canRead": true
+            "name": "make"
         },
         {
-            "name":"model",
-            "canWrite": true,
-            "canRead": true
+            "name":"model"
         },
         {
-            "name":"arcModelCode",
-            "canWrite": true,
-            "canRead": true
+            "name":"arcModelCode"
         },
         {
-            "name":"fddsId",
-            "canWrite": true,
-            "canRead": true
+            "name":"fddsId"
         },
         {
-            "name":"vin",
-            "canWrite": true,
-            "canRead": true
+            "name":"vin"
         },
         {
-            "name":"dealerCode",
-            "canWrite": true,
-            "canRead": true
+            "name":"dealerCode"
         },
         {
-            "name":"dealerNameEn",
-            "canWrite": true,
-            "canRead": true
+            "name":"dealerNameEn"
         },
         {
-            "name":"validFrom",
-            "canWrite": true,
-            "canRead": true
+            "name":"validFrom"
         },
         {
-            "name":"validUntil",
-            "canWrite": true,
-            "canRead": true
+            "name":"validUntil"
         },
         {
-            "name":"plateNumber",
-            "canWrite": true,
-            "canRead": true
+            "name":"plateNumber"
         },
         {
-            "name":"programRegistartionDate",
-            "canWrite": true,
-            "canRead": true
+            "name":"programRegistartionDate"
         },
         {
-            "name":"mileageTO",
-            "canWrite": true,
-            "canRead": true
+            "name":"mileageTO"
         },
         {
-            "name":"serviceInterval",
-            "canWrite": true,
-            "canRead": true
+            "name":"serviceInterval"
         }
     ]
 }
