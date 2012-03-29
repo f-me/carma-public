@@ -196,6 +196,8 @@ function renderFields(model, viewName, groups) {
     var currentGroup = mainGroup;
     var currentSection = mainGroup;
 
+    contents[mainGroup] = "";
+
     // Pick an appropriate form widget for each model
     // field type and render actual model value in it
     //
