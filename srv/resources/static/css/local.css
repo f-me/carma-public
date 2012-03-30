@@ -89,6 +89,10 @@ textarea.pane-span,
   overflow-x: hidden;
 }
 
+.lierror {
+  color: red;
+}
+
 .nice-scrollbar::-webkit-scrollbar {width:.7em;}
 .nice-scrollbar::-webkit-scrollbar-button:vertical,
 .nice-scrollbar::-webkit-scrollbar-button:start:decrement,

@@ -77,25 +77,25 @@
               <a href="#help">Справка</a>
             </li>
           </ul>
-            <ifLoggedIn>
-              <ul class="nav pull-right">
-                <li class="divider-vertical" />
-                <li class="dropdown">
-                  <a href="#"
-                     class="dropdown-toggle"
-                     data-toggle="dropdown">
-                    <i class="icon-user icon-white" />&nbsp;<loggedInUser />
-                    <b class="caret"></b>
-                  </a>
-                  <ul class="dropdown-menu">
-                    <li>
-                      <a href="/logout/">
-                        <i class="icon-off icon-black" />&nbsp;Выход
-                      </a>
-                  </ul>
-                </li>
-              </ul>
-            </ifLoggedIn>
+          <ifLoggedIn>
+            <ul class="nav pull-right">
+              <li class="divider-vertical" />
+              <li class="dropdown">
+                <a href="#"
+                   class="dropdown-toggle"
+                   data-toggle="dropdown">
+                  <i class="icon-user icon-white" />&nbsp;<loggedInUser />
+                  <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a href="/logout/">
+                      <i class="icon-off icon-black" />&nbsp;Выход
+                    </a>
+                </ul>
+              </li>
+            </ul>
+          </ifLoggedIn>
         </div>
       </div>
     </div>
@@ -158,8 +158,6 @@
       <!-- Rightmost pane with list of empty fields and action notes
       -->
       <div id="right" class="nice-scrollbar pane">
-        <div id="empty-fields">
-        </div>
       </div>
     </script>
 
@@ -294,7 +292,9 @@
     <script type="text/template"
             class="field-template"
             id="dictionary-field-template">
-      <div class="control-group">
+      <div class="control-group"
+           {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
+           >
         <div class="control-label">
           <label>{{ meta.label }}</label>
         </div>
@@ -313,6 +313,7 @@
       </div>
     </script>
 
+    <!-- Picker which fills fields with stored data -->
     <script type="text/template"
             class="field-template"
             id="picker-field-template">
@@ -530,6 +531,16 @@
         {{/ canUpdate }}
         <div style="clear: both;" />
       </div>
+    </script>
+
+    <!-- List of empty required fields -->
+    <script type="text/template"
+            id="empty-fields-template">
+      <ul id="empty-fields">
+      {{# fields }}
+      <li data-bind="css: { lierror: {{.}}Not }, visible: {{.}}Not">{{.}}</li>
+      {{/ fields }}
+      </ul>
     </script>
 
     <!-- Render service picker with services dictionary -->

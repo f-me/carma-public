@@ -69,14 +69,32 @@ function setupCaseMain(viewName, args) {
             forest: "case-service-references",
         }
     ];
+
+    // Default values
     _.extend(args, {callTaker: $("#realName").text(),
                     callDate: getFormatDate(),
                     callTime: getFormatTime()});
+
+
+    // Render list of required fields in right pane
+    //
+    // TODO Find out why slotsee doesn't work for binding
+    var fetchCb = function () {
+        $("#right").html(
+            Mustache.render($("#empty-fields-template").html(),
+                            {fields:
+                             global.viewsWare["case-form"].bbInstance.requiredFields}));
+        ko.applyBindings(global.viewsWare["case-form"].knockVM, 
+                         el("empty-fields"));
+
+    };
+
     modelSetup("case")(viewName, args, 
                        {permEl: "case-permissions",
                         focusClass: "focusable",
-                        slotsee: ["case-number"],
+                        slotsee: ["case-number", "empty-fields"],
                         groupsForest: "center",
+                        fetchCb: fetchCb,
                         refs:refs});
 
     // Render service picker
