@@ -120,7 +120,7 @@
             class="screen-template"
             id="case-screen-template">
       <!-- Main case form -->
-      <div id="left" class="nice-scrollbar">
+      <div id="left" class="nice-scrollbar pane">
         <form class="form-vertical">
           <div class="control-group">
             <div class="control-label">
@@ -148,12 +148,19 @@
         </form>
       </div>
 
-      <!-- Right pane with subform -->
+      <!-- Central pane with subform -->
       <!--
-      TODO Should be span6 when fluid containers are fixed in
+      TODO Should be spanN when fluid containers are fixed in
            Bootstrap upstream. -->
-      <div id="right">
-       </div>
+      <div id="center" class="nice-scrollbar pane">
+      </div>
+
+      <!-- Rightmost pane with list of empty fields and action notes
+      -->
+      <div id="right" class="nice-scrollbar pane">
+        <div id="empty-fields">
+        </div>
+      </div>
     </script>
 
     <!-- Search screen -->

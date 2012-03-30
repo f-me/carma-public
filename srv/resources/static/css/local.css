@@ -7,23 +7,26 @@ body {
   cursor: pointer;
 }
 
-#left {
+.pane {
   position: absolute;
   top: 40px;
   bottom: 0px;
-  width: 32%;
   overflow-y: auto;
   padding: 1%;
 }
 
-#right {
-  position: absolute;
-  top: 40px;
-  bottom: 0px;
+#left {
+  width: 32%;
+}
+
+#center {
   left: 35%;
-  width: 62%;
-  overflow-y: auto;
-  padding: 1%;
+  width: 50%;
+}
+
+#right {
+  left: 84%;
+  width: 15%;
 }
 
 .container-fluid {

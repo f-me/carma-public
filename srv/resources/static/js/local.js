@@ -61,7 +61,7 @@ $(function () {
           });
 });
 
-// Case view
+// Case view (renders to #left, #center and #right as well)
 function setupCaseMain(viewName, args) {
     var refs = [
         {
@@ -76,7 +76,7 @@ function setupCaseMain(viewName, args) {
                        {permEl: "case-permissions",
                         focusClass: "focusable",
                         slotsee: ["case-number"],
-                        groupsForest: "right",
+                        groupsForest: "center",
                         refs:refs});
 
     // Render service picker
@@ -86,6 +86,7 @@ function setupCaseMain(viewName, args) {
     $("#service-picker-container").html(
         Mustache.render($("#service-picker-template").html(),
                         {dictionary: global.dictionaries["Services"]}));
+
     $(".tableTable").dataTable();
 }
 
@@ -109,7 +110,7 @@ function scrollDown() {
     window.scrollTo(0, document.body.scrollHeight - 300);
 }
 
-// Hide all views on right pane and show view for first reference
+// Hide all views on center pane and show view for first reference
 // stored in <fieldName> of model loaded into <parentView> there
 function showComplex(parentView, fieldName) {
     var refViewName = global.viewsWare[parentView].refViews[fieldName][0];
@@ -145,7 +146,7 @@ function addService(name) {
                  {field: "services",
                   modelName: name,
                   forest: "case-service-references"},
-                "right");
+                "center");
     // FIXME (doesn't scroll properly)
     scrollDown();
 }
