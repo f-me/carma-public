@@ -541,7 +541,7 @@
             id="empty-fields-template">
       <ul id="empty-fields">
       {{# fields }}
-      <li data-bind="css: { lierror: {{.}}Not }, visible: {{.}}Not">{{.}}</li>
+      <li data-bind="css: { lierror: {{name}}Not }, visible: {{name}}Not">{{meta.label}}</li>
       {{/ fields }}
       </ul>
     </script>

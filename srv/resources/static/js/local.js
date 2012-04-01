@@ -78,21 +78,30 @@ function setupCaseMain(viewName, args) {
 
     // Render list of required fields in right pane
     //
-    // TODO Find out why slotsee doesn't work for binding
+    // bbInstance is available only after model has been loaded. The
+    // only way to execute custom code inside modelSetup is using
+    // fetchCb option. By the time slotsee's are bound, fetchCb may
+    // not have been called yet, thus we explicitly use applyBindings
+    // here.
     var fetchCb = function () {
+        var ctx = {
+            "fields":
+            _.map(global.viewsWare["case-form"].bbInstance.requiredFields,
+                  function (f) {
+                      return global.viewsWare["case-form"].bbInstance.fieldHash[f];
+                  })};
+        
         $("#right").html(
-            Mustache.render($("#empty-fields-template").html(),
-                            {fields:
-                             global.viewsWare["case-form"].bbInstance.requiredFields}));
+            Mustache.render($("#empty-fields-template").html(), ctx));
+
         ko.applyBindings(global.viewsWare["case-form"].knockVM, 
                          el("empty-fields"));
-
     };
 
     modelSetup("case")(viewName, args, 
                        {permEl: "case-permissions",
                         focusClass: "focusable",
-                        slotsee: ["case-number", "empty-fields"],
+                        slotsee: ["case-number"],
                         groupsForest: "center",
                         fetchCb: fetchCb,
                         refs:refs});
