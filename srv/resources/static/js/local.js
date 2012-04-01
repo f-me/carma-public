@@ -61,6 +61,18 @@ $(function () {
           });
 });
 
+
+// Standard element callback which will scroll model into view and
+// focus on first field
+function stdElCb(e) {
+    // Scroll group to the top of the screen
+    if (e.hasClass("accordion-inner")) {
+        e.parents(".accordion-group")[0].scrollIntoView();
+    }
+    e.find(".focusable")[0].focus();
+};
+
+
 // Case view (renders to #left, #center and #right as well)
 function setupCaseMain(viewName, args) {
     var refs = [
@@ -104,6 +116,7 @@ function setupCaseMain(viewName, args) {
                         slotsee: ["case-number"],
                         groupsForest: "center",
                         fetchCb: fetchCb,
+                        elCb: stdElCb,
                         refs:refs});
 
     // Render service picker
@@ -173,7 +186,8 @@ function addService(name) {
                  {field: "services",
                   modelName: name,
                   forest: "case-service-references"},
-                "center");
+                 "center",
+                 {elCb: stdElCb});
     // FIXME (doesn't scroll properly)
     scrollDown();
 }

@@ -176,9 +176,6 @@ function knockBackbone(instance, viewName) {
 //   instance. Use this to update references of parent model when
 //   referenced instance views are set up.
 //
-// - focusClass: class of form field items; if used, first item of
-//   this class will get focus after form render.
-//
 // - refs: Describe what references model has and where to render
 //   their views. This key is an array of objects:
 //
@@ -206,7 +203,12 @@ function knockBackbone(instance, viewName) {
 //
 // - groupsForest: The name of forest where to render views for field
 //   groups. Views generated for groups are stored in refViews under
-//   viewsWare entry for parent view.
+//   viewsWare entry for parent view. Referenced models are
+//   recursively rendered with the same value of groupsForest (so
+//   parent model and its children share the same groupsForest).
+//   
+// - elCb: Function which will be called with DOM element whose name
+//   was passed as `elName` after model has been rendered.
 function modelSetup(modelName) {
     return function(elName, args, options) {
         $.getJSON(modelMethod(modelName, "model"),
@@ -311,15 +313,9 @@ function modelSetup(modelName) {
                     instance.setupServerSync();
                 }, 1000);
 
-                // Focus on first focusable field
-                if (options.focusClass) {
-                    var x = $el(elName);
-                    // Scroll group to the top of the screen
-                    if (x.hasClass("accordion-inner")) {
-                      x.parents(".accordion-group")[0].scrollIntoView();
-                    }
-                    x.find("." + options.focusClass)[0].focus();
-                }
+                // Do extra stuff on element
+                if (options.elCb)
+                    options.elCb($el(elName));
 
                 global.viewsWare[elName] = {
                     "model": model,
@@ -468,7 +464,9 @@ function setupMultiRef(instance, refField, refsForest) {
 
 // Add new reference to instance, render view and setup form for it.
 //
-// instance is a Backbone model, reference is an object which contains:
+// @param instance Backbone model
+//
+// @param reference is an object which contains:
 //
 // - field is the name of instance field to store reference in;
 // 
@@ -476,12 +474,15 @@ function setupMultiRef(instance, refField, refsForest) {
 //
 // - forest is ID of element which holds views for references.
 //
-// Return single book of the same structure as in setupMultiRef result
-// (but without refId).
-//
-// groupsForest sets name of view to render groups of created
+// @param groupsForest sets name of view to render groups of created
 // reference model in.
-function addReference(instance, reference, groupsForest) {
+//
+// @param options Custom extra options for modelSetup called for added
+// referenced model
+// 
+// @return Single book of the same structure as in setupMultiRef result
+// (but without refId).
+function addReference(instance, reference, groupsForest, options) {
     var oldValue = instance.get(reference.field);
     var tpls = getTemplates("reference-template");
     if (_.isEmpty(oldValue))
@@ -510,13 +511,13 @@ function addReference(instance, reference, groupsForest) {
     $el(reference.forest).append(html);
 
     var fetchCb = mkRefFetchCb(instance, reference.field);
-    modelSetup(reference.modelName)(refView, null,
-                             {fetchCb: fetchCb,
-                              groupsForest: groupsForest,
-                              slotsee: [refView + "-link"],
-                              permEl: refView + "-perms",
-                              focusClass: "focusable"});
-
+    modelSetup(reference.modelName)(
+        refView, null,
+        _.extend({fetchCb: fetchCb,
+                  groupsForest: groupsForest,
+                  slotsee: [refView + "-link"],
+                  permEl: refView + "-perms"
+                 }, options));
     return book;
 }
 
