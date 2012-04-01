@@ -21,9 +21,8 @@
     "fields": [
         {
             "name": "comment",
-            "type": "dictionary",
+            "type": "textarea",
             "meta": {
-                "dictionaryName": "Wazzup",
                 "label": "Что случилось",
                 "infoText": "comment"
             }
@@ -37,7 +36,12 @@
             }
         },            
         {
-            "name": "diagnosis2"
+            "name": "diagnosis2",
+            "type": "dictionary",
+            "meta": {
+                "dictionaryName": "Diagnosis2",
+                "dictionaryParent": "diagnosis1"
+            }
         },
         {
             "name": "diagnosis3"
