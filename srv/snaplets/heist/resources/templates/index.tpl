@@ -304,7 +304,7 @@
                    class="pane-span focusable"
                    name="{{ name }}"
                    data-source="global.dictionaries['{{meta.dictionaryName}}']"
-                   data-bind="value: {{ name }},
+                   data-bind="value: {{ name }}Local,
                               valueUpdate: 'afterkeydown'
                               {{# meta.dictionaryParent }},
                               attr: { 'data-parent': {{ meta.dictionaryParent }} }

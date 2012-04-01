@@ -93,6 +93,8 @@
      }
      
    #+END_SRC
+
+   Labels and values *must not* overlap in different categories.
 ** Typeahead integration
    Our Typeahead allows for dictionary record to be passed as
    `data-source` attribute:
@@ -141,9 +143,6 @@
 ** TODO [/] More client-side caching
    - [ ] templates;
    - [ ] models;
-** IN_PROGRESS [/] Dictionaries
-   Implement label←→value translation (at knockBackbone@main.js)
-
 ** TODO Client settings
    Some settings need to be served to client code (to use in JS):
    
@@ -151,5 +150,4 @@
     - serverSyncDelay;
     - timelineUpdateInterval;
 
-** TODO Field contents are not saved if autocomplete menu is clicked
 ** MAYBE Better JavaScript tables solution

@@ -17,12 +17,43 @@
 function mainSetup(localScreens, localRouter, localDictionaries) {
     var Screens = localScreens;
 
+    var dictLabelCache = {};
+    var dictValueCache = {};
+
+    // Build caches
+    for (d in localDictionaries) {
+        dictLabelCache[d] = {};
+        dictValueCache[d] = {};
+        var dict = localDictionaries[d];
+        if (_.isArray(dict.entries))
+            for (e in dict.entries) {
+                var l = dict.entries[e].label;
+                var v = dict.entries[e].value;
+                dictLabelCache[d][l] = v;
+                dictValueCache[d][v] = l;
+            }
+        else
+            for (c in dict.entries)
+                for (e in dict.entries[c]) {
+                    var l = dict.entries[c][e].label;
+                    var v = dict.entries[c][e].value;
+                    if (l && v) {
+                        dictLabelCache[d][l] = v;
+                        dictValueCache[d][v] = l;
+                    }
+                }
+    }
+
     window.global = {
         // «Screen» element which holds all views
         topElement: $el("layout"),
         screens: Screens,
         router: new localRouter,
         dictionaries: localDictionaries,
+        // Maps labels to values for every dictionary
+        dictLabelCache: dictLabelCache,
+        // Maps values to labels
+        dictValueCache: dictValueCache,
 
         activeScreen: null,
         // viewWare is for bookkeeping of views in current screen.
@@ -122,12 +153,13 @@ function knockBackbone(instance, viewName) {
                            }});
     }
 
-    // Set up dependent dictionary fields to clear when parent value
-    // changes
     for (f in instance.dictionaryFields) {
         var n = _.clone(f);
         var fieldName = instance.dictionaryFields[n];
+        var dict = instance.fieldHash[fieldName].meta.dictionaryName;
         var parent = instance.fieldHash[fieldName].meta.dictionaryParent;
+        // Set up dependent dictionary fields to clear when parent value
+        // changes
         if (parent) {
             (function(f){
                 instance.bind("change:" + parent,
@@ -136,6 +168,26 @@ function knockBackbone(instance, viewName) {
                               });
             })(fieldName);
         }
+
+        // Perform label-value transformation
+        (function(f, d){
+            knockVM[fieldName + "Local"] =
+                kb.observable(instance,
+                              {key: f,
+                               read: function(k) {
+                                   // Read label by real value
+                                   var val = instance.get(k);
+                                   var lab = global.dictValueCache[d][val];
+                                   return (lab || val);
+                               },
+                               write: function(lab) {
+                                   // Set real value by label
+                                   var val = global.dictLabelCache[d][lab]
+                                   instance.set(f, val || lab);
+                               }
+                              },
+                              knockVM);
+        })(fieldName, dict);
     }
 
     knockVM["modelTitle"] = kb.observable(instance,
