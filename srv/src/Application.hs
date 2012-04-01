@@ -152,18 +152,3 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   addRoutes routes
 
   return $ App h r s a sTime
-
--- {- Unported code. -}
-
--- searchDealer = search "dealer"
---   ["name","city","program","salesAddr", "salesPhone"]
---   [("name","sSearch_0")
---     ,("city","sSearch_1")
---     ,("program","sSearch_2")]
-
-
--- searchContractor = search "partner"
---   ["companyName","cityRu","contactPerson","contactPhone","serviceRu"]
---   [("companyName","sSearch_0")
---     ,("contactPerson","sSearch_2")
---     ,("contactPhone","sSearch_3")]
