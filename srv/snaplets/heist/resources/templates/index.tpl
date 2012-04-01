@@ -541,7 +541,8 @@
             id="empty-fields-template">
       <ul id="empty-fields">
       {{# fields }}
-      <li data-bind="css: { lierror: {{name}}Not }, visible: {{name}}Not">{{meta.label}}</li>
+      <li onclick="focusField('{{name}}'); return false;"
+          data-bind="css: { lierror: {{name}}Not }, visible: {{name}}Not">{{meta.label}}</li>
       {{/ fields }}
       </ul>
     </script>

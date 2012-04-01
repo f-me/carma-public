@@ -43,6 +43,10 @@ body {
   margin-left: 1.2%;
 }
 
+#empty-fields > li {
+  cursor: pointer;
+}
+
 .form-horizontal
 .control-group {
   margin-bottom: 4px;

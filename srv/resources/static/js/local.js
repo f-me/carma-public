@@ -73,6 +73,13 @@ function stdElCb(e) {
 };
 
 
+// Scroll case field into view and focus
+function focusField(name) {
+    var e = $("#case-form").find("[name=" + name + "]")[0];
+    e.scrollIntoView();
+    e.focus();
+}
+
 // Case view (renders to #left, #center and #right as well)
 function setupCaseMain(viewName, args) {
     var refs = [
