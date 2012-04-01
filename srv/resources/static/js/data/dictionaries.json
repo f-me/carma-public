@@ -300,6 +300,10 @@
                 "label": "Opel"
             },
             {
+                "value": "cad",
+                "label": "Cadillac"
+            },
+            {
                 "value": "hum",
                 "label": "Hummer"
             },
@@ -315,7 +319,7 @@
     },
     "CarModels": {
         "entries": {
-            "Chevrolet": [
+            "chevy": [
                 {
                     "label": "Alero"
                 },
@@ -461,7 +465,7 @@
                     "label": "Zafira"
                 }
             ],
-            "Opel": [
+            "opel": [
                 {
                     "label": "Agila"
                 },
@@ -523,7 +527,7 @@
                     "label": "Zafira"
                 }
             ],
-            "Cadillac": [
+            "cad": [
                 {
                     "label": "Allante"
                 },
@@ -570,7 +574,51 @@
                     "label": "XLR"
                 }
             ],
-            "Ford": [
+            "vw": [
+                {
+                    "label": "Caddy"
+                },
+                {
+                    "label": "Amarok"
+                },
+                {
+                    "label": "Crafter"
+                },
+                {
+                    "label": "T5"
+                },
+                {
+                    "label": "Tiguan"
+                },
+                {
+                    "label": "Polo"
+                },
+                {
+                    "label": "Touareg"
+                },
+                {
+                    "label": "Passat"
+                },
+                {
+                    "label": "Jetta"
+                },
+                {
+                    "label": "Golf"
+                },
+                {
+                    "label": "Touran"
+                },
+                {
+                    "label": "Phaeton"
+                },
+                {
+                    "label": "Eos"
+                },
+                {
+                    "label": "Scirocco"
+                }
+            ],
+            "ford": [
                 {
                     "label": "427"
                 },
@@ -707,7 +755,7 @@
                     "label": "Windstar"
                 }
             ],
-            "BMW": [
+            "bmw": [
                 {
                     "label": "1 series"
                 },
@@ -760,7 +808,7 @@
                     "label": "Z8"
                 }
             ],
-            "Hummer": [
+            "hum": [
                 {
                     "label": "H1"
                 },
