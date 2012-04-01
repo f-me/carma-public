@@ -6,9 +6,7 @@
             "meta": {
                 "label": "VIN",
                 "picker": "vinFiller"
-            },
-            "canWrite": true,
-            "canRead": true
+            }
         },
         {
             "name": "make",
@@ -16,8 +14,6 @@
                 "dictionaryName": "CarMakers",
                 "label": "Марка"
             },
-            "canWrite": true,
-            "canRead": true,
             "type": "dictionary"
         },
         {
@@ -26,8 +22,6 @@
                 "dictionaryName": "CarModels",
                 "label": "Модель"
             },
-            "canWrite": true,
-            "canRead": true,
             "type": "dictionary"
         },
         {
@@ -35,8 +29,6 @@
             "meta": {
                 "label": "Регистрационный номер автомобиля"
             },
-            "canWrite": true,
-            "canRead": true,
             "index": true,
             "indexCollate": true
         },
@@ -44,9 +36,7 @@
             "name": "color",
             "meta": {
                 "label": "Цвет"
-            },
-            "canWrite": true,
-            "canRead": true
+            }
         },
         {
             "name": "transmission",
@@ -55,8 +45,6 @@
                 "dictionaryName": "Transmission",
                 "widget": "radio"
             },
-            "canWrite": true,
-            "canRead": true,
             "type": "dictionary"
         },
         {
@@ -66,81 +54,67 @@
                 "dictionaryName": "EngineType",
                 "widget": "radio"
             },
-            "type": "dictionary",
-            "canWrite": true,
-            "canRead": true
+            "type": "dictionary"
         },
         {
             "name": "liters",
             "meta": {
                 "label": "Объём двигателя"
-            },
-            "canWrite": true,
-            "canRead": true
+            }
         },
         {
             "name": "capacity",
             "meta": {
                 "label": "Вместимость"
-            },
-            "canWrite": true,
-            "canRead": true
+            }
         },
         {
             "name": "dims",
             "meta": {
                 "label": "Габариты"
-            },
-            "canWrite": true,
-            "canRead": true
+            }
+        },
+        {
+            "name": "weight",
+            "meta": {
+                "label": "Масса"
+            }
         },
         {
             "name": "checkPeriod",
             "meta": {
                 "label": "Межсервисный интервал"
-            },
-            "canWrite": true,
-            "canRead": true
+            }
         },
         {
             "name": "class",
             "meta": {
                 "label": "Класс автомобиля"
-            },
-            "canWrite": true,
-            "canRead": true
+            }
         },
         {
             "name": "buyDate",
             "meta": {
                 "label": "Дата покупки"
-            },
-            "canWrite": true,
-            "canRead": true
+            }
         },
         {
             "name": "mileage",
             "meta": {
                 "label": "Текущий пробег"
-            },
-            "canWrite": true,
-            "canRead": true
+            }
         },
         {
             "name": "checkupDate",
             "meta": {
                 "label": "Дата последнего ТО"
-            },
-            "canWrite": true,
-            "canRead": true
+            }
         },
         {
             "name": "checkupMileage",
             "meta": {
                 "label": "Пробег на последнем ТО"
-            },
-            "canWrite": true,
-            "canRead": true
+            }
         }
     ],
     "contact": [
