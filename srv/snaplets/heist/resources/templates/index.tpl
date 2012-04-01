@@ -557,14 +557,14 @@
             <i class="icon icon-plus" />Добавить услугу
           </button>
           <ul class="dropdown-menu">
-            {{# dictionary }}
+            {{# dictionary.entries }}
             <li>
               <a href="#" onclick="addService('{{value}}');">
                 <i class="icon-{{icon}} icon-black" />
                 {{ label }}
               </a>
             </li>
-            {{/ dictionary }}
+            {{/ dictionary.entries }}
           </ul>
         </li>
       </ul>
