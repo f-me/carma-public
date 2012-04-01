@@ -6,6 +6,10 @@
     <link rel="stylesheet" href="/s/css/bootstrap.min.css" />
     <link rel="stylesheet" href="/s/css/datepicker.css" />
     <link rel="stylesheet" href="/s/css/jquery.dataTables.css" />
+
+    <!-- Additional set of icons -->
+    <link rel="stylesheet" href="/s/css/stolen-icons.css" />
+
     <link rel="stylesheet" href="/s/css/local.css" />
     <!-- DOM manipulation -->
     <script src="/s/js/3p/jquery-1.7.1.min.js" />
@@ -288,6 +292,34 @@
         </div>
       </div>
     </script>
+
+    <!-- Like text-field-template but with call button -->
+    <!-- FIXME: this template differs from the picker-field-template
+         only in icon class. Seems that it is reasonable to parametrize it.
+    -->
+    <script type="text/template"
+            class="field-template"
+            id="phone-field-template">
+      <div class="control-group">
+        <div class="control-label">
+          <label>{{ meta.label }}</label>
+        </div>
+        <div class="controls">
+          <div class="input-append">
+            <input type="text"
+                   class="pane-span focusable"
+                   name="{{ name }}"
+                   data-bind="value: {{ name }},
+                              valueUpdate: 'afterkeydown'"/>
+            <span class="add-on">
+              <i class="icon stolen-icon-phone"
+                 onclick="doPick('{{ meta.picker }}', '{{ name }}');"/>
+            </span>
+          </div>
+        </div>
+      </div>
+    </script>
+
 
     <script type="text/template"
             class="field-template"

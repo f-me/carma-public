@@ -218,7 +218,7 @@ function initOSM(el) {
 // Available picks:
 //
 // - vinFiller
-function doPick(pickType) {
+function doPick(pickType, args) {
     var pickers = {
         
         // Get car_vin field from case and try to fill some of its fields
@@ -256,9 +256,15 @@ function doPick(pickType) {
                            }
                        }
                    });
+        },
+
+        callPlease: function(modelName) {
+            var bb = global.viewsWare["case-form"].bbInstance;
+            var phoneNumber = bb.get(modelName);
+            alert ("Calling " + phoneNumber);
         }
     };
 
-    pickers[pickType]();
+    pickers[pickType](args);
 }
 
