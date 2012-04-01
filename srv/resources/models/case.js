@@ -21,8 +21,9 @@
     "fields": [
         {
             "name": "comment",
-            "type": "textarea",
+            "type": "dictionary",
             "meta": {
+                "dictionaryName": "Wazzup",
                 "label": "Что случилось",
                 "infoText": "comment"
             }
