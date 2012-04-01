@@ -14,9 +14,9 @@ function backbonizeModel(model, modelName) {
     _.each(model.fields,
           function(f) {
               if (!_.isNull(f.meta)) {
-                  if ((!_.isUndefined(f.meta.required)) && f.meta.required)
+                  if (_.has(f.meta, "required") && f.meta.required)
                       requiredFields = requiredFields.concat(f.name);
-                  if (!(_.isUndefined(f.meta.default)))
+                  if (_.has(f.meta, "default"))
                       defaults[f.name] = f.default;
                   else
                       defaults[f.name] = null;
@@ -96,7 +96,7 @@ function backbonizeModel(model, modelName) {
             // TODO _.extend doesn't work here
             for (k in attrs)
                 if (k != "id" &&
-                    (!_.isUndefined(this.fieldHash[k])) &&
+                    (_.has(this.fieldHash, k) &&
                     this.model.canUpdate &&
                     this.fieldHash[k].canWrite &&
                     (!_.isNull(attrs[k])))
@@ -114,7 +114,7 @@ function backbonizeModel(model, modelName) {
             for (k in json) {
                 // TODO Perhaps inform client when unknown field occurs
                 if ((k != "id") && 
-                    (!_.isUndefined(this.fieldHash[k])) &&
+                    (_.has(this.fieldHash, k)) &&
                     (this.fieldHash[k].type == "checkbox")) {
                     if (json[k] == "1")
                         json[k] = true;
@@ -157,14 +157,15 @@ function getTemplates(cls) {
 // Pick a template from cache which matches one of given names first.
 function pickTemplate(templates, names) {
     for(i = 0; i < names.length; i++)
-        if (!_.isUndefined(templates[names[i]]))
+        if (_.has(templates, names[i]))
             return templates[names[i]];
     return Mustache.render($("#unknown-template").html(), 
                            {names:names});
 }
 
 // Convert model to forest of HTML form elements with appropriate
-// data-bind parameters for Knockout.
+// data-bind parameters for Knockout, sectioning contents wrt to group
+// fields.
 //
 // To allow rendering of elements which depend on the name of view
 // which will hold the instance (like save/remove instance), viewName
@@ -177,8 +178,9 @@ function pickTemplate(templates, names) {
 // TODO: We can do this on server as well.
 //
 // @return Hash where keys are names of first fields in each group and
-// values are string with HTML of group forms. Groupless fields are
-// rendered into value stored under "_" key.
+// values are string with HTML of group forms. Groupless fields (those
+// which belong to main group) are rendered into value stored under
+// "_" key.
 function renderFields(model, viewName, groups) {
     var templates = getTemplates("field-template");
 
@@ -250,7 +252,7 @@ function renderFields(model, viewName, groups) {
                  }
 
                  // Initialiaze new group contents
-                 if (_.isUndefined(contents[currentSection]))
+                 if (!_.has(contents, currentSection))
                      contents[currentSection] = "";
 
                  f.type = realType;
@@ -269,7 +271,7 @@ function chooseFieldTemplate(field, templates) {
     var typed_tpl = field.type;
     var named_tpl = field.name + "-" + field.type;
     var widget_tpl = "";
-    if ((!_.isNull(field.meta)) && (!_.isUndefined(field.meta.widget)))
+    if ((!_.isNull(field.meta)) && (_.has(field.meta, widget)))
         widget_tpl = field.meta.widget + "-" + field.type;
 
     var tpl = pickTemplate(templates, 

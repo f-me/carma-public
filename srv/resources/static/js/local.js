@@ -164,8 +164,8 @@ function getFormatTime() {
 // Hide all views on center pane and show view for first reference
 // stored in <fieldName> of model loaded into <parentView> there
 function showComplex(parentView, fieldName) {
-    var refViewName = global.viewsWare[parentView].refViews[fieldName][0];
-    var view = $el(refViewName);
+    var depViewName = global.viewsWare[parentView].depViews[fieldName][0];
+    var view = $el(depViewName);
 
     if (view.is(':visible')) return;
     $(".complex-field").hide();
