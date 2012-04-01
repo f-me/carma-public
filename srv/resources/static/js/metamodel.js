@@ -96,7 +96,7 @@ function backbonizeModel(model, modelName) {
             // TODO _.extend doesn't work here
             for (k in attrs)
                 if (k != "id" &&
-                    (_.has(this.fieldHash, k) &&
+                    (_.has(this.fieldHash, k)) &&
                     this.model.canUpdate &&
                     this.fieldHash[k].canWrite &&
                     (!_.isNull(attrs[k])))
@@ -271,7 +271,7 @@ function chooseFieldTemplate(field, templates) {
     var typed_tpl = field.type;
     var named_tpl = field.name + "-" + field.type;
     var widget_tpl = "";
-    if ((!_.isNull(field.meta)) && (_.has(field.meta, widget)))
+    if ((!_.isNull(field.meta)) && (_.has(field.meta, "widget")))
         widget_tpl = field.meta.widget + "-" + field.type;
 
     var tpl = pickTemplate(templates, 
