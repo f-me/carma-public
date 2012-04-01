@@ -305,7 +305,10 @@
                    name="{{ name }}"
                    data-source="global.dictionaries['{{meta.dictionaryName}}']"
                    data-bind="value: {{ name }},
-                              valueUpdate: 'afterkeydown'"
+                              valueUpdate: 'afterkeydown'
+                              {{# meta.dictionaryParent }},
+                              attr: { 'data-parent': {{ meta.dictionaryParent }} }
+                              {{/ meta.dictionaryParent }}"
                    data-provide="typeahead" />
             <span class="add-on"><i class="icon icon-chevron-down" /></span>
           </div>
@@ -335,7 +338,7 @@
       </div>
     </script>
 
-    <!-- radio widget for dictionary fields -->
+    <!-- radio widget for flat dictionary fields -->
     <script type="text/template"
             class="field-template"
             id="radio-dictionary-field-template">
@@ -344,7 +347,7 @@
           <label>{{ meta.label }}</label>
         </div>
         <div class="controls">
-          {{# dictionary }}
+          {{# dictionary.entries }}
             <label class="radio">
               <!-- Mustache.js contexts support bubbling -->
               <input type="radio"
@@ -353,12 +356,12 @@
                      data-bind="checked: {{ name }}"></input>
               {{ label }}
             </label>
-          {{/ dictionary }}
+          {{/ dictionary.entries }}
         </div>
       </div>
     </script>
 
-    <!-- May be used for plain rendering of dictionaries as well -->
+    <!-- May be used for plain rendering of flat dictionaries as well -->
     <script type="text/template"
             class="field-template"
             id="select-field-template">
@@ -371,9 +374,9 @@
                   {{# meta.readonly }}disabled{{/ meta.readonly }}
                   data-bind="value: {{ name }},
                              valueUpdate: 'change'">
-            {{# dictionary }}
+            {{# dictionary.entries }}
             <option value="{{value}}">{{meta.label}}</option>
-            {{/ dictionary }}
+            {{/ dictionary.entries }}
           </select>
         </div>
       </div>

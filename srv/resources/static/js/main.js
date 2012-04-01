@@ -36,7 +36,7 @@ function mainSetup(localScreens, localRouter, localDictionaries) {
         // - mkBackboneModel (Backbone constructor);
         // - bbInstance (Backbone model);
         // - knockVM (Knockout ViewModel bound to view);
-        // - refViews (hash with views for every reference field).
+        // - refViews (hash with views for every reference/group field).
         //
         // When screen is loaded, viewsWare should generally contain
         // only keys which correspond to that screen views. View
@@ -120,6 +120,22 @@ function knockBackbone(instance, viewName) {
                            read: function (k) {
                                return !instance.get(k)
                            }});
+    }
+
+    // Set up dependent dictionary fields to clear when parent value
+    // changes
+    for (f in instance.dictionaryFields) {
+        var n = _.clone(f);
+        var fieldName = instance.dictionaryFields[n];
+        var parent = instance.fieldHash[fieldName].meta.dictionaryParent;
+        if (parent) {
+            (function(f){
+                instance.bind("change:" + parent,
+                              function(v) {
+                                  instance.set(f, "");
+                              });
+            })(fieldName);
+        }
     }
 
     knockVM["modelTitle"] = kb.observable(instance,

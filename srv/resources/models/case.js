@@ -10,6 +10,12 @@
             "targets": true,
             "canWrite": true,
             "canRead": true
+        },
+        {
+            "targets": ["car_model"],
+            "meta": {
+                "dictionaryParent": "car_make"
+            }
         }
     ],
     "fields": [

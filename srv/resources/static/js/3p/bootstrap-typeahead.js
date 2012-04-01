@@ -28,8 +28,19 @@
     this.sorter = this.options.sorter || this.sorter
     this.highlighter = this.options.highlighter || this.highlighter
     this.$menu = $(this.options.menu).appendTo('body')
-
     this.options.source = eval(this.options.source)
+
+    if (!this.options.parent)
+        this.options.source = this.options.source.entries
+    // If data-parent is present, plug only values for this parent value
+    else {
+        this.options.source = this.options.source.entries[this.options.parent]
+        // If no parent values matched, no typeahead items are presented
+        if (!this.options.source)
+            this.options.source = []
+        this.parent = this.options.parent
+    }
+        
     if (this.options.source.length > 0 && typeof this.options.source[0] == 'object')
         this.source = this.labelsFor(this.options.source)
     else
@@ -162,18 +173,35 @@
 
   , listen: function () {
       this.$element
-        .on('blur',     $.proxy(this.blur, this))
-        .on('keypress', $.proxy(this.keypress, this))
-        .on('keyup',    $.proxy(this.keyup, this))
-        .on('focus',    $.proxy(this.focus, this))
+        .on('blur.typeahead',     $.proxy(this.blur, this))
+        .on('keypress.typeahead', $.proxy(this.keypress, this))
+        .on('keyup.typeahead',    $.proxy(this.keyup, this))
+        .on('focus.typeahead',    $.proxy(this.focus, this))
 
       if ($.browser.webkit || $.browser.msie) {
-        this.$element.on('keydown', $.proxy(this.keypress, this))
+        this.$element.on('keydown.typeahead', $.proxy(this.keypress, this))
       }
 
       this.$menu
-        .on('click', $.proxy(this.click, this))
-        .on('mouseenter', 'li', $.proxy(this.mouseenter, this))
+        .on('click.typeahead', $.proxy(this.click, this))
+        .on('mouseenter.typeahead', 'li', $.proxy(this.mouseenter, this))
+    }
+   
+  // Unattach old listeners
+  , unlisten: function () {
+      this.$element
+        .off('blur.typeahead')
+        .off('keypress.typeahead')
+        .off('keyup.typeahead')
+        .off('focus.typeahead')
+
+      if ($.browser.webkit || $.browser.msie) {
+        this.$element.off('keydown.typeahead')
+      }
+
+      this.$menu
+        .off('click.typeahead')
+        .off('mouseenter.typeahead')
     }
 
   , keyup: function (e) {
@@ -288,7 +316,22 @@
   $(function () {
     $('body').on('focus.typeahead.data-api', '[data-provide="typeahead"]', function (e) {
       var $this = $(this)
-      if ($this.data('typeahead')) return
+      $this.data('parent', $this.attr('data-parent'))
+      if ($this.data('typeahead')) {
+          // Note the attr since jQuery .data() caches values once
+          if ($this.data('parent')) {
+              if ($this.data('parent') == $this.data('typeahead').parent)
+                  return
+              else {
+                  // If data-parent value has changed, recreate Typehead from scratch
+                  $this.data('typeahead').unlisten()
+                  $this.data('typeahead', null);
+              }
+          }
+          else
+              return
+      }
+
       e.preventDefault()
       $this.typeahead($this.data())
     })

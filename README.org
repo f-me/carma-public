@@ -7,8 +7,111 @@
 
   - Backbone 0.9.1 is included with backported [[https://github.com/documentcloud/backbone/commit/a865aa41f13c371d104da9446c3ccb6a16671658][patch]] from upstream;
 
-  - Bootstrap is custom (source is a list of objects, source
-    annotation is eval'd, show on click)
+  - bootstrap-typeahead is custom (source is a dictionary entry (see
+    blow), source annotation is eval'd, show on click)
+    
+  - bootstrap-datepicker is custom (data API, optional autoshow)
+* Dictionaries
+** Syntax
+   `dictionaries.json` holds a list of dictionary records.
+
+   Flat syntax for dictionary record:
+
+   #+BEGIN_SRC javascript
+     "Transmission": {
+         "entries": [
+             {
+                 "value": "auto",
+                 "label": "Автоматическая"
+             },
+             {
+                 "value": "mech",
+                 "label": "Механическая"
+             },
+             {
+                 "value": "robot",
+                 "label": "Роботизированная"
+             }
+         ]
+     },
+   #+END_SRC
+
+   Each entry contains `label` which is readable value and `value`
+   which is actual fields contents stored on server.
+
+   If `dictionaryParent` is set in meta description of model field,
+   only a fraction of dictionary entries will be shown, depending on
+   value of field marked as parent.
+
+   In this case, `entries` is a hash where `key` is the value of
+   parent field required to show dictionary items:
+
+   #+BEGIN_SRC javascript
+     "CarModels": {
+         "entries": {
+             "vw": [
+                 {
+                     "value": "passat",
+                     "label": "VW Passat"
+                 },
+                 {
+                     "value": "touareg",
+                     "label": "VW Touareg"
+                 },
+                 {
+                     "value": "tig",
+                     "label": "VW Tiguan"
+                 },
+                 {
+                     "value": "jetta",
+                     "label": "VW Jetta"
+                 }
+             ],
+             "chevy": [
+                 {
+                     "value": "aveo",
+                     "label": "Chevrolet Aveo"
+                 },
+                 {
+                     "value": "blazer",
+                     "label": "Chevrolet Blazer"
+                 },
+                 {
+                     "value": "cruze",
+                     "label": "Chevrolet Cruze"
+                 },
+                 {
+                     "value": "epica",
+                     "label": "Chevrolet Epica"
+                 },
+                 {
+                     "value": "lacetti",
+                     "label": "Chevrolet Lacetti"
+                 }
+             ]
+         }
+     }
+     
+   #+END_SRC
+** Typeahead integration
+   Our Typeahead allows for dictionary record to be passed as
+   `data-source` attribute:
+
+   #+BEGIN_SRC html
+     data-source="global.dictionaries['{{meta.dictionaryName}}']"
+     data-bind="value: {{ name }},
+                valueUpdate: 'afterkeydown'
+                {{# meta.dictionaryParent }},
+                attr: { 'data-parent': {{ meta.dictionaryParent }} }
+                {{/ meta.dictionaryParent }}"
+     data-provide="typeahead"
+   #+END_SRC
+
+   If `data-parent` attribute is set (which is the case when
+   `dictionaryParent` is specified in field meta), then respective
+   entry of dictionary is used for list of typeahead items.
+   
+   Typeahead is recreated on every focus if parent value is changed.
 * Security
 
   Currently `transparent-mode` is `true` due to lack of ways to set

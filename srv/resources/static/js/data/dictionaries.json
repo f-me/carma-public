@@ -1,524 +1,856 @@
 {
     "CallerTypes": {
-        "entries": {
-            "": [
-                {
-                    "value": "client",
-                    "label": "Клиент"
-                },
-                {
-                    "value": "contr",
-                    "label": "Подрядчик"
-                },
-                {
-                    "value": "dealer",
-                    "label": "Дилерский центр"
-                },
-                {
-                    "value": "partner",
-                    "label": "Заказчик программы"
-                },
-                {
-                    "value": "other",
-                    "label": "Другое"
-                }
-            ]
-        }
+        "entries": [
+            {
+                "value": "client",
+                "label": "Клиент"
+            },
+            {
+                "value": "contr",
+                "label": "Подрядчик"
+            },
+            {
+                "value": "dealer",
+                "label": "Дилерский центр"
+            },
+            {
+                "value": "partner",
+                "label": "Заказчик программы"
+            },
+            {
+                "value": "other",
+                "label": "Другое"
+            }
+        ]
     },
     "TechTypes": {
-        "entries": {
-            "": [
-                {
-                    "value": "fuel",
-                    "label": "Доставка топлива"
-                },
-                {
-                    "value": "wheel",
-                    "label": "Замена колеса"
-                },
-                {
-                    "value": "charge",
-                    "label": "Подзарядка АКБ"
-                },
-                {
-                    "value": "alarm",
-                    "label": "Отключение сигнализации"
-                },
-                {
-                    "value": "unfuel",
-                    "label": "Слив топлива"
-                },
-                {
-                    "value": "unlock",
-                    "label": "Вскрытие автомобиля"
-                },
-                {
-                    "value": "start",
-                    "label": "Запуск двигателя"
-                },
-                {
-                    "value": "unpark",
-                    "label": "Снятие с паркинга"
-                },
-                {
-                    "value": "reroad",
-                    "label": "Возвращение на дорогу"
-                },
-                {
-                    "value": "wipers",
-                    "label": "Замена дворников"
-                },
-                {
-                    "value": "relamp",
-                    "label": "Замена лампочек"
-                },
-                {
-                    "value": "elrepair",
-                    "label": "Ремонт электрооборудования"
-                },
-                {
-                    "value": "unfreeze",
-                    "label": "Разморозка"
-                }
-            ]
-        }
+        "entries": [
+            {
+                "value": "fuel",
+                "label": "Доставка топлива"
+            },
+            {
+                "value": "wheel",
+                "label": "Замена колеса"
+            },
+            {
+                "value": "charge",
+                "label": "Подзарядка АКБ"
+            },
+            {
+                "value": "alarm",
+                "label": "Отключение сигнализации"
+            },
+            {
+                "value": "unfuel",
+                "label": "Слив топлива"
+            },
+            {
+                "value": "unlock",
+                "label": "Вскрытие автомобиля"
+            },
+            {
+                "value": "start",
+                "label": "Запуск двигателя"
+            },
+            {
+                "value": "unpark",
+                "label": "Снятие с паркинга"
+            },
+            {
+                "value": "reroad",
+                "label": "Возвращение на дорогу"
+            },
+            {
+                "value": "wipers",
+                "label": "Замена дворников"
+            },
+            {
+                "value": "relamp",
+                "label": "Замена лампочек"
+            },
+            {
+                "value": "elrepair",
+                "label": "Ремонт электрооборудования"
+            },
+            {
+                "value": "unfreeze",
+                "label": "Разморозка"
+            }
+        ]
     },
     "PaymentTypes": {
-        "entries": {
-            "": [
-                {
-                    "value": "ruamc",
-                    "label": "РАМК"
-                },
-                {
-                    "value": "client",
-                    "label": "Клиент"
-                },
-                {
-                    "value": "mixed",
-                    "label": "Смешанный"
-                },
-                {
-                    "value": "refund",
-                    "label": "Клиент с возмещением"
-                }
-            ]
-        }
+        "entries": [
+            {
+                "value": "ruamc",
+                "label": "РАМК"
+            },
+            {
+                "value": "client",
+                "label": "Клиент"
+            },
+            {
+                "value": "mixed",
+                "label": "Смешанный"
+            },
+            {
+                "value": "refund",
+                "label": "Клиент с возмещением"
+            }
+        ]
     },
     "TowTypes": {
-        "entries": {
-            "": [
-                {
-                    "value": "dealer",
-                    "label": "К дилеру"
-                },
-                {
-                    "value": "hnight",
-                    "label": "К дому в ночное время"
-                },
-                {
-                    "value": "carshop",
-                    "label": "До мастерской"
-                },
-                {
-                    "value": "other",
-                    "label": "В любое другое место"
-                }
-            ]
-        }
+        "entries": [
+            {
+                "value": "dealer",
+                "label": "К дилеру"
+            },
+            {
+                "value": "hnight",
+                "label": "К дому в ночное время"
+            },
+            {
+                "value": "carshop",
+                "label": "До мастерской"
+            },
+            {
+                "value": "other",
+                "label": "В любое другое место"
+            }
+        ]
     },
     "FalseStatuses": {
-        "entries": {
-            "": [
-                {
-                    "value": "none",
-                    "label": "Нет"
-                },
-                {
-                    "value": "bill",
-                    "label": "С выставлением счёта"
-                },
-                {
-                    "value": "nobill",
-                    "label": "Без выставления счёта"
-                }
-            ]
-        }
+        "entries": [
+            {
+                "value": "none",
+                "label": "Нет"
+            },
+            {
+                "value": "bill",
+                "label": "С выставлением счёта"
+            },
+            {
+                "value": "nobill",
+                "label": "Без выставления счёта"
+            }
+        ]
     },
     "CaseStatuses": {
-        "entries": {
-            "": [
-                {
-                    "label": "Front Office"
-                },
-                {
-                    "label": "Back Office"
-                },
-                {
-                    "label": "Закрыт"
-                },
-                {
-                    "label": "Отмена"
-                }
-            ]
-        }
+        "entries": [
+            {
+                "label": "Front Office"
+            },
+            {
+                "label": "Back Office"
+            },
+            {
+                "label": "Закрыт"
+            },
+            {
+                "label": "Отмена"
+            }
+        ]
     },
     "ServiceStatuses": {
-        "entries": {
-            "": [
-                {
-                    "label": "Создание"
-                },
-                {
-                    "label": "Проверка условий"
-                },
-                {
-                    "label": "Заполнение данных"
-                },
-                {
-                    "label": "Передача в Back Office"
-                },
-                {
-                    "label": "Заказ услуги"
-                },
-                {
-                    "label": "Отложено"
-                },
-                {
-                    "label": "Требуется партнёр"
-                },
-                {
-                    "label": "Отказ от услуги"
-                },
-                {
-                    "label": "Услуга заказана"
-                },
-                {
-                    "label": "Оказание услуги задерживается"
-                },
-                {
-                    "label": "Услуга оказывается"
-                },
-                {
-                    "label": "Ложный вызов"
-                },
-                {
-                    "label": "Услуга оказана"
-                },
-                {
-                    "label": "Услуга закрыта"
-                }
-            ]
-        }
+        "entries": [
+            {
+                "label": "Создание"
+            },
+            {
+                "label": "Проверка условий"
+            },
+            {
+                "label": "Заполнение данных"
+            },
+            {
+                "label": "Передача в Back Office"
+            },
+            {
+                "label": "Заказ услуги"
+            },
+            {
+                "label": "Отложено"
+            },
+            {
+                "label": "Требуется партнёр"
+            },
+            {
+                "label": "Отказ от услуги"
+            },
+            {
+                "label": "Услуга заказана"
+            },
+            {
+                "label": "Оказание услуги задерживается"
+            },
+            {
+                "label": "Услуга оказывается"
+            },
+            {
+                "label": "Ложный вызов"
+            },
+            {
+                "label": "Услуга оказана"
+            },
+            {
+                "label": "Услуга закрыта"
+            }
+        ]
     },
     "TowerTypes": {
-        "entries": {
-            "": [
-                {
-                    "value": "evac",
-                    "label": "Эвакуатор"
-                },
-                {
-                    "value": "manip",
-                    "label": "Манипулятор"
-                },
-                {
-                    "value": "carts",
-                    "label": "Подкатные тележки"
-                },
-                {
-                    "value": "heavy",
-                    "label": "Грузовой эвакуатор"
-                },
-                {
-                    "value": "longcat",
-                    "label": "Длиннобазный автомобиль"
-                }
-            ]
-        }
+        "entries": [
+            {
+                "value": "evac",
+                "label": "Эвакуатор"
+            },
+            {
+                "value": "manip",
+                "label": "Манипулятор"
+            },
+            {
+                "value": "carts",
+                "label": "Подкатные тележки"
+            },
+            {
+                "value": "heavy",
+                "label": "Грузовой эвакуатор"
+            },
+            {
+                "value": "longcat",
+                "label": "Длиннобазный автомобиль"
+            }
+        ]
     },
     "TransportTypes": {
-        "entries": {
-            "": [
-                {
-                    "value": "continue",
-                    "label": "Продолжение путешествия"
-                },
-                {
-                    "value": "tocar",
-                    "label": "Доставка к ТС"
-                }
-            ]
-        }
+        "entries": [
+            {
+                "value": "continue",
+                "label": "Продолжение путешествия"
+            },
+            {
+                "value": "tocar",
+                "label": "Доставка к ТС"
+            }
+        ]
     },
     "CarClasses": {
-        "entries": {
-            "": [
-                {
-                    "value":"a",
-                    "label": "A"
-                },
-                {
-                    "value":"b",
-                    "label": "B"
-                },
-                {
-                    "value":"c",
-                    "label": "C"
-                },
-                {
-                    "value":"d",
-                    "label": "D"
-                },
-                {
-                    "value":"e",
-                    "label": "E"
-                }
-            ]
-        }
+        "entries": [
+            {
+                "value":"a",
+                "label": "A"
+            },
+            {
+                "value":"b",
+                "label": "B"
+            },
+            {
+                "value":"c",
+                "label": "C"
+            },
+            {
+                "value":"d",
+                "label": "D"
+            },
+            {
+                "value":"e",
+                "label": "E"
+            }
+        ]
     },
     "Transmission": {
-        "entries": {
-            "": [
-                {
-                    "value": "auto",
-                    "label": "Автоматическая"
-                },
-                {
-                    "value": "mech",
-                    "label": "Механическая"
-                },
-                {
-                    "value": "robot",
-                    "label": "Роботизированная"
-                }
-            ]
-        }
+        "entries": [
+            {
+                "value": "auto",
+                "label": "Автоматическая"
+            },
+            {
+                "value": "mech",
+                "label": "Механическая"
+            },
+            {
+                "value": "robot",
+                "label": "Роботизированная"
+            }
+        ]
     },
     "EngineType": {
-        "entries": {
-            "": [
-                {
-                    "label": "Бензин"
-                },
-                {
-                    "label": "Дизель"
-                }
-            ]
-        }
+        "entries": [
+            {
+                "value": "ptrl",
+                "label": "Бензин"
+            },
+            {
+                "value": "dis",
+                "label": "Дизель"
+            }
+        ]
     },
     "CarMakers": {
-        "entries": {
-            "": [
-                {
-                    "label": "Volkswagen"
-                },
-                {
-                    "label": "Chevrolet"
-                },
-                {
-                    "label": "Opel"
-                },
-                {
-                    "label": "Hummer"
-                },
-                {
-                    "label": "Ford"
-                },
-                {
-                    "label": "BMW"
-                }
-            ]
-        }
+        "entries": [
+            {
+                "value": "vw",
+                "label": "Volkswagen"
+            },
+            {
+                "value": "chevy",
+                "label": "Chevrolet"
+            },
+            {
+                "value": "opel",
+                "label": "Opel"
+            },
+            {
+                "value": "hum",
+                "label": "Hummer"
+            },
+            {
+                "value": "ford",
+                "label": "Ford"
+            },
+            {
+                "value": "bmw",
+                "label": "BMW"
+            }
+        ]
     },
     "CarModels": {
         "entries": {
-            "": [
+            "Chevrolet": [
                 {
-                    "value": "VW.passat",
-                    "label": "VW Passat"
+                    "label": "Alero"
                 },
                 {
-                    "value": "VW.touareg",
-                    "label": "VW Touareg"
+                    "label": "Astra"
                 },
                 {
-                    "value": "VW.tig",
-                    "label": "VW Tiguan"
+                    "label": "Aveo"
                 },
                 {
-                    "value": "VW.jetta",
-                    "label": "VW Jetta"
+                    "label": "Beretta"
                 },
                 {
-                    "value": "CH.Aveo",
-                    "label": "Chevrolet Aveo"
+                    "label": "Blazer"
                 },
                 {
-                    "value": "CH.Blazer",
-                    "label": "Chevrolet Blazer"
+                    "label": "Camaro"
                 },
                 {
-                    "value": "CH.Cruze",
-                    "label": "Chevrolet Cruze"
+                    "label": "Caprice"
                 },
                 {
-                    "value": "CH.Epica",
-                    "label": "Chevrolet Epica"
+                    "label": "Captiva"
                 },
                 {
-                    "value": "CH.Lacetti",
-                    "label": "Chevrolet Lacetti"
+                    "label": "Cavalier"
                 },
                 {
-                    "value": "CH.Aveo",
-                    "label": "Chevrolet Aveo"
+                    "label": "Celta"
                 },
                 {
-                    "value": "OP.Astra",
-                    "label": "Opel Astra"
+                    "label": "Cheyenne"
                 },
                 {
-                    "value": "OP.Corsa",
-                    "label": "Opel Corsa"
+                    "label": "Cobalt"
                 },
                 {
-                    "value": "OP.Vectra",
-                    "label": "Opel Vectra"
+                    "label": "Colorado"
                 },
                 {
-                    "value": "OP.Zafira",
-                    "label": "Opel Zafira"
+                    "label": "Corsa"
                 },
                 {
-                    "value": "HM.H1",
-                    "label": "Hummer H1"
+                    "label": "Corsa Wind"
                 },
                 {
-                    "value": "HM.H2",
-                    "label": "Hummer H2"
+                    "label": "Corsica"
                 },
                 {
-                    "value": "HM.H3",
-                    "label": "Hummer H3"
+                    "label": "Corvette"
                 },
                 {
-                    "value": "Ford.Focus",
-                    "label": "Ford Focus"
+                    "label": "Epica"
                 },
                 {
-                    "value": "Ford.Mondeo",
-                    "label": "Ford Mondeo"
+                    "label": "Evanda"
                 },
                 {
-                    "value": "Ford.CMAX",
-                    "label": "Ford CMAX"
+                    "label": "Express"
                 },
                 {
-                    "value": "Ford.SMAX",
-                    "label": "Ford SMAX"
+                    "label": "HHR"
                 },
                 {
-                    "value": "BMW.1",
-                    "label": "BMW 1"
+                    "label": "Ipanema GL"
                 },
                 {
-                    "value": "BMW.3",
-                    "label": "BMW 3"
+                    "label": "Jimmy"
                 },
                 {
-                    "value": "BMW.5",
-                    "label": "BMW 5"
+                    "label": "Kadett"
                 },
                 {
-                    "value": "BMW.7",
-                    "label": "BMW 7"
+                    "label": "Lacetti"
+                },
+                {
+                    "label": "lmpala"
+                },
+                {
+                    "label": "Lumina"
+                },
+                {
+                    "label": "Malibu"
+                },
+                {
+                    "label": "Matiz"
+                },
+                {
+                    "label": "Metro"
+                },
+                {
+                    "label": "Monte Carlo"
+                },
+                {
+                    "label": "Monza"
+                },
+                {
+                    "label": "NIVA"
+                },
+                {
+                    "label": "Omega"
+                },
+                {
+                    "label": "Prism"
+                },
+                {
+                    "label": "S-10"
+                },
+                {
+                    "label": "Sierra"
+                },
+                {
+                    "label": "SS"
+                },
+                {
+                    "label": "Suburban"
+                },
+                {
+                    "label": "Tacuma"
+                },
+                {
+                    "label": "Tahoe"
+                },
+                {
+                    "label": "Tracker Convertible"
+                },
+                {
+                    "label": "Tracker Hardtop"
+                },
+                {
+                    "label": "Trail Blazer"
+                },
+                {
+                    "label": "Trans Sport"
+                },
+                {
+                    "label": "Vectra"
+                },
+                {
+                    "label": "Venture"
+                },
+                {
+                    "label": "Zafira"
+                }
+            ],
+            "Opel": [
+                {
+                    "label": "Agila"
+                },
+                {
+                    "label": "Antara"
+                },
+                {
+                    "label": "Astra"
+                },
+                {
+                    "label": "Calibra"
+                },
+                {
+                    "label": "Combo"
+                },
+                {
+                    "label": "Corsa"
+                },
+                {
+                    "label": "Frontera"
+                },
+                {
+                    "label": "Insignia"
+                },
+                {
+                    "label": "Kadett"
+                },
+                {
+                    "label": "Meriva"
+                },
+                {
+                    "label": "Monterey"
+                },
+                {
+                    "label": "Movano"
+                },
+                {
+                    "label": "Omega"
+                },
+                {
+                    "label": "Signum"
+                },
+                {
+                    "label": "Sintra"
+                },
+                {
+                    "label": "Tigra"
+                },
+                {
+                    "label": "Vectra"
+                },
+                {
+                    "label": "Vita"
+                },
+                {
+                    "label": "Vivaro"
+                },
+                {
+                    "label": "Zafira"
+                }
+            ],
+            "Cadillac": [
+                {
+                    "label": "Allante"
+                },
+                {
+                    "label": "BLS"
+                },
+                {
+                    "label": "Brougham"
+                },
+                {
+                    "label": "Catera"
+                },
+                {
+                    "label": "CTS"
+                },
+                {
+                    "label": "DE Ville"
+                },
+                {
+                    "label": "DTS"
+                },
+                {
+                    "label": "Eldorado"
+                },
+                {
+                    "label": "Escalade"
+                },
+                {
+                    "label": "Fleetwood"
+                },
+                {
+                    "label": "LSE"
+                },
+                {
+                    "label": "Seville"
+                },
+                {
+                    "label": "SRX"
+                },
+                {
+                    "label": "STS"
+                },
+                {
+                    "label": "XLR"
+                }
+            ],
+            "Ford": [
+                {
+                    "label": "427"
+                },
+                {
+                    "label": "Aerostar"
+                },
+                {
+                    "label": "Aspire"
+                },
+                {
+                    "label": "Bronco"
+                },
+                {
+                    "label": "C-Max II"
+                },
+                {
+                    "label": "Contour"
+                },
+                {
+                    "label": "Cougar"
+                },
+                {
+                    "label": "Crown Victoria"
+                },
+                {
+                    "label": "Econoline"
+                },
+                {
+                    "label": "Escape"
+                },
+                {
+                    "label": "Escort"
+                },
+                {
+                    "label": "Escort Cabrio"
+                },
+                {
+                    "label": "Escort Classic"
+                },
+                {
+                    "label": "Escort Estate"
+                },
+                {
+                    "label": "Escort Hatchback"
+                },
+                {
+                    "label": "Escort Turnier"
+                },
+                {
+                    "label": "Escort ZX2"
+                },
+                {
+                    "label": "Excursion"
+                },
+                {
+                    "label": "Expedition"
+                },
+                {
+                    "label": "Explorer"
+                },
+                {
+                    "label": "Faction"
+                },
+                {
+                    "label": "Falcon GT"
+                },
+                {
+                    "label": "Fiesta"
+                },
+                {
+                    "label": "Focus"
+                },
+                {
+                    "label": "Fusion"
+                },
+                {
+                    "label": "Galaxy"
+                },
+                {
+                    "label": "Ford GT"
+                },
+                {
+                    "label": "Ikon"
+                },
+                {
+                    "label": "Ka"
+                },
+                {
+                    "label": "Maverick"
+                },
+                {
+                    "label": "Model U"
+                },
+                {
+                    "label": "Mondeo"
+                },
+                {
+                    "label": "Mustang"
+                },
+                {
+                    "label": "Probe"
+                },
+                {
+                    "label": "Puma"
+                },
+                {
+                    "label": "Ranger"
+                },
+                {
+                    "label": "Scorpio"
+                },
+                {
+                    "label": "Shelby GR"
+                },
+                {
+                    "label": "SportKa"
+                },
+                {
+                    "label": "StreetKa"
+                },
+                {
+                    "label": "Taurus"
+                },
+                {
+                    "label": "Thunderbird"
+                },
+                {
+                    "label": "Toureno Connect"
+                },
+                {
+                    "label": "Transit"
+                },
+                {
+                    "label": "Windstar"
+                }
+            ],
+            "BMW": [
+                {
+                    "label": "1 series"
+                },
+                {
+                    "label": "3 series"
+                },
+                {
+                    "label": "5 series"
+                },
+                {
+                    "label": "6 series"
+                },
+                {
+                    "label": "7 series"
+                },
+                {
+                    "label": "8 series"
+                },
+                {
+                    "label": "M3"
+                },
+                {
+                    "label": "M5"
+                },
+                {
+                    "label": "X1"
+                },
+                {
+                    "label": "X3"
+                },
+                {
+                    "label": "X5"
+                },
+                {
+                    "label": "X6"
+                },
+                {
+                    "label": "xActivity"
+                },
+                {
+                    "label": "Z1"
+                },
+                {
+                    "label": "Z3"
+                },
+                {
+                    "label": "Z4"
+                },
+                {
+                    "label": "Z8"
+                }
+            ],
+            "Hummer": [
+                {
+                    "label": "H1"
+                },
+                {
+                    "label": "H2"
+                },
+                {
+                    "label": "H3"
                 }
             ]
         }
     },
     "Services": {
-        "entries": {
-            "": [
-                {
-                    "value": "tech",
-                    "label": "Техпомощь",
-                    "icon": "cog"
-                },
-                {
-                    "value": "towage",
-                    "label": "Эвакуация"
-                },
-                {
-                    "value": "rent",
-                    "label": "Подменный автомобиль",
-                    "icon": "road"
-                },
-                {
-                    "value": "hotel",
-                    "label": "Гостиница"
-                },
-                {
-                    "value": "taxi",
-                    "label": "Такси"
-                },
-                {
-                    "value": "sober",
-                    "label": "Трезвый водитель",
-                    "icon": "glass"
-                },
-                {
-                    "value": "transport",
-                    "label": "Транспортировка"
-                },
-                {
-                    "value": "delivery",
-                    "label": "Доставка ТС"
-                },
-                {
-                    "value": "details",
-                    "label": "Доставка запчастей"
-                },
-                {
-                    "value": "ken",
-                    "label": "Юридическая помощь"
-                },
-                {
-                    "value": "tech",
-                    "label": "ТО"
-                },
-                {
-                    "value": "info",
-                    "label": "Информирование о происшествии"
-                },
-                {
-                    "value": "bank",
-                    "label": "Банковская поддержка"
-                },
-                {
-                    "value": "tickets",
-                    "label": "Заказ билетов"
-                },
-                {
-                    "value": "unfuel",
-                    "label": "Слив топлива"
-                }
-            ]
-        }
+        "entries": [
+            {
+                "value": "tech",
+                "label": "Техпомощь",
+                "icon": "cog"
+            },
+            {
+                "value": "towage",
+                "label": "Эвакуация"
+            },
+            {
+                "value": "rent",
+                "label": "Подменный автомобиль",
+                "icon": "road"
+            },
+            {
+                "value": "hotel",
+                "label": "Гостиница"
+            },
+            {
+                "value": "taxi",
+                "label": "Такси"
+            },
+            {
+                "value": "sober",
+                "label": "Трезвый водитель",
+                "icon": "glass"
+            },
+            {
+                "value": "transport",
+                "label": "Транспортировка"
+            },
+            {
+                "value": "delivery",
+                "label": "Доставка ТС"
+            },
+            {
+                "value": "details",
+                "label": "Доставка запчастей"
+            },
+            {
+                "value": "ken",
+                "label": "Юридическая помощь"
+            },
+            {
+                "value": "tech",
+                "label": "ТО"
+            },
+            {
+                "value": "info",
+                "label": "Информирование о происшествии"
+            },
+            {
+                "value": "bank",
+                "label": "Банковская поддержка"
+            },
+            {
+                "value": "tickets",
+                "label": "Заказ билетов"
+            },
+            {
+                "value": "unfuel",
+                "label": "Слив топлива"
+            }
+        ]
     },
     "Diagnosis1": {
-        "entries": {
-            "": [
-                {
-                    "value": "steer",
-                    "label": "Руль"
-                },
-                {
-                    "value": "wheels",
-                    "label": "Колёса"
-                }
-            ]
-        }
+        "entries": [
+            {
+                "value": "steer",
+                "label": "Руль"
+            },
+            {
+                "value": "wheels",
+                "label": "Колёса"
+            }
+        ]
     },
     "Diagnosis2": {
         "entries": {
@@ -536,271 +868,267 @@
         }
     },
     "Programs": {
-        "entries": {
-            "": [
-	        {
-	            "value":"p1",
-                    "label":"VW / Легковые автомобили"
-	        },
-	        {
-	            "value":"p2",
-                    "label":"VW / Коммерческие автомобили"
-	        },
-	        {
-	            "value":"p3",
-                    "label":"ACTA / Bentley"
-	        },
-	        {
-	            "value":"p4",
-                    "label":"ACTA / Aston Martin"
-	        },
-	        {
-	            "value":"p5",
-                    "label":"B2B / Arc B2B"
-	        },
-	        {
-	            "value":"p6",
-                    "label":"B2B / RTR Hyundai"
-	        },
-	        {
-	            "value":"p7",
-                    "label":"B2B / Дженсер Ясенево"
-	        },
-	        {
-	            "value":"p8",
-                    "label":"B2B / ИП Трубкин"
-	        },
-	        {
-	            "value":"p9",
-                    "label":"B2B / ДЦ Автоимпорт"
-	        },
-	        {
-	            "value":"p10",
-                    "label":"B2B / ДЦ ТВД-Авто"
-	        },
-	        {
-	            "value":"p11",
-                    "label":"B2B / АРВАЛ"
-	        },
-	        {
-	            "value":"p12",
-                    "label":"B2B / 3S Телематика"
-	        },
-	        {
-	            "value":"p13",
-                    "label":"GM / Chevrolet Korea"
-	        },
-	        {
-	            "value":"p14",
-                    "label":"GM / Chevrolet NA"
-	        },
-	        {
-	            "value":"p15",
-                    "label":"GM / Cadillac до 2012"
-	        },
-	        {
-	            "value":"p16",
-                    "label":"GM / Opel (после 01.04.2011]"
-	        },
-	        {
-	            "value":"p17",
-                    "label":"GM / Hummer"
-	        },
-	        {
-	            "value":"p18",
-                    "label":"GM / Cadillac после 2012"
-	        },
-	        {
-	            "value":"p19",
-                    "label":"Заказ билетов"
-	        },
-	        {
-	            "value":"p20",
-                    "label":"B2C"
-	        },
-	        {
-	            "value":"p21",
-                    "label":"Ford"
-	        },
-	        {
-	            "value":"p22",
-                    "label":"BP"
-	        },
-	        {
-	            "value":"p23",
-                    "label":"Рус Лан"
-	        },
-	        {
-	            "value":"p24",
-                    "label":"Атлант М"
-	        },
-	        {
-	            "value":"p25",
-                    "label":"Chartis Assistance"
-	        },
-	        {
-	            "value":"p26",
-                    "label":"Autokraft Assistance"
-	        }
-            ]
-        }
+        "entries": [
+	    {
+	        "value":"p1",
+                "label":"VW / Легковые автомобили"
+	    },
+	    {
+	        "value":"p2",
+                "label":"VW / Коммерческие автомобили"
+	    },
+	    {
+	        "value":"p3",
+                "label":"ACTA / Bentley"
+	    },
+	    {
+	        "value":"p4",
+                "label":"ACTA / Aston Martin"
+	    },
+	    {
+	        "value":"p5",
+                "label":"B2B / Arc B2B"
+	    },
+	    {
+	        "value":"p6",
+                "label":"B2B / RTR Hyundai"
+	    },
+	    {
+	        "value":"p7",
+                "label":"B2B / Дженсер Ясенево"
+	    },
+	    {
+	        "value":"p8",
+                "label":"B2B / ИП Трубкин"
+	    },
+	    {
+	        "value":"p9",
+                "label":"B2B / ДЦ Автоимпорт"
+	    },
+	    {
+	        "value":"p10",
+                "label":"B2B / ДЦ ТВД-Авто"
+	    },
+	    {
+	        "value":"p11",
+                "label":"B2B / АРВАЛ"
+	    },
+	    {
+	        "value":"p12",
+                "label":"B2B / 3S Телематика"
+	    },
+	    {
+	        "value":"p13",
+                "label":"GM / Chevrolet Korea"
+	    },
+	    {
+	        "value":"p14",
+                "label":"GM / Chevrolet NA"
+	    },
+	    {
+	        "value":"p15",
+                "label":"GM / Cadillac до 2012"
+	    },
+	    {
+	        "value":"p16",
+                "label":"GM / Opel (после 01.04.2011]"
+	    },
+	    {
+	        "value":"p17",
+                "label":"GM / Hummer"
+	    },
+	    {
+	        "value":"p18",
+                "label":"GM / Cadillac после 2012"
+	    },
+	    {
+	        "value":"p19",
+                "label":"Заказ билетов"
+	    },
+	    {
+	        "value":"p20",
+                "label":"B2C"
+	    },
+	    {
+	        "value":"p21",
+                "label":"Ford"
+	    },
+	    {
+	        "value":"p22",
+                "label":"BP"
+	    },
+	    {
+	        "value":"p23",
+                "label":"Рус Лан"
+	    },
+	    {
+	        "value":"p24",
+                "label":"Атлант М"
+	    },
+	    {
+	        "value":"p25",
+                "label":"Chartis Assistance"
+	    },
+	    {
+	        "value":"p26",
+                "label":"Autokraft Assistance"
+	    }
+        ]
     },
     "Wazzup": {
-        "entries": {
-            "": [
-                {
-                    "label": "Автомобиль заглох",
-                    "value": "p1"
-                },
-                {
-                    "label": "Автомобиль задымился",
-                    "value": "p2"
-                },
-                {
-                    "label": "Автомобиль не заводится",
-                    "value": "p3"
-                },
-                {
-                    "label": "Аккумулятор не держит заряд",
-                    "value": "p4"
-                },
-                {
-                    "label": "Вытекает охлаждающая жидкость",
-                    "value": "p5"
-                },
-                {
-                    "label": "Вышла из строя рулевая колонка",
-                    "value": "p6"
-                },
-                {
-                    "label": "Горит индикатор давления масла",
-                    "value": "p7"
-                },
-                {
-                    "label": "Горит индикатор неисправности двигателя",
-                    "value": "p8"
-                },
-                {
-                    "label": "Двигатель «закипел»",
-                    "value": "p9"
-                },
-                {
-                    "label": "Двигатель троит",
-                    "value": "p10"
-                },
-                {
-                    "label": "Заклинило замок зажигания",
-                    "value": "p11"
-                },
-                {
-                    "label": "Заклинило колесо",
-                    "value": "p12"
-                },
-                {
-                    "label": "Залиты свечи",
-                    "value": "p13"
-                },
-                {
-                    "label": "Не отключается сигнализация",
-                    "value": "p14"
-                },
-                {
-                    "label": "Не отключается штатная сигнализация",
-                    "value": "p15"
-                },
-                {
-                    "label": "Не переключается коробка передач",
-                    "value": "p16"
-                },
-                {
-                    "label": "Не работает гидроусилитель руля",
-                    "value": "p17"
-                },
-                {
-                    "label": "Не работает печка (минусовая температура)",
-                    "value": "p18"
-                },
-                {
-                    "label": "Не работают стеклоочистители (дождь, снег, град)",
-                    "value": "p19"
-                },
-                {
-                    "label": "Не работают фары (ночное время или плохая видимость)",
-                    "value": "p20"
-                },
-                {
-                    "label": "Неисправность генератора",
-                    "value": "p21"
-                },
-                {
-                    "label": "Порвался ремень ГРМ",
-                    "value": "p22"
-                },
-                {
-                    "label": "Порвался ремень генератора",
-                    "value": "p23"
-                },
-                {
-                    "label": "Примерзли тормозные колодки",
-                    "value": "p24"
-                },
-                {
-                    "label": "Провалилась педаль тормоза",
-                    "value": "p25"
-                },
-                {
-                    "label": "Пропало сцепление",
-                    "value": "p26"
-                },
-                {
-                    "label": "Разрядился аккумулятор",
-                    "value": "p27"
-                },
-                {
-                    "label": "Рассыпался подшипник",
-                    "value": "p28"
-                },
-                {
-                    "label": "Рассыпался шрус",
-                    "value": "p29"
-                },
-                {
-                    "label": "Сломался шкив коленвала",
-                    "value": "p30"
-                },
-                {
-                    "label": "Слышен скрежет в двигателе",
-                    "value": "p31"
-                },
-                {
-                    "label": "Течет жидкость из гидроусилителя руля",
-                    "value": "p32"
-                },
-                {
-                    "label": "Течет масло",
-                    "value": "p33"
-                },
-                {
-                    "label": "Упали обороты, не набирает обороты",
-                    "value": "p34"
-                },
-                {
-                    "label": "Двери захлопнулись, ключи остались внутри",
-                    "value": "p35"
-                },
-                {
-                    "label": "Проколото колесо",
-                    "value": "p36"
-                },
-                {
-                    "label": "Порезаны колеса",
-                    "value": "p37"
-                },
-                {
-                    "label": "Ключи от автомобиля утеряны",
-                    "value": "p38"
-                }
-            ]
-        }
+        "entries": [
+            {
+                "label": "Автомобиль заглох",
+                "value": "p1"
+            },
+            {
+                "label": "Автомобиль задымился",
+                "value": "p2"
+            },
+            {
+                "label": "Автомобиль не заводится",
+                "value": "p3"
+            },
+            {
+                "label": "Аккумулятор не держит заряд",
+                "value": "p4"
+            },
+            {
+                "label": "Вытекает охлаждающая жидкость",
+                "value": "p5"
+            },
+            {
+                "label": "Вышла из строя рулевая колонка",
+                "value": "p6"
+            },
+            {
+                "label": "Горит индикатор давления масла",
+                "value": "p7"
+            },
+            {
+                "label": "Горит индикатор неисправности двигателя",
+                "value": "p8"
+            },
+            {
+                "label": "Двигатель «закипел»",
+                "value": "p9"
+            },
+            {
+                "label": "Двигатель троит",
+                "value": "p10"
+            },
+            {
+                "label": "Заклинило замок зажигания",
+                "value": "p11"
+            },
+            {
+                "label": "Заклинило колесо",
+                "value": "p12"
+            },
+            {
+                "label": "Залиты свечи",
+                "value": "p13"
+            },
+            {
+                "label": "Не отключается сигнализация",
+                "value": "p14"
+            },
+            {
+                "label": "Не отключается штатная сигнализация",
+                "value": "p15"
+            },
+            {
+                "label": "Не переключается коробка передач",
+                "value": "p16"
+            },
+            {
+                "label": "Не работает гидроусилитель руля",
+                "value": "p17"
+            },
+            {
+                "label": "Не работает печка (минусовая температура)",
+                "value": "p18"
+            },
+            {
+                "label": "Не работают стеклоочистители (дождь, снег, град)",
+                "value": "p19"
+            },
+            {
+                "label": "Не работают фары (ночное время или плохая видимость)",
+                "value": "p20"
+            },
+            {
+                "label": "Неисправность генератора",
+                "value": "p21"
+            },
+            {
+                "label": "Порвался ремень ГРМ",
+                "value": "p22"
+            },
+            {
+                "label": "Порвался ремень генератора",
+                "value": "p23"
+            },
+            {
+                "label": "Примерзли тормозные колодки",
+                "value": "p24"
+            },
+            {
+                "label": "Провалилась педаль тормоза",
+                "value": "p25"
+            },
+            {
+                "label": "Пропало сцепление",
+                "value": "p26"
+            },
+            {
+                "label": "Разрядился аккумулятор",
+                "value": "p27"
+            },
+            {
+                "label": "Рассыпался подшипник",
+                "value": "p28"
+            },
+            {
+                "label": "Рассыпался шрус",
+                "value": "p29"
+            },
+            {
+                "label": "Сломался шкив коленвала",
+                "value": "p30"
+            },
+            {
+                "label": "Слышен скрежет в двигателе",
+                "value": "p31"
+            },
+            {
+                "label": "Течет жидкость из гидроусилителя руля",
+                "value": "p32"
+            },
+            {
+                "label": "Течет масло",
+                "value": "p33"
+            },
+            {
+                "label": "Упали обороты, не набирает обороты",
+                "value": "p34"
+            },
+            {
+                "label": "Двери захлопнулись, ключи остались внутри",
+                "value": "p35"
+            },
+            {
+                "label": "Проколото колесо",
+                "value": "p36"
+            },
+            {
+                "label": "Порезаны колеса",
+                "value": "p37"
+            },
+            {
+                "label": "Ключи от автомобиля утеряны",
+                "value": "p38"
+            }
+        ]
     }
 }
