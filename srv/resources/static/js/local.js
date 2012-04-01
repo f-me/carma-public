@@ -161,12 +161,6 @@ function getFormatTime() {
     return sd;
 }
 
-
-// Scroll to the bottom of the page
-function scrollDown() {
-    window.scrollTo(0, document.body.scrollHeight - 300);
-}
-
 // Hide all views on center pane and show view for first reference
 // stored in <fieldName> of model loaded into <parentView> there
 function showComplex(parentView, fieldName) {
@@ -181,22 +175,6 @@ function showComplex(parentView, fieldName) {
     });
 }
 
-// Return name field of refInstance the insight observable of parent
-// instance must evaluate to.
-function insightField(refInstance) {
-    switch (refInstance.name) {
-        case "caller": {
-            return "callerName";
-            break;
-        }
-        case "car": {
-            return "vin";
-            break;
-        }
-    }
-    return "_none_";
-}
-
 // Top-level wrapper for storeService
 function addService(name) {
     addReference(global.viewsWare["case-form"].bbInstance,
@@ -205,8 +183,6 @@ function addService(name) {
                   forest: "case-service-references"},
                  "center",
                  {elCb: stdElCb});
-    // FIXME (doesn't scroll properly)
-    scrollDown();
 }
 
 function setupCallForm(viewName, args) {
