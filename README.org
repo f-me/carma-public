@@ -95,6 +95,8 @@
    #+END_SRC
 
    Labels and values *must not* overlap in different categories.
+
+   If no value specified, then label is used instead.
 ** Typeahead integration
    Our Typeahead allows for dictionary record to be passed as
    `data-source` attribute:

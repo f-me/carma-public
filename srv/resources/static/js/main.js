@@ -153,21 +153,10 @@ function knockBackbone(instance, viewName) {
                            }});
     }
 
-    for (f in instance.dictionaryFields) {
-        var n = _.clone(f);
+    for (n in instance.dictionaryFields) {
         var fieldName = instance.dictionaryFields[n];
         var dict = instance.fieldHash[fieldName].meta.dictionaryName;
         var parent = instance.fieldHash[fieldName].meta.dictionaryParent;
-        // Set up dependent dictionary fields to clear when parent value
-        // changes
-        if (parent) {
-            (function(f){
-                instance.bind("change:" + parent,
-                              function(v) {
-                                  instance.set(f, "");
-                              });
-            })(fieldName);
-        }
 
         // Perform label-value transformation
         (function(f, d){

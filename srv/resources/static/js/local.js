@@ -96,11 +96,12 @@ function setupCaseMain(viewName, args) {
     // not have been called yet, thus we explicitly use applyBindings
     // here.
     var fetchCb = function () {
+        var instance = global.viewsWare["case-form"].bbInstance;
         var ctx = {
             "fields":
-            _.map(global.viewsWare["case-form"].bbInstance.requiredFields,
+            _.map(instance.requiredFields,
                   function (f) {
-                      return global.viewsWare["case-form"].bbInstance.fieldHash[f];
+                      return instance.fieldHash[f];
                   })};
         
         $("#right").html(
@@ -108,6 +109,22 @@ function setupCaseMain(viewName, args) {
 
         ko.applyBindings(global.viewsWare["case-form"].knockVM, 
                          el("empty-fields"));
+
+        for (n in instance.dictionaryFields) {
+            var fieldName = instance.dictionaryFields[n];
+            var parent = instance.fieldHash[fieldName].meta.dictionaryParent;
+
+            // Set up dependent dictionary fields to clear when parent value
+            // changes
+            if (parent) {
+                (function(f){
+                    instance.bind("change:" + parent,
+                                  function(v) {
+                                      instance.set(f, "");
+                                  });
+                })(fieldName);
+            }
+        }
     };
 
     modelSetup("case")(viewName, args, 
