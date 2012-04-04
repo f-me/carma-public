@@ -449,7 +449,8 @@
                    class="pane-span"
                    onfocus="showComplex('{{ viewName }}', '{{ name }}');"
                    {{# meta.readonly }}disabled{{/ meta.readonly }}
-                   data-bind="value: {{ name }}" />
+                   data-bind="value: {{ name }},
+                              valueUpdate: 'afterkeydown'" />
             <span class="add-on">
               <i onclick="showComplex('{{ viewName }}', '{{ name }}');"
                  class="icon icon-share" />
