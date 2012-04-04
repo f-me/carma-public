@@ -123,8 +123,6 @@
             "meta": {
                 "label": "ФИО"
             },
-            "canWrite": true,
-            "canRead": true,
             "index": true,
             "indexCollate": true
         },
@@ -133,27 +131,19 @@
             "meta": {
                 "label": "Контактные телефоны"
             },
-            "canWrite": true,
-            "canRead": true,
             "index": true,
             "indexCollate": true
         },
         {
             "name": "phone2",
-            "canWrite": true,
-            "canRead": true,
             "index": true
         },
         {
             "name": "phone3",
-            "canWrite": true,
-            "canRead": true,
             "index": true
         },
         {
             "name": "phone4",
-            "canWrite": true,
-            "canRead": true,
             "index": true
         }
     ],
@@ -162,23 +152,17 @@
             "name": "address",
             "meta": {
                 "label": "Адрес"
-            },
-            "canWrite": true,
-            "canRead": true
+            }
         },
         {
             "name": "comment",
             "meta": {
                 "label": "Примечания"
-            },
-            "canWrite": true,
-            "canRead": true
+            }
         },
         {
             "name": "coords",
-            "type": "map",
-            "canWrite": true,
-            "canRead": true
+            "type": "map"
         }
     ],
   "partner": [
@@ -186,9 +170,7 @@
             "name": "partner",
             "meta": {
               "label": "Партнёр"
-            },
-            "canWrite": true,
-            "canRead": true
+            }
         },
         {
             "name": "partnerTable",
@@ -220,15 +202,11 @@
                         "label": "Тариф"
                     }
                 ]
-            },
-            "canWrite": true,
-            "canRead": true
+            }
         },
         {
             "name": "coords",
-            "type": "map",
-            "canWrite": true,
-            "canRead": true
+            "type": "map"
         }
     ]  
 }
