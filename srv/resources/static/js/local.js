@@ -117,6 +117,9 @@ function setupCaseMain(viewName, args) {
         ko.applyBindings(global.viewsWare["case-form"].knockVM, 
                          el("empty-fields"));
 
+        // We do this here (instead of knockBackbone) to ensure that
+        // no dependant dictionary fields get accidentally erased when
+        // model is first populated.
         for (n in instance.dictionaryFields) {
             var fieldName = instance.dictionaryFields[n];
             var parent = instance.fieldHash[fieldName].meta.dictionaryParent;
