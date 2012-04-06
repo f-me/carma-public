@@ -12,7 +12,7 @@ module Application (appInit)
 
 where
 
-import Prelude hiding (lookup)
+import Prelude hiding (catch, lookup)
 
 import Control.Monad.IO.Class
 import Data.Functor
@@ -31,10 +31,14 @@ import Snap.Snaplet.Heist
 import Snap.Snaplet.Session
 import Snap.Snaplet.Session.Backends.CookieSession
 import Snap.Util.FileServe
+import Snap.Util.FileUploads
 import Text.Templating.Heist.Splices.Json
 
 import Snap.Snaplet.Redson
 
+import System.Directory (getTemporaryDirectory)
+
+import Control.Monad.CatchIO (catch)
 
 ------------------------------------------------------------------------------
 -- | Application snaplet state type: Redson, Heist.
@@ -102,12 +106,36 @@ doLogin = ifTop $ do
 
 
 ------------------------------------------------------------------------------
+-- | Render upload form for XLSX files with VIN numbers.
+vinForm :: AppHandler ()
+vinForm = do
+  serveFile $ "snaplets/heist/resources/templates/vin.html"
+
+
+------------------------------------------------------------------------------
+-- | Upload file with VIN numbers.
+doVin :: AppHandler ()
+doVin = ifTop $ do
+  d <- liftIO $ getTemporaryDirectory
+  handleFileUploads d defaultUploadPolicy partUploadPolicy handler
+    `catch` (writeText . fileUploadExceptionReason)
+  where
+    partUploadPolicy _ = allowWithMaximumSize $ 10 * 2^(20::Int)
+
+    handler []        = writeBS "no files"
+    handler ((_,p):_) =
+        either (writeText . policyViolationExceptionReason) (const $ writeBS "uploaded") p
+
+
+------------------------------------------------------------------------------
 -- | The application's routes.
 routes :: [(ByteString, AppHandler ())]
 routes = [ ("/", method GET $ authOrLogin indexPage)
          , ("/login/", method GET loginForm)
          , ("/login/", method POST doLogin)
          , ("/logout/", with auth $ logout >> redirectToLogin)
+         , ("/vin", method GET vinForm)
+         , ("/vin", method POST doVin)
          , ("/s/", serveDirectory "resources/static")
          ]
 
