@@ -14,7 +14,10 @@
 //
 // Dictionaries are used by UI to map predefined keys to readable
 // values.
-function mainSetup(localScreens, localRouter, localDictionaries) {
+//
+// user object is stored in global hash and contains data about
+// current user.
+function mainSetup(localScreens, localRouter, localDictionaries, user) {
     var Screens = localScreens;
 
     var dictLabelCache = {};
@@ -54,7 +57,7 @@ function mainSetup(localScreens, localRouter, localDictionaries) {
         dictLabelCache: dictLabelCache,
         // Maps values to labels
         dictValueCache: dictValueCache,
-
+        user: user,
         activeScreen: null,
         // viewWare is for bookkeeping of views in current screen.
         //

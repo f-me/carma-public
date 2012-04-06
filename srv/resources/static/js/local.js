@@ -1,6 +1,6 @@
 /// Everything local to the customer resides here
 
-localScreens = {
+var localScreens = {
     "case":
     {
         "template": "case-screen-template",
@@ -28,7 +28,7 @@ localScreens = {
 };
 
 // Setup routing
-localRouter = Backbone.Router.extend({
+var localRouter = Backbone.Router.extend({
     // Must _not_ end with trailing slashes
     routes: {
         "case/:id": "loadCase",
@@ -57,7 +57,10 @@ localRouter = Backbone.Router.extend({
 $(function () {
     $.getJSON("/s/js/data/dictionaries.json",
           function(dicts) {
-              mainSetup(localScreens, localRouter, dicts);
+              $.getJSON("/_whoami/",          
+                        function(user) {
+                            mainSetup(localScreens, localRouter, dicts, user);
+                        });
           });
 });
 
@@ -90,7 +93,7 @@ function setupCaseMain(viewName, args) {
     ];
 
     // Default values
-    _.extend(args, {callTaker: $("#realName").text(),
+    _.extend(args, {callTaker: global.user.meta.realName,
                     callDate: getFormatDate(),
                     callTime: getFormatTime()});
 
