@@ -23,7 +23,7 @@ function mainSetup(localScreens, localRouter, localDictionaries, user) {
     var dictLabelCache = {};
     var dictValueCache = {};
 
-    // Build caches
+    // Build caches (TODO: Do this on server some day)
     for (d in localDictionaries) {
         dictLabelCache[d] = {};
         dictValueCache[d] = {};
