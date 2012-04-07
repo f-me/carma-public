@@ -106,7 +106,7 @@ function setupCaseMain(viewName, args) {
     // not have been called yet, thus we explicitly use applyBindings
     // here.
     var fetchCb = function () {
-        var instance = global.viewsWare["case-form"].bbInstance;
+        var instance = global.viewsWare[viewName].bbInstance;
         var ctx = {
             "fields":
             _.map(instance.requiredFields,
@@ -117,7 +117,7 @@ function setupCaseMain(viewName, args) {
         $("#right").html(
             Mustache.render($("#empty-fields-template").html(), ctx));
 
-        ko.applyBindings(global.viewsWare["case-form"].knockVM, 
+        ko.applyBindings(global.viewsWare[viewName].knockVM, 
                          el("empty-fields"));
 
         // We do this here (instead of knockBackbone) to ensure that
