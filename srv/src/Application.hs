@@ -19,6 +19,7 @@ import Data.Functor
 import Data.Maybe
 
 import Data.ByteString (ByteString)
+import qualified Data.ByteString.Char8 as B
 import Data.Configurator
 import Data.Lens.Template
 import Data.Time.Clock
@@ -39,6 +40,8 @@ import Snap.Snaplet.Redson
 import System.Directory (getTemporaryDirectory)
 
 import Control.Monad.CatchIO (catch)
+
+import Vin.Import
 
 ------------------------------------------------------------------------------
 -- | Application snaplet state type: Redson, Heist.
@@ -120,11 +123,22 @@ doVin = ifTop $ do
   handleFileUploads d defaultUploadPolicy partUploadPolicy handler
     `catch` (writeText . fileUploadExceptionReason)
   where
-    partUploadPolicy _ = allowWithMaximumSize $ 10 * 2^(20::Int)
+    uploadPolicy = setUploadTimeout 300 defaultUploadPolicy
+
+    partUploadPolicy _ = allowWithMaximumSize $ 100 * 2^(20::Int)
 
     handler []        = writeBS "no files"
     handler ((_,p):_) =
-        either (writeText . policyViolationExceptionReason) (const $ writeBS "uploaded") p
+        either (writeText . policyViolationExceptionReason) action p
+
+
+action :: FilePath -> AppHandler ()
+action f = do
+  msg <- liftIO $ either
+                    (B.pack . show)
+                    (const "Ok")
+                  <$> loadFile f "vwMotor"
+  writeBS msg
 
 
 ------------------------------------------------------------------------------

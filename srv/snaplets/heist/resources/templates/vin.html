@@ -7,7 +7,12 @@
   <body>
     <h1>Upload VINs</h1>
     <form action="/vin" enctype="multipart/form-data" method="post">
-      <p><input name="file" type="file"></p>
+      <p>
+	<select name="program">
+	  <option value="vmMotor">Vw легковые</option>
+	</select>
+	<input name="file" type="file">
+      </p>
       <p><button>Submit</button></p>
     </form>
   </body>

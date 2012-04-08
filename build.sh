@@ -9,7 +9,8 @@ REPOS=("https://github.com/snapframework/snap.git"
        "https://github.com/snapframework/heist.git"
        "https://github.com/dzhus/snaplet-redis.git"
        "https://github.com/f-me/snaplet-redson.git"
-       "https://github.com/f-me/avaya-aes.git")
+       "https://github.com/f-me/avaya-aes.git"
+       "https://github.com/f-me/xlsx-parser.git")
 
 
 if [[ ! -d "$DEPS_DIR" ]]; then
@@ -86,5 +87,6 @@ for repo in "${repos_to_rebuild[@]}"; do
 done
 
 cabal-dev configure && cabal-dev build
+#cabal-dev install
 
 cd $CARMA_DIR
