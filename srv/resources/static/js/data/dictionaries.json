@@ -1442,107 +1442,107 @@
     "Programs": {
         "entries": [
 	    {
-	        "value":"p1",
+	        "value":"vw",
                 "label":"VW / Легковые автомобили"
 	    },
 	    {
-	        "value":"p2",
+	        "value":"vwcargo",
                 "label":"VW / Коммерческие автомобили"
 	    },
 	    {
-	        "value":"p3",
+	        "value":"bentley",
                 "label":"ACTA / Bentley"
 	    },
 	    {
-	        "value":"p4",
+	        "value":"aston",
                 "label":"ACTA / Aston Martin"
 	    },
 	    {
-	        "value":"p5",
+	        "value":"arc",
                 "label":"B2B / Arc B2B"
 	    },
 	    {
-	        "value":"p6",
+	        "value":"hyundai",
                 "label":"B2B / RTR Hyundai"
 	    },
 	    {
-	        "value":"p7",
+	        "value":"jenser",
                 "label":"B2B / Дженсер Ясенево"
 	    },
 	    {
-	        "value":"p8",
+	        "value":"corpse",
                 "label":"B2B / ИП Трубкин"
 	    },
 	    {
-	        "value":"p9",
+	        "value":"auimp",
                 "label":"B2B / ДЦ Автоимпорт"
 	    },
 	    {
-	        "value":"p10",
+	        "value":"tvd",
                 "label":"B2B / ДЦ ТВД-Авто"
 	    },
 	    {
-	        "value":"p11",
+	        "value":"arval",
                 "label":"B2B / АРВАЛ"
 	    },
 	    {
-	        "value":"p12",
+	        "value":"tele",
                 "label":"B2B / 3S Телематика"
 	    },
 	    {
-	        "value":"p13",
+	        "value":"korea",
                 "label":"GM / Chevrolet Korea"
 	    },
 	    {
-	        "value":"p14",
+	        "value":"chevy",
                 "label":"GM / Chevrolet NA"
 	    },
 	    {
-	        "value":"p15",
+	        "value":"oldcad",
                 "label":"GM / Cadillac до 2012"
 	    },
 	    {
-	        "value":"p16",
+	        "value":"opel",
                 "label":"GM / Opel (после 01.04.2011]"
 	    },
 	    {
-	        "value":"p17",
+	        "value":"hum",
                 "label":"GM / Hummer"
 	    },
 	    {
-	        "value":"p18",
+	        "value":"cad",
                 "label":"GM / Cadillac после 2012"
 	    },
 	    {
-	        "value":"p19",
+	        "value":"tickets",
                 "label":"Заказ билетов"
 	    },
 	    {
-	        "value":"p20",
+	        "value":"b2c",
                 "label":"B2C"
 	    },
 	    {
-	        "value":"p21",
+	        "value":"ford",
                 "label":"Ford"
 	    },
 	    {
-	        "value":"p22",
+	        "value":"bp",
                 "label":"BP"
 	    },
 	    {
-	        "value":"p23",
+	        "value":"ruslan",
                 "label":"Рус Лан"
 	    },
 	    {
-	        "value":"p24",
+	        "value":"atlant",
                 "label":"Атлант М"
 	    },
 	    {
-	        "value":"p25",
+	        "value":"chartis",
                 "label":"Chartis Assistance"
 	    },
 	    {
-	        "value":"p26",
+	        "value":"kraft",
                 "label":"Autokraft Assistance"
 	    }
         ]
