@@ -54,20 +54,44 @@ var localRouter = Backbone.Router.extend({
     }
 });
 
+var localHooks = {
+    "*": [stdElCb, dictionaryHook]          
+};
+
 $(function () {
     $.getJSON("/s/js/data/dictionaries.json",
-          function(dicts) {
-              $.getJSON("/_whoami/",          
-                        function(user) {
-                            mainSetup(localScreens, localRouter, dicts, user);
-                        });
-          });
+  function(dicts) {
+    $.getJSON("/_whoami/",          
+  function(user) {
+
+      mainSetup(localScreens, localRouter, dicts, localHooks, user);
+
+  });
+  });
 });
 
+// Clear dependant dictionary fields when parent is changed
+function dictionaryHook(elName) {
+    var instance = global.viewsWare[elName].bbInstance;
+    for (n in instance.dictionaryFields) {
+        var fieldName = instance.dictionaryFields[n];
+        var parent = instance.fieldHash[fieldName].meta.dictionaryParent;
+
+        if (parent) {
+            (function(f){
+                instance.bind("change:" + parent,
+                              function(v) {
+                                  instance.set(f, "");
+                              });
+            })(fieldName);
+        }
+    }
+}
 
 // Standard element callback which will scroll model into view and
 // focus on first field
-function stdElCb(e) {
+function stdElCb(elName) {
+    var e = $el(elName);
     // Scroll group to the top of the screen
     if (e.hasClass("accordion-inner")) {
         e.parents(".accordion-group")[0].scrollIntoView();
@@ -119,25 +143,6 @@ function setupCaseMain(viewName, args) {
 
         ko.applyBindings(global.viewsWare[viewName].knockVM, 
                          el("empty-fields"));
-
-        // We do this here (instead of knockBackbone) to ensure that
-        // no dependant dictionary fields get accidentally erased when
-        // model is first populated.
-        for (n in instance.dictionaryFields) {
-            var fieldName = instance.dictionaryFields[n];
-            var parent = instance.fieldHash[fieldName].meta.dictionaryParent;
-
-            // Set up dependent dictionary fields to clear when parent value
-            // changes
-            if (parent) {
-                (function(f){
-                    instance.bind("change:" + parent,
-                                  function(v) {
-                                      instance.set(f, "");
-                                  });
-                })(fieldName);
-            }
-        }
     };
 
     modelSetup("case")(viewName, args, 
@@ -146,7 +151,6 @@ function setupCaseMain(viewName, args) {
                         slotsee: ["case-number"],
                         groupsForest: "center",
                         fetchCb: fetchCb,
-                        elCb: stdElCb,
                         refs:refs});
 
     // Render service picker
@@ -194,8 +198,8 @@ function addService(name) {
                  {field: "services",
                   modelName: name,
                   forest: "case-service-references"},
-                 "center",
-                 {elCb: stdElCb});
+                 "center"
+                );
 }
 
 function setupCallForm(viewName, args) {

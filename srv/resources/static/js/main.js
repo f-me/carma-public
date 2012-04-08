@@ -13,11 +13,14 @@
 // Screen rendering is called through router.
 //
 // Dictionaries are used by UI to map predefined keys to readable
-// values.
+// values (see knockBackbone).
+//
+// modelHooks — a hash with lists of hooks called at the end of
+// modelSetup for respective model.
 //
 // user object is stored in global hash and contains data about
 // current user.
-function mainSetup(localScreens, localRouter, localDictionaries, user) {
+function mainSetup(localScreens, localRouter, localDictionaries, modelHooks, user) {
     var Screens = localScreens;
 
     var dictLabelCache = {};
@@ -57,6 +60,7 @@ function mainSetup(localScreens, localRouter, localDictionaries, user) {
         dictLabelCache: dictLabelCache,
         // Maps values to labels
         dictValueCache: dictValueCache,
+        modelHooks: modelHooks,
         user: user,
         activeScreen: null,
         // viewWare is for bookkeeping of views in current screen.
@@ -255,9 +259,10 @@ function knockBackbone(instance, viewName) {
 //   viewsWare entry for parent view. Referenced models are
 //   recursively rendered with the same value of groupsForest (so
 //   parent model and its children share the same groupsForest).
-//   
-// - elCb: Function which will be called with DOM element whose name
-//   was passed as `elName` after model has been rendered.
+//
+// After model is set, every hook in global.modelHooks["*"] and
+// global.modelHooks[modelName] is called with model view name as
+// argument.
 function modelSetup(modelName) {
     return function(elName, args, options) {
         $.getJSON(modelMethod(modelName, "model"),
@@ -362,10 +367,7 @@ function modelSetup(modelName) {
                     instance.setupServerSync();
                 }, 1000);
 
-                // Do extra stuff on element
-                if (options.elCb)
-                    options.elCb($el(elName));
-
+                // Bookkeeping
                 global.viewsWare[elName] = {
                     "model": model,
                     "bbInstance": instance,
@@ -374,6 +376,15 @@ function modelSetup(modelName) {
                     "knockVM": knockVM,
                     "depViews": depViews
                 };
+
+                // Run global hooks
+                for (f in global.modelHooks["*"])
+                    global.modelHooks["*"][f](elName);
+
+                // Run model-specific hooks
+                if (_.has(global.modelHooks, modelName))
+                    for (f in global.modelHooks[modelName])
+                        global.modelHooks[modelName][f](elName);
             });
     }
 }
