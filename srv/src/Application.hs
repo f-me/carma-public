@@ -14,6 +14,8 @@ where
 
 import Prelude hiding (catch, lookup)
 
+import qualified Data.Aeson as A
+
 import Control.Monad.IO.Class
 import Data.Functor
 import Data.Maybe
@@ -43,6 +45,7 @@ import Control.Monad.CatchIO (catch)
 
 import Vin.Import
 
+
 ------------------------------------------------------------------------------
 -- | Application snaplet state type: Redson, Heist.
 data App = App
@@ -64,13 +67,7 @@ instance HasHeist App where
 ------------------------------------------------------------------------------
 -- | Render empty form for model.
 indexPage :: AppHandler ()
-indexPage = ifTop $ do
-  au <- with auth $ currentUser
-  case au of
-    Just user -> do
-            renderWithSplices "index"
-                 [("userMeta", liftHeist $ bindJson $ userMeta user)]
-    Nothing -> render "index"
+indexPage = ifTop $ render "index"
 
 
 ------------------------------------------------------------------------------
@@ -106,6 +103,16 @@ doLogin = ifTop $ do
   case res of
     Left err -> redirectToLogin
     Right user -> redirect "/"
+
+------------------------------------------------------------------------------
+-- | Serve user account data back to client.
+--
+-- Assume that user login is already checked with 'authOrLogin'.
+serveUserCake :: AppHandler ()
+serveUserCake = ifTop $ do
+  Just user <- with auth $ currentUser
+  modifyResponse $ setContentType "application/json"
+  writeLBS $ A.encode user
 
 
 ------------------------------------------------------------------------------
@@ -150,6 +157,7 @@ routes = [ ("/", method GET $ authOrLogin indexPage)
          , ("/logout/", with auth $ logout >> redirectToLogin)
          , ("/vin", method GET vinForm)
          , ("/vin", method POST doVin)
+         , ("/_whoami/", method GET $ authOrLogin serveUserCake)
          , ("/s/", serveDirectory "resources/static")
          ]
 

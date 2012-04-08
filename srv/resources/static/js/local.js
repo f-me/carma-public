@@ -1,6 +1,6 @@
 /// Everything local to the customer resides here
 
-localScreens = {
+var localScreens = {
     "case":
     {
         "template": "case-screen-template",
@@ -28,7 +28,7 @@ localScreens = {
 };
 
 // Setup routing
-localRouter = Backbone.Router.extend({
+var localRouter = Backbone.Router.extend({
     // Must _not_ end with trailing slashes
     routes: {
         "case/:id": "loadCase",
@@ -57,7 +57,10 @@ localRouter = Backbone.Router.extend({
 $(function () {
     $.getJSON("/s/js/data/dictionaries.json",
           function(dicts) {
-              mainSetup(localScreens, localRouter, dicts);
+              $.getJSON("/_whoami/",          
+                        function(user) {
+                            mainSetup(localScreens, localRouter, dicts, user);
+                        });
           });
 });
 
@@ -90,7 +93,7 @@ function setupCaseMain(viewName, args) {
     ];
 
     // Default values
-    _.extend(args, {callTaker: $("#realName").text(),
+    _.extend(args, {callTaker: global.user.meta.realName,
                     callDate: getFormatDate(),
                     callTime: getFormatTime()});
 
@@ -103,7 +106,7 @@ function setupCaseMain(viewName, args) {
     // not have been called yet, thus we explicitly use applyBindings
     // here.
     var fetchCb = function () {
-        var instance = global.viewsWare["case-form"].bbInstance;
+        var instance = global.viewsWare[viewName].bbInstance;
         var ctx = {
             "fields":
             _.map(instance.requiredFields,
@@ -114,9 +117,12 @@ function setupCaseMain(viewName, args) {
         $("#right").html(
             Mustache.render($("#empty-fields-template").html(), ctx));
 
-        ko.applyBindings(global.viewsWare["case-form"].knockVM, 
+        ko.applyBindings(global.viewsWare[viewName].knockVM, 
                          el("empty-fields"));
 
+        // We do this here (instead of knockBackbone) to ensure that
+        // no dependant dictionary fields get accidentally erased when
+        // model is first populated.
         for (n in instance.dictionaryFields) {
             var fieldName = instance.dictionaryFields[n];
             var parent = instance.fieldHash[fieldName].meta.dictionaryParent;

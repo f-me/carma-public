@@ -44,14 +44,6 @@
     <script src="/s/js/local.js" />
   </head>
   <body>
-    <!-- 
-         Auth information stored in DOM tree. No whitespace in nodes!
-      -->
-    <div style="display:none;">
-      <span id="loggedInUser"><ifLoggedIn><loggedInUser /></ifLoggedIn></span>
-      <span id="realName"><ifLoggedIn><userMeta><value:realName/></userMeta></ifLoggedIn></span>
-    </div>
-
     <!-- Navigation bar on top -->
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">

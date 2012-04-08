@@ -1,24 +1,20 @@
-{-# LANGUAGE OverloadedStrings, FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Vin.Utils where
 
 import           Control.Applicative
 import           Control.Exception (try)
-import           Control.Monad.IO.Class (liftIO)
-import           System.IO (stderr, hPrint)
-
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
-import qualified Data.ByteString.UTF8 as B
 import qualified Data.Map as M
-import           Data.Maybe
+import           System.IO (stderr)
 
-import qualified Data.Enumerator as E (tryIO, Iteratee())
-import           Database.Redis as Redis
-
+import           Control.Monad.IO.Class (liftIO)
+import qualified Data.Text.Encoding as T
 import           Data.Conduit
 import qualified Data.Conduit.List as CL
-import qualified Data.Text.Encoding as T
+import           Database.Redis as Redis
 
 import           Data.Xlsx.Parser
 
