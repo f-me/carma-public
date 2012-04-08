@@ -55,7 +55,8 @@ var localRouter = Backbone.Router.extend({
 });
 
 var localHooks = {
-    "*": [stdElCb, dictionaryHook]          
+    "*": [stdElCb, dictionaryHook],
+    "case": [candiboberHook]
 };
 
 $(function () {
@@ -63,9 +64,12 @@ $(function () {
   function(dicts) {
     $.getJSON("/_whoami/",          
   function(user) {
+    $.getJSON("/s/js/data/conditions.json",          
+  function(checks) {
 
       mainSetup(localScreens, localRouter, dicts, localHooks, user);
-
+      global.checks = checks;
+  });
   });
   });
 });
@@ -86,6 +90,31 @@ function dictionaryHook(elName) {
             })(fieldName);
         }
     }
+}
+
+function renderChecks(name) {
+    var str = "";
+    var tpl = $("#check-list-item-template").html();
+    if (_.has(global.checks, name))
+        for (n in global.checks[name]["checks"])
+            str += Mustache.render(tpl, global.checks[name]["checks"][n]);
+    return str;
+}
+
+// Update checks information when parent fields change
+function candiboberHook(elName) {
+    var instance = global.viewsWare[elName].bbInstance;
+    $el(elName).find("[data-provide=checklist]").each(
+        function(i) {
+            (function(e){
+                var d = e.data("depends");
+                // Grab value of instance field specified in
+                // data-depends and render associated checks
+                instance.bind("change:" + e.data("depends"),
+                              function(v) {
+                                  e.html(renderChecks(instance.get(e.data("depends"))));
+                              })})($(this));
+        });
 }
 
 // Standard element callback which will scroll model into view and

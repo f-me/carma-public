@@ -304,6 +304,11 @@
                    data-provide="typeahead" />
             <span class="add-on"><i class="icon icon-chevron-down" /></span>
           </div>
+          {{# meta.targetCategory }}
+          <ul data-depends="{{ name }}"
+              data-source="{{ meta.targetCategory }}"
+              data-provide="checklist" />
+          {{/ meta.targetCategory }}
         </div>
       </div>
     </script>
@@ -562,6 +567,11 @@
           </ul>
         </li>
       </ul>
+    </script>
+
+    <script type="text/template"
+            id="check-list-item-template">
+      <li><input type="checkbox" /> {{ label }}</li>
     </script>
 
     <!-- Fallback template for pickTemplate failures -->

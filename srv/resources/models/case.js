@@ -81,7 +81,8 @@
             "meta": {
                 "dictionaryName": "Programs",
                 "label": "Программа",
-                "required": true
+                "required": true,
+                "targetCategory": "program"
             }
         },
         {
