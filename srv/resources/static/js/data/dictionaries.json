@@ -1510,7 +1510,11 @@
                 "label":"GM / Hummer"
 	    },
 	    {
-	        "value":"cad",
+	        "value":"cadold",
+                "label":"GM / Cadillac до 2012"
+	    },
+	    {
+	        "value":"cad2012",
                 "label":"GM / Cadillac после 2012"
 	    },
 	    {
