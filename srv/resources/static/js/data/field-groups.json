@@ -129,21 +129,35 @@
         {
             "name": "phone1",
             "meta": {
-                "label": "Контактные телефоны"
+                "label": "Контактные телефоны",
+                "picker": "callPlease"
             },
+            "type": "phone",
             "index": true,
             "indexCollate": true
         },
         {
             "name": "phone2",
+            "meta": {
+                "picker": "callPlease"
+            },
+            "type": "phone",
             "index": true
         },
         {
             "name": "phone3",
+            "meta": {
+                "picker": "callPlease"
+            },
+            "type": "phone",
             "index": true
         },
         {
             "name": "phone4",
+            "meta": {
+                "picker": "callPlease"
+            },
+            "type": "phone",
             "index": true
         }
     ],

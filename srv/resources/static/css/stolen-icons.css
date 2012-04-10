@@ -1,0 +1,19 @@
+
+/* 
+ * This icon set was shamelessly pirated from:
+ *   http://www.webalys.com/premium/design-vector-icons-library.html
+*/
+
+[class^="stolen-icon-"],[class*=" stolen-icon-"]{
+  display:inline-block;
+  width:16px;
+  height:16px;
+  line-height:16px;
+  vertical-align:text-top;
+  background-image:url("../img/stolen-icons.png");
+  background-repeat:no-repeat;
+  *margin-right:.3em;
+}
+.stolen-icon-phone {
+  background-position: -32px -256px;
+}
