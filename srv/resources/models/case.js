@@ -51,6 +51,13 @@
             "name": "diagnosis4"
         },
         {
+            "name": "caller",
+            "groupName": "contact",
+            "meta": {
+                "label": "Клиент"
+            }
+        },
+        {
             "name": "callDate",
             "index": true,
             "indexCollate": true,
@@ -83,13 +90,6 @@
                 "label": "Программа",
                 "required": true,
                 "targetCategory": "program"
-            }
-        },
-        {
-            "name": "caller",
-            "groupName": "contact",
-            "meta": {
-                "label": "Клиент"
             }
         },
         {

@@ -26,6 +26,14 @@
     ],
     "fields": [
         {
+            "name": "status",
+            "type": "dictionary",
+            "meta": {
+                "label": "Статус услуги",
+                "dictionaryName": "ServiceStatuses"
+            }
+        },
+        {
             "name": "towerType",
             "meta": {
                 "dictionaryName": "TowerTypes",
@@ -79,14 +87,6 @@
                 "label": "Есть место для манипулятора"
             },
             "type": "checkbox"
-        },
-        {
-            "name": "status",
-            "type": "dictionary",
-            "meta": {
-                "label": "Статус услуги",
-                "dictionaryName": "ServiceStatuses"
-            }
         }
     ]
 }

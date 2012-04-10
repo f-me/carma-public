@@ -20,6 +20,14 @@
     ],
     "fields": [
         {
+            "name": "status",
+            "type": "dictionary",
+            "meta": {
+                "label": "Статус услуги",
+                "dictionaryName": "ServiceStatuses"
+            }
+        },
+        {
             "name": "techType",
             "meta": {
                 "dictionaryName": "TechTypes",
@@ -46,14 +54,6 @@
                 "label": "Описание неисправности со слов клиента"
             },
             "type": "textarea"
-        },
-        {
-            "name": "status",
-            "type": "dictionary",
-            "meta": {
-                "label": "Статус услуги",
-                "dictionaryName": "ServiceStatuses"
-            }
         }
     ]
 }

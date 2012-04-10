@@ -26,6 +26,14 @@
     ],
     "fields": [
         {
+            "name": "status",
+            "type": "dictionary",
+            "meta": {
+                "label": "Статус услуги",
+                "dictionaryName": "ServiceStatuses"
+            }
+        },
+        {
             "name": "taxiFrom",
             "groupName": "address"
         },
@@ -38,14 +46,6 @@
             "groupName": "partner",
             "meta": {
                 "label": "Название партнёра"
-            }
-        },
-        {
-            "name": "status",
-            "type": "dictionary",
-            "meta": {
-                "label": "Статус услуги",
-                "dictionaryName": "ServiceStatuses"
             }
         }
     ]

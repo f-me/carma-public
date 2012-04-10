@@ -26,6 +26,14 @@
     ],
     "fields": [
         {
+            "name": "status",
+            "type": "dictionary",
+            "meta": {
+                "label": "Статус услуги",
+                "dictionaryName": "ServiceStatuses"
+            }
+        },
+        {
             "name": "fromAddress",
             "groupName": "address"
         },
@@ -39,14 +47,6 @@
                 "label": "Мультидрайв"
             },
             "type": "checkbox"
-        },
-        {
-            "name": "status",
-            "type": "dictionary",
-            "meta": {
-                "label": "Статус услуги",
-                "dictionaryName": "ServiceStatuses"
-            }
         }
     ]
 }

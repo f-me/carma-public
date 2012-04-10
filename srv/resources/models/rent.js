@@ -26,6 +26,23 @@
     ],
     "fields": [
         {
+            "name": "status",
+            "type": "dictionary",
+            "meta": {
+                "label": "Статус услуги",
+                "dictionaryName": "ServiceStatuses"
+            }
+        },
+        {
+            "name": "status",
+            "type": "dictionary",
+            "meta": {
+                "label": "Статус услуги",
+                "dictionaryName": "ServiceStatuses"
+            }
+        }
+
+        {
             "name": "towDealer",
             "groupName": "partner"
         },
@@ -44,14 +61,6 @@
             "groupName": "partner",
             "meta": {
                 "label": "Подрядчик"
-            }
-        },
-        {
-            "name": "status",
-            "type": "dictionary",
-            "meta": {
-                "label": "Статус услуги",
-                "dictionaryName": "ServiceStatuses"
             }
         }
     ]
