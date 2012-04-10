@@ -58,6 +58,10 @@
             }
         },
         {
+            "name": "car",
+            "groupName": "car"
+        },
+        {
             "name": "program",
             "index": true,
             "type": "dictionary",
@@ -100,10 +104,6 @@
                 "dictionaryName": "CaseStatuses",
                 "label": "Статус кейса"
             }
-        },
-        {
-            "name": "car",
-            "groupName": "car"
         },
         {
             "name": "services",
