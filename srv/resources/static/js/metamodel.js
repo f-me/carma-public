@@ -229,6 +229,9 @@ function renderFields(model, viewName, groups) {
                  var realType = f.type;
                  var tpl;
 
+                 if (f.meta && _.has(f.meta, "infoText"))
+                     f.meta.infoText = global.dictionaries.InfoText[f.meta.infoText];
+
                  if (f.type == "dictionary")
                      ctx = _.extend(ctx,
                                     {dictionary: 

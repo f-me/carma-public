@@ -14,6 +14,7 @@
     <script src="/s/js/3p/bootstrap.min.js" />
     <script src="/s/js/3p/bootstrap-datepicker.js" />
     <script src="/s/js/3p/bootstrap-typeahead.js" />
+    <script src="/s/js/3p/bootstrap-popover.js" />
 
     <!-- Tabular display -->
     <script src="/s/js/3p/jquery.dataTables.min.js" />
@@ -220,7 +221,13 @@
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
            >
         <div class="control-label">
-          <label>{{ meta.label }}</label>
+          <label>{{ meta.label }}
+            {{# meta.infoText }}
+              <i class="icon icon-question-sign"
+                 data-provide="popover"
+                 data-content="{{ meta.infoText }}" />
+            {{/ meta.infoText }}
+          </label>
         </div>
         <div class="controls">             
           <textarea class="pane-span focusable"
@@ -240,7 +247,13 @@
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
            >
         <div class="control-label">
-          <label>{{ meta.label }}</label>
+          <label>{{ meta.label }}
+            {{# meta.infoText }}
+              <i class="icon icon-question-sign"
+                 data-provide="popover"
+                 data-content="{{ meta.infoText }}" />
+            {{/ meta.infoText }}
+          </label>
         </div>
         <div class="controls">
           <input type="text"
@@ -261,7 +274,13 @@
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
            >
         <div class="control-label">
-          <label>{{ meta.label }}</label>
+          <label>{{ meta.label }}
+            {{# meta.infoText }}
+              <i class="icon icon-question-sign"
+                 data-provide="popover"
+                 data-content="{{ meta.infoText }}" />
+            {{/ meta.infoText }}
+          </label>
         </div>
         <div class="controls">
           <div class="input-append date"
@@ -288,7 +307,13 @@
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
            >
         <div class="control-label">
-          <label>{{ meta.label }}</label>
+          <label>{{ meta.label }}
+            {{# meta.infoText }}
+              <i class="icon icon-question-sign"
+                 data-provide="popover"
+                 data-content="{{ meta.infoText }}" />
+            {{/ meta.infoText }}
+          </label>
         </div>
         <div class="controls">
           <div class="input-append">
@@ -319,7 +344,13 @@
             id="picker-field-template">
       <div class="control-group">
         <div class="control-label">
-          <label>{{ meta.label }}</label>
+          <label>{{ meta.label }}
+            {{# meta.infoText }}
+              <i class="icon icon-question-sign"
+                 data-provide="popover"
+                 data-content="{{ meta.infoText }}" />
+            {{/ meta.infoText }}
+          </label>
         </div>
         <div class="controls">
           <div class="input-append">
@@ -341,7 +372,13 @@
             id="radio-dictionary-field-template">
       <div class="control-group">
         <div class="control-label">
-          <label>{{ meta.label }}</label>
+          <label>{{ meta.label }}
+            {{# meta.infoText }}
+              <i class="icon icon-question-sign"
+                 data-provide="popover"
+                 data-content="{{ meta.infoText }}" />
+            {{/ meta.infoText }}
+          </label>
         </div>
         <div class="controls">
           {{# dictionary.entries }}
@@ -364,7 +401,13 @@
             id="select-field-template">
       <div class="control-group">
         <div class="control-label">
-          <label>{{ meta.label }}</label>
+          <label>{{ meta.label }}
+            {{# meta.infoText }}
+              <i class="icon icon-question-sign"
+                 data-provide="popover"
+                 data-content="{{ meta.infoText }}" />
+            {{/ meta.infoText }}
+          </label>
         </div>
         <div class="controls">
           <select name="{{ name }}"
@@ -390,7 +433,12 @@
                    {{# meta.readonly }}disabled{{/ meta.readonly }}
                    data-bind="checked: {{ name }},
                               valueUpdate: 'change'" />
-            {{ meta.label }}
+          {{ meta.label }}
+          {{# meta.infoText }}
+            <i class="icon icon-question-sign"
+               data-provide="popover"
+               data-content="{{ meta.infoText }}" />
+          {{/ meta.infoText }}
           </label>
         </div>
       </div>
@@ -438,7 +486,13 @@
             id="group-field-template">
       <div class="control-group">
         <div class="control-label">
-          {{meta.label}}
+          <label>{{ meta.label }}
+            {{# meta.infoText }}
+              <i class="icon icon-question-sign"
+                 data-provide="popover"
+                 data-content="{{ meta.infoText }}" />
+            {{/ meta.infoText }}
+          </label>
         </div>
         <div class="controls">
           <div class="input-append">

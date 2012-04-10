@@ -151,7 +151,8 @@
         {
             "name": "address",
             "meta": {
-                "label": "Адрес"
+                "label": "Адрес",
+                "infoText": "address"
             }
         },
         {
