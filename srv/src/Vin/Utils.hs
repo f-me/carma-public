@@ -4,21 +4,25 @@
 module Vin.Utils where
 
 import           Control.Applicative
-import           Control.Exception (try)
+import           Control.Exception (Exception, try)
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.Map as M
 import           System.IO (stderr)
 
 import           Control.Monad.IO.Class (liftIO)
+import           Data.Text (Text)
 import qualified Data.Text.Encoding as T
 import           Data.Conduit
+import           Data.Conduit.Binary
 import qualified Data.Conduit.List as CL
-import           Database.Redis as Redis
+import           Data.CSV.Conduit
+import           Database.Redis as R
 
-import           Data.Xlsx.Parser
+import           Data.Xlsx.Parser hiding (MapRow)
 
 
+redisSetVin :: R.Connection -> MapRow ByteString -> IO ()
 redisSetVin c val
   = runRedis c
   $ mapM_ (\k -> redisSetWithKey' (mkKey k) val) vins
@@ -36,29 +40,49 @@ redisSetWithKey' key val = do
     _ -> return ()
 
 
-loadXlsxFile store fName keyMap = do
-    x <- xlsx fName
-    try $ runResourceT $ sheetRows x 1 $$ CL.foldM run ()
-  where
-    run a r = either
-                (\msg -> B.hPutStrLn stderr msg >> return a)
-                store
-              $ remap keyMap $ toByteStringRow r
+loadXlsxFile store fInput fError keyMap = do
+    x <- xlsx fInput
+    try $ runResourceT
+           $  sheetRows x 1
+           $= CL.map (remap keyMap . toByteStringRow)
+           $= storeCorrect store
+           $= fromCSV defCSVSettings
+           -- $= encode utf8
+           $$ sinkFile fError
 
 
-toByteStringRow :: MapRow -> M.Map ByteString ByteString
+storeCorrect :: MonadResource m
+             => (R.Connection -> MapRow ByteString -> IO ())
+             -> Conduit (Bool, MapRow ByteString) m (MapRow ByteString)
+storeCorrect store = conduitIO
+    (R.connect R.defaultConnectInfo)
+    (\conn -> runRedis conn quit >> return ())
+    (\conn (isCorrect,m) -> do
+       if isCorrect
+         then do
+           liftIO $ store conn m
+           return $ IOProducing []
+         else
+           return $ IOProducing [m]
+    )
+    (const $ return [])
+
+
+toByteStringRow :: MapRow Text -> MapRow ByteString
 toByteStringRow m = M.map T.encodeUtf8 m'
   where
     m' = M.mapKeys T.encodeUtf8 m
 
 
 -- | convert MapRow according to transformations described in `keyMap`.
-remap keyMap m = M.fromList <$> foldl f (Right []) keyMap
+remap keyMap m = M.fromList <$> foldl f (True,[]) keyMap
   where
-    f err@(Left _) _ = err
-    f (Right res) (key',f)
-      = f m >>= \val -> return
-        (if B.null val then res else ((key',val):res))
+    f res@(a,acc) (key',f)
+      = case f m of
+          Left e    -> (False, ((key',e):acc))
+          Right val -> if B.null val
+                         then res
+                         else (a, ((key',val):acc))
 
 
 showMap = B.unlines . map showKV . M.toList

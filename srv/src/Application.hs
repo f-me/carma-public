@@ -144,7 +144,7 @@ action f = do
   msg <- liftIO $ either
                     (B.pack . show)
                     (const "Ok")
-                  <$> loadFile f "vwMotor"
+                  <$> loadFile f "error.csv" "vwMotor"
   writeBS msg
 
 

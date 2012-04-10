@@ -10,12 +10,11 @@ import           Vin.Utils
 import           Vin.FieldParsers
 
 
-loadFile :: FilePath -> String -> IO (Either SomeException ())
-loadFile path program = do
-    rConn <- R.connect R.defaultConnectInfo
-    let  loadVinFile = loadXlsxFile (redisSetVin rConn)
+loadFile :: FilePath -> FilePath -> String -> IO (Either SomeException ())
+loadFile fInput fError program = do
+    let  loadVinFile = loadXlsxFile redisSetVin fInput fError
     case program of
-      "vwMotor" -> loadVinFile path vwMotor
+      "vwMotor" -> loadVinFile vwMotor
       _         -> error "Unknown program"
 
 
