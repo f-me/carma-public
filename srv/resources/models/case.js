@@ -58,6 +58,17 @@
             }
         },
         {
+            "name": "program",
+            "index": true,
+            "type": "dictionary",
+            "meta": {
+                "dictionaryName": "Programs",
+                "label": "Программа",
+                "required": true,
+                "targetCategory": "program"
+            }
+        },
+        {
             "name": "callDate",
             "index": true,
             "indexCollate": true,
@@ -82,23 +93,12 @@
             }
         },
         {
-            "name": "program",
-            "index": true,
-            "type": "dictionary",
-            "meta": {
-                "dictionaryName": "Programs",
-                "label": "Программа",
-                "required": true,
-                "targetCategory": "program"
-            }
-        },
-        {
             "name": "status",
             "type": "dictionary",
             "meta": {
                 "required": true,
                 "dictionaryName": "CaseStatuses",
-                "label": "Статус звонка"
+                "label": "Статус кейса"
             }
         },
         {
