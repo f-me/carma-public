@@ -5,16 +5,17 @@ module Vin.FieldParsers where
 
 import           Control.Applicative
 import           Control.Monad.Instances () -- Just for Functor (Either a) instance
-
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.UTF8 as B
+import qualified Data.Map as M
+import           Data.Maybe
+import           Data.Time
+
 import qualified Data.Text as T
 import qualified Data.Text.Read as T
 import qualified Data.Text.Encoding as T
-import qualified Data.Map as M
-
-import           Data.Time
+import           System.Locale (defaultTimeLocale)
 
 import Vin.Utils
 
@@ -27,7 +28,7 @@ class Err e where
 
 
 instance Err ByteString where
-  err a b = Left $ B.concat [a, ":\n", b]
+  err a b = Left $ B.concat [a, ": ", b]
 
 instance Err [Char] where
   err a = err a . B.fromString
@@ -69,12 +70,34 @@ oneOf fs m = foldr
 date keys m = case str' keys m of
     Left err   -> Left err
     Right ""   -> Right ""
-    Right date -> either
-                    (err "Unknown date format")
-                    mkDate
-                  $ T.rational date
+    Right dateStr ->
+      let tryParse :: (String, String -> String) -> Maybe Day
+          tryParse (fmt,tr) = parseTime defaultTimeLocale fmt $ tr (T.unpack dateStr)
+      in case catMaybes $ map tryParse dateFormats of
+          res:_ -> Right . B.fromString $ show res
+          _     -> either
+                     (const $ err "Unknown date format" m)
+                     mkDate
+                   $ T.rational dateStr
   where
+    mkDate :: (Double, b) -> Either a ByteString
     mkDate = Right . B.fromString . show . utctDay . getTime . fst
+
+
+maybeRead :: Read a => String -> Maybe a
+maybeRead = fmap fst . listToMaybe . filter (null . snd) . reads
+
+
+dateFormats =
+  [("%m/%d/%Y", id)
+  ,("%m/%e/%Y", head.words)        -- "10/16/2011 0:00"
+  ,("%m/%e/%Y", head.words.('0':)) -- "1/16/2011 0:00"
+  ,("%d.%m.%Y", id)
+  ,("%e %b %Y", id)
+  ,("%e-%b-%Y", id)
+  ,("%d-%b-%y", id)
+  ,("%m/%d/%y", id)
+  ,("%b %Y",    id)]
 
 
 -- Get date and time in the 1900 date base system.

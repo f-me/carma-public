@@ -10,15 +10,16 @@ import           Vin.Utils
 import           Vin.FieldParsers
 
 
-loadFile :: FilePath -> FilePath -> String -> IO (Either SomeException ())
+loadFile :: FilePath -> FilePath -> String -> IO (Either SomeException (Maybe FilePath))
 loadFile fInput fError program = do
     let  loadVinFile = loadXlsxFile redisSetVin fInput fError
     case program of
-      "vwMotor" -> loadVinFile vwMotor
+      -- "vwMotor" -> loadVinFile vwMotor
+      "vwTruck" -> loadVinFile vwTruck
       _         -> error "Unknown program"
 
 
-vwMotor =
+vwMotor = map mkRecord
   [("program",      fixed "vwMotor")
   ,("make",         fixed "VW")
   ,("model",        carModel ["Модель"])
@@ -39,7 +40,7 @@ vwMotor =
   ]
 
 
-vwTruck =
+vwTruck = map mkRecord
   [("program",      fixed "vwTruck")
   ,("make",         fixed "VW")
   ,("model",        carModel ["модель"])
@@ -60,7 +61,7 @@ vwTruck =
   ]
 
 
-vwRuslan =
+vwRuslan = map mkRecord
   [("program",         fixed "vwRuslan")
   ,("make",            fixed "VW")
   ,("model",           carModel ["Модель Автомобиля VW"])
@@ -75,7 +76,7 @@ vwRuslan =
   ]
 
 
-opel =
+opel = map mkRecord
   [("program",      fixed "opel")
   ,("make",         fixed "OPEL")
   ,("model",        carModel ["Model"])
@@ -86,7 +87,7 @@ opel =
   ]
 
 
-hummer =
+hummer = map mkRecord
   [("program",      fixed "hummer")
   ,("make",         fixed "HUMMER")
   ,("model",        str  ["Model"]) -- FIXME: carModel
@@ -96,7 +97,7 @@ hummer =
   ]
 
 
-ford =
+ford = map mkRecord
   [("program",      fixed "ford")
   ,("make",         fixed "FORD")
   ,("model",        carModel ["MODEL"])
@@ -113,7 +114,7 @@ ford =
   ]
 
 
-fordPlus =
+fordPlus = map mkRecord
   [("program",      fixed "fordPlus")
   ,("make",         fixed "FORD")
   ,("model",        carModel ["Модель"])

@@ -143,9 +143,11 @@ action :: FilePath -> AppHandler ()
 action f = do
   msg <- liftIO $ either
                     (B.pack . show)
-                    (const "Ok")
-                  <$> loadFile f "error.csv" "vwMotor"
+                    func
+                  <$> loadFile f "resources/static/error.csv" "vwTruck"
   writeBS msg
+  where
+    func fp = maybe "Ok" (const "<a href=\"/s/error.csv\">Errors</a>") fp
 
 
 ------------------------------------------------------------------------------
