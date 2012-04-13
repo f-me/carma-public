@@ -36,19 +36,14 @@ function setupSearchTable(viewName, args) {
 //
 // TODO Allow adjusting of search fields etc.
 function doSearch() {
-    var searchFields = ["id", "caller_name", "callDate",
-                        "caller_phone1", "car_plateNum", "program"];
-    var serveFields = searchFields;
+    var serveFields = ["id", "caller_name", "callDate",
+                       "caller_phone1", "car_plateNum", "program"];
     var sType = "or"
     var limit = "100";
 
     var t = $el("searchtable").dataTable();
-    var term = $el("table-query").val();
-    var method = "search/?";
-    for (f in searchFields) {
-        method += (searchFields[f] + "=" + term + "&");
-    };
-    method += "_matchType=s&_searchType=" + sType 
+    var method = "search/?q=" + $el("table-query").val();
+    method += "&_matchType=s&_searchType=" + sType 
         + "&_limit=" + limit
         + "&_fields=" + serveFields.join(",");
     $.getJSON(modelMethod("case", method),
