@@ -7,6 +7,7 @@ import           Control.Applicative
 import           Control.Exception (Exception, try)
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
+import qualified Data.ByteString.UTF8 as B
 import qualified Data.Map as M
 
 import           Control.Monad.IO.Class (liftIO)
@@ -15,6 +16,8 @@ import           Data.Conduit
 import           Data.Conduit.Binary
 import qualified Data.Conduit.List as CL
 import           Data.CSV.Conduit  hiding (MapRow, Row)
+import           Data.Encoding (encodeStrictByteString)
+import           Data.Encoding.CP1251
 import           Database.Redis as R
 
 import           Data.Xlsx.Parser
@@ -53,7 +56,7 @@ loadXlsxFile store fInput fError keyMap = do
               $= CL.map encode
               $= CL.map (remap keyMap)
               $= storeCorrect store
-              -- $= CL.map recodeToCP1251
+              $= CL.map encodeCP1251
               $$ writeIncorrect fError
 
 
@@ -82,14 +85,23 @@ writeIncorrect fp = do
 
 writeRows :: MonadResource m => FilePath -> Sink Row m FilePath
 writeRows fp
-    =  fromCSV defCSVSettings
+    =  fromCSV csvSettings
     =$ sinkFile fp >> return fp
+  where
+    csvSettings = defCSVSettings { csvOutputColSep = ';' }
 
 
 encode :: MapRow -> Row
 encode m = M.map T.encodeUtf8 m'
   where
     m' = M.mapKeys T.encodeUtf8 m
+
+
+encodeCP1251 :: Row -> Row
+encodeCP1251 m = M.map enc m'
+  where
+    m' = M.mapKeys enc m
+    enc bs = encodeStrictByteString CP1251 $ B.toString bs
 
 
 remap :: [Record] -> Row -> Either Row Row
