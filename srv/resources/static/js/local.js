@@ -17,6 +17,14 @@ var localScreens = {
             "tableView": setupSearchTable
         }
     },
+    "vin":
+    {
+        "template": "vin-screen-template",
+        "views":
+        {
+            "vin-form": setupVinForm
+        }
+    },
     "call":
     {
         "template": "call-screen-template",
@@ -34,6 +42,7 @@ var localRouter = Backbone.Router.extend({
         "case/:id": "loadCase",
         "case": "newCase",
         "search": "search",
+        "vin": "vin",
         "call": "call"
     },
 
@@ -47,6 +56,10 @@ var localRouter = Backbone.Router.extend({
 
     search: function () {
         renderScreen("search");
+    },
+
+    vin: function () {
+        renderScreen("vin");
     },
 
     call: function () {
@@ -307,3 +320,22 @@ function doPick(pickType, args) {
     pickers[pickType](args);
 }
 
+function setupVinForm(viewName, args) {
+    $el(viewName).html($el("vin-form-template").html());
+    global.viewsWare[viewName] = {};
+}
+
+function doVin() {
+    var form = $el("vin-import-form")[0];
+    var formData = new FormData(form);
+
+    $.ajax({
+    	type: "POST",
+    	url: "vin",
+    	data: formData,
+    	contentType: false,
+    	processData: false
+    }).done(function( msg ) {
+    	alert( "Result: " + msg );
+    });
+}

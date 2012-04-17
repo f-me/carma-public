@@ -56,7 +56,7 @@ fixed = const . Right
 
 
 notEmpty f m = case f m of
-  Right "" -> err "empty fields" m
+  Right "" -> Left "empty field"
   Right rs -> Right rs
   e        -> e
 
@@ -68,7 +68,7 @@ oneOf fs m = foldr
 
 
 date keys m = case str' keys m of
-    Left err   -> Left err
+    Left e     -> Left e
     Right ""   -> Right ""
     Right dateStr ->
       let tryParse :: (String, String -> String) -> Maybe Day
@@ -76,7 +76,7 @@ date keys m = case str' keys m of
       in case catMaybes $ map tryParse dateFormats of
           res:_ -> Right . B.fromString $ show res
           _     -> either
-                     (const $ err "Unknown date format" m)
+                     (const $ Left "Unknown date format")
                      mkDate
                    $ T.rational dateStr
   where
@@ -115,7 +115,7 @@ getTime val = UTCTime day diff
 carModel keys m = do
   mod <- str keys m
   case B.words mod of
-    []  -> err "empty car model" m
+    []  -> Left "empty car model"
     model:_ -> maybe
       (err "unknown model" model)
       Right

@@ -2,21 +2,23 @@
 
 module Vin.Import where
 
-import           Control.Exception (SomeException)
+import           Control.Applicative
 
+import           Data.ByteString (ByteString)
 import qualified Database.Redis as R
 
 import           Vin.Utils
 import           Vin.FieldParsers
 
 
-loadFile :: FilePath -> FilePath -> String -> IO (Either SomeException (Maybe FilePath))
+loadFile :: FilePath -> FilePath -> ByteString -> IO (Either FilePath String)
 loadFile fInput fError program = do
-    let  loadVinFile = loadXlsxFile redisSetVin fInput fError
+    let loadVinFile = loadXlsxFile redisSetVin fInput fError
     case program of
-      -- "vwMotor" -> loadVinFile vwMotor
-      "vwTruck" -> loadVinFile vwTruck
-      _         -> error "Unknown program"
+        "vwMotor"  -> loadVinFile vwMotor
+        "vwTruck"  -> loadVinFile vwTruck
+        "vwRuslan" -> loadVinFile vwTruck
+        _          -> return $ Right "unknown program"
 
 
 vwMotor = map mkRecord

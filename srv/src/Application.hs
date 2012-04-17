@@ -21,7 +21,6 @@ import Data.Functor
 import Data.Maybe
 
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as B
 import Data.Configurator
 import Data.Lens.Template
 import Data.Time.Clock
@@ -35,13 +34,14 @@ import Snap.Snaplet.Session
 import Snap.Snaplet.Session.Backends.CookieSession
 import Snap.Util.FileServe
 import Snap.Util.FileUploads
-import Text.Templating.Heist.Splices.Json
 
 import Snap.Snaplet.Redson
 
 import System.Directory (getTemporaryDirectory)
 
-import Control.Monad.CatchIO (catch)
+import Control.Concurrent
+import Control.Exception (SomeException)
+import Control.Monad.CatchIO (catch, try)
 
 import Vin.Import
 
@@ -116,39 +116,35 @@ serveUserCake = ifTop $ do
 
 
 ------------------------------------------------------------------------------
--- | Render upload form for XLSX files with VIN numbers.
-vinForm :: AppHandler ()
-vinForm = do
-  serveFile $ "snaplets/heist/resources/templates/vin.html"
-
-
-------------------------------------------------------------------------------
 -- | Upload file with VIN numbers.
 doVin :: AppHandler ()
 doVin = ifTop $ do
   d <- liftIO $ getTemporaryDirectory
+
   handleFileUploads d defaultUploadPolicy partUploadPolicy handler
     `catch` (writeText . fileUploadExceptionReason)
-  where
-    uploadPolicy = setUploadTimeout 300 defaultUploadPolicy
 
+  where
     partUploadPolicy _ = allowWithMaximumSize $ 100 * 2^(20::Int)
 
     handler []        = writeBS "no files"
-    handler ((_,p):_) =
-        either (writeText . policyViolationExceptionReason) action p
+    handler ((_,f):_) = do
+        program <- fromMaybe "" <$> getParam "program"
+
+        either (writeText . policyViolationExceptionReason) (action program) f
 
 
-action :: FilePath -> AppHandler ()
-action f = do
-  msg <- liftIO $ either
-                    (B.pack . show)
-                    func
-                  <$> loadFile f "resources/static/error.csv" "vwTruck"
-  writeBS msg
+action :: ByteString -> FilePath -> AppHandler ()
+action program f = do
+  liftIO $ forkIO $ do
+    res <- try $ loadFile f fError program
+    case res of
+      Left  e -> print (e :: SomeException)
+      Right r -> either print print r
+
+  writeBS "Ok"
   where
-    func fp = maybe "Ok" (const "<a href=\"/s/error.csv\">Errors</a>") fp
-
+    fError = "resources/static/error.csv"
 
 ------------------------------------------------------------------------------
 -- | The application's routes.
@@ -157,7 +153,6 @@ routes = [ ("/", method GET $ authOrLogin indexPage)
          , ("/login/", method GET loginForm)
          , ("/login/", method POST doLogin)
          , ("/logout/", with auth $ logout >> redirectToLogin)
-         , ("/vin", method GET vinForm)
          , ("/vin", method POST doVin)
          , ("/_whoami/", method GET $ authOrLogin serveUserCake)
          , ("/s/", serveDirectory "resources/static")

@@ -4,14 +4,12 @@
 module Vin.Utils where
 
 import           Control.Applicative
-import           Control.Exception (Exception,SomeException, try)
+import           Control.Exception (Exception, try)
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.Map as M
-import           System.IO (stderr)
 
 import           Control.Monad.IO.Class (liftIO)
-import           Data.Text (Text)
 import qualified Data.Text.Encoding as T
 import           Data.Conduit
 import           Data.Conduit.Binary
@@ -44,9 +42,14 @@ redisSetWithKey' key val = do
     _ -> return ()
 
 
+loadXlsxFile :: (Connection -> Row -> IO ())
+             -> FilePath
+             -> FilePath
+             -> [Record]
+             -> IO (Either FilePath String)
 loadXlsxFile store fInput fError keyMap = do
     x <- xlsx fInput
-    try $ runResourceT $ sheetRows x 0
+    runResourceT $ sheetRows x 0
               $= CL.map encode
               $= CL.map (remap keyMap)
               $= storeCorrect store
@@ -70,11 +73,11 @@ storeCorrect store = conduitIO
     (const $ return [])
 
 
-writeIncorrect :: MonadResource m => FilePath -> Sink Row m (Maybe FilePath)
+writeIncorrect :: MonadResource m => FilePath -> Sink Row m (Either FilePath String)
 writeIncorrect fp = do
     res <- CL.peek
     fp' <- writeRows fp
-    return $ maybe Nothing (const $ Just fp') res
+    return $ maybe (Right "success") (const $ Left fp') res
 
 
 writeRows :: MonadResource m => FilePath -> Sink Row m FilePath
@@ -103,8 +106,8 @@ remap' rs row = foldl f [] rs
   where
     f res record =
         let k   = rKey record
-            f   = rFind record
-            val = f row
+            g   = rFind record
+            val = g row
         in (k, val) : res
 
 
@@ -112,9 +115,9 @@ getErrors :: [(ByteString, Either ByteString ByteString)]
           -> Either [ByteString] Row
 getErrors row = M.fromList <$> foldl f (Right []) row
   where
-    f err@(Left res) (k, val) =
+    f err@(Left res) (_, val) =
         case val of
-          Right s -> err
+          Right _ -> err
           Left  e -> Left (e : res)
     f (Right res) (k, val) =
         case val of

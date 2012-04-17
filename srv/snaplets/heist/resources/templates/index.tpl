@@ -70,6 +70,9 @@
             <li id="search-screen-nav">
               <a href="#search">Поиск</a>
             </li>
+            <li id="vin-screen-nav">
+              <a href="#vin">VIN</a>
+            </li>
             <li id="help-screen-nav">
               <a href="#help">Справка</a>
             </li>
@@ -205,6 +208,35 @@
       </table>
     </script>
 
+    <!-- Import VINs screen -->
+    <script type="text/template"
+            id="vin-screen-template"
+            class="screen-template">
+      <div id="vin-form" />
+    </script>
+
+    <script type="text/template"
+            id="vin-form-template"
+            class="view-template">
+      <div style="text-align:center;">
+      <fieldset>
+        <legend>Импорт VIN</legend>
+	<form id="vin-import-form" onsubmit="doVin(); return false;">
+	  <p>
+	    <select name="program">
+	      <option value="vmMotor">Vw легковые</option>
+	      <option value="vwTruck">Vw коммерческие</option>
+	      <option value="vwRuslan">Рус-Лан</option>
+	    </select>
+	    <input type="file" name="file" />
+	  </p>
+	  <button class="btn btn-success" type="submit">
+	    Отправить
+	  </button>
+	</form>
+      </fieldset>
+      </div>
+    </script>
 
     <!--
          Form field templates.
