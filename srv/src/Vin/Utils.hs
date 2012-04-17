@@ -16,7 +16,7 @@ import           Data.Conduit
 import           Data.Conduit.Binary
 import qualified Data.Conduit.List as CL
 import           Data.CSV.Conduit  hiding (MapRow, Row)
-import           Data.Encoding (encodeStrictByteString)
+import           Data.Encoding (decodeStrictByteString, encodeStrictByteString)
 import           Data.Encoding.CP1251
 import           Database.Redis as R
 
@@ -45,19 +45,32 @@ redisSetWithKey' key val = do
     _ -> return ()
 
 
-loadXlsxFile :: (Connection -> Row -> IO ())
-             -> FilePath
-             -> FilePath
-             -> [Record]
-             -> IO (Either FilePath String)
+loadCsvFile  store fInput fError keyMap =
+    runResourceT $  sourceFile fInput
+                 $= intoCSV csvSettings
+                 $= CL.map decodeCP1251
+                 $$ sinkXFile store fError keyMap
+  where
+    csvSettings = defCSVSettings { csvSep = ';' }
+
+
 loadXlsxFile store fInput fError keyMap = do
     x <- xlsx fInput
-    runResourceT $ sheetRows x 0
-              $= CL.map encode
-              $= CL.map (remap keyMap)
-              $= storeCorrect store
-              $= CL.map encodeCP1251
-              $$ writeIncorrect fError
+    runResourceT $  sheetRows x 0
+                 $= CL.map encode
+                 $$ sinkXFile store fError keyMap
+
+
+sinkXFile :: MonadResource m
+          => (Connection -> Row -> IO ())
+          -> FilePath
+          -> [Record]
+          -> Sink Row m (Either FilePath String)
+sinkXFile store fError keyMap
+    =  CL.map (remap keyMap)
+    =$ storeCorrect store
+    =$ CL.map encodeCP1251
+    =$ writeIncorrect fError
 
 
 storeCorrect :: MonadResource m
@@ -102,6 +115,13 @@ encodeCP1251 m = M.map enc m'
   where
     m' = M.mapKeys enc m
     enc bs = encodeStrictByteString CP1251 $ B.toString bs
+
+
+decodeCP1251 :: Row -> Row
+decodeCP1251 m = M.map enc m'
+  where
+    m' = M.mapKeys enc m
+    enc s = B.fromString $ decodeStrictByteString CP1251 s
 
 
 remap :: [Record] -> Row -> Either Row Row

@@ -46,6 +46,7 @@ Executable carma
     transformers                == 0.2.*,
     xlsx-parser                 == 0.0.*,
     xmlhtml                     == 0.1.*,
+    unix                        == 2.4.*,
     utf8-string                 == 0.3.*
 
   if flag(development)

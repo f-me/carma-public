@@ -228,7 +228,9 @@
 	      <option value="vwTruck">Vw коммерческие</option>
 	      <option value="vwRuslan">Рус-Лан</option>
 	    </select>
-	    <input type="file" name="file" />
+	    <input type="file"
+		   name="file"
+		   accept="text/csv|application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
 	  </p>
 	  <button class="btn btn-success" type="submit">
 	    Отправить

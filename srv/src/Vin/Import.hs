@@ -11,14 +11,19 @@ import           Vin.Utils
 import           Vin.FieldParsers
 
 
-loadFile :: FilePath -> FilePath -> ByteString -> IO (Either FilePath String)
-loadFile fInput fError program = do
-    let loadVinFile = loadXlsxFile redisSetVin fInput fError
+loadFile :: FilePath -> FilePath -> ByteString -> ByteString -> IO (Either FilePath String)
+loadFile fInput fError program contentType = do
     case program of
         "vwMotor"  -> loadVinFile vwMotor
         "vwTruck"  -> loadVinFile vwTruck
         "vwRuslan" -> loadVinFile vwTruck
         _          -> return $ Right "unknown program"
+  where
+    loadVinFile = f redisSetVin fInput fError
+    f = case contentType of
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ->
+                loadXlsxFile
+            "text/csv" -> loadCsvFile
 
 
 vwMotor = map mkRecord

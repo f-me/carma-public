@@ -38,10 +38,11 @@ import Snap.Util.FileUploads
 import Snap.Snaplet.Redson
 
 import System.Directory (getTemporaryDirectory)
+import System.Posix.Files (createLink, removeLink)
 
 import Control.Concurrent
 import Control.Exception (SomeException)
-import Control.Monad.CatchIO (catch, try)
+import Control.Monad.CatchIO (finally, catch, try)
 
 import Vin.Import
 
@@ -128,23 +129,31 @@ doVin = ifTop $ do
     partUploadPolicy _ = allowWithMaximumSize $ 100 * 2^(20::Int)
 
     handler []        = writeBS "no files"
-    handler ((_,f):_) = do
+    handler ((info,f):_) = do
         program <- fromMaybe "" <$> getParam "program"
 
-        either (writeText . policyViolationExceptionReason) (action program) f
+        either (writeText . policyViolationExceptionReason)
+               (action program $ partContentType info)
+               f
 
 
-action :: ByteString -> FilePath -> AppHandler ()
-action program f = do
+action :: ByteString -> ByteString -> FilePath -> AppHandler ()
+action program contentType f = do
+  liftIO $ createLink f f'
+
   liftIO $ forkIO $ do
-    res <- try $ loadFile f fError program
-    case res of
-      Left  e -> print (e :: SomeException)
-      Right r -> either print print r
+      res <- try $ loadFile f' fError program contentType
+
+      case res of
+        Left  e -> print (e :: SomeException)
+        Right r -> either print print r
+
+      `finally` removeLink f'
 
   writeBS "Ok"
   where
     fError = "resources/static/error.csv"
+    f' = f ++ "-link"
 
 ------------------------------------------------------------------------------
 -- | The application's routes.
