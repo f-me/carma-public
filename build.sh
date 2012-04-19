@@ -5,11 +5,14 @@ DEPS_DIR=$CARMA_DIR/deps
 
 REPOS=("git@github.com:/f-me/vin-parser.git"
        "git@github.com:/f-me/avaya-aes.git"
-       "git@github.com:/f-me/xlsx-parser.git")
+       "git@github.com:/f-me/xlsx-parser.git"
+       "git@github.com:/jorpic/encoding.git")
 
 
+FRESH_BUILD=0
 if [[ ! -d "$DEPS_DIR" ]]; then
   mkdir "$DEPS_DIR"
+  FRESH_BUILD=1
 fi
 
 cd "$DEPS_DIR"
@@ -80,6 +83,10 @@ for repo in "${repos_to_rebuild[@]}"; do
     exit 1
   fi
 done
+
+if $FRESH_BUILD -eq 1; then
+  cabal-dev install-deps
+fi
 
 cabal-dev configure && cabal-dev build
 

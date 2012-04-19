@@ -42,7 +42,7 @@ Executable carma
     time                        >= 1.1 && < 1.5,
     transformers                == 0.2.*,
     xmlhtml                     == 0.1.*,
-    unix                        == 2.4.*,
+    unix                        == 2.5.*,
     vin-parser                  == 0.1.*,
     xmlhtml                     == 0.1.*
 
