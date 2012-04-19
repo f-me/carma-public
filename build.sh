@@ -84,8 +84,11 @@ for repo in "${repos_to_rebuild[@]}"; do
   fi
 done
 
-if $FRESH_BUILD -eq 1; then
+if [[ $FRESH_BUILD -eq 1 ]]; then
   cabal-dev install-deps
+  if [[ ! $? -eq 0 ]]; then
+    exit 1
+  fi
 fi
 
 cabal-dev configure && cabal-dev build
