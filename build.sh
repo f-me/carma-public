@@ -3,10 +3,9 @@
 CARMA_DIR=`pwd`
 DEPS_DIR=$CARMA_DIR/deps
 
-REPOS=("https://github.com/dzhus/snaplet-redis.git"
-       "https://github.com/f-me/snaplet-redson.git"
-       "https://github.com/f-me/avaya-aes.git"
-       "https://github.com/f-me/xlsx-parser.git")
+REPOS=("git@github.com:/f-me/vin-parser.git"
+       "git@github.com:/f-me/avaya-aes.git"
+       "git@github.com:/f-me/xlsx-parser.git")
 
 
 if [[ ! -d "$DEPS_DIR" ]]; then
@@ -82,7 +81,6 @@ for repo in "${repos_to_rebuild[@]}"; do
   fi
 done
 
-cabal-dev install-deps && cabal-dev configure && cabal-dev build
-#cabal-dev install
+cabal-dev configure && cabal-dev build
 
 cd $CARMA_DIR
