@@ -3,11 +3,7 @@
 CARMA_DIR=`pwd`
 DEPS_DIR=$CARMA_DIR/deps
 
-REPOS=("https://github.com/snapframework/snap.git"
-       "https://github.com/snapframework/snap-core.git"
-       "https://github.com/snapframework/snap-server.git"
-       "https://github.com/snapframework/heist.git"
-       "https://github.com/dzhus/snaplet-redis.git"
+REPOS=("https://github.com/dzhus/snaplet-redis.git"
        "https://github.com/f-me/snaplet-redson.git"
        "https://github.com/f-me/avaya-aes.git"
        "https://github.com/f-me/xlsx-parser.git")
@@ -86,7 +82,7 @@ for repo in "${repos_to_rebuild[@]}"; do
   fi
 done
 
-cabal-dev configure && cabal-dev build
+cabal-dev install-deps && cabal-dev configure && cabal-dev build
 #cabal-dev install
 
 cd $CARMA_DIR

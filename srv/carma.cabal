@@ -8,11 +8,11 @@ Maintainer:          maintainer@example.com
 Stability:           Experimental
 Category:            Web
 Build-type:          Simple
-Cabal-version:       >=1.2
+Cabal-version:       >=1.6
 
 Flag development
   Description: Whether to build the server in development (interpreted) mode
-  Default: True
+  Default: False
 
 Executable carma
   hs-source-dirs: src
@@ -22,16 +22,13 @@ Executable carma
     aeson                       == 0.6.*,
     avaya-aes                   == 0.0.*,
     base                        >= 4 && < 5,
-    conduit                     == 0.4.*,
     configurator                == 0.2.*,
     containers,
-    csv-conduit                 == 0.1.*,
     bytestring                  >= 0.9.1 && < 0.10,
     data-lens                   >= 2.0.1 && < 2.1,
     data-lens-template          >= 2.1 && < 2.2,
     directory                   == 1.1.*,
-    encoding                    == 0.6.*,
-    hedis			== 0.4.*,
+    hedis			                  == 0.4.*,
     heist                       == 0.8.*,
     MonadCatchIO-transformers   >= 0.2.1 && < 0.3,
     mtl                         >= 2 && < 3,
@@ -44,10 +41,10 @@ Executable carma
     text                        >= 0.11 && < 0.12,
     time                        >= 1.1 && < 1.5,
     transformers                == 0.2.*,
-    xlsx-parser                 == 0.0.*,
     xmlhtml                     == 0.1.*,
     unix                        == 2.4.*,
-    utf8-string                 == 0.3.*
+    vin-parser                  == 0.1.*,
+    xmlhtml                     == 0.1.*
 
   if flag(development)
     cpp-options: -DDEVELOPMENT
