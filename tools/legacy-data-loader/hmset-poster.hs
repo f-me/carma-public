@@ -282,8 +282,8 @@ caseMap = let
     sourceFmt = "%m/%d/%Y"
     targetFmt = "%d.%m.%Y"
     -- Convert MM/DD/YYYY to DD.MM.YYYY
-    callDate :: MapRow -> FieldValue
-    callDate mr = case M.lookup (BU.fromString "Дата звонка") mr of
+    convertDate :: MapRow -> FieldValue
+    convertDate mr = case M.lookup (BU.fromString "Дата звонка") mr of
                     Just v -> BU.fromString $
                         let
                             parsed :: Maybe UTCTime
@@ -294,7 +294,8 @@ caseMap = let
                             Nothing -> ""
                     Nothing -> ""
     in
-      M.insert "callDate" (Function callDate) plain
+      M.insert "car_buyDate" (Function convertDate) $
+        M.insert "callDate" (Function convertDate) plain
 
 -- | Build new commit from row and commit spec.
 remapRow :: MapRow -> FieldMap -> MapRow
