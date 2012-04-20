@@ -17,8 +17,10 @@ TODO Support more than one dependant form.
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.State (get)
+import Control.Arrow (second)
 
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.ByteString.UTF8 as BU (fromString, toString)
 
@@ -260,9 +262,8 @@ serviceTransformations = [ tech
 -- | How to remap columns of case.
 caseMap :: FieldMap
 caseMap = let 
-    plain = fixUtfMap $ map (\(k, v) -> (k, Right v)) $
-          [ ("callTime", "Время звонка")
-          , ("callTaker", "Сотрудник РАМК (Обязательное поле)")
+    plain = fixUtfMap $ map (second Right)
+          [ ("callTaker", "Сотрудник РАМК (Обязательное поле)")
           , ("program", "Клиент (Обязательное поле)")
           , ("services", "Услуга (Обязательное поле)")
           , ("caller_name", "Фамилия звонящего")
@@ -273,7 +274,6 @@ caseMap = let
           , ("car_model", "Модель автомобиля")
           , ("car_color", "Цвет")
           , ("car_vin", "VIN автомобиля")
-          , ("car_buyDate", "Дата покупки автомобиля")
           , ("car_mileage", "Пробег автомобиля (км)")
           , ("address_address", "Адрес места поломки")
           , ("comment", "Описание неисправности со слов клиента")
@@ -282,20 +282,26 @@ caseMap = let
     sourceFmt = "%m/%d/%Y"
     targetFmt = "%d.%m.%Y"
     -- Convert MM/DD/YYYY to DD.MM.YYYY
-    convertDate :: MapRow -> FieldValue
-    convertDate mr = case M.lookup (BU.fromString "Дата звонка") mr of
-                    Just v -> BU.fromString $
-                        let
-                            parsed :: Maybe UTCTime
-                            parsed = parseTime locale sourceFmt (BU.toString v)
-                        in
-                          case parsed of
-                            Just t -> formatTime locale targetFmt t
-                            Nothing -> ""
-                    Nothing -> ""
+    convertDate v = BU.fromString $
+        let
+            parsed :: Maybe UTCTime
+            parsed = parseTime locale sourceFmt (BU.toString v)
+        in
+          case parsed of
+            Just t -> formatTime locale targetFmt t
+            Nothing -> ""
+    addFn n f = M.insert n (Function f)
     in
-      M.insert "car_buyDate" (Function convertDate) $
-        M.insert "callDate" (Function convertDate) plain
+      addFn "car_buyDate" (convertDate . fields ["Дата покупки автомобиля"]) $
+        addFn "callDate" (convertDate . fields ["Дата звонка", "Время звонка"])
+           plain
+
+
+fields :: [String] -> MapRow -> FieldValue
+fields xs mr =
+    B.unwords $ catMaybes $
+      map ((`M.lookup` mr) . BU.fromString) xs
+
 
 -- | Build new commit from row and commit spec.
 remapRow :: MapRow -> FieldMap -> MapRow
