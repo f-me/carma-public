@@ -400,7 +400,7 @@ create h modelName commit = browse $ withBrowserState h $ do
                      ++ "/" ++ BU.toString ident
         let rq   = mkRequest' PUT uri $ Aeson.encode commit
         (_,rsp) <- assertStatus (2,0,4) $ request rq
-        return $ Right $ B.concat [modelName, ":", ident]
+        return $ Right ident
 
 
 assertStatus code f = f >>= \(uri,rsp) ->
