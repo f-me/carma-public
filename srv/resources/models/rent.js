@@ -40,8 +40,7 @@
                 "label": "Статус услуги",
                 "dictionaryName": "ServiceStatuses"
             }
-        }
-
+        },
         {
             "name": "towDealer",
             "groupName": "partner"
