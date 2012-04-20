@@ -41,6 +41,10 @@
     <!-- OpenLayers library allows map rendering -->
     <script src="http://www.openlayers.org/api/OpenLayers.js" />
 
+    <!-- 25Kb of date parsing and formatting -->
+    <script src="/s/js/3p/date-ru-RU.js" />
+
+
     <!-- Model processing -->
     <script src="/s/js/metamodel.js" />
     <script src="/s/js/util.js" />
@@ -295,11 +299,36 @@
         </div>
         <div class="controls">
           <input type="text"
-                 class="pane-span focusable" 
+                 class="pane-span focusable"
                  name="{{ name }}"
                  {{# meta.readonly }}disabled{{/ meta.readonly }}
                  data-bind="value: {{ name }},
                             valueUpdate: 'afterkeydown'" />
+        </div>
+      </div>
+    </script>
+
+    <script type="text/template"
+            class="field-template"
+            id="datetime-field-template">
+      <div class="control-group"
+           {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
+           >
+        <div class="control-label">
+          <label>{{ meta.label }}
+            {{# meta.infoText }}
+              <i class="icon icon-question-sign"
+                 data-provide="popover"
+                 data-content="{{ meta.infoText }}" />
+            {{/ meta.infoText }}
+          </label>
+        </div>
+        <div class="controls">
+          <input type="text"
+                 class="pane-span focusable"
+                 name="{{ name }}"
+                 {{# meta.readonly }}disabled{{/ meta.readonly }}
+                 data-bind="value: {{ name }}" />
         </div>
       </div>
     </script>
@@ -327,7 +356,7 @@
                data-date-format="dd.mm.yyyy"
                data-date-weekstart="1">
             <input type="text"
-                   class="pane-span focusable" 
+                   class="pane-span focusable"
                    name="{{ name }}"
                    {{# meta.readonly }}disabled{{/ meta.readonly }}
                    data-bind="value: {{ name }},

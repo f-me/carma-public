@@ -160,8 +160,7 @@ function setupCaseMain(viewName, args) {
 
     // Default values
     _.extend(args, {callTaker: global.user.meta.realName,
-                    callDate: getFormatDate(),
-                    callTime: getFormatTime()});
+                    callDate: (new Date).toString ("dd.MM.yyyy HH:mm:ss")});
 
 
     // Render list of required fields in right pane
@@ -206,19 +205,6 @@ function setupCaseMain(viewName, args) {
     $(".tableTable").dataTable();
 }
 
-// Return MM-DD-YYYY
-function getFormatDate() {
-    var d = new Date;
-    var sd = d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear();
-    return sd;
-}
-
-// Return HH:MM
-function getFormatTime() {
-    var d = new Date;
-    var sd = d.getHours() + ':' + d.getMinutes();
-    return sd;
-}
 
 // Hide all views on center pane and show view for first reference
 // stored in <fieldName> of model loaded into <parentView> there

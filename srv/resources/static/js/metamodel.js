@@ -113,13 +113,17 @@ function backbonizeModel(model, modelName) {
             var m = this.model;
             for (k in json) {
                 // TODO Perhaps inform client when unknown field occurs
-                if ((k != "id") && 
-                    (_.has(this.fieldHash, k)) &&
-                    (this.fieldHash[k].type == "checkbox")) {
-                    if (json[k] == "1")
-                        json[k] = true;
-                    else
-                        json[k] = false;
+                if ((k != "id") && _.has(this.fieldHash, k)) {
+                    var type = this.fieldHash[k].type;
+                    if (type.startsWith("date") && json[k].match(/\d+/)) {
+                        var format = type == "date"
+                                   ? "dd.MM.yyyy"
+                                   : "dd.MM.yyyy HH:mm:ss";
+                        json[k] = new Date(json[k] * 1000).toString(format);
+                    }
+                    else if (type == "checkbox") {
+                        json[k] = json[k] == "1";
+                    }
                 }
             }
             return json;
@@ -129,9 +133,21 @@ function backbonizeModel(model, modelName) {
             var json = this.attributeQueue;
             // Map boolean values to string "0"/"1"'s for server
             // compatibility
-            for (k in json)
+            for (k in json) {
+                if (_.has(this.fieldHash, k) &&
+                    this.fieldHash[k].type.startsWith("date"))
+                {
+                    var date = Date.parseExact(
+                            json[k],
+                            ["dd.MM.yyyy", "dd.MM.yyyy HH:mm:ss"]);
+                    if (date) {
+                        var timestamp = Math.round(date.getTime() / 1000);
+                        json[k] = String(timestamp);
+                    }
+                }
                 if (_.isBoolean(json[k]))
                     json[k] = String(json[k] ? "1" : "0");
+            }
             this.attributeQueue = {};
             return json;
         },

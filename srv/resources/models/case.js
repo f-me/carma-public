@@ -76,15 +76,9 @@
             "name": "callDate",
             "index": true,
             "indexCollate": true,
+            "type": "datetime",
             "meta": {
                 "label": "Дата звонка",
-                "readonly": true
-            }
-        },
-        {
-            "name": "callTime",
-            "meta": {
-                "label": "Время звонка",
                 "readonly": true
             }
         },
