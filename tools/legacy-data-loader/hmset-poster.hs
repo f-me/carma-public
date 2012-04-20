@@ -24,7 +24,7 @@ import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.ByteString.UTF8 as BU (fromString, toString)
 
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, fromMaybe)
 import qualified Data.Map as M
 
 import Data.Enumerator as E hiding (foldM, map, head)
@@ -36,6 +36,7 @@ import Network.Browser
 import Network.URI (parseURI)
 
 import Data.Time.Clock
+import Data.Time.Clock.POSIX
 import Data.Time.Format
 
 import System.Console.CmdArgs.Implicit
@@ -280,27 +281,29 @@ caseMap = let
           ]
     locale = defaultTimeLocale
     sourceFmt = "%m/%d/%Y"
-    targetFmt = "%d.%m.%Y"
-    -- Convert MM/DD/YYYY to DD.MM.YYYY
-    convertDate v = BU.fromString $
-        let
-            parsed :: Maybe UTCTime
-            parsed = parseTime locale sourceFmt (BU.toString v)
-        in
-          case parsed of
-            Just t -> formatTime locale targetFmt t
-            Nothing -> ""
-    addFn n f = M.insert n (Function f)
+    -- Convert MM/DD/YYYY to POSIX seconds
+    mkBuyDate mr = BU.fromString $ show $ fromMaybe 0 $ do
+        dStr <- BU.fromString "Дата покупки автомобиля" `M.lookup` mr
+        dUTC <- parseTime locale sourceFmt (BU.toString dStr) :: Maybe UTCTime
+        return $ round $ utcTimeToPOSIXSeconds dUTC
+
+    mkCallDate mr = BU.fromString $ show $ fromMaybe 0 $ do
+        dStr <- BU.fromString "Дата звонка" `M.lookup` mr
+        dUTC <- parseTime locale sourceFmt (BU.toString dStr) :: Maybe UTCTime
+        let dInt = round $ utcTimeToPOSIXSeconds dUTC
+        -- read time and convert it to number of seconds since midnight
+        -- we need this because '%R' format allows only zero padded values
+        let tInt = fromMaybe 0 $ do
+              tStr <- BU.fromString "Время звонка" `M.lookup` mr
+              (h,mStr) <- B.readInt tStr
+              (m,"")   <- B.readInt $ B.tail mStr
+              return $ (h*60 + m)*60
+        return $ dInt + tInt
     in
-      addFn "car_buyDate" (convertDate . fields ["Дата покупки автомобиля"]) $
-        addFn "callDate" (convertDate . fields ["Дата звонка", "Время звонка"])
+      M.insert "car_buyDate" (Function mkBuyDate) $
+        M.insert "callDate" (Function mkCallDate) $
            plain
 
-
-fields :: [String] -> MapRow -> FieldValue
-fields xs mr =
-    B.unwords $ catMaybes $
-      map ((`M.lookup` mr) . BU.fromString) xs
 
 
 -- | Build new commit from row and commit spec.
