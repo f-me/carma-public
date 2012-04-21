@@ -29,14 +29,14 @@
             }
         },
         {
-            "name": "not_vandal",
+            "name": "notVandal",
             "type": "checkbox",
             "meta": {
                 "label": "Не вандализм"
             }
         },
         {
-            "name": "not_accident",
+            "name": "notAccident",
             "type": "checkbox",
             "meta": {
                 "label": "Не ДТП"
