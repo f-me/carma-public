@@ -7,11 +7,6 @@
     "canDelete": true,
     "applications": [
         {
-            "targets": true,
-            "canWrite": true,
-            "canRead": true
-        },
-        {
             "targets": ["car_model"],
             "meta": {
                 "dictionaryParent": "car_make"
@@ -21,6 +16,8 @@
     "fields": [
         {
             "name": "comment",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "Wazzup",
