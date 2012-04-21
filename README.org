@@ -125,7 +125,11 @@
 
   Available accounts:
 
-  - admin @ <empty password>
+  - admin @ <empty password> (roles "front", "back", "parguy", "head");
+  - frontuser @ <empty password> (role "front")
+  - backuser @ <empty password> (role "back")
+  - parguyuser @ <empty password> (role "parguy")
+  - headuser @ <empty password> (role "head")
 
   User management is available via [[https://github.com/dzhus/snap-auth-cli][snap-auth-cli]].
   
