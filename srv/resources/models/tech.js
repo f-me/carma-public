@@ -29,6 +29,8 @@
         },
         {
             "name": "techType",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
             "meta": {
                 "dictionaryName": "TechTypes",
                 "label": "Услуга",
@@ -39,10 +41,14 @@
         },
         {
             "name": "caseAddress",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
             "groupName": "address"
         },
         {
             "name": "techContractor",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
             "groupName": "partner",
             "meta": {
                 "label": "Название партнёра"
