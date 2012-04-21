@@ -28,7 +28,7 @@ Executable carma
     data-lens                   >= 2.0.1 && < 2.1,
     data-lens-template          >= 2.1 && < 2.2,
     directory                   == 1.1.*,
-    hedis			                  == 0.4.*,
+    hedis			== 0.4.*,
     heist                       == 0.8.*,
     MonadCatchIO-transformers   >= 0.2.1 && < 0.3,
     mtl                         >= 2 && < 3,
