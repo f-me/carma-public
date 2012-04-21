@@ -41,6 +41,8 @@
         },
         {
             "name": "diagnosis1",
+            "canRead": ["front", "back", "head"],
+            "canWrite": ["front", "back", "head"],
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "Diagnosis1",
@@ -49,6 +51,8 @@
         },            
         {
             "name": "diagnosis2",
+            "canRead": ["front", "back", "head"],
+            "canWrite": ["front", "back", "head"],
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "Diagnosis2",
@@ -56,13 +60,19 @@
             }
         },
         {
-            "name": "diagnosis3"
+            "name": "diagnosis3",
+            "canRead": ["front", "back", "head"],
+            "canWrite": ["front", "back", "head"]
         },
         {
-            "name": "diagnosis4"
+            "name": "diagnosis4",
+            "canRead": ["front", "back", "head"],
+            "canWrite": ["front", "back", "head"]
         },
         {
             "name": "caller",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
             "groupName": "contact",
             "meta": {
                 "label": "Клиент"
@@ -70,10 +80,14 @@
         },
         {
             "name": "car",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
             "groupName": "car"
         },
         {
             "name": "program",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
             "index": true,
             "type": "dictionary",
             "meta": {
@@ -95,6 +109,7 @@
         },
         {
             "name": "callTaker",
+            "canRead": ["front", "back", "head", "parguy"],
             "meta": {
                 "label": "Сотрудник РАМК",
                 "required": true,
@@ -103,6 +118,8 @@
         },
         {
             "name": "status",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["head"],
             "type": "dictionary",
             "meta": {
                 "required": true,
