@@ -43,20 +43,28 @@
         },
         {
             "name": "towDealer",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
             "groupName": "partner"
         },
         {
             "name": "rentAddress",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
             "groupName": "address"
         },
         {
             "name": "carClass",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
             "meta": {
                 "label": "Класс автомобиля"
             }
         },
         {
             "name": "rentContractor",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
             "groupName": "partner",
             "meta": {
                 "label": "Подрядчик"
