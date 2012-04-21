@@ -35,6 +35,8 @@
         },
         {
             "name": "towerType",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
             "meta": {
                 "dictionaryName": "TowerTypes",
                 "label": "Тип эвакуатора"
@@ -44,6 +46,8 @@
         },
         {
             "name": "towType",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
             "meta": {
                 "dictionaryName": "TowTypes",
                 "label": "Вид эвакуации"
@@ -52,10 +56,14 @@
         },
         {
             "name": "caseAddress",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
             "groupName": "address"
         },
         {
             "name": "towDealer",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
             "groupName": "partner",
             "meta": {
                 "label": "Дилер"
@@ -63,10 +71,14 @@
         },
         {
             "name": "towAddress",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
             "groupName": "address"
         },
         {
             "name": "towContractor",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
             "groupName": "partner",
             "meta": {
                 "label": "Подрядчик"
@@ -74,6 +86,8 @@
         },
         {
             "name": "wheelsUnblocked",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
             "meta": {
                 "default": true,
                 "label": "Колёса не заблокированы"
@@ -82,6 +96,8 @@
         },
         {
             "name": "manipulatorPossible",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
             "meta": {
                 "default": true,
                 "label": "Есть место для манипулятора"
