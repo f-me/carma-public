@@ -29,6 +29,20 @@
             }
         },
         {
+            "name": "not_vandal",
+            "type": "checkbox",
+            "meta": {
+                "label": "Не вандализм"
+            }
+        },
+        {
+            "name": "not_accident",
+            "type": "checkbox",
+            "meta": {
+                "label": "Не ДТП"
+            }
+        },
+        {
             "name": "diagnosis1",
             "type": "dictionary",
             "meta": {
