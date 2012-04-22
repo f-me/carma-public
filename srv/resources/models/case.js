@@ -7,6 +7,12 @@
     "canDelete": true,
     "applications": [
         {
+            "targets": ["caseAddress_address"],
+            "meta": {
+                "label": "Адрес места поломки"
+            }
+        },        
+        {
             "targets": ["car_model"],
             "meta": {
                 "dictionaryParent": "car_make"
@@ -85,6 +91,14 @@
             "groupName": "car"
         },
         {
+            "name": "plateNumber",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
+            "meta": {
+                "label": "Госномер"
+            }
+        },            
+        {
             "name": "program",
             "canRead": ["front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head"],
@@ -97,6 +111,29 @@
                 "targetCategory": "program"
             }
         },
+        {
+            "name": "caseAddress",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
+            "groupName": "address"
+        },        
+        {
+            "name": "temperature",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
+            "meta": {
+                "label": "Температура"
+            }
+        },        
+        {
+            "name": "dealerCause",
+            "canRead": ["front", "back", "head"],
+            "canWrite": ["back", "head"],
+            "meta": {
+                "label": "Причина неисправности со слов дилера",
+            },
+            "type": "textarea"
+        },          
         {
             "name": "callDate",
             "index": true,
@@ -127,6 +164,15 @@
                 "label": "Статус кейса"
             }
         },
+        {
+            "name": "betaComment",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head", "parguy"],
+            "meta": {
+                "label": "Комментарии",
+            },
+            "type": "textarea"
+        },        
         {
             "name": "services",
             "canRead": true,
