@@ -88,8 +88,10 @@
         },
         {
             "name": "class",
+            "type": "dictionary",
             "meta": {
-                "label": "Класс автомобиля"
+                "label": "Класс автомобиля",
+                "dictionaryName": "CarClasses"
             }
         },
         {
@@ -99,6 +101,12 @@
                 "label": "Дата покупки"
             }
         },
+        {
+            "name": "seller",
+            "meta": {
+                "label": "Дилер, продавший автомобиль"
+            }
+        },        
         {
             "name": "mileage",
             "meta": {
@@ -185,6 +193,12 @@
         }        
     ],    
     "address": [
+        {
+            "name": "city",
+            "meta": {
+                "label": "Город"
+            }
+        },        
         {
             "name": "address",
             "meta": {
