@@ -183,6 +183,18 @@ function pickTemplate(templates, names) {
 // data-bind parameters for Knockout, sectioning contents wrt to group
 // fields.
 //
+// For every model field, an appropriate form widget is picked using
+// chooseFieldTemplate and actual value may be then rendered in field
+// using Knockout.
+//
+// Field templates are rendered with field definitions as context.
+// Extra context attributes include:
+//
+// - `readonly` for fields which have canWrite=false in form
+// description, so templates can use it.
+//
+// - `viewName` which is viewName passed into renderFields.
+//
 // To allow rendering of elements which depend on the name of view
 // which will hold the instance (like save/remove instance), viewName
 // argument is passed.
@@ -216,11 +228,6 @@ function renderFields(model, viewName, groups) {
 
     contents[mainGroup] = "";
 
-    // Pick an appropriate form widget for each model
-    // field type and render actual model value in it
-    //
-    // Set readonly context attribute for fields which have
-    // canEdit=false in form description.
     _.each(model.fields,
            function (f) {
              if (_.isNull(f.meta) || !f.meta.invisible) {
@@ -284,8 +291,9 @@ function renderFields(model, viewName, groups) {
     return contents;
 }
 
-// Pick first template which matches: <field.name>-<field.type>,
-// <field.meta.widget>-<field.type>, <field.type>
+// Pick first template element with id which matches:
+// <field.name>-<field.type>, <field.meta.widget>-<field.type>,
+// <field.type>
 function chooseFieldTemplate(field, templates) {
     var typed_tpl = field.type;
     var named_tpl = field.name + "-" + field.type;
