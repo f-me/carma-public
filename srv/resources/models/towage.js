@@ -133,7 +133,7 @@
             "canWrite": ["back", "head"],
             "type": "datetime",
             "meta": {
-                "label": "Время погрузки",
+                "label": "Время погрузки"
             }
         },
         {
@@ -142,7 +142,7 @@
             "canWrite": ["back", "head"],
             "type": "datetime",
             "meta": {
-                "label": "Время разгрузки",
+                "label": "Время разгрузки"
             }
         }
     ]
