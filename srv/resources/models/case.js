@@ -17,6 +17,16 @@
             "meta": {
                 "dictionaryParent": "car_make"
             }
+        },
+        {
+            "targets": ["car_vin", "car_make", "car_model", "car_plateNum",
+                        "car_color", "car_transmission", "car_engine",
+                        "car_liters", "car_capacity", "car_dims",
+                        "car_weight", "car_checkPeriod", "car_class",
+                        "car_buyDate", "car_mileage", "car_checkupDate",
+                        "car_checkupMileage"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
         }
     ],
     "fields": [
@@ -86,18 +96,8 @@
         },
         {
             "name": "car",
-            "canRead": ["front", "back", "head", "parguy"],
-            "canWrite": ["front", "back", "head"],
             "groupName": "car"
         },
-        {
-            "name": "plateNumber",
-            "canRead": ["front", "back", "head", "parguy"],
-            "canWrite": ["front", "back", "head"],
-            "meta": {
-                "label": "Госномер"
-            }
-        },            
         {
             "name": "program",
             "canRead": ["front", "back", "head", "parguy"],
