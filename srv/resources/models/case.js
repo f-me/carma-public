@@ -130,7 +130,7 @@
             "canRead": ["front", "back", "head"],
             "canWrite": ["back", "head"],
             "meta": {
-                "label": "Причина неисправности со слов дилера",
+                "label": "Причина неисправности со слов дилера"
             },
             "type": "textarea"
         },          
@@ -169,7 +169,7 @@
             "canRead": ["front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head", "parguy"],
             "meta": {
-                "label": "Комментарии",
+                "label": "Комментарии"
             },
             "type": "textarea"
         },        
