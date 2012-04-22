@@ -46,6 +46,12 @@ type FreeChecker = CheckerArgs -> Checker
 
 ------------------------------------------------------------------------------
 -- | Named checks built from combinators.
+--
+-- This is where all known checks are defined. 'FreeChecker's are may
+-- be built using combinators of form @f . g@, where @g@ parses
+-- CheckerArgs into type consumed by @f@, which produces a 'Checker'.
+--
+-- CheckerArgs of @g@ are parsed from JSON.
 checkMap :: M.Map B.ByteString FreeChecker
 checkMap = 
     M.fromList 
@@ -78,6 +84,8 @@ type TargetName = B.ByteString
 type TargetMap = M.Map TargetName [Condition]
 
 
+------------------------------------------------------------------------------
+-- | Candibober snaplet type.
 data Candibober = Candibober { _targets :: TargetMap }
 
 makeLens ''Candibober
