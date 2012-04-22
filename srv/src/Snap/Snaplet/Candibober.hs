@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 -- | Candibober takes dataset and checks if named conditions hold for
 -- them.
@@ -12,40 +13,68 @@ where
 
 import Control.Applicative
 
-import Data.Aeson
-import qualified Data.ByteString as B
+import Control.Monad.State hiding (put)
+
+import Data.Aeson as A
+import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB (readFile)
 
-import Data.Lens.Common
+import Data.Configurator
+
+import Data.Lens.Template
 
 import qualified Data.Map as M
 
 import Snap.Snaplet
-import Snap.Snaplet.Redson.Snapless.Metamodel
+import Snap.Snaplet.Candibober.Checks
 
 
-type SlotName = B.Bytestring
+------------------------------------------------------------------------------
+-- | Map JSON types to checker argument types, allowing for further
+-- pattern-matching in arg processing combinators
+instance FromJSON CheckerArgs where
+    parseJSON s@(String _) = Single <$> (parseJSON s)
+    parseJSON v@(Array _) = Many <$> (parseJSON v)
+    parseJSON _ = error "Could not parse check arguments"
 
 
--- | Datasets provided to Candibober may have several named slots,
--- each containing a commit (think several model instances).
-type Dataset = M.Map SlotName Commit
+------------------------------------------------------------------------------
+-- | Checker which has not been fully bound to check parameters yet.
+-- Applying it to arguments yields a checker.
+type FreeChecker = CheckerArgs -> Checker
 
 
--- | Checker function for condition.
-type Checker = Dataset -> CheckResult
+------------------------------------------------------------------------------
+-- | Named checks built from combinators.
+checkMap :: M.Map B.ByteString FreeChecker
+checkMap = 
+    M.fromList 
+         [ ("sellLess", dateCheck "case" "car_sellDate" LT . yearsAgo)
+         ]
 
 
--- | If condition check explicitly failed or succeeded, Just Bool is
--- returned. If no data was provided, then checkers return Nothing.
-type CheckResult = Maybe Bool
+type ConditionName = B.ByteString
 
 
-data Condition = Condition { cType :: B.Bytestring,
-                             check :: Checker
+data Condition = Condition { cType :: ConditionName
+                           , checker :: Checker
                            }
 
 
+instance FromJSON Condition where
+    parseJSON (Object v) = do
+      checkType <- v .: "type"
+      case M.lookup checkType checkMap of
+        Just freeChecker -> Condition "foo" <$> freeChecker <$> v .: "args"
+        Nothing -> error $ "Unknown check type " ++ (B.unpack checkType)
+    parseJSON _ = error "Could not parse condition"
+
+
+type TargetName = B.ByteString
+
+
+------------------------------------------------------------------------------
+-- | Each target is a named list of conditions.
 type TargetMap = M.Map TargetName [Condition]
 
 
@@ -58,8 +87,12 @@ makeLens ''Candibober
 -- | Parse target definitions into 'TargetMap'.
 loadTargets :: FilePath
             -- ^ Targets definition file
-            -> IO (Maybe TargetMap)
-loadTargets filename = A.decode <$> LB.readFile filename
+            -> IO TargetMap
+loadTargets filename = do
+    res <- A.decode <$> LB.readFile filename
+    case res of
+      Just t -> return t
+      Nothing -> error $ "Could not parse targets file " ++ filename
 
 
 ------------------------------------------------------------------------------
@@ -72,5 +105,5 @@ candiboberInit =
                lookupDefault "resources/targets.json"
                              cfg "targets-file"
 
-      tMap <- loadTargets tFile
+      tMap <- liftIO $ loadTargets tFile
       return $ Candibober tMap

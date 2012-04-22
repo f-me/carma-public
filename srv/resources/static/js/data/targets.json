@@ -1,0 +1,14 @@
+{
+    "vw": [
+        {
+            "type": "sellLess",
+            "args": "2"
+        }
+    ],
+    "vwcargo": [
+        {
+            "type": "sellLess",
+            "args": "2"
+        }
+    ]
+}
