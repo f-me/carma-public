@@ -284,10 +284,13 @@ function renderFields(model, viewName) {
                          // group
                          currentSection = f.name;
 
-                         f.type = "group";
-                         tpl = chooseFieldTemplate(f, templates);
-                         contents[mainGroup]
-                             += Mustache.render(tpl, ctx);
+                         if (f.meta && (!f.meta.mainOnly)) {
+                             f.type = "group";
+                             tpl = chooseFieldTemplate(f, templates);
+                             contents[mainGroup]
+                                 += Mustache.render(tpl, ctx);
+                             f.type = realType;
+                         }
                      }
                  }
 
@@ -295,13 +298,12 @@ function renderFields(model, viewName) {
                  if (!_.has(contents, currentSection))
                      contents[currentSection] = "";
 
-                 f.type = realType;
                  tpl = chooseFieldTemplate(f, templates);
 
                  // Put field HTML in appropriate section
                  contents[currentSection] += Mustache.render(tpl, ctx);
 
-                 if (f.meta && f.meta.mainToo)
+                 if (f.meta && (f.meta.mainToo || f.meta.mainOnly))
                      contents[mainGroup] += Mustache.render(tpl, ctx);
              }
            });

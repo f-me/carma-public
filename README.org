@@ -19,11 +19,15 @@
   - `dictionaryName`: set name of dictionary when field type is
     `dictionary` (see section below)
   
-  - `dictionaryParent`: set parent dictionary for dependend dictionary
+  - `dictionaryParent`: set parent dictionary for dependent dictionary
     (see section below)
     
   - `mainToo`: when specified in member of group, field is rendered in
     main pane, too (in addition to rendering in view of group)
+
+  - `mainOnly`: render member of group in main section only. When
+    specified for first member of group, no link to central pane is
+    rendered.
 
   - `readonly`: render field as readonly. To really set permissions,
     use canRead/canWrite
