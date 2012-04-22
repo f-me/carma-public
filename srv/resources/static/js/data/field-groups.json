@@ -91,7 +91,7 @@
             "type": "dictionary",
             "meta": {
                 "label": "Класс автомобиля",
-                "dictionaryName": "CarMakers"
+                "dictionaryName": "CarClasses"
             }
         },
         {
