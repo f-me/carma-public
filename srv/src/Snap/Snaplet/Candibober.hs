@@ -26,7 +26,8 @@ import Data.Lens.Template
 import qualified Data.Map as M
 
 import Snap.Snaplet
-import Snap.Snaplet.Candibober.Checks
+import Snap.Snaplet.Candibober.Date
+import Snap.Snaplet.Candibober.Types
 
 
 ------------------------------------------------------------------------------
@@ -36,12 +37,6 @@ instance FromJSON CheckerArgs where
     parseJSON s@(String _) = Single <$> (parseJSON s)
     parseJSON v@(Array _) = Many <$> (parseJSON v)
     parseJSON _ = error "Could not parse check arguments"
-
-
-------------------------------------------------------------------------------
--- | Checker which has not been fully bound to check parameters yet.
--- Applying it to arguments yields a checker.
-type FreeChecker = CheckerArgs -> Checker
 
 
 ------------------------------------------------------------------------------
