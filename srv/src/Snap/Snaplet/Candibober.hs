@@ -51,6 +51,8 @@ checkMap :: M.Map B.ByteString FreeChecker
 checkMap = 
     M.fromList 
          [ ("sellLess", dateCheck "case" "car_sellDate" LT . yearsAgo)
+         , ("sellAfter", dateCheck "case" "car_sellDate" GT . date)
+         , ("checkupLess", dateCheck "case" "car_checkupDate" LT . yearsAgo)
          ]
 
 

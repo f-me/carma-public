@@ -21,9 +21,6 @@ module Snap.Snaplet.Candibober.Types
 
 where
 
-import Control.Monad
-import Data.Functor
-
 import qualified Data.ByteString.Char8 as B
 
 import qualified Data.Map as M
