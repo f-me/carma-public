@@ -27,7 +27,7 @@
         {
             "name": "plateNum",
             "meta": {
-                "label": "Регистрационный номер автомобиля"
+                "label": "Госномер"
             },
             "index": true,
             "indexCollate": true

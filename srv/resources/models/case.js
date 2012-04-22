@@ -27,6 +27,12 @@
                         "car_checkupMileage"],
             "canRead": ["front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head"]
+        },
+        {
+            "targets": ["car_plateNum"],
+            "meta": {
+                "mainToo": true
+            }
         }
     ],
     "fields": [
