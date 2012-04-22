@@ -453,6 +453,17 @@
         },
         {
             "name": "rentedMake",
+             "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
             "meta": {
                 "dictionaryName": "CarMakers",
                 "label": "Марка, предоставленного автомобиля"
@@ -461,6 +472,17 @@
         },
         {
             "name": "rentedModel",
+             "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
             "meta": {
                 "dictionaryName": "CarModels",
                 "label": "Модель, предоставленного автомобиля"
