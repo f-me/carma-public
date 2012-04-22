@@ -17,17 +17,15 @@
             "meta": {
                 "label": "Дилер"
             }
-        }
+        },
+        {
+            "targets": ["rentedCar_rentedModel"],
+            "meta": {
+                "dictionaryParent": "car_make"
+            }
+        }        
     ],
     "fields": [
-        {
-            "name": "status",
-            "type": "dictionary",
-            "meta": {
-                "label": "Статус услуги",
-                "dictionaryName": "ServiceStatuses"
-            }
-        },
         {
             "name": "status",
             "type": "dictionary",
@@ -52,7 +50,9 @@
             "name": "carClass",
             "canRead": ["front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head"],
+            "type": "dictionary",
             "meta": {
+                "dictionaryName": "CarClasses",
                 "label": "Класс автомобиля"
             }
         },
@@ -64,6 +64,31 @@
             "meta": {
                 "label": "Подрядчик"
             }
+        }
+        ,
+        {
+            "name": "carProvidedFor",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
+            "meta": {
+                "label": "Срок, на который предоставлен автомобиль (дней)"
+            }
+        },
+                {
+            "name": "rentedMake",
+            "meta": {
+                "dictionaryName": "CarMakers",
+                "label": "Марка, предоставленного автомобиля"
+            },
+            "type": "dictionary"
+        },
+        {
+            "name": "rentedModel",
+            "meta": {
+                "dictionaryName": "CarModels",
+                "label": "Модель, предоставленного автомобиля"
+            },
+            "type": "dictionary"
         }
     ]
 }

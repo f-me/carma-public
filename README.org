@@ -8,7 +8,7 @@
   - Backbone 0.9.1 is included with backported [[https://github.com/documentcloud/backbone/commit/a865aa41f13c371d104da9446c3ccb6a16671658][patch]] from upstream;
 
   - bootstrap-typeahead is custom (source is a dictionary entry (see
-    blow), source annotation is eval'd, show on click)
+    below), source annotation is eval'd, show on click)
     
   - bootstrap-datepicker is custom (data API, optional autoshow)
 * Dictionaries

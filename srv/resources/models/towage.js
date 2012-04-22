@@ -50,6 +50,26 @@
             "type": "dictionary"
         },
         {
+            "name": "vandalism",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
+            "meta": {
+                "default": false,
+                "label": "Случай вандализма"
+            },
+            "type": "checkbox"
+        },
+        {
+            "name": "accident",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
+            "meta": {
+                "default": false,
+                "label": "ДТП"
+            },
+            "type": "checkbox"
+        },          
+        {
             "name": "caseAddress",
             "canRead": ["front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head"],
@@ -98,6 +118,32 @@
                 "label": "Есть место для манипулятора"
             },
             "type": "checkbox"
+        },
+        {
+            "name": "suburbanMilage",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],            
+            "meta": {
+                "label": "Пробег эвакуатора за городом"
+            }
+        },
+        {
+            "name": "loadDate",
+            "canRead": ["back", "head"],
+            "canWrite": ["back", "head"],
+            "type": "datetime",
+            "meta": {
+                "label": "Время погрузки",
+            }
+        },
+        {
+            "name": "unloadDate",
+            "canRead": ["back", "head"],
+            "canWrite": ["back", "head"],
+            "type": "datetime",
+            "meta": {
+                "label": "Время разгрузки",
+            }
         }
     ]
 }

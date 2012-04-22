@@ -15,18 +15,19 @@
             }
         },
         {
-            "name": "caseAddress",
-            "groupName": "address",
-            "meta": {
-                "label": "Откуда везём"
-            }
-        },
-        {
             "name": "hotelContractor",
             "groupName": "partner",
             "meta": {
                 "label": "Название партнёра"
             }
-        }
+        },
+        {
+            "name": "hotelProvidedFor",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
+            "meta": {
+                "label": "Срок, на который предоставлена гостиница (дней)"
+            }
+        },        
     ]
 }
