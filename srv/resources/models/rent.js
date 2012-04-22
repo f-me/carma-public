@@ -7,11 +7,6 @@
     "canDelete": true,
     "applications": [
         {
-            "targets": true,
-            "canWrite": true,
-            "canRead": true
-        },
-        {
             "targets": ["rentAddress_address"],
             "meta": {
                 "label": "Куда доставить"

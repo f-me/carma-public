@@ -7,11 +7,6 @@
     "canDelete": true,
     "applications": [
         {
-            "targets": true,
-            "canWrite": true,
-            "canRead": true
-        },
-        {
             "targets": ["taxiFrom_address"],
             "meta": {
                 "label": "Где забрать"

@@ -5,13 +5,6 @@
     "canRead": true,
     "canUpdate": true,
     "canDelete": true,
-    "applications": [
-        {
-            "targets": true,
-            "canWrite": true,
-            "canRead": true
-        }
-    ],
     "fields": [
         {
             "name": "status",

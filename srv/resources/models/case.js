@@ -129,6 +129,8 @@
         },
         {
             "name": "services",
+            "canRead": true,
+            "canWrite": true,
             "type": "reference",
             "meta": {
                 "label": "Услуги"

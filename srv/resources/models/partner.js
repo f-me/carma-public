@@ -2,12 +2,6 @@
     "name": "partner",
     "title": "Партнёр",
     "canRead": true,
-    "applications": [
-        {
-            "targets": true,
-            "canRead": true
-        }
-    ],
     "fields": [
         {
             "index": true,

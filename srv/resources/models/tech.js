@@ -7,11 +7,6 @@
     "canDelete": true,
     "applications": [
         {
-            "targets": true,
-            "canWrite": true,
-            "canRead": true
-        },
-        {
             "targets": ["caseAddress_address"],
             "meta": {
                 "label": "Адрес места поломки"
