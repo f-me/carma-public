@@ -50,11 +50,12 @@
             }
         },
         {
-            "name": "techComments",
+            "name": "suburbanMilage",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],            
             "meta": {
-                "label": "Описание неисправности со слов клиента"
-            },
-            "type": "textarea"
+                "label": "Пробег техпомощи за городом"
+            }
         }
     ]
 }
