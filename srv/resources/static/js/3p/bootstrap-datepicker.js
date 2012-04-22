@@ -113,7 +113,6 @@
 		},
 		
 		update: function(){
-                    console.log(this.isInput);
 			this.date = DPGlobal.parseDate(
                                 this.element.data('date') || this.element.find("input").val(),
                                 this.format);
