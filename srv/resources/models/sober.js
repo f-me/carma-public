@@ -28,16 +28,22 @@
                 "dictionaryName": "ServiceStatuses"
             }
         },
-        {
+        {            
             "name": "fromAddress",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],            
             "groupName": "address"
         },
         {
             "name": "toAddress",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],            
             "groupName": "address"
         },
         {
             "name": "multidrive",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],            
             "meta": {
                 "label": "Мультидрайв"
             },
