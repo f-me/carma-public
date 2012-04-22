@@ -361,14 +361,47 @@
         },
         {
             "name": "taxiFrom",
+             "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
             "groupName": "address"
         },
         {
             "name": "taxiTo",
+             "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
             "groupName": "address"
         },
         {
             "name": "taxiContractor",
+             "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
             "groupName": "partner",
             "meta": {
                 "label": "Название партнёра"
