@@ -274,7 +274,7 @@
         <div class="controls">             
           <textarea class="pane-span focusable"
                     name="{{ name }}"
-                    {{# meta.readonly }}disabled{{/ meta.readonly }}
+                    {{# readonly }}disabled{{/ readonly }}
                     rows="7"
                     data-bind="value: {{ name }},
                                valueUpdate: 'afterkeydown'" />
@@ -301,7 +301,7 @@
           <input type="text"
                  class="pane-span focusable"
                  name="{{ name }}"
-                 {{# meta.readonly }}disabled{{/ meta.readonly }}
+                 {{# readonly }}readonly{{/ readonly }}
                  data-bind="value: {{ name }},
                             valueUpdate: 'afterkeydown'" />
         </div>
@@ -327,7 +327,7 @@
           <input type="text"
                  class="pane-span focusable"
                  name="{{ name }}"
-                 {{# meta.readonly }}disabled{{/ meta.readonly }}
+                 {{# readonly }}readonly{{/ readonly }}
                  data-bind="value: {{ name }}" />
         </div>
       </div>
@@ -358,7 +358,7 @@
             <input type="text"
                    class="pane-span focusable"
                    name="{{ name }}"
-                   {{# meta.readonly }}disabled{{/ meta.readonly }}
+                   {{# readonly }}readonly{{/ readonly }}
                    data-bind="value: {{ name }},
                               valueUpdate: 'afterkeydown'" />
             <span class="add-on"><i class="icon icon-calendar" /></span>
@@ -412,8 +412,16 @@
         </div>
         <div class="controls">
           <div class="input-append">
+            <!-- 
+
+            Note the difference between readonly attribute and
+            disabled class from Bootstrap.
+
+            -->
+            
             <input type="text"
-                   class="pane-span focusable"
+                   class="pane-span focusable {{# readonly }}disabled{{/ readonly }}"
+                   {{# readonly }}readonly{{/ readonly }}
                    name="{{ name }}"
                    data-source="global.dictionaries['{{meta.dictionaryName}}']"
                    data-bind="value: {{ name }}Local,
@@ -450,7 +458,8 @@
         <div class="controls">
           <div class="input-append">
             <input type="text"
-                   class="pane-span focusable"
+                   class="pane-span focusable {{# readonly }}disabled{{/ readonly }}"
+                   {{# readonly }}readonly{{/ readonly }}
                    name="{{ name }}"
                    data-bind="value: {{ name }},
                               valueUpdate: 'afterkeydown'"/>
@@ -506,7 +515,7 @@
         </div>
         <div class="controls">
           <select name="{{ name }}"
-                  {{# meta.readonly }}disabled{{/ meta.readonly }}
+                  {{# readonly }}disabled{{/ readonly }}
                   data-bind="value: {{ name }},
                              valueUpdate: 'change'">
             {{# dictionary.entries }}
@@ -525,7 +534,7 @@
           <label class="checkbox inline">
             <input type="checkbox"
                    name="{{ name }}"
-                   {{# meta.readonly }}disabled{{/ meta.readonly }}
+                   {{# readonly }}readonly{{/ readonly }}
                    data-bind="checked: {{ name }},
                               valueUpdate: 'change'" />
           {{ meta.label }}
@@ -594,7 +603,7 @@
             <input type="text"
                    class="pane-span"
                    onfocus="showComplex('{{ viewName }}', '{{ name }}');"
-                   {{# meta.readonly }}disabled{{/ meta.readonly }}
+                   {{# readonly }}readonly{{/ readonly }}
                    data-bind="value: {{ name }},
                               valueUpdate: 'afterkeydown'" />
             <span class="add-on">
@@ -670,15 +679,15 @@
     <script type="text/template"
             id="permission-template">
       <div class="form-actions">
-        {{# meta.readonly }}
+        {{# readonly }}
         <button class="btn disabled" type="button">
           <i class="icon-ban-circle" /> Только для чтения</button>
-        {{/ meta.readonly }}
-        {{# canUpdate }}
+        {{/ readonly }}
+        {{^ readonly }}
         <button class="btn btn-success" type="button"
                 onClick="saveInstance('{{ viewName }}');">
           <i class="icon-pencil icon-white" /> Сохранить</button>
-        {{/ canUpdate }}
+        {{/ readonly }}
         <div style="clear: both;" />
       </div>
     </script>
