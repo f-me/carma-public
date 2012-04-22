@@ -10,38 +10,117 @@
     ],
     "fields": [
         {
-            "index": true,
-            "name": "cityRu"
+            "name": "code",
+            "meta": {
+                "label": "Код"
+            }
         },
         {
-            "index": true,
-            "name": "cityEn"
+            "name": "city",
+            "meta": {
+                "label": "Город"
+            }
         },
         {
-            "index": true,
-            "name": "phones"
+            "name": "addrDeJure",
+            "meta": {
+                "label": "Юридический адрес"
+            }
         },
         {
-            "index": true,
-            "name": "name"
+            "name": "addrDeFacto",
+            "meta": {
+                "label": "Фактический адрес"
+            }
         },
         {
-            "name": "addrDeJure"
+            "name": "openTime",
+            "meta": {
+                "label": "Время начала работы"
+            }
         },
         {
-            "name": "addrDeFacto"
+            "name": "closeTime",
+            "meta": {
+                "label": "Время окончания работы"
+            }
         },
         {
-            "name": "contactPerson"
+            "name": "phone1",
+            "meta": {
+                "label": "Телефон диспетчерской 1"
+            }
         },
         {
-            "name": "contactPhone"
+            "name": "phone2",
+            "meta": {
+                "label": "Телефон диспетчерской 2"
+            }
         },
         {
-            "name": "eMail"
+            "name": "fax",
+            "meta": {
+                "label": "Факс"
+            }
         },
         {
-            "name": "fax"
+            "name": "closeTicketPhone",
+            "meta": {
+                "label": "Телефон для закрытия заявок"
+            }
+        },
+        {
+            "name": "closeTicketEmail",
+            "meta": {
+                "label": "Email для закрытия заявок"
+            }
+        },
+        {
+            "name": "personInCharge",
+            "meta": {
+                "label": "Ответственное лицо"
+            }
+        },
+        {
+            "name": "taxScheme",
+            "meta": {
+                "label": "Форма налогообложения"
+            }
+        },
+        {
+            "name": "comment",
+            "meta": {
+                "label": "Комментарии"
+            }
+        },
+        {
+            "name": "isPayBackConfirmed",
+            "meta": {
+                "label": "Соглашение о вознаграждении"
+            }
+        },
+        {
+            "name": "priority1",
+            "meta": {
+                "label": "Приоритет за нал"
+            }
+        },
+        {
+            "name": "priority2",
+            "meta": {
+                "label": "Приоритет по безналу город"
+            }
+        },
+        {
+            "name": "priority3",
+            "meta": {
+                "label": "Приоритет по безналу за город"
+            }
+        },
+        {
+            "name": "sservices",
+            "type": "reference"
         }
+      
     ]
 }
