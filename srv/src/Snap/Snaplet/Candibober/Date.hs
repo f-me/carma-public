@@ -3,6 +3,7 @@ module Snap.Snaplet.Candibober.Date
       dateCheck
       -- * Argument combinators
     , yearsAgo
+    , monthsAgo
     , date
     )
 
@@ -52,16 +53,29 @@ dateCheck slot field GT day =
 
 
 ------------------------------------------------------------------------------
--- | Read integer argument into date for that number of years ago.
-yearsAgo :: CheckerArgs -> DateArg
-yearsAgo a = singleOnly a $ \(Single s) ->
+-- | Read integer argument into period (as integer), apply given
+-- function to the reverse of this period and current date.
+dateAgo :: (Integer -> Day -> Day) -> CheckerArgs -> DateArg
+dateAgo adder a = singleOnly a $ \(Single s) ->
     case B.readInteger s of
-      Just (years, _) -> do
+      Just (period, _) -> do
         now <- utctDay <$> getCurrentTime
-        return $ addGregorianYearsClip (-years) now
-      _ -> error $ "Could not read year count from " ++ (B.unpack s)
+        return $ adder (-period) now
+      _ -> error $ "Could not read period from " ++ (B.unpack s)
 
 
+------------------------------------------------------------------------------
+-- | Read integer argument into date for that number of years ago.
+yearsAgo = dateAgo addGregorianYearsClip
+
+
+------------------------------------------------------------------------------
+-- | Read integer argument into date for that number of months ago.
+monthsAgo = dateAgo addGregorianMonthsClip
+
+
+------------------------------------------------------------------------------
+-- | Read formatted date argument using 'targetDateFormat'.
 date :: CheckerArgs -> DateArg
 date a = singleOnly a $ \(Single s) ->
     case parseTime defaultTimeLocale targetDateFormat (B.unpack s) of
