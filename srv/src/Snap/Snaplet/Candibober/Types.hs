@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
--- | Checker combinators.
+-- | Candibober combinators: arguments parsing, transformations.
 
 
 module Snap.Snaplet.Candibober.Types
@@ -8,18 +8,33 @@ module Snap.Snaplet.Candibober.Types
       Dataset
     , SlotName
     , Checker
-    , FreeChecker
     , CheckResult
-    , CheckerArg
     , CheckerArgs(..)
-      -- * Checker and argument combinators
+      -- * Combinators
+
+      -- ** Monadic interface to build concrete checkers from arguments
+    , FreeChecker
+    , CheckBuilderMonad
+    , ArgError(..)
+
+      -- ** Checker combinators must be composable with argument
+      -- combinators
     , inverseChecker
     , FieldChecker
+
+      -- ** Argument combinators produce arguments expected by checker
+      -- combinators
     , scopedChecker
     , singleOnly
+
+      -- ** Parsing combinators perform early syntax checking on
+      -- 'CheckerArgs' and feed data to argument combinators
+    , readInteger
     )
 
 where
+
+import Control.Monad.Trans.Error
 
 import qualified Data.ByteString.Char8 as B
 
@@ -58,10 +73,28 @@ data CheckerArgs = Single CheckerArg
                  | Many [CheckerArg]
 
 
+
 ------------------------------------------------------------------------------
--- | Checker which has not been fully bound to check parameters yet.
--- Applying it to arguments yields a checker.
-type FreeChecker = CheckerArgs -> Checker
+-- | Checker which not been fully bound to check parameters yet.
+-- Applying it to arguments yields a checker or fails if arguments are
+-- broken.
+--
+-- Errors are handled through 'CheckBuilderMonad'. All combinators
+-- which produce 'FreeChecker' values reside in this monad.
+type FreeChecker m = CheckerArgs -> CheckBuilderMonad m Checker
+
+
+------------------------------------------------------------------------------
+-- | Error-handling monad for use in 'FreeChecker' combinator chain.
+type CheckBuilderMonad m = ErrorT ArgError m
+
+
+data ArgError = BadInteger B.ByteString
+              | ArgError String
+
+
+instance Error ArgError where
+    strMsg s = ArgError s
 
 
 ------------------------------------------------------------------------------
@@ -94,3 +127,12 @@ scopedChecker slot field f ds =
 singleOnly :: CheckerArgs -> (CheckerArgs -> a) -> a
 singleOnly s@(Single _) singleF = singleF s
 singleOnly (Many _) _ = error $ "Multiple arguments given, expecting one"
+
+
+------------------------------------------------------------------------------
+-- | Read single integer argument.
+readInteger :: Monad m => CheckerArgs -> CheckBuilderMonad m Integer
+readInteger a = singleOnly a $ \(Single s) ->
+    case B.readInteger s of
+      Just (n, _) -> return n
+      _ -> throwError (BadInteger s)

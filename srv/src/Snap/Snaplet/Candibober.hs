@@ -15,7 +15,10 @@ import Control.Applicative
 
 import Control.Monad.State hiding (put)
 
+import Control.Monad.Trans.Error
+
 import Data.Aeson as A
+import Data.Aeson.Types as A
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB (readFile)
 
@@ -47,12 +50,10 @@ instance FromJSON CheckerArgs where
 -- CheckerArgs into type consumed by @f@, which produces a 'Checker'.
 --
 -- CheckerArgs of @g@ are parsed from JSON.
-checkMap :: M.Map B.ByteString FreeChecker
+checkMap :: M.Map B.ByteString (FreeChecker A.Parser)
 checkMap = 
     M.fromList 
-         [ ("sellLess", dateCheck "case" "car_sellDate" LT . yearsAgo)
-         , ("sellAfter", dateCheck "case" "car_sellDate" GT . date)
-         , ("checkupLess", dateCheck "case" "car_checkupDate" LT . yearsAgo)
+         [ 
          ]
 
 
@@ -60,7 +61,7 @@ type ConditionName = B.ByteString
 
 
 data Condition = Condition { cType :: ConditionName
-                           , checker :: Checker
+                           , checker :: !Checker
                            }
 
 
@@ -68,9 +69,11 @@ instance FromJSON Condition where
     parseJSON (Object v) = do
       checkType <- v .: "type"
       case M.lookup checkType checkMap of
-        -- TODO: Force freeChecker application here somehow, so that
-        -- arg combinator works at parsing.
-        Just freeChecker -> Condition "foo" <$> freeChecker <$> v .: "args"
+        Just freeChecker -> do
+            chain <- runErrorT =<< freeChecker <$> v .: "args"
+            return $ case chain of
+              Left e -> error "Could not build checker"
+              Right checker -> Condition checkType checker
         Nothing -> error $ "Unknown check type " ++ (B.unpack checkType)
     parseJSON _ = error "Could not parse condition"
 
