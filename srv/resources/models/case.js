@@ -49,6 +49,8 @@
         },
         {
             "name": "notVandal",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
             "type": "checkbox",
             "meta": {
                 "label": "Не вандализм"
@@ -56,6 +58,8 @@
         },
         {
             "name": "notAccident",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
             "type": "checkbox",
             "meta": {
                 "label": "Не ДТП"
@@ -102,6 +106,8 @@
         },
         {
             "name": "car",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
             "groupName": "car"
         },
         {
@@ -125,7 +131,7 @@
         },        
         {
             "name": "temperature",
-            "canRead": ["front", "back", "head", "parguy"],
+            "canRead": ["front", "back", "head"],
             "canWrite": ["front", "back", "head"],
             "meta": {
                 "label": "Температура"
