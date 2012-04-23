@@ -70,10 +70,11 @@ instance FromJSON Condition where
       checkType <- v .: "type"
       case M.lookup checkType checkMap of
         Just freeChecker -> do
+            -- | Apply as much of FreeChecker chain as possible
             chain <- runErrorT =<< freeChecker <$> v .: "args"
-            return $ case chain of
-              Left e -> error "Could not build checker"
-              Right checker -> Condition checkType checker
+            case chain of
+              Left e -> error (show e)
+              Right checker -> return $ Condition checkType checker
         Nothing -> error $ "Unknown check type " ++ (B.unpack checkType)
     parseJSON _ = error "Could not parse condition"
 

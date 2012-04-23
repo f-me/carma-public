@@ -12,6 +12,8 @@ module Snap.Snaplet.Candibober.Date
 
 where
 
+import Control.Monad.Trans.Error
+
 import Control.Monad
 import Data.Functor
 
@@ -90,8 +92,8 @@ monthsAgo = dateAgo addGregorianMonthsClip
 
 ------------------------------------------------------------------------------
 -- | Read formatted date argument using 'targetDateFormat'.
-date :: CheckerArgs -> DateArg
-date a = singleOnly a $ \(Single s) ->
+date :: Monad m => CheckerArgs -> CheckBuilderMonad m DateArg
+date a = singleOnly a $ \(Single s) -> do
     case parseTime defaultTimeLocale targetDateFormat (B.unpack s) of
-      Just day -> return day
-      _ -> error $ "Could not read date from " ++ (B.unpack s)
+      Just day -> return $ return (day::Day)
+      _ -> throwError (BadDate s)

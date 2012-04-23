@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE Rank2Types #-}
 
 -- | Candibober combinators: arguments parsing, transformations.
 
@@ -93,7 +94,9 @@ type CheckBuilderMonad m = ErrorT ArgError m
 
 
 data ArgError = BadInteger B.ByteString
+              | BadDate B.ByteString
               | ArgError String
+              deriving Show
 
 
 instance Error ArgError where
@@ -127,7 +130,9 @@ scopedChecker slot field f ds =
 
 ------------------------------------------------------------------------------
 -- | Arg combinator which allows to match on @Single CheckerArg@ only.
-singleOnly :: CheckerArgs -> (CheckerArgs -> a) -> a
+singleOnly :: CheckerArgs 
+           -> (CheckerArgs -> CheckBuilderMonad m a) 
+           -> CheckBuilderMonad m a
 singleOnly s@(Single _) singleF = singleF s
 singleOnly (Many _) _ = error $ "Multiple arguments given, expecting one"
 
