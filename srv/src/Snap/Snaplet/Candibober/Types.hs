@@ -94,8 +94,13 @@ type CheckBuilderMonad m = ErrorT ArgError m
 
 
 data ArgError = BadInteger B.ByteString
+              -- ^ Could not read integer from stored bytestring
               | BadDate B.ByteString
+              -- ^ Could not parse date from stored bytestring
               | ArgError String
+              -- ^ Generic argument error with message
+              | UnexpectedMany
+              -- ^ Many arguments passed when only one is expected
               deriving Show
 
 
@@ -130,11 +135,12 @@ scopedChecker slot field f ds =
 
 ------------------------------------------------------------------------------
 -- | Arg combinator which allows to match on @Single CheckerArg@ only.
-singleOnly :: CheckerArgs 
+singleOnly :: Monad m =>
+              CheckerArgs 
            -> (CheckerArgs -> CheckBuilderMonad m a) 
            -> CheckBuilderMonad m a
 singleOnly s@(Single _) singleF = singleF s
-singleOnly (Many _) _ = error $ "Multiple arguments given, expecting one"
+singleOnly (Many _) _ = throwError UnexpectedMany
 
 
 ------------------------------------------------------------------------------

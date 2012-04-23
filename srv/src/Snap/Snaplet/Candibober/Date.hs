@@ -14,7 +14,6 @@ where
 
 import Control.Monad.Trans.Error
 
-import Control.Monad
 import Data.Functor
 
 import qualified Data.ByteString.Char8 as B
@@ -53,14 +52,13 @@ dateCheck :: Monad m =>
           -> DateArg
           -- ^ Compare field value with 'Day' returned from this action
           -> CheckBuilderMonad m Checker
-dateCheck slot field LT day = liftM inverseChecker $ dateCheck slot field GT day
-dateCheck slot field GT day =
+dateCheck slot field ord day =
     let
         fcheck :: FieldChecker
         fcheck fv = do
           d <- day
           case parseTime defaultTimeLocale commitDateFormat (B.unpack fv) of
-            Just cDay -> return $ d <= (utctDay cDay)
+            Just cDay -> return $ ord == compare d (utctDay cDay)
             Nothing -> error $
                        "Could not parse date field from dataset " ++
                        (B.unpack slot) ++ "->" ++ (B.unpack field)

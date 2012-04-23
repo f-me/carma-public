@@ -53,8 +53,10 @@ instance FromJSON CheckerArgs where
 checkMap :: M.Map B.ByteString (FreeChecker A.Parser)
 checkMap = 
     M.fromList 
-         [ ("sellLess", dateCheck "case" "car_sellDate" LT <=< yearsAgo <=< readInteger)
-         , ("checkupLess", dateCheck "case" "car_checkupDate" LT <=< yearsAgo <=< readInteger)
+         [ ("sellLess", 
+            dateCheck "case" "car_sellDate" LT <=< yearsAgo <=< readInteger)
+         , ("checkupLess",
+            dateCheck "case" "car_checkupDate" LT <=< yearsAgo <=< readInteger)
          ]
 
 type ConditionName = B.ByteString
@@ -73,7 +75,7 @@ instance FromJSON Condition where
             -- | Apply as much of FreeChecker chain as possible
             chain <- runErrorT =<< freeChecker <$> v .: "args"
             case chain of
-              Left e -> error (show e)
+              Left e -> error $ "Could not build checker: " ++ (show e)
               Right checker -> return $ Condition checkType checker
         Nothing -> error $ "Unknown check type " ++ (B.unpack checkType)
     parseJSON _ = error "Could not parse condition"
