@@ -18,7 +18,7 @@
     "fields": [
         {
             "name": "status",
-             "canRead": [
+            "canRead": [
                 "front",
                 "back",
                 "head",
