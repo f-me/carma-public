@@ -148,6 +148,7 @@
         },          
         {
             "name": "callDate",
+            "canRead": ["front", "back", "head", "parguy"],
             "index": true,
             "indexCollate": true,
             "type": "datetime",
