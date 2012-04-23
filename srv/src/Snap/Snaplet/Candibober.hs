@@ -61,7 +61,7 @@ type ConditionName = B.ByteString
 
 
 data Condition = Condition { cType :: ConditionName
-                           , checker :: !Checker
+                           , checker :: Checker
                            }
 
 
