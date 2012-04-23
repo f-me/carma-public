@@ -8,9 +8,45 @@
   - Backbone 0.9.1 is included with backported [[https://github.com/documentcloud/backbone/commit/a865aa41f13c371d104da9446c3ccb6a16671658][patch]] from upstream;
 
   - bootstrap-typeahead is custom (source is a dictionary entry (see
-    blow), source annotation is eval'd, show on click)
+    below), source annotation is eval'd, show on click)
     
   - bootstrap-datepicker is custom (data API, optional autoshow)
+* Field meta
+  `meta` bag of every field contains client-only annotations.
+
+  Supported annotations:
+
+  - `dictionaryName`: set name of dictionary when field type is
+    `dictionary` (see section below)
+  
+  - `dictionaryParent`: set parent dictionary for dependent dictionary
+    (see section below)
+    
+  - `mainToo`: when specified in member of group, field is rendered in
+    main pane, too (in addition to rendering in view of group)
+
+  - `mainOnly`: render member of group in main section only. When
+    specified for first member of group, no link to central pane is
+    rendered.
+
+  - `readonly`: render field as readonly. To really set permissions,
+    use canRead/canWrite
+
+  - `widget`: override template used for field (can specify `radio`
+    for dictionary fields here to use
+    `radio-dictionary-field-template` instead of
+    `dictionary-field-template`. See also pickTemplate @ metamodel.js)
+    
+  - `required`: highlight field with red outline and show it in
+    rightmost pane when it's empty
+    
+  - `default`: set default value for field
+
+  - `invisible`: do not show field at all
+
+  - `infoText`: extra tip for field to show in hover bubble
+
+  Non-meta field annotations are described in [[https://github.com/f-me/snaplet-redson/blob/master/README.org][snaplet-redson]] docs.
 * Dictionaries
 ** Syntax
    `dictionaries.json` holds a list of dictionary records.
@@ -125,7 +161,11 @@
 
   Available accounts:
 
-  - admin @ <empty password>
+  - admin @ <empty password> (roles "front", "back", "parguy", "head");
+  - frontuser @ <empty password> (role "front")
+  - backuser @ <empty password> (role "back")
+  - parguyuser @ <empty password> (role "parguy")
+  - headuser @ <empty password> (role "head")
 
   User management is available via [[https://github.com/dzhus/snap-auth-cli][snap-auth-cli]].
   

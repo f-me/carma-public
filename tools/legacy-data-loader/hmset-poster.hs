@@ -14,35 +14,61 @@ TODO Support more than one dependant form.
 
 |-}
 
+import Control.Monad
 import Control.Monad.IO.Class (liftIO)
-import Control.Monad (foldM, when)
+import Control.Monad.State (get)
+import Control.Arrow (second)
 
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.ByteString.UTF8 as BU (fromString, toString)
-import qualified Data.ByteString.Lazy.UTF8 as LBU (toString)
+
+import Data.Maybe (catMaybes, fromMaybe)
+import qualified Data.Map as M
+
 import Data.Enumerator as E hiding (foldM, map, head)
-import qualified Data.Enumerator.Binary as EB
-
-import Data.Maybe (catMaybes)
-import qualified Data.Map as M hiding (map)
-
 import Data.CSV.Enumerator as CSV
+import qualified Data.Aeson as Aeson
+
+import Network.HTTP
+import Network.Browser
+import Network.URI (parseURI)
 
 import Data.Time.Clock
+import Data.Time.Clock.POSIX
 import Data.Time.Format
-
-import Database.Redis
 
 import System.Console.CmdArgs.Implicit
 import System.Locale
 
-import Snap.Snaplet.Redson.Snapless.CRUD
-import Snap.Snaplet.Redson.Snapless.Metamodel
+
+
+-- {{{BEGIN copy-paste from Snap.Snaplet.Redson.Snapless.Metamodel
+type ModelName = B.ByteString
+type FieldName = B.ByteString
+type FieldValue = B.ByteString
+
+-- | Name of indexed field and collation flag.
+type FieldIndex = (FieldName, Bool)
+
+-- | List of field key-value pairs.
+-- Suitable for using with 'Database.Redis.hmset'.
+type Commit = M.Map FieldName FieldValue
+-- END}}} copy-paste from Snap.Snaplet.Redson.Snapless.Metamodel
+
+
+-- {{{BEGIN copy-paste Snap.Snaplet.Redson.Snapless.CRUD
+type InstanceId = B.ByteString
+
+-- | Build Redis key given model name and instance id
+instanceKey :: ModelName -> InstanceId -> B.ByteString
+instanceKey model id = B.concat [model, ":", id]
+-- END}}} copy-paste Snap.Snaplet.Redson.Snapless.CRUD
+
 
 data Options = Options
     { caseFile :: Maybe FilePath
-    , index    :: [String]
     }
     deriving (Show, Data, Typeable)
 
@@ -237,9 +263,8 @@ serviceTransformations = [ tech
 -- | How to remap columns of case.
 caseMap :: FieldMap
 caseMap = let 
-    plain = fixUtfMap $ map (\(k, v) -> (k, Right v)) $
-          [ ("callTime", "Время звонка")
-          , ("callTaker", "Сотрудник РАМК (Обязательное поле)")
+    plain = fixUtfMap $ map (second Right)
+          [ ("callTaker", "Сотрудник РАМК (Обязательное поле)")
           , ("program", "Клиент (Обязательное поле)")
           , ("services", "Услуга (Обязательное поле)")
           , ("caller_name", "Фамилия звонящего")
@@ -250,28 +275,36 @@ caseMap = let
           , ("car_model", "Модель автомобиля")
           , ("car_color", "Цвет")
           , ("car_vin", "VIN автомобиля")
-          , ("car_buyDate", "Дата покупки автомобиля")
           , ("car_mileage", "Пробег автомобиля (км)")
           , ("address_address", "Адрес места поломки")
           , ("comment", "Описание неисправности со слов клиента")
           ]
     locale = defaultTimeLocale
     sourceFmt = "%m/%d/%Y"
-    targetFmt = "%d.%m.%Y"
-    -- Convert MM/DD/YYYY to DD.MM.YYYY
-    callDate :: MapRow -> FieldValue
-    callDate mr = case M.lookup (BU.fromString "Дата звонка") mr of
-                    Just v -> BU.fromString $
-                        let
-                            parsed :: Maybe UTCTime
-                            parsed = parseTime locale sourceFmt (BU.toString v)
-                        in
-                          case parsed of
-                            Just t -> formatTime locale targetFmt t
-                            Nothing -> ""
-                    Nothing -> ""
+    -- Convert MM/DD/YYYY to POSIX seconds
+    mkBuyDate mr = BU.fromString $ show $ fromMaybe 0 $ do
+        dStr <- BU.fromString "Дата покупки автомобиля" `M.lookup` mr
+        dUTC <- parseTime locale sourceFmt (BU.toString dStr) :: Maybe UTCTime
+        return $ round $ utcTimeToPOSIXSeconds dUTC
+
+    mkCallDate mr = BU.fromString $ show $ fromMaybe 0 $ do
+        dStr <- BU.fromString "Дата звонка" `M.lookup` mr
+        dUTC <- parseTime locale sourceFmt (BU.toString dStr) :: Maybe UTCTime
+        let dInt = round $ utcTimeToPOSIXSeconds dUTC
+        -- read time and convert it to number of seconds since midnight
+        -- we need this because '%R' format allows only zero padded values
+        let tInt = fromMaybe 0 $ do
+              tStr <- BU.fromString "Время звонка" `M.lookup` mr
+              (h,mStr) <- B.readInt tStr
+              (m,"")   <- B.readInt $ B.tail mStr
+              return $ (h*60 + m)*60
+        return $ dInt + tInt
     in
-      M.insert "callDate" (Function callDate) plain
+      M.insert "car_buyDate" (Function mkBuyDate) $
+        M.insert "callDate" (Function mkCallDate) $
+           plain
+
+
 
 -- | Build new commit from row and commit spec.
 remapRow :: MapRow -> FieldMap -> MapRow
@@ -296,18 +329,21 @@ tryTransformation row transform =
                remapRow row $ commitMap transform)
     else Nothing
 
+
+type BrowserSt = BrowserState (HandleStream LB.ByteString)
+
 -- | Post case entries directly to Redis using connection provided as
 -- accumulator.
 --
 -- TODO: Split service / program / client references.
 --
 -- This is like 'mapIntoHandle', but for non-CSV output data.
-caseAction :: ([FieldIndex], Connection) 
+caseAction :: BrowserSt
            -> ParsedRow MapRow 
-           -> Iteratee B.ByteString IO ([FieldIndex], Connection)
-caseAction h      (ParsedRow Nothing)  = return h
-caseAction h       CSV.EOF             = return h
-caseAction (idxs, c) (ParsedRow (Just r)) =
+           -> Iteratee B.ByteString IO BrowserSt
+caseAction h (ParsedRow Nothing)  = return h
+caseAction h  CSV.EOF             = return h
+caseAction h (ParsedRow (Just r)) =
     let
       row = filterCaseRow r
       -- Commit only a fraction of original data for every case
@@ -318,22 +354,70 @@ caseAction (idxs, c) (ParsedRow (Just r)) =
                          Just r -> Just (t, r)
                          Nothing -> Nothing
                 ) serviceTransformations
-    in do
-      liftIO $ runRedis c $ case trs of
+    in
+      liftIO $ case trs of
         -- No transformations matched
-        [] -> create "case" bareCommit idxs >> return (idxs, c)
-        _ -> 
-            do
+        [] -> create h "case" bareCommit >> return h
+        _  -> do
               -- Store all dependant instances
               commit <- foldM (\c (trans, (depModel, depCommit)) -> do
-                                 Right sid <- create depModel depCommit []
+                                 Right sid <- create h depModel depCommit
                                  return $ M.insert 
                                             (referenceField trans)
                                             (instanceKey depModel sid)
                                             c) bareCommit trs
+              create h "case" commit
+              return h
 
-              create "case" commit idxs
-              return (idxs, c)
+
+login :: IO BrowserSt
+login = browse $ do
+    setAllowRedirects True
+    setDebugLog Nothing
+    setOutHandler $ const $ return ()
+    let Just loginUri = parseURI "http://localhost:8000/login"
+    let rq = mkRequest' POST loginUri "login=admin&password="
+    (_,resp) <- assertStatus (2,0,0) $ request rq
+    get --BrowserState
+
+
+create :: BrowserSt
+       -> ModelName           -- ^ Model name
+       -> Commit              -- ^ Key-values of instance data
+       -> IO (Either LB.ByteString InstanceId)
+create h modelName commit = browse $ withBrowserState h $ do
+  let baseUri = "http://localhost:8000/_/" ++ BU.toString modelName
+  let Just uri = parseURI baseUri
+  (_,rsp) <- assertStatus (2,0,1) $
+               request $ mkRequest' POST uri "{}"
+
+  let caseId = Aeson.decode (rspBody rsp)
+               >>= M.lookup ("id" :: B.ByteString)
+  case caseId of
+    Nothing    -> return $ Left $ rspBody rsp
+    Just ident -> do
+        let Just uri = parseURI $ baseUri
+                     ++ "/" ++ BU.toString ident
+        let rq   = mkRequest' PUT uri $ Aeson.encode commit
+        (_,rsp) <- assertStatus (2,0,4) $ request rq
+        return $ Right ident
+
+
+assertStatus code f = f >>= \(uri,rsp) ->
+  if rspCode rsp == code
+      then return (uri,rsp)
+      else fail $ "unexpected HTTP status:\n" ++ show rsp
+
+
+mkRequest' method uri body
+  = replaceHeader HdrContentType "application/json"
+  . replaceHeader HdrContentLength (show $ LB.length body)
+  $ Request { rqURI = uri
+            , rqMethod = method
+            , rqHeaders = []
+            , rqBody = body
+            }
+
 
 main :: IO ()
 main =
@@ -342,18 +426,17 @@ main =
                  { caseFile = def 
                    &= help "Path to CSV case archive file"
                    &= typFile
-                 , index = [] &= help "Generate index on the field."
                  }
                  &= program "hmset-poster"
-                 &= help "hmset-poster -c journal.csv -i field1 -i field2 ..."
+                 &= help "hmset-poster -c journal.csv"
     in do
-      Options{..} <- cmdArgs $ sample
+      Options{..} <- cmdArgs sample
       case caseFile of
-        Just fname -> do
-          rConn <- connect defaultConnectInfo
-          res <- foldCSVFile fname defCSVSettings caseAction 
-                 (Prelude.map (\s -> (BU.fromString s, True)) index, rConn)
-          case res of
-            Left e -> error "Failed to process case archive"
-            Right h -> return ()
         Nothing -> error "No file selected"
+        Just fname -> do
+            w <- login
+            res <- foldCSVFile fname defCSVSettings caseAction w
+            case res of
+              Left err -> print err
+              Right _  -> return ()
+

@@ -32,6 +32,14 @@ var localScreens = {
         {
             "call-form": setupCallForm
         }
+    },
+    "partner":
+    {
+        "template": "partner-screen-template",
+        "views":
+        {
+            "partner-form": setupPartnersForm
+        }
     }
 };
 
@@ -43,6 +51,8 @@ var localRouter = Backbone.Router.extend({
         "case": "newCase",
         "search": "search",
         "vin": "vin",
+        "partner/:id": "loadPartner",
+        "partner": "newPartner",
         "call": "call"
     },
 
@@ -60,6 +70,14 @@ var localRouter = Backbone.Router.extend({
 
     vin: function () {
         renderScreen("vin");
+    },
+
+    newPartner: function () {
+        renderScreen("partner", {"id": null});
+    },
+
+    loadPartner: function (id) {
+        renderScreen("partner", {"id": id});
     },
 
     call: function () {
@@ -138,7 +156,8 @@ function stdElCb(elName) {
     if (e.hasClass("accordion-inner")) {
         e.parents(".accordion-group")[0].scrollIntoView();
     }
-    e.find(".focusable")[0].focus();
+    var f = e.find(".focusable")[0];
+    f && f.focus();
 };
 
 
@@ -160,8 +179,7 @@ function setupCaseMain(viewName, args) {
 
     // Default values
     _.extend(args, {callTaker: global.user.meta.realName,
-                    callDate: getFormatDate(),
-                    callTime: getFormatTime()});
+                    callDate: (new Date).toString ("dd.MM.yyyy HH:mm:ss")});
 
 
     // Render list of required fields in right pane
@@ -206,19 +224,6 @@ function setupCaseMain(viewName, args) {
     $(".tableTable").dataTable();
 }
 
-// Return MM-DD-YYYY
-function getFormatDate() {
-    var d = new Date;
-    var sd = d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear();
-    return sd;
-}
-
-// Return HH:MM
-function getFormatTime() {
-    var d = new Date;
-    var sd = d.getHours() + ':' + d.getMinutes();
-    return sd;
-}
 
 // Hide all views on center pane and show view for first reference
 // stored in <fieldName> of model loaded into <parentView> there
@@ -328,6 +333,39 @@ function setupVinForm(viewName, args) {
 	h = "<div class='row'><div class='span6 offset3'>" + data + "</div></div>";
 	form.append(h);
     });
+}
+
+function setupPartnersForm(viewName, args) {
+    var refs = [
+        {
+            field: "services",
+            forest: "partner-service-references",
+        }
+    ];
+    modelSetup("partner")(
+       viewName, args,
+       {permEl: "partner-permissions",
+        focusClass: "focusable",
+        refs: refs});
+    $el(viewName).html($el("partner-form-template").html());
+
+    global.viewsWare[viewName] = {};
+
+    $("#partner-service-picker-container").html(
+        Mustache.render($("#partner-service-picker-template").html(),
+                        {dictionary: global.dictionaries["Services"]}));
+}
+
+function addNewServiceToPartner(name)
+{
+    var instance = global.viewsWare["partner-form"].bbInstance;
+    var book = addReference(instance,
+                 {field: "services",
+                  modelName: "partner_service",
+                  forest: "partner-service-references"},
+                 "center"
+                );
+    var service = global.dictionaries.Services;
 }
 
 function doVin() {

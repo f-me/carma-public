@@ -27,7 +27,7 @@
         {
             "name": "plateNum",
             "meta": {
-                "label": "Регистрационный номер автомобиля"
+                "label": "Госномер"
             },
             "index": true,
             "indexCollate": true
@@ -88,16 +88,25 @@
         },
         {
             "name": "class",
+            "type": "dictionary",
             "meta": {
-                "label": "Класс автомобиля"
+                "label": "Класс автомобиля",
+                "dictionaryName": "CarClasses"
             }
         },
         {
             "name": "buyDate",
+            "type": "date",
             "meta": {
                 "label": "Дата покупки"
             }
         },
+        {
+            "name": "seller",
+            "meta": {
+                "label": "Дилер, продавший автомобиль"
+            }
+        },        
         {
             "name": "mileage",
             "meta": {
@@ -106,6 +115,7 @@
         },
         {
             "name": "checkupDate",
+            "type": "date",
             "meta": {
                 "label": "Дата последнего ТО"
             }
@@ -159,9 +169,36 @@
             },
             "type": "phone",
             "index": true
+        },
+        {
+            "name": "contactMail",
+            "meta": {
+                "label": "Email"
+            },
+            "index": true
         }
     ],
+    "payment": [
+        {
+            "name": "paidByRUAMC",
+            "meta": {
+                "label": "Оплата РАМК"
+            }
+        },
+        {
+            "name": "paidByClient",
+            "meta": {
+                "label": "Оплата Клиент"
+            }
+        }        
+    ],    
     "address": [
+        {
+            "name": "city",
+            "meta": {
+                "label": "Город"
+            }
+        },        
         {
             "name": "address",
             "meta": {
