@@ -26,6 +26,18 @@
     "fields": [
         {
             "name": "status",
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
             "type": "dictionary",
             "meta": {
                 "label": "Статус услуги",
