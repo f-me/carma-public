@@ -1,7 +1,17 @@
 {
     "name": "partner",
     "title": "Партнёр",
+    "canCreate": true,
     "canRead": true,
+    "canUpdate": ["parguy"],
+    "canDelete": ["parquy"],
+     "applications": [
+         {
+            "targets": true,
+            "canWrite": true,
+            "canRead": true
+         }
+    ],
     "fields": [
         {
             "name": "code",
