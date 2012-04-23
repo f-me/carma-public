@@ -53,9 +53,9 @@ instance FromJSON CheckerArgs where
 checkMap :: M.Map B.ByteString (FreeChecker A.Parser)
 checkMap = 
     M.fromList 
-         [ 
+         [ ("sellLess", dateCheck "case" "car_sellDate" LT <=< yearsAgo <=< readInteger)
+         , ("checkupLess", dateCheck "case" "car_checkupDate" LT <=< yearsAgo <=< readInteger)
          ]
-
 
 type ConditionName = B.ByteString
 

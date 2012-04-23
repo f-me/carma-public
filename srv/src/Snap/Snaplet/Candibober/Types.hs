@@ -81,6 +81,9 @@ data CheckerArgs = Single CheckerArg
 --
 -- Errors are handled through 'CheckBuilderMonad'. All combinators
 -- which produce 'FreeChecker' values reside in this monad.
+--
+-- 'FreeChecker' is parametrized over wrapper monad in which
+-- combinator chain building is performed.
 type FreeChecker m = CheckerArgs -> CheckBuilderMonad m Checker
 
 
