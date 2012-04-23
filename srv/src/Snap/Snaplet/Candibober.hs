@@ -68,6 +68,8 @@ instance FromJSON Condition where
     parseJSON (Object v) = do
       checkType <- v .: "type"
       case M.lookup checkType checkMap of
+        -- TODO: Force freeChecker application here somehow, so that
+        -- arg combinator works at parsing.
         Just freeChecker -> Condition "foo" <$> freeChecker <$> v .: "args"
         Nothing -> error $ "Unknown check type " ++ (B.unpack checkType)
     parseJSON _ = error "Could not parse condition"
