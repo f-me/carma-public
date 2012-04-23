@@ -4,38 +4,113 @@
     "canRead": true,
     "fields": [
         {
-            "index": true,
-            "name": "cityRu"
+            "name": "code",
+            "meta": {
+                "label": "Код"
+            }
         },
         {
-            "index": true,
-            "name": "cityEn"
+            "name": "city",
+            "meta": {
+                "label": "Город"
+            }
         },
         {
-            "index": true,
-            "name": "phones"
+            "name": "addrDeJure",
+            "meta": {
+                "label": "Юридический адрес"
+            }
         },
         {
-            "index": true,
-            "name": "name"
+            "name": "addrDeFacto",
+            "meta": {
+                "label": "Фактический адрес"
+            }
         },
         {
-            "name": "addrDeJure"
+            "name": "openTime",
+            "meta": {
+                "label": "Время начала работы"
+            }
         },
         {
-            "name": "addrDeFacto"
+            "name": "closeTime",
+            "meta": {
+                "label": "Время окончания работы"
+            }
         },
         {
-            "name": "contactPerson"
+            "name": "phone1",
+            "meta": {
+                "label": "Телефоны диспетчерской"
+            }
         },
         {
-            "name": "contactPhone"
+            "name": "fax",
+            "meta": {
+                "label": "Факс"
+            }
         },
         {
-            "name": "eMail"
+            "name": "closeTicketPhone",
+            "meta": {
+                "label": "Телефон для закрытия заявок"
+            }
         },
         {
-            "name": "fax"
+            "name": "closeTicketEmail",
+            "meta": {
+                "label": "Email для закрытия заявок"
+            }
+        },
+        {
+            "name": "personInCharge",
+            "meta": {
+                "label": "Ответственное лицо"
+            }
+        },
+        {
+            "name": "taxScheme",
+            "type": "dictionary",
+            "meta": {
+                "dictionaryName": "TaxSchemes",
+                "label": "Форма налогообложения"
+            }
+        },
+        {
+            "name": "comment",
+            "meta": {
+                "label": "Комментарии"
+            }
+        },
+        {
+            "name": "isPayBackConfirmed",
+            "type": "checkbox",
+            "meta": {
+                "label": "Соглашение о вознаграждении"
+            }
+        },
+        {
+            "name": "priority1",
+            "meta": {
+                "label": "Приоритет за нал"
+            }
+        },
+        {
+            "name": "priority2",
+            "meta": {
+                "label": "Приоритет по безналу город"
+            }
+        },
+        {
+            "name": "priority3",
+            "meta": {
+                "label": "Приоритет по безналу за город"
+            }
+        },
+        {
+            "name": "services",
+            "type": "reference"
         }
     ]
 }
