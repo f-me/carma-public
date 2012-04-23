@@ -48,13 +48,7 @@
         {
             "name": "phone1",
             "meta": {
-                "label": "Телефон диспетчерской 1"
-            }
-        },
-        {
-            "name": "phone2",
-            "meta": {
-                "label": "Телефон диспетчерской 2"
+                "label": "Телефоны диспетчерской"
             }
         },
         {
@@ -83,7 +77,9 @@
         },
         {
             "name": "taxScheme",
+            "type": "dictionary",
             "meta": {
+                "dictionaryName": "TaxSchemes",
                 "label": "Форма налогообложения"
             }
         },
@@ -95,6 +91,7 @@
         },
         {
             "name": "isPayBackConfirmed",
+            "type": "checkbox",
             "meta": {
                 "label": "Соглашение о вознаграждении"
             }
@@ -118,9 +115,8 @@
             }
         },
         {
-            "name": "sservices",
+            "name": "services",
             "type": "reference"
         }
-      
     ]
 }

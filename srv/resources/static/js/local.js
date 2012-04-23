@@ -51,7 +51,8 @@ var localRouter = Backbone.Router.extend({
         "case": "newCase",
         "search": "search",
         "vin": "vin",
-        "partner": "partner",
+        "partner/:id": "loadPartner",
+        "partner": "newPartner",
         "call": "call"
     },
 
@@ -71,8 +72,12 @@ var localRouter = Backbone.Router.extend({
         renderScreen("vin");
     },
 
-    partner: function () {
-        renderScreen("partner");
+    newPartner: function () {
+        renderScreen("partner", {"id": null});
+    },
+
+    loadPartner: function (id) {
+        renderScreen("partner", {"id": id});
     },
 
     call: function () {
@@ -348,12 +353,14 @@ function setupPartnersForm(viewName, args) {
 
 function addNewServiceToPartner(name)
 {
-    addReference(global.viewsWare["partner-form"].bbInstance,
+    var instance = global.viewsWare["partner-form"].bbInstance;
+    var book = addReference(instance,
                  {field: "services",
-                  modelName: name, // FIXME: "partner-service"
+                  modelName: "partner_service",
                   forest: "partner-service-references"},
                  "center"
                 );
+    var service = global.dictionaries.Services;
 }
 
 function doVin() {
