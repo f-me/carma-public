@@ -33,18 +33,9 @@ import Snap.Snaplet.Heist
 import Snap.Snaplet.Session
 import Snap.Snaplet.Session.Backends.CookieSession
 import Snap.Util.FileServe
-import Snap.Util.FileUploads
 
 import Snap.Snaplet.Redson
-
-import System.Directory (getTemporaryDirectory)
-import System.Posix.Files (createLink, removeLink)
-
-import Control.Concurrent
-import Control.Exception (SomeException)
-import Control.Monad.CatchIO (finally, catch, try)
-
-import Vin.Import
+import Snap.Snaplet.Vin
 
 
 ------------------------------------------------------------------------------
@@ -54,6 +45,7 @@ data App = App
     , _redson :: Snaplet (Redson App)
     , _session :: Snaplet SessionManager
     , _auth :: Snaplet (AuthManager App)
+    , _vin :: Snaplet Vin
     , _startTime :: UTCTime
     }
 
@@ -105,6 +97,7 @@ doLogin = ifTop $ do
     Left err -> redirectToLogin
     Right user -> redirect "/"
 
+
 ------------------------------------------------------------------------------
 -- | Serve user account data back to client.
 --
@@ -117,52 +110,12 @@ serveUserCake = ifTop $ do
 
 
 ------------------------------------------------------------------------------
--- | Upload file with VIN numbers.
-doVin :: AppHandler ()
-doVin = ifTop $ do
-  d <- liftIO $ getTemporaryDirectory
-
-  handleFileUploads d defaultUploadPolicy partUploadPolicy handler
-    `catch` (writeText . fileUploadExceptionReason)
-
-  where
-    partUploadPolicy _ = allowWithMaximumSize $ 100 * 2^(20::Int)
-
-    handler []        = writeBS "no files"
-    handler ((info,f):_) = do
-        program <- fromMaybe "" <$> getParam "program"
-
-        either (writeText . policyViolationExceptionReason)
-               (action program $ partContentType info)
-               f
-
-
-action :: ByteString -> ByteString -> FilePath -> AppHandler ()
-action program contentType f = do
-  liftIO $ createLink f f'
-
-  liftIO $ forkIO $ do
-      res <- try $ loadFile f' fError program contentType
-
-      case res of
-        Left  e -> print (e :: SomeException)
-        Right r -> either print print r
-
-      `finally` removeLink f'
-
-  writeBS "Ok"
-  where
-    fError = "resources/static/error.csv"
-    f' = f ++ "-link"
-
-------------------------------------------------------------------------------
 -- | The application's routes.
 routes :: [(ByteString, AppHandler ())]
 routes = [ ("/", method GET $ authOrLogin indexPage)
          , ("/login/", method GET loginForm)
          , ("/login/", method POST doLogin)
          , ("/logout/", with auth $ logout >> redirectToLogin)
-         , ("/vin", method POST doVin)
          , ("/_whoami/", method GET $ authOrLogin serveUserCake)
          , ("/s/", serveDirectory "resources/static")
          ]
@@ -189,7 +142,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
             lookupDefault "resources/private/site_key.txt"
                           cfg "remember-key"
   rmbPer <- liftIO $
-            lookupDefault 14 
+            lookupDefault 14
                           cfg "remember-period"
   authDb <- liftIO $
             lookupDefault "resources/private/users.json"
@@ -202,9 +155,10 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        defAuthSettings{ asSiteKey = rmbKey
                       , asRememberPeriod = Just (rmbPer * 24 * 60 * 60)}
                                session authDb
+  v <- nestSnaplet "vin" vin vinInit
 
   sTime <- liftIO getCurrentTime
 
   addRoutes routes
 
-  return $ App h r s a sTime
+  return $ App h r s a v sTime

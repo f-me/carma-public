@@ -321,8 +321,13 @@ function doPick(pickType, args) {
 }
 
 function setupVinForm(viewName, args) {
-    $el(viewName).html($el("vin-form-template").html());
+    var form = $el(viewName).html($el("vin-form-template").html());
     global.viewsWare[viewName] = {};
+
+    $.post("/vin/state", null, function (data) {
+	h = "<div class='row'><div class='span6 offset3'>" + data + "</div></div>";
+	form.append(h);
+    });
 }
 
 function doVin() {
@@ -331,7 +336,7 @@ function doVin() {
 
     $.ajax({
     	type: "POST",
-    	url: "vin",
+    	url: "/vin/upload",
     	data: formData,
     	contentType: false,
     	processData: false
