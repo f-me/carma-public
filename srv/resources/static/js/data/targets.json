@@ -6,7 +6,7 @@
         },
         {
             "type": "modelInList",
-            "args": ["focus"]
+            "args": ["focus", "pocus"]
         }
     ],
     "vwcargo": [
@@ -21,6 +21,10 @@
         },
         {
             "type": "notVandal"
+        },
+        {
+            "type": "mileageLess",
+            "arg": "2128503"
         }
     ],
     "vw-rent": [
@@ -33,6 +37,16 @@
         {
             "type": "notUsedService",
             "args": "rent"
+        }
+    ],
+    "vw-tech": [
+        {
+            "type": "daysPassedSinceReport",
+            "args": "2"
+        },
+        {
+            "type": "mileageLess",
+            "args": "2000"
         }
     ]
 }

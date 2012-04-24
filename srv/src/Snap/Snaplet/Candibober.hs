@@ -68,6 +68,8 @@ checkMap =
             compareDate "case" "car_sellDate" GT <=< readDate)
          , ("checkupLess",
             compareDate "case" "car_checkupDate" LT <=< yearsAgo <=< readInteger)
+         , ("mileageLess",
+            compareNumber "case" "car_checkupMileage" LT <=< readInteger)
          , ("daysPassedSinceReport",
             compareDate "service" "car_checkupDate" GT <=< daysAgo <=< readInteger)
          , ("modelInList",
