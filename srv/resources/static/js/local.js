@@ -32,6 +32,14 @@ var localScreens = {
         {
             "call-form": setupCallForm
         }
+    },
+    "partner":
+    {
+        "template": "partner-screen-template",
+        "views":
+        {
+            "partner-form": setupPartnersForm
+        }
     }
 };
 
@@ -43,6 +51,8 @@ var localRouter = Backbone.Router.extend({
         "case": "newCase",
         "search": "search",
         "vin": "vin",
+        "partner/:id": "loadPartner",
+        "partner": "newPartner",
         "call": "call"
     },
 
@@ -60,6 +70,14 @@ var localRouter = Backbone.Router.extend({
 
     vin: function () {
         renderScreen("vin");
+    },
+
+    newPartner: function () {
+        renderScreen("partner", {"id": null});
+    },
+
+    loadPartner: function (id) {
+        renderScreen("partner", {"id": id});
     },
 
     call: function () {
@@ -138,7 +156,8 @@ function stdElCb(elName) {
     if (e.hasClass("accordion-inner")) {
         e.parents(".accordion-group")[0].scrollIntoView();
     }
-    e.find(".focusable")[0].focus();
+    var f = e.find(".focusable")[0];
+    f && f.focus();
 };
 
 
@@ -307,8 +326,46 @@ function doPick(pickType, args) {
 }
 
 function setupVinForm(viewName, args) {
-    $el(viewName).html($el("vin-form-template").html());
+    var form = $el(viewName).html($el("vin-form-template").html());
     global.viewsWare[viewName] = {};
+
+    $.post("/vin/state", null, function (data) {
+	h = "<div class='row'><div class='span6 offset3'>" + data + "</div></div>";
+	form.append(h);
+    });
+}
+
+function setupPartnersForm(viewName, args) {
+    var refs = [
+        {
+            field: "services",
+            forest: "partner-service-references",
+        }
+    ];
+    modelSetup("partner")(
+       viewName, args,
+       {permEl: "partner-permissions",
+        focusClass: "focusable",
+        refs: refs});
+    $el(viewName).html($el("partner-form-template").html());
+
+    global.viewsWare[viewName] = {};
+
+    $("#partner-service-picker-container").html(
+        Mustache.render($("#partner-service-picker-template").html(),
+                        {dictionary: global.dictionaries["Services"]}));
+}
+
+function addNewServiceToPartner(name)
+{
+    var instance = global.viewsWare["partner-form"].bbInstance;
+    var book = addReference(instance,
+                 {field: "services",
+                  modelName: "partner_service",
+                  forest: "partner-service-references"},
+                 "center"
+                );
+    var service = global.dictionaries.Services;
 }
 
 function doVin() {
@@ -317,7 +374,7 @@ function doVin() {
 
     $.ajax({
     	type: "POST",
-    	url: "vin",
+    	url: "/vin/upload",
     	data: formData,
     	contentType: false,
     	processData: false

@@ -74,11 +74,21 @@
             <li id="search-screen-nav">
               <a href="#search">Поиск</a>
             </li>
-            <li id="vin-screen-nav">
-              <a href="#vin">VIN</a>
-            </li>
             <li id="help-screen-nav">
               <a href="#help">Справка</a>
+            </li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                Ещё <b class="caret"></b>
+              </a>
+              <ul class="dropdown-menu">
+                <li id="vin-screen-nav">
+                  <a href="#vin">Обновление базы VIN</a>
+                </li>
+                <li id="partner-screen-nav">
+                  <a href="#partner">Редактирование партнёров</a>
+                </li>
+              </ul>
             </li>
           </ul>
           <ifLoggedIn>
@@ -242,6 +252,72 @@
 	</form>
       </fieldset>
       </div>
+    </script>
+
+    <!-- Partner screen template -->
+    <script type="text/template"
+            class="screen-template"
+            id="partner-screen-template">
+
+      <div id="left" class="nice-scrollbar pane">
+        <form class="form-vertical">
+          <button class="btn btn-action" type="button"
+            onclick="location.hash='partner';location.reload(true);">
+            <i class="icon icon-plus"></i>Добавить партнёра
+          </button>
+          <br/><br/>
+          <table id="searchtable" class="table table-striped table-bordered">
+            <thead>
+              <tr>
+                <th>Название</th>
+                <th>Город</th>
+                <th>Телефон</th>
+                <th>Комментарии</th>
+              </tr>
+            </thead>
+            <tbody/>
+          </table>
+        </form>
+      </div>
+
+      <div id="center" class="nice-scrollbar pane">
+        <form class="form-vertical">
+          <div id="partner-form" />
+          <div class="control-group">
+            <div class="control-label">
+              <label>Услуги</label>
+            </div>
+            <div class="controls">
+              <span class="accordion" id="partner-service-references" />
+              <span id="partner-service-picker-container" />
+            </div>
+          </div>
+          <div id="partner-permissions" />
+        </form>
+      </div>
+    </script>
+
+    <script type="text/template"
+            id="partner-service-picker-template">
+      <ul class="nav nav-pills">
+        <li class="dropdown">
+          <button class="dropdown-toggle btn btn-action"
+                  type="button"
+                  data-toggle="dropdown">
+            <i class="icon icon-plus"></i>Добавить услугу
+          </button>
+          <ul class="dropdown-menu">
+            {{# dictionary.entries }}
+            <li>
+              <a href="#" onclick="addNewServiceToPartner('{{value}}');">
+                <i class="icon-{{icon}} icon-black"></i>
+                {{ label }}
+              </a>
+            </li>
+            {{/ dictionary.entries }}
+          </ul>
+        </li>
+      </ul>
     </script>
 
     <!--

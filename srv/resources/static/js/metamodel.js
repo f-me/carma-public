@@ -48,7 +48,7 @@ function backbonizeModel(model, modelName) {
         requiredFields: requiredFields,
         // List of groups present in model
         groups: groups,
-        
+
         // Temporary storage for attributes queued for sending to
         // server.
         attributeQueue: {},
@@ -175,7 +175,7 @@ function pickTemplate(templates, names) {
     for(i = 0; i < names.length; i++)
         if (_.has(templates, names[i]))
             return templates[names[i]];
-    return Mustache.render($("#unknown-template").html(), 
+    return Mustache.render($("#unknown-template").html(),
                            {names:names});
 }
 
@@ -199,17 +199,19 @@ function pickTemplate(templates, names) {
 // which will hold the instance (like save/remove instance), viewName
 // argument is passed.
 //
-// Groups is a hash where keys are group names and values are views to
-// render the respected group in. First field of group is always
-// rendered in main view as well.
+// MAYBE: We can do this on server as well.
 //
-// TODO: We can do this on server as well.
+// @return Hash where keys are names of first fields in each group
+// (section names) and values are string with HTML for respective
+// section (group field). Groupless fields (those which belong to main
+// group) are rendered into value stored under "_" key (main section).
 //
-// @return Hash where keys are names of first fields in each group and
-// values are string with HTML of group forms. Groupless fields (those
-// which belong to main group) are rendered into value stored under
-// "_" key.
-function renderFields(model, viewName, groups) {
+// First field of group and fields which have meta annotation
+// `mainToo` are always put in main section as well.
+//
+// There's no way to fully include group fields in main section except
+// giving `mainToo` annotation in each field of group.
+function renderFields(model, viewName) {
     var templates = getTemplates("field-template");
 
     var contents = {};
@@ -223,6 +225,9 @@ function renderFields(model, viewName, groups) {
     // all model fields. When this name changes, we consider the
     // previous group closed. A better approach would be to include
     // group information in served model.
+    //
+    // We rely on the fact that fields of groups have `<groupname>_`
+    // name prefix.
     var currentGroup = mainGroup;
     var currentSection = mainGroup;
 
@@ -234,7 +239,16 @@ function renderFields(model, viewName, groups) {
                  if (!_.isNull(f.meta)) {
                      f.readonly = f.meta.readonly;
                  }
+                 // Note the difference: `meta.readonly` is
+                 // client-only annotation to override standard
+                 // permissions. Plain `readonly` is passed to
+                 // template context and indicates real permissions
+                 // for field (wrt role information).
                  readonly = f.readonly || !model.canUpdate || !f.canWrite;
+
+                 // Add extra context prior to rendering
+                 var ctx = {readonly: readonly,
+                            viewName: viewName};
 
                  // If group ended, or group spliced for different
                  // original field started, we'll put contents to
@@ -245,21 +259,19 @@ function renderFields(model, viewName, groups) {
                  else
                      group = mainGroup;
 
-                 // Add extra context prior to rendering
-                 var ctx = {readonly: readonly,
-                            viewName: viewName};
-
-                 var realType = f.type;
-                 var tpl;
-
                  if (f.meta && _.has(f.meta, "infoText"))
                      f.meta.infoText = global.dictionaries.InfoText[f.meta.infoText];
 
                  if (f.type == "dictionary")
                      ctx = _.extend(ctx,
-                                    {dictionary: 
+                                    {dictionary:
                                      global.dictionaries[f.meta.dictionaryName]});
                  ctx = _.extend(f, ctx);
+
+                 // We temprorarily change field type when rendering
+                 // first field of group, so store real type here.
+                 var realType = f.type;
+                 var tpl;
 
                  // Put first field in group in main section, too.
                  // Render it as if it had `group` type.
@@ -268,24 +280,31 @@ function renderFields(model, viewName, groups) {
                      if (currentGroup == mainGroup)
                          currentSection = mainGroup;
                      else {
+                         // Due to prefixing this is unique for any
+                         // group
                          currentSection = f.name;
 
-                         f.type = "group";
-                         tpl = chooseFieldTemplate(f, templates);
-                         contents[mainGroup]
-                             += Mustache.render(tpl, ctx);
+                         if (f.meta && (!f.meta.mainOnly)) {
+                             f.type = "group";
+                             tpl = chooseFieldTemplate(f, templates);
+                             contents[mainGroup]
+                                 += Mustache.render(tpl, ctx);
+                             f.type = realType;
+                         }
                      }
                  }
 
-                 // Initialiaze new group contents
+                 // Initialiaze new section contents
                  if (!_.has(contents, currentSection))
                      contents[currentSection] = "";
 
-                 f.type = realType;
                  tpl = chooseFieldTemplate(f, templates);
 
-                 // Put field HTML in appropriate view.
+                 // Put field HTML in appropriate section
                  contents[currentSection] += Mustache.render(tpl, ctx);
+
+                 if (f.meta && (f.meta.mainToo || f.meta.mainOnly))
+                     contents[mainGroup] += Mustache.render(tpl, ctx);
              }
            });
     return contents;
@@ -301,7 +320,7 @@ function chooseFieldTemplate(field, templates) {
     if ((!_.isNull(field.meta)) && (_.has(field.meta, "widget")))
         widget_tpl = field.meta.widget + "-" + field.type;
 
-    var tpl = pickTemplate(templates, 
+    var tpl = pickTemplate(templates,
                            [named_tpl, widget_tpl, typed_tpl, "unknown"]);
     return tpl;
 }

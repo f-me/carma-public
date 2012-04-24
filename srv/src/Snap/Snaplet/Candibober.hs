@@ -13,8 +13,8 @@ where
 
 import Control.Applicative
 
-import Control.Monad.State hiding (put)
-
+import Control.Monad
+import Control.Monad.IO.Class
 import Control.Monad.Trans.Error
 
 import Data.Aeson as A
@@ -28,7 +28,9 @@ import Data.Lens.Template
 
 import qualified Data.Map as M
 
+import Snap.Core
 import Snap.Snaplet
+
 import Snap.Snaplet.Candibober.Date
 import Snap.Snaplet.Candibober.Types
 
@@ -133,7 +135,7 @@ loadTargets filename = do
 
 ------------------------------------------------------------------------------
 -- | Candibober routes.
-routes :: [(ByteString, AppHandler ())]
+routes :: [(B.ByteString, Handler b Candibober ())]
 routes = [ ("/check/:target", method POST $ doCheck) ]
 
 ------------------------------------------------------------------------------

@@ -23,28 +23,19 @@ Executable carma
     avaya-aes                   == 0.0.*,
     base                        >= 4 && < 5,
     configurator                == 0.2.*,
-    containers,
+    containers                  == 0.4.*,
     bytestring                  >= 0.9.1 && < 0.10,
-    data-lens                   >= 2.0.1 && < 2.1,
     data-lens-template          >= 2.1 && < 2.2,
-    directory                   == 1.1.*,
-    hedis			== 0.4.*,
     heist                       == 0.8.*,
-    MonadCatchIO-transformers   >= 0.2.1 && < 0.3,
-    mtl                         >= 2 && < 3,
     old-locale                  == 1.0.*,
     snap                        == 0.8.*,
     snap-core                   == 0.8.*,
     snap-server                 == 0.8.*,
-    snaplet-redis               == 0.1.*,
     snaplet-redson              == 0.1.*,
     text                        >= 0.11 && < 0.12,
     time                        >= 1.1 && < 1.5,
-    transformers                == 0.2.*,
-    xmlhtml                     == 0.1.*,
-    unix                        == 2.5.*,
-    vin-parser                  == 0.1.*,
-    xmlhtml                     == 0.1.*
+    transformers                >= 0.2 && < 0.4,
+    vin-parser                  == 0.1.*
 
   if flag(development)
     cpp-options: -DDEVELOPMENT

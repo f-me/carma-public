@@ -1,47 +1,132 @@
 {
     "name": "partner",
     "title": "Партнёр",
+    "canCreate": true,
     "canRead": true,
-    "applications": [
-        {
+    "canUpdate": ["parguy"],
+    "canDelete": ["parquy"],
+     "applications": [
+         {
             "targets": true,
+            "canWrite": true,
             "canRead": true
-        }
+         }
     ],
     "fields": [
         {
-            "index": true,
-            "name": "cityRu"
+            "name": "name",
+            "meta": {
+                "label": "Название"
+            }
         },
         {
-            "index": true,
-            "name": "cityEn"
+            "name": "code",
+            "meta": {
+                "label": "Код"
+            }
         },
         {
-            "index": true,
-            "name": "phones"
+            "name": "city",
+            "meta": {
+                "label": "Город"
+            }
         },
         {
-            "index": true,
-            "name": "name"
+            "name": "addrDeJure",
+            "meta": {
+                "label": "Юридический адрес"
+            }
         },
         {
-            "name": "addrDeJure"
+            "name": "addrDeFacto",
+            "meta": {
+                "label": "Фактический адрес"
+            }
         },
         {
-            "name": "addrDeFacto"
+            "name": "openTime",
+            "meta": {
+                "label": "Время начала работы"
+            }
         },
         {
-            "name": "contactPerson"
+            "name": "closeTime",
+            "meta": {
+                "label": "Время окончания работы"
+            }
         },
         {
-            "name": "contactPhone"
+            "name": "phone1",
+            "meta": {
+                "label": "Телефоны диспетчерской"
+            }
         },
         {
-            "name": "eMail"
+            "name": "fax",
+            "meta": {
+                "label": "Факс"
+            }
         },
         {
-            "name": "fax"
+            "name": "closeTicketPhone",
+            "meta": {
+                "label": "Телефон для закрытия заявок"
+            }
+        },
+        {
+            "name": "closeTicketEmail",
+            "meta": {
+                "label": "Email для закрытия заявок"
+            }
+        },
+        {
+            "name": "personInCharge",
+            "meta": {
+                "label": "Ответственное лицо"
+            }
+        },
+        {
+            "name": "taxScheme",
+            "type": "dictionary",
+            "meta": {
+                "dictionaryName": "TaxSchemes",
+                "label": "Форма налогообложения"
+            }
+        },
+        {
+            "name": "comment",
+            "meta": {
+                "label": "Комментарии"
+            }
+        },
+        {
+            "name": "isPayBackConfirmed",
+            "type": "checkbox",
+            "meta": {
+                "label": "Соглашение о вознаграждении"
+            }
+        },
+        {
+            "name": "priority1",
+            "meta": {
+                "label": "Приоритет за нал"
+            }
+        },
+        {
+            "name": "priority2",
+            "meta": {
+                "label": "Приоритет по безналу город"
+            }
+        },
+        {
+            "name": "priority3",
+            "meta": {
+                "label": "Приоритет по безналу за город"
+            }
+        },
+        {
+            "name": "services",
+            "type": "reference"
         }
     ]
 }
