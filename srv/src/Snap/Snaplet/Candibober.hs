@@ -35,6 +35,7 @@ import Snap.Snaplet
 import Snap.Snaplet.Candibober.Types
 
 import Snap.Snaplet.Candibober.Date
+import Snap.Snaplet.Candibober.Number
 import Snap.Snaplet.Candibober.String
 
 
