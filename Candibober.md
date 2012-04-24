@@ -58,6 +58,7 @@ targets.json.
 похожими проверками.
 
 Как это выглядит снаружи:
+
     checkMap = M.fromList
         [ ("sellLess",
             compareDate "case" "car_sellDate" LT <=< yearsAgo <=< readInteger)
