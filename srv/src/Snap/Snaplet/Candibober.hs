@@ -55,6 +55,8 @@ checkMap =
     M.fromList 
          [ ("sellLess", 
             dateCheck "case" "car_sellDate" LT <=< yearsAgo <=< readInteger)
+         , ("sellAfter",
+            dateCheck "case" "car_sellDate" GT <=< date)
          , ("checkupLess",
             dateCheck "case" "car_checkupDate" LT <=< yearsAgo <=< readInteger)
          ]
@@ -97,6 +99,27 @@ makeLens ''Candibober
 
 
 ------------------------------------------------------------------------------
+-- | Read target name from @target@ request parameter and dataset spec
+-- from request body, respond with list of passed and failed
+-- conditions.
+--
+-- Dataset spec is a hash:
+--
+-- @
+-- { "slot1" : { "model": "foo", "id": "2231"},
+--   "slot2" : { "model": "bar", "id": "69"}
+-- }
+-- @
+--
+-- Actual dataset is built by fetching instances of named models with
+-- that ids into respective slots of dataset. If instance is not
+-- found, 404 is raised.
+doCheck :: Handler b Candibober ()
+doCheck = do
+    modifyResponse $ setContentType "application/json"
+
+
+------------------------------------------------------------------------------
 -- | Parse target definitions into 'TargetMap'.
 loadTargets :: FilePath
             -- ^ Targets definition file
@@ -107,6 +130,11 @@ loadTargets filename = do
       Just t -> return t
       Nothing -> error $ "Could not parse targets file " ++ filename
 
+
+------------------------------------------------------------------------------
+-- | Candibober routes.
+routes :: [(ByteString, AppHandler ())]
+routes = [ ("/check/:target", method POST $ doCheck) ]
 
 ------------------------------------------------------------------------------
 -- | Make 'Candibober' snaplet.
