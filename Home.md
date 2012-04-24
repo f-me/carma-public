@@ -1,1 +1,5 @@
-Welcome to the carma wiki!
+Аспекты системы
+
+* Backbone — KnockBack — Knockout: реактивный интерфейс с постоянной односторонней синхронизацией данных.
+* [[Candibober]]
+* Redson — простой HTTP-интерфейс к Redis для хранения данных и проверки прав
