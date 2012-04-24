@@ -1,3 +1,5 @@
+{-# LANGUAGE Rank2Types #-}
+
 -- | Generic string checkers.
 
 module Snap.Snaplet.Candibober.String
@@ -17,43 +19,30 @@ import Snap.Snaplet.Redson.Snapless.Metamodel
 
 
 ------------------------------------------------------------------------------
+-- | String-based field checks with argument of type @a@.
+type StringCheck a = Monad m =>
+                     SlotName -> FieldName -> a -> CheckBuilderMonad m Checker
+
+
+------------------------------------------------------------------------------
 -- | Check if field value is present in list.
-fieldInList :: Monad m =>
-               SlotName
-            -> FieldName
-            -> [B.ByteString]
-            -> CheckBuilderMonad m Checker
+fieldInList :: StringCheck [B.ByteString]
 fieldInList slot field vals =
-    let
-        fcheck :: FieldChecker
-        fcheck fv = return $ elem fv vals
-    in
-      return $ scopedChecker slot field fcheck
+    return $ scopedChecker slot field $
+               \fv -> return $ elem fv vals
 
 
 ------------------------------------------------------------------------------
 -- | Check if field contains a substring.
-fieldContains :: Monad m =>
-                 SlotName
-              -> FieldName
-              -> B.ByteString
-              -> CheckBuilderMonad m Checker
+fieldContains :: StringCheck B.ByteString
 fieldContains slot field val =
-    let 
-        fcheck fv = return $ maybe False (const True) (B.findSubstring val fv)
-    in
-      return $ scopedChecker slot field fcheck
+    return $ scopedChecker slot field $
+               \fv -> return $ B.null $ snd (B.breakSubstring val fv)
 
 
 ------------------------------------------------------------------------------
 -- | Check if field contains a substring.
-fieldEquals :: Monad m =>
-               SlotName
-            -> FieldName
-            -> B.ByteString
-            -> CheckBuilderMonad m Checker
+fieldEquals :: StringCheck B.ByteString
 fieldEquals slot field val =
-    let 
-        fcheck fv = return $ fv == val
-    in
-      return $ scopedChecker slot field fcheck
+    return $ scopedChecker slot field $
+               \fv -> return $ fv == val
