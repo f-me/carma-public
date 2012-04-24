@@ -6,6 +6,7 @@ module Snap.Snaplet.Candibober.Date
       -- * Argument combinators
     , yearsAgo
     , monthsAgo
+    , daysAgo
     , readDate
       -- * Date formats
     , targetDateFormat

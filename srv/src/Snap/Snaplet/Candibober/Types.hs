@@ -136,6 +136,13 @@ instance Error ArgError where
 
 ------------------------------------------------------------------------------
 -- | Checker with logically inverse behaviour.
+---
+--- 'CheckBuilderMonad' is purely for convenience, this combinator
+--- really should be used at the end of 'FreeChecker' chain:
+--- 
+--- @
+--- (inverseChecker . fieldContains "case" "services") <=< readSingleString
+--- @
 inverseChecker :: Functor m => 
                   CheckBuilderMonad m Checker -> 
                   CheckBuilderMonad m Checker
