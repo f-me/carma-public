@@ -72,7 +72,7 @@ checkMap =
          , ("modelInList",
             fieldInList "case" "car_model" <=< readManyStrings)
          , ("ruamcEvac",
-            fieldContains "case" "services" "evac" <<< readNone)
+            fieldContains "case" "services" "towage" <<< readNone)
          , ("notVandal",
             fieldEquals "case" "notVandal" "1" <<< readNone)
          , ("notAccident",
