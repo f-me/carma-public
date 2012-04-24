@@ -27,11 +27,13 @@ module Snap.Snaplet.Candibober.Types
       -- combinators
     , scopedChecker
     , singleOnly
+    , manyOnly
 
       -- ** Parsing combinators perform early syntax checking on
       -- 'CheckerArgs' and feed data to argument combinators
     , readInteger
-    , readStrings
+    , readSingleString
+    , readManyStrings
     )
 
 where
@@ -177,5 +179,11 @@ readInteger a = singleOnly a $ \(Single s) ->
 
 ------------------------------------------------------------------------------
 -- | Read list of ByteStrings.
-readStrings :: Monad m => CheckerArgs -> CheckBuilderMonad m [B.ByteString]
-readStrings a = manyOnly a $ \(Many l) -> return l
+readManyStrings :: Monad m => CheckerArgs -> CheckBuilderMonad m [B.ByteString]
+readManyStrings a = manyOnly a $ \(Many l) -> return l
+
+
+------------------------------------------------------------------------------
+-- | Read list of ByteStrings.
+readSingleString :: Monad m => CheckerArgs -> CheckBuilderMonad m B.ByteString
+readSingleString a = singleOnly a $ \(Single l) -> return l

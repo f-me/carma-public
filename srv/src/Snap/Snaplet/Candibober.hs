@@ -31,8 +31,10 @@ import qualified Data.Map as M
 import Snap.Core
 import Snap.Snaplet
 
-import Snap.Snaplet.Candibober.Date
 import Snap.Snaplet.Candibober.Types
+
+import Snap.Snaplet.Candibober.Date
+import Snap.Snaplet.Candibober.String
 
 
 ------------------------------------------------------------------------------
@@ -56,11 +58,13 @@ checkMap :: M.Map B.ByteString (FreeChecker A.Parser)
 checkMap = 
     M.fromList 
          [ ("sellLess", 
-            dateCheck "case" "car_sellDate" LT <=< yearsAgo <=< readInteger)
+            compareDate "case" "car_sellDate" LT <=< yearsAgo <=< readInteger)
          , ("sellAfter",
-            dateCheck "case" "car_sellDate" GT <=< date)
+            compareDate "case" "car_sellDate" GT <=< readDate)
          , ("checkupLess",
-            dateCheck "case" "car_checkupDate" LT <=< yearsAgo <=< readInteger)
+            compareDate "case" "car_checkupDate" LT <=< yearsAgo <=< readInteger)
+         , ("modelInList",
+            fieldInList "case" "car_model" <=< readManyStrings)
          ]
 
 type ConditionName = B.ByteString

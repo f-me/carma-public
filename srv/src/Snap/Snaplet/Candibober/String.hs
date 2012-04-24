@@ -2,7 +2,7 @@
 
 module Snap.Snaplet.Candibober.String
     ( -- * Checker combinators
-      inListCheck
+      fieldInList
     )
 
 where
@@ -15,12 +15,12 @@ import Snap.Snaplet.Redson.Snapless.Metamodel
 
 ------------------------------------------------------------------------------
 -- | Check if field value is present in list.
-inListCheck :: Monad m =>
+fieldInList :: Monad m =>
                SlotName
             -> FieldName
             -> [B.ByteString]
             -> CheckBuilderMonad m Checker
-inListCheck slot field vals =
+fieldInList slot field vals =
     let
         fcheck :: FieldChecker
         fcheck fv = return $ elem fv vals

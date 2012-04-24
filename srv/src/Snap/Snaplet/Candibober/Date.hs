@@ -2,14 +2,14 @@
 
 module Snap.Snaplet.Candibober.Date
     ( -- * Checker combinators
-      dateCheck
-      -- * Date formats
-    , targetDateFormat
-    , commitDateFormat
+      compareDate
       -- * Argument combinators
     , yearsAgo
     , monthsAgo
-    , date
+    , readDate
+      -- * Date formats
+    , targetDateFormat
+    , commitDateFormat
     )
 
 where
@@ -46,15 +46,15 @@ type DateArg = IO Day
 ------------------------------------------------------------------------------
 -- | Compare day in check argument and day in field value (which must
 -- be stored in 'commitDateFormat').
-dateCheck :: Monad m =>
-             SlotName
-          -> FieldName
-          -> Ordering
-          -- ^ How to compare field value to argument
-          -> DateArg
-          -- ^ Compare field value with 'Day' returned from this action
-          -> CheckBuilderMonad m Checker
-dateCheck slot field ord day =
+compareDate :: Monad m =>
+               SlotName
+            -> FieldName
+            -> Ordering
+            -- ^ How to compare field value to argument
+            -> DateArg
+            -- ^ Compare field value with 'Day' returned from this action
+            -> CheckBuilderMonad m Checker
+compareDate slot field ord day =
     let
         fcheck :: FieldChecker
         fcheck fv = do
@@ -94,8 +94,8 @@ monthsAgo = dateAgo addGregorianMonthsClip
 
 ------------------------------------------------------------------------------
 -- | Read formatted date argument using 'targetDateFormat'.
-date :: Monad m => CheckerArgs -> CheckBuilderMonad m DateArg
-date a = singleOnly a $ \(Single s) -> do
+readDate :: Monad m => CheckerArgs -> CheckBuilderMonad m DateArg
+readDate a = singleOnly a $ \(Single s) -> do
     case parseTime defaultTimeLocale targetDateFormat (B.unpack s) of
       Just day -> return $ return (day::Day)
       _ -> throwError (BadDate s)
