@@ -1,3 +1,5 @@
+-- | Date checkers.
+
 module Snap.Snaplet.Candibober.Date
     ( -- * Checker combinators
       dateCheck
@@ -45,8 +47,8 @@ type DateArg = IO Day
 -- | Compare day in check argument and day in field value (which must
 -- be stored in 'commitDateFormat').
 dateCheck :: Monad m =>
-             SlotName 
-          -> FieldName 
+             SlotName
+          -> FieldName
           -> Ordering
           -- ^ How to compare field value to argument
           -> DateArg
@@ -59,9 +61,7 @@ dateCheck slot field ord day =
           d <- day
           case parseTime defaultTimeLocale commitDateFormat (B.unpack fv) of
             Just cDay -> return $ ord == compare d (utctDay cDay)
-            Nothing -> error $
-                       "Could not parse date field from dataset " ++
-                       (B.unpack slot) ++ "->" ++ (B.unpack field)
+            Nothing -> throwError $ BadDate fv
     in
       return $ scopedChecker slot field fcheck
 
@@ -69,8 +69,8 @@ dateCheck slot field ord day =
 ------------------------------------------------------------------------------
 -- | Read integer into period (as integer), apply given function to
 -- the reverse of this period and current date.
-dateAgo :: Monad m => 
-           (Integer -> Day -> Day) 
+dateAgo :: Monad m =>
+           (Integer -> Day -> Day)
         -> Integer
         -> CheckBuilderMonad m DateArg
 dateAgo adder period = return $ (adder (-period)) <$> utctDay <$> getCurrentTime
@@ -78,6 +78,8 @@ dateAgo adder period = return $ (adder (-period)) <$> utctDay <$> getCurrentTime
 
 ------------------------------------------------------------------------------
 -- | Read integer argument into date for that number of years ago.
+--
+-- Use with 'readInteger'.
 yearsAgo :: Monad m => Integer -> CheckBuilderMonad m DateArg
 yearsAgo = dateAgo addGregorianYearsClip
 

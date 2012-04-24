@@ -110,8 +110,8 @@ instance Error ArgError where
 
 ------------------------------------------------------------------------------
 -- | Checker with logically inverse behaviour.
-inverseChecker :: Checker -> Checker
-inverseChecker = (fmap (fmap not) .)
+inverseChecker :: CheckBuilderMonad m Checker -> CheckBuilderMonad m Checker
+inverseChecker = (fmap (fmap (fmap not) .))
 
 
 -- | Simplified checker which acts on the value of the named field in the slot
