@@ -3,12 +3,36 @@
         {
             "type": "sellLess",
             "args": "2"
+        },
+        {
+            "type": "modelInList",
+            "args": ["focus"]
         }
     ],
     "vwcargo": [
         {
             "type": "sellLess",
             "args": "2"
+        }
+    ],
+    "vw-evac": [
+        {
+            "type": "notAccident"
+        },
+        {
+            "type": "notVandal"
+        }
+    ],
+    "vw-rent": [
+        {
+            "type": "notUsedService",
+            "args": "hotel"
+        }
+    ],
+    "vw-hotel": [
+        {
+            "type": "notUsedService",
+            "args": "rent"
         }
     ]
 }
