@@ -12,6 +12,7 @@ module Snap.Snaplet.Candibober
 where
 
 import Control.Applicative
+import Data.Maybe
 
 import Control.Monad
 import Control.Monad.IO.Class
@@ -80,8 +81,12 @@ instance FromJSON Condition where
       checkType <- v .: "type"
       case M.lookup checkType checkMap of
         Just freeChecker -> do
-            -- | Apply as much of FreeChecker chain as possible
-            chain <- runErrorT =<< freeChecker <$> v .: "args"
+            -- | Apply as much of FreeChecker chain as possible.
+            --
+            -- If "args" is not present in target description, feed
+            -- NoArgs.
+            chain <- runErrorT =<< freeChecker <$>
+                     fromMaybe NoArgs <$> (v .:? "args")
             case chain of
               Left e -> error $ "Could not build checker: " ++ (show e)
               Right checker -> return $ Condition checkType checker

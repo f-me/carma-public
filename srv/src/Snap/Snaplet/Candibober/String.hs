@@ -26,3 +26,16 @@ fieldInList slot field vals =
         fcheck fv = return $ elem fv vals
     in
       return $ scopedChecker slot field fcheck
+
+------------------------------------------------------------------------------
+-- | Check if field contains a substring.
+fieldContains :: Monad m =>
+                 SlotName
+              -> FieldName
+              -> B.ByteString
+              -> CheckBuilderMonad m Checker
+fieldContains slot field val =
+    let 
+        fcheck fv = return $ maybe False (const True) (B.findSubstring val fv)
+    in
+      return $ scopedChecker slot field fcheck

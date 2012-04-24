@@ -82,16 +82,17 @@ type CheckerArg = B.ByteString
 -- | Arguments for checks.
 data CheckerArgs = Single CheckerArg
                  | Many [CheckerArg]
+                 | NoArgs
 
 
 
 ------------------------------------------------------------------------------
 -- | Checker which not been fully bound to check parameters yet.
--- Applying it to arguments yields a checker or fails if arguments are
--- broken.
+-- Applying it to 'CheckerArgs' yields a checker or fails if arguments
+-- are broken.
 --
 -- Errors are handled through 'CheckBuilderMonad'. All combinators
--- which produce 'FreeChecker' values reside in this monad.
+-- which belong to 'FreeChecker' chain reside in this monad.
 --
 -- 'FreeChecker' is parametrized over wrapper monad in which
 -- combinator chain building is performed.
@@ -114,6 +115,8 @@ data ArgError = BadInteger CheckerArg
               -- ^ Many arguments passed when only one is expected
               | UnexpectedSingle CheckerArg
               -- ^ Single argument passed when list is expected
+              | NoArguments
+              -- ^ No arguments passed while expecting some.
               | ArgError String
               -- ^ Generic argument error with message
               deriving Show
@@ -158,6 +161,8 @@ singleOnly :: Monad m =>
            -> CheckBuilderMonad m a
 singleOnly s@(Single _) singleF = singleF s
 singleOnly (Many e) _ = throwError $ UnexpectedMany e
+singleOnly NoArgs _ = throwError NoArguments
+
 
 ------------------------------------------------------------------------------
 -- | Arg combinator which allows to match on @Many [CheckerArg]@ only.
@@ -167,6 +172,7 @@ manyOnly :: Monad m =>
          -> CheckBuilderMonad m a
 manyOnly m@(Many _) manyF = manyF m
 manyOnly (Single e) _ = throwError $ UnexpectedSingle e
+manyOnly NoArgs _ = throwError NoArguments
 
 
 ------------------------------------------------------------------------------
@@ -176,6 +182,7 @@ readInteger a = singleOnly a $ \(Single s) ->
     case B.readInteger s of
       Just (n, _) -> return n
       _ -> throwError (BadInteger s)
+
 
 ------------------------------------------------------------------------------
 -- | Read list of ByteStrings.
