@@ -171,7 +171,7 @@
             "index": true
         },
         {
-            "name": "contactMail",
+            "name": "email",
             "meta": {
                 "label": "Email"
             },
@@ -194,18 +194,18 @@
     ],    
     "address": [
         {
-            "name": "city",
-            "meta": {
-                "label": "Город"
-            }
-        },        
-        {
             "name": "address",
             "meta": {
                 "label": "Адрес",
                 "infoText": "address"
             }
         },
+        {
+            "name": "city",
+            "meta": {
+                "label": "Город"
+            }
+        },        
         {
             "name": "comment",
             "meta": {

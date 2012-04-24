@@ -14,6 +14,12 @@
     ],
     "fields": [
         {
+            "name": "name",
+            "meta": {
+                "label": "Название"
+            }
+        },
+        {
             "name": "code",
             "meta": {
                 "label": "Код"

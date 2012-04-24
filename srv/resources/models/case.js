@@ -8,10 +8,22 @@
     "applications": [
         {
             "targets": ["caseAddress_address"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
             "meta": {
                 "label": "Адрес места поломки"
             }
         },        
+        {
+            "targets": ["caseAddress_coords","caseAddress_city","caseAddress_comment"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
+        },        
+        {
+            "targets": ["caller_name", "caller_email", "caller_phone1", "caller_phone2"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
+        },
         {
             "targets": ["car_model"],
             "meta": {
@@ -125,8 +137,6 @@
         },
         {
             "name": "caseAddress",
-            "canRead": ["front", "back", "head", "parguy"],
-            "canWrite": ["front", "back", "head"],
             "groupName": "address"
         },        
         {

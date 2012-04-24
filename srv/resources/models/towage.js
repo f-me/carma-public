@@ -8,20 +8,22 @@
     "applications": [
         {
             "targets": [
-                "caseAddress_address"
-            ],
-            "meta": {
-                "label": "Адрес места поломки"
-            }
-        },
-        {
-            "targets": [
                 "towAddress_address"
             ],
             "meta": {
                 "label": "Адрес доставки"
             }
         },
+        {
+            "targets": ["towAddress_address","towAddress_coords","towAddress_city","towAddress_comment"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
+        },        
+        {
+            "targets": ["towDealer_partner","towDealer_partnerTable","towDealer_coords"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
+        },        
         {
             "targets": [
                 "payment_payment"
