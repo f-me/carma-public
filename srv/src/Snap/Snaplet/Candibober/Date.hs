@@ -44,8 +44,16 @@ type DateArg = IO Day
 
 
 ------------------------------------------------------------------------------
--- | Compare day in check argument and day in field value (which must
--- be stored in 'commitDateFormat').
+-- | Compare day in field value (which must be stored in
+-- 'commitDateFormat') and day in check argument.
+--
+-- Example:
+-- @
+-- compareDate "service" "car_checkupDate" GT someDay
+-- @
+-- 
+-- Will succeed if date stored in "car_checkupDate" field of "service"
+-- slot is greater than someDay.
 compareDate :: Monad m =>
                SlotName
             -> FieldName
@@ -60,7 +68,7 @@ compareDate slot field ord day =
         fcheck fv = do
           d <- day
           case parseTime defaultTimeLocale commitDateFormat (B.unpack fv) of
-            Just cDay -> return $ ord == compare d (utctDay cDay)
+            Just cDay -> return $ ord == compare (utctDay cDay) d
             Nothing -> error $
                        "Could not parse date field from dataset " ++
                       (B.unpack slot) ++ "->" ++ (B.unpack field)
@@ -90,6 +98,11 @@ yearsAgo = dateAgo addGregorianYearsClip
 -- | Read integer argument into date for that number of months ago.
 monthsAgo :: Monad m => Integer -> CheckBuilderMonad m DateArg
 monthsAgo = dateAgo addGregorianMonthsClip
+
+------------------------------------------------------------------------------
+-- | Read integer argument into date for that number of months ago.
+daysAgo :: Monad m => Integer -> CheckBuilderMonad m DateArg
+daysAgo = dateAgo addDays
 
 
 ------------------------------------------------------------------------------
