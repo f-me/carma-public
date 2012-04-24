@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 
 -- | Candibober combinators: arguments parsing, transformations.
 
@@ -18,22 +18,30 @@ module Snap.Snaplet.Candibober.Types
     , CheckBuilderMonad
     , ArgError(..)
 
-      -- ** Checker combinators must be composable with argument
-      -- combinators
+      -- ** Checker combinators
     , inverseChecker
     , FieldChecker
-
-      -- ** Argument combinators produce arguments expected by checker
-      -- combinators
     , scopedChecker
+
+      -- ** Argument combinators
+      --
+      -- Produce arguments expected by checker combinators
     , singleOnly
     , manyOnly
+    , arglessChecker
 
-      -- ** Parsing combinators perform early syntax checking on
-      -- 'CheckerArgs' and feed data to argument combinators
+      -- ** Parsing combinators
+      --
+      --  Perform early syntax checking on 'CheckerArgs' and feed data
+      --  to argument combinators
     , readInteger
     , readSingleString
     , readManyStrings
+    , readNone
+
+    -- * Monadic helpers
+    , (>>>)
+    , (<<<)
     )
 
 where
@@ -154,6 +162,13 @@ scopedChecker slot field f ds =
 
 
 ------------------------------------------------------------------------------
+-- | Combinator used when FreeChecker chain is not required (which is
+-- the case for checkers without parameters)
+arglessChecker :: Monad m => Checker -> FreeChecker m
+arglessChecker c = \a -> return $ c
+
+
+------------------------------------------------------------------------------
 -- | Arg combinator which allows to match on @Single CheckerArg@ only.
 singleOnly :: Monad m =>
               CheckerArgs 
@@ -194,3 +209,20 @@ readManyStrings a = manyOnly a $ \(Many l) -> return l
 -- | Read list of ByteStrings.
 readSingleString :: Monad m => CheckerArgs -> CheckBuilderMonad m B.ByteString
 readSingleString a = singleOnly a $ \(Single l) -> return l
+
+
+------------------------------------------------------------------------------
+-- | Kleisli composition wrapper to maintain monadic error-checking
+-- context but do not actually pass any values.
+(>>>) f g = (>=>) f $ const g
+(<<<) = flip (>>>)
+
+------------------------------------------------------------------------------
+-- Check that no arguments were passed for condition.
+--
+-- Use with '<<<'.
+readNone :: Monad m => CheckerArgs -> CheckBuilderMonad m ()
+readNone arg = case arg of
+                 NoArgs -> return ()
+                 Single e -> throwError $ UnexpectedSingle e
+                 Many e -> throwError $ UnexpectedMany e

@@ -55,6 +55,9 @@ instance FromJSON CheckerArgs where
 -- CheckerArgs into type consumed by @f@, which produces a 'Checker'.
 --
 -- CheckerArgs of @g@ are parsed from JSON.
+--
+-- Kleisli composition here means proper error-handling on every step
+-- of 'FreeChecker' monadic chain.
 checkMap :: M.Map B.ByteString (FreeChecker A.Parser)
 checkMap = 
     M.fromList 
@@ -64,9 +67,20 @@ checkMap =
             compareDate "case" "car_sellDate" GT <=< readDate)
          , ("checkupLess",
             compareDate "case" "car_checkupDate" LT <=< yearsAgo <=< readInteger)
+         , ("daysPassedSinceReport",
+            compareDate "service" "car_checkupDate" GT <=< daysAgo <=< readInteger)
          , ("modelInList",
             fieldInList "case" "car_model" <=< readManyStrings)
+         , ("ruamcEvac",
+            fieldContains "case" "services" "evac" <<< readNone)
+         , ("notVandal",
+            fieldEquals "case" "notVandal" "1" <<< readNone)
+         , ("notAccident",
+            fieldEquals "case" "notAccident" "1" <<< readNone)
+         , ("notUsedService",
+            (inverseChecker . fieldContains "case" "services") <=< readSingleString)
          ]
+
 
 type ConditionName = B.ByteString
 

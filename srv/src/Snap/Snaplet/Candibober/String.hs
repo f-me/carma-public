@@ -3,6 +3,8 @@
 module Snap.Snaplet.Candibober.String
     ( -- * Checker combinators
       fieldInList
+    , fieldContains
+    , fieldEquals
     )
 
 where
@@ -39,5 +41,19 @@ fieldContains :: Monad m =>
 fieldContains slot field val =
     let 
         fcheck fv = return $ maybe False (const True) (B.findSubstring val fv)
+    in
+      return $ scopedChecker slot field fcheck
+
+
+------------------------------------------------------------------------------
+-- | Check if field contains a substring.
+fieldEquals :: Monad m =>
+               SlotName
+            -> FieldName
+            -> B.ByteString
+            -> CheckBuilderMonad m Checker
+fieldEquals slot field val =
+    let 
+        fcheck fv = return $ fv == val
     in
       return $ scopedChecker slot field fcheck
