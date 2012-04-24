@@ -13,6 +13,7 @@ import Snap.Snaplet.Candibober.Types
 
 import Snap.Snaplet.Redson.Snapless.Metamodel
 
+
 ------------------------------------------------------------------------------
 -- | Check if field value is present in list.
 fieldInList :: Monad m =>
@@ -26,6 +27,7 @@ fieldInList slot field vals =
         fcheck fv = return $ elem fv vals
     in
       return $ scopedChecker slot field fcheck
+
 
 ------------------------------------------------------------------------------
 -- | Check if field contains a substring.
