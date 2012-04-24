@@ -61,7 +61,9 @@ dateCheck slot field ord day =
           d <- day
           case parseTime defaultTimeLocale commitDateFormat (B.unpack fv) of
             Just cDay -> return $ ord == compare d (utctDay cDay)
-            Nothing -> throwError $ BadDate fv
+            Nothing -> error $
+                       "Could not parse date field from dataset " ++
+                      (B.unpack slot) ++ "->" ++ (B.unpack field)
     in
       return $ scopedChecker slot field fcheck
 

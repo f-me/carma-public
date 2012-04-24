@@ -31,10 +31,12 @@ module Snap.Snaplet.Candibober.Types
       -- ** Parsing combinators perform early syntax checking on
       -- 'CheckerArgs' and feed data to argument combinators
     , readInteger
+    , readStrings
     )
 
 where
 
+import Control.Monad
 import Control.Monad.Trans.Error
 
 import qualified Data.ByteString.Char8 as B
@@ -53,10 +55,16 @@ type Dataset = M.Map SlotName Commit
 
 type SlotName = B.ByteString
 
+------------------------------------------------------------------------------
+-- | Monad used to actually perform checks in.
+--
+-- We need may need extra database access, thus IO.
+type Checking = IO
+
 
 ------------------------------------------------------------------------------
 -- | Checker function for condition.
-type Checker = Dataset -> IO CheckResult
+type Checker = Dataset -> Checking CheckResult
 
 
 ------------------------------------------------------------------------------
@@ -90,17 +98,22 @@ type FreeChecker m = CheckerArgs -> CheckBuilderMonad m Checker
 
 ------------------------------------------------------------------------------
 -- | Error-handling monad for use in 'FreeChecker' combinator chain.
+--
+-- Note that it should not be used to handle errors which occur at
+-- check-time.
 type CheckBuilderMonad m = ErrorT ArgError m
 
 
-data ArgError = BadInteger B.ByteString
+data ArgError = BadInteger CheckerArg
               -- ^ Could not read integer from stored bytestring
-              | BadDate B.ByteString
+              | BadDate CheckerArg
               -- ^ Could not parse date from stored bytestring
+              | UnexpectedMany [CheckerArg]
+              -- ^ Many arguments passed when only one is expected
+              | UnexpectedSingle CheckerArg
+              -- ^ Single argument passed when list is expected
               | ArgError String
               -- ^ Generic argument error with message
-              | UnexpectedMany
-              -- ^ Many arguments passed when only one is expected
               deriving Show
 
 
@@ -110,13 +123,15 @@ instance Error ArgError where
 
 ------------------------------------------------------------------------------
 -- | Checker with logically inverse behaviour.
-inverseChecker :: CheckBuilderMonad m Checker -> CheckBuilderMonad m Checker
-inverseChecker = (fmap (fmap (fmap not) .))
+inverseChecker :: Functor m => 
+                  CheckBuilderMonad m Checker -> 
+                  CheckBuilderMonad m Checker
+inverseChecker = fmap (fmap (fmap not) .)
 
 
 -- | Simplified checker which acts on the value of the named field in the slot
 -- instead of whole dataset.
-type FieldChecker = FieldValue -> IO Bool
+type FieldChecker = FieldValue -> Checking Bool
 
 
 ------------------------------------------------------------------------------
@@ -126,9 +141,9 @@ type FieldChecker = FieldValue -> IO Bool
 -- If the slot is not present in dataset, or the field is not in the
 -- commit, Nothing is returned as 'CheckResult'.
 scopedChecker :: SlotName
-             -> FieldName
-             -> FieldChecker
-             -> Checker
+              -> FieldName
+              -> FieldChecker
+              -> Checker
 scopedChecker slot field f ds =
     traverse f $ M.lookup slot ds >>= M.lookup field
 
@@ -140,7 +155,16 @@ singleOnly :: Monad m =>
            -> (CheckerArgs -> CheckBuilderMonad m a) 
            -> CheckBuilderMonad m a
 singleOnly s@(Single _) singleF = singleF s
-singleOnly (Many _) _ = throwError UnexpectedMany
+singleOnly (Many e) _ = throwError $ UnexpectedMany e
+
+------------------------------------------------------------------------------
+-- | Arg combinator which allows to match on @Many [CheckerArg]@ only.
+manyOnly :: Monad m =>
+            CheckerArgs 
+         -> (CheckerArgs -> CheckBuilderMonad m a) 
+         -> CheckBuilderMonad m a
+manyOnly m@(Many _) manyF = manyF m
+manyOnly (Single e) _ = throwError $ UnexpectedSingle e
 
 
 ------------------------------------------------------------------------------
@@ -150,3 +174,8 @@ readInteger a = singleOnly a $ \(Single s) ->
     case B.readInteger s of
       Just (n, _) -> return n
       _ -> throwError (BadInteger s)
+
+------------------------------------------------------------------------------
+-- | Read list of ByteStrings.
+readStrings :: Monad m => CheckerArgs -> CheckBuilderMonad m [B.ByteString]
+readStrings a = manyOnly a $ \(Many l) -> return l
