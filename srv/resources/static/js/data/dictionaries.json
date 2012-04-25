@@ -851,15 +851,15 @@
                 "icon": "glass"
             },
             {
-                "value": "transport",
+                "value": "transportation",
                 "label": "Транспортировка"
             },
             {
-                "value": "delivery",
+                "value": "deliverCar",
                 "label": "Доставка ТС"
             },
             {
-                "value": "details",
+                "value": "deliverParts",
                 "label": "Доставка запчастей"
             },
             {
@@ -867,11 +867,11 @@
                 "label": "Юридическая помощь"
             },
             {
-                "value": "tech",
+                "value": "tech1",
                 "label": "ТО"
             },
             {
-                "value": "info",
+                "value": "information",
                 "label": "Информирование о происшествии"
             },
             {
