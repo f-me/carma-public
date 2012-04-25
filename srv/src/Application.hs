@@ -34,14 +34,15 @@ import Snap.Snaplet.Session
 import Snap.Snaplet.Session.Backends.CookieSession
 import Snap.Util.FileServe
 
+import Snap.Snaplet.Candibober
 import Snap.Snaplet.Redson
 import Snap.Snaplet.Vin
-
 
 ------------------------------------------------------------------------------
 -- | Application snaplet state type: Redson, Heist.
 data App = App
-    { _heist :: Snaplet (Heist App)
+    { _candibober :: Snaplet Candibober
+    , _heist :: Snaplet (Heist App)
     , _redson :: Snaplet (Redson App)
     , _session :: Snaplet SessionManager
     , _auth :: Snaplet (AuthManager App)
@@ -129,10 +130,12 @@ sessionTimeout = Nothing
 -- | The application initializer.
 appInit :: SnapletInit App App
 appInit = makeSnaplet "app" "Forms application" Nothing $ do
-  r <- nestSnaplet "_" redson $ redsonInit auth
+  c <- nestSnaplet "candibober" candibober candiboberInit
 
   h <- nestSnaplet "heist" heist $ heistInit "resources/templates"
   addAuthSplices auth
+
+  r <- nestSnaplet "_" redson $ redsonInit auth
 
   cfg <- getSnapletUserConfig
   sesKey <- liftIO $
@@ -161,4 +164,4 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   addRoutes routes
 
-  return $ App h r s a v sTime
+  return $ App c h r s a v sTime
