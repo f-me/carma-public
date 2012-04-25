@@ -326,12 +326,16 @@ function doPick(pickType, args) {
 }
 
 function setupVinForm(viewName, args) {
-    var form = $el(viewName).html($el("vin-form-template").html());
+    $el(viewName).html($el("vin-form-template").html());
     global.viewsWare[viewName] = {};
 
-    $.post("/vin/state", null, function (data) {
-	h = "<div class='row'><div class='span6 offset3'>" + data + "</div></div>";
-	form.append(h);
+    setInterval(getVinAlerts, 5000);
+}
+
+function getVinAlerts () {
+    $.getJSON("/vin/state", null, function (data) {
+	$("#vin-alert-container").html(
+	    Mustache.render($("#vin-alert-template").html(), data));
     });
 }
 
@@ -381,4 +385,8 @@ function doVin() {
     }).done(function( msg ) {
     	alert( "Result: " + msg );
     });
+}
+
+function removeVinAlert(val) {
+    $.post("/vin/state", { id: val } );
 }

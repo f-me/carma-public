@@ -235,22 +235,46 @@
       <div style="text-align:center;">
       <fieldset>
         <legend>Импорт VIN</legend>
-	<form id="vin-import-form" onsubmit="doVin(); return false;">
-	  <p>
-	    <select name="program">
-	      <option value="vmMotor">Vw легковые</option>
-	      <option value="vwTruck">Vw коммерческие</option>
-	      <option value="vwRuslan">Рус-Лан</option>
-	    </select>
-	    <input type="file"
-		   name="file"
-		   accept="text/csv|application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
-	  </p>
-	  <button class="btn btn-success" type="submit">
-	    Отправить
-	  </button>
-	</form>
+        <form id="vin-import-form" onsubmit="doVin(); return false;">
+          <p>
+            <select name="program">
+              <option value="vmMotor">Vw легковые</option>
+              <option value="vwTruck">Vw коммерческие</option>
+              <option value="vwRuslan">Рус-Лан</option>
+            </select>
+            <input type="file"
+                   name="file"
+                   accept="text/csv|application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+          </p>
+          <button class="btn btn-success" type="submit">
+            Отправить
+          </button>
+        </form>
       </fieldset>
+      </div>
+      <div id="vin-alert-container" />
+    </script>
+
+    <script type="text/template"
+            id="vin-alert-template">
+      <!-- TODO Should be row-fluid when fluid containers are
+                fixed in Bootstrap upstream. -->
+      <div class="container">
+        <div class="row">
+          <div class="span6 offset3">
+            {{# alerts}}
+              <div class="alert alert-{{alertType}}" style="margin-bottom: 2px;">
+                <button class="close"
+			data-dismiss="alert"
+			onclick="removeVinAlert('{{alertId}}'); return false;">×</button>
+                {{alertVinFile}}: {{ alertMessage }}
+                {{# alertErrorFile }}
+                  <a href="{{alertErrorFile}}">Файл</a> с ошибками.
+                {{/ alertErrorFile }}
+              </div>
+            {{/ alerts}}
+          </div>
+        </div>
       </div>
     </script>
 
