@@ -115,7 +115,7 @@ function backbonizeModel(model, modelName) {
                 // TODO Perhaps inform client when unknown field occurs
                 if ((k != "id") && _.has(this.fieldHash, k)) {
                     var type = this.fieldHash[k].type;
-                    if (type.startsWith("date") && json[k].match(/\d+/)) {
+                    if (type.match(/^date/) && json[k].match(/\d+/)) {
                         var format = type == "date"
                                    ? "dd.MM.yyyy"
                                    : "dd.MM.yyyy HH:mm:ss";
@@ -135,7 +135,7 @@ function backbonizeModel(model, modelName) {
             // compatibility
             for (k in json) {
                 if (_.has(this.fieldHash, k) &&
-                    this.fieldHash[k].type.startsWith("date"))
+                    this.fieldHash[k].type.match(/^date/))
                 {
                     var date = Date.parseExact(
                             json[k],
