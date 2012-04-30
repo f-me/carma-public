@@ -16,17 +16,17 @@ body {
 }
 
 #left {
-  width: 32%;
+  left: 0;
+  width: 30%;
 }
 
 #center {
-  left: 35%;
+  left: 32%;
   width: 50%;
 }
 
 #right {
-  left: 86%;
-  width: 10%;
+  left: 84%;
 }
 
 .container-fluid {
@@ -97,7 +97,7 @@ textarea.pane-span,
   color: red;
 }
 
-.nice-scrollbar::-webkit-scrollbar {width:.7em;}
+.nice-scrollbar::-webkit-scrollbar {width:.8em;}
 .nice-scrollbar::-webkit-scrollbar-button:vertical,
 .nice-scrollbar::-webkit-scrollbar-button:start:decrement,
 .nice-scrollbar::-webkit-scrollbar-button:end:increment,
