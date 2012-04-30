@@ -60,6 +60,7 @@
 		constructor: Datepicker,
 		
 		show: function(e) {
+      this.update();
 			this.picker.show();
 			this.height = this.component ? this.component.outerHeight() : this.element.outerHeight();
 			this.place();
@@ -85,7 +86,6 @@
 			if (!this.isInput) {
 				$(document).off('mousedown', this.hide);
 			}
-			this.setValue();
 			this.element.trigger({
 				type: 'hide',
 				date: this.date
@@ -309,7 +309,7 @@
 			days: ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"],
 			daysShort: ["Вос", "Пнд", "Вт", "Срд", "Чтв", "Птн", "Суб", "Вос"],
 			daysMin: ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"],
-			months: ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябр", "Октябр", "Ноябрь", "Декабрь"],
+			months: ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"],
 			monthsShort: ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"]
 		},
 		isLeapYear: function (year) {
@@ -328,7 +328,7 @@
 		},
 		parseDate: function(date, format) {
 			var parts = date.split(format.separator),
-				date = new Date(1970, 1, 1, 0, 0, 0),
+				date = new Date(),
 				val;
 			if (parts.length == format.parts.length) {
 				for (var i=0, cnt = format.parts.length; i < cnt; i++) {
@@ -351,6 +351,10 @@
 					}
 				}
 			}
+      date.setHours(0);
+      date.setMinutes(0);
+      date.setSeconds(0);
+      date.setMilliseconds(0);
 			return date;
 		},
 		formatDate: function(date, format){
@@ -397,18 +401,25 @@
 								'</table>'+
 							'</div>'+
 						'</div>';
+
     function addPicker(e) {
             var $this = $(this)
-            if ($this.data('datepicker')) return
-            e.preventDefault()
-            $this.datepicker($this.data())
+            if (!$this.data('datepicker')) {
+                e.preventDefault()
+                $this.datepicker($this.data())
+            }
             if ($this.data('autoshow-datepicker'))
                 $this.data('datepicker').show()
+    };
+
+    function hidePicker(e) {
+            $(this).data('datepicker').hide()
     };
 
     /* DATA-API */
     $(function () {
         $('body').on('focus.datepicker.data-api', '[data-provide="datepicker"]', addPicker)
+        $('body').on('blur.datepicker.data-api',  '[data-provide="datepicker"]', hidePicker)
         $('body').on('click.datepicker.data-api', '[data-provide="datepicker"]', addPicker)
     })
 }( window.jQuery )
