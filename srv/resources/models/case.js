@@ -60,24 +60,6 @@
             }
         },
         {
-            "name": "notVandal",
-            "canRead": ["front", "back", "head", "parguy"],
-            "canWrite": ["front", "back", "head"],
-            "type": "checkbox",
-            "meta": {
-                "label": "Не вандализм"
-            }
-        },
-        {
-            "name": "notAccident",
-            "canRead": ["front", "back", "head", "parguy"],
-            "canWrite": ["front", "back", "head"],
-            "type": "checkbox",
-            "meta": {
-                "label": "Не ДТП"
-            }
-        },
-        {
             "name": "diagnosis1",
             "canRead": ["front", "back", "head"],
             "canWrite": ["front", "back", "head"],
