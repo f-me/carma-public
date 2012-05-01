@@ -178,6 +178,8 @@ function setupCaseMain(viewName, args) {
     ];
 
     // Default values
+    // FIXME: User's name and creation date are better to be assigned by
+    // the server.
     _.extend(args, {callTaker: global.user.meta.realName,
                     callDate: (new Date).toString ("dd.MM.yyyy HH:mm:ss")});
 
@@ -389,4 +391,15 @@ function doVin() {
 
 function removeVinAlert(val) {
     $.post("/vin/state", { id: val } );
+}
+
+
+// FIXME: This could be a callback for main.js:saveInstance
+function successfulSave () {
+  var $span = $(this).siblings(".save-result")
+  setTimeout(function () { 
+    $span.text("Сохранено успешно")
+    $span.show()
+    $span.fadeOut(2000)
+  }, 500);
 }

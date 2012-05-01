@@ -788,8 +788,9 @@
         {{/ readonly }}
         {{^ readonly }}
         <button class="btn btn-success" type="button"
-                onClick="saveInstance('{{ viewName }}');">
+                onClick="saveInstance('{{ viewName }}');successfulSave.call(this);">
           <i class="icon-pencil icon-white" /> Сохранить</button>
+          <span class="save-result"/>
         {{/ readonly }}
         <div style="clear: both;" />
       </div>
