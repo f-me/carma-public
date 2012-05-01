@@ -176,7 +176,6 @@
         .on('blur.typeahead',     $.proxy(this.blur, this))
         .on('keypress.typeahead', $.proxy(this.keypress, this))
         .on('keyup.typeahead',    $.proxy(this.keyup, this))
-        .on('focus.typeahead',    $.proxy(this.focus, this))
 
       if ($.browser.webkit || $.browser.msie) {
         this.$element.on('keydown.typeahead', $.proxy(this.keypress, this))
@@ -193,7 +192,6 @@
         .off('blur.typeahead')
         .off('keypress.typeahead')
         .off('keyup.typeahead')
-        .off('focus.typeahead')
 
       if ($.browser.webkit || $.browser.msie) {
         this.$element.off('keydown.typeahead')
@@ -208,16 +206,13 @@
       switch(e.keyCode) {
         case 40: // down arrow
         case 38: // up arrow
+          if (!this.shown) this.lookup()
           break
 
         case 9: // tab
         case 13: // enter
-          if (!this.shown) return
-          if (this.preventSelect) {
-            this.preventSelect = false;
-            return
-          }
-          this.select()
+          if (!this.shown) this.lookup()
+          else this.select()
           break
 
         case 27: // escape
@@ -255,11 +250,6 @@
       }
 
       e.stopPropagation()
-    }
-
-  , focus: function (e) {
-      this.preventSelect = true
-      this.lookup()
     }
 
   , blur: function (e) {
