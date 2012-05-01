@@ -82,6 +82,11 @@
       return this
     }
 
+  , toggle: function () {
+      if (this.shown) this.hide()
+      else this.lookup()
+    }
+
   , lookup: function (event) {
       var that = this
         , items
@@ -302,28 +307,37 @@
 
  /* TYPEAHEAD DATA-API
   * ================== */
-
-  $(function () {
-    $('body').on('focus.typeahead.data-api', '[data-provide="typeahead"]', function (e) {
+  function initDictionary (e) {
       var $this = $(this)
       $this.data('parent', $this.attr('data-parent'))
-      if ($this.data('typeahead')) {
+      var typeahead = $this.data('typeahead')
+      if (typeahead) {
           // Note the attr since jQuery .data() caches values once
           if ($this.data('parent')) {
-              if ($this.data('parent') == $this.data('typeahead').parent)
-                  return
+              if ($this.data('parent') == typeahead.parent)
+                  return typeahead
               else {
                   // If data-parent value has changed, recreate Typehead from scratch
-                  $this.data('typeahead').unlisten()
+                  typeahead.unlisten()
                   $this.data('typeahead', null);
               }
           }
           else
-              return
+              return typeahead
       }
-
       e.preventDefault()
       $this.typeahead($this.data())
+      return $this.data('typeahead')
+  }
+
+  $(function () {
+    $('body').on('focus.typeahead.data-api', '[data-provide="typeahead"]', initDictionary)
+    $('body').on('click.typeahead.data-api', '[data-provide="typeahead-toggle"]', function (e) {
+        var $this = $(this)
+        var inp = $this.parent().prev() // FIXME: less ad-hoc search required
+        var dat = inp.data('typeahead') || initDictionary.call(inp, e)
+        dat && dat.toggle()
+        e.preventDefault()
     })
   })
 
