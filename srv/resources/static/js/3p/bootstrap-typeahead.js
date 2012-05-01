@@ -85,15 +85,17 @@
 
   , toggle: function () {
       if (this.shown) this.hide()
-      else this.lookup()
+      else this.lookup("")
     }
 
-  , lookup: function (event) {
+  , lookup: function (query) {
       var that = this
         , items
         , q
 
-      this.query = this.$element.val()
+      this.query = query !== undefined
+                 ? query
+                 : this.$element.val()
 
       items = $.grep(this.source, function (item) {
         if (!that.query || that.matcher(item)) return item
