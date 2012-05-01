@@ -15,8 +15,7 @@ import qualified Data.Map as M
 import           Data.Maybe
 import           Data.Time.Format (parseTime)
 import           Data.Time.Clock  (UTCTime)
-import           Data.Time.Calendar (Day)
-import           Data.Time.LocalTime 
+import           Data.Time.Clock.POSIX
 import           System.Locale (defaultTimeLocale)
 
 import Utils
@@ -70,12 +69,13 @@ oneOf fs m = foldr
 
 date keys m = case T.unpack <$> str' keys m of
   Left err -> Left err
-  Right "" -> Right ""
+  Right "" -> Right "0"
   Right dateStr ->
-    let tryParse :: (String, String -> String) -> Maybe Day
+    let tryParse :: (String, String -> String) -> Maybe UTCTime
         tryParse (fmt,tr) = parseTime defaultTimeLocale fmt $ tr dateStr
     in case catMaybes $ map tryParse dateFormats of
-        res:_ -> Right . B.fromString $ show res
+        res:_ -> Right . B.fromString . show . round
+                  $ utcTimeToPOSIXSeconds res
         _     -> err "Unknown date format" (show dateStr)
 
 dateFormats =
