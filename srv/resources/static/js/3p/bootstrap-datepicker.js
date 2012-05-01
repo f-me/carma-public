@@ -76,6 +76,7 @@
 				type: 'show',
 				date: this.date
 			});
+      this.picker[0].scrollIntoView();
 		},
 		
 		hide: function(){
