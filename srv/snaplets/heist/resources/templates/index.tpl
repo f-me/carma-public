@@ -530,7 +530,10 @@
                               attr: { 'data-parent': {{ meta.dictionaryParent }} }
                               {{/ meta.dictionaryParent }}"
                    data-provide="typeahead" />
-            <span class="add-on"><i class="icon icon-chevron-down" /></span>
+            <span class="add-on">
+              <i class="icon icon-chevron-down"
+                 data-provide="typeahead-toggle" />
+            </span>
           </div>
           {{# meta.targetCategory }}
           <ul data-depends="{{ name }}"
