@@ -69,6 +69,7 @@
       this.$menu.css({
         top: pos.top + pos.height
       , left: pos.left
+      , minWidth: this.$element.width() + "px"
       })
 
       this.$menu.show()
