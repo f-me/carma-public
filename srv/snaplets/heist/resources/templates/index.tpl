@@ -62,9 +62,6 @@
               CaRMa
             </a>
             <li class="divider-vertical" />
-            <li id="main-screen-nav">
-              <a href="/">Диспетчер</a>
-            </li>
             <li id="call-screen-nav">
               <a href="#call">Приём звонка</a>
             </li>
@@ -73,9 +70,6 @@
             </li>
             <li id="search-screen-nav">
               <a href="#search">Поиск</a>
-            </li>
-            <li id="help-screen-nav">
-              <a href="#help">Справка</a>
             </li>
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">
