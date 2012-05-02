@@ -8,8 +8,8 @@ function setupSearchTable(viewName, args) {
     $.fn.dataTableExt.oStdClasses.sFilter = "dataTables_filter form-inline";
 
     $el("searchtable").dataTable({
-	sScrollY: "400px",
-	iDisplayLength: 50,
+        sScrollY: "400px",
+        iDisplayLength: 50,
         aoColumnDefs: [{
             // Render case id as link to case page
             fnRender: function (o, val) {
@@ -31,6 +31,7 @@ function setupSearchTable(viewName, args) {
 
     $("#search-datepicker").data('date', getFormatDate());
 }
+
 
 // Manually load JSON data from server and add it to table
 //

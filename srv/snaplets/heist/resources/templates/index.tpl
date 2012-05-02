@@ -277,19 +277,19 @@
             class="screen-template"
             id="partner-screen-template">
 
-      <div id="left" class="nice-scrollbar pane">
+      <div id="partner-left" class="nice-scrollbar pane">
         <form class="form-vertical">
           <button class="btn btn-action" type="button"
             onclick="location.hash='partner';location.reload(true);">
             <i class="icon icon-plus"></i>Добавить партнёра
           </button>
           <br/><br/>
-          <table id="searchtable" class="table table-striped table-bordered">
+          <table id="partner-table" class="table table-striped table-bordered">
             <thead>
               <tr>
+                <th>#</th>
                 <th>Название</th>
                 <th>Город</th>
-                <th>Телефон</th>
                 <th>Комментарии</th>
               </tr>
             </thead>
@@ -298,7 +298,7 @@
         </form>
       </div>
 
-      <div id="center" class="nice-scrollbar pane">
+      <div id="partner-center" class="nice-scrollbar pane">
         <form class="form-vertical">
           <div id="partner-form" />
           <div class="control-group">
@@ -308,34 +308,17 @@
             <div class="controls">
               <span class="accordion" id="partner-service-references" />
               <span id="partner-service-picker-container" />
+              <button class="dropdown-toggle btn btn-action"
+                      onclick="addNewServiceToPartner();"
+                      type="button"
+                      data-toggle="dropdown">
+                <i class="icon icon-plus"></i>Добавить услугу
+              </button>
             </div>
           </div>
           <div id="partner-permissions" />
         </form>
       </div>
-    </script>
-
-    <script type="text/template"
-            id="partner-service-picker-template">
-      <ul class="nav nav-pills">
-        <li class="dropdown">
-          <button class="dropdown-toggle btn btn-action"
-                  type="button"
-                  data-toggle="dropdown">
-            <i class="icon icon-plus"></i>Добавить услугу
-          </button>
-          <ul class="dropdown-menu">
-            {{# dictionary.entries }}
-            <li>
-              <a href="#" onclick="addNewServiceToPartner('{{value}}');">
-                <i class="icon-{{icon}} icon-black"></i>
-                {{ label }}
-              </a>
-            </li>
-            {{/ dictionary.entries }}
-          </ul>
-        </li>
-      </ul>
     </script>
 
     <!--
@@ -743,7 +726,6 @@
             <!-- Instance contents are rendered here -->
 
           </div>
-          <div id="{{ refView }}-perms" />
         </div>
       </div>
     </script>

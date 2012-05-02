@@ -14,7 +14,15 @@
     ],
     "fields": [
         {
+            "name": "isActive",
+            "type": "checkbox",
+            "meta": {
+                "label": "Партнёр активен"
+            }
+        },
+        {
             "name": "name",
+            "index": true,
             "meta": {
                 "label": "Название"
             }
@@ -44,15 +52,9 @@
             }
         },
         {
-            "name": "openTime",
+            "name": "workingTime",
             "meta": {
-                "label": "Время начала работы"
-            }
-        },
-        {
-            "name": "closeTime",
-            "meta": {
-                "label": "Время окончания работы"
+                "label": "Время работы"
             }
         },
         {

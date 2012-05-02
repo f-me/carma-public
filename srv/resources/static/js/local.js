@@ -357,9 +357,38 @@ function setupPartnersForm(viewName, args) {
 
     global.viewsWare[viewName] = {};
 
-    $("#partner-service-picker-container").html(
-        Mustache.render($("#partner-service-picker-template").html(),
-                        {dictionary: global.dictionaries["Services"]}));
+    setTimeout(function(){
+      $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline";
+      $.fn.dataTableExt.oStdClasses.sFilter = "dataTables_filter form-inline";
+
+      var t = $("#partner-table");
+      if (!t.hasClass("dataTable")) {
+          t.dataTable({
+              sScrollY: "500px",
+              bPaginate: false,
+              oLanguage: {
+                  sSearch: "Фильтр",
+                  sInfoEmpty: "",
+                  sZeroRecords: "Ничего не найдено"
+            }});
+
+          t.on("click.datatable", "tr", function() {
+             var id = this.children[0].innerText;
+             var screen = global.screens.partner;
+             var setup  = screen.views["partner-form"];
+             setup("partner-form", {"id": id});
+          });
+      }
+
+      $.getJSON(modelMethod(
+            "partner",
+            "search?q=*&_limit=1000&_fields=id,name,city,comment"),
+          function(rows) {
+              var dt = t.dataTable();
+              dt.fnClearTable();
+              dt.fnAddData(rows);
+          });
+    }, 100);
 }
 
 function addNewServiceToPartner(name)

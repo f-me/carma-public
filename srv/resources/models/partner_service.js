@@ -15,6 +15,14 @@
     ],
     "fields": [
         {
+            "name": "serviceName",
+            "type": "dictionary",
+            "meta": {
+                "dictionaryName": "Services",
+                "label": "Услуга"
+            }
+        },
+        {
             "name": "tarifName",
             "meta": {
                 "label": "Тарифная опция"

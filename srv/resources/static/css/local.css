@@ -29,6 +29,16 @@ body {
   left: 84%;
 }
 
+#partner-left {
+  left: 0;
+  width: 45%;
+}
+
+#partner-center {
+  right: 0;
+  width: 50%;
+}
+
 .container-fluid {
   padding: 1%;
 }
