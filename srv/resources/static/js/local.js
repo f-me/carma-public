@@ -362,23 +362,22 @@ function setupPartnersForm(viewName, args) {
       $.fn.dataTableExt.oStdClasses.sFilter = "dataTables_filter form-inline";
 
       var t = $("#partner-table");
-      if (!t.hasClass("dataTable")) {
-          t.dataTable({
-              sScrollY: "500px",
-              bPaginate: false,
-              oLanguage: {
-                  sSearch: "Фильтр",
-                  sInfoEmpty: "",
-                  sZeroRecords: "Ничего не найдено"
-            }});
+      if (t.hasClass("dataTable")) return;
+      t.dataTable({
+          sScrollY: "500px",
+          bPaginate: false,
+          oLanguage: {
+              sSearch: "Фильтр",
+              sInfoEmpty: "",
+              sZeroRecords: "Ничего не найдено"
+        }});
 
-          t.on("click.datatable", "tr", function() {
-             var id = this.children[0].innerText;
-             var screen = global.screens.partner;
-             var setup  = screen.views["partner-form"];
-             setup("partner-form", {"id": id});
-          });
-      }
+      t.on("click.datatable", "tr", function() {
+         var id = this.children[0].innerText;
+         var screen = global.screens.partner;
+         var setup  = screen.views["partner-form"];
+         setup("partner-form", {"id": id});
+      });
 
       $.getJSON(modelMethod(
             "partner",
