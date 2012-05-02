@@ -1,10 +1,10 @@
 {
     "name": "information",
     "title": "Информирование о происшествии",
-    "canCreate": "true",
-    "canRead": "true",
-    "canUpdate": "true",
-    "canDelete": "true",
+    "canCreate": true,
+    "canRead": true,
+    "canUpdate": true,
+    "canDelete": true,
     "applications": [
         {
             "targets": ["payment_payment"],

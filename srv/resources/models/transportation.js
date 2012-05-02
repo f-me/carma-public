@@ -1,10 +1,10 @@
 {
     "name": "transportation",
     "title": "Транспортировка",
-    "canCreate": "true",
-    "canRead": "true",
-    "canUpdate": "true",
-    "canDelete": "true",
+    "canCreate": true,
+    "canRead": true,
+    "canUpdate": true,
+    "canDelete": true,
     "applications": [
         {
             "targets": ["fromToAddress_address"],

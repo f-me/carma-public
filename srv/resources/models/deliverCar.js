@@ -1,10 +1,10 @@
 {
   "name": "deliverCar",
     "title": "Доставка ТС",
-    "canCreate": "true",
-    "canRead": "true",
-    "canUpdate": "true",
-    "canDelete": "true",
+    "canCreate": true,
+    "canRead": true,
+    "canUpdate": true,
+    "canDelete": true,
     "applications": [
     {
       "targets": ["toAddress_address"],
