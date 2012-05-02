@@ -16,7 +16,6 @@ TODO Support more than one dependant form.
 
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
-import Control.Monad.State (get)
 import Control.Arrow (second)
 
 import qualified Data.ByteString as B
@@ -31,10 +30,6 @@ import Data.Enumerator as E hiding (foldM, map, head)
 import Data.CSV.Enumerator as CSV
 import qualified Data.Aeson as Aeson
 
-import Network.HTTP
-import Network.Browser
-import Network.URI (parseURI)
-
 import Data.Time.Clock
 import Data.Time.Clock.POSIX
 import Data.Time.Format
@@ -42,29 +37,9 @@ import Data.Time.Format
 import System.Console.CmdArgs.Implicit
 import System.Locale
 
+import RedsonTypes
+import RESTLoader
 
-
--- {{{BEGIN copy-paste from Snap.Snaplet.Redson.Snapless.Metamodel
-type ModelName = B.ByteString
-type FieldName = B.ByteString
-type FieldValue = B.ByteString
-
--- | Name of indexed field and collation flag.
-type FieldIndex = (FieldName, Bool)
-
--- | List of field key-value pairs.
--- Suitable for using with 'Database.Redis.hmset'.
-type Commit = M.Map FieldName FieldValue
--- END}}} copy-paste from Snap.Snaplet.Redson.Snapless.Metamodel
-
-
--- {{{BEGIN copy-paste Snap.Snaplet.Redson.Snapless.CRUD
-type InstanceId = B.ByteString
-
--- | Build Redis key given model name and instance id
-instanceKey :: ModelName -> InstanceId -> B.ByteString
-instanceKey model id = B.concat [model, ":", id]
--- END}}} copy-paste Snap.Snaplet.Redson.Snapless.CRUD
 
 
 data Options = Options
@@ -330,8 +305,6 @@ tryTransformation row transform =
     else Nothing
 
 
-type BrowserSt = BrowserState (HandleStream LB.ByteString)
-
 -- | Post case entries directly to Redis using connection provided as
 -- accumulator.
 --
@@ -369,54 +342,6 @@ caseAction h (ParsedRow (Just r)) =
               create h "case" commit
               return h
 
-
-login :: IO BrowserSt
-login = browse $ do
-    setAllowRedirects True
-    setDebugLog Nothing
-    setOutHandler $ const $ return ()
-    let Just loginUri = parseURI "http://localhost:8000/login"
-    let rq = mkRequest' POST loginUri "login=admin&password="
-    (_,resp) <- assertStatus (2,0,0) $ request rq
-    get --BrowserState
-
-
-create :: BrowserSt
-       -> ModelName           -- ^ Model name
-       -> Commit              -- ^ Key-values of instance data
-       -> IO (Either LB.ByteString InstanceId)
-create h modelName commit = browse $ withBrowserState h $ do
-  let baseUri = "http://localhost:8000/_/" ++ BU.toString modelName
-  let Just uri = parseURI baseUri
-  (_,rsp) <- assertStatus (2,0,1) $
-               request $ mkRequest' POST uri "{}"
-
-  let caseId = Aeson.decode (rspBody rsp)
-               >>= M.lookup ("id" :: B.ByteString)
-  case caseId of
-    Nothing    -> return $ Left $ rspBody rsp
-    Just ident -> do
-        let Just uri = parseURI $ baseUri
-                     ++ "/" ++ BU.toString ident
-        let rq   = mkRequest' PUT uri $ Aeson.encode commit
-        (_,rsp) <- assertStatus (2,0,4) $ request rq
-        return $ Right ident
-
-
-assertStatus code f = f >>= \(uri,rsp) ->
-  if rspCode rsp == code
-      then return (uri,rsp)
-      else fail $ "unexpected HTTP status:\n" ++ show rsp
-
-
-mkRequest' method uri body
-  = replaceHeader HdrContentType "application/json"
-  . replaceHeader HdrContentLength (show $ LB.length body)
-  $ Request { rqURI = uri
-            , rqMethod = method
-            , rqHeaders = []
-            , rqBody = body
-            }
 
 
 main :: IO ()
