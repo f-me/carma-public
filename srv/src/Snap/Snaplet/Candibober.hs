@@ -20,8 +20,9 @@ import Control.Monad.Trans.Error
 
 import Data.Aeson as A
 import Data.Aeson.Types as A
+import Data.Aeson.TH
 import qualified Data.ByteString.Char8 as B
-import qualified Data.ByteString.Lazy as LB (readFile)
+import qualified Data.ByteString.Lazy as LB
 
 import Data.Configurator
 
@@ -29,8 +30,14 @@ import Data.Lens.Template
 
 import qualified Data.Map as M
 
+import           Snap.Snaplet.RedisDB
+import qualified Database.Redis as R
+
 import Snap.Core
 import Snap.Snaplet
+import Snap (gets)
+
+import qualified Snap.Snaplet.Redson.Snapless.CRUD as CRUD
 
 import Snap.Snaplet.Candibober.Types
 
@@ -121,10 +128,49 @@ type TargetMap = M.Map TargetName [Condition]
 
 ------------------------------------------------------------------------------
 -- | Candibober snaplet type.
-data Candibober = Candibober { _targets :: TargetMap }
+data Candibober = Candibober { _targets :: TargetMap
+                             , _database :: Snaplet RedisDB
+                             }
 
 makeLens ''Candibober
 
+jsonToDataset :: LB.ByteString -> Maybe Dataset
+jsonToDataset s = A.decode s
+
+-- | Generate redis key from model name and id
+getKey m =
+  let name = fromJust $ M.lookup "model" m
+      id   = fromJust $ M.lookup "id"    m
+  in CRUD.instanceKey name id
+
+-- | get full model, I think here should be Left r case
+updateModel v = runRedisDB database $ do
+                  Right r <- R.hgetall $ getKey v
+                  return $ M.fromList r
+
+-- | Recursively build dataset from redis based on recieved spec
+updateDataset dataset = upd (M.toList dataset) M.empty
+    where
+      upd [] d2 = return d2
+      upd d1 d2 = do
+        let (k, v) = head d1
+        n <- updateModel v
+        let m = M.insert k n d2
+        upd (tail d1) m
+
+data CheckedConditions = CCond { true, false, nothing :: [ConditionName] }
+$(deriveToJSON id ''CheckedConditions)
+
+-- | check conditions on dataset and divide them it 3 groups
+check conditions ds = check' conditions $ CCond [] [] []
+    where
+      check' []     cc = return cc
+      check' (c:cs) cc = do
+        r <- (checker c) ds
+        case r of
+          Nothing    -> check' cs $ cc { nothing = (cType c) : (nothing cc) }
+          Just True  -> check' cs $ cc { true    = (cType c) : (true cc   ) }
+          Just False -> check' cs $ cc { false   = (cType c) : (false cc  ) }
 
 ------------------------------------------------------------------------------
 -- | Read target name from @target@ request parameter and dataset spec
@@ -145,7 +191,13 @@ makeLens ''Candibober
 doCheck :: Handler b Candibober ()
 doCheck = do
     modifyResponse $ setContentType "application/json"
-
+    targetName <- getParam "target"
+    targets    <- gets _targets
+    target     <- return $ targetName >>= \x -> M.lookup x targets
+    dataset    <- jsonToDataset <$> readRequestBody 65535
+    u <- updateDataset $ fromJust dataset
+    r <- liftIO $ check (fromJust target) u
+    writeLBS $ A.encode r
 
 ------------------------------------------------------------------------------
 -- | Parse target definitions into 'TargetMap'.
@@ -173,6 +225,7 @@ candiboberInit =
       tFile <- liftIO $
                lookupDefault "resources/targets.json"
                              cfg "targets-file"
-
+      r <- nestSnaplet "db" database $ redisDBInit R.defaultConnectInfo
       tMap <- liftIO $ loadTargets tFile
-      return $ Candibober tMap
+      addRoutes routes
+      return $ Candibober tMap r
