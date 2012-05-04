@@ -139,6 +139,24 @@
       }
     },
     {
+      "name": "expectedDealerInfo",
+      "canRead": ["back", "head"],
+      "canWrite": ["back", "head"],
+      "type": "datetime",
+      "meta": {
+        "label": "Ожидаемое время получения информации от дилера"
+      }
+    },
+    {
+      "name": "factDealerInfo",
+      "canRead": ["back", "head"],
+      "canWrite": ["back", "head"],
+      "type": "datetime",
+      "meta": {
+        "label": "Фактическое время получения информации от дилера"
+      }
+    },    
+    {
       "name": "expectedServiceClosure",
       "canRead": ["back", "head"],
       "canWrite": ["back", "head"],
@@ -149,8 +167,8 @@
     },
     {
       "name": "factServiceClosure",
-      "canRead": ["head"],
-      "canWrite": ["head"],
+      "canRead": ["back", "head"],
+      "canWrite": ["back", "head"],
       "type": "datetime",
       "meta": {
         "label": "Фактическое время закрытия услуги"
