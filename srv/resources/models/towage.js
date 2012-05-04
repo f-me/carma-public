@@ -504,7 +504,10 @@
                 "back",
                 "head"
             ],
-            "groupName": "address"
+            "groupName": "address",
+            "meta": {
+                "label": "Адрес доставки"
+            }
         },
         {
             "name": "towContractor",
@@ -521,7 +524,7 @@
             ],
             "groupName": "partner",
             "meta": {
-                "label": "Подрядчик"
+                "label": "Партнёр"
             }
         },
         {
