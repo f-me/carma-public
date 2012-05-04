@@ -139,7 +139,7 @@ function backbonizeModel(model, modelName) {
                 {
                     var date = Date.parseExact(
                             json[k],
-                            ["dd.MM.yyyy", "dd.MM.yyyy HH:mm:ss"]);
+                            ["dd.MM.yyyy HH:mm:ss", "dd.MM.yyyy"]);
                     if (date) {
                         var timestamp = Math.round(date.getTime() / 1000);
                         json[k] = String(timestamp);
