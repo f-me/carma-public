@@ -147,18 +147,21 @@ getKey m =
 
 -- | get full model, I think here should be Left r case
 updateModel v = runRedisDB database $ do
-                  Right r <- R.hgetall $ getKey v
-                  return $ M.fromList r
+                  r <- R.hgetall $ getKey v
+                  case r of
+                    Right r -> return $ Just $ M.fromList r
+                    Left  _ -> return Nothing
 
 -- | Recursively build dataset from redis based on recieved spec
-updateDataset dataset = upd (M.toList dataset) M.empty
+updateDataset dataset = upd (M.toList dataset) $ Just M.empty
     where
-      upd [] d2 = return d2
-      upd d1 d2 = do
+      upd _  Nothing   = return Nothing
+      upd [] (Just d2) = return $ Just d2
+      upd d1 (Just d2) = do
         let (k, v) = head d1
         n <- updateModel v
-        let m = M.insert k n d2
-        upd (tail d1) m
+        upd (tail d1) $ n >>= (\v -> return $ M.insert k v d2)
+-- $ maybe Nothing (\x -> Just $ M.insert k x d2) n
 
 data CheckedConditions = CCond { true, false, nothing :: [ConditionName] }
 $(deriveToJSON id ''CheckedConditions)
@@ -198,9 +201,17 @@ doCheck = do
     target     <- return $ targetName >>= \x -> M.lookup x targets
     bodySize   <- gets _maxRequestBodySize
     dataset    <- jsonToDataset <$> readRequestBody bodySize
-    u <- updateDataset $ fromJust dataset
-    r <- liftIO $ check (fromJust target) u
-    writeLBS $ A.encode r
+    u          <- updateDataset $ fromJust dataset
+    case u of
+      -- return 404 error in case we don't find instance in dataset
+      Nothing -> do
+             modifyResponse $ setResponseCode 404
+             r <- getResponse
+             finishWith r
+      -- in case of everything ok, return CheckedConditions as json
+      Just u' -> do
+             r <- liftIO $ check (fromJust target) u'
+             writeLBS $ A.encode r
 
 ------------------------------------------------------------------------------
 -- | Parse target definitions into 'TargetMap'.
