@@ -1723,6 +1723,22 @@
             }
         ]
     },
+    "DealerCities": {
+        "entries": [
+            {
+                "value": "moscow",
+                "label": "Москва"
+            },
+            {
+                "value": "stpeter",
+                "label": "Санкт-Петерубрг"
+            },
+            {
+                "value": "volgograd",
+                "label": "Волгорад"
+            }
+        ]
+    },    
     "InfoText": {
       "comment": "Здесь будет какая-то справочная информация по заполнению поля.",
       "address": "Сюда нужно вписать адрес."
