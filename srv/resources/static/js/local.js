@@ -369,7 +369,8 @@ function setupPartnersForm(viewName, args) {
           oLanguage: {
               sSearch: "Фильтр",
               sInfoEmpty: "",
-              sZeroRecords: "Ничего не найдено"
+              sZeroRecords: "Ничего не найдено",
+              sInfo: "Показаны записи с _START_ по _END_ (всего _TOTAL_)"
         }});
 
       t.on("click.datatable", "tr", function() {
