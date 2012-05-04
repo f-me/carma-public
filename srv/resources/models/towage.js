@@ -538,11 +538,30 @@
                 "head"
             ],
             "meta": {
-                "default": true,
-                "label": "Колёса не заблокированы"
+                "dictionaryName": "WheelsBlockedCount",
+                "label": "Количество заблокированных колёс"
+            },
+            "type": "dictionary"
+        },
+        {
+            "name": "towingPointPresent",
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
+            "meta": {
+                "default": false,
+                "label": "Есть буксировочный крюк"
             },
             "type": "checkbox"
-        },
+        },        
         {
             "name": "manipulatorPossible",
             "canRead": [
