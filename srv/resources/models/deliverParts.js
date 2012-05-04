@@ -157,16 +157,43 @@
                 "label": "Фактическое время закрытия услуги"
             }
         },
-        {
-            "name": "repairEndDate",
-            "canRead": ["back", "head"],
-            "canWrite": ["back", "head"],
-            "type": "date",
-            "meta": {
-                "label": "Дата окончания ремонта"
-            }
-        },
-		{
+	    {
+	      "name": "expectedDealerInfo",
+	      "canRead": ["back", "head"],
+	      "canWrite": ["back", "head"],
+	      "type": "datetime",
+	      "meta": {
+	        "label": "Ожидаемое время получения информации от дилера"
+	      }
+	    },
+	    {
+	      "name": "factDealerInfo",
+	      "canRead": ["back", "head"],
+	      "canWrite": ["back", "head"],
+	      "type": "datetime",
+	      "meta": {
+	        "label": "Фактическое время получения информации от дилера"
+	      }
+	    },    
+	    {
+	      "name": "expectedServiceClosure",
+	      "canRead": ["back", "head"],
+	      "canWrite": ["back", "head"],
+	      "type": "datetime",
+	      "meta": {
+	        "label": "Ожидаемое время закрытия услуги"
+	      }
+	    },
+	    {
+	      "name": "factServiceClosure",
+	      "canRead": ["back", "head"],
+	      "canWrite": ["back", "head"],
+	      "type": "datetime",
+	      "meta": {
+	        "label": "Фактическое время закрытия услуги"
+	      }
+	    },
+	{
             "name": "falseCall",
             "canRead": ["front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head"],
