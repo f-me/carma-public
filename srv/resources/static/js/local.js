@@ -374,9 +374,11 @@ function setupPartnersForm(viewName, args) {
 
       t.on("click.datatable", "tr", function() {
          var id = this.children[0].innerText;
-         var screen = global.screens.partner;
-         var setup  = screen.views["partner-form"];
-         setup("partner-form", {"id": id});
+         modelSetup("partner")(
+             viewName, {"id": id},
+             {permEl: "partner-permissions",
+              focusClass: "focusable",
+              refs: refs});
       });
 
       $.getJSON(modelMethod(
