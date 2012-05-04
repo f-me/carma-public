@@ -47,7 +47,6 @@
 
     <!-- Model processing -->
     <script src="/s/js/metamodel.js" />
-    <script src="/s/js/util.js" />
     <script src="/s/js/search.js" />
     <script src="/s/js/main.js" />
     <script src="/s/js/local.js" />
