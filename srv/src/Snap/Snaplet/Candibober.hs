@@ -13,6 +13,7 @@ where
 
 import Control.Applicative
 import Data.Maybe
+import Data.Int
 
 import Control.Monad
 import Control.Monad.IO.Class
@@ -130,6 +131,7 @@ type TargetMap = M.Map TargetName [Condition]
 -- | Candibober snaplet type.
 data Candibober = Candibober { _targets :: TargetMap
                              , _database :: Snaplet RedisDB
+                             , _maxRequestBodySize :: Int64
                              }
 
 makeLens ''Candibober
@@ -194,7 +196,8 @@ doCheck = do
     targetName <- getParam "target"
     targets    <- gets _targets
     target     <- return $ targetName >>= \x -> M.lookup x targets
-    dataset    <- jsonToDataset <$> readRequestBody 65535
+    bodySize   <- gets _maxRequestBodySize
+    dataset    <- jsonToDataset <$> readRequestBody bodySize
     u <- updateDataset $ fromJust dataset
     r <- liftIO $ check (fromJust target) u
     writeLBS $ A.encode r
@@ -225,7 +228,10 @@ candiboberInit =
       tFile <- liftIO $
                lookupDefault "resources/targets.json"
                              cfg "targets-file"
+      maxReqSize <- liftIO $
+                   lookupDefault 65535
+                                 cfg "max-request-body-size"
       r <- nestSnaplet "db" database $ redisDBInit R.defaultConnectInfo
       tMap <- liftIO $ loadTargets tFile
       addRoutes routes
-      return $ Candibober tMap r
+      return $ Candibober tMap r maxReqSize
