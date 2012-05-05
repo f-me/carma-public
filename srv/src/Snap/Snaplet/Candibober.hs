@@ -167,6 +167,7 @@ data CheckedConditions = CCond { true, false, nothing :: [ConditionName] }
 $(deriveToJSON id ''CheckedConditions)
 
 -- | check conditions on dataset and divide them it 3 groups
+check :: [Condition] -> Dataset -> IO CheckedConditions
 check conditions ds = check' conditions $ CCond [] [] []
     where
       check' []     cc = return cc
@@ -198,20 +199,26 @@ doCheck = do
     modifyResponse $ setContentType "application/json"
     targetName <- getParam "target"
     targets    <- gets _targets
-    target     <- return $ targetName >>= \x -> M.lookup x targets
+    target     <- maybeBadTarget (targetName >>= \x -> M.lookup x targets)
     bodySize   <- gets _maxRequestBodySize
     dataset    <- jsonToDataset <$> readRequestBody bodySize
-    u          <- updateDataset $ fromJust dataset
-    case u of
-      -- return 404 error in case we don't find instance in dataset
-      Nothing -> do
-             modifyResponse $ setResponseCode 404
-             r <- getResponse
-             finishWith r
-      -- in case of everything ok, return CheckedConditions as json
-      Just u' -> do
-             r <- liftIO $ check (fromJust target) u'
-             writeLBS $ A.encode r
+    u          <- maybeBadDataset dataset
+    maybeNotFoundDs target u
+        where
+          maybeBadTarget  = maybe (finishWithError 403 "bad target arg") return
+          maybeBadDataset = maybe (finishWithError 403 "bad dataset") updateDataset
+          maybeNotFoundDs target = maybe (finishWithError 403 "")
+                                         (writeDoCheckResponse target)
+          writeDoCheckResponse target dataset = do
+            r <- liftIO $ check target dataset
+            writeLBS $ A.encode r
+
+finishWithError :: Int -> LB.ByteString -> Handler a b c
+finishWithError code message = do
+  modifyResponse $ setResponseCode code
+  writeLBS message
+  r <- getResponse
+  finishWith r
 
 ------------------------------------------------------------------------------
 -- | Parse target definitions into 'TargetMap'.
