@@ -24,12 +24,35 @@
         },
         {
             "targets": [
+                "rentContractor_partner"
+            ],
+            "meta": {
+                "label": "Партнёр"
+            }
+        },
+        {
+            "targets": [
                 "rentedCar_rentedModel"
             ],
             "meta": {
                 "dictionaryParent": "car_make"
             }
         },
+        {
+            "targets": ["rentAddress_address","rentAddress_coords","rentAddress_city","rentAddress_comment"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
+        },        
+        {
+            "targets": ["towDealer_partner","towDealer_partnerTable","towDealer_coords"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
+        },
+        {
+            "targets": ["rentContractor_partner","rentContractor_partnerTable","rentContractor_coords"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
+        },           
         {
             "targets": [
                 "payment_payment"
@@ -400,7 +423,10 @@
                 "back",
                 "head"
             ],
-            "groupName": "partner"
+            "groupName": "partner",
+            "meta": {
+                "label": "Дилер"
+            }
         },
         {
             "name": "rentAddress",
@@ -415,7 +441,10 @@
                 "back",
                 "head"
             ],
-            "groupName": "address"
+            "groupName": "address",
+            "meta": {
+                "label": "Адрес (куда доставить)"
+            }
         },
         {
             "name": "carClass",
@@ -451,7 +480,7 @@
             ],
             "groupName": "partner",
             "meta": {
-                "label": "Подрядчик"
+                "label": "Партнёр"
             }
         },
         {
