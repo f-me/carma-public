@@ -6,11 +6,30 @@
     "canUpdate": true,
     "canDelete": true,
     "applications": [
-        {
-            "targets": ["fromToAddress_address"],
+    	{
+            "targets": [
+                "caseAddress_address"
+            ],
+            "meta": {
+                "label": "Адрес кейса"
+            }
+        },
+            "targets": [
+                "fromToAddress_address"
+            ],
             "meta": {
                 "label": "Адрес куда/откуда"
             }
+        },		
+        {
+            "targets": ["caseAddress_address","caseAddress_coords","caseAddress_city","caseAddress_comment"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
+        },     
+        {
+            "targets": ["fromToAddress_address","fromToAddress_coords","fromToAddress_city","fromToAddress_comment"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
         },
 		{
             "targets": ["payment_payment"],
