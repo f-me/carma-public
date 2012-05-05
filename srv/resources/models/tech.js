@@ -19,7 +19,7 @@
                 "techContractor_partner"
             ],
             "meta": {
-                "label": "Гостиница"
+                "label": "Партнёр"
             }
         },
         {

@@ -14,6 +14,7 @@
                 "label": "Адрес кейса"
             }
         },
+	{
             "targets": [
                 "fromToAddress_address"
             ],
