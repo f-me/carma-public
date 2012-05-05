@@ -14,6 +14,7 @@
                 "label": "Стоимость"
             }
         },
+        {
             "targets": [
                 "caseAddress_address"
             ],
