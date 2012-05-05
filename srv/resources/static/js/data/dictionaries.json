@@ -1738,6 +1738,30 @@
                 "label": "Волгорад"
             }
         ]
+    },   
+    "WheelsBlockedCount": {
+        "entries": [
+            {
+                "value": "w0",
+                "label": "0"
+            },
+            {
+                "value": "w1",
+                "label": "1"
+            },
+            {
+                "value": "w2",
+                "label": "2"
+            },
+            {
+                "value": "w3",
+                "label": "3"
+            },
+            {
+                "value": "w4",
+                "label": "4"
+            }
+        ]
     },    
     "InfoText": {
       "comment": "Здесь будет какая-то справочная информация по заполнению поля.",
