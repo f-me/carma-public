@@ -19,7 +19,7 @@
                 "caseAddress_address"
             ],
             "meta": {
-                "label": "Адрес доставки"
+                "label": "Адрес кейса"
             }
         },
         {
@@ -403,7 +403,10 @@
                 "back",
                 "head"
             ],
-            "groupName": "address"
+            "groupName": "address",
+            "meta": {
+                "label": "Адрес кейса"
+            }            
         },
         {
             "name": "hotelContractor",
