@@ -199,13 +199,7 @@
                 "label": "Адрес",
                 "infoText": "address"
             }
-        },
-        {
-            "name": "city",
-            "meta": {
-                "label": "Город"
-            }
-        },        
+        },       
         {
             "name": "comment",
             "meta": {

@@ -13,7 +13,34 @@
             "meta": {
                 "label": "Стоимость"
             }
-        }
+        },
+        {
+            "targets": [
+                "caseAddress_address"
+            ],
+            "meta": {
+                "label": "Адрес кейса"
+            }
+        },
+        {
+            "targets": [
+                "hotelContractor_partner"
+            ],
+            "meta": {
+                "label": "Гостиница"
+            }
+        },
+         
+        {
+            "targets": ["caseAddress_address","caseAddress_coords","caseAddress_city","caseAddress_comment"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
+        },        
+        {
+            "targets": ["hotelContractor_partner","hotelContractor_partnerTable","hotelContractor_coords"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
+        }        
     ],
     "fields": [
         {
@@ -236,34 +263,42 @@
                 "label": "Фактическое время финансового закрытия услуги"
             }
         },
-        {
-            "name": "expectedServiceClosure",
-            "canRead": [
-                "back",
-                "head"
-            ],
-            "canWrite": [
-                "back",
-                "head"
-            ],
-            "type": "datetime",
-            "meta": {
-                "label": "Ожидаемое время закрытия услуги"
-            }
-        },
-        {
-            "name": "factServiceClosure",
-            "canRead": [
-                "head"
-            ],
-            "canWrite": [
-                "head"
-            ],
-            "type": "datetime",
-            "meta": {
-                "label": "Фактическое время закрытия услуги"
-            }
-        },
+    {
+      "name": "expectedDealerInfo",
+      "canRead": ["back", "head"],
+      "canWrite": ["back", "head"],
+      "type": "datetime",
+      "meta": {
+        "label": "Ожидаемое время получения информации от дилера"
+      }
+    },
+    {
+      "name": "factDealerInfo",
+      "canRead": ["back", "head"],
+      "canWrite": ["back", "head"],
+      "type": "datetime",
+      "meta": {
+        "label": "Фактическое время получения информации от дилера"
+      }
+    },    
+    {
+      "name": "expectedServiceClosure",
+      "canRead": ["back", "head"],
+      "canWrite": ["back", "head"],
+      "type": "datetime",
+      "meta": {
+        "label": "Ожидаемое время закрытия услуги"
+      }
+    },
+    {
+      "name": "factServiceClosure",
+      "canRead": ["back", "head"],
+      "canWrite": ["back", "head"],
+      "type": "datetime",
+      "meta": {
+        "label": "Фактическое время закрытия услуги"
+      }
+    },
         {
             "name": "repairEndDate",
             "canRead": [
@@ -356,12 +391,42 @@
             }
         },
         {
+            "name": "caseAddress",
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
+            "groupName": "address",
+            "meta": {
+                "label": "Адрес кейса"
+            }            
+        },
+        {
             "name": "hotelContractor",
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
             "groupName": "partner",
             "meta": {
-                "label": "Название партнёра"
+                "label": "Гостиница"
             }
-        },
+        },        
+
         {
             "name": "hotelProvidedFor",
             "canRead": [

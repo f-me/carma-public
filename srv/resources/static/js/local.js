@@ -123,6 +123,16 @@ function dictionaryHook(elName) {
     }
 }
 
+// jquery -> html(as string) conversion, with selected element
+jQuery.fn.outerHTML = function() {
+    return jQuery("<div>").append(this.clone()).html();
+}
+
+// like _.has but for list
+function hasL(lst, e) {
+    return _.find(lst, function(x) { return x == e });
+}
+
 function renderChecks(name, trueChecks) {
     var str = "";
     var tpl = $("#check-list-item-template").html();
@@ -399,14 +409,17 @@ function setupPartnersForm(viewName, args) {
           oLanguage: {
               sSearch: "Фильтр",
               sInfoEmpty: "",
-              sZeroRecords: "Ничего не найдено"
+              sZeroRecords: "Ничего не найдено",
+              sInfo: "Показаны записи с _START_ по _END_ (всего _TOTAL_)"
         }});
 
       t.on("click.datatable", "tr", function() {
          var id = this.children[0].innerText;
-         var screen = global.screens.partner;
-         var setup  = screen.views["partner-form"];
-         setup("partner-form", {"id": id});
+         modelSetup("partner")(
+             viewName, {"id": id},
+             {permEl: "partner-permissions",
+              focusClass: "focusable",
+              refs: refs});
       });
 
       $.getJSON(modelMethod(

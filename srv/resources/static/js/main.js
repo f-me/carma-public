@@ -492,6 +492,7 @@ function setupMultiRef(instance, refField, refsForest) {
     var tpls = getTemplates("reference-template");
 
     var books = {};
+    $el(refsForest).empty();
 
     var refs = instance.get(refField);
     if (!_.isNull(refs) && (refs != "")) {

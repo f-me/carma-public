@@ -28,8 +28,6 @@ function setupSearchTable(viewName, args) {
             sLengthMenu: "Показывать по _MENU_ записей",
             sZeroRecords: "Ничего не найдено"
         }});
-
-    $("#search-datepicker").data('date', getFormatDate());
 }
 
 

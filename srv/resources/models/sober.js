@@ -24,12 +24,35 @@
         },
         {
             "targets": [
+                "soberContractor_partner"
+            ],
+            "meta": {
+                "label": "Партнёр"
+            }
+        },           
+        {
+            "targets": [
                 "payment_payment"
             ],
             "meta": {
                 "label": "Стоимость"
             }
-        }
+        },
+        {
+            "targets": ["fromAddress_address","fromAddress_coords","fromAddress_city","fromAddress_comment"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
+        },     
+        {
+            "targets": ["toAddress_address","toAddress_coords","toAddress_city","toAddress_comment"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
+        },       	
+        {
+            "targets": ["soberContractor_partner","soberContractor_partnerTable","soberContractor_coords"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
+        }        
     ],
     "fields": [
         {
@@ -253,32 +276,40 @@
             }
         },
         {
-            "name": "expectedServiceClosure",
-            "canRead": [
-                "back",
-                "head"
-            ],
-            "canWrite": [
-                "back",
-                "head"
-            ],
-            "type": "datetime",
-            "meta": {
-                "label": "Ожидаемое время закрытия услуги"
-            }
+          "name": "expectedDealerInfo",
+          "canRead": ["back", "head"],
+          "canWrite": ["back", "head"],
+          "type": "datetime",
+          "meta": {
+            "label": "Ожидаемое время получения информации от дилера"
+          }
         },
         {
-            "name": "factServiceClosure",
-            "canRead": [
-                "head"
-            ],
-            "canWrite": [
-                "head"
-            ],
-            "type": "datetime",
-            "meta": {
-                "label": "Фактическое время закрытия услуги"
-            }
+          "name": "factDealerInfo",
+          "canRead": ["back", "head"],
+          "canWrite": ["back", "head"],
+          "type": "datetime",
+          "meta": {
+        	"label": "Фактическое время получения информации от дилера"
+          }
+        },    
+        {
+          "name": "expectedServiceClosure",
+          "canRead": ["back", "head"],
+          "canWrite": ["back", "head"],
+          "type": "datetime",
+          "meta": {
+        	"label": "Ожидаемое время закрытия услуги"
+          }
+        },
+        {
+          "name": "factServiceClosure",
+          "canRead": ["back", "head"],
+          "canWrite": ["back", "head"],
+          "type": "datetime",
+          "meta": {
+        	"label": "Фактическое время закрытия услуги"
+          }
         },
         {
             "name": "repairEndDate",
@@ -384,7 +415,10 @@
                 "back",
                 "head"
             ],
-            "groupName": "address"
+            "groupName": "address",
+            "meta": {
+                "label": "Где забрать"
+            }
         },
         {
             "name": "toAddress",
@@ -399,8 +433,29 @@
                 "back",
                 "head"
             ],
-            "groupName": "address"
+            "groupName": "address",
+            "meta": {
+                "label": "Куда доставить"
+            }
         },
+        {
+            "name": "soberContractor",
+             "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
+            "groupName": "partner",
+            "meta": {
+                "label": "Название партнёра"
+            }
+        },        
         {
             "name": "multidrive",
             "canRead": [

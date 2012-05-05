@@ -66,7 +66,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "Diagnosis1",
-                "label": "Диагностика"
+                "label": "Система"
             }
         },            
         {
@@ -76,7 +76,8 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "Diagnosis2",
-                "dictionaryParent": "diagnosis1"
+                "dictionaryParent": "diagnosis1",
+                "label": "Узел/деталь"
             }
         },
         {
@@ -120,6 +121,16 @@
         {
             "name": "caseAddress",
             "groupName": "address"
+        },
+        {
+            "name": "city",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head", "parguy"],
+            "type": "dictionary",
+            "meta": {
+                "dictionaryName": "DealerCities",
+                "label": "Город"
+            }
         },        
         {
             "name": "temperature",
