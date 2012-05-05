@@ -13,7 +13,33 @@
             "meta": {
                 "label": "Стоимость"
             }
-        }
+        },
+            "targets": [
+                "caseAddress_address"
+            ],
+            "meta": {
+                "label": "Адрес доставки"
+            }
+        },
+        {
+            "targets": [
+                "hotelContractor_partner"
+            ],
+            "meta": {
+                "label": "Гостиница"
+            }
+        },
+         
+        {
+            "targets": ["caseAddress_address","caseAddress_coords","caseAddress_city","caseAddress_comment"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
+        },        
+        {
+            "targets": ["hotelContractor_partner","hotelContractor_partnerTable","hotelContractor_coords"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
+        }        
     ],
     "fields": [
         {
@@ -364,12 +390,39 @@
             }
         },
         {
+            "name": "caseAddress",
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
+            "groupName": "address"
+        },
+        {
             "name": "hotelContractor",
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
             "groupName": "partner",
             "meta": {
-                "label": "Название партнёра"
+                "label": "Гостиница"
             }
-        },
+        },        
+
         {
             "name": "hotelProvidedFor",
             "canRead": [
