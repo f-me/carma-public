@@ -4,49 +4,207 @@
             "type": "sellLess",
             "args": "2"
         },
-        {
-            "type": "modelInList",
-            "args": ["focus", "pocus"]
-        }
+	{
+	    "type": "sellAfter",
+	    "args": "15.01.2010"
+	}
     ],
     "vwcargo": [
         {
             "type": "sellLess",
             "args": "2"
+        },
+	{
+	    "type": "sellAfter",
+	    "args": "01.06.2010"
+	},
+	{
+	    "type": "modelInList",
+	    "args": ["Amarok", "Caddy", "Caravelle", "Crafter", "Multivan", "Transporter"]
+	}		
+    ],
+    "chevyko": [
+        {
+            "type": "sellLess",
+            "args": "1"
+        },
+	{
+	    "type": "sellAfter",
+	    "args": "15.12.2010"
+	}		
+    ],		
+    "chevyna": [
+        {
+            "type": "sellLess",
+            "args": "1"
+        },
+	{
+	    "type": "sellAfter",
+	    "args": "01.02.2010"
+	},
+	{
+	    "type": "modelInList",
+	    "args": ["TrailBlazer", "Tahoe"]
+	}
+    ],
+    "oldcad": [
+        {
+            "type": "sellLess",
+            "args": "1"
+        },
+	{
+	    "type": "sellAfter",
+	    "args": "01.02.2010"
+	},
+	{
+	    "type": "modelInList",
+	    "args": ["SRX", "CTS", "STS", "Escalade", "BLS"]
+	}
+    ],
+    "opel": [
+        {
+            "type": "sellLess",
+            "args": "3"
+        },
+	{
+	    "type": "sellAfter",
+	    "args": "01.04.2011"
+	},
+	{
+	    "type": "modelInList",
+	    "args": ["Antara", "Astra", "Corsa", "Combo Tour", "Combo", "Insignia", "Meriva", "Zafira"]
+	}
+    ],
+    "hum": [
+        {
+            "type": "sellLess",
+            "args": "1"
+        },
+	{
+	    "type": "sellAfter",
+	    "args": "01.02.2010"
+	}		
+    ],
+    "cad2012": [
+        {
+            "type": "sellLess",
+            "args": "3"
+        },
+	{
+	    "type": "sellAfter",
+	    "args": "01.01.2012"
+	},
+	{
+	    "type": "modelInList",
+	    "args": ["SRX", "CTS", "STS", "Escalade", "BLS"]
+	}
+    ],
+    "ford": [
+        {
+            "type": "checkupLess",
+            "args": "1"
+        },
+	{
+	    "type": "sellAfter",
+	    "args": "01.01.2012"
+	},
+	{
+	    "type": "modelInList",
+	    "args": ["SRX", "CTS", "STS", "Escalade", "BLS"]
+	}
+    ],
+    "bp": [
+    ],
+    "bentley": [
+    ],
+    "aston": [
+    ],
+    "tickets": [
+    ],
+    "arc": [
+    ],
+    "hyundai": [
+    ],
+    "arval": [
+    ],
+    "jenser": [
+    ],
+    "corpse": [
+    ],
+    "auimp": [
+    ],
+    "tvd": [
+    ],
+    "tele": [
+    ],
+    "ruslan": [
+        {
+            "type": "checkupLess",
+            "args": "1"
         }
     ],
+    "atlant": [
+    ],
+    "chartis": [
+    ],                  
     "vw-evac": [
         {
             "type": "notAccident"
         },
         {
             "type": "notVandal"
-        },
-        {
-            "type": "mileageLess",
-            "args": "2128503"
         }
+    ],
+    "vw-wheel": [
+    ],
+    "vw-charge": [     
     ],
     "vw-rent": [
         {
+            "type": "ruamcEvac"
+        },
+        {
             "type": "notUsedService",
-            "args": "hotel"
+	    "args": "hotel"
         }
     ],
     "vw-hotel": [
         {
-            "type": "notUsedService",
-            "args": "rent"
-        }
-    ],
-    "vw-tech": [
-        {
-            "type": "daysPassedSinceReport",
-            "args": "2"
+            "type": "ruamcEvac"
         },
         {
-            "type": "mileageLess",
-            "args": "2000"
+            "type": "notUsedService",
+	    "args": "rent"
+        }
+    ],
+    "vwcargo-evac": [
+        {
+            "type": "notAccident"
+        },
+        {
+            "type": "notVandal"
+        }
+    ],
+    "vwcargo-wheel": [
+    ],
+    "vwcargo-charge": [     
+    ],
+    "vwcargo-rent": [
+        {
+            "type": "ruamcEvac"
+        },
+        {
+            "type": "notUsedService",
+	    "args": "hotel"
+        }
+    ],
+    "vwcargo-hotel": [
+        {
+            "type": "ruamcEvac"
+        },
+        {
+            "type": "notUsedService",
+            "args": "rent"
         }
     ]
 }
