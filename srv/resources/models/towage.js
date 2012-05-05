@@ -15,6 +15,22 @@
             }
         },
         {
+            "targets": [
+                "towDealer_partner"
+            ],
+            "meta": {
+                "label": "Дилер"
+            }
+        },
+        {
+            "targets": [
+                "towContractor_partner"
+            ],
+            "meta": {
+                "label": "Партнёр"
+            }
+        },           
+        {
             "targets": ["towAddress_address","towAddress_coords","towAddress_city","towAddress_comment"],
             "canRead": ["front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head"]
@@ -23,7 +39,12 @@
             "targets": ["towDealer_partner","towDealer_partnerTable","towDealer_coords"],
             "canRead": ["front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head"]
-        },        
+        },
+        {
+            "targets": ["towContractor_partner","towContractor_partnerTable","towContractor_coords"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
+        },         
         {
             "targets": [
                 "payment_payment"
