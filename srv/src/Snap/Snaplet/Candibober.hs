@@ -71,7 +71,7 @@ checkMap :: M.Map B.ByteString (FreeChecker A.Parser)
 checkMap = 
     M.fromList 
          [ ("sellLess", 
-            compareDate "case" "car_sellDate" LT <=< yearsAgo <=< readInteger)
+            compareDate "case" "car_sellDate" GT <=< yearsAgo <=< readInteger)
          , ("sellAfter",
             compareDate "case" "car_sellDate" GT <=< readDate)
          , ("checkupLess",
@@ -137,7 +137,7 @@ data Candibober = Candibober { _targets :: TargetMap
 makeLens ''Candibober
 
 jsonToDataset :: LB.ByteString -> Maybe Dataset
-jsonToDataset s = A.decode s
+jsonToDataset = A.decode
 
 -- | Generate redis key from model name and id
 getKey m =
