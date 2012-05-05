@@ -18,3 +18,13 @@ function getFormatTime() {
 function scrollDown() {
     window.scrollTo(0, document.body.scrollHeight - 300);
 }
+
+// jquery -> html(as strung) conversion, with selected element
+jQuery.fn.outerHTML = function() {
+    return jQuery("<div>").append(this.clone()).html();
+}
+
+// like _.has but for list
+function hasL(lst, e) {
+    return _.find(lst, function(x) { return x == e });
+}
