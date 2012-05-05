@@ -6,12 +6,19 @@
     "canUpdate": true,
     "canDelete": true,
     "applications": [
+	{
+	    "targets": [
+	        "toAddress_address"
+	    ],
+	    "meta": {
+	        "label": "Адрес куда"
+		}
+        },		
         {
-            "targets": ["toAddress_address"],
-            "meta": {
-                "label": "Куда доставить"
-            }
-        },
+            "targets": ["toAddress_address","toAddress_coords","toAddress_city","toAddress_comment"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
+        }, 
         {
             "targets": ["payment_payment"],
             "meta": {
@@ -157,16 +164,43 @@
                 "label": "Фактическое время закрытия услуги"
             }
         },
-        {
-            "name": "repairEndDate",
-            "canRead": ["back", "head"],
-            "canWrite": ["back", "head"],
-            "type": "date",
-            "meta": {
-                "label": "Дата окончания ремонта"
-            }
-        },
-		{
+	    {
+	      "name": "expectedDealerInfo",
+	      "canRead": ["back", "head"],
+	      "canWrite": ["back", "head"],
+	      "type": "datetime",
+	      "meta": {
+	        "label": "Ожидаемое время получения информации от дилера"
+	      }
+	    },
+	    {
+	      "name": "factDealerInfo",
+	      "canRead": ["back", "head"],
+	      "canWrite": ["back", "head"],
+	      "type": "datetime",
+	      "meta": {
+	        "label": "Фактическое время получения информации от дилера"
+	      }
+	    },    
+	    {
+	      "name": "expectedServiceClosure",
+	      "canRead": ["back", "head"],
+	      "canWrite": ["back", "head"],
+	      "type": "datetime",
+	      "meta": {
+	        "label": "Ожидаемое время закрытия услуги"
+	      }
+	    },
+	    {
+	      "name": "factServiceClosure",
+	      "canRead": ["back", "head"],
+	      "canWrite": ["back", "head"],
+	      "type": "datetime",
+	      "meta": {
+	        "label": "Фактическое время закрытия услуги"
+	      }
+	    },
+	{
             "name": "falseCall",
             "canRead": ["front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head"],
@@ -218,12 +252,24 @@
                 "label": "Запчасти"
             },
             "type": "textarea"
-        },
+        },		
         {
             "name": "toAddress",
-            "canRead": ["front", "back", "head", "parguy"],
-            "canWrite": ["front", "back", "head"],            
-            "groupName": "address"
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
+            "groupName": "address",
+            "meta": {
+                "label": "Адрес куда"
+            }
         }		
     ]
 }

@@ -11,7 +11,15 @@
                 "caseAddress_address"
             ],
             "meta": {
-                "label": "Адрес места поломки"
+                "label": "Адрес кейса"
+            }
+        },
+        {
+            "targets": [
+                "techContractor_partner"
+            ],
+            "meta": {
+                "label": "Гостиница"
             }
         },
         {
@@ -21,7 +29,17 @@
             "meta": {
                 "label": "Стоимость"
             }
-        }
+        },
+        {
+            "targets": ["caseAddress_address","caseAddress_coords","caseAddress_city","caseAddress_comment"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
+        },        
+        {
+            "targets": ["techContractor_partner","techContractor_partnerTable","techContractor_coords"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
+        }              
     ],
     "fields": [
         {
@@ -245,32 +263,40 @@
             }
         },
         {
-            "name": "expectedServiceClosure",
-            "canRead": [
-                "back",
-                "head"
-            ],
-            "canWrite": [
-                "back",
-                "head"
-            ],
-            "type": "datetime",
-            "meta": {
-                "label": "Ожидаемое время закрытия услуги"
-            }
+          "name": "expectedDealerInfo",
+          "canRead": ["back", "head"],
+          "canWrite": ["back", "head"],
+          "type": "datetime",
+          "meta": {
+            "label": "Ожидаемое время получения информации от дилера"
+          }
         },
         {
-            "name": "factServiceClosure",
-            "canRead": [
-                "head"
-            ],
-            "canWrite": [
-                "head"
-            ],
-            "type": "datetime",
-            "meta": {
-                "label": "Фактическое время закрытия услуги"
-            }
+          "name": "factDealerInfo",
+          "canRead": ["back", "head"],
+          "canWrite": ["back", "head"],
+          "type": "datetime",
+          "meta": {
+        	"label": "Фактическое время получения информации от дилера"
+          }
+        },    
+        {
+          "name": "expectedServiceClosure",
+          "canRead": ["back", "head"],
+          "canWrite": ["back", "head"],
+          "type": "datetime",
+          "meta": {
+        	"label": "Ожидаемое время закрытия услуги"
+          }
+        },
+        {
+          "name": "factServiceClosure",
+          "canRead": ["back", "head"],
+          "canWrite": ["back", "head"],
+          "type": "datetime",
+          "meta": {
+        	"label": "Фактическое время закрытия услуги"
+          }
         },
         {
             "name": "repairEndDate",
@@ -397,7 +423,10 @@
                 "back",
                 "head"
             ],
-            "groupName": "address"
+            "groupName": "address",
+            "meta": {
+                "label": "Адрес кейса"
+            }            
         },
         {
             "name": "techContractor",
@@ -414,7 +443,7 @@
             ],
             "groupName": "partner",
             "meta": {
-                "label": "Название партнёра"
+                "label": "Партнёр"
             }
         },
         {

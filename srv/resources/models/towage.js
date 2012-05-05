@@ -15,6 +15,22 @@
             }
         },
         {
+            "targets": [
+                "towDealer_partner"
+            ],
+            "meta": {
+                "label": "Дилер"
+            }
+        },
+        {
+            "targets": [
+                "towContractor_partner"
+            ],
+            "meta": {
+                "label": "Партнёр"
+            }
+        },           
+        {
             "targets": ["towAddress_address","towAddress_coords","towAddress_city","towAddress_comment"],
             "canRead": ["front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head"]
@@ -23,7 +39,12 @@
             "targets": ["towDealer_partner","towDealer_partnerTable","towDealer_coords"],
             "canRead": ["front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head"]
-        },        
+        },
+        {
+            "targets": ["towContractor_partner","towContractor_partnerTable","towContractor_coords"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
+        },         
         {
             "targets": [
                 "payment_payment"
@@ -255,32 +276,40 @@
             }
         },
         {
-            "name": "expectedServiceClosure",
-            "canRead": [
-                "back",
-                "head"
-            ],
-            "canWrite": [
-                "back",
-                "head"
-            ],
-            "type": "datetime",
-            "meta": {
-                "label": "Ожидаемое время закрытия услуги"
-            }
+          "name": "expectedDealerInfo",
+          "canRead": ["back", "head"],
+          "canWrite": ["back", "head"],
+          "type": "datetime",
+          "meta": {
+            "label": "Ожидаемое время получения информации от дилера"
+          }
         },
         {
-            "name": "factServiceClosure",
-            "canRead": [
-                "head"
-            ],
-            "canWrite": [
-                "head"
-            ],
-            "type": "datetime",
-            "meta": {
-                "label": "Фактическое время закрытия услуги"
-            }
+          "name": "factDealerInfo",
+          "canRead": ["back", "head"],
+          "canWrite": ["back", "head"],
+          "type": "datetime",
+          "meta": {
+        	"label": "Фактическое время получения информации от дилера"
+          }
+        },    
+        {
+          "name": "expectedServiceClosure",
+          "canRead": ["back", "head"],
+          "canWrite": ["back", "head"],
+          "type": "datetime",
+          "meta": {
+        	"label": "Ожидаемое время закрытия услуги"
+          }
+        },
+        {
+          "name": "factServiceClosure",
+          "canRead": ["back", "head"],
+          "canWrite": ["back", "head"],
+          "type": "datetime",
+          "meta": {
+        	"label": "Фактическое время закрытия услуги"
+          }
         },
         {
             "name": "repairEndDate",
@@ -496,7 +525,10 @@
                 "back",
                 "head"
             ],
-            "groupName": "address"
+            "groupName": "address",
+            "meta": {
+                "label": "Адрес доставки"
+            }
         },
         {
             "name": "towContractor",
@@ -513,7 +545,7 @@
             ],
             "groupName": "partner",
             "meta": {
-                "label": "Подрядчик"
+                "label": "Партнёр"
             }
         },
         {
@@ -530,11 +562,30 @@
                 "head"
             ],
             "meta": {
-                "default": true,
-                "label": "Колёса не заблокированы"
+                "dictionaryName": "WheelsBlockedCount",
+                "label": "Количество заблокированных колёс"
+            },
+            "type": "dictionary"
+        },
+        {
+            "name": "towingPointPresent",
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
+            "meta": {
+                "default": false,
+                "label": "Есть буксировочный крюк"
             },
             "type": "checkbox"
-        },
+        },        
         {
             "name": "manipulatorPossible",
             "canRead": [

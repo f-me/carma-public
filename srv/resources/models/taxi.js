@@ -24,12 +24,35 @@
         },
         {
             "targets": [
+                "taxiContractor_partner"
+            ],
+            "meta": {
+                "label": "Партнёр"
+            }
+        },        
+        {
+            "targets": [
                 "payment_payment"
             ],
             "meta": {
                 "label": "Стоимость"
             }
-        }
+        },
+        {
+            "targets": ["taxiFrom_address","taxiFrom_coords","taxiFrom_city","taxiFrom_comment"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
+        },     
+        {
+            "targets": ["taxiTo_address","taxiTo_coords","taxiTo_city","taxiTo_comment"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
+        },       	
+        {
+            "targets": ["taxiContractor_partner","taxiContractor_partnerTable","taxiContractor_coords"],
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"]
+        }        
     ],
     "fields": [
         {
@@ -253,33 +276,42 @@
             }
         },
         {
-            "name": "expectedServiceClosure",
-            "canRead": [
-                "back",
-                "head"
-            ],
-            "canWrite": [
-                "back",
-                "head"
-            ],
-            "type": "datetime",
-            "meta": {
-                "label": "Ожидаемое время закрытия услуги"
-            }
+          "name": "expectedDealerInfo",
+          "canRead": ["back", "head"],
+          "canWrite": ["back", "head"],
+          "type": "datetime",
+          "meta": {
+            "label": "Ожидаемое время получения информации от дилера"
+          }
         },
         {
-            "name": "factServiceClosure",
-            "canRead": [
-                "head"
-            ],
-            "canWrite": [
-                "head"
-            ],
-            "type": "datetime",
-            "meta": {
-                "label": "Фактическое время закрытия услуги"
-            }
+          "name": "factDealerInfo",
+          "canRead": ["back", "head"],
+          "canWrite": ["back", "head"],
+          "type": "datetime",
+          "meta": {
+        	"label": "Фактическое время получения информации от дилера"
+          }
+        },    
+        {
+          "name": "expectedServiceClosure",
+          "canRead": ["back", "head"],
+          "canWrite": ["back", "head"],
+          "type": "datetime",
+          "meta": {
+        	"label": "Ожидаемое время закрытия услуги"
+          }
         },
+        {
+          "name": "factServiceClosure",
+          "canRead": ["back", "head"],
+          "canWrite": ["back", "head"],
+          "type": "datetime",
+          "meta": {
+        	"label": "Фактическое время закрытия услуги"
+          }
+        },
+
         {
             "name": "repairEndDate",
             "canRead": [
@@ -384,7 +416,10 @@
                 "back",
                 "head"
             ],
-            "groupName": "address"
+            "groupName": "address",
+            "meta": {
+                "label": "Где забрать"
+            }
         },
         {
             "name": "taxiTo",
@@ -399,7 +434,10 @@
                 "back",
                 "head"
             ],
-            "groupName": "address"
+            "groupName": "address",
+            "meta": {
+                "label": "Куда доставить"
+            }
         },
         {
             "name": "taxiContractor",
