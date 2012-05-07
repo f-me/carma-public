@@ -56,6 +56,14 @@
     ],
     "fields": [
         {
+          "name": "parentId",
+          "canRead": true,
+          "canWrite": true,
+          "meta": {
+            "invisible": true
+          }
+        },
+        {
             "name": "status",
             "canRead": [
                 "front",

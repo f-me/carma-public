@@ -446,6 +446,8 @@ function mkRefFetchCb(parentInstance, field) {
             var hash = {};
             hash[field] = newValue;
             parentInstance.set(hash);
+            var parentId = parentInstance.name + ":" + parentInstance.id;
+            refInstance.set({"parentId": parentId});
         }
     }
     return fetchCb;

@@ -28,6 +28,14 @@
     ],	
     "fields": [
         {
+          "name": "parentId",
+          "canRead": true,
+          "canWrite": true,
+          "meta": {
+            "invisible": true
+          }
+        },
+        {
             "name": "status",
             "type": "dictionary",
             "meta": {

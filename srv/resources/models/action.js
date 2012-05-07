@@ -7,6 +7,14 @@
     "canDelete": true,
     "fields": [
       {
+        "name": "parentId",
+        "canRead": true,
+        "canWrite": true,
+        "meta": {
+          "invisible": true
+        }
+      },
+      {
         "name": "result",
         "label": "Результат действия",
         "type": "dictionary"
