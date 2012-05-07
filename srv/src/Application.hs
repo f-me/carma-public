@@ -38,6 +38,8 @@ import Snap.Snaplet.Candibober
 import Snap.Snaplet.Redson
 import Snap.Snaplet.Vin
 
+import Actions
+
 ------------------------------------------------------------------------------
 -- | Application snaplet state type: Redson, Heist.
 data App = App
@@ -130,14 +132,21 @@ sessionTimeout = Nothing
 -- | The application initializer.
 appInit :: SnapletInit App App
 appInit = makeSnaplet "app" "Forms application" Nothing $ do
+  cfg <- getSnapletUserConfig
   c <- nestSnaplet "candibober" candibober candiboberInit
 
   h <- nestSnaplet "heist" heist $ heistInit "resources/templates"
   addAuthSplices auth
 
-  r <- nestSnaplet "_" redson $ redsonInit auth
+  -- Create redson hooks from actions
+  actionsFile <- liftIO $
+            lookupDefault "resources/static/js/data/actions.json"
+                          cfg "actions"
+  redsonHooks' <- liftIO $ compileActions actionsFile 
+  redsonHooks  <- either fail return redsonHooks'
+  r <- nestSnaplet "_" redson $ redsonInit auth redsonHooks
 
-  cfg <- getSnapletUserConfig
+
   sesKey <- liftIO $
             lookupDefault "resources/private/client_session_key.aes"
                           cfg "session-key"
