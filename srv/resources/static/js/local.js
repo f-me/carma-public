@@ -133,6 +133,8 @@ function hasL(lst, e) {
     return _.find(lst, function(x) { return x == e });
 }
 
+// render checkboxes, trueChecks contains list with names,
+// tha should be rendered as checked
 function renderChecks(name, trueChecks) {
     var str = "";
     var tpl = $("#check-list-item-template").html();
@@ -149,6 +151,9 @@ function renderChecks(name, trueChecks) {
     return str;
 }
 
+// try to render checkboxes, if check is found, then
+// make request to candibober, and render checkboxes
+// with 'renderChecks'
 function maybeRenderChecks(e, instance){
     var str = "";
     var tpl = $("#check-list-item-template").html();
