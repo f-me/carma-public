@@ -7,7 +7,15 @@
     "canDelete": true,
     "fields": [
       {
-        "name": "parentId",
+        "name":"serviceId",
+        "canRead": true,
+        "canWrite": true,
+        "meta": {
+          "invisible": true
+        }
+      },
+      {
+        "name":"caseId",
         "canRead": true,
         "canWrite": true,
         "meta": {
@@ -35,7 +43,12 @@
         "type": "datetime"
       },
       {
-        "name": "assignedTo"
+        "name": "targetGroup",
+        "index": true
+      },
+      {
+        "name": "assignedTo",
+        "index": true
       }
     ]
 }

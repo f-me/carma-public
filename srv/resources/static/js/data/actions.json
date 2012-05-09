@@ -1,6 +1,10 @@
 [
   {
-    "on": { "case.car_vin": ["qwer","1234"] },
-    "if": {}
+    "on": { "towage.status": ["s4"]
+          , "tech.status":   ["s4"] },
+    "new": [{
+      "targetGroup": "back",
+      "duetime": "{{#now + 20m}}"
+    }]
   }
 ]
