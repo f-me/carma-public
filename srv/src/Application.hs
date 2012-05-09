@@ -144,7 +144,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
                           cfg "actions"
   redsonHooks' <- liftIO $ compileActions actionsFile 
   redsonHooks  <- either fail return redsonHooks'
-  r <- nestSnaplet "_" redson $ redsonInit auth redsonHooks
+  r <- nestSnaplet "_" redson $ redsonInitWithHooks auth redsonHooks
 
 
   sesKey <- liftIO $

@@ -32,7 +32,7 @@ Executable carma
     snap                        == 0.8.*,
     snap-core                   == 0.8.*,
     snap-server                 == 0.8.*,
-    snaplet-redson              == 0.1.*,
+    snaplet-redson              >= 0.1.1 && < 0.2,
     snaplet-redis               == 0.1.*,
     text                        >= 0.11 && < 0.12,
     time                        >= 1.1 && < 1.5,
