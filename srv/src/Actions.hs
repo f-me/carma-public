@@ -12,6 +12,7 @@ import Control.Monad.Trans.State
 
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy as LB (readFile)
@@ -22,8 +23,10 @@ import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
 
+import Data.Time.Clock (getCurrentTime)
+import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
+
 import Data.Aeson as Aeson
-import Data.Aeson.TH
 import Data.Attoparsec.ByteString.Lazy (parse, Result(..))
 
 import Snap.Snaplet (Handler)
@@ -51,14 +54,13 @@ instance FromJSON Action where
   parseJSON _ = mzero
 
 
-newtype Template = Template [TmpPart] deriving Show
-data TmpPart = Str Text | Expr Expr deriving Show
+newtype Template = Template [TmpPart]
+data TmpPart = Str Text | Expr Expr
 
 data Expr
   = Var ByteString
   | TimeOffset Int -- UTCDiff
   | Call ByteString Expr
-  deriving Show
 
 
 instance FromJSON Template where
@@ -78,7 +80,21 @@ parseTemplate s = Template <$> goS s
 
       stripPrefix p s = fromMaybe s $ T.stripPrefix p s
 
-      expr s = pure $ Var ""
+      expr s = pure $ Var "FIXME: not implemented"
+
+
+data EvalContext = EvalContext
+  { objects   :: Map ModelName (Map FieldName ByteString)
+  , objectIds :: Map ModelName ByteString -- InstanceId?
+  }
+
+type EvalStateMonad b a = StateT EvalContext (Handler b (Redson b)) a
+
+evalTemplate :: EvalContext -> Template -> ByteString
+evalTemplate cxt (Template xs) = B8.concat $ map evalTPart xs
+  where
+    evalTPart (Str s) = T.encodeUtf8 s
+    evalTPart (Expr e) = "{{not implemented yet}}"
 
 
 parseActions :: FilePath -> IO (Either String [Action])
@@ -110,7 +126,7 @@ hook2map p
   = M.singleton model
   . M.singleton field . (:[])
   where
-    [model,field] = B8.split '.' p -- FIXME
+    [model,field] = B8.split '.' p -- FIXME: can fail
 
 chkFieldVal :: Set FieldValue -> Hook b -> Hook b
 chkFieldVal vals h = \v commit ->
@@ -118,13 +134,6 @@ chkFieldVal vals h = \v commit ->
     then h v commit
     else return commit
 
-data EvalContext = EvalContext
-  { objects   :: Map ModelName (Map FieldName ByteString)
-  , objectIds :: Map ModelName ByteString -- InstanceId?
-  }
-emptyContext = EvalContext M.empty M.empty
-
-type EvalStateMonad b a = StateT EvalContext (Handler b (Redson b)) a
 
 
 redisRead m = runRedisDB database . CRUD.read m
@@ -158,6 +167,14 @@ withEvalContext f = \v commit -> do
   Right this <- redisRead currentModel currentId
   let this' = M.union commit this
 
+  now <- round . utcTimeToPOSIXSeconds <$> liftIO getCurrentTime
+  let emptyContext = EvalContext
+        { objects = M.singleton "#" $ M.fromList
+            [("now", B8.pack $ show (now :: Int))
+            ,("currentUser", "back")]
+        , objectIds = M.empty
+        }
+
   cxt <- case currentModel of
     "action" -> return emptyContext
         >>= cxtAddObject  "service" (this' M.! "serviceId")
@@ -182,31 +199,31 @@ withEvalContext f = \v commit -> do
   return $ objects cxt' M.! thisName
 
 
-evalTemplate _ = B8.pack . show 
 
 createAction :: Map FieldName Template -> EvalStateMonad b ()
 createAction actionTemplate = do
-  cxt <- get
-  let action = M.map (evalTemplate cxt)
-        $ M.union actionTemplate $ M.fromList
-          -- FIXME: quasiquotation?
-          [("caseId",    Template [Str "case:", Expr (Var "case.id")])
-          ,("serviceId", Template [Expr (Var "service.name")
-                                  , Str ":", Expr (Var "service.id")])
-          ,("ctime",     Template [Expr (Var "#.now")])
-          ]
+  cxt@(EvalContext{..}) <- get
+
+  let action  = M.map (evalTemplate cxt) actionTemplate
+  let extraFields = M.fromList
+        [("caseId",    objectIds M.! "case")
+        ,("serviceId", objectIds M.! "service")
+        ,("ctime",     (objects M.! "#") M.! "now")
+        ]
+  let action' = M.union extraFields action
+  -- FIXME: do we need to put updated actions into context?
   Right actionId <- lift
         $ runRedisDB database
-        $ CRUD.create "action" action [] -- FIXME: get indices from cxt.models
+        $ CRUD.create "action" action' [] -- FIXME: get indices from cxt.models
 
   let actionId' = B8.append "action:" actionId
   let caseActions = maybe actionId'
         (\actions -> B8.concat [actions, ",", actionId'])
-        $  M.lookup "actions" $ objects cxt M.! "case"
+        $  M.lookup "actions" $ objects M.! "case"
   put $ cxt
     { objects = M.update
         (Just . M.insert "actions" caseActions)
-        "case" $ objects cxt
+        "case" $ objects
     }
 
 joinHooks :: [HookMap b] -> HookMap b
