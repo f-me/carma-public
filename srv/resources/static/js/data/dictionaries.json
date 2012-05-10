@@ -164,11 +164,11 @@
             {
                 "value": "dealerConformation",
                 "label": "Согласование с дилером"
-            },            
+            },
             {
                 "value": "makerConformation",
                 "label": "Согласование с производителем"
-            },                        
+            },
             {
                 "value": "filling",
                 "label": "Заполнение данных"
@@ -254,23 +254,23 @@
     "CarClasses": {
         "entries": [
             {
-                "value":"a",
+                "value": "a",
                 "label": "A"
             },
             {
-                "value":"b",
+                "value": "b",
                 "label": "B"
             },
             {
-                "value":"c",
+                "value": "c",
                 "label": "C"
             },
             {
-                "value":"d",
+                "value": "d",
                 "label": "D"
             },
             {
-                "value":"e",
+                "value": "e",
                 "label": "E"
             }
         ]
@@ -1459,114 +1459,114 @@
     },
     "Programs": {
         "entries": [
-	    {
-	        "value":"vw",
-                "label":"VW / Легковые автомобили"
-	    },
-	    {
-	        "value":"vwcargo",
-                "label":"VW / Коммерческие автомобили"
-	    },
-	    {
-	        "value":"bentley",
-                "label":"ACTA / Bentley"
-	    },
-	    {
-	        "value":"aston",
-                "label":"ACTA / Aston Martin"
-	    },
-	    {
-	        "value":"arc",
-                "label":"B2B / Arc B2B"
-	    },
-	    {
-	        "value":"hyundai",
-                "label":"B2B / RTR Hyundai"
-	    },
-	    {
-	        "value":"jenser",
-                "label":"B2B / Дженсер Ясенево"
-	    },
-	    {
-	        "value":"corpse",
-                "label":"B2B / ИП Трубкин"
-	    },
-	    {
-	        "value":"auimp",
-                "label":"B2B / ДЦ Автоимпорт"
-	    },
-	    {
-	        "value":"tvd",
-                "label":"B2B / ДЦ ТВД-Авто"
-	    },
-	    {
-	        "value":"arval",
-                "label":"B2B / АРВАЛ"
-	    },
-	    {
-	        "value":"tele",
-                "label":"B2B / 3S Телематика"
-	    },
-	    {
-	        "value":"chevyko",
-                "label":"GM / Chevrolet Korea"
-	    },
-	    {
-	        "value":"chevyna",
-                "label":"GM / Chevrolet NA"
-	    },
-	    {
-	        "value":"oldcad",
-                "label":"GM / Cadillac до 2012"
-	    },
-	    {
-	        "value":"opel",
-                "label":"GM / Opel (после 01.04.2011]"
-	    },
-	    {
-	        "value":"hum",
-                "label":"GM / Hummer"
-	    },
-	    {
-	        "value":"cadold",
-                "label":"GM / Cadillac до 2012"
-	    },
-	    {
-	        "value":"cad2012",
-                "label":"GM / Cadillac после 2012"
-	    },
-	    {
-	        "value":"tickets",
-                "label":"Заказ билетов"
-	    },
-	    {
-	        "value":"b2c",
-                "label":"B2C"
-	    },
-	    {
-	        "value":"ford",
-                "label":"Ford"
-	    },
-	    {
-	        "value":"bp",
-                "label":"BP"
-	    },
-	    {
-	        "value":"ruslan",
-                "label":"Рус Лан"
-	    },
-	    {
-	        "value":"atlant",
-                "label":"Атлант М"
-	    },
-	    {
-	        "value":"chartis",
-                "label":"Chartis Assistance"
-	    },
-	    {
-	        "value":"kraft",
-                "label":"Autokraft Assistance"
-	    }
+            {
+                "value": "vw",
+                "label": "VW / Легковые автомобили"
+            },
+            {
+                "value": "vwcargo",
+                "label": "VW / Коммерческие автомобили"
+            },
+            {
+                "value": "bentley",
+                "label": "ACTA / Bentley"
+            },
+            {
+                "value": "aston",
+                "label": "ACTA / Aston Martin"
+            },
+            {
+                "value": "arc",
+                "label": "B2B / Arc B2B"
+            },
+            {
+                "value": "hyundai",
+                "label": "B2B / RTR Hyundai"
+            },
+            {
+                "value": "jenser",
+                "label": "B2B / Дженсер Ясенево"
+            },
+            {
+                "value": "corpse",
+                "label": "B2B / ИП Трубкин"
+            },
+            {
+                "value": "auimp",
+                "label": "B2B / ДЦ Автоимпорт"
+            },
+            {
+                "value": "tvd",
+                "label": "B2B / ДЦ ТВД-Авто"
+            },
+            {
+                "value": "arval",
+                "label": "B2B / АРВАЛ"
+            },
+            {
+                "value": "tele",
+                "label": "B2B / 3S Телематика"
+            },
+            {
+                "value": "chevyko",
+                "label": "GM / Chevrolet Korea"
+            },
+            {
+                "value": "chevyna",
+                "label": "GM / Chevrolet NA"
+            },
+            {
+                "value": "oldcad",
+                "label": "GM / Cadillac до 2012"
+            },
+            {
+                "value": "opel",
+                "label": "GM / Opel (после 01.04.2011]"
+            },
+            {
+                "value": "hum",
+                "label": "GM / Hummer"
+            },
+            {
+                "value": "cadold",
+                "label": "GM / Cadillac до 2012"
+            },
+            {
+                "value": "cad2012",
+                "label": "GM / Cadillac после 2012"
+            },
+            {
+                "value": "tickets",
+                "label": "Заказ билетов"
+            },
+            {
+                "value": "b2c",
+                "label": "B2C"
+            },
+            {
+                "value": "ford",
+                "label": "Ford"
+            },
+            {
+                "value": "bp",
+                "label": "BP"
+            },
+            {
+                "value": "ruslan",
+                "label": "Рус Лан"
+            },
+            {
+                "value": "atlant",
+                "label": "Атлант М"
+            },
+            {
+                "value": "chartis",
+                "label": "Chartis Assistance"
+            },
+            {
+                "value": "kraft",
+                "label": "Autokraft Assistance"
+            }
         ]
     },
     "Wazzup": {
@@ -1756,7 +1756,7 @@
                 "label": "Волгорад"
             }
         ]
-    },   
+    },
     "WheelsBlockedCount": {
         "entries": [
             {
@@ -1780,10 +1780,10 @@
                 "label": "4"
             }
         ]
-    },    
+    },
     "InfoText": {
-      "comment": "Здесь будет какая-то справочная информация по заполнению поля.",
-      "address": "Сюда нужно вписать адрес."
+        "comment": "Здесь будет какая-то справочная информация по заполнению поля.",
+        "address": "Сюда нужно вписать адрес."
     },
     "ActionResults": {
         "entries": {
@@ -1919,7 +1919,7 @@
                     "label": "Не дозвонился"
                 },
                 {
-                    "value": "callbackk",
+                    "value": "callback",
                     "label": "Требуется перезвонить"
                 },
                 {
@@ -1965,7 +1965,7 @@
                     "label": "Всё верно"
                 },
                 {
-                    "value": "callLater",
+                    "value": "accountError",
                     "label": "Расхождение в счёте"
                 }
             ],
@@ -1975,7 +1975,7 @@
                     "label": "Изменения внесены"
                 },
                 {
-                    "value": "callLater",
+                    "value": "recloseService",
                     "label": "Требуется закрыть заявку"
                 }
             ],
@@ -1985,7 +1985,7 @@
                     "label": "Не дозвонился"
                 },
                 {
-                    "value": "callLater",
+                    "value": "caseOver",
                     "label": "Требуется ещё услуга"
                 },
                 {
@@ -2102,5 +2102,5 @@
                 "label": "Согласование с автопроизводителем"
             }
         ]
-    }    
+    }
 }
