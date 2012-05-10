@@ -2,11 +2,11 @@
     "vw": {
         "checks": [
             {
-    			"name": "sellLess"
+                "name": "sellLess",
                 "label": "Дата продажи < 2 лет"
-            },		
+            },
             {
-				"name": "sellAfter",
+                "name": "sellAfter",
                 "label": "Дата продажи > 15.01.2010"
             }
         ]
@@ -14,15 +14,15 @@
     "vwcargo": {
         "checks": [
             {
-				"name": "sellLess",			
+                "name": "sellLess",
                 "label": "Дата продажи < 2 лет"
-            },		
+            },
             {
-				"name": "sellAfter",
+                "name": "sellAfter",
                 "label": "Дата продажи > 01.06.2010"
             },
             {
-				"name": "modelInList",
+                "name": "modelInList",
                 "label": "Модель входит в программу"
             }
         ]
@@ -30,27 +30,27 @@
     "chevyko": {
         "checks": [
             {
-				"name": "sellLess",			
+                "name": "sellLess",
                 "label": "Дата продажи < 1 года"
             },
             {
-			    "name": "sellAfter",
+                "name": "sellAfter",
                 "label": "Дата продажи > 15.12.2010"
-            }			
+            }
         ]
     },
     "chevyna": {
         "checks": [
             {
-				"name": "sellLess",			
+                "name": "sellLess",
                 "label": "Дата продажи < 1 года"
             },
             {
-			    "name": "sellAfter",
+                "name": "sellAfter",
                 "label": "Дата продажи > 01.02.2010"
             },
             {
-				"name": "modelInList",
+                "name": "modelInList",
                 "label": "Модель входит в программу"
             }
         ]
@@ -58,15 +58,15 @@
     "oldcad": {
         "checks": [
             {
-				"name": "sellLess",			
+                "name": "sellLess",
                 "label": "Дата продажи < 1 года"
             },
             {
-			    "name": "sellAfter",
+                "name": "sellAfter",
                 "label": "Дата продажи > 01.02.2010"
             },
             {
-				"name": "modelInList",
+                "name": "modelInList",
                 "label": "Модель входит в программу"
             }
         ]
@@ -74,27 +74,27 @@
     "opel": {
         "checks": [
             {
-				"name": "sellLess",			
+                "name": "sellLess",
                 "label": "Дата продажи < 3 года"
             },
             {
-			    "name": "sellAfter",
+                "name": "sellAfter",
                 "label": "Дата продажи > 01.04.2011"
             },
             {
-				"name": "modelInList",
+                "name": "modelInList",
                 "label": "Модель входит в программу"
             }
         ]
     },
-	"hum": {
+    "hum": {
         "checks": [
             {
-				"name": "sellLess",			
+                "name": "sellLess",
                 "label": "Дата продажи < 1 года"
             },
             {
-			    "name": "sellAfter",
+                "name": "sellAfter",
                 "label": "Дата продажи > 01.02.2010"
             }
         ]
@@ -102,15 +102,15 @@
     "cad2012": {
         "checks": [
             {
-				"name": "sellLess",			
+                "name": "sellLess",
                 "label": "Дата продажи < 3 года"
             },
             {
-			    "name": "sellAfter",
+                "name": "sellAfter",
                 "label": "Дата продажи > 01.01.2012"
             },
             {
-				"name": "modelInList",
+                "name": "modelInList",
                 "label": "Модель входит в программу"
             }
         ]
@@ -118,11 +118,11 @@
     "ford": {
         "checks": [
             {
-				"name": "checkupLess",			
+                "name": "checkupLess",
                 "label": "Дата последнего ТО < 1 года"
             },
             {
-				"name": "sellAfter",			
+                "name": "sellAfter",
                 "label": "Межсервисный интервал не пройден"
             }
         ]
@@ -130,11 +130,11 @@
     "ruslan": {
         "checks": [
             {
-				"name": "checkupLess",			
+                "name": "checkupLess",
                 "label": "Дата последнего ТО < 1 года"
             }
         ]
-    }	
+    },
     "bp": {
         "checks": [
             {
@@ -155,7 +155,7 @@
                 "label": "Номер карты участника в списке карт"
             }
         ]
-    },	
+    },
     "bentley": {
         "checks": [
             {
@@ -190,7 +190,7 @@
         "checks": [
             {
                 "label": "ФИО и год рождения в списке"
-            }			
+            }
         ]
     },
     "lyckoil": {
@@ -245,14 +245,7 @@
                 "label": "Пробег не исчерпан"
             }
         ]
-    },	
-    "chartis": {
-        "checks": [
-            {
-              "label": "VIN в списке участников программы"
-            }
-        ]
-    },	
+    },
     "chartis": {
         "checks": [
             {
