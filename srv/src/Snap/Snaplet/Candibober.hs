@@ -22,6 +22,8 @@ import Control.Monad.Trans.Error
 import Data.Aeson as A
 import Data.Aeson.Types as A
 import Data.Aeson.TH
+import Data.Attoparsec.ByteString.Lazy (Result(..))
+import qualified Data.Attoparsec.ByteString.Lazy as Atto
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 
@@ -226,10 +228,14 @@ loadTargets :: FilePath
             -- ^ Targets definition file
             -> IO TargetMap
 loadTargets filename = do
-    res <- A.decode <$> LB.readFile filename
+    res <- Atto.parse A.json' <$> LB.readFile filename
     case res of
-      Just t -> return t
-      Nothing -> error $ "Could not parse targets file " ++ filename
+      Done _ jsn -> case A.fromJSON jsn of
+        Success t -> return t
+        Error err -> error $ "Could not parse targets file " ++ filename
+                           ++ "\n\t" ++ err
+      err -> error $ "Could not parse targets file " ++ filename
+                   ++ "\n\t" ++ show err
 
 
 ------------------------------------------------------------------------------
