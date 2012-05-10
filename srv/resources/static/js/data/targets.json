@@ -20,14 +20,7 @@
         },
         {
             "type": "modelInList",
-            "args": [
-                "Amarok",
-                "Caddy",
-                "Caravelle",
-                "Crafter",
-                "Multivan",
-                "Transporter"
-            ]
+            "args": ["Amarok", "Caddy", "Caravelle", "Crafter", "Multivan", "Transporter"]
         }
     ],
     "chevyko": [
@@ -51,10 +44,7 @@
         },
         {
             "type": "modelInList",
-            "args": [
-                "TrailBlazer",
-                "Tahoe"
-            ]
+            "args": ["TrailBlazer", "Tahoe"]
         }
     ],
     "oldcad": [
@@ -68,13 +58,7 @@
         },
         {
             "type": "modelInList",
-            "args": [
-                "SRX",
-                "CTS",
-                "STS",
-                "Escalade",
-                "BLS"
-            ]
+            "args": ["SRX", "CTS", "STS", "Escalade", "BLS"]
         }
     ],
     "opel": [
@@ -88,16 +72,7 @@
         },
         {
             "type": "modelInList",
-            "args": [
-                "Antara",
-                "Astra",
-                "Corsa",
-                "Combo Tour",
-                "Combo",
-                "Insignia",
-                "Meriva",
-                "Zafira"
-            ]
+            "args": ["Antara", "Astra", "Corsa", "Combo Tour", "Combo", "Insignia", "Meriva", "Zafira"]
         }
     ],
     "hum": [
@@ -121,13 +96,7 @@
         },
         {
             "type": "modelInList",
-            "args": [
-                "SRX",
-                "CTS",
-                "STS",
-                "Escalade",
-                "BLS"
-            ]
+            "args": ["SRX", "CTS", "STS", "Escalade", "BLS"]
         }
     ],
     "ford": [
@@ -141,13 +110,7 @@
         },
         {
             "type": "modelInList",
-            "args": [
-                "SRX",
-                "CTS",
-                "STS",
-                "Escalade",
-                "BLS"
-            ]
+            "args": ["SRX", "CTS", "STS", "Escalade", "BLS"]
         }
     ],
     "bp": [],
@@ -227,29 +190,21 @@
             "args": "rent"
         }
     ],
-    "chevyko-tech": [
-        {}
-    ],
-    "chevyko-evac": [
-        {}
-    ],
-    "chevyko-rent": [
+        "chevyko-tech": [],
+        "chevyko-evac": [],
+        "chevyko-rent": [
         {
             "type": "ruamcEvac"
         }
     ],
-    "chevyna-tech": [
-        {}
-    ],
-    "chevyna-evac": [
-        {}
-    ],
-    "chevyna-rent": [
+        "chevyna-tech": [],
+        "chevyna-evac": [],
+        "chevyna-rent": [
         {
             "type": "ruamcEvac"
         }
     ],
-    "oldcad-hotel": [
+         "oldcad-hotel": [
         {
             "type": "ruamcEvac"
         }
@@ -260,12 +215,12 @@
         }
     ],
     "oldcad-transportation": [
-        {
+                {
             "type": "ruamcEvac"
         }
     ],
     "oldcad-deliverParts": [
-        {
+                {
             "type": "ruamcEvac"
         }
     ],
@@ -278,14 +233,14 @@
     "hum-fuel": [],
     "hum-evac": [
         {
-            "type": "Accident"
+            "type": "notAccident"
         },
         {
-            "type": "Vandal"
+            "type": "notVandal"
         }
     ],
-    "ford-tech": [],
-    "ford-evac": [],
+        "ford-tech": [],
+        "ford-evac": [],
     "ford-information": [
         {
             "type": "ruamcEvac"
@@ -365,7 +320,7 @@
     "chartis-unlock": [],
     "chartis-fuel": [],
     "chartis-evac": [
-        {
+                {
             "type": "notAccident"
         },
         {
@@ -373,17 +328,17 @@
         }
     ],
     "chartis-rent": [
-        {
+                {
             "type": "ruamcEvac"
         }
     ],
     "chartis-taxi": [
-        {
+                {
             "type": "ruamcEvac"
         }
     ],
     "chartis-transportation": [
-        {
+                {
             "type": "ruamcEvac"
         }
     ],
