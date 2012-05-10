@@ -1508,6 +1508,27 @@
                 "label": "B2B / 3S Телематика"
             },
             {
+                "value": "vtb24",
+                "label": "B2B / ВТБ 24"
+            },            
+            {
+                "value": "lyckoil",
+                "label": "B2B /ЛУКОЙЛ-Петрокоммерц"
+            },                        
+            {
+                "value": "unicredit",
+                "label": "B2B / ЮниКредитбанк"
+            },
+            {
+                "value": "rnbase",
+                "label": "B2B / РН-карт-Москва Базовая"
+            },
+            {
+                "value": "rnstandard",
+                "label": "B2B / РН-карт-Москва Стандарт"
+            },
+            
+            {
                 "value": "chevyko",
                 "label": "GM / Chevrolet Korea"
             },
@@ -1543,6 +1564,10 @@
                 "value": "b2c",
                 "label": "B2C"
             },
+            {
+                "value": "b2cplat",
+                "label": "B2C Platinum"
+            },            
             {
                 "value": "ford",
                 "label": "Ford"
