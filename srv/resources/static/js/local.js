@@ -257,7 +257,7 @@ function setupCaseMain(viewName, args) {
                       return instance.fieldHash[f];
                   })};
         
-        $("#right").append(
+        $("#empty-fields-placeholder").html(
             Mustache.render($("#empty-fields-template").html(), ctx));
 
         ko.applyBindings(global.viewsWare[viewName].knockVM, 
