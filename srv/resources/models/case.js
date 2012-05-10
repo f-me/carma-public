@@ -197,6 +197,16 @@
             "meta": {
                 "label": "Услуги"
             }
+         },
+         {
+             "name": "actions",
+             "canRead": true,
+             "canWrite": true,
+             "type": "reference",
+             "meta": {
+                 "label": "Действия",
+                 "invisible": true
+             }
         }
     ]
 }

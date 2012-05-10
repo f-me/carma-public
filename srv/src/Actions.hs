@@ -5,9 +5,9 @@
 module Actions where
 
 import Control.Applicative
-import Control.Monad (mzero)
+import Control.Monad
 import Control.Monad.Instances () -- instance Functor Either
-import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Trans
 import Control.Monad.Trans.State
 
 import Data.Text (Text)
@@ -33,23 +33,14 @@ import Snap.Snaplet.Redson.Snapless.Metamodel
 import qualified Snap.Snaplet.Redson.Snapless.CRUD as CRUD
 
 
-data VarPath
-  = VarPath (Maybe ModelName) FieldName
-  deriving (Eq, Ord)
 
 data Action = Action
-  { a'on  :: Map VarPath (Set FieldValue)
-  , a'new :: [Map VarPath Template]
-  , a'set :: Map VarPath Template
+  { a'on  :: Map ByteString (Set FieldValue)
+  , a'new :: [Map FieldName Template]
+  , a'set :: Map ByteString Template
   , a'del :: Bool
   }
 
-instance FromJSON a => FromJSON (Map VarPath a) where
-  parseJSON = fmap (M.mapKeys varPath) . parseJSON
-    where
-      varPath s = case B8.breakSubstring "." s of
-        (fld,"") -> VarPath Nothing fld
-        (model,fld) -> VarPath (Just model) $ B8.tail fld
 
 instance FromJSON Action where
   parseJSON (Object o) = Action
@@ -60,17 +51,21 @@ instance FromJSON Action where
   parseJSON _ = mzero
 
 
-newtype Template = Template [TmpPart]
-data TmpPart = Str Text | Expr Expr
+newtype Template = Template [TmpPart] deriving Show
+data TmpPart = Str Text | Expr Expr deriving Show
 
 data Expr
   = Var ByteString
   | TimeOffset Int -- UTCDiff
   | Call ByteString Expr
+  deriving Show
 
 
 instance FromJSON Template where
-  parseJSON (String s) = Template <$> goS s
+  parseJSON (String s) = parseTemplate s
+
+parseTemplate :: (Applicative m, Functor m) => Text -> m Template
+parseTemplate s = Template <$> goS s
     where
       goS "" = pure []
       goS s  = let (x,xs) = T.breakOn "{{" s
@@ -103,16 +98,19 @@ compileAction (Action {..})
       $ chkFieldVal vals
       $ withEvalContext
 --        $ updateSelf a'set
-        $ createActions a'new
+        $ mapM createAction a'new
 --        $ if a'del then archive else nop
     | (path,vals) <- M.toList a'on
     ]
 
 
-hook2map :: VarPath -> Hook b -> HookMap b
-hook2map (VarPath m f)
-  = M.singleton (fromMaybe "action" m)
-  . M.singleton f . (:[])
+-- FIXME: translate 'service' pseudomodel to set of true service models
+hook2map :: ByteString -> Hook b -> HookMap b
+hook2map p
+  = M.singleton model
+  . M.singleton field . (:[])
+  where
+    [model,field] = B8.split '.' p -- FIXME
 
 chkFieldVal :: Set FieldValue -> Hook b -> Hook b
 chkFieldVal vals h = \v commit ->
@@ -120,47 +118,96 @@ chkFieldVal vals h = \v commit ->
     then h v commit
     else return commit
 
-type EvalContext = Map ModelName (Map FieldName ByteString)
+data EvalContext = EvalContext
+  { objects   :: Map ModelName (Map FieldName ByteString)
+  , objectIds :: Map ModelName ByteString -- InstanceId?
+  }
+emptyContext = EvalContext M.empty M.empty
+
 type EvalStateMonad b a = StateT EvalContext (Handler b (Redson b)) a
 
 
 redisRead m = runRedisDB database . CRUD.read m
-redisRead' longId = redisRead modelName intId
-  where
-    [modelName, intId] = B8.split ':' longId
+redisUpdate m cxt = do
+  let longId = objectIds cxt M.! m
+  let obj    = objects   cxt M.! m
+  let [modelName, intId] = B8.split ':' longId
+  Right _ <- runRedisDB database
+        $ CRUD.update modelName intId obj [] -- FIXME: indices from model
+  return ()
 
+
+cxtAddObject key longId cxt = do
+  let [modelName, intId] = B8.split ':' longId
+  Right obj <- redisRead modelName intId
+  cxtAddObject' key longId obj cxt
+
+cxtAddObject' key longId obj cxt = 
+  return $ cxt 
+    { objects = M.insert key obj $ objects cxt
+    , objectIds = M.insert key longId $ objectIds cxt
+    }
+  
 
 withEvalContext :: EvalStateMonad b a -> Hook b
 withEvalContext f = \v commit -> do
   currentModel <- getModelName
   currentId <- getInstanceId
+  let currentFullId = B8.concat [currentModel, ":", currentId]
+
   Right this <- redisRead currentModel currentId
   let this' = M.union commit this
 
   cxt <- case currentModel of
-    "action" -> do
-      Right svc  <- redisRead' $ this M.! "serviceId"
-      Right kaze <- redisRead' $ this M.! "caseId"
-      return $ M.fromList
-        [("action", this'),("service", svc),("case", kaze)]
-    _ -> do -- some service: e.g. towage or tech
-      Right kaze <- redisRead' $ this M.! "parentId"
-      return $ M.fromList
-        [("service", this'),("case", kaze)]
+    "action" -> return emptyContext
+        >>= cxtAddObject  "service" (this' M.! "serviceId")
+        >>= cxtAddObject  "case"    (this' M.! "caseId")
+        >>= cxtAddObject' "action"  currentFullId this'
+    _ -> return emptyContext -- some service: e.g. towage or tech
+        >>= cxtAddObject  "case"    (this' M.! "parentId")
+        >>= cxtAddObject' "service" currentFullId this'
 
   -- TODO: insert cxt [#now,#currentUser,#dict(,)]
-  let cxt' = M.union cxt $ M.fromList
-        [("this",this')]
-  st <- execStateT f cxt'
-  -- TODO: update action, service and case in DB
+
+  cxt' <- execStateT f cxt
+
   -- NB: we have race conditions if two users change same
   -- instance simultaneously. Hope this is impossible due to
   -- business processes constraints.
-  return $ st M.! "this"
+  -- FIXME: update only changed fields
+  redisUpdate "case" cxt'
+  redisUpdate "service" cxt'
+
+  let thisName = if currentModel == "action" then "action" else "service"
+  return $ objects cxt' M.! thisName
 
 
-createActions :: [Map VarPath Template] -> EvalStateMonad b ()
-createActions a'new = undefined
+evalTemplate _ = B8.pack . show 
+
+createAction :: Map FieldName Template -> EvalStateMonad b ()
+createAction actionTemplate = do
+  cxt <- get
+  let action = M.map (evalTemplate cxt)
+        $ M.union actionTemplate $ M.fromList
+          -- FIXME: quasiquotation?
+          [("caseId",    Template [Str "case:", Expr (Var "case.id")])
+          ,("serviceId", Template [Expr (Var "service.name")
+                                  , Str ":", Expr (Var "service.id")])
+          ,("ctime",     Template [Expr (Var "#.now")])
+          ]
+  Right actionId <- lift
+        $ runRedisDB database
+        $ CRUD.create "action" action [] -- FIXME: get indices from cxt.models
+
+  let actionId' = B8.append "action:" actionId
+  let caseActions = maybe actionId'
+        (\actions -> B8.concat [actions, ",", actionId'])
+        $  M.lookup "actions" $ objects cxt M.! "case"
+  put $ cxt
+    { objects = M.update
+        (Just . M.insert "actions" caseActions)
+        "case" $ objects cxt
+    }
 
 joinHooks :: [HookMap b] -> HookMap b
 joinHooks = M.unionsWith (M.unionWith (++))
