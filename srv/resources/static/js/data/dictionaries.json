@@ -154,59 +154,63 @@
     "ServiceStatuses": {
         "entries": [
             {
-                "value": "s1",
+                "value": "creating",
                 "label": "Создание"
             },
             {
-                "value": "s2",
+                "value": "checking",
                 "label": "Проверка условий"
             },
             {
-                "value": "s3",
+                "value": "dealerConformation",
+                "label": "Согласование с дилером"
+            },            
+            {
+                "value": "makerConformation",
+                "label": "Согласование с производителем"
+            },                        
+            {
+                "value": "filling",
                 "label": "Заполнение данных"
             },
             {
-                "value": "s4",
+                "value": "backoffice",
                 "label": "Передача в Back Office"
             },
             {
-                "value": "s5",
+                "value": "orderService",
                 "label": "Заказ услуги"
             },
             {
-                "value": "s6",
-                "label": "Отложено"
-            },
-            {
-                "value": "s7",
+                "value": "needPartner",
                 "label": "Требуется партнёр"
             },
             {
-                "value": "s8",
+                "value": "cancelService",
                 "label": "Отказ от услуги"
             },
             {
-                "value": "s9",
+                "value": "serviceOrdered",
                 "label": "Услуга заказана"
             },
             {
-                "value": "s10",
+                "value": "serviceDelayed",
                 "label": "Оказание услуги задерживается"
             },
             {
-                "value": "s11",
+                "value": "serviceInProgress",
                 "label": "Услуга оказывается"
             },
             {
-                "value": "s12",
+                "value": "falseCall",
                 "label": "Ложный вызов"
             },
             {
-                "value": "s13",
+                "value": "serviceOk",
                 "label": "Услуга оказана"
             },
             {
-                "value": "s14",
+                "value": "serviceClosed",
                 "label": "Услуга закрыта"
             }
         ]
