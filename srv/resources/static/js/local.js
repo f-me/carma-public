@@ -218,7 +218,11 @@ function setupCaseMain(viewName, args) {
     var refs = [
         {
             field: "services",
-            forest: "case-service-references",
+            forest: "case-service-references"
+        },
+        {
+            field: "actions",
+            forest: "case-actions-references"
         }
     ];
 
@@ -245,7 +249,7 @@ function setupCaseMain(viewName, args) {
                       return instance.fieldHash[f];
                   })};
         
-        $("#right").html(
+        $("#right").append(
             Mustache.render($("#empty-fields-template").html(), ctx));
 
         ko.applyBindings(global.viewsWare[viewName].knockVM, 
@@ -267,8 +271,6 @@ function setupCaseMain(viewName, args) {
     $("#service-picker-container").html(
         Mustache.render($("#service-picker-template").html(),
                         {dictionary: global.dictionaries["Services"]}));
-
-    $(".tableTable").dataTable();
 }
 
 

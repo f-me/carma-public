@@ -165,6 +165,13 @@
       <!-- Rightmost pane with list of empty fields and action notes
       -->
       <div id="right" class="nice-scrollbar pane">
+        <form class="form-vertical">
+          <div class="control-group">
+            <div class="controls">
+              <span class="accordion" id="case-actions-references" />
+            </div>
+          </div>
+        </form>
       </div>
     </script>
 
@@ -355,6 +362,14 @@
                     data-bind="value: {{ name }},
                                valueUpdate: 'afterkeydown'" />
         </div>
+      </div>
+    </script>
+
+    <script type="text/template"
+            class="field-template"
+            id="statictext-field-template">
+      <div class="control-group">
+          <span data-bind="text: {{ name }}" />
       </div>
     </script>
 
@@ -716,6 +731,29 @@
              data-bind="text: modelTitle"
              data-target="#{{ refView }}-head"
              data-toggle="collapse">Услуга…</a>
+        </div>
+
+        <div id="{{ refView }}-head"
+             class="accordion-body collapse {{^refId}}in{{/refId}}">
+          <div class="accordion-inner {{ refClass }}" 
+               id="{{ refView }}">
+            <!-- Instance contents are rendered here -->
+
+          </div>
+        </div>
+      </div>
+    </script>
+
+    <script type="text/template"
+            class="reference-template"
+            id="actions-reference-template">
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <a class="accordion-toggle"
+             id="{{ refView }}-link"
+             data-bind="text: nameLocal"
+             data-target="#{{ refView }}-head"
+             data-toggle="collapse">Действие…</a>
         </div>
 
         <div id="{{ refView }}-head"
