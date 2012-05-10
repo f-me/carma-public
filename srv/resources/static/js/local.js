@@ -93,9 +93,9 @@ var localHooks = {
 $(function () {
     $.getJSON("/s/js/data/dictionaries.json",
   function(dicts) {
-    $.getJSON("/_whoami/",          
+    $.getJSON("/_whoami/",
   function(user) {
-    $.getJSON("/s/js/data/conditions.json",          
+    $.getJSON("/s/js/data/conditions.json",
   function(checks) {
 
       mainSetup(localScreens, localRouter, dicts, localHooks, user);
@@ -123,13 +123,58 @@ function dictionaryHook(elName) {
     }
 }
 
-function renderChecks(name) {
+// jquery -> html(as string) conversion, with selected element
+jQuery.fn.outerHTML = function() {
+    return jQuery("<div>").append(this.clone()).html();
+}
+
+// like _.has but for list
+function hasL(lst, e) {
+    return _.find(lst, function(x) { return x == e });
+}
+
+// render checkboxes, trueChecks contains list with names,
+// tha should be rendered as checked
+function renderChecks(name, trueChecks) {
     var str = "";
     var tpl = $("#check-list-item-template").html();
-    if (_.has(global.checks, name))
-        for (n in global.checks[name]["checks"])
-            str += Mustache.render(tpl, global.checks[name]["checks"][n]);
+    if (_.has(global.checks, name)){
+        for (n in global.checks[name]["checks"]){
+            var check = global.checks[name]["checks"][n];
+            var v = $(Mustache.render(tpl, check));
+            if (hasL(trueChecks, check.name)){
+                v.find('input:checkbox').attr('checked', true);
+            }
+            str += v.outerHTML();
+        }
+    }
     return str;
+}
+
+// try to render checkboxes, if check is found, then
+// make request to candibober, and render checkboxes
+// with 'renderChecks'
+function maybeRenderChecks(e, instance){
+    var str = "";
+    var tpl = $("#check-list-item-template").html();
+    var name = instance.get(e.data('depends'));
+    if (_.has(global.checks, name)){
+        var h = {};
+        h[instance.name] = { 'model' : instance.name,
+                             'id'    : instance.id
+                           };
+        $.ajax({ 'dataType' : 'json',
+                 'type'     : 'POST',
+                 'url'      : '/candibober/check/' + name,
+                 'data'     : JSON.stringify(h),
+                 'success'  : function(data){
+                     e.html(renderChecks(name, data.true));
+                 },
+                 'error'    : function(){
+                     e.html(renderChecks(name, []));
+                 }
+               });
+    }
 }
 
 // Update checks information when parent fields change
@@ -138,13 +183,13 @@ function candiboberHook(elName) {
     $el(elName).find("[data-provide=checklist]").each(
         function(i) {
             (function(e){
-                var d = e.data("depends");
                 // Grab value of instance field specified in
                 // data-depends and render associated checks
                 instance.bind("change:" + e.data("depends"),
                               function(v) {
-                                  e.html(renderChecks(instance.get(e.data("depends"))));
-                              })})($(this));
+                                  maybeRenderChecks(e, instance);
+                              });
+            })($(this));
         });
 }
 

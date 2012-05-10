@@ -38,7 +38,9 @@ Executable carma
     time                        >= 1.1 && < 1.5,
     mtl                         == 2.0.*,
     transformers                >= 0.2 && < 0.4,
-    vin-parser                  == 0.1.*
+    vin-parser                  == 0.1.*,
+    hedis                       == 0.4.1,
+    snaplet-redis               == 0.1.0.*
 
   if flag(development)
     cpp-options: -DDEVELOPMENT

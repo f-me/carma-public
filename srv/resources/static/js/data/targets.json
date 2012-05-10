@@ -5,29 +5,186 @@
             "args": "2"
         },
         {
-            "type": "modelInList",
-            "args": ["focus", "pocus"]
+            "type": "sellAfter",
+            "args": "15.01.2010"
         }
     ],
     "vwcargo": [
         {
             "type": "sellLess",
             "args": "2"
+        },
+        {
+            "type": "sellAfter",
+            "args": "01.06.2010"
+        },
+        {
+            "type": "modelInList",
+            "args": [
+                "Amarok",
+                "Caddy",
+                "Caravelle",
+                "Crafter",
+                "Multivan",
+                "Transporter"
+            ]
         }
     ],
+    "chevyko": [
+        {
+            "type": "sellLess",
+            "args": "1"
+        },
+        {
+            "type": "sellAfter",
+            "args": "15.12.2010"
+        }
+    ],
+    "chevyna": [
+        {
+            "type": "sellLess",
+            "args": "1"
+        },
+        {
+            "type": "sellAfter",
+            "args": "01.02.2010"
+        },
+        {
+            "type": "modelInList",
+            "args": [
+                "TrailBlazer",
+                "Tahoe"
+            ]
+        }
+    ],
+    "oldcad": [
+        {
+            "type": "sellLess",
+            "args": "1"
+        },
+        {
+            "type": "sellAfter",
+            "args": "01.02.2010"
+        },
+        {
+            "type": "modelInList",
+            "args": [
+                "SRX",
+                "CTS",
+                "STS",
+                "Escalade",
+                "BLS"
+            ]
+        }
+    ],
+    "opel": [
+        {
+            "type": "sellLess",
+            "args": "3"
+        },
+        {
+            "type": "sellAfter",
+            "args": "01.04.2011"
+        },
+        {
+            "type": "modelInList",
+            "args": [
+                "Antara",
+                "Astra",
+                "Corsa",
+                "Combo Tour",
+                "Combo",
+                "Insignia",
+                "Meriva",
+                "Zafira"
+            ]
+        }
+    ],
+    "hum": [
+        {
+            "type": "sellLess",
+            "args": "1"
+        },
+        {
+            "type": "sellAfter",
+            "args": "01.02.2010"
+        }
+    ],
+    "cad2012": [
+        {
+            "type": "sellLess",
+            "args": "3"
+        },
+        {
+            "type": "sellAfter",
+            "args": "01.01.2012"
+        },
+        {
+            "type": "modelInList",
+            "args": [
+                "SRX",
+                "CTS",
+                "STS",
+                "Escalade",
+                "BLS"
+            ]
+        }
+    ],
+    "ford": [
+        {
+            "type": "checkupLess",
+            "args": "1"
+        },
+        {
+            "type": "sellAfter",
+            "args": "01.01.2012"
+        },
+        {
+            "type": "modelInList",
+            "args": [
+                "SRX",
+                "CTS",
+                "STS",
+                "Escalade",
+                "BLS"
+            ]
+        }
+    ],
+    "bp": [],
+    "bentley": [],
+    "aston": [],
+    "tickets": [],
+    "arc": [],
+    "hyundai": [],
+    "arval": [],
+    "jenser": [],
+    "corpse": [],
+    "auimp": [],
+    "tvd": [],
+    "tele": [],
+    "ruslan": [
+        {
+            "type": "checkupLess",
+            "args": "1"
+        }
+    ],
+    "atlant": [],
+    "chartis": [],
+    "kraft": [],
     "vw-evac": [
         {
             "type": "notAccident"
         },
         {
             "type": "notVandal"
-        },
-        {
-            "type": "mileageLess",
-            "args": "2128503"
         }
     ],
+    "vw-wheel": [],
+    "vw-charge": [],
     "vw-rent": [
+        {
+            "type": "ruamcEvac"
+        },
         {
             "type": "notUsedService",
             "args": "hotel"
@@ -35,18 +192,201 @@
     ],
     "vw-hotel": [
         {
+            "type": "ruamcEvac"
+        },
+        {
             "type": "notUsedService",
             "args": "rent"
         }
     ],
-    "vw-tech": [
+    "vwcargo-evac": [
         {
-            "type": "daysPassedSinceReport",
-            "args": "2"
+            "type": "notAccident"
         },
         {
-            "type": "mileageLess",
-            "args": "2000"
+            "type": "notVandal"
         }
-    ]
+    ],
+    "vwcargo-wheel": [],
+    "vwcargo-charge": [],
+    "vwcargo-rent": [
+        {
+            "type": "ruamcEvac"
+        },
+        {
+            "type": "notUsedService",
+            "args": "hotel"
+        }
+    ],
+    "vwcargo-hotel": [
+        {
+            "type": "ruamcEvac"
+        },
+        {
+            "type": "notUsedService",
+            "args": "rent"
+        }
+    ],
+    "chevyko-tech": [
+        {}
+    ],
+    "chevyko-evac": [
+        {}
+    ],
+    "chevyko-rent": [
+        {
+            "type": "ruamcEvac"
+        }
+    ],
+    "chevyna-tech": [
+        {}
+    ],
+    "chevyna-evac": [
+        {}
+    ],
+    "chevyna-rent": [
+        {
+            "type": "ruamcEvac"
+        }
+    ],
+    "oldcad-hotel": [
+        {
+            "type": "ruamcEvac"
+        }
+    ],
+    "oldcad-taxi": [
+        {
+            "type": "ruamcEvac"
+        }
+    ],
+    "oldcad-transportation": [
+        {
+            "type": "ruamcEvac"
+        }
+    ],
+    "oldcad-deliverParts": [
+        {
+            "type": "ruamcEvac"
+        }
+    ],
+    "hum-deliverParts": [
+        {
+            "type": "ruamcEvac"
+        }
+    ],
+    "hum-sober": [],
+    "hum-fuel": [],
+    "hum-evac": [
+        {
+            "type": "Accident"
+        },
+        {
+            "type": "Vandal"
+        }
+    ],
+    "ford-tech": [],
+    "ford-evac": [],
+    "ford-information": [
+        {
+            "type": "ruamcEvac"
+        }
+    ],
+    "ford-rent": [
+        {
+            "type": "ruamcEvac"
+        }
+    ],
+    "ford-taxi": [
+        {
+            "type": "ruamcEvac"
+        }
+    ],
+    "bp-unfuel": [],
+    "bp-evac": [],
+    "b2c-evac": [],
+    "b2c-fuel": [],
+    "b2c-start": [],
+    "b2c-wheel": [],
+    "b2c-unlock": [],
+    "b2c-tech1": [],
+    "bentley-rent": [],
+    "bentley-transportation": [],
+    "bentley-taxi": [],
+    "bentley-hotel": [],
+    "bentley-evac": [],
+    "bentley-deliverCar": [],
+    "aston-evac": [],
+    "aston-rent": [],
+    "aston-tech": [],
+    "aston-deliverCar": [],
+    "aston-transportation": [],
+    "aston-hotel": [],
+    "tickets-tickets": [],
+    "arc-tech": [],
+    "arc-evac": [],
+    "arc-hotel": [],
+    "hyundai-tech": [],
+    "hyundai-evac": [],
+    "hyundai-hotel": [],
+    "arval-tech": [],
+    "arval-evac": [],
+    "arval-hotel": [],
+    "jenser-tech": [],
+    "jenser-evac": [],
+    "jenser-hotel": [],
+    "corpse-tech": [],
+    "corpse-evac": [],
+    "corpse-hotel": [],
+    "auimp-tech": [],
+    "auimp-evac": [],
+    "auimp-hotel": [],
+    "tvd-tech": [],
+    "tvd-evac": [],
+    "tvd-hotel": [],
+    "tele-tech": [],
+    "tele-evac": [],
+    "tele-hotel": [],
+    "ruslan-charge": [],
+    "ruslan-wheel": [],
+    "ruslan-tech": [],
+    "ruslan-evac": [],
+    "atlant-charge": [],
+    "atlant-wheel": [],
+    "atlant-tech": [],
+    "atlant-evac": [
+        {
+            "type": "notVandal"
+        }
+    ],
+    "atlant-information": [],
+    "chartis-ken": [],
+    "chartis-charge": [],
+    "chartis-wheel": [],
+    "chartis-unlock": [],
+    "chartis-fuel": [],
+    "chartis-evac": [
+        {
+            "type": "notAccident"
+        },
+        {
+            "type": "notVandal"
+        }
+    ],
+    "chartis-rent": [
+        {
+            "type": "ruamcEvac"
+        }
+    ],
+    "chartis-taxi": [
+        {
+            "type": "ruamcEvac"
+        }
+    ],
+    "chartis-transportation": [
+        {
+            "type": "ruamcEvac"
+        }
+    ],
+    "kraft-evac": [],
+    "kraft-tech": []
 }

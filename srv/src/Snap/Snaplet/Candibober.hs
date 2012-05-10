@@ -13,6 +13,7 @@ where
 
 import Control.Applicative
 import Data.Maybe
+import Data.Int
 
 import Control.Monad
 import Control.Monad.IO.Class
@@ -20,8 +21,9 @@ import Control.Monad.Trans.Error
 
 import Data.Aeson as A
 import Data.Aeson.Types as A
+import Data.Aeson.TH
 import qualified Data.ByteString.Char8 as B
-import qualified Data.ByteString.Lazy as LB (readFile)
+import qualified Data.ByteString.Lazy as LB
 
 import Data.Configurator
 
@@ -29,8 +31,14 @@ import Data.Lens.Template
 
 import qualified Data.Map as M
 
+import           Snap.Snaplet.RedisDB
+import qualified Database.Redis as R
+
 import Snap.Core
 import Snap.Snaplet
+import Snap (gets)
+
+import qualified Snap.Snaplet.Redson.Snapless.CRUD as CRUD
 
 import Snap.Snaplet.Candibober.Types
 
@@ -63,7 +71,7 @@ checkMap :: M.Map B.ByteString (FreeChecker A.Parser)
 checkMap = 
     M.fromList 
          [ ("sellLess", 
-            compareDate "case" "car_sellDate" LT <=< yearsAgo <=< readInteger)
+            compareDate "case" "car_sellDate" GT <=< yearsAgo <=< readInteger)
          , ("sellAfter",
             compareDate "case" "car_sellDate" GT <=< readDate)
          , ("checkupLess",
@@ -121,10 +129,54 @@ type TargetMap = M.Map TargetName [Condition]
 
 ------------------------------------------------------------------------------
 -- | Candibober snaplet type.
-data Candibober = Candibober { _targets :: TargetMap }
+data Candibober = Candibober { _targets :: TargetMap
+                             , _database :: Snaplet RedisDB
+                             , _maxRequestBodySize :: Int64
+                             }
 
 makeLens ''Candibober
 
+jsonToDataset :: LB.ByteString -> Maybe Dataset
+jsonToDataset = A.decode
+
+-- | Generate redis key from model name and id
+getKey m =
+  let name = fromJust $ M.lookup "model" m
+      id   = fromJust $ M.lookup "id"    m
+  in CRUD.instanceKey name id
+
+-- | get full model, I think here should be Left r case
+updateModel v = runRedisDB database $ do
+                  r <- R.hgetall $ getKey v
+                  case r of
+                    Right r -> return $ Just $ M.fromList r
+                    Left  _ -> return Nothing
+
+-- | Recursively build dataset from redis based on recieved spec
+updateDataset dataset = upd (M.toList dataset) $ Just M.empty
+    where
+      upd _  Nothing   = return Nothing
+      upd [] (Just d2) = return $ Just d2
+      upd d1 (Just d2) = do
+        let (k, v) = head d1
+        n <- updateModel v
+        upd (tail d1) $ n >>= (\v -> return $ M.insert k v d2)
+-- $ maybe Nothing (\x -> Just $ M.insert k x d2) n
+
+data CheckedConditions = CCond { true, false, nothing :: [ConditionName] }
+$(deriveToJSON id ''CheckedConditions)
+
+-- | check conditions on dataset and divide them it 3 groups
+check :: [Condition] -> Dataset -> IO CheckedConditions
+check conditions ds = check' conditions $ CCond [] [] []
+    where
+      check' []     cc = return cc
+      check' (c:cs) cc = do
+        r <- (checker c) ds
+        case r of
+          Nothing    -> check' cs $ cc { nothing = (cType c) : (nothing cc) }
+          Just True  -> check' cs $ cc { true    = (cType c) : (true cc   ) }
+          Just False -> check' cs $ cc { false   = (cType c) : (false cc  ) }
 
 ------------------------------------------------------------------------------
 -- | Read target name from @target@ request parameter and dataset spec
@@ -145,7 +197,28 @@ makeLens ''Candibober
 doCheck :: Handler b Candibober ()
 doCheck = do
     modifyResponse $ setContentType "application/json"
+    targetName <- getParam "target"
+    targets    <- gets _targets
+    target     <- maybeBadTarget (targetName >>= \x -> M.lookup x targets)
+    bodySize   <- gets _maxRequestBodySize
+    dataset    <- jsonToDataset <$> readRequestBody bodySize
+    u          <- maybeBadDataset dataset
+    maybeNotFoundDs target u
+        where
+          maybeBadTarget  = maybe (finishWithError 403 "bad target arg") return
+          maybeBadDataset = maybe (finishWithError 403 "bad dataset") updateDataset
+          maybeNotFoundDs target = maybe (finishWithError 403 "")
+                                         (writeDoCheckResponse target)
+          writeDoCheckResponse target dataset = do
+            r <- liftIO $ check target dataset
+            writeLBS $ A.encode r
 
+finishWithError :: Int -> LB.ByteString -> Handler a b c
+finishWithError code message = do
+  modifyResponse $ setResponseCode code
+  writeLBS message
+  r <- getResponse
+  finishWith r
 
 ------------------------------------------------------------------------------
 -- | Parse target definitions into 'TargetMap'.
@@ -173,6 +246,10 @@ candiboberInit =
       tFile <- liftIO $
                lookupDefault "resources/targets.json"
                              cfg "targets-file"
-
+      maxReqSize <- liftIO $
+                   lookupDefault 65535
+                                 cfg "max-request-body-size"
+      r <- nestSnaplet "db" database $ redisDBInit R.defaultConnectInfo
       tMap <- liftIO $ loadTargets tFile
-      return $ Candibober tMap
+      addRoutes routes
+      return $ Candibober tMap r maxReqSize
