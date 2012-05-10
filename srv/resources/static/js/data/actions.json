@@ -21,7 +21,34 @@
     },
     {
         "on": {
-            "service.status": [
+            "deliverCar.status": [
+                "backoffice"
+            ],
+    		"deliverParts.status": [
+                "backoffice"
+            ],
+			"hotel.status": [
+                "backoffice"
+            ],
+			"information.status": [
+                "backoffice"
+            ],
+			"rent.status": [
+                "backoffice"
+            ],
+			"sober.status": [
+                "backoffice"
+            ],
+			"taxi.status": [
+                "backoffice"
+            ],
+			"tech.status": [
+                "backoffice"
+            ],
+			"towage.status": [
+                "backoffice"
+            ],
+			"transportation.status": [
                 "backoffice"
             ],
             "action.result": [
@@ -394,7 +421,34 @@
     },
     {
         "on": {
-            "service.status": [
+            "deliverCar.status": [
+                "dealerConformation"
+            ],
+			"deliverParts.status": [
+                "dealerConformation"
+            ],
+			"hotel.status": [
+                "dealerConformation"
+            ],
+			"information.status": [
+                "dealerConformation"
+            ],
+			"rent.status": [
+                "dealerConformation"
+            ],
+			"sober.status": [
+                "dealerConformation"
+            ],
+			"taxi.status": [
+                "dealerConformation"
+            ],
+			"tech.status": [
+                "dealerConformation"
+            ],
+			"towage.status": [
+                "dealerConformation"
+            ],
+			"transportation.status": [
                 "dealerConformation"
             ]
         },
@@ -410,7 +464,34 @@
     },
     {
         "on": {
-            "service.status": [
+            "deliverCar.status": [
+                "makerConformation"
+            ],
+			"deliverParts.status": [
+                "makerConformation"
+            ],
+			"hotel.status": [
+                "makerConformation"
+            ],
+			"information.status": [
+                "makerConformation"
+            ],
+			"rent.status": [
+                "makerConformation"
+            ],
+			"sober.status": [
+                "makerConformation"
+            ],
+			"taxi.status": [
+                "makerConformation"
+            ],
+			"tech.status": [
+                "makerConformation"
+            ],
+			"towage.status": [
+                "makerConformation"
+            ],
+			"transportation.status": [
                 "makerConformation"
             ]
         },
