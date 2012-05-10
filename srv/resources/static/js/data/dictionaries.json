@@ -1961,7 +1961,7 @@
             ],
             "accountCheck": [
                 {
-                    "value": "busyLine",
+                    "value": "financialOk",
                     "label": "Всё верно"
                 },
                 {
