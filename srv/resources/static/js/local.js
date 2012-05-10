@@ -17,6 +17,10 @@ var localScreens = {
             "tableView": setupSearchTable
         }
     },
+    "back":
+    {
+        "template": "back-screen-template"
+    },
     "vin":
     {
         "template": "vin-screen-template",
@@ -53,6 +57,7 @@ var localRouter = Backbone.Router.extend({
         "vin": "vin",
         "partner/:id": "loadPartner",
         "partner": "newPartner",
+        "back": "back",
         "call": "call"
     },
 
@@ -66,6 +71,9 @@ var localRouter = Backbone.Router.extend({
 
     search: function () {
         renderScreen("search");
+    },
+    back: function () {
+        renderScreen("back");
     },
 
     vin: function () {
