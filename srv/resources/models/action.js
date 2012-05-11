@@ -94,7 +94,6 @@
         "name": "assignedTo",
         "canRead": ["front","back","head"],
         "canWrite":["back","head"], 
-        "index": true,
         "meta": {
           "invisible": true
         }

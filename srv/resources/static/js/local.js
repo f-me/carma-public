@@ -19,7 +19,10 @@ var localScreens = {
     },
     "back":
     {
-        "template": "back-screen-template"
+        "template": "back-screen-template",
+        "views": {
+            "back-form": setupBackOffice
+        }
     },
     "vin":
     {
@@ -402,6 +405,18 @@ function getVinAlerts () {
     });
 }
 
+function mkDataTable (t) {
+    t.dataTable({
+        sScrollY: "500px",
+        bPaginate: false,
+        oLanguage: {
+            sSearch: "Фильтр",
+            sInfoEmpty: "",
+            sZeroRecords: "Ничего не найдено",
+            sInfo: "Показаны записи с _START_ по _END_ (всего _TOTAL_)"
+      }});
+}
+
 function setupPartnersForm(viewName, args) {
     var refs = [
         {
@@ -424,15 +439,7 @@ function setupPartnersForm(viewName, args) {
 
       var t = $("#partner-table");
       if (t.hasClass("dataTable")) return;
-      t.dataTable({
-          sScrollY: "500px",
-          bPaginate: false,
-          oLanguage: {
-              sSearch: "Фильтр",
-              sInfoEmpty: "",
-              sZeroRecords: "Ничего не найдено",
-              sInfo: "Показаны записи с _START_ по _END_ (всего _TOTAL_)"
-        }});
+      mkDataTable(t);
 
       t.on("click.datatable", "tr", function() {
          var id = this.children[0].innerText;
@@ -453,6 +460,7 @@ function setupPartnersForm(viewName, args) {
           });
     }, 100);
 }
+
 
 function addNewServiceToPartner(name)
 {
@@ -481,6 +489,61 @@ function doVin() {
     });
 }
 
+
+function setupBackOffice () {
+    setTimeout(function() {
+        var groupTable = $("#back-group-table");
+        mkDataTable(groupTable);
+        groupTable.on("click.datatable", "tr", function() {
+           var id = this.children[0].innerText.split('/');
+           $.ajax({
+              type: "PUT",
+              url: "/_/action/"+ id[1],
+              contentType: "application/json",
+              data: '{"assignedTo": "backuser"}',
+              processData: false
+           });
+           window.location.hash = "case/" + id[0];
+        });
+        var userTable  = $("#back-user-table");
+        mkDataTable(userTable);
+        userTable.on("click.datatable", "tr", function() {
+           var id = this.children[0].innerText.split('/');
+           window.location.hash = "case/" + id[0];
+        });
+
+        $.getJSON(modelMethod("action", "search?q=*&_limit=1000"),
+          function(objs) {
+              var ut = userTable.dataTable();
+              ut.fnClearTable();
+              var gt = groupTable.dataTable();
+              gt.fnClearTable();
+              for (i in objs) {
+                var obj = objs[i];
+                
+                var id = obj.caseId.replace(/\D/g,'') + "/" + obj.id;
+                var duedate = obj.duedate
+                         ? new Date(obj.duedate * 1000)
+                                .toString("dd.MM.yyyy HH:mm:ss")
+                         : '';
+                
+                var row = [id
+                          ,obj.priority || '3'
+                          ,duedate
+                          ,obj.description || ''
+                          ,obj.comment || '']
+
+                if (_.has(obj, 'assignedTo')) {
+                  ut.fnAddData(row);
+                } else {
+                  gt.fnAddData(row);
+                }
+              }
+          });
+    },200);
+}
+
+ 
 function removeVinAlert(val) {
     $.post("/vin/state", { id: val } );
 }

@@ -95,7 +95,7 @@ evalTemplate :: EvalContext -> Template -> ByteString
 evalTemplate cxt (Template xs) = B8.concat $ map evalTPart xs
   where
     evalTPart (Str s) = T.encodeUtf8 s
-    evalTPart (Expr e) = "{{not implemented yet}}"
+    evalTPart (Expr e) = (objects cxt M.! "#") M.! "now" --FIXME:
 
 
 parseActions :: FilePath -> IO (Either String [Action])
