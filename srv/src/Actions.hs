@@ -86,6 +86,7 @@ parseTemplate s = Template <$> goS s
 data EvalContext = EvalContext
   { objects   :: Map ModelName (Map FieldName ByteString)
   , objectIds :: Map ModelName ByteString -- InstanceId?
+  , models    :: Map ModelName Model
   }
 
 type EvalStateMonad b a = StateT EvalContext (Handler b (Redson b)) a
@@ -137,12 +138,13 @@ chkFieldVal vals h = \v commit ->
 
 
 redisRead m = runRedisDB database . CRUD.read m
-redisUpdate m cxt = do
-  let longId = objectIds cxt M.! m
-  let obj    = objects   cxt M.! m
+redisUpdate m (EvalContext{..}) = do
+  let longId = objectIds M.! m
+  let obj    = objects   M.! m
   let [modelName, intId] = B8.split ':' longId
   Right _ <- runRedisDB database
-        $ CRUD.update modelName intId obj [] -- FIXME: indices from model
+        $ CRUD.update modelName intId obj
+        $ indices $ models M.! modelName
   return ()
 
 
@@ -167,12 +169,14 @@ withEvalContext f = \v commit -> do
   Right this <- redisRead currentModel currentId
   let this' = M.union commit this
 
+  ms  <- getModels
   now <- round . utcTimeToPOSIXSeconds <$> liftIO getCurrentTime
   let emptyContext = EvalContext
         { objects = M.singleton "#" $ M.fromList
             [("now", B8.pack $ show (now :: Int))
             ,("currentUser", "back")]
         , objectIds = M.empty
+        , models = ms
         }
 
   cxt <- case currentModel of
@@ -214,7 +218,8 @@ createAction actionTemplate = do
   -- FIXME: do we need to put updated actions into context?
   Right actionId <- lift
         $ runRedisDB database
-        $ CRUD.create "action" action' [] -- FIXME: get indices from cxt.models
+        $ CRUD.create "action" action'
+        $ indices $ models M.! "action"
 
   let actionId' = B8.append "action:" actionId
   let caseActions = maybe actionId'
