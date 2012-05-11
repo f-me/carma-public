@@ -279,6 +279,12 @@ function setupCaseMain(viewName, args) {
     $("#service-picker-container").html(
         Mustache.render($("#service-picker-template").html(),
                         {dictionary: global.dictionaries["Services"]}));
+
+    $("body").on("change.input", ".redirectOnChange", function () {
+        setTimeout(function() {
+          window.location.hash = "back";
+        }, 500);
+    });
 }
 
 

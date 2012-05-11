@@ -556,7 +556,10 @@
             -->
             
             <input type="text"
-                   class="pane-span focusable {{# readonly }}disabled{{/ readonly }}"
+                   class="pane-span
+                          focusable
+                          {{# meta.addClass }}{{meta.addClass}}{{/ meta.addClass }}
+                          {{# readonly }}disabled{{/ readonly }}"
                    {{# readonly }}readonly{{/ readonly }}
                    name="{{ name }}"
                    data-source="global.dictionaries['{{meta.dictionaryName}}']"

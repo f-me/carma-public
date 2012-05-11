@@ -59,6 +59,7 @@
         "canWrite":["back","head"], 
         "type": "dictionary",
         "meta": {
+          "addClass": "redirectOnChange",
           "label": "Результат",
           "dictionaryName": "ActionResults",
           "dictionaryParent": "name"
