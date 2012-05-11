@@ -41,7 +41,7 @@ data Action = Action
   { a'on  :: Map ByteString (Set FieldValue)
   , a'new :: [Map FieldName Template]
   , a'set :: Map ByteString Template
-  , a'del :: Bool
+  , a'close :: Bool
   }
 
 
@@ -50,7 +50,7 @@ instance FromJSON Action where
     <$> o .:  "on"
     <*> o .:? "new" .!= []
     <*> o .:? "set" .!= M.empty
-    <*> o .:? "del" .!= False
+    <*> o .:? "close" .!= False
   parseJSON _ = mzero
 
 
@@ -80,7 +80,7 @@ parseTemplate s = Template <$> goS s
 
       stripPrefix p s = fromMaybe s $ T.stripPrefix p s
 
-      expr s = pure $ Var "FIXME: not implemented"
+      expr = pure . Var . T.encodeUtf8 -- "FIXME: not implemented"
 
 
 data EvalContext = EvalContext
@@ -95,7 +95,11 @@ evalTemplate :: EvalContext -> Template -> ByteString
 evalTemplate cxt (Template xs) = B8.concat $ map evalTPart xs
   where
     evalTPart (Str s) = T.encodeUtf8 s
-    evalTPart (Expr e) = (objects cxt M.! "#") M.! "now" --FIXME:
+    evalTPart (Expr (Var v)) = case M.lookup field (objects cxt M.! model) of
+      Just val -> val
+      Nothing  -> (objects cxt M.! "#") M.! "now"
+      where
+        [model,field] = B8.split '.' v -- FIXME: can fail
 
 
 parseActions :: FilePath -> IO (Either String [Action])
@@ -114,9 +118,9 @@ compileAction (Action {..})
     [ hook2map path
       $ chkFieldVal vals
       $ withEvalContext
---        $ updateSelf a'set
         $ mapM createAction a'new
---        $ if a'del then archive else nop
+          >> mapM (uncurry updateObject) (M.toList a'set)
+          >> when a'close closeAction
     | (path,vals) <- M.toList a'on
     ]
 
@@ -209,11 +213,17 @@ createAction actionTemplate = do
   cxt@(EvalContext{..}) <- get
 
   let action  = M.map (evalTemplate cxt) actionTemplate
-  let extraFields = M.fromList
+  let extraFields = M.fromList $
         [("caseId",    objectIds M.! "case")
         ,("serviceId", objectIds M.! "service")
         ,("ctime",     (objects M.! "#") M.! "now")
+        ,("closed",    "false")
         ]
+        ++ maybe [] (\u -> [("assignedTo", u)])
+           (M.lookup "action" objects >>= M.lookup "assignedTo")
+        ++ maybe [] (\u -> [("caseId", u)])
+           (M.lookup "action" objects >>= M.lookup "caseId")
+
   let action' = M.union extraFields action
   -- FIXME: do we need to put updated actions into context?
   Right actionId <- lift
@@ -224,12 +234,38 @@ createAction actionTemplate = do
   let actionId' = B8.append "action:" actionId
   let caseActions = maybe actionId'
         (\actions -> B8.concat [actions, ",", actionId'])
-        $  M.lookup "actions" $ objects M.! "case"
+        $ M.lookup "actions" $ objects M.! "case"
   put $ cxt
     { objects = M.update
         (Just . M.insert "actions" caseActions)
-        "case" $ objects
+        "case" objects
     }
+
+
+updateObject :: ByteString -> Template -> EvalStateMonad b ()
+updateObject p tmp = do
+  let [model, field] = B8.split '.' p
+  cxt@(EvalContext{..}) <- get
+  put $ cxt
+    { objects = M.update
+        (Just . M.insert field (evalTemplate cxt tmp))
+        model objects
+    }
+
+closeAction :: EvalStateMonad b ()
+closeAction = do
+  cxt@(EvalContext{..}) <- get
+  let action = M.insert "closed" "true"
+        $ objects M.! "action"
+  let actionId = objectIds M.! "action"
+  let kaze = M.update
+        (\a -> Just . B8.intercalate "," . filter (/=actionId) .  B8.split ',' $ a )
+        "actions" $ objects M.! "case"
+  put $ cxt
+    { objects = M.insert "action" action
+        $ M.insert "case" kaze objects
+    }
+  
 
 joinHooks :: [HookMap b] -> HookMap b
 joinHooks = M.unionsWith (M.unionWith (++))

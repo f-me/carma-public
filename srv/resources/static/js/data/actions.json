@@ -6,7 +6,7 @@
             ]
         },
         "set": {
-            "action.duedate": "{{#now+5m}}"
+            "action.duedate": "{{#.now+5m}}"
         }
     },
     {
@@ -16,7 +16,7 @@
             ]
         },
         "set": {
-            "action.duedate": "{{#now+30m}}"
+            "action.duedate": "{{#.now+30m}}"
         }
     },
     {
@@ -62,7 +62,7 @@
         "new": [
             {
                 "name": "orderService",
-                "duetime": "{{#now}}",
+                "duetime": "{{#.now}}",
                 "description": "Заказать услугу",
                 "targetGroup": "back"
             }
@@ -78,7 +78,7 @@
         "new": [
             {
                 "name": "needPartner",
-                "duetime": "{{#now}}",
+                "duetime": "{{#.now}}",
                 "description": "Требуется найти партнёра для оказания услуги",
                 "targetGroup": "parguy"
             }
@@ -92,7 +92,7 @@
             ]
         },
         "set": {
-            "action.duedate": "{{#now+1h}}"
+            "action.duedate": "{{#.now+1h}}"
         }
     },
     {
@@ -104,7 +104,7 @@
         "new": [
             {
                 "name": "tellClient",
-                "duetime": "{{#now}}",
+                "duetime": "{{#.now}}",
                 "description": "Сообщить клиенту о договорённости",
                 "targetGroup": "back"
             }
@@ -121,7 +121,7 @@
         "new": [
             {
                 "name": "cancelService",
-                "duetime": "{{#now}}",
+                "duetime": "{{#.now}}",
                 "description": "Требуется отказаться от заказанной услуги",
                 "targetGroup": "back"
             }
@@ -160,7 +160,7 @@
         "new": [
             {
                 "name": "checkStatus",
-                "duetime": "{{#now+1h}}",
+                "duetime": "{{#.now+1h}}",
                 "description": "У партнёра требуется уточнить началось оказания услуги или нет",
                 "targetGroup": "back"
             }
@@ -176,7 +176,7 @@
         "new": [
             {
                 "name": "tellDelayClient",
-                "duetime": "{{#now}}",
+                "duetime": "{{#.now}}",
                 "description": "Партнёр задерживает оказание услуги, требуется сообщить об этом клиенту",
                 "targetGroup": "back"
             }
@@ -203,7 +203,7 @@
         "new": [
             {
                 "name": "checkEndOfService",
-                "duetime": "{{#now+1h}}",
+                "duetime": "{{#.now+1h}}",
                 "description": "Уточнить у клиента окончено ли оказание услуги",
                 "targetGroup": "back"
             }
@@ -217,7 +217,7 @@
             ]
         },
         "set": {
-            "action.duetime": "{{#now+30m}}"
+            "action.duetime": "{{#.now+30m}}"
         }
     },
     {
@@ -229,7 +229,7 @@
         "new": [
             {
                 "name": "complaintResolution",
-                "duetime": "{{#now}}",
+                "duetime": "{{#.now}}",
                 "description": "Клиент предъявил претензию",
                 "targetGroup": "back"
             }
@@ -253,7 +253,7 @@
         "new": [
             {
                 "name": "addBill",
-                "duetime": "{{#now+14d}}",
+                "duetime": "{{#.now+14d}}",
                 "description": "Услуга оказана, требуется ввести данные по счёту и прикрепить файлы со счетами",
                 "targetGroup": "parguy"
             }
@@ -267,7 +267,7 @@
             ]
         },
         "set": {
-            "action.duetime": "{{#now+5d}}"
+            "action.duetime": "{{#.now+5d}}"
         }
     },
     {
@@ -279,7 +279,7 @@
         "new": [
             {
                 "name": "accountCheck",
-                "duetime": "{{#now}}",
+                "duetime": "{{#.now}}",
                 "description": "Проверить счета",
                 "targetGroup": "parguy"
             }
@@ -306,7 +306,7 @@
         "new": [
             {
                 "name": "editCaseAfterClosure",
-                "duetime": "{{#now}}",
+                "duetime": "{{#.now}}",
                 "description": "Внесение изменений после выставления счета",
                 "targetGroup": "head"
             }
@@ -333,7 +333,7 @@
         "new": [
             {
                 "name": "getInfoDealerVW",
-                "duetime": "{{#now+7d}}",
+                "duetime": "{{#.now+7d}}",
                 "description": "Только для программы VW",
                 "targetGroup": "back"
             }
@@ -349,7 +349,7 @@
         "new": [
             {
                 "name": "getInfoDealerVW",
-                "duetime": "{{#now+7d}}",
+                "duetime": "{{#.now+7d}}",
                 "description": "Только для программы VW",
                 "targetGroup": "back"
             }
@@ -369,7 +369,7 @@
         "new": [
             {
                 "name": "closeCase",
-                "duetime": "{{#now+1d}}",
+                "duetime": "{{#.now+1d}}",
                 "description": "Услуга оказана, требуется закрыть заявку у партнёра",
                 "targetGroup": "back"
             }
@@ -396,7 +396,7 @@
         "new": [
             {
                 "name": "financialClose",
-                "duetime": "{{#now+1d}}",
+                "duetime": "{{#.now+1d}}",
                 "description": "Требуется получить финансовую информацию у партнёра по закрытой заявке",
                 "targetGroup": "back"
             }
@@ -412,7 +412,7 @@
         "new": [
             {
                 "name": "caseContinue",
-                "duetime": "{{#now}}",
+                "duetime": "{{#.now}}",
                 "description": "Услуга оказана, требуются ли клиенту ещё услуги?",
                 "targetGroup": "back"
             }
@@ -455,7 +455,7 @@
         "new": [
             {
                 "name": "dealerApproval",
-                "duetime": "{{#now}}",
+                "duetime": "{{#.now}}",
                 "description": "Требуется согласовать оказание услуги с дилером",
                 "targetGroup": "back"
             }
@@ -498,7 +498,7 @@
         "new": [
             {
                 "name": "carmakerApproval",
-                "duetime": "{{#now}}",
+                "duetime": "{{#.now}}",
                 "description": "Требуется согласовать оказание услуги с автопроизводителем",
                 "targetGroup": "head"
             }

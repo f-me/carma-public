@@ -520,16 +520,17 @@ function setupBackOffice () {
               gt.fnClearTable();
               for (i in objs) {
                 var obj = objs[i];
+                if (obj.closed && obj.closed !== "false") continue;
                 
                 var id = obj.caseId.replace(/\D/g,'') + "/" + obj.id;
-                var duedate = obj.duedate
-                         ? new Date(obj.duedate * 1000)
+                var duetime = obj.duetime
+                         ? new Date(obj.duetime * 1000)
                                 .toString("dd.MM.yyyy HH:mm:ss")
                          : '';
                 
                 var row = [id
                           ,obj.priority || '3'
-                          ,duedate
+                          ,duetime
                           ,obj.description || ''
                           ,obj.comment || '']
 
