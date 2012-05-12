@@ -283,9 +283,21 @@
         <form id="vin-import-form" onsubmit="doVin(); return false;">
           <p>
             <select name="program">
-              <option value="vmMotor">Vw легковые</option>
-              <option value="vwTruck">Vw коммерческие</option>
-              <option value="vwRuslan">Рус-Лан</option>
+              <option value="ford">Ford</option>
+              <option value="fordPlus">Ford+</option>
+              <option value="vwMotor">VW Легковые</option>
+              <option value="vwCommercial">VW Коммерческие</option>
+              <option value="opel">Opel</option>
+              <option value="hummer">Hummer</option>
+              <option value="chevroletNAO">Chevrolet NAO</option>
+              <option value="chevroletKorea">Chevrolet Korea</option>
+              <option value="cadillac">Cadillac</option>
+              <option value="vwRuslan">VW Рус-Лан</option>
+              <option value="chartis">Chartis</option>
+              <option value="vwAvilon">VW Avilon</option>
+              <option value="atlantM">Атлант-М</option>
+              <option value="autocraft">AutoCraft</option>
+              <option value="b2c">B2C</option>
             </select>
             <input type="file"
                    name="file"
@@ -314,8 +326,11 @@
 			onclick="removeVinAlert('{{alertId}}'); return false;">×</button>
                 {{alertVinFile}}: {{ alertMessage }}
                 {{# alertErrorFile }}
-                  <a href="{{alertErrorFile}}">Файл</a> с ошибками.
+                  <a href="{{alertErrorFile}}">Файл</a> с необработанными записями.
                 {{/ alertErrorFile }}
+                {{# alertErrorLogFile }}
+                  <a href="{{alertErrorLogFile}}">Файл</a> с описанием ошибок.
+                {{/ alertErrorLogFile }}
               </div>
             {{/ alerts}}
           </div>

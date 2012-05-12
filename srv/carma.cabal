@@ -1,4 +1,4 @@
-Name:                srv
+Name:                carma
 Version:             0.1
 Synopsis:            Project Synopsis Here
 Description:         Project Description Here
@@ -17,6 +17,15 @@ Flag development
 Executable carma
   hs-source-dirs: src
   main-is: Main.hs
+
+  Other-modules:
+    Application,
+    Snap.Snaplet.AvayaAES,
+    Snap.Snaplet.Candibober,
+    Snap.Snaplet.Candibober.Date,
+    Snap.Snaplet.Candibober.Number,
+    Snap.Snaplet.Candibober.String,
+    Snap.Snaplet.Candibober.Types
 
   Build-depends:
     aeson                       == 0.6.*,

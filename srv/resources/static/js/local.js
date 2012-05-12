@@ -395,7 +395,7 @@ function setupVinForm(viewName, args) {
     $el(viewName).html($el("vin-form-template").html());
     global.viewsWare[viewName] = {};
 
-    setInterval(getVinAlerts, 5000);
+    setInterval(getVinAlerts, 1000);
 }
 
 function getVinAlerts () {
