@@ -343,7 +343,10 @@ function modelSetup(modelName) {
                                        refN: 0,
                                        refView: view},
                                       getTemplates("group-template")));
-                        $el(view).html(content[gName]);
+                        // render actual view content in the '.content'
+                        // children of view block, so we can add
+                        // custom elements to decorate view
+                        $el(view).find('.content').html(content[gName]);
                     }
                 }
 
