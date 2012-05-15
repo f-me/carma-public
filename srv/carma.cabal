@@ -51,6 +51,11 @@ Executable carma
     hedis                       == 0.4.1,
     snaplet-redis               == 0.1.0.*
 
+  Extensions:
+    OverloadedStrings,
+    RecordWildCards,
+    NamedFieldPuns
+
   if flag(development)
     cpp-options: -DDEVELOPMENT
     -- In development mode, speed is already going to suffer, so skip
