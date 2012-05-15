@@ -38,7 +38,7 @@ import Snap.Snaplet.Candibober
 import Snap.Snaplet.Redson
 import Snap.Snaplet.Vin
 
-import Actions
+import Actions.Compile
 
 ------------------------------------------------------------------------------
 -- | Application snaplet state type: Redson, Heist.
