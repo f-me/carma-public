@@ -23,6 +23,26 @@
             }
         ]
     },
+    "VINChecked": {
+        "entries": [
+            {
+                "value": "base",
+                "label": "По базе данных"
+            },
+            {
+                "value": "dealer",
+                "label": " От дилера"
+            },
+            {
+                "value": "service",
+                "label": "По сервисной книжке"
+            },
+            {
+                "value": "partner",
+                "label": "По согласованию заказчика"
+            }
+        ]
+    },    
     "TechTypes": {
         "entries": [
             {
