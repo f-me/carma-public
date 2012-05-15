@@ -119,6 +119,16 @@
             }
         },
         {
+            "name": "vinChecked",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
+            "type": "dictionary",
+            "meta": {
+                "dictionaryName": "VINChecked",
+                "label": "VIN проверен",
+            }
+        },        
+        {
             "name": "caseAddress",
             "groupName": "address"
         },
