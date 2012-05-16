@@ -1,4 +1,36 @@
 {
+    "Colors": {
+        "entries": [
+            {
+                "value": "black",
+                "label": "Чёрный"
+            },
+            {
+                "value": "white",
+                "label": "Белый"
+            },
+            {
+                "value": "white",
+                "label": "Серебристый"
+            },            
+            {
+                "value": "green",
+                "label": "Зелёный"
+            },
+            {
+                "value": "blue",
+                "label": "Синий"
+            },
+            {
+                "value": "red",
+                "label": "Красный"
+            },
+            {
+                "value": "yellow",
+                "label": "Желтный"
+            }            
+        ]
+    },    
     "CallerTypes": {
         "entries": [
             {
