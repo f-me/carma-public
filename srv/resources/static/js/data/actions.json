@@ -64,7 +64,8 @@
                 "name": "orderService",
                 "duetime": "{{#.now}}",
                 "description": "Заказать услугу",
-                "targetGroup": "back"
+                "targetGroup": "back",
+                "priority": "2"
             }
         ],
         "close": true
@@ -80,7 +81,8 @@
                 "name": "needPartner",
                 "duetime": "{{#.now}}",
                 "description": "Требуется найти партнёра для оказания услуги",
-                "targetGroup": "parguy"
+                "targetGroup": "parguy",
+                "priority": "1"
             }
         ],
         "close": true
@@ -106,7 +108,8 @@
                 "name": "tellClient",
                 "duetime": "{{#.now}}",
                 "description": "Сообщить клиенту о договорённости",
-                "targetGroup": "back"
+                "targetGroup": "back",
+                "priority": "1"
             }
         ],
         "close": true
@@ -123,7 +126,8 @@
                 "name": "cancelService",
                 "duetime": "{{#.now}}",
                 "description": "Требуется отказаться от заказанной услуги",
-                "targetGroup": "back"
+                "targetGroup": "back",
+                "priority": "1"
             }
         ],
         "close": true
@@ -162,7 +166,8 @@
                 "name": "checkStatus",
                 "duetime": "{{#.now+1h}}",
                 "description": "У партнёра требуется уточнить началось оказания услуги или нет",
-                "targetGroup": "back"
+                "targetGroup": "back",
+                "priority": "3"
             }
         ],
         "close": true
@@ -178,7 +183,8 @@
                 "name": "tellDelayClient",
                 "duetime": "{{#.now}}",
                 "description": "Партнёр задерживает оказание услуги, требуется сообщить об этом клиенту",
-                "targetGroup": "back"
+                "targetGroup": "back",
+                "priority": "1"
             }
         ],
         "close": true
@@ -205,7 +211,8 @@
                 "name": "checkEndOfService",
                 "duetime": "{{#.now+1h}}",
                 "description": "Уточнить у клиента окончено ли оказание услуги",
-                "targetGroup": "back"
+                "targetGroup": "back",
+                "priority": "3"
             }
         ],
         "close": true
@@ -308,7 +315,8 @@
                 "name": "editCaseAfterClosure",
                 "duetime": "{{#.now}}",
                 "description": "Внесение изменений после выставления счета",
-                "targetGroup": "head"
+                "targetGroup": "head",
+                "priority": "3"
             }
         ],
         "close": true
@@ -335,7 +343,8 @@
                 "name": "getInfoDealerVW",
                 "duetime": "{{#.now+7d}}",
                 "description": "Только для программы VW",
-                "targetGroup": "back"
+                "targetGroup": "back",
+                "priority": "3"
             }
         ],
         "close": true
@@ -351,7 +360,8 @@
                 "name": "getInfoDealerVW",
                 "duetime": "{{#.now+7d}}",
                 "description": "Только для программы VW",
-                "targetGroup": "back"
+                "targetGroup": "back",
+                "priority": "3"
             }
         ],
         "close": true
@@ -371,7 +381,8 @@
                 "name": "closeCase",
                 "duetime": "{{#.now+1d}}",
                 "description": "Услуга оказана, требуется закрыть заявку у партнёра",
-                "targetGroup": "back"
+                "targetGroup": "back",
+                "priority": "3"
             }
         ],
         "close": true
@@ -398,7 +409,8 @@
                 "name": "financialClose",
                 "duetime": "{{#.now+1d}}",
                 "description": "Требуется получить финансовую информацию у партнёра по закрытой заявке",
-                "targetGroup": "back"
+                "targetGroup": "back",
+                "priority": "3"
             }
         ],
         "close": true
@@ -414,7 +426,8 @@
                 "name": "caseContinue",
                 "duetime": "{{#.now}}",
                 "description": "Услуга оказана, требуются ли клиенту ещё услуги?",
-                "targetGroup": "back"
+                "targetGroup": "back",
+                "priority": "3"
             }
         ],
         "close": true
