@@ -648,36 +648,6 @@
             "meta": {
                 "label": "Пробег эвакуатора за городом"
             }
-        },
-        {
-            "name": "loadDate",
-            "canRead": [
-                "back",
-                "head"
-            ],
-            "canWrite": [
-                "back",
-                "head"
-            ],
-            "type": "datetime",
-            "meta": {
-                "label": "Время погрузки"
-            }
-        },
-        {
-            "name": "unloadDate",
-            "canRead": [
-                "back",
-                "head"
-            ],
-            "canWrite": [
-                "back",
-                "head"
-            ],
-            "type": "datetime",
-            "meta": {
-                "label": "Время разгрузки"
-            }
         }
     ]
 }
