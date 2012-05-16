@@ -6,7 +6,7 @@ module Actions.Compile
 
 import Control.Applicative
 import Control.Monad
-import Control.Monad.Trans (lift)
+import Control.Monad.Trans (lift,liftIO)
 import Control.Monad.Trans.State
 
 import Data.ByteString (ByteString)
@@ -17,10 +17,11 @@ import qualified Data.Set as S
 import Data.Map (Map)
 import qualified Data.Map as M
 
-import Snap.Snaplet.RedisDB (runRedisDB)
+import Data.Time.Clock (getCurrentTime)
+import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
+
 import Snap.Snaplet.Redson.Internals
 import Snap.Snaplet.Redson.Snapless.Metamodel
-import qualified Snap.Snaplet.Redson.Snapless.CRUD as CRUD
 
 import Actions.Types
 import Actions.Parse
@@ -49,7 +50,6 @@ compileAction (Action {..})
     ]
 
 
--- FIXME: translate 'service' pseudomodel to set of true service models
 hook2map :: ByteString -> Hook b -> HookMap b
 hook2map p
   = M.singleton model
@@ -63,63 +63,41 @@ chkFieldVal vals h = \v commit ->
     then h v commit
     else return commit
 
-
-
 createAction :: Map FieldName Template -> EvalStateMonad b ()
 createAction actionTemplate = do
   cxt@(EvalContext{..}) <- get
+  let [modelName,_] = B8.split '.' thisId
 
-  let action  = M.map (evalTemplate cxt) actionTemplate
-  let extraFields = M.fromList $
-        [("caseId",    objectIds M.! "case")
-        ,("serviceId", objectIds M.! "service")
-        ,("ctime",     (objects M.! "#") M.! "now")
-        ,("closed",    "false")
-        ]
-        ++ maybe [] (\u -> [("assignedTo", u)])
-           (M.lookup "action" objects >>= M.lookup "assignedTo")
-        ++ maybe [] (\u -> [("caseId", u)])
-           (M.lookup "action" objects >>= M.lookup "caseId")
+  o <- lift $ newObject "action"
+  case modelName of
+    "action" ->
+      -- copy some fields from current action to the new one
+      let copyFields src tgt
+            = mapM_ (\f -> getPath' src f >>= setPath' tgt f)
+      in copyFields thisId o ["case", "service", "assignedTo"]
+    _ -> do -- get caseId from service
+        setPath' o "service" thisId
+        getPath "parentId" >>= setPath' o "case"
 
-  let action' = M.union extraFields action
+  now <- liftIO $ round . utcTimeToPOSIXSeconds <$> getCurrentTime
+  setPath' o "ctime" $ B8.pack $ show (now :: Int)
+  setPath' o "closed" "false"
+  -- let action  = M.map (evalTemplate cxt) actionTemplate
   -- FIXME: do we need to put updated actions into context?
-  Right actionId <- lift
-        $ runRedisDB database
-        $ CRUD.create "action" action'
-        $ indices $ models M.! "action"
 
-  let actionId' = B8.append "action:" actionId
-  let caseActions = maybe actionId'
-        (\actions -> B8.concat [actions, ",", actionId'])
-        $ M.lookup "actions" $ objects M.! "case"
-  put $ cxt
-    { objects = M.update
-        (Just . M.insert "actions" caseActions)
-        "case" objects
-    }
+  getPath' o "case.actions"
+    >>= setPath' o "case.actions"
+      . B8.intercalate "," . (o:) . B8.split ','
 
 
 updateObject :: ByteString -> Template -> EvalStateMonad b ()
-updateObject p tmp = do
-  let [model, field] = B8.split '.' p
-  cxt@(EvalContext{..}) <- get
-  put $ cxt
-    { objects = M.update
-        (Just . M.insert field (evalTemplate cxt tmp))
-        model objects
-    }
+updateObject p tmp = evalTemplate tmp >>= setPath p
+
 
 closeAction :: EvalStateMonad b ()
 closeAction = do
-  cxt@(EvalContext{..}) <- get
-  let action = M.insert "closed" "true"
-        $ objects M.! "action"
-  let actionId = objectIds M.! "action"
-  let kaze = M.update
-        (\a -> Just . B8.intercalate "," . filter (/=actionId) .  B8.split ',' $ a )
-        "actions" $ objects M.! "case"
-  put $ cxt
-    { objects = M.insert "action" action
-        $ M.insert "case" kaze objects
-    }
-  
+  tId <- gets thisId
+  setPath "closed" "true"
+  getPath "case.actions"
+    >>= setPath "case.actions"
+      . B8.intercalate "," . filter (/=tId) . B8.split ','

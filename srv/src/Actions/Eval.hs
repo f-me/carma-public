@@ -25,86 +25,125 @@ import qualified Snap.Snaplet.Redson.Snapless.CRUD as CRUD
 
 import Actions.Types
 
+
 data EvalContext = EvalContext
-  { objects   :: Map ModelName (Map FieldName ByteString)
-  , objectIds :: Map ModelName ByteString -- InstanceId?
-  , models    :: Map ModelName Model
+  { thisId :: InstanceId
+  , objectCache
+  , updatedObjects
+      :: Map InstanceId (Map FieldName ByteString)
   }
 
-
+type InstanceId = ByteString
+type Object = Map FieldName ByteString
 type EvalStateMonad b a = StateT EvalContext (Handler b (Redson b)) a
 
-evalTemplate :: EvalContext -> Template -> ByteString
-evalTemplate cxt (Template xs) = B8.concat $ map evalTPart xs
+
+newObject :: ModelName -> Handler b (Redson b) InstanceId
+newObject modelName
+  = runRedisDB database
+    (CRUD.create modelName M.empty [])
+  >>= either (error . show) (return . CRUD.instanceKey modelName) 
+
+
+getPath' :: ByteString -> InstanceId -> EvalStateMonad a ByteString
+getPath' p objId = do
+  (objId', f) <- evalPath p objId
+  getField f <$> getObj objId
+
+getPath :: ByteString -> EvalStateMonad a ByteString
+getPath = (gets thisId >>=) . getPath'
+
+evalPath
+  :: ByteString -> InstanceId
+  -> EvalStateMonad a (InstanceId, FieldName)
+evalPath = go . B8.split '.' 
+  where
+    go [f] o = return (o, f)
+    go (f:fs) o = getObj o >>= go fs . getField f
+
+
+getObj :: InstanceId -> EvalStateMonad a Object
+getObj objId = do
+  objs <- gets objectCache
+  case M.lookup objId objs of
+    Just obj -> return obj
+    Nothing -> do
+      obj <- lift $ readDb objId
+      modify $ \cxt@(EvalContext{..}) -> cxt
+        { objectCache = M.insert objId obj objectCache
+        }
+      return obj
+
+
+-- FIXME: return empty string
+getField :: FieldName -> Object -> ByteString
+getField field obj
+  = fromMaybe ""
+--      (error $ "There is no field named " ++ show field
+--            ++ " in object " ++ show obj)
+  $ M.lookup field obj
+
+
+setPath :: ByteString -> ByteString -> EvalStateMonad a ()
+setPath p val = gets thisId >>= setPath' p val
+
+setPath' :: ByteString -> ByteString -> InstanceId -> EvalStateMonad a ()
+setPath' p val objId = do
+  (objId', f) <- evalPath p objId
+  setObj f val objId'
+
+
+setObj :: FieldName -> ByteString -> InstanceId -> EvalStateMonad a ()
+setObj field val objId =
+  modify $ \cxt@(EvalContext{..}) -> cxt
+    { updatedObjects = M.union
+        (M.singleton objId $ M.singleton field val)
+        objectCache
+    }
+
+
+readDb :: InstanceId -> Handler b (Redson b) Object
+readDb objId
+  = case B8.split ':' objId of
+    [modelName, intId]
+      -> runRedisDB database
+          (CRUD.read modelName intId)
+      >>= either (error . (("At readDb " ++ show objId) ++) . show) return
+    _ -> error $ "invalid object id " ++ show objId
+
+
+updateDb :: InstanceId -> Object -> Handler b (Redson b) ()
+updateDb objId obj
+  = case B8.split ':' objId of
+    [modelName, intId] -> do
+      mModel <- getModelNamed modelName
+      case mModel of
+        Nothing -> error $ "invalid id " ++ show objId
+        Just model
+          -> runRedisDB database
+            (CRUD.update modelName intId obj $ indices model)
+          >>= either (error.(("At updateDb " ++ show objId)++).show) return
+    _ -> error $ "invalid object id " ++ show objId
+
+
+evalTemplate :: Template -> EvalStateMonad a ByteString
+evalTemplate (Template xs) = return $ B8.concat $ map evalTPart xs
   where
     evalTPart (Str s) = T.encodeUtf8 s
-    evalTPart (Expr (Var v)) = case M.lookup field (objects cxt M.! model) of
-      Just val -> val
-      Nothing  -> (objects cxt M.! "#") M.! "now"
-      where
-        [model,field] = B8.split '.' v -- FIXME: can fail
-
-cxtAddObject key longId cxt = do
-  let [modelName, intId] = B8.split ':' longId
-  Right obj <- redisRead modelName intId
-  cxtAddObject' key longId obj cxt
-
-cxtAddObject' key longId obj cxt = 
-  return $ cxt 
-    { objects = M.insert key obj $ objects cxt
-    , objectIds = M.insert key longId $ objectIds cxt
-    }
-  
-
-redisRead m = runRedisDB database . CRUD.read m
-redisUpdate m (EvalContext{..}) = do
-  let longId = objectIds M.! m
-  let obj    = objects   M.! m
-  let [modelName, intId] = B8.split ':' longId
-  Right _ <- runRedisDB database
-        $ CRUD.update modelName intId obj
-        $ indices $ models M.! modelName
-  return ()
+    evalTPart (Expr (Var v)) = error "Not implemented"
 
 
 withEvalContext :: EvalStateMonad b a -> Hook b
 withEvalContext f = \v commit -> do
-  currentModel <- getModelName
-  currentId <- getInstanceId
-  let currentFullId = B8.concat [currentModel, ":", currentId]
+  thisModel <- getModelName
+  thisId <- getInstanceId
+  let thisFullId = B8.concat [thisModel, ":", thisId]
 
-  Right this <- redisRead currentModel currentId
-  let this' = M.union commit this
-
-  ms  <- getModels
-  now <- round . utcTimeToPOSIXSeconds <$> liftIO getCurrentTime
-  let emptyContext = EvalContext
-        { objects = M.singleton "#" $ M.fromList
-            [("now", B8.pack $ show (now :: Int))
-            ,("currentUser", "back")]
-        , objectIds = M.empty
-        , models = ms
-        }
-
-  cxt <- case currentModel of
-    "action" -> return emptyContext
-        >>= cxtAddObject  "service" (this' M.! "serviceId")
-        >>= cxtAddObject  "case"    (this' M.! "caseId")
-        >>= cxtAddObject' "action"  currentFullId this'
-    _ -> return emptyContext -- some service: e.g. towage or tech
-        >>= cxtAddObject  "case"    (this' M.! "parentId")
-        >>= cxtAddObject' "service" currentFullId this'
-
-  -- TODO: insert cxt [#now,#currentUser,#dict(,)]
-
-  cxt' <- execStateT f cxt
+  cxt' <- execStateT f $ EvalContext thisFullId M.empty M.empty
 
   -- NB: we have race conditions if two users change same
   -- instance simultaneously. Hope this is impossible due to
   -- business processes constraints.
-  -- FIXME: update only changed fields
-  redisUpdate "case" cxt'
-  redisUpdate "service" cxt'
-
-  let thisName = if currentModel == "action" then "action" else "service"
-  return $ objects cxt' M.! thisName
+  let updObjs = updatedObjects cxt'
+  mapM_ (uncurry updateDb) $ M.toList updObjs
+  return $ fromMaybe M.empty $ M.lookup thisFullId updObjs
