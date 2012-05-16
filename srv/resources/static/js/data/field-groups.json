@@ -9,6 +9,12 @@
             }
         },
         {
+            "name": "seller",
+            "meta": {
+                "label": "Дилер, продавший автомобиль"
+            }
+        },              
+        {
             "name": "make",
             "meta": {
                 "dictionaryName": "CarMakers",
@@ -33,10 +39,18 @@
             "indexCollate": true
         },
         {
+            "name": "makeYear",
+            "meta": {
+                "label": "Год производства автомобиля"
+            }
+        },        
+        {
             "name": "color",
             "meta": {
+                "dictionaryName": "Colors",
                 "label": "Цвет"
-            }
+            },
+            "type": "dictionary"
         },
         {
             "name": "transmission",
@@ -102,24 +116,18 @@
             }
         },
         {
-            "name": "seller",
-            "meta": {
-                "label": "Дилер, продавший автомобиль"
-            }
-        },        
-        {
-            "name": "mileage",
-            "meta": {
-                "label": "Текущий пробег"
-            }
-        },
-        {
             "name": "checkupDate",
             "type": "date",
             "meta": {
                 "label": "Дата последнего ТО"
             }
         },
+        {
+            "name": "mileage",
+            "meta": {
+                "label": "Текущий пробег"
+            }
+        },        
         {
             "name": "checkupMileage",
             "meta": {
