@@ -20,6 +20,10 @@ Executable carma
 
   Other-modules:
     Application,
+    Actions.Compile
+    Actions.Eval
+    Actions.Parse
+    Actions.Types
     Snap.Snaplet.AvayaAES,
     Snap.Snaplet.Candibober,
     Snap.Snaplet.Candibober.Date,
