@@ -7,7 +7,7 @@
     "canDelete": true,
     "fields": [
       {
-        "name":"serviceId",
+        "name":"service",
         "canRead": true,
         "canWrite": true,
         "meta": {
@@ -15,7 +15,7 @@
         }
       },
       {
-        "name":"caseId",
+        "name":"case",
         "canRead": true,
         "canWrite": true,
         "meta": {

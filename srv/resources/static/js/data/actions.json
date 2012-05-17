@@ -6,7 +6,7 @@
             ]
         },
         "set": {
-            "action.duedate": "{{#.now+5m}}"
+            "duetime": "{{#.now+5m}}"
         }
     },
     {
@@ -16,7 +16,7 @@
             ]
         },
         "set": {
-            "action.duedate": "{{#.now+30m}}"
+            "duetime": "{{#.now+30m}}"
         }
     },
     {
@@ -94,7 +94,7 @@
             ]
         },
         "set": {
-            "action.duedate": "{{#.now+1h}}"
+            "duetime": "{{#now+1h}}"
         }
     },
     {
@@ -224,7 +224,7 @@
             ]
         },
         "set": {
-            "action.duetime": "{{#.now+30m}}"
+            "duetime": "{{#.now+30m}}"
         }
     },
     {
@@ -274,7 +274,7 @@
             ]
         },
         "set": {
-            "action.duetime": "{{#.now+5d}}"
+            "duetime": "{{#.now+5d}}"
         }
     },
     {
