@@ -20,7 +20,7 @@
             "canWrite": ["front", "back", "head"]
         },        
         {
-            "targets": ["caller_name", "caller_email", "caller_phone1", "caller_phone2"],
+            "targets": ["caller_name", "caller_email", "caller_phone1", "caller_phone2","caller_phone3", "caller_phone4"],
             "canRead": ["front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head"]
         },
