@@ -576,6 +576,25 @@
             "type": "dictionary"
         },
         {
+            "name": "canNeutral",
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
+            "meta": {
+                "default": false,
+                "label": "Переключается на нейтральную передачу"
+            },
+            "type": "checkbox"
+        },         
+        {
             "name": "towingPointPresent",
             "canRead": [
                 "front",
@@ -628,36 +647,6 @@
             ],
             "meta": {
                 "label": "Пробег эвакуатора за городом"
-            }
-        },
-        {
-            "name": "loadDate",
-            "canRead": [
-                "back",
-                "head"
-            ],
-            "canWrite": [
-                "back",
-                "head"
-            ],
-            "type": "datetime",
-            "meta": {
-                "label": "Время погрузки"
-            }
-        },
-        {
-            "name": "unloadDate",
-            "canRead": [
-                "back",
-                "head"
-            ],
-            "canWrite": [
-                "back",
-                "head"
-            ],
-            "type": "datetime",
-            "meta": {
-                "label": "Время разгрузки"
             }
         }
     ]

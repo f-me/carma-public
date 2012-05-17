@@ -49,6 +49,26 @@
     ],
     "fields": [
         {
+            "name": "callDate",
+            "canRead": ["front", "back", "head", "parguy"],
+            "index": true,
+            "indexCollate": true,
+            "type": "datetime",
+            "meta": {
+                "label": "Дата звонка",
+                "readonly": true
+            }
+        },
+        {
+            "name": "callTaker",
+            "canRead": ["front", "back", "head", "parguy"],
+            "meta": {
+                "label": "Сотрудник РАМК",
+                "required": true,
+                "readonly": true
+            }
+        },        
+        {        
             "name": "comment",
             "canRead": ["front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head"],
@@ -119,6 +139,16 @@
             }
         },
         {
+            "name": "vinChecked",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["front", "back", "head"],
+            "type": "dictionary",
+            "meta": {
+                "dictionaryName": "VINChecked",
+                "label": "VIN проверен"
+            }
+        },        
+        {
             "name": "caseAddress",
             "groupName": "address"
         },
@@ -149,26 +179,6 @@
             },
             "type": "textarea"
         },          
-        {
-            "name": "callDate",
-            "canRead": ["front", "back", "head", "parguy"],
-            "index": true,
-            "indexCollate": true,
-            "type": "datetime",
-            "meta": {
-                "label": "Дата звонка",
-                "readonly": true
-            }
-        },
-        {
-            "name": "callTaker",
-            "canRead": ["front", "back", "head", "parguy"],
-            "meta": {
-                "label": "Сотрудник РАМК",
-                "required": true,
-                "readonly": true
-            }
-        },
         {
             "name": "status",
             "canRead": ["front", "back", "head", "parguy"],
