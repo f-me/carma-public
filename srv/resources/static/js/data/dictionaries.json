@@ -53,7 +53,44 @@
             {
                 "value": "silvery metallic",
                 "label": "Серебристый металик"
-            }           
+            },
+            {
+                "value": "candy",
+                "label": "кэнди"
+            },
+            {
+                "value": "deep",
+                "label": "дип"
+            },
+            {
+                "value": "toffee brown",
+                "label": "тоффи браун"
+            },
+            {
+                "value": "reflex",
+                "label": "рефлекс"
+            },
+            {
+                "value": "silver leaf",
+                "label": "силвер лиф"
+            },
+            {
+                "value": "graphit",
+                "label": "графит"
+            },
+            {
+                "value": "acapulco blue",
+                "label": "акапулько блю"
+            },
+            {
+                "value": "slate",
+                "label": "слайт"
+            },
+            {
+                "value": "wild cherry",
+                "label": "вайлд черри"
+            }
+            
         ]
     },    
     "CallerTypes": {
