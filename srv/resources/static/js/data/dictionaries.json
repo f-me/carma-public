@@ -1,34 +1,59 @@
 {
     "Colors": {
         "entries": [
-            {
-                "value": "black",
-                "label": "Чёрный"
-            },
+           
             {
                 "value": "white",
                 "label": "Белый"
             },
             {
-                "value": "white",
-                "label": "Серебристый"
-            },            
-            {
-                "value": "green",
-                "label": "Зелёный"
+                "value": "black",
+                "label": "Чёрный"
             },
             {
-                "value": "blue",
-                "label": "Синий"
+                "value": "grey",
+                "label": "Серый"
             },
             {
                 "value": "red",
                 "label": "Красный"
             },
             {
+                "value": "orange",
+                "label": "Оранжевый"
+            },
+            {
                 "value": "yellow",
-                "label": "Желтный"
-            }            
+                "label": "Желтый"
+            },
+            {
+                "value": "green",
+                "label": "Зелёный"
+            },                    
+            {
+                "value": "blue",
+                "label": "Голубой"
+            },
+            {
+                "value": "dark blue",
+                "label": "Синий"
+            },
+            {
+                "value": "purple",
+                "label": "Фиолетовый"
+            },
+            {
+                "value": "brown",
+                "label": "Коричневый"
+            },
+            {
+                "value": "golden",
+                "label": "Золотой"
+            },
+            {
+                "value": "silvery metallic",
+                "label": "Серебристый металик"
+            }           
         ]
     },    
     "CallerTypes": {
