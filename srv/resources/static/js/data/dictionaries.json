@@ -35,7 +35,7 @@
                 "label": "Голубой"
             },
             {
-                "value": "dark blue",
+                "value": "darkBlue",
                 "label": "Синий"
             },
             {
@@ -51,7 +51,7 @@
                 "label": "Золотой"
             },
             {
-                "value": "silvery metallic",
+                "value": "silveryMetallic",
                 "label": "Серебристый металик"
             },
             {
@@ -63,7 +63,7 @@
                 "label": "Дип"
             },
             {
-                "value": "toffee brown",
+                "value": "toffeeBrown",
                 "label": "Тоффи раун"
             },
             {
@@ -71,7 +71,7 @@
                 "label": "Рефлекс"
             },
             {
-                "value": "silver leaf",
+                "value": "silverLeaf",
                 "label": "Силвер лиф"
             },
             {
@@ -79,7 +79,7 @@
                 "label": "Графит"
             },
             {
-                "value": "acapulco blue",
+                "value": "acapulcoBlue",
                 "label": "Акапулько блю"
             },
             {
@@ -87,7 +87,7 @@
                 "label": "Слайт"
             },
             {
-                "value": "wild cherry",
+                "value": "wildCherry",
                 "label": "Вайлд черри"
             },
             {
@@ -103,11 +103,11 @@
                 "label": "Кашмир"
             },
             {
-                "value": "pepper Gray",
+                "value": "pepperGray",
                 "label": "Пеппер грэй"
             },
             {
-                "value": "night Blue",
+                "value": "nightBlue",
                 "label": "Найт блю"
             },
             {
@@ -115,15 +115,15 @@
                 "label": "Шэдоу"
             },
             {
-                "value": "mocca anthracite",
+                "value": "moccaAnthracite",
                 "label": "Мокка антрацит"
             },
             {
-                "value": "light brown",
+                "value": "lightBrown",
                 "label": "Лайт браун"
             },
             {
-                "value": "hot orange",
+                "value": "hotOrange",
                 "label": "Хот орандж"
             },
             {
@@ -175,11 +175,11 @@
                 "label": "Шарк"
             },
             {
-                "value": "sea blue",
+                "value": "seaBlue",
                 "label": "Си блю"
             },
             {
-                "value": "carbon steel",
+                "value": "carbonSteel",
                 "label": "Карбон стил"
             },
             {
@@ -203,7 +203,7 @@
                 "label": "Индия"
             },
             {
-                "value": "black oak",
+                "value": "blackOak",
                 "label": "Блэк оэк"
             }
         ]
