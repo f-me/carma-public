@@ -857,7 +857,6 @@
     <!-- Form controls wrt user permissions -->
     <script type="text/template"
             id="permission-template">
-      <div class="form-actions">
         {{# readonly }}
         <button class="btn disabled" type="button">
           <i class="icon-ban-circle" /> Только для чтения</button>
@@ -868,8 +867,6 @@
           <i class="icon-pencil icon-white" /> Сохранить</button>
           <span class="save-result"/>
         {{/ readonly }}
-        <div style="clear: both;" />
-      </div>
     </script>
 
     <!-- List of empty required fields -->
