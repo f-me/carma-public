@@ -699,7 +699,7 @@
           <label class="checkbox inline">
             <input type="checkbox"
                    name="{{ name }}"
-                   {{# readonly }}readonly{{/ readonly }}
+                   {{# readonly }}disabled{{/ readonly }}
                    data-bind="checked: {{ name }},
                               valueUpdate: 'change'" />
           {{ meta.label }}
