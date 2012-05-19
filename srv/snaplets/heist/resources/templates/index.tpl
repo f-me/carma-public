@@ -607,7 +607,10 @@
     <script type="text/template"
             class="field-template"
             id="picker-field-template">
-      <div class="control-group">
+      <div class="control-group"
+           {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
+           {{# meta.regexp }}data-bind="css: { error: {{name}}Regexp }"{{/ meta.regexp}}
+           >
         <div class="control-label">
           <label>{{ meta.label }}
             {{# meta.infoText }}
