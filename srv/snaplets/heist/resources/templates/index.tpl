@@ -404,6 +404,7 @@
             id="textarea-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
+           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -438,6 +439,7 @@
             id="text-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
+           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -464,6 +466,7 @@
             id="datetime-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
+           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -490,6 +493,7 @@
             id="date-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
+           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -551,6 +555,7 @@
             id="dictionary-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
+           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
