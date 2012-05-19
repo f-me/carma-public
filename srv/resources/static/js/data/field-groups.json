@@ -5,7 +5,8 @@
             "type": "picker",
             "meta": {
                 "label": "VIN",
-                "picker": "vinFiller"
+                "picker": "vinFiller",
+                "regexp": "^\\d+$"
             }
         },
         {

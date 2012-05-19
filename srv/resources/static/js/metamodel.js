@@ -49,6 +49,8 @@ function backbonizeModel(model, modelName) {
         referenceFields: referenceFields,
         // List of required fields
         requiredFields: requiredFields,
+        // List of fields with regexp checks
+        regexpFields: regexpFields,
         // List of groups present in model
         groups: groups,
 
