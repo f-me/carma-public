@@ -452,6 +452,9 @@
           <input type="text"
                  class="pane-span focusable"
                  name="{{ name }}"
+                 {{# meta.transform }}
+                    style="text-transform:{{meta.transform}};"
+                 {{/ meta.transform }}
                  {{# readonly }}readonly{{/ readonly }}
                  data-bind="value: {{ name }},
                             valueUpdate: 'afterkeydown'" />
@@ -617,6 +620,9 @@
             <input type="text"
                    class="pane-span focusable {{# readonly }}disabled{{/ readonly }}"
                    {{# readonly }}readonly{{/ readonly }}
+                   {{# meta.transform }}
+                      style="text-transform:{{meta.transform}};"
+                   {{/ meta.transform }}
                    name="{{ name }}"
                    data-bind="value: {{ name }},
                               valueUpdate: 'afterkeydown'"/>
@@ -759,6 +765,9 @@
           <div class="input-append">
             <input type="text"
                    class="pane-span"
+                   {{# meta.transform }}
+                      style="text-transform:{{meta.transform}};"
+                   {{/ meta.transform }}
                    onfocus="showComplex('{{ viewName }}', '{{ name }}');"
                    {{# readonly }}readonly{{/ readonly }}
                    data-bind="value: {{ name }},

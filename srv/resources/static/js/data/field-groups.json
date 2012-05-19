@@ -5,6 +5,7 @@
             "type": "picker",
             "meta": {
                 "label": "VIN",
+                "transform": "uppercase",
                 "picker": "vinFiller"
             }
         },
@@ -33,6 +34,7 @@
         {
             "name": "plateNum",
             "meta": {
+                "transform": "uppercase",
                 "label": "Госномер"
             },
             "index": true,
@@ -139,6 +141,7 @@
         {
             "name": "name",
             "meta": {
+                "transform": "capitalize",
                 "label": "ФИО"
             },
             "index": true,
