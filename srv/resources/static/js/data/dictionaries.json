@@ -89,8 +89,123 @@
             {
                 "value": "wild cherry",
                 "label": "вайлд черри"
+            },
+            {
+                "value": "urano",
+                "label": "урано"
+            },
+            {
+                "value": "iceland",
+                "label": "айслэнд"
+            },
+            {
+                "value": "cashmere",
+                "label": "кашмир"
+            },
+            {
+                "value": "pepper Gray",
+                "label": "пеппер грэй"
+            },
+            {
+                "value": "night Blue",
+                "label": "найт блю"
+            },
+            {
+                "value": "shadow",
+                "label": "шэдоу"
+            },
+            {
+                "value": "mocca anthracite",
+                "label": "мокка антрацит"
+            },
+            {
+                "value": "light brown",
+                "label": "лайт браун"
+            },
+            {
+                "value": "hot orange",
+                "label": "хот орандж"
+            },
+            {
+                "value": "mocca",
+                "label": "мокка"
+            },
+            {
+                "value": "iron",
+                "label": "айрон"
+            },
+            {
+                "value": "tornado",
+                "label": "торнадо"
+            },
+            {
+                "value": "savanna",
+                "label": "саванна"
+            },
+            {
+                "value": "united",
+                "label": "юнитед"
+            },
+            {
+                "value": "moonlight",
+                "label": "мунлайт"
+            },
+            {
+                "value": "flash",
+                "label": "флэш"
+            },
+            {
+                "value": "granite",
+                "label": "гранит"
+            },
+            {
+                "value": "arctic",
+                "label": "арктик"
+            },
+            {
+                "value": "cobalt",
+                "label": "кобальт"
+            },
+            {
+                "value": "amaryllis",
+                "label": "амариллис"
+            },
+            {
+                "value": "shark",
+                "label": "шарк"
+            },
+            {
+                "value": "sea blue",
+                "label": "си блю"
+            },
+            {
+                "value": "carbon steel",
+                "label": "карбон стил"
+            },
+            {
+                "value": "acapulco",
+                "label": "акапулько"
+            },
+            {
+                "value": "uranus",
+                "label": "уранус"
+            },
+            {
+                "value": "salsa",
+                "label": "сальса"
+            },
+            {
+                "value": "venetian",
+                "label": "венециан"
+            },
+            {
+                "value": "india",
+                "label": "индия"
+            },
+            {
+                "value": "black oak",
+                "label": "блэк оэк"
             }
-            
         ]
     },    
     "CallerTypes": {
