@@ -1222,7 +1222,7 @@
                 "label": "Ключи утеряны"
             },
             {
-                "value": "signaling",
+                "value": "signal",
                 "label": "Сигнализация"
             },
             {
@@ -1265,7 +1265,7 @@
                     "label": "Датчик положения дроссельной заслонки"
                 },
                 {
-                    "value": "gage",
+                    "value": "idleGage",
                     "label": "Датчик холостого хода"
                 },
                 {
@@ -1317,7 +1317,7 @@
                     "label": "Вентиляция картера"
                 },
                 {
-                    "value": "oilPrSencor",
+                    "value": "oilPress",
                     "label": "Датчик (аварийного) давления масла"
                 },
                 {
@@ -1333,7 +1333,7 @@
                     "label": "Кожух ремня ГРМ"
                 },
                 {
-                    "value": "oilSeparator",
+                    "value": "oilSep",
                     "label": "Маслоотделитель"
                 },
                 {
@@ -1377,159 +1377,213 @@
                     "label": "Требуется диагностика в дилерском центре"
                 },
                 {
-                    "value": "crankPulley",
+                    "value": "crankRunner",
                     "label": "Шкив коленвала"
                 }
             ],
             "ignit": [
                 {
+                    "value": "heatPlug",
                     "label": "Свеча зажигания (просто свеча)"
                 }
             ],
             "body": [
                 {
+                    "value": "baggage",
                     "label": "Багажник"
                 },
                 {
+                    "value": "faceBar",
                     "label": "Бампер"
                 },
                 {
+                    "value": "splasher",
                     "label": "Брызговик"
                 },
                 {
+                    "value": "door",
                     "label": "Дверь"
                 },
                 {
+                    "value": "bottom",
                     "label": "Дно"
                 },
                 {
+                    "value": "jacket",
                     "label": "Капот"
                 },
                 {
+                    "value": "mudguard",
                     "label": "Крыло"
                 },
                 {
+                    "value": "roofing",
                     "label": "Крыша"
                 },
                 {
+                    "value": "screen",
                     "label": "Лобовое стекло"
                 },
                 {
+                    "value": "baggageSkin",
                     "label": "Обшивка багажника"
                 },
                 {
+                    "value": "doorSkin",
                     "label": "Обшивка двери"
                 },
                 {
+                    "value": "wingFlap",
                     "label": "Подкрылок"
                 },
                 {
+                    "value": "seat",
                     "label": "Сиденье"
                 },
                 {
+                    "value": "doorGlass",
                     "label": "Стекло двери"
                 },
                 {
+                    "value": "scuttle",
                     "label": "Торпедо"
                 }
             ],
             "lights": [
                 {
+                    "value": "backLamp",
                     "label": "Задний фонарь"
                 },
                 {
+                    "value": "light",
                     "label": "Лампа подсветки салона"
                 },
                 {
+                    "value": "numberLight",
                     "label": "Освещение номерного знака"
                 },
                 {
+                    "value": "repeater",
                     "label": "Повторитель поворота"
                 },
                 {
+                    "value": "foglamp",
                     "label": "Противотуманная фара"
                 },
                 {
+                    "value": "blinker",
                     "label": "Указатели поворота"
                 },
                 {
+                    "value": "headlamp",
                     "label": "Фара"
                 }
             ],
             "condit": [
                 {
+                    "value": "ventilator",
                     "label": "Вентилятор системы кондиционирования / печки / обогрева"
                 },
                 {
+                    "value": "cutoffPlate",
                     "label": "Заслонки печки / кондиционера"
                 },
                 {
+                    "value": "airCompr",
                     "label": "Копрессор кондиционера"
                 },
                 {
+                    "value": "dryer",
                     "label": "Осушитель"
                 },
                 {
+                    "value": "airRadiator",
                     "label": "Радиатор кондиционера"
                 },
                 {
+                    "value": "fairFilter",
                     "label": "Салонный фильтр"
                 }
             ],
             "engcool": [
                 {
+                    "value": "ventilGage",
                     "label": "Датчик включения вентилятора радиатора"
                 },
                 {
+                    "value": "tempGage",
                     "label": "Датчик температуры охлаждающей жидкости"
                 },
                 {
+                    "value": "pomp",
                     "label": "Насос охлаждающей жидкости (помпа)"
                 },
                 {
+                    "value": "radiator",
                     "label": "Радиатор"
                 },
                 {
+                    "value": "heatRadiator",
                     "label": "Радиатор печки (обогрева) салона"
                 },
                 {
+                    "value": "stubDual",
+                    "label": "Патрубок"
+                },
+                {
+                    "value": "engVentilator",
+                    "label": "Вентилятор"
+                },
+                {
+                    "value": "thermostat",
                     "label": "Термостат"
                 }
             ],
             "susp": [
                 {
+                    "value": "lever",
                     "label": "Передний рычаг (левый/правый)"
                 },
                 {
+                    "value": "axleSwivel",
                     "label": "Поворотный кулак"
                 },
                 {
+                    "value": "pylnik",
                     "label": "Пыльник шаровой опоры"
                 },
                 {
+                    "value": "pap",
                     "label": "Ступица"
                 },
                 {
+                    "value": "trunnionBall",
                     "label": "Шаровая опора"
                 }
             ],
             "misc": [
                 {
+                    "value": "belt",
                     "label": "Ремень генератора/кондиционера/ГУР"
                 },
                 {
+                    "value": "roll",
                     "label": "Ролик ремня привода генератора/кондиционера/ГУР"
                 },
                 {
+                    "value": "genRunner",
                     "label": "Шкив генератора"
                 },
                 {
+                    "value": "crankRunner1",
                     "label": "Шкив коленвала"
                 },
                 {
+                    "value": "airRunner",
                     "label": "Шкив компрессора кондиционера"
                 },
                 {
+                    "value": "pumpRunner",
                     "label": "Шкив насоса ГУР"
                 }
             ],
