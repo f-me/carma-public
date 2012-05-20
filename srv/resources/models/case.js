@@ -5,6 +5,9 @@
     "canRead": true,
     "canUpdate": true,
     "canDelete": true,
+    "defaults": {
+      "status": "s0"
+    },
     "applications": [
         {
             "targets": ["caseAddress_address"],

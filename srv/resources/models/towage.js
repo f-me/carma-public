@@ -5,6 +5,9 @@
     "canRead": true,
     "canUpdate": true,
     "canDelete": true,
+    "defaults": {
+      "manipulatorPossible": "1"
+    },
     "applications": [
         {
             "targets": [
@@ -463,7 +466,6 @@
                 "head"
             ],
             "meta": {
-                "default": false,
                 "label": "Случай вандализма"
             },
             "type": "checkbox"
@@ -482,7 +484,6 @@
                 "head"
             ],
             "meta": {
-                "default": false,
                 "label": "ДТП"
             },
             "type": "checkbox"
@@ -589,7 +590,6 @@
                 "head"
             ],
             "meta": {
-                "default": false,
                 "label": "Переключается на нейтральную передачу"
             },
             "type": "checkbox"
@@ -608,7 +608,6 @@
                 "head"
             ],
             "meta": {
-                "default": false,
                 "label": "Есть буксировочный крюк"
             },
             "type": "checkbox"
@@ -627,7 +626,6 @@
                 "head"
             ],
             "meta": {
-                "default": true,
                 "label": "Есть место для манипулятора"
             },
             "type": "checkbox"
