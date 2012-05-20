@@ -1504,6 +1504,12 @@
                     "label": "Салонный фильтр"
                 }
             ],
+            "keyLost": [
+                {
+                    "value": "keyLost1",
+                    "label": "Ключи утеряны"
+                }
+            ],
             "engcool": [
                 {
                     "value": "ventilGage",
@@ -1825,6 +1831,12 @@
                 {
                     "value": "engBreak",
                     "label": "Неисправность двигателя"
+                }
+            ],
+            "keyLost1": [
+                {
+                    "value": "keyLost2",
+                    "label": "Ключи утеряны"
                 }
             ],
             "needDiagnostic1": [
