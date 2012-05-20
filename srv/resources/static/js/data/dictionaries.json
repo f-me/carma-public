@@ -1849,7 +1849,16 @@
         }    
     },
     "Diagnosis4": {
-        "entries": []
+        "entries": [
+            {
+                "label": "Эвакуация",
+                "value": "towage"
+            },
+            {
+                "label": "Техпомощь",
+                "value": "towCar"
+            }
+        ]    
     },
     "Programs": {
         "entries": [
