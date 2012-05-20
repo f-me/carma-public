@@ -1845,6 +1845,12 @@
                     "label": "Порвался ремень ГРМ"
                 }
             ],
+            "stubDual": [
+                {
+                    "value": "breakStubDual",
+                    "label": "Слетел патрубок системы охлаждения"
+                }
+            ],
             "crankRunner": [
                 {
                     "value": "breakСrankRunner",
