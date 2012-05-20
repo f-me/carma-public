@@ -1,0 +1,33 @@
+                                             
+{
+ "p1": {
+   "diagnosis1": "needDiagnostic",
+   "diagnosis2": "needDiagnostic1",
+   "diagnosis3": "needDiagnostic2",
+   "diagnosis4": "towage"
+ },
+ "p3": {
+   "diagnosis1": "needDiagnostic",
+   "diagnosis2": "needDiagnostic1",
+   "diagnosis3": "needDiagnostic2",
+   "diagnosis4": "towage"
+ },
+ "p35": {
+   "diagnosis1": "needDiagnostic",
+   "diagnosis2": "needDiagnostic1",
+   "diagnosis3": "needDiagnostic2",
+   "diagnosis4": "towCar"
+ },
+ "p5": {
+   "diagnosis1": "engcool",
+   "diagnosis2": "stubDual",
+   "diagnosis3": "breakStubDual",
+   "diagnosis4": "towage"
+ },
+ "p38": {
+   "diagnosis1": "keyLost",
+   "diagnosis2": "keyLost1",
+   "diagnosis3": "keyLost1",
+   "diagnosis4": "towage"
+ }
+}

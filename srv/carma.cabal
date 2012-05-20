@@ -20,6 +20,7 @@ Executable carma
 
   Other-modules:
     Application,
+    CustomLogic,
     Actions.Compile
     Actions.Eval
     Actions.Parse

@@ -45,8 +45,8 @@ newObject modelName
   >>= either (error . show) (return . CRUD.instanceKey modelName) 
 
 
-getPath' :: ByteString -> InstanceId -> EvalStateMonad a ByteString
-getPath' p objId = do
+getPath' :: InstanceId -> ByteString -> EvalStateMonad a ByteString
+getPath' objId p = do
   (objId', f) <- evalPath p objId
   getField f <$> getObj objId
 
@@ -87,8 +87,8 @@ getField field obj
 setPath :: ByteString -> ByteString -> EvalStateMonad a ()
 setPath p val = gets thisId >>= setPath' p val
 
-setPath' :: ByteString -> ByteString -> InstanceId -> EvalStateMonad a ()
-setPath' p val objId = do
+setPath' :: InstanceId -> ByteString -> ByteString -> EvalStateMonad a ()
+setPath' objId p val = do
   (objId', f) <- evalPath p objId
   setObj f val objId'
 

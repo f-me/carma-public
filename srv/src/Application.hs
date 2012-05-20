@@ -38,6 +38,7 @@ import Snap.Snaplet.Candibober
 import Snap.Snaplet.Redson
 import Snap.Snaplet.Vin
 
+import CustomLogic
 import Actions.Compile
 
 ------------------------------------------------------------------------------
@@ -138,12 +139,21 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   h <- nestSnaplet "heist" heist $ heistInit "resources/templates"
   addAuthSplices auth
 
+  -- FIXME: `IO (Either a b)` is a kinda duplication of error handling in pure
+  -- code and in IO. Seems that plain IO and `throw/catch` is completely enough.
+  let chkErr = either error id
+  wazzupRecommendationsFile <- liftIO $ lookupDefault
+            "resources/static/js/data/wazzup-recommendations.json"
+            cfg "wazzup-recommendations"
+  wazzupHook <- liftIO $ chkErr <$> mkWazzupHook wazzupRecommendationsFile
+
   -- Create redson hooks from actions
   actionsFile <- liftIO $
             lookupDefault "resources/static/js/data/actions.json"
                           cfg "actions"
-  redsonHooks' <- liftIO $ compileActions actionsFile 
-  redsonHooks  <- either fail return redsonHooks'
+  actionsHooks <- liftIO $ chkErr <$> compileActions actionsFile 
+
+  let redsonHooks = joinHooks [actionsHooks, wazzupHook]
   r <- nestSnaplet "_" redson $ redsonInitWithHooks auth redsonHooks
 
 

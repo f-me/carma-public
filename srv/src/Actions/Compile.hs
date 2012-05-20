@@ -2,6 +2,7 @@
 
 module Actions.Compile
   (compileActions
+  ,joinHooks
   )where
 
 import Control.Applicative
@@ -66,7 +67,7 @@ chkFieldVal vals h = \v commit ->
 createAction :: Map FieldName Template -> EvalStateMonad b ()
 createAction actionTemplate = do
   cxt@(EvalContext{..}) <- get
-  let [modelName,_] = B8.split '.' thisId
+  let [modelName,_] = B8.split ':' thisId
 
   o <- lift $ newObject "action"
   case modelName of
