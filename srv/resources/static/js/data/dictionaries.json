@@ -1,7 +1,6 @@
 {
     "Colors": {
         "entries": [
-           
             {
                 "value": "white",
                 "label": "Белый"
@@ -29,7 +28,7 @@
             {
                 "value": "green",
                 "label": "Зелёный"
-            },                    
+            },
             {
                 "value": "blue",
                 "label": "Голубой"
@@ -207,7 +206,7 @@
                 "label": "Блэк оэк"
             }
         ]
-    },    
+    },
     "CallerTypes": {
         "entries": [
             {
@@ -251,7 +250,7 @@
                 "label": "По согласованию заказчика"
             }
         ]
-    },    
+    },
     "TechTypes": {
         "entries": [
             {
@@ -1240,7 +1239,7 @@
             {
                 "value": "currentSupply",
                 "label": "Электропитание"
-            }            
+            }
         ]
     },
     "Diagnosis2": {
@@ -1509,6 +1508,12 @@
                     "label": "Салонный фильтр"
                 }
             ],
+            "keyLost": [
+                {
+                    "value": "keyLost1",
+                    "label": "Ключи утеряны"
+                }
+            ],
             "engcool": [
                 {
                     "value": "ventilGage",
@@ -1763,6 +1768,12 @@
                     "label": "Датчик распредвала"
                 }
             ],
+             "needDiagnostic": [
+                {
+                    "label": "Требуется диагностика в дилерском центре",
+                    "value": "needDiagnostic1"
+                }
+            ],
             "electro": [
                 {
                     "label": "Аккумулятор"
@@ -1824,7 +1835,13 @@
                 {
                     "value": "engBreak",
                     "label": "Неисправность двигателя"
-                }             
+                }
+            ],
+            "keyLost1": [
+                {
+                    "value": "keyLost2",
+                    "label": "Ключи утеряны"
+                }
             ],
             "needDiagnostic1": [
                 {
@@ -1844,13 +1861,19 @@
                     "label": "Порвался ремень ГРМ"
                 }
             ],
+            "stubDual": [
+                {
+                    "value": "breakStubDual",
+                    "label": "Слетел патрубок системы охлаждения"
+                }
+            ],
             "crankRunner": [
                 {
                     "value": "breakСrankRunner",
                     "label": "Шкив коленевала"
                 }
             ]
-        }    
+        }
     },
     "Diagnosis4": {
         "entries": [
@@ -1862,25 +1885,25 @@
                 "label": "Техпомощь",
                 "value": "towCar"
             }
-        ]    
+        ]
     },
     "Programs": {
         "entries": [
             {
-                "value": "vw",
-                "label": "VW / Легковые автомобили"
-            },
-            {
-                "value": "vwcargo",
-                "label": "VW / Коммерческие автомобили"
+                "value": "aston",
+                "label": "ACTA / Aston Martin"
             },
             {
                 "value": "bentley",
                 "label": "ACTA / Bentley"
             },
             {
-                "value": "aston",
-                "label": "ACTA / Aston Martin"
+                "value": "kraft",
+                "label": "Autokraft Assistance"
+            },
+            {
+                "value": "tele",
+                "label": "B2B / 3S Телематика"
             },
             {
                 "value": "arc",
@@ -1891,12 +1914,16 @@
                 "label": "B2B / RTR Hyundai"
             },
             {
-                "value": "jenser",
-                "label": "B2B / Дженсер Ясенево"
+                "value": "arval",
+                "label": "B2B / АРВАЛ"
             },
             {
-                "value": "corpse",
-                "label": "B2B / ИП Трубкин"
+                "value": "vtb24",
+                "label": "B2B / ВТБ 24"
+            },
+            {
+                "value": "jenser",
+                "label": "B2B / Дженсер Ясенево"
             },
             {
                 "value": "auimp",
@@ -1907,24 +1934,8 @@
                 "label": "B2B / ДЦ ТВД-Авто"
             },
             {
-                "value": "arval",
-                "label": "B2B / АРВАЛ"
-            },
-            {
-                "value": "tele",
-                "label": "B2B / 3S Телематика"
-            },
-            {
-                "value": "vtb24",
-                "label": "B2B / ВТБ 24"
-            },            
-            {
-                "value": "lyckoil",
-                "label": "B2B /ЛУКОЙЛ-Петрокоммерц"
-            },                        
-            {
-                "value": "unicredit",
-                "label": "B2B / ЮниКредитбанк"
+                "value": "corpse",
+                "label": "B2B / ИП Трубкин"
             },
             {
                 "value": "rnbase",
@@ -1934,26 +1945,33 @@
                 "value": "rnstandard",
                 "label": "B2B / РН-карт-Москва Стандарт"
             },
-            
             {
-                "value": "chevyko",
-                "label": "GM / Chevrolet Korea"
+                "value": "unicredit",
+                "label": "B2B / ЮниКредитбанк"
             },
             {
-                "value": "chevyna",
-                "label": "GM / Chevrolet NA"
+                "value": "lyckoil",
+                "label": "B2B /ЛУКОЙЛ-Петрокоммерц"
             },
             {
-                "value": "oldcad",
-                "label": "GM / Cadillac до 2012"
+                "value": "b2c",
+                "label": "B2C"
             },
             {
-                "value": "opel",
-                "label": "GM / Opel (после 01.04.2011]"
+                "value": "b2cplat",
+                "label": "B2C Platinum"
             },
             {
-                "value": "hum",
-                "label": "GM / Hummer"
+                "value": "bp",
+                "label": "BP"
+            },
+            {
+                "value": "chartis",
+                "label": "Chartis Assistance"
+            },
+            {
+                "value": "ford",
+                "label": "Ford"
             },
             {
                 "value": "cadold",
@@ -1964,40 +1982,44 @@
                 "label": "GM / Cadillac после 2012"
             },
             {
-                "value": "tickets",
-                "label": "Заказ билетов"
+                "value": "chevyko",
+                "label": "GM / Chevrolet Korea"
             },
             {
-                "value": "b2c",
-                "label": "B2C"
+                "value": "chevyna",
+                "label": "GM / Chevrolet NA"
             },
             {
-                "value": "b2cplat",
-                "label": "B2C Platinum"
-            },            
-            {
-                "value": "ford",
-                "label": "Ford"
+                "value": "hum",
+                "label": "GM / Hummer"
             },
             {
-                "value": "bp",
-                "label": "BP"
+                "value": "opel",
+                "label": "GM / Opel (после 01.04.2011]"
             },
             {
-                "value": "ruslan",
-                "label": "Рус Лан"
+                "value": "vw",
+                "label": "VW / Легковые автомобили"
+            },
+            {
+                "value": "vwcargo",
+                "label": "VW / Коммерческие автомобили"
             },
             {
                 "value": "atlant",
                 "label": "Атлант М"
             },
             {
-                "value": "chartis",
-                "label": "Chartis Assistance"
+                "value": "Cash",
+                "label": "За наличные"
             },
             {
-                "value": "kraft",
-                "label": "Autokraft Assistance"
+                "value": "tickets",
+                "label": "Заказ билетов"
+            },
+            {
+                "value": "ruslan",
+                "label": "Рус Лан"
             }
         ]
     },
@@ -2234,7 +2256,7 @@
             {
                 "label": "Катушка зажигания неисправна",
                 "value": "p58"
-            }            
+            }
         ]
     },
     "TaxSchemes": {
