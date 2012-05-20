@@ -1758,6 +1758,12 @@
                     "label": "Датчик распредвала"
                 }
             ],
+             "needDiagnostic": [
+                {
+                    "label": "Требуется диагностика в дилерском центре",
+                    "value": "needDiagnostic1"
+                }
+            ],
             "electro": [
                 {
                     "label": "Аккумулятор"
