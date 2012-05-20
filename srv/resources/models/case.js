@@ -6,7 +6,8 @@
     "canUpdate": true,
     "canDelete": true,
     "defaults": {
-        "status": "s0"
+        "status": "s0",
+        "callerOwner": "1"
     },
     "applications": [
         {
