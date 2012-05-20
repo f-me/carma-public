@@ -1208,62 +1208,106 @@
             {
                 "value": "electro",
                 "label": "Электрооборудование"
-            }
+            },
+            {
+                "value": "vandal",
+                "label": "Вандализм"
+            },
+            {
+                "value": "dtp",
+                "label": "ДТП"
+            },
+            {
+                "value": "keyLost",
+                "label": "Ключи утеряны"
+            },
+            {
+                "value": "signaling",
+                "label": "Сигнализация"
+            },
+            {
+                "value": "needDiagnostic",
+                "label": "Требуется диагностика в дилерском центре"
+            },
+            {
+                "value": "tread",
+                "label": "Шины/Колеса"
+            },
+            {
+                "value": "currentSupply",
+                "label": "Электропитание"
+            }            
         ]
     },
     "Diagnosis2": {
         "entries": {
             "security": [
                 {
+                    "value": "airbag",
                     "label": "Подушка безопасности"
                 },
                 {
+                    "value": "beltTens",
                     "label": "Преднатяжитель"
                 },
                 {
+                    "value": "belting",
                     "label": "Ремни безопасности"
                 }
             ],
             "intake": [
                 {
+                    "value": "airFilter",
                     "label": "Воздушный фильтр двигателя"
                 },
                 {
+                    "value": "tps",
                     "label": "Датчик положения дроссельной заслонки"
                 },
                 {
+                    "value": "gage",
                     "label": "Датчик холостого хода"
                 },
                 {
+                    "value": "throttleBlade",
                     "label": "Дроссельная заслонка"
                 },
                 {
+                    "value": "plug",
                     "label": "Свеча накаливания (дизель)"
                 },
                 {
+                    "value": "glowPlug",
                     "label": "Спираль накаливания (дизель)"
                 }
             ],
             "exhaust": [
                 {
+                    "value": "collector",
                     "label": "Выпускной коллектор"
                 },
                 {
+                    "value": "deafener",
                     "label": "Глушитель"
                 },
                 {
+                    "value": "goff",
                     "label": "Гофра"
                 },
                 {
+                    "value": "cat",
                     "label": "Каталитический нейтрализатор (катализатор)"
                 },
                 {
+                    "value": "egr",
                     "label": "Клапан рециркуляции отработавших газов (EGR) "
                 },
                 {
+                    "value": "lambda",
                     "label": "Лямбда-зонд (кислородный датчик)"
                 },
                 {
+                    "value": "prokladka",
                     "label": "Прокладка приемной трубы"
                 }
             ],
