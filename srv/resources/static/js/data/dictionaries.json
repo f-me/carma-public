@@ -1313,46 +1313,72 @@
             ],
             "engine": [
                 {
+                    "value": "ventilation",
                     "label": "Вентиляция картера"
                 },
                 {
+                    "value": "oilPrSencor",
                     "label": "Датчик (аварийного) давления масла"
                 },
                 {
+                    "value": "oilLevel",
                     "label": "Датчик уровня масла"
                 },
                 {
+                    "value": "engine1",
+                    "label": "Двигатель"
+                },
+                {
+                    "value": "cowl",
                     "label": "Кожух ремня ГРМ"
                 },
                 {
+                    "value": "oilSeparator",
                     "label": "Маслоотделитель"
                 },
                 {
+                    "value": "oilPump",
                     "label": "Маслоприемник"
                 },
                 {
+                    "value": "oilFilter",
                     "label": "Масляный фильтр двигателя"
                 },
                 {
+                    "value": "flyWheel",
                     "label": "Маховик"
                 },
                 {
+                    "value": "sodPan",
                     "label": "Поддон картера"
                 },
                 {
+                    "value": "timingBelt",
                     "label": "Ремень ГРМ"
                 },
                 {
+                    "value": "beltRoll ",
                     "label": "Ролик ремня ГРМ"
                 },
                 {
+                    "value": "salFront",
                     "label": "Сальник коленвала (передний)"
                 },
                 {
+                    "value": "salBack",
                     "label": "Сальник маховика (задний сальник коленвала двигателя)"
                 },
                 {
+                    "value": "salCamshaft",
                     "label": "Сальник распредвала"
+                },
+                {
+                    "value": "needDiagnostic1",
+                    "label": "Требуется диагностика в дилерском центре"
+                },
+                {
+                    "value": "crankPulley",
+                    "label": "Шкив коленвала"
                 }
             ],
             "ignit": [
