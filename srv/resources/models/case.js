@@ -6,7 +6,7 @@
     "canUpdate": true,
     "canDelete": true,
     "defaults": {
-        "status": "s0",
+        "caseStatus": "s0",
         "callerOwner": "1"
     },
     "applications": [
@@ -408,7 +408,7 @@
             "type": "textarea"
         },
         {
-            "name": "status",
+            "name": "caseStatus",
             "canRead": [
                 "front",
                 "back",
