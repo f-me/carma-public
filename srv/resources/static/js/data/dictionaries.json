@@ -367,19 +367,15 @@
     "CaseStatuses": {
         "entries": [
             {
-                "value": "s0",
                 "label": "Front Office"
             },
             {
-                "value": "s1",
                 "label": "Back Office"
             },
             {
-                "value": "s2",
                 "label": "Закрыт"
             },
             {
-                "value": "s3",
                 "label": "Отмена"
             }
         ]
@@ -1593,21 +1589,31 @@
             ],
             "steer": [
                 {
+                    "value": "pumpRunner",
                     "label": "Наконечник рулевой тяги (наконечник)"
                 },
                 {
+                    "value": "pumpRunner",
+                    "label": "Гидроусилитель руля"
+                },
+                {
+                    "value": "pumpRunner",
                     "label": "Насос гидроусилителя руля (ГУР)"
                 },
                 {
+                    "value": "pumpRunner",
                     "label": "Рулевая колонка"
                 },
                 {
+                    "value": "pumpRunner",
                     "label": "Рулевая рейка"
                 },
                 {
+                    "value": "pumpRunner",
                     "label": "Рулевое колесо"
                 },
                 {
+                    "value": "pumpRunner",
                     "label": "Электроусилитель руля"
                 }
             ],
@@ -1809,7 +1815,38 @@
         }
     },
     "Diagnosis3": {
-        "entries": []
+        "entries": {
+            "engine1": [
+                {
+                    "value": "engBreak",
+                    "label": "Неисправность двигателя"
+                }             
+            ],
+            "needDiagnostic1": [
+                {
+                    "value": "needDiagnostic2",
+                    "label": "Требуется диагностика в дилерском центре"
+                }
+            ],
+            "oilPress": [
+                {
+                    "value": "defectOilPr",
+                    "label": "Неисправен датчик давления масла"
+                }
+            ],
+            "timingBelt": [
+                {
+                    "value": "breakTimBelt",
+                    "label": "Порвался ремень ГРМ"
+                }
+            ],
+            "crankRunner": [
+                {
+                    "value": "breakСrankRunner",
+                    "label": "Шкив коленевала"
+                }
+            ]
+        }    
     },
     "Diagnosis4": {
         "entries": []
