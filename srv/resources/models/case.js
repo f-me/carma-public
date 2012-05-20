@@ -110,6 +110,32 @@
         },
         {
             "targets": [
+                "cardNumber_cardNumber",
+                "cardNumber_validFrom",
+                "cardNumber_validUntil",
+                "cardNumber_validUntilMilage",
+                "cardNumber_milageTO",
+                "cardNumber_serviceInterval",
+                "cardNumber_cardOwner",
+                "cardNumber_manager"
+            ],
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
+            "meta": {
+                "label": "Карта участника"
+            }
+        },        
+        {
+            "targets": [
                 "car_plateNum"
             ],
             "meta": {
@@ -313,6 +339,21 @@
             ],
             "groupName": "car"
         },
+        {
+            "name": "cardNumber",
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
+            "groupName": "cardNumber"
+        },        
         {
             "name": "program",
             "canRead": [
