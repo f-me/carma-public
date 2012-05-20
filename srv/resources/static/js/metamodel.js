@@ -113,7 +113,7 @@ function backbonizeModel(model, modelName) {
 
                 var error = options.error;
                 options.error = function(model, resp, options) {
-                    _.isFunction(success) && error(model, resp, options);
+                    _.isFunction(error) && error(model, resp, options);
                     _.defaults(this.attributeQueue, this.attributeQueueBackup);
                 };
 
