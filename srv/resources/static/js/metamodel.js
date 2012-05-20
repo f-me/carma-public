@@ -1,7 +1,7 @@
 /// Transfrom model definitions into Backbone models, render model
 /// forms, template helpers.
 
-// Backbonize a model, set default values for model
+// Backbonize a model
 //
 // @return Constructor of Backbone model
 function backbonizeModel(model, modelName) {
@@ -19,15 +19,10 @@ function backbonizeModel(model, modelName) {
                       requiredFields = requiredFields.concat(f.name);
                   if (_.has(f.meta, "regexp"))
                       regexpFields = regexpFields.concat(f.name);
-                  if (_.has(f.meta, "default"))
-                      defaults[f.name] = f.default;
-                  else
-                      defaults[f.name] = null;
-              } else
-                  // still add field to model even if meta is not present
-                  defaults[f.name] = null;
+              }
 
               fieldHash[f.name] = f;
+              defaults[f.name] = null;
 
               if (f.type == "reference")
                   referenceFields = referenceFields.concat(f.name);
