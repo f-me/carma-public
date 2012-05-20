@@ -126,6 +126,9 @@
                 "head",
                 "parguy"
             ],
+            "canWrite": [
+                "head"
+            ],            
             "index": true,
             "indexCollate": true,
             "type": "datetime",
