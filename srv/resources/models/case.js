@@ -106,12 +106,23 @@
         {
             "name": "diagnosis3",
             "canRead": ["front", "back", "head"],
-            "canWrite": ["front", "back", "head"]
+            "canWrite": ["front", "back", "head"],
+            "type": "dictionary",
+            "meta": {
+                "dictionaryName": "Diagnosis3",
+                "dictionaryParent": "diagnosis2",
+                "label": "Описание причины неисправности"
+            }        
         },
         {
             "name": "diagnosis4",
             "canRead": ["front", "back", "head"],
-            "canWrite": ["front", "back", "head"]
+            "canWrite": ["front", "back", "head"],
+            "type": "dictionary",
+            "meta": {
+                "dictionaryName": "Diagnosis4",
+                "label": "Рекомендация"
+            }            
         },
         {
             "name": "caller",
