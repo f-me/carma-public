@@ -165,6 +165,22 @@ function knockBackbone(instance, viewName) {
                            }});
     }
 
+    // Set observable with name <fieldName>Regexp for inverse of
+    // result of regexp checking for every field with meta.regexp
+    // annotation. Observable is True when regexp fails.
+    for (n in instance.regexpFields) {
+        var fieldName = instance.regexpFields[n];
+        var regexp = instance.fieldHash[fieldName].meta.regexp;
+        (function(f, r) {
+            knockVM[fieldName + "Regexp"] =
+                kb.observable(instance,
+                              {key: f,
+                               read: function (k) {
+                                   return !r.test(instance.get(k));
+                               }});
+        })(fieldName, new RegExp(regexp));
+    }
+
     for (n in instance.dictionaryFields) {
         var fieldName = instance.dictionaryFields[n];
         var dict = instance.fieldHash[fieldName].meta.dictionaryName;

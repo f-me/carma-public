@@ -6,7 +6,8 @@
             "meta": {
                 "label": "VIN",
                 "transform": "uppercase",
-                "picker": "vinFiller"
+                "picker": "vinFiller",
+                "regexp": "^\\d+$"
             }
         },
         {

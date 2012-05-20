@@ -10,12 +10,15 @@ function backbonizeModel(model, modelName) {
     var dictionaryFields = [];
     var referenceFields = [];
     var requiredFields = [];
+    var regexpFields = [];
     var groups = []
     _.each(model.fields,
           function(f) {
               if (!_.isNull(f.meta)) {
                   if (_.has(f.meta, "required") && f.meta.required)
                       requiredFields = requiredFields.concat(f.name);
+                  if (_.has(f.meta, "regexp"))
+                      regexpFields = regexpFields.concat(f.name);
                   if (_.has(f.meta, "default"))
                       defaults[f.name] = f.default;
                   else
@@ -46,6 +49,8 @@ function backbonizeModel(model, modelName) {
         referenceFields: referenceFields,
         // List of required fields
         requiredFields: requiredFields,
+        // List of fields with regexp checks
+        regexpFields: regexpFields,
         // List of groups present in model
         groups: groups,
 

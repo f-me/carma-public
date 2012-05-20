@@ -35,7 +35,7 @@
                 "label": "Голубой"
             },
             {
-                "value": "dark blue",
+                "value": "darkBlue",
                 "label": "Синий"
             },
             {
@@ -51,46 +51,161 @@
                 "label": "Золотой"
             },
             {
-                "value": "silvery metallic",
+                "value": "silveryMetallic",
                 "label": "Серебристый металик"
             },
             {
                 "value": "candy",
-                "label": "кэнди"
+                "label": "Кэнди"
             },
             {
                 "value": "deep",
-                "label": "дип"
+                "label": "Дип"
             },
             {
-                "value": "toffee brown",
-                "label": "тоффи браун"
+                "value": "toffeeBrown",
+                "label": "Тоффи раун"
             },
             {
                 "value": "reflex",
-                "label": "рефлекс"
+                "label": "Рефлекс"
             },
             {
-                "value": "silver leaf",
-                "label": "силвер лиф"
+                "value": "silverLeaf",
+                "label": "Силвер лиф"
             },
             {
                 "value": "graphit",
-                "label": "графит"
+                "label": "Графит"
             },
             {
-                "value": "acapulco blue",
-                "label": "акапулько блю"
+                "value": "acapulcoBlue",
+                "label": "Акапулько блю"
             },
             {
                 "value": "slate",
-                "label": "слайт"
+                "label": "Слайт"
             },
             {
-                "value": "wild cherry",
-                "label": "вайлд черри"
+                "value": "wildCherry",
+                "label": "Вайлд черри"
+            },
+            {
+                "value": "urano",
+                "label": "Урано"
+            },
+            {
+                "value": "iceland",
+                "label": "Айслэнд"
+            },
+            {
+                "value": "cashmere",
+                "label": "Кашмир"
+            },
+            {
+                "value": "pepperGray",
+                "label": "Пеппер грэй"
+            },
+            {
+                "value": "nightBlue",
+                "label": "Найт блю"
+            },
+            {
+                "value": "shadow",
+                "label": "Шэдоу"
+            },
+            {
+                "value": "moccaAnthracite",
+                "label": "Мокка антрацит"
+            },
+            {
+                "value": "lightBrown",
+                "label": "Лайт браун"
+            },
+            {
+                "value": "hotOrange",
+                "label": "Хот орандж"
+            },
+            {
+                "value": "mocca",
+                "label": "Мокка"
+            },
+            {
+                "value": "iron",
+                "label": "Айрон"
+            },
+            {
+                "value": "tornado",
+                "label": "Торнадо"
+            },
+            {
+                "value": "savanna",
+                "label": "Саванна"
+            },
+            {
+                "value": "united",
+                "label": "Юнитед"
+            },
+            {
+                "value": "moonlight",
+                "label": "Мунлайт"
+            },
+            {
+                "value": "flash",
+                "label": "Флэш"
+            },
+            {
+                "value": "granite",
+                "label": "Гранит"
+            },
+            {
+                "value": "arctic",
+                "label": "Арктик"
+            },
+            {
+                "value": "cobalt",
+                "label": "Кобальт"
+            },
+            {
+                "value": "amaryllis",
+                "label": "Амариллис"
+            },
+            {
+                "value": "shark",
+                "label": "Шарк"
+            },
+            {
+                "value": "seaBlue",
+                "label": "Си блю"
+            },
+            {
+                "value": "carbonSteel",
+                "label": "Карбон стил"
+            },
+            {
+                "value": "acapulco",
+                "label": "Акапулько"
+            },
+            {
+                "value": "uranus",
+                "label": "Уранус"
+            },
+            {
+                "value": "salsa",
+                "label": "Сальса"
+            },
+            {
+                "value": "venetian",
+                "label": "Венециан"
+            },
+            {
+                "value": "india",
+                "label": "Индия"
+            },
+            {
+                "value": "blackOak",
+                "label": "Блэк оэк"
             }
-            
         ]
     },    
     "CallerTypes": {
@@ -1861,7 +1976,87 @@
             {
                 "label": "Ключи от автомобиля утеряны",
                 "value": "p38"
-            }
+            },
+            {
+                "label": "Вандализм",
+                "value": "p39"
+            },
+            {
+                "label": "Горит индикатор Check Engine",
+                "value": "p40"
+            },
+            {
+                "label": "Горит индикатор EPC",
+                "value": "p41"
+            },
+            {
+                "label": "Датчик давления масла неисправен",
+                "value": "p42"
+            },
+            {
+                "label": "ДТП",
+                "value": "p43"
+            },
+            {
+                "label": "Температура двигателя повышена",
+                "value": "p44"
+            },
+            {
+                "label": "Вентилятор охлаждения неисправен",
+                "value": "p45"
+            },
+            {
+                "label": "Бензин вытекает",
+                "value": "p46"
+            },
+            {
+                "label": "Топливопровод лопнул",
+                "value": "p47"
+            },
+            {
+                "label": "Лючок бензобака не открывается",
+                "value": "p48"
+            },
+            {
+                "label": "Топливный насос неисправен",
+                "value": "p49"
+            },
+            {
+                "label": "Датчик давления топлива неисправен",
+                "value": "p50"
+            },
+            {
+                "label": "Повышенный шум (визжащий звук) при торможении",
+                "value": "p51"
+            },
+            {
+                "label": "Тормозная жидкость вытекает",
+                "value": "p52"
+            },
+            {
+                "label": "Главный тормозной цилиндр неисправен",
+                "value": "p53"
+            },
+            {
+                "label": "Автомобиль заводится, но не едет",
+                "value": "p54"
+            },
+            {
+                "label": "Масло трансмиссионное течет",
+                "value": "p55"
+            },
+            {
+                "label": "Блок управления двигателем вышел из строя",
+                "value": "p56"
+            },
+            {
+                "label": "Стартер неисправен",
+                "value": "p57"
+            },
+            {
+                "label": "Катушка зажигания неисправна",
+                "value": "p58"
+            }            
         ]
     },
     "TaxSchemes": {
