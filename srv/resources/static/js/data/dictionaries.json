@@ -366,19 +366,15 @@
     "CaseStatuses": {
         "entries": [
             {
-                "value": "s0",
                 "label": "Front Office"
             },
             {
-                "value": "s1",
                 "label": "Back Office"
             },
             {
-                "value": "s2",
                 "label": "Закрыт"
             },
             {
-                "value": "s3",
                 "label": "Отмена"
             }
         ]
@@ -1598,118 +1594,161 @@
             ],
             "steer": [
                 {
-                    "value": "pumpRunner",
+                    "value": "rodEnd",
                     "label": "Наконечник рулевой тяги (наконечник)"
                 },
                 {
-                    "value": "pumpRunner",
+                    "value": "ps",
                     "label": "Гидроусилитель руля"
                 },
                 {
-                    "value": "pumpRunner",
+                    "value": "gur",
                     "label": "Насос гидроусилителя руля (ГУР)"
                 },
                 {
-                    "value": "pumpRunner",
+                    "value": "mast",
                     "label": "Рулевая колонка"
                 },
                 {
-                    "value": "pumpRunner",
+                    "value": "steeringRack",
                     "label": "Рулевая рейка"
                 },
                 {
-                    "value": "pumpRunner",
+                    "value": "steeringWheel",
                     "label": "Рулевое колесо"
                 },
                 {
-                    "value": "pumpRunner",
+                    "value": "eas",
                     "label": "Электроусилитель руля"
                 }
             ],
             "clutch": [
                 {
+                    "value": "drivenDisk",
                     "label": "Ведомый диск (сцепления)"
                 },
                 {
+                    "value": "fork",
                     "label": "Вилка сцепления"
                 },
                 {
+                    "value": "throwOutBearing",
                     "label": "Выжимной подшипник"
                 },
                 {
+                    "value": "mainCylinder",
                     "label": "Главный цилиндр сцепления"
                 },
                 {
+                    "value": "crate",
                     "label": "Корзина"
                 },
                 {
+                    "value": "workCylinder",
                     "label": "Рабочий цилиндр сцепления"
                 },
                 {
+                    "value": "guyClutch",
                     "label": "Трос сцепления"
                 },
                 {
+                    "value": "guideBar",
                     "label": "Шток рабочего цилиндра сцепления"
                 }
             ],
             "fuel": [
                 {
+                    "value": "gasPump",
                     "label": "Бензонасос"
                 },
                 {
+                    "value": "fuelInjector",
                     "label": "Инжекторы (форсунки)"
                 },
                 {
+                    "value": "fuelLid",
                     "label": "Крышка топливной горловины"
                 },
                 {
+                    "value": "pumpDuse",
                     "label": "Насос-форсунка (дизель)"
                 },
                 {
+                    "value": "return",
                     "label": "Обратка"
                 },
                 {
+                    "value": "primingPump",
                     "label": "Подкачивающий насос (дизель)"
                 },
                 {
+                    "value": "fuelRail",
                     "label": "Топливная рампа"
                 },
                 {
+                    "value": "tube",
+                    "label": "Топливопроводы/шланги"
+                },
+                {
+                    "value": "fuelLine",
+                    "label": "Топливопровод"
+                },
+                {
+                    "value": "tnvd",
                     "label": "Топливный насос высокого давления (ТНВД - дизель)"
                 },
                 {
+                    "value": "fuelFilter",
                     "label": "Топливный фильтр"
                 }
             ],
             "brake": [
                 {
+                    "value": "blokAbs",
                     "label": "Блок ABS"
                 },
                 {
+                    "value": "vacuum",
                     "label": "Вакуумный усилитель"
                 },
                 {
+                    "value": "brakeCylinder",
                     "label": "Главный тормозной цилиндр"
                 },
                 {
+                    "value": "absGage",
                     "label": "Датчик ABS (датчик вращения колеса)"
                 },
                 {
+                    "value": "wearSensor",
                     "label": "Датчик износа колодок"
                 },
                 {
+                    "value": "stop",
                     "label": "Стоп-сигнал"
                 },
                 {
+                    "value": "caliper",
                     "label": "Суппорт"
                 },
                 {
+                    "value": "brakeDrum",
                     "label": "Тормозной барабан (барабан)"
                 },
                 {
+                    "value": "brakePlate",
                     "label": "Тормозной диск"
                 },
                 {
+                    "value": "lineHose",
+                    "label": "Тормозные трубопроводы/шланги"
+                },
+                {
+                    "value": "needDiagnostic3",
+                    "label": "Требуется диагностика в дилерском центре"
+                },
+                {
+                    "value": "brakeBlock",
                     "label": "Тормозные колодки"
                 }
             ],
@@ -1835,6 +1874,50 @@
                 {
                     "value": "engBreak",
                     "label": "Неисправность двигателя"
+                }
+            ],
+            "tube": [
+                {
+                    "value": "depress",
+                    "label": "Разгерметизация/пробой в топливной системе"
+                }
+            ],
+            "brakeCylinder": [
+                {
+                    "value": "noBrakeCyl",
+                    "label": "Вышел из строя главный тормозной цилиндр"
+                }
+            ],
+            "lineHose": [
+                {
+                    "value": "depressBrake",
+                    "label": "Разгерметизация/пробой в тормозной системе"
+                }
+            ],
+            "needDiagnostic3": [
+                {
+                    "value": "needDiagnostic4",
+                    "label": "Требуется диагностика в дилерском центре"
+                }
+            ],
+            "brakeBlock": [
+                {
+                    "value": "wearОut",
+                    "label": "Износ/загрязнение тормозных колодок"
+                },
+                {
+                    "value": "malfunction",
+                    "label": "Неисправность тормозных колодок"
+                },
+                {
+                    "value": "wet",
+                    "label": "Попадание влаги в тормозные колодки (при минусовой температуре)"
+                }
+            ],
+            "fuelLine": [
+                {
+                    "value": "fracture",
+                    "label": "Лопнул топливопровод"
                 }
             ],
             "keyLost1": [
