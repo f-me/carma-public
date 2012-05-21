@@ -1914,12 +1914,6 @@
                     "label": "Неисправность двигателя"
                 }
             ],
-            "tube": [
-                {
-                    "value": "depress",
-                    "label": "Разгерметизация/пробой в топливной системе"
-                }
-            ],
             "brakeCylinder": [
                 {
                     "value": "noBrakeCyl",
@@ -1956,6 +1950,30 @@
                 {
                     "value": "fracture",
                     "label": "Лопнул топливопровод"
+                }
+            ],
+            "tube": [
+                {
+                    "value": "depress",
+                    "label": "Разгерметизация/пробой в топливной системе"
+                }
+            ],
+            "fuelPump": [
+                {
+                    "value": "faultPump",
+                    "label": "Вышел из строя топливный насос"
+                }
+            ],
+            "hatch": [
+                {
+                    "value": "faultHatch",
+                    "label": "Оборвался тросик лючка бензобака"
+                }
+            ],
+            "prSensor": [
+                {
+                    "value": "faultPrSens",
+                    "label": "Неисправен датчик давления топлива"
                 }
             ],
             "keyLost1": [
