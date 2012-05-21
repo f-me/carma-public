@@ -1958,6 +1958,30 @@
                     "label": "Требуется диагностика в дилерском центре"
                 }
             ],
+            "driverShaft": [
+                {
+                    "value": "noDriverSh",
+                    "label": "Вышел из строя приводной вал"
+                }
+            ],
+            "clutch1": [
+                {
+                    "value": "faultClutch",
+                    "label": "Неисправность сцепления"
+                }
+            ],
+            "gearbox": [
+                {
+                    "value": "faultGearbox",
+                    "label": "Неисправность коробки передач"
+                }
+            ],
+             "shrus": [
+                {
+                    "value": "faultSh",
+                    "label": "Рассыпался ШРУС"
+                }
+            ],
             "oilPress": [
                 {
                     "value": "defectOilPr",
