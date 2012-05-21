@@ -1758,45 +1758,67 @@
             ],
             "gears": [
                 {
+                    "value": "mechUnit",
                     "label": "Блок мехатроники"
                 },
                 {
+                    "value": "garnet",
                     "label": "Граната ШРУС (граната)"
                 },
                 {
+                    "value": "cardan",	
                     "label": "Карданный вал"
                 },
                 {
+                    "value": "crosspiece",
                     "label": "Крестовина (карданного вала)"
                 },
                 {
+                    "value": "link",
                     "label": "Кулиса коробки / МКПП / КПП / АКПП"
                 },
                 {
+                    "value": "driverShaft",
                     "label": "Приводной вал"
                 },
                 {
+                    "value": "pylnikSh",	
                     "label": "Пыльник ШРУС"
                 },
                 {
+                    "value": "transfer",
                     "label": "Раздаточная коробка (раздатка)"
                 },
                 {
+                    "value": "salOut",
                     "label": "Сальник выходного вала КПП"
                 },
                 {
+                    "value": "salKpp",
                     "label": "Сальник коробки / КПП / МКПП / АКПП"
                 },
                 {
+                    "value": "salDr",
                     "label": "Сальник приводного вала"
                 },
                 {
+                    "value": "signal",	
                     "label": "Сигнал (фонарь) заднего хода"
                 },
                 {
+                    "value": "cable",
                     "label": "Трос коробки / МКПП / КПП / АКПП"
                 },
                 {
+                    "value": "gearbox",
+                    "label": "Коробка передач"
+                },
+                {
+                    "value": "clutch1",
+                    "label": "Сцепление"
+                },
+                {
+                    "value": "shrus",
                     "label": "ШРУС"
                 }
             ],
