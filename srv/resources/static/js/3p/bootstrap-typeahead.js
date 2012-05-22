@@ -74,12 +74,14 @@
 
       this.$menu.show()
       this.shown = true
+      $(document).on('mousedown', $.proxy(this.hide, this))
       return this
     }
 
   , hide: function () {
       this.$menu.hide()
       this.shown = false
+      $(document).off('mousedown', this.hide);
       return this
     }
 
@@ -191,6 +193,7 @@
 
       this.$menu
         .on('click.typeahead', $.proxy(this.click, this))
+        .on('mousedown.typeahead', $.proxy(this.mousedown, this))
         .on('mouseenter.typeahead', 'li', $.proxy(this.mouseenter, this))
     }
    
@@ -207,6 +210,7 @@
 
       this.$menu
         .off('click.typeahead')
+        .off('mousedown.typeahead')
         .off('mouseenter.typeahead')
     }
 
@@ -276,6 +280,10 @@
       $(e.currentTarget).addClass('active')
     }
 
+  , mousedown: function(e){
+      e.stopPropagation();
+      e.preventDefault();
+    }
 
   , labelsFor: function(items) {
       return $.makeArray($(items).map(function (i, item) {
