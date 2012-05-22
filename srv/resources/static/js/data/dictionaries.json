@@ -1237,7 +1237,7 @@
                 "label": "Шины/Колеса"
             },
             {
-                "value": "currentSupply",
+                "value": "electronics",
                 "label": "Электроника"
             }
         ]
@@ -1256,6 +1256,16 @@
                 {
                     "value": "belting",
                     "label": "Ремни безопасности"
+                }
+            ],
+            "tread": [
+                {
+                    "value": "tread1",
+                    "label": "Шины/Колеса"
+                },
+                {
+                    "value": "hubBearing",
+                    "label": "Подшипник ступицы"
                 }
             ],
             "intake": [
@@ -1512,6 +1522,12 @@
                 {
                     "value": "keyLost1",
                     "label": "Ключи утеряны"
+                }
+            ],
+            "electronics": [
+                {
+                    "value": "control",
+                    "label": "Блок управления двигателем"
                 }
             ],
             "engcool": [
@@ -1854,6 +1870,18 @@
                     "value": "needDiagnostic1"
                 }
             ],
+            "dtp": [
+                {
+                    "value": "dtp1",
+                    "label": "ДТП"                  
+                }
+            ],
+            "vandal": [
+                {
+                    "value": "vandal1",
+                    "label": "Вандализм"                  
+                }
+            ],
             "electro": [
                 {
                     "value": "accum",
@@ -1968,10 +1996,50 @@
                     "label": "Неисправность аккумулятора"
                 }
             ],
+            "tread1": [
+                {
+                    "value": "wheelCut",
+                    "label": "Колеса порезаны"
+                },
+                {
+                    "value": "wheelPierced",
+                    "label": "Колесо проколото"
+                }
+            ],
+            "hubBearing": [
+                {
+                    "value": "hubBearingFault",
+                    "label": "Рассыпался подшипник ступицы"
+                }
+            ],
+            "cat": [
+                {
+                    "value": "catFault",
+                    "label": "Неисправность каталитического нейтрализатора"
+                }
+            ],
+            "dtp1": [
+                {
+                    "value": "dtp2",
+                    "label": "ДТП"
+                }
+            ],
+            "vandal1": [
+                {
+                    "value": "vandal2",
+                    "label": "Вандализм"
+                }
+            ],
             "starter": [
                 {
                     "value": "starterFault",
                     "label": "Неисправность стартера"
+                }
+            ],
+            "control": [
+                {
+                    "value": "faultControl",
+                    "label": "Вышел из строя блок управления двигателем"
                 }
             ],
             "sparkPlugs": [
