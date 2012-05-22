@@ -31,6 +31,63 @@
         },
         {
             "targets": [
+                "caller_name"
+            ],
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
+            "meta": {
+                "label": "Звонящий"
+            }
+        },
+        {
+            "targets": [
+                "owner_name"
+            ],
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
+            "meta": {
+                "label": "Владелец"
+            }
+        },
+        {
+            "targets": [
+                "cardNumber_cardNumber"
+            ],
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
+            "meta": {
+                "label": "Карта участника"
+            }
+        },        
+        {
+            "targets": [
                 "caseAddress_coords",
                 "caseAddress_city",
                 "caseAddress_comment"
@@ -49,7 +106,6 @@
         },
         {
             "targets": [
-                "caller_name",
                 "caller_email",
                 "caller_phone1",
                 "caller_phone2",
@@ -70,7 +126,6 @@
         },
         {
             "targets": [
-                "owner_name",
                 "owner_email",
                 "owner_phone1",
                 "owner_phone2",
@@ -88,7 +143,7 @@
                 "back",
                 "head"
             ]
-        },        
+        },
         {
             "targets": [
                 "car_model"
@@ -131,7 +186,6 @@
         },
         {
             "targets": [
-                "cardNumber_cardNumber",
                 "cardNumber_validFrom",
                 "cardNumber_validUntil",
                 "cardNumber_validUntilMilage",
@@ -151,7 +205,7 @@
                 "back",
                 "head"
             ]
-        },        
+        },
         {
             "targets": [
                 "car_plateNum"
@@ -172,7 +226,7 @@
             ],
             "canWrite": [
                 "head"
-            ],            
+            ],
             "index": true,
             "indexCollate": true,
             "type": "datetime",
@@ -371,7 +425,7 @@
                 "head"
             ],
             "groupName": "cardNumber"
-        },        
+        },
         {
             "name": "program",
             "canRead": [
