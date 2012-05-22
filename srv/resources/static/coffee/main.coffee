@@ -21,32 +21,32 @@
 # user object is stored in global hash and contains data about
 # current user.
 this.mainSetup = (localScreens, localRouter, localDictionaries, modelHooks, user) ->
-  Screens = localScreens;
+  Screens = localScreens
 
-  dictLabelCache = {};
-  dictValueCache = {};
+  dictLabelCache = {}
+  dictValueCache = {}
 
   # Build caches (TODO: Do this on server some day)
   for d of localDictionaries
     do (d) ->
-      dictLabelCache[d] = {};
-      dictValueCache[d] = {};
-      dict = localDictionaries[d];
+      dictLabelCache[d] = {}
+      dictValueCache[d] = {}
+      dict = localDictionaries[d]
       if _.isArray(dict.entries)
         for e of dict.entries
           do (e) ->
-            l = dict.entries[e].label;
-            v = dict.entries[e].value;
-            dictLabelCache[d][l] = v;
-            dictValueCache[d][v] = l;
+            l = dict.entries[e].label
+            v = dict.entries[e].value
+            dictLabelCache[d][l] = v
+            dictValueCache[d][v] = l
       else
         for c of dict.entries
           for e of dict.entries[c]
-            l = dict.entries[c][e].label;
-            v = dict.entries[c][e].value;
+            l = dict.entries[c][e].label
+            v = dict.entries[c][e].value
             if l and v
-              dictLabelCache[d][l] = v;
-              dictValueCache[d][v] = l;
+              dictLabelCache[d][l] = v
+              dictValueCache[d][v] = l
 
   window.global =
       # «Screen» element which holds all views
