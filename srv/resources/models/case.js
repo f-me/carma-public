@@ -70,6 +70,27 @@
         },
         {
             "targets": [
+                "owner_name",
+                "owner_email",
+                "owner_phone1",
+                "owner_phone2",
+                "owner_phone3",
+                "owner_phone4"
+            ],
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ]
+        },        
+        {
+            "targets": [
                 "car_model"
             ],
             "meta": {
@@ -129,10 +150,7 @@
                 "front",
                 "back",
                 "head"
-            ],
-            "meta": {
-                "label": "Карта участника"
-            }
+            ]
         },        
         {
             "targets": [
