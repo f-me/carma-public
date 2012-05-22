@@ -1238,7 +1238,7 @@
             },
             {
                 "value": "currentSupply",
-                "label": "Электропитание"
+                "label": "Электроника"
             }
         ]
     },
@@ -1376,7 +1376,7 @@
                     "label": "Сальник распредвала"
                 },
                 {
-                    "value": "needDiagnostic1",
+                    "value": "needDiagnostic0",
                     "label": "Требуется диагностика в дилерском центре"
                 },
                 {
@@ -1836,12 +1836,15 @@
             ],
             "pcm": [
                 {
+                    "value": "knock",
                     "label": "Датчик детонации"
                 },
                 {
+                    "value": "crankshaft",
                     "label": "Датчик коленвала"
                 },
                 {
+                    "value": "camshaft",
                     "label": "Датчик распредвала"
                 }
             ],
@@ -1853,54 +1856,95 @@
             ],
             "electro": [
                 {
+                    "value": "accum",
                     "label": "Аккумулятор"
                 },
                 {
+                    "value": "washer",
                     "label": "Бачок омывателя"
                 },
                 {
+                    "value": "fan",
                     "label": "Вентилятор радиатора"
                 },
                 {
+                    "value": "airconfan",	
                     "label": "Вентилятор радиатора кондиционера"
                 },
                 {
+                    "value": "generator",	
                     "label": "Генератор"
                 },
                 {
+                    "value": "wipers1",
                     "label": "Дворники / стеклоочистители"
                 },
                 {
+                    "value": "klaxon",
                     "label": "Клаксон / гудок / сигнал"
                 },
                 {
+                    "value": "washerPump",
                     "label": "Насос омывателя"
                 },
                 {
+                    "value": "windWasher",
                     "label": "Омыватель лобового стекла"
                 },
                 {
+                    "value": "lightWasher",
                     "label": "Омыватель фар"
                 },
                 {
+                    "value": "switch",
                     "label": "Переключатель режимов стеклоочистителя / дворников"
                 },
                 {
+                    "value": "switchBlink",
                     "label": "Переключатель указателей поворота"
                 },
                 {
+                    "value": "safety",
                     "label": "Предохранитель"
                 },
                 {
+                    "value": "relay",
                     "label": "Реле"
                 },
                 {
+                    "value": "sparkPlugs",
+                    "label": "Свечи зажигания"
+                },
+                {
+                    "value": "wires",
+                    "label": "Высоковольтные провода"
+                },
+                {
+                    "value": "alternatorBelt",
+                    "label": "Ремень генератора"
+                },
+                {
+                    "value": "ignitionSwitch",
+                    "label": "Выключатель зажигания"
+                },
+                {
+                    "value": "ignitionCoil",
+                    "label": "Катушка зажигания"
+                },
+                {
+                    "value": "needDiagnostic5",
+                    "label": "Требуется диагностика в дилерском центре"
+                },
+                {
+                    "value": "starter",
                     "label": "Стартер"
                 },
                 {
+                    "value": "raiser",
                     "label": "Стеклоподъемник"
                 },
                 {
+                    "value": "lock",
                     "label": "Центральный замок (центрзамок)"
                 }
             ]
