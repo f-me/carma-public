@@ -14,7 +14,7 @@ this.backbonizeModel = (model, modelName) ->
   regexpFields     = []
   groups           = []
 
-  setFields = (f) ->
+  for f in model.fields
     if not _.isNull(f.meta)
       if _.has(f.meta, "required") and f.meta.required
         requiredFields = requiredFields.concat(f.name)
@@ -30,8 +30,6 @@ this.backbonizeModel = (model, modelName) ->
       dictionaryFields = dictionaryFields.concat(f.name)
     if (not _.isNull(f.groupName)) and (groups.indexOf(f.groupName) == -1)
       groups = groups.concat(f.groupName)
-
-  setField f for f in model.fields
 
   M = Backbone.Model.extend
     defaults: defaults
