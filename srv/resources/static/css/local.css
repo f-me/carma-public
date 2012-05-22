@@ -125,3 +125,8 @@ textarea.pane-span,
   border-radius:3px;
   background-color:whiteSmoke;
 }
+
+.complex-field-close {
+    position: relative;
+    left: 90%;
+}

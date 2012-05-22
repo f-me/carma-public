@@ -851,10 +851,12 @@
     <script type="text/template"
             class="group-template"
             id="-group-template">
-      <fieldset>
-        <form class="complex-field form-vertical"
-              id="{{ refView }}"
-              style="display: none;" />
+      <fieldset class="complex-field"
+                id="{{ refView }}"
+                style="display: none;">
+          <i class="icon icon-remove complex-field-close"
+             onclick="$('.complex-field').hide();"/>
+          <form class="content form-vertical"/>
       </fieldset>
     </script>
 
