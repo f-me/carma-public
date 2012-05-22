@@ -1958,6 +1958,64 @@
                     "label": "Неисправность двигателя"
                 }
             ],
+            "accum": [
+                {
+                    "value": "discharge",
+                    "label": "Разрядился аккумулятор"
+                },
+                {
+                    "value": "batteryFault",
+                    "label": "Неисправность аккумулятора"
+                }
+            ],
+            "starter": [
+                {
+                    "value": "starterFault",
+                    "label": "Неисправность стартера"
+                }
+            ],
+            "sparkPlugs": [
+                {
+                    "value": "poorQuality",
+                    "label": "Некачественное топливо"
+                }
+            ],
+            "wires": [
+                {
+                    "value": "wiresFault",
+                    "label": "Неисправность высоковольтных проводов"
+                }
+            ],
+            "generator": [
+                {
+                    "value": "generatorFault",
+                    "label": "Неисправность генератора"
+                }
+            ],
+            "alternatorBelt": [
+                {
+                    "value": "breakBelt",
+                    "label": "Порвался ремень генератора"
+                }
+            ],
+            "ignitionSwitch": [
+                {
+                    "value": "breakIgn",
+                    "label": "Неисправен выключатель зажигания"
+                }
+            ],
+            "ignitionCoil": [
+                {
+                    "value": "breakIgnCoil",
+                    "label": "Неисправность катушки зажигания"
+                }
+            ],
+            "needDiagnostic5": [
+                {
+                    "value": "needDiagnostic6",
+                    "label": "Требуется диагностика в дилерском центре"
+                }
+            ],
             "brakeCylinder": [
                 {
                     "value": "noBrakeCyl",
