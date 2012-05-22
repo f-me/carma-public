@@ -2200,6 +2200,24 @@
                     "label": "Слетел патрубок системы охлаждения"
                 }
             ],
+            "pomp": [
+                {
+                    "value": "pompFault",
+                    "label": "Вышел из строя насос системы охлаждения"
+                }
+            ],
+            "engVentilator": [
+                {
+                    "value": "ventFault",
+                    "label": "Неисправность вентилятора"
+                }
+            ],
+            "thermostat": [
+                {
+                    "value": "termFault",
+                    "label": "Неисправен термостат"
+                }
+            ],
             "crankRunner": [
                 {
                     "value": "breakСrankRunner",
