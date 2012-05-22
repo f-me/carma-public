@@ -1870,6 +1870,18 @@
                     "value": "needDiagnostic1"
                 }
             ],
+            "dtp": [
+                {
+                    "value": "dtp1",
+                    "label": "ДТП"                  
+                }
+            ],
+            "vandal": [
+                {
+                    "value": "vandal1",
+                    "label": "Вандализм"                  
+                }
+            ],
             "electro": [
                 {
                     "value": "accum",
@@ -1998,6 +2010,18 @@
                 {
                     "value": "hubBearingFault",
                     "label": "Рассыпался подшипник ступицы"
+                }
+            ],
+            "dtp1": [
+                {
+                    "value": "dtp2",
+                    "label": "ДТП"
+                }
+            ],
+            "vandal1": [
+                {
+                    "value": "vandal2",
+                    "label": "Вандализм"
                 }
             ],
             "starter": [
