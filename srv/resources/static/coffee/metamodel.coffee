@@ -15,21 +15,16 @@ this.backbonizeModel = (model, modelName) ->
   groups           = []
 
   for f in model.fields
-    if not _.isNull(f.meta)
-      if _.has(f.meta, "required") and f.meta.required
-        requiredFields = requiredFields.concat(f.name)
-      if _.has(f.meta, "regexp")
-        regexpFields = regexpFields.concat(f.name)
+    if f.meta?
+      requiredFields.push(f.name) if f.meta.required
+      regexpFields.push(f.name)   if _.has(f.meta, "regexp")
 
     fieldHash[f.name] = f
     defaults[f.name]  = null
 
-    if f.type == "reference"
-      referenceFields = referenceFields.concat(f.name)
-    if f.type == "dictionary"
-      dictionaryFields = dictionaryFields.concat(f.name)
-    if (not _.isNull(f.groupName)) and (groups.indexOf(f.groupName) == -1)
-      groups = groups.concat(f.groupName)
+    referenceFields.push(f.name)  if f.type == "reference"
+    dictionaryFields.push(f.name) if f.type == "dictionary"
+    groups.push(f.groupName)      if f.groupName? and f.groupName not in groups
 
   M = Backbone.Model.extend
     defaults: defaults
