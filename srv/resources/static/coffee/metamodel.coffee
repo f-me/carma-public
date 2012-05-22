@@ -96,8 +96,7 @@ this.backbonizeModel = (model, modelName) ->
           this.model.canUpdate        and
           this.fieldHash[k].canWrite  and
           not _.isNull(attrs[k])
-        do (k) ->
-          this.attributeQueue[k] = attrs[k]
+        this.attributeQueue[k] = attrs[k]
 
       # Do not send empty updates to server
     save: (attrs, options) ->
@@ -116,19 +115,18 @@ this.backbonizeModel = (model, modelName) ->
     parse: (json) ->
       m = this.model;
       for k of json
-          # TODO Perhaps inform client when unknown field occurs
-        do (k) ->
-          if (k isnt "id") and _.has(this.fieldHash, k)
-            type = this.fieldHash[k].type
-            if type.match(/^date/) and json[k].match(/\d+/)
-              format = if type == "date"
-                  "dd.MM.yyyy"
-                else
-                   "dd.MM.yyyy HH:mm:ss"
-              json[k] = new Date(json[k] * 1000).toString(format)
-            else
-              if (type == "checkbox")
-                json[k] = json[k] == "1"
+        # TODO Perhaps inform client when unknown field occurs
+        if (k isnt "id") and _.has(this.fieldHash, k)
+          type = this.fieldHash[k].type
+          if type.match(/^date/) and json[k].match(/\d+/)
+            format = if type == "date"
+                "dd.MM.yyyy"
+              else
+                 "dd.MM.yyyy HH:mm:ss"
+            json[k] = new Date(json[k] * 1000).toString(format)
+          else
+            if (type == "checkbox")
+              json[k] = json[k] == "1"
       return json
 
     toJSON: ->
@@ -139,18 +137,17 @@ this.backbonizeModel = (model, modelName) ->
       # Map boolean values to string "0"/"1"'s for server
       # compatibility
       for k of json
-        do (k) ->
-          if _.has(this.fieldHash, k) and
-              this.fieldHash[k].type.match(/^date/)
-            date = Date.parseExact(
-              json[k],
-              ["dd.MM.yyyy HH:mm:ss", "dd.MM.yyyy"])
-            if (date)
-              timestamp = Math.round(date.getTime() / 1000)
-              json[k] = String(timestamp)
-          if _.isBoolean(json[k])
-            json[k] = String(if json[k] then "1" else "0")
-          return json
+        if _.has(this.fieldHash, k) and
+            this.fieldHash[k].type.match(/^date/)
+          date = Date.parseExact(
+            json[k],
+            ["dd.MM.yyyy HH:mm:ss", "dd.MM.yyyy"])
+          if (date)
+            timestamp = Math.round(date.getTime() / 1000)
+            json[k] = String(timestamp)
+        if _.isBoolean(json[k])
+          json[k] = String(if json[k] then "1" else "0")
+        return json
 
     urlRoot: "/_/" + modelName
 

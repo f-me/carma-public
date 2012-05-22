@@ -81,8 +81,8 @@ this.mainSetup = (localScreens, localRouter, localDictionaries, modelHooks, user
 
   Backbone.history.start({pushState: false})
 
-el  = (id) -> document.getElementById(id)
-$el = (id) -> $(el(id))
+this.el  = (id) -> document.getElementById(id)
+this.$el = (id) -> $(el(id))
 
 # Render top-level screen template (static)
 #
@@ -257,6 +257,7 @@ this.modelSetup = (modelName) ->
           mkBackboneModel : mkBackboneModel
           knockVM         : knockVM
           depViews        : depViews
+          references      : {}
 
         mh = global.modelHooks
         # Run global hooks
@@ -279,8 +280,6 @@ bindKnockoutMany = (knockVM, groupViews) ->
 
   # # Bind extra views if provided
   # ko.applyBindings(knockVM, el(options.slotsee[s])) for s of options.slotsee
-
-
 
 # Model method HTTP access point wrt redson location
 modelMethod = (modelName, method) -> "/_/#{modelName}/#{method}"
