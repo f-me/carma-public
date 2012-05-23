@@ -1830,7 +1830,7 @@
                     "label": "Сальник приводного вала"
                 },
                 {
-                    "value": "signal",	
+                    "value": "backSignal",	
                     "label": "Сигнал (фонарь) заднего хода"
                 },
                 {
@@ -1862,6 +1862,12 @@
                 {
                     "value": "camshaft",
                     "label": "Датчик распредвала"
+                }
+            ],
+            "signal": [
+                {
+                    "value": "signal1",
+                    "label": "Сигнализация"
                 }
             ],
              "needDiagnostic": [
@@ -1984,6 +1990,22 @@
                 {
                     "value": "engBreak",
                     "label": "Неисправность двигателя"
+                }
+            ],
+            "needDiagnostic0": [
+                {
+                    "value": "needDiagnostic01",
+                    "label": "Требуется диагностика в дилерском центре"
+                }
+            ],
+            "signal1": [
+                {
+                    "value": "signBreak1",
+                    "label": "Неисправность сигнализации (штатное оборудование)"
+                },
+                {
+                    "value": "signBreak2",
+                    "label": "Неисправность сигнализации (доп. оборудование)"
                 }
             ],
             "ps": [
@@ -2233,7 +2255,7 @@
             "crankRunner": [
                 {
                     "value": "breakСrankRunner",
-                    "label": "Шкив коленевала"
+                    "label": "Неисправен шкив коленвала"
                 }
             ]
         }
