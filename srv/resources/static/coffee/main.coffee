@@ -141,25 +141,21 @@ knockBackbone = (instance, viewName) ->
   # Set extra observable for inverse of every required
   # parameters, with name <fieldName>Not
   for f of instance.requiredFields
-    do (f) ->
-      knockVM[instance.requiredFields[f] + "Not"] =
-        kb.observable(instance,
-                      key: instance.requiredFields[f]
-                      read: (k) -> not instance.get(k)
-                      )
+    knockVM[instance.requiredFields[f] + "Not"] =
+      kb.observable instance,
+                    key: instance.requiredFields[f]
+                    read: (k) -> not instance.get(k)
 
-  knockVM["modelTitle"] = kb.observable(instance,
+  knockVM["modelTitle"] = kb.observable instance,
                                         key : "title"
                                         read: (k) -> instance.title
-                                        )
   knockVM["maybeId"] =
-    kb.observable(instance,
+    kb.observable instance,
                   key : "id"
                   read: (k) -> if instance.isNew()
                           "—"
                         else
                           instance.id
-                  )
 
   # global.observableHooks[*]
   # global.observableHooks[instance.modelName]
@@ -225,23 +221,9 @@ knockBackbone = (instance, viewName) ->
 # argument.
 this.modelSetup = (modelName) ->
   return (elName, args, options) ->
-    $.getJSON(modelMethod(modelName, "model"),
-      (model) ->
-        mkBackboneModel = backbonizeModel(model, modelName)
-        idHash = {}
-
-        # Backbone and Knockout
-        instance = new mkBackboneModel(args)
+    createBbModel modelName, args, elName, options?.fetchCb,
+      (instance, model, mkBackboneModel) ->
         knockVM  = knockBackbone(instance, elName)
-
-        # To let parent instance know about views created for
-        # references, we create depViews.
-        depViews = {}
-        groupViews = {}
-
-        # External fetch callback
-        if _.isFunction(options.fetchCb)
-          instance.bind("change", options.fetchCb)
 
         # Wait a bit to populate model fields and bind form
         # elements without PUT-backs to server
@@ -254,10 +236,8 @@ this.modelSetup = (modelName) ->
           model           : model
           bbInstance      : instance
           modelName       : modelName
-          mkBackboneModel : mkBackboneModel
           knockVM         : knockVM
-          depViews        : depViews
-          references      : {}
+          # bbReferences    : bbReferences
 
         mh = global.modelHooks
         # Run global hooks
@@ -265,8 +245,48 @@ this.modelSetup = (modelName) ->
 
         # Run model-specific hooks
         mh[modelName][f](elName) for f of mh[modelName] when _.has(mh, modelName)
-    )
 
+createBbModel = (modelName, args, elName, fetchCb, restCode) ->
+  $.getJSON modelMethod(modelName, "model"),
+    (model) ->
+      mkBackboneModel = backbonizeModel(model, modelName)
+      instance = new mkBackboneModel(args)
+      # External fetch callback
+      instance.bind("change", fetchCb) if _.isFunction(fetchCb)
+      for i in instance.referenceFields
+        do (i) ->
+          console.info 'binding: ', i
+          console.info 'beforebind: ', instance.get(i)
+          instance.on "change:#{i}",
+            ->
+              vw = global.viewsWare[elName]
+              r = instance.get(i)
+              console.info 'changed: ', i
+              console.info 'instance: ', instance
+              console.info 'r, vw: ', r, vw
+              return unless r? and vw?
+              vw.bbReferences = {} unless vw.bbReferences?
+              vw.bbReferences[i] = []
+              for m in instance.get(i).split ','
+                console.info 'mking', m
+                [name, id] = (v.trim() for v in m.split(':'))
+                console.info 'name, id: ', name, id
+                createBbModel name, {id: id}, elName, null,
+                  (inst) ->
+                    console.info 'ref model: ', inst
+                    vw.bbReferences[i].push inst
+          # console.info instance
+          # console.info "i is ", i
+          # console.info 'get is ', instance.get('services')
+          # for m in instance.get(i)?.split ','
+          #   [name, id] = (v.trim() for v in m.split(':'))
+          #   bbReferences[i] = createBbModel(name, {id: id})
+      if _.isFunction(restCode)
+        restCode(instance, model, mkBackboneModel)
+
+# setReferences = (model, field) ->
+#     vw = global.viewsWare[elName]
+#     return
 
 bindKnockout = (knockVM, elName) -> ko.applyBindings(knockVM, el(elName))
   # Bind the model to Knockout UI
