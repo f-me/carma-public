@@ -302,7 +302,7 @@ bindKnockoutMany = (knockVM, groupViews) ->
   # ko.applyBindings(knockVM, el(options.slotsee[s])) for s of options.slotsee
 
 # Model method HTTP access point wrt redson location
-modelMethod = (modelName, method) -> "/_/#{modelName}/#{method}"
+this.modelMethod = (modelName, method) -> "/_/#{modelName}/#{method}"
 
 # Save instance loaded in view
 saveInstance = (viewName) -> global.viewsWare[viewName].bbInstance.save()

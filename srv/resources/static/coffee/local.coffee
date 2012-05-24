@@ -48,21 +48,32 @@ this.localRouter = Backbone.Router.extend
     loadPartner : (id) -> renderScreen("partner", {"id": id})
     call        : ()   -> renderScreen("call")
 
-setLocalHooks = ->
+setLocalHooks = =>
   this.localHooks =
       "*"    : [stdElCb, dictionaryHook]
       "case" : [candiboberHook]
 
+# here is entry point
 $( ->
-  $.getJSON("/s/js/data/dictionaries.json",
-    (dicts) ->
-      $.getJSON("/_whoami/",
-        (user) ->
-          $.getJSON("/s/js/data/conditions.json",
-            (checks) ->
-              setLocalHooks()
-              mainSetup(localScreens, localRouter, dicts, localHooks, user)
-              global.checks = checks))))
+  $.getJSON("/s/js/data/dictionaries.json",   (dicts)  ->
+    $.getJSON("/_whoami/",                    (user)   ->
+      $.getJSON("/s/js/data/conditions.json", (checks) ->
+        loadAllModels                         (models) ->
+          setLocalHooks()
+          mainSetup(localScreens, localRouter, dicts, localHooks, user)
+          global.checks = checks))))
+
+loadAllModels = (rest) ->
+  storedModels = this.models  = {}
+  $.getJSON "/_/_models", (models) ->
+    for m in models
+      do (m) ->
+        $.getJSON modelMethod(m.name, "model"),
+          (model) ->
+            storedModels[m.name] = model
+            # run rest code when all models are fetched
+            rest(models) if _.keys(storedModels).length == models.length
+
 
 # Clear dependant dictionary fields when parent is changed
 dictionaryHook = (elName) ->
