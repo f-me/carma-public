@@ -221,72 +221,34 @@ knockBackbone = (instance, viewName) ->
 # argument.
 this.modelSetup = (modelName) ->
   return (elName, args, options) ->
-    createBbModel modelName, args, elName, options?.fetchCb,
-      (instance, model, mkBackboneModel) ->
-        knockVM  = knockBackbone(instance, elName)
+    mkBackboneModel = backbonizeModel(this.models, modelName)
+    instance = new mkBackboneModel(args)
+    knockVM  = knockBackbone(instance, elName)
 
-        # Wait a bit to populate model fields and bind form
-        # elements without PUT-backs to server
-        #
-        # TODO First POST is still broken somewhy.
-        window.setTimeout((-> instance.setupServerSync()), 1000)
+    # External fetch callback
+    instance.bind("change", fetchCb) if _.isFunction(fetchCb)
 
-        # Bookkeeping
-        global.viewsWare[elName] =
-          model           : model
-          bbInstance      : instance
-          modelName       : modelName
-          knockVM         : knockVM
-          # bbReferences    : bbReferences
+    # Wait a bit to populate model fields and bind form
+    # elements without PUT-backs to server
+    #
+    # TODO First POST is still broken somewhy.
+    window.setTimeout((-> instance.setupServerSync()), 1000)
 
-        mh = global.modelHooks
-        # Run global hooks
-        mh["*"][f](elName) for f of mh["*"]
+    # Bookkeeping
+    global.viewsWare[elName] =
+      model           : this.models[modelName]
+      bbInstance      : instance
+      modelName       : modelName
+      knockVM         : knockVM
+      # bbReferences    : bbReferences
 
-        # Run model-specific hooks
-        mh[modelName][f](elName) for f of mh[modelName] when _.has(mh, modelName)
+    mh = global.modelHooks
+    # Run global hooks
+    mh["*"][f](elName) for f of mh["*"]
 
-createBbModel = (modelName, args, elName, fetchCb, restCode) ->
-  $.getJSON modelMethod(modelName, "model"),
-    (model) ->
-      mkBackboneModel = backbonizeModel(model, modelName)
-      instance = new mkBackboneModel(args)
-      # External fetch callback
-      instance.bind("change", fetchCb) if _.isFunction(fetchCb)
-      for i in instance.referenceFields
-        do (i) ->
-          console.info 'binding: ', i
-          console.info 'beforebind: ', instance.get(i)
-          instance.on "change:#{i}",
-            ->
-              vw = global.viewsWare[elName]
-              r = instance.get(i)
-              console.info 'changed: ', i
-              console.info 'instance: ', instance
-              console.info 'r, vw: ', r, vw
-              return unless r? and vw?
-              vw.bbReferences = {} unless vw.bbReferences?
-              vw.bbReferences[i] = []
-              for m in instance.get(i).split ','
-                console.info 'mking', m
-                [name, id] = (v.trim() for v in m.split(':'))
-                console.info 'name, id: ', name, id
-                createBbModel name, {id: id}, elName, null,
-                  (inst) ->
-                    console.info 'ref model: ', inst
-                    vw.bbReferences[i].push inst
-          # console.info instance
-          # console.info "i is ", i
-          # console.info 'get is ', instance.get('services')
-          # for m in instance.get(i)?.split ','
-          #   [name, id] = (v.trim() for v in m.split(':'))
-          #   bbReferences[i] = createBbModel(name, {id: id})
-      if _.isFunction(restCode)
-        restCode(instance, model, mkBackboneModel)
+    # Run model-specific hooks
+    mh[modelName][f](elName) for f of mh[modelName] when _.has(mh, modelName)
 
-# setReferences = (model, field) ->
-#     vw = global.viewsWare[elName]
-#     return
 
 bindKnockout = (knockVM, elName) -> ko.applyBindings(knockVM, el(elName))
   # Bind the model to Knockout UI

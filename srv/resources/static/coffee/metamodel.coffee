@@ -5,7 +5,7 @@
 #
 # @return Constructor of Backbone model
 
-this.backbonizeModel = (model, modelName) ->
+this.backbonizeModel = (models, modelName) ->
   defaults         = {}
   fieldHash        = {}
   dictionaryFields = []
@@ -13,6 +13,8 @@ this.backbonizeModel = (model, modelName) ->
   requiredFields   = []
   regexpFields     = []
   groups           = []
+
+  model = models[modelName]
 
   for f in model.fields
     if f.meta?
@@ -71,7 +73,7 @@ this.backbonizeModel = (model, modelName) ->
             # first POST
             #
             # TODO Still PUT-backs
-            if not this.hasChanged("id") then this.save()
+            this.save() unless this.hasChanged("id")
       this.bind("change", _.throttle(realUpdates, 500), this)
     set: (attrs, options) ->
       Backbone.Model.prototype.set.call(this, attrs, options)
@@ -119,6 +121,8 @@ this.backbonizeModel = (model, modelName) ->
               else
                  "dd.MM.yyyy HH:mm:ss"
             json[k] = new Date(json[k] * 1000).toString(format)
+          if type == 'reference'
+            setReference this, json, k, models
           else
             if (type == "checkbox")
               json[k] = json[k] == "1"
@@ -129,21 +133,52 @@ this.backbonizeModel = (model, modelName) ->
       json = _.clone(this.attributeQueue)
       this.attributeQueueBackup = _.clone(json)
       this.attributeQueue = {}
-      # Map boolean values to string "0"/"1"'s for server
-      # compatibility
       for k of json
-        if _.has(this.fieldHash, k) and
-            this.fieldHash[k].type.match(/^date/)
-          date = Date.parseExact(
-            json[k],
-            ["dd.MM.yyyy HH:mm:ss", "dd.MM.yyyy"])
-          if (date)
-            timestamp = Math.round(date.getTime() / 1000)
-            json[k] = String(timestamp)
+        if _.has(this.fieldHash, k)
+          # serialize date field to unixtime (am I wrong?)
+          if this.fieldHash[k].type.match(/^date/)
+            date = Date.parseExact(
+              json[k],
+              ["dd.MM.yyyy HH:mm:ss", "dd.MM.yyyy"])
+            if date
+              timestamp = Math.round(date.getTime() / 1000)
+              json[k] = String(timestamp)
+          # serialize references to name1:id1,name2:id2,... string
+          if this.fieldHash[k].type == 'reference'
+            json[k] = ("#{r.name}:#{r.id}" for r in json[k]).join(',')
+        # Map boolean values to string "0"/"1"'s for server
+        # compatibility
         if _.isBoolean(json[k])
           json[k] = String(if json[k] then "1" else "0")
-        return json
+      return json
 
     urlRoot: "/_/" + modelName
 
   return M
+
+setReference = (parent, json, field, models) ->
+  return json[field] = [] unless json[field]?
+  references = for m in json[field].split ','
+    [name, id] = (v.trim() for v in m.split(':'))
+    console.info "setRef: #{field}; #{m}"
+    mkBb = backbonizeModel(models, name)
+    new mkBb({id:id})
+  # genRefAccessors(parent, field, references)
+  json[field] = references
+
+# genRefAccessors = (bindInst, field, refs) =>
+#   tp = (f) -> _.chain(f v).tap(bindInst.trigger("change:#{@field}")).value()
+#   genFor = (name, fun) ->
+#     bindInst["#{name}#{ucfirst field}"] = fun
+#   set = (refs) -> bindInst.set(field, refs)
+#   get =        -> bindInst.get(field)
+
+#   genFor 'get',        -> get field
+#   genFor 'set', set
+#   genFor 'add', (refs) -> set(_.union get(), toA refs)
+#   genFor 'rem', (refs) -> set _.reject get(),
+#     (r) -> if _.any(refs, (c) -> c.id == r.id and c.name == r.name) then true
+
+# ucfirst = (str) -> str.replace /(\b)([a-zA-Z])/, (l) -> l.toUpperCase()
+
+
