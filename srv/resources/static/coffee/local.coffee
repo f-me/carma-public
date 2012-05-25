@@ -1,6 +1,6 @@
 #/ Everything local to the customer resides here
 
-this.localScreens =
+localScreens = ->
   "case":
     "template": "case-screen-template"
     "views":
@@ -27,7 +27,7 @@ this.localScreens =
       "partner-form": setupPartnersForm
 
 # Setup routing
-this.localRouter = Backbone.Router.extend
+localRouter = Backbone.Router.extend
   # Must _not_ end with trailing slashes
   routes:
     "case/:id"    : "loadCase"
@@ -48,10 +48,12 @@ this.localRouter = Backbone.Router.extend
     loadPartner : (id) -> renderScreen("partner", {"id": id})
     call        : ()   -> renderScreen("call")
 
-setLocalHooks = =>
-  this.localHooks =
+hooks = ->
+  model:
       "*"    : [stdElCb, dictionaryHook]
       "case" : [candiboberHook]
+  observable:
+      "*"    : [regexpKbHook, dictionaryKbHook]
 
 # here is entry point
 $( ->
@@ -59,8 +61,7 @@ $( ->
     $.getJSON("/_whoami/",                    (user)   ->
       $.getJSON("/s/js/data/conditions.json", (checks) ->
         loadAllModels                         (models) ->
-          setLocalHooks()
-          mainSetup(localScreens, localRouter, dicts, localHooks, user)
+          mainSetup(localScreens(), localRouter, dicts, hooks(), user)
           global.checks = checks))))
 
 loadAllModels = (rest) ->
@@ -74,6 +75,43 @@ loadAllModels = (rest) ->
             # run rest code when all models are fetched
             rest(models) if _.keys(storedModels).length == models.length
 
+dictionaryKbHook = (instance, knockVM) ->
+  for n of instance.dictionaryFields
+    fieldName = instance.dictionaryFields[n]
+    dict      = instance.fieldHash[fieldName].meta.dictionaryName
+    parent    = instance.fieldHash[fieldName].meta.dictionaryParent
+
+    # Perform label-value transformation
+    ((f, d) ->
+      knockVM[f + "Local"] =
+        kb.observable instance,
+                      key: f
+                      read: (k) ->
+                        # Read label by real value
+                        val = instance.get(k)
+                        lab = global.dictValueCache[d][val]
+                        return (lab || val)
+                      write: (lab) ->
+                        # Set real value by label
+                        val = global.dictLabelCache[d][lab]
+                        instance.set(f, val || lab)
+                      ,
+                      knockVM
+      )(fieldName, dict)
+
+regexpKbHook = (instance, knockVM) ->
+  # Set observable with name <fieldName>Regexp for inverse of
+  # result of regexp checking for every field with meta.regexp
+  # annotation. Observable is True when regexp fails.
+  for n of instance.regexpFields
+    fieldName = instance.regexpFields[n]
+    regexp = instance.fieldHash[fieldName].meta.regexp
+    ((f, r) ->
+      knockVM[fieldName + "Regexp"] =
+            kb.observable instance,
+                          key: f
+                          read: (k) -> not r.test instance.get(k)
+    )(fieldName, new RegExp(regexp))
 
 # Clear dependant dictionary fields when parent is changed
 dictionaryHook = (elName) ->

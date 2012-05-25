@@ -20,7 +20,7 @@
 #
 # user object is stored in global hash and contains data about
 # current user.
-this.mainSetup = (localScreens, localRouter, localDictionaries, modelHooks, user) ->
+this.mainSetup = (localScreens, localRouter, localDictionaries, hooks, user) ->
   Screens = localScreens
 
   dictLabelCache = {}
@@ -58,7 +58,7 @@ this.mainSetup = (localScreens, localRouter, localDictionaries, modelHooks, user
       dictLabelCache: dictLabelCache
       # Maps values to labels
       dictValueCache: dictValueCache
-      modelHooks: modelHooks
+      hooks: hooks
       user: user
       activeScreen: null
       # viewWare is for bookkeeping of views in current screen.
@@ -140,11 +140,14 @@ knockBackbone = (instance, viewName) ->
 
   # Set extra observable for inverse of every required
   # parameters, with name <fieldName>Not
-  for f of instance.requiredFields
-    knockVM[instance.requiredFields[f] + "Not"] =
+  for f in instance.requiredFields
+    knockVM[f + "Not"] =
       kb.observable instance,
-                    key: instance.requiredFields[f]
+                    key: f
                     read: (k) -> not instance.get(k)
+
+  for f in instance.referenceFields
+    knockBackbone(i) for i in (instance.get(f) or [])
 
   knockVM["modelTitle"] = kb.observable instance,
                                         key : "title"
@@ -152,13 +155,11 @@ knockBackbone = (instance, viewName) ->
   knockVM["maybeId"] =
     kb.observable instance,
                   key : "id"
-                  read: (k) -> if instance.isNew()
-                          "—"
-                        else
-                          instance.id
+                  read: (k) -> if instance.isNew() then "—" else instance.id
 
-  # global.observableHooks[*]
-  # global.observableHooks[instance.modelName]
+  applyHooks global.hooks.observable,
+             ['*', instance.modelName],
+             instance, knockVM, viewName
 
   return knockVM
 
@@ -226,7 +227,7 @@ this.modelSetup = (modelName) ->
     knockVM  = knockBackbone(instance, elName)
 
     # External fetch callback
-    instance.bind("change", fetchCb) if _.isFunction(fetchCb)
+    instance.bind("change", options.fetchCb) if _.isFunction(options.fetchCb)
 
     # Wait a bit to populate model fields and bind form
     # elements without PUT-backs to server
@@ -242,13 +243,8 @@ this.modelSetup = (modelName) ->
       knockVM         : knockVM
       # bbReferences    : bbReferences
 
-    mh = global.modelHooks
-    # Run global hooks
-    mh["*"][f](elName) for f of mh["*"]
-
-    # Run model-specific hooks
-    mh[modelName][f](elName) for f of mh[modelName] when _.has(mh, modelName)
-
+    applyHooks(global.hooks.model, ['*', modelName], elName)
+    return global.viewsWare[elName]
 
 bindKnockout = (knockVM, elName) -> ko.applyBindings(knockVM, el(elName))
   # Bind the model to Knockout UI
@@ -288,4 +284,6 @@ removeInstance = (viewName) ->
   setup = global.activeScreen.views[viewName]
   setup(viewName, {}) if not _.isNull(setup)
 
-
+applyHooks = (hooks, selectors, args...) ->
+  fs = _.chain(hooks[k] for k in selectors).flatten().compact().value()
+  f.apply(this, args) for f in fs

@@ -160,7 +160,6 @@ setReference = (parent, json, field, models) ->
   return json[field] = [] unless json[field]?
   references = for m in json[field].split ','
     [name, id] = (v.trim() for v in m.split(':'))
-    console.info "setRef: #{field}; #{m}"
     mkBb = backbonizeModel(models, name)
     new mkBb({id:id})
   # genRefAccessors(parent, field, references)
