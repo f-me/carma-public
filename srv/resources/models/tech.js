@@ -6,14 +6,13 @@
     "canUpdate": true,
     "canDelete": true,
     "defaults": {
-      "status" : "creating",
-      "payType" : "ruamc",
-      "warrantyCase" : "0",
-      "overcosted": "0",
-      "falseCall": "none",
-      "suburbanMilage": "0"
+        "status": "creating",
+        "payType": "ruamc",
+        "warrantyCase": "0",
+        "overcosted": "0",
+        "falseCall": "none",
+        "suburbanMilage": "0"
     },
-    
     "applications": [
         {
             "targets": [
@@ -40,27 +39,12 @@
             }
         },
         {
-            "targets": ["caseAddress_address","caseAddress_coords","caseAddress_city","caseAddress_comment"],
-            "canRead": ["front", "back", "head", "parguy"],
-            "canWrite": ["front", "back", "head"]
-        },        
-        {
-            "targets": ["techContractor_partner","techContractor_partnerTable","techContractor_coords"],
-            "canRead": ["front", "back", "head", "parguy"],
-            "canWrite": ["front", "back", "head"]
-        }              
-    ],
-    "fields": [
-        {
-          "name": "parentId",
-          "canRead": true,
-          "canWrite": true,
-          "meta": {
-            "invisible": true
-          }
-        },
-        {
-            "name": "status",
+            "targets": [
+                "caseAddress_address",
+                "caseAddress_coords",
+                "caseAddress_city",
+                "caseAddress_comment"
+            ],
             "canRead": [
                 "front",
                 "back",
@@ -70,13 +54,35 @@
             "canWrite": [
                 "front",
                 "back",
+                "head"
+            ]
+        },
+        {
+            "targets": [
+                "techContractor_partner",
+                "techContractor_partnerTable",
+                "techContractor_coords"
+            ],
+            "canRead": [
+                "front",
+                "back",
                 "head",
                 "parguy"
             ],
-            "type": "dictionary",
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ]
+        }
+    ],
+    "fields": [
+        {
+            "name": "parentId",
+            "canRead": true,
+            "canWrite": true,
             "meta": {
-                "label": "Статус услуги",
-                "dictionaryName": "ServiceStatuses"
+                "invisible": true
             }
         },
         {
@@ -280,40 +286,64 @@
             }
         },
         {
-          "name": "expectedDealerInfo",
-          "canRead": ["back", "head"],
-          "canWrite": ["back", "head"],
-          "type": "datetime",
-          "meta": {
-            "label": "Ожидаемое время получения информации от дилера"
-          }
+            "name": "expectedDealerInfo",
+            "canRead": [
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
+            "type": "datetime",
+            "meta": {
+                "label": "Ожидаемое время получения информации от дилера"
+            }
         },
         {
-          "name": "factDealerInfo",
-          "canRead": ["back", "head"],
-          "canWrite": ["back", "head"],
-          "type": "datetime",
-          "meta": {
-        	"label": "Фактическое время получения информации от дилера"
-          }
-        },    
-        {
-          "name": "expectedServiceClosure",
-          "canRead": ["back", "head"],
-          "canWrite": ["back", "head"],
-          "type": "datetime",
-          "meta": {
-        	"label": "Ожидаемое время закрытия услуги"
-          }
+            "name": "factDealerInfo",
+            "canRead": [
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
+            "type": "datetime",
+            "meta": {
+                "label": "Фактическое время получения информации от дилера"
+            }
         },
         {
-          "name": "factServiceClosure",
-          "canRead": ["back", "head"],
-          "canWrite": ["back", "head"],
-          "type": "datetime",
-          "meta": {
-        	"label": "Фактическое время закрытия услуги"
-          }
+            "name": "expectedServiceClosure",
+            "canRead": [
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
+            "type": "datetime",
+            "meta": {
+                "label": "Ожидаемое время закрытия услуги"
+            }
+        },
+        {
+            "name": "factServiceClosure",
+            "canRead": [
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
+            "type": "datetime",
+            "meta": {
+                "label": "Фактическое время закрытия услуги"
+            }
         },
         {
             "name": "repairEndDate",
@@ -443,7 +473,7 @@
             "groupName": "address",
             "meta": {
                 "label": "Адрес кейса"
-            }            
+            }
         },
         {
             "name": "techContractor",
@@ -478,6 +508,26 @@
             ],
             "meta": {
                 "label": "Пробег техпомощи за городом"
+            }
+        },
+        {
+            "name": "status",
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "type": "dictionary",
+            "meta": {
+                "label": "Статус услуги",
+                "dictionaryName": "ServiceStatuses"
             }
         }
     ]
