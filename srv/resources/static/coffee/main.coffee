@@ -147,7 +147,20 @@ knockBackbone = (instance, viewName) ->
                     read: (k) -> not instance.get(k)
 
   for f in instance.referenceFields
-    knockBackbone(i) for i in (instance.get(f) or [])
+    do (f) ->
+      knockVM[f + 'Reference'] =
+        kb.observable instance,
+                      key: f
+                      read: (k) ->
+                        knockBackbone(i) for i in (instance.get(f) or [])
+                      write: (v) ->
+                        instance.set(f, (i._kb_vm_model for i in v))
+                     ,
+                      knockVM
+
+  knockVM["modelName"] = kb.observable instance,
+                                       key: "model"
+                                       read: -> instance.model.name
 
   knockVM["modelTitle"] = kb.observable instance,
                                         key : "title"
