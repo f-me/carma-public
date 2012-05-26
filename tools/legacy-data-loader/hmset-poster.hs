@@ -18,7 +18,7 @@ import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Control.Arrow (second)
 import Control.Concurrent
-import Control.Concurrent.QSem
+import Control.Concurrent.QSemN
 
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as B
@@ -344,15 +344,15 @@ caseAction h r =
 mapP :: Int -> (a -> IO ()) -> [a] -> IO ()
 mapP _ _ [] = return ()
 mapP n f xs =
-    mapP_ hs >> mapP n f ts
+    mapMP_ f hs >> mapP n f ts
   where
     (hs, ts) = splitAt n xs
 
-    mapP_ ys =
-      do
-        sem <- newQSem $ length ys
-        mapM_ (\a -> forkIO $ f a >> signalQSem sem) ys
-        waitQSem sem
+mapMP_ f ys =
+    do
+        sem <- newQSemN 0
+        mapM_ (\a -> forkIO $ f a >> signalQSemN sem 1) ys
+        waitQSemN sem (length ys)
 
 main :: IO ()
 main =
@@ -373,5 +373,5 @@ main =
             res <- readCSVFile defCSVSettings fname
             case res of
               Left err -> print err
-              Right rows -> mapP 100 (caseAction w) rows
+              Right rows -> mapP 1 (caseAction w) rows
 

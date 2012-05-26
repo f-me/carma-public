@@ -35,7 +35,6 @@ import Snap.Snaplet.Session.Backends.CookieSession
 import Snap.Util.FileServe
 
 import Snap.Snaplet.Candibober
-import Snap.Snaplet.Search
 import Snap.Snaplet.Redson
 import Snap.Snaplet.Vin
 
