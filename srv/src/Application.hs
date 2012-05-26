@@ -35,6 +35,7 @@ import Snap.Snaplet.Session.Backends.CookieSession
 import Snap.Util.FileServe
 
 import Snap.Snaplet.Candibober
+import Snap.Snaplet.Search
 import Snap.Snaplet.Redson
 import Snap.Snaplet.Vin
 
@@ -44,6 +45,7 @@ import Actions
 -- | Application snaplet state type: Redson, Heist.
 data App = App
     { _candibober :: Snaplet Candibober
+    , _search :: Snaplet (Search App)
     , _heist :: Snaplet (Heist App)
     , _redson :: Snaplet (Redson App)
     , _session :: Snaplet SessionManager
@@ -146,6 +148,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   redsonHooks  <- either fail return redsonHooks'
   r <- nestSnaplet "_" redson $ redsonInitWithHooks auth redsonHooks
 
+  srch <- nestSnaplet "search" search $ searchInit redson
 
   sesKey <- liftIO $
             lookupDefault "resources/private/client_session_key.aes"
@@ -173,4 +176,4 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   addRoutes routes
 
-  return $ App c h r s a v sTime
+  return $ App c srch h r s a v sTime

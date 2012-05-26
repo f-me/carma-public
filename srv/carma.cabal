@@ -40,6 +40,7 @@ Executable carma
     transformers                >= 0.2 && < 0.4,
     vin-parser                  == 0.1.*,
     hedis                       == 0.4.1,
+    utf8-string,
     snaplet-redis               == 0.1.0.*
 
   if flag(development)

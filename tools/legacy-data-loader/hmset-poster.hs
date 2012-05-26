@@ -17,6 +17,8 @@ TODO Support more than one dependant form.
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Control.Arrow (second)
+import Control.Concurrent
+import Control.Concurrent.QSem
 
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as B
@@ -26,7 +28,7 @@ import qualified Data.ByteString.UTF8 as BU (fromString, toString)
 import Data.Maybe (catMaybes, fromMaybe)
 import qualified Data.Map as M
 
-import Data.Enumerator as E hiding (foldM, map, head)
+import Data.Enumerator as E hiding (foldM, map, head, length)
 import Data.CSV.Enumerator as CSV
 import qualified Data.Aeson as Aeson
 
@@ -312,11 +314,9 @@ tryTransformation row transform =
 --
 -- This is like 'mapIntoHandle', but for non-CSV output data.
 caseAction :: BrowserSt
-           -> ParsedRow MapRow 
-           -> Iteratee B.ByteString IO BrowserSt
-caseAction h (ParsedRow Nothing)  = return h
-caseAction h  CSV.EOF             = return h
-caseAction h (ParsedRow (Just r)) =
+           -> MapRow 
+           -> IO ()
+caseAction h r =
     let
       row = filterCaseRow r
       -- Commit only a fraction of original data for every case
@@ -328,9 +328,9 @@ caseAction h (ParsedRow (Just r)) =
                          Nothing -> Nothing
                 ) serviceTransformations
     in
-      liftIO $ case trs of
+      case trs of
         -- No transformations matched
-        [] -> create h "case" bareCommit >> return h
+        [] -> void $ create h "case" bareCommit
         _  -> do
               -- Store all dependant instances
               commit <- foldM (\c (trans, (depModel, depCommit)) -> do
@@ -339,10 +339,20 @@ caseAction h (ParsedRow (Just r)) =
                                             (referenceField trans)
                                             (instanceKey depModel sid)
                                             c) bareCommit trs
-              create h "case" commit
-              return h
+              void $ create h "case" commit
 
+mapP :: Int -> (a -> IO ()) -> [a] -> IO ()
+mapP _ _ [] = return ()
+mapP n f xs =
+    mapP_ hs >> mapP n f ts
+  where
+    (hs, ts) = splitAt n xs
 
+    mapP_ ys =
+      do
+        sem <- newQSem $ length ys
+        mapM_ (\a -> forkIO $ f a >> signalQSem sem) ys
+        waitQSem sem
 
 main :: IO ()
 main =
@@ -360,8 +370,8 @@ main =
         Nothing -> error "No file selected"
         Just fname -> do
             w <- login
-            res <- foldCSVFile fname defCSVSettings caseAction w
+            res <- readCSVFile defCSVSettings fname
             case res of
               Left err -> print err
-              Right _  -> return ()
+              Right rows -> mapP 100 (caseAction w) rows
 
