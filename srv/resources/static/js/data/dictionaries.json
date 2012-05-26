@@ -2955,6 +2955,42 @@
                     "value": "carmakerNotApproved",
                     "label": "Автопроизводитель отказал"
                 }
+            ],
+            "dealerConf": [
+                {
+                    "value": "busyLine",
+                    "label": "Не дозвонился"
+                },
+                {
+                    "value": "callLater",
+                    "label": "Перезвонить"
+                },
+                {
+                    "value": "needService",
+                    "label": "Требуется заказ услуги"
+                },
+                {
+                    "value": "notNeedService",
+                    "label": "Заказ услуги не требуется"
+                }
+            ],
+            "mechanicConf": [
+                {
+                    "value": "busyLine",
+                    "label": "Не дозвонился"
+                },
+                {
+                    "value": "callLater",
+                    "label": "Перезвонить"
+                },
+                {
+                    "value": "needService",
+                    "label": "Требуется заказ услуги"
+                },
+                {
+                    "value": "notNeedService",
+                    "label": "Заказ услуги не требуется"
+                }
             ]
         }
     },
@@ -3027,6 +3063,14 @@
             {
                 "value": "carmakerApproval",
                 "label": "Согласование с автопроизводителем"
+            },
+            {
+                "value": "dealerConf",
+                "label": "Требуется конференция с дилером"
+            },
+            {
+                "value": "mechanicConf",
+                "label": "Требуется конференция с механиком"
             }
         ]
     }
