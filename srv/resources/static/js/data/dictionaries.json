@@ -366,19 +366,19 @@
     "CaseStatuses": {
         "entries": [
             {
-		"value": "s0",
+                "value": "s0",
                 "label": "Front Office"
             },
             {
-		"value": "s1",
+                "value": "s1",
                 "label": "Back Office"
             },
             {
-		"value": "s2",
+                "value": "s2",
                 "label": "Закрыт"
             },
             {
-		"value": "s3",
+                "value": "s3",
                 "label": "Отмена"
             }
         ]
@@ -388,6 +388,14 @@
             {
                 "value": "creating",
                 "label": "Создание"
+            },
+            {
+                "value": "mechanicConf",
+                "label": "Требуется конференция с механиком"
+            },
+            {
+                "value": "delarConf",
+                "label": "Требуется конференция с дилером"
             },
             {
                 "value": "checking",
@@ -1794,7 +1802,7 @@
                     "label": "Граната ШРУС (граната)"
                 },
                 {
-                    "value": "cardan",	
+                    "value": "cardan",
                     "label": "Карданный вал"
                 },
                 {
@@ -1810,7 +1818,7 @@
                     "label": "Приводной вал"
                 },
                 {
-                    "value": "pylnikSh",	
+                    "value": "pylnikSh",
                     "label": "Пыльник ШРУС"
                 },
                 {
@@ -1830,7 +1838,7 @@
                     "label": "Сальник приводного вала"
                 },
                 {
-                    "value": "backSignal",	
+                    "value": "backSignal",
                     "label": "Сигнал (фонарь) заднего хода"
                 },
                 {
@@ -1870,7 +1878,7 @@
                     "label": "Сигнализация"
                 }
             ],
-             "needDiagnostic": [
+            "needDiagnostic": [
                 {
                     "label": "Требуется диагностика в дилерском центре",
                     "value": "needDiagnostic1"
@@ -1879,13 +1887,13 @@
             "dtp": [
                 {
                     "value": "dtp1",
-                    "label": "ДТП"                  
+                    "label": "ДТП"
                 }
             ],
             "vandal": [
                 {
                     "value": "vandal1",
-                    "label": "Вандализм"                  
+                    "label": "Вандализм"
                 }
             ],
             "electro": [
@@ -1902,11 +1910,11 @@
                     "label": "Вентилятор радиатора"
                 },
                 {
-                    "value": "airconfan",	
+                    "value": "airconfan",
                     "label": "Вентилятор радиатора кондиционера"
                 },
                 {
-                    "value": "generator",	
+                    "value": "generator",
                     "label": "Генератор"
                 },
                 {
@@ -2210,7 +2218,7 @@
                     "label": "Неисправность коробки передач"
                 }
             ],
-             "shrus": [
+            "shrus": [
                 {
                     "value": "faultSh",
                     "label": "Рассыпался ШРУС"
