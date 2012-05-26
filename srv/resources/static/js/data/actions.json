@@ -56,7 +56,8 @@
                 "caseOver",
                 "partnerFound",
                 "carmakerApproved",
-                "dealerApproved"
+                "dealerApproved",
+                "needService"
             ]
         },
         "new": [
@@ -514,6 +515,92 @@
                 "duetime": "{{#.now}}",
                 "description": "Требуется согласовать оказание услуги с автопроизводителем",
                 "targetGroup": "head"
+            }
+        ],
+        "close": true
+    },
+    {
+        "on": {
+            "deliverCar.status": [
+                "mechanicConf"
+            ],
+			"deliverParts.status": [
+                "mechanicConf"
+            ],
+			"hotel.status": [
+                "mechanicConf"
+            ],
+			"information.status": [
+                "mechanicConf"
+            ],
+			"rent.status": [
+                "mechanicConf"
+            ],
+			"sober.status": [
+                "mechanicConf"
+            ],
+			"taxi.status": [
+                "mechanicConf"
+            ],
+			"tech.status": [
+                "mechanicConf"
+            ],
+			"towage.status": [
+                "mechanicConf"
+            ],
+			"transportation.status": [
+                "mechanicConf"
+            ]
+        },
+        "new": [
+            {
+                "name": "mechanicConf",
+                "duetime": "{{#.now}}",
+                "description": "Требуется конференция с механиком",
+                "targetGroup": "back"
+            }
+        ],
+        "close": true
+    },
+    {
+        "on": {
+            "deliverCar.status": [
+                "dealerConf"
+            ],
+			"deliverParts.status": [
+                "dealerConf"
+            ],
+			"hotel.status": [
+                "dealerConf"
+            ],
+			"information.status": [
+                "dealerConf"
+            ],
+			"rent.status": [
+                "dealerConf"
+            ],
+			"sober.status": [
+                "dealerConf"
+            ],
+			"taxi.status": [
+                "dealerConf"
+            ],
+			"tech.status": [
+                "dealerConf"
+            ],
+			"towage.status": [
+                "dealerConf"
+            ],
+			"transportation.status": [
+                "dealerConf"
+            ]
+        },
+        "new": [
+            {
+                "name": "dealerConf",
+                "duetime": "{{#.now}}",
+                "description": "Требуется конференция с дилером",
+                "targetGroup": "back"
             }
         ],
         "close": true
