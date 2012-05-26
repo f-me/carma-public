@@ -59,7 +59,33 @@
             "targets": ["taxiContractor_partner","taxiContractor_partnerTable","taxiContractor_coords"],
             "canRead": ["front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head"]
-        }        
+        },
+        {
+            "targets": [
+                "expectedServiceStart",
+                "factServiceStart",
+                "expectedServiceEnd",
+                "factServiceEnd",
+                "expectedServiceFinancialClosure",
+                "factServiceFinancialClosure",
+                "expectedDealerInfo",
+                "factDealerInfo",
+                "expectedServiceClosure",
+                "factServiceClosure"
+            ],
+            "meta": {
+                "regexp": "^\\d{2}:\\d{2} \\d{2}\\.\\d{2}\\.\\d{4}$"
+            }
+        },
+        {
+            "targets": [
+                "repairEndDate",
+                "billingDate"
+            ],
+            "meta": {
+                "regexp": "^\\d{2}\\.\\d{2}\\.\\d{4}$"
+            }
+        }
     ],
     "fields": [
         {

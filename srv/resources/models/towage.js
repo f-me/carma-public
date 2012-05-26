@@ -37,7 +37,7 @@
             "meta": {
                 "label": "Адрес выезда эвакуатора"
             }
-        },        
+        },
         {
             "targets": [
                 "towDealer_partner"
@@ -91,7 +91,7 @@
                 "back",
                 "head"
             ]
-        },        
+        },
         {
             "targets": [
                 "towDealer_partner",
@@ -134,6 +134,32 @@
             ],
             "meta": {
                 "label": "Стоимость"
+            }
+        },
+        {
+            "targets": [
+                "expectedServiceStart",
+                "factServiceStart",
+                "expectedServiceEnd",
+                "factServiceEnd",
+                "expectedServiceFinancialClosure",
+                "factServiceFinancialClosure",
+                "expectedDealerInfo",
+                "factDealerInfo",
+                "expectedServiceClosure",
+                "factServiceClosure"
+            ],
+            "meta": {
+                "regexp": "^\\d{2}:\\d{2} \\d{2}\\.\\d{2}\\.\\d{4}$"
+            }
+        },
+        {
+            "targets": [
+                "repairEndDate",
+                "billingDate"
+            ],
+            "meta": {
+                "regexp": "^\\d{2}\\.\\d{2}\\.\\d{4}$"
             }
         }
     ],
@@ -605,7 +631,7 @@
             "meta": {
                 "label": "Адрес выезда эвакуатора"
             }
-        },        
+        },
         {
             "name": "towAddress",
             "canRead": [
