@@ -170,7 +170,8 @@
                 "car_buyDate",
                 "car_mileage",
                 "car_checkupDate",
-                "car_checkupMileage"
+                "car_checkupMileage",
+                "car_dealerTO"
             ],
             "canRead": [
                 "front",
