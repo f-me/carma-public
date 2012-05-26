@@ -362,23 +362,6 @@
             }
         },
         {
-            "name": "clientSatisfied",
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "back",
-                "head"
-            ],
-            "type": "checkbox",
-            "meta": {
-                "label": "Клиент доволен"
-            }
-        },
-        {
             "name": "billingDate",
             "canRead": [
                 "head",
@@ -470,6 +453,23 @@
             "groupName": "partner",
             "meta": {
                 "label": "Название партнёра"
+            }
+        },
+        {
+            "name": "clientSatisfied",
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
+            "type": "checkbox",
+            "meta": {
+                "label": "Клиент доволен"
             }
         }
     ]
