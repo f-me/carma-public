@@ -532,7 +532,10 @@
     <script type="text/template"
             class="field-template"
             id="phone-field-template">
-      <div class="control-group">
+      <div class="control-group"
+           {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
+           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
+           >
         <div class="control-label">
           <label>{{ meta.label }}</label>
         </div>
@@ -612,7 +615,7 @@
             id="picker-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
-           {{# meta.regexp }}data-bind="css: { error: {{name}}Regexp }"{{/ meta.regexp}}
+           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
