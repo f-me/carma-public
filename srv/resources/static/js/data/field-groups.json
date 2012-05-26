@@ -36,7 +36,8 @@
             "name": "plateNum",
             "meta": {
                 "transform": "uppercase",
-                "label": "Госномер"
+                "label": "Госномер",
+                "regexp": "^[авекмнорстух]\\d{3}[авекмнорстух]{2}\\d{2,3}$"
             },
             "index": true,
             "indexCollate": true
