@@ -32,6 +32,14 @@
         },
         {
             "targets": [
+                "towerAddress_address"
+            ],
+            "meta": {
+                "label": "Адрес выезда эвакуатора"
+            }
+        },        
+        {
+            "targets": [
                 "towDealer_partner"
             ],
             "meta": {
@@ -65,6 +73,25 @@
                 "head"
             ]
         },
+        {
+            "targets": [
+                "towerAddress_address",
+                "towerAddress_coords",
+                "towerAddress_city",
+                "towerAddress_comment"
+            ],
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ]
+        },        
         {
             "targets": [
                 "towDealer_partner",
@@ -578,6 +605,24 @@
                 "label": "Дилер"
             }
         },
+        {
+            "name": "towerAddress",
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
+            "groupName": "address",
+            "meta": {
+                "label": "Адрес выезда эвакуатора"
+            }
+        },        
         {
             "name": "towAddress",
             "canRead": [
