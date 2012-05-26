@@ -46,7 +46,6 @@ import Actions.Compile
 -- | Application snaplet state type: Redson, Heist.
 data App = App
     { _candibober :: Snaplet Candibober
-    , _search :: Snaplet (Search App)
     , _heist :: Snaplet (Heist App)
     , _redson :: Snaplet (Redson App)
     , _session :: Snaplet SessionManager
@@ -158,8 +157,6 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   let redsonHooks = joinHooks [actionsHooks, wazzupHook]
   r <- nestSnaplet "_" redson $ redsonInitWithHooks auth redsonHooks
 
-  srch <- nestSnaplet "search" search $ searchInit redson
-
   sesKey <- liftIO $
             lookupDefault "resources/private/client_session_key.aes"
                           cfg "session-key"
@@ -186,4 +183,4 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   addRoutes routes
 
-  return $ App c srch h r s a v sTime
+  return $ App c h r s a v sTime
