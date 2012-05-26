@@ -249,7 +249,8 @@
         {
             "name": "email",
             "meta": {
-                "label": "Email"
+                "label": "Email",
+                "regexp": "^[\\w\\+\\.]+@[\\w\\.]+\\.\\w+$"
             },
             "index": true
         }
