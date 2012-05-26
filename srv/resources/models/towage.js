@@ -120,26 +120,6 @@
             }
         },
         {
-            "name": "status",
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "type": "dictionary",
-            "meta": {
-                "label": "Статус услуги",
-                "dictionaryName": "ServiceStatuses"
-            }
-        },
-        {
             "name": "payType",
             "canRead": [
                 "front",
@@ -722,6 +702,26 @@
             ],
             "meta": {
                 "label": "Пробег эвакуатора за городом"
+            }
+        },
+        {
+            "name": "status",
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "type": "dictionary",
+            "meta": {
+                "label": "Статус услуги",
+                "dictionaryName": "ServiceStatuses"
             }
         }
     ]
