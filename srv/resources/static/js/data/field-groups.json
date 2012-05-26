@@ -7,7 +7,7 @@
                 "label": "VIN",
                 "transform": "uppercase",
                 "picker": "vinFiller",
-                "regexp": "^\\d+$"
+                "regexp": "^[0-9A-HJ-NPR-Z]{17}$"
             }
         },
         {
