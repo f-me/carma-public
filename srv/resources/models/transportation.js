@@ -56,14 +56,6 @@
             "invisible": true
           }
         },
-        {
-            "name": "status",
-            "type": "dictionary",
-            "meta": {
-                "label": "Статус услуги",
-                "dictionaryName": "ServiceStatuses"
-            }
-        },
 		{
             "name": "payType",
             "canRead": ["front", "back", "head", "parguy"],
@@ -278,6 +270,14 @@
             "canRead": ["front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head"],            
             "groupName": "address"
+        },
+        {
+            "name": "status",
+            "type": "dictionary",
+            "meta": {
+                "label": "Статус услуги",
+                "dictionaryName": "ServiceStatuses"
+            }
         }
     ]
 }
