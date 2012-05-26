@@ -1,11 +1,19 @@
-{ 
+{
     "car": [
         {
             "name": "vin",
             "type": "picker",
             "meta": {
                 "label": "VIN",
-                "picker": "vinFiller"
+                "transform": "uppercase",
+                "picker": "vinFiller",
+                "regexp": "^[0-9A-HJ-NPR-Z]{17}$"
+            }
+        },
+        {
+            "name": "seller",
+            "meta": {
+                "label": "Дилер, продавший автомобиль"
             }
         },
         {
@@ -27,16 +35,26 @@
         {
             "name": "plateNum",
             "meta": {
-                "label": "Госномер"
+                "transform": "uppercase",
+                "label": "Госномер",
+                "regexp": "^[авекмнорстух]\\d{3}[авекмнорстух]{2}\\d{2,3}$"
             },
             "index": true,
             "indexCollate": true
         },
         {
+            "name": "makeYear",
+            "meta": {
+                "label": "Год производства автомобиля"
+            }
+        },
+        {
             "name": "color",
             "meta": {
+                "dictionaryName": "Colors",
                 "label": "Цвет"
-            }
+            },
+            "type": "dictionary"
         },
         {
             "name": "transmission",
@@ -102,22 +120,22 @@
             }
         },
         {
-            "name": "seller",
-            "meta": {
-                "label": "Дилер, продавший автомобиль"
-            }
-        },        
-        {
-            "name": "mileage",
-            "meta": {
-                "label": "Текущий пробег"
-            }
-        },
-        {
             "name": "checkupDate",
             "type": "date",
             "meta": {
                 "label": "Дата последнего ТО"
+            }
+        },
+        {
+            "name": "dealerTO",
+            "meta": {
+                "label": "Дилер у которого проходило последнее ТО"
+            }
+        },
+        {
+            "name": "mileage",
+            "meta": {
+                "label": "Текущий пробег"
             }
         },
         {
@@ -127,10 +145,64 @@
             }
         }
     ],
+    "cardNumber": [
+        {
+            "name": "cardNumber",
+            "type": "picker",
+            "meta": {
+                "label": "Номер карты участника"
+            }
+        },
+        {
+            "name": "validFrom",
+            "type": "date",
+            "meta": {
+                "label": "Дата регистрации в программе"
+            }
+        },
+        {
+            "name": "validUntil",
+            "type": "date",
+            "meta": {
+                "label": "Программа действует до (дата)"
+            }
+        },
+        {
+            "name": "validUntilMilage",
+            "meta": {
+                "label": "Программа действует до (пробег)"
+            }
+        },
+        {
+            "name": "milageTO",
+            "meta": {
+                "label": "Пробег при регистрации в программе"
+            }
+        },
+        {
+            "name": "serviceInterval",
+            "meta": {
+                "label": "Межсервисный интервал"
+            }
+        },
+        {
+            "name": "cardOwner",
+            "meta": {
+                "label": "ФИО владельца карты"
+            }
+        },
+        {
+            "name": "manager",
+            "meta": {
+                "label": "ФИО менеджера"
+            }
+        }
+    ],
     "contact": [
         {
             "name": "name",
             "meta": {
+                "transform": "capitalize",
                 "label": "ФИО"
             },
             "index": true,
@@ -140,7 +212,8 @@
             "name": "phone1",
             "meta": {
                 "label": "Контактные телефоны",
-                "picker": "callPlease"
+                "picker": "callPlease",
+                "regexp": "^\\+7\\d{10}$"
             },
             "type": "phone",
             "index": true,
@@ -149,7 +222,8 @@
         {
             "name": "phone2",
             "meta": {
-                "picker": "callPlease"
+                "picker": "callPlease",
+                "regexp": "^\\+7\\d{10}$"
             },
             "type": "phone",
             "index": true
@@ -157,7 +231,8 @@
         {
             "name": "phone3",
             "meta": {
-                "picker": "callPlease"
+                "picker": "callPlease",
+                "regexp": "^\\+7\\d{10}$"
             },
             "type": "phone",
             "index": true
@@ -165,7 +240,8 @@
         {
             "name": "phone4",
             "meta": {
-                "picker": "callPlease"
+                "picker": "callPlease",
+                "regexp": "^\\+7\\d{10}$"
             },
             "type": "phone",
             "index": true
@@ -173,7 +249,8 @@
         {
             "name": "email",
             "meta": {
-                "label": "Email"
+                "label": "Email",
+                "regexp": "^[\\w\\+\\.]+@[\\w\\.]+\\.\\w+$"
             },
             "index": true
         }
@@ -190,8 +267,8 @@
             "meta": {
                 "label": "Оплата Клиент"
             }
-        }        
-    ],    
+        }
+    ],
     "address": [
         {
             "name": "address",
@@ -199,7 +276,7 @@
                 "label": "Адрес",
                 "infoText": "address"
             }
-        },       
+        },
         {
             "name": "comment",
             "meta": {
@@ -211,18 +288,18 @@
             "type": "map"
         }
     ],
-  "partner": [
+    "partner": [
         {
             "name": "partner",
             "meta": {
-              "label": "Партнёр"
+                "label": "Партнёр"
             }
         },
         {
             "name": "partnerTable",
             "type": "table",
             "meta": {
-              "columns": [
+                "columns": [
                     {
                         "name": "name",
                         "label": "Название"
@@ -254,5 +331,5 @@
             "name": "coords",
             "type": "map"
         }
-    ]  
+    ]
 }

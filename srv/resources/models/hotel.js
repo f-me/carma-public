@@ -5,6 +5,14 @@
     "canRead": true,
     "canUpdate": true,
     "canDelete": true,
+    "defaults": {
+        "status": "creating",
+        "payType": "ruamc",
+        "warrantyCase": "0",
+        "overcosted": "0",
+        "falseCall": "none",
+        "hotelProvidedFor": "0"
+    },
     "applications": [
         {
             "targets": [
@@ -30,29 +38,13 @@
                 "label": "Гостиница"
             }
         },
-         
         {
-            "targets": ["caseAddress_address","caseAddress_coords","caseAddress_city","caseAddress_comment"],
-            "canRead": ["front", "back", "head", "parguy"],
-            "canWrite": ["front", "back", "head"]
-        },        
-        {
-            "targets": ["hotelContractor_partner","hotelContractor_partnerTable","hotelContractor_coords"],
-            "canRead": ["front", "back", "head", "parguy"],
-            "canWrite": ["front", "back", "head"]
-        }        
-    ],
-    "fields": [
-        {
-          "name": "parentId",
-          "canRead": true,
-          "canWrite": true,
-          "meta": {
-            "invisible": true
-          }
-        },
-        {
-            "name": "status",
+            "targets": [
+                "caseAddress_address",
+                "caseAddress_coords",
+                "caseAddress_city",
+                "caseAddress_comment"
+            ],
             "canRead": [
                 "front",
                 "back",
@@ -62,13 +54,61 @@
             "canWrite": [
                 "front",
                 "back",
+                "head"
+            ]
+        },
+        {
+            "targets": [
+                "hotelContractor_partner",
+                "hotelContractor_partnerTable",
+                "hotelContractor_coords"
+            ],
+            "canRead": [
+                "front",
+                "back",
                 "head",
                 "parguy"
             ],
-            "type": "dictionary",
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ]
+        },
+        {
+            "targets": [
+                "expectedServiceStart",
+                "factServiceStart",
+                "expectedServiceEnd",
+                "factServiceEnd",
+                "expectedServiceFinancialClosure",
+                "factServiceFinancialClosure",
+                "expectedDealerInfo",
+                "factDealerInfo",
+                "expectedServiceClosure",
+                "factServiceClosure"
+            ],
             "meta": {
-                "label": "Статус услуги",
-                "dictionaryName": "ServiceStatuses"
+                "regexp": "^\\d{2}:\\d{2} \\d{2}\\.\\d{2}\\.\\d{4}$"
+            }
+        },
+        {
+            "targets": [
+                "repairEndDate",
+                "billingDate"
+            ],
+            "meta": {
+                "regexp": "^\\d{2}\\.\\d{2}\\.\\d{4}$"
+            }
+        }
+    ],
+    "fields": [
+        {
+            "name": "parentId",
+            "canRead": true,
+            "canWrite": true,
+            "meta": {
+                "invisible": true
             }
         },
         {
@@ -271,42 +311,66 @@
                 "label": "Фактическое время финансового закрытия услуги"
             }
         },
-    {
-      "name": "expectedDealerInfo",
-      "canRead": ["back", "head"],
-      "canWrite": ["back", "head"],
-      "type": "datetime",
-      "meta": {
-        "label": "Ожидаемое время получения информации от дилера"
-      }
-    },
-    {
-      "name": "factDealerInfo",
-      "canRead": ["back", "head"],
-      "canWrite": ["back", "head"],
-      "type": "datetime",
-      "meta": {
-        "label": "Фактическое время получения информации от дилера"
-      }
-    },    
-    {
-      "name": "expectedServiceClosure",
-      "canRead": ["back", "head"],
-      "canWrite": ["back", "head"],
-      "type": "datetime",
-      "meta": {
-        "label": "Ожидаемое время закрытия услуги"
-      }
-    },
-    {
-      "name": "factServiceClosure",
-      "canRead": ["back", "head"],
-      "canWrite": ["back", "head"],
-      "type": "datetime",
-      "meta": {
-        "label": "Фактическое время закрытия услуги"
-      }
-    },
+        {
+            "name": "expectedDealerInfo",
+            "canRead": [
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
+            "type": "datetime",
+            "meta": {
+                "label": "Ожидаемое время получения информации от дилера"
+            }
+        },
+        {
+            "name": "factDealerInfo",
+            "canRead": [
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
+            "type": "datetime",
+            "meta": {
+                "label": "Фактическое время получения информации от дилера"
+            }
+        },
+        {
+            "name": "expectedServiceClosure",
+            "canRead": [
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
+            "type": "datetime",
+            "meta": {
+                "label": "Ожидаемое время закрытия услуги"
+            }
+        },
+        {
+            "name": "factServiceClosure",
+            "canRead": [
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
+            "type": "datetime",
+            "meta": {
+                "label": "Фактическое время закрытия услуги"
+            }
+        },
         {
             "name": "repairEndDate",
             "canRead": [
@@ -339,23 +403,6 @@
             "meta": {
                 "dictionaryName": "FalseStatuses",
                 "label": "Ложный вызов"
-            }
-        },
-        {
-            "name": "clientSatisfied",
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "back",
-                "head"
-            ],
-            "type": "checkbox",
-            "meta": {
-                "label": "Клиент доволен"
             }
         },
         {
@@ -414,7 +461,7 @@
             "groupName": "address",
             "meta": {
                 "label": "Адрес кейса"
-            }            
+            }
         },
         {
             "name": "hotelContractor",
@@ -433,8 +480,7 @@
             "meta": {
                 "label": "Гостиница"
             }
-        },        
-
+        },
         {
             "name": "hotelProvidedFor",
             "canRead": [
@@ -450,6 +496,43 @@
             ],
             "meta": {
                 "label": "Срок, на который предоставлена гостиница (дней)"
+            }
+        },
+        {
+            "name": "status",
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "type": "dictionary",
+            "meta": {
+                "label": "Статус услуги",
+                "dictionaryName": "ServiceStatuses"
+            }
+        },
+        {
+            "name": "clientSatisfied",
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
+            "type": "checkbox",
+            "meta": {
+                "label": "Клиент доволен"
             }
         }
     ]

@@ -67,6 +67,9 @@
             <li id="case-screen-nav">
               <a href="#case">Кейс</a>
             </li>
+            <li id="back-screen-nav">
+              <a href="#back">Бэкофис</a>
+            </li>
             <li id="search-screen-nav">
               <a href="#search">Поиск</a>
             </li>
@@ -165,6 +168,14 @@
       <!-- Rightmost pane with list of empty fields and action notes
       -->
       <div id="right" class="nice-scrollbar pane">
+        <form class="form-vertical">
+          <div class="control-group">
+            <div class="controls">
+              <span class="accordion" id="case-actions-references" />
+            </div>
+          </div>
+        </form>
+        <div id="empty-fields-placeholder" />
       </div>
     </script>
 
@@ -215,6 +226,47 @@
       </table>
     </script>
 
+    <!-- Backoffice screen -->
+    <script type="text/template"
+            id="back-screen-template"
+            class="screen-template">
+      <center>
+        <table width="80%">
+          <thead>
+            <tr><th>Мои задачи</th><th>Общие задачи</th></tr>
+          </thead>
+          <tr><td width="50%">
+            <table id="back-user-table" class="table table-striped table-bordered">
+              <thead>
+                <tr>
+                  <th>Кейс</th>
+                  <th>Приоритет</th>
+                  <th>Дата выполнения</th>
+                  <th>Что делать?</th>
+                  <th>Комментарии</th>
+                </tr>
+              </thead>
+              <tbody/>
+            </table>
+          </td>
+          <td width="50%">
+            <table id="back-group-table" class="table table-striped table-bordered">
+              <thead>
+                <tr>
+                  <th>Кейс</th>
+                  <th>Приоритет</th>
+                  <th>Дата выполнения</th>
+                  <th>Что делать?</th>
+                  <th>Комментарии</th>
+                </tr>
+              </thead>
+              <tbody/>
+            </table>
+          </td></tr>
+        </table>
+      </center>
+    </script>
+
     <!-- Import VINs screen -->
     <script type="text/template"
             id="vin-screen-template"
@@ -231,9 +283,21 @@
         <form id="vin-import-form" onsubmit="doVin(); return false;">
           <p>
             <select name="program">
-              <option value="vmMotor">Vw легковые</option>
-              <option value="vwTruck">Vw коммерческие</option>
-              <option value="vwRuslan">Рус-Лан</option>
+              <option value="ford">Ford</option>
+              <option value="fordPlus">Ford+</option>
+              <option value="vwMotor">VW Легковые</option>
+              <option value="vwCommercial">VW Коммерческие</option>
+              <option value="opel">Opel</option>
+              <option value="hummer">Hummer</option>
+              <option value="chevroletNAO">Chevrolet NAO</option>
+              <option value="chevroletKorea">Chevrolet Korea</option>
+              <option value="cadillac">Cadillac</option>
+              <option value="vwRuslan">VW Рус-Лан</option>
+              <option value="chartis">Chartis</option>
+              <option value="vwAvilon">VW Avilon</option>
+              <option value="atlantM">Атлант-М</option>
+              <option value="autocraft">AutoCraft</option>
+              <option value="b2c">B2C</option>
             </select>
             <input type="file"
                    name="file"
@@ -262,8 +326,11 @@
 			onclick="removeVinAlert('{{alertId}}'); return false;">×</button>
                 {{alertVinFile}}: {{ alertMessage }}
                 {{# alertErrorFile }}
-                  <a href="{{alertErrorFile}}">Файл</a> с ошибками.
+                  <a href="{{alertErrorFile}}">Файл</a> с необработанными записями.
                 {{/ alertErrorFile }}
+                {{# alertErrorLogFile }}
+                  <a href="{{alertErrorLogFile}}">Файл</a> с описанием ошибок.
+                {{/ alertErrorLogFile }}
               </div>
             {{/ alerts}}
           </div>
@@ -337,6 +404,7 @@
             id="textarea-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
+           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -360,9 +428,18 @@
 
     <script type="text/template"
             class="field-template"
+            id="statictext-field-template">
+      <div class="control-group">
+          <span data-bind="text: {{ name }}" />
+      </div>
+    </script>
+
+    <script type="text/template"
+            class="field-template"
             id="text-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
+           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -377,6 +454,9 @@
           <input type="text"
                  class="pane-span focusable"
                  name="{{ name }}"
+                 {{# meta.transform }}
+                    style="text-transform:{{meta.transform}};"
+                 {{/ meta.transform }}
                  {{# readonly }}readonly{{/ readonly }}
                  data-bind="value: {{ name }},
                             valueUpdate: 'afterkeydown'" />
@@ -389,6 +469,7 @@
             id="datetime-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
+           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -415,6 +496,7 @@
             id="date-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
+           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -450,7 +532,10 @@
     <script type="text/template"
             class="field-template"
             id="phone-field-template">
-      <div class="control-group">
+      <div class="control-group"
+           {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
+           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
+           >
         <div class="control-label">
           <label>{{ meta.label }}</label>
         </div>
@@ -476,6 +561,7 @@
             id="dictionary-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
+           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -496,7 +582,10 @@
             -->
             
             <input type="text"
-                   class="pane-span focusable {{# readonly }}disabled{{/ readonly }}"
+                   class="pane-span
+                          focusable
+                          {{# meta.addClass }}{{meta.addClass}}{{/ meta.addClass }}
+                          {{# readonly }}disabled{{/ readonly }}"
                    {{# readonly }}readonly{{/ readonly }}
                    name="{{ name }}"
                    data-source="global.dictionaries['{{meta.dictionaryName}}']"
@@ -524,7 +613,10 @@
     <script type="text/template"
             class="field-template"
             id="picker-field-template">
-      <div class="control-group">
+      <div class="control-group"
+           {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
+           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
+           >
         <div class="control-label">
           <label>{{ meta.label }}
             {{# meta.infoText }}
@@ -539,6 +631,9 @@
             <input type="text"
                    class="pane-span focusable {{# readonly }}disabled{{/ readonly }}"
                    {{# readonly }}readonly{{/ readonly }}
+                   {{# meta.transform }}
+                      style="text-transform:{{meta.transform}};"
+                   {{/ meta.transform }}
                    name="{{ name }}"
                    data-bind="value: {{ name }},
                               valueUpdate: 'afterkeydown'"/>
@@ -613,7 +708,7 @@
           <label class="checkbox inline">
             <input type="checkbox"
                    name="{{ name }}"
-                   {{# readonly }}readonly{{/ readonly }}
+                   {{# readonly }}disabled{{/ readonly }}
                    data-bind="checked: {{ name }},
                               valueUpdate: 'change'" />
           {{ meta.label }}
@@ -681,6 +776,9 @@
           <div class="input-append">
             <input type="text"
                    class="pane-span"
+                   {{# meta.transform }}
+                      style="text-transform:{{meta.transform}};"
+                   {{/ meta.transform }}
                    onfocus="showComplex('{{ viewName }}', '{{ name }}');"
                    {{# readonly }}readonly{{/ readonly }}
                    data-bind="value: {{ name }},
@@ -729,14 +827,39 @@
       </div>
     </script>
 
+    <script type="text/template"
+            class="reference-template"
+            id="actions-reference-template">
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <a class="accordion-toggle"
+             id="{{ refView }}-link"
+             data-bind="text: nameLocal"
+             data-target="#{{ refView }}-head"
+             data-toggle="collapse">Действие…</a>
+        </div>
+
+        <div id="{{ refView }}-head"
+             class="accordion-body collapse {{^refId}}in{{/refId}}">
+          <div class="accordion-inner {{ refClass }}" 
+               id="{{ refView }}">
+            <!-- Instance contents are rendered here -->
+
+          </div>
+        </div>
+      </div>
+    </script>
+
     <!-- Group view container -->
     <script type="text/template"
             class="group-template"
             id="-group-template">
-      <fieldset>
-        <form class="complex-field form-vertical"
-              id="{{ refView }}"
-              style="display: none;" />
+      <fieldset class="complex-field"
+                id="{{ refView }}"
+                style="display: none;">
+          <i class="icon icon-remove complex-field-close"
+             onclick="$('.complex-field').hide();"/>
+          <form class="content form-vertical"/>
       </fieldset>
     </script>
 
@@ -756,7 +879,6 @@
     <!-- Form controls wrt user permissions -->
     <script type="text/template"
             id="permission-template">
-      <div class="form-actions">
         {{# readonly }}
         <button class="btn disabled" type="button">
           <i class="icon-ban-circle" /> Только для чтения</button>
@@ -767,8 +889,6 @@
           <i class="icon-pencil icon-white" /> Сохранить</button>
           <span class="save-result"/>
         {{/ readonly }}
-        <div style="clear: both;" />
-      </div>
     </script>
 
     <!-- List of empty required fields -->

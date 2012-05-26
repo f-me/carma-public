@@ -5,6 +5,13 @@
     "canRead": true,
     "canUpdate": true,
     "canDelete": true,
+    "defaults": {
+      "status" : "creating",
+      "payType" : "ruamc",
+      "warrantyCase" : "0",
+      "overcosted": "0",
+      "falseCall": "none"
+    },    
     "applications": [
         {
             "targets": [
@@ -52,7 +59,33 @@
             "targets": ["taxiContractor_partner","taxiContractor_partnerTable","taxiContractor_coords"],
             "canRead": ["front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head"]
-        }        
+        },
+        {
+            "targets": [
+                "expectedServiceStart",
+                "factServiceStart",
+                "expectedServiceEnd",
+                "factServiceEnd",
+                "expectedServiceFinancialClosure",
+                "factServiceFinancialClosure",
+                "expectedDealerInfo",
+                "factDealerInfo",
+                "expectedServiceClosure",
+                "factServiceClosure"
+            ],
+            "meta": {
+                "regexp": "^\\d{2}:\\d{2} \\d{2}\\.\\d{2}\\.\\d{4}$"
+            }
+        },
+        {
+            "targets": [
+                "repairEndDate",
+                "billingDate"
+            ],
+            "meta": {
+                "regexp": "^\\d{2}\\.\\d{2}\\.\\d{4}$"
+            }
+        }
     ],
     "fields": [
         {
@@ -355,23 +388,6 @@
             }
         },
         {
-            "name": "clientSatisfied",
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "back",
-                "head"
-            ],
-            "type": "checkbox",
-            "meta": {
-                "label": "Клиент доволен"
-            }
-        },
-        {
             "name": "billingDate",
             "canRead": [
                 "head",
@@ -463,6 +479,23 @@
             "groupName": "partner",
             "meta": {
                 "label": "Название партнёра"
+            }
+        },
+        {
+            "name": "clientSatisfied",
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
+            "type": "checkbox",
+            "meta": {
+                "label": "Клиент доволен"
             }
         }
     ]

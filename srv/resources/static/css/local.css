@@ -1,6 +1,7 @@
 body {
   padding-top: 40px;
   overflow:hidden;
+  background-color:#ddd;
 }
 
 .icon {
@@ -22,11 +23,11 @@ body {
 
 #center {
   left: 32%;
-  width: 50%;
+  width: 46%;
 }
 
 #right {
-  left: 84%;
+  left: 80%;
 }
 
 #partner-left {
@@ -123,4 +124,9 @@ textarea.pane-span,
   height:25px;
   border-radius:3px;
   background-color:whiteSmoke;
+}
+
+.complex-field-close {
+    position: relative;
+    left: 90%;
 }

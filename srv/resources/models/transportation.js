@@ -5,6 +5,14 @@
     "canRead": true,
     "canUpdate": true,
     "canDelete": true,
+    "defaults": {
+      "status" : "creating",
+      "payType" : "ruamc",
+      "warrantyCase" : "0",
+      "overcosted": "0",
+      "falseCall": "none",
+      "transportType": "continue"
+    },    
     "applications": [
     	{
             "targets": [
@@ -37,6 +45,32 @@
             "meta": {
                 "label": "Стоимость"
             }
+        },
+        {
+            "targets": [
+                "expectedServiceStart",
+                "factServiceStart",
+                "expectedServiceEnd",
+                "factServiceEnd",
+                "expectedServiceFinancialClosure",
+                "factServiceFinancialClosure",
+                "expectedDealerInfo",
+                "factDealerInfo",
+                "expectedServiceClosure",
+                "factServiceClosure"
+            ],
+            "meta": {
+                "regexp": "^\\d{2}:\\d{2} \\d{2}\\.\\d{2}\\.\\d{4}$"
+            }
+        },
+        {
+            "targets": [
+                "repairEndDate",
+                "billingDate"
+            ],
+            "meta": {
+                "regexp": "^\\d{2}\\.\\d{2}\\.\\d{4}$"
+            }
         }
     ],
     "fields": [
@@ -47,14 +81,6 @@
           "meta": {
             "invisible": true
           }
-        },
-        {
-            "name": "status",
-            "type": "dictionary",
-            "meta": {
-                "label": "Статус услуги",
-                "dictionaryName": "ServiceStatuses"
-            }
         },
 		{
             "name": "payType",
@@ -222,15 +248,6 @@
             }
         },		
         {
-            "name": "clientSatisfied",
-            "canRead": ["front", "back", "head", "parguy"],
-            "canWrite": ["back", "head"],
-            "type": "checkbox",
-            "meta": {
-                "label": "Клиент доволен"
-            }
-        },		
-        {
             "name": "billingDate",
             "canRead": ["head", "parguy"],
             "canWrite": ["parguy"],
@@ -270,6 +287,35 @@
             "canRead": ["front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head"],            
             "groupName": "address"
+        },
+        {
+            "name": "status",
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "type": "dictionary",
+            "meta": {
+                "label": "Статус услуги",
+                "dictionaryName": "ServiceStatuses"
+            }
+        },		
+        {
+            "name": "clientSatisfied",
+            "canRead": ["front", "back", "head", "parguy"],
+            "canWrite": ["back", "head"],
+            "type": "checkbox",
+            "meta": {
+                "label": "Клиент доволен"
+            }
         }
     ]
 }

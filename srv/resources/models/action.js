@@ -7,7 +7,7 @@
     "canDelete": true,
     "fields": [
       {
-        "name":"serviceId",
+        "name":"service",
         "canRead": true,
         "canWrite": true,
         "meta": {
@@ -15,40 +15,88 @@
         }
       },
       {
-        "name":"caseId",
+        "name":"case",
         "canRead": true,
         "canWrite": true,
         "meta": {
           "invisible": true
+        }
+      },
+      {
+        "name": "name",
+        "canRead": true,
+        "type": "dictionary",
+        "meta": {
+          "dictionaryName": "ActionNames",
+          "invisible": true
+        }
+      },
+      {
+        "name": "description",
+        "type": "statictext",
+        "canRead": true
+      },
+      {
+        "name": "duetime",
+        "type": "datetime",
+        "canRead": true,
+        "meta": {
+          "label": "Ожидаемое время выполнения"
+        }
+      },
+      {
+        "name": "comment",
+        "type": "textarea",
+        "canRead": ["front","back","head"],
+        "canWrite":["back","head"],
+        "meta": {
+          "label": "Комментарий"
         }
       },
       {
         "name": "result",
-        "label": "Результат действия",
-        "type": "dictionary"
+        "canRead": ["front","back","head"],
+        "canWrite":["back","head"], 
+        "type": "dictionary",
+        "meta": {
+          "addClass": "redirectOnChange",
+          "label": "Результат",
+          "dictionaryName": "ActionResults",
+          "dictionaryParent": "name"
+        }
       },
       {
         "name": "ctime",
         "type": "datetime",
+        "canRead": true,
         "meta": {
           "invisible": true
         }
       },
       {
         "name": "mtime",
-        "type": "datetime"
-      },
-      {
-        "name": "duetime",
-        "type": "datetime"
+        "type": "datetime",
+        "canRead": true,
+        "meta": {
+          "invisible": true
+        }
       },
       {
         "name": "targetGroup",
-        "index": true
+        "canRead": ["front","back","head"],
+        "canWrite":["back","head"], 
+        "index": true,
+        "meta": {
+          "invisible": true
+        }
       },
       {
         "name": "assignedTo",
-        "index": true
+        "canRead": ["front","back","head"],
+        "canWrite":["back","head"], 
+        "meta": {
+          "invisible": true
+        }
       }
     ]
 }

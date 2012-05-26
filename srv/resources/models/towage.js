@@ -5,6 +5,22 @@
     "canRead": true,
     "canUpdate": true,
     "canDelete": true,
+    "defaults": {
+        "status": "creating",
+        "payType": "ruamc",
+        "warrantyCase": "0",
+        "overcosted": "0",
+        "falseCall": "none",
+        "towerType": "evac",
+        "towType": "dealer",
+        "vandalism": "0",
+        "accident": "0",
+        "wheelsUnblocked": "w0",
+        "canNeutral": "0",
+        "towingPointPresent": "0",
+        "manipulatorPossible": "0",
+        "suburbanMilage": "0"
+    },
     "applications": [
         {
             "targets": [
@@ -12,6 +28,14 @@
             ],
             "meta": {
                 "label": "Адрес доставки"
+            }
+        },
+        {
+            "targets": [
+                "towerAddress_address"
+            ],
+            "meta": {
+                "label": "Адрес выезда эвакуатора"
             }
         },
         {
@@ -29,42 +53,14 @@
             "meta": {
                 "label": "Партнёр"
             }
-        },           
-        {
-            "targets": ["towAddress_address","towAddress_coords","towAddress_city","towAddress_comment"],
-            "canRead": ["front", "back", "head", "parguy"],
-            "canWrite": ["front", "back", "head"]
-        },        
-        {
-            "targets": ["towDealer_partner","towDealer_partnerTable","towDealer_coords"],
-            "canRead": ["front", "back", "head", "parguy"],
-            "canWrite": ["front", "back", "head"]
         },
-        {
-            "targets": ["towContractor_partner","towContractor_partnerTable","towContractor_coords"],
-            "canRead": ["front", "back", "head", "parguy"],
-            "canWrite": ["front", "back", "head"]
-        },         
         {
             "targets": [
-                "payment_payment"
+                "towAddress_address",
+                "towAddress_coords",
+                "towAddress_city",
+                "towAddress_comment"
             ],
-            "meta": {
-                "label": "Стоимость"
-            }
-        }
-    ],
-    "fields": [
-        {
-          "name": "parentId",
-          "canRead": true,
-          "canWrite": true,
-          "meta": {
-            "invisible": true
-          }
-        },
-        {
-            "name": "status",
             "canRead": [
                 "front",
                 "back",
@@ -74,13 +70,106 @@
             "canWrite": [
                 "front",
                 "back",
+                "head"
+            ]
+        },
+        {
+            "targets": [
+                "towerAddress_address",
+                "towerAddress_coords",
+                "towerAddress_city",
+                "towerAddress_comment"
+            ],
+            "canRead": [
+                "front",
+                "back",
                 "head",
                 "parguy"
             ],
-            "type": "dictionary",
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ]
+        },
+        {
+            "targets": [
+                "towDealer_partner",
+                "towDealer_partnerTable",
+                "towDealer_coords"
+            ],
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ]
+        },
+        {
+            "targets": [
+                "towContractor_partner",
+                "towContractor_partnerTable",
+                "towContractor_coords"
+            ],
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ]
+        },
+        {
+            "targets": [
+                "payment_payment"
+            ],
             "meta": {
-                "label": "Статус услуги",
-                "dictionaryName": "ServiceStatuses"
+                "label": "Стоимость"
+            }
+        },
+        {
+            "targets": [
+                "expectedServiceStart",
+                "factServiceStart",
+                "expectedServiceEnd",
+                "factServiceEnd",
+                "expectedServiceFinancialClosure",
+                "factServiceFinancialClosure",
+                "expectedDealerInfo",
+                "factDealerInfo",
+                "expectedServiceClosure",
+                "factServiceClosure"
+            ],
+            "meta": {
+                "regexp": "^\\d{2}:\\d{2} \\d{2}\\.\\d{2}\\.\\d{4}$"
+            }
+        },
+        {
+            "targets": [
+                "repairEndDate",
+                "billingDate"
+            ],
+            "meta": {
+                "regexp": "^\\d{2}\\.\\d{2}\\.\\d{4}$"
+            }
+        }
+    ],
+    "fields": [
+        {
+            "name": "parentId",
+            "canRead": true,
+            "canWrite": true,
+            "meta": {
+                "invisible": true
             }
         },
         {
@@ -284,40 +373,64 @@
             }
         },
         {
-          "name": "expectedDealerInfo",
-          "canRead": ["back", "head"],
-          "canWrite": ["back", "head"],
-          "type": "datetime",
-          "meta": {
-            "label": "Ожидаемое время получения информации от дилера"
-          }
+            "name": "expectedDealerInfo",
+            "canRead": [
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
+            "type": "datetime",
+            "meta": {
+                "label": "Ожидаемое время получения информации от дилера"
+            }
         },
         {
-          "name": "factDealerInfo",
-          "canRead": ["back", "head"],
-          "canWrite": ["back", "head"],
-          "type": "datetime",
-          "meta": {
-        	"label": "Фактическое время получения информации от дилера"
-          }
-        },    
-        {
-          "name": "expectedServiceClosure",
-          "canRead": ["back", "head"],
-          "canWrite": ["back", "head"],
-          "type": "datetime",
-          "meta": {
-        	"label": "Ожидаемое время закрытия услуги"
-          }
+            "name": "factDealerInfo",
+            "canRead": [
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
+            "type": "datetime",
+            "meta": {
+                "label": "Фактическое время получения информации от дилера"
+            }
         },
         {
-          "name": "factServiceClosure",
-          "canRead": ["back", "head"],
-          "canWrite": ["back", "head"],
-          "type": "datetime",
-          "meta": {
-        	"label": "Фактическое время закрытия услуги"
-          }
+            "name": "expectedServiceClosure",
+            "canRead": [
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
+            "type": "datetime",
+            "meta": {
+                "label": "Ожидаемое время закрытия услуги"
+            }
+        },
+        {
+            "name": "factServiceClosure",
+            "canRead": [
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
+            "type": "datetime",
+            "meta": {
+                "label": "Фактическое время закрытия услуги"
+            }
         },
         {
             "name": "repairEndDate",
@@ -351,23 +464,6 @@
             "meta": {
                 "dictionaryName": "FalseStatuses",
                 "label": "Ложный вызов"
-            }
-        },
-        {
-            "name": "clientSatisfied",
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "back",
-                "head"
-            ],
-            "type": "checkbox",
-            "meta": {
-                "label": "Клиент доволен"
             }
         },
         {
@@ -463,7 +559,6 @@
                 "head"
             ],
             "meta": {
-                "default": false,
                 "label": "Случай вандализма"
             },
             "type": "checkbox"
@@ -482,7 +577,6 @@
                 "head"
             ],
             "meta": {
-                "default": false,
                 "label": "ДТП"
             },
             "type": "checkbox"
@@ -518,6 +612,24 @@
             "groupName": "partner",
             "meta": {
                 "label": "Дилер"
+            }
+        },
+        {
+            "name": "towerAddress",
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
+            "groupName": "address",
+            "meta": {
+                "label": "Адрес выезда эвакуатора"
             }
         },
         {
@@ -576,6 +688,24 @@
             "type": "dictionary"
         },
         {
+            "name": "canNeutral",
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
+            "meta": {
+                "label": "Переключается на нейтральную передачу"
+            },
+            "type": "checkbox"
+        },
+        {
             "name": "towingPointPresent",
             "canRead": [
                 "front",
@@ -589,11 +719,10 @@
                 "head"
             ],
             "meta": {
-                "default": false,
                 "label": "Есть буксировочный крюк"
             },
             "type": "checkbox"
-        },        
+        },
         {
             "name": "manipulatorPossible",
             "canRead": [
@@ -608,7 +737,6 @@
                 "head"
             ],
             "meta": {
-                "default": true,
                 "label": "Есть место для манипулятора"
             },
             "type": "checkbox"
@@ -631,33 +759,40 @@
             }
         },
         {
-            "name": "loadDate",
+            "name": "status",
             "canRead": [
+                "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "canWrite": [
+                "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
-            "type": "datetime",
+            "type": "dictionary",
             "meta": {
-                "label": "Время погрузки"
+                "label": "Статус услуги",
+                "dictionaryName": "ServiceStatuses"
             }
         },
         {
-            "name": "unloadDate",
+            "name": "clientSatisfied",
             "canRead": [
+                "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "canWrite": [
                 "back",
                 "head"
             ],
-            "type": "datetime",
+            "type": "checkbox",
             "meta": {
-                "label": "Время разгрузки"
+                "label": "Клиент доволен"
             }
         }
     ]

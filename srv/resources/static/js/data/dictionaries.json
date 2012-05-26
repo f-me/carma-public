@@ -1,4 +1,212 @@
 {
+    "Colors": {
+        "entries": [
+            {
+                "value": "white",
+                "label": "Белый"
+            },
+            {
+                "value": "black",
+                "label": "Чёрный"
+            },
+            {
+                "value": "grey",
+                "label": "Серый"
+            },
+            {
+                "value": "red",
+                "label": "Красный"
+            },
+            {
+                "value": "orange",
+                "label": "Оранжевый"
+            },
+            {
+                "value": "yellow",
+                "label": "Желтый"
+            },
+            {
+                "value": "green",
+                "label": "Зелёный"
+            },
+            {
+                "value": "blue",
+                "label": "Голубой"
+            },
+            {
+                "value": "darkBlue",
+                "label": "Синий"
+            },
+            {
+                "value": "purple",
+                "label": "Фиолетовый"
+            },
+            {
+                "value": "brown",
+                "label": "Коричневый"
+            },
+            {
+                "value": "golden",
+                "label": "Золотой"
+            },
+            {
+                "value": "silveryMetallic",
+                "label": "Серебристый металик"
+            },
+            {
+                "value": "candy",
+                "label": "Кэнди"
+            },
+            {
+                "value": "deep",
+                "label": "Дип"
+            },
+            {
+                "value": "toffeeBrown",
+                "label": "Тоффи раун"
+            },
+            {
+                "value": "reflex",
+                "label": "Рефлекс"
+            },
+            {
+                "value": "silverLeaf",
+                "label": "Силвер лиф"
+            },
+            {
+                "value": "graphit",
+                "label": "Графит"
+            },
+            {
+                "value": "acapulcoBlue",
+                "label": "Акапулько блю"
+            },
+            {
+                "value": "slate",
+                "label": "Слайт"
+            },
+            {
+                "value": "wildCherry",
+                "label": "Вайлд черри"
+            },
+            {
+                "value": "urano",
+                "label": "Урано"
+            },
+            {
+                "value": "iceland",
+                "label": "Айслэнд"
+            },
+            {
+                "value": "cashmere",
+                "label": "Кашмир"
+            },
+            {
+                "value": "pepperGray",
+                "label": "Пеппер грэй"
+            },
+            {
+                "value": "nightBlue",
+                "label": "Найт блю"
+            },
+            {
+                "value": "shadow",
+                "label": "Шэдоу"
+            },
+            {
+                "value": "moccaAnthracite",
+                "label": "Мокка антрацит"
+            },
+            {
+                "value": "lightBrown",
+                "label": "Лайт браун"
+            },
+            {
+                "value": "hotOrange",
+                "label": "Хот орандж"
+            },
+            {
+                "value": "mocca",
+                "label": "Мокка"
+            },
+            {
+                "value": "iron",
+                "label": "Айрон"
+            },
+            {
+                "value": "tornado",
+                "label": "Торнадо"
+            },
+            {
+                "value": "savanna",
+                "label": "Саванна"
+            },
+            {
+                "value": "united",
+                "label": "Юнитед"
+            },
+            {
+                "value": "moonlight",
+                "label": "Мунлайт"
+            },
+            {
+                "value": "flash",
+                "label": "Флэш"
+            },
+            {
+                "value": "granite",
+                "label": "Гранит"
+            },
+            {
+                "value": "arctic",
+                "label": "Арктик"
+            },
+            {
+                "value": "cobalt",
+                "label": "Кобальт"
+            },
+            {
+                "value": "amaryllis",
+                "label": "Амариллис"
+            },
+            {
+                "value": "shark",
+                "label": "Шарк"
+            },
+            {
+                "value": "seaBlue",
+                "label": "Си блю"
+            },
+            {
+                "value": "carbonSteel",
+                "label": "Карбон стил"
+            },
+            {
+                "value": "acapulco",
+                "label": "Акапулько"
+            },
+            {
+                "value": "uranus",
+                "label": "Уранус"
+            },
+            {
+                "value": "salsa",
+                "label": "Сальса"
+            },
+            {
+                "value": "venetian",
+                "label": "Венециан"
+            },
+            {
+                "value": "india",
+                "label": "Индия"
+            },
+            {
+                "value": "blackOak",
+                "label": "Блэк оэк"
+            }
+        ]
+    },
     "CallerTypes": {
         "entries": [
             {
@@ -20,6 +228,26 @@
             {
                 "value": "other",
                 "label": "Другое"
+            }
+        ]
+    },
+    "VINChecked": {
+        "entries": [
+            {
+                "value": "base",
+                "label": "По базе данных"
+            },
+            {
+                "value": "dealer",
+                "label": " От дилера"
+            },
+            {
+                "value": "service",
+                "label": "По сервисной книжке"
+            },
+            {
+                "value": "partner",
+                "label": "По согласованию заказчика"
             }
         ]
     },
@@ -138,15 +366,19 @@
     "CaseStatuses": {
         "entries": [
             {
+                "value": "s0",
                 "label": "Front Office"
             },
             {
+                "value": "s1",
                 "label": "Back Office"
             },
             {
+                "value": "s2",
                 "label": "Закрыт"
             },
             {
+                "value": "s3",
                 "label": "Отмена"
             }
         ]
@@ -156,6 +388,14 @@
             {
                 "value": "creating",
                 "label": "Создание"
+            },
+            {
+                "value": "mechanicConf",
+                "label": "Требуется конференция с механиком"
+            },
+            {
+                "value": "delarConf",
+                "label": "Требуется конференция с дилером"
             },
             {
                 "value": "checking",
@@ -979,6 +1219,34 @@
             {
                 "value": "electro",
                 "label": "Электрооборудование"
+            },
+            {
+                "value": "vandal",
+                "label": "Вандализм"
+            },
+            {
+                "value": "dtp",
+                "label": "ДТП"
+            },
+            {
+                "value": "keyLost",
+                "label": "Ключи утеряны"
+            },
+            {
+                "value": "signal",
+                "label": "Сигнализация"
+            },
+            {
+                "value": "needDiagnostic",
+                "label": "Требуется диагностика в дилерском центре"
+            },
+            {
+                "value": "tread",
+                "label": "Шины/Колеса"
+            },
+            {
+                "value": "electronics",
+                "label": "Электроника"
             }
         ]
     },
@@ -986,494 +1254,1049 @@
         "entries": {
             "security": [
                 {
+                    "value": "airbag",
                     "label": "Подушка безопасности"
                 },
                 {
+                    "value": "beltTens",
                     "label": "Преднатяжитель"
                 },
                 {
+                    "value": "belting",
                     "label": "Ремни безопасности"
+                }
+            ],
+            "tread": [
+                {
+                    "value": "tread1",
+                    "label": "Шины/Колеса"
+                },
+                {
+                    "value": "hubBearing",
+                    "label": "Подшипник ступицы"
                 }
             ],
             "intake": [
                 {
+                    "value": "airFilter",
                     "label": "Воздушный фильтр двигателя"
                 },
                 {
+                    "value": "tps",
                     "label": "Датчик положения дроссельной заслонки"
                 },
                 {
+                    "value": "idleGage",
                     "label": "Датчик холостого хода"
                 },
                 {
+                    "value": "throttleBlade",
                     "label": "Дроссельная заслонка"
                 },
                 {
+                    "value": "plug",
                     "label": "Свеча накаливания (дизель)"
                 },
                 {
+                    "value": "glowPlug",
                     "label": "Спираль накаливания (дизель)"
                 }
             ],
             "exhaust": [
                 {
+                    "value": "collector",
                     "label": "Выпускной коллектор"
                 },
                 {
+                    "value": "deafener",
                     "label": "Глушитель"
                 },
                 {
+                    "value": "goff",
                     "label": "Гофра"
                 },
                 {
+                    "value": "cat",
                     "label": "Каталитический нейтрализатор (катализатор)"
                 },
                 {
+                    "value": "egr",
                     "label": "Клапан рециркуляции отработавших газов (EGR) "
                 },
                 {
+                    "value": "lambda",
                     "label": "Лямбда-зонд (кислородный датчик)"
                 },
                 {
+                    "value": "prokladka",
                     "label": "Прокладка приемной трубы"
                 }
             ],
             "engine": [
                 {
+                    "value": "ventilation",
                     "label": "Вентиляция картера"
                 },
                 {
+                    "value": "oilPress",
                     "label": "Датчик (аварийного) давления масла"
                 },
                 {
+                    "value": "oilLevel",
                     "label": "Датчик уровня масла"
                 },
                 {
+                    "value": "engine1",
+                    "label": "Двигатель"
+                },
+                {
+                    "value": "cowl",
                     "label": "Кожух ремня ГРМ"
                 },
                 {
+                    "value": "oilSep",
                     "label": "Маслоотделитель"
                 },
                 {
+                    "value": "oilPump",
                     "label": "Маслоприемник"
                 },
                 {
+                    "value": "oilFilter",
                     "label": "Масляный фильтр двигателя"
                 },
                 {
+                    "value": "flyWheel",
                     "label": "Маховик"
                 },
                 {
+                    "value": "sodPan",
                     "label": "Поддон картера"
                 },
                 {
+                    "value": "timingBelt",
                     "label": "Ремень ГРМ"
                 },
                 {
+                    "value": "beltRoll ",
                     "label": "Ролик ремня ГРМ"
                 },
                 {
+                    "value": "salFront",
                     "label": "Сальник коленвала (передний)"
                 },
                 {
+                    "value": "salBack",
                     "label": "Сальник маховика (задний сальник коленвала двигателя)"
                 },
                 {
+                    "value": "salCamshaft",
                     "label": "Сальник распредвала"
+                },
+                {
+                    "value": "needDiagnostic0",
+                    "label": "Требуется диагностика в дилерском центре"
+                },
+                {
+                    "value": "crankRunner",
+                    "label": "Шкив коленвала"
                 }
             ],
             "ignit": [
                 {
+                    "value": "heatPlug",
                     "label": "Свеча зажигания (просто свеча)"
                 }
             ],
             "body": [
                 {
+                    "value": "baggage",
                     "label": "Багажник"
                 },
                 {
+                    "value": "faceBar",
                     "label": "Бампер"
                 },
                 {
+                    "value": "splasher",
                     "label": "Брызговик"
                 },
                 {
+                    "value": "door",
                     "label": "Дверь"
                 },
                 {
+                    "value": "bottom",
                     "label": "Дно"
                 },
                 {
+                    "value": "jacket",
                     "label": "Капот"
                 },
                 {
+                    "value": "mudguard",
                     "label": "Крыло"
                 },
                 {
+                    "value": "roofing",
                     "label": "Крыша"
                 },
                 {
+                    "value": "screen",
                     "label": "Лобовое стекло"
                 },
                 {
+                    "value": "baggageSkin",
                     "label": "Обшивка багажника"
                 },
                 {
+                    "value": "doorSkin",
                     "label": "Обшивка двери"
                 },
                 {
+                    "value": "wingFlap",
                     "label": "Подкрылок"
                 },
                 {
+                    "value": "seat",
                     "label": "Сиденье"
                 },
                 {
+                    "value": "doorGlass",
                     "label": "Стекло двери"
                 },
                 {
+                    "value": "scuttle",
                     "label": "Торпедо"
                 }
             ],
             "lights": [
                 {
+                    "value": "backLamp",
                     "label": "Задний фонарь"
                 },
                 {
+                    "value": "light",
                     "label": "Лампа подсветки салона"
                 },
                 {
+                    "value": "numberLight",
                     "label": "Освещение номерного знака"
                 },
                 {
+                    "value": "repeater",
                     "label": "Повторитель поворота"
                 },
                 {
+                    "value": "foglamp",
                     "label": "Противотуманная фара"
                 },
                 {
+                    "value": "blinker",
                     "label": "Указатели поворота"
                 },
                 {
+                    "value": "headlamp",
                     "label": "Фара"
                 }
             ],
             "condit": [
                 {
+                    "value": "ventilator",
                     "label": "Вентилятор системы кондиционирования / печки / обогрева"
                 },
                 {
+                    "value": "cutoffPlate",
                     "label": "Заслонки печки / кондиционера"
                 },
                 {
+                    "value": "airCompr",
                     "label": "Копрессор кондиционера"
                 },
                 {
+                    "value": "dryer",
                     "label": "Осушитель"
                 },
                 {
+                    "value": "airRadiator",
                     "label": "Радиатор кондиционера"
                 },
                 {
+                    "value": "fairFilter",
                     "label": "Салонный фильтр"
+                }
+            ],
+            "keyLost": [
+                {
+                    "value": "keyLost1",
+                    "label": "Ключи утеряны"
+                }
+            ],
+            "electronics": [
+                {
+                    "value": "control",
+                    "label": "Блок управления двигателем"
                 }
             ],
             "engcool": [
                 {
+                    "value": "ventilGage",
                     "label": "Датчик включения вентилятора радиатора"
                 },
                 {
+                    "value": "tempGage",
                     "label": "Датчик температуры охлаждающей жидкости"
                 },
                 {
+                    "value": "pomp",
                     "label": "Насос охлаждающей жидкости (помпа)"
                 },
                 {
+                    "value": "radiator",
                     "label": "Радиатор"
                 },
                 {
+                    "value": "heatRadiator",
                     "label": "Радиатор печки (обогрева) салона"
                 },
                 {
+                    "value": "stubDual",
+                    "label": "Патрубок"
+                },
+                {
+                    "value": "engVentilator",
+                    "label": "Вентилятор"
+                },
+                {
+                    "value": "thermostat",
                     "label": "Термостат"
                 }
             ],
             "susp": [
                 {
+                    "value": "lever",
                     "label": "Передний рычаг (левый/правый)"
                 },
                 {
+                    "value": "axleSwivel",
                     "label": "Поворотный кулак"
                 },
                 {
+                    "value": "pylnik",
                     "label": "Пыльник шаровой опоры"
                 },
                 {
+                    "value": "pap",
                     "label": "Ступица"
                 },
                 {
+                    "value": "trunnionBall",
                     "label": "Шаровая опора"
                 }
             ],
             "misc": [
                 {
+                    "value": "belt",
                     "label": "Ремень генератора/кондиционера/ГУР"
                 },
                 {
+                    "value": "roll",
                     "label": "Ролик ремня привода генератора/кондиционера/ГУР"
                 },
                 {
+                    "value": "genRunner",
                     "label": "Шкив генератора"
                 },
                 {
+                    "value": "crankRunner1",
                     "label": "Шкив коленвала"
                 },
                 {
+                    "value": "airRunner",
                     "label": "Шкив компрессора кондиционера"
                 },
                 {
+                    "value": "pumpRunner",
                     "label": "Шкив насоса ГУР"
                 }
             ],
             "steer": [
                 {
+                    "value": "rodEnd",
                     "label": "Наконечник рулевой тяги (наконечник)"
                 },
                 {
+                    "value": "ps",
+                    "label": "Гидроусилитель руля"
+                },
+                {
+                    "value": "gur",
                     "label": "Насос гидроусилителя руля (ГУР)"
                 },
                 {
+                    "value": "mast",
                     "label": "Рулевая колонка"
                 },
                 {
+                    "value": "steeringRack",
                     "label": "Рулевая рейка"
                 },
                 {
+                    "value": "steeringWheel",
                     "label": "Рулевое колесо"
                 },
                 {
+                    "value": "eas",
                     "label": "Электроусилитель руля"
                 }
             ],
             "clutch": [
                 {
+                    "value": "drivenDisk",
                     "label": "Ведомый диск (сцепления)"
                 },
                 {
+                    "value": "fork",
                     "label": "Вилка сцепления"
                 },
                 {
+                    "value": "throwOutBearing",
                     "label": "Выжимной подшипник"
                 },
                 {
+                    "value": "mainCylinder",
                     "label": "Главный цилиндр сцепления"
                 },
                 {
+                    "value": "crate",
                     "label": "Корзина"
                 },
                 {
+                    "value": "workCylinder",
                     "label": "Рабочий цилиндр сцепления"
                 },
                 {
+                    "value": "guyClutch",
                     "label": "Трос сцепления"
                 },
                 {
+                    "value": "guideBar",
                     "label": "Шток рабочего цилиндра сцепления"
                 }
             ],
             "fuel": [
                 {
+                    "value": "gasPump",
                     "label": "Бензонасос"
                 },
                 {
+                    "value": "fuelInjector",
                     "label": "Инжекторы (форсунки)"
                 },
                 {
+                    "value": "fuelLid",
                     "label": "Крышка топливной горловины"
                 },
                 {
+                    "value": "pumpDuse",
                     "label": "Насос-форсунка (дизель)"
                 },
                 {
+                    "value": "return",
                     "label": "Обратка"
                 },
                 {
+                    "value": "primingPump",
                     "label": "Подкачивающий насос (дизель)"
                 },
                 {
+                    "value": "fuelRail",
                     "label": "Топливная рампа"
                 },
                 {
+                    "value": "tube",
+                    "label": "Топливопроводы/шланги"
+                },
+                {
+                    "value": "fuelLine",
+                    "label": "Топливопровод"
+                },
+                {
+                    "value": "fuelPump",
+                    "label": "Топливный насос"
+                },
+                {
+                    "value": "hatch",
+                    "label": "Лючок бензобака"
+                },
+                {
+                    "value": "prSensor",
+                    "label": "Датчик давления топлива"
+                },
+                {
+                    "value": "tnvd",
                     "label": "Топливный насос высокого давления (ТНВД - дизель)"
                 },
                 {
+                    "value": "fuelFilter",
                     "label": "Топливный фильтр"
                 }
             ],
             "brake": [
                 {
+                    "value": "blokAbs",
                     "label": "Блок ABS"
                 },
                 {
+                    "value": "vacuum",
                     "label": "Вакуумный усилитель"
                 },
                 {
+                    "value": "brakeCylinder",
                     "label": "Главный тормозной цилиндр"
                 },
                 {
+                    "value": "absGage",
                     "label": "Датчик ABS (датчик вращения колеса)"
                 },
                 {
+                    "value": "wearSensor",
                     "label": "Датчик износа колодок"
                 },
                 {
+                    "value": "stop",
                     "label": "Стоп-сигнал"
                 },
                 {
+                    "value": "caliper",
                     "label": "Суппорт"
                 },
                 {
+                    "value": "brakeDrum",
                     "label": "Тормозной барабан (барабан)"
                 },
                 {
+                    "value": "brakePlate",
                     "label": "Тормозной диск"
                 },
                 {
+                    "value": "lineHose",
+                    "label": "Тормозные трубопроводы/шланги"
+                },
+                {
+                    "value": "needDiagnostic3",
+                    "label": "Требуется диагностика в дилерском центре"
+                },
+                {
+                    "value": "brakeBlock",
                     "label": "Тормозные колодки"
                 }
             ],
             "gears": [
                 {
+                    "value": "mechUnit",
                     "label": "Блок мехатроники"
                 },
                 {
+                    "value": "garnet",
                     "label": "Граната ШРУС (граната)"
                 },
                 {
+                    "value": "cardan",
                     "label": "Карданный вал"
                 },
                 {
+                    "value": "crosspiece",
                     "label": "Крестовина (карданного вала)"
                 },
                 {
+                    "value": "link",
                     "label": "Кулиса коробки / МКПП / КПП / АКПП"
                 },
                 {
+                    "value": "driverShaft",
                     "label": "Приводной вал"
                 },
                 {
+                    "value": "pylnikSh",
                     "label": "Пыльник ШРУС"
                 },
                 {
+                    "value": "transfer",
                     "label": "Раздаточная коробка (раздатка)"
                 },
                 {
+                    "value": "salOut",
                     "label": "Сальник выходного вала КПП"
                 },
                 {
+                    "value": "salKpp",
                     "label": "Сальник коробки / КПП / МКПП / АКПП"
                 },
                 {
+                    "value": "salDr",
                     "label": "Сальник приводного вала"
                 },
                 {
+                    "value": "backSignal",
                     "label": "Сигнал (фонарь) заднего хода"
                 },
                 {
+                    "value": "cable",
                     "label": "Трос коробки / МКПП / КПП / АКПП"
                 },
                 {
+                    "value": "gearbox",
+                    "label": "Коробка передач"
+                },
+                {
+                    "value": "clutch1",
+                    "label": "Сцепление"
+                },
+                {
+                    "value": "shrus",
                     "label": "ШРУС"
                 }
             ],
             "pcm": [
                 {
+                    "value": "knock",
                     "label": "Датчик детонации"
                 },
                 {
+                    "value": "crankshaft",
                     "label": "Датчик коленвала"
                 },
                 {
+                    "value": "camshaft",
                     "label": "Датчик распредвала"
+                }
+            ],
+            "signal": [
+                {
+                    "value": "signal1",
+                    "label": "Сигнализация"
+                }
+            ],
+            "needDiagnostic": [
+                {
+                    "label": "Требуется диагностика в дилерском центре",
+                    "value": "needDiagnostic1"
+                }
+            ],
+            "dtp": [
+                {
+                    "value": "dtp1",
+                    "label": "ДТП"
+                }
+            ],
+            "vandal": [
+                {
+                    "value": "vandal1",
+                    "label": "Вандализм"
                 }
             ],
             "electro": [
                 {
+                    "value": "accum",
                     "label": "Аккумулятор"
                 },
                 {
+                    "value": "washer",
                     "label": "Бачок омывателя"
                 },
                 {
+                    "value": "fan",
                     "label": "Вентилятор радиатора"
                 },
                 {
+                    "value": "airconfan",
                     "label": "Вентилятор радиатора кондиционера"
                 },
                 {
+                    "value": "generator",
                     "label": "Генератор"
                 },
                 {
+                    "value": "wipers1",
                     "label": "Дворники / стеклоочистители"
                 },
                 {
+                    "value": "klaxon",
                     "label": "Клаксон / гудок / сигнал"
                 },
                 {
+                    "value": "washerPump",
                     "label": "Насос омывателя"
                 },
                 {
+                    "value": "windWasher",
                     "label": "Омыватель лобового стекла"
                 },
                 {
+                    "value": "lightWasher",
                     "label": "Омыватель фар"
                 },
                 {
+                    "value": "switch",
                     "label": "Переключатель режимов стеклоочистителя / дворников"
                 },
                 {
+                    "value": "switchBlink",
                     "label": "Переключатель указателей поворота"
                 },
                 {
+                    "value": "safety",
                     "label": "Предохранитель"
                 },
                 {
+                    "value": "relay",
                     "label": "Реле"
                 },
                 {
+                    "value": "sparkPlugs",
+                    "label": "Свечи зажигания"
+                },
+                {
+                    "value": "wires",
+                    "label": "Высоковольтные провода"
+                },
+                {
+                    "value": "alternatorBelt",
+                    "label": "Ремень генератора"
+                },
+                {
+                    "value": "ignitionSwitch",
+                    "label": "Выключатель зажигания"
+                },
+                {
+                    "value": "ignitionCoil",
+                    "label": "Катушка зажигания"
+                },
+                {
+                    "value": "needDiagnostic5",
+                    "label": "Требуется диагностика в дилерском центре"
+                },
+                {
+                    "value": "starter",
                     "label": "Стартер"
                 },
                 {
+                    "value": "raiser",
                     "label": "Стеклоподъемник"
                 },
                 {
+                    "value": "lock",
                     "label": "Центральный замок (центрзамок)"
                 }
             ]
         }
     },
     "Diagnosis3": {
-        "entries": []
+        "entries": {
+            "engine1": [
+                {
+                    "value": "engBreak",
+                    "label": "Неисправность двигателя"
+                }
+            ],
+            "needDiagnostic0": [
+                {
+                    "value": "needDiagnostic01",
+                    "label": "Требуется диагностика в дилерском центре"
+                }
+            ],
+            "signal1": [
+                {
+                    "value": "signBreak1",
+                    "label": "Неисправность сигнализации (штатное оборудование)"
+                },
+                {
+                    "value": "signBreak2",
+                    "label": "Неисправность сигнализации (доп. оборудование)"
+                }
+            ],
+            "ps": [
+                {
+                    "value": "psFault",
+                    "label": "Неисправность гидроусилителя руля"
+                }
+            ],
+            "mast": [
+                {
+                    "value": "mastFault",
+                    "label": "Неисправность рулевой колонки"
+                }
+            ],
+            "accum": [
+                {
+                    "value": "discharge",
+                    "label": "Разрядился аккумулятор"
+                },
+                {
+                    "value": "batteryFault",
+                    "label": "Неисправность аккумулятора"
+                }
+            ],
+            "tread1": [
+                {
+                    "value": "wheelCut",
+                    "label": "Колеса порезаны"
+                },
+                {
+                    "value": "wheelPierced",
+                    "label": "Колесо проколото"
+                }
+            ],
+            "hubBearing": [
+                {
+                    "value": "hubBearingFault",
+                    "label": "Рассыпался подшипник ступицы"
+                }
+            ],
+            "cat": [
+                {
+                    "value": "catFault",
+                    "label": "Неисправность каталитического нейтрализатора"
+                }
+            ],
+            "dtp1": [
+                {
+                    "value": "dtp2",
+                    "label": "ДТП"
+                }
+            ],
+            "vandal1": [
+                {
+                    "value": "vandal2",
+                    "label": "Вандализм"
+                }
+            ],
+            "starter": [
+                {
+                    "value": "starterFault",
+                    "label": "Неисправность стартера"
+                }
+            ],
+            "control": [
+                {
+                    "value": "faultControl",
+                    "label": "Вышел из строя блок управления двигателем"
+                }
+            ],
+            "sparkPlugs": [
+                {
+                    "value": "poorQuality",
+                    "label": "Некачественное топливо"
+                }
+            ],
+            "wires": [
+                {
+                    "value": "wiresFault",
+                    "label": "Неисправность высоковольтных проводов"
+                }
+            ],
+            "generator": [
+                {
+                    "value": "generatorFault",
+                    "label": "Неисправность генератора"
+                }
+            ],
+            "alternatorBelt": [
+                {
+                    "value": "breakBelt",
+                    "label": "Порвался ремень генератора"
+                }
+            ],
+            "ignitionSwitch": [
+                {
+                    "value": "breakIgn",
+                    "label": "Неисправен выключатель зажигания"
+                }
+            ],
+            "ignitionCoil": [
+                {
+                    "value": "breakIgnCoil",
+                    "label": "Неисправность катушки зажигания"
+                }
+            ],
+            "needDiagnostic5": [
+                {
+                    "value": "needDiagnostic6",
+                    "label": "Требуется диагностика в дилерском центре"
+                }
+            ],
+            "brakeCylinder": [
+                {
+                    "value": "noBrakeCyl",
+                    "label": "Вышел из строя главный тормозной цилиндр"
+                }
+            ],
+            "lineHose": [
+                {
+                    "value": "depressBrake",
+                    "label": "Разгерметизация/пробой в тормозной системе"
+                }
+            ],
+            "needDiagnostic3": [
+                {
+                    "value": "needDiagnostic4",
+                    "label": "Требуется диагностика в дилерском центре"
+                }
+            ],
+            "brakeBlock": [
+                {
+                    "value": "wearОut",
+                    "label": "Износ/загрязнение тормозных колодок"
+                },
+                {
+                    "value": "malfunction",
+                    "label": "Неисправность тормозных колодок"
+                },
+                {
+                    "value": "wet",
+                    "label": "Попадание влаги в тормозные колодки (при минусовой температуре)"
+                }
+            ],
+            "fuelLine": [
+                {
+                    "value": "fracture",
+                    "label": "Лопнул топливопровод"
+                }
+            ],
+            "tube": [
+                {
+                    "value": "depress",
+                    "label": "Разгерметизация/пробой в топливной системе"
+                }
+            ],
+            "fuelPump": [
+                {
+                    "value": "faultPump",
+                    "label": "Вышел из строя топливный насос"
+                }
+            ],
+            "hatch": [
+                {
+                    "value": "faultHatch",
+                    "label": "Оборвался тросик лючка бензобака"
+                }
+            ],
+            "prSensor": [
+                {
+                    "value": "faultPrSens",
+                    "label": "Неисправен датчик давления топлива"
+                }
+            ],
+            "keyLost1": [
+                {
+                    "value": "keyLost2",
+                    "label": "Ключи утеряны"
+                }
+            ],
+            "needDiagnostic1": [
+                {
+                    "value": "needDiagnostic2",
+                    "label": "Требуется диагностика в дилерском центре"
+                }
+            ],
+            "driverShaft": [
+                {
+                    "value": "noDriverSh",
+                    "label": "Вышел из строя приводной вал"
+                }
+            ],
+            "clutch1": [
+                {
+                    "value": "faultClutch",
+                    "label": "Неисправность сцепления"
+                }
+            ],
+            "gearbox": [
+                {
+                    "value": "faultGearbox",
+                    "label": "Неисправность коробки передач"
+                }
+            ],
+            "shrus": [
+                {
+                    "value": "faultSh",
+                    "label": "Рассыпался ШРУС"
+                }
+            ],
+            "oilPress": [
+                {
+                    "value": "defectOilPr",
+                    "label": "Неисправен датчик давления масла"
+                }
+            ],
+            "timingBelt": [
+                {
+                    "value": "breakTimBelt",
+                    "label": "Порвался ремень ГРМ"
+                }
+            ],
+            "stubDual": [
+                {
+                    "value": "breakStubDual",
+                    "label": "Слетел патрубок системы охлаждения"
+                }
+            ],
+            "pomp": [
+                {
+                    "value": "pompFault",
+                    "label": "Вышел из строя насос системы охлаждения"
+                }
+            ],
+            "engVentilator": [
+                {
+                    "value": "ventFault",
+                    "label": "Неисправность вентилятора"
+                }
+            ],
+            "thermostat": [
+                {
+                    "value": "termFault",
+                    "label": "Неисправен термостат"
+                }
+            ],
+            "crankRunner": [
+                {
+                    "value": "breakСrankRunner",
+                    "label": "Неисправен шкив коленвала"
+                }
+            ]
+        }
     },
     "Diagnosis4": {
-        "entries": []
+        "entries": [
+            {
+                "label": "Эвакуация",
+                "value": "towage"
+            },
+            {
+                "label": "Техпомощь",
+                "value": "towCar"
+            }
+        ]
     },
     "Programs": {
         "entries": [
             {
-                "value": "vw",
-                "label": "VW / Легковые автомобили"
-            },
-            {
-                "value": "vwcargo",
-                "label": "VW / Коммерческие автомобили"
+                "value": "aston",
+                "label": "ACTA / Aston Martin"
             },
             {
                 "value": "bentley",
                 "label": "ACTA / Bentley"
             },
             {
-                "value": "aston",
-                "label": "ACTA / Aston Martin"
+                "value": "kraft",
+                "label": "Autokraft Assistance"
+            },
+            {
+                "value": "tele",
+                "label": "B2B / 3S Телематика"
             },
             {
                 "value": "arc",
@@ -1484,12 +2307,16 @@
                 "label": "B2B / RTR Hyundai"
             },
             {
-                "value": "jenser",
-                "label": "B2B / Дженсер Ясенево"
+                "value": "arval",
+                "label": "B2B / АРВАЛ"
             },
             {
-                "value": "corpse",
-                "label": "B2B / ИП Трубкин"
+                "value": "vtb24",
+                "label": "B2B / ВТБ 24"
+            },
+            {
+                "value": "jenser",
+                "label": "B2B / Дженсер Ясенево"
             },
             {
                 "value": "auimp",
@@ -1500,24 +2327,8 @@
                 "label": "B2B / ДЦ ТВД-Авто"
             },
             {
-                "value": "arval",
-                "label": "B2B / АРВАЛ"
-            },
-            {
-                "value": "tele",
-                "label": "B2B / 3S Телематика"
-            },
-            {
-                "value": "vtb24",
-                "label": "B2B / ВТБ 24"
-            },            
-            {
-                "value": "lyckoil",
-                "label": "B2B /ЛУКОЙЛ-Петрокоммерц"
-            },                        
-            {
-                "value": "unicredit",
-                "label": "B2B / ЮниКредитбанк"
+                "value": "corpse",
+                "label": "B2B / ИП Трубкин"
             },
             {
                 "value": "rnbase",
@@ -1527,26 +2338,33 @@
                 "value": "rnstandard",
                 "label": "B2B / РН-карт-Москва Стандарт"
             },
-            
             {
-                "value": "chevyko",
-                "label": "GM / Chevrolet Korea"
+                "value": "unicredit",
+                "label": "B2B / ЮниКредитбанк"
             },
             {
-                "value": "chevyna",
-                "label": "GM / Chevrolet NA"
+                "value": "lyckoil",
+                "label": "B2B /ЛУКОЙЛ-Петрокоммерц"
             },
             {
-                "value": "oldcad",
-                "label": "GM / Cadillac до 2012"
+                "value": "b2c",
+                "label": "B2C"
             },
             {
-                "value": "opel",
-                "label": "GM / Opel (после 01.04.2011]"
+                "value": "b2cplat",
+                "label": "B2C Platinum"
             },
             {
-                "value": "hum",
-                "label": "GM / Hummer"
+                "value": "bp",
+                "label": "BP"
+            },
+            {
+                "value": "chartis",
+                "label": "Chartis Assistance"
+            },
+            {
+                "value": "ford",
+                "label": "Ford"
             },
             {
                 "value": "cadold",
@@ -1557,40 +2375,44 @@
                 "label": "GM / Cadillac после 2012"
             },
             {
-                "value": "tickets",
-                "label": "Заказ билетов"
+                "value": "chevyko",
+                "label": "GM / Chevrolet Korea"
             },
             {
-                "value": "b2c",
-                "label": "B2C"
+                "value": "chevyna",
+                "label": "GM / Chevrolet NA"
             },
             {
-                "value": "b2cplat",
-                "label": "B2C Platinum"
-            },            
-            {
-                "value": "ford",
-                "label": "Ford"
+                "value": "hum",
+                "label": "GM / Hummer"
             },
             {
-                "value": "bp",
-                "label": "BP"
+                "value": "opel",
+                "label": "GM / Opel (после 01.04.2011]"
             },
             {
-                "value": "ruslan",
-                "label": "Рус Лан"
+                "value": "vw",
+                "label": "VW / Легковые автомобили"
+            },
+            {
+                "value": "vwcargo",
+                "label": "VW / Коммерческие автомобили"
             },
             {
                 "value": "atlant",
                 "label": "Атлант М"
             },
             {
-                "value": "chartis",
-                "label": "Chartis Assistance"
+                "value": "Cash",
+                "label": "За наличные"
             },
             {
-                "value": "kraft",
-                "label": "Autokraft Assistance"
+                "value": "tickets",
+                "label": "Заказ билетов"
+            },
+            {
+                "value": "ruslan",
+                "label": "Рус Лан"
             }
         ]
     },
@@ -1747,6 +2569,86 @@
             {
                 "label": "Ключи от автомобиля утеряны",
                 "value": "p38"
+            },
+            {
+                "label": "Вандализм",
+                "value": "p39"
+            },
+            {
+                "label": "Горит индикатор Check Engine",
+                "value": "p40"
+            },
+            {
+                "label": "Горит индикатор EPC",
+                "value": "p41"
+            },
+            {
+                "label": "Датчик давления масла неисправен",
+                "value": "p42"
+            },
+            {
+                "label": "ДТП",
+                "value": "p43"
+            },
+            {
+                "label": "Температура двигателя повышена",
+                "value": "p44"
+            },
+            {
+                "label": "Вентилятор охлаждения неисправен",
+                "value": "p45"
+            },
+            {
+                "label": "Бензин вытекает",
+                "value": "p46"
+            },
+            {
+                "label": "Топливопровод лопнул",
+                "value": "p47"
+            },
+            {
+                "label": "Лючок бензобака не открывается",
+                "value": "p48"
+            },
+            {
+                "label": "Топливный насос неисправен",
+                "value": "p49"
+            },
+            {
+                "label": "Датчик давления топлива неисправен",
+                "value": "p50"
+            },
+            {
+                "label": "Повышенный шум (визжащий звук) при торможении",
+                "value": "p51"
+            },
+            {
+                "label": "Тормозная жидкость вытекает",
+                "value": "p52"
+            },
+            {
+                "label": "Главный тормозной цилиндр неисправен",
+                "value": "p53"
+            },
+            {
+                "label": "Автомобиль заводится, но не едет",
+                "value": "p54"
+            },
+            {
+                "label": "Масло трансмиссионное течет",
+                "value": "p55"
+            },
+            {
+                "label": "Блок управления двигателем вышел из строя",
+                "value": "p56"
+            },
+            {
+                "label": "Стартер неисправен",
+                "value": "p57"
+            },
+            {
+                "label": "Катушка зажигания неисправна",
+                "value": "p58"
             }
         ]
     },
@@ -2053,6 +2955,42 @@
                     "value": "carmakerNotApproved",
                     "label": "Автопроизводитель отказал"
                 }
+            ],
+            "dealerConf": [
+                {
+                    "value": "busyLine",
+                    "label": "Не дозвонился"
+                },
+                {
+                    "value": "callLater",
+                    "label": "Перезвонить"
+                },
+                {
+                    "value": "needService",
+                    "label": "Требуется заказ услуги"
+                },
+                {
+                    "value": "notNeedService",
+                    "label": "Заказ услуги не требуется"
+                }
+            ],
+            "mechanicConf": [
+                {
+                    "value": "busyLine",
+                    "label": "Не дозвонился"
+                },
+                {
+                    "value": "callLater",
+                    "label": "Перезвонить"
+                },
+                {
+                    "value": "needService",
+                    "label": "Требуется заказ услуги"
+                },
+                {
+                    "value": "notNeedService",
+                    "label": "Заказ услуги не требуется"
+                }
             ]
         }
     },
@@ -2125,6 +3063,14 @@
             {
                 "value": "carmakerApproval",
                 "label": "Согласование с автопроизводителем"
+            },
+            {
+                "value": "dealerConf",
+                "label": "Требуется конференция с дилером"
+            },
+            {
+                "value": "mechanicConf",
+                "label": "Требуется конференция с механиком"
             }
         ]
     }

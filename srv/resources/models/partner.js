@@ -78,7 +78,8 @@
         {
             "name": "closeTicketEmail",
             "meta": {
-                "label": "Email для закрытия заявок"
+                "label": "Email для закрытия заявок",
+                "regexp": "^[\\w\\+\\.]+@[\\w\\.]+\\.\\w+$"
             }
         },
         {

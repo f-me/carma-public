@@ -73,9 +73,9 @@ checkMap :: M.Map B.ByteString (FreeChecker A.Parser)
 checkMap = 
     M.fromList 
          [ ("sellLess", 
-            compareDate "case" "car_sellDate" GT <=< yearsAgo <=< readInteger)
+            compareDate "case" "car_buyDate" GT <=< yearsAgo <=< readInteger)
          , ("sellAfter",
-            compareDate "case" "car_sellDate" GT <=< readDate)
+            compareDate "case" "car_buyDate" GT <=< readDate)
          , ("checkupLess",
             compareDate "case" "car_checkupDate" LT <=< yearsAgo <=< readInteger)
          , ("mileageLess",

@@ -1,7 +1,7 @@
 /// Transfrom model definitions into Backbone models, render model
 /// forms, template helpers.
 
-// Backbonize a model, set default values for model
+// Backbonize a model
 //
 // @return Constructor of Backbone model
 function backbonizeModel(model, modelName) {
@@ -10,21 +10,19 @@ function backbonizeModel(model, modelName) {
     var dictionaryFields = [];
     var referenceFields = [];
     var requiredFields = [];
+    var regexpFields = [];
     var groups = []
     _.each(model.fields,
           function(f) {
               if (!_.isNull(f.meta)) {
                   if (_.has(f.meta, "required") && f.meta.required)
                       requiredFields = requiredFields.concat(f.name);
-                  if (_.has(f.meta, "default"))
-                      defaults[f.name] = f.default;
-                  else
-                      defaults[f.name] = null;
-              } else
-                  // still add field to model even if meta is not present
-                  defaults[f.name] = null;
+                  if (_.has(f.meta, "regexp"))
+                      regexpFields = regexpFields.concat(f.name);
+              }
 
               fieldHash[f.name] = f;
+              defaults[f.name] = null;
 
               if (f.type == "reference")
                   referenceFields = referenceFields.concat(f.name);
@@ -46,12 +44,18 @@ function backbonizeModel(model, modelName) {
         referenceFields: referenceFields,
         // List of required fields
         requiredFields: requiredFields,
+        // List of fields with regexp checks
+        regexpFields: regexpFields,
         // List of groups present in model
         groups: groups,
 
         // Temporary storage for attributes queued for sending to
         // server.
         attributeQueue: {},
+        // attributeQueue backuped before saving to server.
+        // If save fails we merge new changes with backupped ones.
+        // This prevents data loss in case of server failures.
+        attributeQueueBackup: {},
         initialize: function() {
             if (!this.isNew())
                 this.fetch();
@@ -104,8 +108,17 @@ function backbonizeModel(model, modelName) {
         },
         // Do not send empty updates to server
         save: function(attrs, options) {
-            if (!_.isEmpty(this.attributeQueue))
+            if (!_.isEmpty(this.attributeQueue)) {
+                options = options ? _.clone(options) : {};
+
+                var error = options.error;
+                options.error = function(model, resp, options) {
+                    _.isFunction(error) && error(model, resp, options);
+                    _.defaults(this.attributeQueue, this.attributeQueueBackup);
+                };
+
                 Backbone.Model.prototype.save.call(this, attrs, options);
+            }
         },
         // For checkbox fields, translate "0"/"1" to false/true
         // boolean.
@@ -130,7 +143,9 @@ function backbonizeModel(model, modelName) {
         },
         toJSON: function () {
             // Send only attributeQueue instead of the whole object
-            var json = this.attributeQueue;
+            var json = _.clone(this.attributeQueue);
+            this.attributeQueueBackup = _.clone(json);
+            this.attributeQueue = {};
             // Map boolean values to string "0"/"1"'s for server
             // compatibility
             for (k in json) {
@@ -148,7 +163,6 @@ function backbonizeModel(model, modelName) {
                 if (_.isBoolean(json[k]))
                     json[k] = String(json[k] ? "1" : "0");
             }
-            this.attributeQueue = {};
             return json;
         },
         urlRoot: "/_/" + modelName

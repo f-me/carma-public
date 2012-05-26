@@ -17,6 +17,13 @@ var localScreens = {
             "tableView": setupSearchTable
         }
     },
+    "back":
+    {
+        "template": "back-screen-template",
+        "views": {
+            "back-form": setupBackOffice
+        }
+    },
     "vin":
     {
         "template": "vin-screen-template",
@@ -53,6 +60,7 @@ var localRouter = Backbone.Router.extend({
         "vin": "vin",
         "partner/:id": "loadPartner",
         "partner": "newPartner",
+        "back": "back",
         "call": "call"
     },
 
@@ -66,6 +74,9 @@ var localRouter = Backbone.Router.extend({
 
     search: function () {
         renderScreen("search");
+    },
+    back: function () {
+        renderScreen("back");
     },
 
     vin: function () {
@@ -218,7 +229,11 @@ function setupCaseMain(viewName, args) {
     var refs = [
         {
             field: "services",
-            forest: "case-service-references",
+            forest: "case-service-references"
+        },
+        {
+            field: "actions",
+            forest: "case-actions-references"
         }
     ];
 
@@ -245,7 +260,7 @@ function setupCaseMain(viewName, args) {
                       return instance.fieldHash[f];
                   })};
         
-        $("#right").html(
+        $("#empty-fields-placeholder").html(
             Mustache.render($("#empty-fields-template").html(), ctx));
 
         ko.applyBindings(global.viewsWare[viewName].knockVM, 
@@ -268,7 +283,11 @@ function setupCaseMain(viewName, args) {
         Mustache.render($("#service-picker-template").html(),
                         {dictionary: global.dictionaries["Services"]}));
 
-    $(".tableTable").dataTable();
+    $("body").on("change.input", ".redirectOnChange", function () {
+        setTimeout(function() {
+          window.location.hash = "back";
+        }, 500);
+    });
 }
 
 
@@ -376,7 +395,7 @@ function setupVinForm(viewName, args) {
     $el(viewName).html($el("vin-form-template").html());
     global.viewsWare[viewName] = {};
 
-    setInterval(getVinAlerts, 5000);
+    setInterval(getVinAlerts, 1000);
 }
 
 function getVinAlerts () {
@@ -384,6 +403,18 @@ function getVinAlerts () {
 	$("#vin-alert-container").html(
 	    Mustache.render($("#vin-alert-template").html(), data));
     });
+}
+
+function mkDataTable (t) {
+    t.dataTable({
+        sScrollY: "500px",
+        bPaginate: false,
+        oLanguage: {
+            sSearch: "Фильтр",
+            sInfoEmpty: "",
+            sZeroRecords: "Ничего не найдено",
+            sInfo: "Показаны записи с _START_ по _END_ (всего _TOTAL_)"
+      }});
 }
 
 function setupPartnersForm(viewName, args) {
@@ -408,15 +439,7 @@ function setupPartnersForm(viewName, args) {
 
       var t = $("#partner-table");
       if (t.hasClass("dataTable")) return;
-      t.dataTable({
-          sScrollY: "500px",
-          bPaginate: false,
-          oLanguage: {
-              sSearch: "Фильтр",
-              sInfoEmpty: "",
-              sZeroRecords: "Ничего не найдено",
-              sInfo: "Показаны записи с _START_ по _END_ (всего _TOTAL_)"
-        }});
+      mkDataTable(t);
 
       t.on("click.datatable", "tr", function() {
          var id = this.children[0].innerText;
@@ -437,6 +460,7 @@ function setupPartnersForm(viewName, args) {
           });
     }, 100);
 }
+
 
 function addNewServiceToPartner(name)
 {
@@ -465,6 +489,62 @@ function doVin() {
     });
 }
 
+
+function setupBackOffice () {
+    setTimeout(function() {
+        var groupTable = $("#back-group-table");
+        mkDataTable(groupTable);
+        groupTable.on("click.datatable", "tr", function() {
+           var id = this.children[0].innerText.split('/');
+           $.ajax({
+              type: "PUT",
+              url: "/_/action/"+ id[1],
+              contentType: "application/json",
+              data: '{"assignedTo": "backuser"}',
+              processData: false
+           });
+           window.location.hash = "case/" + id[0];
+        });
+        var userTable  = $("#back-user-table");
+        mkDataTable(userTable);
+        userTable.on("click.datatable", "tr", function() {
+           var id = this.children[0].innerText.split('/');
+           window.location.hash = "case/" + id[0];
+        });
+
+        $.getJSON(modelMethod("action", "search?q=*&_limit=1000"),
+          function(objs) {
+              var ut = userTable.dataTable();
+              ut.fnClearTable();
+              var gt = groupTable.dataTable();
+              gt.fnClearTable();
+              for (i in objs) {
+                var obj = objs[i];
+                if (obj.closed && obj.closed !== "false") continue;
+                
+                var id = obj.caseId.replace(/\D/g,'') + "/" + obj.id;
+                var duetime = obj.duetime
+                         ? new Date(obj.duetime * 1000)
+                                .toString("dd.MM.yyyy HH:mm:ss")
+                         : '';
+                
+                var row = [id
+                          ,obj.priority || '3'
+                          ,duetime
+                          ,obj.description || ''
+                          ,obj.comment || '']
+
+                if (_.has(obj, 'assignedTo')) {
+                  ut.fnAddData(row);
+                } else {
+                  gt.fnAddData(row);
+                }
+              }
+          });
+    },200);
+}
+
+ 
 function removeVinAlert(val) {
     $.post("/vin/state", { id: val } );
 }
