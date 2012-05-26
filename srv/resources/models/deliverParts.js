@@ -366,23 +366,6 @@
             }
         },
         {
-            "name": "clientSatisfied",
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "back",
-                "head"
-            ],
-            "type": "checkbox",
-            "meta": {
-                "label": "Клиент доволен"
-            }
-        },
-        {
             "name": "billingDate",
             "canRead": [
                 "head",
@@ -476,6 +459,23 @@
             "meta": {
                 "label": "Статус услуги",
                 "dictionaryName": "ServiceStatuses"
+            }
+        },
+        {
+            "name": "clientSatisfied",
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
+            "type": "checkbox",
+            "meta": {
+                "label": "Клиент доволен"
             }
         }
     ]
