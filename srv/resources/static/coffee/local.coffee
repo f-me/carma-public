@@ -106,7 +106,7 @@ regexpKbHook = (instance, knockVM) ->
             kb.observable instance,
                           key: f
                           read: (k) -> not r.test instance.get(k)
-    )(fieldName, new RegExp(regexp))
+    )(fieldName, new RegExp(global.dictLabelCache["_regexps"][regexp]))
 
 servicesDescsKbHook = (instance, knockVM) ->
   knockVM['servicesDescs'] = ko.computed
