@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="/s/css/stolen-icons.css" />
 
     <link rel="stylesheet" href="/s/css/local.css" />
+
     <!-- DOM manipulation -->
     <script src="/s/js/3p/jquery-1.7.1.min.js" />
 
