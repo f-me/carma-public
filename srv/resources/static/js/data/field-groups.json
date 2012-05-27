@@ -7,7 +7,7 @@
                 "label": "VIN",
                 "transform": "uppercase",
                 "picker": "vinFiller",
-                "regexp": "^[0-9A-HJ-NPR-Z]{17}$"
+                "regexp": "^[0-9a-hA-Hj-nJ-NpPr-zR-Z]{17}$"
             }
         },
         {
@@ -37,7 +37,7 @@
             "meta": {
                 "transform": "uppercase",
                 "label": "Госномер",
-                "regexp": "^[авекмнорстух]\\d{3}[авекмнорстух]{2}\\d{2,3}$"
+                "regexp": "^[АВЕКМНОРСТУХавекмнорстух]\\d{3}[АВЕКМНОРСТУХавекмнорстух]{2}\\d{2,3}$"
             },
             "index": true,
             "indexCollate": true
