@@ -39,8 +39,6 @@
     
   - `required`: highlight field with red outline and show it in
     rightmost pane when it's empty
-    
-  - `default`: set default value for field
 
   - `invisible`: do not show field at all
 
