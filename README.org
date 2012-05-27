@@ -21,6 +21,13 @@
   
   - `dictionaryParent`: set parent dictionary for dependent dictionary
     (see section below)
+
+  - `regexp`: must contain label for entry of "_regexps" dictionary,
+    value of which is a regular expression as JavaScript string
+    (remember to escape backslashes!). When provided, highlight field
+    with «warning» outline if its contents do not match regular
+    expression. Knockout model will provide `<fieldName>Regexp`
+    observable (which is the inverse of check result).
     
   - `mainToo`: when specified in member of group, field is rendered in
     main pane, too (in addition to rendering in view of group)

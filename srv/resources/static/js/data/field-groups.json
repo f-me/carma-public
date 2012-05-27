@@ -7,7 +7,7 @@
                 "label": "VIN",
                 "transform": "uppercase",
                 "picker": "vinFiller",
-                "regexp": "^[0-9a-hA-Hj-nJ-NpPr-zR-Z]{17}$"
+                "regexp": "vin"
             }
         },
         {
@@ -37,7 +37,7 @@
             "meta": {
                 "transform": "uppercase",
                 "label": "Госномер",
-                "regexp": "^[АВЕКМНОРСТУХавекмнорстух]\\d{3}[АВЕКМНОРСТУХавекмнорстух]{2}\\d{2,3}$"
+                "regexp": "plateNum"
             },
             "index": true,
             "indexCollate": true
@@ -213,7 +213,7 @@
             "meta": {
                 "label": "Контактные телефоны",
                 "picker": "callPlease",
-                "regexp": "^\\+7\\d{10}$"
+                "regexp": "phone"
             },
             "type": "phone",
             "index": true,
@@ -223,7 +223,7 @@
             "name": "phone2",
             "meta": {
                 "picker": "callPlease",
-                "regexp": "^\\+7\\d{10}$"
+                "regexp": "phone"
             },
             "type": "phone",
             "index": true
@@ -232,7 +232,7 @@
             "name": "phone3",
             "meta": {
                 "picker": "callPlease",
-                "regexp": "^\\+7\\d{10}$"
+                "regexp": "phone"
             },
             "type": "phone",
             "index": true
@@ -241,7 +241,7 @@
             "name": "phone4",
             "meta": {
                 "picker": "callPlease",
-                "regexp": "^\\+7\\d{10}$"
+                "regexp": "phone"
             },
             "type": "phone",
             "index": true
@@ -250,7 +250,7 @@
             "name": "email",
             "meta": {
                 "label": "Email",
-                "regexp": "^[\\w\\+\\.]+@[\\w\\.]+\\.\\w+$"
+                "regexp": "email"
             },
             "index": true
         }

@@ -178,7 +178,7 @@ function knockBackbone(instance, viewName) {
                                read: function (k) {
                                    return !r.test(instance.get(k));
                                }});
-        })(fieldName, new RegExp(regexp));
+        })(fieldName, new RegExp(global.dictLabelCache["_regexps"][regexp]));
     }
 
     for (n in instance.dictionaryFields) {

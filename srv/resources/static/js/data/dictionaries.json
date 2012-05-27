@@ -1,4 +1,24 @@
 {
+    "_regexps": {
+        "entries": [
+            {
+                "label": "plateNum",
+                "value": "^[АВЕКМНОРСТУХавекмнорстух]\\d{3}[АВЕКМНОРСТУХавекмнорстух]{2}\\d{2,3}$"
+            },
+            {
+                "label": "vin",
+                "value": "^[0-9a-hA-Hj-nJ-NpPr-zR-Z]{17}$"
+            },
+            {
+                "label": "phone",
+                "value": "^\\+7\\d{10}$"
+            },
+            {
+                "label": "email",
+                "value": "^[\\w\\+\\.]+@[\\w\\.]+\\.\\w+$"
+            }
+        ]
+    },
     "Colors": {
         "entries": [
             {
