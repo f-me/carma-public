@@ -35,7 +35,7 @@
                 "factServiceClosure"
             ],
             "meta": {
-                "regexp": "^\\d{2}:\\d{2} \\d{2}\\.\\d{2}\\.\\d{4}$"
+                "regexp": "datetime"
             }
         },
         {
@@ -44,7 +44,7 @@
                 "billingDate"
             ],
             "meta": {
-                "regexp": "^\\d{2}\\.\\d{2}\\.\\d{4}$"
+                "regexp": "date"
             }
         }
     ],
@@ -423,7 +423,7 @@
             ],
             "meta": {
                 "label": "Телефон 1",
-                "regexp": "^\\+7\\d{10}$"
+                "regexp": "phone"
             },
             "type": "phone"
         },
@@ -477,7 +477,7 @@
             ],
             "meta": {
                 "label": "Телефон 2",
-                "regexp": "^\\+7\\d{10}$"
+                "regexp": "phone"
             },
             "type": "phone"
         },
@@ -531,7 +531,7 @@
             ],
             "meta": {
                 "label": "Телефон 3",
-                "regexp": "^\\+7\\d{10}$"
+                "regexp": "phone"
             },
             "type": "phone"
         },
