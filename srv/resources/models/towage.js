@@ -150,7 +150,7 @@
                 "factServiceClosure"
             ],
             "meta": {
-                "regexp": "^\\d{2}:\\d{2} \\d{2}\\.\\d{2}\\.\\d{4}$"
+                "regexp": "datetime"
             }
         },
         {
@@ -159,7 +159,7 @@
                 "billingDate"
             ],
             "meta": {
-                "regexp": "^\\d{2}\\.\\d{2}\\.\\d{4}$"
+                "regexp": "date"
             }
         }
     ],
