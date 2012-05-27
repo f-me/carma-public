@@ -348,6 +348,7 @@
         var inp = $this.parent().prev() // FIXME: less ad-hoc search required
         var dat = inp.data('typeahead') || initDictionary.call(inp, e)
         dat && dat.toggle()
+        inp.focus();
         e.preventDefault()
     })
   })
