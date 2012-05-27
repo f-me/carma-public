@@ -155,6 +155,7 @@
         {
             "targets": [
                 "car_vin",
+                "car_seller",
                 "car_make",
                 "car_model",
                 "car_plateNum",
