@@ -485,7 +485,8 @@
                  class="pane-span focusable"
                  name="{{ name }}"
                  {{# readonly }}readonly{{/ readonly }}
-                 data-bind="value: {{ name }}" />
+                 data-bind="value: {{ name }},
+                            valueUpdate: 'afterkeydown'" />
         </div>
       </div>
     </script>
