@@ -241,7 +241,7 @@ function setupCaseMain(viewName, args) {
     // FIXME: User's name and creation date are better to be assigned by
     // the server.
     _.extend(args, {callTaker: global.user.meta.realName,
-                    callDate: (new Date).toString ("dd.MM.yyyy HH:mm:ss")});
+                    callDate: (new Date).toString ("dd.MM.yyyy HH:mm")});
 
 
     // Render list of required fields in right pane

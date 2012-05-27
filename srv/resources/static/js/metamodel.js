@@ -131,7 +131,7 @@ function backbonizeModel(model, modelName) {
                     if (type.match(/^date/) && json[k].match(/\d+/)) {
                         var format = type == "date"
                                    ? "dd.MM.yyyy"
-                                   : "dd.MM.yyyy HH:mm:ss";
+                                   : "dd.MM.yyyy HH:mm";
                         json[k] = new Date(json[k] * 1000).toString(format);
                     }
                     else if (type == "checkbox") {
@@ -154,7 +154,7 @@ function backbonizeModel(model, modelName) {
                 {
                     var date = Date.parseExact(
                             json[k],
-                            ["dd.MM.yyyy HH:mm:ss", "dd.MM.yyyy"]);
+                            ["dd.MM.yyyy HH:mm", "dd.MM.yyyy"]);
                     if (date) {
                         var timestamp = Math.round(date.getTime() / 1000);
                         json[k] = String(timestamp);
