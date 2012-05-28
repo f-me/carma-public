@@ -753,6 +753,70 @@
     },
     "CarModels": {
         "entries": {
+            "alfa": [
+                {
+                    "label": "147"
+                },
+                {
+                    "label": "166"
+                }
+            ],
+            "audi": [
+                {
+                    "label": "A2"
+                },
+                {
+                    "label": "A3"
+                },
+                {
+                    "label": "A4"
+                },
+                {
+                    "label": "A6"
+                },
+                {
+                    "label": "A8"
+                }
+            ],
+             "bentley": [
+                {
+                    "label": "Arnage"
+                },
+                {
+                    "label": "Continental Flying Spur"
+                }
+            ],
+            "chrysler": [
+                {
+                    "label": "300"
+                },
+                {
+                    "label": "Sebring"
+                }
+            ],
+            "citroen": [
+                {
+                    "label": "C1"
+                },
+                {
+                    "label": "C2"
+                },
+                {
+                    "label": "C3"
+                },
+                {
+                    "label": "C4"
+                },
+                {
+                    "label": "C5"
+                },
+                {
+                    "label": "C6"
+                },
+                {
+                    "label": "Xsara"
+                }
+            ],
             "chevy": [
                 {
                     "label": "Alero"
@@ -818,6 +882,9 @@
                     "label": "HHR"
                 },
                 {
+                    "label": "Impala SS"
+                },
+                {
                     "label": "Ipanema GL"
                 },
                 {
@@ -830,7 +897,10 @@
                     "label": "Lacetti"
                 },
                 {
-                    "label": "lmpala"
+                    "label": "Lanos"
+                },
+                {
+                    "label": "Impala"
                 },
                 {
                     "label": "Lumina"
@@ -866,6 +936,9 @@
                     "label": "Sierra"
                 },
                 {
+                    "label": "Spark"
+                },
+                {
                     "label": "SS"
                 },
                 {
@@ -896,7 +969,288 @@
                     "label": "Venture"
                 },
                 {
+                    "label": "Viva"
+                },
+                {
                     "label": "Zafira"
+                }
+            ],
+            "daewoo": [
+                {
+                    "label": "Chairman"
+                },
+                {
+                    "label": "Espero"
+                },
+                {
+                    "label": "Lanos"
+                },
+                {
+                    "label": "Matiz"
+                },
+                {
+                    "label": "Nexia"
+                },
+                {
+                    "label": "Tosca"
+                }
+            ],
+            "dodge": [
+                {
+                    "label": "Caliber"
+                }
+            ],
+            "fiat": [
+                {
+                    "label": "Albea"
+                },
+                {
+                    "label": "Bravo"
+                },
+                {
+                    "label": "Panda"
+                },
+                {
+                    "label": "Punto"
+                }
+            ],
+            "holden": [
+                {
+                    "label": "Epica"
+                },
+                {
+                    "label": "Statesman"
+                },
+                {
+                    "label": "Caprice"
+                }
+            ],
+            "honda": [
+                {
+                    "label": "Accord"
+                },
+                {
+                    "label": "Civic"
+                },
+                {
+                    "label": "Fit"
+                },
+                {
+                    "label": "Jazz"
+                },
+                {
+                    "label": "Legend"
+                },
+                {
+                    "label": "Logo"
+                }
+            ],
+            "hyundai": [
+                {
+                    "label": "i10"
+                },
+                {
+                    "label": "i20"
+                },
+                {
+                    "label": "i30"
+                },
+                {
+                    "label": "Centennial"
+                },
+                {
+                    "label": "Equus"
+                },
+                {
+                    "label": "Chery QQ (Sweet)"
+                },
+                {
+                    "label": "Accent"
+                },
+                {
+                    "label": "Atos"
+                },
+                {
+                    "label": "Elantra"
+                },
+                {
+                    "label": "Genesis"
+                },
+                {
+                    "label": "Getz"
+                },
+                {
+                    "label": "Santa Fe new"
+                },
+                {
+                    "label": "Sonata"
+                },
+                {
+                    "label": "XG"
+                }
+            ],
+            "jaguar": [
+                {
+                    "label": "S-Type"
+                },
+                {
+                    "label": "XF"
+                },
+                {
+                    "label": "XJ"
+                },
+                {
+                    "label": "X-Type"
+                }
+            ],
+            "kia": [
+                {
+                    "label": "Cee'd"
+                },
+                {
+                    "label": "Cerato"
+                },
+                {
+                    "label": "Magentis"
+                },
+                {
+                    "label": "Opirus"
+                },
+                {
+                    "label": "Picanto"
+                },
+                {
+                    "label": "Rio"
+                },
+                {
+                    "label": "Spectra"
+                }
+            ],
+            "lancia": [
+                {
+                    "label": "Thesis"
+                }
+            ],
+            "land": [
+                {
+                    "label": "Defender"
+                },
+                {
+                    "label": "Discavery"
+                },
+                {
+                    "label": "Freelander"
+                },
+                {
+                    "label": "Range Rover"
+                },
+                {
+                    "label": "Range Rover Evoque"
+                },
+                {
+                    "label": "Range Rover Sport"
+                }
+            ],
+            "lexus": [
+                {
+                    "label": "GS"
+                },
+                {
+                    "label": "IS"
+                },
+                {
+                    "label": "LS"
+                }
+            ],
+            "maserati": [
+                {
+                    "label": "Quattroporte"
+                }
+            ],
+            "mazda": [
+                {
+                    "label": "2"
+                },
+                {
+                    "label": "3"
+                },
+                {
+                    "label": "6"
+                },
+                {
+                    "label": "Demio"
+                }
+            ],
+            "mercedes": [
+                {
+                    "label": "A-Class"
+                },
+                {
+                    "label": "B-Class"
+                },
+                {
+                    "label": "C-Class"
+                },
+                {
+                    "label": "E-Class"
+                },
+                {
+                    "label": "S-Class"
+                },
+                {
+                    "label": "CLS-Class"
+                }
+            ],
+            "mitsubishi": [
+                {
+                    "label": "Colt"
+                },
+                {
+                    "label": "Galant"
+                },
+                {
+                    "label": "Lancer"
+                },
+                {
+                    "label": "Proudia"
+                }
+            ],
+            "nissan": [
+                {
+                    "label": "Almera"
+                },
+                {
+                    "label": "Cedric"
+                },
+                {
+                    "label": "Cima"
+                },
+                {
+                    "label": "Laurel"
+                },
+                {
+                    "label": "Maxima"
+                },
+                {
+                    "label": "Micra"
+                },
+                {
+                    "label": "Murano"
+                },
+                {
+                    "label": "Note"
+                },
+                {
+                    "label": "President"
+                },
+                {
+                    "label": "Primera"
+                },
+                {
+                    "label": "Teana"
+                },
+                {
+                    "label": "Tiida"
                 }
             ],
             "opel": [
@@ -1049,6 +1403,15 @@
                     "label": "Eos"
                 },
                 {
+                    "label": "Lupo"
+                },
+                {
+                    "label": "Pointer"
+                },
+                {
+                    "label": "Transporter"
+                },
+                {
                     "label": "Scirocco"
                 }
             ],
@@ -1117,6 +1480,9 @@
                     "label": "Faction"
                 },
                 {
+                    "label": "Fairlane"
+                },
+                {
                     "label": "Falcon GT"
                 },
                 {
@@ -1141,6 +1507,9 @@
                     "label": "Ka"
                 },
                 {
+                    "label": "LTD"
+                },
+                {
                     "label": "Maverick"
                 },
                 {
@@ -1163,6 +1532,9 @@
                 },
                 {
                     "label": "Scorpio"
+                },
+                {
+                    "label": "Sierra"
                 },
                 {
                     "label": "Shelby GR"
@@ -1240,6 +1612,174 @@
                 },
                 {
                     "label": "Z8"
+                }
+            ],
+            "peugeot": [
+                {
+                    "label": "107"
+                },
+                {
+                    "label": "206"
+                },
+                {
+                    "label": "207"
+                },
+                {
+                    "label": "307"
+                },
+                {
+                    "label": "308"
+                },
+                {
+                    "label": "407"
+                },
+                {
+                    "label": "607"
+                }
+            ],
+            "renault": [
+                {
+                    "label": "Clio"
+                },
+                {
+                    "label": "Laguna"
+                },
+                {
+                    "label": "Logan"
+                },
+                {
+                    "label": "Megane"
+                },
+                {
+                    "label": "Symbol"
+                },
+                {
+                    "label": "Twingo"
+                },
+                {
+                    "label": "Vel Satis"
+                }
+            ],
+            "rolls": [
+                {
+                    "label": "Phantom"
+                }
+            ],
+            "rover": [
+                {
+                    "label": "111"
+                },
+                {
+                    "label": "75"
+                }
+            ],
+            "saab": [
+                {
+                    "label": "9-3"
+                }
+            ],
+            "seat": [
+                {
+                    "label": "Leon"
+                }
+            ],
+            "skoda": [
+                {
+                    "label": "Fabia"
+                },
+                {
+                    "label": "Octavia"
+                },
+                {
+                    "label": "Superb"
+                }
+            ],
+            "smart": [
+                {
+                    "label": "Fortwo"
+                }
+            ],
+            "subaru": [
+                {
+                    "label": "Impreza"
+                },
+                {
+                    "label": "Legacy"
+                }
+            ],
+            "suzuki": [
+                {
+                    "label": "Ignis"
+                },
+                {
+                    "label": "Liana"
+                },
+                {
+                    "label": "Swift"
+                },
+                {
+                    "label": "SX4"
+                },
+                {
+                    "label": "Vitara"
+                }
+            ],
+            "toyota": [
+                {
+                    "label": "Allion"
+                },
+                {
+                    "label": "Auris"
+                },
+                {
+                    "label": "Avensis"
+                },
+                {
+                    "label": "Aygo"
+                },
+                {
+                    "label": " Camry (с 2001 г.)"
+                },
+                {
+                    "label": "Corolla"
+                },
+                {
+                    "label": "Ist"
+                },
+                {
+                    "label": "Mark II"
+                },
+                {
+                    "label": "Chaser"
+                },
+                {
+                    "label": "Cresta"
+                },
+                {
+                    "label": "RAV-4"
+                },
+                {
+                    "label": "Vitz"
+                },
+                {
+                    "label": "Yaris"
+                }
+            ],
+            "volvo": [
+                {
+                    "label": "C30"
+                },
+                {
+                    "label": "S40"
+                },
+                {
+                    "label": "S60"
+                },
+                {
+                    "label": "S80"
+                },
+                {
+                    "label": "V50"
                 }
             ],
             "hum": [
