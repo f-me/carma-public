@@ -600,6 +600,154 @@
             {
                 "value": "bmw",
                 "label": "BMW"
+            },
+            {
+                "value": "alfa",
+                "label": "Alfa Romeo"
+            },
+            {
+                "value": "audi",
+                "label": "Audi"
+            },
+            {
+                "value": "bentley",
+                "label": "Bentley"
+            },
+            {
+                "value": "chrysler",
+                "label": "Chrysler"
+            },
+            {
+                "value": "citroen",
+                "label": "Citroen"
+            },
+            {
+                "value": "daewoo",
+                "label": "Daewoo"
+            },
+            {
+                "value": "dodge",
+                "label": "Dodge"
+            },
+            {
+                "value": "fiat",
+                "label": "Fiat"
+            },
+            {
+                "value": "holden",
+                "label": "Holden"
+            },
+            {
+                "value": "honda",
+                "label": "Honda"
+            },
+            {
+                "value": "hyundai",
+                "label": "Hyundai"
+            },
+            {
+                "value": "jaguar",
+                "label": "Jaguar"
+            },
+            {
+                "value": "jeep",
+                "label": "Jeep"
+            },
+            {
+                "value": "kia",
+                "label": "Kia"
+            },
+            {
+                "value": "lancia",
+                "label": "Lancia"
+            },
+            {
+                "value": "land",
+                "label": "Land Rover"
+            },
+            {
+                "value": "lexus",
+                "label": "Lexus"
+            },
+            {
+                "value": "maserati",
+                "label": "Maserati"
+            },
+            {
+                "value": "maybach",
+                "label": "Maybach"
+            },
+            {
+                "value": "mazda",
+                "label": "Mazda"
+            },
+            {
+                "value": "mercedes",
+                "label": "Mercedes-Benz"
+            },
+            {
+                "value": "mini",
+                "label": "MINI"
+            },
+            {
+                "value": "mitsubishi",
+                "label": "Mitsubishi"
+            },
+            {
+                "value": "nissan",
+                "label": "Nissan"
+            },
+            {
+                "value": "peugeot",
+                "label": "Peugeot"
+            },
+            {
+                "value": "renault",
+                "label": "Renault"
+            },    
+            {
+                "value": "rolls",
+                "label": "Rolls-Royce"
+            },
+            {
+                "value": "rover",
+                "label": "Rover"
+            },
+            {
+                "value": "saab",
+                "label": "Saab"
+            },
+            {
+                "value": "samand",
+                "label": "Samand"
+            },
+            {
+                "value": "seat",
+                "label": "Seat"
+            },
+            {
+                "value": "skoda",
+                "label": "Skoda"
+            },
+            {
+                "value": "smart",
+                "label": "Smart"
+            },
+            {
+                "value": "subaru",
+                "label": "Subaru"
+            },
+            {
+                "value": "suzuki",
+                "label": "Suzuki"
+            },
+            {
+                "value": "toyota",
+                "label": "Toyota"
+            },
+            {
+                "value": "volvo",
+                "label": "Volvo"
             }
         ]
     },
