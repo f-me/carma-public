@@ -755,223 +755,293 @@
         "entries": {
             "alfa": [
                 {
+                    "value": "alfa147",
                     "label": "147"
                 },
                 {
+                    "value": "alfa166",
                     "label": "166"
                 }
             ],
             "audi": [
                 {
+                    "value": "a2",
                     "label": "A2"
                 },
                 {
+                    "value": "a3",
                     "label": "A3"
                 },
                 {
+                    "value": "a4",
                     "label": "A4"
                 },
                 {
+                    "value": "a6",
                     "label": "A6"
                 },
                 {
+                    "value": "a8",
                     "label": "A8"
                 }
             ],
              "bentley": [
                 {
+                    "value": "arnage",
                     "label": "Arnage"
                 },
                 {
+                    "value": "continental",
                     "label": "Continental Flying Spur"
                 }
             ],
             "chrysler": [
                 {
+                    "value": "chrysler300",
                     "label": "300"
                 },
                 {
+                    "value": "sebring",
                     "label": "Sebring"
                 }
             ],
             "citroen": [
                 {
+                    "value": "c1",
                     "label": "C1"
                 },
                 {
+                    "value": "c2",
                     "label": "C2"
                 },
                 {
+                    "value": "c3",
                     "label": "C3"
                 },
                 {
+                    "value": "c4",
                     "label": "C4"
                 },
                 {
+                    "value": "c5",
                     "label": "C5"
                 },
                 {
+                    "value": "c6",
                     "label": "C6"
                 },
                 {
+                    "value": "xsara",
                     "label": "Xsara"
                 }
             ],
             "chevy": [
                 {
+                    "value": "alero",
                     "label": "Alero"
                 },
                 {
+                    "value": "astraCh",
                     "label": "Astra"
                 },
                 {
+                    "value": "aveo",
                     "label": "Aveo"
                 },
                 {
+                    "value": "beretta",
                     "label": "Beretta"
                 },
                 {
+                    "value": "blazer",
                     "label": "Blazer"
                 },
                 {
+                    "value": "camaro",
                     "label": "Camaro"
                 },
                 {
+                    "value": "capriceCh",
                     "label": "Caprice"
                 },
                 {
+                    "value": "captiva",
                     "label": "Captiva"
                 },
                 {
+                    "value": "cavalier",
                     "label": "Cavalier"
                 },
                 {
+                    "value": "celta",
                     "label": "Celta"
                 },
                 {
+                    "value": "cheyenne",
                     "label": "Cheyenne"
                 },
                 {
+                    "value": "cobaltCh",
                     "label": "Cobalt"
                 },
                 {
+                    "value": "colorado",
                     "label": "Colorado"
                 },
                 {
+                    "value": "corsaCh",
                     "label": "Corsa"
                 },
                 {
+                    "value": "wind",
                     "label": "Corsa Wind"
                 },
                 {
+                    "value": "corsica",
                     "label": "Corsica"
                 },
                 {
+                    "value": "corvette",
                     "label": "Corvette"
                 },
                 {
+                    "value": "epicaCh",
                     "label": "Epica"
                 },
                 {
+                    "value": "evanda",
                     "label": "Evanda"
                 },
                 {
+                    "value": "express",
                     "label": "Express"
                 },
                 {
+                    "value": "hhr",
                     "label": "HHR"
                 },
                 {
+                    "value": "impalaSS",
                     "label": "Impala SS"
                 },
                 {
+                    "value": "ipanemaGL",
                     "label": "Ipanema GL"
                 },
                 {
+                    "value": "jimmy",
                     "label": "Jimmy"
                 },
                 {
+                    "value": "kadett",
                     "label": "Kadett"
                 },
                 {
+                    "value": "lacetti",
                     "label": "Lacetti"
                 },
                 {
+                    "value": "lanosCh",
                     "label": "Lanos"
                 },
                 {
+                    "value": "impala",
                     "label": "Impala"
                 },
                 {
+                    "value": "lumina",
                     "label": "Lumina"
                 },
                 {
+                    "value": "malibu",
                     "label": "Malibu"
                 },
                 {
+                    "value": "matizCh",
                     "label": "Matiz"
                 },
                 {
+                    "value": "metro",
                     "label": "Metro"
                 },
                 {
+                    "value": "monteCarlo",
                     "label": "Monte Carlo"
                 },
                 {
+                    "value": "monza",
                     "label": "Monza"
                 },
                 {
+                    "value": "niva",
                     "label": "NIVA"
                 },
                 {
+                    "value": "omegaCh",
                     "label": "Omega"
                 },
                 {
+                    "value": "prism",
                     "label": "Prism"
                 },
                 {
+                    "value": "s10",
                     "label": "S-10"
                 },
                 {
+                    "value": "sierraCh",
                     "label": "Sierra"
                 },
                 {
+                    "value": "spark",
                     "label": "Spark"
                 },
                 {
+                    "value": "ss",
                     "label": "SS"
                 },
                 {
+                    "value": "suburban",
                     "label": "Suburban"
                 },
                 {
+                    "value": "tacuma",
                     "label": "Tacuma"
                 },
                 {
+                    "value": "tahoe",
                     "label": "Tahoe"
                 },
                 {
+                    "value": "trackerConv",
                     "label": "Tracker Convertible"
                 },
                 {
+                    "value": "trackerHard",
                     "label": "Tracker Hardtop"
                 },
                 {
+                    "value": "trailBlazer",
                     "label": "Trail Blazer"
                 },
                 {
+                    "value": "Trans",
                     "label": "Trans Sport"
                 },
                 {
+                    "value": "vectraCh",
                     "label": "Vectra"
                 },
                 {
+                    "value": "venture",
                     "label": "Venture"
                 },
                 {
+                    "value": "viva",
                     "label": "Viva"
                 },
                 {
+                    "value": "zafiraCh",
                     "label": "Zafira"
                 }
             ],
