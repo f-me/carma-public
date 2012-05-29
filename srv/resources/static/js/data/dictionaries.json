@@ -1364,12 +1364,15 @@
             ],
             "vw": [
                 {
+                    "value": "caddy",
                     "label": "Caddy"
                 },
                 {
+                    "value": "amarok",
                     "label": "Amarok"
                 },
                 {
+                    "value": "crafter",
                     "label": "Crafter"
                 },
                 {
@@ -1409,6 +1412,7 @@
                     "label": "Pointer"
                 },
                 {
+                    "value": "transporter",
                     "label": "Transporter"
                 },
                 {
