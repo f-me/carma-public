@@ -84,45 +84,6 @@ this.mainSetup = (localScreens, localRouter, localDictionaries, hooks, user) ->
 this.el  = (id) -> document.getElementById(id)
 this.$el = (id) -> $(el(id))
 
-# Render top-level screen template (static)
-#
-# args object is passed further to all view setup functions.
-renderScreen = (screenName, args) ->
-  forgetScreen()
-  screen = global.screens[screenName]
-  global.activeScreen = screen
-
-  # Highlight the new item in navbar
-  $("li.active").removeClass("active")
-  $el(screenName + "-screen-nav").addClass("active")
-
-  tpl = $el(screen.template).html()
-  global.topElement.html(tpl)
-  # Call setup functions for all views, assuming they will set
-  # their viewsWare
-  for viewName of screen.views
-    do (viewName) ->
-      setup = screen.views[viewName]
-      if not _.isNull(setup) then setup(viewName, args)
-
-# Remove all content of view and clean up wares.
-#
-# To setup view back again, call
-# screen.views[viewName]($el(viewName), args);
-forgetView = (viewName) ->
-  vW = global.viewsWare[viewName]
-  # View may have not setup any knockVM (static views like search)
-  if not _.isUndefined(vW.knockVM) then kb.vmRelease(vW.knockVM)
-  vW = {}
-  $el(viewName).empty()
-
-# Clean up all views on screen and everything.
-forgetScreen = ->
-  forgetView(viewName) for viewName of global.viewsWare
-  global.topElement.empty()
-  global.viewsWare = {}
-  global.activeScreen = null
-
 # Backbone-Knockout bridge
 #
 # Sets additional observables in Knockout model:
@@ -154,9 +115,11 @@ knockBackbone = (instance, viewName) ->
                       read: (k) ->
                         knockBackbone(i) for i in (instance.get(f) or [])
                       write: (v) ->
-                        instance.set(f, (i._kb_vm_model for i in v))
+                        instance.set(f, (i.model() for i in v))
                      ,
                       knockVM
+
+  knockVM["model"] = kb.observable instance, { key: 'k', read: -> instance }
 
   knockVM["modelName"] = kb.observable instance,
                                        key: "model"
@@ -235,6 +198,7 @@ knockBackbone = (instance, viewName) ->
 # argument.
 this.modelSetup = (modelName) ->
   return (elName, args, options) ->
+    model = this.models[modelName]
     mkBackboneModel = backbonizeModel(this.models, modelName)
     instance = new mkBackboneModel(args)
     knockVM  = knockBackbone(instance, elName)
@@ -247,6 +211,29 @@ this.modelSetup = (modelName) ->
     #
     # TODO First POST is still broken somewhy.
     window.setTimeout((-> instance.setupServerSync()), 1000)
+    content = renderFields(model, elName)
+    console.info content
+    # depViews = renderModel(elName)
+    depViews = {}
+
+    for gName, cont of content
+      # Main form & permissions
+      if gName == "_"
+        console.info 'main: ', elName, cont
+        $el(elName).html(cont)
+        $el(options.permEl).html renderPermissions(model, elName)
+      else
+        view = mkSubviewName(gName, 0, instance.name, instance.cid)
+        depViews[gName]   = [view]
+
+        # Subforms for groups
+        $el(options.groupsForest).append(
+            renderDep { refField: gName, refN: 0, refView  : view },
+                      getTemplates("group-template"))
+        # render actual view content in the '.content'
+        # children of view block, so we can add
+        # custom elements to decorate view
+        $el(view).find('.content').html(content[gName])
 
     # Bookkeeping
     global.viewsWare[elName] =
@@ -254,7 +241,7 @@ this.modelSetup = (modelName) ->
       bbInstance      : instance
       modelName       : modelName
       knockVM         : knockVM
-      # bbReferences    : bbReferences
+      depViews        : depViews
 
     applyHooks(global.hooks.model, ['*', modelName], elName)
     return global.viewsWare[elName]
@@ -271,9 +258,6 @@ bindKnockoutMany = (knockVM, groupViews) ->
 
   # # Bind extra views if provided
   # ko.applyBindings(knockVM, el(options.slotsee[s])) for s of options.slotsee
-
-# Model method HTTP access point wrt redson location
-this.modelMethod = (modelName, method) -> "/_/#{modelName}/#{method}"
 
 # Save instance loaded in view
 saveInstance = (viewName) -> global.viewsWare[viewName].bbInstance.save()
@@ -292,7 +276,7 @@ restoreInstance = (viewName, id) ->
 # Remove instance currently loaded in view from storage and render
 # that view from scratch (if possible)
 removeInstance = (viewName) ->
-  global.viewsWare[viewName].knockVM._kb_vm.model.destroy()
+  global.viewsWare[viewName].knockVM.model.destroy()
   forgetView(viewName)
   setup = global.activeScreen.views[viewName]
   setup(viewName, {}) if not _.isNull(setup)

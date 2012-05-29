@@ -39,14 +39,14 @@ localRouter = Backbone.Router.extend
     "back"        : "back"
     "call"        : "call"
 
-    loadCase    : (id) -> renderScreen("case", {"id": id})
-    newCase     : ()   -> renderScreen("case", {"id": null})
-    search      : ()   -> renderScreen("search")
-    back        : ()   -> renderScreen("back")
-    vin         : ()   -> renderScreen("vin")
-    newPartner  : ()   -> renderScreen("partner", {"id": null})
-    loadPartner : (id) -> renderScreen("partner", {"id": id})
-    call        : ()   -> renderScreen("call")
+  loadCase    : (id) -> renderScreen("case", {"id": id})
+  newCase     :      -> renderScreen("case", {"id": null})
+  search      :      -> renderScreen("search")
+  back        :      -> renderScreen("back")
+  vin         :      -> renderScreen("vin")
+  newPartner  :      -> renderScreen("partner", {"id": null})
+  loadPartner : (id) -> renderScreen("partner", {"id": id})
+  call        :      -> renderScreen("call")
 
 hooks = ->
   model:
@@ -62,7 +62,11 @@ $( ->
       $.getJSON("/s/js/data/conditions.json", (checks) ->
         loadAllModels                         (models) ->
           mainSetup(localScreens(), localRouter, dicts, hooks(), user)
+          console.info 'main setup'
           global.checks = checks))))
+
+# Model method HTTP access point wrt redson location
+this.modelMethod = (modelName, method) -> "/_/#{modelName}/#{method}"
 
 loadAllModels = (rest) ->
   storedModels = this.models  = {}
@@ -155,8 +159,9 @@ maybeRenderChecks = (e, instance) ->
   name = instance.get(e.data('depends'))
   if _.has(global.checks, name)
     h = {}
-    h[instance.name] = 'model' : instance.name
-                       'id'    : instance.id
+    h[instance.name] =
+      'model' : instance.name
+      'id'    : instance.id
 
     $.ajax
       'dataType' : 'json'
@@ -209,8 +214,10 @@ setupCaseMain = (viewName, args) ->
   # Default values
   # FIXME: User's name and creation date are better to be assigned by
   # the server.
-  _.extend(args, callTaker: global.user.meta.realName
-                   callDate : (new Date).toString ("dd.MM.yyyy HH:mm:ss"))
+  console.info 'realname: ', global.user.meta.realName
+  _.extend args,
+           callTaker: global.user.meta.realName
+           callDate : (new Date).toString ("dd.MM.yyyy HH:mm:ss")
 
 
   # Render list of required fields in right pane
@@ -230,14 +237,14 @@ setupCaseMain = (viewName, args) ->
 
     ko.applyBindings(global.viewsWare[viewName].knockVM,
                      el("empty-fields"))
-
+  console.info 'seting up case'
   modelSetup("case")(viewName, args,
                      permEl       : "case-permissions"
                      focusClass   : "focusable"
                      slotsee      : ["case-number"]
                      groupsForest : "center"
                      fetchCb      : fetchCb
-                     refs         :refs
+                     refs         : refs
                      )
 
   # Render service picker
@@ -264,13 +271,14 @@ showComplex = (parentView, fieldName) ->
 
 # Top-level wrapper for storeService
 addService = (name) ->
-  addReference(global.viewsWare["case-form"].bbInstance,
-               field     : "services"
-               modelName : name
-               forest    : "case-service-references"
-              ,
-               "center"
-               )
+  console.info 'addService'
+  # addReference(global.viewsWare["case-form"].bbInstance,
+  #              field     : "services"
+  #              modelName : name
+  #              forest    : "case-service-references"
+  #             ,
+  #              "center"
+  #              )
 
 setupCallForm = (viewName, args) ->
   modelSetup("call") viewName, null,

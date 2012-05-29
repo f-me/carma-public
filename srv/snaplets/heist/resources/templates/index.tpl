@@ -51,6 +51,7 @@
     <script src="/s/js/search.js" />
     <script src="/s/js/main.js" />
     <script src="/s/js/local.js" />
+    <script src="/s/js/viewsware.js" />
   </head>
   <body>
     <!-- Navigation bar on top -->
