@@ -1,0 +1,14 @@
+{
+  "mini": {
+		  "car_class": "b"
+      },
+	"jeep": {
+		  "car_class": "e"
+      },
+	"maybach": {
+		  "car_class": "f"
+      },
+	"samand": {
+		  "car_class": "d"
+      }
+}	
