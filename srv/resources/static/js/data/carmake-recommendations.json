@@ -1,14 +1,14 @@
 {
-  "mini": {
-		  "car_class": "b"
-      },
+	"mini": {
+		"car_class": "b"
+        },
 	"jeep": {
-		  "car_class": "e"
-      },
+		"car_class": "e"
+        },
 	"maybach": {
-		  "car_class": "f"
-      },
+		"car_class": "f"
+        },
 	"samand": {
-		  "car_class": "d"
-      }
-}	
+		"car_class": "d"
+        }
+}		
