@@ -6,12 +6,12 @@
     "canUpdate": true,
     "canDelete": true,
     "defaults": {
-      "status" : "creating",
-      "payType" : "ruamc",
-      "warrantyCase" : "0",
-      "overcosted": "0",
-      "falseCall": "none"
-    },    
+        "status": "creating",
+        "payType": "ruamc",
+        "warrantyCase": "0",
+        "overcosted": "0",
+        "falseCall": "none"
+    },
     "applications": [
         {
             "targets": [
@@ -36,7 +36,7 @@
             "meta": {
                 "label": "Партнёр"
             }
-        },        
+        },
         {
             "targets": [
                 "payment_payment"
@@ -46,19 +46,60 @@
             }
         },
         {
-            "targets": ["taxiFrom_address","taxiFrom_coords","taxiFrom_city","taxiFrom_comment"],
-            "canRead": ["front", "back", "head", "parguy"],
-            "canWrite": ["front", "back", "head"]
-        },     
+            "targets": [
+                "taxiFrom_address",
+                "taxiFrom_coords",
+                "taxiFrom_city",
+                "taxiFrom_comment"
+            ],
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ]
+        },
         {
-            "targets": ["taxiTo_address","taxiTo_coords","taxiTo_city","taxiTo_comment"],
-            "canRead": ["front", "back", "head", "parguy"],
-            "canWrite": ["front", "back", "head"]
-        },       	
+            "targets": [
+                "taxiTo_address",
+                "taxiTo_coords",
+                "taxiTo_city",
+                "taxiTo_comment"
+            ],
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ]
+        },
         {
-            "targets": ["taxiContractor_partner","taxiContractor_partnerTable","taxiContractor_coords"],
-            "canRead": ["front", "back", "head", "parguy"],
-            "canWrite": ["front", "back", "head"]
+            "targets": [
+                "taxiContractor_partner",
+                "taxiContractor_partnerTable",
+                "taxiContractor_coords"
+            ],
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ]
         },
         {
             "targets": [
@@ -89,12 +130,12 @@
     ],
     "fields": [
         {
-          "name": "parentId",
-          "canRead": true,
-          "canWrite": true,
-          "meta": {
-            "invisible": true
-          }
+            "name": "parentId",
+            "canRead": true,
+            "canWrite": true,
+            "meta": {
+                "invisible": true
+            }
         },
         {
             "name": "status",
@@ -183,7 +224,8 @@
                 "head"
             ],
             "meta": {
-                "label": "Ожидаемая стоимость"
+                "label": "Ожидаемая стоимость",
+                "infoText": "expactedValue"
             }
         },
         {
@@ -238,7 +280,8 @@
             ],
             "type": "datetime",
             "meta": {
-                "label": "Ожидаемое время начала оказания услуги"
+                "label": "Ожидаемое время начала оказания услуги",
+                "infoText": "datetime"
             }
         },
         {
@@ -253,7 +296,8 @@
             ],
             "type": "datetime",
             "meta": {
-                "label": "Фактическое  время начала оказания услуги"
+                "label": "Фактическое  время начала оказания услуги",
+                "infoText": "datetime"
             }
         },
         {
@@ -268,7 +312,8 @@
             ],
             "type": "datetime",
             "meta": {
-                "label": "Ожидаемое время окончания оказания услуги"
+                "label": "Ожидаемое время окончания оказания услуги",
+                "infoText": "datetime"
             }
         },
         {
@@ -283,7 +328,8 @@
             ],
             "type": "datetime",
             "meta": {
-                "label": "Фактическое время окончания оказания услуги"
+                "label": "Фактическое время окончания оказания услуги",
+                "infoText": "datetime"
             }
         },
         {
@@ -298,7 +344,8 @@
             ],
             "type": "datetime",
             "meta": {
-                "label": "Ожидаемое время финансового закрытия услуги"
+                "label": "Ожидаемое время финансового закрытия услуги",
+                "infoText": "datetime"
             }
         },
         {
@@ -313,46 +360,74 @@
             ],
             "type": "datetime",
             "meta": {
-                "label": "Фактическое время финансового закрытия услуги"
+                "label": "Фактическое время финансового закрытия услуги",
+                "infoText": "datetime"
             }
         },
         {
-          "name": "expectedDealerInfo",
-          "canRead": ["back", "head"],
-          "canWrite": ["back", "head"],
-          "type": "datetime",
-          "meta": {
-            "label": "Ожидаемое время получения информации от дилера"
-          }
+            "name": "expectedDealerInfo",
+            "canRead": [
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
+            "type": "datetime",
+            "meta": {
+                "label": "Ожидаемое время получения информации от дилера",
+                "infoText": "datetime"
+            }
         },
         {
-          "name": "factDealerInfo",
-          "canRead": ["back", "head"],
-          "canWrite": ["back", "head"],
-          "type": "datetime",
-          "meta": {
-        	"label": "Фактическое время получения информации от дилера"
-          }
-        },    
-        {
-          "name": "expectedServiceClosure",
-          "canRead": ["back", "head"],
-          "canWrite": ["back", "head"],
-          "type": "datetime",
-          "meta": {
-        	"label": "Ожидаемое время закрытия услуги"
-          }
+            "name": "factDealerInfo",
+            "canRead": [
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
+            "type": "datetime",
+            "meta": {
+                "label": "Фактическое время получения информации от дилера",
+                "infoText": "datetime"
+            }
         },
         {
-          "name": "factServiceClosure",
-          "canRead": ["back", "head"],
-          "canWrite": ["back", "head"],
-          "type": "datetime",
-          "meta": {
-        	"label": "Фактическое время закрытия услуги"
-          }
+            "name": "expectedServiceClosure",
+            "canRead": [
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
+            "type": "datetime",
+            "meta": {
+                "label": "Ожидаемое время закрытия услуги",
+                "infoText": "datetime"
+            }
         },
-
+        {
+            "name": "factServiceClosure",
+            "canRead": [
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
+            "type": "datetime",
+            "meta": {
+                "label": "Фактическое время закрытия услуги",
+                "infoText": "datetime"
+            }
+        },
         {
             "name": "repairEndDate",
             "canRead": [
@@ -429,7 +504,7 @@
         },
         {
             "name": "taxiFrom",
-             "canRead": [
+            "canRead": [
                 "front",
                 "back",
                 "head",
@@ -447,7 +522,7 @@
         },
         {
             "name": "taxiTo",
-             "canRead": [
+            "canRead": [
                 "front",
                 "back",
                 "head",
@@ -465,7 +540,7 @@
         },
         {
             "name": "taxiContractor",
-             "canRead": [
+            "canRead": [
                 "front",
                 "back",
                 "head",
