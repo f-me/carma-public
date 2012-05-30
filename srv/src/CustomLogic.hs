@@ -1,6 +1,6 @@
 
 module CustomLogic
-  (mkWazzupHook
+  (mkFieldHook
   ) where
 
 import Control.Applicative
@@ -16,17 +16,18 @@ import Snap.Snaplet.Redson.Snapless.Metamodel
 
 
 
-mkWazzupHook :: FilePath -> IO (Either String (HookMap b))
-mkWazzupHook fName = do
+mkFieldHook :: ModelName -> FieldName -> FilePath
+            -> IO (Either String (HookMap b))
+mkFieldHook model field fName = do
   res <- parseMap fName
-  return $ (M.singleton "case" . M.singleton "comment" . (:[]) . mkH)
+  return $ (M.singleton model . M.singleton field . (:[]) . mkH)
         <$> res
 
 
 mkH :: Map FieldValue Commit -> Hook b
-mkH m = \v commit -> case M.lookup v m of
-  Nothing -> return commit
-  Just xx -> return $ M.union xx commit
+mkH m = \v commit ->
+  return $ maybe commit (`M.union` commit)
+         $ M.lookup v m
 
 
 -- FIXME: copypaste from Actions/Parse.hs

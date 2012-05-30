@@ -156,15 +156,27 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   wazzupRecommendationsFile <- liftIO $ lookupDefault
             "resources/static/js/data/wazzup-recommendations.json"
             cfg "wazzup-recommendations"
-  wazzupHook <- liftIO $ chkErr <$> mkWazzupHook wazzupRecommendationsFile
+  wazzupHook <- liftIO $ chkErr
+                      <$> mkFieldHook "case" "comment" wazzupRecommendationsFile
 
+  carModelRecommendationsFile <- liftIO $ lookupDefault
+            "resources/static/js/data/car-recommendations.json"
+            cfg "car-model-recommendations"
+  carModelHook <- liftIO $ chkErr
+                        <$> mkFieldHook "case" "car_model" carModelRecommendationsFile
+
+  carMakeRecommendationsFile <- liftIO $ lookupDefault
+            "resources/static/js/data/carmake-recommendations.json"
+            cfg "car-model-recommendations"
+  carMakeHook <- liftIO $ chkErr
+                       <$> mkFieldHook "case" "car_make" carMakeRecommendationsFile
   -- Create redson hooks from actions
   actionsFile <- liftIO $
             lookupDefault "resources/static/js/data/actions.json"
                           cfg "actions"
   actionsHooks <- liftIO $ chkErr <$> compileActions actionsFile 
 
-  let redsonHooks = joinHooks [actionsHooks, wazzupHook]
+  let redsonHooks = joinHooks [actionsHooks, wazzupHook, carMakeHook, carModelHook]
   r <- nestSnaplet "_" redson $ redsonInitWithHooks auth redsonHooks
 
   sesKey <- liftIO $
