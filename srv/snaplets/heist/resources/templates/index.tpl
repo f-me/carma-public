@@ -640,7 +640,8 @@
                    data-bind="value: {{ name }},
                               valueUpdate: 'afterkeydown'"/>
             <span class="add-on"><i class="icon icon-search"
-                                    onclick="doPick('{{ meta.picker }}');"/></span>
+               onclick="doPick('{{ meta.picker }}', '{{ name }}', event.srcElement);"/>
+            </span>
           </div>
         </div>
       </div>

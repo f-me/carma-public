@@ -40,6 +40,7 @@ import Snap.Snaplet.Vin
 
 import CustomLogic
 import Actions.Compile
+import qualified Nominatim
 
 ------------------------------------------------------------------------------
 -- | Application snaplet state type: Redson, Heist.
@@ -114,6 +115,15 @@ serveUserCake = ifTop $ do
 
 
 ------------------------------------------------------------------------------
+-- | Geodecode mockup.
+geodecode :: AppHandler ()
+geodecode = ifTop $ do
+  addr <- fromMaybe "Moscow" <$> getParam "addr"
+  resp <- liftIO $ Nominatim.geodecode addr
+  modifyResponse $ setContentType "application/json"
+  writeLBS resp
+
+------------------------------------------------------------------------------
 -- | The application's routes.
 routes :: [(ByteString, AppHandler ())]
 routes = [ ("/", method GET $ authOrLogin indexPage)
@@ -121,6 +131,7 @@ routes = [ ("/", method GET $ authOrLogin indexPage)
          , ("/login/", method POST doLogin)
          , ("/logout/", with auth $ logout >> redirectToLogin)
          , ("/_whoami/", method GET $ authOrLogin serveUserCake)
+         , ("/nominatim", method GET $ geodecode)
          , ("/s/", serveDirectory "resources/static")
          ]
 
