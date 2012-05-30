@@ -213,7 +213,8 @@
                 "car_plateNum"
             ],
             "meta": {
-                "mainToo": true
+                "mainToo": true,
+                "infoText": "platenum"
             }
         }
     ],
@@ -342,7 +343,8 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "Diagnosis4",
-                "label": "Рекомендация"
+                "label": "Рекомендация",
+                "infoText": "recomendation"
             }
         },
         {
