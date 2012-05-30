@@ -112,7 +112,8 @@
             "canRead": ["front", "back", "head"],
             "canWrite": ["front", "back", "head"],
             "meta": {
-                "label": "Ожидаемая стоимость"
+                "label": "Ожидаемая стоимость",
+                "infoText": "expactedValue"
             }
         },	
         {
@@ -144,7 +145,8 @@
             "canWrite": ["front", "back", "head"],			
             "type": "datetime",
             "meta": {
-                "label": "Ожидаемое время начала оказания услуги"
+                "label": "Ожидаемое время начала оказания услуги",
+                "infoText": "datetime"
             }
         },
         {
@@ -153,7 +155,8 @@
             "canWrite": ["back", "head"],
             "type": "datetime",
             "meta": {
-                "label": "Фактическое  время начала оказания услуги"
+                "label": "Фактическое  время начала оказания услуги",
+                "infoText": "datetime"
             }
         },
         {
@@ -162,7 +165,8 @@
             "canWrite": ["back", "head"],
             "type": "datetime",
             "meta": {
-                "label": "Ожидаемое время окончания оказания услуги"
+                "label": "Ожидаемое время окончания оказания услуги",
+                "infoText": "datetime"
             }
         },
         {
@@ -171,7 +175,8 @@
             "canWrite": ["back", "head"],
             "type": "datetime",
             "meta": {
-                "label": "Фактическое время окончания оказания услуги"
+                "label": "Фактическое время окончания оказания услуги",
+                "infoText": "datetime"
             }
         },
         {
@@ -180,7 +185,8 @@
             "canWrite": ["back", "head"],
             "type": "datetime",
             "meta": {
-                "label": "Ожидаемое время финансового закрытия услуги"
+                "label": "Ожидаемое время финансового закрытия услуги",
+                "infoText": "datetime"
             }
         },
         {
@@ -189,7 +195,8 @@
             "canWrite": ["back", "head"],
             "type": "datetime",
             "meta": {
-                "label": "Фактическое время финансового закрытия услуги"
+                "label": "Фактическое время финансового закрытия услуги",
+                "infoText": "datetime"
             }
         },
 	{
@@ -198,7 +205,8 @@
 	  "canWrite": ["back", "head"],
 	  "type": "datetime",
 	  "meta": {
-		"label": "Ожидаемое время получения информации от дилера"
+		"label": "Ожидаемое время получения информации от дилера",
+                "infoText": "datetime"
 	  }
 	},
 	{
@@ -207,7 +215,8 @@
 	  "canWrite": ["back", "head"],
 	  "type": "datetime",
 	  "meta": {
-		"label": "Фактическое время получения информации от дилера"
+		"label": "Фактическое время получения информации от дилера",
+                "infoText": "datetime"
 	  }
 	},    
 	{
@@ -216,7 +225,8 @@
 	  "canWrite": ["back", "head"],
 	  "type": "datetime",
 	  "meta": {
-		"label": "Ожидаемое время закрытия услуги"
+		"label": "Ожидаемое время закрытия услуги",
+                "infoText": "datetime"
 	  }
 	},
 	{
@@ -225,7 +235,8 @@
 	  "canWrite": ["back", "head"],
 	  "type": "datetime",
 	  "meta": {
-		"label": "Фактическое время закрытия услуги"
+		"label": "Фактическое время закрытия услуги",
+                "infoText": "datetime"
 	  }
 	},
         {
