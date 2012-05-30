@@ -540,6 +540,10 @@
             {
                 "value": "e",
                 "label": "E"
+            },
+            {
+                "value": "f",
+                "label": "F"
             }
         ]
     },
