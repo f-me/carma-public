@@ -61,8 +61,7 @@ $( ->
     $.getJSON("/_whoami/",                    (user)   ->
       $.getJSON("/s/js/data/conditions.json", (checks) ->
         loadAllModels                         (models) ->
-          mainSetup(localScreens(), localRouter, dicts, hooks(), user)
-          console.info 'main setup'
+          mainSetup(localScreens(), localRouter, dicts, hooks(), user, models)
           global.checks = checks))))
 
 # Model method HTTP access point wrt redson location
@@ -77,7 +76,7 @@ loadAllModels = (rest) ->
           (model) ->
             storedModels[m.name] = model
             # run rest code when all models are fetched
-            rest(models) if _.keys(storedModels).length == models.length
+            rest(storedModels) if _.keys(storedModels).length == models.length
 
 dictionaryKbHook = (instance, knockVM) ->
   for n of instance.dictionaryFields
@@ -200,6 +199,15 @@ focusField = (name) ->
   e.scrollIntoView()
   e.focus()
 
+this.showComplex = (parentView, fieldName) ->
+    depViewName = global.viewsWare[parentView].depViews[fieldName][0]
+    view = $el(depViewName)
+
+    return if view.is(':visible')
+    $(".complex-field").hide();
+
+    view.show(-> _.each(view.find(".osMap"), initOSM))
+
 # Case view (renders to #left, #center and #right as well)
 setupCaseMain = (viewName, args) ->
   refs =
@@ -214,7 +222,6 @@ setupCaseMain = (viewName, args) ->
   # Default values
   # FIXME: User's name and creation date are better to be assigned by
   # the server.
-  console.info 'realname: ', global.user.meta.realName
   _.extend args,
            callTaker: global.user.meta.realName
            callDate : (new Date).toString ("dd.MM.yyyy HH:mm:ss")
@@ -237,7 +244,7 @@ setupCaseMain = (viewName, args) ->
 
     ko.applyBindings(global.viewsWare[viewName].knockVM,
                      el("empty-fields"))
-  console.info 'seting up case'
+
   modelSetup("case")(viewName, args,
                      permEl       : "case-permissions"
                      focusClass   : "focusable"

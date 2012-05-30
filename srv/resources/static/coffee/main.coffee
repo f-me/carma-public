@@ -20,7 +20,8 @@
 #
 # user object is stored in global hash and contains data about
 # current user.
-this.mainSetup = (localScreens, localRouter, localDictionaries, hooks, user) ->
+this.mainSetup = (localScreens, localRouter, localDictionaries,
+      hooks, user, models) ->
   Screens = localScreens
 
   dictLabelCache = {}
@@ -60,6 +61,7 @@ this.mainSetup = (localScreens, localRouter, localDictionaries, hooks, user) ->
       dictValueCache: dictValueCache
       hooks: hooks
       user: user
+      models: models
       activeScreen: null
       # viewWare is for bookkeeping of views in current screen.
       #
@@ -198,7 +200,7 @@ knockBackbone = (instance, viewName) ->
 # argument.
 this.modelSetup = (modelName) ->
   return (elName, args, options) ->
-    model = this.models[modelName]
+    model = global.models[modelName]
     mkBackboneModel = backbonizeModel(this.models, modelName)
     instance = new mkBackboneModel(args)
     knockVM  = knockBackbone(instance, elName)
@@ -211,29 +213,37 @@ this.modelSetup = (modelName) ->
     #
     # TODO First POST is still broken somewhy.
     window.setTimeout((-> instance.setupServerSync()), 1000)
-    content = renderFields(model, elName)
-    console.info content
+    # content = renderFields(model, elName)
     # depViews = renderModel(elName)
     depViews = {}
 
-    for gName, cont of content
-      # Main form & permissions
-      if gName == "_"
-        console.info 'main: ', elName, cont
-        $el(elName).html(cont)
-        $el(options.permEl).html renderPermissions(model, elName)
-      else
-        view = mkSubviewName(gName, 0, instance.name, instance.cid)
-        depViews[gName]   = [view]
+    # for gName, cont of content
+    #   # Main form & permissions
+    #   if gName == "_"
+    #     $el(elName).html(cont)
+    #     $el(options.permEl).html renderPermissions(model, elName)
+    #   else
+    #     view = mkSubviewName(gName, 0, instance.name, instance.cid)
+    #     depViews[gName]   = [view]
 
-        # Subforms for groups
-        $el(options.groupsForest).append(
-            renderDep { refField: gName, refN: 0, refView  : view },
-                      getTemplates("group-template"))
-        # render actual view content in the '.content'
-        # children of view block, so we can add
-        # custom elements to decorate view
-        $el(view).find('.content').html(content[gName])
+    #     # Subforms for groups
+    #     $el(options.groupsForest).append(
+    #         renderDep { refField: gName, refN: 0, refView  : view },
+    #                   getTemplates("group-template"))
+    #     # render actual view content in the '.content'
+    #     # children of view block, so we can add
+    #     # custom elements to decorate view
+    #     $el(view).find('.content').html(content[gName])
+
+    depViews = renderKnockVm(elName, knockVM, options)
+
+    # Bind the model to Knockout UI
+    ko.applyBindings(knockVM, el(elName))
+    # Bind group subforms (note that refs are bound
+    # separately)
+    bindDepViews(knockVM, depViews)
+    # Bind extra views if provided
+    ko.applyBindings knockVM, el(v) for k, v of options.slotsee
 
     # Bookkeeping
     global.viewsWare[elName] =
@@ -246,18 +256,12 @@ this.modelSetup = (modelName) ->
     applyHooks(global.hooks.model, ['*', modelName], elName)
     return global.viewsWare[elName]
 
-bindKnockout = (knockVM, elName) -> ko.applyBindings(knockVM, el(elName))
-  # Bind the model to Knockout UI
-  # ko.applyBindings(knockVM, el(elName))
-
-  # Bind group subforms (note that refs are bound
-  # separately)
-bindKnockoutMany = (knockVM, groupViews) ->
-  ko.applyBindings(knockVM, el(groupViews[s])) for s of groupViews
-  # ko.applyBindings(knockVM, el(groupViews[s])) for s of groupViews
-
-  # # Bind extra views if provided
-  # ko.applyBindings(knockVM, el(options.slotsee[s])) for s of options.slotsee
+bindDepViews = (knockVM, depViews) ->
+  for k, v of depViews
+    if _.isArray(v)
+      ko.applyBindings(knockVM, el(s)) for s of v
+    else
+      ko.applyBindings(knockVM, el(v))
 
 # Save instance loaded in view
 saveInstance = (viewName) -> global.viewsWare[viewName].bbInstance.save()
