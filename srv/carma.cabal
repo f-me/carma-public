@@ -20,18 +20,8 @@ Executable carma
 
   Other-modules:
     Application,
-    CustomLogic,
     Nominatim,
-    Actions.Compile
-    Actions.Eval
-    Actions.Parse
-    Actions.Types
-    Snap.Snaplet.AvayaAES,
-    Snap.Snaplet.Candibober,
-    Snap.Snaplet.Candibober.Date,
-    Snap.Snaplet.Candibober.Number,
-    Snap.Snaplet.Candibober.String,
-    Snap.Snaplet.Candibober.Types
+    Snap.Snaplet.AvayaAES
 
   Build-depends:
     aeson                       == 0.6.*,
@@ -47,7 +37,6 @@ Executable carma
     snap                        == 0.8.*,
     snap-core                   == 0.8.*,
     snap-server                 == 0.8.*,
-    snaplet-redson              >= 0.1.1 && < 0.2,
     snaplet-redis               == 0.1.*,
     text                        >= 0.11 && < 0.12,
     time                        >= 1.1 && < 1.5,
@@ -57,8 +46,7 @@ Executable carma
     hedis                       == 0.4.1,
     utf8-string,
     network                     == 2.3.*,
-    HTTP                        == 4000.2.*,
-    snaplet-redis               == 0.1.0.*
+    HTTP                        == 4000.2.*
 
   Extensions:
     OverloadedStrings,
@@ -74,10 +62,5 @@ Executable carma
     -- warnings allows quicker workflow.
     ghc-options: -threaded -w
   else
-    if impl(ghc >= 6.12.0)
       ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -O2
-                   -fno-warn-orphans -fno-warn-unused-do-bind
-    else
-      ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -O2
-                   -fno-warn-orphans
 

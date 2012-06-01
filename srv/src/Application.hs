@@ -23,7 +23,6 @@ import Data.Maybe
 import Data.ByteString (ByteString)
 import Data.Configurator
 import Data.Lens.Template
-import Data.Time.Clock
 
 import Snap.Core
 import Snap.Snaplet
@@ -34,24 +33,17 @@ import Snap.Snaplet.Session
 import Snap.Snaplet.Session.Backends.CookieSession
 import Snap.Util.FileServe
 
-import Snap.Snaplet.Candibober
-import Snap.Snaplet.Redson
 import Snap.Snaplet.Vin
 
-import CustomLogic
-import Actions.Compile
 import qualified Nominatim
 
 ------------------------------------------------------------------------------
 -- | Application snaplet state type: Redson, Heist.
 data App = App
-    { _candibober :: Snaplet Candibober
-    , _heist :: Snaplet (Heist App)
-    , _redson :: Snaplet (Redson App)
+    { _heist :: Snaplet (Heist App)
     , _session :: Snaplet SessionManager
     , _auth :: Snaplet (AuthManager App)
     , _vin :: Snaplet Vin
-    , _startTime :: UTCTime
     }
 
 type AppHandler = Handler App App
@@ -99,8 +91,8 @@ doLogin = ifTop $ do
   r <- maybe False (const True) <$> getParam "remember"
   res <- with auth $ loginByUsername l (ClearText p) r
   case res of
-    Left err -> redirectToLogin
-    Right user -> redirect "/"
+    Left _err -> redirectToLogin
+    Right _user -> redirect "/"
 
 
 ------------------------------------------------------------------------------
@@ -145,39 +137,9 @@ sessionTimeout = Nothing
 appInit :: SnapletInit App App
 appInit = makeSnaplet "app" "Forms application" Nothing $ do
   cfg <- getSnapletUserConfig
-  c <- nestSnaplet "candibober" candibober candiboberInit
 
   h <- nestSnaplet "heist" heist $ heistInit "resources/templates"
   addAuthSplices auth
-
-  -- FIXME: `IO (Either a b)` is a kinda duplication of error handling in pure
-  -- code and in IO. Seems that plain IO and `throw/catch` is completely enough.
-  let chkErr = either error id
-  wazzupRecommendationsFile <- liftIO $ lookupDefault
-            "resources/static/js/data/wazzup-recommendations.json"
-            cfg "wazzup-recommendations"
-  wazzupHook <- liftIO $ chkErr
-                      <$> mkFieldHook "case" "comment" wazzupRecommendationsFile
-
-  carModelRecommendationsFile <- liftIO $ lookupDefault
-            "resources/static/js/data/car-recommendations.json"
-            cfg "car-model-recommendations"
-  carModelHook <- liftIO $ chkErr
-                        <$> mkFieldHook "case" "car_model" carModelRecommendationsFile
-
-  carMakeRecommendationsFile <- liftIO $ lookupDefault
-            "resources/static/js/data/carmake-recommendations.json"
-            cfg "car-model-recommendations"
-  carMakeHook <- liftIO $ chkErr
-                       <$> mkFieldHook "case" "car_make" carMakeRecommendationsFile
-  -- Create redson hooks from actions
-  actionsFile <- liftIO $
-            lookupDefault "resources/static/js/data/actions.json"
-                          cfg "actions"
-  actionsHooks <- liftIO $ chkErr <$> compileActions actionsFile 
-
-  let redsonHooks = joinHooks [actionsHooks, wazzupHook, carMakeHook, carModelHook]
-  r <- nestSnaplet "_" redson $ redsonInitWithHooks auth redsonHooks
 
   sesKey <- liftIO $
             lookupDefault "resources/private/client_session_key.aes"
@@ -201,8 +163,6 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
                                session authDb
   v <- nestSnaplet "vin" vin vinInit
 
-  sTime <- liftIO getCurrentTime
-
   addRoutes routes
 
-  return $ App c h r s a v sTime
+  return $ App h s a v
