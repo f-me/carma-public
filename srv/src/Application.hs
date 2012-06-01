@@ -28,6 +28,7 @@ import Data.Time.Clock
 import Snap.Core
 import Snap.Snaplet
 import Snap.Snaplet.Auth hiding (session)
+import Snap.Snaplet.AvayaAES
 import Snap.Snaplet.Auth.Backends.JsonFile
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Session
@@ -47,6 +48,7 @@ data App = App
     { _candibober :: Snaplet Candibober
     , _heist :: Snaplet (Heist App)
     , _redson :: Snaplet (Redson App)
+    , _avaya :: Snaplet (Avayaplet App)
     , _session :: Snaplet SessionManager
     , _auth :: Snaplet (AuthManager App)
     , _vin :: Snaplet Vin
@@ -156,6 +158,8 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   let redsonHooks = joinHooks [actionsHooks, wazzupHook]
   r <- nestSnaplet "_" redson $ redsonInitWithHooks auth redsonHooks
 
+  av <- nestSnaplet "avaya" avaya $ avayaAESInit auth
+
   sesKey <- liftIO $
             lookupDefault "resources/private/client_session_key.aes"
                           cfg "session-key"
@@ -182,4 +186,4 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   addRoutes routes
 
-  return $ App c h r s a v sTime
+  return $ App c h r av s a v sTime

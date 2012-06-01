@@ -41,6 +41,7 @@ Executable carma
     containers                  == 0.4.*,
     bytestring                  >= 0.9.1 && < 0.10,
     data-lens-template          >= 2.1 && < 2.2,
+    data-lens                   >= 2.10 && < 2.11,
     heist                       == 0.8.*,
     old-locale                  == 1.0.*,
     snap                        == 0.8.*,
@@ -55,7 +56,9 @@ Executable carma
     vin-parser                  == 0.1.*,
     hedis                       == 0.4.1,
     utf8-string,
-    snaplet-redis               == 0.1.0.*
+    snaplet-redis               == 0.1.0.*,
+    unordered-containers,
+    network
 
   Extensions:
     OverloadedStrings,
