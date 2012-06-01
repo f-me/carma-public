@@ -272,8 +272,10 @@
     "address": [
         {
             "name": "address",
+            "type": "picker",
             "meta": {
                 "label": "Адрес",
+                "picker": "nominatimPicker",
                 "infoText": "address"
             }
         },

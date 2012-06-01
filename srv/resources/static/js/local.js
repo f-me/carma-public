@@ -334,6 +334,7 @@ function initOSM(el) {
           ),
         16 // Zoom level
       );
+      $(el).data("osmap", osmap);
 }
 
 // Dispatch on some picker type
@@ -341,7 +342,7 @@ function initOSM(el) {
 // Available picks:
 //
 // - vinFiller
-function doPick(pickType, args) {
+function doPick(pickType, args, el) {
     var pickers = {
         
         // Get car_vin field from case and try to fill some of its fields
@@ -381,14 +382,31 @@ function doPick(pickType, args) {
                    });
         },
 
-        callPlease: function(modelName) {
+        callPlease: function(fieldName) {
             var bb = global.viewsWare["case-form"].bbInstance;
-            var phoneNumber = bb.get(modelName);
+            var phoneNumber = bb.get(fieldName);
             alert ("Calling " + phoneNumber);
+        },
+        nominatimPicker: function(fieldName, el) {
+            var bb = global.viewsWare["case-form"].bbInstance;
+            var addr = bb.get(fieldName);
+            $.getJSON("/nominatim?addr=" + addr, function(res) {
+                if (res.length > 0) {
+                  var form = $(el).parents("form");
+                  var osmap = form.find(".olMap");
+                  osmap.data().osmap.setCenter(
+                    new OpenLayers.LonLat(res[0].lon, res[0].lat)
+                      .transform(
+                        new OpenLayers.Projection("EPSG:4326"),
+                        new OpenLayers.Projection("EPSG:900913")
+                      ), 16 // Zoom level
+                  );
+                }
+            });
         }
     };
 
-    pickers[pickType](args);
+    pickers[pickType](args, el);
 }
 
 function setupVinForm(viewName, args) {

@@ -41,6 +41,7 @@ import Snap.Snaplet.Vin
 
 import CustomLogic
 import Actions.Compile
+import qualified Nominatim
 
 ------------------------------------------------------------------------------
 -- | Application snaplet state type: Redson, Heist.
@@ -116,6 +117,15 @@ serveUserCake = ifTop $ do
 
 
 ------------------------------------------------------------------------------
+-- | Geodecode mockup.
+geodecode :: AppHandler ()
+geodecode = ifTop $ do
+  addr <- fromMaybe "Moscow" <$> getParam "addr"
+  resp <- liftIO $ Nominatim.geodecode addr
+  modifyResponse $ setContentType "application/json"
+  writeLBS resp
+
+------------------------------------------------------------------------------
 -- | The application's routes.
 routes :: [(ByteString, AppHandler ())]
 routes = [ ("/", method GET $ authOrLogin indexPage)
@@ -123,6 +133,7 @@ routes = [ ("/", method GET $ authOrLogin indexPage)
          , ("/login/", method POST doLogin)
          , ("/logout/", with auth $ logout >> redirectToLogin)
          , ("/_whoami/", method GET $ authOrLogin serveUserCake)
+         , ("/nominatim", method GET $ geodecode)
          , ("/s/", serveDirectory "resources/static")
          ]
 
@@ -147,15 +158,27 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   wazzupRecommendationsFile <- liftIO $ lookupDefault
             "resources/static/js/data/wazzup-recommendations.json"
             cfg "wazzup-recommendations"
-  wazzupHook <- liftIO $ chkErr <$> mkWazzupHook wazzupRecommendationsFile
+  wazzupHook <- liftIO $ chkErr
+                      <$> mkFieldHook "case" "comment" wazzupRecommendationsFile
 
+  carModelRecommendationsFile <- liftIO $ lookupDefault
+            "resources/static/js/data/car-recommendations.json"
+            cfg "car-model-recommendations"
+  carModelHook <- liftIO $ chkErr
+                        <$> mkFieldHook "case" "car_model" carModelRecommendationsFile
+
+  carMakeRecommendationsFile <- liftIO $ lookupDefault
+            "resources/static/js/data/carmake-recommendations.json"
+            cfg "car-model-recommendations"
+  carMakeHook <- liftIO $ chkErr
+                       <$> mkFieldHook "case" "car_make" carMakeRecommendationsFile
   -- Create redson hooks from actions
   actionsFile <- liftIO $
             lookupDefault "resources/static/js/data/actions.json"
                           cfg "actions"
   actionsHooks <- liftIO $ chkErr <$> compileActions actionsFile 
 
-  let redsonHooks = joinHooks [actionsHooks, wazzupHook]
+  let redsonHooks = joinHooks [actionsHooks, wazzupHook, carMakeHook, carModelHook]
   r <- nestSnaplet "_" redson $ redsonInitWithHooks auth redsonHooks
 
   av <- nestSnaplet "avaya" avaya $ avayaAESInit auth

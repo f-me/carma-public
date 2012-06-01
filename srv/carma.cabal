@@ -21,6 +21,7 @@ Executable carma
   Other-modules:
     Application,
     CustomLogic,
+    Nominatim,
     Actions.Compile
     Actions.Eval
     Actions.Parse
@@ -55,10 +56,11 @@ Executable carma
     transformers                >= 0.2 && < 0.4,
     vin-parser                  == 0.1.*,
     hedis                       == 0.4.1,
-    utf8-string,
     snaplet-redis               == 0.1.0.*,
     unordered-containers,
-    network
+    utf8-string,
+    network                     == 2.3.*,
+    HTTP                        == 4000.2.*,
 
   Extensions:
     OverloadedStrings,

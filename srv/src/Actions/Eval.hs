@@ -41,7 +41,7 @@ type EvalStateMonad b a = StateT EvalContext (Handler b (Redson b)) a
 newObject :: ModelName -> Handler b (Redson b) InstanceId
 newObject modelName
   = runRedisDB database
-    (CRUD.create modelName M.empty M.empty)
+    (CRUD.create modelName M.empty [])
   >>= either (error . show) (return . CRUD.instanceKey modelName) 
 
 
