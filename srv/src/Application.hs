@@ -1,9 +1,8 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 {-|
 
-Top-level application with AuthManager, Redson and utility handlers.
+Top-level application with AuthManager and utility handlers.
 Serve index page, check user login.
 
 -}
@@ -33,8 +32,9 @@ import Snap.Snaplet.Session
 import Snap.Snaplet.Session.Backends.CookieSession
 import Snap.Util.FileServe
 
+------------------------------------------------------------------------------
 import Snap.Snaplet.Vin
-
+import Snaplet.SiteConfig
 import qualified Nominatim
 
 ------------------------------------------------------------------------------
@@ -43,6 +43,7 @@ data App = App
     { _heist :: Snaplet (Heist App)
     , _session :: Snaplet SessionManager
     , _auth :: Snaplet (AuthManager App)
+    , _siteConfig :: Snaplet (SiteConfig App)
     , _vin :: Snaplet Vin
     }
 
@@ -154,6 +155,8 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
             lookupDefault "resources/private/users.json"
                           cfg "user-db"
 
+  c <- nestSnaplet "cfg" siteConfig $ initSiteConfig auth "resources/site-config"
+
   s <- nestSnaplet "session" session $
        initCookieSessionManager sesKey "_session" sessionTimeout
   a <- nestSnaplet "auth" auth $
@@ -165,4 +168,4 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   addRoutes routes
 
-  return $ App h s a v
+  return $ App h s a c v
