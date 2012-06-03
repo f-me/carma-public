@@ -459,6 +459,21 @@
             }
         },
         {
+            "name": "orderNumber",
+            "canRead": [
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
+            "type": "date",
+            "meta": {
+                "label": "Номер заказ-наряда"
+            }
+        },
+        {
             "name": "falseCall",
             "canRead": [
                 "front",
