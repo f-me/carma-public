@@ -18,34 +18,33 @@ import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Control.Arrow (second)
 import Control.Concurrent
+import Control.Concurrent.STM
 import Control.Concurrent.QSemN
+import Data.Functor
+import Data.Maybe (catMaybes, fromMaybe)
+
+import Data.Enumerator as E hiding (foldM, map, head, length, repeat)
+import Data.CSV.Enumerator as CSV
+import Data.Time.Clock
+import Data.Time.Clock.POSIX
+import Data.Time.Format
+import System.Console.CmdArgs.Implicit
+import System.Locale
 
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.ByteString.UTF8 as BU (fromString, toString)
-
-import Data.Maybe (catMaybes, fromMaybe)
 import qualified Data.Map as M
 
-import Data.Enumerator as E hiding (foldM, map, head, length)
-import Data.CSV.Enumerator as CSV
 import qualified Data.Aeson as Aeson
-
-import Data.Time.Clock
-import Data.Time.Clock.POSIX
-import Data.Time.Format
-
-import System.Console.CmdArgs.Implicit
-import System.Locale
 
 import RedsonTypes
 import RESTLoader
 
-
-
 data Options = Options
     { caseFile :: Maybe FilePath
+    , threadNumber :: Int
     }
     deriving (Show, Data, Typeable)
 
@@ -313,9 +312,7 @@ tryTransformation row transform =
 -- TODO: Split service / program / client references.
 --
 -- This is like 'mapIntoHandle', but for non-CSV output data.
-caseAction :: BrowserSt
-           -> MapRow 
-           -> IO ()
+caseAction :: BrowserSt -> MapRow -> IO ()
 caseAction h r =
     let
       row = filterCaseRow r
@@ -327,51 +324,66 @@ caseAction h r =
                          Just r -> Just (t, r)
                          Nothing -> Nothing
                 ) serviceTransformations
-    in
-      case trs of
-        -- No transformations matched
-        [] -> void $ create h "case" bareCommit
-        _  -> do
-              -- Store all dependant instances
-              commit <- foldM (\c (trans, (depModel, depCommit)) -> do
-                                 Right sid <- create h depModel depCommit
-                                 return $ M.insert 
-                                            (referenceField trans)
-                                            (instanceKey depModel sid)
-                                            c) bareCommit trs
-              void $ create h "case" commit
+    in do
+         case trs of
+           -- No transformations matched
+           [] -> void $ create h "case" bareCommit
+           _  -> do
+                  -- Store all dependant instances
+                  commit <- foldM (\c (trans, (depModel, depCommit)) -> do
+                                    Right sid <- create h depModel depCommit
+                                    return $ M.insert 
+                                              (referenceField trans)
+                                              (instanceKey depModel sid)
+                                              c) bareCommit trs
+                  void $ create h "case" commit
 
-mapP :: Int -> (a -> IO ()) -> [a] -> IO ()
-mapP _ _ [] = return ()
-mapP n f xs =
-    mapMP_ f hs >> mapP n f ts
+mapMP :: Int -> (a -> b -> IO ()) -> [a] -> [b] -> IO ()
+mapMP _ _ _ [] = return ()
+mapMP n f xs ys =
+    mapMP_ (uncurry f) (zip xs hs) >> mapMP n f xs ts
   where
-    (hs, ts) = splitAt n xs
+    (hs, ts) = splitAt n ys
 
+mapMP_ :: (a -> IO b) -> [a] -> IO [b]
 mapMP_ f ys =
     do
-        sem <- newQSemN 0
-        mapM_ (\a -> forkIO $ f a >> signalQSemN sem 1) ys
-        waitQSemN sem (length ys)
+      chan <- newTChanIO
+      sem <- newQSemN 0
+      mapM_ (\a -> forkIO $ 
+                   (f a  >>= (atomically . writeTChan chan)) >> signalQSemN sem 1)
+            ys
+      waitQSemN sem (length ys)
+      atomically $ chan2lst chan
+    where
+      chan2lst :: TChan a -> STM [a]
+      chan2lst chan =
+        do
+          ma <- tryReadTChan chan
+          case ma of
+            Nothing -> return []
+            Just a -> (:) a <$> (chan2lst chan)
 
 main :: IO ()
 main =
     let
-        sample = Options
-                 { caseFile = def 
-                   &= help "Path to CSV case archive file"
-                   &= typFile
-                 }
-                 &= program "hmset-poster"
-                 &= help "hmset-poster -c journal.csv"
+      sample = Options
+               { caseFile = def
+                 &= help "Path to CSV case archive file"
+                 &= typFile
+               , threadNumber = def
+                 &= args
+               }
+               &= program "hmset-poster"
+               &= help "hmset-poster -c journal.csv 10"
     in do
       Options{..} <- cmdArgs sample
+      ss <- mapMP_ (\_ -> login) $ take threadNumber $ repeat ()
       case caseFile of
         Nothing -> error "No file selected"
         Just fname -> do
-            w <- login
             res <- readCSVFile defCSVSettings fname
             case res of
               Left err -> print err
-              Right rows -> mapP 1 (caseAction w) rows
+              Right rows -> mapMP threadNumber caseAction ss rows
 

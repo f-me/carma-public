@@ -60,7 +60,7 @@ Executable carma
     unordered-containers,
     utf8-string,
     network                     == 2.3.*,
-    HTTP                        == 4000.2.*,
+    HTTP                        == 4000.2.*
 
   Extensions:
     OverloadedStrings,
