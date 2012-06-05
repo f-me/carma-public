@@ -18,8 +18,10 @@ import qualified Data.Aeson as A
 import Control.Monad.IO.Class
 import Data.Functor
 import Data.Maybe
+import qualified Data.Map as Map
 
 import Data.ByteString (ByteString)
+import Data.ByteString.Char8 as B
 import Data.Configurator
 import Data.Lens.Template
 
@@ -32,7 +34,11 @@ import Snap.Snaplet.Session
 import Snap.Snaplet.Session.Backends.CookieSession
 import Snap.Util.FileServe
 
+import Database.Redis (defaultConnectInfo,hgetall)
+import Snap.Snaplet.RedisDB
+
 ------------------------------------------------------------------------------
+import qualified Codec.Xlsx.Templater as Xlsx
 import Snap.Snaplet.Vin
 import Snaplet.SiteConfig
 import qualified Nominatim
@@ -44,6 +50,7 @@ data App = App
     , _session :: Snaplet SessionManager
     , _auth :: Snaplet (AuthManager App)
     , _siteConfig :: Snaplet (SiteConfig App)
+    , _redis :: Snaplet RedisDB
     , _vin :: Snaplet Vin
     }
 
@@ -98,7 +105,7 @@ doLogin = ifTop $ do
 
 ------------------------------------------------------------------------------
 -- | Serve user account data back to client.
-serveUserCake :: AuthUser -> Handler App (AuthManager App) ()
+serveUserCake :: AuthUser -> Handler App App ()
 serveUserCake user = ifTop $ do
   modifyResponse $ setContentType "application/json"
   writeLBS $ A.encode user
@@ -115,11 +122,11 @@ geodecode = ifTop $ do
 
 
 withAuth
-  :: (AuthUser -> Handler App (AuthManager App) ())
+  :: (AuthUser -> Handler App App ())
   -> Handler App App ()
 withAuth f
-  = with auth
-  $ currentUser >>= maybe (handleError 401) f
+  = with auth currentUser
+  >>= maybe (handleError 401) f
 
 
 handleError :: MonadSnap m => Int -> m ()
@@ -127,11 +134,25 @@ handleError err = do
     modifyResponse $ setResponseCode err
     getResponse >>= finishWith
 
-db_create curUser = writeLBS "Db_create"
-db_read   curUser = writeLBS ""
-db_update curUser = writeLBS ""
+createHandler curUser = writeLBS "Db_create"
 
-report = writeLBS ""
+readHandler :: AuthUser -> Handler App App ()
+readHandler   curUser = do
+  Just model <- getParam "model"
+  Just objId <- getParam "id"
+  let key = B.concat [model, ":", objId]
+  Right res  <- runRedisDB redis $ fmap Map.fromList <$> hgetall key
+  modifyResponse $ setContentType "application/json"
+  writeLBS $ A.encode res
+
+updateHandler curUser = writeLBS ""
+
+report = do
+  liftIO $ Xlsx.run
+    "resources/report-templates/all-cases.xlsx"
+    "resources/static/all-cases.xlsx"
+    [(Map.empty, Xlsx.TemplateSettings Xlsx.Rows 1, [])]
+  serveFile "resources/static/all-cases.xlsx"
 
 ------------------------------------------------------------------------------
 -- | The application's routes.
@@ -142,11 +163,11 @@ routes = [ ("/",             method GET $ authOrLogin indexPage)
          , ("/logout/",      with auth $ logout >> redirectToLogin)
          , ("/nominatim",    method GET geodecode)
          , ("/s/",           serveDirectory "resources/static")
-         , ("/report",       withAuth $ method POST. const report)
+         , ("/report",       withAuth $ method GET . const report)
          , ("/_whoami/",     withAuth $ method GET . serveUserCake)
-         , ("/_/:model",     withAuth $ method POST. db_create)
-         , ("/_/:model/:id", withAuth $ method GET . db_read)
-         , ("/_/:model/:id", withAuth $ method PUT . db_update)
+         , ("/_/:model",     withAuth $ method POST. createHandler)
+         , ("/_/:model/:id", withAuth $ method GET . readHandler)
+         , ("/_/:model/:id", withAuth $ method PUT . updateHandler)
          ]
 
 
@@ -185,8 +206,10 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        defAuthSettings{ asSiteKey = rmbKey
                       , asRememberPeriod = Just (rmbPer * 24 * 60 * 60)}
                                session authDb
+  r <- nestSnaplet "db" redis $ redisDBInit defaultConnectInfo
+
   v <- nestSnaplet "vin" vin vinInit
 
   addRoutes routes
 
-  return $ App h s a c v
+  return $ App h s a c r v

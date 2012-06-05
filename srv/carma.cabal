@@ -52,7 +52,8 @@ Executable carma
     utf8-string,
     easy-file                   == 0.1.*,
     network                     == 2.3.*,
-    HTTP                        == 4000.2.*
+    HTTP                        == 4000.2.*,
+    xlsx, xlsx-templater
 
   Extensions:
     OverloadedStrings,
