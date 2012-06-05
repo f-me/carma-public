@@ -24,6 +24,10 @@ var localScreens = {
             "back-form": setupBackOffice
         }
     },
+    "reports":
+    {
+        "template": "reports-screen-template"
+    },
     "vin":
     {
         "template": "vin-screen-template",
@@ -60,6 +64,7 @@ var localRouter = Backbone.Router.extend({
         "vin": "vin",
         "partner/:id": "loadPartner",
         "partner": "newPartner",
+        "reports": "reports",
         "back": "back",
         "call": "call"
     },
@@ -74,6 +79,9 @@ var localRouter = Backbone.Router.extend({
 
     search: function () {
         renderScreen("search");
+    },
+    reports: function () {
+        renderScreen("reports");
     },
     back: function () {
         renderScreen("back");
@@ -412,6 +420,11 @@ function doPick(pickType, args, el) {
     pickers[pickType](args, el);
 }
 
+function setupReports(viewName, args) {
+    $el(viewName).html($el("reports-form-template").html());
+    global.viewsWare[viewName] = {};
+}
+
 function setupVinForm(viewName, args) {
     $el(viewName).html($el("vin-form-template").html());
     global.viewsWare[viewName] = {};
@@ -494,6 +507,7 @@ function addNewServiceToPartner(name)
                 );
     var service = global.dictionaries.Services;
 }
+
 
 function doVin() {
     var form = $el("vin-import-form")[0];

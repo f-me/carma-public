@@ -98,11 +98,8 @@ doLogin = ifTop $ do
 
 ------------------------------------------------------------------------------
 -- | Serve user account data back to client.
---
--- Assume that user login is already checked with 'authOrLogin'.
-serveUserCake :: AppHandler ()
-serveUserCake = ifTop $ do
-  Just user <- with auth $ currentUser
+serveUserCake :: AuthUser -> Handler App (AuthManager App) ()
+serveUserCake user = ifTop $ do
   modifyResponse $ setContentType "application/json"
   writeLBS $ A.encode user
 
@@ -116,16 +113,40 @@ geodecode = ifTop $ do
   modifyResponse $ setContentType "application/json"
   writeLBS resp
 
+
+withAuth
+  :: (AuthUser -> Handler App (AuthManager App) ())
+  -> Handler App App ()
+withAuth f
+  = with auth
+  $ currentUser >>= maybe (handleError 401) f
+
+
+handleError :: MonadSnap m => Int -> m ()
+handleError err = do
+    modifyResponse $ setResponseCode err
+    getResponse >>= finishWith
+
+db_create curUser = writeLBS "Db_create"
+db_read   curUser = writeLBS ""
+db_update curUser = writeLBS ""
+
+report = writeLBS ""
+
 ------------------------------------------------------------------------------
 -- | The application's routes.
 routes :: [(ByteString, AppHandler ())]
-routes = [ ("/", method GET $ authOrLogin indexPage)
-         , ("/login/", method GET loginForm)
-         , ("/login/", method POST doLogin)
-         , ("/logout/", with auth $ logout >> redirectToLogin)
-         , ("/_whoami/", method GET $ authOrLogin serveUserCake)
-         , ("/nominatim", method GET $ geodecode)
-         , ("/s/", serveDirectory "resources/static")
+routes = [ ("/",             method GET $ authOrLogin indexPage)
+         , ("/login/",       method GET loginForm)
+         , ("/login/",       method POST doLogin)
+         , ("/logout/",      with auth $ logout >> redirectToLogin)
+         , ("/nominatim",    method GET geodecode)
+         , ("/s/",           serveDirectory "resources/static")
+         , ("/report",       withAuth $ method POST. const report)
+         , ("/_whoami/",     withAuth $ method GET . serveUserCake)
+         , ("/_/:model",     withAuth $ method POST. db_create)
+         , ("/_/:model/:id", withAuth $ method GET . db_read)
+         , ("/_/:model/:id", withAuth $ method PUT . db_update)
          ]
 
 

@@ -85,6 +85,9 @@
                 <li id="partner-screen-nav">
                   <a href="#partner">Редактирование партнёров</a>
                 </li>
+                <li id="reports-screen-nav">
+                  <a href="#reports">Отчёты</a>
+                </li>
               </ul>
             </li>
           </ul>
@@ -266,6 +269,56 @@
           </td></tr>
         </table>
       </center>
+    </script>
+
+    <!-- reports generation screen -->
+    <script type="text/template"
+            id="reports-screen-template"
+            class="screen-template">
+      <div style="width:30%;margin:0 auto;text-align:center;">
+      <fieldset>
+        <legend>Отчёты</legend>
+        <form action="/report">
+          <p>
+            <div class="input-append date"
+                 data-provide="datepicker"
+                 data-autoshow-datepicker="true"
+                 data-date-format="dd.mm.yyyy"
+                 data-date-weekstart="1">
+              <input type="text" class="pane-span focusable" name="from"/>
+              <span class="add-on"><i class="icon icon-calendar" /></span>
+            </div>
+            <div class="input-append date"
+                 data-provide="datepicker"
+                 data-autoshow-datepicker="true"
+                 data-date-format="dd.mm.yyyy"
+                 data-date-weekstart="1">
+              <input type="text" class="pane-span focusable" name="to"/>
+              <span class="add-on"><i class="icon icon-calendar" /></span>
+            </div>
+            <select name="program">
+              <option value="all">Все программы</option>
+              <option value="ford">Ford</option>
+              <option value="fordPlus">Ford+</option>
+              <option value="vwMotor">VW Легковые</option>
+              <option value="vwCommercial">VW Коммерческие</option>
+              <option value="opel">Opel</option>
+              <option value="hummer">Hummer</option>
+              <option value="chevroletNAO">Chevrolet NAO</option>
+              <option value="chevroletKorea">Chevrolet Korea</option>
+              <option value="cadillac">Cadillac</option>
+              <option value="vwRuslan">VW Рус-Лан</option>
+              <option value="chartis">Chartis</option>
+              <option value="vwAvilon">VW Avilon</option>
+              <option value="atlantM">Атлант-М</option>
+              <option value="autocraft">AutoCraft</option>
+              <option value="b2c">B2C</option>
+            </select>
+          </p>
+          <button class="btn btn-success" type="submit">Отчёт</button>
+        </form>
+      </fieldset>
+      </div>
     </script>
 
     <!-- Import VINs screen -->
