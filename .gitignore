@@ -10,3 +10,9 @@ cabal-dev
 
 # logs
 *.log
+
+# js rewritten to coffee script
+srv/resources/static/js/main.js
+srv/resources/static/js/metamodel.js
+srv/resources/static/js/viewsware.js
+srv/resources/static/js/local.js
