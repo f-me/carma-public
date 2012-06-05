@@ -20,7 +20,7 @@
 //
 // user object is stored in global hash and contains data about
 // current user.
-function mainSetup(localScreens, localRouter, localDictionaries, modelHooks, user) {
+function mainSetup(localScreens, localRouter, models, localDictionaries, modelHooks, user) {
     var Screens = localScreens;
 
     var dictLabelCache = {};
@@ -60,6 +60,7 @@ function mainSetup(localScreens, localRouter, localDictionaries, modelHooks, use
         dictLabelCache: dictLabelCache,
         // Maps values to labels
         dictValueCache: dictValueCache,
+        models: models,
         modelHooks: modelHooks,
         user: user,
         activeScreen: null,
@@ -281,130 +282,128 @@ function knockBackbone(instance, viewName) {
 // argument.
 function modelSetup(modelName) {
     return function(elName, args, options) {
-        $.getJSON(modelMethod(modelName, "model"),
-            function(model) {
-                var mkBackboneModel = backbonizeModel(model, modelName);
-                var idHash = {};
+        var model = global.models[modelName];
+        var mkBackboneModel = backbonizeModel(model, modelName);
+        var idHash = {};
 
-                // Backbone and Knockout
-                var instance = new mkBackboneModel(args);
-                var knockVM = knockBackbone(instance, elName);
+        // Backbone and Knockout
+        var instance = new mkBackboneModel(args);
+        var knockVM = knockBackbone(instance, elName);
 
-                // To let parent instance know about views created for
-                // references, we create depViews.
-                var depViews = {};
+        // To let parent instance know about views created for
+        // references, we create depViews.
+        var depViews = {};
 
-                // Wait for first fetch() of parent model and render references
-                //
-                // We must render reference views after the model has
-                // loaded because the number of refs is unknown when
-                // the model has not yet been populated with data.
-                //
-                // Forms for referenced instances are then rendered
-                // with modelSetup which means that viewsWare will be
-                // used for further proper cleanup.
-                var refCb = function(instance) {
-                    // Just once
-                    instance.unbind("change", refCb);
-                    for (rf in options.refs) {
-                        var reference = options.refs[rf];
+        // Wait for first fetch() of parent model and render references
+        //
+        // We must render reference views after the model has
+        // loaded because the number of refs is unknown when
+        // the model has not yet been populated with data.
+        //
+        // Forms for referenced instances are then rendered
+        // with modelSetup which means that viewsWare will be
+        // used for further proper cleanup.
+        var refCb = function(instance) {
+            // Just once
+            instance.unbind("change", refCb);
+            for (rf in options.refs) {
+                var reference = options.refs[rf];
 
-                        depViews[reference.field] = [];
-                        var books = [];
-                        books = setupMultiRef(instance,
-                                              reference.field,
-                                              reference.forest);
+                depViews[reference.field] = [];
+                var books = [];
+                books = setupMultiRef(instance,
+                                      reference.field,
+                                      reference.forest);
 
-                        // Now traverse views that have been generated
-                        // for references and setup their models
-                        for (rn in books) {
-                            var subview = books[rn].refView;
-                            depViews[reference.field] =
-                                depViews[reference.field].concat(subview);
-                            var setup = modelSetup(books[rn].refModelName);
-                            setup(subview, {id: books[rn].refId},
-                                  {permEl: subview + "-perms",
-                                   groupsForest: options.groupsForest,
-                                   slotsee: [subview + "-link"]});
-                        }
-                    }
+                // Now traverse views that have been generated
+                // for references and setup their models
+                for (rn in books) {
+                    var subview = books[rn].refView;
+                    depViews[reference.field] =
+                        depViews[reference.field].concat(subview);
+                    var setup = modelSetup(books[rn].refModelName);
+                    setup(subview, {id: books[rn].refId},
+                          {permEl: subview + "-perms",
+                           groupsForest: options.groupsForest,
+                           slotsee: [subview + "-link"]});
                 }
-                instance.bind("change", refCb);
+            }
+        }
+        instance.bind("change", refCb);
 
-                // External fetch callback
-                if (_.isFunction(options.fetchCb)) {
-                    instance.bind("change", options.fetchCb);
-                }
+        // External fetch callback
+        if (_.isFunction(options.fetchCb)) {
+            instance.bind("change", options.fetchCb);
+        }
 
-                var groupViews = {};
+        var groupViews = {};
 
-                // Render main forms and group field forms
-                var content = renderFields(model, elName);
-                for (gName in content) {
-                    // Main form & permissions
-                    if (gName == "_") {
-                        $el(elName).html(content[gName]);
-                        $el(options.permEl).html(
-                            renderPermissions(model, elName));
-                    }
-                    else
-                    {
-                        var view =
-                            mkSubviewName(gName, 0, instance.name, instance.cid);
-                        depViews[gName] = [view];
-                        groupViews[gName] = view;
-                        // Subforms for groups
-                        $el(options.groupsForest).append(
-                            renderDep({refField: gName,
-                                       refN: 0,
-                                       refView: view},
-                                      getTemplates("group-template")));
-                        // render actual view content in the '.content'
-                        // children of view block, so we can add
-                        // custom elements to decorate view
-                        $el(view).find('.content').html(content[gName]);
-                    }
-                }
+        // Render main forms and group field forms
+        var content = renderFields(model, elName);
+        for (gName in content) {
+            // Main form & permissions
+            if (gName == "_") {
+                $el(elName).html(content[gName]);
+                $el(options.permEl).html(
+                    renderPermissions(model, elName));
+            }
+            else
+            {
+                var view =
+                    mkSubviewName(gName, 0, instance.name, instance.cid);
+                depViews[gName] = [view];
+                groupViews[gName] = view;
+                // Subforms for groups
+                $el(options.groupsForest).append(
+                    renderDep({refField: gName,
+                               refN: 0,
+                               refView: view},
+                              getTemplates("group-template")));
+                // render actual view content in the '.content'
+                // children of view block, so we can add
+                // custom elements to decorate view
+                $el(view).find('.content').html(content[gName]);
+            }
+        }
 
-                // Bind the model to Knockout UI
-                ko.applyBindings(knockVM, el(elName));
-                // Bind group subforms (note that refs are bound
-                // separately)
-                for (s in groupViews) {
-                    ko.applyBindings(knockVM, el(groupViews[s]));
-                }
-                // Bind extra views if provided
-                for (s in options.slotsee) {
-                    ko.applyBindings(knockVM, el(options.slotsee[s]));
-                }
+        // Bind the model to Knockout UI
+        ko.applyBindings(knockVM, el(elName));
+        // Bind group subforms (note that refs are bound
+        // separately)
+        for (s in groupViews) {
+            ko.applyBindings(knockVM, el(groupViews[s]));
+        }
+        // Bind extra views if provided
+        for (s in options.slotsee) {
+            ko.applyBindings(knockVM, el(options.slotsee[s]));
+        }
 
-                // Wait a bit to populate model fields and bind form
-                // elements without PUT-backs to server
-                //
-                // TODO First POST is still broken somewhy.
-                window.setTimeout(function () {
-                    instance.setupServerSync();
-                }, 1000);
+        // Wait a bit to populate model fields and bind form
+        // elements without PUT-backs to server
+        //
+        // TODO First POST is still broken somewhy.
+        window.setTimeout(function () {
+            instance.setupServerSync();
+        }, 1000);
 
-                // Bookkeeping
-                global.viewsWare[elName] = {
-                    "model": model,
-                    "bbInstance": instance,
-                    "modelName": modelName,
-                    "mkBackboneModel": mkBackboneModel,
-                    "knockVM": knockVM,
-                    "depViews": depViews
-                };
+        // Bookkeeping
+        global.viewsWare[elName] = {
+            "model": model,
+            "bbInstance": instance,
+            "modelName": modelName,
+            "mkBackboneModel": mkBackboneModel,
+            "knockVM": knockVM,
+            "depViews": depViews
+        };
 
-                // Run global hooks
-                for (f in global.modelHooks["*"])
-                    global.modelHooks["*"][f](elName);
+        // Run global hooks
+        for (f in global.modelHooks["*"])
+            global.modelHooks["*"][f](elName);
 
-                // Run model-specific hooks
-                if (_.has(global.modelHooks, modelName))
-                    for (f in global.modelHooks[modelName])
-                        global.modelHooks[modelName][f](elName);
-            });
+        // Run model-specific hooks
+        if (_.has(global.modelHooks, modelName))
+            for (f in global.modelHooks[modelName])
+                global.modelHooks[modelName][f](elName);
     }
 }
 

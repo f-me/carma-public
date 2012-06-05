@@ -102,6 +102,8 @@ var localHooks = {
 };
 
 $(function () {
+    $.getJSON("/cfg/models",
+  function(models) {
     $.getJSON("/s/js/data/dictionaries.json",
   function(dicts) {
     $.getJSON("/_whoami/",
@@ -109,8 +111,9 @@ $(function () {
     $.getJSON("/s/js/data/conditions.json",
   function(checks) {
 
-      mainSetup(localScreens, localRouter, dicts, localHooks, user);
+      mainSetup(localScreens, localRouter, models, dicts, localHooks, user);
       global.checks = checks;
+  });
   });
   });
   });
