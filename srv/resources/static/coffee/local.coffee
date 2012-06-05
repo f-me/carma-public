@@ -255,14 +255,12 @@ this.showComplex = (parentView, fieldName) ->
   return if view.is(':visible')
   $(".complex-field").hide()
 
-  view.show -> initOSM for e in view.find(".osMap")
+  view.show -> initOSM e for e in view.find(".osMap")
 
 # Top-level wrapper for storeService
 this.addService = (name) ->
   addReference global.viewsWare["case-form"].knockVM, 'services',
                modelName : name
-
-
 
 setupCallForm = (viewName, args) ->
   modelSetup("call") viewName, null,
