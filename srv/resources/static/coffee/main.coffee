@@ -112,24 +112,19 @@ knockBackbone = (instance, viewName) ->
   for f in instance.referenceFields
     do (f) ->
       knockVM[f + 'Reference'] =
-        kb.observable instance,
-                      key: f
-                      read: (k) ->
-                        knockBackbone(i) for i in (instance.get(f) or [])
-                      write: (v) ->
-                        instance.set(f, (i.model() for i in v))
-                     ,
-                      knockVM
+        ko.computed
+          read: ->
+            knockBackbone(i) for i in (knockVM[f]() or [])
+          write: (v) ->
+            knockVM[f](i.model() for i in v)
 
-  knockVM["model"] = kb.observable instance, { key: 'k', read: -> instance }
-
-  knockVM["modelName"] = kb.observable instance,
-                                       key: "model"
-                                       read: -> instance.model.name
+  knockVM["model"]     = ko.computed { read: -> instance            }
+  knockVM["modelName"] = ko.computed { read: -> instance.model.name }
 
   knockVM["modelTitle"] = kb.observable instance,
                                         key : "title"
                                         read: (k) -> instance.title
+
   knockVM["maybeId"] =
     kb.observable instance,
                   key : "id"
@@ -200,50 +195,11 @@ knockBackbone = (instance, viewName) ->
 # argument.
 this.modelSetup = (modelName) ->
   return (elName, args, options) ->
-    model = global.models[modelName]
-    mkBackboneModel = backbonizeModel(this.models, modelName)
-    instance = new mkBackboneModel(args)
-    knockVM  = knockBackbone(instance, elName)
 
-    # External fetch callback
-    instance.bind("change", options.fetchCb) if _.isFunction(options.fetchCb)
+    [mkBackboneModel, instance, knockVM] =
+      buildModel(modelName, args, options)
 
-    # Wait a bit to populate model fields and bind form
-    # elements without PUT-backs to server
-    #
-    # TODO First POST is still broken somewhy.
-    window.setTimeout((-> instance.setupServerSync()), 1000)
-    # content = renderFields(model, elName)
-    # depViews = renderModel(elName)
-    depViews = {}
-
-    # for gName, cont of content
-    #   # Main form & permissions
-    #   if gName == "_"
-    #     $el(elName).html(cont)
-    #     $el(options.permEl).html renderPermissions(model, elName)
-    #   else
-    #     view = mkSubviewName(gName, 0, instance.name, instance.cid)
-    #     depViews[gName]   = [view]
-
-    #     # Subforms for groups
-    #     $el(options.groupsForest).append(
-    #         renderDep { refField: gName, refN: 0, refView  : view },
-    #                   getTemplates("group-template"))
-    #     # render actual view content in the '.content'
-    #     # children of view block, so we can add
-    #     # custom elements to decorate view
-    #     $el(view).find('.content').html(content[gName])
-
-    depViews = renderKnockVm(elName, knockVM, options)
-
-    # Bind the model to Knockout UI
-    ko.applyBindings(knockVM, el(elName))
-    # Bind group subforms (note that refs are bound
-    # separately)
-    bindDepViews(knockVM, depViews)
-    # Bind extra views if provided
-    ko.applyBindings knockVM, el(v) for k, v of options.slotsee
+    depViews = setupView(elName, knockVM,  options)
 
     # Bookkeeping
     global.viewsWare[elName] =
@@ -254,33 +210,90 @@ this.modelSetup = (modelName) ->
       depViews        : depViews
 
     applyHooks(global.hooks.model, ['*', modelName], elName)
-    return global.viewsWare[elName]
+    return knockVM
+
+this.buildModel = (modelName, args, options) ->
+    mkBackboneModel = backbonizeModel(this.models, modelName)
+    instance = new mkBackboneModel(args)
+    knockVM = knockBackbone(instance)
+
+    # External fetch callback
+    instance.bind("change", options.fetchCb) if _.isFunction(options.fetchCb)
+
+    # Wait a bit to populate model fields and bind form
+    # elements without PUT-backs to server
+    #
+    # TODO First POST is still broken somewhy.
+
+    return [mkBackboneModel, instance, knockVM]
+
+this.buildNewModel = (modelName, args, options, cb) ->
+  [mkBackboneModel, instance, knockVM] =
+    buildModel(modelName, args, options)
+  Backbone.Model.prototype.save.call instance, {},
+    success: (model, resp) ->
+      cb(mkBackboneModel, model, knockVM)
 
 bindDepViews = (knockVM, depViews) ->
   for k, v of depViews
     if _.isArray(v)
-      ko.applyBindings(knockVM, el(s)) for s of v
+      ko.applyBindings(knockVM, el(s)) for s in v
     else
       ko.applyBindings(knockVM, el(v))
 
+setupView = (elName, knockVM,  options) ->
+  tpls = getTemplates("reference-template")
+  depViews = renderKnockVm(elName, knockVM,  options)
+
+  # Bind the model to Knockout UI
+  ko.applyBindings(knockVM, el(elName))
+  # Bind group subforms (note that refs are bound
+  # separately)
+  bindDepViews(knockVM, depViews)
+  # Bind extra views if provided
+  ko.applyBindings knockVM, el(v) for k, v of options.slotsee
+
+  for f in knockVM.model().referenceFields
+    do (f) ->
+      refsForest = "#{knockVM.modelName()}-#{f}-references"
+      knockVM[f + 'Reference'].subscribe (newValue) ->
+        $el(refsForest).empty()
+        for r in newValue
+          refBook = mkRefContainer(r, f, refsForest, tpls)
+          v = setupView refBook.refView, r,
+            permEl: refBook.refView + "-perms"
+            groupsForest: options.groupsForest
+            slotsee: [refBook.refView + "-link"]
+          global.viewsWare[refBook.refView] = {}
+          global.viewsWare[refBook.refView].depViews = v
+
+  return depViews
+
+this.addReference = (knockVM, field, ref) ->
+  field = field + 'Reference' unless /Reference$/.test(field)
+  buildNewModel ref.modelName, ref.args, ref.options or {},
+    (mkBackboneModel, instance, refKVM) ->
+      newVal = knockVM[field]().concat refKVM
+      knockVM[field](newVal)
+
 # Save instance loaded in view
-saveInstance = (viewName) -> global.viewsWare[viewName].bbInstance.save()
+this.saveInstance = (viewName) -> global.viewsWare[viewName].bbInstance.save()
 
 # Load existing model instance
-createInstance = (viewName, id) ->
+this.createInstance = (viewName, id) ->
   saveInstance(viewName)
   forgetView(viewName)
   global.activeScreen.views[viewName](viewName, {})
 
 # Load existing model instance
-restoreInstance = (viewName, id) ->
+this.restoreInstance = (viewName, id) ->
   forgetView(viewName)
   global.activeScreen.views[viewName](viewName, {"id": id})
 
 # Remove instance currently loaded in view from storage and render
 # that view from scratch (if possible)
-removeInstance = (viewName) ->
-  global.viewsWare[viewName].knockVM.model.destroy()
+this.removeInstance = (viewName) ->
+  global.viewsWare[viewName].knockVM.model().destroy()
   forgetView(viewName)
   setup = global.activeScreen.views[viewName]
   setup(viewName, {}) if not _.isNull(setup)

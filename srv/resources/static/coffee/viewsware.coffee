@@ -60,15 +60,22 @@ this.renderKnockVm = (elName, knockVM, options) ->
       # children of view block, so we can add
       # custom elements to decorate view
       $el(view).find('.content').html(content[gName])
-  for i in instance.referenceFields
-    console.info 'rendeing ', i
-    refElName = "#{knockVM.modelName()}-#{i}-references"
-    depViews[i] = for r in knockVM["#{i}Reference"]()
-      containerId = "#{r.modelName()}-form"
-      $el(r).append(containerId)
-      console.info 'cont: ', el(r)
-      renderKnockVm(containerId, r, {})
+  if _.isFunction(options.renderRefCb)
+    options.renderCb(r, subViewN)
   return depViews
+
+this.mkRefContainer = (ref, field, forest, templates)->
+  refBook =
+    refN: 0
+    refModelName: ref.modelName()
+    refId: ref.id()
+    refField: field
+    refClass: mkSubviewClass(field, ref.model().name, ref.model().cid)
+    refView: mkSubviewName(field, 0, ref.model().name, ref.model().cid)
+
+  refView = renderDep(refBook, templates)
+  $el(forest).append(refView)
+  return refBook
 
 # field templates
 

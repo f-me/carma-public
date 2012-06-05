@@ -12,7 +12,7 @@ localScreens = ->
   "back":
     "template": "back-screen-template"
     "views":
-      "back-form": "setupBackOffice"
+      "back-form": setupBackOffice
   "vin":
     "template": "vin-screen-template"
     "views":
@@ -199,25 +199,8 @@ focusField = (name) ->
   e.scrollIntoView()
   e.focus()
 
-this.showComplex = (parentView, fieldName) ->
-    depViewName = global.viewsWare[parentView].depViews[fieldName][0]
-    view = $el(depViewName)
-
-    return if view.is(':visible')
-    $(".complex-field").hide();
-
-    view.show(-> _.each(view.find(".osMap"), initOSM))
-
 # Case view (renders to #left, #center and #right as well)
 setupCaseMain = (viewName, args) ->
-  refs =
-    [
-      field: "services"
-      forest: "case-service-references"
-    ,
-      field: "actions"
-      forest: "case-actions-references"
-    ];
 
   # Default values
   # FIXME: User's name and creation date are better to be assigned by
@@ -245,14 +228,12 @@ setupCaseMain = (viewName, args) ->
     ko.applyBindings(global.viewsWare[viewName].knockVM,
                      el("empty-fields"))
 
-  modelSetup("case")(viewName, args,
+  modelSetup("case") viewName, args,
                      permEl       : "case-permissions"
                      focusClass   : "focusable"
                      slotsee      : ["case-number"]
                      groupsForest : "center"
                      fetchCb      : fetchCb
-                     refs         : refs
-                     )
 
   # Render service picker
   #
@@ -267,25 +248,21 @@ setupCaseMain = (viewName, args) ->
 
 # Hide all views on center pane and show view for first reference
 # stored in <fieldName> of model loaded into <parentView> there
-showComplex = (parentView, fieldName) ->
-  depViewName = global.viewsWare[parentView].depViews[fieldName][0];
-  view = $el(depViewName);
+this.showComplex = (parentView, fieldName) ->
+  depViewName = global.viewsWare[parentView].depViews[fieldName][0]
+  view = $el(depViewName)
 
   return if view.is(':visible')
   $(".complex-field").hide()
 
-  view.show (() -> _.each(view.find(".osMap"))), initOSM
+  view.show -> initOSM for e in view.find(".osMap")
 
 # Top-level wrapper for storeService
-addService = (name) ->
-  console.info 'addService'
-  # addReference(global.viewsWare["case-form"].bbInstance,
-  #              field     : "services"
-  #              modelName : name
-  #              forest    : "case-service-references"
-  #             ,
-  #              "center"
-  #              )
+this.addService = (name) ->
+  addReference global.viewsWare["case-form"].knockVM, 'services',
+               modelName : name
+
+
 
 setupCallForm = (viewName, args) ->
   modelSetup("call") viewName, null,

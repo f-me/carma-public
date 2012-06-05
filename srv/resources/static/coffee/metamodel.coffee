@@ -52,7 +52,9 @@ this.backbonizeModel = (models, modelName) ->
     # If save fails we merge new changes with backupped ones.
     # This prevents data loss in case of server failures.
     attributeQueueBackup: {}
-    initialize: -> if not this.isNew() then this.fetch()
+    initialize: ->
+      if not this.isNew() then this.fetch()
+      setTimeout((=> this.setupServerSync()), 1000)
 
     # Original definition
     #
@@ -100,7 +102,7 @@ this.backbonizeModel = (models, modelName) ->
       if not _.isEmpty(this.attributeQueue)
         options = if options then _.clone(options) else {}
 
-        error = options.error;
+        error = options.error
         options.error = (model, resp, options) ->
           _.isFunction(error) and error(model, resp, options)
           _.defaults(this.attributeQueue, this.attributeQueueBackup)

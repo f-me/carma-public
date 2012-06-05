@@ -150,7 +150,7 @@
               <label>Услуги</label>
             </div>
             <div class="controls">
-              <span class="accordion" id="case-service-references" />
+              <span class="accordion" id="case-services-references" />
               
               <span id="service-picker-container" />
             </div>
