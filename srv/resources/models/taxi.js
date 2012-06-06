@@ -47,6 +47,24 @@
         },
         {
             "targets": [
+                "payment_paidByRUAMC",
+                "payment_paidByClient"
+            ],
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ]
+        },
+        {
+            "targets": [
                 "taxiFrom_address",
                 "taxiFrom_coords",
                 "taxiFrom_city",
