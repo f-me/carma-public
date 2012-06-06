@@ -13,7 +13,7 @@ where
 
 import Prelude hiding (catch, lookup)
 
-import qualified Data.Aeson as A
+import qualified Data.Aeson as Aeson
 
 import Control.Monad.IO.Class
 import Data.Functor
@@ -34,7 +34,7 @@ import Snap.Snaplet.Session
 import Snap.Snaplet.Session.Backends.CookieSession
 import Snap.Util.FileServe
 
-import Database.Redis (defaultConnectInfo,hgetall)
+import Database.Redis (defaultConnectInfo)
 import Snap.Snaplet.RedisDB
 
 ------------------------------------------------------------------------------
@@ -42,6 +42,7 @@ import qualified Codec.Xlsx.Templater as Xlsx
 import Snap.Snaplet.Vin
 import Snaplet.SiteConfig
 import qualified Nominatim
+import qualified RedisCRUD
 
 ------------------------------------------------------------------------------
 -- | Application snaplet state type: Redson, Heist.
@@ -105,10 +106,10 @@ doLogin = ifTop $ do
 
 ------------------------------------------------------------------------------
 -- | Serve user account data back to client.
-serveUserCake :: AuthUser -> Handler App App ()
+serveUserCake :: AuthUser -> AppHandler ()
 serveUserCake user = ifTop $ do
   modifyResponse $ setContentType "application/json"
-  writeLBS $ A.encode user
+  writeLBS $ Aeson.encode user
 
 
 ------------------------------------------------------------------------------
@@ -121,9 +122,7 @@ geodecode = ifTop $ do
   writeLBS resp
 
 
-withAuth
-  :: (AuthUser -> Handler App App ())
-  -> Handler App App ()
+withAuth :: (AuthUser -> AppHandler ()) -> AppHandler ()
 withAuth f
   = with auth currentUser
   >>= maybe (handleError 401) f
@@ -134,19 +133,33 @@ handleError err = do
     modifyResponse $ setResponseCode err
     getResponse >>= finishWith
 
-createHandler curUser = writeLBS "Db_create"
+createHandler :: AuthUser -> AppHandler ()
+createHandler curUser = do
+  Just model <- getParam "model"
+  Just commit <- Aeson.decode <$> getRequestBody
+  res <- RedisCRUD.create redis model commit
+  modifyResponse $ setContentType "application/json"
+  writeLBS $ Aeson.encode
+           $ Map.singleton ("id" :: ByteString) res
 
-readHandler :: AuthUser -> Handler App App ()
-readHandler   curUser = do
+readHandler :: AuthUser -> AppHandler ()
+readHandler curUser = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
-  let key = B.concat [model, ":", objId]
-  Right res  <- runRedisDB redis $ fmap Map.fromList <$> hgetall key
+  res <- RedisCRUD.read redis model objId
   modifyResponse $ setContentType "application/json"
-  writeLBS $ A.encode res
+  writeLBS $ Aeson.encode res
 
-updateHandler curUser = writeLBS ""
+updateHandler :: AuthUser -> AppHandler ()
+updateHandler curUser = do
+  Just model <- getParam "model"
+  Just objId <- getParam "id"
+  Just commit <- Aeson.decode <$> getRequestBody
+  res <- RedisCRUD.update redis model objId commit
+  modifyResponse $ setContentType "application/json"
+  writeLBS "{}"
 
+report :: AppHandler ()
 report = do
   liftIO $ Xlsx.run
     "resources/report-templates/all-cases.xlsx"
