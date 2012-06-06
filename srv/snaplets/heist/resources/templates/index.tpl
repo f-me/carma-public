@@ -1040,6 +1040,7 @@
             <dt data-bind="text: title"></dt>
             <dd data-bind="html: description"></dd>
           </div>
+        </div>
       </fieldset>
     </script>
 

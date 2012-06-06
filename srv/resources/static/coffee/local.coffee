@@ -128,6 +128,15 @@ this.getServiceDesc = (program, service) ->
   si  = global.dictionaries['ServiceInfo'][program][service]
   si ?= global.dictionaries['ServiceInfo']['default'][service]
 
+servicesDescsKbHook = (instance, knockVM) ->
+  knockVM['servicesDescs'] = ko.computed
+    read: ->
+      p = knockVM['program']()
+      s = knockVM['servicesReference']()
+      programs = global.dictionaries.Programs.entries
+      descs    = _.find(programs, (x) -> x.value == p)?.servicesDescs
+      _.chain(s).map((x) -> descs?[x.modelName()]).compact().value()
+
 # Clear dependant dictionary fields when parent is changed
 dictionaryHook = (elName) ->
   instance = global.viewsWare[elName].bbInstance
