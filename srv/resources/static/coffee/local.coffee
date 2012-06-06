@@ -54,6 +54,7 @@ hooks = ->
       "case" : [candiboberHook]
   observable:
       "*"    : [regexpKbHook, dictionaryKbHook]
+      "case" : [servicesDescsKbHook]
 
 # here is entry point
 $( ->
@@ -115,6 +116,15 @@ regexpKbHook = (instance, knockVM) ->
                           key: f
                           read: (k) -> not r.test instance.get(k)
     )(fieldName, new RegExp(regexp))
+
+servicesDescsKbHook = (instance, knockVM) ->
+  knockVM['servicesDescs'] = ko.computed
+    read: ->
+      p = knockVM['program']()
+      s = knockVM['servicesReference']()
+      programs = global.dictionaries.Programs.entries
+      descs    = _.find(programs, (x) -> x.value == p)?.servicesDescs
+      _.chain(s).map((x) -> descs?[x.modelName()]).compact().value()
 
 # Clear dependant dictionary fields when parent is changed
 dictionaryHook = (elName) ->
@@ -256,6 +266,10 @@ this.showComplex = (parentView, fieldName) ->
   $(".complex-field").hide()
 
   view.show -> initOSM e for e in view.find(".osMap")
+
+this.hideComplex = ->
+  $(".complex-field").hide()
+  $(".default-complex-field").show()
 
 # Top-level wrapper for storeService
 this.addService = (name) ->

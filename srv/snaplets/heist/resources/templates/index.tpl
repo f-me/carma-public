@@ -862,7 +862,7 @@
                 id="{{ refView }}"
                 style="display: none;">
           <i class="icon icon-remove complex-field-close"
-             onclick="$('.complex-field').hide();"/>
+             onclick="hideComplex()"/>
           <form class="content form-vertical"/>
       </fieldset>
     </script>
@@ -943,5 +943,18 @@
         {{#names}}{{.}}&nbsp;{{/names}}
       </span>
     </script>
+
+    <!-- Default case group view template -->
+    <script type="text/template"
+            class="group-template"
+            id="default-case-group-template">
+      <fieldset class="complex-field default-complex-field"
+                id="default-case-complex-field">
+          <div data-bind="foreach: servicesDescs">
+            <span data-bind="text: $data"></span>
+          </div>
+      </fieldset>
+    </script>
+
   </body>
 </html>

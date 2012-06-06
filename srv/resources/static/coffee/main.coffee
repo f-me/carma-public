@@ -26,7 +26,6 @@ this.mainSetup = (localScreens, localRouter, localDictionaries,
 
   dictLabelCache = {}
   dictValueCache = {}
-
   # Build caches (TODO: Do this on server some day)
   for d of localDictionaries
     do (d) ->
@@ -35,11 +34,10 @@ this.mainSetup = (localScreens, localRouter, localDictionaries,
       dict = localDictionaries[d]
       if _.isArray(dict.entries)
         for e of dict.entries
-          do (e) ->
-            l = dict.entries[e].label
-            v = dict.entries[e].value
-            dictLabelCache[d][l] = v
-            dictValueCache[d][v] = l
+          l = dict.entries[e].label
+          v = dict.entries[e].value
+          dictLabelCache[d][l] = v
+          dictValueCache[d][v] = l
       else
         for c of dict.entries
           for e of dict.entries[c]
@@ -131,7 +129,7 @@ knockBackbone = (instance, viewName) ->
                   read: (k) -> if instance.isNew() then "—" else instance.id
 
   applyHooks global.hooks.observable,
-             ['*', instance.modelName],
+             ['*', instance.model.name],
              instance, knockVM, viewName
 
   return knockVM

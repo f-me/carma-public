@@ -39,10 +39,11 @@ this.forgetScreen = ->
 
 
 this.renderKnockVm = (elName, knockVM, options) ->
-  model    = global.models[knockVM.modelName()]
-  instance = knockVM.model()
-  content = renderFields(model, elName)
-  depViews = {}
+  model     = global.models[knockVM.modelName()]
+  instance  = knockVM.model()
+  content   = renderFields(model, elName)
+  groupTpls = getTemplates("group-template")
+  depViews  = {}
   for gName, cont of content
     # Main form & permissions
     if gName == "_"
@@ -55,11 +56,16 @@ this.renderKnockVm = (elName, knockVM, options) ->
       # Subforms for groups
       $el(options.groupsForest).append(
           renderDep { refField: gName, refN: 0, refView  : view },
-                    getTemplates("group-template"))
+                    groupTpls)
       # render actual view content in the '.content'
       # children of view block, so we can add
       # custom elements to decorate view
       $el(view).find('.content').html(content[gName])
+  defaultGroup = "default-#{instance.model.name}"
+  if _.has(groupTpls, defaultGroup)
+    depViews["default-group"] = defaultGroup
+    $el(options.groupsForest).append(
+          renderDep { refField: defaultGroup }, groupTpls)
   if _.isFunction(options.renderRefCb)
     options.renderCb(r, subViewN)
   return depViews
