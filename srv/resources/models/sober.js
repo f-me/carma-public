@@ -48,6 +48,24 @@
         },
         {
             "targets": [
+                "payment_paidByRUAMC",
+                "payment_paidByClient"
+            ],
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ]
+        },
+        {
+            "targets": [
                 "fromAddress_address",
                 "fromAddress_coords",
                 "fromAddress_city",
