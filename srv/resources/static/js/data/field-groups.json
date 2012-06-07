@@ -323,7 +323,7 @@
                         "label": "Услуги"
                     },
                     {
-                        "name": "address",
+                        "name": "tarif",
                         "label": "Тариф"
                     }
                 ]
