@@ -419,7 +419,8 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "FalseStatuses",
-                "label": "Ложный вызов"
+                "label": "Ложный вызов",
+                "infoText": "falsecall"
             }
         },
         {
