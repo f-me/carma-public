@@ -83,7 +83,8 @@
                 "head"
             ],
             "meta": {
-                "label": "Карта участника"
+                "label": "Карта участника",
+                "infoText": "cardnum"
             }
         },        
         {
@@ -287,7 +288,8 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "Diagnosis1",
-                "label": "Система"
+                "label": "Система",
+                "infoText": "system"
             }
         },
         {
@@ -306,7 +308,8 @@
             "meta": {
                 "dictionaryName": "Diagnosis2",
                 "dictionaryParent": "diagnosis1",
-                "label": "Узел/деталь"
+                "label": "Узел/деталь",
+                "infoText": "detail"
             }
         },
         {
@@ -325,7 +328,8 @@
             "meta": {
                 "dictionaryName": "Diagnosis3",
                 "dictionaryParent": "diagnosis2",
-                "label": "Описание причины неисправности"
+                "label": "Описание причины неисправности",
+                "infoText": "diagnosis3"
             }
         },
         {
@@ -362,7 +366,8 @@
             ],
             "groupName": "contact",
             "meta": {
-                "label": "Клиент"
+                "label": "Клиент",
+                "infoText": "caller"
             }
         },
         {
@@ -379,7 +384,8 @@
             ],
             "type": "checkbox",
             "meta": {
-                "label": "Звонящий владелец?"
+                "label": "Звонящий владелец?",
+                "infoText": "owner"
             }
         },
         {
@@ -397,7 +403,8 @@
             ],
             "groupName": "contact",
             "meta": {
-                "label": "Владелец"
+                "label": "Владелец",
+                "infoText": "ownerName"
             }
         },
         {
@@ -449,7 +456,8 @@
                 "dictionaryName": "Programs",
                 "label": "Программа",
                 "required": true,
-                "targetCategory": "program"
+                "targetCategory": "program",
+                "infoText": "program"
             }
         },
         {
@@ -468,7 +476,8 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "VINChecked",
-                "label": "VIN проверен"
+                "label": "VIN проверен",
+                "infoText": "vinChecked"
             }
         },
         {
@@ -492,7 +501,8 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "DealerCities",
-                "label": "Город"
+                "label": "Город",
+                "infoText": "city"
             }
         },
         {
@@ -508,7 +518,8 @@
                 "head"
             ],
             "meta": {
-                "label": "Температура"
+                "label": "Температура",
+                "infoText": "temperature"
             }
         },
         {
@@ -523,7 +534,8 @@
                 "head"
             ],
             "meta": {
-                "label": "Причина неисправности со слов дилера"
+                "label": "Причина неисправности со слов дилера",
+                "infoText": "dealerCause"
             },
             "type": "textarea"
         },
@@ -560,7 +572,8 @@
                 "parguy"
             ],
             "meta": {
-                "label": "Комментарии"
+                "label": "Комментарии",
+                "infoText": "betaComment"
             },
             "type": "textarea"
         },
