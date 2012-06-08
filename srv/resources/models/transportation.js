@@ -263,7 +263,8 @@
             "canWrite": ["back", "head"],
             "type": "date",
             "meta": {
-                "label": "Дата окончания ремонта"
+                "label": "Дата окончания ремонта",
+                "infoText": "date"
             }
         },
 		{
@@ -282,7 +283,8 @@
             "canWrite": ["parguy"],
             "type": "date",
             "meta": {
-                "label": "Дата выставления счёта"
+                "label": "Дата выставления счёта",
+                "infoText": "date"
             }
         },	
         {
