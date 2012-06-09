@@ -57,3 +57,9 @@ function doSearch() {
                   t.fnAddData(results);
               });
 }
+
+// search stub
+function gotoCase() {
+    var term = $el("table-query").val();
+    global.router.navigate('/#case/'+term);
+}

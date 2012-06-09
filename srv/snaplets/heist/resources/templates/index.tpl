@@ -197,7 +197,7 @@
       <div style="text-align:center;">
       <fieldset style="width:50%; margin-left:25%;">
         <legend>Поиск</legend>
-        <form onsubmit="doSearch(); return false;">
+        <form onsubmit="gotoCase(); return false;">
           <div data-date-format="dd.mm.yyyy" 
                id="search-datepicker"
                data-provide="datepicker"

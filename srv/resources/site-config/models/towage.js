@@ -75,6 +75,24 @@
         },
         {
             "targets": [
+                "payment_paidByRUAMC",
+                "payment_paidByClient"
+            ],
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ]
+        },
+        {
+            "targets": [
                 "towerAddress_address",
                 "towerAddress_coords",
                 "towerAddress_city",
@@ -767,6 +785,21 @@
             ],
             "meta": {
                 "label": "Пробег эвакуатора за городом"
+            }
+        },        
+        {
+            "name": "orderNumber",
+            "canRead": [
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
+            "type": "date",
+            "meta": {
+                "label": "Номер заказ-наряда"
             }
         },
         {

@@ -28,6 +28,7 @@ import Data.Lens.Template
 import Snap.Core
 import Snap.Snaplet
 import Snap.Snaplet.Auth hiding (session)
+import Snap.Snaplet.AvayaAES
 import Snap.Snaplet.Auth.Backends.JsonFile
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Session
@@ -53,6 +54,7 @@ data App = App
     , _siteConfig :: Snaplet (SiteConfig App)
     , _redis :: Snaplet RedisDB
     , _vin :: Snaplet Vin
+    , _avaya :: Snaplet (Avayaplet App)
     }
 
 type AppHandler = Handler App App
@@ -222,7 +224,8 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   r <- nestSnaplet "db" redis $ redisDBInit defaultConnectInfo
 
   v <- nestSnaplet "vin" vin vinInit
+  av <- nestSnaplet "avaya" avaya $ avayaAESInit auth
 
   addRoutes routes
 
-  return $ App h s a c r v
+  return $ App h s a c r v av
