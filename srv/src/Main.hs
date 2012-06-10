@@ -13,7 +13,7 @@ import           Snap.Core
 
 import           System.IO
 
-import           Application
+import           ApplicationInit
 
 #ifdef DEVELOPMENT
 import           Snap.Loader.Devel

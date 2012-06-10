@@ -20,6 +20,8 @@ Executable carma
 
   Other-modules:
     Application,
+    ApplicationInit,
+    ApplicationHandlers,
     Nominatim,
     Snaplet.SiteConfig,
     Snaplet.SiteConfig.Types,
@@ -54,7 +56,8 @@ Executable carma
     easy-file                   == 0.1.*,
     network                     == 2.3.*,
     HTTP                        == 4000.2.*,
-    xlsx, xlsx-templater
+    xlsx                        == 0.0,
+    xlsx-templater              == 0.0
 
   Extensions:
     OverloadedStrings,

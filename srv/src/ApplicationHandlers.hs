@@ -1,0 +1,125 @@
+
+module ApplicationHandlers where
+
+
+import Data.Functor
+import Control.Monad.IO.Class
+
+import Data.ByteString (ByteString)
+import qualified Data.Aeson as Aeson
+import qualified Data.Map as Map
+import Data.Maybe (fromMaybe)
+
+import Snap.Core
+import Snap.Snaplet (with)
+import Snap.Snaplet.Heist
+import Snap.Snaplet.Auth hiding (session)
+import Snap.Snaplet.Session
+import Snap.Util.FileServe (serveFile)
+------------------------------------------------------------------------------
+import Database.Redis (defaultConnectInfo)
+import Snap.Snaplet.RedisDB (redisDBInit)
+
+import Snap.Snaplet.AvayaAES
+import Snap.Snaplet.Vin
+import Snaplet.SiteConfig
+------------------------------------------------------------------------------
+import qualified Codec.Xlsx.Templater as Xlsx
+import qualified Nominatim
+import qualified RedisCRUD
+------------------------------------------------------------------------------
+import Application
+
+
+------------------------------------------------------------------------------
+-- | Render empty form for model.
+indexPage :: AppHandler ()
+indexPage = ifTop $ render "index"
+
+
+------------------------------------------------------------------------------
+-- | Redirect using 303 See Other to login form.
+--
+-- Used after unsuccessful access/login attempt or logout.
+redirectToLogin :: MonadSnap m => m a
+redirectToLogin = redirect' "/login/" 303
+
+
+------------------------------------------------------------------------------
+-- | If user is not logged in, redirect to login page, pass to
+-- handler otherwise.
+authOrLogin :: AppHandler () -> AppHandler ()
+authOrLogin h = requireUser auth redirectToLogin h
+
+
+------------------------------------------------------------------------------
+-- | Render empty login form.
+loginForm :: AppHandler ()
+loginForm = do
+  serveFile $ "snaplets/heist/resources/templates/login.html"
+
+
+------------------------------------------------------------------------------
+-- | Login user.
+doLogin :: AppHandler ()
+doLogin = ifTop $ do
+  l <- fromMaybe "" <$> getParam "login"
+  p <- fromMaybe "" <$> getParam "password"
+  r <- maybe False (const True) <$> getParam "remember"
+  res <- with auth $ loginByUsername l (ClearText p) r
+  case res of
+    Left _err -> redirectToLogin
+    Right _user -> redirect "/"
+
+
+------------------------------------------------------------------------------
+-- | Serve user account data back to client.
+serveUserCake :: AuthUser -> AppHandler ()
+serveUserCake user = ifTop $ do
+  modifyResponse $ setContentType "application/json"
+  writeLBS $ Aeson.encode user
+
+
+------------------------------------------------------------------------------
+-- | Geodecode mockup.
+geodecode :: AppHandler ()
+geodecode = ifTop $ do
+  addr <- fromMaybe "Moscow" <$> getParam "addr"
+  resp <- liftIO $ Nominatim.geodecode addr
+  modifyResponse $ setContentType "application/json"
+  writeLBS resp
+
+
+createHandler :: AuthUser -> AppHandler ()
+createHandler curUser = do
+  Just model <- getParam "model"
+  Just commit <- Aeson.decode <$> getRequestBody
+  res <- RedisCRUD.create redis model commit
+  modifyResponse $ setContentType "application/json"
+  writeLBS $ Aeson.encode
+           $ Map.singleton ("id" :: ByteString) res
+
+readHandler :: AuthUser -> AppHandler ()
+readHandler curUser = do
+  Just model <- getParam "model"
+  Just objId <- getParam "id"
+  res <- RedisCRUD.read redis model objId
+  modifyResponse $ setContentType "application/json"
+  writeLBS $ Aeson.encode res
+
+updateHandler :: AuthUser -> AppHandler ()
+updateHandler curUser = do
+  Just model <- getParam "model"
+  Just objId <- getParam "id"
+  Just commit <- Aeson.decode <$> getRequestBody
+  res <- RedisCRUD.update redis model objId commit
+  modifyResponse $ setContentType "application/json"
+  writeLBS "{}"
+
+report :: AppHandler ()
+report = do
+  liftIO $ Xlsx.run
+    "resources/report-templates/all-cases.xlsx"
+    "resources/static/all-cases.xlsx"
+    [(Map.empty, Xlsx.TemplateSettings Xlsx.Rows 1, [])]
+  serveFile "resources/static/all-cases.xlsx"
