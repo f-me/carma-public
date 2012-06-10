@@ -6,7 +6,6 @@ module Snaplet.SiteConfig
   ) where
 
 import Control.Monad.State
-import Control.Monad.IO.Class
 import Data.Map (Map)
 import qualified Data.Map as M
 
@@ -16,7 +15,6 @@ import qualified Data.Aeson as Aeson
 import Snap.Core
 import Snap.Snaplet
 import Snap.Snaplet.Auth
-import Snap.Snaplet (SnapletInit, makeSnaplet)
 
 ----------------------------------------------------------------------
 import Snaplet.SiteConfig.Types
@@ -31,8 +29,8 @@ data SiteConfig b = SiteConfig
 
 
 serveModels = ifTop $ do
-  cu <- gets auth' >>= flip withTop currentUser
-  case cu of
+  mcu <- gets auth' >>= flip withTop currentUser
+  case mcu of
     Nothing -> do
       modifyResponse $ setResponseCode 401
       getResponse >>= finishWith

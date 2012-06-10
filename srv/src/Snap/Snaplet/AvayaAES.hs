@@ -40,7 +40,7 @@ callHandler = do
     let meta = userMeta user
     let Just (AE.String extension) = H.lookup "avayaExt" meta
     let Just (AE.String password) = H.lookup "avayaPass" meta
-    n <- fromMaybe "" <$> getParam "phone"
+    number <- fromMaybe "" <$> getParam "phone"
     conf <- gets _conf 
     let conf' = conf { cExtension = extension, cPassword = password }
     liftIO $ print conf'
