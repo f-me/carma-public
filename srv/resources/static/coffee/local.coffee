@@ -58,26 +58,15 @@ hooks = ->
 
 # here is entry point
 $( ->
-  $.getJSON("/s/js/data/dictionaries.json",   (dicts)  ->
-    $.getJSON("/_whoami/",                    (user)   ->
-      $.getJSON("/s/js/data/conditions.json", (checks) ->
-        loadAllModels                         (models) ->
+  $.getJSON "/s/js/data/dictionaries.json",   (dicts)  ->
+    $.getJSON "/_whoami/",                    (user)   ->
+      $.getJSON "/s/js/data/conditions.json", (checks) ->
+        $.getJSON "/cfg/models",              (models) ->
           mainSetup(localScreens(), localRouter, dicts, hooks(), user, models)
-          global.checks = checks))))
+          global.checks = checks)
 
 # Model method HTTP access point wrt redson location
 this.modelMethod = (modelName, method) -> "/_/#{modelName}/#{method}"
-
-loadAllModels = (rest) ->
-  storedModels = this.models  = {}
-  $.getJSON "/_/_models", (models) ->
-    for m in models
-      do (m) ->
-        $.getJSON modelMethod(m.name, "model"),
-          (model) ->
-            storedModels[m.name] = model
-            # run rest code when all models are fetched
-            rest(storedModels) if _.keys(storedModels).length == models.length
 
 dictionaryKbHook = (instance, knockVM) ->
   for n of instance.dictionaryFields

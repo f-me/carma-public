@@ -201,7 +201,7 @@ this.modelSetup = (modelName) ->
 
     # Bookkeeping
     global.viewsWare[elName] =
-      model           : this.models[modelName]
+      model           : global.models[modelName]
       bbInstance      : instance
       modelName       : modelName
       knockVM         : knockVM
@@ -211,7 +211,7 @@ this.modelSetup = (modelName) ->
     return knockVM
 
 this.buildModel = (modelName, args, options) ->
-    mkBackboneModel = backbonizeModel(this.models, modelName)
+    mkBackboneModel = backbonizeModel(global.models, modelName)
     instance = new mkBackboneModel(args)
     knockVM = knockBackbone(instance)
 
