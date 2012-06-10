@@ -8,6 +8,7 @@ import Snap.Snaplet
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth
 import Snap.Snaplet.Session
+import Snap.Snaplet.PostgresqlSimple
 ------------------------------------------------------------------------------
 import Snaplet.SiteConfig
 import Snap.Snaplet.RedisDB
@@ -23,6 +24,7 @@ data App = App
     , _auth       :: Snaplet (AuthManager App)
     , _siteConfig :: Snaplet (SiteConfig App)
     , _redis      :: Snaplet RedisDB
+    , _postgres   :: Snaplet Postgres
     , _vin        :: Snaplet Vin
     , _avaya      :: Snaplet (Avayaplet App)
     }

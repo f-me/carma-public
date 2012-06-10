@@ -15,7 +15,8 @@ import Snap.Snaplet.Auth.Backends.JsonFile
 import Snap.Snaplet.Session.Backends.CookieSession
 import Snap.Util.FileServe (serveDirectory)
 ------------------------------------------------------------------------------
-import Database.Redis (defaultConnectInfo)
+import Snap.Snaplet.PostgresqlSimple
+import qualified Database.Redis as Redis (defaultConnectInfo)
 import Snap.Snaplet.RedisDB (redisDBInit)
 
 import Snap.Snaplet.AvayaAES
@@ -76,14 +77,15 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        defAuthSettings{ asSiteKey = rmbKey
                       , asRememberPeriod = Just (rmbPer * 24 * 60 * 60)}
                                session authDb
-  r <- nestSnaplet "db" redis $ redisDBInit defaultConnectInfo
+  r <- nestSnaplet "db" redis $ redisDBInit Redis.defaultConnectInfo
+  pg <- nestSnaplet "db" postgres pgsInit
 
   v <- nestSnaplet "vin" vin vinInit
   av <- nestSnaplet "avaya" avaya $ avayaAESInit auth
 
   addRoutes routes
 
-  return $ App h s a c r v av
+  return $ App h s a c r pg v av
 
 
 ------------------------------------------------------------------------------

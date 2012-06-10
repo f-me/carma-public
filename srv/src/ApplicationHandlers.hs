@@ -90,6 +90,8 @@ geodecode = ifTop $ do
   writeLBS resp
 
 
+------------------------------------------------------------------------------
+-- | CRUD
 createHandler :: AuthUser -> AppHandler ()
 createHandler curUser = do
   Just model <- getParam "model"
@@ -116,6 +118,9 @@ updateHandler curUser = do
   modifyResponse $ setContentType "application/json"
   writeLBS "{}"
 
+
+------------------------------------------------------------------------------
+-- | Reports
 report :: AppHandler ()
 report = do
   liftIO $ Xlsx.run
