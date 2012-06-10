@@ -111,6 +111,24 @@
         },
         {
             "targets": [
+                "payment_paidByRUAMC",
+                "payment_paidByClient"
+            ],
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ]
+        },
+        {
+            "targets": [
                 "expectedServiceStart",
                 "factServiceStart",
                 "expectedServiceEnd",
@@ -428,7 +446,8 @@
             ],
             "type": "date",
             "meta": {
-                "label": "Дата окончания ремонта"
+                "label": "Дата окончания ремонта",
+                "infoText": "date"
             }
         },
         {
@@ -447,7 +466,8 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "FalseStatuses",
-                "label": "Ложный вызов"
+                "label": "Ложный вызов",
+                "infoText": "falsecall"
             }
         },
         {
@@ -461,7 +481,8 @@
             ],
             "type": "date",
             "meta": {
-                "label": "Дата выставления счёта"
+                "label": "Дата выставления счёта",
+                "infoText": "date"
             }
         },
         {

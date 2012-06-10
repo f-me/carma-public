@@ -1,0 +1,608 @@
+[
+    {
+        "on": {
+            "action.result": [
+                "busyLine"
+            ]
+        },
+        "set": {
+            "duetime": "{{#.now+5m}}"
+        }
+    },
+    {
+        "on": {
+            "action.result": [
+                "callLater"
+            ]
+        },
+        "set": {
+            "duetime": "{{#.now+30m}}"
+        }
+    },
+    {
+        "on": {
+            "deliverCar.status": [
+                "backoffice"
+            ],
+    		"deliverParts.status": [
+                "backoffice"
+            ],
+			"hotel.status": [
+                "backoffice"
+            ],
+			"information.status": [
+                "backoffice"
+            ],
+			"rent.status": [
+                "backoffice"
+            ],
+			"sober.status": [
+                "backoffice"
+            ],
+			"taxi.status": [
+                "backoffice"
+            ],
+			"tech.status": [
+                "backoffice"
+            ],
+			"towage.status": [
+                "backoffice"
+            ],
+			"transportation.status": [
+                "backoffice"
+            ],
+            "action.result": [
+                "partnerNotOk",
+                "caseOver",
+                "partnerFound",
+                "carmakerApproved",
+                "dealerApproved",
+                "needService"
+            ]
+        },
+        "new": [
+            {
+                "name": "orderService",
+                "duetime": "{{#.now}}",
+                "description": "Заказать услугу",
+                "targetGroup": "back",
+                "priority": "2"
+            }
+        ],
+        "close": true
+    },
+    {
+        "on": {
+            "action.result": [
+                "searchPartner"
+            ]
+        },
+        "new": [
+            {
+                "name": "needPartner",
+                "duetime": "{{#.now}}",
+                "description": "Требуется найти партнёра для оказания услуги",
+                "targetGroup": "parguy",
+                "priority": "1"
+            }
+        ],
+        "close": true
+    },
+    {
+        "on": {
+            "action.result": [
+                "partnerNotFound"
+            ]
+        },
+        "set": {
+            "duetime": "{{#now+1h}}"
+        }
+    },
+    {
+        "on": {
+            "action.result": [
+                "serviceOrdered"
+            ]
+        },
+        "new": [
+            {
+                "name": "tellClient",
+                "duetime": "{{#.now}}",
+                "description": "Сообщить клиенту о договорённости",
+                "targetGroup": "back",
+                "priority": "1"
+            }
+        ],
+        "close": true
+    },
+    {
+        "on": {
+            "action.result": [
+                "partnerNotOk",
+                "partnerNotOkCancel"
+            ]
+        },
+        "new": [
+            {
+                "name": "cancelService",
+                "duetime": "{{#.now}}",
+                "description": "Требуется отказаться от заказанной услуги",
+                "targetGroup": "back",
+                "priority": "1"
+            }
+        ],
+        "close": true
+    },
+    {
+        "on": {
+            "action.result": [
+                "falseCallWBill"
+            ]
+        },
+        "set": {
+            "service.falseCall": "bill"
+        },
+        "close": true
+    },
+    {
+        "on": {
+            "action.result": [
+                "falseCallWOBill"
+            ]
+        },
+        "set": {
+            "service.falseCall": "nobill"
+        },
+        "close": true
+    },
+    {
+        "on": {
+            "action.result": [
+                "partnerOk",
+                "clientWaiting"
+            ]
+        },
+        "new": [
+            {
+                "name": "checkStatus",
+                "duetime": "{{#.now+1h}}",
+                "description": "У партнёра требуется уточнить началось оказания услуги или нет",
+                "targetGroup": "back",
+                "priority": "3"
+            }
+        ],
+        "close": true
+    },
+    {
+        "on": {
+            "action.result": [
+                "serviceDelayed"
+            ]
+        },
+        "new": [
+            {
+                "name": "tellDelayClient",
+                "duetime": "{{#.now}}",
+                "description": "Партнёр задерживает оказание услуги, требуется сообщить об этом клиенту",
+                "targetGroup": "back",
+                "priority": "1"
+            }
+        ],
+        "close": true
+    },
+    {
+        "on": {
+            "action.result": [
+                "clientWaiting"
+            ]
+        },
+        "set": {
+            "service.status": "serviceDelayed"
+        },
+        "close": true
+    },
+    {
+        "on": {
+            "action.result": [
+                "serviceInProgress"
+            ]
+        },
+        "new": [
+            {
+                "name": "checkEndOfService",
+                "duetime": "{{#.now+1h}}",
+                "description": "Уточнить у клиента окончено ли оказание услуги",
+                "targetGroup": "back",
+                "priority": "3"
+            }
+        ],
+        "close": true
+    },
+    {
+        "on": {
+            "action.result": [
+                "serviceStillInProgress"
+            ]
+        },
+        "set": {
+            "duetime": "{{#.now+30m}}"
+        }
+    },
+    {
+        "on": {
+            "action.result": [
+                "complaint"
+            ]
+        },
+        "new": [
+            {
+                "name": "complaintResolution",
+                "duetime": "{{#.now}}",
+                "description": "Клиент предъявил претензию",
+                "targetGroup": "back"
+            }
+        ],
+        "close": true
+    },
+    {
+        "on": {
+            "action.result": [
+                "complaintManaged"
+            ]
+        },
+        "close": true
+    },
+    {
+        "on": {
+            "action.result": [
+                "serviceFinished"
+            ]
+        },
+        "new": [
+            {
+                "name": "addBill",
+                "duetime": "{{#.now+14d}}",
+                "description": "Услуга оказана, требуется ввести данные по счёту и прикрепить файлы со счетами",
+                "targetGroup": "parguy"
+            }
+        ],
+        "close": true
+    },
+    {
+        "on": {
+            "action.result": [
+                "billNotReady"
+            ]
+        },
+        "set": {
+            "duetime": "{{#.now+5d}}"
+        }
+    },
+    {
+        "on": {
+            "action.result": [
+                "billAttached"
+            ]
+        },
+        "new": [
+            {
+                "name": "accountCheck",
+                "duetime": "{{#.now}}",
+                "description": "Проверить счета",
+                "targetGroup": "parguy"
+            }
+        ],
+        "close": true
+    },
+    {
+        "on": {
+            "action.result": [
+                "financialOk"
+            ]
+        },
+        "set": {
+            "service.status": "serviceOk"
+        },
+        "close": true
+    },
+    {
+        "on": {
+            "action.result": [
+                "accountError"
+            ]
+        },
+        "new": [
+            {
+                "name": "editCaseAfterClosure",
+                "duetime": "{{#.now}}",
+                "description": "Внесение изменений после выставления счета",
+                "targetGroup": "head",
+                "priority": "3"
+            }
+        ],
+        "close": true
+    },
+    {
+        "on": {
+            "action.result": [
+                "caseEdited"
+            ]
+        },
+        "set": {
+            "service.status": "serviceOk"
+        },
+        "close": true
+    },
+    {
+        "on": {
+            "action.result": [
+                "serviceFinished"
+            ]
+        },
+        "new": [
+            {
+                "name": "getInfoDealerVW",
+                "duetime": "{{#.now+7d}}",
+                "description": "Только для программы VW",
+                "targetGroup": "back",
+                "priority": "3"
+            }
+        ],
+        "close": true
+    },
+    {
+        "on": {
+            "action.result": [
+                "serviceFinished"
+            ]
+        },
+        "new": [
+            {
+                "name": "getInfoDealerVW",
+                "duetime": "{{#.now+7d}}",
+                "description": "Только для программы VW",
+                "targetGroup": "back",
+                "priority": "3"
+            }
+        ],
+        "close": true
+    },
+    {
+        "on": {
+            "action.result": [
+                "serviceFinished",
+                "recloseService",
+                "caseClosedFinancialOk",
+                "dealerNotApproved",
+                "carmakerNotApproved"
+            ]
+        },
+        "new": [
+            {
+                "name": "closeCase",
+                "duetime": "{{#.now+1d}}",
+                "description": "Услуга оказана, требуется закрыть заявку у партнёра",
+                "targetGroup": "back",
+                "priority": "3"
+            }
+        ],
+        "close": true
+    },
+    {
+        "on": {
+            "action.result": [
+                "caseClosedFinancialOk"
+            ]
+        },
+        "set": {
+            "service.status": "serviceOk"
+        },
+        "close": true
+    },
+    {
+        "on": {
+            "action.result": [
+                "financialClose"
+            ]
+        },
+        "new": [
+            {
+                "name": "financialClose",
+                "duetime": "{{#.now+1d}}",
+                "description": "Требуется получить финансовую информацию у партнёра по закрытой заявке",
+                "targetGroup": "back",
+                "priority": "3"
+            }
+        ],
+        "close": true
+    },
+    {
+        "on": {
+            "action.result": [
+                "caseClosedFinancialOk"
+            ]
+        },
+        "new": [
+            {
+                "name": "caseContinue",
+                "duetime": "{{#.now}}",
+                "description": "Услуга оказана, требуются ли клиенту ещё услуги?",
+                "targetGroup": "back",
+                "priority": "3"
+            }
+        ],
+        "close": true
+    },
+    {
+        "on": {
+            "deliverCar.status": [
+                "dealerConformation"
+            ],
+			"deliverParts.status": [
+                "dealerConformation"
+            ],
+			"hotel.status": [
+                "dealerConformation"
+            ],
+			"information.status": [
+                "dealerConformation"
+            ],
+			"rent.status": [
+                "dealerConformation"
+            ],
+			"sober.status": [
+                "dealerConformation"
+            ],
+			"taxi.status": [
+                "dealerConformation"
+            ],
+			"tech.status": [
+                "dealerConformation"
+            ],
+			"towage.status": [
+                "dealerConformation"
+            ],
+			"transportation.status": [
+                "dealerConformation"
+            ]
+        },
+        "new": [
+            {
+                "name": "dealerApproval",
+                "duetime": "{{#.now}}",
+                "description": "Требуется согласовать оказание услуги с дилером",
+                "targetGroup": "back"
+            }
+        ],
+        "close": true
+    },
+    {
+        "on": {
+            "deliverCar.status": [
+                "makerConformation"
+            ],
+			"deliverParts.status": [
+                "makerConformation"
+            ],
+			"hotel.status": [
+                "makerConformation"
+            ],
+			"information.status": [
+                "makerConformation"
+            ],
+			"rent.status": [
+                "makerConformation"
+            ],
+			"sober.status": [
+                "makerConformation"
+            ],
+			"taxi.status": [
+                "makerConformation"
+            ],
+			"tech.status": [
+                "makerConformation"
+            ],
+			"towage.status": [
+                "makerConformation"
+            ],
+			"transportation.status": [
+                "makerConformation"
+            ]
+        },
+        "new": [
+            {
+                "name": "carmakerApproval",
+                "duetime": "{{#.now}}",
+                "description": "Требуется согласовать оказание услуги с автопроизводителем",
+                "targetGroup": "head"
+            }
+        ],
+        "close": true
+    },
+    {
+        "on": {
+            "deliverCar.status": [
+                "mechanicConf"
+            ],
+			"deliverParts.status": [
+                "mechanicConf"
+            ],
+			"hotel.status": [
+                "mechanicConf"
+            ],
+			"information.status": [
+                "mechanicConf"
+            ],
+			"rent.status": [
+                "mechanicConf"
+            ],
+			"sober.status": [
+                "mechanicConf"
+            ],
+			"taxi.status": [
+                "mechanicConf"
+            ],
+			"tech.status": [
+                "mechanicConf"
+            ],
+			"towage.status": [
+                "mechanicConf"
+            ],
+			"transportation.status": [
+                "mechanicConf"
+            ]
+        },
+        "new": [
+            {
+                "name": "mechanicConf",
+                "duetime": "{{#.now}}",
+                "description": "Требуется конференция с механиком",
+                "targetGroup": "back"
+            }
+        ],
+        "close": true
+    },
+    {
+        "on": {
+            "deliverCar.status": [
+                "dealerConf"
+            ],
+			"deliverParts.status": [
+                "dealerConf"
+            ],
+			"hotel.status": [
+                "dealerConf"
+            ],
+			"information.status": [
+                "dealerConf"
+            ],
+			"rent.status": [
+                "dealerConf"
+            ],
+			"sober.status": [
+                "dealerConf"
+            ],
+			"taxi.status": [
+                "dealerConf"
+            ],
+			"tech.status": [
+                "dealerConf"
+            ],
+			"towage.status": [
+                "dealerConf"
+            ],
+			"transportation.status": [
+                "dealerConf"
+            ]
+        },
+        "new": [
+            {
+                "name": "dealerConf",
+                "duetime": "{{#.now}}",
+                "description": "Требуется конференция с дилером",
+                "targetGroup": "back"
+            }
+        ],
+        "close": true
+    }
+]

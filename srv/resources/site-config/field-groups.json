@@ -143,6 +143,24 @@
             "meta": {
                 "label": "Пробег на последнем ТО"
             }
+        },
+        {
+            "name": "makeCode",
+            "meta": {
+                "label": "Код марки автомобиля"
+            }
+        },
+        {
+            "name": "modelCode",
+            "meta": {
+                "label": "Код модели автомобиля"
+            }
+        },
+        {
+            "name": "faultCode",
+            "meta": {
+                "label": "Код неиправности автомобиля"
+            }
         }
     ],
     "cardNumber": [
@@ -323,7 +341,7 @@
                         "label": "Услуги"
                     },
                     {
-                        "name": "address",
+                        "name": "tarif",
                         "label": "Тариф"
                     }
                 ]

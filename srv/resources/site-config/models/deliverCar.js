@@ -385,7 +385,8 @@
             ],
             "type": "date",
             "meta": {
-                "label": "Дата окончания ремонта"
+                "label": "Дата окончания ремонта",
+                "infoText": "date"
             }
         },
         {
@@ -404,7 +405,8 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "FalseStatuses",
-                "label": "Ложный вызов"
+                "label": "Ложный вызов",
+                "infoText": "falsecall"
             }
         },
         {
@@ -418,7 +420,8 @@
             ],
             "type": "date",
             "meta": {
-                "label": "Дата выставления счёта"
+                "label": "Дата выставления счёта",
+                "infoText": "date"
             }
         },
         {
