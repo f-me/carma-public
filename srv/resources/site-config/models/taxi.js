@@ -243,7 +243,7 @@
             ],
             "meta": {
                 "label": "Ожидаемая стоимость",
-                "infoText": "expactedValue"
+                "infoText": "expextedValue"
             }
         },
         {
