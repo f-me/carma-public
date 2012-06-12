@@ -1,0 +1,67 @@
+{
+    "entries": [
+        {
+            "value": "tech",
+            "label": "Техпомощь",
+            "icon": "cog"
+        },
+        {
+            "value": "towage",
+            "label": "Эвакуация"
+        },
+        {
+            "value": "rent",
+            "label": "Подменный автомобиль",
+            "icon": "road"
+        },
+        {
+            "value": "hotel",
+            "label": "Гостиница"
+        },
+        {
+            "value": "taxi",
+            "label": "Такси"
+        },
+        {
+            "value": "sober",
+            "label": "Трезвый водитель",
+            "icon": "glass"
+        },
+        {
+            "value": "transportation",
+            "label": "Транспортировка"
+        },
+        {
+            "value": "deliverCar",
+            "label": "Доставка ТС"
+        },
+        {
+            "value": "deliverParts",
+            "label": "Доставка запчастей"
+        },
+        {
+            "value": "ken",
+            "label": "Юридическая помощь"
+        },
+        {
+            "value": "tech1",
+            "label": "ТО"
+        },
+        {
+            "value": "information",
+            "label": "Информирование о происшествии"
+        },
+        {
+            "value": "bank",
+            "label": "Банковская поддержка"
+        },
+        {
+            "value": "tickets",
+            "label": "Заказ билетов"
+        },
+        {
+            "value": "unfuel",
+            "label": "Слив топлива"
+        }
+    ]
+}

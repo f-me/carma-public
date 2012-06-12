@@ -1,0 +1,1692 @@
+{
+    "entries": [
+        {
+            "value": "Abinsk",
+            "label": "Абинск"
+        },
+        {
+            "value": "Agryz",
+            "label": "Агрыз"
+        },
+        {
+            "value": "Adler",
+            "label": "Адлер"
+        },
+        {
+            "value": "Adygejsk",
+            "label": "Адыгейск"
+        },
+        {
+            "value": "Aznakaevo",
+            "label": "Азнакаево"
+        },
+        {
+            "value": "Azov",
+            "label": "Азов"
+        },
+        {
+            "value": "Alapaevsk",
+            "label": "Алапаевск"
+        },
+        {
+            "value": "Aleksandrov",
+            "label": "Александров"
+        },
+        {
+            "value": "Aleksin",
+            "label": "Алексин"
+        },
+        {
+            "value": "Al'met'evsk",
+            "label": "Альметьевск"
+        },
+        {
+            "value": "Anapa",
+            "label": "Анапа"
+        },
+        {
+            "value": "Angarsk",
+            "label": "Ангарск"
+        },
+        {
+            "value": "Anzhero-Sudzhensk",
+            "label": "Анжеро-Судженск"
+        },
+        {
+            "value": "Apatity",
+            "label": "Апатиты"
+        },
+        {
+            "value": "Apejsk",
+            "label": "Апейск"
+        },
+        {
+            "value": "Aprelevka",
+            "label": "Апрелевка"
+        },
+        {
+            "value": "Aramil'",
+            "label": "Арамиль"
+        },
+        {
+            "value": "Aretemovskij",
+            "label": "Аретемовский"
+        },
+        {
+            "value": "Arzamas",
+            "label": "Арзамас"
+        },
+        {
+            "value": "Armavir",
+            "label": "Армавир"
+        },
+        {
+            "value": "Arsk",
+            "label": "Арск"
+        },
+        {
+            "value": "Artem",
+            "label": "Артем"
+        },
+        {
+            "value": "Arkhangel'sk",
+            "label": "Архангельск"
+        },
+        {
+            "value": "Asbest",
+            "label": "Асбест"
+        },
+        {
+            "value": "Asino",
+            "label": "Асино"
+        },
+        {
+            "value": "Astrakhan'",
+            "label": "Астрахань"
+        },
+        {
+            "value": "Atkarsk",
+            "label": "Аткарск"
+        },
+        {
+            "value": "Bajkal'sk",
+            "label": "Байкальск"
+        },
+        {
+            "value": "Balakhna",
+            "label": "Балахна"
+        },
+        {
+            "value": "Balashikha",
+            "label": "Балашиха"
+        },
+        {
+            "value": "Baltijsk",
+            "label": "Балтийск"
+        },
+        {
+            "value": "Barnaul",
+            "label": "Барнаул"
+        },
+        {
+            "value": "Batajsk",
+            "label": "Батайск"
+        },
+        {
+            "value": "Belaya Kalitva",
+            "label": "Белая Калитва"
+        },
+        {
+            "value": "Belgorod",
+            "label": "Белгород"
+        },
+        {
+            "value": "Belogorsk",
+            "label": "Белогорск"
+        },
+        {
+            "value": "Belorechensk",
+            "label": "Белореченск"
+        },
+        {
+            "value": "Berdsk",
+            "label": "Бердск"
+        },
+        {
+            "value": "Berezniki",
+            "label": "Березники"
+        },
+        {
+            "value": "Berezovskij",
+            "label": "Березовский"
+        },
+        {
+            "value": "Bijsk",
+            "label": "Бийск"
+        },
+        {
+            "value": "Birsk",
+            "label": "Бирск"
+        },
+        {
+            "value": "Blagoveschensk",
+            "label": "Благовещенск"
+        },
+        {
+            "value": "Bogdanovich",
+            "label": "Богданович"
+        },
+        {
+            "value": "Bogorodsk",
+            "label": "Богородск"
+        },
+        {
+            "value": "Bolkhov",
+            "label": "Болхов"
+        },
+        {
+            "value": "Bol'shoj Kamen'",
+            "label": "Большой Камень"
+        },
+        {
+            "value": "Bor",
+            "label": "Бор"
+        },
+        {
+            "value": "Bronnitsy",
+            "label": "Бронницы"
+        },
+        {
+            "value": "Bryansk",
+            "label": "Брянск"
+        },
+        {
+            "value": "Bugul'ma",
+            "label": "Бугульма"
+        },
+        {
+            "value": "Budenovsk",
+            "label": "Буденовск"
+        },
+        {
+            "value": "Buinsk",
+            "label": "Буинск"
+        },
+        {
+            "value": "Valujki",
+            "label": "Валуйки"
+        },
+        {
+            "value": "Velikij Novgorod",
+            "label": "Великий Новгород"
+        },
+        {
+            "value": "Velikij Ustyug",
+            "label": "Великий Устюг"
+        },
+        {
+            "value": "Venev",
+            "label": "Венев"
+        },
+        {
+            "value": "Vereschagino",
+            "label": "Верещагино"
+        },
+        {
+            "value": "Verkhneural'sk",
+            "label": "Верхнеуральск"
+        },
+        {
+            "value": "Verkhnij Tagil",
+            "label": "Верхний Тагил"
+        },
+        {
+            "value": "Verkhnyaya Pyshma",
+            "label": "Верхняя Пышма"
+        },
+        {
+            "value": "Vidnoe",
+            "label": "Видное"
+        },
+        {
+            "value": "Vichuga",
+            "label": "Вичуга"
+        },
+        {
+            "value": "Vladivostok",
+            "label": "Владивосток"
+        },
+        {
+            "value": "Vladikavkaz",
+            "label": "Владикавказ"
+        },
+        {
+            "value": "Vladimir",
+            "label": "Владимир"
+        },
+        {
+            "value": "Voznesen'e",
+            "label": "Вознесенье"
+        },
+        {
+            "value": "Volgograd",
+            "label": "Волгоград"
+        },
+        {
+            "value": "Volzhskij",
+            "label": "Волжский"
+        },
+        {
+            "value": "Volzhskij",
+            "label": "Волжский"
+        },
+        {
+            "value": "Vologda",
+            "label": "Вологда"
+        },
+        {
+            "value": "Volokolamsk",
+            "label": "Волоколамск"
+        },
+        {
+            "value": "Volkhov",
+            "label": "Волхов"
+        },
+        {
+            "value": "Voronezh",
+            "label": "Воронеж"
+        },
+        {
+            "value": "Vorsma",
+            "label": "Ворсма"
+        },
+        {
+            "value": "Voskresensk",
+            "label": "Воскресенск"
+        },
+        {
+            "value": "Votkinsk",
+            "label": "Воткинск"
+        },
+        {
+            "value": "Vsevolozhsk",
+            "label": "Всеволожск"
+        },
+        {
+            "value": "Vyborg",
+            "label": "Выборг"
+        },
+        {
+            "value": "Vyshnyj Volochek",
+            "label": "Вышный Волочек"
+        },
+        {
+            "value": "Vyazniki",
+            "label": "Вязники"
+        },
+        {
+            "value": "Gavrilov YAm",
+            "label": "Гаврилов Ям"
+        },
+        {
+            "value": "Galich",
+            "label": "Галич"
+        },
+        {
+            "value": "Gatchina",
+            "label": "Гатчина"
+        },
+        {
+            "value": "Gvardejsk",
+            "label": "Гвардейск"
+        },
+        {
+            "value": "Gelendzhik",
+            "label": "Геленджик"
+        },
+        {
+            "value": "Georgievsk",
+            "label": "Георгиевск"
+        },
+        {
+            "value": "Gorodetsk",
+            "label": "Городецк"
+        },
+        {
+            "value": "Gremyachinsk",
+            "label": "Гремячинск"
+        },
+        {
+            "value": "gryazovo",
+            "label": "грязово"
+        },
+        {
+            "value": "Gubakha",
+            "label": "Губаха"
+        },
+        {
+            "value": "Gubkin",
+            "label": "Губкин"
+        },
+        {
+            "value": "Gukovo",
+            "label": "Гуково"
+        },
+        {
+            "value": "Gus' KHrustal'nyj",
+            "label": "Гусь Хрустальный"
+        },
+        {
+            "value": "Danilov",
+            "label": "Данилов"
+        },
+        {
+            "value": "Dedovsk",
+            "label": "Дедовск"
+        },
+        {
+            "value": "Dzerzhinsk",
+            "label": "Дзержинск"
+        },
+        {
+            "value": "Divnogorsk",
+            "label": "Дивногорск"
+        },
+        {
+            "value": "Dmitrov",
+            "label": "Дмитров"
+        },
+        {
+            "value": "Dmitrovgrad",
+            "label": "Дмитровград"
+        },
+        {
+            "value": "Dno",
+            "label": "Дно"
+        },
+        {
+            "value": "Dobryanka",
+            "label": "Добрянка"
+        },
+        {
+            "value": "Dolgoprudnyj",
+            "label": "Долгопрудный"
+        },
+        {
+            "value": "Domodedovo",
+            "label": "Домодедово"
+        },
+        {
+            "value": "Dubna",
+            "label": "Дубна"
+        },
+        {
+            "value": "Dyat'kovo",
+            "label": "Дятьково"
+        },
+        {
+            "value": "Egor'evsk",
+            "label": "Егорьевск"
+        },
+        {
+            "value": "Ejsk",
+            "label": "Ейск"
+        },
+        {
+            "value": "Ekaterinburg",
+            "label": "Екатеринбург"
+        },
+        {
+            "value": "Elabuga",
+            "label": "Елабуга"
+        },
+        {
+            "value": "Elets",
+            "label": "Елец"
+        },
+        {
+            "value": "Essentuki",
+            "label": "Ессентуки"
+        },
+        {
+            "value": "ZHeznogorsk",
+            "label": "Жезногорск"
+        },
+        {
+            "value": "ZHeleznovodsk",
+            "label": "Железноводск"
+        },
+        {
+            "value": "ZHeleznodorozhnyj",
+            "label": "Железнодорожный"
+        },
+        {
+            "value": "ZHigulevsk",
+            "label": "Жигулевск"
+        },
+        {
+            "value": "ZHukovskij",
+            "label": "Жуковский"
+        },
+        {
+            "value": "Zavolzhsk",
+            "label": "Заволжск"
+        },
+        {
+            "value": "Zainsk",
+            "label": "Заинск"
+        },
+        {
+            "value": "Zaozernyj",
+            "label": "Заозерный"
+        },
+        {
+            "value": "Zapolyar'e",
+            "label": "Заполярье"
+        },
+        {
+            "value": "Zarajsk",
+            "label": "Зарайск"
+        },
+        {
+            "value": "Zarechnyj",
+            "label": "Заречный"
+        },
+        {
+            "value": "Zarinsk",
+            "label": "Заринск"
+        },
+        {
+            "value": "Zvenigorod",
+            "label": "Звенигород"
+        },
+        {
+            "value": "Zelenogorsk",
+            "label": "Зеленогорск"
+        },
+        {
+            "value": "Zelenodol'sk",
+            "label": "Зеленодольск"
+        },
+        {
+            "value": "Zelenokumsk",
+            "label": "Зеленокумск"
+        },
+        {
+            "value": "Zlatoust",
+            "label": "Златоуст"
+        },
+        {
+            "value": "Znamensk",
+            "label": "Знаменск"
+        },
+        {
+            "value": "Ivanovo",
+            "label": "Иваново"
+        },
+        {
+            "value": "Izhevsk",
+            "label": "Ижевск"
+        },
+        {
+            "value": "Ilovlya",
+            "label": "Иловля"
+        },
+        {
+            "value": "Joshkar-Ola",
+            "label": "Йошкар-Ола"
+        },
+        {
+            "value": "Irkutsk",
+            "label": "Иркутск"
+        },
+        {
+            "value": "Istra",
+            "label": "Истра"
+        },
+        {
+            "value": "Ishimbaj",
+            "label": "Ишимбай"
+        },
+        {
+            "value": "Kadnikov",
+            "label": "Кадников"
+        },
+        {
+            "value": "Kazan'",
+            "label": "Казань"
+        },
+        {
+            "value": "Kalach-na-Donu",
+            "label": "Калач-на-Дону"
+        },
+        {
+            "value": "Kaliningrad",
+            "label": "Калининград"
+        },
+        {
+            "value": "Kaluga",
+            "label": "Калуга"
+        },
+        {
+            "value": "Kalyazin",
+            "label": "Калязин"
+        },
+        {
+            "value": "Kamensk-Ural'skij",
+            "label": "Каменск-Уральский"
+        },
+        {
+            "value": "Kamensk-SHakhtinskij",
+            "label": "Каменск-Шахтинский"
+        },
+        {
+            "value": "Kamyshlov",
+            "label": "Камышлов"
+        },
+        {
+            "value": "Kanash",
+            "label": "Канаш"
+        },
+        {
+            "value": "Kandalaksha",
+            "label": "Кандалакша"
+        },
+        {
+            "value": "Karabanovo",
+            "label": "Карабаново"
+        },
+        {
+            "value": "Karabash",
+            "label": "Карабаш"
+        },
+        {
+            "value": "Karachev",
+            "label": "Карачев"
+        },
+        {
+            "value": "Kasimov",
+            "label": "Касимов"
+        },
+        {
+            "value": "Kemerovo",
+            "label": "Кемерово"
+        },
+        {
+            "value": "Kimovsk",
+            "label": "Кимовск"
+        },
+        {
+            "value": "Kingesepp",
+            "label": "Кингесепп"
+        },
+        {
+            "value": "Kinel'",
+            "label": "Кинель"
+        },
+        {
+            "value": "Kineshma",
+            "label": "Кинешма"
+        },
+        {
+            "value": "Kirzhach",
+            "label": "Киржач"
+        },
+        {
+            "value": "Kirillov",
+            "label": "Кириллов"
+        },
+        {
+            "value": "Kirov",
+            "label": "Киров"
+        },
+        {
+            "value": "Kirovograd",
+            "label": "Кировоград"
+        },
+        {
+            "value": "Kirovsk",
+            "label": "Кировск"
+        },
+        {
+            "value": "Kirsanov",
+            "label": "Кирсанов"
+        },
+        {
+            "value": "Kisilevsk",
+            "label": "Кисилевск"
+        },
+        {
+            "value": "Kislovodsk",
+            "label": "Кисловодск"
+        },
+        {
+            "value": "Klimovsk",
+            "label": "Климовск"
+        },
+        {
+            "value": "Klin",
+            "label": "Клин"
+        },
+        {
+            "value": "Kovrov",
+            "label": "Ковров"
+        },
+        {
+            "value": "Koz'modem'yansk",
+            "label": "Козьмодемьянск"
+        },
+        {
+            "value": "Kolomna",
+            "label": "Коломна"
+        },
+        {
+            "value": "Kol'chugino",
+            "label": "Кольчугино"
+        },
+        {
+            "value": "Komsomol'sk",
+            "label": "Комсомольск"
+        },
+        {
+            "value": "Kondopoga",
+            "label": "Кондопога"
+        },
+        {
+            "value": "Konstantinovsk",
+            "label": "Константиновск"
+        },
+        {
+            "value": "Kopejsk",
+            "label": "Копейск"
+        },
+        {
+            "value": "Korenovsk",
+            "label": "Кореновск"
+        },
+        {
+            "value": "Korolev",
+            "label": "Королев"
+        },
+        {
+            "value": "Korocha",
+            "label": "Короча"
+        },
+        {
+            "value": "Koryazhma",
+            "label": "Коряжма"
+        },
+        {
+            "value": "Kostroma",
+            "label": "Кострома"
+        },
+        {
+            "value": "Kotel'nich",
+            "label": "Котельнич"
+        },
+        {
+            "value": "Kotlas",
+            "label": "Котлас"
+        },
+        {
+            "value": "Kotovsk",
+            "label": "Котовск"
+        },
+        {
+            "value": "Kochenovsk",
+            "label": "Коченовск"
+        },
+        {
+            "value": "Krasnoarmejsk",
+            "label": "Красноармейск"
+        },
+        {
+            "value": "Krasnovishersk",
+            "label": "Красновишерск"
+        },
+        {
+            "value": "Krasnogorsk",
+            "label": "Красногорск"
+        },
+        {
+            "value": "Krasnodar",
+            "label": "Краснодар"
+        },
+        {
+            "value": "Krasnokamsk",
+            "label": "Краснокамск"
+        },
+        {
+            "value": "Krasnoyarsk",
+            "label": "Красноярск"
+        },
+        {
+            "value": "Kropotkin",
+            "label": "Кропоткин"
+        },
+        {
+            "value": "Krymsk",
+            "label": "Крымск"
+        },
+        {
+            "value": "Kuznetsk",
+            "label": "Кузнецк"
+        },
+        {
+            "value": "Kumertau",
+            "label": "Кумертау"
+        },
+        {
+            "value": "Kungur",
+            "label": "Кунгур"
+        },
+        {
+            "value": "Kurgan",
+            "label": "Курган"
+        },
+        {
+            "value": "Kursk",
+            "label": "Курск"
+        },
+        {
+            "value": "Kurtamysh",
+            "label": "Куртамыш"
+        },
+        {
+            "value": "Kutuluk",
+            "label": "Кутулук"
+        },
+        {
+            "value": "Kyshtym",
+            "label": "Кыштым"
+        },
+        {
+            "value": "Langepas",
+            "label": "Лангепас"
+        },
+        {
+            "value": "Lebedyan'",
+            "label": "Лебедянь"
+        },
+        {
+            "value": "Leninsk",
+            "label": "Ленинск"
+        },
+        {
+            "value": "Leninsk-Kuznetskij",
+            "label": "Ленинск-Кузнецкий"
+        },
+        {
+            "value": "Lermontov",
+            "label": "Лермонтов"
+        },
+        {
+            "value": "Lesnoe",
+            "label": "Лесное"
+        },
+        {
+            "value": "Liga",
+            "label": "Лига"
+        },
+        {
+            "value": "Lipetsk",
+            "label": "Липецк"
+        },
+        {
+            "value": "Liski",
+            "label": "Лиски"
+        },
+        {
+            "value": "Lobnya",
+            "label": "Лобня"
+        },
+        {
+            "value": "Lys'va",
+            "label": "Лысьва"
+        },
+        {
+            "value": "Lyubertsy",
+            "label": "Люберцы"
+        },
+        {
+            "value": "Magnitogorsk",
+            "label": "Магнитогорск"
+        },
+        {
+            "value": "Majkop",
+            "label": "Майкоп"
+        },
+        {
+            "value": "Malmyzh",
+            "label": "Малмыж"
+        },
+        {
+            "value": "Maloarkhangel'sk",
+            "label": "Малоархангельск"
+        },
+        {
+            "value": "Maloyaroslavets",
+            "label": "Малоярославец"
+        },
+        {
+            "value": "Mamadysh",
+            "label": "Мамадыш"
+        },
+        {
+            "value": "Marks",
+            "label": "Маркс"
+        },
+        {
+            "value": "Megion",
+            "label": "Мегион"
+        },
+        {
+            "value": "Mednogorsk",
+            "label": "Медногорск"
+        },
+        {
+            "value": "Mezhdurechensk",
+            "label": "Междуреченск"
+        },
+        {
+            "value": "Mezelinsk",
+            "label": "Мезелинск"
+        },
+        {
+            "value": "Melenki",
+            "label": "Меленки"
+        },
+        {
+            "value": "Meliuz",
+            "label": "Мелиуз"
+        },
+        {
+            "value": "Mendeleevsk",
+            "label": "Менделеевск"
+        },
+        {
+            "value": "Miass",
+            "label": "Миасс"
+        },
+        {
+            "value": "Mineral'nye Vody",
+            "label": "Минеральные Воды"
+        },
+        {
+            "value": "Mikhajlov",
+            "label": "Михайлов"
+        },
+        {
+            "value": "Mikhajlovsk",
+            "label": "Михайловск"
+        },
+        {
+            "value": "Michurinsk",
+            "label": "Мичуринск"
+        },
+        {
+            "value": "Mozhajsk",
+            "label": "Можайск"
+        },
+        {
+            "value": "Mozhga",
+            "label": "Можга"
+        },
+        {
+            "value": "Monchegorsk",
+            "label": "Мончегорск"
+        },
+        {
+            "value": "Morshansk",
+            "label": "Моршанск"
+        },
+        {
+            "value": "Moskva",
+            "label": "Москва"
+        },
+        {
+            "value": "Murmansk",
+            "label": "Мурманск"
+        },
+        {
+            "value": "Mtsensk",
+            "label": "Мценск"
+        },
+        {
+            "value": "Mytischi",
+            "label": "Мытищи"
+        },
+        {
+            "value": "Myshkin",
+            "label": "Мышкин"
+        },
+        {
+            "value": "Nizhnij Novgorod",
+            "label": "Нижний Новгород"
+        },
+        {
+            "value": "Naberezhnye CHelny",
+            "label": "Набережные Челны"
+        },
+        {
+            "value": "Nal'chik",
+            "label": "Нальчик"
+        },
+        {
+            "value": "Narimanov",
+            "label": "Нариманов"
+        },
+        {
+            "value": "Naro-Fominsk",
+            "label": "Наро-Фоминск"
+        },
+        {
+            "value": "Nakhodka",
+            "label": "Находка"
+        },
+        {
+            "value": "Nevinnomysk",
+            "label": "Невинномыск"
+        },
+        {
+            "value": "Nerekhta",
+            "label": "Нерехта"
+        },
+        {
+            "value": "Neftegorsk",
+            "label": "Нефтегорск"
+        },
+        {
+            "value": "Neftekamsk",
+            "label": "Нефтекамск"
+        },
+        {
+            "value": "Nizhnevartovsk",
+            "label": "Нижневартовск"
+        },
+        {
+            "value": "Nizhnekamsk",
+            "label": "Нижнекамск"
+        },
+        {
+            "value": "Nizhnij Tagil",
+            "label": "Нижний Тагил"
+        },
+        {
+            "value": "Novaya Ladoga",
+            "label": "Новая Ладога"
+        },
+        {
+            "value": "Novodvinsk",
+            "label": "Новодвинск"
+        },
+        {
+            "value": "Novokuznetsk",
+            "label": "Новокузнецк"
+        },
+        {
+            "value": "Novokujbyshevsk",
+            "label": "Новокуйбышевск"
+        },
+        {
+            "value": "Novomichurinsk",
+            "label": "Новомичуринск"
+        },
+        {
+            "value": "Novomoskovsk",
+            "label": "Новомосковск"
+        },
+        {
+            "value": "Novopavlovsk",
+            "label": "Новопавловск"
+        },
+        {
+            "value": "Novorossijsk",
+            "label": "Новороссийск"
+        },
+        {
+            "value": "Novosibirsk",
+            "label": "Новосибирск"
+        },
+        {
+            "value": "Novoul'yanovsk",
+            "label": "Новоульяновск"
+        },
+        {
+            "value": "Novoural'sk",
+            "label": "Новоуральск"
+        },
+        {
+            "value": "Novocheboksarsk",
+            "label": "Новочебоксарск"
+        },
+        {
+            "value": "Novocherkassk",
+            "label": "Новочеркасск"
+        },
+        {
+            "value": "Novoshakhtinsk",
+            "label": "Новошахтинск"
+        },
+        {
+            "value": "Novyj Oskol",
+            "label": "Новый Оскол"
+        },
+        {
+            "value": "Noginsk",
+            "label": "Ногинск"
+        },
+        {
+            "value": "Nurlat",
+            "label": "Нурлат"
+        },
+        {
+            "value": "Nytva",
+            "label": "Нытва"
+        },
+        {
+            "value": "Obninsk",
+            "label": "Обнинск"
+        },
+        {
+            "value": "Odintsovo",
+            "label": "Одинцово"
+        },
+        {
+            "value": "Ozersk",
+            "label": "Озерск"
+        },
+        {
+            "value": "Ozery",
+            "label": "Озеры"
+        },
+        {
+            "value": "Oktyabr'skij",
+            "label": "Октябрьский"
+        },
+        {
+            "value": "Olenegorsk",
+            "label": "Оленегорск"
+        },
+        {
+            "value": "Olonets",
+            "label": "Олонец"
+        },
+        {
+            "value": "Omsk",
+            "label": "Омск"
+        },
+        {
+            "value": "Orel",
+            "label": "Орел"
+        },
+        {
+            "value": "Orenburg",
+            "label": "Оренбург"
+        },
+        {
+            "value": "Orekhovo-Zuevo",
+            "label": "Орехово-Зуево"
+        },
+        {
+            "value": "Orsk",
+            "label": "Орск"
+        },
+        {
+            "value": "Osa",
+            "label": "Оса"
+        },
+        {
+            "value": "Ostrov",
+            "label": "Остров"
+        },
+        {
+            "value": "Otradnoe",
+            "label": "Отрадное"
+        },
+        {
+            "value": "Otradnyj",
+            "label": "Отрадный"
+        },
+        {
+            "value": "Okhansk",
+            "label": "Оханск"
+        },
+        {
+            "value": "Partizansk",
+            "label": "Партизанск"
+        },
+        {
+            "value": "Penza",
+            "label": "Пенза"
+        },
+        {
+            "value": "Pervoural'sk",
+            "label": "Первоуральск"
+        },
+        {
+            "value": "Peresvet",
+            "label": "Пересвет"
+        },
+        {
+            "value": "Perm'",
+            "label": "Пермь"
+        },
+        {
+            "value": "Petrovsk",
+            "label": "Петровск"
+        },
+        {
+            "value": "Petrozavodsk",
+            "label": "Петрозаводск"
+        },
+        {
+            "value": "Petushki",
+            "label": "Петушки"
+        },
+        {
+            "value": "Pionerskij",
+            "label": "Пионерский"
+        },
+        {
+            "value": "Ples",
+            "label": "Плес"
+        },
+        {
+            "value": "Podol'sk",
+            "label": "Подольск"
+        },
+        {
+            "value": "Pokrov",
+            "label": "Покров"
+        },
+        {
+            "value": "Polevskoj",
+            "label": "Полевской"
+        },
+        {
+            "value": "Polessk",
+            "label": "Полесск"
+        },
+        {
+            "value": "Polyarnyj Zori",
+            "label": "Полярный Зори"
+        },
+        {
+            "value": "Pravdinskij",
+            "label": "Правдинский"
+        },
+        {
+            "value": "Predivinsk",
+            "label": "Предивинск"
+        },
+        {
+            "value": "Privolzhsk",
+            "label": "Приволжск"
+        },
+        {
+            "value": "Primorsk",
+            "label": "Приморск"
+        },
+        {
+            "value": "Prokop'evsk",
+            "label": "Прокопьевск"
+        },
+        {
+            "value": "Pskov",
+            "label": "Псков"
+        },
+        {
+            "value": "Pushkin",
+            "label": "Пушкин"
+        },
+        {
+            "value": "Pushkino",
+            "label": "Пушкино"
+        },
+        {
+            "value": "Pyt'-YAkh",
+            "label": "Пыть-Ях"
+        },
+        {
+            "value": "Pyatigorsk",
+            "label": "Пятигорск"
+        },
+        {
+            "value": "Ramenskoe",
+            "label": "Раменское"
+        },
+        {
+            "value": "Revda",
+            "label": "Ревда"
+        },
+        {
+            "value": "Rzhev",
+            "label": "Ржев"
+        },
+        {
+            "value": "Roslavl'",
+            "label": "Рославль"
+        },
+        {
+            "value": "Rostov",
+            "label": "Ростов"
+        },
+        {
+            "value": "Rostov-na-Donu",
+            "label": "Ростов-на-Дону"
+        },
+        {
+            "value": "Roshal'",
+            "label": "Рошаль"
+        },
+        {
+            "value": "Ruza",
+            "label": "Руза"
+        },
+        {
+            "value": "Rybinsk",
+            "label": "Рыбинск"
+        },
+        {
+            "value": "Rybnoe",
+            "label": "Рыбное"
+        },
+        {
+            "value": "Ryl'sk",
+            "label": "Рыльск"
+        },
+        {
+            "value": "Ryazhsk",
+            "label": "Ряжск"
+        },
+        {
+            "value": "Ryazan'",
+            "label": "Рязань"
+        },
+        {
+            "value": "Salavat",
+            "label": "Салават"
+        },
+        {
+            "value": "Samara",
+            "label": "Самара"
+        },
+        {
+            "value": "Sankt-Peterburg",
+            "label": "Санкт-Петербург"
+        },
+        {
+            "value": "Saransk",
+            "label": "Саранск"
+        },
+        {
+            "value": "Sarapul",
+            "label": "Сарапул"
+        },
+        {
+            "value": "Saratov",
+            "label": "Саратов"
+        },
+        {
+            "value": "Svetlograd",
+            "label": "Светлоград"
+        },
+        {
+            "value": "Svetlyj YAr",
+            "label": "Светлый Яр"
+        },
+        {
+            "value": "Severodvinsk",
+            "label": "Северодвинск"
+        },
+        {
+            "value": "Severomorsk",
+            "label": "Североморск"
+        },
+        {
+            "value": "Seversk",
+            "label": "Северск"
+        },
+        {
+            "value": "Semenov",
+            "label": "Семенов"
+        },
+        {
+            "value": "Sergiev Posad",
+            "label": "Сергиев Посад"
+        },
+        {
+            "value": "Serdobsk",
+            "label": "Сердобск"
+        },
+        {
+            "value": "Serpukhov",
+            "label": "Серпухов"
+        },
+        {
+            "value": "Sestroretsk",
+            "label": "Сестрорецк"
+        },
+        {
+            "value": "Skopin",
+            "label": "Скопин"
+        },
+        {
+            "value": "Slavsk",
+            "label": "Славск"
+        },
+        {
+            "value": "Slavyansk-na-Kubani",
+            "label": "Славянск-на-Кубани"
+        },
+        {
+            "value": "Smolensk",
+            "label": "Смоленск"
+        },
+        {
+            "value": "Snezhinsk",
+            "label": "Снежинск"
+        },
+        {
+            "value": "Sovetsk",
+            "label": "Советск"
+        },
+        {
+            "value": "Solikamsk",
+            "label": "Соликамск"
+        },
+        {
+            "value": "Solnechnogorsk",
+            "label": "Солнечногорск"
+        },
+        {
+            "value": "Sol'-Iletsk",
+            "label": "Соль-Илецк"
+        },
+        {
+            "value": "Sosnovoborsk",
+            "label": "Сосновоборск"
+        },
+        {
+            "value": "Sochi",
+            "label": "Сочи"
+        },
+        {
+            "value": "Spask Ryazanskij",
+            "label": "Спаск Рязанский"
+        },
+        {
+            "value": "Spas-Klepiki",
+            "label": "Спас-Клепики"
+        },
+        {
+            "value": "Sredneural'sk",
+            "label": "Среднеуральск"
+        },
+        {
+            "value": "Stavropol'",
+            "label": "Ставрополь"
+        },
+        {
+            "value": "Staryj Oskol",
+            "label": "Старый Оскол"
+        },
+        {
+            "value": "Sterlitamak",
+            "label": "Стерлитамак"
+        },
+        {
+            "value": "Stupino",
+            "label": "Ступино"
+        },
+        {
+            "value": "Suzdal'",
+            "label": "Суздаль"
+        },
+        {
+            "value": "Surgut",
+            "label": "Сургут"
+        },
+        {
+            "value": "Sukhoj Log",
+            "label": "Сухой Лог"
+        },
+        {
+            "value": "Syzran'",
+            "label": "Сызрань"
+        },
+        {
+            "value": "Syktyvkar",
+            "label": "Сыктывкар"
+        },
+        {
+            "value": "Taganrog",
+            "label": "Таганрог"
+        },
+        {
+            "value": "Taldom",
+            "label": "Талдом"
+        },
+        {
+            "value": "Tambov",
+            "label": "Тамбов"
+        },
+        {
+            "value": "Tver'",
+            "label": "Тверь"
+        },
+        {
+            "value": "Temryuk",
+            "label": "Темрюк"
+        },
+        {
+            "value": "Tetyushi",
+            "label": "Тетюши"
+        },
+        {
+            "value": "Timashevsk",
+            "label": "Тимашевск"
+        },
+        {
+            "value": "Tol'yatti",
+            "label": "Тольятти"
+        },
+        {
+            "value": "Tomsk",
+            "label": "Томск"
+        },
+        {
+            "value": "Torzhok",
+            "label": "Торжок"
+        },
+        {
+            "value": "Tosno",
+            "label": "Тосно"
+        },
+        {
+            "value": "Troitsk",
+            "label": "Троицк"
+        },
+        {
+            "value": "Trubchevsk",
+            "label": "Трубчевск"
+        },
+        {
+            "value": "Tuapse",
+            "label": "Туапсе"
+        },
+        {
+            "value": "Tujmazy",
+            "label": "Туймазы"
+        },
+        {
+            "value": "Tula",
+            "label": "Тула"
+        },
+        {
+            "value": "Tutaev",
+            "label": "Тутаев"
+        },
+        {
+            "value": "Tyumen'",
+            "label": "Тюмень"
+        },
+        {
+            "value": "Uglich",
+            "label": "Углич"
+        },
+        {
+            "value": "Ul'yanovsk",
+            "label": "Ульяновск"
+        },
+        {
+            "value": "Usol'e Sibirskoe",
+            "label": "Усолье Сибирское"
+        },
+        {
+            "value": "Ussurijsk",
+            "label": "Уссурийск"
+        },
+        {
+            "value": "Ufa",
+            "label": "Уфа"
+        },
+        {
+            "value": "Uyar",
+            "label": "Уяр"
+        },
+        {
+            "value": "KHabarovsk",
+            "label": "Хабаровск"
+        },
+        {
+            "value": "KHimki",
+            "label": "Химки"
+        },
+        {
+            "value": "TSivil'sk",
+            "label": "Цивильск"
+        },
+        {
+            "value": "CHajkovskij",
+            "label": "Чайковский"
+        },
+        {
+            "value": "CHapaevsk",
+            "label": "Чапаевск"
+        },
+        {
+            "value": "CHebarkul'",
+            "label": "Чебаркуль"
+        },
+        {
+            "value": "CHeboksary",
+            "label": "Чебоксары"
+        },
+        {
+            "value": "CHelyabinsk",
+            "label": "Челябинск"
+        },
+        {
+            "value": "CHerdyn'",
+            "label": "Чердынь"
+        },
+        {
+            "value": "CHerepovets",
+            "label": "Череповец"
+        },
+        {
+            "value": "CHerkessk",
+            "label": "Черкесск"
+        },
+        {
+            "value": "CHermoz",
+            "label": "Чермоз"
+        },
+        {
+            "value": "CHernyakhovsk",
+            "label": "Черняховск"
+        },
+        {
+            "value": "CHekhov",
+            "label": "Чехов"
+        },
+        {
+            "value": "CHistopol'",
+            "label": "Чистополь"
+        },
+        {
+            "value": "CHita",
+            "label": "Чита"
+        },
+        {
+            "value": "CHudovo",
+            "label": "Чудово"
+        },
+        {
+            "value": "CHusovoj",
+            "label": "Чусовой"
+        },
+        {
+            "value": "SHatura",
+            "label": "Шатура"
+        },
+        {
+            "value": "SHakhty",
+            "label": "Шахты"
+        },
+        {
+            "value": "SHelekhov",
+            "label": "Шелехов"
+        },
+        {
+            "value": "SHumerlya",
+            "label": "Шумерля"
+        },
+        {
+            "value": "SCHebekino",
+            "label": "Щебекино"
+        },
+        {
+            "value": "SCHelkovo",
+            "label": "Щелково"
+        },
+        {
+            "value": "Elektrostal'",
+            "label": "Электросталь"
+        },
+        {
+            "value": "Elektrougli",
+            "label": "Электроугли"
+        },
+        {
+            "value": "Engel's",
+            "label": "Энгельс"
+        },
+        {
+            "value": "YUrga",
+            "label": "Юрга"
+        },
+        {
+            "value": "YAkutsk",
+            "label": "Якутск"
+        },
+        {
+            "value": "YAnaul",
+            "label": "Янаул"
+        },
+        {
+            "value": "YAransk",
+            "label": "Яранск"
+        },
+        {
+            "value": "YAroslavl'",
+            "label": "Ярославль"
+        },
+        {
+            "value": "YAsnogorsk",
+            "label": "Ясногорск"
+        }
+    ]
+}

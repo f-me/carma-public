@@ -1,0 +1,24 @@
+{
+    "entries": [
+        {
+            "value": "evac",
+            "label": "Эвакуатор"
+        },
+        {
+            "value": "manip",
+            "label": "Манипулятор"
+        },
+        {
+            "value": "carts",
+            "label": "Подкатные тележки"
+        },
+        {
+            "value": "heavy",
+            "label": "Грузовой эвакуатор"
+        },
+        {
+            "value": "longcat",
+            "label": "Длиннобазный автомобиль"
+        }
+    ]
+}

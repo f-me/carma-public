@@ -1,0 +1,20 @@
+{
+    "entries": [
+        {
+            "value": "ruamc",
+            "label": "РАМК"
+        },
+        {
+            "value": "client",
+            "label": "Клиент"
+        },
+        {
+            "value": "mixed",
+            "label": "Смешанный"
+        },
+        {
+            "value": "refund",
+            "label": "Клиент с возмещением"
+        }
+    ]
+}

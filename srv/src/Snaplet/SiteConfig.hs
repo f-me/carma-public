@@ -5,6 +5,7 @@ module Snaplet.SiteConfig
   ,SiteConfig(..)
   ) where
 
+import Control.Applicative
 import Control.Monad.State
 import Data.Map (Map)
 import qualified Data.Map as M
@@ -19,15 +20,18 @@ import Snap.Snaplet.Auth
 ----------------------------------------------------------------------
 import Snaplet.SiteConfig.Types
 import Snaplet.SiteConfig.Models
+import Snaplet.SiteConfig.Dictionaries
 import Snaplet.SiteConfig.Permissions
 
 
 data SiteConfig b = SiteConfig
-  {auth'  :: Lens b (Snaplet (AuthManager b))
-  ,models :: Map ModelName Model
+  {auth'        :: Lens b (Snaplet (AuthManager b))
+  ,models       :: Map ModelName Model
+  ,dictionaries :: Aeson.Value
   }
 
 
+serveModels :: Handler b (SiteConfig b) ()
 serveModels = ifTop $ do
   mcu <- gets auth' >>= flip withTop currentUser
   case mcu of
@@ -40,6 +44,12 @@ serveModels = ifTop $ do
       writeLBS $ Aeson.encode
                $ M.map (stripModel $ Right cu) ms
 
+serveDictionaries :: Handler b (SiteConfig b) ()
+serveDictionaries = ifTop $ do
+  ds <- gets dictionaries
+  modifyResponse $ setContentType "application/json"
+  writeLBS $ Aeson.encode ds
+
 
 initSiteConfig
   :: Lens b (Snaplet (AuthManager b))
@@ -49,8 +59,10 @@ initSiteConfig topAuth cfgDir = makeSnaplet
   "site-config" "Site configuration storage"
   Nothing $ do -- ?
     addRoutes
-      [("models", method GET serveModels)
+      [("models",       method GET serveModels)
+      ,("dictionaries", method GET serveDictionaries)
       ]
-
-    ms <- liftIO $ loadModels cfgDir
-    return $ SiteConfig topAuth ms
+    SiteConfig
+      <$> pure topAuth
+      <*> liftIO (loadModels cfgDir)
+      <*> liftIO (loadDictionaries cfgDir)

@@ -1,0 +1,12 @@
+{
+    "entries": [
+        {
+            "label": "Эвакуация",
+            "value": "towage"
+        },
+        {
+            "label": "Техпомощь",
+            "value": "towCar"
+        }
+    ]
+}

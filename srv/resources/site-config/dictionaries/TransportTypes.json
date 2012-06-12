@@ -1,0 +1,12 @@
+{
+    "entries": [
+        {
+            "value": "continue",
+            "label": "Продолжение путешествия"
+        },
+        {
+            "value": "tocar",
+            "label": "Доставка к ТС"
+        }
+    ]
+}

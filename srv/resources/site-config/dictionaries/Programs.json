@@ -1,0 +1,136 @@
+{
+    "entries": [
+        {
+            "value": "aston",
+            "label": "ACTA / Aston Martin"
+        },
+        {
+            "value": "bentley",
+            "label": "ACTA / Bentley"
+        },
+        {
+            "value": "kraft",
+            "label": "Autokraft Assistance"
+        },
+        {
+            "value": "tele",
+            "label": "B2B / 3S Телематика"
+        },
+        {
+            "value": "arc",
+            "label": "B2B / Arc B2B"
+        },
+        {
+            "value": "hyundai",
+            "label": "B2B / RTR Hyundai"
+        },
+        {
+            "value": "arval",
+            "label": "B2B / АРВАЛ"
+        },
+        {
+            "value": "vtb24",
+            "label": "B2B / ВТБ 24"
+        },
+        {
+            "value": "jenser",
+            "label": "B2B / Дженсер Ясенево"
+        },
+        {
+            "value": "auimp",
+            "label": "B2B / ДЦ Автоимпорт"
+        },
+        {
+            "value": "tvd",
+            "label": "B2B / ДЦ ТВД-Авто"
+        },
+        {
+            "value": "corpse",
+            "label": "B2B / ИП Трубкин"
+        },
+        {
+            "value": "rnbase",
+            "label": "B2B / РН-карт-Москва Базовая"
+        },
+        {
+            "value": "rnstandard",
+            "label": "B2B / РН-карт-Москва Стандарт"
+        },
+        {
+            "value": "unicredit",
+            "label": "B2B / ЮниКредитбанк"
+        },
+        {
+            "value": "lyckoil",
+            "label": "B2B /ЛУКОЙЛ-Петрокоммерц"
+        },
+        {
+            "value": "b2c",
+            "label": "B2C"
+        },
+        {
+            "value": "b2cplat",
+            "label": "B2C Platinum"
+        },
+        {
+            "value": "bp",
+            "label": "BP"
+        },
+        {
+            "value": "chartis",
+            "label": "Chartis Assistance"
+        },
+        {
+            "value": "ford",
+            "label": "Ford"
+        },
+        {
+            "value": "cadold",
+            "label": "GM / Cadillac до 2012"
+        },
+        {
+            "value": "cad2012",
+            "label": "GM / Cadillac после 2012"
+        },
+        {
+            "value": "chevyko",
+            "label": "GM / Chevrolet Korea"
+        },
+        {
+            "value": "chevyna",
+            "label": "GM / Chevrolet NA"
+        },
+        {
+            "value": "hum",
+            "label": "GM / Hummer"
+        },
+        {
+            "value": "opel",
+            "label": "GM / Opel (после 01.04.2011)"
+        },
+        {
+            "value": "vwMotor",
+            "label": "VW / Легковые автомобили"
+        },
+        {
+            "value": "vwcargo",
+            "label": "VW / Коммерческие автомобили"
+        },
+        {
+            "value": "atlant",
+            "label": "Атлант М"
+        },
+        {
+            "value": "Cash",
+            "label": "За наличные"
+        },
+        {
+            "value": "tickets",
+            "label": "Заказ билетов"
+        },
+        {
+            "value": "ruslan",
+            "label": "Рус Лан"
+        }
+    ]
+}

@@ -58,7 +58,7 @@ hooks = ->
 
 # here is entry point
 $( ->
-  $.getJSON "/s/js/data/dictionaries.json",   (dicts)  ->
+  $.getJSON "/cfg/dictionaries",              (dicts)  ->
     $.getJSON "/_whoami/",                    (user)   ->
       $.getJSON "/s/js/data/conditions.json", (checks) ->
         $.getJSON "/cfg/models",              (models) ->

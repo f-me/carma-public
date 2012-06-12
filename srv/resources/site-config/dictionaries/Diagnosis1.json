@@ -1,0 +1,104 @@
+{
+    "entries": [
+        {
+            "value": "security",
+            "label": "Безопасности"
+        },
+        {
+            "value": "intake",
+            "label": "Впускная"
+        },
+        {
+            "value": "exhaust",
+            "label": "Выпуска отработавших газов"
+        },
+        {
+            "value": "engine",
+            "label": "Двигатель"
+        },
+        {
+            "value": "ignit",
+            "label": "Зажигания"
+        },
+        {
+            "value": "body",
+            "label": "Кузов"
+        },
+        {
+            "value": "lights",
+            "label": "Осветительные приборы"
+        },
+        {
+            "value": "condit",
+            "label": "Охлаждения / подогрева воздуха салона"
+        },
+        {
+            "value": "engcool",
+            "label": "Охлаждения двигателя"
+        },
+        {
+            "value": "susp",
+            "label": "Подвеска"
+        },
+        {
+            "value": "misc",
+            "label": "Привода вспомогательных агрегатов"
+        },
+        {
+            "value": "steer",
+            "label": "Рулевого управления"
+        },
+        {
+            "value": "clutch",
+            "label": "Сцепление"
+        },
+        {
+            "value": "fuel",
+            "label": "Топливная"
+        },
+        {
+            "value": "brake",
+            "label": "Тормозная"
+        },
+        {
+            "value": "gears",
+            "label": "Трансмиссия"
+        },
+        {
+            "value": "pcm",
+            "label": "Управления двигателем"
+        },
+        {
+            "value": "electro",
+            "label": "Электрооборудование"
+        },
+        {
+            "value": "vandal",
+            "label": "Вандализм"
+        },
+        {
+            "value": "dtp",
+            "label": "ДТП"
+        },
+        {
+            "value": "keyLost",
+            "label": "Ключи утеряны"
+        },
+        {
+            "value": "signal",
+            "label": "Сигнализация"
+        },
+        {
+            "value": "needDiagnostic",
+            "label": "Требуется диагностика в дилерском центре"
+        },
+        {
+            "value": "tread",
+            "label": "Шины/Колеса"
+        },
+        {
+            "value": "electronics",
+            "label": "Электроника"
+        }
+    ]
+}

@@ -1,0 +1,80 @@
+{
+    "entries": [
+        {
+            "value": "orderService",
+            "label": "Заказ услуги"
+        },
+        {
+            "value": "needPartner",
+            "label": "Требуется партнёр"
+        },
+        {
+            "value": "tellClient",
+            "label": "Сообщение клиенту о договорённости"
+        },
+        {
+            "value": "cancelService",
+            "label": "Отказ от услуги"
+        },
+        {
+            "value": "checkStatus",
+            "label": "Уточнить статус оказания услуги у партнёра"
+        },
+        {
+            "value": "tellDelayClient",
+            "label": "Оповещение клиента о задержке"
+        },
+        {
+            "value": "checkEndOfService",
+            "label": "Уточнения после оказания услуги"
+        },
+        {
+            "value": "complaintResolution",
+            "label": "Претензия"
+        },
+        {
+            "value": "addBill",
+            "label": "Прикрепить счет"
+        },
+        {
+            "value": "getInfoDealerVW",
+            "label": "Требуется уточнить информацию о ремонте у дилера"
+        },
+        {
+            "value": "closeCase",
+            "label": "Закрыть заявку"
+        },
+        {
+            "value": "financialClose",
+            "label": "Финансовое закрытие заявки"
+        },
+        {
+            "value": "accountCheck",
+            "label": "Просмотр бухгалтерией"
+        },
+        {
+            "value": "editCaseAfterClosure",
+            "label": "Внесение изменений после выставления счета"
+        },
+        {
+            "value": "caseContinue",
+            "label": "Продолжение работы с кейсом"
+        },
+        {
+            "value": "dealerApproval",
+            "label": "Согласование с дилером"
+        },
+        {
+            "value": "carmakerApproval",
+            "label": "Согласование с автопроизводителем"
+        },
+        {
+            "value": "dealerConf",
+            "label": "Требуется конференция с дилером"
+        },
+        {
+            "value": "mechanicConf",
+            "label": "Требуется конференция с механиком"
+        }
+    ]
+}

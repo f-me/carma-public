@@ -1,0 +1,208 @@
+{
+    "entries": [
+        {
+            "value": "white",
+            "label": "Белый"
+        },
+        {
+            "value": "black",
+            "label": "Чёрный"
+        },
+        {
+            "value": "grey",
+            "label": "Серый"
+        },
+        {
+            "value": "red",
+            "label": "Красный"
+        },
+        {
+            "value": "orange",
+            "label": "Оранжевый"
+        },
+        {
+            "value": "yellow",
+            "label": "Желтый"
+        },
+        {
+            "value": "green",
+            "label": "Зелёный"
+        },
+        {
+            "value": "blue",
+            "label": "Голубой"
+        },
+        {
+            "value": "darkBlue",
+            "label": "Синий"
+        },
+        {
+            "value": "purple",
+            "label": "Фиолетовый"
+        },
+        {
+            "value": "brown",
+            "label": "Коричневый"
+        },
+        {
+            "value": "golden",
+            "label": "Золотой"
+        },
+        {
+            "value": "silveryMetallic",
+            "label": "Серебристый металик"
+        },
+        {
+            "value": "candy",
+            "label": "Кэнди"
+        },
+        {
+            "value": "deep",
+            "label": "Дип"
+        },
+        {
+            "value": "toffeeBrown",
+            "label": "Тоффи раун"
+        },
+        {
+            "value": "reflex",
+            "label": "Рефлекс"
+        },
+        {
+            "value": "silverLeaf",
+            "label": "Силвер лиф"
+        },
+        {
+            "value": "graphit",
+            "label": "Графит"
+        },
+        {
+            "value": "acapulcoBlue",
+            "label": "Акапулько блю"
+        },
+        {
+            "value": "slate",
+            "label": "Слайт"
+        },
+        {
+            "value": "wildCherry",
+            "label": "Вайлд черри"
+        },
+        {
+            "value": "urano",
+            "label": "Урано"
+        },
+        {
+            "value": "iceland",
+            "label": "Айслэнд"
+        },
+        {
+            "value": "cashmere",
+            "label": "Кашмир"
+        },
+        {
+            "value": "pepperGray",
+            "label": "Пеппер грэй"
+        },
+        {
+            "value": "nightBlue",
+            "label": "Найт блю"
+        },
+        {
+            "value": "shadow",
+            "label": "Шэдоу"
+        },
+        {
+            "value": "moccaAnthracite",
+            "label": "Мокка антрацит"
+        },
+        {
+            "value": "lightBrown",
+            "label": "Лайт браун"
+        },
+        {
+            "value": "hotOrange",
+            "label": "Хот орандж"
+        },
+        {
+            "value": "mocca",
+            "label": "Мокка"
+        },
+        {
+            "value": "iron",
+            "label": "Айрон"
+        },
+        {
+            "value": "tornado",
+            "label": "Торнадо"
+        },
+        {
+            "value": "savanna",
+            "label": "Саванна"
+        },
+        {
+            "value": "united",
+            "label": "Юнитед"
+        },
+        {
+            "value": "moonlight",
+            "label": "Мунлайт"
+        },
+        {
+            "value": "flash",
+            "label": "Флэш"
+        },
+        {
+            "value": "granite",
+            "label": "Гранит"
+        },
+        {
+            "value": "arctic",
+            "label": "Арктик"
+        },
+        {
+            "value": "cobalt",
+            "label": "Кобальт"
+        },
+        {
+            "value": "amaryllis",
+            "label": "Амариллис"
+        },
+        {
+            "value": "shark",
+            "label": "Шарк"
+        },
+        {
+            "value": "seaBlue",
+            "label": "Си блю"
+        },
+        {
+            "value": "carbonSteel",
+            "label": "Карбон стил"
+        },
+        {
+            "value": "acapulco",
+            "label": "Акапулько"
+        },
+        {
+            "value": "uranus",
+            "label": "Уранус"
+        },
+        {
+            "value": "salsa",
+            "label": "Сальса"
+        },
+        {
+            "value": "venetian",
+            "label": "Венециан"
+        },
+        {
+            "value": "india",
+            "label": "Индия"
+        },
+        {
+            "value": "blackOak",
+            "label": "Блэк оэк"
+        }
+    ]
+}

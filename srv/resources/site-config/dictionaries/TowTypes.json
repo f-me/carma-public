@@ -1,0 +1,20 @@
+{
+    "entries": [
+        {
+            "value": "dealer",
+            "label": "К дилеру"
+        },
+        {
+            "value": "hnight",
+            "label": "К дому в ночное время"
+        },
+        {
+            "value": "carshop",
+            "label": "До шиномонтажа/СТО"
+        },
+        {
+            "value": "other",
+            "label": "В любое другое место"
+        }
+    ]
+}

@@ -1,0 +1,12 @@
+{
+    "entries": [
+        {
+            "value": "ptrl",
+            "label": "Бензин"
+        },
+        {
+            "value": "dis",
+            "label": "Дизель"
+        }
+    ]
+}

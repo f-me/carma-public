@@ -1,0 +1,24 @@
+{
+    "entries": [
+        {
+            "value": "client",
+            "label": "Клиент"
+        },
+        {
+            "value": "contr",
+            "label": "Подрядчик"
+        },
+        {
+            "value": "dealer",
+            "label": "Дилерский центр"
+        },
+        {
+            "value": "partner",
+            "label": "Заказчик программы"
+        },
+        {
+            "value": "other",
+            "label": "Другое"
+        }
+    ]
+}

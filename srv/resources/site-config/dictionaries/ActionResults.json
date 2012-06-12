@@ -1,0 +1,282 @@
+{
+    "entries": {
+        "orderService": [
+            {
+                "value": "serviceOrdered",
+                "label": "Услуга заказана"
+            },
+            {
+                "value": "needPartner",
+                "label": "Требуется партнёр"
+            },
+            {
+                "value": "busyLine",
+                "label": "Не дозвонился"
+            }
+        ],
+        "needPartner": [
+            {
+                "value": "partnerFound",
+                "label": "Партнёр найден"
+            },
+            {
+                "value": "partnerNotFound",
+                "label": "Партнёр не найден"
+            }
+        ],
+        "tellClient": [
+            {
+                "value": "busyLine",
+                "label": "Не дозвонился"
+            },
+            {
+                "value": "partnerNotOk",
+                "label": "Отказ от условий или партнёра"
+            },
+            {
+                "value": "partnerNotOkCancel",
+                "label": "Полный отказ от условий или партнёра"
+            },
+            {
+                "value": "partnerOk",
+                "label": "Клиент согласен с условиями"
+            }
+        ],
+        "cancelService": [
+            {
+                "value": "busyLine",
+                "label": "Не дозвонился"
+            },
+            {
+                "value": "falseCallWBill",
+                "label": "Ложный вызов, с выставлением счета"
+            },
+            {
+                "value": "falseCallWOBill",
+                "label": "Ложный вызов, без выставления счета"
+            }
+        ],
+        "checkStatus": [
+            {
+                "value": "busyLine",
+                "label": "Не дозвонился"
+            },
+            {
+                "value": "serviceDelayed",
+                "label": "Оказание услуги задерживается"
+            },
+            {
+                "value": "serviceInProgress",
+                "label": "Услуга в процессе оказания"
+            }
+        ],
+        "tellDelayClient": [
+            {
+                "value": "busyLine",
+                "label": "Не дозвонился"
+            },
+            {
+                "value": "clientWaiting",
+                "label": "Клиент ожидает"
+            },
+            {
+                "value": "partnerNotOk",
+                "label": "Отказ от партнёра"
+            },
+            {
+                "value": "partnerNotOkCalncel",
+                "label": "Полный отказ от услуг"
+            }
+        ],
+        "checkEndOfService": [
+            {
+                "value": "busyLine",
+                "label": "Не дозвонился"
+            },
+            {
+                "value": "serviceStillInProgress",
+                "label": "Услуга в процессе оказания"
+            },
+            {
+                "value": "complaint",
+                "label": "Клиент предъявил претензию"
+            },
+            {
+                "value": "serviceFinished",
+                "label": "Услуга оказана"
+            }
+        ],
+        "complaintResolution": [
+            {
+                "value": "busyLine",
+                "label": "Не дозвонился"
+            },
+            {
+                "value": "complaintManaged",
+                "label": "Претензия разрешена"
+            }
+        ],
+        "addBill": [
+            {
+                "value": "billNotReady",
+                "label": "Счёт не предоставлен"
+            },
+            {
+                "value": "billAttached",
+                "label": "Счёт введён"
+            }
+        ],
+        "getInfoDealerVW": [
+            {
+                "value": "busyLine",
+                "label": "Не дозвонился"
+            },
+            {
+                "value": "callback",
+                "label": "Требуется перезвонить"
+            },
+            {
+                "value": "complaint",
+                "label": "Информация получена"
+            }
+        ],
+        "closeCase": [
+            {
+                "value": "busyLine",
+                "label": "Не дозвонился"
+            },
+            {
+                "value": "callLater",
+                "label": "Требуется перезвонить"
+            },
+            {
+                "value": "caseClosedFinancialOk",
+                "label": "Заявка закрыта, финансовая информация получена"
+            },
+            {
+                "value": "caseClosedFinancialNotOk",
+                "label": "Заявка закрыта, финансовая информация не получена"
+            }
+        ],
+        "financialClose": [
+            {
+                "value": "busyLine",
+                "label": "Не дозвонился"
+            },
+            {
+                "value": "callLater",
+                "label": "Требуется перезвонить"
+            },
+            {
+                "value": "caseClosedFinancialOk",
+                "label": "Заявка закрыта, финансовая информация получена"
+            }
+        ],
+        "accountCheck": [
+            {
+                "value": "financialOk",
+                "label": "Всё верно"
+            },
+            {
+                "value": "accountError",
+                "label": "Расхождение в счёте"
+            }
+        ],
+        "editCaseAfterClosure": [
+            {
+                "value": "caseEdited",
+                "label": "Изменения внесены"
+            },
+            {
+                "value": "recloseService",
+                "label": "Требуется закрыть заявку"
+            }
+        ],
+        "caseContinue": [
+            {
+                "value": "busyLine",
+                "label": "Не дозвонился"
+            },
+            {
+                "value": "caseOver",
+                "label": "Требуется ещё услуга"
+            },
+            {
+                "value": "endOfCase",
+                "label": "Услуг больше не требуется"
+            }
+        ],
+        "dealerApproval": [
+            {
+                "value": "busyLine",
+                "label": "Не дозвонился"
+            },
+            {
+                "value": "callLater",
+                "label": "Перезвонить"
+            },
+            {
+                "value": "dealerApproved",
+                "label": "Дилер одобрил"
+            },
+            {
+                "value": "dealerNotApproved",
+                "label": "Дилер отказал"
+            }
+        ],
+        "carmakerApproval": [
+            {
+                "value": "busyLine",
+                "label": "Не дозвонился"
+            },
+            {
+                "value": "callLater",
+                "label": "Перезвонить"
+            },
+            {
+                "value": "carmakerApproved",
+                "label": "Автопроизводитель одобрил"
+            },
+            {
+                "value": "carmakerNotApproved",
+                "label": "Автопроизводитель отказал"
+            }
+        ],
+        "dealerConf": [
+            {
+                "value": "busyLine",
+                "label": "Не дозвонился"
+            },
+            {
+                "value": "callLater",
+                "label": "Перезвонить"
+            },
+            {
+                "value": "needService",
+                "label": "Требуется заказ услуги"
+            },
+            {
+                "value": "notNeedService",
+                "label": "Заказ услуги не требуется"
+            }
+        ],
+        "mechanicConf": [
+            {
+                "value": "busyLine",
+                "label": "Не дозвонился"
+            },
+            {
+                "value": "callLater",
+                "label": "Перезвонить"
+            },
+            {
+                "value": "needService",
+                "label": "Требуется заказ услуги"
+            },
+            {
+                "value": "notNeedService",
+                "label": "Заказ услуги не требуется"
+            }
+        ]
+    }
+}

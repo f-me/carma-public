@@ -1,0 +1,16 @@
+{
+    "entries": [
+        {
+            "value": "none",
+            "label": "Нет"
+        },
+        {
+            "value": "bill",
+            "label": "С выставлением счёта"
+        },
+        {
+            "value": "nobill",
+            "label": "Без выставления счёта"
+        }
+    ]
+}

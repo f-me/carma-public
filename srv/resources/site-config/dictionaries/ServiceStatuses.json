@@ -1,0 +1,72 @@
+{
+    "entries": [
+        {
+            "value": "creating",
+            "label": "Создание"
+        },
+        {
+            "value": "mechanicConf",
+            "label": "Требуется конференция с механиком"
+        },
+        {
+            "value": "delarConf",
+            "label": "Требуется конференция с дилером"
+        },
+        {
+            "value": "checking",
+            "label": "Проверка условий"
+        },
+        {
+            "value": "dealerConformation",
+            "label": "Согласование с дилером"
+        },
+        {
+            "value": "makerConformation",
+            "label": "Согласование с производителем"
+        },
+        {
+            "value": "filling",
+            "label": "Заполнение данных"
+        },
+        {
+            "value": "backoffice",
+            "label": "Передача в Back Office"
+        },
+        {
+            "value": "orderService",
+            "label": "Заказ услуги"
+        },
+        {
+            "value": "needPartner",
+            "label": "Требуется партнёр"
+        },
+        {
+            "value": "cancelService",
+            "label": "Отказ от услуги"
+        },
+        {
+            "value": "serviceOrdered",
+            "label": "Услуга заказана"
+        },
+        {
+            "value": "serviceDelayed",
+            "label": "Оказание услуги задерживается"
+        },
+        {
+            "value": "serviceInProgress",
+            "label": "Услуга оказывается"
+        },
+        {
+            "value": "falseCall",
+            "label": "Ложный вызов"
+        },
+        {
+            "value": "serviceOk",
+            "label": "Услуга оказана"
+        },
+        {
+            "value": "serviceClosed",
+            "label": "Услуга закрыта"
+        }
+    ]
+}

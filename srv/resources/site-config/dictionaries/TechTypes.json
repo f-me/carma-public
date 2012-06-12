@@ -1,0 +1,56 @@
+{
+    "entries": [
+        {
+            "value": "fuel",
+            "label": "Доставка топлива"
+        },
+        {
+            "value": "wheel",
+            "label": "Замена колеса"
+        },
+        {
+            "value": "charge",
+            "label": "Подзарядка АКБ"
+        },
+        {
+            "value": "alarm",
+            "label": "Отключение сигнализации"
+        },
+        {
+            "value": "unfuel",
+            "label": "Слив топлива"
+        },
+        {
+            "value": "unlock",
+            "label": "Вскрытие автомобиля"
+        },
+        {
+            "value": "start",
+            "label": "Запуск двигателя"
+        },
+        {
+            "value": "unpark",
+            "label": "Снятие с паркинга"
+        },
+        {
+            "value": "reroad",
+            "label": "Возвращение на дорогу"
+        },
+        {
+            "value": "wipers",
+            "label": "Замена дворников"
+        },
+        {
+            "value": "relamp",
+            "label": "Замена лампочек"
+        },
+        {
+            "value": "elrepair",
+            "label": "Ремонт электрооборудования"
+        },
+        {
+            "value": "unfreeze",
+            "label": "Разморозка"
+        }
+    ]
+}
