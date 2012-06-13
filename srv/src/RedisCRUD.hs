@@ -2,7 +2,9 @@
 module RedisCRUD where
 
 import Prelude hiding (read)
+import Control.Monad (forM)
 import Data.Functor
+import Data.Either (lefts)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.Map as M
 
@@ -38,3 +40,12 @@ update r model objId commit = runRedisDB r $ do
   let key = objKey model objId
   Right _ <- hmset key $ M.toList commit
   return ()
+
+
+updateMany r objectMap = runRedisDB r $ do
+  res <- forM (M.toList objectMap) $ \(k,obj) ->
+        hmset k $ M.toList obj
+  case lefts res of
+    [] -> return ()
+    _  -> error "updateMany failed"
+    

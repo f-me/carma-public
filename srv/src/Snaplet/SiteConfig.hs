@@ -19,15 +19,17 @@ import Snap.Snaplet.Auth
 
 ----------------------------------------------------------------------
 import Snaplet.SiteConfig.Types
+import Snaplet.SiteConfig.Permissions
 import Snaplet.SiteConfig.Models
 import Snaplet.SiteConfig.Dictionaries
-import Snaplet.SiteConfig.Permissions
+import Snaplet.SiteConfig.Triggers
 
 
 data SiteConfig b = SiteConfig
   {auth'        :: Lens b (Snaplet (AuthManager b))
   ,models       :: Map ModelName Model
   ,dictionaries :: Aeson.Value
+  ,triggers     :: TriggersConfig
   }
 
 
@@ -66,3 +68,4 @@ initSiteConfig topAuth cfgDir = makeSnaplet
       <$> pure topAuth
       <*> liftIO (loadModels cfgDir)
       <*> liftIO (loadDictionaries cfgDir)
+      <*> pure triggersConfig

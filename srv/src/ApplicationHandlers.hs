@@ -26,9 +26,9 @@ import Snaplet.SiteConfig
 ------------------------------------------------------------------------------
 import qualified Codec.Xlsx.Templater as Xlsx
 import qualified Nominatim
-import qualified RedisCRUD
 ------------------------------------------------------------------------------
 import Application
+import DbLayer (dbCreate, dbRead, dbUpdate)
 
 
 ------------------------------------------------------------------------------
@@ -75,9 +75,7 @@ doLogin = ifTop $ do
 ------------------------------------------------------------------------------
 -- | Serve user account data back to client.
 serveUserCake :: AuthUser -> AppHandler ()
-serveUserCake user = ifTop $ do
-  modifyResponse $ setContentType "application/json"
-  writeLBS $ Aeson.encode user
+serveUserCake user = ifTop $ writeJSON user
 
 
 ------------------------------------------------------------------------------
@@ -86,8 +84,7 @@ geodecode :: AppHandler ()
 geodecode = ifTop $ do
   addr <- fromMaybe "Moscow" <$> getParam "addr"
   resp <- liftIO $ Nominatim.geodecode addr
-  modifyResponse $ setContentType "application/json"
-  writeLBS resp
+  writeJSON resp
 
 
 ------------------------------------------------------------------------------
@@ -96,27 +93,26 @@ createHandler :: AuthUser -> AppHandler ()
 createHandler curUser = do
   Just model <- getParam "model"
   Just commit <- Aeson.decode <$> getRequestBody
-  res <- RedisCRUD.create redis model commit
-  modifyResponse $ setContentType "application/json"
-  writeLBS $ Aeson.encode
-           $ Map.singleton ("id" :: ByteString) res
+  res <- dbCreate model commit
+  -- FIXME: try/catch & handle/log error
+  writeJSON res
 
 readHandler :: AuthUser -> AppHandler ()
 readHandler curUser = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
-  res <- RedisCRUD.read redis model objId
-  modifyResponse $ setContentType "application/json"
-  writeLBS $ Aeson.encode res
+  res <- dbRead model objId
+  -- FIXME: try/catch & handle/log error
+  writeJSON res
 
 updateHandler :: AuthUser -> AppHandler ()
 updateHandler curUser = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
   Just commit <- Aeson.decode <$> getRequestBody
-  res <- RedisCRUD.update redis model objId commit
-  modifyResponse $ setContentType "application/json"
-  writeLBS "{}"
+  res <- dbUpdate model objId commit
+  -- FIXME: try/catch & handle/log error
+  writeJSON res
 
 
 ------------------------------------------------------------------------------
@@ -128,3 +124,11 @@ report = do
     "resources/static/all-cases.xlsx"
     [(Map.empty, Xlsx.TemplateSettings Xlsx.Rows 1, [])]
   serveFile "resources/static/all-cases.xlsx"
+
+
+------------------------------------------------------------------------------
+-- | Reports
+writeJSON :: FromJSON v => v -> AppHandler ()
+writeJSON v = do
+  modifyResponse $ setContentType "application/json"
+  writeLBS $ Aeson.encode v
