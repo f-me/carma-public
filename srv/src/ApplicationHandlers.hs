@@ -128,7 +128,7 @@ report = do
 
 ------------------------------------------------------------------------------
 -- | Reports
-writeJSON :: FromJSON v => v -> AppHandler ()
+writeJSON :: Aeson.ToJSON v => v -> AppHandler ()
 writeJSON v = do
   modifyResponse $ setContentType "application/json"
   writeLBS $ Aeson.encode v

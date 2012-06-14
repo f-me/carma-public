@@ -35,7 +35,10 @@ type Trigger = ObjectId -> FieldValue -> StateT TriggerContext IO ()
 type TriggerMap = Map ModelName (Map FieldName [Trigger])
 
 
-runTriggers :: TriggerMap -> ObjectId -> Object -> IO ObjectMap
+runTriggers
+  :: MonadIO m
+  => TriggerMap -> ObjectId -> Object
+  -> m ObjectMap
 runTriggers cfg objId commit
   = loop 5 emptyContext $ Map.singleton objId commit
   where
@@ -48,7 +51,7 @@ runTriggers cfg objId commit
               {updates = unionMaps changes $ updates cxt
               ,current = Map.empty
               }
-        cxt'' <- foldM (flip execStateT) cxt' tgs
+        cxt'' <- liftIO $ foldM (flip execStateT) cxt' tgs
         loop (n-1) cxt'' $ current cxt''
 
 

@@ -36,5 +36,3 @@ makeLens ''App
 instance HasHeist App where
     heistLens = subSnaplet heist
 
-
-

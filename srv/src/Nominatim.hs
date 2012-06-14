@@ -17,6 +17,7 @@ nominatimURI = URI
   }
 
 
+geodecode :: B.ByteString -> IO B.ByteString
 geodecode addr
   = simpleHTTP (Request uri GET [] "")
   >>= return . either (const "[]") rspBody
