@@ -15,13 +15,10 @@ import Snap.Snaplet.Auth.Backends.JsonFile
 import Snap.Snaplet.Session.Backends.CookieSession
 import Snap.Util.FileServe (serveDirectory)
 ------------------------------------------------------------------------------
-import Snap.Snaplet.PostgresqlSimple
-import qualified Database.Redis as Redis (defaultConnectInfo)
-import Snap.Snaplet.RedisDB (redisDBInit)
-
 import Snap.Snaplet.AvayaAES
 import Snap.Snaplet.Vin
 import Snaplet.SiteConfig
+import Snaplet.DbLayer
 ------------------------------------------------------------------------------
 import Application
 import ApplicationHandlers
@@ -68,24 +65,23 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
             lookupDefault "resources/private/users.json"
                           cfg "user-db"
 
-  c <- nestSnaplet "cfg" siteConfig $ initSiteConfig auth "resources/site-config"
-
   s <- nestSnaplet "session" session $
        initCookieSessionManager sesKey "_session" Nothing
-  a <- nestSnaplet "auth" auth $
+  authMgr <- nestSnaplet "auth" auth $
        initJsonFileAuthManager
        defAuthSettings{ asSiteKey = rmbKey
                       , asRememberPeriod = Just (rmbPer * 24 * 60 * 60)}
                                session authDb
-  r <- nestSnaplet "db" redis $ redisDBInit Redis.defaultConnectInfo
-  pg <- nestSnaplet "db" postgres pgsInit
+  c <- nestSnaplet "cfg" siteConfig $ initSiteConfig authMgr "resources/site-config"
+
+  d <- nestSnaplet "db" db $ initDbLayer c
 
   v <- nestSnaplet "vin" vin vinInit
   av <- nestSnaplet "avaya" avaya $ avayaAESInit auth
 
   addRoutes routes
 
-  return $ App h s a c r pg v av
+  return $ App h s authMgr c d v av
 
 
 ------------------------------------------------------------------------------

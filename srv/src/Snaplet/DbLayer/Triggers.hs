@@ -1,5 +1,5 @@
 
-module DbTriggers where
+module Snaplet.DbLayer.Triggers where
 
 import Control.Monad (foldM)
 import Control.Monad.Trans

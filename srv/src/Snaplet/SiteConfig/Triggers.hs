@@ -5,7 +5,7 @@ module Snaplet.SiteConfig.Triggers
   ) where
 
 import qualified Data.Map as Map
-import DbTriggers
+import Snaplet.DbLayer.Triggers
 
 
 data TriggersConfig = TriggersConfig

@@ -1,3 +1,4 @@
+
 {-# LANGUAGE TemplateHaskell #-}
 
 module Snaplet.SiteConfig
@@ -10,7 +11,7 @@ import Control.Monad.State
 import Data.Map (Map)
 import qualified Data.Map as M
 
-import Data.Lens.Common
+import Data.Lens.Template
 import qualified Data.Aeson as Aeson
 
 import Snap.Core
@@ -26,16 +27,17 @@ import Snaplet.SiteConfig.Triggers
 
 
 data SiteConfig b = SiteConfig
-  {auth'        :: Lens b (Snaplet (AuthManager b))
+  {_topAuth     :: Snaplet (AuthManager b)
   ,models       :: Map ModelName Model
   ,dictionaries :: Aeson.Value
   ,triggers     :: TriggersConfig
   }
 
+makeLens ''SiteConfig
 
 serveModels :: Handler b (SiteConfig b) ()
-serveModels = ifTop $ do
-  mcu <- gets auth' >>= flip withTop currentUser
+serveModels = do
+  mcu <- with topAuth currentUser
   case mcu of
     Nothing -> do
       modifyResponse $ setResponseCode 401
@@ -52,12 +54,10 @@ serveDictionaries = ifTop $ do
   modifyResponse $ setContentType "application/json"
   writeLBS $ Aeson.encode ds
 
-
 initSiteConfig
-  :: Lens b (Snaplet (AuthManager b))
-  -> FilePath
+  :: Snaplet (AuthManager b) -> FilePath
   -> SnapletInit b (SiteConfig b)
-initSiteConfig topAuth cfgDir = makeSnaplet
+initSiteConfig topAuth' cfgDir = makeSnaplet
   "site-config" "Site configuration storage"
   Nothing $ do -- ?
     addRoutes
@@ -65,7 +65,7 @@ initSiteConfig topAuth cfgDir = makeSnaplet
       ,("dictionaries", method GET serveDictionaries)
       ]
     SiteConfig
-      <$> pure topAuth
+      <$> pure topAuth'
       <*> liftIO (loadModels cfgDir)
       <*> liftIO (loadDictionaries cfgDir)
       <*> pure triggersConfig

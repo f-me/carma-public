@@ -17,18 +17,15 @@ import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.Session
 import Snap.Util.FileServe (serveFile)
 ------------------------------------------------------------------------------
-import Database.Redis (defaultConnectInfo)
-import Snap.Snaplet.RedisDB (redisDBInit)
-
+import qualified Snaplet.DbLayer as DB
+import Snaplet.SiteConfig
 import Snap.Snaplet.AvayaAES
 import Snap.Snaplet.Vin
-import Snaplet.SiteConfig
 ------------------------------------------------------------------------------
 import qualified Codec.Xlsx.Templater as Xlsx
 import qualified Nominatim
 ------------------------------------------------------------------------------
 import Application
-import DbLayer (dbCreate, dbRead, dbUpdate)
 
 
 ------------------------------------------------------------------------------
@@ -93,7 +90,7 @@ createHandler :: AuthUser -> AppHandler ()
 createHandler curUser = do
   Just model <- getParam "model"
   Just commit <- Aeson.decode <$> getRequestBody
-  res <- dbCreate model commit
+  res <- with db $ DB.create model commit
   -- FIXME: try/catch & handle/log error
   writeJSON res
 
@@ -101,7 +98,7 @@ readHandler :: AuthUser -> AppHandler ()
 readHandler curUser = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
-  res <- dbRead model objId
+  res <- with db $ DB.read model objId
   -- FIXME: try/catch & handle/log error
   writeJSON res
 
@@ -110,7 +107,7 @@ updateHandler curUser = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
   Just commit <- Aeson.decode <$> getRequestBody
-  res <- dbUpdate model objId commit
+  res <- with db $ DB.update model objId commit
   -- FIXME: try/catch & handle/log error
   writeJSON res
 
@@ -127,7 +124,7 @@ report = do
 
 
 ------------------------------------------------------------------------------
--- | Reports
+-- | Utility functions
 writeJSON :: Aeson.ToJSON v => v -> AppHandler ()
 writeJSON v = do
   modifyResponse $ setContentType "application/json"

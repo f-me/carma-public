@@ -1,5 +1,5 @@
 
-module RedisCRUD where
+module Snaplet.DbLayer.RedisCRUD where
 
 import Prelude hiding (read)
 import Control.Monad (forM)
