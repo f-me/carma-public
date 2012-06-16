@@ -1,5 +1,9 @@
+{-# LANGUAGE RankNTypes #-}
 
-module Snaplet.DbLayer.Triggers where
+module Snaplet.DbLayer.Triggers
+  (triggerUpdate
+  ,triggerCreate
+  ) where
 
 import Control.Monad (foldM)
 import Control.Monad.Trans
@@ -12,14 +16,9 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 
 import Snap.Snaplet (Handler(..))
+import Snaplet.DbLayer.Types
 
 
-type ObjectId = ByteString
-type Object = Map FieldName ByteString
-type ObjectMap = Map ObjectId Object
-type ModelName = ByteString
-type FieldName = ByteString
-type FieldValue = ByteString
 
 data TriggerContext = TriggerContext
   {dbCache :: ObjectMap
@@ -29,16 +28,19 @@ data TriggerContext = TriggerContext
 
 emptyContext = TriggerContext Map.empty Map.empty Map.empty
 
--- type TriggerMonad a = StateT TriggerContext (Handler () a) ()
+type TriggerMonad b = StateT TriggerContext (Handler b (DbLayer b)) ()
+type Trigger b = ObjectId -> FieldValue -> TriggerMonad b
+type TriggerMap b = Map ModelName (Map FieldName [Trigger b])
 
-type Trigger = ObjectId -> FieldValue -> StateT TriggerContext IO ()
-type TriggerMap = Map ModelName (Map FieldName [Trigger])
+triggerCreate :: ObjectId -> Object -> DbHandler b ObjectMap
+triggerCreate = runTriggers Map.empty
 
+triggerUpdate :: ObjectId -> Object -> DbHandler b ObjectMap
+triggerUpdate = runTriggers Map.empty
 
 runTriggers
-  :: MonadIO m
-  => TriggerMap -> ObjectId -> Object
-  -> m ObjectMap
+  :: TriggerMap b -> ObjectId -> Object
+  -> DbHandler b ObjectMap
 runTriggers cfg objId commit
   = loop 5 emptyContext $ Map.singleton objId commit
   where
@@ -51,14 +53,14 @@ runTriggers cfg objId commit
               {updates = unionMaps changes $ updates cxt
               ,current = Map.empty
               }
-        cxt'' <- liftIO $ foldM (flip execStateT) cxt' tgs
+        cxt'' <- foldM (flip execStateT) cxt' tgs
         loop (n-1) cxt'' $ current cxt''
 
 
 unionMaps :: ObjectMap -> ObjectMap -> ObjectMap
 unionMaps = Map.unionWith Map.union
 
--- matchingTriggers :: TriggerMap -> ObjectMap -> [TriggerMonad]
+matchingTriggers :: TriggerMap b -> ObjectMap -> [TriggerMonad b]
 matchingTriggers cfg updates
   = concatMap triggerModels $ Map.toList updates
   where

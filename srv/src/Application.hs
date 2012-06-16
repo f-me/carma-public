@@ -10,7 +10,7 @@ import Snap.Snaplet.Auth
 import Snap.Snaplet.Session
 ------------------------------------------------------------------------------
 import Snaplet.SiteConfig
-import Snaplet.DbLayer
+import Snaplet.DbLayer.Types
 import Snap.Snaplet.Vin
 import Snap.Snaplet.AvayaAES
 

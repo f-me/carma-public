@@ -74,7 +74,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
                                session authDb
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig authMgr "resources/site-config"
 
-  d <- nestSnaplet "db" db $ initDbLayer c
+  d <- nestSnaplet "db" db initDbLayer
 
   v <- nestSnaplet "vin" vin vinInit
   av <- nestSnaplet "avaya" avaya $ avayaAESInit auth

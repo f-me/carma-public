@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+
 module Snaplet.DbLayer where
 
 
@@ -7,26 +7,15 @@ import Control.Monad.State
 import qualified Data.Map as Map
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
-import Data.Lens.Template
 
 import Snap.Snaplet
-import Snaplet.SiteConfig
-import Snaplet.SiteConfig.Triggers
-import Snap.Snaplet.PostgresqlSimple (pgsInit, Postgres)
-
-import Snap.Snaplet.RedisDB (RedisDB, redisDBInit)
+import Snap.Snaplet.PostgresqlSimple (pgsInit)
+import Snap.Snaplet.RedisDB (redisDBInit)
 import qualified Database.Redis as Redis (defaultConnectInfo)
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
+
+import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers
-
-
-data DbLayer b = DbLayer
-    {_siteCfg    :: Snaplet (SiteConfig b)
-    ,_redis      :: Snaplet RedisDB
-    ,_postgres   :: Snaplet Postgres
-    }
-
-makeLens ''DbLayer
 
 
 
@@ -47,16 +36,14 @@ update model objId commit = do
   let fullId = B.concat [model, ":", objId]
   -- FIXME: catch NotFound => transfer from postgres to redis
   -- (Copy on write)
-  updTriggers <- with siteCfg $ gets (updateTriggers.triggers)
-  changes <- runTriggers updTriggers fullId commit
+  changes <- triggerUpdate fullId commit
   Redis.updateMany redis changes
   return $ changes Map.! fullId
 
 
-initDbLayer :: Snaplet (SiteConfig b) -> SnapletInit b (DbLayer b)
-initDbLayer cfg = makeSnaplet "db-layer" "Storage abstraction"
+initDbLayer :: SnapletInit b (DbLayer b)
+initDbLayer = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ DbLayer
-    <$> pure cfg
-    <*> nestSnaplet "redis" redis
+    <$> nestSnaplet "redis" redis
           (redisDBInit Redis.defaultConnectInfo)
     <*> nestSnaplet "pgsql" postgres pgsInit
