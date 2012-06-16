@@ -37,6 +37,7 @@ localRouter = Backbone.Router.extend
     "partner/:id" : "loadPartner"
     "partner"     : "newPartner"
     "back"        : "back"
+    "call/:id"    : "loadCall"
     "call"        : "call"
 
   loadCase    : (id) -> renderScreen("case", {"id": id})
@@ -46,6 +47,7 @@ localRouter = Backbone.Router.extend
   vin         :      -> renderScreen("vin")
   newPartner  :      -> renderScreen("partner", {"id": null})
   loadPartner : (id) -> renderScreen("partner", {"id": id})
+  loadCall    : (id) -> renderScreen("call", {"id": id})
   call        :      -> renderScreen("call")
 
 hooks = ->
@@ -266,9 +268,10 @@ this.addService = (name) ->
                modelName : name
 
 setupCallForm = (viewName, args) ->
-  modelSetup("call") viewName, null,
+  modelSetup("call") viewName, args,
                      permEl     : "case-permissions"
                      focusClass : "focusable"
+                     groupsForest : "center"
 
 initOSM = (el) ->
   return if el.className.contains("olMap")

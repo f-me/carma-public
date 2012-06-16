@@ -32,21 +32,14 @@
             "type": "dictionary",
             "meta": {
                 "label": "Кто звонит?",
-                "dictionaryName": "CallerTypes",
-                "widget": "radio"
+                "dictionaryName": "CallerTypes"
             }
         },
         {
             "name": "callerName",
+            "groupName": "contact",
             "meta": {
                 "label": "ФИО"
-            }
-        },
-        {
-            "name": "callerPhone",
-            "index": true,
-            "meta": {
-                "label": "Телефон"
             }
         }
     ]

@@ -64,7 +64,7 @@
             </a>
             <li class="divider-vertical" />
             <li id="call-screen-nav">
-              <a href="#call">Приём звонка</a>
+              <a href="#call">Звонок</a>
             </li>
             <li id="case-screen-nav">
               <a href="#case">Кейс</a>
@@ -124,10 +124,28 @@
     <script type="text/template"
             class="screen-template"
             id="call-screen-template">
-      <div id="left">
+      <div id="left" class="nice-scrollbar call-pane">
         <div id="call-form"/>
+        <button class="btn btn-success" type="submit">
+          Новый кейс
+        </button>
       </div>
-      <div id="right"/>
+      <div id="center" class="nice-scrollbar call-pane"/>
+      <div id="bottom">
+        <table id="searchtable" class="table table-striped table-bordered">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>ФИО</th>
+              <th>Дата звонка</th>
+              <th>Телефон</th>
+              <th>Номер машины</th>
+              <th>Программа</th>
+            </tr>
+          </thead>
+          <tbody/>
+        </table>
+      </div>
     </script>
 
     <!-- Case screen layout -->

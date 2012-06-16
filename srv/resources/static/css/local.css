@@ -16,6 +16,22 @@ body {
   padding: 1%;
 }
 
+.call-pane {
+  position: absolute;
+  top: 40px;
+  bottom: 50%;
+  overflow-y: auto;
+  padding: 1%;
+}
+
+#bottom {
+  position: absolute;
+  top: 50%;
+  bottom: 0;
+  overflow-y: auto;
+  padding: 1%;
+}
+
 #left {
   left: 0;
   width: 30%;
