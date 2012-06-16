@@ -508,6 +508,7 @@
         <div class="controls">
           <input type="text"
                  class="pane-span focusable"
+                 autocomplete="off"
                  name="{{ name }}"
                  {{# meta.transform }}
                     style="text-transform:{{meta.transform}};"
@@ -538,6 +539,7 @@
         <div class="controls">
           <input type="text"
                  class="pane-span focusable"
+                 autocomplete="off"
                  name="{{ name }}"
                  {{# readonly }}readonly{{/ readonly }}
                  data-bind="value: {{ name }},
@@ -571,6 +573,7 @@
                data-date-weekstart="1">
             <input type="text"
                    class="pane-span focusable"
+                   autocomplete="off"
                    name="{{ name }}"
                    {{# readonly }}readonly{{/ readonly }}
                    data-bind="value: {{ name }},
@@ -599,6 +602,7 @@
           <div class="input-append">
             <input type="text"
                    class="pane-span focusable"
+                   autocomplete="off"
                    name="{{ name }}"
                    data-bind="value: {{ name }},
                               valueUpdate: 'afterkeydown'"/>
@@ -643,6 +647,7 @@
                           {{# meta.addClass }}{{meta.addClass}}{{/ meta.addClass }}
                           {{# readonly }}disabled{{/ readonly }}"
                    {{# readonly }}readonly{{/ readonly }}
+                   autocomplete="off"
                    name="{{ name }}"
                    data-source="global.dictionaries['{{meta.dictionaryName}}']"
                    data-bind="value: {{ name }}Local,
@@ -686,6 +691,7 @@
           <div class="input-append">
             <input type="text"
                    class="pane-span focusable {{# readonly }}disabled{{/ readonly }}"
+                   autocomplete="off"
                    {{# readonly }}readonly{{/ readonly }}
                    {{# meta.transform }}
                       style="text-transform:{{meta.transform}};"
@@ -833,6 +839,7 @@
           <div class="input-append">
             <input type="text"
                    class="pane-span"
+                   autocomplete="off"
                    {{# meta.transform }}
                       style="text-transform:{{meta.transform}};"
                    {{/ meta.transform }}
