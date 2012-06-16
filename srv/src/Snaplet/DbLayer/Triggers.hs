@@ -1,4 +1,3 @@
-{-# LANGUAGE RankNTypes #-}
 
 module Snaplet.DbLayer.Triggers
   (triggerUpdate
@@ -11,26 +10,14 @@ import Control.Monad.Trans.State
 
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Data.List (foldl')
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 
 import Snap.Snaplet (Handler(..))
 import Snaplet.DbLayer.Types
+import Snaplet.DbLayer.Triggers.Types
 
 
-
-data TriggerContext = TriggerContext
-  {dbCache :: ObjectMap
-  ,updates :: ObjectMap
-  ,current :: ObjectMap
-  }
-
-emptyContext = TriggerContext Map.empty Map.empty Map.empty
-
-type TriggerMonad b = StateT TriggerContext (Handler b (DbLayer b)) ()
-type Trigger b = ObjectId -> FieldValue -> TriggerMonad b
-type TriggerMap b = Map ModelName (Map FieldName [Trigger b])
 
 triggerCreate :: ObjectId -> Object -> DbHandler b ObjectMap
 triggerCreate = runTriggers Map.empty
