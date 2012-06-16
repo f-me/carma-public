@@ -5,22 +5,6 @@
     "canRead": true,
     "canUpdate": true,
     "canDelete": true,
-    "defaults": {
-        "status": "creating",
-        "payType": "ruamc",
-        "warrantyCase": "0",
-        "overcosted": "0",
-        "falseCall": "none",
-        "towerType": "evac",
-        "towType": "dealer",
-        "vandalism": "0",
-        "accident": "0",
-        "wheelsUnblocked": "w0",
-        "canNeutral": "0",
-        "towingPointPresent": "0",
-        "manipulatorPossible": "0",
-        "suburbanMilage": "0"
-    },
     "applications": [
         {
             "targets": [

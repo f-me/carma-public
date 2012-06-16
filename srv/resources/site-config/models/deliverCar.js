@@ -5,13 +5,6 @@
     "canRead": true,
     "canUpdate": true,
     "canDelete": true,
-    "defaults": {
-        "status": "creating",
-        "payType": "ruamc",
-        "warrantyCase": "0",
-        "overcosted": "0",
-        "falseCall": "none"
-    },
     "applications": [
         {
             "targets": [

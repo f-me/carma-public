@@ -159,7 +159,7 @@ this.backbonizeModel = (models, modelName) ->
   return M
 
 setReference = (parent, json, field, models) ->
-  return json[field] = [] unless json[field]?
+  return json[field] = [] unless json[field]
   references = for m in json[field].split ','
     [name, id] = (v.trim() for v in m.split(':'))
     mkBb = backbonizeModel(models, name)

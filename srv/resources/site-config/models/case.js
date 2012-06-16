@@ -5,10 +5,6 @@
     "canRead": true,
     "canUpdate": true,
     "canDelete": true,
-    "defaults": {
-        "caseStatus": "s0",
-        "callerOwner": "1"
-    },
     "applications": [
         {
             "targets": [

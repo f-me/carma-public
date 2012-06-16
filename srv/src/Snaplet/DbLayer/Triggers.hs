@@ -16,21 +16,19 @@ import qualified Data.ByteString.Char8 as B
 import Snap.Snaplet (Handler(..))
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
+import Snaplet.DbLayer.Triggers.Defaults
 
 
 
-triggerCreate :: ObjectId -> Object -> DbHandler b ObjectMap
-triggerCreate = runTriggers Map.empty
+triggerCreate :: ModelName -> Object -> DbHandler b Object
+triggerCreate model obj = return
+  $ Map.findWithDefault Map.empty model defaults
 
 triggerUpdate :: ObjectId -> Object -> DbHandler b ObjectMap
-triggerUpdate = runTriggers Map.empty
-
-runTriggers
-  :: TriggerMap b -> ObjectId -> Object
-  -> DbHandler b ObjectMap
-runTriggers cfg objId commit
-  = loop 5 emptyContext $ Map.singleton objId commit
+triggerUpdate objId commit = return $ Map.singleton objId Map.empty
+--  = loop 5 emptyContext $ Map.singleton objId commit
   where
+    cfg = Map.empty
     loop 0 cxt changes = return $ unionMaps changes $ updates cxt
     loop n cxt changes
       | Map.null changes = return $ updates cxt

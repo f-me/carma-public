@@ -44,7 +44,8 @@ update r model objId commit = runRedisDB r $ do
 
 updateMany r objectMap = runRedisDB r $ do
   res <- forM (M.toList objectMap) $ \(k,obj) ->
-        hmset k $ M.toList obj
+        if M.null obj then return $ Right undefined
+                      else hmset k $ M.toList obj
   case lefts res of
     [] -> return ()
     _  -> error "updateMany failed"
