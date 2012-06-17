@@ -676,7 +676,8 @@
                    data-provide="typeahead" />
             <span class="add-on">
               <i class="icon icon-chevron-down"
-                 data-provide="typeahead-toggle" />
+                {{^readonly}}data-provide="typeahead-toggle"{{/readonly}}
+              />
             </span>
           </div>
           {{# meta.targetCategory }}
