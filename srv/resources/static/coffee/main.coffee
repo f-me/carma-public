@@ -20,8 +20,7 @@
 #
 # user object is stored in global hash and contains data about
 # current user.
-this.mainSetup = (localScreens, localRouter, localDictionaries,
-      hooks, user, models) ->
+this.mainSetup = (localScreens, localRouter, localDictionaries, hooks, user, models) ->
   Screens = localScreens
 
   dictLabelCache = {}
@@ -269,6 +268,8 @@ setupView = (elName, knockVM,  options) ->
 
 this.addReference = (knockVM, field, ref) ->
   field = field + 'Reference' unless /Reference$/.test(field)
+  thisId = knockVM.modelName() + ":" + knockVM.id()
+  ref.args = _.extend({"parentId":thisId}, ref.args)
   buildNewModel ref.modelName, ref.args, ref.options or {},
     (mkBackboneModel, instance, refKVM) ->
       newVal = knockVM[field]().concat refKVM
