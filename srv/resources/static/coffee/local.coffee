@@ -494,3 +494,17 @@ successfulSave = ->
     $span.show()
     $span.fadeOut(2000))
   , 500)
+
+this.makeCase = () ->
+  v = global.viewsWare['call-form'].knockVM
+  args =
+    caller_name: v['callerName_name']()
+    caller_phone1: v['callerName_phone1']()
+    caller_phone2: v['callerName_phone2']()
+    caller_phone3: v['callerName_phone3']()
+    caller_phone4: v['callerName_phone4']()
+    caller_email: v['callerName_email']()
+    comment: v['wazzup']()
+  buildNewModel 'case', args, {},
+    (a, b, k) ->
+      global.router.navigate("case/#{k.id()}", { trigger: true })

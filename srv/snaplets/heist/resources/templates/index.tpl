@@ -126,7 +126,9 @@
             id="call-screen-template">
       <div id="left" class="nice-scrollbar call-pane">
         <div id="call-form"/>
-        <button class="btn btn-success" type="submit">
+        <button class="btn btn-success"
+                type="submit"
+                onClick="makeCase()" >
           Новый кейс
         </button>
       </div>
