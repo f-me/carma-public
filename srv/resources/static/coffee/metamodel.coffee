@@ -121,7 +121,7 @@ this.backbonizeModel = (models, modelName) ->
             format = if type == "date"
                 "dd.MM.yyyy"
               else
-                 "dd.MM.yyyy HH:mm:ss"
+                 "dd.MM.yyyy HH:mm"
             json[k] = new Date(json[k] * 1000).toString(format)
           if type == 'reference'
             setReference this, json, k, models
@@ -141,7 +141,7 @@ this.backbonizeModel = (models, modelName) ->
           if this.fieldHash[k].type.match(/^date/)
             date = Date.parseExact(
               json[k],
-              ["dd.MM.yyyy HH:mm:ss", "dd.MM.yyyy"])
+              ["dd.MM.yyyy HH:mm", "dd.MM.yyyy"])
             if date
               timestamp = Math.round(date.getTime() / 1000)
               json[k] = String(timestamp)
