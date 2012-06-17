@@ -1,4 +1,3 @@
-
 module Snaplet.DbLayer.Triggers.Actions where
 
 import Control.Monad (when)
@@ -233,7 +232,7 @@ actionResultMap = Map.fromList
       "Проверить кейс"
       "account" "1" (+60)
   )
-  ,("vwclose", closeAction
+  ,("vwclosed", closeAction
   )  
   ,("financialOk", closeAction
   )
