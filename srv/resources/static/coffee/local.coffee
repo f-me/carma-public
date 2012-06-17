@@ -321,13 +321,15 @@ initOSM = (el) ->
       ),
     16 # Zoom level
   )
+  $(el).data("osmap", osmap)
+
 
 # Dispatch on some picker type
 #
 # Available picks:
 #
 # - vinFiller
-doPick = (pickType, args) ->
+this.doPick = (pickType, args, el) ->
   pickers =
 
     # Get car_vin field from case and try to fill some of its fields
@@ -362,7 +364,21 @@ doPick = (pickType, args) ->
       phoneNumber = bb.get(modelName)
       alert ("Calling " + phoneNumber)
 
-  pickers[pickType](args)
+    nominatimPicker: (fieldName, el) ->
+      bb = global.viewsWare["case-form"].bbInstance
+      addr = bb.get(fieldName)
+      $.getJSON("/nominatim?addr=#{addr}", (res) ->
+        if res.length > 0
+          form = $(el).parents("form")
+          osmap = form.find(".olMap")
+          osmap.data().osmap.setCenter(
+            new OpenLayers.LonLat(res[0].lon, res[0].lat)
+              .transform(
+                new OpenLayers.Projection("EPSG:4326"),
+                new OpenLayers.Projection("EPSG:900913")
+              )
+            , 16))
+  pickers[pickType](args, el)
 
 setupVinForm = (viewName, args) ->
   $el(viewName).html($el("vin-form-template").html())
@@ -462,7 +478,7 @@ mkBoTable = ->
         type        : "PUT"
         url         : "/_/action/"+ id[1]
         contentType : "application/json"
-        data        : '{"assignedTo": "#{global.user.login}"}'
+        data        : '{"assignedTo":"'+global.user.login+'"}'
         processData : false
     window.location.hash = "case/" + id[0])
   userTable = $("#back-user-table")
