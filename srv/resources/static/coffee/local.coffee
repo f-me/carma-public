@@ -116,7 +116,8 @@ caseDescsKbHook = (instance, knockVM) ->
       return [] unless p?
       _.chain(s).map((x) -> mkServicesDescs(p,x)).compact().value()
   knockVM['programDesc'] = ko.computed
-    read: -> global.dictionaries['ProgramInfo'][knockVM['program']()]
+    read: ->
+      global.dictionaries['ProgramInfo'][knockVM['program']()]
 
 mkServicesDescs = (p, s) ->
   d = getServiceDesc(p ,s.modelName())
@@ -125,8 +126,8 @@ mkServicesDescs = (p, s) ->
 
 
 this.getServiceDesc = (program, service) ->
-  si  = global.dictionaries['ServiceInfo'][program][service]
-  si ?= global.dictionaries['ServiceInfo']['default'][service]
+  si  = global.dictionaries['ServiceInfo'][program]?[service]
+  si ?= global.dictionaries['ServiceInfo']['default']?[service]
 
 servicesDescsKbHook = (instance, knockVM) ->
   knockVM['servicesDescs'] = ko.computed
