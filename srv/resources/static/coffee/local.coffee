@@ -453,7 +453,7 @@ mkBoTable = ->
         type        : "PUT"
         url         : "/_/action/"+ id[1]
         contentType : "application/json"
-        data        : '{"assignedTo": "backuser"}'
+        data        : '{"assignedTo": "' + global.user.login + '"}'
         processData : false
     window.location.hash = "case/" + id[0])
   userTable = $("#back-user-table")
@@ -488,9 +488,9 @@ setupBoTable = (tables) ->
             ,obj.description || ''
             ,obj.comment || '']
 
-      if _.has(obj, 'assignedTo')
+      if obj.assignedTo == global.user.login
         ut.fnAddData(row)
-      else
+      else if obj.assignedTo == ""
         gt.fnAddData(row)
 
 
