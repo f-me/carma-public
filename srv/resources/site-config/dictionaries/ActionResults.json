@@ -132,11 +132,11 @@
                 "label": "Не дозвонился"
             },
             {
-                "value": "callback",
+                "value": "callLater",
                 "label": "Требуется перезвонить"
             },
             {
-                "value": "complaint",
+                "value": "vwclosed",
                 "label": "Информация получена"
             }
         ],
@@ -168,7 +168,7 @@
                 "label": "Требуется перезвонить"
             },
             {
-                "value": "caseClosedFinancialOk",
+                "value": "financialOk",
                 "label": "Заявка закрыта, финансовая информация получена"
             }
         ],
@@ -276,6 +276,26 @@
             {
                 "value": "notNeedService",
                 "label": "Заказ услуги не требуется"
+            }
+        ],
+        "tellDealerDenied": [
+            {
+                "value": "busyLine",
+                "label": "Не дозвонился"
+            },
+            {
+                "value": "clientNotified",
+                "label": "Клиент оповещён"
+            }
+        ],
+        "tellMakerDenied": [
+            {
+                "value": "busyLine",
+                "label": "Не дозвонился"
+            },
+            {
+                "value": "clientNotified",
+                "label": "Клиент оповещён"
             }
         ]
     }

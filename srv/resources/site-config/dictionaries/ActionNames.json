@@ -75,6 +75,14 @@
         {
             "value": "mechanicConf",
             "label": "Требуется конференция с механиком"
-        }
+        },
+        {
+            "value": "tellDealerDenied",
+            "label": "Оповещение об отказе дилера"
+        },
+        {
+            "value": "tellMakerDenied",
+            "label": "Оповещение об отказе автопроизводителя"
+        }        
     ]
 }
