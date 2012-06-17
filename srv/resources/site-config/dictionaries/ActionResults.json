@@ -136,7 +136,7 @@
                 "label": "Требуется перезвонить"
             },
             {
-                "value": "complaint",
+                "value": "vwclosed",
                 "label": "Информация получена"
             }
         ],
