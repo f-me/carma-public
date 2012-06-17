@@ -22,9 +22,10 @@
             }
         },
         {
-            "name": "callType",
+            "name": "callerName",
+            "groupName": "contact",
             "meta": {
-                "label": "Тип звонка"
+                "label": "ФИО"
             }
         },
         {
@@ -36,10 +37,12 @@
             }
         },
         {
-            "name": "callerName",
-            "groupName": "contact",
+            "name": "callType",
+            "type": "dictionary",
             "meta": {
-                "label": "ФИО"
+                "dictionaryName": "CallTypes",
+                "dictionaryParent": "callerType",
+                "label": "Тип звонка"
             }
         }
     ]

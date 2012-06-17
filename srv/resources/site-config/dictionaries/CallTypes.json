@@ -1,0 +1,166 @@
+{
+  "entries": {
+      "client": [
+          {
+              "value": "newCase",
+              "label": "Кейс/Создание нового кейса"
+          },
+          {
+              "value": "processingCase",
+              "label": "Кейс/Обработка кейса"
+          },
+          {
+              "value": "infoCase",
+              "label": "Кейс/Запрос информации"
+          },
+          {
+              "value": "pretenseP",
+              "label": "Претензии/На подрядчика"
+          },
+          {
+              "value": "pretenseD",
+              "label": "Претензии/На ДЦ"
+          },
+          {
+              "value": "pretenseR",
+              "label": "Претензии/На РАМК"
+          },
+          {
+              "value": "pretenseZ",
+              "label": "Претензии/На Заказчика"
+          },
+          {
+              "value": "infoD",
+              "label": "Информация/О ДЦ"
+          },
+          {
+              "value": "infoPr",
+              "label": "Информация/О программе"
+          },
+          {
+              "value": "switchD",
+              "label": "Переключение/ДЦ"
+          },
+          {
+              "value": "switchIn",
+              "label": "Переключение/Внутренний номер"
+          }
+      ],
+      "contr": [
+          {
+              "value": "processingCase",
+              "label": "Кейс/Обработка кейса"
+          },
+          {
+              "value": "infoCase",
+              "label": "Кейс/Запрос информации"
+          },
+          {
+              "value": "pretenseCl",
+              "label": "Претензии/На клиента"
+          },
+          {
+              "value": "pretenseP",
+              "label": "Претензии/На подрядчика"
+          },
+          {
+              "value": "pretenseR",
+              "label": "Претензии/На РАМК"
+          },
+          {
+              "value": "switchD",
+              "label": "Переключение/ДЦ"
+          },
+          {
+              "value": "switchIn",
+              "label": "Переключение/Внутренний номер"
+          },
+          {
+              "value": "contracts",
+              "label": "Договора"
+          },
+          {
+              "value": "acct",
+              "label": "Счета"
+          }
+      ],
+      "dealer": [
+          {
+              "value": "processingCase",
+              "label": "Кейс/Обработка кейса"
+          },
+          {
+              "value": "infoCase",
+              "label": "Кейс/Запрос информации"
+          },
+          {
+              "value": "pretenseCl",
+              "label": "Претензии/На клиента"
+          },
+          {
+              "value": "pretenseP",
+              "label": "Претензии/На подрядчика"
+          },
+          {
+              "value": "pretenseR",
+              "label": "Претензии/На РАМК"
+          },
+          {
+              "value": "switchIn",
+              "label": "Переключение/Внутренний номер"
+          },
+          {
+              "value": "contracts",
+              "label": "Договора"
+          },
+          {
+              "value": "acct",
+              "label": "Счета"
+          }
+      ],
+      "partner": [
+          {
+              "value": "newCase",
+              "label": "Кейс/Создание нового кейса"
+          },
+          {
+              "value": "processingCase",
+              "label": "Кейс/Обработка кейса"
+          },
+          {
+              "value": "infoCase",
+              "label": "Кейс/Запрос информации"
+          },
+          {
+              "value": "pretenseD",
+              "label": "Претензии/На ДЦ"
+          },
+          {
+              "value": "pretenseP",
+              "label": "Претензии/На подрядчика"
+          },
+          {
+              "value": "pretenseR",
+              "label": "Претензии/На РАМК"
+          },
+          {
+              "value": "switchIn",
+              "label": "Переключение/Внутренний номер"
+          },
+          {
+              "value": "contracts",
+              "label": "Договора"
+          },
+          {
+              "value": "acct",
+              "label": "Счета"
+          }
+      ],
+      "other": [
+          {
+              "value": "switchIn",
+              "label": "Переключение/Внутренний номер"
+          }
+      ]
+  }
+}
