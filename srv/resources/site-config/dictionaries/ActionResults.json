@@ -95,7 +95,7 @@
             },
             {
                 "value": "serviceStillInProgress",
-                "label": "Услуга в процессе оказания"
+                "label": "Услуга ещё в процессе оказания"
             },
             {
                 "value": "complaint",
