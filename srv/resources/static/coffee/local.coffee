@@ -481,6 +481,8 @@ setupBoTable = (tables) ->
     ut.fnClearTable()
     gt = groupTable.dataTable()
     gt.fnClearTable()
+    mainRole = global.user.roles[0]
+
     for i of objs
       obj = objs[i]
       continue if obj.closed and obj.closed != "false"
@@ -497,9 +499,10 @@ setupBoTable = (tables) ->
             ,obj.description || ''
             ,obj.comment || '']
 
+      obj.assignedTo ?= ""
       if obj.assignedTo == global.user.login
         ut.fnAddData(row)
-      else if obj.assignedTo == ""
+      else if obj.assignedTo == "" and obj.targetGroup == mainRole
         gt.fnAddData(row)
 
 
