@@ -102,6 +102,12 @@ readHandler curUser = do
   -- FIXME: try/catch & handle/log error
   writeJSON res
 
+readAllHandler :: AuthUser -> AppHandler ()
+readAllHandler curUser = do
+  Just model <- getParam "model"
+  res <- with db $ DB.readAll model
+  writeJSON res
+
 updateHandler :: AuthUser -> AppHandler ()
 updateHandler curUser = do
   Just model <- getParam "model"

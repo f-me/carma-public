@@ -2,6 +2,7 @@
 module Snaplet.DbLayer.RedisCRUD where
 
 import Prelude hiding (read)
+import Control.Monad.IO.Class
 import Control.Monad (forM)
 import Data.Functor
 import Data.Either (lefts)
@@ -30,6 +31,11 @@ read' r objId = runRedisDB r $ do
   Right res  <- fmap M.fromList <$> hgetall objId
   return res
 
+readAll r model = runRedisDB r $ do
+  Right ids <- keys $ B.concat [model, ":*"]
+  forM ids $ \key -> do
+    Right res <- fmap M.fromList <$> hgetall key
+    return res
 
 create r model commit = runRedisDB r $ do
   Right n <- incr $ modelIdKey model

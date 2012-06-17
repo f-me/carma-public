@@ -9,6 +9,7 @@ import Data.Lens.Template
 import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple (Postgres)
 import Snap.Snaplet.RedisDB (RedisDB)
+import Snaplet.DbLayer.Indices
 
 
 type ObjectId = ByteString
@@ -21,8 +22,9 @@ type FieldValue = ByteString
 type DbHandler b r = Handler b (DbLayer b) r
 
 data DbLayer b = DbLayer
-    {_redis      :: Snaplet RedisDB
-    ,_postgres   :: Snaplet Postgres
+    {_redis    :: Snaplet RedisDB
+    ,_postgres :: Snaplet Postgres
+    ,indices   :: Indices
     }
 
 makeLens ''DbLayer

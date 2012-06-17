@@ -413,9 +413,9 @@ doVin = ->
 
 setupBackOffice = ->
   setTimeout((->
-    [userTable, groupTable] = mkBoTable()
-    $.getJSON(modelMethod("action", "search?q=*&_limit=1000"), setupBoTable))
-    , 200)
+      tables = mkBoTable()
+      $.getJSON("/all/action", setupBoTable tables)
+    ), 200)
 
 mkBoTable = ->
   groupTable = $("#back-group-table")
@@ -428,7 +428,7 @@ mkBoTable = ->
         contentType : "application/json"
         data        : '{"assignedTo": "backuser"}'
         processData : false
-  window.location.hash = "case/" + id[0])
+    window.location.hash = "case/" + id[0])
   userTable = $("#back-user-table")
   mkDataTable(userTable)
   userTable.on("click.datatable", "tr", ->
@@ -438,31 +438,33 @@ mkBoTable = ->
   return [userTable, groupTable]
 
 
-setupBoTable = (objs, userTable, groupTable) ->
-  ut = userTable.dataTable()
-  ut.fnClearTable()
-  gt = groupTable.dataTable()
-  gt.fnClearTable()
-  for i of objs
-    obj = objs[i]
-    continue if obj.closed and obj.closed != "false"
+setupBoTable = (tables) ->
+  [userTable, groupTable] = tables
+  (objs) ->
+    ut = userTable.dataTable()
+    ut.fnClearTable()
+    gt = groupTable.dataTable()
+    gt.fnClearTable()
+    for i of objs
+      obj = objs[i]
+      continue if obj.closed and obj.closed != "false"
 
-    id = obj.caseId.replace(/\D/g,'') + "/" + obj.id
-    duetime =
-      if obj.duetime
-        new Date(obj.duetime * 1000).toString("dd.MM.yyyy HH:mm:ss")
+      id = obj.caseId.replace(/\D/g,'') + "/" + obj.id
+      duetime =
+        if obj.duetime
+          new Date(obj.duetime * 1000).toString("dd.MM.yyyy HH:mm:ss")
+        else
+          ''
+      row = [id
+            ,obj.priority || '3'
+            ,duetime
+            ,obj.description || ''
+            ,obj.comment || '']
+
+      if _.has(obj, 'assignedTo')
+        ut.fnAddData(row)
       else
-        ''
-    row = [id
-          ,obj.priority || '3'
-          ,duetime
-          ,obj.description || ''
-          ,obj.comment || '']
-
-    if _.has(obj, 'assignedTo')
-      ut.fnAddData(row)
-    else
-      gt.fnAddData(row)
+        gt.fnAddData(row)
 
 
 removeVinAlert = (val) -> $.post "/vin/state", { id: val }

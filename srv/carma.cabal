@@ -48,6 +48,7 @@ Executable carma
     text                        >= 0.11 && < 0.12,
     time                        >= 1.1 && < 1.5,
     mtl                         == 2.0.*,
+    stm                         == 2.3,
     transformers                >= 0.2 && < 0.4,
     vin-parser                  == 0.1.*,
     hedis                       == 0.4.1,
