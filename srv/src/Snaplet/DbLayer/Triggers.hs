@@ -14,9 +14,11 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 
 import Snap.Snaplet (Handler(..))
+import Snap.Snaplet.RedisDB (RedisDB)
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Defaults
+import Snaplet.DbLayer.Triggers.Actions
 
 
 
@@ -25,10 +27,10 @@ triggerCreate model obj = return
   $ Map.findWithDefault Map.empty model defaults
 
 triggerUpdate :: ObjectId -> Object -> DbHandler b ObjectMap
-triggerUpdate objId commit = return $ Map.singleton objId Map.empty
---  = loop 5 emptyContext $ Map.singleton objId commit
+triggerUpdate objId commit
+  = loop 5 emptyContext $ Map.singleton objId commit
   where
-    cfg = Map.empty
+    cfg = actions
     loop 0 cxt changes = return $ unionMaps changes $ updates cxt
     loop n cxt changes
       | Map.null changes = return $ updates cxt
@@ -45,7 +47,7 @@ triggerUpdate objId commit = return $ Map.singleton objId Map.empty
 unionMaps :: ObjectMap -> ObjectMap -> ObjectMap
 unionMaps = Map.unionWith Map.union
 
-matchingTriggers :: TriggerMap b -> ObjectMap -> [TriggerMonad b]
+matchingTriggers :: TriggerMap b -> ObjectMap -> [TriggerMonad b ()]
 matchingTriggers cfg updates
   = concatMap triggerModels $ Map.toList updates
   where

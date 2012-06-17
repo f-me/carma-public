@@ -22,6 +22,7 @@ defaults = Map.fromList
     [("caseStatus", "s0")
     ,("callerOwner", "1")
     ,("services", "")
+    ,("actions", "")
     ])
   ,("towage", Map.union serviceDefaults $ Map.fromList 
     [("towerType", "evac")

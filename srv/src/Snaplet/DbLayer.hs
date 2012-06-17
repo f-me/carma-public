@@ -39,8 +39,9 @@ update model objId commit = do
   -- FIXME: catch NotFound => transfer from postgres to redis
   -- (Copy on write)
   changes <- triggerUpdate fullId commit
-  Redis.updateMany redis changes
-  return $ changes Map.! fullId
+  liftIO $ print changes
+  Right _ <- Redis.updateMany redis changes
+  return $ (changes Map.! fullId) Map.\\ commit
 
 
 initDbLayer :: SnapletInit b (DbLayer b)

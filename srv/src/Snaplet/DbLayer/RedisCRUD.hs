@@ -26,6 +26,10 @@ read r model objId = runRedisDB r $ do
   Right res  <- fmap M.fromList <$> hgetall key
   return res
 
+read' r objId = runRedisDB r $ do
+  Right res  <- fmap M.fromList <$> hgetall objId
+  return res
+
 
 create r model commit = runRedisDB r $ do
   Right n <- incr $ modelIdKey model
@@ -47,6 +51,6 @@ updateMany r objectMap = runRedisDB r $ do
         if M.null obj then return $ Right undefined
                       else hmset k $ M.toList obj
   case lefts res of
-    [] -> return ()
+    [] -> return $ Right ()
     _  -> error "updateMany failed"
     
