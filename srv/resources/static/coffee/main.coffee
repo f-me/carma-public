@@ -264,9 +264,10 @@ setupView = (elName, knockVM,  options) ->
           global.viewsWare[refBook.refView] = {}
           global.viewsWare[refBook.refView].depViews = v
 
+  knockVM['view'] = elName
   return depViews
 
-this.addReference = (knockVM, field, ref) ->
+this.addReference = (knockVM, field, ref, cb) ->
   field = field + 'Reference' unless /Reference$/.test(field)
   thisId = knockVM.modelName() + ":" + knockVM.id()
   ref.args = _.extend({"parentId":thisId}, ref.args)
@@ -274,6 +275,7 @@ this.addReference = (knockVM, field, ref) ->
     (mkBackboneModel, instance, refKVM) ->
       newVal = knockVM[field]().concat refKVM
       knockVM[field](newVal)
+      cb(_.last knockVM[field]()) if _.isFunction(cb)
 
 # Save instance loaded in view
 this.saveInstance = (viewName) -> global.viewsWare[viewName].bbInstance.save()

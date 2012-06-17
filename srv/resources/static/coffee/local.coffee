@@ -113,6 +113,7 @@ servicesDescsKbHook = (instance, knockVM) ->
     read: ->
       p = knockVM['program']()
       s = knockVM['servicesReference']()
+      return [] unless p?
       programs = global.dictionaries.Programs.entries
       descs    = _.find(programs, (x) -> x.value == p)?.servicesDescs
       _.chain(s).map((x) -> descs?[x.modelName()]).compact().value()
@@ -195,7 +196,7 @@ stdElCb = (elName) ->
   f and f.focus()
 
 # Scroll case field into view and focus
-focusField = (name) ->
+this.focusField = (name) ->
   e = $("#case-form").find("[name=" + name + "]")[0]
   e.scrollIntoView()
   e.focus()
@@ -264,8 +265,13 @@ this.hideComplex = ->
 
 # Top-level wrapper for storeService
 this.addService = (name) ->
-  addReference global.viewsWare["case-form"].knockVM, 'services',
-               modelName : name
+  addReference global.viewsWare["case-form"].knockVM,
+               'services',
+               { modelName : name },
+               (k) ->
+                  e = $('#' + k['view']).find('input')[0]
+                  e.scrollIntoView()
+                  e.focus()
 
 setupCallForm = (viewName, args) ->
   modelSetup("call") viewName, args,
@@ -391,13 +397,14 @@ setupPartnersForm = (viewName, args) ->
           , 100)))
 
 addNewServiceToPartner = (name) ->
-  instance = global.viewsWare["partner-form"].bbInstance;
+  instance = global.viewsWare["partner-form"].bbInstance
   book = addReference instance,
                  field     : "services"
                  modelName : "partner_service"
                  forest    : "partner-service-references",
                  "center"
-  service = global.dictionaries.Services;
+  service = global.dictionaries.Services
+
 
 doVin = ->
   form     = $el("vin-import-form")[0]

@@ -900,7 +900,7 @@
         </div>
 
         <div id="{{ refView }}-head"
-             class="accordion-body collapse {{^refId}}in{{/refId}}">
+             class="accordion-body collapse in">
           <div class="accordion-inner {{ refClass }}" 
                id="{{ refView }}">
             <!-- Instance contents are rendered here -->
