@@ -168,7 +168,7 @@
                 "label": "Требуется перезвонить"
             },
             {
-                "value": "caseClosedFinancialOk",
+                "value": "financialOk",
                 "label": "Заявка закрыта, финансовая информация получена"
             }
         ],
