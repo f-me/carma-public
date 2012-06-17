@@ -132,7 +132,7 @@
                 "label": "Не дозвонился"
             },
             {
-                "value": "callback",
+                "value": "callLater",
                 "label": "Требуется перезвонить"
             },
             {
