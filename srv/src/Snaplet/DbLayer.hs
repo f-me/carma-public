@@ -22,10 +22,12 @@ import Snaplet.DbLayer.Triggers
 create model commit = do
   commit' <- triggerCreate model commit
   let obj = Map.union commit' commit
-  objId <- Redis.create redis model obj -- create without commit
-  -- commit' <- runTriggers createTriggers objId M.empty $ insert id objId commit
-  -- commit'' <- runTriggers updateTriggers objId (singleton id ObjId) commit'
-  return $ Map.insert "id" objId commit'
+  objId <- Redis.create redis model obj
+  let fullId = B.concat [model, ":", objId]
+  changes <- triggerUpdate fullId obj
+  Right _ <- Redis.updateMany redis changes
+  return $ Map.insert "id" objId
+         $ (changes Map.! fullId) Map.\\ commit
 
 
 read model objId = do
