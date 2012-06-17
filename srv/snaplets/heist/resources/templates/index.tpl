@@ -1031,9 +1031,12 @@
                 id="default-case-complex-field">
          <div class="program">
            <h1 data-bind="text: programLocal"></h1>
-           <span data-bind="text:programDesc"></span>
+           <div data-bind="html:programDesc"></div>
+           <br />
+           <br />
           <div data-bind="foreach: servicesDescs">
-            <div data-bind="text: $data"></div>
+            <dt data-bind="text: title"></dt>
+            <dd data-bind="html: description"></dd>
           </div>
       </fieldset>
     </script>
