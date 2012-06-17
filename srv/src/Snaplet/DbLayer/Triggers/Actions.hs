@@ -299,7 +299,9 @@ actionResultMap = Map.fromList
   ]
 
 changeTime :: (Int -> Int) -> ByteString -> Int -> Int
-changeTime fn x _ = fn . read $ B.unpack x
+changeTime fn x y = case B.readInt x of
+  Just (r,"") -> fn r
+  _ -> fn y
 
 setService objId field val = do
   svcId <- get objId "parentId"
