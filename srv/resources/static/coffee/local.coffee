@@ -34,8 +34,6 @@ localRouter = Backbone.Router.extend
     "case"        : "newCase"
     "search"      : "search"
     "vin"         : "vin"
-    "partner/:id" : "loadPartner"
-    "partner"     : "newPartner"
     "back"        : "back"
     "call/:id"    : "loadCall"
     "call"        : "call"
@@ -65,7 +63,18 @@ $( ->
       $.getJSON "/s/js/data/conditions.json", (checks) ->
         $.getJSON "/cfg/models",              (models) ->
           mainSetup(localScreens(), localRouter, dicts, hooks(), user, models)
-          global.checks = checks)
+          global.checks = checks
+          if window.location.hash == ""
+            redirectToHomePage user)
+
+this.redirectToHomePage = (user) ->
+  mainRole = user.roles[0]
+  if mainRole == "front"
+    homePage = "call"
+  else if mainRole == "back"
+    homePage = "back"
+  global.router.navigate(homePage, {trigger: true})
+
 
 # Model method HTTP access point wrt redson location
 this.modelMethod = (modelName, method) -> "/_/#{modelName}/#{method}"
@@ -453,7 +462,7 @@ mkBoTable = ->
         type        : "PUT"
         url         : "/_/action/"+ id[1]
         contentType : "application/json"
-        data        : '{"assignedTo": "backuser"}'
+        data        : '{"assignedTo": "#{global.user.login}"}'
         processData : false
     window.location.hash = "case/" + id[0])
   userTable = $("#back-user-table")
@@ -488,9 +497,9 @@ setupBoTable = (tables) ->
             ,obj.description || ''
             ,obj.comment || '']
 
-      if _.has(obj, 'assignedTo')
+      if obj.assignedTo == global.user.login
         ut.fnAddData(row)
-      else
+      else if obj.assignedTo == ""
         gt.fnAddData(row)
 
 
