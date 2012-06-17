@@ -1029,8 +1029,11 @@
             id="default-case-group-template">
       <fieldset class="complex-field default-complex-field"
                 id="default-case-complex-field">
+         <div class="program">
+           <h1 data-bind="text: programLocal"></h1>
+           <span data-bind="text:programDesc"></span>
           <div data-bind="foreach: servicesDescs">
-            <span data-bind="text: $data"></span>
+            <div data-bind="text: $data"></div>
           </div>
       </fieldset>
     </script>

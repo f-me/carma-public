@@ -56,7 +56,7 @@ hooks = ->
       "case" : [candiboberHook]
   observable:
       "*"    : [regexpKbHook, dictionaryKbHook]
-      "case" : [servicesDescsKbHook]
+      "case" : [caseDescsKbHook]
 
 # here is entry point
 $( ->
@@ -108,15 +108,19 @@ regexpKbHook = (instance, knockVM) ->
                           read: (k) -> not r.test instance.get(k)
     )(fieldName, new RegExp(global.dictLabelCache["_regexps"][regexp]))
 
-servicesDescsKbHook = (instance, knockVM) ->
+caseDescsKbHook = (instance, knockVM) ->
   knockVM['servicesDescs'] = ko.computed
     read: ->
       p = knockVM['program']()
       s = knockVM['servicesReference']()
       return [] unless p?
-      programs = global.dictionaries.Programs.entries
-      descs    = _.find(programs, (x) -> x.value == p)?.servicesDescs
-      _.chain(s).map((x) -> descs?[x.modelName()]).compact().value()
+      _.chain(s).map((x) -> getServiceDesc(p, x.modelName())).compact().value()
+  knockVM['programDesc'] = ko.computed
+    read: -> global.dictionaries['ProgramInfo'][knockVM['program']()]
+
+this.getServiceDesc = (program, service) ->
+  si  = global.dictionaries['ServiceInfo'][program][service]
+  si ?= global.dictionaries['ServiceInfo']['default'][service]
 
 # Clear dependant dictionary fields when parent is changed
 dictionaryHook = (elName) ->
