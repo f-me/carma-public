@@ -126,7 +126,7 @@ actionResultMap = Map.fromList
   [("busyLine",        \objId -> dateNow (+ (5*60))  >>= set objId "duetime")
   ,("callLater",       \objId -> dateNow (+ (30*60)) >>= set objId "duetime")
   ,("partnerNotFound", \objId -> dateNow (+ (2*60*60)) >>= set objId "duetime")
-  ,("needPartner",   \objId -> do 
+  ,("needPartner",     \objId -> do 
      setService objId "status" "needPartner"
      replaceAction
          "needPartner"
@@ -319,6 +319,7 @@ closeAction objId = do
   set objId "closed" "true"
 
 replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
+  assignee <- get objId "assignedTo"
   svcId <- get objId "parentId"
   due <- dateNow dueDelta
   kazeId <- get svcId "parentId"
@@ -326,6 +327,7 @@ replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
     [("name", actionName)
     ,("description", utf8 actionDesc)
     ,("targetGroup", targetGroup)
+    ,("assignedTo", assignee)
     ,("priority", priority)
     ,("duetime", due)
     ,("parentId", svcId)
