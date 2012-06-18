@@ -24,8 +24,13 @@ type DbHandler b r = Handler b (DbLayer b) r
 data DbLayer b = DbLayer
     {_redis    :: Snaplet RedisDB
     ,_postgres :: Snaplet Postgres
+    ,triggers  :: TriggersConfig
     ,indices   :: Indices
     }
+
+data TriggersConfig = TriggersConfig
+  {recommendations :: Map ModelName (Map FieldName (Map FieldValue Object))
+  }
 
 makeLens ''DbLayer
 

@@ -1,0 +1,929 @@
+{
+    "case": {
+        "car_make": {
+            "mini": {
+                "car_class": "b"
+            },
+            "jeep": {
+                "car_class": "e"
+            },
+            "maybach": {
+                "car_class": "f"
+            },
+            "samand": {
+                "car_class": "d"
+            }
+        },
+        "car_model": {
+            "75": {
+                "car_class": "d"
+            },
+            "107": {
+                "car_class": "a"
+            },
+            "111": {
+                "car_class": "b"
+            },
+            "206": {
+                "car_class": "b"
+            },
+            "207": {
+                "car_class": "b"
+            },
+            "307": {
+                "car_class": "c"
+            },
+            "308": {
+                "car_class": "c"
+            },
+            "407": {
+                "car_class": "d"
+            },
+            "607": {
+                "car_class": "c"
+            },
+            "caddy": {
+                "car_dims": "4405x1794x1833-4875x1794x1925",
+                "car_weight": "1356-1925"
+            },
+            "crafter": {
+                "car_dims": "5240x1990x2330-7340x2190x4000",
+                "car_weight": "3000-5000"
+            },
+            "amarok": {
+                "car_dims": "5254x1944x1834",
+                "car_weight": "2820-3040"
+            },
+            "transporter": {
+                "car_dims": "4892x1904x1949-5476x1994x2476",
+                "car_weight": "1551-2499"
+            },
+            "polo": {
+                "car_class": "b",
+                "car_weight": "1067-1126"
+            },
+            "golf": {
+                "car_class": "c",
+                "car_weight": "1157-1339"
+            },
+            "scirocco": {
+                "car_class": "c",
+                "car_weight": "1319-1393"
+            },
+            "jetta": {
+                "car_class": "c",
+                "car_weight": "1343-1459"
+            },
+            "touran": {
+                "car_class": "c",
+                "car_weight": "1423-1561"
+            },
+            "passat": {
+                "car_class": "d",
+                "car_weight": "1348-1660"
+            },
+            "tiguan": {
+                "car_class": "e",
+                "car_weight": "1451-2480"
+            },
+            "phaeton": {
+                "car_class": "f",
+                "car_weight": "2321-2468"
+            },
+            "astra": {
+                "car_class": "c",
+                "car_weight": "1220-1865"
+            },
+            "antara": {
+                "car_weight": "2505"
+            },
+            "vectra": {
+                "car_class": "d",
+                "car_weight": "1700-2255"
+            },
+            "insignia": {
+                "car_weight": "2020"
+            },
+            "corsa": {
+                "car_class": "b",
+                "car_weight": "1565"
+            },
+            "meriva": {
+                "car_weight": "1835"
+            },
+            "zafira": {
+                "car_weight": "1950"
+            },
+            "combo": {
+                "car_weight": "1900"
+            },
+            "trailBlazer": {
+                "car_weight": "2900"
+            },
+            "tahoe": {
+                "car_weight": "3300"
+            },
+            "suburban": {
+                "car_weight": "3900"
+            },
+            "bls": {
+                "car_class": "d",
+                "car_weight": "2100"
+            },
+            "cts": {
+                "car_class": "c",
+                "car_weight": "1765-1788"
+            },
+            "catera": {
+                "car_class": "c"
+            },
+            "sts": {
+                "car_class": "c",
+                "car_weight": "2160"
+            },
+            "seville": {
+                "car_class": "c"
+            },
+            "dts": {
+                "car_class": "f",
+                "car_weight": "2160"
+            },
+            "ville": {
+                "car_class": "f"
+            },
+            "srx": {
+                "car_weight": "2100"
+            },
+            "escalade": {
+                "car_weight": "3350"
+            },
+            "arnage": {
+                "car_class": "f"
+            },
+            "continental": {
+                "car_class": "f"
+            },
+            "H2": {
+                "car_weight": "4100"
+            },
+            "H3": {
+                "car_weight": "2700"
+            },
+            "spark": {
+                "car_class": "a"
+            },
+            "lacetti": {
+                "car_class": "c"
+            },
+            "aveo": {
+                "car_class": "b"
+            },
+            "cobaltCh": {
+                "car_class": "c"
+            },
+            "evanda": {
+                "car_class": "d"
+            },
+            "capriceCh": {
+                "car_class": "f"
+            },
+            "impalaSS": {
+                "car_class": "f"
+            },
+            "lanosCh": {
+                "car_class": "b"
+            },
+            "viva": {
+                "car_class": "c"
+            },
+            "epica": {
+                "car_class": "c"
+            },
+            "statesman": {
+                "car_class": "f"
+            },
+            "caprice": {
+                "car_class": "f"
+            },
+            "alfa147": {
+                "car_class": "c"
+            },
+            "alfa166": {
+                "car_class": "c"
+            },
+            "a2": {
+                "car_class": "b"
+            },
+            "a3": {
+                "car_class": "c"
+            },
+            "a4": {
+                "car_class": "d"
+            },
+            "a6": {
+                "car_class": "c"
+            },
+            "a8": {
+                "car_class": "f"
+            },
+            "1s": {
+                "car_class": "c"
+            },
+            "3s": {
+                "car_class": "d"
+            },
+            "5s": {
+                "car_class": "c"
+            },
+            "7s": {
+                "car_class": "f"
+            },
+            "x5": {
+                "car_class": "e"
+            },
+            "chrysler300": {
+                "car_class": "c"
+            },
+            "sebring": {
+                "car_class": "c"
+            },
+            "c1": {
+                "car_class": "a"
+            },
+            "c2": {
+                "car_class": "b"
+            },
+            "c3": {
+                "car_class": "b"
+            },
+            "c4": {
+                "car_class": "c"
+            },
+            "c5": {
+                "car_class": "d"
+            },
+            "c6": {
+                "car_class": "c"
+            },
+            "xsara": {
+                "car_class": "c"
+            },
+            "chairman": {
+                "car_class": "f"
+            },
+            "espero": {
+                "car_class": "d"
+            },
+            "lanos": {
+                "car_class": "b"
+            },
+            "matiz": {
+                "car_class": "a"
+            },
+            "nexia": {
+                "car_class": "c"
+            },
+            "tosca": {
+                "car_class": "c"
+            },
+            "caliber": {
+                "car_class": "c"
+            },
+            "albea": {
+                "car_class": "b"
+            },
+            "bravo": {
+                "car_class": "c"
+            },
+            "panda": {
+                "car_class": "a"
+            },
+            "punto": {
+                "car_class": "b"
+            },
+            "crownVictoria": {
+                "car_class": "f"
+            },
+            "fairlane": {
+                "car_class": "f"
+            },
+            "ltd": {
+                "car_class": "f"
+            },
+            "fiesta": {
+                "car_class": "b"
+            },
+            "focus": {
+                "car_class": "c"
+            },
+            "fusion": {
+                "car_class": "b"
+            },
+            "scorpio": {
+                "car_class": "c"
+            },
+            "sierra": {
+                "car_class": "d"
+            },
+            "ka": {
+                "car_class": "a"
+            },
+            "accord": {
+                "car_class": "d"
+            },
+            "civic": {
+                "car_class": "c"
+            },
+            "fit": {
+                "car_class": "b"
+            },
+            "jazz": {
+                "car_class": "b"
+            },
+            "legend": {
+                "car_class": "c"
+            },
+            "logo": {
+                "car_class": "b"
+            },
+            "i10": {
+                "car_class": "a"
+            },
+            "i20": {
+                "car_class": "b"
+            },
+            "i30": {
+                "car_class": "c"
+            },
+            "accent": {
+                "car_class": "b"
+            },
+            "getz": {
+                "car_class": "b"
+            },
+            "centennial": {
+                "car_class": "f"
+            },
+            "elantra": {
+                "car_class": "c"
+            },
+            "equus": {
+                "car_class": "f"
+            },
+            "genesis": {
+                "car_class": "f"
+            },
+            "cheryQQ": {
+                "car_class": "a"
+            },
+            "atos": {
+                "car_class": "a"
+            },
+            "santaFe": {
+                "car_class": "c"
+            },
+            "sonata": {
+                "car_class": "c"
+            },
+            "xg": {
+                "car_class": "c"
+            },
+            "sType": {
+                "car_class": "c"
+            },
+            "xf": {
+                "car_class": "c"
+            },
+            "xj": {
+                "car_class": "f"
+            },
+            "xType": {
+                "car_class": "d"
+            },
+            "ceed": {
+                "car_class": "c"
+            },
+            "cerato": {
+                "car_class": "c"
+            },
+            "magentis": {
+                "car_class": "d"
+            },
+            "opirus": {
+                "car_class": "c"
+            },
+            "picanto": {
+                "car_class": "a"
+            },
+            "rio": {
+                "car_class": "b"
+            },
+            "spectra": {
+                "car_class": "c"
+            },
+            "thesis": {
+                "car_class": "c"
+            },
+            "defender": {
+                "car_class": "e"
+            },
+            "discavery": {
+                "car_class": "e"
+            },
+            "range": {
+                "car_class": "e"
+            },
+            "gs": {
+                "car_class": "c"
+            },
+            "is": {
+                "car_class": "d"
+            },
+            "ls": {
+                "car_class": "f"
+            },
+            "quattroporte": {
+                "car_class": "f"
+            },
+            "mazda2": {
+                "car_class": "b"
+            },
+            "mazda3": {
+                "car_class": "c"
+            },
+            "mazda6": {
+                "car_class": "d"
+            },
+            "demio": {
+                "car_class": "b"
+            },
+            "aClass": {
+                "car_class": "b"
+            },
+            "bClass": {
+                "car_class": "b"
+            },
+            "cClass": {
+                "car_class": "c"
+            },
+            "eClass": {
+                "car_class": "c"
+            },
+            "sClass": {
+                "car_class": "f"
+            },
+            "cls": {
+                "car_class": "c"
+            },
+            "colt": {
+                "car_class": "b"
+            },
+            "galant": {
+                "car_class": "d"
+            },
+            "lancer": {
+                "car_class": "c"
+            },
+            "proudia": {
+                "car_class": "f"
+            },
+            "almera": {
+                "car_class": "c"
+            },
+            "cedric": {
+                "car_class": "f"
+            },
+            "cima": {
+                "car_class": "f"
+            },
+            "laurel": {
+                "car_class": "d"
+            },
+            "maxima": {
+                "car_class": "c"
+            },
+            "micra": {
+                "car_class": "b"
+            },
+            "note": {
+                "car_class": "b"
+            },
+            "murano": {
+                "car_class": "e"
+            },
+            "president": {
+                "car_class": "f"
+            },
+            "primera": {
+                "car_class": "d"
+            },
+            "teana": {
+                "car_class": "c"
+            },
+            "tiida": {
+                "car_class": "c"
+            },
+            "clio": {
+                "car_class": "b"
+            },
+            "logan": {
+                "car_class": "b"
+            },
+            "symbol": {
+                "car_class": "b"
+            },
+            "laguna": {
+                "car_class": "d"
+            },
+            "megane": {
+                "car_class": "c"
+            },
+            "twingo": {
+                "car_class": "a"
+            },
+            "velSatis": {
+                "car_class": "c"
+            },
+            "phantom": {
+                "car_class": "f"
+            },
+            "saab93": {
+                "car_class": "d"
+            },
+            "leon": {
+                "car_class": "c"
+            },
+            "fabia": {
+                "car_class": "b"
+            },
+            "octavia": {
+                "car_class": "c"
+            },
+            "superb": {
+                "car_class": "c"
+            },
+            "fortwo": {
+                "car_class": "a"
+            },
+            "impreza": {
+                "car_class": "c"
+            },
+            "legacy": {
+                "car_class": "d"
+            },
+            "ignis": {
+                "car_class": "b"
+            },
+            "swift": {
+                "car_class": "b"
+            },
+            "sx4": {
+                "car_class": "b"
+            },
+            "liana": {
+                "car_class": "c"
+            },
+            "vitara": {
+                "car_class": "e"
+            },
+            "allion": {
+                "car_class": "d"
+            },
+            "avensis": {
+                "car_class": "d"
+            },
+            "auris": {
+                "car_class": "c"
+            },
+            "corolla": {
+                "car_class": "c"
+            },
+            "aygo": {
+                "car_class": "a"
+            },
+            "camry": {
+                "car_class": "c"
+            },
+            "ist": {
+                "car_class": "b"
+            },
+            "vitz": {
+                "car_class": "b"
+            },
+            "yaris": {
+                "car_class": "b"
+            },
+            "chaser": {
+                "car_class": "c"
+            },
+            "cresta": {
+                "car_class": "c"
+            },
+            "mark": {
+                "car_class": "c"
+            },
+            "rav4": {
+                "car_class": "e"
+            },
+            "landCruiser1": {
+                "car_class": "e"
+            },
+            "landCruiser105": {
+                "car_class": "e"
+            },
+            "c30": {
+                "car_class": "c"
+            },
+            "s40": {
+                "car_class": "c"
+            },
+            "v50": {
+                "car_class": "c"
+            },
+            "s60": {
+                "car_class": "d"
+            },
+            "s80": {
+                "car_class": "c"
+            }
+        },
+        "comment": {
+            "p1": {
+                "diagnosis1": "needDiagnostic",
+                "diagnosis2": "needDiagnostic1",
+                "diagnosis3": "needDiagnostic2",
+                "diagnosis4": "towage"
+            },
+            "p3": {
+                "diagnosis1": "needDiagnostic",
+                "diagnosis2": "needDiagnostic1",
+                "diagnosis3": "needDiagnostic2",
+                "diagnosis4": "towage"
+            },
+            "p20": {
+                "diagnosis1": "needDiagnostic",
+                "diagnosis2": "needDiagnostic1",
+                "diagnosis3": "needDiagnostic2",
+                "diagnosis4": "towage"
+            },
+            "p19": {
+                "diagnosis1": "needDiagnostic",
+                "diagnosis2": "needDiagnostic1",
+                "diagnosis3": "needDiagnostic2",
+                "diagnosis4": "towage"
+            },
+            "p35": {
+                "diagnosis1": "needDiagnostic",
+                "diagnosis2": "needDiagnostic1",
+                "diagnosis3": "needDiagnostic2",
+                "diagnosis4": "towCar"
+            },
+            "p5": {
+                "diagnosis1": "engcool",
+                "diagnosis2": "stubDual",
+                "diagnosis3": "breakStubDual",
+                "diagnosis4": "towage"
+            },
+            "p9": {
+                "diagnosis1": "engcool",
+                "diagnosis2": "pomp",
+                "diagnosis3": "pompFault",
+                "diagnosis4": "towage"
+            },
+            "p45": {
+                "diagnosis1": "engcool",
+                "diagnosis2": "engVentilator",
+                "diagnosis3": "ventFault",
+                "diagnosis4": "towage"
+            },
+            "p44": {
+                "diagnosis1": "engcool",
+                "diagnosis2": "thermostat",
+                "diagnosis3": "termFault",
+                "diagnosis4": "towage"
+            },
+            "p17": {
+                "diagnosis1": "steer",
+                "diagnosis2": "ps",
+                "diagnosis3": "psFault",
+                "diagnosis4": "towage"
+            },
+            "p32": {
+                "diagnosis1": "steer",
+                "diagnosis2": "ps",
+                "diagnosis3": "psFault",
+                "diagnosis4": "towage"
+            },
+            "p6": {
+                "diagnosis1": "steer",
+                "diagnosis2": "mast",
+                "diagnosis3": "mastFault",
+                "diagnosis4": "towage"
+            },
+            "p47": {
+                "diagnosis1": "fuel",
+                "diagnosis2": "fuelLine",
+                "diagnosis3": "fracture",
+                "diagnosis4": "towage"
+            },
+            "p46": {
+                "diagnosis1": "fuel",
+                "diagnosis2": "tube",
+                "diagnosis3": "depress",
+                "diagnosis4": "towage"
+            },
+            "p38": {
+                "diagnosis1": "keyLost",
+                "diagnosis2": "keyLost1",
+                "diagnosis3": "keyLost2",
+                "diagnosis4": "towage"
+            },
+            "p51": {
+                "diagnosis1": "brake",
+                "diagnosis2": "brakeBlock",
+                "diagnosis3": "wearOut",
+                "diagnosis4": "towage"
+            },
+            "p12": {
+                "diagnosis1": "brake",
+                "diagnosis2": "brakeBlock",
+                "diagnosis3": "malfunction",
+                "diagnosis4": "towage"
+            },
+            "p24": {
+                "diagnosis1": "brake",
+                "diagnosis2": "brakeBlock",
+                "diagnosis3": "wet",
+                "diagnosis4": "towage"
+            },
+            "p25": {
+                "diagnosis1": "brake",
+                "diagnosis2": "needDiagnostic3",
+                "diagnosis3": "needDiagnostic4",
+                "diagnosis4": "towage"
+            },
+            "p52": {
+                "diagnosis1": "brake",
+                "diagnosis2": "lineHose",
+                "diagnosis3": "depressBrake",
+                "diagnosis4": "towage"
+            },
+            "p53": {
+                "diagnosis1": "brake",
+                "diagnosis2": "brakeCylinder",
+                "diagnosis3": "noBrakeCyl",
+                "diagnosis4": "towage"
+            },
+            "p54": {
+                "diagnosis1": "gears",
+                "diagnosis2": "driverShaft",
+                "diagnosis3": "noDriverSh",
+                "diagnosis4": "towage"
+            },
+            "p55": {
+                "diagnosis1": "gears",
+                "diagnosis2": "gearbox",
+                "diagnosis3": "faultGearbox",
+                "diagnosis4": "towage"
+            },
+            "p26": {
+                "diagnosis1": "gears",
+                "diagnosis2": "clutch",
+                "diagnosis3": "faultClutch",
+                "diagnosis4": "towage"
+            },
+            "p16": {
+                "diagnosis1": "gears",
+                "diagnosis2": "gearbox",
+                "diagnosis3": "faultGearbox",
+                "diagnosis4": "towage"
+            },
+            "p29": {
+                "diagnosis1": "gears",
+                "diagnosis2": "shrus",
+                "diagnosis3": "faultSh",
+                "diagnosis4": "towage"
+            },
+            "p48": {
+                "diagnosis1": "fuel",
+                "diagnosis2": "hatch",
+                "diagnosis3": "faultHatch",
+                "diagnosis4": "towage"
+            },
+            "p49": {
+                "diagnosis1": "fuel",
+                "diagnosis2": "fuelPump",
+                "diagnosis3": "faultPump",
+                "diagnosis4": "towage"
+            },
+            "p50": {
+                "diagnosis1": "fuel",
+                "diagnosis2": "prSensor",
+                "diagnosis3": "faultPrSens",
+                "diagnosis4": "towage"
+            },
+            "p27": {
+                "diagnosis1": "electro",
+                "diagnosis2": "accum",
+                "diagnosis3": "discharge",
+                "diagnosis4": "towCar"
+            },
+            "p4": {
+                "diagnosis1": "electro",
+                "diagnosis2": "accum",
+                "diagnosis3": "batteryFault",
+                "diagnosis4": "towage"
+            },
+            "p57": {
+                "diagnosis1": "electro",
+                "diagnosis2": "starter",
+                "diagnosis3": "starterFault",
+                "diagnosis4": "towage"
+            },
+            "p13": {
+                "diagnosis1": "electro",
+                "diagnosis2": "sparkPlugs",
+                "diagnosis3": "poorQuality",
+                "diagnosis4": "towage"
+            },
+            "p2": {
+                "diagnosis1": "electro",
+                "diagnosis2": "wires",
+                "diagnosis3": "wiresFault",
+                "diagnosis4": "towage"
+            },
+            "p21": {
+                "diagnosis1": "electro",
+                "diagnosis2": "generator",
+                "diagnosis3": "generatorFault",
+                "diagnosis4": "towage"
+            },
+            "p23": {
+                "diagnosis1": "electro",
+                "diagnosis2": "alternatorBelt",
+                "diagnosis3": "breakBelt",
+                "diagnosis4": "towage"
+            },
+            "p11": {
+                "diagnosis1": "electro",
+                "diagnosis2": "ignitionSwitch",
+                "diagnosis3": "breakIgn",
+                "diagnosis4": "towage"
+            },
+            "p58": {
+                "diagnosis1": "electro",
+                "diagnosis2": "ignitionCoil",
+                "diagnosis3": "breakIgnCoil",
+                "diagnosis4": "towage"
+            },
+            "p18": {
+                "diagnosis1": "electro",
+                "diagnosis2": "needDiagnostic5",
+                "diagnosis3": "needDiagnostic6",
+                "diagnosis4": "towage"
+            },
+            "p56": {
+                "diagnosis1": "electronics",
+                "diagnosis2": "control",
+                "diagnosis3": "faultControl",
+                "diagnosis4": "towage"
+            },
+            "p37": {
+                "diagnosis1": "tread",
+                "diagnosis2": "tread1",
+                "diagnosis3": "wheelCut",
+                "diagnosis4": "towage"
+            },
+            "p36": {
+                "diagnosis1": "tread",
+                "diagnosis2": "tread1",
+                "diagnosis3": "wheelPierced",
+                "diagnosis4": "towage"
+            },
+            "p28": {
+                "diagnosis1": "tread",
+                "diagnosis2": "hubBearing",
+                "diagnosis3": "hubBearingFault",
+                "diagnosis4": "towage"
+            },
+            "p43": {
+                "diagnosis1": "dtp",
+                "diagnosis2": "dtp1",
+                "diagnosis3": "dtp2",
+                "diagnosis4": "towage"
+            },
+            "p39": {
+                "diagnosis1": "vandal",
+                "diagnosis2": "vandal1",
+                "diagnosis3": "vandal2",
+                "diagnosis4": "towage"
+            },
+            "p10": {
+                "diagnosis1": "exhaust",
+                "diagnosis2": "cat",
+                "diagnosis3": "catFault",
+                "diagnosis4": "towage"
+            }
+        }
+    }
+}

@@ -26,6 +26,7 @@ import qualified Snaplet.DbLayer.RedisCRUD as Redis
 
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers
+import Util
 
 
 
@@ -76,9 +77,13 @@ initDbLayer = makeSnaplet "db-layer" "Storage abstraction"
     <$> nestSnaplet "redis" redis
           (redisDBInit Redis.defaultConnectInfo)
     <*> nestSnaplet "pgsql" postgres pgsInit
+    <*> liftIO triggersConfig
     <*> liftIO createIndices
 
 ----------------------------------------------------------------------
+triggersConfig = do
+  recs <- readJSON "resources/site-config/recommendations.json"
+  return $ TriggersConfig recs
 
 createIndices = return Map.empty
 {-

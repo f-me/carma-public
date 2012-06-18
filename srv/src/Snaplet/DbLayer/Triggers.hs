@@ -5,8 +5,9 @@ module Snaplet.DbLayer.Triggers
   ) where
 
 import Control.Monad (foldM)
+import Control.Monad.State (gets)
 import Control.Monad.Trans
-import Control.Monad.Trans.State
+import Control.Monad.Trans.State (execStateT)
 
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -19,6 +20,7 @@ import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Defaults
 import Snaplet.DbLayer.Triggers.Actions
+import Snaplet.DbLayer.Triggers.Dsl
 
 
 
@@ -27,12 +29,13 @@ triggerCreate model obj = return
   $ Map.findWithDefault Map.empty model defaults
 
 triggerUpdate :: ObjectId -> Object -> DbHandler b ObjectMap
-triggerUpdate objId commit
-  = loop 5 emptyContext $ Map.singleton objId commit
+triggerUpdate objId commit = do
+  recs <- gets (recommendations . triggers)
+  let cfg = unionTriggers (compileRecs recs) actions
+  loop cfg 5 emptyContext $ Map.singleton objId commit
   where
-    cfg = actions
-    loop 0 cxt changes = return $ unionMaps changes $ updates cxt
-    loop n cxt changes
+    loop cfg 0 cxt changes = return $ unionMaps changes $ updates cxt
+    loop cfg n cxt changes
       | Map.null changes = return $ updates cxt
       | otherwise = do
         let tgs = matchingTriggers cfg changes
@@ -41,7 +44,7 @@ triggerUpdate objId commit
               ,current = Map.empty
               }
         cxt'' <- foldM (flip execStateT) cxt' tgs
-        loop (n-1) cxt'' $ current cxt''
+        loop cfg (n-1) cxt'' $ current cxt''
 
 
 unionMaps :: ObjectMap -> ObjectMap -> ObjectMap
@@ -58,3 +61,11 @@ matchingTriggers cfg updates
         model = fst $ B.break (==':') objId
         modelTriggers = Map.findWithDefault Map.empty model cfg
         applyTriggers tgs val = map (\t -> t objId val) tgs
+
+unionTriggers = Map.unionWith (Map.unionWith (++))
+
+compileRecs = Map.map (Map.map mkT)
+  where
+    mkT m = [\objId val -> case Map.lookup val m of
+      Nothing -> return ()
+      Just upds -> mapM_ (uncurry $ set objId) $ Map.toList upds]
