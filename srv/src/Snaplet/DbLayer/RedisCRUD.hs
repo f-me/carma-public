@@ -5,7 +5,7 @@ import Prelude hiding (read)
 import Control.Monad.IO.Class
 import Control.Monad (forM)
 import Data.Functor
-import Data.Either (lefts)
+import Data.Either
 import qualified Data.ByteString.Char8 as B
 import qualified Data.Map as M
 
@@ -33,9 +33,9 @@ read' r objId = runRedisDB r $ do
 
 readAll r model = runRedisDB r $ do
   Right ids <- keys $ B.concat [model, ":*"]
-  forM ids $ \key -> do
-    Right res <- fmap M.fromList <$> hgetall key
-    return res
+  res <- forM ids $ \i ->
+    fmap (M.insert "id" i . M.fromList) <$> hgetall i
+  return $ rights res
 
 create r model commit = runRedisDB r $ do
   Right n <- incr $ modelIdKey model

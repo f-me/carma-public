@@ -238,7 +238,7 @@ setupCaseMain = (viewName, args) ->
   # the server.
   _.extend args,
            callTaker: global.user.meta.realName
-           callDate : (new Date).toString ("dd.MM.yyyy HH:mm:ss")
+           callDate : (new Date).toString ("dd.MM.yyyy HH:mm")
 
 
   # Render list of required fields in right pane
@@ -307,6 +307,30 @@ setupCallForm = (viewName, args) ->
                      permEl     : "case-permissions"
                      focusClass : "focusable"
                      groupsForest : "center"
+  searchTable = $("#call-searchtable")
+  st = mkDataTable(searchTable)
+  searchTable.on("click.datatable", "tr", ->
+    id = this.children[0].innerText
+    window.location.hash = "case/" + id
+  )
+  $.getJSON("/all/case", (objs) ->
+    st.fnClearTable()
+    for i of objs
+      obj = objs[i]
+      continue if obj.caller_name == ""
+      row = [obj.id.split(":")[1]
+            ,obj.caller_name
+            ,new Date(obj.callDate * 1000).toString("dd.MM.yyyy HH:mm:ss")
+            ,obj.caller_phone1 || ''
+            ,obj.car_plateNum || ''
+            ,obj.car_vin || ''
+            ,global.dictValueCache.Programs[obj.program] || ''
+            ,obj.comment || ''
+            ]
+      st.fnAddData(row)
+  )
+
+
 
 initOSM = (el) ->
   return if el.className.contains("olMap")
@@ -424,7 +448,7 @@ addNewServiceToPartner = (name) ->
   service = global.dictionaries.Services
 
 
-doVin = ->
+this.doVin = ->
   form     = $el("vin-import-form")[0]
   formData = new FormData(form)
 
@@ -495,10 +519,10 @@ setupBoTable = (tables) ->
         gt.fnAddData(row)
 
 
-removeVinAlert = (val) -> $.post "/vin/state", { id: val }
+this.removeVinAlert = (val) -> $.post "/vin/state", { id: val }
 
 # FIXME: This could be a callback for main.js:saveInstance
-successfulSave = ->
+this.successfulSave = ->
   $span = $(this).siblings(".save-result")
   setTimeout((->
     $span.text("Сохранено успешно")

@@ -134,7 +134,7 @@
       </div>
       <div id="center" class="nice-scrollbar call-pane"/>
       <div id="bottom">
-        <table id="searchtable" class="table table-striped table-bordered">
+        <table id="call-searchtable" class="table table-striped table-bordered">
           <thead>
             <tr>
               <th>ID</th>
@@ -142,7 +142,9 @@
               <th>Дата звонка</th>
               <th>Телефон</th>
               <th>Номер машины</th>
+              <th>VIN</th>
               <th>Программа</th>
+              <th>Комментарий</th>
             </tr>
           </thead>
           <tbody/>
