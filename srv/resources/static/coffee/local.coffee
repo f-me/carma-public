@@ -236,9 +236,6 @@ setupCaseMain = (viewName, args) ->
   # Default values
   # FIXME: User's name and creation date are better to be assigned by
   # the server.
-  _.extend args,
-           callTaker: global.user.meta.realName
-           callDate : (new Date).toString ("dd.MM.yyyy HH:mm")
 
 
   # Render list of required fields in right pane
@@ -542,6 +539,8 @@ this.makeCase = () ->
     caller_phone4: v['callerName_phone4']()
     caller_email: v['callerName_email']()
     comment: v['wazzup']()
+    callDate: (new Date).toString("dd.MM.yyyy HH:mm")
+    callTaker: global.user.meta.realName
   buildNewModel 'case', args, {},
     (a, b, k) ->
       global.router.navigate("case/#{k.id()}", { trigger: true })
