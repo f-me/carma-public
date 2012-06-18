@@ -1,5 +1,6 @@
 module Snaplet.DbLayer.Triggers.Actions where
 
+import Control.Arrow (first)
 import Control.Monad (when)
 import Control.Monad.Trans
 import Data.ByteString (ByteString)
@@ -37,7 +38,8 @@ actions = Map.fromList
             let vinKey = B.concat ["vin:", val]
             Right car <- lift $ runRedisDB redis
                               $ Redis.hgetall vinKey
-            mapM_ (uncurry $ set objId) car]
+            let car' = map (first $ B.append "car_") car
+            mapM_ (uncurry $ set objId) car']
       )]
     )]
 
