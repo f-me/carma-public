@@ -332,33 +332,6 @@ initOSM = (el) ->
 this.doPick = (pickType, args, el) ->
   pickers =
 
-    # Get car_vin field from case and try to fill some of its fields
-    # with data stored under this VIN in database.
-    vinFiller: ->
-      # How vin fields map to case fields
-      vinMap =
-        "program"         : "program"
-        "make"            : "car_make"
-        "model"           : "car_model"
-        "plateNumber"     : "car_plateNum"
-        "mileageTO"       : "car_checkupMileage"
-        "serviceInterval" : "car_checkPeriod"
-
-      bb = global.viewsWare["case-form"].bbInstance
-      vin = bb.get('car_vin')
-
-      vinGroup = $("[name=car_vin]").closest(".control-group")
-
-      $.ajax("/_/vin/" + vin,
-             error: ->
-               vinGroup.removeClass("success")
-               vinGroup.addClass("error")
-             success: (data) ->
-               vinGroup.removeClass("error");
-               vinGroup.addClass("success");
-               for k of vinMap
-                 bb.set(vinMap[k], data[k]) if !_.isUndefined(data[k]))
-
     callPlease: (modelName) ->
       bb = global.viewsWare["case-form"].bbInstance
       phoneNumber = bb.get(modelName)

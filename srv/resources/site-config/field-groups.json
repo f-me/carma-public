@@ -2,11 +2,9 @@
     "car": [
         {
             "name": "vin",
-            "type": "picker",
             "meta": {
                 "label": "VIN",
                 "transform": "uppercase",
-                "picker": "vinFiller",
                 "regexp": "vin"
             }
         },

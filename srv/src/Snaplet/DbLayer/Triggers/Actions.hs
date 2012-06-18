@@ -1,9 +1,14 @@
 module Snaplet.DbLayer.Triggers.Actions where
 
 import Control.Monad (when)
+import Control.Monad.Trans
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.Map as Map
+
+import Snap.Snaplet.RedisDB
+import qualified Database.Redis as Redis
+import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
 
@@ -23,7 +28,18 @@ services =
 actions :: TriggerMap a
 actions = Map.fromList
   $ [(s,serviceActions) | s <- services]
-  ++[("action", actionActions)]
+  ++[("action", actionActions)
+    ,("case", Map.fromList
+      [("car_vin", [\objId val ->
+        if B.length val /= 17
+          then return ()
+          else do
+            let vinKey = B.concat ["vin:", val]
+            Right car <- lift $ runRedisDB redis
+                              $ Redis.hgetall vinKey
+            mapM_ (uncurry $ set objId) car]
+      )]
+    )]
 
 -- Создания действий "с нуля"
 serviceActions = Map.fromList
