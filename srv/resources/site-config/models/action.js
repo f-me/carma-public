@@ -47,7 +47,7 @@
       {
         "name": "comment",
         "type": "textarea",
-        "canRead": ["front","back","head"],
+        "canRead": ["partner", "front","back","head"],
         "canWrite":["back","head"],
         "meta": {
           "label": "Комментарий"
@@ -55,7 +55,7 @@
       },
       {
         "name": "result",
-        "canRead": ["front","back","head"],
+        "canRead": ["partner", "front","back","head"],
         "canWrite":["back","head"], 
         "type": "dictionary",
         "meta": {
@@ -83,7 +83,7 @@
       },
       {
         "name": "targetGroup",
-        "canRead": ["front","back","head"],
+        "canRead": ["partner", "front","back","head"],
         "canWrite":["back","head"], 
         "index": true,
         "meta": {
@@ -92,7 +92,7 @@
       },
       {
         "name": "assignedTo",
-        "canRead": ["front","back","head"],
+        "canRead": ["partner", "front","back","head"],
         "canWrite":["back","head"], 
         "meta": {
           "invisible": true

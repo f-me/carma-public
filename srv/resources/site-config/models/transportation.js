@@ -24,12 +24,12 @@
         },		
         {
             "targets": ["caseAddress_address","caseAddress_coords","caseAddress_city","caseAddress_comment"],
-            "canRead": ["front", "back", "head", "parguy"],
+            "canRead": ["partner", "front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head"]
         },     
         {
             "targets": ["fromToAddress_address","fromToAddress_coords","fromToAddress_city","fromToAddress_comment"],
-            "canRead": ["front", "back", "head", "parguy"],
+            "canRead": ["partner", "front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head"]
         },
 		{
@@ -43,18 +43,8 @@
                 "payment_paidByRUAMC",
                 "payment_paidByClient"
             ],
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ]
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head", "parguy" ]
         },
         {
             "targets": [
@@ -94,7 +84,7 @@
         },
 		{
             "name": "payType",
-            "canRead": ["front", "back", "head", "parguy"],
+            "canRead": ["partner", "front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head", "parguy"],
             "type": "dictionary",
             "meta": {
@@ -104,13 +94,13 @@
         },
         {
             "name": "payment",
-            "canRead": ["front", "back", "head", "parguy"],
+            "canRead": ["partner", "front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head", "parguy"],
             "groupName": "payment"
         },	
         {
             "name": "warrantyCase",
-            "canRead": ["front", "back", "head", "parguy"],
+            "canRead": ["partner", "front", "back", "head", "parguy"],
             "canWrite": ["back", "head", "parguy"],			
             "type": "checkbox",
             "meta": {
@@ -119,7 +109,7 @@
         },	
         {
             "name": "expectedCost",
-            "canRead": ["front", "back", "head"],
+            "canRead": ["partner", "front", "back", "head"],
             "canWrite": ["front", "back", "head"],
             "meta": {
                 "label": "Ожидаемая стоимость",
@@ -135,7 +125,7 @@
         },
         {
             "name": "overcosted",
-            "canRead": ["front", "back", "head", "parguy"],
+            "canRead": ["partner", "front", "back", "head", "parguy"],
             "type": "checkbox",
             "meta": {
                 "label": "Стоимость превышена?"
@@ -151,7 +141,7 @@
         },	
         {
             "name": "expectedServiceStart",
-            "canRead": ["front", "back", "head"],
+            "canRead": ["partner", "front", "back", "head"],
             "canWrite": ["front", "back", "head"],			
             "type": "datetime",
             "meta": {
@@ -261,7 +251,7 @@
         },
 		{
             "name": "falseCall",
-            "canRead": ["front", "back", "head", "parguy"],
+            "canRead": ["partner", "front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head"],
             "type": "dictionary",
             "meta": {
@@ -298,7 +288,7 @@
         },		
 		{
             "name": "transportType",
-            "canRead": ["front", "back", "head", "parguy"],
+            "canRead": ["partner", "front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head"],      			
             "type": "dictionary",
             "meta": {
@@ -308,24 +298,14 @@
         },		
         {
             "name": "fromToAddress",
-            "canRead": ["front", "back", "head", "parguy"],
+            "canRead": ["partner", "front", "back", "head", "parguy"],
             "canWrite": ["front", "back", "head"],            
             "groupName": "address"
         },
         {
             "name": "status",
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head", "parguy" ],
             "type": "dictionary",
             "meta": {
                 "label": "Статус услуги",
@@ -334,7 +314,7 @@
         },		
         {
             "name": "clientSatisfied",
-            "canRead": ["front", "back", "head", "parguy"],
+            "canRead": ["partner", "front", "back", "head", "parguy"],
             "canWrite": ["back", "head"],
             "type": "checkbox",
             "meta": {

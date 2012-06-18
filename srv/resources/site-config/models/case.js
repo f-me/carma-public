@@ -10,17 +10,8 @@
             "targets": [
                 "caseAddress_address"
             ],
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head"
-            ],
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head" ],
             "meta": {
                 "label": "Адрес места поломки"
             }
@@ -29,17 +20,8 @@
             "targets": [
                 "caller_name"
             ],
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head"
-            ],
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head" ],
             "meta": {
                 "label": "Звонящий"
             }
@@ -48,17 +30,8 @@
             "targets": [
                 "owner_name"
             ],
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head"
-            ],
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head" ],
             "meta": {
                 "label": "Владелец"
             }
@@ -67,17 +40,8 @@
             "targets": [
                 "cardNumber_cardNumber"
             ],
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head"
-            ],
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head" ],
             "meta": {
                 "label": "Карта участника",
                 "infoText": "cardnum"
@@ -89,17 +53,8 @@
                 "caseAddress_city",
                 "caseAddress_comment"
             ],
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head"
-            ]
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head" ]
         },
         {
             "targets": [
@@ -109,17 +64,8 @@
                 "caller_phone3",
                 "caller_phone4"
             ],
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head"
-            ]
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head" ]
         },
         {
             "targets": [
@@ -129,17 +75,8 @@
                 "owner_phone3",
                 "owner_phone4"
             ],
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head"
-            ]
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head" ]
         },
         {
             "targets": [
@@ -171,17 +108,8 @@
                 "car_checkupMileage",
                 "car_dealerTO"
             ],
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head"
-            ]
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head" ]
         },
         {
             "targets": [
@@ -193,17 +121,8 @@
                 "cardNumber_cardOwner",
                 "cardNumber_manager"
             ],
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head"
-            ]
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head" ]
         },
         {
             "targets": [
@@ -218,15 +137,8 @@
     "fields": [
         {
             "name": "callDate",
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "head"
-            ],
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "head" ],
             "index": true,
             "indexCollate": true,
             "type": "datetime",
@@ -237,12 +149,7 @@
         },
         {
             "name": "callTaker",
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
             "meta": {
                 "label": "Сотрудник РАМК",
                 "required": true,
@@ -251,17 +158,8 @@
         },
         {
             "name": "comment",
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head"
-            ],
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head" ],
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "Wazzup",
@@ -271,16 +169,8 @@
         },
         {
             "name": "diagnosis1",
-            "canRead": [
-                "front",
-                "back",
-                "head"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head"
-            ],
+            "canRead": [ "partner", "front", "back", "head" ],
+            "canWrite": [ "front", "back", "head" ],
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "Diagnosis1",
@@ -290,16 +180,8 @@
         },
         {
             "name": "diagnosis2",
-            "canRead": [
-                "front",
-                "back",
-                "head"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head"
-            ],
+            "canRead": [ "partner", "front", "back", "head" ],
+            "canWrite": [ "front", "back", "head" ],
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "Diagnosis2",
@@ -310,16 +192,8 @@
         },
         {
             "name": "diagnosis3",
-            "canRead": [
-                "front",
-                "back",
-                "head"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head"
-            ],
+            "canRead": [ "partner", "front", "back", "head" ],
+            "canWrite": [ "front", "back", "head" ],
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "Diagnosis3",
@@ -330,16 +204,8 @@
         },
         {
             "name": "diagnosis4",
-            "canRead": [
-                "front",
-                "back",
-                "head"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head"
-            ],
+            "canRead": [ "partner", "front", "back", "head" ],
+            "canWrite": [ "front", "back", "head" ],
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "Diagnosis4",
@@ -349,17 +215,8 @@
         },
         {
             "name": "caller",
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head"
-            ],
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head" ],
             "groupName": "contact",
             "meta": {
                 "label": "Клиент",
@@ -368,16 +225,8 @@
         },
         {
             "name": "callerOwner",
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "head"
-            ],
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "head" ],
             "type": "checkbox",
             "meta": {
                 "label": "Звонящий владелец?",
@@ -386,17 +235,8 @@
         },
         {
             "name": "owner",
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head"
-            ],
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head" ],
             "groupName": "contact",
             "meta": {
                 "label": "Владелец",
@@ -405,47 +245,20 @@
         },
         {
             "name": "car",
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head"
-            ],
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head" ],
             "groupName": "car"
         },
         {
             "name": "cardNumber",
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head"
-            ],
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head" ],
             "groupName": "cardNumber"
         },
         {
             "name": "program",
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head"
-            ],
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head" ],
             "index": true,
             "type": "dictionary",
             "meta": {
@@ -458,17 +271,8 @@
         },
         {
             "name": "vinChecked",
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head"
-            ],
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head" ],
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "VINChecked",
@@ -482,18 +286,8 @@
         },
         {
             "name": "city",
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head", "parguy" ],
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "DealerCities",
@@ -503,16 +297,8 @@
         },
         {
             "name": "temperature",
-            "canRead": [
-                "front",
-                "back",
-                "head"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head"
-            ],
+            "canRead": [ "partner", "front", "back", "head" ],
+            "canWrite": [ "front", "back", "head" ],
             "meta": {
                 "label": "Температура",
                 "infoText": "temperature"
@@ -520,15 +306,8 @@
         },
         {
             "name": "dealerCause",
-            "canRead": [
-                "front",
-                "back",
-                "head"
-            ],
-            "canWrite": [
-                "back",
-                "head"
-            ],
+            "canRead": [ "partner", "front", "back", "head" ],
+            "canWrite": [ "back", "head" ],
             "meta": {
                 "label": "Причина неисправности со слов дилера",
                 "infoText": "dealerCause"
@@ -537,15 +316,8 @@
         },
         {
             "name": "caseStatus",
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "head"
-            ],
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "head" ],
             "type": "dictionary",
             "meta": {
                 "required": true,
@@ -555,18 +327,8 @@
         },
         {
             "name": "betaComment",
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "parguy"
-            ],
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head", "parguy" ],
             "meta": {
                 "label": "Комментарии",
                 "infoText": "betaComment"
