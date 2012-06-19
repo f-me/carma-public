@@ -209,6 +209,9 @@ actionResultMap = Map.fromList
       "back" "1" (changeTime (+5*60) tm)
       objId
   )  
+  ,("serviceStillInProgress", \objId -> do
+    tm <- getService objId "expectedServiceEnd"  
+    (changeTime (+5*60) tm) >>= set objId "duetime") 
   ,("clientWaiting", \objId -> do
     tm <- getService objId "expectedServiceStart"
     replaceAction
