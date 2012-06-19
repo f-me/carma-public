@@ -55,6 +55,38 @@
             "type": "dictionary"
         },
         {
+            "name": "buyDate",
+            "type": "date",
+            "meta": {
+                "label": "Дата покупки"
+            }
+        },
+        {
+            "name": "checkupDate",
+            "type": "date",
+            "meta": {
+                "label": "Дата последнего ТО"
+            }
+        },
+        {
+            "name": "dealerTO",
+            "meta": {
+                "label": "Дилер у которого проходило последнее ТО"
+            }
+        },
+        {
+            "name": "mileage",
+            "meta": {
+                "label": "Текущий пробег"
+            }
+        },
+        {
+            "name": "checkupMileage",
+            "meta": {
+                "label": "Пробег на последнем ТО"
+            }
+        },        
+        {
             "name": "transmission",
             "meta": {
                 "label": "Коробка передач",
@@ -108,38 +140,6 @@
             "meta": {
                 "label": "Класс автомобиля",
                 "dictionaryName": "CarClasses"
-            }
-        },
-        {
-            "name": "buyDate",
-            "type": "date",
-            "meta": {
-                "label": "Дата покупки"
-            }
-        },
-        {
-            "name": "checkupDate",
-            "type": "date",
-            "meta": {
-                "label": "Дата последнего ТО"
-            }
-        },
-        {
-            "name": "dealerTO",
-            "meta": {
-                "label": "Дилер у которого проходило последнее ТО"
-            }
-        },
-        {
-            "name": "mileage",
-            "meta": {
-                "label": "Текущий пробег"
-            }
-        },
-        {
-            "name": "checkupMileage",
-            "meta": {
-                "label": "Пробег на последнем ТО"
             }
         },
         {
