@@ -16,14 +16,6 @@
         },
         {
             "targets": [
-                "towerAddress_address"
-            ],
-            "meta": {
-                "label": "Адрес выезда эвакуатора"
-            }
-        },
-        {
-            "targets": [
                 "towDealer_partner"
             ],
             "meta": {
@@ -36,6 +28,14 @@
             ],
             "meta": {
                 "label": "Партнёр"
+            }
+        },
+        {
+            "targets": [
+                "towerAddress_address"
+            ],
+            "meta": {
+                "label": "Адрес выезда эвакуатора"
             }
         },
         {
@@ -387,15 +387,6 @@
             }
         },
         {
-            "name": "towerAddress",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head" ],
-            "groupName": "address",
-            "meta": {
-                "label": "Адрес выезда эвакуатора"
-            }
-        },
-        {
             "name": "towAddress",
             "canRead": [ "partner", "front", "back", "head", "parguy" ],
             "canWrite": [ "front", "back", "head" ],
@@ -411,6 +402,15 @@
             "groupName": "partner",
             "meta": {
                 "label": "Партнёр"
+            }
+        },
+        {
+            "name": "towerAddress",
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head" ],
+            "groupName": "address",
+            "meta": {
+                "label": "Адрес выезда эвакуатора"
             }
         },
         {

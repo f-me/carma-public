@@ -15,6 +15,14 @@
         {
             "value": "partner",
             "label": "По согласованию заказчика"
+        },
+        {
+            "value": "vinNotFound",
+            "label": "VIN не найден"
+        },
+        {
+            "value": "vinExpired",
+            "label": "VIN просрочен"
         }
     ]
 }

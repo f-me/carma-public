@@ -5,6 +5,10 @@
             "label": "Создание"
         },
         {
+            "value": "clientCanceled",
+            "label": "Клиент отказался от услуги"
+        },        
+        {
             "value": "mechanicConf",
             "label": "Требуется конференция с механиком"
         },
@@ -23,10 +27,6 @@
         {
             "value": "makerConformation",
             "label": "Согласование с производителем"
-        },
-        {
-            "value": "filling",
-            "label": "Заполнение данных"
         },
         {
             "value": "backoffice",

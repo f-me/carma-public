@@ -244,18 +244,6 @@
             }
         },
         {
-            "name": "car",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head" ],
-            "groupName": "car"
-        },
-        {
-            "name": "cardNumber",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head" ],
-            "groupName": "cardNumber"
-        },
-        {
             "name": "program",
             "canRead": [ "partner", "front", "back", "head", "parguy" ],
             "canWrite": [ "front", "back", "head" ],
@@ -268,6 +256,18 @@
                 "targetCategory": "program",
                 "infoText": "program"
             }
+        },
+        {
+            "name": "car",
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head" ],
+            "groupName": "car"
+        },
+        {
+            "name": "cardNumber",
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head" ],
+            "groupName": "cardNumber"
         },
         {
             "name": "vinChecked",

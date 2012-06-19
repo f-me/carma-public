@@ -12,6 +12,10 @@
             {
                 "value": "busyLine",
                 "label": "Не дозвонился"
+            },
+            {
+                "value": "clientCanceledService",
+                "label": "Клиент отказался от услуги"
             }
         ],
         "needPartner": [
@@ -22,6 +26,10 @@
             {
                 "value": "partnerNotFound",
                 "label": "Партнёр не найден"
+            },
+            {
+                "value": "clientCanceledService",
+                "label": "Клиент отказался от услуги"
             }
         ],
         "tellClient": [
@@ -40,6 +48,10 @@
             {
                 "value": "partnerOk",
                 "label": "Клиент согласен с условиями"
+            },
+            {
+                "value": "clientCanceledService",
+                "label": "Клиент отказался от услуги"
             }
         ],
         "cancelService": [
@@ -54,6 +66,10 @@
             {
                 "value": "falseCallWOBill",
                 "label": "Ложный вызов, без выставления счета"
+            },
+            {
+                "value": "clientCanceledService",
+                "label": "Клиент отказался от услуги"
             }
         ],
         "checkStatus": [
@@ -68,6 +84,10 @@
             {
                 "value": "serviceInProgress",
                 "label": "Услуга в процессе оказания"
+            },
+            {
+                "value": "clientCanceledService",
+                "label": "Клиент отказался от услуги"
             }
         ],
         "tellDelayClient": [
@@ -86,6 +106,10 @@
             {
                 "value": "partnerNotOkCalncel",
                 "label": "Полный отказ от услуг"
+            },
+            {
+                "value": "clientCanceledService",
+                "label": "Клиент отказался от услуги"
             }
         ],
         "checkEndOfService": [
@@ -222,6 +246,10 @@
             {
                 "value": "dealerNotApproved",
                 "label": "Дилер отказал"
+            },
+            {
+                "value": "clientCanceledService",
+                "label": "Клиент отказался от услуги"
             }
         ],
         "carmakerApproval": [
@@ -240,6 +268,10 @@
             {
                 "value": "carmakerNotApproved",
                 "label": "Автопроизводитель отказал"
+            },
+            {
+                "value": "clientCanceledService",
+                "label": "Клиент отказался от услуги"
             }
         ],
         "dealerConf": [
@@ -258,6 +290,10 @@
             {
                 "value": "notNeedService",
                 "label": "Заказ услуги не требуется"
+            },
+            {
+                "value": "clientCanceledService",
+                "label": "Клиент отказался от услуги"
             }
         ],
         "mechanicConf": [
@@ -276,6 +312,10 @@
             {
                 "value": "notNeedService",
                 "label": "Заказ услуги не требуется"
+            },
+            {
+                "value": "clientCanceledService",
+                "label": "Клиент отказался от услуги"
             }
         ],
         "tellDealerDenied": [
@@ -286,6 +326,10 @@
             {
                 "value": "clientNotified",
                 "label": "Клиент оповещён"
+            },
+            {
+                "value": "clientCanceledService",
+                "label": "Клиент отказался от услуги"
             }
         ],
         "tellMakerDenied": [
@@ -296,6 +340,10 @@
             {
                 "value": "clientNotified",
                 "label": "Клиент оповещён"
+            },
+            {
+                "value": "clientCanceledService",
+                "label": "Клиент отказался от услуги"
             }
         ]
     }

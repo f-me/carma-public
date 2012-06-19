@@ -116,7 +116,21 @@ serviceActions = Map.fromList
             ,("caseId", kazeId)
             ,("closed", "false")
             ]
-          upd kazeId "actions" $ addToList actionId           
+          upd kazeId "actions" $ addToList actionId
+      "clientCanceled" -> do
+          due <- dateNow (+ (1*60))
+          kazeId <- get objId "parentId"
+          actionId <- new "action" $ Map.fromList
+            [("name", "cancelService")
+            ,("duetime", due)
+            ,("description", utf8 "Клиент отказался от услуги (сообщил об это оператору Front Office)")
+            ,("targetGroup", "back")
+            ,("priority", "1")
+            ,("parentId", objId)
+            ,("caseId", kazeId)
+            ,("closed", "false")
+            ]
+          upd kazeId "actions" $ addToList actionId         	  
       _ -> return ()]
   )]
 
@@ -143,6 +157,7 @@ actionResultMap = Map.fromList
   [("busyLine",        \objId -> dateNow (+ (5*60))  >>= set objId "duetime")
   ,("callLater",       \objId -> dateNow (+ (30*60)) >>= set objId "duetime")
   ,("partnerNotFound", \objId -> dateNow (+ (2*60*60)) >>= set objId "duetime")
+  ,("clientCanceledService", closeAction)   
   ,("needPartner",     \objId -> do 
      setService objId "status" "needPartner"
      replaceAction
@@ -226,7 +241,7 @@ actionResultMap = Map.fromList
     replaceAction
       "complaintResolution"
       "Клиент предъявил претензию"
-      "back" "1" (+60)
+      "head" "1" (+60)
       objId 
     replaceAction
       "closeCase"
@@ -236,7 +251,7 @@ actionResultMap = Map.fromList
     replaceAction
       "addBill"
       "Прикрепить счёт"
-      "back" "1" (+14*24*60*60)
+      "parguy" "1" (+14*24*60*60)
       objId
     replaceAction
       "getInfoDealerVW"
@@ -251,7 +266,7 @@ actionResultMap = Map.fromList
       "account" "1" (+60)
   )
   ,("vwclosed", closeAction
-  )  
+  )   
   ,("financialOk", closeAction
   )
   ,("accountError", replaceAction
