@@ -226,7 +226,7 @@ actionResultMap = Map.fromList
     replaceAction
       "complaintResolution"
       "Клиент предъявил претензию"
-      "back" "1" (+60)
+      "head" "1" (+60)
       objId 
     replaceAction
       "closeCase"
@@ -236,7 +236,7 @@ actionResultMap = Map.fromList
     replaceAction
       "addBill"
       "Прикрепить счёт"
-      "back" "1" (+14*24*60*60)
+      "parguy" "1" (+14*24*60*60)
       objId
     replaceAction
       "getInfoDealerVW"
