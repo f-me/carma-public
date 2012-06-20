@@ -45,6 +45,8 @@
     <!-- 25Kb of date parsing and formatting -->
     <script src="/s/js/3p/date-ru-RU.js" />
 
+    <!-- masked input for datetime fields -->
+    <script src="/s/js/3p/jquery.maskedinput-1.3.js" />
 
     <!-- Model processing -->
     <script src="/s/js/metamodel.js" />
@@ -559,10 +561,12 @@
           </label>
         </div>
         <div class="controls">
-          <input type="text"
+          <input class="datetime-field"
+                 type="text"
                  class="pane-span focusable"
                  autocomplete="off"
                  name="{{ name }}"
+                 onFocus="datetimeFieldHandler(this)"
                  {{# readonly }}readonly{{/ readonly }}
                  data-bind="value: {{ name }},
                             valueUpdate: 'afterkeydown'" />
@@ -597,6 +601,7 @@
                    class="pane-span focusable"
                    autocomplete="off"
                    name="{{ name }}"
+                   onFocus="onFocusDate(this)"
                    {{# readonly }}readonly{{/ readonly }}
                    data-bind="value: {{ name }},
                               valueUpdate: 'afterkeydown'" />

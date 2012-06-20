@@ -530,15 +530,20 @@ this.successfulSave = ->
 this.makeCase = () ->
   v = global.viewsWare['call-form'].knockVM
   args =
-    caller_name: v['callerName_name']()
+    caller_name:   v['callerName_name']()
     caller_phone1: v['callerName_phone1']()
     caller_phone2: v['callerName_phone2']()
     caller_phone3: v['callerName_phone3']()
     caller_phone4: v['callerName_phone4']()
-    caller_email: v['callerName_email']()
-    comment: v['wazzup']()
+    caller_email:  v['callerName_email']()
+    comment:       v['wazzup']()
     callDate: (new Date).toString("dd.MM.yyyy HH:mm")
     callTaker: global.user.meta.realName
   buildNewModel 'case', args, {},
     (a, b, k) ->
       global.router.navigate("case/#{k.id()}", { trigger: true })
+
+this.datetimeFieldHandler = (el) ->
+  date = (new Date).toString("dd.MM.yyyy HH:MM")
+  $(el).val(date)
+  $(el).blur -> $(el).val("") if date == $(el).val()
