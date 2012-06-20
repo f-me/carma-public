@@ -8,14 +8,6 @@
     "applications": [
         {
             "targets": [
-                "caseAddress_address"
-            ],
-            "meta": {
-                "label": "Адрес кейса"
-            }
-        },
-        {
-            "targets": [
                 "techContractor_partner"
             ],
             "meta": {
@@ -37,16 +29,6 @@
             ],
             "canRead": [ "partner", "front", "back", "head", "parguy" ],
             "canWrite": [ "front", "back", "head", "parguy" ]
-        },
-        {
-            "targets": [
-                "caseAddress_address",
-                "caseAddress_coords",
-                "caseAddress_city",
-                "caseAddress_comment"
-            ],
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head" ]
         },
         {
             "targets": [
@@ -308,15 +290,6 @@
             },
             "type": "dictionary",
             "index": true
-        },
-        {
-            "name": "caseAddress",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head" ],
-            "groupName": "address",
-            "meta": {
-                "label": "Адрес кейса"
-            }
         },
         {
             "name": "techContractor",
