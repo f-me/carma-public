@@ -487,11 +487,11 @@
            >
         <div class="control-label">
           <label>{{ meta.label }}
-            {{# meta.infoText }}
+            {{# meta.infoText1 }}
               <i class="icon icon-question-sign"
                  data-provide="popover"
-                 data-content="{{ meta.infoText }}" />
-            {{/ meta.infoText }}
+                 data-content="{{ meta.infoText1 }}" />
+            {{/ meta.infoText1 }}
           </label>
         </div>
         <div class="controls">             
@@ -522,11 +522,11 @@
            >
         <div class="control-label">
           <label>{{ meta.label }}
-            {{# meta.infoText }}
+            {{# meta.infoText1 }}
               <i class="icon icon-question-sign"
                  data-provide="popover"
-                 data-content="{{ meta.infoText }}" />
-            {{/ meta.infoText }}
+                 data-content="{{ meta.infoText1 }}" />
+            {{/ meta.infoText1 }}
           </label>
         </div>
         <div class="controls">
@@ -553,11 +553,11 @@
            >
         <div class="control-label">
           <label>{{ meta.label }}
-            {{# meta.infoText }}
+            {{# meta.infoText1 }}
               <i class="icon icon-question-sign"
                  data-provide="popover"
-                 data-content="{{ meta.infoText }}" />
-            {{/ meta.infoText }}
+                 data-content="{{ meta.infoText1 }}" />
+            {{/ meta.infoText1 }}
           </label>
         </div>
         <div class="controls">
@@ -584,11 +584,11 @@
            >
         <div class="control-label">
           <label>{{ meta.label }}
-            {{# meta.infoText }}
+            {{# meta.infoText1 }}
               <i class="icon icon-question-sign"
                  data-provide="popover"
-                 data-content="{{ meta.infoText }}" />
-            {{/ meta.infoText }}
+                 data-content="{{ meta.infoText1 }}" />
+            {{/ meta.infoText1 }}
           </label>
         </div>
         <div class="controls">
@@ -652,11 +652,11 @@
            >
         <div class="control-label">
           <label>{{ meta.label }}
-            {{# meta.infoText }}
+            {{# meta.infoText1 }}
               <i class="icon icon-question-sign"
                  data-provide="popover"
-                 data-content="{{ meta.infoText }}" />
-            {{/ meta.infoText }}
+                 data-content="{{ meta.infoText1 }}" />
+            {{/ meta.infoText1 }}
           </label>
         </div>
         <div class="controls">
@@ -708,11 +708,11 @@
            >
         <div class="control-label">
           <label>{{ meta.label }}
-            {{# meta.infoText }}
+            {{# meta.infoText1 }}
               <i class="icon icon-question-sign"
                  data-provide="popover"
-                 data-content="{{ meta.infoText }}" />
-            {{/ meta.infoText }}
+                 data-content="{{ meta.infoText1 }}" />
+            {{/ meta.infoText1 }}
           </label>
         </div>
         <div class="controls">
@@ -742,11 +742,11 @@
       <div class="control-group">
         <div class="control-label">
           <label>{{ meta.label }}
-            {{# meta.infoText }}
+            {{# meta.infoText1 }}
               <i class="icon icon-question-sign"
                  data-provide="popover"
-                 data-content="{{ meta.infoText }}" />
-            {{/ meta.infoText }}
+                 data-content="{{ meta.infoText1 }}" />
+            {{/ meta.infoText1 }}
           </label>
         </div>
         <div class="controls">
@@ -771,11 +771,11 @@
       <div class="control-group">
         <div class="control-label">
           <label>{{ meta.label }}
-            {{# meta.infoText }}
+            {{# meta.infoText1 }}
               <i class="icon icon-question-sign"
                  data-provide="popover"
-                 data-content="{{ meta.infoText }}" />
-            {{/ meta.infoText }}
+                 data-content="{{ meta.infoText1 }}" />
+            {{/ meta.infoText1 }}
           </label>
         </div>
         <div class="controls">
@@ -803,11 +803,11 @@
                    data-bind="checked: {{ name }},
                               valueUpdate: 'change'" />
           {{ meta.label }}
-          {{# meta.infoText }}
+          {{# meta.infoText1 }}
             <i class="icon icon-question-sign"
                data-provide="popover"
-               data-content="{{ meta.infoText }}" />
-          {{/ meta.infoText }}
+               data-content="{{ meta.infoText1 }}" />
+          {{/ meta.infoText1 }}
           </label>
         </div>
       </div>
@@ -856,11 +856,11 @@
       <div class="control-group">
         <div class="control-label">
           <label>{{ meta.label }}
-            {{# meta.infoText }}
+            {{# meta.infoText1 }}
               <i class="icon icon-question-sign"
                  data-provide="popover"
-                 data-content="{{ meta.infoText }}" />
-            {{/ meta.infoText }}
+                 data-content="{{ meta.infoText1 }}" />
+            {{/ meta.infoText1 }}
           </label>
         </div>
         <div class="controls">

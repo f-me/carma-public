@@ -164,7 +164,9 @@ this.renderFields = (model, viewName) ->
       if slices? then group = slices[1] else group = mainGroup
 
       if f.meta and _.has(f.meta, "infoText")
-        f.meta.infoText = global.dictionaries.InfoText[f.meta.infoText]
+        # use infoText1, so we can't brake it on next rendering phaze
+        # like changing screen
+        f.meta.infoText1 = global.dictionaries.InfoText[f.meta.infoText]
 
       if f.type == "dictionary"
         ctx = _.extend ctx,
