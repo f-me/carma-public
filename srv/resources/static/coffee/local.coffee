@@ -295,7 +295,7 @@ this.addService = (name) ->
                'services',
                { modelName : name },
                (k) ->
-                  e = $('#' + k['view']).find('input')[0]
+                  e = $('#' + k['view'])[0]
                   e.scrollIntoView()
                   e.focus()
 
