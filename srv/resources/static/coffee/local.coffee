@@ -295,9 +295,9 @@ this.addService = (name) ->
                'services',
                { modelName : name },
                (k) ->
-                  e = $('#' + k['view']).parent().prev()[0]
-                  e.scrollIntoView()
-                  e.focus()
+                  e = $('#' + k['view'])
+                  e.parent().prev()[0].scrollIntoView()
+                  e.find('input')[0].focus()
 
 setupCallForm = (viewName, args) ->
   modelSetup("call") viewName, args,
