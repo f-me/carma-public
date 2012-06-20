@@ -123,7 +123,7 @@
         },
         {
             "name": "payment",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canRead": [ "front", "back", "head", "parguy" ],
             "canWrite": [ "front", "back", "head", "parguy" ],
             "groupName": "payment"
         },
@@ -138,7 +138,7 @@
         },
         {
             "name": "expectedCost",
-            "canRead": [ "partner", "front", "back", "head" ],
+            "canRead": [ "front", "back", "head" ],
             "canWrite": [ "front", "back", "head" ],
             "meta": {
                 "label": "Ожидаемая стоимость",
@@ -154,7 +154,7 @@
         },
         {
             "name": "overcosted",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canRead": [ "front", "back", "head", "parguy" ],
             "type": "checkbox",
             "meta": {
                 "label": "Стоимость превышена?"
