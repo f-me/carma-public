@@ -222,6 +222,7 @@
           break
 
         case 9: // tab
+          break
         case 13: // enter
           if (!this.shown) this.lookup()
           else this.select()
