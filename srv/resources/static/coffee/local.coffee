@@ -310,6 +310,7 @@ setupCallForm = (viewName, args) ->
     id = this.children[0].innerText
     window.location.hash = "case/" + id
   )
+  st.fnSort [[2, "desc"]]
   $.getJSON("/all/case", (objs) ->
     st.fnClearTable()
     for i of objs
@@ -465,7 +466,8 @@ setupBackOffice = ->
 
 mkBoTable = ->
   groupTable = $("#back-group-table")
-  mkDataTable(groupTable)
+  gt = mkDataTable(groupTable)
+  gt.fnSort [[2, "desc"]]
   groupTable.on("click.datatable", "tr", ->
     id = this.children[0].innerText.split('/');
     $.ajax
@@ -476,7 +478,8 @@ mkBoTable = ->
         processData : false
     window.location.hash = "case/" + id[0])
   userTable = $("#back-user-table")
-  mkDataTable(userTable)
+  ut = mkDataTable(userTable)
+  ut.fnSort [[2, "desc"]]
   userTable.on("click.datatable", "tr", ->
      id = this.children[0].innerText.split('/')
      window.location.hash = "case/" + id[0]
