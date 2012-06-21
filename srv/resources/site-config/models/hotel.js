@@ -8,40 +8,72 @@
     "applications": [
         {
             "targets": [
-				"payment_expectedCost"
+                "payment_expectedCost"
             ],
-            "canRead": [ "front", "back", "head" ],
-            "canWrite": [ "front", "back", "head" ]
+            "canRead": [
+                "front",
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ]
         },
         {
             "targets": [
-				"payment_partnerCost"
+                "payment_partnerCost"
             ],
-            "canRead": [ "back", "head", "parguy" ],
-            "canWrite": [ "back", "head" ]
+            "canRead": [
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ]
         },
         {
             "targets": [
-				"payment_calculatedCost",
-				"payment_overcosted"
+                "payment_calculatedCost",
+                "payment_overcosted"
             ],
-            "canRead": [ "front", "back", "head", "parguy" ]
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ]
         },
         {
             "targets": [
-				"payment_limitedCost",
+                "payment_limitedCost"
             ],
-            "canRead": [ "back", "head" ]
+            "canRead": [
+                "back",
+                "head"
+            ]
         },
         {
             "targets": [
-				"payment_payType",
-				"payment_paidByRUAMC",
-				"payment_paidByClient"
+                "payment_payType",
+                "payment_paidByRUAMC",
+                "payment_paidByClient"
             ],
-            "canRead": [ "front", "back", "head", "parguy" ],
-            "canWrite": [ "back", "head", "parguy" ]
-        },			
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "back",
+                "head",
+                "parguy"
+            ]
+        },
         {
             "targets": [
                 "caseAddress_address"
@@ -65,8 +97,18 @@
                 "caseAddress_city",
                 "caseAddress_comment"
             ],
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head" ]
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ]
         },
         {
             "targets": [
@@ -74,40 +116,70 @@
                 "hotelContractor_partnerTable",
                 "hotelContractor_coords"
             ],
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head" ]
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ]
         },
         {
             "targets": [
-				"bill_billNumber",
-				"bill_billingCost",
-				"bill_billingDate"
+                "bill_billNumber",
+                "bill_billingCost",
+                "bill_billingDate"
             ],
-            "canRead": [ "head", "parguy" ],
-            "canWrite": [ "parguy" ]
-        },		
-        {
-            "targets": [
-				"times_expectedServiceStart"
+            "canRead": [
+                "head",
+                "parguy"
             ],
-            "canRead": [ "partner", "front", "back", "head" ],
-            "canWrite": [ "front", "back", "head" ]
+            "canWrite": [
+                "parguy"
+            ]
         },
         {
             "targets": [
-				"times_factServiceStart",
-				"times_expectedServiceEnd",
-				"times_factServiceEnd",
-				"times_expectedServiceFinancialClosure",
-				"times_factServiceFinancialClosure",
-				"times_expectedDealerInfo",
-				"times_factDealerInfo",
-				"times_expectedServiceClosure",
-				"times_factServiceClosure",
-				"times_repairEndDate"
+                "times_expectedServiceStart"
             ],
-            "canRead": [ "back", "head" ],
-            "canWrite": [ "back", "head" ]
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ]
+        },
+        {
+            "targets": [
+                "times_factServiceStart",
+                "times_expectedServiceEnd",
+                "times_factServiceEnd",
+                "times_expectedServiceFinancialClosure",
+                "times_factServiceFinancialClosure",
+                "times_expectedDealerInfo",
+                "times_factDealerInfo",
+                "times_expectedServiceClosure",
+                "times_factServiceClosure",
+                "times_repairEndDate"
+            ],
+            "canRead": [
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ]
         }
     ],
     "fields": [
@@ -126,11 +198,21 @@
         {
             "name": "times",
             "groupName": "times"
-        },	
+        },
         {
             "name": "falseCall",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head" ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "FalseStatuses",
@@ -141,11 +223,21 @@
         {
             "name": "bill",
             "groupName": "bill"
-        },	
+        },
         {
             "name": "caseAddress",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head" ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
             "groupName": "address",
             "meta": {
                 "label": "Адрес кейса"
@@ -153,8 +245,18 @@
         },
         {
             "name": "hotelContractor",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head" ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
             "groupName": "partner",
             "meta": {
                 "label": "Гостиница"
@@ -162,16 +264,37 @@
         },
         {
             "name": "hotelProvidedFor",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head" ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
             "meta": {
                 "label": "Срок, на который предоставлена гостиница (дней)"
             }
         },
         {
             "name": "status",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head", "parguy" ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
             "type": "dictionary",
             "meta": {
                 "label": "Статус услуги",
@@ -180,8 +303,17 @@
         },
         {
             "name": "clientSatisfied",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "back", "head" ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
             "type": "checkbox",
             "meta": {
                 "label": "Клиент доволен"
@@ -189,8 +321,18 @@
         },
         {
             "name": "warrantyCase",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "back", "head", "parguy" ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "back",
+                "head",
+                "parguy"
+            ],
             "type": "checkbox",
             "meta": {
                 "label": "Гарантийный случай"
