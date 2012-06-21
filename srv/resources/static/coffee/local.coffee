@@ -50,7 +50,7 @@ localRouter = Backbone.Router.extend
 
 hooks = ->
   model:
-      "*"    : [stdElCb, dictionaryHook]
+      "*"    : [stdElCb]
       "case" : [candiboberHook]
   observable:
       "*"    : [regexpKbHook, dictionaryKbHook]
