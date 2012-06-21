@@ -26,45 +26,71 @@
         },
         {
             "targets": [
-                "payment_payment"
+				"payment_expectedCost"
             ],
-            "meta": {
-                "label": "Стоимость"
-            }
+            "canRead": [ "front", "back", "head" ],
+            "canWrite": [ "front", "back", "head" ]
         },
         {
             "targets": [
-                "payment_paidByRUAMC",
-                "payment_paidByClient"
+				"payment_partnerCost"
             ],
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head", "parguy" ]
+            "canRead": [ "back", "head", "parguy" ],
+            "canWrite": [ "back", "head" ]
         },
         {
             "targets": [
-                "expectedServiceStart",
-                "factServiceStart",
-                "expectedServiceEnd",
-                "factServiceEnd",
-                "expectedServiceFinancialClosure",
-                "factServiceFinancialClosure",
-                "expectedDealerInfo",
-                "factDealerInfo",
-                "expectedServiceClosure",
-                "factServiceClosure"
+				"payment_calculatedCost",
+				"payment_overcosted"
             ],
-            "meta": {
-                "regexp": "datetime"
-            }
+            "canRead": [ "front", "back", "head", "parguy" ]
         },
         {
             "targets": [
-                "repairEndDate",
-                "billingDate"
+				"payment_limitedCost",
             ],
-            "meta": {
-                "regexp": "date"
-            }
+            "canRead": [ "back", "head" ]
+        },
+        {
+            "targets": [
+				"payment_payType",
+				"payment_paidByRUAMC",
+				"payment_paidByClient"
+            ],
+            "canRead": [ "front", "back", "head", "parguy" ],
+            "canWrite": [ "back", "head", "parguy" ]
+        },		
+        {
+            "targets": [
+				"bill_billNumber",
+				"bill_billingCost",
+				"bill_billingDate"
+            ],
+            "canRead": [ "head", "parguy" ],
+            "canWrite": [ "parguy" ]
+        },		
+        {
+            "targets": [
+				"times_expectedServiceStart"
+            ],
+            "canRead": [ "partner", "front", "back", "head" ],
+            "canWrite": [ "front", "back", "head" ]
+        },
+        {
+            "targets": [
+				"times_factServiceStart",
+				"times_expectedServiceEnd",
+				"times_factServiceEnd",
+				"times_expectedServiceFinancialClosure",
+				"times_factServiceFinancialClosure",
+				"times_expectedDealerInfo",
+				"times_factDealerInfo",
+				"times_expectedServiceClosure",
+				"times_factServiceClosure",
+				"times_repairEndDate"
+            ],
+            "canRead": [ "back", "head" ],
+            "canWrite": [ "back", "head" ]
         }
     ],
     "fields": [
@@ -77,172 +103,13 @@
             }
         },
         {
-            "name": "payType",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head", "parguy" ],
-            "type": "dictionary",
-            "meta": {
-                "dictionaryName": "PaymentTypes",
-                "label": "Тип оплаты"
-            }
-        },
-        {
             "name": "payment",
-            "canRead": [ "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head", "parguy" ],
             "groupName": "payment"
         },
         {
-            "name": "warrantyCase",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "back", "head", "parguy" ],
-            "type": "checkbox",
-            "meta": {
-                "label": "Гарантийный случай"
-            }
-        },
-        {
-            "name": "expectedCost",
-            "canRead": [ "front", "back", "head" ],
-            "canWrite": [ "front", "back", "head" ],
-            "meta": {
-                "label": "Ожидаемая стоимость",
-                "infoText": "expextedValue"
-            }
-        },
-        {
-            "name": "limitedCost",
-            "canRead": [ "back", "head" ],
-            "meta": {
-                "label": "Предельная стоимость"
-            }
-        },
-        {
-            "name": "overcosted",
-            "canRead": [ "front", "back", "head", "parguy" ],
-            "type": "checkbox",
-            "meta": {
-                "label": "Стоимость превышена?"
-            }
-        },
-        {
-            "name": "partnerCost",
-            "canRead": [ "back", "head", "parguy" ],
-            "canWrite": [ "back", "head" ],
-            "meta": {
-                "label": "Стоимость со слов партнёра"
-            }
-        },
-        {
-            "name": "expectedServiceStart",
-            "canRead": [ "partner", "front", "back", "head" ],
-            "canWrite": [ "front", "back", "head" ],
-            "type": "datetime",
-            "meta": {
-                "label": "Ожидаемое время начала оказания услуги",
-                "infoText": "datetime"
-            }
-        },
-        {
-            "name": "factServiceStart",
-            "canRead": [ "back", "head" ],
-            "canWrite": [ "back", "head" ],
-            "type": "datetime",
-            "meta": {
-                "label": "Фактическое  время начала оказания услуги",
-                "infoText": "datetime"
-            }
-        },
-        {
-            "name": "expectedServiceEnd",
-            "canRead": [ "back", "head" ],
-            "canWrite": [ "back", "head" ],
-            "type": "datetime",
-            "meta": {
-                "label": "Ожидаемое время окончания оказания услуги",
-                "infoText": "datetime"
-            }
-        },
-        {
-            "name": "factServiceEnd",
-            "canRead": [ "back", "head" ],
-            "canWrite": [ "back", "head" ],
-            "type": "datetime",
-            "meta": {
-                "label": "Фактическое время окончания оказания услуги",
-                "infoText": "datetime"
-            }
-        },
-        {
-            "name": "expectedServiceFinancialClosure",
-            "canRead": [ "back", "head" ],
-            "canWrite": [ "back", "head" ],
-            "type": "datetime",
-            "meta": {
-                "label": "Ожидаемое время финансового закрытия услуги",
-                "infoText": "datetime"
-            }
-        },
-        {
-            "name": "factServiceFinancialClosure",
-            "canRead": [ "back", "head" ],
-            "canWrite": [ "back", "head" ],
-            "type": "datetime",
-            "meta": {
-                "label": "Фактическое время финансового закрытия услуги",
-                "infoText": "datetime"
-            }
-        },
-        {
-            "name": "expectedDealerInfo",
-            "canRead": [ "back", "head" ],
-            "canWrite": [ "back", "head" ],
-            "type": "datetime",
-            "meta": {
-                "label": "Ожидаемое время получения информации от дилера",
-                "infoText": "datetime"
-            }
-        },
-        {
-            "name": "factDealerInfo",
-            "canRead": [ "back", "head" ],
-            "canWrite": [ "back", "head" ],
-            "type": "datetime",
-            "meta": {
-                "label": "Фактическое время получения информации от дилера",
-                "infoText": "datetime"
-            }
-        },
-        {
-            "name": "expectedServiceClosure",
-            "canRead": [ "back", "head" ],
-            "canWrite": [ "back", "head" ],
-            "type": "datetime",
-            "meta": {
-                "label": "Ожидаемое время закрытия услуги",
-                "infoText": "datetime"
-            }
-        },
-        {
-            "name": "factServiceClosure",
-            "canRead": [ "back", "head" ],
-            "canWrite": [ "back", "head" ],
-            "type": "datetime",
-            "meta": {
-                "label": "Фактическое время закрытия услуги",
-                "infoText": "datetime"
-            }
-        },
-        {
-            "name": "repairEndDate",
-            "canRead": [ "back", "head" ],
-            "canWrite": [ "back", "head" ],
-            "type": "date",
-            "meta": {
-                "label": "Дата окончания ремонта",
-                "infoText": "date"
-            }
-        },
+            "name": "times",
+            "groupName": "times"
+        },	
         {
             "name": "falseCall",
             "canRead": [ "partner", "front", "back", "head", "parguy" ],
@@ -255,31 +122,9 @@
             }
         },
         {
-            "name": "billingDate",
-            "canRead": [ "head", "parguy" ],
-            "canWrite": [ "parguy" ],
-            "type": "date",
-            "meta": {
-                "label": "Дата выставления счёта",
-                "infoText": "date"
-            }
-        },
-        {
-            "name": "billingCost",
-            "canRead": [ "head", "parguy" ],
-            "canWrite": [ "parguy" ],
-            "meta": {
-                "label": "Сумма по счёту"
-            }
-        },
-        {
-            "name": "billNumber",
-            "canRead": [ "head", "parguy" ],
-            "canWrite": [ "parguy" ],
-            "meta": {
-                "label": "Номер счёта"
-            }
-        },
+            "name": "bill",
+            "groupName": "bill"
+        },	
         {
             "name": "toAddress",
             "canRead": [ "partner", "front", "back", "head", "parguy" ],
@@ -306,6 +151,15 @@
             "type": "checkbox",
             "meta": {
                 "label": "Клиент доволен"
+            }
+        },
+        {
+            "name": "warrantyCase",
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "back", "head", "parguy" ],
+            "type": "checkbox",
+            "meta": {
+                "label": "Гарантийный случай"
             }
         }
     ]

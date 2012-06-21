@@ -187,7 +187,7 @@ actionResultMap = Map.fromList
          "back" "1" (+60) objId
   )
   ,("partnerOk", \objId -> do
-    tm <- getService objId "expectedServiceStart"
+    tm <- getService objId "times_expectedServiceStart"
     void $ replaceAction
       "checkStatus"
       "Уточнить статус оказания услуги"
@@ -204,7 +204,7 @@ actionResultMap = Map.fromList
   )
   ,("serviceInProgress", \objId -> do
     setService objId "status" "serviceInProgress"
-    tm <- getService objId "expectedServiceEnd"
+    tm <- getService objId "times_expectedServiceEnd"
     void $ replaceAction
       "checkEndOfService"
       "Уточнить у клиента окончено ли оказание услуги"
@@ -212,10 +212,10 @@ actionResultMap = Map.fromList
       objId
   )  
   ,("serviceStillInProgress", \objId -> do
-    tm <- getService objId "expectedServiceEnd"  
+    tm <- getService objId "times_expectedServiceEnd"  
     dateNow (changeTime (+5*60) tm) >>= set objId "duetime") 
   ,("clientWaiting", \objId -> do
-    tm <- getService objId "expectedServiceStart"
+    tm <- getService objId "times_expectedServiceStart"
     void $ replaceAction
       "checkStatus"
       "Уточнить статус оказания услуги"
