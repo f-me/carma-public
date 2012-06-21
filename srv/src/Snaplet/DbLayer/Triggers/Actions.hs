@@ -158,6 +158,7 @@ actionResultMap = Map.fromList
   ,("callLater",       \objId -> dateNow (+ (30*60)) >>= set objId "duetime")
   ,("partnerNotFound", \objId -> dateNow (+ (2*60*60)) >>= set objId "duetime")
   ,("clientCanceledService", closeAction)   
+  ,("unassignPlease",  \objId -> set objId "assignedTo" "")
   ,("needPartner",     \objId -> do 
      setService objId "status" "needPartner"
      replaceAction

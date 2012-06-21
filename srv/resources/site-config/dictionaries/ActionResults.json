@@ -2,6 +2,10 @@
     "entries": {
         "orderService": [
             {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            },
+            {
                 "value": "serviceOrdered",
                 "label": "Услуга заказана"
             },
@@ -20,6 +24,10 @@
         ],
         "needPartner": [
             {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            },
+            {
                 "value": "partnerFound",
                 "label": "Партнёр найден"
             },
@@ -33,6 +41,10 @@
             }
         ],
         "tellClient": [
+            {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            },
             {
                 "value": "busyLine",
                 "label": "Не дозвонился"
@@ -56,6 +68,10 @@
         ],
         "cancelService": [
             {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            },
+            {
                 "value": "busyLine",
                 "label": "Не дозвонился"
             },
@@ -74,6 +90,10 @@
         ],
         "checkStatus": [
             {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            },
+            {
                 "value": "busyLine",
                 "label": "Не дозвонился"
             },
@@ -91,6 +111,10 @@
             }
         ],
         "tellDelayClient": [
+            {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            },
             {
                 "value": "busyLine",
                 "label": "Не дозвонился"
@@ -114,6 +138,10 @@
         ],
         "checkEndOfService": [
             {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            },
+            {
                 "value": "busyLine",
                 "label": "Не дозвонился"
             },
@@ -132,6 +160,10 @@
         ],
         "complaintResolution": [
             {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            },
+            {
                 "value": "busyLine",
                 "label": "Не дозвонился"
             },
@@ -142,6 +174,10 @@
         ],
         "addBill": [
             {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            },
+            {
                 "value": "billNotReady",
                 "label": "Счёт не предоставлен"
             },
@@ -151,6 +187,10 @@
             }
         ],
         "getInfoDealerVW": [
+            {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            },
             {
                 "value": "busyLine",
                 "label": "Не дозвонился"
@@ -165,6 +205,10 @@
             }
         ],
         "closeCase": [
+            {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            },
             {
                 "value": "busyLine",
                 "label": "Не дозвонился"
@@ -184,6 +228,10 @@
         ],
         "financialClose": [
             {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            },
+            {
                 "value": "busyLine",
                 "label": "Не дозвонился"
             },
@@ -198,6 +246,10 @@
         ],
         "accountCheck": [
             {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            },
+            {
                 "value": "financialOk",
                 "label": "Всё верно"
             },
@@ -208,6 +260,10 @@
         ],
         "editCaseAfterClosure": [
             {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            },
+            {
                 "value": "caseEdited",
                 "label": "Изменения внесены"
             },
@@ -217,6 +273,10 @@
             }
         ],
         "caseContinue": [
+            {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            },
             {
                 "value": "busyLine",
                 "label": "Не дозвонился"
@@ -231,6 +291,10 @@
             }
         ],
         "dealerApproval": [
+            {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            },
             {
                 "value": "busyLine",
                 "label": "Не дозвонился"
@@ -254,6 +318,10 @@
         ],
         "carmakerApproval": [
             {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            },
+            {
                 "value": "busyLine",
                 "label": "Не дозвонился"
             },
@@ -275,6 +343,10 @@
             }
         ],
         "dealerConf": [
+            {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            },
             {
                 "value": "busyLine",
                 "label": "Не дозвонился"
@@ -298,6 +370,10 @@
         ],
         "mechanicConf": [
             {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            },
+            {
                 "value": "busyLine",
                 "label": "Не дозвонился"
             },
@@ -320,6 +396,10 @@
         ],
         "tellDealerDenied": [
             {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            },
+            {
                 "value": "busyLine",
                 "label": "Не дозвонился"
             },
@@ -333,6 +413,10 @@
             }
         ],
         "tellMakerDenied": [
+            {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            },
             {
                 "value": "busyLine",
                 "label": "Не дозвонился"
