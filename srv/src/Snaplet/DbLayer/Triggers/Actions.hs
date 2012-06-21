@@ -1,7 +1,7 @@
 module Snaplet.DbLayer.Triggers.Actions where
 
 import Control.Arrow (first)
-import Control.Monad (when)
+import Control.Monad (when,void)
 import Control.Monad.Trans
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
@@ -144,7 +144,7 @@ actionActions = Map.fromList
   [("result",
     [\objId val -> when (val `elem` resultSet1) $ do
          setService objId "status" "orderService"
-         replaceAction
+         void $ replaceAction
              "orderService"
              "Заказать услугу"
              "back" "2" (+5*60) objId
@@ -158,35 +158,37 @@ actionResultMap = Map.fromList
   ,("callLater",       \objId -> dateNow (+ (30*60)) >>= set objId "duetime")
   ,("partnerNotFound", \objId -> dateNow (+ (2*60*60)) >>= set objId "duetime")
   ,("clientCanceledService", closeAction)   
+  ,("unassignPlease",  \objId -> set objId "assignedTo" "")
   ,("needPartner",     \objId -> do 
      setService objId "status" "needPartner"
-     replaceAction
+     newAction <- replaceAction
          "needPartner"
          "Требуется найти партнёра для оказания услуги"
          "parguy" "1" (+60) objId
+     set newAction "assignedTo" ""
   )
   ,("serviceOrdered", \objId -> do
      setService objId "status" "serviceOrdered"
-     replaceAction
+     void $ replaceAction
          "tellClient"
          "Сообщить клиенту о договорённости" 
          "back" "1" (+60) objId
   )
-  ,("partnerNotOk", replaceAction
+  ,("partnerNotOk", void . replaceAction
       "cancelService"
       "Требуется отказаться от заказанной услуги"
       "back" "1" (+60)
   )
   ,("partnerNotOkCancel", \objId -> do
       setService objId "status" "cancelService"
-      replaceAction
+      void $ replaceAction
          "cancelService"
          "Требуется отказаться от заказанной услуги"
          "back" "1" (+60) objId
   )
   ,("partnerOk", \objId -> do
-    tm <- getService objId "expectedServiceStart"
-    replaceAction
+    tm <- getService objId "times_expectedServiceStart"
+    void $ replaceAction
       "checkStatus"
       "Уточнить статус оказания услуги"
       "back" "1" (changeTime (+5*60) tm)
@@ -194,7 +196,7 @@ actionResultMap = Map.fromList
   )
   ,("serviceDelayed", \objId -> do
     setService objId "status" "serviceDelayed"
-    replaceAction
+    void $ replaceAction
       "tellDelayClient"
       "Сообщить клиенту о задержке начала оказания услуги"
       "back" "1" (+60)
@@ -202,16 +204,19 @@ actionResultMap = Map.fromList
   )
   ,("serviceInProgress", \objId -> do
     setService objId "status" "serviceInProgress"
-    tm <- getService objId "expectedServiceEnd"
-    replaceAction
+    tm <- getService objId "times_expectedServiceEnd"
+    void $ replaceAction
       "checkEndOfService"
       "Уточнить у клиента окончено ли оказание услуги"
       "back" "1" (changeTime (+5*60) tm)
       objId
   )  
+  ,("serviceStillInProgress", \objId -> do
+    tm <- getService objId "times_expectedServiceEnd"  
+    dateNow (changeTime (+5*60) tm) >>= set objId "duetime") 
   ,("clientWaiting", \objId -> do
-    tm <- getService objId "expectedServiceStart"
-    replaceAction
+    tm <- getService objId "times_expectedServiceStart"
+    void $ replaceAction
       "checkStatus"
       "Уточнить статус оказания услуги"
       "back" "1" (changeTime (+5*60) tm)
@@ -219,17 +224,17 @@ actionResultMap = Map.fromList
   )
   ,("serviceFinished", \objId -> do
     setService objId "status" "serviceOk"
-    replaceAction
+    void $ replaceAction
       "closeCase"
       "Закрыть заявку"
       "back" "1" (+1*60*60)
       objId
-    replaceAction
+    void $ replaceAction
       "addBill"
       "Прикрепить счёт"
       "back" "1" (+14*24*60*60)
       objId
-    replaceAction
+    void $ replaceAction
       "getInfoDealerVW"
       "Требуется уточнить информацию о ремонте у дилера (только для VW)"
       "back" "1" (+7*24*60*60)
@@ -238,29 +243,29 @@ actionResultMap = Map.fromList
   ,("complaint", \objId -> do
     setService objId "status" "serviceOk"
     setService objId "clientSatisfied" "0"
-    replaceAction
+    void $ replaceAction
       "complaintResolution"
       "Клиент предъявил претензию"
       "head" "1" (+60)
       objId 
-    replaceAction
+    void $ replaceAction
       "closeCase"
       "Закрыть заявку"
       "back" "1" (+1*60*60)
       objId
-    replaceAction
+    void $ replaceAction
       "addBill"
       "Прикрепить счёт"
       "parguy" "1" (+14*24*60*60)
       objId
-    replaceAction
+    void $ replaceAction
       "getInfoDealerVW"
       "Требуется уточнить информацию о ремонте у дилера (только для VW)"
       "back" "1" (+7*24*60*60)
       objId
   )
   ,("billNotReady",        \objId -> dateNow (+ (5*24*60*60))  >>= set objId "duetime")
-  ,("billAttached", replaceAction
+  ,("billAttached", void . replaceAction
       "accountCheck"
       "Проверить кейс"
       "account" "1" (+60)
@@ -269,26 +274,26 @@ actionResultMap = Map.fromList
   )   
   ,("financialOk", closeAction
   )
-  ,("accountError", replaceAction
+  ,("accountError", void . replaceAction
       "editCaseAfterClosure"
       "Редактирование кейса после выставления счёта"
       "back" "1" (+60)
   )
   ,("caseEdited", closeAction
   )
-  ,("recloseService", replaceAction
+  ,("recloseService", void . replaceAction
       "closeCase"
       "Закрыть заявку"
       "back" "1" (+60)
   )
   ,("caseClosedFinancialNotOk", \objId -> do
     setService objId "status" "serviceClosed"
-    replaceAction
+    void $ replaceAction
       "financialClose"
       "Заявка закрыта, требуется финансовая информация"
       "back" "1" (+60)
       objId
-    replaceAction
+    void $ replaceAction
       "caseContinue"
       "Узнать у клиента требуются ли ему ещё услуги?"
       "back" "1" (+60)
@@ -296,7 +301,7 @@ actionResultMap = Map.fromList
   )
   ,("caseClosedFinancialOk", \objId -> do
     setService objId "status" "serviceClosed"
-    replaceAction
+    void $ replaceAction
       "caseContinue"
       "Узнать у клиента требуются ли ему ещё услуги?"
       "back" "1" (+60)
@@ -368,4 +373,5 @@ replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
     ]
   upd kazeId "actions" $ addToList actionId
   closeAction objId
+  return actionId
 

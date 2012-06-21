@@ -50,7 +50,7 @@ localRouter = Backbone.Router.extend
 
 hooks = ->
   model:
-      "*"    : [stdElCb, dictionaryHook]
+      "*"    : [stdElCb]
       "case" : [candiboberHook]
   observable:
       "*"    : [regexpKbHook, dictionaryKbHook]
@@ -295,9 +295,9 @@ this.addService = (name) ->
                'services',
                { modelName : name },
                (k) ->
-                  e = $('#' + k['view']).find('input')[0]
-                  e.scrollIntoView()
-                  e.focus()
+                  e = $('#' + k['view'])
+                  e.parent().prev()[0].scrollIntoView()
+                  e.find('input')[0].focus()
 
 setupCallForm = (viewName, args) ->
   modelSetup("call") viewName, args,
@@ -310,13 +310,14 @@ setupCallForm = (viewName, args) ->
     id = this.children[0].innerText
     window.location.hash = "case/" + id
   )
+  st.fnSort [[2, "desc"]]
   $.getJSON("/all/case", (objs) ->
     st.fnClearTable()
     for i of objs
       obj = objs[i]
-      continue if obj.id == "" or obj.id.length > 10
+      continue if obj.id.length > 10
       row = [obj.id.split(":")[1]
-            ,obj.caller_name
+            ,obj.caller_name || ''
             ,new Date(obj.callDate * 1000).toString("dd.MM.yyyy HH:mm:ss")
             ,obj.caller_phone1 || ''
             ,obj.car_plateNum || ''
@@ -465,7 +466,8 @@ setupBackOffice = ->
 
 mkBoTable = ->
   groupTable = $("#back-group-table")
-  mkDataTable(groupTable)
+  gt = mkDataTable(groupTable)
+  gt.fnSort [[2, "desc"]]
   groupTable.on("click.datatable", "tr", ->
     id = this.children[0].innerText.split('/');
     $.ajax
@@ -476,7 +478,8 @@ mkBoTable = ->
         processData : false
     window.location.hash = "case/" + id[0])
   userTable = $("#back-user-table")
-  mkDataTable(userTable)
+  ut = mkDataTable(userTable)
+  ut.fnSort [[2, "desc"]]
   userTable.on("click.datatable", "tr", ->
      id = this.children[0].innerText.split('/')
      window.location.hash = "case/" + id[0]
@@ -495,6 +498,7 @@ setupBoTable = (tables) ->
 
     for i of objs
       obj = objs[i]
+      continue if not obj.caseId
       continue if obj.closed and obj.closed != "false"
       continue if not obj.caseId
       continue if not obj.id
@@ -532,15 +536,20 @@ this.successfulSave = ->
 this.makeCase = () ->
   v = global.viewsWare['call-form'].knockVM
   args =
-    caller_name: v['callerName_name']()
+    caller_name:   v['callerName_name']()
     caller_phone1: v['callerName_phone1']()
     caller_phone2: v['callerName_phone2']()
     caller_phone3: v['callerName_phone3']()
     caller_phone4: v['callerName_phone4']()
-    caller_email: v['callerName_email']()
-    comment: v['wazzup']()
+    caller_email:  v['callerName_email']()
+    comment:       v['wazzup']()
     callDate: (new Date).toString("dd.MM.yyyy HH:mm")
     callTaker: global.user.meta.realName
   buildNewModel 'case', args, {},
     (a, b, k) ->
       global.router.navigate("case/#{k.id()}", { trigger: true })
+
+this.datetimeFieldHandler = (el) ->
+  date = (new Date).toString("dd.MM.yyyy HH:MM")
+  $(el).val(date)
+  $(el).blur -> $(el).val("") if date == $(el).val()
