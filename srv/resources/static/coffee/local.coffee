@@ -314,9 +314,9 @@ setupCallForm = (viewName, args) ->
     st.fnClearTable()
     for i of objs
       obj = objs[i]
-      continue if obj.caller_name == ""
+      continue if obj.id.length > 10
       row = [obj.id.split(":")[1]
-            ,obj.caller_name
+            ,obj.caller_name || ''
             ,new Date(obj.callDate * 1000).toString("dd.MM.yyyy HH:mm:ss")
             ,obj.caller_phone1 || ''
             ,obj.car_plateNum || ''
@@ -495,9 +495,10 @@ setupBoTable = (tables) ->
 
     for i of objs
       obj = objs[i]
+      continue if not obj.caseId
       continue if obj.closed and obj.closed != "false"
 
-      id = obj.caseId.replace(/\D/g,'') + "/" + obj.id
+      id = obj.caseId.replace(/\D/g,'') + "/" + obj.id.replace(/\D/g,'')
       duetime =
         if obj.duetime
           new Date(obj.duetime * 1000).toString("dd.MM.yyyy HH:mm:ss")
