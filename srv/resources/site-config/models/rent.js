@@ -45,8 +45,18 @@
                 "rentAddress_city",
                 "rentAddress_comment"
             ],
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head" ]
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ]
         },
         {
             "targets": [
@@ -54,8 +64,18 @@
                 "towDealer_partnerTable",
                 "towDealer_coords"
             ],
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head" ]
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ]
         },
         {
             "targets": [
@@ -63,76 +83,138 @@
                 "rentContractor_partnerTable",
                 "rentContractor_coords"
             ],
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head" ]
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ]
         },
         {
             "targets": [
-				"payment_expectedCost"
+                "payment_expectedCost"
             ],
-            "canRead": [ "front", "back", "head" ],
-            "canWrite": [ "front", "back", "head" ]
+            "canRead": [
+                "front",
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ]
         },
         {
             "targets": [
-				"payment_partnerCost"
+                "payment_partnerCost"
             ],
-            "canRead": [ "back", "head", "parguy" ],
-            "canWrite": [ "back", "head" ]
+            "canRead": [
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ]
         },
         {
             "targets": [
-				"payment_calculatedCost",
-				"payment_overcosted"
+                "payment_calculatedCost",
+                "payment_overcosted"
             ],
-            "canRead": [ "front", "back", "head", "parguy" ]
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ]
         },
         {
             "targets": [
-				"payment_limitedCost",
+                "payment_limitedCost"
             ],
-            "canRead": [ "back", "head" ]
+            "canRead": [
+                "back",
+                "head"
+            ]
         },
         {
             "targets": [
-				"payment_payType",
-				"payment_paidByRUAMC",
-				"payment_paidByClient"
+                "payment_payType",
+                "payment_paidByRUAMC",
+                "payment_paidByClient"
             ],
-            "canRead": [ "front", "back", "head", "parguy" ],
-            "canWrite": [ "back", "head", "parguy" ]
-        },		
-        {
-            "targets": [
-				"bill_billNumber",
-				"bill_billingCost",
-				"bill_billingDate"
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "parguy"
             ],
-            "canRead": [ "head", "parguy" ],
-            "canWrite": [ "parguy" ]
-        },		
-        {
-            "targets": [
-				"times_expectedServiceStart"
-            ],
-            "canRead": [ "partner", "front", "back", "head" ],
-            "canWrite": [ "front", "back", "head" ]
+            "canWrite": [
+                "back",
+                "head",
+                "parguy"
+            ]
         },
         {
             "targets": [
-				"times_factServiceStart",
-				"times_expectedServiceEnd",
-				"times_factServiceEnd",
-				"times_expectedServiceFinancialClosure",
-				"times_factServiceFinancialClosure",
-				"times_expectedDealerInfo",
-				"times_factDealerInfo",
-				"times_expectedServiceClosure",
-				"times_factServiceClosure",
-				"times_repairEndDate"
+                "bill_billNumber",
+                "bill_billingCost",
+                "bill_billingDate"
             ],
-            "canRead": [ "back", "head" ],
-            "canWrite": [ "back", "head" ]
+            "canRead": [
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "parguy"
+            ]
+        },
+        {
+            "targets": [
+                "times_expectedServiceStart"
+            ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ]
+        },
+        {
+            "targets": [
+                "times_factServiceStart",
+                "times_expectedServiceEnd",
+                "times_factServiceEnd",
+                "times_expectedServiceFinancialClosure",
+                "times_factServiceFinancialClosure",
+                "times_expectedDealerInfo",
+                "times_factDealerInfo",
+                "times_expectedServiceClosure",
+                "times_factServiceClosure",
+                "times_repairEndDate"
+            ],
+            "canRead": [
+                "back",
+                "head"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ]
         }
     ],
     "fields": [
@@ -151,11 +233,21 @@
         {
             "name": "times",
             "groupName": "times"
-        },	
+        },
         {
             "name": "falseCall",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head" ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "FalseStatuses",
@@ -166,11 +258,21 @@
         {
             "name": "bill",
             "groupName": "bill"
-        },	
+        },
         {
             "name": "towDealer",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head" ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
             "groupName": "partner",
             "meta": {
                 "label": "Дилер"
@@ -178,8 +280,18 @@
         },
         {
             "name": "rentAddress",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head" ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
             "groupName": "address",
             "meta": {
                 "label": "Адрес (куда доставить)"
@@ -187,8 +299,18 @@
         },
         {
             "name": "carClass",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head" ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "CarClasses",
@@ -197,8 +319,18 @@
         },
         {
             "name": "rentContractor",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head" ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
             "groupName": "partner",
             "meta": {
                 "label": "Партнёр"
@@ -206,16 +338,36 @@
         },
         {
             "name": "carProvidedFor",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head" ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
             "meta": {
                 "label": "Срок, на который предоставлен автомобиль (дней)"
             }
         },
         {
             "name": "rentedMake",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head" ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
             "meta": {
                 "dictionaryName": "CarMakers",
                 "label": "Марка, предоставленного автомобиля"
@@ -224,8 +376,18 @@
         },
         {
             "name": "rentedModel",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head" ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
             "meta": {
                 "dictionaryName": "CarModels",
                 "label": "Модель, предоставленного автомобиля"
@@ -234,8 +396,19 @@
         },
         {
             "name": "status",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head", "parguy" ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
             "type": "dictionary",
             "meta": {
                 "label": "Статус услуги",
@@ -244,8 +417,17 @@
         },
         {
             "name": "clientSatisfied",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "back", "head" ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "back",
+                "head"
+            ],
             "type": "checkbox",
             "meta": {
                 "label": "Клиент доволен"
@@ -253,8 +435,18 @@
         },
         {
             "name": "warrantyCase",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "back", "head", "parguy" ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "back",
+                "head",
+                "parguy"
+            ],
             "type": "checkbox",
             "meta": {
                 "label": "Гарантийный случай"
