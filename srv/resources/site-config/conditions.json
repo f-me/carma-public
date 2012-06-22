@@ -1,5 +1,5 @@
 {
-    "vw": {
+    "vwMotor": {
         "checks": [
             {
                 "name": "sellLess",

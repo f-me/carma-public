@@ -1,5 +1,5 @@
 {
-    "vw": [
+    "vwMotor": [
         {
             "type": "sellLess",
             "args": "2"

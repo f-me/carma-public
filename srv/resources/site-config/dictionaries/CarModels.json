@@ -796,7 +796,7 @@
                 "label": "XLR"
             }
         ],
-        "vw": [
+        "vwMotor": [
             {
                 "value": "caddy",
                 "label": "Caddy"
