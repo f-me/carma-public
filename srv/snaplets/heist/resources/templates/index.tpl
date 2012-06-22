@@ -561,9 +561,8 @@
           </label>
         </div>
         <div class="controls">
-          <input class="datetime-field"
-                 type="text"
-                 class="pane-span focusable"
+          <input type="text"
+                 class="datetime-field pane-span focusable"
                  autocomplete="off"
                  name="{{ name }}"
                  onFocus="datetimeFieldHandler(this)"
