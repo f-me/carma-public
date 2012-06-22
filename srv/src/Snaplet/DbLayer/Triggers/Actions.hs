@@ -253,11 +253,12 @@ actionResultMap = Map.fromList
       "Закрыть заявку"
       "back" "1" (+1*60*60)
       objId
-    void $ replaceAction
+    act <- replaceAction
       "addBill"
       "Прикрепить счёт"
       "parguy" "1" (+14*24*60*60)
       objId
+    set act "assignedTo" ""
     void $ replaceAction
       "getInfoDealerVW"
       "Требуется уточнить информацию о ремонте у дилера (только для VW)"
