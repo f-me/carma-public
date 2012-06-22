@@ -2,10 +2,6 @@
     "entries": {
         "orderService": [
             {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
-            },
-            {
                 "value": "serviceOrdered",
                 "label": "Услуга заказана"
             },
@@ -20,13 +16,13 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
-            }
-        ],
-        "needPartner": [
+            },
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
-            },
+            }
+        ],
+        "needPartner": [
             {
                 "value": "partnerFound",
                 "label": "Партнёр найден"
@@ -38,13 +34,13 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
-            }
-        ],
-        "tellClient": [
+            },
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
-            },
+            }
+        ],
+        "tellClient": [
             {
                 "value": "busyLine",
                 "label": "Не дозвонился"
@@ -64,13 +60,13 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
-            }
-        ],
-        "cancelService": [
+            },
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
-            },
+            }
+        ],
+        "cancelService": [
             {
                 "value": "busyLine",
                 "label": "Не дозвонился"
@@ -86,13 +82,13 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
-            }
-        ],
-        "checkStatus": [
+            },
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
-            },
+            }
+        ],
+        "checkStatus": [
             {
                 "value": "busyLine",
                 "label": "Не дозвонился"
@@ -108,13 +104,13 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
-            }
-        ],
-        "tellDelayClient": [
+            },
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
-            },
+            }
+        ],
+        "tellDelayClient": [
             {
                 "value": "busyLine",
                 "label": "Не дозвонился"
@@ -134,13 +130,13 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
-            }
-        ],
-        "checkEndOfService": [
+            },
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
-            },
+            }
+        ],
+        "checkEndOfService": [
             {
                 "value": "busyLine",
                 "label": "Не дозвонился"
@@ -156,13 +152,13 @@
             {
                 "value": "serviceFinished",
                 "label": "Услуга оказана"
-            }
-        ],
-        "complaintResolution": [
+            },
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
-            },
+            }
+        ],
+        "complaintResolution": [
             {
                 "value": "busyLine",
                 "label": "Не дозвонился"
@@ -170,13 +166,13 @@
             {
                 "value": "complaintManaged",
                 "label": "Претензия разрешена"
-            }
-        ],
-        "addBill": [
+            },
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
-            },
+            }
+        ],
+        "addBill": [
             {
                 "value": "billNotReady",
                 "label": "Счёт не предоставлен"
@@ -184,13 +180,13 @@
             {
                 "value": "billAttached",
                 "label": "Счёт введён"
-            }
-        ],
-        "getInfoDealerVW": [
+            },
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
-            },
+            }
+        ],
+        "getInfoDealerVW": [
             {
                 "value": "busyLine",
                 "label": "Не дозвонился"
@@ -202,13 +198,13 @@
             {
                 "value": "vwclosed",
                 "label": "Информация получена"
-            }
-        ],
-        "closeCase": [
+            },
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
-            },
+            }
+        ],
+        "closeCase": [
             {
                 "value": "busyLine",
                 "label": "Не дозвонился"
@@ -224,13 +220,13 @@
             {
                 "value": "caseClosedFinancialNotOk",
                 "label": "Фин. информация не получена. Заявка закрыта"
-            }
-        ],
-        "financialClose": [
+            },
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
-            },
+            }
+        ],
+        "financialClose": [
             {
                 "value": "busyLine",
                 "label": "Не дозвонился"
@@ -242,13 +238,13 @@
             {
                 "value": "financialOk",
                 "label": "Финансовая информация получена"
-            }
-        ],
-        "accountCheck": [
+            },
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
-            },
+            }
+        ],
+        "accountCheck": [
             {
                 "value": "financialOk",
                 "label": "Всё верно"
@@ -256,13 +252,13 @@
             {
                 "value": "accountError",
                 "label": "Расхождение в счёте"
-            }
-        ],
-        "editCaseAfterClosure": [
+            },
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
-            },
+            }
+        ],
+        "editCaseAfterClosure": [
             {
                 "value": "caseEdited",
                 "label": "Изменения внесены"
@@ -270,13 +266,13 @@
             {
                 "value": "recloseService",
                 "label": "Требуется закрыть заявку"
-            }
-        ],
-        "caseContinue": [
+            },
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
-            },
+            }
+        ],
+        "caseContinue": [
             {
                 "value": "busyLine",
                 "label": "Не дозвонился"
@@ -288,13 +284,13 @@
             {
                 "value": "endOfCase",
                 "label": "Услуг больше не требуется"
-            }
-        ],
-        "dealerApproval": [
+            },
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
-            },
+            }
+        ],
+        "dealerApproval": [
             {
                 "value": "busyLine",
                 "label": "Не дозвонился"
@@ -314,13 +310,13 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
-            }
-        ],
-        "carmakerApproval": [
+            },
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
-            },
+            }
+        ],
+        "carmakerApproval": [
             {
                 "value": "busyLine",
                 "label": "Не дозвонился"
@@ -340,14 +336,14 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
+            },
+            {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
             }
         ],
         "dealerConf": [
             {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
-            },
-            {
                 "value": "busyLine",
                 "label": "Не дозвонился"
             },
@@ -366,14 +362,14 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
+            },
+            {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
             }
         ],
         "mechanicConf": [
             {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
-            },
-            {
                 "value": "busyLine",
                 "label": "Не дозвонился"
             },
@@ -392,14 +388,14 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
+            },
+            {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
             }
         ],
         "tellDealerDenied": [
             {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
-            },
-            {
                 "value": "busyLine",
                 "label": "Не дозвонился"
             },
@@ -410,14 +406,14 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
+            },
+            {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
             }
         ],
         "tellMakerDenied": [
             {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
-            },
-            {
                 "value": "busyLine",
                 "label": "Не дозвонился"
             },
@@ -428,6 +424,10 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
+            },
+            {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
             }
         ]
     }
