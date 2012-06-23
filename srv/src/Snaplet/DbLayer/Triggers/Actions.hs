@@ -130,7 +130,7 @@ serviceActions = Map.fromList
             ,("caseId", kazeId)
             ,("closed", "false")
             ]
-          upd kazeId "actions" $ addToList actionId         	  
+          upd kazeId "actions" $ addToList actionId             
       _ -> return ()]
   )]
 
@@ -224,10 +224,11 @@ actionResultMap = Map.fromList
   )
   ,("serviceFinished", \objId -> do
     setService objId "status" "serviceOk"
+    tm <- getService objId "times_expectedServiceClosure"	
     void $ replaceAction
       "closeCase"
       "Закрыть заявку"
-      "back" "1" (+1*60*60)
+      "back" "1" (changeTime (+5*60) tm)
       objId
     void $ replaceAction
       "addBill"
@@ -243,6 +244,7 @@ actionResultMap = Map.fromList
   ,("complaint", \objId -> do
     setService objId "status" "serviceOk"
     setService objId "clientSatisfied" "0"
+    tm <- getService objId "times_expectedServiceClosure"		
     void $ replaceAction
       "complaintResolution"
       "Клиент предъявил претензию"
@@ -251,8 +253,9 @@ actionResultMap = Map.fromList
     void $ replaceAction
       "closeCase"
       "Закрыть заявку"
-      "back" "1" (+1*60*60)
+      "back" "1" (changeTime (+5*60) tm)
       objId
+
     act <- replaceAction
       "addBill"
       "Прикрепить счёт"
@@ -302,22 +305,12 @@ actionResultMap = Map.fromList
   )
   ,("caseClosedFinancialOk", \objId -> do
     setService objId "status" "serviceClosed"
-    void $ replaceAction
-      "caseContinue"
-      "Узнать у клиента требуются ли ему ещё услуги?"
-      "back" "1" (+60)
-      objId   
+    closeAction objId	
   )
   ,("financialOk", \objId -> do
      setService objId "status" "serviceClosed"
      closeAction objId
-  )
-  ,("caseOver", \objId -> do
-     closeAction objId
   )    
-  ,("endOfCase", \objId -> do
-     closeAction objId
-  )      
   ,("falseCallWBill", \objId -> do
      setService objId "falseCall" "bill"
      closeAction objId
@@ -375,4 +368,3 @@ replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
   upd kazeId "actions" $ addToList actionId
   closeAction objId
   return actionId
-
