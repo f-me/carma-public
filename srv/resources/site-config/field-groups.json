@@ -85,7 +85,7 @@
             "meta": {
                 "label": "Пробег на последнем ТО"
             }
-        },        
+        },
         {
             "name": "transmission",
             "meta": {
@@ -290,7 +290,7 @@
             "meta": {
                 "label": "Рассчётная стоимость"
             }
-        },		
+        },
         {
             "name": "limitedCost",
             "meta": {
@@ -303,7 +303,7 @@
             "meta": {
                 "label": "Стоимость превышена?"
             }
-        },		
+        },
         {
             "name": "payType",
             "type": "dictionary",
@@ -311,7 +311,7 @@
                 "dictionaryName": "PaymentTypes",
                 "label": "Тип оплаты"
             }
-        },	
+        },
         {
             "name": "paidByRUAMC",
             "meta": {
@@ -337,12 +337,12 @@
             "meta": {
                 "label": "Сумма по счёту"
             }
-        },		
+        },
         {
             "name": "billingDate",
             "type": "date",
             "meta": {
-				"regexp": "date",
+                "regexp": "date",
                 "label": "Дата выставления счёта",
                 "infoText": "date"
             }
@@ -355,7 +355,7 @@
             "meta": {
                 "label": "Ожидаемое время начала оказания услуги",
                 "infoText": "datetime",
-				"regexp": "datetime"
+                "regexp": "datetime"
             }
         },
         {
@@ -364,7 +364,7 @@
             "meta": {
                 "label": "Фактическое  время начала оказания услуги",
                 "infoText": "datetime",
-				"regexp": "datetime"
+                "regexp": "datetime"
             }
         },
         {
@@ -373,7 +373,7 @@
             "meta": {
                 "label": "Ожидаемое время окончания оказания услуги",
                 "infoText": "datetime",
-				"regexp": "datetime"
+                "regexp": "datetime"
             }
         },
         {
@@ -382,25 +382,7 @@
             "meta": {
                 "label": "Фактическое время окончания оказания услуги",
                 "infoText": "datetime",
-				"regexp": "datetime"
-            }
-        },
-        {
-            "name": "expectedServiceFinancialClosure",
-            "type": "datetime",
-            "meta": {
-                "label": "Ожидаемое время финансового закрытия услуги",
-                "infoText": "datetime",
-				"regexp": "datetime"
-            }
-        },
-        {
-            "name": "factServiceFinancialClosure",
-            "type": "datetime",
-            "meta": {
-                "label": "Фактическое время финансового закрытия услуги",
-                "infoText": "datetime",
-				"regexp": "datetime"
+                "regexp": "datetime"
             }
         },
         {
@@ -409,7 +391,7 @@
             "meta": {
                 "label": "Ожидаемое время получения информации от дилера",
                 "infoText": "datetime",
-				"regexp": "datetime"
+                "regexp": "datetime"
             }
         },
         {
@@ -418,7 +400,7 @@
             "meta": {
                 "label": "Фактическое время получения информации от дилера",
                 "infoText": "datetime",
-				"regexp": "datetime"
+                "regexp": "datetime"
             }
         },
         {
@@ -427,7 +409,7 @@
             "meta": {
                 "label": "Ожидаемое время закрытия услуги",
                 "infoText": "datetime",
-				"regexp": "datetime"
+                "regexp": "datetime"
             }
         },
         {
@@ -436,7 +418,7 @@
             "meta": {
                 "label": "Фактическое время закрытия услуги",
                 "infoText": "datetime",
-				"regexp": "datetime"
+                "regexp": "datetime"
             }
         },
         {
@@ -445,10 +427,10 @@
             "meta": {
                 "label": "Дата окончания ремонта",
                 "infoText": "date",
-				"regexp": "date"
+                "regexp": "date"
             }
         }
-    ],	
+    ],
     "address": [
         {
             "name": "address",
