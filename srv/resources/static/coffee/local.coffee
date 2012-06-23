@@ -550,6 +550,8 @@ this.makeCase = () ->
       global.router.navigate("case/#{k.id()}", { trigger: true })
 
 this.datetimeFieldHandler = (el) ->
+  return if $(el).val()
   date = (new Date).toString("dd.MM.yyyy HH:mm")
   $(el).val(date)
-  $(el).blur -> $(el).val("") if date == $(el).val()
+  $(el).off 'blur.default.dt'
+  $(el).on  'blur.default.dt', -> $(el).val("") if date == $(el).val()
