@@ -21,6 +21,13 @@
             }
         },
         {
+            "name": "isDealer",
+            "type": "checkbox",
+            "meta": {
+                "label": "Дилер"
+            }
+        },        
+        {
             "name": "name",
             "index": true,
             "meta": {
