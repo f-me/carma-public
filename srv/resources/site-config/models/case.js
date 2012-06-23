@@ -353,6 +353,15 @@
                 "label": "Действия",
                 "invisible": true
             }
+        },
+        {
+            "name": "files",
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head", "parguy" ],
+            "type": "files",
+            "meta": {
+                "label": "Прикрепленные файлы"
+            }
         }
     ]
 }

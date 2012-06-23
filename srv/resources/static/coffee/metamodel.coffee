@@ -12,6 +12,7 @@ this.backbonizeModel = (models, modelName) ->
   referenceFields  = []
   requiredFields   = []
   regexpFields     = []
+  filesFields      = []
   groups           = []
 
   model = models[modelName]
@@ -26,6 +27,7 @@ this.backbonizeModel = (models, modelName) ->
 
     referenceFields.push(f.name)  if f.type == "reference"
     dictionaryFields.push(f.name) if f.type == "dictionary"
+    filesFields.push(f.name)      if f.type == "files"
     groups.push(f.groupName)      if f.groupName? and f.groupName not in groups
 
   M = Backbone.Model.extend
@@ -42,6 +44,8 @@ this.backbonizeModel = (models, modelName) ->
     requiredFields: requiredFields
     # List of fields with regexp checks
     regexpFields: regexpFields
+    # List of files fields
+    filesFields: filesFields
     # List of groups present in model
     groups: groups
 
