@@ -215,29 +215,7 @@
             },
             {
                 "value": "caseClosedFinancialOk",
-                "label": "Фин. информация получена. Заявка закрыта"
-            },
-            {
-                "value": "caseClosedFinancialNotOk",
-                "label": "Фин. информация не получена. Заявка закрыта"
-            },
-            {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
-            }
-        ],
-        "financialClose": [
-            {
-                "value": "busyLine",
-                "label": "Не дозвонился"
-            },
-            {
-                "value": "callLater",
-                "label": "Требуется перезвонить"
-            },
-            {
-                "value": "financialOk",
-                "label": "Финансовая информация получена"
+                "label": "Заявка закрыта"
             },
             {
                 "value": "unassignPlease",
@@ -266,24 +244,6 @@
             {
                 "value": "recloseService",
                 "label": "Требуется закрыть заявку"
-            },
-            {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
-            }
-        ],
-        "caseContinue": [
-            {
-                "value": "busyLine",
-                "label": "Не дозвонился"
-            },
-            {
-                "value": "caseOver",
-                "label": "Требуется ещё услуга"
-            },
-            {
-                "value": "endOfCase",
-                "label": "Услуг больше не требуется"
             },
             {
                 "value": "unassignPlease",
