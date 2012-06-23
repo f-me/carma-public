@@ -13,7 +13,7 @@ import Snaplet.SiteConfig
 import Snaplet.DbLayer.Types
 import Snap.Snaplet.Vin
 import Snap.Snaplet.AvayaAES
-
+import Snaplet.FileUpload
 
 ------------------------------------------------------------------------------
 -- | Application snaplet state type: Redson, Heist.
@@ -25,6 +25,7 @@ data App = App
     , _db         :: Snaplet (DbLayer App)
     , _vin        :: Snaplet Vin
     , _avaya      :: Snaplet (Avayaplet App)
+    , _fileUpload :: Snaplet FileUpload
     }
 
 type AppHandler = Handler App App
