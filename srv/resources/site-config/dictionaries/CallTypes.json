@@ -44,6 +44,22 @@
           {
               "value": "switchIn",
               "label": "Переключение/Внутренний номер"
+          },
+          {
+              "value": "mechanicConsOk",
+              "label": "Консультация механика помогла"
+          },
+          {
+              "value": "mechanicConsNotOk",
+              "label": "Консультация механика не помогла"
+          },
+          {
+              "value": "operatorConsOk",
+              "label": "Консультация оператора помогла"
+          },
+          {
+              "value": "operatorConsNotOk",
+              "label": "Консультация оператора не помогла"
           }
       ],
       "contr": [
