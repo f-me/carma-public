@@ -19,6 +19,7 @@ import Snap.Snaplet.AvayaAES
 import Snap.Snaplet.Vin
 import Snaplet.SiteConfig
 import Snaplet.DbLayer
+import Snaplet.FileUpload
 ------------------------------------------------------------------------------
 import Application
 import ApplicationHandlers
@@ -79,10 +80,11 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   v <- nestSnaplet "vin" vin vinInit
   av <- nestSnaplet "avaya" avaya $ avayaAESInit auth
+  fu <- nestSnaplet "upload" fileUpload fileUploadInit
 
   addRoutes routes
 
-  return $ App h s authMgr c d v av
+  return $ App h s authMgr c d v av fu
 
 
 ------------------------------------------------------------------------------

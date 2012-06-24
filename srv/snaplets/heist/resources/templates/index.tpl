@@ -48,6 +48,8 @@
     <!-- masked input for datetime fields -->
     <script src="/s/js/3p/jquery.maskedinput-1.3.js" />
 
+    <script src="/s/js/customKoHandlers.js" />
+
     <!-- Model processing -->
     <script src="/s/js/metamodel.js" />
     <script src="/s/js/search.js" />
@@ -160,7 +162,7 @@
             id="case-screen-template">
       <!-- Main case form -->
       <div id="left" class="nice-scrollbar pane">
-        <form class="form-vertical">
+        <div class="form-vertical">
           <div class="control-group">
             <div class="control-label">
               <label>Номер</label>
@@ -184,7 +186,7 @@
           </div>
           
           <div id="case-permissions" />
-        </form>
+        </div>
       </div>
 
       <!-- Central pane with subform -->
@@ -1031,6 +1033,19 @@
       </span>
     </script>
 
+    <!-- File upload template -->
+    <script type="text/template"
+            class="field-template"
+            id="files-field-template">
+      <label>{{ meta.label }}</label>
+      <form data-bind="attr: { action: {{name}}UploadUrl }, setdata: {{name}}"
+            method="post"
+            enctype="multipart/form-data">
+        <input type="file" name="files" />
+        <input type="button" value="Загрузить" onClick="uploadFile(this)" />
+      </form>
+    </script>
+
     <!-- Default case group view template -->
     <script type="text/template"
             class="group-template"
@@ -1046,6 +1061,13 @@
             <dt data-bind="text: title"></dt>
             <dd data-bind="html: description"></dd>
           </div>
+          <br />
+          <h4>Загруженные файлы:</h4>
+          <ul class="unstyled" data-bind="foreach: filesInfo">
+            <li>
+              <a data-bind="attr: { href: url }, text: name" />
+            </li>
+          </ul>
         </div>
       </fieldset>
     </script>

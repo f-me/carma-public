@@ -53,7 +53,7 @@ hooks = ->
       "*"    : [stdElCb]
       "case" : [candiboberHook]
   observable:
-      "*"    : [regexpKbHook, dictionaryKbHook]
+      "*"    : [regexpKbHook, dictionaryKbHook, filesKbHook]
       "case" : [caseDescsKbHook]
 
 # here is entry point
@@ -116,6 +116,22 @@ regexpKbHook = (instance, knockVM) ->
                           key: f
                           read: (k) -> not r.test instance.get(k)
     )(fieldName, new RegExp(global.dictLabelCache["_regexps"][regexp]))
+
+filesKbHook = (instance, knockVM) ->
+  for n in instance.filesFields
+    do (n) ->
+      u = "/upload"
+      d = "/s/fileupload"
+      path = "#{instance.model.name}/#{instance.id}/#{n}"
+      knockVM["#{n}UploadUrl"] = ko.computed
+        read: -> "#{u}/#{path}"
+      knockVM["#{n}Info"] = ko.computed
+        read: ->
+          fs = knockVM['files']()
+          return [] unless fs
+          for i in fs.split(',')
+            url: "#{d}/#{path}/#{i.trim()}"
+            name: i.trim()
 
 caseDescsKbHook = (instance, knockVM) ->
   knockVM['servicesDescs'] = ko.computed
@@ -555,3 +571,33 @@ this.datetimeFieldHandler = (el) ->
   $(el).val(date)
   $(el).off 'blur.default.dt'
   $(el).on  'blur.default.dt', -> $(el).val("") if date == $(el).val()
+
+this.uploadFile = (e) ->
+        form = $(e).parent('form')
+        data = form.data()
+        url  = form.attr('action')
+        fd   = new FormData(form[0])
+        xhr  = new XMLHttpRequest()
+        # xhr.upload.addEventListener("progress", uploadProgress, false)
+        xhr.addEventListener("load", uploadComplete(data), false)
+        xhr.addEventListener("error", uploadError, false)
+        xhr.addEventListener("abort", uploadError, false)
+        xhr.open("POST", url)
+        xhr.send(fd)
+        form.find('input:file').val("")
+
+uploadComplete = (data) -> (e) ->
+  {knockVM, acc} = data
+  val = acc()()
+  files = JSON.parse e.target.response
+  if val
+    result = _.union val.split(','), files
+    acc() result.join(',')
+  else
+    acc()(files.join(','))
+  knockVM.model().save()
+
+uploadError = (e) ->
+  console.log e
+  alert "Загрузка завершилась неудачно"
+
