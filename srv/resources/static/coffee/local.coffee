@@ -64,6 +64,8 @@ $( ->
         $.getJSON "/cfg/models",              (models) ->
           mainSetup(localScreens(), localRouter, dicts, hooks(), user, models)
           global.checks = checks
+          global.keys = {}
+          global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
           if window.location.hash == ""
             redirectToHomePage user)
 
@@ -273,6 +275,13 @@ setupCaseMain = (viewName, args) ->
 
   $("body").on("change.input", ".redirectOnChange", () ->
       setTimeout(( -> window.location.hash = "back"), 500))
+
+  # set focus hystory for hotkey navigation
+  global.nav = {}
+  $('#left'  ).on 'focus.nav', 'input', (e) ->
+    global.nav.lastLeft = $(e.currentTarget)
+  $('#center').on 'focus.nav', 'input', (e) ->
+    global.nav.lastCenter = $(e.currentTarget)
 
 # Hide all views on center pane and show view for first reference
 # stored in <fieldName> of model loaded into <parentView> there
@@ -555,3 +564,24 @@ this.datetimeFieldHandler = (el) ->
   $(el).val(date)
   $(el).off 'blur.default.dt'
   $(el).on  'blur.default.dt', -> $(el).val("") if date == $(el).val()
+
+this.handleLeftHotkey = (e) ->
+  arrs = global.keys.arrows
+  if e.ctrlKey and e.keyCode == arrs.right
+    c = global.nav.lastCenter
+    if c and c.is(':visible')
+      c.focus()
+    else if f = $('#center fieldset:visible input')
+      f.first().focus()
+
+this.handleCenterHotkey = (e) ->
+  arrs = global.keys.arrows
+  l = global.nav.lastLeft
+  if e.ctrlKey and e.keyCode == arrs.left and l
+    checkAccordion(l)
+    l.focus()
+
+checkAccordion = (e) ->
+  acc = e.parents('.accordion-body') #.hasClass('in')
+  return if acc.hasClass('in')
+  acc.collapse('show')

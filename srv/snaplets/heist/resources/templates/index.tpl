@@ -159,7 +159,9 @@
             class="screen-template"
             id="case-screen-template">
       <!-- Main case form -->
-      <div id="left" class="nice-scrollbar pane">
+      <div id="left"
+           class="nice-scrollbar pane"
+           onKeydown="handleLeftHotkey(event)">
         <form class="form-vertical">
           <div class="control-group">
             <div class="control-label">
@@ -191,7 +193,9 @@
       <!--
       TODO Should be spanN when fluid containers are fixed in
            Bootstrap upstream. -->
-      <div id="center" class="nice-scrollbar pane">
+      <div id="center"
+           class="nice-scrollbar pane"
+           onKeydown="handleCenterHotkey(event)">
       </div>
 
       <!-- Rightmost pane with list of empty fields and action notes
