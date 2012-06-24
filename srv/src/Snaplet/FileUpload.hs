@@ -23,7 +23,7 @@ import System.FilePath
 import Data.Aeson as A
 
 import Utils.HttpErrors
-import Debug.Trace
+
 data FileUpload = FU { cfg      :: UploadPolicy
                      , tmp      :: FilePath
                      , finished :: FilePath
@@ -56,7 +56,7 @@ uploadHandler f model id field l =
 
 handle _ _     _  _     (_   , Left _ ) = return Nothing
 handle d model id field (info, Right f) = do
-  trace (show info) $ createDirectoryIfMissing True path
+  createDirectoryIfMissing True path
   copyFile f $ path </> justFname
   return $ Just justFname
     where
