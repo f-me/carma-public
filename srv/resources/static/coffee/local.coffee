@@ -283,6 +283,11 @@ setupCaseMain = (viewName, args) ->
   $('#center').on 'focus.nav', 'input', (e) ->
     global.nav.lastCenter = $(e.currentTarget)
 
+  # set global hotkeys
+  document.onkeydown = (e) ->
+    # close center on C-m
+    hideComplex() if e.ctrlKey and e.keyCode == 77 # m key
+
 # Hide all views on center pane and show view for first reference
 # stored in <fieldName> of model loaded into <parentView> there
 this.showComplex = (parentView, fieldName) ->
