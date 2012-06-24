@@ -164,7 +164,7 @@
       <div id="left"
            class="nice-scrollbar pane"
            onKeydown="handleLeftHotkey(event)">
-        <form class="form-vertical">
+        <div class="form-vertical">
           <div class="control-group">
             <div class="control-label">
               <label>Номер</label>
