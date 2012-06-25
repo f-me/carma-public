@@ -17,6 +17,8 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
+import Data.List (sortBy)
+import Data.Ord (comparing)
 
 import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple (pgsInit)
@@ -64,7 +66,8 @@ search ixName val = do
 
 readAll model n = do
   res <- Redis.readAll redis model
-  return $ maybe res (`take` res) n
+  let res' = sortBy (flip $ comparing $ Map.lookup "callDate") res
+  return $ maybe res' (`take` res') n
   
 {-
   \i -> do

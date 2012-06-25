@@ -341,7 +341,7 @@ setupCallForm = (viewName, args) ->
     window.location.hash = "case/" + id
   )
   st.fnSort [[2, "desc"]]
-  $.getJSON("/all/case?limit=30", (objs) ->
+  $.getJSON("/all/case?limit=70", (objs) ->
     st.fnClearTable()
     for i of objs
       obj = objs[i]
