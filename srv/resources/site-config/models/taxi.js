@@ -142,7 +142,7 @@
             "targets": [
                 "taxiContractor_partner",
                 "taxiContractor_partnerTable",
-                "taxiContractor_coords"
+                "taxiContractor_address"
             ],
             "canRead": [
                 "partner",

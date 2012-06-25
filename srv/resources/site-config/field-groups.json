@@ -460,6 +460,12 @@
             }
         },
         {
+            "name": "address",
+            "meta": {
+                "label": "Адрес"
+            }
+        },
+        {
             "name": "partnerTable",
             "type": "table",
             "meta": {
@@ -479,21 +485,9 @@
                     {
                         "name": "workingHours",
                         "label": "График работы"
-                    },
-                    {
-                        "name": "services",
-                        "label": "Услуги"
-                    },
-                    {
-                        "name": "tarif",
-                        "label": "Тариф"
                     }
                 ]
             }
-        },
-        {
-            "name": "coords",
-            "type": "map"
         }
     ]
 }

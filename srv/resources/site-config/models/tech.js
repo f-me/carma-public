@@ -86,7 +86,7 @@
             "targets": [
                 "techContractor_partner",
                 "techContractor_partnerTable",
-                "techContractor_coords"
+                "techContractor_address"
             ],
             "canRead": [
                 "partner",

@@ -150,7 +150,7 @@
             "targets": [
                 "towDealer_partner",
                 "towDealer_partnerTable",
-                "towDealer_coords"
+                "towDealer_address"
             ],
             "canRead": [
                 "partner",
@@ -169,7 +169,7 @@
             "targets": [
                 "towContractor_partner",
                 "towContractor_partnerTable",
-                "towContractor_coords"
+                "towContractor_address"
             ],
             "canRead": [
                 "partner",

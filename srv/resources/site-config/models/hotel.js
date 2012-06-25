@@ -114,7 +114,7 @@
             "targets": [
                 "hotelContractor_partner",
                 "hotelContractor_partnerTable",
-                "hotelContractor_coords"
+                "hotelContractor_address"
             ],
             "canRead": [
                 "partner",

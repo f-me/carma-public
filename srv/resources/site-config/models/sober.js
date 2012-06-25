@@ -142,7 +142,7 @@
             "targets": [
                 "soberContractor_partner",
                 "soberContractor_partnerTable",
-                "soberContractor_coords"
+                "soberContractor_address"
             ],
             "canRead": [
                 "partner",
