@@ -6,6 +6,7 @@ import Data.Functor
 import Control.Monad.IO.Class
 
 import Data.ByteString (ByteString)
+import qualified Data.ByteString.Char8 as B 
 import qualified Data.Aeson as Aeson
 import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
@@ -104,7 +105,8 @@ readHandler curUser = do
 readAllHandler :: AuthUser -> AppHandler ()
 readAllHandler curUser = do
   Just model <- getParam "model"
-  res <- with db $ DB.readAll model
+  n <- getParam "limit"
+  res <- with db $ DB.readAll model (read . B.unpack <$> n)
   writeJSON res
 
 updateHandler :: AuthUser -> AppHandler ()

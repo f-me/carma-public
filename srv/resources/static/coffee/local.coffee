@@ -121,17 +121,17 @@ regexpKbHook = (instance, knockVM) ->
 
 filesKbHook = (instance, knockVM) ->
   for n in instance.filesFields
-    do (n) ->
-      u = "/upload"
-      d = "/s/fileupload"
-      path = "#{instance.model.name}/#{instance.id}/#{n}"
-      knockVM["#{n}UploadUrl"] = ko.computed
-        read: -> "#{u}/#{path}"
-      knockVM["#{n}Info"] = ko.computed
-        read: ->
-          fs = knockVM['files']()
-          return [] unless fs
-          for i in fs.split(',')
+    u = "/upload"
+    d = "/s/fileupload"
+    path = "#{instance.model.name}/#{instance.id}/#{n}"
+    knockVM["#{n}UploadUrl"] = ko.computed
+      read: -> "#{u}/#{path}"
+    knockVM["#{n}Info"] = ko.computed
+      read: ->
+        fs = knockVM['files']()
+        return [] unless fs
+        for i in fs.split(',')
+          do (i) ->
             url: "#{d}/#{path}/#{i.trim()}"
             name: i.trim()
 
@@ -341,7 +341,7 @@ setupCallForm = (viewName, args) ->
     window.location.hash = "case/" + id
   )
   st.fnSort [[2, "desc"]]
-  $.getJSON("/all/case", (objs) ->
+  $.getJSON("/all/case?limit=30", (objs) ->
     st.fnClearTable()
     for i of objs
       obj = objs[i]
@@ -573,7 +573,6 @@ this.makeCase = () ->
     caller_phone4: v['callerName_phone4']()
     caller_email:  v['callerName_email']()
     comment:       v['wazzup']()
-    callDate: (new Date).toString("dd.MM.yyyy HH:mm")
     callTaker: global.user.meta.realName
   buildNewModel 'case', args, {},
     (a, b, k) ->

@@ -62,7 +62,9 @@ search ixName val = do
   let ids = Set.toList $ Map.findWithDefault Set.empty val ixData
   forM ids $ Redis.read' redis
 
-readAll model = Redis.readAll redis model
+readAll model n = do
+  res <- Redis.readAll redis model
+  return $ maybe res (`take` res) n
   
 {-
   \i -> do
