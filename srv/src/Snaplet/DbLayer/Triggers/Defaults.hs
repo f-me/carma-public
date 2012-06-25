@@ -1,11 +1,54 @@
 
 module Snaplet.DbLayer.Triggers.Defaults
-  (defaults
+  (applyDefaults
   ) where 
 
+import Control.Monad.IO.Class
+import Data.Functor
 import Data.Map (Map)
 import qualified Data.Map as Map
+import qualified Data.ByteString.Char8 as B
+import Data.Time.Clock (getCurrentTime)
+import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
+
 import Snaplet.DbLayer.Types
+
+
+applyDefaults model obj = do
+  ct <- liftIO $ round . utcTimeToPOSIXSeconds
+              <$> getCurrentTime
+  let obj' = case model of
+        "case" -> Map.insert "callDate" (B.pack $ show ct) obj
+        _ | model `elem` services ->
+            let h  = 60*60 :: Int
+                d  = 24 * h
+            in Map.union obj $ Map.fromList
+                [("times_expectedServiceStart",   B.pack $ show $ ct + h)
+                ,("times_factServiceStart",       B.pack $ show $ ct + h)
+                ,("times_expectedServiceEnd",     B.pack $ show $ ct + 2*h)
+                ,("times_expectedServiceClosure", B.pack $ show $ ct + 12*h)
+                ,("times_factServiceClosure",     B.pack $ show $ ct + 12*h)
+                ,("times_expectedDealerInfo",     B.pack $ show $ ct + 7*d)
+                ,("times_factDealerInfo",         B.pack $ show $ ct + 7*d)
+                ]
+          | otherwise -> obj
+
+  return $ Map.union obj'
+         $ Map.findWithDefault Map.empty model defaults
+
+
+services =
+  ["deliverCar"
+  ,"deliverParts"
+  ,"hotel"
+  ,"information"
+  ,"rent"
+  ,"sober"
+  ,"taxi"
+  ,"tech"
+  ,"towage"
+  ,"transportation"
+  ]
 
 serviceDefaults = Map.fromList
   [("status", "creating")

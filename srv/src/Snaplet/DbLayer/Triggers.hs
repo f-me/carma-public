@@ -25,8 +25,7 @@ import Snaplet.DbLayer.Triggers.Dsl
 
 
 triggerCreate :: ModelName -> Object -> DbHandler b Object
-triggerCreate model obj = return
-  $ Map.findWithDefault Map.empty model defaults
+triggerCreate = applyDefaults
 
 triggerUpdate :: ObjectId -> Object -> DbHandler b ObjectMap
 triggerUpdate objId commit = do
