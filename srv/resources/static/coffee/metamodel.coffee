@@ -96,8 +96,6 @@ this.backbonizeModel = (models, modelName) ->
       # TODO _.extend doesn't work here
       for k of attrs when k isnt 'id' and
           _.has(this.fieldHash, k)    and
-          this.model.canUpdate        and
-          this.fieldHash[k].canWrite  and
           not _.isNull(attrs[k])
         this.attributeQueue[k] = attrs[k]
 
