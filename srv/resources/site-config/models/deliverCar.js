@@ -165,6 +165,26 @@
             }
         },
         {
+            "name": "payType",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],
+            "type": "dictionary",
+            "meta": {
+                "dictionaryName": "PaymentTypes",
+                "label": "Тип оплаты"
+            }
+        },
+        {
             "name": "payment",
             "groupName": "payment"
         },
