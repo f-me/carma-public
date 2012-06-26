@@ -292,17 +292,7 @@ setupCaseMain = (viewName, args) ->
   $("body").on("change.input", ".redirectOnChange", () ->
       setTimeout(( -> window.location.hash = "back"), 500))
 
-  # set focus hystory for hotkey navigation
-  global.nav = {}
-  $('#left'  ).on 'focus.nav', 'input', (e) ->
-    global.nav.lastLeft = $(e.currentTarget)
-  $('#center').on 'focus.nav', 'input', (e) ->
-    global.nav.lastCenter = $(e.currentTarget)
-
-  # set global hotkeys
-  document.onkeydown = (e) ->
-    # close center on C-m
-    hideComplex() if e.ctrlKey and e.keyCode == 77 # m key
+  setupHotkeys()
 
 # Hide all views on center pane and show view for first reference
 # stored in <fieldName> of model loaded into <parentView> there
@@ -357,7 +347,7 @@ setupCallForm = (viewName, args) ->
             ]
       st.fnAddData(row)
   )
-
+  setupHotkeys()
 
 
 initOSM = (el) ->
@@ -613,6 +603,23 @@ uploadComplete = (data) -> (e) ->
 uploadError = (e) ->
   console.log e
   alert "Загрузка завершилась неудачно"
+
+this.setupHotkeys = ->
+  $('#left').on('keydown.hotkeys', handleLeftHotkey)
+  $('#center').on('keydown.hotkeys', handleCenterHotkey)
+
+  # set focus hystory for hotkey navigation
+  global.nav = {}
+  $('#left'  ).on 'focus.nav', 'input', (e) ->
+    global.nav.lastLeft = $(e.currentTarget)
+  $('#center').on 'focus.nav', 'input', (e) ->
+    global.nav.lastCenter = $(e.currentTarget)
+
+  # set global hotkeys
+  $(document).off 'keydown.closecomp'
+  $(document).on  'keydown.closecomp', (e) ->
+    # close center on C-m
+    hideComplex() if e.ctrlKey and e.keyCode == 77 # m key
 
 this.handleLeftHotkey = (e) ->
   arrs = global.keys.arrows
