@@ -604,7 +604,6 @@
                    class="pane-span focusable"
                    autocomplete="off"
                    name="{{ name }}"
-                   onFocus="onFocusDate(this)"
                    {{# readonly }}readonly{{/ readonly }}
                    data-bind="value: {{ name }},
                               valueUpdate: 'afterkeydown'" />
@@ -635,7 +634,11 @@
                    autocomplete="off"
                    name="{{ name }}"
                    data-bind="value: {{ name }},
-                              valueUpdate: 'afterkeydown'"/>
+                              valueUpdate: 'afterkeydown'"
+                   onkeyDown="kdoPick('{{ meta.picker }}',
+                                      '{{ name }}',
+                                      73, event);"
+                   />
             <span class="add-on">
               <i class="icon stolen-icon-phone"
                  onclick="doPick('{{ meta.picker }}', '{{ name }}');"/>
@@ -729,7 +732,11 @@
                    {{/ meta.transform }}
                    name="{{ name }}"
                    data-bind="value: {{ name }},
-                              valueUpdate: 'afterkeydown'"/>
+                              valueUpdate: 'afterkeydown'"
+                   onkeyDown="kdoPick('{{ meta.picker }}',
+                                      '{{ name }}',
+                                      66, event);"
+                   />
             <span class="add-on"><i class="icon icon-search"
                onclick="doPick('{{ meta.picker }}', '{{ name }}', event.srcElement);"/>
             </span>

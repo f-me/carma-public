@@ -395,6 +395,9 @@ this.doPick = (pickType, args, el) ->
             , 16))
   pickers[pickType](args, el)
 
+this.kdoPick = (pickType, args, k, e) ->
+  doPick pickType, args, e.srcElement if e.ctrlKey and e.keyCode == k
+
 setupVinForm = (viewName, args) ->
   $el(viewName).html($el("vin-form-template").html())
   global.viewsWare[viewName] = {}
