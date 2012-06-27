@@ -123,12 +123,14 @@ filesKbHook = (instance, knockVM) ->
   for n in instance.filesFields
     u = "/upload"
     d = "/s/fileupload"
-    path = "#{instance.model.name}/#{instance.id}/#{n}"
     knockVM["#{n}UploadUrl"] = ko.computed
-      read: -> "#{u}/#{path}"
+      read: ->
+        path = "#{instance.model.name}/#{knockVM['id']()}/#{n}"
+        "#{u}/#{path}"
     knockVM["#{n}Info"] = ko.computed
       read: ->
-        fs = knockVM['files']()
+        path = "#{instance.model.name}/#{knockVM['id']()}/#{n}"
+        fs = knockVM[n]()
         return [] unless fs
         for i in fs.split(',')
           do (i) ->
