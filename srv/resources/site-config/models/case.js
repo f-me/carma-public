@@ -106,7 +106,8 @@
                 "car_mileage",
                 "car_checkupDate",
                 "car_checkupMileage",
-                "car_dealerTO"
+                "car_dealerTO",
+                "car_makeYear"
             ],
             "canRead": [ "partner", "front", "back", "head", "parguy" ],
             "canWrite": [ "front", "back", "head" ]
