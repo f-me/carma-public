@@ -293,6 +293,15 @@
             "meta": {
                 "label": "Гарантийный случай"
             }
+        },
+        {
+           "name": "files",
+           "canRead": [ "partner", "front", "back", "head", "parguy" ],
+           "canWrite": [ "front", "back", "head", "parguy" ],
+           "type": "files",
+           "meta": {
+               "label": "Прикрепленные файлы"
+           }
         }
     ]
 }

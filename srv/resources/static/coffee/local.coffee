@@ -125,10 +125,12 @@ filesKbHook = (instance, knockVM) ->
     d = "/s/fileupload"
     knockVM["#{n}UploadUrl"] = ko.computed
       read: ->
+        return unless knockVM['id']
         path = "#{instance.model.name}/#{knockVM['id']()}/#{n}"
         "#{u}/#{path}"
     knockVM["#{n}Info"] = ko.computed
       read: ->
+        return unless knockVM['id']
         path = "#{instance.model.name}/#{knockVM['id']()}/#{n}"
         fs = knockVM[n]()
         return [] unless fs
