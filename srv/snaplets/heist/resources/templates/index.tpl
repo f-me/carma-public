@@ -1077,6 +1077,17 @@
               <a data-bind="attr: { href: url }, text: name" />
             </li>
           </ul>
+          <dl data-bind="foreach: servicesReference">
+            <dt data-bind="text: modelTitle">
+              <dd>
+                <ul class="unstyled" data-bind="foreach: filesInfo">
+                  <li>
+                    <a data-bind="attr: { href: url }, text: name" />
+                  </li>
+                </ul>
+              </dd>
+            </dt>
+          </dl>
         </div>
       </fieldset>
     </script>
