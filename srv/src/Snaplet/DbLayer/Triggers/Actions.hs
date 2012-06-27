@@ -154,11 +154,11 @@ actionActions = Map.fromList
   )]
 
 actionResultMap = Map.fromList
-  [("busyLine",        \objId -> dateNow (+ (5*60))  >>= set objId "duetime")
-  ,("callLater",       \objId -> dateNow (+ (30*60)) >>= set objId "duetime")
-  ,("partnerNotFound", \objId -> dateNow (+ (2*60*60)) >>= set objId "duetime")
+  [("busyLine",        \objId -> dateNow (+ (5*60))  >>= set objId "duetime" >> set objId "result" "")
+  ,("callLater",       \objId -> dateNow (+ (30*60)) >>= set objId "duetime" >> set objId "result" "")
+  ,("partnerNotFound", \objId -> dateNow (+ (2*60*60)) >>= set objId "duetime" >> set objId "result" "")
   ,("clientCanceledService", closeAction)   
-  ,("unassignPlease",  \objId -> set objId "assignedTo" "")
+  ,("unassignPlease",  \objId -> set objId "assignedTo" "" >> set objId "result" "")
   ,("needPartner",     \objId -> do 
      setService objId "status" "needPartner"
      newAction <- replaceAction
@@ -213,7 +213,8 @@ actionResultMap = Map.fromList
   )  
   ,("serviceStillInProgress", \objId -> do
     tm <- getService objId "times_expectedServiceEnd"  
-    dateNow (changeTime (+5*60) tm) >>= set objId "duetime") 
+    dateNow (changeTime (+5*60) tm) >>= set objId "duetime"
+    set objId "result" "") 
   ,("clientWaiting", \objId -> do
     tm <- getService objId "times_expectedServiceStart"
     void $ replaceAction
