@@ -162,8 +162,7 @@
             id="case-screen-template">
       <!-- Main case form -->
       <div id="left"
-           class="nice-scrollbar pane"
-           onKeydown="handleLeftHotkey(event)">
+           class="nice-scrollbar pane">
         <div class="form-vertical">
           <div class="control-group">
             <div class="control-label">
@@ -196,8 +195,7 @@
       TODO Should be spanN when fluid containers are fixed in
            Bootstrap upstream. -->
       <div id="center"
-           class="nice-scrollbar pane"
-           onKeydown="handleCenterHotkey(event)">
+           class="nice-scrollbar pane">
       </div>
 
       <!-- Rightmost pane with list of empty fields and action notes
@@ -606,7 +604,6 @@
                    class="pane-span focusable"
                    autocomplete="off"
                    name="{{ name }}"
-                   onFocus="onFocusDate(this)"
                    {{# readonly }}readonly{{/ readonly }}
                    data-bind="value: {{ name }},
                               valueUpdate: 'afterkeydown'" />
@@ -637,7 +634,11 @@
                    autocomplete="off"
                    name="{{ name }}"
                    data-bind="value: {{ name }},
-                              valueUpdate: 'afterkeydown'"/>
+                              valueUpdate: 'afterkeydown'"
+                   onkeyDown="kdoPick('{{ meta.picker }}',
+                                      '{{ name }}',
+                                      73, event);"
+                   />
             <span class="add-on">
               <i class="icon stolen-icon-phone"
                  onclick="doPick('{{ meta.picker }}', '{{ name }}');"/>
@@ -731,7 +732,11 @@
                    {{/ meta.transform }}
                    name="{{ name }}"
                    data-bind="value: {{ name }},
-                              valueUpdate: 'afterkeydown'"/>
+                              valueUpdate: 'afterkeydown'"
+                   onkeyDown="kdoPick('{{ meta.picker }}',
+                                      '{{ name }}',
+                                      66, event);"
+                   />
             <span class="add-on"><i class="icon icon-search"
                onclick="doPick('{{ meta.picker }}', '{{ name }}', event.srcElement);"/>
             </span>
@@ -1072,6 +1077,17 @@
               <a data-bind="attr: { href: url }, text: name" />
             </li>
           </ul>
+          <dl data-bind="foreach: servicesReference">
+            <dt data-bind="text: modelTitle">
+              <dd>
+                <ul class="unstyled" data-bind="foreach: filesInfo">
+                  <li>
+                    <a data-bind="attr: { href: url }, text: name" />
+                  </li>
+                </ul>
+              </dd>
+            </dt>
+          </dl>
         </div>
       </fieldset>
     </script>

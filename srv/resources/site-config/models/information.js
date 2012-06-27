@@ -75,7 +75,6 @@
         },
         {
             "targets": [
-                "payment_payType",
                 "payment_paidByRUAMC",
                 "payment_paidByClient"
             ],
@@ -153,6 +152,26 @@
                 "invisible": true
             }
         },
+    	{
+            "name": "payType",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head"
+            ],			
+            "type": "dictionary",
+            "meta": {
+                "dictionaryName": "PaymentTypes",
+                "label": "Тип оплаты"
+            }
+        },        
         {
             "name": "payment",
             "groupName": "payment"
@@ -413,6 +432,15 @@
             "type": "checkbox",
             "meta": {
                 "label": "Гарантийный случай"
+            }
+        },
+        {
+            "name": "files",
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head", "parguy" ],
+            "type": "files",
+            "meta": {
+                "label": "Прикрепленные файлы"
             }
         }
     ]

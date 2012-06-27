@@ -305,14 +305,6 @@
             }
         },
         {
-            "name": "payType",
-            "type": "dictionary",
-            "meta": {
-                "dictionaryName": "PaymentTypes",
-                "label": "Тип оплаты"
-            }
-        },
-        {
             "name": "paidByRUAMC",
             "meta": {
                 "label": "Оплата РАМК"

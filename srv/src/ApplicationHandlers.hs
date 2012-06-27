@@ -6,7 +6,8 @@ import Data.Functor
 import Control.Monad.IO.Class
 
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as B 
+import qualified Data.ByteString.Char8 as B
+import qualified Data.ByteString.UTF8  as BU
 import qualified Data.Aeson as Aeson
 import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
@@ -25,6 +26,10 @@ import Snap.Snaplet.AvayaAES
 import qualified Codec.Xlsx.Templater as Xlsx
 import qualified Nominatim
 ------------------------------------------------------------------------------
+import WeatherApi
+import WeatherApi.Google
+import Utils.Weather
+-----------------------------------------------------------------------------
 import Application
 
 
@@ -83,6 +88,14 @@ geodecode = ifTop $ do
   resp <- liftIO $ Nominatim.geodecode addr
   writeJSON resp
 
+-----------------------------------------------------------------------------
+-- | Retrieve weather
+weather :: AppHandler ()
+weather = ifTop $ do
+  Just city     <- getParam "city"
+  Right weather <- liftIO $ getWeather' (initApi "ru" "utf-8")
+                                       (BU.toString city)
+  writeLBS $ Aeson.encode weather
 
 ------------------------------------------------------------------------------
 -- | CRUD
