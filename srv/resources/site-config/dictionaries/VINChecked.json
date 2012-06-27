@@ -6,7 +6,11 @@
         },
         {
             "value": "dealer",
-            "label": " От дилера"
+            "label": "От дилера"
+        },
+        {
+            "value": "fdds",
+            "label": "Проверен в FDDS"
         },
         {
             "value": "service",
