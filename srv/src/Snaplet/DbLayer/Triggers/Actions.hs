@@ -230,32 +230,6 @@ actionResultMap = Map.fromList
       "Закрыть заявку"
       "back" "1" (changeTime (+5*60) tm)
       objId
-    void $ replaceAction
-      "addBill"
-      "Прикрепить счёт"
-      "back" "1" (+14*24*60*60)
-      objId
-    void $ replaceAction
-      "getInfoDealerVW"
-      "Требуется уточнить информацию о ремонте у дилера (только для VW)"
-      "back" "1" (+7*24*60*60)
-      objId
-  )
-  ,("complaint", \objId -> do
-    setService objId "status" "serviceOk"
-    setService objId "clientSatisfied" "0"
-    tm <- getService objId "times_expectedServiceClosure"		
-    void $ replaceAction
-      "complaintResolution"
-      "Клиент предъявил претензию"
-      "head" "1" (+60)
-      objId 
-    void $ replaceAction
-      "closeCase"
-      "Закрыть заявку"
-      "back" "1" (changeTime (+5*60) tm)
-      objId
-
     act <- replaceAction
       "addBill"
       "Прикрепить счёт"
@@ -268,11 +242,40 @@ actionResultMap = Map.fromList
       "back" "1" (+7*24*60*60)
       objId
   )
-  ,("billNotReady",        \objId -> dateNow (+ (5*24*60*60))  >>= set objId "duetime")
-  ,("billAttached", void . replaceAction
+  ,("complaint", \objId -> do
+    setService objId "status" "serviceOk"
+    setService objId "clientSatisfied" "0"
+    tm <- getService objId "times_expectedServiceClosure"		
+    act1 <- replaceAction
+      "complaintResolution"
+      "Клиент предъявил претензию"
+      "head" "1" (+60)
+      objId 
+    set act1 "assignedTo" ""
+    void $ replaceAction
+      "closeCase"
+      "Закрыть заявку"
+      "back" "1" (changeTime (+5*60) tm)
+      objId
+    act2 <- replaceAction
+      "addBill"
+      "Прикрепить счёт"
+      "parguy" "1" (+14*24*60*60)
+      objId
+    set act2 "assignedTo" ""
+    void $ replaceAction
+      "getInfoDealerVW"
+      "Требуется уточнить информацию о ремонте у дилера (только для VW)"
+      "back" "1" (+7*24*60*60)
+      objId
+  )
+  ,("billNotReady", \objId -> dateNow (+ (5*24*60*60))  >>= set objId "duetime")
+  ,("billAttached", \objId -> do
+    act <- replaceAction
       "accountCheck"
       "Проверить кейс"
-      "account" "1" (+60)
+      "account" "1" (+60) objId
+    set act "assignedTo" ""
   )
   ,("vwclosed", closeAction
   )   
