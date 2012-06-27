@@ -30,18 +30,19 @@ import ApplicationHandlers
 ------------------------------------------------------------------------------
 -- | The application's routes.
 routes :: [(ByteString, AppHandler ())]
-routes = [ ("/",             method GET $ authOrLogin indexPage)
-         , ("/login/",       method GET loginForm)
-         , ("/login/",       method POST doLogin)
-         , ("/logout/",      with auth $ logout >> redirectToLogin)
-         , ("/nominatim",    method GET geodecode)
-         , ("/s/",           serveDirectory "resources/static")
-         , ("/report",       withAuth $ method GET . const report)
-         , ("/all/:model",   withAuth $ method GET . readAllHandler)
-         , ("/_whoami/",     withAuth $ method GET . serveUserCake)
-         , ("/_/:model",     withAuth $ method POST. createHandler)
-         , ("/_/:model/:id", withAuth $ method GET . readHandler)
-         , ("/_/:model/:id", withAuth $ method PUT . updateHandler)
+routes = [ ("/",              method GET $ authOrLogin indexPage)
+         , ("/login/",        method GET loginForm)
+         , ("/login/",        method POST doLogin)
+         , ("/logout/",       with auth $ logout >> redirectToLogin)
+         , ("/nominatim",     method GET geodecode)
+         , ("/weather/:city", method GET weather)
+         , ("/s/",            serveDirectory "resources/static")
+         , ("/report",        withAuth $ method GET . const report)
+         , ("/all/:model",    withAuth $ method GET . readAllHandler)
+         , ("/_whoami/",      withAuth $ method GET . serveUserCake)
+         , ("/_/:model",      withAuth $ method POST. createHandler)
+         , ("/_/:model/:id",  withAuth $ method GET . readHandler)
+         , ("/_/:model/:id",  withAuth $ method PUT . updateHandler)
          ]
 
 

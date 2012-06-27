@@ -297,6 +297,11 @@ setupCaseMain = (viewName, args) ->
       setTimeout(( -> window.location.hash = "back"), 500))
 
   setupHotkeys()
+  city = $('input[name="city"]').first()
+  temp = $('input[name="temperature"]').first()
+  city.on 'change.weather', ->
+    getWeather city.val(), (weather) ->
+      temp.val(weather.tempC)
 
 # Hide all views on center pane and show view for first reference
 # stored in <fieldName> of model loaded into <parentView> there
@@ -648,3 +653,8 @@ checkAccordion = (e) ->
   acc = e.parents('.accordion-body') #.hasClass('in')
   return if acc.hasClass('in')
   acc.collapse('show')
+
+this.getWeather = (city, cb) ->
+  url = "/#{city}"
+  $.getJSON "/weather/#{city}", (data) -> cb(data)
+
