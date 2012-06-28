@@ -19,6 +19,7 @@ import Snap.Snaplet
 import Snap.Snaplet.Auth
 
 import Network.Avaya as A
+import Network.Avaya.Action as A
 import qualified Data.Aeson as AE
 import qualified Data.ByteString as B
 import qualified Data.ByteString.UTF8 as BU
@@ -26,7 +27,7 @@ import qualified Data.HashMap.Lazy as H
 
 data Avayaplet b = Avayaplet
     { auth :: Lens b (Snaplet (AuthManager b))
-    , _conf :: Conf
+    , _conf :: A.AvayaConfig
     }
 makeLens ''Avayaplet
 
@@ -44,9 +45,12 @@ callHandler = do
     conf <- gets _conf 
     let conf' = conf { cExtension = extension, cPassword = password }
     liftIO $ print conf'
-    liftIO $ print number 
-    liftIO $ A.runClient conf'
-                         print (call $ BU.toString number)
+    liftIO $ print number
+    liftIO $ do
+      print conf'
+      print number
+      Right st' <- A.startAvaya conf'
+      A.runAvayaAction st' (A.call $ BU.toString number)
     return ()
 
 routes :: [(B.ByteString, Handler b (Avayaplet b) ())]
@@ -66,5 +70,5 @@ avayaAESInit topAuth =
       callServerIp <- liftIO $ lookupDefault "" cfg "callServerIp"
       addRoutes routes
       return $ Avayaplet topAuth $ 
-                 Conf host (fromInteger port) user password delay
+                 A.AvayaConfig host (fromInteger port) user password delay
                       version duration callServerIp "" ""
