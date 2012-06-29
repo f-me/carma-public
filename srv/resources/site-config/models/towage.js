@@ -50,12 +50,14 @@
                 "front",
                 "back",
                 "head",
-                "parguy"
+                "parguy",
+                "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ]
         },
         {
@@ -80,11 +82,13 @@
             "canRead": [
                 "back",
                 "head",
-                "parguy"
+                "parguy",
+                "account"
             ],
             "canWrite": [
                 "back",
-                "head"
+                "head",
+                "parguy"
             ]
         },
         {
@@ -96,7 +100,8 @@
                 "front",
                 "back",
                 "head",
-                "parguy"
+                "parguy",
+                "account"
             ]
         },
         {
@@ -142,7 +147,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ]
         },
         {
@@ -161,7 +167,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ]
         },
         {
@@ -175,12 +182,14 @@
                 "front",
                 "back",
                 "head",
-                "parguy"
+                "parguy",
+                "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ]
         },
         {
@@ -260,12 +269,14 @@
                 "front",
                 "back",
                 "head",
-                "parguy"
+                "parguy",
+                "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],			
             "type": "dictionary",
             "meta": {
@@ -293,7 +304,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "type": "dictionary",
             "meta": {
@@ -318,7 +330,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "meta": {
                 "dictionaryName": "TowerTypes",
@@ -339,7 +352,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "meta": {
                 "dictionaryName": "TowTypes",
@@ -397,7 +411,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "groupName": "address"
         },
@@ -446,7 +461,8 @@
                 "front",
                 "back",
                 "head",
-                "parguy"
+                "parguy",
+                "account"
             ],
             "canWrite": [
                 "front",
@@ -470,7 +486,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "groupName": "address",
             "meta": {
@@ -566,7 +583,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "meta": {
                 "label": "Пробег эвакуатора за городом"
@@ -594,7 +612,8 @@
                 "front",
                 "back",
                 "head",
-                "parguy"
+                "parguy",
+                "account"
             ],
             "canWrite": [
                 "front",
@@ -647,7 +666,7 @@
         },
         {
             "name": "files",
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
             "canWrite": [ "front", "back", "head", "parguy" ],
             "type": "files",
             "meta": {
