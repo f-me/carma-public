@@ -75,7 +75,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        defAuthSettings{ asSiteKey = rmbKey
                       , asRememberPeriod = Just (rmbPer * 24 * 60 * 60)}
                                session authDb
-  c <- nestSnaplet "cfg" siteConfig $ initSiteConfig authMgr "resources/site-config"
+  c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
 
   d <- nestSnaplet "db" db initDbLayer
 
