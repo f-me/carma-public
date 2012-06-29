@@ -6,6 +6,7 @@ import Control.Monad.Trans
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.Map as Map
+import Data.Char
 
 import Snap.Snaplet.RedisDB
 import qualified Database.Redis as Redis
@@ -35,11 +36,15 @@ actions = Map.fromList
         if B.length val /= 17
           then return ()
           else do
-            let vinKey = B.concat ["vin:", val]
-            Right car <- lift $ runRedisDB redis
-                              $ Redis.hgetall vinKey
-            let car' = map (first $ B.append "car_") car
-            mapM_ (uncurry $ set objId) car']
+            let vinKey = B.concat ["vin:", B.map toUpper val]
+            car <- lift $ runRedisDB redis
+                        $ Redis.hgetall vinKey
+            case car of
+              Left _ -> return ()
+              Right car ->
+                mapM_ (uncurry $ set objId)
+                $ map (first $ B.append "car_") car
+      ]
       )]
     )]
 
