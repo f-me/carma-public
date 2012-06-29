@@ -75,8 +75,7 @@
                 "front",
                 "back",
                 "head",
-                "parguy",
-                "account"
+                "parguy"
             ],
             "canWrite": [
                 "back",
