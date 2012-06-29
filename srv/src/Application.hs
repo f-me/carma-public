@@ -11,6 +11,7 @@ import Snap.Snaplet.Auth.Class
 import Snap.Snaplet.Session
 ------------------------------------------------------------------------------
 import Snaplet.SiteConfig
+import Snaplet.SiteConfig.Class
 import Snaplet.DbLayer.Types
 import Snap.Snaplet.Vin
 import Snap.Snaplet.AvayaAES
@@ -38,3 +39,6 @@ instance HasHeist App where
 
 instance HasAuth App where
   authLens = subSnaplet auth
+
+instance HasSiteConfig App where
+  siteConfigLens = subSnaplet siteConfig
