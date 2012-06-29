@@ -8,6 +8,9 @@ import qualified Data.ByteString.Char8 as B
 import qualified Data.Map as Map
 import Data.Char
 
+import qualified Fdds as Fdds
+
+import Snap (gets)
 import Snap.Snaplet.RedisDB
 import qualified Database.Redis as Redis
 import Snaplet.DbLayer.Types
@@ -40,7 +43,7 @@ actions = Map.fromList
             car <- lift $ runRedisDB redis
                         $ Redis.hgetall vinKey
             case car of
-              Left _ -> return ()
+              Left _    -> requestFddsVin objId val
               Right car ->
                 mapM_ (uncurry $ set objId)
                 $ map (first $ B.append "car_") car
@@ -377,3 +380,13 @@ replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
   upd kazeId "actions" $ addToList actionId
   closeAction objId
   return actionId
+
+requestFddsVin :: B.ByteString -> B.ByteString -> TriggerMonad b0 ()
+requestFddsVin objId vin = do
+  let preparedVin = B.unpack $ B.map toUpper vin
+  conf     <- lift $ gets fdds
+  vinState <- liftIO Fdds.vinSearchInit
+  result   <- liftIO $ Fdds.vinSearch conf vinState preparedVin
+  case any (Fdds.rValid) result of
+    True  -> void $ set objId "vinChecked" "fdds"
+    False -> return ()
