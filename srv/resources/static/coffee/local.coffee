@@ -4,27 +4,34 @@ localScreens = ->
   "case":
     "template": "case-screen-template"
     "views":
-      "case-form": setupCaseMain
+      "case-form":
+        constructor: setupCaseMain
   "search":
     "template": "search-screen-template"
     "views":
-      "tableView": setupSearchTable
+      "tableView":
+         constructor: setupSearchTable
   "back":
     "template": "back-screen-template"
     "views":
-      "back-form": setupBackOffice
+      "back-form":
+        constructor: setupBackOffice
+        destructor:  removeBackOffice
   "vin":
     "template": "vin-screen-template"
     "views":
-      "vin-form": setupVinForm
+      "vin-form":
+        constructor: setupVinForm
   "call":
     "template": "call-screen-template"
     "views":
-      "call-form": setupCallForm
+      "call-form":
+        constructor: setupCallForm
   "partner":
     "template": "partner-screen-template"
     "views":
-      "partner-form": setupPartnersForm
+      "partner-form":
+        constructor: setupPartnersForm
 
 # Setup routing
 localRouter = Backbone.Router.extend
@@ -494,10 +501,15 @@ setupBackOffice = ->
   setTimeout((->
       tables = mkBoTable()
       global.boData = { started: new Date, r: {} }
-      setInterval((-> $.getJSON("/all/action", setupBoTable tables)), 1000)
+      global.boData.iHandler =
+        setInterval((-> $.getJSON("/all/action", setupBoTable tables)), 1000)
       # non polling version for debug purposes
       # $.getJSON("/all/action", setupBoTable tables)
     ), 200)
+
+removeBackOffice = ->
+  h = global.boData.iHandler
+  clearInterval h if h?
 
 mkBoTable = ->
   groupTable = $("#back-group-table")

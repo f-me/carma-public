@@ -14,10 +14,8 @@ this.renderScreen = (screenName, args) ->
   global.topElement.html(tpl)
   # Call setup functions for all views, assuming they will set
   # their viewsWare
-  for viewName of screen.views
-    do (viewName) ->
-      setup = screen.views[viewName]
-      if not _.isNull(setup) then setup(viewName, args)
+  for viewName, cs of screen.views when cs.constructor?
+    cs.constructor(viewName, args)
 
 # Remove all content of view and clean up wares.
 #
@@ -32,6 +30,8 @@ forgetView = (viewName) ->
 
 # Clean up all views on screen and everything.
 this.forgetScreen = ->
+  for name, cs of global.activeScreen?.views when cs.destructor?
+    cs.destructor()
   forgetView(viewName) for viewName of global.viewsWare
   global.topElement.empty()
   global.viewsWare = {}
