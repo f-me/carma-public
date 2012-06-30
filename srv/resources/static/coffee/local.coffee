@@ -567,28 +567,30 @@ setupBoTable = (tables) ->
         ut.fnAddData(row)
       else if obj.assignedTo == "" and obj.targetGroup == mainRole
         gt.fnAddData(row)
-    handleBoUpdate(userTable, groupTable)
+    handleBoUpdate(groupTable)
+    boNotify handleBoUpdate(userTable)
 
 # mark expired entries and notify with alert of just expired rows
-handleBoUpdate = (userTable, groupTable) ->
+handleBoUpdate = (table) ->
   toNotify = []
-  _.each [userTable, groupTable], (t) ->
-    t.find('.odd, .even').each (i,e) ->
-      row     = global.boData.r
-      started = global.boData.started
-      [id, _, d] = $(e).children().map (i,e)-> $(e).text()
-      date = new Date.parse(d)
-      now  = new Date
-      $(e).attr('id', id)
-      row[id] = { date: date } unless row[id]?
-      $(e).children().css('background-color', '#ff6060') if now > date
-      # last check to not notify about rows, that expired before
-      # we open page
-      if now > date and not row[id].checked and row[id].date > started
-        toNotify.push e.id
-        row[id].checked = true
+  table.find('.odd, .even').each (i,e) ->
+    row     = global.boData.r
+    started = global.boData.started
+    [id, _, d] = $(e).children().map (i,e)-> $(e).text()
+    date = new Date.parse(d)
+    now  = new Date
+    $(e).attr('id', id)
+    row[id] = { date: date } unless row[id]?
+    $(e).children().css('background-color', '#ff6060') if now > date
+    # last check to not notify about rows, that expired before
+    # we open page
+    if now > date and not row[id].checked and row[id].date > started
+      toNotify.push e.id
+      row[id].checked = true
+  return toNotify
 
-  alert "Измененные строки: #{toNotify.join(', ')}" unless _.isEmpty toNotify
+boNotify = (elems) ->
+  alert "Измененные строки: #{elems.join(', ')}" unless _.isEmpty elems
 
 this.removeVinAlert = (val) -> $.post "/vin/state", { id: val }
 
