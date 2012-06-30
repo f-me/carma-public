@@ -43,7 +43,8 @@ actions = Map.fromList
             car <- lift $ runRedisDB redis
                         $ Redis.hgetall vinKey
             case car of
-              Left _    -> requestFddsVin objId val
+              Left _    -> return () -- requestFddsVin objId val
+              Right []  -> requestFddsVin objId val
               Right car ->
                 mapM_ (uncurry $ set objId)
                 $ map (first $ B.append "car_") car
