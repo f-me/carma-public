@@ -165,6 +165,7 @@
             "meta": {
                 "dictionaryName": "Wazzup",
                 "label": "Что случилось",
+                "required": true,
                 "infoText": "comment"
             }
         },
@@ -176,6 +177,7 @@
             "meta": {
                 "dictionaryName": "Diagnosis1",
                 "label": "Система",
+                "required": true,
                 "infoText": "system"
             }
         },
@@ -221,6 +223,7 @@
             "groupName": "contact",
             "meta": {
                 "label": "Клиент",
+                "required": true,
                 "infoText": "caller"
             }
         },
@@ -231,6 +234,7 @@
             "type": "checkbox",
             "meta": {
                 "label": "Звонящий владелец?",
+                "required": true,
                 "infoText": "owner"
             }
         },
@@ -278,6 +282,7 @@
             "meta": {
                 "dictionaryName": "VINChecked",
                 "label": "VIN проверен",
+                "required": true,
                 "infoText": "vinChecked"
             }
         },
@@ -293,6 +298,7 @@
             "meta": {
                 "dictionaryName": "DealerCities",
                 "label": "Город",
+                "required": true,
                 "infoText": "city"
             }
         },
