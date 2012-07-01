@@ -43,11 +43,15 @@ actions = Map.fromList
             car <- lift $ runRedisDB redis
                         $ Redis.hgetall vinKey
             case car of
-              Left _    -> return () -- requestFddsVin objId val
-              Right []  -> requestFddsVin objId val
-              Right car ->
+              Left _    -> return ()
+              Right []  -> do
+                res <- requestFddsVin objId val
+                set objId "vinChecked"
+                  $ if res then "fdds" else "vinNotFound"
+              Right car -> do
+                set objId "vinChecked" "base"
                 mapM_ (uncurry $ set objId)
-                $ map (first $ B.append "car_") car
+                  $ map (first $ B.append "car_") car
       ]
       )]
     )]
@@ -382,12 +386,10 @@ replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
   closeAction objId
   return actionId
 
-requestFddsVin :: B.ByteString -> B.ByteString -> TriggerMonad b0 ()
+requestFddsVin :: B.ByteString -> B.ByteString -> TriggerMonad b0 Bool
 requestFddsVin objId vin = do
   let preparedVin = B.unpack $ B.map toUpper vin
   conf     <- lift $ gets fdds
   vinState <- liftIO Fdds.vinSearchInit
   result   <- liftIO $ Fdds.vinSearch conf vinState preparedVin
-  case any (Fdds.rValid) result of
-    True  -> void $ set objId "vinChecked" "fdds"
-    False -> return ()
+  return $ any (Fdds.rValid) result
