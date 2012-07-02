@@ -367,7 +367,7 @@ setupCallForm = (viewName, args) ->
 
 
 initOSM = (el) ->
-  return if el.className.contains("olMap")
+  return if $(el).hasClass("olMap")
 
   osmap = new OpenLayers.Map(el.id)
   osmap.addLayer(new OpenLayers.Layer.OSM())
