@@ -502,7 +502,7 @@ setupBackOffice = ->
       tables = mkBoTable()
       global.boData = { started: new Date, r: {} }
       global.boData.iHandler =
-        setInterval((-> $.getJSON("/all/action", setupBoTable tables)), 1000)
+        setInterval((-> $.getJSON("/all/action", setupBoTable tables)), 7000)
       # non polling version for debug purposes
       # $.getJSON("/all/action", setupBoTable tables)
     ), 200)
