@@ -502,7 +502,8 @@ setupBackOffice = ->
       tables = mkBoTable()
       global.boData = { started: new Date, r: {} }
       global.boData.iHandler =
-        setInterval((-> $.getJSON("/all/action", setupBoTable tables)), 7000)
+        setInterval((-> $.getJSON("/ix/actionsForUser", setupBoTable)), 7000)
+      $.getJSON("/ix/actionsForUser", setupBoTable)
       # non polling version for debug purposes
       # $.getJSON("/all/action", setupBoTable tables)
     ), 200)
@@ -533,42 +534,33 @@ mkBoTable = ->
   )
   return [userTable, groupTable]
 
-
-setupBoTable = (tables) ->
-  [userTable, groupTable] = tables
-  (objs) ->
-    ut = userTable.dataTable()
-    ut.fnClearTable()
-    gt = groupTable.dataTable()
-    gt.fnClearTable()
-    mainRole = global.user.roles[0]
-
-    for i of objs
-      obj = objs[i]
-      continue if not obj.caseId
-      continue if obj.closed and obj.closed != "false"
-      continue if not obj.caseId
-      continue if not obj.id
-
-      id = obj.caseId.replace(/\D/g,'') + "/" + obj.id.replace(/\D/g,'')
-      duetime =
-        if obj.duetime
-          new Date(obj.duetime * 1000).toString("dd.MM.yyyy HH:mm:ss")
-        else
-          ''
-      row = [id
-            ,obj.priority || '3'
-            ,duetime
-            ,obj.description || ''
-            ,obj.comment || '']
-
-      obj.assignedTo ?= ""
-      if obj.assignedTo == global.user.login
-        ut.fnAddData(row)
-      else if obj.assignedTo == "" and obj.targetGroup == mainRole
-        gt.fnAddData(row)
+setupBoTable = (actions) ->
+    userTable = $("#back-user-table")
+    groupTable = $("#back-group-table")
+    addActions(actions.user,  userTable.dataTable())
+    addActions(actions.group, groupTable.dataTable())
     handleBoUpdate(groupTable)
     boNotify handleBoUpdate(userTable)
+
+
+
+addActions = (actions, table) ->
+  table.fnClearTable()
+  for i of actions
+    act = actions[i]
+    continue if not act.caseId
+    continue if not act.id
+    continue if not act.duetime
+
+    id = act.caseId.replace(/\D/g,'') + "/" + act.id.replace(/\D/g,'')
+    duetime = new Date(act.duetime * 1000).toString("dd.MM.yyyy HH:mm:ss")
+    row = [id
+          ,act.priority || '3'
+          ,duetime
+          ,act.description || ''
+          ,act.comment || '']
+    table.fnAddData(row)
+
 
 # mark expired entries and notify with alert of just expired rows
 handleBoUpdate = (table) ->
