@@ -15,8 +15,8 @@ import Data.Maybe (fromMaybe)
 import Snap.Core
 import Snap.Snaplet (with)
 import Snap.Snaplet.Heist
-import Snap.Snaplet.Auth hiding (session)
-import Snap.Snaplet.Session
+import Snap.Snaplet.Auth
+import Snap.Snaplet.Auth.Class
 import Snap.Util.FileServe (serveFile)
 ------------------------------------------------------------------------------
 import qualified Snaplet.DbLayer as DB
@@ -76,8 +76,10 @@ doLogin = ifTop $ do
 
 ------------------------------------------------------------------------------
 -- | Serve user account data back to client.
-serveUserCake :: AuthUser -> AppHandler ()
-serveUserCake user = ifTop $ writeJSON user
+serveUserCake :: AppHandler ()
+serveUserCake = ifTop
+  $ withAuth currentUser
+  >>= maybe (error "impossible happened") writeJSON
 
 
 ------------------------------------------------------------------------------
@@ -99,31 +101,31 @@ weather = ifTop $ do
 
 ------------------------------------------------------------------------------
 -- | CRUD
-createHandler :: AuthUser -> AppHandler ()
-createHandler curUser = do
+createHandler :: AppHandler ()
+createHandler = do
   Just model <- getParam "model"
   Just commit <- Aeson.decode <$> getRequestBody
   res <- with db $ DB.create model commit
   -- FIXME: try/catch & handle/log error
   writeJSON res
 
-readHandler :: AuthUser -> AppHandler ()
-readHandler curUser = do
+readHandler :: AppHandler ()
+readHandler = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
   res <- with db $ DB.read model objId
   -- FIXME: try/catch & handle/log error
   writeJSON res
 
-readAllHandler :: AuthUser -> AppHandler ()
-readAllHandler curUser = do
+readAllHandler :: AppHandler ()
+readAllHandler = do
   Just model <- getParam "model"
   n <- getParam "limit"
   res <- with db $ DB.readAll model (read . B.unpack <$> n)
   writeJSON res
 
-updateHandler :: AuthUser -> AppHandler ()
-updateHandler curUser = do
+updateHandler :: AppHandler ()
+updateHandler = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
   Just commit <- Aeson.decode <$> getRequestBody

@@ -37,12 +37,12 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/nominatim",     method GET geodecode)
          , ("/weather/:city", method GET weather)
          , ("/s/",            serveDirectory "resources/static")
-         , ("/report",        withAuth $ method GET . const report)
-         , ("/all/:model",    withAuth $ method GET . readAllHandler)
-         , ("/_whoami/",      withAuth $ method GET . serveUserCake)
-         , ("/_/:model",      withAuth $ method POST. createHandler)
-         , ("/_/:model/:id",  withAuth $ method GET . readHandler)
-         , ("/_/:model/:id",  withAuth $ method PUT . updateHandler)
+         , ("/report",        chkAuth . method GET  $ report)
+         , ("/all/:model",    chkAuth . method GET  $ readAllHandler)
+         , ("/_whoami/",      chkAuth . method GET  $ serveUserCake)
+         , ("/_/:model",      chkAuth . method POST $ createHandler)
+         , ("/_/:model/:id",  chkAuth . method GET  $ readHandler)
+         , ("/_/:model/:id",  chkAuth . method PUT  $ updateHandler)
          ]
 
 
@@ -75,7 +75,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        defAuthSettings{ asSiteKey = rmbKey
                       , asRememberPeriod = Just (rmbPer * 24 * 60 * 60)}
                                session authDb
-  c <- nestSnaplet "cfg" siteConfig $ initSiteConfig authMgr "resources/site-config"
+  c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
 
   d <- nestSnaplet "db" db initDbLayer
 
@@ -89,10 +89,10 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
 
 ------------------------------------------------------------------------------
-withAuth :: (AuthUser -> AppHandler ()) -> AppHandler ()
-withAuth f
+chkAuth :: AppHandler () -> AppHandler ()
+chkAuth f
   = with auth currentUser
-  >>= maybe (handleError 401) f
+  >>= maybe (handleError 401) (const f)
 
 
 handleError :: MonadSnap m => Int -> m ()
