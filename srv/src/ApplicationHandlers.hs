@@ -5,12 +5,14 @@ module ApplicationHandlers where
 import Data.Functor
 import Control.Monad.IO.Class
 
+import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.UTF8  as BU
 import qualified Data.Aeson as Aeson
 import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
+import Data.List (foldl')
 
 import Snap.Core
 import Snap.Snaplet (with)
@@ -132,6 +134,39 @@ updateHandler = do
   res <- with db $ DB.update model objId commit
   -- FIXME: try/catch & handle/log error
   writeJSON res
+
+
+searchByIndex :: AppHandler ()
+searchByIndex = do
+  Just ixName <- getParam "indexName"
+  -- FIXME: hardcoded index mockup
+  case ixName of
+    "allPartners" -> do
+      res <- with db $ DB.readAll "partner" Nothing
+      let proj obj =
+            [Map.findWithDefault "" k obj
+            | k <- ["id", "name", "city", "comment"]
+            ]
+      writeJSON $ map proj res
+    "actionsForUser" -> do
+      Just curUser <- withAuth currentUser
+      let user = T.encodeUtf8 $ userLogin curUser
+      let Role userGroup = head $ userRoles curUser
+      actions <- with db $ DB.readAll "action" Nothing
+      let filterActions (u,g) a
+            | closed /= "false" = (u,g)
+            | assignedTo == user = (a:u,g)
+            | assignedTo == "" && targetGroup == userGroup = (u,a:g)
+            | otherwise = (u,g)
+            where
+              assignedTo = fromMaybe "" $ Map.lookup "assignedTo" a
+              targetGroup = fromMaybe "" $ Map.lookup "targetGroup" a
+              closed = fromMaybe "" $ Map.lookup "closed" a
+      let (userActions,groupActions) = foldl' filterActions ([],[]) actions
+      writeJSON $ Map.fromList
+        [("user" :: ByteString, take 20 $ userActions)
+        ,("group":: ByteString, take 20 $ groupActions)]
+    _ -> error $ "Unknown index " ++ show ixName
 
 
 ------------------------------------------------------------------------------
