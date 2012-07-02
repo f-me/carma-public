@@ -1061,17 +1061,33 @@
             id="default-case-group-template">
       <fieldset class="complex-field default-complex-field"
                 id="default-case-complex-field">
-         <div class="program">
-           <h1 data-bind="text: programLocal"></h1>
-           <div data-bind="html:programDesc"></div>
-           <br />
-           <br />
+        <p>
+          <b>Кто звонил:</b>
+          <span data-bind="text: caller_name"/>&nbsp;
+          <span data-bind="text: caller_phone1"/>
+        </p>
+        <p data-bind="visible: car_make">
+          <b>Машина:</b>
+          <span data-bind="text: car_makeLocal"/>&nbsp;
+          <span data-bind="text: car_modelLocal"/>&nbsp;
+          <span data-bind="text: car_plateNum"/>
+        </p>
+        <p data-bind="visible: caseAddress_address">
+          <b>Адрес кейса:</b>
+          <span data-bind="text: caseAddress_address"/><br/>
+          <span data-bind="text: caseAddress_comment"/>
+        </p>
+        <div class="program">
+          <h1 data-bind="text: programLocal"></h1>
+          <div data-bind="html:programDesc"></div>
+          <br />
+          <br />
           <div data-bind="foreach: servicesDescs">
             <dt data-bind="text: title"></dt>
             <dd data-bind="html: description"></dd>
           </div>
           <br />
-          <h4>Загруженные файлы:</h4>
+          <h4 data-bind="visible: filesInfo">Загруженные файлы:</h4>
           <ul class="unstyled" data-bind="foreach: filesInfo">
             <li>
               <a data-bind="attr: { href: url }, text: name" />
