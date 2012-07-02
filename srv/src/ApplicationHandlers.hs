@@ -12,7 +12,8 @@ import qualified Data.ByteString.UTF8  as BU
 import qualified Data.Aeson as Aeson
 import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
-import Data.List (foldl')
+import Data.List (foldl',sortBy)
+import Data.Ord (comparing)
 
 import Snap.Core
 import Snap.Snaplet (with)
@@ -123,8 +124,9 @@ readAllHandler :: AppHandler ()
 readAllHandler = do
   Just model <- getParam "model"
   n <- getParam "limit"
-  res <- with db $ DB.readAll model (read . B.unpack <$> n)
-  writeJSON res
+  res <- with db $ DB.readAll model
+  let res' = sortBy (flip $ comparing $ Map.lookup "callDate") res
+  writeJSON $ maybe res' (`take` res') (read . B.unpack <$> n)
 
 updateHandler :: AppHandler ()
 updateHandler = do
@@ -142,7 +144,7 @@ searchByIndex = do
   -- FIXME: hardcoded index mockup
   case ixName of
     "allPartners" -> do
-      res <- with db $ DB.readAll "partner" Nothing
+      res <- with db $ DB.readAll "partner"
       let proj obj =
             [Map.findWithDefault "" k obj
             | k <- ["id", "name", "city", "comment"]
@@ -152,7 +154,8 @@ searchByIndex = do
       Just curUser <- withAuth currentUser
       let user = T.encodeUtf8 $ userLogin curUser
       let Role userGroup = head $ userRoles curUser
-      actions <- with db $ DB.readAll "action" Nothing
+      actions <- with db $ DB.readAll "action"
+      let actions' = sortBy (comparing $ Map.lookup "duetime") actions
       let filterActions (u,g) a
             | closed /= "false" = (u,g)
             | assignedTo == user = (a:u,g)
@@ -162,10 +165,10 @@ searchByIndex = do
               assignedTo = fromMaybe "" $ Map.lookup "assignedTo" a
               targetGroup = fromMaybe "" $ Map.lookup "targetGroup" a
               closed = fromMaybe "" $ Map.lookup "closed" a
-      let (userActions,groupActions) = foldl' filterActions ([],[]) actions
+      let (userActions,groupActions) = foldl' filterActions ([],[]) actions'
       writeJSON $ Map.fromList
-        [("user" :: ByteString, take 20 $ userActions)
-        ,("group":: ByteString, take 20 $ groupActions)]
+        [("user" :: ByteString, take 30 $ userActions)
+        ,("group":: ByteString, take 30 $ groupActions)]
     _ -> error $ "Unknown index " ++ show ixName
 
 
