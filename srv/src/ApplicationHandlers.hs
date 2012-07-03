@@ -11,15 +11,16 @@ import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.UTF8  as BU
 import qualified Data.Aeson as Aeson
 import qualified Data.Map as Map
-import Data.Maybe (fromMaybe)
+import Data.Maybe
 import Data.List (foldl')
 
 import Snap.Core
 import Snap.Snaplet (with)
 import Snap.Snaplet.Heist
-import Snap.Snaplet.Auth
-import Snap.Snaplet.Auth.Class
+import Snap.Snaplet.Auth hiding (session)
+import Snap.Snaplet.Session
 import Snap.Util.FileServe (serveFile)
+import Snap.Util.Readable (fromBS)
 ------------------------------------------------------------------------------
 import qualified Snaplet.DbLayer as DB
 ------------------------------------------------------------------------------
@@ -68,18 +69,24 @@ doLogin :: AppHandler ()
 doLogin = ifTop $ do
   l <- fromMaybe "" <$> getParam "login"
   p <- fromMaybe "" <$> getParam "password"
-  r <- maybe False (const True) <$> getParam "remember"
+  r <- isJust <$> getParam "remember"
   res <- with auth $ loginByUsername l (ClearText p) r
-  case res of
-    Left _err -> redirectToLogin
-    Right _user -> redirect "/"
+
+  avayaExt <- fromMaybe "" <$> getParam "avayaExt" >>= fromBS
+  avayaPwd <- fromMaybe "" <$> getParam "avayaPwd" >>= fromBS
+  with session $ do
+    setInSession "avayaExt" avayaExt
+    setInSession "avayaPwd" avayaPwd
+    commitSession
+
+  either (const redirectToLogin) (const $ redirect "/") res
 
 
 ------------------------------------------------------------------------------
 -- | Serve user account data back to client.
 serveUserCake :: AppHandler ()
 serveUserCake = ifTop
-  $ withAuth currentUser
+  $ with auth currentUser
   >>= maybe (error "impossible happened") writeJSON
 
 
@@ -148,7 +155,7 @@ searchByIndex = do
             ]
       writeJSON $ map proj res
     "actionsForUser" -> do
-      Just curUser <- withAuth currentUser
+      Just curUser <- with auth currentUser
       let user = T.encodeUtf8 $ userLogin curUser
       let Role userGroup = head $ userRoles curUser
       actions <- with db $ DB.readAll "action" Nothing

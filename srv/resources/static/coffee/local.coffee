@@ -393,7 +393,10 @@ this.doPick = (pickType, args, el) ->
     callPlease: (modelName) ->
       bb = global.viewsWare["case-form"].bbInstance
       phoneNumber = bb.get(modelName)
-      alert ("Calling " + phoneNumber)
+      $.post(
+        "/avaya/call",
+        number: phoneNumber,
+        -> alert ("Calling " + phoneNumber))
 
     nominatimPicker: (fieldName, el) ->
       bb = global.viewsWare["case-form"].bbInstance

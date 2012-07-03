@@ -5,6 +5,10 @@
     <title>Вход в систему</title>
     <link rel="stylesheet" href="/s/css/bootstrap.min.css" />
     <link rel="stylesheet" href="/s/css/local.css" />
+    <script src="/s/js/3p/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript">
+      $(function() {$(".field").first().focus()})
+    </script>
   </head>
   <body>
     <div class="row-fluid">
@@ -31,6 +35,16 @@
               </div>
               <div class="controls">
                 <input type="password" class="field" name="password" />
+              </div>
+            </div>
+
+            <div class="control-group">
+              <div class="control-label">
+                <label>Avaya</label>
+              </div>
+              <div class="controls">
+                <input type="text" class="field input-mini" name="avayaExt" />
+                <input type="text" class="field input-mini" name="avayaPwd" />
               </div>
             </div>
 

@@ -30,14 +30,13 @@ callHandler = do
     sess <- withAuth $ gets session
     Just ext <- withTop sess $ getFromSession "avayaExt"
     Just pwd <- withTop sess $ getFromSession "avayaPwd"
-    Just number <- getParam "phone"
+    Just number <- getParam "number"
     conf <- gets _conf 
     let conf' = conf {cExtension = ext, cPassword = pwd}
     liftIO $ void $ do
-      print conf'
-      print number
       Right st' <- A.startAvaya conf'
-      A.runAvayaAction st' (A.call $ B.unpack number)
+      let '+':'7':number' = B.unpack number
+      A.runAvayaAction st' (A.call $ "98" ++ number')
 
 
 avayaAESInit :: HasAuth b => SnapletInit b (Avayaplet b)
