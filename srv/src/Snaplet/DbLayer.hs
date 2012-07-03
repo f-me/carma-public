@@ -69,10 +69,7 @@ search ixName val = do
   let ids = Set.toList $ Map.findWithDefault Set.empty val ixData
   forM ids $ Redis.read' redis
 
-readAll model n = do
-  res <- Redis.readAll redis model
-  let res' = sortBy (flip $ comparing $ Map.lookup "callDate") res
-  return $ maybe res' (`take` res') n
+readAll model = Redis.readAll redis model
   
 {-
   \i -> do

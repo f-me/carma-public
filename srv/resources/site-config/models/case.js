@@ -234,7 +234,6 @@
             "type": "checkbox",
             "meta": {
                 "label": "Звонящий владелец?",
-                "required": true,
                 "infoText": "owner"
             }
         },
