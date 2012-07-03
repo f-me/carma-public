@@ -373,9 +373,9 @@ initOSM = (el) ->
   osmap.addLayer(new OpenLayers.Layer.OSM())
   osmap.setCenter(
     new OpenLayers.LonLat(37.617874,55.757549)
-      .transform( # from WGS 1984 to Spherical Mercator Projection
+      .transform(
         new OpenLayers.Projection("EPSG:4326"),
-        new OpenLayers.Projection("EPSG:900913")
+        osmap.getProjectionObject()
       ),
     16 # Zoom level
   )

@@ -40,7 +40,7 @@
     <script src="/s/js/3p/mustache.js" />
 
     <!-- OpenLayers library allows map rendering -->
-    <script src="http://www.openlayers.org/api/OpenLayers.js" />
+    <script src="/s/js/3p/OpenLayers-2.11/OpenLayers.js" />
 
     <!-- 25Kb of date parsing and formatting -->
     <script src="/s/js/3p/date-ru-RU.js" />
