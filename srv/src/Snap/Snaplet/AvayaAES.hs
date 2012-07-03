@@ -7,19 +7,18 @@ module Snap.Snaplet.AvayaAES
 import Control.Monad.State
 import Control.Applicative
 
-import Data.Maybe
 import Data.Configurator
 
 import Snap.Core
 import Snap.Snaplet
+import Snap.Snaplet.Session
 import Snap.Snaplet.Auth
 import Snap.Snaplet.Auth.Class
 
 import Network.Avaya as A
 import Network.Avaya.Action as A
-import qualified Data.Aeson as AE
 import qualified Data.ByteString.Char8 as B
-import qualified Data.HashMap.Lazy as H
+
 
 data Avayaplet b = Avayaplet
     {_conf :: A.AvayaConfig
@@ -28,13 +27,12 @@ data Avayaplet b = Avayaplet
 
 callHandler :: HasAuth b => Handler b (Avayaplet b) ()
 callHandler = do
-    Just user <- withAuth currentUser
-    let meta = userMeta user
-    let Just (AE.String extension) = H.lookup "avayaExt" meta
-    let Just (AE.String password) = H.lookup "avayaPass" meta
-    number <- fromMaybe "" <$> getParam "phone"
+    sess <- withAuth $ gets session
+    Just ext <- withTop sess $ getFromSession "avayaExt"
+    Just pwd <- withTop sess $ getFromSession "avayaPwd"
+    Just number <- getParam "phone"
     conf <- gets _conf 
-    let conf' = conf { cExtension = extension, cPassword = password }
+    let conf' = conf {cExtension = ext, cPassword = pwd}
     liftIO $ void $ do
       print conf'
       print number
@@ -44,7 +42,7 @@ callHandler = do
 
 avayaAESInit :: HasAuth b => SnapletInit b (Avayaplet b)
 avayaAESInit =
-    makeSnaplet "avaya-aes" "Avaya AES snaplet." Nothing $ do
+    makeSnaplet "avaya-aes" "Avaya AES snaplet" Nothing $ do
       addRoutes [ ("/call", method POST callHandler) ]
       cfg <- getSnapletUserConfig
       connectionInfo <- liftIO $ A.AvayaConfig
