@@ -33,6 +33,7 @@ import WeatherApi.Google
 import Utils.Weather
 -----------------------------------------------------------------------------
 import Application
+import Util
 
 
 ------------------------------------------------------------------------------
@@ -106,7 +107,7 @@ weather = ifTop $ do
 createHandler :: AppHandler ()
 createHandler = do
   Just model <- getParam "model"
-  Just commit <- Aeson.decode <$> getRequestBody
+  commit <- getJSONBody
   res <- with db $ DB.create model commit
   -- FIXME: try/catch & handle/log error
   writeJSON res
@@ -130,7 +131,7 @@ updateHandler :: AppHandler ()
 updateHandler = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
-  Just commit <- Aeson.decode <$> getRequestBody
+  commit <- getJSONBody
   res <- with db $ DB.update model objId commit
   -- FIXME: try/catch & handle/log error
   writeJSON res
@@ -186,3 +187,7 @@ writeJSON :: Aeson.ToJSON v => v -> AppHandler ()
 writeJSON v = do
   modifyResponse $ setContentType "application/json"
   writeLBS $ Aeson.encode v
+
+getJSONBody :: Aeson.FromJSON v => AppHandler v
+getJSONBody = Util.readJSONfromLBS <$> readRequestBody 4096
+

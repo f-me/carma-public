@@ -2,13 +2,12 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 module Util
   (readJSON
+  ,readJSONfromLBS
   ) where
 
 import Control.Exception
-import Data.Functor
 import Data.Typeable
 import qualified Data.ByteString.Lazy as L
-import qualified Data.Text as T
 
 import Data.Aeson as Aeson
 import Data.Attoparsec.ByteString.Lazy (Result(..))
@@ -24,10 +23,16 @@ instance Exception JSONParseException
 
 
 readJSON :: FromJSON v => FilePath -> IO v
-readJSON f = do
-  res <- Atto.parse Aeson.json' <$> L.readFile f
-  case res of
+readJSON f = readJSONfromLBS' f `fmap` L.readFile f
+
+readJSONfromLBS :: FromJSON v => L.ByteString -> v
+readJSONfromLBS = readJSONfromLBS' "LBS"
+
+readJSONfromLBS' :: FromJSON v => String -> L.ByteString -> v
+readJSONfromLBS' src s
+  = case Atto.parse Aeson.json' s of
     Done _ jsn -> case Aeson.fromJSON jsn of
-      Success t -> return t
-      Error err -> throw $ FromJSONError f err
-    err -> throw $ AttoparsecError f (show err)
+      Success t -> t
+      Error err -> throw $ FromJSONError src err
+    err -> throw $ AttoparsecError src (show err)
+
