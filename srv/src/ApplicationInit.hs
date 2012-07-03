@@ -81,7 +81,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   d <- nestSnaplet "db" db initDbLayer
 
   v <- nestSnaplet "vin" vin vinInit
-  av <- nestSnaplet "avaya" avaya $ avayaAESInit auth
+  av <- nestSnaplet "avaya" avaya avayaAESInit
   fu <- nestSnaplet "upload" fileUpload fileUploadInit
 
   addRoutes routes
