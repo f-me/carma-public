@@ -22,15 +22,13 @@ import Snap.Snaplet.Auth.Class
 import Snap.Util.FileServe (serveFile)
 ------------------------------------------------------------------------------
 import qualified Snaplet.DbLayer as DB
-import Snaplet.SiteConfig
-import Snap.Snaplet.AvayaAES
 ------------------------------------------------------------------------------
 import qualified Codec.Xlsx.Templater as Xlsx
 import qualified Nominatim
 ------------------------------------------------------------------------------
 import WeatherApi
 import WeatherApi.Google
-import Utils.Weather
+import Utils.Weather () -- instance ToJSON Weather
 -----------------------------------------------------------------------------
 import Application
 import Util
