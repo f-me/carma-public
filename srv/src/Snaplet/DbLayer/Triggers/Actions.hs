@@ -3,6 +3,7 @@ module Snaplet.DbLayer.Triggers.Actions where
 import Control.Arrow (first)
 import Control.Monad (when,void)
 import Control.Monad.Trans
+import Control.Exception
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.Map as Map
@@ -386,10 +387,14 @@ replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
   closeAction objId
   return actionId
 
-requestFddsVin :: B.ByteString -> B.ByteString -> TriggerMonad b0 Bool
+requestFddsVin :: B.ByteString -> B.ByteString -> TriggerMonad b Bool
 requestFddsVin objId vin = do
   let preparedVin = B.unpack $ B.map toUpper vin
   conf     <- lift $ gets fdds
   vinState <- liftIO Fdds.vinSearchInit
-  result   <- liftIO $ Fdds.vinSearch conf vinState preparedVin
-  return $ any (Fdds.rValid) result
+  result   <- liftIO (try $ Fdds.vinSearch conf vinState preparedVin
+                      :: IO (Either SomeException [Fdds.Result]))
+  case result of
+    Right v -> return $ any (Fdds.rValid) v
+    Left _  -> return False
+
