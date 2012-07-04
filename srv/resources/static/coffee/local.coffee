@@ -349,6 +349,7 @@ setupCallForm = (viewName, args) ->
   st.fnSort [[2, "desc"]]
   $.getJSON("/all/case?limit=70", (objs) ->
     st.fnClearTable()
+    dict = global.dictValueCache
     for i of objs
       obj = objs[i]
       continue if obj.id.length > 10
@@ -358,8 +359,8 @@ setupCallForm = (viewName, args) ->
             ,obj.caller_phone1 || ''
             ,obj.car_plateNum || ''
             ,obj.car_vin || ''
-            ,global.dictValueCache.Programs[obj.program] || ''
-            ,obj.comment || ''
+            ,dict.Programs[obj.program] || obj.program || ''
+            ,dict.Wazzup[obj.comment] || obj.comment || ''
             ]
       st.fnAddData(row)
   )
