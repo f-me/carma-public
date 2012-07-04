@@ -413,8 +413,9 @@ this.doPick = (pickType, args, el) ->
         if res.length > 0
           form = $(el).parents("form")
           osmap = form.find(".olMap")
+          res1 = JSON.parse(res)
           osmap.data().osmap.setCenter(
-            new OpenLayers.LonLat(res[0].lon, res[0].lat)
+            new OpenLayers.LonLat(res1[0].lon, res1[0].lat)
               .transform(
                 new OpenLayers.Projection("EPSG:4326"),
                 new OpenLayers.Projection("EPSG:900913")
