@@ -47,7 +47,7 @@ triggerUpdate objId commit = do
 
 
 unionMaps :: ObjectMap -> ObjectMap -> ObjectMap
-unionMaps = Map.unionWith Map.union
+unionMaps = Map.unionWith (flip Map.union)
 
 matchingTriggers :: TriggerMap b -> ObjectMap -> [TriggerMonad b ()]
 matchingTriggers cfg updates
