@@ -132,7 +132,12 @@ readAllHandler = do
   Just model <- getParam "model"
   n <- getParam "limit"
   res <- with db $ DB.readAll model
-  let res' = sortBy (flip $ comparing $ Map.lookup "callDate") res
+  let proj obj = Map.fromList
+        [(k, Map.findWithDefault "" k obj)
+        | k <- ["id", "caller_name", "callDate", "caller_phone1"
+               ,"car_plateNum", "car_vin", "program", "comment"]
+        ]
+  let res' = map proj $ sortBy (flip $ comparing $ Map.lookup "callDate") res
   writeJSON $ maybe res' (`take` res') (read . B.unpack <$> n)
 
 updateHandler :: AppHandler ()
@@ -162,7 +167,7 @@ searchByIndex = do
       let user = T.encodeUtf8 $ userLogin curUser
       let Role userGroup = head $ userRoles curUser
       actions <- with db $ DB.readAll "action"
-      let actions' = sortBy (comparing $ Map.lookup "duetime") actions
+      let actions' = sortBy (flip $ comparing $ Map.lookup "duetime") actions
       let filterActions (u,g) a
             | closed /= "false" = (u,g)
             | assignedTo == user = (a:u,g)
