@@ -201,6 +201,7 @@ report = do
     "resources/report-templates/all-cases.xlsx"
     "resources/static/all-cases.xlsx"
     [(Map.empty, Xlsx.TemplateSettings Xlsx.Rows 1, [])]
+  modifyResponse $ addHeader "Content-Disposition" "attachment; filename=\"report.xlsx\""
   serveFile "resources/static/all-cases.xlsx"
 
 

@@ -32,6 +32,9 @@ localScreens = ->
     "views":
       "partner-form":
         constructor: setupPartnersForm
+  "reports":
+    "template": "reports-screen-template"
+
 
 # Setup routing
 localRouter = Backbone.Router.extend
@@ -44,6 +47,7 @@ localRouter = Backbone.Router.extend
     "back"        : "back"
     "call/:id"    : "loadCall"
     "call"        : "call"
+    "reports"     : "reports"
 
   loadCase    : (id) -> renderScreen("case", {"id": id})
   newCase     :      -> renderScreen("case", {"id": null})
@@ -54,6 +58,7 @@ localRouter = Backbone.Router.extend
   loadPartner : (id) -> renderScreen("partner", {"id": id})
   loadCall    : (id) -> renderScreen("call", {"id": id})
   call        :      -> renderScreen("call")
+  reports     :      -> renderScreen("reports")
 
 hooks = ->
   model:
