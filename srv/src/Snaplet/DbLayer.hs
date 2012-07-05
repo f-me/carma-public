@@ -17,6 +17,7 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Char8 as C8
 import Data.List (sortBy)
 import Data.Ord (comparing)
 
@@ -25,6 +26,7 @@ import Snap.Snaplet.PostgresqlSimple (pgsInit)
 import Snap.Snaplet.RedisDB (redisDBInit)
 import qualified Database.Redis as Redis
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
+import qualified Snaplet.DbLayer.PostgresCRUD as Postgres
 
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers
@@ -33,11 +35,23 @@ import Util
 
 
 create model commit = do
+  liftIO $ putStrLn "CREATE"
+  liftIO $ putStrLn $ "  MODEL: " ++ show model
+  liftIO $ putStrLn $ "  COMMIT: " ++ show commit
+  --
   commit' <- triggerCreate model commit
   let obj = Map.union commit' commit
   objId <- Redis.create redis model obj
+  --
+  liftIO $ putStrLn $ "  WITHID: " ++ show (Map.insert (C8.pack "id") objId obj)
+  --
+  Postgres.insert Postgres.models model (Map.insert (C8.pack "id") objId obj)
+  
   let fullId = B.concat [model, ":", objId]
   changes <- triggerUpdate fullId obj
+  --
+  liftIO $ putStrLn $ "  CHANGES: " ++ show changes
+  --
   Right _ <- Redis.updateMany redis changes
   return $ Map.insert "id" objId
          $ (changes Map.! fullId) Map.\\ commit
@@ -55,6 +69,8 @@ update model objId commit = do
   -- (Copy on write)
   changes <- triggerUpdate fullId commit
   Right _ <- Redis.updateMany redis changes
+  -- ???
+  Postgres.updateMany Postgres.models model changes
   return $ (changes Map.! fullId) Map.\\ commit
 
 
@@ -78,12 +94,14 @@ readAll model n = do
 
 initDbLayer :: SnapletInit b (DbLayer b)
 initDbLayer = makeSnaplet "db-layer" "Storage abstraction"
-  Nothing $ DbLayer
-    <$> nestSnaplet "redis" redis
-          (redisDBInit Redis.defaultConnectInfo)
-    <*> nestSnaplet "pgsql" postgres pgsInit
-    <*> liftIO triggersConfig
-    <*> liftIO createIndices
+  Nothing $ do
+    liftIO $ Postgres.createIO Postgres.models
+    DbLayer
+      <$> nestSnaplet "redis" redis
+        (redisDBInit Redis.defaultConnectInfo)
+      <*> nestSnaplet "pgsql" postgres pgsInit
+      <*> liftIO triggersConfig
+      <*> liftIO createIndices
 
 ----------------------------------------------------------------------
 triggersConfig = do
