@@ -353,12 +353,19 @@ setupCallForm = (viewName, args) ->
     for i of objs
       obj = objs[i]
       continue if obj.id.length > 10
+      plateNum = if obj.car_plateNum?
+              obj.car_plateNum.toUpperCase()
+          else
+              ""
+      carVin = if obj.car_vin?
+              obj.car_vin.toUpperCase()
+          else
+              ""
       row = [obj.id.split(":")[1]
             ,obj.caller_name || ''
             ,new Date(obj.callDate * 1000).toString("dd.MM.yyyy HH:mm:ss")
             ,obj.caller_phone1 || ''
-            ,obj.car_plateNum || ''
-            ,obj.car_vin || ''
+            ,plateNum, carVin
             ,dict.Programs[obj.program] || obj.program || ''
             ,dict.Wazzup[obj.comment] || obj.comment || ''
             ]
@@ -406,8 +413,9 @@ this.doPick = (pickType, args, el) ->
         if res.length > 0
           form = $(el).parents("form")
           osmap = form.find(".olMap")
+          res1 = JSON.parse(res)
           osmap.data().osmap.setCenter(
-            new OpenLayers.LonLat(res[0].lon, res[0].lat)
+            new OpenLayers.LonLat(res1[0].lon, res1[0].lat)
               .transform(
                 new OpenLayers.Projection("EPSG:4326"),
                 new OpenLayers.Projection("EPSG:900913")
