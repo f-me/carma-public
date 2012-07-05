@@ -16,6 +16,9 @@ import Data.Maybe
 import Data.List (foldl',sortBy)
 import Data.Ord (comparing)
 
+import Data.Time.Clock (getCurrentTime)
+import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
+
 import Snap.Core
 import Snap.Snaplet (with)
 import Snap.Snaplet.Heist
@@ -162,7 +165,6 @@ searchByIndex = do
       let user = T.encodeUtf8 $ userLogin curUser
       let Role userGroup = head $ userRoles curUser
       actions <- with db $ DB.readAll "action"
-      let actions' = sortBy (comparing $ Map.lookup "duetime") actions
       let filterActions (u,g) a
             | closed /= "false" = (u,g)
             | assignedTo == user = (a:u,g)
@@ -172,10 +174,17 @@ searchByIndex = do
               assignedTo = fromMaybe "" $ Map.lookup "assignedTo" a
               targetGroup = fromMaybe "" $ Map.lookup "targetGroup" a
               closed = fromMaybe "" $ Map.lookup "closed" a
-      let (userActions,groupActions) = foldl' filterActions ([],[]) actions'
+      let (userActions,groupActions) = foldl' filterActions ([],[]) actions
+      now <- liftIO $ round . utcTimeToPOSIXSeconds <$> getCurrentTime
+      let nowProximity m = case Map.lookup "duetime" m of
+            Nothing -> 10^9 :: Int
+            Just s -> case B.readInt s of
+              Just (t, "") -> abs $ now - t
+              _ -> 10^9
+      let sort = sortBy (comparing nowProximity)
       writeJSON $ Map.fromList
-        [("user" :: ByteString, take 30 $ userActions)
-        ,("group":: ByteString, take 30 $ groupActions)]
+        [("user" :: ByteString, take 30 $ sort $ userActions)
+        ,("group":: ByteString, take 30 $ sort $ groupActions)]
     _ -> error $ "Unknown index " ++ show ixName
 
 
