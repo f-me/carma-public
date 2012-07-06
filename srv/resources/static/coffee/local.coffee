@@ -4,27 +4,37 @@ localScreens = ->
   "case":
     "template": "case-screen-template"
     "views":
-      "case-form": setupCaseMain
+      "case-form":
+        constructor: setupCaseMain
   "search":
     "template": "search-screen-template"
     "views":
-      "tableView": setupSearchTable
+      "tableView":
+         constructor: setupSearchTable
   "back":
     "template": "back-screen-template"
     "views":
-      "back-form": setupBackOffice
+      "back-form":
+        constructor: setupBackOffice
+        destructor:  removeBackOffice
   "vin":
     "template": "vin-screen-template"
     "views":
-      "vin-form": setupVinForm
+      "vin-form":
+        constructor: setupVinForm
   "call":
     "template": "call-screen-template"
     "views":
-      "call-form": setupCallForm
+      "call-form":
+        constructor: setupCallForm
   "partner":
     "template": "partner-screen-template"
     "views":
-      "partner-form": setupPartnersForm
+      "partner-form":
+        constructor: setupPartnersForm
+  "reports":
+    "template": "reports-screen-template"
+
 
 # Setup routing
 localRouter = Backbone.Router.extend
@@ -37,6 +47,7 @@ localRouter = Backbone.Router.extend
     "back"        : "back"
     "call/:id"    : "loadCall"
     "call"        : "call"
+    "reports"     : "reports"
 
   loadCase    : (id) -> renderScreen("case", {"id": id})
   newCase     :      -> renderScreen("case", {"id": null})
@@ -47,6 +58,7 @@ localRouter = Backbone.Router.extend
   loadPartner : (id) -> renderScreen("partner", {"id": id})
   loadCall    : (id) -> renderScreen("call", {"id": id})
   call        :      -> renderScreen("call")
+  reports     :      -> renderScreen("reports")
 
 hooks = ->
   model:
@@ -54,7 +66,7 @@ hooks = ->
       "case" : [candiboberHook]
   observable:
       "*"    : [regexpKbHook, dictionaryKbHook, filesKbHook]
-      "case" : [caseDescsKbHook]
+      "case" : [caseDescsKbHook, caseWeaterKbHook]
 
 # here is entry point
 $( ->
@@ -149,6 +161,11 @@ caseDescsKbHook = (instance, knockVM) ->
   knockVM['programDesc'] = ko.computed
     read: ->
       global.dictionaries['ProgramInfo'][knockVM['program']()]
+
+caseWeaterKbHook = (instance, knockVM) ->
+  knockVM['city'].subscribe (newVal) ->
+    getWeather newVal, (weather) ->
+      knockVM['temperature'](weather.tempC)
 
 mkServicesDescs = (p, s) ->
   d = getServiceDesc(p ,s.modelName())
@@ -297,11 +314,6 @@ setupCaseMain = (viewName, args) ->
       setTimeout(( -> window.location.hash = "back"), 500))
 
   setupHotkeys()
-  city = $('input[name="city"]').first()
-  temp = $('input[name="temperature"]').first()
-  city.on 'change.weather', ->
-    getWeather city.val(), (weather) ->
-      temp.val(weather.tempC)
 
 # Hide all views on center pane and show view for first reference
 # stored in <fieldName> of model loaded into <parentView> there
@@ -342,17 +354,25 @@ setupCallForm = (viewName, args) ->
   st.fnSort [[2, "desc"]]
   $.getJSON("/all/case?limit=70", (objs) ->
     st.fnClearTable()
+    dict = global.dictValueCache
     for i of objs
       obj = objs[i]
       continue if obj.id.length > 10
+      plateNum = if obj.car_plateNum?
+              obj.car_plateNum.toUpperCase()
+          else
+              ""
+      carVin = if obj.car_vin?
+              obj.car_vin.toUpperCase()
+          else
+              ""
       row = [obj.id.split(":")[1]
             ,obj.caller_name || ''
             ,new Date(obj.callDate * 1000).toString("dd.MM.yyyy HH:mm:ss")
             ,obj.caller_phone1 || ''
-            ,obj.car_plateNum || ''
-            ,obj.car_vin || ''
-            ,global.dictValueCache.Programs[obj.program] || ''
-            ,obj.comment || ''
+            ,plateNum, carVin
+            ,dict.Programs[obj.program] || obj.program || ''
+            ,dict.Wazzup[obj.comment] || obj.comment || ''
             ]
       st.fnAddData(row)
   )
@@ -360,15 +380,15 @@ setupCallForm = (viewName, args) ->
 
 
 initOSM = (el) ->
-  return if el.className.contains("olMap")
+  return if $(el).hasClass("olMap")
 
   osmap = new OpenLayers.Map(el.id)
   osmap.addLayer(new OpenLayers.Layer.OSM())
   osmap.setCenter(
     new OpenLayers.LonLat(37.617874,55.757549)
-      .transform( # from WGS 1984 to Spherical Mercator Projection
+      .transform(
         new OpenLayers.Projection("EPSG:4326"),
-        new OpenLayers.Projection("EPSG:900913")
+        osmap.getProjectionObject()
       ),
     16 # Zoom level
   )
@@ -386,7 +406,10 @@ this.doPick = (pickType, args, el) ->
     callPlease: (modelName) ->
       bb = global.viewsWare["case-form"].bbInstance
       phoneNumber = bb.get(modelName)
-      alert ("Calling " + phoneNumber)
+      $.post(
+        "/avaya/call",
+        number: phoneNumber,
+        -> alert ("Calling " + phoneNumber))
 
     nominatimPicker: (fieldName, el) ->
       bb = global.viewsWare["case-form"].bbInstance
@@ -395,8 +418,9 @@ this.doPick = (pickType, args, el) ->
         if res.length > 0
           form = $(el).parents("form")
           osmap = form.find(".olMap")
+          res1 = JSON.parse(res)
           osmap.data().osmap.setCenter(
-            new OpenLayers.LonLat(res[0].lon, res[0].lat)
+            new OpenLayers.LonLat(res1[0].lon, res1[0].lat)
               .transform(
                 new OpenLayers.Projection("EPSG:4326"),
                 new OpenLayers.Projection("EPSG:900913")
@@ -493,8 +517,17 @@ this.doVin = ->
 setupBackOffice = ->
   setTimeout((->
       tables = mkBoTable()
-      $.getJSON("/all/action", setupBoTable tables)
+      global.boData = { started: new Date, r: {} }
+      global.boData.iHandler =
+        setInterval((-> $.getJSON("/ix/actionsForUser", setupBoTable)), 7000)
+      $.getJSON("/ix/actionsForUser", setupBoTable)
+      # non polling version for debug purposes
+      # $.getJSON("/all/action", setupBoTable tables)
     ), 200)
+
+removeBackOffice = ->
+  h = global.boData.iHandler
+  clearInterval h if h?
 
 mkBoTable = ->
   groupTable = $("#back-group-table")
@@ -518,41 +551,55 @@ mkBoTable = ->
   )
   return [userTable, groupTable]
 
+setupBoTable = (actions) ->
+    userTable = $("#back-user-table")
+    groupTable = $("#back-group-table")
+    addActions(actions.user,  userTable.dataTable())
+    addActions(actions.group, groupTable.dataTable())
+    handleBoUpdate(groupTable)
+    boNotify handleBoUpdate(userTable)
 
-setupBoTable = (tables) ->
-  [userTable, groupTable] = tables
-  (objs) ->
-    ut = userTable.dataTable()
-    ut.fnClearTable()
-    gt = groupTable.dataTable()
-    gt.fnClearTable()
-    mainRole = global.user.roles[0]
 
-    for i of objs
-      obj = objs[i]
-      continue if not obj.caseId
-      continue if obj.closed and obj.closed != "false"
-      continue if not obj.caseId
-      continue if not obj.id
 
-      id = obj.caseId.replace(/\D/g,'') + "/" + obj.id.replace(/\D/g,'')
-      duetime =
-        if obj.duetime
-          new Date(obj.duetime * 1000).toString("dd.MM.yyyy HH:mm:ss")
-        else
-          ''
-      row = [id
-            ,obj.priority || '3'
-            ,duetime
-            ,obj.description || ''
-            ,obj.comment || '']
+addActions = (actions, table) ->
+  table.fnClearTable()
+  for i of actions
+    act = actions[i]
+    continue if not act.caseId
+    continue if not act.id
+    continue if not act.duetime
 
-      obj.assignedTo ?= ""
-      if obj.assignedTo == global.user.login
-        ut.fnAddData(row)
-      else if obj.assignedTo == "" and obj.targetGroup == mainRole
-        gt.fnAddData(row)
+    id = act.caseId.replace(/\D/g,'') + "/" + act.id.replace(/\D/g,'')
+    duetime = new Date(act.duetime * 1000).toString("dd.MM.yyyy HH:mm:ss")
+    row = [id
+          ,act.priority || '3'
+          ,duetime
+          ,act.description || ''
+          ,act.comment || '']
+    table.fnAddData(row)
 
+
+# mark expired entries and notify with alert of just expired rows
+handleBoUpdate = (table) ->
+  toNotify = []
+  table.find('.odd, .even').each (i,e) ->
+    row     = global.boData.r
+    started = global.boData.started
+    [id, _, d] = $(e).children().map (i,e)-> $(e).text()
+    date = new Date.parse(d)
+    now  = new Date
+    $(e).attr('id', id)
+    row[id] = { date: date } unless row[id]?
+    $(e).children().css('background-color', '#ff6060') if now > date
+    # last check to not notify about rows, that expired before
+    # we open page
+    if now > date and not row[id].checked and row[id].date > started
+      toNotify.push e.id
+      row[id].checked = true
+  return toNotify
+
+boNotify = (elems) ->
+  alert "Измененные строки: #{elems.join(', ')}" unless _.isEmpty elems
 
 this.removeVinAlert = (val) -> $.post "/vin/state", { id: val }
 

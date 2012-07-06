@@ -52,11 +52,13 @@
             "canRead": [
                 "back",
                 "head",
-                "parguy"
+                "parguy",
+                "account"
             ],
             "canWrite": [
                 "back",
-                "head"
+                "head",
+                "parguy"
             ]
         },
         {
@@ -68,7 +70,8 @@
                 "front",
                 "back",
                 "head",
-                "parguy"
+                "parguy",
+                "account"
             ]
         },
         {
@@ -114,7 +117,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ]
         },
         {
@@ -134,7 +138,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ]
         },
         {
@@ -148,12 +153,14 @@
                 "front",
                 "back",
                 "head",
-                "parguy"
+                "parguy",
+                "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ]
         },
         {
@@ -230,7 +237,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "type": "dictionary",
             "meta": {
@@ -278,12 +286,14 @@
                 "front",
                 "back",
                 "head",
-                "parguy"
+                "parguy",
+                "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "groupName": "address",
             "meta": {
@@ -302,7 +312,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "groupName": "address",
             "meta": {
@@ -316,12 +327,14 @@
                 "front",
                 "back",
                 "head",
-                "parguy"
+                "parguy",
+                "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "groupName": "partner",
             "meta": {
@@ -340,7 +353,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "meta": {
                 "label": "Мультидрайв"
@@ -354,7 +368,8 @@
                 "front",
                 "back",
                 "head",
-                "parguy"
+                "parguy",
+                "account"
             ],
             "canWrite": [
                 "front",
@@ -407,7 +422,7 @@
         },
         {
            "name": "files",
-           "canRead": [ "partner", "front", "back", "head", "parguy" ],
+           "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
            "canWrite": [ "front", "back", "head", "parguy" ],
            "type": "files",
            "meta": {

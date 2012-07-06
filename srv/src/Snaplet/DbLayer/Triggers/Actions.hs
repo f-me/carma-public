@@ -3,10 +3,15 @@ module Snaplet.DbLayer.Triggers.Actions where
 import Control.Arrow (first)
 import Control.Monad (when,void)
 import Control.Monad.Trans
+import Control.Exception
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.Map as Map
+import Data.Char
 
+import qualified Fdds as Fdds
+
+import Snap (gets)
 import Snap.Snaplet.RedisDB
 import qualified Database.Redis as Redis
 import Snaplet.DbLayer.Types
@@ -35,11 +40,20 @@ actions = Map.fromList
         if B.length val /= 17
           then return ()
           else do
-            let vinKey = B.concat ["vin:", val]
-            Right car <- lift $ runRedisDB redis
-                              $ Redis.hgetall vinKey
-            let car' = map (first $ B.append "car_") car
-            mapM_ (uncurry $ set objId) car']
+            let vinKey = B.concat ["vin:", B.map toUpper val]
+            car <- lift $ runRedisDB redis
+                        $ Redis.hgetall vinKey
+            case car of
+              Left _    -> return ()
+              Right []  -> do
+                res <- requestFddsVin objId val
+                set objId "vinChecked"
+                  $ if res then "fdds" else "vinNotFound"
+              Right car -> do
+                set objId "vinChecked" "base"
+                mapM_ (uncurry $ set objId)
+                  $ map (first $ B.append "car_") car
+      ]
       )]
     )]
 
@@ -191,7 +205,7 @@ actionResultMap = Map.fromList
     void $ replaceAction
       "checkStatus"
       "Уточнить статус оказания услуги"
-      "back" "1" (changeTime (+5*60) tm)
+      "back" "3" (changeTime (+5*60) tm)
       objId
   )
   ,("serviceDelayed", \objId -> do
@@ -208,7 +222,7 @@ actionResultMap = Map.fromList
     void $ replaceAction
       "checkEndOfService"
       "Уточнить у клиента окончено ли оказание услуги"
-      "back" "1" (changeTime (+5*60) tm)
+      "back" "3" (changeTime (+5*60) tm)
       objId
   )  
   ,("serviceStillInProgress", \objId -> do
@@ -220,7 +234,7 @@ actionResultMap = Map.fromList
     void $ replaceAction
       "checkStatus"
       "Уточнить статус оказания услуги"
-      "back" "1" (changeTime (+5*60) tm)
+      "back" "3" (changeTime (+5*60) tm)
       objId
   )
   ,("serviceFinished", \objId -> do
@@ -229,7 +243,7 @@ actionResultMap = Map.fromList
     void $ replaceAction
       "closeCase"
       "Закрыть заявку"
-      "back" "1" (changeTime (+5*60) tm)
+      "back" "3" (changeTime (+5*60) tm)
       objId
     act <- replaceAction
       "addBill"
@@ -240,7 +254,7 @@ actionResultMap = Map.fromList
     void $ replaceAction
       "getInfoDealerVW"
       "Требуется уточнить информацию о ремонте у дилера (только для VW)"
-      "back" "1" (+7*24*60*60)
+      "back" "3" (+7*24*60*60)
       objId
   )
   ,("complaint", \objId -> do
@@ -256,7 +270,7 @@ actionResultMap = Map.fromList
     void $ replaceAction
       "closeCase"
       "Закрыть заявку"
-      "back" "1" (changeTime (+5*60) tm)
+      "back" "3" (changeTime (+5*60) tm)
       objId
     act2 <- replaceAction
       "addBill"
@@ -267,7 +281,7 @@ actionResultMap = Map.fromList
     void $ replaceAction
       "getInfoDealerVW"
       "Требуется уточнить информацию о ремонте у дилера (только для VW)"
-      "back" "1" (+7*24*60*60)
+      "back" "3" (+7*24*60*60)
       objId
   )
   ,("billNotReady", \objId -> dateNow (+ (5*24*60*60))  >>= set objId "duetime")
@@ -292,14 +306,14 @@ actionResultMap = Map.fromList
   ,("recloseService", void . replaceAction
       "closeCase"
       "Закрыть заявку"
-      "back" "1" (+60)
+      "back" "3" (+60)
   )
   ,("caseClosedFinancialNotOk", \objId -> do
     setService objId "status" "serviceClosed"
     void $ replaceAction
       "financialClose"
       "Заявка закрыта, требуется финансовая информация"
-      "back" "1" (+60)
+      "back" "3" (+60)
       objId
     void $ replaceAction
       "caseContinue"
@@ -372,3 +386,15 @@ replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
   upd kazeId "actions" $ addToList actionId
   closeAction objId
   return actionId
+
+requestFddsVin :: B.ByteString -> B.ByteString -> TriggerMonad b Bool
+requestFddsVin objId vin = do
+  let preparedVin = B.unpack $ B.map toUpper vin
+  conf     <- lift $ gets fdds
+  vinState <- liftIO Fdds.vinSearchInit
+  result   <- liftIO (try $ Fdds.vinSearch conf vinState preparedVin
+                      :: IO (Either SomeException [Fdds.Result]))
+  case result of
+    Right v -> return $ any (Fdds.rValid) v
+    Left _  -> return False
+

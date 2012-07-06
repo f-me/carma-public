@@ -20,6 +20,11 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
 import Data.List (sortBy)
 import Data.Ord (comparing)
+import Data.Maybe (fromJust)
+
+import Network.URI (parseURI, URI(..))
+import qualified Fdds as Fdds
+import Data.Configurator
 
 import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple (pgsInit)
@@ -80,10 +85,7 @@ search ixName val = do
   let ids = Set.toList $ Map.findWithDefault Set.empty val ixData
   forM ids $ Redis.read' redis
 
-readAll model n = do
-  res <- Redis.readAll redis model
-  let res' = sortBy (flip $ comparing $ Map.lookup "callDate") res
-  return $ maybe res' (`take` res') n
+readAll model = Redis.readAll redis model
   
 {-
   \i -> do
@@ -96,12 +98,14 @@ initDbLayer :: SnapletInit b (DbLayer b)
 initDbLayer = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
     liftIO $ Postgres.createIO Postgres.models
+    cfg <- getSnapletUserConfig
     DbLayer
       <$> nestSnaplet "redis" redis
-        (redisDBInit Redis.defaultConnectInfo)
+            (redisDBInit Redis.defaultConnectInfo)
       <*> nestSnaplet "pgsql" postgres pgsInit
       <*> liftIO triggersConfig
       <*> liftIO createIndices
+      <*> (liftIO $ fddsConfig cfg)
 
 ----------------------------------------------------------------------
 triggersConfig = do
@@ -129,3 +133,9 @@ createIndices = return Map.empty
     ,("actionByAssignee", actionByAssignee_tvar)
     ]
 -}
+
+fddsConfig cfg = do
+  uri   <- require cfg "fdds-uri"
+  login <- require cfg "fdds-login"
+  passw <- require cfg "fdds-password"
+  return $ Fdds.Conf (fromJust $ parseURI uri) login passw

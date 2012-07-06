@@ -12,6 +12,7 @@ import Snap.Snaplet.PostgresqlSimple (Postgres, HasPostgres(..))
 import Snap.Snaplet.RedisDB (RedisDB)
 import Snaplet.DbLayer.Indices
 
+import qualified Fdds as Fdds
 
 type ObjectId = ByteString
 type Object = Map FieldName ByteString
@@ -27,6 +28,7 @@ data DbLayer b = DbLayer
     ,_postgres :: Snaplet Postgres
     ,triggers  :: TriggersConfig
     ,indices   :: Indices
+    ,fdds      :: Fdds.Conf
     }
 
 data TriggersConfig = TriggersConfig

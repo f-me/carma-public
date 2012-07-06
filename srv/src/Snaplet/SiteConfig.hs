@@ -1,6 +1,4 @@
 
-{-# LANGUAGE TemplateHaskell #-}
-
 module Snaplet.SiteConfig
   (initSiteConfig
   ,SiteConfig(..)
@@ -11,12 +9,12 @@ import Control.Monad.State
 import Data.Map (Map)
 import qualified Data.Map as M
 
-import Data.Lens.Template
 import qualified Data.Aeson as Aeson
 
 import Snap.Core
 import Snap.Snaplet
 import Snap.Snaplet.Auth
+import Snap.Snaplet.Auth.Class
 
 ----------------------------------------------------------------------
 import Snaplet.SiteConfig.Types
@@ -26,16 +24,14 @@ import Snaplet.SiteConfig.Dictionaries
 
 
 data SiteConfig b = SiteConfig
-  {_topAuth     :: Snaplet (AuthManager b)
-  ,models       :: Map ModelName Model
+  {models       :: Map ModelName Model
   ,dictionaries :: Aeson.Value
   }
 
-makeLens ''SiteConfig
 
-serveModels :: Handler b (SiteConfig b) ()
+serveModels :: HasAuth b => Handler b (SiteConfig b) ()
 serveModels = do
-  mcu <- with topAuth currentUser
+  mcu <- withAuth currentUser
   case mcu of
     Nothing -> do
       modifyResponse $ setResponseCode 401
@@ -46,16 +42,18 @@ serveModels = do
       writeLBS $ Aeson.encode
                $ M.map (stripModel $ Right cu) ms
 
+
 serveDictionaries :: Handler b (SiteConfig b) ()
 serveDictionaries = ifTop $ do
   ds <- gets dictionaries
   modifyResponse $ setContentType "application/json"
   writeLBS $ Aeson.encode ds
 
+
 initSiteConfig
-  :: Snaplet (AuthManager b) -> FilePath
-  -> SnapletInit b (SiteConfig b)
-initSiteConfig topAuth' cfgDir = makeSnaplet
+  :: HasAuth b
+  => FilePath -> SnapletInit b (SiteConfig b)
+initSiteConfig cfgDir = makeSnaplet
   "site-config" "Site configuration storage"
   Nothing $ do -- ?
     addRoutes
@@ -63,6 +61,5 @@ initSiteConfig topAuth' cfgDir = makeSnaplet
       ,("dictionaries", method GET serveDictionaries)
       ]
     SiteConfig
-      <$> pure topAuth'
-      <*> liftIO (loadModels cfgDir)
+      <$> liftIO (loadModels cfgDir)
       <*> liftIO (loadDictionaries cfgDir)

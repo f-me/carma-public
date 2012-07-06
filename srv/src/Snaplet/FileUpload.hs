@@ -16,6 +16,8 @@ import Data.Maybe
 import Data.Lens.Template
 import Data.Configurator
 import qualified Data.ByteString.Char8 as B
+import qualified Data.ByteString.UTF8  as BU
+import qualified Codec.Binary.UTF8.String as UTF8
 
 import System.Directory
 import System.FilePath
@@ -60,7 +62,7 @@ handle d model id field (info, Right f) = do
   copyFile f $ path </> justFname
   return $ Just justFname
     where
-      justFname = B.unpack $ fromJust $ partFileName info
+      justFname = BU.toString $ fromJust $ partFileName info
       path      = d </> B.unpack model </> B.unpack id </> B.unpack field
 
 fileUploadInit =

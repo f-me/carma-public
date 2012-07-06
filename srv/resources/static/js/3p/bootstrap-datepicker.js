@@ -98,8 +98,10 @@
 			if (!this.isInput) {
 				if (this.component){
 					var inp = this.element.find('input');
-          inp.prop('value', formated);
-          inp.focus();
+                                        inp.prop('value', formated);
+                                        inp.focus();
+                                        inp.keydown();
+                                        inp.change();
 				}
 				this.element.data('date', formated);
 			} else {

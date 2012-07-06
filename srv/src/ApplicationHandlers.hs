@@ -5,12 +5,19 @@ module ApplicationHandlers where
 import Data.Functor
 import Control.Monad.IO.Class
 
+import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.UTF8  as BU
 import qualified Data.Aeson as Aeson
 import qualified Data.Map as Map
-import Data.Maybe (fromMaybe)
+
+import Data.Maybe
+import Data.List (foldl',sortBy)
+import Data.Ord (comparing)
+
+import Data.Time.Clock (getCurrentTime)
+import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 
 import Snap.Core
 import Snap.Snaplet (with)
@@ -18,19 +25,19 @@ import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.Session
 import Snap.Util.FileServe (serveFile)
+import Snap.Util.Readable (fromBS)
 ------------------------------------------------------------------------------
 import qualified Snaplet.DbLayer as DB
-import Snaplet.SiteConfig
-import Snap.Snaplet.AvayaAES
 ------------------------------------------------------------------------------
 import qualified Codec.Xlsx.Templater as Xlsx
 import qualified Nominatim
 ------------------------------------------------------------------------------
 import WeatherApi
 import WeatherApi.Google
-import Utils.Weather
+import Utils.Weather () -- instance ToJSON Weather
 -----------------------------------------------------------------------------
 import Application
+import Util
 
 
 ------------------------------------------------------------------------------
@@ -67,17 +74,25 @@ doLogin :: AppHandler ()
 doLogin = ifTop $ do
   l <- fromMaybe "" <$> getParam "login"
   p <- fromMaybe "" <$> getParam "password"
-  r <- maybe False (const True) <$> getParam "remember"
+  r <- isJust <$> getParam "remember"
   res <- with auth $ loginByUsername l (ClearText p) r
-  case res of
-    Left _err -> redirectToLogin
-    Right _user -> redirect "/"
+
+  avayaExt <- fromMaybe "" <$> getParam "avayaExt" >>= fromBS
+  avayaPwd <- fromMaybe "" <$> getParam "avayaPwd" >>= fromBS
+  with session $ do
+    setInSession "avayaExt" avayaExt
+    setInSession "avayaPwd" avayaPwd
+    commitSession
+
+  either (const redirectToLogin) (const $ redirect "/") res
 
 
 ------------------------------------------------------------------------------
 -- | Serve user account data back to client.
-serveUserCake :: AuthUser -> AppHandler ()
-serveUserCake user = ifTop $ writeJSON user
+serveUserCake :: AppHandler ()
+serveUserCake = ifTop
+  $ with auth currentUser
+  >>= maybe (error "impossible happened") writeJSON
 
 
 ------------------------------------------------------------------------------
@@ -99,37 +114,83 @@ weather = ifTop $ do
 
 ------------------------------------------------------------------------------
 -- | CRUD
-createHandler :: AuthUser -> AppHandler ()
-createHandler curUser = do
+createHandler :: AppHandler ()
+createHandler = do
   Just model <- getParam "model"
-  Just commit <- Aeson.decode <$> getRequestBody
+  commit <- getJSONBody
   res <- with db $ DB.create model commit
   -- FIXME: try/catch & handle/log error
   writeJSON res
 
-readHandler :: AuthUser -> AppHandler ()
-readHandler curUser = do
+readHandler :: AppHandler ()
+readHandler = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
   res <- with db $ DB.read model objId
   -- FIXME: try/catch & handle/log error
   writeJSON res
 
-readAllHandler :: AuthUser -> AppHandler ()
-readAllHandler curUser = do
+readAllHandler :: AppHandler ()
+readAllHandler = do
   Just model <- getParam "model"
   n <- getParam "limit"
-  res <- with db $ DB.readAll model (read . B.unpack <$> n)
-  writeJSON res
+  res <- with db $ DB.readAll model
+  let proj obj = Map.fromList
+        [(k, Map.findWithDefault "" k obj)
+        | k <- ["id", "caller_name", "callDate", "caller_phone1"
+               ,"car_plateNum", "car_vin", "program", "comment"]
+        ]
+  let res' = map proj $ sortBy (flip $ comparing $ Map.lookup "callDate") res
+  writeJSON $ maybe res' (`take` res') (read . B.unpack <$> n)
 
-updateHandler :: AuthUser -> AppHandler ()
-updateHandler curUser = do
+updateHandler :: AppHandler ()
+updateHandler = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
-  Just commit <- Aeson.decode <$> getRequestBody
+  commit <- getJSONBody
   res <- with db $ DB.update model objId commit
   -- FIXME: try/catch & handle/log error
   writeJSON res
+
+
+searchByIndex :: AppHandler ()
+searchByIndex = do
+  Just ixName <- getParam "indexName"
+  -- FIXME: hardcoded index mockup
+  case ixName of
+    "allPartners" -> do
+      res <- with db $ DB.readAll "partner"
+      let proj obj =
+            [Map.findWithDefault "" k obj
+            | k <- ["id", "name", "city", "comment"]
+            ]
+      writeJSON $ map proj res
+    "actionsForUser" -> do
+      Just curUser <- with auth currentUser
+      let user = T.encodeUtf8 $ userLogin curUser
+      let Role userGroup = head $ userRoles curUser
+      actions <- with db $ DB.readAll "action"
+      let filterActions (u,g) a
+            | closed /= "false" = (u,g)
+            | assignedTo == user = (a:u,g)
+            | assignedTo == "" && targetGroup == userGroup = (u,a:g)
+            | otherwise = (u,g)
+            where
+              assignedTo = fromMaybe "" $ Map.lookup "assignedTo" a
+              targetGroup = fromMaybe "" $ Map.lookup "targetGroup" a
+              closed = fromMaybe "" $ Map.lookup "closed" a
+      let (userActions,groupActions) = foldl' filterActions ([],[]) actions
+      now <- liftIO $ round . utcTimeToPOSIXSeconds <$> getCurrentTime
+      let nowProximity m = case Map.lookup "duetime" m of
+            Nothing -> 10^9 :: Int
+            Just s -> case B.readInt s of
+              Just (t, "") -> abs $ now - t
+              _ -> 10^9
+      let sort = sortBy (comparing nowProximity)
+      writeJSON $ Map.fromList
+        [("user" :: ByteString, take 30 $ sort $ userActions)
+        ,("group":: ByteString, take 30 $ sort $ groupActions)]
+    _ -> error $ "Unknown index " ++ show ixName
 
 
 ------------------------------------------------------------------------------
@@ -140,6 +201,7 @@ report = do
     "resources/report-templates/all-cases.xlsx"
     "resources/static/all-cases.xlsx"
     [(Map.empty, Xlsx.TemplateSettings Xlsx.Rows 1, [])]
+  modifyResponse $ addHeader "Content-Disposition" "attachment; filename=\"report.xlsx\""
   serveFile "resources/static/all-cases.xlsx"
 
 
@@ -149,3 +211,7 @@ writeJSON :: Aeson.ToJSON v => v -> AppHandler ()
 writeJSON v = do
   modifyResponse $ setContentType "application/json"
   writeLBS $ Aeson.encode v
+
+getJSONBody :: Aeson.FromJSON v => AppHandler v
+getJSONBody = Util.readJSONfromLBS <$> readRequestBody 4096
+

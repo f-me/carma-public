@@ -5,19 +5,22 @@
             "meta": {
                 "label": "VIN",
                 "transform": "uppercase",
+                "required": true,
                 "regexp": "vin"
             }
         },
         {
             "name": "seller",
             "meta": {
-                "label": "Дилер, продавший автомобиль"
+                "label": "Дилер, продавший автомобиль",
+                "required": true                
             }
         },
         {
             "name": "make",
             "meta": {
                 "dictionaryName": "CarMakers",
+                "required": true,
                 "label": "Марка"
             },
             "type": "dictionary"
@@ -26,6 +29,7 @@
             "name": "model",
             "meta": {
                 "dictionaryName": "CarModels",
+                "required": true,
                 "label": "Модель"
             },
             "type": "dictionary"
@@ -35,6 +39,7 @@
             "meta": {
                 "transform": "uppercase",
                 "label": "Госномер",
+                "required": true,
                 "regexp": "plateNum"
             },
             "index": true,
@@ -50,6 +55,7 @@
             "name": "color",
             "meta": {
                 "dictionaryName": "Colors",
+                "required": true,
                 "label": "Цвет"
             },
             "type": "dictionary"
@@ -58,32 +64,37 @@
             "name": "buyDate",
             "type": "date",
             "meta": {
-                "label": "Дата покупки"
+                "label": "Дата покупки",
+                "required": true
             }
         },
         {
             "name": "checkupDate",
             "type": "date",
             "meta": {
-                "label": "Дата последнего ТО"
+                "label": "Дата последнего ТО",
+                "required": true
             }
         },
         {
             "name": "dealerTO",
             "meta": {
-                "label": "Дилер у которого проходило последнее ТО"
+                "label": "Дилер у которого проходило последнее ТО",
+                "required": true
             }
         },
         {
             "name": "mileage",
             "meta": {
-                "label": "Текущий пробег"
+                "label": "Текущий пробег",
+                "required": true
             }
         },
         {
             "name": "checkupMileage",
             "meta": {
-                "label": "Пробег на последнем ТО"
+                "label": "Пробег на последнем ТО",
+                "required": true
             }
         },
         {
@@ -91,6 +102,7 @@
             "meta": {
                 "label": "Коробка передач",
                 "dictionaryName": "Transmission",
+                "required": true,
                 "widget": "radio"
             },
             "type": "dictionary"

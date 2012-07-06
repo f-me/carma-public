@@ -7,9 +7,11 @@ import Data.Lens.Template
 import Snap.Snaplet
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth
+import Snap.Snaplet.Auth.Class
 import Snap.Snaplet.Session
 ------------------------------------------------------------------------------
 import Snaplet.SiteConfig
+import Snaplet.SiteConfig.Class
 import Snaplet.DbLayer.Types
 import Snap.Snaplet.Vin
 import Snap.Snaplet.AvayaAES
@@ -34,3 +36,9 @@ makeLens ''App
 
 instance HasHeist App where
   heistLens = subSnaplet heist
+
+instance HasAuth App where
+  authLens = subSnaplet auth
+
+instance HasSiteConfig App where
+  siteConfigLens = subSnaplet siteConfig
