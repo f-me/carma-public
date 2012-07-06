@@ -66,7 +66,7 @@ hooks = ->
       "case" : [candiboberHook]
   observable:
       "*"    : [regexpKbHook, dictionaryKbHook, filesKbHook]
-      "case" : [caseDescsKbHook]
+      "case" : [caseDescsKbHook, caseWeaterKbHook]
 
 # here is entry point
 $( ->
@@ -161,6 +161,11 @@ caseDescsKbHook = (instance, knockVM) ->
   knockVM['programDesc'] = ko.computed
     read: ->
       global.dictionaries['ProgramInfo'][knockVM['program']()]
+
+caseWeaterKbHook = (instance, knockVM) ->
+  knockVM['city'].subscribe (newVal) ->
+    getWeather newVal, (weather) ->
+      knockVM['temperature'](weather.tempC)
 
 mkServicesDescs = (p, s) ->
   d = getServiceDesc(p ,s.modelName())
@@ -309,11 +314,6 @@ setupCaseMain = (viewName, args) ->
       setTimeout(( -> window.location.hash = "back"), 500))
 
   setupHotkeys()
-  city = $('input[name="city"]').first()
-  temp = $('input[name="temperature"]').first()
-  city.on 'change.weather', ->
-    getWeather city.val(), (weather) ->
-      temp.val(weather.tempC)
 
 # Hide all views on center pane and show view for first reference
 # stored in <fieldName> of model loaded into <parentView> there
