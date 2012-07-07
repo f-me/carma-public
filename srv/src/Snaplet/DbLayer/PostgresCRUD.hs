@@ -85,5 +85,5 @@ update ss name c m = withPG (S.inPG $ S.update ss (toStr name) cond m) where
 	cond = toCond ss name c
 
 updateMany :: (PS.HasPostgres m) => S.Syncs -> ByteString -> M.Map ByteString S.SyncMap -> m ()
-updateMany ss name ms = forM_ (M.toList ms) $ uncurry update' where
+updateMany ss name ms = forM_ (M.toList ms) $ uncurry (update ss name) where
 	update' k obj = update ss name k (M.insert (C8.pack "id") k obj)
