@@ -48,16 +48,18 @@ create model commit = do
   let obj = Map.union commit' commit
   objId <- Redis.create redis model obj
   --
-  liftIO $ putStrLn $ "  WITHID: " ++ show (Map.insert (C8.pack "id") objId obj)
+  let obj' = Map.insert (C8.pack "id") objId obj
+  liftIO $ putStrLn $ "  WITHID: " ++ show obj'
   --
-  Postgres.insert Postgres.models model (Map.insert (C8.pack "id") objId obj)
+  Postgres.insert Postgres.models model obj'
   
   let fullId = B.concat [model, ":", objId]
   changes <- triggerUpdate fullId obj
   --
-  liftIO $ putStrLn $ "  CHANGES: " ++ show changes
+  let changes' = Map.mapKeys (B.drop (B.length model + 1)) changes
+  liftIO $ putStrLn $ "  CHANGES: " ++ show changes'
   --
-  Right _ <- Redis.updateMany redis changes
+  Right _ <- Redis.updateMany redis changes'
   return $ Map.insert "id" objId
          $ (changes Map.! fullId) Map.\\ commit
 
@@ -69,13 +71,19 @@ read model objId = do
 
 
 update model objId commit = do
+  liftIO $ putStrLn "UPDATE"
+  liftIO $ putStrLn $ "  MODEL: " ++ show model
+  --
   let fullId = B.concat [model, ":", objId]
   -- FIXME: catch NotFound => transfer from postgres to redis
   -- (Copy on write)
   changes <- triggerUpdate fullId commit
   Right _ <- Redis.updateMany redis changes
-  -- ???
-  Postgres.updateMany Postgres.models model changes
+  -- 
+  let changes' = Map.mapKeys (B.drop (B.length model + 1)) changes
+  liftIO $ putStrLn $ "  CHANGES: " ++ show changes'
+  Postgres.updateMany Postgres.models model changes'
+  --
   return $ (changes Map.! fullId) Map.\\ commit
 
 

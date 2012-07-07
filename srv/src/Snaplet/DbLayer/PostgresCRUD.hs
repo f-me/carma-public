@@ -13,6 +13,7 @@ import qualified Control.Exception as E
 import qualified Data.Map as M
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Char8 as C8
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 
@@ -35,7 +36,7 @@ caseModel = S.sync "casetbl" "garbage" [
 --	S.field_ "car_program" S.string,
 --	S.field_ "car_vin" S.string,
 --	S.field_ "car_buyDate" S.time,
---	S.field_ "callDate" S.time,
+	S.field_ "callDate" S.time,
 	S.field_ "callTaker" S.string,
 	S.field_ "callerOwner" S.int,
 	S.field_ "caller_name" S.string]
@@ -84,4 +85,5 @@ update ss name c m = withPG (S.inPG $ S.update ss (toStr name) cond m) where
 	cond = toCond ss name c
 
 updateMany :: (PS.HasPostgres m) => S.Syncs -> ByteString -> M.Map ByteString S.SyncMap -> m ()
-updateMany ss name ms = forM_ (M.toList ms) $ uncurry (update ss name)
+updateMany ss name ms = forM_ (M.toList ms) $ uncurry update' where
+	update' k obj = update ss name k (M.insert (C8.pack "id") k obj)
