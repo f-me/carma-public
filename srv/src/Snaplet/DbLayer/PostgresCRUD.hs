@@ -31,15 +31,22 @@ withPG f = do
 
 caseModel :: S.Sync
 caseModel = S.sync "casetbl" "garbage" [
-	S.field_ "id" S.int,
---	S.field_ "car_make" S.string,
---	S.field_ "car_program" S.string,
---	S.field_ "car_vin" S.string,
---	S.field_ "car_buyDate" S.time,
-	S.field_ "callDate" S.time,
-	S.field_ "callTaker" S.string,
-	S.field_ "callerOwner" S.int,
-	S.field_ "caller_name" S.string]
+    S.field_ "id" S.int,
+    S.field_ "car_make" S.string,
+    S.field_ "car_program" S.string,
+    S.field_ "car_vin" S.string,
+    S.field_ "car_buyDate" S.time,
+    S.field_ "car_plateNum" S.string,
+    S.field_ "car_carModel" S.string,
+    S.field_ "caseAddress_address" S.string,
+    S.field_ "callDate" S.time,
+    S.field_ "callTaker" S.string,
+    S.field_ "callerOwner" S.int,
+    S.field_ "caller_name" S.string,
+    S.field_ "program" S.string,
+    S.field_ "services" S.string,
+    S.field_ "owner_name" S.string,
+    S.field_ "partner_name" S.string]
 
 models :: S.Syncs
 models = S.syncs [
