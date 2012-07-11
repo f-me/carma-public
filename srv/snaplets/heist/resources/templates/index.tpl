@@ -1088,6 +1088,7 @@
           </div>
           <br />
           <h4 data-bind="visible: filesInfo">Загруженные файлы:</h4>
+
           <ul class="unstyled"
               data-bind="foreach: filesInfo, setdata: files">
             <li>
@@ -1097,6 +1098,7 @@
                  onclick="deleteFile(this)"/>
             </li>
           </ul>
+
           <dl data-bind="foreach: servicesReference">
             <dt data-bind="text: modelTitle">
               <dd>
@@ -1112,6 +1114,20 @@
               </dd>
             </dt>
           </dl>
+
+          <h4>История звонков</h4>
+          <table id="call-searchtable" class="table table-striped table-bordered">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>ФИО</th>
+                <th>Что Случилось</th>
+                <th>Кто Звонит</th>
+              </tr>
+            </thead>
+            <tbody/>
+        </table>
+
         </div>
       </fieldset>
     </script>

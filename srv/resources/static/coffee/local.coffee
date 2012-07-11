@@ -66,7 +66,7 @@ hooks = ->
       "case" : [candiboberHook]
   observable:
       "*"    : [regexpKbHook, dictionaryKbHook, filesKbHook]
-      "case" : [caseDescsKbHook, caseWeaterKbHook]
+      "case" : [caseDescsKbHook, caseWeaterKbHook, caseCallHistoryKbHook]
 
 # here is entry point
 $( ->
@@ -167,6 +167,25 @@ caseWeaterKbHook = (instance, knockVM) ->
   knockVM['city'].subscribe (newVal) ->
     getWeather newVal, (weather) ->
       knockVM['temperature'](weather.tempC)
+
+caseCallHistoryKbHook = (instance, knockVM) ->
+  knockVM['caller_phone1'].subscribe (phone) ->
+    st = mkDataTable($("#call-searchtable"), {bFilter: false})
+    return unless $("#call-searchtable")[0]
+    $.getJSON "/ix/callsByPhone/#{phone}", (objs) ->
+      st.fnClearTable()
+      dict = global.dictValueCache
+
+      for i of objs
+        obj = objs[i]
+        continue if obj.id.length > 10
+
+        row = [obj.id.split(":")[1]
+              ,obj.caller_name || ''
+              ,dict.Wazzup[obj.wazzup] || obj.wazzup || ''
+              ,dict.CallerTypes[obj.callerType] || obj.callerType || ''
+              ]
+        st.fnAddData(row)
 
 mkServicesDescs = (p, s) ->
   d = getServiceDesc(p ,s.modelName())
@@ -443,8 +462,8 @@ getVinAlerts = ->
     $("#vin-alert-container").html(
       Mustache.render($("#vin-alert-template").html(), data)))
 
-mkDataTable = (t) ->
-  t.dataTable
+mkDataTable = (t, opts) ->
+  defaults =
     sScrollY  : "500px"
     bPaginate : false
     oLanguage :
@@ -453,7 +472,9 @@ mkDataTable = (t) ->
       sZeroRecords : "Ничего не найдено"
       sInfo        : "Показаны записи с _START_ по _END_ (всего _TOTAL_)"
 
+  defaults = $.extend(defaults, opts) if opts?
 
+  t.dataTable defaults
 
 setupPartnersForm = (viewName, args) ->
   refs =
