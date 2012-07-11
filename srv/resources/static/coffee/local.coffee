@@ -150,6 +150,7 @@ filesKbHook = (instance, knockVM) ->
           do (i) ->
             url: "#{d}/#{path}/#{i.trim()}"
             name: i.trim()
+            ctrl: "#{u}/#{path}/#{i.trim()}"
 
 caseDescsKbHook = (instance, knockVM) ->
   knockVM['servicesDescs'] = ko.computed
@@ -662,6 +663,30 @@ uploadComplete = (data) -> (e) ->
 uploadError = (e) ->
   console.log e
   alert "Загрузка завершилась неудачно"
+
+this.deleteFile = (e) ->
+  pdata = $(e).parents('ul').data()
+  d     = $(e).data()
+
+  deleteCb = (data) ->
+    fs = pdata.acc()().split(',')
+    fs1 = _.without(fs, data)
+    pdata.acc()(fs1.join(','))
+    # some strange magic happens here, bb model is changed
+    # but not synced, I do not see any reason for that
+    pdata.knockVM.model().save()
+
+  return unless confirm "Вы уверены, что хотите удалить #{d.acc()}"
+
+  $.ajax
+    'type'     : 'DELETE'
+    'url'      : "#{d.knockVM.ctrl}"
+    'success'  : deleteCb
+    'error'    : (xhr) ->
+      if xhr.status == 404
+        deleteCb(d.acc())
+      else
+        alert 'error'
 
 this.setupHotkeys = ->
   $('#left').on('keydown.hotkeys', handleLeftHotkey)

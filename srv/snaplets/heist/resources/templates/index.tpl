@@ -1088,17 +1088,25 @@
           </div>
           <br />
           <h4 data-bind="visible: filesInfo">Загруженные файлы:</h4>
-          <ul class="unstyled" data-bind="foreach: filesInfo">
+          <ul class="unstyled"
+              data-bind="foreach: filesInfo, setdata: files">
             <li>
               <a data-bind="attr: { href: url }, text: name" />
+              <i class="icon icon-remove"
+                 data-bind="setdata: name"
+                 onclick="deleteFile(this)"/>
             </li>
           </ul>
           <dl data-bind="foreach: servicesReference">
             <dt data-bind="text: modelTitle">
               <dd>
-                <ul class="unstyled" data-bind="foreach: filesInfo">
+                <ul class="unstyled"
+                    data-bind="foreach: filesInfo, setdata: files">
                   <li>
                     <a data-bind="attr: { href: url }, text: name" />
+                    <i class="icon icon-remove"
+                       data-bind="setdata: name"
+                       onclick="deleteFile(this)"/>
                   </li>
                 </ul>
               </dd>
