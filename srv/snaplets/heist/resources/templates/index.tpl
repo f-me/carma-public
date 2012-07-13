@@ -1119,10 +1119,10 @@
           <table id="call-searchtable" class="table table-striped table-bordered">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>ФИО</th>
-                <th>Что Случилось</th>
-                <th>Кто Звонит</th>
+                <th>Дата</th>
+                <th>Сотрудник РАМК</th>
+                <th>Тип коммуникации</th>
+                <th>Комментарий</th>
               </tr>
             </thead>
             <tbody/>

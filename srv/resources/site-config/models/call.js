@@ -14,6 +14,27 @@
     ],
     "fields": [
         {
+            "name": "callDate",
+            "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
+            "canWrite": [ "head" ],
+            "index": true,
+            "indexCollate": true,
+            "type": "datetime",
+            "meta": {
+                "label": "Дата звонка",
+                "readonly": true
+            }
+        },
+        {
+            "name": "callTaker",
+            "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
+            "meta": {
+                "label": "Сотрудник РАМК",
+                "required": true,
+                "readonly": true
+            }
+        },
+        {
             "name": "wazzup",
             "type": "dictionary",
             "meta": {

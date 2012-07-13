@@ -170,21 +170,25 @@ caseWeaterKbHook = (instance, knockVM) ->
 
 caseCallHistoryKbHook = (instance, knockVM) ->
   knockVM['caller_phone1'].subscribe (phone) ->
-    st = mkDataTable($("#call-searchtable"), {bFilter: false})
+    st = mkDataTable($("#call-searchtable"))
+    # return if table template is not yet rendered
     return unless $("#call-searchtable")[0]
+    st.fnClearTable()
+
     $.getJSON "/ix/callsByPhone/#{phone}", (objs) ->
-      st.fnClearTable()
       dict = global.dictValueCache
 
       for i of objs
         obj = objs[i]
         continue if obj.id.length > 10
-
-        row = [obj.id.split(":")[1]
-              ,obj.caller_name || ''
-              ,dict.Wazzup[obj.wazzup] || obj.wazzup || ''
-              ,dict.CallerTypes[obj.callerType] || obj.callerType || ''
+        wazzup  = "Что случилось: #{dict.Wazzup[obj.wazzup] || obj.wazzup}"
+        whocall = "Кто звонил: #{dict.CallerTypes[obj.callerType] || obj.callerType}"
+        row = [ obj.callDate || ''
+              , obj.CallTaker || ''
+              , "звонок"
+              , wazzup + ', ' + whocall
               ]
+
         st.fnAddData(row)
 
 mkServicesDescs = (p, s) ->
@@ -361,10 +365,13 @@ this.addService = (name) ->
                   e.find('input')[0].focus()
 
 setupCallForm = (viewName, args) ->
-  modelSetup("call") viewName, args,
+  knockVM = modelSetup("call") viewName, args,
                      permEl     : "case-permissions"
                      focusClass : "focusable"
                      groupsForest : "center"
+  knockVM['callTaker'](global.user.meta.realName)
+  $('input[name="callDate"]').parents('.control-group').hide()
+  $('input[name="callTaker"]').parents('.control-group').hide()
   searchTable = $("#call-searchtable")
   st = mkDataTable(searchTable)
   searchTable.on("click.datatable", "tr", ->
