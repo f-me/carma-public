@@ -66,7 +66,7 @@ hooks = ->
       "case" : [candiboberHook]
   observable:
       "*"    : [regexpKbHook, dictionaryKbHook, filesKbHook]
-      "case" : [caseDescsKbHook, caseWeaterKbHook, caseCallHistoryKbHook]
+      "case" : [caseDescsKbHook, caseWeaterKbHook, caseEventsHistoryKbHook]
 
 # here is entry point
 $( ->
@@ -168,28 +168,41 @@ caseWeaterKbHook = (instance, knockVM) ->
     getWeather newVal, (weather) ->
       knockVM['temperature'](weather.tempC)
 
-caseCallHistoryKbHook = (instance, knockVM) ->
-  knockVM['caller_phone1'].subscribe (phone) ->
-    st = mkDataTable($("#call-searchtable"))
-    # return if table template is not yet rendered
-    return unless $("#call-searchtable")[0]
+caseEventsHistoryKbHook = (instance, knockVM) ->
+  knockVM['caller_phone1'].subscribe fillEventsHistory(knockVM)
+  knockVM['actions'].subscribe fillEventsHistory(knockVM)
+
+fillEventsHistory = (knockVM) -> ->
+  t = $("#call-searchtable")
+  st = t.dataTable()
+  # return if table template is not yet rendered
+  return unless $("#call-searchtable")[0]
+
+  phone = knockVM['caller_phone1']()
+  $.getJSON "/ix/callsByPhone/#{phone}", (objs) ->
     st.fnClearTable()
+    dict = global.dictValueCache
 
-    $.getJSON "/ix/callsByPhone/#{phone}", (objs) ->
-      dict = global.dictValueCache
+    for i of objs
+      obj = objs[i]
+      continue if obj.id.length > 10
+      wazzup  = "Что случилось: #{dict.Wazzup[obj.wazzup] || obj.wazzup}"
+      whocall = "Кто звонил: #{dict.CallerTypes[obj.callerType] || obj.callerType}"
+      callDate = if obj.callDate
+          new Date(obj.callDate * 1000).toString("dd.MM.yyyy HH:mm")
+        else
+          ''
+      row = [ callDate
+            , obj.callTaker || ''
+            , "звонок"
+            , wazzup + ', ' + whocall
+            ]
 
-      for i of objs
-        obj = objs[i]
-        continue if obj.id.length > 10
-        wazzup  = "Что случилось: #{dict.Wazzup[obj.wazzup] || obj.wazzup}"
-        whocall = "Кто звонил: #{dict.CallerTypes[obj.callerType] || obj.callerType}"
-        row = [ obj.callDate || ''
-              , obj.CallTaker || ''
-              , "звонок"
-              , wazzup + ', ' + whocall
-              ]
+      st.fnAddData(row)
 
-        st.fnAddData(row)
+    for r in knockVM['actionsReference']()
+      row = [ r.duetime() , r.assignedTo() , r.nameLocal() , r.comment() ]
+      st.fnAddData(row)
 
 mkServicesDescs = (p, s) ->
   d = getServiceDesc(p ,s.modelName())
@@ -337,6 +350,7 @@ setupCaseMain = (viewName, args) ->
   $("body").on("change.input", ".redirectOnChange", () ->
       setTimeout(( -> window.location.hash = "back"), 500))
 
+  mkDataTable $('#call-searchtable')
   setupHotkeys()
 
 # Hide all views on center pane and show view for first reference
