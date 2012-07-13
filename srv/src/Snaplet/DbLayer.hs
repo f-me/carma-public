@@ -4,6 +4,7 @@ module Snaplet.DbLayer
   ,read
   ,update
   ,search
+  ,sync
   ,readAll
   ,initDbLayer
   ) where
@@ -28,10 +29,11 @@ import Data.Configurator
 
 import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple (pgsInit)
-import Snap.Snaplet.RedisDB (redisDBInit)
+import Snap.Snaplet.RedisDB (redisDBInit, runRedisDB)
 import qualified Database.Redis as Redis
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import qualified Snaplet.DbLayer.PostgresCRUD as Postgres
+import qualified Database.PostgreSQL.Syncs as S
 
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers
@@ -92,6 +94,18 @@ search ixName val = do
   ixData <- liftIO $ readTVarIO ix
   let ids = Set.toList $ Map.findWithDefault Set.empty val ixData
   forM ids $ Redis.read' redis
+
+sync :: Handler b (DbLayer b) ()
+sync = mapM_ syncModel syncsList where
+  syncModel model = do
+    Right (Just cnt) <- runRedisDB redis $ Redis.get (Redis.modelIdKey model)
+    case C8.readInt cnt of
+      Just (maxId, _) -> forM_ [1..maxId] $ \i -> do
+        rec <- Redis.read redis model (C8.pack . show $ i)
+        Postgres.insertUpdate Postgres.models model (C8.pack . show $ i) rec
+      Nothing -> error $ "Invalid id for model " ++ C8.unpack model
+
+  syncsList = map (C8.pack) $ Map.keys (S.syncsSyncs Postgres.models)
 
 readAll model = Redis.readAll redis model
   

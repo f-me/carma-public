@@ -3,7 +3,7 @@ module Snaplet.DbLayer.PostgresCRUD (
 	models,
 
 	createIO,
-	create, insert, select, update, updateMany
+	create, insert, select, exists, update, updateMany, insertUpdate
 	) where
 
 import Control.Monad
@@ -31,18 +31,23 @@ withPG f = do
 
 caseModel :: S.Sync
 caseModel = S.sync "casetbl" "garbage" [
-    S.field_ "id" S.int,
-    S.field_ "car_make" S.string,
-    S.field_ "car_program" S.string,
-    S.field_ "car_vin" S.string,
+    S.indexed $ S.field_ "id" S.int,
+    S.indexed $ S.field_ "car_make" S.string,
+    S.indexed $ S.field_ "car_model" S.string,
+    S.indexed $ S.field_ "car_program" S.string,
+    S.indexed $ S.field_ "car_vin" S.string,
     S.field_ "car_buyDate" S.time,
     S.field_ "car_plateNum" S.string,
     S.field_ "car_carModel" S.string,
+    S.indexed $ S.field_ "diagnosis1" S.string,
+    S.indexed $ S.field_ "diagnosis2" S.string,
+    S.indexed $ S.field_ "dealerCause" S.string,
     S.field_ "caseAddress_address" S.string,
-    S.field_ "callDate" S.time,
+    S.indexed $ S.field_ "callDate" S.time,
     S.field_ "callTaker" S.string,
     S.field_ "callerOwner" S.int,
     S.field_ "caller_name" S.string,
+    S.indexed $ S.field_ "comment" S.string,
     S.field_ "program" S.string,
     S.field_ "services" S.string,
     S.field_ "owner_name" S.string,
@@ -57,13 +62,20 @@ local = P.ConnectInfo {
 	P.connectHost = "localhost",
 	P.connectPort = 5432,
 	P.connectUser = "postgres",
-	P.connectPassword = "2741001",
+	P.connectPassword = "pass",
 	P.connectDatabase = "postgres" }
 
 elog :: IO () -> IO ()
 elog act = E.catch act onError where
     onError :: E.SomeException -> IO ()
     onError e = putStrLn $ "Failed with: " ++ show e
+
+elogv :: a -> IO a -> IO a
+elogv v act = E.catch act (onError v) where
+	onError :: a -> E.SomeException -> IO a
+	onError x e = do
+		putStrLn $ "Failed with: " ++ show e
+		return x
 
 createIO :: S.Syncs -> IO ()
 createIO ss = do
@@ -78,19 +90,27 @@ toCond :: S.Syncs -> ByteString -> ByteString -> S.Condition
 toCond ss m c = S.condition ss (toStr m ++ ".id = ?") [P.toField (toStr c)]
 
 create :: (PS.HasPostgres m) => S.Syncs -> m ()
-create ss = withPG (S.inPG $ S.create ss)
+create ss = withPG (elog . S.inPG (S.create ss))
 
 insert :: (PS.HasPostgres m) => S.Syncs -> ByteString -> S.SyncMap -> m ()
-insert ss name m = withPG (S.inPG $ S.insert ss (toStr name) m)
+insert ss name m = withPG (elog . S.inPG (S.insert ss (toStr name) m))
 
 select :: (PS.HasPostgres m) => S.Syncs -> ByteString -> ByteString -> m S.SyncMap
 select ss name c = withPG (S.inPG $ S.select ss (toStr name) cond) where
 	cond = toCond ss name c
 
+exists :: (PS.HasPostgres m) => S.Syncs -> ByteString -> ByteString -> m Bool
+exists ss name c = withPG (elogv False . S.inPG (S.exists ss (toStr name) cond)) where
+	cond = toCond ss name c
+
 update :: (PS.HasPostgres m) => S.Syncs -> ByteString -> ByteString -> S.SyncMap -> m ()
-update ss name c m = withPG (S.inPG $ S.update ss (toStr name) cond m) where
+update ss name c m = withPG (elog . S.inPG (S.update ss (toStr name) cond m)) where
 	cond = toCond ss name c
 
 updateMany :: (PS.HasPostgres m) => S.Syncs -> ByteString -> M.Map ByteString S.SyncMap -> m ()
 updateMany ss name ms = forM_ (M.toList ms) $ uncurry (update ss name) where
 	update' k obj = update ss name k (M.insert (C8.pack "id") k obj)
+
+insertUpdate :: (PS.HasPostgres m) => S.Syncs -> ByteString -> ByteString -> S.SyncMap -> m Bool
+insertUpdate ss name c m = withPG (elogv False . S.inPG (S.insertUpdate ss (toStr name) cond m)) where
+	cond = toCond ss name c
