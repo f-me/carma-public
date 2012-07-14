@@ -66,7 +66,7 @@ hooks = ->
       "case" : [candiboberHook]
   observable:
       "*"    : [regexpKbHook, dictionaryKbHook, filesKbHook]
-      "case" : [caseDescsKbHook, caseWeaterKbHook]
+      "case" : [caseDescsKbHook, caseWeaterKbHook, caseEventsHistoryKbHook]
 
 # here is entry point
 $( ->
@@ -167,6 +167,42 @@ caseWeaterKbHook = (instance, knockVM) ->
   knockVM['city'].subscribe (newVal) ->
     getWeather newVal, (weather) ->
       knockVM['temperature'](weather.tempC)
+
+caseEventsHistoryKbHook = (instance, knockVM) ->
+  knockVM['caller_phone1'].subscribe fillEventsHistory(knockVM)
+  knockVM['actions'].subscribe fillEventsHistory(knockVM)
+
+fillEventsHistory = (knockVM) -> ->
+  t = $("#call-searchtable")
+  st = t.dataTable()
+  # return if table template is not yet rendered
+  return unless $("#call-searchtable")[0]
+
+  phone = knockVM['caller_phone1']()
+  $.getJSON "/ix/callsByPhone/#{phone}", (objs) ->
+    st.fnClearTable()
+    dict = global.dictValueCache
+
+    for i of objs
+      obj = objs[i]
+      continue if obj.id.length > 10
+      wazzup  = "Что случилось: #{dict.Wazzup[obj.wazzup] || obj.wazzup}"
+      whocall = "Кто звонил: #{dict.CallerTypes[obj.callerType] || obj.callerType}"
+      callDate = if obj.callDate
+          new Date(obj.callDate * 1000).toString("dd.MM.yyyy HH:mm")
+        else
+          ''
+      row = [ callDate
+            , obj.callTaker || ''
+            , "звонок"
+            , wazzup + ', ' + whocall
+            ]
+
+      st.fnAddData(row)
+
+    for r in knockVM['actionsReference']()
+      row = [ r.duetime() , r.assignedTo() , r.nameLocal() , r.comment() ]
+      st.fnAddData(row)
 
 mkServicesDescs = (p, s) ->
   d = getServiceDesc(p ,s.modelName())
@@ -314,6 +350,7 @@ setupCaseMain = (viewName, args) ->
   $("body").on("change.input", ".redirectOnChange", () ->
       setTimeout(( -> window.location.hash = "back"), 500))
 
+  mkDataTable $('#call-searchtable')
   setupHotkeys()
 
 # Hide all views on center pane and show view for first reference
@@ -342,10 +379,13 @@ this.addService = (name) ->
                   e.find('input')[0].focus()
 
 setupCallForm = (viewName, args) ->
-  modelSetup("call") viewName, args,
+  knockVM = modelSetup("call") viewName, args,
                      permEl     : "case-permissions"
                      focusClass : "focusable"
                      groupsForest : "center"
+  knockVM['callTaker'](global.user.meta.realName)
+  $('input[name="callDate"]').parents('.control-group').hide()
+  $('input[name="callTaker"]').parents('.control-group').hide()
   searchTable = $("#call-searchtable")
   st = mkDataTable(searchTable)
   searchTable.on("click.datatable", "tr", ->
@@ -443,8 +483,8 @@ getVinAlerts = ->
     $("#vin-alert-container").html(
       Mustache.render($("#vin-alert-template").html(), data)))
 
-mkDataTable = (t) ->
-  t.dataTable
+mkDataTable = (t, opts) ->
+  defaults =
     sScrollY  : "500px"
     bPaginate : false
     oLanguage :
@@ -453,7 +493,9 @@ mkDataTable = (t) ->
       sZeroRecords : "Ничего не найдено"
       sInfo        : "Показаны записи с _START_ по _END_ (всего _TOTAL_)"
 
+  defaults = $.extend(defaults, opts) if opts?
 
+  t.dataTable defaults
 
 setupPartnersForm = (viewName, args) ->
   refs =

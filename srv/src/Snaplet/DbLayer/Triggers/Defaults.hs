@@ -17,8 +17,10 @@ import Snaplet.DbLayer.Types
 applyDefaults model obj = do
   ct <- liftIO $ round . utcTimeToPOSIXSeconds
               <$> getCurrentTime
-  let obj' = case model of
-        "case" -> Map.insert "callDate" (B.pack $ show ct) obj
+  let cd    = Map.insert "callDate" (B.pack $ show ct) obj
+      obj' = case model of
+        "case" -> cd
+        "call" -> cd
         _ | model `elem` services ->
             let h  = 60*60 :: Int
                 d  = 24 * h

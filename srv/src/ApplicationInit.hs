@@ -40,6 +40,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/report",        chkAuth . method GET  $ report)
          , ("/all/:model",    chkAuth . method GET  $ readAllHandler)
          , ("/ix/:indexName", chkAuth . method GET  $ searchByIndex)
+         , ("/ix/callsByPhone/:phone",
+            chkAuth . method GET  $ searchCallsByPhone)
          , ("/_whoami/",      chkAuth . method GET  $ serveUserCake)
          , ("/_/:model",      chkAuth . method POST $ createHandler)
          , ("/_/:model/:id",  chkAuth . method GET  $ readHandler)
