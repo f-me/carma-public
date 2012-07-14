@@ -4,6 +4,7 @@ module Snaplet.DbLayer
   ,read
   ,update
   ,search
+  ,sync
   ,readAll
   ,initDbLayer
   ) where
@@ -17,6 +18,7 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Char8 as C8
 import Data.List (sortBy)
 import Data.Ord (comparing)
 import Data.Maybe (fromJust)
@@ -27,9 +29,11 @@ import Data.Configurator
 
 import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple (pgsInit)
-import Snap.Snaplet.RedisDB (redisDBInit)
+import Snap.Snaplet.RedisDB (redisDBInit, runRedisDB)
 import qualified Database.Redis as Redis
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
+import qualified Snaplet.DbLayer.PostgresCRUD as Postgres
+import qualified Database.PostgreSQL.Syncs as S
 
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers
@@ -38,12 +42,26 @@ import Util
 
 
 create model commit = do
+  liftIO $ putStrLn "CREATE"
+  liftIO $ putStrLn $ "  MODEL: " ++ show model
+  liftIO $ putStrLn $ "  COMMIT: " ++ show commit
+  --
   commit' <- triggerCreate model commit
   let obj = Map.union commit' commit
   objId <- Redis.create redis model obj
+  --
+  let obj' = Map.insert (C8.pack "id") objId obj
+  liftIO $ putStrLn $ "  WITHID: " ++ show obj'
+  --
+  Postgres.insert Postgres.models model obj'
+  
   let fullId = B.concat [model, ":", objId]
   changes <- triggerUpdate fullId obj
-  Right _ <- Redis.updateMany redis changes
+  --
+  let changes' = Map.mapKeys (B.drop (B.length model + 1)) changes
+  liftIO $ putStrLn $ "  CHANGES: " ++ show changes'
+  --
+  Right _ <- Redis.updateMany redis changes'
   return $ Map.insert "id" objId
          $ (changes Map.! fullId) Map.\\ commit
 
@@ -55,11 +73,19 @@ read model objId = do
 
 
 update model objId commit = do
+  liftIO $ putStrLn "UPDATE"
+  liftIO $ putStrLn $ "  MODEL: " ++ show model
+  --
   let fullId = B.concat [model, ":", objId]
   -- FIXME: catch NotFound => transfer from postgres to redis
   -- (Copy on write)
   changes <- triggerUpdate fullId commit
   Right _ <- Redis.updateMany redis changes
+  -- 
+  let changes' = Map.mapKeys (B.drop (B.length model + 1)) changes
+  liftIO $ putStrLn $ "  CHANGES: " ++ show changes'
+  Postgres.updateMany Postgres.models model changes'
+  --
   return $ (changes Map.! fullId) Map.\\ commit
 
 
@@ -68,6 +94,18 @@ search ixName val = do
   ixData <- liftIO $ readTVarIO ix
   let ids = Set.toList $ Map.findWithDefault Set.empty val ixData
   forM ids $ Redis.read' redis
+
+sync :: Handler b (DbLayer b) ()
+sync = mapM_ syncModel syncsList where
+  syncModel model = do
+    Right (Just cnt) <- runRedisDB redis $ Redis.get (Redis.modelIdKey model)
+    case C8.readInt cnt of
+      Just (maxId, _) -> forM_ [1..maxId] $ \i -> do
+        rec <- Redis.read redis model (C8.pack . show $ i)
+        Postgres.insertUpdate Postgres.models model (C8.pack . show $ i) rec
+      Nothing -> error $ "Invalid id for model " ++ C8.unpack model
+
+  syncsList = map (C8.pack) $ Map.keys (S.syncsSyncs Postgres.models)
 
 readAll model = Redis.readAll redis model
   
@@ -81,6 +119,7 @@ readAll model = Redis.readAll redis model
 initDbLayer :: SnapletInit b (DbLayer b)
 initDbLayer = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
+    liftIO $ Postgres.createIO Postgres.models
     cfg <- getSnapletUserConfig
     DbLayer
       <$> nestSnaplet "redis" redis

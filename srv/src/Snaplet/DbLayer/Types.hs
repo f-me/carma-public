@@ -1,13 +1,14 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell, FlexibleInstances #-}
 
 module Snaplet.DbLayer.Types where
 
+import Control.Monad.State (get)
 import Data.Map (Map)
 import Data.ByteString (ByteString)
 import Data.Lens.Template
 
 import Snap.Snaplet
-import Snap.Snaplet.PostgresqlSimple (Postgres)
+import Snap.Snaplet.PostgresqlSimple (Postgres, HasPostgres(..))
 import Snap.Snaplet.RedisDB (RedisDB)
 import Snaplet.DbLayer.Indices
 
@@ -36,4 +37,5 @@ data TriggersConfig = TriggersConfig
 
 makeLens ''DbLayer
 
-
+instance HasPostgres (Handler b (DbLayer b)) where
+	getPostgresState = with postgres get

@@ -152,6 +152,10 @@ updateHandler = do
   -- FIXME: try/catch & handle/log error
   writeJSON res
 
+syncHandler :: AppHandler ()
+syncHandler = do
+  res <- with db DB.sync
+  writeJSON res
 
 searchByIndex :: AppHandler ()
 searchByIndex = do
