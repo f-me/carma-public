@@ -33,10 +33,11 @@ callHandler = do
     Just number <- getParam "number"
     conf <- gets _conf 
     let conf' = conf {cExtension = ext, cPassword = pwd}
-    liftIO $ void $ do
+    liftIO $ do
       Right st' <- A.startAvaya conf'
       let '+':'7':number' = B.unpack number
       A.runAvayaAction st' $ A.call ("98" ++ number') >> A.cleanup
+    writeLBS ""
 
 
 avayaAESInit :: HasAuth b => SnapletInit b (Avayaplet b)
