@@ -42,16 +42,16 @@ import Util
 
 
 create model commit = do
-  liftIO $ putStrLn "CREATE"
-  liftIO $ putStrLn $ "  MODEL: " ++ show model
-  liftIO $ putStrLn $ "  COMMIT: " ++ show commit
+--  liftIO $ putStrLn "CREATE"
+--  liftIO $ putStrLn $ "  MODEL: " ++ show model
+--  liftIO $ putStrLn $ "  COMMIT: " ++ show commit
   --
   commit' <- triggerCreate model commit
   let obj = Map.union commit' commit
   objId <- Redis.create redis model obj
   --
   let obj' = Map.insert (C8.pack "id") objId obj
-  liftIO $ putStrLn $ "  WITHID: " ++ show obj'
+--  liftIO $ putStrLn $ "  WITHID: " ++ show obj'
   --
   Postgres.insert Postgres.models model obj'
 {-  
@@ -73,8 +73,8 @@ read model objId = do
 
 
 update model objId commit = do
-  liftIO $ putStrLn "UPDATE"
-  liftIO $ putStrLn $ "  MODEL: " ++ show model
+--  liftIO $ putStrLn "UPDATE"
+--  liftIO $ putStrLn $ "  MODEL: " ++ show model
   --
   let fullId = B.concat [model, ":", objId]
   -- FIXME: catch NotFound => transfer from postgres to redis
@@ -83,7 +83,7 @@ update model objId commit = do
   Right _ <- Redis.updateMany redis changes
   -- 
   let changes' = Map.mapKeys (B.drop (B.length model + 1)) changes
-  liftIO $ putStrLn $ "  CHANGES: " ++ show changes'
+--  liftIO $ putStrLn $ "  CHANGES: " ++ show changes'
   Postgres.updateMany Postgres.models model changes'
   --
   return $ (changes Map.! fullId) Map.\\ commit
