@@ -198,8 +198,9 @@ searchByIndex = do
 
 searchCallsByPhone :: AppHandler ()
 searchCallsByPhone = do
-  Just phone <- getParam "phone"
+  r <- getRequest
   calls <- with db $ DB.readAll "call"
+  let phone = last $ B.split '/' (rqURI r)
   writeJSON $
     filter ((phone ==) . (Map.findWithDefault "" "callerName_phone1")) calls
 
