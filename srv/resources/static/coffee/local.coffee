@@ -186,8 +186,8 @@ fillEventsHistory = (knockVM) -> ->
     for i of objs
       obj = objs[i]
       continue if obj.id.length > 10
-      wazzup  = "Что случилось: #{dict.Wazzup[obj.wazzup] || obj.wazzup}"
-      whocall = "Кто звонил: #{dict.CallerTypes[obj.callerType] || obj.callerType}"
+      wazzup  = "Что случилось: #{dict.Wazzup[obj.wazzup] || obj.wazzup || ''}"
+      whocall = "Кто звонил: #{dict.CallerTypes[obj.callerType] || obj.callerType || ''}"
       callDate = if obj.callDate
           new Date(obj.callDate * 1000).toString("dd.MM.yyyy HH:mm")
         else
