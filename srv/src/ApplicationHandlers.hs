@@ -5,6 +5,7 @@ module ApplicationHandlers where
 import Data.Functor
 import Control.Monad.IO.Class
 
+import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
@@ -155,6 +156,13 @@ updateHandler = do
 syncHandler :: AppHandler ()
 syncHandler = do
   res <- with db DB.sync
+  writeJSON res
+
+genReport :: AppHandler ()
+genReport = do
+  Just tpl <- getParam "template"
+  Just f <- getParam "file"
+  res <- with db $ DB.generateReport (T.unpack . T.decodeUtf8 $ tpl) (T.unpack . T.decodeUtf8 $ f)
   writeJSON res
 
 searchByIndex :: AppHandler ()
