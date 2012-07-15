@@ -48,6 +48,8 @@ localRouter = Backbone.Router.extend
     "call/:id"    : "loadCall"
     "call"        : "call"
     "reports"     : "reports"
+    "partner"     : "newPartner"
+    "partner/:id" : "loadPartner"
 
   loadCase    : (id) -> renderScreen("case", {"id": id})
   newCase     :      -> renderScreen("case", {"id": null})
@@ -393,7 +395,8 @@ setupCallForm = (viewName, args) ->
     window.location.hash = "case/" + id
   )
   st.fnSort [[2, "desc"]]
-  $.getJSON("/all/case?limit=70", (objs) ->
+  fields = "id,caller_name,callDate,caller_phone1,car_plateNum,car_vin,program,comment"
+  $.getJSON("/all/case?orderby=callDate&limit=70&fields=#{fields}", (objs) ->
     st.fnClearTable()
     dict = global.dictValueCache
     for i of objs
@@ -498,18 +501,13 @@ mkDataTable = (t, opts) ->
   t.dataTable defaults
 
 setupPartnersForm = (viewName, args) ->
-  refs =
-    [
-      field: "services"
-      forest: "partner-service-references"
-    ]
+  refs = [field: "services"
+         ,forest: "partner-service-references"
+         ]
   modelSetup("partner") viewName, args,
                         permEl: "partner-permissions"
                         focusClass: "focusable"
                         refs: refs
-  $el(viewName).html($el("partner-form-template").html())
-
-  global.viewsWare[viewName] = {}
 
   setTimeout(->
     $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
@@ -525,17 +523,22 @@ setupPartnersForm = (viewName, args) ->
                             permEl: "partner-permissions"
                             focusClass: "focusable"
                             refs: refs
+    )
 
-     $.getJSON(modelMethod(
-            "partner",
-            "search?q=*&_limit=1000&_fields=id,name,city,comment"),
-          ((rows) ->
+    $.getJSON("/all/partner?fields=id,name,city,comment",
+        (objs) ->
             dt = t.dataTable()
             dt.fnClearTable()
-            dt.fnAddData(rows))
-          , 100)))
+            rows = for obj in objs
+                [obj.id.split(':')[1]
+                ,obj.name || ''
+                ,obj.city || ''
+                ,obj.comment || ''
+                ]
+            dt.fnAddData(rows)
+    ))
 
-addNewServiceToPartner = (name) ->
+this.addNewServiceToPartner = (name) ->
   instance = global.viewsWare["partner-form"].bbInstance
   book = addReference instance,
                  field     : "services"

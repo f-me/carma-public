@@ -134,15 +134,20 @@ readHandler = do
 readAllHandler :: AppHandler ()
 readAllHandler = do
   Just model <- getParam "model"
-  n <- getParam "limit"
-  res <- with db $ DB.readAll model
-  let proj obj = Map.fromList
-        [(k, Map.findWithDefault "" k obj)
-        | k <- ["id", "caller_name", "callDate", "caller_phone1"
-               ,"car_plateNum", "car_vin", "program", "comment"]
-        ]
-  let res' = map proj $ sortBy (flip $ comparing $ Map.lookup "callDate") res
-  writeJSON $ maybe res' (`take` res') (read . B.unpack <$> n)
+  (with db $ DB.readAll model)
+    >>= apply "orderby" sortBy (flip . comparing . Map.lookup)
+    >>= apply "limit"   take   (read . B.unpack)
+    >>= apply "fields"  map    proj
+    >>= writeJSON
+  where
+    apply name f g = \xs
+      -> maybe xs (\p -> f (g p) xs)
+      <$> getParam name
+
+    proj fs = \obj -> Map.fromList
+      [(k, Map.findWithDefault "" k obj)
+      | k <- B.split ',' fs
+      ]
 
 updateHandler :: AppHandler ()
 updateHandler = do
