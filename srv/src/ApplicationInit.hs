@@ -47,6 +47,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/_/:model/:id",  chkAuth . method GET  $ readHandler)
          , ("/_/:model/:id",  chkAuth . method PUT  $ updateHandler)
          , ("/sync",          chkAuth . method GET  $ syncHandler)
+         , ("/genreport",     chkAuth . method GET  $ genReport)
          ]
 
 

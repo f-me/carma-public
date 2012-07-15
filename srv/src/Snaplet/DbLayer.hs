@@ -5,12 +5,14 @@ module Snaplet.DbLayer
   ,update
   ,search
   ,sync
+  ,generateReport
   ,readAll
   ,initDbLayer
   ) where
 
 import Prelude hiding (read)
 import Control.Applicative
+import Control.Monad
 import Control.Monad.State
 import Control.Concurrent.STM
 import Control.Concurrent.STM.TVar
@@ -34,6 +36,7 @@ import qualified Database.Redis as Redis
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import qualified Snaplet.DbLayer.PostgresCRUD as Postgres
 import qualified Database.PostgreSQL.Syncs as S
+import qualified Database.PostgreSQL.Models as SM
 
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers
@@ -53,8 +56,8 @@ create model commit = do
   let obj' = Map.insert (C8.pack "id") objId obj
 --  liftIO $ putStrLn $ "  WITHID: " ++ show obj'
   --
-  Postgres.insert Postgres.models model obj'
-{-  
+  Postgres.insert Postgres.modelModels model obj'
+{-
   let fullId = B.concat [model, ":", objId]
   changes <- triggerUpdate fullId obj
   --
@@ -84,7 +87,7 @@ update model objId commit = do
   -- 
   let changes' = Map.mapKeys (B.drop (B.length model + 1)) changes
 --  liftIO $ putStrLn $ "  CHANGES: " ++ show changes'
-  Postgres.updateMany Postgres.models model changes'
+  Postgres.updateMany Postgres.modelModels model changes'
   --
   return $ (changes Map.! fullId) Map.\\ commit
 
@@ -96,16 +99,19 @@ search ixName val = do
   forM ids $ Redis.read' redis
 
 sync :: Handler b (DbLayer b) ()
-sync = mapM_ syncModel syncsList where
+sync = mapM_ syncModel modelList where
   syncModel model = do
     Right (Just cnt) <- runRedisDB redis $ Redis.get (Redis.modelIdKey model)
     case C8.readInt cnt of
       Just (maxId, _) -> forM_ [1..maxId] $ \i -> do
         rec <- Redis.read redis model (C8.pack . show $ i)
-        Postgres.insertUpdate Postgres.models model (C8.pack . show $ i) rec
+        when (not $ Map.null rec) $ void $ Postgres.insertUpdate Postgres.modelModels model (C8.pack . show $ i) rec
       Nothing -> error $ "Invalid id for model " ++ C8.unpack model
 
-  syncsList = map (C8.pack) $ Map.keys (S.syncsSyncs Postgres.models)
+  modelList = map C8.pack $ Map.keys (SM.modelsModels Postgres.modelModels)
+
+generateReport :: FilePath -> FilePath -> Handler b (DbLayer b) ()
+generateReport template filename = Postgres.generateReport Postgres.modelModels template filename
 
 readAll model = Redis.readAll redis model
   
@@ -119,7 +125,7 @@ readAll model = Redis.readAll redis model
 initDbLayer :: SnapletInit b (DbLayer b)
 initDbLayer = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
-    liftIO $ Postgres.createIO Postgres.models
+    liftIO $ Postgres.createIO Postgres.modelModels
     cfg <- getSnapletUserConfig
     DbLayer
       <$> nestSnaplet "redis" redis

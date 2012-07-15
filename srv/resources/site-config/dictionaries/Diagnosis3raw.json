@@ -1,0 +1,192 @@
+{
+    "entries": [
+        {
+            "value": "engBreak",
+            "label": "Неисправность двигателя"
+        },
+        {
+            "value": "needDiagnostic01",
+            "label": "Требуется диагностика в дилерском центре"
+        },
+        {
+            "value": "signBreak1",
+            "label": "Неисправность сигнализации (штатное оборудование)"
+        },
+        {
+            "value": "signBreak2",
+            "label": "Неисправность сигнализации (доп. оборудование)"
+        },
+        {
+            "value": "psFault",
+            "label": "Неисправность гидроусилителя руля"
+        },
+        {
+            "value": "mastFault",
+            "label": "Неисправность рулевой колонки"
+        },
+        {
+            "value": "discharge",
+            "label": "Разрядился аккумулятор"
+        },
+        {
+            "value": "batteryFault",
+            "label": "Неисправность аккумулятора"
+        },
+        {
+            "value": "wheelCut",
+            "label": "Колеса порезаны"
+        },
+        {
+            "value": "wheelPierced",
+            "label": "Колесо проколото"
+        },
+        {
+            "value": "hubBearingFault",
+            "label": "Рассыпался подшипник ступицы"
+        },
+        {
+            "value": "catFault",
+            "label": "Неисправность каталитического нейтрализатора"
+        },
+        {
+            "value": "dtp2",
+            "label": "ДТП"
+        },
+        {
+            "value": "vandal2",
+            "label": "Вандализм"
+        },
+        {
+            "value": "starterFault",
+            "label": "Неисправность стартера"
+        },
+        {
+            "value": "faultControl",
+            "label": "Вышел из строя блок управления двигателем"
+        },
+        {
+            "value": "poorQuality",
+            "label": "Некачественное топливо"
+        },
+        {
+            "value": "wiresFault",
+            "label": "Неисправность высоковольтных проводов"
+        },
+        {
+            "value": "generatorFault",
+            "label": "Неисправность генератора"
+        },
+        {
+            "value": "breakBelt",
+            "label": "Порвался ремень генератора"
+        },
+        {
+            "value": "breakIgn",
+            "label": "Неисправен выключатель зажигания"
+        },
+        {
+            "value": "breakIgnCoil",
+            "label": "Неисправность катушки зажигания"
+        },
+        {
+            "value": "needDiagnostic6",
+            "label": "Требуется диагностика в дилерском центре"
+        },
+        {
+            "value": "noBrakeCyl",
+            "label": "Вышел из строя главный тормозной цилиндр"
+        },
+        {
+            "value": "depressBrake",
+            "label": "Разгерметизация/пробой в тормозной системе"
+        },
+        {
+            "value": "needDiagnostic4",
+            "label": "Требуется диагностика в дилерском центре"
+        },
+        {
+            "value": "wearОut",
+            "label": "Износ/загрязнение тормозных колодок"
+        },
+        {
+            "value": "malfunction",
+            "label": "Неисправность тормозных колодок"
+        },
+        {
+            "value": "wet",
+            "label": "Попадание влаги в тормозные колодки (при минусовой температуре)"
+        },
+        {
+            "value": "fracture",
+            "label": "Лопнул топливопровод"
+        },
+        {
+            "value": "depress",
+            "label": "Разгерметизация/пробой в топливной системе"
+        },
+        {
+            "value": "faultPump",
+            "label": "Вышел из строя топливный насос"
+        },
+        {
+            "value": "faultHatch",
+            "label": "Оборвался тросик лючка бензобака"
+        },
+        {
+            "value": "faultPrSens",
+            "label": "Неисправен датчик давления топлива"
+        },
+        {
+            "value": "keyLost2",
+            "label": "Ключи утеряны"
+        },
+        {
+            "value": "needDiagnostic2",
+            "label": "Требуется диагностика в дилерском центре"
+        },
+        {
+            "value": "noDriverSh",
+            "label": "Вышел из строя приводной вал"
+        },
+        {
+            "value": "faultClutch",
+            "label": "Неисправность сцепления"
+        },
+        {
+            "value": "faultGearbox",
+            "label": "Неисправность коробки передач"
+        },
+        {
+            "value": "faultSh",
+            "label": "Рассыпался ШРУС"
+        },
+        {
+            "value": "defectOilPr",
+            "label": "Неисправен датчик давления масла"
+        },
+        {
+            "value": "breakTimBelt",
+            "label": "Порвался ремень ГРМ"
+        },
+        {
+            "value": "breakStubDual",
+            "label": "Слетел патрубок системы охлаждения"
+        },
+        {
+            "value": "pompFault",
+            "label": "Вышел из строя насос системы охлаждения"
+        },
+        {
+            "value": "ventFault",
+            "label": "Неисправность вентилятора"
+        },
+        {
+            "value": "termFault",
+            "label": "Неисправен термостат"
+        },
+        {
+            "value": "breakСrankRunner",
+            "label": "Неисправен шкив коленвала"
+        }
+    ]
+}
