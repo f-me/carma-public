@@ -212,6 +212,14 @@ searchCallsByPhone = do
   writeJSON $
     filter ((phone ==) . (Map.findWithDefault "" "callerName_phone1")) calls
 
+getActionsForCase :: AppHandler ()
+getActionsForCase = do
+  Just id <- getParam "id"
+  actions <- with db $ DB.readAll "action"
+  let id' = B.append "case:" id
+  writeJSON $
+    filter ((id' ==) . (Map.findWithDefault "" "caseId")) actions
+
 ------------------------------------------------------------------------------
 -- | Reports
 report :: AppHandler ()

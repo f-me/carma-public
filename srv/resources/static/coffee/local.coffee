@@ -179,30 +179,36 @@ fillEventsHistory = (knockVM) -> ->
   return unless $("#call-searchtable")[0]
 
   phone = knockVM['caller_phone1']()
-  $.getJSON "/ix/callsByPhone/#{phone}", (objs) ->
-    st.fnClearTable()
-    dict = global.dictValueCache
+  $.getJSON "/ix/callsByPhone/#{phone}", (calls) ->
+    $.getJSON "/actionsFor/#{knockVM.id()}", (actions) ->
+      st.fnClearTable()
+      dict = global.dictValueCache
 
-    for i of objs
-      obj = objs[i]
-      continue if obj.id.length > 10
-      wazzup  = "Что случилось: #{dict.Wazzup[obj.wazzup] || obj.wazzup || ''}"
-      whocall = "Кто звонил: #{dict.CallerTypes[obj.callerType] || obj.callerType || ''}"
-      callDate = if obj.callDate
-          new Date(obj.callDate * 1000).toString("dd.MM.yyyy HH:mm")
-        else
-          ''
-      row = [ callDate
-            , obj.callTaker || ''
-            , "звонок"
-            , wazzup + ', ' + whocall
-            ]
+      for i of calls
+        obj = calls[i]
+        continue if obj.id.length > 10
+        wazzup  = "Что случилось: #{dict.Wazzup[obj.wazzup] || obj.wazzup || ''}"
+        whocall = "Кто звонил: #{dict.CallerTypes[obj.callerType] || obj.callerType || ''}"
+        callDate = if obj.callDate
+            new Date(obj.callDate * 1000).toString("dd.MM.yyyy HH:mm")
+          else
+            ''
+        row = [ callDate
+              , obj.callTaker || ''
+              , "звонок"
+              , wazzup + ', ' + whocall
+              ]
 
-      st.fnAddData(row)
+        st.fnAddData(row)
 
-    for r in knockVM['actionsReference']()
-      row = [ r.duetime() , r.assignedTo() , r.nameLocal() , r.comment() ]
-      st.fnAddData(row)
+      for r in actions
+        duetime = if r.duetime
+            new Date(r.duetime * 1000).toString("dd.MM.yyyy HH:mm")
+          else
+            ''
+        name = dict.ActionNames[r.name] or ''
+        row = [ duetime , r.assignedTo or '', name , r.comment or '' ]
+        st.fnAddData(row)
 
 mkServicesDescs = (p, s) ->
   d = getServiceDesc(p ,s.modelName())
