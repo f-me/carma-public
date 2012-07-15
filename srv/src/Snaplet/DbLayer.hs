@@ -54,16 +54,16 @@ create model commit = do
   liftIO $ putStrLn $ "  WITHID: " ++ show obj'
   --
   Postgres.insert Postgres.models model obj'
-  
+{-  
   let fullId = B.concat [model, ":", objId]
   changes <- triggerUpdate fullId obj
   --
-  let changes' = Map.mapKeys (B.drop (B.length model + 1)) changes
-  liftIO $ putStrLn $ "  CHANGES: " ++ show changes'
+  liftIO $ putStrLn $ "  CHANGES: " ++ show changes
   --
-  Right _ <- Redis.updateMany redis changes'
+  Right _ <- Redis.updateMany redis changes
+-}
   return $ Map.insert "id" objId
-         $ (changes Map.! fullId) Map.\\ commit
+         $ obj Map.\\ commit
 
 
 read model objId = do
