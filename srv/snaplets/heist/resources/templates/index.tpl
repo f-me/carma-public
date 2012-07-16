@@ -326,22 +326,10 @@
               <span class="add-on"><i class="icon icon-calendar" /></span>
             </div>
             <select name="program">
-              <option value="all">Все программы</option>
-              <option value="ford">Ford</option>
-              <option value="fordPlus">Ford+</option>
-              <option value="vwMotor">VW Легковые</option>
-              <option value="vwCommercial">VW Коммерческие</option>
-              <option value="opel">Opel</option>
-              <option value="hummer">Hummer</option>
-              <option value="chevroletNAO">Chevrolet NAO</option>
-              <option value="chevroletKorea">Chevrolet Korea</option>
-              <option value="cadillac">Cadillac</option>
-              <option value="vwRuslan">VW Рус-Лан</option>
-              <option value="chartis">Chartis</option>
-              <option value="vwAvilon">VW Avilon</option>
-              <option value="atlantM">Атлант-М</option>
-              <option value="autocraft">AutoCraft</option>
-              <option value="b2c">B2C</option>
+              <option value="GM_CIS_Cadillac">GM CIS Cadillac</option>
+              <option value="GM_CIS_Opel_NAV_H">GM CIS Opel NAV H</option>
+              <option value="GM_DAT">GM DAT</option>
+              <option value="Print">Print</option>
             </select>
           </p>
           <button class="btn btn-success" type="submit">Отчёт</button>

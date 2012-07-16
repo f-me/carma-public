@@ -229,12 +229,12 @@ getActionsForCase = do
 -- | Reports
 report :: AppHandler ()
 report = do
-  liftIO $ Xlsx.run
-    "resources/report-templates/all-cases.xlsx"
-    "resources/static/all-cases.xlsx"
-    [(Map.empty, Xlsx.TemplateSettings Xlsx.Rows 1, [])]
+  Just tplName <- getParam "program"
+  let template = "resources/report-templates/" ++ B.unpack tplName ++ ".xlsx"
+  let result = "resources/reports/" ++ B.unpack tplName ++ ".xlsx"
+  with db $ DB.generateReport template result
   modifyResponse $ addHeader "Content-Disposition" "attachment; filename=\"report.xlsx\""
-  serveFile "resources/static/all-cases.xlsx"
+  serveFile result
 
 
 ------------------------------------------------------------------------------
