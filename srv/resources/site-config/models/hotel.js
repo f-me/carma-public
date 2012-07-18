@@ -295,7 +295,7 @@
             }
         },
         {
-            "name": "hotelProvidedFor",
+            "name": "providedFor",
             "canRead": [
                 "partner",
                 "front",
