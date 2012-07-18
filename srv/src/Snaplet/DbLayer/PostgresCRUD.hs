@@ -1,3 +1,5 @@
+{-# OverloadedStrings #-}
+
 module Snaplet.DbLayer.PostgresCRUD (
 	modelSyncs, modelModels,
 
@@ -6,8 +8,11 @@ module Snaplet.DbLayer.PostgresCRUD (
 	generateReport
 	) where
 
+import Prelude hiding (log, catch)
+
 import Control.Monad
 import Control.Monad.IO.Class
+import Control.Monad.CatchIO
 import qualified Control.Exception as E
 
 import qualified Data.Map as M
@@ -28,6 +33,7 @@ import qualified Database.PostgreSQL.Models as SM
 import qualified Database.PostgreSQL.Report.Xlsx as R
 
 import Snaplet.DbLayer.Dictionary
+import Snap.Snaplet.SimpleLog
 
 withPG :: (PS.HasPostgres m) => (P.Connection -> IO a) -> m a
 withPG f = do
@@ -36,48 +42,48 @@ withPG f = do
 
 caseModel :: S.Sync
 caseModel = S.sync "casetbl" "garbage" [
-    S.indexed $ S.field_ "id" S.int,
-    S.indexed $ S.field_ "car_make" S.string,
-    S.indexed $ S.field_ "car_model" S.string,
-    S.indexed $ S.field_ "car_program" S.string,
-    S.indexed $ S.field_ "car_vin" S.string,
-    S.field_ "car_buyDate" S.time,
-    S.field_ "car_plateNum" S.string,
-    S.field_ "car_carModel" S.string,
-    S.indexed $ S.field_ "diagnosis1" S.string,
-    S.indexed $ S.field_ "diagnosis2" S.string,
-    S.indexed $ S.field_ "dealerCause" S.string,
-    S.field_ "caseAddress_address" S.string,
-    S.indexed $ S.field_ "callDate" S.time,
-    S.field_ "callTaker" S.string,
-    S.field_ "callerOwner" S.int,
-    S.field_ "caller_name" S.string,
-    S.indexed $ S.field_ "comment" S.string,
-    S.field_ "program" S.string,
-    S.field_ "services" S.string,
-    S.field_ "owner_name" S.string,
-    S.field_ "partner_name" S.string]
+	S.indexed $ S.field_ "id" S.int,
+	S.indexed $ S.field_ "car_make" S.string,
+	S.indexed $ S.field_ "car_model" S.string,
+	S.indexed $ S.field_ "car_program" S.string,
+	S.indexed $ S.field_ "car_vin" S.string,
+	S.field_ "car_buyDate" S.time,
+	S.field_ "car_plateNum" S.string,
+	S.field_ "car_carModel" S.string,
+	S.indexed $ S.field_ "diagnosis1" S.string,
+	S.indexed $ S.field_ "diagnosis2" S.string,
+	S.indexed $ S.field_ "dealerCause" S.string,
+	S.field_ "caseAddress_address" S.string,
+	S.indexed $ S.field_ "callDate" S.time,
+	S.field_ "callTaker" S.string,
+	S.field_ "callerOwner" S.int,
+	S.field_ "caller_name" S.string,
+	S.indexed $ S.field_ "comment" S.string,
+	S.field_ "program" S.string,
+	S.field_ "services" S.string,
+	S.field_ "owner_name" S.string,
+	S.field_ "partner_name" S.string]
 
 serviceModel :: S.Sync
 serviceModel = S.sync "servicetbl" "garbage" [
-    S.field_ "id" S.int,
-    S.field_ "parentId" S.int,
-    S.field_ "status" S.string,
-    S.field_ "type" S.string,
-    S.field_ "falseCall" S.string,
-    S.field_ "towDealer_name" S.string,
-    S.field_ "orderNumber" S.int,
-    S.field_ "suburbanMilage" S.int,
-    S.field_ "warrantyCase" S.string,
-    S.field_ "times_repairEndDate" S.time,
-    S.field_ "times_factServiceStart" S.time,
-    S.field_ "times_factServiceEnd" S.time,
-    S.field_ "carProvidedFor" S.int,
-    S.field_ "hotelProvidedFor" S.int,
-    S.field_ "payment_limitedCost" S.int,
-    S.field_ "payment_partnerCost" S.int,
-    S.field_ "payType" S.string,
-    S.field_ "clientSatisfied" S.string]
+	S.field_ "id" S.int,
+	S.field_ "parentId" S.int,
+	S.field_ "status" S.string,
+	S.field_ "type" S.string,
+	S.field_ "falseCall" S.string,
+	S.field_ "towDealer_name" S.string,
+	S.field_ "orderNumber" S.int,
+	S.field_ "suburbanMilage" S.int,
+	S.field_ "warrantyCase" S.string,
+	S.field_ "times_repairEndDate" S.time,
+	S.field_ "times_factServiceStart" S.time,
+	S.field_ "times_factServiceEnd" S.time,
+	S.field_ "carProvidedFor" S.int,
+	S.field_ "hotelProvidedFor" S.int,
+	S.field_ "payment_limitedCost" S.int,
+	S.field_ "payment_partnerCost" S.int,
+	S.field_ "payType" S.string,
+	S.field_ "clientSatisfied" S.string]
 
 service :: String -> (String, SM.Model)
 service tp = (tp, mdl) where
@@ -93,16 +99,16 @@ modelSyncs = S.syncs [
 
 modelModels :: SM.Models
 modelModels = SM.models modelSyncs $ [("case", SM.model "case" caseModel [])] ++ map service [
-    "deliverCar",
-    "deliverParts",
-    "hotel",
-    "information",
-    "rent",
-    "sober",
-    "taxi",
-    "tech",
-    "towage",
-    "transportation"]
+	"deliverCar",
+	"deliverParts",
+	"hotel",
+	"information",
+	"rent",
+	"sober",
+	"taxi",
+	"tech",
+	"towage",
+	"transportation"]
 
 local :: P.ConnectInfo
 local = P.ConnectInfo {
@@ -114,15 +120,25 @@ local = P.ConnectInfo {
 
 elog :: IO () -> IO ()
 elog act = E.catch act onError where
-    onError :: E.SomeException -> IO ()
-    onError e = putStrLn $ "Failed with: " ++ show e
+	onError :: E.SomeException -> IO ()
+	onError e = return () -- putStrLn $ "Failed with: " ++ show e
 
 elogv :: a -> IO a -> IO a
 elogv v act = E.catch act (onError v) where
 	onError :: a -> E.SomeException -> IO a
 	onError x e = do
-		putStrLn $ "Failed with: " ++ show e
+		-- putStrLn $ "Failed with: " ++ show e
 		return x
+
+escope :: (MonadLog m) => T.Text -> m () -> m ()
+escope s act = catch (scope s act) onError where
+	onError :: (MonadLog m) => E.SomeException -> m ()
+	onError _ = return ()
+
+escopev :: (MonadLog m) => T.Text -> a -> m a -> m a
+escopev s v act = catch (scope s act) (onError v) where
+	onError :: (MonadLog m) => a -> E.SomeException -> m a
+	onError x _ = return x
 
 createIO :: SM.Models -> IO ()
 createIO ms = do
@@ -137,33 +153,34 @@ toCond :: SM.Models -> ByteString -> ByteString -> S.Condition
 toCond ms m c = S.condition (SM.modelsSyncs ms) (tableName ++ ".id = ?") [P.toField (toStr c)] where
 	tableName = fromMaybe (error "Invalid model name") $ fmap (SM.syncTable . SM.modelSync) $ M.lookup (toStr m) (SM.modelsModels ms)
 
-create :: (PS.HasPostgres m) => S.Syncs -> m ()
-create ss = withPG (elog . S.inPG (S.create ss))
+create :: (PS.HasPostgres m, MonadLog m) => S.Syncs -> m ()
+create ss = escope "create" $ withPG (S.inPG (S.create ss))
 
-insert :: (PS.HasPostgres m) => SM.Models -> ByteString -> S.SyncMap -> m ()
-insert ms name m = withPG (elog . S.inPG (SM.insert ms (toStr name) m))
+insert :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> S.SyncMap -> m ()
+insert ms name m = escope "isnert" $ withPG (S.inPG (SM.insert ms (toStr name) m))
 
-select :: (PS.HasPostgres m) => SM.Models -> ByteString -> ByteString -> m S.SyncMap
-select ms name c = withPG (S.inPG $ SM.select ms (toStr name) cond) where
+select :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> ByteString -> m S.SyncMap
+select ms name c = scoper "select" $ withPG (S.inPG $ SM.select ms (toStr name) cond) where
 	cond = toCond ms name c
 
-exists :: (PS.HasPostgres m) => SM.Models -> ByteString -> ByteString -> m Bool
-exists ms name c = withPG (elogv False . S.inPG (SM.exists ms (toStr name) cond)) where
+exists :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> ByteString -> m Bool
+exists ms name c = escopev "exists" False $ withPG (S.inPG (SM.exists ms (toStr name) cond)) where
 	cond = toCond ms name c
 
-update :: (PS.HasPostgres m) => SM.Models -> ByteString -> ByteString -> S.SyncMap -> m ()
-update ms name c m = withPG (elog . S.inPG (SM.update ms (toStr name) cond m)) where
+update :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> ByteString -> S.SyncMap -> m ()
+update ms name c m = escope "update" $ withPG (S.inPG (SM.update ms (toStr name) cond m)) where
 	cond = toCond ms name c
 
-updateMany :: (PS.HasPostgres m) => SM.Models -> ByteString -> M.Map ByteString S.SyncMap -> m ()
-updateMany ms name m = forM_ (M.toList m) $ uncurry (update ms name) where
+updateMany :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> M.Map ByteString S.SyncMap -> m ()
+updateMany ms name m = scope "updateMany" $ forM_ (M.toList m) $ uncurry (update ms name) where
 	update' k obj = update ms name k (M.insert (C8.pack "id") k obj)
 
-insertUpdate :: (PS.HasPostgres m) => SM.Models -> ByteString -> ByteString -> S.SyncMap -> m Bool
-insertUpdate ms name c m = withPG (elogv False . S.inPG (SM.insertUpdate ms (toStr name) cond m)) where
+insertUpdate :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> ByteString -> S.SyncMap -> m Bool
+insertUpdate ms name c m = escopev "insertUpdate" False $ withPG (S.inPG (SM.insertUpdate ms (toStr name) cond m)) where
 	cond = toCond ms name c
 
-generateReport :: (PS.HasPostgres m, MonadIO m) => SM.Models -> FilePath -> FilePath -> m ()
-generateReport ms tpl file = do
-	dicts <- liftIO $ loadDicts "/home/voidex/Documents/Projects/carma/srv/resources/site-config/dictionaries"
-	withPG (S.inPG $ R.createReport (SM.modelsSyncs ms) dicts tpl file)
+generateReport :: (PS.HasPostgres m, MonadLog m) => SM.Models -> FilePath -> FilePath -> m ()
+generateReport ms tpl file = scope "generateReport" $ do
+	log Trace "Loading dictionaries"
+	dicts <- scoper "dictionaries" $ liftIO $ loadDicts "/home/voidex/Documents/Projects/carma/srv/resources/site-config/dictionaries"
+	scope "createReport" $ withPG (S.inPG $ R.createReport (SM.modelsSyncs ms) dicts tpl file)

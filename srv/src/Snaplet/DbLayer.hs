@@ -1,4 +1,3 @@
-
 module Snaplet.DbLayer
   (create
   ,read
@@ -10,7 +9,7 @@ module Snaplet.DbLayer
   ,initDbLayer
   ) where
 
-import Prelude hiding (read)
+import Prelude hiding (read, log)
 import Control.Applicative
 import Control.Monad
 import Control.Monad.State
@@ -24,6 +23,7 @@ import qualified Data.ByteString.Char8 as C8
 import Data.List (sortBy)
 import Data.Ord (comparing)
 import Data.Maybe (fromJust)
+import Data.String
 
 import Network.URI (parseURI, URI(..))
 import qualified Fdds as Fdds
@@ -32,6 +32,7 @@ import Data.Configurator
 import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple (pgsInit)
 import Snap.Snaplet.RedisDB (redisDBInit, runRedisDB)
+import Snap.Snaplet.SimpleLog
 import qualified Database.Redis as Redis
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import qualified Snaplet.DbLayer.PostgresCRUD as Postgres
@@ -42,19 +43,16 @@ import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers
 import Util
 
-
-
-create model commit = do
-  liftIO $ putStrLn "CREATE"
-  liftIO $ putStrLn $ "  MODEL: " ++ show model
-  liftIO $ putStrLn $ "  COMMIT: " ++ show commit
+create model commit = scoper "create" $ do
+  log Trace $ fromString $ "Model: " ++ show model
+  log Trace $ fromString $ "Commit: " ++ show commit
   --
   commit' <- triggerCreate model commit
   let obj = Map.union commit' commit
   objId <- Redis.create redis model obj
   --
   let obj' = Map.insert (C8.pack "id") objId obj
-  liftIO $ putStrLn $ "  WITHID: " ++ show obj'
+  log Trace $ fromString $ "Object with id: " ++ show obj'
   --
   Postgres.insert Postgres.modelModels model obj'
   
@@ -62,7 +60,7 @@ create model commit = do
   changes <- triggerUpdate fullId obj
   --
   let changes' = Map.mapKeys (B.drop (B.length model + 1)) changes
-  liftIO $ putStrLn $ "  CHANGES: " ++ show changes'
+  log Trace $ fromString $ "Changes: " ++ show changes'
   --
   Right _ <- Redis.updateMany redis changes'
   return $ Map.insert "id" objId
@@ -75,9 +73,8 @@ read model objId = do
   return res
 
 
-update model objId commit = do
-  liftIO $ putStrLn "UPDATE"
-  liftIO $ putStrLn $ "  MODEL: " ++ show model
+update model objId commit = scoper "update" $ do
+  log Trace $ fromString $ "Model: " ++ show model
   --
   let fullId = B.concat [model, ":", objId]
   -- FIXME: catch NotFound => transfer from postgres to redis
@@ -86,7 +83,7 @@ update model objId commit = do
   Right _ <- Redis.updateMany redis changes
   -- 
   let changes' = Map.mapKeys (B.drop (B.length model + 1)) changes
-  liftIO $ putStrLn $ "  CHANGES: " ++ show changes'
+  log Trace $ fromString $ "Changes: " ++ show changes'
   Postgres.updateMany Postgres.modelModels model changes'
   --
   return $ (changes Map.! fullId) Map.\\ commit
@@ -99,9 +96,10 @@ search ixName val = do
   forM ids $ Redis.read' redis
 
 sync :: Handler b (DbLayer b) ()
-sync = mapM_ syncModel modelList where
-  syncModel model = do
+sync = scope "sync" $ mapM_ syncModel modelList where
+  syncModel model = scope "syncModel" $ do
     Right (Just cnt) <- runRedisDB redis $ Redis.get (Redis.modelIdKey model)
+    log Trace $ fromString $ "Count of entries for model " ++ show model ++ " is: " ++ show cnt
     case C8.readInt cnt of
       Just (maxId, _) -> forM_ [1..maxId] $ \i -> do
         rec <- Redis.read redis model (C8.pack . show $ i)
@@ -131,6 +129,7 @@ initDbLayer = makeSnaplet "db-layer" "Storage abstraction"
       <$> nestSnaplet "redis" redis
             (redisDBInit Redis.defaultConnectInfo)
       <*> nestSnaplet "pgsql" postgres pgsInit
+      <*> nestSnaplet "dblog" dbLog (simpleLogInit [logger text (file "log/db.log"), logger (html "db") (file "log/db.html")])
       <*> liftIO triggersConfig
       <*> liftIO createIndices
       <*> (liftIO $ fddsConfig cfg)
