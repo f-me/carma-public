@@ -378,7 +378,7 @@
             }
         },
         {
-            "name": "carProvidedFor",
+            "name": "providedFor",
             "canRead": [
                 "partner",
                 "front",
