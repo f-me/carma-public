@@ -36,7 +36,7 @@ callHandler = do
     liftIO $ void $ do
       Right st' <- A.startAvaya conf'
       let '+':'7':number' = B.unpack number
-      A.runAvayaAction st' (A.call $ "98" ++ number')
+      A.runAvayaAction st' $ A.call ("98" ++ number') >> A.cleanup
 
 
 avayaAESInit :: HasAuth b => SnapletInit b (Avayaplet b)

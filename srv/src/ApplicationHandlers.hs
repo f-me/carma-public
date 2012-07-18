@@ -204,6 +204,12 @@ searchByIndex = do
         ,("group":: ByteString, take 30 $ sort $ groupActions)]
     _ -> error $ "Unknown index " ++ show ixName
 
+searchCallsByPhone :: AppHandler ()
+searchCallsByPhone = do
+  Just phone <- getParam "phone"
+  calls <- with db $ DB.readAll "call"
+  writeJSON $
+    filter ((phone ==) . (Map.findWithDefault "" "callerName_phone1")) calls
 
 ------------------------------------------------------------------------------
 -- | Reports

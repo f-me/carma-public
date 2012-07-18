@@ -33,7 +33,23 @@ data FileUpload = FU { cfg      :: UploadPolicy
 
 makeLens ''FileUpload
 
-routes = [ (":model/:id/:field", method POST $ doUpload) ]
+routes = [ (":model/:id/:field", method POST $ doUpload)
+         , (":model/:id/:field/:name", method DELETE $ doDelete) ]
+
+doDelete :: Handler b FileUpload ()
+doDelete = do
+  f     <- gets finished
+  model <- getParamOrDie "model"
+  id    <- getParamOrDie "id"
+  field <- getParamOrDie "field"
+  name  <- getParamOrDie "name"
+  let splited = map (BU.toString) [model, id, field, name]
+      path    = foldl (</>) f splited
+  when (elem ".." splited) pass
+  e <- liftIO $ doesFileExist path
+  when (not e) $ finishWithError 404 name
+  liftIO $ removeFile path
+  writeBS name
 
 doUpload :: Handler b FileUpload ()
 doUpload = do
@@ -46,10 +62,10 @@ doUpload = do
   r <- handleFileUploads tmpd cfg (partPol cfg) (uploadHandler f model id field)
   -- modifyResponse $ setResponseCode 200
   writeLBS $ A.encode r
-    where
-      getParamOrDie name =
-             getParam name >>=
-             maybe (finishWithError 403 $ "need " `B.append` name) return
+
+getParamOrDie name =
+  getParam name >>=
+  maybe (finishWithError 403 $ "need " `B.append` name) return
 
 partPol cfg _ = allowWithMaximumSize $ getMaximumFormInputSize cfg
 

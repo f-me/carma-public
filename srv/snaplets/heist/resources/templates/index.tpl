@@ -1088,22 +1088,46 @@
           </div>
           <br />
           <h4 data-bind="visible: filesInfo">Загруженные файлы:</h4>
-          <ul class="unstyled" data-bind="foreach: filesInfo">
+
+          <ul class="unstyled"
+              data-bind="foreach: filesInfo, setdata: files">
             <li>
               <a data-bind="attr: { href: url }, text: name" />
+              <i class="icon icon-remove"
+                 data-bind="setdata: name"
+                 onclick="deleteFile(this)"/>
             </li>
           </ul>
+
           <dl data-bind="foreach: servicesReference">
             <dt data-bind="text: modelTitle">
               <dd>
-                <ul class="unstyled" data-bind="foreach: filesInfo">
+                <ul class="unstyled"
+                    data-bind="foreach: filesInfo, setdata: files">
                   <li>
                     <a data-bind="attr: { href: url }, text: name" />
+                    <i class="icon icon-remove"
+                       data-bind="setdata: name"
+                       onclick="deleteFile(this)"/>
                   </li>
                 </ul>
               </dd>
             </dt>
           </dl>
+
+          <h4>История звонков</h4>
+          <table id="call-searchtable" class="table table-striped table-bordered">
+            <thead>
+              <tr>
+                <th>Дата</th>
+                <th>Сотрудник РАМК</th>
+                <th>Тип коммуникации</th>
+                <th>Комментарий</th>
+              </tr>
+            </thead>
+            <tbody/>
+        </table>
+
         </div>
       </fieldset>
     </script>
