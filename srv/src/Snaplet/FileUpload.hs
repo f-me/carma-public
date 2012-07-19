@@ -53,15 +53,18 @@ doDelete = do
 
 doUpload :: Handler b FileUpload ()
 doUpload = do
-  tmpd <- gets tmp
-  cfg  <- gets cfg
-  f    <- gets finished
   model <- getParamOrDie "model"
   id    <- getParamOrDie "id"
   field <- getParamOrDie "field"
-  r <- handleFileUploads tmpd cfg (partPol cfg) (uploadHandler f model id field)
+  r <- doUpload' model id field
   -- modifyResponse $ setResponseCode 200
   writeLBS $ A.encode r
+
+doUpload' model id field = do
+  tmpd <- gets tmp
+  cfg  <- gets cfg
+  f    <- gets finished
+  handleFileUploads tmpd cfg (partPol cfg) (uploadHandler f model id field)
 
 getParamOrDie name =
   getParam name >>=
@@ -94,7 +97,7 @@ fileUploadInit =
       -- we need some values in bytes
       let maxFile' = maxFile * 1024
           minRate' = minRate * 1024
-          pol      = setProcessFormInputs         False
+          pol      = setProcessFormInputs         True
                      $ setMaximumFormInputSize maxFile'
                      -- $ setMaximumNumberOfFormInputs maxInp
                      $ setMinimumUploadRate    minRate'

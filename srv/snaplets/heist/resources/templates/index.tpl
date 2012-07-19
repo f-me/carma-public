@@ -304,7 +304,8 @@
     <script type="text/template"
             id="reports-screen-template"
             class="screen-template">
-      <div style="width:30%;margin:0 auto;text-align:center;">
+      <div id="report-get"
+           style="width:30%;margin:0 auto;text-align:center;">
       <fieldset>
         <legend>Отчёты</legend>
         <form action="/report">
@@ -325,29 +326,54 @@
               <input type="text" class="pane-span focusable" name="to"/>
               <span class="add-on"><i class="icon icon-calendar" /></span>
             </div>
-            <select name="program">
-              <option value="all">Все программы</option>
-              <option value="ford">Ford</option>
-              <option value="fordPlus">Ford+</option>
-              <option value="vwMotor">VW Легковые</option>
-              <option value="vwCommercial">VW Коммерческие</option>
-              <option value="opel">Opel</option>
-              <option value="hummer">Hummer</option>
-              <option value="chevroletNAO">Chevrolet NAO</option>
-              <option value="chevroletKorea">Chevrolet Korea</option>
-              <option value="cadillac">Cadillac</option>
-              <option value="vwRuslan">VW Рус-Лан</option>
-              <option value="chartis">Chartis</option>
-              <option value="vwAvilon">VW Avilon</option>
-              <option value="atlantM">Атлант-М</option>
-              <option value="autocraft">AutoCraft</option>
-              <option value="b2c">B2C</option>
+            <select name="program" data-bind="foreach: $data">
+              <option data-bind="value: id, text: name" />
             </select>
           </p>
           <button class="btn btn-success" type="submit">Отчёт</button>
         </form>
       </fieldset>
       </div>
+
+      <div id="all-reports">
+        <table class="table table-striped table-bordered dataTable">
+          <thead>
+            <tr>
+              <th width="40%">Название</th>
+              <th width="40%">Имя файла</th>
+              <th width="10%"></th>
+            </tr>
+          </thead>
+          <tbody data-bind="foreach: $data">
+            <tr>
+              <td data-bind="text: name"></td>
+              <td>
+                <a data-bind="text: templates,
+                              attr: {
+                                href: '/s/fileupload/report/' + id +
+                                      '/templates/' + templates
+                                      }">
+                </a>
+              </td>
+              <td><buttom class="btn">Удалить</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <br />
+        <h3>Добавить отчет</h3>
+        <div>
+          <form action="/_/report"
+                method="POST"
+                enctype="multipart/form-data">
+            <label>Название отчета</label>
+            <input name="name" type="text">
+            <label>Шаблон</label>
+            <input name="files" type="file">
+            <input class="btn btn-success" type="submit" value="Добавить">
+          </form>
+        </div>
+      </div>
+
     </script>
 
     <!-- Import VINs screen -->

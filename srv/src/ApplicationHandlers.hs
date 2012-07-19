@@ -28,6 +28,7 @@ import Snap.Util.FileServe (serveFile)
 import Snap.Util.Readable (fromBS)
 ------------------------------------------------------------------------------
 import qualified Snaplet.DbLayer as DB
+import Snaplet.FileUpload (doUpload')
 ------------------------------------------------------------------------------
 import qualified Codec.Xlsx.Templater as Xlsx
 import qualified Nominatim
@@ -138,7 +139,8 @@ readAllHandler = do
   let proj obj = Map.fromList
         [(k, Map.findWithDefault "" k obj)
         | k <- ["id", "caller_name", "callDate", "caller_phone1"
-               ,"car_plateNum", "car_vin", "program", "comment"]
+               ,"car_plateNum", "car_vin", "program", "comment"
+               ,"name", "templates"]
         ]
   let res' = map proj $ sortBy (flip $ comparing $ Map.lookup "callDate") res
   writeJSON $ maybe res' (`take` res') (read . B.unpack <$> n)
@@ -215,6 +217,23 @@ report = do
   modifyResponse $ addHeader "Content-Disposition" "attachment; filename=\"report.xlsx\""
   serveFile "resources/static/all-cases.xlsx"
 
+createReportHandler :: AppHandler ()
+createReportHandler = do
+  res <- with db $ DB.create "report" $ Map.empty
+  let id = last $ B.split ':' $ fromJust $ Map.lookup "id" res
+  (f:_)      <- with fileUpload $ doUpload' "report" id "templates"
+  Just name  <- getParam "name"
+  -- we have to update all model params after fileupload,
+  -- because in multipart/form-data requests we do not have
+  -- params as usual, see Snap.Util.FileUploads.setProcessFormInputs
+  with db $ DB.update "report" id $
+    Map.fromList [ ("templates", BU.fromString f)
+                 , ("name",      name) ]
+  redirect "/#reports"
+
+deleteReportHandler :: AppHandler ()
+deleteReportHandler = do
+  writeLBS "ololo"
 
 ------------------------------------------------------------------------------
 -- | Utility functions

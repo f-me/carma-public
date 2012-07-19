@@ -34,7 +34,9 @@ localScreens = ->
         constructor: setupPartnersForm
   "reports":
     "template": "reports-screen-template"
-
+    "views":
+      "reports":
+        constructor: setupReports
 
 # Setup routing
 localRouter = Backbone.Router.extend
@@ -772,3 +774,15 @@ this.getWeather = (city, cb) ->
   url = "/#{city}"
   $.getJSON "/weather/#{city}", (data) -> cb(data)
 
+
+this.setupReports = (viewName, args) ->
+  console.log viewName
+  $.getJSON "/all/report", (reports) ->
+    for r in reports
+      r.name = '' unless r.name?
+      r.templates = '' unless r.templates?
+      r.id = (r.id.split ':')[1]
+    global.reports = reports
+    # ko.applyBindings(global.reports, el "get-report" )
+    # ko.applyBindings(global.reports, el "all-reports" )
+    ko.applyBindings(global.reports, el "layout" )
