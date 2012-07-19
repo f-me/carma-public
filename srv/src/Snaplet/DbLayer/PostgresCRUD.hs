@@ -118,18 +118,6 @@ local = P.ConnectInfo {
 	P.connectPassword = "pass",
 	P.connectDatabase = "postgres" }
 
-elog :: IO () -> IO ()
-elog act = E.catch act onError where
-	onError :: E.SomeException -> IO ()
-	onError e = return () -- putStrLn $ "Failed with: " ++ show e
-
-elogv :: a -> IO a -> IO a
-elogv v act = E.catch act (onError v) where
-	onError :: a -> E.SomeException -> IO a
-	onError x e = do
-		-- putStrLn $ "Failed with: " ++ show e
-		return x
-
 escope :: (MonadLog m) => T.Text -> m () -> m ()
 escope s act = catch (scope s act) onError where
 	onError :: (MonadLog m) => E.SomeException -> m ()
@@ -143,7 +131,10 @@ escopev s v act = catch (scope s act) (onError v) where
 createIO :: SM.Models -> IO ()
 createIO ms = do
 	con <- P.connect local
-	elog $ void $ P.execute_ con "create extension hstore"
+	let
+		onError :: E.SomeException -> IO ()
+		onError _ = return ()
+	E.catch (void $ P.execute_ con "create extension hstore") onError
 	S.transaction con $ S.create (SM.modelsSyncs ms)
 
 toStr :: ByteString -> String
