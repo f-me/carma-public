@@ -16,8 +16,9 @@ import Control.Monad.CatchIO
 import qualified Control.Exception as E
 
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import Data.ByteString (ByteString)
+import Data.Char
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.Text as T
@@ -31,6 +32,7 @@ import qualified Data.Pool as Pool
 import qualified Database.PostgreSQL.Syncs as S
 import qualified Database.PostgreSQL.Models as SM
 import qualified Database.PostgreSQL.Report.Xlsx as R
+import qualified Database.PostgreSQL.Report.Function as R
 
 import Snaplet.DbLayer.Dictionary
 import Snap.Snaplet.SimpleLog
@@ -110,6 +112,25 @@ modelModels = SM.models modelSyncs $ [("case", SM.model "case" caseModel [])] ++
 	"towage",
 	"transportation"]
 
+functions :: M.Map String (M.Map String String) -> [R.ReportFunction]
+functions ds = [
+	R.onString "NAME" (fromMaybe "" . listToMaybe . drop 1 . words),
+	R.onString "SURNAME" (fromMaybe "" . listToMaybe . words),
+	R.onString "UPPER" (map toUpper),
+	R.onString "LOWER" (map toLower),
+	R.function "CONCAT" concatFields,
+	R.functionMaybe "LOOKUP" lookupField]
+	where
+		concatFields f fs = SM.StringValue $ concat $ mapMaybe fromStringField (f:fs)
+		fromStringField (SM.StringValue s) = Just s
+		fromStringField _ = Nothing
+
+		lookupField (SM.StringValue s) [SM.StringValue d] = do
+			d' <- M.lookup d ds
+			s' <- M.lookup s d'
+			return $ SM.StringValue s'
+		lookupField _ _ = Nothing
+
 local :: P.ConnectInfo
 local = P.ConnectInfo {
 	P.connectHost = "localhost",
@@ -174,4 +195,4 @@ generateReport :: (PS.HasPostgres m, MonadLog m) => SM.Models -> FilePath -> Fil
 generateReport ms tpl file = scope "generateReport" $ do
 	log Trace "Loading dictionaries"
 	dicts <- scoper "dictionaries" $ liftIO $ loadDicts "/home/voidex/Documents/Projects/carma/srv/resources/site-config/dictionaries"
-	scope "createReport" $ withPG (S.inPG $ R.createReport (SM.modelsSyncs ms) dicts tpl file)
+	scope "createReport" $ withPG (S.inPG $ R.createReport (SM.modelsSyncs ms) (functions dicts) tpl file)
