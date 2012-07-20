@@ -129,7 +129,7 @@ initDbLayer = makeSnaplet "db-layer" "Storage abstraction"
       <$> nestSnaplet "redis" redis
             (redisDBInit Redis.defaultConnectInfo)
       <*> nestSnaplet "pgsql" postgres pgsInit
-      <*> nestSnaplet "dblog" dbLog (simpleLogInit [logger text (file "log/db.log"), logger (html "db") (file "log/db.html")])
+      <*> nestSnaplet "dblog" dbLog (simpleLogInit [logger text (file "log/db.log")])
       <*> liftIO triggersConfig
       <*> liftIO createIndices
       <*> (liftIO $ fddsConfig cfg)

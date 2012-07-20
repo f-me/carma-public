@@ -194,5 +194,5 @@ insertUpdate ms name c m = escopev "insertUpdate" False $ withPG (S.inPG (SM.ins
 generateReport :: (PS.HasPostgres m, MonadLog m) => SM.Models -> FilePath -> FilePath -> m ()
 generateReport ms tpl file = scope "generateReport" $ do
     log Trace "Loading dictionaries"
-    dicts <- scoper "dictionaries" $ liftIO $ loadDicts "/home/voidex/Documents/Projects/carma/srv/resources/site-config/dictionaries"
+    dicts <- scope "dictionaries" $ liftIO $ loadDicts "/home/voidex/Documents/Projects/carma/srv/resources/site-config/dictionaries"
     scope "createReport" $ withPG (S.inPG $ R.createReport (SM.modelsSyncs ms) (functions dicts) tpl file)
