@@ -374,7 +374,7 @@
             <label>Название отчета</label>
             <input name="name" type="text">
             <label>Шаблон</label>
-            <input name="files" type="file">
+            <input name="templates" type="file">
             <input class="btn btn-success"
                    type="submit"
                    value="Добавить"

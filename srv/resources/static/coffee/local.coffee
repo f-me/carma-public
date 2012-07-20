@@ -796,7 +796,12 @@ this.deleteReport = (e) ->
 this.checkReportUniq = (ev) ->
   ev.preventDefault()
   name = $('#add-report input[name=name]').val()
+  tpl  = $('#add-report input[name=templates]').val()
   if _.find(global.reports, (e) -> e.name == name)
     alert "Отчет с таким именем уже существует."
+  else if not name
+    alert "Необходимо ввести название отчета!"
+  else if not tpl
+    alert "Необходимо добавить шаблон!"
   else
     $('#add-report').submit()
