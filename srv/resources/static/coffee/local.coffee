@@ -189,16 +189,21 @@ fillEventsHistory = (knockVM) -> ->
       for i of calls
         obj = calls[i]
         continue if obj.id.length > 10
-        wazzup  = "Что случилось: #{dict.Wazzup[obj.wazzup] || obj.wazzup || ''}"
-        whocall = "Кто звонил: #{dict.CallerTypes[obj.callerType] || obj.callerType || ''}"
+        wazzup  = dict.Wazzup[obj.wazzup] || obj.wazzup || ''
+        wazzupMsg  = "Что случилось: #{wazzup}"
+        whocall = dict.CallerTypes[obj.callerType] || obj.callerType || ''
+        whocallMsg = "Кто звонил: #{whocall}"
         callDate = if obj.callDate
             new Date(obj.callDate * 1000).toString("dd.MM.yyyy HH:mm")
           else
             ''
+        callType = dict.CallerTypes[obj.callType] || obj.callType || ''
+        callTypeMsg = "Тип звонка: #{callType}"
         row = [ callDate
               , obj.callTaker || ''
               , "звонок"
-              , wazzup + ', ' + whocall
+              , "#{wazzupMsg}, #{whocallMsg}, #{callTypeMsg}"
+              , ''
               ]
 
         st.fnAddData(row)
@@ -208,8 +213,9 @@ fillEventsHistory = (knockVM) -> ->
             new Date(r.duetime * 1000).toString("dd.MM.yyyy HH:mm")
           else
             ''
+        result = dict.ActionResults[r.result] or ''
         name = dict.ActionNames[r.name] or ''
-        row = [ duetime , r.assignedTo or '', name , r.comment or '' ]
+        row = [ duetime , r.assignedTo or '', name , r.comment or '', result ]
         st.fnAddData(row)
 
 mkServicesDescs = (p, s) ->
