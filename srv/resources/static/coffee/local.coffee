@@ -783,11 +783,10 @@ this.setupReports = (viewName, args) ->
       r.templates = '' unless r.templates?
       r.id = (r.id.split ':')[1]
     global.reports = reports
-    # ko.applyBindings(global.reports, el "get-report" )
-    # ko.applyBindings(global.reports, el "all-reports" )
     ko.applyBindings(global.reports, el "layout" )
 
 this.deleteReport = (e) ->
+  return unless confirm "Вы уверены, что хотите удалить отчет?"
   objId = $(e).parents('tr').attr('id')
   console.log objId
   $.ajax
