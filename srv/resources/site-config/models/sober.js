@@ -200,8 +200,6 @@
                 "times_factServiceEnd",
                 "times_expectedServiceFinancialClosure",
                 "times_factServiceFinancialClosure",
-                "times_expectedDealerInfo",
-                "times_factDealerInfo",
                 "times_expectedServiceClosure",
                 "times_factServiceClosure",
                 "times_repairEndDate"
