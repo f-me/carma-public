@@ -367,14 +367,18 @@
         <br />
         <h3>Добавить отчет</h3>
         <div>
-          <form action="/_/report"
+          <form id="add-report"
+                action="/_/report"
                 method="POST"
                 enctype="multipart/form-data">
             <label>Название отчета</label>
             <input name="name" type="text">
             <label>Шаблон</label>
             <input name="files" type="file">
-            <input class="btn btn-success" type="submit" value="Добавить">
+            <input class="btn btn-success"
+                   type="submit"
+                   value="Добавить"
+                   onClick="checkReportUniq(event)">
           </form>
         </div>
       </div>

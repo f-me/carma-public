@@ -776,7 +776,6 @@ this.getWeather = (city, cb) ->
 
 
 this.setupReports = (viewName, args) ->
-  console.log viewName
   $.getJSON "/all/report", (reports) ->
     for r in reports
       r.name = '' unless r.name?
@@ -788,9 +787,16 @@ this.setupReports = (viewName, args) ->
 this.deleteReport = (e) ->
   return unless confirm "Вы уверены, что хотите удалить отчет?"
   objId = $(e).parents('tr').attr('id')
-  console.log objId
   $.ajax
     'type'     : 'DELETE'
     'url'      : "/_/report/#{objId}"
     'success'  : -> forgetScreen(); renderScreen("reports")
     'error'    : (xhr) -> console.log xhr; alert 'error'
+
+this.checkReportUniq = (ev) ->
+  ev.preventDefault()
+  name = $('#add-report input[name=name]').val()
+  if _.find(global.reports, (e) -> e.name == name)
+    alert "Отчет с таким именем уже существует."
+  else
+    $('#add-report').submit()
