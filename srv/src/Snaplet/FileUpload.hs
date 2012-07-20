@@ -1,5 +1,9 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Snaplet.FileUpload (fileUploadInit, FileUpload)
+module Snaplet.FileUpload ( fileUploadInit
+                          , FileUpload
+                          , doUpload'
+                          , doDeleteAll'
+                          )
 where
 
 import Control.Monad.IO.Class
@@ -33,8 +37,26 @@ data FileUpload = FU { cfg      :: UploadPolicy
 
 makeLens ''FileUpload
 
-routes = [ (":model/:id/:field", method POST $ doUpload)
-         , (":model/:id/:field/:name", method DELETE $ doDelete) ]
+routes = [ (":model/:id/:field",       method POST   $ doUpload)
+         , (":model/:id/:field/:name", method DELETE $ doDelete)
+         , (":model/:id",              method DELETE $ doDeleteAll)
+         ]
+
+doDeleteAll :: Handler b FileUpload ()
+doDeleteAll = do
+  model <- getParamOrDie "model"
+  id    <- getParamOrDie "id"
+  doDeleteAll' model id
+
+doDeleteAll' model id = do
+  f     <- gets finished
+  let model' = BU.toString model
+      id'    = BU.toString id
+      path   = f </> model' </> id'
+  when (elem ".." [model', id']) pass
+  e <- liftIO $ doesDirectoryExist path
+  when (not e) $ finishWithError 404 $ BU.fromString $ model' </> id'
+  liftIO $ removeDirectoryRecursive path
 
 doDelete :: Handler b FileUpload ()
 doDelete = do

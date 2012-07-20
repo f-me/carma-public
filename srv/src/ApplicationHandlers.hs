@@ -28,7 +28,7 @@ import Snap.Util.FileServe (serveFile)
 import Snap.Util.Readable (fromBS)
 ------------------------------------------------------------------------------
 import qualified Snaplet.DbLayer as DB
-import Snaplet.FileUpload (doUpload')
+import Snaplet.FileUpload (doUpload', doDeleteAll')
 ------------------------------------------------------------------------------
 import qualified Codec.Xlsx.Templater as Xlsx
 import qualified Nominatim
@@ -233,7 +233,10 @@ createReportHandler = do
 
 deleteReportHandler :: AppHandler ()
 deleteReportHandler = do
-  writeLBS "ololo"
+  Just id  <- getParam "id"
+  with db $ DB.delete "report" id
+  with fileUpload $ doDeleteAll' "report" id
+  return ()
 
 ------------------------------------------------------------------------------
 -- | Utility functions

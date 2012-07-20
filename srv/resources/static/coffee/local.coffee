@@ -786,3 +786,12 @@ this.setupReports = (viewName, args) ->
     # ko.applyBindings(global.reports, el "get-report" )
     # ko.applyBindings(global.reports, el "all-reports" )
     ko.applyBindings(global.reports, el "layout" )
+
+this.deleteReport = (e) ->
+  objId = $(e).parents('tr').attr('id')
+  console.log objId
+  $.ajax
+    'type'     : 'DELETE'
+    'url'      : "/_/report/#{objId}"
+    'success'  : -> forgetScreen(); renderScreen("reports")
+    'error'    : (xhr) -> console.log xhr; alert 'error'

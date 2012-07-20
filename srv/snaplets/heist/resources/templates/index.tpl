@@ -345,7 +345,7 @@
             </tr>
           </thead>
           <tbody data-bind="foreach: $data">
-            <tr>
+            <tr data-bind="attr: { id: id }">
               <td data-bind="text: name"></td>
               <td>
                 <a data-bind="text: templates,
@@ -355,7 +355,12 @@
                                       }">
                 </a>
               </td>
-              <td><buttom class="btn">Удалить</button></td>
+              <td>
+                <buttom class="btn"
+                        onClick="deleteReport(this)">
+                  Удалить
+                </button>
+              </td>
             </tr>
           </tbody>
         </table>
