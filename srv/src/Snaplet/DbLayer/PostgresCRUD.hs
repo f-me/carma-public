@@ -115,11 +115,14 @@ modelModels = SM.models modelSyncs $ [("case", SM.model "case" caseModel [])] ++
 functions :: M.Map String (M.Map String String) -> [R.ReportFunction]
 functions ds = [
     R.onString "NAME" (fromMaybe "" . listToMaybe . drop 1 . words),
-    R.onString "SURNAME" (fromMaybe "" . listToMaybe . words),
+    R.onString "LASTNAME" (fromMaybe "" . listToMaybe . words),
     R.onString "UPPER" (map toUpper),
     R.onString "LOWER" (map toLower),
     R.function "CONCAT" concatFields,
-    R.functionMaybe "LOOKUP" lookupField]
+    R.functionMaybe "LOOKUP" lookupField,
+    R.function "IF" ifFun,
+    R.uses ["case.callerOwner", "case.caller_name", "case.owner_name"] $ R.constFunction "OWNER" ownerFun,
+    R.uses ["case.program"] $ R.constFunction "FDDS" fddsFun]
     where
         concatFields fs = SM.StringValue $ concat $ mapMaybe fromStringField fs
         fromStringField (SM.StringValue s) = Just s
@@ -130,6 +133,21 @@ functions ds = [
             s' <- M.lookup s d'
             return $ SM.StringValue s'
         lookupField _ = Nothing
+        
+        ifFun [i, t, f]
+            | i `elem` [SM.StringValue "1", SM.StringValue "true", SM.StringValue "Y", SM.IntValue 1, SM.BoolValue True] = t
+            | otherwise = f
+        
+        fddsFun fs = do
+            (SM.StringValue pr) <- M.lookup "case.program" fs
+            case pr of
+                "Ford" -> return $ SM.StringValue "3351"
+                "GM" -> return $ SM.StringValue "3275"
+                _ -> return $ SM.StringValue ""
+
+        ownerFun fs = do
+            (SM.IntValue isOwner) <- M.lookup "case.callerOwner" fs
+            (if isOwner == 1 then M.lookup "case.caller_name" else M.lookup "case.owner_name") fs
 
 local :: P.ConnectInfo
 local = P.ConnectInfo {
