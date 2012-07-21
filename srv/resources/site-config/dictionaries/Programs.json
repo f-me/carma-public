@@ -9,8 +9,8 @@
             "label": "ACTA / Bentley"
         },
         {
-            "value": "kraft",
-            "label": "Autokraft Assistance"
+            "value": "nz",
+            "label": "Независимость"
         },
         {
             "value": "tele",
@@ -24,6 +24,10 @@
             "value": "hyundai",
             "label": "B2B / RTR Hyundai"
         },
+        {
+            "value": "avilon",
+            "label": "B2B / Авилон"
+        }, 
         {
             "value": "arval",
             "label": "B2B / АРВАЛ"
@@ -39,15 +43,27 @@
         {
             "value": "auimp",
             "label": "B2B / ДЦ Автоимпорт"
-        },
+        },       
         {
             "value": "tvd",
             "label": "B2B / ДЦ ТВД-Авто"
         },
         {
+            "value": "euro",
+            "label": "B2B / Европлан"
+        }, 
+        {
             "value": "corpse",
             "label": "B2B / ИП Трубкин"
         },
+        {
+            "value": "map",
+            "label": "B2B / Мапфре"
+        }, 
+        {
+            "value": "micro",
+            "label": "B2B / Микропрограммы"
+        }, 
         {
             "value": "rnbase",
             "label": "B2B / РН-карт-Москва Базовая"
