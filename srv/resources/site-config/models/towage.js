@@ -214,12 +214,14 @@
                 "partner",
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ]
         },
         {
@@ -235,11 +237,13 @@
             ],
             "canRead": [
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "canWrite": [
                 "back",
-                "head"
+                "head",
+                "parguy"
             ]
         },
         {
@@ -371,7 +375,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "meta": {
                 "label": "Случай вандализма"
@@ -390,7 +395,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "meta": {
                 "label": "ДТП"
@@ -504,7 +510,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "meta": {
                 "dictionaryName": "WheelsBlockedCount",
@@ -524,7 +531,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "meta": {
                 "label": "Переключается на нейтральную передачу"
@@ -543,7 +551,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "meta": {
                 "label": "Есть буксировочный крюк"
@@ -562,7 +571,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "meta": {
                 "label": "Есть место для манипулятора"
