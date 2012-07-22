@@ -13,7 +13,7 @@
             "name": "seller",
             "meta": {
                 "label": "Дилер, продавший автомобиль",
-                "required": true                
+                "required": true
             }
         },
         {
@@ -432,6 +432,35 @@
                 "label": "Дата окончания ремонта",
                 "infoText": "date",
                 "regexp": "date"
+            }
+        }
+    ],
+    "invoice": [
+        {
+            "name": "number",
+            "meta": {
+                "label": "Номер счёта"
+            }
+        },
+        {
+            "name": "extensionDate",
+            "type": "date",
+            "meta": {
+                "label": "Дата выставления счёта",
+                "infoText": "date",
+                "regexp": "date"
+            }
+        },
+        {
+            "name": "partner",
+            "meta": {
+                "label": "Название партнёра (как в 1C)"
+            }
+        },
+        {
+            "name": "sum",
+            "meta": {
+                "label": "Сумма в счёте"
             }
         }
     ],
