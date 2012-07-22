@@ -122,7 +122,12 @@ functions ds = [
     R.functionMaybe "LOOKUP" lookupField,
     R.function "IF" ifFun,
     R.uses ["case.callerOwner", "case.caller_name", "case.owner_name"] $ R.constFunction "OWNER" ownerFun,
-    R.uses ["case.program"] $ R.constFunction "FDDS" fddsFun]
+    R.uses ["case.program"] $ R.constFunction "FDDS" fddsFun,
+    R.uses ["case.falseCall"] $ R.constFunction "FALSECALL" falseFun,
+    R.uses ["case.falseCall"] $ R.constFunction "BILL" billFun,
+    R.uses ["case.diagnosis1", "service.type"] $ R.constFunction "FAULTCODE" faultFun,
+    R.uses ["case.car_make"] $ R.constFunction "VEHICLEMAKE" vehicleMakeFun]
+    --R.uses ["case.car_make", "case.car_model"] $ R.constFunction "VEHICLEMODEL" vehicleModelFun]
     where
         concatFields fs = SM.StringValue $ concat $ mapMaybe fromStringField fs
         fromStringField (SM.StringValue s) = Just s
@@ -148,7 +153,76 @@ functions ds = [
         ownerFun fs = do
             (SM.IntValue isOwner) <- M.lookup "case.callerOwner" fs
             (if isOwner == 1 then M.lookup "case.caller_name" else M.lookup "case.owner_name") fs
-
+        
+        falseFun fs = do
+            (SM.StringValue isFalse) <- M.lookup "case.falseCall" fs
+            return $ SM.StringValue (if isFalse `elem` ["bill", "nobill"] then "Y" else "N")
+        
+        billFun fs = do
+            (SM.StringValue isFalse) <- M.lookup "case.falseCall" fs
+            return $ SM.StringValue (if isFalse == "bill" then "Y" else "N")
+            
+        faultFun fs = do
+            (SM.StringValue d) <- M.lookup "case.diagnosis1" fs
+            (SM.StringValue s) <- M.lookup "service.type" fs
+            d' <- M.lookup d $ M.fromList [
+                ("engine", "355"),
+                ("keyLost", "667"),
+                ("engcool", "349"),
+                ("steer", "260"),
+                ("signal", "652"),
+                ("electro", "400"), -- ???
+                ("fuel", "599"),
+                ("brake", "298"),
+                ("gears", "745"),
+                ("needDiagnostic", "921"),
+                ("tread", "246"),
+                ("electronics", "514"),
+                ("dtp", "144")]
+            s' <- M.lookup s $ M.fromList [
+                ("tech", "55"),
+                ("towage", "6G")]
+            return $ SM.StringValue $ d' ++ "09" ++ s'
+            
+        vehicleMakeFun fs = do
+            (SM.StringValue m) <- M.lookup "case.car_make" fs
+            m' <- M.lookup m $ M.fromList [
+                ("ford", "09"),
+                ("chevy", "10"),
+                ("opel", "23"),
+                ("cad", "11")]
+            return $ SM.StringValue m'
+            
+{-
+        vehicleModelFun fs = do
+            mk <- M.lookup "case.car_make" fs
+            md <- M.lookup "case.car_model" fs
+            r <- M.lookup mk $ M.fromList [
+                ("ford", fromMaybe "0900" $ M.lookup md $ M.fromList [
+                      ("ka", "0910"),
+                      -- ka from MY, before MY?
+                      ("sportKa", "0912"),
+                      ("streetKa", "0911"),
+                      ("fiesta", "0915"),
+                      -- fiesta from MY?
+                      -- fiesta van?
+                      ("fusion", "0918"),
+                      ("puma", "0916"),
+                      ("escort", "0920"),
+                      -- escort van?
+                      -- escort convertible
+                      ("cMaxII", "0928")
+                      -- grand&focus C-Max?
+                      -- C-Max from ...?
+                      -- focus from?
+                      -- focus from?
+                      -- focus from?
+                      -- focus?
+                      ("focus", "0936"),
+                      -- coupe convertible?
+-}
+                      
+                      
 local :: P.ConnectInfo
 local = P.ConnectInfo {
     P.connectHost = "localhost",
