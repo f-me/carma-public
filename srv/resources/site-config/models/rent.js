@@ -32,14 +32,6 @@
         },
         {
             "targets": [
-                "rentedCar_rentedModel"
-            ],
-            "meta": {
-                "dictionaryParent": "car_make"
-            }
-        },
-        {
-            "targets": [
                 "rentAddress_address",
                 "rentAddress_coords",
                 "rentAddress_city",
@@ -432,6 +424,7 @@
             ],
             "meta": {
                 "dictionaryName": "CarModels",
+                "dictionaryParent": "rentedMake",
                 "label": "Модель, предоставленного автомобиля"
             },
             "type": "dictionary"
