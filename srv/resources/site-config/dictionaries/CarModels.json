@@ -1356,12 +1356,15 @@
         ],
         "hum": [
             {
+                "value": "H1",
                 "label": "H1"
             },
             {
+                "value": "H1",
                 "label": "H2"
             },
             {
+                "value": "H1",
                 "label": "H3"
             }
         ]
