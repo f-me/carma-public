@@ -24,6 +24,7 @@ import Data.List (sortBy)
 import Data.Ord (comparing)
 import Data.Maybe (fromJust)
 import Data.String
+import qualified Data.Text as T
 
 import Network.URI (parseURI, URI(..))
 import qualified Fdds as Fdds
@@ -108,8 +109,8 @@ sync = scope "sync" $ mapM_ syncModel modelList where
 
   modelList = map C8.pack $ Map.keys (SM.modelsModels Postgres.modelModels)
 
-generateReport :: FilePath -> FilePath -> Handler b (DbLayer b) ()
-generateReport template filename = Postgres.generateReport Postgres.modelModels template filename
+generateReport :: [T.Text] -> FilePath -> FilePath -> Handler b (DbLayer b) ()
+generateReport conds template filename = Postgres.generateReport Postgres.modelModels conds template filename
 
 readAll model = Redis.readAll redis model
   

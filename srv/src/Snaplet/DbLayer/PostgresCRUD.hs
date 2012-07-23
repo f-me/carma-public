@@ -254,7 +254,7 @@ toStr :: ByteString -> String
 toStr = T.unpack . T.decodeUtf8
 
 toCond :: SM.Models -> ByteString -> ByteString -> S.Condition
-toCond ms m c = S.condition (SM.modelsSyncs ms) (tableName ++ ".id = ?") [P.toField (toStr c)] where
+toCond ms m c = S.conditionComplex (SM.modelsSyncs ms) (tableName ++ ".id = ?") [P.toField (toStr c)] where
     tableName = fromMaybe (error "Invalid model name") $ fmap (SM.syncTable . SM.modelSync) $ M.lookup (toStr m) (SM.modelsModels ms)
 
 create :: (PS.HasPostgres m, MonadLog m) => S.Syncs -> m ()
@@ -283,8 +283,8 @@ insertUpdate :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> Byt
 insertUpdate ms name c m = escopev "insertUpdate" False $ withPG (S.inPG (SM.insertUpdate ms (toStr name) cond m)) where
     cond = toCond ms name c
 
-generateReport :: (PS.HasPostgres m, MonadLog m) => SM.Models -> FilePath -> FilePath -> m ()
-generateReport ms tpl file = scope "generateReport" $ do
+generateReport :: (PS.HasPostgres m, MonadLog m) => SM.Models -> [T.Text] -> FilePath -> FilePath -> m ()
+generateReport ms conds tpl file = scope "generateReport" $ do
     log Trace "Loading dictionaries"
     dicts <- scope "dictionaries" $ liftIO $ loadDicts "/home/voidex/Documents/Projects/carma/srv/resources/site-config/dictionaries"
-    scope "createReport" $ withPG (S.inPG $ R.createReport (SM.modelsSyncs ms) (functions dicts) tpl file)
+    scope "createReport" $ withPG (S.inPG $ R.createReport (SM.modelsSyncs ms) (functions dicts) conds tpl file)

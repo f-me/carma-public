@@ -162,7 +162,12 @@ genReport :: AppHandler ()
 genReport = do
   Just tpl <- getParam "template"
   Just f <- getParam "file"
-  res <- with db $ DB.generateReport (T.unpack . T.decodeUtf8 $ tpl) (T.unpack . T.decodeUtf8 $ f)
+  condStr <- getParam "conditions"
+  let conds = maybe [] (read . T.unpack . T.decodeUtf8) condStr
+  res <- with db $ DB.generateReport
+         conds
+         (T.unpack . T.decodeUtf8 $ tpl)
+         (T.unpack . T.decodeUtf8 $ f)
   writeJSON res
 
 searchByIndex :: AppHandler ()
