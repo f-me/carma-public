@@ -304,7 +304,8 @@
     <script type="text/template"
             id="reports-screen-template"
             class="screen-template">
-      <div style="width:30%;margin:0 auto;text-align:center;">
+      <div id="report-get"
+           style="width:30%;margin:0 auto;text-align:center;">
       <fieldset>
         <legend>Отчёты</legend>
         <form action="/report">
@@ -325,17 +326,63 @@
               <input type="text" class="pane-span focusable" name="to"/>
               <span class="add-on"><i class="icon icon-calendar" /></span>
             </div>
-            <select name="program">
-              <option value="GM_CIS_Cadillac">GM CIS Cadillac</option>
-              <option value="GM_CIS_Opel_NAV_H">GM CIS Opel NAV H</option>
-              <option value="GM_DAT">GM DAT</option>
-              <option value="Print">Print</option>
+            <select name="program" data-bind="foreach: $data">
+              <option data-bind="value: id, text: name" />
             </select>
           </p>
           <button class="btn btn-success" type="submit">Отчёт</button>
         </form>
       </fieldset>
       </div>
+
+      <div id="all-reports">
+        <table class="table table-striped table-bordered dataTable">
+          <thead>
+            <tr>
+              <th width="40%">Название</th>
+              <th width="40%">Имя файла</th>
+              <th width="10%"></th>
+            </tr>
+          </thead>
+          <tbody data-bind="foreach: $data">
+            <tr data-bind="attr: { id: id }">
+              <td data-bind="text: name"></td>
+              <td>
+                <a data-bind="text: templates,
+                              attr: {
+                                href: '/s/fileupload/report/' + id +
+                                      '/templates/' + templates
+                                      }">
+                </a>
+              </td>
+              <td>
+                <buttom class="btn"
+                        onClick="deleteReport(this)">
+                  Удалить
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <br />
+        <h3>Добавить отчет</h3>
+        <div>
+          <form id="add-report"
+                action="/_/report"
+                method="POST"
+                enctype="multipart/form-data">
+            <label>Название отчета</label>
+            <input name="name" type="text">
+            <label>Шаблон</label>
+            <input name="templates" type="file">
+            <input class="btn btn-success"
+                   type="submit"
+                   value="Добавить"
+                   onClick="checkReportUniq(event)">
+          </form>
+        </div>
+      </div>
+
     </script>
 
     <!-- Import VINs screen -->

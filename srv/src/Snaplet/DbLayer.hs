@@ -2,6 +2,7 @@ module Snaplet.DbLayer
   (create
   ,read
   ,update
+  ,delete
   ,search
   ,sync
   ,generateReport
@@ -93,6 +94,11 @@ update model objId commit = scoper "update" $ do
   --
   return $ (changes Map.! fullId) Map.\\ commit
 
+delete model objId = do
+  liftIO $ putStrLn "UPDATE"
+  liftIO $ putStrLn $ "  MODEL: " ++ show model
+  --
+  Redis.delete redis model objId
 
 search ixName val = do
   ix <- gets $ (Map.! ixName) . indices

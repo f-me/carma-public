@@ -59,4 +59,8 @@ updateMany r objectMap = runRedisDB r $ do
   case lefts res of
     [] -> return $ Right ()
     _  -> error "updateMany failed"
-    
+
+delete r model objId = runRedisDB r $ do
+  let key = objKey model objId
+  Right _ <- del [key]
+  return ()
