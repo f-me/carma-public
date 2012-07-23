@@ -468,8 +468,7 @@ this.doPick = (pickType, args, el) ->
         -> alert ("Calling " + phoneNumber))
 
     nominatimPicker: (fieldName, el) ->
-      bb = global.viewsWare["case-form"].bbInstance
-      addr = bb.get(fieldName)
+      addr = $(el).parent().prev().val()
       $.getJSON("/nominatim?addr=#{addr}", (res) ->
         if res.length > 0
           form = $(el).parents("form")
