@@ -16,3 +16,9 @@ srv/resources/static/js/main.js
 srv/resources/static/js/metamodel.js
 srv/resources/static/js/viewsware.js
 srv/resources/static/js/local.js
+
+# uploaded content
+srv/resources/static/fileupload/*
+
+# build dependencies
+deps/*

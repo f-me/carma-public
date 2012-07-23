@@ -29,6 +29,7 @@ import Snap.Util.FileServe (serveFile)
 import Snap.Util.Readable (fromBS)
 ------------------------------------------------------------------------------
 import qualified Snaplet.DbLayer as DB
+import Snaplet.FileUpload (doUpload', doDeleteAll')
 ------------------------------------------------------------------------------
 import qualified Codec.Xlsx.Templater as Xlsx
 import qualified Nominatim
@@ -134,15 +135,20 @@ readHandler = do
 readAllHandler :: AppHandler ()
 readAllHandler = do
   Just model <- getParam "model"
-  n <- getParam "limit"
-  res <- with db $ DB.readAll model
-  let proj obj = Map.fromList
-        [(k, Map.findWithDefault "" k obj)
-        | k <- ["id", "caller_name", "callDate", "caller_phone1"
-               ,"car_plateNum", "car_vin", "program", "comment"]
-        ]
-  let res' = map proj $ sortBy (flip $ comparing $ Map.lookup "callDate") res
-  writeJSON $ maybe res' (`take` res') (read . B.unpack <$> n)
+  (with db $ DB.readAll model)
+    >>= apply "orderby" sortBy (flip . comparing . Map.lookup)
+    >>= apply "limit"   take   (read . B.unpack)
+    >>= apply "fields"  map    proj
+    >>= writeJSON
+  where
+    apply name f g = \xs
+      -> maybe xs (\p -> f (g p) xs)
+      <$> getParam name
+
+    proj fs = \obj -> Map.fromList
+      [(k, Map.findWithDefault "" k obj)
+      | k <- B.split ',' fs
+      ]
 
 updateHandler :: AppHandler ()
 updateHandler = do
@@ -156,18 +162,6 @@ updateHandler = do
 syncHandler :: AppHandler ()
 syncHandler = do
   res <- with db DB.sync
-  writeJSON res
-
-genReport :: AppHandler ()
-genReport = do
-  Just tpl <- getParam "template"
-  Just f <- getParam "file"
-  condStr <- getParam "conditions"
-  let conds = maybe [] (read . T.unpack . T.decodeUtf8) condStr
-  res <- with db $ DB.generateReport
-         conds
-         (T.unpack . T.decodeUtf8 $ tpl)
-         (T.unpack . T.decodeUtf8 $ f)
   writeJSON res
 
 searchByIndex :: AppHandler ()
@@ -211,22 +205,55 @@ searchByIndex = do
 
 searchCallsByPhone :: AppHandler ()
 searchCallsByPhone = do
-  Just phone <- getParam "phone"
+  r <- getRequest
   calls <- with db $ DB.readAll "call"
+  let phone = last $ B.split '/' (rqURI r)
   writeJSON $
     filter ((phone ==) . (Map.findWithDefault "" "callerName_phone1")) calls
+
+getActionsForCase :: AppHandler ()
+getActionsForCase = do
+  Just id <- getParam "id"
+  actions <- with db $ DB.readAll "action"
+  let id' = B.append "case:" id
+  writeJSON $
+    filter ((id' ==) . (Map.findWithDefault "" "caseId")) actions
 
 ------------------------------------------------------------------------------
 -- | Reports
 report :: AppHandler ()
 report = do
-  liftIO $ Xlsx.run
-    "resources/report-templates/all-cases.xlsx"
-    "resources/static/all-cases.xlsx"
-    [(Map.empty, Xlsx.TemplateSettings Xlsx.Rows 1, [])]
+  Just reportId <- getParam "program"
+  reportInfo <- with db $ DB.read "report" reportId
+  let tplName = B.unpack (reportInfo Map.! "templates")
+  let template
+        = "resources/static/fileupload/report/"
+        ++ (B.unpack reportId) ++ "/templates/" ++ tplName
+  let result = "resources/reports/" ++ tplName
+  with db $ DB.generateReport [] template result
   modifyResponse $ addHeader "Content-Disposition" "attachment; filename=\"report.xlsx\""
-  serveFile "resources/static/all-cases.xlsx"
+  serveFile result
 
+createReportHandler :: AppHandler ()
+createReportHandler = do
+  res <- with db $ DB.create "report" $ Map.empty
+  let id = last $ B.split ':' $ fromJust $ Map.lookup "id" res
+  (f:_)      <- with fileUpload $ doUpload' "report" id "templates"
+  Just name  <- getParam "name"
+  -- we have to update all model params after fileupload,
+  -- because in multipart/form-data requests we do not have
+  -- params as usual, see Snap.Util.FileUploads.setProcessFormInputs
+  with db $ DB.update "report" id $
+    Map.fromList [ ("templates", BU.fromString f)
+                 , ("name",      name) ]
+  redirect "/#reports"
+
+deleteReportHandler :: AppHandler ()
+deleteReportHandler = do
+  Just id  <- getParam "id"
+  with db $ DB.delete "report" id
+  with fileUpload $ doDeleteAll' "report" id
+  return ()
 
 ------------------------------------------------------------------------------
 -- | Utility functions

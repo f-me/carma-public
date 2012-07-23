@@ -34,7 +34,9 @@ localScreens = ->
         constructor: setupPartnersForm
   "reports":
     "template": "reports-screen-template"
-
+    "views":
+      "reports":
+        constructor: setupReports
 
 # Setup routing
 localRouter = Backbone.Router.extend
@@ -48,6 +50,8 @@ localRouter = Backbone.Router.extend
     "call/:id"    : "loadCall"
     "call"        : "call"
     "reports"     : "reports"
+    "partner"     : "newPartner"
+    "partner/:id" : "loadPartner"
 
   loadCase    : (id) -> renderScreen("case", {"id": id})
   newCase     :      -> renderScreen("case", {"id": null})
@@ -179,30 +183,42 @@ fillEventsHistory = (knockVM) -> ->
   return unless $("#call-searchtable")[0]
 
   phone = knockVM['caller_phone1']()
-  $.getJSON "/ix/callsByPhone/#{phone}", (objs) ->
-    st.fnClearTable()
-    dict = global.dictValueCache
+  $.getJSON "/ix/callsByPhone/#{phone}", (calls) ->
+    $.getJSON "/actionsFor/#{knockVM.id()}", (actions) ->
+      st.fnClearTable()
+      dict = global.dictValueCache
 
-    for i of objs
-      obj = objs[i]
-      continue if obj.id.length > 10
-      wazzup  = "Что случилось: #{dict.Wazzup[obj.wazzup] || obj.wazzup}"
-      whocall = "Кто звонил: #{dict.CallerTypes[obj.callerType] || obj.callerType}"
-      callDate = if obj.callDate
-          new Date(obj.callDate * 1000).toString("dd.MM.yyyy HH:mm")
-        else
-          ''
-      row = [ callDate
-            , obj.callTaker || ''
-            , "звонок"
-            , wazzup + ', ' + whocall
-            ]
+      for i of calls
+        obj = calls[i]
+        continue if obj.id.length > 10
+        wazzup  = dict.Wazzup[obj.wazzup] || obj.wazzup || ''
+        wazzupMsg  = "Что случилось: #{wazzup}"
+        whocall = dict.CallerTypes[obj.callerType] || obj.callerType || ''
+        whocallMsg = "Кто звонил: #{whocall}"
+        callDate = if obj.callDate
+            new Date(obj.callDate * 1000).toString("dd.MM.yyyy HH:mm")
+          else
+            ''
+        callType = dict.CallerTypes[obj.callType] || obj.callType || ''
+        callTypeMsg = "Тип звонка: #{callType}"
+        row = [ callDate
+              , obj.callTaker || ''
+              , "звонок"
+              , "#{wazzupMsg}, #{whocallMsg}, #{callTypeMsg}"
+              , ''
+              ]
 
-      st.fnAddData(row)
+        st.fnAddData(row)
 
-    for r in knockVM['actionsReference']()
-      row = [ r.duetime() , r.assignedTo() , r.nameLocal() , r.comment() ]
-      st.fnAddData(row)
+      for r in actions
+        duetime = if r.duetime
+            new Date(r.duetime * 1000).toString("dd.MM.yyyy HH:mm")
+          else
+            ''
+        result = dict.ActionResults[r.result] or ''
+        name = dict.ActionNames[r.name] or ''
+        row = [ duetime , r.assignedTo or '', name , r.comment or '', result ]
+        st.fnAddData(row)
 
 mkServicesDescs = (p, s) ->
   d = getServiceDesc(p ,s.modelName())
@@ -393,7 +409,8 @@ setupCallForm = (viewName, args) ->
     window.location.hash = "case/" + id
   )
   st.fnSort [[2, "desc"]]
-  $.getJSON("/all/case?limit=70", (objs) ->
+  fields = "id,caller_name,callDate,caller_phone1,car_plateNum,car_vin,program,comment"
+  $.getJSON("/all/case?orderby=callDate&limit=70&fields=#{fields}", (objs) ->
     st.fnClearTable()
     dict = global.dictValueCache
     for i of objs
@@ -453,8 +470,7 @@ this.doPick = (pickType, args, el) ->
         -> alert ("Calling " + phoneNumber))
 
     nominatimPicker: (fieldName, el) ->
-      bb = global.viewsWare["case-form"].bbInstance
-      addr = bb.get(fieldName)
+      addr = $(el).parent().prev().val()
       $.getJSON("/nominatim?addr=#{addr}", (res) ->
         if res.length > 0
           form = $(el).parents("form")
@@ -498,18 +514,13 @@ mkDataTable = (t, opts) ->
   t.dataTable defaults
 
 setupPartnersForm = (viewName, args) ->
-  refs =
-    [
-      field: "services"
-      forest: "partner-service-references"
-    ]
+  refs = [field: "services"
+         ,forest: "partner-service-references"
+         ]
   modelSetup("partner") viewName, args,
                         permEl: "partner-permissions"
                         focusClass: "focusable"
                         refs: refs
-  $el(viewName).html($el("partner-form-template").html())
-
-  global.viewsWare[viewName] = {}
 
   setTimeout(->
     $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
@@ -525,17 +536,22 @@ setupPartnersForm = (viewName, args) ->
                             permEl: "partner-permissions"
                             focusClass: "focusable"
                             refs: refs
+    )
 
-     $.getJSON(modelMethod(
-            "partner",
-            "search?q=*&_limit=1000&_fields=id,name,city,comment"),
-          ((rows) ->
+    $.getJSON("/all/partner?fields=id,name,city,comment",
+        (objs) ->
             dt = t.dataTable()
             dt.fnClearTable()
-            dt.fnAddData(rows))
-          , 100)))
+            rows = for obj in objs
+                [obj.id.split(':')[1]
+                ,obj.name || ''
+                ,obj.city || ''
+                ,obj.comment || ''
+                ]
+            dt.fnAddData(rows)
+    ))
 
-addNewServiceToPartner = (name) ->
+this.addNewServiceToPartner = (name) ->
   instance = global.viewsWare["partner-form"].bbInstance
   book = addReference instance,
                  field     : "services"
@@ -772,3 +788,34 @@ this.getWeather = (city, cb) ->
   url = "/#{city}"
   $.getJSON "/weather/#{city}", (data) -> cb(data)
 
+
+this.setupReports = (viewName, args) ->
+  $.getJSON "/all/report", (reports) ->
+    for r in reports
+      r.name = '' unless r.name?
+      r.templates = '' unless r.templates?
+      r.id = (r.id.split ':')[1]
+    global.reports = reports
+    ko.applyBindings(global.reports, el "layout" )
+
+this.deleteReport = (e) ->
+  return unless confirm "Вы уверены, что хотите удалить отчет?"
+  objId = $(e).parents('tr').attr('id')
+  $.ajax
+    'type'     : 'DELETE'
+    'url'      : "/_/report/#{objId}"
+    'success'  : -> forgetScreen(); renderScreen("reports")
+    'error'    : (xhr) -> console.log xhr; alert 'error'
+
+this.checkReportUniq = (ev) ->
+  ev.preventDefault()
+  name = $('#add-report input[name=name]').val()
+  tpl  = $('#add-report input[name=templates]').val()
+  if _.find(global.reports, (e) -> e.name == name)
+    alert "Отчет с таким именем уже существует."
+  else if not name
+    alert "Необходимо ввести название отчета!"
+  else if not tpl
+    alert "Необходимо добавить шаблон!"
+  else
+    $('#add-report').submit()

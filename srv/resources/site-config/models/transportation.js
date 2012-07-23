@@ -154,12 +154,14 @@
                 "partner",
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ]
         },
         {
@@ -169,19 +171,19 @@
                 "times_factServiceEnd",
                 "times_expectedServiceFinancialClosure",
                 "times_factServiceFinancialClosure",
-                "times_expectedDealerInfo",
-                "times_factDealerInfo",
                 "times_expectedServiceClosure",
                 "times_factServiceClosure",
                 "times_repairEndDate"
             ],
             "canRead": [
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "canWrite": [
                 "back",
-                "head"
+                "head",
+                "parguy"
             ]
         }
     ],

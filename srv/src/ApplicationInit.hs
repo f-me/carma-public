@@ -42,12 +42,14 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/ix/:indexName", chkAuth . method GET  $ searchByIndex)
          , ("/ix/callsByPhone/:phone",
             chkAuth . method GET  $ searchCallsByPhone)
+         , ("/actionsFor/:id",chkAuth . method GET  $ getActionsForCase)
          , ("/_whoami/",      chkAuth . method GET  $ serveUserCake)
          , ("/_/:model",      chkAuth . method POST $ createHandler)
          , ("/_/:model/:id",  chkAuth . method GET  $ readHandler)
          , ("/_/:model/:id",  chkAuth . method PUT  $ updateHandler)
+         , ("/_/report/",     chkAuth . method POST $ createReportHandler)
+         , ("/_/report/:id",  chkAuth . method DELETE $ deleteReportHandler)
          , ("/sync",          chkAuth . method GET  $ syncHandler)
-         , ("/genreport",     chkAuth . method GET  $ genReport)
          ]
 
 

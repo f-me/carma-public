@@ -2,6 +2,7 @@ module Snaplet.DbLayer
   (create
   ,read
   ,update
+  ,delete
   ,search
   ,sync
   ,generateReport
@@ -44,6 +45,8 @@ import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers
 import Util
 
+
+
 create model commit = scoper "create" $ do
   log Trace $ fromString $ "Model: " ++ show model
   log Trace $ fromString $ "Commit: " ++ show commit
@@ -56,16 +59,17 @@ create model commit = scoper "create" $ do
   log Trace $ fromString $ "Object with id: " ++ show obj'
   --
   Postgres.insert Postgres.modelModels model obj'
-  
+{-
   let fullId = B.concat [model, ":", objId]
   changes <- triggerUpdate fullId obj
   --
   let changes' = Map.mapKeys (B.drop (B.length model + 1)) changes
   log Trace $ fromString $ "Changes: " ++ show changes'
   --
-  Right _ <- Redis.updateMany redis changes'
+  Right _ <- Redis.updateMany redis changes
+-}
   return $ Map.insert "id" objId
-         $ (changes Map.! fullId) Map.\\ commit
+         $ obj Map.\\ commit
 
 
 read model objId = do
@@ -89,6 +93,11 @@ update model objId commit = scoper "update" $ do
   --
   return $ (changes Map.! fullId) Map.\\ commit
 
+delete model objId = do
+  liftIO $ putStrLn "UPDATE"
+  liftIO $ putStrLn $ "  MODEL: " ++ show model
+  --
+  Redis.delete redis model objId
 
 search ixName val = do
   ix <- gets $ (Map.! ixName) . indices
@@ -113,12 +122,6 @@ generateReport :: [T.Text] -> FilePath -> FilePath -> Handler b (DbLayer b) ()
 generateReport conds template filename = Postgres.generateReport Postgres.modelModels conds template filename
 
 readAll model = Redis.readAll redis model
-  
-{-
-  \i -> do
-    obj <- Redis.read' redis i
-    return $ map (\f -> Map.findWithDefault "" f obj) fields
--}
 
 
 initDbLayer :: SnapletInit b (DbLayer b)
@@ -141,26 +144,6 @@ triggersConfig = do
   return $ TriggersConfig recs
 
 createIndices = return Map.empty
-{-
-  r <- Redis.connect Redis.defaultConnectInfo
-  (actionByGroup, actionByAssignee) <- Redis.runRedis r $ do
-    Right actions <- Redis.keys "action:*"
-    let mkIx (m1, m2) a = do
-          Right res <- Redis.hmget a ["closed", "targetGroup", "assignedTo"]
-          return $ case res of
-            [Just "false", Just g, Just ""]
-              -> (m1, Map.insertWith' Set.union g (Set.singleton a) m2)
-            [Just "false", Just g, Just  u]
-              -> (Map.insertWith' Set.union u (Set.singleton a) m1, m2)
-            _ -> (m1, m2)
-    foldM mkIx (Map.empty, Map.empty) actions
-  actionByGroup_tvar <- newTVarIO actionByGroup
-  actionByAssignee_tvar <- newTVarIO actionByAssignee
-  return $ Map.fromList
-    [("actionByGroup", actionByGroup_tvar)
-    ,("actionByAssignee", actionByAssignee_tvar)
-    ]
--}
 
 fddsConfig cfg = do
   uri   <- require cfg "fdds-uri"

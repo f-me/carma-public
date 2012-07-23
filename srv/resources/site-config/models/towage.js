@@ -214,12 +214,14 @@
                 "partner",
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ]
         },
         {
@@ -229,19 +231,19 @@
                 "times_factServiceEnd",
                 "times_expectedServiceFinancialClosure",
                 "times_factServiceFinancialClosure",
-                "times_expectedDealerInfo",
-                "times_factDealerInfo",
                 "times_expectedServiceClosure",
                 "times_factServiceClosure",
                 "times_repairEndDate"
             ],
             "canRead": [
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "canWrite": [
                 "back",
-                "head"
+                "head",
+                "parguy"
             ]
         },
         {
@@ -373,7 +375,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "meta": {
                 "label": "Случай вандализма"
@@ -392,7 +395,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "meta": {
                 "label": "ДТП"
@@ -506,7 +510,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "meta": {
                 "dictionaryName": "WheelsBlockedCount",
@@ -526,7 +531,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "meta": {
                 "label": "Переключается на нейтральную передачу"
@@ -545,7 +551,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "meta": {
                 "label": "Есть буксировочный крюк"
@@ -564,7 +571,8 @@
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "meta": {
                 "label": "Есть место для манипулятора"

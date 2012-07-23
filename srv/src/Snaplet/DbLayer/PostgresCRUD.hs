@@ -225,11 +225,11 @@ functions ds = [
                       
 local :: P.ConnectInfo
 local = P.ConnectInfo {
-    P.connectHost = "localhost",
-    P.connectPort = 5432,
-    P.connectUser = "postgres",
-    P.connectPassword = "pass",
-    P.connectDatabase = "postgres" }
+	P.connectHost = "localhost",
+	P.connectPort = 5432,
+	P.connectUser = "carma_db_sync",
+	P.connectPassword = "pass",
+	P.connectDatabase = "carma" }
 
 escope :: (MonadLog m) => T.Text -> m () -> m ()
 escope s act = catch (scope s act) onError where
@@ -240,6 +240,18 @@ escopev :: (MonadLog m) => T.Text -> a -> m a -> m a
 escopev s v act = catch (scope s act) (onError v) where
     onError :: (MonadLog m) => a -> E.SomeException -> m a
     onError x _ = return x
+
+elog :: IO () -> IO ()
+elog act = E.catch act onError where
+    onError :: E.SomeException -> IO ()
+    onError e = putStrLn $ "Failed with: " ++ show e
+
+elogv :: a -> IO a -> IO a
+elogv v act = E.catch act (onError v) where
+	onError :: a -> E.SomeException -> IO a
+	onError x e = do
+		putStrLn $ "Failed with: " ++ show e
+		return x
 
 createIO :: SM.Models -> IO ()
 createIO ms = do
@@ -286,5 +298,5 @@ insertUpdate ms name c m = escopev "insertUpdate" False $ withPG (S.inPG (SM.ins
 generateReport :: (PS.HasPostgres m, MonadLog m) => SM.Models -> [T.Text] -> FilePath -> FilePath -> m ()
 generateReport ms conds tpl file = scope "generateReport" $ do
     log Trace "Loading dictionaries"
-    dicts <- scope "dictionaries" $ liftIO $ loadDicts "/home/voidex/Documents/Projects/carma/srv/resources/site-config/dictionaries"
+    dicts <- scope "dictionaries" $ liftIO $ loadDicts "resources/site-config/dictionaries"
     scope "createReport" $ withPG (S.inPG $ R.createReport (SM.modelsSyncs ms) (functions dicts) conds tpl file)

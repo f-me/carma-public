@@ -32,14 +32,6 @@
         },
         {
             "targets": [
-                "rentedCar_rentedModel"
-            ],
-            "meta": {
-                "dictionaryParent": "car_make"
-            }
-        },
-        {
-            "targets": [
                 "rentAddress_address",
                 "rentAddress_coords",
                 "rentAddress_city",
@@ -193,12 +185,14 @@
                 "partner",
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head",
+                "parguy"
             ]
         },
         {
@@ -208,19 +202,19 @@
                 "times_factServiceEnd",
                 "times_expectedServiceFinancialClosure",
                 "times_factServiceFinancialClosure",
-                "times_expectedDealerInfo",
-                "times_factDealerInfo",
                 "times_expectedServiceClosure",
                 "times_factServiceClosure",
                 "times_repairEndDate"
             ],
             "canRead": [
                 "back",
-                "head"
+                "head",
+                "parguy"
             ],
             "canWrite": [
                 "back",
-                "head"
+                "head",
+                "parguy"
             ]
         },
         {
@@ -378,7 +372,7 @@
             }
         },
         {
-            "name": "carProvidedFor",
+            "name": "providedFor",
             "canRead": [
                 "partner",
                 "front",
@@ -434,6 +428,7 @@
             ],
             "meta": {
                 "dictionaryName": "CarModels",
+                "dictionaryParent": "rentedMake",
                 "label": "Модель, предоставленного автомобиля"
             },
             "type": "dictionary"
