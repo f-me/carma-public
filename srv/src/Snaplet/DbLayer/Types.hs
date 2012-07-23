@@ -11,6 +11,7 @@ import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple (Postgres, HasPostgres(..))
 import Snap.Snaplet.RedisDB (RedisDB)
 import Snaplet.DbLayer.Indices
+import Snap.Snaplet.SimpleLog
 
 import qualified Fdds as Fdds
 
@@ -26,6 +27,7 @@ type DbHandler b r = Handler b (DbLayer b) r
 data DbLayer b = DbLayer
     {_redis    :: Snaplet RedisDB
     ,_postgres :: Snaplet Postgres
+    ,_dbLog :: Snaplet SimpleLog
     ,triggers  :: TriggersConfig
     ,indices   :: Indices
     ,fdds      :: Fdds.Conf
@@ -39,3 +41,6 @@ makeLens ''DbLayer
 
 instance HasPostgres (Handler b (DbLayer b)) where
 	getPostgresState = with postgres get
+
+instance MonadLog (Handler b (DbLayer b)) where
+  askLog = with dbLog askLog
