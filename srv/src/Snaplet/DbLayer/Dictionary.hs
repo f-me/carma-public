@@ -9,6 +9,7 @@ import Data.Aeson
 import qualified Data.ByteString.Lazy.Char8 as LC8
 import qualified Data.Map as M
 import qualified Data.Text as T
+import qualified Data.HashMap.Strict as HM
 import System.FilePath
 import System.Directory
 
@@ -25,7 +26,9 @@ instance FromJSON KeyValue where
     parseJSON (Object v) = KeyValue <$> (v .: (T.pack "value")) <*> (v .: (T.pack "label"))
 
 instance FromJSON Dictionary where
-    parseJSON (Object v) = Dictionary <$> (v .: (T.pack "entries"))
+    parseJSON (Object v) = Dictionary <$> ((v .: (T.pack "entries")) <|> (getEs <$> (v .: (T.pack "entries")))) where
+        getEs :: HM.HashMap T.Text [KeyValue] -> [KeyValue]
+        getEs = concat . HM.elems
 
 dictionary :: Dictionary -> M.Map String String
 dictionary = M.fromList . map ((T.unpack . key) &&& (T.unpack . value)) . entries
