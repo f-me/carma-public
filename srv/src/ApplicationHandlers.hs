@@ -164,13 +164,6 @@ syncHandler = do
   res <- with db DB.sync
   writeJSON res
 
-genReport :: AppHandler ()
-genReport = do
-  Just tpl <- getParam "template"
-  Just f <- getParam "file"
-  res <- with db $ DB.generateReport (T.unpack . T.decodeUtf8 $ tpl) (T.unpack . T.decodeUtf8 $ f)
-  writeJSON res
-
 searchByIndex :: AppHandler ()
 searchByIndex = do
   Just ixName <- getParam "indexName"
@@ -230,9 +223,13 @@ getActionsForCase = do
 -- | Reports
 report :: AppHandler ()
 report = do
-  Just tplName <- getParam "program"
-  let template = "resources/report-templates/" ++ B.unpack tplName ++ ".xlsx"
-  let result = "resources/reports/" ++ B.unpack tplName ++ ".xlsx"
+  Just reportId <- getParam "program"
+  reportInfo <- with db $ DB.read "report" reportId
+  let tplName = B.unpack (reportInfo Map.! "templates")
+  let template
+        = "resources/static/fileupload/report/"
+        ++ (B.unpack reportId) ++ "/templates/" ++ tplName
+  let result = "resources/reports/" ++ tplName
   with db $ DB.generateReport template result
   modifyResponse $ addHeader "Content-Disposition" "attachment; filename=\"report.xlsx\""
   serveFile result
