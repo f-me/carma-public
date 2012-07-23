@@ -46,7 +46,6 @@ import Util
 
 
 
-create model commit = do
 create model commit = scoper "create" $ do
   log Trace $ fromString $ "Model: " ++ show model
   log Trace $ fromString $ "Commit: " ++ show commit
@@ -78,7 +77,6 @@ read model objId = do
   return res
 
 
-update model objId commit = do
 update model objId commit = scoper "update" $ do
   log Trace $ fromString $ "Model: " ++ show model
   --
