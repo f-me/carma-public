@@ -56,6 +56,15 @@
     <script src="/s/js/main.js" />
     <script src="/s/js/local.js" />
     <script src="/s/js/viewsware.js" />
+    <script src="/s/js/hooks.js" />
+    <script src="/s/js/case.js" />
+    <script src="/s/js/vin.js" />
+    <script src="/s/js/partners.js" />
+    <script src="/s/js/call.js" />
+    <script src="/s/js/backoffice.js" />
+    <script src="/s/js/hotkeys.js" />
+    <script src="/s/js/fileupload.js" />
+
   </head>
   <body>
     <!-- Navigation bar on top -->
