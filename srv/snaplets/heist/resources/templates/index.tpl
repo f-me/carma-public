@@ -62,6 +62,7 @@
     <script src="/s/js/partners.js" />
     <script src="/s/js/call.js" />
     <script src="/s/js/backoffice.js" />
+    <script src="/s/js/report.js" />
     <script src="/s/js/hotkeys.js" />
     <script src="/s/js/fileupload.js" />
 
