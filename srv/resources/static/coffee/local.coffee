@@ -797,6 +797,7 @@ this.setupReports = (viewName, args) ->
       r.id = (r.id.split ':')[1]
     global.reports = reports
     ko.applyBindings(global.reports, el "layout" )
+    mkDataTable $('#reports-table'), { sScrollY: '400px' }
 
 this.deleteReport = (e) ->
   return unless confirm "Вы уверены, что хотите удалить отчет?"

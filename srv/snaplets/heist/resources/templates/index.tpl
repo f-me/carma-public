@@ -335,8 +335,28 @@
       </fieldset>
       </div>
 
-      <div id="all-reports">
-        <table class="table table-striped table-bordered dataTable">
+      <div id="all-reports" class="row">
+        <div class="span4">
+          <h3>Добавить отчет</h3>
+          <form id="add-report"
+                action="/_/report"
+                method="POST"
+                enctype="multipart/form-data">
+            <label>Название отчета</label>
+            <input name="name" type="text">
+            <label>Шаблон</label>
+            <input name="templates" type="file">
+            <label>
+            <input class="btn btn-success"
+                   type="submit"
+                   value="Добавить"
+                   onClick="checkReportUniq(event)">
+          </form>
+        </div>
+
+        <div class="span8">
+        <table class="table table-striped table-bordered dataTable"
+               id="reports-table">
           <thead>
             <tr>
               <th width="40%">Название</th>
@@ -364,23 +384,7 @@
             </tr>
           </tbody>
         </table>
-        <br />
-        <h3>Добавить отчет</h3>
-        <div>
-          <form id="add-report"
-                action="/_/report"
-                method="POST"
-                enctype="multipart/form-data">
-            <label>Название отчета</label>
-            <input name="name" type="text">
-            <label>Шаблон</label>
-            <input name="templates" type="file">
-            <input class="btn btn-success"
-                   type="submit"
-                   value="Добавить"
-                   onClick="checkReportUniq(event)">
-          </form>
-        </div>
+      </div>
       </div>
 
     </script>
