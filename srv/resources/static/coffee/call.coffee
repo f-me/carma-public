@@ -13,8 +13,8 @@ this.setupCallForm = (viewName, args) ->
     window.location.hash = "case/" + id
   )
   st.fnSort [[2, "desc"]]
-  fields = "id,caller_name,callDate,caller_phone1,car_plateNum,car_vin,program,comment"
-  $.getJSON("/all/case?orderby=callDate&limit=70&fields=#{fields}", (objs) ->
+  fields = "id,caller_name,contact_name,callDate,caller_phone1,contact_phone1,car_plateNum,car_vin,program,comment"
+  $.getJSON("/all/case?orderby=callDate&limit=120&fields=#{fields}", (objs) ->
     st.fnClearTable()
     dict = global.dictValueCache
     for i of objs
@@ -29,9 +29,9 @@ this.setupCallForm = (viewName, args) ->
           else
               ""
       row = [obj.id.split(":")[1]
-            ,obj.caller_name || ''
+            ,obj.caller_name || obj.contact_name || ''
             ,new Date(obj.callDate * 1000).toString("dd.MM.yyyy HH:mm:ss")
-            ,obj.caller_phone1 || ''
+            ,obj.caller_phone1 || obj.contact_phone1 || ''
             ,plateNum, carVin
             ,dict.Programs[obj.program] || obj.program || ''
             ,dict.Wazzup[obj.comment] || obj.comment || ''

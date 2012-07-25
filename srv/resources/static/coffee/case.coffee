@@ -58,12 +58,12 @@ this.addService = (name) ->
 this.makeCase = () ->
   v = global.viewsWare['call-form'].knockVM
   args =
-    caller_name:   v['callerName_name']()
-    caller_phone1: v['callerName_phone1']()
-    caller_phone2: v['callerName_phone2']()
-    caller_phone3: v['callerName_phone3']()
-    caller_phone4: v['callerName_phone4']()
-    caller_email:  v['callerName_email']()
+    contact_name:   v['callerName_name']()
+    contact_phone1: v['callerName_phone1']()
+    contact_phone2: v['callerName_phone2']()
+    contact_phone3: v['callerName_phone3']()
+    contact_phone4: v['callerName_phone4']()
+    contact_email:  v['callerName_email']()
     comment:       v['wazzup']()
     callTaker: global.user.meta.realName
   buildNewModel 'case', args, {},
@@ -77,7 +77,7 @@ fillEventsHistory = (knockVM) -> ->
   # return if table template is not yet rendered
   return unless $("#call-searchtable")[0]
 
-  phone = knockVM['caller_phone1']()
+  phone = knockVM['contact_phone1']()
   $.getJSON "/ix/callsByPhone/#{phone}", (calls) ->
     $.getJSON "/actionsFor/#{knockVM.id()}", (actions) ->
       st.fnClearTable()
@@ -184,5 +184,5 @@ this.caseWeaterKbHook = (instance, knockVM) ->
       knockVM['temperature'](weather.tempC)
 
 this.caseEventsHistoryKbHook = (instance, knockVM) ->
-  knockVM['caller_phone1'].subscribe fillEventsHistory(knockVM)
+  knockVM['contact_phone1'].subscribe fillEventsHistory(knockVM)
   knockVM['actions'].subscribe fillEventsHistory(knockVM)

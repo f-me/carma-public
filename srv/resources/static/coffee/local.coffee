@@ -89,7 +89,7 @@ this.redirectToHomePage = (user) ->
 # Model method HTTP access point wrt redson location
 this.modelMethod = (modelName, method) -> "/_/#{modelName}/#{method}"
 
-mkServicesDescs = (p, s) ->
+this.mkServicesDescs = (p, s) ->
   description: getServiceDesc(p ,s.modelName())
   title:       s.modelTitle
 
