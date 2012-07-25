@@ -239,7 +239,7 @@ actionResultMap = Map.fromList
   )
   ,("serviceFinished", \objId -> do
     setService objId "status" "serviceOk"
-    tm <- getService objId "times_expectedServiceClosure"	
+    tm <- getService objId "times_expectedServiceClosure"  
     void $ replaceAction
       "closeCase"
       "Закрыть заявку"
@@ -287,48 +287,79 @@ actionResultMap = Map.fromList
   ,("billNotReady", \objId -> dateNow (+ (5*24*60*60))  >>= set objId "duetime")
   ,("billAttached", \objId -> do
     act <- replaceAction
+      "headCheck"
+      "Проверка РКЦ"
+      "head" "1" (+60) objId
+    set act "assignedTo" ""
+  )
+  ,("parguyToBack", \objId -> do
+    act <- replaceAction
+      "parguyNeedInfo"
+      "Менеджер по Партнёрам запросил доп. информацию"
+      "back" "3" (+60) objId
+    set act "assignedTo" ""
+  )
+  ,("backToParyguy", \objId -> do
+    act <- replaceAction
+      "addBill"
+      "Прикрепить счёт"
+      "parguy" "1" (+60) objId
+    set act "assignedTo" ""
+  )
+  ,("headToParyguy", \objId -> do
+    act <- replaceAction
+      "addBill"
+      "На доработку МпП"
+      "parguy" "1" (+60) objId
+    set act "assignedTo" ""
+  ) 
+  ,("confirm", \objId -> do
+    act <- replaceAction
+      "directorCheck"
+      "Проверка директором"
+      "director" "1" (+60) objId
+    set act "assignedTo" ""
+  )
+  ,("confirmWODirector", \objId -> do
+    act <- replaceAction
       "accountCheck"
-      "Проверить кейс"
+      "Проверка бухгалтерией"
       "account" "1" (+60) objId
     set act "assignedTo" ""
   )
+  ,("confirmFinal", closeAction
+  )    
+  ,("directorToHead", \objId -> do
+    act <- replaceAction
+      "headCheck"
+      "Проверка РКЦ"
+      "head" "1" (+60) objId
+    set act "assignedTo" ""
+  )
+  ,("directorConfirm", \objId -> do
+    act <- replaceAction
+      "accountCheck"
+      "Проверка бухгалтерией"
+      "account" "1" (+60) objId
+    set act "assignedTo" ""
+  )      
+  ,("dirConfirmFinal", closeAction
+  )  
   ,("vwclosed", closeAction
   )   
-  ,("financialOk", closeAction
+  ,("accountConfirm", closeAction
   )
-  ,("accountError", void . replaceAction
-      "editCaseAfterClosure"
-      "Редактирование кейса после выставления счёта"
-      "back" "1" (+60)
-  )
-  ,("caseEdited", closeAction
-  )
-  ,("recloseService", void . replaceAction
-      "closeCase"
-      "Закрыть заявку"
-      "back" "3" (+60)
-  )
-  ,("caseClosedFinancialNotOk", \objId -> do
-    setService objId "status" "serviceClosed"
-    void $ replaceAction
-      "financialClose"
-      "Заявка закрыта, требуется финансовая информация"
-      "back" "3" (+60)
-      objId
-    void $ replaceAction
-      "caseContinue"
-      "Узнать у клиента требуются ли ему ещё услуги?"
-      "back" "1" (+60)
-      objId   
-  )
-  ,("caseClosedFinancialOk", \objId -> do
+  ,("accountToDirector", \objId -> do
+    act <- replaceAction
+      "directorCheck"
+      "Проверка директором"
+      "director" "1" (+60) objId
+    set act "assignedTo" ""
+  )   
+  ,("caseClosed", \objId -> do
     setService objId "status" "serviceClosed"
     closeAction objId	
   )
-  ,("financialOk", \objId -> do
-     setService objId "status" "serviceClosed"
-     closeAction objId
-  )    
   ,("falseCallWBill", \objId -> do
      setService objId "falseCall" "bill"
      closeAction objId
