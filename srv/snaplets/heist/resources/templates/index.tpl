@@ -504,12 +504,10 @@
               <label>Услуги</label>
             </div>
             <div class="controls">
-              <span class="accordion" id="partner-service-references" />
-              <span id="partner-service-picker-container" />
+              <span class="accordion" id="partner-services-references" />
               <button class="dropdown-toggle btn btn-action"
                       onclick="addNewServiceToPartner();"
-                      type="button"
-                      data-toggle="dropdown">
+                      type="button">
                 <i class="icon icon-plus"></i>Добавить услугу
               </button>
             </div>

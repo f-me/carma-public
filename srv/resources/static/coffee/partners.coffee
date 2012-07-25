@@ -1,6 +1,6 @@
 this.setupPartnersForm = (viewName, args) ->
   refs = [field: "services"
-         ,forest: "partner-service-references"
+         ,forest: "partner-services-references"
          ]
   modelSetup("partner") viewName, args,
                         permEl: "partner-permissions"
@@ -37,10 +37,10 @@ this.setupPartnersForm = (viewName, args) ->
     ))
 
 this.addNewServiceToPartner = (name) ->
-  instance = global.viewsWare["partner-form"].bbInstance
-  book = addReference instance,
-                 field     : "services"
-                 modelName : "partner_service"
-                 forest    : "partner-service-references",
-                 "center"
-  service = global.dictionaries.Services
+  addReference global.viewsWare["partner-form"].knockVM,
+               'services',
+               {modelName: 'partner_service'},
+               (k) ->
+                  e = $('#' + k['view'])
+                  e.parent().prev()[0].scrollIntoView()
+                  e.find('input')[0].focus()
