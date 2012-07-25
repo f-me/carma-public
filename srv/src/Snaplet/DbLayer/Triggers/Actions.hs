@@ -260,11 +260,11 @@ actionResultMap = Map.fromList
   ,("complaint", \objId -> do
     setService objId "status" "serviceOk"
     setService objId "clientSatisfied" "0"
-    tm <- getService objId "times_expectedServiceClosure"		
+    tm <- getService objId "times_expectedServiceClosure"  	
     act1 <- replaceAction
       "complaintResolution"
       "Клиент предъявил претензию"
-      "head" "1" (+60)
+      "supervisor" "1" (+60)
       objId 
     set act1 "assignedTo" ""
     void $ replaceAction
@@ -326,8 +326,13 @@ actionResultMap = Map.fromList
       "Проверка бухгалтерией"
       "account" "1" (+60) objId
     set act "assignedTo" ""
-  )
-  ,("confirmFinal", closeAction
+  )  
+  ,("confirmFinal", \objId -> do
+    act <- replaceAction
+      "analystCheck"
+      "Обработка аналитиком"
+      "analyst" "1" (+60) objId
+    set act "assignedTo" ""
   )    
   ,("directorToHead", \objId -> do
     act <- replaceAction
@@ -343,12 +348,22 @@ actionResultMap = Map.fromList
       "account" "1" (+60) objId
     set act "assignedTo" ""
   )      
-  ,("dirConfirmFinal", closeAction
-  )  
+  ,("dirConfirmFinal", \objId -> do
+    act <- replaceAction
+      "analystCheck"
+      "Обработка аналитиком"
+      "analyst" "1" (+60) objId
+    set act "assignedTo" ""
+  )    
   ,("vwclosed", closeAction
   )   
-  ,("accountConfirm", closeAction
-  )
+  ,("accountConfirm", \objId -> do
+    act <- replaceAction
+      "analystCheck"
+      "Обработка аналитиком"
+      "analyst" "1" (+60) objId
+    set act "assignedTo" ""
+  )   
   ,("accountToDirector", \objId -> do
     act <- replaceAction
       "directorCheck"
@@ -356,6 +371,8 @@ actionResultMap = Map.fromList
       "director" "1" (+60) objId
     set act "assignedTo" ""
   )   
+  ,("analystChecked", closeAction
+  )    
   ,("caseClosed", \objId -> do
     setService objId "status" "serviceClosed"
     closeAction objId	
