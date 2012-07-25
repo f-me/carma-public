@@ -62,6 +62,7 @@
                 "parguy"
             ],
             "canWrite": [
+                "front",
                 "back",
                 "head"
             ],
