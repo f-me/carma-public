@@ -37,28 +37,28 @@
             "label": "Прикрепить счет"
         },
         {
+            "value": "parguyNeedInfo",
+            "label": "Менеджер по Партнёрам запросил доп. информацию"
+        },
+        {
+            "value": "headCheck",
+            "label": "Проверка РКЦ"
+        },
+        {
+            "value": "directorCheck",
+            "label": "Проверка директором"
+        },
+        {
+            "value": "accountCheck",
+            "label": "Проверка бухгалтерией"
+        },
+        {
             "value": "getInfoDealerVW",
             "label": "Требуется уточнить информацию о ремонте у дилера"
         },
         {
             "value": "closeCase",
             "label": "Закрыть заявку"
-        },
-        {
-            "value": "financialClose",
-            "label": "Финансовое закрытие заявки"
-        },
-        {
-            "value": "accountCheck",
-            "label": "Просмотр бухгалтерией"
-        },
-        {
-            "value": "editCaseAfterClosure",
-            "label": "Внесение изменений после выставления счета"
-        },
-        {
-            "value": "caseContinue",
-            "label": "Продолжение работы с кейсом"
         },
         {
             "value": "dealerApproval",
@@ -83,6 +83,6 @@
         {
             "value": "tellMakerDenied",
             "label": "Оповещение об отказе автопроизводителя"
-        }        
+        }
     ]
 }
