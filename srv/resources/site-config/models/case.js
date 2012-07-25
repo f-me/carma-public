@@ -46,7 +46,7 @@
                 "label": "Карта участника",
                 "infoText": "cardnum"
             }
-        },        
+        },
         {
             "targets": [
                 "caseAddress_coords",
@@ -122,8 +122,7 @@
                 "cardNumber_cardOwner",
                 "cardNumber_manager"
             ],
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head" ]
+            "canRead": [ "partner", "front", "back", "head", "parguy" ]
         },
         {
             "targets": [
