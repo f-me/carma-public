@@ -438,7 +438,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "VINChecked",
-                "label": "VIN проверен",
+                "label": "Участие в программе",
                 "required": true,
                 "infoText": "vinChecked"
             }
