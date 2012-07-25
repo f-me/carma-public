@@ -253,6 +253,7 @@ setupView = (elName, knockVM,  options) ->
   for f in knockVM.model().referenceFields
     do (f) ->
       refsForest = "#{knockVM.modelName()}-#{f}-references"
+      $el(refsForest).empty()
       knockVM[f + 'Reference'].subscribe (newValue) ->
         $el(refsForest).empty()
         for r in newValue
