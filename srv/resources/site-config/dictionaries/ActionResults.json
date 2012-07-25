@@ -182,6 +182,74 @@
                 "label": "Счёт введён"
             },
             {
+                "value": "parguyToBack",
+                "label": "Вернуть в Backoffice"
+            },
+            {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            }
+        ],
+        "parguyNeedInfo": [
+            {
+                "value": "backToParyguy",
+                "label": "Вернуть менеджеру по партнёрам"
+            },
+            {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            }
+        ],
+        "headCheck": [
+            {
+                "value": "headToParyguy",
+                "label": "На доработку МпП"
+            },
+            {
+                "value": "confirm",
+                "label": "Услуга проверена РКЦ"
+            },
+            {
+                "value": "confirmWODirector",
+                "label": "Ок (без проверки директором)"
+            },
+            {
+                "value": "confirmFinal",
+                "label": "Ок (без проверки директором и бухгалтерией)"
+            },
+            {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            }
+        ],
+        "directorCheck": [
+            {
+                "value": "directorToHead",
+                "label": "Требуется доработка РКЦ"
+            },
+            {
+                "value": "directorConfirm",
+                "label": "Услуга проверена директором"
+            },
+            {
+                "value": "dirConfirmFinal",
+                "label": "Ок (без проверки бухгалтерией)"
+            },
+            {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            }
+        ],
+        "accountCheck": [
+            {
+                "value": "accountToDirector",
+                "label": "Требуется доработка директора"
+            },
+            {
+                "value": "accountConfirm",
+                "label": "Проверено бухгалтерией"
+            },
+            {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
             }
@@ -214,36 +282,8 @@
                 "label": "Требуется перезвонить"
             },
             {
-                "value": "caseClosedFinancialOk",
+                "value": "caseClosed",
                 "label": "Заявка закрыта"
-            },
-            {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
-            }
-        ],
-        "accountCheck": [
-            {
-                "value": "financialOk",
-                "label": "Всё верно"
-            },
-            {
-                "value": "accountError",
-                "label": "Расхождение в счёте"
-            },
-            {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
-            }
-        ],
-        "editCaseAfterClosure": [
-            {
-                "value": "caseEdited",
-                "label": "Изменения внесены"
-            },
-            {
-                "value": "recloseService",
-                "label": "Требуется закрыть заявку"
             },
             {
                 "value": "unassignPlease",
