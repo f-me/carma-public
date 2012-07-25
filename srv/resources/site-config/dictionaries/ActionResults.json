@@ -254,6 +254,16 @@
                 "label": "Отказ от действия"
             }
         ],
+        "analystCheck": [
+            {
+                "value": "analystChecked",
+                "label": "Проверено аналитиком"
+            },
+            {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            }
+        ],        
         "getInfoDealerVW": [
             {
                 "value": "busyLine",
