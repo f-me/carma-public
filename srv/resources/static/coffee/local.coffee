@@ -37,6 +37,16 @@ localScreens = ->
     "views":
       "reports":
         constructor: setupReports
+  "newVin":
+    "template": "newVin-screen-template"
+    "views":
+      "vin-form":
+        constructor: setupNewVinForm
+  "editVin":
+    "template": "editVin-screen-template"
+    "views":
+      "vin-form":
+        constructor: setupEditVinForm
 
 # Setup routing
 localRouter = Backbone.Router.extend
@@ -52,6 +62,8 @@ localRouter = Backbone.Router.extend
     "reports"     : "reports"
     "partner"     : "newPartner"
     "partner/:id" : "loadPartner"
+    "editVin"     : "editVin"
+    "newVin"      : "newVin"
 
   loadCase    : (id) -> renderScreen("case", {"id": id})
   newCase     :      -> renderScreen("case", {"id": null})
@@ -63,6 +75,8 @@ localRouter = Backbone.Router.extend
   loadCall    : (id) -> renderScreen("call", {"id": id})
   call        :      -> renderScreen("call")
   reports     :      -> renderScreen("reports")
+  editVin     :      -> renderScreen("editVin")
+  newVin      :      -> renderScreen("newVin")
 
 # here is entry point
 $( ->
