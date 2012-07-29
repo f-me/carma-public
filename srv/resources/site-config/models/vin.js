@@ -10,50 +10,76 @@
             "targets": true,
             "canWrite": false,
             "canRead": true
+        },
+        {
+            "targets": [
+                "car_make",
+                "car_model",
+                "car_makeYear",
+                "car_plateNum",
+                "car_color",
+                "car_buyDate",
+                "car_checkupDate",
+                "car_seller"
+            ],
+            "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
+            "canWrite": [ "front", "back", "head", "parguy" ]
+        },
+        {
+            "targets": [
+                "cardNumber_cardNumber",
+                "cardNumber_serviceInterval",
+                "cardNumber_validFrom",
+                "cardNumber_validUntil",
+                "cardNumber_mileageTO",
+                "cardNumber_validUntilMilage"
+            ],
+            "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
+            "canWrite": [ "front", "back", "head", "parguy" ]
+        },
+        {
+            "targets": [
+                "owner_name"
+            ],
+            "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
+            "canWrite": [ "front", "back", "head", "parguy" ],
+            "meta": {
+                "label": "Владелец"
+            }
+        },
+        {
+            "targets": [
+                "owner_email",
+                "owner_phone1"
+            ],
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head","parguy" ]
         }
     ],
     "fields": [
         {
-            "name": "program"
+            "name": "program",
+            "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
+            "canWrite": [ "front", "back", "head", "parguy" ],
+            "index": true,
+            "type": "dictionary",
+            "meta": {
+                "dictionaryName": "Programs",
+                "label": "Программа",
+                "required": true,
+                "targetCategory": "program",
+                "infoText": "program"
+            }
+
         },
         {
-            "name": "make"
-        },
-        {
-            "name":"model"
-        },
-        {
-            "name":"arcModelCode"
-        },
-        {
-            "name":"fddsId"
-        },
-        {
-            "name":"vin"
-        },
-        {
-            "name":"dealerCode"
-        },
-        {
-            "name":"dealerNameEn"
-        },
-        {
-            "name":"validFrom"
-        },
-        {
-            "name":"validUntil"
-        },
-        {
-            "name":"plateNumber"
-        },
-        {
-            "name":"programRegistartionDate"
-        },
-        {
-            "name":"mileageTO"
-        },
-        {
-            "name":"serviceInterval"
+            "name": "callTaker",
+            "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
+            "meta": {
+                "label": "Сотрудник РАМК",
+                "required": true,
+                "readonly": true
+            }
         }
     ]
 }
