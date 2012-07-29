@@ -45,12 +45,16 @@ create r model commit = runRedisDB r $ do
   Right _ <- hmset key $ M.toList commit'
   return idStr
 
+create' r model id commit = runRedisDB r $ do
+  let key = objKey model id
+  Right _   <- hmset key $ M.toList $ M.insert "id" id commit
+  Right res <- fmap M.fromList <$> hgetall key
+  return res
 
 update r model objId commit = runRedisDB r $ do
   let key = objKey model objId
   Right _ <- hmset key $ M.toList commit
   return ()
-
 
 updateMany r objectMap = runRedisDB r $ do
   res <- forM (M.toList objectMap) $ \(k,obj) ->

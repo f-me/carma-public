@@ -219,6 +219,15 @@ getActionsForCase = do
   writeJSON $
     filter ((id' ==) . (Map.findWithDefault "" "caseId")) actions
 
+
+findOrCreateHandler :: AppHandler ()
+findOrCreateHandler = do
+  Just model <- getParam "model"
+  Just id <- getParam "id"
+  res <- with db $ DB.findOrCreate model id Map.empty
+  -- FIXME: try/catch & handle/log error
+  writeJSON res
+
 ------------------------------------------------------------------------------
 -- | Reports
 report :: AppHandler ()
