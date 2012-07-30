@@ -10,6 +10,7 @@ module Snaplet.DbLayer.PostgresCRUD (
 
 import Prelude hiding (log, catch)
 
+import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.CatchIO
@@ -133,10 +134,11 @@ functions ds = [
         fromStringField (SM.StringValue s) = Just s
         fromStringField _ = Nothing
 
-        lookupField [SM.StringValue s, SM.StringValue d] = do
-            d' <- M.lookup d ds
-            s' <- M.lookup s d'
-            return $ SM.StringValue s'
+        lookupField [SM.StringValue s, SM.StringValue d] = look <|> Just (SM.StringValue s) where
+            look = do
+                d' <- M.lookup d ds
+                s' <- M.lookup s d'
+                return $ SM.StringValue s'
         lookupField _ = Nothing
         
         ifFun [i, t, f]
