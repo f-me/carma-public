@@ -415,7 +415,10 @@
             id="newVin-screen-template"
             class="screen-template">
       <div align="center">
-        <form method="POST" action="/_/findOrCreate/vin">
+        <form id="new-vin"
+              method="POST"
+              action="/_/findOrCreate/vin"
+              onSubmit="doNewVin(event)">
           <label>Введите VIN</label>
           <input name="id" type="text">
           <label>
@@ -427,7 +430,12 @@
     <script type="text/template"
             id="editVin-screen-template"
             class="screen-template">
-      <div id="vin-form" />
+      <div id="left"  class="nice-scrollbar pane">
+        <div id="vin-form" class="form-vertical"/>
+        <div id="vin-permissions"/>
+      </div>
+      <div id="center" class="nice-scrollbar pane"/>
+      <div id="right"  class="nice-scrollbar pane"/>
     </script>
 
     <script type="text/template"

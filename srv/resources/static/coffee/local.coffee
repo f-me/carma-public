@@ -39,14 +39,11 @@ localScreens = ->
         constructor: setupReports
   "newVin":
     "template": "newVin-screen-template"
-    "views":
-      "vin-form":
-        constructor: setupNewVinForm
   "editVin":
     "template": "editVin-screen-template"
     "views":
       "vin-form":
-        constructor: setupEditVinForm
+        constructor: setupEditVin
 
 # Setup routing
 localRouter = Backbone.Router.extend
@@ -75,7 +72,7 @@ localRouter = Backbone.Router.extend
   loadCall    : (id) -> renderScreen("call", {"id": id})
   call        :      -> renderScreen("call")
   reports     :      -> renderScreen("reports")
-  editVin     :      -> renderScreen("editVin")
+  editVin     : (a)  -> renderScreen("editVin", a)
   newVin      :      -> renderScreen("newVin")
 
 # here is entry point

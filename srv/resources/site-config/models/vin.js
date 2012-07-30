@@ -3,60 +3,33 @@
     "title": "VIN",
     "canCreate": false,
     "canRead": true,
-    "canUpdate": false,
+    "canUpdate": true,
     "canDelete": false,
     "applications": [
         {
             "targets": true,
-            "canWrite": false,
+            "canWrite": true,
             "canRead": true
-        },
-        {
-            "targets": [
-                "car_make",
-                "car_model",
-                "car_makeYear",
-                "car_plateNum",
-                "car_color",
-                "car_buyDate",
-                "car_checkupDate",
-                "car_seller"
-            ],
-            "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
-            "canWrite": [ "front", "back", "head", "parguy" ]
-        },
-        {
-            "targets": [
-                "cardNumber_cardNumber",
-                "cardNumber_serviceInterval",
-                "cardNumber_validFrom",
-                "cardNumber_validUntil",
-                "cardNumber_mileageTO",
-                "cardNumber_validUntilMilage"
-            ],
-            "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
-            "canWrite": [ "front", "back", "head", "parguy" ]
-        },
-        {
-            "targets": [
-                "owner_name"
-            ],
-            "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
-            "canWrite": [ "front", "back", "head", "parguy" ],
-            "meta": {
-                "label": "Владелец"
-            }
-        },
-        {
-            "targets": [
-                "owner_email",
-                "owner_phone1"
-            ],
-            "canRead": [ "partner", "front", "back", "head", "parguy" ],
-            "canWrite": [ "front", "back", "head","parguy" ]
         }
     ],
     "fields": [
+        {
+            "name": "id",
+            "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
+            "meta": {
+                "label": "VIN",
+                "readonly": true
+            }
+        },
+        {
+            "name": "callTaker",
+            "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
+            "meta": {
+                "label": "Сотрудник РАМК",
+                "required": true,
+                "readonly": true
+            }
+        },
         {
             "name": "program",
             "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
@@ -70,16 +43,29 @@
                 "targetCategory": "program",
                 "infoText": "program"
             }
-
         },
         {
-            "name": "callTaker",
+            "name": "owner",
             "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
+            "canWrite": [ "front", "back", "head", "parguy" ],
+            "groupName": "vinContact",
             "meta": {
-                "label": "Сотрудник РАМК",
-                "required": true,
-                "readonly": true
+                "label": "Владелец",
+                "infoText": "ownerName"
             }
+        },
+        {
+            "name": "car",
+            "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
+            "canWrite": [ "front", "back", "head", "parguy" ],
+            "groupName": "vinCar"
+        },
+        {
+            "name": "cardNumber",
+            "canRead": [ "partner", "front", "back", "head", "parguy" ],
+            "canWrite": [ "front", "back", "head", "parguy" ],
+            "groupName": "cardNumber"
         }
+
     ]
 }
