@@ -1110,8 +1110,8 @@
                 id="default-case-complex-field">
         <p>
           <b>Кто звонил:</b>
-          <span data-bind="text: caller_name"/>&nbsp;
-          <span data-bind="text: caller_phone1"/>
+          <span data-bind="text: contact_name"/>&nbsp;
+          <span data-bind="text: contact_phone1"/>
         </p>
         <p data-bind="visible: car_make">
           <b>Машина:</b>
