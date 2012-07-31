@@ -98,6 +98,7 @@
                 "contact_phone2",
                 "contact_phone3",
                 "contact_phone4",
+                "conact_ownerName",
                 "contact_contactOwner",
                 "contact_ownerEmail",
                 "contact_ownerPhone1",
@@ -412,7 +413,6 @@
                 "parguy"
             ],
             "canWrite": [
-                "front",
                 "back",
                 "head",
                 "parguy"

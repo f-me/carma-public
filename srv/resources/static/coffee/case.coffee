@@ -64,7 +64,7 @@ this.makeCase = () ->
     contact_phone3: v['callerName_phone3']()
     contact_phone4: v['callerName_phone4']()
     contact_email:  v['callerName_email']()
-    comment:       v['wazzup']()
+    comment:        v['wazzup']()
     callTaker: global.user.meta.realName
   buildNewModel 'case', args, {},
     (a, b, k) ->
