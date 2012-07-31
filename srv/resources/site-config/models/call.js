@@ -19,12 +19,12 @@
                 "partner",
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
-                "head"
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
             ],
             "index": true,
             "indexCollate": true,
@@ -40,7 +40,7 @@
                 "partner",
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],

@@ -47,16 +47,16 @@
       {
         "name": "comment",
         "type": "textarea",
-        "canRead": ["front","back","head", "account", "parguy"],
-        "canWrite":["front","back","head", "account", "parguy"],
+        "canRead": ["front","back","head", "supervisor", "director", "analyst", "account", "admin", "programman", "account", "parguy"],
+        "canWrite":["front","back","head", "supervisor", "director", "analyst", "account", "admin", "programman", "account", "parguy"],
         "meta": {
           "label": "Комментарий"
         }
       },
       {
         "name": "result",
-        "canRead": ["front","back","head", "account", "parguy"],
-        "canWrite":["front","back","head", "account", "parguy"], 
+        "canRead": ["front","back","head", "supervisor", "director", "analyst", "account", "admin", "programman", "account", "parguy"],
+        "canWrite":["front","back","head", "supervisor", "director", "analyst", "account", "admin", "programman", "account", "parguy"], 
         "type": "dictionary",
         "meta": {
           "addClass": "redirectOnChange",
@@ -83,8 +83,8 @@
       },
       {
         "name": "targetGroup",
-        "canRead": ["front","back","head", "account", "parguy"],
-        "canWrite":["front","back","head", "account", "parguy"], 
+        "canRead": ["front","back","head", "supervisor", "director", "analyst", "account", "admin", "programman", "account", "parguy"],
+        "canWrite":["front","back","head", "supervisor", "director", "analyst", "account", "admin", "programman", "account", "parguy"], 
         "index": true,
         "meta": {
           "invisible": true
@@ -92,8 +92,8 @@
       },
       {
         "name": "assignedTo",
-        "canRead": ["front","back","head", "account", "parguy"],
-        "canWrite":["back","head"], 
+        "canRead": ["front","back","head", "supervisor", "director", "analyst", "account", "admin", "programman", "account", "parguy"],
+        "canWrite":["back","head", "supervisor", "director", "analyst", "account", "admin", "programman"], 
         "meta": {
           "invisible": true
         }

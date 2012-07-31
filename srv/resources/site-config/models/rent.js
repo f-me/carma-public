@@ -41,14 +41,14 @@
                 "partner",
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ]
         },
@@ -62,13 +62,13 @@
                 "partner",
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ]
         },
@@ -82,14 +82,14 @@
                 "partner",
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ]
         },
@@ -100,12 +100,12 @@
             "canRead": [
                 "front",
                 "back",
-                "head"
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
             ]
         },
         {
@@ -114,13 +114,13 @@
             ],
             "canRead": [
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ]
         },
@@ -132,7 +132,7 @@
             "canRead": [
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy",
                 "account"
             ]
@@ -143,7 +143,7 @@
             ],
             "canRead": [
                 "back",
-                "head"
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
             ]
         },
         {
@@ -154,12 +154,12 @@
             "canRead": [
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ]
         },
@@ -170,7 +170,7 @@
                 "bill_billingDate"
             ],
             "canRead": [
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
@@ -185,13 +185,13 @@
                 "partner",
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ]
         },
@@ -208,12 +208,12 @@
             ],
             "canRead": [
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ]
         },
@@ -241,14 +241,14 @@
                 "partner",
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
             ],			
             "type": "dictionary",
             "meta": {
@@ -270,13 +270,13 @@
                 "partner",
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head"
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
             ],
             "type": "dictionary",
             "meta": {
@@ -295,13 +295,13 @@
                 "partner",
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ],
             "groupName": "partner",
@@ -315,13 +315,13 @@
                 "partner",
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ],
             "groupName": "address",
@@ -335,13 +335,13 @@
                 "partner",
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ],
             "type": "dictionary",
@@ -356,14 +356,14 @@
                 "partner",
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ],
             "groupName": "partner",
@@ -377,13 +377,13 @@
                 "partner",
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ],
             "meta": {
@@ -396,13 +396,13 @@
                 "partner",
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ],
             "meta": {
@@ -417,13 +417,13 @@
                 "partner",
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ],
             "meta": {
@@ -439,14 +439,14 @@
                 "partner",
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ],
             "type": "dictionary",
@@ -461,12 +461,12 @@
                 "partner",
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "back",
-                "head"
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
             ],
             "type": "checkbox",
             "meta": {
@@ -479,12 +479,12 @@
                 "partner",
                 "front",
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "back",
-                "head",
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
                 "parguy"
             ],
             "type": "checkbox",
@@ -494,8 +494,8 @@
         },
         {
             "name": "files",
-            "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
-            "canWrite": [ "front", "back", "head", "parguy" ],
+            "canRead": [ "partner", "front", "back", "head", "supervisor", "director", "analyst", "account", "admin", "programman", "parguy", "account" ],
+            "canWrite": [ "front", "back", "head", "supervisor", "director", "analyst", "account", "admin", "programman", "parguy" ],
             "type": "files",
             "meta": {
                 "label": "Прикрепленные файлы"
