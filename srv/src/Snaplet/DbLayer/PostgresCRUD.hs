@@ -300,6 +300,8 @@ insertUpdate ms name c m = escopev "insertUpdate" False $ withPG (SM.insertUpdat
 
 generateReport :: (PS.HasPostgres m, MonadLog m) => SM.Models -> [T.Text] -> FilePath -> FilePath -> m ()
 generateReport ms conds tpl file = scope "generateReport" $ do
+    log Info "Generating report"
     log Trace "Loading dictionaries"
     dicts <- scope "dictionaries" $ liftIO $ loadDicts "resources/site-config/dictionaries"
     scope "createReport" $ withPG (R.createReport (SM.modelsSyncs ms) (functions dicts) conds tpl file)
+    log Info "Report generated"
