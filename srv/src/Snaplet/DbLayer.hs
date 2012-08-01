@@ -94,9 +94,6 @@ update model objId commit = scoper "update" $ do
   return $ (changes Map.! fullId) Map.\\ commit
 
 delete model objId = do
-  liftIO $ putStrLn "UPDATE"
-  liftIO $ putStrLn $ "  MODEL: " ++ show model
-  --
   Redis.delete redis model objId
 
 search ixName val = do
@@ -123,17 +120,20 @@ generateReport conds template filename = Postgres.generateReport Postgres.modelM
 
 readAll model = Redis.readAll redis model
 
+-- log politics
+logConfig = []
 
 initDbLayer :: SnapletInit b (DbLayer b)
 initDbLayer = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
-    liftIO $ Postgres.createIO Postgres.modelModels
+    l <- liftIO $ newLog defaultPolitics logConfig [logger text (file "log/db.log")]
+    liftIO $ Postgres.createIO Postgres.modelModels l
     cfg <- getSnapletUserConfig
     DbLayer
       <$> nestSnaplet "redis" redis
             (redisDBInit Redis.defaultConnectInfo)
       <*> nestSnaplet "pgsql" postgres pgsInit
-      <*> nestSnaplet "dblog" dbLog (simpleLogInit [logger text (file "log/db.log")])
+      <*> nestSnaplet "dblog" dbLog (simpleLogInit_ l)
       <*> liftIO triggersConfig
       <*> liftIO createIndices
       <*> (liftIO $ fddsConfig cfg)

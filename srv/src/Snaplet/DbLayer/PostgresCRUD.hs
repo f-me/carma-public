@@ -38,10 +38,11 @@ import qualified Database.PostgreSQL.Report.Function as R
 import Snaplet.DbLayer.Dictionary
 import Snap.Snaplet.SimpleLog
 
-withPG :: (PS.HasPostgres m) => (P.Connection -> IO a) -> m a
+withPG :: (PS.HasPostgres m, MonadLog m) => S.TIO a -> m a
 withPG f = do
     s <- PS.getPostgresState
-    liftIO $ Pool.withResource (PS.pgPool s) f
+    l <- askLog
+    liftIO $ Pool.withResource (PS.pgPool s) (withLog l . S.inPG f)
 
 caseModel :: S.Sync
 caseModel = S.sync "casetbl" "garbage" [
@@ -255,14 +256,14 @@ elogv v act = E.catch act (onError v) where
 		putStrLn $ "Failed with: " ++ show e
 		return x
 
-createIO :: SM.Models -> IO ()
-createIO ms = do
+createIO :: SM.Models -> Log -> IO ()
+createIO ms l = do
     con <- P.connect local
     let
         onError :: E.SomeException -> IO ()
         onError _ = return ()
     E.catch (void $ P.execute_ con "create extension hstore") onError
-    S.transaction con $ S.create (SM.modelsSyncs ms)
+    withLog l $ S.transaction con $ S.create (SM.modelsSyncs ms)
 
 toStr :: ByteString -> String
 toStr = T.unpack . T.decodeUtf8
@@ -272,21 +273,21 @@ toCond ms m c = S.conditionComplex (SM.modelsSyncs ms) (tableName ++ ".id = ?") 
     tableName = fromMaybe (error "Invalid model name") $ fmap (SM.syncTable . SM.modelSync) $ M.lookup (toStr m) (SM.modelsModels ms)
 
 create :: (PS.HasPostgres m, MonadLog m) => S.Syncs -> m ()
-create ss = escope "create" $ withPG (S.inPG (S.create ss))
+create ss = escope "create" $ withPG (S.create ss)
 
 insert :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> S.SyncMap -> m ()
-insert ms name m = escope "isnert" $ withPG (S.inPG (SM.insert ms (toStr name) m))
+insert ms name m = escope "isnert" $ withPG (SM.insert ms (toStr name) m)
 
 select :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> ByteString -> m S.SyncMap
-select ms name c = scoper "select" $ withPG (S.inPG $ SM.select ms (toStr name) cond) where
+select ms name c = scoper "select" $ withPG (SM.select ms (toStr name) cond) where
     cond = toCond ms name c
 
 exists :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> ByteString -> m Bool
-exists ms name c = escopev "exists" False $ withPG (S.inPG (SM.exists ms (toStr name) cond)) where
+exists ms name c = escopev "exists" False $ withPG (SM.exists ms (toStr name) cond) where
     cond = toCond ms name c
 
 update :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> ByteString -> S.SyncMap -> m ()
-update ms name c m = escope "update" $ withPG (S.inPG (SM.update ms (toStr name) cond m)) where
+update ms name c m = escope "update" $ withPG (SM.update ms (toStr name) cond m) where
     cond = toCond ms name c
 
 updateMany :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> M.Map ByteString S.SyncMap -> m ()
@@ -294,11 +295,11 @@ updateMany ms name m = scope "updateMany" $ forM_ (M.toList m) $ uncurry (update
     update' k obj = update ms name k (M.insert (C8.pack "id") k obj)
 
 insertUpdate :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> ByteString -> S.SyncMap -> m Bool
-insertUpdate ms name c m = escopev "insertUpdate" False $ withPG (S.inPG (SM.insertUpdate ms (toStr name) cond m)) where
+insertUpdate ms name c m = escopev "insertUpdate" False $ withPG (SM.insertUpdate ms (toStr name) cond m) where
     cond = toCond ms name c
 
 generateReport :: (PS.HasPostgres m, MonadLog m) => SM.Models -> [T.Text] -> FilePath -> FilePath -> m ()
 generateReport ms conds tpl file = scope "generateReport" $ do
     log Trace "Loading dictionaries"
     dicts <- scope "dictionaries" $ liftIO $ loadDicts "resources/site-config/dictionaries"
-    scope "createReport" $ withPG (S.inPG $ R.createReport (SM.modelsSyncs ms) (functions dicts) conds tpl file)
+    scope "createReport" $ withPG (R.createReport (SM.modelsSyncs ms) (functions dicts) conds tpl file)
