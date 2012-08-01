@@ -14,14 +14,14 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "meta": {
@@ -36,14 +36,14 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "meta": {
@@ -58,13 +58,13 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"
             ],
             "meta": {
                 "label": "Карта участника",
@@ -81,13 +81,13 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy"
             ]
         },
@@ -110,14 +110,14 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy"
             ]
         },
@@ -156,14 +156,14 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy"
             ]
         },
@@ -181,7 +181,7 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy"
             ]
         },
@@ -211,12 +211,12 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"
             ],
             "index": true,
             "indexCollate": true,
@@ -232,7 +232,7 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
@@ -248,14 +248,14 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "type": "dictionary",
@@ -272,13 +272,13 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "type": "dictionary",
@@ -295,12 +295,12 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"
             ],
             "type": "dictionary",
             "meta": {
@@ -316,12 +316,12 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"
             ],
             "type": "dictionary",
             "meta": {
@@ -337,12 +337,12 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"
             ],
             "type": "dictionary",
             "meta": {
@@ -365,14 +365,14 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "index": true,
@@ -391,14 +391,14 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "groupName": "car"
@@ -409,12 +409,12 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "groupName": "cardNumber"
@@ -425,14 +425,14 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "type": "dictionary",
@@ -453,13 +453,13 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "type": "dictionary",
@@ -476,12 +476,12 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"
             ],
             "meta": {
                 "label": "Температура",
@@ -494,11 +494,11 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"
             ],
             "canWrite": [
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"
             ],
             "meta": {
                 "label": "Причина неисправности со слов дилера",
@@ -512,11 +512,11 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"
             ],
             "type": "dictionary",
             "meta": {
@@ -531,13 +531,13 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "meta": {
@@ -571,14 +571,14 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "type": "files",
