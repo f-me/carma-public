@@ -215,7 +215,7 @@
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
             ],
             "meta": {
                 "label": "Контакт 1"
@@ -233,7 +233,7 @@
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
             ],
             "meta": {
                 "label": "Телефон 1",
@@ -253,7 +253,7 @@
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
             ],
             "meta": {
                 "label": "Что сказать 1"
@@ -272,7 +272,7 @@
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
             ],
             "meta": {
                 "label": "Контакт 2"
@@ -290,7 +290,7 @@
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
             ],
             "meta": {
                 "label": "Телефон 2",
@@ -310,7 +310,7 @@
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
             ],
             "meta": {
                 "label": "Что сказать 2"
@@ -329,7 +329,7 @@
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
             ],
             "meta": {
                 "label": "Контакт 3"
@@ -347,7 +347,7 @@
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
             ],
             "meta": {
                 "label": "Телефон 3",
@@ -367,7 +367,7 @@
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
             ],
             "meta": {
                 "label": "Что сказать 3"

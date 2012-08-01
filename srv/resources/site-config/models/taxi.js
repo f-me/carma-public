@@ -71,6 +71,9 @@
                 "back",
                 "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy"
+            ],
+			"canWrite": [
+                "parguy"
             ]
         },
         {

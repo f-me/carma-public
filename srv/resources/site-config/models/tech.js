@@ -55,6 +55,9 @@
                 "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
+            ],
+			"canWrite": [
+                "parguy"
             ]
         },
         {
