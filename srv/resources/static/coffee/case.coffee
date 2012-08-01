@@ -64,6 +64,17 @@ this.makeCase = () ->
     contact_phone3: v['callerName_phone3']()
     contact_phone4: v['callerName_phone4']()
     contact_email:  v['callerName_email']()
+    contact_contactOwner: v['callerName_contactOwner']()
+    contact_ownerName:    v['callerName_ownerName']()
+    contact_ownerPhone1:  v['callerName_ownerPhone1']()
+    contact_ownerPhone2:  v['callerName_ownerPhone2']()
+    contact_ownerPhone3:  v['callerName_ownerPhone3']()
+    contact_ownerPhone4:  v['callerName_ownerPhone4']()
+    contact_ownerEmail:   v['callerName_ownerEmail']()
+    program:        v['program']()
+    city:           v['city']()
+    car_make:       v['make']()
+    car_model:      v['model']()
     comment:        v['wazzup']()
     callTaker: global.user.meta.realName
   buildNewModel 'case', args, {},
