@@ -3,8 +3,8 @@ this.setupBackOffice = ->
       tables = mkBoTable()
       global.boData = { started: new Date, r: {} }
       global.boData.iHandler =
-        setInterval((-> $.getJSON("/ix/actionsForUser", setupBoTable)), 7000)
-      $.getJSON("/ix/actionsForUser", setupBoTable)
+        setInterval((-> $.getJSON("/myActions", setupBoTable)), 17000)
+      $.getJSON("/myActions", setupBoTable)
       # non polling version for debug purposes
       # $.getJSON("/all/action", setupBoTable tables)
     ), 200)
@@ -14,18 +14,6 @@ this.removeBackOffice = ->
   clearInterval h if h?
 
 mkBoTable = ->
-  groupTable = $("#back-group-table")
-  gt = mkDataTable(groupTable)
-  gt.fnSort [[2, "desc"]]
-  groupTable.on("click.datatable", "tr", ->
-    id = this.children[0].innerText.split('/');
-    $.ajax
-        type        : "PUT"
-        url         : "/_/action/"+ id[1]
-        contentType : "application/json"
-        data        : '{"assignedTo":"'+global.user.login+'"}'
-        processData : false
-    window.location.hash = "case/" + id[0])
   userTable = $("#back-user-table")
   ut = mkDataTable(userTable)
   ut.fnSort [[2, "desc"]]
@@ -33,26 +21,17 @@ mkBoTable = ->
      id = this.children[0].innerText.split('/')
      window.location.hash = "case/" + id[0]
   )
-  return [userTable, groupTable]
+  return [userTable]
 
 setupBoTable = (actions) ->
     userTable = $("#back-user-table")
-    groupTable = $("#back-group-table")
-    addActions(actions.user,  userTable.dataTable())
-    addActions(actions.group, groupTable.dataTable())
-    handleBoUpdate(groupTable)
+    addActions(actions,  userTable.dataTable())
     boNotify handleBoUpdate(userTable)
-
 
 
 addActions = (actions, table) ->
   table.fnClearTable()
-  for i of actions
-    act = actions[i]
-    continue if not act.caseId
-    continue if not act.id
-    continue if not act.duetime
-
+  rows = for act in actions
     id = act.caseId.replace(/\D/g,'') + "/" + act.id.replace(/\D/g,'')
     duetime = new Date(act.duetime * 1000).toString("dd.MM.yyyy HH:mm:ss")
     row = [id
@@ -60,7 +39,7 @@ addActions = (actions, table) ->
           ,duetime
           ,act.description || ''
           ,act.comment || '']
-    table.fnAddData(row)
+  table.fnAddData(rows)
 
 
 # mark expired entries and notify with alert of just expired rows

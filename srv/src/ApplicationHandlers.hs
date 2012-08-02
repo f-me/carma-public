@@ -4,6 +4,7 @@ module ApplicationHandlers where
 
 import Data.Functor
 import Control.Monad.IO.Class
+import Control.Concurrent.STM
 
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -20,6 +21,7 @@ import Data.Ord (comparing)
 import Data.Time.Clock (getCurrentTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 
+import Snap
 import Snap.Core
 import Snap.Snaplet (with)
 import Snap.Snaplet.Heist
@@ -78,16 +80,28 @@ doLogin = ifTop $ do
   p <- fromMaybe "" <$> getParam "password"
   r <- isJust <$> getParam "remember"
   res <- with auth $ loginByUsername l (ClearText p) r
+  case res of
+    Left _ -> redirectToLogin
+    Right u -> do
+      logdUsrs <- gets loggedUsers
+      liftIO $ atomically $ modifyTVar' logdUsrs (Map.insert (userLogin u) ())
+      avayaExt <- fromMaybe "" <$> getParam "avayaExt" >>= fromBS
+      avayaPwd <- fromMaybe "" <$> getParam "avayaPwd" >>= fromBS
+      with session $ do
+        setInSession "avayaExt" avayaExt
+        setInSession "avayaPwd" avayaPwd
+        commitSession
 
-  avayaExt <- fromMaybe "" <$> getParam "avayaExt" >>= fromBS
-  avayaPwd <- fromMaybe "" <$> getParam "avayaPwd" >>= fromBS
-  with session $ do
-    setInSession "avayaExt" avayaExt
-    setInSession "avayaPwd" avayaPwd
-    commitSession
+      redirect "/"
 
-  either (const redirectToLogin) (const $ redirect "/") res
 
+doLogout :: AppHandler ()
+doLogout = ifTop $ do
+  Just u <- with auth currentUser
+  logdUsrs <- gets loggedUsers
+  liftIO $ atomically $ modifyTVar' logdUsrs (Map.delete $ userLogin u)
+  with auth logout
+  redirectToLogin
 
 ------------------------------------------------------------------------------
 -- | Serve user account data back to client.
@@ -164,6 +178,53 @@ syncHandler = do
   res <- with db DB.sync
   writeJSON res
 
+
+myActionsHandler :: AppHandler ()
+myActionsHandler = do
+  -- FIXME : update loggedUsers
+  actLock <- gets actionsLock
+  do -- bracket_
+    (liftIO $ atomically $ takeTMVar actLock)
+    assignActions
+    (liftIO $ atomically $ putTMVar actLock ())
+
+assignActions :: AppHandler ()
+assignActions = do
+  Just cUsr <- with auth currentUser
+  now  <- liftIO $ getCurrentTime
+  let maybeEq f v a = fromMaybe False $ (==v) <$> Map.lookup f a
+  acts <- filter (maybeEq "closed" "false")
+       <$> with db (DB.readAll "action")
+  let actsByAssignee
+        = foldl'
+          (\m a -> Map.insertWith' (++)
+            (maybe "" T.decodeUtf8 $ Map.lookup "assignedTo" a)
+            [a] m)
+          Map.empty acts
+  logdUsrs <- gets loggedUsers >>= liftIO . readTVarIO
+  let strangersActions
+        = concat $ Map.elems
+        $ Map.difference actsByAssignee logdUsrs
+  now <- liftIO $ round . utcTimeToPOSIXSeconds <$> getCurrentTime
+  let duetimeProximity a = case Map.lookup "duetime" a of
+            Nothing -> True
+            Just s -> case B.readInt s of
+              Just (t, "") -> t - now < 20*60
+              _ -> True
+  let actionsToAssign = sortBy (comparing $ Map.lookup "priority")
+        $ filter duetimeProximity strangersActions
+
+  let assignedActions = take 1 actionsToAssign
+  let updateDB a = DB.update "action" (a Map.! "id") 
+                 $ Map.singleton "assignedTo" (T.encodeUtf8 $ userLogin cUsr)
+  with db $ mapM_ updateDB assignedActions
+
+  writeJSON
+    $! assignedActions
+    ++ Map.findWithDefault [] (userLogin cUsr) actsByAssignee
+ 
+    
+  
 searchByIndex :: AppHandler ()
 searchByIndex = do
   Just ixName <- getParam "indexName"

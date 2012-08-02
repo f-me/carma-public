@@ -4,8 +4,10 @@ module ApplicationInit (appInit) where
 
 import Control.Monad.IO.Class
 
+import qualified Data.Map as Map
 import Data.ByteString (ByteString)
 import Data.Configurator
+import Control.Concurrent.STM
 
 import Snap.Core
 import Snap.Snaplet
@@ -33,7 +35,7 @@ routes :: [(ByteString, AppHandler ())]
 routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/login/",        method GET loginForm)
          , ("/login/",        method POST doLogin)
-         , ("/logout/",       with auth $ logout >> redirectToLogin)
+         , ("/logout/",       doLogout)
          , ("/nominatim",     method GET geodecode)
          , ("/weather/:city", method GET weather)
          , ("/s/",            serveDirectory "resources/static")
@@ -43,6 +45,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/ix/callsByPhone/:phone",
             chkAuth . method GET  $ searchCallsByPhone)
          , ("/actionsFor/:id",chkAuth . method GET  $ getActionsForCase)
+         , ("/myActions",     chkAuth . method GET  $ myActionsHandler)
          , ("/_whoami/",      chkAuth . method GET  $ serveUserCake)
          , ("/_/:model",      chkAuth . method POST $ createHandler)
          , ("/_/:model/:id",  chkAuth . method GET  $ readHandler)
@@ -82,6 +85,9 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        defAuthSettings{ asSiteKey = rmbKey
                       , asRememberPeriod = Just (rmbPer * 24 * 60 * 60)}
                                session authDb
+  logdUsrs <- liftIO $ newTVarIO Map.empty
+  actLock  <- liftIO $ newTMVarIO ()
+
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
 
   d <- nestSnaplet "db" db initDbLayer
@@ -92,7 +98,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   addRoutes routes
 
-  return $ App h s authMgr c d v av fu
+  return $ App h s authMgr logdUsrs actLock c d v av fu
 
 
 ------------------------------------------------------------------------------
