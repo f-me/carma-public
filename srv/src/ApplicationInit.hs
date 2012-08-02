@@ -41,7 +41,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/s/",            serveDirectory "resources/static")
          , ("/report",        chkAuth . method GET  $ report)
          , ("/all/:model",    chkAuth . method GET  $ readAllHandler)
-         , ("/ix/:indexName", chkAuth . method GET  $ searchByIndex)
          , ("/ix/callsByPhone/:phone",
             chkAuth . method GET  $ searchCallsByPhone)
          , ("/actionsFor/:id",chkAuth . method GET  $ getActionsForCase)
