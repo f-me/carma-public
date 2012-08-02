@@ -75,7 +75,10 @@ create model commit = scoper "create" $ do
 findOrCreate model objId commit = do
   r <- read model objId
   case Map.toList r of
-    [] -> Redis.create' redis model objId commit
+    [] -> do
+      commit' <- triggerCreate model commit
+      let obj = Map.union commit' commit
+      Redis.create' redis model objId obj
     _  -> return r
 
 read model objId = do
