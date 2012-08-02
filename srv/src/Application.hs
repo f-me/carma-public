@@ -2,7 +2,10 @@
 
 module Application where
 
+import Data.Text (Text)
+import Data.Map (Map)
 import Data.Lens.Template
+import Control.Concurrent.STM
 
 import Snap.Snaplet
 import Snap.Snaplet.Heist
@@ -23,6 +26,8 @@ data App = App
     { _heist      :: Snaplet (Heist App)
     , _session    :: Snaplet SessionManager
     , _auth       :: Snaplet (AuthManager App)
+    , loggedUsers :: TVar (Map Text ())
+    , actionsLock :: TMVar ()
     , _siteConfig :: Snaplet (SiteConfig App)
     , _db         :: Snaplet (DbLayer App)
     , _vin        :: Snaplet Vin
