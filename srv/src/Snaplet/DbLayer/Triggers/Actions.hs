@@ -193,6 +193,35 @@ actionResultMap = Map.fromList
       "Требуется отказаться от заказанной услуги"
       "back" "1" (+60)
   )
+  ,("moveToAnalyst", \objId -> do
+    act <- replaceAction
+      "orderServiceAnalyst"
+      "Заказ услуги аналитиком"
+      "analyst" "1" (+60) objId
+    set act "assignedTo" ""
+  )
+  ,("moveToBack", \objId -> do
+    act <- replaceAction
+      "orderService"
+      "Заказ услуги аналитиком"
+      "back" "1" (+60) objId
+    set act "assignedTo" ""
+  )
+  ,("needPartnerAnalyst",     \objId -> do 
+     setService objId "status" "needPartner"
+     newAction <- replaceAction
+         "needPartner"
+         "Требуется найти партнёра для оказания услуги"
+         "parguy" "1" (+60) objId
+     set newAction "assignedTo" ""
+  )  
+  ,("serviceOrderedAnalyst", \objId -> do
+     setService objId "status" "serviceOrdered"
+     void $ replaceAction
+         "tellClient"
+         "Сообщить клиенту о договорённости" 
+         "back" "1" (+60) objId
+  )  
   ,("partnerNotOkCancel", \objId -> do
       setService objId "status" "cancelService"
       void $ replaceAction
@@ -260,7 +289,7 @@ actionResultMap = Map.fromList
   ,("complaint", \objId -> do
     setService objId "status" "serviceOk"
     setService objId "clientSatisfied" "0"
-    tm <- getService objId "times_expectedServiceClosure"  	
+    tm <- getService objId "times_expectedServiceClosure"    
     act1 <- replaceAction
       "complaintResolution"
       "Клиент предъявил претензию"
@@ -289,70 +318,70 @@ actionResultMap = Map.fromList
     act <- replaceAction
       "headCheck"
       "Проверка РКЦ"
-      "head" "1" (+60) objId
+      "head" "1" (+360) objId
     set act "assignedTo" ""
   )
   ,("parguyToBack", \objId -> do
     act <- replaceAction
       "parguyNeedInfo"
       "Менеджер по Партнёрам запросил доп. информацию"
-      "back" "3" (+60) objId
+      "back" "3" (+360) objId
     set act "assignedTo" ""
   )
   ,("backToParyguy", \objId -> do
     act <- replaceAction
       "addBill"
       "Прикрепить счёт"
-      "parguy" "1" (+60) objId
+      "parguy" "1" (+360) objId
     set act "assignedTo" ""
   )
   ,("headToParyguy", \objId -> do
     act <- replaceAction
       "addBill"
       "На доработку МпП"
-      "parguy" "1" (+60) objId
+      "parguy" "1" (+360) objId
     set act "assignedTo" ""
   ) 
   ,("confirm", \objId -> do
     act <- replaceAction
       "directorCheck"
       "Проверка директором"
-      "director" "1" (+60) objId
+      "director" "1" (+360) objId
     set act "assignedTo" ""
   )
   ,("confirmWODirector", \objId -> do
     act <- replaceAction
       "accountCheck"
       "Проверка бухгалтерией"
-      "account" "1" (+60) objId
+      "account" "1" (+360) objId
     set act "assignedTo" ""
   )  
   ,("confirmFinal", \objId -> do
     act <- replaceAction
       "analystCheck"
       "Обработка аналитиком"
-      "analyst" "1" (+60) objId
+      "analyst" "1" (+360) objId
     set act "assignedTo" ""
   )    
   ,("directorToHead", \objId -> do
     act <- replaceAction
       "headCheck"
       "Проверка РКЦ"
-      "head" "1" (+60) objId
+      "head" "1" (+360) objId
     set act "assignedTo" ""
   )
   ,("directorConfirm", \objId -> do
     act <- replaceAction
       "accountCheck"
       "Проверка бухгалтерией"
-      "account" "1" (+60) objId
+      "account" "1" (+360) objId
     set act "assignedTo" ""
   )      
   ,("dirConfirmFinal", \objId -> do
     act <- replaceAction
       "analystCheck"
       "Обработка аналитиком"
-      "analyst" "1" (+60) objId
+      "analyst" "1" (+360) objId
     set act "assignedTo" ""
   )    
   ,("vwclosed", closeAction
@@ -361,14 +390,14 @@ actionResultMap = Map.fromList
     act <- replaceAction
       "analystCheck"
       "Обработка аналитиком"
-      "analyst" "1" (+60) objId
+      "analyst" "1" (+360) objId
     set act "assignedTo" ""
   )   
   ,("accountToDirector", \objId -> do
     act <- replaceAction
       "directorCheck"
       "Проверка директором"
-      "director" "1" (+60) objId
+      "director" "1" (+360) objId
     set act "assignedTo" ""
   )   
   ,("analystChecked", closeAction
