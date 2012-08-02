@@ -177,6 +177,26 @@
 					"type": "string"
 				}
 			]
+		},
+		{
+			"model": "call",
+			"table": "calltbl",
+			"hstore": "garbage",
+			"fields": [
+				{
+					"name": "id",
+					"type": "int",
+					"indexed": "true"
+				},
+				{
+					"name": "wazzup",
+					"type": "string"
+				},
+				{
+					"name": "callerName_name",
+					"type": "string"
+				}
+			]
 		}
 	],
 	"relations": [
