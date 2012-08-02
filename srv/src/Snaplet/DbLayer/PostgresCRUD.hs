@@ -114,8 +114,8 @@ modelModels = SM.models modelSyncs $ [("case", SM.model "case" caseModel [])] ++
     "towage",
     "transportation"]
 
-functions :: M.Map String (M.Map String String) -> [R.ReportFunction]
-functions ds = [
+functions :: Dictionary -> [R.ReportFunction]
+functions dict = [
     R.onString "NAME" (fromMaybe "" . listToMaybe . drop 1 . words),
     R.onString "LASTNAME" (fromMaybe "" . listToMaybe . words),
     R.onString "UPPER" (map toUpper),
@@ -135,23 +135,20 @@ functions ds = [
         fromStringField (SM.StringValue s) = Just s
         fromStringField _ = Nothing
 
-        lookupField [SM.StringValue s, SM.StringValue d] = look <|> Just (SM.StringValue s) where
-            look = do
-                d' <- M.lookup d ds
-                s' <- M.lookup s d'
-                return $ SM.StringValue s'
-        lookupField _ = Nothing
+        lookupField [] = Nothing
+        lookupField fs = tryLook <|> justLast where
+            tryLook = do
+                ks <- mapM (fmap T.pack . fromStringField) fs
+                fmap (SM.StringValue . T.unpack) $ look ks dict
+            justLast = Just $ last fs
         
         ifFun [i, t, f]
             | i `elem` [SM.StringValue "1", SM.StringValue "true", SM.StringValue "Y", SM.IntValue 1, SM.BoolValue True] = t
             | otherwise = f
         
         fddsFun fs = do
-            (SM.StringValue pr) <- M.lookup "case.program" fs
-            case pr of
-                "Ford" -> return $ SM.StringValue "3351"
-                "GM" -> return $ SM.StringValue "3275"
-                _ -> return $ SM.StringValue ""
+            pr <- M.lookup "case.program" fs
+            lookupField [SM.StringValue "FDDS", pr]
 
         ownerFun fs = do
             (SM.IntValue isOwner) <- M.lookup "case.callerOwner" fs
@@ -166,132 +163,20 @@ functions ds = [
             return $ SM.StringValue (if isFalse == "bill" then "Y" else "N")
             
         faultFun fs = do
-            (SM.StringValue d) <- M.lookup "case.diagnosis1" fs
-            (SM.StringValue s) <- M.lookup "service.type" fs
-            d' <- M.lookup d $ M.fromList [
-                ("engine", "355"),
-                ("keyLost", "667"),
-                ("engcool", "349"),
-                ("steer", "260"),
-                ("signal", "652"),
-                ("electro", "400"), -- ???
-                ("fuel", "599"),
-                ("brake", "298"),
-                ("gears", "745"),
-                ("needDiagnostic", "921"),
-                ("tread", "246"),
-                ("electronics", "514"),
-                ("dtp", "144")]
-            s' <- M.lookup s $ M.fromList [
-                ("tech", "55"),
-                ("towage", "6G")]
+            d <- M.lookup "case.diagnosis1" fs
+            s <- M.lookup "service.type" fs
+            (SM.StringValue d') <- lookupField [SM.StringValue "FaultCode", SM.StringValue "diagnosis1", d]
+            (SM.StringValue s') <- lookupField [SM.StringValue "FaultCode", SM.StringValue "service", s]
             return $ SM.StringValue $ d' ++ "09" ++ s'
             
         vehicleMakeFun fs = do
-            (SM.StringValue m) <- M.lookup "case.car_make" fs
-            m' <- M.lookup m $ M.fromList [
-                ("ford", "09"),
-                ("chevy", "10"),
-                ("opel", "23"),
-                ("cad", "11")]
-            return $ SM.StringValue m'
+            m <- M.lookup "case.car_make" fs
+            lookupField [SM.StringValue "VehicleMake", m]
             
         vehicleModelFun fs = do
-            (SM.StringValue mk) <- M.lookup "case.car_make" fs
-            (SM.StringValue md) <- M.lookup "case.car_model" fs
-            r <- M.lookup mk $ M.fromList [
-                ("ford", fromMaybe "0900" $ M.lookup md $ M.fromList [
-                      ("ka", "0908"),
-                      ("sportKa", "0912"),
-                      ("streetKa", "0911"),
-                      ("fiesta", "0913"),
-                      ("fusion", "0918"),
-                      ("puma", "0916"),
-                      ("escort", "0920"),
-                      ("cMaxII", "0928"),
-                      ("focus", "0934"),
-                      ("mondeo", "0944"),
-                      ("cougar", "0951"),
-                      ("maverick", "0955"),
-                      ("explorer", "0960"),
-                      ("expedition", "0986"),
-                      ("excursion", "0987"),
-                      ("galaxy", "0967"),
-                      ("edge", "0973"),	
-                      ("s-max", "0975"),
-                      ("kuga", "0977"),	
-                      ("windstar", "0970"),
-                      ("transit", "0978"),
-                      ("tourneoConnect", "0979"),
-                      ("ranger", "0985"),
-                      ("spark", "1003"),
-                      ("matiz", "1005"),
-                      ("j200", "1007"),
-                      ("volt", "1011"),
-                      ("lanos", "1020"),
-                      ("cruze", "1021"),
-                      ("evanda", "1022"),
-                      ("epica", "1033"),
-                      ("kalos", "1023"),
-                      ("aveo", "1027"),
-                      ("nubira", "1025"),
-                      ("leganza", "1030"),
-                      ("rezzo", "1035"),
-                      ("lacetti", "1040"),
-                      ("hhr", "1043"),
-                      ("orlando", "1047"),
-                      ("captiva", "1045")]),
-                ("opel", fromMaybe "2300" $ M.lookup md $ M.fromList [
-                      ("agila", "2308"),
-                      ("corsa", "2310"),
-                      ("meriva", "2317"),
-                      ("combo", "2311"),
-                      ("astra", "2334"),
-                      ("insignia", "2322"),
-                      ("zafira", "2333"),
-                      ("vectra", "2335"),
-                      ("signum", "2337"),
-                      ("omega", "2340"),
-                      ("tigra", "2350"),
-                      ("speedster", "2352"),
-                      ("gt", "2358"),
-                      ("ampera", "2361"),
-                      ("frontera", "2365"),
-                      ("monterey", "2370"),
-                      ("campo", "2375"),
-                      ("iseze", "2385"),
-                      ("arena", "2390"),
-                      ("vivaro", "2392"),
-                      ("movano", "2391"),
-                      ("antara", "2396")]),
-                ("chevy", fromMaybe "1000" $ M.lookup md $ M.fromList [
-                      ("spark", "1003"),
-                      ("matiz", "1005"),
-                      ("j200",	"1007"),
-                      ("volt", "1011"),
-                      ("lanos", "1020"),
-                      ("cruze", "1021"),
-                      ("evanda", "1022"),
-                      ("epica", "1033"),
-                      ("kalos", "1023"),
-                      ("aveo", "1027"),
-                      ("nubira", "1025"),
-                      ("leganza", "1030"),
-                      ("tacuma", "1035"),
-                      ("lacetti", "1040"),
-                      ("hhr", "1043"),
-                      ("orlando", "1047"),
-                      ("captiva", "1045")]),
-                ("cad", fromMaybe "1115" $ M.lookup md $ M.fromList [
-                      ("seville", "1116"),
-                      ("bls", "1121"),
-                      ("cts", "1117"),
-                      ("xlr", "1118"),
-                      ("dts", "1122"),
-                      ("sts", "1123"),
-                      ("srx", "1119"),
-                      ("escalade", "1124")])]
-            return $ SM.StringValue r
+            mk <- M.lookup "case.car_make" fs
+            md <- M.lookup "case.car_model" fs
+            lookupField [SM.StringValue "VehicleModel", mk, md]
                       
 local :: P.ConnectInfo
 local = P.ConnectInfo {
@@ -381,6 +266,7 @@ generateReport :: (PS.HasPostgres m, MonadLog m) => SM.Models -> [T.Text] -> Fil
 generateReport ms conds tpl file = scope "generateReport" $ do
     log Info "Generating report"
     log Trace "Loading dictionaries"
-    dicts <- scope "dictionaries" $ liftIO $ loadDicts "resources/site-config/dictionaries"
+    dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
+    -- dicts <- scope "dictionaries" $ liftIO $ loadDicts "resources/site-config/dictionaries"
     scope "createReport" $ withPG (R.createReport (SM.modelsSyncs ms) (functions dicts) conds tpl file)
     log Info "Report generated"
