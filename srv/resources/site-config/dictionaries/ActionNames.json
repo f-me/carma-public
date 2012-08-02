@@ -5,6 +5,10 @@
             "label": "Заказ услуги"
         },
         {
+            "value": "orderServiceAnalyst",
+            "label": "Заказ услуги аналитиком"
+        },        
+        {
             "value": "needPartner",
             "label": "Требуется партнёр"
         },
