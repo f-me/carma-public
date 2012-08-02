@@ -68,6 +68,10 @@
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
+            },
+            {
+                "value": "bigDelay",
+                "label": "Отложить на 6 часов"
             }
         ],
         "tellClient": [
@@ -200,6 +204,10 @@
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
+            },
+            {
+                "value": "bigDelay",
+                "label": "Отложить на 6 часов"
             }
         ],
         "addBill": [
@@ -218,6 +226,10 @@
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
+            },
+            {
+                "value": "bigDelay",
+                "label": "Отложить на 6 часов"
             }
         ],
         "parguyNeedInfo": [
@@ -228,6 +240,10 @@
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
+            },
+            {
+                "value": "bigDelay",
+                "label": "Отложить на 6 часов"
             }
         ],
         "headCheck": [
@@ -250,6 +266,10 @@
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
+            },
+            {
+                "value": "bigDelay",
+                "label": "Отложить на 6 часов"
             }
         ],
         "directorCheck": [
@@ -268,6 +288,10 @@
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
+            },
+            {
+                "value": "bigDelay",
+                "label": "Отложить на 6 часов"
             }
         ],
         "accountCheck": [
@@ -282,6 +306,10 @@
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
+            },
+            {
+                "value": "bigDelay",
+                "label": "Отложить на 6 часов"
             }
         ],
         "analystCheck": [
@@ -292,6 +320,10 @@
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
+            },
+            {
+                "value": "bigDelay",
+                "label": "Отложить на 6 часов"
             }
         ],
         "getInfoDealerVW": [
@@ -310,6 +342,10 @@
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
+            },
+            {
+                "value": "bigDelay",
+                "label": "Отложить на 6 часов"
             }
         ],
         "closeCase": [
@@ -328,6 +364,10 @@
             {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
+            },
+            {
+                "value": "bigDelay",
+                "label": "Отложить на 6 часов"
             }
         ],
         "dealerApproval": [
