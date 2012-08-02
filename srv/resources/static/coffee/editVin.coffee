@@ -9,7 +9,11 @@ this.setupEditVin = (viewName, args)->
 
 this.doNewVin = (e) ->
   e.preventDefault()
-  formId = $('#new-vin').find('input[name=id]').val()
+  formId = $('#new-vin').find('input[name=id]').val().toUpperCase()
+  vinRe = new RegExp global.dictLabelCache["_regexps"]["vin"]
+  unless vinRe.test formId
+    return unless confirm "Введенный VIN не проходит проверку корректности,
+      продолжить?"
   $.ajax
     type: "POST"
     url: "/_/findOrCreate/vin/#{formId}"
@@ -22,7 +26,7 @@ this.doNewVin = (e) ->
         callTaker: global.user.meta.realName
     success: (args) ->
       console.log args
-      global.router.navigate("editVin")
+      global.router.navigate("editVin/#{args.id}")
       renderScreen("editVin", args)
     error: (e) ->
       console.log e

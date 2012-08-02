@@ -59,7 +59,7 @@ localRouter = Backbone.Router.extend
     "reports"     : "reports"
     "partner"     : "newPartner"
     "partner/:id" : "loadPartner"
-    "editVin"     : "editVin"
+    "editVin/:id  : "editVin"
     "newVin"      : "newVin"
 
   loadCase    : (id) -> renderScreen("case", {"id": id})
@@ -72,7 +72,7 @@ localRouter = Backbone.Router.extend
   loadCall    : (id) -> renderScreen("call", {"id": id})
   call        :      -> renderScreen("call")
   reports     :      -> renderScreen("reports")
-  editVin     : (a)  -> renderScreen("editVin", a)
+  editVin     : (id) -> renderScreen("editVin", {"id": id})
   newVin      :      -> renderScreen("newVin")
 
 # here is entry point
