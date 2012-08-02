@@ -10,6 +10,36 @@
                 "label": "Требуется партнёр"
             },
             {
+                "value": "moveToAnalyst",
+                "label": "Передать аналитику"
+            },
+            {
+                "value": "busyLine",
+                "label": "Не дозвонился"
+            },
+            {
+                "value": "clientCanceledService",
+                "label": "Клиент отказался от услуги"
+            },
+            {
+                "value": "unassignPlease",
+                "label": "Отказ от действия"
+            }
+        ],
+        "orderServiceAnalyst": [
+            {
+                "value": "serviceOrderedAnalyst",
+                "label": "Услуга заказана аналитиком"
+            },
+            {
+                "value": "needPartnerAnalyst",
+                "label": "Партнёр не найден"
+            },
+            {
+                "value": "moveToBack",
+                "label": "Вернуть в Back Office"
+            },
+            {
                 "value": "busyLine",
                 "label": "Не дозвонился"
             },
@@ -263,7 +293,7 @@
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
             }
-        ],        
+        ],
         "getInfoDealerVW": [
             {
                 "value": "busyLine",
