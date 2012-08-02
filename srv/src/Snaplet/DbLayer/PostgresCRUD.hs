@@ -128,8 +128,8 @@ functions ds = [
     R.uses ["case.falseCall"] $ R.constFunction "FALSECALL" falseFun,
     R.uses ["case.falseCall"] $ R.constFunction "BILL" billFun,
     R.uses ["case.diagnosis1", "service.type"] $ R.constFunction "FAULTCODE" faultFun,
-    R.uses ["case.car_make"] $ R.constFunction "VEHICLEMAKE" vehicleMakeFun]
-    --R.uses ["case.car_make", "case.car_model"] $ R.constFunction "VEHICLEMODEL" vehicleModelFun]
+    R.uses ["case.car_make"] $ R.constFunction "VEHICLEMAKE" vehicleMakeFun,
+    R.uses ["case.car_make", "case.car_model"] $ R.constFunction "VEHICLEMODEL" vehicleModelFun]
     where
         concatFields fs = SM.StringValue $ concat $ mapMaybe fromStringField fs
         fromStringField (SM.StringValue s) = Just s
@@ -196,35 +196,102 @@ functions ds = [
                 ("cad", "11")]
             return $ SM.StringValue m'
             
-{-
         vehicleModelFun fs = do
-            mk <- M.lookup "case.car_make" fs
-            md <- M.lookup "case.car_model" fs
+            (SM.StringValue mk) <- M.lookup "case.car_make" fs
+            (SM.StringValue md) <- M.lookup "case.car_model" fs
             r <- M.lookup mk $ M.fromList [
                 ("ford", fromMaybe "0900" $ M.lookup md $ M.fromList [
-                      ("ka", "0910"),
-                      -- ka from MY, before MY?
+                      ("ka", "0908"),
                       ("sportKa", "0912"),
                       ("streetKa", "0911"),
-                      ("fiesta", "0915"),
-                      -- fiesta from MY?
-                      -- fiesta van?
+                      ("fiesta", "0913"),
                       ("fusion", "0918"),
                       ("puma", "0916"),
                       ("escort", "0920"),
-                      -- escort van?
-                      -- escort convertible
-                      ("cMaxII", "0928")
-                      -- grand&focus C-Max?
-                      -- C-Max from ...?
-                      -- focus from?
-                      -- focus from?
-                      -- focus from?
-                      -- focus?
-                      ("focus", "0936"),
-                      -- coupe convertible?
--}
-                      
+                      ("cMaxII", "0928"),
+                      ("focus", "0934"),
+                      ("mondeo", "0944"),
+                      ("cougar", "0951"),
+                      ("maverick", "0955"),
+                      ("explorer", "0960"),
+                      ("expedition", "0986"),
+                      ("excursion", "0987"),
+                      ("galaxy", "0967"),
+                      ("edge", "0973"),	
+                      ("s-max", "0975"),
+                      ("kuga", "0977"),	
+                      ("windstar", "0970"),
+                      ("transit", "0978"),
+                      ("tourneoConnect", "0979"),
+                      ("ranger", "0985"),
+                      ("spark", "1003"),
+                      ("matiz", "1005"),
+                      ("j200", "1007"),
+                      ("volt", "1011"),
+                      ("lanos", "1020"),
+                      ("cruze", "1021"),
+                      ("evanda", "1022"),
+                      ("epica", "1033"),
+                      ("kalos", "1023"),
+                      ("aveo", "1027"),
+                      ("nubira", "1025"),
+                      ("leganza", "1030"),
+                      ("rezzo", "1035"),
+                      ("lacetti", "1040"),
+                      ("hhr", "1043"),
+                      ("orlando", "1047"),
+                      ("captiva", "1045")]),
+                ("opel", fromMaybe "2300" $ M.lookup md $ M.fromList [
+                      ("agila", "2308"),
+                      ("corsa", "2310"),
+                      ("meriva", "2317"),
+                      ("combo", "2311"),
+                      ("astra", "2334"),
+                      ("insignia", "2322"),
+                      ("zafira", "2333"),
+                      ("vectra", "2335"),
+                      ("signum", "2337"),
+                      ("omega", "2340"),
+                      ("tigra", "2350"),
+                      ("speedster", "2352"),
+                      ("gt", "2358"),
+                      ("ampera", "2361"),
+                      ("frontera", "2365"),
+                      ("monterey", "2370"),
+                      ("campo", "2375"),
+                      ("iseze", "2385"),
+                      ("arena", "2390"),
+                      ("vivaro", "2392"),
+                      ("movano", "2391"),
+                      ("antara", "2396")]),
+                ("chevy", fromMaybe "1000" $ M.lookup md $ M.fromList [
+                      ("spark", "1003"),
+                      ("matiz", "1005"),
+                      ("j200",	"1007"),
+                      ("volt", "1011"),
+                      ("lanos", "1020"),
+                      ("cruze", "1021"),
+                      ("evanda", "1022"),
+                      ("epica", "1033"),
+                      ("kalos", "1023"),
+                      ("aveo", "1027"),
+                      ("nubira", "1025"),
+                      ("leganza", "1030"),
+                      ("tacuma", "1035"),
+                      ("lacetti", "1040"),
+                      ("hhr", "1043"),
+                      ("orlando", "1047"),
+                      ("captiva", "1045")]),
+                ("cad", fromMaybe "1115" $ M.lookup md $ M.fromList [
+                      ("seville", "1116"),
+                      ("bls", "1121"),
+                      ("cts", "1117"),
+                      ("xlr", "1118"),
+                      ("dts", "1122"),
+                      ("sts", "1123"),
+                      ("srx", "1119"),
+                      ("escalade", "1124")])]
+            return $ SM.StringValue r
                       
 local :: P.ConnectInfo
 local = P.ConnectInfo {
@@ -276,27 +343,39 @@ create :: (PS.HasPostgres m, MonadLog m) => S.Syncs -> m ()
 create ss = escope "create" $ withPG (S.create ss)
 
 insert :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> S.SyncMap -> m ()
-insert ms name m = escope "isnert" $ withPG (SM.insert ms (toStr name) m)
+insert ms name m = escope "insert" $ withPG (SM.insert ms (toStr name) m)
 
 select :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> ByteString -> m S.SyncMap
-select ms name c = scoper "select" $ withPG (SM.select ms (toStr name) cond) where
-    cond = toCond ms name c
+select ms name c = scoper "select" $ do
+    log Trace $ T.concat ["Selecting id ", T.decodeUtf8 c]
+    withPG (SM.select ms (toStr name) cond)
+    where
+        cond = toCond ms name c
 
 exists :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> ByteString -> m Bool
-exists ms name c = escopev "exists" False $ withPG (SM.exists ms (toStr name) cond) where
-    cond = toCond ms name c
+exists ms name c = escopev "exists" False $ do
+    log Trace $ T.concat ["Checking for existing id ", T.decodeUtf8 c]
+    withPG (SM.exists ms (toStr name) cond)
+    where
+        cond = toCond ms name c
 
 update :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> ByteString -> S.SyncMap -> m ()
-update ms name c m = escope "update" $ withPG (SM.update ms (toStr name) cond m) where
-    cond = toCond ms name c
+update ms name c m = escope "update" $ do
+    log Trace $ T.concat ["Updating id ", T.decodeUtf8 c]
+    withPG (SM.update ms (toStr name) cond m)
+    where
+        cond = toCond ms name c
 
 updateMany :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> M.Map ByteString S.SyncMap -> m ()
 updateMany ms name m = scope "updateMany" $ forM_ (M.toList m) $ uncurry (update ms name) where
     update' k obj = update ms name k (M.insert (C8.pack "id") k obj)
 
 insertUpdate :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> ByteString -> S.SyncMap -> m Bool
-insertUpdate ms name c m = escopev "insertUpdate" False $ withPG (SM.insertUpdate ms (toStr name) cond m) where
-    cond = toCond ms name c
+insertUpdate ms name c m = escopev "insertUpdate" False $ do
+    log Trace $ T.concat ["Processing id ", T.decodeUtf8 c]
+    withPG (SM.insertUpdate ms (toStr name) cond m)
+    where
+        cond = toCond ms name c
 
 generateReport :: (PS.HasPostgres m, MonadLog m) => SM.Models -> [T.Text] -> FilePath -> FilePath -> m ()
 generateReport ms conds tpl file = scope "generateReport" $ do

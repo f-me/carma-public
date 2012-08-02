@@ -106,11 +106,13 @@ sync :: Handler b (DbLayer b) ()
 sync = scope "sync" $ mapM_ syncModel modelList where
   syncModel model = scope "syncModel" $ do
     Right (Just cnt) <- runRedisDB redis $ Redis.get (Redis.modelIdKey model)
+    log Info $ fromString $ "Syncing model " ++ show model
     log Trace $ fromString $ "Count of entries for model " ++ show model ++ " is: " ++ show cnt
     case C8.readInt cnt of
       Just (maxId, _) -> forM_ [1..maxId] $ \i -> do
         rec <- Redis.read redis model (C8.pack . show $ i)
-        when (not $ Map.null rec) $ void $ Postgres.insertUpdate Postgres.modelModels model (C8.pack . show $ i) rec
+        let rec' = Map.insert (C8.pack "id") (C8.pack . show $ i) rec
+        when (not $ Map.null rec) $ void $ Postgres.insertUpdate Postgres.modelModels model (C8.pack . show $ i) rec'
       Nothing -> error $ "Invalid id for model " ++ C8.unpack model
 
   modelList = map C8.pack $ Map.keys (SM.modelsModels Postgres.modelModels)
