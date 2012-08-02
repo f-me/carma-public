@@ -218,51 +218,10 @@ assignActions = do
   let updateDB a = DB.update "action" (a Map.! "id") 
                  $ Map.singleton "assignedTo" (T.encodeUtf8 $ userLogin cUsr)
   with db $ mapM_ updateDB assignedActions
-
   writeJSON
     $! assignedActions
     ++ Map.findWithDefault [] (userLogin cUsr) actsByAssignee
- 
-    
-  
-searchByIndex :: AppHandler ()
-searchByIndex = do
-  Just ixName <- getParam "indexName"
-  -- FIXME: hardcoded index mockup
-  case ixName of
-    "allPartners" -> do
-      res <- with db $ DB.readAll "partner"
-      let proj obj =
-            [Map.findWithDefault "" k obj
-            | k <- ["id", "name", "city", "comment"]
-            ]
-      writeJSON $ map proj res
-    "actionsForUser" -> do
-      Just curUser <- with auth currentUser
-      let user = T.encodeUtf8 $ userLogin curUser
-      let Role userGroup = head $ userRoles curUser
-      actions <- with db $ DB.readAll "action"
-      let filterActions (u,g) a
-            | closed /= "false" = (u,g)
-            | assignedTo == user = (a:u,g)
-            | assignedTo == "" && targetGroup == userGroup = (u,a:g)
-            | otherwise = (u,g)
-            where
-              assignedTo = fromMaybe "" $ Map.lookup "assignedTo" a
-              targetGroup = fromMaybe "" $ Map.lookup "targetGroup" a
-              closed = fromMaybe "" $ Map.lookup "closed" a
-      let (userActions,groupActions) = foldl' filterActions ([],[]) actions
-      now <- liftIO $ round . utcTimeToPOSIXSeconds <$> getCurrentTime
-      let nowProximity m = case Map.lookup "duetime" m of
-            Nothing -> 10^9 :: Int
-            Just s -> case B.readInt s of
-              Just (t, "") -> abs $ now - t
-              _ -> 10^9
-      let sort = sortBy (comparing nowProximity)
-      writeJSON $ Map.fromList
-        [("user" :: ByteString, take 30 $ sort $ userActions)
-        ,("group":: ByteString, take 30 $ sort $ groupActions)]
-    _ -> error $ "Unknown index " ++ show ixName
+
 
 searchCallsByPhone :: AppHandler ()
 searchCallsByPhone = do
