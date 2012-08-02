@@ -45,7 +45,7 @@ import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers
 import Util
 
-
+import qualified Debug.Trace as DT
 
 create model commit = scoper "create" $ do
   mdl <- gets syncModels
@@ -129,7 +129,8 @@ generateReport conds template filename = do
 readAll model = Redis.readAll redis model
 
 -- log politics
-logConfig = []
+logConfig = [
+    relative ["generate"] $ low Trace]
 
 initDbLayer :: SnapletInit b (DbLayer b)
 initDbLayer = makeSnaplet "db-layer" "Storage abstraction"
