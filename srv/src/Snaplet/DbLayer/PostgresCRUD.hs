@@ -22,6 +22,7 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import Data.ByteString (ByteString)
 import Data.Char
+import Data.List (isPrefixOf)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.ByteString.Lazy.Char8 as L8
@@ -108,18 +109,22 @@ modelSyncs = S.syncs [
 modelModels :: S.Syncs -> Maybe SM.Models
 modelModels ss = do
     srv <- M.lookup "service" $ S.syncsSyncs ss
-    cas <- M.lookup "case" $ S.syncsSyncs ss
-    return $ SM.models ss $ [("case", SM.model "case" cas [])] ++ map (service srv) [
-        "deliverCar",
-        "deliverParts",
-        "hotel",
-        "information",
-        "rent",
-        "sober",
-        "taxi",
-        "tech",
-        "towage",
-        "transportation"]
+    return $ SM.models ss $ allModels ++ map (service srv) services
+    where
+        noService = M.delete "service" $ S.syncsSyncs ss
+        allModels = map toModel . M.toList $ noService
+        toModel (name, snc) = (name, SM.model name snc [])
+        services = [
+            "deliverCar",
+            "deliverParts",
+            "hotel",
+            "information",
+            "rent",
+            "sober",
+            "taxi",
+            "tech",
+            "towage",
+            "transportation"]         
 
 functions :: Dictionary -> [R.ReportFunction]
 functions dict = [
@@ -127,6 +132,7 @@ functions dict = [
     R.onString "LASTNAME" (fromMaybe "" . listToMaybe . words),
     R.onString "UPPER" (map toUpper),
     R.onString "LOWER" (map toLower),
+    R.onString "PHONE" phoneFmt,
     R.function "CONCAT" concatFields,
     R.functionMaybe "LOOKUP" lookupField,
     R.function "IF" ifFun,
@@ -138,6 +144,12 @@ functions dict = [
     R.uses ["case.car_make"] $ R.constFunction "VEHICLEMAKE" vehicleMakeFun,
     R.uses ["case.car_make", "case.car_model"] $ R.constFunction "VEHICLEMODEL" vehicleModelFun]
     where
+        phoneFmt s
+            | ("+7" `isPrefixOf` s) && all isDigit (drop 2 s) && length s == 12 = unwords ["+7", "(" ++ substr 2 3 s ++ ")", substr 5 3 s, substr 8 2 s, substr 10 2 s]
+            | otherwise = s
+        
+        substr f l = take l . drop f
+        
         concatFields fs = SM.StringValue $ concat $ mapMaybe fromStringField fs
         fromStringField (SM.StringValue s) = Just s
         fromStringField _ = Nothing
