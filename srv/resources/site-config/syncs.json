@@ -1,0 +1,184 @@
+{
+	"syncs": [
+		{
+			"model": "case",
+			"table": "casetbl",
+			"hstore": "garbage",
+			"fields": [
+				{
+					"name": "id",
+					"type": "int",
+					"indexed": "true"
+				},
+				{
+					"name": "car_make",
+					"type": "string",
+					"indexed": "true"
+				},
+				{
+					"name": "car_model",
+					"type": "string",
+					"indexed": "true"
+				},
+				{
+					"name": "car_program",
+					"type": "string",
+					"indexed": "true"
+				},
+				{
+					"name": "car_vin",
+					"type": "string",
+					"indexed": "true"
+				},
+				{
+					"name": "car_buyDate",
+					"type": "time"
+				},
+				{
+					"name": "car_plateNum",
+					"type": "string"
+				},
+				{
+					"name": "car_carModel",
+					"type": "string"
+				},
+				{
+					"name": "diagnosis1",
+					"type": "string"
+				},
+				{
+					"name": "diagnosis2",
+					"type": "string"
+				},
+				{
+					"name": "dealerCause",
+					"type": "string"
+				},
+				{
+					"name": "caseAddress_address",
+					"type": "string"
+				},
+				{
+					"name": "callDate",
+					"type": "time",
+					"indexed": "true"
+				},
+				{
+					"name": "callTaker",
+					"type": "string"
+				},
+				{
+					"name": "contact_contactOwner",
+					"type": "int"
+				},
+				{
+					"name": "contact_name",
+					"type": "string"
+				},
+				{
+					"name": "comment",
+					"type": "string"
+				},
+				{
+					"name": "program",
+					"type": "string"
+				},
+				{
+					"name": "services",
+					"type": "string"
+				},
+				{
+					"name": "contact_ownerName",
+					"type": "string"
+				},
+				{
+					"name": "partner_name",
+					"type": "string"
+				}
+			]
+		},
+		{
+			"model": "service",
+			"table": "servicetbl",
+			"hstore": "garbage",
+			"fields": [
+				{
+					"name": "id",
+					"type": "int",
+					"indexed": "true"
+				},
+				{
+					"name": "parentId",
+					"type": "int",
+					"indexed": "true"
+				},
+				{
+					"name": "type",
+					"type": "string"
+				},
+				{
+					"name": "status",
+					"type": "string"
+				},
+				{
+					"name": "falseCall",
+					"type": "string"
+				},
+				{
+					"name": "towDealer_name",
+					"type": "string"
+				},
+				{
+					"name": "orderNumber",
+					"type": "int"
+				},
+				{
+					"name": "suburbanMilage",
+					"type": "int"
+				},
+				{
+					"name": "warrantyCase",
+					"type": "string"
+				},
+				{
+					"name": "times_repairEndDate",
+					"type": "time"
+				},
+				{
+					"name": "times_factServiceStart",
+					"type": "time"
+				},
+				{
+					"name": "times_factServiceEnd",
+					"type": "time"
+				},
+				{
+					"name": "carProvidedFor",
+					"type": "int"
+				},
+				{
+					"name": "hotelProvidedFor",
+					"type": "int"
+				},
+				{
+					"name": "payment_limitedCost",
+					"type": "int"
+				},
+				{
+					"name": "payment_partnerCost",
+					"type": "int"
+				},
+				{
+					"name": "payType",
+					"type": "string"
+				},
+				{
+					"name": "clientSatisfied",
+					"type": "string"
+				}
+			]
+		}
+	],
+	"relations": [
+		"case.id = service.parentId"]
+}

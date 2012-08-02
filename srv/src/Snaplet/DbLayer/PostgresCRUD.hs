@@ -3,6 +3,7 @@
 module Snaplet.DbLayer.PostgresCRUD (
     modelSyncs, modelModels,
 
+    loadModels,
     createIO,
     create, insert, select, exists, update, updateMany, insertUpdate,
     generateReport
@@ -16,12 +17,14 @@ import Control.Monad.IO.Class
 import Control.Monad.CatchIO
 import qualified Control.Exception as E
 
+import qualified Data.Aeson as A
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import Data.ByteString (ByteString)
 import Data.Char
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
+import qualified Data.ByteString.Lazy.Char8 as L8
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 
@@ -32,6 +35,7 @@ import qualified Data.Pool as Pool
 
 import qualified Database.PostgreSQL.Syncs as S
 import qualified Database.PostgreSQL.Models as SM
+import Database.PostgreSQL.Sync.JSON
 import qualified Database.PostgreSQL.Report.Xlsx as R
 import qualified Database.PostgreSQL.Report.Function as R
 
@@ -60,12 +64,12 @@ caseModel = S.sync "casetbl" "garbage" [
     S.field_ "caseAddress_address" S.string,
     S.indexed $ S.field_ "callDate" S.time,
     S.field_ "callTaker" S.string,
-    S.field_ "callerOwner" S.int,
-    S.field_ "caller_name" S.string,
+    S.field_ "contact_contactOwner" S.int,
+    S.field_ "contact_name" S.string,
     S.indexed $ S.field_ "comment" S.string,
     S.field_ "program" S.string,
     S.field_ "services" S.string,
-    S.field_ "owner_name" S.string,
+    S.field_ "contact_ownerName" S.string,
     S.field_ "partner_name" S.string]
 
 serviceModel :: S.Sync
@@ -89,9 +93,9 @@ serviceModel = S.sync "servicetbl" "garbage" [
     S.field_ "payType" S.string,
     S.field_ "clientSatisfied" S.string]
 
-service :: String -> (String, SM.Model)
-service tp = (tp, mdl) where
-    mdl = SM.model tp serviceModel [
+service :: S.Sync -> String -> (String, SM.Model)
+service srv tp = (tp, mdl) where
+    mdl = SM.model tp srv [
         SM.constant "type" tp,
         SM.adjustField "parentId" (drop 5) ("case:" ++)]
 
@@ -101,18 +105,21 @@ modelSyncs = S.syncs [
     ("service", serviceModel)] [
     "case.id = service.parentId"]
 
-modelModels :: SM.Models
-modelModels = SM.models modelSyncs $ [("case", SM.model "case" caseModel [])] ++ map service [
-    "deliverCar",
-    "deliverParts",
-    "hotel",
-    "information",
-    "rent",
-    "sober",
-    "taxi",
-    "tech",
-    "towage",
-    "transportation"]
+modelModels :: S.Syncs -> Maybe SM.Models
+modelModels ss = do
+    srv <- M.lookup "service" $ S.syncsSyncs ss
+    cas <- M.lookup "case" $ S.syncsSyncs ss
+    return $ SM.models ss $ [("case", SM.model "case" cas [])] ++ map (service srv) [
+        "deliverCar",
+        "deliverParts",
+        "hotel",
+        "information",
+        "rent",
+        "sober",
+        "taxi",
+        "tech",
+        "towage",
+        "transportation"]
 
 functions :: Dictionary -> [R.ReportFunction]
 functions dict = [
@@ -208,6 +215,12 @@ elogv v act = E.catch act (onError v) where
 		putStrLn $ "Failed with: " ++ show e
 		return x
 
+loadModels :: FilePath -> Log -> IO SM.Models
+loadModels f l = withLog l $ do
+    log Trace "Loading models"
+    ss <- liftIO $ fmap (fromMaybe (error "Unable to load syncs") . A.decode) $ L8.readFile f
+    maybe (error "Unable to create models on syncs loaded") return $ modelModels ss
+
 createIO :: SM.Models -> Log -> IO ()
 createIO ms l = do
     con <- P.connect local
@@ -267,6 +280,5 @@ generateReport ms conds tpl file = scope "generateReport" $ do
     log Info "Generating report"
     log Trace "Loading dictionaries"
     dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
-    -- dicts <- scope "dictionaries" $ liftIO $ loadDicts "resources/site-config/dictionaries"
     scope "createReport" $ withPG (R.createReport (SM.modelsSyncs ms) (functions dicts) conds tpl file)
     log Info "Report generated"
