@@ -191,6 +191,8 @@ myActionsHandler = do
 assignActions :: AppHandler ()
 assignActions = do
   Just cUsr <- with auth currentUser
+  logdUsrs <- gets loggedUsers
+  liftIO $ atomically $ modifyTVar' logdUsrs (Map.insert (userLogin cUsr) ())
   now  <- liftIO $ getCurrentTime
   let maybeEq f v a = fromMaybe False $ (==v) <$> Map.lookup f a
   acts <- filter (maybeEq "closed" "false")
@@ -215,9 +217,9 @@ assignActions = do
         $ filter duetimeProximity strangersActions
 
   let assignedActions = take 1 actionsToAssign
-  let updateDB a = DB.update "action" (a Map.! "id") 
+  let updateDB a = DB.update "action" (last $ B.split ':' $ a Map.! "id") 
                  $ Map.singleton "assignedTo" (T.encodeUtf8 $ userLogin cUsr)
-  with db $ mapM_ updateDB assignedActions
+  res <- with db $ mapM updateDB assignedActions
   writeJSON
     $! assignedActions
     ++ Map.findWithDefault [] (userLogin cUsr) actsByAssignee
