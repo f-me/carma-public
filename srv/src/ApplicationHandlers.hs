@@ -219,6 +219,18 @@ getActionsForCase = do
   writeJSON $
     filter ((id' ==) . (Map.findWithDefault "" "caseId")) actions
 
+-- | This action recieve model and id as parameters to lookup for
+-- and json object with values to create new model with specified
+-- id when it's not found
+findOrCreateHandler :: AppHandler ()
+findOrCreateHandler = do
+  Just model <- getParam "model"
+  Just id    <- getParam "id"
+  commit <- getJSONBody
+  res <- with db $ DB.findOrCreate model id commit
+  -- FIXME: try/catch & handle/log error
+  writeJSON res
+
 ------------------------------------------------------------------------------
 -- | Reports
 report :: AppHandler ()

@@ -8,6 +8,7 @@ module Snaplet.DbLayer
   ,generateReport
   ,readAll
   ,initDbLayer
+  ,findOrCreate
   ) where
 
 import Prelude hiding (read, log)
@@ -71,6 +72,14 @@ create model commit = scoper "create" $ do
   return $ Map.insert "id" objId
          $ obj Map.\\ commit
 
+findOrCreate model objId commit = do
+  r <- read model objId
+  case Map.toList r of
+    [] -> do
+      commit' <- triggerCreate model commit
+      let obj = Map.union commit' commit
+      Redis.create' redis model objId obj
+    _  -> return r
 
 read model objId = do
   res <- Redis.read redis model objId

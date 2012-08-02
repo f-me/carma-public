@@ -59,6 +59,7 @@
     <script src="/s/js/hooks.js" />
     <script src="/s/js/case.js" />
     <script src="/s/js/vin.js" />
+    <script src="/s/js/editVin.js" />
     <script src="/s/js/partners.js" />
     <script src="/s/js/call.js" />
     <script src="/s/js/backoffice.js" />
@@ -102,6 +103,9 @@
                 </li>
                 <li id="reports-screen-nav">
                   <a href="#reports">Отчёты</a>
+                </li>
+                <li id="open-vin-screen">
+                  <a href="#newVin">Редактирование VIN</a>
                 </li>
               </ul>
             </li>
@@ -404,6 +408,34 @@
             id="vin-screen-template"
             class="screen-template">
       <div id="vin-form" />
+    </script>
+
+    <!-- Edit VIN screens -->
+    <script type="text/template"
+            id="newVin-screen-template"
+            class="screen-template">
+      <div align="center">
+        <form id="new-vin"
+              method="POST"
+              action="/_/findOrCreate/vin"
+              onSubmit="doNewVin(event)">
+          <label>Введите VIN</label>
+          <input name="id" type="text">
+          <label>
+          <input type="submit" class="btn btn-success">
+        </form>
+      </div>
+    </script>
+
+    <script type="text/template"
+            id="editVin-screen-template"
+            class="screen-template">
+      <div id="left"  class="nice-scrollbar pane">
+        <div id="vin-form" class="form-vertical"/>
+        <div id="vin-permissions"/>
+      </div>
+      <div id="center" class="nice-scrollbar pane"/>
+      <div id="right"  class="nice-scrollbar pane"/>
     </script>
 
     <script type="text/template"
