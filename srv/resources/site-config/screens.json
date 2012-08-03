@@ -21,6 +21,7 @@
     },
     { "type"    : "dropdown",
       "label"   : "Еще",
+      "permissions":["front","back","head","parguy"],
       "screens" : [
         { "name"  : "vin",
           "label" : "Обновление базы VIN",

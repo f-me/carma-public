@@ -88,7 +88,7 @@ $ ->
                       hooks(),
                       user,
                       models
-            global.nav = nav
+            global.nav = filterScreenPerms nav
             global.checks = checks
             global.keys = {}
             global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
@@ -104,6 +104,14 @@ this.redirectToHomePage = (user) ->
     homePage = "back"
   global.router.navigate(homePage, {trigger: true})
 
+
+filterScreenPerms = (nav) ->
+  p = global.user.roles
+  nav.screens =
+    for s in nav.screens when not _.isEmpty _.intersection(s.permissions, p)
+      s.screens = filterScreenPerms(s) if s.screens
+      s
+  return nav
 
 # Model method HTTP access point wrt redson location
 this.modelMethod = (modelName, method) -> "/_/#{modelName}/#{method}"
