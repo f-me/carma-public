@@ -104,14 +104,17 @@ this.redirectToHomePage = (user) ->
     homePage = "back"
   global.router.navigate(homePage, {trigger: true})
 
-
 filterScreenPerms = (nav) ->
+  nav.screens = fScrnPerms(nav)
+  return nav
+
+fScrnPerms = (nav) ->
   p = global.user.roles
   nav.screens =
     for s in nav.screens when not _.isEmpty _.intersection(s.permissions, p)
-      s.screens = filterScreenPerms(s) if s.screens
+      s.screens = fScrnPerms(s) if s.screens
       s
-  return nav
+  return nav.screens
 
 # Model method HTTP access point wrt redson location
 this.modelMethod = (modelName, method) -> "/_/#{modelName}/#{method}"
