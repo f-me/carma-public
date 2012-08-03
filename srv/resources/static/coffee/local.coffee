@@ -59,7 +59,7 @@ localRouter = Backbone.Router.extend
     "reports"     : "reports"
     "partner"     : "newPartner"
     "partner/:id" : "loadPartner"
-    "editVin/:id  : "editVin"
+    "editVin/:id" : "editVin"
     "newVin"      : "newVin"
 
   loadCase    : (id) -> renderScreen("case", {"id": id})
@@ -76,17 +76,25 @@ localRouter = Backbone.Router.extend
   newVin      :      -> renderScreen("newVin")
 
 # here is entry point
-$( ->
+$ ->
   $.getJSON "/cfg/dictionaries",              (dicts)  ->
     $.getJSON "/_whoami/",                    (user)   ->
       $.getJSON "/s/js/data/conditions.json", (checks) ->
         $.getJSON "/cfg/models",              (models) ->
-          mainSetup(localScreens(), localRouter, dicts, hooks(), user, models)
-          global.checks = checks
-          global.keys = {}
-          global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
-          if window.location.hash == ""
-            redirectToHomePage user)
+          $.getJSON "/s/screens",             (nav)->
+            mainSetup localScreens(),
+                      localRouter,
+                      dicts,
+                      hooks(),
+                      user,
+                      models
+            global.nav = nav
+            global.checks = checks
+            global.keys = {}
+            global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
+            if window.location.hash == ""
+              redirectToHomePage user
+            ko.applyBindings global.nav, $('#nav')[0]
 
 this.redirectToHomePage = (user) ->
   mainRole = user.roles[0]

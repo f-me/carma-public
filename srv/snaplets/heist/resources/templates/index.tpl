@@ -73,42 +73,13 @@
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
-          <ul class="nav">
+          <ul class="nav" id="nav">
             <a class="brand" href="/">
               CaRMa
             </a>
             <li class="divider-vertical" />
-            <li id="call-screen-nav">
-              <a href="#call">Звонок</a>
-            </li>
-            <li id="case-screen-nav">
-              <a href="#case">Кейс</a>
-            </li>
-            <li id="back-screen-nav">
-              <a href="#back">Бэкофис</a>
-            </li>
-            <li id="search-screen-nav">
-              <a href="#search">Поиск</a>
-            </li>
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                Ещё <b class="caret"></b>
-              </a>
-              <ul class="dropdown-menu">
-                <li id="vin-screen-nav">
-                  <a href="#vin">Обновление базы VIN</a>
-                </li>
-                <li id="partner-screen-nav">
-                  <a href="#partner">Редактирование партнёров</a>
-                </li>
-                <li id="reports-screen-nav">
-                  <a href="#reports">Отчёты</a>
-                </li>
-                <li id="open-vin-screen">
-                  <a href="#newVin">Редактирование VIN</a>
-                </li>
-              </ul>
-            </li>
+            <!-- ko template: { name: 'nav-li-template' }-->
+            <!-- /ko -->
           </ul>
           <ifLoggedIn>
             <ul class="nav pull-right">
@@ -134,7 +105,7 @@
     </div>
 
     <!-- Main container for dynamically rendered layouts -->
-    <div class="container-fluid">
+    <div class="container-fluid" id="main-container">
       <div class="row-fluid" id="layout" />
     </div>
 
@@ -1139,7 +1110,7 @@
             class="group-template"
             id="default-case-group-template">
       <fieldset class="complex-field default-complex-field"
-                id="default-case-complex-field">
+                id="default-case">
         <p>
           <b>Кто звонил:</b>
           <span data-bind="text: contact_name"/>&nbsp;
@@ -1210,6 +1181,34 @@
 
         </div>
       </fieldset>
+    </script>
+
+
+    <!-- navigation menu templates -->
+    <script type="text/html" id="nav-li-template">
+      <!-- ko foreach: screens -->
+        <!-- ko if: type == 'li' -->
+          <li data-bind="if: type == 'li',
+                         attr: { id: name + '-screen-nav' }">
+            <a data-bind="attr: { href: '#' + name}, text: label"/>
+          </li>
+        <!-- /ko -->
+        <!-- ko if: type == 'dropdown' -->
+          <li class="dropdown"
+              data-bind="if: type == 'dropdown'">
+            <a href="#"
+               class="dropdown-toggle"
+               data-toggle="dropdown"
+               data-bind="html: label + '<b class=\'caret\'></b>'">
+              <b class="caret"></b>
+            </a>
+            <ul class="dropdown-menu"
+                data-bind="template: { name: 'nav-li-template' }">
+            </ul>
+          </li>
+
+        <!-- /ko -->
+      <!-- /ko -->
     </script>
 
   </body>

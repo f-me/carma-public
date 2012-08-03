@@ -13,7 +13,7 @@ import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.Auth.Backends.JsonFile
 import Snap.Snaplet.Session.Backends.CookieSession
-import Snap.Util.FileServe (serveDirectory)
+import Snap.Util.FileServe (serveDirectory, serveFile)
 ------------------------------------------------------------------------------
 import Snap.Snaplet.AvayaAES
 import Snap.Snaplet.Vin
@@ -37,6 +37,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/nominatim",     method GET geodecode)
          , ("/weather/:city", method GET weather)
          , ("/s/",            serveDirectory "resources/static")
+         , ("/s/screens",     serveFile "resources/site-config/screens.json")
          , ("/report",        chkAuth . method GET  $ report)
          , ("/all/:model",    chkAuth . method GET  $ readAllHandler)
          , ("/ix/:indexName", chkAuth . method GET  $ searchByIndex)

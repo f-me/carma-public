@@ -1,0 +1,48 @@
+{ "screens" : [
+    { "name"  : "call",
+      "label" : "Звонок",
+      "type"  : "li",
+      "permissions": ["front","back","head","parguy"]
+    },
+    { "name"  :"case",
+      "label" : "Кейс",
+      "type"  : "li",
+      "permissions": ["front","back","head","parguy"]
+    },
+    { "name"  : "back",
+      "label" : "Бэкофис",
+      "type"  : "li",
+      "permissions": ["front","back","head","parguy"]
+    },
+    { "name"  : "search",
+      "label" : "Поиск",
+      "type"  : "li",
+      "permissions":["front","back","head","parguy"]
+    },
+    { "type"    : "dropdown",
+      "label"   : "Еще",
+      "screens" : [
+        { "name"  : "vin",
+          "label" : "Обновление базы VIN",
+          "type"  : "li",
+          "permissions": ["front","back","head","parguy"]
+        },
+        { "name"  : "partner",
+          "label" : "Редактирование партнёров",
+          "type"  : "li",
+          "permissions": ["front","back","head","parguy"]
+        },
+        { "name"  : "reports",
+          "label" : "Отчёты",
+          "type"  : "li",
+          "permissions": ["front","back","head","parguy"]
+        },
+        { "name"  : "newVin",
+          "label" : "Редактирование VIN",
+          "type"  : "li",
+          "permissions": ["front","back","head","parguy"]
+        }
+      ]
+    }
+  ]
+}
