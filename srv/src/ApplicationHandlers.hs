@@ -33,10 +33,6 @@ import Snaplet.FileUpload (doUpload', doDeleteAll')
 ------------------------------------------------------------------------------
 import qualified Codec.Xlsx.Templater as Xlsx
 import qualified Nominatim
-------------------------------------------------------------------------------
-import WeatherApi
-import WeatherApi.Google
-import Utils.Weather () -- instance ToJSON Weather
 -----------------------------------------------------------------------------
 import Application
 import Util
@@ -104,15 +100,6 @@ geodecode = ifTop $ do
   addr <- fromMaybe "Moscow" <$> getParam "addr"
   resp <- liftIO $ Nominatim.geodecode addr
   writeJSON resp
-
------------------------------------------------------------------------------
--- | Retrieve weather
-weather :: AppHandler ()
-weather = ifTop $ do
-  Just city     <- getParam "city"
-  Right weather <- liftIO $ getWeather' (initApi "ru" "utf-8")
-                                       (BU.toString city)
-  writeLBS $ Aeson.encode weather
 
 ------------------------------------------------------------------------------
 -- | CRUD

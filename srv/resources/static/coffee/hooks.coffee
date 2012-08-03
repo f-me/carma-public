@@ -4,7 +4,7 @@ this.hooks = ->
       "case" : [candiboberHook]
   observable:
       "*"    : [regexpKbHook, dictionaryKbHook, filesKbHook]
-      "case" : [caseDescsKbHook, caseWeaterKbHook, caseEventsHistoryKbHook]
+      "case" : [caseDescsKbHook, caseEventsHistoryKbHook]
 
 dictionaryKbHook = (instance, knockVM) ->
   for n of instance.dictionaryFields

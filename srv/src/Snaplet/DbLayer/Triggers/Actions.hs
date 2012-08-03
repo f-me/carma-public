@@ -6,10 +6,15 @@ import Control.Monad.Trans
 import Control.Exception
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
+import qualified Data.ByteString.UTF8  as BU
 import qualified Data.Map as Map
 import Data.Char
 
 import qualified Fdds as Fdds
+------------------------------------------------------------------------------
+import WeatherApi (getWeather', tempC)
+import WeatherApi.Google (initApi)
+-----------------------------------------------------------------------------
 
 import Snap (gets)
 import Snap.Snaplet.RedisDB
@@ -36,7 +41,14 @@ actions = Map.fromList
   $ [(s,serviceActions) | s <- services]
   ++[("action", actionActions)
     ,("case", Map.fromList
-      [("car_vin", [\objId val ->
+      [("city", [\objId val -> do
+                  oldCity <- lift $ runRedisDB redis $ Redis.hget objId "city"
+                  case oldCity of
+                    Left _         -> return ()
+                    Right Nothing  -> setWeather objId val
+                    Right (Just c) -> when (c /= val) $ setWeather objId val
+                  ])
+      ,("car_vin", [\objId val ->
         if B.length val /= 17
           then return ()
           else do
@@ -476,3 +488,8 @@ requestFddsVin objId vin = do
     Right v -> return $ any (Fdds.rValid) v
     Left _  -> return False
 
+setWeather objId city = do
+  weather <- liftIO $ getWeather' (initApi "ru" "utf-8") $ BU.toString city
+  case weather of
+    Right w -> set objId "temperature" $ B.pack $ show $ tempC w
+    Left  _ -> return ()

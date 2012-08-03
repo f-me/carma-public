@@ -189,11 +189,6 @@ this.caseDescsKbHook = (instance, knockVM) ->
     read: ->
       global.dictionaries['ProgramInfo'][knockVM['program']()]
 
-this.caseWeaterKbHook = (instance, knockVM) ->
-  knockVM['city'].subscribe (newVal) ->
-    getWeather newVal, (weather) ->
-      knockVM['temperature'](weather.tempC)
-
 this.caseEventsHistoryKbHook = (instance, knockVM) ->
   knockVM['contact_phone1'].subscribe fillEventsHistory(knockVM)
   knockVM['actions'].subscribe fillEventsHistory(knockVM)
