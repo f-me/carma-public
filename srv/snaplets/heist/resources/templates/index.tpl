@@ -59,6 +59,7 @@
     <script src="/s/js/hooks.js" />
     <script src="/s/js/case.js" />
     <script src="/s/js/vin.js" />
+    <script src="/s/js/editVin.js" />
     <script src="/s/js/partners.js" />
     <script src="/s/js/call.js" />
     <script src="/s/js/backoffice.js" />
@@ -72,39 +73,13 @@
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
-          <ul class="nav">
+          <ul class="nav" id="nav">
             <a class="brand" href="/">
               CaRMa
             </a>
             <li class="divider-vertical" />
-            <li id="call-screen-nav">
-              <a href="#call">Звонок</a>
-            </li>
-            <li id="case-screen-nav">
-              <a href="#case">Кейс</a>
-            </li>
-            <li id="back-screen-nav">
-              <a href="#back">Бэкофис</a>
-            </li>
-            <li id="search-screen-nav">
-              <a href="#search">Поиск</a>
-            </li>
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                Ещё <b class="caret"></b>
-              </a>
-              <ul class="dropdown-menu">
-                <li id="vin-screen-nav">
-                  <a href="#vin">Обновление базы VIN</a>
-                </li>
-                <li id="partner-screen-nav">
-                  <a href="#partner">Редактирование партнёров</a>
-                </li>
-                <li id="reports-screen-nav">
-                  <a href="#reports">Отчёты</a>
-                </li>
-              </ul>
-            </li>
+            <!-- ko template: { name: 'nav-li-template' }-->
+            <!-- /ko -->
           </ul>
           <ifLoggedIn>
             <ul class="nav pull-right">
@@ -130,7 +105,7 @@
     </div>
 
     <!-- Main container for dynamically rendered layouts -->
-    <div class="container-fluid">
+    <div class="container-fluid" id="main-container">
       <div class="row-fluid" id="layout" />
     </div>
 
@@ -381,6 +356,34 @@
             id="vin-screen-template"
             class="screen-template">
       <div id="vin-form" />
+    </script>
+
+    <!-- Edit VIN screens -->
+    <script type="text/template"
+            id="newVin-screen-template"
+            class="screen-template">
+      <div align="center">
+        <form id="new-vin"
+              method="POST"
+              action="/_/findOrCreate/vin"
+              onSubmit="doNewVin(event)">
+          <label>Введите VIN</label>
+          <input name="id" type="text">
+          <label>
+          <input type="submit" class="btn btn-success">
+        </form>
+      </div>
+    </script>
+
+    <script type="text/template"
+            id="editVin-screen-template"
+            class="screen-template">
+      <div id="left"  class="nice-scrollbar pane">
+        <div id="vin-form" class="form-vertical"/>
+        <div id="vin-permissions"/>
+      </div>
+      <div id="center" class="nice-scrollbar pane"/>
+      <div id="right"  class="nice-scrollbar pane"/>
     </script>
 
     <script type="text/template"
@@ -1084,7 +1087,7 @@
             class="group-template"
             id="default-case-group-template">
       <fieldset class="complex-field default-complex-field"
-                id="default-case-complex-field">
+                id="default-case">
         <p>
           <b>Кто звонил:</b>
           <span data-bind="text: contact_name"/>&nbsp;
@@ -1155,6 +1158,34 @@
 
         </div>
       </fieldset>
+    </script>
+
+
+    <!-- navigation menu templates -->
+    <script type="text/html" id="nav-li-template">
+      <!-- ko foreach: screens -->
+        <!-- ko if: type == 'li' -->
+          <li data-bind="if: type == 'li',
+                         attr: { id: name + '-screen-nav' }">
+            <a data-bind="attr: { href: '#' + name}, text: label"/>
+          </li>
+        <!-- /ko -->
+        <!-- ko if: type == 'dropdown' -->
+          <li class="dropdown"
+              data-bind="if: type == 'dropdown'">
+            <a href="#"
+               class="dropdown-toggle"
+               data-toggle="dropdown"
+               data-bind="html: label + '<b class=\'caret\'></b>'">
+              <b class="caret"></b>
+            </a>
+            <ul class="dropdown-menu"
+                data-bind="template: { name: 'nav-li-template' }">
+            </ul>
+          </li>
+
+        <!-- /ko -->
+      <!-- /ko -->
     </script>
 
   </body>

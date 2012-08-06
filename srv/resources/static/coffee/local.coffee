@@ -37,6 +37,13 @@ localScreens = ->
     "views":
       "reports":
         constructor: setupReports
+  "newVin":
+    "template": "newVin-screen-template"
+  "editVin":
+    "template": "editVin-screen-template"
+    "views":
+      "vin-form":
+        constructor: setupEditVin
 
 # Setup routing
 localRouter = Backbone.Router.extend
@@ -52,6 +59,8 @@ localRouter = Backbone.Router.extend
     "reports"     : "reports"
     "partner"     : "newPartner"
     "partner/:id" : "loadPartner"
+    "editVin/:id" : "editVin"
+    "newVin"      : "newVin"
 
   loadCase    : (id) -> renderScreen("case", {"id": id})
   newCase     :      -> renderScreen("case", {"id": null})
@@ -63,19 +72,29 @@ localRouter = Backbone.Router.extend
   loadCall    : (id) -> renderScreen("call", {"id": id})
   call        :      -> renderScreen("call")
   reports     :      -> renderScreen("reports")
+  editVin     : (id) -> renderScreen("editVin", {"id": id})
+  newVin      :      -> renderScreen("newVin")
 
 # here is entry point
-$( ->
+$ ->
   $.getJSON "/cfg/dictionaries",              (dicts)  ->
     $.getJSON "/_whoami/",                    (user)   ->
       $.getJSON "/s/js/data/conditions.json", (checks) ->
         $.getJSON "/cfg/models",              (models) ->
-          mainSetup(localScreens(), localRouter, dicts, hooks(), user, models)
-          global.checks = checks
-          global.keys = {}
-          global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
-          if window.location.hash == ""
-            redirectToHomePage user)
+          $.getJSON "/s/screens",             (nav)->
+            mainSetup localScreens(),
+                      localRouter,
+                      dicts,
+                      hooks(),
+                      user,
+                      models
+            global.nav = filterScreenPerms nav
+            global.checks = checks
+            global.keys = {}
+            global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
+            if window.location.hash == ""
+              redirectToHomePage user
+            ko.applyBindings global.nav, $('#nav')[0]
 
 this.redirectToHomePage = (user) ->
   mainRole = user.roles[0]
@@ -85,6 +104,17 @@ this.redirectToHomePage = (user) ->
     homePage = "back"
   global.router.navigate(homePage, {trigger: true})
 
+filterScreenPerms = (nav) ->
+  nav.screens = fScrnPerms(nav)
+  return nav
+
+fScrnPerms = (nav) ->
+  p = global.user.roles
+  nav.screens =
+    for s in nav.screens when not _.isEmpty _.intersection(s.permissions, p)
+      s.screens = fScrnPerms(s) if s.screens
+      s
+  return nav.screens
 
 # Model method HTTP access point wrt redson location
 this.modelMethod = (modelName, method) -> "/_/#{modelName}/#{method}"

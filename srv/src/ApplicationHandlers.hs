@@ -35,10 +35,6 @@ import Snaplet.FileUpload (doUpload', doDeleteAll')
 ------------------------------------------------------------------------------
 import qualified Codec.Xlsx.Templater as Xlsx
 import qualified Nominatim
-------------------------------------------------------------------------------
-import WeatherApi
-import WeatherApi.Google
-import Utils.Weather () -- instance ToJSON Weather
 -----------------------------------------------------------------------------
 import Application
 import Util
@@ -118,15 +114,6 @@ geodecode = ifTop $ do
   addr <- fromMaybe "Moscow" <$> getParam "addr"
   resp <- liftIO $ Nominatim.geodecode addr
   writeJSON resp
-
------------------------------------------------------------------------------
--- | Retrieve weather
-weather :: AppHandler ()
-weather = ifTop $ do
-  Just city     <- getParam "city"
-  Right weather <- liftIO $ getWeather' (initApi "ru" "utf-8")
-                                       (BU.toString city)
-  writeLBS $ Aeson.encode weather
 
 ------------------------------------------------------------------------------
 -- | CRUD
@@ -241,6 +228,18 @@ getActionsForCase = do
   let id' = B.append "case:" id
   writeJSON $
     filter ((id' ==) . (Map.findWithDefault "" "caseId")) actions
+
+-- | This action recieve model and id as parameters to lookup for
+-- and json object with values to create new model with specified
+-- id when it's not found
+findOrCreateHandler :: AppHandler ()
+findOrCreateHandler = do
+  Just model <- getParam "model"
+  Just id    <- getParam "id"
+  commit <- getJSONBody
+  res <- with db $ DB.findOrCreate model id commit
+  -- FIXME: try/catch & handle/log error
+  writeJSON res
 
 ------------------------------------------------------------------------------
 -- | Reports

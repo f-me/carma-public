@@ -44,7 +44,6 @@ Executable carma
     Snap.Snaplet.AvayaAES,
     Snap.Snaplet.Auth.Class,
     Utils.HttpErrors,
-    Utils.Weather,
     Util
 
   Build-depends:

@@ -15,7 +15,7 @@ import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.Auth.Backends.JsonFile
 import Snap.Snaplet.Session.Backends.CookieSession
-import Snap.Util.FileServe (serveDirectory)
+import Snap.Util.FileServe (serveDirectory, serveFile)
 ------------------------------------------------------------------------------
 import Snap.Snaplet.AvayaAES
 import Snap.Snaplet.Vin
@@ -37,8 +37,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/login/",        method POST doLogin)
          , ("/logout/",       doLogout)
          , ("/nominatim",     method GET geodecode)
-         , ("/weather/:city", method GET weather)
          , ("/s/",            serveDirectory "resources/static")
+         , ("/s/screens",     serveFile "resources/site-config/screens.json")
          , ("/report",        chkAuth . method GET  $ report)
          , ("/all/:model",    chkAuth . method GET  $ readAllHandler)
          , ("/ix/callsByPhone/:phone",
@@ -49,6 +49,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/_/:model",      chkAuth . method POST $ createHandler)
          , ("/_/:model/:id",  chkAuth . method GET  $ readHandler)
          , ("/_/:model/:id",  chkAuth . method PUT  $ updateHandler)
+         , ("/_/findOrCreate/:model/:id",
+            chkAuth . method POST $ findOrCreateHandler)
          , ("/_/report/",     chkAuth . method POST $ createReportHandler)
          , ("/_/report/:id",  chkAuth . method DELETE $ deleteReportHandler)
          , ("/sync",          chkAuth . method GET  $ syncHandler)
