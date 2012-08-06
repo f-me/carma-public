@@ -26,7 +26,7 @@ data App = App
     { _heist      :: Snaplet (Heist App)
     , _session    :: Snaplet SessionManager
     , _auth       :: Snaplet (AuthManager App)
-    , loggedUsers :: TVar (Map Text ())
+    , loggedUsers :: TVar (Map Text AuthUser)
     , actionsLock :: TMVar ()
     , _siteConfig :: Snaplet (SiteConfig App)
     , _db         :: Snaplet (DbLayer App)

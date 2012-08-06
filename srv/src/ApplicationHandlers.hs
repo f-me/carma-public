@@ -6,12 +6,14 @@ import Data.Functor
 import Control.Monad.IO.Class
 import Control.Concurrent.STM
 
+import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.UTF8  as BU
 import qualified Data.Aeson as Aeson
+import Data.Map (Map)
 import qualified Data.Map as Map
 
 import Data.Maybe
@@ -37,6 +39,7 @@ import qualified Codec.Xlsx.Templater as Xlsx
 import qualified Nominatim
 -----------------------------------------------------------------------------
 import Application
+import CustomLogic.ActionAssignment
 import Util
 
 
@@ -166,48 +169,25 @@ syncHandler = do
 
 myActionsHandler :: AppHandler ()
 myActionsHandler = do
+  Just cUsr <- with auth currentUser
+  let uLogin = userLogin cUsr
+  logdUsers <- addToLoggedUsers cUsr
+
   actLock <- gets actionsLock
   do -- bracket_
     (liftIO $ atomically $ takeTMVar actLock)
-    assignActions
+    actions <- filter ((== Just "false") . Map.lookup "closed")
+           <$> with db (DB.readAll "actions")
+    now <- liftIO getCurrentTime
+    let assignedActions = assignActions now actions logdUsers
+    let myActions = Map.findWithDefault [] uLogin assignedActions
+    with db $ forM_ myActions $ \act ->
+      case Map.lookup "id" act of
+        Nothing -> return ()
+        Just actId -> void $ DB.update "action" actId
+          $ Map.singleton "assignedTo" $ T.encodeUtf8 uLogin
     (liftIO $ atomically $ putTMVar actLock ())
-
-assignActions :: AppHandler ()
-assignActions = do
-  -- update logged users
-  Just cUsr <- with auth currentUser
-  logdUsers <- addToLoggedUsers cUsr
-
-  now  <- liftIO $ getCurrentTime
-  let maybeEq f v a = fromMaybe False $ (==v) <$> Map.lookup f a
-  acts <- filter (maybeEq "closed" "false")
-       <$> with db (DB.readAll "action")
-  let actsByAssignee
-        = foldl'
-          (\m a -> Map.insertWith' (++)
-            (maybe "" T.decodeUtf8 $ Map.lookup "assignedTo" a)
-            [a] m)
-          Map.empty acts
-
-  let strangersActions
-        = concat $ Map.elems
-        $ Map.difference actsByAssignee logdUsrs
-  now <- liftIO $ round . utcTimeToPOSIXSeconds <$> getCurrentTime
-  let duetimeProximity a = case Map.lookup "duetime" a of
-            Nothing -> True
-            Just s -> case B.readInt s of
-              Just (t, "") -> t - now < 20*60
-              _ -> True
-  let actionsToAssign = sortBy (comparing $ Map.lookup "priority")
-        $ filter duetimeProximity strangersActions
-
-  let assignedActions = take 1 actionsToAssign
-  let updateDB a = DB.update "action" (last $ B.split ':' $ a Map.! "id") 
-                 $ Map.singleton "assignedTo" (T.encodeUtf8 $ userLogin cUsr)
-  with db $ mapM updateDB assignedActions
-  writeJSON
-    $! assignedActions
-    ++ Map.findWithDefault [] (userLogin cUsr) actsByAssignee
+    writeJSON myActions
 
 
 searchCallsByPhone :: AppHandler ()
@@ -285,12 +265,12 @@ getJSONBody :: Aeson.FromJSON v => AppHandler v
 getJSONBody = Util.readJSONfromLBS <$> readRequestBody 4096
 
 
-addToLoggedUsers :: AuthUser -> AppHandler (Map Text ())
+addToLoggedUsers :: AuthUser -> AppHandler (Map Text AuthUser)
 addToLoggedUsers u = do
   logTVar <- gets loggedUsers
   logdUsers <- liftIO $ readTVarIO logTVar
-  let logdUsers' = Map.insert (userLogin u) () logdUsers
-  liftIO $ atomically $ writeTVar logdUsers'
+  let logdUsers' = Map.insert (userLogin u) u logdUsers
+  liftIO $ atomically $ writeTVar logTVar logdUsers'
   return logdUsers'
 
 
