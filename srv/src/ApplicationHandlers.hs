@@ -79,8 +79,7 @@ doLogin = ifTop $ do
   case res of
     Left _ -> redirectToLogin
     Right u -> do
-      logdUsrs <- gets loggedUsers
-      liftIO $ atomically $ modifyTVar' logdUsrs (Map.insert (userLogin u) ())
+      addToLoggedUsers u
       avayaExt <- fromMaybe "" <$> getParam "avayaExt" >>= fromBS
       avayaPwd <- fromMaybe "" <$> getParam "avayaPwd" >>= fromBS
       with session $ do
@@ -94,8 +93,7 @@ doLogin = ifTop $ do
 doLogout :: AppHandler ()
 doLogout = ifTop $ do
   Just u <- with auth currentUser
-  logdUsrs <- gets loggedUsers
-  liftIO $ atomically $ modifyTVar' logdUsrs (Map.delete $ userLogin u)
+  rmFromLoggedUsers u
   with auth logout
   redirectToLogin
 
@@ -168,7 +166,6 @@ syncHandler = do
 
 myActionsHandler :: AppHandler ()
 myActionsHandler = do
-  -- FIXME : update loggedUsers
   actLock <- gets actionsLock
   do -- bracket_
     (liftIO $ atomically $ takeTMVar actLock)
@@ -177,9 +174,9 @@ myActionsHandler = do
 
 assignActions :: AppHandler ()
 assignActions = do
+  -- update logged users
   Just cUsr <- with auth currentUser
-  logdUsrs <- gets loggedUsers
-  liftIO $ atomically $ modifyTVar' logdUsrs (Map.insert (userLogin cUsr) ())
+  logdUsers <- addToLoggedUsers cUsr
 
   now  <- liftIO $ getCurrentTime
   let maybeEq f v a = fromMaybe False $ (==v) <$> Map.lookup f a
@@ -191,7 +188,7 @@ assignActions = do
             (maybe "" T.decodeUtf8 $ Map.lookup "assignedTo" a)
             [a] m)
           Map.empty acts
-  logdUsrs <- gets loggedUsers >>= liftIO . readTVarIO
+
   let strangersActions
         = concat $ Map.elems
         $ Map.difference actsByAssignee logdUsrs
@@ -287,3 +284,18 @@ writeJSON v = do
 getJSONBody :: Aeson.FromJSON v => AppHandler v
 getJSONBody = Util.readJSONfromLBS <$> readRequestBody 4096
 
+
+addToLoggedUsers :: AuthUser -> AppHandler (Map Text ())
+addToLoggedUsers u = do
+  logTVar <- gets loggedUsers
+  logdUsers <- liftIO $ readTVarIO logTVar
+  let logdUsers' = Map.insert (userLogin u) () logdUsers
+  liftIO $ atomically $ writeTVar logdUsers'
+  return logdUsers'
+
+
+rmFromLoggedUsers :: AuthUser -> AppHandler ()
+rmFromLoggedUsers u = do
+  logdUsrs <- gets loggedUsers
+  liftIO $ atomically $ modifyTVar' logdUsrs
+         $ Map.delete $ userLogin u
