@@ -46,7 +46,7 @@ applyDefaults model obj = do
             ]
           | otherwise -> obj
 
-  return $ Map.union obj'
+  return $ Map.union (Map.insert "ctime" (B.pack $ show ct) obj')
          $ Map.findWithDefault Map.empty model defaults
 
 
