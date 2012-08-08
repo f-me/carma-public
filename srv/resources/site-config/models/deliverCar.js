@@ -170,7 +170,7 @@
             }
         },
         {
-            "name": "ctime",
+            "name": "createTime",
             "canRead": [
                 "partner",
                 "front",
