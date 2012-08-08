@@ -239,6 +239,24 @@
             }
         },
         {
+            "name": "ctime",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
+            ],
+            "type": "datetime",
+            "meta": {
+                "label": "Дата создания услуги"
+            }
+        },
+        {
             "name": "payType",
             "canRead": [
                 "partner",
