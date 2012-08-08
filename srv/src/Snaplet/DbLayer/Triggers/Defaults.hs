@@ -42,6 +42,7 @@ applyDefaults model obj = do
             ,("times_factServiceClosure",     B.pack $ show $ ct + 12*h)
             ,("times_expectedDealerInfo",     B.pack $ show $ ct + 7*d)
             ,("times_factDealerInfo",         B.pack $ show $ ct + 7*d)
+            ,("createTime",                   B.pack $ show $ ct)
             ]
           | otherwise -> obj
 
