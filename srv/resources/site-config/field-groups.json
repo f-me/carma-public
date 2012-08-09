@@ -408,14 +408,20 @@
         {
             "name": "expectedCost",
             "meta": {
-                "label": "Ожидаемая стоимость",
+                "label": "Ожидаемая стоимость (число)",
                 "infoText": "expextedValue"
             }
         },
         {
+            "name": "costTranscript",
+            "meta": {
+                "label": "Расшифровка стоимости"
+            }
+        },        
+        {
             "name": "partnerCost",
             "meta": {
-                "label": "Стоимость со слов партнёра"
+                "label": "Стоимость со слов партнёра (число)"
             }
         },
         {
