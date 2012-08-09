@@ -277,6 +277,9 @@ deleteReportHandler = do
   with fileUpload $ doDeleteAll' "report" id
   return ()
 
+getUsersDict :: AppHandler ()
+getUsersDict = writeJSON =<< gets allUsers
+
 ------------------------------------------------------------------------------
 -- | Utility functions
 writeJSON :: Aeson.ToJSON v => v -> AppHandler ()

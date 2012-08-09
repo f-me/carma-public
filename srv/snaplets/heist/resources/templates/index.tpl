@@ -63,6 +63,7 @@
     <script src="/s/js/partners.js" />
     <script src="/s/js/call.js" />
     <script src="/s/js/backoffice.js" />
+    <script src="/s/js/supervisors.js" />
     <script src="/s/js/report.js" />
     <script src="/s/js/hotkeys.js" />
     <script src="/s/js/fileupload.js" />
@@ -493,6 +494,39 @@
             </div>
           </div>
           <div id="partner-permissions" />
+        </form>
+      </div>
+    </script>
+
+    <!-- Supervisor screen template -->
+    <script type="text/template"
+            class="screen-template"
+            id="supervisor-screen-template">
+
+      <div id="supervisor-left" class="nice-scrollbar pane">
+        <form class="form-vertical">
+          <table id="supervisor-table" class="table table-striped table-bordered">
+            <thead>
+              <tr>
+                <th width="1%"># кейса/действия</th>
+                <th width="1%">Закрыто?</th>
+                <th width="10%">Тип действия</th>
+                <th width="10%">Ответственный</th>
+                <th width="5%">Роль</th>
+                <th width="10%">Время выполнения</th>
+                <th width="10%">Результат</th>
+                <th width="2%">Пр</th>
+              </tr>
+            </thead>
+            <tbody/>
+          </table>
+        </form>
+      </div>
+
+      <div id="supervisor-right" class="nice-scrollbar pane">
+        <form class="form-vertical">
+          <div id="action-form" />
+          <div id="action-permissions" />
         </form>
       </div>
     </script>

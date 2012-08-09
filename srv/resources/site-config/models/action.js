@@ -94,6 +94,25 @@
         "name": "assignedTo",
         "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
         "canWrite":["back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"], 
+        "type": "dictionary",
+        "meta": {
+            "invisible": true,
+            "dictionaryName": "users"
+        }
+      },
+      {
+        "name": "priority",
+        "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
+        "canWrite":["back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"], 
+        "meta": {
+          "invisible": true
+        }
+      },
+      {
+        "name": "closed",
+        "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
+        "canWrite":["back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"], 
+        "type": "checkbox",
         "meta": {
           "invisible": true
         }
