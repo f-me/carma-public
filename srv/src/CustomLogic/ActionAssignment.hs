@@ -85,9 +85,9 @@ heuristic now due timeline
     -- find free time interval containing the action
     (actsBefore,actsAfter) = Map.split due timeline
     prevAct = fromIntegral
-      $ maybe now     (fst.fst) $ Map.maxViewWithKey actsBefore
+      $ maybe now (fst.fst) $ Map.maxViewWithKey actsBefore
     nextAct = fromIntegral
-      $ maybe (2*now) (fst.fst) $ Map.minViewWithKey actsAfter
+      $ maybe (maxBound :: Int) (fst.fst) $ Map.minViewWithKey actsAfter
 
 ----------------------------------------------------------------------
 
