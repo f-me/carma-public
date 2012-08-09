@@ -41,7 +41,7 @@ this.forgetScreen = ->
 this.renderKnockVm = (elName, knockVM, options) ->
   model     = global.models[knockVM.modelName()]
   instance  = knockVM.model()
-  content   = renderFields(model, elName)
+  content   = renderFields(model, elName, options)
   groupTpls = getTemplates("group-template")
   depViews  = {}
   for gName, cont of content
@@ -121,7 +121,7 @@ this.mkRefContainer = (ref, field, forest, templates)->
 #
 # There's no way to fully include group fields in main section except
 # giving `mainToo` annotation in each field of group.
-this.renderFields = (model, viewName) ->
+this.renderFields = (model, viewName, options) ->
   templates = getTemplates("field-template")
 
   contents = {}
@@ -144,7 +144,8 @@ this.renderFields = (model, viewName) ->
   contents[mainGroup] = ""
 
   for f in model.fields
-    if _.isNull(f.meta) or not f.meta.invisible
+    if _.isNull(f.meta) or not f.meta.invisible or
+        f.name in options?.forceRender
       f.readonly = f.meta.readonly if f.meta?
 
       # Note the difference: `meta.readonly` is

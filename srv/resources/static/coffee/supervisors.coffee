@@ -14,6 +14,7 @@ this.setupSupervisorScreen = (viewName, args) ->
                             permEl: "action-permissions"
                             focusClass: "focusable"
                             refs: []
+                            forceRender: ["assignedTo", "priority", "closed"]
 
     $.getJSON "/all/action?fields=id,caseId,closed,name,assignedTo,
 duetime,result,priority",
@@ -23,18 +24,21 @@ duetime,result,priority",
 
             n = global.dictValueCache['ActionNames']
             r = global.dictValueCache['ActionResults']
+            u = global.dictValueCache['users']
+            o = global.dictValueCache['roles']
 
             rows = for obj in objs
               sid = obj.id.split(':')[1]
               cid = obj.caseId.split(':')[1]
               closed = if obj.closed then 'Y' else 'N'
-
+              duetime = new Date(obj.duetime * 1000)
+                .toString("dd.MM.yyyy HH:mm:ss")
               [ "#{cid}/#{sid}"
               , closed
               , n[obj.name] || ''
-              , obj.assignedTo || ''
-              , "back"
-              , obj.duetime || ''
+              , u[obj.assignedTo] || ''
+              , o[obj.assignedTo]?.split(',')[0] || ''
+              , duetime || ''
               , r[obj.result]  || ''
               , obj.priority || ''
               ]

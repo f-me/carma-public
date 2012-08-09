@@ -54,13 +54,20 @@ instance FromJSON UsersDict where
     r <- V.mapM (parseUser) c
     return $ UsersDict $ V.toList r
       where
+        parseRoles r = V.mapM (parseJSON) r >>=
+                       return . (L.intercalate ",") . V.toList
         parseUser a = do
           Array u <- parseJSON a
           Object u' <- parseJSON $ u V.! 1
           value <- u' .: "login"
+          Array roles <- u' .: "roles"
+          roles' <- parseRoles roles
           meta  <- u' .: "meta"
           label <- meta .:? "realName" .!= ""
-          return $ Map.fromList [("value", value), ("label", label)]
+          return $ Map.fromList [ ("value", value)
+                                , ("label", label)
+                                , ("roles", roles')
+                                ]
 
   parseJSON _ = fail "bad arg"
 

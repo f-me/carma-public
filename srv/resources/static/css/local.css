@@ -161,10 +161,10 @@ textarea.pane-span,
 
 #supervisor-left {
   left: 0;
-  width: 60%;
+  width: 70%;
 }
 
 #supervisor-right {
   right: 0;
-  width: 30%;
+  width: 25%;
 }

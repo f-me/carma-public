@@ -90,8 +90,10 @@ $ ->
         $.getJSON "/cfg/models",                (models) ->
           $.getJSON "/s/screens",                 (nav)    ->
             $.getJSON "/usersDict",                 (users)  ->
-              console.log dicts
               dicts.users = {entries: users}
+              dicts.roles =
+                entries: for i in users
+                           {value: i.value, label: i.roles }
               mainSetup localScreens(),
                         localRouter,
                         dicts,

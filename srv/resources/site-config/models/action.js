@@ -96,6 +96,7 @@
         "canWrite":["back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"], 
         "type": "dictionary",
         "meta": {
+            "label": "Ответственный",
             "invisible": true,
             "dictionaryName": "users"
         }
@@ -105,7 +106,8 @@
         "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
         "canWrite":["back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"], 
         "meta": {
-          "invisible": true
+            "label": "Приоритет",
+            "invisible": true
         }
       },
       {
@@ -114,7 +116,8 @@
         "canWrite":["back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"], 
         "type": "checkbox",
         "meta": {
-          "invisible": true
+            "label": "Закрыто",
+            "invisible": true
         }
       }
     ]
