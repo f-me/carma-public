@@ -1,11 +1,16 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Snaplet.DbLayer.Dictionary (
-	dictionary, loadMap, loadMaps, loadDicts
-	) where
+    Dictionary,
+    look,
+    loadDictionary, loadDictionaries
+    ) where
 
 import Control.Applicative
 import Control.Arrow
 import Control.Monad
 import Data.Aeson
+import Data.Maybe
 import qualified Data.ByteString.Lazy.Char8 as LC8
 import qualified Data.Map as M
 import qualified Data.Text as T
@@ -18,37 +23,42 @@ data KeyValue = KeyValue {
     value :: T.Text }
         deriving (Show)
 
-data Dictionary = Dictionary {
-    entries :: [KeyValue] }
-        deriving (Show)
+data Dictionary = Dictionary (HM.HashMap T.Text T.Text) | Dictionaries (HM.HashMap T.Text Dictionary)
+    deriving (Show)
 
 instance FromJSON KeyValue where
-    parseJSON (Object v) = KeyValue <$> (v .: (T.pack "value")) <*> (v .: (T.pack "label"))
+    parseJSON (Object v) = KeyValue <$> (v .: "value") <*> (v .: "label")
 
 instance FromJSON Dictionary where
-    parseJSON (Object v) = Dictionary <$> ((v .: (T.pack "entries")) <|> (getEs <$> (v .: (T.pack "entries")))) where
-        getEs :: HM.HashMap T.Text [KeyValue] -> [KeyValue]
-        getEs = concat . HM.elems
+    parseJSON v@(Array _) = fmap toDict $ parseJSON v where
+        toDict :: [KeyValue] -> Dictionary
+        toDict = Dictionary . HM.fromList . map (key &&& value)
+    parseJSON v@(Object _) = fmap Dictionaries $ parseJSON v
+    parseJSON _ = empty
 
-dictionary :: Dictionary -> M.Map String String
-dictionary = M.fromList . map ((T.unpack . key) &&& (T.unpack . value)) . entries
-
-loadMap :: FilePath -> IO (M.Map String String)
-loadMap = fmap (maybe M.empty dictionary) . loadDictionary
-
-loadMaps :: FilePath -> [String] -> IO (M.Map String (M.Map String String))
-loadMaps f ds = fmap M.fromList $ forM ds $ \d -> do
-    m <- loadMap (f </> (d ++ ".json"))
-    return (d, m)
+look :: [T.Text] -> Dictionary -> Maybe T.Text
+look [] _ = Nothing
+look [key] (Dictionary m) = HM.lookup key m <|> HM.lookup "" m
+look (key:keys) (Dictionaries m) = do
+    d <- HM.lookup key m
+    look keys d
+look _ _ = Nothing
 
 loadDictionary :: FilePath -> IO (Maybe Dictionary)
-loadDictionary f = fmap decode $ LC8.readFile f
+loadDictionary f = fmap (decode >=> unEntries) $ LC8.readFile f where
+    unEntries :: Dictionary -> Maybe Dictionary
+    unEntries (Dictionaries ds)
+        | HM.keys ds == ["entries"] = HM.lookup "entries" ds
+        | otherwise = Nothing
+    unEntries d = Just d
 
-loadValue :: FilePath -> IO (Maybe Value)
-loadValue f = fmap decode $ LC8.readFile f
-
-loadDicts :: FilePath -> IO (M.Map String (M.Map String String))
-loadDicts cfg = do
-    files <- getDirectoryContents cfg
-    let dictNames = map (dropExtension . takeFileName) $ filter ((== ".json") . takeExtension) files
-    loadMaps cfg dictNames
+loadDictionaries :: FilePath -> IO Dictionary
+loadDictionaries cfg = do
+    contents <- getDirectoryContents cfg
+    let
+        toName = T.pack . dropExtension . takeFileName
+        toFile = (cfg </>)
+        isJson = (== ".json") . takeExtension
+        (names, files) = unzip . map (toName &&& toFile) . filter isJson $ contents
+    ds <- mapM loadDictionary files
+    return $ Dictionaries $ HM.fromList $ catMaybes $ zipWith (fmap . (,)) names ds

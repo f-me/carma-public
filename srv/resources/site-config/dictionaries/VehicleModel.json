@@ -1,0 +1,304 @@
+{
+	"entries": {
+		"ford": [
+			{
+				"value": "",
+				"label": "0900"
+			},
+            {
+				"value": "agila",
+				"label": "2308"
+			},
+            {
+				"value": "corsa",
+				"label": "2310"
+			},
+            {
+				"value": "meriva",
+				"label": "2317"
+			},
+            {
+				"value": "combo",
+				"label": "2311"
+			},
+            {
+				"value": "astra",
+				"label": "2334"
+			},
+            {
+				"value": "insignia",
+				"label": "2322"
+			},
+            {
+				"value": "zafira",
+				"label": "2333"
+			},
+            {
+				"value": "vectra",
+				"label": "2335"
+			},
+            {
+				"value": "signum",
+				"label": "2337"
+			},
+            {
+				"value": "omega",
+				"label": "2340"
+			},
+            {
+				"value": "tigra",
+				"label": "2350"
+			},
+            {
+				"value": "speedster",
+				"label": "2352"
+			},
+            {
+				"value": "gt",
+				"label": "2358"
+			},
+            {
+				"value": "ampera",
+				"label": "2361"
+			},
+            {
+				"value": "frontera",
+				"label": "2365"
+			},
+            {
+				"value": "monterey",
+				"label": "2370"
+			},
+            {
+				"value": "campo",
+				"label": "2375"
+			},
+            {
+				"value": "iseze",
+				"label": "2385"
+			},
+            {
+				"value": "arena",
+				"label": "2390"
+			},
+            {
+				"value": "vivaro",
+				"label": "2392"
+			},
+            {
+				"value": "movano",
+				"label": "2391"
+			},
+            {
+				"value": "antara",
+				"label": "2396"
+			}
+		],
+		"opel": [
+			{
+				"value": "",
+				"label": "2300"
+			},
+            {
+				"value": "agila",
+				"label": "2308"
+			},
+            {
+				"value": "corsa",
+				"label": "2310"
+			},
+            {
+				"value": "meriva",
+				"label": "2317"
+			},
+            {
+				"value": "combo",
+				"label": "2311"
+			},
+            {
+				"value": "astra",
+				"label": "2334"
+			},
+            {
+				"value": "insignia",
+				"label": "2322"
+			},
+            {
+				"value": "zafira",
+				"label": "2333"
+			},
+            {
+				"value": "vectra",
+				"label": "2335"
+			},
+            {
+				"value": "signum",
+				"label": "2337"
+			},
+            {
+				"value": "omega",
+				"label": "2340"
+			},
+            {
+				"value": "tigra",
+				"label": "2350"
+			},
+            {
+				"value": "speedster",
+				"label": "2352"
+			},
+            {
+				"value": "gt",
+				"label": "2358"
+			},
+            {
+				"value": "ampera",
+				"label": "2361"
+			},
+            {
+				"value": "frontera",
+				"label": "2365"
+			},
+            {
+				"value": "monterey",
+				"label": "2370"
+			},
+            {
+				"value": "campo",
+				"label": "2375"
+			},
+            {
+				"value": "iseze",
+				"label": "2385"
+			},
+            {
+				"value": "arena",
+				"label": "2390"
+			},
+            {
+				"value": "vivaro",
+				"label": "2392"
+			},
+            {
+				"value": "movano",
+				"label": "2391"
+			},
+            {
+				"value": "antara",
+				"label": "2396"
+			}
+		],
+		"chevy": [
+			{
+				"value": "",
+				"label": "1000"
+			},
+            {
+				"value": "spark",
+				"label": "1003"
+			},
+            {
+				"value": "matiz",
+				"label": "1005"
+			},
+            {
+				"value": "j200",
+				"label": "1007"
+			},
+            {
+				"value": "volt",
+				"label": "1011"
+			},
+            {
+				"value": "lanos",
+				"label": "1020"
+			},
+            {
+				"value": "cruze",
+				"label": "1021"
+			},
+            {
+				"value": "evanda",
+				"label": "1022"
+			},
+            {
+				"value": "epica",
+				"label": "1033"
+			},
+            {
+				"value": "kalos",
+				"label": "1023"
+			},
+            {
+				"value": "aveo",
+				"label": "1027"
+			},
+            {
+				"value": "nubira",
+				"label": "1025"
+			},
+            {
+				"value": "leganza",
+				"label": "1030"
+			},
+            {
+				"value": "tacuma",
+				"label": "1035"
+			},
+            {
+				"value": "lacetti",
+				"label": "1040"
+			},
+            {
+				"value": "hhr",
+				"label": "1043"
+			},
+            {
+				"value": "orlando",
+				"label": "1047"
+			},
+            {
+				"value": "captiva",
+				"label": "1045"
+			}
+		],
+		"cad": [
+			{
+				"value": "",
+				"label": "1115"
+			},
+			{
+				"value": "seville",
+				"label": "1116"
+			},
+            {
+				"value": "bls",
+				"label": "1121"
+			},
+            {
+				"value": "cts",
+				"label": "1117"
+			},
+            {
+				"value": "xlr",
+				"label": "1118"
+			},
+            {
+				"value": "dts",
+				"label": "1122"
+			},
+            {
+				"value": "sts",
+				"label": "1123"
+			},
+            {
+				"value": "srx",
+				"label": "1119"
+			},
+            {
+				"value": "escalade",
+				"label": "1124"
+			}
+		]
+	}
+}

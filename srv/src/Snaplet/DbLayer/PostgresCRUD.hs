@@ -3,6 +3,7 @@
 module Snaplet.DbLayer.PostgresCRUD (
     modelSyncs, modelModels,
 
+    loadModels,
     createIO,
     create, insert, select, exists, update, updateMany, insertUpdate,
     generateReport
@@ -10,17 +11,21 @@ module Snaplet.DbLayer.PostgresCRUD (
 
 import Prelude hiding (log, catch)
 
+import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.CatchIO
 import qualified Control.Exception as E
 
+import qualified Data.Aeson as A
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import Data.ByteString (ByteString)
 import Data.Char
+import Data.List (isPrefixOf)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
+import qualified Data.ByteString.Lazy.Char8 as L8
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 
@@ -31,16 +36,18 @@ import qualified Data.Pool as Pool
 
 import qualified Database.PostgreSQL.Syncs as S
 import qualified Database.PostgreSQL.Models as SM
+import Database.PostgreSQL.Sync.JSON
 import qualified Database.PostgreSQL.Report.Xlsx as R
 import qualified Database.PostgreSQL.Report.Function as R
 
 import Snaplet.DbLayer.Dictionary
 import Snap.Snaplet.SimpleLog
 
-withPG :: (PS.HasPostgres m) => (P.Connection -> IO a) -> m a
+withPG :: (PS.HasPostgres m, MonadLog m) => S.TIO a -> m a
 withPG f = do
     s <- PS.getPostgresState
-    liftIO $ Pool.withResource (PS.pgPool s) f
+    l <- askLog
+    liftIO $ Pool.withResource (PS.pgPool s) (withLog l . S.inPG f)
 
 caseModel :: S.Sync
 caseModel = S.sync "casetbl" "garbage" [
@@ -58,12 +65,12 @@ caseModel = S.sync "casetbl" "garbage" [
     S.field_ "caseAddress_address" S.string,
     S.indexed $ S.field_ "callDate" S.time,
     S.field_ "callTaker" S.string,
-    S.field_ "callerOwner" S.int,
-    S.field_ "caller_name" S.string,
+    S.field_ "contact_contactOwner" S.int,
+    S.field_ "contact_name" S.string,
     S.indexed $ S.field_ "comment" S.string,
     S.field_ "program" S.string,
     S.field_ "services" S.string,
-    S.field_ "owner_name" S.string,
+    S.field_ "contact_ownerName" S.string,
     S.field_ "partner_name" S.string]
 
 serviceModel :: S.Sync
@@ -87,9 +94,9 @@ serviceModel = S.sync "servicetbl" "garbage" [
     S.field_ "payType" S.string,
     S.field_ "clientSatisfied" S.string]
 
-service :: String -> (String, SM.Model)
-service tp = (tp, mdl) where
-    mdl = SM.model tp serviceModel [
+service :: S.Sync -> String -> (String, SM.Model)
+service srv tp = (tp, mdl) where
+    mdl = SM.model tp srv [
         SM.constant "type" tp,
         SM.adjustField "parentId" (drop 5) ("case:" ++)]
 
@@ -99,25 +106,33 @@ modelSyncs = S.syncs [
     ("service", serviceModel)] [
     "case.id = service.parentId"]
 
-modelModels :: SM.Models
-modelModels = SM.models modelSyncs $ [("case", SM.model "case" caseModel [])] ++ map service [
-    "deliverCar",
-    "deliverParts",
-    "hotel",
-    "information",
-    "rent",
-    "sober",
-    "taxi",
-    "tech",
-    "towage",
-    "transportation"]
+modelModels :: S.Syncs -> Maybe SM.Models
+modelModels ss = do
+    srv <- M.lookup "service" $ S.syncsSyncs ss
+    return $ SM.models ss $ allModels ++ map (service srv) services
+    where
+        noService = M.delete "service" $ S.syncsSyncs ss
+        allModels = map toModel . M.toList $ noService
+        toModel (name, snc) = (name, SM.model name snc [])
+        services = [
+            "deliverCar",
+            "deliverParts",
+            "hotel",
+            "information",
+            "rent",
+            "sober",
+            "taxi",
+            "tech",
+            "towage",
+            "transportation"]         
 
-functions :: M.Map String (M.Map String String) -> [R.ReportFunction]
-functions ds = [
+functions :: Dictionary -> [R.ReportFunction]
+functions dict = [
     R.onString "NAME" (fromMaybe "" . listToMaybe . drop 1 . words),
     R.onString "LASTNAME" (fromMaybe "" . listToMaybe . words),
     R.onString "UPPER" (map toUpper),
     R.onString "LOWER" (map toLower),
+    R.onString "PHONE" phoneFmt,
     R.function "CONCAT" concatFields,
     R.functionMaybe "LOOKUP" lookupField,
     R.function "IF" ifFun,
@@ -126,29 +141,33 @@ functions ds = [
     R.uses ["case.falseCall"] $ R.constFunction "FALSECALL" falseFun,
     R.uses ["case.falseCall"] $ R.constFunction "BILL" billFun,
     R.uses ["case.diagnosis1", "service.type"] $ R.constFunction "FAULTCODE" faultFun,
-    R.uses ["case.car_make"] $ R.constFunction "VEHICLEMAKE" vehicleMakeFun]
-    --R.uses ["case.car_make", "case.car_model"] $ R.constFunction "VEHICLEMODEL" vehicleModelFun]
+    R.uses ["case.car_make"] $ R.constFunction "VEHICLEMAKE" vehicleMakeFun,
+    R.uses ["case.car_make", "case.car_model"] $ R.constFunction "VEHICLEMODEL" vehicleModelFun]
     where
+        phoneFmt s
+            | ("+7" `isPrefixOf` s) && all isDigit (drop 2 s) && length s == 12 = unwords ["+7", "(" ++ substr 2 3 s ++ ")", substr 5 3 s, substr 8 2 s, substr 10 2 s]
+            | otherwise = s
+        
+        substr f l = take l . drop f
+        
         concatFields fs = SM.StringValue $ concat $ mapMaybe fromStringField fs
         fromStringField (SM.StringValue s) = Just s
         fromStringField _ = Nothing
 
-        lookupField [SM.StringValue s, SM.StringValue d] = do
-            d' <- M.lookup d ds
-            s' <- M.lookup s d'
-            return $ SM.StringValue s'
-        lookupField _ = Nothing
+        lookupField [] = Nothing
+        lookupField fs = tryLook <|> justLast where
+            tryLook = do
+                ks <- mapM (fmap T.pack . fromStringField) fs
+                fmap (SM.StringValue . T.unpack) $ look ks dict
+            justLast = Just $ last fs
         
         ifFun [i, t, f]
             | i `elem` [SM.StringValue "1", SM.StringValue "true", SM.StringValue "Y", SM.IntValue 1, SM.BoolValue True] = t
             | otherwise = f
         
         fddsFun fs = do
-            (SM.StringValue pr) <- M.lookup "case.program" fs
-            case pr of
-                "Ford" -> return $ SM.StringValue "3351"
-                "GM" -> return $ SM.StringValue "3275"
-                _ -> return $ SM.StringValue ""
+            pr <- M.lookup "case.program" fs
+            lookupField [SM.StringValue "FDDS", pr]
 
         ownerFun fs = do
             (SM.IntValue isOwner) <- M.lookup "case.callerOwner" fs
@@ -163,65 +182,20 @@ functions ds = [
             return $ SM.StringValue (if isFalse == "bill" then "Y" else "N")
             
         faultFun fs = do
-            (SM.StringValue d) <- M.lookup "case.diagnosis1" fs
-            (SM.StringValue s) <- M.lookup "service.type" fs
-            d' <- M.lookup d $ M.fromList [
-                ("engine", "355"),
-                ("keyLost", "667"),
-                ("engcool", "349"),
-                ("steer", "260"),
-                ("signal", "652"),
-                ("electro", "400"), -- ???
-                ("fuel", "599"),
-                ("brake", "298"),
-                ("gears", "745"),
-                ("needDiagnostic", "921"),
-                ("tread", "246"),
-                ("electronics", "514"),
-                ("dtp", "144")]
-            s' <- M.lookup s $ M.fromList [
-                ("tech", "55"),
-                ("towage", "6G")]
+            d <- M.lookup "case.diagnosis1" fs
+            s <- M.lookup "service.type" fs
+            (SM.StringValue d') <- lookupField [SM.StringValue "FaultCode", SM.StringValue "diagnosis1", d]
+            (SM.StringValue s') <- lookupField [SM.StringValue "FaultCode", SM.StringValue "service", s]
             return $ SM.StringValue $ d' ++ "09" ++ s'
             
         vehicleMakeFun fs = do
-            (SM.StringValue m) <- M.lookup "case.car_make" fs
-            m' <- M.lookup m $ M.fromList [
-                ("ford", "09"),
-                ("chevy", "10"),
-                ("opel", "23"),
-                ("cad", "11")]
-            return $ SM.StringValue m'
+            m <- M.lookup "case.car_make" fs
+            lookupField [SM.StringValue "VehicleMake", m]
             
-{-
         vehicleModelFun fs = do
             mk <- M.lookup "case.car_make" fs
             md <- M.lookup "case.car_model" fs
-            r <- M.lookup mk $ M.fromList [
-                ("ford", fromMaybe "0900" $ M.lookup md $ M.fromList [
-                      ("ka", "0910"),
-                      -- ka from MY, before MY?
-                      ("sportKa", "0912"),
-                      ("streetKa", "0911"),
-                      ("fiesta", "0915"),
-                      -- fiesta from MY?
-                      -- fiesta van?
-                      ("fusion", "0918"),
-                      ("puma", "0916"),
-                      ("escort", "0920"),
-                      -- escort van?
-                      -- escort convertible
-                      ("cMaxII", "0928")
-                      -- grand&focus C-Max?
-                      -- C-Max from ...?
-                      -- focus from?
-                      -- focus from?
-                      -- focus from?
-                      -- focus?
-                      ("focus", "0936"),
-                      -- coupe convertible?
--}
-                      
+            lookupField [SM.StringValue "VehicleModel", mk, md]
                       
 local :: P.ConnectInfo
 local = P.ConnectInfo {
@@ -253,14 +227,20 @@ elogv v act = E.catch act (onError v) where
 		putStrLn $ "Failed with: " ++ show e
 		return x
 
-createIO :: SM.Models -> IO ()
-createIO ms = do
+loadModels :: FilePath -> Log -> IO SM.Models
+loadModels f l = withLog l $ do
+    log Trace "Loading models"
+    ss <- liftIO $ fmap (fromMaybe (error "Unable to load syncs") . A.decode) $ L8.readFile f
+    maybe (error "Unable to create models on syncs loaded") return $ modelModels ss
+
+createIO :: SM.Models -> Log -> IO ()
+createIO ms l = do
     con <- P.connect local
     let
         onError :: E.SomeException -> IO ()
         onError _ = return ()
     E.catch (void $ P.execute_ con "create extension hstore") onError
-    S.transaction con $ S.create (SM.modelsSyncs ms)
+    withLog l $ S.transaction con $ S.create (SM.modelsSyncs ms)
 
 toStr :: ByteString -> String
 toStr = T.unpack . T.decodeUtf8
@@ -270,33 +250,47 @@ toCond ms m c = S.conditionComplex (SM.modelsSyncs ms) (tableName ++ ".id = ?") 
     tableName = fromMaybe (error "Invalid model name") $ fmap (SM.syncTable . SM.modelSync) $ M.lookup (toStr m) (SM.modelsModels ms)
 
 create :: (PS.HasPostgres m, MonadLog m) => S.Syncs -> m ()
-create ss = escope "create" $ withPG (S.inPG (S.create ss))
+create ss = escope "create" $ withPG (S.create ss)
 
 insert :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> S.SyncMap -> m ()
-insert ms name m = escope "isnert" $ withPG (S.inPG (SM.insert ms (toStr name) m))
+insert ms name m = escope "insert" $ withPG (SM.insert ms (toStr name) m)
 
 select :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> ByteString -> m S.SyncMap
-select ms name c = scoper "select" $ withPG (S.inPG $ SM.select ms (toStr name) cond) where
-    cond = toCond ms name c
+select ms name c = scoper "select" $ do
+    log Trace $ T.concat ["Selecting id ", T.decodeUtf8 c]
+    withPG (SM.select ms (toStr name) cond)
+    where
+        cond = toCond ms name c
 
 exists :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> ByteString -> m Bool
-exists ms name c = escopev "exists" False $ withPG (S.inPG (SM.exists ms (toStr name) cond)) where
-    cond = toCond ms name c
+exists ms name c = escopev "exists" False $ do
+    log Trace $ T.concat ["Checking for existing id ", T.decodeUtf8 c]
+    withPG (SM.exists ms (toStr name) cond)
+    where
+        cond = toCond ms name c
 
 update :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> ByteString -> S.SyncMap -> m ()
-update ms name c m = escope "update" $ withPG (S.inPG (SM.update ms (toStr name) cond m)) where
-    cond = toCond ms name c
+update ms name c m = escope "update" $ do
+    log Trace $ T.concat ["Updating id ", T.decodeUtf8 c]
+    withPG (SM.update ms (toStr name) cond m)
+    where
+        cond = toCond ms name c
 
 updateMany :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> M.Map ByteString S.SyncMap -> m ()
 updateMany ms name m = scope "updateMany" $ forM_ (M.toList m) $ uncurry (update ms name) where
     update' k obj = update ms name k (M.insert (C8.pack "id") k obj)
 
 insertUpdate :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> ByteString -> S.SyncMap -> m Bool
-insertUpdate ms name c m = escopev "insertUpdate" False $ withPG (S.inPG (SM.insertUpdate ms (toStr name) cond m)) where
-    cond = toCond ms name c
+insertUpdate ms name c m = escopev "insertUpdate" False $ do
+    log Trace $ T.concat ["Processing id ", T.decodeUtf8 c]
+    withPG (SM.insertUpdate ms (toStr name) cond m)
+    where
+        cond = toCond ms name c
 
 generateReport :: (PS.HasPostgres m, MonadLog m) => SM.Models -> [T.Text] -> FilePath -> FilePath -> m ()
 generateReport ms conds tpl file = scope "generateReport" $ do
+    log Info "Generating report"
     log Trace "Loading dictionaries"
-    dicts <- scope "dictionaries" $ liftIO $ loadDicts "resources/site-config/dictionaries"
-    scope "createReport" $ withPG (S.inPG $ R.createReport (SM.modelsSyncs ms) (functions dicts) conds tpl file)
+    dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
+    scope "createReport" $ withPG (R.createReport (SM.modelsSyncs ms) (functions dicts) conds tpl file)
+    log Info "Report generated"

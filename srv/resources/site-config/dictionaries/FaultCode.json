@@ -1,0 +1,68 @@
+{
+	"entries": {
+		"diagnosis1": [
+            {
+				"value": "engine",
+				"label": "355"
+			},
+			{
+				"value": "keyLost",
+				"label": "667"
+			},
+            {
+				"value": "engcool",
+				"label": "349"
+			},
+            {
+				"value": "steer",
+				"label": "260"
+			},
+            {
+				"value": "signal",
+				"label": "652"
+			},
+            {
+				"value": "electro",
+				"label": "400"
+			},
+            {
+				"value": "fuel",
+				"label": "599"
+			},
+            {
+				"value": "brake",
+				"label": "298"
+			},
+            {
+				"value": "gears",
+				"label": "745"
+			},
+            {
+				"value": "needDiagnostic",
+				"label": "921"
+			},
+            {
+				"value": "tread",
+				"label": "246"
+			},
+            {
+				"value": "electronics",
+				"label": "514"
+			},
+            {
+				"value": "dtp",
+				"label": "144"
+			}
+		],
+		"service": [
+            {
+				"value": "tech",
+				"label": "55"
+			},
+            {
+				"value": "towage",
+				"label": "6G"
+			}
+		]
+	}
+}

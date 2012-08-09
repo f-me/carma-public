@@ -3,8 +3,10 @@ module ApplicationHandlers where
 
 
 import Data.Functor
+import Control.Monad
 import Control.Monad.IO.Class
 
+import Data.Char
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
@@ -17,8 +19,11 @@ import Data.Maybe
 import Data.List (foldl',sortBy)
 import Data.Ord (comparing)
 
+import Data.Time
 import Data.Time.Clock (getCurrentTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
+
+import System.Locale
 
 import Snap.Core
 import Snap.Snaplet (with)
@@ -223,13 +228,31 @@ findOrCreateHandler = do
 report :: AppHandler ()
 report = do
   Just reportId <- getParam "program"
+  fromDate <- liftM (fmap T.decodeUtf8) $ getParam "from"
+  toDate <- liftM (fmap T.decodeUtf8) $ getParam "to"
   reportInfo <- with db $ DB.read "report" reportId
+  tz <- liftIO getCurrentTimeZone
   let tplName = B.unpack (reportInfo Map.! "templates")
   let template
         = "resources/static/fileupload/report/"
         ++ (B.unpack reportId) ++ "/templates/" ++ tplName
   let result = "resources/reports/" ++ tplName
-  with db $ DB.generateReport [] template result
+  let
+      -- convert format and UTCize time
+      validate dateStr = fmap (format . toUTC) $ parse dateStr where
+          format = T.pack . formatTime defaultTimeLocale "%m.%d.%Y"
+          parse :: T.Text -> Maybe LocalTime
+          parse = parseTime defaultTimeLocale "%d.%m.%Y" . T.unpack
+          toUTC = localTimeToUTC tz
+      within pre post dateValue = do
+          f <- dateValue
+          s <- validate f
+          return $ T.concat [T.pack pre, s, T.pack post]
+      fromDate' = within "case.callDate > '" "'" fromDate
+      toDate' = within "case.callDate < '" "'" toDate
+      
+      dateConditions = catMaybes [fromDate', toDate']
+  with db $ DB.generateReport dateConditions template result
   modifyResponse $ addHeader "Content-Disposition" "attachment; filename=\"report.xlsx\""
   serveFile result
 

@@ -49,6 +49,7 @@ import Util
 
 
 create model commit = scoper "create" $ do
+  mdl <- gets syncModels
   log Trace $ fromString $ "Model: " ++ show model
   log Trace $ fromString $ "Commit: " ++ show commit
   --
@@ -59,7 +60,7 @@ create model commit = scoper "create" $ do
   let obj' = Map.insert (C8.pack "id") objId obj
   log Trace $ fromString $ "Object with id: " ++ show obj'
   --
-  Postgres.insert Postgres.modelModels model obj'
+  Postgres.insert mdl model obj'
 {-
   let fullId = B.concat [model, ":", objId]
   changes <- triggerUpdate fullId obj
@@ -88,6 +89,7 @@ read model objId = do
 
 
 update model objId commit = scoper "update" $ do
+  mdl <- gets syncModels
   log Trace $ fromString $ "Model: " ++ show model
   --
   let fullId = B.concat [model, ":", objId]
@@ -98,14 +100,11 @@ update model objId commit = scoper "update" $ do
   -- 
   let changes' = Map.mapKeys (B.drop (B.length model + 1)) changes
   log Trace $ fromString $ "Changes: " ++ show changes'
-  Postgres.updateMany Postgres.modelModels model changes'
+  Postgres.updateMany mdl model changes'
   --
   return $ (changes Map.! fullId) Map.\\ commit
 
 delete model objId = do
-  liftIO $ putStrLn "UPDATE"
-  liftIO $ putStrLn $ "  MODEL: " ++ show model
-  --
   Redis.delete redis model objId
 
 search ixName val = do
@@ -115,37 +114,48 @@ search ixName val = do
   forM ids $ Redis.read' redis
 
 sync :: Handler b (DbLayer b) ()
-sync = scope "sync" $ mapM_ syncModel modelList where
-  syncModel model = scope "syncModel" $ do
-    Right (Just cnt) <- runRedisDB redis $ Redis.get (Redis.modelIdKey model)
-    log Trace $ fromString $ "Count of entries for model " ++ show model ++ " is: " ++ show cnt
-    case C8.readInt cnt of
-      Just (maxId, _) -> forM_ [1..maxId] $ \i -> do
-        rec <- Redis.read redis model (C8.pack . show $ i)
-        when (not $ Map.null rec) $ void $ Postgres.insertUpdate Postgres.modelModels model (C8.pack . show $ i) rec
-      Nothing -> error $ "Invalid id for model " ++ C8.unpack model
-
-  modelList = map C8.pack $ Map.keys (SM.modelsModels Postgres.modelModels)
+sync = scope "sync" $ do
+    mdl <- gets syncModels
+    mapM_ (syncModel mdl) (modelList mdl)
+    where
+        syncModel mdl model = scope "syncModel" $ do
+            Right (Just cnt) <- runRedisDB redis $ Redis.get (Redis.modelIdKey model)
+            log Info $ fromString $ "Syncing model " ++ show model
+            log Trace $ fromString $ "Count of entries for model " ++ show model ++ " is: " ++ show cnt
+            case C8.readInt cnt of
+                Just (maxId, _) -> forM_ [1..maxId] $ \i -> do
+                    rec <- Redis.read redis model (C8.pack . show $ i)
+                    let rec' = Map.insert (C8.pack "id") (C8.pack . show $ i) rec
+                    when (not $ Map.null rec) $ void $ Postgres.insertUpdate mdl model (C8.pack . show $ i) rec'
+                Nothing -> error $ "Invalid id for model " ++ C8.unpack model
+        modelList m = map C8.pack $ Map.keys (SM.modelsModels m)
 
 generateReport :: [T.Text] -> FilePath -> FilePath -> Handler b (DbLayer b) ()
-generateReport conds template filename = Postgres.generateReport Postgres.modelModels conds template filename
+generateReport conds template filename = do
+    mdl <- gets syncModels
+    Postgres.generateReport mdl conds template filename
 
 readAll model = Redis.readAll redis model
 
+-- log politics
+logConfig = []
 
 initDbLayer :: SnapletInit b (DbLayer b)
 initDbLayer = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
-    liftIO $ Postgres.createIO Postgres.modelModels
+    l <- liftIO $ newLog defaultPolitics logConfig [logger text (file "log/db.log")]
+    mdl <- liftIO $ Postgres.loadModels "resources/site-config/syncs.json" l
+    liftIO $ Postgres.createIO mdl l
     cfg <- getSnapletUserConfig
     DbLayer
       <$> nestSnaplet "redis" redis
             (redisDBInit Redis.defaultConnectInfo)
       <*> nestSnaplet "pgsql" postgres pgsInit
-      <*> nestSnaplet "dblog" dbLog (simpleLogInit [logger text (file "log/db.log")])
+      <*> nestSnaplet "dblog" dbLog (simpleLogInit_ l)
       <*> liftIO triggersConfig
       <*> liftIO createIndices
       <*> (liftIO $ fddsConfig cfg)
+      <*> (return mdl)
 
 ----------------------------------------------------------------------
 triggersConfig = do
