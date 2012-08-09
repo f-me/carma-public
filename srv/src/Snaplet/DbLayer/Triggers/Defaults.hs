@@ -42,10 +42,11 @@ applyDefaults model obj = do
             ,("times_factServiceClosure",     B.pack $ show $ ct + 12*h)
             ,("times_expectedDealerInfo",     B.pack $ show $ ct + 7*d)
             ,("times_factDealerInfo",         B.pack $ show $ ct + 7*d)
+            ,("createTime",                   B.pack $ show $ ct)
             ]
           | otherwise -> obj
 
-  return $ Map.union obj'
+  return $ Map.union (Map.insert "ctime" (B.pack $ show ct) obj')
          $ Map.findWithDefault Map.empty model defaults
 
 

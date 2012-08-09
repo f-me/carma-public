@@ -17,25 +17,17 @@ this.setupCallForm = (viewName, args) ->
   $.getJSON("/all/case?orderby=callDate&limit=120&fields=#{fields}", (objs) ->
     st.fnClearTable()
     dict = global.dictValueCache
-    for i of objs
-      obj = objs[i]
+    rows = for obj in objs
       continue if obj.id.length > 10
-      plateNum = if obj.car_plateNum?
-              obj.car_plateNum.toUpperCase()
-          else
-              ""
-      carVin = if obj.car_vin?
-              obj.car_vin.toUpperCase()
-          else
-              ""
       row = [obj.id.split(":")[1]
             ,obj.caller_name || obj.contact_name || ''
             ,new Date(obj.callDate * 1000).toString("dd.MM.yyyy HH:mm:ss")
             ,obj.caller_phone1 || obj.contact_phone1 || ''
-            ,plateNum, carVin
+            ,(obj.car_plateNum || "").toUpperCase()
+            ,(obj.car_vin || "").toUpperCase()
             ,dict.Programs[obj.program] || obj.program || ''
             ,dict.Wazzup[obj.comment] || obj.comment || ''
             ]
-      st.fnAddData(row)
+    st.fnAddData(rows)
   )
   setupHotkeys()
