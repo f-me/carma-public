@@ -182,14 +182,15 @@ myActionsHandler = do
   do -- bracket_
     (liftIO $ atomically $ takeTMVar actLock)
     actions <- filter ((== Just "false") . Map.lookup "closed")
-           <$> with db (DB.readAll "actions")
+           <$> with db (DB.readAll "action")
     now <- liftIO getCurrentTime
     let assignedActions = assignActions now actions logdUsers
     let myActions = Map.findWithDefault [] uLogin assignedActions
     with db $ forM_ myActions $ \act ->
       case Map.lookup "id" act of
         Nothing -> return ()
-        Just actId -> void $ DB.update "action" actId
+        Just actId -> void $ DB.update "action"
+          (last $ B.split ':' actId)
           $ Map.singleton "assignedTo" $ T.encodeUtf8 uLogin
     (liftIO $ atomically $ putTMVar actLock ())
     writeJSON myActions
