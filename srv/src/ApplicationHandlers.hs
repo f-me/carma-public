@@ -189,7 +189,8 @@ myActionsHandler = do
     with db $ forM_ myActions $ \act ->
       case Map.lookup "id" act of
         Nothing -> return ()
-        Just actId -> void $ DB.update "action" actId
+        Just actId -> void $ DB.update "action"
+          (last $ B.split ':' actId)
           $ Map.singleton "assignedTo" $ T.encodeUtf8 uLogin
     (liftIO $ atomically $ putTMVar actLock ())
     writeJSON myActions
