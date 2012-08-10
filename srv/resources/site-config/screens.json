@@ -2,46 +2,46 @@
     { "name"  : "call",
       "label" : "Звонок",
       "type"  : "li",
-      "permissions": ["front","back","head","parguy"]
+      "permissions": ["front","back","head","parguy","supervisor","director","analyst","parguy","account","admin","programman"]
     },
     { "name"  :"case",
       "label" : "Кейс",
       "type"  : "li",
-      "permissions": ["front","back","head","parguy"]
+      "permissions": ["front","back","head","parguy","supervisor","director","analyst","account","admin","programman"]
     },
     { "name"  : "back",
       "label" : "Бэкофис",
       "type"  : "li",
-      "permissions": ["front","back","head","parguy"]
+      "permissions": ["front","back","head","parguy","supervisor","analyst"]
     },
     { "name"  : "search",
       "label" : "Поиск",
       "type"  : "li",
-      "permissions":["front","back","head","parguy"]
+      "permissions": ["front","back","head","parguy","supervisor","director","analyst","account","admin","programman"]
     },
     { "type"    : "dropdown",
       "label"   : "Еще",
-      "permissions":["front","back","head","parguy"],
+      "permissions": ["front","back","head","parguy","supervisor","director","analyst","account","admin","programman"]
       "screens" : [
         { "name"  : "vin",
           "label" : "Обновление базы VIN",
           "type"  : "li",
-          "permissions": ["front","back","head","parguy"]
+          "permissions": ["head","admin","programman"]
         },
         { "name"  : "partner",
           "label" : "Редактирование партнёров",
           "type"  : "li",
-          "permissions": ["front","back","head","parguy"]
+          "permissions": ["head","parguy"]
         },
         { "name"  : "reports",
           "label" : "Отчёты",
           "type"  : "li",
-          "permissions": ["front","back","head","parguy"]
+          "permissions": ["front","back","head","parguy","supervisor","director","analyst","account","admin","programman"]
         },
         { "name"  : "newVin",
           "label" : "Редактирование VIN",
           "type"  : "li",
-          "permissions": ["front","back","head","parguy"]
+          "permissions": ["head","supervisor","admin","programman"]
         }
       ]
     }
