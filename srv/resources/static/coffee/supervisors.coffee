@@ -5,7 +5,7 @@ this.setupSupervisorScreen = (viewName, args) ->
 
     t = $("#supervisor-table");
     return if t.hasClass("dataTable")
-    mkDataTable(t)
+    mkDataTable(t, {bPaginate: true})
 
     t.on "click.datatable", "tr", ->
       id = this.children[0].innerText.split('/')[1]
