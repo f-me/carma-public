@@ -145,7 +145,7 @@ this.renderFields = (model, viewName, options) ->
 
   for f in model.fields
     if _.isNull(f.meta) or not f.meta.invisible or
-        f.name in options?.forceRender
+        f.name in options?.forceRender?
       f.readonly = f.meta.readonly if f.meta?
 
       # Note the difference: `meta.readonly` is
