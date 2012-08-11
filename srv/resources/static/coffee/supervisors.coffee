@@ -5,11 +5,13 @@ this.setupSupervisorScreen = (viewName, args) ->
 
     t = $("#supervisor-table");
     return if t.hasClass("dataTable")
-    mkDataTable(t, {bPaginate: true})
+    dt = mkDataTable(t, {bPaginate: true})
+
+    $('#date-min').change -> dt.fnDraw()
+    $('#date-max').change -> dt.fnDraw()
 
     t.on "click.datatable", "tr", ->
       id = this.children[0].innerText.split('/')[1]
-      console.log viewName
       modelSetup("action") viewName, {"id": id},
                             permEl: "action-permissions"
                             focusClass: "focusable"
@@ -43,3 +45,14 @@ duetime,result,priority",
               , obj.priority || ''
               ]
             dt.fnAddData(rows)
+
+#--------------------------------------------------------------------------------
+# Custom filtering function which will filter data in column four between two values
+$.fn.dataTableExt.afnFiltering.push (oSettings, aData, iDataIndex) ->
+  min = Date.parse($('#date-min').val())
+  max = Date.parse($('#date-max').val())
+  d = Date.parse aData[5]
+  if min < d  and (d < max or not max)
+    return true
+  else
+    return false

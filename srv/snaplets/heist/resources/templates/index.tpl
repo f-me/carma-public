@@ -505,6 +505,12 @@
 
       <div id="supervisor-left" class="nice-scrollbar pane">
         <form class="form-vertical">
+          <div class="table-filter">
+            Диапазон:
+            <input id="date-min" type="text" />
+            -
+            <input id="date-max" type="text" />
+          </div>
           <table id="supervisor-table" class="table table-striped table-bordered">
             <thead>
               <tr>
