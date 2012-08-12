@@ -81,7 +81,7 @@ serviceActions = Map.fromList
             ,("duetime", due)
             ,("description", utf8 "Заказать услугу")
             ,("targetGroup", "back")
-            ,("priority", "2")
+            ,("priority", "1")
             ,("parentId", objId)
             ,("caseId", kazeId)
             ,("closed", "false")
@@ -173,7 +173,7 @@ actionActions = Map.fromList
          void $ replaceAction
              "orderService"
              "Заказать услугу"
-             "back" "2" (+5*60) objId
+             "back" "1" (+5*60) objId
     ,\objId val -> maybe (return ()) ($objId)
       $ Map.lookup val actionResultMap
     ]
