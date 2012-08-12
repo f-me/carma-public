@@ -267,3 +267,7 @@ checkAccordion = (e) ->
 this.getWeather = (city, cb) ->
   url = "/#{city}"
   $.getJSON "/weather/#{city}", (data) -> cb(data)
+
+################################################################################
+# utils
+this.toUnix = (d) -> Math.round(d.getTime() / 1000)
