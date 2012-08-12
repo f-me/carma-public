@@ -145,6 +145,7 @@ readAllHandler = do
   (with db $ DB.readAll model)
     >>= apply "orderby" sortBy (flip . comparing . Map.lookup)
     >>= apply "limit"   take   (read . B.unpack)
+    >>= apply "select"  filter flt
     >>= apply "fields"  map    proj
     >>= writeJSON
   where
@@ -156,6 +157,8 @@ readAllHandler = do
       [(k, Map.findWithDefault "" k obj)
       | k <- B.split ',' fs
       ]
+
+    flt prm = \obj -> all (selectParse obj) $ B.split ',' prm
 
 updateHandler :: AppHandler ()
 updateHandler = do
