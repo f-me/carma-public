@@ -82,15 +82,6 @@
         }
       },
       {
-        "name": "targetGroup",
-        "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
-        "canWrite":["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"], 
-        "index": true,
-        "meta": {
-          "invisible": true
-        }
-      },
-      {
         "name": "assignedTo",
         "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
         "canWrite":["back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"], 
@@ -99,6 +90,17 @@
             "label": "Ответственный",
             "invisible": true,
             "dictionaryName": "users"
+        }
+      },
+      {
+        "name": "targetGroup",
+        "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
+        "canWrite":["back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"], 
+        "type": "text",
+        "meta": {
+            "label": "Роль",
+            "invisible": true,
+            "readOnly": true
         }
       },
       {
