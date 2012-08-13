@@ -1,7 +1,7 @@
 {-# OverloadedStrings #-}
 
 module Snaplet.DbLayer.PostgresCRUD (
-    modelSyncs, modelModels,
+    modelModels,
 
     loadModels,
     createIO,
@@ -49,62 +49,11 @@ withPG f = do
     l <- askLog
     liftIO $ Pool.withResource (PS.pgPool s) (withLog l . S.inPG f)
 
-caseModel :: S.Sync
-caseModel = S.sync "casetbl" "garbage" [
-    S.indexed $ S.field_ "id" S.int,
-    S.indexed $ S.field_ "car_make" S.string,
-    S.indexed $ S.field_ "car_model" S.string,
-    S.indexed $ S.field_ "car_program" S.string,
-    S.indexed $ S.field_ "car_vin" S.string,
-    S.field_ "car_buyDate" S.time,
-    S.field_ "car_plateNum" S.string,
-    S.field_ "car_carModel" S.string,
-    S.indexed $ S.field_ "diagnosis1" S.string,
-    S.indexed $ S.field_ "diagnosis2" S.string,
-    S.indexed $ S.field_ "dealerCause" S.string,
-    S.field_ "caseAddress_address" S.string,
-    S.indexed $ S.field_ "callDate" S.time,
-    S.field_ "callTaker" S.string,
-    S.field_ "contact_contactOwner" S.int,
-    S.field_ "contact_name" S.string,
-    S.indexed $ S.field_ "comment" S.string,
-    S.field_ "program" S.string,
-    S.field_ "services" S.string,
-    S.field_ "contact_ownerName" S.string,
-    S.field_ "partner_name" S.string]
-
-serviceModel :: S.Sync
-serviceModel = S.sync "servicetbl" "garbage" [
-    S.field_ "id" S.int,
-    S.field_ "parentId" S.int,
-    S.field_ "status" S.string,
-    S.field_ "type" S.string,
-    S.field_ "falseCall" S.string,
-    S.field_ "towDealer_name" S.string,
-    S.field_ "orderNumber" S.int,
-    S.field_ "suburbanMilage" S.int,
-    S.field_ "warrantyCase" S.string,
-    S.field_ "times_repairEndDate" S.time,
-    S.field_ "times_factServiceStart" S.time,
-    S.field_ "times_factServiceEnd" S.time,
-    S.field_ "carProvidedFor" S.int,
-    S.field_ "hotelProvidedFor" S.int,
-    S.field_ "payment_limitedCost" S.int,
-    S.field_ "payment_partnerCost" S.int,
-    S.field_ "payType" S.string,
-    S.field_ "clientSatisfied" S.string]
-
 service :: S.Sync -> String -> (String, SM.Model)
 service srv tp = (tp, mdl) where
     mdl = SM.model tp srv [
         SM.constant "type" tp,
         SM.adjustField "parentId" (drop 5) ("case:" ++)]
-
-modelSyncs :: S.Syncs
-modelSyncs = S.syncs [
-    ("case", caseModel),
-    ("service", serviceModel)] [
-    "case.id = service.parentId"]
 
 modelModels :: S.Syncs -> Maybe SM.Models
 modelModels ss = do
@@ -288,7 +237,7 @@ insertUpdate ms name c m = escopev "insertUpdate" False $ do
         cond = toCond ms name c
 
 generateReport :: (PS.HasPostgres m, MonadLog m) => SM.Models -> [T.Text] -> FilePath -> FilePath -> m ()
-generateReport ms conds tpl file = scope "generateReport" $ do
+generateReport ms conds tpl file = scope "generate" $ do
     log Info "Generating report"
     log Trace "Loading dictionaries"
     dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
