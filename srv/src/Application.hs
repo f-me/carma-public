@@ -4,6 +4,7 @@ module Application where
 
 import Data.Text (Text)
 import Data.Map (Map)
+import Data.Time.Clock (UTCTime)
 import Data.Lens.Template
 import Control.Concurrent.STM
 
@@ -26,7 +27,7 @@ data App = App
     { _heist      :: Snaplet (Heist App)
     , _session    :: Snaplet SessionManager
     , _auth       :: Snaplet (AuthManager App)
-    , loggedUsers :: TVar (Map Text AuthUser)
+    , loggedUsers :: TVar (Map Text (UTCTime, AuthUser))
     , actionsLock :: TMVar ()
     , _siteConfig :: Snaplet (SiteConfig App)
     , _db         :: Snaplet (DbLayer App)

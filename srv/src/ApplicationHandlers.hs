@@ -184,7 +184,7 @@ myActionsHandler = do
     actions <- filter ((== Just "false") . Map.lookup "closed")
            <$> with db (DB.readAll "action")
     now <- liftIO getCurrentTime
-    let assignedActions = assignActions now actions logdUsers
+    let assignedActions = assignActions now actions (Map.map snd logdUsers)
     let myActions = Map.findWithDefault [] uLogin assignedActions
     with db $ forM_ myActions $ \act ->
       case Map.lookup "id" act of
@@ -289,11 +289,14 @@ getJSONBody :: Aeson.FromJSON v => AppHandler v
 getJSONBody = Util.readJSONfromLBS <$> readRequestBody 4096
 
 
-addToLoggedUsers :: AuthUser -> AppHandler (Map Text AuthUser)
+addToLoggedUsers :: AuthUser -> AppHandler (Map Text (UTCTime,AuthUser))
 addToLoggedUsers u = do
   logTVar <- gets loggedUsers
   logdUsers <- liftIO $ readTVarIO logTVar
-  let logdUsers' = Map.insert (userLogin u) u logdUsers
+  now <- liftIO getCurrentTime
+  let logdUsers' = Map.insert (userLogin u) (now,u)
+        -- filter out inactive users
+        $ Map.filter ((<addUTCTime (-30*60) now).fst) logdUsers
   liftIO $ atomically $ writeTVar logTVar logdUsers'
   return logdUsers'
 
