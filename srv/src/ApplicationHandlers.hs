@@ -185,7 +185,7 @@ myActionsHandler = do
            <$> with db (DB.readAll "action")
     now <- liftIO getCurrentTime
     let assignedActions = assignActions now actions (Map.map snd logdUsers)
-    let myActions = Map.findWithDefault [] uLogin assignedActions
+    let myActions = take 5 $ Map.findWithDefault [] uLogin assignedActions
     with db $ forM_ myActions $ \act ->
       case Map.lookup "id" act of
         Nothing -> return ()
@@ -296,7 +296,7 @@ addToLoggedUsers u = do
   now <- liftIO getCurrentTime
   let logdUsers' = Map.insert (userLogin u) (now,u)
         -- filter out inactive users
-        $ Map.filter ((<addUTCTime (-30*60) now).fst) logdUsers
+        $ Map.filter ((>addUTCTime (-90*60) now).fst) logdUsers
   liftIO $ atomically $ writeTVar logTVar logdUsers'
   return logdUsers'
 
