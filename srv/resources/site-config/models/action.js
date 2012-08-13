@@ -100,7 +100,7 @@
         "meta": {
             "label": "Роль",
             "invisible": true,
-            "readOnly": true
+            "readonly": true
         }
       },
       {
