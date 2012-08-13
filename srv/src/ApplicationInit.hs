@@ -95,7 +95,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
 
-  d <- nestSnaplet "db" db initDbLayer
+  d <- nestSnaplet "db" db $ initDbLayer allUsrs
 
   v <- nestSnaplet "vin" vin vinInit
   av <- nestSnaplet "avaya" avaya avayaAESInit

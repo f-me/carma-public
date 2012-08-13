@@ -3,7 +3,7 @@
 module Util
   (readJSON
   ,readJSONfromLBS
-  ,UsersDict
+  ,UsersDict(..)
   ,selectParse
   ) where
 
@@ -51,7 +51,7 @@ readJSONfromLBS' src s
 
 --------------------------------------------------------------------------------
 
-data UsersDict = UsersDict [Map.Map L.ByteString L.ByteString]
+data UsersDict = UsersDict [Map.Map B.ByteString B.ByteString]
                  deriving (Show)
 
 instance FromJSON UsersDict where
@@ -61,7 +61,7 @@ instance FromJSON UsersDict where
     return $ UsersDict $ V.toList r
       where
         parseRoles r = V.mapM (parseJSON) r >>=
-                       return . (L.intercalate ",") . V.toList
+                       return . (B.intercalate ",") . V.toList
         parseUser a = do
           Array u <- parseJSON a
           Object u' <- parseJSON $ u V.! 1

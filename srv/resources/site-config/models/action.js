@@ -40,6 +40,7 @@
         "name": "duetime",
         "type": "datetime",
         "canRead": true,
+        "canWrite": true,
         "meta": {
           "label": "Ожидаемое время выполнения"
         }

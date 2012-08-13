@@ -9,12 +9,16 @@ import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.UTF8  as BU
 import qualified Data.Map as Map
 import Data.Char
+import Data.Maybe
 
 import qualified Fdds as Fdds
 ------------------------------------------------------------------------------
 import WeatherApi (getWeather', tempC)
 import WeatherApi.Google (initApi)
 -----------------------------------------------------------------------------
+import Data.Time.Format (parseTime)
+import Data.Time.Clock (UTCTime)
+import System.Locale (defaultTimeLocale)
 
 import Snap (gets)
 import Snap.Snaplet.RedisDB
@@ -22,6 +26,8 @@ import qualified Database.Redis as Redis
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
+
+import Util
 
 services =
   ["deliverCar"
@@ -167,7 +173,32 @@ resultSet1 =
   ] 
 
 actionActions = Map.fromList
-  [("result",
+  [("closed",
+    [\objId val -> do
+        comment <- get objId "comment"
+        when (val == "1") $
+          set objId "comment" $
+          B.append comment $ utf8 "\nЗакрыто супервизором"
+    ])
+  ,("duetime",
+    [\objId val -> do
+        comment <- get objId "comment"
+        let pt :: Maybe UTCTime
+            pt = parseTime defaultTimeLocale "%s" $ B.unpack val
+        case pt of
+          Just _  -> set objId "comment" $
+                     B.append comment $ utf8 "\nИзменено супервизором"
+          Nothing -> return ()
+    ])
+  ,("assignedTo",
+    [\objId val -> do
+        comment <- get objId "comment"
+        UsersDict allu <- lift $ gets allUsers
+        when (any (== val) $ map (fromJust . (Map.lookup "value")) allu) $
+          set objId "comment" $ B.append comment $
+                    utf8 "\nОтвественный изменен супервизором"
+    ])
+  ,("result",
     [\objId val -> when (val `elem` resultSet1) $ do
          setService objId "status" "orderService"
          void $ replaceAction

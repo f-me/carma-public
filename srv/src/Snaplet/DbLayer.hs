@@ -140,8 +140,8 @@ readAll model = Redis.readAll redis model
 -- log politics
 logConfig = []
 
-initDbLayer :: SnapletInit b (DbLayer b)
-initDbLayer = makeSnaplet "db-layer" "Storage abstraction"
+initDbLayer :: UsersDict -> SnapletInit b (DbLayer b)
+initDbLayer allU = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
     l <- liftIO $ newLog defaultPolitics logConfig [logger text (file "log/db.log")]
     mdl <- liftIO $ Postgres.loadModels "resources/site-config/syncs.json" l
@@ -156,6 +156,7 @@ initDbLayer = makeSnaplet "db-layer" "Storage abstraction"
       <*> liftIO createIndices
       <*> (liftIO $ fddsConfig cfg)
       <*> (return mdl)
+      <*> (return allU)
 
 ----------------------------------------------------------------------
 triggersConfig = do
