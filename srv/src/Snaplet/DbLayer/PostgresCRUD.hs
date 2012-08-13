@@ -1,4 +1,4 @@
-{-# OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Snaplet.DbLayer.PostgresCRUD (
     modelModels,
@@ -42,6 +42,8 @@ import qualified Database.PostgreSQL.Report.Function as R
 
 import Snaplet.DbLayer.Dictionary
 import Snap.Snaplet.SimpleLog
+
+import Snaplet.DbLayer.ARC
 
 withPG :: (PS.HasPostgres m, MonadLog m) => S.TIO a -> m a
 withPG f = do
@@ -155,12 +157,12 @@ local = P.ConnectInfo {
 	P.connectDatabase = "carma" }
 
 escope :: (MonadLog m) => T.Text -> m () -> m ()
-escope s act = catch (scope s act) onError where
+escope s act = catch (scope_ s act) onError where
     onError :: (MonadLog m) => E.SomeException -> m ()
     onError _ = return ()
 
 escopev :: (MonadLog m) => T.Text -> a -> m a -> m a
-escopev s v act = catch (scope s act) (onError v) where
+escopev s v act = catch (scope_ s act) (onError v) where
     onError :: (MonadLog m) => a -> E.SomeException -> m a
     onError x _ = return x
 
@@ -231,13 +233,16 @@ updateMany ms name m = scope "updateMany" $ forM_ (M.toList m) $ uncurry (update
 
 insertUpdate :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> ByteString -> S.SyncMap -> m Bool
 insertUpdate ms name c m = escopev "insertUpdate" False $ do
-    log Trace $ T.concat ["Processing id ", T.decodeUtf8 c]
     withPG (SM.insertUpdate ms (toStr name) cond m)
     where
         cond = toCond ms name c
 
 generateReport :: (PS.HasPostgres m, MonadLog m) => SM.Models -> [T.Text] -> FilePath -> FilePath -> m ()
 generateReport ms conds tpl file = scope "generate" $ do
+    -- test ARC
+    scope "test" $ do
+        log Info "ARC report test"
+        arcReport 2012 8
     log Info "Generating report"
     log Trace "Loading dictionaries"
     dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"

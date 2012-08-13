@@ -113,6 +113,11 @@
 					"indexed": "true"
 				},
 				{
+					"name": "createTime",
+					"type": "time",
+					"indexed": "true"
+				},
+				{
 					"name": "type",
 					"type": "string"
 				},
@@ -186,6 +191,11 @@
 				{
 					"name": "id",
 					"type": "int",
+					"indexed": "true"
+				},
+				{
+					"name": "callDate",
+					"type": "time",
 					"indexed": "true"
 				},
 				{
