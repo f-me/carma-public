@@ -184,7 +184,7 @@ myActionsHandler = do
   actLock <- gets actionsLock
   do -- bracket_
     (liftIO $ atomically $ takeTMVar actLock)
-    actions <- filter ((== Just "false") . Map.lookup "closed")
+    actions <- filter ((== Just "0") . Map.lookup "closed")
            <$> with db (DB.readAll "actions")
     now <- liftIO getCurrentTime
     let assignedActions = assignActions now actions logdUsers

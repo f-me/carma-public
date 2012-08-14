@@ -90,7 +90,7 @@ serviceActions = Map.fromList
             ,("priority", "2")
             ,("parentId", objId)
             ,("caseId", kazeId)
-            ,("closed", "false")
+            ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
       "mechanicConf" -> do
@@ -104,7 +104,7 @@ serviceActions = Map.fromList
             ,("priority", "2")
             ,("parentId", objId)
             ,("caseId", kazeId)
-            ,("closed", "false")
+            ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
       "dealerConf" -> do
@@ -118,7 +118,7 @@ serviceActions = Map.fromList
             ,("priority", "2")
             ,("parentId", objId)
             ,("caseId", kazeId)
-            ,("closed", "false")
+            ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
       "dealerConformation" -> do
@@ -132,7 +132,7 @@ serviceActions = Map.fromList
             ,("priority", "2")
             ,("parentId", objId)
             ,("caseId", kazeId)
-            ,("closed", "false")
+            ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
       "makerConformation" -> do
@@ -146,7 +146,7 @@ serviceActions = Map.fromList
             ,("priority", "2")
             ,("parentId", objId)
             ,("caseId", kazeId)
-            ,("closed", "false")
+            ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
       "clientCanceled" -> do
@@ -160,7 +160,7 @@ serviceActions = Map.fromList
             ,("priority", "1")
             ,("parentId", objId)
             ,("caseId", kazeId)
-            ,("closed", "false")
+            ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId             
       _ -> return ()]
@@ -486,7 +486,7 @@ closeAction objId = do
   svcId <- get objId "parentId"
   kazeId <- get svcId "parentId"
   upd kazeId "actions" $ dropFromList objId
-  set objId "closed" "true"
+  set objId "closed" "1"
 
 replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
   assignee <- get objId "assignedTo"
@@ -502,7 +502,7 @@ replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
     ,("duetime", due)
     ,("parentId", svcId)
     ,("caseId", kazeId)
-    ,("closed", "false")
+    ,("closed", "0")
     ]
   upd kazeId "actions" $ addToList actionId
   closeAction objId
