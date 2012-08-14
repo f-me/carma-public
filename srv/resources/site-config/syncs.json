@@ -199,6 +199,10 @@
 					"indexed": "true"
 				},
 				{
+					"name": "program",
+					"type": "string"
+				},
+				{
 					"name": "wazzup",
 					"type": "string"
 				},

@@ -9,11 +9,15 @@ import Prelude hiding (log, catch)
 import Control.Monad
 import Control.Monad.IO.Class
 import Data.ByteString (ByteString)
+import Data.Monoid
+import Data.List
 import Data.String
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.Time
 import qualified Snap.Snaplet.PostgresqlSimple as PS
+import qualified Database.PostgreSQL.Simple.ToField as PS
+import qualified Database.PostgreSQL.Simple.ToRow as PS
 import System.Locale
 
 import Snap.Snaplet.SimpleLog
@@ -30,19 +34,77 @@ query s v = do
     log Trace $ T.concat ["query: ", T.decodeUtf8 bs]
     PS.query s v
 
--- create count query for tables and 
-count :: (PS.HasPostgres m, MonadLog m) => [T.Text] -> [T.Text] -> m Integer
-count ts cs = do
-    rs <- query_ $ fromString $ T.unpack $ T.concat [
-        "select count(*) from ",
-        T.intercalate ", " ts,
-        " where ",
-        T.intercalate " and " (map (T.cons '(' . (`T.snoc` ')')) cs)]
+-- pre-query, holds fields, table names and conditions in separate list to edit
+data PreQuery = PreQuery {
+    preFields :: [T.Text],
+    preTables :: [T.Text],
+    preConditions :: [T.Text],
+    preArgs :: [PS.Action] }
+
+preQuery :: (PS.ToRow q) => [T.Text] -> [T.Text] -> [T.Text] -> q -> PreQuery
+preQuery fs ts cs as = PreQuery fs ts cs (PS.toRow as)
+
+preQuery_ :: [T.Text] -> [T.Text] -> [T.Text] -> PreQuery
+preQuery_ fs ts cs = PreQuery fs ts cs []
+
+instance Monoid PreQuery where
+    mempty = PreQuery [] [] [] []
+    (PreQuery lf lt lc la) `mappend` (PreQuery rf rt rc ra) = PreQuery
+        (nub $ lf ++ rf)
+        (nub $ lt ++ rt)
+        (lc ++ rc)
+        (la ++ ra)
+
+runQuery :: (PS.HasPostgres m, MonadLog m, PS.FromRow r) => PreQuery -> m [r]
+runQuery (PreQuery f t c a) = query compiled a where
+    compiled = fromString $ T.unpack $ T.concat [
+        "select ", T.intercalate ", " f,
+        " from ", T.intercalate ", " t,
+        " where ", T.intercalate " and " (map (T.cons '(' . (`T.snoc` ')')) c)]
+
+count :: (PS.HasPostgres m, MonadLog m) => [PreQuery] -> m Integer
+count qs = do
+    rs <- runQuery (mconcat qs)
     case rs of
         [] -> error "Count query returns no rows"
         ((PS.Only r):_) -> do
             log Debug $ T.concat ["Count result: ", T.pack (show r)]
             return r
+
+str :: String -> String
+str = id
+
+withinDay st field = [
+    T.concat [field, " - '", st, "' < '1 day'"],
+    T.concat [field, " - '", st, "' >= '0 days'"]]
+
+rows :: [(T.Text, T.Text -> [T.Text] -> PreQuery)]
+rows = queries where
+    cst = preQuery_ ["count(*)"] ["casetbl", "servicetbl"] ["casetbl.id = servicetbl.parentId"]
+    inday st = preQuery_ ["count(*)"] [] (withinDay st "servicetbl.createTime")
+    inList :: T.Text -> [T.Text] -> PreQuery
+    inList tbl lst = preQuery ["count(*)"] [tbl] [T.concat [tbl, ".program in ?"]] [PS.In lst]
+    csday st ps = mconcat [cst, inday st, inList "casetbl" ps]
+    
+    totalCalls st ps = mconcat [inList "calltbl" ps, preQuery_ ["count(*)"] ["calltbl"] (withinDay st "calltbl.callDate")]
+    techServices st ps = mconcat [csday st ps, preQuery [] [] ["servicetbl.type = ?"] [str "tech"]]
+    towageServicesWithTech st ps = mconcat [csday st ps, preQuery [] [] ["servicetbl.type = ?", "position(? in casetbl.services) != 0"] [str "towage", str "tech"]]
+    towageServices st ps = mconcat [csday st ps, preQuery [] [] ["servicetbl.type = ?"] [str "towage"]]
+    towageDtps st ps = mconcat [csday st ps, preQuery [] [] ["servicetbl.type = ?", "casetbl.diagnosis1 = ?"] [str "towage", str "dtp"]]
+    others st ps = mconcat [csday st ps, preQuery [] [] ["servicetbl.type not in (?, ?)"] [str "tech", str "towage"]]
+    
+    queries = [
+        ("Total calls", totalCalls),
+        ("Techs", techServices),
+        ("Towage-techs", towageServicesWithTech),
+        ("Towages", towageServices),
+        ("DTPs", towageDtps),
+        ("Others", others)]
+
+programs :: [(T.Text, [T.Text])]
+programs = [
+    ("GM", ["cadold", "cad2012", "chevyko", "chevyna", "hum", "opel"]),
+    ("VW", ["vwMotor"])]
 
 -- | Create ARC report for year and month
 arcReport :: (PS.HasPostgres m, MonadLog m) => Integer -> Int -> m ()
@@ -53,36 +115,13 @@ arcReport year month = scope "arc" $ do
         daysCount = gregorianMonthLength year month
         startOfDay n = localTimeToUTC tz localTm where
             localTm = LocalTime (fromGregorian year month n) midnight
-        withinDay st field = T.concat [field, " - '", fromString st, "' <= '1 day'"]
-        starts = map (formatTime defaultTimeLocale "%F %T" . startOfDay) [1..daysCount]
-        getData st = do
-            count ["calltbl"] [withinDay st "calltbl.callDate"]
-            count ["casetbl", "servicetbl"] [
-                "casetbl.id = servicetbl.parentId",
-                "servicetbl.type = 'tech'",
-                withinDay st "servicetbl.createTime"]
-            count ["casetbl", "servicetbl"] [
-                "casetbl.id = servicetbl.parentId",
-                "servicetbl.type = 'towage'",
-                "position('tech' in casetbl.services) != 0",
-                withinDay st "servicetbl.createTime"]
-            count ["casetbl", "servicetbl"] [
-                "casetbl.id = servicetbl.parentId",
-                "servicetbl.type = 'towage'",
-                withinDay st "servicetbl.createTime"]
-            count ["casetbl", "servicetbl"] [
-                "casetbl.id = servicetbl.parentId",
-                "servicetbl.type = 'towage'",
-                "casetbl.diagnosis1 = 'dtp'",
-                withinDay st "servicetbl.createTime"]
-            count ["casetbl", "servicetbl"] [
-                "casetbl.id = servicetbl.parentId",
-                "servicetbl.type not in ('tech', 'towage')",
-                withinDay st "servicetbl.createTime"]
-    forM_ (zip [1..daysCount] starts) $ \(i, st) -> scope (T.pack (show i)) $ do
-        getData st
+        starts :: [T.Text]
+        starts = map (fromString . formatTime defaultTimeLocale "%F %T" . startOfDay) [1..daysCount]
+    forM_ programs $ \(pname, pprog) -> scope pname $ do
+        forM_ rows $ \(rname, rquery) -> scope rname $ do
+            forM (zip [1..daysCount] starts) $ \(nday, st) -> scope (T.pack $ show nday) $ do
+                count [rquery st pprog]
     
-
 -- ARC
 -- select count(*) from calltbl where (date_trunc('day', calltbl.callDate) = TIMESTAMP '2012-08-06');
 -- select count (*) from casetbl, servicetbl where (casetbl.id = servicetbl.parentId) and (servicetbl.type = 'tech') and (date_trunc('day', servicetbl.createTime) = TIMESTAMP '2012-08-06');
