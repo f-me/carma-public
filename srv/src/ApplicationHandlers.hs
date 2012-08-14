@@ -241,7 +241,7 @@ report = do
   let
       -- convert format and UTCize time
       validate dateStr = fmap (format . toUTC) $ parse dateStr where
-          format = T.pack . formatTime defaultTimeLocale "%m.%d.%Y"
+          format = T.pack . formatTime defaultTimeLocale "%m.%d.%Y %X"
           parse :: T.Text -> Maybe LocalTime
           parse = parseTime defaultTimeLocale "%d.%m.%Y" . T.unpack
           toUTC = localTimeToUTC tz

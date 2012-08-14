@@ -243,8 +243,8 @@ generateReport ms conds tpl file = scope "generate" $ do
     log Trace "Loading dictionaries"
     dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
     -- test ARC
-    scope "test" $ do
-        log Info "ARC report test"
-        arcReport dicts 2012 8
+    -- scope "test" $ do
+    --     log Info "ARC report test"
+    --     arcReport dicts 2012 8
     scope "createReport" $ withPG (R.createReport (SM.modelsSyncs ms) (functions dicts) conds tpl file)
     log Info "Report generated"
