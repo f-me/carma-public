@@ -12,6 +12,7 @@ import Control.Monad.IO.Class
 import Data.ByteString (ByteString)
 import Data.Monoid
 import Data.List
+import qualified Data.Map as M
 import Data.String
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -21,6 +22,10 @@ import qualified Database.PostgreSQL.Simple.ToField as PS
 import qualified Database.PostgreSQL.Simple.ToRow as PS
 import Snaplet.DbLayer.Dictionary
 import System.Locale
+
+import qualified Codec.Xlsx as Xlsx
+import qualified Codec.Xlsx.Parser as Xlsx
+import qualified Codec.Xlsx.Writer as Xlsx
 
 import Snap.Snaplet.SimpleLog
 
@@ -119,11 +124,48 @@ arcReport d year month = scope "arc" $ do
             localTm = LocalTime (fromGregorian year month n) midnight
         starts :: [T.Text]
         starts = map (fromString . formatTime defaultTimeLocale "%F %T" . startOfDay) [1..daysCount]
-    forM_ (programs d) $ \(pname, pprog) -> scope pname $ do
-        forM_ rows $ \(rname, rquery) -> scope rname $ do
-            forM (zip [1..daysCount] starts) $ \(nday, st) -> scope (T.pack $ show nday) $ do
+    reportData <- forM (programs d) $ \(pname, pprog) -> scope pname $ do
+        programData <- forM rows $ \(rname, rquery) -> scope rname $ do
+            counts <- forM (zip [1..daysCount] starts) $ \(nday, st) -> scope (T.pack $ show nday) $ do
                 count [rquery st pprog]
+            log Debug $ T.concat ["Counts for month: ", T.pack $ show counts]
+            return (rname, counts)
+        return (pname, programData)
     
+    log Trace "Saving to ARC.xlsx"
+    let
+        oneRow :: (T.Text, [Integer]) -> [Xlsx.CellValue]
+        oneRow (nm, vals) = Xlsx.CellText rowName : map (Xlsx.CellDouble . fromIntegral) vals where
+            rowName = maybe nm id $ look ["ARC", nm] d
+        oneProgram :: (T.Text, [(T.Text, [Integer])]) -> [[Xlsx.CellValue]]
+        oneProgram (nm, rs) = map ((Xlsx.CellText progName :) . oneRow) rs where
+            progName = maybe nm id $ look ["Programs", nm] d
+        sheetData = concatMap oneProgram reportData
+        header = replicate 2 (Xlsx.CellText "") ++ map (Xlsx.CellDouble . fromIntegral) [1..daysCount]
+    liftIO $ saveXlsx "ARC.xlsx" header sheetData
+    log Info "Report saved to ARC.xlsx"
+
+saveXlsx :: FilePath -> [Xlsx.CellValue] -> [[Xlsx.CellValue]] -> IO ()
+saveXlsx f ts fs = Xlsx.writeXlsx f [sheet] where
+    allRows = ts : fs
+    sheet = Xlsx.Worksheet {
+        Xlsx.wsName = T.pack "arc",
+        Xlsx.wsMinX = 1,
+        Xlsx.wsMaxX = 1 + length ts,
+        Xlsx.wsMinY = 1,
+        Xlsx.wsMaxY = 1 + length allRows,
+        Xlsx.wsColumns = [],
+        Xlsx.wsRowHeights = M.empty,
+        Xlsx.wsCells = cls }
+    cls = M.unions $ zipWith row [1..] allRows
+    row r rdata = M.unions $ zipWith (mkCell r) [1..] rdata
+    mkCell r c = M.singleton (c, r) . Xlsx.CellData Nothing . Just
+
+saveArcReport :: FilePath -> [T.Text] -> [[Integer]] -> IO ()
+saveArcReport f ts fs = saveXlsx f names fields where
+    names = map (Xlsx.CellText) ts
+    fields = map (map (Xlsx.CellDouble . fromIntegral)) fs
+
 -- ARC
 -- select count(*) from calltbl where (date_trunc('day', calltbl.callDate) = TIMESTAMP '2012-08-06');
 -- select count (*) from casetbl, servicetbl where (casetbl.id = servicetbl.parentId) and (servicetbl.type = 'tech') and (date_trunc('day', servicetbl.createTime) = TIMESTAMP '2012-08-06');
