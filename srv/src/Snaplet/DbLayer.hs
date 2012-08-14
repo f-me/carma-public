@@ -129,7 +129,7 @@ readAll model = Redis.readAll redis model
 
 -- log politics
 logConfig = [
-    relative ["arc"] $ low Trace]
+    relative ["arc"] $ low Debug]
 
 initDbLayer :: SnapletInit b (DbLayer b)
 initDbLayer = makeSnaplet "db-layer" "Storage abstraction"

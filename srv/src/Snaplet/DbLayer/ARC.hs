@@ -6,6 +6,7 @@ module Snaplet.DbLayer.ARC (
 
 import Prelude hiding (log, catch)
 
+import Control.Arrow
 import Control.Monad
 import Control.Monad.IO.Class
 import Data.ByteString (ByteString)
@@ -18,6 +19,7 @@ import Data.Time
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 import qualified Database.PostgreSQL.Simple.ToField as PS
 import qualified Database.PostgreSQL.Simple.ToRow as PS
+import Snaplet.DbLayer.Dictionary
 import System.Locale
 
 import Snap.Snaplet.SimpleLog
@@ -92,6 +94,7 @@ rows = queries where
     towageServices st ps = mconcat [csday st ps, preQuery [] [] ["servicetbl.type = ?"] [str "towage"]]
     towageDtps st ps = mconcat [csday st ps, preQuery [] [] ["servicetbl.type = ?", "casetbl.diagnosis1 = ?"] [str "towage", str "dtp"]]
     others st ps = mconcat [csday st ps, preQuery [] [] ["servicetbl.type not in (?, ?)"] [str "tech", str "towage"]]
+    notSatisfied st ps = mconcat [csday st ps, preQuery [] [] ["servicetbl.clientSatisfied = ?"] [str "0"]]
     
     queries = [
         ("Total calls", totalCalls),
@@ -99,16 +102,15 @@ rows = queries where
         ("Towage-techs", towageServicesWithTech),
         ("Towages", towageServices),
         ("DTPs", towageDtps),
-        ("Others", others)]
+        ("Others", others),
+        ("Not satisfied", notSatisfied)]
 
-programs :: [(T.Text, [T.Text])]
-programs = [
-    ("GM", ["cadold", "cad2012", "chevyko", "chevyna", "hum", "opel"]),
-    ("VW", ["vwMotor"])]
+programs :: Dictionary -> [(T.Text, [T.Text])]
+programs = maybe [] (map (id &&& (return . id))) . keys ["Programs"]
 
 -- | Create ARC report for year and month
-arcReport :: (PS.HasPostgres m, MonadLog m) => Integer -> Int -> m ()
-arcReport year month = scope "arc" $ do
+arcReport :: (PS.HasPostgres m, MonadLog m) => Dictionary -> Integer -> Int -> m ()
+arcReport d year month = scope "arc" $ do
     log Info $ T.concat ["Creating arc report for ", fromString (formatTime defaultTimeLocale "%m.%Y" (fromGregorian year month 1))]
     tz <- liftIO getCurrentTimeZone
     let
@@ -117,7 +119,7 @@ arcReport year month = scope "arc" $ do
             localTm = LocalTime (fromGregorian year month n) midnight
         starts :: [T.Text]
         starts = map (fromString . formatTime defaultTimeLocale "%F %T" . startOfDay) [1..daysCount]
-    forM_ programs $ \(pname, pprog) -> scope pname $ do
+    forM_ (programs d) $ \(pname, pprog) -> scope pname $ do
         forM_ rows $ \(rname, rquery) -> scope rname $ do
             forM (zip [1..daysCount] starts) $ \(nday, st) -> scope (T.pack $ show nday) $ do
                 count [rquery st pprog]

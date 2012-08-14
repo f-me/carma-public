@@ -239,12 +239,12 @@ insertUpdate ms name c m = escopev "insertUpdate" False $ do
 
 generateReport :: (PS.HasPostgres m, MonadLog m) => SM.Models -> [T.Text] -> FilePath -> FilePath -> m ()
 generateReport ms conds tpl file = scope "generate" $ do
-    -- test ARC
-    scope "test" $ do
-        log Info "ARC report test"
-        arcReport 2012 8
     log Info "Generating report"
     log Trace "Loading dictionaries"
     dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
+    -- test ARC
+    scope "test" $ do
+        log Info "ARC report test"
+        arcReport dicts 2012 8
     scope "createReport" $ withPG (R.createReport (SM.modelsSyncs ms) (functions dicts) conds tpl file)
     log Info "Report generated"
