@@ -90,7 +90,9 @@ $ ->
         $.getJSON "/cfg/models",                (models) ->
           $.getJSON "/s/screens",                 (nav)    ->
             $.getJSON "/usersDict",                 (users)  ->
-              dicts.users = {entries: users}
+              dicts.users =
+                entries: for i in users
+                           {value: i.value, label: "#{i.label} (#{i.value})"}
               dicts.roles =
                 entries: for i in users
                            {value: i.value, label: i.roles }
