@@ -66,6 +66,8 @@ drawTable = (dt, select) ->
             ]
           dt.fnAddData(rows)
           dt.fnSort [[5,'asc']]
+          $('select[name=supervisor-table_length]').val(100)
+          $('select[name=supervisor-table_length]').change()
 
 dtRedraw = (dt) ->
   d1 = Date.parse $('#date-min').val()
