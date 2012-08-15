@@ -505,11 +505,27 @@
 
       <div id="supervisor-left" class="nice-scrollbar pane">
         <form class="form-vertical">
-          <div class="table-filter">
-            Диапазон:
+          <div id="table-filter" class="form-inline well">
+            <label>Диапазон:</label>
             <input id="date-min" type="text" />
             -
             <input id="date-max" type="text" />
+
+            <select id="role" data-bind="foreach: entries">
+              <option data-bind="value: value, text: label"/>
+            </select>
+
+            <select id="closed">
+              <option value="">Открытые и закрытые</option>
+              <option value="0">Открытые</option>
+              <option value="1">Закрытые</option>
+            </select>
+            </br>
+            <div class="control-group">
+              <button id="reload" class="btn" >
+                Обновить
+              </button>
+            </div>
           </div>
           <table id="supervisor-table" class="table table-striped table-bordered">
             <thead>
