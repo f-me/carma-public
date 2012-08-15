@@ -16,6 +16,7 @@ import Snap.Snaplet.SimpleLog
 import qualified Database.PostgreSQL.Models as SM
 
 import qualified Fdds as Fdds
+import Util (UsersDict)
 
 type ObjectId = ByteString
 type Object = Map FieldName ByteString
@@ -34,6 +35,7 @@ data DbLayer b = DbLayer
     ,indices   :: Indices
     ,fdds      :: Fdds.Conf
     ,syncModels :: SM.Models
+    ,allUsers   :: UsersDict
     }
 
 data TriggersConfig = TriggersConfig

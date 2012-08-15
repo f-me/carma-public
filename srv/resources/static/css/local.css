@@ -158,3 +158,13 @@ textarea.pane-span,
     position: relative;
     left: 90%;
 }
+
+#supervisor-left {
+  left: 0;
+  width: 70%;
+}
+
+#supervisor-right {
+  right: 0;
+  width: 25%;
+}

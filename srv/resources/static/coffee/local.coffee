@@ -32,6 +32,11 @@ localScreens = ->
     "views":
       "partner-form":
         constructor: setupPartnersForm
+  "supervisor":
+    "template": "supervisor-screen-template"
+    "views":
+      "action-form":
+        constructor: setupSupervisorScreen
   "reports":
     "template": "reports-screen-template"
     "views":
@@ -61,6 +66,7 @@ localRouter = Backbone.Router.extend
     "partner/:id" : "loadPartner"
     "editVin/:id" : "editVin"
     "newVin"      : "newVin"
+    "supervisor"  : "supervisor"
 
   loadCase    : (id) -> renderScreen("case", {"id": id})
   newCase     :      -> renderScreen("case", {"id": null})
@@ -74,27 +80,33 @@ localRouter = Backbone.Router.extend
   reports     :      -> renderScreen("reports")
   editVin     : (id) -> renderScreen("editVin", {"id": id})
   newVin      :      -> renderScreen("newVin")
+  supervisor  :      -> renderScreen("supervisor")
 
 # here is entry point
 $ ->
-  $.getJSON "/cfg/dictionaries",              (dicts)  ->
-    $.getJSON "/_whoami/",                    (user)   ->
+  $.getJSON "/cfg/dictionaries",          (dicts)  ->
+    $.getJSON "/_whoami/",                  (user)   ->
       $.getJSON "/s/js/data/conditions.json", (checks) ->
-        $.getJSON "/cfg/models",              (models) ->
-          $.getJSON "/s/screens",             (nav)->
-            mainSetup localScreens(),
-                      localRouter,
-                      dicts,
-                      hooks(),
-                      user,
-                      models
-            global.nav = filterScreenPerms nav
-            global.checks = checks
-            global.keys = {}
-            global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
-            if window.location.hash == ""
-              redirectToHomePage user
-            ko.applyBindings global.nav, $('#nav')[0]
+        $.getJSON "/cfg/models",                (models) ->
+          $.getJSON "/s/screens",                 (nav)    ->
+            $.getJSON "/usersDict",                 (users)  ->
+              dicts.users = {entries: users}
+              dicts.roles =
+                entries: for i in users
+                           {value: i.value, label: i.roles }
+              mainSetup localScreens(),
+                        localRouter,
+                        dicts,
+                        hooks(),
+                        user,
+                        models
+              global.nav = filterScreenPerms nav
+              global.checks = checks
+              global.keys = {}
+              global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
+              if window.location.hash == ""
+                redirectToHomePage user
+              ko.applyBindings global.nav, $('#nav')[0]
 
 this.redirectToHomePage = (user) ->
   mainRole = user.roles[0]
@@ -255,3 +267,7 @@ checkAccordion = (e) ->
 this.getWeather = (city, cb) ->
   url = "/#{city}"
   $.getJSON "/weather/#{city}", (data) -> cb(data)
+
+################################################################################
+# utils
+this.toUnix = (d) -> Math.round(d.getTime() / 1000)

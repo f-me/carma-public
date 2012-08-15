@@ -25,6 +25,8 @@ import Snaplet.FileUpload
 ------------------------------------------------------------------------------
 import Application
 import ApplicationHandlers
+----------------------------------------------------------------------
+import Util (readJSON, UsersDict)
 
 
 
@@ -54,6 +56,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/_/report/",     chkAuth . method POST $ createReportHandler)
          , ("/_/report/:id",  chkAuth . method DELETE $ deleteReportHandler)
          , ("/sync",          chkAuth . method GET  $ syncHandler)
+         , ("/usersDict",     chkAuth . method GET  $ getUsersDict)
          ]
 
 
@@ -87,11 +90,12 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
                       , asRememberPeriod = Just (rmbPer * 24 * 60 * 60)}
                                session authDb
   logdUsrs <- liftIO $ newTVarIO Map.empty
+  allUsrs  <- liftIO $ getUsrs authDb
   actLock  <- liftIO $ newTMVarIO ()
 
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
 
-  d <- nestSnaplet "db" db initDbLayer
+  d <- nestSnaplet "db" db $ initDbLayer allUsrs
 
   v <- nestSnaplet "vin" vin vinInit
   av <- nestSnaplet "avaya" avaya avayaAESInit
@@ -99,7 +103,10 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   addRoutes routes
 
-  return $ App h s authMgr logdUsrs actLock c d v av fu
+  return $ App h s authMgr logdUsrs allUsrs actLock c d v av fu
+
+getUsrs authDb = do
+  readJSON authDb :: IO UsersDict
 
 
 ------------------------------------------------------------------------------

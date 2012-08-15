@@ -145,6 +145,7 @@ readAllHandler = do
   (with db $ DB.readAll model)
     >>= apply "orderby" sortBy (flip . comparing . Map.lookup)
     >>= apply "limit"   take   (read . B.unpack)
+    >>= apply "select"  filter flt
     >>= apply "fields"  map    proj
     >>= writeJSON
   where
@@ -156,6 +157,8 @@ readAllHandler = do
       [(k, Map.findWithDefault "" k obj)
       | k <- B.split ',' fs
       ]
+
+    flt prm = \obj -> all (selectParse obj) $ B.split ',' prm
 
 updateHandler :: AppHandler ()
 updateHandler = do
@@ -181,8 +184,8 @@ myActionsHandler = do
   actLock <- gets actionsLock
   do -- bracket_
     (liftIO $ atomically $ takeTMVar actLock)
-    actions <- filter ((== Just "false") . Map.lookup "closed")
-           <$> with db (DB.readAll "action")
+    actions <- filter ((== Just "0") . Map.lookup "closed")
+           <$> with db (DB.readAll "actions")
     now <- liftIO getCurrentTime
     let assignedActions = assignActions now actions (Map.map snd logdUsers)
     let myActions = take 5 $ Map.findWithDefault [] uLogin assignedActions
@@ -277,6 +280,9 @@ deleteReportHandler = do
   with db $ DB.delete "report" id
   with fileUpload $ doDeleteAll' "report" id
   return ()
+
+getUsersDict :: AppHandler ()
+getUsersDict = writeJSON =<< gets allUsers
 
 ------------------------------------------------------------------------------
 -- | Utility functions

@@ -40,6 +40,7 @@
         "name": "duetime",
         "type": "datetime",
         "canRead": true,
+        "canWrite": true,
         "meta": {
           "label": "Ожидаемое время выполнения"
         }
@@ -82,20 +83,44 @@
         }
       },
       {
-        "name": "targetGroup",
-        "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
-        "canWrite":["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"], 
-        "index": true,
-        "meta": {
-          "invisible": true
-        }
-      },
-      {
         "name": "assignedTo",
         "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
         "canWrite":["back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"], 
+        "type": "dictionary",
         "meta": {
-          "invisible": true
+            "label": "Ответственный",
+            "invisible": true,
+            "dictionaryName": "users"
+        }
+      },
+      {
+        "name": "targetGroup",
+        "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
+        "canWrite":["back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"], 
+        "type": "dictionary",
+        "meta": {
+            "label": "Роль",
+            "invisible": true,
+            "dictionaryName": "Roles"
+        }
+      },
+      {
+        "name": "priority",
+        "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
+        "canWrite":["back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"], 
+        "meta": {
+            "label": "Приоритет",
+            "invisible": true
+        }
+      },
+      {
+        "name": "closed",
+        "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
+        "canWrite":["back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"], 
+        "type": "checkbox",
+        "meta": {
+            "label": "Закрыто",
+            "invisible": true
         }
       }
     ]

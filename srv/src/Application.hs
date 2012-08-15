@@ -21,6 +21,7 @@ import Snap.Snaplet.Vin
 import Snap.Snaplet.AvayaAES
 import Snaplet.FileUpload
 
+import Util (UsersDict)
 ------------------------------------------------------------------------------
 -- | Application snaplet state type: Redson, Heist.
 data App = App
@@ -28,6 +29,7 @@ data App = App
     , _session    :: Snaplet SessionManager
     , _auth       :: Snaplet (AuthManager App)
     , loggedUsers :: TVar (Map Text (UTCTime, AuthUser))
+    , allUsers    :: UsersDict
     , actionsLock :: TMVar ()
     , _siteConfig :: Snaplet (SiteConfig App)
     , _db         :: Snaplet (DbLayer App)
