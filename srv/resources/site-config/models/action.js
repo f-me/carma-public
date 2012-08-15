@@ -97,11 +97,11 @@
         "name": "targetGroup",
         "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
         "canWrite":["back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"], 
-        "type": "text",
+        "type": "dictionary",
         "meta": {
             "label": "Роль",
             "invisible": true,
-            "readonly": true
+            "dictionaryName": "Roles"
         }
       },
       {
