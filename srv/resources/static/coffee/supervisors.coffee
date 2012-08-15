@@ -31,6 +31,9 @@ this.setupSupervisorScreen = (viewName, args) ->
     $('#date-max').val d2.toString('dd.MM.yyyy HH:mm')
     drawTable dt, sb(d1, d2)
 
+    $('input[aria-controls=supervisor-table]').val "Открыто"
+    dt.fnFilter "Открыто"
+
 drawTable = (dt, select) ->
   fields = "id,caseId,closed,name,assignedTo,targetGroup
 ,duetime,result,priority"
