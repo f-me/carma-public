@@ -42,6 +42,11 @@
           "label" : "Редактирование VIN",
           "type"  : "li",
           "permissions": ["head","supervisor","admin","programman"]
+        },
+        { "name"  : "supervisor",
+          "label" : "Супервизор",
+          "type"  : "li",
+          "permissions": ["head","supervisor","admin","programman"]
         }
       ]
     }
