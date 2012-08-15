@@ -193,10 +193,18 @@ actionActions = Map.fromList
   ,("assignedTo",
     [\objId val -> do
         comment <- get objId "comment"
+        Right oldVal <- lift $ runRedisDB redis $ Redis.hget objId "assignedTo"
         UsersDict allu <- lift $ gets allUsers
         when (any (== val) $ map (fromJust . (Map.lookup "value")) allu) $
-          set objId "comment" $ B.append comment $
-                    utf8 "\nОтвественный изменен супервизором"
+          case oldVal of
+            Just v  -> set objId "comment" $ B.append comment $ B.concat
+                       [ utf8 "\nОтвественный изменен супервизором c "
+                       , v , utf8 " на " , val
+                       ]
+            Nothing  -> set objId "comment" $ B.append comment $ B.concat
+                       [ utf8 "\nОтвественный изменен супервизором на "
+                       , val
+                       ]
     ])
   ,("result",
     [\objId val -> when (val `elem` resultSet1) $ do
