@@ -65,6 +65,7 @@ drawTable = (dt, select) ->
             , obj.priority || ''
             ]
           dt.fnAddData(rows)
+          dt.fnSort [[5,'asc']]
 
 dtRedraw = (dt) ->
   d1 = Date.parse $('#date-min').val()
