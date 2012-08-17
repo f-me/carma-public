@@ -516,9 +516,9 @@
             </select>
 
             <select id="closed">
-              <option value="">Открытые и закрытые</option>
               <option value="0">Открытые</option>
               <option value="1">Закрытые</option>
+              <option value="">Открытые и закрытые</option>
             </select>
             </br>
             <div class="control-group">

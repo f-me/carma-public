@@ -7,9 +7,6 @@ this.setupSupervisorScreen = (viewName, args) ->
     return if t.hasClass("dataTable")
     dt = mkDataTable(t, {bPaginate: true})
 
-    # $('#date-min').change -> dtRedraw(dt)
-    # $('#date-max').change -> dtRedraw(dt)
-
     $('#reload').click -> dtRedraw(dt)
 
     # deep copy
@@ -30,9 +27,6 @@ this.setupSupervisorScreen = (viewName, args) ->
     $('#date-min').val d1.toString('dd.MM.yyyy HH:mm')
     $('#date-max').val d2.toString('dd.MM.yyyy HH:mm')
     drawTable dt, sb(d1, d2)
-
-    $('input[aria-controls=supervisor-table]').val "Открыто"
-    dt.fnFilter "Открыто"
 
 drawTable = (dt, select) ->
   fields = "id,caseId,closed,name,assignedTo,targetGroup
