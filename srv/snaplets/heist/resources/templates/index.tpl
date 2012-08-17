@@ -504,7 +504,7 @@
             id="supervisor-screen-template">
 
       <div id="supervisor-left" class="nice-scrollbar pane">
-        <form class="form-vertical">
+        <div class="form-vertical">
           <div id="table-filter" class="form-inline well">
             <label>Диапазон:</label>
             <input id="date-min" type="text" />
@@ -542,7 +542,7 @@
             </thead>
             <tbody/>
           </table>
-        </form>
+        </div>
       </div>
 
       <div id="supervisor-right" class="nice-scrollbar pane">
