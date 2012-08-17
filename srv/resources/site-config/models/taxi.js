@@ -24,7 +24,7 @@
         },
         {
             "targets": [
-                "taxiContractor_partner"
+                "contractor_partner"
             ],
             "meta": {
                 "label": "Партнёр"
@@ -231,9 +231,9 @@
         },
         {
             "targets": [
-                "taxiContractor_partner",
-                "taxiContractor_partnerTable",
-                "taxiContractor_address"
+                "contractor_partner",
+                "contractor_partnerTable",
+                "contractor_address"
             ],
             "canRead": [
                 "partner",
@@ -543,7 +543,7 @@
             }
         },
         {
-            "name": "taxiContractor",
+            "name": "contractor",
             "canRead": [
                 "partner",
                 "front",

@@ -24,7 +24,7 @@
         },
         {
             "targets": [
-                "rentContractor_partner"
+                "contractor_partner"
             ],
             "meta": {
                 "label": "Партнёр"
@@ -102,9 +102,9 @@
         },
         {
             "targets": [
-                "rentContractor_partner",
-                "rentContractor_partnerTable",
-                "rentContractor_address"
+                "contractor_partner",
+                "contractor_partnerTable",
+                "contractor_address"
             ],
             "canRead": [
                 "partner",
@@ -590,7 +590,7 @@
             }
         },
         {
-            "name": "rentContractor",
+            "name": "contractor",
             "canRead": [
                 "partner",
                 "front",

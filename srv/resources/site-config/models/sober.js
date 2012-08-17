@@ -24,7 +24,7 @@
         },
         {
             "targets": [
-                "soberContractor_partner"
+                "contractor_partner"
             ],
             "meta": {
                 "label": "Партнёр"
@@ -232,9 +232,9 @@
         },
         {
             "targets": [
-                "soberContractor_partner",
-                "soberContractor_partnerTable",
-                "soberContractor_address"
+                "contractor_partner",
+                "contractor_partnerTable",
+                "contractor_address"
             ],
             "canRead": [
                 "partner",
@@ -544,7 +544,7 @@
             }
         },
         {
-            "name": "soberContractor",
+            "name": "contractor",
             "canRead": [
                 "partner",
                 "front",
