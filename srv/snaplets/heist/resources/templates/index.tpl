@@ -652,7 +652,6 @@
                  class="datetime-field pane-span focusable"
                  autocomplete="off"
                  name="{{ name }}"
-                 onFocus="datetimeFieldHandler(this)"
                  {{# readonly }}readonly{{/ readonly }}
                  data-bind="value: {{ name }},
                             valueUpdate: 'afterkeydown'" />

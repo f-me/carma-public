@@ -254,13 +254,6 @@ this.successfulSave = ->
     $span.fadeOut(2000))
   , 500)
 
-this.datetimeFieldHandler = (el) ->
-  return if $(el).val()
-  date = (new Date).toString("dd.MM.yyyy HH:mm")
-  $(el).val(date)
-  $(el).off 'blur.default.dt'
-  $(el).on  'blur.default.dt', -> $(el).val("") if date == $(el).val()
-
 checkAccordion = (e) ->
   acc = e.parents('.accordion-body') #.hasClass('in')
   return if acc.hasClass('in')
