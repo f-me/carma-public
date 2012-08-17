@@ -254,7 +254,7 @@ this.successfulSave = ->
     $span.fadeOut(2000))
   , 500)
 
-checkAccordion = (e) ->
+this.checkAccordion = (e) ->
   acc = e.parents('.accordion-body') #.hasClass('in')
   return if acc.hasClass('in')
   acc.collapse('show')
