@@ -5,7 +5,23 @@ this.setupSupervisorScreen = (viewName, args) ->
 
     t = $("#supervisor-table");
     return if t.hasClass("dataTable")
-    dt = mkDataTable(t, {bPaginate: true})
+    dt = mkDataTable t,
+      bPaginate: true
+      fnRowCallback: (nRow, aData, iDisplayIndex, iDisplayIndexFull) ->
+        caseId = aData[0].split('/')[0]
+        caseLnk = "<a href='/#case/#{caseId}'> #{aData[0]} </a>"
+        cdate = Date.parse aData[5]
+        gdate = (new Date).setMinutes((new Date).getMinutes() + 30)
+        now = new Date
+
+        $('td:eq(0)', nRow).html caseLnk
+
+        # if duedate is past, make it yellow
+        if cdate < now
+          $(nRow).children().css('background-color', '#ffff66')
+        # if duedate will be past in 30 sec, make it green
+        else if cdate < gdate
+          $(nRow).children().css('background-color', '#99ff00')
 
     $('#reload').click -> dtRedraw(dt)
 
