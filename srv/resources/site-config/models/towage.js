@@ -1007,7 +1007,6 @@
         {
             "name": "orderNumber",
             "canRead": [
-                "back",
                 "head",
                 "supervisor",
                 "director",
@@ -1018,7 +1017,6 @@
                 "programman"
             ],
             "canWrite": [
-                "back",
                 "head",
                 "supervisor",
                 "director",
