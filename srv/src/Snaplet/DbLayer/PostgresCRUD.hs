@@ -28,6 +28,8 @@ import qualified Data.ByteString.Char8 as C8
 import qualified Data.ByteString.Lazy.Char8 as L8
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import Data.Time
+import Data.Time.Clock.POSIX
 
 import qualified Database.PostgreSQL.Simple as P
 import qualified Database.PostgreSQL.Simple.ToField as P
@@ -87,10 +89,11 @@ functions dict = [
     R.function "CONCAT" concatFields,
     R.functionMaybe "LOOKUP" lookupField,
     R.function "IF" ifFun,
+    R.functionMaybe "DATEDIFF" dateDiff,
     R.uses ["case.callerOwner", "case.caller_name", "case.owner_name"] $ R.constFunction "OWNER" ownerFun,
     R.uses ["case.program"] $ R.constFunction "FDDS" fddsFun,
-    R.uses ["case.falseCall"] $ R.constFunction "FALSECALL" falseFun,
-    R.uses ["case.falseCall"] $ R.constFunction "BILL" billFun,
+    R.uses ["service.falseCall"] $ R.constFunction "FALSECALL" falseFun,
+    R.uses ["service.falseCall"] $ R.constFunction "BILL" billFun,
     R.uses ["case.diagnosis1", "service.type"] $ R.constFunction "FAULTCODE" faultFun,
     R.uses ["case.car_make"] $ R.constFunction "VEHICLEMAKE" vehicleMakeFun,
     R.uses ["case.car_make", "case.car_model"] $ R.constFunction "VEHICLEMODEL" vehicleModelFun]
@@ -115,6 +118,23 @@ functions dict = [
         ifFun [i, t, f]
             | i `elem` [SM.StringValue "1", SM.StringValue "true", SM.StringValue "Y", SM.IntValue 1, SM.BoolValue True] = t
             | otherwise = f
+        ifFun _ = SM.StringValue ""
+        
+        toPosix :: SM.FieldValue -> Maybe POSIXTime
+        toPosix (SM.TimeValue t) = Just t
+        toPosix (SM.StringValue s) = case reads s of
+            [(t, "")] -> Just $ fromInteger t
+            _ -> Nothing
+        toPosix _ = Nothing
+        
+        -- | Dirty: xlsx doesn't have datediff type, but we can specify diff
+        -- by days (double)
+        dateDiff [from, to] = do
+            f <- toPosix from
+            t <- toPosix to
+            let diffTm = timeToTimeOfDay $ secondsToDiffTime $ floor $ t - f
+            return $ SM.StringValue $ formatTime defaultTimeLocale "%H:%M" diffTm
+        dateDiff _ = Nothing
         
         fddsFun fs = do
             pr <- M.lookup "case.program" fs
@@ -123,13 +143,12 @@ functions dict = [
         ownerFun fs = do
             (SM.IntValue isOwner) <- M.lookup "case.callerOwner" fs
             (if isOwner == 1 then M.lookup "case.caller_name" else M.lookup "case.owner_name") fs
-        
         falseFun fs = do
-            (SM.StringValue isFalse) <- M.lookup "case.falseCall" fs
+            (SM.StringValue isFalse) <- M.lookup "service.falseCall" fs
             return $ SM.StringValue (if isFalse `elem` ["bill", "nobill"] then "Y" else "N")
         
         billFun fs = do
-            (SM.StringValue isFalse) <- M.lookup "case.falseCall" fs
+            (SM.StringValue isFalse) <- M.lookup "service.falseCall" fs
             return $ SM.StringValue (if isFalse == "bill" then "Y" else "N")
             
         faultFun fs = do
