@@ -146,7 +146,7 @@
         },
         {
             "targets": [
-                "hotelContractor_partner"
+                "contractor_partner"
             ],
             "meta": {
                 "label": "Гостиница"
@@ -190,9 +190,9 @@
         },
         {
             "targets": [
-                "hotelContractor_partner",
-                "hotelContractor_partnerTable",
-                "hotelContractor_address"
+                "contractor_partner",
+                "contractor_partnerTable",
+                "contractor_address"
             ],
             "canRead": [
                 "partner",
@@ -469,7 +469,7 @@
             }
         },
         {
-            "name": "hotelContractor",
+            "name": "contractor",
             "canRead": [
                 "partner",
                 "front",

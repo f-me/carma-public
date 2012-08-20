@@ -180,16 +180,6 @@ actionActions = Map.fromList
           set objId "comment" $
           B.append comment $ utf8 "\nЗакрыто супервизором"
     ])
-  ,("duetime",
-    [\objId val -> do
-        comment <- get objId "comment"
-        let pt :: Maybe UTCTime
-            pt = parseTime defaultTimeLocale "%s" $ B.unpack val
-        case pt of
-          Just _  -> set objId "comment" $
-                     B.append comment $ utf8 "\nИзменено супервизором"
-          Nothing -> return ()
-    ])
   ,("assignedTo",
     [\objId val -> do
         comment <- get objId "comment"

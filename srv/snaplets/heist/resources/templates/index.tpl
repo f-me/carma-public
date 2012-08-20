@@ -504,7 +504,7 @@
             id="supervisor-screen-template">
 
       <div id="supervisor-left" class="nice-scrollbar pane">
-        <form class="form-vertical">
+        <div class="form-vertical">
           <div id="table-filter" class="form-inline well">
             <label>Диапазон:</label>
             <input id="date-min" type="text" />
@@ -516,9 +516,9 @@
             </select>
 
             <select id="closed">
-              <option value="">Открытые и закрытые</option>
               <option value="0">Открытые</option>
               <option value="1">Закрытые</option>
+              <option value="">Открытые и закрытые</option>
             </select>
             </br>
             <div class="control-group">
@@ -542,7 +542,7 @@
             </thead>
             <tbody/>
           </table>
-        </form>
+        </div>
       </div>
 
       <div id="supervisor-right" class="nice-scrollbar pane">
@@ -652,7 +652,6 @@
                  class="datetime-field pane-span focusable"
                  autocomplete="off"
                  name="{{ name }}"
-                 onFocus="datetimeFieldHandler(this)"
                  {{# readonly }}readonly{{/ readonly }}
                  data-bind="value: {{ name }},
                             valueUpdate: 'afterkeydown'" />

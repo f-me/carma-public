@@ -8,7 +8,7 @@
     "applications": [
         {
             "targets": [
-                "techContractor_partner"
+                "contractor_partner"
             ],
             "meta": {
                 "label": "Партнёр"
@@ -145,9 +145,9 @@
         },
         {
             "targets": [
-                "techContractor_partner",
-                "techContractor_partnerTable",
-                "techContractor_address"
+                "contractor_partner",
+                "contractor_partnerTable",
+                "contractor_address"
             ],
             "canRead": [
                 "partner",
@@ -439,7 +439,7 @@
             "index": true
         },
         {
-            "name": "techContractor",
+            "name": "contractor",
             "canRead": [
                 "partner",
                 "front",

@@ -24,7 +24,7 @@
         },
         {
             "targets": [
-                "towContractor_partner"
+                "contractor_partner"
             ],
             "meta": {
                 "label": "Партнёр"
@@ -275,9 +275,9 @@
         },
         {
             "targets": [
-                "towContractor_partner",
-                "towContractor_partnerTable",
-                "towContractor_address"
+                "contractor_partner",
+                "contractor_partnerTable",
+                "contractor_address"
             ],
             "canRead": [
                 "partner",
@@ -767,7 +767,7 @@
             }
         },
         {
-            "name": "towContractor",
+            "name": "contractor",
             "canRead": [
                 "partner",
                 "front",
@@ -1007,7 +1007,6 @@
         {
             "name": "orderNumber",
             "canRead": [
-                "back",
                 "head",
                 "supervisor",
                 "director",
@@ -1018,7 +1017,6 @@
                 "programman"
             ],
             "canWrite": [
-                "back",
                 "head",
                 "supervisor",
                 "director",

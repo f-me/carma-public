@@ -5,10 +5,23 @@ this.setupSupervisorScreen = (viewName, args) ->
 
     t = $("#supervisor-table");
     return if t.hasClass("dataTable")
-    dt = mkDataTable(t, {bPaginate: true})
+    dt = mkDataTable t,
+      bPaginate: true
+      fnRowCallback: (nRow, aData, iDisplayIndex, iDisplayIndexFull) ->
+        caseId = aData[0].split('/')[0]
+        caseLnk = "<a href='/#case/#{caseId}'> #{aData[0]} </a>"
+        cdate = Date.parse aData[5]
+        gdate = (new Date).setMinutes((new Date).getMinutes() + 30)
+        now = new Date
 
-    # $('#date-min').change -> dtRedraw(dt)
-    # $('#date-max').change -> dtRedraw(dt)
+        $('td:eq(0)', nRow).html caseLnk
+
+        # if duedate is past, make it yellow
+        if cdate < now
+          $(nRow).children().css('background-color', '#ffff66')
+        # if duedate will be past in 30 sec, make it green
+        else if cdate < gdate
+          $(nRow).children().css('background-color', '#99ff00')
 
     $('#reload').click -> dtRedraw(dt)
 
@@ -25,14 +38,15 @@ this.setupSupervisorScreen = (viewName, args) ->
                             focusClass: "focusable"
                             refs: []
                             forceRender: f
+      $('input[name=duetime]').change ->
+        c = global.viewsWare['action-form'].knockVM.comment
+        c((c()||'') + "\nИзменено супервизором")
+
     d1 = (new Date).addDays(-2)
     d2 = (new Date).addDays(+7)
     $('#date-min').val d1.toString('dd.MM.yyyy HH:mm')
     $('#date-max').val d2.toString('dd.MM.yyyy HH:mm')
     drawTable dt, sb(d1, d2)
-
-    $('input[aria-controls=supervisor-table]').val "Открыто"
-    dt.fnFilter "Открыто"
 
 drawTable = (dt, select) ->
   fields = "id,caseId,closed,name,assignedTo,targetGroup
