@@ -1,0 +1,12 @@
+./
+https://github.com/mvoidex/postgresql-sync-map
+https://github.com/mvoidex/snaplet-simple-log
+https://github.com/mvoidex/simple-log
+https://github.com/f-me/snaplet-postgresql-simple
+https://github.com/qrilka/xlsx
+https://github.com/qrilka/xlsx-templater
+https://github.com/f-me/avaya-aes
+https://github.com/f-me/fdds-connector
+https://github.com/f-me/vin-parser
+
+
