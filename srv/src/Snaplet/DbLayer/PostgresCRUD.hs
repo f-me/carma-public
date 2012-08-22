@@ -6,6 +6,7 @@ module Snaplet.DbLayer.PostgresCRUD (
     loadModels,
     createIO,
     create, insert, select, exists, update, updateMany, insertUpdate,
+    search,
     generateReport
     ) where
 
@@ -23,6 +24,7 @@ import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import Data.ByteString (ByteString)
 import Data.Char
 import Data.List (isPrefixOf)
+import Data.String
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.ByteString.Lazy.Char8 as L8
@@ -79,8 +81,8 @@ modelModels ss = do
             "towage",
             "transportation"]         
 
-functions :: Dictionary -> [R.ReportFunction]
-functions dict = [
+functions :: TimeZone -> Dictionary -> [R.ReportFunction]
+functions tz dict = [
     R.onString "NAME" (fromMaybe "" . listToMaybe . drop 1 . words),
     R.onString "LASTNAME" (fromMaybe "" . listToMaybe . words),
     R.onString "UPPER" (map toUpper),
@@ -91,6 +93,8 @@ functions dict = [
     R.function "IF" ifFun,
     R.functionMaybe "DATEDIFF" dateDiff,
     R.functionMaybe "YESNO" yesNo,
+    R.function "DATE" (formatTimeFun "%d.%m.%Y"),
+    R.function "TIME" (formatTimeFun "%d.%m.%Y %H:%M;%S"),
     R.uses ["case.callerOwner", "case.caller_name", "case.owner_name"] $ R.constFunction "OWNER" ownerFun,
     R.uses ["case.program"] $ R.constFunction "FDDS" fddsFun,
     R.uses ["service.falseCall"] $ R.constFunction "FALSECALL" falseFun,
@@ -136,10 +140,25 @@ functions dict = [
             return $ SM.DoubleValue $ fromInteger $ round $ (t - f) / 60.0
         dateDiff _ = Nothing
 
-        yesNo v
+        yesNo [v]
             | v `elem` [SM.IntValue 0, SM.StringValue "0", SM.DoubleValue 0.0, SM.BoolValue False] = Just $ SM.StringValue "N"
             | v `elem` [SM.IntValue 1, SM.StringValue "1", SM.DoubleValue 1.0, SM.BoolValue True] = Just $ SM.StringValue "Y"
             | otherwise = Nothing
+        yesNo _ = Nothing
+
+        formatTimeFun :: String -> [SM.FieldValue] -> SM.FieldValue
+        formatTimeFun _ [] = SM.StringValue ""
+        formatTimeFun defFmt [v] =
+            maybe
+                (SM.StringValue "")
+                (SM.StringValue . formatTime defaultTimeLocale defFmt)
+                (fmap (utcToLocalTime tz . posixSecondsToUTCTime) $ toPosix v)
+        formatTimeFun _ [v, SM.StringValue fmt] =
+            maybe
+                (SM.StringValue "")
+                (SM.StringValue . formatTime defaultTimeLocale fmt)
+                (fmap (utcToLocalTime tz . posixSecondsToUTCTime) $ toPosix v)
+        formatTimeFun _ (v:_) = v
         
         fddsFun fs = do
             pr <- M.lookup "case.program" fs
@@ -261,14 +280,66 @@ insertUpdate ms name c m = escopev "insertUpdate" False $ do
     where
         cond = toCond ms name c
 
+-- FIXME: ARC has same function
+query_ :: (PS.HasPostgres m, MonadLog m, PS.FromRow r) => PS.Query -> m [r]
+query_ s = do
+    bs <- PS.formatQuery s ()
+    log Trace $ T.concat ["query: ", T.decodeUtf8 bs]
+    PS.query_ s
+
+-- FIXME: ARC has same function
+query :: (PS.HasPostgres m, MonadLog m, PS.ToRow q, PS.FromRow r) => PS.Query -> q -> m [r]
+query s v = do
+    bs <- PS.formatQuery s v
+    log Trace $ T.concat ["query: ", T.decodeUtf8 bs]
+    PS.query s v
+
+-- TODO: Use model field names and convert them by models
+search :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> [ByteString] -> ByteString -> m [[S.FieldValue]]
+search ms mname rs q = escopev "search" [] search' where
+    search'
+        | C8.null q = do
+            log Warning "Empty query"
+            return []
+        | otherwise = do
+            log Trace $ T.concat ["Search query: ", T.decodeUtf8 q]
+            res <- query (fromString $ C8.unpack searchQuery) argsS
+            return res
+
+    qs = C8.words q
+    -- (row like ?)
+    like :: ByteString -> ByteString
+    like row = C8.concat ["(", row, " like ?)"]
+    -- ((row1 like ?) or (row2 like ?) or ...)
+    likes :: [ByteString] -> ByteString
+    likes rows = C8.concat ["(", C8.intercalate " or " (map like rows), ")"]
+    -- (like or like...) and (like or like...) and...
+    whereClause :: [ByteString] -> [ByteString] -> (ByteString, [ByteString])
+    whereClause [] _ = (C8.empty, [])
+    whereClause _ [] = (C8.empty, [])
+    whereClause rows querys = (whereString, whereArgs) where
+        queryCount = length querys
+        rowCount = length rows
+        whereString = C8.intercalate " and " $ replicate queryCount (likes rows)
+        -- [q1, q1, q1, q1, q2, q2, q2, q2, ...]
+        --  <- rowCount ->  <- rowCount ->  ...
+        whereArgs = concatMap (replicate rowCount) (map procentize querys)
+        procentize s = C8.concat ["%", s, "%"]
+
+    tblname = SM.withModel ms (C8.unpack mname) $ SM.syncTable . SM.modelSync
+    (whereS, argsS) = whereClause rs qs
+
+    searchQuery = C8.concat ["select * from ", fromString tblname, " where ", whereS]
+
 generateReport :: (PS.HasPostgres m, MonadLog m) => SM.Models -> [T.Text] -> FilePath -> FilePath -> m ()
 generateReport ms conds tpl file = scope "generate" $ do
     log Info "Generating report"
     log Trace "Loading dictionaries"
+    tz <- liftIO getCurrentTimeZone
     dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
     -- test ARC
     -- scope "test" $ do
     --     log Info "ARC report test"
     --     arcReport dicts 2012 8
-    scope "createReport" $ withPG (R.createReport (SM.modelsSyncs ms) (functions dicts) conds tpl file)
+    scope "createReport" $ withPG (R.createReport (SM.modelsSyncs ms) (functions tz dicts) conds tpl file)
     log Info "Report generated"

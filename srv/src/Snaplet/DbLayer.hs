@@ -5,6 +5,7 @@ module Snaplet.DbLayer
   ,delete
   ,search
   ,sync
+  ,searchFullText
   ,generateReport
   ,readAll
   ,initDbLayer
@@ -120,6 +121,11 @@ sync = scope "sync" $ do
                 Nothing -> error $ "Invalid id for model " ++ C8.unpack model
         modelList m = map C8.pack $ Map.keys (SM.modelsModels m)
 
+searchFullText :: ByteString -> [ByteString] -> ByteString -> Handler b (DbLayer b) [[S.FieldValue]]
+searchFullText mname rs q = do
+  mdl <- gets syncModels
+  Postgres.search mdl mname rs q
+
 generateReport :: [T.Text] -> FilePath -> FilePath -> Handler b (DbLayer b) ()
 generateReport conds template filename = do
     mdl <- gets syncModels
@@ -129,7 +135,7 @@ readAll model = Redis.readAll redis model
 
 -- log politics
 logConfig = [
-    relative ["generate"] $ low Trace]
+    relative ["search"] $ low Trace]
 
 initDbLayer :: SnapletInit b (DbLayer b)
 initDbLayer = makeSnaplet "db-layer" "Storage abstraction"

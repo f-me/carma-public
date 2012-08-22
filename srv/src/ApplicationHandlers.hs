@@ -169,6 +169,13 @@ syncHandler = do
   res <- with db DB.sync
   writeJSON res
 
+searchHandler :: AppHandler ()
+searchHandler = do
+  Just q <- getParam "q"
+  -- TODO: Use model fields, not table fields!
+  res <- with db $ DB.searchFullText (B.pack "case") (map B.pack ["id::text", "car_vin", "contact_name", "car_plateNum", "garbage -> 'contact_phone1'"]) q
+  writeJSON (length res)
+
 searchByIndex :: AppHandler ()
 searchByIndex = do
   Just ixName <- getParam "indexName"
