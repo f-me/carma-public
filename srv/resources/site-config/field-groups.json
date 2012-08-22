@@ -551,15 +551,6 @@
                 "infoText": "datetime",
                 "regexp": "datetime"
             }
-        },
-        {
-            "name": "repairEndDate",
-            "type": "date",
-            "meta": {
-                "label": "Дата окончания ремонта",
-                "infoText": "date",
-                "regexp": "date"
-            }
         }
     ],
     "address": [
