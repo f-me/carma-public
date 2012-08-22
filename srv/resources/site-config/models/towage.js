@@ -1026,7 +1026,6 @@
                 "admin",
                 "programman"
             ],
-            "type": "date",
             "meta": {
                 "label": "Номер заказ-наряда"
             }
