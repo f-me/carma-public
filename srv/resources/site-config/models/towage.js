@@ -368,8 +368,7 @@
                 "times_expectedServiceFinancialClosure",
                 "times_factServiceFinancialClosure",
                 "times_expectedServiceClosure",
-                "times_factServiceClosure",
-                "times_repairEndDate"
+                "times_factServiceClosure"
             ],
             "canRead": [
                 "back",
@@ -1030,6 +1029,35 @@
                 "label": "Номер заказ-наряда"
             }
         },
+        {
+            "name": "repairEndDate",
+            "canRead": [
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman"
+            ],
+            "canWrite": [
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman"
+            ],
+            "type": "date",
+            "meta": {
+                "label": "Дата окончания ремонта",
+                "infoText": "date",
+                "regexp": "date"
+            }
+        },        
         {
             "name": "status",
             "canRead": [
