@@ -90,6 +90,7 @@ functions dict = [
     R.functionMaybe "LOOKUP" lookupField,
     R.function "IF" ifFun,
     R.functionMaybe "DATEDIFF" dateDiff,
+    R.functionMaybe "YESNO" yesNo,
     R.uses ["case.callerOwner", "case.caller_name", "case.owner_name"] $ R.constFunction "OWNER" ownerFun,
     R.uses ["case.program"] $ R.constFunction "FDDS" fddsFun,
     R.uses ["service.falseCall"] $ R.constFunction "FALSECALL" falseFun,
@@ -112,7 +113,7 @@ functions dict = [
         lookupField fs = tryLook <|> justLast where
             tryLook = do
                 ks <- mapM (fmap T.pack . fromStringField) fs
-                fmap (SM.StringValue . T.unpack) $ look ks dict
+                fmap (SM.StringValue . T.unpack) $ lookAny ks dict
             justLast = Just $ last fs
         
         ifFun [i, t, f]
@@ -132,9 +133,13 @@ functions dict = [
         dateDiff [from, to] = do
             f <- toPosix from
             t <- toPosix to
-            let diffTm = timeToTimeOfDay $ secondsToDiffTime $ floor $ t - f
-            return $ SM.StringValue $ formatTime defaultTimeLocale "%H:%M" diffTm
+            return $ SM.DoubleValue $ fromInteger $ round $ (t - f) / 60.0
         dateDiff _ = Nothing
+
+        yesNo v
+            | v `elem` [SM.IntValue 0, SM.StringValue "0", SM.DoubleValue 0.0, SM.BoolValue False] = Just $ SM.StringValue "N"
+            | v `elem` [SM.IntValue 1, SM.StringValue "1", SM.DoubleValue 1.0, SM.BoolValue True] = Just $ SM.StringValue "Y"
+            | otherwise = Nothing
         
         fddsFun fs = do
             pr <- M.lookup "case.program" fs

@@ -2,7 +2,7 @@
 
 module Snaplet.DbLayer.Dictionary (
     Dictionary,
-    look, keys,
+    look, merge, lookAny, keys,
     loadDictionary, loadDictionaries
     ) where
 
@@ -43,6 +43,22 @@ look (k:ks) (Dictionaries m) = do
     d <- HM.lookup k m
     look ks d
 look _ _ = Nothing
+
+-- | Merge sub-dictionaries
+merge :: Dictionary -> Dictionary
+merge = Dictionary . merge' where
+    merge' :: Dictionary -> HM.HashMap T.Text T.Text
+    merge' (Dictionary m) = m
+    merge' (Dictionaries m) = HM.unions $ map merge' $ HM.elems m
+
+-- | Try look in all subdictionaries
+lookAny :: [T.Text] -> Dictionary -> Maybe T.Text
+lookAny [] _ = Nothing
+lookAny [k] d = look [k] $ merge d
+lookAny (k:ks) (Dictionaries m) = do
+    d <- HM.lookup k m
+    lookAny ks d
+lookAny _ _ = Nothing
 
 keys :: [T.Text] -> Dictionary -> Maybe [T.Text]
 keys [] (Dictionary m) = Just $ HM.keys m
