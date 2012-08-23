@@ -278,6 +278,10 @@ this.addReference = (knockVM, field, ref, cb) ->
       knockVM[field](newVal)
       cb(_.last knockVM[field]()) if _.isFunction(cb)
 
+this.removeReference = (knockVM, field, ref) ->
+  field = field + 'Reference' unless /Reference$/.test(field)
+  knockVM[field] _.without(knockVM[field](), ref)
+
 # Save instance loaded in view
 this.saveInstance = (viewName) -> global.viewsWare[viewName].bbInstance.save()
 
