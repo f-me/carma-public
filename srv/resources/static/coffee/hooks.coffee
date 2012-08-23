@@ -5,6 +5,7 @@ this.hooks = ->
   observable:
       "*"    : [regexpKbHook, dictionaryKbHook, filesKbHook]
       "case" : [caseDescsKbHook, caseEventsHistoryKbHook]
+      "tarifOption": [partnerTarifHook]
 
 dictionaryKbHook = (instance, knockVM) ->
   for n of instance.dictionaryFields

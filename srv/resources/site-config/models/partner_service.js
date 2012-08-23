@@ -23,12 +23,6 @@
             }
         },
         {
-            "name": "tarifName",
-            "meta": {
-                "label": "Тарифная опция"
-            }
-        },
-        {
             "name": "price1",
             "meta": {
                 "label": "Стоимость за единицу за нал"
@@ -39,6 +33,10 @@
             "meta": {
                 "label": "Стоимость за единицу по безналу"
             }
+        },
+        {
+            "name": "tarifOptions",
+            "type": "reference"
         }
     ]
 }

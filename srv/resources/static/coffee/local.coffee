@@ -263,6 +263,11 @@ this.getWeather = (city, cb) ->
   url = "/#{city}"
   $.getJSON "/weather/#{city}", (data) -> cb(data)
 
+this.focusRef = (kvm) ->
+  e = $('#' + kvm['view'])
+  e.parent().prev()[0].scrollIntoView()
+  e.find('input')[0].focus()
+
 ################################################################################
 # utils
 this.toUnix = (d) -> Math.round(d.getTime() / 1000)
