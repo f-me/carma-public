@@ -43,12 +43,14 @@ this.setupPartnersForm = (viewName, args) ->
     ))
 
 this.addNewServiceToPartner = (name) ->
-  addReference global.viewsWare["partner-form"].knockVM,
+  p = global.viewsWare["partner-form"].knockVM
+  addReference p,
                'services',
                {modelName: 'partner_service'},
-               afterAddSrv
+               afterAddSrv(p)
 
-afterAddSrv =(k) ->
+afterAddSrv = (parent) -> (k) ->
+  bindRemove parent, 'services', k
   focusRef k
   addTarifStuff k
 
@@ -62,7 +64,10 @@ addTarifStuff = (p) ->
     genNewTarif p
 
 genNewTarif = (kvm) ->
-  addReference kvm, 'tarifOptions', { modelName: 'tarifOption' }, focusRef
+  addReference kvm, 'tarifOptions', { modelName: 'tarifOption' },
+    (k) ->
+      bindRemove kvm, 'tarifOptions', k
+      focusRef k
 
 this.partnerTarifHook = (i, k) ->
   k["nameOrDef"] = ko.computed

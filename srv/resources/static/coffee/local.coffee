@@ -268,6 +268,13 @@ this.focusRef = (kvm) ->
   e.parent().prev()[0].scrollIntoView()
   e.find('input')[0].focus()
 
+this.bindRemove = (parent, field, kvm) ->
+  $("##{kvm['view']}")
+    .parents('div.accordion-group')
+    .first()
+    .find('.icon.icon-remove')
+    .click -> removeReference(parent, field, kvm)
+
 ################################################################################
 # utils
 this.toUnix = (d) -> Math.round(d.getTime() / 1000)

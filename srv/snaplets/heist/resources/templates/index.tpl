@@ -985,11 +985,15 @@
             id="services-reference-template">
       <div class="accordion-group">
         <div class="accordion-heading">
-          <a class="accordion-toggle"
-             id="{{ refView }}-link"
-             data-bind="text: modelTitle"
-             data-target="#{{ refView }}-head"
-             data-toggle="collapse">Услуга…</a>
+          <div class="accordion-toggle"
+               data-target="#{{ refView }}-head"
+               data-toggle="collapse">
+            <a class="icon icon-remove" />
+            <a id="{{ refView }}-link"
+               data-bind="text: modelTitle">
+               Услуга…
+            </a>
+          </div>
         </div>
 
         <div id="{{ refView }}-head"
@@ -1031,11 +1035,15 @@
             id="tarifOptions-reference-template">
       <div class="accordion-group">
         <div class="accordion-heading">
-          <a class="accordion-toggle"
-             id="{{ refView }}-link"
-             data-bind="text: nameOrDef"
-             data-target="#{{ refView }}-head"
-             data-toggle="collapse">Тарифная опция…</a>
+          <div class="accordion-toggle"
+               data-target="#{{ refView }}-head"
+               data-toggle="collapse">
+            <a class="icon icon-remove" />
+            <a id="{{ refView }}-link"
+               data-bind="text: nameOrDef">
+               Тарифная опция…
+            </a>
+          </div>
         </div>
 
         <div id="{{ refView }}-head"
