@@ -625,6 +625,41 @@
             }
         },
         {
+            "name": "cost",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "groupName": "countedCost",
+            "meta": {
+                "label": "Расчетная стоимость"
+            }
+        },
+        {
             "name": "providedFor",
             "canRead": [
                 "partner",

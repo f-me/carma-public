@@ -586,8 +586,10 @@
     "partner": [
         {
             "name": "partner",
+            "type": "dictionary",
             "meta": {
-                "label": "Партнёр"
+                "label": "Партнёр",
+                "dictionaryName": "partners"
             }
         },
         {
@@ -711,6 +713,20 @@
                 "label": "Дата последнего ТО",
                 "required": true
             }
+        }
+    ],
+    "countedCost": [
+        {
+                "name": "countedCost",
+                "meta": {
+                   "label": "Расчетная стоимость"
+                }
+        },
+        {
+                "name": "tarifOption",
+                "meta": {
+                    "label": "Тарифная опциия"
+                }
         }
     ]
 }

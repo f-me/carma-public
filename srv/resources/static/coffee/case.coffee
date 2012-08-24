@@ -1,5 +1,19 @@
 # Case view (renders to #left, #center and #right as well)
 this.setupCaseMain = (viewName, args) ->
+  $.getJSON "/all/partner", (objs) ->
+    o = _.filter objs, (p) -> not _.isEmpty p.name
+    global.partners = o
+    global.dictionaries.partners =
+      entries: ({value: p.id, label: p.name} for p in o)
+    global.dictValueCache.partners = {}
+    global.dictLabelCache.partners = {}
+    console.log global.dictionaries.partners
+    for d in global.dictionaries.partners.entries
+      global.dictLabelCache.partners['label'] = d.value
+      global.dictValueCache.partners['value'] = d.label
+    setupCaseModel viewName, args
+
+setupCaseModel = (viewName, args) ->
 
   # Default values
   # FIXME: User's name and creation date are better to be assigned by
