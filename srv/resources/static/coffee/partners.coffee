@@ -52,7 +52,7 @@ this.addNewServiceToPartner = (name) ->
 afterAddSrv = (parent) -> (k) ->
   bindRemove parent, 'services', k
   focusRef k
-  addTarifStuff k
+  addTarifStuff i for i in parent['servicesReference']()
 
 addTarifStuff = (p) ->
   view = $("##{p['view']}")
@@ -60,13 +60,12 @@ addTarifStuff = (p) ->
     fn:    ""
     label: "Добавить опцию"
   view.children().last().after button
-  view.children().last().click ->
-    genNewTarif p
+  view.children().last().click -> genNewTarif p
 
 genNewTarif = (kvm) ->
   addReference kvm, 'tarifOptions', { modelName: 'tarifOption' },
     (k) ->
-      bindRemove kvm, 'tarifOptions', k
+      bindRemove kvm, 'tarifOptions'
       focusRef k
 
 this.partnerTarifHook = (i, k) ->
