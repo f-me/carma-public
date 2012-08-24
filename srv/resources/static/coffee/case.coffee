@@ -174,6 +174,10 @@ this.candiboberHook = (elName) ->
        )($(this))
       )
 
+this.removeCaseMain = ->
+  $("body").off "change.input"
+
+
 #############################################################################
 # kb hooks
 

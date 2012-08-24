@@ -6,6 +6,7 @@ localScreens = ->
     "views":
       "case-form":
         constructor: setupCaseMain
+        destructor: removeCaseMain
   "search":
     "template": "search-screen-template"
     "views":
