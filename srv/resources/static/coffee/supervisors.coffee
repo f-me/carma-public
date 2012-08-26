@@ -38,9 +38,12 @@ this.setupSupervisorScreen = (viewName, args) ->
                             focusClass: "focusable"
                             refs: []
                             forceRender: f
-      $('input[name=duetime]').change ->
-        c = global.viewsWare['action-form'].knockVM.comment
-        c((c()||'') + "\nИзменено супервизором")
+
+      knockVM = global.viewsWare['action-form'].knockVM
+      setTimeout ->
+        knockVM['duetime'].subscribe (newValue) ->
+          c = global.viewsWare['action-form'].knockVM.comment
+          c((c()||'') + "\nИзменено супервизором") if Date.parse newValue
 
     d1 = (new Date).addDays(-2)
     d2 = (new Date).addDays(+7)
