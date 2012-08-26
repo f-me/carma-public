@@ -250,12 +250,17 @@ setupView = (elName, knockVM,  options) ->
   # Bind extra views if provided
   ko.applyBindings knockVM, el(v) for k, v of options.slotsee
 
+  knockVM['view'] = elName
+
   for f in knockVM.model().referenceFields
     do (f) ->
-      refsForest = "#{knockVM.modelName()}-#{f}-references"
-      $el(refsForest).empty()
+      pview = $("##{knockVM['view']}")
+      refsForest =
+        "#{knockVM.modelName()}-#{knockVM.model().cid}-#{f}-references"
+      forest = pview.find("##{refsForest}")
+      forest.empty()
       knockVM[f + 'Reference'].subscribe (newValue) ->
-        $el(refsForest).empty()
+        forest.empty()
         for r in newValue
           refBook = mkRefContainer(r, f, refsForest, tpls)
           v = setupView refBook.refView, r,
@@ -265,7 +270,6 @@ setupView = (elName, knockVM,  options) ->
           global.viewsWare[refBook.refView] = {}
           global.viewsWare[refBook.refView].depViews = v
 
-  knockVM['view'] = elName
   return depViews
 
 this.addReference = (knockVM, field, ref, cb) ->

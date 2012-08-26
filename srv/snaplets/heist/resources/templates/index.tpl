@@ -921,11 +921,12 @@
       </div>
     </script>
 
-    <script type="text/template" 
+    <script type="text/template"
             class="field-template"
             id="reference-field-template">
       <div class="controls">
-        <span class="accordion" id="{{ modelName }}-{{ name }}-references" />
+        <span class="accordion"
+              id="{{ modelName }}-{{ cid }}-{{ name }}-references" />
       </div>
     </script>
 

@@ -41,7 +41,7 @@ this.forgetScreen = ->
 this.renderKnockVm = (elName, knockVM, options) ->
   model     = global.models[knockVM.modelName()]
   instance  = knockVM.model()
-  content   = renderFields(model, elName, options)
+  content   = renderFields(model, elName, options, knockVM)
   groupTpls = getTemplates("group-template")
   depViews  = {}
   for gName, cont of content
@@ -121,15 +121,16 @@ this.mkRefContainer = (ref, field, forest, templates)->
 #
 # There's no way to fully include group fields in main section except
 # giving `mainToo` annotation in each field of group.
-this.renderFields = (model, viewName, options) ->
+this.renderFields = (model, viewName, options, knockVM) ->
   templates = getTemplates("field-template")
 
-  contents = {}
-  fType = ""
-  group = ""
-  readonly = false
+  contents  = {}
+  fType     = ""
+  group     = ""
+  readonly  = false
   mainGroup = "_"
   slices
+  cid       = knockVM.model().cid
 
   # Currently we store the name of «current group» while traversing
   # all model fields. When this name changes, we consider the
@@ -147,7 +148,8 @@ this.renderFields = (model, viewName, options) ->
     if _.isNull(f.meta) or not f.meta.invisible or
         f.name in (options?.forceRender or [])
       f.modelName = model.name
-      f.readonly = f.meta.readonly if f.meta?
+      f.cid       = cid
+      f.readonly  = f.meta.readonly if f.meta?
       # Note the difference: `meta.readonly` is
       # client-only annotation to override standard
       # permissions. Plain `readonly` is passed to
