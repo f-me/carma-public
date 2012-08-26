@@ -1,6 +1,7 @@
 this.setupCallForm = (viewName, args) ->
   knockVM = modelSetup("call") viewName, args,
                      permEl     : "case-permissions"
+                     slotsee    : ["call-number"]
                      focusClass : "focusable"
                      groupsForest : "center"
   knockVM['callTaker'](global.user.meta.realName)

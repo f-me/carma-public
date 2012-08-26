@@ -115,6 +115,15 @@
             class="screen-template"
             id="call-screen-template">
       <div id="left" class="nice-scrollbar call-pane">
+        <div class="control-group">
+          <div class="control-label">
+            <label>Номер</label>
+          </div>
+          <div class="controls">
+            <input type="text" disabled id="call-number"
+                   data-bind="value: maybeId"/>
+          </div>
+        </div>
         <div id="call-form"/>
         <button class="btn btn-success"
                 type="submit"
