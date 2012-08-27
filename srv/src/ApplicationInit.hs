@@ -4,8 +4,10 @@ module ApplicationInit (appInit) where
 
 import Control.Monad.IO.Class
 
+import qualified Data.Map as Map
 import Data.ByteString (ByteString)
 import Data.Configurator
+import Control.Concurrent.STM
 
 import Snap.Core
 import Snap.Snaplet
@@ -13,7 +15,7 @@ import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.Auth.Backends.JsonFile
 import Snap.Snaplet.Session.Backends.CookieSession
-import Snap.Util.FileServe (serveDirectory)
+import Snap.Util.FileServe (serveDirectory, serveFile)
 ------------------------------------------------------------------------------
 import Snap.Snaplet.AvayaAES
 import Snap.Snaplet.Vin
@@ -23,6 +25,8 @@ import Snaplet.FileUpload
 ------------------------------------------------------------------------------
 import Application
 import ApplicationHandlers
+----------------------------------------------------------------------
+import Util (readJSON, UsersDict)
 
 
 
@@ -33,24 +37,27 @@ routes :: [(ByteString, AppHandler ())]
 routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/login/",        method GET loginForm)
          , ("/login/",        method POST doLogin)
-         , ("/logout/",       with auth $ logout >> redirectToLogin)
+         , ("/logout/",       doLogout)
          , ("/nominatim",     method GET geodecode)
-         , ("/weather/:city", method GET weather)
          , ("/s/",            serveDirectory "resources/static")
+         , ("/s/screens",     serveFile "resources/site-config/screens.json")
          , ("/report",        chkAuth . method GET  $ report)
          , ("/all/:model",    chkAuth . method GET  $ readAllHandler)
-         , ("/ix/:indexName", chkAuth . method GET  $ searchByIndex)
          , ("/ix/callsByPhone/:phone",
             chkAuth . method GET  $ searchCallsByPhone)
          , ("/actionsFor/:id",chkAuth . method GET  $ getActionsForCase)
+         , ("/myActions",     chkAuth . method GET  $ myActionsHandler)
          , ("/_whoami/",      chkAuth . method GET  $ serveUserCake)
          , ("/_/:model",      chkAuth . method POST $ createHandler)
          , ("/_/:model/:id",  chkAuth . method GET  $ readHandler)
          , ("/_/:model/:id",  chkAuth . method PUT  $ updateHandler)
+         , ("/_/findOrCreate/:model/:id",
+            chkAuth . method POST $ findOrCreateHandler)
          , ("/_/report/",     chkAuth . method POST $ createReportHandler)
          , ("/_/report/:id",  chkAuth . method DELETE $ deleteReportHandler)
          , ("/sync",          chkAuth . method GET  $ syncHandler)
          , ("/search/:model", chkAuth . method GET  $ searchHandler)
+         , ("/usersDict",     chkAuth . method GET  $ getUsersDict)
          ]
 
 
@@ -83,9 +90,13 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        defAuthSettings{ asSiteKey = rmbKey
                       , asRememberPeriod = Just (rmbPer * 24 * 60 * 60)}
                                session authDb
+  logdUsrs <- liftIO $ newTVarIO Map.empty
+  allUsrs  <- liftIO $ getUsrs authDb
+  actLock  <- liftIO $ newTMVarIO ()
+
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
 
-  d <- nestSnaplet "db" db initDbLayer
+  d <- nestSnaplet "db" db $ initDbLayer allUsrs
 
   v <- nestSnaplet "vin" vin vinInit
   av <- nestSnaplet "avaya" avaya avayaAESInit
@@ -93,7 +104,10 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   addRoutes routes
 
-  return $ App h s authMgr c d v av fu
+  return $ App h s authMgr logdUsrs allUsrs actLock c d v av fu
+
+getUsrs authDb = do
+  readJSON authDb :: IO UsersDict
 
 
 ------------------------------------------------------------------------------

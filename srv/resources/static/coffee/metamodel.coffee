@@ -101,15 +101,19 @@ this.backbonizeModel = (models, modelName) ->
 
       # Do not send empty updates to server
     save: (attrs, options) ->
-      if not _.isEmpty(this.attributeQueue)
-        options = if options then _.clone(options) else {}
+      # do not touch this timeout, dragons will eat you
+      # also this will brake checkbox sync
+      setTimeout( =>
+        if not _.isEmpty(this.attributeQueue)
+          options = if options then _.clone(options) else {}
 
-        error = options.error
-        options.error = (model, resp, options) ->
-          _.isFunction(error) and error(model, resp, options)
-          _.defaults(this.attributeQueue, this.attributeQueueBackup)
+          error = options.error
+          options.error = (model, resp, options) ->
+            _.isFunction(error) and error(model, resp, options)
+            _.defaults(this.attributeQueue, this.attributeQueueBackup)
 
-        Backbone.Model.prototype.save.call(this, attrs, options)
+          Backbone.Model.prototype.save.call(this, attrs, options)
+      , 100)
 
     # For checkbox fields, translate "0"/"1" to false/true
     # boolean.

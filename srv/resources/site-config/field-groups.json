@@ -283,18 +283,145 @@
             "index": true
         }
     ],
+    "carContact": [
+        {
+            "name": "name",
+            "meta": {
+                "transform": "capitalize",
+                "label": "Звонящий"
+            },
+            "index": true,
+            "indexCollate": true
+        },
+        {
+            "name": "phone1",
+            "meta": {
+                "label": "Контактные телефоны",
+                "picker": "callPlease",
+                "regexp": "phone"
+            },
+            "type": "phone",
+            "index": true,
+            "indexCollate": true
+        },
+        {
+            "name": "phone2",
+            "meta": {
+                "picker": "callPlease",
+                "regexp": "phone"
+            },
+            "type": "phone",
+            "index": true
+        },
+        {
+            "name": "phone3",
+            "meta": {
+                "picker": "callPlease",
+                "regexp": "phone"
+            },
+            "type": "phone",
+            "index": true
+        },
+        {
+            "name": "phone4",
+            "meta": {
+                "picker": "callPlease",
+                "regexp": "phone"
+            },
+            "type": "phone",
+            "index": true
+        },
+        {
+            "name": "email",
+            "meta": {
+                "label": "Email",
+                "regexp": "email"
+            },
+            "index": true
+        },
+        {
+            "name": "contactOwner",
+            "type": "checkbox",
+            "meta": {
+                "label": "Звонящий владелец?",
+                "infoText": "owner"
+            }
+        },        
+        {
+            "name": "ownerName",
+            "meta": {
+                "transform": "capitalize",
+                "label": "Владелец"
+            },
+            "index": true,
+            "indexCollate": true
+        },
+        {
+            "name": "ownerPhone1",
+            "meta": {
+                "label": "Контактные телефоны",
+                "picker": "callPlease",
+                "regexp": "phone"
+            },
+            "type": "phone",
+            "index": true,
+            "indexCollate": true
+        },
+        {
+            "name": "ownerPhone2",
+            "meta": {
+                "picker": "callPlease",
+                "regexp": "phone"
+            },
+            "type": "phone",
+            "index": true
+        },
+        {
+            "name": "ownerPhone3",
+            "meta": {
+                "picker": "callPlease",
+                "regexp": "phone"
+            },
+            "type": "phone",
+            "index": true
+        },
+        {
+            "name": "ownerPhone4",
+            "meta": {
+                "picker": "callPlease",
+                "regexp": "phone"
+            },
+            "type": "phone",
+            "index": true
+        },
+        {
+            "name": "ownerEmail",
+            "meta": {
+                "label": "Email",
+                "regexp": "email"
+            },
+            "index": true
+        }        
+    ],
+    
     "payment": [
         {
             "name": "expectedCost",
             "meta": {
-                "label": "Ожидаемая стоимость",
+                "label": "Ожидаемая стоимость (число)",
                 "infoText": "expextedValue"
             }
         },
         {
+            "name": "costTranscript",
+            "meta": {
+                "label": "Расшифровка стоимости"
+            }
+        },        
+        {
             "name": "partnerCost",
             "meta": {
-                "label": "Стоимость со слов партнёра"
+                "label": "Стоимость со слов партнёра (число)"
             }
         },
         {
@@ -424,15 +551,6 @@
                 "infoText": "datetime",
                 "regexp": "datetime"
             }
-        },
-        {
-            "name": "repairEndDate",
-            "type": "date",
-            "meta": {
-                "label": "Дата окончания ремонта",
-                "infoText": "date",
-                "regexp": "date"
-            }
         }
     ],
     "address": [
@@ -491,6 +609,98 @@
                         "label": "График работы"
                     }
                 ]
+            }
+        }
+    ],
+    "vinContact": [
+        {
+            "name": "name",
+            "meta": {
+                "transform": "capitalize",
+                "label": "ФИО"
+            },
+            "index": true,
+            "indexCollate": true
+        },
+        {
+            "name": "phone1",
+            "meta": {
+                "label": "Контактные телефоны",
+                "picker": "callPlease",
+                "regexp": "phone"
+            },
+            "type": "phone",
+            "index": true,
+            "indexCollate": true
+        },
+        {
+            "name": "email",
+            "meta": {
+                "label": "Email",
+                "regexp": "email"
+            },
+            "index": true
+        }
+    ],
+    "vinCar": [
+        {
+            "name": "make",
+            "meta": {
+                "dictionaryName": "CarMakers",
+                "required": true,
+                "label": "Марка"
+            },
+            "type": "dictionary"
+        },
+        {
+            "name": "model",
+            "meta": {
+                "dictionaryName": "CarModels",
+                "required": true,
+                "label": "Модель"
+            },
+            "type": "dictionary"
+        },
+        {
+            "name": "plateNum",
+            "meta": {
+                "transform": "uppercase",
+                "label": "Госномер",
+                "required": true,
+                "regexp": "plateNum"
+            },
+            "index": true,
+            "indexCollate": true
+        },
+        {
+            "name": "makeYear",
+            "meta": {
+                "label": "Год производства автомобиля"
+            }
+        },
+        {
+            "name": "color",
+            "meta": {
+                "dictionaryName": "Colors",
+                "required": true,
+                "label": "Цвет"
+            },
+            "type": "dictionary"
+        },
+        {
+            "name": "buyDate",
+            "type": "date",
+            "meta": {
+                "label": "Дата покупки",
+                "required": true
+            }
+        },
+        {
+            "name": "checkupDate",
+            "type": "date",
+            "meta": {
+                "label": "Дата последнего ТО",
+                "required": true
             }
         }
     ]

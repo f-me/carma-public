@@ -1,6 +1,6 @@
 
 {
-    "name": "partner-service",
+    "name": "partner_service",
     "title": "Тариф",
     "canCreate": true,
     "canRead": true,
