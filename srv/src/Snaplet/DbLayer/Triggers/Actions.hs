@@ -6,10 +6,19 @@ import Control.Monad.Trans
 import Control.Exception
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
+import qualified Data.ByteString.UTF8  as BU
 import qualified Data.Map as Map
 import Data.Char
+import Data.Maybe
 
 import qualified Fdds as Fdds
+------------------------------------------------------------------------------
+import WeatherApi (getWeather', tempC)
+import WeatherApi.Google (initApi)
+-----------------------------------------------------------------------------
+import Data.Time.Format (parseTime)
+import Data.Time.Clock (UTCTime)
+import System.Locale (defaultTimeLocale)
 
 import Snap (gets)
 import Snap.Snaplet.RedisDB
@@ -17,6 +26,8 @@ import qualified Database.Redis as Redis
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
+
+import Util
 
 services =
   ["deliverCar"
@@ -36,7 +47,14 @@ actions = Map.fromList
   $ [(s,serviceActions) | s <- services]
   ++[("action", actionActions)
     ,("case", Map.fromList
-      [("car_vin", [\objId val ->
+      [("city", [\objId val -> do
+                  oldCity <- lift $ runRedisDB redis $ Redis.hget objId "city"
+                  case oldCity of
+                    Left _         -> return ()
+                    Right Nothing  -> setWeather objId val
+                    Right (Just c) -> when (c /= val) $ setWeather objId val
+                  ])
+      ,("car_vin", [\objId val ->
         if B.length val /= 17
           then return ()
           else do
@@ -69,10 +87,10 @@ serviceActions = Map.fromList
             ,("duetime", due)
             ,("description", utf8 "Заказать услугу")
             ,("targetGroup", "back")
-            ,("priority", "2")
+            ,("priority", "1")
             ,("parentId", objId)
             ,("caseId", kazeId)
-            ,("closed", "false")
+            ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
       "mechanicConf" -> do
@@ -86,7 +104,7 @@ serviceActions = Map.fromList
             ,("priority", "2")
             ,("parentId", objId)
             ,("caseId", kazeId)
-            ,("closed", "false")
+            ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
       "dealerConf" -> do
@@ -100,7 +118,7 @@ serviceActions = Map.fromList
             ,("priority", "2")
             ,("parentId", objId)
             ,("caseId", kazeId)
-            ,("closed", "false")
+            ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
       "dealerConformation" -> do
@@ -114,7 +132,7 @@ serviceActions = Map.fromList
             ,("priority", "2")
             ,("parentId", objId)
             ,("caseId", kazeId)
-            ,("closed", "false")
+            ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
       "makerConformation" -> do
@@ -128,7 +146,7 @@ serviceActions = Map.fromList
             ,("priority", "2")
             ,("parentId", objId)
             ,("caseId", kazeId)
-            ,("closed", "false")
+            ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
       "clientCanceled" -> do
@@ -142,7 +160,7 @@ serviceActions = Map.fromList
             ,("priority", "1")
             ,("parentId", objId)
             ,("caseId", kazeId)
-            ,("closed", "false")
+            ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId             
       _ -> return ()]
@@ -155,13 +173,36 @@ resultSet1 =
   ] 
 
 actionActions = Map.fromList
-  [("result",
+  [("closed",
+    [\objId val -> do
+        comment <- get objId "comment"
+        when (val == "1") $
+          set objId "comment" $
+          B.append comment $ utf8 "\nЗакрыто супервизором"
+    ])
+  ,("assignedTo",
+    [\objId val -> do
+        comment <- get objId "comment"
+        Right oldVal <- lift $ runRedisDB redis $ Redis.hget objId "assignedTo"
+        UsersDict allu <- lift $ gets allUsers
+        when (any (== val) $ map (fromJust . (Map.lookup "value")) allu) $
+          case oldVal of
+            Just v  -> set objId "comment" $ B.append comment $ B.concat
+                       [ utf8 "\nОтвественный изменен супервизором c "
+                       , v , utf8 " на " , val
+                       ]
+            Nothing  -> set objId "comment" $ B.append comment $ B.concat
+                       [ utf8 "\nОтвественный изменен супервизором на "
+                       , val
+                       ]
+    ])
+  ,("result",
     [\objId val -> when (val `elem` resultSet1) $ do
          setService objId "status" "orderService"
          void $ replaceAction
              "orderService"
              "Заказать услугу"
-             "back" "2" (+5*60) objId
+             "back" "1" (+5*60) objId
     ,\objId val -> maybe (return ()) ($objId)
       $ Map.lookup val actionResultMap
     ]
@@ -170,6 +211,7 @@ actionActions = Map.fromList
 actionResultMap = Map.fromList
   [("busyLine",        \objId -> dateNow (+ (5*60))  >>= set objId "duetime" >> set objId "result" "")
   ,("callLater",       \objId -> dateNow (+ (30*60)) >>= set objId "duetime" >> set objId "result" "")
+  ,("bigDelay",        \objId -> dateNow (+ (6*60*60)) >>= set objId "duetime" >> set objId "result" "")
   ,("partnerNotFound", \objId -> dateNow (+ (2*60*60)) >>= set objId "duetime" >> set objId "result" "")
   ,("clientCanceledService", closeAction)   
   ,("unassignPlease",  \objId -> set objId "assignedTo" "" >> set objId "result" "")
@@ -193,6 +235,35 @@ actionResultMap = Map.fromList
       "Требуется отказаться от заказанной услуги"
       "back" "1" (+60)
   )
+  ,("moveToAnalyst", \objId -> do
+    act <- replaceAction
+      "orderServiceAnalyst"
+      "Заказ услуги аналитиком"
+      "analyst" "1" (+60) objId
+    set act "assignedTo" ""
+  )
+  ,("moveToBack", \objId -> do
+    act <- replaceAction
+      "orderService"
+      "Заказ услуги аналитиком"
+      "back" "1" (+60) objId
+    set act "assignedTo" ""
+  )
+  ,("needPartnerAnalyst",     \objId -> do 
+     setService objId "status" "needPartner"
+     newAction <- replaceAction
+         "needPartner"
+         "Требуется найти партнёра для оказания услуги"
+         "parguy" "1" (+60) objId
+     set newAction "assignedTo" ""
+  )  
+  ,("serviceOrderedAnalyst", \objId -> do
+     setService objId "status" "serviceOrdered"
+     void $ replaceAction
+         "tellClient"
+         "Сообщить клиенту о договорённости" 
+         "back" "1" (+60) objId
+  )  
   ,("partnerNotOkCancel", \objId -> do
       setService objId "status" "cancelService"
       void $ replaceAction
@@ -239,7 +310,7 @@ actionResultMap = Map.fromList
   )
   ,("serviceFinished", \objId -> do
     setService objId "status" "serviceOk"
-    tm <- getService objId "times_expectedServiceClosure"	
+    tm <- getService objId "times_expectedServiceClosure"  
     void $ replaceAction
       "closeCase"
       "Закрыть заявку"
@@ -254,17 +325,17 @@ actionResultMap = Map.fromList
     void $ replaceAction
       "getInfoDealerVW"
       "Требуется уточнить информацию о ремонте у дилера (только для VW)"
-      "back" "3" (+7*24*60*60)
+      "analyst" "3" (+7*24*60*60)
       objId
   )
   ,("complaint", \objId -> do
     setService objId "status" "serviceOk"
     setService objId "clientSatisfied" "0"
-    tm <- getService objId "times_expectedServiceClosure"		
+    tm <- getService objId "times_expectedServiceClosure"    
     act1 <- replaceAction
       "complaintResolution"
       "Клиент предъявил претензию"
-      "head" "1" (+60)
+      "supervisor" "1" (+60)
       objId 
     set act1 "assignedTo" ""
     void $ replaceAction
@@ -287,48 +358,96 @@ actionResultMap = Map.fromList
   ,("billNotReady", \objId -> dateNow (+ (5*24*60*60))  >>= set objId "duetime")
   ,("billAttached", \objId -> do
     act <- replaceAction
-      "accountCheck"
-      "Проверить кейс"
-      "account" "1" (+60) objId
+      "headCheck"
+      "Проверка РКЦ"
+      "head" "1" (+360) objId
     set act "assignedTo" ""
   )
+  ,("parguyToBack", \objId -> do
+    act <- replaceAction
+      "parguyNeedInfo"
+      "Менеджер по Партнёрам запросил доп. информацию"
+      "back" "3" (+360) objId
+    set act "assignedTo" ""
+  )
+  ,("backToParyguy", \objId -> do
+    act <- replaceAction
+      "addBill"
+      "Прикрепить счёт"
+      "parguy" "1" (+360) objId
+    set act "assignedTo" ""
+  )
+  ,("headToParyguy", \objId -> do
+    act <- replaceAction
+      "addBill"
+      "На доработку МпП"
+      "parguy" "1" (+360) objId
+    set act "assignedTo" ""
+  ) 
+  ,("confirm", \objId -> do
+    act <- replaceAction
+      "directorCheck"
+      "Проверка директором"
+      "director" "1" (+360) objId
+    set act "assignedTo" ""
+  )
+  ,("confirmWODirector", \objId -> do
+    act <- replaceAction
+      "accountCheck"
+      "Проверка бухгалтерией"
+      "account" "1" (+360) objId
+    set act "assignedTo" ""
+  )  
+  ,("confirmFinal", \objId -> do
+    act <- replaceAction
+      "analystCheck"
+      "Обработка аналитиком"
+      "analyst" "1" (+360) objId
+    set act "assignedTo" ""
+  )    
+  ,("directorToHead", \objId -> do
+    act <- replaceAction
+      "headCheck"
+      "Проверка РКЦ"
+      "head" "1" (+360) objId
+    set act "assignedTo" ""
+  )
+  ,("directorConfirm", \objId -> do
+    act <- replaceAction
+      "accountCheck"
+      "Проверка бухгалтерией"
+      "account" "1" (+360) objId
+    set act "assignedTo" ""
+  )      
+  ,("dirConfirmFinal", \objId -> do
+    act <- replaceAction
+      "analystCheck"
+      "Обработка аналитиком"
+      "analyst" "1" (+360) objId
+    set act "assignedTo" ""
+  )    
   ,("vwclosed", closeAction
   )   
-  ,("financialOk", closeAction
-  )
-  ,("accountError", void . replaceAction
-      "editCaseAfterClosure"
-      "Редактирование кейса после выставления счёта"
-      "back" "1" (+60)
-  )
-  ,("caseEdited", closeAction
-  )
-  ,("recloseService", void . replaceAction
-      "closeCase"
-      "Закрыть заявку"
-      "back" "3" (+60)
-  )
-  ,("caseClosedFinancialNotOk", \objId -> do
-    setService objId "status" "serviceClosed"
-    void $ replaceAction
-      "financialClose"
-      "Заявка закрыта, требуется финансовая информация"
-      "back" "3" (+60)
-      objId
-    void $ replaceAction
-      "caseContinue"
-      "Узнать у клиента требуются ли ему ещё услуги?"
-      "back" "1" (+60)
-      objId   
-  )
-  ,("caseClosedFinancialOk", \objId -> do
+  ,("accountConfirm", \objId -> do
+    act <- replaceAction
+      "analystCheck"
+      "Обработка аналитиком"
+      "analyst" "1" (+360) objId
+    set act "assignedTo" ""
+  )   
+  ,("accountToDirector", \objId -> do
+    act <- replaceAction
+      "directorCheck"
+      "Проверка директором"
+      "director" "1" (+360) objId
+    set act "assignedTo" ""
+  )   
+  ,("analystChecked", closeAction
+  )    
+  ,("caseClosed", \objId -> do
     setService objId "status" "serviceClosed"
     closeAction objId	
   )
-  ,("financialOk", \objId -> do
-     setService objId "status" "serviceClosed"
-     closeAction objId
-  )    
   ,("falseCallWBill", \objId -> do
      setService objId "falseCall" "bill"
      closeAction objId
@@ -365,7 +484,7 @@ closeAction objId = do
   svcId <- get objId "parentId"
   kazeId <- get svcId "parentId"
   upd kazeId "actions" $ dropFromList objId
-  set objId "closed" "true"
+  set objId "closed" "1"
 
 replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
   assignee <- get objId "assignedTo"
@@ -381,7 +500,7 @@ replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
     ,("duetime", due)
     ,("parentId", svcId)
     ,("caseId", kazeId)
-    ,("closed", "false")
+    ,("closed", "0")
     ]
   upd kazeId "actions" $ addToList actionId
   closeAction objId
@@ -398,3 +517,8 @@ requestFddsVin objId vin = do
     Right v -> return $ any (Fdds.rValid) v
     Left _  -> return False
 
+setWeather objId city = do
+  weather <- liftIO $ getWeather' (initApi "ru" "utf-8") $ BU.toString city
+  case weather of
+    Right w -> set objId "temperature" $ B.pack $ show $ tempC w
+    Left  _ -> return ()

@@ -45,7 +45,6 @@ Executable carma
     Snap.Snaplet.AvayaAES,
     Snap.Snaplet.Auth.Class,
     Utils.HttpErrors,
-    Utils.Weather,
     Util
 
   Build-depends:
@@ -88,7 +87,8 @@ Executable carma
     directory                   == 1.1.0.*,
     bytestring                  == 0.9.2.*,
     weather-api                 == 0.1.*,
-    fdds                        == 0.1
+    fdds                        == 0.1,
+    vector                      == 0.9.*
 
   Extensions:
     OverloadedStrings,

@@ -2,7 +2,11 @@
 
 module Application where
 
+import Data.Text (Text)
+import Data.Map (Map)
+import Data.Time.Clock (UTCTime)
 import Data.Lens.Template
+import Control.Concurrent.STM
 
 import Snap.Snaplet
 import Snap.Snaplet.Heist
@@ -17,12 +21,16 @@ import Snap.Snaplet.Vin
 import Snap.Snaplet.AvayaAES
 import Snaplet.FileUpload
 
+import Util (UsersDict)
 ------------------------------------------------------------------------------
 -- | Application snaplet state type: Redson, Heist.
 data App = App
     { _heist      :: Snaplet (Heist App)
     , _session    :: Snaplet SessionManager
     , _auth       :: Snaplet (AuthManager App)
+    , loggedUsers :: TVar (Map Text (UTCTime, AuthUser))
+    , allUsers    :: UsersDict
+    , actionsLock :: TMVar ()
     , _siteConfig :: Snaplet (SiteConfig App)
     , _db         :: Snaplet (DbLayer App)
     , _vin        :: Snaplet Vin

@@ -5,7 +5,9 @@ module ApplicationHandlers where
 import Data.Functor
 import Control.Monad
 import Control.Monad.IO.Class
+import Control.Concurrent.STM
 
+import Data.Text (Text)
 import Data.Char
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -13,6 +15,7 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.UTF8  as BU
 import qualified Data.Aeson as Aeson
+import Data.Map (Map)
 import qualified Data.Map as Map
 
 import Data.Maybe
@@ -25,6 +28,7 @@ import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 
 import System.Locale
 
+import Snap
 import Snap.Core
 import Snap.Snaplet (with)
 import Snap.Snaplet.Heist
@@ -38,12 +42,9 @@ import Snaplet.FileUpload (doUpload', doDeleteAll')
 ------------------------------------------------------------------------------
 import qualified Codec.Xlsx.Templater as Xlsx
 import qualified Nominatim
-------------------------------------------------------------------------------
-import WeatherApi
-import WeatherApi.Google
-import Utils.Weather () -- instance ToJSON Weather
 -----------------------------------------------------------------------------
 import Application
+import CustomLogic.ActionAssignment
 import Util
 
 
@@ -83,16 +84,26 @@ doLogin = ifTop $ do
   p <- fromMaybe "" <$> getParam "password"
   r <- isJust <$> getParam "remember"
   res <- with auth $ loginByUsername l (ClearText p) r
+  case res of
+    Left _ -> redirectToLogin
+    Right u -> do
+      addToLoggedUsers u
+      avayaExt <- fromMaybe "" <$> getParam "avayaExt" >>= fromBS
+      avayaPwd <- fromMaybe "" <$> getParam "avayaPwd" >>= fromBS
+      with session $ do
+        setInSession "avayaExt" avayaExt
+        setInSession "avayaPwd" avayaPwd
+        commitSession
 
-  avayaExt <- fromMaybe "" <$> getParam "avayaExt" >>= fromBS
-  avayaPwd <- fromMaybe "" <$> getParam "avayaPwd" >>= fromBS
-  with session $ do
-    setInSession "avayaExt" avayaExt
-    setInSession "avayaPwd" avayaPwd
-    commitSession
+      redirect "/"
 
-  either (const redirectToLogin) (const $ redirect "/") res
 
+doLogout :: AppHandler ()
+doLogout = ifTop $ do
+  Just u <- with auth currentUser
+  rmFromLoggedUsers u
+  with auth logout
+  redirectToLogin
 
 ------------------------------------------------------------------------------
 -- | Serve user account data back to client.
@@ -109,15 +120,6 @@ geodecode = ifTop $ do
   addr <- fromMaybe "Moscow" <$> getParam "addr"
   resp <- liftIO $ Nominatim.geodecode addr
   writeJSON resp
-
------------------------------------------------------------------------------
--- | Retrieve weather
-weather :: AppHandler ()
-weather = ifTop $ do
-  Just city     <- getParam "city"
-  Right weather <- liftIO $ getWeather' (initApi "ru" "utf-8")
-                                       (BU.toString city)
-  writeLBS $ Aeson.encode weather
 
 ------------------------------------------------------------------------------
 -- | CRUD
@@ -143,6 +145,7 @@ readAllHandler = do
   (with db $ DB.readAll model)
     >>= apply "orderby" sortBy (flip . comparing . Map.lookup)
     >>= apply "limit"   take   (read . B.unpack)
+    >>= apply "select"  filter flt
     >>= apply "fields"  map    proj
     >>= writeJSON
   where
@@ -154,6 +157,8 @@ readAllHandler = do
       [(k, Map.findWithDefault "" k obj)
       | k <- B.split ',' fs
       ]
+
+    flt prm = \obj -> all (selectParse obj) $ B.split ',' prm
 
 updateHandler :: AppHandler ()
 updateHandler = do
@@ -176,44 +181,30 @@ searchHandler = do
   res <- with db $ DB.searchFullText (B.pack "case") (map B.pack ["id::text", "car_vin", "contact_name", "car_plateNum", "garbage -> 'contact_phone1'"]) q
   writeJSON (length res)
 
-searchByIndex :: AppHandler ()
-searchByIndex = do
-  Just ixName <- getParam "indexName"
-  -- FIXME: hardcoded index mockup
-  case ixName of
-    "allPartners" -> do
-      res <- with db $ DB.readAll "partner"
-      let proj obj =
-            [Map.findWithDefault "" k obj
-            | k <- ["id", "name", "city", "comment"]
-            ]
-      writeJSON $ map proj res
-    "actionsForUser" -> do
-      Just curUser <- with auth currentUser
-      let user = T.encodeUtf8 $ userLogin curUser
-      let Role userGroup = head $ userRoles curUser
-      actions <- with db $ DB.readAll "action"
-      let filterActions (u,g) a
-            | closed /= "false" = (u,g)
-            | assignedTo == user = (a:u,g)
-            | assignedTo == "" && targetGroup == userGroup = (u,a:g)
-            | otherwise = (u,g)
-            where
-              assignedTo = fromMaybe "" $ Map.lookup "assignedTo" a
-              targetGroup = fromMaybe "" $ Map.lookup "targetGroup" a
-              closed = fromMaybe "" $ Map.lookup "closed" a
-      let (userActions,groupActions) = foldl' filterActions ([],[]) actions
-      now <- liftIO $ round . utcTimeToPOSIXSeconds <$> getCurrentTime
-      let nowProximity m = case Map.lookup "duetime" m of
-            Nothing -> 10^9 :: Int
-            Just s -> case B.readInt s of
-              Just (t, "") -> abs $ now - t
-              _ -> 10^9
-      let sort = sortBy (comparing nowProximity)
-      writeJSON $ Map.fromList
-        [("user" :: ByteString, take 30 $ sort $ userActions)
-        ,("group":: ByteString, take 30 $ sort $ groupActions)]
-    _ -> error $ "Unknown index " ++ show ixName
+
+myActionsHandler :: AppHandler ()
+myActionsHandler = do
+  Just cUsr <- with auth currentUser
+  let uLogin = userLogin cUsr
+  logdUsers <- addToLoggedUsers cUsr
+
+  actLock <- gets actionsLock
+  do -- bracket_
+    (liftIO $ atomically $ takeTMVar actLock)
+    actions <- filter ((== Just "0") . Map.lookup "closed")
+           <$> with db (DB.readAll "action")
+    now <- liftIO getCurrentTime
+    let assignedActions = assignActions now actions (Map.map snd logdUsers)
+    let myActions = Map.findWithDefault [] uLogin assignedActions
+    with db $ forM_ myActions $ \act ->
+      case Map.lookup "id" act of
+        Nothing -> return ()
+        Just actId -> void $ DB.update "action"
+          (last $ B.split ':' actId)
+          $ Map.singleton "assignedTo" $ T.encodeUtf8 uLogin
+    (liftIO $ atomically $ putTMVar actLock ())
+    writeJSON myActions
+
 
 searchCallsByPhone :: AppHandler ()
 searchCallsByPhone = do
@@ -230,6 +221,18 @@ getActionsForCase = do
   let id' = B.append "case:" id
   writeJSON $
     filter ((id' ==) . (Map.findWithDefault "" "caseId")) actions
+
+-- | This action recieve model and id as parameters to lookup for
+-- and json object with values to create new model with specified
+-- id when it's not found
+findOrCreateHandler :: AppHandler ()
+findOrCreateHandler = do
+  Just model <- getParam "model"
+  Just id    <- getParam "id"
+  commit <- getJSONBody
+  res <- with db $ DB.findOrCreate model id commit
+  -- FIXME: try/catch & handle/log error
+  writeJSON res
 
 ------------------------------------------------------------------------------
 -- | Reports
@@ -285,6 +288,9 @@ deleteReportHandler = do
   with fileUpload $ doDeleteAll' "report" id
   return ()
 
+getUsersDict :: AppHandler ()
+getUsersDict = writeJSON =<< gets allUsers
+
 ------------------------------------------------------------------------------
 -- | Utility functions
 writeJSON :: Aeson.ToJSON v => v -> AppHandler ()
@@ -295,3 +301,21 @@ writeJSON v = do
 getJSONBody :: Aeson.FromJSON v => AppHandler v
 getJSONBody = Util.readJSONfromLBS <$> readRequestBody 4096
 
+
+addToLoggedUsers :: AuthUser -> AppHandler (Map Text (UTCTime,AuthUser))
+addToLoggedUsers u = do
+  logTVar <- gets loggedUsers
+  logdUsers <- liftIO $ readTVarIO logTVar
+  now <- liftIO getCurrentTime
+  let logdUsers' = Map.insert (userLogin u) (now,u)
+        -- filter out inactive users
+        $ Map.filter ((>addUTCTime (-90*60) now).fst) logdUsers
+  liftIO $ atomically $ writeTVar logTVar logdUsers'
+  return logdUsers'
+
+
+rmFromLoggedUsers :: AuthUser -> AppHandler ()
+rmFromLoggedUsers u = do
+  logdUsrs <- gets loggedUsers
+  liftIO $ atomically $ modifyTVar' logdUsrs
+         $ Map.delete $ userLogin u

@@ -15,8 +15,17 @@
     "fields": [
         {
             "name": "callDate",
-            "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
-            "canWrite": [ "head" ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"
+            ],
             "index": true,
             "indexCollate": true,
             "type": "datetime",
@@ -27,11 +36,26 @@
         },
         {
             "name": "callTaker",
-            "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman",
+                "parguy",
+                "account"
+            ],
             "meta": {
                 "label": "Сотрудник РАМК",
                 "required": true,
                 "readonly": true
+            }
+        },
+        {
+            "name": "program",
+            "type": "dictionary",
+            "meta": {
+                "dictionaryName": "Programs",
+                "label": "Программа"
             }
         },
         {
@@ -44,7 +68,7 @@
         },
         {
             "name": "callerName",
-            "groupName": "contact",
+            "groupName": "carContact",
             "meta": {
                 "label": "ФИО"
             }
@@ -56,6 +80,31 @@
                 "label": "Кто звонит?",
                 "dictionaryName": "CallerTypes"
             }
+        },
+        {
+            "name": "city",
+            "type": "dictionary",
+            "meta": {
+                "dictionaryName": "DealerCities",
+                "label": "Город"
+            }
+        },
+        {
+            "name": "make",
+            "meta": {
+                "dictionaryName": "CarMakers",
+                "label": "Марка"
+            },
+            "type": "dictionary"
+        },
+        {
+            "name": "model",
+            "meta": {
+                "dictionaryName": "CarModels",
+                "dictionaryParent": "make",
+                "label": "Модель"
+            },
+            "type": "dictionary"
         },
         {
             "name": "callType",

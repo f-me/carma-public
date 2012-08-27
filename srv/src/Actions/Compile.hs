@@ -82,7 +82,7 @@ createAction actionTemplate = do
 
   now <- liftIO $ round . utcTimeToPOSIXSeconds <$> getCurrentTime
   setPath' o "ctime" $ B8.pack $ show (now :: Int)
-  setPath' o "closed" "false"
+  setPath' o "closed" "0"
   -- let action  = M.map (evalTemplate cxt) actionTemplate
   -- FIXME: do we need to put updated actions into context?
 
@@ -98,7 +98,7 @@ updateObject p tmp = evalTemplate tmp >>= setPath p
 closeAction :: EvalStateMonad b ()
 closeAction = do
   tId <- gets thisId
-  setPath "closed" "true"
+  setPath "closed" "1"
   getPath "case.actions"
     >>= setPath "case.actions"
       . B8.intercalate "," . filter (/=tId) . B8.split ','

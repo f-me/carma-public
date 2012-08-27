@@ -1,0 +1,44 @@
+{
+    "entries": [
+        {
+            "value": "front",
+            "label": "Front Office"
+        },
+        {
+            "value": "back",
+            "label": "Back Office"
+        },
+        {
+            "value": "head",
+            "label": "РКЦ"
+        },
+        {
+            "value": "parguy",
+            "label": "МпП"
+        },
+        {
+            "value": "supervisor",
+            "label": "Супервизор"
+        },
+        {
+            "value": "director",
+            "label": "Директор"
+        },
+        {
+            "value": "analyst",
+            "label": "Аналитик"
+        },
+        {
+            "value": "account",
+            "label": "Бухгалтер"
+        },
+        {
+            "value": "admin",
+            "label": "Администратор"
+        },
+        {
+            "value": "programman",
+            "label": "Менеджер по программам"
+        }
+    ]
+}

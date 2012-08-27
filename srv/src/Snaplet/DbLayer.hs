@@ -9,6 +9,7 @@ module Snaplet.DbLayer
   ,generateReport
   ,readAll
   ,initDbLayer
+  ,findOrCreate
   ) where
 
 import Prelude hiding (read, log)
@@ -72,6 +73,14 @@ create model commit = scoper "create" $ do
   return $ Map.insert "id" objId
          $ obj Map.\\ commit
 
+findOrCreate model objId commit = do
+  r <- read model objId
+  case Map.toList r of
+    [] -> do
+      commit' <- triggerCreate model commit
+      let obj = Map.union commit' commit
+      Redis.create' redis model objId obj
+    _  -> return r
 
 read model objId = do
   res <- Redis.read redis model objId
@@ -137,8 +146,8 @@ readAll model = Redis.readAll redis model
 logConfig = []
     -- relative ["search"] $ low Trace]
 
-initDbLayer :: SnapletInit b (DbLayer b)
-initDbLayer = makeSnaplet "db-layer" "Storage abstraction"
+initDbLayer :: UsersDict -> SnapletInit b (DbLayer b)
+initDbLayer allU = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
     l <- liftIO $ newLog debugPolitics logConfig [logger text (file "log/db.log")]
     mdl <- liftIO $ Postgres.loadModels "resources/site-config/syncs.json" l
@@ -153,6 +162,7 @@ initDbLayer = makeSnaplet "db-layer" "Storage abstraction"
       <*> liftIO createIndices
       <*> (liftIO $ fddsConfig cfg)
       <*> (return mdl)
+      <*> (return allU)
 
 ----------------------------------------------------------------------
 triggersConfig = do

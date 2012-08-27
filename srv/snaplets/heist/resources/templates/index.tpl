@@ -56,45 +56,31 @@
     <script src="/s/js/main.js" />
     <script src="/s/js/local.js" />
     <script src="/s/js/viewsware.js" />
+    <script src="/s/js/hooks.js" />
+    <script src="/s/js/case.js" />
+    <script src="/s/js/vin.js" />
+    <script src="/s/js/editVin.js" />
+    <script src="/s/js/partners.js" />
+    <script src="/s/js/call.js" />
+    <script src="/s/js/backoffice.js" />
+    <script src="/s/js/supervisors.js" />
+    <script src="/s/js/report.js" />
+    <script src="/s/js/hotkeys.js" />
+    <script src="/s/js/fileupload.js" />
+
   </head>
   <body>
     <!-- Navigation bar on top -->
     <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
-          <ul class="nav">
+          <ul class="nav" id="nav">
             <a class="brand" href="/">
               CaRMa
             </a>
             <li class="divider-vertical" />
-            <li id="call-screen-nav">
-              <a href="#call">Звонок</a>
-            </li>
-            <li id="case-screen-nav">
-              <a href="#case">Кейс</a>
-            </li>
-            <li id="back-screen-nav">
-              <a href="#back">Бэкофис</a>
-            </li>
-            <li id="search-screen-nav">
-              <a href="#search">Поиск</a>
-            </li>
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                Ещё <b class="caret"></b>
-              </a>
-              <ul class="dropdown-menu">
-                <li id="vin-screen-nav">
-                  <a href="#vin">Обновление базы VIN</a>
-                </li>
-                <li id="partner-screen-nav">
-                  <a href="#partner">Редактирование партнёров</a>
-                </li>
-                <li id="reports-screen-nav">
-                  <a href="#reports">Отчёты</a>
-                </li>
-              </ul>
-            </li>
+            <!-- ko template: { name: 'nav-li-template' }-->
+            <!-- /ko -->
           </ul>
           <ifLoggedIn>
             <ul class="nav pull-right">
@@ -120,7 +106,7 @@
     </div>
 
     <!-- Main container for dynamically rendered layouts -->
-    <div class="container-fluid">
+    <div class="container-fluid" id="main-container">
       <div class="row-fluid" id="layout" />
     </div>
 
@@ -129,6 +115,15 @@
             class="screen-template"
             id="call-screen-template">
       <div id="left" class="nice-scrollbar call-pane">
+        <div class="control-group">
+          <div class="control-label">
+            <label>Номер</label>
+          </div>
+          <div class="controls">
+            <input type="text" disabled id="call-number"
+                   data-bind="value: maybeId"/>
+          </div>
+        </div>
         <div id="call-form"/>
         <button class="btn btn-success"
                 type="submit"
@@ -263,41 +258,18 @@
     <script type="text/template"
             id="back-screen-template"
             class="screen-template">
-      <center>
-        <table width="80%">
-          <thead>
-            <tr><th>Мои задачи</th><th>Общие задачи</th></tr>
-          </thead>
-          <tr><td width="50%">
-            <table id="back-user-table" class="table table-striped table-bordered">
-              <thead>
-                <tr>
-                  <th>Кейс</th>
-                  <th>Приоритет</th>
-                  <th>Дата выполнения</th>
-                  <th>Что делать?</th>
-                  <th>Комментарии</th>
-                </tr>
-              </thead>
-              <tbody/>
-            </table>
-          </td>
-          <td width="50%">
-            <table id="back-group-table" class="table table-striped table-bordered">
-              <thead>
-                <tr>
-                  <th>Кейс</th>
-                  <th>Приоритет</th>
-                  <th>Дата выполнения</th>
-                  <th>Что делать?</th>
-                  <th>Комментарии</th>
-                </tr>
-              </thead>
-              <tbody/>
-            </table>
-          </td></tr>
-        </table>
-      </center>
+      <table id="back-user-table" class="table table-striped table-bordered">
+        <thead>
+          <tr>
+            <th>Кейс</th>
+            <th>Приоритет</th>
+            <th>Дата выполнения</th>
+            <th>Что делать?</th>
+            <th>Комментарии</th>
+          </tr>
+        </thead>
+        <tbody/>
+      </table>
     </script>
 
     <!-- reports generation screen -->
@@ -335,8 +307,28 @@
       </fieldset>
       </div>
 
-      <div id="all-reports">
-        <table class="table table-striped table-bordered dataTable">
+      <div id="all-reports" class="row">
+        <div class="span4">
+          <h3>Добавить отчет</h3>
+          <form id="add-report"
+                action="/_/report"
+                method="POST"
+                enctype="multipart/form-data">
+            <label>Название отчета</label>
+            <input name="name" type="text">
+            <label>Шаблон</label>
+            <input name="templates" type="file">
+            <label>
+            <input class="btn btn-success"
+                   type="submit"
+                   value="Добавить"
+                   onClick="checkReportUniq(event)">
+          </form>
+        </div>
+
+        <div class="span8">
+        <table class="table table-striped table-bordered dataTable"
+               id="reports-table">
           <thead>
             <tr>
               <th width="40%">Название</th>
@@ -364,23 +356,7 @@
             </tr>
           </tbody>
         </table>
-        <br />
-        <h3>Добавить отчет</h3>
-        <div>
-          <form id="add-report"
-                action="/_/report"
-                method="POST"
-                enctype="multipart/form-data">
-            <label>Название отчета</label>
-            <input name="name" type="text">
-            <label>Шаблон</label>
-            <input name="templates" type="file">
-            <input class="btn btn-success"
-                   type="submit"
-                   value="Добавить"
-                   onClick="checkReportUniq(event)">
-          </form>
-        </div>
+      </div>
       </div>
 
     </script>
@@ -390,6 +366,34 @@
             id="vin-screen-template"
             class="screen-template">
       <div id="vin-form" />
+    </script>
+
+    <!-- Edit VIN screens -->
+    <script type="text/template"
+            id="newVin-screen-template"
+            class="screen-template">
+      <div align="center">
+        <form id="new-vin"
+              method="POST"
+              action="/_/findOrCreate/vin"
+              onSubmit="doNewVin(event)">
+          <label>Введите VIN</label>
+          <input name="id" type="text">
+          <label>
+          <input type="submit" class="btn btn-success">
+        </form>
+      </div>
+    </script>
+
+    <script type="text/template"
+            id="editVin-screen-template"
+            class="screen-template">
+      <div id="left"  class="nice-scrollbar pane">
+        <div id="vin-form" class="form-vertical"/>
+        <div id="vin-permissions"/>
+      </div>
+      <div id="center" class="nice-scrollbar pane"/>
+      <div id="right"  class="nice-scrollbar pane"/>
     </script>
 
     <script type="text/template"
@@ -490,17 +494,70 @@
               <label>Услуги</label>
             </div>
             <div class="controls">
-              <span class="accordion" id="partner-service-references" />
-              <span id="partner-service-picker-container" />
+              <span class="accordion" id="partner-services-references" />
               <button class="dropdown-toggle btn btn-action"
                       onclick="addNewServiceToPartner();"
-                      type="button"
-                      data-toggle="dropdown">
+                      type="button">
                 <i class="icon icon-plus"></i>Добавить услугу
               </button>
             </div>
           </div>
           <div id="partner-permissions" />
+        </form>
+      </div>
+    </script>
+
+    <!-- Supervisor screen template -->
+    <script type="text/template"
+            class="screen-template"
+            id="supervisor-screen-template">
+
+      <div id="supervisor-left" class="nice-scrollbar pane">
+        <div class="form-vertical">
+          <div id="table-filter" class="form-inline well">
+            <label>Диапазон:</label>
+            <input id="date-min" type="text" />
+            -
+            <input id="date-max" type="text" />
+
+            <select id="role" data-bind="foreach: entries">
+              <option data-bind="value: value, text: label"/>
+            </select>
+
+            <select id="closed">
+              <option value="0">Открытые</option>
+              <option value="1">Закрытые</option>
+              <option value="">Открытые и закрытые</option>
+            </select>
+            </br>
+            <div class="control-group">
+              <button id="reload" class="btn" >
+                Обновить
+              </button>
+            </div>
+          </div>
+          <table id="supervisor-table" class="table table-striped table-bordered">
+            <thead>
+              <tr>
+                <th width="1%"># кейса/действия</th>
+                <th width="1%">Закрыто?</th>
+                <th width="10%">Тип действия</th>
+                <th width="10%">Ответственный</th>
+                <th width="5%">Роль</th>
+                <th width="10%">Время выполнения</th>
+                <th width="10%">Результат</th>
+                <th width="2%">Пр</th>
+              </tr>
+            </thead>
+            <tbody/>
+          </table>
+        </div>
+      </div>
+
+      <div id="supervisor-right" class="nice-scrollbar pane">
+        <form class="form-vertical">
+          <div id="action-form" />
+          <div id="action-permissions" />
         </form>
       </div>
     </script>
@@ -604,7 +661,6 @@
                  class="datetime-field pane-span focusable"
                  autocomplete="off"
                  name="{{ name }}"
-                 onFocus="datetimeFieldHandler(this)"
                  {{# readonly }}readonly{{/ readonly }}
                  data-bind="value: {{ name }},
                             valueUpdate: 'afterkeydown'" />
@@ -1095,11 +1151,11 @@
             class="group-template"
             id="default-case-group-template">
       <fieldset class="complex-field default-complex-field"
-                id="default-case-complex-field">
+                id="default-case">
         <p>
           <b>Кто звонил:</b>
-          <span data-bind="text: caller_name"/>&nbsp;
-          <span data-bind="text: caller_phone1"/>
+          <span data-bind="text: contact_name"/>&nbsp;
+          <span data-bind="text: contact_phone1"/>
         </p>
         <p data-bind="visible: car_make">
           <b>Машина:</b>
@@ -1166,6 +1222,34 @@
 
         </div>
       </fieldset>
+    </script>
+
+
+    <!-- navigation menu templates -->
+    <script type="text/html" id="nav-li-template">
+      <!-- ko foreach: screens -->
+        <!-- ko if: type == 'li' -->
+          <li data-bind="if: type == 'li',
+                         attr: { id: name + '-screen-nav' }">
+            <a data-bind="attr: { href: '#' + name}, text: label"/>
+          </li>
+        <!-- /ko -->
+        <!-- ko if: type == 'dropdown' -->
+          <li class="dropdown"
+              data-bind="if: type == 'dropdown'">
+            <a href="#"
+               class="dropdown-toggle"
+               data-toggle="dropdown"
+               data-bind="html: label + '<b class=\'caret\'></b>'">
+              <b class="caret"></b>
+            </a>
+            <ul class="dropdown-menu"
+                data-bind="template: { name: 'nav-li-template' }">
+            </ul>
+          </li>
+
+        <!-- /ko -->
+      <!-- /ko -->
     </script>
 
   </body>

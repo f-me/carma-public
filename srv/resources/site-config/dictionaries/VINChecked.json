@@ -2,19 +2,19 @@
     "entries": [
         {
             "value": "base",
-            "label": "По базе данных"
+            "label": "VIN проверен по базе"
         },
         {
             "value": "dealer",
-            "label": "От дилера"
+            "label": "VIN проверен у дилера"
         },
         {
             "value": "fdds",
-            "label": "Проверен в FDDS"
+            "label": "VIN проверен в FDDS"
         },
         {
             "value": "service",
-            "label": "По сервисной книжке"
+            "label": "VIN проверен по сервисной книжке"
         },
         {
             "value": "partner",
@@ -27,6 +27,14 @@
         {
             "value": "vinExpired",
             "label": "VIN просрочен"
+        },
+        {
+            "value": "cardFound",
+            "label": "Карта участника найдена"
+        },
+        {
+            "value": "cardNotFound",
+            "label": "Карта участника не найдена"
         }
     ]
 }
