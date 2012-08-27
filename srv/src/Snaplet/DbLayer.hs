@@ -121,10 +121,15 @@ sync = scope "sync" $ do
                 Nothing -> error $ "Invalid id for model " ++ C8.unpack model
         modelList m = map C8.pack $ Map.keys (SM.modelsModels m)
 
-searchFullText :: ByteString -> [ByteString] -> ByteString -> Handler b (DbLayer b) [[S.FieldValue]]
-searchFullText mname rs q = do
+searchFullText :: ByteString -> [ByteString] -> [ByteString] -> ByteString -> Int -> Handler b (DbLayer b) [[ByteString]]
+searchFullText mname fs sels q lim = do
   mdl <- gets syncModels
-  Postgres.search mdl mname rs q
+  res <- Postgres.search mdl mname fs sels q lim
+  return $ map (map showValue) res
+  where
+    showValue :: S.FieldValue -> ByteString
+    showValue (S.StringValue s) = C8.pack s
+    showValue _ = C8.empty
 
 generateReport :: [T.Text] -> FilePath -> FilePath -> Handler b (DbLayer b) ()
 generateReport conds template filename = do
@@ -134,7 +139,8 @@ generateReport conds template filename = do
 readAll model = Redis.readAll redis model
 
 -- log politics
-logConfig = []
+logConfig = [
+  relative ["search"] $ low Trace]
     -- relative ["search"] $ low Trace]
 
 initDbLayer :: SnapletInit b (DbLayer b)

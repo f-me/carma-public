@@ -1,6 +1,7 @@
 
 module ApplicationHandlers where
 
+import Prelude hiding (log)
 
 import Data.Functor
 import Control.Monad
@@ -30,6 +31,7 @@ import Snap.Snaplet (with)
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.Session
+import Snap.Snaplet.SimpleLog
 import Snap.Util.FileServe (serveFile)
 import Snap.Util.Readable (fromBS)
 ------------------------------------------------------------------------------
@@ -170,11 +172,21 @@ syncHandler = do
   writeJSON res
 
 searchHandler :: AppHandler ()
-searchHandler = do
+searchHandler = scope "searchHandler" $ do
   Just q <- getParam "q"
-  -- TODO: Use model fields, not table fields!
-  res <- with db $ DB.searchFullText (B.pack "case") (map B.pack ["id::text", "car_vin", "contact_name", "car_plateNum", "garbage -> 'contact_phone1'"]) q
-  writeJSON (length res)
+  Just m <- getParam "model"
+  Just fs <- getParam "fields"
+  Just sel <- getParam "select"
+  let
+    getInt v = do
+      s <- v
+      (x, _) <- B.readInt s
+      return x
+    sels = B.split ',' sel
+  lim <- liftM (maybe 100 id . getInt) $ getParam "limit"
+  -- id, car_vin, contact_name, car_plateNum, garbage -> 'contact_phone1'
+  res <- with db $ DB.searchFullText m (B.split ',' fs) sels q lim
+  writeJSON $ map (zip sels) res
 
 searchByIndex :: AppHandler ()
 searchByIndex = do
