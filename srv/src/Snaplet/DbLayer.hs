@@ -137,8 +137,8 @@ generateReport conds template filename = do
 readAll model = Redis.readAll redis model
 
 -- log politics
-logConfig = []
-    -- relative ["arc"] $ low Debug]
+logConfig = [
+    relative ["generate"] $ low Trace]
 
 initDbLayer :: UsersDict -> SnapletInit b (DbLayer b)
 initDbLayer allU = makeSnaplet "db-layer" "Storage abstraction"
