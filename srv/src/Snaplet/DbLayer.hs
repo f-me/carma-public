@@ -137,7 +137,11 @@ searchFullText mname fs sels q lim = do
   return $ map (map showValue) res
   where
     showValue :: S.FieldValue -> ByteString
-    showValue (S.StringValue s) = C8.pack s
+    showValue (S.IntValue s) = T.encodeUtf8 . T.pack . show $ s
+    showValue (S.DoubleValue s) = T.encodeUtf8 . T.pack . show $ s
+    showValue (S.BoolValue s) = T.encodeUtf8 . T.pack . show $ s
+    showValue (S.StringValue s) = T.encodeUtf8 . T.pack $ s
+    showValue (S.TimeValue s) = T.encodeUtf8 . T.pack . (show :: Integer -> String) . floor $ s
     showValue _ = C8.empty
 
 generateReport :: [T.Text] -> FilePath -> FilePath -> Handler b (DbLayer b) ()

@@ -306,7 +306,8 @@ search ms mname fs sels q lim = escopev "search" [] search' where
             log Trace $ T.concat ["Search limit: ", T.pack $ show lim]
             log Trace $ T.concat ["Search fields: ", T.intercalate ", " (map T.decodeUtf8 fs)]
             log Trace $ T.concat ["Search select fields: ", T.intercalate ", " (map T.decodeUtf8 sels)]
-            res <- query (fromString $ C8.unpack searchQuery) argsS
+            res <- query (fromString . T.unpack . T.decodeUtf8 $ searchQuery) argsS
+            log Debug $ T.concat ["Found ", T.pack (show $ length res), " results"]
             return res
 
     -- Columns to search in
@@ -314,8 +315,7 @@ search ms mname fs sels q lim = escopev "search" [] search' where
         toText = (++ "::text")
 
     -- Columns to select
-    cols = mapMaybe (fmap (C8.pack . toText . SM.catField) . SM.modelsField ms (C8.unpack mname) . C8.unpack) sels where
-        toText = (++ "::text")
+    cols = mapMaybe (fmap (C8.pack . SM.catField) . SM.modelsField ms (C8.unpack mname) . C8.unpack) sels
 
     qs = C8.words q
     -- (row like ?)

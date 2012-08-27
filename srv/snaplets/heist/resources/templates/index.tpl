@@ -131,8 +131,14 @@
           Новый кейс
         </button>
       </div>
-      <div id="center" class="nice-scrollbar call-pane"/>
+      <div id="center" class="nice-scrollbar call-pane" />
       <div id="bottom">
+        <div class="control-group">
+          <input type="text" id="search-query">
+          <button id="run-search" class="btn" >
+            Поиск
+          </button>
+        </div>
         <table id="call-searchtable" class="table table-striped table-bordered">
           <thead>
             <tr>
