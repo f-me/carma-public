@@ -150,12 +150,12 @@ functions tz dict = [
         formatTimeFun _ [] = SM.StringValue ""
         formatTimeFun defFmt [v] =
             maybe
-                (SM.StringValue "")
+                v
                 (SM.StringValue . formatTime defaultTimeLocale defFmt)
                 (fmap (utcToLocalTime tz . posixSecondsToUTCTime) $ toPosix v)
         formatTimeFun _ [v, SM.StringValue fmt] =
             maybe
-                (SM.StringValue "")
+                v
                 (SM.StringValue . formatTime defaultTimeLocale fmt)
                 (fmap (utcToLocalTime tz . posixSecondsToUTCTime) $ toPosix v)
         formatTimeFun _ (v:_) = v

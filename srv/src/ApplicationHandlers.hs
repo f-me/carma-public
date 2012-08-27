@@ -189,7 +189,7 @@ searchHandler = scope "searchHandler" $ do
       return x
     sels = B.split ',' sel
   lim <- liftM (maybe 100 id . getInt) $ getParam "limit"
-  -- id, car_vin, contact_name, car_plateNum, garbage -> 'contact_phone1'
+  -- search/case?q=2660&fields=id,car_vin,program,caller_phone1&limit=100&select=id,car_vin,caller_phone1,program
   res <- with db $ DB.searchFullText m (B.split ',' fs) sels q lim
   writeJSON $ map (zip sels) res
 
