@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell, FlexibleInstances #-}
 
 module Application where
 
@@ -19,6 +19,7 @@ import Snaplet.SiteConfig.Class
 import Snaplet.DbLayer.Types
 import Snap.Snaplet.Vin
 import Snaplet.FileUpload
+import Snap.Snaplet.SimpleLog
 
 import Util (UsersDict)
 ------------------------------------------------------------------------------
@@ -48,3 +49,6 @@ instance HasAuth App where
 
 instance HasSiteConfig App where
   siteConfigLens = subSnaplet siteConfig
+
+instance MonadLog (Handler App App) where
+  askLog = with db askLog

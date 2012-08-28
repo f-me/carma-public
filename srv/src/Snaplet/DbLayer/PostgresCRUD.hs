@@ -150,12 +150,12 @@ functions tz dict = [
         formatTimeFun _ [] = SM.StringValue ""
         formatTimeFun defFmt [v] =
             maybe
-                (SM.StringValue "")
+                v
                 (SM.StringValue . formatTime defaultTimeLocale defFmt)
                 (fmap (utcToLocalTime tz . posixSecondsToUTCTime) $ toPosix v)
         formatTimeFun _ [v, SM.StringValue fmt] =
             maybe
-                (SM.StringValue "")
+                v
                 (SM.StringValue . formatTime defaultTimeLocale fmt)
                 (fmap (utcToLocalTime tz . posixSecondsToUTCTime) $ toPosix v)
         formatTimeFun _ (v:_) = v
@@ -295,16 +295,27 @@ query s v = do
     PS.query s v
 
 -- TODO: Use model field names and convert them by models
-search :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> [ByteString] -> ByteString -> m [[S.FieldValue]]
-search ms mname rs q = escopev "search" [] search' where
+search :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> [ByteString] -> [ByteString] -> ByteString -> Int -> m [[S.FieldValue]]
+search ms mname fs sels q lim = escopev "search" [] search' where
     search'
         | C8.null q = do
             log Warning "Empty query"
             return []
         | otherwise = do
             log Trace $ T.concat ["Search query: ", T.decodeUtf8 q]
-            res <- query (fromString $ C8.unpack searchQuery) argsS
+            log Trace $ T.concat ["Search limit: ", T.pack $ show lim]
+            log Trace $ T.concat ["Search fields: ", T.intercalate ", " (map T.decodeUtf8 fs)]
+            log Trace $ T.concat ["Search select fields: ", T.intercalate ", " (map T.decodeUtf8 sels)]
+            res <- query (fromString . T.unpack . T.decodeUtf8 $ searchQuery) argsS
+            log Debug $ T.concat ["Found ", T.pack (show $ length res), " results"]
             return res
+
+    -- Columns to search in
+    rs = mapMaybe (fmap (C8.pack . toText . SM.catField) . SM.modelsField ms (C8.unpack mname) . C8.unpack) fs where
+        toText = (++ "::text")
+
+    -- Columns to select
+    cols = mapMaybe (fmap (C8.pack . SM.catField) . SM.modelsField ms (C8.unpack mname) . C8.unpack) sels
 
     qs = C8.words q
     -- (row like ?)
@@ -329,7 +340,7 @@ search ms mname rs q = escopev "search" [] search' where
     tblname = SM.withModel ms (C8.unpack mname) $ SM.syncTable . SM.modelSync
     (whereS, argsS) = whereClause rs qs
 
-    searchQuery = C8.concat ["select * from ", fromString tblname, " where ", whereS]
+    searchQuery = C8.concat ["select ", C8.intercalate ", " cols, " from ", fromString tblname, " where ", whereS, " limit ", C8.pack (show lim)]
 
 generateReport :: (PS.HasPostgres m, MonadLog m) => SM.Models -> [T.Text] -> FilePath -> FilePath -> m ()
 generateReport ms conds tpl file = scope "generate" $ do
