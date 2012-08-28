@@ -92,10 +92,12 @@ $ ->
           $.getJSON "/s/screens",                 (nav)    ->
             $.getJSON "/usersDict",                 (users)  ->
               dicts.users =
-                entries: for i in users
+                entries:
+                    for i in users
                            {value: i.value, label: "#{i.label} (#{i.value})"}
               dicts.roles =
-                entries: for i in users
+                entries:
+                    for i in users
                            {value: i.value, label: i.roles }
               mainSetup localScreens(),
                         localRouter,
@@ -107,6 +109,10 @@ $ ->
               global.checks = checks
               global.keys = {}
               global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
+              ext = user.meta.avayaExt
+              pwd = user.meta.avayaPwd
+              if ext and pwd 
+                setupAvayaWidget('#avaya-panel', ext, pwd)
               if window.location.hash == ""
                 redirectToHomePage user
               ko.applyBindings global.nav, $('#nav')[0]

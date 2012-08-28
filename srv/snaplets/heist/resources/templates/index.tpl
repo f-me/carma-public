@@ -67,6 +67,7 @@
     <script src="/s/js/report.js" />
     <script src="/s/js/hotkeys.js" />
     <script src="/s/js/fileupload.js" />
+    <script src="/s/js/avaya.js" />
 
   </head>
   <body>
@@ -78,6 +79,16 @@
             <a class="brand" href="/">
               CaRMa
             </a>
+            <li class="divider-vertical" />
+            <li id="avaya-panel" class="dropdown" style="display: none">
+              <form class="navbar-search pull-left">
+                <input type="text" class="search-query" placeholder="Avaya">
+              </form>
+              <ul class="dropdown-menu">
+                <li id="avaya-info" class="nav-header"></li>
+                <li><a id="avaya-accept" href="#">Принять звонок</a></li>
+              </ul>
+            </li>
             <li class="divider-vertical" />
             <!-- ko template: { name: 'nav-li-template' }-->
             <!-- /ko -->

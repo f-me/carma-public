@@ -43,7 +43,6 @@ Executable carma
     Snaplet.SiteConfig.Models,
     Snaplet.SiteConfig.Permissions,
     Snaplet.FileUpload,
-    Snap.Snaplet.AvayaAES,
     Snap.Snaplet.Auth.Class,
     Utils.HttpErrors,
     Util
@@ -51,7 +50,7 @@ Executable carma
   Build-depends:
     aeson                       == 0.6.*,
     attoparsec                  == 0.10.*,
-    avaya-aes                   == 0.0.1,
+    avaya-aes                   == 0.0.2,
     base                        >= 4 && < 5,
     configurator                == 0.2.*,
     containers                  == 0.4.*,
@@ -70,7 +69,7 @@ Executable carma
     time                        >= 1.1 && < 1.5,
     mtl                         == 2.0.*,
     stm                         == 2.3,
-    transformers                >= 0.2 && < 0.4,
+    transformers                >  0.2 && < 0.4,
     MonadCatchIO-transformers   >= 0.3 && < 0.4,
     vin-parser                  == 0.1.*,
     hedis                       == 0.4.1,
@@ -89,7 +88,8 @@ Executable carma
     bytestring                  == 0.9.2.*,
     weather-api                 == 0.1.*,
     fdds                        == 0.1,
-    vector                      == 0.9.*
+    vector                      == 0.9.*,
+    websockets                  == 0.6.*
 
   Extensions:
     OverloadedStrings,
