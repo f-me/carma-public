@@ -17,6 +17,7 @@ import qualified Data.ByteString.UTF8  as BU
 import qualified Data.Aeson as Aeson
 import Data.Map (Map)
 import qualified Data.Map as Map
+import qualified Data.HashMap.Strict as HashMap
 
 import Data.Maybe
 import Data.List (foldl',sortBy)
@@ -87,13 +88,17 @@ doLogin = ifTop $ do
   case res of
     Left _ -> redirectToLogin
     Right u -> do
+      creds <- (,)
+        <$> getParam "avayaExt"
+        <*> getParam "avayaPwd"
+      case creds of
+        (Just ext, Just pwd) -> with auth $ saveUser
+          u {userMeta
+            = HashMap.insert "avayaExt" (Aeson.toJSON ext)
+            $ HashMap.insert "avayaPwd" (Aeson.toJSON pwd)
+            $ userMeta u
+            }
       addToLoggedUsers u
-      avayaExt <- fromMaybe "" <$> getParam "avayaExt" >>= fromBS
-      avayaPwd <- fromMaybe "" <$> getParam "avayaPwd" >>= fromBS
-      with session $ do
-        setInSession "avayaExt" avayaExt
-        setInSession "avayaPwd" avayaPwd
-        commitSession
 
       redirect "/"
 
