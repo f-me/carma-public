@@ -133,10 +133,15 @@
       </div>
       <div id="center" class="nice-scrollbar call-pane" />
       <div id="bottom">
-        <form>
-          <input type="text" id="search-query">
-          <input class="btn btn-success" type="submit" id="run-search" value="Найти">
-        </form>
+        <div class="control-group">
+          <div class="control-label">
+            <label>Поиск</label>
+          </div>
+          <div class="controls">
+            <input type="text" id="search-query">
+            <input class="btn btn-success" type="submit" id="run-search" value="Найти">
+          </div>
+        </div>
         <table id="call-searchtable" class="table table-striped table-bordered">
           <thead>
             <tr>
