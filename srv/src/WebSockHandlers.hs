@@ -31,6 +31,7 @@ rqHandler rq = case B.split '/' $ requestPath rq of
     (h,(actualProtocolVersion,device)) <- case res of
       Left _ -> rejectRequest rq "Can't start session"
       Right h -> do
+        liftIO $ attachObserver h print
         res <- liftIO $ startDeviceMonitoring h
           "avaya" "avayapassword" "S8300ADAC"
           (T.decodeUtf8 ext) (T.decodeUtf8 pwd)
@@ -62,7 +63,7 @@ evHandler ws ev = case ev of
       ,"\"}"
       ]
     Rs.DisplayUpdatedEvent{..} -> sendSink ws $ DataMessage $ Text $ L.fromChunks
-      ["{\"type\":\"display\",\"content\":\""
+      ["{\"type\":\"display\",\"display\":\""
       ,T.encodeUtf8 contentsOfDisplay
       ,"\"}"
       ]
