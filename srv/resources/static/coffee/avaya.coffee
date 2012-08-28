@@ -14,7 +14,7 @@ this.setupAvayaWidget = (domId,ext,pwd) ->
   ws.onmessage = (ev) ->
     msg = JSON.parse(ev.data)
     if msg.type == "ringer"
-      if msg.ringerMode == "ringing"
+      if msg.ringer == "ringing"
         panel.addClass("open")
       else
         panel.removeClass("open")
