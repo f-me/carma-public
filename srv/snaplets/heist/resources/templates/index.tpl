@@ -138,8 +138,7 @@
             <label>Поиск</label>
           </div>
           <div class="controls">
-            <input type="text" id="search-query">
-            <input class="btn btn-success" type="submit" id="run-search" value="Найти">
+            <input type="text" class="input-xlarge" id="search-query">
           </div>
         </div>
         <table id="call-searchtable" class="table table-striped table-bordered">
