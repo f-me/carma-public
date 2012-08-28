@@ -109,13 +109,13 @@ $ ->
               global.checks = checks
               global.keys = {}
               global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
+              ko.applyBindings global.nav, $('#nav')[0]
               ext = user.meta.avayaExt
               pwd = user.meta.avayaPwd
-              if ext and pwd 
+              if ext and pwd
                 setupAvayaWidget('#avaya-panel', ext, pwd)
               if window.location.hash == ""
                 redirectToHomePage user
-              ko.applyBindings global.nav, $('#nav')[0]
 
 this.redirectToHomePage = (user) ->
   mainRole = user.roles[0]
