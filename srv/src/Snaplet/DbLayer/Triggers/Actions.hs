@@ -325,7 +325,7 @@ actionResultMap = Map.fromList
     void $ replaceAction
       "getInfoDealerVW"
       "Требуется уточнить информацию о ремонте у дилера (только для VW)"
-      "analyst" "3" (+7*24*60*60)
+      "back" "3" (+7*24*60*60)
       objId
   )
   ,("complaint", \objId -> do
