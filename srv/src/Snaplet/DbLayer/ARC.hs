@@ -1,6 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Snaplet.DbLayer.ARC (
+    query_, query,
+    PreQuery(..), preQuery, preQuery_,
+    runQuery, intQuery,
+
     arcReport
     ) where
 
@@ -62,21 +66,23 @@ instance Monoid PreQuery where
         (lc ++ rc)
         (la ++ ra)
 
-runQuery :: (PS.HasPostgres m, MonadLog m, PS.FromRow r) => PreQuery -> m [r]
-runQuery (PreQuery f t c a) = query compiled a where
+runQuery :: (PS.HasPostgres m, MonadLog m, PS.FromRow r) => [PreQuery] -> m [r]
+runQuery qs = query compiled a where
+    (PreQuery f t c a) = mconcat qs
     compiled = fromString $ T.unpack $ T.concat [
         "select ", T.intercalate ", " f,
         " from ", T.intercalate ", " t,
         " where ", T.intercalate " and " (map (T.cons '(' . (`T.snoc` ')')) c)]
 
-count :: (PS.HasPostgres m, MonadLog m) => [PreQuery] -> m Integer
-count qs = do
-    rs <- runQuery (mconcat qs)
+intQuery :: (PS.HasPostgres m, MonadLog m) => [PreQuery] -> m Integer
+intQuery qs = do
+    rs <- runQuery qs
     case rs of
-        [] -> error "Count query returns no rows"
+        [] -> error "Int query returns no rows"
         ((PS.Only r):_) -> do
-            log Debug $ T.concat ["Count result: ", T.pack (show r)]
+            log Debug $ T.concat ["Int query result: ", T.pack (show r)]
             return r
+        _ -> error "Int query returns invalid result"
 
 str :: String -> String
 str = id
@@ -127,7 +133,7 @@ arcReport d year month = scope "arc" $ do
     reportData <- forM (programs d) $ \(pname, pprog) -> scope pname $ do
         programData <- forM rows $ \(rname, rquery) -> scope rname $ do
             counts <- forM (zip [1..daysCount] starts) $ \(nday, st) -> scope (T.pack $ show nday) $ do
-                count [rquery st pprog]
+                intQuery [rquery st pprog]
             log Debug $ T.concat ["Counts for month: ", T.pack $ show counts]
             return (rname, counts)
         return (pname, programData)

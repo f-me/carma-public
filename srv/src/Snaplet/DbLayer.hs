@@ -153,7 +153,9 @@ readAll model = Redis.readAll redis model
 
 -- log politics
 logConfig = [
-  relative ["search"] $ low Trace]
+  relative ["search"] $ low Trace,
+  relative ["test"] $ low Trace,
+  relative ["RKC"] $ low Trace]
     -- relative ["search"] $ low Trace]
 
 initDbLayer :: UsersDict -> SnapletInit b (DbLayer b)
