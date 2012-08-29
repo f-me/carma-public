@@ -46,7 +46,8 @@ Executable carma
     Snaplet.FileUpload,
     Snap.Snaplet.Auth.Class,
     Utils.HttpErrors,
-    Util
+    Util,
+    WebSockHandlers
 
   Build-depends:
     aeson                       == 0.6.*,
