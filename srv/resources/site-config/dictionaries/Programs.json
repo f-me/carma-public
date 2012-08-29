@@ -33,10 +33,6 @@
             "label": "B2B / АРВАЛ"
         },
         {
-            "value": "vtb24",
-            "label": "B2B / ВТБ 24"
-        },
-        {
             "value": "jenser",
             "label": "B2B / Дженсер Ясенево"
         },
@@ -73,12 +69,20 @@
             "label": "B2B / РН-карт-Москва Стандарт"
         },
         {
-            "value": "unicredit",
-            "label": "B2B / ЮниКредитбанк"
+            "value": "lyckoil",
+            "label": "B2B / ЛУКОЙЛ-Петрокоммерц"
         },
         {
-            "value": "lyckoil",
-            "label": "B2B /ЛУКОЙЛ-Петрокоммерц"
+            "value": "vnukovo",
+            "label": "B2B / VW Внуково"
+        },
+        {
+            "value": "bm",
+            "label": "B2B / Блок Моторс"
+        },
+        {
+            "value": "autopres",
+            "label": "B2B / Автопрестус"
         },
         {
             "value": "b2c",
@@ -87,6 +91,18 @@
         {
             "value": "b2cplat",
             "label": "B2C Platinum"
+        },
+        {
+            "value": "unicredit",
+            "label": "B2C / ЮниКредитбанк"
+        },
+        {
+            "value": "vtb24",
+            "label": "B2C / ВТБ 24"
+        },
+        {
+            "value": "akbars",
+            "label": "B2C / АК БАРС"
         },
         {
             "value": "bp",
