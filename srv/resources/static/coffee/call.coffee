@@ -14,7 +14,7 @@ this.setupCallForm = (viewName, args) ->
     window.location.hash = "case/" + id
   )
 
-  $('#run-search').click -> dtSearch(st)
+  $('#search-query').keypress(_.debounce((-> dtSearch st), 1500))
 
   st.fnSort [[2, "desc"]]
   fields = "id,caller_name,contact_name,callDate,caller_phone1,contact_phone1,car_plateNum,car_vin,program,comment"

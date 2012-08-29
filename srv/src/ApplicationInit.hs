@@ -17,7 +17,6 @@ import Snap.Snaplet.Auth.Backends.JsonFile
 import Snap.Snaplet.Session.Backends.CookieSession
 import Snap.Util.FileServe (serveDirectory, serveFile)
 ------------------------------------------------------------------------------
-import Snap.Snaplet.AvayaAES
 import Snap.Snaplet.Vin
 import Snaplet.SiteConfig
 import Snaplet.DbLayer
@@ -25,6 +24,7 @@ import Snaplet.FileUpload
 ------------------------------------------------------------------------------
 import Application
 import ApplicationHandlers
+import WebSockHandlers
 ----------------------------------------------------------------------
 import Util (readJSON, UsersDict)
 
@@ -99,12 +99,12 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   d <- nestSnaplet "db" db $ initDbLayer allUsrs
 
   v <- nestSnaplet "vin" vin vinInit
-  av <- nestSnaplet "avaya" avaya avayaAESInit
   fu <- nestSnaplet "upload" fileUpload fileUploadInit
 
   addRoutes routes
 
-  return $ App h s authMgr logdUsrs allUsrs actLock c d v av fu
+  liftIO $ runWebSockServer "0.0.0.0" 8001
+  return $ App h s authMgr logdUsrs allUsrs actLock c d v fu
 
 getUsrs authDb = do
   readJSON authDb :: IO UsersDict

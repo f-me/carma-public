@@ -67,6 +67,7 @@
     <script src="/s/js/report.js" />
     <script src="/s/js/hotkeys.js" />
     <script src="/s/js/fileupload.js" />
+    <script src="/s/js/avaya.js" />
 
   </head>
   <body>
@@ -78,6 +79,16 @@
             <a class="brand" href="/">
               CaRMa
             </a>
+            <li class="divider-vertical" />
+            <li id="avaya-panel" class="dropdown" style="display: none">
+              <form class="navbar-search pull-left">
+                <input type="text" class="search-query" placeholder="Avaya">
+              </form>
+              <ul class="dropdown-menu">
+                <li id="avaya-info" class="nav-header"></li>
+                <li><a id="avaya-accept" href="#">Принять звонок</a></li>
+              </ul>
+            </li>
             <li class="divider-vertical" />
             <!-- ko template: { name: 'nav-li-template' }-->
             <!-- /ko -->
@@ -133,10 +144,14 @@
       </div>
       <div id="center" class="nice-scrollbar call-pane" />
       <div id="bottom">
-        <form>
-          <input type="text" id="search-query">
-          <input class="btn btn-success" type="submit" id="run-search" value="Найти">
-        </form>
+        <div class="control-group">
+          <div class="control-label">
+            <label>Поиск</label>
+          </div>
+          <div class="controls">
+            <input type="text" class="input-xlarge" id="search-query">
+          </div>
+        </div>
         <table id="call-searchtable" class="table table-striped table-bordered">
           <thead>
             <tr>
