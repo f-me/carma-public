@@ -14,6 +14,14 @@
     ],
     "fields": [
         {
+            "name": "parentId",
+            "canRead": true,
+            "canWrite": true,
+            "meta": {
+                "invisible": true
+            }
+        },
+        {
             "name": "optionName",
             "meta": {
                 "label": "Название опции",
