@@ -586,7 +586,7 @@
     <script type="text/template"
             class="screen-template"
             id="rkc-screen-template">
-      <div class="pane" style="right:0;overflow-x:hidden;">
+      <div class="pane" style="left:0;right:0;overflow-x:hidden;">
         <div class="span12">
           <div class="row-fluid">
             <div class="span2">
