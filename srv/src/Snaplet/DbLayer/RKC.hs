@@ -100,7 +100,7 @@ satisfaction = mconcat [
 satisfactionCount :: PreQuery
 satisfactionCount = mconcat [
   count,
-  notNull "servicetbl" "clientSatisfied"]
+  preQuery_ [] ["servicetbl"] []]
 
 serviceIs :: T.Text -> PreQuery
 serviceIs = equals "servicetbl" "type"
