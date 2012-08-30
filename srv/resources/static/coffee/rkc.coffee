@@ -14,7 +14,7 @@ this.setupRKCScreen = (viewName, args) ->
     satisfied = $('#satisfied-percentage')
 
     $('#reload').click -> update()
-
+    
     update = () ->
       $.getJSON("/rkc", (result) ->
         dict = global.dictValueCache
@@ -39,5 +39,7 @@ this.setupRKCScreen = (viewName, args) ->
             info.limited]
 
         dt.fnAddData(rows))
+
+    setTimeout update, 30000
 
     update()
