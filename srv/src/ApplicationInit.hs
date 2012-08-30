@@ -1,5 +1,5 @@
 
-
+{-# LANGUAGE BangPatterns #-}
 module ApplicationInit (appInit) where
 
 import Control.Monad.IO.Class
@@ -93,7 +93,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
                       , asRememberPeriod = Just (rmbPer * 24 * 60 * 60)}
                                session authDb
   logdUsrs <- liftIO $ newTVarIO Map.empty
-  allUsrs  <- liftIO $ getUsrs authDb
+  !allUsrs <- liftIO $ getUsrs authDb
   actLock  <- liftIO $ newTMVarIO ()
 
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
