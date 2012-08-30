@@ -29,6 +29,7 @@ Executable carma
     Snaplet.DbLayer.RedisCRUD,
     Snaplet.DbLayer.PostgresCRUD,
     Snaplet.DbLayer.ARC,
+    Snaplet.DbLayer.RKC,
     Snaplet.DbLayer.Dictionary,
     Snaplet.DbLayer.Triggers,
     Snaplet.DbLayer.Triggers.Actions,
@@ -45,7 +46,8 @@ Executable carma
     Snaplet.FileUpload,
     Snap.Snaplet.Auth.Class,
     Utils.HttpErrors,
-    Util
+    Util,
+    WebSockHandlers
 
   Build-depends:
     aeson                       == 0.6.*,

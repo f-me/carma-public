@@ -47,7 +47,8 @@ import qualified Database.PostgreSQL.Report.Function as R
 import Snaplet.DbLayer.Dictionary
 import Snap.Snaplet.SimpleLog
 
-import Snaplet.DbLayer.ARC
+import qualified Snaplet.DbLayer.ARC as ARC
+import qualified Snaplet.DbLayer.RKC as RKC
 
 withPG :: (PS.HasPostgres m, MonadLog m) => S.TIO a -> m a
 withPG f = do
@@ -348,9 +349,5 @@ generateReport ms conds tpl file = scope "generate" $ do
     log Trace "Loading dictionaries"
     tz <- liftIO getCurrentTimeZone
     dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
-    -- test ARC
-    -- scope "test" $ do
-    --     log Info "ARC report test"
-    --     arcReport dicts 2012 8
     withPG (R.createReport (SM.modelsSyncs ms) (functions tz dicts) conds tpl file)
     log Info "Report generated"
