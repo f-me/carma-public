@@ -14,9 +14,25 @@ this.setupRKCScreen = (viewName, args) ->
     satisfied = $('#satisfied-percentage')
 
     $('#reload').click -> update()
-    
+
+    dict = global.dictValueCache
+
+    programs = for v in global.dictionaries.Programs.entries
+        p =
+            id: v.value
+            name: v.label
+
+    programs.unshift { id: "", name: "Все" }
+
+    ko.applyBindings(programs, el("program-select"))
+
+    ps = $('#program-select')
+
+    ps.change -> update()
+
     update = () ->
-      $.getJSON("/rkc", (result) ->
+      prog = ps.val()
+      $.getJSON("/rkc/" + prog, (result) ->
         dict = global.dictValueCache
         dt.fnClearTable()
 

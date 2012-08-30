@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Snaplet.DbLayer.RKC (
-  Summary(..), ServiceInfo(..), Information(..),
+  Summary(..), ServiceInfo(..), ProgramInformation(..),
   rkc,
   test
   ) where
@@ -19,6 +19,7 @@ import Data.Maybe
 import Data.Monoid
 import Data.Time
 import Data.String
+import qualified Data.Map as M
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.Text as T
@@ -100,6 +101,9 @@ satisfactionCount = mconcat [
 serviceIs :: T.Text -> PreQuery
 serviceIs = equals "servicetbl" "type"
 
+programIs :: T.Text -> PreQuery
+programIs p = mconcat [equals "casetbl" "program" p, cond ["casetbl", "servicetbl"] "casetbl.id = servicetbl.parentId"]
+
 cost :: T.Text -> PreQuery
 cost col = mconcat [
   sumOf "servicetbl" col,
@@ -168,9 +172,9 @@ data ServiceInfo = ServiceInfo {
   serviceLimitedCost :: Integer }
     deriving (Eq, Ord, Read, Show)
 
-data Information = Information {
-  infoSummary :: Summary,
-  infoServices :: [ServiceInfo] }
+data ProgramInformation = ProgramInformation {
+  programInfoSummary :: Summary,
+  programInfoServices :: [ServiceInfo] }
     deriving (Eq, Ord, Read, Show)
 
 instance FromJSON Summary where
@@ -213,15 +217,15 @@ instance ToJSON ServiceInfo where
     "calculated" .= calc,
     "limited" .= lim]
 
-instance FromJSON Information where
-  parseJSON (Object v) = Information <$>
+instance FromJSON ProgramInformation where
+  parseJSON (Object v) = ProgramInformation <$>
     (v .: "summary") <*>
     (v .: "services")
   parseJSON _ = empty
 
 
-instance ToJSON Information where
-  toJSON (Information s ss) = object [
+instance ToJSON ProgramInformation where
+  toJSON (ProgramInformation s ss) = object [
     "summary" .= s,
     "services" .= ss]
 
@@ -258,13 +262,23 @@ service today name = scope name $ do
 serviceNames :: Dictionary -> [T.Text]
 serviceNames = fromMaybe [] . keys ["Services"]
 
-rkc :: (PS.HasPostgres m, MonadLog m) => m Information
-rkc = liftIO startOfThisDay >>= rkc' where
+programNames :: Dictionary -> [T.Text]
+programNames = fromMaybe [] . keys ["Programs"]
+
+rkcProgram :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> T.Text -> m ProgramInformation
+rkcProgram today services p = scope pname $ do
+  s <- summary ptoday
+  ss <- scope "services" $ mapM (service ptoday) services
+  return $ ProgramInformation s ss
+  where
+    pname = if T.null p then "all" else p
+    ptoday = (if T.null p then id else mappend (programIs p)) today
+
+rkc :: (PS.HasPostgres m, MonadLog m) => T.Text -> m ProgramInformation
+rkc program = liftIO startOfThisDay >>= rkc' where
   rkc' today = scope "rkc" $ do
     dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
-    s <- summary serviceToday
-    ss <- scope "services" $ mapM (service serviceToday) $ serviceNames dicts
-    return $ Information s ss
+    rkcProgram serviceToday (serviceNames dicts) program
     where
       serviceToday = withinDay "servicetbl" "createTime" today
       caseToday = withinDay "casetbl" "callDate" today

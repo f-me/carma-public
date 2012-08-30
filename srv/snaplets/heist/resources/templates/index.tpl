@@ -598,8 +598,8 @@
                   Город:
                 </div>
                 <div style="float:left">
-                  <select id="city-select">
-                    <option value="0">Все</option>
+                  <select id="city-select" data-bind="foreach: $data">
+                    <option data-bind="value: id, text: name" />
                   </select>
                 </div>
               </div>
@@ -610,8 +610,8 @@
                   Программа:
                 </div>
                 <div style="float:left">
-                  <select id="program-select">
-                    <option value="0">Все</option>
+                  <select id="program-select" data-bind="foreach: $data">
+                    <option data-bind="value: id, text: name" />
                   </select>
                 </div>
               </div>
