@@ -18,16 +18,24 @@ this.setupRKCScreen = (viewName, args) ->
     dict = global.dictValueCache
 
     programs = for v in global.dictionaries.Programs.entries
-        p =
-            id: v.value
-            name: v.label
+      p =
+        id: v.value
+        name: v.label
 
     programs.unshift { id: "", name: "Все" }
 
     ko.applyBindings(programs, el("program-select"))
 
-    ps = $('#program-select')
+    cities = for v in global.dictionaries.DealerCities.entries
+      c =
+        id: v.value
+        name: v.label
 
+    cities.unshift { id: "", name: "Все" }
+
+    ko.applyBindings(cities, el("city-select"))
+
+    ps = $('#program-select')
     ps.change -> update()
 
     update = () ->
