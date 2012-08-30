@@ -40,6 +40,40 @@
         },
         {
             "targets": [
+                "cost_countedCost",
+                "cost_tarifOption"
+            ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ]
+        },
+        {
+            "targets": [
                 "towAddress_address",
                 "towAddress_coords",
                 "towAddress_city",
@@ -1200,6 +1234,41 @@
             "type": "files",
             "meta": {
                 "label": "Прикрепленные файлы"
+            }
+        },
+        {
+            "name": "service_tarifOptions",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "type": "reference",
+            "meta": {
+                "invisible": true
             }
         }
     ]
