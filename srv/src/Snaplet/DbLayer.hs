@@ -155,7 +155,7 @@ readAll model = Redis.readAll redis model
 logConfig = [
   relative ["search"] $ low Trace,
   relative ["test"] $ low Trace,
-  relative ["RKC"] $ low Trace]
+  relative ["rkc"] $ low Trace]
     -- relative ["search"] $ low Trace]
 
 initDbLayer :: UsersDict -> SnapletInit b (DbLayer b)

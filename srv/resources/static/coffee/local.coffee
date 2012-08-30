@@ -38,6 +38,11 @@ localScreens = ->
     "views":
       "action-form":
         constructor: setupSupervisorScreen
+  "rkc":
+    "template": "rkc-screen-template"
+    "views":
+      "rkc-form":
+        constructor: setupRKCScreen
   "reports":
     "template": "reports-screen-template"
     "views":
@@ -68,6 +73,7 @@ localRouter = Backbone.Router.extend
     "editVin/:id" : "editVin"
     "newVin"      : "newVin"
     "supervisor"  : "supervisor"
+    "rkc"         : "rkc"
 
   loadCase    : (id) -> renderScreen("case", {"id": id})
   newCase     :      -> renderScreen("case", {"id": null})
@@ -82,6 +88,7 @@ localRouter = Backbone.Router.extend
   editVin     : (id) -> renderScreen("editVin", {"id": id})
   newVin      :      -> renderScreen("newVin")
   supervisor  :      -> renderScreen("supervisor")
+  rkc         :      -> renderScreen("rkc")
 
 # here is entry point
 $ ->

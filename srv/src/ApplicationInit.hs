@@ -57,6 +57,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/_/report/:id",  chkAuth . method DELETE $ deleteReportHandler)
          , ("/sync",          chkAuth . method GET  $ syncHandler)
          , ("/search/:model", chkAuth . method GET  $ searchHandler)
+         , ("/rkc",          chkAuth . method GET  $ rkcHandler)
          , ("/usersDict",     chkAuth . method GET  $ getUsersDict)
          ]
 
