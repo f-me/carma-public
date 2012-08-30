@@ -41,6 +41,7 @@ import Snap.Util.FileServe (serveFile)
 import Snap.Util.Readable (fromBS)
 ------------------------------------------------------------------------------
 import qualified Snaplet.DbLayer as DB
+import qualified Snaplet.DbLayer.RKC as RKC
 import Snaplet.FileUpload (doUpload', doDeleteAll')
 ------------------------------------------------------------------------------
 import qualified Codec.Xlsx.Templater as Xlsx
@@ -196,6 +197,12 @@ searchHandler = scope "searchHandler" $ do
   lim <- liftM (maybe 100 id . getInt) $ getParam "limit"
   res <- with db $ DB.searchFullText m (B.split ',' fs) sels q lim
   writeJSON $ map (Map.fromList . zip sels) res
+
+rkcHandler :: AppHandler ()
+rkcHandler = scope "rkcHandler" $ do
+  p <- getParam "program"
+  info <- with db . RKC.rkc . maybe T.empty T.decodeUtf8 $ p
+  writeJSON info
 
 myActionsHandler :: AppHandler ()
 myActionsHandler = do

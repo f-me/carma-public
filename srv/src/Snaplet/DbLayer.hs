@@ -152,14 +152,13 @@ generateReport conds template filename = do
 readAll model = Redis.readAll redis model
 
 -- log politics
-logConfig = [
-  relative ["search"] $ low Trace]
-    -- relative ["search"] $ low Trace]
+logConfig = []
+  -- relative ["search"] $ low Trace]
 
 initDbLayer :: UsersDict -> SnapletInit b (DbLayer b)
 initDbLayer allU = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
-    l <- liftIO $ newLog debugPolitics logConfig [logger text (file "log/db.log")]
+    l <- liftIO $ newLog defaultPolitics logConfig [logger text (file "log/db.log")]
     mdl <- liftIO $ Postgres.loadModels "resources/site-config/syncs.json" l
     liftIO $ Postgres.createIO mdl l
     cfg <- getSnapletUserConfig
