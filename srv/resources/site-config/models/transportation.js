@@ -24,6 +24,40 @@
         },
         {
             "targets": [
+                "cost_countedCost",
+                "cost_tarifOption"
+            ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ]
+        },
+        {
+            "targets": [
                 "caseAddress_address",
                 "caseAddress_coords",
                 "caseAddress_city",
@@ -501,6 +535,41 @@
             "groupName": "address"
         },
         {
+            "name": "cost",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "groupName": "countedCost",
+            "meta": {
+                "label": "Расчетная стоимость"
+            }
+        },
+        {
             "name": "status",
             "canRead": [
                 "partner",
@@ -634,6 +703,41 @@
             "type": "files",
             "meta": {
                 "label": "Прикрепленные файлы"
+            }
+        },
+        {
+            "name": "service_tarifOptions",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "type": "reference",
+            "meta": {
+                "invisible": true
             }
         }
     ]
