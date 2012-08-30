@@ -257,6 +257,7 @@ this.rentPartnerOptsHook = (i, knockVM) ->
           $("##{tarifSel(knockVM)}").children().last().before(tr)
           console.log tarifOpts(knockVM)
           ko.applyBindings(knockVM, $("##{tarifOpts(knockVM)}")[0])
+          # bindRemoveOption knockVM
           global.services = {} unless global.services
           global.services[knockVM.id()] = opts
           console.log '!!!!', knockVM.modelName(), knockVM.id()
@@ -293,4 +294,21 @@ this.addOption = (p, kvm) ->
     console.log global.services[kvm.id()]
     o = _.find global.services[kvm.id()], (opt) -> opt.id() == s.val()
     console.log 'o', o, o.id(), o.optionName()
-    addReference kvm, 'service_tarifOptions', { modelName : "service_tarifOption" }
+    addReference kvm, 'service_tarifOptions',
+      modelName: "service_tarifOption"
+
+this.bindRemoveOption = (el, kvm) ->
+  parent = $(el).parent().parent().data().knockVM
+  removeReference parent, 'service_tarifOptions', kvm
+  deleteCb = (r) ->
+    console.error r unless _.isEmpty r
+    kb.vmRelease(kvm)
+  $.ajax
+    'type'     : 'DELETE'
+    'url'      : "/_/#{kvm.modelName()}/#{kvm.id()}"
+    'success'  : deleteCb
+    'error'    : (xhr) ->
+      if xhr.status == 404
+        deleteCb(d.acc())
+      else
+        alert 'error'

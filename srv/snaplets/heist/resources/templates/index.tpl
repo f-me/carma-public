@@ -1283,8 +1283,13 @@
       </div>
       <div class="tarif-opts"
            id="{{ modelName }}-{{ cid }}-tarif-opts"
-           data-bind="foreach: service_tarifOptionsReference">
+           data-bind="foreach: service_tarifOptionsReference,
+                      setdata: $data">
         <div class="opt">
+          <input type="button"
+                 class="btn"
+                 value="Удалить"
+                 data-bind="bindClick: bindRemoveOption">
           <label> Название опции </label>
           <input readonly data-bind="value: optionName" />
           <label> Колличество </label>

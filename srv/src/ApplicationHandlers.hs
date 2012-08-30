@@ -173,7 +173,7 @@ deleteHandler :: AppHandler ()
 deleteHandler = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
-  res        <-with db $ DB.delete model objId
+  res        <- with db $ DB.delete model objId
   writeJSON res
 
 syncHandler :: AppHandler ()
