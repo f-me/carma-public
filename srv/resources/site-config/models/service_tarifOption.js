@@ -16,19 +16,22 @@
         {
             "name": "optionName",
             "meta": {
-                "label": "Название опции"
+                "label": "Название опции",
+                "readonly": true
             }
         },
         {
-            "name": "price1",
+            "name": "count",
             "meta": {
-                "label": "Стоимость за единицу за нал"
+                "label": "Колличество",
+                "regexp": "number"
             }
         },
         {
-            "name": "price2",
+            "name": "price",
             "meta": {
-                "label": "Стоимость за единицу по безналу"
+                "label": "Стоимость",
+                "readonly": true
             }
         }
     ]
