@@ -152,7 +152,9 @@ generateReport conds template filename = do
 readAll model = Redis.readAll redis model
 
 -- log politics
-logConfig = []
+logConfig = [
+  relative ["summary", "delay"] $ low Trace,
+  relative ["summary", "duration"] $ low Trace]
   -- relative ["rkc"] $ low Trace]
 
 initDbLayer :: UsersDict -> SnapletInit b (DbLayer b)

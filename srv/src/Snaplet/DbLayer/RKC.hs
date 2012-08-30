@@ -233,8 +233,8 @@ instance ToJSON ProgramInformation where
     "summary" .= s,
     "services" .= ss]
 
-tryQ :: MonadLog m => a -> T.Text -> m a -> m a
-tryQ v s act = catch (log Trace s >> act) (onError v) where
+tryQ :: MonadLog m => T.Text -> a -> T.Text -> m a -> m a
+tryQ sc v s act = scope sc $ catch (log Trace s >> act) (onError v) where
   onError :: MonadLog m => a -> E.SomeException -> m a
   onError x _ = return x
 
@@ -242,13 +242,13 @@ summary :: (PS.HasPostgres m, MonadLog m) => PreQuery -> m Summary
 summary today = scope "summary" $ do
   log Trace "Loading summary"
   return Summary `ap`
-    tryQ 0 "Total services today" (intQuery [count, today]) `ap`
-    tryQ 0 "Total mechanics today" (intQuery [count, mechanic, today]) `ap`
-    tryQ 0 "Average time of start service" (intQuery [averageTowageTechStart, today]) `ap`
-    tryQ 0 "Average time of end service" (intQuery [averageTowageTechEnd, today]) `ap`
-    tryQ 0 "Total calculated cost" (intQuery [calculatedCost, today]) `ap`
-    tryQ 0 "Total limited cost" (intQuery [limitedCost, today]) `ap`
-    tryQ 0 "Clients satisfied" (liftM2 percentage (intQuery [satisfaction, today]) (intQuery [satisfactionCount, today]))
+    tryQ "total" 0 "Total services today" (intQuery [count, today]) `ap`
+    tryQ "mechanics" 0 "Total mechanics today" (intQuery [count, mechanic, today]) `ap`
+    tryQ "delay" 0 "Average time of start service" (intQuery [averageTowageTechStart, today]) `ap`
+    tryQ "duration" 0 "Average time of end service" (intQuery [averageTowageTechEnd, today]) `ap`
+    tryQ "calculated" 0 "Total calculated cost" (intQuery [calculatedCost, today]) `ap`
+    tryQ "limited" 0 "Total limited cost" (intQuery [limitedCost, today]) `ap`
+    tryQ "satisfied" 0 "Clients satisfied" (liftM2 percentage (intQuery [satisfaction, today]) (intQuery [satisfactionCount, today]))
   where
     percentage _ 0 = 100
     percentage n d = n * 100 `div` d
@@ -257,11 +257,11 @@ service :: (PS.HasPostgres m, MonadLog m) => PreQuery -> T.Text -> m ServiceInfo
 service today name = scope name $ do
   log Trace $ T.concat ["Loading info for service ", name]
   return (ServiceInfo name) `ap`
-    tryQ 0 (T.concat ["Total ", name, "'s today"]) (intQuery [count, serviceIs name, today]) `ap`
-    tryQ 0 (T.concat ["Average time of start for ", name]) (intQuery [averageTowageTechStart, serviceIs name, today]) `ap`
-    tryQ 0 (T.concat ["Average time of end for ", name]) (intQuery [averageTowageTechEnd, serviceIs name, today]) `ap`
-    tryQ 0 (T.concat ["Calculated cost for ", name]) (intQuery [calculatedCost, serviceIs name, today]) `ap`
-    tryQ 0 (T.concat ["Limited cost for ", name]) (intQuery [limitedCost, today])
+    tryQ "total" 0 (T.concat ["Total ", name, "'s today"]) (intQuery [count, serviceIs name, today]) `ap`
+    tryQ "delay" 0 (T.concat ["Average time of start for ", name]) (intQuery [averageTowageTechStart, serviceIs name, today]) `ap`
+    tryQ "duration" 0 (T.concat ["Average time of end for ", name]) (intQuery [averageTowageTechEnd, serviceIs name, today]) `ap`
+    tryQ "calculated" 0 (T.concat ["Calculated cost for ", name]) (intQuery [calculatedCost, serviceIs name, today]) `ap`
+    tryQ "limited" 0 (T.concat ["Limited cost for ", name]) (intQuery [limitedCost, today])
 
 serviceNames :: Dictionary -> [T.Text]
 serviceNames = fromMaybe [] . keys ["Services"]
