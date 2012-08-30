@@ -64,6 +64,9 @@ notNull tbl col = preQuery_ [] [tbl] [T.concat [tbl, ".", col, " is not null"]]
 cond :: [T.Text] -> T.Text -> PreQuery
 cond tbls c = preQuery_ [] tbls [c]
 
+serviceCaseRel :: PreQuery
+serviceCaseRel = cond ["casetbl", "servicetbl"] "casetbl.id = servicetbl.parentId"
+
 mechanic :: PreQuery
 mechanic = equals "calltbl" "garbage -> 'callType'" "client" `mappend` inList "calltbl" "garbage -> 'callerType'" [
   "mechanicConsOk",
@@ -77,6 +80,7 @@ averageTowageTechStart = mconcat [
   preQuery_ ["extract(epoch from avg(servicetbl.times_factServiceStart - casetbl.callDate))::int8"] [] [],
   notNull "servicetbl" "times_factServiceStart",
   notNull "casetbl" "callDate",
+  serviceCaseRel,
   towageTech,
   cond ["servicetbl", "casetbl"] "servicetbl.times_factServiceStart > casetbl.callDate"]
 
@@ -102,7 +106,7 @@ serviceIs :: T.Text -> PreQuery
 serviceIs = equals "servicetbl" "type"
 
 programIs :: T.Text -> PreQuery
-programIs p = mconcat [equals "casetbl" "program" p, cond ["casetbl", "servicetbl"] "casetbl.id = servicetbl.parentId"]
+programIs p = mconcat [equals "casetbl" "program" p, serviceCaseRel]
 
 cost :: T.Text -> PreQuery
 cost col = mconcat [
