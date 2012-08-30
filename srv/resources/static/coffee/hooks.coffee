@@ -6,6 +6,7 @@ this.hooks = ->
       "*"    : [regexpKbHook, dictionaryKbHook, filesKbHook]
       "case" : [caseDescsKbHook, caseEventsHistoryKbHook]
       "tarifOption": [partnerTarifHook]
+      "rent" : [rentPartnerOptsHook]
 
 dictionaryKbHook = (instance, knockVM) ->
   for n of instance.dictionaryFields

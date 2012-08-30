@@ -281,3 +281,6 @@ this.bindRemove = (parent, field) ->
 ################################################################################
 # utils
 this.toUnix = (d) -> Math.round(d.getTime() / 1000)
+
+# flip . setTimeout
+this.sTout = (wait, fn) -> setTimeout fn, wait

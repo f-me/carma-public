@@ -1277,5 +1277,31 @@
       <!-- /ko -->
     </script>
 
+    <script type="text/html" id="tarif-opts-template">
+      <div class="add-opt-btn" id="{{ modelName }}-{{ cid }}-tarif-select">
+        <input type="button" class="btn" value="Добавить">
+      </div>
+      <div class="tarif-opts"
+           id="{{ modelName }}-{{ cid }}-tarif-opts"
+           data-bind="foreach: service_tarifOptionsReference">
+        <div class="opt">
+          <label> Название опции </label>
+          <input readonly data-bind="value: optionName" />
+          <label> Колличество </label>
+          <input          data-bind="value: count"      />
+          <label> Стоимость </label>
+          <input readonly data-bind="value: price"      />
+        </div>
+      </div>
+    </script>
+
+    <script type="text/html" id="tarif-opt-sel-template">
+      <select>
+        {{# opts }}
+        <option value="{{ id }}"> {{ optionName }} <option/>
+        {{/ opts }}
+      </select>
+    </script>
+
   </body>
 </html>

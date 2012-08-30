@@ -61,6 +61,7 @@ this.renderKnockVm = (elName, knockVM, options) ->
       # children of view block, so we can add
       # custom elements to decorate view
       $el(view).find('.content').html(content[gName])
+
   defaultGroup = "default-#{instance.model.name}"
   if _.has(groupTpls, defaultGroup)
     depViews["default-group"] = defaultGroup
