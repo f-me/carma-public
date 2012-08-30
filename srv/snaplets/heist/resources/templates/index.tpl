@@ -1285,7 +1285,7 @@
            id="{{ modelName }}-{{ cid }}-tarif-opts"
            data-bind="foreach: service_tarifOptionsReference,
                       setdata: $data">
-        <div class="opt">
+        <div class="opt control-group well">
           <input type="button"
                  class="btn"
                  value="Удалить"
