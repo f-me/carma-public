@@ -37,10 +37,10 @@ this.setupRKCScreen = (viewName, args) ->
         dt.fnClearTable()
 
         totalServices.val(result.summary.total)
-        averageStart.val((result.summary.delay / 60) + "m")
+        averageStart.val(Math.round(result.summary.delay / 60) + "m")
         calculated.val(result.summary.calculated)
         mechanic.val(result.summary.mech)
-        averageEnd.val((result.summary.duration / 60) + "m")
+        averageEnd.val(Math.round(result.summary.duration / 60) + "m")
         limited.val(result.summary.limited)
 
         satisfied.val(result.summary.satisfied)
@@ -49,8 +49,8 @@ this.setupRKCScreen = (viewName, args) ->
           row = [
             dict.Services[info.name] || info.name,
             info.total,
-            (info.delay / 60) + "m",
-            (info.duration / 60) + "m",
+            Math.round(info.delay / 60) + "m",
+            Math.round(info.duration / 60) + "m",
             info.calculated,
             info.limited]
 
