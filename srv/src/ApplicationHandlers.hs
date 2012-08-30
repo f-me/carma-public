@@ -169,6 +169,13 @@ updateHandler = do
   -- FIXME: try/catch & handle/log error
   writeJSON res
 
+deleteHandler :: AppHandler ()
+deleteHandler = do
+  Just model <- getParam "model"
+  Just objId <- getParam "id"
+  res        <-with db $ DB.delete model objId
+  writeJSON res
+
 syncHandler :: AppHandler ()
 syncHandler = do
   res <- with db DB.sync
