@@ -2,7 +2,7 @@ this.setupRKCScreen = (viewName, args) ->
   setTimeout ->
     t = $("#rkc-services-table")
     return if t.hasClass("dataTable")
-    dt = mkDataTable t
+    dt = mkDataTable t, { bFilter : false, bInfo : false }
 
     totalServices = $('#total-services')
     averageStart = $('#average-towage-tech-start')
