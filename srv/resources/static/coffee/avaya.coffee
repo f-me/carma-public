@@ -45,7 +45,9 @@ class @AvayaWidget
   
     phone.callInfo = (number, line) ->
       panel.find("#avaya-info").text(lineInfo[line].greeting)
-      global.viewsWare['call-form'].knockVM.programLocal(lineInfo[line].program)
+      vm = global.viewsWare['call-form'].knockVM
+      vm.callerName_phone1(number)
+      vm.programLocal(lineInfo[line].program)
       panel.find(".search-query").val(number)
       numberParts = number.match(/\+7(\d\d\d)(\d\d\d)(\d\d)(\d*)/)
       if numberParts
