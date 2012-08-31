@@ -120,7 +120,7 @@ $ ->
               ext = user.meta.avayaExt
               pwd = user.meta.avayaPwd
               if ext and pwd
-                setupAvayaWidget('#avaya-panel', ext, pwd)
+                new AvayaWidget($('#avaya-panel'), ext, pwd)
               if window.location.hash == ""
                 redirectToHomePage user
 
