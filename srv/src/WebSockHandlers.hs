@@ -17,6 +17,7 @@ import Control.Concurrent
 import Control.Concurrent.STM
 import Network.WebSockets
 
+import Avaya.Actions
 import Avaya.MessageLoop
 import Avaya.DeviceMonitoring
 import qualified Avaya.Messages.Response as Rs
