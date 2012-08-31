@@ -33,7 +33,8 @@ class @AvayaWidget
     @__phone = phone # test hook
     phone.connected = ->
       panel.show()
-      panel.find('#avaya-accept').click ->
+      panel.find('#avaya-accept').click (e)->
+        e.preventDefault()
         phone.acceptCall()
       panel.find('#avaya-call').click ->
         number = panel.find(".search-query").val()
