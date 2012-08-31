@@ -8,7 +8,7 @@ import Control.Monad.IO.Class
 import Control.Monad.Trans
 import Control.Error
 import qualified Data.ByteString.Char8 as B
-import qualified Data.ByteString.Lazy as L
+import qualified Data.ByteString.Lazy.Char8 as L
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Map as Map
@@ -59,7 +59,7 @@ rqHandler cMapVar rq = case B.split '/' $ requestPath rq of
             shutdownLoop h
           left ()
 
-        DataMessage (Text t) -> case B.split ':' t of
+        DataMessage (Text t) -> case L.split ':' t of
           ["dial", number] -> liftIO $ do
             sendRequestSync h
               $ Rq.SetHookswitchStatus
@@ -67,7 +67,7 @@ rqHandler cMapVar rq = case B.split '/' $ requestPath rq of
                 ,device = deviceId m
                 ,hookswitchOnhook = False
                 }
-            dialNumber h (actualProtocolVersion) (deviceId m) (B.unpack number)
+            dialNumber h (actualProtocolVersion m) (deviceId m) (L.unpack number)
 
           ["acceptCall"]
             -> liftIO $ sendRequestAsync h
