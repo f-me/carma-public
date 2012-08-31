@@ -5,14 +5,14 @@ module WebSockHandlers
 
 import Control.Monad
 import Control.Monad.IO.Class
-import Control.Exception
+import Control.Monad.Trans
+import Control.Error
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as L
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Map as Map
 
-import System.Timeout
 import Control.Concurrent
 import Control.Concurrent.STM
 import Network.WebSockets
@@ -47,9 +47,17 @@ rqHandler cMapVar rq = case B.split '/' $ requestPath rq of
     acceptRequest rq
     s <- getSink
     liftIO $ attachObserver h $ evHandler s
-    forever $ do
-      msg <- receive
+    void $ runEitherT $ forever $ do
+      msg <- lift receive
       case msg of
+        ControlMessage (Close _) -> do
+          liftIO $ do
+            putStrLn $ "Sutdown session " ++ show (sessionId m)
+            atomically $ modifyTVar' cMapVar $ Map.delete (ext,pwd)
+            stopDeviceMonitoring h m
+            shutdownLoop h
+          left ()
+
         DataMessage (Text "acceptCall")
           -> liftIO $ sendRequestAsync h
             $ Rq.SetHookswitchStatus
@@ -83,7 +91,7 @@ startMonitoring rq ext pwd = do
   case res of
     Left _ -> rejectRequest rq "Can't start session"
     Right h -> do
-      liftIO $ attachObserver h print
+      -- liftIO $ attachObserver h print
       res <- liftIO $ startDeviceMonitoring h
         "avaya" "avayapassword" "S8300ADAC"
         (T.decodeUtf8 ext) (T.decodeUtf8 pwd)
