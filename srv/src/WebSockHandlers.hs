@@ -58,13 +58,24 @@ rqHandler cMapVar rq = case B.split '/' $ requestPath rq of
             shutdownLoop h
           left ()
 
-        DataMessage (Text "acceptCall")
-          -> liftIO $ sendRequestAsync h
-            $ Rq.SetHookswitchStatus
-              {acceptedProtocol = actualProtocolVersion m
-              ,device = deviceId m
-              ,hookswitchOnhook = False
-              }
+        DataMessage (Text t) -> case B.split ':' t of
+          ["dial", number] -> liftIO $ do
+            sendRequestSync h
+              $ Rq.SetHookswitchStatus
+                {acceptedProtocol = actualProtocolVersion m
+                ,device = deviceId m
+                ,hookswitchOnhook = False
+                }
+            dialNumber h (actualProtocolVersion) (deviceId m) (B.unpack number)
+
+          ["acceptCall"]
+            -> liftIO $ sendRequestAsync h
+              $ Rq.SetHookswitchStatus
+                {acceptedProtocol = actualProtocolVersion m
+                ,device = deviceId m
+                ,hookswitchOnhook = False
+                }
+          _ -> return ()
         _ -> return ()
 
   _ -> rejectRequest rq "401"

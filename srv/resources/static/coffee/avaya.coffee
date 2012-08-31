@@ -17,12 +17,14 @@ class Phone
       else if msg.type == "display"    
         m = msg.display.match(/a=\s*(\d+)\s*to\s*(.*\S)\s*/)
         if m
-          number = m[1].replace(/^(98|89|)/,'+7')
+          number = m[1].replace(/^(98|8|)/,'+7')
           @callInfo(number, m[2])
 
   acceptCall: ->
     @ws.send('acceptCall')
 
+  call: (number) ->
+    @ws.send("dial:" + number.replace(/^\+7/,'98'))
 
 
 class @AvayaWidget
@@ -55,6 +57,9 @@ class @AvayaWidget
         $("#search-query").val(numberParts.join(" "))
         $("#search-query").change()
       
+  call: (number) ->
+    @__phone.call(number)
+
 lineInfo =
   "VW":
     greeting: "VW Гарантия мобильности, имя оператора, чем могу Вам помочь?"
