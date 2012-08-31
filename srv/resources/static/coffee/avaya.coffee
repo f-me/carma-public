@@ -51,6 +51,11 @@ class @AvayaWidget
     phone.callInfo = (number, line) ->
       panel.find("#avaya-info").text(lineInfo[line].greeting)
       panel.find(".search-query").val(number)
+      numberParts = number.match(/\+7(\d\d\d)(\d\d\d)(\d\d)(\d*)/)
+      if numberParts
+        numberParts.shift()
+        $("#search-query").val(numberParts.join(" "))
+        $("#search-query").change()
       
 lineInfo =
   "VW":
