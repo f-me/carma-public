@@ -164,8 +164,21 @@ serviceActions = Map.fromList
             ]
           upd kazeId "actions" $ addToList actionId             
       _ -> return ()]
-  )]
-
+  )
+  ,("contractor_partner",
+    [\objId val -> do
+        opts <- get objId "service_tarifOptions"
+        let ids = B.split ',' opts
+        lift $ runRedisDB redis $ Redis.del ids
+        set objId "service_tarifOptions" ""
+    ])
+  -- ,("service_tarifOptions",
+  --   [\objId val -> do
+  --     let ids = B.split ',' val
+  --     opts <- lift $ runRedisDB redis $ mapM Redis.hgetall ids
+  --     return ()
+  --     ])
+  ]
 
 resultSet1 =
   ["partnerNotOk", "caseOver", "partnerFound"
