@@ -219,7 +219,7 @@ this.doPick = (pickType, args, el) ->
   pickers =
 
     callPlease: (modelName) ->
-      bb = global.viewsWare["case-form"].bbInstance
+      bb = global.viewsWare["call-form"].bbInstance
       number = bb.get(modelName)
       global.avayaPhone && global.avayaPhone.call(number)
 

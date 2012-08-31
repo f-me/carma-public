@@ -84,6 +84,9 @@
             <li id="avaya-panel" class="dropdown" style="display: none">
               <form class="navbar-search pull-left">
                 <input type="text" class="search-query" placeholder="Avaya">
+                <button id="avaya-call" class="btn">
+                  <i class="icon stolen-icon-phone"></i>
+                </button>
               </form>
               <ul class="dropdown-menu">
                 <li id="avaya-info" class="nav-header"></li>

@@ -35,6 +35,9 @@ class @AvayaWidget
       panel.show()
       panel.find('#avaya-accept').click ->
         phone.acceptCall()
+      panel.find('#avaya-call').click ->
+        number = panel.find(".search-query").val()
+        phone.call(number)
 
     phone.destructor = ->
       panel.hide()
