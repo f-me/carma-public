@@ -15,7 +15,7 @@ class Phone
         else
           @notCalling()
       else if msg.type == "display"    
-        m = msg.display.match(/a=\s*(\d+)\s*to\s*(.+)/)
+        m = msg.display.match(/a=\s*(\d+)\s*to\s*(.*\S)\s*/)
         if m
           number = m[1].replace(/^(98|89|)/,'+7')
           @callInfo(number, m[2])
