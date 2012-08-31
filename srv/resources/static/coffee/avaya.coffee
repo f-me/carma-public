@@ -3,16 +3,11 @@ class Phone
   constructor: (ext,pwd) ->
     url = "ws://#{location.hostname}:8001/avaya/#{ext}/#{pwd}"
     @ws = new WebSocket(url)
-    @ws.onopen = ->
-      @connected()
+    @ws.onopen = => @connected()
+    @ws.onclose = => @destructor()
+    @ws.onerror = => @destructor()
 
-    @ws.onclose = ->
-      @destructor()
-
-    @ws.onerror = ->
-      @destructor()
-
-    @ws.onmessage = (ev) ->
+    @ws.onmessage = (ev) =>
       msg = JSON.parse(ev.data)
       if msg.type == "ringer"
         if msg.ringer == "ringing"
