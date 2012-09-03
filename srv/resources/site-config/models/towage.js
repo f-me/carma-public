@@ -1032,6 +1032,8 @@
         {
             "name": "repairEndDate",
             "canRead": [
+                "front",
+                "back",
                 "head",
                 "supervisor",
                 "director",
@@ -1042,6 +1044,7 @@
                 "programman"
             ],
             "canWrite": [
+                "back",
                 "head",
                 "supervisor",
                 "director",
