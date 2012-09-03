@@ -1032,7 +1032,6 @@
         {
             "name": "repairEndDate",
             "canRead": [
-                "front",
                 "back",
                 "head",
                 "supervisor",
