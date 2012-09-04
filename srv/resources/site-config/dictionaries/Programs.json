@@ -86,11 +86,7 @@
         },
         {
             "value": "b2c",
-            "label": "B2C"
-        },
-        {
-            "value": "b2cplat",
-            "label": "B2C Platinum"
+            "label": "B2C Карты"
         },
         {
             "value": "unicredit",

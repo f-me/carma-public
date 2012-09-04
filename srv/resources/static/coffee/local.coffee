@@ -120,7 +120,7 @@ $ ->
               ext = user.meta.avayaExt
               pwd = user.meta.avayaPwd
               if ext and pwd
-                setupAvayaWidget('#avaya-panel', ext, pwd)
+                global.avayaPhone = new AvayaWidget($('#avaya-panel'), ext, pwd)
               if window.location.hash == ""
                 redirectToHomePage user
 
@@ -219,12 +219,9 @@ this.doPick = (pickType, args, el) ->
   pickers =
 
     callPlease: (modelName) ->
-      bb = global.viewsWare["case-form"].bbInstance
-      phoneNumber = bb.get(modelName)
-      $.post(
-        "/avaya/call",
-        number: phoneNumber,
-        -> alert ("Calling " + phoneNumber))
+      bb = global.viewsWare["call-form"].bbInstance
+      number = bb.get(modelName)
+      global.avayaPhone && global.avayaPhone.call(number)
 
     nominatimPicker: (fieldName, el) ->
       addr = $(el).parent().prev().val()
