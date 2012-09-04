@@ -281,8 +281,8 @@ report = do
           f <- dateValue
           s <- validate f
           return $ T.concat [T.pack pre, s, T.pack post]
-      fromDate' = within "case.callDate > '" "'" fromDate
-      toDate' = within "case.callDate < '" "'" toDate
+      fromDate' = within "case.callDate > to_date('" "', 'DD.MM.YYYY HH24:MI:SS')" fromDate
+      toDate' = within "case.callDate < to_date('" "', 'DD.MM.YYYY HH24:MI:SS')" toDate
       
       dateConditions = catMaybes [fromDate', toDate']
   with db $ DB.generateReport dateConditions template result

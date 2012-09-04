@@ -321,7 +321,7 @@ search ms mname fs sels q lim = escopev "search" [] search' where
     qs = C8.words q
     -- (row like ?)
     like :: ByteString -> ByteString
-    like row = C8.concat ["(", row, " like ?)"]
+    like row = C8.concat ["(lower(", row, ") like lower(?))"]
     -- ((row1 like ?) or (row2 like ?) or ...)
     likes :: [ByteString] -> ByteString
     likes rows = C8.concat ["(", C8.intercalate " or " (map like rows), ")"]
