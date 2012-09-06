@@ -10,7 +10,7 @@
         },
         {
             "value": "nz",
-            "label": "Независимость"
+            "label": "B2B / Независимость"
         },
         {
             "value": "tele",
@@ -102,11 +102,11 @@
         },
         {
             "value": "bp",
-            "label": "BP"
+            "label": "B2B / BP"
         },
         {
             "value": "chartis",
-            "label": "Chartis Assistance"
+            "label": "B2B / Chartis Assistance"
         },
         {
             "value": "ford",
@@ -146,7 +146,7 @@
         },
         {
             "value": "atlant",
-            "label": "Атлант М"
+            "label": "B2B / Атлант М"
         },
         {
             "value": "Cash",
@@ -157,8 +157,16 @@
             "label": "Заказ билетов"
         },
         {
+            "value": "ramc1",
+            "label": "RAMC"
+        },
+        {
+            "value": "ramc2",
+            "label": "РАМК"
+        },
+        {
             "value": "ruslan",
-            "label": "Рус Лан"
+            "label": "B2B / Рус Лан"
         }
     ]
 }
