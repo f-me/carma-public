@@ -241,23 +241,9 @@ this.partnerOptsHook = (i, knockVM) ->
             return if _.isEmpty s
             o = _.find opts[knockVM.id()], (opt) -> opt.id == s.val()
             addReference knockVM, 'cost_serviceTarifOptions',
-              modelName: "cost_serviceTarifOption"
-
-this.bindRemoveOption = (el, kvm) ->
-  parent = $(el).parent().parent().data().knockVM
-  removeReference parent, 'service_tarifOptions', kvm
-  deleteCb = (r) ->
-    console.error r unless _.isEmpty r
-    kb.vmRelease(kvm)
-  $.ajax
-    'type'     : 'DELETE'
-    'url'      : "/_/#{kvm.modelName()}/#{kvm.id()}"
-    'success'  : deleteCb
-    'error'    : (xhr) ->
-      if xhr.status == 404
-        deleteCb(d.acc())
-      else
-        alert 'error'
+              modelName: "cost_serviceTarifOption",
+              -> bindDelete knockVM, 'cost_serviceTarifOptions'
+          bindDelete knockVM, 'cost_serviceTarifOptions'
 
 getCostView = (kvm) ->
   global.viewsWare[kvm['view']].depViews['cost_counted'][0]

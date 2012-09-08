@@ -268,15 +268,31 @@ this.focusRef = (kvm) ->
   e.parent().prev()[0].scrollIntoView()
   e.find('input')[0].focus()
 
-this.bindRemove = (parent, field) ->
+this.bindRemove = (parent, field, cb) ->
   for i in parent["#{field}Reference"]()
-    $("##{i['view']}")
-      .parents('div.accordion-group')
-      .first()
-      .find('.icon.icon-remove')
-      .click ->
-        removeReference(parent, field, i)
-        bindRemove parent, field
+    do (i) ->
+      $("##{i['view']}")
+        .parents('div.accordion-group')
+        .first()
+        .find('.icon.icon-remove')
+        .click ->
+          removeReference(parent, field, i)
+          bindRemove parent, field, cb
+          cb(parent, field, i) if _.isFunction cb
+
+this.bindDelete = (parent, field, cb) ->
+  bindRemove parent, field, (p, f, kvm) ->
+    deleteCb = (args...) -> cb(args) if _.isFunction cb
+    $.ajax
+      'type'     : 'DELETE'
+      'url'      : "/_/#{kvm.modelName()}/#{kvm.id()}"
+      'success'  : -> deleteCb
+      'error'    : (xhr) ->
+        if xhr.status == 404
+          deleteCb(d.acc())
+        else
+          alert 'error'
+
 
 ################################################################################
 # utils
