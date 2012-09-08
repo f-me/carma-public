@@ -220,7 +220,7 @@ this.caseEventsHistoryKbHook = (instance, knockVM) ->
 
 this.partnerOptsHook = (i, knockVM) ->
   knockVM['contractor_partner'].subscribe (n) ->
-    v = getCostView knockVM
+    v = global.viewsWare[knockVM['view']].depViews['cost_counted'][0]
     $("##{v}").find(".add-opt-btn").remove()
     model = knockVM.modelName()
     v1 = global.dictLabelCache.partners1[n.trim()]
@@ -244,6 +244,3 @@ this.partnerOptsHook = (i, knockVM) ->
               modelName: "cost_serviceTarifOption",
               -> bindDelete knockVM, 'cost_serviceTarifOptions'
           bindDelete knockVM, 'cost_serviceTarifOptions'
-
-getCostView = (kvm) ->
-  global.viewsWare[kvm['view']].depViews['cost_counted'][0]
