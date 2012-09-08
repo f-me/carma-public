@@ -67,7 +67,3 @@ genNewTarif = (kvm) ->
     (k) ->
       bindRemove kvm, 'tarifOptions'
       focusRef k
-
-this.partnerTarifHook = (i, k) ->
-  k["nameOrDef"] = ko.computed
-    read: -> k["optionName"]() or "Тарифная опция…"

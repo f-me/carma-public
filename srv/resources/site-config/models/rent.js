@@ -32,8 +32,43 @@
         },
         {
             "targets": [
-                "cost_countedCost",
-                "cost_tarifOption"
+                "cost_countedCost"
+            ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ]
+
+        },
+        {
+            "targets": [
+                "cost_counted",
+                "cost_serviceTarifOptions",
+                "cost_stf"
             ],
             "canRead": [
                 "partner",
@@ -689,10 +724,7 @@
                 "programman",
                 "parguy"
             ],
-            "groupName": "countedCost",
-            "meta": {
-                "label": "Расчетная стоимость"
-            }
+            "groupName": "countedCost"
         },
         {
             "name": "providedFor",
@@ -932,41 +964,6 @@
             "type": "files",
             "meta": {
                 "label": "Прикрепленные файлы"
-            }
-        },
-        {
-            "name": "service_tarifOptions",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy",
-                "account"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "type": "reference",
-            "meta": {
-                "invisible": true
             }
         }
     ]

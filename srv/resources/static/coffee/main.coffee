@@ -257,10 +257,9 @@ setupView = (elName, knockVM,  options) ->
       pview = $("##{knockVM['view']}")
       refsForest =
         "#{knockVM.modelName()}-#{knockVM.model().cid}-#{f}-references"
-      forest = pview.find("##{refsForest}")
-      forest.empty()
+      $("##{refsForest}").empty()
       knockVM[f + 'Reference'].subscribe (newValue) ->
-        forest.empty()
+        $("##{refsForest}").empty()
         for r in newValue
           refBook = mkRefContainer(r, f, refsForest, tpls)
           v = setupView refBook.refView, r,

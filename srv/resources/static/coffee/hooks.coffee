@@ -5,8 +5,9 @@ this.hooks = ->
   observable:
       "*"    : [regexpKbHook, dictionaryKbHook, filesKbHook]
       "case" : [caseDescsKbHook, caseEventsHistoryKbHook]
-      "tarifOption": [partnerTarifHook]
-      "rent" : [rentPartnerOptsHook]
+      "tarifOption": [tarifOptNameDef]
+      "cost_serviceTarifOption": [tarifOptNameDef]
+      "rent" : [partnerOptsHook]
 
 dictionaryKbHook = (instance, knockVM) ->
   for n of instance.dictionaryFields
@@ -79,3 +80,6 @@ this.dictionaryHook = (elName) ->
         instance.bind("change:" + parent, (v) -> instance.set(f, ""))
       )(fieldName)
 
+this.tarifOptNameDef = (i, k) ->
+  k["nameOrDef"] = ko.computed
+    read: -> k["optionName"]() or "Тарифная опция…"

@@ -1,5 +1,5 @@
 {
-    "name": "service_tarifOption",
+    "name": "cost_serviceTarifOption",
     "title": "Тарифная опция",
     "canCreate": true,
     "canRead": true,

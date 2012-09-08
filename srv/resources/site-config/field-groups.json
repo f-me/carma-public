@@ -717,10 +717,17 @@
     ],
     "countedCost": [
         {
-                "name": "countedCost",
+                "name": "counted",
                 "meta": {
                    "label": "Расчетная стоимость"
                 }
+        },
+        {
+            "name": "serviceTarifOptions",
+            "type": "reference",
+            "meta": {
+                    "label": "Тарифные опции"
+            }
         }
     ]
 }

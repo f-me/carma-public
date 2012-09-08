@@ -1058,6 +1058,33 @@
       </div>
     </script>
 
+    <script type="text/template"
+            class="reference-template"
+            id="cost_serviceTarifOptions-reference-template">
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <div class="accordion-toggle"
+               data-target="#{{ refView }}-head"
+               data-toggle="collapse">
+            <a class="icon icon-remove" />
+            <a id="{{ refView }}-link"
+               data-bind="text: nameOrDef">
+               Тарифная опция…
+            </a>
+          </div>
+        </div>
+
+        <div id="{{ refView }}-head"
+             class="accordion-body collapse {{^refId}}in{{/refId}}">
+          <div class="accordion-inner {{ refClass }}" 
+               id="{{ refView }}">
+            <!-- Instance contents are rendered here -->
+
+          </div>
+        </div>
+      </div>
+    </script>
+
     <!-- Group view container -->
     <script type="text/template"
             class="group-template"
@@ -1281,31 +1308,17 @@
       <div class="add-opt-btn" id="{{ modelName }}-{{ cid }}-tarif-select">
         <input type="button" class="btn" value="Добавить">
       </div>
-      <div class="tarif-opts"
-           id="{{ modelName }}-{{ cid }}-tarif-opts"
-           data-bind="foreach: service_tarifOptionsReference,
-                      setdata: $data">
-        <div class="opt control-group well">
-          <input type="button"
-                 class="btn"
-                 value="Удалить"
-                 data-bind="bindClick: bindRemoveOption">
-          <label> Название опции </label>
-          <input readonly data-bind="value: optionName" />
-          <label> Колличество </label>
-          <input          data-bind="value: count"      />
-          <label> Стоимость </label>
-          <input readonly data-bind="value: price"      />
-        </div>
-      </div>
     </script>
 
     <script type="text/html" id="tarif-opt-sel-template">
-      <select>
-        {{# opts }}
-        <option value="{{ id }}"> {{ optionName }} <option/>
-        {{/ opts }}
-      </select>
+      <div class="add-opt-btn">
+        <input type="button" class="btn" value="Добавить">
+        <select>
+          {{# opts }}
+          <option value="{{ id }}"> {{ optionName }} </option>
+          {{/ opts }}
+        </select>
+      </div>
     </script>
 
   </body>
