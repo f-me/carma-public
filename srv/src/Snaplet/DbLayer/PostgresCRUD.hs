@@ -297,51 +297,66 @@ query s v = do
 
 -- TODO: Use model field names and convert them by models
 search :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> [ByteString] -> [ByteString] -> ByteString -> Int -> m [[S.FieldValue]]
-search ms mname fs sels q lim = escopev "search" [] search' where
-    search'
-        | C8.null q = do
-            log Warning "Empty query"
-            return []
-        | otherwise = do
-            log Trace $ T.concat ["Search query: ", T.decodeUtf8 q]
-            log Trace $ T.concat ["Search limit: ", T.pack $ show lim]
-            log Trace $ T.concat ["Search fields: ", T.intercalate ", " (map T.decodeUtf8 fs)]
-            log Trace $ T.concat ["Search select fields: ", T.intercalate ", " (map T.decodeUtf8 sels)]
-            res <- query (fromString . T.unpack . T.decodeUtf8 $ searchQuery) argsS
-            log Debug $ T.concat ["Found ", T.pack (show $ length res), " results"]
-            return res
+search ms mname fs sels q lim = liftIO getCurrentTimeZone >>= search' where
+    search' tz = escopev "search" [] search'' where
+        search''
+            | C8.null q = do
+                log Warning "Empty query"
+                return []
+            | otherwise = do
+                log Trace $ T.concat ["Search query: ", T.decodeUtf8 q]
+                log Trace $ T.concat ["Search limit: ", T.pack $ show lim]
+                log Trace $ T.concat ["Search fields: ", T.intercalate ", " (map T.decodeUtf8 fs)]
+                log Trace $ T.concat ["Search select fields: ", T.intercalate ", " (map T.decodeUtf8 sels)]
+                res <- query (fromString . T.unpack . T.decodeUtf8 $ searchQuery) argsS
+                log Debug $ T.concat ["Found ", T.pack (show $ length res), " results"]
+                return res
 
-    -- Columns to search in
-    rs = mapMaybe (fmap (C8.pack . toText . SM.catField) . SM.modelsField ms (C8.unpack mname) . C8.unpack) fs where
-        toText = (++ "::text")
+        tzHours = timeZoneMinutes tz `div` 60
 
-    -- Columns to select
-    cols = mapMaybe (fmap (C8.pack . SM.catField) . SM.modelsField ms (C8.unpack mname) . C8.unpack) sels
+        -- Columns to search in
+        rs = mapMaybe (fmap (T.encodeUtf8 . T.pack) . columnRequest . T.unpack . T.decodeUtf8) fs where
+            modelName = T.unpack . T.decodeUtf8 $ mname
+            columnRequest :: String -> Maybe String
+            columnRequest name = do
+                sf <- SM.modelsSyncField ms modelName name
+                mf <- SM.modelsField ms modelName name
+                let
+                    wrap :: SM.FieldType -> String -> String
+                    wrap SM.TimeType s = "to_char(" ++ s ++ " + '" ++ show tzHours ++ ":00','DD.MM.YYYY')"
+                    wrap _ s = s ++ "::text"
+                    sfType = SM.typeField . SM.syncType $ sf
+                return . wrap sfType . SM.catField $ mf
+        --rs = mapMaybe (fmap (C8.pack . toText . SM.catField) . SM.modelsField ms (C8.unpack mname) . C8.unpack) fs where
+        --    toText = (++ "::text")
 
-    qs = C8.words q
-    -- (row like ?)
-    like :: ByteString -> ByteString
-    like row = C8.concat ["(lower(", row, ") like lower(?))"]
-    -- ((row1 like ?) or (row2 like ?) or ...)
-    likes :: [ByteString] -> ByteString
-    likes rows = C8.concat ["(", C8.intercalate " or " (map like rows), ")"]
-    -- (like or like...) and (like or like...) and...
-    whereClause :: [ByteString] -> [ByteString] -> (ByteString, [ByteString])
-    whereClause [] _ = (C8.empty, [])
-    whereClause _ [] = (C8.empty, [])
-    whereClause rows querys = (whereString, whereArgs) where
-        queryCount = length querys
-        rowCount = length rows
-        whereString = C8.intercalate " and " $ replicate queryCount (likes rows)
-        -- [q1, q1, q1, q1, q2, q2, q2, q2, ...]
-        --  <- rowCount ->  <- rowCount ->  ...
-        whereArgs = concatMap (replicate rowCount) (map procentize querys)
-        procentize s = C8.concat ["%", s, "%"]
+        -- Columns to select
+        cols = mapMaybe (fmap (C8.pack . SM.catField) . SM.modelsField ms (C8.unpack mname) . C8.unpack) sels
 
-    tblname = SM.withModel ms (C8.unpack mname) $ SM.syncTable . SM.modelSync
-    (whereS, argsS) = whereClause rs qs
+        qs = C8.words q
+        -- (row like ?)
+        like :: ByteString -> ByteString
+        like row = C8.concat ["(lower(", row, ") like lower(?))"]
+        -- ((row1 like ?) or (row2 like ?) or ...)
+        likes :: [ByteString] -> ByteString
+        likes rows = C8.concat ["(", C8.intercalate " or " (map like rows), ")"]
+        -- (like or like...) and (like or like...) and...
+        whereClause :: [ByteString] -> [ByteString] -> (ByteString, [ByteString])
+        whereClause [] _ = (C8.empty, [])
+        whereClause _ [] = (C8.empty, [])
+        whereClause rows querys = (whereString, whereArgs) where
+            queryCount = length querys
+            rowCount = length rows
+            whereString = C8.intercalate " and " $ replicate queryCount (likes rows)
+            -- [q1, q1, q1, q1, q2, q2, q2, q2, ...]
+            --  <- rowCount ->  <- rowCount ->  ...
+            whereArgs = concatMap (replicate rowCount) (map procentize querys)
+            procentize s = C8.concat ["%", s, "%"]
 
-    searchQuery = C8.concat ["select ", C8.intercalate ", " cols, " from ", fromString tblname, " where ", whereS, " limit ", C8.pack (show lim)]
+        tblname = SM.withModel ms (C8.unpack mname) $ SM.syncTable . SM.modelSync
+        (whereS, argsS) = whereClause rs qs
+
+        searchQuery = C8.concat ["select ", C8.intercalate ", " cols, " from ", fromString tblname, " where ", whereS, " limit ", C8.pack (show lim)]
 
 generateReport :: (PS.HasPostgres m, MonadLog m) => SM.Models -> [T.Text] -> FilePath -> FilePath -> m ()
 generateReport ms conds tpl file = scope "generate" $ do
