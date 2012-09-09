@@ -228,19 +228,21 @@ this.partnerOptsHook = (i, knockVM) ->
       buildNewModel "partner", {id: id}, {}, (m,mo,kvm)->
         sTout 1000, ->
           services = kvm.servicesReference()
+          # filtered partner services, with name == current case service
           filtered = _.filter(services, (s) -> s.serviceName() == model)
           opts = filtered[0].tarifOptionsReference() unless _.isEmpty filtered
           return if _.isEmpty opts
-          opts1 = for i in opts
-            {id: i.id(), optionName: (i.optionName() || "Тарифная опция")}
           tr = Mustache.render $('#tarif-opt-sel-template').html(),
-                opts: opts1
+                opts: for i in opts
+                  id: i.id()
+                  optionName: (i.optionName() || "Тарифная опция")
           $("##{v}").children().last().after(tr)
           $("##{v}").find('.btn').on 'click.addTarif', ->
-            s = $("##{v} > select")
+            s = $("##{v}").find("select")
             return if _.isEmpty s
-            o = _.find opts[knockVM.id()], (opt) -> opt.id == s.val()
+            o = _.find opts, (opt) -> "#{opt.id()}" == s.val()
             addReference knockVM, 'cost_serviceTarifOptions',
-              modelName: "cost_serviceTarifOption",
+              modelName: "cost_serviceTarifOption"
+              args     : { optionName: o.optionName() },
               -> bindDelete knockVM, 'cost_serviceTarifOptions'
           bindDelete knockVM, 'cost_serviceTarifOptions'
