@@ -318,7 +318,9 @@ search ms mname fs sels q lim = liftIO getCurrentTimeZone >>= search' where
         rs = mapMaybe (fmap (T.encodeUtf8 . T.pack) . columnRequest . T.unpack . T.decodeUtf8) fs where
             modelName = T.unpack . T.decodeUtf8 $ mname
             columnRequest :: String -> Maybe String
-            columnRequest name = do
+            columnRequest name = columnTry name <|> columnGarbage name
+            columnTry :: String -> Maybe String
+            columnTry name = do
                 sf <- SM.modelsSyncField ms modelName name
                 mf <- SM.modelsField ms modelName name
                 let
@@ -327,6 +329,10 @@ search ms mname fs sels q lim = liftIO getCurrentTimeZone >>= search' where
                     wrap _ s = s ++ "::text"
                     sfType = SM.typeField . SM.syncType $ sf
                 return . wrap sfType . SM.catField $ mf
+            columnGarbage :: String -> Maybe String
+            columnGarbage name = do
+                mf <- SM.modelsField ms modelName name
+                return . SM.catField $ mf
         --rs = mapMaybe (fmap (C8.pack . toText . SM.catField) . SM.modelsField ms (C8.unpack mname) . C8.unpack) fs where
         --    toText = (++ "::text")
 
