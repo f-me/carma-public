@@ -98,8 +98,16 @@ fillEventsHistory = (knockVM) -> ->
         continue if obj.id.length > 10
         wazzup  = dict.Wazzup[obj.wazzup] || obj.wazzup || ''
         wazzupMsg  = "Что случилось: #{wazzup}"
-        whocall = dict.CallerTypes[obj.callerType] || obj.callerType || ''
-        whocallMsg = "Кто звонил: #{whocall}"
+        callerName = "ФИО: #{obj.callerName_name || ''}"
+        city = dict['DealerCities'][obj.city]
+        cityMsg = "Город: #{city || ''}"
+        program = global.dictionaries['ProgramInfo'][obj.program]
+        programMsg = "Программа: #{program || ''}"
+        make = dict['CarMakers'][obj.make]
+        makeMsg = "Марка: #{make || ''}"
+        model = dict['CarModels'][obj.model]
+        modelMsg = "Модель: #{model || ''}"
+        callTaker = "Сотрудник РАМК: #{obj.callTaker || ''}"
         callDate = if obj.callDate
             new Date(obj.callDate * 1000).toString("dd.MM.yyyy HH:mm")
           else
@@ -109,7 +117,14 @@ fillEventsHistory = (knockVM) -> ->
         row = [ callDate
               , obj.callTaker || ''
               , "звонок"
-              , "#{wazzupMsg}, #{whocallMsg}, #{callTypeMsg}"
+              , "#{wazzupMsg},<br />
+                 #{callTypeMsg},<br />
+                 #{callerName},<br />
+                 #{cityMsg},<br />
+                 #{programMsg},<br />
+                 #{makeMsg},<br />
+                 #{modelMsg},<br />
+                 #{callTaker}"
               , ''
               ]
 

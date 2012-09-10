@@ -144,6 +144,10 @@
                 "label": "Corvette"
             },
             {
+                "value": "cruze",
+                "label": "Cruze"
+            },
+            {
                 "value": "epicaCh",
                 "label": "Epica"
             },
@@ -394,6 +398,10 @@
             {
                 "value": "santaFe",
                 "label": "Santa Fe new"
+            },
+            {
+                "value": "solaris",
+                "label": "Solaris"
             },
             {
                 "value": "sonata",
@@ -858,6 +866,10 @@
             {
                 "value": "cougar",
                 "label": "Cougar"
+            },
+            {
+                "value": "kuga",
+                "label": "Kuga"
             },
             {
                 "value": "crownVictoria",
