@@ -82,6 +82,7 @@ averageTowageTechStart = mconcat [
   notNull "casetbl" "callDate",
   serviceCaseRel,
   towageTech,
+  cond ["servicetbl"] "(servicetbl.suburbanMilage = 0) or (servicetbl.suburbanMilage is null)",
   cond ["servicetbl", "casetbl"] "servicetbl.times_factServiceStart > casetbl.callDate"]
 
 averageTowageTechEnd :: PreQuery
@@ -90,6 +91,7 @@ averageTowageTechEnd = mconcat [
   notNull "servicetbl" "times_factServiceEnd",
   notNull "servicetbl" "times_factServiceStart",
   towageTech,
+  cond ["servicetbl"] "(servicetbl.suburbanMilage = 0) or (servicetbl.suburbanMilage is null)",
   cond ["servicetbl"] "servicetbl.times_factServiceEnd > servicetbl.times_factServiceStart"]
 
 satisfaction :: PreQuery
