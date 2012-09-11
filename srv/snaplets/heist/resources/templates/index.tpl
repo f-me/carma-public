@@ -1190,7 +1190,7 @@
         <div class="accordion-heading">
           <a class="accordion-toggle"
              id="{{ refView }}-link"
-             data-bind="text: nameLocal"
+             data-bind="text: actionNameLocal"
              data-target="#{{ refView }}-head"
              data-toggle="collapse">Действие…</a>
         </div>
