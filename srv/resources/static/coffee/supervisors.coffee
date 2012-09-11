@@ -52,7 +52,7 @@ this.setupSupervisorScreen = (viewName, args) ->
     drawTable dt, sb(d1, d2)
 
 drawTable = (dt, select) ->
-  fields = "id,caseId,closed,name,assignedTo,targetGroup
+  fields = "id,caseId,parentId,closed,name,assignedTo,targetGroup
 ,duetime,result,priority"
   $.getJSON "/all/action?select=#{select}&fields=#{fields}",
       (objs) ->
@@ -65,6 +65,8 @@ drawTable = (dt, select) ->
 
           rows = for obj in objs
             sid = obj.id.split(':')[1]
+            svcName = obj.parentId.split(':')[0]
+            svcName = global.models[svcName].title
             cid = obj.caseId.split(':')[1]
             closed = if obj.closed == "1"
                 'Закрыто'
@@ -72,7 +74,7 @@ drawTable = (dt, select) ->
                  'Открыто'
             duetime = new Date(obj.duetime * 1000)
               .toString("dd.MM.yyyy HH:mm:ss")
-            [ "#{cid}/#{sid}"
+            [ "#{cid}/#{sid} (#{svcName})"
             , closed
             , n[obj.name] || ''
             , u[obj.assignedTo] || ''
