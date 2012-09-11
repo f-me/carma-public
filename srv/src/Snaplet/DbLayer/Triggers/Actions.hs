@@ -311,11 +311,16 @@ actionResultMap = Map.fromList
   ,("serviceFinished", \objId -> do
     setService objId "status" "serviceOk"
     tm <- getService objId "times_expectedServiceClosure"  
-    void $ replaceAction
+    act <- replaceAction
       "closeCase"
       "Закрыть заявку"
       "back" "3" (changeTime (+5*60) tm)
       objId
+
+    partner <- getService objId "contractor_partner"
+    comment <- get objId "comment"
+    set act "comment" $ B.concat [utf8 "Партнёр: ", partner, "\n\n", comment]
+
     act <- replaceAction
       "addBill"
       "Прикрепить счёт"
@@ -338,11 +343,16 @@ actionResultMap = Map.fromList
       "supervisor" "1" (+60)
       objId 
     set act1 "assignedTo" ""
-    void $ replaceAction
+    act <- replaceAction
       "closeCase"
       "Закрыть заявку"
       "back" "3" (changeTime (+5*60) tm)
       objId
+
+    partner <- getService objId "contractor_partner"
+    comment <- get objId "comment"
+    set act "comment" $ B.concat [utf8 "Партнёр: ", partner, "\n\n", comment]
+
     act2 <- replaceAction
       "addBill"
       "Прикрепить счёт"
