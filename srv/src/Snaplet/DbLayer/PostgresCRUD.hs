@@ -23,7 +23,7 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import Data.ByteString (ByteString)
 import Data.Char
-import Data.List (isPrefixOf)
+import Data.List (isPrefixOf, findIndex)
 import Data.String
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
@@ -102,7 +102,8 @@ functions tz dict = [
     R.uses ["service.falseCall"] $ R.constFunction "BILL" billFun,
     R.uses ["case.diagnosis1", "service.type"] $ R.constFunction "FAULTCODE" faultFun,
     R.uses ["case.car_make"] $ R.constFunction "VEHICLEMAKE" vehicleMakeFun,
-    R.uses ["case.car_make", "case.car_model"] $ R.constFunction "VEHICLEMODEL" vehicleModelFun]
+    R.uses ["case.car_make", "case.car_model"] $ R.constFunction "VEHICLEMODEL" vehicleModelFun,
+    R.uses ["case.id", "case.services", "service.id", "service.type"] $ R.constFunction "SERVICEID" serviceId]
     where
         phoneFmt s
             | ("+7" `isPrefixOf` s) && all isDigit (drop 2 s) && length s == 12 = unwords ["+7", "(" ++ substr 2 3 s ++ ")", substr 5 3 s, substr 8 2 s, substr 10 2 s]
@@ -191,6 +192,20 @@ functions tz dict = [
             mk <- M.lookup "case.car_make" fs
             md <- M.lookup "case.car_model" fs
             lookupField [SM.StringValue "VehicleModel", mk, md]
+
+        serviceId fs = do
+            (SM.IntValue caseId) <- M.lookup "case.id" fs
+            (SM.StringValue caseSrvs) <- M.lookup "case.services" fs
+            (SM.IntValue serviceId) <- M.lookup "service.id" fs
+            (SM.StringValue serviceType) <- M.lookup "service.type" fs
+            -- form service complex id type:id
+            let
+                srvIdName = serviceType ++ ":" ++ show serviceId
+                splitByComma = words . map (\c -> if c == ',' then ' ' else c)
+                getIndex v = fmap succ . findIndex (== v)
+                defaultIdx = SM.StringValue $ show caseId ++ "/" ++ serviceType ++ ":" ++ show serviceId
+                formIdx i = SM.StringValue $ show caseId ++ "/" ++ show i
+            return . maybe defaultIdx formIdx . getIndex srvIdName . splitByComma $ caseSrvs
                       
 local :: P.ConnectInfo
 local = P.ConnectInfo {
