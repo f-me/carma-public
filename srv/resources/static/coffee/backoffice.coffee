@@ -32,7 +32,11 @@ setupBoTable = (actions) ->
 addActions = (actions, table) ->
   table.fnClearTable()
   rows = for act in actions
-    id = act.caseId.replace(/\D/g,'') + "/" + act.id.replace(/\D/g,'')
+    sid = act.id.split(':')[1]
+    cid = act.caseId.split(':')[1]
+    svcName = act.parentId.split(':')[0]
+    svcName = global.models[svcName].title
+    id = "#{cid}/#{sid} (#{svcName})"
     duetime = new Date(act.duetime * 1000).toString("dd.MM.yyyy HH:mm:ss")
     row = [id
           ,act.priority || '3'
