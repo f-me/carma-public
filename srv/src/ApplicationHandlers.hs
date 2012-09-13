@@ -216,16 +216,17 @@ myActionsHandler = do
     actions <- filter ((== Just "0") . Map.lookup "closed")
            <$> with db (DB.readAll "action")
     now <- liftIO getCurrentTime
-    let assignedActions = assignActions now actions (Map.map snd logdUsers)
-    let myActions = take 5 $ Map.findWithDefault [] uLogin assignedActions
-    with db $ forM_ myActions $ \act ->
+    let (newActions,oldActions) = assignActions now actions (Map.map snd logdUsers)
+    let myNewActions = take 5 $ Map.findWithDefault [] uLogin newActions
+    with db $ forM_ myNewActions $ \act ->
       case Map.lookup "id" act of
         Nothing -> return ()
         Just actId -> void $ DB.update "action"
           (last $ B.split ':' actId)
           $ Map.singleton "assignedTo" $ T.encodeUtf8 uLogin
+    let myOldActions = Map.findWithDefault [] uLogin oldActions
     (liftIO $ atomically $ putTMVar actLock ())
-    writeJSON myActions
+    writeJSON $ myNewActions ++ myOldActions
 
 
 searchCallsByPhone :: AppHandler ()

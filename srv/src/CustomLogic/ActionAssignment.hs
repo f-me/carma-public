@@ -26,9 +26,11 @@ type Duetime = Int
 type Assignment = Map Login (Map Duetime [Action])
 
 
-assignActions :: UTCTime -> [Action] -> Map Login AuthUser -> Map Login [Action]
+assignActions
+  :: UTCTime -> [Action] -> Map Login AuthUser
+  -> (Map Login [Action], Map Login [Action])
 assignActions now actions loggedUsers
-  = freshAssignments
+  = (freshAssignments, Map.map (concat . Map.elems) actionsByAssignee)
   where
     nowSeconds = round $ utcTimeToPOSIXSeconds now
 
