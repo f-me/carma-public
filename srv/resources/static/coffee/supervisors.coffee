@@ -31,7 +31,7 @@ this.setupSupervisorScreen = (viewName, args) ->
 
     ko.applyBindings r, $('#role')[0]
     t.on "click.datatable", "tr", ->
-      id = this.children[0].innerText.split('/')[1]
+      id = this.children[0].innerText.split('/')[1].replace(/\D/g,'')
       f = ["assignedTo", "priority", "closed", "targetGroup"]
       modelSetup("action") viewName, {"id": id},
                             permEl: "action-permissions"
