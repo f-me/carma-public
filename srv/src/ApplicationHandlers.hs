@@ -165,7 +165,8 @@ updateHandler = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
   commit <- getJSONBody
-  res <- with db $ DB.update model objId commit
+  -- Need this hack, or server won't return updated "cost_counted"
+  res <- with db $ DB.update model objId $ Map.delete "cost_counted" commit
   -- FIXME: try/catch & handle/log error
   writeJSON res
 

@@ -1312,12 +1312,13 @@
 
     <script type="text/html" id="tarif-opt-sel-template">
       <div class="add-opt-btn">
-        <input type="button" class="btn" value="Добавить">
+        <input type="button" class="btn add" value="Добавить">
         <select>
           {{# opts }}
           <option value="{{ id }}"> {{ optionName }} </option>
           {{/ opts }}
         </select>
+        <input type="button" class="btn reload" value="Обновить стоимость" />
       </div>
     </script>
 

@@ -1,7 +1,7 @@
 module Snaplet.DbLayer.Triggers.Actions where
 
 import Control.Arrow (first)
-import Control.Monad (when, void, forM)
+import Control.Monad (when, void, forM, forM_)
 import Control.Monad.Trans
 import Control.Exception
 import Control.Applicative ((<$>))
@@ -48,7 +48,18 @@ actions :: TriggerMap a
 actions = Map.fromList
   $ [(s,serviceActions) | s <- services]
   ++[("action", actionActions)
-    -- ,("tarifOption", tarifOptionActions)
+    ,("cost_serviceTarifOption", Map.fromList
+      [("count",
+        [\objId val -> do
+            case mbreadDouble val of
+              Nothing -> return ()
+              Just v  -> do
+                p <- get objId "price" >>= return . fromMaybe 0 . mbreadDouble
+                set objId "cost" $ printBPrice $ v * p
+                srvId <- get objId "parentId"
+                set srvId "cost_counted" =<< srvCostCounted srvId
+        ])
+      ])
     ,("case", Map.fromList
       [("city", [\objId val -> do
                   oldCity <- lift $ runRedisDB redis $ Redis.hget objId "city"
@@ -178,26 +189,17 @@ serviceActions = Map.fromList
   ,("payType",
     [\objId val -> do
         case selectPrice val of
-          Nothing       -> return ()
+          Nothing       -> set objId "cost_counted" ""
           Just priceSel -> do
-            tarifOpts <- get objId "cost_serviceTarifOptions"
-            opts      <- lift $ runRedisDB redis $ sequence <$>
-                       mapM Redis.hgetall (B.split ',' tarifOpts)
-            case opts of
-              Left  _ -> return ()
-              Right v -> do
-                let tarifOpts = map Map.fromList v
-                forM tarifOpts $ \o -> do
-                  lift $ RC.update redis "cost_serviceTarifOption"
-                    (fromJust $ Map.lookup "id" o) $
-                    Map.singleton "price"
-                      (fromMaybe "" $ Map.lookup priceSel o)
-                set objId "cost_counted" $ printBPrice $
-                  sum $ map (\o -> (f priceSel o) * (f "count" o)) tarifOpts
-                return ()
-                  where p = f priceSel
-                        c = f "count"
-                        f s k = fromMaybe 0 $ Map.lookup s k >>= mbreadDouble
+            ids <- get objId "cost_serviceTarifOptions" >>=
+                         return . B.split ','
+            forM_ ids $ \id -> do
+              price <- get id priceSel >>= return . fromMaybe 0 . mbreadDouble
+              count <- get id "count" >>= return . fromMaybe 0 . mbreadDouble
+              set id "price" $  printBPrice price
+              set id "cost" =<< printBPrice <$> calcCost id
+            srvCostCounted objId >>= set objId "cost_counted"
+le
         ])
   ,("cost_serviceTarifOptions",
     [\objId val -> do
@@ -205,9 +207,7 @@ serviceActions = Map.fromList
       opts <- lift $ runRedisDB redis $ sequence <$> mapM Redis.hgetall ids
       case opts of
         Left  _ -> return ()
-        Right v -> set objId "cost_counted" $ printBPrice $
-                   sum $ map (fromMaybe 0) $ map (>>= mbreadDouble) $
-                   Map.lookup "price" <$> Map.fromList <$> v
+        Right v -> set objId "cost_counted" =<< srvCostCounted objId
       ])
   ]
 
@@ -566,3 +566,13 @@ setWeather objId city = do
   case weather of
     Right w -> set objId "temperature" $ B.pack $ show $ tempC w
     Left  _ -> return ()
+
+srvCostCounted srvId = do
+  tarifIds <- get srvId "cost_serviceTarifOptions" >>= return . B.split ','
+  printBPrice <$> sum <$> mapM calcCost tarifIds
+
+calcCost id = do
+  p <- get id "price" >>= return . fromMaybe 0 . mbreadDouble
+  c <- get id "count" >>= return . fromMaybe 0 . mbreadDouble
+  return $ p * c
+

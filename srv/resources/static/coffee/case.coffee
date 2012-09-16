@@ -237,7 +237,10 @@ this.partnerOptsHook = (i, knockVM) ->
                   id: i.id()
                   optionName: (i.optionName() || "Тарифная опция")
           $("##{v}").children().last().after(tr)
-          $("##{v}").find('.btn').on 'click.addTarif', ->
+          $("##{v}").find('.reload').on 'click.reloadCountedCost', ->
+            r = global.viewsWare['case-form'].knockVM['servicesReference']()
+            o.model().fetch() for o in r
+          $("##{v}").find('.add').on 'click.addTarif', ->
             s = $("##{v}").find("select")
             return if _.isEmpty s
             o = _.find opts, (opt) -> "#{opt.id()}" == s.val()
@@ -251,3 +254,14 @@ this.partnerOptsHook = (i, knockVM) ->
                 price2       : o.price2(),
               -> bindDelete knockVM, 'cost_serviceTarifOptions'
           bindDelete knockVM, 'cost_serviceTarifOptions'
+
+this.srvOptUpd = (instance, knockVM) ->
+  global.lll = {}
+  knockVM['payType'].subscribe (n) ->
+    console.log "srvoptupd"
+    sTout 500, ->
+      for o in knockVM['cost_serviceTarifOptionsReference']()
+        do (o) ->
+          console.log "srvoptupd going"
+          global.lll[o.model().id] =  o
+          o.model().fetch()

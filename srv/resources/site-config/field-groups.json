@@ -719,7 +719,8 @@
         {
                 "name": "counted",
                 "meta": {
-                   "label": "Расчетная стоимость"
+                   "label": "Расчетная стоимость",
+                   "readonly": true
                 }
         },
         {

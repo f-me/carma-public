@@ -7,7 +7,7 @@ this.hooks = ->
       "case" : [caseDescsKbHook, caseEventsHistoryKbHook]
       "tarifOption": [tarifOptNameDef]
       "cost_serviceTarifOption": [tarifOptNameDef]
-      "rent" : [partnerOptsHook]
+      "rent" : [partnerOptsHook, srvOptUpd]
 
 dictionaryKbHook = (instance, knockVM) ->
   for n of instance.dictionaryFields
