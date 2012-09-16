@@ -87,8 +87,8 @@ Executable carma
     bytestring                  == 0.9.2.*,
     weather-api                 == 0.1.*,
     fdds                        == 0.1,
-    vector                      == 0.9.*
-
+    vector                      == 0.9.*,
+    bytestring-lexing           == 0.4.*
   Extensions:
     OverloadedStrings,
     RecordWildCards,

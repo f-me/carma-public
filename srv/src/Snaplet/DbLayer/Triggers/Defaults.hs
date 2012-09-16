@@ -4,6 +4,7 @@ module Snaplet.DbLayer.Triggers.Defaults
   ) where 
 
 import Control.Monad.IO.Class
+import Control.Monad (liftM)
 import Data.Functor
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -11,10 +12,13 @@ import qualified Data.ByteString.Char8 as B
 import Data.Time.Clock (getCurrentTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 import Data.Time.Format (formatTime)
+import Data.Maybe
 import System.Locale (defaultTimeLocale)
-
+import qualified Database.Redis       as Redis
+import qualified Snap.Snaplet.RedisDB as Redis
 import Snaplet.DbLayer.Types
 
+import Util
 
 applyDefaults model obj = do
   ct <- liftIO $ round . utcTimeToPOSIXSeconds
@@ -46,7 +50,24 @@ applyDefaults model obj = do
             ]
           | otherwise -> obj
 
-  return $ Map.union (Map.insert "ctime" (B.pack $ show ct) obj')
+  obj'' <- do
+    case model of
+      "cost_serviceTarifOption" -> do
+        o <- liftM (Map.union obj') (pricesFromOpt obj')
+        let srvId = fromMaybe "" $ Map.lookup "parentId" o
+        ptype <- Redis.runRedisDB redis $ Redis.hget srvId "payType"
+        case ptype of
+          Left _  -> return o
+          Right p -> return $ fromMaybe o $ do
+            price <- p >>= selectPrice >>= flip Map.lookup o >>= mbreadDouble
+            count <- lookupNE "count" o >>= mbreadDouble
+            return $ Map.fromList [("price", printBPrice price)
+                                  ,("cost",  printBPrice $ price*count)
+                                  ]
+
+      _ -> return obj'
+
+  return $ Map.union (Map.insert "ctime" (B.pack $ show ct) obj'')
          $ Map.findWithDefault Map.empty model defaults
 
 
@@ -111,3 +132,19 @@ defaults = Map.fromList
     [("transportType", "continue")
     ])
   ]
+
+-- | Copy price1 and price2 from tarifOption to new cost_serviceTarifOption
+pricesFromOpt obj = do
+  case (flip Map.lookup obj) "tarifOptionId" of
+    Nothing -> return Map.empty
+    Just id -> do
+      o <- Redis.runRedisDB redis $ Redis.hgetall id
+      case o of
+        Left _     -> return Map.empty
+        Right opt' -> do
+          let p1 = lookupNE "price1" $ Map.fromList opt'
+              p2 = lookupNE "price2" $ Map.fromList opt'
+          case sequence [p1,p2] of
+            Nothing        -> return Map.empty
+            Just [p1',p2'] -> return $ Map.fromList
+                              [("price1", p1'), ("price2", p2')]

@@ -38,6 +38,13 @@
             }
         },
         {
+            "name": "price",
+            "meta": {
+                "label": "Цена за единицу",
+                "readonly": true
+            }
+        },
+        {
             "name": "count",
             "meta": {
                 "label": "Колличество",
@@ -45,10 +52,24 @@
             }
         },
         {
-            "name": "price",
+            "name": "cost",
             "meta": {
                 "label": "Стоимость",
                 "readonly": true
+            }
+        },
+        {
+            "name": "price1",
+            "meta": {
+                "label": "Стоимость за единицу за нал",
+                "invisible": true
+            }
+        },
+        {
+            "name": "price2",
+            "meta": {
+                "label": "Стоимость за единицу по безналу",
+                "invisible": true
             }
         }
     ]

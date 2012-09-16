@@ -243,6 +243,11 @@ this.partnerOptsHook = (i, knockVM) ->
             o = _.find opts, (opt) -> "#{opt.id()}" == s.val()
             addReference knockVM, 'cost_serviceTarifOptions',
               modelName: "cost_serviceTarifOption"
-              args     : {optionName: o.optionName(), tarifOptionId: o.id()},
+              args     :
+                optionName   : o.optionName()
+                tarifOptionId: "tarifOption:#{o.id()}"
+                count        : "1"
+                price1       : o.price1()
+                price2       : o.price2(),
               -> bindDelete knockVM, 'cost_serviceTarifOptions'
           bindDelete knockVM, 'cost_serviceTarifOptions'
