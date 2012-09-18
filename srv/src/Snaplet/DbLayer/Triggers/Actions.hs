@@ -199,7 +199,6 @@ serviceActions = Map.fromList
               set id "price" $  printBPrice price
               set id "cost" =<< printBPrice <$> calcCost id
             srvCostCounted objId >>= set objId "cost_counted"
-le
         ])
   ,("cost_serviceTarifOptions",
     [\objId val -> do
