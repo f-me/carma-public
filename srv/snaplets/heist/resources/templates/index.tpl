@@ -733,7 +733,7 @@
                   Общее количество невыполненных действий
                 </div>
                 <div class="span2">
-                  <input style="float:right; width:40px" id="total-uncompleted-actions" />
+                  <input style="float:right; width:40px" id="total-incomplete-actions" />
                 </div>
               </div>
               <div class="row-fluid">

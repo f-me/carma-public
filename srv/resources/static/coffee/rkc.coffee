@@ -1,8 +1,14 @@
 this.setupRKCScreen = (viewName, args) ->
   setTimeout ->
-    t = $("#rkc-services-table")
-    return if t.hasClass("dataTable")
-    dt = mkDataTable t, { bFilter : false, bInfo : false }
+    caset = $("#rkc-services-table")
+    backt = $("#rkc-back-office-table")
+
+    return if caset.hasClass("dataTable")
+    return if backt.hasClass("dataTable")
+
+    ct = mkDataTable caset, { bFilter : false, bInfo : false }
+    bt = mkDataTable backt, { bFilter : false, bInfo : false }
+
 
     totalServices = $('#total-services')
     averageStart = $('#average-towage-tech-start')
@@ -12,6 +18,9 @@ this.setupRKCScreen = (viewName, args) ->
     limited = $('#limited-cost')
 
     satisfied = $('#satisfied-percentage')
+
+    totalActions = $('#total-actions')
+    totalIncompleteActions = $('#total-incomplete-actions')
 
     $('#reload').click -> update()
 
@@ -42,27 +51,39 @@ this.setupRKCScreen = (viewName, args) ->
       prog = ps.val()
       $.getJSON("/rkc/" + prog, (result) ->
         dict = global.dictValueCache
-        dt.fnClearTable()
+        ct.fnClearTable()
 
-        totalServices.val(result.summary.total)
-        averageStart.val(Math.round(result.summary.delay / 60) + "m")
-        calculated.val(result.summary.calculated)
-        mechanic.val(result.summary.mech)
-        averageEnd.val(Math.round(result.summary.duration / 60) + "m")
-        limited.val(result.summary.limited)
+        totalServices.val(result.case.summary.total)
+        averageStart.val(Math.round(result.case.summary.delay / 60) + "m")
+        calculated.val(result.case.summary.calculated)
+        mechanic.val(result.case.summary.mech)
+        averageEnd.val(Math.round(result.case.summary.duration / 60) + "m")
+        limited.val(result.case.summary.limited)
 
-        satisfied.val(result.summary.satisfied)
+        satisfied.val(result.case.summary.satisfied)
 
-        rows = for info in result.services
-          row = [
-            dict.Services[info.name] || info.name,
-            info.total,
-            Math.round(info.delay / 60) + "m",
-            Math.round(info.duration / 60) + "m",
-            info.calculated,
-            info.limited]
+        crows = for cinfo in result.case.services
+          crow = [
+            dict.Services[cinfo.name] || cinfo.name,
+            cinfo.total,
+            Math.round(cinfo.delay / 60) + "m",
+            Math.round(cinfo.duration / 60) + "m",
+            cinfo.calculated,
+            cinfo.limited]
 
-        dt.fnAddData(rows))
+        ct.fnAddData(crows)
+
+        totalActions.val(result.back.summary.total)
+        totalIncompleteActions.val(result.back.summary.undone)
+
+        brows = for binfo in result.back.actions
+          brow = [
+            dict.ActionNames[binfo.name] || binfo.name,
+            binfo.total,
+            binfo.undone,
+            Math.floor(binfo.average / 60) + ":" + (binfo.average % 60)]
+
+        bt.fnAddData(brows))
 
     setTimeout update, 30000
 

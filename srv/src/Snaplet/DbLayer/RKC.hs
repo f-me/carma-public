@@ -1,7 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Snaplet.DbLayer.RKC (
-  Summary(..), ServiceInfo(..), ProgramInformation(..),
+  CaseSummary(..), CaseServiceInfo(..), CaseInformation(..),
+  BackSummary(..), BackActionInfo(..), BackInformation(..),
+  Information(..),
   rkc,
   test
   ) where
@@ -36,6 +38,10 @@ import Snaplet.DbLayer.ARC
 import System.Locale
 import Snap.Snaplet.SimpleLog
 
+-------------------------------------------------------------------------------
+-- TODO: Use 'model.field' instead of 'table.column'
+-------------------------------------------------------------------------------
+
 -- Column of table is in list
 inList :: T.Text -> T.Text -> [T.Text] -> PreQuery
 inList tbl col vals = preQuery [] [tbl] [T.concat [tbl, ".", col, " in ?"]] [PS.In vals]
@@ -43,14 +49,20 @@ inList tbl col vals = preQuery [] [tbl] [T.concat [tbl, ".", col, " in ?"]] [PS.
 equals :: T.Text -> T.Text -> T.Text -> PreQuery
 equals tbl col val = preQuery [] [tbl] [T.concat [tbl, ".", col, " = ?"]] [val]
 
--- | Done services
-doneServices :: PreQuery
-doneServices = inList "servicetbl" "status" [
-  "serviceOrdered",
-  "serviceDelayed",
-  "serviceInProgress",
-  "serviceOk",
-  "serviceClosed"]
+withinDay :: T.Text -> T.Text -> UTCTime -> PreQuery
+withinDay tbl col tm = preQuery_ [] [tbl] [afterStart, beforeEnd] where
+  st = fromString $ formatTime defaultTimeLocale "%F %T" tm
+  afterStart = T.concat [tbl, ".", col, " - '", st, "' >= '0 days'"]
+  beforeEnd = T.concat [tbl, ".", col, " - '", st, "' < '1 day'"]
+
+-- Get start of this day for timezone
+startOfDay :: TimeZone -> UTCTime -> UTCTime
+startOfDay tz = localTimeToUTC tz . dropTime . utcToLocalTime tz where
+  dropTime t = t { localTimeOfDay = midnight }
+
+-- Get start of current day for current timezone
+startOfThisDay :: IO UTCTime
+startOfThisDay = startOfDay <$> getCurrentTimeZone <*> getCurrentTime
 
 count :: PreQuery
 count = preQuery_ ["count(*)"] [] []
@@ -63,6 +75,19 @@ notNull tbl col = preQuery_ [] [tbl] [T.concat [tbl, ".", col, " is not null"]]
 
 cond :: [T.Text] -> T.Text -> PreQuery
 cond tbls c = preQuery_ [] tbls [c]
+
+--
+-- Queries for case block
+--
+
+-- | Done services
+doneServices :: PreQuery
+doneServices = inList "servicetbl" "status" [
+  "serviceOrdered",
+  "serviceDelayed",
+  "serviceInProgress",
+  "serviceOk",
+  "serviceClosed"]
 
 serviceCaseRel :: PreQuery
 serviceCaseRel = cond ["casetbl", "servicetbl"] "casetbl.id = servicetbl.parentId"
@@ -127,20 +152,18 @@ inCity = equals "casetbl" "garbage -> 'city'"
 withProgram :: T.Text -> PreQuery
 withProgram = equals "casetbl" "program"
 
-withinDay :: T.Text -> T.Text -> UTCTime -> PreQuery
-withinDay tbl col tm = preQuery_ [] [tbl] [afterStart, beforeEnd] where
-  st = fromString $ formatTime defaultTimeLocale "%F %T" tm
-  afterStart = T.concat [tbl, ".", col, " - '", st, "' >= '0 days'"]
-  beforeEnd = T.concat [tbl, ".", col, " - '", st, "' < '1 day'"]
+--
+-- Queries for back block
+--
 
--- Get start of this day for timezone
-startOfDay :: TimeZone -> UTCTime -> UTCTime
-startOfDay tz = localTimeToUTC tz . dropTime . utcToLocalTime tz where
-  dropTime t = t { localTimeOfDay = midnight }
+undoneAction :: PreQuery
+undoneAction = equals "actiontbl" "closed" "f"
 
--- Get start of current day for current timezone
-startOfThisDay :: IO UTCTime
-startOfThisDay = startOfDay <$> getCurrentTimeZone <*> getCurrentTime
+actionIs :: T.Text -> PreQuery
+actionIs = equals "actiontbl" "name"
+
+actionCaseRel :: PreQuery
+actionCaseRel = cond ["casetbl", "actiontbl"] "'case:' || casetbl.id = actiontbl.caseId"
 
 data AnyValue = AnyValue { toAnyValue :: ByteString }
     deriving (Eq, Ord, Read, Show)
@@ -159,7 +182,7 @@ oneQuery qs = do
       return $ T.decodeUtf8 (toAnyValue r)
     _ -> error "oneQuery returns invalid result"
 
-data Summary = Summary {
+data CaseSummary = CaseSummary {
   summaryTotalServices :: Integer,
   summaryTotalMechanics :: Integer,
   summaryAverageStart :: Integer,
@@ -169,22 +192,8 @@ data Summary = Summary {
   summarySatisfied :: Integer }
     deriving (Eq, Ord, Read, Show)
 
-data ServiceInfo = ServiceInfo {
-  serviceName :: T.Text,
-  serviceTotal :: Integer,
-  serviceAverageStart :: Integer,
-  serviceAverageEnd :: Integer,
-  serviceCalculatedCost :: Integer,
-  serviceLimitedCost :: Integer }
-    deriving (Eq, Ord, Read, Show)
-
-data ProgramInformation = ProgramInformation {
-  programInfoSummary :: Summary,
-  programInfoServices :: [ServiceInfo] }
-    deriving (Eq, Ord, Read, Show)
-
-instance FromJSON Summary where
-  parseJSON (Object v) = Summary <$>
+instance FromJSON CaseSummary where
+  parseJSON (Object v) = CaseSummary <$>
     (v .: "total") <*>
     (v .: "mech") <*>
     (v .: "delay") <*>
@@ -194,8 +203,8 @@ instance FromJSON Summary where
     (v .: "satisfied")
   parseJSON _ = empty
 
-instance ToJSON Summary where
-  toJSON (Summary t m d dur calc lim sat) = object [
+instance ToJSON CaseSummary where
+  toJSON (CaseSummary t m d dur calc lim sat) = object [
     "total" .= t,
     "mech" .= m,
     "delay" .= d,
@@ -204,8 +213,17 @@ instance ToJSON Summary where
     "limited" .= lim,
     "satisfied" .= sat]
 
-instance FromJSON ServiceInfo where
-  parseJSON (Object v) = ServiceInfo <$>
+data CaseServiceInfo = CaseServiceInfo {
+  serviceName :: T.Text,
+  serviceTotal :: Integer,
+  serviceAverageStart :: Integer,
+  serviceAverageEnd :: Integer,
+  serviceCalculatedCost :: Integer,
+  serviceLimitedCost :: Integer }
+    deriving (Eq, Ord, Read, Show)
+
+instance FromJSON CaseServiceInfo where
+  parseJSON (Object v) = CaseServiceInfo <$>
     (v .: "name") <*>
     (v .: "total") <*>
     (v .: "delay") <*>
@@ -214,8 +232,8 @@ instance FromJSON ServiceInfo where
     (v .: "limited")
   parseJSON _ = empty
 
-instance ToJSON ServiceInfo where
-  toJSON (ServiceInfo n t d dur calc lim) = object [
+instance ToJSON CaseServiceInfo where
+  toJSON (CaseServiceInfo n t d dur calc lim) = object [
     "name" .= n,
     "total" .= t,
     "delay" .= d,
@@ -223,27 +241,102 @@ instance ToJSON ServiceInfo where
     "calculated" .= calc,
     "limited" .= lim]
 
-instance FromJSON ProgramInformation where
-  parseJSON (Object v) = ProgramInformation <$>
+data CaseInformation = CaseInformation {
+  caseInfoSummary :: CaseSummary,
+  caseInfoServices :: [CaseServiceInfo] }
+    deriving (Eq, Ord, Read, Show)
+
+instance FromJSON CaseInformation where
+  parseJSON (Object v) = CaseInformation <$>
     (v .: "summary") <*>
     (v .: "services")
   parseJSON _ = empty
 
 
-instance ToJSON ProgramInformation where
-  toJSON (ProgramInformation s ss) = object [
+instance ToJSON CaseInformation where
+  toJSON (CaseInformation s ss) = object [
     "summary" .= s,
     "services" .= ss]
+
+data BackSummary = BackSummary {
+  backSummaryTotalActions :: Integer,
+  backSummaryTotalIncompleted :: Integer }
+    deriving (Eq, Ord, Read, Show)
+
+instance FromJSON BackSummary where
+  parseJSON (Object v) = BackSummary <$>
+    (v .: "total") <*>
+    (v .: "undone")
+  parseJSON _ = empty
+
+instance ToJSON BackSummary where
+  toJSON (BackSummary t u) = object [
+    "total" .= t,
+    "undone" .= u]
+
+data BackActionInfo = BackActionInfo {
+  backActionName :: T.Text,
+  backTotalActions :: Integer,
+  backTotalIncompleted :: Integer,
+  backAverage :: Integer }
+    deriving (Eq, Ord, Read, Show)
+
+instance FromJSON BackActionInfo where
+  parseJSON (Object v) = BackActionInfo <$>
+    (v .: "name") <*>
+    (v .: "total") <*>
+    (v .: "undone") <*>
+    (v .: "average")
+  parseJSON _ = empty
+
+instance ToJSON BackActionInfo where
+  toJSON (BackActionInfo n t u a) = object [
+    "name" .= n,
+    "total" .= t,
+    "undone" .= u,
+    "average" .= a]
+
+data BackInformation = BackInformation {
+  backInfoSummary :: BackSummary,
+  backInfoActions :: [BackActionInfo] }
+    deriving (Eq, Ord, Read, Show)
+
+instance FromJSON BackInformation where
+  parseJSON (Object v) = BackInformation <$>
+    (v .: "summary") <*>
+    (v .: "actions")
+  parseJSON _ = empty
+
+instance ToJSON BackInformation where
+  toJSON (BackInformation s as) = object [
+    "summary" .= s,
+    "actions" .= as]
+
+data Information = Information {
+  rkcCaseInformation :: CaseInformation,
+  rkcBackInformation :: BackInformation }
+    deriving (Eq, Ord, Read, Show)
+
+instance FromJSON Information where
+  parseJSON (Object v) = Information <$>
+    (v .: "case") <*>
+    (v .: "back")
+  parseJSON _ = empty
+
+instance ToJSON Information where
+  toJSON (Information c b) = object [
+    "case" .= c,
+    "back" .= b]
 
 tryQ :: MonadLog m => T.Text -> a -> T.Text -> m a -> m a
 tryQ sc v s act = scope sc $ catch (log Trace s >> act) (onError v) where
   onError :: MonadLog m => a -> E.SomeException -> m a
   onError x _ = return x
 
-summary :: (PS.HasPostgres m, MonadLog m) => PreQuery -> m Summary
-summary today = scope "summary" $ do
+caseSummary :: (PS.HasPostgres m, MonadLog m) => PreQuery -> m CaseSummary
+caseSummary today = scope "caseSummary" $ do
   log Trace "Loading summary"
-  return Summary `ap`
+  return CaseSummary `ap`
     tryQ "total" 0 "Total services today" (intQuery [count, today]) `ap`
     tryQ "mechanics" 0 "Total mechanics today" (intQuery [count, mechanic, today]) `ap`
     tryQ "delay" 0 "Average time of start service" (intQuery [averageTowageTechStart, today]) `ap`
@@ -255,39 +348,71 @@ summary today = scope "summary" $ do
     percentage _ 0 = 100
     percentage n d = n * 100 `div` d
 
-service :: (PS.HasPostgres m, MonadLog m) => PreQuery -> T.Text -> m ServiceInfo
-service today name = scope name $ do
+caseService :: (PS.HasPostgres m, MonadLog m) => PreQuery -> T.Text -> m CaseServiceInfo
+caseService today name = scope "caseService" $ scope name $ do
   log Trace $ T.concat ["Loading info for service ", name]
-  return (ServiceInfo name) `ap`
+  return (CaseServiceInfo name) `ap`
     tryQ "total" 0 (T.concat ["Total ", name, "'s today"]) (intQuery [count, serviceIs name, today]) `ap`
     tryQ "delay" 0 (T.concat ["Average time of start for ", name]) (intQuery [averageTowageTechStart, serviceIs name, today]) `ap`
     tryQ "duration" 0 (T.concat ["Average time of end for ", name]) (intQuery [averageTowageTechEnd, serviceIs name, today]) `ap`
     tryQ "calculated" 0 (T.concat ["Calculated cost for ", name]) (intQuery [calculatedCost, serviceIs name, today]) `ap`
     tryQ "limited" 0 (T.concat ["Limited cost for ", name]) (intQuery [limitedCost, today])
 
-serviceNames :: Dictionary -> [T.Text]
-serviceNames = fromMaybe [] . keys ["Services"]
-
-programNames :: Dictionary -> [T.Text]
-programNames = fromMaybe [] . keys ["Programs"]
-
-rkcProgram :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> T.Text -> m ProgramInformation
-rkcProgram today services p = scope pname $ do
-  s <- summary ptoday
-  ss <- scope "services" $ mapM (service ptoday) services
-  return $ ProgramInformation s ss
+rkcCase :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> T.Text -> m CaseInformation
+rkcCase today services p = scope "rkcCase" $ scope pname $ do
+  s <- caseSummary ptoday
+  ss <- mapM (caseService ptoday) services
+  return $ CaseInformation s ss
   where
     pname = if T.null p then "all" else p
     ptoday = (if T.null p then id else mappend (programIs p)) today
 
-rkc :: (PS.HasPostgres m, MonadLog m) => T.Text -> m ProgramInformation
+backSummary :: (PS.HasPostgres m, MonadLog m) => PreQuery -> m BackSummary
+backSummary today = scope "backSummary" $ do
+  log Trace "Loading summary"
+  return BackSummary `ap`
+    tryQ "total" 0 "Total actions today" (intQuery [count, today]) `ap`
+    tryQ "undone" 0 "Total undone actions today" (intQuery [count, undoneAction, today])
+
+backAction :: (PS.HasPostgres m, MonadLog m) => PreQuery -> T.Text -> m BackActionInfo
+backAction today name = scope "backAction" $ scope name $ do
+  return (BackActionInfo name) `ap`
+    tryQ "total" 0 (T.concat ["Total ", name, "'s today"]) (intQuery [count, actionIs name, today]) `ap`
+    tryQ "undone" 0 (T.concat ["Total incomplete ", name, "'s today"]) (intQuery [count, actionIs name, undoneAction, today]) `ap`
+    (return 0) -- TODO: Implement
+
+rkcBack :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> T.Text -> m BackInformation
+rkcBack today actions p = scope "rkcBack" $ scope pname $ do
+  s <- backSummary ptoday
+  as <- mapM (backAction ptoday) actions
+  return $ BackInformation s as
+  where
+    pname = if T.null p then "all" else p
+    ptoday = (if T.null p then id else mappend (mconcat [programIs p, actionCaseRel])) today
+
+dictKeys :: T.Text -> Dictionary -> [T.Text]
+dictKeys d = fromMaybe [] . keys [d]
+
+serviceNames :: Dictionary -> [T.Text]
+serviceNames = dictKeys "Services"
+
+programNames :: Dictionary -> [T.Text]
+programNames = dictKeys "Programs"
+
+actionNames :: Dictionary -> [T.Text]
+actionNames = dictKeys "ActionNames"
+
+rkc :: (PS.HasPostgres m, MonadLog m) => T.Text -> m Information
 rkc program = liftIO startOfThisDay >>= rkc' where
   rkc' today = scope "rkc" $ do
     dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
-    rkcProgram serviceToday (serviceNames dicts) program
+    c <- rkcCase serviceToday (serviceNames dicts) program
+    b <- rkcBack actionToday (actionNames dicts) program
+    return $ Information c b
     where
       serviceToday = withinDay "servicetbl" "createTime" today
       caseToday = withinDay "casetbl" "callDate" today
+      actionToday = withinDay "actiontbl" "ctime" today
 
 -- Test function for log
 test :: (PS.HasPostgres m, MonadLog m) => m ()

@@ -241,6 +241,14 @@
 				{
 					"name": "assignedTo",
 					"type": "string"
+				},
+				{
+					"name": "duetime",
+					"type": "time"
+				},
+				{
+					"name": "ctime",
+					"type": "time"
 				}
 			]
 		}
