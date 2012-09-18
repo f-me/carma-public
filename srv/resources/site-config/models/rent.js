@@ -67,8 +67,7 @@
         {
             "targets": [
                 "cost_counted",
-                "cost_serviceTarifOptions",
-                "cost_stf"
+                "cost_serviceTarifOptions"
             ],
             "canRead": [
                 "partner",
@@ -98,7 +97,6 @@
                 "programman",
                 "parguy"
             ]
-
         },
         {
             "targets": [

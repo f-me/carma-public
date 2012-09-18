@@ -51,37 +51,15 @@
         },
         {
             "targets": [
-                "payment_expectedCost"
+                "contractor_partner"
             ],
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ]
+            "meta": {
+                "label": "Партнёр"
+            }
         },
         {
             "targets": [
-                "cost_countedCost",
-                "cost_tarifOption"
+                "cost_countedCost"
             ],
             "canRead": [
                 "partner",
@@ -110,6 +88,70 @@
                 "admin",
                 "programman",
                 "parguy"
+            ]
+
+        },
+        {
+            "targets": [
+                "cost_counted",
+                "cost_serviceTarifOptions"
+            ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ]
+        },
+        {
+            "targets": [
+                "payment_expectedCost"
+            ],
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman"
             ]
         },
         {
