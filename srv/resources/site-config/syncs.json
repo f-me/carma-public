@@ -249,6 +249,14 @@
 				{
 					"name": "ctime",
 					"type": "time"
+				},
+				{
+					"name": "openTime",
+					"type": "time"
+				},
+				{
+					"name": "closeTime",
+					"type": "time"
 				}
 			]
 		}

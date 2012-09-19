@@ -159,6 +159,13 @@ withProgram = equals "casetbl" "program"
 undoneAction :: PreQuery
 undoneAction = equals "actiontbl" "closed" "f"
 
+averageActionTime :: PreQuery
+averageActionTime = mconcat [
+  preQuery_ ["extract(epoch from avg(actiontbl.closeTime - actiontbl.openTime))::int8"] [] [],
+  notNull "actiontbl" "openTime",
+  notNull "actiontbl" "closeTime",
+  cond ["actiontbl"] "actiontbl.closeTime > actiontbl.openTime"]
+
 actionIs :: T.Text -> PreQuery
 actionIs = equals "actiontbl" "name"
 
@@ -379,7 +386,7 @@ backAction today name = scope "backAction" $ scope name $ do
   return (BackActionInfo name) `ap`
     tryQ "total" 0 (T.concat ["Total ", name, "'s today"]) (intQuery [count, actionIs name, today]) `ap`
     tryQ "undone" 0 (T.concat ["Total incomplete ", name, "'s today"]) (intQuery [count, actionIs name, undoneAction, today]) `ap`
-    (return 0) -- TODO: Implement
+    tryQ "average" 0 (T.concat ["Average time for ", name, " today"]) (intQuery [count, actionIs name, averageActionTime, today])
 
 rkcBack :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> T.Text -> m BackInformation
 rkcBack today actions p = scope "rkcBack" $ scope pname $ do
