@@ -199,7 +199,6 @@ this.showComplex = (parentView, fieldName) ->
 
       unless table.hasClass("dataTable")
         mkDataTable(table)
-        table.data("dataTable", table)
         table.on "click.datatable", "tr", ->
           name = this.children[0].innerText
           city = this.children[1].innerText
@@ -207,7 +206,7 @@ this.showComplex = (parentView, fieldName) ->
           svc.contractor_partner(name)
           svc.contractor_address("#{city}, #{addr}")
 
-      table = table.data("dataTable")
+      table = table.dataTable()
       fields = "name,cityRu,addrDeFacto,phone1,workingTime"
       select = "cityRu == #{kase.cityLocal()}" # , isActive == 1, isDealer == 0"
       $.getJSON "/all/partner?fields=#{fields}&select=#{select}", (objs) ->
