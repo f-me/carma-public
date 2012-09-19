@@ -34,9 +34,12 @@ body {
   padding: 1%;
 }
 
-#call-searchtable_filter {
+.dataTables_filter {
   float: left;
   text-align: left;
+}
+
+#call-searchtable_filter {
   width: 30%;
 }
 
