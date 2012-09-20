@@ -192,6 +192,40 @@ this.candiboberHook = (elName) ->
 this.removeCaseMain = ->
   $("body").off "change.input"
 
+# get partners and show them in table
+# this is called from local.coffe:showCase
+this.initPartnerTables = ($view,parentView) ->
+  m = $view[0].id.match(/(\w*)_partner-view/)
+  partnerType = m[1]
+  table = $view.find("table##{partnerType}_partnerTable")
+  kase = global.viewsWare["case-form"].knockVM
+  svc = _.find(
+          kase.servicesReference(),
+          (svc) -> svc.view is parentView)
+
+  unless table.hasClass("dataTable")
+    mkDataTable(table)
+    table.on "click.datatable", "tr", ->
+      name = this.children[0].innerText
+      city = this.children[1].innerText
+      addr = this.children[2].innerText
+      svc["#{partnerType}_partner"](name)
+      svc["#{partnerType}_address"]("#{city}, #{addr}")
+
+
+  table = table.dataTable()
+  fields = "name,city,addrDeFacto,phone1,workingTime"
+  dealer = if partnerType is "towDealer" then 1 else 0
+  select = "city == #{kase.cityLocal()},isActive == 1,isDealer == #{dealer}"
+  $.getJSON "/all/partner?fields=#{fields}&select=#{select}", (objs) ->
+    rows = for p in objs
+      [p.name        || '',
+       p.city        || '',
+       p.addrDeFacto || '',
+       p.phone1      || '',
+       p.workingTime || '']
+    table.fnClearTable()
+    table.fnAddData(rows)
 
 #############################################################################
 # kb hooks
