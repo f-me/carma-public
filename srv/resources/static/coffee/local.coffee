@@ -187,7 +187,38 @@ this.showComplex = (parentView, fieldName) ->
   return if view.is(':visible')
   $(".complex-field").hide()
 
-  view.show -> initOSM e for e in view.find(".osMap")
+  view.show ->
+    initOSM e for e in view.find(".osMap")
+
+    if depViewName.match(/contractor_partner-view/)
+      table = view.find("table#contractor_partnerTable")
+      kase = global.viewsWare["case-form"].knockVM
+      svc = _.find(
+              kase.servicesReference(),
+              (svc) -> svc.view is parentView)
+
+      unless table.hasClass("dataTable")
+        mkDataTable(table)
+        table.on "click.datatable", "tr", ->
+          name = this.children[0].innerText
+          city = this.children[1].innerText
+          addr = this.children[2].innerText
+          svc.contractor_partner(name)
+          svc.contractor_address("#{city}, #{addr}")
+
+      table = table.dataTable()
+      fields = "name,cityRu,addrDeFacto,phone1,workingTime"
+      select = "cityRu == #{kase.cityLocal()}" # , isActive == 1, isDealer == 0"
+      $.getJSON "/all/partner?fields=#{fields}&select=#{select}", (objs) ->
+        rows = for p in objs
+          [p.name,
+           p.cityRu,
+           p.addrDeFacto,
+           p.phone1,
+           p.workingTime]
+        table.fnClearTable()
+        table.fnAddData(rows)
+
 
 this.hideComplex = ->
   $(".complex-field").hide()

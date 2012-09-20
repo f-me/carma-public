@@ -25,7 +25,8 @@
                 "parguy"
             ],
             "meta": {
-                "label": "Адрес места поломки"
+                "label": "Адрес места поломки",
+                "infoText": "caseAddress"
             }
         },
         {
