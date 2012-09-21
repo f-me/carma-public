@@ -593,6 +593,12 @@
             }
         },
         {
+            "name": "partnerId",
+            "meta": {
+                "invisible":true
+            }
+        },
+        {
             "name": "address",
             "meta": {
                 "label": "Адрес"

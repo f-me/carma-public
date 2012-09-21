@@ -1,7 +1,7 @@
 module Snaplet.DbLayer.Triggers.Actions where
 
 import Control.Arrow (first)
-import Control.Monad (when, void, forM, forM_)
+import Control.Monad (when, void, forM, forM_, filterM)
 import Control.Monad.Trans
 import Control.Exception
 import Control.Applicative ((<$>))
@@ -181,10 +181,21 @@ serviceActions = Map.fromList
   )
   ,("contractor_partner",
     [\objId val -> do
-        opts <- get objId "service_tarifOptions"
+        opts <- get objId "cost_serviceTarifOptions"
         let ids = B.split ',' opts
         lift $ runRedisDB redis $ Redis.del ids
-        set objId "service_tarifOptions" ""
+        set objId "cost_serviceTarifOptions" ""
+    ])
+  ,("falseCall",
+    [\objId val -> set objId "cost_counted" =<< srvCostCounted objId])
+  ,("contractor_partnerId",
+    [\objId val -> do
+        srvs <- get val "services" >>= return  . B.split ','
+        let m = head $ B.split ':' objId
+        s <- filterM (\s -> get s "serviceName" >>= return . (m ==)) srvs
+        case s of
+          []     -> set objId "falseCallPercent" ""
+          (x:xs) -> get x "falseCallPercent" >>= set objId "falseCallPercent"
     ])
   ,("payType",
     [\objId val -> do
@@ -201,13 +212,7 @@ serviceActions = Map.fromList
             srvCostCounted objId >>= set objId "cost_counted"
         ])
   ,("cost_serviceTarifOptions",
-    [\objId val -> do
-      let ids = B.split ',' val
-      opts <- lift $ runRedisDB redis $ sequence <$> mapM Redis.hgetall ids
-      case opts of
-        Left  _ -> return ()
-        Right v -> set objId "cost_counted" =<< srvCostCounted objId
-      ])
+    [\objId val -> set objId "cost_counted" =<< srvCostCounted objId ])
   ]
 
 resultSet1 =
@@ -567,8 +572,14 @@ setWeather objId city = do
     Left  _ -> return ()
 
 srvCostCounted srvId = do
+  falseCall        <- get srvId "falseCall"
+  falseCallPercent <- get srvId "falseCallPercent" >>=
+                      return . fromMaybe 1 . mbreadDouble
   tarifIds <- get srvId "cost_serviceTarifOptions" >>= return . B.split ','
-  printBPrice <$> sum <$> mapM calcCost tarifIds
+  cost <- sum <$> mapM calcCost tarifIds
+  case falseCall of
+    "bill" -> return $ printBPrice $ cost * falseCallPercent
+    _      -> return $ printBPrice cost
 
 calcCost id = do
   p <- get id "price" >>= return . fromMaybe 0 . mbreadDouble

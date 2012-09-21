@@ -463,6 +463,14 @@
             }
         },
         {
+            "name": "falseCallPercent",
+            "canRead":  [ ],
+            "canWrite": [ ],
+            "meta": {
+                "invisible": true
+            }
+        },
+        {
             "name": "bill",
             "groupName": "bill"
         },

@@ -171,6 +171,7 @@
         {
             "targets": [
                 "contractor_partner",
+                "contractor_partnerId",
                 "contractor_partnerTable",
                 "contractor_address"
             ],
@@ -548,6 +549,14 @@
                 "dictionaryName": "FalseStatuses",
                 "label": "Ложный вызов",
                 "infoText": "falsecall"
+            }
+        },
+        {
+            "name": "falseCallPercent",
+            "canRead":  [ ],
+            "canWrite": [ ],
+            "meta": {
+                "invisible": true
             }
         },
         {

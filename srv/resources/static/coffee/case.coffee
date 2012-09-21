@@ -225,6 +225,7 @@ this.partnerOptsHook = (i, knockVM) ->
     model = knockVM.modelName()
     v1 = global.dictLabelCache.partners1[n.trim()]
     if v1 and id = v1.split(':')?[1]
+      knockVM['contractor_partnerId'](v1)
       buildNewModel "partner", {id: id}, {}, (m,mo,kvm)->
         sTout 1000, ->
           services = kvm.servicesReference()
@@ -256,12 +257,8 @@ this.partnerOptsHook = (i, knockVM) ->
           bindDelete knockVM, 'cost_serviceTarifOptions'
 
 this.srvOptUpd = (instance, knockVM) ->
-  global.lll = {}
   knockVM['payType'].subscribe (n) ->
-    console.log "srvoptupd"
     sTout 500, ->
       for o in knockVM['cost_serviceTarifOptionsReference']()
         do (o) ->
-          console.log "srvoptupd going"
-          global.lll[o.model().id] =  o
           o.model().fetch()
