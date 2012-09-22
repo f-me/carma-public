@@ -6,6 +6,9 @@ import qualified Data.ByteString.Char8 as B
 import qualified Data.Map as M
 import           Data.Map (Map)
 import Data.Maybe
+import Control.Applicative
+import Data.Either
+import Data.List
 
 objKey :: B.ByteString -> B.ByteString -> B.ByteString
 objKey model objId = B.concat [model, ":", objId]
@@ -17,6 +20,7 @@ main = do
   conn <- connect defaultConnectInfo
   runRedis conn $ do
     updPartnerOpts
+    updCasePartner
 
 updPartnerOpts = do
   Right ps <- keys "partner:*"
@@ -49,7 +53,40 @@ updPartnerOpts = do
                 return ()
 
 updCasePartner = do
-  return ()
+  Right ps <- keys "partner:*"
+  plst <- forM (filter (not . B.isPrefixOf "partner:name") ps) $ \k -> do
+    Right p <- hgetall k
+    return (fromMaybe "" $ M.lookup "name" $ M.fromList p, M.fromList p)
+  -- make map partner -> partnerid
+  let pmap = M.fromList plst
+  Right casesIds <- keys "case:*"
+  cases <- map M.fromList <$> rights <$> mapM hgetall casesIds
+  -- thru cases
+  forM_ cases $ \k -> do
+    let ss = B.split ',' $ fromMaybe "" $ M.lookup "services" k
+    -- thru services
+    forM_ ss $ \sId -> do
+      Right srv <- hgetall sId
+      let srvm = M.fromList srv
+      case flip M.lookup pmap =<< M.lookup "contractor_partner" srvm of
+        Nothing  -> return ()
+        Just p   -> do
+          hmset sId [( "contractor_partnerId"
+                     , objKey "partner" $ fromJust $ M.lookup "id" p
+                     )]
+          case return . B.split ',' =<< M.lookup "services" p of
+            Nothing -> return ()
+            Just ps -> do
+              let srvName = head $ B.split ':' sId
+              pservices <- map M.fromList <$> rights <$> mapM hgetall ps
+              let samesrv = find (\s -> (fromMaybe "" $ M.lookup "serviceName" s) == srvName) pservices
+              case samesrv of
+                Nothing -> return ()
+                Just v  -> do
+                  let perc = fromMaybe "" $ M.lookup "falseCallPercent" v
+                  hmset sId [("falseCallPercent", perc)]
+                  return ()
+
 
 -- | Like Map.lookup but treat Just "" as Nothing
 lookupNE :: Ord k => k -> Map k B.ByteString -> Maybe B.ByteString
