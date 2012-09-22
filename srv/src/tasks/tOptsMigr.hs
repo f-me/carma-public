@@ -6,7 +6,6 @@ import qualified Data.ByteString.Char8 as B
 import qualified Data.Map as M
 import           Data.Map (Map)
 import Data.Maybe
-import Debug.Trace
 
 objKey :: B.ByteString -> B.ByteString -> B.ByteString
 objKey model objId = B.concat [model, ":", objId]
@@ -35,7 +34,7 @@ updPartnerOpts = do
                 p1    = lookupNE "price1"    p'
                 p2    = lookupNE "price2"    p'
             case all (== Nothing) [tname, p1,p2] of
-              True  -> trace ("allempty" ++ show srvId ++ show tname ++ show p1 ++ show p2) $ return ()
+              True  -> return ()
               False -> do
                 Right id <- incr $ modelIdKey "tarifOption"
                 let idStr = B.pack $ show id
@@ -48,7 +47,6 @@ updPartnerOpts = do
                            ]
                 hmset k [("tarifOptions", tkey)]
                 return ()
-  -- trace (show $ filter (not . B.isPrefixOf "partner:name") ps) $ return ()
 
 updCasePartner = do
   return ()
