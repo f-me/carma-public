@@ -8,7 +8,7 @@ this.setupCallForm = (viewName, args) ->
   $('input[name="callDate"]').parents('.control-group').hide()
   $('input[name="callTaker"]').parents('.control-group').hide()
   searchTable = $("#call-searchtable")
-  st = mkDataTable(searchTable)
+  st = mkDataTable searchTable, { bFilter : false }
   searchTable.on("click.datatable", "tr", ->
     id = this.children[0].innerText
     window.location.hash = "case/" + id
