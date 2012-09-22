@@ -8,6 +8,13 @@ this.setupReports = (viewName, args) ->
     ko.applyBindings(global.reports, el "layout" )
     mkDataTable $('#reports-table'), { sScrollY: '400px' }
 
+    d1 = new Date
+    d1.setDate 1
+    d2 = new Date
+
+    $('#date-from').val (d1.toString 'dd.MM.yyyy')
+    $('#date-to').val (d2.toString 'dd.MM.yyyy')
+
 this.deleteReport = (e) ->
   return unless confirm "Вы уверены, что хотите удалить отчет?"
   objId = $(e).parents('tr').attr('id')

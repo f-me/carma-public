@@ -310,7 +310,7 @@
                  data-autoshow-datepicker="true"
                  data-date-format="dd.mm.yyyy"
                  data-date-weekstart="1">
-              <input type="text" class="pane-span focusable" name="from"/>
+              <input type="text" id="date-from" class="pane-span focusable" name="from"/>
               <span class="add-on"><i class="icon icon-calendar" /></span>
             </div>
             <div class="input-append date"
@@ -318,7 +318,7 @@
                  data-autoshow-datepicker="true"
                  data-date-format="dd.mm.yyyy"
                  data-date-weekstart="1">
-              <input type="text" class="pane-span focusable" name="to"/>
+              <input type="text" id="date-to" class="pane-span focusable" name="to"/>
               <span class="add-on"><i class="icon icon-calendar" /></span>
             </div>
             <select name="program" data-bind="foreach: $data">
