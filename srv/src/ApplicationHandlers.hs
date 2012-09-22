@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 
 module ApplicationHandlers where
 
@@ -37,6 +38,7 @@ import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.Session
 import Snap.Snaplet.SimpleLog
+import Snap.Snaplet.Vin
 import Snap.Util.FileServe (serveFile)
 import Snap.Util.Readable (fromBS)
 ------------------------------------------------------------------------------
@@ -342,3 +344,29 @@ rmFromLoggedUsers u = do
   logdUsrs <- gets loggedUsers
   liftIO $ atomically $ modifyTVar' logdUsrs
          $ Map.delete $ userLogin u
+
+vinUploadData :: AppHandler ()
+vinUploadData = scope "vin" $ scope "upload" $ do
+  log Trace "Uploading data"
+  (f:_) <- with fileUpload $ doUpload' "report" "upload" "data"
+  log Trace $ T.concat ["Uploaded to file: ", T.pack f]
+  prog <- getParam "program"
+  case prog of
+    Nothing -> log Error "Program not specified"
+    Just p -> scope (T.decodeUtf8 p) $ do
+      log Trace $ T.concat ["Initializing state for file: ", T.pack f]
+      with vin $ initUploadState f
+      log Trace $ T.concat ["Uploading data from file: ", T.pack f]
+      with vin $ uploadData (T.unpack . T.decodeUtf8 $ p) f
+
+vinStateRead :: AppHandler ()
+vinStateRead = scope "vin" $ scope "state" $ scope "get" $ do
+  log Trace "Getting state"
+  with vin getState
+
+vinStateRemove :: AppHandler ()
+vinStateRemove = scope "vin" $ scope "state" $ scope "remove" $ do
+  log Trace "Remove alert by id"
+  res <- getParam "id"
+  log Trace $ T.concat ["id: ", maybe "<null>" (T.pack . show) res]
+  with vin removeAlert

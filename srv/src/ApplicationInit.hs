@@ -60,6 +60,9 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/rkc",           chkAuth . method GET  $ rkcHandler)
          , ("/rkc/:program",  chkAuth . method GET  $ rkcHandler)
          , ("/usersDict",     chkAuth . method GET  $ getUsersDict)
+         , ("/vin/upload",    chkAuth . method POST $ vinUploadData)
+         , ("/vin/state",     chkAuth . method GET  $ vinStateRead)
+         , ("/vin/state",     chkAuth . method POST $ vinStateRemove)
          ]
 
 
