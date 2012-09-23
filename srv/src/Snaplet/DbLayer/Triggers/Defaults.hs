@@ -30,6 +30,9 @@ applyDefaults model obj = do
       y  = d * 365
       cd = Map.insert "callDate" (B.pack $ show ct) obj
       obj' = case model of
+        "partner" -> Map.insert "isActive" "0"
+                  $  Map.insert "isDealer" "0"
+                  $  obj
         "case" -> cd
         "call" -> cd
         "vin"  -> Map.fromList

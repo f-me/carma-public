@@ -6,6 +6,7 @@ localScreens = ->
     "views":
       "case-form":
         constructor: setupCaseMain
+        destructor: removeCaseMain
   "search":
     "template": "search-screen-template"
     "views":
@@ -37,6 +38,11 @@ localScreens = ->
     "views":
       "action-form":
         constructor: setupSupervisorScreen
+  "rkc":
+    "template": "rkc-screen-template"
+    "views":
+      "rkc-form":
+        constructor: setupRKCScreen
   "reports":
     "template": "reports-screen-template"
     "views":
@@ -67,6 +73,7 @@ localRouter = Backbone.Router.extend
     "editVin/:id" : "editVin"
     "newVin"      : "newVin"
     "supervisor"  : "supervisor"
+    "rkc"         : "rkc"
 
   loadCase    : (id) -> renderScreen("case", {"id": id})
   newCase     :      -> renderScreen("case", {"id": null})
@@ -81,6 +88,7 @@ localRouter = Backbone.Router.extend
   editVin     : (id) -> renderScreen("editVin", {"id": id})
   newVin      :      -> renderScreen("newVin")
   supervisor  :      -> renderScreen("supervisor")
+  rkc         :      -> renderScreen("rkc")
 
 # here is entry point
 $ ->
@@ -91,10 +99,12 @@ $ ->
           $.getJSON "/s/screens",                 (nav)    ->
             $.getJSON "/usersDict",                 (users)  ->
               dicts.users =
-                entries: for i in users
+                entries:
+                    for i in users
                            {value: i.value, label: "#{i.label} (#{i.value})"}
               dicts.roles =
-                entries: for i in users
+                entries:
+                    for i in users
                            {value: i.value, label: i.roles }
               mainSetup localScreens(),
                         localRouter,
@@ -106,9 +116,13 @@ $ ->
               global.checks = checks
               global.keys = {}
               global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
+              ko.applyBindings global.nav, $('#nav')[0]
+              ext = user.meta.avayaExt
+              pwd = user.meta.avayaPwd
+              if ext and pwd
+                global.avayaPhone = new AvayaWidget($('#avaya-panel'), ext, pwd)
               if window.location.hash == ""
                 redirectToHomePage user
-              ko.applyBindings global.nav, $('#nav')[0]
 
 this.redirectToHomePage = (user) ->
   mainRole = user.roles[0]
@@ -173,7 +187,14 @@ this.showComplex = (parentView, fieldName) ->
   return if view.is(':visible')
   $(".complex-field").hide()
 
-  view.show -> initOSM e for e in view.find(".osMap")
+  view.show ->
+    initOSM e for e in view.find(".osMap")
+
+    isDealerView = depViewName.match(/towDealer_partner-view/)
+    isPartnerView = depViewName.match(/contractor_partner-view/)
+    if isDealerView or isPartnerView
+      initPartnerTables view, parentView
+
 
 this.hideComplex = ->
   $(".complex-field").hide()
@@ -205,12 +226,9 @@ this.doPick = (pickType, args, el) ->
   pickers =
 
     callPlease: (modelName) ->
-      bb = global.viewsWare["case-form"].bbInstance
-      phoneNumber = bb.get(modelName)
-      $.post(
-        "/avaya/call",
-        number: phoneNumber,
-        -> alert ("Calling " + phoneNumber))
+      bb = global.viewsWare["call-form"].bbInstance
+      number = bb.get(modelName)
+      global.avayaPhone && global.avayaPhone.call(number)
 
     nominatimPicker: (fieldName, el) ->
       addr = $(el).parent().prev().val()

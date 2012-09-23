@@ -23,10 +23,13 @@ Executable carma
     ApplicationInit,
     ApplicationHandlers,
     Nominatim,
+    CustomLogic.ActionAssignment,
     Snaplet.DbLayer,
     Snaplet.DbLayer.Indices,
     Snaplet.DbLayer.RedisCRUD,
     Snaplet.DbLayer.PostgresCRUD,
+    Snaplet.DbLayer.ARC,
+    Snaplet.DbLayer.RKC,
     Snaplet.DbLayer.Dictionary,
     Snaplet.DbLayer.Triggers,
     Snaplet.DbLayer.Triggers.Actions,
@@ -41,21 +44,22 @@ Executable carma
     Snaplet.SiteConfig.Models,
     Snaplet.SiteConfig.Permissions,
     Snaplet.FileUpload,
-    Snap.Snaplet.AvayaAES,
     Snap.Snaplet.Auth.Class,
     Utils.HttpErrors,
-    Util
+    Util,
+    WebSockHandlers
 
   Build-depends:
     aeson                       == 0.6.*,
     attoparsec                  == 0.10.*,
-    avaya-aes                   == 0.0.1,
+    avaya-aes                   == 0.0.4,
     base                        >= 4 && < 5,
     configurator                == 0.2.*,
     containers                  == 0.4.*,
     bytestring                  >= 0.9.1 && < 0.10,
     data-lens-template          >= 2.1 && < 2.2,
     data-lens                   >= 2.0.1 && < 2.11,
+    errors                      >= 1.2.1 && < 1.3,
     resource-pool-catchio       >= 0.2 && < 0.3,
     heist                       == 0.8.*,
     old-locale                  == 1.0.*,
@@ -68,7 +72,7 @@ Executable carma
     time                        >= 1.1 && < 1.5,
     mtl                         == 2.0.*,
     stm                         == 2.3,
-    transformers                >= 0.2 && < 0.4,
+    transformers                >  0.2 && < 0.4,
     MonadCatchIO-transformers   >= 0.3 && < 0.4,
     vin-parser                  == 0.1.*,
     hedis                       == 0.4.1,
@@ -88,7 +92,9 @@ Executable carma
     weather-api                 == 0.1.*,
     fdds                        == 0.1,
     vector                      == 0.9.*,
-    bytestring-lexing           == 0.4.*
+    bytestring-lexing           == 0.4.*,
+    websockets                  == 0.6.*
+
   Extensions:
     OverloadedStrings,
     RecordWildCards,

@@ -1,6 +1,7 @@
 
 module ApplicationHandlers where
 
+import Prelude hiding (log)
 
 import Data.Functor
 import Control.Monad
@@ -17,6 +18,7 @@ import qualified Data.ByteString.UTF8  as BU
 import qualified Data.Aeson as Aeson
 import Data.Map (Map)
 import qualified Data.Map as Map
+import qualified Data.HashMap.Strict as HashMap
 
 import Data.Maybe
 import Data.List (foldl',sortBy)
@@ -34,10 +36,12 @@ import Snap.Snaplet (with)
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.Session
+import Snap.Snaplet.SimpleLog
 import Snap.Util.FileServe (serveFile)
 import Snap.Util.Readable (fromBS)
 ------------------------------------------------------------------------------
 import qualified Snaplet.DbLayer as DB
+import qualified Snaplet.DbLayer.RKC as RKC
 import Snaplet.FileUpload (doUpload', doDeleteAll')
 ------------------------------------------------------------------------------
 import qualified Codec.Xlsx.Templater as Xlsx
@@ -87,13 +91,17 @@ doLogin = ifTop $ do
   case res of
     Left _ -> redirectToLogin
     Right u -> do
+      creds <- (,)
+        <$> getParam "avayaExt"
+        <*> getParam "avayaPwd"
+      case creds of
+        (Just ext, Just pwd) -> with auth $ saveUser
+          u {userMeta
+            = HashMap.insert "avayaExt" (Aeson.toJSON ext)
+            $ HashMap.insert "avayaPwd" (Aeson.toJSON pwd)
+            $ userMeta u
+            }
       addToLoggedUsers u
-      avayaExt <- fromMaybe "" <$> getParam "avayaExt" >>= fromBS
-      avayaPwd <- fromMaybe "" <$> getParam "avayaPwd" >>= fromBS
-      with session $ do
-        setInSession "avayaExt" avayaExt
-        setInSession "avayaPwd" avayaPwd
-        commitSession
 
       redirect "/"
 
@@ -182,6 +190,27 @@ syncHandler = do
   res <- with db DB.sync
   writeJSON res
 
+searchHandler :: AppHandler ()
+searchHandler = scope "searchHandler" $ do
+  Just q <- getParam "q"
+  Just m <- getParam "model"
+  Just fs <- getParam "fields"
+  Just sel <- getParam "select"
+  let
+    getInt v = do
+      s <- v
+      (x, _) <- B.readInt s
+      return x
+    sels = B.split ',' sel
+  lim <- liftM (maybe 100 id . getInt) $ getParam "limit"
+  res <- with db $ DB.searchFullText m (B.split ',' fs) sels q lim
+  writeJSON $ map (Map.fromList . zip sels) res
+
+rkcHandler :: AppHandler ()
+rkcHandler = scope "rkcHandler" $ do
+  p <- getParam "program"
+  info <- with db . RKC.rkc . maybe T.empty T.decodeUtf8 $ p
+  writeJSON info
 
 myActionsHandler :: AppHandler ()
 myActionsHandler = do
@@ -193,18 +222,19 @@ myActionsHandler = do
   do -- bracket_
     (liftIO $ atomically $ takeTMVar actLock)
     actions <- filter ((== Just "0") . Map.lookup "closed")
-           <$> with db (DB.readAll "actions")
+           <$> with db (DB.readAll "action")
     now <- liftIO getCurrentTime
-    let assignedActions = assignActions now actions (Map.map snd logdUsers)
-    let myActions = take 5 $ Map.findWithDefault [] uLogin assignedActions
-    with db $ forM_ myActions $ \act ->
+    let (newActions,oldActions) = assignActions now actions (Map.map snd logdUsers)
+    let myNewActions = take 5 $ Map.findWithDefault [] uLogin newActions
+    with db $ forM_ myNewActions $ \act ->
       case Map.lookup "id" act of
         Nothing -> return ()
         Just actId -> void $ DB.update "action"
           (last $ B.split ':' actId)
           $ Map.singleton "assignedTo" $ T.encodeUtf8 uLogin
+    let myOldActions = Map.findWithDefault [] uLogin oldActions
     (liftIO $ atomically $ putTMVar actLock ())
-    writeJSON myActions
+    writeJSON $ myNewActions ++ myOldActions
 
 
 searchCallsByPhone :: AppHandler ()
@@ -252,7 +282,7 @@ report = do
   let
       -- convert format and UTCize time
       validate dateStr = fmap (format . toUTC) $ parse dateStr where
-          format = T.pack . formatTime defaultTimeLocale "%m.%d.%Y"
+          format = T.pack . formatTime defaultTimeLocale "%d.%m.%Y %X"
           parse :: T.Text -> Maybe LocalTime
           parse = parseTime defaultTimeLocale "%d.%m.%Y" . T.unpack
           toUTC = localTimeToUTC tz
@@ -260,8 +290,8 @@ report = do
           f <- dateValue
           s <- validate f
           return $ T.concat [T.pack pre, s, T.pack post]
-      fromDate' = within "case.callDate > '" "'" fromDate
-      toDate' = within "case.callDate < '" "'" toDate
+      fromDate' = within "case.callDate > to_timestamp('" "', 'DD.MM.YYYY HH24:MI:SS')" fromDate
+      toDate' = within "case.callDate < to_timestamp('" "', 'DD.MM.YYYY HH24:MI:SS')" toDate
       
       dateConditions = catMaybes [fromDate', toDate']
   with db $ DB.generateReport dateConditions template result

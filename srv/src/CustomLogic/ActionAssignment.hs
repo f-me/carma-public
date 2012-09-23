@@ -26,9 +26,11 @@ type Duetime = Int
 type Assignment = Map Login (Map Duetime [Action])
 
 
-assignActions :: UTCTime -> [Action] -> Map Login AuthUser -> Map Login [Action]
+assignActions
+  :: UTCTime -> [Action] -> Map Login AuthUser
+  -> (Map Login [Action], Map Login [Action])
 assignActions now actions loggedUsers
-  = Map.map (concat . Map.elems) perfectAssignment
+  = (freshAssignments, Map.map (concat . Map.elems) actionsByAssignee)
   where
     nowSeconds = round $ utcTimeToPOSIXSeconds now
 
@@ -52,16 +54,21 @@ assignActions now actions loggedUsers
           where
             go' m' (Role r) = Map.insertWith (++) r [userLogin usr] m'
 
-    perfectAssignment :: Assignment
-    perfectAssignment = foldl' go actionsByAssignee actionsToAssign
+    freshAssignments :: Map Login [Action]
+    freshAssignments
+      = fst
+      $ foldl' go (Map.empty,actionsByAssignee) actionsToAssign
       where
-        go ass act -- YEP!
-          | null matchingUsers = ass
-          | otherwise = flip addActionToAssignment ass
-            $ Map.insert "duetime" (B8.pack $ show duetime')
-            $ Map.insert "assignedTo" (T.encodeUtf8 bestUser)
-            $ act
+        go (new,ass) act -- YEP!
+          | null matchingUsers = (new,ass)
+          | otherwise =
+            (Map.insertWith' (++) bestUser [act'] new
+            ,flip addActionToAssignment ass act'
+            )
           where
+            act' = Map.insert "duetime" (B8.pack $ show duetime')
+                 $ Map.insert "assignedTo" (T.encodeUtf8 bestUser)
+                 $ act
             role = Map.findWithDefault "(error)" "targetGroup" act
             matchingUsers = Map.findWithDefault [] role usersByRole
             usersTimeline usr = Map.findWithDefault Map.empty usr ass

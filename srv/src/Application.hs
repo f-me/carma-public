@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell, FlexibleInstances #-}
 
 module Application where
 
@@ -18,8 +18,8 @@ import Snaplet.SiteConfig
 import Snaplet.SiteConfig.Class
 import Snaplet.DbLayer.Types
 import Snap.Snaplet.Vin
-import Snap.Snaplet.AvayaAES
 import Snaplet.FileUpload
+import Snap.Snaplet.SimpleLog
 
 import Util (UsersDict)
 ------------------------------------------------------------------------------
@@ -34,7 +34,6 @@ data App = App
     , _siteConfig :: Snaplet (SiteConfig App)
     , _db         :: Snaplet (DbLayer App)
     , _vin        :: Snaplet Vin
-    , _avaya      :: Snaplet (Avayaplet App)
     , _fileUpload :: Snaplet FileUpload
     }
 
@@ -50,3 +49,6 @@ instance HasAuth App where
 
 instance HasSiteConfig App where
   siteConfigLens = subSnaplet siteConfig
+
+instance MonadLog (Handler App App) where
+  askLog = with db askLog

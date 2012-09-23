@@ -5,6 +5,7 @@ module Snaplet.DbLayer
   ,delete
   ,search
   ,sync
+  ,searchFullText
   ,generateReport
   ,readAll
   ,initDbLayer
@@ -27,6 +28,7 @@ import Data.Ord (comparing)
 import Data.Maybe (fromJust)
 import Data.String
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 
 import Network.URI (parseURI, URI(..))
 import qualified Fdds as Fdds
@@ -45,8 +47,6 @@ import qualified Database.PostgreSQL.Models as SM
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers
 import Util
-
-import qualified Debug.Trace as DT
 
 create model commit = scoper "create" $ do
   mdl <- gets syncModels
@@ -118,17 +118,31 @@ sync = scope "sync" $ do
     mdl <- gets syncModels
     mapM_ (syncModel mdl) (modelList mdl)
     where
-        syncModel mdl model = scope "syncModel" $ do
+        syncModel mdl model = scope (T.decodeUtf8 model) $ do
             Right (Just cnt) <- runRedisDB redis $ Redis.get (Redis.modelIdKey model)
             log Info $ fromString $ "Syncing model " ++ show model
             log Trace $ fromString $ "Count of entries for model " ++ show model ++ " is: " ++ show cnt
             case C8.readInt cnt of
-                Just (maxId, _) -> forM_ [1..maxId] $ \i -> do
+                Just (maxId, _) -> forM_ [1..maxId] $ \i -> scope (fromString $ show i) (do
                     rec <- Redis.read redis model (C8.pack . show $ i)
                     let rec' = Map.insert (C8.pack "id") (C8.pack . show $ i) rec
-                    when (not $ Map.null rec) $ void $ Postgres.insertUpdate mdl model (C8.pack . show $ i) rec'
+                    when (not $ Map.null rec) $ void $ Postgres.insertUpdate mdl model (C8.pack . show $ i) rec')
                 Nothing -> error $ "Invalid id for model " ++ C8.unpack model
         modelList m = map C8.pack $ Map.keys (SM.modelsModels m)
+
+searchFullText :: ByteString -> [ByteString] -> [ByteString] -> ByteString -> Int -> Handler b (DbLayer b) [[ByteString]]
+searchFullText mname fs sels q lim = do
+  mdl <- gets syncModels
+  res <- Postgres.search mdl mname fs sels q lim
+  return $ map (map showValue) res
+  where
+    showValue :: S.FieldValue -> ByteString
+    showValue (S.IntValue s) = T.encodeUtf8 . T.pack . show $ s
+    showValue (S.DoubleValue s) = T.encodeUtf8 . T.pack . show $ s
+    showValue (S.BoolValue s) = T.encodeUtf8 . T.pack . show $ s
+    showValue (S.StringValue s) = T.encodeUtf8 . T.pack $ s
+    showValue (S.TimeValue s) = T.encodeUtf8 . T.pack . (show :: Integer -> String) . floor $ s
+    showValue _ = C8.empty
 
 generateReport :: [T.Text] -> FilePath -> FilePath -> Handler b (DbLayer b) ()
 generateReport conds template filename = do
@@ -138,8 +152,7 @@ generateReport conds template filename = do
 readAll model = Redis.readAll redis model
 
 -- log politics
-logConfig = [
-    relative ["generate"] $ low Trace]
+logConfig = []
 
 initDbLayer :: UsersDict -> SnapletInit b (DbLayer b)
 initDbLayer allU = makeSnaplet "db-layer" "Storage abstraction"

@@ -1,5 +1,5 @@
 
-
+{-# LANGUAGE BangPatterns #-}
 module ApplicationInit (appInit) where
 
 import Control.Monad.IO.Class
@@ -17,7 +17,6 @@ import Snap.Snaplet.Auth.Backends.JsonFile
 import Snap.Snaplet.Session.Backends.CookieSession
 import Snap.Util.FileServe (serveDirectory, serveFile)
 ------------------------------------------------------------------------------
-import Snap.Snaplet.AvayaAES
 import Snap.Snaplet.Vin
 import Snaplet.SiteConfig
 import Snaplet.DbLayer
@@ -25,6 +24,7 @@ import Snaplet.FileUpload
 ------------------------------------------------------------------------------
 import Application
 import ApplicationHandlers
+import WebSockHandlers
 ----------------------------------------------------------------------
 import Util (readJSON, UsersDict)
 
@@ -57,6 +57,9 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/_/report/",     chkAuth . method POST $ createReportHandler)
          , ("/_/report/:id",  chkAuth . method DELETE $ deleteReportHandler)
          , ("/sync",          chkAuth . method GET  $ syncHandler)
+         , ("/search/:model", chkAuth . method GET  $ searchHandler)
+         , ("/rkc",           chkAuth . method GET  $ rkcHandler)
+         , ("/rkc/:program",  chkAuth . method GET  $ rkcHandler)
          , ("/usersDict",     chkAuth . method GET  $ getUsersDict)
          ]
 
@@ -91,7 +94,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
                       , asRememberPeriod = Just (rmbPer * 24 * 60 * 60)}
                                session authDb
   logdUsrs <- liftIO $ newTVarIO Map.empty
-  allUsrs  <- liftIO $ getUsrs authDb
+  !allUsrs <- liftIO $ getUsrs authDb
   actLock  <- liftIO $ newTMVarIO ()
 
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
@@ -99,12 +102,12 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   d <- nestSnaplet "db" db $ initDbLayer allUsrs
 
   v <- nestSnaplet "vin" vin vinInit
-  av <- nestSnaplet "avaya" avaya avayaAESInit
   fu <- nestSnaplet "upload" fileUpload fileUploadInit
 
   addRoutes routes
 
-  return $ App h s authMgr logdUsrs allUsrs actLock c d v av fu
+  liftIO $ runWebSockServer "0.0.0.0" 8001
+  return $ App h s authMgr logdUsrs allUsrs actLock c d v fu
 
 getUsrs authDb = do
   readJSON authDb :: IO UsersDict

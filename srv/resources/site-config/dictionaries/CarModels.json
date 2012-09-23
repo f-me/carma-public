@@ -88,10 +88,6 @@
                 "label": "Alero"
             },
             {
-                "value": "astraCh",
-                "label": "Astra"
-            },
-            {
                 "value": "aveo",
                 "label": "Aveo"
             },
@@ -136,10 +132,6 @@
                 "label": "Colorado"
             },
             {
-                "value": "corsaCh",
-                "label": "Corsa"
-            },
-            {
                 "value": "wind",
                 "label": "Corsa Wind"
             },
@@ -150,6 +142,10 @@
             {
                 "value": "corvette",
                 "label": "Corvette"
+            },
+            {
+                "value": "cruze",
+                "label": "Cruze"
             },
             {
                 "value": "epicaCh",
@@ -180,10 +176,6 @@
                 "label": "Jimmy"
             },
             {
-                "value": "kadett",
-                "label": "Kadett"
-            },
-            {
                 "value": "lacetti",
                 "label": "Lacetti"
             },
@@ -204,10 +196,6 @@
                 "label": "Malibu"
             },
             {
-                "value": "matizCh",
-                "label": "Matiz"
-            },
-            {
                 "value": "metro",
                 "label": "Metro"
             },
@@ -224,20 +212,12 @@
                 "label": "NIVA"
             },
             {
-                "value": "omegaCh",
-                "label": "Omega"
-            },
-            {
                 "value": "prism",
                 "label": "Prism"
             },
             {
                 "value": "s10",
                 "label": "S-10"
-            },
-            {
-                "value": "sierraCh",
-                "label": "Sierra"
             },
             {
                 "value": "spark",
@@ -276,20 +256,12 @@
                 "label": "Trans Sport"
             },
             {
-                "value": "vectraCh",
-                "label": "Vectra"
-            },
-            {
                 "value": "venture",
                 "label": "Venture"
             },
             {
                 "value": "viva",
                 "label": "Viva"
-            },
-            {
-                "value": "zafiraCh",
-                "label": "Zafira"
             }
         ],
         "daewoo": [
@@ -300,10 +272,6 @@
             {
                 "value": "espero",
                 "label": "Espero"
-            },
-            {
-                "value": "lanos",
-                "label": "Lanos"
             },
             {
                 "value": "matiz",
@@ -430,6 +398,10 @@
             {
                 "value": "santaFe",
                 "label": "Santa Fe new"
+            },
+            {
+                "value": "solaris",
+                "label": "Solaris"
             },
             {
                 "value": "sonata",
@@ -894,6 +866,10 @@
             {
                 "value": "cougar",
                 "label": "Cougar"
+            },
+            {
+                "value": "kuga",
+                "label": "Kuga"
             },
             {
                 "value": "crownVictoria",

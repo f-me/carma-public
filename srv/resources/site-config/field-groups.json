@@ -551,15 +551,6 @@
                 "infoText": "datetime",
                 "regexp": "datetime"
             }
-        },
-        {
-            "name": "repairEndDate",
-            "type": "date",
-            "meta": {
-                "label": "Дата окончания ремонта",
-                "infoText": "date",
-                "regexp": "date"
-            }
         }
     ],
     "address": [
@@ -568,8 +559,7 @@
             "type": "picker",
             "meta": {
                 "label": "Адрес",
-                "picker": "nominatimPicker",
-                "infoText": "address"
+                "picker": "nominatimPicker"
             }
         },
         {
@@ -606,27 +596,7 @@
         },
         {
             "name": "partnerTable",
-            "type": "table",
-            "meta": {
-                "columns": [
-                    {
-                        "name": "name",
-                        "label": "Название"
-                    },
-                    {
-                        "name": "address",
-                        "label": "Адрес"
-                    },
-                    {
-                        "name": "phones",
-                        "label": "Телефоны"
-                    },
-                    {
-                        "name": "workingHours",
-                        "label": "График работы"
-                    }
-                ]
-            }
+            "type": "partnerTable"
         }
     ],
     "vinContact": [

@@ -221,30 +221,7 @@ resultSet1 =
   ] 
 
 actionActions = Map.fromList
-  [("closed",
-    [\objId val -> do
-        comment <- get objId "comment"
-        when (val == "1") $
-          set objId "comment" $
-          B.append comment $ utf8 "\nЗакрыто супервизором"
-    ])
-  ,("assignedTo",
-    [\objId val -> do
-        comment <- get objId "comment"
-        Right oldVal <- lift $ runRedisDB redis $ Redis.hget objId "assignedTo"
-        UsersDict allu <- lift $ gets allUsers
-        when (any (== val) $ map (fromJust . (Map.lookup "value")) allu) $
-          case oldVal of
-            Just v  -> set objId "comment" $ B.append comment $ B.concat
-                       [ utf8 "\nОтвественный изменен супервизором c "
-                       , v , utf8 " на " , val
-                       ]
-            Nothing  -> set objId "comment" $ B.append comment $ B.concat
-                       [ utf8 "\nОтвественный изменен супервизором на "
-                       , val
-                       ]
-    ])
-  ,("result",
+  [("result",
     [\objId val -> when (val `elem` resultSet1) $ do
          setService objId "status" "orderService"
          void $ replaceAction
@@ -359,11 +336,16 @@ actionResultMap = Map.fromList
   ,("serviceFinished", \objId -> do
     setService objId "status" "serviceOk"
     tm <- getService objId "times_expectedServiceClosure"  
-    void $ replaceAction
+    act <- replaceAction
       "closeCase"
       "Закрыть заявку"
       "back" "3" (changeTime (+5*60) tm)
       objId
+
+    partner <- getService objId "contractor_partner"
+    comment <- get objId "comment"
+    set act "comment" $ B.concat [utf8 "Партнёр: ", partner, "\n\n", comment]
+
     act <- replaceAction
       "addBill"
       "Прикрепить счёт"
@@ -373,7 +355,7 @@ actionResultMap = Map.fromList
     void $ replaceAction
       "getInfoDealerVW"
       "Требуется уточнить информацию о ремонте у дилера (только для VW)"
-      "analyst" "3" (+7*24*60*60)
+      "back" "3" (+7*24*60*60)
       objId
   )
   ,("complaint", \objId -> do
@@ -386,11 +368,16 @@ actionResultMap = Map.fromList
       "supervisor" "1" (+60)
       objId 
     set act1 "assignedTo" ""
-    void $ replaceAction
+    act <- replaceAction
       "closeCase"
       "Закрыть заявку"
       "back" "3" (changeTime (+5*60) tm)
       objId
+
+    partner <- getService objId "contractor_partner"
+    comment <- get objId "comment"
+    set act "comment" $ B.concat [utf8 "Партнёр: ", partner, "\n\n", comment]
+
     act2 <- replaceAction
       "addBill"
       "Прикрепить счёт"

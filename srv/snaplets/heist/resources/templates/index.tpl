@@ -64,9 +64,11 @@
     <script src="/s/js/call.js" />
     <script src="/s/js/backoffice.js" />
     <script src="/s/js/supervisors.js" />
+    <script src="/s/js/rkc.js" />
     <script src="/s/js/report.js" />
     <script src="/s/js/hotkeys.js" />
     <script src="/s/js/fileupload.js" />
+    <script src="/s/js/avaya.js" />
 
   </head>
   <body>
@@ -78,6 +80,19 @@
             <a class="brand" href="/">
               CaRMa
             </a>
+            <li class="divider-vertical" />
+            <li id="avaya-panel" class="dropdown" style="display: none">
+              <form class="navbar-search pull-left">
+                <input type="text" class="search-query" placeholder="Avaya">
+                <button id="avaya-call" class="btn">
+                  <i class="icon stolen-icon-phone"></i>
+                </button>
+              </form>
+              <ul class="dropdown-menu">
+                <li id="avaya-info" class="nav-header"></li>
+                <li><a id="avaya-accept" href="#">Принять звонок</a></li>
+              </ul>
+            </li>
             <li class="divider-vertical" />
             <!-- ko template: { name: 'nav-li-template' }-->
             <!-- /ko -->
@@ -115,6 +130,15 @@
             class="screen-template"
             id="call-screen-template">
       <div id="left" class="nice-scrollbar call-pane">
+        <div class="control-group">
+          <div class="control-label">
+            <label>Номер</label>
+          </div>
+          <div class="controls">
+            <input type="text" disabled id="call-number"
+                   data-bind="value: maybeId"/>
+          </div>
+        </div>
         <div id="call-form"/>
         <button class="btn btn-success"
                 type="submit"
@@ -122,8 +146,16 @@
           Новый кейс
         </button>
       </div>
-      <div id="center" class="nice-scrollbar call-pane"/>
+      <div id="center" class="nice-scrollbar call-pane" />
       <div id="bottom">
+        <div class="control-group">
+          <div class="control-label">
+            <label>Поиск</label>
+          </div>
+          <div class="controls">
+            <input type="text" class="input-xlarge" id="search-query">
+          </div>
+        </div>
         <table id="call-searchtable" class="table table-striped table-bordered">
           <thead>
             <tr>
@@ -542,6 +574,146 @@
       </div>
     </script>
 
+    <!-- RKC screen template -->
+    <script type="text/template"
+            class="screen-template"
+            id="rkc-screen-template">
+      <div class="pane" style="left:0;right:0;overflow-x:hidden;">
+        <div class="span12">
+          <div class="row-fluid">
+            <div class="span2">
+              <h2>Фильтрация</h2>
+            </div>
+            <div class="span4">
+              <div>
+                <div style="float:left; margin-top:+3px">
+                  Город:
+                </div>
+                <div style="float:left">
+                  <select id="city-select" data-bind="foreach: $data">
+                    <option data-bind="value: id, text: name" />
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="span4">
+              <div>
+                <div style="float:left; margin-top:+3px">
+                  Программа:
+                </div>
+                <div style="float:left">
+                  <select id="program-select" data-bind="foreach: $data">
+                    <option data-bind="value: id, text: name" />
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="span2">
+              <div class="control-group">
+                <button id="reload" class="btn">
+                  Обновить
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="row-fluid">
+            <div class="span4">
+              <h2>Кейсы</h2>
+              <div class="row-fluid">
+                <div class="span6">
+                  <div class="row-fluid">
+                    <div class="span10">
+                      Количество оказанных услуг всего
+                    </div>
+                    <div class="span2">
+                      <input style="float:right; width:40px" id="total-services" />
+                    </div>
+                  </div>
+                  <div class="row-fluid">
+                    <div class="span10">
+                      Среднее время прибытия эвакуатора/техпомощи
+                    </div>
+                    <div class="span2">
+                      <input style="float:right; width:40px" id="average-towage-tech-start" />
+                    </div>
+                  </div>
+                  <div class="row-fluid">
+                    <div class="span10">
+                      Общая стоимость услуг у партнёров
+                    </div>
+                    <div class="span2">
+                      <input style="float:right; width:40px" id="calculated-cost" />
+                    </div>
+                  </div>
+                </div>
+                <div class="span6">
+                  <div class="row-fluid">
+                    <div class="span10">
+                      Количество конференций с механиком
+                    </div>
+                    <div class="span2">
+                      <input style="float:right; width:40px" id="mechanic" />
+                    </div>
+                  </div>
+                  <div class="row-fluid">
+                    <div class="span10">
+                      Среднее время разгрузки/окончания услуги по эвакуации/техпомощи
+                    </div>
+                    <div class="span2">
+                      <input style="float:right; width:40px" id="average-towage-tech-end" />
+                    </div>
+                  </div>
+                  <div class="row-fluid">
+                    <div class="span10">
+                      Общая стоимость услуг для заказчиков
+                    </div>
+                    <div class="span2">
+                      <input style="float:right; width:40px" id="limited-cost" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row-fluid">
+                <h2>Услуги</h2>
+              </div>
+              <div class="row-fluid">
+                <table id="rkc-services-table" class="table table-striped table-bordered" >
+                  <thead>
+                    <tr>
+                      <th width="20%">Услуга</th>
+                      <th width="10%">Кол-во</th>
+                      <th width="10%">Среднее время ожидания</th>
+                      <th width="20%">Среднее время оказания</th>
+                      <th width="20%">Стоимость у партнёров</th>
+                      <th width="20%">Стоимость для заказчиков</th>
+                    </tr>
+                  </thead>
+                  <tbody />
+                </table>
+              </div>
+              <div class="row-fluid">
+                <h2>Удовлетворённость клиентов</h2>
+                <div>
+                  <div style="float:left">
+                    Процент довольных клиентов:
+                  </div>
+                  <div style="float:left">
+                    <input id="satisfied-percentage" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="span4">
+              <h2>Front Office</h2>
+            </div>
+            <div class="span4">
+              <h2>Back Office</h2>
+            </div>
+          </div>
+        </div>
+      </div>
+    </script>
+
     <!--
          Form field templates.
 
@@ -921,7 +1093,20 @@
       </div>
     </script>
 
-    <script type="text/template"
+    <script type="text/template" class="field-template"
+            id="partnerTable-field-template">
+      <table id="{{name}}" class="table table-striped table-bordered">
+        <thead>
+          <tr>
+            <th>Название</th><th>Город</th><th>Адрес</th><th>Телефоны</th><th>Время работы</th>
+          </tr>
+        </thead>
+        <tbody/>
+      </table>
+    </script>
+
+    <!-- NOP here — references are rendered after model has loaded -->
+    <script type="text/template" 
             class="field-template"
             id="reference-field-template">
       <div class="controls">
@@ -1015,7 +1200,7 @@
         <div class="accordion-heading">
           <a class="accordion-toggle"
              id="{{ refView }}-link"
-             data-bind="text: nameLocal"
+             data-bind="text: actionNameLocal"
              data-target="#{{ refView }}-head"
              data-toggle="collapse">Действие…</a>
         </div>

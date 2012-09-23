@@ -2,7 +2,7 @@
 
 module Snaplet.DbLayer.Dictionary (
     Dictionary,
-    look,
+    look, merge, lookAny, keys,
     loadDictionary, loadDictionaries
     ) where
 
@@ -12,7 +12,6 @@ import Control.Monad
 import Data.Aeson
 import Data.Maybe
 import qualified Data.ByteString.Lazy.Char8 as LC8
-import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.HashMap.Strict as HM
 import System.FilePath
@@ -28,6 +27,7 @@ data Dictionary = Dictionary (HM.HashMap T.Text T.Text) | Dictionaries (HM.HashM
 
 instance FromJSON KeyValue where
     parseJSON (Object v) = KeyValue <$> (v .: "value") <*> (v .: "label")
+    parseJSON _ = empty
 
 instance FromJSON Dictionary where
     parseJSON v@(Array _) = fmap toDict $ parseJSON v where
@@ -38,11 +38,35 @@ instance FromJSON Dictionary where
 
 look :: [T.Text] -> Dictionary -> Maybe T.Text
 look [] _ = Nothing
-look [key] (Dictionary m) = HM.lookup key m <|> HM.lookup "" m
-look (key:keys) (Dictionaries m) = do
-    d <- HM.lookup key m
-    look keys d
+look [k] (Dictionary m) = HM.lookup k m <|> HM.lookup "" m
+look (k:ks) (Dictionaries m) = do
+    d <- HM.lookup k m
+    look ks d
 look _ _ = Nothing
+
+-- | Merge sub-dictionaries
+merge :: Dictionary -> Dictionary
+merge = Dictionary . merge' where
+    merge' :: Dictionary -> HM.HashMap T.Text T.Text
+    merge' (Dictionary m) = m
+    merge' (Dictionaries m) = HM.unions $ map merge' $ HM.elems m
+
+-- | Try look in all subdictionaries
+lookAny :: [T.Text] -> Dictionary -> Maybe T.Text
+lookAny [] _ = Nothing
+lookAny [k] d = look [k] $ merge d
+lookAny (k:ks) (Dictionaries m) = do
+    d <- HM.lookup k m
+    lookAny ks d
+lookAny _ _ = Nothing
+
+keys :: [T.Text] -> Dictionary -> Maybe [T.Text]
+keys [] (Dictionary m) = Just $ HM.keys m
+keys [] (Dictionaries m) = Just $ HM.keys m
+keys _ (Dictionary _) = Nothing
+keys (k:ks) (Dictionaries m) = do
+    d <- HM.lookup k m
+    keys ks d
 
 loadDictionary :: FilePath -> IO (Maybe Dictionary)
 loadDictionary f = fmap (decode >=> unEntries) $ LC8.readFile f where
