@@ -211,8 +211,58 @@
 					"type": "string"
 				}
 			]
+		},
+		{
+			"model": "action",
+			"table": "actiontbl",
+			"hstore": "garbage",
+			"fields": [
+				{
+					"name": "id",
+					"type": "int",
+					"indexed": "true"
+				},
+				{
+					"name": "caseId",
+					"type": "string"
+				},
+				{
+					"name": "parentId",
+					"type": "string"
+				},
+				{
+					"name": "closed",
+					"type": "bool"
+				},
+				{
+					"name": "name",
+					"type": "string"
+				},
+				{
+					"name": "assignedTo",
+					"type": "string"
+				},
+				{
+					"name": "duetime",
+					"type": "time"
+				},
+				{
+					"name": "ctime",
+					"type": "time"
+				},
+				{
+					"name": "openTime",
+					"type": "time"
+				},
+				{
+					"name": "closeTime",
+					"type": "time"
+				}
+			]
 		}
 	],
 	"relations": [
-		"case.id = service.parentId"]
+		"case.id = service.parentId",
+		"'case:' || case.id = action.caseId",
+		"service.type || ':' || service.id = action.parentId"]
 }

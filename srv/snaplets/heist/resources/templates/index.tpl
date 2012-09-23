@@ -589,7 +589,8 @@
     <script type="text/template"
             class="screen-template"
             id="rkc-screen-template">
-      <div class="pane" style="left:0;right:0;overflow-x:hidden;">
+      <!-- <div class="pane" style="left:0;right:0;overflow-x:hidden;"> -->
+      <div class="row-fluid">
         <div class="span12">
           <div class="row-fluid">
             <div class="span2">
@@ -688,7 +689,7 @@
                 <h2>Услуги</h2>
               </div>
               <div class="row-fluid">
-                <table id="rkc-services-table" class="table table-striped table-bordered" >
+                <table id="rkc-services-table" class="table table-striped table-bordered">
                   <thead>
                     <tr>
                       <th width="20%">Услуга</th>
@@ -719,6 +720,35 @@
             </div>
             <div class="span4">
               <h2>Back Office</h2>
+              <div class="row-fluid">
+                <div class="span6">
+                  Общее количество действий на сегодня
+                </div>
+                <div class="span2">
+                  <input style="float:right; width:40px" id="total-actions" />
+                </div>
+              </div>
+              <div class="row-fluid">
+                <div class="span6">
+                  Общее количество невыполненных действий
+                </div>
+                <div class="span2">
+                  <input style="float:right; width:40px" id="total-incomplete-actions" />
+                </div>
+              </div>
+              <div class="row-fluid">
+                <table id="rkc-back-office-table" class="table table-stripped table-bordered">
+                  <thead>
+                    <tr>
+                      <th width="50%">Действие</th>
+                      <th width="15%">Общее количество действий</th>
+                      <th width="15%">Невыполненные действия</th>
+                      <th width="20%">Среднее время выполнения действия</th>
+                    </tr>
+                  </thead>
+                  <tbody />
+                </table>
+              </div>
             </div>
           </div>
         </div>
