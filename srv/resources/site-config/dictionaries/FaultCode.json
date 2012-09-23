@@ -1,59 +1,107 @@
 {
 	"entries": {
 		"diagnosis1": [
-            {
-				"value": "engine",
-				"label": "355"
-			},
-			{
-				"value": "keyLost",
-				"label": "667"
-			},
-            {
-				"value": "engcool",
-				"label": "349"
-			},
-            {
-				"value": "steer",
-				"label": "260"
-			},
-            {
-				"value": "signal",
-				"label": "652"
-			},
-            {
-				"value": "electro",
-				"label": "400"
-			},
-            {
-				"value": "fuel",
-				"label": "599"
-			},
-            {
-				"value": "brake",
-				"label": "298"
-			},
-            {
-				"value": "gears",
-				"label": "745"
-			},
-            {
-				"value": "needDiagnostic",
-				"label": "921"
-			},
-            {
-				"value": "tread",
-				"label": "246"
-			},
-            {
-				"value": "electronics",
-				"label": "514"
-			},
-            {
-				"value": "dtp",
-				"label": "144"
-			}
-		],
+        {
+            "value": "security",
+            "label": "400"
+        },
+        {
+            "value": "intake",
+            "label": "599"
+        },
+        {
+            "value": "exhaust",
+            "label": "599"
+        },
+        {
+            "value": "engine",
+            "label": "355"
+        },
+        {
+            "value": "ignit",
+            "label": "400"
+        },
+        {
+            "value": "body",
+            "label": "144"
+        },
+        {
+            "value": "lights",
+            "label": "400"
+        },
+        {
+            "value": "condit",
+            "label": "349"
+        },
+        {
+            "value": "engcool",
+            "label": "349"
+        },
+        {
+            "value": "susp",
+            "label": "745"
+        },
+        {
+            "value": "misc",
+            "label": "355"
+        },
+        {
+            "value": "steer",
+            "label": "260"
+        },
+        {
+            "value": "clutch",
+            "label": "745"
+        },
+        {
+            "value": "fuel",
+            "label": "599"
+        },
+        {
+            "value": "brake",
+            "label": "298"
+        },
+        {
+            "value": "gears",
+            "label": "745"
+        },
+        {
+            "value": "pcm",
+            "label": "355"
+        },
+        {
+            "value": "electro",
+            "label": "400"
+        },
+        {
+            "value": "vandal",
+            "label": "246"
+        },
+        {
+            "value": "dtp",
+            "label": "144"
+        },
+        {
+            "value": "keyLost",
+            "label": "667"
+        },
+        {
+            "value": "signal",
+            "label": "652"
+        },
+        {
+            "value": "needDiagnostic",
+            "label": "921"
+        },
+        {
+            "value": "tread",
+            "label": "246"
+        },
+        {
+            "value": "electronics",
+            "label": "514"
+        }
+    ],
 		"service": [
             {
 				"value": "tech",
