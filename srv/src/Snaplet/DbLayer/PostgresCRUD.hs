@@ -381,10 +381,10 @@ search ms mname fs sels q lim = liftIO getCurrentTimeZone >>= search' where
 
 generateReport :: (PS.HasPostgres m, MonadLog m) => SM.Models -> [T.Text] -> FilePath -> FilePath -> m ()
 generateReport ms conds tpl file = scope "generate" $ do
-    log Info "Generating report"
+    log Debug "Generating report"
     log Trace "Loading dictionaries"
     tz <- liftIO getCurrentTimeZone
     dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
     -- TODO: Orderby must not be here!
     withPG (R.createReport (SM.modelsSyncs ms) (functions tz dicts) conds ["case.callDate"] tpl file)
-    log Info "Report generated"
+    log Debug "Report generated"
