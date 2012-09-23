@@ -385,5 +385,5 @@ generateReport ms conds tpl file = scope "generate" $ do
     log Trace "Loading dictionaries"
     tz <- liftIO getCurrentTimeZone
     dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
-    withPG (R.createReport (SM.modelsSyncs ms) (functions tz dicts) conds tpl file)
+    withPG (R.createReport (SM.modelsSyncs ms) (functions tz dicts) conds ["case.callDate"] tpl file)
     log Info "Report generated"
