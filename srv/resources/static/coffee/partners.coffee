@@ -7,6 +7,12 @@ this.setupPartnersForm = (viewName, args) ->
                         focusClass: "focusable"
                         refs: refs
 
+  $("#partner-add-service-container").html(
+    Mustache.render $("#add-ref-button-template").html(),
+            fn:    "addNewServiceToPartner();"
+            label: "Добавить услугу"
+  )
+
   setTimeout(->
     $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
     $.fn.dataTableExt.oStdClasses.sFilter = "dataTables_filter form-inline"
@@ -37,10 +43,27 @@ this.setupPartnersForm = (viewName, args) ->
     ))
 
 this.addNewServiceToPartner = (name) ->
-  addReference global.viewsWare["partner-form"].knockVM,
+  p = global.viewsWare["partner-form"].knockVM
+  addReference p,
                'services',
                {modelName: 'partner_service'},
-               (k) ->
-                  e = $('#' + k['view'])
-                  e.parent().prev()[0].scrollIntoView()
-                  e.find('input')[0].focus()
+               afterAddSrv(p)
+
+afterAddSrv = (parent) -> (k) ->
+  bindRemove parent, 'services', k
+  focusRef k
+  addTarifStuff i for i in parent['servicesReference']()
+
+addTarifStuff = (p) ->
+  view = $("##{p['view']}")
+  button = Mustache.render $("#add-ref-button-template").html(),
+    fn:    ""
+    label: "Добавить опцию"
+  view.children().last().after button
+  view.children().last().click -> genNewTarif p
+
+genNewTarif = (kvm) ->
+  addReference kvm, 'tarifOptions', { modelName: 'tarifOption' },
+    (k) ->
+      bindRemove kvm, 'tarifOptions'
+      focusRef k

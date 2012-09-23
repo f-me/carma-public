@@ -32,6 +32,74 @@
         },
         {
             "targets": [
+                "cost_countedCost"
+            ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ]
+
+        },
+        {
+            "targets": [
+                "cost_counted",
+                "cost_serviceTarifOptions"
+            ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ]
+        },
+        {
+            "targets": [
                 "rentAddress_address",
                 "rentAddress_coords",
                 "rentAddress_city",
@@ -103,6 +171,7 @@
         {
             "targets": [
                 "contractor_partner",
+                "contractor_partnerId",
                 "contractor_partnerTable",
                 "contractor_address"
             ],
@@ -483,6 +552,14 @@
             }
         },
         {
+            "name": "falseCallPercent",
+            "canRead":  [ ],
+            "canWrite": [ ],
+            "meta": {
+                "invisible": true
+            }
+        },
+        {
             "name": "bill",
             "groupName": "bill"
         },
@@ -623,6 +700,38 @@
             "meta": {
                 "label": "Партнёр"
             }
+        },
+        {
+            "name": "cost",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "groupName": "countedCost"
         },
         {
             "name": "providedFor",

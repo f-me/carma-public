@@ -1,9 +1,10 @@
 module Snaplet.DbLayer.Triggers.Actions where
 
 import Control.Arrow (first)
-import Control.Monad (when,void)
+import Control.Monad (when, void, forM, forM_, filterM)
 import Control.Monad.Trans
 import Control.Exception
+import Control.Applicative ((<$>))
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.UTF8  as BU
@@ -23,6 +24,7 @@ import System.Locale (defaultTimeLocale)
 import Snap (gets)
 import Snap.Snaplet.RedisDB
 import qualified Database.Redis as Redis
+import qualified Snaplet.DbLayer.RedisCRUD as RC
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
@@ -46,6 +48,18 @@ actions :: TriggerMap a
 actions = Map.fromList
   $ [(s,serviceActions) | s <- services]
   ++[("action", actionActions)
+    ,("cost_serviceTarifOption", Map.fromList
+      [("count",
+        [\objId val -> do
+            case mbreadDouble val of
+              Nothing -> return ()
+              Just v  -> do
+                p <- get objId "price" >>= return . fromMaybe 0 . mbreadDouble
+                set objId "cost" $ printBPrice $ v * p
+                srvId <- get objId "parentId"
+                set srvId "cost_counted" =<< srvCostCounted srvId
+        ])
+      ])
     ,("case", Map.fromList
       [("city", [\objId val -> do
                   oldCity <- lift $ runRedisDB redis $ Redis.hget objId "city"
@@ -162,10 +176,44 @@ serviceActions = Map.fromList
             ,("caseId", kazeId)
             ,("closed", "0")
             ]
-          upd kazeId "actions" $ addToList actionId             
+          upd kazeId "actions" $ addToList actionId
       _ -> return ()]
-  )]
-
+  )
+  ,("contractor_partner",
+    [\objId val -> do
+        opts <- get objId "cost_serviceTarifOptions"
+        let ids = B.split ',' opts
+        lift $ runRedisDB redis $ Redis.del ids
+        set objId "cost_serviceTarifOptions" ""
+    ])
+  ,("falseCall",
+    [\objId val -> set objId "cost_counted" =<< srvCostCounted objId])
+  ,("contractor_partnerId",
+    [\objId val -> do
+        srvs <- get val "services" >>= return  . B.split ','
+        let m = head $ B.split ':' objId
+        s <- filterM (\s -> get s "serviceName" >>= return . (m ==)) srvs
+        case s of
+          []     -> set objId "falseCallPercent" ""
+          (x:xs) -> get x "falseCallPercent" >>= set objId "falseCallPercent"
+    ])
+  ,("payType",
+    [\objId val -> do
+        case selectPrice val of
+          Nothing       -> set objId "cost_counted" ""
+          Just priceSel -> do
+            ids <- get objId "cost_serviceTarifOptions" >>=
+                         return . B.split ','
+            forM_ ids $ \id -> do
+              price <- get id priceSel >>= return . fromMaybe 0 . mbreadDouble
+              count <- get id "count" >>= return . fromMaybe 0 . mbreadDouble
+              set id "price" $  printBPrice price
+              set id "cost" =<< printBPrice <$> calcCost id
+            srvCostCounted objId >>= set objId "cost_counted"
+        ])
+  ,("cost_serviceTarifOptions",
+    [\objId val -> set objId "cost_counted" =<< srvCostCounted objId ])
+  ]
 
 resultSet1 =
   ["partnerNotOk", "caseOver", "partnerFound"
@@ -509,3 +557,19 @@ setWeather objId city = do
   case weather of
     Right w -> set objId "temperature" $ B.pack $ show $ tempC w
     Left  _ -> return ()
+
+srvCostCounted srvId = do
+  falseCall        <- get srvId "falseCall"
+  falseCallPercent <- get srvId "falseCallPercent" >>=
+                      return . fromMaybe 1 . mbreadDouble
+  tarifIds <- get srvId "cost_serviceTarifOptions" >>= return . B.split ','
+  cost <- sum <$> mapM calcCost tarifIds
+  case falseCall of
+    "bill" -> return $ printBPrice $ cost * falseCallPercent
+    _      -> return $ printBPrice cost
+
+calcCost id = do
+  p <- get id "price" >>= return . fromMaybe 0 . mbreadDouble
+  c <- get id "count" >>= return . fromMaybe 0 . mbreadDouble
+  return $ p * c
+

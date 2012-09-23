@@ -15,6 +15,32 @@
     ],
     "fields": [
         {
+            "name": "parentId",
+            "canRead": true,
+            "canWrite": true,
+            "meta": {
+                "invisible": true
+            }
+        },
+        {
+            "name": "priority1",
+            "meta": {
+                "label": "Приоритет за нал"
+            }
+        },
+        {
+            "name": "priority2",
+            "meta": {
+                "label": "Приоритет по безналу город"
+            }
+        },
+        {
+            "name": "priority3",
+            "meta": {
+                "label": "Приоритет по безналу за город"
+            }
+        },
+        {
             "name": "serviceName",
             "type": "dictionary",
             "meta": {
@@ -23,22 +49,14 @@
             }
         },
         {
-            "name": "tarifName",
+            "name": "falseCallPercent",
             "meta": {
-                "label": "Тарифная опция"
+                "label": "Процент за ложный вызов"
             }
         },
         {
-            "name": "price1",
-            "meta": {
-                "label": "Стоимость за единицу за нал"
-            }
-        },
-        {
-            "name": "price2",
-            "meta": {
-                "label": "Стоимость за единицу по безналу"
-            }
+            "name": "tarifOptions",
+            "type": "reference"
         }
     ]
 }

@@ -192,18 +192,14 @@
             </div>
           </div>
           <div id="case-form" />
-          
           <div class="control-group">
             <div class="control-label">
               <label>Услуги</label>
             </div>
             <div class="controls">
-              <span class="accordion" id="case-services-references" />
-              
               <span id="service-picker-container" />
             </div>
           </div>
-          
           <div id="case-permissions" />
         </div>
       </div>
@@ -516,14 +512,7 @@
             <div class="control-label">
               <label>Услуги</label>
             </div>
-            <div class="controls">
-              <span class="accordion" id="partner-services-references" />
-              <button class="dropdown-toggle btn btn-action"
-                      onclick="addNewServiceToPartner();"
-                      type="button">
-                <i class="icon icon-plus"></i>Добавить услугу
-              </button>
-            </div>
+            <div id="partner-add-service-container"/>
           </div>
           <div id="partner-permissions" />
         </form>
@@ -1149,7 +1138,12 @@
     <!-- NOP here — references are rendered after model has loaded -->
     <script type="text/template" 
             class="field-template"
-            id="reference-field-template" />
+            id="reference-field-template">
+      <div class="controls">
+        <span class="accordion"
+              id="{{ modelName }}-{{ cid }}-{{ name }}-references" />
+      </div>
+    </script>
 
     <!-- 
 
@@ -1207,11 +1201,15 @@
             id="services-reference-template">
       <div class="accordion-group">
         <div class="accordion-heading">
-          <a class="accordion-toggle"
-             id="{{ refView }}-link"
-             data-bind="text: modelTitle"
-             data-target="#{{ refView }}-head"
-             data-toggle="collapse">Услуга…</a>
+          <div class="accordion-toggle"
+               data-target="#{{ refView }}-head"
+               data-toggle="collapse">
+            <a class="icon icon-remove" />
+            <a id="{{ refView }}-link"
+               data-bind="text: modelTitle">
+               Услуга…
+            </a>
+          </div>
         </div>
 
         <div id="{{ refView }}-head"
@@ -1235,6 +1233,60 @@
              data-bind="text: actionNameLocal"
              data-target="#{{ refView }}-head"
              data-toggle="collapse">Действие…</a>
+        </div>
+
+        <div id="{{ refView }}-head"
+             class="accordion-body collapse {{^refId}}in{{/refId}}">
+          <div class="accordion-inner {{ refClass }}" 
+               id="{{ refView }}">
+            <!-- Instance contents are rendered here -->
+
+          </div>
+        </div>
+      </div>
+    </script>
+
+    <script type="text/template"
+            class="reference-template"
+            id="tarifOptions-reference-template">
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <div class="accordion-toggle"
+               data-target="#{{ refView }}-head"
+               data-toggle="collapse">
+            <a class="icon icon-remove" />
+            <a id="{{ refView }}-link"
+               data-bind="text: nameOrDef">
+               Тарифная опция…
+            </a>
+          </div>
+        </div>
+
+        <div id="{{ refView }}-head"
+             class="accordion-body collapse {{^refId}}in{{/refId}}">
+          <div class="accordion-inner {{ refClass }}" 
+               id="{{ refView }}">
+            <!-- Instance contents are rendered here -->
+
+          </div>
+        </div>
+      </div>
+    </script>
+
+    <script type="text/template"
+            class="reference-template"
+            id="cost_serviceTarifOptions-reference-template">
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <div class="accordion-toggle"
+               data-target="#{{ refView }}-head"
+               data-toggle="collapse">
+            <a class="icon icon-remove" />
+            <a id="{{ refView }}-link"
+               data-bind="text: nameOrDef">
+               Тарифная опция…
+            </a>
+          </div>
         </div>
 
         <div id="{{ refView }}-head"
@@ -1351,6 +1403,16 @@
       </form>
     </script>
 
+    <script type="text/template"
+            id="add-ref-button-template">
+      <button class="dropdown-toggle btn btn-action"
+              onclick="{{ fn }}"
+              type="button">
+        <i class="icon icon-plus"></i>{{ label }}
+      </button>
+    </script>
+
+
     <!-- Default case group view template -->
     <script type="text/template"
             class="group-template"
@@ -1455,6 +1517,24 @@
 
         <!-- /ko -->
       <!-- /ko -->
+    </script>
+
+    <script type="text/html" id="tarif-opts-template">
+      <div class="add-opt-btn" id="{{ modelName }}-{{ cid }}-tarif-select">
+        <input type="button" class="btn" value="Добавить">
+      </div>
+    </script>
+
+    <script type="text/html" id="tarif-opt-sel-template">
+      <div class="add-opt-btn">
+        <input type="button" class="btn add" value="Добавить">
+        <select>
+          {{# opts }}
+          <option value="{{ id }}"> {{ optionName }} </option>
+          {{/ opts }}
+        </select>
+        <input type="button" class="btn reload" value="Обновить стоимость" />
+      </div>
     </script>
 
   </body>

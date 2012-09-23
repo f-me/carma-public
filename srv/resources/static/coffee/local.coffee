@@ -281,6 +281,40 @@ this.getWeather = (city, cb) ->
   url = "/#{city}"
   $.getJSON "/weather/#{city}", (data) -> cb(data)
 
+this.focusRef = (kvm) ->
+  e = $('#' + kvm['view'])
+  e.parent().prev()[0].scrollIntoView()
+  e.find('input')[0].focus()
+
+this.bindRemove = (parent, field, cb) ->
+  for i in parent["#{field}Reference"]()
+    do (i) ->
+      $("##{i['view']}")
+        .parents('div.accordion-group')
+        .first()
+        .find('.icon.icon-remove')
+        .click ->
+          removeReference(parent, field, i)
+          bindRemove parent, field, cb
+          cb(parent, field, i) if _.isFunction cb
+
+this.bindDelete = (parent, field, cb) ->
+  bindRemove parent, field, (p, f, kvm) ->
+    deleteCb = (args...) -> cb(args) if _.isFunction cb
+    $.ajax
+      'type'     : 'DELETE'
+      'url'      : "/_/#{kvm.modelName()}/#{kvm.id()}"
+      'success'  : -> deleteCb
+      'error'    : (xhr) ->
+        if xhr.status == 404
+          deleteCb(d.acc())
+        else
+          alert 'error'
+
+
 ################################################################################
 # utils
 this.toUnix = (d) -> Math.round(d.getTime() / 1000)
+
+# flip . setTimeout
+this.sTout = (wait, fn) -> setTimeout fn, wait

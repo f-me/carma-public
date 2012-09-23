@@ -40,6 +40,74 @@
         },
         {
             "targets": [
+                "cost_countedCost"
+            ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ]
+
+        },
+        {
+            "targets": [
+                "cost_counted",
+                "cost_serviceTarifOptions"
+            ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ]
+        },
+        {
+            "targets": [
                 "towAddress_address",
                 "towAddress_coords",
                 "towAddress_city",
@@ -526,6 +594,14 @@
             }
         },
         {
+            "name": "falseCallPercent",
+            "canRead":  [ ],
+            "canWrite": [ ],
+            "meta": {
+                "invisible": true
+            }
+        },
+        {
             "name": "bill",
             "groupName": "bill"
         },
@@ -797,6 +873,41 @@
             "groupName": "partner",
             "meta": {
                 "label": "Партнёр"
+            }
+        },
+        {
+            "name": "cost",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "groupName": "countedCost",
+            "meta": {
+                "label": "Расчетная стоимость"
             }
         },
         {
@@ -1194,6 +1305,41 @@
             "type": "files",
             "meta": {
                 "label": "Прикрепленные файлы"
+            }
+        },
+        {
+            "name": "service_tarifOptions",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "type": "reference",
+            "meta": {
+                "invisible": true
             }
         }
     ]

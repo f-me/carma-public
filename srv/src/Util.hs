@@ -5,9 +5,15 @@ module Util
   ,readJSONfromLBS
   ,UsersDict(..)
   ,selectParse
+  ,mbreadInt
+  ,mbreadDouble
+  ,lookupNE
+  ,selectPrice
+  ,printBPrice
   ) where
 
 import qualified Data.Map as Map
+import Data.Map (Map)
 import qualified Data.Vector as V
 import Data.Maybe
 
@@ -16,16 +22,20 @@ import Control.Applicative
 import Data.Typeable
 import qualified Data.ByteString.Lazy  as L
 import qualified Data.ByteString.Char8 as B
-
+import qualified Data.ByteString.Lex.Double as B
 import Data.Aeson as Aeson
 import Data.Aeson.TH
 import Data.Aeson.Types (Parser)
 import Data.Attoparsec.ByteString.Lazy (Result(..))
 import qualified Data.Attoparsec.ByteString.Lazy as Atto
 
+import qualified Database.Redis       as Redis
+import qualified Snap.Snaplet.RedisDB as Redis
+
 import Data.Attoparsec.Combinator (many1, choice)
 import qualified Data.Attoparsec.ByteString.Char8 as A
 
+import Text.Printf (printf)
 
 data JSONParseException
   = AttoparsecError FilePath String
@@ -106,3 +116,37 @@ selectParse obj prm =
   in case Map.lookup l obj of
     Nothing -> False
     Just v  -> p' v r
+
+mbreadInt :: B.ByteString -> Maybe Int
+mbreadInt s = B.readInt s >>= r
+  where  r (i, "") = Just i
+         r _       = Nothing
+
+mbreadDouble :: B.ByteString -> Maybe Double
+mbreadDouble s =  B.readDouble s >>= r
+  where r (i, "") = Just i
+        r _       = Nothing
+
+-- | Like Map.lookup but treat Just "" as Nothing
+lookupNE :: Ord k => k -> Map k B.ByteString -> Maybe B.ByteString
+lookupNE key obj = Map.lookup key obj >>= lp
+  where lp "" = Nothing
+        lp v  = return v
+
+calcCost srv opt = getCost srv opt >>= calcCost'
+  where calcCost' cost = do
+          count <- lookupNE "count" opt >>= mbreadDouble
+          cost' <- mbreadDouble cost
+          return $ printBPrice $ cost' * count
+
+getCost opt srv = getCostField srv >>= flip lookupNE opt
+
+getCostField srv = lookupNE "payType" srv >>= selectPrice
+
+selectPrice v
+          | v == "ruamc"                             = Just "price2"
+          | any (== v) ["client", "mixed", "refund"] = Just "price1"
+          | otherwise                               = Nothing
+
+printPrice p = printf "%.2f" p
+printBPrice p = B.pack $ printPrice p

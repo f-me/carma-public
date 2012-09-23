@@ -92,6 +92,7 @@ Executable carma
     weather-api                 == 0.1.*,
     fdds                        == 0.1,
     vector                      == 0.9.*,
+    bytestring-lexing           == 0.4.*,
     websockets                  == 0.6.*
 
   Extensions:

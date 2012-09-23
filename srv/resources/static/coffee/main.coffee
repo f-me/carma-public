@@ -255,19 +255,23 @@ setupView = (elName, knockVM,  options) ->
   depViews = renderKnockVm(elName, knockVM,  options)
 
   # Bind the model to Knockout UI
-  ko.applyBindings(knockVM, el(elName))
+  ko.applyBindings(knockVM, el(elName)) if el(elName)
   # Bind group subforms (note that refs are bound
   # separately)
   bindDepViews(knockVM, depViews)
   # Bind extra views if provided
-  ko.applyBindings knockVM, el(v) for k, v of options.slotsee
+  ko.applyBindings knockVM, el(v) for k, v of options.slotsee when el(v)
+
+  knockVM['view'] = elName
 
   for f in knockVM.model().referenceFields
     do (f) ->
-      refsForest = "#{knockVM.modelName()}-#{f}-references"
-      $el(refsForest).empty()
+      pview = $("##{knockVM['view']}")
+      refsForest =
+        "#{knockVM.modelName()}-#{knockVM.model().cid}-#{f}-references"
+      $("##{refsForest}").empty()
       knockVM[f + 'Reference'].subscribe (newValue) ->
-        $el(refsForest).empty()
+        $("##{refsForest}").empty()
         for r in newValue
           refBook = mkRefContainer(r, f, refsForest, tpls)
           v = setupView refBook.refView, r,
@@ -277,7 +281,6 @@ setupView = (elName, knockVM,  options) ->
           global.viewsWare[refBook.refView] = {}
           global.viewsWare[refBook.refView].depViews = v
 
-  knockVM['view'] = elName
   return depViews
 
 this.addReference = (knockVM, field, ref, cb) ->
@@ -289,6 +292,10 @@ this.addReference = (knockVM, field, ref, cb) ->
       newVal = knockVM[field]().concat refKVM
       knockVM[field](newVal)
       cb(_.last knockVM[field]()) if _.isFunction(cb)
+
+this.removeReference = (knockVM, field, ref) ->
+  field = field + 'Reference' unless /Reference$/.test(field)
+  knockVM[field] _.without(knockVM[field](), ref)
 
 # Save instance loaded in view
 this.saveInstance = (viewName) -> global.viewsWare[viewName].bbInstance.save()
