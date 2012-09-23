@@ -49,7 +49,7 @@ updPartnerOpts = do
                            ,("price1"    , fromMaybe "" p1   )
                            ,("price2"    , fromMaybe "" p2   )
                            ]
-                hmset k [("tarifOptions", tkey)]
+                hmset srvId [("tarifOptions", tkey)]
                 return ()
 
 updCasePartner = do
