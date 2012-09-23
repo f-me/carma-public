@@ -26,17 +26,27 @@ updPartnerOpts = do
   Right ps <- keys "partner:*"
   forM_ (filter (not . B.isPrefixOf "partner:name") ps) $ \k -> do
     Right p <- hgetall k
+    let p' = M.fromList p
     case M.lookup "services" $ M.fromList p of
       Nothing -> return ()
       Just ss -> forM_ (B.split ',' ss) $ \srvId -> do
         srv <- hgetall srvId
+        hmset srvId [("priority1",
+                      fromMaybe "" $ lookupNE "priority1" p')
+                    ,("priority2",
+                      fromMaybe "" $ lookupNE "priority2" p')
+                    ,("priority3",
+                      fromMaybe "" $ lookupNE "priority3" p')
+                    ]
         case srv of
           Left _  -> return ()
           Right s -> do
-            let p'= M.fromList s
-                tname = lookupNE "tarifName" p'
+            let tname = lookupNE "tarifName" p'
                 p1    = lookupNE "price1"    p'
                 p2    = lookupNE "price2"    p'
+                pr1   = lookupNE "priority1" p'
+                pr2   = lookupNE "priority2" p'
+                pr3   = lookupNE "priority3" p'
             case all (== Nothing) [tname, p1,p2] of
               True  -> return ()
               False -> do
