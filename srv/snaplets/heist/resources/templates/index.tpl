@@ -1134,6 +1134,18 @@
       </div>
     </script>
 
+    <script type="text/template" class="field-template"
+            id="partnerTable-field-template">
+      <table id="{{name}}" class="table table-striped table-bordered">
+        <thead>
+          <tr>
+            <th>Название</th><th>Город</th><th>Адрес</th><th>Телефоны</th><th>Время работы</th>
+          </tr>
+        </thead>
+        <tbody/>
+      </table>
+    </script>
+
     <!-- NOP here — references are rendered after model has loaded -->
     <script type="text/template" 
             class="field-template"

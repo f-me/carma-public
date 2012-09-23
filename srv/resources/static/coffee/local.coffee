@@ -187,7 +187,14 @@ this.showComplex = (parentView, fieldName) ->
   return if view.is(':visible')
   $(".complex-field").hide()
 
-  view.show -> initOSM e for e in view.find(".osMap")
+  view.show ->
+    initOSM e for e in view.find(".osMap")
+
+    isDealerView = depViewName.match(/towDealer_partner-view/)
+    isPartnerView = depViewName.match(/contractor_partner-view/)
+    if isDealerView or isPartnerView
+      initPartnerTables view, parentView
+
 
 this.hideComplex = ->
   $(".complex-field").hide()
