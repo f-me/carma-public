@@ -21,6 +21,10 @@
             "label": "Проверка условий"
         },
         {
+            "value": "mistake",
+            "label": "Ошибка оператора"
+        },
+        {
             "value": "dealerConformation",
             "label": "Согласование с дилером"
         },
