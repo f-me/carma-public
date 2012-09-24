@@ -46,7 +46,6 @@ import qualified Snaplet.DbLayer as DB
 import qualified Snaplet.DbLayer.RKC as RKC
 import Snaplet.FileUpload (doUpload', doDeleteAll')
 ------------------------------------------------------------------------------
-import qualified Codec.Xlsx.Templater as Xlsx
 import qualified Nominatim
 -----------------------------------------------------------------------------
 import Application
