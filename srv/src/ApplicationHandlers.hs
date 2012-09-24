@@ -281,20 +281,22 @@ report = do
         ++ (B.unpack reportId) ++ "/templates/" ++ tplName
   let result = "resources/reports/" ++ tplName
   let
-      -- convert format and UTCize time
-      validate dateStr = fmap (format . toUTC) $ parse dateStr where
-          format = T.pack . formatTime defaultTimeLocale "%d.%m.%Y %X"
-          parse :: T.Text -> Maybe LocalTime
-          parse = parseTime defaultTimeLocale "%d.%m.%Y" . T.unpack
-          toUTC = localTimeToUTC tz
-      within pre post dateValue = do
-          f <- dateValue
-          s <- validate f
-          return $ T.concat [T.pack pre, s, T.pack post]
-      fromDate' = within "case.callDate > to_timestamp('" "', 'DD.MM.YYYY HH24:MI:SS')" fromDate
-      toDate' = within "case.callDate < to_timestamp('" "', 'DD.MM.YYYY HH24:MI:SS')" toDate
-      
-      dateConditions = catMaybes [fromDate', toDate']
+    -- convert format and UTCize time, and apply f to UTCTime
+    validateAnd f dateStr = fmap (format . f . toUTC) $ parse dateStr where
+      format = T.pack . formatTime defaultTimeLocale "%d.%m.%Y %X"
+      parse :: T.Text -> Maybe LocalTime
+      parse = parseTime defaultTimeLocale "%d.%m.%Y" . T.unpack
+      toUTC = localTimeToUTC tz
+    withinAnd f pre post dateValue = do
+      v <- dateValue
+      s <- validateAnd f v
+      return $ T.concat [T.pack pre, s, T.pack post]
+    fromDate' = withinAnd id "case.callDate > to_timestamp('" "', 'DD.MM.YYYY HH24:MI:SS')" fromDate
+    toDate' = withinAnd addDay"case.callDate < to_timestamp('" "', 'DD.MM.YYYY HH24:MI:SS')" toDate
+
+    addDay tm = tm { utctDay = addDays 1 (utctDay tm) }
+    
+    dateConditions = catMaybes [fromDate', toDate']
   with db $ DB.generateReport dateConditions template result
   modifyResponse $ addHeader "Content-Disposition" "attachment; filename=\"report.xlsx\""
   serveFile result
