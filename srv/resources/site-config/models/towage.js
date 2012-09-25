@@ -911,7 +911,7 @@
             }
         },
         {
-            "name": "marginal_cost",
+            "name": "marginalCost",
             "canRead": [
                 "partner",
                 "front",
