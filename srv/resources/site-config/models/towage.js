@@ -911,6 +911,27 @@
             }
         },
         {
+            "name": "marginal_cost",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "canWrite": [ ],
+            "meta": {
+                "label": "Предельная стоимость"
+            }
+        },
+        {
             "name": "towerAddress",
             "canRead": [
                 "partner",
