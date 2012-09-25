@@ -29,29 +29,38 @@ applyDefaults model obj = do
       d  = 24 * h
       y  = d * 365
       cd = Map.insert "callDate" (B.pack $ show ct) obj
-      obj' = case model of
-        "partner" -> Map.insert "isActive" "0"
-                  $  Map.insert "isDealer" "0"
-                  $  obj
-        "case" -> cd
-        "call" -> cd
-        "vin"  -> Map.fromList
-                  [ ("validFrom"  , B.pack $ show ct)
-                  , ("validUntil" , B.pack $ show $ ct + y)
-                  , ("makeYear"   , B.pack cy)
-                  ]
-        _ | model `elem` services ->
-          Map.union obj $ Map.fromList
-            [("times_expectedServiceStart",   B.pack $ show $ ct + h)
-            ,("times_factServiceStart",       B.pack $ show $ ct + h)
-            ,("times_expectedServiceEnd",     B.pack $ show $ ct + 2*h)
-            ,("times_expectedServiceClosure", B.pack $ show $ ct + 12*h)
-            ,("times_factServiceClosure",     B.pack $ show $ ct + 12*h)
-            ,("times_expectedDealerInfo",     B.pack $ show $ ct + 7*d)
-            ,("times_factDealerInfo",         B.pack $ show $ ct + 7*d)
-            ,("createTime",                   B.pack $ show $ ct)
-            ]
-          | otherwise -> obj
+  obj' <- case model of
+    "partner" -> return
+              $ Map.insert "isActive" "0"
+              $ Map.insert "isDealer" "0"
+              $ obj
+    "case" -> return cd
+    "call" -> return cd
+    "taxi" -> do
+      let parentId = obj Map.! "parentId"
+      Right caseAddr <- Redis.runRedisDB redis
+                $ Redis.hget parentId "caseAddress_address"
+      return $ case caseAddr of
+        Just addr -> Map.insert "taxiFrom_address" addr obj
+        Nothing   -> obj
+            
+    "vin"  -> return $ Map.fromList
+              [ ("validFrom"  , B.pack $ show ct)
+              , ("validUntil" , B.pack $ show $ ct + y)
+              , ("makeYear"   , B.pack cy)
+              ]
+    _ | model `elem` services ->
+      return $ Map.union obj $ Map.fromList
+        [("times_expectedServiceStart",   B.pack $ show $ ct + h)
+        ,("times_factServiceStart",       B.pack $ show $ ct + h)
+        ,("times_expectedServiceEnd",     B.pack $ show $ ct + 2*h)
+        ,("times_expectedServiceClosure", B.pack $ show $ ct + 12*h)
+        ,("times_factServiceClosure",     B.pack $ show $ ct + 12*h)
+        ,("times_expectedDealerInfo",     B.pack $ show $ ct + 7*d)
+        ,("times_factDealerInfo",         B.pack $ show $ ct + 7*d)
+        ,("createTime",                   B.pack $ show $ ct)
+        ]
+      | otherwise -> return obj
 
   obj'' <- do
     case model of
