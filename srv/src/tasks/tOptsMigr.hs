@@ -29,40 +29,44 @@ updPartnerOpts = do
     let p' = M.fromList p
     case M.lookup "services" $ M.fromList p of
       Nothing -> return ()
-      Just ss -> forM_ (B.split ',' ss) $ \srvId -> do
-        srv <- hgetall srvId
-        hmset srvId [("priority1",
-                      fromMaybe "" $ lookupNE "priority1" p')
-                    ,("priority2",
-                      fromMaybe "" $ lookupNE "priority2" p')
-                    ,("priority3",
-                      fromMaybe "" $ lookupNE "priority3" p')
-                    ]
-        liftIO $ print $ "move priorities from: " ++ show k ++ " to " ++ show srvId
-        case srv of
-          Left _  -> return ()
-          Right s -> do
-            let tname = lookupNE "tarifName" p'
-                p1    = lookupNE "price1"    p'
-                p2    = lookupNE "price2"    p'
-                pr1   = lookupNE "priority1" p'
-                pr2   = lookupNE "priority2" p'
-                pr3   = lookupNE "priority3" p'
-            case all (== Nothing) [tname, p1,p2] of
-              True  -> return ()
-              False -> do
-                Right id <- incr $ modelIdKey "tarifOption"
-                let idStr = B.pack $ show id
-                    tkey  = objKey "tarifOption" idStr
-                hmset tkey [("id"        , idStr)
-                           ,("parentId"  , srvId)
-                           ,("optionName", fromMaybe "" tname)
-                           ,("price1"    , fromMaybe "" p1   )
-                           ,("price2"    , fromMaybe "" p2   )
-                           ]
-                hmset srvId [("tarifOptions", tkey)]
-                liftIO $ print $ "set " ++ show srvId ++ " tarifOptions: " ++ show tkey
-                return ()
+      Just ss
+        | B.length ss < 23 && B.length ss > 15 ->
+          forM_ (B.split ',' ss) $ \srvId -> do
+            srv <- hgetall srvId
+            hmset srvId [("priority1",
+                          fromMaybe "" $ lookupNE "priority1" p')
+                        ,("priority2",
+                          fromMaybe "" $ lookupNE "priority2" p')
+                        ,("priority3",
+                          fromMaybe "" $ lookupNE "priority3" p')
+                        ]
+            liftIO $ print $ "move priorities from: " ++ show k ++ " to " ++ show srvId
+            case srv of
+              Left _  -> return ()
+              Right s -> do
+                let tname = lookupNE "tarifName" p'
+                    p1    = lookupNE "price1"    p'
+                    p2    = lookupNE "price2"    p'
+                case all (== Nothing) [tname, p1,p2] of
+                  True  -> do
+                    liftIO $ print $ "nothing to make tarifOption for: " ++ show srvId
+                    return ()
+                  False -> do
+                    Right id <- incr $ modelIdKey "tarifOption"
+                    let idStr = B.pack $ show id
+                        tkey  = objKey "tarifOption" idStr
+                    liftIO $ print $ "going to set " ++ show tkey
+                    hmset tkey [("id"        , idStr)
+                               ,("parentId"  , srvId)
+                               ,("optionName", fromMaybe "" tname)
+                               ,("price1"    , fromMaybe "" p1   )
+                               ,("price2"    , fromMaybe "" p2   )
+                               ]
+                    liftIO $ print $ "created tarifOption: " ++ show tkey
+                    hmset srvId [("tarifOptions", tkey)]
+                    liftIO $ print $ "set " ++ show srvId ++ " tarifOptions: " ++ show tkey
+                    return ()
+        | otherwise -> return ()
 
 updCasePartner = do
   Right ps <- keys "partner:*"
