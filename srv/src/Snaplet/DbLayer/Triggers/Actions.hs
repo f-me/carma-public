@@ -61,7 +61,11 @@ actions = Map.fromList
         ])
       ])
     ,("case", Map.fromList
-      [("city", [\objId val -> do
+      [("partner", [\objId val -> do
+        mapM_ (setSrvMCost) =<< B.split ',' <$> get objId "services"
+        return ()
+                   ])
+      ,("city", [\objId val -> do
                   oldCity <- lift $ runRedisDB redis $ Redis.hget objId "city"
                   case oldCity of
                     Left _         -> return ()
@@ -85,9 +89,17 @@ actions = Map.fromList
                 set objId "vinChecked" "base"
                 mapM_ (uncurry $ set objId)
                   $ map (first $ B.append "car_") car
-      ]
-      )]
-    )]
+                   ])
+       ])
+    ,("towage", Map.fromList
+      [("suburbanMilage", [\objId val -> setSrvMCost objId])])
+    ,("tech", Map.fromList
+      [("suburbanMilage", [\objId val -> setSrvMCost objId])])
+    ,("rent", Map.fromList
+      [("providedFor",    [\objId val -> setSrvMCost objId])])
+    ,("hotel", Map.fromList
+      [("providedFor",    [\objId val -> setSrvMCost objId])])
+    ]
 
 -- Создания действий "с нуля"
 serviceActions = Map.fromList
@@ -573,3 +585,48 @@ calcCost id = do
   c <- get id "count" >>= return . fromMaybe 0 . mbreadDouble
   return $ p * c
 
+setTowMCost id = do
+  program  <- get id "parentId" >>= flip get "program"
+  mileCost <- readDouble <$> get program "mileCost"
+  callCost <- readDouble <$> get program "callCost"
+  mileage  <- readDouble <$> get id "suburbanMilage"
+  towCost  <- readDouble <$> get program "towCost"
+  set id "marginalCost" $ printBPrice $
+    towCost + callCost + mileage * mileCost
+
+setTechMCost id = do
+  program  <- get id "parentId" >>= flip get "program"
+  mileCost <- readDouble <$> get program "mileCost"
+  callCost <- readDouble <$> get program "callCost"
+  mileage  <- readDouble <$> get id "suburbanMilage"
+  techCost <- readDouble <$> get program "techCost"
+  set id "marginalCost" $ printBPrice $
+    techCost + callCost + mileage * mileCost
+
+setHotelMCost id = do
+  program  <- get id "parentId" >>= flip get "program"
+  p  <- readDouble <$> get id "providedFor"
+  p1 <- readDouble <$> get program "HotelOneDay"
+  set id "marginalCost" $ printBPrice $ p*p1
+
+setRentMCost id = do
+  program  <- get id "parentId" >>= flip get "program"
+  p  <- readDouble <$> get id "providedFor"
+  p1 <- readDouble <$> get program "RentOneDay"
+  set id "marginalCost" $ printBPrice $ p*p1
+
+setTaxiMCost id =
+  get id "parentId"    >>=
+  flip get "program"   >>=
+  flip get "taxiLimit" >>=
+  set id "marginalCost"
+
+
+setSrvMCost id =
+  case head $ B.split ':' id of
+    "towage" -> setTowMCost   id
+    "tech"   -> setTechMCost  id
+    "hotel"  -> setHotelMCost id
+    "taxi"   -> setTaxiMCost  id
+    "rent"   -> setRentMCost  id
+    _        -> return ()
