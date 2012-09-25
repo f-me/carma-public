@@ -38,6 +38,7 @@ updPartnerOpts = do
                     ,("priority3",
                       fromMaybe "" $ lookupNE "priority3" p')
                     ]
+        liftIO $ print $ "move priorities from: " ++ show k ++ " to " ++ show srvId
         case srv of
           Left _  -> return ()
           Right s -> do
@@ -60,6 +61,7 @@ updPartnerOpts = do
                            ,("price2"    , fromMaybe "" p2   )
                            ]
                 hmset srvId [("tarifOptions", tkey)]
+                liftIO $ print $ "set " ++ show srvId ++ " tarifOptions: " ++ show tkey
                 return ()
 
 updCasePartner = do
@@ -81,9 +83,11 @@ updCasePartner = do
       case flip M.lookup pmap =<< M.lookup "contractor_partner" srvm of
         Nothing  -> return ()
         Just p   -> do
+          let partnerId = objKey "partner" $ fromJust $ M.lookup "id" p
           hmset sId [( "contractor_partnerId"
-                     , objKey "partner" $ fromJust $ M.lookup "id" p
+                     , partnerId
                      )]
+          liftIO $ print $ "setting " ++ show sId ++ " contractor_partnerId " ++ show partnerId
           case return . B.split ',' =<< M.lookup "services" p of
             Nothing -> return ()
             Just ps -> do
@@ -95,6 +99,7 @@ updCasePartner = do
                 Just v  -> do
                   let perc = fromMaybe "" $ M.lookup "falseCallPercent" v
                   hmset sId [("falseCallPercent", perc)]
+                  liftIO $ print $ "set " ++ show sId ++ " falseCallPercent " ++ show perc
                   return ()
 
 
