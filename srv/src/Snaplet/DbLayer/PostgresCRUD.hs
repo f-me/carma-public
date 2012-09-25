@@ -386,5 +386,5 @@ generateReport ms conds tpl file = scope "generate" $ do
     tz <- liftIO getCurrentTimeZone
     dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
     -- TODO: Orderby must not be here!
-    withPG (R.createReport (SM.modelsSyncs ms) (functions tz dicts) conds ["case.callDate"] tpl file)
+    withPG (R.createReport (SM.modelsSyncs ms) (functions tz dicts) conds ["case.callDate", "call.callDate"] tpl file)
     log Debug "Report generated"
