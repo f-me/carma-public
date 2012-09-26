@@ -269,13 +269,14 @@ findOrCreateHandler = do
 ------------------------------------------------------------------------------
 -- | Reports
 report :: AppHandler ()
-report = do
+report = scope "report" $ do
   Just reportId <- getParam "program"
   fromDate <- liftM (fmap T.decodeUtf8) $ getParam "from"
   toDate <- liftM (fmap T.decodeUtf8) $ getParam "to"
   reportInfo <- with db $ DB.read "report" reportId
   tz <- liftIO getCurrentTimeZone
   let tplName = B.unpack (reportInfo Map.! "templates")
+  log Info $ T.concat ["Generating report ", T.pack tplName]
   let template
         = "resources/static/fileupload/report/"
         ++ (B.unpack reportId) ++ "/templates/" ++ tplName
@@ -366,7 +367,9 @@ vinUploadData = scope "vin" $ scope "upload" $ do
   prog <- getParam "program"
   case prog of
     Nothing -> log Error "Program not specified"
-    Just p -> scope (T.decodeUtf8 p) $ do
+    Just p -> do
+      log Info $ T.concat ["Uploading ", T.pack f]
+      log Trace $ T.concat ["Program: ", T.decodeUtf8 p]
       log Trace $ T.concat ["Initializing state for file: ", T.pack f]
       with vin $ initUploadState f
       log Trace $ T.concat ["Uploading data from file: ", T.pack f]
