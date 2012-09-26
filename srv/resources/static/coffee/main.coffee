@@ -267,10 +267,10 @@ setupView = (elName, knockVM,  options) ->
   for f in knockVM.model().referenceFields
     do (f) ->
       pview = $("##{knockVM['view']}")
-      refsForest =
-        "#{knockVM.modelName()}-#{knockVM.model().cid}-#{f}-references"
+      refsForest = getrForest(knockVM, f)
       $("##{refsForest}").empty()
       knockVM[f + 'Reference'].subscribe (newValue) ->
+        refsForest = getrForest(knockVM, f)
         $("##{refsForest}").empty()
         for r in newValue
           refBook = mkRefContainer(r, f, refsForest, tpls)
@@ -282,6 +282,14 @@ setupView = (elName, knockVM,  options) ->
           global.viewsWare[refBook.refView].depViews = v
 
   return depViews
+
+getrForest = (kvm, fld) ->
+  fcid = "#{kvm.modelName()}-#{kvm.model().cid}-#{fld}-references"
+  fold = "#{kvm.modelName()}-#{fld}-references"
+  if $("##{fcid}")[0]
+    return fcid
+  else
+    return fold
 
 this.addReference = (knockVM, field, ref, cb) ->
   field = field + 'Reference' unless /Reference$/.test(field)
