@@ -869,10 +869,12 @@
         </div>
         <div class="controls">
           <div class="input-append date"
+               {{^ readonly }}
                data-provide="datepicker"
                data-autoshow-datepicker="true"
                data-date-format="dd.mm.yyyy"
-               data-date-weekstart="1">
+               data-date-weekstart="1"
+               {{/ readonly }}>
             <input type="text"
                    class="pane-span focusable"
                    autocomplete="off"
