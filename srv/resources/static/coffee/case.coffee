@@ -163,7 +163,9 @@ fillEventsHistory = (knockVM) -> ->
             ''
         result = dict.ActionResults[r.result] or ''
         name = dict.ActionNames[r.name] or ''
-        row = [ duetime , r.assignedTo or '', name , r.comment or '', result ]
+        aTo  = global.dictValueCache['users'][r.assignedTo] or
+               r.assignedTo or ''
+        row = [ duetime , aTo, name , r.comment or '', result ]
         st.fnAddData(row)
 
 # render checkboxes, trueChecks contains list with names,
