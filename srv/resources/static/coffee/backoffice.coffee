@@ -18,8 +18,14 @@ mkBoTable = ->
   ut = mkDataTable(userTable)
   ut.fnSort [[2, "desc"]]
   userTable.on("click.datatable", "tr", ->
-     id = this.children[0].innerText.split('/')
-     window.location.hash = "case/" + id[0]
+    colText = this.children[0].innerText
+    [_,caseId,actId] = colText.match(/(\d+)\/(\d+)/)
+    now = Math.round((new Date).getTime() / 1000)
+    $.ajax
+      type: "PUT"
+      url: "/_/action/#{actId}"
+      data: "{\"openTime\":\"#{now}\"}"
+    window.location.hash = "case/#{caseId}"
   )
   return [userTable]
 
