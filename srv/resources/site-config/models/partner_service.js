@@ -55,6 +55,27 @@
             }
         },
         {
+            "name": "price1",
+            "meta": {
+                "label": "price1",
+                "readonly": true
+            }
+        },
+        {
+            "name": "price2",
+            "meta": {
+                "label": "price2",
+                "readonly": true
+            }
+        },
+        {
+            "name": "tarifName",
+            "meta": {
+                "label": "tarifName",
+                "readonly": true
+            }
+        },
+        {
             "name": "tarifOptions",
             "type": "reference"
         }
