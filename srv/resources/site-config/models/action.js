@@ -83,6 +83,22 @@
         }
       },
       {
+        "name": "openTime",
+        "type": "datetime",
+        "canRead": true,
+        "meta": {
+          "invisible": true
+        }
+      },
+      {
+        "name": "closeTime",
+        "type": "datetime",
+        "canRead": true,
+        "meta": {
+          "invisible": true
+        }
+      },
+      {
         "name": "assignedTo",
         "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
         "canWrite":["back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"], 

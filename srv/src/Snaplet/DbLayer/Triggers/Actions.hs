@@ -240,6 +240,8 @@ actionActions = Map.fromList
              "orderService"
              "Заказать услугу"
              "back" "1" (+5*60) objId
+
+    ,\objId _al -> dateNow id >>= set objId "closeTime"
     ,\objId val -> maybe (return ()) ($objId)
       $ Map.lookup val actionResultMap
     ]

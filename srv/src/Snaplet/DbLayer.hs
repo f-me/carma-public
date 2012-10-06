@@ -155,6 +155,7 @@ initDbLayer :: UsersDict -> SnapletInit b (DbLayer b)
 initDbLayer allU = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
     l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10) [logger text (file "log/db.log")]
+    liftIO $ withLog l $ log Info "Server started"
     mdl <- liftIO $ Postgres.loadModels "resources/site-config/syncs.json" l
     liftIO $ Postgres.createIO mdl l
     cfg <- getSnapletUserConfig

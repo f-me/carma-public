@@ -16,9 +16,9 @@ this.setupSupervisorScreen = (viewName, args) ->
 
         $('td:eq(0)', nRow).html caseLnk
 
-        # if duedate is past, make it yellow
+        # if duedate is past, make it red
         if cdate < now
-          $(nRow).children().css('background-color', '#ffff66')
+          $(nRow).children().css('background-color', '#ff5555')
         # if duedate will be past in 30 sec, make it green
         else if cdate < gdate
           $(nRow).children().css('background-color', '#99ff00')

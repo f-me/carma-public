@@ -269,32 +269,39 @@ findOrCreateHandler = do
 ------------------------------------------------------------------------------
 -- | Reports
 report :: AppHandler ()
-report = do
+report = scope "report" $ do
   Just reportId <- getParam "program"
   fromDate <- liftM (fmap T.decodeUtf8) $ getParam "from"
   toDate <- liftM (fmap T.decodeUtf8) $ getParam "to"
   reportInfo <- with db $ DB.read "report" reportId
   tz <- liftIO getCurrentTimeZone
   let tplName = B.unpack (reportInfo Map.! "templates")
+  log Info $ T.concat ["Generating report ", T.pack tplName]
   let template
         = "resources/static/fileupload/report/"
         ++ (B.unpack reportId) ++ "/templates/" ++ tplName
   let result = "resources/reports/" ++ tplName
   let
-      -- convert format and UTCize time
-      validate dateStr = fmap (format . toUTC) $ parse dateStr where
-          format = T.pack . formatTime defaultTimeLocale "%d.%m.%Y %X"
-          parse :: T.Text -> Maybe LocalTime
-          parse = parseTime defaultTimeLocale "%d.%m.%Y" . T.unpack
-          toUTC = localTimeToUTC tz
-      within pre post dateValue = do
-          f <- dateValue
-          s <- validate f
-          return $ T.concat [T.pack pre, s, T.pack post]
-      fromDate' = within "case.callDate > to_timestamp('" "', 'DD.MM.YYYY HH24:MI:SS')" fromDate
-      toDate' = within "case.callDate < to_timestamp('" "', 'DD.MM.YYYY HH24:MI:SS')" toDate
-      
-      dateConditions = catMaybes [fromDate', toDate']
+    -- convert format and UTCize time, and apply f to UTCTime
+    validateAnd f dateStr = fmap (format . f . toUTC) $ parse dateStr where
+      format = T.pack . formatTime defaultTimeLocale "%d.%m.%Y %X"
+      parse :: T.Text -> Maybe LocalTime
+      parse = parseTime defaultTimeLocale "%d.%m.%Y" . T.unpack
+      toUTC = localTimeToUTC tz
+    withinAnd f pre post dateValue = do
+      v <- dateValue
+      s <- validateAnd f v
+      return $ T.concat [T.pack pre, s, T.pack post]
+    (fromDate', toDate') = fromTo "case"
+    (fromDate'', toDate'') = fromTo "call"
+
+    fromTo mdl = (from, to) where
+      from = withinAnd id (mdl ++ ".callDate > to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" fromDate
+      to = withinAnd addDay (mdl ++ ".callDate < to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" toDate
+
+    addDay tm = tm { utctDay = addDays 1 (utctDay tm) }
+    
+    dateConditions = catMaybes [fromDate', toDate', fromDate'', toDate'']
   with db $ DB.generateReport dateConditions template result
   modifyResponse $ addHeader "Content-Disposition" "attachment; filename=\"report.xlsx\""
   serveFile result
@@ -360,7 +367,9 @@ vinUploadData = scope "vin" $ scope "upload" $ do
   prog <- getParam "program"
   case prog of
     Nothing -> log Error "Program not specified"
-    Just p -> scope (T.decodeUtf8 p) $ do
+    Just p -> do
+      log Info $ T.concat ["Uploading ", T.pack f]
+      log Trace $ T.concat ["Program: ", T.decodeUtf8 p]
       log Trace $ T.concat ["Initializing state for file: ", T.pack f]
       with vin $ initUploadState f
       log Trace $ T.concat ["Uploading data from file: ", T.pack f]

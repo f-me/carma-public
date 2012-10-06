@@ -163,7 +163,9 @@ fillEventsHistory = (knockVM) -> ->
             ''
         result = dict.ActionResults[r.result] or ''
         name = dict.ActionNames[r.name] or ''
-        row = [ duetime , r.assignedTo or '', name , r.comment or '', result ]
+        aTo  = global.dictValueCache['users'][r.assignedTo] or
+               r.assignedTo or ''
+        row = [ duetime , aTo, name , r.comment or '', result ]
         st.fnAddData(row)
 
 # render checkboxes, trueChecks contains list with names,
@@ -286,10 +288,13 @@ this.partnerOptsHook = (i, knockVM) ->
           filtered = _.filter(services, (s) -> s.serviceName() == model)
           opts = filtered[0].tarifOptionsReference() unless _.isEmpty filtered
           return if _.isEmpty opts
-          tr = Mustache.render $('#tarif-opt-sel-template').html(),
-                opts: for i in opts
-                  id: i.id()
-                  optionName: (i.optionName() || "Тарифная опция")
+          tr = Mustache.render(
+                $('#tarif-opt-sel-template').html(),
+                opts:
+                  for i in opts
+                    {id: i.id()
+                    ,optionName: (i.optionName() || "Тарифная опция")}
+          )
           $("##{v}").children().last().after(tr)
           $("##{v}").find('.reload').on 'click.reloadCountedCost', ->
             r = global.viewsWare['case-form'].knockVM['servicesReference']()

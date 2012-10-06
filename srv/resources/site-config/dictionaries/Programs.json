@@ -27,7 +27,11 @@
         {
             "value": "avilon",
             "label": "B2B / Авилон"
-        }, 
+        },
+        {
+            "value": "avtoC",
+            "label": "B2B / Авто-Цель"
+        },
         {
             "value": "arval",
             "label": "B2B / АРВАЛ"
