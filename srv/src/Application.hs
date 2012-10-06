@@ -35,6 +35,7 @@ data App = App
     , _db         :: Snaplet (DbLayer App)
     , _vin        :: Snaplet Vin
     , _fileUpload :: Snaplet FileUpload
+    , feLog       :: Log
     }
 
 type AppHandler = Handler App App

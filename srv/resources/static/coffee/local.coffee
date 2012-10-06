@@ -124,6 +124,13 @@ $ ->
               if window.location.hash == ""
                 redirectToHomePage user
 
+window.onerror = (msg, url, line) ->
+  $.ajax
+    type: "POST"
+    url : "/errors"
+    data: "#{msg} #{url} #{line}"
+  return false
+
 this.redirectToHomePage = (user) ->
   mainRole = user.roles[0]
   if mainRole == "front"
@@ -310,7 +317,6 @@ this.bindDelete = (parent, field, cb) ->
           deleteCb(d.acc())
         else
           alert 'error'
-
 
 ################################################################################
 # utils
