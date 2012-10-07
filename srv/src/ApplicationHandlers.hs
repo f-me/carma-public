@@ -10,6 +10,8 @@ import Control.Monad.IO.Class
 import Control.Concurrent.STM
 
 import Data.Text (Text)
+import Data.Text.Lazy (toStrict)
+import Data.Text.Lazy.Encoding (decodeUtf8)
 import Data.Char
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -386,3 +388,10 @@ vinStateRemove = scope "vin" $ scope "state" $ scope "remove" $ do
   res <- getParam "id"
   log Trace $ T.concat ["id: ", maybe "<null>" (T.pack . show) res]
   with vin removeAlert
+
+errorsHandler :: AppHandler ()
+errorsHandler = do
+  l <- gets feLog
+  r <- readRequestBody 4096
+  liftIO $ withLog l $ scope "frontend" $ do
+  log Info $ toStrict $ decodeUtf8 r

@@ -92,7 +92,8 @@ Executable carma
     fdds                        == 0.1,
     vector                      == 0.9.*,
     bytestring-lexing           == 0.4.*,
-    websockets                  == 0.6.*
+    websockets                  == 0.6.*,
+    simple-log                  == 0.1.*
 
   Extensions:
     OverloadedStrings,
