@@ -280,7 +280,7 @@ this.partnerOptsHook = (i, knockVM) ->
     model = knockVM.modelName()
     v1 = global.dictLabelCache.partners1[n.trim()]
     if v1 and id = v1.split(':')?[1]
-      knockVM['contractor_partnerId'](v1)
+      knockVM['contractor_partnerId'](v1) if knockVM['contractor_partnerId']
       buildNewModel "partner", {id: id}, {}, (m,mo,kvm)->
         sTout 1000, ->
           services = kvm.servicesReference()
