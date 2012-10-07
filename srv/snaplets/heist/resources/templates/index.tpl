@@ -1168,6 +1168,7 @@
         <div class="controls">
           <div class="input-append">
             <input type="text"
+                   name= {{ name }}
                    class="pane-span"
                    autocomplete="off"
                    {{# meta.transform }}

@@ -7,6 +7,7 @@ module Util
   ,selectParse
   ,mbreadInt
   ,mbreadDouble
+  ,readDouble
   ,lookupNE
   ,selectPrice
   ,printBPrice
@@ -126,6 +127,9 @@ mbreadDouble :: B.ByteString -> Maybe Double
 mbreadDouble s =  B.readDouble s >>= r
   where r (i, "") = Just i
         r _       = Nothing
+
+readDouble :: B.ByteString -> Double
+readDouble = fromMaybe 0 . mbreadDouble
 
 -- | Like Map.lookup but treat Just "" as Nothing
 lookupNE :: Ord k => k -> Map k B.ByteString -> Maybe B.ByteString

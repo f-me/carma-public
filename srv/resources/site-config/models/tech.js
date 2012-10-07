@@ -585,6 +585,27 @@
             }
         },
         {
+            "name": "marginalCost",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "canWrite": [ ],
+            "meta": {
+                "label": "Предельная стоимость"
+            }
+        },
+        {
             "name": "suburbanMilage",
             "canRead": [
                 "partner",

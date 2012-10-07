@@ -320,3 +320,20 @@ this.srvOptUpd = (instance, knockVM) ->
       for o in knockVM['cost_serviceTarifOptionsReference']()
         do (o) ->
           o.model().fetch()
+
+this.costsMark = (instance, knockVM) ->
+  knockVM['marginalCost'].subscribe -> mbMark()
+
+  knockVM['cost_counted'].subscribe -> mbMark()
+  mbMark = ->
+    v = knockVM.view
+    mc = $("##{v}").find('[name=marginalCost]').parents('.control-group')
+    cc = $("##{v}").find('[name=cost_counted]').parents('.control-group')
+    mf = parseFloat(knockVM['marginalCost']())
+    cf = parseFloat(knockVM['cost_counted']())
+    if mf < cf
+      mc.addClass('error')
+      cc.addClass('error')
+    else
+      mc.removeClass('error')
+      cc.removeClass('error')
