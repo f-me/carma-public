@@ -21,7 +21,7 @@ main = do
   conn <- connect defaultConnectInfo
   runRedis conn $ do
     updPartnerOpts
-    -- updCasePartner
+    updCasePartner
 
 updPartnerOpts = do
   Right ps <- keys "partner:*"
