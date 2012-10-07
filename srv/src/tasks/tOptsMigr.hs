@@ -154,17 +154,25 @@ updCasePartner = do
   -- thru cases
   forM_ cases $ \k -> do
     let ss = B.split ',' $ fromMaybe "" $ M.lookup "services" k
+    -- liftIO $ print $ "updating case: " ++ show k
     -- thru services
     forM_ ss $ \sId -> do
+      liftIO $ print $ "updating service: " ++ show sId
       Right srv <- hgetall sId
       let srvm = M.fromList srv
       case flip M.lookup pmap =<< M.lookup "contractor_partner" srvm of
         Nothing  -> return ()
         Just p   -> do
-          let partnerId = objKey "partner" $ fromJust $ M.lookup "id" p
-          hmset sId [( "contractor_partnerId"
-                     , partnerId
-                     )]
+          -- liftIO $ print "got just cp"
+          let partnerId = return . objKey "partner" =<<  M.lookup "id" p
+          case partnerId of
+            Nothing        ->
+              liftIO $ print $ "can't find id for " ++
+                (show $ fromJust $ M.lookup "contractor_partner" srvm)
+            Just partnerId -> do
+              hmset sId [( "contractor_partnerId", partnerId )]
+              return ()
+
           liftIO $ print $ "setting " ++ show sId ++ " contractor_partnerId " ++ show partnerId
           case return . B.split ',' =<< M.lookup "services" p of
             Nothing -> return ()
