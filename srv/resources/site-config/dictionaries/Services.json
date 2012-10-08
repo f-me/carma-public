@@ -62,6 +62,26 @@
         {
             "value": "unfuel",
             "label": "Слив топлива"
-        }
+        },
+        {
+            "value": "continue",
+            "label": "Продолжение путешествия"
+        },
+        {
+            "value": "bank",
+            "label": "Банковская поддержка"
+        },
+        {
+            "value": "deliverClient",
+            "label": "Доставка клиента к отремонтированному автомобилю"
+        },
+        {
+            "value": "averageCommissioner",
+            "label": "Аварийный комиссар"
+        },        
+        {
+            "value": "insurance",
+            "label": "Сбор справок для страховой компании"
+        }      
     ]
 }
