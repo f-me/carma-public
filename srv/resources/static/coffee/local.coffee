@@ -238,12 +238,15 @@ this.doPick = (pickType, args, el) ->
       global.avayaPhone && global.avayaPhone.call(number)
 
     nominatimPicker: (fieldName, el) ->
-      addr = $(el).parent().prev().val()
+      addr = $(el).parents('.input-append')
+                  .children('input[name=caseAddress_address]')
+                  .val()
       $.getJSON("/nominatim?addr=#{addr}", (res) ->
         if res.length > 0
           form = $(el).parents("form")
           osmap = form.find(".olMap")
           res1 = JSON.parse(res)
+          return if res1.length == 0
           osmap.data().osmap.setCenter(
             new OpenLayers.LonLat(res1[0].lon, res1[0].lat)
               .transform(
