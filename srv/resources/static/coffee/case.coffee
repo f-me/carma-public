@@ -81,7 +81,6 @@ setCommentsHandler = ->
       comment: i.val()
     k = global.viewsWare['case-form'].knockVM
     if _.isEmpty k['comments']()
-      console.log 'sete'
       k['comments'] [comment]
     else
       k['comments'] k['comments']().concat comment
@@ -186,6 +185,7 @@ fillEventsHistory = (knockVM) -> ->
         row = [ duetime , aTo, name , r.comment or '', result ]
         st.fnAddData(row)
 
+      return if _.isEmpty knockVM['comments']()
       for c in knockVM['comments']()
         st.fnAddData [ c.date
                      , global.dictValueCache['users'][c.user] || ''
