@@ -75,8 +75,16 @@ setCommentsHandler = ->
   $("#case-comments-b").on 'click', ->
     i = $("#case-comments-i")
     return if _.isEmpty i.val()
+    comment =
+      date: (new Date()).toString('dd.MM.yyyy HH:mm')
+      user: global.user.login
+      comment: i.val()
     k = global.viewsWare['case-form'].knockVM
-    k['comments'] k['comments']().concat i.val()
+    if _.isEmpty k['comments']()
+      console.log 'sete'
+      k['comments'] [comment]
+    else
+      k['comments'] k['comments']().concat comment
     i.val("")
 
 
@@ -177,6 +185,14 @@ fillEventsHistory = (knockVM) -> ->
                r.assignedTo or ''
         row = [ duetime , aTo, name , r.comment or '', result ]
         st.fnAddData(row)
+
+      for c in knockVM['comments']()
+        st.fnAddData [ c.date
+                     , global.dictValueCache['users'][c.user] || ''
+                     , "Комментарий"
+                     , c.comment
+                     , ""
+                     ]
 
 # render checkboxes, trueChecks contains list with names,
 # tha should be rendered as checked
@@ -282,6 +298,7 @@ this.caseDescsKbHook = (instance, knockVM) ->
 this.caseEventsHistoryKbHook = (instance, knockVM) ->
   knockVM['contact_phone1'].subscribe fillEventsHistory(knockVM)
   knockVM['actions'].subscribe fillEventsHistory(knockVM)
+  knockVM['comments'].subscribe fillEventsHistory(knockVM)
 
 this.partnerOptsHook = (i, knockVM) ->
   knockVM['contractor_partner'].subscribe (n) ->
