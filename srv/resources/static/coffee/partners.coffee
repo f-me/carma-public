@@ -70,3 +70,6 @@ genNewTarif = (kvm) ->
     (k) ->
       bindRemove kvm, 'tarifOptions'
       focusRef k
+
+this.bindTitleServiceName = (instance, kvm) ->
+  kvm['modelTitle'] = kvm['serviceNameLocal']
