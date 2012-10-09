@@ -41,6 +41,7 @@ setupCaseModel = (viewName, args) ->
     instance = global.viewsWare[viewName].bbInstance
     ctx =
       "fields": _.map(instance.requiredFields, (f) -> instance.fieldHash[f])
+    setCommentsHandler()
 
     $("#empty-fields-placeholder").html(
       Mustache.render($("#empty-fields-template").html(), ctx))
@@ -69,6 +70,15 @@ setupCaseModel = (viewName, args) ->
   mkDataTable $('#call-searchtable')
   setupHotkeys()
   kvm = global.viewsWare[viewName].knockVM
+
+setCommentsHandler = ->
+  $("#case-comments-b").on 'click', ->
+    i = $("#case-comments-i")
+    return if _.isEmpty i.val()
+    k = global.viewsWare['case-form'].knockVM
+    k['comments'] k['comments']().concat i.val()
+    i.val("")
+
 
 # Top-level wrapper for storeService
 this.addService = (name) ->

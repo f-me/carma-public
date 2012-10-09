@@ -1488,8 +1488,16 @@
               </tr>
             </thead>
             <tbody/>
-        </table>
+          </table>
 
+        </div>
+        <div id="case-comments">
+          <label> Комментарий </label>
+          <textarea  id="case-comments-i" rows="7"  />
+          <br />
+          <button    id="case-comments-b" class="btn">
+            Добавить комментарий
+          </button>
         </div>
       </fieldset>
     </script>
