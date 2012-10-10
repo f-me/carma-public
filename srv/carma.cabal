@@ -74,7 +74,7 @@ Executable carma
     stm                         == 2.3,
     transformers                >= 0.2 && < 0.4,
     MonadCatchIO-transformers   >= 0.2 && < 0.4,
-    vin-parser                  == 0.1.*,
+    vin-parser                  >= 0.1.2 && < 0.2,
     hedis                       == 0.4.1,
     unordered-containers,
     utf8-string,
