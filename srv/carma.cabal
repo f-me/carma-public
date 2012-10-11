@@ -67,7 +67,7 @@ Executable carma
     snap-core                   == 0.8.*,
     snap-server                 == 0.8.*,
     snaplet-redis               == 0.1.*,
-    snaplet-simple-log,
+    snaplet-simple-log  >= 0.1.2 && < 0.2,
     text                        >= 0.11 && < 0.12,
     time                        >= 1.1 && < 1.5,
     mtl                         == 2.0.*,
