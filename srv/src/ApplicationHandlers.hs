@@ -298,7 +298,7 @@ report = scope "report" $ do
     (fromDate'', toDate'') = fromTo "call"
 
     fromTo mdl = (from, to) where
-      from = withinAnd id (mdl ++ ".callDate > to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" fromDate
+      from = withinAnd id (mdl ++ ".callDate >= to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" fromDate
       to = withinAnd addDay (mdl ++ ".callDate < to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" toDate
 
     addDay tm = tm { utctDay = addDays 1 (utctDay tm) }
