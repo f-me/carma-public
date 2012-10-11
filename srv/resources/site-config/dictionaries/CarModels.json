@@ -638,6 +638,10 @@
                 "label": "Astra"
             },
             {
+                "value": "astragtc",
+                "label": "Astra GTC"
+            },
+            {
                 "value": "calibra",
                 "label": "Calibra"
             },
