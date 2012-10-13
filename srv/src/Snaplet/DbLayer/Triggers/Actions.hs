@@ -1,7 +1,7 @@
 module Snaplet.DbLayer.Triggers.Actions where
 
 import Control.Arrow (first)
-import Control.Monad (when, void, forM, forM_, filterM)
+import Control.Monad (when, unless, void, forM, forM_, filterM)
 import Control.Monad.Trans
 import Control.Exception
 import Control.Applicative ((<$>))
@@ -91,14 +91,14 @@ actions = Map.fromList
                   $ map (first $ B.append "car_") car
                    ])
        ])
-    ,("towage", Map.fromList
-      [("suburbanMilage", [\objId val -> setSrvMCost objId])])
-    ,("tech", Map.fromList
-      [("suburbanMilage", [\objId val -> setSrvMCost objId])])
-    ,("rent", Map.fromList
-      [("providedFor",    [\objId val -> setSrvMCost objId])])
-    ,("hotel", Map.fromList
-      [("providedFor",    [\objId val -> setSrvMCost objId])])
+    -- ,("towage", Map.fromList
+    --   [("suburbanMilage", [\objId val -> setSrvMCost objId])])
+    -- ,("tech", Map.fromList
+    --   [("suburbanMilage", [\objId val -> setSrvMCost objId])])
+    -- ,("rent", Map.fromList
+    --   [("providedFor",    [\objId val -> setSrvMCost objId])])
+    -- ,("hotel", Map.fromList
+    --   [("providedFor",    [\objId val -> setSrvMCost objId])])
     ]
 
 -- Создания действий "с нуля"
@@ -193,6 +193,9 @@ serviceActions = Map.fromList
   )
   ,("contractor_partner",
     [\objId val -> do
+        Right partnerIds <- lift $ runRedisDB redis $ Redis.keys "partner:*"
+        p <- filterM (\id -> (val ==) <$> get id "name") partnerIds
+        unless (null p) $ set objId "contractor_partnerId" (head p)
         opts <- get objId "cost_serviceTarifOptions"
         let ids = B.split ',' opts
         lift $ runRedisDB redis $ Redis.del ids
