@@ -30,30 +30,41 @@ updPartnerOpts = do
   forM_ partners $ \k -> do
     lp $ "migrating: " ++ show k
     Right partner <- g k
-    let sids = B.split ',' $ fromMaybe "" $ M.lookup "services" partner
-    ss <- grefs sids
-    let cmpSrv a b = (M.lookup "serviceName" a) == (M.lookup "serviceName" b)
-    -- group services by their name
-    let groups = groupBy cmpSrv ss
-    forM_ groups $ \sgrp -> do
-      let optIds = foldl union [] $ map (mkids "tarifOptions") sgrp
-      opts    <- grefs optIds
-      newopts <- catMaybes <$> mapM (mkOption opts) sgrp
-      let newids = map (fl "id") newopts
-      -- add new options to redis
-      mapM_ (\o -> hmset (fl "id" o) $ M.toList $ M.delete "id" o) newopts
-      let optIds' = B.intercalate "," $ concat [optIds, newids]
-      let curS  = head sgrp
-      lp $ "setting to: " ++ show (fl "id" curS) ++
-        " options: " ++ show optIds'
-      hmset (fl "id" curS) [("tarifOptions",  optIds')]
-    let (newSrvs, delSrvs) = foldl (\(a,b) (c,d) -> (a ++ c, b ++ d))
-                               ([],[]) $ map (splitAt 1) groups
-    lp $ "newSrvs: " ++ show (toIds newSrvs)
-    lp $ "delSrvs: " ++ show (toIds delSrvs)
-    hmset k [("services", toIds newSrvs)
-            ,("delSrvs",  toIds delSrvs)
-            ]
+    let services = lookupNE "services" partner
+    liftIO $ print services
+    case return . ('[' ==) . B.head  =<< services of
+      Nothing    -> do
+        liftIO $ print "nothing in services"
+        return ()
+      Just True  -> do
+        liftIO $ print "bad in services"
+        return ()
+      Just False -> do
+        let sids = B.split ',' $ fromMaybe "" $ services
+        ss <- grefs sids
+        let cmpSrv a b = (M.lookup "serviceName" a) == (M.lookup "serviceName" b)
+        -- group services by their name
+        let groups = groupBy cmpSrv ss
+        forM_ groups $ \sgrp -> do
+          let optIds = foldl union [] $ map (mkids "tarifOptions") sgrp
+          opts    <- grefs optIds
+          newopts <- catMaybes <$> mapM (mkOption opts) sgrp
+          let newids = map (fl "id") newopts
+          -- add new options to redis
+          mapM_ (\o -> hmset (fl "id" o) $ M.toList $ M.delete "id" o) newopts
+          let optIds' = B.intercalate "," $ concat [optIds, newids]
+          let curS  = head sgrp
+          lp $ "setting to: " ++ show (fl "id" curS) ++
+            " options: " ++ show optIds'
+          hmset (fl "id" curS) [("tarifOptions",  optIds')]
+        let (newSrvs, delSrvs) = foldl (\(a,b) (c,d) -> (a ++ c, b ++ d))
+                                   ([],[]) $ map (splitAt 1) groups
+        lp $ "newSrvs: " ++ show (toIds newSrvs)
+        lp $ "delSrvs: " ++ show (toIds delSrvs)
+        hmset k [("services", toIds newSrvs)
+                ,("delSrvs",  toIds delSrvs)
+                ]
+        return ()
 
 mkOption opts srv = do
   let srvId = fl "id" srv
