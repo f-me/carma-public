@@ -91,14 +91,6 @@ actions = Map.fromList
                   $ map (first $ B.append "car_") car
                    ])
        ])
-    -- ,("towage", Map.fromList
-    --   [("suburbanMilage", [\objId val -> setSrvMCost objId])])
-    -- ,("tech", Map.fromList
-    --   [("suburbanMilage", [\objId val -> setSrvMCost objId])])
-    -- ,("rent", Map.fromList
-    --   [("providedFor",    [\objId val -> setSrvMCost objId])])
-    -- ,("hotel", Map.fromList
-    --   [("providedFor",    [\objId val -> setSrvMCost objId])])
     ]
 
 -- Создания действий "с нуля"
@@ -228,6 +220,9 @@ serviceActions = Map.fromList
         ])
   ,("cost_serviceTarifOptions",
     [\objId val -> set objId "cost_counted" =<< srvCostCounted objId ])
+   -- RKC calc 
+  ,("suburbanMilage", [\objId val -> setSrvMCost objId])
+  ,("providedFor",    [\objId val -> setSrvMCost objId])
   ]
 
 resultSet1 =
