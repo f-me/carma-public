@@ -430,7 +430,7 @@
               <option value="vwCommercial">VW Коммерческие</option>
               <option value="opel">Opel</option>
               <option value="hummer">Hummer</option>
-              <option value="chevroletNAO">Chevrolet NAO</option>
+              <option value="chevroletNAO">Chevrolet NAV</option>
               <option value="chevroletKorea">Chevrolet Korea</option>
               <option value="cadillac">Cadillac</option>
               <option value="vwRuslan">VW Рус-Лан</option>
