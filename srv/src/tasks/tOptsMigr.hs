@@ -124,7 +124,7 @@ updCasePartner = do
       case flip M.lookup pmap =<< M.lookup "contractor_partner" srv of
         Nothing  -> return ()
         Just p   -> do
-          let partnerId = objKey "partner" $ fromJust $ M.lookup "id" p
+          let partnerId = fromJust $ M.lookup "id" p
           hmset sId [( "contractor_partnerId"
                      , partnerId
                      )]
