@@ -105,71 +105,23 @@ hgetall' id = do
     Left r  -> return $ Left r
     Right r -> return $ Right $ M.insert "id" id $ M.fromList r
 
--- grefs ids = rights <$> mapM hgetall ids
-  
--- updPartnerOpts = do
---   Right ps <- keys "partner:*"
---   forM_ (filter (not . B.isPrefixOf "partner:name") ps) $ \k -> do
---     Right p <- hgetall k
---     let p' = M.fromList p
---     case M.lookup "services" $ M.fromList p of
---       Nothing -> return ()
---       Just ss
---         | B.length ss < 23 && B.length ss > 15 ->
---           forM_ (B.split ',' ss) $ \srvId -> do
---             srv <- hgetall srvId
---             hmset srvId [("priority1",
---                           fromMaybe "" $ lookupNE "priority1" p')
---                         ,("priority2",
---                           fromMaybe "" $ lookupNE "priority2" p')
---                         ,("priority3",
---                           fromMaybe "" $ lookupNE "priority3" p')
---                         ]
---             liftIO $ print $ "move priorities from: " ++ show k ++ " to " ++ show srvId
---             case srv of
---               Left _  -> return ()
---               Right s -> do
---                 let tname = lookupNE "tarifName" p'
---                     p1    = lookupNE "price1"    p'
---                     p2    = lookupNE "price2"    p'
---                 case all (== Nothing) [tname, p1,p2] of
---                   True  -> do
---                     liftIO $ print $ "nothing to make tarifOption for: " ++ show srvId
---                     return ()
---                   False -> do
---                     Right id <- incr $ modelIdKey "tarifOption"
---                     let idStr = B.pack $ show id
---                         tkey  = objKey "tarifOption" idStr
---                     liftIO $ print $ "going to set " ++ show tkey
---                     hmset tkey [("id"        , idStr)
---                                ,("parentId"  , srvId)
---                                ,("optionName", fromMaybe "" tname)
---                                ,("price1"    , fromMaybe "" p1   )
---                                ,("price2"    , fromMaybe "" p2   )
---                                ]
---                     liftIO $ print $ "created tarifOption: " ++ show tkey
---                     hmset srvId [("tarifOptions", tkey)]
---                     liftIO $ print $ "set " ++ show srvId ++ " tarifOptions: " ++ show tkey
---                     return ()
---         | otherwise -> return ()
-
 updCasePartner = do
   Right ps <- keys "partner:*"
   plst <- forM (filter (not . B.isPrefixOf "partner:name") ps) $ \k -> do
-    Right p <- hgetall k
-    return (fromMaybe "" $ M.lookup "name" $ M.fromList p, M.fromList p)
+    Right p <- hgetall' k
+    return (fromMaybe "" $ M.lookup "name" p, p)
   -- make map partner -> partnerid
   let pmap = M.fromList plst
   Right casesIds <- keys "case:*"
-  cases <- map M.fromList <$> rights <$> mapM hgetall casesIds
+  cases <- rights <$> mapM hgetall' casesIds
   -- thru cases
   forM_ cases $ \k -> do
     let ss = B.split ',' $ fromMaybe "" $ M.lookup "services" k
+    lp $ "services for " ++ show k ++ " :: " ++ show ss
     -- thru services
     forM_ ss $ \sId -> do
-      Right srv <- hgetall sId
-      let srvm = M.fromList srv
-      case flip M.lookup pmap =<< M.lookup "contractor_partner" srvm of
+      Right srv <- hgetall' sId
+      case flip M.lookup pmap =<< M.lookup "contractor_partner" srv of
         Nothing  -> return ()
         Just p   -> do
           let partnerId = objKey "partner" $ fromJust $ M.lookup "id" p
@@ -181,7 +133,7 @@ updCasePartner = do
             Nothing -> return ()
             Just ps -> do
               let srvName = head $ B.split ':' sId
-              pservices <- map M.fromList <$> rights <$> mapM hgetall ps
+              pservices <- rights <$> mapM hgetall' ps
               let samesrv = find (\s -> (fromMaybe "" $ M.lookup "serviceName" s) == srvName) pservices
               case samesrv of
                 Nothing -> return ()
