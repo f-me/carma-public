@@ -275,6 +275,7 @@ this.caseEventsHistoryKbHook = (instance, knockVM) ->
 
 this.partnerOptsHook = (i, knockVM) ->
   knockVM['contractor_partner'].subscribe (n) ->
+    return unless knockVM['view']
     v = global.viewsWare[knockVM['view']].depViews['cost_counted'][0]
     $("##{v}").find(".add-opt-btn").remove()
     model = knockVM.modelName()
