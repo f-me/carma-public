@@ -65,6 +65,7 @@ actions = Map.fromList
         mapM_ (setSrvMCost) =<< B.split ',' <$> get objId "services"
         return ()
                    ])
+{-
       ,("city", [\objId val -> do
                   oldCity <- lift $ runRedisDB redis $ Redis.hget objId "city"
                   case oldCity of
@@ -72,25 +73,27 @@ actions = Map.fromList
                     Right Nothing  -> setWeather objId val
                     Right (Just c) -> when (c /= val) $ setWeather objId val
                   ])
+-}
       ,("car_vin", [\objId val ->
-        if B.length val /= 17
-          then return ()
-          else do
-            let vinKey = B.concat ["vin:", B.map toUpper val]
-            car <- lift $ runRedisDB redis
-                        $ Redis.hgetall vinKey
-            case car of
-              Left _    -> return ()
-              Right []  -> do
-                res <- requestFddsVin objId val
-                set objId "vinChecked"
-                  $ if res then "fdds" else "vinNotFound"
-              Right car -> do
-                set objId "vinChecked" "base"
-                mapM_ (uncurry $ set objId)
-                  $ map (first $ B.append "car_") car
-                   ])
-       ])
+        when (B.length val == 17) $ do
+          let vinKey = B.concat ["vin:", B.map toUpper val]
+          car <- lift $ runRedisDB redis
+                      $ Redis.hgetall vinKey
+          case car of
+            Left _    -> return ()
+            Right []  -> do
+              res <- requestFddsVin objId val
+              set objId "vinChecked"
+                $ if res then "fdds" else "vinNotFound"
+            Right car -> do
+              set objId "vinChecked" "base"
+              let setIfEmpty (name,val) = do
+                    let name' = B.append "car_" name
+                    val' <- get objId name'
+                    when (val' == "") $ set objId name' val
+              mapM_ setIfEmpty car
+        ])
+      ])
     ,("towage", Map.fromList
       [("suburbanMilage", [\objId val -> setSrvMCost objId])])
     ,("tech", Map.fromList

@@ -69,6 +69,19 @@ setupCaseModel = (viewName, args) ->
   mkDataTable $('#call-searchtable')
   setupHotkeys()
   kvm = global.viewsWare[viewName].knockVM
+  for i of kvm when /.*Not$/.test(i) or i == 'actions'
+    do (i) -> kvm[i].subscribe -> mbEnableActionResult(kvm)
+
+mbEnableActionResult = (kvm) ->
+  nots = (i for i of kvm when /.*Not$/.test i)
+  console.log nots
+  if (_.any nots, (e) -> kvm[e]())
+    $("[name=result]").attr('disabled', 'disabled')
+    $("[name=result]").next().find("i").removeAttr("data-provide")
+  else
+    $("[name=result]").removeAttr 'disabled'
+    $("[name=result]").next().find("i")
+      .attr("data-provide", "typeahead-toggle")
 
 # Top-level wrapper for storeService
 this.addService = (name) ->
@@ -275,6 +288,7 @@ this.caseEventsHistoryKbHook = (instance, knockVM) ->
 
 this.partnerOptsHook = (i, knockVM) ->
   knockVM['contractor_partner'].subscribe (n) ->
+    return unless knockVM['view']
     v = global.viewsWare[knockVM['view']].depViews['cost_counted'][0]
     $("##{v}").find(".add-opt-btn").remove()
     model = knockVM.modelName()
