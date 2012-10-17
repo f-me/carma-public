@@ -36,6 +36,7 @@ applyDefaults model obj = do
               $ obj
     "case" -> return cd
     "call" -> return cd
+    "cost_serviceTarifOption" -> return $ Map.insert "count" "1" obj
     "taxi" -> do
       let parentId = obj Map.! "parentId"
       Right caseAddr <- Redis.runRedisDB redis
