@@ -118,6 +118,7 @@
             ],
             "canRead": [
                 "back",
+                "front",
                 "head",
                 "supervisor",
                 "director",
@@ -131,6 +132,7 @@
             ],
             "canWrite": [
                 "back",
+                "front",
                 "head",
                 "supervisor",
                 "director",
@@ -170,6 +172,7 @@
             ],
             "canRead": [
                 "back",
+                "front",
                 "head",
                 "supervisor",
                 "director",
@@ -200,6 +203,7 @@
             ],
             "canWrite": [
                 "back",
+                "front",
                 "head",
                 "supervisor",
                 "director",
@@ -310,6 +314,7 @@
             ],
             "canRead": [
                 "back",
+                "front",
                 "head",
                 "supervisor",
                 "director",
@@ -321,6 +326,7 @@
             ],
             "canWrite": [
                 "back",
+                "front",
                 "head",
                 "supervisor",
                 "director",

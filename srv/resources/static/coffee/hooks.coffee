@@ -6,8 +6,14 @@ this.hooks = ->
       "*"    : [regexpKbHook, dictionaryKbHook, filesKbHook]
       "case" : [caseDescsKbHook, caseEventsHistoryKbHook]
       "tarifOption": [tarifOptNameDef]
+      "partner_service": [bindTitleServiceName]
       "cost_serviceTarifOption": [tarifOptNameDef]
-      "rent" : [partnerOptsHook, srvOptUpd]
+      "rent"  : [partnerOptsHook, srvOptUpd, costsMark]
+      "tech"  : [partnerOptsHook, srvOptUpd, costsMark]
+      "taxi"  : [partnerOptsHook, srvOptUpd, costsMark]
+      "sober" : [partnerOptsHook, srvOptUpd]
+      "hotel" : [partnerOptsHook, srvOptUpd, costsMark]
+      "towage": [partnerOptsHook, srvOptUpd, costsMark]
 
 dictionaryKbHook = (instance, knockVM) ->
   for n of instance.dictionaryFields
