@@ -171,3 +171,12 @@ textarea.pane-span,
   right: 0;
   width: 25%;
 }
+#sms-left {
+  left: 0;
+  width: 70%;
+}
+
+#sms-right {
+  right: 0;
+  width: 25%;
+}

@@ -69,6 +69,7 @@
     <script src="/s/js/hotkeys.js" />
     <script src="/s/js/fileupload.js" />
     <script src="/s/js/avaya.js" />
+    <script src="/s/js/editSms.js" />
 
   </head>
   <body>
@@ -525,9 +526,8 @@
             id="editSms-screen-template">
 
       <div id="sms-left" class="nice-scrollbar pane">
-        <form class="form-vertical">
           <button class="btn btn-action" type="button"
-            onclick="location.hash='partner';location.reload(true);">
+            onclick="location.hash='editSms';location.reload(true);">
             <i class="icon icon-plus"></i>Добавить шаблон
           </button>
           <br/><br/>
@@ -535,19 +535,20 @@
             <thead>
               <tr>
                 <th>#</th>
+                <th>Имя шаблона</th>
+                <th>Текст</th>
               </tr>
             </thead>
             <tbody/>
           </table>
-        </form>
       </div>
 
-      <div id="sms-center" class="nice-scrollbar pane">
+      <div id="sms-right" class="nice-scrollbar pane">
         <form class="form-vertical">
-          <div id="sms-form" />
+          <div id="smsTpl-form" />
           <div class="control-group">
           </div>
-          <div id="sms-permissions" />
+          <div id="smsTpl-permissions" />
         </form>
       </div>
     </script>

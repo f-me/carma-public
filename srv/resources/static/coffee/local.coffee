@@ -57,6 +57,9 @@ localScreens = ->
         constructor: setupEditVin
   "editSms":
     "template": "editSms-screen-template"
+    "views":
+      "smsTpl-form":
+        constructor: setupSmsTplForm
 
 # Setup routing
 localRouter = Backbone.Router.extend
