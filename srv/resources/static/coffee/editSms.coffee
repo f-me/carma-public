@@ -1,5 +1,5 @@
 this.setupSmsTplForm = (viewName, args) ->
-  console.log "ss"
+
   refs = [ ]
   modelSetup("smsTpl") viewName, args,
                         permEl: "smsTpl-permissions"
@@ -13,7 +13,7 @@ this.setupSmsTplForm = (viewName, args) ->
     t = $("#sms-table");
     return if t.hasClass("dataTable")
     mkDataTable(t)
-    console.log t
+
     t.on("click.datatable", "tr", ->
       id = this.children[0].innerText
       modelSetup("smsTpl") viewName, {"id": id},
@@ -29,8 +29,7 @@ this.setupSmsTplForm = (viewName, args) ->
             rows = for obj in objs
                 [obj.id.split(':')[1]
                 ,obj.name || ''
-                ,obj.city || ''
-                ,obj.comment || ''
+                ,obj.text || ''
                 ]
             dt.fnAddData(rows)
     ))

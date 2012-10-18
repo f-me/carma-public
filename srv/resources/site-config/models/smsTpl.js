@@ -1,6 +1,6 @@
 {
-    "name": "action",
-    "title": "Действие",
+    "name": "smsTpl",
+    "title": "Шаблон смс",
     "canCreate": true,
     "canRead": true,
     "canUpdate": true,
@@ -28,7 +28,7 @@
         "canWrite": true,
         "type": "dictionary",
         "meta": {
-          "dictionaryName": "smsRecieverNames",
+          "dictionaryName": "SmsRecieverNames",
           "label": "Кому отправлять"
         }
       },
