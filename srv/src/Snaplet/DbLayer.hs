@@ -113,17 +113,17 @@ search ixName val = do
   let ids = Set.toList $ Map.findWithDefault Set.empty val ixData
   forM ids $ Redis.read' redis
 
-sync :: Handler b (DbLayer b) ()
-sync = scope "sync" $ do
+sync :: Maybe ByteString -> Maybe Int -> Handler b (DbLayer b) ()
+sync forMdl fromId = do
     mdl <- gets syncModels
-    mapM_ (syncModel mdl) (modelList mdl)
+    mapM_ (syncModel mdl) $ maybe (modelList mdl) return forMdl
     where
         syncModel mdl model = scope (T.decodeUtf8 model) $ do
             Right (Just cnt) <- runRedisDB redis $ Redis.get (Redis.modelIdKey model)
             log Info $ fromString $ "Syncing model " ++ show model
             log Trace $ fromString $ "Count of entries for model " ++ show model ++ " is: " ++ show cnt
             case C8.readInt cnt of
-                Just (maxId, _) -> forM_ [1..maxId] $ \i -> scope (fromString $ show i) (do
+                Just (maxId, _) -> forM_ [maybe 1 id fromId .. maxId] $ \i -> scope (fromString $ show i) (do
                     rec <- Redis.read redis model (C8.pack . show $ i)
                     let rec' = Map.insert (C8.pack "id") (C8.pack . show $ i) rec
                     when (not $ Map.null rec) $ void $ Postgres.insertUpdate mdl model (C8.pack . show $ i) rec')

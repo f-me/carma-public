@@ -10,9 +10,12 @@ import Control.Monad.IO.Class
 import Control.Concurrent.STM
 
 import Data.Text (Text)
+import Data.Text.Lazy (toStrict)
+import Data.Text.Lazy.Encoding (decodeUtf8)
 import Data.Char
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import Data.String (fromString)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.UTF8  as BU
@@ -187,8 +190,11 @@ deleteHandler = do
   writeJSON res
 
 syncHandler :: AppHandler ()
-syncHandler = do
-  res <- with db DB.sync
+syncHandler = scope "sync" $ do
+  mdl <- getParam "model"
+  from <- liftM (fmap (maybe 0 fst . B.readInt)) $ getParam "from"
+  log Info $ T.concat ["Syncing ", maybe "all" T.decodeUtf8 mdl, " model(s) starting from id ", maybe "1" (fromString . show) from]
+  res <- with db $ DB.sync mdl from
   writeJSON res
 
 searchHandler :: AppHandler ()
@@ -296,7 +302,7 @@ report = scope "report" $ do
     (fromDate'', toDate'') = fromTo "call"
 
     fromTo mdl = (from, to) where
-      from = withinAnd id (mdl ++ ".callDate > to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" fromDate
+      from = withinAnd id (mdl ++ ".callDate >= to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" fromDate
       to = withinAnd addDay (mdl ++ ".callDate < to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" toDate
 
     addDay tm = tm { utctDay = addDays 1 (utctDay tm) }
@@ -386,3 +392,10 @@ vinStateRemove = scope "vin" $ scope "state" $ scope "remove" $ do
   res <- getParam "id"
   log Trace $ T.concat ["id: ", maybe "<null>" (T.pack . show) res]
   with vin removeAlert
+
+errorsHandler :: AppHandler ()
+errorsHandler = do
+  l <- gets feLog
+  r <- readRequestBody 4096
+  liftIO $ withLog l $ scope "frontend" $ do
+  log Info $ toStrict $ decodeUtf8 r

@@ -9,6 +9,8 @@ import Data.ByteString (ByteString)
 import Data.Configurator
 import Control.Concurrent.STM
 
+import System.Log(newLog, fileCfg, logger, text, file)
+
 import Snap.Core
 import Snap.Snaplet
 import Snap.Snaplet.Heist
@@ -64,6 +66,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/vin/upload",    chkAuth . method POST $ vinUploadData)
          , ("/vin/state",     chkAuth . method GET  $ vinStateRead)
          , ("/vin/state",     chkAuth . method POST $ vinStateRemove)
+         , ("/errors",        method POST errorsHandler)
          ]
 
 
@@ -107,10 +110,13 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   v <- nestSnaplet "vin" vin vinInit
   fu <- nestSnaplet "upload" fileUpload fileUploadInit
 
+  l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10)
+       [logger text (file "log/frontend.log")]
+
   addRoutes routes
 
   liftIO $ runWebSockServer "0.0.0.0" 8001
-  return $ App h s authMgr logdUsrs allUsrs actLock c d v fu
+  return $ App h s authMgr logdUsrs allUsrs actLock c d v fu l
 
 getUsrs authDb = do
   readJSON authDb :: IO UsersDict

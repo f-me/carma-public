@@ -45,7 +45,7 @@ this.setupSupervisorScreen = (viewName, args) ->
     d2 = (new Date).addDays(+7)
     $('#date-min').val d1.toString('dd.MM.yyyy HH:mm')
     $('#date-max').val d2.toString('dd.MM.yyyy HH:mm')
-    drawTable dt, sb(d1, d2)
+    dtRedraw dt
 
 drawTable = (dt, select) ->
   fields = "id,caseId,parentId,closed,name,assignedTo,targetGroup

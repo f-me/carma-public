@@ -160,6 +160,10 @@
                 "label": "Express"
             },
             {
+                "value": "orlando",
+                "label": "Orlando"
+            },
+            {
                 "value": "hhr",
                 "label": "HHR"
             },
@@ -638,6 +642,10 @@
                 "label": "Astra"
             },
             {
+                "value": "astragtc",
+                "label": "Astra GTC"
+            },
+            {
                 "value": "calibra",
                 "label": "Calibra"
             },
@@ -774,6 +782,10 @@
                 "label": "Caddy"
             },
             {
+                "value": "caravelle",
+                "label": "Caravelle"
+            },
+            {
                 "value": "amarok",
                 "label": "Amarok"
             },
@@ -854,6 +866,10 @@
             {
                 "value": "bronco",
                 "label": "Bronco"
+            },
+            {
+                "value": "sMax",
+                "label": "S-Max"
             },
             {
                 "value": "cMaxII",

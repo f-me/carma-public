@@ -27,6 +27,9 @@ this.setupPartnersForm = (viewName, args) ->
                             permEl: "partner-permissions"
                             focusClass: "focusable"
                             refs: refs
+      k = global.viewsWare['partner-form'].knockVM
+      k['servicesReference'].subscribe ->
+        addTarifStuff i for i in k['servicesReference']()
     )
 
     $.getJSON("/all/partner?fields=id,name,city,comment",
@@ -52,7 +55,7 @@ this.addNewServiceToPartner = (name) ->
 afterAddSrv = (parent) -> (k) ->
   bindRemove parent, 'services', k
   focusRef k
-  addTarifStuff i for i in parent['servicesReference']()
+  # addTarifStuff i for i in parent['servicesReference']()
 
 addTarifStuff = (p) ->
   view = $("##{p['view']}")
@@ -67,3 +70,6 @@ genNewTarif = (kvm) ->
     (k) ->
       bindRemove kvm, 'tarifOptions'
       focusRef k
+
+this.bindTitleServiceName = (instance, kvm) ->
+  kvm['modelTitle'] = kvm['serviceNameLocal']

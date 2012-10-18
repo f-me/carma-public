@@ -134,6 +134,7 @@
             ],
             "canRead": [
                 "back",
+                "front",
                 "head",
                 "supervisor",
                 "director",
@@ -147,6 +148,7 @@
             ],
             "canWrite": [
                 "back",
+                "front",
                 "head",
                 "supervisor",
                 "director",
@@ -187,6 +189,7 @@
             ],
             "canRead": [
                 "back",
+                "front",
                 "head",
                 "supervisor",
                 "director",
@@ -217,6 +220,7 @@
             ],
             "canWrite": [
                 "back",
+                "front",
                 "head",
                 "supervisor",
                 "director",
@@ -398,6 +402,7 @@
             ],
             "canRead": [
                 "back",
+                "front",
                 "head",
                 "supervisor",
                 "director",
@@ -409,6 +414,7 @@
             ],
             "canWrite": [
                 "back",
+                "front",
                 "head",
                 "supervisor",
                 "director",
@@ -688,6 +694,28 @@
             "groupName": "countedCost",
             "meta": {
                 "label": "Расчетная стоимость"
+            }
+        },
+        {
+            "name": "marginalCost",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "canWrite": [ ],
+            "meta": {
+                "label": "Предельная стоимость",
+                "readonly": true
             }
         },
         {
