@@ -519,6 +519,40 @@
       </div>
     </script>
 
+    <!-- Edit sms template screen template -->
+    <script type="text/template"
+            class="screen-template"
+            id="editSms-screen-template">
+
+      <div id="sms-left" class="nice-scrollbar pane">
+        <form class="form-vertical">
+          <button class="btn btn-action" type="button"
+            onclick="location.hash='partner';location.reload(true);">
+            <i class="icon icon-plus"></i>Добавить шаблон
+          </button>
+          <br/><br/>
+          <table id="sms-table" class="table table-striped table-bordered">
+            <thead>
+              <tr>
+                <th>#</th>
+              </tr>
+            </thead>
+            <tbody/>
+          </table>
+        </form>
+      </div>
+
+      <div id="sms-center" class="nice-scrollbar pane">
+        <form class="form-vertical">
+          <div id="sms-form" />
+          <div class="control-group">
+          </div>
+          <div id="sms-permissions" />
+        </form>
+      </div>
+    </script>
+
+
     <!-- Supervisor screen template -->
     <script type="text/template"
             class="screen-template"

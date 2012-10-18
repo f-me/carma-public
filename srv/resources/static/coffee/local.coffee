@@ -55,6 +55,8 @@ localScreens = ->
     "views":
       "vin-form":
         constructor: setupEditVin
+  "editSms":
+    "template": "editSms-screen-template"
 
 # Setup routing
 localRouter = Backbone.Router.extend
@@ -74,6 +76,7 @@ localRouter = Backbone.Router.extend
     "newVin"      : "newVin"
     "supervisor"  : "supervisor"
     "rkc"         : "rkc"
+    "editSms"     : "editSms"
 
   loadCase    : (id) -> renderScreen("case", {"id": id})
   newCase     :      -> renderScreen("case", {"id": null})
@@ -89,6 +92,7 @@ localRouter = Backbone.Router.extend
   newVin      :      -> renderScreen("newVin")
   supervisor  :      -> renderScreen("supervisor")
   rkc         :      -> renderScreen("rkc")
+  editSms     :      -> renderScreen("editSms")
 
 # here is entry point
 $ ->
