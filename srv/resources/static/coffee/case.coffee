@@ -74,7 +74,6 @@ setupCaseModel = (viewName, args) ->
 
 mbEnableActionResult = (kvm) ->
   nots = (i for i of kvm when /.*Not$/.test i)
-  console.log nots
   if (_.any nots, (e) -> kvm[e]())
     $("[name=result]").attr('disabled', 'disabled')
     $("[name=result]").next().find("i").removeAttr("data-provide")
