@@ -23,9 +23,8 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import Data.ByteString (ByteString)
 import Data.Char
-import Data.List (isPrefixOf, findIndex)
+import Data.List (isPrefixOf, elemIndex)
 import Data.String
-import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.ByteString.Lazy.Char8 as L8
 import qualified Data.Text as T
@@ -40,7 +39,7 @@ import qualified Data.Pool as Pool
 
 import qualified Database.PostgreSQL.Syncs as S
 import qualified Database.PostgreSQL.Models as SM
-import Database.PostgreSQL.Sync.JSON
+import Database.PostgreSQL.Sync.JSON ()
 import qualified Database.PostgreSQL.Report.Xlsx as R
 import qualified Database.PostgreSQL.Report.Function as R
 
@@ -212,11 +211,11 @@ functions tz dict = [
                       
 local :: P.ConnectInfo
 local = P.ConnectInfo {
-	P.connectHost = "localhost",
-	P.connectPort = 5432,
-	P.connectUser = "carma_db_sync",
-	P.connectPassword = "pass",
-	P.connectDatabase = "carma" }
+    P.connectHost = "localhost",
+    P.connectPort = 5432,
+    P.connectUser = "carma_db_sync",
+    P.connectPassword = "pass",
+    P.connectDatabase = "carma" }
 
 escope :: (MonadLog m) => T.Text -> m () -> m ()
 escope s act = catch (scope_ s act) onError where
@@ -382,12 +381,12 @@ search ms mname fs sels q lim = liftIO getCurrentTimeZone >>= search' where
 
         searchQuery = C8.concat ["select ", C8.intercalate ", " cols, " from ", fromString tblname, " where ", whereS, " limit ", C8.pack (show lim)]
 
-generateReport :: (PS.HasPostgres m, MonadLog m) => SM.Models -> [T.Text] -> FilePath -> FilePath -> m ()
-generateReport ms conds tpl file = scope "generate" $ do
+generateReport :: (PS.HasPostgres m, MonadLog m) => SM.Models -> (T.Text -> [T.Text]) -> FilePath -> FilePath -> m ()
+generateReport ms superCond tpl file = scope "generate" $ do
     log Debug "Generating report "
     log Trace "Loading dictionaries"
     tz <- liftIO getCurrentTimeZone
     dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
     -- TODO: Orderby must not be here!
-    withPG (R.createReport (SM.modelsSyncs ms) (functions tz dicts) conds ["case.callDate", "call.callDate"] tpl file)
+    withPG (R.createReport (SM.modelsSyncs ms) (functions tz dicts) superCond [] [] tpl file)
     log Debug "Report generated"

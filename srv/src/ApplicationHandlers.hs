@@ -298,17 +298,17 @@ report = scope "report" $ do
       v <- dateValue
       s <- validateAnd f v
       return $ T.concat [T.pack pre, s, T.pack post]
-    (fromDate', toDate') = fromTo "case"
-    (fromDate'', toDate'') = fromTo "call"
 
     fromTo mdl = (from, to) where
-      from = withinAnd id (mdl ++ ".callDate >= to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" fromDate
-      to = withinAnd addDay (mdl ++ ".callDate < to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" toDate
+      from = withinAnd id (mdl ++ " >= to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" fromDate
+      to = withinAnd addDay (mdl ++ " < to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" toDate
 
     addDay tm = tm { utctDay = addDays 1 (utctDay tm) }
     
-    dateConditions = catMaybes [fromDate', toDate', fromDate'', toDate'']
-  with db $ DB.generateReport dateConditions template result
+    mkCondition nm = catMaybes [from', to'] where
+      (from', to') = fromTo (T.unpack nm)
+  
+  with db $ DB.generateReport mkCondition template result
   modifyResponse $ addHeader "Content-Disposition" "attachment; filename=\"report.xlsx\""
   serveFile result
 

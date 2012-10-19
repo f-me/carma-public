@@ -17,20 +17,17 @@ import Control.Applicative
 import Control.Monad
 import Control.Monad.State
 import Control.Concurrent.STM
-import Control.Concurrent.STM.TVar
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
-import Data.List (sortBy)
-import Data.Ord (comparing)
 import Data.Maybe (fromJust)
 import Data.String
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 
-import Network.URI (parseURI, URI(..))
+import Network.URI (parseURI)
 import qualified Fdds as Fdds
 import Data.Configurator
 
@@ -104,8 +101,7 @@ update model objId commit = scoper "update" $ do
   --
   return $ (changes Map.! fullId) Map.\\ commit
 
-delete model objId = do
-  Redis.delete redis model objId
+delete model objId = Redis.delete redis model objId
 
 search ixName val = do
   ix <- gets $ (Map.! ixName) . indices
@@ -144,10 +140,10 @@ searchFullText mname fs sels q lim = do
     showValue (S.TimeValue s) = T.encodeUtf8 . T.pack . (show :: Integer -> String) . floor $ s
     showValue _ = C8.empty
 
-generateReport :: [T.Text] -> FilePath -> FilePath -> Handler b (DbLayer b) ()
-generateReport conds template filename = do
+generateReport :: (T.Text -> [T.Text]) -> FilePath -> FilePath -> Handler b (DbLayer b) ()
+generateReport superCond template filename = do
     mdl <- gets syncModels
-    Postgres.generateReport mdl conds template filename
+    Postgres.generateReport mdl superCond template filename
 
 readAll model = Redis.readAll redis model
 
