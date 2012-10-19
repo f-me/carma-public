@@ -5,7 +5,7 @@
 #
 # @return Constructor of Backbone model
 
-this.backbonizeModel = (models, modelName) ->
+this.backbonizeModel = (models, modelName, options) ->
   defaults         = {}
   fieldHash        = {}
   dictionaryFields = []
@@ -58,7 +58,8 @@ this.backbonizeModel = (models, modelName) ->
     attributeQueueBackup: {}
     initialize: ->
       if not this.isNew() then this.fetch()
-      setTimeout((=> this.setupServerSync()), 1000)
+      unless options?.bb?.manual_save? and options.bb.manual_save == true
+        setTimeout((=> this.setupServerSync()), 1000)
 
     # Original definition
     #
@@ -187,5 +188,3 @@ setReference = (parent, json, field, models) ->
 #     (r) -> if _.any(refs, (c) -> c.id == r.id and c.name == r.name) then true
 
 # ucfirst = (str) -> str.replace /(\b)([a-zA-Z])/, (l) -> l.toUpperCase()
-
-
