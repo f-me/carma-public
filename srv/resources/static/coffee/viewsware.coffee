@@ -173,8 +173,9 @@ this.renderFields = (model, viewName, options, knockVM) ->
         f.meta.infoText1 = global.dictionaries.InfoText[f.meta.infoText]
 
       if f.type == "dictionary"
-        ctx = _.extend ctx,
-                       dictionary: global.dictionaries[f.meta.dictionaryName]
+        nme = f.meta.dictionaryName
+        dic = global.dictionaries[nme] || getDictionary(nme)
+        ctx = _.extend ctx, {dictionary: dic}
       ctx = _.extend(f, ctx)
 
       # We temprorarily change field type when rendering
