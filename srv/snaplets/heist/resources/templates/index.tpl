@@ -250,7 +250,7 @@
       </div>
       <div id="sms-send-form" class="modal-body"/>
       <div class="modal-footer">
-        <a id="do-send-sms" href="#" class="btn btn-primary">Отправить</a>
+        <button id="do-send-sms" class="btn btn-primary">Отправить</button>
       </div>
     </div>
 
