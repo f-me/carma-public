@@ -3,7 +3,7 @@ this.hooks = ->
       "*"    : [stdElCb]
       "case" : [candiboberHook]
   observable:
-      "*"    : [regexpKbHook, dictionaryKbHook, filesKbHook]
+      "*"    : [regexpKbHook, dictionaryKbHook, filesKbHook, dateTimeHook]
       "case" : [caseDescsKbHook, caseEventsHistoryKbHook]
       "tarifOption": [tarifOptNameDef]
       "partner_service": [bindTitleServiceName]
@@ -85,6 +85,12 @@ this.dictionaryHook = (elName) ->
       ((f) ->
         instance.bind("change:" + parent, (v) -> instance.set(f, ""))
       )(fieldName)
+
+this.dateTimeHook = (i, k) ->
+  for n in i.dateTimeFields
+    k["#{n}DateTime"] = ko.computed
+      read :       -> k[n]()
+      write: (val) -> if Date.parse(val) then k[n](val) else k[n]("")
 
 this.tarifOptNameDef = (i, k) ->
   k["nameOrDef"] = ko.computed

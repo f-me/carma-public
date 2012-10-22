@@ -13,6 +13,7 @@ this.backbonizeModel = (models, modelName, options) ->
   requiredFields   = []
   regexpFields     = []
   filesFields      = []
+  dateTimeFields   = []
   groups           = []
 
   model = models[modelName]
@@ -28,6 +29,7 @@ this.backbonizeModel = (models, modelName, options) ->
     referenceFields.push(f.name)  if f.type == "reference"
     dictionaryFields.push(f.name) if f.type == "dictionary"
     filesFields.push(f.name)      if f.type == "files"
+    dateTimeFields.push(f.name)   if f.type == "datetime"
     groups.push(f.groupName)      if f.groupName? and f.groupName not in groups
 
   M = Backbone.Model.extend
@@ -46,6 +48,7 @@ this.backbonizeModel = (models, modelName, options) ->
     regexpFields: regexpFields
     # List of files fields
     filesFields: filesFields
+    dateTimeFields: dateTimeFields
     # List of groups present in model
     groups: groups
 

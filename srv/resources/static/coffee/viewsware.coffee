@@ -70,7 +70,7 @@ this.renderKnockVm = (elName, knockVM, options) ->
   if _.isFunction(options.renderRefCb)
     options.renderCb(r, subViewN)
 
-  # render ask on datetime input
+  # render mask on datetime input
   $('.datetime-field').each((i,e) -> $(e).mask("99.99.9999 99:99"))
 
   return depViews
