@@ -51,6 +51,7 @@
     <script src="/s/js/customKoHandlers.js" />
 
     <!-- Model processing -->
+    <script src="/s/js/dictionaries.js" />
     <script src="/s/js/metamodel.js" />
     <script src="/s/js/search.js" />
     <script src="/s/js/main.js" />
@@ -70,6 +71,7 @@
     <script src="/s/js/fileupload.js" />
     <script src="/s/js/avaya.js" />
     <script src="/s/js/editSms.js" />
+    <script src="/s/js/sendSms.js" />
 
   </head>
   <body>
@@ -93,6 +95,11 @@
                 <li id="avaya-info" class="nav-header"></li>
                 <li><a id="avaya-accept" href="#">Принять звонок</a></li>
               </ul>
+            </li>
+            <li>
+              <a href="#sms-send-modal" data-toggle="modal">
+                <i class="icon icon-envelope icon-white"></i>
+              </a>
             </li>
             <li class="divider-vertical" />
             <!-- ko template: { name: 'nav-li-template' }-->
@@ -234,6 +241,18 @@
       <!-- Can't use offsetN class here due to fluid layout. -->
       <div id="tableView" />
     </script>
+
+    <!-- SMS send form -->
+    <div id="sms-send-modal" class="modal hide fade">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h3>Отправка СМС</h3>
+      </div>
+      <div id="sms-send-form" class="modal-body"/>
+      <div class="modal-footer">
+        <a id="do-send-sms" href="#" class="btn btn-primary">Отправить</a>
+      </div>
+    </div>
 
     <script type="text/template"
             id="search-table-template"

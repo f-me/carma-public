@@ -1,44 +1,45 @@
 {
-    "name": "smsTpl",
-    "title": "Шаблон смс",
+    "name": "sms",
+    "title": "смс",
     "canCreate": true,
     "canRead": true,
     "canUpdate": true,
     "canDelete": true,
     "fields": [
       {
-        "name":"name",
+        "name":"caseId",
         "canRead": true,
         "canWrite": true,
         "meta": {
-            "label": "Имя шаблона"
+            "label": "Кейс"
         }
       },
       {
-        "name":"text",
+        "name": "receiver",
         "canRead": true,
         "canWrite": true,
         "meta": {
-            "label": "Текст"
+          "label": "Кому",
+          "regexp": "phone"
         }
       },
       {
-        "name": "smsReciever",
+        "name": "template",
         "canRead": true,
         "canWrite": true,
         "type": "dictionary",
         "meta": {
-          "dictionaryName": "SmsRecieverNames",
-          "label": "Кому отправлять"
+          "dictionaryName": "smsTpl",
+          "label": "Шаблон"
         }
       },
       {
-        "name": "isActive",
-        "type": "checkbox",
+        "name": "msg",
         "canRead": true,
         "canWrite": true,
+        "type":"textarea",
         "meta": {
-            "label": "Активный"
+          "label": "Текст сообщения"
         }
       }
     ]
