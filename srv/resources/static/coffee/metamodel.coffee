@@ -14,7 +14,6 @@ this.backbonizeModel = (models, modelName, options) ->
   regexpFields     = []
   filesFields      = []
   groups           = []
-  boundedFields    = []
 
   model = models[modelName]
 
@@ -22,7 +21,6 @@ this.backbonizeModel = (models, modelName, options) ->
     if f.meta?
       requiredFields.push(f.name) if f.meta.required
       regexpFields.push(f.name)   if _.has(f.meta, "regexp")
-      boundedFields.push(f.name)  if f.meta.bounded
 
     fieldHash[f.name] = f
     defaults[f.name]  = null
