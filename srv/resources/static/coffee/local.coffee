@@ -124,6 +124,13 @@ $ ->
               if window.location.hash == ""
                 redirectToHomePage user
 
+window.onerror = (msg, url, line) ->
+  $.ajax
+    type: "POST"
+    url : "/errors"
+    data: "#{msg} #{url} #{line}"
+  return false
+
 this.redirectToHomePage = (user) ->
   mainRole = user.roles[0]
   if mainRole == "front"
@@ -231,12 +238,15 @@ this.doPick = (pickType, args, el) ->
       global.avayaPhone && global.avayaPhone.call(number)
 
     nominatimPicker: (fieldName, el) ->
-      addr = $(el).parent().prev().val()
+      addr = $(el).parents('.input-append')
+                  .children('input[name=caseAddress_address]')
+                  .val()
       $.getJSON("/nominatim?addr=#{addr}", (res) ->
         if res.length > 0
           form = $(el).parents("form")
           osmap = form.find(".olMap")
           res1 = JSON.parse(res)
+          return if res1.length == 0
           osmap.data().osmap.setCenter(
             new OpenLayers.LonLat(res1[0].lon, res1[0].lat)
               .transform(
@@ -310,7 +320,6 @@ this.bindDelete = (parent, field, cb) ->
           deleteCb(d.acc())
         else
           alert 'error'
-
 
 ################################################################################
 # utils

@@ -23,7 +23,7 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import Data.ByteString (ByteString)
 import Data.Char
-import Data.List (isPrefixOf, findIndex)
+import Data.List (isPrefixOf, findIndex, elemIndex)
 import Data.String
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
@@ -84,8 +84,8 @@ modelModels ss = do
 
 functions :: TimeZone -> Dictionary -> [R.ReportFunction]
 functions tz dict = [
-    R.onString "NAME" (fromMaybe "" . listToMaybe . drop 1 . words),
-    R.onString "LASTNAME" (fromMaybe "" . listToMaybe . words),
+    R.onString "NAME" (capitalize. fromMaybe "" . listToMaybe . drop 1 . words),
+    R.onString "LASTNAME" (capitalize . fromMaybe "" . listToMaybe . words),
     R.onString "UPPER" (map toUpper),
     R.onString "LOWER" (map toLower),
     R.onString "PHONE" phoneFmt,
@@ -105,6 +105,9 @@ functions tz dict = [
     R.uses ["case.car_make", "case.car_model"] $ R.constFunction "VEHICLEMODEL" vehicleModelFun,
     R.uses ["case.id", "case.services", "service.id", "service.type"] $ R.constFunction "SERVICEID" serviceId]
     where
+        capitalize "" = ""
+        capitalize (c:cs) = toUpper c : map toLower cs
+
         phoneFmt s
             | ("+7" `isPrefixOf` s) && all isDigit (drop 2 s) && length s == 12 = unwords ["+7", "(" ++ substr 2 3 s ++ ")", substr 5 3 s, substr 8 2 s, substr 10 2 s]
             | otherwise = s
@@ -202,7 +205,7 @@ functions tz dict = [
             let
                 srvIdName = serviceType ++ ":" ++ show serviceId
                 splitByComma = words . map (\c -> if c == ',' then ' ' else c)
-                getIndex v = fmap succ . findIndex (== v)
+                getIndex v = fmap succ . elemIndex v
                 defaultIdx = SM.StringValue $ show caseId ++ "/" ++ serviceType ++ ":" ++ show serviceId
                 formIdx i = SM.StringValue $ show caseId ++ "/" ++ show i
             return . maybe defaultIdx formIdx . getIndex srvIdName . splitByComma $ caseSrvs
@@ -257,7 +260,7 @@ toStr = T.unpack . T.decodeUtf8
 
 toCond :: SM.Models -> ByteString -> ByteString -> S.Condition
 toCond ms m c = S.conditionComplex (SM.modelsSyncs ms) (tableName ++ ".id = ?") [P.toField (toStr c)] where
-    tableName = fromMaybe (error "Invalid model name") $ fmap (SM.syncTable . SM.modelSync) $ M.lookup (toStr m) (SM.modelsModels ms)
+    tableName = maybe (error "Invalid model name") (SM.syncTable . SM.modelSync) $ M.lookup (toStr m) (SM.modelsModels ms)
 
 create :: (PS.HasPostgres m, MonadLog m) => S.Syncs -> m ()
 create ss = escope "create" $ withPG (S.create ss)

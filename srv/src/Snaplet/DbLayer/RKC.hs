@@ -83,9 +83,8 @@ cond tbls c = preQuery_ [] tbls [c]
 -- | Done services
 doneServices :: PreQuery
 doneServices = inList "servicetbl" "status" [
-  "serviceOrdered",
-  "serviceDelayed",
-  "serviceInProgress",
+  "mistake",
+  "falseCall",
   "serviceOk",
   "serviceClosed"]
 

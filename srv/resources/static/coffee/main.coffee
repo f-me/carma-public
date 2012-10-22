@@ -222,7 +222,7 @@ this.modelSetup = (modelName) ->
     return knockVM
 
 this.buildModel = (modelName, args, options) ->
-    mkBackboneModel = backbonizeModel(global.models, modelName)
+    mkBackboneModel = backbonizeModel(global.models, modelName, options)
     instance = new mkBackboneModel(args)
     knockVM = knockBackbone(instance)
 
