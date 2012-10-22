@@ -18,6 +18,7 @@
         "name":"text",
         "canRead": true,
         "canWrite": true,
+        "type": "textarea",
         "meta": {
             "label": "Текст"
         }
