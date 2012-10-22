@@ -958,7 +958,12 @@
                    autocomplete="off"
                    name="{{ name }}"
                    data-source="global.dictionaries['{{meta.dictionaryName}}']"
-                   data-bind="value: {{ name }}Local,
+                   data-bind="{{^ meta.bounded }}
+                              value: {{ name }}Local,
+                              {{/ meta.bounded }}
+                              {{# meta.bounded }}
+                              value: {{ name }}BoundedLocal,
+                              {{/ meta.bounded }}
                               valueUpdate: 'afterkeydown'
                               {{# meta.dictionaryParent }},
                               attr: { 'data-parent': {{ meta.dictionaryParent }} }
