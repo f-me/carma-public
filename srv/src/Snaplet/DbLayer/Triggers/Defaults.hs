@@ -68,15 +68,17 @@ applyDefaults model obj = do
       "cost_serviceTarifOption" -> do
         o <- liftM (Map.union obj') (pricesFromOpt obj')
         let srvId = fromMaybe "" $ Map.lookup "parentId" o
-        ptype <- Redis.runRedisDB redis $ Redis.hget srvId "payType"
-        case ptype of
+        srv <- Redis.runRedisDB redis $ Redis.hgetall srvId
+        case Map.fromList <$> srv of
           Left _  -> return o
-          Right p -> return $ fromMaybe o $ do
-            price <- p >>= selectPrice >>= flip Map.lookup o >>= mbreadDouble
+          Right s -> return $ fromMaybe o $ do
+            ptype <- getCostField s
+            price <- lookupNE ptype   o >>= mbreadDouble
             count <- lookupNE "count" o >>= mbreadDouble
-            return $ Map.fromList [("price", printBPrice price)
-                                  ,("cost",  printBPrice $ price*count)
-                                  ]
+            return $ Map.union o $ Map.fromList
+              [ ("price", printBPrice price)
+              , ("cost",  printBPrice $ price*count)
+              ]
 
       _ -> return obj'
 

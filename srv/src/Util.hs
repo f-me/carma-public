@@ -11,6 +11,7 @@ module Util
   ,lookupNE
   ,selectPrice
   ,printBPrice
+  ,getCostField
   ) where
 
 import qualified Data.Map as Map
