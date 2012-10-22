@@ -150,16 +150,15 @@ defaults = Map.fromList
 
 -- | Copy price1 and price2 from tarifOption to new cost_serviceTarifOption
 pricesFromOpt obj = do
-  case (flip Map.lookup obj) "tarifOptionId" of
+  case Map.lookup "tarifOptionId" obj of
     Nothing -> return Map.empty
     Just id -> do
       o <- Redis.runRedisDB redis $ Redis.hgetall id
       case o of
         Left _     -> return Map.empty
         Right opt' -> do
-          let p1 = lookupNE "price1" $ Map.fromList opt'
-              p2 = lookupNE "price2" $ Map.fromList opt'
-          case sequence [p1,p2] of
-            Nothing        -> return Map.empty
-            Just [p1',p2'] -> return $ Map.fromList
-                              [("price1", p1'), ("price2", p2')]
+          let lp p = fromMaybe "" $ Map.lookup p $ Map.fromList opt'
+          return $ Map.fromList
+            [ ("price1", lp "price1")
+            , ("price2", lp "price2")
+            ]
