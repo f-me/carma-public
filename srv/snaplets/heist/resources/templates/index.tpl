@@ -69,6 +69,7 @@
     <script src="/s/js/hotkeys.js" />
     <script src="/s/js/fileupload.js" />
     <script src="/s/js/avaya.js" />
+    <script src="/s/js/editSms.js" />
 
   </head>
   <body>
@@ -518,6 +519,40 @@
         </form>
       </div>
     </script>
+
+    <!-- Edit sms template screen template -->
+    <script type="text/template"
+            class="screen-template"
+            id="editSms-screen-template">
+
+      <div id="sms-left" class="nice-scrollbar pane">
+          <button class="btn btn-action" type="button"
+            onclick="location.hash='editSms';location.reload(true);">
+            <i class="icon icon-plus"></i>Добавить шаблон
+          </button>
+          <br/><br/>
+          <table id="sms-table" class="table table-striped table-bordered">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Имя шаблона</th>
+                <th>Текст</th>
+              </tr>
+            </thead>
+            <tbody/>
+          </table>
+      </div>
+
+      <div id="sms-right" class="nice-scrollbar pane">
+        <form class="form-vertical">
+          <div id="smsTpl-form" />
+          <div class="control-group">
+          </div>
+          <div id="smsTpl-permissions" />
+        </form>
+      </div>
+    </script>
+
 
     <!-- Supervisor screen template -->
     <script type="text/template"
