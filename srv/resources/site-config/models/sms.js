@@ -15,7 +15,7 @@
         }
       },
       {
-        "name": "receiver",
+        "name": "phone",
         "canRead": true,
         "canWrite": true,
         "meta": {
