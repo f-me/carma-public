@@ -54,6 +54,13 @@ actions
     $ add "hotel"  "providedFor"    [\objId val -> setSrvMCost objId]
     $ Map.fromList
       $ [(s,serviceActions) | s <- services]
+      ++[("sms", Map.fromList
+        [("template", [\smsId tmpId -> do
+          tmp <- get tmpId "text"
+          let txt = tmp
+          set smsId "msg" txt
+        ])]
+      )]
       ++[("action", actionActions)
         ,("cost_serviceTarifOption", Map.fromList
           [("count",
