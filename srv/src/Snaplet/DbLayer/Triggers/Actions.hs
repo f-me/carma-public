@@ -59,6 +59,7 @@ actions
           tmp <- get tmpId "text"
           let txt = tmp
           set smsId "msg" txt
+          set smsId "from" "RAMC"
         ])]
       )]
       ++[("action", actionActions)

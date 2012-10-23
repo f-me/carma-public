@@ -127,6 +127,15 @@ serveUserCake = ifTop
 
 ------------------------------------------------------------------------------
 -- | Geodecode mockup.
+smspost :: AppHandler ()
+smspost = do
+  Just smsId <- getParam "smsId"
+  Right _ <- with db $ DB.submitTask "smspost" smsId
+  writeBS ""
+
+
+------------------------------------------------------------------------------
+-- | Geodecode mockup.
 geodecode :: AppHandler ()
 geodecode = ifTop $ do
   addr <- fromMaybe "Moscow" <$> getParam "addr"
