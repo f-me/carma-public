@@ -53,6 +53,12 @@
           "label" : "Экран РКЦ",
           "type" : "li",
           "permissions" : ["head", "supervisor", "admin", "programman"]
+        },
+        {
+          "name" : "editSms",
+          "label" : "Редактирование шаблонов смс",
+          "type" : "li",
+          "permissions" : ["head", "supervisor", "admin", "programman"]
         }
       ]
     }
