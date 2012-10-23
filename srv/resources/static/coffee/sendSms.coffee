@@ -29,7 +29,6 @@ setTimeout(->
       .off('click')
       .on('click', () ->
         $('#sms-send-modal').modal('hide')
-        alert "Sending"
         )
   )
 ,1000)
