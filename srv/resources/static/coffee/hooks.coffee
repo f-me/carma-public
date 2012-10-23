@@ -29,6 +29,7 @@ dictionaryKbHook = (instance, knockVM) ->
                       read: (k) ->
                         # Read label by real value
                         val = instance.get(k)
+                        global.dictValueCache[d] || getDictionary(d)
                         lab = global.dictValueCache[d][val]
                         return (lab || val)
                       write: (lab) ->
