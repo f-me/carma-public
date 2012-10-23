@@ -1,7 +1,7 @@
 module Snaplet.DbLayer.Triggers.Actions where
 
 import Control.Arrow (first)
-import Control.Monad (when, void, forM, forM_, filterM)
+import Control.Monad (when, unless, void, forM, forM_, filterM)
 import Control.Monad.Trans
 import Control.Exception
 import Control.Applicative ((<$>))
@@ -202,6 +202,9 @@ serviceActions = Map.fromList
   )
   ,("contractor_partner",
     [\objId val -> do
+        Right partnerIds <- lift $ runRedisDB redis $ Redis.keys "partner:*"
+        p <- filterM (\id -> (val ==) <$> get id "name") partnerIds
+        unless (null p) $ set objId "contractor_partnerId" (head p)
         opts <- get objId "cost_serviceTarifOptions"
         let ids = B.split ',' opts
         lift $ runRedisDB redis $ Redis.del ids
@@ -234,6 +237,9 @@ serviceActions = Map.fromList
         ])
   ,("cost_serviceTarifOptions",
     [\objId val -> set objId "cost_counted" =<< srvCostCounted objId ])
+   -- RKC calc 
+  ,("suburbanMilage", [\objId val -> setSrvMCost objId])
+  ,("providedFor",    [\objId val -> setSrvMCost objId])
   ]
 
 resultSet1 =

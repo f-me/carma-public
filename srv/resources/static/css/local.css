@@ -171,6 +171,7 @@ textarea.pane-span,
   right: 0;
   width: 25%;
 }
+
 #sms-left {
   left: 0;
   width: 70%;
@@ -180,3 +181,5 @@ textarea.pane-span,
   right: 0;
   width: 25%;
 }
+
+.capitalize { text-transform: capitalize; }
