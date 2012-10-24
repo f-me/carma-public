@@ -38,6 +38,13 @@ dictionaryKbHook = (instance, knockVM) ->
                         instance.set(f, val || lab)
                       ,
                       knockVM
+      if instance.fieldHash[fieldName].meta.bounded
+        knockVM[f + "BoundedLocal"] = ko.computed
+          read :       -> knockVM[f + "Local"]()
+          write: (val) ->
+            if global.dictLabelCache[d][val]
+            then knockVM[f + "Local"](val)
+            else return
       )(fieldName, dict)
 
 regexpKbHook = (instance, knockVM) ->
