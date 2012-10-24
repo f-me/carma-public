@@ -4,7 +4,7 @@ import Control.Arrow (first)
 import Control.Monad (when, unless, void, forM, forM_, filterM)
 import Control.Monad.Trans
 import Control.Exception
-import Control.Applicative ((<$>))
+import Control.Applicative
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.UTF8  as BU
@@ -55,12 +55,9 @@ actions
     $ Map.fromList
       $ [(s,serviceActions) | s <- services]
       ++[("sms", Map.fromList
-        [("template", [\smsId tmpId -> do
-          tmp <- get tmpId "text"
-          let txt = tmp
-          set smsId "msg" txt
-          set smsId "from" "RAMC"
-        ])]
+        [("caseId",   [\smsId _ -> renderSMS smsId])
+        ,("template", [\smsId _ -> renderSMS smsId])
+        ]
       )]
       ++[("action", actionActions)
         ,("cost_serviceTarifOption", Map.fromList
@@ -110,6 +107,14 @@ actions
             ])
           ])
         ]
+
+renderSMS smsId = do
+  caseId <- get smsId "caseId"
+  tmpId  <- get smsId "tmpId"
+  tmp    <- get tmpId "text"
+  let txt = tmp
+  set smsId "msg" txt
+  set smsId "from" "RAMC"
 
 -- Создания действий "с нуля"
 serviceActions = Map.fromList
