@@ -55,6 +55,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "Programs",
+                "bounded":true,
                 "label": "Программа"
             }
         },

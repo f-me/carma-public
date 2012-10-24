@@ -67,6 +67,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/vin/state",     chkAuth . method GET  $ vinStateRead)
          , ("/vin/state",     chkAuth . method POST $ vinStateRemove)
          , ("/opts/:model/:id/", chkAuth . method GET $ getSrvTarifOptions)
+         , ("/smspost",       chkAuth . method POST $ smspost)
          , ("/errors",        method POST errorsHandler)
          ]
 
