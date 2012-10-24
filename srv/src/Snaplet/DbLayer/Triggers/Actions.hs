@@ -1,7 +1,7 @@
 module Snaplet.DbLayer.Triggers.Actions where
 
 import Control.Arrow (first)
-import Control.Monad (when, void, forM, forM_, filterM)
+import Control.Monad (when, unless, void, forM, forM_, filterM)
 import Control.Monad.Trans
 import Control.Exception
 import Control.Applicative ((<$>))
@@ -44,62 +44,71 @@ services =
   ,"transportation"
   ]
 
+add model field tgs = Map.unionWith (Map.unionWith (++)) $ Map.singleton model (Map.singleton field tgs)
+
 actions :: TriggerMap a
-actions = Map.fromList
-  $ [(s,serviceActions) | s <- services]
-  ++[("action", actionActions)
-    ,("cost_serviceTarifOption", Map.fromList
-      [("count",
-        [\objId val -> do
-            case mbreadDouble val of
-              Nothing -> return ()
-              Just v  -> do
-                p <- get objId "price" >>= return . fromMaybe 0 . mbreadDouble
-                set objId "cost" $ printBPrice $ v * p
-                srvId <- get objId "parentId"
-                set srvId "cost_counted" =<< srvCostCounted srvId
-        ])
-      ])
-    ,("case", Map.fromList
-      [("partner", [\objId val -> do
-        mapM_ (setSrvMCost) =<< B.split ',' <$> get objId "services"
-        return ()
-                   ])
-      ,("city", [\objId val -> do
-                  oldCity <- lift $ runRedisDB redis $ Redis.hget objId "city"
-                  case oldCity of
-                    Left _         -> return ()
-                    Right Nothing  -> setWeather objId val
-                    Right (Just c) -> when (c /= val) $ setWeather objId val
-                  ])
-      ,("car_vin", [\objId val ->
-        if B.length val /= 17
-          then return ()
-          else do
-            let vinKey = B.concat ["vin:", B.map toUpper val]
-            car <- lift $ runRedisDB redis
-                        $ Redis.hgetall vinKey
-            case car of
-              Left _    -> return ()
-              Right []  -> do
-                res <- requestFddsVin objId val
-                set objId "vinChecked"
-                  $ if res then "fdds" else "vinNotFound"
-              Right car -> do
-                set objId "vinChecked" "base"
-                mapM_ (uncurry $ set objId)
-                  $ map (first $ B.append "car_") car
-                   ])
-       ])
-    ,("towage", Map.fromList
-      [("suburbanMilage", [\objId val -> setSrvMCost objId])])
-    ,("tech", Map.fromList
-      [("suburbanMilage", [\objId val -> setSrvMCost objId])])
-    ,("rent", Map.fromList
-      [("providedFor",    [\objId val -> setSrvMCost objId])])
-    ,("hotel", Map.fromList
-      [("providedFor",    [\objId val -> setSrvMCost objId])])
-    ]
+actions
+    = add "towage" "suburbanMilage" [\objId val -> setSrvMCost objId]
+    $ add "tech"   "suburbanMilage" [\objId val -> setSrvMCost objId]
+    $ add "rent"   "providedFor"    [\objId val -> setSrvMCost objId]
+    $ add "hotel"  "providedFor"    [\objId val -> setSrvMCost objId]
+    $ Map.fromList
+      $ [(s,serviceActions) | s <- services]
+      ++[("sms", Map.fromList
+        [("template", [\smsId tmpId -> do
+          tmp <- get tmpId "text"
+          let txt = tmp
+          set smsId "msg" txt
+        ])]
+      )]
+      ++[("action", actionActions)
+        ,("cost_serviceTarifOption", Map.fromList
+          [("count",
+            [\objId val -> do
+                case mbreadDouble val of
+                  Nothing -> return ()
+                  Just v  -> do
+                    p <- get objId "price" >>= return . fromMaybe 0 . mbreadDouble
+                    set objId "cost" $ printBPrice $ v * p
+                    srvId <- get objId "parentId"
+                    set srvId "cost_counted" =<< srvCostCounted srvId
+            ])
+          ])
+        ,("case", Map.fromList
+          [("partner", [\objId val -> do
+            mapM_ (setSrvMCost) =<< B.split ',' <$> get objId "services"
+            return ()
+                       ])
+    {-
+          ,("city", [\objId val -> do
+                      oldCity <- lift $ runRedisDB redis $ Redis.hget objId "city"
+                      case oldCity of
+                        Left _         -> return ()
+                        Right Nothing  -> setWeather objId val
+                        Right (Just c) -> when (c /= val) $ setWeather objId val
+                      ])
+    -}
+          ,("car_vin", [\objId val ->
+            when (B.length val == 17) $ do
+              let vinKey = B.concat ["vin:", B.map toUpper val]
+              car <- lift $ runRedisDB redis
+                          $ Redis.hgetall vinKey
+              case car of
+                Left _    -> return ()
+                Right []  -> do
+                  res <- requestFddsVin objId val
+                  set objId "vinChecked"
+                    $ if res then "fdds" else "vinNotFound"
+                Right car -> do
+                  set objId "vinChecked" "base"
+                  let setIfEmpty (name,val) = do
+                        let name' = B.append "car_" name
+                        val' <- get objId name'
+                        when (val' == "") $ set objId name' val
+                  mapM_ setIfEmpty car
+            ])
+          ])
+        ]
 
 -- Создания действий "с нуля"
 serviceActions = Map.fromList
@@ -193,6 +202,9 @@ serviceActions = Map.fromList
   )
   ,("contractor_partner",
     [\objId val -> do
+        Right partnerIds <- lift $ runRedisDB redis $ Redis.keys "partner:*"
+        p <- filterM (\id -> (val ==) <$> get id "name") partnerIds
+        unless (null p) $ set objId "contractor_partnerId" (head p)
         opts <- get objId "cost_serviceTarifOptions"
         let ids = B.split ',' opts
         lift $ runRedisDB redis $ Redis.del ids
@@ -225,6 +237,9 @@ serviceActions = Map.fromList
         ])
   ,("cost_serviceTarifOptions",
     [\objId val -> set objId "cost_counted" =<< srvCostCounted objId ])
+   -- RKC calc 
+  ,("suburbanMilage", [\objId val -> setSrvMCost objId])
+  ,("providedFor",    [\objId val -> setSrvMCost objId])
   ]
 
 resultSet1 =

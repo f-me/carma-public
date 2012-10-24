@@ -23,28 +23,7 @@
 this.mainSetup = (localScreens, localRouter, localDictionaries, hooks, user, models) ->
   Screens = localScreens
 
-  dictLabelCache = {}
-  dictValueCache = {}
-  # Build caches (TODO: Do this on server some day)
-  for d of localDictionaries
-    do (d) ->
-      dictLabelCache[d] = {}
-      dictValueCache[d] = {}
-      dict = localDictionaries[d]
-      if _.isArray(dict.entries)
-        for e of dict.entries
-          l = dict.entries[e].label
-          v = dict.entries[e].value
-          dictLabelCache[d][l] = v
-          dictValueCache[d][v] = l
-      else
-        for c of dict.entries
-          for e of dict.entries[c]
-            l = dict.entries[c][e].label
-            v = dict.entries[c][e].value
-            if l and v
-              dictLabelCache[d][l] = v
-              dictValueCache[d][v] = l
+  dictCache = buildDictionaryCache(localDictionaries)
 
   window.global =
       # «Screen» element which holds all views
@@ -53,9 +32,9 @@ this.mainSetup = (localScreens, localRouter, localDictionaries, hooks, user, mod
       router: new localRouter
       dictionaries: localDictionaries
       # Maps labels to values for every dictionary
-      dictLabelCache: dictLabelCache
+      dictLabelCache: dictCache.labelCache
       # Maps values to labels
-      dictValueCache: dictValueCache
+      dictValueCache: dictCache.valueCache
       hooks: hooks
       user: user
       models: models
@@ -222,7 +201,7 @@ this.modelSetup = (modelName) ->
     return knockVM
 
 this.buildModel = (modelName, args, options) ->
-    mkBackboneModel = backbonizeModel(global.models, modelName)
+    mkBackboneModel = backbonizeModel(global.models, modelName, options)
     instance = new mkBackboneModel(args)
     knockVM = knockBackbone(instance)
 

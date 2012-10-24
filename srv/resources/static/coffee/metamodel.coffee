@@ -5,7 +5,7 @@
 #
 # @return Constructor of Backbone model
 
-this.backbonizeModel = (models, modelName) ->
+this.backbonizeModel = (models, modelName, options) ->
   defaults         = {}
   fieldHash        = {}
   dictionaryFields = []
@@ -14,6 +14,7 @@ this.backbonizeModel = (models, modelName) ->
   regexpFields     = []
   filesFields      = []
   jsonFields       = []
+  dateTimeFields   = []
   groups           = []
 
   model = models[modelName]
@@ -30,6 +31,7 @@ this.backbonizeModel = (models, modelName) ->
     dictionaryFields.push(f.name) if f.type == "dictionary"
     filesFields.push(f.name)      if f.type == "files"
     jsonFields.push(f.name)       if f.type == "json"
+    dateTimeFields.push(f.name)   if f.type == "datetime"
     groups.push(f.groupName)      if f.groupName? and f.groupName not in groups
 
   M = Backbone.Model.extend
@@ -48,6 +50,7 @@ this.backbonizeModel = (models, modelName) ->
     regexpFields: regexpFields
     # List of files fields
     filesFields: filesFields
+    dateTimeFields: dateTimeFields
     # List of groups present in model
     groups: groups
 
@@ -60,7 +63,8 @@ this.backbonizeModel = (models, modelName) ->
     attributeQueueBackup: {}
     initialize: ->
       if not this.isNew() then this.fetch()
-      setTimeout((=> this.setupServerSync()), 1000)
+      unless options?.bb?.manual_save? and options.bb.manual_save == true
+        setTimeout((=> this.setupServerSync()), 1000)
 
     # Original definition
     #
