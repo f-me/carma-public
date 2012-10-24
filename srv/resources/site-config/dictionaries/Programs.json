@@ -51,7 +51,19 @@
         {
             "value": "euro",
             "label": "B2B / Европлан"
-        }, 
+        },
+        {
+            "value": "euroVW",
+            "label": "B2B / Европлан/VW"
+        },
+        {
+            "value": "euroFord",
+            "label": "B2B / Европлан/Ford"
+        },
+        {
+            "value": "euroGM",
+            "label": "B2B / Европлан/GM"
+        },
         {
             "value": "corpse",
             "label": "B2B / ИП Трубкин"
@@ -63,7 +75,23 @@
         {
             "value": "micro",
             "label": "B2B / Микропрограммы"
-        }, 
+        },
+        {
+            "value": "covidien",
+            "label": "B2B / Ковидиен"
+        },
+        {
+            "value": "covidienVW",
+            "label": "B2B / Ковидиен/VW"
+        },
+        {
+            "value": "covidienFord",
+            "label": "B2B / Ковидиен/Ford"
+        },
+        {
+            "value": "covidienGM",
+            "label": "B2B / Ковидиен/GM"
+        },
         {
             "value": "rnbase",
             "label": "B2B / РН-карт-Москва Базовая"

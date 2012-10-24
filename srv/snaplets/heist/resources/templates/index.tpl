@@ -898,8 +898,8 @@
                  autocomplete="off"
                  name="{{ name }}"
                  {{# readonly }}readonly{{/ readonly }}
-                 data-bind="value: {{ name }},
-                            valueUpdate: 'afterkeydown'" />
+                 data-bind="value: {{ name }}DateTime,
+                            valueUpdate: 'change'" />
         </div>
       </div>
     </script>
@@ -1012,7 +1012,12 @@
                    autocomplete="off"
                    name="{{ name }}"
                    data-source="global.dictionaries['{{meta.dictionaryName}}']"
-                   data-bind="value: {{ name }}Local,
+                   data-bind="{{^ meta.bounded }}
+                              value: {{ name }}Local,
+                              {{/ meta.bounded }}
+                              {{# meta.bounded }}
+                              value: {{ name }}BoundedLocal,
+                              {{/ meta.bounded }}
                               valueUpdate: 'afterkeydown'
                               {{# meta.dictionaryParent }},
                               attr: { 'data-parent': {{ meta.dictionaryParent }} }
@@ -1542,8 +1547,16 @@
               </tr>
             </thead>
             <tbody/>
-        </table>
+          </table>
 
+        </div>
+        <div id="case-comments">
+          <label> Комментарий </label>
+          <textarea  id="case-comments-i" rows="7"  />
+          <br />
+          <button    id="case-comments-b" class="btn">
+            Добавить комментарий
+          </button>
         </div>
       </fieldset>
     </script>
