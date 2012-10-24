@@ -898,8 +898,8 @@
                  autocomplete="off"
                  name="{{ name }}"
                  {{# readonly }}readonly{{/ readonly }}
-                 data-bind="value: {{ name }},
-                            valueUpdate: 'afterkeydown'" />
+                 data-bind="value: {{ name }}DateTime,
+                            valueUpdate: 'change'" />
         </div>
       </div>
     </script>
