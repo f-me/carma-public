@@ -381,6 +381,7 @@
                 "dictionaryName": "Programs",
                 "label": "Программа",
                 "required": true,
+                "bounded":true,
                 "targetCategory": "program",
                 "infoText": "program"
             }
