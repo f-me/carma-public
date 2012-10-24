@@ -29,6 +29,7 @@ setTimeout(->
       .off('click')
       .on('click', () ->
         $('#sms-send-modal').modal('hide')
+        $.post('/smspost', {smsId: "sms:#{vSms.bbInstance.id}"})
         )
   )
 ,1000)

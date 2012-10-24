@@ -41,6 +41,7 @@ setupCaseModel = (viewName, args) ->
     instance = global.viewsWare[viewName].bbInstance
     ctx =
       "fields": _.map(instance.requiredFields, (f) -> instance.fieldHash[f])
+    setCommentsHandler()
 
     $("#empty-fields-placeholder").html(
       Mustache.render($("#empty-fields-template").html(), ctx))
@@ -81,6 +82,22 @@ mbEnableActionResult = (kvm) ->
     $("[name=result]").removeAttr 'disabled'
     $("[name=result]").next().find("i")
       .attr("data-provide", "typeahead-toggle")
+
+setCommentsHandler = ->
+  $("#case-comments-b").on 'click', ->
+    i = $("#case-comments-i")
+    return if _.isEmpty i.val()
+    comment =
+      date: (new Date()).toString('dd.MM.yyyy HH:mm')
+      user: global.user.login
+      comment: i.val()
+    k = global.viewsWare['case-form'].knockVM
+    if _.isEmpty k['comments']()
+      k['comments'] [comment]
+    else
+      k['comments'] k['comments']().concat comment
+    i.val("")
+
 
 # Top-level wrapper for storeService
 this.addService = (name) ->
@@ -179,6 +196,15 @@ fillEventsHistory = (knockVM) -> ->
                r.assignedTo or ''
         row = [ duetime , aTo, name , r.comment or '', result ]
         st.fnAddData(row)
+
+      return if _.isEmpty knockVM['comments']()
+      for c in knockVM['comments']()
+        st.fnAddData [ c.date
+                     , global.dictValueCache['users'][c.user] || ''
+                     , "Комментарий"
+                     , c.comment
+                     , ""
+                     ]
 
 # render checkboxes, trueChecks contains list with names,
 # tha should be rendered as checked
@@ -284,6 +310,7 @@ this.caseDescsKbHook = (instance, knockVM) ->
 this.caseEventsHistoryKbHook = (instance, knockVM) ->
   knockVM['contact_phone1'].subscribe fillEventsHistory(knockVM)
   knockVM['actions'].subscribe fillEventsHistory(knockVM)
+  knockVM['comments'].subscribe fillEventsHistory(knockVM)
 
 this.partnerOptsHook = (i, knockVM) ->
   knockVM['contractor_partner'].subscribe (n) ->
