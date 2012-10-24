@@ -585,6 +585,27 @@
             "meta": {
                 "label": "Прикрепленные файлы"
             }
+        },
+        {
+            "name": "comments",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "parguy"
+            ],
+            "type": "json",
+            "meta": {
+                "invisible": true
+            }
         }
     ]
 }
