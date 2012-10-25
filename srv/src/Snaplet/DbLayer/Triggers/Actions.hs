@@ -196,7 +196,7 @@ serviceActions = Map.fromList
           actionId <- new "action" $ Map.fromList
             [("name", "cancelService")
             ,("duetime", due)
-            ,("description", utf8 "Клиент отказался от услуги (сообщил об это оператору Front Office)")
+            ,("description", utf8 "Клиент отказался от услуги (сообщил об этом оператору Front Office)")
             ,("targetGroup", "back")
             ,("priority", "1")
             ,("parentId", objId)
