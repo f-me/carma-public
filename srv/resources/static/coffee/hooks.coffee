@@ -6,6 +6,7 @@ this.hooks = ->
       "*"    : [regexpKbHook, dictionaryKbHook, filesKbHook, dateTimeHook]
       "case" : [caseDescsKbHook, caseEventsHistoryKbHook]
       "tarifOption": [tarifOptNameDef]
+      "partner": [bindRemoveService]
       "partner_service": [bindTitleServiceName]
       "cost_serviceTarifOption": [tarifOptNameDef]
       "rent"  : [partnerOptsHook, srvOptUpd, costsMark]
