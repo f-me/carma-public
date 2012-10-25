@@ -36,6 +36,7 @@ applyDefaults model obj = do
               $ obj
     "case" -> return cd
     "call" -> return cd
+    "cost_serviceTarifOption" -> return $ Map.insert "count" "1" obj
     "taxi" -> do
       let parentId = obj Map.! "parentId"
       Right caseAddr <- Redis.runRedisDB redis
@@ -67,15 +68,17 @@ applyDefaults model obj = do
       "cost_serviceTarifOption" -> do
         o <- liftM (Map.union obj') (pricesFromOpt obj')
         let srvId = fromMaybe "" $ Map.lookup "parentId" o
-        ptype <- Redis.runRedisDB redis $ Redis.hget srvId "payType"
-        case ptype of
+        srv <- Redis.runRedisDB redis $ Redis.hgetall srvId
+        case Map.fromList <$> srv of
           Left _  -> return o
-          Right p -> return $ fromMaybe o $ do
-            price <- p >>= selectPrice >>= flip Map.lookup o >>= mbreadDouble
+          Right s -> return $ fromMaybe o $ do
+            ptype <- getCostField s
+            price <- lookupNE ptype   o >>= mbreadDouble
             count <- lookupNE "count" o >>= mbreadDouble
-            return $ Map.fromList [("price", printBPrice price)
-                                  ,("cost",  printBPrice $ price*count)
-                                  ]
+            return $ Map.union o $ Map.fromList
+              [ ("price", printBPrice price)
+              , ("cost",  printBPrice $ price*count)
+              ]
 
       _ -> return obj'
 
@@ -147,16 +150,15 @@ defaults = Map.fromList
 
 -- | Copy price1 and price2 from tarifOption to new cost_serviceTarifOption
 pricesFromOpt obj = do
-  case (flip Map.lookup obj) "tarifOptionId" of
+  case Map.lookup "tarifOptionId" obj of
     Nothing -> return Map.empty
     Just id -> do
       o <- Redis.runRedisDB redis $ Redis.hgetall id
       case o of
         Left _     -> return Map.empty
         Right opt' -> do
-          let p1 = lookupNE "price1" $ Map.fromList opt'
-              p2 = lookupNE "price2" $ Map.fromList opt'
-          case sequence [p1,p2] of
-            Nothing        -> return Map.empty
-            Just [p1',p2'] -> return $ Map.fromList
-                              [("price1", p1'), ("price2", p2')]
+          let lp p = fromMaybe "" $ Map.lookup p $ Map.fromList opt'
+          return $ Map.fromList
+            [ ("price1", lp "price1")
+            , ("price2", lp "price2")
+            ]

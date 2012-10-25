@@ -4,6 +4,7 @@ module Snaplet.DbLayer
   ,update
   ,delete
   ,search
+  ,submitTask
   ,sync
   ,searchFullText
   ,generateReport
@@ -108,6 +109,10 @@ search ixName val = do
   ixData <- liftIO $ readTVarIO ix
   let ids = Set.toList $ Map.findWithDefault Set.empty val ixData
   forM ids $ Redis.read' redis
+
+submitTask queueName taskId
+  = runRedisDB redis
+  $ Redis.lpush queueName [taskId]
 
 sync :: Maybe ByteString -> Maybe Int -> Handler b (DbLayer b) ()
 sync forMdl fromId = do

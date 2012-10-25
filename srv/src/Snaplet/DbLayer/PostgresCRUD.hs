@@ -23,7 +23,7 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import Data.ByteString (ByteString)
 import Data.Char
-import Data.List (isPrefixOf, elemIndex)
+import Data.List (isPrefixOf, findIndex, elemIndex)
 import Data.String
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.ByteString.Lazy.Char8 as L8

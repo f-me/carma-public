@@ -51,6 +51,7 @@
     <script src="/s/js/customKoHandlers.js" />
 
     <!-- Model processing -->
+    <script src="/s/js/dictionaries.js" />
     <script src="/s/js/metamodel.js" />
     <script src="/s/js/search.js" />
     <script src="/s/js/main.js" />
@@ -69,6 +70,8 @@
     <script src="/s/js/hotkeys.js" />
     <script src="/s/js/fileupload.js" />
     <script src="/s/js/avaya.js" />
+    <script src="/s/js/editSms.js" />
+    <script src="/s/js/sendSms.js" />
 
   </head>
   <body>
@@ -92,6 +95,11 @@
                 <li id="avaya-info" class="nav-header"></li>
                 <li><a id="avaya-accept" href="#">Принять звонок</a></li>
               </ul>
+            </li>
+            <li>
+              <a href="#sms-send-modal" data-toggle="modal">
+                <i class="icon icon-envelope icon-white"></i>
+              </a>
             </li>
             <li class="divider-vertical" />
             <!-- ko template: { name: 'nav-li-template' }-->
@@ -233,6 +241,18 @@
       <!-- Can't use offsetN class here due to fluid layout. -->
       <div id="tableView" />
     </script>
+
+    <!-- SMS send form -->
+    <div id="sms-send-modal" class="modal hide fade">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h3>Отправка СМС</h3>
+      </div>
+      <div id="sms-send-form" class="modal-body"/>
+      <div class="modal-footer">
+        <button id="do-send-sms" class="btn btn-primary">Отправить</button>
+      </div>
+    </div>
 
     <script type="text/template"
             id="search-table-template"
@@ -518,6 +538,40 @@
         </form>
       </div>
     </script>
+
+    <!-- Edit sms template screen template -->
+    <script type="text/template"
+            class="screen-template"
+            id="editSms-screen-template">
+
+      <div id="sms-left" class="nice-scrollbar pane">
+          <button class="btn btn-action" type="button"
+            onclick="location.hash='editSms';location.reload(true);">
+            <i class="icon icon-plus"></i>Добавить шаблон
+          </button>
+          <br/><br/>
+          <table id="sms-table" class="table table-striped table-bordered">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Имя шаблона</th>
+                <th>Текст</th>
+              </tr>
+            </thead>
+            <tbody/>
+          </table>
+      </div>
+
+      <div id="sms-right" class="nice-scrollbar pane">
+        <form class="form-vertical">
+          <div id="smsTpl-form" />
+          <div class="control-group">
+          </div>
+          <div id="smsTpl-permissions" />
+        </form>
+      </div>
+    </script>
+
 
     <!-- Supervisor screen template -->
     <script type="text/template"
@@ -844,8 +898,8 @@
                  autocomplete="off"
                  name="{{ name }}"
                  {{# readonly }}readonly{{/ readonly }}
-                 data-bind="value: {{ name }},
-                            valueUpdate: 'afterkeydown'" />
+                 data-bind="value: {{ name }}DateTime,
+                            valueUpdate: 'change'" />
         </div>
       </div>
     </script>
@@ -958,7 +1012,12 @@
                    autocomplete="off"
                    name="{{ name }}"
                    data-source="global.dictionaries['{{meta.dictionaryName}}']"
-                   data-bind="value: {{ name }}Local,
+                   data-bind="{{^ meta.bounded }}
+                              value: {{ name }}Local,
+                              {{/ meta.bounded }}
+                              {{# meta.bounded }}
+                              value: {{ name }}BoundedLocal,
+                              {{/ meta.bounded }}
                               valueUpdate: 'afterkeydown'
                               {{# meta.dictionaryParent }},
                               attr: { 'data-parent': {{ meta.dictionaryParent }} }
@@ -1488,8 +1547,16 @@
               </tr>
             </thead>
             <tbody/>
-        </table>
+          </table>
 
+        </div>
+        <div id="case-comments">
+          <label> Комментарий </label>
+          <textarea  id="case-comments-i" rows="7"  />
+          <br />
+          <button    id="case-comments-b" class="btn">
+            Добавить комментарий
+          </button>
         </div>
       </fieldset>
     </script>

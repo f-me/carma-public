@@ -13,6 +13,8 @@ this.backbonizeModel = (models, modelName, options) ->
   requiredFields   = []
   regexpFields     = []
   filesFields      = []
+  jsonFields       = []
+  dateTimeFields   = []
   groups           = []
 
   model = models[modelName]
@@ -28,6 +30,8 @@ this.backbonizeModel = (models, modelName, options) ->
     referenceFields.push(f.name)  if f.type == "reference"
     dictionaryFields.push(f.name) if f.type == "dictionary"
     filesFields.push(f.name)      if f.type == "files"
+    jsonFields.push(f.name)       if f.type == "json"
+    dateTimeFields.push(f.name)   if f.type == "datetime"
     groups.push(f.groupName)      if f.groupName? and f.groupName not in groups
 
   M = Backbone.Model.extend
@@ -46,6 +50,7 @@ this.backbonizeModel = (models, modelName, options) ->
     regexpFields: regexpFields
     # List of files fields
     filesFields: filesFields
+    dateTimeFields: dateTimeFields
     # List of groups present in model
     groups: groups
 
@@ -132,9 +137,10 @@ this.backbonizeModel = (models, modelName, options) ->
             json[k] = new Date(json[k] * 1000).toString(format)
           if type == 'reference'
             setReference this, json, k, models
-          else
-            if (type == "checkbox")
-              json[k] = json[k] == "1"
+          else if type == "checkbox"
+            json[k] = json[k] == "1"
+          else if type == "json" and not _.isEmpty json[k]
+            json[k] = JSON.parse json[k]
       return json
 
     toJSON: ->
@@ -155,6 +161,8 @@ this.backbonizeModel = (models, modelName, options) ->
           # serialize references to name1:id1,name2:id2,... string
           if this.fieldHash[k].type == 'reference'
             json[k] = ("#{r.name}:#{r.id}" for r in json[k]).join(',')
+          if this.fieldHash[k].type == 'json'
+            json[k] = JSON.stringify json[k]
         # Map boolean values to string "0"/"1"'s for server
         # compatibility
         if _.isBoolean(json[k])
