@@ -1,10 +1,10 @@
 module Snaplet.DbLayer.Triggers.Actions where
 
 import Control.Arrow (first)
-import Control.Monad (when, void, forM, forM_, filterM)
+import Control.Monad (when, unless, void, forM, forM_, filterM)
 import Control.Monad.Trans
 import Control.Exception
-import Control.Applicative ((<$>))
+import Control.Applicative
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.UTF8  as BU
@@ -54,6 +54,11 @@ actions
     $ add "hotel"  "providedFor"    [\objId val -> setSrvMCost objId]
     $ Map.fromList
       $ [(s,serviceActions) | s <- services]
+      ++[("sms", Map.fromList
+        [("caseId",   [\smsId _ -> renderSMS smsId])
+        ,("template", [\smsId _ -> renderSMS smsId])
+        ]
+      )]
       ++[("action", actionActions)
         ,("cost_serviceTarifOption", Map.fromList
           [("count",
@@ -102,6 +107,14 @@ actions
             ])
           ])
         ]
+
+renderSMS smsId = do
+  caseId <- get smsId "caseId"
+  tmpId  <- get smsId "tmpId"
+  tmp    <- get tmpId "text"
+  let txt = tmp
+  set smsId "msg" txt
+  set smsId "from" "RAMC"
 
 -- Создания действий "с нуля"
 serviceActions = Map.fromList
@@ -183,7 +196,7 @@ serviceActions = Map.fromList
           actionId <- new "action" $ Map.fromList
             [("name", "cancelService")
             ,("duetime", due)
-            ,("description", utf8 "Клиент отказался от услуги (сообщил об это оператору Front Office)")
+            ,("description", utf8 "Клиент отказался от услуги (сообщил об этом оператору Front Office)")
             ,("targetGroup", "back")
             ,("priority", "1")
             ,("parentId", objId)
@@ -195,6 +208,9 @@ serviceActions = Map.fromList
   )
   ,("contractor_partner",
     [\objId val -> do
+        Right partnerIds <- lift $ runRedisDB redis $ Redis.keys "partner:*"
+        p <- filterM (\id -> (val ==) <$> get id "name") partnerIds
+        unless (null p) $ set objId "contractor_partnerId" (head p)
         opts <- get objId "cost_serviceTarifOptions"
         let ids = B.split ',' opts
         lift $ runRedisDB redis $ Redis.del ids
@@ -227,6 +243,9 @@ serviceActions = Map.fromList
         ])
   ,("cost_serviceTarifOptions",
     [\objId val -> set objId "cost_counted" =<< srvCostCounted objId ])
+   -- RKC calc 
+  ,("suburbanMilage", [\objId val -> setSrvMCost objId])
+  ,("providedFor",    [\objId val -> setSrvMCost objId])
   ]
 
 resultSet1 =

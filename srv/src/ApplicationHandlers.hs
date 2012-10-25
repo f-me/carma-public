@@ -127,6 +127,15 @@ serveUserCake = ifTop
 
 ------------------------------------------------------------------------------
 -- | Geodecode mockup.
+smspost :: AppHandler ()
+smspost = do
+  Just smsId <- getParam "smsId"
+  Right _ <- with db $ DB.submitTask "smspost" smsId
+  writeBS ""
+
+
+------------------------------------------------------------------------------
+-- | Geodecode mockup.
 geodecode :: AppHandler ()
 geodecode = ifTop $ do
   addr <- fromMaybe "Moscow" <$> getParam "addr"
@@ -393,9 +402,34 @@ vinStateRemove = scope "vin" $ scope "state" $ scope "remove" $ do
   log Trace $ T.concat ["id: ", maybe "<null>" (T.pack . show) res]
   with vin removeAlert
 
+getSrvTarifOptions :: AppHandler ()
+getSrvTarifOptions = do
+  Just id    <- getParam "id"
+  Just model <- getParam "model"
+  srv     <- with db $ DB.read model id
+  partner <- with db $ get $ B.split ':' $
+             fromMaybe "" $ Map.lookup "contractor_partnerId" srv
+  -- partner services with same serviceName as current service model
+  partnerSrvs <- with db $ mapM get $ getIds "services" partner
+  case filter (mSrv model) partnerSrvs of
+    []     -> return ()
+    (x:xs) -> do
+      tarifOptions <- with db $ mapM get $ getIds "tarifOptions" x
+      writeJSON $ map rebuilOpt tarifOptions
+  where
+      getIds f m = map (B.split ':') $ B.split ',' $
+                   fromMaybe "" $ Map.lookup f m
+      get [m, id] = Map.insert "id" id <$> DB.read m id
+      mSrv m = (m ==) . fromMaybe "" . Map.lookup "serviceName"
+      rebuilOpt :: Map ByteString ByteString -> Map ByteString ByteString
+      rebuilOpt o = Map.fromList $
+                    [("id"        , fromMaybe "" $ Map.lookup "id" o)
+                    ,("optionName", fromMaybe "" $ Map.lookup "optionName" o)]
+
 errorsHandler :: AppHandler ()
 errorsHandler = do
   l <- gets feLog
   r <- readRequestBody 4096
   liftIO $ withLog l $ scope "frontend" $ do
   log Info $ toStrict $ decodeUtf8 r
+
