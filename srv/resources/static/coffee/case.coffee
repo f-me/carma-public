@@ -342,7 +342,10 @@ this.partnerOptsHook = (i, knockVM) ->
             args     :
               optionName   : o.optionName
               tarifOptionId: "tarifOption:#{o.id}"
-            -> bindDelete knockVM, 'cost_serviceTarifOptions'
+            ->
+              bindDelete knockVM, 'cost_serviceTarifOptions'
+              r = knockVM['cost_serviceTarifOptionsReference']()
+              $("##{(_.last r)['view']}").parent().collapse("show")
         bindDelete knockVM, 'cost_serviceTarifOptions'
 
 this.srvOptUpd = (instance, knockVM) ->
