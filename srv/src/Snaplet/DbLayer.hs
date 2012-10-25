@@ -9,6 +9,7 @@ module Snaplet.DbLayer
   ,searchFullText
   ,generateReport
   ,readAll
+  ,smsProcessing
   ,initDbLayer
   ,findOrCreate
   ) where
@@ -151,6 +152,11 @@ generateReport superCond template filename = do
     Postgres.generateReport mdl superCond template filename
 
 readAll model = Redis.readAll redis model
+
+smsProcessing :: Handler b (DbLayer b) Integer
+smsProcessing = runRedisDB redis $ do
+  (Right i) <- Redis.llen "smspost"
+  return i
 
 initDbLayer :: UsersDict -> SnapletInit b (DbLayer b)
 initDbLayer allU = makeSnaplet "db-layer" "Storage abstraction"
