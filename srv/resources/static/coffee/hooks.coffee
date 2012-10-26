@@ -6,6 +6,7 @@ this.hooks = ->
       "*"    : [regexpKbHook, dictionaryKbHook, filesKbHook, dateTimeHook]
       "case" : [caseDescsKbHook, caseEventsHistoryKbHook]
       "tarifOption": [tarifOptNameDef]
+      "partner": [bindRemoveService]
       "partner_service": [bindTitleServiceName]
       "cost_serviceTarifOption": [tarifOptNameDef]
       "rent"  : [partnerOptsHook, srvOptUpd, costsMark]
@@ -17,35 +18,31 @@ this.hooks = ->
 
 dictionaryKbHook = (instance, knockVM) ->
   for n of instance.dictionaryFields
-    fieldName = instance.dictionaryFields[n]
-    dict      = instance.fieldHash[fieldName].meta.dictionaryName
-    parent    = instance.fieldHash[fieldName].meta.dictionaryParent
+    do (n) ->
+      fieldName = instance.dictionaryFields[n]
+      dict      = instance.fieldHash[fieldName].meta.dictionaryName
+      parent    = instance.fieldHash[fieldName].meta.dictionaryParent
+      bounded   = instance.fieldHash[fieldName].meta.bounded
 
-    # Perform label-value transformation
-    ((f, d) ->
-      knockVM[f + "Local"] =
+      # Perform label-value transformation
+      knockVM[fieldName + "Local"] =
         kb.observable instance,
-                      key: f
+                      key: fieldName
                       read: (k) ->
                         # Read label by real value
                         val = instance.get(k)
-                        global.dictValueCache[d] || getDictionary(d)
-                        lab = global.dictValueCache[d][val]
+                        global.dictValueCache[dict] || getDictionary(dict)
+                        lab = global.dictValueCache[dict][val]
                         return (lab || val)
                       write: (lab) ->
                         # Set real value by label
-                        val = global.dictLabelCache[d][lab]
-                        instance.set(f, val || lab)
+                        val = global.dictLabelCache[dict][lab]
+                        # drop value if can't find one for bounded dict
+                        if bounded and not val
+                        then  instance.set(fieldName, "")
+                        else  instance.set(fieldName, val || lab)
                       ,
                       knockVM
-      if instance.fieldHash[fieldName].meta.bounded
-        knockVM[f + "BoundedLocal"] = ko.computed
-          read :       -> knockVM[f + "Local"]()
-          write: (val) ->
-            if global.dictLabelCache[d][val]
-            then knockVM[f + "Local"](val)
-            else return
-      )(fieldName, dict)
 
 regexpKbHook = (instance, knockVM) ->
   # Set observable with name <fieldName>Regexp for inverse of

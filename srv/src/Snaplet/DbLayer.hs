@@ -103,7 +103,7 @@ update model objId commit = scoper "update" $ do
   log Trace $ fromString $ "Changes: " ++ show changes'
   Postgres.updateMany mdl model changes'
   --
-  return $ (changes Map.! fullId) Map.\\ commit
+  return $ changes Map.! fullId
 
 delete model objId = do
   Redis.delete redis model objId
