@@ -4,6 +4,7 @@ module Snaplet.DbLayer.Triggers
   ,triggerCreate
   ) where
 
+import Data.Functor ((<$>))
 import Control.Monad (foldM)
 import Control.Monad.State (gets)
 import Control.Monad.Trans
@@ -31,13 +32,11 @@ triggerCreate = applyDefaults
 triggerUpdate :: ObjectId -> Object -> DbHandler b ObjectMap
 triggerUpdate objId commit = do
   recs <- gets (recommendations . triggers)
+  let stripUnchanged orig = Map.filterWithKey (\k v -> Map.lookup k orig /= Just v)
+  commit' <- (`stripUnchanged` commit) <$> Redis.read' redis objId
   let cfg = unionTriggers (compileRecs recs) actions
-  obj <- Redis.read' redis objId
-  let commit' = foldl'
-        (\c (k,v) -> if Map.lookup k c == Just v
-                   then Map.delete k c else c)
-        commit $ Map.toList obj
-  loop cfg 5 emptyContext $ Map.singleton objId commit'
+  changes <- loop cfg 5 emptyContext $ Map.singleton objId commit'
+  return $ Map.adjust (stripUnchanged commit) objId changes
   where
     loop cfg 0 cxt changes = return $ unionMaps changes $ updates cxt
     loop cfg n cxt changes

@@ -47,6 +47,7 @@ Executable carma
     Snap.Snaplet.Auth.Class,
     Utils.HttpErrors,
     Util,
+    DumbTemplate,
     WebSockHandlers
 
   Build-depends:
