@@ -47,6 +47,7 @@ Executable carma
     Snap.Snaplet.Auth.Class,
     Utils.HttpErrors,
     Util,
+    DumbTemplate,
     WebSockHandlers
 
   Build-depends:
@@ -72,8 +73,8 @@ Executable carma
     time                        >= 1.1 && < 1.5,
     mtl                         == 2.0.*,
     stm                         == 2.3,
-    transformers                >= 0.2 && < 0.4,
-    MonadCatchIO-transformers   >= 0.2 && < 0.4,
+    transformers                >= 0.2 && < 0.3,
+    MonadCatchIO-transformers   == 0.3.0.0,
     vin-parser                  >= 0.1.2 && < 0.2,
     hedis                       == 0.4.1,
     unordered-containers,
