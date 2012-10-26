@@ -95,7 +95,7 @@ functions tz dict = [
     R.functionMaybe "DATEDIFF" dateDiff,
     R.functionMaybe "YESNO" yesNo,
     R.function "DATE" (formatTimeFun "%d.%m.%Y"),
-    R.function "TIME" (formatTimeFun "%d.%m.%Y %H:%M:%S"),
+    R.function "TIME" (formatTimeFun "%d.%m.%Y %H:%M"),
     R.uses ["case.callerOwner", "case.caller_name", "case.owner_name"] $ R.constFunction "OWNER" ownerFun,
     R.uses ["case.program"] $ R.constFunction "FDDS" fddsFun,
     R.uses ["service.falseCall"] $ R.constFunction "FALSECALL" falseFun,

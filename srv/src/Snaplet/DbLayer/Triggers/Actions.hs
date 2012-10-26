@@ -8,6 +8,7 @@ import Control.Applicative
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.UTF8  as BU
+import qualified Data.Text.Encoding as T
 import qualified Data.Map as Map
 import Data.Char
 import Data.Maybe
@@ -30,6 +31,7 @@ import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
 
 import Util
+import qualified DumbTemplate as Template
 
 services =
   ["deliverCar"
@@ -109,12 +111,21 @@ actions
         ]
 
 renderSMS smsId = do
-  caseId <- get smsId "caseId"
-  tmpId  <- get smsId "tmpId"
-  tmp    <- get tmpId "text"
-  let txt = tmp
+  caseNum <- get smsId "caseId"
+  let caseId = B.append "case:" caseNum
+  let add x i y m = do
+        yVal <- T.decodeUtf8 <$> get i y
+        return $! Map.insert x yVal m
+  varMap <- return Map.empty
+    >>= return . Map.insert "case.id" (T.decodeUtf8 caseNum)
+    >>= add "case.contact_name" caseId "contact_name"
+    >>= add "case.caseAddress_address" caseId "caseAddress_address"
+  tmpId <- get smsId "template"
+  tmp <- T.decodeUtf8 <$> (get smsId "template" >>= (`get` "text"))
+  let txt = T.encodeUtf8 $ Template.render varMap tmp
   set smsId "msg" txt
   set smsId "from" "RAMC"
+
 
 -- Создания действий "с нуля"
 serviceActions = Map.fromList
@@ -196,7 +207,7 @@ serviceActions = Map.fromList
           actionId <- new "action" $ Map.fromList
             [("name", "cancelService")
             ,("duetime", due)
-            ,("description", utf8 "Клиент отказался от услуги (сообщил об это оператору Front Office)")
+            ,("description", utf8 "Клиент отказался от услуги (сообщил об этом оператору Front Office)")
             ,("targetGroup", "back")
             ,("priority", "1")
             ,("parentId", objId)
