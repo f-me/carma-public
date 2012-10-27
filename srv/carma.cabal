@@ -84,7 +84,7 @@ Executable carma
     HTTP                        == 4000.2.*,
     postgresql-simple           == 0.1.*,
     snaplet-postgresql-simple   == 0.1,
-    postgresql-sync-map         >= 0.1.3 && < 0.2,
+    postgresql-sync-map         == 0.1.4,
     xlsx                        == 0.0.*,
     filepath                    == 1.3.0.*,
     directory                   == 1.1.0.*,
