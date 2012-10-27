@@ -26,13 +26,13 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
 import Data.List (sortBy)
 import Data.Ord (comparing)
-import Data.Maybe (fromJust)
+import Data.Maybe (fromJust, isJust)
 import Data.String
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 
 import Network.URI (parseURI, URI(..))
-import qualified Fdds as Fdds
+import qualified Fdds
 import Data.Configurator
 
 import Snap.Snaplet
@@ -99,9 +99,13 @@ update model objId commit = scoper "update" $ do
   changes <- triggerUpdate fullId commit
   Right _ <- Redis.updateMany redis changes
   -- 
-  let changes' = Map.mapKeys (B.drop (B.length model + 1)) changes
+  let
+    toPair [x, y] = Just (x, y)
+    toPair _ = Nothing
+
+  let changes' = Map.mapKeys fromJust . Map.filterWithKey (\k v -> isJust k) . Map.mapKeys (toPair . C8.split ':') $ changes
   log Trace $ fromString $ "Changes: " ++ show changes'
-  Postgres.updateMany mdl model changes'
+  Postgres.updateMany mdl changes'
   --
   return $ (changes Map.! fullId) Map.\\ commit
 
