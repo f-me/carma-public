@@ -97,6 +97,7 @@ update model objId commit = scoper "update" $ do
   -- FIXME: catch NotFound => transfer from postgres to redis
   -- (Copy on write)
   changes <- triggerUpdate fullId commit
+  liftIO $ print changes
   Right _ <- Redis.updateMany redis changes
   -- 
   let
@@ -107,7 +108,8 @@ update model objId commit = scoper "update" $ do
   log Trace $ fromString $ "Changes: " ++ show changes'
   Postgres.updateMany mdl changes'
   --
-  return $ (changes Map.! fullId) Map.\\ commit
+  let stripUnchanged orig = Map.filterWithKey (\k v -> Map.lookup k orig /= Just v)
+  return $ stripUnchanged commit $ changes Map.! fullId
 
 delete model objId = do
   Redis.delete redis model objId
