@@ -59,6 +59,7 @@ actions
       ++[("sms", Map.fromList
         [("caseId",   [\smsId _ -> renderSMS smsId])
         ,("template", [\smsId _ -> renderSMS smsId])
+        ,("msg",      [\smsId _ -> renderSMS smsId])
         ]
       )]
       ++[("action", actionActions)
@@ -126,6 +127,7 @@ renderSMS smsId = do
   tmp <- T.decodeUtf8 <$> (get smsId "template" >>= (`get` "text"))
   let txt = T.encodeUtf8 $ Template.render varMap tmp
   set smsId "msg" txt
+  get caseId "contact_phone1" >>= set smsId "phone"
   set smsId "sender" "RAMC"
 
 

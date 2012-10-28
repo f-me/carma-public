@@ -13,23 +13,13 @@ setTimeout(->
       else
         $('#do-send-sms').removeAttr('disabled')
 
-    vSms.knockVM.caseId.subscribe (caseId) ->
-      if caseId
-        $.ajax
-          url: "/_/case/#{caseId}"
-          dataType: "json"
-          async: false
-          success: (caze) ->
-            phone = caze.contact_phone1
-            phone && vSms.knockVM.phone(phone)
-      
     vCase = global.viewsWare['case-form']
     if vCase 
       vSms.knockVM.caseId(vCase.bbInstance.id)
 
     # we really need this because triggers do not trigger on `POST`
-    # so, if {template:"xxx"} comes with POST (not wit PUT), then
-    # out template substitution trigger is not fired
+    # so, if {template:"xxx"} comes with POST (not with PUT), then
+    # our template substitution trigger is not fired
     vSms.bbInstance.save()
 
     $('#do-send-sms')
