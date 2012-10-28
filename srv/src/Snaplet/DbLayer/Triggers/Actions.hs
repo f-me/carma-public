@@ -126,7 +126,7 @@ renderSMS smsId = do
   tmp <- T.decodeUtf8 <$> (get smsId "template" >>= (`get` "text"))
   let txt = T.encodeUtf8 $ Template.render varMap tmp
   set smsId "msg" txt
-  set smsId "from" "RAMC"
+  set smsId "sender" "RAMC"
 
 
 -- Создания действий "с нуля"
