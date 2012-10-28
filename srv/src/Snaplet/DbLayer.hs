@@ -156,7 +156,8 @@ readAll model = Redis.readAll redis model
 smsProcessing :: Handler b (DbLayer b) Integer
 smsProcessing = runRedisDB redis $ do
   (Right i) <- Redis.llen "smspost"
-  return i
+  (Right ri) <- Redis.llen "smspost:retry"
+  return $ i + ri
 
 initDbLayer :: UsersDict -> SnapletInit b (DbLayer b)
 initDbLayer allU = makeSnaplet "db-layer" "Storage abstraction"
