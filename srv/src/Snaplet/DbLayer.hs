@@ -97,7 +97,6 @@ update model objId commit = scoper "update" $ do
   -- FIXME: catch NotFound => transfer from postgres to redis
   -- (Copy on write)
   changes <- triggerUpdate fullId commit
-  liftIO $ print changes
   Right _ <- Redis.updateMany redis changes
   -- 
   let
