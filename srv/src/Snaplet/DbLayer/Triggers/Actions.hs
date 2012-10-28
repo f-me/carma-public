@@ -301,6 +301,14 @@ actionResultMap = Map.fromList
          "Сообщить клиенту о договорённости" 
          "back" "1" (+60) objId
   )
+  ,("serviceOrderedSMS", \objId -> do
+    tm <- getService objId "times_expectedServiceStart"
+    void $ replaceAction
+      "checkStatus"
+      "Уточнить статус оказания услуги"
+      "back" "3" (changeTime (+5*60) tm)
+      objId
+  )
   ,("partnerNotOk", void . replaceAction
       "cancelService"
       "Требуется отказаться от заказанной услуги"
@@ -316,7 +324,7 @@ actionResultMap = Map.fromList
   ,("moveToBack", \objId -> do
     act <- replaceAction
       "orderService"
-      "Заказ услуги аналитиком"
+      "Заказ услуги оператором Back Office"
       "back" "1" (+60) objId
     set act "assignedTo" ""
   )
@@ -527,7 +535,7 @@ actionResultMap = Map.fromList
   )    
   ,("caseClosed", \objId -> do
     setService objId "status" "serviceClosed"
-    closeAction objId	
+    closeAction objId  
   )
   ,("falseCallWBill", \objId -> do
      setService objId "falseCall" "bill"
