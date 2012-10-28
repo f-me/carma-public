@@ -1,0 +1,16 @@
+{
+    "entries": [
+        {
+            "value": "send_error",
+            "label": "Ошибка отправки"
+        },
+        {
+            "value": "sent",
+            "label": "Отправлено"
+        },
+        {
+            "value": "delivered",
+            "label": "Доставлено"
+        }
+    ]
+}
