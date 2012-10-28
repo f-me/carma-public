@@ -101,10 +101,12 @@ actions
                     $ if res then "fdds" else "vinNotFound"
                 Right car -> do
                   set objId "vinChecked" "base"
-                  let setIfEmpty (name,val) = do
-                        let name' = B.append "car_" name
-                        val' <- get objId name'
-                        when (val' == "") $ set objId name' val
+                  let setIfEmpty (name,val)
+                        | name == "plateNum" = return ()
+                        | otherwise = do
+                          let name' = B.append "car_" name
+                          val' <- get objId name'
+                          when (val' == "") $ set objId name' val
                   mapM_ setIfEmpty car
             ])
           ])
