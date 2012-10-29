@@ -1,5 +1,4 @@
-
-module Snap.Snaplet.Auth.Class where
+module Snaplet.Auth.Class where
 
 import Data.Lens.Common
 import Snap.Snaplet
