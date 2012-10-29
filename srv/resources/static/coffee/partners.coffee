@@ -53,9 +53,7 @@ this.addNewServiceToPartner = (name) ->
                afterAddSrv(p)
 
 afterAddSrv = (parent) -> (k) ->
-  bindRemove parent, 'services', k
   focusRef k
-  # addTarifStuff i for i in parent['servicesReference']()
 
 addTarifStuff = (p) ->
   view = $("##{p['view']}")
@@ -73,3 +71,6 @@ genNewTarif = (kvm) ->
 
 this.bindTitleServiceName = (instance, kvm) ->
   kvm['modelTitle'] = kvm['serviceNameLocal']
+
+this.bindRemoveService = (instance, kvm) ->
+  kvm['services'].subscribe -> bindRemove kvm, 'services'

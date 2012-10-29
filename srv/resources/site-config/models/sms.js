@@ -7,6 +7,12 @@
     "canDelete": true,
     "fields": [
       {
+        "name":"ctime",
+        "meta": {
+          "invisible":true
+        }
+      },
+      {
         "name":"caseId",
         "canRead": true,
         "canWrite": true,
@@ -40,6 +46,12 @@
         "type":"textarea",
         "meta": {
           "label": "Текст сообщения"
+        }
+      },
+      {
+        "name": "sender",
+        "meta": {
+          "invisible": true
         }
       }
     ]

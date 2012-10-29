@@ -6,23 +6,29 @@ setTimeout(->
                           focusClass: "focusable"
                           refs: refs
 
-    vSms = global.viewsWare['sms-send-form']
-    vSms.knockVM.phoneRegexp.subscribe (err) ->
-      if err
-        $('#do-send-sms').attr('disabled', 'disabled')
+    buttonDisabled = (dsbl) ->
+      btn = $('#do-send-sms')
+      if dsbl
+        btn.attr('disabled', 'disabled')
       else
-        $('#do-send-sms').removeAttr('disabled')
-      
+        btn.removeAttr('disabled')
+          
+    buttonDisabled true
+    vSms = global.viewsWare['sms-send-form']
+    smsVM = vSms.knockVM
+    smsVM.msg.subscribe (msg) ->
+      buttonDisabled (msg == "" || smsVM.phoneRegexp())
+
+    smsVM.phoneRegexp.subscribe (err) ->
+      buttonDisabled (err || smsVM.msg() == "")
+
     vCase = global.viewsWare['case-form']
-    if vCase
-      caze = vCase.bbInstance
-      sms = vSms.knockVM
-      sms.caseId(caze.id)
-      sms.phone(caze.get('contact_phone1') || '')
+    if vCase 
+      smsVM.caseId(vCase.bbInstance.id)
 
     # we really need this because triggers do not trigger on `POST`
-    # so, if {template:"xxx"} comes with POST (not wit PUT), then
-    # out template substitution trigger is not fired
+    # so, if {template:"xxx"} comes with POST (not with PUT), then
+    # our template substitution trigger is not fired
     vSms.bbInstance.save()
 
     $('#do-send-sms')
