@@ -58,7 +58,8 @@ actions
       $ [(s,serviceActions) | s <- services]
       ++[("sms", Map.fromList
         [("caseId",   [\smsId _ -> renderSMS smsId])
-        ,("template", [\smsId _ -> renderSMS smsId])
+        ,("template", [\smsId _ -> set smsId "msg" "" >> renderSMS smsId])
+        ,("msg",      [\smsId _ -> renderSMS smsId])
         ]
       )]
       ++[("action", actionActions)
@@ -115,6 +116,7 @@ actions
 renderSMS smsId = do
   caseNum <- get smsId "caseId"
   let caseId = B.append "case:" caseNum
+
   let add x i y m = do
         yVal <- T.decodeUtf8 <$> get i y
         return $! Map.insert x yVal m
@@ -122,11 +124,18 @@ renderSMS smsId = do
     >>= return . Map.insert "case.id" (T.decodeUtf8 caseNum)
     >>= add "case.contact_name" caseId "contact_name"
     >>= add "case.caseAddress_address" caseId "caseAddress_address"
+
+  msg <- get smsId "msg"
   tmpId <- get smsId "template"
   tmp <- T.decodeUtf8 <$> (get smsId "template" >>= (`get` "text"))
-  let txt = T.encodeUtf8 $ Template.render varMap tmp
-  set smsId "msg" txt
-  set smsId "from" "RAMC"
+  when (msg == "" && tmp /= "") $ do
+    let txt = T.encodeUtf8 $ Template.render varMap tmp
+    set smsId "msg" txt
+
+  phone <- get smsId "phone"
+  when (phone == "") $ do
+    get caseId "contact_phone1" >>= set smsId "phone"
+  set smsId "sender" "RAMC"
 
 
 -- Создания действий "с нуля"
