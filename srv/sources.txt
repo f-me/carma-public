@@ -4,7 +4,6 @@ https://github.com/mvoidex/snaplet-simple-log
 https://github.com/mvoidex/simple-log
 https://github.com/f-me/snaplet-postgresql-simple
 https://github.com/mvoidex/xlsx
-https://github.com/f-me/avaya-aes
 https://github.com/f-me/fdds-connector
 https://github.com/f-me/vin-parser
 
