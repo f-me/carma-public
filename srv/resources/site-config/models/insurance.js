@@ -449,19 +449,10 @@
                 "parguy",
                 "account"
             ],
-            "canWrite": [
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ],
             "type": "datetime",
             "meta": {
-                "label": "Дата создания услуги"
+                "label": "Дата создания услуги",
+                "readonly": true
             }
         },
         {
