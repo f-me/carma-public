@@ -93,9 +93,10 @@ this.dictionaryHook = (elName) ->
 
 this.dateTimeHook = (i, k) ->
   for n in i.dateTimeFields
-    k["#{n}DateTime"] = ko.computed
-      read :       -> k[n]()
-      write: (val) -> if Date.parse(val) then k[n](val) else k[n]("")
+    do (n) ->
+      k["#{n}DateTime"] = ko.computed
+        read :       -> k[n]()
+        write: (val) -> if Date.parse(val) then k[n](val) else k[n]("")
 
 this.tarifOptNameDef = (i, k) ->
   k["nameOrDef"] = ko.computed
