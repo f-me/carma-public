@@ -6,6 +6,10 @@
                 "label": "Услуга заказана"
             },
             {
+                "value": "serviceOrderedSMS",
+                "label": "Услуга заказана (SMS)"
+            },
+            {
                 "value": "needPartner",
                 "label": "Требуется партнёр"
             },

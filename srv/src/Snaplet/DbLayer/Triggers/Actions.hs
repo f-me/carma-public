@@ -58,7 +58,8 @@ actions
       $ [(s,serviceActions) | s <- services]
       ++[("sms", Map.fromList
         [("caseId",   [\smsId _ -> renderSMS smsId])
-        ,("template", [\smsId _ -> renderSMS smsId])
+        ,("template", [\smsId _ -> set smsId "msg" "" >> renderSMS smsId])
+        ,("msg",      [\smsId _ -> renderSMS smsId])
         ]
       )]
       ++[("action", actionActions)
@@ -101,10 +102,12 @@ actions
                     $ if res then "fdds" else "vinNotFound"
                 Right car -> do
                   set objId "vinChecked" "base"
-                  let setIfEmpty (name,val) = do
-                        let name' = B.append "car_" name
-                        val' <- get objId name'
-                        when (val' == "") $ set objId name' val
+                  let setIfEmpty (name,val)
+                        | name == "plateNum" = return ()
+                        | otherwise = do
+                          let name' = B.append "car_" name
+                          val' <- get objId name'
+                          when (val' == "") $ set objId name' val
                   mapM_ setIfEmpty car
             ])
           ])
@@ -113,6 +116,7 @@ actions
 renderSMS smsId = do
   caseNum <- get smsId "caseId"
   let caseId = B.append "case:" caseNum
+
   let add x i y m = do
         yVal <- T.decodeUtf8 <$> get i y
         return $! Map.insert x yVal m
@@ -120,11 +124,18 @@ renderSMS smsId = do
     >>= return . Map.insert "case.id" (T.decodeUtf8 caseNum)
     >>= add "case.contact_name" caseId "contact_name"
     >>= add "case.caseAddress_address" caseId "caseAddress_address"
+
+  msg <- get smsId "msg"
   tmpId <- get smsId "template"
   tmp <- T.decodeUtf8 <$> (get smsId "template" >>= (`get` "text"))
-  let txt = T.encodeUtf8 $ Template.render varMap tmp
-  set smsId "msg" txt
-  set smsId "from" "RAMC"
+  when (msg == "" && tmp /= "") $ do
+    let txt = T.encodeUtf8 $ Template.render varMap tmp
+    set smsId "msg" txt
+
+  phone <- get smsId "phone"
+  when (phone == "") $ do
+    get caseId "contact_phone1" >>= set smsId "phone"
+  set smsId "sender" "RAMC"
 
 
 -- Создания действий "с нуля"
@@ -301,6 +312,14 @@ actionResultMap = Map.fromList
          "Сообщить клиенту о договорённости" 
          "back" "1" (+60) objId
   )
+  ,("serviceOrderedSMS", \objId -> do
+    tm <- getService objId "times_expectedServiceStart"
+    void $ replaceAction
+      "checkStatus"
+      "Уточнить статус оказания услуги"
+      "back" "3" (changeTime (+5*60) tm)
+      objId
+  )
   ,("partnerNotOk", void . replaceAction
       "cancelService"
       "Требуется отказаться от заказанной услуги"
@@ -316,7 +335,7 @@ actionResultMap = Map.fromList
   ,("moveToBack", \objId -> do
     act <- replaceAction
       "orderService"
-      "Заказ услуги аналитиком"
+      "Заказ услуги оператором Back Office"
       "back" "1" (+60) objId
     set act "assignedTo" ""
   )
@@ -527,7 +546,7 @@ actionResultMap = Map.fromList
   )    
   ,("caseClosed", \objId -> do
     setService objId "status" "serviceClosed"
-    closeAction objId	
+    closeAction objId  
   )
   ,("falseCallWBill", \objId -> do
      setService objId "falseCall" "bill"

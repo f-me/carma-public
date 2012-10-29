@@ -35,8 +35,7 @@ triggerUpdate objId commit = do
   let stripUnchanged orig = Map.filterWithKey (\k v -> Map.lookup k orig /= Just v)
   commit' <- (`stripUnchanged` commit) <$> Redis.read' redis objId
   let cfg = unionTriggers (compileRecs recs) actions
-  changes <- loop cfg 5 emptyContext $ Map.singleton objId commit'
-  return $ Map.adjust (stripUnchanged commit) objId changes
+  loop cfg 5 emptyContext $ Map.singleton objId commit'
   where
     loop cfg 0 cxt changes = return $ unionMaps changes $ updates cxt
     loop cfg n cxt changes

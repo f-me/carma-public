@@ -289,9 +289,9 @@ update ms name c m = escope "update" $ do
     where
         cond = toCond ms name c
 
-updateMany :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> M.Map ByteString S.SyncMap -> m ()
-updateMany ms name m = scope "updateMany" $ forM_ (M.toList m) $ uncurry (update ms name) where
-    update' k obj = update ms name k (M.insert (C8.pack "id") k obj)
+updateMany :: (PS.HasPostgres m, MonadLog m) => SM.Models -> M.Map (ByteString, ByteString) S.SyncMap -> m ()
+updateMany ms m = scope "updateMany" $ forM_ (M.toList m) $ uncurry update' where
+    update' (mdl, k) obj = update ms mdl k obj
 
 insertUpdate :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> ByteString -> S.SyncMap -> m Bool
 insertUpdate ms name c m = escopev "insertUpdate" False $ do
