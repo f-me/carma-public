@@ -24,7 +24,9 @@ import qualified Data.Set as Set
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
-import Data.Maybe (fromJust)
+import Data.List (sortBy)
+import Data.Ord (comparing)
+import Data.Maybe (fromJust, isJust)
 import Data.String
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
