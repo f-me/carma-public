@@ -223,7 +223,8 @@
             "indexCollate": true,
             "type": "datetime",
             "meta": {
-                "label": "Дата звонка"
+                "label": "Дата звонка",
+		"readonly": true
             }
         },
         {
