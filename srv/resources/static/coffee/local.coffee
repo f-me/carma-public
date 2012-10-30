@@ -43,6 +43,7 @@ localScreens = ->
     "views":
       "rkc-form":
         constructor: setupRKCScreen
+        destructor: removeRKCScreen
   "reports":
     "template": "reports-screen-template"
     "views":

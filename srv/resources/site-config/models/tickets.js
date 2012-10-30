@@ -16,6 +16,22 @@
         },
         {
             "targets": [
+                "ticketsFrom_address"
+            ],
+            "meta": {
+                "label": "Откуда"
+            }
+        },
+        {
+            "targets": [
+                "ticketsTo_address"
+            ],
+            "meta": {
+                "label": "Куда"
+            }
+        },
+        {
+            "targets": [
                 "payment_expectedCost"
             ],
             "canRead": [
@@ -76,6 +92,76 @@
                 "parguy"
             ]
 
+        },
+        {
+            "targets": [
+                "ticketsFrom_address",
+                "ticketsFrom_coords",
+                "ticketsFrom_city",
+                "ticketsFrom_comment"
+            ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ]
+        },
+        {
+            "targets": [
+                "ticketsTo_address",
+                "ticketsTo_coords",
+                "ticketsTo_city",
+                "ticketsTo_comment"
+            ],
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ]
         },
         {
             "targets": [
@@ -490,6 +576,7 @@
                 "programman",
                 "parguy"
             ],
+            "groupName": "address",
             "meta": {
                 "label": "Откуда"
             }
@@ -523,6 +610,7 @@
                 "programman",
                 "parguy"
             ],
+            "groupName": "address",
             "meta": {
                 "label": "Куда"
             }
@@ -562,70 +650,6 @@
                 "label": "Тип доставки",
                 "dictionaryName": "DeliveryType"
             }
-        },
-        {
-            "name": "contact1",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "meta": {
-                "label": "Контакт 1"
-            }
-        },
-        {
-            "name": "contactPhone1",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "meta": {
-                "label": "Телефон 1",
-                "regexp": "phone"
-            },
-            "type": "phone"
         },		
         {
             "name": "contractor",

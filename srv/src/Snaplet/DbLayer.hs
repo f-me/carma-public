@@ -9,6 +9,7 @@ module Snaplet.DbLayer
   ,searchFullText
   ,generateReport
   ,readAll
+  ,smsProcessing
   ,initDbLayer
   ,findOrCreate
   ) where
@@ -18,7 +19,6 @@ import Control.Applicative
 import Control.Monad
 import Control.Monad.State
 import Control.Concurrent.STM
-import Control.Concurrent.STM.TVar
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.ByteString (ByteString)
@@ -110,8 +110,7 @@ update model objId commit = scoper "update" $ do
   let stripUnchanged orig = Map.filterWithKey (\k v -> Map.lookup k orig /= Just v)
   return $ stripUnchanged commit $ changes Map.! fullId
 
-delete model objId = do
-  Redis.delete redis model objId
+delete model objId = Redis.delete redis model objId
 
 search ixName val = do
   ix <- gets $ (Map.! ixName) . indices
@@ -154,12 +153,18 @@ searchFullText mname fs sels q lim = do
     showValue (S.TimeValue s) = T.encodeUtf8 . T.pack . (show :: Integer -> String) . floor $ s
     showValue _ = C8.empty
 
-generateReport :: [T.Text] -> FilePath -> FilePath -> Handler b (DbLayer b) ()
-generateReport conds template filename = do
+generateReport :: (T.Text -> [T.Text]) -> FilePath -> FilePath -> Handler b (DbLayer b) ()
+generateReport superCond template filename = do
     mdl <- gets syncModels
-    Postgres.generateReport mdl conds template filename
+    Postgres.generateReport mdl superCond template filename
 
 readAll model = Redis.readAll redis model
+
+smsProcessing :: Handler b (DbLayer b) Integer
+smsProcessing = runRedisDB redis $ do
+  (Right i) <- Redis.llen "smspost"
+  (Right ri) <- Redis.llen "smspost:retry"
+  return $ i + ri
 
 initDbLayer :: UsersDict -> SnapletInit b (DbLayer b)
 initDbLayer allU = makeSnaplet "db-layer" "Storage abstraction"

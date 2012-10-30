@@ -85,6 +85,23 @@ this.setupRKCScreen = (viewName, args) ->
 
         bt.fnAddData(brows))
 
-    setTimeout update, 30000
+    global.rkcData = {}
 
+    # Get SMS
+    sms = $('#sms-processing')
+
+    updateSMS = () ->
+        $.getJSON("/sms/processing", (result) ->
+            sms.val(result.processing))
+
+    global.rkcData.smsHandler = setInterval(updateSMS, 5000)
+    global.rkcData.updateHandler = setInterval(update, 30000)
+
+    updateSMS()
     update()
+
+this.removeRKCScreen = ->
+    h = global.rkcData.smsHandler
+    clearInterval h if h?
+    t = global.rkcData.updateHandler
+    clearInterval t if t?

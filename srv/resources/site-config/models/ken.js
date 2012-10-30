@@ -75,7 +75,6 @@
                 "programman",
                 "parguy"
             ]
-
         },
         {
             "targets": [
@@ -451,8 +450,8 @@
         },
         {
             "name": "falseCallPercent",
-            "canRead":  [ ],
-            "canWrite": [ ],
+            "canRead": [],
+            "canWrite": [],
             "meta": {
                 "invisible": true
             }
@@ -564,71 +563,7 @@
                 "label": "Тип действия",
                 "dictionaryName": "Activity"
             }
-        },		
-        {
-            "name": "contact1",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "meta": {
-                "label": "Контакт 1"
-            }
         },
-        {
-            "name": "contactPhone1",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "meta": {
-                "label": "Телефон 1",
-                "regexp": "phone"
-            },
-            "type": "phone"
-        },		
         {
             "name": "contractor",
             "canRead": [
