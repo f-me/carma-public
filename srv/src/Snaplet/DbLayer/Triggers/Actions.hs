@@ -422,6 +422,9 @@ actionResultMap = Map.fromList
       "Требуется уточнить информацию о ремонте у дилера (только для VW)"
       "back" "3" (+7*24*60*60)
       objId
+    partner <- getService objId "contractor_partner"
+    comment <- get objId "comment"
+    set act "comment" $ B.concat [utf8 "Партнёр: ", partner, "\n\n", comment]
   )
   ,("complaint", \objId -> do
     setService objId "status" "serviceOk"
@@ -454,6 +457,9 @@ actionResultMap = Map.fromList
       "Требуется уточнить информацию о ремонте у дилера (только для VW)"
       "back" "3" (+7*24*60*60)
       objId
+    partner <- getService objId "contractor_partner"
+    comment <- get objId "comment"
+    set act "comment" $ B.concat [utf8 "Партнёр: ", partner, "\n\n", comment]
   )
   ,("billNotReady", \objId -> dateNow (+ (5*24*60*60))  >>= set objId "duetime")
   ,("billAttached", \objId -> do
