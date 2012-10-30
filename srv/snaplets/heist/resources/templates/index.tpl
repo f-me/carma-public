@@ -743,6 +743,17 @@
                   </div>
                 </div>
               </div>
+              <div>
+                <h2>SMS</h2>
+                <div>
+                  <div style="float:left">
+                    Количество SMS в обработке:
+                  </div>
+                  <div style="float:left">
+                    <input id="sms-processing" />
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="span4">
               <h2>Front Office</h2>

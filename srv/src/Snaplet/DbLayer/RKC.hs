@@ -4,8 +4,7 @@ module Snaplet.DbLayer.RKC (
   CaseSummary(..), CaseServiceInfo(..), CaseInformation(..),
   BackSummary(..), BackActionInfo(..), BackInformation(..),
   Information(..),
-  rkc,
-  test
+  rkc
   ) where
 
 import Prelude hiding (log, catch)
@@ -21,7 +20,6 @@ import Data.Maybe
 import Data.Monoid
 import Data.Time
 import Data.String
-import qualified Data.Map as M
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.Text as T
@@ -29,8 +27,6 @@ import qualified Data.Text.Encoding as T
 
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 import qualified Database.PostgreSQL.Simple.FromField as PS
-import qualified Database.PostgreSQL.Simple.ToField as PS
-import qualified Database.PostgreSQL.Simple.ToRow as PS
 
 import Snaplet.DbLayer.Dictionary
 import Snaplet.DbLayer.ARC
@@ -419,34 +415,3 @@ rkc program = liftIO startOfThisDay >>= rkc' where
       serviceToday = withinDay "servicetbl" "createTime" today
       caseToday = withinDay "casetbl" "callDate" today
       actionToday = withinDay "actiontbl" "ctime" today
-
--- Test function for log
-test :: (PS.HasPostgres m, MonadLog m) => m ()
-test = liftIO startOfThisDay >>= test' where
-  test' today = scope "RKC" $ do
-    log Info "Testing RKC"
-    let
-      serviceToday = withinDay "servicetbl" "createTime" today
-      caseToday = withinDay "casetbl" "callDate" today
-    log Trace "Count of services today"
-    intQuery [count, serviceToday]
-    log Trace "Count of done services today"
-    intQuery [count, serviceToday, doneServices]
-    log Trace "Count of mechanics today"
-    intQuery [count, serviceToday, mechanic]
-    log Trace "Average time of start service"
-    ((PS.Only r):_) <- runQuery [averageTowageTechStart]
-    log Trace $ T.concat ["Result: ", T.decodeUtf8 (toAnyValue r)]
-    log Trace "Average time of end service"
-    ((PS.Only r):_) <- runQuery [averageTowageTechEnd]
-    log Trace $ T.concat ["Result: ", T.decodeUtf8 (toAnyValue r)]
-    --log Trace "Sum of all calculated costs for towage"
-    --intQuery [calculatedCost "towage"]
-    --log Trace "Sum of all limited costs for tech"
-    --intQuery [limitedCost "tech"]
-    log Trace "Client satisfied for all time"
-    sat <- intQuery [satisfaction]
-    log Trace "All satisfactions"
-    satCount <- intQuery [satisfactionCount]
-    log Trace $ T.concat ["Precentage satisfaction: ", T.pack $ show (sat * 100 `div` satCount)]
-

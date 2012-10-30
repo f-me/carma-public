@@ -12,7 +12,6 @@ import Control.Concurrent.STM
 import Data.Text (Text)
 import Data.Text.Lazy (toStrict)
 import Data.Text.Lazy.Encoding (decodeUtf8)
-import Data.Char
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.String (fromString)
@@ -25,25 +24,21 @@ import qualified Data.Map as Map
 import qualified Data.HashMap.Strict as HashMap
 
 import Data.Maybe
-import Data.List (foldl',sortBy)
+import Data.List (sortBy)
 import Data.Ord (comparing)
 
 import Data.Time
-import Data.Time.Clock (getCurrentTime)
-import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
+
+import Data.Aeson (object, (.=))
 
 import System.Locale
 
 import Snap
-import Snap.Core
-import Snap.Snaplet (with)
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
-import Snap.Snaplet.Session
 import Snap.Snaplet.SimpleLog
 import Snap.Snaplet.Vin
 import Snap.Util.FileServe (serveFile)
-import Snap.Util.Readable (fromBS)
 ------------------------------------------------------------------------------
 import qualified Snaplet.DbLayer as DB
 import qualified Snaplet.DbLayer.RKC as RKC
@@ -307,17 +302,17 @@ report = scope "report" $ do
       v <- dateValue
       s <- validateAnd f v
       return $ T.concat [T.pack pre, s, T.pack post]
-    (fromDate', toDate') = fromTo "case"
-    (fromDate'', toDate'') = fromTo "call"
 
     fromTo mdl = (from, to) where
-      from = withinAnd id (mdl ++ ".callDate >= to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" fromDate
-      to = withinAnd addDay (mdl ++ ".callDate < to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" toDate
+      from = withinAnd id (mdl ++ " >= to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" fromDate
+      to = withinAnd addDay (mdl ++ " < to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" toDate
 
     addDay tm = tm { utctDay = addDays 1 (utctDay tm) }
     
-    dateConditions = catMaybes [fromDate', toDate', fromDate'', toDate'']
-  with db $ DB.generateReport dateConditions template result
+    mkCondition nm = catMaybes [from', to'] where
+      (from', to') = fromTo (T.unpack nm)
+  
+  with db $ DB.generateReport mkCondition template result
   modifyResponse $ addHeader "Content-Disposition" "attachment; filename=\"report.xlsx\""
   serveFile result
 
@@ -426,10 +421,15 @@ getSrvTarifOptions = do
                     [("id"        , fromMaybe "" $ Map.lookup "id" o)
                     ,("optionName", fromMaybe "" $ Map.lookup "optionName" o)]
 
+smsProcessingHandler :: AppHandler ()
+smsProcessingHandler = scope "sms" $ do
+  res <- with db DB.smsProcessing
+  writeJSON $ object [
+    "processing" .= res]
+
 errorsHandler :: AppHandler ()
 errorsHandler = do
   l <- gets feLog
   r <- readRequestBody 4096
   liftIO $ withLog l $ scope "frontend" $ do
   log Info $ toStrict $ decodeUtf8 r
-
