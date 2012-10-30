@@ -1,9 +1,9 @@
 #+SEQ_TODO: MAYBE SOMEDAY BLOCKED TODO IN_PROGRESS | DONE
 
 * Prerequisites
-  - we aim at GHC 7.4.1 compatibility;
+  - we aim at GHC 7.6.1 compatibility;
   
-  - snap-0.8 is required;
+  - snap-0.9 is required;
 
   - Backbone 0.9.1 is included with backported [[https://github.com/documentcloud/backbone/commit/a865aa41f13c371d104da9446c3ccb6a16671658][patch]] from upstream;
 
