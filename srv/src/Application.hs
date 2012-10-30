@@ -8,6 +8,9 @@ import Data.Time.Clock (UTCTime)
 import Data.Lens.Template
 import Control.Concurrent.STM
 
+import Data.Pool
+import Database.PostgreSQL.Simple as Pg
+
 import Snap.Snaplet
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth
@@ -33,6 +36,7 @@ data App = App
     , actionsLock :: TMVar ()
     , _siteConfig :: Snaplet (SiteConfig App)
     , _db         :: Snaplet (DbLayer App)
+    , _pg_search  :: Pool Pg.Connection
     , _vin        :: Snaplet Vin
     , _fileUpload :: Snaplet FileUpload
     , feLog       :: Log
