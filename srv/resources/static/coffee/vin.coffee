@@ -2,6 +2,13 @@ this.setupVinForm = (viewName, args) ->
   $el(viewName).html($el("vin-form-template").html())
   global.viewsWare[viewName] = {}
 
+  programs = for v in global.dictionaries.Programs.entries
+    p =
+      id: v.value
+      name: v.label
+
+  ko.applyBindings(programs, el("vin-program-select"))
+
   setInterval(getVinAlerts, 1000)
 
 getVinAlerts = ->
