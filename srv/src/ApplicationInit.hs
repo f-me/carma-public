@@ -26,7 +26,6 @@ import Snaplet.FileUpload
 ------------------------------------------------------------------------------
 import Application
 import ApplicationHandlers
-import WebSockHandlers
 ----------------------------------------------------------------------
 import Util (readJSON, UsersDict)
 
@@ -118,7 +117,6 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   addRoutes routes
 
-  liftIO $ runWebSockServer "0.0.0.0" 8001
   return $ App h s authMgr logdUsrs allUsrs actLock c d v fu l
 
 getUsrs authDb = do

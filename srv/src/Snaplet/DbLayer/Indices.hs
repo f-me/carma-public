@@ -1,7 +1,6 @@
 
 module Snaplet.DbLayer.Indices where
 
-import Control.Concurrent.STM
 import Control.Concurrent.STM.TVar
 import Data.ByteString (ByteString)
 import Data.Map (Map)

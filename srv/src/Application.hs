@@ -11,9 +11,10 @@ import Control.Concurrent.STM
 import Snap.Snaplet
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth
-import Snap.Snaplet.Auth.Class
 import Snap.Snaplet.Session
+
 ------------------------------------------------------------------------------
+import Snaplet.Auth.Class
 import Snaplet.SiteConfig
 import Snaplet.SiteConfig.Class
 import Snaplet.DbLayer.Types
