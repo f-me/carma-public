@@ -140,6 +140,10 @@
                 "label": "Услуга в процессе оказания"
             },
             {
+                "value": "prescheduleService",
+                "label": "Услуга оказана"
+            },
+            {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
             },

@@ -1,11 +1,14 @@
 ./
-https://github.com/mvoidex/postgresql-sync-map
-https://github.com/mvoidex/snaplet-simple-log
-https://github.com/mvoidex/simple-log
-https://github.com/f-me/snaplet-postgresql-simple
-https://github.com/mvoidex/xlsx
-https://github.com/f-me/avaya-aes
-https://github.com/f-me/fdds-connector
-https://github.com/f-me/vin-parser
+https://github.com/f-me/csv-conduit
+https://github.com/f-me/fdds bright-new-76
+https://github.com/f-me/postgresql-sync-map bright-new-76
+https://github.com/f-me/snaplet-redis bright-new-76
+https://github.com/f-me/vin-parser bright-new-76
+https://github.com/f-me/xlsx bright-new-76
 
+https://github.com/f-me/simple-log
+https://github.com/f-me/snaplet-simple-log
 
+https://github.com/f-me/snap-loader-static bright-new-76
+https://github.com/f-me/snap-loader-dynamic bright-new-76
+https://github.com/f-me/snaplet-postgresql-simple bright-new-76

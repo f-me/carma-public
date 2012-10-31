@@ -808,8 +808,9 @@
                 "admin",
                 "programman"
             ],
-            "type": "checkbox",
+            "type": "dictionary",
             "meta": {
+                "dictionaryName": "Satisfaction",
                 "label": "Клиент доволен"
             }
         },
