@@ -220,7 +220,8 @@ searchHandler = scope "searchHandler" $ do
 rkcHandler :: AppHandler ()
 rkcHandler = scope "rkcHandler" $ do
   p <- getParam "program"
-  info <- with db . RKC.rkc . maybe T.empty T.decodeUtf8 $ p
+  c <- getParam "city"
+  info <- with db $ RKC.rkc (maybe T.empty T.decodeUtf8 p) (maybe T.empty T.decodeUtf8 c)
   writeJSON info
 
 myActionsHandler :: AppHandler ()
