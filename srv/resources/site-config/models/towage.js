@@ -543,7 +543,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "PaymentTypes",
-                "bounded":true,
+                "bounded": true,
                 "label": "Тип оплаты"
             }
         },
@@ -587,7 +587,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "FalseStatuses",
-                "bounded":true,
+                "bounded": true,
                 "label": "Ложный вызов",
                 "infoText": "falsecall"
             }
@@ -635,6 +635,7 @@
             ],
             "meta": {
                 "dictionaryName": "TowerTypes",
+                "bounded": true,
                 "label": "Тип эвакуатора"
             },
             "index": true,
@@ -671,6 +672,7 @@
             ],
             "meta": {
                 "dictionaryName": "TowTypes",
+                "bounded": true,
                 "label": "Вид эвакуации"
             },
             "type": "dictionary"
@@ -1226,7 +1228,7 @@
             "type": "dictionary",
             "meta": {
                 "label": "Статус услуги",
-                "bounded":true,
+                "bounded": true,
                 "dictionaryName": "ServiceStatuses"
             }
         },
@@ -1260,7 +1262,6 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "Satisfaction",
-                "bounded":true,
                 "label": "Клиент доволен"
             }
         },
