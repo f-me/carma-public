@@ -16,7 +16,6 @@ import Data.Maybe
 import qualified Fdds as Fdds
 ------------------------------------------------------------------------------
 import WeatherApi (getWeather', tempC)
-import WeatherApi.Google (initApi)
 -----------------------------------------------------------------------------
 import Data.Time.Format (parseTime)
 import Data.Time.Clock (UTCTime)
@@ -80,7 +79,6 @@ actions
             mapM_ (setSrvMCost) =<< B.split ',' <$> get objId "services"
             return ()
                        ])
-    {-
           ,("city", [\objId val -> do
                       oldCity <- lift $ runRedisDB redis $ Redis.hget objId "city"
                       case oldCity of
@@ -88,7 +86,6 @@ actions
                         Right Nothing  -> setWeather objId val
                         Right (Just c) -> when (c /= val) $ setWeather objId val
                       ])
-    -}
           ,("car_vin", [\objId val ->
             when (B.length val == 17) $ do
               let vinKey = B.concat ["vin:", B.map toUpper val]
@@ -633,7 +630,8 @@ requestFddsVin objId vin = do
     Left _  -> return False
 
 setWeather objId city = do
-  weather <- liftIO $ getWeather' (initApi "ru" "utf-8") $ BU.toString city
+  conf    <- lift $ gets weather
+  weather <- liftIO $ getWeather' conf $ BU.toString city
   case weather of
     Right w -> set objId "temperature" $ B.pack $ show $ tempC w
     Left  _ -> return ()
