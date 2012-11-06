@@ -442,6 +442,7 @@
                 "dictionaryName": "VINChecked",
                 "label": "Участие в программе",
                 "required": true,
+                "bounded": true,
                 "infoText": "vinChecked"
             }
         },
@@ -469,6 +470,7 @@
                 "dictionaryName": "DealerCities",
                 "label": "Город",
                 "required": true,
+                "bounded": true,
                 "infoText": "city"
             }
         },
@@ -523,6 +525,7 @@
             "type": "dictionary",
             "meta": {
                 "required": true,
+                "bounded": true,
                 "dictionaryName": "CaseStatuses",
                 "label": "Статус кейса"
             }
