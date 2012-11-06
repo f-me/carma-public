@@ -416,7 +416,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "PaymentTypes",
-                "bounded":true,
+                "bounded": true,
                 "label": "Тип оплаты"
             }
         },
@@ -671,7 +671,7 @@
             "type": "dictionary",
             "meta": {
                 "label": "Статус услуги",
-                "bounded":true,
+                "bounded": true,
                 "dictionaryName": "ServiceStatuses"
             }
         },
