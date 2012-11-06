@@ -543,6 +543,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "PaymentTypes",
+                "bounded":true,
                 "label": "Тип оплаты"
             }
         },
@@ -586,6 +587,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "FalseStatuses",
+                "bounded":true,
                 "label": "Ложный вызов",
                 "infoText": "falsecall"
             }
@@ -994,6 +996,7 @@
             ],
             "meta": {
                 "dictionaryName": "WheelsBlockedCount",
+                "bounded":true,
                 "label": "Количество заблокированных колёс"
             },
             "type": "dictionary"
@@ -1223,6 +1226,7 @@
             "type": "dictionary",
             "meta": {
                 "label": "Статус услуги",
+                "bounded":true,
                 "dictionaryName": "ServiceStatuses"
             }
         },
@@ -1256,6 +1260,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "Satisfaction",
+                "bounded":true,
                 "label": "Клиент доволен"
             }
         },
