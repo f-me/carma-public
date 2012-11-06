@@ -490,6 +490,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "PaymentTypes",
+                "bounded": true,
                 "label": "Тип оплаты"
             }
         },
@@ -532,6 +533,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "FalseStatuses",
+                "bounded": true,
                 "label": "Ложный вызов",
                 "infoText": "falsecall"
             }
@@ -776,6 +778,7 @@
             "type": "dictionary",
             "meta": {
                 "label": "Статус услуги",
+                "bounded": true,
                 "dictionaryName": "ServiceStatuses"
             }
         },
