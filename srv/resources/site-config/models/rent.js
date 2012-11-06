@@ -502,6 +502,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "PaymentTypes",
+                "bounded": true,
                 "label": "Тип оплаты"
             }
         },
@@ -544,6 +545,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "FalseStatuses",
+                "bounded": true,
                 "label": "Ложный вызов",
                 "infoText": "falsecall"
             }
@@ -660,6 +662,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "CarClasses",
+                "bounded": true,
                 "label": "Класс автомобиля"
             }
         },
@@ -816,6 +819,7 @@
             ],
             "meta": {
                 "dictionaryName": "CarMakers",
+                "bounded": true,
                 "label": "Марка, предоставленного автомобиля"
             },
             "type": "dictionary"
@@ -852,6 +856,7 @@
             "meta": {
                 "dictionaryName": "CarModels",
                 "dictionaryParent": "rentedMake",
+                "bounded": true,
                 "label": "Модель, предоставленного автомобиля"
             },
             "type": "dictionary"
@@ -889,6 +894,7 @@
             "type": "dictionary",
             "meta": {
                 "label": "Статус услуги",
+                "bounded": true,
                 "dictionaryName": "ServiceStatuses"
             }
         },
