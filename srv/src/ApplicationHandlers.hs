@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 
 module ApplicationHandlers where
 
@@ -6,8 +5,6 @@ import Prelude hiding (log)
 
 import Data.Functor
 import Control.Monad
-import Control.Monad.IO.Class
-import Control.Concurrent.STM
 
 import Data.Text (Text)
 import Data.Text.Lazy (toStrict)
@@ -52,7 +49,8 @@ import Snaplet.FileUpload (doUpload', doDeleteAll')
 import qualified Nominatim
 -----------------------------------------------------------------------------
 import Application
-import CustomLogic.ActionAssignment
+import AppHandlers.MyActions
+import AppHandlers.Util
 import Util
 
 
@@ -228,29 +226,6 @@ rkcHandler = scope "rkcHandler" $ do
   info <- with db . RKC.rkc . maybe T.empty T.decodeUtf8 $ p
   writeJSON info
 
-myActionsHandler :: AppHandler ()
-myActionsHandler = do
-  Just cUsr <- with auth currentUser
-  let uLogin = userLogin cUsr
-  logdUsers <- addToLoggedUsers cUsr
-
-  actLock <- gets actionsLock
-  do -- bracket_
-    (liftIO $ atomically $ takeTMVar actLock)
-    actions <- filter ((== Just "0") . Map.lookup "closed")
-           <$> with db (DB.readAll "action")
-    now <- liftIO getCurrentTime
-    let (newActions,oldActions) = assignActions now actions (Map.map snd logdUsers)
-    let myNewActions = take 5 $ Map.findWithDefault [] uLogin newActions
-    with db $ forM_ myNewActions $ \act ->
-      case Map.lookup "id" act of
-        Nothing -> return ()
-        Just actId -> void $ DB.update "action"
-          (last $ B.split ':' actId)
-          $ Map.singleton "assignedTo" $ T.encodeUtf8 uLogin
-    let myOldActions = Map.findWithDefault [] uLogin oldActions
-    (liftIO $ atomically $ putTMVar actLock ())
-    writeJSON $ myNewActions ++ myOldActions
 
 
 searchCallsByPhone :: AppHandler ()
@@ -347,15 +322,6 @@ getUsersDict = writeJSON =<< gets allUsers
 
 ------------------------------------------------------------------------------
 -- | Utility functions
-writeJSON :: Aeson.ToJSON v => v -> AppHandler ()
-writeJSON v = do
-  modifyResponse $ setContentType "application/json"
-  writeLBS $ Aeson.encode v
-
-getJSONBody :: Aeson.FromJSON v => AppHandler v
-getJSONBody = Util.readJSONfromLBS <$> readRequestBody 4096
-
-
 addToLoggedUsers :: AuthUser -> AppHandler (Map Text (UTCTime,AuthUser))
 addToLoggedUsers u = do
   logTVar <- gets loggedUsers
