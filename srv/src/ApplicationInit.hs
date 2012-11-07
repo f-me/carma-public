@@ -2,6 +2,7 @@
 {-# LANGUAGE BangPatterns #-}
 module ApplicationInit (appInit) where
 
+import Control.Applicative
 import Control.Monad.IO.Class
 
 import qualified Data.Map as Map
@@ -10,6 +11,9 @@ import Data.Configurator
 import Control.Concurrent.STM
 
 import System.Log(newLog, fileCfg, logger, text, file)
+
+import Data.Pool
+import Database.PostgreSQL.Simple as Pg
 
 import Snap.Core
 import Snap.Snaplet
@@ -26,6 +30,7 @@ import Snaplet.FileUpload
 ------------------------------------------------------------------------------
 import Application
 import ApplicationHandlers
+import AppHandlers.MyActions
 ----------------------------------------------------------------------
 import Util (readJSON, UsersDict)
 
@@ -107,6 +112,17 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
 
   d <- nestSnaplet "db" db $ initDbLayer allUsrs
+ 
+  -- init PostgreSQL connection pool that will be used for searching only
+  let lookupCfg nm = lookupDefault (error $ show nm) cfg nm
+  cInfo <- liftIO $ Pg.ConnectInfo
+            <$> lookupCfg "pg_host"
+            <*> lookupCfg "pg_port"
+            <*> lookupCfg "pg_search_user"
+            <*> lookupCfg "pg_search_pass"
+            <*> lookupCfg "pg_db_name"
+  -- FIXME: force cInfo evaluation
+  pgs <- liftIO $ createPool (Pg.connect cInfo) Pg.close 1 5 20
 
   v <- nestSnaplet "vin" vin vinInit
   fu <- nestSnaplet "upload" fileUpload fileUploadInit
@@ -115,8 +131,8 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        [logger text (file "log/frontend.log")]
 
   addRoutes routes
+  return $ App h s authMgr logdUsrs allUsrs actLock c d pgs v fu l
 
-  return $ App h s authMgr logdUsrs allUsrs actLock c d v fu l
 
 getUsrs authDb = do
   readJSON authDb :: IO UsersDict
