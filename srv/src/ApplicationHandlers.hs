@@ -1,5 +1,6 @@
 
 module ApplicationHandlers where
+-- FIXME: reexport AppHandlers/* & remove import AppHandlers.* from AppInit
 
 import Prelude hiding (log)
 
@@ -318,24 +319,6 @@ getUsersDict = writeJSON =<< gets allUsers
 
 ------------------------------------------------------------------------------
 -- | Utility functions
-addToLoggedUsers :: AuthUser -> AppHandler (Map Text (UTCTime,AuthUser))
-addToLoggedUsers u = do
-  logTVar <- gets loggedUsers
-  logdUsers <- liftIO $ readTVarIO logTVar
-  now <- liftIO getCurrentTime
-  let logdUsers' = Map.insert (userLogin u) (now,u)
-        -- filter out inactive users
-        $ Map.filter ((>addUTCTime (-90*60) now).fst) logdUsers
-  liftIO $ atomically $ writeTVar logTVar logdUsers'
-  return logdUsers'
-
-
-rmFromLoggedUsers :: AuthUser -> AppHandler ()
-rmFromLoggedUsers u = do
-  logdUsrs <- gets loggedUsers
-  liftIO $ atomically $ modifyTVar' logdUsrs
-         $ Map.delete $ userLogin u
-
 vinUploadData :: AppHandler ()
 vinUploadData = scope "vin" $ scope "upload" $ do
   log Trace "Uploading data"

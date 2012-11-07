@@ -3,13 +3,24 @@ module AppHandlers.MyActions
   (myActionsHandler
   ) where
 
-
+import Control.Monad
+import Data.Functor
 import Data.Map (Map)
 import qualified Data.Map as Map
+import qualified Data.ByteString.Char8 as B
+import qualified Data.Text.Encoding as T
+import Data.Aeson as Aeson
 
 import Control.Concurrent.STM
+import Data.Time
+
+import Snap
+import Snap.Snaplet
+import Snap.Snaplet.Auth
+import qualified Snaplet.DbLayer as DB
 ----------------------------------------------------------------------
 import Application
+import AppHandlers.Util
 import CustomLogic.ActionAssignment
 
 
@@ -38,8 +49,3 @@ myActionsHandler = do
     (liftIO $ atomically $ putTMVar actLock ())
     writeJSON $ myNewActions ++ myOldActions
 
-
-writeJSON :: Aeson.ToJSON v => v -> AppHandler ()
-writeJSON v = do
-  modifyResponse $ setContentType "application/json"
-  writeLBS $ Aeson.encode v
