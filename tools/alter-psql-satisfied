@@ -1,0 +1,3 @@
+alter table servicetbl alter column clientSatisfied set data type text;
+update servicetbl set clientSatisfied = 'satis' where clientSatisfied = '1';
+update servicetbl set clientSatisfied = 'notSatis' where clientSatisfied = '0';
