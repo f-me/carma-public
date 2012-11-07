@@ -35,6 +35,8 @@ import Network.URI (parseURI, URI(..))
 import qualified Fdds
 import Data.Configurator
 
+import WeatherApi.WWOnline (initApi)
+
 import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple (pgsInit)
 import Snap.Snaplet.RedisDB (redisDBInit, runRedisDB)
@@ -174,6 +176,7 @@ initDbLayer allU = makeSnaplet "db-layer" "Storage abstraction"
     mdl <- liftIO $ Postgres.loadModels "resources/site-config/syncs.json" l
     liftIO $ Postgres.createIO mdl l
     cfg <- getSnapletUserConfig
+    wkey <- liftIO $ lookupDefault "" cfg "weather-key"
     DbLayer
       <$> nestSnaplet "redis" redis
             (redisDBInit Redis.defaultConnectInfo)
@@ -184,6 +187,7 @@ initDbLayer allU = makeSnaplet "db-layer" "Storage abstraction"
       <*> (liftIO $ fddsConfig cfg)
       <*> (return mdl)
       <*> (return allU)
+      <*> (return $ initApi wkey)
 
 ----------------------------------------------------------------------
 triggersConfig = do

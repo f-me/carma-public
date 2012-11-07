@@ -47,11 +47,19 @@ this.setupRKCScreen = (viewName, args) ->
     ps = $('#program-select')
     ps.change -> update()
 
+    ct = $('#city-select')
+    ct.change -> update()
+
     update = () ->
       prog = ps.val()
-      $.getJSON("/rkc/" + prog, (result) ->
+      city = ct.val()
+
+      args = "?" + ["program=" + prog, "city=" + city].filter((x) -> x).join("&")
+
+      $.getJSON("/rkc" + args, (result) ->
         dict = global.dictValueCache
         ct.fnClearTable()
+        bt.fnClearTable()
 
         totalServices.val(result.case.summary.total)
         averageStart.val(Math.round(result.case.summary.delay / 60) + "m")

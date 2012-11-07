@@ -447,6 +447,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "PaymentTypes",
+                "bounded":true,
                 "label": "Тип оплаты"
             }
         },
@@ -538,6 +539,7 @@
             "type": "dictionary",
             "meta": {
                 "label": "Тип запроса",
+                "bounded":true,
                 "dictionaryName": "RequestType"
             }
         },
@@ -606,6 +608,7 @@
             "type": "dictionary",
             "meta": {
                 "label": "Тип действия",
+                "bounded":true,
                 "dictionaryName": "Activity"
             }
         },	
@@ -778,6 +781,7 @@
             "type": "dictionary",
             "meta": {
                 "label": "Статус услуги",
+                "bounded":true,
                 "dictionaryName": "ServiceStatuses"
             }
         },
@@ -808,8 +812,9 @@
                 "admin",
                 "programman"
             ],
-            "type": "checkbox",
+            "type": "dictionary",
             "meta": {
+                "dictionaryName": "Satisfaction",
                 "label": "Клиент доволен"
             }
         },

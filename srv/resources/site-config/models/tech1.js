@@ -403,6 +403,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "PaymentTypes",
+                "bounded": true,
                 "label": "Тип оплаты"
             }
         },
@@ -445,6 +446,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "FalseStatuses",
+                "bounded": true,
                 "label": "Ложный вызов",
                 "infoText": "falsecall"
             }
@@ -494,6 +496,7 @@
             "type": "dictionary",
             "meta": {
                 "label": "Тип запроса",
+                "bounded": true,
                 "dictionaryName": "RequestType"
             }
         },
@@ -667,6 +670,7 @@
             "type": "dictionary",
             "meta": {
                 "label": "Статус услуги",
+                "bounded": true,
                 "dictionaryName": "ServiceStatuses"
             }
         },
@@ -697,8 +701,9 @@
                 "admin",
                 "programman"
             ],
-            "type": "checkbox",
+            "type": "dictionary",
             "meta": {
+                "dictionaryName": "Satisfaction",
                 "label": "Клиент доволен"
             }
         },
