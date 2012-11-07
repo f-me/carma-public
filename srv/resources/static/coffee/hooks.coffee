@@ -1,7 +1,6 @@
 this.hooks = ->
   model:
       "*"    : [stdElCb]
-      "case" : [candiboberHook]
   observable:
       "*"    : [regexpKbHook, dictionaryKbHook, filesKbHook, dateTimeHook]
       "case" : [caseDescsKbHook, caseEventsHistoryKbHook]

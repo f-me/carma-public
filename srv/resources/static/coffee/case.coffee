@@ -220,41 +220,6 @@ renderChecks = (name, trueChecks) ->
       str += v.outerHTML()
   return str
 
-
-# try to render checkboxes, if check is found, then
-# make request to candibober, and render checkboxes
-# with 'renderChecks'
-maybeRenderChecks = (e, instance) ->
-  str = ""
-  tpl = $("#check-list-item-template").html()
-  name = instance.get(e.data('depends'))
-  if _.has(global.checks, name)
-    h = {}
-    h[instance.name] =
-      'model' : instance.name
-      'id'    : instance.id
-
-    $.ajax
-      'dataType' : 'json'
-      'type'     : 'POST'
-      'url'      : '/candibober/check/' + name
-      'data'     : JSON.stringify(h)
-      'success'  : (data) -> e.html(renderChecks(name, data.true))
-      'error'    : -> e.html(renderChecks(name, []))
-
-# Update checks information when parent fields change
-this.candiboberHook = (elName) ->
-  instance = global.viewsWare[elName].bbInstance
-  $el(elName).find("[data-provide=checklist]").each(
-    (i) ->
-      ((e) ->
-        # Grab value of instance field specified in
-        # data-depends and render associated checks
-        instance.bind("change:" + e.data("depends"),
-                      ((v) -> maybeRenderChecks(e, instance)))
-       )($(this))
-      )
-
 this.removeCaseMain = ->
   $("body").off "change.input"
 

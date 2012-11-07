@@ -47,11 +47,19 @@ this.setupRKCScreen = (viewName, args) ->
     ps = $('#program-select')
     ps.change -> update()
 
+    ct = $('#city-select')
+    ct.change -> update()
+
     update = () ->
       prog = ps.val()
-      $.getJSON("/rkc/" + prog, (result) ->
+      city = ct.val()
+
+      args = "?" + ["program=" + prog, "city=" + city].filter((x) -> x).join("&")
+
+      $.getJSON("/rkc" + args, (result) ->
         dict = global.dictValueCache
         ct.fnClearTable()
+        bt.fnClearTable()
 
         totalServices.val(result.case.summary.total)
         averageStart.val(Math.round(result.case.summary.delay / 60) + "m")
@@ -85,6 +93,23 @@ this.setupRKCScreen = (viewName, args) ->
 
         bt.fnAddData(brows))
 
-    setTimeout update, 30000
+    global.rkcData = {}
 
+    # Get SMS
+    sms = $('#sms-processing')
+
+    updateSMS = () ->
+        $.getJSON("/sms/processing", (result) ->
+            sms.val(result.processing))
+
+    global.rkcData.smsHandler = setInterval(updateSMS, 5000)
+    global.rkcData.updateHandler = setInterval(update, 30000)
+
+    updateSMS()
     update()
+
+this.removeRKCScreen = ->
+    h = global.rkcData.smsHandler
+    clearInterval h if h?
+    t = global.rkcData.updateHandler
+    clearInterval t if t?

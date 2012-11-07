@@ -443,22 +443,8 @@
         <legend>Импорт VIN</legend>
         <form id="vin-import-form" onsubmit="doVin(); return false;">
           <p>
-            <select name="program">
-              <option value="ford">Ford</option>
-              <option value="fordPlus">Ford+</option>
-              <option value="vwMotor">VW Легковые</option>
-              <option value="vwCommercial">VW Коммерческие</option>
-              <option value="opel">Opel</option>
-              <option value="hummer">Hummer</option>
-              <option value="chevroletNAO">Chevrolet NAV</option>
-              <option value="chevroletKorea">Chevrolet Korea</option>
-              <option value="cadillac">Cadillac</option>
-              <option value="vwRuslan">VW Рус-Лан</option>
-              <option value="chartis">Chartis</option>
-              <option value="vwAvilon">VW Avilon</option>
-              <option value="atlantM">Атлант-М</option>
-              <option value="autocraft">AutoCraft</option>
-              <option value="b2c">B2C</option>
+            <select id="vin-program-select" data-bind="foreach: $data">
+              <option data-bind="value: id, text: name" />
             </select>
             <input type="file"
                    name="file"
@@ -754,6 +740,17 @@
                   </div>
                   <div style="float:left">
                     <input id="satisfied-percentage" />
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h2>SMS</h2>
+                <div>
+                  <div style="float:left">
+                    Количество SMS в обработке:
+                  </div>
+                  <div style="float:left">
+                    <input id="sms-processing" />
                   </div>
                 </div>
               </div>

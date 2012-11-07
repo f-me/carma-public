@@ -4,8 +4,7 @@ module Snaplet.DbLayer.RKC (
   CaseSummary(..), CaseServiceInfo(..), CaseInformation(..),
   BackSummary(..), BackActionInfo(..), BackInformation(..),
   Information(..),
-  rkc,
-  test
+  rkc
   ) where
 
 import Prelude hiding (log, catch)
@@ -21,7 +20,6 @@ import Data.Maybe
 import Data.Monoid
 import Data.Time
 import Data.String
-import qualified Data.Map as M
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.Text as T
@@ -29,8 +27,6 @@ import qualified Data.Text.Encoding as T
 
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 import qualified Database.PostgreSQL.Simple.FromField as PS
-import qualified Database.PostgreSQL.Simple.ToField as PS
-import qualified Database.PostgreSQL.Simple.ToRow as PS
 
 import Snaplet.DbLayer.Dictionary
 import Snaplet.DbLayer.ARC
@@ -364,14 +360,16 @@ caseService today name = scope "caseService" $ scope name $ do
     tryQ "calculated" 0 (T.concat ["Calculated cost for ", name]) (intQuery [calculatedCost, serviceIs name, today]) `ap`
     tryQ "limited" 0 (T.concat ["Limited cost for ", name]) (intQuery [limitedCost, today])
 
-rkcCase :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> T.Text -> m CaseInformation
-rkcCase today services p = scope "rkcCase" $ scope pname $ do
-  s <- caseSummary ptoday
-  ss <- mapM (caseService ptoday) services
+rkcCase :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> T.Text -> T.Text -> m CaseInformation
+rkcCase today services p c = scope "rkcCase" $ scope pname $ scope cname $ do
+  s <- caseSummary $ mconcat [today, pprog, ccity]
+  ss <- mapM (caseService $ mconcat [today, pprog, ccity]) services
   return $ CaseInformation s ss
   where
     pname = if T.null p then "all" else p
-    ptoday = (if T.null p then id else mappend (programIs p)) today
+    pprog = if T.null p then mempty else programIs p
+    cname = if T.null c then "all" else c
+    ccity = if T.null c then mempty else inCity c
 
 backSummary :: (PS.HasPostgres m, MonadLog m) => PreQuery -> m BackSummary
 backSummary today = scope "backSummary" $ do
@@ -387,14 +385,16 @@ backAction today name = scope "backAction" $ scope name $ do
     tryQ "undone" 0 (T.concat ["Total incomplete ", name, "'s today"]) (intQuery [count, actionIs name, undoneAction, today]) `ap`
     tryQ "average" 0 (T.concat ["Average time for ", name, " today"]) (intQuery [count, actionIs name, averageActionTime, today])
 
-rkcBack :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> T.Text -> m BackInformation
-rkcBack today actions p = scope "rkcBack" $ scope pname $ do
-  s <- backSummary ptoday
-  as <- mapM (backAction ptoday) actions
+rkcBack :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> T.Text -> T.Text -> m BackInformation
+rkcBack today actions p c = scope "rkcBack" $ scope pname $ scope cname $ do
+  s <- backSummary $ mconcat [today, pprog, ccity]
+  as <- mapM (backAction $ mconcat [today, pprog, ccity]) actions
   return $ BackInformation s as
   where
     pname = if T.null p then "all" else p
-    ptoday = (if T.null p then id else mappend (mconcat [programIs p, actionCaseRel])) today
+    pprog = if T.null p then mempty else mconcat [programIs p, actionCaseRel]
+    cname = if T.null c then "all" else c
+    ccity = if T.null p then mempty else mconcat [inCity c, actionCaseRel]
 
 dictKeys :: T.Text -> Dictionary -> [T.Text]
 dictKeys d = fromMaybe [] . keys [d]
@@ -408,45 +408,14 @@ programNames = dictKeys "Programs"
 actionNames :: Dictionary -> [T.Text]
 actionNames = dictKeys "ActionNames"
 
-rkc :: (PS.HasPostgres m, MonadLog m) => T.Text -> m Information
-rkc program = liftIO startOfThisDay >>= rkc' where
+rkc :: (PS.HasPostgres m, MonadLog m) => T.Text -> T.Text -> m Information
+rkc program city = liftIO startOfThisDay >>= rkc' where
   rkc' today = scope "rkc" $ do
     dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
-    c <- rkcCase serviceToday (serviceNames dicts) program
-    b <- rkcBack actionToday (actionNames dicts) program
+    c <- rkcCase serviceToday (serviceNames dicts) program city
+    b <- rkcBack actionToday (actionNames dicts) program city
     return $ Information c b
     where
       serviceToday = withinDay "servicetbl" "createTime" today
       caseToday = withinDay "casetbl" "callDate" today
       actionToday = withinDay "actiontbl" "ctime" today
-
--- Test function for log
-test :: (PS.HasPostgres m, MonadLog m) => m ()
-test = liftIO startOfThisDay >>= test' where
-  test' today = scope "RKC" $ do
-    log Info "Testing RKC"
-    let
-      serviceToday = withinDay "servicetbl" "createTime" today
-      caseToday = withinDay "casetbl" "callDate" today
-    log Trace "Count of services today"
-    intQuery [count, serviceToday]
-    log Trace "Count of done services today"
-    intQuery [count, serviceToday, doneServices]
-    log Trace "Count of mechanics today"
-    intQuery [count, serviceToday, mechanic]
-    log Trace "Average time of start service"
-    ((PS.Only r):_) <- runQuery [averageTowageTechStart]
-    log Trace $ T.concat ["Result: ", T.decodeUtf8 (toAnyValue r)]
-    log Trace "Average time of end service"
-    ((PS.Only r):_) <- runQuery [averageTowageTechEnd]
-    log Trace $ T.concat ["Result: ", T.decodeUtf8 (toAnyValue r)]
-    --log Trace "Sum of all calculated costs for towage"
-    --intQuery [calculatedCost "towage"]
-    --log Trace "Sum of all limited costs for tech"
-    --intQuery [limitedCost "tech"]
-    log Trace "Client satisfied for all time"
-    sat <- intQuery [satisfaction]
-    log Trace "All satisfactions"
-    satCount <- intQuery [satisfactionCount]
-    log Trace $ T.concat ["Precentage satisfaction: ", T.pack $ show (sat * 100 `div` satCount)]
-

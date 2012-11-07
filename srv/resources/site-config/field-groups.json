@@ -21,6 +21,7 @@
             "meta": {
                 "dictionaryName": "CarMakers",
                 "required": true,
+                "bounded": true,
                 "label": "Марка"
             },
             "type": "dictionary"
@@ -30,6 +31,7 @@
             "meta": {
                 "dictionaryName": "CarModels",
                 "required": true,
+                "bounded": true,
                 "label": "Модель"
             },
             "type": "dictionary"
@@ -56,6 +58,7 @@
             "meta": {
                 "dictionaryName": "Colors",
                 "required": true,
+                "bounded": true,
                 "label": "Цвет"
             },
             "type": "dictionary"

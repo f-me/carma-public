@@ -30,7 +30,6 @@ import Snaplet.FileUpload
 ------------------------------------------------------------------------------
 import Application
 import ApplicationHandlers
-import WebSockHandlers
 ----------------------------------------------------------------------
 import Util (readJSON, UsersDict)
 
@@ -65,13 +64,13 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/sync",          chkAuth . method GET  $ syncHandler)
          , ("/search/:model", chkAuth . method GET  $ searchHandler)
          , ("/rkc",           chkAuth . method GET  $ rkcHandler)
-         , ("/rkc/:program",  chkAuth . method GET  $ rkcHandler)
          , ("/usersDict",     chkAuth . method GET  $ getUsersDict)
          , ("/vin/upload",    chkAuth . method POST $ vinUploadData)
          , ("/vin/state",     chkAuth . method GET  $ vinStateRead)
          , ("/vin/state",     chkAuth . method POST $ vinStateRemove)
          , ("/opts/:model/:id/", chkAuth . method GET $ getSrvTarifOptions)
          , ("/smspost",       chkAuth . method POST $ smspost)
+         , ("/sms/processing", chkAuth . method GET $ smsProcessingHandler)
          , ("/errors",        method POST errorsHandler)
          ]
 
@@ -131,9 +130,8 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        [logger text (file "log/frontend.log")]
 
   addRoutes routes
-
-  liftIO $ runWebSockServer "0.0.0.0" 8001
   return $ App h s authMgr logdUsrs allUsrs actLock c d pgs v fu l
+
 
 getUsrs authDb = do
   readJSON authDb :: IO UsersDict
