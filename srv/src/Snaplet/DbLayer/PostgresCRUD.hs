@@ -99,6 +99,7 @@ functions tz dict = [
     R.uses ["case.program"] $ R.constFunction "FDDS" fddsFun,
     R.uses ["service.falseCall"] $ R.constFunction "FALSECALL" falseFun,
     R.uses ["service.falseCall"] $ R.constFunction "BILL" billFun,
+    R.uses ["service.clientSatisfied"] $ R.constFunction "SATISFIED" satisfiedFun,
     R.uses ["case.diagnosis1", "service.type"] $ R.constFunction "FAULTCODE" faultFun,
     R.uses ["case.car_make"] $ R.constFunction "VEHICLEMAKE" vehicleMakeFun,
     R.uses ["case.car_make", "case.car_model"] $ R.constFunction "VEHICLEMODEL" vehicleModelFun,
@@ -178,6 +179,13 @@ functions tz dict = [
         billFun fs = do
             (SM.StringValue isFalse) <- M.lookup "service.falseCall" fs
             return $ SM.StringValue (if isFalse == "bill" then "Y" else "N")
+
+        satisfiedFun fs = do
+            (SM.StringValue sat) <- M.lookup "service.clientSatisfied" fs
+            return $ SM.StringValue $ case sat of
+                "satis" -> "Y"
+                "notSatis" -> "N"
+                _ -> ""
             
         faultFun fs = do
             d <- M.lookup "case.diagnosis1" fs
