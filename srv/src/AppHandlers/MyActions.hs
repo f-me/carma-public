@@ -5,8 +5,11 @@ module AppHandlers.MyActions
 
 import Control.Monad
 import Data.Functor
+import Data.String (fromString)
+
 import Data.Map (Map)
 import qualified Data.Map as Map
+import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.Text.Encoding as T
 import Data.Aeson as Aeson
@@ -17,12 +20,24 @@ import Data.Time
 import Snap
 import Snap.Snaplet
 import Snap.Snaplet.Auth
-import qualified Snaplet.DbLayer as DB
+import Database.PostgreSQL.Simple
 ----------------------------------------------------------------------
 import Application
 import AppHandlers.Util
+import qualified Snaplet.DbLayer as DB
 import CustomLogic.ActionAssignment
 
+
+selectActions :: AppHandler [Map ByteString ByteString]
+selectActions = do
+  rows <- withPG pg_search $ \c -> query_ c $ fromString $
+    "select id, assignedTo, "
+    ++ "extract (epoch from dueTime), "
+    ++ "garbage::hstore -> 'priority', garbage::hstore -> 'targetGroup' "
+    ++ "from actiontbl "
+    ++ "where closed = false"
+  let fields = ["id", "assigendTo", "dueTime", "priority", "targetGroup"]
+  return $ map (Map.fromList . zip fields) rows
 
 
 myActionsHandler :: AppHandler ()
@@ -34,8 +49,7 @@ myActionsHandler = do
   actLock <- gets actionsLock
   do -- bracket_
     (liftIO $ atomically $ takeTMVar actLock)
-    actions <- filter ((== Just "0") . Map.lookup "closed")
-           <$> with db (DB.readAll "action")
+    actions <- selectActions
     now <- liftIO getCurrentTime
     let (newActions,oldActions) = assignActions now actions (Map.map snd logdUsers)
     let myNewActions = take 5 $ Map.findWithDefault [] uLogin newActions
