@@ -38,7 +38,7 @@ setupBoTable = (actions) ->
 addActions = (actions, table) ->
   table.fnClearTable()
   rows = for act in actions when act.caseId && act.parentId
-    sid = act.id.split(':')[1]
+    sid = act.parentId.split(':')[1]
     cid = act.caseId.split(':')[1]
     svcName = act.parentId.split(':')[0]
     svcName = global.models[svcName].title
