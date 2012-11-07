@@ -7,6 +7,7 @@ import Control.Monad
 import Data.Functor
 import Data.String (fromString)
 
+import Data.Maybe
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.ByteString (ByteString)
@@ -31,13 +32,13 @@ import CustomLogic.ActionAssignment
 selectActions :: AppHandler [Map ByteString ByteString]
 selectActions = do
   rows <- withPG pg_search $ \c -> query_ c $ fromString $
-    "select id, assignedTo, "
-    ++ "extract (epoch from dueTime), "
+    "select id::text, assignedTo, "
+    ++ "(extract (epoch from dueTime)::int)::text, "
     ++ "garbage::hstore -> 'priority', garbage::hstore -> 'targetGroup' "
     ++ "from actiontbl "
     ++ "where closed = false"
-  let fields = ["id", "assigendTo", "dueTime", "priority", "targetGroup"]
-  return $ map (Map.fromList . zip fields) rows
+  let fields = ["id", "assignedTo", "duetime", "priority", "targetGroup"]
+  return $ map (Map.fromList . zip fields . map (fromMaybe "")) rows
 
 
 myActionsHandler :: AppHandler ()
@@ -61,5 +62,6 @@ myActionsHandler = do
           $ Map.singleton "assignedTo" $ T.encodeUtf8 uLogin
     let myOldActions = Map.findWithDefault [] uLogin oldActions
     (liftIO $ atomically $ putTMVar actLock ())
-    writeJSON $ myNewActions ++ myOldActions
+    let myActions = map (Map.! "id") $ myNewActions ++ myOldActions
+    (with db $ mapM (DB.read "action") myActions) >>= writeJSON
 
