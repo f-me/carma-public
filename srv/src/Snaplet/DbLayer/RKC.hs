@@ -117,12 +117,12 @@ averageTowageTechEnd = mconcat [
 satisfaction :: PreQuery
 satisfaction = mconcat [
   count,
-  equals "servicetbl" "clientSatisfied" "1"]
+  equals "servicetbl" "clientSatisfied" "satis"]
 
 satisfactionCount :: PreQuery
 satisfactionCount = mconcat [
   count,
-  preQuery_ [] ["servicetbl"] []]
+  inList "servicetbl" "clientSatisfied" ["satis", "notSatis"]]
 
 serviceIs :: T.Text -> PreQuery
 serviceIs = equals "servicetbl" "type"
