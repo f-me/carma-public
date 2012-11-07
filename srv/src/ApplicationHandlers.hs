@@ -416,6 +416,7 @@ getSrvTarifOptions = do
       getIds f m = map (B.split ':') $ B.split ',' $
                    fromMaybe "" $ Map.lookup f m
       get [m, id] = Map.insert "id" id <$> DB.read m id
+      get _       = return $ Map.empty
       mSrv m = (m ==) . fromMaybe "" . Map.lookup "serviceName"
       rebuilOpt :: Map ByteString ByteString -> Map ByteString ByteString
       rebuilOpt o = Map.fromList $
