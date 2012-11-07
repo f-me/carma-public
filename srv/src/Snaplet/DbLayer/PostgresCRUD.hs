@@ -5,7 +5,7 @@ module Snaplet.DbLayer.PostgresCRUD (
 
     loadModels,
     createIO,
-    create, insert, select, exists, update, updateMany, insertUpdate,
+    create, insert, select, exists, update, updateMany, insertUpdate, insertUpdateMany,
     search,
     generateReport
     ) where
@@ -297,6 +297,10 @@ insertUpdate ms name c m = escopev "insertUpdate" False $ do
     withPG (SM.insertUpdate ms (toStr name) cond m)
     where
         cond = toCond ms name c
+
+insertUpdateMany :: (PS.HasPostgres m, MonadLog m) => SM.Models -> M.Map (ByteString, ByteString) S.SyncMap -> m ()
+insertUpdateMany ms m = scope "insertUpdateMany" $ forM_ (M.toList m) $ uncurry insertUpdate' where
+    insertUpdate' (mdl, k) obj = insertUpdate ms mdl k obj
 
 -- FIXME: ARC has same function
 query_ :: (PS.HasPostgres m, MonadLog m, PS.FromRow r) => PS.Query -> m [r]
