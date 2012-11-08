@@ -43,6 +43,13 @@ services =
   ,"tech"
   ,"towage"
   ,"transportation"
+  ,"ken"
+  ,"bank"
+  ,"tickets"
+  ,"continue"
+  ,"deliverClient"
+  ,"averageCommissioner"
+  ,"insurance"
   ]
 
 add model field tgs = Map.unionWith (Map.unionWith (++)) $ Map.singleton model (Map.singleton field tgs)

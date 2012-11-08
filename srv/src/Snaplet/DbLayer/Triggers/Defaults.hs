@@ -50,18 +50,20 @@ applyDefaults model obj = do
               , ("validUntil" , B.pack $ show $ ct + y)
               , ("makeYear"   , B.pack cy)
               ]
-    _ | model `elem` services ->
-      return $ Map.union obj $ Map.fromList
-        [("times_expectedServiceStart",   B.pack $ show $ ct + h)
-        ,("times_factServiceStart",       B.pack $ show $ ct + h)
-        ,("times_expectedServiceEnd",     B.pack $ show $ ct + 2*h)
-        ,("times_expectedServiceClosure", B.pack $ show $ ct + 12*h)
-        ,("times_factServiceClosure",     B.pack $ show $ ct + 12*h)
-        ,("times_expectedDealerInfo",     B.pack $ show $ ct + 7*d)
-        ,("times_factDealerInfo",         B.pack $ show $ ct + 7*d)
-        ,("createTime",                   B.pack $ show $ ct)
-        ]
-      | otherwise -> return obj
+
+  obj' <- if model `elem` services
+      then
+        return $ Map.union obj' $ Map.fromList
+          [("times_expectedServiceStart",   B.pack $ show $ ct + h)
+          ,("times_factServiceStart",       B.pack $ show $ ct + h)
+          ,("times_expectedServiceEnd",     B.pack $ show $ ct + 2*h)
+          ,("times_expectedServiceClosure", B.pack $ show $ ct + 12*h)
+          ,("times_factServiceClosure",     B.pack $ show $ ct + 12*h)
+          ,("times_expectedDealerInfo",     B.pack $ show $ ct + 7*d)
+          ,("times_factDealerInfo",         B.pack $ show $ ct + 7*d)
+          ,("createTime",                   B.pack $ show $ ct)
+          ]
+      else return obj'
 
   obj'' <- do
     case model of
@@ -97,6 +99,13 @@ services =
   ,"tech"
   ,"towage"
   ,"transportation"
+  ,"ken"
+  ,"bank"
+  ,"tickets"
+  ,"continue"
+  ,"deliverClient"
+  ,"averageCommissioner"
+  ,"insurance"
   ]
 
 serviceDefaults = Map.fromList
