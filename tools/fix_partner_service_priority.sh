@@ -6,13 +6,13 @@ for i in `redis-cli keys partner_service:*`; do
     p3=`redis-cli hget $i priority3`
 
     if [[ -n $p1 ]]; then
-        echo $p1 | sed 's/.*([0-9]+).*/\1/' | xargs redis-cli hset $i priority1
+        echo $p1 | sed -E 's/.*([0-9]+).*/\1/' | xargs redis-cli hset $i priority1
     fi
     if [[ -n $p2 ]]; then
-        echo $p2 | sed 's/.*([0-9]+).*/\1/' | xargs redis-cli hset $i priority2
+        echo $p2 | sed -E 's/.*([0-9]+).*/\1/' | xargs redis-cli hset $i priority2
     fi
     if [[ -n $p3 ]]; then
-        echo $p3 | sed 's/.*([0-9]+).*/\1/' | xargs redis-cli hset $i priority3
+        echo $p3 | sed -E 's/.*([0-9]+).*/\1/' | xargs redis-cli hset $i priority3
     fi
 
 done
