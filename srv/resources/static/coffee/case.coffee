@@ -247,7 +247,7 @@ this.initPartnerTables = ($view,parentView) ->
   table = table.dataTable()
   fields = "name,city,addrDeFacto,phone1,workingTime"
   dealer = if partnerType is "towDealer" then 1 else 0
-  select = "city == #{kase.cityLocal()},isActive == 1,isDealer == #{dealer}"
+  select = "city==#{kase.cityLocal()},isActive==1,isDealer==#{dealer}"
   $.getJSON "/all/partner?fields=#{fields}&select=#{select}", (objs) ->
     rows = for p in objs
       [p.name        || '',
