@@ -50,6 +50,7 @@ applyDefaults model obj = do
               , ("validUntil" , B.pack $ show $ ct + y)
               , ("makeYear"   , B.pack cy)
               ]
+    _ -> return cd
 
   obj' <- if model `elem` services
       then
