@@ -1,0 +1,20 @@
+0. `postgis` extension needs to be installed for the database:
+
+    psql -d carma -c "CREATE EXTENSION postgis;"
+
+1. geocode.sh writes geofixer-****.result.txt file. RU.txt needs to
+reside in script directory for zip code recognition:
+
+    bash geocode.sh
+
+Examine .log for anomalies.    
+
+2. Result file is processed by sql.awk into a list of SQL statements
+to be run for the selected database:
+
+    awk -f sql.awk geofixer-FXul8c.result.txt > result.sql
+    psql -q -d carma -f result.sql
+
+F. Test if it works:
+
+    psql -d carma -c "select * from geo_partners where ST_DWithin(coords, ST_PointFromText('POINT(56.15 58.02)', 4326), 0.5);"
