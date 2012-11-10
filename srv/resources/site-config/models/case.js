@@ -12,7 +12,8 @@
             ],
             "meta": {
                 "targetMap": "caseAddress_map",
-                "targetCoords": "caseAddress_coords"
+                "targetCoords": "caseAddress_coords",
+                "cityField": "cityLocal"
             }
         },
         {

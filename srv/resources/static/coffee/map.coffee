@@ -12,6 +12,10 @@ this.buildReverseAddress = (res) ->
 this.iconSize = new OpenLayers.Size(40, 40)
 
 
+# Default map zoom level
+this.zoomLevel = 16
+
+
 # Erase existing marker layer and install a new one of the same name
 this.reinstallMarkers = (osmap, layerName) ->
   layers = osmap.getLayersByName(layerName)
@@ -36,7 +40,7 @@ this.initOSM = (el) ->
         new OpenLayers.Projection("EPSG:4326"),
         osmap.getProjectionObject()
       ),
-    16)
+  zoomLevel)
   nominatimRevQuery =
       "http://nominatim.openstreetmap.org/reverse.php?format=json&accept-language=ru-RU,ru&"
 
@@ -91,21 +95,58 @@ this.partnerBlips = (osmap, partners) ->
           coords, new OpenLayers.Icon("/s/img/tow-icon.png", iconSize)))
 
 
+# Read "32.54, 56.21" (the way coordinates are stored in model fields)
+# into LonLat object
+this.lonlatFromShortString = (coords) ->
+  parts = coords.split(", ")
+  return new OpenLayers.LonLat(parts[0], parts[1])
+
+
+# Forward geocoding picker
+# 
+# geoPicker sets blip on a map and coordinates field placed in the
+# same view as the picker field. map and coordinate field names are
+# set with 'targetMap' and 'targetCoords' metas for picker field.
+#
+# Value of field specified in 'cityField' meta of picker is used with
+# picker value to query Nominatim.
+# 
+# Arguments are picker field name and picker element.
 this.geoPicker = (fieldName, el) ->
   addr = $(el).parents('.input-append')
               .children("input[name=#{fieldName}]")
               .val()
+
+  # TODO Drop hardcoded name of the «real» parent view (case-form)
+  #
+  # elementModel could be used, but global.models has no fieldHash
+  # cache for easy field lookup
+  coord_field = global.viewsWare["case-form"]
+                .bbInstance.fieldHash[fieldName].meta['targetCoords']
+  map_field = global.viewsWare["case-form"]
+              .bbInstance.fieldHash[fieldName].meta['targetMap']
+  
+  city_field = global.viewsWare["case-form"]
+               .bbInstance.fieldHash[fieldName].meta['cityField']
+  
+  if city_field?
+    addr = global.viewsWare['case-form'].knockVM[city_field]() + ", " + addr
+
   nominatimQuery =
     "http://nominatim.openstreetmap.org/search?format=json&accept-language=ru-RU,ru&q="
   $.getJSON(nominatimQuery+"#{addr}", (res) ->
     if res.length > 0
-      form = $(el).parents("form")
-      osmap = form.find(".olMap")
-      return if res.length == 0
-      osmap.data().osmap.setCenter(
-        new OpenLayers.LonLat(res[0].lon, res[0].lat)
-            .transform(
-              new OpenLayers.Projection("EPSG:4326"),
-              new OpenLayers.Projection("EPSG:900913"))
-              , 16)
-      carBlip(osmap.data("osmap"), osmap.data("osmap").getCenter()))
+      lonlat = new OpenLayers.LonLat(res[0].lon, res[0].lat)
+
+      view = $(el).parents("[id*=view]")
+      if coord_field?
+        global.viewsWare['case-form'].knockVM[coord_field](lonlat.toShortString())
+
+      if map_field?
+        osmap = view.find("[name=#{map_field}]").data("osmap")
+        osmap.setCenter(
+              lonlat.transform(
+                new OpenLayers.Projection("EPSG:4326"),
+                new OpenLayers.Projection("EPSG:900913")),
+                zoomLevel)
+        carBlip(osmap, osmap.getCenter()))
