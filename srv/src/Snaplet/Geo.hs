@@ -8,6 +8,8 @@
 
 Geoservices snaplet.
 
+TODO Use contrib already to switch to JSON and serve HTTP errors.
+
 -}
 
 module Snaplet.Geo
@@ -22,21 +24,15 @@ import Control.Monad
 
 import Control.Monad.State
 
-import Control.Monad.IO.Class
-
 import Data.Aeson as A
 
 import Data.Attoparsec.ByteString.Char8
 import Data.ByteString.Char8 (ByteString)
 
-import Data.Functor
-import Data.Maybe
-
 import Data.Lens.Template
 
 import Snap.Core
 import Snap.Snaplet
-
 import Snap.Snaplet.PostgresqlSimple
 
 
@@ -53,6 +49,7 @@ instance HasPostgres (Handler b Geo) where
 
 routes :: [(ByteString, Handler b Geo ())]
 routes = [ ("/partners/:coords/:dist", method GET $ nearbyPartners)
+         , ("/partner/:pid", method PUT $ updatePosition)
          ]
 
 
@@ -94,8 +91,6 @@ nearbyQuery = "SELECT id, st_x(coords), st_y(coords) FROM geo_partners WHERE ST_
 ------------------------------------------------------------------------------
 -- | Serve list of partners within a specified distance from a point.
 -- Response body is a list of triples @[partner_id, lon, lat]@.
--- 
--- TODO Use contrib already to switch to JSON and serve HTTP errors.
 nearbyPartners :: Handler b Geo ()
 nearbyPartners = do
   c <- getCoordsParam "coords"
@@ -106,6 +101,27 @@ nearbyPartners = do
                    (results :: [Partner]) <- query nearbyQuery (lon, lat, dist)
                    modifyResponse $ setContentType "application/json"
                    writeLBS $ A.encode results
+    _ -> error "Bad request"
+
+
+------------------------------------------------------------------------------
+-- | Query to update partner position.
+--
+-- Splice with lon, lat and partner id.
+updateQuery :: Query
+updateQuery = "UPDATE geo_partners SET coords=ST_PointFromText('POINT(? ?)', 4326) WHERE id=?;"
+
+
+------------------------------------------------------------------------------
+-- | Update partner position.
+updatePosition :: Handler b Geo ()
+updatePosition = do
+  lon' <- getParamWith double "lon"
+  lat' <- getParamWith double "lat"
+  (id' :: Maybe Int) <- getParamWith decimal "pid"
+  case (lon', lat', id') of
+    (Just lon, Just lat, Just id) ->
+        execute updateQuery (lon, lat, id) >> return ()
     _ -> error "Bad request"
 
 
