@@ -8,7 +8,10 @@ import Data.Time.Clock (UTCTime)
 import Data.Lens.Template
 import Control.Concurrent.STM
 
-import Snap.Snaplet
+import Data.Pool
+import Database.PostgreSQL.Simple as Pg
+
+import Snap
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth
 import Snap.Snaplet.Session
@@ -35,6 +38,7 @@ data App = App
     , actionsLock :: TMVar ()
     , _siteConfig :: Snaplet (SiteConfig App)
     , _db         :: Snaplet (DbLayer App)
+    , pg_search  :: Pool Pg.Connection
     , _vin        :: Snaplet Vin
     , _fileUpload :: Snaplet FileUpload
     , _geo        :: Snaplet Geo
@@ -56,3 +60,9 @@ instance HasSiteConfig App where
 
 instance MonadLog (Handler App App) where
   askLog = with db askLog
+
+
+withPG
+  :: (App -> Pool Pg.Connection) -> (Pg.Connection -> IO res)
+  -> AppHandler res
+withPG pool f = gets pool >>= liftIO .(`withResource` f)

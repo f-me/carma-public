@@ -1,13 +1,11 @@
-{-# LANGUAGE OverloadedStrings #-}
 
 module ApplicationHandlers where
+-- FIXME: reexport AppHandlers/* & remove import AppHandlers.* from AppInit
 
 import Prelude hiding (log)
 
 import Data.Functor
 import Control.Monad
-import Control.Monad.IO.Class
-import Control.Concurrent.STM
 
 import Data.Text (Text)
 import Data.Text.Lazy (toStrict)
@@ -47,7 +45,8 @@ import Snaplet.FileUpload (doUpload', doDeleteAll')
 import qualified Nominatim
 -----------------------------------------------------------------------------
 import Application
-import CustomLogic.ActionAssignment
+import AppHandlers.MyActions
+import AppHandlers.Util
 import Util
 
 
@@ -224,29 +223,6 @@ rkcHandler = scope "rkcHandler" $ do
   info <- with db $ RKC.rkc (maybe T.empty T.decodeUtf8 p) (maybe T.empty T.decodeUtf8 c)
   writeJSON info
 
-myActionsHandler :: AppHandler ()
-myActionsHandler = do
-  Just cUsr <- with auth currentUser
-  let uLogin = userLogin cUsr
-  logdUsers <- addToLoggedUsers cUsr
-
-  actLock <- gets actionsLock
-  do -- bracket_
-    (liftIO $ atomically $ takeTMVar actLock)
-    actions <- filter ((== Just "0") . Map.lookup "closed")
-           <$> with db (DB.readAll "action")
-    now <- liftIO getCurrentTime
-    let (newActions,oldActions) = assignActions now actions (Map.map snd logdUsers)
-    let myNewActions = take 5 $ Map.findWithDefault [] uLogin newActions
-    with db $ forM_ myNewActions $ \act ->
-      case Map.lookup "id" act of
-        Nothing -> return ()
-        Just actId -> void $ DB.update "action"
-          (last $ B.split ':' actId)
-          $ Map.singleton "assignedTo" $ T.encodeUtf8 uLogin
-    let myOldActions = Map.findWithDefault [] uLogin oldActions
-    (liftIO $ atomically $ putTMVar actLock ())
-    writeJSON $ myNewActions ++ myOldActions
 
 
 searchCallsByPhone :: AppHandler ()
@@ -343,33 +319,6 @@ getUsersDict = writeJSON =<< gets allUsers
 
 ------------------------------------------------------------------------------
 -- | Utility functions
-writeJSON :: Aeson.ToJSON v => v -> AppHandler ()
-writeJSON v = do
-  modifyResponse $ setContentType "application/json"
-  writeLBS $ Aeson.encode v
-
-getJSONBody :: Aeson.FromJSON v => AppHandler v
-getJSONBody = Util.readJSONfromLBS <$> readRequestBody 4096
-
-
-addToLoggedUsers :: AuthUser -> AppHandler (Map Text (UTCTime,AuthUser))
-addToLoggedUsers u = do
-  logTVar <- gets loggedUsers
-  logdUsers <- liftIO $ readTVarIO logTVar
-  now <- liftIO getCurrentTime
-  let logdUsers' = Map.insert (userLogin u) (now,u)
-        -- filter out inactive users
-        $ Map.filter ((>addUTCTime (-90*60) now).fst) logdUsers
-  liftIO $ atomically $ writeTVar logTVar logdUsers'
-  return logdUsers'
-
-
-rmFromLoggedUsers :: AuthUser -> AppHandler ()
-rmFromLoggedUsers u = do
-  logdUsrs <- gets loggedUsers
-  liftIO $ atomically $ modifyTVar' logdUsrs
-         $ Map.delete $ userLogin u
-
 vinUploadData :: AppHandler ()
 vinUploadData = scope "vin" $ scope "upload" $ do
   log Trace "Uploading data"
@@ -416,6 +365,7 @@ getSrvTarifOptions = do
       getIds f m = map (B.split ':') $ B.split ',' $
                    fromMaybe "" $ Map.lookup f m
       get [m, id] = Map.insert "id" id <$> DB.read m id
+      get _       = return $ Map.empty
       mSrv m = (m ==) . fromMaybe "" . Map.lookup "serviceName"
       rebuilOpt :: Map ByteString ByteString -> Map ByteString ByteString
       rebuilOpt o = Map.fromList $

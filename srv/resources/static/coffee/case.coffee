@@ -247,7 +247,7 @@ this.initPartnerTables = ($view,parentView) ->
   table = table.dataTable()
   fields = "name,city,addrDeFacto,phone1,workingTime"
   dealer = if partnerType is "towDealer" then 1 else 0
-  select = "city == #{kase.cityLocal()},isActive == 1,isDealer == #{dealer}"
+  select = "city==#{kase.cityLocal()},isActive==1,isDealer==#{dealer}"
   $.getJSON "/all/partner?fields=#{fields}&select=#{select}", (objs) ->
     rows = for p in objs
       [p.name        || '',
@@ -285,33 +285,34 @@ this.partnerOptsHook = (i, knockVM) ->
     model = knockVM.modelName()
     v1 = global.dictLabelCache.partners1[n.trim()]
     if v1 and id = v1.split(':')?[1]
-      $.getJSON "/opts/#{knockVM.modelName()}/#{knockVM.id()}", (opts)->
-        return if _.isEmpty opts
-        tr = Mustache.render(
-              $('#tarif-opt-sel-template').html(),
-              opts:
-                for i in opts
-                  { id: i.id
-                  , optionName: (i.optionName || "Тарифная опция")}
-        )
-        $("##{v}").children().last().after(tr)
-        $("##{v}").find('.reload').on 'click.reloadCountedCost', ->
-          r = global.viewsWare['case-form'].knockVM['servicesReference']()
-          o.model().fetch() for o in r
-        $("##{v}").find('.add').on 'click.addTarif', ->
-          s = $("##{v}").find("select")
-          return if _.isEmpty s
-          o = _.find opts, (opt) -> "#{opt.id}" == s.val()
-          addReference knockVM, 'cost_serviceTarifOptions',
-            modelName: "cost_serviceTarifOption"
-            args     :
-              optionName   : o.optionName
-              tarifOptionId: "tarifOption:#{o.id}"
-            ->
-              bindDelete knockVM, 'cost_serviceTarifOptions'
-              r = knockVM['cost_serviceTarifOptionsReference']()
-              $("##{(_.last r)['view']}").parent().collapse("show")
-        bindDelete knockVM, 'cost_serviceTarifOptions'
+      sTout 1000, ->
+        $.getJSON "/opts/#{knockVM.modelName()}/#{knockVM.id()}", (opts)->
+          return if _.isEmpty opts
+          tr = Mustache.render(
+                $('#tarif-opt-sel-template').html(),
+                opts:
+                  for i in opts
+                    { id: i.id
+                    , optionName: (i.optionName || "Тарифная опция")}
+          )
+          $("##{v}").children().last().after(tr)
+          $("##{v}").find('.reload').on 'click.reloadCountedCost', ->
+            r = global.viewsWare['case-form'].knockVM['servicesReference']()
+            o.model().fetch() for o in r
+          $("##{v}").find('.add').on 'click.addTarif', ->
+            s = $("##{v}").find("select")
+            return if _.isEmpty s
+            o = _.find opts, (opt) -> "#{opt.id}" == s.val()
+            addReference knockVM, 'cost_serviceTarifOptions',
+              modelName: "cost_serviceTarifOption"
+              args     :
+                optionName   : o.optionName
+                tarifOptionId: "tarifOption:#{o.id}"
+              ->
+                bindDelete knockVM, 'cost_serviceTarifOptions'
+                r = knockVM['cost_serviceTarifOptionsReference']()
+                $("##{(_.last r)['view']}").parent().collapse("show")
+          bindDelete knockVM, 'cost_serviceTarifOptions'
 
 this.srvOptUpd = (instance, knockVM) ->
   knockVM['payType'].subscribe (n) ->

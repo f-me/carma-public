@@ -58,7 +58,8 @@ new :: ModelName -> Object -> TriggerMonad b ObjectId
 new model obj = do
   intId <- lift $ Redis.create redis model obj
   let objId = B.concat [model, ":", intId]
-  ST.modify $ \st -> st{current = Map.insert objId obj $ current st}
+  let obj'  = Map.insert "id" intId obj
+  ST.modify $ \st -> st{current = Map.insert objId obj' $ current st}
   return objId
 
 

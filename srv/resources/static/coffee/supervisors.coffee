@@ -89,8 +89,8 @@ dtRedraw = (dt) ->
   d2 = Date.parse $('#date-max').val()
   return unless d1 and d2
   s = sb(d1, d2)
-  s += ", targetGroup == #{$('#role').val()}" if $('#role').val()
-  s += ", closed == #{$('#closed').val()}" if $('#closed').val()
+  s += ", targetGroup==#{$('#role').val()}" if $('#role').val()
+  s += ", closed==#{$('#closed').val()}" if $('#closed').val()
   drawTable dt, s
 
-sb = (d1,d2) -> "duetime >= #{toUnix d1}, duetime <= #{toUnix d2}"
+sb = (d1,d2) -> "duetime>=#{toUnix d1}, duetime<=#{toUnix d2}"

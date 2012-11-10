@@ -107,7 +107,7 @@ update model objId commit = scoper "update" $ do
 
   let changes' = Map.mapKeys fromJust . Map.filterWithKey (\k v -> isJust k) . Map.mapKeys (toPair . C8.split ':') $ changes
   log Trace $ fromString $ "Changes: " ++ show changes'
-  Postgres.updateMany mdl changes'
+  Postgres.insertUpdateMany mdl changes'
   --
   let stripUnchanged orig = Map.filterWithKey (\k v -> Map.lookup k orig /= Just v)
   return $ stripUnchanged commit $ changes Map.! fullId

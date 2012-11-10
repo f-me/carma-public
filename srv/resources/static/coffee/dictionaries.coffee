@@ -2,7 +2,7 @@
 this.getDictionary = (name) ->
   dict = {entries: []}
   $.ajax
-    url: "/all/#{name}?fields=id,name&select=isActive == 1"
+    url: "/all/#{name}?fields=id,name&select=isActive==1"
     dataType: "json"
     async: false
     success: (rsp) ->

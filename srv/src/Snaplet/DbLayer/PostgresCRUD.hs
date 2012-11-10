@@ -5,7 +5,7 @@ module Snaplet.DbLayer.PostgresCRUD (
 
     loadModels,
     createIO,
-    create, insert, select, exists, update, updateMany, insertUpdate,
+    create, insert, select, exists, update, updateMany, insertUpdate, insertUpdateMany,
     search,
     generateReport
     ) where
@@ -20,7 +20,8 @@ import qualified Control.Exception as E
 
 import qualified Data.Aeson as A
 import qualified Data.Map as M
-import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
+import Data.Monoid
+import Data.Maybe (fromMaybe, listToMaybe, mapMaybe, catMaybes)
 import Data.ByteString (ByteString)
 import Data.Char
 import Data.List (isPrefixOf, findIndex, elemIndex)
@@ -40,6 +41,7 @@ import qualified Data.Pool as Pool
 import qualified Database.PostgreSQL.Syncs as S
 import qualified Database.PostgreSQL.Models as SM
 import Database.PostgreSQL.Sync.JSON ()
+import qualified Database.PostgreSQL.Report as R
 import qualified Database.PostgreSQL.Report.Xlsx as R
 import qualified Database.PostgreSQL.Report.Function as R
 
@@ -99,10 +101,12 @@ functions tz dict = [
     R.uses ["case.program"] $ R.constFunction "FDDS" fddsFun,
     R.uses ["service.falseCall"] $ R.constFunction "FALSECALL" falseFun,
     R.uses ["service.falseCall"] $ R.constFunction "BILL" billFun,
+    R.uses ["service.clientSatisfied"] $ R.constFunction "SATISFIED" satisfiedFun,
     R.uses ["case.diagnosis1", "service.type"] $ R.constFunction "FAULTCODE" faultFun,
     R.uses ["case.car_make"] $ R.constFunction "VEHICLEMAKE" vehicleMakeFun,
     R.uses ["case.car_make", "case.car_model"] $ R.constFunction "VEHICLEMODEL" vehicleModelFun,
-    R.uses ["case.id", "case.services", "service.id", "service.type"] $ R.constFunction "SERVICEID" serviceId]
+    R.uses ["case.id", "case.services", "service.id", "service.type"] $ R.constFunction "SERVICEID" serviceId,
+    R.macro backMacro $ R.uses ["action.assignedTo"] $ R.constFunction "BACKOPERATOR" backOperator]
     where
         capitalize "" = ""
         capitalize (c:cs) = toUpper c : map toLower cs
@@ -178,6 +182,13 @@ functions tz dict = [
         billFun fs = do
             (SM.StringValue isFalse) <- M.lookup "service.falseCall" fs
             return $ SM.StringValue (if isFalse == "bill" then "Y" else "N")
+
+        satisfiedFun fs = do
+            (SM.StringValue sat) <- M.lookup "service.clientSatisfied" fs
+            return $ SM.StringValue $ case sat of
+                "satis" -> "Y"
+                "notSatis" -> "N"
+                _ -> ""
             
         faultFun fs = do
             d <- M.lookup "case.diagnosis1" fs
@@ -208,6 +219,10 @@ functions tz dict = [
                 defaultIdx = SM.StringValue $ show caseId ++ "/" ++ serviceType ++ ":" ++ show serviceId
                 formIdx i = SM.StringValue $ show caseId ++ "/" ++ show i
             return . maybe defaultIdx formIdx . getIndex srvIdName . splitByComma $ caseSrvs
+
+        -- rewrite R.condition!
+        backMacro _ = mconcat $ catMaybes [R.condition "action.parentId = servicetbl.type || ':' || servicetbl.id", R.condition "action.name = 'orderService'"]
+        backOperator fs = M.lookup "action.assignedTo" fs
                       
 local :: P.ConnectInfo
 local = P.ConnectInfo {
@@ -297,6 +312,10 @@ insertUpdate ms name c m = escopev "insertUpdate" False $ do
     withPG (SM.insertUpdate ms (toStr name) cond m)
     where
         cond = toCond ms name c
+
+insertUpdateMany :: (PS.HasPostgres m, MonadLog m) => SM.Models -> M.Map (ByteString, ByteString) S.SyncMap -> m ()
+insertUpdateMany ms m = scope "insertUpdateMany" $ forM_ (M.toList m) $ uncurry insertUpdate' where
+    insertUpdate' (mdl, k) obj = insertUpdate ms mdl k obj
 
 -- FIXME: ARC has same function
 query_ :: (PS.HasPostgres m, MonadLog m, PS.FromRow r) => PS.Query -> m [r]
