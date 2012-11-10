@@ -44,6 +44,7 @@ Executable carma
     Snaplet.SiteConfig.Models,
     Snaplet.SiteConfig.Permissions,
     Snaplet.FileUpload,
+    Snaplet.Geo,
     Snaplet.Auth.Class,
     Utils.HttpErrors,
     Util,

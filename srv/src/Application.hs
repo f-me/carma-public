@@ -20,6 +20,7 @@ import Snaplet.SiteConfig.Class
 import Snaplet.DbLayer.Types
 import Snap.Snaplet.Vin
 import Snaplet.FileUpload
+import Snaplet.Geo
 import Snap.Snaplet.SimpleLog
 
 import Util (UsersDict)
@@ -36,6 +37,7 @@ data App = App
     , _db         :: Snaplet (DbLayer App)
     , _vin        :: Snaplet Vin
     , _fileUpload :: Snaplet FileUpload
+    , _geo        :: Snaplet Geo
     , feLog       :: Log
     }
 
