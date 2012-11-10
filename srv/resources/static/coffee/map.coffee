@@ -1,3 +1,19 @@
+# Default marker icon size
+this.iconSize = new OpenLayers.Size(50, 50)
+
+
+# Default map zoom level
+this.zoomLevel = 16
+
+
+this.nominatimRevQuery =
+  "http://nominatim.openstreetmap.org/reverse.php?format=json&accept-language=ru-RU,ru&"
+
+
+this.nominatimQuery =
+  "http://nominatim.openstreetmap.org/search?format=json&accept-language=ru-RU,ru&q="
+
+
 # Build readable address from reverse Nominatim JSON response
 this.buildReverseAddress = (res) ->
   addr = (res.address.road || res.address.pedestrian)
@@ -6,14 +22,6 @@ this.buildReverseAddress = (res) ->
     return addr
   else
     return addr +  ", " + res.address.house_number
-
-
-# Default marker icon size
-this.iconSize = new OpenLayers.Size(40, 40)
-
-
-# Default map zoom level
-this.zoomLevel = 16
 
 
 # Erase existing marker layer and install a new one of the same name
@@ -27,46 +35,52 @@ this.reinstallMarkers = (osmap, layerName) ->
   return new_layer
 
 # Setup OpenLayers map
+#
+# In case template for OL placeholder has appropriate
+# data-target-addr, data-target-city and data-target-coords
+# attributes, map will be enabled for reverse geocoding, writing
+# appropriate geodata (address, city and coordinates) to the specified
+# fields.
 this.initOSM = (el) ->
   return if $(el).hasClass("olMap")
+
+  fieldName = $(el).attr("name")
 
   osmap = new OpenLayers.Map(el.id)
   clicker = new OpenLayers.Handler.Click(el.id)
 
   osmap.addLayer(new OpenLayers.Layer.OSM())
-  osmap.setCenter(
-    new OpenLayers.LonLat(37.617874,55.757549)
-      .transform(
-        new OpenLayers.Projection("EPSG:4326"),
-        osmap.getProjectionObject()
-      ),
-  zoomLevel)
-  nominatimRevQuery =
-      "http://nominatim.openstreetmap.org/reverse.php?format=json&accept-language=ru-RU,ru&"
-
   markers = new OpenLayers.Layer.Markers("Car")
   osmap.addLayer(markers)
 
   partners = new OpenLayers.Layer.Markers("Partners")
   osmap.addLayer(partners)
 
-  # Clickable maps may write new address to "target-addr" field and city to "target-city"
+
+  # TODO Drop hardcoded name of the «real» parent view (case-form)
+  coord_field = global.viewsWare["case-form"]
+                .bbInstance.fieldHash[fieldName].meta['targetCoords']
+
+  # Clickable map?
   if ($(el).data("target-addr"))
+    addr_field = global.viewsWare["case-form"]
+                 .bbInstance.fieldHash[fieldName].meta['targetAddr']
+    
     osmap.events.register("click", osmap, (e) ->
       coords = osmap.getLonLatFromViewPortPx(e.xy)
                .transform(new OpenLayers.Projection("EPSG:900913"),
                           new OpenLayers.Projection("EPSG:4326"))
       $.getJSON(nominatimRevQuery + "lon=#{coords.lon}&lat=#{coords.lat}", (res) ->
-        $.getJSON("/geo/partners/#{coords.lon},#{coords.lat}/0.5", (pres) ->
-          addr = buildReverseAddress(res)
+        addr = buildReverseAddress(res)
 
-          addr_field = $(el).data("target-addr")
-          city_field = $(el).data("target-city")
+        if addr_field?
           global.viewsWare['case-form'].knockVM[addr_field](addr)
-          # global.viewsWare['case-form'].knockVM[city_field](res.address.city)
+        # global.viewsWare['case-form'].knockVM[city_field](res.address.city)
 
-          carBlip(osmap, osmap.getLonLatFromViewPortPx(e.xy))
-          partnerBlips(osmap, pres)))
+        if coord_field?
+          global.viewsWare['case-form'].knockVM[coord_field](coords.toShortString())
+
+        carBlip(osmap, osmap.getLonLatFromViewPortPx(e.xy))
     )
 
   $(el).data("osmap", osmap)
@@ -132,8 +146,6 @@ this.geoPicker = (fieldName, el) ->
   if city_field?
     addr = global.viewsWare['case-form'].knockVM[city_field]() + ", " + addr
 
-  nominatimQuery =
-    "http://nominatim.openstreetmap.org/search?format=json&accept-language=ru-RU,ru&q="
   $.getJSON(nominatimQuery+"#{addr}", (res) ->
     if res.length > 0
       lonlat = new OpenLayers.LonLat(res[0].lon, res[0].lat)
