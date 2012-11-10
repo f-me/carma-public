@@ -14,6 +14,11 @@ this.nominatimQuery =
   "http://nominatim.openstreetmap.org/search?format=json&accept-language=ru-RU,ru&q="
 
 
+this.wsgProj = new OpenLayers.Projection("EPSG:4326")
+
+this.osmProj = new OpenLayers.Projection("EPSG:900913")
+
+
 # Build readable address from reverse Nominatim JSON response
 this.buildReverseAddress = (res) ->
   addr = (res.address.road || res.address.pedestrian)
@@ -56,21 +61,36 @@ this.initOSM = (el) ->
   partners = new OpenLayers.Layer.Markers("Partners")
   osmap.addLayer(partners)
 
+  # Default location
+  osmap.setCenter(new OpenLayers.LonLat(37.617874,55.757549)
+                  .transform(wsgProj, osmProj),
+                  zoomLevel)
+
 
   # TODO Drop hardcoded name of the «real» parent view (case-form)
   coord_field = global.viewsWare["case-form"]
                 .bbInstance.fieldHash[fieldName].meta['targetCoords']
 
-  # Clickable map?
+
+  # Place a blip and recenter if coordinates are already known
+  if coord_field?
+    coords = lonlatFromShortString(global.viewsWare['case-form']
+            .knockVM[coord_field]())
+    if coords?
+      osmap.setCenter(coords.transform(wsgProj, osmProj), zoomLevel)
+      carBlip(osmap, coords)
+
+  # Setup handler if map is clickable
   if ($(el).data("target-addr"))
     addr_field = global.viewsWare["case-form"]
                  .bbInstance.fieldHash[fieldName].meta['targetAddr']
-    
+
     osmap.events.register("click", osmap, (e) ->
       coords = osmap.getLonLatFromViewPortPx(e.xy)
-               .transform(new OpenLayers.Projection("EPSG:900913"),
-                          new OpenLayers.Projection("EPSG:4326"))
-      $.getJSON(nominatimRevQuery + "lon=#{coords.lon}&lat=#{coords.lat}", (res) ->
+               .transform(osmProj, wsgProj)
+
+      $.getJSON(nominatimRevQuery + "lon=#{coords.lon}&lat=#{coords.lat}",
+      (res) ->
         addr = buildReverseAddress(res)
 
         if addr_field?
@@ -81,6 +101,7 @@ this.initOSM = (el) ->
           global.viewsWare['case-form'].knockVM[coord_field](coords.toShortString())
 
         carBlip(osmap, osmap.getLonLatFromViewPortPx(e.xy))
+      )
     )
 
   $(el).data("osmap", osmap)
@@ -102,8 +123,7 @@ this.partnerBlips = (osmap, partners) ->
   for blip in partners
     do (blip) ->
       coords = new OpenLayers.LonLat(blip[1], blip[2])
-                   .transform(new OpenLayers.Projection("EPSG:4326"),
-                              new OpenLayers.Projection("EPSG:900913"))
+                   .transform(wsgProj, osmProj)
       markers.addMarker(
         new OpenLayers.Marker(
           coords, new OpenLayers.Icon("/s/img/tow-icon.png", iconSize)))
@@ -117,14 +137,14 @@ this.lonlatFromShortString = (coords) ->
 
 
 # Forward geocoding picker
-# 
+#
 # geoPicker sets blip on a map and coordinates field placed in the
 # same view as the picker field. map and coordinate field names are
 # set with 'targetMap' and 'targetCoords' metas for picker field.
 #
 # Value of field specified in 'cityField' meta of picker is used with
 # picker value to query Nominatim.
-# 
+#
 # Arguments are picker field name and picker element.
 this.geoPicker = (fieldName, el) ->
   addr = $(el).parents('.input-append')
@@ -139,10 +159,10 @@ this.geoPicker = (fieldName, el) ->
                 .bbInstance.fieldHash[fieldName].meta['targetCoords']
   map_field = global.viewsWare["case-form"]
               .bbInstance.fieldHash[fieldName].meta['targetMap']
-  
+
   city_field = global.viewsWare["case-form"]
                .bbInstance.fieldHash[fieldName].meta['cityField']
-  
+
   if city_field?
     addr = global.viewsWare['case-form'].knockVM[city_field]() + ", " + addr
 
@@ -157,8 +177,6 @@ this.geoPicker = (fieldName, el) ->
       if map_field?
         osmap = view.find("[name=#{map_field}]").data("osmap")
         osmap.setCenter(
-              lonlat.transform(
-                new OpenLayers.Projection("EPSG:4326"),
-                new OpenLayers.Projection("EPSG:900913")),
-                zoomLevel)
+              lonlat.transform(wsgProj, osmProj),
+              zoomLevel)
         carBlip(osmap, osmap.getCenter()))
