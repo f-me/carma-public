@@ -1156,9 +1156,11 @@
             id="map-field-template">
       <div class="control-group">
         <div class="controls">
-          <div style="height:600px;" id="{{ name }}" class="osMap"
-               data-target-addr="{{ meta.targetCity }}"
-               data-target-city="{{ meta.targetAddr }}"
+          <div style="height:600px;" id="{{ viewName }}-{{ name }}"
+               name="{{ name }}"
+               class="osMap"
+               data-target-city="{{ meta.targetCity }}"
+               data-target-addr="{{ meta.targetAddr }}"
                data-target-coords="{{ meta.targetCoords }}"></div>
         </div>
       </div>
