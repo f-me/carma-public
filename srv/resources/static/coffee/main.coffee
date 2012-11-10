@@ -309,3 +309,7 @@ this.removeInstance = (viewName) ->
 applyHooks = (hooks, selectors, args...) ->
   fs = _.chain(hooks[k] for k in selectors).flatten().compact().value()
   f.apply(this, args) for f in fs
+
+# Find out which model this element belongs to
+this.elementModel = (elt) ->
+  $(elt).parents("[id*=view]")[0].id.split("-")[0]
