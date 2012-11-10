@@ -216,10 +216,51 @@ this.hideComplex = ->
   $(".default-complex-field").show()
 
 
+# Build readable address from reverse Nominatim JSON response
+this.buildReverseAddress = (res) ->
+  addr = (res.address.road || res.address.pedestrian)
+
+  if (_.isUndefined(res.address.house_number))
+     return addr
+  else
+     return addr +  ", " + res.address.house_number
+
+this.clearMarkers = (markers) ->
+  markers.removeMarker(m) for m in markers.markers
+
+
+# Move the car crash blip on the map
+#
+# xy is from original click event
+this.carBlip = (osmap, xy) ->
+  ico = new OpenLayers.Icon("/s/img/car-icon.png")
+  markers = osmap.getLayersByName("Car")[0]
+  clearMarkers(markers)
+  markers.addMarker(
+    new OpenLayers.Marker(osmap.getLonLatFromViewPortPx(xy), ico))
+
+
+# Render list of partners on the map
+#
+# partners is a list of [id, lon, lat]
+this.partnerBlips = (osmap, partners) ->
+  ico = new OpenLayers.Icon("/s/img/tow-icon.png")
+  markers = osmap.getLayersByName("Partners")[0]
+
+  for blip in partners
+     do (blip) ->
+       coords = new OpenLayers.LonLat(blip[1], blip[2])
+                    .transform(new OpenLayers.Projection("EPSG:4326"),
+                               new OpenLayers.Projection("EPSG:900913"))
+       markers.addMarker(new OpenLayers.Marker(coords, ico))
+  
+
 initOSM = (el) ->
   return if $(el).hasClass("olMap")
 
   osmap = new OpenLayers.Map(el.id)
+  clicker = new OpenLayers.Handler.Click(el.id)
+
   osmap.addLayer(new OpenLayers.Layer.OSM())
   osmap.setCenter(
     new OpenLayers.LonLat(37.617874,55.757549)
@@ -229,6 +270,34 @@ initOSM = (el) ->
       ),
     16 # Zoom level
   )
+  nominatimRevQuery = 
+      "http://nominatim.openstreetmap.org/reverse.php?format=json&accept-language=ru-RU,ru&"
+
+  markers = new OpenLayers.Layer.Markers("Car")
+  osmap.addLayer(markers)
+
+  partners = new OpenLayers.Layer.Markers("Partners")
+  osmap.addLayer(partners)
+
+  if ($(el).data("target-addr"))
+    osmap.events.register("click", osmap, (e) ->
+      coords = osmap.getLonLatFromViewPortPx(e.xy)
+               .transform(new OpenLayers.Projection("EPSG:900913"),
+                          new OpenLayers.Projection("EPSG:4326"))
+      # Reverse geocode on clicks and write new address to "maptarget" field
+      $.getJSON(nominatimRevQuery + "lon=#{coords.lon}&lat=#{coords.lat}", (res) ->
+        $.getJSON("/geo/partners/#{coords.lon},#{coords.lat}/0.5", (pres) ->
+          addr = buildReverseAddress(res)
+
+          addr_field = $(el).data("target-addr")
+          city_field = $(el).data("target-city")
+          global.viewsWare['case-form'].knockVM[addr_field](addr)
+          # global.viewsWare['case-form'].knockVM[city_field](res.address.city)
+
+          carBlip(osmap, e.xy)
+          partnerBlips(osmap, pres)))
+    )
+
   $(el).data("osmap", osmap)
 
 
@@ -237,7 +306,7 @@ initOSM = (el) ->
 # Available picks:
 #
 # - vinFiller
-this.doPick = (pickType, args, el) ->
+this.doPick = (pickType, args, evt) ->
   pickers =
 
     callPlease: (modelName) ->
@@ -245,24 +314,27 @@ this.doPick = (pickType, args, el) ->
       number = bb.get(modelName)
       global.avayaPhone && global.avayaPhone.call(number)
 
-    nominatimPicker: (fieldName, el) ->
+    nominatimPicker: (fieldName, evt) ->
+      el = evt.target
       addr = $(el).parents('.input-append')
-                  .children('input[name=caseAddress_address]')
+                  .children("input[name=#{fieldName}]")
                   .val()
-      $.getJSON("/nominatim?addr=#{addr}", (res) ->
+      nominatimQuery = 
+          "http://nominatim.openstreetmap.org/search?format=json&accept-language=ru-RU,ru&q="
+      $.getJSON(nominatimQuery+"#{addr}", (res) ->
         if res.length > 0
           form = $(el).parents("form")
           osmap = form.find(".olMap")
-          res1 = JSON.parse(res)
-          return if res1.length == 0
+          return if res.length == 0
           osmap.data().osmap.setCenter(
-            new OpenLayers.LonLat(res1[0].lon, res1[0].lat)
+            new OpenLayers.LonLat(res[0].lon, res[0].lat)
               .transform(
                 new OpenLayers.Projection("EPSG:4326"),
                 new OpenLayers.Projection("EPSG:900913")
               )
-            , 16))
-  pickers[pickType](args, el)
+            , 16)
+          carBlip(osmap, osmap.data("osmap").getCenter()))
+  pickers[pickType](args, evt)
 
 this.kdoPick = (pickType, args, k, e) ->
   doPick pickType, args, e.srcElement if e.ctrlKey and e.keyCode == k

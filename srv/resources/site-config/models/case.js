@@ -8,6 +8,15 @@
     "applications": [
         {
             "targets": [
+                "caseAddress_coords"
+            ],
+            "meta": {
+                "mapTargetAddr": "caseAddress_address",
+                "mapTargetCity": "city"
+            }
+        },
+        {
+            "targets": [
                 "caseAddress_address"
             ],
             "canRead": [

@@ -1064,7 +1064,7 @@
                                       66, event);"
                    />
             <span class="add-on"><i class="icon icon-search"
-               onclick="doPick('{{ meta.picker }}', '{{ name }}', event.srcElement);"/>
+               onclick="doPick('{{ meta.picker }}', '{{ name }}', event);"/>
             </span>
           </div>
         </div>
@@ -1154,7 +1154,9 @@
             id="map-field-template">
       <div class="control-group">
         <div class="controls">
-          <div style="height:600px;" id="{{ name }}" class="osMap"></div>
+          <div style="height:600px;" id="{{ name }}" class="osMap"
+               data-target-city="{{ meta.mapTargetCity }}"
+               data-target-addr="{{ meta.mapTargetAddr }}"></div>
         </div>
       </div>
     </script>
