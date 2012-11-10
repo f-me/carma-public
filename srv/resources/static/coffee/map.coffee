@@ -36,8 +36,7 @@ this.initOSM = (el) ->
         new OpenLayers.Projection("EPSG:4326"),
         osmap.getProjectionObject()
       ),
-    16 # Zoom level
-  )
+    16)
   nominatimRevQuery =
       "http://nominatim.openstreetmap.org/reverse.php?format=json&accept-language=ru-RU,ru&"
 
@@ -92,8 +91,7 @@ this.partnerBlips = (osmap, partners) ->
           coords, new OpenLayers.Icon("/s/img/tow-icon.png", iconSize)))
 
 
-this.nominatimPicker = (fieldName, evt) ->
-  el = evt.target
+this.geoPicker = (fieldName, el) ->
   addr = $(el).parents('.input-append')
               .children("input[name=#{fieldName}]")
               .val()

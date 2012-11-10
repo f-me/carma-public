@@ -218,10 +218,9 @@ this.hideComplex = ->
        
 # Dispatch on some picker type
 #
-# Available picks:
-#
-# - vinFiller
-this.doPick = (pickType, args, evt) ->
+# In templates, bind click to 'doPick({{meta.picker}}, ...,
+# event.target)' to call the appropriate picker.
+this.doPick = (pickType, args, elt) ->
   pickers =
 
     callPlease: (modelName) ->
@@ -229,8 +228,8 @@ this.doPick = (pickType, args, evt) ->
       number = bb.get(modelName)
       global.avayaPhone && global.avayaPhone.call(number)
 
-    nominatimPicker: nominatimPicker
-  pickers[pickType](args, evt)
+    geoPicker: geoPicker
+  pickers[pickType](args, elt)
 
 this.kdoPick = (pickType, args, k, e) ->
   doPick pickType, args, e.srcElement if e.ctrlKey and e.keyCode == k

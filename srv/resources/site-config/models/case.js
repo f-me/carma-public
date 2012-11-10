@@ -8,11 +8,31 @@
     "applications": [
         {
             "targets": [
+                "caseAddress_address"
+            ],
+            "meta": {
+                "targetMap": "caseAddress_map",
+                "targetCoords": "caseAddress_coords"
+            }
+        },
+        {
+            "targets": [
                 "caseAddress_coords"
             ],
             "meta": {
-                "mapTargetAddr": "caseAddress_address",
-                "mapTargetCity": "city"
+                "targetMap": "caseAddress_map",
+                "targetAddr": "caseAddress_address",
+                "targetCity": "city"
+            }
+        },
+        {
+            "targets": [
+                "caseAddress_map"
+            ],
+            "meta": {
+                "targetAddr": "caseAddress_address",
+                "targetCity": "city",
+                "targetCoords": "caseAddress_coords"
             }
         },
         {
@@ -83,6 +103,7 @@
         },
         {
             "targets": [
+                "caseAddress_map",
                 "caseAddress_coords",
                 "caseAddress_city",
                 "caseAddress_comment"
