@@ -13,8 +13,8 @@ TODO Use contrib already to switch to JSON and serve HTTP errors.
 -}
 
 module Snaplet.Geo
-    ( geoInit
-    , Geo
+    ( Geo
+    , geoInit
     )
 
 where
@@ -49,7 +49,6 @@ instance HasPostgres (Handler b Geo) where
 
 routes :: [(ByteString, Handler b Geo ())]
 routes = [ ("/partners/:coords/:dist", method GET $ nearbyPartners)
-         , ("/partner/:pid", method PUT $ updatePosition)
          ]
 
 
@@ -101,27 +100,6 @@ nearbyPartners = do
                    (results :: [Partner]) <- query nearbyQuery (lon, lat, dist)
                    modifyResponse $ setContentType "application/json"
                    writeLBS $ A.encode results
-    _ -> error "Bad request"
-
-
-------------------------------------------------------------------------------
--- | Query to update partner position.
---
--- Splice with lon, lat and partner id.
-updateQuery :: Query
-updateQuery = "UPDATE geo_partners SET coords=ST_PointFromText('POINT(? ?)', 4326) WHERE id=?;"
-
-
-------------------------------------------------------------------------------
--- | Update partner position.
-updatePosition :: Handler b Geo ()
-updatePosition = do
-  lon' <- getParamWith double "lon"
-  lat' <- getParamWith double "lat"
-  (id' :: Maybe Int) <- getParamWith decimal "pid"
-  case (lon', lat', id') of
-    (Just lon, Just lat, Just id) ->
-        execute updateQuery (lon, lat, id) >> return ()
     _ -> error "Bad request"
 
 
