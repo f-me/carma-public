@@ -90,7 +90,7 @@ withinQuery = "SELECT id, st_x(coords), st_y(coords) FROM geo_partners WHERE coo
 
 ------------------------------------------------------------------------------
 -- | Serve list of partners within a specified rectangle.
--- 
+--
 -- Response body is a list of triples @[partner_id, lon, lat]@.
 withinPartners :: Handler b Geo ()
 withinPartners = do
@@ -99,7 +99,8 @@ withinPartners = do
 
   case (c1, c2) of
     (Just (lon1, lat1), Just (lon2, lat2)) -> do
-                   (results :: [Partner]) <- query withinQuery (lon1, lat1, lon2, lat2)
+                   (results :: [Partner]) <-
+                       query withinQuery (lon1, lat1, lon2, lat2)
                    modifyResponse $ setContentType "application/json"
                    writeLBS $ A.encode results
     _ -> error "Bad request"
