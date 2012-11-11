@@ -134,6 +134,8 @@ this.initOSM = (el, parentView) ->
           parentView, partner_field, partnerAddr_field)
       )
     )
+    # This is a workaround to make sure table cache is loaded prior to
+    # partner markers rendering.
     _.delay(
       () ->
        osmap.setCenter(osmap.getCenter(), beyondTheClouds, false, true)
