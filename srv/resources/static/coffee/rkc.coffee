@@ -47,12 +47,12 @@ this.setupRKCScreen = (viewName, args) ->
     ps = $('#program-select')
     ps.change -> update()
 
-    ct = $('#city-select')
-    ct.change -> update()
+    cs = $('#city-select')
+    cs.change -> update()
 
     update = () ->
       prog = ps.val()
-      city = ct.val()
+      city = cs.val()
 
       args = "?" + ["program=" + prog, "city=" + city].filter((x) -> x).join("&")
 

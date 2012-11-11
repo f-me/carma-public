@@ -194,6 +194,7 @@ deleteHandler = do
 
 syncHandler :: AppHandler ()
 syncHandler = scope "sync" $ do
+  extendTimeout 6000
   mdl <- getParam "model"
   from <- liftM (fmap (maybe 0 fst . B.readInt)) $ getParam "from"
   log Info $ T.concat ["Syncing ", maybe "all" T.decodeUtf8 mdl, " model(s) starting from id ", maybe "1" (fromString . show) from]
@@ -257,6 +258,7 @@ findOrCreateHandler = do
 -- | Reports
 report :: AppHandler ()
 report = scope "report" $ do
+  extendTimeout 6000
   Just reportId <- getParam "program"
   fromDate <- liftM (fmap T.decodeUtf8) $ getParam "from"
   toDate <- liftM (fmap T.decodeUtf8) $ getParam "to"
