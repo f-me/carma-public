@@ -229,6 +229,7 @@ this.doPick = (pickType, args, elt) ->
       global.avayaPhone && global.avayaPhone.call(number)
 
     geoPicker: geoPicker
+    reverseGeoPicker: reverseGeoPicker
   pickers[pickType](args, elt)
 
 this.kdoPick = (pickType, args, k, e) ->
