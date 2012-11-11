@@ -223,6 +223,12 @@ renderChecks = (name, trueChecks) ->
 this.removeCaseMain = ->
   $("body").off "change.input"
 
+# Find VM of reference by its view
+this.findReferenceVM = (view) ->
+  kase = global.viewsWare["case-form"].knockVM
+  return _.find(kase.servicesReference(),
+                (svc) -> svc.view is view)
+
 # get partners and show them in table
 # this is called from local.coffe:showCase
 this.initPartnerTables = ($view,parentView) ->
