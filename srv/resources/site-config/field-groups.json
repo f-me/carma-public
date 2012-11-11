@@ -575,6 +575,7 @@
             "name": "coords",
             "type": "picker",
             "meta": {
+                "infoText": "coords",
                 "label": "Координаты",
                 "picker": "reverseGeoPicker"
             }
