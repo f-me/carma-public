@@ -1158,7 +1158,9 @@
         <div class="controls">
           <div style="height:600px;" id="{{ viewName }}-{{ name }}"
                name="{{ name }}"
-               class="osMap"></div>
+               class="osMap"
+               data-target-addr="{{ meta.targetAddr }}"
+               data-target-coords="{{ meta.targetCoords }}"></div>
         </div>
       </div>
     </script>
@@ -1182,6 +1184,10 @@
 
     <script type="text/template" class="field-template"
             id="partnerTable-field-template">
+      <div style="height:600px;" id="{{ viewName }}-{{ name }}"
+           name="{{ name }}"
+           data-target-coords="{{ meta.targetCoords }}"
+           class="osMap"></div>
       <table id="{{name}}" class="table table-striped table-bordered">
         <thead>
           <tr>

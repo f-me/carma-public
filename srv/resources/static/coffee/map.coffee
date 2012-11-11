@@ -48,12 +48,16 @@ this.reinstallMarkers = (osmap, layerName) ->
 #
 # Template for OL placeholder may specify HTML5 attributes:
 #
-# - data-target-addr: map will be enabled for clicking and reverse
-#                     geocoding (clicking map will write result to
-#                     this field on `case` model)
+# - data-target-addr: if set, map will be clickable, enabled for
+#                     reverse geocoding (clicking the map will write
+#                     geocoding address to this field on `case` model)
 #
-# - data-target-coords: read initial position & blip from this field,
-#                       write geocoding results here (if it's enabled)
+# - data-target-coords: read initial position & blip from this field
+#                       of `case`, write geocoding results here (if
+#                       it's enabled)
+#
+# Note that `case` model is used for address and coordinates fields,
+# even if the map itself is in a different view.
 this.initOSM = (el) ->
   return if $(el).hasClass("olMap")
 
@@ -69,12 +73,9 @@ this.initOSM = (el) ->
 
 
   # TODO Drop hardcoded name of the «real» parent view (case-form)
-  coord_field = global.viewsWare["case-form"]
-                .bbInstance.fieldHash[fieldName].meta['targetCoords']
+  coord_field = $(el).data("target-coords")
 
-
-  addr_field = global.viewsWare["case-form"]
-                .bbInstance.fieldHash[fieldName].meta['targetAddr']
+  addr_field = $(el).data("target-addr")
 
   # Place a blip and recenter if coordinates are already known
   if coord_field?
