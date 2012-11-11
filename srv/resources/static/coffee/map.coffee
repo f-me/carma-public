@@ -50,7 +50,7 @@ this.reinstallMarkers = (osmap, layerName) ->
 # data-target-addr, data-target-city and data-target-coords
 # attributes, map will be enabled for clicking and reverse geocoding,
 # writing appropriate geodata (address, city and coordinates) to the
-# specified fields.
+# specified fields of `case` model.
 this.initOSM = (el) ->
   return if $(el).hasClass("olMap")
 
@@ -141,14 +141,21 @@ this.lonlatFromShortString = (coords) ->
   return new OpenLayers.LonLat(parts[0], parts[1])
 
 
-# Forward geocoding picker
+# Forward geocoding picker (address -> coordinates)
 #
-# geoPicker sets blip on a map and coordinates field placed in the
-# same view as the picker field. map and coordinate field names are
-# set with 'targetMap' and 'targetCoords' metas for picker field.
+# For field with this picker type, following metas are recognized:
 #
-# Value of field specified in 'cityField' meta of picker is used with
-# picker value to query Nominatim.
+# - targetMap: name of map field to write geocoding results into
+#              (recenter & set new blip on map)
+#
+# - targetCoords: name of field to write geocoding results into
+#                 (coordinates in "lon, lat" format). If this meta is
+#                 set, map will be recenter upon map setup using value
+#                 stored in the referenced field.
+#
+# - cityField: used with field value for geocoder query
+#
+# All meta values must reference field names in `case` model.
 #
 # Arguments are picker field name and picker element.
 this.geoPicker = (fieldName, el) ->
@@ -159,7 +166,7 @@ this.geoPicker = (fieldName, el) ->
   view = $(el).parents("[id*=view]")
   
   # TODO Drop hardcoded name of the «real» parent view (case-form)
-  #
+  # 
   # elementModel could be used, but global.models has no fieldHash
   # cache for easy field lookup
   coord_field = global.viewsWare["case-form"]
@@ -189,15 +196,13 @@ this.geoPicker = (fieldName, el) ->
         carBlip(osmap, osmap.getCenter()))
 
 
-# Reverse geocoding picker
+# Reverse geocoding picker (coordinates -> address)
 #
-# Performs reverse geocoding for address field and map in the same view.
-# 
 # Recognized field metas:
 # 
-# - targetAddr
-# 
 # - targetMap
+#
+# - targetAddr
 this.reverseGeoPicker = (fieldName, el) ->
   coords =
     lonlatFromShortString(
@@ -208,7 +213,6 @@ this.reverseGeoPicker = (fieldName, el) ->
 
   osmCoords = coords.clone().transform(wsgProj, osmProj)
 
-  # TODO Drop hardcoded name of the «real» parent view (case-form)
   map_field = global.viewsWare["case-form"]
               .bbInstance.fieldHash[fieldName].meta['targetMap']
   addr_field = global.viewsWare["case-form"]
@@ -225,5 +229,4 @@ this.reverseGeoPicker = (fieldName, el) ->
         addr = buildReverseAddress(res)
 
         global.viewsWare['case-form'].knockVM[addr_field](addr)
-        # global.viewsWare['case-form'].knockVM[city_field](res.address.city)
     )
