@@ -171,7 +171,7 @@ this.geoPicker = (fieldName, el) ->
               .children("input[name=#{fieldName}]")
               .val()
 
-  view = $(el).parents("[id*=view]")
+  view = elementView($(el))
   
   # TODO Drop hardcoded name of the «real» parent view (case-form)
   # 
@@ -217,7 +217,7 @@ this.reverseGeoPicker = (fieldName, el) ->
       $(el).parents('.input-append')
            .children("input[name=#{fieldName}]")
            .val())
-  view = $(el).parents("[id*=view]")
+  view = elementView($(el))
 
   osmCoords = coords.clone().transform(wsgProj, osmProj)
 
