@@ -11,4 +11,4 @@ GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO carma_db_sync; -- FIXME:
 CREATE ROLE carma_geo PASSWORD 'md556d33ece5e1452257fa0a086e7945c0b' NOSUPERUSER NOCREATEDB NOCREATEROLE INHERIT LOGIN;
 CREATE TABLE geo_partners (id INTEGER PRIMARY KEY, name TEXT, city TEXT, address TEXT);
 SELECT AddGeometryColumn ('geo_partners', 'coords', 4326, 'POINT', 2);
-GRANT SELECT, UPDATE ON geo_partners IN SCHEME public TO carma_geo;
+GRANT SELECT, UPDATE ON geo_partners TO carma_geo;
