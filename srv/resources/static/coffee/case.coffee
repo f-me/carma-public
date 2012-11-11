@@ -257,6 +257,7 @@ this.initPartnerTables = ($view,parentView) ->
     # Store partner cache for use with maps
     cache = {}
     rows = for p in objs
+      p.name = p.name.trim()
       cache[p.id.split(":")[1]] = p
       [p.name        || '',
        p.city        || '',

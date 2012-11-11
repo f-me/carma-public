@@ -46,6 +46,11 @@ this.reinstallMarkers = (osmap, layerName) ->
 
 # Setup OpenLayers map
 #
+# - parentView: parent view this map belongs to. Note that address and
+#               coordinates are still taken from the `case` view. This
+#               is used to set partner data in the parent VM when
+#               clicking partner blips.
+# 
 # Template for OL placeholder may specify HTML5 attributes:
 #
 # - data-target-addr: if set, map will be clickable, enabled for
@@ -55,10 +60,7 @@ this.reinstallMarkers = (osmap, layerName) ->
 # - data-target-coords: read initial position & blip from this field
 #                       of `case`, write geocoding results here (if
 #                       it's enabled)
-#
-# TODO Hardcoded `case` view is used for address and coordinates
-# fields, even if the map itself is in a different view.
-this.initOSM = (el, table) ->
+this.initOSM = (el, parentView) ->
   return if $(el).hasClass("olMap")
 
   fieldName = $(el).attr("name")
@@ -108,11 +110,13 @@ this.initOSM = (el, table) ->
     )
 
   partner_field = modelField(modelName, fieldName).meta["targetPartner"]
-  partnerAddr_field = modelField(modelName, fieldName).meta["targetPartnerId"]
-  table_field = modelField(modelName, fieldName).meta["partnerTable"]
-  table = view.find("table##{table_field}")
 
   if partner_field?
+    partnerAddr_field = modelField(modelName, fieldName).meta["targetPartnerAddr"]
+  
+    table_field = modelField(modelName, fieldName).meta["partnerTable"]
+    table = view.find("table##{table_field}")
+
     # Redraw partner blips on map when dragging or zooming
     osmap.events.register("moveend", osmap, (e) ->
       # Calculate new bounding box
@@ -124,8 +128,9 @@ this.initOSM = (el, table) ->
       b.transform(osmProj, wsgProj)
       $.getJSON("/geo/partners/#{a.lon},#{a.lat}/#{b.lon},#{b.lat}/", (pres) ->
         partnerBlips(
-          osmap, pres, table.data("cache"), view,
-          partner_field, partnerAddr_field))
+          osmap, pres, table.data("cache"),
+          parentView, partner_field, partnerAddr_field)
+      )
     )
 
   $(el).data("osmap", osmap)
@@ -151,15 +156,17 @@ this.carBlip = (osmap, coords) ->
 #               an object with fields "name", "addrDeFacto", "phone1",
 #               "workingTime"
 #
-# - view
-#
+# - parentView: parentView for contractor
+# 
 # - partnerField: clicking a button in marker popup will set this
-#                 value in given view to partner name
+#                 value in given VM to partner name
 #
-# - partnerAddr: same as partnerField, but for partner address
-this.partnerBlips = (osmap, partners, tableCache, view, partnerField, partnerAddr) ->
+# - partnerAddrField: same as partnerField, but for partner address
+this.partnerBlips = (osmap, partners, tableCache,
+                     parentView, partnerField, partnerAddrField) ->
   markers = do (osmap) -> reinstallMarkers(osmap, "Partners")
   tpl = $("#partner-popup-template").html()
+
   for blip in partners
     do (blip) ->
       # Skip partners not in table
@@ -174,13 +181,32 @@ this.partnerBlips = (osmap, partners, tableCache, view, partnerField, partnerAdd
 
       # Show partner info from table cache when clicking marker
       mrk.events.register("click", mrk, (e) ->
+
+        # Let popup know where to put new partner data
+        extra_ctx =
+          id: blip[0]
+          parentView: parentView
+          partnerField: partnerField
+          partnerAddrField: partnerAddrField
+        ctx =_.extend(partner, extra_ctx)
+        
         popup = new OpenLayers.Popup.FramedCloud(
           partner.id, mrk.lonlat,
           new OpenLayers.Size(200, 200),
-          Mustache.render(tpl, partner),
+          Mustache.render(tpl, ctx),
           null, true)
+          
         osmap.addPopup(popup))
       markers.addMarker(mrk)
+
+
+# Splice partner data into specified fields of reference
+this.pickPartnerBlip = (referenceView,
+                        partnerName, partnerAddr,
+                        partnerField, partnerAddrField) ->
+  vm = findReferenceVM(referenceView)
+  vm[partnerField](partnerName)
+  vm[partnerAddrField](partnerAddr)
 
 
 # Read "32.54, 56.21" (the way coordinates are stored in model fields)

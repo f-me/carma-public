@@ -208,7 +208,7 @@ this.showComplex = (parentView, fieldName) ->
     if isDealerView or isPartnerView
       initPartnerTables view, parentView
 
-    initOSM e for e in view.find(".osMap")
+    initOSM(e, parentView) for e in view.find(".osMap")
 
 
 this.hideComplex = ->
