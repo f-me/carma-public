@@ -443,7 +443,7 @@
         <legend>Импорт VIN</legend>
         <form id="vin-import-form" onsubmit="doVin(); return false;">
           <p>
-            <select id="vin-program-select" data-bind="foreach: $data">
+            <select name="program" id="vin-program-select" data-bind="foreach: $data">
               <option data-bind="value: id, text: name" />
             </select>
             <input type="file"
