@@ -1,3 +1,5 @@
+# TODO Use city in geocoding routines!
+
 # Default marker icon size
 this.iconSize = new OpenLayers.Size(50, 50)
 
@@ -21,6 +23,9 @@ this.osmProj = new OpenLayers.Projection("EPSG:900913")
 
 # Build readable address from reverse Nominatim JSON response
 this.buildReverseAddress = (res) ->
+  if (res.error)
+    return null
+    
   addr = (res.address.road || res.address.pedestrian)
 
   if (_.isUndefined(res.address.house_number))
@@ -43,9 +48,9 @@ this.reinstallMarkers = (osmap, layerName) ->
 #
 # In case template for OL placeholder has appropriate
 # data-target-addr, data-target-city and data-target-coords
-# attributes, map will be enabled for reverse geocoding, writing
-# appropriate geodata (address, city and coordinates) to the specified
-# fields.
+# attributes, map will be enabled for clicking and reverse geocoding,
+# writing appropriate geodata (address, city and coordinates) to the
+# specified fields.
 this.initOSM = (el) ->
   return if $(el).hasClass("olMap")
 
@@ -89,16 +94,16 @@ this.initOSM = (el) ->
       coords = osmap.getLonLatFromViewPortPx(e.xy)
                .transform(osmProj, wsgProj)
 
+      if coord_field?
+        global.viewsWare['case-form']
+        .knockVM[coord_field](coords.toShortString())
+
       $.getJSON(nominatimRevQuery + "lon=#{coords.lon}&lat=#{coords.lat}",
       (res) ->
         addr = buildReverseAddress(res)
 
         if addr_field?
           global.viewsWare['case-form'].knockVM[addr_field](addr)
-        # global.viewsWare['case-form'].knockVM[city_field](res.address.city)
-
-        if coord_field?
-          global.viewsWare['case-form'].knockVM[coord_field](coords.toShortString())
 
         carBlip(osmap, osmap.getLonLatFromViewPortPx(e.xy))
       )
@@ -151,12 +156,15 @@ this.geoPicker = (fieldName, el) ->
               .children("input[name=#{fieldName}]")
               .val()
 
+  view = $(el).parents("[id*=view]")
+  
   # TODO Drop hardcoded name of the «real» parent view (case-form)
   #
   # elementModel could be used, but global.models has no fieldHash
   # cache for easy field lookup
   coord_field = global.viewsWare["case-form"]
                 .bbInstance.fieldHash[fieldName].meta['targetCoords']
+                
   map_field = global.viewsWare["case-form"]
               .bbInstance.fieldHash[fieldName].meta['targetMap']
 
@@ -170,7 +178,6 @@ this.geoPicker = (fieldName, el) ->
     if res.length > 0
       lonlat = new OpenLayers.LonLat(res[0].lon, res[0].lat)
 
-      view = $(el).parents("[id*=view]")
       if coord_field?
         global.viewsWare['case-form'].knockVM[coord_field](lonlat.toShortString())
 
@@ -180,3 +187,43 @@ this.geoPicker = (fieldName, el) ->
               lonlat.transform(wsgProj, osmProj),
               zoomLevel)
         carBlip(osmap, osmap.getCenter()))
+
+
+# Reverse geocoding picker
+#
+# Performs reverse geocoding for address field and map in the same view.
+# 
+# Recognized field metas:
+# 
+# - targetAddr
+# 
+# - targetMap
+this.reverseGeoPicker = (fieldName, el) ->
+  coords =
+    lonlatFromShortString(
+      $(el).parents('.input-append')
+           .children("input[name=#{fieldName}]")
+           .val())
+  view = $(el).parents("[id*=view]")
+
+  osmCoords = coords.clone().transform(wsgProj, osmProj)
+
+  # TODO Drop hardcoded name of the «real» parent view (case-form)
+  map_field = global.viewsWare["case-form"]
+              .bbInstance.fieldHash[fieldName].meta['targetMap']
+  addr_field = global.viewsWare["case-form"]
+                .bbInstance.fieldHash[fieldName].meta['targetAddr']
+
+  if map_field?
+    osmap = view.find("[name=#{map_field}]").data("osmap")
+    osmap.setCenter(osmCoords, zoomLevel)
+    carBlip(osmap, osmap.getCenter())
+
+  if addr_field?
+    $.getJSON(nominatimRevQuery + "lon=#{coords.lon}&lat=#{coords.lat}",
+      (res) ->
+        addr = buildReverseAddress(res)
+
+        global.viewsWare['case-form'].knockVM[addr_field](addr)
+        # global.viewsWare['case-form'].knockVM[city_field](res.address.city)
+    )
