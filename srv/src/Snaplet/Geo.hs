@@ -48,7 +48,7 @@ instance HasPostgres (Handler b Geo) where
 
 
 routes :: [(ByteString, Handler b Geo ())]
-routes = [ ("/partners/:coords/:dist", method GET $ nearbyPartners)
+routes = [ ("/partners/:coords1/:coords2", method GET $ withinPartners)
          ]
 
 
@@ -80,24 +80,26 @@ newtype Partner = Partner (Int, Double, Double) deriving (FromRow, Show, ToJSON)
 
 
 ------------------------------------------------------------------------------
--- | Query to fetch nearby partners.
+-- | Query to fetch partners within a box.
 --
--- Splice lon, lat and distance.
-nearbyQuery :: Query
-nearbyQuery = "SELECT id, st_x(coords), st_y(coords) FROM geo_partners WHERE ST_DWithin(coords, ST_PointFromText('POINT(? ?)', 4326), ?);"
+-- Splice lon1, lat1 and lon2, lat2, where coordinates are those of
+-- opposite 2D box points.
+withinQuery :: Query
+withinQuery = "SELECT id, st_x(coords), st_y(coords) FROM geo_partners WHERE coords && ST_SetSRID(ST_MakeBox2D(ST_Point(?, ?), ST_Point(?, ?)), 4326);"
 
 
 ------------------------------------------------------------------------------
--- | Serve list of partners within a specified distance from a point.
+-- | Serve list of partners within a specified rectangle.
+-- 
 -- Response body is a list of triples @[partner_id, lon, lat]@.
-nearbyPartners :: Handler b Geo ()
-nearbyPartners = do
-  c <- getCoordsParam "coords"
-  d <- getParamWith double "dist"
+withinPartners :: Handler b Geo ()
+withinPartners = do
+  c1 <- getCoordsParam "coords1"
+  c2 <- getCoordsParam "coords2"
 
-  case (c, d) of
-    (Just (lon, lat), Just dist) -> do
-                   (results :: [Partner]) <- query nearbyQuery (lon, lat, dist)
+  case (c1, c2) of
+    (Just (lon1, lat1), Just (lon2, lat2)) -> do
+                   (results :: [Partner]) <- query withinQuery (lon1, lat1, lon2, lat2)
                    modifyResponse $ setContentType "application/json"
                    writeLBS $ A.encode results
     _ -> error "Bad request"
