@@ -203,12 +203,12 @@ this.showComplex = (parentView, fieldName) ->
   $(".complex-field").hide()
 
   view.show ->
-    initOSM e for e in view.find(".osMap")
-
     isDealerView = depViewName.match(/towDealer_partner-view/)
     isPartnerView = depViewName.match(/contractor_partner-view/)
     if isDealerView or isPartnerView
       initPartnerTables view, parentView
+
+    initOSM e for e in view.find(".osMap")
 
 
 this.hideComplex = ->

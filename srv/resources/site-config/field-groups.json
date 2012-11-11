@@ -607,6 +607,13 @@
             }
         },
         {
+            "name": "partnerMap",
+            "type": "map",
+            "meta": {
+                "targetCoords": "caseAddress_coords"
+            }
+        },
+        {
             "name": "partnerTable",
             "type": "partnerTable"
         }

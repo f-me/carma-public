@@ -56,29 +56,31 @@ this.reinstallMarkers = (osmap, layerName) ->
 #                       of `case`, write geocoding results here (if
 #                       it's enabled)
 #
-# Note that `case` model is used for address and coordinates fields,
-# even if the map itself is in a different view.
-this.initOSM = (el) ->
+# TODO Hardcoded `case` view is used for address and coordinates
+# fields, even if the map itself is in a different view.
+this.initOSM = (el, table) ->
   return if $(el).hasClass("olMap")
 
   fieldName = $(el).attr("name")
+  view = elementView($(el))
+  modelName = elementModel($(el))
 
   osmap = new OpenLayers.Map(el.id)
   osmap.addLayer(new OpenLayers.Layer.OSM())
-
+  
   # Default location
   osmap.setCenter(new OpenLayers.LonLat(37.617874,55.757549)
                   .transform(wsgProj, osmProj),
                   zoomLevel)
 
 
-  # TODO Drop hardcoded name of the «real» parent view (case-form)
-  coord_field = $(el).data("target-coords")
+  coord_field = modelField(modelName, fieldName).meta["targetCoords"]
+  addr_field = modelField(modelName, fieldName).meta["targetAddr"]
 
-  addr_field = $(el).data("target-addr")
 
   # Place a blip and recenter if coordinates are already known
   if coord_field?
+    # TODO Drop hardcoded name of the case view (case-form)
     coords = global.viewsWare['case-form'].knockVM[coord_field]()
     if coords?
       coords = lonlatFromShortString(coords)
@@ -105,18 +107,26 @@ this.initOSM = (el) ->
       )
     )
 
-  # Redraw partner blips on map when dragging or zooming
-  osmap.events.register("moveend", osmap, (e) ->
-    # Calculate new bounding box
-    bounds = osmap.getExtent()
-    pts = bounds.toArray()
-    a = new OpenLayers.LonLat(pts[0], pts[1])
-    b = new OpenLayers.LonLat(pts[2], pts[3])
-    a.transform(osmProj, wsgProj)
-    b.transform(osmProj, wsgProj)
-    $.getJSON("/geo/partners/#{a.lon},#{a.lat}/#{b.lon},#{b.lat}/", (pres) ->
-      partnerBlips(osmap, pres))
-  )
+  partner_field = modelField(modelName, fieldName).meta["targetPartner"]
+  partnerAddr_field = modelField(modelName, fieldName).meta["targetPartnerId"]
+  table_field = modelField(modelName, fieldName).meta["partnerTable"]
+  table = view.find("table##{table_field}")
+
+  if partner_field?
+    # Redraw partner blips on map when dragging or zooming
+    osmap.events.register("moveend", osmap, (e) ->
+      # Calculate new bounding box
+      bounds = osmap.getExtent()
+      pts = bounds.toArray()
+      a = new OpenLayers.LonLat(pts[0], pts[1])
+      b = new OpenLayers.LonLat(pts[2], pts[3])
+      a.transform(osmProj, wsgProj)
+      b.transform(osmProj, wsgProj)
+      $.getJSON("/geo/partners/#{a.lon},#{a.lat}/#{b.lon},#{b.lat}/", (pres) ->
+        partnerBlips(
+          osmap, pres, table.data("cache"), view,
+          partner_field, partnerAddr_field))
+    )
 
   $(el).data("osmap", osmap)
 
@@ -129,18 +139,48 @@ this.carBlip = (osmap, coords) ->
     new OpenLayers.Marker(coords, ico))
 
 
-# Render list of partners on the map
+# Render list of partner markers on the map
 #
-# partners is a list of [id, lon, lat]
-this.partnerBlips = (osmap, partners) ->
+# Arguments:
+# 
+# - osmap: map to render on
+# 
+# - partners: a list of [id, lon, lat] triples
+#
+# - tableCache: a hash of all partners, where key is id and value is
+#               an object with fields "name", "addrDeFacto", "phone1",
+#               "workingTime"
+#
+# - view
+#
+# - partnerField: clicking a button in marker popup will set this
+#                 value in given view to partner name
+#
+# - partnerAddr: same as partnerField, but for partner address
+this.partnerBlips = (osmap, partners, tableCache, view, partnerField, partnerAddr) ->
   markers = do (osmap) -> reinstallMarkers(osmap, "Partners")
+  tpl = $("#partner-popup-template").html()
   for blip in partners
     do (blip) ->
+      # Skip partners not in table
+      return if not tableCache[blip[0]]
+      
+      partner = tableCache[blip[0]]
       coords = new OpenLayers.LonLat(blip[1], blip[2])
                    .transform(wsgProj, osmProj)
-      markers.addMarker(
-        new OpenLayers.Marker(
-          coords, new OpenLayers.Icon("/s/img/tow-icon.png", iconSize)))
+
+      mrk = new OpenLayers.Marker(
+          coords, new OpenLayers.Icon("/s/img/tow-icon.png", iconSize))
+
+      # Show partner info from table cache when clicking marker
+      mrk.events.register("click", mrk, (e) ->
+        popup = new OpenLayers.Popup.FramedCloud(
+          partner.id, mrk.lonlat,
+          new OpenLayers.Size(200, 200),
+          Mustache.render(tpl, partner),
+          null, true)
+        osmap.addPopup(popup))
+      markers.addMarker(mrk)
 
 
 # Read "32.54, 56.21" (the way coordinates are stored in model fields)
@@ -164,8 +204,9 @@ this.lonlatFromShortString = (coords) ->
 #
 # - cityField: used with field value for geocoder query
 #
-# All meta values must reference field names in `case` model.
-#
+# TODO: Currently geoPicker fills fields of the `case` model. View for
+# this model is hardcoded.
+# 
 # Arguments are picker field name and picker element.
 this.geoPicker = (fieldName, el) ->
   addr = $(el).parents('.input-append')
@@ -173,20 +214,13 @@ this.geoPicker = (fieldName, el) ->
               .val()
 
   view = elementView($(el))
+  modelName = elementModel($(el))
   
+  coord_field = modelField(modelName, fieldName).meta['targetCoords']
+  map_field = modelField(modelName, fieldName).meta['targetMap']
+  city_field = modelField(modelName, fieldName).meta['cityField']
+
   # TODO Drop hardcoded name of the «real» parent view (case-form)
-  # 
-  # elementModel could be used, but global.models has no fieldHash
-  # cache for easy field lookup
-  coord_field = global.viewsWare["case-form"]
-                .bbInstance.fieldHash[fieldName].meta['targetCoords']
-                
-  map_field = global.viewsWare["case-form"]
-              .bbInstance.fieldHash[fieldName].meta['targetMap']
-
-  city_field = global.viewsWare["case-form"]
-               .bbInstance.fieldHash[fieldName].meta['cityField']
-
   if city_field?
     addr = global.viewsWare['case-form'].knockVM[city_field]() + ", " + addr
 
@@ -222,10 +256,8 @@ this.reverseGeoPicker = (fieldName, el) ->
 
   osmCoords = coords.clone().transform(wsgProj, osmProj)
 
-  map_field = global.viewsWare["case-form"]
-              .bbInstance.fieldHash[fieldName].meta['targetMap']
-  addr_field = global.viewsWare["case-form"]
-                .bbInstance.fieldHash[fieldName].meta['targetAddr']
+  addr_field = modelField(modelName, fieldName).meta['targetAddr']
+  map_field = modelField(modelName, fieldName).meta['targetMap']
 
   if map_field?
     osmap = view.find("[name=#{map_field}]").data("osmap")
