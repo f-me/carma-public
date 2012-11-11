@@ -7,6 +7,8 @@ this.iconSize = new OpenLayers.Size(50, 50)
 # Default map zoom level
 this.zoomLevel = 16
 
+this.beyondTheClouds = 10
+
 
 this.nominatimRevQuery =
   "http://nominatim.openstreetmap.org/reverse.php?format=json&accept-language=ru-RU,ru&"
@@ -132,6 +134,10 @@ this.initOSM = (el, parentView) ->
           parentView, partner_field, partnerAddr_field)
       )
     )
+    _.delay(
+      () ->
+       osmap.setCenter(osmap.getCenter(), beyondTheClouds, false, true)
+      500)
 
   $(el).data("osmap", osmap)
 
