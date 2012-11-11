@@ -312,11 +312,11 @@ applyHooks = (hooks, selectors, args...) ->
 
 # Find view for this element
 this.elementView = (elt) ->
-  $(elt).parents("[id*=view]")
+  _.last($(elt).parents("[id*=view]"))
   
 # Find out which model this element belongs to
 this.elementModel = (elt) ->
-  elementView(elt)[0].id.split("-")[0]
+  elementView(elt).id.split("-")[0]
 
 # Get field object for named model and field
 this.modelField = (modelName, fieldName) ->

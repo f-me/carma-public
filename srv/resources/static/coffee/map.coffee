@@ -62,7 +62,7 @@ this.initOSM = (el, table) ->
   return if $(el).hasClass("olMap")
 
   fieldName = $(el).attr("name")
-  view = elementView($(el))
+  view = $(elementView($(el)))
   modelName = elementModel($(el))
 
   osmap = new OpenLayers.Map(el.id)
@@ -213,7 +213,7 @@ this.geoPicker = (fieldName, el) ->
               .children("input[name=#{fieldName}]")
               .val()
 
-  view = elementView($(el))
+  view = $(elementView($(el)))
   modelName = elementModel($(el))
   
   coord_field = modelField(modelName, fieldName).meta['targetCoords']
@@ -252,7 +252,8 @@ this.reverseGeoPicker = (fieldName, el) ->
       $(el).parents('.input-append')
            .children("input[name=#{fieldName}]")
            .val())
-  view = elementView($(el))
+  view = $(elementView($(el)))
+  modelName = elementModel($(el))
 
   osmCoords = coords.clone().transform(wsgProj, osmProj)
 
