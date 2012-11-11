@@ -46,25 +46,21 @@ this.reinstallMarkers = (osmap, layerName) ->
 
 # Setup OpenLayers map
 #
-# In case template for OL placeholder has appropriate
-# data-target-addr, data-target-city and data-target-coords
-# attributes, map will be enabled for clicking and reverse geocoding,
-# writing appropriate geodata (address, city and coordinates) to the
-# specified fields of `case` model.
+# Template for OL placeholder may specify HTML5 attributes:
+#
+# - data-target-addr: map will be enabled for clicking and reverse
+#                     geocoding (clicking map will write result to
+#                     this field on `case` model)
+#
+# - data-target-coords: read initial position & blip from this field,
+#                       write geocoding results here (if it's enabled)
 this.initOSM = (el) ->
   return if $(el).hasClass("olMap")
 
   fieldName = $(el).attr("name")
 
   osmap = new OpenLayers.Map(el.id)
-  clicker = new OpenLayers.Handler.Click(el.id)
-
   osmap.addLayer(new OpenLayers.Layer.OSM())
-  markers = new OpenLayers.Layer.Markers("Car")
-  osmap.addLayer(markers)
-
-  partners = new OpenLayers.Layer.Markers("Partners")
-  osmap.addLayer(partners)
 
   # Default location
   osmap.setCenter(new OpenLayers.LonLat(37.617874,55.757549)
@@ -77,19 +73,19 @@ this.initOSM = (el) ->
                 .bbInstance.fieldHash[fieldName].meta['targetCoords']
 
 
+  addr_field = global.viewsWare["case-form"]
+                .bbInstance.fieldHash[fieldName].meta['targetAddr']
+
   # Place a blip and recenter if coordinates are already known
   if coord_field?
-    coords = lonlatFromShortString(global.viewsWare['case-form']
-            .knockVM[coord_field]())
+    coords = global.viewsWare['case-form'].knockVM[coord_field]()
     if coords?
+      coords = lonlatFromShortString(coords)
       osmap.setCenter(coords.transform(wsgProj, osmProj), zoomLevel)
       carBlip(osmap, coords)
 
   # Setup handler if map is clickable
-  if ($(el).data("target-addr"))
-    addr_field = global.viewsWare["case-form"]
-                 .bbInstance.fieldHash[fieldName].meta['targetAddr']
-
+  if addr_field?
     osmap.events.register("click", osmap, (e) ->
       coords = osmap.getLonLatFromViewPortPx(e.xy)
                .transform(osmProj, wsgProj)
@@ -102,12 +98,24 @@ this.initOSM = (el) ->
       (res) ->
         addr = buildReverseAddress(res)
 
-        if addr_field?
-          global.viewsWare['case-form'].knockVM[addr_field](addr)
+        global.viewsWare['case-form'].knockVM[addr_field](addr)
 
         carBlip(osmap, osmap.getLonLatFromViewPortPx(e.xy))
       )
     )
+
+  # Redraw partner blips on map when dragging or zooming
+  osmap.events.register("moveend", osmap, (e) ->
+    # Calculate new bounding box
+    bounds = osmap.getExtent()
+    pts = bounds.toArray()
+    a = new OpenLayers.LonLat(pts[0], pts[1])
+    b = new OpenLayers.LonLat(pts[2], pts[3])
+    a.transform(osmProj, wsgProj)
+    b.transform(osmProj, wsgProj)
+    $.getJSON("/geo/partners/#{a.lon},#{a.lat}/#{b.lon},#{b.lat}/", (pres) ->
+      partnerBlips(osmap, pres))
+  )
 
   $(el).data("osmap", osmap)
 
