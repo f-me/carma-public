@@ -620,6 +620,10 @@
                 "label": "Primera"
             },
             {
+                "value": "pathfinder",
+                "label": "Pathfinder"
+            },
+            {
                 "value": "teana",
                 "label": "Teana"
             },
