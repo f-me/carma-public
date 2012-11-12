@@ -223,6 +223,12 @@ renderChecks = (name, trueChecks) ->
 this.removeCaseMain = ->
   $("body").off "change.input"
 
+# Find VM of reference by its view
+this.findReferenceVM = (view) ->
+  kase = global.viewsWare["case-form"].knockVM
+  return _.find(kase.servicesReference(),
+                (svc) -> svc.view is view)
+
 # get partners and show them in table
 # this is called from local.coffe:showCase
 this.initPartnerTables = ($view,parentView) ->
@@ -243,18 +249,22 @@ this.initPartnerTables = ($view,parentView) ->
       svc["#{partnerType}_partner"](name)
       svc["#{partnerType}_address"]("#{city}, #{addr}")
 
-
   table = table.dataTable()
-  fields = "name,city,addrDeFacto,phone1,workingTime"
+  fields = "id,name,city,addrDeFacto,phone1,workingTime"
   dealer = if partnerType is "towDealer" then 1 else 0
   select = "city==#{kase.cityLocal()},isActive==1,isDealer==#{dealer}"
   $.getJSON "/all/partner?fields=#{fields}&select=#{select}", (objs) ->
+    # Store partner cache for use with maps
+    cache = {}
     rows = for p in objs
+      p.name = p.name.trim()
+      cache[p.id.split(":")[1]] = p
       [p.name        || '',
        p.city        || '',
        p.addrDeFacto || '',
        p.phone1      || '',
        p.workingTime || '']
+    table.data("cache", cache)
     table.fnClearTable()
     table.fnAddData(rows)
 

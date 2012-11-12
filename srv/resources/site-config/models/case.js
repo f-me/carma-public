@@ -10,6 +10,36 @@
             "targets": [
                 "caseAddress_address"
             ],
+            "meta": {
+                "targetMap": "caseAddress_map",
+                "targetCoords": "caseAddress_coords",
+                "cityField": "cityLocal"
+            }
+        },
+        {
+            "targets": [
+                "caseAddress_coords"
+            ],
+            "meta": {
+                "targetMap": "caseAddress_map",
+                "targetAddr": "caseAddress_address",
+                "targetCity": "cityLocal"
+            }
+        },
+        {
+            "targets": [
+                "caseAddress_map"
+            ],
+            "meta": {
+                "targetAddr": "caseAddress_address",
+                "targetCity": "cityLocal",
+                "targetCoords": "caseAddress_coords"
+            }
+        },
+        {
+            "targets": [
+                "caseAddress_address"
+            ],
             "canRead": [
                 "partner",
                 "front",
@@ -74,6 +104,7 @@
         },
         {
             "targets": [
+                "caseAddress_map",
                 "caseAddress_coords",
                 "caseAddress_city",
                 "caseAddress_comment"
