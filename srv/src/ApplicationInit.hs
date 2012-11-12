@@ -27,6 +27,7 @@ import Snap.Snaplet.Vin
 import Snaplet.SiteConfig
 import Snaplet.DbLayer
 import Snaplet.FileUpload
+import Snaplet.Geo
 ------------------------------------------------------------------------------
 import Application
 import ApplicationHandlers
@@ -126,13 +127,13 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   v <- nestSnaplet "vin" vin vinInit
   fu <- nestSnaplet "upload" fileUpload fileUploadInit
+  g <- nestSnaplet "geo" geo geoInit
 
   l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10)
        [logger text (file "log/frontend.log")]
 
   addRoutes routes
-  return $ App h s authMgr logdUsrs allUsrs actLock c d pgs v fu l
-
+  return $ App h s authMgr logdUsrs allUsrs actLock c d pgs v fu g l
 
 getUsrs authDb = do
   readJSON authDb :: IO UsersDict

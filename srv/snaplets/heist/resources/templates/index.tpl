@@ -54,6 +54,7 @@
     <script src="/s/js/dictionaries.js" />
     <script src="/s/js/metamodel.js" />
     <script src="/s/js/search.js" />
+    <script src="/s/js/map.js" />
     <script src="/s/js/main.js" />
     <script src="/s/js/local.js" />
     <script src="/s/js/viewsware.js" />
@@ -1064,7 +1065,7 @@
                                       66, event);"
                    />
             <span class="add-on"><i class="icon icon-search"
-               onclick="doPick('{{ meta.picker }}', '{{ name }}', event.srcElement);"/>
+               onclick="doPick('{{ meta.picker }}', '{{ name }}', event.target);"/>
             </span>
           </div>
         </div>
@@ -1149,12 +1150,15 @@
       </div>
     </script>
 
+
     <script type="text/template"
             class="field-template"
             id="map-field-template">
       <div class="control-group">
         <div class="controls">
-          <div style="height:600px;" id="{{ name }}" class="osMap"></div>
+          <div style="height:600px;" id="{{ viewName }}-{{ name }}"
+               name="{{ name }}"
+               class="osMap"></div>
         </div>
       </div>
     </script>
@@ -1597,6 +1601,15 @@
         </select>
         <input type="button" class="btn reload" value="Обновить стоимость" />
       </div>
+    </script>
+
+    <script type="text/template" id="partner-popup-template">
+      <div><strong>{{ name }}</strong></div>
+      <div>{{ addrDeFacto }}</div>
+      <div>{{ phone1 }}</div>
+      <div>{{ workingTime }}</div>
+      <div><a class="btn btn-mini btn-primary"
+              onclick="pickPartnerBlip('{{ parentView }}','{{ name }}', '{{ addrDeFacto }}', '{{ partnerField }}', '{{ partnerAddrField }}');">Выбрать</a></div>
     </script>
 
   </body>

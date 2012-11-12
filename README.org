@@ -51,6 +51,10 @@
 
   - `infoText`: extra tip for field to show in hover bubble
 
+  - `targetCoords`, `targetMap`, `targetAddr`, `cityField` and such:
+    used to specify fields to receive geocoding information;
+    documented in geopicker docs in `map.coffee`
+
   Non-meta field annotations are described in [[https://github.com/f-me/snaplet-redson/blob/master/README.org][snaplet-redson]] docs.
 * Dictionaries
 ** Syntax
