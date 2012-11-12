@@ -1,12 +1,15 @@
 this.setupRKCScreen = (viewName, args) ->
   setTimeout ->
     caset = $("#rkc-services-table")
+    frontt = $('#rkc-operators-table')
     backt = $("#rkc-back-office-table")
 
     return if caset.hasClass("dataTable")
+    return if frontt.hasClass('dataTable')
     return if backt.hasClass("dataTable")
 
     ct = mkDataTable caset, { bFilter : false, bInfo : false }
+    ft = mkDataTable frontt, { bFilter : false, bInfo : false }
     bt = mkDataTable backt, { bFilter : false, bInfo : false }
 
 
@@ -59,6 +62,7 @@ this.setupRKCScreen = (viewName, args) ->
       $.getJSON("/rkc" + args, (result) ->
         dict = global.dictValueCache
         ct.fnClearTable()
+        ft.fnClearTable()
         bt.fnClearTable()
 
         totalServices.val(result.case.summary.total)
@@ -80,6 +84,13 @@ this.setupRKCScreen = (viewName, args) ->
             cinfo.limited]
 
         ct.fnAddData(crows)
+
+        frows = for finfo in result.front.operators
+          frow = [
+            finfo.name,
+            Math.floor(finfo.avg / 60) + ":" + (finfo.avg % 60)]
+
+        ft.fnAddData(frows)
 
         totalActions.val(result.back.summary.total)
         totalIncompleteActions.val(result.back.summary.undone)

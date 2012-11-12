@@ -18,6 +18,7 @@ import qualified Control.Exception as E
 import Data.Aeson
 import Data.Maybe
 import Data.Monoid
+import Data.List (intersect)
 import Data.Time
 import Data.String
 import Data.ByteString (ByteString)
@@ -38,18 +39,25 @@ import Snap.Snaplet.SimpleLog
 -- TODO: Use 'model.field' instead of 'table.column'
 -------------------------------------------------------------------------------
 
+runQuery_ :: (PS.HasPostgres m, MonadLog m, PS.FromRow r) => PreQuery -> m [r]
+runQuery_ pq = runQuery [relations pq]
+
 -- Column of table is in list
 inList :: T.Text -> T.Text -> [T.Text] -> PreQuery
-inList tbl col vals = preQuery [] [tbl] [T.concat [tbl, ".", col, " in ?"]] [PS.In vals]
+inList tbl col vals = preQuery [] [tbl] [T.concat [tbl, ".", col, " in ?"]] [] [] [PS.In vals]
 
 equals :: T.Text -> T.Text -> T.Text -> PreQuery
-equals tbl col val = preQuery [] [tbl] [T.concat [tbl, ".", col, " = ?"]] [val]
+equals tbl col val = preQuery [] [tbl] [T.concat [tbl, ".", col, " = ?"]] [] [] [val]
 
 withinDay :: T.Text -> T.Text -> UTCTime -> PreQuery
-withinDay tbl col tm = preQuery_ [] [tbl] [afterStart, beforeEnd] where
+withinDay tbl col tm = preQuery_ [] [tbl] [afterStart, beforeEnd] [] [] where
   st = fromString $ formatTime defaultTimeLocale "%F %T" tm
   afterStart = T.concat [tbl, ".", col, " - '", st, "' >= '0 days'"]
   beforeEnd = T.concat [tbl, ".", col, " - '", st, "' < '1 day'"]
+
+withinToday :: T.Text -> T.Text -> PreQuery
+withinToday tbl col = preQuery_ [] [tbl] [equalsNow] [] [] where
+  equalsNow = T.concat ["date_trunc('day', ", tbl, ".", col, " + '4 hours') = date_trunc('day', now())"]
 
 -- Get start of this day for timezone
 startOfDay :: TimeZone -> UTCTime -> UTCTime
@@ -61,16 +69,22 @@ startOfThisDay :: IO UTCTime
 startOfThisDay = startOfDay <$> getCurrentTimeZone <*> getCurrentTime
 
 count :: PreQuery
-count = preQuery_ ["count(*)"] [] []
+count = preQuery_ ["count(*)"] [] [] [] []
 
 sumOf :: T.Text -> T.Text -> PreQuery
-sumOf tbl col = preQuery_ [T.concat ["sum(", tbl, ".", col, ")"]] [tbl] []
+sumOf tbl col = preQuery_ [T.concat ["sum(", tbl, ".", col, ")"]] [tbl] [] [] []
 
 notNull :: T.Text -> T.Text -> PreQuery
-notNull tbl col = preQuery_ [] [tbl] [T.concat [tbl, ".", col, " is not null"]]
+notNull tbl col = preQuery_ [] [tbl] [T.concat [tbl, ".", col, " is not null"]] [] []
 
 cond :: [T.Text] -> T.Text -> PreQuery
-cond tbls c = preQuery_ [] tbls [c]
+cond tbls c = preQuery_ [] tbls [c] [] []
+
+groupBy :: T.Text -> T.Text -> PreQuery
+groupBy tbl col = preQuery_ [] [tbl] [] [T.concat [tbl, ".", col]] []
+
+orderBy :: T.Text -> T.Text -> PreQuery
+orderBy tbl col = preQuery_ [] [tbl] [] [] [T.concat [tbl, ".", col]]
 
 --
 -- Queries for case block
@@ -97,22 +111,31 @@ towageTech = inList "servicetbl" "type" ["towage", "tech"]
 
 averageTowageTechStart :: PreQuery
 averageTowageTechStart = mconcat [
-  preQuery_ ["extract(epoch from avg(servicetbl.times_factServiceStart - casetbl.callDate))::int8"] [] [],
-  notNull "servicetbl" "times_factServiceStart",
-  notNull "casetbl" "callDate",
+  averageTime ("servicetbl", "times_factServiceStart") ("casetbl", "callDate"),
   serviceCaseRel,
   towageTech,
-  cond ["servicetbl"] "(servicetbl.suburbanMilage = 0) or (servicetbl.suburbanMilage is null)",
-  cond ["servicetbl", "casetbl"] "servicetbl.times_factServiceStart > casetbl.callDate"]
+  cond ["servicetbl"] "(servicetbl.suburbanMilage = 0) or (servicetbl.suburbanMilage is null)"]
+--averageTowageTechStart = mconcat [
+--  preQuery_ ["extract(epoch from avg(servicetbl.times_factServiceStart - casetbl.callDate))::int8"] [] [],
+--  notNull "servicetbl" "times_factServiceStart",
+--  notNull "casetbl" "callDate",
+--  serviceCaseRel,
+--  towageTech,
+--  cond ["servicetbl"] "(servicetbl.suburbanMilage = 0) or (servicetbl.suburbanMilage is null)",
+--  cond ["servicetbl", "casetbl"] "servicetbl.times_factServiceStart > casetbl.callDate"]
 
 averageTowageTechEnd :: PreQuery
 averageTowageTechEnd = mconcat [
-  preQuery_ ["extract(epoch from avg(servicetbl.times_factServiceEnd - servicetbl.times_factServiceStart))::int8"] [] [],
-  notNull "servicetbl" "times_factServiceEnd",
-  notNull "servicetbl" "times_factServiceStart",
+  averageTime ("servicetbl", "times_factServiceEnd") ("servicetbl", "times_factServiceStart"),
   towageTech,
-  cond ["servicetbl"] "(servicetbl.suburbanMilage = 0) or (servicetbl.suburbanMilage is null)",
-  cond ["servicetbl"] "servicetbl.times_factServiceEnd > servicetbl.times_factServiceStart"]
+  cond ["servicetbl"] "(servicetbl.suburbanMilage = 0) or (servicetbl.suburbanMilage is null)"]
+--averageTowageTechEnd = mconcat [
+--  preQuery_ ["extract(epoch from avg(servicetbl.times_factServiceEnd - servicetbl.times_factServiceStart))::int8"] [] [],
+--  notNull "servicetbl" "times_factServiceEnd",
+--  notNull "servicetbl" "times_factServiceStart",
+--  towageTech,
+--  cond ["servicetbl"] "(servicetbl.suburbanMilage = 0) or (servicetbl.suburbanMilage is null)",
+--  cond ["servicetbl"] "servicetbl.times_factServiceEnd > servicetbl.times_factServiceStart"]
 
 satisfaction :: PreQuery
 satisfaction = mconcat [
@@ -147,6 +170,23 @@ inCity = equals "casetbl" "garbage -> 'city'"
 withProgram :: T.Text -> PreQuery
 withProgram = equals "casetbl" "program"
 
+select :: T.Text -> T.Text -> PreQuery
+select tbl col = preQuery_ [T.concat [tbl, ".", col]] [tbl] [] [] []
+
+selectExp :: [T.Text] -> T.Text -> PreQuery
+selectExp tbls ex = preQuery_ [ex] tbls [] [] []
+
+--
+-- Queries for front block
+--
+--  "select assignedTo, extract(epoch from avg(closetime - opentime)) from actiontbl where (closetime is not null) and (opentime is not null) and (closetime > opentime) and (date_trunc('day', opentime + '4 hours') = date_trunc('day', now())) group by assignedto;"
+frontOps :: PreQuery
+frontOps = mconcat [
+  select "actiontbl" "assignedTo",
+  averageActionTime,
+  withinToday "actiontbl" "openTime",
+  groupBy "actiontbl" "assignedTo"]
+
 --
 -- Queries for back block
 --
@@ -154,18 +194,39 @@ withProgram = equals "casetbl" "program"
 undoneAction :: PreQuery
 undoneAction = equals "actiontbl" "closed" "f"
 
+averageTime :: (T.Text, T.Text) -> (T.Text, T.Text) -> PreQuery
+averageTime (tbl1, col1) (tbl2, col2) = mconcat [
+  selectExp [tbl1, tbl2] (T.concat ["extract(epoch from avg(", tbl1, ".", col1, " - ", tbl2, ".", col2, "))::int8"]),
+  notNull tbl1 col1,
+  notNull tbl2 col2,
+  cond [tbl1, tbl2] (T.concat [tbl1, ".", col1, " > ", tbl2, ".", col2])]
+
 averageActionTime :: PreQuery
-averageActionTime = mconcat [
-  preQuery_ ["extract(epoch from avg(actiontbl.closeTime - actiontbl.openTime))::int8"] [] [],
-  notNull "actiontbl" "openTime",
-  notNull "actiontbl" "closeTime",
-  cond ["actiontbl"] "actiontbl.closeTime > actiontbl.openTime"]
+averageActionTime = averageTime ("actiontbl", "closeTime") ("actiontbl", "openTime")
+--averageActionTime = mconcat [
+--  selectExp ["actiontbl"] "extract(epoch from avg(actiontbl.closeTime - actiontbl.openTime))::int8",
+--  notNull "actiontbl" "openTime",
+--  notNull "actiontbl" "closeTime",
+--  cond ["actiontbl"] "actiontbl.closeTime > actiontbl.openTime"]
 
 actionIs :: T.Text -> PreQuery
 actionIs = equals "actiontbl" "name"
 
+actionServiceRel :: PreQuery
+actionServiceRel = cond ["servicetbl", "actiontbl"] "servicetbl.type || ':' || servicetbl.id = actiontbl.parentid"
+
 actionCaseRel :: PreQuery
 actionCaseRel = cond ["casetbl", "actiontbl"] "'case:' || casetbl.id = actiontbl.caseId"
+
+-- | Add relations on tables
+relations :: PreQuery -> PreQuery
+relations q = q `mappend` (mconcat $ map snd $ filter (hasTables . fst) tableRelations) where
+  qtables = preTables q
+  hasTables ts = qtables `intersect` ts == ts
+  tableRelations = [
+    (["casetbl", "actiontbl"], actionCaseRel),
+    (["casetbl", "servicetbl"], serviceCaseRel),
+    (["servicetbl", "actiontbl"], actionServiceRel)]
 
 data AnyValue = AnyValue { toAnyValue :: ByteString }
     deriving (Eq, Ord, Read, Show)
@@ -260,6 +321,35 @@ instance ToJSON CaseInformation where
     "summary" .= s,
     "services" .= ss]
 
+data FrontInformation = FrontInformation {
+  frontOperators :: [FrontOperatorInfo] }
+    deriving (Eq, Ord, Read, Show)
+
+instance FromJSON FrontInformation where
+  parseJSON (Object v) = FrontInformation <$>
+    (v .: "operators")
+  parseJSON _ = empty
+
+instance ToJSON FrontInformation where
+  toJSON (FrontInformation f) = object [
+    "operators" .= f]
+
+data FrontOperatorInfo = FrontOperatorInfo {
+  frontOperatorName :: T.Text,
+  frontOperatorAvgTime :: Integer }
+    deriving (Eq, Ord, Read, Show)
+
+instance FromJSON FrontOperatorInfo where
+  parseJSON (Object v) = FrontOperatorInfo <$>
+    (v .: "name") <*>
+    (v .: "avg")
+  parseJSON _ = empty
+
+instance ToJSON FrontOperatorInfo where
+  toJSON (FrontOperatorInfo n a) = object [
+    "name" .= n,
+    "avg" .= a]
+
 data BackSummary = BackSummary {
   backSummaryTotalActions :: Integer,
   backSummaryTotalIncompleted :: Integer }
@@ -316,18 +406,21 @@ instance ToJSON BackInformation where
 
 data Information = Information {
   rkcCaseInformation :: CaseInformation,
+  rkcFrontInformation :: FrontInformation,
   rkcBackInformation :: BackInformation }
     deriving (Eq, Ord, Read, Show)
 
 instance FromJSON Information where
   parseJSON (Object v) = Information <$>
     (v .: "case") <*>
+    (v .: "front") <*>
     (v .: "back")
   parseJSON _ = empty
 
 instance ToJSON Information where
-  toJSON (Information c b) = object [
+  toJSON (Information c f b) = object [
     "case" .= c,
+    "front" .= f,
     "back" .= b]
 
 tryQ :: MonadLog m => T.Text -> a -> T.Text -> m a -> m a
@@ -371,6 +464,19 @@ rkcCase today services p c = scope "rkcCase" $ scope pname $ scope cname $ do
     cname = if T.null c then "all" else c
     ccity = if T.null c then mempty else mconcat [inCity c, serviceCaseRel]
 
+rkcFront :: (PS.HasPostgres m, MonadLog m) => T.Text -> T.Text -> m FrontInformation
+rkcFront progname city = scope "rkcFront" $ scope pname $ scope cname $ do
+  log Trace "Loading front info"
+  vals <- runQuery_ $ mconcat [
+    frontOps,
+    ifNotNull progname programIs,
+    ifNotNull city inCity]
+  return $ FrontInformation $ map (\(name, avg) -> FrontOperatorInfo name avg) vals
+  where
+    pname = if T.null progname then "all" else progname
+    cname = if T.null city then "all" else city
+    ifNotNull value f = if T.null value then mempty else f value
+
 backSummary :: (PS.HasPostgres m, MonadLog m) => PreQuery -> m BackSummary
 backSummary today = scope "backSummary" $ do
   log Trace "Loading summary"
@@ -413,8 +519,9 @@ rkc program city = liftIO startOfThisDay >>= rkc' where
   rkc' today = scope "rkc" $ do
     dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
     c <- rkcCase serviceToday (serviceNames dicts) program city
+    f <- rkcFront program city
     b <- rkcBack actionToday (actionNames dicts) program city
-    return $ Information c b
+    return $ Information c f b
     where
       serviceToday = withinDay "servicetbl" "createTime" today
       caseToday = withinDay "casetbl" "callDate" today

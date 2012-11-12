@@ -758,6 +758,17 @@
             </div>
             <div class="span4">
               <h2>Front Office</h2>
+              <div class="row-fluid">
+                <table id="rkc-operators-table" class="table table-stripped table-bordered">
+                  <thead>
+                    <tr>
+                      <th width="50%">Оператор</th>
+                      <th width="50%">Среднее время обработки действия</th>
+                    </tr>
+                    <tbody />
+                  </thead>
+                </table>
+              </div>
             </div>
             <div class="span4">
               <h2>Back Office</h2>
