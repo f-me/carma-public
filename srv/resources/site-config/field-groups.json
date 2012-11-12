@@ -562,7 +562,7 @@
             "type": "picker",
             "meta": {
                 "label": "Адрес",
-                "picker": "nominatimPicker"
+                "picker": "geoPicker"
             }
         },
         {
@@ -573,6 +573,15 @@
         },
         {
             "name": "coords",
+            "type": "picker",
+            "meta": {
+                "infoText": "coords",
+                "label": "Координаты",
+                "picker": "reverseGeoPicker"
+            }
+        },
+        {
+            "name": "map",
             "type": "map"
         }
     ],
@@ -595,6 +604,13 @@
             "name": "address",
             "meta": {
                 "label": "Адрес"
+            }
+        },
+        {
+            "name": "partnerMap",
+            "type": "map",
+            "meta": {
+                "targetCoords": "caseAddress_coords"
             }
         },
         {
