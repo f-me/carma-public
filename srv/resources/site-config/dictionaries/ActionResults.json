@@ -193,7 +193,7 @@
             },
             {
                 "value": "serviceFinished",
-                "label": "Услуга оказана"
+                "label": "Услуга успешно оказана"
             },
             {
                 "value": "unassignPlease",
