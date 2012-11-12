@@ -367,9 +367,9 @@ rkcCase today services p c = scope "rkcCase" $ scope pname $ scope cname $ do
   return $ CaseInformation s ss
   where
     pname = if T.null p then "all" else p
-    pprog = if T.null p then mempty else programIs p
+    pprog = if T.null p then mempty else mconcat [programIs p, serviceCaseRel]
     cname = if T.null c then "all" else c
-    ccity = if T.null c then mempty else inCity c
+    ccity = if T.null c then mempty else mconcat [inCity c, serviceCaseRel]
 
 backSummary :: (PS.HasPostgres m, MonadLog m) => PreQuery -> m BackSummary
 backSummary today = scope "backSummary" $ do
@@ -392,9 +392,9 @@ rkcBack today actions p c = scope "rkcBack" $ scope pname $ scope cname $ do
   return $ BackInformation s as
   where
     pname = if T.null p then "all" else p
-    pprog = if T.null p then mempty else mconcat [programIs p, actionCaseRel]
+    pprog = if T.null p then mempty else mconcat [programIs p, actionCaseRel, serviceCaseRel]
     cname = if T.null c then "all" else c
-    ccity = if T.null p then mempty else mconcat [inCity c, actionCaseRel]
+    ccity = if T.null p then mempty else mconcat [inCity c, actionCaseRel, serviceCaseRel]
 
 dictKeys :: T.Text -> Dictionary -> [T.Text]
 dictKeys d = fromMaybe [] . keys [d]
