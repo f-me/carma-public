@@ -259,6 +259,62 @@
 					"type": "time"
 				}
 			]
+		},
+		{
+			"model": "sms",
+			"table": "smstbl",
+			"hstore": "garbage",
+			"fields": [
+				{
+					"name": "id",
+					"type": "int",
+					"indexed": "true"
+				},
+				{
+					"name": "sender",
+					"type": "string"
+				},
+				{
+					"name": "phone",
+					"type": "string"
+				},
+				{
+					"name": "msg",
+					"type": "string"
+				},
+				{
+					"name": "action",
+					"type": "string"
+				},
+				{
+					"name": "msgid",
+					"type": "int"
+				},
+				{
+					"name": "status",
+					"type": "string"
+				},
+				{
+					"name": "lasttry",
+					"type": "time"
+				},
+				{
+					"name": "tries",
+					"type": "int"
+				},
+				{
+					"name": "ctime",
+					"type": "time"
+				},
+				{
+					"name": "sentTime",
+					"type": "time"
+				},
+				{
+					"name": "deliveredTime",
+					"type": "time"
+				}
+			]
 		}
 	],
 	"relations": [

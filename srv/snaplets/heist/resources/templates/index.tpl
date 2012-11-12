@@ -54,6 +54,7 @@
     <script src="/s/js/dictionaries.js" />
     <script src="/s/js/metamodel.js" />
     <script src="/s/js/search.js" />
+    <script src="/s/js/map.js" />
     <script src="/s/js/main.js" />
     <script src="/s/js/local.js" />
     <script src="/s/js/viewsware.js" />
@@ -443,22 +444,8 @@
         <legend>Импорт VIN</legend>
         <form id="vin-import-form" onsubmit="doVin(); return false;">
           <p>
-            <select name="program">
-              <option value="ford">Ford</option>
-              <option value="fordPlus">Ford+</option>
-              <option value="vwMotor">VW Легковые</option>
-              <option value="vwCommercial">VW Коммерческие</option>
-              <option value="opel">Opel</option>
-              <option value="hummer">Hummer</option>
-              <option value="chevroletNAO">Chevrolet NAV</option>
-              <option value="chevroletKorea">Chevrolet Korea</option>
-              <option value="cadillac">Cadillac</option>
-              <option value="vwRuslan">VW Рус-Лан</option>
-              <option value="chartis">Chartis</option>
-              <option value="vwAvilon">VW Avilon</option>
-              <option value="atlantM">Атлант-М</option>
-              <option value="autocraft">AutoCraft</option>
-              <option value="b2c">B2C</option>
+            <select name="program" id="vin-program-select" data-bind="foreach: $data">
+              <option data-bind="value: id, text: name" />
             </select>
             <input type="file"
                    name="file"
@@ -754,6 +741,17 @@
                   </div>
                   <div style="float:left">
                     <input id="satisfied-percentage" />
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h2>SMS</h2>
+                <div>
+                  <div style="float:left">
+                    Количество SMS в обработке:
+                  </div>
+                  <div style="float:left">
+                    <input id="sms-processing" />
                   </div>
                 </div>
               </div>
@@ -1067,7 +1065,7 @@
                                       66, event);"
                    />
             <span class="add-on"><i class="icon icon-search"
-               onclick="doPick('{{ meta.picker }}', '{{ name }}', event.srcElement);"/>
+               onclick="doPick('{{ meta.picker }}', '{{ name }}', event.target);"/>
             </span>
           </div>
         </div>
@@ -1152,12 +1150,15 @@
       </div>
     </script>
 
+
     <script type="text/template"
             class="field-template"
             id="map-field-template">
       <div class="control-group">
         <div class="controls">
-          <div style="height:600px;" id="{{ name }}" class="osMap"></div>
+          <div style="height:600px;" id="{{ viewName }}-{{ name }}"
+               name="{{ name }}"
+               class="osMap"></div>
         </div>
       </div>
     </script>
@@ -1600,6 +1601,15 @@
         </select>
         <input type="button" class="btn reload" value="Обновить стоимость" />
       </div>
+    </script>
+
+    <script type="text/template" id="partner-popup-template">
+      <div><strong>{{ name }}</strong></div>
+      <div>{{ addrDeFacto }}</div>
+      <div>{{ phone1 }}</div>
+      <div>{{ workingTime }}</div>
+      <div><a class="btn btn-mini btn-primary"
+              onclick="pickPartnerBlip('{{ parentView }}','{{ name }}', '{{ addrDeFacto }}', '{{ partnerField }}', '{{ partnerAddrField }}');">Выбрать</a></div>
     </script>
 
   </body>

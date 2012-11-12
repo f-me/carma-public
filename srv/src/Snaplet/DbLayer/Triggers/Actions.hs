@@ -16,7 +16,6 @@ import Data.Maybe
 import qualified Fdds as Fdds
 ------------------------------------------------------------------------------
 import WeatherApi (getWeather', tempC)
-import WeatherApi.Google (initApi)
 -----------------------------------------------------------------------------
 import Data.Time.Format (parseTime)
 import Data.Time.Clock (UTCTime)
@@ -44,6 +43,13 @@ services =
   ,"tech"
   ,"towage"
   ,"transportation"
+  ,"ken"
+  ,"bank"
+  ,"tickets"
+  ,"continue"
+  ,"deliverClient"
+  ,"averageCommissioner"
+  ,"insurance"
   ]
 
 add model field tgs = Map.unionWith (Map.unionWith (++)) $ Map.singleton model (Map.singleton field tgs)
@@ -80,7 +86,6 @@ actions
             mapM_ (setSrvMCost) =<< B.split ',' <$> get objId "services"
             return ()
                        ])
-    {-
           ,("city", [\objId val -> do
                       oldCity <- lift $ runRedisDB redis $ Redis.hget objId "city"
                       case oldCity of
@@ -88,7 +93,6 @@ actions
                         Right Nothing  -> setWeather objId val
                         Right (Just c) -> when (c /= val) $ setWeather objId val
                       ])
-    -}
           ,("car_vin", [\objId val ->
             when (B.length val == 17) $ do
               let vinKey = B.concat ["vin:", B.map toUpper val]
@@ -386,6 +390,15 @@ actionResultMap = Map.fromList
       "back" "3" (changeTime (+5*60) tm)
       objId
   )  
+  ,("prescheduleService", \objId -> do
+    setService objId "status" "serviceInProgress"
+    tm <- getService objId "times_expectedServiceEnd"
+    void $ replaceAction
+      "checkEndOfService"
+      "Уточнить у клиента окончено ли оказание услуги"
+      "back" "3" (+60)
+      objId
+  )  
   ,("serviceStillInProgress", \objId -> do
     tm <- getService objId "times_expectedServiceEnd"  
     dateNow (changeTime (+5*60) tm) >>= set objId "duetime"
@@ -422,6 +435,9 @@ actionResultMap = Map.fromList
       "Требуется уточнить информацию о ремонте у дилера (только для VW)"
       "back" "3" (+7*24*60*60)
       objId
+    partner <- getService objId "contractor_partner"
+    comment <- get objId "comment"
+    set act "comment" $ B.concat [utf8 "Партнёр: ", partner, "\n\n", comment]
   )
   ,("complaint", \objId -> do
     setService objId "status" "serviceOk"
@@ -454,6 +470,9 @@ actionResultMap = Map.fromList
       "Требуется уточнить информацию о ремонте у дилера (только для VW)"
       "back" "3" (+7*24*60*60)
       objId
+    partner <- getService objId "contractor_partner"
+    comment <- get objId "comment"
+    set act "comment" $ B.concat [utf8 "Партнёр: ", partner, "\n\n", comment]
   )
   ,("billNotReady", \objId -> dateNow (+ (5*24*60*60))  >>= set objId "duetime")
   ,("billAttached", \objId -> do
@@ -618,7 +637,8 @@ requestFddsVin objId vin = do
     Left _  -> return False
 
 setWeather objId city = do
-  weather <- liftIO $ getWeather' (initApi "ru" "utf-8") $ BU.toString city
+  conf    <- lift $ gets weather
+  weather <- liftIO $ getWeather' conf $ BU.toString city
   case weather of
     Right w -> set objId "temperature" $ B.pack $ show $ tempC w
     Left  _ -> return ()

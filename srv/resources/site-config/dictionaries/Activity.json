@@ -1,8 +1,12 @@
 {
     "entries": [
         {
-            "value": "y1",
-            "label": "xxx"
+            "value": "callTransfer",
+            "label": "Перевод звонка"
+        },
+        {
+            "value": "conferencing",
+            "label": "Конференц-связь"
         }
     ]
 }

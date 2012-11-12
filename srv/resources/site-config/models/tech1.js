@@ -403,6 +403,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "PaymentTypes",
+                "bounded": true,
                 "label": "Тип оплаты"
             }
         },
@@ -445,6 +446,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "FalseStatuses",
+                "bounded": true,
                 "label": "Ложный вызов",
                 "infoText": "falsecall"
             }
@@ -494,6 +496,7 @@
             "type": "dictionary",
             "meta": {
                 "label": "Тип запроса",
+                "bounded": true,
                 "dictionaryName": "RequestType"
             }
         },
@@ -564,71 +567,7 @@
                 "label": "Тип действия",
                 "dictionaryName": "Activity"
             }
-        },		
-        {
-            "name": "contact1",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "meta": {
-                "label": "Контакт 1"
-            }
-        },
-        {
-            "name": "contactPhone1",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "meta": {
-                "label": "Телефон 1",
-                "regexp": "phone"
-            },
-            "type": "phone"
-        },		
+        },	
         {
             "name": "contractor",
             "canRead": [
@@ -731,6 +670,7 @@
             "type": "dictionary",
             "meta": {
                 "label": "Статус услуги",
+                "bounded": true,
                 "dictionaryName": "ServiceStatuses"
             }
         },
@@ -761,8 +701,9 @@
                 "admin",
                 "programman"
             ],
-            "type": "checkbox",
+            "type": "dictionary",
             "meta": {
+                "dictionaryName": "Satisfaction",
                 "label": "Клиент доволен"
             }
         },

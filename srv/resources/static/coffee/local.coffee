@@ -43,6 +43,7 @@ localScreens = ->
     "views":
       "rkc-form":
         constructor: setupRKCScreen
+        destructor: removeRKCScreen
   "reports":
     "template": "reports-screen-template"
     "views":
@@ -202,41 +203,24 @@ this.showComplex = (parentView, fieldName) ->
   $(".complex-field").hide()
 
   view.show ->
-    initOSM e for e in view.find(".osMap")
-
     isDealerView = depViewName.match(/towDealer_partner-view/)
     isPartnerView = depViewName.match(/contractor_partner-view/)
     if isDealerView or isPartnerView
       initPartnerTables view, parentView
+
+    initOSM(e, parentView) for e in view.find(".osMap")
 
 
 this.hideComplex = ->
   $(".complex-field").hide()
   $(".default-complex-field").show()
 
-
-initOSM = (el) ->
-  return if $(el).hasClass("olMap")
-
-  osmap = new OpenLayers.Map(el.id)
-  osmap.addLayer(new OpenLayers.Layer.OSM())
-  osmap.setCenter(
-    new OpenLayers.LonLat(37.617874,55.757549)
-      .transform(
-        new OpenLayers.Projection("EPSG:4326"),
-        osmap.getProjectionObject()
-      ),
-    16 # Zoom level
-  )
-  $(el).data("osmap", osmap)
-
-
+       
 # Dispatch on some picker type
 #
-# Available picks:
-#
-# - vinFiller
-this.doPick = (pickType, args, el) ->
+# In templates, bind click to 'doPick({{meta.picker}}, ...,
+# event.target)' to call the appropriate picker.
+this.doPick = (pickType, args, elt) ->
   pickers =
 
     callPlease: (modelName) ->
@@ -244,24 +228,9 @@ this.doPick = (pickType, args, el) ->
       number = bb.get(modelName)
       global.avayaPhone && global.avayaPhone.call(number)
 
-    nominatimPicker: (fieldName, el) ->
-      addr = $(el).parents('.input-append')
-                  .children('input[name=caseAddress_address]')
-                  .val()
-      $.getJSON("/nominatim?addr=#{addr}", (res) ->
-        if res.length > 0
-          form = $(el).parents("form")
-          osmap = form.find(".olMap")
-          res1 = JSON.parse(res)
-          return if res1.length == 0
-          osmap.data().osmap.setCenter(
-            new OpenLayers.LonLat(res1[0].lon, res1[0].lat)
-              .transform(
-                new OpenLayers.Projection("EPSG:4326"),
-                new OpenLayers.Projection("EPSG:900913")
-              )
-            , 16))
-  pickers[pickType](args, el)
+    geoPicker: geoPicker
+    reverseGeoPicker: reverseGeoPicker
+  pickers[pickType](args, elt)
 
 this.kdoPick = (pickType, args, k, e) ->
   doPick pickType, args, e.srcElement if e.ctrlKey and e.keyCode == k

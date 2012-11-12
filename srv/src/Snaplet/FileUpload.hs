@@ -35,8 +35,6 @@ data FileUpload = FU { cfg      :: UploadPolicy
                      , finished :: FilePath
                      }
 
-makeLens ''FileUpload
-
 routes = [ (":model/:id/:field",       method POST   $ doUpload)
          , (":model/:id/:field/:name", method DELETE $ doDelete)
          , (":model/:id",              method DELETE $ doDeleteAll)

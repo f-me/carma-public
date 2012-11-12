@@ -14,9 +14,10 @@ import qualified Data.Aeson as Aeson
 import Snap.Core
 import Snap.Snaplet
 import Snap.Snaplet.Auth
-import Snap.Snaplet.Auth.Class
 
 ----------------------------------------------------------------------
+import Snaplet.Auth.Class
+
 import Snaplet.SiteConfig.Types
 import Snaplet.SiteConfig.Permissions
 import Snaplet.SiteConfig.Models

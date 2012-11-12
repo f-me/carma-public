@@ -1,18 +1,15 @@
-{-# LANGUAGE OverloadedStrings #-}
 
 module ApplicationHandlers where
+-- FIXME: reexport AppHandlers/* & remove import AppHandlers.* from AppInit
 
 import Prelude hiding (log)
 
 import Data.Functor
 import Control.Monad
-import Control.Monad.IO.Class
-import Control.Concurrent.STM
 
 import Data.Text (Text)
 import Data.Text.Lazy (toStrict)
 import Data.Text.Lazy.Encoding (decodeUtf8)
-import Data.Char
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.String (fromString)
@@ -25,25 +22,21 @@ import qualified Data.Map as Map
 import qualified Data.HashMap.Strict as HashMap
 
 import Data.Maybe
-import Data.List (foldl',sortBy)
+import Data.List (sortBy)
 import Data.Ord (comparing)
 
 import Data.Time
-import Data.Time.Clock (getCurrentTime)
-import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
+
+import Data.Aeson (object, (.=))
 
 import System.Locale
 
 import Snap
-import Snap.Core
-import Snap.Snaplet (with)
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
-import Snap.Snaplet.Session
 import Snap.Snaplet.SimpleLog
 import Snap.Snaplet.Vin
 import Snap.Util.FileServe (serveFile)
-import Snap.Util.Readable (fromBS)
 ------------------------------------------------------------------------------
 import qualified Snaplet.DbLayer as DB
 import qualified Snaplet.DbLayer.RKC as RKC
@@ -52,7 +45,8 @@ import Snaplet.FileUpload (doUpload', doDeleteAll')
 import qualified Nominatim
 -----------------------------------------------------------------------------
 import Application
-import CustomLogic.ActionAssignment
+import AppHandlers.MyActions
+import AppHandlers.Util
 import Util
 
 
@@ -200,6 +194,7 @@ deleteHandler = do
 
 syncHandler :: AppHandler ()
 syncHandler = scope "sync" $ do
+  extendTimeout 6000
   mdl <- getParam "model"
   from <- liftM (fmap (maybe 0 fst . B.readInt)) $ getParam "from"
   log Info $ T.concat ["Syncing ", maybe "all" T.decodeUtf8 mdl, " model(s) starting from id ", maybe "1" (fromString . show) from]
@@ -225,32 +220,10 @@ searchHandler = scope "searchHandler" $ do
 rkcHandler :: AppHandler ()
 rkcHandler = scope "rkcHandler" $ do
   p <- getParam "program"
-  info <- with db . RKC.rkc . maybe T.empty T.decodeUtf8 $ p
+  c <- getParam "city"
+  info <- with db $ RKC.rkc (maybe T.empty T.decodeUtf8 p) (maybe T.empty T.decodeUtf8 c)
   writeJSON info
 
-myActionsHandler :: AppHandler ()
-myActionsHandler = do
-  Just cUsr <- with auth currentUser
-  let uLogin = userLogin cUsr
-  logdUsers <- addToLoggedUsers cUsr
-
-  actLock <- gets actionsLock
-  do -- bracket_
-    (liftIO $ atomically $ takeTMVar actLock)
-    actions <- filter ((== Just "0") . Map.lookup "closed")
-           <$> with db (DB.readAll "action")
-    now <- liftIO getCurrentTime
-    let (newActions,oldActions) = assignActions now actions (Map.map snd logdUsers)
-    let myNewActions = take 5 $ Map.findWithDefault [] uLogin newActions
-    with db $ forM_ myNewActions $ \act ->
-      case Map.lookup "id" act of
-        Nothing -> return ()
-        Just actId -> void $ DB.update "action"
-          (last $ B.split ':' actId)
-          $ Map.singleton "assignedTo" $ T.encodeUtf8 uLogin
-    let myOldActions = Map.findWithDefault [] uLogin oldActions
-    (liftIO $ atomically $ putTMVar actLock ())
-    writeJSON $ myNewActions ++ myOldActions
 
 
 searchCallsByPhone :: AppHandler ()
@@ -285,6 +258,7 @@ findOrCreateHandler = do
 -- | Reports
 report :: AppHandler ()
 report = scope "report" $ do
+  extendTimeout 6000
   Just reportId <- getParam "program"
   fromDate <- liftM (fmap T.decodeUtf8) $ getParam "from"
   toDate <- liftM (fmap T.decodeUtf8) $ getParam "to"
@@ -307,17 +281,17 @@ report = scope "report" $ do
       v <- dateValue
       s <- validateAnd f v
       return $ T.concat [T.pack pre, s, T.pack post]
-    (fromDate', toDate') = fromTo "case"
-    (fromDate'', toDate'') = fromTo "call"
 
     fromTo mdl = (from, to) where
-      from = withinAnd id (mdl ++ ".callDate >= to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" fromDate
-      to = withinAnd addDay (mdl ++ ".callDate < to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" toDate
+      from = withinAnd id (mdl ++ " >= to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" fromDate
+      to = withinAnd addDay (mdl ++ " < to_timestamp('") "', 'DD.MM.YYYY HH24:MI:SS')" toDate
 
     addDay tm = tm { utctDay = addDays 1 (utctDay tm) }
     
-    dateConditions = catMaybes [fromDate', toDate', fromDate'', toDate'']
-  with db $ DB.generateReport dateConditions template result
+    mkCondition nm = catMaybes [from', to'] where
+      (from', to') = fromTo (T.unpack nm)
+  
+  with db $ DB.generateReport mkCondition template result
   modifyResponse $ addHeader "Content-Disposition" "attachment; filename=\"report.xlsx\""
   serveFile result
 
@@ -347,33 +321,6 @@ getUsersDict = writeJSON =<< gets allUsers
 
 ------------------------------------------------------------------------------
 -- | Utility functions
-writeJSON :: Aeson.ToJSON v => v -> AppHandler ()
-writeJSON v = do
-  modifyResponse $ setContentType "application/json"
-  writeLBS $ Aeson.encode v
-
-getJSONBody :: Aeson.FromJSON v => AppHandler v
-getJSONBody = Util.readJSONfromLBS <$> readRequestBody 4096
-
-
-addToLoggedUsers :: AuthUser -> AppHandler (Map Text (UTCTime,AuthUser))
-addToLoggedUsers u = do
-  logTVar <- gets loggedUsers
-  logdUsers <- liftIO $ readTVarIO logTVar
-  now <- liftIO getCurrentTime
-  let logdUsers' = Map.insert (userLogin u) (now,u)
-        -- filter out inactive users
-        $ Map.filter ((>addUTCTime (-90*60) now).fst) logdUsers
-  liftIO $ atomically $ writeTVar logTVar logdUsers'
-  return logdUsers'
-
-
-rmFromLoggedUsers :: AuthUser -> AppHandler ()
-rmFromLoggedUsers u = do
-  logdUsrs <- gets loggedUsers
-  liftIO $ atomically $ modifyTVar' logdUsrs
-         $ Map.delete $ userLogin u
-
 vinUploadData :: AppHandler ()
 vinUploadData = scope "vin" $ scope "upload" $ do
   log Trace "Uploading data"
@@ -420,11 +367,18 @@ getSrvTarifOptions = do
       getIds f m = map (B.split ':') $ B.split ',' $
                    fromMaybe "" $ Map.lookup f m
       get [m, id] = Map.insert "id" id <$> DB.read m id
+      get _       = return $ Map.empty
       mSrv m = (m ==) . fromMaybe "" . Map.lookup "serviceName"
       rebuilOpt :: Map ByteString ByteString -> Map ByteString ByteString
       rebuilOpt o = Map.fromList $
                     [("id"        , fromMaybe "" $ Map.lookup "id" o)
                     ,("optionName", fromMaybe "" $ Map.lookup "optionName" o)]
+
+smsProcessingHandler :: AppHandler ()
+smsProcessingHandler = scope "sms" $ do
+  res <- with db DB.smsProcessing
+  writeJSON $ object [
+    "processing" .= res]
 
 errorsHandler :: AppHandler ()
 errorsHandler = do
@@ -432,4 +386,3 @@ errorsHandler = do
   r <- readRequestBody 4096
   liftIO $ withLog l $ scope "frontend" $ do
   log Info $ toStrict $ decodeUtf8 r
-

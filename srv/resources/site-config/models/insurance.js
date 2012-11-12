@@ -13,48 +13,6 @@
             "meta": {
                 "label": "Партнёр"
             }
-        },
-        {
-            "targets": [
-                "caseAddress_address"
-            ],
-            "meta": {
-                "label": "Адрес вызова"
-            }
-        },
-        {
-            "targets": [
-                "caseAddress_address",
-                "caseAddress_coords",
-                "caseAddress_city",
-                "caseAddress_comment"
-            ],
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ]
         },		
         {
             "targets": [
@@ -488,6 +446,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "PaymentTypes",
+                "bounded": true,
                 "label": "Тип оплаты"
             }
         },
@@ -530,6 +489,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "FalseStatuses",
+                "bounded": true,
                 "label": "Ложный вызов",
                 "infoText": "falsecall"
             }
@@ -579,6 +539,7 @@
             "type": "dictionary",
             "meta": {
                 "label": "Тип запроса",
+                "bounded": true,
                 "dictionaryName": "RequestType"
             }
         },
@@ -647,41 +608,8 @@
             "type": "dictionary",
             "meta": {
                 "label": "Тип действия",
+                "bounded": true,
                 "dictionaryName": "Activity"
-            }
-        },
-		    {
-            "name": "caseAddress",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "groupName": "address",
-            "meta": {
-                "label": "Адрес вызова"
             }
         },	
         {
@@ -750,70 +678,6 @@
             "meta": {
                 "label": "Пробег аваркома за городом"
             }
-        },		
-        {
-            "name": "contact1",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "meta": {
-                "label": "Контакт 1"
-            }
-        },
-        {
-            "name": "contactPhone1",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "meta": {
-                "label": "Телефон 1",
-                "regexp": "phone"
-            },
-            "type": "phone"
         },		
         {
             "name": "contractor",
@@ -917,6 +781,7 @@
             "type": "dictionary",
             "meta": {
                 "label": "Статус услуги",
+                "bounded": true,
                 "dictionaryName": "ServiceStatuses"
             }
         },
@@ -947,8 +812,9 @@
                 "admin",
                 "programman"
             ],
-            "type": "checkbox",
+            "type": "dictionary",
             "meta": {
+                "dictionaryName": "Satisfaction",
                 "label": "Клиент доволен"
             }
         },
