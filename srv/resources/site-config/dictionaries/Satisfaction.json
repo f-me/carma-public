@@ -1,0 +1,12 @@
+{
+    "entries": [
+        {
+            "value": "satis",
+            "label": "Клиент доволен"
+        },
+        {
+            "value": "notSatis",
+            "label": "Клиент не доволен"
+        }
+    ]
+}

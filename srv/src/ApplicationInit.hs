@@ -2,6 +2,7 @@
 {-# LANGUAGE BangPatterns #-}
 module ApplicationInit (appInit) where
 
+import Control.Applicative
 import Control.Monad.IO.Class
 
 import qualified Data.Map as Map
@@ -10,6 +11,9 @@ import Data.Configurator
 import Control.Concurrent.STM
 
 import System.Log(newLog, fileCfg, logger, text, file)
+
+import Data.Pool
+import Database.PostgreSQL.Simple as Pg
 
 import Snap.Core
 import Snap.Snaplet
@@ -23,10 +27,11 @@ import Snap.Snaplet.Vin
 import Snaplet.SiteConfig
 import Snaplet.DbLayer
 import Snaplet.FileUpload
+import Snaplet.Geo
 ------------------------------------------------------------------------------
 import Application
 import ApplicationHandlers
-import WebSockHandlers
+import AppHandlers.MyActions
 ----------------------------------------------------------------------
 import Util (readJSON, UsersDict)
 
@@ -61,13 +66,13 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/sync",          chkAuth . method GET  $ syncHandler)
          , ("/search/:model", chkAuth . method GET  $ searchHandler)
          , ("/rkc",           chkAuth . method GET  $ rkcHandler)
-         , ("/rkc/:program",  chkAuth . method GET  $ rkcHandler)
          , ("/usersDict",     chkAuth . method GET  $ getUsersDict)
          , ("/vin/upload",    chkAuth . method POST $ vinUploadData)
          , ("/vin/state",     chkAuth . method GET  $ vinStateRead)
          , ("/vin/state",     chkAuth . method POST $ vinStateRemove)
          , ("/opts/:model/:id/", chkAuth . method GET $ getSrvTarifOptions)
          , ("/smspost",       chkAuth . method POST $ smspost)
+         , ("/sms/processing", chkAuth . method GET $ smsProcessingHandler)
          , ("/errors",        method POST errorsHandler)
          ]
 
@@ -108,17 +113,27 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
 
   d <- nestSnaplet "db" db $ initDbLayer allUsrs
+ 
+  -- init PostgreSQL connection pool that will be used for searching only
+  let lookupCfg nm = lookupDefault (error $ show nm) cfg nm
+  cInfo <- liftIO $ Pg.ConnectInfo
+            <$> lookupCfg "pg_host"
+            <*> lookupCfg "pg_port"
+            <*> lookupCfg "pg_search_user"
+            <*> lookupCfg "pg_search_pass"
+            <*> lookupCfg "pg_db_name"
+  -- FIXME: force cInfo evaluation
+  pgs <- liftIO $ createPool (Pg.connect cInfo) Pg.close 1 5 20
 
   v <- nestSnaplet "vin" vin vinInit
   fu <- nestSnaplet "upload" fileUpload fileUploadInit
+  g <- nestSnaplet "geo" geo geoInit
 
   l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10)
        [logger text (file "log/frontend.log")]
 
   addRoutes routes
-
-  liftIO $ runWebSockServer "0.0.0.0" 8001
-  return $ App h s authMgr logdUsrs allUsrs actLock c d v fu l
+  return $ App h s authMgr logdUsrs allUsrs actLock c d pgs v fu g l
 
 getUsrs authDb = do
   readJSON authDb :: IO UsersDict

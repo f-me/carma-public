@@ -1,8 +1,20 @@
 {
     "entries": [
         {
-            "value": "z1",
-            "label": "zzz"
+            "value": "air",
+            "label": "Авиабилеты"
+        },
+        {
+            "value": "train",
+            "label": "Ж/д билеты"
+        },
+        {
+            "value": "boat",
+            "label": "Билеты на паром"
+        },
+        {
+            "value": "bus",
+            "label": "Билеты на автобус"
         }
     ]
 }

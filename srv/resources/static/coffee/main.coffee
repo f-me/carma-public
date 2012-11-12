@@ -309,3 +309,17 @@ this.removeInstance = (viewName) ->
 applyHooks = (hooks, selectors, args...) ->
   fs = _.chain(hooks[k] for k in selectors).flatten().compact().value()
   f.apply(this, args) for f in fs
+
+# Find view for this element
+this.elementView = (elt) ->
+  _.last($(elt).parents("[id*=view]"))
+  
+# Find out which model this element belongs to
+this.elementModel = (elt) ->
+  elementView(elt).id.split("-")[0]
+
+# Get field object for named model and field
+this.modelField = (modelName, fieldName) ->
+  _.find(
+    global.models[modelName].fields,
+    (f) -> return f.name == fieldName)

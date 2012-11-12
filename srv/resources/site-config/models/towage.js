@@ -313,8 +313,19 @@
         },
         {
             "targets": [
+                "towDealer_partnerMap"
+            ],
+            "meta": {
+                "targetPartner": "towDealer_partner",
+                "targetPartnerAddr": "towDealer_address",
+                "partnerTable": "towDealer_partnerTable"
+            }
+        },
+        {
+            "targets": [
                 "towDealer_partner",
                 "towDealer_partnerTable",
+                "towDealer_partnerMap",
                 "towDealer_address"
             ],
             "canRead": [
@@ -347,8 +358,19 @@
         },
         {
             "targets": [
+                "contractor_partnerMap"
+            ],
+            "meta": {
+                "targetPartner": "contractor_partner",
+                "targetPartnerAddr": "contractor_address",
+                "partnerTable": "contractor_partnerTable"
+            }
+        },
+        {
+            "targets": [
                 "contractor_partner",
                 "contractor_partnerTable",
+                "contractor_partnerMap",
                 "contractor_address"
             ],
             "canRead": [
@@ -543,6 +565,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "PaymentTypes",
+                "bounded": true,
                 "label": "Тип оплаты"
             }
         },
@@ -586,6 +609,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "FalseStatuses",
+                "bounded": true,
                 "label": "Ложный вызов",
                 "infoText": "falsecall"
             }
@@ -633,6 +657,7 @@
             ],
             "meta": {
                 "dictionaryName": "TowerTypes",
+                "bounded": true,
                 "label": "Тип эвакуатора"
             },
             "index": true,
@@ -669,6 +694,7 @@
             ],
             "meta": {
                 "dictionaryName": "TowTypes",
+                "bounded": true,
                 "label": "Вид эвакуации"
             },
             "type": "dictionary"
@@ -994,6 +1020,7 @@
             ],
             "meta": {
                 "dictionaryName": "WheelsBlockedCount",
+                "bounded":true,
                 "label": "Количество заблокированных колёс"
             },
             "type": "dictionary"
@@ -1223,6 +1250,7 @@
             "type": "dictionary",
             "meta": {
                 "label": "Статус услуги",
+                "bounded": true,
                 "dictionaryName": "ServiceStatuses"
             }
         },
@@ -1253,8 +1281,9 @@
                 "admin",
                 "programman"
             ],
-            "type": "checkbox",
+            "type": "dictionary",
             "meta": {
+                "dictionaryName": "Satisfaction",
                 "label": "Клиент доволен"
             }
         },

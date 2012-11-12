@@ -15,6 +15,8 @@ import Snap.Snaplet.SimpleLog
 
 import qualified Database.PostgreSQL.Models as SM
 
+import qualified WeatherApi as W
+
 import qualified Fdds as Fdds
 import Util (UsersDict)
 
@@ -36,6 +38,7 @@ data DbLayer b = DbLayer
     ,fdds      :: Fdds.Conf
     ,syncModels :: SM.Models
     ,allUsers   :: UsersDict
+    ,weather    :: W.Config
     }
 
 data TriggersConfig = TriggersConfig

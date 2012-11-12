@@ -4,7 +4,7 @@
     "canCreate": true,
     "canRead": true,
     "canUpdate": ["parguy"],
-    "canDelete": ["parquy"],
+    "canDelete": ["parguy"],
      "applications": [
          {
             "targets": true,

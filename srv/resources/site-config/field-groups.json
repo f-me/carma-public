@@ -21,6 +21,7 @@
             "meta": {
                 "dictionaryName": "CarMakers",
                 "required": true,
+                "bounded": true,
                 "label": "Марка"
             },
             "type": "dictionary"
@@ -30,6 +31,7 @@
             "meta": {
                 "dictionaryName": "CarModels",
                 "required": true,
+                "bounded": true,
                 "label": "Модель"
             },
             "type": "dictionary"
@@ -56,6 +58,7 @@
             "meta": {
                 "dictionaryName": "Colors",
                 "required": true,
+                "bounded": true,
                 "label": "Цвет"
             },
             "type": "dictionary"
@@ -559,7 +562,7 @@
             "type": "picker",
             "meta": {
                 "label": "Адрес",
-                "picker": "nominatimPicker"
+                "picker": "geoPicker"
             }
         },
         {
@@ -570,6 +573,15 @@
         },
         {
             "name": "coords",
+            "type": "picker",
+            "meta": {
+                "infoText": "coords",
+                "label": "Координаты",
+                "picker": "reverseGeoPicker"
+            }
+        },
+        {
+            "name": "map",
             "type": "map"
         }
     ],
@@ -592,6 +604,13 @@
             "name": "address",
             "meta": {
                 "label": "Адрес"
+            }
+        },
+        {
+            "name": "partnerMap",
+            "type": "map",
+            "meta": {
+                "targetCoords": "caseAddress_coords"
             }
         },
         {

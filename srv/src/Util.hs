@@ -97,7 +97,7 @@ sParse prm =
   let A.Done _ r = A.feed (A.parse (c) prm) B.empty
   in r
     where
-      n = return . B.pack =<< (trim $ many1 $ A.satisfy $ A.notInClass "<>= ")
+      n = return . B.pack =<< (trim $ many1 $ A.satisfy $ A.notInClass "<>=")
       p = trim $ choice $ map (A.string) ["<=", "<", ">=", ">", "=="]
       c = do
         v    <- n
