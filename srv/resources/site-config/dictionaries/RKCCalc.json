@@ -1,0 +1,105 @@
+{
+    "entries": {
+        "aston": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "1"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "1"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "1"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "1"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "1"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "1"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "1"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "1"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "1"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "1"
+            }
+        ],
+        "bentley": [],
+        "nz": [],
+        "tele": [],
+        "arc": [],
+        "hyundai": [],
+        "avilon": [],
+        "avtoC": [],
+        "arval": [],
+        "jenser": [],
+        "auimp": [],
+        "tvd": [],
+        "euro": [],
+        "euroVW": [],
+        "euroFord": [],
+        "euroGM": [],
+        "corpse": [],
+        "map": [],
+        "micro": [],
+        "covidien": [],
+        "covidienVW": [],
+        "covidienFord": [],
+        "covidienGM": [],
+        "rnbase": [],
+        "rnstandard": [],
+        "lyckoil": [],
+        "vnukovo": [],
+        "bm": [],
+        "autopres": [],
+        "b2c": [],
+        "unicredit": [],
+        "vtb24": [],
+        "akbars": [],
+        "bp": [],
+        "chartis": [],
+        "ford": [],
+        "cadold": [],
+        "cad2012": [],
+        "chevyko": [],
+        "chevyna": [],
+        "hum": [],
+        "opel": [],
+        "vwMotor": [],
+        "vwcargo": [],
+        "atlant": [],
+        "Cash": [],
+        "tickets": [],
+        "ramc1": [],
+        "ramc2": [],
+        "ruslan": []
+    }
+}
