@@ -762,8 +762,9 @@
                 <table id="rkc-operators-table" class="table table-stripped table-bordered">
                   <thead>
                     <tr>
-                      <th width="50%">Оператор</th>
-                      <th width="50%">Среднее время обработки действия</th>
+                      <th width="40%">Оператор</th>
+                      <th width="30%">Роль</th>
+                      <th width="30%">Среднее время обработки действия</th>
                     </tr>
                     <tbody />
                   </thead>

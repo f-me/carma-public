@@ -88,6 +88,7 @@ this.setupRKCScreen = (viewName, args) ->
         frows = for finfo in result.front.operators
           frow = [
             finfo.name,
+            finfo.roles,
             Math.floor(finfo.avg / 60) + ":" + (finfo.avg % 60)]
 
         ft.fnAddData(frows)

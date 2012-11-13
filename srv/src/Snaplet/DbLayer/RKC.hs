@@ -292,19 +292,22 @@ instance ToJSON FrontInformation where
 
 data FrontOperatorInfo = FrontOperatorInfo {
   frontOperatorName :: T.Text,
-  frontOperatorAvgTime :: Integer }
+  frontOperatorAvgTime :: Integer,
+  frontOperatorRoles :: T.Text }
     deriving (Eq, Ord, Read, Show)
 
 instance FromJSON FrontOperatorInfo where
   parseJSON (Object v) = FrontOperatorInfo <$>
     (v .: "name") <*>
-    (v .: "avg")
+    (v .: "avg") <*>
+    (v .: "roles")
   parseJSON _ = empty
 
 instance ToJSON FrontOperatorInfo where
-  toJSON (FrontOperatorInfo n a) = object [
+  toJSON (FrontOperatorInfo n a r) = object [
     "name" .= n,
-    "avg" .= a]
+    "avg" .= a,
+    "roles" .= r]
 
 data BackSummary = BackSummary {
   backSummaryTotalActions :: Integer,
@@ -416,12 +419,12 @@ caseServices constraints names = scope "caseServices" $ do
 rkcCase :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> m CaseInformation
 rkcCase constraints services = scope "rkcCase" $ (return CaseInformation  `ap` caseSummary (mconcat [doneServices, constraints]) `ap` caseServices (mconcat [constraints, doneServices]) services)
 
-rkcFront :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [(T.Text, T.Text)] -> m FrontInformation
+rkcFront :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [(T.Text, T.Text, T.Text)] -> m FrontInformation
 rkcFront constraints usrs = scope "rkcFront" $ do
   log Trace "Loading front info"
   vals <- runQuery_ $ mconcat [frontOps, constraints]
   let
-    makeOpInfo (n, label) = FrontOperatorInfo label (fromMaybe 0 $ lookup n vals)
+    makeOpInfo (n, label, roles) = FrontOperatorInfo label (fromMaybe 0 $ lookup n vals) roles
   return $ FrontInformation $ map makeOpInfo usrs
 
 backSummary :: (PS.HasPostgres m, MonadLog m) => PreQuery -> m BackSummary
@@ -472,4 +475,4 @@ rkc (UsersDict usrs) program city = liftIO startOfThisDay >>= rkc' where
       cname = if T.null city then "all" else city
       ifNotNull value f = if T.null value then mempty else f value
   usrs' = sort $ nub $ map toUsr usrs
-  toUsr m = (maybe "" T.decodeUtf8 $ M.lookup "value" m, maybe "" T.decodeUtf8 $ M.lookup "label" m)
+  toUsr m = (maybe "" T.decodeUtf8 $ M.lookup "value" m, maybe "" T.decodeUtf8 $ M.lookup "label" m, maybe "" T.decodeUtf8 $ M.lookup "roles" m)
