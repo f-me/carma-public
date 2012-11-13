@@ -18,7 +18,8 @@ import qualified Control.Exception as E
 import Data.Aeson
 import Data.Maybe
 import Data.Monoid
-import Data.List (intersect, sort)
+import Data.List (intersect, sort, nub)
+import qualified Data.Map as M
 import Data.Time
 import Data.String
 import Data.ByteString (ByteString)
@@ -34,6 +35,8 @@ import Snaplet.DbLayer.ARC
 
 import System.Locale
 import Snap.Snaplet.SimpleLog
+
+import Util
 
 -------------------------------------------------------------------------------
 -- TODO: Use 'model.field' instead of 'table.column'
@@ -413,11 +416,13 @@ caseServices constraints names = scope "caseServices" $ do
 rkcCase :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> m CaseInformation
 rkcCase constraints services = scope "rkcCase" $ (return CaseInformation  `ap` caseSummary (mconcat [doneServices, constraints]) `ap` caseServices (mconcat [constraints, doneServices]) services)
 
-rkcFront :: (PS.HasPostgres m, MonadLog m) => PreQuery -> m FrontInformation
-rkcFront constraints = scope "rkcFront" $ do
+rkcFront :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [(T.Text, T.Text)] -> m FrontInformation
+rkcFront constraints usrs = scope "rkcFront" $ do
   log Trace "Loading front info"
   vals <- runQuery_ $ mconcat [frontOps, constraints]
-  return $ FrontInformation $ map (\(name, avg) -> FrontOperatorInfo name avg) vals
+  let
+    makeOpInfo (n, label) = FrontOperatorInfo label (fromMaybe 0 $ lookup n vals)
+  return $ FrontInformation $ map makeOpInfo usrs
 
 backSummary :: (PS.HasPostgres m, MonadLog m) => PreQuery -> m BackSummary
 backSummary constraints = scope "backSummary" $ do
@@ -453,12 +458,12 @@ programNames = dictKeys "Programs"
 actionNames :: Dictionary -> [T.Text]
 actionNames = dictKeys "ActionNames"
 
-rkc :: (PS.HasPostgres m, MonadLog m) => T.Text -> T.Text -> m Information
-rkc program city = liftIO startOfThisDay >>= rkc' where
+rkc :: (PS.HasPostgres m, MonadLog m) => UsersDict -> T.Text -> T.Text -> m Information
+rkc (UsersDict usrs) program city = liftIO startOfThisDay >>= rkc' where
   rkc' today = scope "rkc" $ scope pname $ scope cname $ do
     dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
     c <- rkcCase constraints (serviceNames dicts)
-    f <- rkcFront constraints
+    f <- rkcFront constraints usrs'
     b <- rkcBack constraints (actionNames dicts)
     return $ Information c f b
     where
@@ -466,3 +471,5 @@ rkc program city = liftIO startOfThisDay >>= rkc' where
       pname = if T.null program then "all" else program
       cname = if T.null city then "all" else city
       ifNotNull value f = if T.null value then mempty else f value
+  usrs' = sort $ nub $ map toUsr usrs
+  toUsr m = (maybe "" T.decodeUtf8 $ M.lookup "value" m, maybe "" T.decodeUtf8 $ M.lookup "label" m)
