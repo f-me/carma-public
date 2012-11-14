@@ -59,7 +59,8 @@ withinDay tbl col tm = preQuery_ [] [tbl] [afterStart, beforeEnd] [] [] where
   beforeEnd = T.concat [tbl, ".", col, " - '", st, "' < '1 day'"]
 
 withinToday :: T.Text -> T.Text -> PreQuery
-withinToday tbl col = preQuery_ [] [tbl] [equalsNow] [] [] where
+withinToday tbl col = thisDay `mappend` notNull tbl col where
+  thisDay = preQuery_ [] [tbl] [equalsNow] [] []
   equalsNow = T.concat ["date_trunc('day', ", tbl, ".", col, " + '4 hours') = date_trunc('day', now())"]
 
 -- Get start of this day for timezone
