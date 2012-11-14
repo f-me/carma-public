@@ -105,7 +105,7 @@ update model objId commit = scoper "update" $ do
     toPair [x, y] = Just (x, y)
     toPair _ = Nothing
 
-  let changes' = Map.mapWithKey (\k v -> Map.insert "id" k v) . Map.mapKeys fromJust . Map.filterWithKey (\k v -> isJust k) . Map.mapKeys (toPair . C8.split ':') $ changes
+  let changes' = Map.mapWithKey (\(_,k) v -> Map.insert "id" k v) . Map.mapKeys fromJust . Map.filterWithKey (\k v -> isJust k) . Map.mapKeys (toPair . C8.split ':') $ changes
   log Trace $ fromString $ "Changes: " ++ show changes'
   Postgres.insertUpdateMany mdl changes'
   --
