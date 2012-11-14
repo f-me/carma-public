@@ -1,4 +1,4 @@
-# TODO Use city in geocoding routines!
+# TODO Use city in reverse geocoding routines!
 
 # Default marker icon size
 this.iconSize = new OpenLayers.Size(50, 50)
@@ -256,7 +256,7 @@ this.geoPicker = (fieldName, el) ->
 
   # TODO Drop hardcoded name of the «real» parent view (case-form)
   if city_field?
-    addr = global.viewsWare['case-form'].knockVM[city_field]() + ", " + addr
+    addr = addr + ", " + global.viewsWare['case-form'].knockVM[city_field]()
 
   $.getJSON(nominatimQuery+"#{addr}", (res) ->
     if res.length > 0
