@@ -50,29 +50,37 @@ data PreQuery = PreQuery {
     preFields :: [T.Text],
     preTables :: [T.Text],
     preConditions :: [T.Text],
+    preGroups :: [T.Text],
+    preOrders :: [T.Text],
     preArgs :: [PS.Action] }
 
-preQuery :: (PS.ToRow q) => [T.Text] -> [T.Text] -> [T.Text] -> q -> PreQuery
-preQuery fs ts cs as = PreQuery fs ts cs (PS.toRow as)
+preQuery :: (PS.ToRow q) => [T.Text] -> [T.Text] -> [T.Text] -> [T.Text] -> [T.Text] -> q -> PreQuery
+preQuery fs ts cs gs os as = PreQuery fs ts cs gs os (PS.toRow as) 
 
-preQuery_ :: [T.Text] -> [T.Text] -> [T.Text] -> PreQuery
-preQuery_ fs ts cs = PreQuery fs ts cs []
+preQuery_ :: [T.Text] -> [T.Text] -> [T.Text] -> [T.Text] -> [T.Text] -> PreQuery
+preQuery_ fs ts cs gs os = PreQuery fs ts cs gs os []
 
 instance Monoid PreQuery where
-    mempty = PreQuery [] [] [] []
-    (PreQuery lf lt lc la) `mappend` (PreQuery rf rt rc ra) = PreQuery
+    mempty = PreQuery [] [] [] [] [] []
+    (PreQuery lf lt lc lg lo la) `mappend` (PreQuery rf rt rc rg ro ra) = PreQuery
         (nub $ lf ++ rf)
         (nub $ lt ++ rt)
-        (lc ++ rc)
+        (nub $ lc ++ rc)
+        (nub $ lg ++ rg)
+        (nub $ lo ++ ro)
         (la ++ ra)
 
 runQuery :: (PS.HasPostgres m, MonadLog m, PS.FromRow r) => [PreQuery] -> m [r]
 runQuery qs = query compiled a where
-    (PreQuery f t c a) = mconcat qs
+    (PreQuery f t c g o a) = mconcat qs
     compiled = fromString $ T.unpack $ T.concat [
         "select ", T.intercalate ", " f,
         " from ", T.intercalate ", " t,
-        " where ", T.intercalate " and " (map (T.cons '(' . (`T.snoc` ')')) c)]
+        nonullcat c [" where ", T.intercalate " and " (map (T.cons '(' . (`T.snoc` ')')) c)],
+        nonullcat g [" group by ", T.intercalate ", " g],
+        nonullcat o [" order by ", T.intercalate ", " o]]
+    nonullcat [] s = ""
+    nonullcat _ s = T.concat s
 
 intQuery :: (PS.HasPostgres m, MonadLog m) => [PreQuery] -> m Integer
 intQuery qs = do
@@ -93,19 +101,19 @@ withinDay st field = [
 
 rows :: [(T.Text, T.Text -> [T.Text] -> PreQuery)]
 rows = queries where
-    cst = preQuery_ ["count(*)"] ["casetbl", "servicetbl"] ["casetbl.id = servicetbl.parentId"]
-    inday st = preQuery_ ["count(*)"] [] (withinDay st "servicetbl.createTime")
+    cst = preQuery_ ["count(*)"] ["casetbl", "servicetbl"] ["casetbl.id = servicetbl.parentId"] [] []
+    inday st = preQuery_ ["count(*)"] [] (withinDay st "servicetbl.createTime") [] []
     inList :: T.Text -> [T.Text] -> PreQuery
-    inList tbl lst = preQuery ["count(*)"] [tbl] [T.concat [tbl, ".program in ?"]] [PS.In lst]
+    inList tbl lst = preQuery ["count(*)"] [tbl] [T.concat [tbl, ".program in ?"]] [] [] [PS.In lst]
     csday st ps = mconcat [cst, inday st, inList "casetbl" ps]
     
-    totalCalls st ps = mconcat [inList "calltbl" ps, preQuery_ ["count(*)"] ["calltbl"] (withinDay st "calltbl.callDate")]
-    techServices st ps = mconcat [csday st ps, preQuery [] [] ["servicetbl.type = ?"] [str "tech"]]
-    towageServicesWithTech st ps = mconcat [csday st ps, preQuery [] [] ["servicetbl.type = ?", "position(? in casetbl.services) != 0"] [str "towage", str "tech"]]
-    towageServices st ps = mconcat [csday st ps, preQuery [] [] ["servicetbl.type = ?"] [str "towage"]]
-    towageDtps st ps = mconcat [csday st ps, preQuery [] [] ["servicetbl.type = ?", "casetbl.diagnosis1 = ?"] [str "towage", str "dtp"]]
-    others st ps = mconcat [csday st ps, preQuery [] [] ["servicetbl.type not in (?, ?)"] [str "tech", str "towage"]]
-    notSatisfied st ps = mconcat [csday st ps, preQuery [] [] ["servicetbl.clientSatisfied = ?"] [str "0"]]
+    totalCalls st ps = mconcat [inList "calltbl" ps, preQuery_ ["count(*)"] ["calltbl"] (withinDay st "calltbl.callDate") [] []]
+    techServices st ps = mconcat [csday st ps, preQuery [] [] ["servicetbl.type = ?"] [] [] [str "tech"]]
+    towageServicesWithTech st ps = mconcat [csday st ps, preQuery [] [] ["servicetbl.type = ?", "position(? in casetbl.services) != 0"] [] [] [str "towage", str "tech"]]
+    towageServices st ps = mconcat [csday st ps, preQuery [] [] ["servicetbl.type = ?"] [] [] [str "towage"]]
+    towageDtps st ps = mconcat [csday st ps, preQuery [] [] ["servicetbl.type = ?", "casetbl.diagnosis1 = ?"] [] [] [str "towage", str "dtp"]]
+    others st ps = mconcat [csday st ps, preQuery [] [] ["servicetbl.type not in (?, ?)"] [] [] [str "tech", str "towage"]]
+    notSatisfied st ps = mconcat [csday st ps, preQuery [] [] ["servicetbl.clientSatisfied = ?"] [] [] [str "0"]]
     
     queries = [
         ("Total calls", totalCalls),

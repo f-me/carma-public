@@ -221,7 +221,8 @@ rkcHandler :: AppHandler ()
 rkcHandler = scope "rkcHandler" $ do
   p <- getParam "program"
   c <- getParam "city"
-  info <- with db $ RKC.rkc (maybe T.empty T.decodeUtf8 p) (maybe T.empty T.decodeUtf8 c)
+  usrs <- gets allUsers
+  info <- with db $ RKC.rkc usrs (maybe T.empty T.decodeUtf8 p) (maybe T.empty T.decodeUtf8 c)
   writeJSON info
 
 
