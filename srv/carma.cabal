@@ -67,7 +67,7 @@ Executable carma
     snap-loader-static          >= 0.9.0.1 && < 0.10,
     snap-server                 == 0.9.*,
     snaplet-redis               == 0.1.*,
-    snaplet-simple-log          >= 0.1.2 && < 0.2,
+    snaplet-simple-log          == 0.2.*,
     text                        >= 0.11 && < 0.12,
     time                        >= 1.1 && < 1.5,
     mtl                         == 2.1.*,
@@ -91,7 +91,8 @@ Executable carma
     fdds                        >= 0.1.0.1 && < 0.2,
     vector                      == 0.9.*,
     bytestring-lexing           == 0.4.*,
-    simple-log                  >= 0.1.6 && < 0.2
+    simple-log                  == 0.2.*,
+    simple-log-syslog      == 0.1.*
 
   Extensions:
     OverloadedStrings,
