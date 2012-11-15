@@ -445,7 +445,7 @@ backActions constraints actions = scope "backAction" $ do
       look = fromMaybe 0 . lookup n
   return $ map makeActionInfo actions
   where
-    todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "actiontbl" "name", p, constraints, withinToday "actiontbl" "openTime", groupBy "actiontbl" "name"]
+    todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "actiontbl" "name", notNull "actiontbl" "name", p, constraints, withinToday "actiontbl" "openTime", groupBy "actiontbl" "name"]
 
 rkcBack :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> m BackInformation
 rkcBack constraints actions = scope "rkcBack" $ (return BackInformation `ap` backSummary constraints `ap` backActions constraints actions)
