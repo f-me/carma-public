@@ -102,13 +102,13 @@ readRKCCalc cfgDir = do
 
 instance FromJSON RKCCalc where
   parseJSON (Object o) = do
-    HM.foldrWithKey f (return Map.empty) o
+    Object e <- o .: "entries"
+    HM.foldrWithKey f (return Map.empty) e
     where
       f k v m = Map.insert (T.encodeUtf8 k) <$> parseJSON v <*> m
 
 instance FromJSON RKCEntry where
-  parseJSON (Array a) = do
-    V.foldl f (return Map.empty) a
+  parseJSON (Array a) = V.foldl f (return Map.empty) a
     where
       f m (Object v) = do
         name  <- v  .: "name"
