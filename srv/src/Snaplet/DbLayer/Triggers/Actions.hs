@@ -236,20 +236,20 @@ serviceActions = Map.fromList
     [\objId val ->
         case val of
           "notSatis" -> do
-          due <- dateNow (+ (1*60))
-          kazeId <- get objId "parentId"
-          actionId <- new "action" $ Map.fromList
-            [("name", "complaintResolution")
-            ,("duetime", due)
-            ,("description", utf8 "Клиент предъявил претензию")
-            ,("targetGroup", "supervisor")
-            ,("priority", "1")
-            ,("parentId", objId)
-            ,("caseId", kazeId)
-            ,("closed", "0")
-            ]
-          upd kazeId "actions" $ addToList actionId
-        _ -> return ()]
+            due <- dateNow (+ (1*60))
+            kazeId <- get objId "parentId"
+            actionId <- new "action" $ Map.fromList
+              [("name", "complaintResolution")
+              ,("duetime", due)
+              ,("description", utf8 "Клиент предъявил претензию")
+              ,("targetGroup", "supervisor")
+              ,("priority", "1")
+              ,("parentId", objId)
+              ,("caseId", kazeId)
+              ,("closed", "0")
+              ]
+            upd kazeId "actions" $ addToList actionId
+          _ -> return ()]
   )
   ,("contractor_partner",
     [\objId val -> do
@@ -329,18 +329,18 @@ actionResultMap = Map.fromList
      set newAction "assignedTo" ""
   )
   ,("serviceOrdered", \objId -> do
-     setService objId "status" "serviceOrdered"
-     void $ replaceAction
-         "tellClient"
-         "Сообщить клиенту о договорённости" 
-         "back" "1" (+60) objId
+    setService objId "status" "serviceOrdered"
+    void $ replaceAction
+      "tellClient"
+      "Сообщить клиенту о договорённости" 
+      "back" "1" (+60) objId
     
-     act <- replaceAction
-        "addBill"
-        "Прикрепить счёт"
-        "parguy" "1" (+14*24*60*60)
-        objId
-      set act "assignedTo" ""
+    act <- replaceAction
+      "addBill"
+      "Прикрепить счёт"
+      "parguy" "1" (+14*24*60*60)
+      objId
+    set act "assignedTo" ""
   )
   ,("serviceOrderedSMS", \objId -> do
     tm <- getService objId "times_expectedServiceStart"
