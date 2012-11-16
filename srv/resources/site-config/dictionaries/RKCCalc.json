@@ -2188,42 +2188,42 @@
             {
                 "name":"towCallCost",
                 "label":"Стоимость обработки звонка по эвакуации",
-                "value": "0"
+                "value": "1304"
             },
             {
                 "name":"towCost",
                 "label":"Стоимость эвакуации",
-                "value": "0"
+                "value": "1720"
             },
             {
                 "name":"towMileCost",
                 "label":"Стоимость 1 км за городом при эвакуации",
-                "value": "0"
+                "value": "39,1"
             },
             {
                 "name":"techCallCost",
                 "label":"Стоимость обработки звонка по техпомощи",
-                "value": "0"
+                "value": "1304"
             },
             {
                 "name":"techCost",
                 "label":"Стоимость техпомощи",
-                "value": "0"
+                "value": "1616"
             },
             {
                 "name":"techMileCost",
                 "label":"Стоимость 1 км за городом для техпомощи",
-                "value": "0"
+                "value": "39,1"
             },
             {
                 "name":"rentDayCost",
                 "label":"Стоимость 1 дня подменного автомобиля",
-                "value": "0"
+                "value": "2423,73"
             },
             {
                 "name":"hotelDayCost",
                 "label":"Стоимость 1 дня проживания в гостинице",
-                "value": "0"
+                "value": "6600"
             },
             {
                 "name":"taxiLimit",
@@ -2240,42 +2240,42 @@
             {
                 "name":"towCallCost",
                 "label":"Стоимость обработки звонка по эвакуации",
-                "value": "0"
+                "value": "1134"
             },
             {
                 "name":"towCost",
                 "label":"Стоимость эвакуации",
-                "value": "0"
+                "value": "1972"
             },
             {
                 "name":"towMileCost",
                 "label":"Стоимость 1 км за городом при эвакуации",
-                "value": "0"
+                "value": "44"
             },
             {
                 "name":"techCallCost",
                 "label":"Стоимость обработки звонка по техпомощи",
-                "value": "0"
+                "value": "1134"
             },
             {
                 "name":"techCost",
                 "label":"Стоимость техпомощи",
-                "value": "0"
+                "value": "1405"
             },
             {
                 "name":"techMileCost",
                 "label":"Стоимость 1 км за городом для техпомощи",
-                "value": "0"
+                "value": "44"
             },
             {
                 "name":"rentDayCost",
                 "label":"Стоимость 1 дня подменного автомобиля",
-                "value": "0"
+                "value": "2908,47"
             },
             {
                 "name":"hotelDayCost",
                 "label":"Стоимость 1 дня проживания в гостинице",
-                "value": "0"
+                "value": "6600"
             },
             {
                 "name":"taxiLimit",
