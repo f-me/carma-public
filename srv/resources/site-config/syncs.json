@@ -334,6 +334,10 @@
 					"type": "bool"
 				},
 				{
+					"name": "isMobile",
+					"type": "bool"
+				},
+				{
 					"name": "name",
 					"type": "string"
 				},
