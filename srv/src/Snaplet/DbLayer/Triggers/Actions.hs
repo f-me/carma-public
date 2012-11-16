@@ -715,7 +715,7 @@ rkc programm field = do
   case Map.lookup programm dict >>= Map.lookup field of
     Just v  -> return v
     Nothing -> do
-      lift $ with dbLog $ log Debug $ T.concat
+      lift $ with dbLog $ log Info $ T.concat
         [ "Can't find rkc value for "
         , T.decodeUtf8 programm
         , " "
