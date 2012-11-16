@@ -4,102 +4,2601 @@
             {
                 "name":"towCallCost",
                 "label":"Стоимость обработки звонка по эвакуации",
-                "value": "1"
+                "value": "0"
             },
             {
                 "name":"towCost",
                 "label":"Стоимость эвакуации",
-                "value": "1"
+                "value": "0"
             },
             {
                 "name":"towMileCost",
                 "label":"Стоимость 1 км за городом при эвакуации",
-                "value": "1"
+                "value": "0"
             },
             {
                 "name":"techCallCost",
                 "label":"Стоимость обработки звонка по техпомощи",
-                "value": "1"
+                "value": "0"
             },
             {
                 "name":"techCost",
                 "label":"Стоимость техпомощи",
-                "value": "1"
+                "value": "0"
             },
             {
                 "name":"techMileCost",
                 "label":"Стоимость 1 км за городом для техпомощи",
-                "value": "1"
+                "value": "0"
             },
             {
                 "name":"rentDayCost",
                 "label":"Стоимость 1 дня подменного автомобиля",
-                "value": "1"
+                "value": "0"
             },
             {
                 "name":"hotelDayCost",
                 "label":"Стоимость 1 дня проживания в гостинице",
-                "value": "1"
+                "value": "0"
             },
             {
                 "name":"taxiLimit",
                 "label":"Лимит по такси",
-                "value": "1"
+                "value": "0"
             },
             {
                 "name":"ticketLimit",
                 "label":"Лимит по билетам",
-                "value": "1"
+                "value": "0"
             }
         ],
-        "bentley": [],
-        "nz": [],
-        "tele": [],
-        "arc": [],
-        "hyundai": [],
-        "avilon": [],
-        "avtoC": [],
-        "arval": [],
-        "jenser": [],
-        "auimp": [],
-        "tvd": [],
-        "euro": [],
-        "euroVW": [],
-        "euroFord": [],
-        "euroGM": [],
-        "corpse": [],
-        "map": [],
-        "micro": [],
-        "covidien": [],
-        "covidienVW": [],
-        "covidienFord": [],
-        "covidienGM": [],
-        "rnbase": [],
-        "rnstandard": [],
-        "lyckoil": [],
-        "vnukovo": [],
-        "bm": [],
-        "autopres": [],
-        "b2c": [],
-        "unicredit": [],
-        "vtb24": [],
-        "akbars": [],
-        "bp": [],
-        "chartis": [],
-        "ford": [],
-        "cadold": [],
-        "cad2012": [],
-        "chevyko": [],
-        "chevyna": [],
-        "hum": [],
-        "opel": [],
-        "vwMotor": [],
-        "vwcargo": [],
-        "atlant": [],
-        "Cash": [],
-        "tickets": [],
-        "ramc1": [],
-        "ramc2": [],
-        "ruslan": []
+        "bentley": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "tele": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "1900"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "45"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "1830"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "40"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "nz": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "arc": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "hyundai": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "avilon": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "avtoC": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "arval": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "1900"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "55"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "1830"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "45"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "jenser": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "1750"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "40"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "2000"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "40"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "auimp": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "1900"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "45"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "2000"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "45"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "tvd": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "2000"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "45"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "1900"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "45"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "euro": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "euroVW": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "euroFord": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "euroGM": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "corpse": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "map": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "1200"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "1680"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "42"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "1200"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "1440"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "36"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "2600"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "1200"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "micro": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "covidien": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "covidienVW": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "covidienFord": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "covidienGM": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "rnbase": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "rnstandard": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "lyckoil": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "vnukovo": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "bm": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "1900"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "45"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "2000"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "45"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "autopres": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "1800"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "45"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "b2c": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "unicredit": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "vtb24": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "akbars": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "bp": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "1710"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "39"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "3090"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "39"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "chartis": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "ford": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "cadold": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "6976"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "6715"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "14760"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "13905"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "1854"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "27585"
+            }
+        ],
+        "cad2012": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "6976"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "6715"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "14760"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "13905"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "1854"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "27585"
+            }
+        ],
+        "chevyko": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "6976"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "6715"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "14760"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "13905"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "1854"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "27585"
+            }
+        ],
+        "chevyna": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "6976"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "6715"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "14760"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "13905"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "1854"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "27585"
+            }
+        ],
+        "hum": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "6976"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "6715"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "14760"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "13905"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "1854"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "27585"
+            }
+        ],
+        "opel": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "6976"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "6715"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "14760"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "13905"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "1854"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "27585"
+            }
+        ],
+        "vwMotor": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "vwcargo": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "atlant": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "Cash": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }        
+        ],
+        "tickets": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "ramc1": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "ramc2": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ],
+        "ruslan": [
+            {
+                "name":"towCallCost",
+                "label":"Стоимость обработки звонка по эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towCost",
+                "label":"Стоимость эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"towMileCost",
+                "label":"Стоимость 1 км за городом при эвакуации",
+                "value": "0"
+            },
+            {
+                "name":"techCallCost",
+                "label":"Стоимость обработки звонка по техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techCost",
+                "label":"Стоимость техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"techMileCost",
+                "label":"Стоимость 1 км за городом для техпомощи",
+                "value": "0"
+            },
+            {
+                "name":"rentDayCost",
+                "label":"Стоимость 1 дня подменного автомобиля",
+                "value": "0"
+            },
+            {
+                "name":"hotelDayCost",
+                "label":"Стоимость 1 дня проживания в гостинице",
+                "value": "0"
+            },
+            {
+                "name":"taxiLimit",
+                "label":"Лимит по такси",
+                "value": "0"
+            },
+            {
+                "name":"ticketLimit",
+                "label":"Лимит по билетам",
+                "value": "0"
+            }
+        ]
     }
 }
