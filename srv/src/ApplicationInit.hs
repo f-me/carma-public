@@ -112,7 +112,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
 
-  d <- nestSnaplet "db" db $ initDbLayer allUsrs
+  d <- nestSnaplet "db" db $ initDbLayer allUsrs "resources/site-config"
  
   -- init PostgreSQL connection pool that will be used for searching only
   let lookupCfg nm = lookupDefault (error $ show nm) cfg nm

@@ -3,7 +3,8 @@
 module Snaplet.DbLayer.Dictionary (
     Dictionary,
     look, merge, lookAny, keys,
-    loadDictionary, loadDictionaries
+    loadDictionary, loadDictionaries,
+    readRKCCalc
     ) where
 
 import Control.Applicative
@@ -91,6 +92,13 @@ loadDictionaries cfg = do
         (names, files) = unzip . map (toName &&& toFile) . filter isJson $ contents
     ds <- mapM loadDictionary files
     return $ Dictionaries $ HM.fromList $ catMaybes $ zipWith (fmap . (,)) names ds
+
+readRKCCalc :: FilePath -> IO RKCCalc
+readRKCCalc cfgDir = do
+  c <- LC8.readFile rkcDict
+  return Map.empty
+    where
+      rkcDict = cfgDir </> "dictionaries" </> "RKCCalc.json"
 
 instance FromJSON RKCCalc where
   parseJSON (Object o) = do
