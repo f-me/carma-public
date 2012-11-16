@@ -23,6 +23,8 @@ import System.Directory
 
 import Snaplet.DbLayer.Types
 
+import Util (readJSON)
+
 data KeyValue = KeyValue {
     key :: T.Text,
     value :: T.Text }
@@ -95,8 +97,10 @@ loadDictionaries cfg = do
 
 readRKCCalc :: FilePath -> IO RKCCalc
 readRKCCalc cfgDir = do
-  c <- LC8.readFile rkcDict
-  return Map.empty
+  c <- readJSON rkcDict
+  case fromJSON c :: Result RKCCalc of
+    Error e   -> fail $ "Reading of RKCCalc failed with: " ++ e
+    Success r -> return r
     where
       rkcDict = cfgDir </> "dictionaries" </> "RKCCalc.json"
 
@@ -111,6 +115,6 @@ instance FromJSON RKCEntry where
   parseJSON (Array a) = V.foldl f (return Map.empty) a
     where
       f m (Object v) = do
-        name  <- v  .: "name"
+        name  <- v .: "name"
         value <- v .: "value"
         m >>= return  . Map.union (Map.singleton name value)
