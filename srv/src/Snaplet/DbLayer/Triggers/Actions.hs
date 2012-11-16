@@ -232,6 +232,25 @@ serviceActions = Map.fromList
           upd kazeId "actions" $ addToList actionId
       _ -> return ()]
   )
+  ,("clientSatisfied", 
+    [\objId val ->
+        case val of
+          "notSatis" -> do
+          due <- dateNow (+ (1*60))
+          kazeId <- get objId "parentId"
+          actionId <- new "action" $ Map.fromList
+            [("name", "complaintResolution")
+            ,("duetime", due)
+            ,("description", utf8 "Клиент предъявил претензию")
+            ,("targetGroup", "supervisor")
+            ,("priority", "1")
+            ,("parentId", objId)
+            ,("caseId", kazeId)
+            ,("closed", "0")
+            ]
+          upd kazeId "actions" $ addToList actionId
+        _ -> return ()]
+  )
   ,("contractor_partner",
     [\objId val -> do
         Right partnerIds <- lift $ runRedisDB redis $ Redis.keys "partner:*"
