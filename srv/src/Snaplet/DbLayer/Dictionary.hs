@@ -12,10 +12,15 @@ import Control.Monad
 import Data.Aeson
 import Data.Maybe
 import qualified Data.ByteString.Lazy.Char8 as LC8
-import qualified Data.Text as T
+import qualified Data.Text           as T
+import qualified Data.Text.Encoding  as T
 import qualified Data.HashMap.Strict as HM
+import qualified Data.Map            as Map
+import qualified Data.Vector         as V
 import System.FilePath
 import System.Directory
+
+import Snaplet.DbLayer.Types
 
 data KeyValue = KeyValue {
     key :: T.Text,
@@ -86,3 +91,18 @@ loadDictionaries cfg = do
         (names, files) = unzip . map (toName &&& toFile) . filter isJson $ contents
     ds <- mapM loadDictionary files
     return $ Dictionaries $ HM.fromList $ catMaybes $ zipWith (fmap . (,)) names ds
+
+instance FromJSON RKCCalc where
+  parseJSON (Object o) = do
+    HM.foldrWithKey f (return Map.empty) o
+    where
+      f k v m = Map.insert (T.encodeUtf8 k) <$> parseJSON v <*> m
+
+instance FromJSON RKCEntry where
+  parseJSON (Array a) = do
+    V.foldl f (return Map.empty) a
+    where
+      f m (Object v) = do
+        name  <- v  .: "name"
+        value <- v .: "value"
+        m >>= return  . Map.union (Map.singleton name value)
