@@ -711,7 +711,6 @@ setSrvMCost id =
 
 rkc programm field = do
   dict <- lift $ gets rkcDict
-  -- l <- lift $ with dbLog $ return ()
   case Map.lookup programm dict >>= Map.lookup field of
     Just v  -> return v
     Nothing -> do
