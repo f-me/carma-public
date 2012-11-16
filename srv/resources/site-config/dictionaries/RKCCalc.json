@@ -2198,7 +2198,7 @@
             {
                 "name":"towMileCost",
                 "label":"Стоимость 1 км за городом при эвакуации",
-                "value": "39,1"
+                "value": "39.1"
             },
             {
                 "name":"techCallCost",
@@ -2213,12 +2213,12 @@
             {
                 "name":"techMileCost",
                 "label":"Стоимость 1 км за городом для техпомощи",
-                "value": "39,1"
+                "value": "39.1"
             },
             {
                 "name":"rentDayCost",
                 "label":"Стоимость 1 дня подменного автомобиля",
-                "value": "2423,73"
+                "value": "2423.73"
             },
             {
                 "name":"hotelDayCost",
@@ -2270,7 +2270,7 @@
             {
                 "name":"rentDayCost",
                 "label":"Стоимость 1 дня подменного автомобиля",
-                "value": "2908,47"
+                "value": "2908.47"
             },
             {
                 "name":"hotelDayCost",
