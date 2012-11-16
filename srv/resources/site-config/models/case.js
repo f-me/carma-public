@@ -562,6 +562,27 @@
             }
         },
         {
+            "name": "claim",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "parguy"
+            ],
+            "meta": {
+                "label": "Претензия",
+                "infoText": "claim"
+            },
+            "type": "textarea"
+        },
+        {
             "name": "betaComment",
             "canRead": [
                 "partner",
