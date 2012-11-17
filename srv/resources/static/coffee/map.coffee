@@ -198,7 +198,7 @@ this.partnerBlips = (osmap, partners, tableCache,
         mrk = new OpenLayers.Marker(
           coords, new OpenLayers.Icon(towIcon, iconSize))
       else
-        if partner.isDealer
+        if (partner.isDealer == "1")
           mrk = new OpenLayers.Marker(
             coords, new OpenLayers.Icon(dealerIcon, iconSize))
         else
