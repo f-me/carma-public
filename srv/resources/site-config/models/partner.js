@@ -26,7 +26,14 @@
             "meta": {
                 "label": "Дилер"
             }
-        },        
+        },       
+        {
+            "name": "isMobile",
+            "type": "checkbox",
+            "meta": {
+                "label": "Мобильный партнёр"
+            }
+        }, 
         {
             "name": "name",
             "index": true,

@@ -129,6 +129,7 @@ this.initOSM = (el, parentView) ->
       a.transform(osmProj, wsgProj)
       b.transform(osmProj, wsgProj)
       $.getJSON("/geo/partners/#{a.lon},#{a.lat}/#{b.lon},#{b.lat}/", (pres) ->
+        # Use cache from table beneath a map for partner metadata
         partnerBlips(
           osmap, pres, table.data("cache"),
           parentView, partner_field, partnerAddr_field)
@@ -162,7 +163,7 @@ this.carBlip = (osmap, coords) ->
 #
 # - tableCache: a hash of all partners, where key is id and value is
 #               an object with fields "name", "addrDeFacto", "phone1",
-#               "workingTime"
+#               "workingTime", "isMobile"
 #
 # - parentView: parentView for contractor
 # 
@@ -184,8 +185,12 @@ this.partnerBlips = (osmap, partners, tableCache,
       coords = new OpenLayers.LonLat(blip[1], blip[2])
                    .transform(wsgProj, osmProj)
 
-      mrk = new OpenLayers.Marker(
+      if partner.isMobile
+        mrk = new OpenLayers.Marker(
           coords, new OpenLayers.Icon("/s/img/tow-icon.png", iconSize))
+      else
+        mrk = new OpenLayers.Marker(
+          coords, new OpenLayers.Icon("/s/img/partner-icon.png", iconSize))
 
       # Show partner info from table cache when clicking marker
       mrk.events.register("click", mrk, (e) ->

@@ -44,6 +44,7 @@ import Database.PostgreSQL.Sync.JSON ()
 import qualified Database.PostgreSQL.Report as R
 import qualified Database.PostgreSQL.Report.Xlsx as R
 import qualified Database.PostgreSQL.Report.Function as R
+import System.Locale
 
 import Snaplet.DbLayer.Dictionary
 import Snap.Snaplet.SimpleLog
