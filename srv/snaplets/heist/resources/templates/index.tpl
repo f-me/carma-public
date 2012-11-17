@@ -492,6 +492,15 @@
             id="partner-screen-template">
 
       <div id="partner-left" class="nice-scrollbar pane">
+        <div id="partner-errors"
+             class="alert alert-error"
+             data-bind="visible: serviceRepeat">
+          Следующие сервисы присутствуют в колличестве более одного,
+          при работе с кейсом будет использован только первый!
+          <ul data-bind="foreach: serviceRepeat">
+            <li data-bind="text: $data" />
+          </ul>
+        </div>
         <form class="form-vertical">
           <button class="btn btn-action" type="button"
             onclick="location.hash='partner';location.reload(true);">

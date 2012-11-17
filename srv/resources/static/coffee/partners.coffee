@@ -2,7 +2,7 @@ this.setupPartnersForm = (viewName, args) ->
   refs = [field: "services"
          ,forest: "partner-services-references"
          ]
-  modelSetup("partner") viewName, args,
+  kvm = modelSetup("partner") viewName, args,
                         permEl: "partner-permissions"
                         focusClass: "focusable"
                         refs: refs
@@ -13,6 +13,8 @@ this.setupPartnersForm = (viewName, args) ->
             label: "Добавить услугу"
   )
 
+  ko.cleanNode($("#partner-errors")[0])
+  ko.applyBindings(kvm, $("#partner-errors")[0])
   setTimeout(->
     $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
     $.fn.dataTableExt.oStdClasses.sFilter = "dataTables_filter form-inline"
@@ -74,3 +76,18 @@ this.bindTitleServiceName = (instance, kvm) ->
 
 this.bindRemoveService = (instance, kvm) ->
   kvm['services'].subscribe -> bindRemove kvm, 'services'
+
+this.serviceRepeat = (instance, kvm) ->
+  kvm['serviceRepeat'] = ko.observable([])
+  kvm['services'].subscribe -> setServiceRepeat()
+
+this.partnerServiceRepeat = (instance, kvm) ->
+  kvm['serviceName'].subscribe -> setServiceRepeat()
+
+this.setServiceRepeat = ->
+  kvm = global.viewsWare['partner-form'].knockVM
+  return unless kvm
+  refs = _.filter kvm.servicesReference(), (r) -> r.serviceName()
+  groups = _.groupBy refs, (r) -> r.serviceName()
+  r = (v[0].serviceNameLocal() for k, v of groups when v.length > 1)
+  kvm.serviceRepeat(r)
