@@ -232,6 +232,25 @@ serviceActions = Map.fromList
           upd kazeId "actions" $ addToList actionId
       _ -> return ()]
   )
+  ,("clientSatisfied", 
+    [\objId val ->
+        case val of
+          "notSatis" -> do
+            due <- dateNow (+ (1*60))
+            kazeId <- get objId "parentId"
+            actionId <- new "action" $ Map.fromList
+              [("name", "complaintResolution")
+              ,("duetime", due)
+              ,("description", utf8 "Клиент предъявил претензию")
+              ,("targetGroup", "supervisor")
+              ,("priority", "1")
+              ,("parentId", objId)
+              ,("caseId", kazeId)
+              ,("closed", "0")
+              ]
+            upd kazeId "actions" $ addToList actionId
+          _ -> return ()]
+  )
   ,("contractor_partner",
     [\objId val -> do
         Right partnerIds <- lift $ runRedisDB redis $ Redis.keys "partner:*"
@@ -310,11 +329,18 @@ actionResultMap = Map.fromList
      set newAction "assignedTo" ""
   )
   ,("serviceOrdered", \objId -> do
-     setService objId "status" "serviceOrdered"
-     void $ replaceAction
-         "tellClient"
-         "Сообщить клиенту о договорённости" 
-         "back" "1" (+60) objId
+    setService objId "status" "serviceOrdered"
+    void $ replaceAction
+      "tellClient"
+      "Сообщить клиенту о договорённости" 
+      "back" "1" (+60) objId
+    
+    act <- replaceAction
+      "addBill"
+      "Прикрепить счёт"
+      "parguy" "1" (+14*24*60*60)
+      objId
+    set act "assignedTo" ""
   )
   ,("serviceOrderedSMS", \objId -> do
     tm <- getService objId "times_expectedServiceStart"
@@ -424,12 +450,6 @@ actionResultMap = Map.fromList
     comment <- get objId "comment"
     set act "comment" $ B.concat [utf8 "Партнёр: ", partner, "\n\n", comment]
 
-    act <- replaceAction
-      "addBill"
-      "Прикрепить счёт"
-      "parguy" "1" (+14*24*60*60)
-      objId
-    set act "assignedTo" ""
     void $ replaceAction
       "getInfoDealerVW"
       "Требуется уточнить информацию о ремонте у дилера (только для VW)"
@@ -459,12 +479,6 @@ actionResultMap = Map.fromList
     comment <- get objId "comment"
     set act "comment" $ B.concat [utf8 "Партнёр: ", partner, "\n\n", comment]
 
-    act2 <- replaceAction
-      "addBill"
-      "Прикрепить счёт"
-      "parguy" "1" (+14*24*60*60)
-      objId
-    set act2 "assignedTo" ""
     void $ replaceAction
       "getInfoDealerVW"
       "Требуется уточнить информацию о ремонте у дилера (только для VW)"

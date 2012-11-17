@@ -59,7 +59,8 @@ withinDay tbl col tm = preQuery_ [] [tbl] [afterStart, beforeEnd] [] [] where
   beforeEnd = T.concat [tbl, ".", col, " - '", st, "' < '1 day'"]
 
 withinToday :: T.Text -> T.Text -> PreQuery
-withinToday tbl col = preQuery_ [] [tbl] [equalsNow] [] [] where
+withinToday tbl col = thisDay `mappend` notNull tbl col where
+  thisDay = preQuery_ [] [tbl] [equalsNow] [] []
   equalsNow = T.concat ["date_trunc('day', ", tbl, ".", col, " + '4 hours') = date_trunc('day', now())"]
 
 -- Get start of this day for timezone
@@ -165,6 +166,7 @@ frontOps :: PreQuery
 frontOps = mconcat [
   select "actiontbl" "assignedTo",
   averageActionTime,
+  equals "actiontbl" "closed" "t",
   withinToday "actiontbl" "openTime",
   groupBy "actiontbl" "assignedTo"]
 
@@ -444,7 +446,7 @@ backActions constraints actions = scope "backAction" $ do
       look = fromMaybe 0 . lookup n
   return $ map makeActionInfo actions
   where
-    todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "actiontbl" "name", p, constraints, withinToday "actiontbl" "openTime", groupBy "actiontbl" "name"]
+    todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "actiontbl" "name", notNull "actiontbl" "name", p, constraints, withinToday "actiontbl" "openTime", groupBy "actiontbl" "name"]
 
 rkcBack :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> m BackInformation
 rkcBack constraints actions = scope "rkcBack" $ (return BackInformation `ap` backSummary constraints `ap` backActions constraints actions)

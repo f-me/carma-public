@@ -315,6 +315,89 @@
 					"type": "time"
 				}
 			]
+		},
+		{
+			"model": "partner",
+			"table": "partnertbl",
+			"hstore": "garbage",
+			"fields": [
+				{
+					"name": "id",
+					"type": "int"
+				},
+				{
+					"name": "isActive",
+					"type": "bool"
+				},
+				{
+					"name": "isDealer",
+					"type": "bool"
+				},
+				{
+					"name": "isMobile",
+					"type": "bool"
+				},
+				{
+					"name": "name",
+					"type": "string"
+				},
+				{
+					"name": "code",
+					"type": "string"
+				},
+				{
+					"name": "city",
+					"type": "string"
+				},
+				{
+					"name": "addrDeJure",
+					"type": "string"
+				},
+				{
+					"name": "addrDeFacto",
+					"type": "string"
+				},
+				{
+					"name": "workingTime",
+					"type": "string"
+				},
+				{
+					"name": "phone1",
+					"type": "string"
+				},
+				{
+					"name": "fax",
+					"type": "string"
+				},
+				{
+					"name": "closeTicketPhone",
+					"type": "string"
+				},
+				{
+					"name": "closeTicketEmail",
+					"type": "string"
+				},
+				{
+					"name": "personInCharge",
+					"type": "string"
+				},
+				{
+					"name": "taxScheme",
+					"type": "string"
+				},
+				{
+					"name": "comment",
+					"type": "string"
+				},
+				{
+					"name": "isPayBackConfirmed",
+					"type": "bool"
+				},
+				{
+					"name": "services",
+					"type": "string"
+				}
+			]
 		}
 	],
 	"relations": [

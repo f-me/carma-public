@@ -250,7 +250,7 @@ this.initPartnerTables = ($view,parentView) ->
       svc["#{partnerType}_address"]("#{city}, #{addr}")
 
   table = table.dataTable()
-  fields = "id,name,city,addrDeFacto,phone1,workingTime"
+  fields = "id,name,city,addrDeFacto,phone1,workingTime,isMobile"
   dealer = if partnerType is "towDealer" then 1 else 0
   select = "city==#{kase.cityLocal()},isActive==1,isDealer==#{dealer}"
   $.getJSON "/all/partner?fields=#{fields}&select=#{select}", (objs) ->
