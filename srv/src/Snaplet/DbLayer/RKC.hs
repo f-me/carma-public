@@ -166,6 +166,7 @@ frontOps :: PreQuery
 frontOps = mconcat [
   select "actiontbl" "assignedTo",
   averageActionTime,
+  equals "actiontbl" "closed" "t",
   withinToday "actiontbl" "openTime",
   groupBy "actiontbl" "assignedTo"]
 
