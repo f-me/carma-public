@@ -393,13 +393,10 @@ errorsHandler = do
 logReq :: Show v => v -> AppHandler ()
 logReq commit  = do
   r <- getRequest
-  l <- askLog
-  -- liftIO $ print c
   let params = rqParams r
       uri    = rqURI r
       method = rqMethod r
-      pparam = rqPostParams r
-  withLog l $ scoper "reqlogger" $ log Trace $ T.pack $
+  scoper "reqlogger" $ log Trace $ T.pack $
     show method ++ " " ++ show uri ++ "; " ++
     "params: " ++ show params ++ "; " ++
     "body: " ++ show commit
