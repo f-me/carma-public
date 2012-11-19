@@ -12,3 +12,4 @@ CREATE ROLE carma_geo PASSWORD 'md5a73940ffdfdd8d8b9ecfbfba6cc3e2ab' NOSUPERUSER
 CREATE TABLE geo_partners (id INTEGER PRIMARY KEY, name TEXT, city TEXT, address TEXT);
 SELECT AddGeometryColumn ('geo_partners', 'coords', 4326, 'POINT', 2);
 GRANT SELECT, UPDATE ON geo_partners TO carma_geo;
+GRANT SELECT ON partnerMessageTbl TO carma_geo;
