@@ -103,6 +103,51 @@
             }
         },
         {
+            "name": "makers",
+            "meta": {
+                "label": "Обслуживаемые марки"
+            },
+            "type": "textarea"
+        },
+        {
+            "name": "serviceAddress",
+            "meta": {
+                "label": "Адрес сервисного отдела"
+            }
+        },
+        {
+            "name": "servicePhone",
+            "meta": {
+                "label": "Телефон сервисного отдела",
+                "regexp": "phone"
+            }
+        },
+        {
+            "name": "serviceWorking",
+            "meta": {
+                "label": "Время работы сервисного отдела"
+            }
+        },
+        {
+            "name": "salesAddress",
+            "meta": {
+                "label": "Адрес отдела продаж"
+            }
+        },
+        {
+            "name": "salesPhone",
+            "meta": {
+                "label": "Телефон отдела продаж",
+                "regexp": "phone"
+            }
+        },
+        {
+            "name": "salesWorking",
+            "meta": {
+                "label": "Время работы сервисного отдела"
+            }
+        },
+        {
             "name": "taxScheme",
             "type": "dictionary",
             "meta": {
