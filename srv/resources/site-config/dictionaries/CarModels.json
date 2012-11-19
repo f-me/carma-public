@@ -630,6 +630,10 @@
             {
                 "value": "tiida",
                 "label": "Tiida"
+            },
+            {
+                "value": "qashqai",
+                "label": "Qashqai"
             }
         ],
         "opel": [
