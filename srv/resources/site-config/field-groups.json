@@ -588,10 +588,8 @@
     "partner": [
         {
             "name": "partner",
-            "type": "dictionary",
             "meta": {
-                "label": "Партнёр",
-                "dictionaryName": "partners"
+                "label": "Партнёр"
             }
         },
         {
