@@ -23,6 +23,15 @@ this.wsgProj = new OpenLayers.Projection("EPSG:4326")
 this.osmProj = new OpenLayers.Projection("EPSG:900913")
 
 
+this.carIcon = "/s/img/car-icon.png"
+
+this.towIcon = "/s/img/tow-icon.png"
+
+this.partnerIcon = "/s/img/partner-icon.png"
+
+this.dealerIcon = "/s/img/dealer-icon.png"
+
+
 # Build readable address from reverse Nominatim JSON response
 this.buildReverseAddress = (res) ->
   if (res.error)
@@ -147,7 +156,7 @@ this.initOSM = (el, parentView) ->
 
 # Move the car crash blip on the map
 this.carBlip = (osmap, coords) ->
-  ico = new OpenLayers.Icon("/s/img/car-icon.png", iconSize)
+  ico = new OpenLayers.Icon(carIcon, iconSize)
   markers = reinstallMarkers(osmap, "Car")
   markers.addMarker(
     new OpenLayers.Marker(coords, ico))
@@ -187,10 +196,14 @@ this.partnerBlips = (osmap, partners, tableCache,
 
       if partner.isMobile
         mrk = new OpenLayers.Marker(
-          coords, new OpenLayers.Icon("/s/img/tow-icon.png", iconSize))
+          coords, new OpenLayers.Icon(towIcon, iconSize))
       else
-        mrk = new OpenLayers.Marker(
-          coords, new OpenLayers.Icon("/s/img/partner-icon.png", iconSize))
+        if (partner.isDealer == "1")
+          mrk = new OpenLayers.Marker(
+            coords, new OpenLayers.Icon(dealerIcon, iconSize))
+        else
+          mrk = new OpenLayers.Marker(
+            coords, new OpenLayers.Icon(partnerIcon, iconSize))
 
       # Show partner info from table cache when clicking marker
       mrk.events.register("click", mrk, (e) ->

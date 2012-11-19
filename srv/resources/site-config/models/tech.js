@@ -220,6 +220,7 @@
                 "contractor_partner",
                 "contractor_partnerId",
                 "contractor_partnerTable",
+                "contractor_partnerMap",
                 "contractor_address"
             ],
             "canRead": [
@@ -250,6 +251,16 @@
                 "programman",
                 "parguy"
             ]
+        },
+        {
+            "targets": [
+                "contractor_partnerMap"
+            ],
+            "meta": {
+                "targetPartner": "contractor_partner",
+                "targetPartnerAddr": "contractor_address",
+                "partnerTable": "contractor_partnerTable"
+            }
         },
         {
             "targets": [
