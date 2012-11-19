@@ -142,6 +142,7 @@ createHandler :: AppHandler ()
 createHandler = do
   Just model <- getParam "model"
   commit <- getJSONBody
+  logReq commit
   res <- with db $ DB.create model commit
   -- FIXME: try/catch & handle/log error
   writeJSON res
@@ -180,6 +181,7 @@ updateHandler = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
   commit <- getJSONBody
+  logReq commit
   -- Need this hack, or server won't return updated "cost_counted"
   res <- with db $ DB.update model objId $ Map.delete "cost_counted" commit
   -- FIXME: try/catch & handle/log error
@@ -387,3 +389,14 @@ errorsHandler = do
   r <- readRequestBody 4096
   liftIO $ withLog l $ scope "frontend" $ do
   log Info $ toStrict $ decodeUtf8 r
+
+logReq :: Show v => v -> AppHandler ()
+logReq commit  = do
+  r <- getRequest
+  let params = rqParams r
+      uri    = rqURI r
+      method = rqMethod r
+  scoper "reqlogger" $ log Trace $ T.pack $
+    show method ++ " " ++ show uri ++ "; " ++
+    "params: " ++ show params ++ "; " ++
+    "body: " ++ show commit
