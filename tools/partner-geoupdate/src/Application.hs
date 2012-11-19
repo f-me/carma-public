@@ -21,6 +21,7 @@ import Control.Monad.State
 
 import Data.Attoparsec.ByteString.Char8
 import Data.ByteString.Char8 (ByteString)
+import qualified Data.ByteString as B
 
 import Data.Functor
 
@@ -44,6 +45,7 @@ instance HasPostgres (Handler b GeoApp) where
 
 routes :: [(ByteString, Handler b GeoApp ())]
 routes = [ ("/geo/partner/:pid", method PUT $ updatePosition)
+         , ("/geo/partner/:pid", method GET $ getMessage)
          ]
 
 
@@ -54,6 +56,9 @@ routes = [ ("/geo/partner/:pid", method PUT $ updatePosition)
 updateQuery :: Query
 updateQuery = "UPDATE geo_partners SET coords=ST_PointFromText('POINT(? ?)', 4326) WHERE id=?;"
 
+
+getMessageQuery :: Query
+getMessageQuery = "SELECT message FROM partnerMessageTbl where partnerId=? order by ctime desc limit 1;"
 
 ------------------------------------------------------------------------------
 -- | Update partner position.
@@ -67,6 +72,14 @@ updatePosition = do
         execute updateQuery (lon, lat, id) >> return ()
     _ -> error "Bad request"
 
+getMessage :: Handler b GeoApp ()
+getMessage = do
+  Just id <- getParam "pid"
+  let partnerId = B.append "partner:" id
+  res <- query getMessageQuery $ Only partnerId
+  case res of
+    (Only msg):_ -> writeLBS msg
+    _ -> writeLBS "{}"
 
 geoAppInit :: SnapletInit b GeoApp
 geoAppInit = makeSnaplet "geo" "Geoservices" Nothing $ do
