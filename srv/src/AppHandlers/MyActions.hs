@@ -35,8 +35,9 @@ selectActions = do
     "select id::text, assignedTo, "
     ++ "(extract (epoch from dueTime)::int)::text, "
     ++ "garbage::hstore -> 'priority', garbage::hstore -> 'targetGroup' "
-    ++ "from actiontbl "
-    ++ "where closed = false"
+    ++ "from actiontbl where "
+    ++ "extract (epoch from dueTime) > 0 "
+    ++ "and closed = false"
   let fields = ["id", "assignedTo", "duetime", "priority", "targetGroup"]
   return $ map (Map.fromList . zip fields . map (fromMaybe "")) rows
 
