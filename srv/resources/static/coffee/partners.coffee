@@ -13,8 +13,11 @@ this.setupPartnersForm = (viewName, args) ->
             label: "Добавить услугу"
   )
 
-  ko.cleanNode($("#partner-errors")[0])
-  ko.applyBindings(kvm, $("#partner-errors")[0])
+  # I need this object because I can't clean foreach binding, once
+  # it's created, to use this proxy object to keep current partner's
+  # allerts
+  global.alertObj = { kvm: ko.observable(kvm)}
+  ko.applyBindings(global.alertObj, $("#partner-errors")[0])
   setTimeout(->
     $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
     $.fn.dataTableExt.oStdClasses.sFilter = "dataTables_filter form-inline"
@@ -25,11 +28,13 @@ this.setupPartnersForm = (viewName, args) ->
 
     t.on("click.datatable", "tr", ->
       id = this.children[0].innerText
-      modelSetup("partner") viewName, {"id": id},
+      kvm = modelSetup("partner") viewName, {"id": id},
                             permEl: "partner-permissions"
                             focusClass: "focusable"
                             refs: refs
       k = global.viewsWare['partner-form'].knockVM
+      global.alertObj.kvm(kvm)
+
       k['servicesReference'].subscribe ->
         addTarifStuff i for i in k['servicesReference']()
     )
@@ -78,7 +83,7 @@ this.bindRemoveService = (instance, kvm) ->
   kvm['services'].subscribe -> bindRemove kvm, 'services'
 
 this.serviceRepeat = (instance, kvm) ->
-  kvm['serviceRepeat'] = ko.observable([])
+  kvm['serviceRepeat'] = ko.observableArray([])
   kvm['services'].subscribe -> setServiceRepeat()
 
 this.partnerServiceRepeat = (instance, kvm) ->
@@ -91,3 +96,5 @@ this.setServiceRepeat = ->
   groups = _.groupBy refs, (r) -> r.serviceName()
   r = (v[0].serviceNameLocal() for k, v of groups when v.length > 1)
   kvm.serviceRepeat(r)
+
+this.releasePartnersForm() -> delete global.alertObj
