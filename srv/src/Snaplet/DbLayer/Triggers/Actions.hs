@@ -6,12 +6,14 @@ import Control.Monad.Trans
 import Control.Exception
 import Control.Applicative
 import Data.ByteString (ByteString)
+import qualified Data.ByteString.Lazy as L
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.UTF8  as BU
 import qualified Data.Text.Encoding as T
 import qualified Data.Map as Map
 import Data.Char
 import Data.Maybe
+import Data.Aeson as Aeson
 
 import qualified Fdds as Fdds
 ------------------------------------------------------------------------------
@@ -60,6 +62,9 @@ actions
     $ add "tech"   "suburbanMilage" [\objId val -> setSrvMCost objId]
     $ add "rent"   "providedFor"    [\objId val -> setSrvMCost objId]
     $ add "hotel"  "providedFor"    [\objId val -> setSrvMCost objId]
+    $ add "towage" "contractor_address" [
+      \objId val -> set objId "towerAddress_address" val
+      ]
     $ Map.fromList
       $ [(s,serviceActions) | s <- services]
       ++[("sms", Map.fromList
@@ -330,7 +335,7 @@ actionResultMap = Map.fromList
   )
   ,("serviceOrdered", \objId -> do
     setService objId "status" "serviceOrdered"
-    void $ replaceAction
+    replaceAction
       "tellClient"
       "Сообщить клиенту о договорённости" 
       "back" "1" (+60) objId
@@ -341,14 +346,17 @@ actionResultMap = Map.fromList
       "parguy" "1" (+14*24*60*60)
       objId
     set act "assignedTo" ""
+
+    newPartnerMessage objId
   )
   ,("serviceOrderedSMS", \objId -> do
     tm <- getService objId "times_expectedServiceStart"
-    void $ replaceAction
+    replaceAction
       "checkStatus"
       "Уточнить статус оказания услуги"
       "back" "3" (changeTime (+5*60) tm)
       objId
+    newPartnerMessage objId
   )
   ,("partnerNotOk", void . replaceAction
       "cancelService"
@@ -612,6 +620,32 @@ getService objId field
   = get objId "parentId"
   >>= (`get` field)
   
+
+newPartnerMessage objId = do
+  svcId <- get objId "parentId"
+  partnerId <- get svcId "contractor_partner"
+  kazeId <- get svcId "parentId"
+  now <- dateNow id
+
+  addr   <- get kazeId "caseAddress_address"
+  name   <- get kazeId "contact_name"
+  phone  <- get kazeId "contact_phone1"
+  carNum <- get kazeId "car_plateNum"
+
+  let msg = Aeson.object
+        ["addr"   .= addr
+        ,"name"   .= name
+        ,"phone"  .= phone
+        ,"carNum" .= carNum
+        ]
+  
+  void $ new "partnerMessage" $ Map.fromList
+    [("ctime", now)
+    ,("caseId", kazeId)
+    ,("partnerId", partnerId)
+    ,("message", L.toStrict $ Aeson.encode msg)
+    ]
+
 
 closeAction objId = do
   svcId <- get objId "parentId"

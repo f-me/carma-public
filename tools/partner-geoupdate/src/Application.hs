@@ -53,6 +53,7 @@ instance HasPostgres (Handler b GeoApp) where
 
 routes :: [(ByteString, Handler b GeoApp ())]
 routes = [ ("/geo/partner/:pid", method PUT $ updatePosition)
+         , ("/geo/partner/:pid", method GET $ getMessage)
          ]
 
 
@@ -110,6 +111,9 @@ updateQuery :: Query
 updateQuery = "UPDATE geo_partners SET coords=ST_PointFromText('POINT(? ?)', 4326) WHERE id=?;"
 
 
+getMessageQuery :: Query
+getMessageQuery = "SELECT message FROM partnerMessageTbl where partnerId=? order by ctime desc limit 1;"
+
 ------------------------------------------------------------------------------
 -- | Update partner position, setting new address if possible.
 updatePosition :: Handler b GeoApp ()
@@ -131,6 +135,14 @@ updatePosition = do
           _ -> return ()
     _ -> error "Bad request"
 
+getMessage :: Handler b GeoApp ()
+getMessage = do
+  Just id <- getParam "pid"
+  let partnerId = BS.append "partner:" id
+  res <- query getMessageQuery $ Only partnerId
+  case res of
+    (Only msg):_ -> writeLBS msg
+    _ -> writeLBS "{}"
 
 geoAppInit :: SnapletInit b GeoApp
 geoAppInit = makeSnaplet "geo" "Geoservices" Nothing $ do
