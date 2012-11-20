@@ -1,5 +1,7 @@
 module Snaplet.DbLayer.Triggers.Actions where
 
+import Prelude hiding (log)
+
 import Control.Arrow (first)
 import Control.Monad (when, unless, void, forM, forM_, filterM)
 import Control.Monad.Trans
@@ -8,6 +10,7 @@ import Control.Applicative
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.UTF8  as BU
+import qualified Data.Text          as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Map as Map
 import Data.Char
@@ -28,6 +31,8 @@ import qualified Snaplet.DbLayer.RedisCRUD as RC
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
+
+import Snap.Snaplet.SimpleLog
 
 import Util
 import qualified DumbTemplate as Template
@@ -657,8 +662,21 @@ setWeather objId city = do
   conf    <- lift $ gets weather
   weather <- liftIO $ getWeather' conf $ BU.toString city
   case weather of
-    Right w -> set objId "temperature" $ B.pack $ show $ tempC w
-    Left  _ -> return ()
+    Right w   -> do
+      lift $ scope "weather" $ log Trace $ T.concat
+        [ "got for: ", T.decodeUtf8 objId
+        , "; city: " , T.decodeUtf8 city
+        , "; weather: ", T.pack $ show w
+        ]
+      set objId "temperature" $ B.pack $ show $ tempC w
+    Left  err -> do
+      set objId "temperature" ""
+      lift $ scope "weather" $ log Debug $ T.concat
+        [ "can't retrieve for: ", T.decodeUtf8 objId
+        , "; city: " , T.decodeUtf8 city
+        , "; error: ", T.pack $ show err
+        ]
+      return ()
 
 srvCostCounted srvId = do
   falseCall        <- get srvId "falseCall"
