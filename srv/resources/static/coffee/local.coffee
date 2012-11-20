@@ -189,7 +189,7 @@ this.stdElCb = (elName) ->
 
 # Scroll case field into view and focus
 this.focusField = (name) ->
-  e = $("#case-form").find("[name=" + name + "]")[0]
+  e = $("#main-container").find("[name=" + name + "]")[0]
   e.scrollIntoView()
   e.focus()
 
