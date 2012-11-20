@@ -223,6 +223,7 @@
           break
 
         case 9: // tab
+        case 16: // shift
           break
         case 13: // enter
           if (!this.shown) this.lookup()
