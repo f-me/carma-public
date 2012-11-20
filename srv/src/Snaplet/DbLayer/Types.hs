@@ -27,6 +27,12 @@ type ModelName = ByteString
 type FieldName = ByteString
 type FieldValue = ByteString
 
+type ProgramName = ByteString
+type RKCName     = ByteString
+type RKCValue    = Double
+type RKCEntry    = Map RKCName RKCValue
+type RKCCalc     = Map ProgramName RKCEntry
+
 type DbHandler b r = Handler b (DbLayer b) r
 
 data DbLayer b = DbLayer
@@ -39,6 +45,7 @@ data DbLayer b = DbLayer
     ,syncModels :: SM.Models
     ,allUsers   :: UsersDict
     ,weather    :: W.Config
+    ,rkcDict    :: RKCCalc
     }
 
 data TriggersConfig = TriggersConfig
