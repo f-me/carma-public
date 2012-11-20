@@ -215,6 +215,7 @@
     }
 
   , keyup: function (e) {
+      if (this.$element.hasClass("disabled")) return;
       switch(e.keyCode) {
         case 40: // down arrow
         case 38: // up arrow
