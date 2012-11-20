@@ -62,6 +62,9 @@ actions
     $ add "tech"   "suburbanMilage" [\objId val -> setSrvMCost objId]
     $ add "rent"   "providedFor"    [\objId val -> setSrvMCost objId]
     $ add "hotel"  "providedFor"    [\objId val -> setSrvMCost objId]
+    $ add "towage" "contractor_address" [
+      \objId val -> set objId "towerAddress_address" val
+      ]
     $ Map.fromList
       $ [(s,serviceActions) | s <- services]
       ++[("sms", Map.fromList

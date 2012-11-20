@@ -386,6 +386,34 @@
 					"type": "string"
 				},
 				{
+					"name": "makers",
+					"type": "string"
+				},
+				{
+					"name": "serviceAddress",
+					"type": "string"
+				},
+				{
+					"name": "servicePhone",
+					"type": "string"
+				},
+				{
+					"name": "serviceWorking",
+					"type": "string"
+				},
+				{
+					"name": "salesAddress",
+					"type": "string"
+				},
+				{
+					"name": "salesPhone",
+					"type": "string"
+				},
+				{
+					"name": "salesWorking",
+					"type": "string"
+				},
+				{
 					"name": "comment",
 					"type": "string"
 				},
