@@ -173,7 +173,7 @@ smsProcessing = runRedisDB redis $ do
 initDbLayer :: UsersDict -> FilePath -> SnapletInit b (DbLayer b)
 initDbLayer allU cfgDir = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
-    l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10) [logger text (file "log/db.log"), syslog_ "carma"]
+    l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10) [logger text (file "log/db.log"), syslog "carma" [PID] USER]
     liftIO $ withLog l $ log Info "Server started"
     mdl <- liftIO $ Postgres.loadModels "resources/site-config/syncs.json" l
     liftIO $ Postgres.createIO mdl l
