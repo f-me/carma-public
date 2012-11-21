@@ -1036,7 +1036,10 @@
                               {{# meta.dictionaryParent }},
                               attr: { 'data-parent': {{ meta.dictionaryParent }} }
                               {{/ meta.dictionaryParent }}"
-                   data-provide="typeahead" />
+                   {{^readonly}}
+                   data-provide="typeahead"
+                   {{/readonly}}
+                   />
             <span class="add-on">
               <i class="icon icon-chevron-down"
                 {{^readonly}}data-provide="typeahead-toggle"{{/readonly}}
