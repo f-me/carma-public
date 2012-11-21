@@ -424,6 +424,10 @@
 				{
 					"name": "services",
 					"type": "string"
+				},
+				{
+					"name": "coords",
+					"type": "coords"
 				}
 			]
 		},
