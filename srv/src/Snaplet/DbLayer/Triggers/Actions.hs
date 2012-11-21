@@ -693,8 +693,21 @@ setWeather objId city = do
   conf    <- lift $ gets weather
   weather <- liftIO $ getWeather' conf $ BU.toString city
   case weather of
-    Right w -> set objId "temperature" $ B.pack $ show $ tempC w
-    Left  _ -> return ()
+    Right w   -> do
+      lift $ scope "weather" $ log Trace $ T.concat
+        [ "got for: ", T.decodeUtf8 objId
+        , "; city: " , T.decodeUtf8 city
+        , "; weather: ", T.pack $ show w
+        ]
+      set objId "temperature" $ B.pack $ show $ tempC w
+    Left  err -> do
+      set objId "temperature" ""
+      lift $ scope "weather" $ log Debug $ T.concat
+        [ "can't retrieve for: ", T.decodeUtf8 objId
+        , "; city: " , T.decodeUtf8 city
+        , "; error: ", T.pack $ show err
+        ]
+      return ()
 
 srvCostCounted srvId = do
   falseCall        <- get srvId "falseCall"
