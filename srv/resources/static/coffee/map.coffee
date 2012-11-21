@@ -21,8 +21,9 @@ this.nominatimRevQuery = (lon, lat) ->
 
 
 this.nominatimQuery = (addr) ->
+  fixed_addr = addr.replace(/Москва/g, "Московская область")
   return this.nominatimHost +
-    "search?format=json&accept-language=ru-RU,ru&q=#{addr}"
+    "search?format=json&accept-language=ru-RU,ru&q=#{fixed_addr}"
 
 
 this.wsgProj = new OpenLayers.Projection("EPSG:4326")
