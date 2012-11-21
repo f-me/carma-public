@@ -3,19 +3,26 @@
 # Default marker icon size
 this.iconSize = new OpenLayers.Size(50, 50)
 
-
 # Default map zoom level
 this.zoomLevel = 16
 
+# Low zoom level (partner map overview)
 this.beyondTheClouds = 10
 
 
-this.nominatimRevQuery =
-  "http://nominatim.openstreetmap.org/reverse.php?format=json&accept-language=ru-RU,ru&"
+# Trailing slash included
+this.nominatimHost = "http://nominatim.openstreetmap.org/"
+#this.nominatimHost = "http://192.168.10.2/"
 
 
-this.nominatimQuery =
-  "http://nominatim.openstreetmap.org/search?format=json&accept-language=ru-RU,ru&q="
+this.nominatimRevQuery = (lon, lat) ->
+  return this.nominatimHost +
+    "reverse.php?format=json&accept-language=ru-RU,ru&lon=#{lon}&lat=#{lat}"
+
+
+this.nominatimQuery = (addr) ->
+  return this.nominatimHost +
+    "search?format=json&accept-language=ru-RU,ru&q=#{addr}"
 
 
 this.wsgProj = new OpenLayers.Projection("EPSG:4326")
@@ -110,7 +117,7 @@ this.initOSM = (el, parentView) ->
         global.viewsWare['case-form']
         .knockVM[coord_field](coords.toShortString())
 
-      $.getJSON(nominatimRevQuery + "lon=#{coords.lon}&lat=#{coords.lat}",
+      $.getJSON(nominatimRevQuery(coords.lon, coords.lat),
       (res) ->
         addr = buildReverseAddress(res)
 
@@ -276,7 +283,7 @@ this.geoPicker = (fieldName, el) ->
   if city_field?
     addr = addr + ", " + global.viewsWare['case-form'].knockVM[city_field]()
 
-  $.getJSON(nominatimQuery+"#{addr}", (res) ->
+  $.getJSON(nominatimQuery(addr), (res) ->
     if res.length > 0
       lonlat = new OpenLayers.LonLat(res[0].lon, res[0].lat)
 
