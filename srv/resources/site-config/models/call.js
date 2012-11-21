@@ -79,6 +79,7 @@
             "type": "dictionary",
             "meta": {
                 "label": "Кто звонит?",
+                "bounded":true,
                 "dictionaryName": "CallerTypes"
             }
         },
@@ -113,6 +114,7 @@
             "meta": {
                 "dictionaryName": "CallTypes",
                 "dictionaryParent": "callerType",
+                "bounded":true,
                 "label": "Тип звонка"
             }
         }
