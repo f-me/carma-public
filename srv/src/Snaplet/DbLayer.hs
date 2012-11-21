@@ -49,6 +49,7 @@ import qualified Database.PostgreSQL.Syncs as S
 import qualified Database.PostgreSQL.Models as SM
 
 import Snaplet.DbLayer.Types
+import qualified Snaplet.DbLayer.ModelTables as MT (loadTables)
 import Snaplet.DbLayer.Triggers
 import Snaplet.DbLayer.Dictionary (readRKCCalc)
 import Util
@@ -176,7 +177,8 @@ initDbLayer allU cfgDir = makeSnaplet "db-layer" "Storage abstraction"
     l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10) [logger text (file "log/db.log"), syslog "carma" [PID] USER]
     liftIO $ withLog l $ log Info "Server started"
     mdl <- liftIO $ Postgres.loadModels "resources/site-config/syncs.json" l
-    liftIO $ Postgres.createIO mdl l
+    tbls <- liftIO $ MT.loadTables "resources/site-config/models" "resources/site-config/field-groups.json"
+    liftIO $ Postgres.createIO tbls l
     cfg <- getSnapletUserConfig
     wkey <- liftIO $ lookupDefault "" cfg "weather-key"
     DbLayer
@@ -188,6 +190,7 @@ initDbLayer allU cfgDir = makeSnaplet "db-layer" "Storage abstraction"
       <*> liftIO createIndices
       <*> (liftIO $ fddsConfig cfg)
       <*> (return mdl)
+      <*> (return tbls)
       <*> (return allU)
       <*> (return $ initApi wkey)
       <*> (liftIO $ readRKCCalc cfgDir)

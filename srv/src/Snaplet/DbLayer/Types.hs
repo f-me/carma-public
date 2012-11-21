@@ -11,6 +11,7 @@ import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple (Postgres, HasPostgres(..))
 import Snap.Snaplet.RedisDB (RedisDB)
 import Snaplet.DbLayer.Indices
+import Snaplet.DbLayer.ModelTables (TableDesc)
 import Snap.Snaplet.SimpleLog
 
 import qualified Database.PostgreSQL.Models as SM
@@ -43,6 +44,7 @@ data DbLayer b = DbLayer
     ,indices   :: Indices
     ,fdds      :: Fdds.Conf
     ,syncModels :: SM.Models
+    ,syncTables :: [TableDesc]
     ,allUsers   :: UsersDict
     ,weather    :: W.Config
     ,rkcDict    :: RKCCalc

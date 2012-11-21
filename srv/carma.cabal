@@ -28,6 +28,7 @@ Executable carma
     Snaplet.DbLayer.Indices,
     Snaplet.DbLayer.RedisCRUD,
     Snaplet.DbLayer.PostgresCRUD,
+    Snaplet.DbLayer.ModelTables,
     Snaplet.DbLayer.ARC,
     Snaplet.DbLayer.RKC,
     Snaplet.DbLayer.Dictionary,

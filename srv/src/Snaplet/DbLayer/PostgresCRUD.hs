@@ -52,11 +52,18 @@ import Snap.Snaplet.SimpleLog
 import qualified Snaplet.DbLayer.ARC as ARC
 import qualified Snaplet.DbLayer.RKC as RKC
 
+import qualified Snaplet.DbLayer.ModelTables as MT
+
 withPG :: (PS.HasPostgres m, MonadLog m) => S.TIO a -> m a
 withPG f = do
     s <- PS.getPostgresState
     l <- askLog
     liftIO $ Pool.withResource (PS.pgPool s) (withLog l . S.inPG f)
+
+inPsql :: (PS.HasPostgres m, MonadLog m) => (P.Connection -> m ()) -> m ()
+inPsql act = do
+    s <- PS.getPostgresState
+    Pool.withResource (PS.pgPool s) act
 
 service :: S.Sync -> String -> (String, SM.Model)
 service srv tp = (tp, mdl) where
@@ -261,14 +268,15 @@ loadModels f l = withLog l $ do
     ss <- liftIO $ fmap (fromMaybe (error "Unable to load syncs") . A.decode) $ L8.readFile f
     maybe (error "Unable to create models on syncs loaded") return $ modelModels ss
 
-createIO :: SM.Models -> Log -> IO ()
-createIO ms l = do
+createIO :: [MT.TableDesc] -> Log -> IO ()
+createIO tbls l = do
     con <- P.connect local
     let
         onError :: E.SomeException -> IO ()
         onError _ = return ()
     E.catch (void $ P.execute_ con "create extension hstore") onError
-    withLog l $ S.transaction con $ S.create (SM.modelsSyncs ms)
+    mapM_ (withLog l . MT.createExtend con) tbls
+    --withLog l $ S.transaction con $ S.create (SM.modelsSyncs ms)
 
 toStr :: ByteString -> String
 toStr = T.unpack . T.decodeUtf8
