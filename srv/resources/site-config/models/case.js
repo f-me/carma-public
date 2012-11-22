@@ -577,7 +577,7 @@
                 "parguy"
             ],
             "meta": {
-                "label": "Претензия",
+                "label": "Претензия / Благодарность",
                 "infoText": "claim"
             },
             "type": "textarea"
