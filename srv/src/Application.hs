@@ -26,6 +26,7 @@ import Snaplet.FileUpload
 import Snaplet.Geo
 import Snap.Snaplet.SimpleLog
 
+import DictionaryCache
 import Util (UsersDict)
 ------------------------------------------------------------------------------
 -- | Application snaplet state type: Redson, Heist.
@@ -35,6 +36,7 @@ data App = App
     , _auth       :: Snaplet (AuthManager App)
     , loggedUsers :: TVar (Map Text (UTCTime, AuthUser))
     , allUsers    :: UsersDict
+    , dictCache   :: TVar DictCache
     , actionsLock :: TMVar ()
     , _siteConfig :: Snaplet (SiteConfig App)
     , _db         :: Snaplet (DbLayer App)
@@ -66,3 +68,9 @@ withPG
   :: (App -> Pool Pg.Connection) -> (Pg.Connection -> IO res)
   -> AppHandler res
 withPG pool f = gets pool >>= liftIO .(`withResource` f)
+
+
+getDict :: (DictCache -> dict) -> AppHandler dict
+getDict dict
+  = gets dictCache
+  >>= fmap dict . liftIO . readTVarIO
