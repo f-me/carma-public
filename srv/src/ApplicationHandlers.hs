@@ -194,15 +194,6 @@ deleteHandler = do
   res        <- with db $ DB.delete model objId
   writeJSON res
 
-syncHandler :: AppHandler ()
-syncHandler = scope "sync" $ do
-  extendTimeout 6000
-  mdl <- getParam "model"
-  from <- liftM (fmap (maybe 0 fst . B.readInt)) $ getParam "from"
-  log Info $ T.concat ["Syncing ", maybe "all" T.decodeUtf8 mdl, " model(s) starting from id ", maybe "1" (fromString . show) from]
-  res <- with db $ DB.sync mdl from
-  writeJSON res
-
 searchHandler :: AppHandler ()
 searchHandler = scope "searchHandler" $ do
   Just q <- getParam "q"
@@ -226,8 +217,6 @@ rkcHandler = scope "rkcHandler" $ do
   usrs <- gets allUsers
   info <- with db $ RKC.rkc usrs (maybe T.empty T.decodeUtf8 p) (maybe T.empty T.decodeUtf8 c)
   writeJSON info
-
-
 
 searchCallsByPhone :: AppHandler ()
 searchCallsByPhone = do

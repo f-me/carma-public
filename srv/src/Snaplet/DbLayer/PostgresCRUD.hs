@@ -5,12 +5,12 @@ module Snaplet.DbLayer.PostgresCRUD (
 
     loadModels,
     createIO,
-    create, insert, select, exists, update, updateMany, insertUpdate, insertUpdateMany,
+    insert, update, updateMany, insertUpdate, insertUpdateMany,
     search,
     generateReport
     ) where
 
-import Prelude hiding (log, catch)
+import Prelude hiding (log)
 
 import Control.Applicative
 import Control.Monad
@@ -24,7 +24,7 @@ import Data.Monoid
 import Data.Maybe (fromMaybe, listToMaybe, mapMaybe, catMaybes)
 import Data.ByteString (ByteString)
 import Data.Char
-import Data.List (isPrefixOf, findIndex, elemIndex)
+import Data.List (isPrefixOf, elemIndex)
 import Data.String
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.ByteString.Lazy.Char8 as L8
@@ -34,7 +34,7 @@ import Data.Time
 import Data.Time.Clock.POSIX
 
 import qualified Database.PostgreSQL.Simple as P
-import qualified Database.PostgreSQL.Simple.ToField as P
+--import qualified Database.PostgreSQL.Simple.ToField as P
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 import qualified Data.Pool as Pool
 
@@ -43,14 +43,14 @@ import qualified Database.PostgreSQL.Models as SM
 import Database.PostgreSQL.Sync.JSON ()
 import qualified Database.PostgreSQL.Report as R
 import qualified Database.PostgreSQL.Report.Xlsx as R
-import qualified Database.PostgreSQL.Report.Function as R
+--import qualified Database.PostgreSQL.Report.Function as R
 import System.Locale
 
 import Snaplet.DbLayer.Dictionary
 import Snap.Snaplet.SimpleLog
 
-import qualified Snaplet.DbLayer.ARC as ARC
-import qualified Snaplet.DbLayer.RKC as RKC
+--import qualified Snaplet.DbLayer.ARC as ARC
+--import qualified Snaplet.DbLayer.RKC as RKC
 
 import qualified Snaplet.DbLayer.ModelTables as MT
 
@@ -217,14 +217,14 @@ functions tz dict = [
         serviceId fs = do
             (SM.IntValue caseId) <- M.lookup "case.id" fs
             (SM.StringValue caseSrvs) <- M.lookup "case.services" fs
-            (SM.IntValue serviceId) <- M.lookup "service.id" fs
+            (SM.IntValue srvId) <- M.lookup "service.id" fs
             (SM.StringValue serviceType) <- M.lookup "service.type" fs
             -- form service complex id type:id
             let
-                srvIdName = serviceType ++ ":" ++ show serviceId
+                srvIdName = serviceType ++ ":" ++ show srvId
                 splitByComma = words . map (\c -> if c == ',' then ' ' else c)
                 getIndex v = fmap succ . elemIndex v
-                defaultIdx = SM.StringValue $ show caseId ++ "/" ++ serviceType ++ ":" ++ show serviceId
+                defaultIdx = SM.StringValue $ show caseId ++ "/" ++ serviceType ++ ":" ++ show srvId
                 formIdx i = SM.StringValue $ show caseId ++ "/" ++ show i
             return . maybe defaultIdx formIdx . getIndex srvIdName . splitByComma $ caseSrvs
 
@@ -250,18 +250,6 @@ escopev s v act = catch (scope_ s act) (onError v) where
     onError :: (MonadLog m) => a -> E.SomeException -> m a
     onError x _ = return x
 
-elog :: IO () -> IO ()
-elog act = E.catch act onError where
-    onError :: E.SomeException -> IO ()
-    onError e = putStrLn $ "Failed with: " ++ show e
-
-elogv :: a -> IO a -> IO a
-elogv v act = E.catch act (onError v) where
-	onError :: a -> E.SomeException -> IO a
-	onError x e = do
-		putStrLn $ "Failed with: " ++ show e
-		return x
-
 loadModels :: FilePath -> Log -> IO SM.Models
 loadModels f l = withLog l $ do
     log Trace "Loading models"
@@ -281,57 +269,31 @@ createIO tbls l = do
 toStr :: ByteString -> String
 toStr = T.unpack . T.decodeUtf8
 
-toCond :: SM.Models -> ByteString -> ByteString -> S.Condition
-toCond ms m c = S.conditionComplex (SM.modelsSyncs ms) (tableName ++ ".id = ?") [P.toField (toStr c)] where
-    tableName = maybe (error "Invalid model name") (SM.syncTable . SM.modelSync) $ M.lookup (toStr m) (SM.modelsModels ms)
+getModel :: Monad m => ByteString -> [MT.TableDesc] -> m MT.TableDesc
+getModel modelName descs = maybe (error $ "No model " ++ toStr modelName) return $ MT.tableByModel modelName descs
 
-create :: (PS.HasPostgres m, MonadLog m) => S.Syncs -> m ()
-create ss = escope "create" $ withPG (S.create ss)
+insert :: (PS.HasPostgres m, MonadLog m) => [MT.TableDesc] -> ByteString -> M.Map ByteString ByteString -> m ()
+insert descs modelName dat = escope "insert" $ inPsql $ \con -> do
+    desc' <- getModel modelName descs
+    MT.insert con desc' (MT.addType desc' dat)
 
-insert :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> S.SyncMap -> m ()
-insert ms name m = escope "insert" $ withPG (SM.insert ms (toStr name) m)
+update :: (PS.HasPostgres m, MonadLog m) => [MT.TableDesc] -> ByteString -> ByteString -> M.Map ByteString ByteString -> m ()
+update descs modelName modelId dat = escope "update" $ inPsql $ \con -> do
+    desc' <- getModel modelName descs
+    MT.update con desc' modelId dat
 
-select :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> ByteString -> m S.SyncMap
-select ms name c = scoper "select" $ do
-    log Trace $ T.concat ["Selecting id ", T.decodeUtf8 c]
-    withPG (SM.select ms (toStr name) cond)
-    where
-        cond = toCond ms name c
+insertUpdate :: (PS.HasPostgres m, MonadLog m) => [MT.TableDesc] -> ByteString -> ByteString -> M.Map ByteString ByteString -> m ()
+insertUpdate descs modelName modelId dat = escope "insertUpdate" $ inPsql $ \con -> do
+    desc' <- getModel modelName descs
+    MT.insertUpdate con desc' modelId dat
 
-exists :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> ByteString -> m Bool
-exists ms name c = escopev "exists" False $ do
-    log Trace $ T.concat ["Checking for existing id ", T.decodeUtf8 c]
-    withPG (SM.exists ms (toStr name) cond)
-    where
-        cond = toCond ms name c
+updateMany :: (PS.HasPostgres m, MonadLog m) => [MT.TableDesc] -> M.Map (ByteString, ByteString) (M.Map ByteString ByteString) -> m ()
+updateMany descs m = scope "updateMany" $ forM_ (M.toList m) $ uncurry update' where
+    update' (mdlName, mdlId) = update descs mdlName mdlId
 
-update :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> ByteString -> S.SyncMap -> m ()
-update ms name c m = escope "update" $ do
-    log Trace $ T.concat ["Updating id ", T.decodeUtf8 c]
-    withPG (SM.update ms (toStr name) cond m)
-    where
-        cond = toCond ms name c
-
-updateMany :: (PS.HasPostgres m, MonadLog m) => SM.Models -> M.Map (ByteString, ByteString) S.SyncMap -> m ()
-updateMany ms m = scope "updateMany" $ forM_ (M.toList m) $ uncurry update' where
-    update' (mdl, k) obj = update ms mdl k obj
-
-insertUpdate :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> ByteString -> S.SyncMap -> m Bool
-insertUpdate ms name c m = escopev "insertUpdate" False $ do
-    withPG (SM.insertUpdate ms (toStr name) cond m)
-    where
-        cond = toCond ms name c
-
-insertUpdateMany :: (PS.HasPostgres m, MonadLog m) => SM.Models -> M.Map (ByteString, ByteString) S.SyncMap -> m ()
-insertUpdateMany ms m = scope "insertUpdateMany" $ forM_ (M.toList m) $ uncurry insertUpdate' where
-    insertUpdate' (mdl, k) obj = insertUpdate ms mdl k obj
-
--- FIXME: ARC has same function
-query_ :: (PS.HasPostgres m, MonadLog m, PS.FromRow r) => PS.Query -> m [r]
-query_ s = do
-    bs <- PS.formatQuery s ()
-    log Trace $ T.concat ["query: ", T.decodeUtf8 bs]
-    PS.query_ s
+insertUpdateMany :: (PS.HasPostgres m, MonadLog m) => [MT.TableDesc] -> M.Map (ByteString, ByteString) (M.Map ByteString ByteString) -> m ()
+insertUpdateMany descs m = scope "insertUpdateMany" $ forM_ (M.toList m) $ uncurry insertUpdate' where
+    insertUpdate' (mdlName, mdlId) = insertUpdate descs mdlName mdlId
 
 -- FIXME: ARC has same function
 query :: (PS.HasPostgres m, MonadLog m, PS.ToRow q, PS.FromRow r) => PS.Query -> q -> m [r]
@@ -410,11 +372,11 @@ search ms mname fs sels q lim = liftIO getCurrentTimeZone >>= search' where
         searchQuery = C8.concat ["select ", C8.intercalate ", " cols, " from ", fromString tblname, " where ", whereS, " limit ", C8.pack (show lim)]
 
 generateReport :: (PS.HasPostgres m, MonadLog m) => SM.Models -> (T.Text -> [T.Text]) -> FilePath -> FilePath -> m ()
-generateReport ms superCond tpl file = scope "generate" $ do
+generateReport ms superCond tpl fileName = scope "generate" $ do
     log Debug "Generating report "
     log Trace "Loading dictionaries"
     tz <- liftIO getCurrentTimeZone
     dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
     -- TODO: Orderby must not be here!
-    withPG (R.createReport (SM.modelsSyncs ms) (functions tz dicts) superCond [] [] tpl file)
+    withPG (R.createReport (SM.modelsSyncs ms) (functions tz dicts) superCond [] [] tpl fileName)
     log Debug "Report generated"

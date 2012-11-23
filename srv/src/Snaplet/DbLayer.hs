@@ -5,7 +5,6 @@ module Snaplet.DbLayer
   ,delete
   ,search
   ,submitTask
-  ,sync
   ,searchFullText
   ,generateReport
   ,readAll
@@ -24,14 +23,12 @@ import qualified Data.Set as Set
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
-import Data.List (sortBy)
-import Data.Ord (comparing)
 import Data.Maybe (fromJust, isJust)
 import Data.String
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 
-import Network.URI (parseURI, URI(..))
+import Network.URI (parseURI)
 import qualified Fdds
 import Data.Configurator
 
@@ -46,16 +43,17 @@ import qualified Database.Redis as Redis
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import qualified Snaplet.DbLayer.PostgresCRUD as Postgres
 import qualified Database.PostgreSQL.Syncs as S
-import qualified Database.PostgreSQL.Models as SM
 
 import Snaplet.DbLayer.Types
+import Snaplet.DbLayer.Indices
 import qualified Snaplet.DbLayer.ModelTables as MT (loadTables)
 import Snaplet.DbLayer.Triggers
 import Snaplet.DbLayer.Dictionary (readRKCCalc)
 import Util
 
+create :: ModelName -> Object -> Handler b (DbLayer b) (Map.Map FieldName ByteString)
 create model commit = scoper "create" $ do
-  mdl <- gets syncModels
+  tbls <- gets syncTables
   log Trace $ fromString $ "Model: " ++ show model
   log Trace $ fromString $ "Commit: " ++ show commit
   --
@@ -66,7 +64,7 @@ create model commit = scoper "create" $ do
   let obj' = Map.insert (C8.pack "id") objId obj
   log Trace $ fromString $ "Object with id: " ++ show obj'
   --
-  Postgres.insert mdl model obj'
+  Postgres.insert tbls model obj'
 {-
   let fullId = B.concat [model, ":", objId]
   changes <- triggerUpdate fullId obj
@@ -79,6 +77,7 @@ create model commit = scoper "create" $ do
   return $ Map.insert "id" objId
          $ obj Map.\\ commit
 
+findOrCreate :: ByteString -> ByteString -> Object -> Handler b (DbLayer b) (Map.Map ByteString ByteString)
 findOrCreate model objId commit = do
   r <- read model objId
   case Map.toList r of
@@ -88,14 +87,15 @@ findOrCreate model objId commit = do
       Redis.create' redis model objId obj
     _  -> return r
 
+read :: ByteString -> ByteString -> Handler b (DbLayer b) (Map.Map ByteString ByteString)
 read model objId = do
   res <- Redis.read redis model objId
   -- FIXME: catch NotFound => search in postgres
   return res
 
-
+update :: ByteString -> ByteString -> Object -> Handler b (DbLayer b) (Map.Map FieldName ByteString)
 update model objId commit = scoper "update" $ do
-  mdl <- gets syncModels
+  tbls <- gets syncTables
   log Trace $ fromString $ "Model: " ++ show model
   --
   let fullId = B.concat [model, ":", objId]
@@ -110,39 +110,25 @@ update model objId commit = scoper "update" $ do
 
   let changes' = Map.mapWithKey (\(_,k) v -> Map.insert "id" k v) . Map.mapKeys fromJust . Map.filterWithKey (\k v -> isJust k) . Map.mapKeys (toPair . C8.split ':') $ changes
   log Trace $ fromString $ "Changes: " ++ show changes'
-  Postgres.insertUpdateMany mdl changes'
+  Postgres.insertUpdateMany tbls changes'
   --
   let stripUnchanged orig = Map.filterWithKey (\k v -> Map.lookup k orig /= Just v)
   return $ stripUnchanged commit $ changes Map.! fullId
 
+delete :: ByteString -> ByteString -> Handler b (DbLayer b) ()
 delete model objId = Redis.delete redis model objId
 
+search :: IndexName -> ByteString -> Handler b (DbLayer b) [Map.Map ByteString ByteString]
 search ixName val = do
   ix <- gets $ (Map.! ixName) . indices
   ixData <- liftIO $ readTVarIO ix
   let ids = Set.toList $ Map.findWithDefault Set.empty val ixData
   forM ids $ Redis.read' redis
 
+submitTask :: ByteString -> ByteString -> Handler b (DbLayer b) (Either Redis.Reply Integer)
 submitTask queueName taskId
   = runRedisDB redis
   $ Redis.lpush queueName [taskId]
-
-sync :: Maybe ByteString -> Maybe Int -> Handler b (DbLayer b) ()
-sync forMdl fromId = do
-    mdl <- gets syncModels
-    mapM_ (syncModel mdl) $ maybe (modelList mdl) return forMdl
-    where
-        syncModel mdl model = scope (T.decodeUtf8 model) $ do
-            Right (Just cnt) <- runRedisDB redis $ Redis.get (Redis.modelIdKey model)
-            log Info $ fromString $ "Syncing model " ++ show model
-            log Trace $ fromString $ "Count of entries for model " ++ show model ++ " is: " ++ show cnt
-            case C8.readInt cnt of
-                Just (maxId, _) -> forM_ [maybe 1 id fromId .. maxId] $ \i -> scope (fromString $ show i) (do
-                    rec <- Redis.read redis model (C8.pack . show $ i)
-                    let rec' = Map.insert (C8.pack "id") (C8.pack . show $ i) rec
-                    when (not $ Map.null rec) $ void $ Postgres.insertUpdate mdl model (C8.pack . show $ i) rec')
-                Nothing -> error $ "Invalid id for model " ++ C8.unpack model
-        modelList m = map C8.pack $ Map.keys (SM.modelsModels m)
 
 searchFullText :: ByteString -> [ByteString] -> [ByteString] -> ByteString -> Int -> Handler b (DbLayer b) [[ByteString]]
 searchFullText mname fs sels q lim = do
@@ -163,6 +149,7 @@ generateReport superCond template filename = do
     mdl <- gets syncModels
     Postgres.generateReport mdl superCond template filename
 
+readAll :: ByteString -> Handler b (DbLayer b) [Map.Map ByteString ByteString]
 readAll model = Redis.readAll redis model
 
 smsProcessing :: Handler b (DbLayer b) Integer
@@ -195,10 +182,12 @@ initDbLayer allU cfgDir = makeSnaplet "db-layer" "Storage abstraction"
       <*> (return $ initApi wkey)
       <*> (liftIO $ readRKCCalc cfgDir)
 ----------------------------------------------------------------------
+triggersConfig :: IO TriggersConfig
 triggersConfig = do
   recs <- readJSON "resources/site-config/recommendations.json"
   return $ TriggersConfig recs
 
+createIndices :: IO (Map.Map k a)
 createIndices = return Map.empty
 
 fddsConfig cfg = do

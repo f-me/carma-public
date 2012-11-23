@@ -11,7 +11,11 @@ module Snaplet.DbLayer.ModelTables (
 
     -- * Queries
     createExtend,
-    insertUpdate, insert, update
+    insertUpdate, insert, update,
+
+    -- * Util
+    tableByModel,
+    addType
     ) where
 
 import Prelude hiding (log)
@@ -74,6 +78,7 @@ instance FromJSON ModelGroups where
 
 data TableDesc = TableDesc {
     tableName :: String,
+    tableModel :: String,
     tableParent :: [String],
     tableFields :: [TableColumn] }
         deriving (Eq, Ord, Read, Show)
@@ -141,7 +146,7 @@ loadTableDesc g base f = do
 
 -- | Create query for table
 createTableQuery :: TableDesc -> String
-createTableQuery (TableDesc nm inhs flds) = concat $ creating ++ inherits where
+createTableQuery (TableDesc nm _ inhs flds) = concat $ creating ++ inherits where
     creating = [
         "create table if not exists ", nm,
         " (", intercalate ", " (map (\(TableColumn n t) -> n ++ " " ++ t) flds), ")"]
@@ -149,7 +154,7 @@ createTableQuery (TableDesc nm inhs flds) = concat $ creating ++ inherits where
 
 -- | Alter table add column queries for each field of table
 extendTableQueries :: TableDesc -> [String]
-extendTableQueries (TableDesc nm inhs flds) = map extendColumn flds where
+extendTableQueries (TableDesc nm _ inhs flds) = map extendColumn flds where
     extendColumn :: TableColumn -> String
     extendColumn (TableColumn n t) = concat ["alter table ", nm, " add column ", n, " ", t]
 
@@ -179,7 +184,7 @@ ungroup (ModelGroups g) (ModelDesc nm fs) = (ModelDesc nm . concat) <$> mapM ung
 
 -- | Convert model description to table description with silly type converting
 retype :: ModelDesc -> Either String TableDesc
-retype (ModelDesc nm fs) = TableDesc (nm ++ "tbl") [] <$> mapM retype' fs where
+retype (ModelDesc nm fs) = TableDesc (nm ++ "tbl") nm [] <$> mapM retype' fs where
     retype' (ModelField fname Nothing _) = return $ TableColumn fname "text"
     retype' (ModelField fname (Just ftype) _) = TableColumn fname <$> maybe unknown Right (lookup ftype retypes) where
         unknown = Left $ "Unknown type: " ++ ftype
@@ -200,7 +205,11 @@ retype (ModelDesc nm fs) = TableDesc (nm ++ "tbl") [] <$> mapM retype' fs where
 
 -- | Add id column
 addId :: TableDesc -> TableDesc
-addId (TableDesc n h fs) = TableDesc n h $ (TableColumn "id" "integer") : fs
+addId = addColumn "id" "integer"
+
+-- | Add column
+addColumn :: String -> String -> TableDesc -> TableDesc
+addColumn nm tp (TableDesc n mdl h fs) = TableDesc n mdl h $ (TableColumn nm tp) : fs
 
 -- | Services
 services :: [String]
@@ -226,11 +235,19 @@ services = [
 -- | Make service table and inherit services from it
 mergeServices :: [TableDesc] -> [TableDesc]
 mergeServices tbls = srvBase : (srvsInherited ++ notSrvs) where
-    srvBase = TableDesc "servicetbl" [] srvBaseFields
+    srvBase = addColumn "type" "text" $ TableDesc "servicetbl" "service" [] srvBaseFields
     srvsInherited = map inherit srvs
-    inherit (TableDesc nm inhs fs) = TableDesc nm ("servicetbl" : inhs) $ fs \\ srvBaseFields
+    inherit (TableDesc nm mdl inhs fs) = TableDesc nm mdl ("servicetbl" : inhs) $ fs \\ srvBaseFields
 
     (srvs, notSrvs) = partition ((`elem` (map addTbl services)) . tableName) tbls
     srvBaseFields = foldr1 intersect $ map tableFields srvs
 
     addTbl nm = nm ++ "tbl"
+
+-- | Find table for model
+tableByModel :: (Eq s, IsString s) => s -> [TableDesc] -> Maybe TableDesc
+tableByModel name = find ((== name) . fromString . tableModel)
+
+-- | WORKAROUND: Explicitly add type value for data in service-derived model
+addType :: TableDesc -> M.Map C8.ByteString C8.ByteString -> M.Map C8.ByteString C8.ByteString
+addType (TableDesc _ mdl _ _) dat = if mdl `elem` services then M.insert "type" (fromString mdl) dat else dat
