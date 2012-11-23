@@ -46,7 +46,7 @@ import qualified Database.PostgreSQL.Syncs as S
 
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Indices
-import qualified Snaplet.DbLayer.ModelTables as MT (loadTables)
+import qualified Carma.ModelTables as MT (loadTables)
 import Snaplet.DbLayer.Triggers
 import Snaplet.DbLayer.Dictionary (readRKCCalc)
 import Util

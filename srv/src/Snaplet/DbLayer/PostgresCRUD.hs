@@ -34,7 +34,6 @@ import Data.Time
 import Data.Time.Clock.POSIX
 
 import qualified Database.PostgreSQL.Simple as P
---import qualified Database.PostgreSQL.Simple.ToField as P
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 import qualified Data.Pool as Pool
 
@@ -43,16 +42,12 @@ import qualified Database.PostgreSQL.Models as SM
 import Database.PostgreSQL.Sync.JSON ()
 import qualified Database.PostgreSQL.Report as R
 import qualified Database.PostgreSQL.Report.Xlsx as R
---import qualified Database.PostgreSQL.Report.Function as R
 import System.Locale
 
 import Snaplet.DbLayer.Dictionary
 import Snap.Snaplet.SimpleLog
 
---import qualified Snaplet.DbLayer.ARC as ARC
---import qualified Snaplet.DbLayer.RKC as RKC
-
-import qualified Snaplet.DbLayer.ModelTables as MT
+import qualified Carma.ModelTables as MT
 
 withPG :: (PS.HasPostgres m, MonadLog m) => S.TIO a -> m a
 withPG f = do

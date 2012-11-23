@@ -11,7 +11,7 @@ import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple (Postgres, HasPostgres(..))
 import Snap.Snaplet.RedisDB (RedisDB)
 import Snaplet.DbLayer.Indices
-import Snaplet.DbLayer.ModelTables (TableDesc)
+import Carma.ModelTables (TableDesc)
 import Snap.Snaplet.SimpleLog
 
 import qualified Database.PostgreSQL.Models as SM
