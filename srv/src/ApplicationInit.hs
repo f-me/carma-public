@@ -7,6 +7,7 @@ import Control.Monad.IO.Class
 
 import qualified Data.Map as Map
 import Data.ByteString (ByteString)
+import qualified Data.Text.Encoding as T
 import Data.Configurator
 import Control.Concurrent.STM
 
@@ -34,7 +35,7 @@ import ApplicationHandlers
 import AppHandlers.MyActions
 ----------------------------------------------------------------------
 import DictionaryCache
-import Util (readJSON, UsersDict)
+import Util (readJSON, UsersDict(..))
 
 
 
@@ -109,9 +110,18 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
                                session authDb
   logdUsrs <- liftIO $ newTVarIO Map.empty
   !allUsrs <- liftIO $ getUsrs authDb
-  dc       <- liftIO
-                $ loadDictionaries "resources/site-config/dictionaries"
-                >>= newTVarIO
+
+  let usrDic
+        = Map.fromList
+          [(u' Map.! "value", u' Map.! "label")
+          | u <- us
+          , let u' = Map.map T.decodeUtf8 u]
+        where UsersDict us = allUsrs
+
+  dc <- liftIO
+        $ loadDictionaries usrDic "resources/site-config/dictionaries"
+        >>= newTVarIO
+
   actLock  <- liftIO $ newTMVarIO ()
 
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
