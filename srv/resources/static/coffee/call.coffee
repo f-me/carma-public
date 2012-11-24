@@ -31,9 +31,9 @@ fillTable = (st, objs) ->
   rows = for obj in objs
     continue if obj.id.length > 10
     row = [obj.id.split(":")[1] || obj.id
-          ,obj.caller_name || obj.contact_name || ''
+          ,obj.contact_name || ''
           ,new Date(obj.callDate * 1000).toString("dd.MM.yyyy HH:mm:ss")
-          ,obj.caller_phone1 || obj.contact_phone1 || ''
+          ,obj.contact_phone1 || ''
           ,(obj.car_plateNum || "").toUpperCase()
           ,(obj.car_vin || "").toUpperCase()
           ,dict.Programs[obj.program] || obj.program || ''
@@ -42,7 +42,7 @@ fillTable = (st, objs) ->
   st.fnAddData(rows)
 
 dtSearch = (st) ->
-  fields = "id,caller_name,contact_name,callDate,caller_phone1,contact_phone1,car_plateNum,car_vin,program,comment"
+  fields = "id,contact_name,callDate,contact_phone1,car_plateNum,car_vin,program,comment"
   searchIn = "id,callDate,comment,callTaker,betaComment,caseStatus,city,dealerCause,contact_name,contact_phone1,contact_phone2,contact_phone3,contact_phone4,contact_ownerEmail,contact_ownerName,contact_ownerPhone1,contact_ownerPhone2,contact_ownerPhone3,contact_ownerPhone4,car_vin,car_plateNum,car_make,car_model,car_makeYear,car_buyDate,car_color,car_checkupDate,car_seller,car_dealerTO,cardNumber_cardNumber,cardNumber_cardOwner,caseAddress_address,program"
   q = $('#search-query').val()
   $.getJSON("/search/case?q=#{q}&fields=#{searchIn}&select=#{fields}&limit=120", (objs) ->

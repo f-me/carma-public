@@ -14,7 +14,7 @@ import Snaplet.DbLayer.Indices
 import Carma.ModelTables (TableDesc)
 import Snap.Snaplet.SimpleLog
 
-import qualified Database.PostgreSQL.Models as SM
+import qualified Database.PostgreSQL.Sync.Base as SM
 
 import qualified WeatherApi as W
 
@@ -43,7 +43,7 @@ data DbLayer b = DbLayer
     ,triggers  :: TriggersConfig
     ,indices   :: Indices
     ,fdds      :: Fdds.Conf
-    ,syncModels :: SM.Models
+    ,syncRelations :: SM.Relations
     ,syncTables :: [TableDesc]
     ,allUsers   :: UsersDict
     ,weather    :: W.Config

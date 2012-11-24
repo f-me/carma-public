@@ -42,7 +42,8 @@ import System.Log.Syslog
 import qualified Database.Redis as Redis
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import qualified Snaplet.DbLayer.PostgresCRUD as Postgres
-import qualified Database.PostgreSQL.Syncs as S
+import qualified Database.PostgreSQL.Sync.Base as S
+import qualified Database.PostgreSQL.Sync.Types as S
 
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Indices
@@ -132,8 +133,8 @@ submitTask queueName taskId
 
 searchFullText :: ByteString -> [ByteString] -> [ByteString] -> ByteString -> Int -> Handler b (DbLayer b) [[ByteString]]
 searchFullText mname fs sels q lim = do
-  mdl <- gets syncModels
-  res <- Postgres.search mdl mname fs sels q lim
+  tbls <- gets syncTables
+  res <- Postgres.search tbls mname fs sels q lim
   return $ map (map showValue) res
   where
     showValue :: S.FieldValue -> ByteString
@@ -146,8 +147,9 @@ searchFullText mname fs sels q lim = do
 
 generateReport :: (T.Text -> [T.Text]) -> FilePath -> FilePath -> Handler b (DbLayer b) ()
 generateReport superCond template filename = do
-    mdl <- gets syncModels
-    Postgres.generateReport mdl superCond template filename
+    rels <- gets syncRelations
+    tbls <- gets syncTables
+    Postgres.generateReport tbls (S.relationsConditions rels) superCond template filename
 
 readAll :: ByteString -> Handler b (DbLayer b) [Map.Map ByteString ByteString]
 readAll model = Redis.readAll redis model
@@ -163,7 +165,7 @@ initDbLayer allU cfgDir = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
     l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10) [logger text (file "log/db.log"), syslog "carma" [PID] USER]
     liftIO $ withLog l $ log Info "Server started"
-    mdl <- liftIO $ Postgres.loadModels "resources/site-config/syncs.json" l
+    rels <- liftIO $ Postgres.loadRelations "resources/site-config/syncs.json" l
     tbls <- liftIO $ MT.loadTables "resources/site-config/models" "resources/site-config/field-groups.json"
     liftIO $ Postgres.createIO tbls l
     cfg <- getSnapletUserConfig
@@ -176,7 +178,7 @@ initDbLayer allU cfgDir = makeSnaplet "db-layer" "Storage abstraction"
       <*> liftIO triggersConfig
       <*> liftIO createIndices
       <*> (liftIO $ fddsConfig cfg)
-      <*> (return mdl)
+      <*> (return rels)
       <*> (return tbls)
       <*> (return allU)
       <*> (return $ initApi wkey)

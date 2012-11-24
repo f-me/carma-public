@@ -1,9 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Snaplet.DbLayer.PostgresCRUD (
-    modelModels,
-
-    loadModels,
+    loadRelations,
     createIO,
     insert, update, updateMany, insertUpdate, insertUpdateMany,
     search,
@@ -24,7 +22,7 @@ import Data.Monoid
 import Data.Maybe (fromMaybe, listToMaybe, mapMaybe, catMaybes)
 import Data.ByteString (ByteString)
 import Data.Char
-import Data.List (isPrefixOf, elemIndex)
+import Data.List (isPrefixOf, find, elemIndex)
 import Data.String
 import qualified Data.ByteString.Char8 as C8
 import qualified Data.ByteString.Lazy.Char8 as L8
@@ -37,8 +35,9 @@ import qualified Database.PostgreSQL.Simple as P
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 import qualified Data.Pool as Pool
 
-import qualified Database.PostgreSQL.Syncs as S
-import qualified Database.PostgreSQL.Models as SM
+import qualified Database.PostgreSQL.Sync as S
+import qualified Database.PostgreSQL.Sync.Base as S
+import qualified Database.PostgreSQL.Sync.Types as S
 import Database.PostgreSQL.Sync.JSON ()
 import qualified Database.PostgreSQL.Report as R
 import qualified Database.PostgreSQL.Report.Xlsx as R
@@ -59,32 +58,6 @@ inPsql :: (PS.HasPostgres m, MonadLog m) => (P.Connection -> m ()) -> m ()
 inPsql act = do
     s <- PS.getPostgresState
     Pool.withResource (PS.pgPool s) act
-
-service :: S.Sync -> String -> (String, SM.Model)
-service srv tp = (tp, mdl) where
-    mdl = SM.model tp srv [
-        SM.constant "type" tp,
-        SM.adjustField "parentId" (drop 5) ("case:" ++)]
-
-modelModels :: S.Syncs -> Maybe SM.Models
-modelModels ss = do
-    srv <- M.lookup "service" $ S.syncsSyncs ss
-    return $ SM.models ss $ allModels ++ map (service srv) services
-    where
-        noService = M.delete "service" $ S.syncsSyncs ss
-        allModels = map toModel . M.toList $ noService
-        toModel (name, snc) = (name, SM.model name snc [])
-        services = [
-            "deliverCar",
-            "deliverParts",
-            "hotel",
-            "information",
-            "rent",
-            "sober",
-            "taxi",
-            "tech",
-            "towage",
-            "transportation"]         
 
 functions :: TimeZone -> Dictionary -> [R.ReportFunction]
 functions tz dict = [
@@ -120,25 +93,25 @@ functions tz dict = [
         
         substr f l = take l . drop f
         
-        concatFields fs = SM.StringValue $ concat $ mapMaybe fromStringField fs
-        fromStringField (SM.StringValue s) = Just s
+        concatFields fs = S.StringValue $ concat $ mapMaybe fromStringField fs
+        fromStringField (S.StringValue s) = Just s
         fromStringField _ = Nothing
 
         lookupField [] = Nothing
         lookupField fs = tryLook <|> justLast where
             tryLook = do
                 ks <- mapM (fmap T.pack . fromStringField) fs
-                fmap (SM.StringValue . T.unpack) $ lookAny ks dict
+                fmap (S.StringValue . T.unpack) $ lookAny ks dict
             justLast = Just $ last fs
         
         ifFun [i, t, f]
-            | i `elem` [SM.StringValue "1", SM.StringValue "true", SM.StringValue "Y", SM.IntValue 1, SM.BoolValue True] = t
+            | i `elem` [S.StringValue "1", S.StringValue "true", S.StringValue "Y", S.IntValue 1, S.BoolValue True] = t
             | otherwise = f
-        ifFun _ = SM.StringValue ""
+        ifFun _ = S.StringValue ""
         
-        toPosix :: SM.FieldValue -> Maybe POSIXTime
-        toPosix (SM.TimeValue t) = Just t
-        toPosix (SM.StringValue s) = case reads s of
+        toPosix :: S.FieldValue -> Maybe POSIXTime
+        toPosix (S.TimeValue t) = Just t
+        toPosix (S.StringValue s) = case reads s of
             [(t, "")] -> Just $ fromInteger t
             _ -> Nothing
         toPosix _ = Nothing
@@ -148,47 +121,47 @@ functions tz dict = [
         dateDiff [from, to] = do
             f <- toPosix from
             t <- toPosix to
-            return $ SM.DoubleValue $ fromInteger $ round $ (t - f) / 60.0
+            return $ S.DoubleValue $ fromInteger $ round $ (t - f) / 60.0
         dateDiff _ = Nothing
 
         yesNo [v]
-            | v `elem` [SM.IntValue 0, SM.StringValue "0", SM.DoubleValue 0.0, SM.BoolValue False] = Just $ SM.StringValue "N"
-            | v `elem` [SM.IntValue 1, SM.StringValue "1", SM.DoubleValue 1.0, SM.BoolValue True] = Just $ SM.StringValue "Y"
+            | v `elem` [S.IntValue 0, S.StringValue "0", S.DoubleValue 0.0, S.BoolValue False] = Just $ S.StringValue "N"
+            | v `elem` [S.IntValue 1, S.StringValue "1", S.DoubleValue 1.0, S.BoolValue True] = Just $ S.StringValue "Y"
             | otherwise = Nothing
         yesNo _ = Nothing
 
-        formatTimeFun :: String -> [SM.FieldValue] -> SM.FieldValue
-        formatTimeFun _ [] = SM.StringValue ""
+        formatTimeFun :: String -> [S.FieldValue] -> S.FieldValue
+        formatTimeFun _ [] = S.StringValue ""
         formatTimeFun defFmt [v] =
             maybe
                 v
-                (SM.StringValue . formatTime defaultTimeLocale defFmt)
+                (S.StringValue . formatTime defaultTimeLocale defFmt)
                 (fmap (utcToLocalTime tz . posixSecondsToUTCTime) $ toPosix v)
-        formatTimeFun _ [v, SM.StringValue fmt] =
+        formatTimeFun _ [v, S.StringValue fmt] =
             maybe
                 v
-                (SM.StringValue . formatTime defaultTimeLocale fmt)
+                (S.StringValue . formatTime defaultTimeLocale fmt)
                 (fmap (utcToLocalTime tz . posixSecondsToUTCTime) $ toPosix v)
         formatTimeFun _ (v:_) = v
         
         fddsFun fs = do
             pr <- M.lookup "case.program" fs
-            lookupField [SM.StringValue "FDDS", pr]
+            lookupField [S.StringValue "FDDS", pr]
 
         ownerFun fs = do
-            (SM.IntValue isOwner) <- M.lookup "case.callerOwner" fs
+            (S.IntValue isOwner) <- M.lookup "case.callerOwner" fs
             (if isOwner == 1 then M.lookup "case.caller_name" else M.lookup "case.owner_name") fs
         falseFun fs = do
-            (SM.StringValue isFalse) <- M.lookup "service.falseCall" fs
-            return $ SM.StringValue (if isFalse `elem` ["bill", "nobill"] then "Y" else "N")
+            (S.StringValue isFalse) <- M.lookup "service.falseCall" fs
+            return $ S.StringValue (if isFalse `elem` ["bill", "nobill"] then "Y" else "N")
         
         billFun fs = do
-            (SM.StringValue isFalse) <- M.lookup "service.falseCall" fs
-            return $ SM.StringValue (if isFalse == "bill" then "Y" else "N")
+            (S.StringValue isFalse) <- M.lookup "service.falseCall" fs
+            return $ S.StringValue (if isFalse == "bill" then "Y" else "N")
 
         satisfiedFun fs = do
-            (SM.StringValue sat) <- M.lookup "service.clientSatisfied" fs
-            return $ SM.StringValue $ case sat of
+            (S.StringValue sat) <- M.lookup "service.clientSatisfied" fs
+            return $ S.StringValue $ case sat of
                 "satis" -> "Y"
                 "notSatis" -> "N"
                 _ -> ""
@@ -196,31 +169,31 @@ functions tz dict = [
         faultFun fs = do
             d <- M.lookup "case.diagnosis1" fs
             s <- M.lookup "service.type" fs
-            (SM.StringValue d') <- lookupField [SM.StringValue "FaultCode", SM.StringValue "diagnosis1", d]
-            (SM.StringValue s') <- lookupField [SM.StringValue "FaultCode", SM.StringValue "service", s]
-            return $ SM.StringValue $ d' ++ "09" ++ s'
+            (S.StringValue d') <- lookupField [S.StringValue "FaultCode", S.StringValue "diagnosis1", d]
+            (S.StringValue s') <- lookupField [S.StringValue "FaultCode", S.StringValue "service", s]
+            return $ S.StringValue $ d' ++ "09" ++ s'
             
         vehicleMakeFun fs = do
             m <- M.lookup "case.car_make" fs
-            lookupField [SM.StringValue "VehicleMake", m]
+            lookupField [S.StringValue "VehicleMake", m]
             
         vehicleModelFun fs = do
             mk <- M.lookup "case.car_make" fs
             md <- M.lookup "case.car_model" fs
-            lookupField [SM.StringValue "VehicleModel", mk, md]
+            lookupField [S.StringValue "VehicleModel", mk, md]
 
         serviceId fs = do
-            (SM.IntValue caseId) <- M.lookup "case.id" fs
-            (SM.StringValue caseSrvs) <- M.lookup "case.services" fs
-            (SM.IntValue srvId) <- M.lookup "service.id" fs
-            (SM.StringValue serviceType) <- M.lookup "service.type" fs
+            (S.IntValue caseId) <- M.lookup "case.id" fs
+            (S.StringValue caseSrvs) <- M.lookup "case.services" fs
+            (S.IntValue srvId) <- M.lookup "service.id" fs
+            (S.StringValue serviceType) <- M.lookup "service.type" fs
             -- form service complex id type:id
             let
                 srvIdName = serviceType ++ ":" ++ show srvId
                 splitByComma = words . map (\c -> if c == ',' then ' ' else c)
                 getIndex v = fmap succ . elemIndex v
-                defaultIdx = SM.StringValue $ show caseId ++ "/" ++ serviceType ++ ":" ++ show srvId
-                formIdx i = SM.StringValue $ show caseId ++ "/" ++ show i
+                defaultIdx = S.StringValue $ show caseId ++ "/" ++ serviceType ++ ":" ++ show srvId
+                formIdx i = S.StringValue $ show caseId ++ "/" ++ show i
             return . maybe defaultIdx formIdx . getIndex srvIdName . splitByComma $ caseSrvs
 
         -- rewrite R.condition!
@@ -245,11 +218,10 @@ escopev s v act = catch (scope_ s act) (onError v) where
     onError :: (MonadLog m) => a -> E.SomeException -> m a
     onError x _ = return x
 
-loadModels :: FilePath -> Log -> IO SM.Models
-loadModels f l = withLog l $ do
-    log Trace "Loading models"
-    ss <- liftIO $ fmap (fromMaybe (error "Unable to load syncs") . A.decode) $ L8.readFile f
-    maybe (error "Unable to create models on syncs loaded") return $ modelModels ss
+loadRelations :: FilePath -> Log -> IO S.Relations
+loadRelations f l = withLog l $ do
+    log Trace "Loading relations"
+    liftIO $ fmap (fromMaybe (error "Unable to load relations") . A.decode) $ L8.readFile f
 
 createIO :: [MT.TableDesc] -> Log -> IO ()
 createIO tbls l = do
@@ -259,7 +231,7 @@ createIO tbls l = do
         onError _ = return ()
     E.catch (void $ P.execute_ con "create extension hstore") onError
     mapM_ (withLog l . MT.createExtend con) tbls
-    --withLog l $ S.transaction con $ S.create (SM.modelsSyncs ms)
+    --withLog l $ S.transaction con $ S.create (S.modelsSyncs ms)
 
 toStr :: ByteString -> String
 toStr = T.unpack . T.decodeUtf8
@@ -298,8 +270,8 @@ query s v = do
     PS.query s v
 
 -- TODO: Use model field names and convert them by models
-search :: (PS.HasPostgres m, MonadLog m) => SM.Models -> ByteString -> [ByteString] -> [ByteString] -> ByteString -> Int -> m [[S.FieldValue]]
-search ms mname fs sels q lim = liftIO getCurrentTimeZone >>= search' where
+search :: (PS.HasPostgres m, MonadLog m) => [MT.TableDesc] -> ByteString -> [ByteString] -> [ByteString] -> ByteString -> Int -> m [[S.FieldValue]]
+search descs mname fs sels q lim = liftIO getCurrentTimeZone >>= search' where
     search' tz = escopev "search" [] search'' where
         search''
             | C8.null q = do
@@ -316,30 +288,23 @@ search ms mname fs sels q lim = liftIO getCurrentTimeZone >>= search' where
 
         tzHours = timeZoneMinutes tz `div` 60
 
+        desc = fromMaybe err $ find ((== mname) . fromString . MT.tableModel) descs where
+            err = error $ "Unknown model " ++ T.unpack (T.decodeUtf8 mname)
+
+        columnDescs = MT.tableFlatFields desc
+
         -- Columns to search in
-        rs = mapMaybe (fmap (T.encodeUtf8 . T.pack) . columnRequest . T.unpack . T.decodeUtf8) fs where
-            modelName = T.unpack . T.decodeUtf8 $ mname
-            columnRequest :: String -> Maybe String
-            columnRequest name = columnTry name <|> columnGarbage name
-            columnTry :: String -> Maybe String
-            columnTry name = do
-                sf <- SM.modelsSyncField ms modelName name
-                mf <- SM.modelsField ms modelName name
-                let
-                    wrap :: SM.FieldType -> String -> String
-                    wrap SM.TimeType s = "to_char(" ++ s ++ " + '" ++ show tzHours ++ ":00','DD.MM.YYYY')"
-                    wrap _ s = s ++ "::text"
-                    sfType = SM.typeField . SM.syncType $ sf
-                return . wrap sfType . SM.catField $ mf
-            columnGarbage :: String -> Maybe String
-            columnGarbage name = do
-                mf <- SM.modelsField ms modelName name
-                return . SM.catField $ mf
-        --rs = mapMaybe (fmap (C8.pack . toText . SM.catField) . SM.modelsField ms (C8.unpack mname) . C8.unpack) fs where
-        --    toText = (++ "::text")
+        rs = map (T.encodeUtf8 . T.pack . wrapColumn . T.unpack . T.decodeUtf8) fs where
+            wrapColumn f = fromMaybe err $ do
+                tp <- fmap MT.columnType $ find ((== f) . fromString . MT.columnName) columnDescs
+                return $ case tp of
+                    "timestamp" -> "to_char(" ++ f ++ " + '" ++ show tzHours ++ ":00','DD.MM.YYYY')"
+                    _ -> f ++ "::text"
+                where
+                    err = error $ "Unknown column: " ++ f
 
         -- Columns to select
-        cols = mapMaybe (fmap (C8.pack . SM.catField) . SM.modelsField ms (C8.unpack mname) . C8.unpack) sels
+        cols = map (\s -> C8.concat [fromString $ MT.tableName desc, ".", s]) sels
 
         qs = C8.words q
         -- (row like ?)
@@ -361,17 +326,16 @@ search ms mname fs sels q lim = liftIO getCurrentTimeZone >>= search' where
             whereArgs = concatMap (replicate rowCount) (map procentize querys)
             procentize s = C8.concat ["%", s, "%"]
 
-        tblname = SM.withModel ms (C8.unpack mname) $ SM.syncTable . SM.modelSync
         (whereS, argsS) = whereClause rs qs
 
-        searchQuery = C8.concat ["select ", C8.intercalate ", " cols, " from ", fromString tblname, " where ", whereS, " limit ", C8.pack (show lim)]
+        searchQuery = C8.concat ["select ", C8.intercalate ", " cols, " from ", fromString (MT.tableName desc), " where ", whereS, " limit ", C8.pack (show lim)]
 
-generateReport :: (PS.HasPostgres m, MonadLog m) => SM.Models -> (T.Text -> [T.Text]) -> FilePath -> FilePath -> m ()
-generateReport ms superCond tpl fileName = scope "generate" $ do
+generateReport :: (PS.HasPostgres m, MonadLog m) => [MT.TableDesc] -> [S.Condition] -> (T.Text -> [T.Text]) -> FilePath -> FilePath -> m ()
+generateReport tbls relations superCond tpl fileName = scope "generate" $ do
     log Debug "Generating report "
     log Trace "Loading dictionaries"
     tz <- liftIO getCurrentTimeZone
     dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
     -- TODO: Orderby must not be here!
-    withPG (R.createReport (SM.modelsSyncs ms) (functions tz dicts) superCond [] [] tpl fileName)
+    withPG (R.createReport tbls relations (functions tz dicts) superCond [] [] tpl fileName)
     log Debug "Report generated"
