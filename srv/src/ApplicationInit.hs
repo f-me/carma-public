@@ -34,7 +34,6 @@ import Application
 import ApplicationHandlers
 import AppHandlers.MyActions
 ----------------------------------------------------------------------
-import DictionaryCache
 import Util (readJSON, UsersDict(..))
 
 
@@ -111,17 +110,6 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   logdUsrs <- liftIO $ newTVarIO Map.empty
   !allUsrs <- liftIO $ getUsrs authDb
 
-  let usrDic
-        = Map.fromList
-          [(u' Map.! "value", u' Map.! "label")
-          | u <- us
-          , let u' = Map.map T.decodeUtf8 u]
-        where UsersDict us = allUsrs
-
-  dc <- liftIO
-        $ loadDictionaries usrDic "resources/site-config/dictionaries"
-        >>= newTVarIO
-
   actLock  <- liftIO $ newTMVarIO ()
 
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
@@ -147,7 +135,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        [logger text (file "log/frontend.log")]
 
   addRoutes routes
-  return $ App h s authMgr logdUsrs allUsrs dc actLock c d pgs v fu g l
+  return $ App h s authMgr logdUsrs allUsrs actLock c d pgs v fu g l
 
 getUsrs authDb = do
   readJSON authDb :: IO UsersDict

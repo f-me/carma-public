@@ -29,7 +29,7 @@ data DictCache = DictCache
 loadDictionaries :: Map Text Text -> FilePath -> IO DictCache
 loadDictionaries usrs dir = do
   DictCache
-    <$> flatDict (dir </> "DealerCity.json")
+    <$> flatDict (dir </> "DealerCities.json")
     <*> flatDict (dir </> "SmsTokens.json")
     <*> nestDict (dir </> "SmsTokensValues.json")
     <*> pure usrs
