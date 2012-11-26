@@ -272,6 +272,7 @@ this.focusRef = (kvm) ->
   e = $('#' + kvm['view'])
   e.parent().prev()[0].scrollIntoView()
   e.find('input')[0].focus()
+  e.find('input').parents(".accordion-body").first().collapse('show')
 
 this.bindRemove = (parent, field, cb) ->
   for i in parent["#{field}Reference"]()
