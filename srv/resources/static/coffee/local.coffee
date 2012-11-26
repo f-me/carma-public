@@ -189,7 +189,7 @@ this.stdElCb = (elName) ->
 
 # Scroll case field into view and focus
 this.focusField = (name) ->
-  e = $("#case-form").find("[name=" + name + "]")[0]
+  e = $("#main-container").find("[name=" + name + "]")[0]
   e.scrollIntoView()
   e.focus()
 
@@ -272,6 +272,7 @@ this.focusRef = (kvm) ->
   e = $('#' + kvm['view'])
   e.parent().prev()[0].scrollIntoView()
   e.find('input')[0].focus()
+  e.find('input').parents(".accordion-body").first().collapse('show')
 
 this.bindRemove = (parent, field, cb) ->
   for i in parent["#{field}Reference"]()

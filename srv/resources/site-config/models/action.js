@@ -42,7 +42,8 @@
         "canRead": true,
         "canWrite": true,
         "meta": {
-          "label": "Ожидаемое время выполнения"
+          "label": "Ожидаемое время выполнения",
+    	  "readonly": true
         }
       },
       {
