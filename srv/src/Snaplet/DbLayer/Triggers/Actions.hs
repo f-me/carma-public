@@ -1,5 +1,7 @@
 module Snaplet.DbLayer.Triggers.Actions where
 
+import Prelude hiding (log)
+
 import Control.Arrow (first)
 import Control.Monad (when, unless, void, forM, forM_, filterM)
 import Control.Monad.Trans
@@ -9,6 +11,7 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as L
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.UTF8  as BU
+import qualified Data.Text          as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Map as Map
 import Data.Char
@@ -23,16 +26,18 @@ import Data.Time.Format (parseTime)
 import Data.Time.Clock (UTCTime)
 import System.Locale (defaultTimeLocale)
 
-import Snap (gets)
+import Snap (gets, with)
 import Snap.Snaplet.RedisDB
 import qualified Database.Redis as Redis
 import qualified Snaplet.DbLayer.RedisCRUD as RC
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
+import Snaplet.DbLayer.Triggers.SMS
+
+import Snap.Snaplet.SimpleLog
 
 import Util
-import qualified DumbTemplate as Template
 
 services =
   ["deliverCar"
@@ -68,9 +73,9 @@ actions
     $ Map.fromList
       $ [(s,serviceActions) | s <- services]
       ++[("sms", Map.fromList
-        [("caseId",   [\smsId _ -> renderSMS smsId])
-        ,("template", [\smsId _ -> set smsId "msg" "" >> renderSMS smsId])
-        ,("msg",      [\smsId _ -> renderSMS smsId])
+        [("caseId",   [\smsId _ -> updateSMS smsId])
+        ,("template", [\smsId t -> updateSMS smsId])
+        ,("msg",      [\smsId _ -> updateSMS smsId])
         ]
       )]
       ++[("action", actionActions)
@@ -121,30 +126,6 @@ actions
             ])
           ])
         ]
-
-renderSMS smsId = do
-  caseNum <- get smsId "caseId"
-  let caseId = B.append "case:" caseNum
-
-  let add x i y m = do
-        yVal <- T.decodeUtf8 <$> get i y
-        return $! Map.insert x yVal m
-  varMap <- return Map.empty
-    >>= return . Map.insert "case.id" (T.decodeUtf8 caseNum)
-    >>= add "case.contact_name" caseId "contact_name"
-    >>= add "case.caseAddress_address" caseId "caseAddress_address"
-
-  msg <- get smsId "msg"
-  tmpId <- get smsId "template"
-  tmp <- T.decodeUtf8 <$> (get smsId "template" >>= (`get` "text"))
-  when (msg == "" && tmp /= "") $ do
-    let txt = T.encodeUtf8 $ Template.render varMap tmp
-    set smsId "msg" txt
-
-  phone <- get smsId "phone"
-  when (phone == "") $ do
-    get caseId "contact_phone1" >>= set smsId "phone"
-  set smsId "sender" "RAMC"
 
 
 -- Создания действий "с нуля"
@@ -323,7 +304,7 @@ actionResultMap = Map.fromList
   ,("callLater",       \objId -> dateNow (+ (30*60)) >>= set objId "duetime" >> set objId "result" "")
   ,("bigDelay",        \objId -> dateNow (+ (6*60*60)) >>= set objId "duetime" >> set objId "result" "")
   ,("partnerNotFound", \objId -> dateNow (+ (2*60*60)) >>= set objId "duetime" >> set objId "result" "")
-  ,("clientCanceledService", closeAction)   
+  ,("clientCanceledService", \objId -> closeAction objId >> sendSMS objId "smsTpl:2")   
   ,("unassignPlease",  \objId -> set objId "assignedTo" "" >> set objId "result" "")
   ,("needPartner",     \objId -> do 
      setService objId "status" "needPartner"
@@ -357,6 +338,7 @@ actionResultMap = Map.fromList
       "back" "3" (changeTime (+5*60) tm)
       objId
     newPartnerMessage objId
+    sendSMS objId "smsTpl:1"
   )
   ,("partnerNotOk", void . replaceAction
       "cancelService"
@@ -466,6 +448,7 @@ actionResultMap = Map.fromList
     partner <- getService objId "contractor_partner"
     comment <- get objId "comment"
     set act "comment" $ B.concat [utf8 "Партнёр: ", partner, "\n\n", comment]
+    sendSMS objId "smsTpl:3"
   )
   ,("complaint", \objId -> do
     setService objId "status" "serviceOk"
@@ -592,10 +575,12 @@ actionResultMap = Map.fromList
   ,("falseCallWBill", \objId -> do
      setService objId "falseCall" "bill"
      closeAction objId
+     sendSMS objId "smsTpl:2"
   )
   ,("falseCallWOBill", \objId -> do
      setService objId "falseCall" "nobill"
      closeAction objId
+     sendSMS objId "smsTpl:2"
   )
   ,("clientNotified", \objId -> do
      setService objId "status" "serviceClosed"
@@ -688,8 +673,21 @@ setWeather objId city = do
   conf    <- lift $ gets weather
   weather <- liftIO $ getWeather' conf $ BU.toString city
   case weather of
-    Right w -> set objId "temperature" $ B.pack $ show $ tempC w
-    Left  _ -> return ()
+    Right w   -> do
+      lift $ scope "weather" $ log Trace $ T.concat
+        [ "got for: ", T.decodeUtf8 objId
+        , "; city: " , T.decodeUtf8 city
+        , "; weather: ", T.pack $ show w
+        ]
+      set objId "temperature" $ B.pack $ show $ tempC w
+    Left  err -> do
+      set objId "temperature" ""
+      lift $ scope "weather" $ log Debug $ T.concat
+        [ "can't retrieve for: ", T.decodeUtf8 objId
+        , "; city: " , T.decodeUtf8 city
+        , "; error: ", T.pack $ show err
+        ]
+      return ()
 
 srvCostCounted srvId = do
   falseCall        <- get srvId "falseCall"
@@ -708,32 +706,32 @@ calcCost id = do
 
 setTowMCost id = do
   program  <- get id "parentId" >>= flip get "program"
-  mileCost <- readDouble <$> get program "mileCost"
-  callCost <- readDouble <$> get program "callCost"
+  mileCost <- rkc program "towMileCost"
+  callCost <- rkc program "towCallCost"
   mileage  <- readDouble <$> get id "suburbanMilage"
-  towCost  <- readDouble <$> get program "towCost"
+  towCost  <- rkc program "towCost"
   set id "marginalCost" $ printBPrice $
     towCost + callCost + mileage * mileCost
 
 setTechMCost id = do
   program  <- get id "parentId" >>= flip get "program"
-  mileCost <- readDouble <$> get program "mileCost"
-  callCost <- readDouble <$> get program "callCost"
+  mileCost <- rkc program "techMileCost"
+  callCost <- rkc program "techCallCost"
   mileage  <- readDouble <$> get id "suburbanMilage"
-  techCost <- readDouble <$> get program "techCost"
+  techCost <- rkc program "techCost"
   set id "marginalCost" $ printBPrice $
     techCost + callCost + mileage * mileCost
 
 setHotelMCost id = do
   program  <- get id "parentId" >>= flip get "program"
   p  <- readDouble <$> get id "providedFor"
-  p1 <- readDouble <$> get program "HotelOneDay"
+  p1 <- rkc program "hotelDayCost"
   set id "marginalCost" $ printBPrice $ p*p1
 
 setRentMCost id = do
   program  <- get id "parentId" >>= flip get "program"
   p  <- readDouble <$> get id "providedFor"
-  p1 <- readDouble <$> get program "RentOneDay"
+  p1 <- rkc program "rentDayCost"
   set id "marginalCost" $ printBPrice $ p*p1
 
 setTaxiMCost id =
@@ -751,3 +749,16 @@ setSrvMCost id =
     "taxi"   -> setTaxiMCost  id
     "rent"   -> setRentMCost  id
     _        -> return ()
+
+rkc programm field = do
+  dict <- lift $ gets rkcDict
+  case Map.lookup programm dict >>= Map.lookup field of
+    Just v  -> return v
+    Nothing -> do
+      lift $ with dbLog $ log Info $ T.concat
+        [ "Can't find rkc value for "
+        , T.decodeUtf8 programm
+        , " "
+        , T.decodeUtf8 field
+        ]
+      return 0

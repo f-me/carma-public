@@ -1,0 +1,1 @@
+alter table partnertbl add column makers text, add column serviceAddress text, add column servicePhone text, add column serviceWorking text, add column salesAddress text, add column salesPhone text, add column salesWorking text

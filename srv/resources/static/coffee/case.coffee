@@ -163,16 +163,17 @@ fillEventsHistory = (knockVM) -> ->
 
         st.fnAddData(row)
 
-      for r in actions
-        duetime = if r.duetime
-            new Date(r.duetime * 1000).toString("dd.MM.yyyy HH:mm")
-          else
-            ''
+      for r in actions when r.closeTime
         result = dict.ActionResults[r.result] or ''
         name = dict.ActionNames[r.name] or ''
         aTo  = global.dictValueCache['users'][r.assignedTo] or
                r.assignedTo or ''
-        row = [ duetime , aTo, name , r.comment or '', result ]
+        row = [ new Date(r.closeTime * 1000).toString("dd.MM.yyyy HH:mm")
+              , aTo
+              , name
+              , r.comment or ''
+              , result ]
+            
         st.fnAddData(row)
 
       return if _.isEmpty knockVM['comments']()

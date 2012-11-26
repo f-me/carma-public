@@ -7,6 +7,7 @@ import Control.Monad.IO.Class
 
 import qualified Data.Map as Map
 import Data.ByteString (ByteString)
+import qualified Data.Text.Encoding as T
 import Data.Configurator
 import Control.Concurrent.STM
 
@@ -33,7 +34,7 @@ import Application
 import ApplicationHandlers
 import AppHandlers.MyActions
 ----------------------------------------------------------------------
-import Util (readJSON, UsersDict)
+import Util (readJSON, UsersDict(..))
 
 
 
@@ -108,11 +109,12 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
                                session authDb
   logdUsrs <- liftIO $ newTVarIO Map.empty
   !allUsrs <- liftIO $ getUsrs authDb
+
   actLock  <- liftIO $ newTMVarIO ()
 
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
 
-  d <- nestSnaplet "db" db $ initDbLayer allUsrs
+  d <- nestSnaplet "db" db $ initDbLayer allUsrs "resources/site-config"
  
   -- init PostgreSQL connection pool that will be used for searching only
   let lookupCfg nm = lookupDefault (error $ show nm) cfg nm

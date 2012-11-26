@@ -1,9 +1,10 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, TypeSynonymInstances, FlexibleInstances #-}
 
 module Snaplet.DbLayer.Dictionary (
     Dictionary,
     look, merge, lookAny, keys,
-    loadDictionary, loadDictionaries
+    loadDictionary, loadDictionaries,
+    readRKCCalc
     ) where
 
 import Control.Applicative
@@ -12,10 +13,17 @@ import Control.Monad
 import Data.Aeson
 import Data.Maybe
 import qualified Data.ByteString.Lazy.Char8 as LC8
-import qualified Data.Text as T
+import qualified Data.Text           as T
+import qualified Data.Text.Encoding  as T
 import qualified Data.HashMap.Strict as HM
+import qualified Data.Map            as Map
+import qualified Data.Vector         as V
 import System.FilePath
 import System.Directory
+
+import Snaplet.DbLayer.Types
+
+import Util (readJSON)
 
 data KeyValue = KeyValue {
     key :: T.Text,
@@ -86,3 +94,27 @@ loadDictionaries cfg = do
         (names, files) = unzip . map (toName &&& toFile) . filter isJson $ contents
     ds <- mapM loadDictionary files
     return $ Dictionaries $ HM.fromList $ catMaybes $ zipWith (fmap . (,)) names ds
+
+readRKCCalc :: FilePath -> IO RKCCalc
+readRKCCalc cfgDir = do
+  c <- readJSON rkcDict
+  case fromJSON c :: Result RKCCalc of
+    Error e   -> fail $ "Reading of RKCCalc failed with: " ++ e
+    Success r -> return r
+    where
+      rkcDict = cfgDir </> "dictionaries" </> "RKCCalc.json"
+
+instance FromJSON RKCCalc where
+  parseJSON (Object o) = do
+    Object e <- o .: "entries"
+    HM.foldrWithKey f (return Map.empty) e
+    where
+      f k v m = Map.insert (T.encodeUtf8 k) <$> parseJSON v <*> m
+
+instance FromJSON RKCEntry where
+  parseJSON (Array a) = V.foldl f (return Map.empty) a
+    where
+      f m (Object v) = do
+        name  <- v .: "name"
+        value <- v .: "value"
+        m >>= return  . Map.union (Map.singleton name value)

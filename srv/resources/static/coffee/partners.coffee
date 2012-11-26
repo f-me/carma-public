@@ -97,4 +97,6 @@ this.setServiceRepeat = ->
   r = (v[0].serviceNameLocal() for k, v of groups when v.length > 1)
   kvm.serviceRepeat(r)
 
-this.releasePartnersForm = () -> delete global.alertObj
+this.releasePartnersForm = () ->
+  ko.cleanNode($("#partner-errors")[0])
+  delete global.alertObj

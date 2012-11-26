@@ -50,6 +50,8 @@ import qualified Database.PostgreSQL.Models as SM
 
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers
+import Snaplet.DbLayer.Dictionary (readRKCCalc)
+import DictionaryCache
 import Util
 
 create model commit = scoper "create" $ do
@@ -169,15 +171,28 @@ smsProcessing = runRedisDB redis $ do
   (Right ri) <- Redis.llen "smspost:retry"
   return $ i + ri
 
-initDbLayer :: UsersDict -> SnapletInit b (DbLayer b)
-initDbLayer allU = makeSnaplet "db-layer" "Storage abstraction"
+
+initDbLayer :: UsersDict -> FilePath -> SnapletInit b (DbLayer b)
+initDbLayer allU cfgDir = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
-    l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10) [logger text (file "log/db.log"), syslog_ "carma"]
+    l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10) [logger text (file "log/db.log"), syslog "carma" [PID] USER]
     liftIO $ withLog l $ log Info "Server started"
     mdl <- liftIO $ Postgres.loadModels "resources/site-config/syncs.json" l
     liftIO $ Postgres.createIO mdl l
     cfg <- getSnapletUserConfig
     wkey <- liftIO $ lookupDefault "" cfg "weather-key"
+
+    let usrDic
+          = Map.fromList
+            [(u' Map.! "value", u' Map.! "label")
+            | u <- us
+            , let u' = Map.map T.decodeUtf8 u]
+          where UsersDict us = allU
+
+    dc <- liftIO
+          $ loadDictionaries usrDic "resources/site-config/dictionaries"
+          >>= newTVarIO
+
     DbLayer
       <$> nestSnaplet "redis" redis
             (redisDBInit Redis.defaultConnectInfo)
@@ -188,8 +203,9 @@ initDbLayer allU = makeSnaplet "db-layer" "Storage abstraction"
       <*> (liftIO $ fddsConfig cfg)
       <*> (return mdl)
       <*> (return allU)
+      <*> (return dc)
       <*> (return $ initApi wkey)
-
+      <*> (liftIO $ readRKCCalc cfgDir)
 ----------------------------------------------------------------------
 triggersConfig = do
   recs <- readJSON "resources/site-config/recommendations.json"
