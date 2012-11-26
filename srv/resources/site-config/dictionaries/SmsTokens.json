@@ -1,0 +1,16 @@
+{
+    "entries": [
+        {
+            "value": "program_contact_info",
+            "label": "Контактная информация"
+        },
+        {
+            "value": "program_from_name",
+            "label": "Название программы для подстакнвки вместо адресанта в смс"
+        },
+        {
+            "value": "program_info",
+            "label": "Название программы"
+        }
+    ]
+}
