@@ -86,7 +86,7 @@ Executable carma
     xlsx                        >= 0.0.2.1 && < 0.1,
     filepath                    == 1.3.*,
     directory                   == 1.2.*,
-    weather-api                 == 0.4.*,
+    weather-api                 >= 0.4.1,
     fdds                        >= 0.1.0.1 && < 0.2,
     vector                      == 0.9.*,
     bytestring-lexing           == 0.4.*,
