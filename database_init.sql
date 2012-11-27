@@ -1,3 +1,5 @@
+BEGIN;
+
 CREATE EXTENSION hstore;
 CREATE EXTENSION postgis;
 
@@ -13,3 +15,5 @@ CREATE TABLE geo_partners (id INTEGER PRIMARY KEY, name TEXT, city TEXT, address
 SELECT AddGeometryColumn ('geo_partners', 'coords', 4326, 'POINT', 2);
 GRANT SELECT, UPDATE ON geo_partners TO carma_geo;
 GRANT SELECT ON partnerMessageTbl TO carma_geo;
+
+COMMIT;
