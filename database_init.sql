@@ -1,5 +1,3 @@
-BEGIN;
-
 CREATE EXTENSION postgis;
 
 CREATE ROLE carma_search PASSWORD 'md568023aeacae5a76b23b958eb5da1a994' NOSUPERUSER NOCREATEDB NOCREATEROLE INHERIT LOGIN;
@@ -14,5 +12,3 @@ CREATE TABLE geo_partners (id INTEGER PRIMARY KEY, name TEXT, city TEXT, address
 SELECT AddGeometryColumn ('geo_partners', 'coords', 4326, 'POINT', 2);
 GRANT SELECT, UPDATE ON geo_partners TO carma_geo;
 GRANT SELECT ON partnerMessageTbl TO carma_geo;
-
-COMMIT;
