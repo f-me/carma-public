@@ -726,7 +726,8 @@
                 "name": "counted",
                 "meta": {
                    "label": "Расчетная стоимость",
-                   "readonly": true
+                   "readonly": true,
+                   "sqltype": "double precision"
                 }
         },
         {
