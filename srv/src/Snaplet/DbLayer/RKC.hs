@@ -103,10 +103,10 @@ doneServices = inList "servicetbl" "status" [
   "serviceClosed"]
 
 serviceCaseRel :: PreQuery
-serviceCaseRel = cond ["casetbl", "servicetbl"] "casetbl.id = servicetbl.parentId"
+serviceCaseRel = cond ["casetbl", "servicetbl"] "'case:' || casetbl.id = servicetbl.parentId"
 
 mechanic :: PreQuery
-mechanic = equals "calltbl" "garbage -> 'callType'" "client" `mappend` inList "calltbl" "garbage -> 'callerType'" [
+mechanic = equals "calltbl" "callType" "client" `mappend` inList "calltbl" "callerType" [
   "mechanicConsOk",
   "mechanicConsNotOk"]
 
@@ -117,14 +117,14 @@ averageTowageTechStart :: PreQuery
 averageTowageTechStart = mconcat [
   averageTime ("servicetbl", "times_factServiceStart") ("casetbl", "callDate"),
   serviceCaseRel,
-  towageTech,
-  cond ["servicetbl"] "(servicetbl.suburbanMilage = 0) or (servicetbl.suburbanMilage is null)"]
+  towageTech]
+  --cond ["servicetbl"] "(servicetbl.suburbanMilage = 0) or (servicetbl.suburbanMilage is null)"]
 
 averageTowageTechEnd :: PreQuery
 averageTowageTechEnd = mconcat [
   averageTime ("servicetbl", "times_factServiceEnd") ("servicetbl", "times_factServiceStart"),
-  towageTech,
-  cond ["servicetbl"] "(servicetbl.suburbanMilage = 0) or (servicetbl.suburbanMilage is null)"]
+  towageTech]
+  --cond ["servicetbl"] "(servicetbl.suburbanMilage = 0) or (servicetbl.suburbanMilage is null)"]
 
 satisfaction :: PreQuery
 satisfaction = mconcat [
@@ -151,7 +151,7 @@ limitedCost :: PreQuery
 limitedCost = cost "payment_limitedCost"
 
 inCity :: T.Text -> PreQuery
-inCity = equals "casetbl" "garbage -> 'city'"
+inCity = equals "casetbl" "city"
 
 select :: T.Text -> T.Text -> PreQuery
 select tbl col = preQuery_ [T.concat [tbl, ".", col]] [tbl] [] [] []
@@ -426,8 +426,8 @@ rkcFront constraints usrs = scope "rkcFront" $ do
   log Trace "Loading front info"
   vals <- runQuery_ $ mconcat [frontOps, constraints]
   let
-    makeOpInfo (n, label, roles) = FrontOperatorInfo label (fromMaybe 0 $ lookup n vals) roles
-  return $ FrontInformation $ map makeOpInfo usrs
+    makeOpInfo (n, label, roles) = fmap (\v -> FrontOperatorInfo label v roles) $ lookup n vals
+  return $ FrontInformation $ mapMaybe makeOpInfo usrs
 
 backSummary :: (PS.HasPostgres m, MonadLog m) => PreQuery -> m BackSummary
 backSummary constraints = scope "backSummary" $ do
