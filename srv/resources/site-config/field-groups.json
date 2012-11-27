@@ -727,7 +727,7 @@
                 "meta": {
                    "label": "Расчетная стоимость",
                    "readonly": true,
-                   "sqltype": "double precision"
+                   "sqltype": "decimal(12,4)"
                 }
         },
         {
