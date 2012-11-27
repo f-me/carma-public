@@ -1,0 +1,460 @@
+{
+    "entries": {
+        "program_contact_info": [
+            {
+                "value": "aston",
+                "label": "+74956463477"
+            },
+            {
+                "value": "bentley",
+                "label": "+74956463477"
+            },
+            {
+                "value": "nz",
+                "label": "+74956409001"
+            },
+            {
+                "value": "tele",
+                "label": "+74956406690"
+            },
+            {
+                "value": "arc",
+                "label": "+74956463477"
+            },
+            {
+                "value": "hyundai",
+                "label": "+74956406690"
+            },
+            {
+                "value": "avilon",
+                "label": "+74956405457"
+            },
+            {
+                "value": "avtoC",
+                "label": "+74956406690"
+            },
+            {
+                "value": "arval",
+                "label": "+74956406690"
+            },
+            {
+                "value": "jenser",
+                "label": "+74956406690"
+            },
+            {
+                "value": "auimp",
+                "label": "+74956406690"
+            },
+            {
+                "value": "tvd",
+                "label": "+74956406690"
+            },
+            {
+                "value": "euro",
+                "label": "+78002508082"
+            },
+            {
+                "value": "euroVW",
+                "label": "+78002508082"
+            },
+            {
+                "value": "euroFord",
+                "label": "+78002508082"
+            },
+            {
+                "value": "euroGM",
+                "label": "+78002508082"
+            },
+            {
+                "value": "corpse",
+                "label": "+74956406690"
+            },
+            {
+                "value": "map",
+                "label": "+78002508192"
+            },
+            {
+                "value": "micro",
+                "label": "+74956406690"
+            },
+            {
+                "value": "covidien",
+                "label": "+78002507262"
+            },
+            {
+                "value": "covidienVW",
+                "label": "+78002507262"
+            },
+            {
+                "value": "covidienFord",
+                "label": "+78002507262"
+            },
+            {
+                "value": "covidienGM",
+                "label": "+78002507262"
+            },
+            {
+                "value": "rnbase  RN",
+                "label": "+78002501070"
+            },
+            {
+                "value": "rnstandard",
+                "label": "+78002501070"
+            },
+            {
+                "value": "lyckoil",
+                "label": "+78002507262"
+            },
+            {
+                "value": "vnukovo",
+                "label": "+74956408680"
+            },
+            {
+                "value": "bm",
+                "label": "+74956406690"
+            },
+            {
+                "value": "autopres",
+                "label": "+74956406690"
+            },
+            {
+                "value": "b2c",
+                "label": "+78002507262"
+            },
+            {
+                "value": "unicredit",
+                "label": "+78002507300"
+            },
+            {
+                "value": "vtb24",
+                "label": "+78002500024"
+            },
+            {
+                "value": "akbars",
+                "label": "+78002507262"
+            },
+            {
+                "value": "bp",
+                "label": "+74956406690"
+            },
+            {
+                "value": "chartis",
+                "label": "+78007005170"
+            },
+            {
+                "value": "ford",
+                "label": "+78002503673"
+            },
+            {
+                "value": "cadold",
+                "label": "+78002501218"
+            },
+            {
+                "value": "cad2012",
+                "label": "+78002501218"
+            },
+            {
+                "value": "chevyko",
+                "label": "+78002502438"
+            },
+            {
+                "value": "chevyna",
+                "label": "+78002501218"
+            },
+            {
+                "value": "hum",
+                "label": "+78002501218"
+            },
+            {
+                "value": "opel",
+                "label": "+78002501218"
+            },
+            {
+                "value": "vmMotor",
+                "label": "+78007007011"
+            },
+            {
+                "value": "vwcargo",
+                "label": "+78007007011"
+            },
+            {
+                "value": "atlant",
+                "label": "+74656405605"
+            },
+            {
+                "value": "Cash",
+                "label": "++74956406690"
+            },
+            {
+                "value": "tickets",
+                "label": "+74956406690"
+            },
+            {
+                "value": "ramc1",
+                "label": "+74956406690"
+            },
+            {
+                "value": "ramc2",
+                "label": "+74956406690"
+            },
+            {
+                "value": "ruslan",
+                "label": "+78002504357"
+            }
+        ],
+        "program_from_name": [
+            {"value": "aston", "label": "Aston Martin"},
+            {"value": "bentley", "label": "Bentley"},
+            {"value": "nz", "label": "N Assistance"},
+            {"value": "tele", "label": "Telematica"},
+            {"value": "arc", "label": "RAMC"},
+            {"value": "hyundai", "label": "RAMC"},
+            {"value": "avilon", "label": "Avilon"},
+            {"value": "avtoC", "label": "Avto-T"},
+            {"value": "arval", "label": "ARVAL"},
+            {"value": "jenser", "label": "Genser YA"},
+            {"value": "auimp", "label": "Autoimport"},
+            {"value": "tvd", "label": "TDV"},
+            {"value": "euro", "label": "Europlan"},
+            {"value": "euroVW", "label": "Europlan"},
+            {"value": "euroFord", "label": "Europlan"},
+            {"value": "euroGM", "label": "Europlan"},
+            {"value": "corpse", "label": "RAMC"},
+            {"value": "map", "label": "Mapfe"},
+            {"value": "micro", "label": "Assistance"},
+            {"value": "covidien", "label": "Covidien"},
+            {"value": "covidienVW", "label": "Covidien"},
+            {"value": "covidienFord", "label": "Covidien"},
+            {"value": "covidienGM", "label": "Covidien"},
+            {"value": "rnbase  RN", "label": "card"},
+            {"value": "rnstandard", "label": "RN card"},
+            {"value": "lyckoil", "label": "Lukoil P"},
+            {"value": "vnukovo", "label": "VW Vnykovo"},
+            {"value": "bm", "label": "Block Motors"},
+            {"value": "autopres", "label": "Autoprestus"},
+            {"value": "b2c", "label": "RAMC"},
+            {"value": "unicredit", "label": "Unicreditbank"},
+            {"value": "vtb24", "label": "VTB24 Assist"},
+            {"value": "akbars", "label": "AK BARS"},
+            {"value": "bp", "label": "BP Assistance"},
+            {"value": "chartis", "label": "Chartis"},
+            {"value": "ford", "label": "Ford"},
+            {"value": "cadold", "label": "GM"},
+            {"value": "cad2012", "label": "GM"},
+            {"value": "chevyko", "label": "GM"},
+            {"value": "chevyna", "label": "GM"},
+            {"value": "hum", "label": "GM"},
+            {"value": "opel", "label": "GM"},
+            {"value": "vmMotor", "label": "VW"},
+            {"value": "vwcargo", "label": "VW"},
+            {"value": "atlant", "label": "Atlant M"},
+            {"value": "Cash", "label": "RAMC"},
+            {"value": "tickets", "label": "RAMC"},
+            {"value": "ramc1", "label": "RAMC"},
+            {"value": "ramc2", "label": "RAMC"},
+            {"value": "ruslan", "label": "RUS LAN"}
+        ],
+        "program_info": [
+            {
+                "value": "aston",
+                "label": "ACTA / Aston Martin"
+            },
+            {
+                "value": "bentley",
+                "label": "ACTA / Bentley"
+            },
+            {
+                "value": "nz",
+                "label": "Независимость"
+            },
+            {
+                "value": "tele",
+                "label": "3S Телематика"
+            },
+            {
+                "value": "arc",
+                "label": "Arc B2B"
+            },
+            {
+                "value": "hyundai",
+                "label": "RTR Hyundai"
+            },
+            {
+                "value": "avilon",
+                "label": "Авилон"
+            },
+            {
+                "value": "avtoC",
+                "label": "Авто-Цель"
+            },
+            {
+                "value": "arval",
+                "label": "АРВАЛ"
+            },
+            {
+                "value": "jenser",
+                "label": "Дженсер Ясенево"
+            },
+            {
+                "value": "auimp",
+                "label": "ДЦ Автоимпорт"
+            },
+            {
+                "value": "tvd",
+                "label": "ДЦ ТВД-Авто"
+            },
+            {
+                "value": "euro",
+                "label": "Европлан"
+            },
+            {
+                "value": "euroVW",
+                "label": "Европлан"
+            },
+            {
+                "value": "euroFord",
+                "label": "Европлан"
+            },
+            {
+                "value": "euroGM",
+                "label": "Европлан"
+            },
+            {
+                "value": "corpse",
+                "label": "ИП Трубкин"
+            },
+            {
+                "value": "map",
+                "label": "Мапфре"
+            },
+            {
+                "value": "micro",
+                "label": "РАМК"
+            },
+            {
+                "value": "covidien",
+                "label": "Ковидиен"
+            },
+            {
+                "value": "covidienVW",
+                "label": "Ковидиен"
+            },
+            {
+                "value": "covidienFord",
+                "label": "Ковидиен"
+            },
+            {
+                "value": "covidienGM",
+                "label": "Ковидиен"
+            },
+            {
+                "value": "rnbase",
+                "label": "РН-карт-Москва"
+            },
+            {
+                "value": "rnstandard",
+                "label": "РН-карт-Москва"
+            },
+            {
+                "value": "lyckoil",
+                "label": "ЛУКОЙЛ-Петрокоммерц"
+            },
+            {
+                "value": "vnukovo",
+                "label": "VW Внуково"
+            },
+            {
+                "value": "bm",
+                "label": "Блок Моторс"
+            },
+            {
+                "value": "autopres",
+                "label": "Автопрестус"
+            },
+            {
+                "value": "b2c",
+                "label": "B2C Карты"
+            },
+            {
+                "value": "unicredit",
+                "label": "ЮниКредитбанк"
+            },
+            {
+                "value": "vtb24",
+                "label": "ВТБ 24"
+            },
+            {
+                "value": "akbars",
+                "label": "АК БАРС"
+            },
+            {
+                "value": "bp",
+                "label": "BP"
+            },
+            {
+                "value": "chartis",
+                "label": "Chartis Assistance"
+            },
+            {
+                "value": "ford",
+                "label": "Ford Помощь на дорогах"
+            },
+            {
+                "value": "cadold",
+                "label": "GM Assistance"
+            },
+            {
+                "value": "cad2012",
+                "label": "GM Assistance"
+            },
+            {
+                "value": "chevyko",
+                "label": "GM Assistance"
+            },
+            {
+                "value": "chevyna",
+                "label": "GM Assistance"
+            },
+            {
+                "value": "hum",
+                "label": "GM Assistance"
+            },
+            {
+                "value": "opel",
+                "label": "GM Assistance"
+            },
+            {
+                "value": "vwMotor",
+                "label": "VW Гарантия мобильности"
+            },
+            {
+                "value": "vwcargo",
+                "label": "VW Гарантия мобильности"
+            },
+            {
+                "value": "atlant",
+                "label": "Атлант М"
+            },
+            {
+                "value": "Cash",
+                "label": "РАМК"
+            },
+            {
+                "value": "tickets",
+                "label": "РАМК"
+            },
+            {
+                "value": "ramc1",
+                "label": "РАМК"
+            },
+            {
+                "value": "ramc2",
+                "label": "РАМК"
+            },
+            {
+                "value": "ruslan",
+                "label": "Рус Лан"
+            }
+        ]
+    }
+}

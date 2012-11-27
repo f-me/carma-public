@@ -50,6 +50,7 @@ import Snaplet.DbLayer.Indices
 import qualified Carma.ModelTables as MT (loadTables)
 import Snaplet.DbLayer.Triggers
 import Snaplet.DbLayer.Dictionary (readRKCCalc)
+import DictionaryCache
 import Util
 
 create :: ModelName -> Object -> Handler b (DbLayer b) (Map.Map FieldName ByteString)
@@ -160,6 +161,7 @@ smsProcessing = runRedisDB redis $ do
   (Right ri) <- Redis.llen "smspost:retry"
   return $ i + ri
 
+
 initDbLayer :: UsersDict -> FilePath -> SnapletInit b (DbLayer b)
 initDbLayer allU cfgDir = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
@@ -170,6 +172,18 @@ initDbLayer allU cfgDir = makeSnaplet "db-layer" "Storage abstraction"
     liftIO $ Postgres.createIO tbls l
     cfg <- getSnapletUserConfig
     wkey <- liftIO $ lookupDefault "" cfg "weather-key"
+
+    let usrDic
+          = Map.fromList
+            [(u' Map.! "value", u' Map.! "label")
+            | u <- us
+            , let u' = Map.map T.decodeUtf8 u]
+          where UsersDict us = allU
+
+    dc <- liftIO
+          $ loadDictionaries usrDic "resources/site-config/dictionaries"
+          >>= newTVarIO
+
     DbLayer
       <$> nestSnaplet "redis" redis
             (redisDBInit Redis.defaultConnectInfo)
@@ -181,6 +195,7 @@ initDbLayer allU cfgDir = makeSnaplet "db-layer" "Storage abstraction"
       <*> (return rels)
       <*> (return tbls)
       <*> (return allU)
+      <*> (return dc)
       <*> (return $ initApi wkey)
       <*> (liftIO $ readRKCCalc cfgDir)
 ----------------------------------------------------------------------

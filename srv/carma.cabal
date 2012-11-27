@@ -47,8 +47,7 @@ Executable carma
     Snaplet.Geo,
     Snaplet.Auth.Class,
     Utils.HttpErrors,
-    Util,
-    DumbTemplate
+    Util
 
   Build-depends:
     aeson                       == 0.6.*,

@@ -38,7 +38,7 @@ data App = App
     , actionsLock :: TMVar ()
     , _siteConfig :: Snaplet (SiteConfig App)
     , _db         :: Snaplet (DbLayer App)
-    , pg_search  :: Pool Pg.Connection
+    , pg_search   :: Pool Pg.Connection
     , _vin        :: Snaplet Vin
     , _fileUpload :: Snaplet FileUpload
     , _geo        :: Snaplet Geo

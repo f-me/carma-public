@@ -6,7 +6,9 @@ import Control.Monad.State (get)
 import Data.Map (Map)
 import Data.ByteString (ByteString)
 import Data.Lens.Template
+import Control.Concurrent.STM
 
+import Snap
 import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple (Postgres, HasPostgres(..))
 import Snap.Snaplet.RedisDB (RedisDB)
@@ -19,6 +21,7 @@ import qualified Database.PostgreSQL.Sync.Base as SM
 import qualified WeatherApi as W
 
 import qualified Fdds as Fdds
+import DictionaryCache
 import Util (UsersDict)
 
 type ObjectId = ByteString
@@ -39,15 +42,16 @@ type DbHandler b r = Handler b (DbLayer b) r
 data DbLayer b = DbLayer
     {_redis    :: Snaplet RedisDB
     ,_postgres :: Snaplet Postgres
-    ,_dbLog :: Snaplet SimpleLog
+    ,_dbLog    :: Snaplet SimpleLog
     ,triggers  :: TriggersConfig
     ,indices   :: Indices
     ,fdds      :: Fdds.Conf
     ,syncRelations :: SM.Relations
     ,syncTables :: [TableDesc]
-    ,allUsers   :: UsersDict
-    ,weather    :: W.Config
-    ,rkcDict    :: RKCCalc
+    ,allUsers  :: UsersDict
+    ,dictCache :: TVar DictCache
+    ,weather   :: W.Config
+    ,rkcDict   :: RKCCalc
     }
 
 data TriggersConfig = TriggersConfig
@@ -61,3 +65,8 @@ instance HasPostgres (Handler b (DbLayer b)) where
 
 instance MonadLog (Handler b (DbLayer b)) where
     askLog = with dbLog askLog
+
+getDict :: (DictCache -> dict) -> Handler b (DbLayer b) dict
+getDict dict
+  = gets dictCache
+  >>= fmap dict . liftIO . readTVarIO
