@@ -1633,7 +1633,7 @@
       <div>{{ phone1 }}</div>
       <div>{{ workingTime }}</div>
       <div><a class="btn btn-mini btn-primary"
-              onclick="pickPartnerBlip('{{ parentView }}', '{{ numid }}', '{{ name }}', '{{ addrDeFacto }}', '{{ coords }}', '{{ partnerIdField }}', '{{ partnerField }}', '{{ partnerAddrField }}', '{{ partnerCoordsField }}');">Выбрать</a></div>
+              onclick="pickPartnerBlip('{{ parentView }}', '{{ id }}', '{{ name }}', '{{ addrDeFacto }}', '{{ coords }}', '{{ partnerIdField }}', '{{ partnerField }}', '{{ partnerAddrField }}', '{{ partnerCoordsField }}');">Выбрать</a></div>
     </script>
 
   </body>
