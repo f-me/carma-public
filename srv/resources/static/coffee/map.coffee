@@ -272,7 +272,7 @@ this.partnerBlips = (osmap, partners, tableCache,
 
         # Let popup know where to put new partner data
         extra_ctx =
-          id: blip[0]
+          numid: blip[0]
           parentView: parentView
           partnerField: partnerField
           partnerIdField: partnerIdField
