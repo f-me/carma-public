@@ -57,6 +57,7 @@ services =
   ,"deliverClient"
   ,"averageCommissioner"
   ,"insurance"
+  ,"consultation"
   ]
 
 add model field tgs = Map.unionWith (Map.unionWith (++)) $ Map.singleton model (Map.singleton field tgs)
@@ -573,6 +574,10 @@ actionResultMap = Map.fromList
     setService objId "status" "serviceClosed"
     closeAction objId  
   )
+  ,("partnerGivenCloseTime", \objId -> do
+    tm <- getService objId "times_expectedServiceClosure"  
+    dateNow (changeTime (+5*60) tm) >>= set objId "duetime"
+    set objId "result" "") 
   ,("falseCallWBill", \objId -> do
      setService objId "falseCall" "bill"
      closeAction objId

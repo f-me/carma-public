@@ -402,6 +402,10 @@
                 "label": "Заявка закрыта"
             },
             {
+                "value": "partnerGivenCloseTime",
+                "label": "Закрыть заявку позже"
+            },            
+            {
                 "value": "unassignPlease",
                 "label": "Отказ от действия"
             },

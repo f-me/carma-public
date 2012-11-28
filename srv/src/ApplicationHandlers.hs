@@ -381,11 +381,13 @@ errorsHandler = do
 
 logReq :: Show v => v -> AppHandler ()
 logReq commit  = do
+  user <- fmap userLogin <$> with auth currentUser
   r <- getRequest
   let params = rqParams r
       uri    = rqURI r
       method = rqMethod r
   scoper "reqlogger" $ log Trace $ T.pack $
+    show user ++ "; " ++
     show method ++ " " ++ show uri ++ "; " ++
     "params: " ++ show params ++ "; " ++
     "body: " ++ show commit
