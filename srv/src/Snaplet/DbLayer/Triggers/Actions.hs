@@ -573,6 +573,10 @@ actionResultMap = Map.fromList
     setService objId "status" "serviceClosed"
     closeAction objId  
   )
+  ,("partnerGivenCloseTime", \objId -> do
+    tm <- getService objId "times_expectedServiceClosure"  
+    dateNow (changeTime (+5*60) tm) >>= set objId "duetime"
+    set objId "result" "") 
   ,("falseCallWBill", \objId -> do
      setService objId "falseCall" "bill"
      closeAction objId
