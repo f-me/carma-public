@@ -23,7 +23,7 @@
             "meta": {
                 "targetMap": "caseAddress_map",
                 "targetAddr": "caseAddress_address",
-                "targetCity": "cityLocal"
+                "cityField": "cityLocal"
             }
         },
         {

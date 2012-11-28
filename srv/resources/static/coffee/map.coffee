@@ -65,20 +65,27 @@ this.reinstallMarkers = (osmap, layerName) ->
 
 # Setup OpenLayers map
 #
-# - parentView: parent view this map belongs to. Note that address and
-#               coordinates are still taken from the `case` view. This
-#               is used to set partner data in the parent VM when
-#               clicking partner blips.
+# - parentView: parent view this map belongs to. This is used to set
+#               partner data in the parent VM when clicking partner
+#               blips.
 # 
 # Supported meta annotations for a map field:
 #
 # - targetAddr: if set, map will be clickable, enabled for reverse
-#               geocoding (clicking the map will write address to this
-#               field on `case` model)
+#               geocoding and clicking the map will write address to
+#               this field of model. If the annotation has the form of
+#               `view_name/field_name`, then the field `field_name` in
+#               `view_name` view will be used instead of parent view.
 #
-# - targetCoords: read initial position & blip from this field
-#                 of `case`, write geocoding results here (if
-#                 it's enabled)
+# - targetCoords: read initial position & blip from this field of
+#                 model; write geocoding results here (only if it's
+#                 enabled with `targetAddr` meta!). Metas of form
+#                 `case-view/field` are treated as in `targetAddr`.
+#
+# - moreCoords: this meta is a list of field names (possibly prefixed
+#               with view names as in `targetAddr`), where every field
+#               stores coordinates. Static blips for every field will
+#               be placed on the map.
 # 
 # - targetPartner: if set, map will show partner blips from table set
 #                  in `partnerTable` annotation on the same model.
@@ -104,35 +111,59 @@ this.initOSM = (el, parentView) ->
   coord_field = modelField(modelName, fieldName).meta["targetCoords"]
   addr_field = modelField(modelName, fieldName).meta["targetAddr"]
 
+  ## Bind the map to geocode address & coordinates
 
   # Place a blip and recenter if coordinates are already known
   if coord_field?
-    # TODO Drop hardcoded name of the case view (case-form)
-    coords = global.viewsWare['case-form'].knockVM[coord_field]()
+    chunks = coord_field.split('/')
+    if chunks.length > 1
+      coord_view_name = chunks[0]
+      coord_field_name = chunks[1]
+    else
+      coord_view_name = parentView
+      coord_field_name = chunks[0]
+      
+    coords = global.viewsWare[coord_view_name].knockVM[coord_field_name]()
     if coords?
       coords = lonlatFromShortString(coords)
       osmap.setCenter(coords.transform(wsgProj, osmProj), zoomLevel)
       carBlip(osmap, coords)
 
-  # Setup handler if map is clickable
+  # Setup handler to update address and coordinates if the map is
+  # clickable
   if addr_field?
+    chunks = addr_field.split('/')
+    if chunks.length > 1
+      addr_view_name = chunks[0]
+      addr_field_name = chunks[1]
+    else
+      addr_view_name = parentView
+      addr_field_name = chunks[0]
+
     osmap.events.register("click", osmap, (e) ->
       coords = osmap.getLonLatFromViewPortPx(e.xy)
                .transform(osmProj, wsgProj)
 
       if coord_field?
-        global.viewsWare['case-form']
-        .knockVM[coord_field](coords.toShortString())
+        # coord_view_name and coord_field are already known as per
+        # coord_field? branch in geocoding setup
+        global.viewsWare[coord_view_name]
+        .knockVM[coord_field_name](coords.toShortString())
 
       $.getJSON(nominatimRevQuery(coords.lon, coords.lat),
       (res) ->
         addr = buildReverseAddress(res)
 
-        global.viewsWare['case-form'].knockVM[addr_field](addr)
+        global.viewsWare[addr_view_name].knockVM[addr_field_name](addr)
 
         carBlip(osmap, osmap.getLonLatFromViewPortPx(e.xy))
       )
     )
+
+  ## Static coordinate blips
+  more_coord_field = modelField(modelName, fieldName).meta["moreCoords"]
+
+  ## Bind map to partner list
 
   partner_field = modelField(modelName, fieldName).meta["targetPartner"]
 
