@@ -607,13 +607,20 @@
         {
             "name": "partnerId",
             "meta": {
-                "invisible":true
+                "invisible": true
             }
         },
         {
             "name": "address",
             "meta": {
                 "label": "Адрес"
+            }
+        },
+        {
+            "name": "coords",
+            "meta": {
+                "label": "Координаты",
+                "invisible": true
             }
         },
         {

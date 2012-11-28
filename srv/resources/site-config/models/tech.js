@@ -221,6 +221,7 @@
                 "contractor_partnerId",
                 "contractor_partnerTable",
                 "contractor_partnerMap",
+                "contractor_coords",
                 "contractor_address"
             ],
             "canRead": [
@@ -258,7 +259,9 @@
             ],
             "meta": {
                 "targetPartner": "contractor_partner",
+                "targetPartnerId": "contractor_partnerId",
                 "targetPartnerAddr": "contractor_address",
+                "targetPartnerCoords": "contractor_coords",
                 "partnerTable": "contractor_partnerTable"
             }
         },
