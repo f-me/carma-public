@@ -57,6 +57,7 @@ services =
   ,"deliverClient"
   ,"averageCommissioner"
   ,"insurance"
+  ,"consultation"
   ]
 
 add model field tgs = Map.unionWith (Map.unionWith (++)) $ Map.singleton model (Map.singleton field tgs)
