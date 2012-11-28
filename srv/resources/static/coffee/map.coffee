@@ -70,15 +70,21 @@ this.reinstallMarkers = (osmap, layerName) ->
 #               is used to set partner data in the parent VM when
 #               clicking partner blips.
 # 
-# Template for OL placeholder may specify HTML5 attributes:
+# Supported meta annotations for a map field:
 #
-# - data-target-addr: if set, map will be clickable, enabled for
-#                     reverse geocoding (clicking the map will write
-#                     geocoding address to this field on `case` model)
+# - targetAddr: if set, map will be clickable, enabled for reverse
+#               geocoding (clicking the map will write address to this
+#               field on `case` model)
 #
-# - data-target-coords: read initial position & blip from this field
-#                       of `case`, write geocoding results here (if
-#                       it's enabled)
+# - targetCoords: read initial position & blip from this field
+#                 of `case`, write geocoding results here (if
+#                 it's enabled)
+# 
+# - targetPartner: if set, map will show partner blips from table set
+#                  in `partnerTable` annotation on the same model.
+#                  Clicking a blip will write partner name to the
+#                  field specified in `targetPartner` and address in
+#                  the field set in `targetPartnerAddr`.
 this.initOSM = (el, parentView) ->
   return if $(el).hasClass("olMap")
 
