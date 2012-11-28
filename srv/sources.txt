@@ -11,6 +11,7 @@ https://github.com/f-me/simple-log
 https://github.com/f-me/snaplet-simple-log
 https://github.com/mvoidex/simple-log-syslog
 
+https://github.com/cvb/snap-core nonascii-filenames
 https://github.com/f-me/snap-loader-static
 https://github.com/f-me/snap-loader-dynamic
 https://github.com/f-me/snaplet-postgresql-simple
