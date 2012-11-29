@@ -108,7 +108,7 @@ twoPointHandler q queryToResult = do
 -- Splice lon1, lat1 and lon2, lat2 on the query, where coordinates
 -- are those of opposite 2D box points.
 withinQuery :: Query
-withinQuery = "SELECT id, st_x(coords), st_y(coords) FROM geo_partners WHERE coords && ST_SetSRID(ST_MakeBox2D(ST_Point(?, ?), ST_Point(?, ?)), 4326);"
+withinQuery = "SELECT id, st_x(coords), st_y(coords) FROM partnertbl WHERE coords && ST_SetSRID(ST_MakeBox2D(ST_Point(?, ?), ST_Point(?, ?)), 4326);"
 
 
 ------------------------------------------------------------------------------
