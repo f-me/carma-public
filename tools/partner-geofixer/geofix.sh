@@ -77,6 +77,8 @@ dest () {
 echo "Writing source partner list to ${SOURCE_LIST}"
 
 # Fetch list of `id|name|city|address` entries
+#
+# TODO Ignore partners with non-null coords.
 curl ${PARTNERS_HTTP} 2>/dev/null | \
     jq -r '.[] | .id + "|" + .name + "|" + .city + "|" + .addrDeFacto' | \
     cut -d: -f2 > ${SOURCE_LIST}

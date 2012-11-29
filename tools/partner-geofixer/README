@@ -1,20 +1,29 @@
-0. `postgis` extension needs to be installed for the database:
+0. The script uses CaRMa HTTP API for reading and updating the DB.
+CaRMa /_/ routes must be accessible from the localhost. RU.txt needs
+to be present in the script directory for zip code recognition.
 
-    psql -d carma -c "CREATE EXTENSION postgis;"
-
-1. geocode.sh writes geofixer-****.result.txt file. RU.txt needs to
-reside in script directory for zip code recognition:
+1. geocode.sh writes geofixer-****.result.txt file:
 
     bash geocode.sh
 
 Examine .log for anomalies.    
 
-2. Result file is processed by sql.awk into a list of SQL statements
-to be run for the selected database:
+2. Result file is processed by carma-http.awk into a list of curl
+invokation lines.
 
-    awk -f sql.awk geofixer-FXul8c.result.txt > result.sql
-    psql -q -d carma -f result.sql
+    awk -f carma-http.awk geofixer-FXul8c.result.txt > result-commands
+
+3. Finally, perform all the queries.
+
+    cat result-commands | parallel -j4
+
+       or simply
+    
+    bash result-commands
 
 F. Test if it works:
 
-    psql -d carma -c "select * from geo_partners where ST_DWithin(coords, ST_PointFromText('POINT(56.15 58.02)', 4326), 0.5);"
+    curl localhost:8000/geo/partners/37.66,55.87/34.66,50/
+
+    must return a list of partners within a rectangle defined by two
+    opposite points given in the request.
