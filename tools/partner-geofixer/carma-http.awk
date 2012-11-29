@@ -1,6 +1,6 @@
 BEGIN {
     FS="|"
-    CURL="curl -X PUT "
+    CURL="curl -s -X PUT "
     CARMA_PARTNER_PUT="http://localhost:8000/_/partner/"
 }
 
