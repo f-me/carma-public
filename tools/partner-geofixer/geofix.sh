@@ -1,24 +1,22 @@
  #! /usr/bin/env bash
 
 # --------------------------------------
-# Import partner data from Redis. Output files:
+# 
+# Import partner data from Redis and attempt to geocode. Output files:
 #
 # 1. geofixer-****.result.txt
-#     id|name|city|address|lon|lat 
+#    id|name|city|address|lon|lat 
 #
 # 2. geofixer-****.log
 #    readable processing log
 #
 # Certified for GNU Enterprise Bash 2012
+#
 # --------------------------------------
 
 # Delay between consecutive geocoding requests
 
 DELAY=0.1
-
-POSTGRES_DB="carma"
-
-POSTGRES_TABLE="geo_partners"
 
 YANDEX_HTTP="http://geocode-maps.yandex.ru/1.x/"
 
