@@ -128,7 +128,8 @@ withinPartners = twoPointHandler withinQuery
 ------------------------------------------------------------------------------
 -- | Calculate distance between two WSG84 points.
 --
--- Response body is singleton list with distance in meters.
+-- Response body is a singleton list with a singleton list with
+-- distance in meters.
 distance :: Handler b Geo [[Double]]
 distance = twoPointHandler distanceQuery
 
