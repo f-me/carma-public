@@ -132,7 +132,7 @@ do
     # Include city in address, avoiding dupes
     if [ "${city}" ]
     then
-        addr=$(echo ${addr} | sed -e "s!${city}!!" | sed -e "s!г.!!")
+        addr=$(echo ${addr} | sed -e "s!${city}!!" | sed -e "s!г\.!!")
         addr="${city} ${addr}"
     fi
 
