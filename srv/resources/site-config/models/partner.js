@@ -66,6 +66,14 @@
             }
         },
         {
+            "name": "coords",
+            "type": "coords",
+            "meta": {
+                "label": "Координаты",
+                "infoText": "coords"
+            }
+        },
+        {
             "name": "workingTime",
             "meta": {
                 "label": "Время работы"
