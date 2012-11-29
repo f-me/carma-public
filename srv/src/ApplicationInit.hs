@@ -138,16 +138,3 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
 getUsrs authDb = do
   readJSON authDb :: IO UsersDict
-
-
-------------------------------------------------------------------------------
-chkAuth :: AppHandler () -> AppHandler ()
-chkAuth f
-  = with auth currentUser
-  >>= maybe (handleError 401) (const f)
-
-
-handleError :: MonadSnap m => Int -> m ()
-handleError err = do
-    modifyResponse $ setResponseCode err
-    getResponse >>= finishWith

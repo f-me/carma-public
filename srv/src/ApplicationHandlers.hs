@@ -1,3 +1,4 @@
+{-# LANGUAGE DoAndIfThenElse #-}
 
 module ApplicationHandlers where
 -- FIXME: reexport AppHandlers/* & remove import AppHandlers.* from AppInit
@@ -391,3 +392,19 @@ logReq commit  = do
     show method ++ " " ++ show uri ++ "; " ++
     "params: " ++ show params ++ "; " ++
     "body: " ++ show commit
+
+
+------------------------------------------------------------------------------
+-- | Deny requests from non-local unauthorized users.
+chkAuth :: AppHandler () -> AppHandler ()
+chkAuth f = do
+  req <- getRequest
+  if (rqRemoteAddr req /= rqLocalAddr req)
+  then with auth currentUser >>= maybe (handleError 401) (const f)
+  else f
+
+
+handleError :: MonadSnap m => Int -> m ()
+handleError err = do
+    modifyResponse $ setResponseCode err
+    getResponse >>= finishWith
