@@ -82,19 +82,23 @@ newtype Partner = Partner (Int, Double, Double) deriving (FromRow, Show, ToJSON)
 
 ------------------------------------------------------------------------------
 -- | Read two points from `coords1` and `coords2` request parameters,
--- splice lon1, lat1, lon2 and lat2 on the query, serve results as
--- JSON list, or fail if coordinates could not be read.
-twoPointHandler :: (ToJSON a, FromRow a) => Query -> Handler b Geo [a]
-twoPointHandler q = do
+-- splice lon1, lat1, lon2 and lat2 on the query and serve the results
+-- as JSON, or fail if coordinates could not be read.
+twoPointHandler :: (FromRow a, ToJSON r) => 
+                   Query
+                -> ([a] -> r)
+                -- ^ Convert SQL results to a value served in JSON.
+                -> Handler b Geo ()
+twoPointHandler q queryToResult = do
   c1 <- getCoordsParam "coords1"
   c2 <- getCoordsParam "coords2"
 
   case (c1, c2) of
     (Just (lon1, lat1), Just (lon2, lat2)) -> do
-                   results <- query q (lon1, lat1, lon2, lat2)
+                   results <- liftM queryToResult $
+                              query q (lon1, lat1, lon2, lat2)
                    modifyResponse $ setContentType "application/json"
                    writeLBS $ A.encode results
-                   return results
     _ -> error "Bad request"
 
 
@@ -121,8 +125,8 @@ distanceQuery = "SELECT ST_Distance_Sphere(ST_PointFromText('POINT(? ?)', 4326),
 -- | Serve list of partners within a specified rectangle.
 --
 -- Response body is a list of triples @[partner_id, lon, lat]@.
-withinPartners :: Handler b Geo [Partner]
-withinPartners = twoPointHandler withinQuery
+withinPartners :: Handler b Geo ()
+withinPartners = twoPointHandler withinQuery (id :: [Partner] -> [Partner])
 
 
 ------------------------------------------------------------------------------
@@ -130,8 +134,8 @@ withinPartners = twoPointHandler withinQuery
 --
 -- Response body is a singleton list with a singleton list with
 -- distance in meters.
-distance :: Handler b Geo [[Double]]
-distance = twoPointHandler distanceQuery
+distance :: Handler b Geo ()
+distance = twoPointHandler distanceQuery (head . head :: [[Double]] -> Double)
 
 
 geoInit :: SnapletInit b Geo
