@@ -21,6 +21,11 @@ invokation lines.
     
     bash result-commands
 
+E. Troubleshooting:
+
+   Make sure settings in geofix.sh and carma-http.awk do match the
+   present setup (most importantly, CaRMa port number).
+
 F. Test if it works:
 
     curl localhost:8000/geo/partners/37.66,55.87/34.66,50/
