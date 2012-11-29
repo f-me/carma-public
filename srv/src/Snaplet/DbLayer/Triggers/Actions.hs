@@ -240,9 +240,6 @@ serviceActions = Map.fromList
   )
   ,("contractor_partner",
     [\objId val -> do
-        Right partnerIds <- lift $ runRedisDB redis $ Redis.keys "partner:*"
-        p <- filterM (\id -> (val ==) <$> get id "name") partnerIds
-        unless (null p) $ set objId "contractor_partnerId" (head p)
         opts <- get objId "cost_serviceTarifOptions"
         let ids = B.split ',' opts
         lift $ runRedisDB redis $ Redis.del ids
