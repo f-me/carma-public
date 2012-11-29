@@ -28,6 +28,8 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import Data.Text.Encoding (decodeUtf8)
 
+import Data.Configurator
+
 import Data.Lens.Template
 
 import qualified Database.Redis as R
@@ -44,6 +46,10 @@ import Snap.Snaplet.RedisDB
 data GeoApp = GeoApp
     { _postgres :: Snaplet Postgres
     , _redis :: Snaplet RedisDB
+    , nominatimReverse :: String
+    -- ^ URI to Nominatim reverse.php up to first ?
+    , carmaPort :: Int
+    -- ^ Port of CaRMa instance running on localhost.
     }
 
 makeLens ''GeoApp
@@ -60,10 +66,12 @@ routes = [ ("/geo/partner/:pid", method PUT $ updatePosition)
 
 
 ------------------------------------------------------------------------------
--- | Build reverse geocoding request URI.
-nominatimRevQuery :: Double -> Double -> String
-nominatimRevQuery lon lat =
-    concat ["http://nominatim.openstreetmap.org/reverse.php?"
+-- | URI for reverse geocoding request.
+nominatimRevURI :: Double -> Double -> Handler b GeoApp String
+nominatimRevURI lon lat = do
+  nh <- gets nominatimReverse
+  return $
+    concat [nh
            , "format=json&accept-language=ru-RU,ru&"
            , "lon=", show lon, "&"
            , "lat=", show lat
@@ -72,8 +80,10 @@ nominatimRevQuery lon lat =
 
 ------------------------------------------------------------------------------
 -- | URI for PUT request to update partner data.
-partnerUpdateURI :: Int -> String
-partnerUpdateURI pid = "http://localhost:8000/_/partner/" ++ (show pid)
+partnerUpdateURI :: Int -> Handler b GeoApp String
+partnerUpdateURI pid = do
+  cp <- gets carmaPort
+  return $ concat ["http://localhost:", show cp, "/_/partner/", show pid]
 
 
 ------------------------------------------------------------------------------
@@ -131,12 +141,13 @@ updatePosition = do
   (pid' :: Maybe Int) <- getParamWith decimal "pid"
   case (lon', lat', pid') of
     (Just lon, Just lat, Just pid) -> do
+        nomU <- nominatimRevURI lon lat
         -- Reverse geocode street address from coordinates.
         (addr :: Maybe Address) <- liftIO $ do
-          resp <- H.simpleHTTP (H.getRequest $ nominatimRevQuery lon lat)
+          resp <- H.simpleHTTP (H.getRequest nomU)
           body <- H.getResponseBody resp
           return $ decode' $ BSL.pack body
-        liftIO $ updatePartnerData pid lon lat addr
+        updatePartnerData pid lon lat addr
     _ -> error "Bad request"
 
 
@@ -150,17 +161,18 @@ updatePartnerData :: Int
                   -- ^ Latitude.
                   -> (Maybe Address)
                   -- ^ New address if available.
-                  -> IO ()
+                  -> Handler b GeoApp ()
 updatePartnerData pid lon lat addr =
     let
         coordString = concat [show lon, ",", show lat]
         body = BSL.unpack $ encode $ object $
                [decodeUtf8 coordsField .= coordString] ++
                (maybe [] (\(Address a) -> [decodeUtf8 addressField .= a]) addr)
-    in 
-      H.simpleHTTP 
-           (putRequestWithBody 
-            (partnerUpdateURI pid) "application/json" body) >> return ()
+    in do
+      parU <- partnerUpdateURI pid
+      liftIO $ H.simpleHTTP 
+           (putRequestWithBody parU "application/json" body)
+      return ()
 
 
 getMessage :: Handler b GeoApp ()
@@ -178,8 +190,16 @@ geoAppInit = makeSnaplet "geo" "Geoservices" Nothing $ do
     db <- nestSnaplet "postgres" postgres pgsInit
     rdb <- nestSnaplet "redis" redis $ redisDBInit R.defaultConnectInfo
     cfg <- getSnapletUserConfig
+
+    nh <- liftIO $ lookupDefault 
+          "http://nominatim.openstreetmap.org/reverse.php?"
+          cfg 
+          "nominatim_reverse"
+
+    cp <- liftIO $ lookupDefault 8000 cfg "carma_port"
+
     addRoutes routes
-    return $ GeoApp db rdb
+    return $ GeoApp db rdb nh cp
 
 
 ------------------------------------------------------------------------------
