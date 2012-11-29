@@ -317,15 +317,19 @@
             ],
             "meta": {
                 "targetPartner": "towDealer_partner",
+                "targetPartnerId": "towDealer_partnerId",
                 "targetPartnerAddr": "towDealer_address",
+                "targetPartnerCoords": "towDealer_coords",
                 "partnerTable": "towDealer_partnerTable"
             }
         },
         {
             "targets": [
                 "towDealer_partner",
+                "towDealer_partnerId",
                 "towDealer_partnerTable",
                 "towDealer_partnerMap",
+                "towDealer_coords",
                 "towDealer_address"
             ],
             "canRead": [
@@ -362,15 +366,19 @@
             ],
             "meta": {
                 "targetPartner": "contractor_partner",
+                "targetPartnerId": "contractor_partnerId",
                 "targetPartnerAddr": "contractor_address",
+                "targetPartnerCoords": "contractor_coords",
                 "partnerTable": "contractor_partnerTable"
             }
         },
         {
             "targets": [
                 "contractor_partner",
+                "contractor_partnerId",
                 "contractor_partnerTable",
                 "contractor_partnerMap",
+                "contractor_coords",
                 "contractor_address"
             ],
             "canRead": [

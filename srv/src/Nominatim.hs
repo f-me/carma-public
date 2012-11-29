@@ -7,6 +7,7 @@ import Network.URI
 import qualified Data.ByteString.Char8 as B
 
 
+nominatimURI :: URI
 nominatimURI = URI
   {uriScheme    = "http:"
   ,uriAuthority

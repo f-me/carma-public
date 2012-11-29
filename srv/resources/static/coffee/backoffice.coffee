@@ -16,7 +16,7 @@ this.removeBackOffice = ->
 mkBoTable = ->
   userTable = $("#back-user-table")
   ut = mkDataTable(userTable)
-  ut.fnSort [[2, "desc"]]
+  ut.fnSort [[2, "asc"]]
   userTable.on("click.datatable", "tr", ->
     colText = this.children[0].innerText
     [_,caseId,actId] = colText.match(/(\d+)\/(\d+)/)

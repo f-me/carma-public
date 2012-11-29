@@ -9,7 +9,29 @@
       {
         "name":"ctime",
         "meta": {
-          "invisible":true
+          "invisible":true,
+          "sqltype": "timestamp"
+        }
+      },
+      {
+        "name":"status",
+        "meta": {
+          "invisible":true,
+          "sqltype":"text"
+        }
+      },
+      {
+        "name":"sentTime",
+        "meta": {
+          "invisible":true,
+          "sqltype":"timestamp"
+        }
+      },
+      {
+        "name":"deliveredTime",
+        "meta": {
+          "invisible":true,
+          "sqltype":"timestamp"
         }
       },
       {

@@ -33,11 +33,11 @@ import qualified Snaplet.DbLayer.RedisCRUD as RC
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
+import Snaplet.DbLayer.Triggers.SMS
 
 import Snap.Snaplet.SimpleLog
 
 import Util
-import qualified DumbTemplate as Template
 
 services =
   ["deliverCar"
@@ -57,6 +57,7 @@ services =
   ,"deliverClient"
   ,"averageCommissioner"
   ,"insurance"
+  ,"consultation"
   ]
 
 add model field tgs = Map.unionWith (Map.unionWith (++)) $ Map.singleton model (Map.singleton field tgs)
@@ -73,9 +74,9 @@ actions
     $ Map.fromList
       $ [(s,serviceActions) | s <- services]
       ++[("sms", Map.fromList
-        [("caseId",   [\smsId _ -> renderSMS smsId])
-        ,("template", [\smsId _ -> set smsId "msg" "" >> renderSMS smsId])
-        ,("msg",      [\smsId _ -> renderSMS smsId])
+        [("caseId",   [\smsId _ -> updateSMS smsId])
+        ,("template", [\smsId t -> updateSMS smsId])
+        ,("msg",      [\smsId _ -> updateSMS smsId])
         ]
       )]
       ++[("action", actionActions)
@@ -126,30 +127,6 @@ actions
             ])
           ])
         ]
-
-renderSMS smsId = do
-  caseNum <- get smsId "caseId"
-  let caseId = B.append "case:" caseNum
-
-  let add x i y m = do
-        yVal <- T.decodeUtf8 <$> get i y
-        return $! Map.insert x yVal m
-  varMap <- return Map.empty
-    >>= return . Map.insert "case.id" (T.decodeUtf8 caseNum)
-    >>= add "case.contact_name" caseId "contact_name"
-    >>= add "case.caseAddress_address" caseId "caseAddress_address"
-
-  msg <- get smsId "msg"
-  tmpId <- get smsId "template"
-  tmp <- T.decodeUtf8 <$> (get smsId "template" >>= (`get` "text"))
-  when (msg == "" && tmp /= "") $ do
-    let txt = T.encodeUtf8 $ Template.render varMap tmp
-    set smsId "msg" txt
-
-  phone <- get smsId "phone"
-  when (phone == "") $ do
-    get caseId "contact_phone1" >>= set smsId "phone"
-  set smsId "sender" "RAMC"
 
 
 -- Создания действий "с нуля"
@@ -327,8 +304,9 @@ actionResultMap = Map.fromList
   [("busyLine",        \objId -> dateNow (+ (5*60))  >>= set objId "duetime" >> set objId "result" "")
   ,("callLater",       \objId -> dateNow (+ (30*60)) >>= set objId "duetime" >> set objId "result" "")
   ,("bigDelay",        \objId -> dateNow (+ (6*60*60)) >>= set objId "duetime" >> set objId "result" "")
+  ,("weekDelay",        \objId -> dateNow (+ (7*24*60*60)) >>= set objId "duetime" >> set objId "result" "")
   ,("partnerNotFound", \objId -> dateNow (+ (2*60*60)) >>= set objId "duetime" >> set objId "result" "")
-  ,("clientCanceledService", closeAction)   
+  ,("clientCanceledService", \objId -> closeAction objId >> sendSMS objId "smsTpl:2")   
   ,("unassignPlease",  \objId -> set objId "assignedTo" "" >> set objId "result" "")
   ,("needPartner",     \objId -> do 
      setService objId "status" "needPartner"
@@ -362,6 +340,7 @@ actionResultMap = Map.fromList
       "back" "3" (changeTime (+5*60) tm)
       objId
     newPartnerMessage objId
+    sendSMS objId "smsTpl:1"
   )
   ,("partnerNotOk", void . replaceAction
       "cancelService"
@@ -471,6 +450,7 @@ actionResultMap = Map.fromList
     partner <- getService objId "contractor_partner"
     comment <- get objId "comment"
     set act "comment" $ B.concat [utf8 "Партнёр: ", partner, "\n\n", comment]
+    sendSMS objId "smsTpl:3"
   )
   ,("complaint", \objId -> do
     setService objId "status" "serviceOk"
@@ -594,13 +574,19 @@ actionResultMap = Map.fromList
     setService objId "status" "serviceClosed"
     closeAction objId  
   )
+  ,("partnerGivenCloseTime", \objId -> do
+    tm <- getService objId "times_expectedServiceClosure"  
+    dateNow (changeTime (+5*60) tm) >>= set objId "duetime"
+    set objId "result" "") 
   ,("falseCallWBill", \objId -> do
      setService objId "falseCall" "bill"
      closeAction objId
+     sendSMS objId "smsTpl:2"
   )
   ,("falseCallWOBill", \objId -> do
      setService objId "falseCall" "nobill"
      closeAction objId
+     sendSMS objId "smsTpl:2"
   )
   ,("clientNotified", \objId -> do
      setService objId "status" "serviceClosed"

@@ -48,7 +48,8 @@ instance HasPostgres (Handler b Geo) where
 
 
 routes :: [(ByteString, Handler b Geo ())]
-routes = [ ("/partners/:coords1/:coords2", method GET $ withinPartners)
+routes = [ ("/partners/:coords1/:coords2", method GET $ withinPartners >> return ())
+         , ("/distance/:coords1/:coords2", method GET $ distance >> return ())
          ]
 
 
@@ -80,12 +81,44 @@ newtype Partner = Partner (Int, Double, Double) deriving (FromRow, Show, ToJSON)
 
 
 ------------------------------------------------------------------------------
+-- | Read two points from `coords1` and `coords2` request parameters,
+-- splice lon1, lat1, lon2 and lat2 on the query and serve the results
+-- as JSON, or fail if coordinates could not be read.
+twoPointHandler :: (FromRow a, ToJSON r) => 
+                   Query
+                -> ([a] -> r)
+                -- ^ Convert SQL results to a value served in JSON.
+                -> Handler b Geo ()
+twoPointHandler q queryToResult = do
+  c1 <- getCoordsParam "coords1"
+  c2 <- getCoordsParam "coords2"
+
+  case (c1, c2) of
+    (Just (lon1, lat1), Just (lon2, lat2)) -> do
+                   results <- liftM queryToResult $
+                              query q (lon1, lat1, lon2, lat2)
+                   modifyResponse $ setContentType "application/json"
+                   writeLBS $ A.encode results
+    _ -> error "Bad request"
+
+
+------------------------------------------------------------------------------
 -- | Query to fetch partners within a box.
 --
--- Splice lon1, lat1 and lon2, lat2, where coordinates are those of
--- opposite 2D box points.
+-- Splice lon1, lat1 and lon2, lat2 on the query, where coordinates
+-- are those of opposite 2D box points.
 withinQuery :: Query
 withinQuery = "SELECT id, st_x(coords), st_y(coords) FROM geo_partners WHERE coords && ST_SetSRID(ST_MakeBox2D(ST_Point(?, ?), ST_Point(?, ?)), 4326);"
+
+
+------------------------------------------------------------------------------
+-- | Query to calculate approximate distance (in meters) between two
+-- points.
+--
+-- Splice lon1, lat1 and lon2, lat2 on the query, where coordinates
+-- are those used to measure distance.
+distanceQuery :: Query
+distanceQuery = "SELECT ST_Distance_Sphere(ST_PointFromText('POINT(? ?)', 4326), ST_PointFromText('POINT(? ?)', 4326));"
 
 
 ------------------------------------------------------------------------------
@@ -93,17 +126,16 @@ withinQuery = "SELECT id, st_x(coords), st_y(coords) FROM geo_partners WHERE coo
 --
 -- Response body is a list of triples @[partner_id, lon, lat]@.
 withinPartners :: Handler b Geo ()
-withinPartners = do
-  c1 <- getCoordsParam "coords1"
-  c2 <- getCoordsParam "coords2"
+withinPartners = twoPointHandler withinQuery (id :: [Partner] -> [Partner])
 
-  case (c1, c2) of
-    (Just (lon1, lat1), Just (lon2, lat2)) -> do
-                   (results :: [Partner]) <-
-                       query withinQuery (lon1, lat1, lon2, lat2)
-                   modifyResponse $ setContentType "application/json"
-                   writeLBS $ A.encode results
-    _ -> error "Bad request"
+
+------------------------------------------------------------------------------
+-- | Calculate distance between two WSG84 points.
+--
+-- Response body is a singleton list with a singleton list with
+-- distance in meters.
+distance :: Handler b Geo ()
+distance = twoPointHandler distanceQuery (head . head :: [[Double]] -> Double)
 
 
 geoInit :: SnapletInit b Geo

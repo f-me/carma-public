@@ -23,7 +23,7 @@
             "meta": {
                 "targetMap": "caseAddress_map",
                 "targetAddr": "caseAddress_address",
-                "targetCity": "cityLocal"
+                "cityField": "cityLocal"
             }
         },
         {
@@ -577,7 +577,7 @@
                 "parguy"
             ],
             "meta": {
-                "label": "Претензия",
+                "label": "Претензия / Благодарность",
                 "infoText": "claim"
             },
             "type": "textarea"

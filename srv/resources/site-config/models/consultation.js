@@ -1,6 +1,6 @@
 {
-    "name": "tech",
-    "title": "Техпомощь",
+    "name": "consultation",
+    "title": "Консультация",
     "canCreate": true,
     "canRead": true,
     "canUpdate": true,
@@ -33,78 +33,6 @@
             "canWrite": [
                 "front",
                 "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ]
-        },
-        {
-            "targets": [
-                "payment_partnerCost",
-                "payment_costTranscript"
-            ],
-            "canRead": [
-                "back",
-                "front",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy",
-                "account"
-            ],
-            "canWrite": [
-                "back",
-                "front",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ]
-        },
-        {
-            "targets": [
-                "payment_calculatedCost",
-                "payment_overcosted"
-            ],
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy",
-                "account"
-            ],
-            "canWrite": [
-                "parguy"
-            ]
-        },
-        {
-            "targets": [
-                "payment_limitedCost"
-            ],
-            "canRead": [
-                "back",
-                "front",
                 "head",
                 "supervisor",
                 "director",
@@ -185,6 +113,78 @@
         },
         {
             "targets": [
+                "payment_partnerCost",
+                "payment_costTranscript"
+            ],
+            "canRead": [
+                "back",
+                "front",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "back",
+                "front",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ]
+        },
+        {
+            "targets": [
+                "payment_calculatedCost",
+                "payment_overcosted"
+            ],
+            "canRead": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "canWrite": [
+                "parguy"
+            ]
+        },
+        {
+            "targets": [
+                "payment_limitedCost"
+            ],
+            "canRead": [
+                "back",
+                "front",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman"
+            ]
+        },
+        {
+            "targets": [
                 "payment_paidByRUAMC",
                 "payment_paidByClient"
             ],
@@ -218,10 +218,7 @@
         {
             "targets": [
                 "contractor_partner",
-                "contractor_partnerId",
                 "contractor_partnerTable",
-                "contractor_partnerMap",
-                "contractor_coords",
                 "contractor_address"
             ],
             "canRead": [
@@ -252,18 +249,6 @@
                 "programman",
                 "parguy"
             ]
-        },
-        {
-            "targets": [
-                "contractor_partnerMap"
-            ],
-            "meta": {
-                "targetPartner": "contractor_partner",
-                "targetPartnerId": "contractor_partnerId",
-                "targetPartnerAddr": "contractor_address",
-                "targetPartnerCoords": "contractor_coords",
-                "partnerTable": "contractor_partnerTable"
-            }
         },
         {
             "targets": [
@@ -301,8 +286,7 @@
                 "parguy",
                 "account",
                 "admin",
-                "programman",
-                "parguy"
+                "programman"
             ],
             "canWrite": [
                 "front",
@@ -314,8 +298,7 @@
                 "parguy",
                 "account",
                 "admin",
-                "programman",
-                "parguy"
+                "programman"
             ]
         },
         {
@@ -339,8 +322,7 @@
                 "parguy",
                 "account",
                 "admin",
-                "programman",
-                "parguy"
+                "programman"
             ],
             "canWrite": [
                 "back",
@@ -352,17 +334,8 @@
                 "parguy",
                 "account",
                 "admin",
-                "programman",
-                "parguy"
+                "programman"
             ]
-        },
-        {
-            "targets": [
-                "times_expectedServiceStart"
-            ],
-            "meta": {
-                "mainToo": true
-            }
         }
     ],
     "fields": [
@@ -430,7 +403,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "PaymentTypes",
-                "bounded": true,
+                "bounded":true,
                 "label": "Тип оплаты"
             }
         },
@@ -442,56 +415,12 @@
             "name": "times",
             "groupName": "times"
         },
-        {
-            "name": "falseCall",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "type": "dictionary",
-            "meta": {
-                "dictionaryName": "FalseStatuses",
-                "label": "Ложный вызов",
-                "bounded":true,
-                "infoText": "falsecall"
-            }
-        },
-        {
-            "name": "falseCallPercent",
-            "canRead":  [ ],
-            "canWrite": [ ],
-            "meta": {
-                "invisible": true
-            }
-        },
-        {
+         {
             "name": "bill",
             "groupName": "bill"
         },
-        {
-            "name": "techType",
+	    {
+            "name": "consType",
             "canRead": [
                 "partner",
                 "front",
@@ -520,14 +449,44 @@
                 "programman",
                 "parguy"
             ],
-            "meta": {
-                "dictionaryName": "TechTypes",
-                "label": "Услуга",
-                "bounded":true,
-                "required": true
-            },
             "type": "dictionary",
-            "index": true
+            "meta": {
+                "label": "Тип консультации",
+                "bounded":true,
+                "dictionaryName": "ConsultationType"
+            }
+        },
+        {
+            "name": "whatToSay1",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "account",
+                "admin",
+                "programman"
+            ],
+            "meta": {
+                "label": "Описание проблемы"
+            },
+            "type": "textarea"
         },
         {
             "name": "contractor",
@@ -560,7 +519,7 @@
             ],
             "groupName": "partner",
             "meta": {
-                "label": "Партнёр"
+                "label": "Название партнёра"
             }
         },
         {
@@ -599,60 +558,6 @@
             }
         },
         {
-            "name": "marginalCost",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [ ],
-            "meta": {
-                "label": "Предельная стоимость"
-            }
-        },
-        {
-            "name": "suburbanMilage",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "meta": {
-                "label": "Пробег техпомощи за городом"
-            }
-        },
-        {
             "name": "status",
             "canRead": [
                 "partner",
@@ -685,8 +590,45 @@
             "type": "dictionary",
             "meta": {
                 "label": "Статус услуги",
-                "bounded": true,
+                "bounded":true,
                 "dictionaryName": "ServiceStatuses"
+            }
+        },
+		    {
+            "name": "result",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "type": "dictionary",
+            "meta": {
+                "label": "Результат",
+                "bounded":true,
+                "dictionaryName": "Result"
             }
         },
         {
@@ -723,39 +665,6 @@
             }
         },
         {
-            "name": "warrantyCase",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "type": "checkbox",
-            "meta": {
-                "label": "Гарантийный случай"
-            }
-        },
-        {
             "name": "files",
             "canRead": [
                 "partner",
@@ -788,41 +697,6 @@
             "type": "files",
             "meta": {
                 "label": "Прикрепленные файлы"
-            }
-        },
-        {
-            "name": "service_tarifOptions",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy",
-                "account"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "type": "reference",
-            "meta": {
-                "invisible": true
             }
         }
     ]

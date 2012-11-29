@@ -7,6 +7,7 @@ import Control.Monad.IO.Class
 
 import qualified Data.Map as Map
 import Data.ByteString (ByteString)
+import qualified Data.Text.Encoding as T
 import Data.Configurator
 import Control.Concurrent.STM
 
@@ -33,7 +34,7 @@ import Application
 import ApplicationHandlers
 import AppHandlers.MyActions
 ----------------------------------------------------------------------
-import Util (readJSON, UsersDict)
+import Util (readJSON, UsersDict(..))
 
 
 
@@ -63,7 +64,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
             chkAuth . method POST $ findOrCreateHandler)
          , ("/_/report/",     chkAuth . method POST $ createReportHandler)
          , ("/_/report/:id",  chkAuth . method DELETE $ deleteReportHandler)
-         , ("/sync",          chkAuth . method GET  $ syncHandler)
          , ("/search/:model", chkAuth . method GET  $ searchHandler)
          , ("/rkc",           chkAuth . method GET  $ rkcHandler)
          , ("/usersDict",     chkAuth . method GET  $ getUsersDict)
@@ -108,6 +108,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
                                session authDb
   logdUsrs <- liftIO $ newTVarIO Map.empty
   !allUsrs <- liftIO $ getUsrs authDb
+
   actLock  <- liftIO $ newTMVarIO ()
 
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
