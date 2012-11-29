@@ -13,3 +13,4 @@ CREATE ROLE carma_geo PASSWORD 'md5a73940ffdfdd8d8b9ecfbfba6cc3e2ab' NOSUPERUSER
 
 GRANT SELECT, UPDATE ON partnertbl TO carma_geo;
 GRANT SELECT ON partnerMessageTbl TO carma_geo;
+GRANT ALL PRIVILEGES ON spatial_ref_sys TO carma_geo;
