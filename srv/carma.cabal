@@ -89,7 +89,7 @@ Executable carma
     transformers                >= 0.2 && < 0.4,
     unordered-containers,
     utf8-string,
-    vector                      == 0.9.*,
+    vector                      == 0.10.*,
     vin-parser                  == 0.1.5.*,
     weather-api                 >= 0.4.1,
     xlsx                        >= 0.0.2.1 && < 0.1
