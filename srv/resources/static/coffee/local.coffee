@@ -103,11 +103,10 @@ localRouter = Backbone.Router.extend
 $ ->
   $.getJSON "/cfg/dictionaries",          (dicts)  ->
     $.getJSON "/_whoami/",                  (user)   ->
-      $.getJSON "/s/js/data/conditions.json", (checks) ->
-        $.getJSON "/cfg/models",                (models) ->
-          $.getJSON "/s/screens",                 (nav)    ->
-            $.getJSON "/usersDict",                 (users)  ->
-              dicts.users =
+      $.getJSON "/cfg/models",                (models) ->
+        $.getJSON "/s/screens",                 (nav)    ->
+          $.getJSON "/usersDict",                 (users)  ->
+            dicts.users =
                 entries:
                     for i in users
                            {value: i.value, label: "#{i.label} (#{i.value})"}
@@ -122,7 +121,6 @@ $ ->
                         user,
                         models
               global.nav = filterScreenPerms nav
-              global.checks = checks
               global.keys = {}
               global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
               ko.applyBindings global.nav, $('#nav')[0]

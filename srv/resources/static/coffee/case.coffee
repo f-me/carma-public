@@ -185,20 +185,6 @@ fillEventsHistory = (knockVM) -> ->
                      , ""
                      ]
 
-# render checkboxes, trueChecks contains list with names,
-# tha should be rendered as checked
-renderChecks = (name, trueChecks) ->
-  str = ""
-  tpl = $("#check-list-item-template").html()
-  if _.has(global.checks, name)
-    for n of global.checks[name]["checks"]
-      check = global.checks[name]["checks"][n]
-      v = $(Mustache.render(tpl, check))
-      if hasL(trueChecks, check.name)
-        v.find('input:checkbox').attr('checked', true)
-      str += v.outerHTML()
-  return str
-
 this.removeCaseMain = ->
   $("body").off "change.input"
 
