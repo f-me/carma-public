@@ -114,7 +114,7 @@ this.splitFieldInView = (input, defaultView) ->
 # - targetCoords: read initial position & blip from this field of
 #                 model; write geocoding results here (only if it's
 #                 enabled with `targetAddr` meta!). Metas of form
-#                 `case-view/field` are treated as in `targetAddr`.
+#                 `case-form/field` are treated as in `targetAddr`.
 #
 # - moreCoords: this meta is a list of field names (possibly prefixed
 #               with view names as in `targetAddr`), where every field
@@ -362,11 +362,15 @@ this.lonlatFromShortString = (coords) ->
 #              (recenter & set new blip on map)
 #
 # - targetCoords: name of field to write geocoding results into
-#                 (coordinates in "lon, lat" format). If this meta is
-#                 set, map will be recenter upon map setup using value
-#                 stored in the referenced field.
+#                 (coordinates in "lon, lat" format). This meta is
+#                 also used by the map to set the initial position
+#                 (see initOSM docs).
 #
-# - cityField: used with field value for geocoder query
+# - cityField: name of field that contains city, which is used with
+#              field value for geocoder query. This meta may be in
+#              form of "case-form/city" to reference fields present in
+#              views other than that of the picker.
+# 
 # Arguments are picker field name and picker element.
 this.geoPicker = (fieldName, el) ->
   addr = $(el).parents('.input-append')
@@ -381,9 +385,9 @@ this.geoPicker = (fieldName, el) ->
   map_field = modelField(modelName, fieldName).meta['targetMap']
   city_field = modelField(modelName, fieldName).meta['cityField']
 
-  # TODO Drop hardcoded name of the «real» parent view (case-form)
   if city_field?
-    addr = addr + ", " + findVM(viewName)[city_field]()
+    city_meta = splitFieldInView(city_field, viewName)
+    addr = addr + ", " + findVM(city_meta.view)[city_meta.field]()
 
   $.getJSON(nominatimQuery(addr), (res) ->
     if res.length > 0

@@ -201,11 +201,11 @@ this.findCaseOrReferenceVM = (view) ->
 # for case.
 this.findVM = (view) ->
   vw = global.viewsWare[view]
-  if vw.parentView?
+  if vw and vw.parentView?
     # Find VM of a group rendered in a view.
     findCaseOrReferenceVM(vw.parentView)
   else
-    findCaseOrReferenceVM(vw)
+    findCaseOrReferenceVM(view)
 
 # get partners and show them in table
 # this is called from local.coffe:showCase
@@ -213,6 +213,7 @@ this.initPartnerTables = ($view,parentView) ->
   m = $view[0].id.match(/(\w*)_partner-view/)
   partnerType = m[1]
   table = $view.find("table##{partnerType}_partnerTable")
+  kase = global.viewsWare["case-form"].knockVM
   svc = findCaseOrReferenceVM(parentView)
 
   unless table.hasClass("dataTable")
