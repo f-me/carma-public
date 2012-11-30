@@ -191,6 +191,51 @@ this.focusField = (name) ->
   e.scrollIntoView()
   e.focus()
 
+# Find VM of reference in a case by its view name. 
+this.findCaseOrReferenceVM = (view) ->
+  kase = global.viewsWare["case-form"].knockVM
+  if (view is "case-form")
+    kase
+  else
+    _.find kase.servicesReference(), (svc) -> svc.view is view
+
+# Find VM of a view, properly handling reference views or views of
+# field groups. If the view name is "case-form", then return knockVM
+# for case.
+this.findVM = (view) ->
+  vw = global.viewsWare[view]
+  if vw and vw.parentView?
+    # Find VM of a group rendered in a view.
+    findCaseOrReferenceVM(vw.parentView)
+  else
+    findCaseOrReferenceVM(view)
+
+# Given numeric id, return "partner:id"
+this.fullPartnerId = (id) -> "partner:" + id
+
+
+# Strip whitespace from string
+this.stripWs = (s) -> do (s) -> s.replace(/\s+/g, '')
+
+
+# Given a string of form "foo/bar", return object with fields
+# `view=foo` and `field=bar`. If input is of form "bar", then `view`
+# field is equal to defaultView.
+#
+# This is used to parse field references in meta annotations such as
+# targetCoords or targetAddr.
+this.splitFieldInView = (input, defaultView) ->
+  chunks = input.split('/')
+  if chunks.length > 1
+    view_name = chunks[0]
+    field_name = chunks[1]
+  else
+    view_name = defaultView
+    field_name = chunks[0]
+    
+  obj =
+    view: view_name
+    field: field_name
 
 # Hide all views on center pane and show view for first reference
 # stored in <fieldName> of model loaded into <parentView> there
@@ -209,11 +254,9 @@ this.showComplex = (parentView, fieldName) ->
 
     initOSM(e, parentView) for e in view.find(".osMap")
 
-
 this.hideComplex = ->
   $(".complex-field").hide()
   $(".default-complex-field").show()
-
        
 # Dispatch on some picker type
 #

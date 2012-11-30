@@ -56,6 +56,10 @@
     geocoding information; documented in geopicker and initOSM docs in
     `map.coffee`
 
+  - `distanceTo1` and `distanceTo2`: when both metas present, the
+    field will be updated with the distance between two coordinates
+    set in the referenced fields. See `distHook`.
+
   Non-meta field annotations are described in [[https://github.com/f-me/snaplet-redson/blob/master/README.org][snaplet-redson]] docs.
 * Dictionaries
 ** Syntax

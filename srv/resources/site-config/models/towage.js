@@ -899,6 +899,41 @@
                 "label": "Дилер"
             }
         },
+       {
+            "name": "dealerDistance",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman"
+            ],
+            "meta": {
+                "readonly": true,
+                "label": "Расстояние до дилера",
+                "distanceTo1": "case-form/caseAddress_coords",
+                "distanceTo2": "towAddress_coords"
+            }
+        },
         {
             "name": "towAddress",
             "canRead": [

@@ -71,32 +71,6 @@ this.reinstallMarkers = (osmap, layerName) ->
   return new_layer
 
 
-# Given numeric id, return "partner:id"
-this.fullPartnerId = (id) -> "partner:" + id
-
-
-# Given a string of form "foo/bar", return object with fields
-# `view=foo` and `field=bar`. If input is of form "bar", then `view`
-# field is equal to defaultView.
-#
-# This is used to parse field references in meta annotations such as
-# targetCoords or targetAddr.
-this.splitFieldInView = (input, defaultView) ->
-  chunks = input.split('/')
-  if chunks.length > 1
-    view_name = chunks[0]
-    field_name = chunks[1]
-  else
-    view_name = defaultView
-    field_name = chunks[0]
-    
-  obj =
-    view: view_name
-    field: field_name
-
-  return obj
-
-
 # Setup OpenLayers map
 #
 # - parentView: parent view this map belongs to. This is used to set
@@ -115,11 +89,6 @@ this.splitFieldInView = (input, defaultView) ->
 #                 model; write geocoding results here (only if it's
 #                 enabled with `targetAddr` meta!). Metas of form
 #                 `case-form/field` are treated as in `targetAddr`.
-#
-# - moreCoords: this meta is a list of field names (possibly prefixed
-#               with view names as in `targetAddr`), where every field
-#               stores coordinates. Static blips for every field will
-#               be placed on the map.
 #
 # - targetPartner: if set, map will show partner blips from table set
 #                  in `partnerTable` annotation on the same model. The
@@ -190,9 +159,6 @@ this.initOSM = (el, parentView) ->
         carBlip(osmap, osmap.getLonLatFromViewPortPx(e.xy))
       )
     )
-
-  ## Static coordinate blips
-  more_coord_field = modelField(modelName, fieldName).meta["moreCoords"]
 
   ## Bind map to partner list
 

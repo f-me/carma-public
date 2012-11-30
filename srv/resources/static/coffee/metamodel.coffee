@@ -15,6 +15,7 @@ this.backbonizeModel = (models, modelName, options) ->
   filesFields      = []
   jsonFields       = []
   dateTimeFields   = []
+  distFields       = []
   groups           = []
 
   model = models[modelName]
@@ -23,6 +24,7 @@ this.backbonizeModel = (models, modelName, options) ->
     if f.meta?
       requiredFields.push(f.name) if f.meta.required
       regexpFields.push(f.name)   if _.has(f.meta, "regexp")
+      distFields.push(f.name)     if f.meta.distanceTo1? and f.meta.distanceTo2?
 
     fieldHash[f.name] = f
     defaults[f.name]  = null
@@ -51,6 +53,7 @@ this.backbonizeModel = (models, modelName, options) ->
     # List of files fields
     filesFields: filesFields
     dateTimeFields: dateTimeFields
+    distFields: distFields
     # List of groups present in model
     groups: groups
 
