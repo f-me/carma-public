@@ -40,6 +40,13 @@ this.partnerIcon = "/s/img/partner-icon.png"
 this.dealerIcon = "/s/img/dealer-icon.png"
 
 
+# Given regular icon name, return name of highlighted icon
+#
+# Filenames must follow the convention that original icons are named
+# as foo-icon.png and highlighted icons are named as foo-hl-icon.png.
+this.hlIconName = (filename) -> filename.replace("-icon", "-hl-icon")
+
+
 # Build readable address from reverse Nominatim JSON response
 this.buildReverseAddress = (res) ->
   if (res.error)
@@ -62,6 +69,10 @@ this.reinstallMarkers = (osmap, layerName) ->
   osmap.addLayer(new_layer)
 
   return new_layer
+
+
+# Given numeric id, return "partner:id"
+this.fullPartnerId = (id) -> "partner:" + id
 
 
 # Given a string of form "foo/bar", return object with fields
@@ -121,6 +132,10 @@ this.splitFieldInView = (input, defaultView) ->
 #                  partner address → targetPartnerAddr
 #                  partner coords  → targetPartnerCoords
 #
+# - highlightIdFields: a list of fields of the same model which
+#                      contain ids of partners which are to be
+#                      highlighted on the map
+# 
 this.initOSM = (el, parentView) ->
   return if $(el).hasClass("olMap")
 
@@ -192,6 +207,7 @@ this.initOSM = (el, parentView) ->
     table_field = modelField(modelName, fieldName).meta["partnerTable"]
     table = view.find("table##{table_field}")
 
+    hl_fields = modelField(modelName, fieldName).meta["highlightIdFields"]
     # Redraw partner blips on map when dragging or zooming
     osmap.events.register("moveend", osmap, (e) ->
       # Calculate new bounding box
@@ -206,6 +222,9 @@ this.initOSM = (el, parentView) ->
         partnerBlips(
           osmap, pres, table.data("cache"),
           parentView,
+          # Fetch current values of fields listed in highlightIdFields
+          _.map(hl_fields,
+            (f) -> findReferenceVM(parentView)[f]()),
           partner_id_field, partner_field, partner_addr_field, partner_coords_field)
       )
     )
@@ -239,6 +258,8 @@ this.carBlip = (osmap, coords) ->
 #               an object with fields "name", "addrDeFacto", "phone1",
 #               "workingTime", "isMobile"
 #
+# - highlightId: highlight partners with numeric ids from this list
+# 
 # - parentView: parentView for contractor
 #
 # - partnerField: clicking a button in marker popup will set this
@@ -248,17 +269,21 @@ this.carBlip = (osmap, coords) ->
 # - partnerCoordsField: ... but for partner coordinates
 this.partnerBlips = (osmap, partners, tableCache,
                      parentView,
+                     highlightIds,
                      partnerIdField, partnerField,
                      partnerAddrField, partnerCoordsField) ->
   markers = do (osmap) -> reinstallMarkers(osmap, "Partners")
   tpl = $("#partner-popup-template").html()
-
+  console.log highlightIds
   for blip in partners
     do (blip) ->
+      id = blip[0]
+      hl = _.include(highlightIds, fullPartnerId(id))
+      
       # Skip partners not in table
-      return if not tableCache[blip[0]]
+      return if not (tableCache[id])
 
-      partner = tableCache[blip[0]]
+      partner = tableCache[id]
 
       coords = new OpenLayers.LonLat(blip[1], blip[2])
 
@@ -268,22 +293,25 @@ this.partnerBlips = (osmap, partners, tableCache,
       coords = coords.transform(wsgProj, osmProj)
 
       if partner.isMobile
-        mrk = new OpenLayers.Marker(
-          coords, new OpenLayers.Icon(towIcon, iconSize))
+        ico = towIcon
       else
         if (partner.isDealer == "1")
-          mrk = new OpenLayers.Marker(
-            coords, new OpenLayers.Icon(dealerIcon, iconSize))
+          ico = dealerIcon
         else
-          mrk = new OpenLayers.Marker(
-            coords, new OpenLayers.Icon(partnerIcon, iconSize))
+          ico = partnerIcon
+
+      if (hl)
+        ico = hlIconName(ico)
+
+      mrk = new OpenLayers.Marker(
+          coords, new OpenLayers.Icon(ico, iconSize))
 
       # Show partner info from table cache when clicking marker
       mrk.events.register("click", mrk, (e) ->
 
         # Let popup know where to put new partner data
         extra_ctx =
-          numid: blip[0]
+          numid: id
           parentView: parentView
           partnerField: partnerField
           partnerIdField: partnerIdField

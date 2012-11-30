@@ -320,7 +320,8 @@
                 "targetPartnerId": "towDealer_partnerId",
                 "targetPartnerAddr": "towDealer_address",
                 "targetPartnerCoords": "towDealer_coords",
-                "partnerTable": "towDealer_partnerTable"
+                "partnerTable": "towDealer_partnerTable",
+                "highlightIdFields": ["contractor_partnerId", "towDealer_partnerId"]
             }
         },
         {
@@ -369,7 +370,8 @@
                 "targetPartnerId": "contractor_partnerId",
                 "targetPartnerAddr": "contractor_address",
                 "targetPartnerCoords": "contractor_coords",
-                "partnerTable": "contractor_partnerTable"
+                "partnerTable": "contractor_partnerTable",
+                "highlightIdFields": ["contractor_partnerId", "towDealer_partnerId"]
             }
         },
         {

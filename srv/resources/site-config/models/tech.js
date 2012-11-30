@@ -262,7 +262,8 @@
                 "targetPartnerId": "contractor_partnerId",
                 "targetPartnerAddr": "contractor_address",
                 "targetPartnerCoords": "contractor_coords",
-                "partnerTable": "contractor_partnerTable"
+                "partnerTable": "contractor_partnerTable",
+                "highlightIdFields": ["contractor_partnerId"]
             }
         },
         {
