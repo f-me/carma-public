@@ -258,7 +258,7 @@ this.carBlip = (osmap, coords) ->
 #               an object with fields "name", "addrDeFacto", "phone1",
 #               "workingTime", "isMobile"
 #
-# - highlightId: highlight partners with numeric ids from this list
+# - highlightIds: highlight partners with numeric ids from this list
 # 
 # - parentView: parentView for contractor
 #
@@ -274,7 +274,7 @@ this.partnerBlips = (osmap, partners, tableCache,
                      partnerAddrField, partnerCoordsField) ->
   markers = do (osmap) -> reinstallMarkers(osmap, "Partners")
   tpl = $("#partner-popup-template").html()
-  console.log highlightIds
+
   for blip in partners
     do (blip) ->
       id = blip[0]
@@ -312,6 +312,7 @@ this.partnerBlips = (osmap, partners, tableCache,
         # Let popup know where to put new partner data
         extra_ctx =
           numid: id
+          mapId: osmap.div.id
           parentView: parentView
           partnerField: partnerField
           partnerIdField: partnerIdField
@@ -334,9 +335,12 @@ this.partnerBlips = (osmap, partners, tableCache,
 #
 # TODO We have to store all data in the associated HTML because
 # partner table is in a different view and thus is inaccessible.
-this.pickPartnerBlip = (referenceView,
-                        partnerId, partnerName, partnerAddr, partnerCoords,
-                        partnerIdField, partnerField, partnerAddrField, partnerCoordsField) ->
+this.pickPartnerBlip = (
+   referenceView, mapId,
+   partnerId, partnerName, partnerAddr, partnerCoords,
+   partnerIdField, partnerField, partnerAddrField, partnerCoordsField) ->
+    
+  $("#" + mapId).data("osmap").events.triggerEvent("moveend")
   vm = findReferenceVM(referenceView)
   vm[partnerIdField](partnerId)
   vm[partnerField](partnerName)
