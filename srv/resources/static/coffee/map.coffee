@@ -63,6 +63,29 @@ this.reinstallMarkers = (osmap, layerName) ->
 
   return new_layer
 
+
+# Given a string of form "foo/bar", return object with fields
+# `view=foo` and `field=bar`. If input is of form "bar", then `view`
+# field is equal to defaultView.
+#
+# This is used to parse field references in meta annotations such as
+# targetCoords or targetAddr.
+this.splitFieldInView = (input, defaultView) ->
+  chunks = input.split('/')
+  if chunks.length > 1
+    view_name = chunks[0]
+    field_name = chunks[1]
+  else
+    view_name = defaultView
+    field_name = chunks[0]
+    
+  obj =
+    view: view_name
+    field: field_name
+
+  return obj
+
+
 # Setup OpenLayers map
 #
 # - parentView: parent view this map belongs to. This is used to set
@@ -93,10 +116,10 @@ this.reinstallMarkers = (osmap, layerName) ->
 #                  blip will write partner information to fields of
 #                  the model as set in metas:
 #
-#                  partner id → targetPartnerId
-#                  partner name → targetPartner
-#                  partner addres → targetPartnerAddr
-#                  partner coords → targetPartnerCoords
+#                  partner name    → targetPartner
+#                  partner id      → targetPartnerId
+#                  partner address → targetPartnerAddr
+#                  partner coords  → targetPartnerCoords
 #
 this.initOSM = (el, parentView) ->
   return if $(el).hasClass("olMap")
@@ -121,15 +144,9 @@ this.initOSM = (el, parentView) ->
 
   # Place a blip and recenter if coordinates are already known
   if coord_field?
-    chunks = coord_field.split('/')
-    if chunks.length > 1
-      coord_view_name = chunks[0]
-      coord_field_name = chunks[1]
-    else
-      coord_view_name = parentView
-      coord_field_name = chunks[0]
+    coord_meta = splitFieldInView(coord_field, parentView)
 
-    coords = global.viewsWare[coord_view_name].knockVM[coord_field_name]()
+    coords = global.viewsWare[coord_meta.view].knockVM[coord_meta.field]()
     if coords?
       coords = lonlatFromShortString(coords)
       osmap.setCenter(coords.transform(wsgProj, osmProj), zoomLevel)
@@ -138,14 +155,8 @@ this.initOSM = (el, parentView) ->
   # Setup handler to update address and coordinates if the map is
   # clickable
   if addr_field?
-    chunks = addr_field.split('/')
-    if chunks.length > 1
-      addr_view_name = chunks[0]
-      addr_field_name = chunks[1]
-    else
-      addr_view_name = parentView
-      addr_field_name = chunks[0]
-
+    addr_meta = splitFieldInView(addr_field, parentView)
+    
     osmap.events.register("click", osmap, (e) ->
       coords = osmap.getLonLatFromViewPortPx(e.xy)
                .transform(osmProj, wsgProj)
@@ -153,14 +164,14 @@ this.initOSM = (el, parentView) ->
       if coord_field?
         # coord_view_name and coord_field are already known as per
         # coord_field? branch in geocoding setup
-        global.viewsWare[coord_view_name]
-        .knockVM[coord_field_name](coords.toShortString())
+        global.viewsWare[coord_meta.view]
+        .knockVM[coord_meta.field](coords.toShortString())
 
       $.getJSON(nominatimRevQuery(coords.lon, coords.lat),
       (res) ->
         addr = buildReverseAddress(res)
 
-        global.viewsWare[addr_view_name].knockVM[addr_field_name](addr)
+        global.viewsWare[addr_meta.view].knockVM[addr_meta.field](addr)
 
         carBlip(osmap, osmap.getLonLatFromViewPortPx(e.xy))
       )
