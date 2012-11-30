@@ -74,6 +74,12 @@ actions
     $ add "towage" "towDealer_address" [
       \objId val -> set objId "towAddress_address" val
       ]
+    $ add "towage" "contractor_coords" [
+      \objId val -> set objId "towerAddress_coords" val
+      ]
+    $ add "towage" "towDealer_coords" [
+      \objId val -> set objId "towAddress_coords" val
+      ]
     $ Map.fromList
       $ [(s,serviceActions) | s <- services]
       ++[("sms", Map.fromList
