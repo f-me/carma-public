@@ -62,7 +62,7 @@ this.backbonizeModel = (models, modelName, options) ->
     # This prevents data loss in case of server failures.
     attributeQueueBackup: {}
     initialize: ->
-      if not this.isNew() then this.fetch()
+      if not this.isNew() then this.fetch({ setBB: true })
       unless options?.bb?.manual_save? and options.bb.manual_save == true
         setTimeout((=> this.setupServerSync()), 1000)
 
@@ -87,8 +87,15 @@ this.backbonizeModel = (models, modelName, options) ->
             # TODO Still PUT-backs
             this.save() unless this.hasChanged("id")
       this.bind("change", _.throttle(realUpdates, 500), this)
-    set: (attrs, options) ->
-      Backbone.Model.prototype.set.call(this, attrs, options)
+    set: (key, val, options) ->
+      attrs
+      # we can get set(k,v,opts) or set(obj,opts)
+      if _.isObject(key)
+        attrs = key
+        options = val
+      else
+        (attrs = {})[key] = val
+
       # Push new values in attributeQueue
       #
       # Never send "id", never send anything if user has no
@@ -103,7 +110,11 @@ this.backbonizeModel = (models, modelName, options) ->
       for k of attrs when k isnt 'id' and
           _.has(this.fieldHash, k)    and
           not _.isNull(attrs[k])
-        this.attributeQueue[k] = attrs[k]
+        # filter not changed attrs, so will do parent set
+        if this.get(k) != attrs[k]
+          this.attributeQueue[k] = attrs[k]
+
+      Backbone.Model.prototype.set.call(this, attrs, options)
 
       # Do not send empty updates to server
     save: (attrs, options) ->
@@ -170,6 +181,19 @@ this.backbonizeModel = (models, modelName, options) ->
       return json
 
     urlRoot: "/_/" + modelName
+
+    fetch: (options) ->
+      # we need our own fetch, so we can use bb set instead
+      # of ours to keep attributeQueue empty after first fetch
+      options = if options then _.clone(options) else {}
+      success = options.success
+      setf = if options.setBB
+          Backbone.Model.prototype.set #.call(this, attrs, options)
+        else this.set
+      options.success = (resp, status, xhr) =>
+        return false unless setf.call(this, this.parse(resp, xhr), options)
+        success(this, resp, options) if success
+      return Backbone.sync('read', this, options)
 
   return M
 
