@@ -161,7 +161,7 @@ this.initOSM = (el, parentView) ->
   if coord_field?
     coord_meta = splitFieldInView(coord_field, parentView)
 
-    coords = global.viewsWare[coord_meta.view].knockVM[coord_meta.field]()
+    coords = findCaseOrReferenceVM(coord_meta.view)[coord_meta.field]()
     if coords?
       coords = lonlatFromShortString(coords)
       osmap.setCenter(coords.transform(wsgProj, osmProj), zoomLevel)
@@ -179,14 +179,13 @@ this.initOSM = (el, parentView) ->
       if coord_field?
         # coord_view_name and coord_field are already known as per
         # coord_field? branch in geocoding setup
-        global.viewsWare[coord_meta.view]
-        .knockVM[coord_meta.field](coords.toShortString())
+        findCaseOrReferenceVM(coord_meta.view)[coord_meta.field](coords.toShortString())
 
       $.getJSON(nominatimRevQuery(coords.lon, coords.lat),
       (res) ->
         addr = buildReverseAddress(res)
 
-        global.viewsWare[addr_meta.view].knockVM[addr_meta.field](addr)
+        findCaseOrReferenceVM(addr_meta.view)[addr_meta.field](addr)
 
         carBlip(osmap, osmap.getLonLatFromViewPortPx(e.xy))
       )
@@ -224,7 +223,7 @@ this.initOSM = (el, parentView) ->
           parentView,
           # Fetch current values of fields listed in highlightIdFields
           _.map(hl_fields,
-            (f) -> findReferenceVM(parentView)[f]()),
+            (f) -> findCaseOrReferenceVM(parentView)[f]()),
           partner_id_field, partner_field, partner_addr_field, partner_coords_field)
       )
     )
@@ -341,7 +340,7 @@ this.pickPartnerBlip = (
    partnerIdField, partnerField, partnerAddrField, partnerCoordsField) ->
     
   $("#" + mapId).data("osmap").events.triggerEvent("moveend")
-  vm = findReferenceVM(referenceView)
+  vm = findCaseOrReferenceVM(referenceView)
   vm[partnerIdField](partnerId)
   vm[partnerField](partnerName)
   vm[partnerAddrField](partnerAddr)

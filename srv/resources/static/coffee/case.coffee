@@ -188,11 +188,14 @@ fillEventsHistory = (knockVM) -> ->
 this.removeCaseMain = ->
   $("body").off "change.input"
 
-# Find VM of reference by its view
-this.findReferenceVM = (view) ->
+# Find VM of reference in a case by its view name. If view name is
+# "case-form", then return knockVM for case.
+this.findCaseOrReferenceVM = (view) ->
   kase = global.viewsWare["case-form"].knockVM
-  return _.find(kase.servicesReference(),
-                (svc) -> svc.view is view)
+  if (view is "case-form")
+    kase
+  else
+    _.find kase.servicesReference(), (svc) -> svc.view is view
 
 # get partners and show them in table
 # this is called from local.coffe:showCase
@@ -200,10 +203,7 @@ this.initPartnerTables = ($view,parentView) ->
   m = $view[0].id.match(/(\w*)_partner-view/)
   partnerType = m[1]
   table = $view.find("table##{partnerType}_partnerTable")
-  kase = global.viewsWare["case-form"].knockVM
-  svc = _.find(
-          kase.servicesReference(),
-          (svc) -> svc.view is parentView)
+  svc = findCaseOrReferenceVM(parentView)
 
   unless table.hasClass("dataTable")
     mkDataTable(table)
