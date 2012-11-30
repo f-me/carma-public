@@ -108,10 +108,38 @@
         },
         {
             "targets": [
+                "towAddress_address"
+            ],
+            "meta": {
+                "targetMap": "towAddress_map",
+                "targetCoords": "towAddress_coords"
+            }
+        },
+        {
+            "targets": [
+                "towAddress_coords"
+            ],
+            "meta": {
+                "targetMap": "towAddress_map",
+                "targetAddr": "towAddress_address"
+            }
+        },
+        {
+            "targets": [
+                "towAddress_map"
+            ],
+            "meta": {
+                "targetAddr": "towAddress_address",
+                "targetCoords": "towAddress_coords"
+            }
+        },
+        {
+            "targets": [
                 "towAddress_address",
                 "towAddress_coords",
                 "towAddress_city",
-                "towAddress_comment"
+                "towAddress_comment",
+                "towAddress_map"
             ],
             "canRead": [
                 "partner",
@@ -278,10 +306,38 @@
         },
         {
             "targets": [
+                "towerAddress_address"
+            ],
+            "meta": {
+                "targetMap": "towerAddress_map",
+                "targetCoords": "towerAddress_coords"
+            }
+        },
+        {
+            "targets": [
+                "towerAddress_coords"
+            ],
+            "meta": {
+                "targetMap": "towerAddress_map",
+                "targetAddr": "towerAddress_address"
+            }
+        },
+        {
+            "targets": [
+                "towerAddress_map"
+            ],
+            "meta": {
+                "targetAddr": "towerAddress_address",
+                "targetCoords": "towerAddress_coords"
+            }
+        },
+        {
+            "targets": [
                 "towerAddress_address",
                 "towerAddress_coords",
                 "towerAddress_city",
-                "towerAddress_comment"
+                "towerAddress_comment",
+                "towerAddress_map"
             ],
             "canRead": [
                 "partner",
