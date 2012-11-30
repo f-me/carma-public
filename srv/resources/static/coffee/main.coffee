@@ -39,18 +39,27 @@ this.mainSetup = (localScreens, localRouter, localDictionaries, hooks, user, mod
       user: user
       models: models
       activeScreen: null
-      # viewWare is for bookkeeping of views in current screen.
+      # viewsWare is for bookkeeping of views in current screen.
       #
       # Hash keys are DOM tree element IDs associated with the
       # model (view names). Values are hashes which contain the
       # following keys:
       #
       # - model (model definition);
+      # 
       # - modelName;
+      # 
       # - mkBackboneModel (Backbone constructor);
+      # 
       # - bbInstance (Backbone model);
+      # 
       # - knockVM (Knockout ViewModel bound to view);
+      # 
       # - depViews (hash with views for every reference/group field).
+      # 
+      # - parentView (name of view for which this view is listed as
+      #   dependant (only for group fields; group fields have none of
+      #   other values in their viewsWare entry))
       #
       # When screen is loaded, viewsWare should generally contain
       # only keys which correspond to that screen views. View
@@ -222,8 +231,10 @@ this.buildNewModel = (modelName, args, options, cb) ->
     success: (model, resp) ->
       cb(mkBackboneModel, model, knockVM)
 
-bindDepViews = (knockVM, depViews) ->
+bindDepViews = (knockVM, parentView, depViews) ->
   for k, v of depViews
+    global.viewsWare[v] =
+      parentView: parentView
     if _.isArray(v)
       ko.applyBindings(knockVM, el(s)) for s in v
     else
@@ -237,7 +248,7 @@ setupView = (elName, knockVM,  options) ->
   ko.applyBindings(knockVM, el(elName)) if el(elName)
   # Bind group subforms (note that refs are bound
   # separately)
-  bindDepViews(knockVM, depViews)
+  bindDepViews(knockVM, elName, depViews)
   # Bind extra views if provided
   ko.applyBindings knockVM, el(v) for k, v of options.slotsee when el(v)
 

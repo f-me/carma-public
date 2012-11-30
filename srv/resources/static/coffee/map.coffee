@@ -367,18 +367,15 @@ this.lonlatFromShortString = (coords) ->
 #                 stored in the referenced field.
 #
 # - cityField: used with field value for geocoder query
-#
-# TODO: Currently geoPicker fills fields of the `case` model. View for
-# this model is hardcoded.
-#
 # Arguments are picker field name and picker element.
 this.geoPicker = (fieldName, el) ->
   addr = $(el).parents('.input-append')
               .children("input[name=#{fieldName}]")
               .val()
 
+  viewName = elementView($(el)).id
   view = $(elementView($(el)))
-  modelName = elementModel($(el))
+  modelName = elementModel $(el)
 
   coord_field = modelField(modelName, fieldName).meta['targetCoords']
   map_field = modelField(modelName, fieldName).meta['targetMap']
@@ -386,14 +383,14 @@ this.geoPicker = (fieldName, el) ->
 
   # TODO Drop hardcoded name of the «real» parent view (case-form)
   if city_field?
-    addr = addr + ", " + global.viewsWare['case-form'].knockVM[city_field]()
+    addr = addr + ", " + findVM(viewName)[city_field]()
 
   $.getJSON(nominatimQuery(addr), (res) ->
     if res.length > 0
       lonlat = new OpenLayers.LonLat(res[0].lon, res[0].lat)
 
       if coord_field?
-        global.viewsWare['case-form'].knockVM[coord_field](lonlat.toShortString())
+        findVM(viewName)[coord_field](lonlat.toShortString())
 
       if map_field?
         osmap = view.find("[name=#{map_field}]").data("osmap")
@@ -416,6 +413,7 @@ this.reverseGeoPicker = (fieldName, el) ->
       $(el).parents('.input-append')
            .children("input[name=#{fieldName}]")
            .val())
+  viewName = elementView($(el)).id
   view = $(elementView($(el)))
   modelName = elementModel($(el))
 
@@ -433,6 +431,5 @@ this.reverseGeoPicker = (fieldName, el) ->
     $.getJSON(nominatimRevQuery + "lon=#{coords.lon}&lat=#{coords.lat}",
       (res) ->
         addr = buildReverseAddress(res)
-
-        global.viewsWare['case-form'].knockVM[addr_field](addr)
+        findVM(viewName)[addr_field](addr)
     )
