@@ -202,7 +202,6 @@ this.initOSM = (el, parentView) ->
         partnerBlips(
           osmap, pres, table.data("cache"),
           parentView,
-          more_coords,
           # Fetch current values of fields listed in highlightIdFields
           _.map(hl_fields,
             (f) -> findVM(parentView)[f]()),
@@ -238,8 +237,6 @@ this.extraBlip = (osmap, coords, layerName) ->
     osmap.addLayer(layer)
 
   ico = new OpenLayers.Icon(carIcon, iconSize)
-  console.log "Putting new coords"
-  console.log coords
   layer.addMarker(
     new OpenLayers.Marker(coords, ico))
 
@@ -250,8 +247,6 @@ this.extraBlip = (osmap, coords, layerName) ->
 #
 # - osmap: map to render on
 #
-# - moreCoords: a list of [lon, lat] doubles to draw as a extra map blips
-# 
 # - partners: a list of [id, lon, lat] triples
 #
 # - tableCache: a hash of all partners, where key is id and value is
@@ -268,7 +263,6 @@ this.extraBlip = (osmap, coords, layerName) ->
 # - partnerAddrField: same as partnerField, but for partner address
 # - partnerCoordsField: ... but for partner coordinates
 this.partnerBlips = (osmap,
-                     moreCoords,
                      partners, tableCache,
                      parentView,
                      highlightIds,
