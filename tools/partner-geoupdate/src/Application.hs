@@ -133,6 +133,22 @@ getMessageQuery = "SELECT message FROM partnerMessageTbl where partnerId=? order
 
 
 ------------------------------------------------------------------------------
+-- | Attempt to perform reverse geocoding.
+revGeocode :: Double 
+           -- ^ Longitude.
+           -> Double 
+           -- ^ Latitude.
+           -> Handler b GeoApp (Maybe Address)
+revGeocode lon lat = do
+  nomU <- nominatimRevURI lon lat
+  (addr :: Maybe Address) <- liftIO $ do
+     resp <- H.simpleHTTP (H.getRequest nomU)
+     body <- H.getResponseBody resp
+     return $ decode' $ BSL.pack body
+  return addr
+
+
+------------------------------------------------------------------------------
 -- | Update partner position, setting new address if possible.
 updatePosition :: Handler b GeoApp ()
 updatePosition = do
@@ -141,17 +157,12 @@ updatePosition = do
   (pid' :: Maybe Int) <- getParamWith decimal "pid"
   case (lon', lat', pid') of
     (Just lon, Just lat, Just pid) -> do
-        nomU <- nominatimRevURI lon lat
-        -- Reverse geocode street address from coordinates.
-        (addr :: Maybe Address) <- liftIO $ do
-          resp <- H.simpleHTTP (H.getRequest nomU)
-          body <- H.getResponseBody resp
-          return $ decode' $ BSL.pack body
-        updatePartnerData pid lon lat addr
+       addr <- revGeocode lon lat
+       updatePartnerData pid lon lat addr
     _ -> error "Bad request"
 
 
-
+------------------------------------------------------------------------------
 -- | Send HTTP PUT request to CaRMa API to update partner data.
 updatePartnerData :: Int
                   -- ^ Partner id.
