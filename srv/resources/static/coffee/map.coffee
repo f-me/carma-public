@@ -40,6 +40,14 @@ this.partnerIcon = "/s/img/partner-icon.png"
 this.dealerIcon = "/s/img/dealer-icon.png"
 
 
+iconFromType =
+  default: carIcon
+  car: carIcon
+  tow: towIcon
+  partner: partnerIcon
+  dealer: dealerIcon
+
+
 # Given regular icon name, return name of highlighted icon
 #
 # Filenames must follow the convention that original icons are named
@@ -85,8 +93,8 @@ this.reinstallMarkers = (osmap, layerName) ->
 #               `view_name/field_name`, then the field `field_name` in
 #               `view_name` view will be used instead of parent view.
 #
-# - targetCoords: read initial position & blip from this field of
-#                 model; write geocoding results here (only if it's
+# - targetCoords: read initial position & current blip from this field
+#                 of model; write geocoding results here (only if it's
 #                 enabled with `targetAddr` meta!). Metas of form
 #                 `case-form/field` are treated as in `targetAddr`.
 #
@@ -110,7 +118,11 @@ this.reinstallMarkers = (osmap, layerName) ->
 # - highlightIdFields: a list of fields of the same model which
 #                      contain ids of partners which are to be
 #                      highlighted on the map
-# 
+#
+# - currentBlipType: one of types listed in the iconFromType map, used
+#                    to set the name icon used fo the «current blip».
+#                    Current blip is enabled only when geocoding is
+#                    active (see targetAddr).
 this.initOSM = (el, parentView) ->
   return if $(el).hasClass("olMap")
 
@@ -129,6 +141,7 @@ this.initOSM = (el, parentView) ->
 
   coord_field = modelField(modelName, fieldName).meta["targetCoords"]
   addr_field = modelField(modelName, fieldName).meta["targetAddr"]
+  current_blip_type = modelField(modelName, fieldName).meta["currentBlipType"] or "default"
 
   ## Bind the map to geocode address & coordinates
 
@@ -140,7 +153,7 @@ this.initOSM = (el, parentView) ->
     if coords?
       coords = lonlatFromShortString(coords)
       osmap.setCenter coords.transform(wsgProj, osmProj), zoomLevel
-      currentBlip osmap, coords
+      currentBlip osmap, coords, current_blip_type
 
   # Setup handler to update address and coordinates if the map is
   # clickable
@@ -162,7 +175,7 @@ this.initOSM = (el, parentView) ->
 
         findVM(addr_meta.view)[addr_meta.field](addr)
 
-        currentBlip osmap, osmap.getLonLatFromViewPortPx(e.xy)
+        currentBlip osmap, osmap.getLonLatFromViewPortPx(e.xy), current_blip_type
       )
     )
 
@@ -219,15 +232,17 @@ this.initOSM = (el, parentView) ->
 
 
 # Move the current position blip on a map.
-this.currentBlip = (osmap, coords) ->
-  ico = new OpenLayers.Icon(carIcon, iconSize)
+#
+# - type: one of types in iconFromType
+this.currentBlip = (osmap, coords, type) ->
+  ico = new OpenLayers.Icon(iconFromType[type], iconSize)
   markers = reinstallMarkers(osmap, "CURRENT")
   markers.addMarker(
     new OpenLayers.Marker(coords, ico))
 
 
 # Place the blip on a (possibly existing) layer of a map, preserving
-# the existing blips.
+# the existing blips. Extra blips use the "default" icon.
 this.extraBlip = (osmap, coords, layerName) ->
   layers = osmap.getLayersByName(layerName)
   if (!_.isEmpty(layers))
@@ -236,7 +251,7 @@ this.extraBlip = (osmap, coords, layerName) ->
     layer = new OpenLayers.Layer.Markers(layerName)
     osmap.addLayer(layer)
 
-  ico = new OpenLayers.Icon(carIcon, iconSize)
+  ico = new OpenLayers.Icon(iconFromType.default, iconSize)
   layer.addMarker(
     new OpenLayers.Marker(coords, ico))
 
