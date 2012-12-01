@@ -131,7 +131,8 @@
             ],
             "meta": {
                 "targetAddr": "towAddress_address",
-                "targetCoords": "towAddress_coords"
+                "targetCoords": "towAddress_coords",
+                "moreCoords": ["case-form/caseAddress_coords"]
             }
         },
         {
@@ -330,7 +331,8 @@
             ],
             "meta": {
                 "targetAddr": "towerAddress_address",
-                "targetCoords": "towerAddress_coords"
+                "targetCoords": "towerAddress_coords",
+                "moreCoords": ["case-form/caseAddress_coords"]
             }
         },
         {

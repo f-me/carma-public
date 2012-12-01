@@ -90,6 +90,12 @@ this.reinstallMarkers = (osmap, layerName) ->
 #                 enabled with `targetAddr` meta!). Metas of form
 #                 `case-form/field` are treated as in `targetAddr`.
 #
+# - moreCoords: this meta is a list of field names (possibly prefixed
+#               with view names as in `targetAddr`), where every field
+#               stores coordinates. Static blips for every field will
+#               be placed on the map. Blips are not updated as
+#               coordinates in the referenced fields change.
+#
 # - targetPartner: if set, map will show partner blips from table set
 #                  in `partnerTable` annotation on the same model. The
 #                  table must be present in the same view. Clicking a
@@ -130,11 +136,11 @@ this.initOSM = (el, parentView) ->
   if coord_field?
     coord_meta = splitFieldInView(coord_field, parentView)
 
-    coords = findCaseOrReferenceVM(coord_meta.view)[coord_meta.field]()
+    coords = findVM(coord_meta.view)[coord_meta.field]()
     if coords?
       coords = lonlatFromShortString(coords)
-      osmap.setCenter(coords.transform(wsgProj, osmProj), zoomLevel)
-      carBlip(osmap, coords)
+      osmap.setCenter coords.transform(wsgProj, osmProj), zoomLevel
+      currentBlip osmap, coords
 
   # Setup handler to update address and coordinates if the map is
   # clickable
@@ -148,17 +154,26 @@ this.initOSM = (el, parentView) ->
       if coord_field?
         # coord_view_name and coord_field are already known as per
         # coord_field? branch in geocoding setup
-        findCaseOrReferenceVM(coord_meta.view)[coord_meta.field](coords.toShortString())
+        findVM(coord_meta.view)[coord_meta.field](coords.toShortString())
 
       $.getJSON(nominatimRevQuery(coords.lon, coords.lat),
       (res) ->
         addr = buildReverseAddress(res)
 
-        findCaseOrReferenceVM(addr_meta.view)[addr_meta.field](addr)
+        findVM(addr_meta.view)[addr_meta.field](addr)
 
-        carBlip(osmap, osmap.getLonLatFromViewPortPx(e.xy))
+        currentBlip osmap, osmap.getLonLatFromViewPortPx(e.xy)
       )
     )
+
+  ## Read coordinates of static coordinate blips and place them on the map
+  more_coord_field = modelField(modelName, fieldName).meta["moreCoords"]
+  if more_coord_field?
+    more_coord_metas = _.map more_coord_field, splitFieldInView
+    more_coords = _.map more_coord_metas, (fm) -> findVM(fm.view)[fm.field]()
+    for c in more_coords
+      extraBlip osmap, (lonlatFromShortString c), "Extras"
+
 
   ## Bind map to partner list
 
@@ -187,9 +202,10 @@ this.initOSM = (el, parentView) ->
         partnerBlips(
           osmap, pres, table.data("cache"),
           parentView,
+          more_coords,
           # Fetch current values of fields listed in highlightIdFields
           _.map(hl_fields,
-            (f) -> findCaseOrReferenceVM(parentView)[f]()),
+            (f) -> findVM(parentView)[f]()),
           partner_id_field, partner_field, partner_addr_field, partner_coords_field)
       )
     )
@@ -203,11 +219,28 @@ this.initOSM = (el, parentView) ->
   $(el).data("osmap", osmap)
 
 
-# Move the car crash blip on the map
-this.carBlip = (osmap, coords) ->
+# Move the current position blip on a map.
+this.currentBlip = (osmap, coords) ->
   ico = new OpenLayers.Icon(carIcon, iconSize)
-  markers = reinstallMarkers(osmap, "Car")
+  markers = reinstallMarkers(osmap, "CURRENT")
   markers.addMarker(
+    new OpenLayers.Marker(coords, ico))
+
+
+# Place the blip on a (possibly existing) layer of a map, preserving
+# the existing blips.
+this.extraBlip = (osmap, coords, layerName) ->
+  layers = osmap.getLayersByName(layerName)
+  if (!_.isEmpty(layers))
+    layer = layers[0]
+  else
+    layer = new OpenLayers.Layer.Markers(layerName)
+    osmap.addLayer(layer)
+
+  ico = new OpenLayers.Icon(carIcon, iconSize)
+  console.log "Putting new coords"
+  console.log coords
+  layer.addMarker(
     new OpenLayers.Marker(coords, ico))
 
 
@@ -217,6 +250,8 @@ this.carBlip = (osmap, coords) ->
 #
 # - osmap: map to render on
 #
+# - moreCoords: a list of [lon, lat] doubles to draw as a extra map blips
+# 
 # - partners: a list of [id, lon, lat] triples
 #
 # - tableCache: a hash of all partners, where key is id and value is
@@ -232,7 +267,9 @@ this.carBlip = (osmap, coords) ->
 #
 # - partnerAddrField: same as partnerField, but for partner address
 # - partnerCoordsField: ... but for partner coordinates
-this.partnerBlips = (osmap, partners, tableCache,
+this.partnerBlips = (osmap,
+                     moreCoords,
+                     partners, tableCache,
                      parentView,
                      highlightIds,
                      partnerIdField, partnerField,
@@ -306,7 +343,7 @@ this.pickPartnerBlip = (
    partnerIdField, partnerField, partnerAddrField, partnerCoordsField) ->
     
   $("#" + mapId).data("osmap").events.triggerEvent("moveend")
-  vm = findCaseOrReferenceVM(referenceView)
+  vm = findVM(referenceView)
   vm[partnerIdField](partnerId)
   vm[partnerField](partnerName)
   vm[partnerAddrField](partnerAddr)
@@ -367,7 +404,7 @@ this.geoPicker = (fieldName, el) ->
         osmap.setCenter(
               lonlat.transform(wsgProj, osmProj),
               zoomLevel)
-        carBlip(osmap, osmap.getCenter()))
+        currentBlip(osmap, osmap.getCenter()))
 
 
 # Reverse geocoding picker (coordinates -> address)
@@ -395,7 +432,7 @@ this.reverseGeoPicker = (fieldName, el) ->
   if map_field?
     osmap = view.find("[name=#{map_field}]").data("osmap")
     osmap.setCenter(osmCoords, zoomLevel)
-    carBlip(osmap, osmap.getCenter())
+    currentBlip(osmap, osmap.getCenter())
 
   if addr_field?
     $.getJSON(nominatimRevQuery + "lon=#{coords.lon}&lat=#{coords.lat}",
