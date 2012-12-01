@@ -230,7 +230,6 @@ newCase = do
                \key -> do
                  v' <- getParam key
                  return $ ((.=) $ decodeUtf8 key) <$> v'
-  liftIO $ print $ catMaybes rawPairs
 
   lon' <- getParamWith double "lon"
   lat' <- getParamWith double "lat"
