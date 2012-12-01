@@ -26,11 +26,13 @@ import Data.Attoparsec.ByteString.Char8
 import Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as BSL
+import qualified Data.Text as T (pack)
 import Data.Text.Encoding (decodeUtf8)
 
 import Data.Configurator
 
 import Data.Lens.Template
+import Data.Maybe
 
 import qualified Database.Redis as R
 
@@ -62,6 +64,7 @@ instance HasPostgres (Handler b GeoApp) where
 routes :: [(ByteString, Handler b GeoApp ())]
 routes = [ ("/geo/partner/:pid", method PUT $ updatePosition)
          , ("/geo/partner/:pid", method GET $ getMessage)
+         , ("/geo/case/", method POST $ newCase)
          ]
 
 
@@ -118,6 +121,8 @@ instance FromJSON Address where
                        Nothing -> road
     parseJSON _ = fail "Bad Nominatim response"
 
+instance ToJSON Address where
+    toJSON (Address s) = String $ decodeUtf8 s
 
 ------------------------------------------------------------------------------
 -- | Derived from 'postRequestWithBody' from HTTP package.
@@ -194,6 +199,58 @@ getMessage = do
   case res of
     (Only msg):_ -> writeLBS msg
     _ -> writeLBS "{}"
+
+
+------------------------------------------------------------------------------
+-- | POST parameters expected in a new case request.
+caseParams :: [ByteString]
+caseParams = [ "contact_name"
+             , "contact_phone1"
+             , "car_vin"
+             , "car_make"
+             , "car_model"
+             , "car_plateNum"
+             , "car_color"
+             , "car_buyDate"
+             ]
+
+caseCoords = "caseAddress_coords"
+
+caseAddress = "caseAddress_address"
+
+
+------------------------------------------------------------------------------
+-- | Create new case from POST parameters listed in 'caseParams'.
+-- Reverse geocode coordinates from @lon@ and @lat@ parameters,
+-- writing the result to field 'caseAddress' of the new case.
+newCase :: Handler b GeoApp ()
+newCase = do
+  -- New case parameters
+  rawPairs <- forM caseParams $ 
+               \key -> do
+                 v' <- getParam key
+                 return $ ((.=) $ decodeUtf8 key) <$> v'
+  liftIO $ print $ catMaybes rawPairs
+
+  lon' <- getParamWith double "lon"
+  lat' <- getParamWith double "lat"
+
+  -- Reverse geocode coordinates from lon/lat
+  (addrPair, coordPair) <- case (lon', lat') of
+    (Just lon, Just lat) -> do
+            addr' <- revGeocode lon lat
+            let ap = ((.=) $ decodeUtf8 caseAddress) <$> addr'
+                cp = Just $ (decodeUtf8 caseCoords) .= 
+                     (T.pack $ concat [show lon, ",", show lat])
+            return (ap, cp)
+    _ -> return (Nothing, Nothing)
+         
+  -- Form the body of the request to send to CaRMa
+  let finalPairs = rawPairs ++ [addrPair, coordPair]
+      caseBody = encode $ object $ catMaybes finalPairs
+
+  modifyResponse $ setContentType "application/json"
+  writeLBS $ caseBody
 
 
 geoAppInit :: SnapletInit b GeoApp
