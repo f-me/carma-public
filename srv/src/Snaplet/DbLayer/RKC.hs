@@ -100,8 +100,7 @@ orderBy tbl col = preQuery_ [] [tbl] [] [] [T.concat [tbl, ".", col]]
 -- | Done services
 doneServices :: PreQuery
 doneServices = inList "servicetbl" "status" [
-  "mistake",
-  "falseCall",
+  "serviceInProgress",
   "serviceOk",
   "serviceClosed"]
 
