@@ -815,6 +815,16 @@
           </div>
         </div>
       </div>
+      <div class="row-fluid">
+        <table id="rkc-each-action-op-avg-table" class="table table-stripped table-bordered">
+          <thead>
+            <tr data-bind="foreach: cols">
+              <th data-bind="text: name"></th>
+            </tr>
+          </thead>
+          <tbody />
+        </table>
+      </div>
     </script>
 
     <!--

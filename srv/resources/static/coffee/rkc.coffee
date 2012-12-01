@@ -3,15 +3,26 @@ this.setupRKCScreen = (viewName, args) ->
     caset = $("#rkc-services-table")
     frontt = $('#rkc-operators-table')
     backt = $("#rkc-back-office-table")
+    eachao = $('#rkc-each-action-op-avg-table')
 
     return if caset.hasClass("dataTable")
     return if frontt.hasClass('dataTable')
     return if backt.hasClass("dataTable")
+    return if eachao.hasClass("dataTable")
 
-    ct = mkDataTable caset, { bFilter : false, bInfo : false }
-    ft = mkDataTable frontt, { bFilter : false, bInfo : false }
-    bt = mkDataTable backt, { bFilter : false, bInfo : false }
+    actstbl = {}
+    actstbl.cols = for v in global.dictionaries.ActionNames.entries
+        c =
+            name: v.label
 
+    actstbl.cols.unshift { name: "Оператор" }
+
+    ko.applyBindings(actstbl, el("rkc-each-action-op-avg-table"))
+
+    ct = mkDataTable caset, { bFilter: false, bInfo: false }
+    ft = mkDataTable frontt, { bFilter: false, bInfo: false }
+    bt = mkDataTable backt, { bFilter: false, bInfo: false }
+    eat = mkDataTable eachao, { bFilter: false, bInfo: false }
 
     totalServices = $('#total-services')
     averageStart = $('#average-towage-tech-start')
@@ -64,6 +75,7 @@ this.setupRKCScreen = (viewName, args) ->
         ct.fnClearTable()
         ft.fnClearTable()
         bt.fnClearTable()
+        eat.fnClearTable()
 
         totalServices.val(result.case.summary.total)
         averageStart.val(Math.round(result.case.summary.delay / 60) + "m")
@@ -103,7 +115,26 @@ this.setupRKCScreen = (viewName, args) ->
             binfo.undone,
             Math.floor(binfo.average / 60) + ":" + (binfo.average % 60)]
 
-        bt.fnAddData(brows))
+        bt.fnAddData(brows)
+
+        eavision = []
+        eavision.length = actstbl.cols.length
+        eavision[0] = true
+
+        earows = for eainfo in result.eachopactions
+            r = for val, i in eainfo.avgs
+                if val
+                    eavision[i + 1] = true
+                if val then Math.floor(val / 60) + ":" + (val % 60) else "-"
+            r.unshift eainfo.name
+            earow = r
+            # eainfo.avgs.unshift eainfo.name
+            # earow = eainfo.avgs
+
+        for c, i in eavision
+            eat.fnSetColumnVis(i, if c then true else false)
+
+        eat.fnAddData(earows))
 
     global.rkcData = {}
 
