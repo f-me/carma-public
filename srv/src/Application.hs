@@ -35,7 +35,6 @@ data App = App
     , _auth       :: Snaplet (AuthManager App)
     , loggedUsers :: TVar (Map Text (UTCTime, AuthUser))
     , allUsers    :: UsersDict
-    , actionsLock :: TMVar ()
     , _siteConfig :: Snaplet (SiteConfig App)
     , _db         :: Snaplet (DbLayer App)
     , pg_search   :: Pool Pg.Connection

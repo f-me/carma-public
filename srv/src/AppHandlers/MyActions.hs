@@ -1,34 +1,27 @@
 
-module AppHandlers.MyActions
-  (myActionsHandler
-  ) where
+module AppHandlers.MyActions where
 
 import Control.Monad
 import Data.Functor
 import Data.String (fromString)
 
-import Data.Maybe
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as B
 import qualified Data.Text.Encoding as T
 import Data.Aeson as Aeson
 
-import Control.Concurrent.STM
-import Data.Time
 
 import Snap
 import Snap.Snaplet
 import Snap.Snaplet.Auth
+import qualified Snaplet.DbLayer as DB
 import Database.PostgreSQL.Simple
 ----------------------------------------------------------------------
 import Application
 import AppHandlers.Util
-import qualified Snaplet.DbLayer as DB
-import CustomLogic.ActionAssignment
 
 
+{-
 selectActions :: AppHandler [Map ByteString ByteString]
 selectActions = do
   rows <- withPG pg_search $ \c -> query_ c $ fromString $
@@ -40,29 +33,37 @@ selectActions = do
     ++ "and closed = false"
   let fields = ["id", "assignedTo", "duetime", "priority", "targetGroup"]
   return $ map (Map.fromList . zip fields . map (fromMaybe "")) rows
+-}
+
+allActionsHandler :: AppHandler ()
+allActionsHandler = undefined
+
+
+assignMeAnAction :: AppHandler ()
+assignMeAnAction = do
+  Just cUsr <- with auth currentUser
+  let uLogin = T.unpack $ userLogin cUsr
+  let uRole  = T.unpack . head $ userRoles cUsr
+  logdUsers' <- addToLoggedUsers cUsr
+  let logdUsersList = T.intercalate "','" $ map snd $ Map.elems logdUsers
+
+  actIds <- withPG pg_search $ \c -> query_ c $ fromString
+    $  "UPDATE actiontbl SET assignedTo = '" ++ uLogin ++ "'"
+    ++ "  WHERE id = (SELECT id FROM actiontbl"
+    ++ "    WHERE closed = false"
+    ++ "    AND   duetime - now() < interval '30 minutes'"
+    ++ "    AND   targetGroup = '" ++ uRole ++ "'"
+    ++ "    AND   (assignedTo IS NULL"
+    ++ "           OR assignedTo NOT IN ('" ++ logdUsersList ++ "'))"
+    ++ "    ORDER BY abs (extract (epoch from duetime - now())::integer) ASC,"
+    ++ "             priority ASC"
+    ++ "    LIMIT 1)"
+    ++ "  RETURNING id;"
+
+  with db $ forM_ actIds $ \actId->
+      DB.update "action" actId
+        $ Map.singleton "assignedTo" $ T.encodeUtf8 uLogin
 
 
 myActionsHandler :: AppHandler ()
-myActionsHandler = do
-  Just cUsr <- with auth currentUser
-  let uLogin = userLogin cUsr
-  logdUsers <- addToLoggedUsers cUsr
-
-  actLock <- gets actionsLock
-  do -- bracket_
-    (liftIO $ atomically $ takeTMVar actLock)
-    actions <- selectActions
-    now <- liftIO getCurrentTime
-    let (newActions,oldActions) = assignActions now actions (Map.map snd logdUsers)
-    let myNewActions = take 5 $ Map.findWithDefault [] uLogin newActions
-    with db $ forM_ myNewActions $ \act ->
-      case Map.lookup "id" act of
-        Nothing -> return ()
-        Just actId -> void $ DB.update "action"
-          (last $ B.split ':' actId)
-          $ Map.singleton "assignedTo" $ T.encodeUtf8 uLogin
-    let myOldActions = Map.findWithDefault [] uLogin oldActions
-    (liftIO $ atomically $ putTMVar actLock ())
-    let myActions = map (Map.! "id") $ myNewActions ++ myOldActions
-    (with db $ mapM (DB.read "action") myActions) >>= writeJSON
-
+myActionsHandler = undefined
