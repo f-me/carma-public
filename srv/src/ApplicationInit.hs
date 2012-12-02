@@ -32,7 +32,6 @@ import Snaplet.Geo
 ------------------------------------------------------------------------------
 import Application
 import ApplicationHandlers
-import AppHandlers.MyActions
 ----------------------------------------------------------------------
 import Util (readJSON, UsersDict(..))
 
@@ -109,8 +108,6 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   logdUsrs <- liftIO $ newTVarIO Map.empty
   !allUsrs <- liftIO $ getUsrs authDb
 
-  actLock  <- liftIO $ newTMVarIO ()
-
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
 
   d <- nestSnaplet "db" db $ initDbLayer allUsrs "resources/site-config"
@@ -134,7 +131,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        [logger text (file "log/frontend.log")]
 
   addRoutes routes
-  return $ App h s authMgr logdUsrs allUsrs actLock c d pgs v fu g l
+  return $ App h s authMgr logdUsrs allUsrs c d pgs v fu g l
 
 getUsrs authDb = do
   readJSON authDb :: IO UsersDict

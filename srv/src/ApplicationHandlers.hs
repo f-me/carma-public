@@ -46,7 +46,6 @@ import Snaplet.FileUpload (doUpload', doDeleteAll')
 import qualified Nominatim
 -----------------------------------------------------------------------------
 import Application
-import AppHandlers.MyActions
 import AppHandlers.Util
 import Util
 
