@@ -112,8 +112,7 @@
             ],
             "meta": {
                 "targetMap": "towAddress_map",
-                "targetCoords": "towAddress_coords",
-                "cityField": "case-form/cityLocal"
+                "targetCoords": "towAddress_coords"
             }
         },
         {
@@ -313,8 +312,7 @@
             ],
             "meta": {
                 "targetMap": "towerAddress_map",
-                "targetCoords": "towerAddress_coords",
-                "cityField": "case-form/cityLocal"
+                "targetCoords": "towerAddress_coords"
             }
         },
         {

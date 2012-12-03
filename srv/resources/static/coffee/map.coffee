@@ -378,10 +378,7 @@ this.lonlatFromShortString = (coords) ->
 #                 also used by the map to set the initial position
 #                 (see initOSM docs).
 #
-# - cityField: name of field that contains city, which is used with
-#              field value for geocoder query. This meta may be in
-#              form of "case-form/city" to reference fields present in
-#              views other than that of the picker.
+# - cityField: name of field that contains city; currently unused.
 # 
 # Arguments are picker field name and picker element.
 this.geoPicker = (fieldName, el) ->
@@ -395,11 +392,6 @@ this.geoPicker = (fieldName, el) ->
 
   coord_field = modelField(modelName, fieldName).meta['targetCoords']
   map_field = modelField(modelName, fieldName).meta['targetMap']
-  city_field = modelField(modelName, fieldName).meta['cityField']
-
-  if city_field?
-    city_meta = splitFieldInView(city_field, viewName)
-    addr = addr + ", " + findVM(city_meta.view)[city_meta.field]()
 
   $.getJSON(nominatimQuery(addr), (res) ->
     if res.length > 0
