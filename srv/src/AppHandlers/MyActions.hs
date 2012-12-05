@@ -92,7 +92,7 @@ myActionsHandler = do
   Just cUsr <- with auth currentUser
   logdUsers <- map (userLogin.snd) . Map.elems <$> addToLoggedUsers cUsr
 
-  actIds <- withPG pg_search (`query_` assignQ cUsr logdUsers)
+  actIds <- withPG pg_actass (`query_` assignQ cUsr logdUsers)
 
   let uLogin = T.encodeUtf8 $ userLogin cUsr
   with db $ forM_ actIds $ \[actId] ->
