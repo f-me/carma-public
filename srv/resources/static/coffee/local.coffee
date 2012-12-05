@@ -67,6 +67,7 @@ localScreens = ->
     "views":
       "print-table":
         constructor: setupPrintAction
+        destructor: destroyPrintAction
 
 # Setup routing
 localRouter = Backbone.Router.extend
