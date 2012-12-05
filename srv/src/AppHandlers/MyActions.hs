@@ -13,7 +13,6 @@ import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 
-
 import Snap
 import Snap.Snaplet.Auth
 import qualified Snaplet.DbLayer as DB
