@@ -124,6 +124,10 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
             <*> lookupCfg "pg_db_name"
   -- FIXME: force cInfo evaluation
   pgs <- liftIO $ createPool (Pg.connect cInfo) Pg.close 1 5 20
+  cInfo <- liftIO $ (\u p -> cInfo {connectUser = u, connectPassword = p})
+            <$> lookupCfg "pg_actass_user"
+            <*> lookupCfg "pg_actass_pass"
+  pga <- liftIO $ createPool (Pg.connect cInfo) Pg.close 1 5 20
 
   v <- nestSnaplet "vin" vin vinInit
   fu <- nestSnaplet "upload" fileUpload fileUploadInit
@@ -133,7 +137,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        [logger text (file "log/frontend.log")]
 
   addRoutes routes
-  return $ App h s authMgr logdUsrs allUsrs c d pgs v fu g l
+  return $ App h s authMgr logdUsrs allUsrs c d pgs pga v fu g l
 
 getUsrs authDb = do
   readJSON authDb :: IO UsersDict

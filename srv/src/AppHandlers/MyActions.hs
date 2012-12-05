@@ -31,7 +31,7 @@ selectActions mClosed mAssignee mRole mFrom mTo = do
     $  "SELECT id::text, caseId, parentId,"
     ++ "       (closed::int)::text, name, assignedTo, targetGroup,"
     ++ "       (extract (epoch from duetime)::int)::text, "
-    ++ "       result, priority"
+    ++ "       result, priority, description, comment"
     ++ "  FROM actiontbl WHERE true"
     ++ (maybe "" (\x -> "  AND closed = " ++ toBool x) mClosed)
     ++ (maybe "" (\x -> "  AND assignedTo = " ++ quote x) mAssignee)
@@ -41,7 +41,7 @@ selectActions mClosed mAssignee mRole mFrom mTo = do
   let fields
         = ["id", "caseId", "parentId", "closed", "name"
           ,"assignedTo", "targetGroup", "duetime", "result"
-          ,"priority"]
+          ,"priority", "description", "comment"]
   return $ map (Map.fromList . zip fields . map (maybe "" id)) rows
 
 
@@ -92,7 +92,7 @@ myActionsHandler = do
   Just cUsr <- with auth currentUser
   logdUsers <- map (userLogin.snd) . Map.elems <$> addToLoggedUsers cUsr
 
-  actIds <- withPG pg_search (`query_` assignQ cUsr logdUsers)
+  actIds <- withPG pg_actass (`query_` assignQ cUsr logdUsers)
 
   let uLogin = T.encodeUtf8 $ userLogin cUsr
   with db $ forM_ actIds $ \[actId] ->
