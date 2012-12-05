@@ -32,6 +32,7 @@ import Snaplet.Geo
 ------------------------------------------------------------------------------
 import Application
 import ApplicationHandlers
+import AppHandlers.MyActions
 ----------------------------------------------------------------------
 import Util (readJSON, UsersDict(..))
 

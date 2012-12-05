@@ -23,7 +23,6 @@ Executable carma
     ApplicationInit,
     ApplicationHandlers,
     Nominatim,
-    CustomLogic.ActionAssignment,
     Snaplet.DbLayer,
     Snaplet.DbLayer.Indices,
     Snaplet.DbLayer.RedisCRUD,
