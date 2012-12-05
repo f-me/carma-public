@@ -12,11 +12,9 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
-import Data.Aeson as Aeson
 
 
 import Snap
-import Snap.Snaplet
 import Snap.Snaplet.Auth
 import qualified Snaplet.DbLayer as DB
 import Database.PostgreSQL.Simple
@@ -64,9 +62,9 @@ allActionsHandler
   = join (selectActions
     <$> getParam "closed"
     <*> pure Nothing
-    <*> getParam "role"
-    <*> getParam "duetime_from"
-    <*> getParam "duetime_to")
+    <*> getParam "targetGroup"
+    <*> getParam "duetimeFrom"
+    <*> getParam "duetimeTo")
   >>= writeJSON
 
 
@@ -82,7 +80,7 @@ assignQ usr logdUsers = fromString
   ++ "    ORDER BY abs (extract (epoch from duetime - now())::integer) ASC,"
   ++ "             priority ASC"
   ++ "    LIMIT 1)"
-  ++ "  RETURNING id;"
+  ++ "  RETURNING id::text;"
   where
     uLogin = T.unpack $ userLogin usr
     uRole  = head $ userRoles usr
