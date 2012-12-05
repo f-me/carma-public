@@ -63,7 +63,6 @@ drawTable = (dt, opt) ->
           g = global.dictValueCache['Roles']
 
           rows = for obj in objs
-            sid = obj.id.split(':')[1]
             svcName = obj.parentId.split(':')[0]
             svcName = global.models[svcName].title
             cid = obj.caseId.split(':')[1]
@@ -73,7 +72,7 @@ drawTable = (dt, opt) ->
                  'Открыто'
             duetime = new Date(obj.duetime * 1000)
               .toString("dd.MM.yyyy HH:mm:ss")
-            [ "#{cid}/#{sid} (#{svcName})"
+            [ "#{cid}/#{obj.id} (#{svcName})"
             , closed
             , n[obj.name] || ''
             , u[obj.assignedTo] || ''
