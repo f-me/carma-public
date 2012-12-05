@@ -11,7 +11,6 @@ import Data.Time
 import Control.Concurrent.STM
 
 import Snap
-import Snap.Snaplet
 import Snap.Snaplet.Auth
 
 import Application
