@@ -73,6 +73,7 @@
     <script src="/s/js/avaya.js" />
     <script src="/s/js/editSms.js" />
     <script src="/s/js/sendSms.js" />
+    <script src="/s/js/printAction.js" />
 
   </head>
   <body>
@@ -827,6 +828,112 @@
       </div>
     </script>
 
+    <!-- print action template screen template -->
+    <script type="text/template"
+            class="screen-template"
+            id="printAction-screen-template">
+      <div id="print-table">
+        <table class="table-condensed">
+          <tr>
+            <td> Клиент </td>
+            <td data-bind="text: kase.program"> </td>
+          </tr>
+          <tr>
+            <td> Номер происшествия </td>
+            <td data-bind="text: service.id"> </td>
+          </tr>
+          <tr>
+            <td> Дата и время звонка </td>
+            <td data-bind="text: kase.callDate"> </td>
+          </tr>
+          <tr>
+            <td> Дата и время создания услуги </td>
+            <td data-bind="text: service.createTime"> </td>
+          </tr>
+          <tr>
+            <td> Услуга </td>
+            <td data-bind="text: service.type"> </td>
+          </tr>
+          <tr>
+            <td> ФИО звонящего </td>
+            <td data-bind="text: kase.contact_name"> </td>
+          </tr>
+          <tr>
+            <td> Владелец </td>
+            <td data-bind="text: kase.contact_ownerName"> </td>
+          </tr>
+          <tr>
+            <td> Что случилось </td>
+            <td data-bind="text: kase.comment"> </td>
+          </tr>
+          <tr>
+            <td> Марка автомобиля </td>
+            <td data-bind="text: kase.car_make"> </td>
+          </tr>
+          <tr>
+            <td> Модель автомобиля </td>
+            <td data-bind="text: kase.car_model"> </td>
+          </tr>
+          <tr>
+            <td> Регистрационный номер автомобиля </td>
+            <td data-bind="text: kase.car_plateNum"> </td>
+          </tr>
+          <tr>
+            <td> VIN автомобиля  </td>
+            <td data-bind="text: kase.car_vin"> </td>
+          </tr>
+          <tr>
+            <td> VIN проверен </td>
+            <td data-bind="text: kase.vinChecked"> </td>
+          </tr>
+          <tr>
+            <td> Адрес места поломки </td>
+            <td data-bind="text: kase.kaseAddress_address" </td>
+          </tr>
+          <tr>
+            <td> Адрес, куда эвакуируют автомобиль </td>
+            <td data-bind="text: service.towAddress_address" </td>
+          </tr>
+          <tr>
+            <td> Фактическое время начала оказания услуги </td>
+            <td data-bind="text: service.times_factServiceStart"> </td>
+          </tr>
+          <tr>
+            <td> Фактическое время окончания оказания услуги </td>
+            <td data-bind="text: service.times_factServiceEnd"> </td>
+          </tr>
+          <tr>
+            <td> Название партнёра </td>
+            <td data-bind="text: service.contractor_partner">  </td>
+          </tr>
+          <tr>
+            <td> Стоимость услуги у партнёра </td>
+            <td data-bind="text: service.payment_partnerCost"> </td>
+          </tr>
+          <tr>
+            <td> Расшифровка стоимости </td>
+            <td data-bind="text: service.payment_costTranscript" </td>
+          </tr>
+          <tr>
+            <td> Комментарий </td>
+            <td data-bind="text: kase.betaComment" </td>
+          </tr>
+          <tr>
+            <td> Статус услуги </td>
+            <td data-bind="text: service.status"> </td>
+          </tr>
+          <tr>
+            <td> Сотрудник принявший звонок </td>
+            <td data-bind="text: kase.callTaker" </td>
+          </tr>
+          <tr>
+            <td> Сотрудник заказавший услугу </td>
+            <td data-bind="text: action.assignedTo"> </td>
+          </tr>
+        </table>
+      </div>
+    </script>
+
     <!--
          Form field templates.
 
@@ -1319,12 +1426,17 @@
             class="reference-template"
             id="actions-reference-template">
       <div class="accordion-group">
-        <div class="accordion-heading">
+        <div class="accordion-heading"
+             id="{{ refView }}-link">
           <a class="accordion-toggle"
-             id="{{ refView }}-link"
              data-bind="text: actionNameLocal"
              data-target="#{{ refView }}-head"
              data-toggle="collapse">Действие…</a>
+
+          <a data-bind="attr: { href: '#printAction/' + id() }"
+             targer="_blank">
+              [Печать]
+          </a>
         </div>
 
         <div id="{{ refView }}-head"
@@ -1332,7 +1444,6 @@
           <div class="accordion-inner {{ refClass }}" 
                id="{{ refView }}">
             <!-- Instance contents are rendered here -->
-
           </div>
         </div>
       </div>

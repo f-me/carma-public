@@ -373,6 +373,17 @@ smsProcessingHandler = scope "sms" $ do
   writeJSON $ object [
     "processing" .= res]
 
+printActionHandler :: AppHandler ()
+printActionHandler = do
+  Just id <- getParam "id"
+  action  <- with db $ DB.read "action" id
+  kase    <- with db $ DB.read' $ fromJust $ Map.lookup "caseId" action
+  srv     <- with db $ DB.read' $ fromJust $ Map.lookup "parentId" action
+  writeJSON $ Map.fromList [ ("action" :: ByteString, action)
+                           , ("kase",   kase)
+                           , ("service", srv)
+                           ]
+
 errorsHandler :: AppHandler ()
 errorsHandler = do
   l <- gets feLog

@@ -1,6 +1,7 @@
 module Snaplet.DbLayer
   (create
   ,read
+  ,read'
   ,update
   ,delete
   ,search
@@ -94,6 +95,9 @@ read model objId = do
   res <- Redis.read redis model objId
   -- FIXME: catch NotFound => search in postgres
   return res
+
+read' :: ByteString -> Handler b (DbLayer b) (Map.Map ByteString ByteString)
+read' objId = Redis.read' redis objId
 
 update :: ByteString -> ByteString -> Object -> Handler b (DbLayer b) (Map.Map FieldName ByteString)
 update model objId commit = scoper "update" $ do
