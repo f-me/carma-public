@@ -129,7 +129,6 @@ actions
                   let setIfEmpty (name,val)
                         | name == "plateNum" = return ()
                         | otherwise = do
-                          let name' = B.append "car_" name
                           val' <- get objId name'
                           when (val' == "") $ set objId name' val
                   mapM_ setIfEmpty car
