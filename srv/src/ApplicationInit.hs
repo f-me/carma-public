@@ -7,7 +7,6 @@ import Control.Monad.IO.Class
 
 import qualified Data.Map as Map
 import Data.ByteString (ByteString)
-import qualified Data.Text.Encoding as T
 import Data.Configurator
 import Control.Concurrent.STM
 
@@ -32,7 +31,8 @@ import Snaplet.Geo
 ------------------------------------------------------------------------------
 import Application
 import ApplicationHandlers
-import AppHandlers.MyActions
+import AppHandlers.ActionAssignment
+import AppHandlers.CustomSearches
 ----------------------------------------------------------------------
 import Util (readJSON, UsersDict(..))
 
@@ -56,6 +56,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/actionsFor/:id",chkAuth . method GET    $ getActionsForCase)
          , ("/myActions",     chkAuth . method GET    $ myActionsHandler)
          , ("/allActions",    chkAuth . method GET    $ allActionsHandler)
+         , ("/allPartners",   chkAuth . method GET    $ allPartnersHandler)
          , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)
          , ("/_/:model",      chkAuth . method POST   $ createHandler)
          , ("/_/:model/:id",  chkAuth . method GET    $ readHandler)

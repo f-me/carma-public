@@ -207,10 +207,10 @@ this.initPartnerTables = ($view,parentView) ->
       svc["#{partnerType}_address"]("#{city}, #{addr}")
 
   table = table.dataTable()
-  fields = "id,name,city,addrDeFacto,phone1,workingTime,isDealer,isMobile"
   dealer = if partnerType is "towDealer" then 1 else 0
-  select = "city==#{kase.cityLocal()},isActive==1,isDealer==#{dealer}"
-  $.getJSON "/all/partner?fields=#{fields}&select=#{select}", (objs) ->
+  select = ["isActive=1", "isDealer=#{dealer}"]
+  select.push("city=#{kaze.cityLocal()}") if kaze.cityLocal()
+  $.getJSON "/allPartners?#{select.join('&')}", (objs) ->
     # Store partner cache for use with maps
     cache = {}
     rows = for p in objs

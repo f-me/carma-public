@@ -2,9 +2,12 @@
 module AppHandlers.Util where
 
 
-import Data.Text (Text)
 import Data.Map (Map)
 import qualified Data.Map as Map
+import Data.Text (Text)
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
+import Data.ByteString (ByteString)
 
 import Data.Aeson as Aeson
 import Data.Time
@@ -45,4 +48,15 @@ rmFromLoggedUsers u = do
   logdUsrs <- gets loggedUsers
   liftIO $ atomically $ modifyTVar' logdUsrs
          $ Map.delete $ userLogin u
+
+
+toBool :: ByteString -> String
+toBool "1" = "true"
+toBool _   = "false"
+
+quote :: ByteString -> String
+quote x = "'" ++ T.unpack (T.decodeUtf8 x) ++ "'"
+
+int :: ByteString -> String
+int = T.unpack . T.decodeUtf8
 

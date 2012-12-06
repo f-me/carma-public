@@ -6,11 +6,7 @@ import Data.String (fromString)
 
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Data.Text (Text)
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as B
 
 import Snap
 import Database.PostgreSQL.Simple
@@ -24,15 +20,15 @@ type MBS = Maybe ByteString
 
 allPartnersHandler :: AppHandler ()
 allPartnersHandler
-  = join (selectActions
+  = join (selectPartners
     <$> getParam "city"
     <*> getParam "isActive"
     <*> getParam "isDealer")
   >>= writeJSON
 
 
-selectPartners :: AppHandler ()
-selectPartners city isActive isDealer
+selectPartners :: MBS -> MBS -> MBS -> AppHandler [Map ByteString ByteString]
+selectPartners city isActive isDealer = do
   rows <- withPG pg_search $ \c -> query_ c $ fromString
     $  "SELECT id::text, name, city,"
     ++ "       comment, addrDeFacto, phone1, workingTime,"

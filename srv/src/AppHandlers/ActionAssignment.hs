@@ -1,5 +1,5 @@
 
-module AppHandlers.MyActions where
+module AppHandlers.ActionAssignment where
 
 import Control.Monad
 import Control.Applicative
@@ -19,52 +19,8 @@ import qualified Snaplet.DbLayer as DB
 import Database.PostgreSQL.Simple
 ----------------------------------------------------------------------
 import Application
+import AppHandlers.CustomSearches
 import AppHandlers.Util
-
-type MBS = Maybe ByteString
-
-selectActions
-  :: MBS -> MBS -> MBS -> MBS -> MBS
-  -> AppHandler [Map ByteString ByteString]
-selectActions mClosed mAssignee mRole mFrom mTo = do
-  rows <- withPG pg_search $ \c -> query_ c $ fromString
-    $  "SELECT id::text, caseId, parentId,"
-    ++ "       (closed::int)::text, name, assignedTo, targetGroup,"
-    ++ "       (extract (epoch from duetime at time zone 'UTC')::int)::text, "
-    ++ "       result, priority, description, comment"
-    ++ "  FROM actiontbl WHERE true"
-    ++ (maybe "" (\x -> "  AND closed = " ++ toBool x) mClosed)
-    ++ (maybe "" (\x -> "  AND assignedTo = " ++ quote x) mAssignee)
-    ++ (maybe "" (\x -> "  AND targetGroup = " ++ quote x) mRole)
-    ++ (maybe "" (\x -> "  AND extract (epoch from duetime) >= " ++ int x) mFrom)
-    ++ (maybe "" (\x -> "  AND extract (epoch from duetime) <= " ++ int x) mTo)
-  let fields
-        = ["id", "caseId", "parentId", "closed", "name"
-          ,"assignedTo", "targetGroup", "duetime", "result"
-          ,"priority", "description", "comment"]
-  return $ map (Map.fromList . zip fields . map (maybe "" id)) rows
-
-
-toBool :: ByteString -> String
-toBool "1" = "true"
-toBool _   = "false"
-
-quote :: ByteString -> String
-quote x = "'" ++ T.unpack (T.decodeUtf8 x) ++ "'"
-
-int :: ByteString -> String
-int = T.unpack . T.decodeUtf8
-
-
-allActionsHandler :: AppHandler ()
-allActionsHandler
-  = join (selectActions
-    <$> getParam "closed"
-    <*> pure Nothing
-    <*> getParam "targetGroup"
-    <*> getParam "duetimeFrom"
-    <*> getParam "duetimeTo")
-  >>= writeJSON
 
 
 assignQ :: AuthUser -> [Text] -> Query
