@@ -128,35 +128,29 @@ fillEventsHistory = (knockVM) -> ->
 
       for i of calls
         obj = calls[i]
-        wazzup  = dict.Wazzup[obj.wazzup] || obj.wazzup || ''
-        wazzupMsg  = "Что случилось: #{wazzup}"
-        callerName = "ФИО: #{obj.callerName_name || ''}"
-        city = dict['DealerCities'][obj.city]
-        cityMsg = "Город: #{city || ''}"
-        program = global.dictionaries['Programs'][obj.program]
-        programMsg = "Программа: #{program || ''}"
-        make = dict['CarMakers'][obj.make]
-        makeMsg = "Марка: #{make || ''}"
-        model = dict['CarModels'][obj.model]
-        modelMsg = "Модель: #{model || ''}"
-        callTaker = "Сотрудник РАМК: #{obj.callTaker || ''}"
         callDate = if obj.callDate
             new Date(obj.callDate * 1000).toString("dd.MM.yyyy HH:mm")
           else
             ''
+        comment = []
+        wazzup  = dict.Wazzup[obj.wazzup] || obj.wazzup || ''
+        comment.push("Что случилось: #{wazzup}") if wazzup
         callType = dict.CallerTypes[obj.callType] || obj.callType || ''
-        callTypeMsg = "Тип звонка: #{callType}"
+        comment.push("Тип звонка: #{callType}") if callType
+        comment.push("ФИО: #{obj.callerName_name}") if obj.callerName_name
+        city = dict['DealerCities'][obj.city]
+        comment.push("Город: #{city}") if city
+        program = global.dictionaries['Programs'][obj.program]
+        comment.push("Программа: #{program}") if program
+        make = dict['CarMakers'][obj.make]
+        comment.push("Марка: #{make}") if make
+        model = dict['CarModels'][obj.model]
+        comment.push("Модель: #{model}") if model
+        comment.push("Сотрудник РАМК: #{obj.callTaker}") if obj.callTaker
         row = [ callDate
               , obj.callTaker || ''
               , "звонок"
-              , "#{wazzupMsg},<br />
-                 #{callTypeMsg},<br />
-                 #{callerName},<br />
-                 #{cityMsg},<br />
-                 #{programMsg},<br />
-                 #{makeMsg},<br />
-                 #{modelMsg},<br />
-                 #{callTaker}"
+              , comment.join("<br/>")
               , ''
               ]
 
