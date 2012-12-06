@@ -30,7 +30,7 @@ selectActions mClosed mAssignee mRole mFrom mTo = do
   rows <- withPG pg_search $ \c -> query_ c $ fromString
     $  "SELECT id::text, caseId, parentId,"
     ++ "       (closed::int)::text, name, assignedTo, targetGroup,"
-    ++ "       (extract (epoch from duetime)::int)::text, "
+    ++ "       (extract (epoch from duetime at time zone 'UTC')::int)::text, "
     ++ "       result, priority, description, comment"
     ++ "  FROM actiontbl WHERE true"
     ++ (maybe "" (\x -> "  AND closed = " ++ toBool x) mClosed)
