@@ -22,6 +22,8 @@ GRANT ALL PRIVILEGES ON spatial_ref_sys TO carma_geo;
 -- create indices
 CREATE INDEX ON calltbl USING hash (callerName_phone1);
 
+CREATE INDEX ON casetbl USING btree (callDate);
+
 CREATE INDEX ON partnertbl USING hash (isActive);
 CREATE INDEX ON partnertbl USING hash (isDealer) where isActive = true;
 CREATE INDEX ON partnertbl USING hash (city) where isActive = true;
