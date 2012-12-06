@@ -209,7 +209,7 @@ this.initPartnerTables = ($view,parentView) ->
   table = table.dataTable()
   dealer = if partnerType is "towDealer" then 1 else 0
   select = ["isActive=1", "isDealer=#{dealer}"]
-  select.push("city=#{kaze.cityLocal()}") if kaze.cityLocal()
+  select.push("city=#{kase.cityLocal()}") if kase.cityLocal()
   $.getJSON "/allPartners?#{select.join('&')}", (objs) ->
     # Store partner cache for use with maps
     cache = {}
