@@ -129,8 +129,8 @@ actions
                   let setIfEmpty (name,val)
                         | name == "plateNum" = return ()
                         | otherwise = do
-                          val' <- get objId name'
-                          when (val' == "") $ set objId name' val
+                          val' <- get objId name
+                          when (val' == "") $ set objId name val
                   mapM_ setIfEmpty car
             ])
           ])

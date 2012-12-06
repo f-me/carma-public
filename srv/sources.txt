@@ -3,7 +3,7 @@ https://github.com/f-me/csv-conduit
 https://github.com/f-me/fdds
 https://github.com/f-me/carma-sync
 https://github.com/f-me/postgresql-sync-map
-https://github.com/f-me/vin-parser
+https://github.com/f-me/vin-parser new-vin-model
 https://github.com/f-me/xlsx
 
 https://github.com/f-me/simple-log
