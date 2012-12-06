@@ -17,3 +17,13 @@ GRANT SELECT, UPDATE ON actiontbl TO carma_action_assignment;
 GRANT SELECT, UPDATE ON partnertbl TO carma_geo;
 GRANT SELECT ON partnerMessageTbl TO carma_geo;
 GRANT ALL PRIVILEGES ON spatial_ref_sys TO carma_geo;
+
+
+-- create indices
+CREATE INDEX ON partnertbl USING hash (isActive);
+CREATE INDEX ON partnertbl USING hash (isDealer) where isActive = true;
+CREATE INDEX ON partnertbl USING hash (city) where isActive = true;
+
+CREATE INDEX ON actiontbl USING hash (closed);
+CREATE INDEX ON actiontbl USING hash (targetGroup);
+CREATE INDEX ON actiontbl USING btree (duetime) where closed = false;
