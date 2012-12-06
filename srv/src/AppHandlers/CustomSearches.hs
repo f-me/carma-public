@@ -5,8 +5,8 @@ import Control.Applicative
 import Data.String (fromString)
 
 import Data.Map (Map)
-import qualified Data.Map as Map
 import Data.ByteString (ByteString)
+import qualified Data.ByteString.Char8 as B
 
 import Snap
 import Database.PostgreSQL.Simple
@@ -41,7 +41,7 @@ selectPartners city isActive isDealer = do
         ["id","name","city","comment" ,"addrDeFacto"
         ,"phone1","workingTime","isDealer","isMobile"
         ]
-  return $ map (Map.fromList . zip fields . map (maybe "" id)) rows
+  return $ mkMap fields rows
 
 
 
@@ -75,5 +75,38 @@ selectActions mClosed mAssignee mRole mFrom mTo = do
         = ["id", "caseId", "parentId", "closed", "name"
           ,"assignedTo", "targetGroup", "duetime", "result"
           ,"priority", "description", "comment"]
-  return $ map (Map.fromList . zip fields . map (maybe "" id)) rows
+  return $ mkMap fields rows
 
+
+searchCallsByPhone :: AppHandler ()
+searchCallsByPhone = do
+  -- This two magic lines are required because `getParam` interprets
+  -- '+' symbol in url as space
+  -- FIXME: maybe better strip '+' from phones everywhere
+  uri <- rqURI <$> getRequest
+  let phone = last $ B.split '/' uri
+
+  rows <- withPG pg_search $ \c -> query c (fromString
+    $  "SELECT wazzup, callerName_name, city, program, make, model,"
+    ++ "       callTaker, callType,"
+    ++ "       extract (epoch from callDate at time zone 'UTC')::int::text"
+    ++ "  FROM calltbl"
+    ++ "  WHERE callerName_phone1 = ?") [phone]
+  let fields =
+        ["wazzup","callerName_name", "city", "program"
+        ,"make", "model", "callTaker", "callType", "callDate"]
+  writeJSON $ mkMap fields rows
+
+
+getActionsForCase :: AppHandler ()
+getActionsForCase = do
+  Just caseId <- getParam "id"
+  let caseId' = B.append "case:" caseId
+  rows <- withPG pg_search $ \c -> query c (fromString
+    $  "SELECT extract (epoch from closeTime at time zone 'UTC')::int::text,"
+    ++ "       result, name, assignedTo, comment"
+    ++ "  FROM actiontbl"
+    ++ "  WHERE closeTime IS NOT NULL AND caseId = ?") [caseId']
+  let fields =
+        ["closeTime", "result", "name", "assignedTo", "comment"]
+  writeJSON $ mkMap fields rows

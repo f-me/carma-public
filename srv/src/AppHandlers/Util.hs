@@ -60,3 +60,5 @@ quote x = "'" ++ T.unpack (T.decodeUtf8 x) ++ "'"
 int :: ByteString -> String
 int = T.unpack . T.decodeUtf8
 
+mkMap :: [ByteString] -> [[Maybe ByteString]] -> [Map ByteString ByteString]
+mkMap fields = map $ Map.fromList . zip fields . map (maybe "" id)

@@ -121,14 +121,13 @@ fillEventsHistory = (knockVM) -> ->
   return unless $("#call-searchtable")[0]
 
   phone = knockVM['contact_phone1']()
-  $.getJSON "/ix/callsByPhone/#{phone}", (calls) ->
+  $.getJSON "/callsByPhone/#{phone}", (calls) ->
     $.getJSON "/actionsFor/#{knockVM.id()}", (actions) ->
       st.fnClearTable()
       dict = global.dictValueCache
 
       for i of calls
         obj = calls[i]
-        continue if obj.id.length > 10
         wazzup  = dict.Wazzup[obj.wazzup] || obj.wazzup || ''
         wazzupMsg  = "Что случилось: #{wazzup}"
         callerName = "ФИО: #{obj.callerName_name || ''}"
@@ -163,7 +162,7 @@ fillEventsHistory = (knockVM) -> ->
 
         st.fnAddData(row)
 
-      for r in actions when r.closeTime
+      for r in actions
         result = dict.ActionResults[r.result] or ''
         name = dict.ActionNames[r.name] or ''
         aTo  = global.dictValueCache['users'][r.assignedTo] or
@@ -173,7 +172,7 @@ fillEventsHistory = (knockVM) -> ->
               , name
               , r.comment or ''
               , result ]
-            
+
         st.fnAddData(row)
 
       return if _.isEmpty knockVM['comments']()

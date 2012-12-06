@@ -218,21 +218,6 @@ rkcHandler = scope "rkcHandler" $ do
   info <- with db $ RKC.rkc usrs (maybe T.empty T.decodeUtf8 p) (maybe T.empty T.decodeUtf8 c)
   writeJSON info
 
-searchCallsByPhone :: AppHandler ()
-searchCallsByPhone = do
-  r <- getRequest
-  calls <- with db $ DB.readAll "call"
-  let phone = last $ B.split '/' (rqURI r)
-  writeJSON $
-    filter ((phone ==) . (Map.findWithDefault "" "callerName_phone1")) calls
-
-getActionsForCase :: AppHandler ()
-getActionsForCase = do
-  Just id <- getParam "id"
-  actions <- with db $ DB.readAll "action"
-  let id' = B.append "case:" id
-  writeJSON $
-    filter ((id' ==) . (Map.findWithDefault "" "caseId")) actions
 
 -- | This action recieve model and id as parameters to lookup for
 -- and json object with values to create new model with specified
