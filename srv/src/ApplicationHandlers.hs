@@ -8,12 +8,10 @@ import Prelude hiding (log)
 import Data.Functor
 import Control.Monad
 
-import Data.Text (Text)
 import Data.Text.Lazy (toStrict)
 import Data.Text.Lazy.Encoding (decodeUtf8)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import Data.String (fromString)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.UTF8  as BU
