@@ -7,7 +7,6 @@ import Control.Monad.IO.Class
 
 import qualified Data.Map as Map
 import Data.ByteString (ByteString)
-import qualified Data.Text.Encoding as T
 import Data.Configurator
 import Control.Concurrent.STM
 
@@ -32,7 +31,8 @@ import Snaplet.Geo
 ------------------------------------------------------------------------------
 import Application
 import ApplicationHandlers
-import AppHandlers.MyActions
+import AppHandlers.ActionAssignment
+import AppHandlers.CustomSearches
 ----------------------------------------------------------------------
 import Util (readJSON, UsersDict(..))
 
@@ -51,17 +51,19 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/s/screens",     serveFile "resources/site-config/screens.json")
          , ("/report",        chkAuth . method GET  $ report)
          , ("/all/:model",    chkAuth . method GET  $ readAllHandler)
-         , ("/ix/callsByPhone/:phone",
-            chkAuth . method GET  $ searchCallsByPhone)
+         , ("/callsByPhone/:phone",
+                              chkAuth . method GET    $ searchCallsByPhone)
          , ("/actionsFor/:id",chkAuth . method GET    $ getActionsForCase)
          , ("/myActions",     chkAuth . method GET    $ myActionsHandler)
+         , ("/allActions",    chkAuth . method GET    $ allActionsHandler)
+         , ("/allPartners",   chkAuth . method GET    $ allPartnersHandler)
          , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)
          , ("/_/:model",      chkAuth . method POST   $ createHandler)
          , ("/_/:model/:id",  chkAuth . method GET    $ readHandler)
          , ("/_/:model/:id",  chkAuth . method PUT    $ updateHandler)
          , ("/_/:model/:id",  chkAuth . method DELETE $ deleteHandler)
          , ("/_/findOrCreate/:model/:id",
-            chkAuth . method POST $ findOrCreateHandler)
+                              chkAuth . method POST $ findOrCreateHandler)
          , ("/_/report/",     chkAuth . method POST $ createReportHandler)
          , ("/_/report/:id",  chkAuth . method DELETE $ deleteReportHandler)
          , ("/search/:model", chkAuth . method GET  $ searchHandler)
@@ -111,8 +113,6 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   logdUsrs <- liftIO $ newTVarIO Map.empty
   !allUsrs <- liftIO $ getUsrs authDb
 
-  actLock  <- liftIO $ newTMVarIO ()
-
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
 
   d <- nestSnaplet "db" db $ initDbLayer allUsrs "resources/site-config"
@@ -127,6 +127,10 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
             <*> lookupCfg "pg_db_name"
   -- FIXME: force cInfo evaluation
   pgs <- liftIO $ createPool (Pg.connect cInfo) Pg.close 1 5 20
+  cInfo <- liftIO $ (\u p -> cInfo {connectUser = u, connectPassword = p})
+            <$> lookupCfg "pg_actass_user"
+            <*> lookupCfg "pg_actass_pass"
+  pga <- liftIO $ createPool (Pg.connect cInfo) Pg.close 1 5 20
 
   v <- nestSnaplet "vin" vin vinInit
   fu <- nestSnaplet "upload" fileUpload fileUploadInit
@@ -136,7 +140,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        [logger text (file "log/frontend.log")]
 
   addRoutes routes
-  return $ App h s authMgr logdUsrs allUsrs actLock c d pgs v fu g l
+  return $ App h s authMgr logdUsrs allUsrs c d pgs pga v fu g l
 
 getUsrs authDb = do
   readJSON authDb :: IO UsersDict

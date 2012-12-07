@@ -4,7 +4,6 @@ module Snaplet.DbLayer
   ,read'
   ,update
   ,delete
-  ,search
   ,submitTask
   ,searchFullText
   ,generateReport
@@ -47,7 +46,6 @@ import qualified Database.PostgreSQL.Sync.Base as S
 import qualified Database.PostgreSQL.Sync.Types as S
 
 import Snaplet.DbLayer.Types
-import Snaplet.DbLayer.Indices
 import qualified Carma.ModelTables as MT (loadTables)
 import Snaplet.DbLayer.Triggers
 import Snaplet.DbLayer.Dictionary (readRKCCalc)
@@ -124,12 +122,6 @@ update model objId commit = scoper "update" $ do
 delete :: ByteString -> ByteString -> Handler b (DbLayer b) ()
 delete model objId = Redis.delete redis model objId
 
-search :: IndexName -> ByteString -> Handler b (DbLayer b) [Map.Map ByteString ByteString]
-search ixName val = do
-  ix <- gets $ (Map.! ixName) . indices
-  ixData <- liftIO $ readTVarIO ix
-  let ids = Set.toList $ Map.findWithDefault Set.empty val ixData
-  forM ids $ Redis.read' redis
 
 submitTask :: ByteString -> ByteString -> Handler b (DbLayer b) (Either Redis.Reply Integer)
 submitTask queueName taskId
@@ -194,7 +186,6 @@ initDbLayer allU cfgDir = makeSnaplet "db-layer" "Storage abstraction"
       <*> nestSnaplet "pgsql" postgres pgsInit
       <*> nestSnaplet "dblog" dbLog (simpleLogInit_ l)
       <*> liftIO triggersConfig
-      <*> liftIO createIndices
       <*> (liftIO $ fddsConfig cfg)
       <*> (return rels)
       <*> (return tbls)
@@ -208,8 +199,6 @@ triggersConfig = do
   recs <- readJSON "resources/site-config/recommendations.json"
   return $ TriggersConfig recs
 
-createIndices :: IO (Map.Map k a)
-createIndices = return Map.empty
 
 fddsConfig cfg = do
   uri   <- require cfg "fdds-uri"

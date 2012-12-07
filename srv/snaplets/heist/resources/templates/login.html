@@ -7,7 +7,17 @@
     <link rel="stylesheet" href="/s/css/local.css" />
     <script src="/s/js/3p/jquery-1.7.1.min.js"></script>
     <script type="text/javascript">
-      $(function() {$(".field").first().focus()})
+      $(function() {
+        $(".field").first().focus();
+        var msg = "<div class='span6 offset2'>                             \
+        Для использования системы необходим браузер Google chrome          \
+        версии не ниже 10, установить его можно по следующей ссылке:       \
+        <a href='http://www.google.com/chrome'> www.google.com/chrome </a> \
+        </div>";
+        var ua  = navigator.userAgent.match(/.*Chrome\/([0-9]{2})/);
+        if (!ua || parseInt(ua[1]) < 10)
+          $("body").html(msg);
+      })
     </script>
   </head>
   <body>

@@ -13,6 +13,10 @@
             "label": "B2B / Независимость"
         },
         {
+            "value": "chezer",
+            "label": "B2B / Цезарь Сателлит"
+        },
+        {
             "value": "tele",
             "label": "B2B / 3S Телематика"
         },
@@ -158,7 +162,7 @@
         },
         {
             "value": "chevyna",
-            "label": "GM / Chevrolet NA"
+            "label": "GM / Chevrolet NAV"
         },
         {
             "value": "hum",

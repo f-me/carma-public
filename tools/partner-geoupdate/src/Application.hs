@@ -17,7 +17,7 @@ where
 
 import Control.Applicative
 import Control.Monad
-import Control.Monad.State
+import Control.Monad.State hiding (ap)
 
 import Data.Aeson
 
@@ -82,6 +82,26 @@ nominatimRevURI lon lat = do
 
 
 ------------------------------------------------------------------------------
+-- | URI for POST/PUT requests to create or update a new case.
+caseCreateUpdateURI :: (Maybe Int)
+                    -- ^ Case ID.
+                    -> Handler b GeoApp String
+caseCreateUpdateURI cid' = do
+  cp <- gets carmaPort
+  return $ concat ["http://localhost:", show cp, "/_/case/", cid]
+  where
+    cid = maybe "" show cid'
+
+
+------------------------------------------------------------------------------
+-- | URI for POST request to create a new action
+actionCreateURI ::Handler b GeoApp String
+actionCreateURI = do
+  cp <- gets carmaPort
+  return $ concat ["http://localhost:", show cp, "/_/action/"]
+
+
+------------------------------------------------------------------------------
 -- | URI for PUT request to update partner data.
 partnerUpdateURI :: Int -> Handler b GeoApp String
 partnerUpdateURI pid = do
@@ -91,14 +111,14 @@ partnerUpdateURI pid = do
 
 ------------------------------------------------------------------------------
 -- | Name of address field in partner model.
-addressField :: ByteString
-addressField = "addrDeFacto"
+partnerAddress :: ByteString
+partnerAddress = "addrDeFacto"
 
 
 ------------------------------------------------------------------------------
 -- | Name of coordinates field in partner model.
-coordsField :: ByteString
-coordsField = "coords"
+partnerCoords :: ByteString
+partnerCoords = "coords"
 
 
 ------------------------------------------------------------------------------
@@ -123,6 +143,7 @@ instance FromJSON Address where
 
 instance ToJSON Address where
     toJSON (Address s) = String $ decodeUtf8 s
+
 
 ------------------------------------------------------------------------------
 -- | Derived from 'postRequestWithBody' from HTTP package.
@@ -182,8 +203,8 @@ updatePartnerData pid lon lat addr =
     let
         coordString = concat [show lon, ",", show lat]
         body = BSL.unpack $ encode $ object $
-               [decodeUtf8 coordsField .= coordString] ++
-               (maybe [] (\(Address a) -> [decodeUtf8 addressField .= a]) addr)
+               [decodeUtf8 partnerCoords .= coordString] ++
+               (maybe [] (\(Address a) -> [decodeUtf8 partnerAddress .= a]) addr)
     in do
       parU <- partnerUpdateURI pid
       liftIO $ H.simpleHTTP 
@@ -246,10 +267,14 @@ newCase = do
          
   -- Form the body of the request to send to CaRMa
   let finalPairs = rawPairs ++ [addrPair, coordPair]
-      caseBody = encode $ object $ catMaybes finalPairs
+      caseBody = BSL.unpack $ encode $ object $ catMaybes finalPairs
 
   modifyResponse $ setContentType "application/json"
-  writeLBS $ caseBody
+  caseU <- caseCreateUpdateURI Nothing
+  resp <- liftIO $ H.simpleHTTP 
+          (H.postRequestWithBody caseU "application/json" caseBody)
+  body <- liftIO $ H.getResponseBody resp
+  writeLBS $ BSL.pack $ show body
 
 
 geoAppInit :: SnapletInit b GeoApp
