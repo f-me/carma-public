@@ -39,6 +39,7 @@
              "name": "program",
              "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
              "canWrite": [ "front", "back", "head", "parguy" ],
+             "meta": {
                  "targetCategory": "program",
                  "infoText": "program"
              }
