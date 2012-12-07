@@ -41,7 +41,7 @@ formatDate :: String -> String
 formatDate unix = formatTime defaultTimeLocale "%F %R" tm
   where
     tm :: UTCTime
-    tm = readTime defaultTimeLocale "%s" unix
+    tm = readTime utc "%s" unix
 
 
 
