@@ -75,8 +75,10 @@ sendSMS actId tplId = do
   templateText <- T.decodeUtf8 <$> tplId `get` "text"
   let msg = T.encodeUtf8 $ render varMap templateText
 
+  now <- dateNow id
   smsId <- new "sms" $ Map.fromList
-    [("caseId", caseId)
+    [("ctime", now)
+    ,("caseId", caseId)
     ,("svcId", svcId)
     ,("phone", phone)
     ,("template", tplId)
