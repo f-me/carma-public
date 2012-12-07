@@ -22,8 +22,14 @@ declare -A renames=(
     ["owner_email"]="contact_ownerEmail"
 )
 
-for v in `redis-cli keys vin:*`
+i=0
+ks=`redis-cli keys vin:*`
+cnt=`echo "$ks" | wc -l`
+
+for v in $ks
 do
+    echo "$i/$cnt"
+    i=$((i+1))
     for k in `redis-cli hkeys $v`
     do
         renameto=${renames[$k]}
