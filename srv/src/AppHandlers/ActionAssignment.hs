@@ -21,18 +21,18 @@ import AppHandlers.CustomSearches
 import AppHandlers.Util
 
 
-assignQ :: AuthUser -> [Text] -> Query
-assignQ usr logdUsers = fromString
+assignQ :: Int -> AuthUser -> [Text] -> Query
+assignQ pri usr logdUsers = fromString
   $  "UPDATE actiontbl SET assignedTo = '" ++ uLogin ++ "'"
   ++ "  WHERE id = (SELECT id FROM actiontbl"
   ++ "    WHERE closed = false"
+  ++ "    AND   priority = '" ++ show pri ++ "'"
   ++ "    AND   duetime at time zone 'UTC' - now() < interval '30 minutes'"
   ++ "    AND   targetGroup = '" ++ roleStr uRole ++ "'"
   ++ "    AND   (assignedTo IS NULL"
   ++ "           OR assignedTo NOT IN ('" ++ logdUsersList ++ "'))"
-  ++ "    ORDER BY (duetime at time zone 'UTC' - now()) ASC,"
-  ++ "             priority ASC"
-  ++ "    LIMIT 1)"
+  ++ "    ORDER BY duetime ASC"
+  ++ "    LIMIT " ++ show pri ++ ")"
   ++ "  RETURNING id::text;"
   where
     uLogin = T.unpack $ userLogin usr
@@ -46,7 +46,10 @@ myActionsHandler = do
   Just cUsr <- with auth currentUser
   logdUsers <- map (userLogin.snd) . Map.elems <$> addToLoggedUsers cUsr
 
-  actIds <- withPG pg_actass (`query_` assignQ cUsr logdUsers)
+  actIds1 <- withPG pg_actass (`query_` assignQ 1 cUsr logdUsers)
+  actIds2 <- withPG pg_actass (`query_` assignQ 2 cUsr logdUsers)
+  actIds3 <- withPG pg_actass (`query_` assignQ 3 cUsr logdUsers)
+  let actIds = actIds1 ++ actIds2 ++ actIds3
 
   let uLogin = T.encodeUtf8 $ userLogin cUsr
   with db $ forM_ actIds $ \[actId] ->
