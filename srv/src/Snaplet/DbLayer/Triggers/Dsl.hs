@@ -2,6 +2,7 @@
 module Snaplet.DbLayer.Triggers.Dsl where 
 
 import Control.Applicative
+import Control.Monad (when)
 import Control.Monad.Trans (lift,liftIO)
 import qualified Control.Monad.State as ST
 
@@ -36,14 +37,16 @@ get objId field = do
         obj <- lift $ Redis.read' redis objId
         ST.modify $ \st -> st{dbCache = Map.insert objId obj dbCache}
         return $ fromMaybe "" $ Map.lookup field obj
-  
+
 
 set :: ObjectId -> FieldName -> FieldValue -> TriggerMonad b ()
-set objId field val = ST.modify $ \st ->
-  st{current = Map.insertWith' Map.union objId
-    (Map.singleton field val)
-    $ current st
-    }
+set objId field val = do
+  val' <- get objId field
+  when (val /= val') $ ST.modify $ \st ->
+    st{current = Map.insertWith' Map.union objId
+      (Map.singleton field val)
+      $ current st
+      }
 
 
 setAll :: ObjectId -> Map FieldName FieldValue -> TriggerMonad b ()
