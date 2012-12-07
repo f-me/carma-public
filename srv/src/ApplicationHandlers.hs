@@ -364,11 +364,14 @@ printServiceHandler = do
   actions <- with db $ mapM DB.read' $
              B.split ',' $ Map.findWithDefault "" "actions" kase
   let id' = B.concat [model, ":", id]
-      action = head $ filter ((Just id' ==) . Map.lookup "parentId") $ actions
+      action = head' $ filter ((Just id' ==) . Map.lookup "parentId") $ actions
   writeJSON $ Map.fromList [ ("action" :: ByteString, action)
                            , ("kase",   kase)
                            , ("service", srv)
                            ]
+    where
+      head' []     = Map.empty
+      head' (x:xs) = x
 
 errorsHandler :: AppHandler ()
 errorsHandler = do
