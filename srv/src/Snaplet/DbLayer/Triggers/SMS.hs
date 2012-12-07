@@ -12,7 +12,7 @@ import qualified Data.Text.Encoding as T
 import qualified Data.Text as T
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Data.Time (UTCTime)
+import Data.Time
 import Data.Time.Format
 import System.Locale
 
@@ -37,11 +37,10 @@ render varMap = T.concat . loop
     evalVar v = Map.findWithDefault v v varMap
 
 
-formatDate :: String -> String
-formatDate unix = formatTime defaultTimeLocale "%F %R" tm
-  where
-    tm :: UTCTime
-    tm = readTime utc "%s" unix
+formatDate :: String -> IO String
+formatDate unix = do
+  tm <- utcToLocalZonedTime $ readTime defaultTimeLocale "%s" unix
+  return $ formatTime defaultTimeLocale "%F %R" tm
 
 
 
@@ -61,7 +60,7 @@ sendSMS actId tplId = do
         $ smsTokenVal dic Map.! "program_from_name"
 
   svcTm <- svcId `get` "times_factServiceStart"
-  let svcStart = T.pack $ formatDate $ T.unpack $ T.decodeUtf8 svcTm
+  svcStart <- T.pack <$> liftIO (formatDate $ T.unpack $ T.decodeUtf8 svcTm)
 
   let varMap = Map.fromList
         [("program_info", (smsTokenVal dic Map.! "program_info") Map.! program)

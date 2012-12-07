@@ -2,6 +2,7 @@
 module Snaplet.DbLayer.Triggers.Dsl where 
 
 import Control.Applicative
+import Control.Monad (when)
 import Control.Monad.Trans (lift,liftIO)
 import qualified Control.Monad.State as ST
 
@@ -41,7 +42,7 @@ get objId field = do
 set :: ObjectId -> FieldName -> FieldValue -> TriggerMonad b ()
 set objId field val = do
   val' <- get objId field
-  when (val \= val') $ ST.modify $ \st ->
+  when (val /= val') $ ST.modify $ \st ->
     st{current = Map.insertWith' Map.union objId
       (Map.singleton field val)
       $ current st
