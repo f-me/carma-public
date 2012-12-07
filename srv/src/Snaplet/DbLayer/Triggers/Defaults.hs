@@ -14,11 +14,13 @@ import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 import Data.Time.Format (formatTime)
 import Data.Maybe
 import System.Locale (defaultTimeLocale)
+import Snap
 import qualified Database.Redis       as Redis
 import qualified Snap.Snaplet.RedisDB as Redis
 import Snaplet.DbLayer.Types
 
 import Util
+import Utils.RKCCalc
 
 applyDefaults model obj = do
   ct <- liftIO $ round . utcTimeToPOSIXSeconds
@@ -44,13 +46,18 @@ applyDefaults model obj = do
       return $ case caseAddr of
         Just addr -> Map.insert "taxiFrom_address" addr obj
         Nothing   -> obj
-            
+
     "vin"  -> return $ Map.fromList
               [ ("validFrom"  , B.pack $ show ct)
               , ("validUntil" , B.pack $ show $ ct + y)
               , ("makeYear"   , B.pack cy)
               ]
     _ -> return cd
+
+  dict <- gets rkcDict
+  kase <- Redis.runRedisDB redis $ Redis.hgetall $
+          fromMaybe "" $ Map.lookup "parentId" obj
+  let kase' = either (\_ -> Map.empty) Map.fromList kase
 
   obj' <- if model `elem` services
       then
@@ -63,6 +70,7 @@ applyDefaults model obj = do
           ,("times_expectedDealerInfo",     B.pack $ show $ ct + 7*d)
           ,("times_factDealerInfo",         B.pack $ show $ ct + 7*d)
           ,("createTime",                   B.pack $ show $ ct)
+          ,("marginalCost",                 setSrvMCost model obj' kase' dict)
           ]
       else return obj'
 
