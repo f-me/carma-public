@@ -73,7 +73,7 @@
     <script src="/s/js/avaya.js" />
     <script src="/s/js/editSms.js" />
     <script src="/s/js/sendSms.js" />
-    <script src="/s/js/printAction.js" />
+    <script src="/s/js/printService.js" />
 
   </head>
   <body>
@@ -828,10 +828,10 @@
       </div>
     </script>
 
-    <!-- print action template screen template -->
+    <!-- print service template screen template -->
     <script type="text/template"
             class="screen-template"
-            id="printAction-screen-template">
+            id="printSrv-screen-template">
       <div id="print-table">
         <table class="table-condensed">
           <tr>
@@ -1402,12 +1402,18 @@
         <div class="accordion-heading">
           <div class="accordion-toggle"
                data-target="#{{ refView }}-head"
-               data-toggle="collapse">
+               data-toggle="collapse"
+               id="{{ refView }}-link">
             <a class="icon icon-remove" />
-            <a id="{{ refView }}-link"
+            <a 
                data-bind="text: modelTitle">
                Услуга…
             </a>
+            <a data-bind="attr: { href: '#printSrv/'+modelName()+'/'+id() }"
+               targer="_blank">
+              [Печать]
+          </a>
+
           </div>
         </div>
 
@@ -1432,11 +1438,6 @@
              data-bind="text: actionNameLocal"
              data-target="#{{ refView }}-head"
              data-toggle="collapse">Действие…</a>
-
-          <a data-bind="attr: { href: '#printAction/' + id() }"
-             targer="_blank">
-              [Печать]
-          </a>
         </div>
 
         <div id="{{ refView }}-head"

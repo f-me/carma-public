@@ -62,33 +62,33 @@ localScreens = ->
     "views":
       "smsTpl-form":
         constructor: setupSmsTplForm
-  "printAction":
-    "template": "printAction-screen-template"
+  "printSrv":
+    "template": "printSrv-screen-template"
     "views":
       "print-table":
-        constructor: setupPrintAction
-        destructor: destroyPrintAction
+        constructor: setupPrintSrv
+        destructor: destroyPrintSrv
 
 # Setup routing
 localRouter = Backbone.Router.extend
   # Must _not_ end with trailing slashes
   routes:
-    "case/:id"         : "loadCase"
-    "case"             : "newCase"
-    "search"           : "search"
-    "vin"              : "vin"
-    "back"             : "back"
-    "call/:id"         : "loadCall"
-    "call"             : "call"
-    "reports"          : "reports"
-    "partner"          : "newPartner"
-    "partner/:id"      : "loadPartner"
-    "editVin/:id"      : "editVin"
-    "newVin"           : "newVin"
-    "supervisor"       : "supervisor"
-    "rkc"              : "rkc"
-    "editSms"          : "editSms"
-    "printAction/:id"  : "printAction"
+    "case/:id"     : "loadCase"
+    "case"         : "newCase"
+    "search"       : "search"
+    "vin"          : "vin"
+    "back"         : "back"
+    "call/:id"     : "loadCall"
+    "call"         : "call"
+    "reports"      : "reports"
+    "partner"      : "newPartner"
+    "partner/:id"  : "loadPartner"
+    "editVin/:id"  : "editVin"
+    "newVin"       : "newVin"
+    "supervisor"   : "supervisor"
+    "rkc"          : "rkc"
+    "editSms"      : "editSms"
+    "printSrv/:model/:id" : "printSrv"
 
   loadCase    : (id) -> renderScreen("case", {"id": id})
   newCase     :      -> renderScreen("case", {"id": null})
@@ -105,7 +105,7 @@ localRouter = Backbone.Router.extend
   supervisor  :      -> renderScreen("supervisor")
   rkc         :      -> renderScreen("rkc")
   editSms     :      -> renderScreen("editSms")
-  printAction : (id) -> renderScreen("printAction", id)
+  printSrv    : (model, id) -> renderScreen "printSrv", {model: model, id: id}
 
 # here is entry point
 $ ->

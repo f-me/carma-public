@@ -1,7 +1,8 @@
-this.setupPrintAction = (viewName, id) ->
+this.setupPrintSrv = (viewName, {model: model, id: id}) ->
   $(".navbar").hide()
-  $.getJSON "/printAction/#{id}", (arg) ->
+  $.getJSON "/printSrv/#{model}/#{id}", (arg) ->
     arg.action.assignedTo = lookup('users', arg.action.assignedTo)
+    arg.service.type = model
     postProc arg.kase,
       time: ['callDate']
       lookup:
@@ -18,7 +19,7 @@ this.setupPrintAction = (viewName, id) ->
 
     ko.applyBindings arg, el("print-table")
 
-this.destroyPrintAction = () ->
+this.destroyPrintSrv = () ->
   $(".navbar").show()
 
 this.openPrintAction = (kvm) ->
