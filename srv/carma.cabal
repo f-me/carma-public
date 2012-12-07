@@ -89,7 +89,7 @@ Executable carma
     unordered-containers,
     utf8-string,
     vector                      == 0.10.*,
-    vin-parser                  == 0.1.7.1,
+    vin-parser                  >= 0.1.7.1 && < 0.2,
     weather-api                 >= 0.4.1,
     xlsx                        >= 0.0.2.1 && < 0.1
 

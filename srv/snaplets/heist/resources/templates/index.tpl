@@ -668,7 +668,7 @@
             </div>
           </div>
           <div class="row-fluid">
-            <div class="span4">
+            <div class="span6">
               <h2>Кейсы</h2>
               <div class="row-fluid">
                 <div class="span6">
@@ -765,7 +765,7 @@
                 </div>
               </div>
             </div>
-            <div class="span4">
+            <div class="span6">
               <h2>Front Office</h2>
               <div class="row-fluid">
                 <table id="rkc-operators-table" class="table table-stripped table-bordered">
@@ -777,38 +777,6 @@
                     </tr>
                     <tbody />
                   </thead>
-                </table>
-              </div>
-            </div>
-            <div class="span4">
-              <h2>Back Office</h2>
-              <div class="row-fluid">
-                <div class="span6">
-                  Общее количество действий на сегодня
-                </div>
-                <div class="span2">
-                  <input style="float:right; width:40px" id="total-actions" />
-                </div>
-              </div>
-              <div class="row-fluid">
-                <div class="span6">
-                  Общее количество невыполненных действий
-                </div>
-                <div class="span2">
-                  <input style="float:right; width:40px" id="total-incomplete-actions" />
-                </div>
-              </div>
-              <div class="row-fluid">
-                <table id="rkc-back-office-table" class="table table-stripped table-bordered">
-                  <thead>
-                    <tr>
-                      <th width="50%">Действие</th>
-                      <th width="15%">Общее количество действий</th>
-                      <th width="15%">Невыполненные действия</th>
-                      <th width="20%">Среднее время выполнения действия</th>
-                    </tr>
-                  </thead>
-                  <tbody />
                 </table>
               </div>
             </div>
