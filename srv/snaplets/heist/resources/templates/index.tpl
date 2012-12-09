@@ -815,6 +815,16 @@
           </div>
         </div>
       </div>
+      <div class="row-fluid">
+        <table id="rkc-each-action-op-avg-table" class="table table-stripped table-bordered">
+          <thead>
+            <tr data-bind="foreach: cols">
+              <th data-bind="text: name"></th>
+            </tr>
+          </thead>
+          <tbody />
+        </table>
+      </div>
     </script>
 
     <!--
@@ -1633,7 +1643,7 @@
       <div>{{ phone1 }}</div>
       <div>{{ workingTime }}</div>
       <div><a class="btn btn-mini btn-primary"
-              onclick="pickPartnerBlip('{{ parentView }}','{{ name }}', '{{ addrDeFacto }}', '{{ partnerField }}', '{{ partnerAddrField }}');">Выбрать</a></div>
+              onclick="pickPartnerBlip('{{ parentView }}', '{{ mapId }}', '{{ id }}', '{{ name }}', '{{ addrDeFacto }}', '{{ coords }}', '{{ partnerIdField }}', '{{ partnerField }}', '{{ partnerAddrField }}', '{{ partnerCoordsField }}');">Выбрать</a></div>
     </script>
 
   </body>

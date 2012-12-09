@@ -39,7 +39,7 @@ this.setupPartnersForm = (viewName, args) ->
         addTarifStuff i for i in k['servicesReference']()
     )
 
-    $.getJSON("/all/partner?fields=id,name,city,comment",
+    $.getJSON("/allPartners",
         (objs) ->
             dt = t.dataTable()
             dt.fnClearTable()

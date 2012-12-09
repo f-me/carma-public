@@ -13,7 +13,7 @@ this.hooks = ->
       "taxi"  : [partnerOptsHook, srvOptUpd, costsMark]
       "sober" : [partnerOptsHook, srvOptUpd]
       "hotel" : [partnerOptsHook, srvOptUpd, costsMark]
-      "towage": [partnerOptsHook, srvOptUpd, costsMark]
+      "towage": [partnerOptsHook, srvOptUpd, costsMark, distHook]
 
 dictionaryKbHook = (instance, knockVM) ->
   for n of instance.dictionaryFields
@@ -100,3 +100,40 @@ this.dateTimeHook = (i, k) ->
 this.tarifOptNameDef = (i, k) ->
   k["nameOrDef"] = ko.computed
     read: -> k["optionName"]() or "Тарифная опция…"
+
+this.distanceQuery = (coord1, coord2) -> stripWs "/geo/distance/#{coord1}/#{coord2}/"
+
+# Transform distance in meters to km
+this.formatDistance = (dist) -> Math.round ((parseInt dist) / 1000)
+
+# Update a field with the distance between two coordinates whenever
+# they change
+this.distHook = (instance, knockVM) ->
+  for n in instance.distFields
+    do (n) ->
+      m = instance.fieldHash[n].meta
+
+      # Find VMs and fields to watch for coordinates
+      d1_meta = splitFieldInView m.distanceTo1
+      if not d1_meta.view?
+        vm1 = knockVM
+      else
+        vm1 = findVM d1_meta.view
+
+      d2_meta = splitFieldInView m.distanceTo2
+      if not d2_meta.view?
+        vm2 = knockVM
+      else
+        vm2 = findVM d2_meta.view
+
+      # Subscribe to change in either of coordinates
+      vm1[d1_meta.field].subscribe (new_coord) ->
+        other_coord = vm2[d2_meta.field]()
+        $.get distanceQuery(new_coord, other_coord), (resp) ->
+          knockVM[n](formatDistance(resp).toString())          
+
+      vm2[d2_meta.field].subscribe (new_coord) ->
+        other_coord = vm1[d1_meta.field]()
+        $.get distanceQuery(new_coord, other_coord), (resp) ->
+          knockVM[n](formatDistance(resp).toString())
+

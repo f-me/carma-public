@@ -40,11 +40,26 @@ this.partnerIcon = "/s/img/partner-icon.png"
 this.dealerIcon = "/s/img/dealer-icon.png"
 
 
+iconFromType =
+  default: carIcon
+  car: carIcon
+  tow: towIcon
+  partner: partnerIcon
+  dealer: dealerIcon
+
+
+# Given regular icon name, return name of highlighted icon
+#
+# Filenames must follow the convention that original icons are named
+# as foo-icon.png and highlighted icons are named as foo-hl-icon.png.
+this.hlIconName = (filename) -> filename.replace("-icon", "-hl-icon")
+
+
 # Build readable address from reverse Nominatim JSON response
 this.buildReverseAddress = (res) ->
   if (res.error)
     return null
-    
+
   addr = (res.address.road || res.address.pedestrian)
 
   if (_.isUndefined(res.address.house_number))
@@ -63,22 +78,51 @@ this.reinstallMarkers = (osmap, layerName) ->
 
   return new_layer
 
+
 # Setup OpenLayers map
 #
-# - parentView: parent view this map belongs to. Note that address and
-#               coordinates are still taken from the `case` view. This
-#               is used to set partner data in the parent VM when
-#               clicking partner blips.
-# 
-# Template for OL placeholder may specify HTML5 attributes:
+# - parentView: parent view this map belongs to. This is used to set
+#               partner data in the parent VM when clicking partner
+#               blips.
 #
-# - data-target-addr: if set, map will be clickable, enabled for
-#                     reverse geocoding (clicking the map will write
-#                     geocoding address to this field on `case` model)
+# Supported meta annotations for a map field:
 #
-# - data-target-coords: read initial position & blip from this field
-#                       of `case`, write geocoding results here (if
-#                       it's enabled)
+# - targetAddr: if set, map will be clickable, enabled for reverse
+#               geocoding and clicking the map will write address to
+#               this field of model. If the annotation has the form of
+#               `view_name/field_name`, then the field `field_name` in
+#               `view_name` view will be used instead of parent view.
+#
+# - targetCoords: read initial position & current blip from this field
+#                 of model; write geocoding results here (only if it's
+#                 enabled with `targetAddr` meta!). Metas of form
+#                 `case-form/field` are treated as in `targetAddr`.
+#
+# - moreCoords: this meta is a list of field names (possibly prefixed
+#               with view names as in `targetAddr`), where every field
+#               stores coordinates. Static blips for every field will
+#               be placed on the map. Blips are not updated as
+#               coordinates in the referenced fields change.
+#
+# - targetPartner: if set, map will show partner blips from table set
+#                  in `partnerTable` annotation on the same model. The
+#                  table must be present in the same view. Clicking a
+#                  blip will write partner information to fields of
+#                  the model as set in metas:
+#
+#                  partner name    → targetPartner
+#                  partner id      → targetPartnerId
+#                  partner address → targetPartnerAddr
+#                  partner coords  → targetPartnerCoords
+#
+# - highlightIdFields: a list of fields of the same model which
+#                      contain ids of partners which are to be
+#                      highlighted on the map
+#
+# - currentBlipType: one of types listed in the iconFromType map, used
+#                    to set the name icon used fo the «current blip».
+#                    Current blip is enabled only when geocoding is
+#                    active (see targetAddr).
 this.initOSM = (el, parentView) ->
   return if $(el).hasClass("olMap")
 
@@ -88,7 +132,7 @@ this.initOSM = (el, parentView) ->
 
   osmap = new OpenLayers.Map(el.id)
   osmap.addLayer(new OpenLayers.Layer.OSM())
-  
+
   # Default location
   osmap.setCenter(new OpenLayers.LonLat(37.617874,55.757549)
                   .transform(wsgProj, osmProj),
@@ -97,45 +141,66 @@ this.initOSM = (el, parentView) ->
 
   coord_field = modelField(modelName, fieldName).meta["targetCoords"]
   addr_field = modelField(modelName, fieldName).meta["targetAddr"]
+  current_blip_type = modelField(modelName, fieldName).meta["currentBlipType"] or "default"
 
+  ## Bind the map to geocode address & coordinates
 
   # Place a blip and recenter if coordinates are already known
   if coord_field?
-    # TODO Drop hardcoded name of the case view (case-form)
-    coords = global.viewsWare['case-form'].knockVM[coord_field]()
+    coord_meta = splitFieldInView(coord_field, parentView)
+
+    coords = findVM(coord_meta.view)[coord_meta.field]()
     if coords?
       coords = lonlatFromShortString(coords)
-      osmap.setCenter(coords.transform(wsgProj, osmProj), zoomLevel)
-      carBlip(osmap, coords)
+      osmap.setCenter coords.transform(wsgProj, osmProj), zoomLevel
+      currentBlip osmap, coords, current_blip_type
 
-  # Setup handler if map is clickable
+  # Setup handler to update address and coordinates if the map is
+  # clickable
   if addr_field?
+    addr_meta = splitFieldInView(addr_field, parentView)
+    
     osmap.events.register("click", osmap, (e) ->
       coords = osmap.getLonLatFromViewPortPx(e.xy)
                .transform(osmProj, wsgProj)
 
       if coord_field?
-        global.viewsWare['case-form']
-        .knockVM[coord_field](coords.toShortString())
+        # coord_view_name and coord_field are already known as per
+        # coord_field? branch in geocoding setup
+        findVM(coord_meta.view)[coord_meta.field](coords.toShortString())
 
       $.getJSON(nominatimRevQuery(coords.lon, coords.lat),
       (res) ->
         addr = buildReverseAddress(res)
 
-        global.viewsWare['case-form'].knockVM[addr_field](addr)
+        findVM(addr_meta.view)[addr_meta.field](addr)
 
-        carBlip(osmap, osmap.getLonLatFromViewPortPx(e.xy))
+        currentBlip osmap, osmap.getLonLatFromViewPortPx(e.xy), current_blip_type
       )
     )
+
+  ## Read coordinates of static coordinate blips and place them on the map
+  more_coord_field = modelField(modelName, fieldName).meta["moreCoords"]
+  if more_coord_field?
+    more_coord_metas = _.map more_coord_field, splitFieldInView
+    more_coords = _.map more_coord_metas, (fm) -> findVM(fm.view)[fm.field]()
+    for c in more_coords
+      extraBlip osmap, (lonlatFromShortString c).transform(wsgProj, osmProj), "Extras"
+
+
+  ## Bind map to partner list
 
   partner_field = modelField(modelName, fieldName).meta["targetPartner"]
 
   if partner_field?
-    partnerAddr_field = modelField(modelName, fieldName).meta["targetPartnerAddr"]
-  
+    partner_id_field = modelField(modelName, fieldName).meta["targetPartnerId"]
+    partner_addr_field = modelField(modelName, fieldName).meta["targetPartnerAddr"]
+    partner_coords_field = modelField(modelName, fieldName).meta["targetPartnerCoords"]
+
     table_field = modelField(modelName, fieldName).meta["partnerTable"]
     table = view.find("table##{table_field}")
 
+    hl_fields = modelField(modelName, fieldName).meta["highlightIdFields"]
     # Redraw partner blips on map when dragging or zooming
     osmap.events.register("moveend", osmap, (e) ->
       # Calculate new bounding box
@@ -149,7 +214,11 @@ this.initOSM = (el, parentView) ->
         # Use cache from table beneath a map for partner metadata
         partnerBlips(
           osmap, pres, table.data("cache"),
-          parentView, partner_field, partnerAddr_field)
+          parentView,
+          # Fetch current values of fields listed in highlightIdFields
+          _.map(hl_fields,
+            (f) -> findVM(parentView)[f]()),
+          partner_id_field, partner_field, partner_addr_field, partner_coords_field)
       )
     )
     # This is a workaround to make sure table cache is loaded prior to
@@ -162,85 +231,132 @@ this.initOSM = (el, parentView) ->
   $(el).data("osmap", osmap)
 
 
-# Move the car crash blip on the map
-this.carBlip = (osmap, coords) ->
-  ico = new OpenLayers.Icon(carIcon, iconSize)
-  markers = reinstallMarkers(osmap, "Car")
+# Move the current position blip on a map.
+#
+# - type: one of types in iconFromType
+this.currentBlip = (osmap, coords, type) ->
+  ico = new OpenLayers.Icon(iconFromType[type], iconSize)
+  markers = reinstallMarkers(osmap, "CURRENT")
   markers.addMarker(
+    new OpenLayers.Marker(coords, ico))
+
+
+# Place the blip on a (possibly existing) layer of a map, preserving
+# the existing blips. Extra blips use the "default" icon.
+this.extraBlip = (osmap, coords, layerName) ->
+  layers = osmap.getLayersByName(layerName)
+  if (!_.isEmpty(layers))
+    layer = layers[0]
+  else
+    layer = new OpenLayers.Layer.Markers(layerName)
+    osmap.addLayer(layer)
+
+  ico = new OpenLayers.Icon(iconFromType.default, iconSize)
+  layer.addMarker(
     new OpenLayers.Marker(coords, ico))
 
 
 # Render list of partner markers on the map
 #
 # Arguments:
-# 
+#
 # - osmap: map to render on
-# 
+#
 # - partners: a list of [id, lon, lat] triples
 #
 # - tableCache: a hash of all partners, where key is id and value is
 #               an object with fields "name", "addrDeFacto", "phone1",
 #               "workingTime", "isMobile"
 #
-# - parentView: parentView for contractor
+# - highlightIds: highlight partners with numeric ids from this list
 # 
+# - parentView: parentView for contractor
+#
 # - partnerField: clicking a button in marker popup will set this
 #                 value in given VM to partner name
 #
 # - partnerAddrField: same as partnerField, but for partner address
-this.partnerBlips = (osmap, partners, tableCache,
-                     parentView, partnerField, partnerAddrField) ->
+# - partnerCoordsField: ... but for partner coordinates
+this.partnerBlips = (osmap,
+                     partners, tableCache,
+                     parentView,
+                     highlightIds,
+                     partnerIdField, partnerField,
+                     partnerAddrField, partnerCoordsField) ->
   markers = do (osmap) -> reinstallMarkers(osmap, "Partners")
   tpl = $("#partner-popup-template").html()
 
   for blip in partners
     do (blip) ->
-      # Skip partners not in table
-      return if not tableCache[blip[0]]
+      id = blip[0]
+      hl = _.include(highlightIds, fullPartnerId(id))
       
-      partner = tableCache[blip[0]]
+      # Skip partners not in table
+      return if not (tableCache[id])
+
+      partner = tableCache[id]
+
       coords = new OpenLayers.LonLat(blip[1], blip[2])
-                   .transform(wsgProj, osmProj)
+
+      # Readable coords in WSG
+      string_coords = coords.toShortString()
+      # Coords to use for map blip
+      coords = coords.transform(wsgProj, osmProj)
 
       if partner.isMobile
-        mrk = new OpenLayers.Marker(
-          coords, new OpenLayers.Icon(towIcon, iconSize))
+        ico = towIcon
       else
         if (partner.isDealer == "1")
-          mrk = new OpenLayers.Marker(
-            coords, new OpenLayers.Icon(dealerIcon, iconSize))
+          ico = dealerIcon
         else
-          mrk = new OpenLayers.Marker(
-            coords, new OpenLayers.Icon(partnerIcon, iconSize))
+          ico = partnerIcon
+
+      if (hl)
+        ico = hlIconName(ico)
+
+      mrk = new OpenLayers.Marker(
+          coords, new OpenLayers.Icon(ico, iconSize))
 
       # Show partner info from table cache when clicking marker
       mrk.events.register("click", mrk, (e) ->
 
         # Let popup know where to put new partner data
         extra_ctx =
-          id: blip[0]
+          numid: id
+          mapId: osmap.div.id
           parentView: parentView
           partnerField: partnerField
+          partnerIdField: partnerIdField
           partnerAddrField: partnerAddrField
+          partnerCoordsField: partnerCoordsField
+          coords: string_coords
         ctx =_.extend(partner, extra_ctx)
-        
+
         popup = new OpenLayers.Popup.FramedCloud(
           partner.id, mrk.lonlat,
           new OpenLayers.Size(200, 200),
           Mustache.render(tpl, ctx),
           null, true)
-          
+
         osmap.addPopup(popup))
       markers.addMarker(mrk)
 
 
-# Splice partner data into specified fields of reference
-this.pickPartnerBlip = (referenceView,
-                        partnerName, partnerAddr,
-                        partnerField, partnerAddrField) ->
-  vm = findReferenceVM(referenceView)
+# Splice partner data into specified fields of a reference
+#
+# TODO We have to store all data in the associated HTML because
+# partner table is in a different view and thus is inaccessible.
+this.pickPartnerBlip = (
+   referenceView, mapId,
+   partnerId, partnerName, partnerAddr, partnerCoords,
+   partnerIdField, partnerField, partnerAddrField, partnerCoordsField) ->
+    
+  $("#" + mapId).data("osmap").events.triggerEvent("moveend")
+  vm = findVM(referenceView)
+  vm[partnerIdField](partnerId)
   vm[partnerField](partnerName)
   vm[partnerAddrField](partnerAddr)
+  vm[partnerCoordsField](partnerCoords)
 
 
 # Read "32.54, 56.21" (the way coordinates are stored in model fields)
@@ -258,14 +374,11 @@ this.lonlatFromShortString = (coords) ->
 #              (recenter & set new blip on map)
 #
 # - targetCoords: name of field to write geocoding results into
-#                 (coordinates in "lon, lat" format). If this meta is
-#                 set, map will be recenter upon map setup using value
-#                 stored in the referenced field.
+#                 (coordinates in "lon, lat" format). This meta is
+#                 also used by the map to set the initial position
+#                 (see initOSM docs).
 #
-# - cityField: used with field value for geocoder query
-#
-# TODO: Currently geoPicker fills fields of the `case` model. View for
-# this model is hardcoded.
+# - cityField: name of field that contains city; currently unused.
 # 
 # Arguments are picker field name and picker element.
 this.geoPicker = (fieldName, el) ->
@@ -273,36 +386,32 @@ this.geoPicker = (fieldName, el) ->
               .children("input[name=#{fieldName}]")
               .val()
 
+  viewName = elementView($(el)).id
   view = $(elementView($(el)))
-  modelName = elementModel($(el))
-  
+  modelName = elementModel $(el)
+
   coord_field = modelField(modelName, fieldName).meta['targetCoords']
   map_field = modelField(modelName, fieldName).meta['targetMap']
-  city_field = modelField(modelName, fieldName).meta['cityField']
-
-  # TODO Drop hardcoded name of the «real» parent view (case-form)
-  if city_field?
-    addr = addr + ", " + global.viewsWare['case-form'].knockVM[city_field]()
 
   $.getJSON(nominatimQuery(addr), (res) ->
     if res.length > 0
       lonlat = new OpenLayers.LonLat(res[0].lon, res[0].lat)
 
       if coord_field?
-        global.viewsWare['case-form'].knockVM[coord_field](lonlat.toShortString())
+        findVM(viewName)[coord_field](lonlat.toShortString())
 
       if map_field?
         osmap = view.find("[name=#{map_field}]").data("osmap")
         osmap.setCenter(
               lonlat.transform(wsgProj, osmProj),
               zoomLevel)
-        carBlip(osmap, osmap.getCenter()))
+        currentBlip(osmap, osmap.getCenter()))
 
 
 # Reverse geocoding picker (coordinates -> address)
 #
 # Recognized field metas:
-# 
+#
 # - targetMap
 #
 # - targetAddr
@@ -312,6 +421,7 @@ this.reverseGeoPicker = (fieldName, el) ->
       $(el).parents('.input-append')
            .children("input[name=#{fieldName}]")
            .val())
+  viewName = elementView($(el)).id
   view = $(elementView($(el)))
   modelName = elementModel($(el))
 
@@ -323,12 +433,11 @@ this.reverseGeoPicker = (fieldName, el) ->
   if map_field?
     osmap = view.find("[name=#{map_field}]").data("osmap")
     osmap.setCenter(osmCoords, zoomLevel)
-    carBlip(osmap, osmap.getCenter())
+    currentBlip(osmap, osmap.getCenter())
 
   if addr_field?
     $.getJSON(nominatimRevQuery + "lon=#{coords.lon}&lat=#{coords.lat}",
       (res) ->
         addr = buildReverseAddress(res)
-
-        global.viewsWare['case-form'].knockVM[addr_field](addr)
+        findVM(viewName)[addr_field](addr)
     )

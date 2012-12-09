@@ -107,6 +107,7 @@ services =
   ,"deliverClient"
   ,"averageCommissioner"
   ,"insurance"
+  ,"consultation"
   ]
 
 serviceDefaults = Map.fromList

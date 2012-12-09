@@ -12,10 +12,10 @@ import Snap
 import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple (Postgres, HasPostgres(..))
 import Snap.Snaplet.RedisDB (RedisDB)
-import Snaplet.DbLayer.Indices
+import Carma.ModelTables (TableDesc)
 import Snap.Snaplet.SimpleLog
 
-import qualified Database.PostgreSQL.Models as SM
+import qualified Database.PostgreSQL.Sync.Base as SM
 
 import qualified WeatherApi as W
 
@@ -43,9 +43,9 @@ data DbLayer b = DbLayer
     ,_postgres :: Snaplet Postgres
     ,_dbLog    :: Snaplet SimpleLog
     ,triggers  :: TriggersConfig
-    ,indices   :: Indices
     ,fdds      :: Fdds.Conf
-    ,syncModels:: SM.Models
+    ,syncRelations :: SM.Relations
+    ,syncTables :: [TableDesc]
     ,allUsers  :: UsersDict
     ,dictCache :: TVar DictCache
     ,weather   :: W.Config

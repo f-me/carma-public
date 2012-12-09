@@ -108,10 +108,40 @@
         },
         {
             "targets": [
+                "towAddress_address"
+            ],
+            "meta": {
+                "targetMap": "towAddress_map",
+                "targetCoords": "towAddress_coords"
+            }
+        },
+        {
+            "targets": [
+                "towAddress_coords"
+            ],
+            "meta": {
+                "targetMap": "towAddress_map",
+                "targetAddr": "towAddress_address"
+            }
+        },
+        {
+            "targets": [
+                "towAddress_map"
+            ],
+            "meta": {
+                "targetAddr": "towAddress_address",
+                "targetCoords": "towAddress_coords",
+                "currentBlipType": "dealer",
+                "moreCoords": ["case-form/caseAddress_coords"]
+            }
+        },
+        {
+            "targets": [
                 "towAddress_address",
                 "towAddress_coords",
                 "towAddress_city",
-                "towAddress_comment"
+                "towAddress_comment",
+                "towAddress_map"
             ],
             "canRead": [
                 "partner",
@@ -278,10 +308,40 @@
         },
         {
             "targets": [
+                "towerAddress_address"
+            ],
+            "meta": {
+                "targetMap": "towerAddress_map",
+                "targetCoords": "towerAddress_coords"
+            }
+        },
+        {
+            "targets": [
+                "towerAddress_coords"
+            ],
+            "meta": {
+                "targetMap": "towerAddress_map",
+                "targetAddr": "towerAddress_address"
+            }
+        },
+        {
+            "targets": [
+                "towerAddress_map"
+            ],
+            "meta": {
+                "targetAddr": "towerAddress_address",
+                "targetCoords": "towerAddress_coords",
+                "currentBlipType": "tow",
+                "moreCoords": ["case-form/caseAddress_coords"]
+            }
+        },
+        {
+            "targets": [
                 "towerAddress_address",
                 "towerAddress_coords",
                 "towerAddress_city",
-                "towerAddress_comment"
+                "towerAddress_comment",
+                "towerAddress_map"
             ],
             "canRead": [
                 "partner",
@@ -317,15 +377,20 @@
             ],
             "meta": {
                 "targetPartner": "towDealer_partner",
+                "targetPartnerId": "towDealer_partnerId",
                 "targetPartnerAddr": "towDealer_address",
-                "partnerTable": "towDealer_partnerTable"
+                "targetPartnerCoords": "towDealer_coords",
+                "partnerTable": "towDealer_partnerTable",
+                "highlightIdFields": ["contractor_partnerId", "towDealer_partnerId"]
             }
         },
         {
             "targets": [
                 "towDealer_partner",
+                "towDealer_partnerId",
                 "towDealer_partnerTable",
                 "towDealer_partnerMap",
+                "towDealer_coords",
                 "towDealer_address"
             ],
             "canRead": [
@@ -362,15 +427,20 @@
             ],
             "meta": {
                 "targetPartner": "contractor_partner",
+                "targetPartnerId": "contractor_partnerId",
                 "targetPartnerAddr": "contractor_address",
-                "partnerTable": "contractor_partnerTable"
+                "targetPartnerCoords": "contractor_coords",
+                "partnerTable": "contractor_partnerTable",
+                "highlightIdFields": ["contractor_partnerId", "towDealer_partnerId"]
             }
         },
         {
             "targets": [
                 "contractor_partner",
+                "contractor_partnerId",
                 "contractor_partnerTable",
                 "contractor_partnerMap",
+                "contractor_coords",
                 "contractor_address"
             ],
             "canRead": [
@@ -829,6 +899,41 @@
             "groupName": "partner",
             "meta": {
                 "label": "Дилер"
+            }
+        },
+       {
+            "name": "dealerDistance",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman"
+            ],
+            "meta": {
+                "readonly": true,
+                "label": "Расстояние до дилера",
+                "distanceTo1": "case-form/caseAddress_coords",
+                "distanceTo2": "towAddress_coords"
             }
         },
         {
