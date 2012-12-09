@@ -48,6 +48,7 @@ services =
   ,"sober"
   ,"taxi"
   ,"tech"
+  ,"tech1"
   ,"towage"
   ,"transportation"
   ,"ken"
