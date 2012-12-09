@@ -127,7 +127,7 @@ actions
                 Right car -> do
                   set objId "vinChecked" "base"
                   let setIfEmpty (name,val)
-                        | name == "plateNum" = return ()
+                        | name == "car_plateNum" = return ()
                         | otherwise = do
                           val' <- get objId name
                           when (val' == "") $ set objId name val
