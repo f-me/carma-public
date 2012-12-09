@@ -2,10 +2,12 @@ this.setupRKCScreen = (viewName, args) ->
   setTimeout ->
     caset = $("#rkc-services-table")
     frontt = $('#rkc-operators-table')
+    backt = $("#rkc-back-office-table")
     eachao = $('#rkc-each-action-op-avg-table')
 
     return if caset.hasClass("dataTable")
     return if frontt.hasClass('dataTable')
+    return if backt.hasClass("dataTable")
     return if eachao.hasClass("dataTable")
 
     actstbl = {}
@@ -19,6 +21,7 @@ this.setupRKCScreen = (viewName, args) ->
 
     ct = mkDataTable caset, { bFilter: false, bInfo: false }
     ft = mkDataTable frontt, { bFilter: false, bInfo: false }
+    bt = mkDataTable backt, { bFilter: false, bInfo: false }
     eat = mkDataTable eachao, { bFilter: false, bInfo: false }
 
     totalServices = $('#total-services')
@@ -71,6 +74,7 @@ this.setupRKCScreen = (viewName, args) ->
         dict = global.dictValueCache
         ct.fnClearTable()
         ft.fnClearTable()
+        bt.fnClearTable()
         eat.fnClearTable()
 
         totalServices.val(result.case.summary.total)
@@ -103,6 +107,15 @@ this.setupRKCScreen = (viewName, args) ->
 
         totalActions.val(result.back.summary.total)
         totalIncompleteActions.val(result.back.summary.undone)
+
+        brows = for binfo in result.back.actions
+          brow = [
+            dict.ActionNames[binfo.name] || binfo.name,
+            binfo.total,
+            binfo.undone,
+            Math.floor(binfo.average / 60) + ":" + (binfo.average % 60)]
+
+        bt.fnAddData(brows)
 
         eavision = []
         eavision.length = actstbl.cols.length
