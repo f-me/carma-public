@@ -121,49 +121,42 @@ fillEventsHistory = (knockVM) -> ->
   return unless $("#call-searchtable")[0]
 
   phone = knockVM['contact_phone1']()
-  $.getJSON "/ix/callsByPhone/#{phone}", (calls) ->
+  $.getJSON "/callsByPhone/#{phone}", (calls) ->
     $.getJSON "/actionsFor/#{knockVM.id()}", (actions) ->
       st.fnClearTable()
       dict = global.dictValueCache
 
       for i of calls
         obj = calls[i]
-        continue if obj.id.length > 10
-        wazzup  = dict.Wazzup[obj.wazzup] || obj.wazzup || ''
-        wazzupMsg  = "Что случилось: #{wazzup}"
-        callerName = "ФИО: #{obj.callerName_name || ''}"
-        city = dict['DealerCities'][obj.city]
-        cityMsg = "Город: #{city || ''}"
-        program = global.dictionaries['Programs'][obj.program]
-        programMsg = "Программа: #{program || ''}"
-        make = dict['CarMakers'][obj.make]
-        makeMsg = "Марка: #{make || ''}"
-        model = dict['CarModels'][obj.model]
-        modelMsg = "Модель: #{model || ''}"
-        callTaker = "Сотрудник РАМК: #{obj.callTaker || ''}"
         callDate = if obj.callDate
             new Date(obj.callDate * 1000).toString("dd.MM.yyyy HH:mm")
           else
             ''
+        comment = []
+        wazzup  = dict.Wazzup[obj.wazzup] || obj.wazzup || ''
+        comment.push("Что случилось: #{wazzup}") if wazzup
         callType = dict.CallerTypes[obj.callType] || obj.callType || ''
-        callTypeMsg = "Тип звонка: #{callType}"
+        comment.push("Тип звонка: #{callType}") if callType
+        comment.push("ФИО: #{obj.callerName_name}") if obj.callerName_name
+        city = dict['DealerCities'][obj.city]
+        comment.push("Город: #{city}") if city
+        program = global.dictionaries['Programs'][obj.program]
+        comment.push("Программа: #{program}") if program
+        make = dict['CarMakers'][obj.make]
+        comment.push("Марка: #{make}") if make
+        model = dict['CarModels'][obj.model]
+        comment.push("Модель: #{model}") if model
+        comment.push("Сотрудник РАМК: #{obj.callTaker}") if obj.callTaker
         row = [ callDate
               , obj.callTaker || ''
               , "звонок"
-              , "#{wazzupMsg},<br />
-                 #{callTypeMsg},<br />
-                 #{callerName},<br />
-                 #{cityMsg},<br />
-                 #{programMsg},<br />
-                 #{makeMsg},<br />
-                 #{modelMsg},<br />
-                 #{callTaker}"
+              , comment.join("<br/>")
               , ''
               ]
 
         st.fnAddData(row)
 
-      for r in actions when r.closeTime
+      for r in actions
         result = dict.ActionResults[r.result] or ''
         name = dict.ActionNames[r.name] or ''
         aTo  = global.dictValueCache['users'][r.assignedTo] or
@@ -173,7 +166,7 @@ fillEventsHistory = (knockVM) -> ->
               , name
               , r.comment or ''
               , result ]
-            
+
         st.fnAddData(row)
 
       return if _.isEmpty knockVM['comments']()
@@ -185,28 +178,8 @@ fillEventsHistory = (knockVM) -> ->
                      , ""
                      ]
 
-# render checkboxes, trueChecks contains list with names,
-# tha should be rendered as checked
-renderChecks = (name, trueChecks) ->
-  str = ""
-  tpl = $("#check-list-item-template").html()
-  if _.has(global.checks, name)
-    for n of global.checks[name]["checks"]
-      check = global.checks[name]["checks"][n]
-      v = $(Mustache.render(tpl, check))
-      if hasL(trueChecks, check.name)
-        v.find('input:checkbox').attr('checked', true)
-      str += v.outerHTML()
-  return str
-
 this.removeCaseMain = ->
   $("body").off "change.input"
-
-# Find VM of reference by its view
-this.findReferenceVM = (view) ->
-  kase = global.viewsWare["case-form"].knockVM
-  return _.find(kase.servicesReference(),
-                (svc) -> svc.view is view)
 
 # get partners and show them in table
 # this is called from local.coffe:showCase
@@ -215,9 +188,7 @@ this.initPartnerTables = ($view,parentView) ->
   partnerType = m[1]
   table = $view.find("table##{partnerType}_partnerTable")
   kase = global.viewsWare["case-form"].knockVM
-  svc = _.find(
-          kase.servicesReference(),
-          (svc) -> svc.view is parentView)
+  svc = findCaseOrReferenceVM(parentView)
 
   unless table.hasClass("dataTable")
     mkDataTable(table)
@@ -229,10 +200,10 @@ this.initPartnerTables = ($view,parentView) ->
       svc["#{partnerType}_address"]("#{city}, #{addr}")
 
   table = table.dataTable()
-  fields = "id,name,city,addrDeFacto,phone1,workingTime,isDealer,isMobile"
   dealer = if partnerType is "towDealer" then 1 else 0
-  select = "city==#{kase.cityLocal()},isActive==1,isDealer==#{dealer}"
-  $.getJSON "/all/partner?fields=#{fields}&select=#{select}", (objs) ->
+  select = ["isActive=1", "isDealer=#{dealer}"]
+  select.push("city=#{kase.cityLocal()}") if kase.cityLocal()
+  $.getJSON "/allPartners?#{select.join('&')}", (objs) ->
     # Store partner cache for use with maps
     cache = {}
     rows = for p in objs

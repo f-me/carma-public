@@ -1,24 +1,34 @@
  #! /usr/bin/env bash
 
 # --------------------------------------
-# Import partner data from Redis. Output files:
+# 
+# Import partner data from CaRMa and attempt to geocode. 
 #
-# 1. geofixer-****.result.txt
-#     id|name|city|address|lon|lat 
+# Usage:
 #
-# 2. geofixer-****.log
-#    readable processing log
+#    bash geofix.sh
+#
+# Output files:
+#
+# 1. geofix-****.result.txt
+#    id|name|city|address|lon|lat 
+#
+# 2. geofix-****.log
+#
+#    Readable processing log
+#
+# 3. geofix-****.source.txt
+#    id|name|city|address
+#
+#    Intermediate list of partners as stored in Redis
 #
 # Certified for GNU Enterprise Bash 2012
+#
 # --------------------------------------
 
 # Delay between consecutive geocoding requests
 
 DELAY=0.1
-
-POSTGRES_DB="carma"
-
-POSTGRES_TABLE="geo_partners"
 
 YANDEX_HTTP="http://geocode-maps.yandex.ru/1.x/"
 
@@ -50,7 +60,7 @@ command-exists-p jq
 command-exists-p curl
 file-exists-p ${POSTAL_DB}
 
-LOG=$(mktemp geofixer-XXXXXX.log)
+LOG=$(mktemp geofix-XXXXXX.log)
 SOURCE_LIST=${LOG%log}source.txt
 RES_LIST=${LOG%log}result.txt
 RES_SQL=${LOG%log}sql
@@ -66,7 +76,9 @@ dest () {
 
 echo "Writing source partner list to ${SOURCE_LIST}"
 
-# Fetch list of `pid|city|address` entries
+# Fetch list of `id|name|city|address` entries
+#
+# TODO Ignore partners with non-null coords.
 curl ${PARTNERS_HTTP} 2>/dev/null | \
     jq -r '.[] | .id + "|" + .name + "|" + .city + "|" + .addrDeFacto' | \
     cut -d: -f2 > ${SOURCE_LIST}
@@ -83,6 +95,9 @@ do
 
     log "${id}: name='${name}'"
     log "${id}: city='${city}', address='${addr}'"
+
+    new_name=$(echo ${name} | sed -e 's/[[:space:]]*$//')
+    log "${id}: new name='${new_name}'"
 
     # We expect that city and address are both specified. If not, we
     # attempt to derive city from postal code specified in the
@@ -119,7 +134,7 @@ do
     # Include city in address, avoiding dupes
     if [ "${city}" ]
     then
-        addr=$(echo ${addr} | sed -e "s!${city}!!" | sed -e "s!г.!!")
+        addr=$(echo ${addr} | sed -e "s!${city}!!" | sed -e "s!г\.!!")
         addr="${city} ${addr}"
     fi
 
@@ -152,7 +167,7 @@ do
             new_city=${city}
         fi
 
-        # Reverse geocoe address
+        # Reverse geocode address
         new_addr=$(echo ${res} | \
             jq -r '.name')
 
@@ -164,7 +179,7 @@ do
 
         log "${id}: new city='${new_city}', new address='${new_addr}'"
         # Show changes in result
-        dest "${id}|${name}|${new_city}|${new_addr}|${lon}|${lat}"
+        dest "${id}|${new_name}|${new_city}|${new_addr}|${lon}|${lat}"
     fi
     sleep ${DELAY}
 done < ${SOURCE_LIST}

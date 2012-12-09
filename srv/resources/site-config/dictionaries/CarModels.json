@@ -62,6 +62,82 @@
                 "label": "C2"
             },
             {
+                "value": "berlingo",
+                "label": "Berlingo"
+            },
+            {
+                "value": "c15",
+                "label": "C15"
+            },
+            {
+                "value": "c3Picasso",
+                "label": "C3 Picasso"
+            },
+            {
+                "value": "c3Pluriel",
+                "label": "C3 Pluriel"
+            },
+            {
+                "value": "c4Aircross",
+                "label": "C4 Aircross"
+            },
+            {
+                "value": "c4Picasso",
+                "label": "C4 Picasso"
+            },
+            {
+                "value": "c8",
+                "label": "C8"
+            },
+            {
+                "value": "cCrosser",
+                "label": "C-Crosser"
+            },
+            {
+                "value": "cZero",
+                "label": "C-Zero"
+            },
+            {
+                "value": "ds3",
+                "label": "DS3"
+            },
+            {
+                "value": "ds4",
+                "label": "DS4"
+            },
+            {
+                "value": "ds5",
+                "label": "DS5"
+            },
+            {
+                "value": "jumper",
+                "label": "Jumper"
+            },
+            {
+                "value": "jumpy",
+                "label": "Jumper"
+            },
+            {
+                "value": "nemo",
+                "label": "Nemo"
+            },
+            {
+                "value": "saxo",
+                "label": "Saxo"
+            },
+            {
+                "value": "xsaraPicasso",
+                "label": "Xsara Picasso"
+            },
+            {
+                "value": "zx",
+                "label": "ZX"
+            },
+            {
+                "value": "evasionJumpy",
+                "label": "Evasion/Jumpy"
+            },
+            {
                 "value": "c3",
                 "label": "C3"
             },
@@ -873,7 +949,7 @@
             },
             {
                 "value": "cMax",
-                "label": "C-Max"
+                "label": "Focus C-Max"
             },
             {
                 "value": "aspire",
@@ -1146,6 +1222,74 @@
             {
                 "value": "206",
                 "label": "206"
+            },
+            {
+                "value": "106",
+                "label": "106"
+            },
+            {
+                "value": "208",
+                "label": "208"
+            },
+            {
+                "value": "309",
+                "label": "309"
+            },
+            {
+                "value": "508",
+                "label": "508"
+            },
+            {
+                "value": "807",
+                "label": "807"
+            },
+            {
+                "value": "1007",
+                "label": "1007"
+            },
+            {
+                "value": "3008",
+                "label": "3008"
+            },
+            {
+                "value": "4007",
+                "label": "4007"
+            },
+            {
+                "value": "4008",
+                "label": "4008"
+            },
+            {
+                "value": "5008",
+                "label": "5008"
+            },
+            {
+                "value": "206+",
+                "label": "206+"
+            },
+            {
+                "value": "bipper",
+                "label": "Bipper"
+            },
+            {
+                "value": "boxer",
+                "label": "Boxer"
+            },
+            {
+                "value": "expert",
+                "label": "Expert"
+            },
+            {
+                "value": "ion",
+                "label": "Ion"
+            },
+            {
+                "value": "partner",
+                "label": "Partner"
+            },
+            {
+                "value": "rcz",
+                "label": "RCZ"
             },
             {
                 "value": "207",

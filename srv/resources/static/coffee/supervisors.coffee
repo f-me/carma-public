@@ -47,10 +47,13 @@ this.setupSupervisorScreen = (viewName, args) ->
     $('#date-max').val d2.toString('dd.MM.yyyy HH:mm')
     dtRedraw dt
 
-drawTable = (dt, select) ->
-  fields = "id,caseId,parentId,closed,name,assignedTo,targetGroup
-,duetime,result,priority"
-  $.getJSON "/all/action?select=#{select}&fields=#{fields}",
+drawTable = (dt, opt) ->
+  select = []
+  select.push("closed=#{opt.closed}") if opt.closed
+  select.push("targetGroup=#{opt.targetGroup}") if opt.targetGroup
+  select.push("duetimeFrom=#{opt.duetimeFrom}") if opt.duetimeFrom
+  select.push("duetimeTo=#{opt.duetimeTo}") if opt.duetimeTo
+  $.getJSON "/allActions?#{select.join('&')}",
       (objs) ->
           dt.fnClearTable()
 
@@ -60,7 +63,6 @@ drawTable = (dt, select) ->
           g = global.dictValueCache['Roles']
 
           rows = for obj in objs
-            sid = obj.id.split(':')[1]
             svcName = obj.parentId.split(':')[0]
             svcName = global.models[svcName].title
             cid = obj.caseId.split(':')[1]
@@ -70,7 +72,7 @@ drawTable = (dt, select) ->
                  'Открыто'
             duetime = new Date(obj.duetime * 1000)
               .toString("dd.MM.yyyy HH:mm:ss")
-            [ "#{cid}/#{sid} (#{svcName})"
+            [ "#{cid}/#{obj.id} (#{svcName})"
             , closed
             , n[obj.name] || ''
             , u[obj.assignedTo] || ''
@@ -88,9 +90,8 @@ dtRedraw = (dt) ->
   d1 = Date.parse $('#date-min').val()
   d2 = Date.parse $('#date-max').val()
   return unless d1 and d2
-  s = sb(d1, d2)
-  s += ", targetGroup==#{$('#role').val()}" if $('#role').val()
-  s += ", closed==#{$('#closed').val()}" if $('#closed').val()
-  drawTable dt, s
-
-sb = (d1,d2) -> "duetime>=#{toUnix d1}, duetime<=#{toUnix d2}"
+  drawTable dt,
+    closed: $('#closed').val()
+    targetGroup: $('#role').val()
+    duetimeFrom: toUnix d1
+    duetimeTo: toUnix d2

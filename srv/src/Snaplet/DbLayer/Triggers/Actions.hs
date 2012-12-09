@@ -57,6 +57,7 @@ services =
   ,"deliverClient"
   ,"averageCommissioner"
   ,"insurance"
+  ,"consultation"
   ]
 
 add model field tgs = Map.unionWith (Map.unionWith (++)) $ Map.singleton model (Map.singleton field tgs)
@@ -69,6 +70,15 @@ actions
     $ add "hotel"  "providedFor"    [\objId val -> setSrvMCost objId]
     $ add "towage" "contractor_address" [
       \objId val -> set objId "towerAddress_address" val
+      ]
+    $ add "towage" "towDealer_address" [
+      \objId val -> set objId "towAddress_address" val
+      ]
+    $ add "towage" "contractor_coords" [
+      \objId val -> set objId "towerAddress_coords" val
+      ]
+    $ add "towage" "towDealer_coords" [
+      \objId val -> set objId "towAddress_coords" val
       ]
     $ Map.fromList
       $ [(s,serviceActions) | s <- services]
@@ -239,9 +249,6 @@ serviceActions = Map.fromList
   )
   ,("contractor_partner",
     [\objId val -> do
-        Right partnerIds <- lift $ runRedisDB redis $ Redis.keys "partner:*"
-        p <- filterM (\id -> (val ==) <$> get id "name") partnerIds
-        unless (null p) $ set objId "contractor_partnerId" (head p)
         opts <- get objId "cost_serviceTarifOptions"
         let ids = B.split ',' opts
         lift $ runRedisDB redis $ Redis.del ids
@@ -296,13 +303,17 @@ actionActions = Map.fromList
     ,\objId _al -> dateNow id >>= set objId "closeTime"
     ,\objId val -> maybe (return ()) ($objId)
       $ Map.lookup val actionResultMap
-    ]
-  )]
+    ])
+  ,("closed",
+    [\objId val -> when (val == "1") $ closeAction objId
+    ])
+  ]
 
 actionResultMap = Map.fromList
   [("busyLine",        \objId -> dateNow (+ (5*60))  >>= set objId "duetime" >> set objId "result" "")
   ,("callLater",       \objId -> dateNow (+ (30*60)) >>= set objId "duetime" >> set objId "result" "")
   ,("bigDelay",        \objId -> dateNow (+ (6*60*60)) >>= set objId "duetime" >> set objId "result" "")
+  ,("weekDelay",        \objId -> dateNow (+ (7*24*60*60)) >>= set objId "duetime" >> set objId "result" "")
   ,("partnerNotFound", \objId -> dateNow (+ (2*60*60)) >>= set objId "duetime" >> set objId "result" "")
   ,("clientCanceledService", \objId -> closeAction objId >> sendSMS objId "smsTpl:2")   
   ,("unassignPlease",  \objId -> set objId "assignedTo" "" >> set objId "result" "")
@@ -550,28 +561,30 @@ actionResultMap = Map.fromList
       "analyst" "1" (+360) objId
     set act "assignedTo" ""
   )    
-  ,("vwclosed", closeAction
-  )   
+  ,("vwclosed", closeAction)
   ,("accountConfirm", \objId -> do
     act <- replaceAction
       "analystCheck"
       "Обработка аналитиком"
       "analyst" "1" (+360) objId
     set act "assignedTo" ""
-  )   
+  )
   ,("accountToDirector", \objId -> do
     act <- replaceAction
       "directorCheck"
       "Проверка директором"
       "director" "1" (+360) objId
     set act "assignedTo" ""
-  )   
-  ,("analystChecked", closeAction
-  )    
+  )
+  ,("analystChecked", closeAction)
   ,("caseClosed", \objId -> do
     setService objId "status" "serviceClosed"
-    closeAction objId  
+    closeAction objId
   )
+  ,("partnerGivenCloseTime", \objId -> do
+    tm <- getService objId "times_expectedServiceClosure"  
+    dateNow (changeTime (+5*60) tm) >>= set objId "duetime"
+    set objId "result" "") 
   ,("falseCallWBill", \objId -> do
      setService objId "falseCall" "bill"
      closeAction objId
@@ -585,11 +598,11 @@ actionResultMap = Map.fromList
   ,("clientNotified", \objId -> do
      setService objId "status" "serviceClosed"
      closeAction objId
-  ) 
+  )
   ,("notNeedService", \objId -> do
      setService objId "status" "serviceClosed"
      closeAction objId
-  )   
+  )
   ]
 
 changeTime :: (Int -> Int) -> ByteString -> Int -> Int
@@ -604,7 +617,7 @@ setService objId field val = do
 getService objId field
   = get objId "parentId"
   >>= (`get` field)
-  
+
 
 newPartnerMessage objId = do
   svcId <- get objId "parentId"
@@ -623,7 +636,7 @@ newPartnerMessage objId = do
         ,"phone"  .= phone
         ,"carNum" .= carNum
         ]
-  
+
   void $ new "partnerMessage" $ Map.fromList
     [("ctime", now)
     ,("caseId", kazeId)

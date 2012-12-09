@@ -50,7 +50,8 @@
         {
             "name": "makeYear",
             "meta": {
-                "label": "Год производства автомобиля"
+                "label": "Год производства автомобиля",
+                "sqltype": "integer"
             }
         },
         {
@@ -90,14 +91,16 @@
             "name": "mileage",
             "meta": {
                 "label": "Текущий пробег",
-                "required": true
+                "required": true,
+                "sqltype": "integer"
             }
         },
         {
             "name": "checkupMileage",
             "meta": {
                 "label": "Пробег на последнем ТО",
-                "required": true
+                "required": true,
+                "sqltype": "integer"
             }
         },
         {
@@ -146,7 +149,8 @@
         {
             "name": "checkPeriod",
             "meta": {
-                "label": "Межсервисный интервал"
+                "label": "Межсервисный интервал",
+                "sqltype": "integer"
             }
         },
         {
@@ -201,19 +205,22 @@
         {
             "name": "validUntilMilage",
             "meta": {
-                "label": "Программа действует до (пробег)"
+                "label": "Программа действует до (пробег)",
+                "sqltype": "integer"
             }
         },
         {
             "name": "milageTO",
             "meta": {
-                "label": "Пробег при регистрации в программе"
+                "label": "Пробег при регистрации в программе",
+                "sqltype": "integer"
             }
         },
         {
             "name": "serviceInterval",
             "meta": {
-                "label": "Межсервисный интервал"
+                "label": "Межсервисный интервал",
+                "sqltype": "integer"
             }
         },
         {
@@ -412,7 +419,8 @@
             "name": "expectedCost",
             "meta": {
                 "label": "Ожидаемая стоимость (число)",
-                "infoText": "expextedValue"
+                "infoText": "expextedValue",
+                "sqltype": "integer"
             }
         },
         {
@@ -424,19 +432,22 @@
         {
             "name": "partnerCost",
             "meta": {
-                "label": "Стоимость со слов партнёра (число)"
+                "label": "Стоимость со слов партнёра (число)",
+                "sqltype": "integer"
             }
         },
         {
             "name": "calculatedCost",
             "meta": {
-                "label": "Рассчётная стоимость"
+                "label": "Рассчётная стоимость",
+                "sqltype": "integer"
             }
         },
         {
             "name": "limitedCost",
             "meta": {
-                "label": "Предельная стоимость"
+                "label": "Предельная стоимость",
+                "sqltype": "integer"
             }
         },
         {
@@ -469,7 +480,8 @@
         {
             "name": "billingCost",
             "meta": {
-                "label": "Сумма по счёту"
+                "label": "Сумма по счёту",
+                "sqltype": "integer"
             }
         },
         {
@@ -595,7 +607,7 @@
         {
             "name": "partnerId",
             "meta": {
-                "invisible":true
+                "invisible": true
             }
         },
         {
@@ -605,10 +617,17 @@
             }
         },
         {
+            "name": "coords",
+            "meta": {
+                "label": "Координаты",
+                "invisible": true
+            }
+        },
+        {
             "name": "partnerMap",
             "type": "map",
             "meta": {
-                "targetCoords": "caseAddress_coords"
+                "targetCoords": "case-form/caseAddress_coords"
             }
         },
         {
@@ -679,7 +698,8 @@
         {
             "name": "makeYear",
             "meta": {
-                "label": "Год производства автомобиля"
+                "label": "Год производства автомобиля",
+                "sqltype": "integer"
             }
         },
         {
@@ -713,7 +733,8 @@
                 "name": "counted",
                 "meta": {
                    "label": "Расчетная стоимость",
-                   "readonly": true
+                   "readonly": true,
+                   "sqltype": "decimal(12,4)"
                 }
         },
         {
