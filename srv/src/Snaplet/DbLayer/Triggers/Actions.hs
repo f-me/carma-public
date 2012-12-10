@@ -48,6 +48,7 @@ services =
   ,"sober"
   ,"taxi"
   ,"tech"
+  ,"tech1"
   ,"towage"
   ,"transportation"
   ,"ken"
@@ -283,6 +284,13 @@ serviceActions = Map.fromList
    -- RKC calc 
   ,("suburbanMilage", [\objId val -> setSrvMCost objId])
   ,("providedFor",    [\objId val -> setSrvMCost objId])
+  ,("times_expectedServiceStart",
+    [\objId val -> do
+      let Just tm = fst <$> B.readInt val
+      let h = 3600 -- seconds
+      set objId "times_expectedServiceEnd"     $ B.pack $ show $ tm + 1*h
+      set objId "times_expectedServiceClosure" $ B.pack $ show $ tm + 11*h
+    ])
   ]
 
 resultSet1 =
@@ -330,7 +338,6 @@ actionResultMap = Map.fromList
       "tellClient"
       "Сообщить клиенту о договорённости" 
       "back" "1" (+60) objId
-    
     act <- replaceAction
       "addBill"
       "Прикрепить счёт"

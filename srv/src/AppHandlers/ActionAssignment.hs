@@ -32,7 +32,7 @@ assignQ pri usr logdUsers = fromString
   ++ "    AND   (assignedTo IS NULL"
   ++ "           OR assignedTo NOT IN ('" ++ logdUsersList ++ "'))"
   ++ "    ORDER BY duetime ASC"
-  ++ "    LIMIT " ++ show pri ++ ")"
+  ++ "    LIMIT 1)"
   ++ "  RETURNING id::text;"
   where
     uLogin = T.unpack $ userLogin usr
