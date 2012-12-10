@@ -24,7 +24,7 @@ import AppHandlers.Util
 assignQ :: Int -> AuthUser -> [Text] -> Query
 assignQ pri usr logdUsers = fromString
   $  "UPDATE actiontbl SET assignedTo = '" ++ uLogin ++ "'"
-  ++ "  WHERE id IN (SELECT id FROM actiontbl"
+  ++ "  WHERE id = (SELECT id FROM actiontbl"
   ++ "    WHERE closed = false"
   ++ "    AND   priority = '" ++ show pri ++ "'"
   ++ "    AND   duetime at time zone 'UTC' - now() < interval '30 minutes'"
@@ -32,7 +32,7 @@ assignQ pri usr logdUsers = fromString
   ++ "    AND   (assignedTo IS NULL"
   ++ "           OR assignedTo NOT IN ('" ++ logdUsersList ++ "'))"
   ++ "    ORDER BY duetime ASC"
-  ++ "    LIMIT " ++ show pri ++ ")"
+  ++ "    LIMIT 1)"
   ++ "  RETURNING id::text;"
   where
     uLogin = T.unpack $ userLogin usr
