@@ -323,8 +323,7 @@ actionResultMap = Map.fromList
   ,("bigDelay",        \objId -> dateNow (+ (6*60*60)) >>= set objId "duetime" >> set objId "result" "")
   ,("weekDelay",        \objId -> dateNow (+ (7*24*60*60)) >>= set objId "duetime" >> set objId "result" "")
   ,("partnerNotFound", \objId -> dateNow (+ (2*60*60)) >>= set objId "duetime" >> set objId "result" "")
-  ,("clientCanceledService", \objId -> closeAction objId >> sendSMS objId "smsTpl:2")   
-  ,("unassignPlease",  \objId -> set objId "assignedTo" "" >> set objId "result" "")
+  ,("clientCanceledService", \objId -> closeAction objId >> sendSMS objId "smsTpl:2")
   ,("needPartner",     \objId -> do 
      setService objId "status" "needPartner"
      newAction <- replaceAction
