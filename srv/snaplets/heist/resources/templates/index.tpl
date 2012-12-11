@@ -840,7 +840,7 @@
           </tr>
           <tr>
             <td> Номер происшествия </td>
-            <td data-bind="text: service.id"> </td>
+            <td data-bind="text:kase.id"> </td>
           </tr>
           <tr>
             <td> Дата и время звонка </td>
