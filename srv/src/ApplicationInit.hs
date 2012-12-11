@@ -7,7 +7,6 @@ import Control.Monad.IO.Class
 
 import qualified Data.Map as Map
 import Data.ByteString (ByteString)
-import qualified Data.Text.Encoding as T
 import Data.Configurator
 import Control.Concurrent.STM
 
@@ -32,7 +31,8 @@ import Snaplet.Geo
 ------------------------------------------------------------------------------
 import Application
 import ApplicationHandlers
-import AppHandlers.MyActions
+import AppHandlers.ActionAssignment
+import AppHandlers.CustomSearches
 ----------------------------------------------------------------------
 import Util (readJSON, UsersDict(..))
 
@@ -51,18 +51,19 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/s/screens",     serveFile "resources/site-config/screens.json")
          , ("/report",        chkAuth . method GET  $ report)
          , ("/all/:model",    chkAuth . method GET  $ readAllHandler)
-         , ("/ix/callsByPhone/:phone",
-            chkAuth . method GET  $ searchCallsByPhone)
+         , ("/callsByPhone/:phone",
+                              chkAuth . method GET    $ searchCallsByPhone)
          , ("/actionsFor/:id",chkAuth . method GET    $ getActionsForCase)
          , ("/myActions",     chkAuth . method GET    $ myActionsHandler)
          , ("/allActions",    chkAuth . method GET    $ allActionsHandler)
+         , ("/allPartners",   chkAuth . method GET    $ allPartnersHandler)
          , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)
          , ("/_/:model",      chkAuth . method POST   $ createHandler)
          , ("/_/:model/:id",  chkAuth . method GET    $ readHandler)
          , ("/_/:model/:id",  chkAuth . method PUT    $ updateHandler)
          , ("/_/:model/:id",  chkAuth . method DELETE $ deleteHandler)
          , ("/_/findOrCreate/:model/:id",
-            chkAuth . method POST $ findOrCreateHandler)
+                              chkAuth . method POST $ findOrCreateHandler)
          , ("/_/report/",     chkAuth . method POST $ createReportHandler)
          , ("/_/report/:id",  chkAuth . method DELETE $ deleteReportHandler)
          , ("/search/:model", chkAuth . method GET  $ searchHandler)

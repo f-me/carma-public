@@ -24,10 +24,6 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
-            },
-            {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
             }
         ],
         "orderServiceAnalyst": [
@@ -50,10 +46,6 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
-            },
-            {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
             }
         ],
         "needPartner": [
@@ -68,10 +60,6 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
-            },
-            {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
             },
             {
                 "value": "bigDelay",
@@ -98,10 +86,6 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
-            },
-            {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
             }
         ],
         "cancelService": [
@@ -120,10 +104,6 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
-            },
-            {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
             }
         ],
         "checkStatus": [
@@ -146,10 +126,6 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
-            },
-            {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
             }
         ],
         "tellDelayClient": [
@@ -172,10 +148,6 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
-            },
-            {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
             }
         ],
         "checkEndOfService": [
@@ -194,10 +166,6 @@
             {
                 "value": "serviceFinished",
                 "label": "Услуга успешно оказана"
-            },
-            {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
             }
         ],
         "complaintResolution": [
@@ -208,10 +176,6 @@
             {
                 "value": "complaintManaged",
                 "label": "Претензия разрешена"
-            },
-            {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
             },
             {
                 "value": "bigDelay",
@@ -236,10 +200,6 @@
                 "label": "Вернуть в Backoffice"
             },
             {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
-            },
-            {
                 "value": "bigDelay",
                 "label": "Отложить на 6 часов"
             },
@@ -252,10 +212,6 @@
             {
                 "value": "backToParyguy",
                 "label": "Вернуть менеджеру по партнёрам"
-            },
-            {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
             },
             {
                 "value": "bigDelay",
@@ -284,10 +240,6 @@
                 "label": "Ок (без проверки директором и бухгалтерией)"
             },
             {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
-            },
-            {
                 "value": "bigDelay",
                 "label": "Отложить на 6 часов"
             },
@@ -310,10 +262,6 @@
                 "label": "Ок (без проверки бухгалтерией)"
             },
             {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
-            },
-            {
                 "value": "bigDelay",
                 "label": "Отложить на 6 часов"
             },
@@ -332,10 +280,6 @@
                 "label": "Проверено бухгалтерией"
             },
             {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
-            },
-            {
                 "value": "bigDelay",
                 "label": "Отложить на 6 часов"
             },
@@ -348,10 +292,6 @@
             {
                 "value": "analystChecked",
                 "label": "Проверено аналитиком"
-            },
-            {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
             },
             {
                 "value": "bigDelay",
@@ -374,10 +314,6 @@
             {
                 "value": "vwclosed",
                 "label": "Информация получена"
-            },
-            {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
             },
             {
                 "value": "bigDelay",
@@ -404,10 +340,6 @@
             {
                 "value": "partnerGivenCloseTime",
                 "label": "Закрыть заявку позже"
-            },            
-            {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
             },
             {
                 "value": "bigDelay",
@@ -438,10 +370,6 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
-            },
-            {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
             }
         ],
         "carmakerApproval": [
@@ -464,10 +392,6 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
-            },
-            {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
             }
         ],
         "dealerConf": [
@@ -490,10 +414,6 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
-            },
-            {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
             }
         ],
         "mechanicConf": [
@@ -516,10 +436,6 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
-            },
-            {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
             }
         ],
         "tellDealerDenied": [
@@ -534,10 +450,6 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
-            },
-            {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
             }
         ],
         "tellMakerDenied": [
@@ -552,10 +464,6 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
-            },
-            {
-                "value": "unassignPlease",
-                "label": "Отказ от действия"
             }
         ]
     }

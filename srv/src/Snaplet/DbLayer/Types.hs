@@ -12,7 +12,6 @@ import Snap
 import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple (Postgres, HasPostgres(..))
 import Snap.Snaplet.RedisDB (RedisDB)
-import Snaplet.DbLayer.Indices
 import Carma.ModelTables (TableDesc)
 import Snap.Snaplet.SimpleLog
 
@@ -44,7 +43,6 @@ data DbLayer b = DbLayer
     ,_postgres :: Snaplet Postgres
     ,_dbLog    :: Snaplet SimpleLog
     ,triggers  :: TriggersConfig
-    ,indices   :: Indices
     ,fdds      :: Fdds.Conf
     ,syncRelations :: SM.Relations
     ,syncTables :: [TableDesc]
