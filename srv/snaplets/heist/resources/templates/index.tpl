@@ -668,7 +668,7 @@
             </div>
           </div>
           <div class="row-fluid">
-            <div class="span4">
+            <div class="span6">
               <h2>Кейсы</h2>
               <div class="row-fluid">
                 <div class="span6">
@@ -765,7 +765,7 @@
                 </div>
               </div>
             </div>
-            <div class="span4">
+            <div class="span6">
               <h2>Front Office</h2>
               <div class="row-fluid">
                 <table id="rkc-operators-table" class="table table-stripped table-bordered">
