@@ -708,6 +708,39 @@
             }
         },
         {
+            "name": "warrantyCase",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "canWrite": [
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "type": "checkbox",
+            "meta": {
+                "label": "Гарантийный случай"
+            }
+        },
+        {
             "name": "files",
             "canRead": [
                 "partner",
