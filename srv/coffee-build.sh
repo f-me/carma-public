@@ -1,6 +1,6 @@
 #!/bin/sh
 
-TO=resources/static/js/
+TO=resources/static/js/gen/
 FROM=resources/static/coffee/
 
 # you can add custom keys to coffee compiler, like
