@@ -160,3 +160,5 @@ create view servicesview as
             ) t on t.id = s.id and t.type = s.type
         left outer join actiontbl a on s.type || ':' || s.id = a.parentId and a.name = 'orderService'
     where c.id::text = substring(s.parentId, ':(.*)');
+
+GRANT SELECT ON servicesview TO carma_db_sync;
