@@ -495,7 +495,7 @@
         <div id="partner-errors"
              class="alert alert-error"
              data-bind="visible: kvm().serviceRepeat().length > 0">
-          Следующие сервисы присутствуют в колличестве более одного,
+          Следующие сервисы присутствуют в количестве более одного,
           при работе с кейсом будет использован только первый!
           <ul data-bind="foreach: kvm().serviceRepeat">
             <li data-bind="text: $data"> </li>
