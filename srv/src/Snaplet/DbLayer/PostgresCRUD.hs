@@ -73,16 +73,16 @@ functions tz dict = [
     R.functionMaybe "YESNO" yesNo,
     R.function "DATE" (formatTimeFun "%d.%m.%Y"),
     R.function "TIME" (formatTimeFun "%d.%m.%Y %H:%M"),
-    R.uses ["case.callerOwner", "case.caller_name", "case.owner_name"] $ R.constFunction "OWNER" ownerFun,
-    R.uses ["case.program"] $ R.constFunction "FDDS" fddsFun,
-    R.uses ["service.falseCall"] $ R.constFunction "FALSECALL" falseFun,
-    R.uses ["service.falseCall"] $ R.constFunction "BILL" billFun,
-    R.uses ["service.clientSatisfied"] $ R.constFunction "SATISFIED" satisfiedFun,
-    R.uses ["case.diagnosis1", "service.type"] $ R.constFunction "FAULTCODE" faultFun,
-    R.uses ["case.car_make"] $ R.constFunction "VEHICLEMAKE" vehicleMakeFun,
-    R.uses ["case.car_make", "case.car_model"] $ R.constFunction "VEHICLEMODEL" vehicleModelFun,
-    R.uses ["case.id", "case.services", "service.id", "service.type"] $ R.constFunction "SERVICEID" serviceId,
-    R.macro backMacro $ R.uses ["action.assignedTo"] $ R.constFunction "BACKOPERATOR" backOperator]
+    R.uses ["servicesview.callerOwner", "servicesview.caller_name", "servicesview.owner_name"] $ R.constFunction "OWNER" ownerFun,
+    R.uses ["servicesview.program"] $ R.constFunction "FDDS" fddsFun,
+    R.uses ["servicesview.falseCall"] $ R.constFunction "FALSECALL" falseFun,
+    R.uses ["servicesview.falseCall"] $ R.constFunction "BILL" billFun,
+    R.uses ["servicesview.clientSatisfied"] $ R.constFunction "SATISFIED" satisfiedFun,
+    R.uses ["servicesview.diagnosis1", "servicesview.type"] $ R.constFunction "FAULTCODE" faultFun,
+    R.uses ["servicesview.car_make"] $ R.constFunction "VEHICLEMAKE" vehicleMakeFun,
+    R.uses ["servicesview.car_make", "servicesview.car_model"] $ R.constFunction "VEHICLEMODEL" vehicleModelFun,
+    R.uses ["servicesview.caseid", "servicesview.services", "servicesview.id", "servicesview.type"] $ R.constFunction "SERVICEID" serviceId,
+    R.uses ["servicesview.backoperator"] $ R.constFunction "BACKOPERATOR" backOperator]
     where
         capitalize "" = ""
         capitalize (c:cs) = toUpper c : map toLower cs
@@ -145,48 +145,48 @@ functions tz dict = [
         formatTimeFun _ (v:_) = v
         
         fddsFun fs = do
-            pr <- M.lookup "case.program" fs
+            pr <- M.lookup "servicesview.program" fs
             lookupField [S.StringValue "FDDS", pr]
 
         ownerFun fs = do
-            (S.IntValue isOwner) <- M.lookup "case.callerOwner" fs
-            (if isOwner == 1 then M.lookup "case.caller_name" else M.lookup "case.owner_name") fs
+            (S.IntValue isOwner) <- M.lookup "servicesview.callerOwner" fs
+            (if isOwner == 1 then M.lookup "servicesview.caller_name" else M.lookup "servicesview.owner_name") fs
         falseFun fs = do
-            (S.StringValue isFalse) <- M.lookup "service.falseCall" fs
+            (S.StringValue isFalse) <- M.lookup "servicesview.falseCall" fs
             return $ S.StringValue (if isFalse `elem` ["bill", "nobill"] then "Y" else "N")
         
         billFun fs = do
-            (S.StringValue isFalse) <- M.lookup "service.falseCall" fs
+            (S.StringValue isFalse) <- M.lookup "servicesview.falseCall" fs
             return $ S.StringValue (if isFalse == "bill" then "Y" else "N")
 
         satisfiedFun fs = do
-            (S.StringValue sat) <- M.lookup "service.clientSatisfied" fs
+            (S.StringValue sat) <- M.lookup "servicesview.clientSatisfied" fs
             return $ S.StringValue $ case sat of
                 "satis" -> "Y"
                 "notSatis" -> "N"
                 _ -> ""
             
         faultFun fs = do
-            d <- M.lookup "case.diagnosis1" fs
-            s <- M.lookup "service.type" fs
+            d <- M.lookup "servicesview.diagnosis1" fs
+            s <- M.lookup "servicesview.type" fs
             (S.StringValue d') <- lookupField [S.StringValue "FaultCode", S.StringValue "diagnosis1", d]
             (S.StringValue s') <- lookupField [S.StringValue "FaultCode", S.StringValue "service", s]
             return $ S.StringValue $ d' ++ "09" ++ s'
             
         vehicleMakeFun fs = do
-            m <- M.lookup "case.car_make" fs
+            m <- M.lookup "servicesview.car_make" fs
             lookupField [S.StringValue "VehicleMake", m]
             
         vehicleModelFun fs = do
-            mk <- M.lookup "case.car_make" fs
-            md <- M.lookup "case.car_model" fs
+            mk <- M.lookup "servicesview.car_make" fs
+            md <- M.lookup "servicesview.car_model" fs
             lookupField [S.StringValue "VehicleModel", mk, md]
 
         serviceId fs = do
-            (S.IntValue caseId) <- M.lookup "case.id" fs
-            (S.StringValue caseSrvs) <- M.lookup "case.services" fs
-            (S.IntValue srvId) <- M.lookup "service.id" fs
-            (S.StringValue serviceType) <- M.lookup "service.type" fs
+            (S.IntValue caseId) <- M.lookup "servicesview.caseid" fs
+            (S.StringValue caseSrvs) <- M.lookup "servicesview.services" fs
+            (S.IntValue srvId) <- M.lookup "servicesview.id" fs
+            (S.StringValue serviceType) <- M.lookup "servicesview.type" fs
             -- form service complex id type:id
             let
                 srvIdName = serviceType ++ ":" ++ show srvId
@@ -196,9 +196,7 @@ functions tz dict = [
                 formIdx i = S.StringValue $ show caseId ++ "/" ++ show i
             return . maybe defaultIdx formIdx . getIndex srvIdName . splitByComma $ caseSrvs
 
-        -- rewrite R.condition!
-        backMacro _ = mconcat $ catMaybes [R.condition "action.parentId = servicetbl.type || ':' || servicetbl.id", R.condition "action.name = 'orderService'"]
-        backOperator fs = M.lookup "action.assignedTo" fs
+        backOperator fs = M.lookup "servicesview.backoperator" fs
                       
 local :: P.ConnectInfo
 local = P.ConnectInfo {

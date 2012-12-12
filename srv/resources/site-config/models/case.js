@@ -520,6 +520,24 @@
                 "infoText": "temperature"
             }
         },
+                {
+            "name": "repair",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
+            ],
+            "type": "datetime",
+            "meta": {
+                "label": "Дата починки"
+            }
+        },
         {
             "name": "dealerCause",
             "canRead": [
