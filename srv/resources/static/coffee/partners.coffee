@@ -44,7 +44,7 @@ this.setupPartnersForm = (viewName, args) ->
             dt = t.dataTable()
             dt.fnClearTable()
             rows = for obj in objs
-                [obj.id.split(':')[1]
+                [obj.id
                 ,obj.name || ''
                 ,obj.city || ''
                 ,obj.comment || ''
