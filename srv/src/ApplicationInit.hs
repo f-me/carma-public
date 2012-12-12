@@ -69,6 +69,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/search/:model", chkAuth . method GET  $ searchHandler)
          , ("/rkc",           chkAuth . method GET  $ rkcHandler)
          , ("/usersDict",     chkAuth . method GET  $ getUsersDict)
+         , ("/activeUsers",   chkAuth . method GET  $ getActiveUsers)
          , ("/vin/upload",    chkAuth . method POST $ vinUploadData)
          , ("/vin/state",     chkAuth . method GET  $ vinStateRead)
          , ("/vin/state",     chkAuth . method POST $ vinStateRemove)
@@ -109,7 +110,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
                       , asRememberPeriod = Just (rmbPer * 24 * 60 * 60)}
                                session authDb
   logdUsrs <- liftIO $ newTVarIO Map.empty
-  !allUsrs <- liftIO $ getUsrs authDb
+  !allUsrs <- liftIO $ readJSON authDb
 
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
 
@@ -139,6 +140,3 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   addRoutes routes
   return $ App h s authMgr logdUsrs allUsrs c d pgs pga v fu g l
-
-getUsrs authDb = do
-  readJSON authDb :: IO UsersDict
