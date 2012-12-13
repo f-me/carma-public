@@ -1521,16 +1521,34 @@
         ],
         "hum": [
             {
-                "value": "H1",
+                "value": "h1",
                 "label": "H1"
             },
             {
-                "value": "H1",
+                "value": "h2",
                 "label": "H2"
             },
             {
-                "value": "H1",
+                "value": "h3",
                 "label": "H3"
+            }
+        ],
+        "maz": [
+            {
+                "value": "shalanda",
+                "label": "Shalanda"
+            },
+            {
+                "value": "5516",
+                "label": "5516"
+            },
+            {
+                "value": "6430A9",
+                "label": "6430A9"
+            },
+            {
+                "value": "4370",
+                "label": "4370"
             }
         ]
     }
