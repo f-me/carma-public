@@ -713,6 +713,10 @@
                 "label": "Tiida"
             },
             {
+                "value": "ssangYong",
+                "Label": "Ssang Yong"
+            },
+            {
                 "value": "qashqai",
                 "label": "Qashqai"
             }
