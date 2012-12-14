@@ -146,17 +146,21 @@ create view servicesview as
         t.suburbanMilage,
         t.providedFor,
         t.repairEndDate,
+        t.techType,
+        t.towType,
+        t.towAddress_address,
+
         a.assignedTo as backoperator
 
     from casetbl c, servicetbl s
         left outer join (
-            select id, type, towDealer_partner, null as suburbanMilage, providedFor, null as repairEndDate from renttbl
+            select id, type, towDealer_partner, null as suburbanMilage, providedFor, null as repairEndDate, null as techType, null as towType, null as towAddress_address from renttbl
             union all
-            select id, type, towDealer_partner, suburbanMilage, null as providedFor, repairEndDate from towagetbl
+            select id, type, towDealer_partner, suburbanMilage, null as providedFor, repairEndDate, null as techType, towType, towAddress_address from towagetbl
             union all
-            select id, type, null as towDealer_partner, suburbanMilage, null as providedFor, null as repairEndDate from techtbl
+            select id, type, null as towDealer_partner, suburbanMilage, null as providedFor, null as repairEndDate, techType, null as towType, null as towAddress_address from techtbl
             union all
-            select id, type, null as towDealer_partner, null as suburbanMilage, providedFor, null as repairEndDate from hoteltbl
+            select id, type, null as towDealer_partner, null as suburbanMilage, providedFor, null as repairEndDate, null as techType, null as towType, null as towAddress_address from hoteltbl
             ) t on t.id = s.id and t.type = s.type
         left outer join actiontbl a on s.type || ':' || s.id = a.parentId and a.name = 'orderService'
     where c.id::text = substring(s.parentId, ':(.*)');
