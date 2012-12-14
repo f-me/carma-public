@@ -928,7 +928,7 @@
           </tr>
           <tr>
             <td> Сотрудник заказавший услугу </td>
-            <td data-bind="text: action.assignedTo"> </td>
+            <td data-bind="text: service.assignedTo"> </td>
           </tr>
         </table>
       </div>

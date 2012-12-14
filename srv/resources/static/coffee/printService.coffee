@@ -1,7 +1,7 @@
 this.setupPrintSrv = (viewName, {model: model, id: id}) ->
   $(".navbar").hide()
   $.getJSON "/printSrv/#{model}/#{id}", (arg) ->
-    arg.action.assignedTo = lookup('users', arg.action.assignedTo)
+    arg.service.assignedTo = lookup('users', arg.service.assignedTo)
     arg.service.type = model
     postProc arg.kase,
       time: ['callDate']
