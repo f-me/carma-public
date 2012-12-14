@@ -666,6 +666,7 @@ replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
     ,("caseId", kazeId)
     ,("closed", "0")
     ]
+  when (actionName == "orderService") $ set svcId "assignedTo" assignee
   upd kazeId "actions" $ addToList actionId
   closeAction objId
   return actionId
