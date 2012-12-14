@@ -495,7 +495,7 @@
         <div id="partner-errors"
              class="alert alert-error"
              data-bind="visible: kvm().serviceRepeat().length > 0">
-          Следующие сервисы присутствуют в колличестве более одного,
+          Следующие сервисы присутствуют в количестве более одного,
           при работе с кейсом будет использован только первый!
           <ul data-bind="foreach: kvm().serviceRepeat">
             <li data-bind="text: $data"> </li>
@@ -777,38 +777,6 @@
                     </tr>
                     <tbody />
                   </thead>
-                </table>
-              </div>
-            </div>
-            <div class="span4">
-              <h2>Back Office</h2>
-              <div class="row-fluid">
-                <div class="span6">
-                  Общее количество действий на сегодня
-                </div>
-                <div class="span2">
-                  <input style="float:right; width:40px" id="total-actions" />
-                </div>
-              </div>
-              <div class="row-fluid">
-                <div class="span6">
-                  Общее количество невыполненных действий
-                </div>
-                <div class="span2">
-                  <input style="float:right; width:40px" id="total-incomplete-actions" />
-                </div>
-              </div>
-              <div class="row-fluid">
-                <table id="rkc-back-office-table" class="table table-stripped table-bordered">
-                  <thead>
-                    <tr>
-                      <th width="50%">Действие</th>
-                      <th width="15%">Общее количество действий</th>
-                      <th width="15%">Невыполненные действия</th>
-                      <th width="20%">Среднее время выполнения действия</th>
-                    </tr>
-                  </thead>
-                  <tbody />
                 </table>
               </div>
             </div>

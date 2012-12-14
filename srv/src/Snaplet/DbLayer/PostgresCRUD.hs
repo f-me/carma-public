@@ -81,7 +81,7 @@ functions tz dict = [
     R.uses ["servicesview.diagnosis1", "servicesview.type"] $ R.constFunction "FAULTCODE" faultFun,
     R.uses ["servicesview.car_make"] $ R.constFunction "VEHICLEMAKE" vehicleMakeFun,
     R.uses ["servicesview.car_make", "servicesview.car_model"] $ R.constFunction "VEHICLEMODEL" vehicleModelFun,
-    R.uses ["servicesview.id", "servicesview.services", "servicesview.id", "servicesview.type"] $ R.constFunction "SERVICEID" serviceId,
+    R.uses ["servicesview.caseid", "servicesview.services", "servicesview.id", "servicesview.type"] $ R.constFunction "SERVICEID" serviceId,
     R.uses ["servicesview.backoperator"] $ R.constFunction "BACKOPERATOR" backOperator]
     where
         capitalize "" = ""
@@ -183,7 +183,7 @@ functions tz dict = [
             lookupField [S.StringValue "VehicleModel", mk, md]
 
         serviceId fs = do
-            (S.IntValue caseId) <- M.lookup "servicesview.id" fs
+            (S.IntValue caseId) <- M.lookup "servicesview.caseid" fs
             (S.StringValue caseSrvs) <- M.lookup "servicesview.services" fs
             (S.IntValue srvId) <- M.lookup "servicesview.id" fs
             (S.StringValue serviceType) <- M.lookup "servicesview.type" fs

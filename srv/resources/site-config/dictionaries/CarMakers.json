@@ -175,6 +175,10 @@
         {
             "value": "volvo",
             "label": "Volvo"
+        },
+        {
+            "value": "maz"
+            "label": "Maz"
         }
     ]
 }

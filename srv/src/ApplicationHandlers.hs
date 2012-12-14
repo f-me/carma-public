@@ -7,6 +7,7 @@ import Prelude hiding (log)
 
 import Data.Functor
 import Control.Monad
+import Control.Concurrent.STM
 
 import Data.Text.Lazy (toStrict)
 import Data.Text.Lazy.Encoding (decodeUtf8)
@@ -294,6 +295,13 @@ deleteReportHandler = do
 getUsersDict :: AppHandler ()
 getUsersDict = writeJSON =<< gets allUsers
 
+getActiveUsers :: AppHandler ()
+getActiveUsers = do
+  tvar <- gets loggedUsers
+  logdUsers <- liftIO $ readTVarIO tvar
+  writeJSON $ Map.keys logdUsers
+
+
 ------------------------------------------------------------------------------
 -- | Utility functions
 vinUploadData :: AppHandler ()
@@ -381,8 +389,10 @@ logReq commit  = do
 chkAuth :: AppHandler () -> AppHandler ()
 chkAuth f = do
   req <- getRequest
-  if (rqRemoteAddr req /= rqLocalAddr req)
-  then with auth currentUser >>= maybe (handleError 401) (const f)
+  if rqRemoteAddr req /= rqLocalAddr req
+  then with auth currentUser >>= maybe
+      (handleError 401)
+      (\u -> addToLoggedUsers u >> f)
   else f
 
 
