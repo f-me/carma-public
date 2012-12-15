@@ -20,6 +20,7 @@ import Control.Monad
 import Control.Monad.State hiding (ap)
 
 import Data.Aeson
+import Data.Aeson.Types (Pair)
 
 import Data.Attoparsec.ByteString.Char8
 
@@ -237,7 +238,7 @@ getMessage = do
 
 
 ------------------------------------------------------------------------------
--- | POST parameters expected in a new case request.
+-- | POST parameters expected in a new case request, stored as is.
 caseParams :: [ByteString]
 caseParams = [ "contact_name"
              , "contact_phone1"
@@ -249,15 +250,58 @@ caseParams = [ "contact_name"
              , "car_buyDate"
              ]
 
+
+-- | Name of case coordinates field in case model.
+caseCoords :: ByteString
 caseCoords = "caseAddress_coords"
 
+
+-- | Name of case address field in case model.
+caseAddress :: ByteString
 caseAddress = "caseAddress_address"
 
 
+-- | Name of case id field in action model.
+actionCaseId :: ByteString
+actionCaseId = "caseId"
+
+
+-- | Name of actions field in case model.
+caseActions :: ByteString
+caseActions = "actions"
+
+
+-- | Build reference to a case for use in 'actionCaseId'.
+caseIdReference :: Int -> String 
+caseIdReference n = "case:" ++ (show n)
+
+
+-- | Build reference to an action for use in 'caseActions'.
+actionIdReference :: Int -> String 
+actionIdReference n = "action:" ++ (show n)
+
+
+actionNamePair :: Pair
+actionNamePair = "name" .= T.pack "orderService"
+
+
+-- | CaRMa JSON response containing "id" field. The rest of fields are
+-- ignored.
+newtype IdResponse = IdResponse Int deriving Show
+
+
+instance FromJSON IdResponse where
+    parseJSON (Object v) = IdResponse . read <$> v .: "id"
+    parseJSON _          = error "Bad CaRMa response"
+
+
 ------------------------------------------------------------------------------
--- | Create new case from POST parameters listed in 'caseParams'.
--- Reverse geocode coordinates from @lon@ and @lat@ parameters,
--- writing the result to field 'caseAddress' of the new case.
+-- | Create a new case from POST parameters listed in 'caseParams'.
+-- Perform everse geocoding using coordinates from @lon@ and @lat@
+-- parameters, writing the result to field 'caseAddress' of the new
+-- case. New action is created for the case.
+--
+-- Response body is the id of the new case (as integer).
 newCase :: Handler b GeoApp ()
 newCase = do
   -- New case parameters
@@ -273,10 +317,10 @@ newCase = do
   (addrPair, coordPair) <- case (lon', lat') of
     (Just lon, Just lat) -> do
             addr' <- revGeocode lon lat
-            let ap = ((.=) $ decodeUtf8 caseAddress) <$> addr'
-                cp = Just $ (decodeUtf8 caseCoords) .=
-                     (T.pack $ concat [show lon, ",", show lat])
-            return (ap, cp)
+            let ap' = ((.=) $ decodeUtf8 caseAddress) <$> addr'
+                cp  = Just $ (decodeUtf8 caseCoords) .=
+                      (T.pack $ concat [show lon, ",", show lat])
+            return (ap', cp)
     _ -> return (Nothing, Nothing)
 
   -- Form the body of the request to send to CaRMa
@@ -285,10 +329,30 @@ newCase = do
 
   modifyResponse $ setContentType "application/json"
   caseU <- caseCreateUpdateURI Nothing
-  resp <- liftIO $ H.simpleHTTP
+  caseResp <- liftIO $ H.simpleHTTP
           (H.postRequestWithBody caseU "application/json" caseBody)
-  body <- liftIO $ H.getResponseBody resp
-  writeLBS $ BSL.pack $ show body
+
+  -- Fetch id of the created case and create a new action for this id
+  caseRespBody <- liftIO $ H.getResponseBody caseResp
+  let Just (IdResponse caseId) = decode' (BSL.pack caseRespBody) :: Maybe IdResponse
+      actBody = BSL.unpack $ encode $ object $
+                [ decodeUtf8 actionCaseId .= caseIdReference caseId
+                , actionNamePair
+                ]
+  actU <- actionCreateURI
+  actResp <- liftIO $ H.simpleHTTP
+             (H.postRequestWithBody actU "application/json" actBody)
+
+  -- Fetch id of the created action and update reverse reference in the case.
+  actRespBody <- liftIO $ H.getResponseBody actResp
+  let Just (IdResponse actId) = decode' (BSL.pack actRespBody) :: Maybe IdResponse
+  caseU' <- caseCreateUpdateURI (Just caseId)
+  liftIO $ H.simpleHTTP $ 
+         putRequestWithBody caseU' "application/json" $ BSL.unpack $ encode $ object $
+          [ decodeUtf8 caseActions .= actionIdReference actId
+          ]
+
+  writeLBS $ BSL.pack $ show caseId
 
 
 geoAppInit :: SnapletInit b GeoApp
