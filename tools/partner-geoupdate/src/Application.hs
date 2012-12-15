@@ -20,6 +20,7 @@ import Control.Monad
 import Control.Monad.State hiding (ap)
 
 import Data.Aeson
+import Data.Aeson.Types (Pair)
 
 import Data.Attoparsec.ByteString.Char8
 
@@ -31,6 +32,9 @@ import Data.Text.Encoding (decodeUtf8)
 
 import Data.Configurator
 
+import Data.Time.Clock
+import Data.Time.Format
+
 import Data.Lens.Template
 import Data.Maybe
 
@@ -38,6 +42,8 @@ import qualified Database.Redis as R
 
 import qualified Network.HTTP as H
 import Network.URI (parseURI)
+
+import System.Locale
 
 import Snap.Core
 import Snap.Snaplet
@@ -122,6 +128,12 @@ partnerCoords = "coords"
 
 
 ------------------------------------------------------------------------------
+-- | Name of modification time field in partner model.
+partnerMtime :: ByteString
+partnerMtime = "mtime"
+
+
+------------------------------------------------------------------------------
 -- | Address line as parsed from Nominatim reverse geocoder JSON
 -- response.
 newtype Address = Address ByteString deriving Show
@@ -160,9 +172,9 @@ getMessageQuery = "SELECT message FROM partnerMessageTbl where partnerId=? order
 
 ------------------------------------------------------------------------------
 -- | Attempt to perform reverse geocoding.
-revGeocode :: Double 
+revGeocode :: Double
            -- ^ Longitude.
-           -> Double 
+           -> Double
            -- ^ Latitude.
            -> Handler b GeoApp (Maybe Address)
 revGeocode lon lat = do
@@ -184,7 +196,8 @@ updatePosition = do
   case (lon', lat', pid') of
     (Just lon, Just lat, Just pid) -> do
        addr <- revGeocode lon lat
-       updatePartnerData pid lon lat addr
+       mtime <- liftIO $ getCurrentTime
+       updatePartnerData pid lon lat addr mtime
     _ -> error "Bad request"
 
 
@@ -198,16 +211,18 @@ updatePartnerData :: Int
                   -- ^ Latitude.
                   -> (Maybe Address)
                   -- ^ New address if available.
+                  -> UTCTime
                   -> Handler b GeoApp ()
-updatePartnerData pid lon lat addr =
+updatePartnerData pid lon lat addr mtime =
     let
         coordString = concat [show lon, ",", show lat]
         body = BSL.unpack $ encode $ object $
                [decodeUtf8 partnerCoords .= coordString] ++
+               [decodeUtf8 partnerMtime .= formatTime defaultTimeLocale "%s" mtime] ++
                (maybe [] (\(Address a) -> [decodeUtf8 partnerAddress .= a]) addr)
     in do
       parU <- partnerUpdateURI pid
-      liftIO $ H.simpleHTTP 
+      liftIO $ H.simpleHTTP
            (putRequestWithBody parU "application/json" body)
       return ()
 
@@ -223,7 +238,7 @@ getMessage = do
 
 
 ------------------------------------------------------------------------------
--- | POST parameters expected in a new case request.
+-- | POST parameters expected in a new case request, stored as is.
 caseParams :: [ByteString]
 caseParams = [ "contact_name"
              , "contact_phone1"
@@ -235,19 +250,71 @@ caseParams = [ "contact_name"
              , "car_buyDate"
              ]
 
+
+------------------------------------------------------------------------------
+-- | Name of case coordinates field in case model.
+caseCoords :: ByteString
 caseCoords = "caseAddress_coords"
 
+
+------------------------------------------------------------------------------
+-- | Name of case address field in case model.
+caseAddress :: ByteString
 caseAddress = "caseAddress_address"
 
 
 ------------------------------------------------------------------------------
--- | Create new case from POST parameters listed in 'caseParams'.
--- Reverse geocode coordinates from @lon@ and @lat@ parameters,
--- writing the result to field 'caseAddress' of the new case.
+-- | Name of case id field in action model.
+actionCaseId :: ByteString
+actionCaseId = "caseId"
+
+
+------------------------------------------------------------------------------
+-- | Name of actions field in case model.
+caseActions :: ByteString
+caseActions = "actions"
+
+
+------------------------------------------------------------------------------
+-- | Build reference to a case for use in 'actionCaseId'.
+caseIdReference :: Int -> String
+caseIdReference n = "case:" ++ (show n)
+
+
+------------------------------------------------------------------------------
+-- | Build reference to an action for use in 'caseActions'.
+actionIdReference :: Int -> String
+actionIdReference n = "action:" ++ (show n)
+
+
+------------------------------------------------------------------------------
+-- | JSON pair for action type.
+actionNamePair :: Pair
+actionNamePair = "name" .= T.pack "callMeMaybe"
+
+
+------------------------------------------------------------------------------
+-- | CaRMa JSON response containing "id" field. The rest of fields are
+-- ignored.
+newtype IdResponse = IdResponse Int deriving Show
+
+
+instance FromJSON IdResponse where
+    parseJSON (Object v) = IdResponse . read <$> v .: "id"
+    parseJSON _          = error "Bad CaRMa response"
+
+
+------------------------------------------------------------------------------
+-- | Create a new case from POST parameters listed in 'caseParams'.
+-- Perform everse geocoding using coordinates from @lon@ and @lat@
+-- parameters, writing the result to field 'caseAddress' of the new
+-- case. New action is created for the case.
+--
+-- Response body is the id of the new case (as integer).
 newCase :: Handler b GeoApp ()
 newCase = do
   -- New case parameters
-  rawPairs <- forM caseParams $ 
+  rawPairs <- forM caseParams $
                \key -> do
                  v' <- getParam key
                  return $ ((.=) $ decodeUtf8 key) <$> v'
@@ -259,22 +326,42 @@ newCase = do
   (addrPair, coordPair) <- case (lon', lat') of
     (Just lon, Just lat) -> do
             addr' <- revGeocode lon lat
-            let ap = ((.=) $ decodeUtf8 caseAddress) <$> addr'
-                cp = Just $ (decodeUtf8 caseCoords) .= 
-                     (T.pack $ concat [show lon, ",", show lat])
-            return (ap, cp)
+            let ap' = ((.=) $ decodeUtf8 caseAddress) <$> addr'
+                cp  = Just $ (decodeUtf8 caseCoords) .=
+                      (T.pack $ concat [show lon, ",", show lat])
+            return (ap', cp)
     _ -> return (Nothing, Nothing)
-         
+
   -- Form the body of the request to send to CaRMa
   let finalPairs = rawPairs ++ [addrPair, coordPair]
       caseBody = BSL.unpack $ encode $ object $ catMaybes finalPairs
 
   modifyResponse $ setContentType "application/json"
   caseU <- caseCreateUpdateURI Nothing
-  resp <- liftIO $ H.simpleHTTP 
+  caseResp <- liftIO $ H.simpleHTTP
           (H.postRequestWithBody caseU "application/json" caseBody)
-  body <- liftIO $ H.getResponseBody resp
-  writeLBS $ BSL.pack $ show body
+
+  -- Fetch id of the created case and create a new action for this id
+  caseRespBody <- liftIO $ H.getResponseBody caseResp
+  let Just (IdResponse caseId) = decode' (BSL.pack caseRespBody) :: Maybe IdResponse
+      actBody = BSL.unpack $ encode $ object $
+                [ decodeUtf8 actionCaseId .= caseIdReference caseId
+                , actionNamePair
+                ]
+  actU <- actionCreateURI
+  actResp <- liftIO $ H.simpleHTTP
+             (H.postRequestWithBody actU "application/json" actBody)
+
+  -- Fetch id of the created action and update reverse reference in the case.
+  actRespBody <- liftIO $ H.getResponseBody actResp
+  let Just (IdResponse actId) = decode' (BSL.pack actRespBody) :: Maybe IdResponse
+  caseU' <- caseCreateUpdateURI (Just caseId)
+  liftIO $ H.simpleHTTP $
+         putRequestWithBody caseU' "application/json" $ BSL.unpack $ encode $ object $
+          [ decodeUtf8 caseActions .= actionIdReference actId
+          ]
+
+  writeLBS $ BSL.pack $ show caseId
 
 
 geoAppInit :: SnapletInit b GeoApp
@@ -283,9 +370,9 @@ geoAppInit = makeSnaplet "geo" "Geoservices" Nothing $ do
     rdb <- nestSnaplet "redis" redis $ redisDBInit R.defaultConnectInfo
     cfg <- getSnapletUserConfig
 
-    nh <- liftIO $ lookupDefault 
+    nh <- liftIO $ lookupDefault
           "http://nominatim.openstreetmap.org/reverse.php?"
-          cfg 
+          cfg
           "nominatim_reverse"
 
     cp <- liftIO $ lookupDefault 8000 cfg "carma_port"

@@ -524,7 +524,30 @@
 
       <div id="partner-center" class="nice-scrollbar pane">
         <form class="form-vertical">
-          <div id="partner-form" />
+          <div id="partner-view" />
+
+          <div id="partnerMapModal" 
+               class="modal hide fade"
+               tabindex="-1" 
+               role="dialog">
+
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">×</button>
+              <h3 id="myModalLabel">Выбор координат</h3>
+            </div>
+
+            <div id="partner-view">
+            <div class="modal-body">
+              <div style="height:600px;" id="partnerMap" class="osMap"
+                   name="coords"></div>
+            </div>
+            </div>
+
+            <div class="modal-footer">
+              <button class="btn btn-primary" data-dismiss="modal">Сохранить</button>
+            </div>
+          </div>
+
           <div class="control-group">
             <div class="control-label">
               <label>Услуги</label>
@@ -1153,7 +1176,7 @@
     <!-- radio widget for flat dictionary fields -->
     <script type="text/template"
             class="field-template"
-            id="radio-dictionary-field-template">
+            id="radio-field-template">
       <div class="control-group">
         <div class="control-label">
           <label>{{ meta.label }}

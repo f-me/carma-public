@@ -32,7 +32,7 @@ this.setupPartnersForm = (viewName, args) ->
                             permEl: "partner-permissions"
                             focusClass: "focusable"
                             refs: refs
-      k = global.viewsWare['partner-form'].knockVM
+      k = global.viewsWare['partner-view'].knockVM
       global.alertObj.kvm(kvm)
 
       k['servicesReference'].subscribe ->
@@ -53,7 +53,7 @@ this.setupPartnersForm = (viewName, args) ->
     ))
 
 this.addNewServiceToPartner = (name) ->
-  p = global.viewsWare["partner-form"].knockVM
+  p = global.viewsWare["partner-view"].knockVM
   addReference p,
                'services',
                {modelName: 'partner_service'},
@@ -90,7 +90,7 @@ this.partnerServiceRepeat = (instance, kvm) ->
   kvm['serviceName'].subscribe -> setServiceRepeat()
 
 this.setServiceRepeat = ->
-  kvm = global.viewsWare['partner-form'].knockVM
+  kvm = global.viewsWare['partner-view'].knockVM
   return unless kvm
   refs = _.filter kvm.servicesReference(), (r) -> r.serviceName()
   groups = _.groupBy refs, (r) -> r.serviceName()

@@ -5,6 +5,10 @@
             "label": "Заказ услуги"
         },
         {
+            "value": "callMeMaybe",
+            "label": "Перезвонить клиенту"
+        },
+        {
             "value": "orderServiceAnalyst",
             "label": "Заказ услуги аналитиком"
         },        
