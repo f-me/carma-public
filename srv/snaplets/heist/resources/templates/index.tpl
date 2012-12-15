@@ -1109,7 +1109,7 @@
     <!-- radio widget for flat dictionary fields -->
     <script type="text/template"
             class="field-template"
-            id="radio-dictionary-field-template">
+            id="radio-field-template">
       <div class="control-group">
         <div class="control-label">
           <label>{{ meta.label }}
