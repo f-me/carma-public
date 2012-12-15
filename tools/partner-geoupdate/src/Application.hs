@@ -171,9 +171,9 @@ getMessageQuery = "SELECT message FROM partnerMessageTbl where partnerId=? order
 
 ------------------------------------------------------------------------------
 -- | Attempt to perform reverse geocoding.
-revGeocode :: Double 
+revGeocode :: Double
            -- ^ Longitude.
-           -> Double 
+           -> Double
            -- ^ Latitude.
            -> Handler b GeoApp (Maybe Address)
 revGeocode lon lat = do
@@ -221,7 +221,7 @@ updatePartnerData pid lon lat addr mtime =
                (maybe [] (\(Address a) -> [decodeUtf8 partnerAddress .= a]) addr)
     in do
       parU <- partnerUpdateURI pid
-      liftIO $ H.simpleHTTP 
+      liftIO $ H.simpleHTTP
            (putRequestWithBody parU "application/json" body)
       return ()
 
@@ -261,7 +261,7 @@ caseAddress = "caseAddress_address"
 newCase :: Handler b GeoApp ()
 newCase = do
   -- New case parameters
-  rawPairs <- forM caseParams $ 
+  rawPairs <- forM caseParams $
                \key -> do
                  v' <- getParam key
                  return $ ((.=) $ decodeUtf8 key) <$> v'
@@ -274,18 +274,18 @@ newCase = do
     (Just lon, Just lat) -> do
             addr' <- revGeocode lon lat
             let ap = ((.=) $ decodeUtf8 caseAddress) <$> addr'
-                cp = Just $ (decodeUtf8 caseCoords) .= 
+                cp = Just $ (decodeUtf8 caseCoords) .=
                      (T.pack $ concat [show lon, ",", show lat])
             return (ap, cp)
     _ -> return (Nothing, Nothing)
-         
+
   -- Form the body of the request to send to CaRMa
   let finalPairs = rawPairs ++ [addrPair, coordPair]
       caseBody = BSL.unpack $ encode $ object $ catMaybes finalPairs
 
   modifyResponse $ setContentType "application/json"
   caseU <- caseCreateUpdateURI Nothing
-  resp <- liftIO $ H.simpleHTTP 
+  resp <- liftIO $ H.simpleHTTP
           (H.postRequestWithBody caseU "application/json" caseBody)
   body <- liftIO $ H.getResponseBody resp
   writeLBS $ BSL.pack $ show body
@@ -297,9 +297,9 @@ geoAppInit = makeSnaplet "geo" "Geoservices" Nothing $ do
     rdb <- nestSnaplet "redis" redis $ redisDBInit R.defaultConnectInfo
     cfg <- getSnapletUserConfig
 
-    nh <- liftIO $ lookupDefault 
+    nh <- liftIO $ lookupDefault
           "http://nominatim.openstreetmap.org/reverse.php?"
-          cfg 
+          cfg
           "nominatim_reverse"
 
     cp <- liftIO $ lookupDefault 8000 cfg "carma_port"
