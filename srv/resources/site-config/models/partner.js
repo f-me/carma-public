@@ -26,7 +26,7 @@
             "meta": {
                 "label": "Дилер"
             }
-        },       
+        },
         {
             "name": "isMobile",
             "type": "checkbox",
@@ -69,6 +69,7 @@
             "name": "coords",
             "type": "coords",
             "meta": {
+                "invisible": true,
                 "label": "Координаты",
                 "infoText": "coords"
             }
