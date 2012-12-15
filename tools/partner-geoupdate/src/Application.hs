@@ -290,7 +290,7 @@ actionIdReference n = "action:" ++ (show n)
 ------------------------------------------------------------------------------
 -- | JSON pair for action type.
 actionNamePair :: Pair
-actionNamePair = "name" .= T.pack "orderService"
+actionNamePair = "name" .= T.pack "callMeMaybe"
 
 
 ------------------------------------------------------------------------------
