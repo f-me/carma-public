@@ -69,7 +69,7 @@
             "name": "coords",
             "type": "coords",
             "meta": {
-                "invisible": true,
+                "widget": "picker",
                 "label": "Координаты",
                 "infoText": "coords"
             }
