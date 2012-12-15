@@ -1,4 +1,4 @@
-{
+ {
     "name": "partner",
     "title": "Партнёр",
     "canCreate": true,
@@ -156,7 +156,7 @@
         {
             "name": "salesWorking",
             "meta": {
-                "label": "Время работы сервисного отдела"
+                "label": "Время работы отдела продаж"
             }
         },
         {
