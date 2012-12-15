@@ -324,6 +324,9 @@ actionResultMap = Map.fromList
   )
   ,("serviceOrdered", \objId -> do
     setService objId "status" "serviceOrdered"
+    svcId    <- get objId "parentId"
+    assignee <- get objId "assignedTo"
+    set svcId "assignedTo" assignee
     replaceAction
       "tellClient"
       "Сообщить клиенту о договорённости" 
