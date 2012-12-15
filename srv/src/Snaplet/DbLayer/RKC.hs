@@ -116,17 +116,21 @@ towageTech :: PreQuery
 towageTech = inList "servicetbl" "type" ["towage", "tech"]
 
 averageTowageTechStart :: PreQuery
-averageTowageTechStart = mconcat [
-  averageTime ("servicetbl", "times_factServiceStart") ("casetbl", "callDate"),
-  serviceCaseRel,
-  towageTech]
+averageTowageTechStart = averageStart `mappend` towageTech
   --cond ["servicetbl"] "(servicetbl.suburbanMilage = 0) or (servicetbl.suburbanMilage is null)"]
 
 averageTowageTechEnd :: PreQuery
-averageTowageTechEnd = mconcat [
-  averageTime ("servicetbl", "times_factServiceEnd") ("servicetbl", "times_factServiceStart"),
-  towageTech]
+averageTowageTechEnd = averageEnd `mappend` towageTech
   --cond ["servicetbl"] "(servicetbl.suburbanMilage = 0) or (servicetbl.suburbanMilage is null)"]
+
+averageStart :: PreQuery
+averageStart = mconcat [
+  averageTime ("servicetbl", "times_factServiceStart") ("casetbl", "callDate"),
+  serviceCaseRel]
+
+averageEnd :: PreQuery
+averageEnd = mconcat [
+  averageTime ("servicetbl", "times_factServiceEnd") ("servicetbl", "times_factServiceStart")]
 
 satisfaction :: PreQuery
 satisfaction = mconcat [
@@ -431,7 +435,7 @@ caseSummary constraints = scope "caseSummary" $ do
 
 caseServices :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> m [CaseServiceInfo]
 caseServices constraints names = scope "caseServices" $ do
-  [totals, startAvgs, endAvgs, calcs, lims] <- mapM todayAndGroup [count, averageTowageTechStart, averageTowageTechEnd, calculatedCost, limitedCost]
+  [totals, startAvgs, endAvgs, calcs, lims] <- mapM todayAndGroup [count, averageStart, averageEnd, calculatedCost, limitedCost]
   let
     makeServiceInfo n = CaseServiceInfo n (look totals) (look startAvgs) (look endAvgs) (look calcs) (look lims) where
       look = fromMaybe 0 . lookup n
