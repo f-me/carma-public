@@ -441,7 +441,7 @@ this.reverseGeoPicker = (fieldName, el) ->
     currentBlip(osmap, osmap.getCenter())
 
   if addr_field?
-    $.getJSON(nominatimRevQuery + "lon=#{coords.lon}&lat=#{coords.lat}",
+    $.getJSON(nominatimRevQuery coords.lon, coords.lat,
       (res) ->
         addr = buildReverseAddress(res)
         findVM(viewName)[addr_field](addr)
