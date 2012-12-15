@@ -31,6 +31,9 @@ import Data.Text.Encoding (decodeUtf8)
 
 import Data.Configurator
 
+import Data.Time.Clock
+import Data.Time.Format
+
 import Data.Lens.Template
 import Data.Maybe
 
@@ -38,6 +41,8 @@ import qualified Database.Redis as R
 
 import qualified Network.HTTP as H
 import Network.URI (parseURI)
+
+import System.Locale
 
 import Snap.Core
 import Snap.Snaplet
@@ -122,6 +127,12 @@ partnerCoords = "coords"
 
 
 ------------------------------------------------------------------------------
+-- | Name of modification time field in partner model.
+partnerMtime :: ByteString
+partnerMtime = "mtime"
+
+
+------------------------------------------------------------------------------
 -- | Address line as parsed from Nominatim reverse geocoder JSON
 -- response.
 newtype Address = Address ByteString deriving Show
@@ -184,7 +195,8 @@ updatePosition = do
   case (lon', lat', pid') of
     (Just lon, Just lat, Just pid) -> do
        addr <- revGeocode lon lat
-       updatePartnerData pid lon lat addr
+       mtime <- liftIO $ getCurrentTime
+       updatePartnerData pid lon lat addr mtime
     _ -> error "Bad request"
 
 
@@ -198,12 +210,14 @@ updatePartnerData :: Int
                   -- ^ Latitude.
                   -> (Maybe Address)
                   -- ^ New address if available.
+                  -> UTCTime
                   -> Handler b GeoApp ()
-updatePartnerData pid lon lat addr =
+updatePartnerData pid lon lat addr mtime =
     let
         coordString = concat [show lon, ",", show lat]
         body = BSL.unpack $ encode $ object $
                [decodeUtf8 partnerCoords .= coordString] ++
+               [decodeUtf8 partnerMtime .= formatTime defaultTimeLocale "%s" mtime] ++
                (maybe [] (\(Address a) -> [decodeUtf8 partnerAddress .= a]) addr)
     in do
       parU <- partnerUpdateURI pid
