@@ -535,8 +535,11 @@
               <h3 id="myModalLabel">Выбор координат</h3>
             </div>
 
+            <div id="partner-view">
             <div class="modal-body">
-              osMap
+              <div style="height:600px;" id="partnerMap" class="osMap"
+                   name="coords"></div>
+            </div>
             </div>
 
             <div class="modal-footer">

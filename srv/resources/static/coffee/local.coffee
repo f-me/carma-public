@@ -269,6 +269,7 @@ this.doPick = (pickType, args, elt) ->
 
     geoPicker: geoPicker
     reverseGeoPicker: reverseGeoPicker
+    mapPicker: mapPicker
   pickers[pickType](args, elt)
 
 this.kdoPick = (pickType, args, k, e) ->

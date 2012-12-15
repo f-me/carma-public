@@ -72,8 +72,9 @@
                 "widget": "picker",
                 "label": "Фактическыя координаты",
                 "infoText": "coords",
-                "picker": "reverseGeoPicker",
-                "targetAddr": "addrDeFacto"
+                "picker": "mapPicker",
+                "targetAddr": "addrDeFacto",
+                "targetCoords": "coords"
             }
         },
         {

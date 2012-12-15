@@ -446,3 +446,23 @@ this.reverseGeoPicker = (fieldName, el) ->
         addr = buildReverseAddress(res)
         findVM(viewName)[addr_field](addr)
     )
+
+
+this.mapPicker = (fieldName, el) ->
+  coords =
+    lonlatFromShortString(
+      $(el).parents('.input-append')
+           .children("input[name=#{fieldName}]")
+           .val())
+
+  viewName = elementView($(el)).id
+  view = $(elementView($(el)))
+  modelName = elementModel($(el))
+
+  osmCoords = coords.clone().transform(wsgProj, osmProj)
+
+  addr_field = modelField(modelName, fieldName).meta['targetAddr']
+
+  $("#partnerMapModal").modal('show')
+
+  initOSM($("#partnerMapModal").find(".osMap"), viewName)
