@@ -33,7 +33,7 @@
             "meta": {
                 "label": "Мобильный партнёр"
             }
-        }, 
+        },
         {
             "name": "name",
             "index": true,
@@ -175,6 +175,14 @@
             "type": "checkbox",
             "meta": {
                 "label": "Соглашение о вознаграждении"
+            }
+        },
+        {
+            "name": "mtime",
+            "type": "datetime",
+            "canRead": true,
+            "meta": {
+                "invisible": true
             }
         },
         {
