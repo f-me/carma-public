@@ -367,7 +367,7 @@ this.pickPartnerBlip = (
 # Read "32.54, 56.21" (the way coordinates are stored in model fields)
 # into LonLat object
 this.lonlatFromShortString = (coords) ->
-  parts = coords.split(", ")
+  parts = coords.split(",")
   return new OpenLayers.LonLat(parts[0], parts[1])
 
 
