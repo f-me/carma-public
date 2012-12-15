@@ -31,7 +31,7 @@ localScreens = ->
   "partner":
     "template": "partner-screen-template"
     "views":
-      "partner-form":
+      "partner-view":
         constructor: setupPartnersForm
         destructor: releasePartnersForm
   "supervisor":

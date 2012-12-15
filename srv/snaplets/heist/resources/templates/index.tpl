@@ -523,7 +523,7 @@
 
       <div id="partner-center" class="nice-scrollbar pane">
         <form class="form-vertical">
-          <div id="partner-form" />
+          <div id="partner-view" />
           <div class="control-group">
             <div class="control-label">
               <label>Услуги</label>

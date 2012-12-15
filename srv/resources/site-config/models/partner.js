@@ -70,8 +70,10 @@
             "type": "coords",
             "meta": {
                 "widget": "picker",
-                "label": "Координаты",
-                "infoText": "coords"
+                "label": "Фактическыя координаты",
+                "infoText": "coords",
+                "picker": "reverseGeoPicker",
+                "targetAddr": "addrDeFacto"
             }
         },
         {
