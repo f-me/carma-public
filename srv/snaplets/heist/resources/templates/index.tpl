@@ -524,6 +524,26 @@
       <div id="partner-center" class="nice-scrollbar pane">
         <form class="form-vertical">
           <div id="partner-view" />
+
+          <div id="partnerMapModal" 
+               class="modal hide fade"
+               tabindex="-1" 
+               role="dialog">
+
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">×</button>
+              <h3 id="myModalLabel">Выбор координат</h3>
+            </div>
+
+            <div class="modal-body">
+              osMap
+            </div>
+
+            <div class="modal-footer">
+              <button class="btn btn-primary" data-dismiss="modal">Сохранить</button>
+            </div>
+          </div>
+
           <div class="control-group">
             <div class="control-label">
               <label>Услуги</label>
