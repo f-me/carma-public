@@ -67,7 +67,7 @@
     <script src="/s/js/backoffice.js" />
     <script src="/s/js/supervisors.js" />
     <script src="/s/js/rkc.js" />
-    <srcipt src="/s/js/rkcOps.js" />
+    <script src="/s/js/rkcOps.js" />
     <script src="/s/js/report.js" />
     <script src="/s/js/hotkeys.js" />
     <script src="/s/js/fileupload.js" />
