@@ -251,40 +251,49 @@ caseParams = [ "contact_name"
              ]
 
 
+------------------------------------------------------------------------------
 -- | Name of case coordinates field in case model.
 caseCoords :: ByteString
 caseCoords = "caseAddress_coords"
 
 
+------------------------------------------------------------------------------
 -- | Name of case address field in case model.
 caseAddress :: ByteString
 caseAddress = "caseAddress_address"
 
 
+------------------------------------------------------------------------------
 -- | Name of case id field in action model.
 actionCaseId :: ByteString
 actionCaseId = "caseId"
 
 
+------------------------------------------------------------------------------
 -- | Name of actions field in case model.
 caseActions :: ByteString
 caseActions = "actions"
 
 
+------------------------------------------------------------------------------
 -- | Build reference to a case for use in 'actionCaseId'.
-caseIdReference :: Int -> String 
+caseIdReference :: Int -> String
 caseIdReference n = "case:" ++ (show n)
 
 
+------------------------------------------------------------------------------
 -- | Build reference to an action for use in 'caseActions'.
-actionIdReference :: Int -> String 
+actionIdReference :: Int -> String
 actionIdReference n = "action:" ++ (show n)
 
 
+------------------------------------------------------------------------------
+-- | JSON pair for action type.
 actionNamePair :: Pair
 actionNamePair = "name" .= T.pack "orderService"
 
 
+------------------------------------------------------------------------------
 -- | CaRMa JSON response containing "id" field. The rest of fields are
 -- ignored.
 newtype IdResponse = IdResponse Int deriving Show
@@ -347,7 +356,7 @@ newCase = do
   actRespBody <- liftIO $ H.getResponseBody actResp
   let Just (IdResponse actId) = decode' (BSL.pack actRespBody) :: Maybe IdResponse
   caseU' <- caseCreateUpdateURI (Just caseId)
-  liftIO $ H.simpleHTTP $ 
+  liftIO $ H.simpleHTTP $
          putRequestWithBody caseU' "application/json" $ BSL.unpack $ encode $ object $
           [ decodeUtf8 caseActions .= actionIdReference actId
           ]
