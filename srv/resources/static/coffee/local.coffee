@@ -210,9 +210,6 @@ this.findVM = (view) ->
   else
     findCaseOrReferenceVM(view)
 
-# Given numeric id, return "partner:id"
-this.fullPartnerId = (id) -> "partner:" + id
-
 
 # Strip whitespace from string
 this.stripWs = (s) -> do (s) -> s.replace(/\s+/g, '')

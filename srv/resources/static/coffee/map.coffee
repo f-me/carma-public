@@ -262,7 +262,7 @@ this.extraBlip = (osmap, coords, layerName) ->
 #
 # - osmap: map to render on
 #
-# - partners: a list of [id, lon, lat] triples
+# - partners: a list of [id, lon, lat, isDealer, isMobile] 5-tuples
 #
 # - tableCache: a hash of all partners, where key is id and value is
 #               an object with fields "name", "addrDeFacto", "phone1",
@@ -289,12 +289,16 @@ this.partnerBlips = (osmap,
   for blip in partners
     do (blip) ->
       id = blip[0]
-      hl = _.include(highlightIds, fullPartnerId(id))
+      # cache ids are numeric, highlightIds are strings (being values
+      # of knockVM)
+      hl = _.include(highlightIds, id.toString())
       
-      # Skip partners not in table
-      return if not (tableCache[id])
+      partner_cache = tableCache[id]
+      is_dealer = blip[3]
+      is_mobile = blip[4]
 
-      partner = tableCache[id]
+      # Skip partners which are not in table or highlighted
+      return if not (partner_cache or hl)
 
       coords = new OpenLayers.LonLat(blip[1], blip[2])
 
@@ -303,10 +307,10 @@ this.partnerBlips = (osmap,
       # Coords to use for map blip
       coords = coords.transform(wsgProj, osmProj)
 
-      if partner.isMobile
+      if is_mobile
         ico = towIcon
       else
-        if (partner.isDealer == "1")
+        if is_dealer
           ico = dealerIcon
         else
           ico = partnerIcon
@@ -318,27 +322,28 @@ this.partnerBlips = (osmap,
           coords, new OpenLayers.Icon(ico, iconSize))
 
       # Show partner info from table cache when clicking marker
-      mrk.events.register("click", mrk, (e) ->
+      if (partner_cache)
+        mrk.events.register("click", mrk, (e) ->
 
-        # Let popup know where to put new partner data
-        extra_ctx =
-          numid: id
-          mapId: osmap.div.id
-          parentView: parentView
-          partnerField: partnerField
-          partnerIdField: partnerIdField
-          partnerAddrField: partnerAddrField
-          partnerCoordsField: partnerCoordsField
-          coords: string_coords
-        ctx =_.extend(partner, extra_ctx)
+          # Let popup know where to put new partner data
+          extra_ctx =
+            numid: id
+            mapId: osmap.div.id
+            parentView: parentView
+            partnerField: partnerField
+            partnerIdField: partnerIdField
+            partnerAddrField: partnerAddrField
+            partnerCoordsField: partnerCoordsField
+            coords: string_coords
+          ctx =_.extend(partner_cache, extra_ctx)
 
-        popup = new OpenLayers.Popup.FramedCloud(
-          partner.id, mrk.lonlat,
-          new OpenLayers.Size(200, 200),
-          Mustache.render(tpl, ctx),
-          null, true)
+          popup = new OpenLayers.Popup.FramedCloud(
+            partner_cache.id, mrk.lonlat,
+            new OpenLayers.Size(200, 200),
+            Mustache.render(tpl, ctx),
+            null, true)
 
-        osmap.addPopup(popup))
+          osmap.addPopup(popup))
       markers.addMarker(mrk)
 
 
