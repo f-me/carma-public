@@ -46,9 +46,9 @@ localScreens = ->
         constructor: setupRKCScreen
         destructor: removeRKCScreen
   "rkcOps":
-    "template": "rkc-ops-screen-template"
+    "template": "rkcOps-screen-template"
     # "views":
-    #   "rkc-ops-form":
+    #   "rkcOps-form":
     #     constructor: setupRKCOpsScreen
     #     destructor: removeRKCOpsScreen
   "reports":

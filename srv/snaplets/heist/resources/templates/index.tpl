@@ -806,7 +806,7 @@
     <!-- RKC operators screen template -->
     <script type="text/template"
             class="screen-template"
-            id="rkc-ops-screen-template">
+            id="rkcOps-screen-template">
       <div class="row-fluid">
         <div class="span2">
           <h2>Фильтрация</h2>
