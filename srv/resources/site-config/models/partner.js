@@ -70,7 +70,7 @@
             "type": "coords",
             "meta": {
                 "widget": "picker",
-                "label": "Фактическыя координаты",
+                "label": "Координаты фактического адреса",
                 "infoText": "coords",
                 "picker": "mapPicker",
                 "targetAddr": "addrDeFacto",
