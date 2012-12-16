@@ -31,7 +31,7 @@ localScreens = ->
   "partner":
     "template": "partner-screen-template"
     "views":
-      "partner-form":
+      "partner-view":
         constructor: setupPartnersForm
         destructor: releasePartnersForm
   "supervisor":
@@ -218,9 +218,6 @@ this.findVM = (view) ->
   else
     findCaseOrReferenceVM(view)
 
-# Given numeric id, return "partner:id"
-this.fullPartnerId = (id) -> "partner:" + id
-
 
 # Strip whitespace from string
 this.stripWs = (s) -> do (s) -> s.replace(/\s+/g, '')
@@ -280,6 +277,7 @@ this.doPick = (pickType, args, elt) ->
 
     geoPicker: geoPicker
     reverseGeoPicker: reverseGeoPicker
+    mapPicker: mapPicker
   pickers[pickType](args, elt)
 
 this.kdoPick = (pickType, args, k, e) ->

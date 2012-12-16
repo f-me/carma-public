@@ -48,6 +48,7 @@ services =
   ,"sober"
   ,"taxi"
   ,"tech"
+  ,"tech1"
   ,"towage"
   ,"transportation"
   ,"ken"
@@ -284,6 +285,13 @@ serviceActions = Map.fromList
    -- RKC calc
   ,("suburbanMilage", [\objId val -> setSrvMCost objId])
   ,("providedFor",    [\objId val -> setSrvMCost objId])
+  ,("times_expectedServiceStart",
+    [\objId val -> do
+      let Just tm = fst <$> B.readInt val
+      let h = 3600 -- seconds
+      set objId "times_expectedServiceEnd"     $ B.pack $ show $ tm + 1*h
+      set objId "times_expectedServiceClosure" $ B.pack $ show $ tm + 11*h
+    ])
   ]
 
 resultSet1 =
@@ -303,8 +311,11 @@ actionActions = Map.fromList
     ,\objId _al -> dateNow id >>= set objId "closeTime"
     ,\objId val -> maybe (return ()) ($objId)
       $ Map.lookup val actionResultMap
-    ]
-  )]
+    ])
+  ,("closed",
+    [\objId val -> when (val == "1") $ closeAction objId
+    ])
+  ]
 
 actionResultMap = Map.fromList
   [("busyLine",        \objId -> dateNow (+ (5*60))  >>= set objId "duetime" >> set objId "result" "")
@@ -577,8 +588,7 @@ actionResultMap = Map.fromList
       "director" "1" (+360) objId
     set act "assignedTo" ""
   )
-  ,("analystChecked", closeAction
-  )
+  ,("analystChecked", closeAction)
   ,("caseClosed", \objId -> do
     setService objId "status" "serviceClosed"
     closeAction objId

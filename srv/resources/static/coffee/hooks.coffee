@@ -129,11 +129,13 @@ this.distHook = (instance, knockVM) ->
       # Subscribe to change in either of coordinates
       vm1[d1_meta.field].subscribe (new_coord) ->
         other_coord = vm2[d2_meta.field]()
-        $.get distanceQuery(new_coord, other_coord), (resp) ->
-          knockVM[n](formatDistance(resp).toString())          
+        if other_coord
+          $.get distanceQuery(new_coord, other_coord), (resp) ->
+            knockVM[n](formatDistance(resp).toString())          
 
       vm2[d2_meta.field].subscribe (new_coord) ->
         other_coord = vm1[d1_meta.field]()
-        $.get distanceQuery(new_coord, other_coord), (resp) ->
-          knockVM[n](formatDistance(resp).toString())
+        if other_coord
+          $.get distanceQuery(new_coord, other_coord), (resp) ->
+            knockVM[n](formatDistance(resp).toString())
 

@@ -208,7 +208,7 @@ this.initPartnerTables = ($view,parentView) ->
     cache = {}
     rows = for p in objs
       p.name = p.name.trim()
-      cache[p.id.split(":")[1]] = p
+      cache[p.id] = p
       [p.name        || '',
        p.city        || '',
        p.addrDeFacto || '',

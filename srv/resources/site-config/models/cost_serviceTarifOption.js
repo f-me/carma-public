@@ -47,7 +47,7 @@
         {
             "name": "count",
             "meta": {
-                "label": "Колличество",
+                "label": "Количество",
                 "regexp": "number"
             }
         },

@@ -44,7 +44,7 @@ applyDefaults model obj = do
       return $ case caseAddr of
         Just addr -> Map.insert "taxiFrom_address" addr obj
         Nothing   -> obj
-            
+
     "vin"  -> return $ Map.fromList
               [ ("validFrom"  , B.pack $ show ct)
               , ("validUntil" , B.pack $ show $ ct + y)
@@ -98,6 +98,7 @@ services =
   ,"sober"
   ,"taxi"
   ,"tech"
+  ,"tech1"
   ,"towage"
   ,"transportation"
   ,"ken"
