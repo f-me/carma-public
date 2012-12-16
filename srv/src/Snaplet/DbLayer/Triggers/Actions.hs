@@ -38,6 +38,7 @@ import Snaplet.DbLayer.Triggers.SMS
 import Snap.Snaplet.SimpleLog
 
 import Util
+import qualified  Utils.RKCCalc as RKC
 
 services =
   ["deliverCar"
@@ -729,61 +730,11 @@ calcCost id = do
   c <- get id "count" >>= return . fromMaybe 0 . mbreadDouble
   return $ p * c
 
-setTowMCost id = do
-  program  <- get id "parentId" >>= flip get "program"
-  mileCost <- rkc program "towMileCost"
-  callCost <- rkc program "towCallCost"
-  mileage  <- readDouble <$> get id "suburbanMilage"
-  towCost  <- rkc program "towCost"
-  set id "marginalCost" $ printBPrice $
-    towCost + callCost + mileage * mileCost
-
-setTechMCost id = do
-  program  <- get id "parentId" >>= flip get "program"
-  mileCost <- rkc program "techMileCost"
-  callCost <- rkc program "techCallCost"
-  mileage  <- readDouble <$> get id "suburbanMilage"
-  techCost <- rkc program "techCost"
-  set id "marginalCost" $ printBPrice $
-    techCost + callCost + mileage * mileCost
-
-setHotelMCost id = do
-  program  <- get id "parentId" >>= flip get "program"
-  p  <- readDouble <$> get id "providedFor"
-  p1 <- rkc program "hotelDayCost"
-  set id "marginalCost" $ printBPrice $ p*p1
-
-setRentMCost id = do
-  program  <- get id "parentId" >>= flip get "program"
-  p  <- readDouble <$> get id "providedFor"
-  p1 <- rkc program "rentDayCost"
-  set id "marginalCost" $ printBPrice $ p*p1
-
-setTaxiMCost id =
-  get id "parentId"    >>=
-  flip get "program"   >>=
-  flip get "taxiLimit" >>=
-  set id "marginalCost"
-
-
-setSrvMCost id =
-  case head $ B.split ':' id of
-    "towage" -> setTowMCost   id
-    "tech"   -> setTechMCost  id
-    "hotel"  -> setHotelMCost id
-    "taxi"   -> setTaxiMCost  id
-    "rent"   -> setRentMCost  id
-    _        -> return ()
-
-rkc programm field = do
-  dict <- lift $ gets rkcDict
-  case Map.lookup programm dict >>= Map.lookup field of
-    Just v  -> return v
-    Nothing -> do
-      lift $ with dbLog $ log Info $ T.concat
-        [ "Can't find rkc value for "
-        , T.decodeUtf8 programm
-        , " "
-        , T.decodeUtf8 field
-        ]
-      return 0
+setSrvMCost id = do
+  obj    <- readR id
+  parent <- readR $ fromJust $ Map.lookup "parentId" obj
+  dict   <- lift $ gets rkcDict
+  set id "marginalCost" $ RKC.setSrvMCost srvName obj parent dict
+    where
+      readR   = lift . RC.read' redis
+      srvName = head $ B.split ':' id
