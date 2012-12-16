@@ -363,6 +363,24 @@ smsProcessingHandler = scope "sms" $ do
   writeJSON $ object [
     "processing" .= res]
 
+printServiceHandler :: AppHandler ()
+printServiceHandler = do
+  Just model <- getParam "model"
+  Just id <- getParam "id"
+  srv     <- with db $ DB.read model id
+  kase    <- with db $ DB.read' $ fromJust $ Map.lookup "parentId" srv
+  actions <- with db $ mapM DB.read' $
+             B.split ',' $ Map.findWithDefault "" "actions" kase
+  let id' = B.concat [model, ":", id]
+      action = head' $ filter ((Just id' ==) . Map.lookup "parentId") $ actions
+  writeJSON $ Map.fromList [ ("action" :: ByteString, action)
+                           , ("kase",   kase)
+                           , ("service", srv)
+                           ]
+    where
+      head' []     = Map.empty
+      head' (x:xs) = x
+
 errorsHandler :: AppHandler ()
 errorsHandler = do
   l <- gets feLog

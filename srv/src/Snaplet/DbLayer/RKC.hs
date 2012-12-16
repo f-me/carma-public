@@ -2,7 +2,7 @@
 
 module Snaplet.DbLayer.RKC (
   CaseSummary(..), CaseServiceInfo(..), CaseInformation(..),
-  FrontInformation(..), FrontOperatorInfo(..),
+  BackSummary(..), BackActionInfo(..), BackInformation(..),
   Information(..),
   rkc
   ) where
@@ -116,17 +116,21 @@ towageTech :: PreQuery
 towageTech = inList "servicetbl" "type" ["towage", "tech"]
 
 averageTowageTechStart :: PreQuery
-averageTowageTechStart = mconcat [
-  averageTime ("servicetbl", "times_factServiceStart") ("casetbl", "callDate"),
-  serviceCaseRel,
-  towageTech]
+averageTowageTechStart = averageStart `mappend` towageTech
   --cond ["servicetbl"] "(servicetbl.suburbanMilage = 0) or (servicetbl.suburbanMilage is null)"]
 
 averageTowageTechEnd :: PreQuery
-averageTowageTechEnd = mconcat [
-  averageTime ("servicetbl", "times_factServiceEnd") ("servicetbl", "times_factServiceStart"),
-  towageTech]
+averageTowageTechEnd = averageEnd `mappend` towageTech
   --cond ["servicetbl"] "(servicetbl.suburbanMilage = 0) or (servicetbl.suburbanMilage is null)"]
+
+averageStart :: PreQuery
+averageStart = mconcat [
+  averageTime ("servicetbl", "times_factServiceStart") ("casetbl", "callDate"),
+  serviceCaseRel]
+
+averageEnd :: PreQuery
+averageEnd = mconcat [
+  averageTime ("servicetbl", "times_factServiceEnd") ("servicetbl", "times_factServiceStart")]
 
 satisfaction :: PreQuery
 satisfaction = mconcat [
@@ -313,6 +317,60 @@ instance ToJSON FrontOperatorInfo where
     "avg" .= a,
     "roles" .= r]
 
+data BackSummary = BackSummary {
+  backSummaryTotalActions :: Integer,
+  backSummaryTotalIncompleted :: Integer }
+    deriving (Eq, Ord, Read, Show)
+
+instance FromJSON BackSummary where
+  parseJSON (Object v) = BackSummary <$>
+    (v .: "total") <*>
+    (v .: "undone")
+  parseJSON _ = empty
+
+instance ToJSON BackSummary where
+  toJSON (BackSummary t u) = object [
+    "total" .= t,
+    "undone" .= u]
+
+data BackActionInfo = BackActionInfo {
+  backActionName :: T.Text,
+  backTotalActions :: Integer,
+  backTotalIncompleted :: Integer,
+  backAverage :: Integer }
+    deriving (Eq, Ord, Read, Show)
+
+instance FromJSON BackActionInfo where
+  parseJSON (Object v) = BackActionInfo <$>
+    (v .: "name") <*>
+    (v .: "total") <*>
+    (v .: "undone") <*>
+    (v .: "average")
+  parseJSON _ = empty
+
+instance ToJSON BackActionInfo where
+  toJSON (BackActionInfo n t u a) = object [
+    "name" .= n,
+    "total" .= t,
+    "undone" .= u,
+    "average" .= a]
+
+data BackInformation = BackInformation {
+  backInfoSummary :: BackSummary,
+  backInfoActions :: [BackActionInfo] }
+    deriving (Eq, Ord, Read, Show)
+
+instance FromJSON BackInformation where
+  parseJSON (Object v) = BackInformation <$>
+    (v .: "summary") <*>
+    (v .: "actions")
+  parseJSON _ = empty
+
+instance ToJSON BackInformation where
+  toJSON (BackInformation s as) = object [
+    "summary" .= s,
+    "actions" .= as]
+
 data ActionOpAvgInformation = ActionOpAvgInformation {
   actionOpName :: T.Text,
   actionOpAvgs :: [Maybe Integer] }
@@ -332,6 +390,7 @@ instance ToJSON ActionOpAvgInformation where
 data Information = Information {
   rkcCaseInformation :: CaseInformation,
   rkcFrontInformation :: FrontInformation,
+  rkcBackInformation :: BackInformation,
   rkcEachActionOpInfo :: [ActionOpAvgInformation] }
     deriving (Eq, Ord, Read, Show)
 
@@ -339,13 +398,15 @@ instance FromJSON Information where
   parseJSON (Object v) = Information <$>
     (v .: "case") <*>
     (v .: "front") <*>
+    (v .: "back") <*>
     (v .: "eachopactions")
   parseJSON _ = empty
 
 instance ToJSON Information where
-  toJSON (Information c f ea) = object [
+  toJSON (Information c f b ea) = object [
     "case" .= c,
     "front" .= f,
+    "back" .= b,
     "eachopactions" .= ea]
 
 mintQuery :: (PS.HasPostgres m, MonadLog m) => PreQuery -> m (Maybe Integer)
@@ -374,7 +435,7 @@ caseSummary constraints = scope "caseSummary" $ do
 
 caseServices :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> m [CaseServiceInfo]
 caseServices constraints names = scope "caseServices" $ do
-  [totals, startAvgs, endAvgs, calcs, lims] <- mapM todayAndGroup [count, averageTowageTechStart, averageTowageTechEnd, calculatedCost, limitedCost]
+  [totals, startAvgs, endAvgs, calcs, lims] <- mapM todayAndGroup [count, averageStart, averageEnd, calculatedCost, limitedCost]
   let
     makeServiceInfo n = CaseServiceInfo n (look totals) (look startAvgs) (look endAvgs) (look calcs) (look lims) where
       look = fromMaybe 0 . lookup n
@@ -393,10 +454,32 @@ rkcFront constraints usrs = scope "rkcFront" $ do
     makeOpInfo (n, label, roles) = fmap (\v -> FrontOperatorInfo label v roles) $ lookup n vals
   return $ FrontInformation $ mapMaybe makeOpInfo usrs
 
+backSummary :: (PS.HasPostgres m, MonadLog m) => PreQuery -> m BackSummary
+backSummary constraints = scope "backSummary" $ do
+  log Trace "Loading summary"
+  return BackSummary `ap`
+    trace "total" (run count) `ap`
+    trace "undone" (run (mconcat [count, undoneAction]))
+  where
+    run p = liftM (fromMaybe 0) $ mintQuery $ mconcat [p, constraints, withinToday "actiontbl" "openTime"]
+
+backActions :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> m [BackActionInfo]
+backActions constraints actions = scope "backAction" $ do
+  [totals, undones, avgs] <- mapM todayAndGroup [count, mconcat [count, undoneAction], averageActionTime]
+  let
+    makeActionInfo n = BackActionInfo n (look totals) (look undones) (look avgs) where
+      look = fromMaybe 0 . lookup n
+  return $ map makeActionInfo actions
+  where
+    todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "actiontbl" "name", notNull "actiontbl" "name", p, constraints, withinToday "actiontbl" "openTime", groupBy "actiontbl" "name"]
+
+rkcBack :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> m BackInformation
+rkcBack constraints actions = scope "rkcBack" $ (return BackInformation `ap` backSummary constraints `ap` backActions constraints actions)
+
 -- | Average time for each operator and action
 rkcEachActionOpAvg :: (PS.HasPostgres m, MonadLog m) => [(T.Text, T.Text, T.Text)] -> [T.Text] -> m [ActionOpAvgInformation]
 rkcEachActionOpAvg usrs acts = scope "rkcEachActionOpAvg" $ do
-  r <- runQuery_ $ mconcat [
+  r <- trace "result" $ runQuery_ $ mconcat [
     select "actiontbl" "assignedTo",
     select "actiontbl" "name",
     averageActionTime,
@@ -432,8 +515,9 @@ rkc (UsersDict usrs) program city = liftIO startOfThisDay >>= rkc' where
     dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
     c <- rkcCase constraints (serviceNames dicts)
     f <- rkcFront constraints usrs'
+    b <- rkcBack constraints (actionNames dicts)
     ea <- rkcEachActionOpAvg usrs' (actionNames dicts)
-    return $ Information c f ea
+    return $ Information c f b ea
     where
       constraints = mconcat [ifNotNull program programIs, ifNotNull city inCity]
       pname = if T.null program then "all" else program

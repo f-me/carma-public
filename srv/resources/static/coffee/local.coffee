@@ -31,7 +31,7 @@ localScreens = ->
   "partner":
     "template": "partner-screen-template"
     "views":
-      "partner-form":
+      "partner-view":
         constructor: setupPartnersForm
         destructor: releasePartnersForm
   "supervisor":
@@ -45,6 +45,12 @@ localScreens = ->
       "rkc-form":
         constructor: setupRKCScreen
         destructor: removeRKCScreen
+  "rkcOps":
+    "template": "rkcOps-screen-template"
+    "views":
+      "rkcOps-form":
+        constructor: setupRKCOpsScreen
+        destructor: removeRKCOpsScreen
   "reports":
     "template": "reports-screen-template"
     "views":
@@ -62,6 +68,12 @@ localScreens = ->
     "views":
       "smsTpl-form":
         constructor: setupSmsTplForm
+  "printSrv":
+    "template": "printSrv-screen-template"
+    "views":
+      "print-table":
+        constructor: setupPrintSrv
+        destructor: destroyPrintSrv
 
 # Setup routing
 localRouter = Backbone.Router.extend
@@ -81,7 +93,9 @@ localRouter = Backbone.Router.extend
     "newVin"      : "newVin"
     "supervisor"  : "supervisor"
     "rkc"         : "rkc"
+    "rkcOps"      : "rkcOps"
     "editSms"     : "editSms"
+    "printSrv/:model/:id" : "printSrv"
 
   loadCase    : (id) -> renderScreen("case", {"id": id})
   newCase     :      -> renderScreen("case", {"id": null})
@@ -97,7 +111,9 @@ localRouter = Backbone.Router.extend
   newVin      :      -> renderScreen("newVin")
   supervisor  :      -> renderScreen("supervisor")
   rkc         :      -> renderScreen("rkc")
+  rkcOps      :      -> renderScreen("rkcOps")
   editSms     :      -> renderScreen("editSms")
+  printSrv    : (model, id) -> renderScreen "printSrv", {model: model, id: id}
 
 # here is entry point
 $ ->
@@ -191,7 +207,7 @@ this.focusField = (name) ->
   e.scrollIntoView()
   e.focus()
 
-# Find VM of reference in a case by its view name. 
+# Find VM of reference in a case by its view name.
 this.findCaseOrReferenceVM = (view) ->
   kase = global.viewsWare["case-form"].knockVM
   if (view is "case-form")
@@ -209,9 +225,6 @@ this.findVM = (view) ->
     findCaseOrReferenceVM(vw.parentView)
   else
     findCaseOrReferenceVM(view)
-
-# Given numeric id, return "partner:id"
-this.fullPartnerId = (id) -> "partner:" + id
 
 
 # Strip whitespace from string
@@ -232,7 +245,7 @@ this.splitFieldInView = (input, defaultView) ->
   else
     view_name = defaultView
     field_name = chunks[0]
-    
+
   obj =
     view: view_name
     field: field_name
@@ -257,7 +270,7 @@ this.showComplex = (parentView, fieldName) ->
 this.hideComplex = ->
   $(".complex-field").hide()
   $(".default-complex-field").show()
-       
+
 # Dispatch on some picker type
 #
 # In templates, bind click to 'doPick({{meta.picker}}, ...,
@@ -272,6 +285,7 @@ this.doPick = (pickType, args, elt) ->
 
     geoPicker: geoPicker
     reverseGeoPicker: reverseGeoPicker
+    mapPicker: mapPicker
   pickers[pickType](args, elt)
 
 this.kdoPick = (pickType, args, k, e) ->
