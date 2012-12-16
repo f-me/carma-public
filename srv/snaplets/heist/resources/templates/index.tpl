@@ -67,6 +67,7 @@
     <script src="/s/js/backoffice.js" />
     <script src="/s/js/supervisors.js" />
     <script src="/s/js/rkc.js" />
+    <script src="/s/js/rkcOps.js" />
     <script src="/s/js/report.js" />
     <script src="/s/js/hotkeys.js" />
     <script src="/s/js/fileupload.js" />
@@ -692,7 +693,7 @@
             </div>
           </div>
           <div class="row-fluid">
-            <div class="span4">
+            <div class="span6">
               <h2>Кейсы</h2>
               <div class="row-fluid">
                 <div class="span6">
@@ -789,23 +790,8 @@
                 </div>
               </div>
             </div>
-            <div class="span4">
-              <h2>Front Office</h2>
-              <div class="row-fluid">
-                <table id="rkc-operators-table" class="table table-stripped table-bordered">
-                  <thead>
-                    <tr>
-                      <th width="40%">Оператор</th>
-                      <th width="30%">Роль</th>
-                      <th width="30%">Среднее время обработки действия</th>
-                    </tr>
-                    <tbody />
-                  </thead>
-                </table>
-              </div>
-            </div>
-            <div class="span4">
-              <h2>Back Office</h2>
+            <div class="span6">
+              <h2>Действия</h2>
               <div class="row-fluid">
                 <div class="span6">
                   Общее количество действий на сегодня
@@ -823,7 +809,7 @@
                 </div>
               </div>
               <div class="row-fluid">
-                <table id="rkc-back-office-table" class="table table-stripped table-bordered">
+                <table id="rkc-actions-table" class="table table-stripped table-bordered">
                   <thead>
                     <tr>
                       <th width="50%">Действие</th>
@@ -839,8 +825,51 @@
           </div>
         </div>
       </div>
+    </script>
+
+    <!-- RKC operators screen template -->
+    <script type="text/template"
+            class="screen-template"
+            id="rkcOps-screen-template">
       <div class="row-fluid">
-        <table id="rkc-each-action-op-avg-table" class="table table-stripped table-bordered">
+        <div class="span2">
+          <h2>Фильтрация</h2>
+        </div>
+        <div class="span4">
+          <div>
+            <div style="float:left; margin-top:+3px">
+              Город:
+            </div>
+            <div style="float:left">
+              <select id="city-select" data-bind="foreach: $data">
+                <option data-bind="value: id, text: name" />
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="span4">
+          <div>
+            <div style="float:left; margin-top:+3px">
+              Программа:
+            </div>
+            <div style="float:left">
+              <select id="program-select" data-bind="foreach: $data">
+                <option data-bind="value: id, text: name" />
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="span2">
+          <div class="control-group">
+            <button id="reload" class="btn">
+              Обновить
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="row-fluid">
+        <h2>Операторы Back Office</h2>
+        <table id="rkc-ops-back-operators-table" class="table table-stripped table-bordered">
           <thead>
             <tr data-bind="foreach: cols">
               <th data-bind="text: name"></th>
@@ -848,6 +877,21 @@
           </thead>
           <tbody />
         </table>
+      </div>
+      <div class="row-fluid">
+        <h2>Операторы Front Office</h2>
+        <div class="row-fluid">
+          <table id="rkc-ops-front-operators-table" class="table table-stripped table-bordered">
+            <thead>
+              <tr>
+                <th width="40%">Оператор</th>
+                <th width="30%">Роль</th>
+                <th width="30%">Среднее время обработки действия</th>
+              </tr>
+              <tbody />
+            </thead>
+          </table>
+        </div>
       </div>
     </script>
 

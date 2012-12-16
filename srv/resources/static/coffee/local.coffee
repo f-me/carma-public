@@ -45,6 +45,12 @@ localScreens = ->
       "rkc-form":
         constructor: setupRKCScreen
         destructor: removeRKCScreen
+  "rkcOps":
+    "template": "rkcOps-screen-template"
+    "views":
+      "rkcOps-form":
+        constructor: setupRKCOpsScreen
+        destructor: removeRKCOpsScreen
   "reports":
     "template": "reports-screen-template"
     "views":
@@ -73,21 +79,22 @@ localScreens = ->
 localRouter = Backbone.Router.extend
   # Must _not_ end with trailing slashes
   routes:
-    "case/:id"     : "loadCase"
-    "case"         : "newCase"
-    "search"       : "search"
-    "vin"          : "vin"
-    "back"         : "back"
-    "call/:id"     : "loadCall"
-    "call"         : "call"
-    "reports"      : "reports"
-    "partner"      : "newPartner"
-    "partner/:id"  : "loadPartner"
-    "editVin/:id"  : "editVin"
-    "newVin"       : "newVin"
-    "supervisor"   : "supervisor"
-    "rkc"          : "rkc"
-    "editSms"      : "editSms"
+    "case/:id"    : "loadCase"
+    "case"        : "newCase"
+    "search"      : "search"
+    "vin"         : "vin"
+    "back"        : "back"
+    "call/:id"    : "loadCall"
+    "call"        : "call"
+    "reports"     : "reports"
+    "partner"     : "newPartner"
+    "partner/:id" : "loadPartner"
+    "editVin/:id" : "editVin"
+    "newVin"      : "newVin"
+    "supervisor"  : "supervisor"
+    "rkc"         : "rkc"
+    "rkcOps"      : "rkcOps"
+    "editSms"     : "editSms"
     "printSrv/:model/:id" : "printSrv"
 
   loadCase    : (id) -> renderScreen("case", {"id": id})
@@ -104,6 +111,7 @@ localRouter = Backbone.Router.extend
   newVin      :      -> renderScreen("newVin")
   supervisor  :      -> renderScreen("supervisor")
   rkc         :      -> renderScreen("rkc")
+  rkcOps      :      -> renderScreen("rkcOps")
   editSms     :      -> renderScreen("editSms")
   printSrv    : (model, id) -> renderScreen "printSrv", {model: model, id: id}
 
