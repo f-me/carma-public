@@ -479,7 +479,7 @@ rkcBack constraints actions = scope "rkcBack" $ (return BackInformation `ap` bac
 -- | Average time for each operator and action
 rkcEachActionOpAvg :: (PS.HasPostgres m, MonadLog m) => [(T.Text, T.Text, T.Text)] -> [T.Text] -> m [ActionOpAvgInformation]
 rkcEachActionOpAvg usrs acts = scope "rkcEachActionOpAvg" $ do
-  r <- runQuery_ $ mconcat [
+  r <- trace "result" $ runQuery_ $ mconcat [
     select "actiontbl" "assignedTo",
     select "actiontbl" "name",
     averageActionTime,
