@@ -68,6 +68,12 @@ localScreens = ->
     "views":
       "smsTpl-form":
         constructor: setupSmsTplForm
+  "printSrv":
+    "template": "printSrv-screen-template"
+    "views":
+      "print-table":
+        constructor: setupPrintSrv
+        destructor: destroyPrintSrv
 
 # Setup routing
 localRouter = Backbone.Router.extend
@@ -89,6 +95,7 @@ localRouter = Backbone.Router.extend
     "rkc"         : "rkc"
     "rkcOps"      : "rkcOps"
     "editSms"     : "editSms"
+    "printSrv/:model/:id" : "printSrv"
 
   loadCase    : (id) -> renderScreen("case", {"id": id})
   newCase     :      -> renderScreen("case", {"id": null})
@@ -104,8 +111,9 @@ localRouter = Backbone.Router.extend
   newVin      :      -> renderScreen("newVin")
   supervisor  :      -> renderScreen("supervisor")
   rkc         :      -> renderScreen("rkc")
-  rkcOps        :     -> renderScreen("rkcOps")
+  rkcOps      :      -> renderScreen("rkcOps")
   editSms     :      -> renderScreen("editSms")
+  printSrv    : (model, id) -> renderScreen "printSrv", {model: model, id: id}
 
 # here is entry point
 $ ->

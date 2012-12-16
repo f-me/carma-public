@@ -229,7 +229,7 @@ serviceActions = Map.fromList
           upd kazeId "actions" $ addToList actionId
       _ -> return ()]
   )
-  ,("clientSatisfied", 
+  ,("clientSatisfied",
     [\objId val ->
         case val of
           "notSatis" -> do
@@ -282,7 +282,7 @@ serviceActions = Map.fromList
         ])
   ,("cost_serviceTarifOptions",
     [\objId val -> set objId "cost_counted" =<< srvCostCounted objId ])
-   -- RKC calc 
+   -- RKC calc
   ,("suburbanMilage", [\objId val -> setSrvMCost objId])
   ,("providedFor",    [\objId val -> setSrvMCost objId])
   ,("times_expectedServiceStart",
@@ -297,7 +297,7 @@ serviceActions = Map.fromList
 resultSet1 =
   ["partnerNotOk", "caseOver", "partnerFound"
   ,"carmakerApproved", "dealerApproved", "needService"
-  ] 
+  ]
 
 actionActions = Map.fromList
   [("result",
@@ -324,7 +324,8 @@ actionResultMap = Map.fromList
   ,("weekDelay",        \objId -> dateNow (+ (7*24*60*60)) >>= set objId "duetime" >> set objId "result" "")
   ,("partnerNotFound", \objId -> dateNow (+ (2*60*60)) >>= set objId "duetime" >> set objId "result" "")
   ,("clientCanceledService", \objId -> closeAction objId >> sendSMS objId "smsTpl:2")
-  ,("needPartner",     \objId -> do 
+  ,("unassignPlease",  \objId -> set objId "assignedTo" "" >> set objId "result" "")
+  ,("needPartner",     \objId -> do
      setService objId "status" "needPartner"
      newAction <- replaceAction
          "needPartner"
@@ -334,10 +335,14 @@ actionResultMap = Map.fromList
   )
   ,("serviceOrdered", \objId -> do
     setService objId "status" "serviceOrdered"
+    svcId    <- get objId "parentId"
+    assignee <- get objId "assignedTo"
+    set svcId "assignedTo" assignee
     replaceAction
       "tellClient"
-      "Сообщить клиенту о договорённости" 
+      "Сообщить клиенту о договорённости"
       "back" "1" (+60) objId
+
     act <- replaceAction
       "addBill"
       "Прикрепить счёт"
@@ -376,21 +381,21 @@ actionResultMap = Map.fromList
       "back" "1" (+60) objId
     set act "assignedTo" ""
   )
-  ,("needPartnerAnalyst",     \objId -> do 
+  ,("needPartnerAnalyst",     \objId -> do
      setService objId "status" "needPartner"
      newAction <- replaceAction
          "needPartner"
          "Требуется найти партнёра для оказания услуги"
          "parguy" "1" (+60) objId
      set newAction "assignedTo" ""
-  )  
+  )
   ,("serviceOrderedAnalyst", \objId -> do
      setService objId "status" "serviceOrdered"
      void $ replaceAction
          "tellClient"
-         "Сообщить клиенту о договорённости" 
+         "Сообщить клиенту о договорённости"
          "back" "1" (+60) objId
-  )  
+  )
   ,("partnerNotOkCancel", \objId -> do
       setService objId "status" "cancelService"
       void $ replaceAction
@@ -422,7 +427,7 @@ actionResultMap = Map.fromList
       "Уточнить у клиента окончено ли оказание услуги"
       "back" "3" (changeTime (+5*60) tm)
       objId
-  )  
+  )
   ,("prescheduleService", \objId -> do
     setService objId "status" "serviceInProgress"
     tm <- getService objId "times_expectedServiceEnd"
@@ -431,11 +436,11 @@ actionResultMap = Map.fromList
       "Уточнить у клиента окончено ли оказание услуги"
       "back" "3" (+60)
       objId
-  )  
+  )
   ,("serviceStillInProgress", \objId -> do
-    tm <- getService objId "times_expectedServiceEnd"  
+    tm <- getService objId "times_expectedServiceEnd"
     dateNow (changeTime (+5*60) tm) >>= set objId "duetime"
-    set objId "result" "") 
+    set objId "result" "")
   ,("clientWaiting", \objId -> do
     tm <- getService objId "times_expectedServiceStart"
     void $ replaceAction
@@ -446,7 +451,7 @@ actionResultMap = Map.fromList
   )
   ,("serviceFinished", \objId -> do
     setService objId "status" "serviceOk"
-    tm <- getService objId "times_expectedServiceClosure"  
+    tm <- getService objId "times_expectedServiceClosure"
     act <- replaceAction
       "closeCase"
       "Закрыть заявку"
@@ -470,12 +475,12 @@ actionResultMap = Map.fromList
   ,("complaint", \objId -> do
     setService objId "status" "serviceOk"
     setService objId "clientSatisfied" "0"
-    tm <- getService objId "times_expectedServiceClosure"    
+    tm <- getService objId "times_expectedServiceClosure"
     act1 <- replaceAction
       "complaintResolution"
       "Клиент предъявил претензию"
       "supervisor" "1" (+60)
-      objId 
+      objId
     set act1 "assignedTo" ""
     act <- replaceAction
       "closeCase"
@@ -524,7 +529,7 @@ actionResultMap = Map.fromList
       "На доработку МпП"
       "parguy" "1" (+360) objId
     set act "assignedTo" ""
-  ) 
+  )
   ,("confirm", \objId -> do
     act <- replaceAction
       "directorCheck"
@@ -538,14 +543,14 @@ actionResultMap = Map.fromList
       "Проверка бухгалтерией"
       "account" "1" (+360) objId
     set act "assignedTo" ""
-  )  
+  )
   ,("confirmFinal", \objId -> do
     act <- replaceAction
       "analystCheck"
       "Обработка аналитиком"
       "analyst" "1" (+360) objId
     set act "assignedTo" ""
-  )    
+  )
   ,("directorToHead", \objId -> do
     act <- replaceAction
       "headCheck"
@@ -559,15 +564,16 @@ actionResultMap = Map.fromList
       "Проверка бухгалтерией"
       "account" "1" (+360) objId
     set act "assignedTo" ""
-  )      
+  )
   ,("dirConfirmFinal", \objId -> do
     act <- replaceAction
       "analystCheck"
       "Обработка аналитиком"
       "analyst" "1" (+360) objId
     set act "assignedTo" ""
-  )    
-  ,("vwclosed", closeAction)
+  )
+  ,("vwclosed", closeAction
+  )
   ,("accountConfirm", \objId -> do
     act <- replaceAction
       "analystCheck"
@@ -588,9 +594,9 @@ actionResultMap = Map.fromList
     closeAction objId
   )
   ,("partnerGivenCloseTime", \objId -> do
-    tm <- getService objId "times_expectedServiceClosure"  
+    tm <- getService objId "times_expectedServiceClosure"
     dateNow (changeTime (+5*60) tm) >>= set objId "duetime"
-    set objId "result" "") 
+    set objId "result" "")
   ,("falseCallWBill", \objId -> do
      setService objId "falseCall" "bill"
      closeAction objId
