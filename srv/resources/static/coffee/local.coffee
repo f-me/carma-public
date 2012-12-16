@@ -62,26 +62,33 @@ localScreens = ->
     "views":
       "smsTpl-form":
         constructor: setupSmsTplForm
+  "printSrv":
+    "template": "printSrv-screen-template"
+    "views":
+      "print-table":
+        constructor: setupPrintSrv
+        destructor: destroyPrintSrv
 
 # Setup routing
 localRouter = Backbone.Router.extend
   # Must _not_ end with trailing slashes
   routes:
-    "case/:id"    : "loadCase"
-    "case"        : "newCase"
-    "search"      : "search"
-    "vin"         : "vin"
-    "back"        : "back"
-    "call/:id"    : "loadCall"
-    "call"        : "call"
-    "reports"     : "reports"
-    "partner"     : "newPartner"
-    "partner/:id" : "loadPartner"
-    "editVin/:id" : "editVin"
-    "newVin"      : "newVin"
-    "supervisor"  : "supervisor"
-    "rkc"         : "rkc"
-    "editSms"     : "editSms"
+    "case/:id"     : "loadCase"
+    "case"         : "newCase"
+    "search"       : "search"
+    "vin"          : "vin"
+    "back"         : "back"
+    "call/:id"     : "loadCall"
+    "call"         : "call"
+    "reports"      : "reports"
+    "partner"      : "newPartner"
+    "partner/:id"  : "loadPartner"
+    "editVin/:id"  : "editVin"
+    "newVin"       : "newVin"
+    "supervisor"   : "supervisor"
+    "rkc"          : "rkc"
+    "editSms"      : "editSms"
+    "printSrv/:model/:id" : "printSrv"
 
   loadCase    : (id) -> renderScreen("case", {"id": id})
   newCase     :      -> renderScreen("case", {"id": null})
@@ -98,6 +105,7 @@ localRouter = Backbone.Router.extend
   supervisor  :      -> renderScreen("supervisor")
   rkc         :      -> renderScreen("rkc")
   editSms     :      -> renderScreen("editSms")
+  printSrv    : (model, id) -> renderScreen "printSrv", {model: model, id: id}
 
 # here is entry point
 $ ->
@@ -191,7 +199,7 @@ this.focusField = (name) ->
   e.scrollIntoView()
   e.focus()
 
-# Find VM of reference in a case by its view name. 
+# Find VM of reference in a case by its view name.
 this.findCaseOrReferenceVM = (view) ->
   kase = global.viewsWare["case-form"].knockVM
   if (view is "case-form")
@@ -229,7 +237,7 @@ this.splitFieldInView = (input, defaultView) ->
   else
     view_name = defaultView
     field_name = chunks[0]
-    
+
   obj =
     view: view_name
     field: field_name
@@ -254,7 +262,7 @@ this.showComplex = (parentView, fieldName) ->
 this.hideComplex = ->
   $(".complex-field").hide()
   $(".default-complex-field").show()
-       
+
 # Dispatch on some picker type
 #
 # In templates, bind click to 'doPick({{meta.picker}}, ...,
