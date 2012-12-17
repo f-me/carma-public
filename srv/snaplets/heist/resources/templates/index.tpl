@@ -1393,7 +1393,11 @@
       <table id="{{name}}" class="table table-striped table-bordered">
         <thead>
           <tr>
-            <th>Название</th><th>Город</th><th>Адрес</th><th>Телефоны</th><th>Время работы</th>
+            <th>Название</th>
+            <th>Город</th>
+            <th>Адрес</th>
+            <th>Телефоны</th>
+            <th>Время работы</th>
           </tr>
         </thead>
         <tbody/>
