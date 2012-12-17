@@ -50,6 +50,7 @@ class @AvayaWidget
       panel.removeClass("open")
 
     phone.callInfo = (number, line) ->
+      phone.calling()
       panel.find(".search-query").val(number)
 
       numberParts = number.match(/\+7(\d\d\d)(\d\d\d)(\d\d)(\d*)/)
