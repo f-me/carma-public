@@ -22,3 +22,7 @@ srv/resources/static/fileupload/*
 
 # build dependencies
 deps/*
+srv/vendor/*
+
+# shelly log
+srv/.shelly/*
