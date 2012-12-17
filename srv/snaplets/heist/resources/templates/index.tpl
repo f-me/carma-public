@@ -1481,7 +1481,7 @@
                Услуга…
             </a>
             <a data-bind="attr: { href: '#printSrv/'+modelName()+'/'+id() }"
-               targer="_blank">
+               target="_blank">
               [Печать]
           </a>
 
