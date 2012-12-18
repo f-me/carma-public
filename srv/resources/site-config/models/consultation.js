@@ -415,6 +415,50 @@
             "name": "times",
             "groupName": "times"
         },
+        {
+            "name": "falseCall",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman"
+            ],
+            "type": "dictionary",
+            "meta": {
+                "dictionaryName": "FalseStatuses",
+                "bounded": true,
+                "label": "Ложный вызов",
+                "infoText": "falsecall"
+            }
+        },
+        {
+            "name": "falseCallPercent",
+            "canRead":  [ ],
+            "canWrite": [ ],
+            "meta": {
+                "invisible": true
+            }
+        },
          {
             "name": "bill",
             "groupName": "bill"

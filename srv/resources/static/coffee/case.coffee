@@ -191,13 +191,14 @@ this.initPartnerTables = ($view,parentView) ->
   svc = findCaseOrReferenceVM(parentView)
 
   unless table.hasClass("dataTable")
-    mkDataTable(table)
+    mkDataTable table
     table.on "click.datatable", "tr", ->
       name = this.children[0].innerText
       city = this.children[1].innerText
       addr = this.children[2].innerText
       svc["#{partnerType}_partner"](name)
       svc["#{partnerType}_address"]("#{city}, #{addr}")
+      svc["#{partnerType}_partnerId"]($(this).attr('partnerid'))
 
   table = table.dataTable()
   dealer = if partnerType is "towDealer" then 1 else 0
@@ -213,10 +214,19 @@ this.initPartnerTables = ($view,parentView) ->
        p.city        || '',
        p.addrDeFacto || '',
        p.phone1      || '',
-       p.workingTime || '']
+       p.workingTime || '',
+       p.id]
     table.data("cache", cache)
     table.fnClearTable()
-    table.fnAddData(rows)
+    r = table.fnAddData(rows)
+    n = table.fnSettings().aoData[ r[0] ]
+    # this will set partnerid attribute to each row
+    # FIXME: find better way to do this
+    for i in r
+      s  = table.fnSettings().aoData[ i ]
+      tr = s.nTr
+      id = s._aData[5]
+      $(tr).attr('partnerid', "partner:#{id}")
 
 #############################################################################
 # kb hooks

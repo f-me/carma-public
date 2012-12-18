@@ -49,16 +49,29 @@
           "permissions": ["head","supervisor","admin","programman"]
         },
         {
-          "name" : "rkc",
-          "label" : "Экран РКЦ",
-          "type" : "li",
-          "permissions" : ["head", "supervisor", "admin", "programman"]
-        },
-        {
           "name" : "editSms",
           "label" : "Редактирование шаблонов смс",
           "type" : "li",
           "permissions" : ["head", "supervisor", "admin", "programman"]
+        }
+      ]
+    },
+    {
+      "type": "dropdown",
+      "label": "Экран РКЦ",
+      "permissions": ["head", "supervisor", "admin", "programman"],
+      "screens": [
+        {
+          "name": "rkc",
+          "label": "Услуги",
+          "type": "li",
+          "permissions": ["head", "supervisor", "admin", "programman"]
+        },
+        {
+          "name": "rkcOps",
+          "label": "Операторы",
+          "type": "li",
+          "permissions": ["head", "supervisor", "admin", "programman"]
         }
       ]
     }

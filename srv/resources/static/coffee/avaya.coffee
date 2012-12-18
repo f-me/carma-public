@@ -48,33 +48,38 @@ class @AvayaWidget
 
     phone.notCalling = ->
       panel.removeClass("open")
-  
+
     phone.callInfo = (number, line) ->
-      panel.find("#avaya-info").text(lineInfo[line].greeting)
-      vm = global.viewsWare['call-form'].knockVM
-      vm.callerName_phone1(number)
-      vm.programLocal(lineInfo[line].program)
+      phone.calling()
       panel.find(".search-query").val(number)
+
       numberParts = number.match(/\+7(\d\d\d)(\d\d\d)(\d\d)(\d*)/)
       if numberParts
         numberParts.shift()
         $("#search-query").val(numberParts.join(" "))
         $("#search-query").change()
-      
+
+      vm = global.viewsWare['call-form'].knockVM
+      vm.callerName_phone1(number)
+      info = lineInfo[line]
+      if info
+        panel.find("#avaya-info").text(info.greeting)
+        vm.programLocal(info.program)
+
   call: (number) ->
     @__phone.call(number)
 
 lineInfo =
-  "VW":
+  "VW+BOSCH":
     greeting: "VW Гарантия мобильности, имя оператора, чем могу Вам помочь?"
     program: "VW / Легковые автомобили"
   "GM KOREA":
     greeting: "GM ассистанс, добрый день, чем могу Вам помочь?"
     program: "GM / Chevrolet Korea"
-  "GM":
+  "GM+BOSCH":
     greeting: "GM ассистанс, добрый день, чем могу Вам помочь?"
     program: "GM / Cadillac до 2012"
-  "FORD":
+  "FORD+BOSCH":
     greeting: "Ford помощь на дорогах, имя оператора, добрый день, чем могу Вам помочь?"
     program: "Ford"
   "ARC CLUBS":
