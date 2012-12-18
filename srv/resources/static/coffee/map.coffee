@@ -397,6 +397,7 @@ this.geoPicker = (fieldName, el) ->
 
   coord_field = modelField(modelName, fieldName).meta['targetCoords']
   map_field = modelField(modelName, fieldName).meta['targetMap']
+  current_blip_type = modelField(modelName, map_field).meta["currentBlipType"] or "default"
 
   $.getJSON(nominatimQuery(addr), (res) ->
     if res.length > 0
@@ -410,7 +411,8 @@ this.geoPicker = (fieldName, el) ->
         osmap.setCenter(
               lonlat.transform(wsgProj, osmProj),
               zoomLevel)
-        currentBlip(osmap, osmap.getCenter()))
+        currentBlip osmap, osmap.getCenter(), current_blip_type
+  )
 
 
 # Reverse geocoding picker (coordinates -> address)
@@ -434,11 +436,12 @@ this.reverseGeoPicker = (fieldName, el) ->
 
   addr_field = modelField(modelName, fieldName).meta['targetAddr']
   map_field = modelField(modelName, fieldName).meta['targetMap']
+  current_blip_type = modelField(modelName, map_field).meta["currentBlipType"] or "default"
 
   if map_field?
     osmap = view.find("[name=#{map_field}]").data("osmap")
     osmap.setCenter(osmCoords, zoomLevel)
-    currentBlip(osmap, osmap.getCenter())
+    currentBlip osmap, osmap.getCenter(), current_blip_type
 
   if addr_field?
     $.getJSON(nominatimRevQuery coords.lon, coords.lat,
