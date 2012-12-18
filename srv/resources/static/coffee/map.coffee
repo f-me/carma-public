@@ -124,7 +124,11 @@ this.reinstallMarkers = (osmap, layerName) ->
 #                    Current blip is enabled only when geocoding is
 #                    active (see targetAddr).
 this.initOSM = (el, parentView) ->
-  return if $(el).hasClass("olMap")
+  # Recenter map if it already exists to account for partner position
+  # updates
+  if $(el).hasClass("olMap")
+    $(el).data("osmap").events.triggerEvent("moveend")
+    return
 
   fieldName = $(el).attr("name")
   view = $(elementView($(el)))
