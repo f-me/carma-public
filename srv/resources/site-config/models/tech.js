@@ -843,7 +843,11 @@
                 "parguy",
                 "account"
             ],
-            "canWrite": []
+            "canWrite": [],
+            "meta": {
+                "invisible": true,
+                "readonly": true
+            }
         }
     ]
 }
