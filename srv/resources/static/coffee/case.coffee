@@ -204,7 +204,7 @@ this.initPartnerTables = ($view,parentView) ->
   dealer = if partnerType is "towDealer" then 1 else 0
   select = ["isActive=1", "isDealer=#{dealer}"]
   select.push("city=#{kase.cityLocal()}") if kase.cityLocal()
-  $.getJSON "/allPartners?#{select.join('&')}", (objs) ->
+  $.getJSON "/partnersFor/#{svc.modelName()}?#{select.join('&')}", (objs) ->
     # Store partner cache for use with maps
     cache = {}
     rows = for p in objs
@@ -215,6 +215,9 @@ this.initPartnerTables = ($view,parentView) ->
        p.addrDeFacto || '',
        p.phone1      || '',
        p.workingTime || '',
+       p.priority1   || '',
+       p.priority2   || '',
+       p.priority3   || '',
        p.id]
     table.data("cache", cache)
     table.fnClearTable()
@@ -225,7 +228,7 @@ this.initPartnerTables = ($view,parentView) ->
     for i in r
       s  = table.fnSettings().aoData[ i ]
       tr = s.nTr
-      id = s._aData[5]
+      id = s._aData[8]
       $(tr).attr('partnerid', "partner:#{id}")
 
 #############################################################################
