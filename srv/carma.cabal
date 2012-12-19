@@ -48,6 +48,7 @@ Executable carma
     Snaplet.Geo,
     Snaplet.Auth.Class,
     Utils.HttpErrors,
+    Utils.RKCCalc,
     Util
 
   Build-depends:
@@ -56,7 +57,7 @@ Executable carma
     base                        >= 4 && < 5,
     bytestring                  >= 0.9.1 && < 0.11,
     bytestring-lexing           == 0.4.*,
-    carma-sync                  >= 0.1.2.3 && < 0.2,
+    carma-sync                  >= 0.1.2.4 && < 0.2,
     configurator                == 0.2.*,
     containers                  == 0.5.*,
     data-lens                   >= 2.0.1 && < 2.11,
@@ -76,7 +77,6 @@ Executable carma
     postgresql-sync-map         >= 0.3.1.1 && < 0.4,
     resource-pool-catchio       >= 0.2 && < 0.3,
     simple-log                  == 0.2.*,
-    simple-log-syslog           >= 0.1.1,
     snap                        == 0.9.*,
     snap-core                   == 0.9.*,
     snap-loader-static          >= 0.9.0.1 && < 0.10,
@@ -94,6 +94,10 @@ Executable carma
     vin-parser                  >= 0.1.8.1 && < 0.2,
     weather-api                 >= 0.4.1,
     xlsx                        >= 0.0.2.1 && < 0.1
+
+  if !os(windows)
+    build-depends:
+      simple-log-syslog           >= 0.1.1
 
   Extensions:
     OverloadedStrings,

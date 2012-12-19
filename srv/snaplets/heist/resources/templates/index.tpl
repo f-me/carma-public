@@ -67,12 +67,14 @@
     <script src="/s/js/backoffice.js" />
     <script src="/s/js/supervisors.js" />
     <script src="/s/js/rkc.js" />
+    <script src="/s/js/rkcOps.js" />
     <script src="/s/js/report.js" />
     <script src="/s/js/hotkeys.js" />
     <script src="/s/js/fileupload.js" />
     <script src="/s/js/avaya.js" />
     <script src="/s/js/editSms.js" />
     <script src="/s/js/sendSms.js" />
+    <script src="/s/js/printService.js" />
 
   </head>
   <body>
@@ -523,7 +525,30 @@
 
       <div id="partner-center" class="nice-scrollbar pane">
         <form class="form-vertical">
-          <div id="partner-form" />
+          <div id="partner-view" />
+
+          <div id="partnerMapModal" 
+               class="modal hide fade"
+               tabindex="-1" 
+               role="dialog">
+
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">×</button>
+              <h3 id="myModalLabel">Выбор координат</h3>
+            </div>
+
+            <div id="partner-view">
+            <div class="modal-body">
+              <div style="height:600px;" id="partnerMap" class="osMap"
+                   name="coords"></div>
+            </div>
+            </div>
+
+            <div class="modal-footer">
+              <button class="btn btn-primary" data-dismiss="modal">Сохранить</button>
+            </div>
+          </div>
+
           <div class="control-group">
             <div class="control-label">
               <label>Услуги</label>
@@ -766,31 +791,212 @@
               </div>
             </div>
             <div class="span6">
-              <h2>Front Office</h2>
+              <h2>Действия</h2>
               <div class="row-fluid">
-                <table id="rkc-operators-table" class="table table-stripped table-bordered">
+                <div class="span6">
+                  Общее количество действий на сегодня
+                </div>
+                <div class="span2">
+                  <input style="float:right; width:40px" id="total-actions" />
+                </div>
+              </div>
+              <div class="row-fluid">
+                <div class="span6">
+                  Общее количество невыполненных действий
+                </div>
+                <div class="span2">
+                  <input style="float:right; width:40px" id="total-incomplete-actions" />
+                </div>
+              </div>
+              <div class="row-fluid">
+                <table id="rkc-actions-table" class="table table-stripped table-bordered">
                   <thead>
                     <tr>
-                      <th width="40%">Оператор</th>
-                      <th width="30%">Роль</th>
-                      <th width="30%">Среднее время обработки действия</th>
+                      <th width="50%">Действие</th>
+                      <th width="15%">Общее количество действий</th>
+                      <th width="15%">Невыполненные действия</th>
+                      <th width="20%">Среднее время выполнения действия</th>
                     </tr>
-                    <tbody />
                   </thead>
+                  <tbody />
                 </table>
               </div>
             </div>
           </div>
         </div>
       </div>
+    </script>
+
+    <!-- RKC operators screen template -->
+    <script type="text/template"
+            class="screen-template"
+            id="rkcOps-screen-template">
       <div class="row-fluid">
-        <table id="rkc-each-action-op-avg-table" class="table table-stripped table-bordered">
+        <div class="span2">
+          <h2>Фильтрация</h2>
+        </div>
+        <div class="span4">
+          <div>
+            <div style="float:left; margin-top:+3px">
+              Город:
+            </div>
+            <div style="float:left">
+              <select id="city-select" data-bind="foreach: $data">
+                <option data-bind="value: id, text: name" />
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="span4">
+          <div>
+            <div style="float:left; margin-top:+3px">
+              Программа:
+            </div>
+            <div style="float:left">
+              <select id="program-select" data-bind="foreach: $data">
+                <option data-bind="value: id, text: name" />
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="span2">
+          <div class="control-group">
+            <button id="reload" class="btn">
+              Обновить
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="row-fluid">
+        <h2>Операторы Back Office</h2>
+        <table id="rkc-ops-back-operators-table" class="table table-stripped table-bordered">
           <thead>
             <tr data-bind="foreach: cols">
               <th data-bind="text: name"></th>
             </tr>
           </thead>
           <tbody />
+        </table>
+      </div>
+      <div class="row-fluid">
+        <h2>Операторы Front Office</h2>
+        <div class="row-fluid">
+          <table id="rkc-ops-front-operators-table" class="table table-stripped table-bordered">
+            <thead>
+              <tr>
+                <th width="40%">Оператор</th>
+                <th width="30%">Роль</th>
+                <th width="30%">Среднее время обработки действия</th>
+              </tr>
+              <tbody />
+            </thead>
+          </table>
+        </div>
+      </div>
+    </script>
+
+    <!-- print service template screen template -->
+    <script type="text/template"
+            class="screen-template"
+            id="printSrv-screen-template">
+      <div id="print-table">
+        <table class="table-condensed">
+          <tr>
+            <td> Клиент </td>
+            <td data-bind="text: kase.program"> </td>
+          </tr>
+          <tr>
+            <td> Номер происшествия </td>
+            <td data-bind="text:kase.id"> </td>
+          </tr>
+          <tr>
+            <td> Дата и время звонка </td>
+            <td data-bind="text: kase.callDate"> </td>
+          </tr>
+          <tr>
+            <td> Дата и время создания услуги </td>
+            <td data-bind="text: service.createTime"> </td>
+          </tr>
+          <tr>
+            <td> Услуга </td>
+            <td data-bind="text: service.type"> </td>
+          </tr>
+          <tr>
+            <td> ФИО звонящего </td>
+            <td data-bind="text: kase.contact_name"> </td>
+          </tr>
+          <tr>
+            <td> Владелец </td>
+            <td data-bind="text: kase.contact_ownerName"> </td>
+          </tr>
+          <tr>
+            <td> Что случилось </td>
+            <td data-bind="text: kase.comment"> </td>
+          </tr>
+          <tr>
+            <td> Марка автомобиля </td>
+            <td data-bind="text: kase.car_make"> </td>
+          </tr>
+          <tr>
+            <td> Модель автомобиля </td>
+            <td data-bind="text: kase.car_model"> </td>
+          </tr>
+          <tr>
+            <td> Регистрационный номер автомобиля </td>
+            <td data-bind="text: kase.car_plateNum"> </td>
+          </tr>
+          <tr>
+            <td> VIN автомобиля  </td>
+            <td data-bind="text: kase.car_vin"> </td>
+          </tr>
+          <tr>
+            <td> VIN проверен </td>
+            <td data-bind="text: kase.vinChecked"> </td>
+          </tr>
+          <tr>
+            <td> Адрес места поломки </td>
+            <td data-bind="text: kase.kaseAddress_address" </td>
+          </tr>
+          <tr>
+            <td> Адрес, куда эвакуируют автомобиль </td>
+            <td data-bind="text: service.towAddress_address" </td>
+          </tr>
+          <tr>
+            <td> Фактическое время начала оказания услуги </td>
+            <td data-bind="text: service.times_factServiceStart"> </td>
+          </tr>
+          <tr>
+            <td> Фактическое время окончания оказания услуги </td>
+            <td data-bind="text: service.times_factServiceEnd"> </td>
+          </tr>
+          <tr>
+            <td> Название партнёра </td>
+            <td data-bind="text: service.contractor_partner">  </td>
+          </tr>
+          <tr>
+            <td> Стоимость услуги у партнёра </td>
+            <td data-bind="text: service.payment_partnerCost"> </td>
+          </tr>
+          <tr>
+            <td> Расшифровка стоимости </td>
+            <td data-bind="text: service.payment_costTranscript" </td>
+          </tr>
+          <tr>
+            <td> Комментарий </td>
+            <td data-bind="text: kase.betaComment" </td>
+          </tr>
+          <tr>
+            <td> Статус услуги </td>
+            <td data-bind="text: service.status"> </td>
+          </tr>
+          <tr>
+            <td> Сотрудник принявший звонок </td>
+            <td data-bind="text: kase.callTaker" </td>
+          </tr>
+          <tr>
+            <td> Сотрудник заказавший услугу </td>
+            <td data-bind="text: service.assignedTo"> </td>
+          </tr>
         </table>
       </div>
     </script>
@@ -1077,7 +1283,7 @@
     <!-- radio widget for flat dictionary fields -->
     <script type="text/template"
             class="field-template"
-            id="radio-dictionary-field-template">
+            id="radio-field-template">
       <div class="control-group">
         <div class="control-label">
           <label>{{ meta.label }}
@@ -1187,7 +1393,11 @@
       <table id="{{name}}" class="table table-striped table-bordered">
         <thead>
           <tr>
-            <th>Название</th><th>Город</th><th>Адрес</th><th>Телефоны</th><th>Время работы</th>
+            <th>Название</th>
+            <th>Город</th>
+            <th>Адрес</th>
+            <th>Телефоны</th>
+            <th>Время работы</th>
           </tr>
         </thead>
         <tbody/>
@@ -1263,12 +1473,18 @@
         <div class="accordion-heading">
           <div class="accordion-toggle"
                data-target="#{{ refView }}-head"
-               data-toggle="collapse">
+               data-toggle="collapse"
+               id="{{ refView }}-link">
             <a class="icon icon-remove" />
-            <a id="{{ refView }}-link"
+            <a 
                data-bind="text: modelTitle">
                Услуга…
             </a>
+            <a data-bind="attr: { href: '#printSrv/'+modelName()+'/'+id() }"
+               target="_blank">
+              [Печать]
+          </a>
+
           </div>
         </div>
 
@@ -1287,9 +1503,9 @@
             class="reference-template"
             id="actions-reference-template">
       <div class="accordion-group">
-        <div class="accordion-heading">
+        <div class="accordion-heading"
+             id="{{ refView }}-link">
           <a class="accordion-toggle"
-             id="{{ refView }}-link"
              data-bind="text: actionNameLocal"
              data-target="#{{ refView }}-head"
              data-toggle="collapse">Действие…</a>
@@ -1300,7 +1516,6 @@
           <div class="accordion-inner {{ refClass }}" 
                id="{{ refView }}">
             <!-- Instance contents are rendered here -->
-
           </div>
         </div>
       </div>

@@ -31,6 +31,9 @@ import Data.ByteString.Char8 (ByteString)
 
 import Data.Lens.Template
 
+import qualified Data.Vector as V
+import qualified Data.Vector.Mutable as VM (unsafeNew, unsafeWrite)
+
 import Snap.Core
 import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple
@@ -77,7 +80,20 @@ getCoordsParam = getParamWith coords
 
 ------------------------------------------------------------------------------
 -- | Row schema for geo_partners table query results.
-newtype Partner = Partner (Int, Double, Double) deriving (FromRow, Show, ToJSON)
+newtype Partner = Partner (Int, Double, Double, Maybe Bool, Maybe Bool) 
+                  deriving (FromRow, Show)
+
+
+instance ToJSON Partner where
+    toJSON (Partner (a, b, c, d, e)) = Array $ V.create $ do
+                         mv <- VM.unsafeNew 5
+                         VM.unsafeWrite mv 0 (toJSON a)
+                         VM.unsafeWrite mv 1 (toJSON b)
+                         VM.unsafeWrite mv 2 (toJSON c)
+                         VM.unsafeWrite mv 3 (toJSON d)
+                         VM.unsafeWrite mv 4 (toJSON e)
+                         return mv
+    {-# INLINE toJSON #-}
 
 
 ------------------------------------------------------------------------------
@@ -103,12 +119,13 @@ twoPointHandler q queryToResult = do
 
 
 ------------------------------------------------------------------------------
--- | Query to fetch partners within a box.
+-- | Query to fetch partners within a box, with mobile partners coming
+-- last.
 --
 -- Splice lon1, lat1 and lon2, lat2 on the query, where coordinates
 -- are those of opposite 2D box points.
 withinQuery :: Query
-withinQuery = "SELECT id, st_x(coords), st_y(coords) FROM partnertbl WHERE coords && ST_SetSRID(ST_MakeBox2D(ST_Point(?, ?), ST_Point(?, ?)), 4326);"
+withinQuery = "SELECT id, st_x(coords), st_y(coords), isDealer, isMobile FROM partnertbl WHERE coords && ST_SetSRID(ST_MakeBox2D(ST_Point(?, ?), ST_Point(?, ?)), 4326) ORDER BY (case when isMobile then 1 when isMobile is null then 2 else 3 end) DESC;"
 
 
 ------------------------------------------------------------------------------
@@ -124,7 +141,8 @@ distanceQuery = "SELECT ST_Distance_Sphere(ST_PointFromText('POINT(? ?)', 4326),
 ------------------------------------------------------------------------------
 -- | Serve list of partners within a specified rectangle.
 --
--- Response body is a list of triples @[partner_id, lon, lat]@.
+-- Response body is a list of 5-tuples @[partner_id, lon, lat,
+-- isDealer, isMobile]@. Mobile partners come last.
 withinPartners :: Handler b Geo ()
 withinPartners = twoPointHandler withinQuery (id :: [Partner] -> [Partner])
 

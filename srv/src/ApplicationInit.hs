@@ -76,6 +76,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/opts/:model/:id/", chkAuth . method GET $ getSrvTarifOptions)
          , ("/smspost",       chkAuth . method POST $ smspost)
          , ("/sms/processing", chkAuth . method GET $ smsProcessingHandler)
+         , ("/printSrv/:model/:id",
+            chkAuth . method GET $ printServiceHandler)
          , ("/errors",        method POST errorsHandler)
          ]
 

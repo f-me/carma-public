@@ -1,6 +1,9 @@
+{-# LANGUAGE CPP #-}
+
 module Snaplet.DbLayer
   (create
   ,read
+  ,read'
   ,update
   ,delete
   ,submitTask
@@ -37,7 +40,9 @@ import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple (pgsInit)
 import Snap.Snaplet.RedisDB (redisDBInit, runRedisDB)
 import Snap.Snaplet.SimpleLog
+#if !defined(mingw32_HOST_OS)
 import System.Log.Syslog
+#endif
 import qualified Database.Redis as Redis
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import qualified Snaplet.DbLayer.PostgresCRUD as Postgres
@@ -92,6 +97,9 @@ read model objId = do
   res <- Redis.read redis model objId
   -- FIXME: catch NotFound => search in postgres
   return res
+
+read' :: ByteString -> Handler b (DbLayer b) (Map.Map ByteString ByteString)
+read' objId = Redis.read' redis objId
 
 update :: ByteString -> ByteString -> Object -> Handler b (DbLayer b) (Map.Map FieldName ByteString)
 update model objId commit = scoper "update" $ do
@@ -157,7 +165,12 @@ smsProcessing = runRedisDB redis $ do
 initDbLayer :: UsersDict -> FilePath -> SnapletInit b (DbLayer b)
 initDbLayer allU cfgDir = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
-    l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10) [logger text (file "log/db.log"), syslog "carma" [PID] USER]
+    l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10)
+#if !defined(mingw32_HOST_OS)
+      [logger text (file "log/db.log"), syslog "carma" [PID] USER]
+#else
+      [logger text (file "log/db.log")]
+#endif
     liftIO $ withLog l $ log Info "Server started"
     rels <- liftIO $ Postgres.loadRelations "resources/site-config/syncs.json" l
     tbls <- liftIO $ MT.loadTables "resources/site-config/models" "resources/site-config/field-groups.json"

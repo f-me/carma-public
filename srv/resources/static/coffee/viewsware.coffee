@@ -223,14 +223,13 @@ this.mkSubviewClass = (refField, parentModelName, parentId) ->
   "#{parentModelName}-#{parentId}-#{refField}-views"
 
 # Pick first template element with id which matches:
-# <field.name>-<field.type>, <field.meta.widget>-<field.type>,
-# <field.type>
+# <field.name>-<field.type>, <field.meta.widget>, <field.type>
 chooseFieldTemplate = (field, templates) ->
   typed_tpl = field.type
   named_tpl = field.name + "-" + field.type
   widget_tpl = ""
   if field.meta? and _.has(field.meta, "widget")
-    widget_tpl = field.meta.widget + "-" + field.type
+    widget_tpl = field.meta.widget
 
   tpl = pickTemplate(templates,
                            [named_tpl, widget_tpl, typed_tpl, "unknown"])
