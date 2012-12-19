@@ -3,6 +3,7 @@
 module Snaplet.DbLayer.RKC (
   CaseSummary(..), CaseServiceInfo(..), CaseInformation(..),
   BackSummary(..), BackActionInfo(..), BackInformation(..),
+  FrontInformation(..), FrontOperatorInfo(..),
   Information(..),
   rkc
   ) where
