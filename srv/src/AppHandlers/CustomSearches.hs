@@ -94,11 +94,13 @@ selectActions
   -> AppHandler [Map ByteString ByteString]
 selectActions mClosed mAssignee mRole mFrom mTo = do
   rows <- withPG pg_search $ \c -> query_ c $ fromString
-    $  "SELECT id::text, caseId, parentId,"
-    ++ "       (closed::int)::text, name, assignedTo, targetGroup,"
-    ++ "       (extract (epoch from duetime at time zone 'UTC')::int)::text, "
-    ++ "       result, priority, description, comment"
-    ++ "  FROM actiontbl WHERE true"
+    $  "SELECT a.id::text, a.caseId, a.parentId,"
+    ++ "       (a.closed::int)::text, a.name, a.assignedTo, a.targetGroup,"
+    ++ "       (extract (epoch from a.duetime at time zone 'UTC')::int)::text, "
+    ++ "       a.result, a.priority, a.description, a.comment,"
+    ++ "       c.city"
+    ++ "  FROM actiontbl a, casetbl c WHERE true"
+    ++ "                   AND c.id::text = substring(a.caseId, ':(.*)')"
     ++ (maybe "" (\x -> "  AND closed = " ++ toBool x) mClosed)
     ++ (maybe "" (\x -> "  AND assignedTo = " ++ quote x) mAssignee)
     ++ (maybe "" (\x -> "  AND targetGroup = " ++ quote x) mRole)
@@ -107,7 +109,7 @@ selectActions mClosed mAssignee mRole mFrom mTo = do
   let fields
         = ["id", "caseId", "parentId", "closed", "name"
           ,"assignedTo", "targetGroup", "duetime", "result"
-          ,"priority", "description", "comment"]
+          ,"priority", "description", "comment","city"]
   return $ mkMap fields rows
 
 
