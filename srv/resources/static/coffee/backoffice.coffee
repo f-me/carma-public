@@ -46,6 +46,7 @@ addActions = (actions, table) ->
     row = [id
           ,act.priority || '3'
           ,duetime
+          ,act.city
           ,act.description || ''
           ,act.comment || '']
   table.fnAddData(rows)
