@@ -955,7 +955,7 @@
           </tr>
           <tr>
             <td> Адрес места поломки </td>
-            <td data-bind="text: kase.kaseAddress_address" </td>
+            <td data-bind="text: kase.caseAddress_address" </td>
           </tr>
           <tr>
             <td> Адрес, куда эвакуируют автомобиль </td>
