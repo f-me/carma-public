@@ -1,6 +1,10 @@
 {
     "entries": [
         {
+            "value": "backoffice",
+            "label": "Передача в Back Office"
+        },
+        {
             "value": "creating",
             "label": "Создание"
         },
@@ -31,10 +35,6 @@
         {
             "value": "makerConformation",
             "label": "Согласование с производителем"
-        },
-        {
-            "value": "backoffice",
-            "label": "Передача в Back Office"
         },
         {
             "value": "orderService",
