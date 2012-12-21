@@ -112,6 +112,10 @@ actions
             mapM_ (setSrvMCost) =<< B.split ',' <$> get objId "services"
             return ()
                        ])
+          ,("contact_name",
+            [\objId val -> set objId "contact_name" $ upCaseStr val])
+          ,("contact_ownerName", 
+            [\objId val -> set objId "contact_ownerName" $ upCaseStr val])
           ,("city", [\objId val -> do
                       oldCity <- lift $ runRedisDB redis $ Redis.hget objId "city"
                       case oldCity of
