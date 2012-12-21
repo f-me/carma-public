@@ -189,9 +189,14 @@ this.initPartnerTables = ($view,parentView) ->
   table = $view.find("table##{partnerType}_partnerTable")
   kase = global.viewsWare["case-form"].knockVM
   svc = findCaseOrReferenceVM(parentView)
+  # this options for datatable will hide priorities columns for dealer table
+  tblOpts = if partnerType is "contractor"
+              {}
+           else
+              { aoColumns: repeat(5, null).concat(repeat(3, { bVisible: false})) }
 
   unless table.hasClass("dataTable")
-    mkDataTable table
+    mkDataTable table, tblOpts
     table.on "click.datatable", "tr", ->
       name = this.children[0].innerText
       city = this.children[1].innerText
@@ -201,10 +206,16 @@ this.initPartnerTables = ($view,parentView) ->
       svc["#{partnerType}_partnerId"]($(this).attr('partnerid'))
 
   table = table.dataTable()
-  dealer = if partnerType is "towDealer" then 1 else 0
+  # hope that contractor_partner is the only partner
+  dealer = if partnerType is "contractor" then 0 else 1
   select = ["isActive=1", "isDealer=#{dealer}"]
   select.push("city=#{kase.cityLocal()}") if kase.cityLocal()
-  $.getJSON "/partnersFor/#{svc.modelName()}?#{select.join('&')}", (objs) ->
+  url    = if partnerType is "contractor"
+              "/partnersFor/#{svc.modelName()}?#{select.join('&')}"
+           else
+              "/allPartners?#{select.join('&')}"
+
+  $.getJSON url, (objs) ->
     # Store partner cache for use with maps
     cache = {}
     rows = for p in objs
@@ -219,6 +230,9 @@ this.initPartnerTables = ($view,parentView) ->
        p.priority2   || '',
        p.priority3   || '',
        p.id]
+    # this last id will never be shown, but I need this, to add
+    # partnerid as attribute of the row to pass it then to
+    # the service kvm
     table.data("cache", cache)
     table.fnClearTable()
     r = table.fnAddData(rows)

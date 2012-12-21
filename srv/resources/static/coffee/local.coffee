@@ -360,3 +360,5 @@ this.toUnix = (d) -> Math.round(d.getTime() / 1000)
 
 # flip . setTimeout
 this.sTout = (wait, fn) -> setTimeout fn, wait
+
+this.repeat = (times, v) -> [1..times].map -> v
