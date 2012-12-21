@@ -22,3 +22,10 @@ srv/resources/static/fileupload/*
 
 # build dependencies
 deps/*
+srv/vendor/*
+
+# shelly log
+srv/.shelly/*
+
+# coffee compiled
+srv/resources/static/js/*.js

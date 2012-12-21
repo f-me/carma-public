@@ -12,6 +12,7 @@ import Control.Arrow
 import Control.Monad
 import Data.Aeson
 import Data.Maybe
+import Data.List
 import qualified Data.ByteString.Lazy.Char8 as LC8
 import qualified Data.Text           as T
 import qualified Data.Text.Encoding  as T
@@ -30,7 +31,7 @@ data KeyValue = KeyValue {
     value :: T.Text }
         deriving (Show)
 
-data Dictionary = Dictionary (HM.HashMap T.Text T.Text) | Dictionaries (HM.HashMap T.Text Dictionary)
+data Dictionary = Dictionary [(T.Text, T.Text)] | Dictionaries [(T.Text, Dictionary)]
     deriving (Show)
 
 instance FromJSON KeyValue where
@@ -40,47 +41,47 @@ instance FromJSON KeyValue where
 instance FromJSON Dictionary where
     parseJSON v@(Array _) = fmap toDict $ parseJSON v where
         toDict :: [KeyValue] -> Dictionary
-        toDict = Dictionary . HM.fromList . map (key &&& value)
-    parseJSON v@(Object _) = fmap Dictionaries $ parseJSON v
+        toDict = Dictionary . map (key &&& value)
+    parseJSON v@(Object _) = fmap (Dictionaries . HM.toList) $ parseJSON v
     parseJSON _ = empty
 
 look :: [T.Text] -> Dictionary -> Maybe T.Text
 look [] _ = Nothing
-look [k] (Dictionary m) = HM.lookup k m <|> HM.lookup "" m
+look [k] (Dictionary m) = lookup k m <|> lookup "" m
 look (k:ks) (Dictionaries m) = do
-    d <- HM.lookup k m
+    d <- lookup k m
     look ks d
 look _ _ = Nothing
 
 -- | Merge sub-dictionaries
 merge :: Dictionary -> Dictionary
 merge = Dictionary . merge' where
-    merge' :: Dictionary -> HM.HashMap T.Text T.Text
+    merge' :: Dictionary -> [(T.Text, T.Text)]
     merge' (Dictionary m) = m
-    merge' (Dictionaries m) = HM.unions $ map merge' $ HM.elems m
+    merge' (Dictionaries m) = concat $ map merge' $ map snd m
 
 -- | Try look in all subdictionaries
 lookAny :: [T.Text] -> Dictionary -> Maybe T.Text
 lookAny [] _ = Nothing
 lookAny [k] d = look [k] $ merge d
 lookAny (k:ks) (Dictionaries m) = do
-    d <- HM.lookup k m
+    d <- lookup k m
     lookAny ks d
 lookAny _ _ = Nothing
 
 keys :: [T.Text] -> Dictionary -> Maybe [T.Text]
-keys [] (Dictionary m) = Just $ HM.keys m
-keys [] (Dictionaries m) = Just $ HM.keys m
+keys [] (Dictionary m) = Just $ map fst m
+keys [] (Dictionaries m) = Just $ map fst m
 keys _ (Dictionary _) = Nothing
 keys (k:ks) (Dictionaries m) = do
-    d <- HM.lookup k m
+    d <- lookup k m
     keys ks d
 
 loadDictionary :: FilePath -> IO (Maybe Dictionary)
 loadDictionary f = fmap (decode >=> unEntries) $ LC8.readFile f where
     unEntries :: Dictionary -> Maybe Dictionary
     unEntries (Dictionaries ds)
-        | HM.keys ds == ["entries"] = HM.lookup "entries" ds
+        | map fst ds == ["entries"] = lookup "entries" ds
         | otherwise = Nothing
     unEntries d = Just d
 
@@ -93,7 +94,7 @@ loadDictionaries cfg = do
         isJson = (== ".json") . takeExtension
         (names, files) = unzip . map (toName &&& toFile) . filter isJson $ contents
     ds <- mapM loadDictionary files
-    return $ Dictionaries $ HM.fromList $ catMaybes $ zipWith (fmap . (,)) names ds
+    return $ Dictionaries $ catMaybes $ zipWith (fmap . (,)) names ds
 
 readRKCCalc :: FilePath -> IO RKCCalc
 readRKCCalc cfgDir = do

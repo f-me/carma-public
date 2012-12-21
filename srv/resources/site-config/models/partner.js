@@ -1,4 +1,4 @@
-{
+ {
     "name": "partner",
     "title": "Партнёр",
     "canCreate": true,
@@ -26,14 +26,14 @@
             "meta": {
                 "label": "Дилер"
             }
-        },       
+        },
         {
             "name": "isMobile",
             "type": "checkbox",
             "meta": {
                 "label": "Мобильный партнёр"
             }
-        }, 
+        },
         {
             "name": "name",
             "index": true,
@@ -69,8 +69,12 @@
             "name": "coords",
             "type": "coords",
             "meta": {
-                "label": "Координаты",
-                "infoText": "coords"
+                "widget": "picker",
+                "label": "Координаты фактического адреса",
+                "infoText": "coords",
+                "picker": "mapPicker",
+                "targetAddr": "addrDeFacto",
+                "targetCoords": "coords"
             }
         },
         {
@@ -152,7 +156,7 @@
         {
             "name": "salesWorking",
             "meta": {
-                "label": "Время работы сервисного отдела"
+                "label": "Время работы отдела продаж"
             }
         },
         {
@@ -174,6 +178,14 @@
             "type": "checkbox",
             "meta": {
                 "label": "Соглашение о вознаграждении"
+            }
+        },
+        {
+            "name": "mtime",
+            "type": "datetime",
+            "canRead": true,
+            "meta": {
+                "invisible": true
             }
         },
         {

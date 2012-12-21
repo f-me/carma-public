@@ -26,6 +26,40 @@ allPartnersHandler
     <*> getParam "isDealer")
   >>= writeJSON
 
+partnersForSrvHandler :: AppHandler ()
+partnersForSrvHandler =
+    join (selectPartnersForSrv <$>
+          getParam "city"      <*>
+          getParam "isActive"  <*>
+          getParam "isDealer"  <*>
+          getParam "srv")
+    >>= writeJSON
+
+selectPartnersForSrv :: MBS -> MBS -> MBS -> MBS
+                     -> AppHandler [Map ByteString ByteString]
+selectPartnersForSrv city isActive isDealer service = do
+  rows <- withPG pg_search $ \c -> query_ c $ fromString
+    $  "SELECT p.id::text, p.name, p.city,"
+    ++ "       p.comment, p.addrDeFacto, p.phone1, p.workingTime,"
+    ++ "       (p.isDealer::int)::text, (p.isMobile::int)::text,"
+    ++ "       s.priority1, s.priority2, s.priority3"
+    ++ "   FROM partnertbl p"
+    ++ "   INNER JOIN partner_servicetbl s"
+    ++ "   ON p.id = cast(split_part(s.parentid, ':', 2) as integer)"
+    ++ "   AND s.parentid is not null"
+    ++ "   AND s.parentid != ''"
+    ++ "   AND s.parentid != 'partner:null'"
+    ++ "   WHERE true"
+    ++ (maybe "" (\x -> "  AND p.city = " ++ quote x) city)
+    ++ (maybe "" (\x -> "  AND p.isActive = " ++ toBool x) isActive)
+    ++ (maybe "" (\x -> "  AND p.isDealer = " ++ toBool x) isDealer)
+    ++ (maybe "" (\x -> "  AND s.servicename = " ++ quote x) service)
+  let fields =
+        ["id","name","city","comment" ,"addrDeFacto"
+        ,"phone1","workingTime","isDealer","isMobile"
+        ,"priority1", "priority2", "priority3"
+        ]
+  return $ mkMap fields rows
 
 selectPartners :: MBS -> MBS -> MBS -> AppHandler [Map ByteString ByteString]
 selectPartners city isActive isDealer = do

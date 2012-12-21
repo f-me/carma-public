@@ -40,9 +40,9 @@
     use canRead/canWrite
 
   - `widget`: override template used for field (can specify `radio`
-    for dictionary fields here to use
-    `radio-dictionary-field-template` instead of
-    `dictionary-field-template`. See also pickTemplate @ metamodel.js)
+    for dictionary fields here to use `radio-field-template` instead
+    of `dictionary-field-template`. See also pickTemplate @
+    viewsware.coffee)
     
   - `required`: highlight field with red outline and show it in
     rightmost pane when it's empty

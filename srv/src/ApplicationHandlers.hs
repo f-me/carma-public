@@ -7,6 +7,7 @@ import Prelude hiding (log)
 
 import Data.Functor
 import Control.Monad
+import Control.Concurrent.STM
 
 import Data.Text.Lazy (toStrict)
 import Data.Text.Lazy.Encoding (decodeUtf8)
@@ -294,6 +295,13 @@ deleteReportHandler = do
 getUsersDict :: AppHandler ()
 getUsersDict = writeJSON =<< gets allUsers
 
+getActiveUsers :: AppHandler ()
+getActiveUsers = do
+  tvar <- gets loggedUsers
+  logdUsers <- liftIO $ readTVarIO tvar
+  writeJSON $ Map.keys logdUsers
+
+
 ------------------------------------------------------------------------------
 -- | Utility functions
 vinUploadData :: AppHandler ()
@@ -355,6 +363,24 @@ smsProcessingHandler = scope "sms" $ do
   writeJSON $ object [
     "processing" .= res]
 
+printServiceHandler :: AppHandler ()
+printServiceHandler = do
+  Just model <- getParam "model"
+  Just id <- getParam "id"
+  srv     <- with db $ DB.read model id
+  kase    <- with db $ DB.read' $ fromJust $ Map.lookup "parentId" srv
+  actions <- with db $ mapM DB.read' $
+             B.split ',' $ Map.findWithDefault "" "actions" kase
+  let id' = B.concat [model, ":", id]
+      action = head' $ filter ((Just id' ==) . Map.lookup "parentId") $ actions
+  writeJSON $ Map.fromList [ ("action" :: ByteString, action)
+                           , ("kase",   kase)
+                           , ("service", srv)
+                           ]
+    where
+      head' []     = Map.empty
+      head' (x:xs) = x
+
 errorsHandler :: AppHandler ()
 errorsHandler = do
   l <- gets feLog
@@ -381,8 +407,10 @@ logReq commit  = do
 chkAuth :: AppHandler () -> AppHandler ()
 chkAuth f = do
   req <- getRequest
-  if (rqRemoteAddr req /= rqLocalAddr req)
-  then with auth currentUser >>= maybe (handleError 401) (const f)
+  if rqRemoteAddr req /= rqLocalAddr req
+  then with auth currentUser >>= maybe
+      (handleError 401)
+      (\u -> addToLoggedUsers u >> f)
   else f
 
 

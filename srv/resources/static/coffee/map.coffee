@@ -124,7 +124,11 @@ this.reinstallMarkers = (osmap, layerName) ->
 #                    Current blip is enabled only when geocoding is
 #                    active (see targetAddr).
 this.initOSM = (el, parentView) ->
-  return if $(el).hasClass("olMap")
+  # Recenter map if it already exists to account for partner position
+  # updates
+  if $(el).hasClass("olMap")
+    $(el).data("osmap").events.triggerEvent("moveend")
+    return
 
   fieldName = $(el).attr("name")
   view = $(elementView($(el)))
@@ -262,7 +266,7 @@ this.extraBlip = (osmap, coords, layerName) ->
 #
 # - osmap: map to render on
 #
-# - partners: a list of [id, lon, lat] triples
+# - partners: a list of [id, lon, lat, isDealer, isMobile] 5-tuples
 #
 # - tableCache: a hash of all partners, where key is id and value is
 #               an object with fields "name", "addrDeFacto", "phone1",
@@ -289,12 +293,16 @@ this.partnerBlips = (osmap,
   for blip in partners
     do (blip) ->
       id = blip[0]
-      hl = _.include(highlightIds, fullPartnerId(id))
+      # cache ids are numeric, highlightIds are strings (being values
+      # of knockVM)
+      hl = _.include(highlightIds, id.toString())
       
-      # Skip partners not in table
-      return if not (tableCache[id])
+      partner_cache = tableCache[id]
+      is_dealer = blip[3]
+      is_mobile = blip[4]
 
-      partner = tableCache[id]
+      # Skip partners which are not in table or highlighted
+      return if not (partner_cache or hl)
 
       coords = new OpenLayers.LonLat(blip[1], blip[2])
 
@@ -303,10 +311,10 @@ this.partnerBlips = (osmap,
       # Coords to use for map blip
       coords = coords.transform(wsgProj, osmProj)
 
-      if partner.isMobile
+      if is_mobile
         ico = towIcon
       else
-        if (partner.isDealer == "1")
+        if is_dealer
           ico = dealerIcon
         else
           ico = partnerIcon
@@ -318,27 +326,28 @@ this.partnerBlips = (osmap,
           coords, new OpenLayers.Icon(ico, iconSize))
 
       # Show partner info from table cache when clicking marker
-      mrk.events.register("click", mrk, (e) ->
+      if (partner_cache)
+        mrk.events.register("click", mrk, (e) ->
 
-        # Let popup know where to put new partner data
-        extra_ctx =
-          numid: id
-          mapId: osmap.div.id
-          parentView: parentView
-          partnerField: partnerField
-          partnerIdField: partnerIdField
-          partnerAddrField: partnerAddrField
-          partnerCoordsField: partnerCoordsField
-          coords: string_coords
-        ctx =_.extend(partner, extra_ctx)
+          # Let popup know where to put new partner data
+          extra_ctx =
+            numid: id
+            mapId: osmap.div.id
+            parentView: parentView
+            partnerField: partnerField
+            partnerIdField: partnerIdField
+            partnerAddrField: partnerAddrField
+            partnerCoordsField: partnerCoordsField
+            coords: string_coords
+          ctx =_.extend(partner_cache, extra_ctx)
 
-        popup = new OpenLayers.Popup.FramedCloud(
-          partner.id, mrk.lonlat,
-          new OpenLayers.Size(200, 200),
-          Mustache.render(tpl, ctx),
-          null, true)
+          popup = new OpenLayers.Popup.FramedCloud(
+            partner_cache.id, mrk.lonlat,
+            new OpenLayers.Size(200, 200),
+            Mustache.render(tpl, ctx),
+            null, true)
 
-        osmap.addPopup(popup))
+          osmap.addPopup(popup))
       markers.addMarker(mrk)
 
 
@@ -362,7 +371,7 @@ this.pickPartnerBlip = (
 # Read "32.54, 56.21" (the way coordinates are stored in model fields)
 # into LonLat object
 this.lonlatFromShortString = (coords) ->
-  parts = coords.split(", ")
+  parts = coords.split(",")
   return new OpenLayers.LonLat(parts[0], parts[1])
 
 
@@ -392,6 +401,7 @@ this.geoPicker = (fieldName, el) ->
 
   coord_field = modelField(modelName, fieldName).meta['targetCoords']
   map_field = modelField(modelName, fieldName).meta['targetMap']
+  current_blip_type = modelField(modelName, map_field).meta["currentBlipType"] or "default"
 
   $.getJSON(nominatimQuery(addr), (res) ->
     if res.length > 0
@@ -405,7 +415,8 @@ this.geoPicker = (fieldName, el) ->
         osmap.setCenter(
               lonlat.transform(wsgProj, osmProj),
               zoomLevel)
-        currentBlip(osmap, osmap.getCenter()))
+        currentBlip osmap, osmap.getCenter(), current_blip_type
+  )
 
 
 # Reverse geocoding picker (coordinates -> address)
@@ -429,15 +440,36 @@ this.reverseGeoPicker = (fieldName, el) ->
 
   addr_field = modelField(modelName, fieldName).meta['targetAddr']
   map_field = modelField(modelName, fieldName).meta['targetMap']
+  current_blip_type = modelField(modelName, map_field).meta["currentBlipType"] or "default"
 
   if map_field?
     osmap = view.find("[name=#{map_field}]").data("osmap")
     osmap.setCenter(osmCoords, zoomLevel)
-    currentBlip(osmap, osmap.getCenter())
+    currentBlip osmap, osmap.getCenter(), current_blip_type
 
   if addr_field?
-    $.getJSON(nominatimRevQuery + "lon=#{coords.lon}&lat=#{coords.lat}",
+    $.getJSON(nominatimRevQuery coords.lon, coords.lat,
       (res) ->
         addr = buildReverseAddress(res)
         findVM(viewName)[addr_field](addr)
     )
+
+
+this.mapPicker = (fieldName, el) ->
+  coords =
+    lonlatFromShortString(
+      $(el).parents('.input-append')
+           .children("input[name=#{fieldName}]")
+           .val())
+
+  viewName = elementView($(el)).id
+  view = $(elementView($(el)))
+  modelName = elementModel($(el))
+
+  osmCoords = coords.clone().transform(wsgProj, osmProj)
+
+  addr_field = modelField(modelName, fieldName).meta['targetAddr']
+
+  $("#partnerMapModal").modal('show')
+
+  initOSM($("#partnerMapModal").find(".osMap"), viewName)

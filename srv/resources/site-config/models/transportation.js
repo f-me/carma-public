@@ -505,6 +505,14 @@
             }
         },
         {
+            "name": "falseCallPercent",
+            "canRead":  [ ],
+            "canWrite": [ ],
+            "meta": {
+                "invisible": true
+            }
+        },
+        {
             "name": "bill",
             "groupName": "bill"
         },
@@ -574,6 +582,40 @@
                 "parguy"
             ],
             "groupName": "address"
+        },
+        {
+            "name": "contractor",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman"
+            ],
+            "groupName": "partner",
+            "meta": {
+                "label": "Название партнёра"
+            }
         },
         {
             "name": "cost",
@@ -746,6 +788,29 @@
             "type": "files",
             "meta": {
                 "label": "Прикрепленные файлы"
+            }
+        },
+        {
+            "name": "assignedTo",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [],
+            "meta": {
+                "invisible": true,
+                "readonly": true
             }
         }
     ]

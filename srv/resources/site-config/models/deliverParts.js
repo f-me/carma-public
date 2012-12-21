@@ -533,6 +533,40 @@
             }
         },
         {
+            "name": "contractor",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman"
+            ],
+            "groupName": "partner",
+            "meta": {
+                "label": "Название партнёра"
+            }
+        },
+        {
             "name": "cost",
             "canRead": [
                 "partner",
@@ -760,6 +794,29 @@
             "type": "reference",
             "meta": {
                 "invisible": true
+            }
+        },
+        {
+            "name": "assignedTo",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [],
+            "meta": {
+                "invisible": true,
+                "readonly": true
             }
         }
     ]

@@ -38,6 +38,7 @@ import Snaplet.DbLayer.Triggers.SMS
 import Snap.Snaplet.SimpleLog
 
 import Util
+import qualified  Utils.RKCCalc as RKC
 
 services =
   ["deliverCar"
@@ -107,6 +108,10 @@ actions
             mapM_ (setSrvMCost) =<< B.split ',' <$> get objId "services"
             return ()
                        ])
+          ,("program", [\objId val -> do
+            mapM_ (setSrvMCost) =<< B.split ',' <$> get objId "services"
+            return ()
+                       ])
           ,("city", [\objId val -> do
                       oldCity <- lift $ runRedisDB redis $ Redis.hget objId "city"
                       case oldCity of
@@ -128,11 +133,10 @@ actions
                 Right car -> do
                   set objId "vinChecked" "base"
                   let setIfEmpty (name,val)
-                        | name == "plateNum" = return ()
+                        | name == "car_plateNum" = return ()
                         | otherwise = do
-                          let name' = B.append "car_" name
-                          val' <- get objId name'
-                          when (val' == "") $ set objId name' val
+                          val' <- get objId name
+                          when (val' == "") $ set objId name val
                   mapM_ setIfEmpty car
             ])
           ])
@@ -229,7 +233,7 @@ serviceActions = Map.fromList
           upd kazeId "actions" $ addToList actionId
       _ -> return ()]
   )
-  ,("clientSatisfied", 
+  ,("clientSatisfied",
     [\objId val ->
         case val of
           "notSatis" -> do
@@ -282,7 +286,7 @@ serviceActions = Map.fromList
         ])
   ,("cost_serviceTarifOptions",
     [\objId val -> set objId "cost_counted" =<< srvCostCounted objId ])
-   -- RKC calc 
+   -- RKC calc
   ,("suburbanMilage", [\objId val -> setSrvMCost objId])
   ,("providedFor",    [\objId val -> setSrvMCost objId])
   ,("times_expectedServiceStart",
@@ -297,7 +301,7 @@ serviceActions = Map.fromList
 resultSet1 =
   ["partnerNotOk", "caseOver", "partnerFound"
   ,"carmakerApproved", "dealerApproved", "needService"
-  ] 
+  ]
 
 actionActions = Map.fromList
   [("result",
@@ -324,7 +328,8 @@ actionResultMap = Map.fromList
   ,("weekDelay",        \objId -> dateNow (+ (7*24*60*60)) >>= set objId "duetime" >> set objId "result" "")
   ,("partnerNotFound", \objId -> dateNow (+ (2*60*60)) >>= set objId "duetime" >> set objId "result" "")
   ,("clientCanceledService", \objId -> closeAction objId >> sendSMS objId "smsTpl:2")
-  ,("needPartner",     \objId -> do 
+  ,("unassignPlease",  \objId -> set objId "assignedTo" "" >> set objId "result" "")
+  ,("needPartner",     \objId -> do
      setService objId "status" "needPartner"
      newAction <- replaceAction
          "needPartner"
@@ -334,10 +339,14 @@ actionResultMap = Map.fromList
   )
   ,("serviceOrdered", \objId -> do
     setService objId "status" "serviceOrdered"
+    svcId    <- get objId "parentId"
+    assignee <- get objId "assignedTo"
+    set svcId "assignedTo" assignee
     replaceAction
       "tellClient"
-      "Сообщить клиенту о договорённости" 
+      "Сообщить клиенту о договорённости"
       "back" "1" (+60) objId
+
     act <- replaceAction
       "addBill"
       "Прикрепить счёт"
@@ -376,21 +385,21 @@ actionResultMap = Map.fromList
       "back" "1" (+60) objId
     set act "assignedTo" ""
   )
-  ,("needPartnerAnalyst",     \objId -> do 
+  ,("needPartnerAnalyst",     \objId -> do
      setService objId "status" "needPartner"
      newAction <- replaceAction
          "needPartner"
          "Требуется найти партнёра для оказания услуги"
          "parguy" "1" (+60) objId
      set newAction "assignedTo" ""
-  )  
+  )
   ,("serviceOrderedAnalyst", \objId -> do
      setService objId "status" "serviceOrdered"
      void $ replaceAction
          "tellClient"
-         "Сообщить клиенту о договорённости" 
+         "Сообщить клиенту о договорённости"
          "back" "1" (+60) objId
-  )  
+  )
   ,("partnerNotOkCancel", \objId -> do
       setService objId "status" "cancelService"
       void $ replaceAction
@@ -422,7 +431,7 @@ actionResultMap = Map.fromList
       "Уточнить у клиента окончено ли оказание услуги"
       "back" "3" (changeTime (+5*60) tm)
       objId
-  )  
+  )
   ,("prescheduleService", \objId -> do
     setService objId "status" "serviceInProgress"
     tm <- getService objId "times_expectedServiceEnd"
@@ -431,11 +440,11 @@ actionResultMap = Map.fromList
       "Уточнить у клиента окончено ли оказание услуги"
       "back" "3" (+60)
       objId
-  )  
+  )
   ,("serviceStillInProgress", \objId -> do
-    tm <- getService objId "times_expectedServiceEnd"  
+    tm <- getService objId "times_expectedServiceEnd"
     dateNow (changeTime (+5*60) tm) >>= set objId "duetime"
-    set objId "result" "") 
+    set objId "result" "")
   ,("clientWaiting", \objId -> do
     tm <- getService objId "times_expectedServiceStart"
     void $ replaceAction
@@ -446,7 +455,7 @@ actionResultMap = Map.fromList
   )
   ,("serviceFinished", \objId -> do
     setService objId "status" "serviceOk"
-    tm <- getService objId "times_expectedServiceClosure"  
+    tm <- getService objId "times_expectedServiceClosure"
     act <- replaceAction
       "closeCase"
       "Закрыть заявку"
@@ -470,12 +479,12 @@ actionResultMap = Map.fromList
   ,("complaint", \objId -> do
     setService objId "status" "serviceOk"
     setService objId "clientSatisfied" "0"
-    tm <- getService objId "times_expectedServiceClosure"    
+    tm <- getService objId "times_expectedServiceClosure"
     act1 <- replaceAction
       "complaintResolution"
       "Клиент предъявил претензию"
       "supervisor" "1" (+60)
-      objId 
+      objId
     set act1 "assignedTo" ""
     act <- replaceAction
       "closeCase"
@@ -524,7 +533,7 @@ actionResultMap = Map.fromList
       "На доработку МпП"
       "parguy" "1" (+360) objId
     set act "assignedTo" ""
-  ) 
+  )
   ,("confirm", \objId -> do
     act <- replaceAction
       "directorCheck"
@@ -538,14 +547,14 @@ actionResultMap = Map.fromList
       "Проверка бухгалтерией"
       "account" "1" (+360) objId
     set act "assignedTo" ""
-  )  
+  )
   ,("confirmFinal", \objId -> do
     act <- replaceAction
       "analystCheck"
       "Обработка аналитиком"
       "analyst" "1" (+360) objId
     set act "assignedTo" ""
-  )    
+  )
   ,("directorToHead", \objId -> do
     act <- replaceAction
       "headCheck"
@@ -559,15 +568,16 @@ actionResultMap = Map.fromList
       "Проверка бухгалтерией"
       "account" "1" (+360) objId
     set act "assignedTo" ""
-  )      
+  )
   ,("dirConfirmFinal", \objId -> do
     act <- replaceAction
       "analystCheck"
       "Обработка аналитиком"
       "analyst" "1" (+360) objId
     set act "assignedTo" ""
-  )    
-  ,("vwclosed", closeAction)
+  )
+  ,("vwclosed", closeAction
+  )
   ,("accountConfirm", \objId -> do
     act <- replaceAction
       "analystCheck"
@@ -588,9 +598,9 @@ actionResultMap = Map.fromList
     closeAction objId
   )
   ,("partnerGivenCloseTime", \objId -> do
-    tm <- getService objId "times_expectedServiceClosure"  
+    tm <- getService objId "times_expectedServiceClosure"
     dateNow (changeTime (+5*60) tm) >>= set objId "duetime"
-    set objId "result" "") 
+    set objId "result" "")
   ,("falseCallWBill", \objId -> do
      setService objId "falseCall" "bill"
      closeAction objId
@@ -723,61 +733,11 @@ calcCost id = do
   c <- get id "count" >>= return . fromMaybe 0 . mbreadDouble
   return $ p * c
 
-setTowMCost id = do
-  program  <- get id "parentId" >>= flip get "program"
-  mileCost <- rkc program "towMileCost"
-  callCost <- rkc program "towCallCost"
-  mileage  <- readDouble <$> get id "suburbanMilage"
-  towCost  <- rkc program "towCost"
-  set id "marginalCost" $ printBPrice $
-    towCost + callCost + mileage * mileCost
-
-setTechMCost id = do
-  program  <- get id "parentId" >>= flip get "program"
-  mileCost <- rkc program "techMileCost"
-  callCost <- rkc program "techCallCost"
-  mileage  <- readDouble <$> get id "suburbanMilage"
-  techCost <- rkc program "techCost"
-  set id "marginalCost" $ printBPrice $
-    techCost + callCost + mileage * mileCost
-
-setHotelMCost id = do
-  program  <- get id "parentId" >>= flip get "program"
-  p  <- readDouble <$> get id "providedFor"
-  p1 <- rkc program "hotelDayCost"
-  set id "marginalCost" $ printBPrice $ p*p1
-
-setRentMCost id = do
-  program  <- get id "parentId" >>= flip get "program"
-  p  <- readDouble <$> get id "providedFor"
-  p1 <- rkc program "rentDayCost"
-  set id "marginalCost" $ printBPrice $ p*p1
-
-setTaxiMCost id =
-  get id "parentId"    >>=
-  flip get "program"   >>=
-  flip get "taxiLimit" >>=
-  set id "marginalCost"
-
-
-setSrvMCost id =
-  case head $ B.split ':' id of
-    "towage" -> setTowMCost   id
-    "tech"   -> setTechMCost  id
-    "hotel"  -> setHotelMCost id
-    "taxi"   -> setTaxiMCost  id
-    "rent"   -> setRentMCost  id
-    _        -> return ()
-
-rkc programm field = do
-  dict <- lift $ gets rkcDict
-  case Map.lookup programm dict >>= Map.lookup field of
-    Just v  -> return v
-    Nothing -> do
-      lift $ with dbLog $ log Info $ T.concat
-        [ "Can't find rkc value for "
-        , T.decodeUtf8 programm
-        , " "
-        , T.decodeUtf8 field
-        ]
-      return 0
+setSrvMCost id = do
+  obj    <- readR id
+  parent <- readR $ fromJust $ Map.lookup "parentId" obj
+  dict   <- lift $ gets rkcDict
+  set id "marginalCost" $ RKC.setSrvMCost srvName obj parent dict
+    where
+      readR   = lift . RC.read' redis
+      srvName = head $ B.split ':' id

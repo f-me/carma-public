@@ -57,6 +57,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/myActions",     chkAuth . method GET    $ myActionsHandler)
          , ("/allActions",    chkAuth . method GET    $ allActionsHandler)
          , ("/allPartners",   chkAuth . method GET    $ allPartnersHandler)
+         , ("/partnersFor/:srv",
+                              chkAuth . method GET    $ partnersForSrvHandler)
          , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)
          , ("/_/:model",      chkAuth . method POST   $ createHandler)
          , ("/_/:model/:id",  chkAuth . method GET    $ readHandler)
@@ -69,12 +71,15 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/search/:model", chkAuth . method GET  $ searchHandler)
          , ("/rkc",           chkAuth . method GET  $ rkcHandler)
          , ("/usersDict",     chkAuth . method GET  $ getUsersDict)
+         , ("/activeUsers",   chkAuth . method GET  $ getActiveUsers)
          , ("/vin/upload",    chkAuth . method POST $ vinUploadData)
          , ("/vin/state",     chkAuth . method GET  $ vinStateRead)
          , ("/vin/state",     chkAuth . method POST $ vinStateRemove)
          , ("/opts/:model/:id/", chkAuth . method GET $ getSrvTarifOptions)
          , ("/smspost",       chkAuth . method POST $ smspost)
          , ("/sms/processing", chkAuth . method GET $ smsProcessingHandler)
+         , ("/printSrv/:model/:id",
+            chkAuth . method GET $ printServiceHandler)
          , ("/errors",        method POST errorsHandler)
          ]
 
@@ -109,7 +114,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
                       , asRememberPeriod = Just (rmbPer * 24 * 60 * 60)}
                                session authDb
   logdUsrs <- liftIO $ newTVarIO Map.empty
-  !allUsrs <- liftIO $ getUsrs authDb
+  !allUsrs <- liftIO $ readJSON authDb
 
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
 
@@ -139,6 +144,3 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   addRoutes routes
   return $ App h s authMgr logdUsrs allUsrs c d pgs pga v fu g l
-
-getUsrs authDb = do
-  readJSON authDb :: IO UsersDict
