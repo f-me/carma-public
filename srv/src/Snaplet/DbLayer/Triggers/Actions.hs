@@ -729,7 +729,7 @@ srvCostCounted srvId = do
   tarifIds <- get srvId "cost_serviceTarifOptions" >>= return . B.split ','
   cost <- sum <$> mapM calcCost tarifIds
   case falseCall of
-    "bill" -> return $ printBPrice $ cost * falseCallPercent
+    "bill" -> return $ printBPrice $ cost * (falseCallPercent / 100)
     _      -> return $ printBPrice cost
 
 calcCost id = do
