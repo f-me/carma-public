@@ -725,7 +725,7 @@ setWeather objId city = do
 srvCostCounted srvId = do
   falseCall        <- get srvId "falseCall"
   falseCallPercent <- get srvId "falseCallPercent" >>=
-                      return . fromMaybe 1 . mbreadDouble
+                      return . fromMaybe 100 . mbreadDouble
   tarifIds <- get srvId "cost_serviceTarifOptions" >>= return . B.split ','
   cost <- sum <$> mapM calcCost tarifIds
   case falseCall of
