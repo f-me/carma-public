@@ -52,7 +52,6 @@ selectPartnersForSrv city isActive isDealer service = do
     ++ "   WHERE true"
     ++ (maybe "" (\x -> "  AND p.city = " ++ quote x) city)
     ++ (maybe "" (\x -> "  AND p.isActive = " ++ toBool x) isActive)
-    ++ (maybe "" (\x -> "  AND p.isDealer = " ++ toBool x) isDealer)
     ++ (maybe "" (\x -> "  AND s.servicename = " ++ quote x) service)
   let fields =
         ["id","name","city","comment" ,"addrDeFacto"
