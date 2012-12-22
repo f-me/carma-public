@@ -295,7 +295,7 @@ this.partnerBlips = (osmap,
       id = blip[0]
       # cache ids are numeric, highlightIds are strings (being values
       # of knockVM)
-      hl = _.include(highlightIds, id.toString().split(":")[1])
+      hl = _.include(highlightIds, id.toString())
       
       partner_cache = tableCache[id]
       is_dealer = blip[3]
