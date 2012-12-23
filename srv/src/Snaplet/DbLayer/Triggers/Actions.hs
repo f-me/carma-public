@@ -377,7 +377,7 @@ actionResultMap = Map.fromList
       True -> closeSerivceAndSendInfoVW objId
       False -> do
         tm <- getService objId "times_expectedServiceStart"
-        replaceAction
+        void $ replaceAction
           "checkStatus"
           "Уточнить статус оказания услуги"
           "back" "3" (changeTime (+5*60) tm)
@@ -411,13 +411,14 @@ actionResultMap = Map.fromList
      set newAction "assignedTo" ""
   )
   ,("serviceOrderedAnalyst", \objId -> do
-     setService objId "status" "serviceOrdered"
-     whenInReducedMode $ do
-       closeAction objId
-       replaceAction
-         "tellClient"
-         "Сообщить клиенту о договорённости"
-         "back" "1" (+60) objId
+    setService objId "status" "serviceOrdered"
+    isReducedMode >>= \case
+      True -> closeAction objId
+      False -> do
+        void $ replaceAction
+          "tellClient"
+          "Сообщить клиенту о договорённости"
+          "back" "1" (+60) objId
   )
   ,("partnerNotOkCancel", \objId -> do
       setService objId "status" "cancelService"
@@ -427,14 +428,15 @@ actionResultMap = Map.fromList
          "back" "1" (+60) objId
   )
   ,("partnerOk", \objId ->
-    whenInReducedMode $ do
-      closeAction objId
-      tm <- getService objId "times_expectedServiceStart"
-      void $ replaceAction
-        "checkStatus"
-        "Уточнить статус оказания услуги"
-        "back" "3" (changeTime (+5*60) tm)
-        objId
+    isReducedMode >>= \case
+      True -> closeAction objId
+      False -> do
+        tm <- getService objId "times_expectedServiceStart"
+        void $ replaceAction
+          "checkStatus"
+          "Уточнить статус оказания услуги"
+          "back" "3" (changeTime (+5*60) tm)
+          objId
   )
   ,("serviceDelayed", \objId -> do
     setService objId "status" "serviceDelayed"
@@ -446,32 +448,35 @@ actionResultMap = Map.fromList
   )
   ,("serviceInProgress", \objId -> do
     setService objId "status" "serviceInProgress"
-    whenInReducedMode $ do
-      closeAction objId
-      tm <- getService objId "times_expectedServiceEnd"
-      void $ replaceAction
-        "checkEndOfService"
-        "Уточнить у клиента окончено ли оказание услуги"
-        "back" "3" (changeTime (+5*60) tm)
-        objId
+    isReducedMode >>= \case
+      True -> closeAction objId
+      False -> do
+        tm <- getService objId "times_expectedServiceEnd"
+        void $ replaceAction
+          "checkEndOfService"
+          "Уточнить у клиента окончено ли оказание услуги"
+          "back" "3" (changeTime (+5*60) tm)
+          objId
   )
   ,("prescheduleService", \objId -> do
     setService objId "status" "serviceInProgress"
-    whenInReducedMode $ do
-      closeAction objId
-      tm <- getService objId "times_expectedServiceEnd"
-      void $ replaceAction
-        "checkEndOfService"
-        "Уточнить у клиента окончено ли оказание услуги"
-        "back" "3" (+60)
-        objId
+    isReducedMode >>= \case
+      True -> closeAction objId
+      False -> do
+        tm <- getService objId "times_expectedServiceEnd"
+        void $ replaceAction
+          "checkEndOfService"
+          "Уточнить у клиента окончено ли оказание услуги"
+          "back" "3" (+60)
+          objId
   )
   ,("serviceStillInProgress", \objId ->
-    whenInReducedMode $ do
-      closeAction objId
-      tm <- getService objId "times_expectedServiceEnd"
-      dateNow (changeTime (+5*60) tm) >>= set objId "duetime"
-      set objId "result" ""
+    isReducedMode >>= \case
+      True -> closeAction objId
+      False -> do
+        tm <- getService objId "times_expectedServiceEnd"
+        dateNow (changeTime (+5*60) tm) >>= set objId "duetime"
+        set objId "result" ""
   )
   ,("clientWaiting", \objId -> do
     tm <- getService objId "times_expectedServiceStart"
@@ -670,6 +675,10 @@ closeSerivceAndSendInfoVW objId = do
   comment <- get objId "comment"
   let comment' = B.concat [utf8 "Партнёр: ", partner, "\n\n", comment]
   mapM_ (\act -> set act "comment" comment') [act1, act2]
+
+isReducedMode :: TriggerMonad b Bool
+isReducedMode = return False
+
 
 closeAction objId = do
   svcId <- get objId "parentId"
