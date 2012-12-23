@@ -193,6 +193,20 @@ serviceActions = Map.fromList
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
+      "pleaseCheck" -> do
+          due <- dateNow (+ (5*60))
+          kazeId <- get objId "parentId"
+          actionId <- new "action" $ Map.fromList
+            [("name", "checkStatus")
+            ,("duetime", due)
+            ,("description",
+                utf8 "Клиент попросил уточнить, когда начётся оказание услуги")
+            ,("targetGroup", "back")
+            ,("priority", "3")
+            ,("parentId", objId)
+            ,("caseId", kazeId)
+            ,("closed", "0")
+            ]
       "dealerConformation" -> do
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
