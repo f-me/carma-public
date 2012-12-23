@@ -368,6 +368,11 @@ actionResultMap = Map.fromList
     newPartnerMessage objId
     sendSMS objId "smsTpl:1"
 
+    setService objId "status" "serviceOrdered"
+    svcId    <- get objId "parentId"
+    assignee <- get objId "assignedTo"
+    set svcId "assignedTo" assignee
+
     isReducedMode >>= \case
       True -> closeSerivceAndSendInfoVW objId
       False -> do
