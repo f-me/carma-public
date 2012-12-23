@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 module Snaplet.DbLayer
   (create
   ,read
@@ -38,7 +40,9 @@ import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple (pgsInit)
 import Snap.Snaplet.RedisDB (redisDBInit, runRedisDB)
 import Snap.Snaplet.SimpleLog
+#if !defined(mingw32_HOST_OS)
 import System.Log.Syslog
+#endif
 import qualified Database.Redis as Redis
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import qualified Snaplet.DbLayer.PostgresCRUD as Postgres
@@ -51,6 +55,7 @@ import Snaplet.DbLayer.Triggers
 import Snaplet.DbLayer.Dictionary (readRKCCalc)
 import DictionaryCache
 import Util
+import RuntimeFlag
 
 create :: ModelName -> Object -> Handler b (DbLayer b) (Map.Map FieldName ByteString)
 create model commit = scoper "create" $ do
@@ -158,10 +163,17 @@ smsProcessing = runRedisDB redis $ do
   return $ i + ri
 
 
-initDbLayer :: UsersDict -> FilePath -> SnapletInit b (DbLayer b)
-initDbLayer allU cfgDir = makeSnaplet "db-layer" "Storage abstraction"
+initDbLayer
+  :: UsersDict -> TVar RuntimeFlags -> FilePath
+  -> SnapletInit b (DbLayer b)
+initDbLayer allU rtF cfgDir = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
-    l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10) [logger text (file "log/db.log"), syslog "carma" [PID] USER]
+    l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10)
+#if !defined(mingw32_HOST_OS)
+      [logger text (file "log/db.log"), syslog "carma" [PID] USER]
+#else
+      [logger text (file "log/db.log")]
+#endif
     liftIO $ withLog l $ log Info "Server started"
     rels <- liftIO $ Postgres.loadRelations "resources/site-config/syncs.json" l
     tbls <- liftIO $ MT.loadTables "resources/site-config/models" "resources/site-config/field-groups.json"
@@ -193,6 +205,7 @@ initDbLayer allU cfgDir = makeSnaplet "db-layer" "Storage abstraction"
       <*> (return dc)
       <*> (return $ initApi wkey)
       <*> (liftIO $ readRKCCalc cfgDir)
+      <*> pure rtF
 ----------------------------------------------------------------------
 triggersConfig :: IO TriggersConfig
 triggersConfig = do

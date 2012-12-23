@@ -46,6 +46,10 @@ this.setupRKCOpsScreen = (viewName, args) ->
     cs = $('#city-select')
     cs.change -> update()
 
+    fmttime = (tm) ->
+        fmt = (x) -> if x < 10 then "0" + x else "" + x
+        fmt(Math.floor(tm / 60)) + ":" + fmt(tm % 60)
+
     update = () ->
       prog = ps.val()
       city = cs.val()
@@ -61,7 +65,7 @@ this.setupRKCOpsScreen = (viewName, args) ->
           frow = [
             finfo.name,
             finfo.roles,
-            Math.floor(finfo.avg / 60) + ":" + (finfo.avg % 60)]
+            fmttime(finfo.avg)]
 
         ft.fnAddData(frows)
 
@@ -73,7 +77,7 @@ this.setupRKCOpsScreen = (viewName, args) ->
             r = for val, i in eainfo.avgs
                 if val
                     eavision[i + 1] = true
-                if val then Math.floor(val / 60) + ":" + (val % 60) else "-"
+                if val then fmttime(val) else "-"
             r.unshift eainfo.name
             earow = r
             # eainfo.avgs.unshift eainfo.name

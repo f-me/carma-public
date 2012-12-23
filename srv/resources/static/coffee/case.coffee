@@ -161,7 +161,9 @@ fillEventsHistory = (knockVM) -> ->
         name = dict.ActionNames[r.name] or ''
         aTo  = global.dictValueCache['users'][r.assignedTo] or
                r.assignedTo or ''
-        row = [ new Date(r.closeTime * 1000).toString("dd.MM.yyyy HH:mm")
+        time = if r.closeTime
+               new Date(r.closeTime * 1000).toString("dd.MM.yyyy HH:mm")
+        row = [ time or ''
               , aTo
               , name
               , r.comment or ''
@@ -189,21 +191,33 @@ this.initPartnerTables = ($view,parentView) ->
   table = $view.find("table##{partnerType}_partnerTable")
   kase = global.viewsWare["case-form"].knockVM
   svc = findCaseOrReferenceVM(parentView)
+  # this options for datatable will hide priorities columns for dealer table
+  tblOpts = if partnerType is "contractor"
+              {}
+           else
+              { aoColumns: repeat(5, null).concat(repeat(3, { bVisible: false})) }
 
   unless table.hasClass("dataTable")
-    mkDataTable(table)
+    mkDataTable table, tblOpts
     table.on "click.datatable", "tr", ->
       name = this.children[0].innerText
       city = this.children[1].innerText
       addr = this.children[2].innerText
       svc["#{partnerType}_partner"](name)
       svc["#{partnerType}_address"]("#{city}, #{addr}")
+      svc["#{partnerType}_partnerId"]($(this).attr('partnerid'))
 
   table = table.dataTable()
-  dealer = if partnerType is "towDealer" then 1 else 0
+  # hope that contractor_partner is the only partner
+  dealer = if partnerType is "contractor" then 0 else 1
   select = ["isActive=1", "isDealer=#{dealer}"]
   select.push("city=#{kase.cityLocal()}") if kase.cityLocal()
-  $.getJSON "/allPartners?#{select.join('&')}", (objs) ->
+  url    = if partnerType is "contractor"
+              "/partnersFor/#{svc.modelName()}?#{select.join('&')}"
+           else
+              "/allPartners?#{select.join('&')}"
+
+  $.getJSON url, (objs) ->
     # Store partner cache for use with maps
     cache = {}
     rows = for p in objs
@@ -213,10 +227,25 @@ this.initPartnerTables = ($view,parentView) ->
        p.city        || '',
        p.addrDeFacto || '',
        p.phone1      || '',
-       p.workingTime || '']
+       p.workingTime || '',
+       p.priority1   || '',
+       p.priority2   || '',
+       p.priority3   || '',
+       p.id]
+    # this last id will never be shown, but I need this, to add
+    # partnerid as attribute of the row to pass it then to
+    # the service kvm
     table.data("cache", cache)
     table.fnClearTable()
-    table.fnAddData(rows)
+    r = table.fnAddData(rows)
+    n = table.fnSettings().aoData[ r[0] ]
+    # this will set partnerid attribute to each row
+    # FIXME: find better way to do this
+    for i in r
+      s  = table.fnSettings().aoData[ i ]
+      tr = s.nTr
+      id = s._aData[8]
+      $(tr).attr('partnerid', "partner:#{id}")
 
 #############################################################################
 # kb hooks

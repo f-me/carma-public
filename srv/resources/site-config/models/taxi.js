@@ -898,7 +898,34 @@
                 "parguy",
                 "account"
             ],
-            "canWrite": []
+            "canWrite": [],
+            "meta": {
+                "invisible": true,
+                "readonly": true
+            }
+        },
+        {
+            "name": "falseCallPercent",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [],
+            "meta": {
+                "invisible": true,
+                "readonly": true
+            }
         }
     ]
 }

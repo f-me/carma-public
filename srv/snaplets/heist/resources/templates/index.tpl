@@ -264,16 +264,16 @@
       <fieldset style="width:50%; margin-left:25%;">
         <legend>Поиск</legend>
         <form onsubmit="gotoCase(); return false;">
-          <div data-date-format="dd.mm.yyyy" 
+          <div data-date-format="dd.mm.yyyy"
                id="search-datepicker"
                data-provide="datepicker"
                data-date-weekstart="1"
                class="input-append date">
-	    <input type="text"
+            <input type="text"
                    style="width: 90%;"
                    id="table-query"
                    size="16" class="span2" id="acpro_inp2">
-	    <span class="add-on"><i class="icon-calendar"></i></span>
+            <span class="add-on"><i class="icon-calendar"></i></span>
           </div>
           <button class="btn btn-success" type="submit">
             Поиск
@@ -528,9 +528,9 @@
         <form class="form-vertical">
           <div id="partner-view" />
 
-          <div id="partnerMapModal" 
+          <div id="partnerMapModal"
                class="modal hide fade"
-               tabindex="-1" 
+               tabindex="-1"
                role="dialog">
 
             <div class="modal-header">
@@ -779,7 +779,7 @@
                   </div>
                 </div>
               </div>
-              <div>
+              <div class="row-fluid">
                 <h2>SMS</h2>
                 <div>
                   <div style="float:left">
@@ -788,6 +788,12 @@
                   <div style="float:left">
                     <input id="sms-processing" />
                   </div>
+                </div>
+              </div>
+              <div class="row-fluid">
+                <h2>Ускоренная обработка заявок</h2>
+                <div>
+                  <button id="rkc-ReducedActionsMode" style="float:left"/>
                 </div>
               </div>
             </div>
@@ -956,11 +962,11 @@
           </tr>
           <tr>
             <td> Адрес места поломки </td>
-            <td data-bind="text: kase.kaseAddress_address" </td>
+            <td data-bind="text: kase.caseAddress_address"> </td>
           </tr>
           <tr>
             <td> Адрес, куда эвакуируют автомобиль </td>
-            <td data-bind="text: service.towAddress_address" </td>
+            <td data-bind="text: service.towAddress_address"> </td>
           </tr>
           <tr>
             <td> Фактическое время начала оказания услуги </td>
@@ -980,11 +986,11 @@
           </tr>
           <tr>
             <td> Расшифровка стоимости </td>
-            <td data-bind="text: service.payment_costTranscript" </td>
+            <td data-bind="text: service.payment_costTranscript"> </td>
           </tr>
           <tr>
             <td> Комментарий </td>
-            <td data-bind="text: kase.betaComment" </td>
+            <td data-bind="text: kase.betaComment"> </td>
           </tr>
           <tr>
             <td> Статус услуги </td>
@@ -992,7 +998,7 @@
           </tr>
           <tr>
             <td> Сотрудник принявший звонок </td>
-            <td data-bind="text: kase.callTaker" </td>
+            <td data-bind="text: kase.callTaker"> </td>
           </tr>
           <tr>
             <td> Сотрудник заказавший услугу </td>
@@ -1030,7 +1036,7 @@
             {{/ meta.infoText1 }}
           </label>
         </div>
-        <div class="controls">             
+        <div class="controls">
           <textarea class="pane-span focusable"
                     name="{{ name }}"
                     {{# readonly }}disabled{{/ readonly }}
@@ -1200,13 +1206,13 @@
         </div>
         <div class="controls">
           <div class="input-append">
-            <!-- 
+            <!--
 
             Note the difference between readonly attribute and
             disabled class from Bootstrap.
 
             -->
-            
+
             <input type="text"
                    class="pane-span
                           focusable
@@ -1371,7 +1377,7 @@
         </div>
       </div>
     </script>
- 
+
     <script type="text/template"
             class="field-template"
             id="table-field-template">
@@ -1394,7 +1400,14 @@
       <table id="{{name}}" class="table table-striped table-bordered">
         <thead>
           <tr>
-            <th>Название</th><th>Город</th><th>Адрес</th><th>Телефоны</th><th>Время работы</th>
+            <th>Название</th>
+            <th>Город</th>
+            <th>Адрес</th>
+            <th>Телефоны</th>
+            <th>Время работы</th>
+            <th> ПН </th>
+            <th> ПБГ </th>
+            <th> ПБЗ </th>
           </tr>
         </thead>
         <tbody/>
@@ -1402,7 +1415,7 @@
     </script>
 
     <!-- NOP here — references are rendered after model has loaded -->
-    <script type="text/template" 
+    <script type="text/template"
             class="field-template"
             id="reference-field-template">
       <div class="controls">
@@ -1411,12 +1424,12 @@
       </div>
     </script>
 
-    <!-- 
+    <!--
 
          Special template used to render first field of group in
          parent view.
     -->
-    <script type="text/template" 
+    <script type="text/template"
             class="field-template"
             id="group-field-template">
       <div class="control-group">
@@ -1451,10 +1464,9 @@
       </div>
     </script>
 
-    <!-- 
-    
+    <!--
          Template for one of references.
-    
+
          Must generate id="{{ refView }}" element which
          will hold contents of referenced model. Its class must be is
          {{ refClass }}.
@@ -1473,12 +1485,12 @@
                data-toggle="collapse"
                id="{{ refView }}-link">
             <a class="icon icon-remove" />
-            <a 
+            <a
                data-bind="text: modelTitle">
                Услуга…
             </a>
             <a data-bind="attr: { href: '#printSrv/'+modelName()+'/'+id() }"
-               targer="_blank">
+               target="_blank">
               [Печать]
           </a>
 
@@ -1487,7 +1499,7 @@
 
         <div id="{{ refView }}-head"
              class="accordion-body collapse in">
-          <div class="accordion-inner {{ refClass }}" 
+          <div class="accordion-inner {{ refClass }}"
                id="{{ refView }}">
             <!-- Instance contents are rendered here -->
 
@@ -1510,7 +1522,7 @@
 
         <div id="{{ refView }}-head"
              class="accordion-body collapse {{^refId}}in{{/refId}}">
-          <div class="accordion-inner {{ refClass }}" 
+          <div class="accordion-inner {{ refClass }}"
                id="{{ refView }}">
             <!-- Instance contents are rendered here -->
           </div>
@@ -1536,7 +1548,7 @@
 
         <div id="{{ refView }}-head"
              class="accordion-body collapse {{^refId}}in{{/refId}}">
-          <div class="accordion-inner {{ refClass }}" 
+          <div class="accordion-inner {{ refClass }}"
                id="{{ refView }}">
             <!-- Instance contents are rendered here -->
 
@@ -1563,7 +1575,7 @@
 
         <div id="{{ refView }}-head"
              class="accordion-body collapse {{^refId}}in{{/refId}}">
-          <div class="accordion-inner {{ refClass }}" 
+          <div class="accordion-inner {{ refClass }}"
                id="{{ refView }}">
             <!-- Instance contents are rendered here -->
 

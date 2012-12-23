@@ -3,6 +3,7 @@
 module Snaplet.DbLayer.RKC (
   CaseSummary(..), CaseServiceInfo(..), CaseInformation(..),
   BackSummary(..), BackActionInfo(..), BackInformation(..),
+  FrontInformation(..), FrontOperatorInfo(..),
   Information(..),
   rkc
   ) where
@@ -173,7 +174,7 @@ frontOps = mconcat [
   select "actiontbl" "assignedTo",
   averageActionTime,
   equals "actiontbl" "closed" "t",
-  withinToday "actiontbl" "openTime",
+  withinToday "actiontbl" "duetime",
   groupBy "actiontbl" "assignedTo"]
 
 --
@@ -461,7 +462,7 @@ backSummary constraints = scope "backSummary" $ do
     trace "total" (run count) `ap`
     trace "undone" (run (mconcat [count, undoneAction]))
   where
-    run p = liftM (fromMaybe 0) $ mintQuery $ mconcat [p, constraints, withinToday "actiontbl" "openTime"]
+    run p = liftM (fromMaybe 0) $ mintQuery $ mconcat [p, constraints, withinToday "actiontbl" "duetime"]
 
 backActions :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> m [BackActionInfo]
 backActions constraints actions = scope "backAction" $ do
@@ -471,7 +472,7 @@ backActions constraints actions = scope "backAction" $ do
       look = fromMaybe 0 . lookup n
   return $ map makeActionInfo actions
   where
-    todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "actiontbl" "name", notNull "actiontbl" "name", p, constraints, withinToday "actiontbl" "openTime", groupBy "actiontbl" "name"]
+    todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "actiontbl" "name", notNull "actiontbl" "name", p, constraints, withinToday "actiontbl" "duetime", groupBy "actiontbl" "name"]
 
 rkcBack :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> m BackInformation
 rkcBack constraints actions = scope "rkcBack" $ (return BackInformation `ap` backSummary constraints `ap` backActions constraints actions)
@@ -485,7 +486,7 @@ rkcEachActionOpAvg usrs acts = scope "rkcEachActionOpAvg" $ do
     averageActionTime,
     notNull "actiontbl" "name",
     notNull "actiontbl" "assignedTo",
-    withinToday "actiontbl" "openTime",
+    withinToday "actiontbl" "duetime",
     groupBy "actiontbl" "assignedTo",
     groupBy "actiontbl" "name",
     orderBy "actiontbl" "assignedTo",

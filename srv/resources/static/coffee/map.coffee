@@ -124,7 +124,11 @@ this.reinstallMarkers = (osmap, layerName) ->
 #                    Current blip is enabled only when geocoding is
 #                    active (see targetAddr).
 this.initOSM = (el, parentView) ->
-  return if $(el).hasClass("olMap")
+  # Recenter map if it already exists to account for partner position
+  # updates
+  if $(el).hasClass("olMap")
+    $(el).data("osmap").events.triggerEvent("moveend")
+    return
 
   fieldName = $(el).attr("name")
   view = $(elementView($(el)))
@@ -268,7 +272,7 @@ this.extraBlip = (osmap, coords, layerName) ->
 #               an object with fields "name", "addrDeFacto", "phone1",
 #               "workingTime", "isMobile"
 #
-# - highlightIds: highlight partners with numeric ids from this list
+# - highlightIds: list of "partner:N" strings for highlighted partners
 # 
 # - parentView: parentView for contractor
 #
@@ -291,7 +295,7 @@ this.partnerBlips = (osmap,
       id = blip[0]
       # cache ids are numeric, highlightIds are strings (being values
       # of knockVM)
-      hl = _.include(highlightIds, id.toString())
+      hl = _.include(highlightIds, "partner:" + id.toString())
       
       partner_cache = tableCache[id]
       is_dealer = blip[3]
@@ -358,7 +362,7 @@ this.pickPartnerBlip = (
     
   $("#" + mapId).data("osmap").events.triggerEvent("moveend")
   vm = findVM(referenceView)
-  vm[partnerIdField](partnerId)
+  vm[partnerIdField]("partner:" + partnerId)
   vm[partnerField](partnerName)
   vm[partnerAddrField](partnerAddr)
   vm[partnerCoordsField](partnerCoords)
@@ -397,6 +401,7 @@ this.geoPicker = (fieldName, el) ->
 
   coord_field = modelField(modelName, fieldName).meta['targetCoords']
   map_field = modelField(modelName, fieldName).meta['targetMap']
+  current_blip_type = modelField(modelName, map_field).meta["currentBlipType"] or "default"
 
   $.getJSON(nominatimQuery(addr), (res) ->
     if res.length > 0
@@ -410,7 +415,8 @@ this.geoPicker = (fieldName, el) ->
         osmap.setCenter(
               lonlat.transform(wsgProj, osmProj),
               zoomLevel)
-        currentBlip(osmap, osmap.getCenter()))
+        currentBlip osmap, osmap.getCenter(), current_blip_type
+  )
 
 
 # Reverse geocoding picker (coordinates -> address)
@@ -434,11 +440,12 @@ this.reverseGeoPicker = (fieldName, el) ->
 
   addr_field = modelField(modelName, fieldName).meta['targetAddr']
   map_field = modelField(modelName, fieldName).meta['targetMap']
+  current_blip_type = modelField(modelName, map_field).meta["currentBlipType"] or "default"
 
   if map_field?
     osmap = view.find("[name=#{map_field}]").data("osmap")
     osmap.setCenter(osmCoords, zoomLevel)
-    currentBlip(osmap, osmap.getCenter())
+    currentBlip osmap, osmap.getCenter(), current_blip_type
 
   if addr_field?
     $.getJSON(nominatimRevQuery coords.lon, coords.lat,
