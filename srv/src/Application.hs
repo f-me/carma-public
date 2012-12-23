@@ -4,6 +4,7 @@ module Application where
 
 import Data.Text (Text)
 import Data.Map (Map)
+import Data.Set (Set)
 import Data.Time.Clock (UTCTime)
 import Data.Lens.Template
 import Control.Concurrent.STM
@@ -43,7 +44,11 @@ data App = App
     , _fileUpload :: Snaplet FileUpload
     , _geo        :: Snaplet Geo
     , feLog       :: Log
+    , runtimeFlags:: TVar (Set RuntimeFlag)
     }
+
+data RuntimeFlag = ReducedActionsMode
+  deriving (Eq, Ord, Show, Read)
 
 type AppHandler = Handler App App
 

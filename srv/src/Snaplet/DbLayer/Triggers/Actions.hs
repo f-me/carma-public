@@ -676,9 +676,6 @@ closeSerivceAndSendInfoVW objId = do
   let comment' = B.concat [utf8 "Партнёр: ", partner, "\n\n", comment]
   mapM_ (\act -> set act "comment" comment') [act1, act2]
 
-isReducedMode :: TriggerMonad b Bool
-isReducedMode = return False
-
 
 closeAction objId = do
   svcId <- get objId "parentId"

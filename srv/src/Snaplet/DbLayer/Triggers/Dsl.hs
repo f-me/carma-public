@@ -5,6 +5,7 @@ import Control.Applicative
 import Control.Monad (when)
 import Control.Monad.Trans (lift,liftIO)
 import qualified Control.Monad.State as ST
+import Control.Concurrent.STM
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
@@ -13,14 +14,18 @@ import qualified Data.Text.Encoding as T
 
 import Data.Map (Map)
 import qualified Data.Map as Map
+import qualified Data.Set as Set
 import Data.Maybe
 
 import Data.Time.Clock (getCurrentTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 
+import Snap (gets)
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
+
+import Application
 
 
 tryAll f = foldl (<|>) empty . map f
@@ -80,3 +85,8 @@ dropFromList val = B.intercalate "," . filter (/=val) . B.split ','
 
 utf8 :: String -> ByteString
 utf8 = T.encodeUtf8 . T.pack
+
+isReducedMode :: TriggerMonad b Bool
+isReducedMode = do
+  flags <- lift (gets runtimeFlags) >>= liftIO . readTVarIO
+  return $ Set.member ReducedActionsMode flags

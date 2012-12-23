@@ -778,7 +778,7 @@
                   </div>
                 </div>
               </div>
-              <div>
+              <div class="row-fluid">
                 <h2>SMS</h2>
                 <div>
                   <div style="float:left">
@@ -787,6 +787,12 @@
                   <div style="float:left">
                     <input id="sms-processing" />
                   </div>
+                </div>
+              </div>
+              <div class="row-fluid">
+                <h2>Ускоренная обработка заявок</h2>
+                <div>
+                  <button id="rkc-ReducedActionsMode" style="float:left"/>
                 </div>
               </div>
             </div>

@@ -6,6 +6,7 @@ import Control.Applicative
 import Control.Monad.IO.Class
 
 import qualified Data.Map as Map
+import qualified Data.Set as Set
 import Data.ByteString (ByteString)
 import Data.Configurator
 import Control.Concurrent.STM
@@ -80,6 +81,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/sms/processing", chkAuth . method GET $ smsProcessingHandler)
          , ("/printSrv/:model/:id",
             chkAuth . method GET $ printServiceHandler)
+         , ("/runtimeFlags",  chkAuth . method GET  $ getRuntimeFlags)
+         , ("/runtimeFlags",  chkAuth . method PUT  $ setRuntimeFlags)
          , ("/errors",        method POST errorsHandler)
          ]
 
@@ -142,5 +145,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10)
        [logger text (file "log/frontend.log")]
 
+  runtimeFlags <- liftIO $ newTVarIO Set.empty
+
   addRoutes routes
-  return $ App h s authMgr logdUsrs allUsrs c d pgs pga v fu g l
+  return $ App h s authMgr logdUsrs allUsrs c d pgs pga v fu g l runtimeFlags

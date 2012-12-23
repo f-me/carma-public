@@ -17,8 +17,11 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.UTF8  as BU
 import qualified Data.Aeson as Aeson
+import Data.List
 import Data.Map (Map)
 import qualified Data.Map as Map
+import Data.Set (Set)
+import qualified Data.Set as Set
 import qualified Data.HashMap.Strict as HashMap
 
 import Data.Maybe
@@ -380,6 +383,29 @@ printServiceHandler = do
     where
       head' []     = Map.empty
       head' (x:xs) = x
+
+
+getRuntimeFlags :: AppHandler ()
+getRuntimeFlags
+  = gets runtimeFlags
+  >>= liftIO . readTVarIO
+  >>= writeJSON . map show . Set.elems
+
+
+setRuntimeFlags :: AppHandler ()
+setRuntimeFlags = do
+  flags <- getJSONBody
+  gets runtimeFlags
+    >>= liftIO . atomically
+    . (`modifyTVar'` updAll flags)
+  getRuntimeFlags
+  where
+    updAll :: Map String Bool -> Set RuntimeFlag -> Set RuntimeFlag
+    updAll flags s = foldl' upd s $ Map.toList flags
+    upd s (k,True)  = Set.insert (read k) s
+    upd s (k,False) = Set.delete (read k) s
+    upd _ kv = error $ "Unexpected runtime flag: " ++ show kv
+
 
 errorsHandler :: AppHandler ()
 errorsHandler = do
