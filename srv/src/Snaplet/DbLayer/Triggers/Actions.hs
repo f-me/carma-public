@@ -413,7 +413,8 @@ actionResultMap = Map.fromList
   ,("serviceOrderedAnalyst", \objId -> do
      setService objId "status" "serviceOrdered"
      whenInReducedMode $ do
-       void $ replaceAction
+       closeAction objId
+       replaceAction
          "tellClient"
          "Сообщить клиенту о договорённости"
          "back" "1" (+60) objId
@@ -427,6 +428,7 @@ actionResultMap = Map.fromList
   )
   ,("partnerOk", \objId ->
     whenInReducedMode $ do
+      closeAction objId
       tm <- getService objId "times_expectedServiceStart"
       void $ replaceAction
         "checkStatus"
@@ -445,6 +447,7 @@ actionResultMap = Map.fromList
   ,("serviceInProgress", \objId -> do
     setService objId "status" "serviceInProgress"
     whenInReducedMode $ do
+      closeAction objId
       tm <- getService objId "times_expectedServiceEnd"
       void $ replaceAction
         "checkEndOfService"
@@ -455,6 +458,7 @@ actionResultMap = Map.fromList
   ,("prescheduleService", \objId -> do
     setService objId "status" "serviceInProgress"
     whenInReducedMode $ do
+      closeAction objId
       tm <- getService objId "times_expectedServiceEnd"
       void $ replaceAction
         "checkEndOfService"
@@ -464,6 +468,7 @@ actionResultMap = Map.fromList
   )
   ,("serviceStillInProgress", \objId ->
     whenInReducedMode $ do
+      closeAction objId
       tm <- getService objId "times_expectedServiceEnd"
       dateNow (changeTime (+5*60) tm) >>= set objId "duetime"
       set objId "result" ""
