@@ -121,8 +121,9 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
 
-  d <- nestSnaplet "db" db $ initDbLayer allUsrs "resources/site-config"
- 
+  runtimeFlags <- liftIO $ newTVarIO Set.empty
+  d <- nestSnaplet "db" db $ initDbLayer allUsrs runtimeFlags "resources/site-config"
+
   -- init PostgreSQL connection pool that will be used for searching only
   let lookupCfg nm = lookupDefault (error $ show nm) cfg nm
   cInfo <- liftIO $ Pg.ConnectInfo
@@ -144,8 +145,6 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10)
        [logger text (file "log/frontend.log")]
-
-  runtimeFlags <- liftIO $ newTVarIO Set.empty
 
   addRoutes routes
   return $ App h s authMgr logdUsrs allUsrs c d pgs pga v fu g l runtimeFlags

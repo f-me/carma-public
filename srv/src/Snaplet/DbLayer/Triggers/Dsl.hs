@@ -25,8 +25,7 @@ import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
 
-import Application
-
+import RuntimeFlag
 
 tryAll f = foldl (<|>) empty . map f
 

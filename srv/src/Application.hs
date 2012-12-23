@@ -28,6 +28,8 @@ import Snaplet.Geo
 import Snap.Snaplet.SimpleLog
 
 import Util (UsersDict)
+import RuntimeFlag
+
 ------------------------------------------------------------------------------
 -- | Application snaplet state type: Redson, Heist.
 data App = App
@@ -47,8 +49,6 @@ data App = App
     , runtimeFlags:: TVar (Set RuntimeFlag)
     }
 
-data RuntimeFlag = ReducedActionsMode
-  deriving (Eq, Ord, Show, Read)
 
 type AppHandler = Handler App App
 

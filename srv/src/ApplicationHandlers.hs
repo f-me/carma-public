@@ -50,6 +50,7 @@ import qualified Nominatim
 import Application
 import AppHandlers.Util
 import Util
+import RuntimeFlag
 
 
 ------------------------------------------------------------------------------
@@ -400,7 +401,7 @@ setRuntimeFlags = do
     . (`modifyTVar'` updAll flags)
   getRuntimeFlags
   where
-    updAll :: Map String Bool -> Set RuntimeFlag -> Set RuntimeFlag
+    updAll :: Map String Bool -> RuntimeFlags -> RuntimeFlags
     updAll flags s = foldl' upd s $ Map.toList flags
     upd s (k,True)  = Set.insert (read k) s
     upd s (k,False) = Set.delete (read k) s
