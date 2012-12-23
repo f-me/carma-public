@@ -41,7 +41,7 @@ this.setupSupervisorScreen = (viewName, args) ->
 
       knockVM = global.viewsWare['action-form'].knockVM
 
-    d1 = (new Date).addDays(-2)
+    d1 = (new Date).addDays(-14)
     d2 = (new Date).addDays(+7)
     $('#date-min').val d1.toString('dd.MM.yyyy HH:mm')
     $('#date-max').val d2.toString('dd.MM.yyyy HH:mm')
