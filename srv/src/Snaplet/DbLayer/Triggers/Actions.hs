@@ -412,7 +412,8 @@ actionResultMap = Map.fromList
   )
   ,("serviceOrderedAnalyst", \objId -> do
      setService objId "status" "serviceOrdered"
-     void $ replaceAction
+     whenInReducedMode $ do
+       void $ replaceAction
          "tellClient"
          "Сообщить клиенту о договорённости"
          "back" "1" (+60) objId
@@ -424,13 +425,14 @@ actionResultMap = Map.fromList
          "Требуется отказаться от заказанной услуги"
          "back" "1" (+60) objId
   )
-  ,("partnerOk", \objId -> do
-    tm <- getService objId "times_expectedServiceStart"
-    void $ replaceAction
-      "checkStatus"
-      "Уточнить статус оказания услуги"
-      "back" "3" (changeTime (+5*60) tm)
-      objId
+  ,("partnerOk", \objId ->
+    whenInReducedMode $ do
+      tm <- getService objId "times_expectedServiceStart"
+      void $ replaceAction
+        "checkStatus"
+        "Уточнить статус оказания услуги"
+        "back" "3" (changeTime (+5*60) tm)
+        objId
   )
   ,("serviceDelayed", \objId -> do
     setService objId "status" "serviceDelayed"
@@ -442,26 +444,30 @@ actionResultMap = Map.fromList
   )
   ,("serviceInProgress", \objId -> do
     setService objId "status" "serviceInProgress"
-    tm <- getService objId "times_expectedServiceEnd"
-    void $ replaceAction
-      "checkEndOfService"
-      "Уточнить у клиента окончено ли оказание услуги"
-      "back" "3" (changeTime (+5*60) tm)
-      objId
+    whenInReducedMode $ do
+      tm <- getService objId "times_expectedServiceEnd"
+      void $ replaceAction
+        "checkEndOfService"
+        "Уточнить у клиента окончено ли оказание услуги"
+        "back" "3" (changeTime (+5*60) tm)
+        objId
   )
   ,("prescheduleService", \objId -> do
     setService objId "status" "serviceInProgress"
-    tm <- getService objId "times_expectedServiceEnd"
-    void $ replaceAction
-      "checkEndOfService"
-      "Уточнить у клиента окончено ли оказание услуги"
-      "back" "3" (+60)
-      objId
+    whenInReducedMode $ do
+      tm <- getService objId "times_expectedServiceEnd"
+      void $ replaceAction
+        "checkEndOfService"
+        "Уточнить у клиента окончено ли оказание услуги"
+        "back" "3" (+60)
+        objId
   )
-  ,("serviceStillInProgress", \objId -> do
-    tm <- getService objId "times_expectedServiceEnd"
-    dateNow (changeTime (+5*60) tm) >>= set objId "duetime"
-    set objId "result" "")
+  ,("serviceStillInProgress", \objId ->
+    whenInReducedMode $ do
+      tm <- getService objId "times_expectedServiceEnd"
+      dateNow (changeTime (+5*60) tm) >>= set objId "duetime"
+      set objId "result" ""
+  )
   ,("clientWaiting", \objId -> do
     tm <- getService objId "times_expectedServiceStart"
     void $ replaceAction
