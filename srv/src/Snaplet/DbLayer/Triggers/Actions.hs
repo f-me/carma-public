@@ -662,7 +662,7 @@ closeSerivceAndSendInfoVW objId = do
   act1 <- replaceAction
     "closeCase"
     "Закрыть заявку"
-    "back" "3" (changeTime (+5*60) tm)
+    "back" "3" (changeTime (+7*24*60*60)) tm)
     objId
 
   act2 <- replaceAction
