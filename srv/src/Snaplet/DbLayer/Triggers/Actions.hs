@@ -342,14 +342,12 @@ actionResultMap = Map.fromList
      set newAction "assignedTo" ""
   )
   ,("serviceOrdered", \objId -> do
+    newPartnerMessage objId
+
     setService objId "status" "serviceOrdered"
     svcId    <- get objId "parentId"
     assignee <- get objId "assignedTo"
     set svcId "assignedTo" assignee
-    replaceAction
-      "tellClient"
-      "Сообщить клиенту о договорённости"
-      "back" "1" (+60) objId
 
     act <- replaceAction
       "addBill"
@@ -358,17 +356,32 @@ actionResultMap = Map.fromList
       objId
     set act "assignedTo" ""
 
-    newPartnerMessage objId
+    isReducedMode >>= \case
+      True -> closeSerivceAndSendInfoVW objId
+      False -> do
+        void $ replaceAction
+          "tellClient"
+          "Сообщить клиенту о договорённости"
+          "back" "1" (+60) objId
   )
   ,("serviceOrderedSMS", \objId -> do
-    tm <- getService objId "times_expectedServiceStart"
-    replaceAction
-      "checkStatus"
-      "Уточнить статус оказания услуги"
-      "back" "3" (changeTime (+5*60) tm)
-      objId
     newPartnerMessage objId
     sendSMS objId "smsTpl:1"
+
+    setService objId "status" "serviceOrdered"
+    svcId    <- get objId "parentId"
+    assignee <- get objId "assignedTo"
+    set svcId "assignedTo" assignee
+
+    isReducedMode >>= \case
+      True -> closeSerivceAndSendInfoVW objId
+      False -> do
+        tm <- getService objId "times_expectedServiceStart"
+        void $ replaceAction
+          "checkStatus"
+          "Уточнить статус оказания услуги"
+          "back" "3" (changeTime (+5*60) tm)
+          objId
   )
   ,("partnerNotOk", void . replaceAction
       "cancelService"
@@ -398,11 +411,14 @@ actionResultMap = Map.fromList
      set newAction "assignedTo" ""
   )
   ,("serviceOrderedAnalyst", \objId -> do
-     setService objId "status" "serviceOrdered"
-     void $ replaceAction
-         "tellClient"
-         "Сообщить клиенту о договорённости"
-         "back" "1" (+60) objId
+    setService objId "status" "serviceOrdered"
+    isReducedMode >>= \case
+      True -> closeAction objId
+      False -> do
+        void $ replaceAction
+          "tellClient"
+          "Сообщить клиенту о договорённости"
+          "back" "1" (+60) objId
   )
   ,("partnerNotOkCancel", \objId -> do
       setService objId "status" "cancelService"
@@ -411,13 +427,16 @@ actionResultMap = Map.fromList
          "Требуется отказаться от заказанной услуги"
          "back" "1" (+60) objId
   )
-  ,("partnerOk", \objId -> do
-    tm <- getService objId "times_expectedServiceStart"
-    void $ replaceAction
-      "checkStatus"
-      "Уточнить статус оказания услуги"
-      "back" "3" (changeTime (+5*60) tm)
-      objId
+  ,("partnerOk", \objId ->
+    isReducedMode >>= \case
+      True -> closeAction objId
+      False -> do
+        tm <- getService objId "times_expectedServiceStart"
+        void $ replaceAction
+          "checkStatus"
+          "Уточнить статус оказания услуги"
+          "back" "3" (changeTime (+5*60) tm)
+          objId
   )
   ,("serviceDelayed", \objId -> do
     setService objId "status" "serviceDelayed"
@@ -429,26 +448,36 @@ actionResultMap = Map.fromList
   )
   ,("serviceInProgress", \objId -> do
     setService objId "status" "serviceInProgress"
-    tm <- getService objId "times_expectedServiceEnd"
-    void $ replaceAction
-      "checkEndOfService"
-      "Уточнить у клиента окончено ли оказание услуги"
-      "back" "3" (changeTime (+5*60) tm)
-      objId
+    isReducedMode >>= \case
+      True -> closeAction objId
+      False -> do
+        tm <- getService objId "times_expectedServiceEnd"
+        void $ replaceAction
+          "checkEndOfService"
+          "Уточнить у клиента окончено ли оказание услуги"
+          "back" "3" (changeTime (+5*60) tm)
+          objId
   )
   ,("prescheduleService", \objId -> do
     setService objId "status" "serviceInProgress"
-    tm <- getService objId "times_expectedServiceEnd"
-    void $ replaceAction
-      "checkEndOfService"
-      "Уточнить у клиента окончено ли оказание услуги"
-      "back" "3" (+60)
-      objId
+    isReducedMode >>= \case
+      True -> closeAction objId
+      False -> do
+        tm <- getService objId "times_expectedServiceEnd"
+        void $ replaceAction
+          "checkEndOfService"
+          "Уточнить у клиента окончено ли оказание услуги"
+          "back" "3" (+60)
+          objId
   )
-  ,("serviceStillInProgress", \objId -> do
-    tm <- getService objId "times_expectedServiceEnd"
-    dateNow (changeTime (+5*60) tm) >>= set objId "duetime"
-    set objId "result" "")
+  ,("serviceStillInProgress", \objId ->
+    isReducedMode >>= \case
+      True -> closeAction objId
+      False -> do
+        tm <- getService objId "times_expectedServiceEnd"
+        dateNow (changeTime (+5*60) tm) >>= set objId "duetime"
+        set objId "result" ""
+  )
   ,("clientWaiting", \objId -> do
     tm <- getService objId "times_expectedServiceStart"
     void $ replaceAction
@@ -458,56 +487,18 @@ actionResultMap = Map.fromList
       objId
   )
   ,("serviceFinished", \objId -> do
-    setService objId "status" "serviceOk"
-    tm <- getService objId "times_expectedServiceClosure"
-    act <- replaceAction
-      "closeCase"
-      "Закрыть заявку"
-      "back" "3" (changeTime (+5*60) tm)
-      objId
-
-    partner <- getService objId "contractor_partner"
-    comment <- get objId "comment"
-    set act "comment" $ B.concat [utf8 "Партнёр: ", partner, "\n\n", comment]
-
-    void $ replaceAction
-      "getInfoDealerVW"
-      "Требуется уточнить информацию о ремонте у дилера (только для VW)"
-      "back" "3" (+7*24*60*60)
-      objId
-    partner <- getService objId "contractor_partner"
-    comment <- get objId "comment"
-    set act "comment" $ B.concat [utf8 "Партнёр: ", partner, "\n\n", comment]
+    closeSerivceAndSendInfoVW objId
     sendSMS objId "smsTpl:3"
   )
   ,("complaint", \objId -> do
-    setService objId "status" "serviceOk"
+    closeSerivceAndSendInfoVW objId
     setService objId "clientSatisfied" "0"
-    tm <- getService objId "times_expectedServiceClosure"
     act1 <- replaceAction
       "complaintResolution"
       "Клиент предъявил претензию"
       "supervisor" "1" (+60)
       objId
     set act1 "assignedTo" ""
-    act <- replaceAction
-      "closeCase"
-      "Закрыть заявку"
-      "back" "3" (changeTime (+5*60) tm)
-      objId
-
-    partner <- getService objId "contractor_partner"
-    comment <- get objId "comment"
-    set act "comment" $ B.concat [utf8 "Партнёр: ", partner, "\n\n", comment]
-
-    void $ replaceAction
-      "getInfoDealerVW"
-      "Требуется уточнить информацию о ремонте у дилера (только для VW)"
-      "back" "3" (+7*24*60*60)
-      objId
-    partner <- getService objId "contractor_partner"
-    comment <- get objId "comment"
-    set act "comment" $ B.concat [utf8 "Партнёр: ", partner, "\n\n", comment]
   )
   ,("billNotReady", \objId -> dateNow (+ (5*24*60*60))  >>= set objId "duetime")
   ,("billAttached", \objId -> do
@@ -663,6 +654,27 @@ newPartnerMessage objId = do
     ,("partnerId", partnerId)
     ,("message", L.toStrict $ Aeson.encode msg)
     ]
+
+
+closeSerivceAndSendInfoVW objId = do
+  setService objId "status" "serviceOk"
+  tm <- getService objId "times_expectedServiceClosure"
+  act1 <- replaceAction
+    "closeCase"
+    "Закрыть заявку"
+    "back" "3" (changeTime (+5*60) tm)
+    objId
+
+  act2 <- replaceAction
+    "getInfoDealerVW"
+    "Требуется уточнить информацию о ремонте у дилера (только для VW)"
+    "back" "3" (+7*24*60*60)
+    objId
+
+  partner <- getService objId "contractor_partner"
+  comment <- get objId "comment"
+  let comment' = B.concat [utf8 "Партнёр: ", partner, "\n\n", comment]
+  mapM_ (\act -> set act "comment" comment') [act1, act2]
 
 
 closeAction objId = do

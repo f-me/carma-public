@@ -1,5 +1,27 @@
+
+initReducedModeBtn = ->
+  currentState = false
+  btn = $('#rkc-ReducedActionsMode')
+  updState = (fs) ->
+      currentState = _.contains fs, "ReducedActionsMode"
+      btnName = if currentState then "Выключить" else "Включить"
+      btn.text btnName
+
+  $.getJSON '/runtimeFlags', updState
+
+  btn.click ->
+    $.ajax
+      type: 'PUT'
+      url: '/runtimeFlags'
+      data: "{\"ReducedActionsMode\": #{not currentState}}"
+      success: updState
+
+
+
 this.setupRKCScreen = (viewName, args) ->
   setTimeout ->
+    initReducedModeBtn()
+
     caset = $("#rkc-services-table")
     actionst = $("#rkc-actions-table")
 

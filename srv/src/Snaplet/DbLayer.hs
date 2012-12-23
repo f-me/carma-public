@@ -55,6 +55,7 @@ import Snaplet.DbLayer.Triggers
 import Snaplet.DbLayer.Dictionary (readRKCCalc)
 import DictionaryCache
 import Util
+import RuntimeFlag
 
 create :: ModelName -> Object -> Handler b (DbLayer b) (Map.Map FieldName ByteString)
 create model commit = scoper "create" $ do
@@ -162,8 +163,10 @@ smsProcessing = runRedisDB redis $ do
   return $ i + ri
 
 
-initDbLayer :: UsersDict -> FilePath -> SnapletInit b (DbLayer b)
-initDbLayer allU cfgDir = makeSnaplet "db-layer" "Storage abstraction"
+initDbLayer
+  :: UsersDict -> TVar RuntimeFlags -> FilePath
+  -> SnapletInit b (DbLayer b)
+initDbLayer allU rtF cfgDir = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
     l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10)
 #if !defined(mingw32_HOST_OS)
@@ -202,6 +205,7 @@ initDbLayer allU cfgDir = makeSnaplet "db-layer" "Storage abstraction"
       <*> (return dc)
       <*> (return $ initApi wkey)
       <*> (liftIO $ readRKCCalc cfgDir)
+      <*> pure rtF
 ----------------------------------------------------------------------
 triggersConfig :: IO TriggersConfig
 triggersConfig = do
