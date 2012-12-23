@@ -1,5 +1,27 @@
+
+initReducedModeBtn = ->
+  currentState = false
+  btn = $('#rkc-ReducedActionsMode')
+  updState = (fs) ->
+      currentState = _.contains fs, "ReducedActionsMode"
+      btnName = if currentState then "Выключить" else "Включить"
+      btn.text btnName
+
+  $.getJSON '/runtimeFlags', updState
+
+  btn.click ->
+    $.ajax
+      type: 'PUT'
+      url: '/runtimeFlags'
+      data: "{\"ReducedActionsMode\": #{not currentState}}"
+      success: updState
+
+
+
 this.setupRKCScreen = (viewName, args) ->
   setTimeout ->
+    initReducedModeBtn()
+
     caset = $("#rkc-services-table")
     actionst = $("#rkc-actions-table")
 
@@ -49,6 +71,10 @@ this.setupRKCScreen = (viewName, args) ->
     cs = $('#city-select')
     cs.change -> update()
 
+    fmttime = (tm) ->
+        fmt = (x) -> if x < 10 then "0" + x else "" + x
+        fmt(Math.floor(tm / 60)) + ":" + fmt(tm % 60)
+
     update = () ->
       prog = ps.val()
       city = cs.val()
@@ -88,7 +114,7 @@ this.setupRKCScreen = (viewName, args) ->
             dict.ActionNames[binfo.name] || binfo.name,
             binfo.total,
             binfo.undone,
-            Math.floor(binfo.average / 60) + ":" + (binfo.average % 60)]
+            fmttime(binfo.average)]
 
         bt.fnAddData(brows))
 

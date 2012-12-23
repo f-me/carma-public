@@ -119,12 +119,13 @@ twoPointHandler q queryToResult = do
 
 
 ------------------------------------------------------------------------------
--- | Query to fetch partners within a box.
+-- | Query to fetch partners within a box, with mobile partners coming
+-- last.
 --
 -- Splice lon1, lat1 and lon2, lat2 on the query, where coordinates
 -- are those of opposite 2D box points.
 withinQuery :: Query
-withinQuery = "SELECT id, st_x(coords), st_y(coords), isDealer, isMobile FROM partnertbl WHERE coords && ST_SetSRID(ST_MakeBox2D(ST_Point(?, ?), ST_Point(?, ?)), 4326);"
+withinQuery = "SELECT id, st_x(coords), st_y(coords), isDealer, isMobile FROM partnertbl WHERE coords && ST_SetSRID(ST_MakeBox2D(ST_Point(?, ?), ST_Point(?, ?)), 4326) ORDER BY (case when isMobile then 1 when isMobile is null then 2 else 3 end) DESC;"
 
 
 ------------------------------------------------------------------------------
@@ -140,7 +141,8 @@ distanceQuery = "SELECT ST_Distance_Sphere(ST_PointFromText('POINT(? ?)', 4326),
 ------------------------------------------------------------------------------
 -- | Serve list of partners within a specified rectangle.
 --
--- Response body is a list of 5-tuples @[partner_id, lon, lat, isDealer, isMobile]@.
+-- Response body is a list of 5-tuples @[partner_id, lon, lat,
+-- isDealer, isMobile]@. Mobile partners come last.
 withinPartners :: Handler b Geo ()
 withinPartners = twoPointHandler withinQuery (id :: [Partner] -> [Partner])
 

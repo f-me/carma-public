@@ -6,6 +6,7 @@ import Control.Applicative
 import Control.Monad.IO.Class
 
 import qualified Data.Map as Map
+import qualified Data.Set as Set
 import Data.ByteString (ByteString)
 import Data.Configurator
 import Control.Concurrent.STM
@@ -57,6 +58,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/myActions",     chkAuth . method GET    $ myActionsHandler)
          , ("/allActions",    chkAuth . method GET    $ allActionsHandler)
          , ("/allPartners",   chkAuth . method GET    $ allPartnersHandler)
+         , ("/partnersFor/:srv",
+                              chkAuth . method GET    $ partnersForSrvHandler)
          , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)
          , ("/_/:model",      chkAuth . method POST   $ createHandler)
          , ("/_/:model/:id",  chkAuth . method GET    $ readHandler)
@@ -78,6 +81,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/sms/processing", chkAuth . method GET $ smsProcessingHandler)
          , ("/printSrv/:model/:id",
             chkAuth . method GET $ printServiceHandler)
+         , ("/runtimeFlags",  chkAuth . method GET  $ getRuntimeFlags)
+         , ("/runtimeFlags",  chkAuth . method PUT  $ setRuntimeFlags)
          , ("/errors",        method POST errorsHandler)
          ]
 
@@ -116,8 +121,9 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
 
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
 
-  d <- nestSnaplet "db" db $ initDbLayer allUsrs "resources/site-config"
- 
+  runtimeFlags <- liftIO $ newTVarIO Set.empty
+  d <- nestSnaplet "db" db $ initDbLayer allUsrs runtimeFlags "resources/site-config"
+
   -- init PostgreSQL connection pool that will be used for searching only
   let lookupCfg nm = lookupDefault (error $ show nm) cfg nm
   cInfo <- liftIO $ Pg.ConnectInfo
@@ -141,4 +147,4 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        [logger text (file "log/frontend.log")]
 
   addRoutes routes
-  return $ App h s authMgr logdUsrs allUsrs c d pgs pga v fu g l
+  return $ App h s authMgr logdUsrs allUsrs c d pgs pga v fu g l runtimeFlags
