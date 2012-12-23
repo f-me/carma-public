@@ -342,6 +342,8 @@ actionResultMap = Map.fromList
      set newAction "assignedTo" ""
   )
   ,("serviceOrdered", \objId -> do
+    newPartnerMessage objId
+
     setService objId "status" "serviceOrdered"
     svcId    <- get objId "parentId"
     assignee <- get objId "assignedTo"
@@ -354,8 +356,6 @@ actionResultMap = Map.fromList
       objId
     set act "assignedTo" ""
 
-    newPartnerMessage objId
-
     isReducedMode >>= \case
       True -> closeSerivceAndSendInfoVW objId
       False -> do
@@ -365,14 +365,18 @@ actionResultMap = Map.fromList
           "back" "1" (+60) objId
   )
   ,("serviceOrderedSMS", \objId -> do
-    tm <- getService objId "times_expectedServiceStart"
-    replaceAction
-      "checkStatus"
-      "Уточнить статус оказания услуги"
-      "back" "3" (changeTime (+5*60) tm)
-      objId
     newPartnerMessage objId
     sendSMS objId "smsTpl:1"
+
+    isReducedMode >>= \case
+      True -> closeSerivceAndSendInfoVW objId
+      False -> do
+        tm <- getService objId "times_expectedServiceStart"
+        replaceAction
+          "checkStatus"
+          "Уточнить статус оказания услуги"
+          "back" "3" (changeTime (+5*60) tm)
+          objId
   )
   ,("partnerNotOk", void . replaceAction
       "cancelService"
