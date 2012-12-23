@@ -141,7 +141,7 @@ getActionsForCase = do
     $  "SELECT extract (epoch from closeTime at time zone 'UTC')::int::text,"
     ++ "       result, name, assignedTo, comment"
     ++ "  FROM actiontbl"
-    ++ "  WHERE closeTime IS NOT NULL AND caseId = ?") [caseId']
+    ++ "  WHERE caseId = ?") [caseId']
   let fields =
         ["closeTime", "result", "name", "assignedTo", "comment"]
   writeJSON $ mkMap fields rows

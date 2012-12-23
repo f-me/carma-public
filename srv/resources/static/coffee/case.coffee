@@ -161,7 +161,9 @@ fillEventsHistory = (knockVM) -> ->
         name = dict.ActionNames[r.name] or ''
         aTo  = global.dictValueCache['users'][r.assignedTo] or
                r.assignedTo or ''
-        row = [ new Date(r.closeTime * 1000).toString("dd.MM.yyyy HH:mm")
+        time = if r.closeTime
+               new Date(r.closeTime * 1000).toString("dd.MM.yyyy HH:mm")
+        row = [ time or ''
               , aTo
               , name
               , r.comment or ''
