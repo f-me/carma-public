@@ -140,8 +140,7 @@ satisfaction = mconcat [
 
 satisfactionCount :: PreQuery
 satisfactionCount = mconcat [
-  count,
-  inList "servicetbl" "clientSatisfied" ["satis", "notSatis"]]
+  count]
 
 programIs :: T.Text -> PreQuery
 programIs p = mconcat [equals "casetbl" "program" p]
