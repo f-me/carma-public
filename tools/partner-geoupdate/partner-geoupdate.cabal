@@ -30,7 +30,7 @@ Executable partner-geoupdate
     HTTP                        == 4000.2.*,
     MonadCatchIO-transformers   >= 0.2.1 && < 0.4,
     mtl                         >= 2 && < 3,
-    network                     == 2.4.*,
+    network                     == 2.3.*,
     old-locale                  == 1.0.*,
     postgresql-simple           == 0.2.*,
     snap                        == 0.9.*,
@@ -43,6 +43,8 @@ Executable partner-geoupdate
     time                        >= 1.1 && < 1.5,
     unordered-containers        == 0.2.*
 
+  Extensions:                   OverloadedStrings,
+                                LambdaCase
   if flag(development)
     build-depends:
       snap-loader-dynamic == 0.9.*
