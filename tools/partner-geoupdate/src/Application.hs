@@ -316,7 +316,10 @@ newCase = do
         $ jsonRq
 
   -- Form the body of the request to send to CaRMa
-  let caseBody = BSL.unpack $ encode jsonRq'
+  let caseBody = BSL.unpack $ encode
+               $ HM.delete "lon"
+               $ HM.delete "lat"
+               $ jsonRq'
 
   modifyResponse $ setContentType "application/json"
   caseU <- caseCreateUpdateURI Nothing
