@@ -19,15 +19,17 @@ import Control.Applicative
 import Control.Monad
 import Control.Monad.State hiding (ap)
 
-import Data.Aeson
-import Data.Aeson.Types (Pair)
+import Data.Aeson as Aeson
+import Data.Aeson.Types (Pair, parseMaybe)
+import qualified Data.HashMap.Strict as HM
 
-import Data.Attoparsec.ByteString.Char8
+import Data.Attoparsec.ByteString.Char8 -- (double, decimal, parseOnly)
 
 import Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import qualified Data.Text as T (pack)
+import Data.Text (Text)
 import Data.Text.Encoding (decodeUtf8)
 
 import Data.Configurator
@@ -36,7 +38,6 @@ import Data.Time.Clock
 import Data.Time.Format
 
 import Data.Lens.Template
-import Data.Maybe
 
 import qualified Database.Redis as R
 
@@ -238,40 +239,26 @@ getMessage = do
 
 
 ------------------------------------------------------------------------------
--- | POST parameters expected in a new case request, stored as is.
-caseParams :: [ByteString]
-caseParams = [ "contact_name"
-             , "contact_phone1"
-             , "car_vin"
-             , "car_make"
-             , "car_model"
-             , "car_plateNum"
-             , "car_color"
-             , "car_buyDate"
-             ]
-
-
-------------------------------------------------------------------------------
 -- | Name of case coordinates field in case model.
-caseCoords :: ByteString
+caseCoords :: Text
 caseCoords = "caseAddress_coords"
 
 
 ------------------------------------------------------------------------------
 -- | Name of case address field in case model.
-caseAddress :: ByteString
+caseAddress :: Text
 caseAddress = "caseAddress_address"
 
 
 ------------------------------------------------------------------------------
 -- | Name of case id field in action model.
-actionCaseId :: ByteString
+actionCaseId :: Text
 actionCaseId = "caseId"
 
 
 ------------------------------------------------------------------------------
 -- | Name of actions field in case model.
-caseActions :: ByteString
+caseActions :: Text
 caseActions = "actions"
 
 
@@ -314,27 +301,22 @@ instance FromJSON IdResponse where
 newCase :: Handler b GeoApp ()
 newCase = do
   -- New case parameters
-  rawPairs <- forM caseParams $
-               \key -> do
-                 v' <- getParam key
-                 return $ ((.=) $ decodeUtf8 key) <$> v'
+  Just jsonRq <- Aeson.decode <$> readRequestBody 4096
 
-  lon' <- getParamWith double "lon"
-  lat' <- getParamWith double "lat"
+  let coords = parseMaybe (\j -> (,) <$> (j .:"lon") <*> (j .: "lat")) jsonRq
 
-  -- Reverse geocode coordinates from lon/lat
-  (addrPair, coordPair) <- case (lon', lat') of
-    (Just lon, Just lat) -> do
-            addr' <- revGeocode lon lat
-            let ap' = ((.=) $ decodeUtf8 caseAddress) <$> addr'
-                cp  = Just $ (decodeUtf8 caseCoords) .=
-                      (T.pack $ concat [show lon, ",", show lat])
-            return (ap', cp)
-    _ -> return (Nothing, Nothing)
+  jsonRq' <- case coords of
+    Nothing -> return jsonRq
+    -- Reverse geocode coordinates from lon/lat
+    Just (lon,lat) -> revGeocode lon lat >>= \case
+      Nothing -> return jsonRq
+      Just addr -> return
+        $ HM.insert caseAddress (toJSON addr)
+        $ HM.insert caseCoords  (String $ T.pack $ concat [show lon, ",", show lat])
+        $ jsonRq
 
   -- Form the body of the request to send to CaRMa
-  let finalPairs = rawPairs ++ [addrPair, coordPair]
-      caseBody = BSL.unpack $ encode $ object $ catMaybes finalPairs
+  let caseBody = BSL.unpack $ encode jsonRq'
 
   modifyResponse $ setContentType "application/json"
   caseU <- caseCreateUpdateURI Nothing
@@ -345,7 +327,7 @@ newCase = do
   caseRespBody <- liftIO $ H.getResponseBody caseResp
   let Just (IdResponse caseId) = decode' (BSL.pack caseRespBody) :: Maybe IdResponse
       actBody = BSL.unpack $ encode $ object $
-                [ decodeUtf8 actionCaseId .= caseIdReference caseId
+                [ actionCaseId .= caseIdReference caseId
                 , actionNamePair
                 ]
   actU <- actionCreateURI
@@ -358,10 +340,10 @@ newCase = do
   caseU' <- caseCreateUpdateURI (Just caseId)
   liftIO $ H.simpleHTTP $
          putRequestWithBody caseU' "application/json" $ BSL.unpack $ encode $ object $
-          [ decodeUtf8 caseActions .= actionIdReference actId
+          [ caseActions .= actionIdReference actId
           ]
 
-  writeLBS $ BSL.pack $ show caseId
+  writeLBS . BSL.pack $ "{\"caseId\":" ++ show caseId ++ "}"
 
 
 geoAppInit :: SnapletInit b GeoApp
