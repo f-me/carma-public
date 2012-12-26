@@ -26,6 +26,39 @@ allPartnersHandler
     <*> getParam "isDealer")
   >>= writeJSON
 
+partnersForSrvHandler :: AppHandler ()
+partnersForSrvHandler =
+    join (selectPartnersForSrv <$>
+          getParam "city"      <*>
+          getParam "isActive"  <*>
+          getParam "isDealer"  <*>
+          getParam "srv")
+    >>= writeJSON
+
+selectPartnersForSrv :: MBS -> MBS -> MBS -> MBS
+                     -> AppHandler [Map ByteString ByteString]
+selectPartnersForSrv city isActive isDealer service = do
+  rows <- withPG pg_search $ \c -> query_ c $ fromString
+    $  "SELECT p.id::text, p.name, p.city,"
+    ++ "       p.comment, p.addrDeFacto, p.phone1, p.workingTime,"
+    ++ "       (p.isDealer::int)::text, (p.isMobile::int)::text,"
+    ++ "       s.priority1, s.priority2, s.priority3"
+    ++ "   FROM partnertbl p"
+    ++ "   INNER JOIN partner_servicetbl s"
+    ++ "   ON p.id = cast(split_part(s.parentid, ':', 2) as integer)"
+    ++ "   AND s.parentid is not null"
+    ++ "   AND s.parentid != ''"
+    ++ "   AND s.parentid != 'partner:null'"
+    ++ "   WHERE true"
+    ++ (maybe "" (\x -> "  AND p.city = " ++ quote x) city)
+    ++ (maybe "" (\x -> "  AND p.isActive = " ++ toBool x) isActive)
+    ++ (maybe "" (\x -> "  AND s.servicename = " ++ quote x) service)
+  let fields =
+        ["id","name","city","comment" ,"addrDeFacto"
+        ,"phone1","workingTime","isDealer","isMobile"
+        ,"priority1", "priority2", "priority3"
+        ]
+  return $ mkMap fields rows
 
 selectPartners :: MBS -> MBS -> MBS -> AppHandler [Map ByteString ByteString]
 selectPartners city isActive isDealer = do
@@ -61,11 +94,13 @@ selectActions
   -> AppHandler [Map ByteString ByteString]
 selectActions mClosed mAssignee mRole mFrom mTo = do
   rows <- withPG pg_search $ \c -> query_ c $ fromString
-    $  "SELECT id::text, caseId, parentId,"
-    ++ "       (closed::int)::text, name, assignedTo, targetGroup,"
-    ++ "       (extract (epoch from duetime at time zone 'UTC')::int)::text, "
-    ++ "       result, priority, description, comment"
-    ++ "  FROM actiontbl WHERE true"
+    $  "SELECT a.id::text, a.caseId, a.parentId,"
+    ++ "       (a.closed::int)::text, a.name, a.assignedTo, a.targetGroup,"
+    ++ "       (extract (epoch from a.duetime at time zone 'UTC')::int)::text, "
+    ++ "       a.result, a.priority, a.description, a.comment,"
+    ++ "       c.city"
+    ++ "  FROM actiontbl a, casetbl c WHERE true"
+    ++ "                   AND c.id::text = substring(a.caseId, ':(.*)')"
     ++ (maybe "" (\x -> "  AND closed = " ++ toBool x) mClosed)
     ++ (maybe "" (\x -> "  AND assignedTo = " ++ quote x) mAssignee)
     ++ (maybe "" (\x -> "  AND targetGroup = " ++ quote x) mRole)
@@ -74,7 +109,7 @@ selectActions mClosed mAssignee mRole mFrom mTo = do
   let fields
         = ["id", "caseId", "parentId", "closed", "name"
           ,"assignedTo", "targetGroup", "duetime", "result"
-          ,"priority", "description", "comment"]
+          ,"priority", "description", "comment","city"]
   return $ mkMap fields rows
 
 
@@ -106,7 +141,7 @@ getActionsForCase = do
     $  "SELECT extract (epoch from closeTime at time zone 'UTC')::int::text,"
     ++ "       result, name, assignedTo, comment"
     ++ "  FROM actiontbl"
-    ++ "  WHERE closeTime IS NOT NULL AND caseId = ?") [caseId']
+    ++ "  WHERE caseId = ?") [caseId']
   let fields =
         ["closeTime", "result", "name", "assignedTo", "comment"]
   writeJSON $ mkMap fields rows

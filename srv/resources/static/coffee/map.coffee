@@ -272,7 +272,7 @@ this.extraBlip = (osmap, coords, layerName) ->
 #               an object with fields "name", "addrDeFacto", "phone1",
 #               "workingTime", "isMobile"
 #
-# - highlightIds: highlight partners with numeric ids from this list
+# - highlightIds: list of "partner:N" strings for highlighted partners
 # 
 # - parentView: parentView for contractor
 #
@@ -295,7 +295,7 @@ this.partnerBlips = (osmap,
       id = blip[0]
       # cache ids are numeric, highlightIds are strings (being values
       # of knockVM)
-      hl = _.include(highlightIds, id.toString())
+      hl = _.include(highlightIds, "partner:" + id.toString())
       
       partner_cache = tableCache[id]
       is_dealer = blip[3]
@@ -362,7 +362,7 @@ this.pickPartnerBlip = (
     
   $("#" + mapId).data("osmap").events.triggerEvent("moveend")
   vm = findVM(referenceView)
-  vm[partnerIdField](partnerId)
+  vm[partnerIdField]("partner:" + partnerId)
   vm[partnerField](partnerName)
   vm[partnerAddrField](partnerAddr)
   vm[partnerCoordsField](partnerCoords)

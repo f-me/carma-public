@@ -2,14 +2,12 @@
 
 module Snaplet.DbLayer.Types where
 
-import Control.Monad.State (get)
 import Data.Map (Map)
 import Data.ByteString (ByteString)
 import Data.Lens.Template
 import Control.Concurrent.STM
 
 import Snap
-import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple (Postgres, HasPostgres(..))
 import Snap.Snaplet.RedisDB (RedisDB)
 import Carma.ModelTables (TableDesc)
@@ -22,6 +20,7 @@ import qualified WeatherApi as W
 import qualified Fdds as Fdds
 import DictionaryCache
 import Util (UsersDict)
+import RuntimeFlag
 
 type ObjectId = ByteString
 type Object = Map FieldName ByteString
@@ -50,6 +49,7 @@ data DbLayer b = DbLayer
     ,dictCache :: TVar DictCache
     ,weather   :: W.Config
     ,rkcDict   :: RKCCalc
+    ,runtimeFlags :: TVar RuntimeFlags
     }
 
 data TriggersConfig = TriggersConfig

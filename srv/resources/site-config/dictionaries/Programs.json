@@ -149,6 +149,14 @@
             "label": "Ford"
         },
         {
+            "value": "citroen",
+            "label": "Citroen"
+        },
+        {
+            "value": "peugeot",
+            "label": "Peugeot"
+        },        
+        {
             "value": "cadold",
             "label": "GM / Cadillac до 2012"
         },
@@ -183,10 +191,6 @@
         {
             "value": "atlant",
             "label": "B2B / Атлант М"
-        },
-        {
-            "value": "Cash",
-            "label": "За наличные"
         },
         {
             "value": "tickets",

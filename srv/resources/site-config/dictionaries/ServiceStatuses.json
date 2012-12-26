@@ -1,6 +1,10 @@
 {
     "entries": [
         {
+            "value": "backoffice",
+            "label": "Передача в Back Office"
+        },
+        {
             "value": "creating",
             "label": "Создание"
         },
@@ -17,6 +21,10 @@
             "label": "Требуется конференция с дилером"
         },
         {
+            "value": "pleaseCheck",
+            "label": "Клиент просит уточнить время оказания услуги"
+        },        
+        {
             "value": "checking",
             "label": "Проверка условий"
         },
@@ -31,10 +39,6 @@
         {
             "value": "makerConformation",
             "label": "Согласование с производителем"
-        },
-        {
-            "value": "backoffice",
-            "label": "Передача в Back Office"
         },
         {
             "value": "orderService",

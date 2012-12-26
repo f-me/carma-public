@@ -3,6 +3,7 @@
 module Snaplet.DbLayer.RKC (
   CaseSummary(..), CaseServiceInfo(..), CaseInformation(..),
   BackSummary(..), BackActionInfo(..), BackInformation(..),
+  FrontInformation(..), FrontOperatorInfo(..),
   Information(..),
   rkc
   ) where
@@ -139,8 +140,7 @@ satisfaction = mconcat [
 
 satisfactionCount :: PreQuery
 satisfactionCount = mconcat [
-  count,
-  inList "servicetbl" "clientSatisfied" ["satis", "notSatis"]]
+  count]
 
 programIs :: T.Text -> PreQuery
 programIs p = mconcat [equals "casetbl" "program" p]
@@ -173,7 +173,7 @@ frontOps = mconcat [
   select "actiontbl" "assignedTo",
   averageActionTime,
   equals "actiontbl" "closed" "t",
-  withinToday "actiontbl" "openTime",
+  withinToday "actiontbl" "duetime",
   groupBy "actiontbl" "assignedTo"]
 
 --
@@ -373,18 +373,21 @@ instance ToJSON BackInformation where
 
 data ActionOpAvgInformation = ActionOpAvgInformation {
   actionOpName :: T.Text,
-  actionOpAvgs :: [Maybe Integer] }
+  actionOpAvg :: (Integer, Integer),
+  actionOpAvgs :: [Maybe (Integer, Integer)] }
     deriving (Eq, Ord, Read, Show)
 
 instance FromJSON ActionOpAvgInformation where
   parseJSON (Object v) = ActionOpAvgInformation <$>
     (v .: "name") <*>
+    (v .: "avg") <*>
     (v .: "avgs")
   parseJSON _ = empty
 
 instance ToJSON ActionOpAvgInformation where
-  toJSON (ActionOpAvgInformation nm avgs) = object [
+  toJSON (ActionOpAvgInformation nm avg avgs) = object [
     "name" .= nm,
+    "avg" .= avg,
     "avgs" .= avgs]
 
 data Information = Information {
@@ -461,7 +464,7 @@ backSummary constraints = scope "backSummary" $ do
     trace "total" (run count) `ap`
     trace "undone" (run (mconcat [count, undoneAction]))
   where
-    run p = liftM (fromMaybe 0) $ mintQuery $ mconcat [p, constraints, withinToday "actiontbl" "openTime"]
+    run p = liftM (fromMaybe 0) $ mintQuery $ mconcat [p, constraints, withinToday "actiontbl" "duetime"]
 
 backActions :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> m [BackActionInfo]
 backActions constraints actions = scope "backAction" $ do
@@ -471,7 +474,7 @@ backActions constraints actions = scope "backAction" $ do
       look = fromMaybe 0 . lookup n
   return $ map makeActionInfo actions
   where
-    todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "actiontbl" "name", notNull "actiontbl" "name", p, constraints, withinToday "actiontbl" "openTime", groupBy "actiontbl" "name"]
+    todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "actiontbl" "name", notNull "actiontbl" "name", p, constraints, withinToday "actiontbl" "duetime", groupBy "actiontbl" "name"]
 
 rkcBack :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> m BackInformation
 rkcBack constraints actions = scope "rkcBack" $ (return BackInformation `ap` backSummary constraints `ap` backActions constraints actions)
@@ -483,19 +486,26 @@ rkcEachActionOpAvg usrs acts = scope "rkcEachActionOpAvg" $ do
     select "actiontbl" "assignedTo",
     select "actiontbl" "name",
     averageActionTime,
+    count,
     notNull "actiontbl" "name",
     notNull "actiontbl" "assignedTo",
-    withinToday "actiontbl" "openTime",
+    withinToday "actiontbl" "duetime",
     groupBy "actiontbl" "assignedTo",
     groupBy "actiontbl" "name",
     orderBy "actiontbl" "assignedTo",
     orderBy "actiontbl" "name"]
-  return $ mapMaybe (toInfo (map (first head . unzip) $ L.groupBy ((==) `on` fst) $ map (\(x, y, z) -> (x, (y, z))) r)) usrs
+  return $ mapMaybe (toInfo (groupResult r)) usrs
   where
-    --toInfo :: (T.Text, [(T.Text, Integer)]) -> ActionOpAvgInformation
-    --toInfo (nm, stats) = ActionOpAvgInformation nm $ map (`lookup` stats) acts
-    toInfo :: [(T.Text, [(T.Text, Integer)])] -> (T.Text, T.Text, T.Text) -> Maybe ActionOpAvgInformation
-    toInfo stats (n, label, _) = fmap (\st -> ActionOpAvgInformation label (map (`lookup` st) acts)) $ lookup n stats
+    groupResult :: [(T.Text, T.Text, Integer, Integer)] -> [(T.Text, [(T.Text, (Integer, Integer))])]
+    groupResult = map (first head . unzip) . L.groupBy ((==) `on` fst) . map (\(aTo, nm, avgTm, cnt) -> (aTo, (nm, (avgTm, cnt))))
+
+    toInfo :: [(T.Text, [(T.Text, (Integer, Integer))])] -> (T.Text, T.Text, T.Text) -> Maybe ActionOpAvgInformation
+    toInfo stats (n, label, _) = fmap fromStat $ lookup n stats where
+      fromStat :: [(T.Text, (Integer, Integer))] -> ActionOpAvgInformation
+      fromStat st = ActionOpAvgInformation label (avgSum st) (map (`lookup` st) acts) where
+        avgSum [] = (0, 0)
+        avgSum st' = (average *** sum) $ unzip $ map snd st'
+        average l = sum l `div` (fromIntegral $ length l)
 
 dictKeys :: T.Text -> Dictionary -> [T.Text]
 dictKeys d = fromMaybe [] . keys [d]

@@ -4,6 +4,7 @@ module Application where
 
 import Data.Text (Text)
 import Data.Map (Map)
+import Data.Set (Set)
 import Data.Time.Clock (UTCTime)
 import Data.Lens.Template
 import Control.Concurrent.STM
@@ -27,6 +28,8 @@ import Snaplet.Geo
 import Snap.Snaplet.SimpleLog
 
 import Util (UsersDict)
+import RuntimeFlag
+
 ------------------------------------------------------------------------------
 -- | Application snaplet state type: Redson, Heist.
 data App = App
@@ -43,7 +46,9 @@ data App = App
     , _fileUpload :: Snaplet FileUpload
     , _geo        :: Snaplet Geo
     , feLog       :: Log
+    , runtimeFlags:: TVar (Set RuntimeFlag)
     }
+
 
 type AppHandler = Handler App App
 

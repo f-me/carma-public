@@ -11,6 +11,7 @@ this.setupRKCOpsScreen = (viewName, args) ->
         c =
             name: v.label
 
+    actstbl.cols.unshift { name: "Среднее время обработки действия" }
     actstbl.cols.unshift { name: "Оператор" }
 
     ko.applyBindings(actstbl, el("rkc-ops-back-operators-table"))
@@ -46,6 +47,13 @@ this.setupRKCOpsScreen = (viewName, args) ->
     cs = $('#city-select')
     cs.change -> update()
 
+    fmttime = (tm) ->
+        fmt = (x) -> if x < 10 then "0" + x else "" + x
+        Math.floor(tm / 60) + ":" + fmt(tm % 60)
+
+    fmtavg = (val) ->
+        fmttime(val[0]) + "/" + val[1]
+
     update = () ->
       prog = ps.val()
       city = cs.val()
@@ -61,23 +69,23 @@ this.setupRKCOpsScreen = (viewName, args) ->
           frow = [
             finfo.name,
             finfo.roles,
-            Math.floor(finfo.avg / 60) + ":" + (finfo.avg % 60)]
+            fmttime(finfo.avg)]
 
         ft.fnAddData(frows)
 
         eavision = []
         eavision.length = actstbl.cols.length
         eavision[0] = true
+        eavision[1] = true
 
         earows = for eainfo in result.eachopactions
             r = for val, i in eainfo.avgs
                 if val
-                    eavision[i + 1] = true
-                if val then Math.floor(val / 60) + ":" + (val % 60) else "-"
+                    eavision[i + 2] = true
+                if val then fmtavg(val) else "-"
+            r.unshift fmtavg(eainfo.avg)
             r.unshift eainfo.name
             earow = r
-            # eainfo.avgs.unshift eainfo.name
-            # earow = eainfo.avgs
 
         for c, i in eavision
             eat.fnSetColumnVis(i, if c then true else false)

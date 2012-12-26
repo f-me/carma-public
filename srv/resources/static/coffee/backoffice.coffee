@@ -46,6 +46,7 @@ addActions = (actions, table) ->
     row = [id
           ,act.priority || '3'
           ,duetime
+          ,act.city
           ,act.description || ''
           ,act.comment || '']
   table.fnAddData(rows)
@@ -62,7 +63,7 @@ handleBoUpdate = (table) ->
     now  = new Date
     $(e).attr('id', id)
     row[id] = { date: date } unless row[id]?
-    $(e).children().css('background-color', '#ff6060') if now > date
+    $(e).children().css('background-color', '#FFF855') if now > date
     # last check to not notify about rows, that expired before
     # we open page
     if now > date and not row[id].checked and row[id].date > started
