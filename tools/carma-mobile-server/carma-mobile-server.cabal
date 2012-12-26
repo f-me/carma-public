@@ -1,7 +1,8 @@
-Name:                partner-geoupdate
+Name:                carma-mobile-server
 Version:             0.1
-Synopsis:            Partner-side geoservices for CaRMa
-Description:         Standalone application to update partner position
+Synopsis:            Outer world interface for CaRMa
+Description:         Standalone application to handle requests from mobile
+                     partners and clients, using CaRMa HTTP API.
 License:             AllRightsReserved
 Author:              Formal Methods
 Maintainer:          maintainer@example.com
@@ -14,7 +15,7 @@ Flag development
   Description: Whether to build the server in development (interpreted) mode
   Default: False
 
-Executable partner-geoupdate
+Executable carma-mobile-server
   hs-source-dirs: src
   main-is: Main.hs
 
@@ -30,7 +31,7 @@ Executable partner-geoupdate
     HTTP                        == 4000.2.*,
     MonadCatchIO-transformers   >= 0.2.1 && < 0.4,
     mtl                         >= 2 && < 3,
-    network                     == 2.3.*,
+    network                     == 2.4.*,
     old-locale                  == 1.0.*,
     postgresql-simple           == 0.2.*,
     snap                        == 0.9.*,
