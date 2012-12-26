@@ -262,6 +262,14 @@ caseActions :: Text
 caseActions = "actions"
 
 
+caseProgram :: Text
+caseProgram = "program"
+
+
+defaultProgram :: Value
+defaultProgram = "ramc2"
+
+
 ------------------------------------------------------------------------------
 -- | Build reference to a case for use in 'actionCaseId'.
 caseIdReference :: Int -> String
@@ -315,8 +323,11 @@ newCase = do
         $ HM.insert caseCoords  (String $ T.pack $ concat [show lon, ",", show lat])
         $ jsonRq
 
-  -- Form the body of the request to send to CaRMa
-  let caseBody = BSL.unpack $ encode jsonRq'
+  -- Insert defaults for new case
+  let jsonRq'' = HM.insert caseProgram defaultProgram jsonRq'
+
+  -- Form the body of the new case request to send to CaRMa
+  let caseBody = BSL.unpack $ encode jsonRq''
 
   modifyResponse $ setContentType "application/json"
   caseU <- caseCreateUpdateURI Nothing
