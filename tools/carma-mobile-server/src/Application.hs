@@ -23,7 +23,7 @@ import Data.Aeson as Aeson
 import Data.Aeson.Types (Pair, parseMaybe)
 import qualified Data.HashMap.Strict as HM
 
-import Data.Attoparsec.ByteString.Char8 -- (double, decimal, parseOnly)
+import Data.Attoparsec.ByteString.Char8
 
 import Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as BS
@@ -343,7 +343,7 @@ newCase = do
           [ caseActions .= actionIdReference actId
           ]
 
-  writeLBS . BSL.pack $ "{\"caseId\":" ++ show caseId ++ "}"
+  writeLBS . encode $ object $ [ "caseId" .= show caseId ]
 
 
 geoAppInit :: SnapletInit b GeoApp
