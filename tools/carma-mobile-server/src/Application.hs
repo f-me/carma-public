@@ -159,19 +159,6 @@ instance ToJSON Address where
 
 
 ------------------------------------------------------------------------------
--- | Derived from 'postRequestWithBody' from HTTP package.
-putRequestWithBody :: String -> String -> String -> H.Request_String
-putRequestWithBody urlString typ body =
-  case parseURI urlString of
-    Nothing -> error ("putRequestWithBody: Not a valid URL - " ++ urlString)
-    Just u  -> H.setRequestBody (H.mkRequest H.PUT u) (typ, body)
-
-
-getMessageQuery :: Query
-getMessageQuery = "SELECT message FROM partnerMessageTbl where partnerId=? order by ctime desc limit 1;"
-
-
-------------------------------------------------------------------------------
 -- | Attempt to perform reverse geocoding.
 revGeocode :: Double
            -- ^ Longitude.
@@ -226,6 +213,10 @@ updatePartnerData pid lon lat addr mtime =
       liftIO $ H.simpleHTTP
            (putRequestWithBody parU "application/json" body)
       return ()
+
+
+getMessageQuery :: Query
+getMessageQuery = "SELECT message FROM partnerMessageTbl where partnerId=? order by ctime desc limit 1;"
 
 
 getMessage :: Handler b GeoApp ()
@@ -386,3 +377,12 @@ getParamWith parser name = do
   return $ case input of
              Just (Right p) -> Just p
              _ -> Nothing
+
+
+------------------------------------------------------------------------------
+-- | Derived from 'postRequestWithBody' from HTTP package.
+putRequestWithBody :: String -> String -> String -> H.Request_String
+putRequestWithBody urlString typ body =
+  case parseURI urlString of
+    Nothing -> error ("putRequestWithBody: Not a valid URL - " ++ urlString)
+    Just u  -> H.setRequestBody (H.mkRequest H.PUT u) (typ, body)
