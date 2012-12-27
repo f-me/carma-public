@@ -308,11 +308,12 @@ newCase = do
         $ HM.insert caseCoords  (String $ T.pack $ concat [show lon, ",", show lat])
         $ jsonRq
 
-  -- Insert defaults for new case
-  let jsonRq'' = HM.insert caseProgram defaultProgram jsonRq'
-
   -- Form the body of the new case request to send to CaRMa
-  let caseBody = BSL.unpack $ encode jsonRq''
+  let caseBody = BSL.unpack $ encode
+               $ HM.delete "lon"
+               $ HM.delete "lat"
+               -- Insert defaults for new case
+               $ HM.insert caseProgram defaultProgram jsonRq'
 
   modifyResponse $ setContentType "application/json"
   caseU <- caseCreateUpdateURI Nothing
