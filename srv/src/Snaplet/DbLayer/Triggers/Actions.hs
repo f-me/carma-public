@@ -588,6 +588,10 @@ actionResultMap = Map.fromList
   )
   ,("vwclosed", closeAction
   )
+  ,("complaintManaged", closeAction
+  )
+  ,("communicated", closeAction
+  )
   ,("accountConfirm", \objId -> do
     act <- replaceAction
       "analystCheck"

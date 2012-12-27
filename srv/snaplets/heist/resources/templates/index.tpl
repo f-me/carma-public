@@ -48,33 +48,33 @@
     <!-- masked input for datetime fields -->
     <script src="/s/js/3p/jquery.maskedinput-1.3.js" />
 
-    <script src="/s/js/customKoHandlers.js" />
+    <script src="/s/js/gen/customKoHandlers.js" />
 
     <!-- Model processing -->
-    <script src="/s/js/dictionaries.js" />
-    <script src="/s/js/metamodel.js" />
     <script src="/s/js/search.js" />
-    <script src="/s/js/map.js" />
-    <script src="/s/js/main.js" />
-    <script src="/s/js/local.js" />
-    <script src="/s/js/viewsware.js" />
-    <script src="/s/js/hooks.js" />
-    <script src="/s/js/case.js" />
-    <script src="/s/js/vin.js" />
-    <script src="/s/js/editVin.js" />
-    <script src="/s/js/partners.js" />
-    <script src="/s/js/call.js" />
-    <script src="/s/js/backoffice.js" />
-    <script src="/s/js/supervisors.js" />
-    <script src="/s/js/rkc.js" />
-    <script src="/s/js/rkcOps.js" />
-    <script src="/s/js/report.js" />
-    <script src="/s/js/hotkeys.js" />
-    <script src="/s/js/fileupload.js" />
-    <script src="/s/js/avaya.js" />
-    <script src="/s/js/editSms.js" />
-    <script src="/s/js/sendSms.js" />
-    <script src="/s/js/printService.js" />
+    <script src="/s/js/gen/dictionaries.js" />
+    <script src="/s/js/gen/metamodel.js" />
+    <script src="/s/js/gen/map.js" />
+    <script src="/s/js/gen/main.js" />
+    <script src="/s/js/gen/viewsware.js" />
+    <script src="/s/js/gen/hooks.js" />
+    <script src="/s/js/gen/local.js" />
+    <script src="/s/js/gen/case.js" />
+    <script src="/s/js/gen/vin.js" />
+    <script src="/s/js/gen/editVin.js" />
+    <script src="/s/js/gen/partners.js" />
+    <script src="/s/js/gen/call.js" />
+    <script src="/s/js/gen/backoffice.js" />
+    <script src="/s/js/gen/supervisors.js" />
+    <script src="/s/js/gen/rkc.js" />
+    <script src="/s/js/gen/report.js" />
+    <script src="/s/js/gen/hotkeys.js" />
+    <script src="/s/js/gen/fileupload.js" />
+    <script src="/s/js/gen/avaya.js" />
+    <script src="/s/js/gen/editSms.js" />
+    <script src="/s/js/gen/sendSms.js" />
+    <script src="/s/js/gen/rkcOps.js" />
+    <script src="/s/js/gen/printService.js" />
 
   </head>
   <body>

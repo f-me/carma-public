@@ -73,7 +73,7 @@ this.setupRKCScreen = (viewName, args) ->
 
     fmttime = (tm) ->
         fmt = (x) -> if x < 10 then "0" + x else "" + x
-        fmt(Math.floor(tm / 60)) + ":" + fmt(tm % 60)
+        Math.floor(tm / 60) + ":" + fmt(tm % 60)
 
     update = () ->
       prog = ps.val()

@@ -23,7 +23,7 @@ import Data.Aeson as Aeson
 import Data.Aeson.Types (parseMaybe)
 import qualified Data.HashMap.Strict as HM
 
-import Data.Attoparsec.ByteString.Char8 -- (double, decimal, parseOnly)
+import Data.Attoparsec.ByteString.Char8
 
 import Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as BS
@@ -159,19 +159,6 @@ instance ToJSON Address where
 
 
 ------------------------------------------------------------------------------
--- | Derived from 'postRequestWithBody' from HTTP package.
-putRequestWithBody :: String -> String -> String -> H.Request_String
-putRequestWithBody urlString typ body =
-  case parseURI urlString of
-    Nothing -> error ("putRequestWithBody: Not a valid URL - " ++ urlString)
-    Just u  -> H.setRequestBody (H.mkRequest H.PUT u) (typ, body)
-
-
-getMessageQuery :: Query
-getMessageQuery = "SELECT message FROM partnerMessageTbl where partnerId=? order by ctime desc limit 1;"
-
-
-------------------------------------------------------------------------------
 -- | Attempt to perform reverse geocoding.
 revGeocode :: Double
            -- ^ Longitude.
@@ -228,6 +215,10 @@ updatePartnerData pid lon lat addr mtime =
       return ()
 
 
+getMessageQuery :: Query
+getMessageQuery = "SELECT message FROM partnerMessageTbl where partnerId=? order by ctime desc limit 1;"
+
+
 getMessage :: Handler b GeoApp ()
 getMessage = do
   Just pid <- getParam "pid"
@@ -260,6 +251,14 @@ actionCaseId = "caseId"
 -- | Name of actions field in case model.
 caseActions :: Text
 caseActions = "actions"
+
+
+caseProgram :: Text
+caseProgram = "program"
+
+
+defaultProgram :: Value
+defaultProgram = "ramc2"
 
 
 ------------------------------------------------------------------------------
@@ -309,8 +308,11 @@ newCase = do
         $ HM.insert caseCoords  (String $ T.pack $ concat [show lon, ",", show lat])
         $ jsonRq
 
-  -- Form the body of the request to send to CaRMa
-  let caseBody = BSL.unpack $ encode jsonRq'
+  -- Insert defaults for new case
+  let jsonRq'' = HM.insert caseProgram defaultProgram jsonRq'
+
+  -- Form the body of the new case request to send to CaRMa
+  let caseBody = BSL.unpack $ encode jsonRq''
 
   modifyResponse $ setContentType "application/json"
   caseU <- caseCreateUpdateURI Nothing
@@ -347,7 +349,7 @@ newCase = do
           [ caseActions .= actionIdReference actId
           ]
 
-  writeLBS . BSL.pack $ "{\"caseId\":" ++ show caseId ++ "}"
+  writeLBS . encode $ object $ [ "caseId" .= show caseId ]
 
 
 geoAppInit :: SnapletInit b GeoApp
@@ -379,3 +381,12 @@ getParamWith parser name = do
   return $ case input of
              Just (Right p) -> Just p
              _ -> Nothing
+
+
+------------------------------------------------------------------------------
+-- | Derived from 'postRequestWithBody' from HTTP package.
+putRequestWithBody :: String -> String -> String -> H.Request_String
+putRequestWithBody urlString typ body =
+  case parseURI urlString of
+    Nothing -> error ("putRequestWithBody: Not a valid URL - " ++ urlString)
+    Just u  -> H.setRequestBody (H.mkRequest H.PUT u) (typ, body)

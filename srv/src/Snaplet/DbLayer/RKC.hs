@@ -373,18 +373,21 @@ instance ToJSON BackInformation where
 
 data ActionOpAvgInformation = ActionOpAvgInformation {
   actionOpName :: T.Text,
-  actionOpAvgs :: [Maybe Integer] }
+  actionOpAvg :: (Integer, Integer),
+  actionOpAvgs :: [Maybe (Integer, Integer)] }
     deriving (Eq, Ord, Read, Show)
 
 instance FromJSON ActionOpAvgInformation where
   parseJSON (Object v) = ActionOpAvgInformation <$>
     (v .: "name") <*>
+    (v .: "avg") <*>
     (v .: "avgs")
   parseJSON _ = empty
 
 instance ToJSON ActionOpAvgInformation where
-  toJSON (ActionOpAvgInformation nm avgs) = object [
+  toJSON (ActionOpAvgInformation nm avg avgs) = object [
     "name" .= nm,
+    "avg" .= avg,
     "avgs" .= avgs]
 
 data Information = Information {
@@ -483,6 +486,7 @@ rkcEachActionOpAvg usrs acts = scope "rkcEachActionOpAvg" $ do
     select "actiontbl" "assignedTo",
     select "actiontbl" "name",
     averageActionTime,
+    count,
     notNull "actiontbl" "name",
     notNull "actiontbl" "assignedTo",
     withinToday "actiontbl" "duetime",
@@ -490,12 +494,18 @@ rkcEachActionOpAvg usrs acts = scope "rkcEachActionOpAvg" $ do
     groupBy "actiontbl" "name",
     orderBy "actiontbl" "assignedTo",
     orderBy "actiontbl" "name"]
-  return $ mapMaybe (toInfo (map (first head . unzip) $ L.groupBy ((==) `on` fst) $ map (\(x, y, z) -> (x, (y, z))) r)) usrs
+  return $ mapMaybe (toInfo (groupResult r)) usrs
   where
-    --toInfo :: (T.Text, [(T.Text, Integer)]) -> ActionOpAvgInformation
-    --toInfo (nm, stats) = ActionOpAvgInformation nm $ map (`lookup` stats) acts
-    toInfo :: [(T.Text, [(T.Text, Integer)])] -> (T.Text, T.Text, T.Text) -> Maybe ActionOpAvgInformation
-    toInfo stats (n, label, _) = fmap (\st -> ActionOpAvgInformation label (map (`lookup` st) acts)) $ lookup n stats
+    groupResult :: [(T.Text, T.Text, Integer, Integer)] -> [(T.Text, [(T.Text, (Integer, Integer))])]
+    groupResult = map (first head . unzip) . L.groupBy ((==) `on` fst) . map (\(aTo, nm, avgTm, cnt) -> (aTo, (nm, (avgTm, cnt))))
+
+    toInfo :: [(T.Text, [(T.Text, (Integer, Integer))])] -> (T.Text, T.Text, T.Text) -> Maybe ActionOpAvgInformation
+    toInfo stats (n, label, _) = fmap fromStat $ lookup n stats where
+      fromStat :: [(T.Text, (Integer, Integer))] -> ActionOpAvgInformation
+      fromStat st = ActionOpAvgInformation label (avgSum st) (map (`lookup` st) acts) where
+        avgSum [] = (0, 0)
+        avgSum st' = (average *** sum) $ unzip $ map snd st'
+        average l = sum l `div` (fromIntegral $ length l)
 
 dictKeys :: T.Text -> Dictionary -> [T.Text]
 dictKeys d = fromMaybe [] . keys [d]
