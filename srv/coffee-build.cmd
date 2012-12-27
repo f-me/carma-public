@@ -1,5 +1,5 @@
 @echo off
-set to=resources/static/js/
+set to=resources/static/js/gen/
 set from=resources/static/coffee/
 
 :: you can add custom keys to coffee compiler, like
