@@ -208,7 +208,7 @@
                 "parguy"
             ],
             "meta": {
-                "label": "Комментарий",
+                "label": "Комментарий"
             },
             "type": "textarea"
         }
