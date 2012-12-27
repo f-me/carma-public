@@ -267,7 +267,6 @@
             ],
             "meta": {
                 "label": "Сотрудник РАМК",
-                "required": true,
                 "readonly": true
             }
         },

@@ -20,10 +20,10 @@ import Control.Monad
 import Control.Monad.State hiding (ap)
 
 import Data.Aeson as Aeson
-import Data.Aeson.Types (Pair, parseMaybe)
+import Data.Aeson.Types (parseMaybe)
 import qualified Data.HashMap.Strict as HM
 
-import Data.Attoparsec.ByteString.Char8 -- (double, decimal, parseOnly)
+import Data.Attoparsec.ByteString.Char8
 
 import Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as BS
@@ -159,19 +159,6 @@ instance ToJSON Address where
 
 
 ------------------------------------------------------------------------------
--- | Derived from 'postRequestWithBody' from HTTP package.
-putRequestWithBody :: String -> String -> String -> H.Request_String
-putRequestWithBody urlString typ body =
-  case parseURI urlString of
-    Nothing -> error ("putRequestWithBody: Not a valid URL - " ++ urlString)
-    Just u  -> H.setRequestBody (H.mkRequest H.PUT u) (typ, body)
-
-
-getMessageQuery :: Query
-getMessageQuery = "SELECT message FROM partnerMessageTbl where partnerId=? order by ctime desc limit 1;"
-
-
-------------------------------------------------------------------------------
 -- | Attempt to perform reverse geocoding.
 revGeocode :: Double
            -- ^ Longitude.
@@ -228,6 +215,10 @@ updatePartnerData pid lon lat addr mtime =
       return ()
 
 
+getMessageQuery :: Query
+getMessageQuery = "SELECT message FROM partnerMessageTbl where partnerId=? order by ctime desc limit 1;"
+
+
 getMessage :: Handler b GeoApp ()
 getMessage = do
   Just pid <- getParam "pid"
@@ -262,6 +253,14 @@ caseActions :: Text
 caseActions = "actions"
 
 
+caseProgram :: Text
+caseProgram = "program"
+
+
+defaultProgram :: Value
+defaultProgram = "ramc2"
+
+
 ------------------------------------------------------------------------------
 -- | Build reference to a case for use in 'actionCaseId'.
 caseIdReference :: Int -> String
@@ -272,12 +271,6 @@ caseIdReference n = "case:" ++ (show n)
 -- | Build reference to an action for use in 'caseActions'.
 actionIdReference :: Int -> String
 actionIdReference n = "action:" ++ (show n)
-
-
-------------------------------------------------------------------------------
--- | JSON pair for action type.
-actionNamePair :: Pair
-actionNamePair = "name" .= T.pack "callMeMaybe"
 
 
 ------------------------------------------------------------------------------
@@ -319,19 +312,30 @@ newCase = do
   let caseBody = BSL.unpack $ encode
                $ HM.delete "lon"
                $ HM.delete "lat"
-               $ jsonRq'
+               -- Insert defaults for new case
+               $ HM.insert caseProgram defaultProgram jsonRq'
 
   modifyResponse $ setContentType "application/json"
   caseU <- caseCreateUpdateURI Nothing
   caseResp <- liftIO $ H.simpleHTTP
           (H.postRequestWithBody caseU "application/json" caseBody)
 
+  now <- liftIO $ getCurrentTime
+  let nowStr = formatTime defaultTimeLocale "%s" (now :: UTCTime)
   -- Fetch id of the created case and create a new action for this id
   caseRespBody <- liftIO $ H.getResponseBody caseResp
   let Just (IdResponse caseId) = decode' (BSL.pack caseRespBody) :: Maybe IdResponse
+      descr = T.pack
+            $  "Клиент заказал услугу с помощью мобильного приложения. "
+            ++ "Требуется перезвонить ему и уточнить детали"
       actBody = BSL.unpack $ encode $ object $
                 [ actionCaseId .= caseIdReference caseId
-                , actionNamePair
+                , "name" .= ("callMeMaybe" :: Text)
+                , "targetGroup" .= ("back" :: Text)
+                , "duetime" .= nowStr
+                , "priority" .= ("1" :: Text)
+                , "closed"   .= ("0" :: Text)
+                , "description" .= descr
                 ]
   actU <- actionCreateURI
   actResp <- liftIO $ H.simpleHTTP
@@ -346,7 +350,7 @@ newCase = do
           [ caseActions .= actionIdReference actId
           ]
 
-  writeLBS . BSL.pack $ "{\"caseId\":" ++ show caseId ++ "}"
+  writeLBS . encode $ object $ [ "caseId" .= show caseId ]
 
 
 geoAppInit :: SnapletInit b GeoApp
@@ -378,3 +382,12 @@ getParamWith parser name = do
   return $ case input of
              Just (Right p) -> Just p
              _ -> Nothing
+
+
+------------------------------------------------------------------------------
+-- | Derived from 'postRequestWithBody' from HTTP package.
+putRequestWithBody :: String -> String -> String -> H.Request_String
+putRequestWithBody urlString typ body =
+  case parseURI urlString of
+    Nothing -> error ("putRequestWithBody: Not a valid URL - " ++ urlString)
+    Just u  -> H.setRequestBody (H.mkRequest H.PUT u) (typ, body)
