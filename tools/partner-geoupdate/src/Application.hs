@@ -20,7 +20,7 @@ import Control.Monad
 import Control.Monad.State hiding (ap)
 
 import Data.Aeson as Aeson
-import Data.Aeson.Types (Pair, parseMaybe)
+import Data.Aeson.Types (parseMaybe)
 import qualified Data.HashMap.Strict as HM
 
 import Data.Attoparsec.ByteString.Char8 -- (double, decimal, parseOnly)
@@ -275,12 +275,6 @@ actionIdReference n = "action:" ++ (show n)
 
 
 ------------------------------------------------------------------------------
--- | JSON pair for action type.
-actionNamePair :: Pair
-actionNamePair = "name" .= T.pack "callMeMaybe"
-
-
-------------------------------------------------------------------------------
 -- | CaRMa JSON response containing "id" field. The rest of fields are
 -- ignored.
 newtype IdResponse = IdResponse Int deriving Show
@@ -323,12 +317,22 @@ newCase = do
   caseResp <- liftIO $ H.simpleHTTP
           (H.postRequestWithBody caseU "application/json" caseBody)
 
+  now <- liftIO $ getCurrentTime
+  let nowStr = formatTime defaultTimeLocale "%s" (now :: UTCTime)
   -- Fetch id of the created case and create a new action for this id
   caseRespBody <- liftIO $ H.getResponseBody caseResp
   let Just (IdResponse caseId) = decode' (BSL.pack caseRespBody) :: Maybe IdResponse
+      descr = T.pack
+            $  "Клиент заказал услугу с помощью мобильного приложения. "
+            ++ "Требуется перезвонить ему и уточнить детали"
       actBody = BSL.unpack $ encode $ object $
                 [ actionCaseId .= caseIdReference caseId
-                , actionNamePair
+                , "name" .= ("callMeMaybe" :: Text)
+                , "targetGroup" .= ("back" :: Text)
+                , "duetime" .= nowStr
+                , "priority" .= ("1" :: Text)
+                , "closed"   .= ("0" :: Text)
+                , "description" .= descr
                 ]
   actU <- actionCreateURI
   actResp <- liftIO $ H.simpleHTTP
