@@ -191,6 +191,26 @@
         {
             "name": "services",
             "type": "reference"
+        },
+        {
+            "name": "comment",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "parguy"
+            ],
+            "meta": {
+                "label": "Комментарий"
+            },
+            "type": "textarea"
         }
     ]
 }

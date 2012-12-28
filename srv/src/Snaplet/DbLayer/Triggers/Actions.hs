@@ -697,8 +697,7 @@ closeSerivceAndSendInfoVW objId = do
 
 
 closeAction objId = do
-  svcId <- get objId "parentId"
-  kazeId <- get svcId "parentId"
+  kazeId <- get objId "caseId"
   upd kazeId "actions" $ dropFromList objId
   set objId "closed" "1"
 
