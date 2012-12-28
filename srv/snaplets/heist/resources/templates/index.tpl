@@ -930,7 +930,9 @@
           </tr>
           <tr>
             <td> ФИО звонящего </td>
-            <td data-bind="text: kase.contact_name"> </td>
+            <td style="text-transform:capitalize;"
+                data-bind="text: kase.contact_name">
+            </td>
           </tr>
           <tr>
             <td> Владелец </td>
