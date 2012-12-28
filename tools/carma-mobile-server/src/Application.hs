@@ -297,6 +297,7 @@ newCase = do
   Just jsonRq <- Aeson.decode <$> readRequestBody 4096
 
   let coords = parseMaybe (\j -> (,) <$> (j .:"lon") <*> (j .: "lat")) jsonRq
+  let car_vin = parseMaybe (.: "car_vin") jsonRq
 
   jsonRq' <- case coords of
     Nothing -> return jsonRq
@@ -308,10 +309,11 @@ newCase = do
         $ HM.insert caseCoords  (String $ T.pack $ concat [show lon, ",", show lat])
         $ jsonRq
 
-  -- Form the body of the request to send to CaRMa
+  -- Form the body of the new case request to send to CaRMa
   let caseBody = BSL.unpack $ encode
                $ HM.delete "lon"
                $ HM.delete "lat"
+               $ HM.delete "car_vin" -- we'll insert it later to run trigger
                -- Insert defaults for new case
                $ HM.insert caseProgram defaultProgram jsonRq'
 
@@ -347,8 +349,10 @@ newCase = do
   caseU' <- caseCreateUpdateURI (Just caseId)
   liftIO $ H.simpleHTTP $
          putRequestWithBody caseU' "application/json" $ BSL.unpack $ encode $ object $
-          [ caseActions .= actionIdReference actId
-          ]
+          [ caseActions .= actionIdReference actId ]
+          -- we update car_vin here to trigger vin-search
+          -- (it's a bit easier than adding correct trigger handling on POST request)
+          ++ maybe [] (\vin -> ["car_vin" .= (vin :: Text)]) car_vin
 
   writeLBS . encode $ object $ [ "caseId" .= show caseId ]
 
