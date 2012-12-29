@@ -37,6 +37,8 @@ import qualified Data.Vector as V
 -- @label@ fields:
 --
 -- > {"entries":[{"value": "v1", "label": "Label for v1"}, ..]}
+--
+-- Only single-level dictionaries are supported.
 newtype Dict = Dict ( HM.HashMap BS.ByteString BS.ByteString
                     , HM.HashMap BS.ByteString BS.ByteString
                     )
