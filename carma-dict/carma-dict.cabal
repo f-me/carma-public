@@ -20,7 +20,7 @@ library
 
   build-depends:
     aeson                       == 0.6.*,
-    base                        == 4.6.*,       
-    bytestring                  == 0.10.*,      
+    base                        == 4.6.*,
+    bytestring                  == 0.10.*,
     unordered-containers        == 0.2.*,
     vector                      == 0.10.*
