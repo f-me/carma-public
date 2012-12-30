@@ -1,20 +1,19 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Snaplet.DbLayer.RKC (
+  ActionOpAvgInformation(..),
   CaseSummary(..), CaseServiceInfo(..), CaseInformation(..),
   BackSummary(..), BackActionInfo(..), BackInformation(..),
   Information(..),
   rkc
   ) where
 
-import Prelude hiding (log, catch)
+import Prelude hiding (log)
 
 import Control.Applicative
 import Control.Arrow
 import Control.Monad
 import Control.Monad.IO.Class
-import Control.Monad.CatchIO
-import qualified Control.Exception as E
 
 import Data.Aeson
 import Data.Maybe
@@ -22,21 +21,15 @@ import Data.Monoid
 import Data.List (intersect, sort, nub)
 import qualified Data.List as L (groupBy)
 import qualified Data.Map as M
-import Data.Time
-import Data.String
-import Data.ByteString (ByteString)
 import Data.Function
-import qualified Data.ByteString.Char8 as C8
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 
 import qualified Snap.Snaplet.PostgresqlSimple as PS
-import qualified Database.PostgreSQL.Simple.FromField as PS
 
 import Snaplet.DbLayer.Dictionary
 import Snaplet.DbLayer.ARC
 
-import System.Locale
 import Snap.Snaplet.SimpleLog
 
 import Util
@@ -55,25 +48,10 @@ inList tbl col vals = preQuery [] [tbl] [T.concat [tbl, ".", col, " in ?"]] [] [
 equals :: T.Text -> T.Text -> T.Text -> PreQuery
 equals tbl col val = preQuery [] [tbl] [T.concat [tbl, ".", col, " = ?"]] [] [] [val]
 
-withinDay :: T.Text -> T.Text -> UTCTime -> PreQuery
-withinDay tbl col tm = preQuery_ [] [tbl] [afterStart, beforeEnd] [] [] where
-  st = fromString $ formatTime defaultTimeLocale "%F %T" tm
-  afterStart = T.concat [tbl, ".", col, " - '", st, "' >= '0 days'"]
-  beforeEnd = T.concat [tbl, ".", col, " - '", st, "' < '1 day'"]
-
 withinToday :: T.Text -> T.Text -> PreQuery
 withinToday tbl col = thisDay `mappend` notNull tbl col where
   thisDay = preQuery_ [] [tbl] [equalsNow] [] []
   equalsNow = T.concat ["date_trunc('day', ", tbl, ".", col, " + '4 hours') = date_trunc('day', now())"]
-
--- Get start of this day for timezone
-startOfDay :: TimeZone -> UTCTime -> UTCTime
-startOfDay tz = localTimeToUTC tz . dropTime . utcToLocalTime tz where
-  dropTime t = t { localTimeOfDay = midnight }
-
--- Get start of current day for current timezone
-startOfThisDay :: IO UTCTime
-startOfThisDay = startOfDay <$> getCurrentTimeZone <*> getCurrentTime
 
 count :: PreQuery
 count = preQuery_ ["count(*)"] [] [] [] []
@@ -163,17 +141,6 @@ select tbl col = preQuery_ [T.concat [tbl, ".", col]] [tbl] [] [] []
 
 selectExp :: [T.Text] -> T.Text -> PreQuery
 selectExp tbls ex = preQuery_ [ex] tbls [] [] []
-
---
--- Queries for front block
---
-frontOps :: PreQuery
-frontOps = mconcat [
-  select "actiontbl" "assignedTo",
-  averageActionTime,
-  equals "actiontbl" "closed" "t",
-  withinToday "actiontbl" "duetime",
-  groupBy "actiontbl" "assignedTo"]
 
 --
 -- Queries for back block
@@ -382,7 +349,6 @@ mintQuery qs = do
     case rs of
         [] -> error "Int query returns no rows"
         (PS.Only r:_) -> return r
-        _ -> error "Int query returns invalid result"
 
 caseSummary :: (PS.HasPostgres m, MonadLog m) => PreQuery -> m CaseSummary
 caseSummary constraints = scope "caseSummary" $ do
@@ -404,8 +370,8 @@ caseServices :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> m [Cas
 caseServices constraints names = scope "caseServices" $ do
   [totals, startAvgs, endAvgs, calcs, lims] <- mapM todayAndGroup [count, averageStart, averageEnd, calculatedCost, limitedCost]
   let
-    makeServiceInfo n = CaseServiceInfo n (look totals) (look startAvgs) (look endAvgs) (look calcs) (look lims) where
-      look = fromMaybe 0 . lookup n
+    makeServiceInfo n = CaseServiceInfo n (lookAt totals) (lookAt startAvgs) (lookAt endAvgs) (lookAt calcs) (lookAt lims) where
+      lookAt = fromMaybe 0 . lookup n
   return $ map makeServiceInfo names
   where
     todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "servicetbl" "type", p, constraints, withinToday "servicetbl" "createTime", groupBy "servicetbl" "type"]
@@ -426,8 +392,8 @@ backActions :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> m [Back
 backActions constraints actions = scope "backAction" $ do
   [totals, undones, avgs] <- mapM todayAndGroup [count, mconcat [count, undoneAction], averageActionTime]
   let
-    makeActionInfo n = BackActionInfo n (look totals) (look undones) (look avgs) where
-      look = fromMaybe 0 . lookup n
+    makeActionInfo n = BackActionInfo n (lookAt totals) (lookAt undones) (lookAt avgs) where
+      lookAt = fromMaybe 0 . lookup n
   return $ map makeActionInfo actions
   where
     todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "actiontbl" "name", notNull "actiontbl" "name", p, constraints, withinToday "actiontbl" "duetime", groupBy "actiontbl" "name"]
@@ -469,24 +435,20 @@ dictKeys d = fromMaybe [] . keys [d]
 serviceNames :: Dictionary -> [T.Text]
 serviceNames = dictKeys "Services"
 
-programNames :: Dictionary -> [T.Text]
-programNames = dictKeys "Programs"
-
 actionNames :: Dictionary -> [T.Text]
 actionNames = dictKeys "ActionNames"
 
 rkc :: (PS.HasPostgres m, MonadLog m) => UsersDict -> T.Text -> T.Text -> m Information
-rkc (UsersDict usrs) program city = liftIO startOfThisDay >>= rkc' where
-  rkc' today = scope "rkc" $ scope pname $ scope cname $ do
-    dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
-    c <- rkcCase constraints (serviceNames dicts)
-    b <- rkcBack constraints (actionNames dicts)
-    ea <- rkcEachActionOpAvg usrs' (actionNames dicts)
-    return $ Information c b ea
-    where
-      constraints = mconcat [ifNotNull program programIs, ifNotNull city inCity]
-      pname = if T.null program then "all" else program
-      cname = if T.null city then "all" else city
-      ifNotNull value f = if T.null value then mempty else f value
-  usrs' = sort $ nub $ map toUsr usrs
-  toUsr m = (maybe "" T.decodeUtf8 $ M.lookup "value" m, maybe "" T.decodeUtf8 $ M.lookup "label" m, maybe "" T.decodeUtf8 $ M.lookup "roles" m)
+rkc (UsersDict usrs) program city = scope "rkc" $ scope pname $ scope cname $ do
+  dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
+  c <- rkcCase constraints (serviceNames dicts)
+  b <- rkcBack constraints (actionNames dicts)
+  ea <- rkcEachActionOpAvg usrs' (actionNames dicts)
+  return $ Information c b ea
+  where
+    constraints = mconcat [ifNotNull program programIs, ifNotNull city inCity]
+    pname = if T.null program then "all" else program
+    cname = if T.null city then "all" else city
+    ifNotNull value f = if T.null value then mempty else f value
+    usrs' = sort $ nub $ map toUsr usrs
+    toUsr m = (maybe "" T.decodeUtf8 $ M.lookup "value" m, maybe "" T.decodeUtf8 $ M.lookup "label" m, maybe "" T.decodeUtf8 $ M.lookup "roles" m)

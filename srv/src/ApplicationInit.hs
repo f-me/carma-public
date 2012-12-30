@@ -35,7 +35,7 @@ import ApplicationHandlers
 import AppHandlers.ActionAssignment
 import AppHandlers.CustomSearches
 ----------------------------------------------------------------------
-import Util (readJSON, UsersDict(..))
+import Util (readJSON)
 
 
 
@@ -135,10 +135,10 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
             <*> lookupCfg "pg_db_name"
   -- FIXME: force cInfo evaluation
   pgs <- liftIO $ createPool (Pg.connect cInfo) Pg.close 1 5 20
-  cInfo <- liftIO $ (\u p -> cInfo {connectUser = u, connectPassword = p})
+  cInfoActass <- liftIO $ (\u p -> cInfo {connectUser = u, connectPassword = p})
             <$> lookupCfg "pg_actass_user"
             <*> lookupCfg "pg_actass_pass"
-  pga <- liftIO $ createPool (Pg.connect cInfo) Pg.close 1 5 20
+  pga <- liftIO $ createPool (Pg.connect cInfoActass) Pg.close 1 5 20
 
   v <- nestSnaplet "vin" vin vinInit
   fu <- nestSnaplet "upload" fileUpload fileUploadInit
