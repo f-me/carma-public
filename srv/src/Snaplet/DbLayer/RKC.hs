@@ -115,9 +115,6 @@ satisfactionCount :: PreQuery
 satisfactionCount = mconcat [
   count]
 
-programIs :: T.Text -> PreQuery
-programIs p = mconcat [equals "casetbl" "program" p]
-
 cost :: T.Text -> PreQuery
 cost col = mconcat [
   sumOf "servicetbl" col,
@@ -128,9 +125,6 @@ calculatedCost = cost "payment_partnerCost"
 
 limitedCost :: PreQuery
 limitedCost = cost "payment_limitedCost"
-
-inCity :: T.Text -> PreQuery
-inCity = equals "casetbl" "city"
 
 select :: T.Text -> T.Text -> PreQuery
 select tbl col = preQuery_ [T.concat [tbl, ".", col]] [tbl] [] [] []
@@ -308,6 +302,9 @@ serviceNames = dictKeys "Services"
 actionNames :: Dictionary -> [T.Text]
 actionNames = dictKeys "ActionNames"
 
+ifNotNull :: T.Text -> (T.Text -> PreQuery) -> PreQuery
+ifNotNull value f = if T.null value then mempty else f value
+
 rkc :: (PS.HasPostgres m, MonadLog m) => UsersDict -> T.Text -> T.Text -> m Value
 rkc (UsersDict usrs) program city = scope "rkc" $ do
   log Trace $ T.concat ["Program: ", program]
@@ -321,8 +318,9 @@ rkc (UsersDict usrs) program city = scope "rkc" $ do
     "back" .= a,
     "eachopactions" .= ea]
   where
-    constraints = mconcat [ifNotNull program programIs, ifNotNull city inCity]
-    ifNotNull value f = if T.null value then mempty else f value
+    constraints = mconcat [
+      ifNotNull program $ equals "casetbl" "program",
+      ifNotNull city $ equals "casetbl" "city"]
     usrs' = sort $ nub $ map toUsr usrs
     toUsr m = (maybe "" T.decodeUtf8 $ M.lookup "value" m, maybe "" T.decodeUtf8 $ M.lookup "label" m, maybe "" T.decodeUtf8 $ M.lookup "roles" m)
 
@@ -349,8 +347,6 @@ rkcFront program city = scope "rkc" $ scope "front" $ do
     "calls" .= map toCall calls]
 
   where
-    ifNotNull value f = if T.null value then mempty else f value
-
     toCall :: (Maybe T.Text, Maybe T.Text, Integer) -> Value
     toCall (callerType, callType, callsCount) = object [
       "callertype" .= callerType,
