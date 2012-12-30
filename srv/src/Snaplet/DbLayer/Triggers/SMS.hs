@@ -31,8 +31,8 @@ render varMap = T.concat . loop
     loop tpl = case T.breakOn "$" tpl of
       (txt, "") -> [txt]
       (txt, tpl') -> case T.breakOn "$" $ T.tail tpl' of
-        (exp, "")    -> [txt, evalVar exp]
-        (exp, tpl'') -> txt : evalVar exp : loop (T.tail tpl'')
+        (expr, "")    -> [txt, evalVar expr]
+        (expr, tpl'') -> txt : evalVar expr : loop (T.tail tpl'')
 
     evalVar v = Map.findWithDefault v v varMap
 
@@ -88,7 +88,7 @@ sendSMS actId tplId = do
   Right _ <- lift $ runRedisDB redis $ Redis.lpush "smspost" [smsId]
   return ()
 
-
+updateSMS :: ObjectId -> TriggerMonad b ()
 updateSMS smsId = do
   auto <- get smsId "auto"
   when (auto /= "true") $ do
@@ -104,7 +104,7 @@ updateSMS smsId = do
       >>= add "case.caseAddress_address" caseId "caseAddress_address"
 
     msg <- get smsId "msg"
-    tmpId <- get smsId "template"
+    _ <- get smsId "template"
     tmp <- T.decodeUtf8 <$> (get smsId "template" >>= (`get` "text"))
     when (msg == "" && tmp /= "") $ do
       let txt = T.encodeUtf8 $ render varMap tmp

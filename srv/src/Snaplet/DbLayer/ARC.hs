@@ -5,15 +5,15 @@ module Snaplet.DbLayer.ARC (
     PreQuery(..), preQuery, preQuery_,
     runQuery, intQuery,
 
-    arcReport
+    arcReport,
+    saveArcReport
     ) where
 
-import Prelude hiding (log, catch)
+import Prelude hiding (log)
 
 import Control.Arrow
 import Control.Monad
 import Control.Monad.IO.Class
-import Data.ByteString (ByteString)
 import Data.Monoid
 import Data.List
 import qualified Data.Map as M
@@ -23,12 +23,10 @@ import qualified Data.Text.Encoding as T
 import Data.Time
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 import qualified Database.PostgreSQL.Simple.ToField as PS
-import qualified Database.PostgreSQL.Simple.ToRow as PS
 import Snaplet.DbLayer.Dictionary
 import System.Locale
 
 import qualified Codec.Xlsx as Xlsx
-import qualified Codec.Xlsx.Parser as Xlsx
 import qualified Codec.Xlsx.Writer as Xlsx
 
 import Snap.Snaplet.SimpleLog
@@ -79,7 +77,7 @@ runQuery qs = query compiled a where
         nonullcat c [" where ", T.intercalate " and " (map (T.cons '(' . (`T.snoc` ')')) c)],
         nonullcat g [" group by ", T.intercalate ", " g],
         nonullcat o [" order by ", T.intercalate ", " o]]
-    nonullcat [] s = ""
+    nonullcat [] _ = ""
     nonullcat _ s = T.concat s
 
 intQuery :: (PS.HasPostgres m, MonadLog m) => [PreQuery] -> m Integer
@@ -90,11 +88,11 @@ intQuery qs = do
         ((PS.Only r):_) -> do
             log Debug $ T.concat ["Int query result: ", T.pack (show r)]
             return r
-        _ -> error "Int query returns invalid result"
 
 str :: String -> String
 str = id
 
+withinDay :: T.Text -> T.Text -> [T.Text]
 withinDay st field = [
     T.concat [field, " - '", st, "' < '1 day'"],
     T.concat [field, " - '", st, "' >= '0 days'"]]

@@ -37,7 +37,7 @@ partnersForSrvHandler =
 
 selectPartnersForSrv :: MBS -> MBS -> MBS -> MBS
                      -> AppHandler [Map ByteString ByteString]
-selectPartnersForSrv city isActive isDealer service = do
+selectPartnersForSrv city isActive _ service = do
   rows <- withPG pg_search $ \c -> query_ c $ fromString
     $  "SELECT p.id::text, p.name, p.city,"
     ++ "       p.comment, p.addrDeFacto, p.phone1, p.workingTime,"
