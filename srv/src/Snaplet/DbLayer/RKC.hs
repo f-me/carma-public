@@ -391,13 +391,16 @@ actionsSummary constraints = scope "actionsSummary" $ do
 
 actionsActions :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> m [ActionInfo]
 actionsActions constraints actions = scope "backAction" $ do
-  [totals, undones, avgs] <- mapM todayAndGroup [count, mconcat [count, undoneAction], averageActionTime]
+  [totals, undones, avgs] <- mapM todayAndGroup [
+    (count, "duetime"),
+    (mconcat [count, undoneAction], "duetime"),
+    (averageActionTime, "closeTime")]
   let
     makeActionInfo n = ActionInfo n (lookAt totals) (lookAt undones) (lookAt avgs) where
       lookAt = fromMaybe 0 . lookup n
   return $ map makeActionInfo actions
   where
-    todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "actiontbl" "name", notNull "actiontbl" "name", p, constraints, withinToday "actiontbl" "duetime", groupBy "actiontbl" "name"]
+    todayAndGroup (p, tm) = trace "result" $ runQuery_ $ mconcat [select "actiontbl" "name", notNull "actiontbl" "name", p, constraints, withinToday "actiontbl" tm, groupBy "actiontbl" "name"]
 
 rkcActions :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> m ActionsInformation
 rkcActions constraints actions = scope "rkcActions" (return ActionsInformation `ap` actionsSummary constraints `ap` actionsActions constraints actions)
