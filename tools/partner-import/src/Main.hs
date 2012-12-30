@@ -411,7 +411,7 @@ processRow procs newProcs columnOrder cp freshRow = liftIO $ do
   -- Apply processors, gather and format errors.
   let (processedRow, procErrs) = applyProcessors procs freshRow
       allErrs = pidErrs ++ procErrs
-      formattedErrs = BS.intercalate ";" $ map formatError allErrs
+      formattedErrs = BS.intercalate "; " $ map formatError allErrs
 
   -- If no critical processing errors occured, send partner data to CaRMa.
   carmaPid <- case (all (not . isCritical) allErrs) of
