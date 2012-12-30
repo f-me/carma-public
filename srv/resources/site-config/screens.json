@@ -72,6 +72,12 @@
           "label": "Операторы",
           "type": "li",
           "permissions": ["head", "supervisor", "admin", "programman"]
+        },
+        {
+          "name": "rkcFront",
+          "label": "Front Office",
+          "type": "li",
+          "permissions": ["head", "supervisor", "admin", "programman"]
         }
       ]
     }

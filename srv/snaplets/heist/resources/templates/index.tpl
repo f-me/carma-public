@@ -74,6 +74,7 @@
     <script src="/s/js/gen/editSms.js" />
     <script src="/s/js/gen/sendSms.js" />
     <script src="/s/js/gen/rkcOps.js" />
+    <script src="/s/js/gen/rkcFront.js" />
     <script src="/s/js/gen/printService.js" />
 
   </head>
@@ -906,6 +907,61 @@
           <thead>
             <tr data-bind="foreach: cols">
               <th data-bind="text: name"></th>
+            </tr>
+          </thead>
+          <tbody />
+        </table>
+      </div>
+    </script>
+
+    <!-- RKC front operators screen template -->
+    <script type="text/template"
+            class="screen-template"
+            id="rkcFront-screen-template">
+      <div class="row-fluid">
+        <div class="span2">
+          <h2>Фильтрация</h2>
+        </div>
+        <div class="span4">
+          <div>
+            <div style="float:left; margin-top:+3px">
+              Город:
+            </div>
+            <div style="float:left">
+              <select id="city-select" data-bind="foreach: $data">
+                <option data-bind="value: id, text: name" />
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="span4">
+          <div>
+            <div style="float:left; margin-top:+3px">
+              Программа:
+            </div>
+            <div style="float:left">
+              <select id="program-select" data-bind="foreach: $data">
+                <option data-bind="value: id, text: name" />
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="span2">
+          <div class="control-group">
+            <button id="reload" class="btn">
+              Обновить
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="row-fluid">
+        <h2>Типы звонков</h2>
+        <table id="rkc-front-calls-table" class="table table-stripped table-bordered">
+          <thead>
+            <tr>
+              <th width="40%">Звонок от</th>
+              <th width="40%">Тип звонка</th>
+              <th width="20%">Количество</th>
             </tr>
           </thead>
           <tbody />

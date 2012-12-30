@@ -215,7 +215,7 @@ searchHandler = scope "searchHandler" $ do
   writeJSON $ map (Map.fromList . zip sels) res
 
 rkcHandler :: AppHandler ()
-rkcHandler = scope "rkcHandler" $ do
+rkcHandler = scope "rkc" $ scope "handler" $ do
   p <- getParam "program"
   c <- getParam "city"
   usrs <- gets allUsers
@@ -223,7 +223,7 @@ rkcHandler = scope "rkcHandler" $ do
   writeJSON info
 
 rkcWeatherHandler :: AppHandler ()
-rkcWeatherHandler = scope "rkcWeatherHandler" $ do
+rkcWeatherHandler = scope "rkc" $ scope "handler" $ scope "weather" $ do
   city <- getParam "city"
   case city of
     Nothing -> writeJSON ()
@@ -239,6 +239,13 @@ rkcWeatherHandler = scope "rkcWeatherHandler" $ do
             log Debug $ T.concat ["Failed to get weather for city ", T.decodeUtf8 city', " due to: ", fromString $ show err]
             return "-"
       writeJSON temp
+
+rkcFrontHandler :: AppHandler ()
+rkcFrontHandler = scope "rkc" $ scope "handler" $ scope "front" $ do
+  p <- getParam "program"
+  c <- getParam "city"
+  res <- with db $ RKC.rkcFront (maybe T.empty T.decodeUtf8 p) (maybe T.empty T.decodeUtf8 c)
+  writeJSON res
 
 -- | This action recieve model and id as parameters to lookup for
 -- and json object with values to create new model with specified
