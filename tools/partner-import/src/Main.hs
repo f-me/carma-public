@@ -167,10 +167,10 @@ wtFormat :: Parser ()
 wtFormat =
     let
         dash     = char '-'
-        hourmins = digit >> digit >> char ':' >> digit >> digit
-        daytime  = hourmins       >> dash     >> hourmins
-        weekdays = digit          >> dash     >> digit
-        singleWT = daytime        >> char '/' >> weekdays
+        hourmins = ((digit >> digit) <|> digit) >> char ':' >> (digit >> digit)
+        daytime  = hourmins                     >> dash     >> hourmins
+        weekdays = digit                        >> dash     >> digit
+        singleWT = daytime                      >> char '/' >> weekdays
     in
       sepBy1 singleWT (char ';') >> return ()
 
