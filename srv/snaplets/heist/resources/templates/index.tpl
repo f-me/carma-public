@@ -911,21 +911,6 @@
           <tbody />
         </table>
       </div>
-      <div class="row-fluid">
-        <h2>Операторы Front Office</h2>
-        <div class="row-fluid">
-          <table id="rkc-ops-front-operators-table" class="table table-stripped table-bordered">
-            <thead>
-              <tr>
-                <th width="40%">Оператор</th>
-                <th width="30%">Роль</th>
-                <th width="30%">Среднее время обработки действия</th>
-              </tr>
-              <tbody />
-            </thead>
-          </table>
-        </div>
-      </div>
     </script>
 
     <!-- print service template screen template -->

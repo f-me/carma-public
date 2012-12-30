@@ -3,7 +3,6 @@
 module Snaplet.DbLayer.RKC (
   CaseSummary(..), CaseServiceInfo(..), CaseInformation(..),
   BackSummary(..), BackActionInfo(..), BackInformation(..),
-  FrontInformation(..), FrontOperatorInfo(..),
   Information(..),
   rkc
   ) where
@@ -201,7 +200,7 @@ actionCaseRel = cond ["casetbl", "actiontbl"] "'case:' || casetbl.id = actiontbl
 
 -- | Add relations on tables
 relations :: PreQuery -> PreQuery
-relations q = q `mappend` (mconcat $ map snd $ filter (hasTables . fst) tableRelations) where
+relations q = q `mappend` mconcat (map snd $ filter (hasTables . fst) tableRelations) where
   qtables = preTables q
   hasTables ts = sort (qtables `intersect` ts) == sort ts
   tableRelations = [
@@ -285,38 +284,6 @@ instance ToJSON CaseInformation where
     "summary" .= s,
     "services" .= ss]
 
-data FrontInformation = FrontInformation {
-  frontOperators :: [FrontOperatorInfo] }
-    deriving (Eq, Ord, Read, Show)
-
-instance FromJSON FrontInformation where
-  parseJSON (Object v) = FrontInformation <$>
-    (v .: "operators")
-  parseJSON _ = empty
-
-instance ToJSON FrontInformation where
-  toJSON (FrontInformation f) = object [
-    "operators" .= f]
-
-data FrontOperatorInfo = FrontOperatorInfo {
-  frontOperatorName :: T.Text,
-  frontOperatorAvgTime :: Integer,
-  frontOperatorRoles :: T.Text }
-    deriving (Eq, Ord, Read, Show)
-
-instance FromJSON FrontOperatorInfo where
-  parseJSON (Object v) = FrontOperatorInfo <$>
-    (v .: "name") <*>
-    (v .: "avg") <*>
-    (v .: "roles")
-  parseJSON _ = empty
-
-instance ToJSON FrontOperatorInfo where
-  toJSON (FrontOperatorInfo n a r) = object [
-    "name" .= n,
-    "avg" .= a,
-    "roles" .= r]
-
 data BackSummary = BackSummary {
   backSummaryTotalActions :: Integer,
   backSummaryTotalIncompleted :: Integer }
@@ -392,7 +359,6 @@ instance ToJSON ActionOpAvgInformation where
 
 data Information = Information {
   rkcCaseInformation :: CaseInformation,
-  rkcFrontInformation :: FrontInformation,
   rkcBackInformation :: BackInformation,
   rkcEachActionOpInfo :: [ActionOpAvgInformation] }
     deriving (Eq, Ord, Read, Show)
@@ -400,15 +366,13 @@ data Information = Information {
 instance FromJSON Information where
   parseJSON (Object v) = Information <$>
     (v .: "case") <*>
-    (v .: "front") <*>
     (v .: "back") <*>
     (v .: "eachopactions")
   parseJSON _ = empty
 
 instance ToJSON Information where
-  toJSON (Information c f b ea) = object [
+  toJSON (Information c b ea) = object [
     "case" .= c,
-    "front" .= f,
     "back" .= b,
     "eachopactions" .= ea]
 
@@ -417,7 +381,7 @@ mintQuery qs = do
     rs <- runQuery [relations qs]
     case rs of
         [] -> error "Int query returns no rows"
-        ((PS.Only r):_) -> return r
+        (PS.Only r:_) -> return r
         _ -> error "Int query returns invalid result"
 
 caseSummary :: (PS.HasPostgres m, MonadLog m) => PreQuery -> m CaseSummary
@@ -430,7 +394,7 @@ caseSummary constraints = scope "caseSummary" $ do
     trace "average tech end" (run averageTowageTechEnd) `ap`
     trace "calculated cost" (run calculatedCost) `ap`
     trace "limited cost" (run limitedCost) `ap`
-    (liftM2 percentage (run satisfaction) (run satisfactionCount))
+    liftM2 percentage (run satisfaction) (run satisfactionCount)
   where
     percentage _ 0 = 100
     percentage n d = n * 100 `div` d
@@ -447,15 +411,7 @@ caseServices constraints names = scope "caseServices" $ do
     todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "servicetbl" "type", p, constraints, withinToday "servicetbl" "createTime", groupBy "servicetbl" "type"]
 
 rkcCase :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> m CaseInformation
-rkcCase constraints services = scope "rkcCase" $ (return CaseInformation  `ap` caseSummary (mconcat [doneServices, constraints]) `ap` caseServices (mconcat [constraints, doneServices]) services)
-
-rkcFront :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [(T.Text, T.Text, T.Text)] -> m FrontInformation
-rkcFront constraints usrs = scope "rkcFront" $ do
-  log Trace "Loading front info"
-  vals <- runQuery_ $ mconcat [frontOps, constraints]
-  let
-    makeOpInfo (n, label, roles) = fmap (\v -> FrontOperatorInfo label v roles) $ lookup n vals
-  return $ FrontInformation $ mapMaybe makeOpInfo usrs
+rkcCase constraints services = scope "rkcCase" (return CaseInformation  `ap` caseSummary (mconcat [doneServices, constraints]) `ap` caseServices (mconcat [constraints, doneServices]) services)
 
 backSummary :: (PS.HasPostgres m, MonadLog m) => PreQuery -> m BackSummary
 backSummary constraints = scope "backSummary" $ do
@@ -477,7 +433,7 @@ backActions constraints actions = scope "backAction" $ do
     todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "actiontbl" "name", notNull "actiontbl" "name", p, constraints, withinToday "actiontbl" "duetime", groupBy "actiontbl" "name"]
 
 rkcBack :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> m BackInformation
-rkcBack constraints actions = scope "rkcBack" $ (return BackInformation `ap` backSummary constraints `ap` backActions constraints actions)
+rkcBack constraints actions = scope "rkcBack" (return BackInformation `ap` backSummary constraints `ap` backActions constraints actions)
 
 -- | Average time for each operator and action
 rkcEachActionOpAvg :: (PS.HasPostgres m, MonadLog m) => [(T.Text, T.Text, T.Text)] -> [T.Text] -> m [ActionOpAvgInformation]
@@ -505,7 +461,7 @@ rkcEachActionOpAvg usrs acts = scope "rkcEachActionOpAvg" $ do
       fromStat st = ActionOpAvgInformation label (avgSum st) (map (`lookup` st) acts) where
         avgSum [] = (0, 0)
         avgSum st' = (average *** sum) $ unzip $ map snd st'
-        average l = sum l `div` (fromIntegral $ length l)
+        average l = sum l `div` fromIntegral (length l)
 
 dictKeys :: T.Text -> Dictionary -> [T.Text]
 dictKeys d = fromMaybe [] . keys [d]
@@ -524,10 +480,9 @@ rkc (UsersDict usrs) program city = liftIO startOfThisDay >>= rkc' where
   rkc' today = scope "rkc" $ scope pname $ scope cname $ do
     dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
     c <- rkcCase constraints (serviceNames dicts)
-    f <- rkcFront constraints usrs'
     b <- rkcBack constraints (actionNames dicts)
     ea <- rkcEachActionOpAvg usrs' (actionNames dicts)
-    return $ Information c f b ea
+    return $ Information c b ea
     where
       constraints = mconcat [ifNotNull program programIs, ifNotNull city inCity]
       pname = if T.null program then "all" else program

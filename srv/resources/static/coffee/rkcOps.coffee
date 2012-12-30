@@ -1,9 +1,7 @@
 this.setupRKCOpsScreen = (viewName, args) ->
   setTimeout ->
-    frontt = $('#rkc-ops-front-operators-table')
     eachao = $('#rkc-ops-back-operators-table')
 
-    return if frontt.hasClass('dataTable')
     return if eachao.hasClass("dataTable")
 
     actstbl = {}
@@ -16,7 +14,6 @@ this.setupRKCOpsScreen = (viewName, args) ->
 
     ko.applyBindings(actstbl, el("rkc-ops-back-operators-table"))
 
-    ft = mkDataTable frontt, { bFilter: false, bInfo: false }
     eat = mkDataTable eachao, { bFilter: false, bInfo: false }
 
     $('#reload').click -> update()
@@ -62,16 +59,7 @@ this.setupRKCOpsScreen = (viewName, args) ->
 
       $.getJSON("/rkc" + args, (result) ->
         dict = global.dictValueCache
-        ft.fnClearTable()
         eat.fnClearTable()
-
-        frows = for finfo in result.front.operators
-          frow = [
-            finfo.name,
-            finfo.roles,
-            fmttime(finfo.avg)]
-
-        ft.fnAddData(frows)
 
         eavision = []
         eavision.length = actstbl.cols.length
