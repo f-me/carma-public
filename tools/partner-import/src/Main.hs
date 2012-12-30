@@ -469,21 +469,35 @@ partnerPidURI cp pid = (partnerURI cp) ++ (show pid)
 
 
 -- | Create/update partner using row data and return its id.
-partnerRequest :: String -> RequestMethod -> Row -> IO Int
-partnerRequest uri rm row = do
+partnerRequest :: Int
+               -- ^ CaRMa port.
+               -> Maybe Int
+               -- ^ Partner id.
+               -> RequestMethod 
+               -> Row
+               -- ^ Request payload.
+               -> IO Int
+partnerRequest cp pid rm row = do
+  let uri = 
+          case pid of
+            Just n  -> partnerPidURI cp n
+            Nothing -> partnerURI cp
   rs <- simpleHTTP $
         mkRequestWithBody uri rm "application/json" (BSL.unpack $ encode row)
   rsBody <- getResponseBody rs
-  let Just (IdResponse pid) = decode' (BSL.pack rsBody) :: Maybe IdResponse
-  return pid
+  let Just (IdResponse carmaPid) = 
+          case pid of
+            Just n -> Just (IdResponse n)
+            Nothing -> decode' (BSL.pack rsBody) :: Maybe IdResponse
+  return carmaPid
 
 
 createPartner :: Int -> Row -> IO Int
-createPartner cp = partnerRequest (partnerURI cp) POST
+createPartner cp = partnerRequest cp Nothing POST
 
 
 updatePartner :: Int -> Int -> Row -> IO Int
-updatePartner cp pid = partnerRequest (partnerPidURI cp pid) PUT
+updatePartner cp pid = partnerRequest cp (Just pid) PUT
 
 
 -- | Derived from 'postRequestWithBody' from HTTP package.
