@@ -4,6 +4,8 @@
   
   CLI tool for CaRMa partner import.
   
+  Loads tab-separated CSV files to partner database.
+  
  -}
 
 import Control.Applicative
