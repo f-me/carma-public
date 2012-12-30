@@ -110,14 +110,16 @@ formatError UnknownId =
     e8 "Дилер не найден в системе, попробуйте очистить Id и загрузить его снова"
 formatError (MissingColumns cols) =
     BS.concat [ e8 "В записи отсутствуют обязательные поля: "
-              , (BS.intercalate ", " cols)
+              , BS.intercalate ", " cols
               ]
-formatError (FieldError BadPhone fn fv) =
-    BS.concat [e8 "Недопустимый формат телефона в поле ", fn, ": ", fv]
 formatError (FieldError UnknownCity _ _) =
     e8 "На наших картах нет такого города"
-formatError (FieldError _ fn _) =
-    BS.append (e8 "Недопустимое значение в поле ") fn
+formatError (FieldError et fn fv) =
+    BS.concat [msg, fn, ": ", fv]
+    where
+      msg = case et of
+              BadPhone -> e8 "Недопустимый формат телефона в поле "
+              _        -> e8 "Недопустимое значение в поле "
 
 
 -- | Pure row processor, possibly yielding a processing error for this row.
