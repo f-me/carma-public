@@ -16,7 +16,10 @@ initReducedModeBtn = ->
       data: "{\"ReducedActionsMode\": #{not currentState}}"
       success: updState
 
-
+this.rkcWeatherAddCity = (name) ->
+  dict = global.dictValueCache
+  $.getJSON('/rkc/weather/' + name, (result) ->
+    $('#rkc-weather-table').dataTable().fnAddData([dict.DealerCities[name], result, name]))
 
 this.setupRKCScreen = (viewName, args) ->
   setTimeout ->
@@ -24,13 +27,24 @@ this.setupRKCScreen = (viewName, args) ->
 
     caset = $("#rkc-services-table")
     actionst = $("#rkc-actions-table")
+    weathert = $('#rkc-weather-table')
 
     return if caset.hasClass("dataTable")
     return if actionst.hasClass("dataTable")
+    return if weathert.hasClass("dataTable")
 
     ct = mkDataTable caset, { bFilter: false, bInfo: false }
     bt = mkDataTable actionst, { bFilter: false, bInfo: false }
+    wt = mkDataTable weathert, {
+      bFilter: false,
+      bInfo: false,
+      fnRowCallback: (nRow, aData, iDisplayIndex, iDisplayIndexFull) ->
+        delBtn = $('td:eq(2)', nRow)
+        delBtn.html "<button class=\"btn\">Удалить</button>"
+        delBtn.off('click')
+        delBtn.on('click', -> wt.fnDeleteRow nRow) }
 
+    # Fill general info
     totalServices = $('#total-services')
     averageStart = $('#average-towage-tech-start')
     calculated = $('#calculated-cost')
@@ -43,10 +57,9 @@ this.setupRKCScreen = (viewName, args) ->
     totalActions = $('#total-actions')
     totalIncompleteActions = $('#total-incomplete-actions')
 
-    $('#reload').click -> update()
-
     dict = global.dictValueCache
 
+    # Fill programs
     programs = for v in global.dictionaries.Programs.entries
       p =
         id: v.value
@@ -56,20 +69,30 @@ this.setupRKCScreen = (viewName, args) ->
 
     ko.applyBindings(programs, el("program-select"))
 
+    # Fill cities
     cities = for v in global.dictionaries.DealerCities.entries
       c =
         id: v.value
         name: v.label
 
+    ko.applyBindings(cities, el "rkc-weather-city-select")
+
     cities.unshift { id: "", name: "Все" }
 
     ko.applyBindings(cities, el("city-select"))
 
+    # Init weather table
+    this.rkcWeatherAddCity('Moskva')
+    this.rkcWeatherAddCity('Sankt-Peterburg')
+
+    # Set on-change
     ps = $('#program-select')
     ps.change -> update()
 
     cs = $('#city-select')
     cs.change -> update()
+
+    $('#reload').click -> update()
 
     fmttime = (tm) ->
         fmt = (x) -> if x < 10 then "0" + x else "" + x
@@ -86,6 +109,7 @@ this.setupRKCScreen = (viewName, args) ->
         ct.fnClearTable()
         bt.fnClearTable()
 
+        # Update general info
         totalServices.val(result.case.summary.total)
         averageStart.val(Math.round(result.case.summary.delay / 60) + "m")
         calculated.val(result.case.summary.calculated)
@@ -95,6 +119,7 @@ this.setupRKCScreen = (viewName, args) ->
 
         satisfied.val(result.case.summary.satisfied)
 
+        # Update services table
         crows = for cinfo in result.case.services
           crow = [
             dict.Services[cinfo.name] || cinfo.name,
@@ -109,6 +134,7 @@ this.setupRKCScreen = (viewName, args) ->
         totalActions.val(result.back.summary.total)
         totalIncompleteActions.val(result.back.summary.undone)
 
+        # Update actions table
         brows = for binfo in result.back.actions
           brow = [
             dict.ActionNames[binfo.name] || binfo.name,
@@ -138,3 +164,6 @@ this.removeRKCScreen = ->
     clearInterval h if h?
     t = global.rkcData.updateHandler
     clearInterval t if t?
+
+this.rkcWeatherAddSelectedCity = ->
+  this.rkcWeatherAddCity $('#rkc-weather-city-select').val()

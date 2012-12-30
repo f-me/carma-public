@@ -1,4 +1,4 @@
-{-# LANGUAGE DoAndIfThenElse #-}
+{-# LANGUAGE DoAndIfThenElse, OverloadedStrings #-}
 
 module ApplicationHandlers where
 -- FIXME: reexport AppHandlers/* & remove import AppHandlers.* from AppInit
@@ -22,10 +22,10 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Set (Set)
 import qualified Data.Set as Set
+import Data.String
 import qualified Data.HashMap.Strict as HashMap
 
 import Data.Maybe
-import Data.List (sortBy)
 import Data.Ord (comparing)
 
 import Data.Time
@@ -40,8 +40,11 @@ import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.SimpleLog
 import Snap.Snaplet.Vin
 import Snap.Util.FileServe (serveFile)
+
+import WeatherApi (getWeather', tempC)
 ------------------------------------------------------------------------------
 import qualified Snaplet.DbLayer as DB
+import qualified Snaplet.DbLayer.Types as DB
 import qualified Snaplet.DbLayer.RKC as RKC
 import Snaplet.FileUpload (doUpload', doDeleteAll')
 ------------------------------------------------------------------------------
@@ -71,14 +74,13 @@ redirectToLogin = redirect' "/login/" 303
 -- | If user is not logged in, redirect to login page, pass to
 -- handler otherwise.
 authOrLogin :: AppHandler () -> AppHandler ()
-authOrLogin h = requireUser auth redirectToLogin h
+authOrLogin = requireUser auth redirectToLogin
 
 
 ------------------------------------------------------------------------------
 -- | Render empty login form.
 loginForm :: AppHandler ()
-loginForm = do
-  serveFile $ "snaplets/heist/resources/templates/login.html"
+loginForm = serveFile "snaplets/heist/resources/templates/login.html"
 
 
 ------------------------------------------------------------------------------
@@ -221,6 +223,23 @@ rkcHandler = scope "rkcHandler" $ do
   info <- with db $ RKC.rkc usrs (maybe T.empty T.decodeUtf8 p) (maybe T.empty T.decodeUtf8 c)
   writeJSON info
 
+rkcWeatherHandler :: AppHandler ()
+rkcWeatherHandler = scope "rkcWeatherHandler" $ do
+  city <- getParam "city"
+  case city of
+    Nothing -> writeJSON ()
+    Just city' -> do
+      temp <- with db $ do
+        conf <- gets DB.weather
+        w <- liftIO $ getWeather' conf $ BU.toString city'
+        case w of
+          Right w' -> do
+            log Trace $ T.concat ["Weather for city ", T.decodeUtf8 city', " is: ", fromString $ show w']
+            return . show . tempC $ w'
+          Left err -> do
+            log Debug $ T.concat ["Failed to get weather for city ", T.decodeUtf8 city', " due to: ", fromString $ show err]
+            return "-"
+      writeJSON temp
 
 -- | This action recieve model and id as parameters to lookup for
 -- and json object with values to create new model with specified

@@ -828,6 +828,32 @@
                   <tbody />
                 </table>
               </div>
+              <h2>Погода</h2>
+              <div class="row-fluid">
+                <div class="span4">
+                  <select id="rkc-weather-city-select" data-bind="foreach: $data">
+                    <option data-bind="value: id, text: name" />
+                  </select>
+                </div>
+                <div class="span4">
+                  <button class="btn" onClick="rkcWeatherAddSelectedCity(this)">
+                    Добавить
+                  </button>
+                </div>
+              </div>
+              <div class="row-fluid">
+                <table class="table table-striped table-bordered"
+                  id="rkc-weather-table">
+                  <thead>
+                    <tr>
+                      <th width="60%">Город</th>
+                      <th width="20%">Погода</th>
+                      <th width="20%"></th>
+                    </tr>
+                  </thead>
+                  <tbody />
+                </table>
+              </div>
             </div>
           </div>
         </div>
