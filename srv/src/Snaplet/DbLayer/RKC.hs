@@ -466,7 +466,7 @@ rkcFront program city = scope "rkc" $ scope "front" $ do
     select "calltbl" "calltype",
     count,
 
-    --withinToday "calltbl" "calldate",
+    withinToday "calltbl" "calldate",
     ifNotNull program $ equals "calltbl" "program",
     ifNotNull city $ equals "calltbl" "city",
     
