@@ -170,6 +170,18 @@
             }
         },
         {
+            "name": "makes",
+            "meta": {
+                "dictionaryName": "CarMakers",
+                "required": true,
+                "bounded": true,
+                "label": "Обслуживаемые марки",
+                "sqltype": "text"
+            },
+            "type": "dictionary-many"
+        },
+
+        {
             "name": "comment",
             "meta": {
                 "label": "Комментарии"

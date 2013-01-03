@@ -9,6 +9,7 @@ this.backbonizeModel = (models, modelName, options) ->
   defaults         = {}
   fieldHash        = {}
   dictionaryFields = []
+  dictManyFields   = []
   referenceFields  = []
   requiredFields   = []
   regexpFields     = []
@@ -31,6 +32,7 @@ this.backbonizeModel = (models, modelName, options) ->
 
     referenceFields.push(f.name)  if f.type == "reference"
     dictionaryFields.push(f.name) if f.type == "dictionary"
+    dictManyFields.push(f.name)   if f.type == "dictionary-many"
     filesFields.push(f.name)      if f.type == "files"
     jsonFields.push(f.name)       if f.type == "json"
     dateTimeFields.push(f.name)   if f.type == "datetime"
@@ -43,6 +45,7 @@ this.backbonizeModel = (models, modelName, options) ->
 
     # List of fields with dictionary type
     dictionaryFields: dictionaryFields
+    dictManyFields: dictManyFields
     # List of field names which hold references to different
     # models.
     referenceFields: referenceFields
