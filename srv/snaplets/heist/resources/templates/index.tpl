@@ -662,7 +662,7 @@
             <div class="span2">
               <h2>Фильтрация</h2>
             </div>
-            <div class="span4">
+            <div class="span3">
               <div>
                 <div style="float:left; margin-top:+3px">
                   Город:
@@ -674,7 +674,7 @@
                 </div>
               </div>
             </div>
-            <div class="span4">
+            <div class="span3">
               <div>
                 <div style="float:left; margin-top:+3px">
                   Программа:
@@ -686,7 +686,25 @@
                 </div>
               </div>
             </div>
-            <div class="span2">
+            <div class="span3">
+              <div class="input-append date"
+                   data-provide="datepicker"
+                   data-autoshow-datepicker="true"
+                   data-date-format="dd.mm.yyyy"
+                   data-date-weekstart="1">
+                <input type="text" id="rkc-date-from" class="pane-span focusable" name="from"/>
+                <span class="add-on"><i class="icon icon-calendar" /></span>
+              </div>
+              <div class="input-append date"
+                   data-provide="datepicker"
+                   data-autoshow-datepicker="true"
+                   data-date-format="dd.mm.yyyy"
+                   data-date-weekstart="1">
+                <input type="text" id="rkc-date-to" class="pane-span focusable" name="to"/>
+                <span class="add-on"><i class="icon icon-calendar" /></span>
+              </div>
+            </div>
+            <div class="span1">
               <div class="control-group">
                 <button id="reload" class="btn">
                   Обновить

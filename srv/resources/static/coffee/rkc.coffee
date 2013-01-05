@@ -25,6 +25,13 @@ this.setupRKCScreen = (viewName, args) ->
   setTimeout ->
     initReducedModeBtn()
 
+    d1 = new Date
+    d2 = new Date
+    d2.setDate (d1.getDate() + 1)
+
+    $('#rkc-date-from').val (d1.toString 'dd.MM.yyyy')
+    $('#rkc-date-to').val (d2.toString 'dd.MM.yyyy')
+
     caset = $("#rkc-services-table")
     actionst = $("#rkc-actions-table")
     weathert = $('#rkc-weather-table')

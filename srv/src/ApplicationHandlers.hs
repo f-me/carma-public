@@ -218,8 +218,25 @@ rkcHandler :: AppHandler ()
 rkcHandler = scope "rkc" $ scope "handler" $ do
   p <- getParam "program"
   c <- getParam "city"
+  fromTime <- getParam "from"
+  toTime <- getParam "to"
+
+  tz <- liftIO getCurrentTimeZone
+
+  -- get start of today and tomorrow
+  now <- liftIO $ fmap zonedTimeToLocalTime getZonedTime
+  let
+    startOfToday = now { localTimeOfDay = midnight }
+    startOfTomorrow = startOfToday { localDay = addDays 1 (localDay startOfToday) }
+
+    parseLocalTime :: ByteString -> Maybe LocalTime
+    parseLocalTime = parseTime defaultTimeLocale "%d.%m.%Y" . BU.toString
+
+    fromTime' = localTimeToUTC tz $ maybe startOfToday id (fromTime >>= parseLocalTime)
+    toTime' = localTimeToUTC tz $ maybe startOfTomorrow id (toTime >>= parseLocalTime)
+
   usrs <- gets allUsers
-  info <- with db $ RKC.rkc usrs (maybe T.empty T.decodeUtf8 p) (maybe T.empty T.decodeUtf8 c)
+  info <- with db $ RKC.rkc usrs fromTime' toTime' (maybe T.empty T.decodeUtf8 p) (maybe T.empty T.decodeUtf8 c)
   writeJSON info
 
 rkcWeatherHandler :: AppHandler ()

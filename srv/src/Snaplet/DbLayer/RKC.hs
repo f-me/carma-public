@@ -15,8 +15,10 @@ import Data.Aeson
 import Data.Maybe
 import Data.Monoid
 import Data.List (intersect, sort, nub)
+import Data.String
 import qualified Data.List as L (groupBy)
 import qualified Data.Map as M
+import Data.Time
 import Data.Function
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -48,6 +50,15 @@ withinToday :: T.Text -> T.Text -> PreQuery
 withinToday tbl col = thisDay `mappend` notNull tbl col where
   thisDay = preQuery_ [] [tbl] [equalsNow] [] []
   equalsNow = T.concat ["date_trunc('day', ", tbl, ".", col, " + '4 hours') = date_trunc('day', now())"]
+
+betweenTime :: UTCTime -> UTCTime -> T.Text -> T.Text -> PreQuery
+betweenTime from to tbl col = mconcat [
+  notNull tbl col,
+  preQuery [] [tbl] [T.concat [tbl, ".", col, " >= ?"]] [] [] [asLocal from],
+  preQuery [] [tbl] [T.concat [tbl, ".", col, " < ?"]] [] [] [asLocal to]]
+  where
+    asLocal :: UTCTime -> LocalTime
+    asLocal = utcToLocalTime utc
 
 count :: PreQuery
 count = preQuery_ ["count(*)"] [] [] [] []
@@ -305,10 +316,12 @@ actionNames = dictKeys "ActionNames"
 ifNotNull :: T.Text -> (T.Text -> PreQuery) -> PreQuery
 ifNotNull value f = if T.null value then mempty else f value
 
-rkc :: (PS.HasPostgres m, MonadLog m) => UsersDict -> T.Text -> T.Text -> m Value
-rkc (UsersDict usrs) program city = scope "rkc" $ do
+rkc :: (PS.HasPostgres m, MonadLog m) => UsersDict -> UTCTime -> UTCTime -> T.Text -> T.Text -> m Value
+rkc (UsersDict usrs) fromDate toDate program city = scope "rkc" $ do
   log Trace $ T.concat ["Program: ", program]
   log Trace $ T.concat ["City: ", city]
+  log Trace $ T.concat ["From: ", fromString $ show fromDate]
+  log Trace $ T.concat ["To: ", fromString $ show toDate]
   dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
   c <- rkcCase constraints (serviceNames dicts)
   a <- rkcActions constraints (actionNames dicts)
