@@ -214,10 +214,9 @@ searchHandler = scope "searchHandler" $ do
   res <- with db $ DB.searchFullText m (B.split ',' fs) sels q lim
   writeJSON $ map (Map.fromList . zip sels) res
 
-rkcHandler :: AppHandler ()
-rkcHandler = scope "rkc" $ scope "handler" $ do
-  p <- getParam "program"
-  c <- getParam "city"
+-- rkc helpers
+getFromTo :: AppHandler (UTCTime, UTCTime)
+getFromTo = do
   fromTime <- getParam "from"
   toTime <- getParam "to"
 
@@ -235,8 +234,16 @@ rkcHandler = scope "rkc" $ scope "handler" $ do
     fromTime' = localTimeToUTC tz $ maybe startOfToday id (fromTime >>= parseLocalTime)
     toTime' = localTimeToUTC tz $ maybe startOfTomorrow id (toTime >>= parseLocalTime)
 
+  return (fromTime', toTime')
+
+rkcHandler :: AppHandler ()
+rkcHandler = scope "rkc" $ scope "handler" $ do
+  p <- getParam "program"
+  c <- getParam "city"
+  (from, to) <- getFromTo
+
   usrs <- gets allUsers
-  info <- with db $ RKC.rkc usrs fromTime' toTime' (maybe T.empty T.decodeUtf8 p) (maybe T.empty T.decodeUtf8 c)
+  info <- with db $ RKC.rkc usrs from to (maybe T.empty T.decodeUtf8 p) (maybe T.empty T.decodeUtf8 c)
   writeJSON info
 
 rkcWeatherHandler :: AppHandler ()
@@ -261,7 +268,9 @@ rkcFrontHandler :: AppHandler ()
 rkcFrontHandler = scope "rkc" $ scope "handler" $ scope "front" $ do
   p <- getParam "program"
   c <- getParam "city"
-  res <- with db $ RKC.rkcFront (maybe T.empty T.decodeUtf8 p) (maybe T.empty T.decodeUtf8 c)
+  (from, to) <- getFromTo
+
+  res <- with db $ RKC.rkcFront from to (maybe T.empty T.decodeUtf8 p) (maybe T.empty T.decodeUtf8 c)
   writeJSON res
 
 -- | This action recieve model and id as parameters to lookup for

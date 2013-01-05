@@ -272,8 +272,8 @@ rkcActions fromDate toDate constraints actions = scope "rkcActions" $ do
     "actions" .= as]
 
 -- | Average time for each operator and action
-rkcEachActionOpAvg :: (PS.HasPostgres m, MonadLog m) => [(T.Text, T.Text, T.Text)] -> [T.Text] -> m Value
-rkcEachActionOpAvg usrs acts = scope "rkcEachActionOpAvg" $ do
+rkcEachActionOpAvg :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> [(T.Text, T.Text, T.Text)] -> [T.Text] -> m Value
+rkcEachActionOpAvg fromDate toDate usrs acts = scope "rkcEachActionOpAvg" $ do
   r <- trace "result" $ runQuery_ $ mconcat [
     select "actiontbl" "assignedTo",
     select "actiontbl" "name",
@@ -281,7 +281,7 @@ rkcEachActionOpAvg usrs acts = scope "rkcEachActionOpAvg" $ do
     count,
     notNull "actiontbl" "name",
     notNull "actiontbl" "assignedTo",
-    withinToday "actiontbl" "duetime",
+    betweenTime fromDate toDate "actiontbl" "duetime",
     groupBy "actiontbl" "assignedTo",
     groupBy "actiontbl" "name",
     orderBy "actiontbl" "assignedTo",
@@ -325,7 +325,7 @@ rkc (UsersDict usrs) fromDate toDate program city = scope "rkc" $ do
   dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
   c <- rkcCase fromDate toDate constraints (serviceNames dicts)
   a <- rkcActions fromDate toDate constraints (actionNames dicts)
-  ea <- rkcEachActionOpAvg usrs' (actionNames dicts)
+  ea <- rkcEachActionOpAvg fromDate toDate usrs' (actionNames dicts)
   return $ object [
     "case" .= c,
     "back" .= a,
@@ -337,16 +337,18 @@ rkc (UsersDict usrs) fromDate toDate program city = scope "rkc" $ do
     usrs' = sort $ nub $ map toUsr usrs
     toUsr m = (maybe "" T.decodeUtf8 $ M.lookup "value" m, maybe "" T.decodeUtf8 $ M.lookup "label" m, maybe "" T.decodeUtf8 $ M.lookup "roles" m)
 
-rkcFront :: (PS.HasPostgres m, MonadLog m) => T.Text -> T.Text -> m Value
-rkcFront program city = scope "rkc" $ scope "front" $ do
+rkcFront :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> T.Text -> T.Text -> m Value
+rkcFront fromDate toDate program city = scope "rkc" $ scope "front" $ do
   log Trace $ T.concat ["Program: ", program]
   log Trace $ T.concat ["City: ", city]
+  log Trace $ T.concat ["From: ", fromString $ show fromDate]
+  log Trace $ T.concat ["To: ", fromString $ show toDate]
   calls <- trace "result" $ runQuery_ $ mconcat [
     select "calltbl" "callertype",
     select "calltbl" "calltype",
     count,
 
-    withinToday "calltbl" "calldate",
+    betweenTime fromDate toDate "calltbl" "calldate",
     ifNotNull program $ equals "calltbl" "program",
     ifNotNull city $ equals "calltbl" "city",
     

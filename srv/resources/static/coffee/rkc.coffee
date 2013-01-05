@@ -102,6 +102,9 @@ this.setupRKCScreen = (viewName, args) ->
     cs = $('#city-select')
     cs.change -> update()
 
+    dateFrom.change -> update()
+    dateTo.change -> update()
+
     $('#reload').click -> update()
 
     fmttime = (tm) ->
