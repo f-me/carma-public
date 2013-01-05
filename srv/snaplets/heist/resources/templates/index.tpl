@@ -687,6 +687,7 @@
               </div>
             </div>
             <div class="span3">
+              <h3>Интервал</h3>
               <div class="input-append date"
                    data-provide="datepicker"
                    data-autoshow-datepicker="true"
@@ -912,6 +913,7 @@
           </div>
         </div>
         <div class="span3">
+          <h3>Интервал</h3>
           <div class="input-append date"
                data-provide="datepicker"
                data-autoshow-datepicker="true"
@@ -983,6 +985,7 @@
           </div>
         </div>
         <div class="span3">
+          <h3>Интервал</h3>
           <div class="input-append date"
                data-provide="datepicker"
                data-autoshow-datepicker="true"
