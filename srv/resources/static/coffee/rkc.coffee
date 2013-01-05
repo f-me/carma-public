@@ -29,8 +29,11 @@ this.setupRKCScreen = (viewName, args) ->
     d2 = new Date
     d2.setDate (d1.getDate() + 1)
 
-    $('#rkc-date-from').val (d1.toString 'dd.MM.yyyy')
-    $('#rkc-date-to').val (d2.toString 'dd.MM.yyyy')
+    dateFrom = $('#rkc-date-from')
+    dateTo = $('#rkc-date-to')
+
+    dateFrom.val (d1.toString 'dd.MM.yyyy')
+    dateTo.val (d2.toString 'dd.MM.yyyy')
 
     caset = $("#rkc-services-table")
     actionst = $("#rkc-actions-table")
@@ -109,7 +112,10 @@ this.setupRKCScreen = (viewName, args) ->
       prog = ps.val()
       city = cs.val()
 
-      args = "?" + ["program=" + prog, "city=" + city].filter((x) -> x).join("&")
+      from = dateFrom.val()
+      to = dateTo.val()
+
+      args = "?" + ["program=" + prog, "city=" + city, "from=" + from, "to=" + to].filter((x) -> x).join("&")
 
       $.getJSON("/rkc" + args, (result) ->
         dict = global.dictValueCache
