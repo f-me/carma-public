@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Snaplet.DbLayer.RKC (
+  Filter(..), todayFilter,
   rkc,
   rkcFront,
   partners
@@ -273,9 +274,10 @@ rkcActions fromDate toDate constraints actions = scope "rkcActions" $ do
     "actions" .= as]
 
 -- | Average time for each operator and action
-rkcEachActionOpAvg :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> [(T.Text, T.Text, T.Text)] -> [T.Text] -> m Value
-rkcEachActionOpAvg fromDate toDate usrs acts = scope "rkcEachActionOpAvg" $ do
+rkcEachActionOpAvg :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> PreQuery -> [(T.Text, T.Text, T.Text)] -> [T.Text] -> m Value
+rkcEachActionOpAvg fromDate toDate constraints usrs acts = scope "rkcEachActionOpAvg" $ do
   r <- trace "result" $ runQuery_ $ mconcat [
+    constraints,
     select "actiontbl" "assignedTo",
     select "actiontbl" "name",
     averageActionTime,
@@ -317,16 +319,47 @@ actionNames = dictKeys "ActionNames"
 ifNotNull :: T.Text -> (T.Text -> PreQuery) -> PreQuery
 ifNotNull value f = if T.null value then mempty else f value
 
-rkc :: (PS.HasPostgres m, MonadLog m) => UsersDict -> UTCTime -> UTCTime -> T.Text -> T.Text -> m Value
-rkc (UsersDict usrs) fromDate toDate program city = scope "rkc" $ do
-  log Trace $ T.concat ["Program: ", program]
-  log Trace $ T.concat ["City: ", city]
-  log Trace $ T.concat ["From: ", fromString $ show fromDate]
-  log Trace $ T.concat ["To: ", fromString $ show toDate]
+data Filter = Filter {
+  filterFrom :: UTCTime,
+  filterTo :: UTCTime,
+  filterProgram :: T.Text,
+  filterCity :: T.Text,
+  filterPartner :: T.Text }
+    deriving (Eq, Show)
+
+todayFilter :: IO Filter
+todayFilter = do
+  tz <- getCurrentTimeZone
+  now <- fmap zonedTimeToLocalTime getZonedTime
+  let
+    startOfToday = now { localTimeOfDay = midnight }
+    startOfTomorrow = startOfToday { localDay = addDays 1 (localDay startOfToday) }
+
+  return Filter {
+    filterFrom = localTimeToUTC tz startOfToday,
+    filterTo = localTimeToUTC tz startOfTomorrow,
+    filterProgram = "",
+    filterCity = "",
+    filterPartner = "" }
+
+traceFilter :: MonadLog m => Filter -> m ()
+traceFilter (Filter from to prog city partner) = do
+  logTrace "Program: " prog
+  logTrace "City: " city
+  logTrace "From: " $ fromString $ show from
+  logTrace "To: " $ fromString $ show to
+  logTrace "Partner: " partner
+  where
+    logTrace :: MonadLog m => T.Text -> T.Text -> m ()
+    logTrace prefix value = log Trace $ T.concat [prefix, value]
+
+rkc :: (PS.HasPostgres m, MonadLog m) => UsersDict -> Filter -> m Value
+rkc (UsersDict usrs) filt@(Filter fromDate toDate program city partner) = scope "rkc" $ do
+  traceFilter filt
   dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
   c <- rkcCase fromDate toDate constraints (serviceNames dicts)
   a <- rkcActions fromDate toDate constraints (actionNames dicts)
-  ea <- rkcEachActionOpAvg fromDate toDate usrs' (actionNames dicts)
+  ea <- rkcEachActionOpAvg fromDate toDate constraints usrs' (actionNames dicts)
   return $ object [
     "case" .= c,
     "back" .= a,
@@ -334,16 +367,14 @@ rkc (UsersDict usrs) fromDate toDate program city = scope "rkc" $ do
   where
     constraints = mconcat [
       ifNotNull program $ equals "casetbl" "program",
-      ifNotNull city $ equals "casetbl" "city"]
+      ifNotNull city $ equals "casetbl" "city",
+      ifNotNull partner $ equals "servicetbl" "contractor_partner"]
     usrs' = sort $ nub $ map toUsr usrs
     toUsr m = (maybe "" T.decodeUtf8 $ M.lookup "value" m, maybe "" T.decodeUtf8 $ M.lookup "label" m, maybe "" T.decodeUtf8 $ M.lookup "roles" m)
 
-rkcFront :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> T.Text -> T.Text -> m Value
-rkcFront fromDate toDate program city = scope "rkc" $ scope "front" $ do
-  log Trace $ T.concat ["Program: ", program]
-  log Trace $ T.concat ["City: ", city]
-  log Trace $ T.concat ["From: ", fromString $ show fromDate]
-  log Trace $ T.concat ["To: ", fromString $ show toDate]
+rkcFront :: (PS.HasPostgres m, MonadLog m) => Filter -> m Value
+rkcFront filt@(Filter fromDate toDate program city _) = scope "rkc" $ scope "front" $ do
+  traceFilter filt
   calls <- trace "result" $ runQuery_ $ mconcat [
     select "calltbl" "callertype",
     select "calltbl" "calltype",

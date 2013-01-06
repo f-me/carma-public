@@ -98,16 +98,21 @@ this.fillRKCFilters = (updater, partners) ->
     cs = $('#city-select')
     cs.change updater
 
+    pps = $('#partner-select')
+    pps.change updater
+
     $('#reload').click updater
 
 this.filterRKCArgs = () ->
   prog = $('#program-select').val()
   city = $('#city-select').val()
 
+  partner = $('#partner-select').val()
+
   from = $('#rkc-date-from').val()
   to = $('#rkc-date-to').val()
 
-  args = "?" + ["program=" + prog, "city=" + city, "from=" + from, "to=" + to].filter((x) -> x).join("&")
+  args = "?" + ["program=" + prog, "city=" + city, "partner=" + partner, "from=" + from, "to=" + to].filter((x) -> x).join("&")
 
   return args
 
