@@ -2,7 +2,8 @@
 
 module Snaplet.DbLayer.RKC (
   rkc,
-  rkcFront
+  rkcFront,
+  partners
   ) where
 
 import Prelude hiding (log)
@@ -367,3 +368,17 @@ rkcFront fromDate toDate program city = scope "rkc" $ scope "front" $ do
       "callertype" .= callerType,
       "calltype" .= callType,
       "callcount" .= callsCount]
+
+-- | All partners on services within time interval
+partners :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> m Value
+partners fromDate toDate = scope "rkc" $ scope "partners" $ do
+  log Trace $ T.concat ["From: ", fromString $ show fromDate]
+  log Trace $ T.concat ["To: ", fromString $ show toDate]
+  ps <- trace "result" $ runQuery_ $ mconcat [
+    select "servicetbl" "contractor_partner",
+
+    betweenTime fromDate toDate "servicetbl" "createTime",
+
+    groupBy "servicetbl" "contractor_partner",
+    orderBy "servicetbl" "contractor_partner"]
+  return $ toJSON (mapMaybe PS.fromOnly ps :: [T.Text])

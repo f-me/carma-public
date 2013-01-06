@@ -273,6 +273,13 @@ rkcFrontHandler = scope "rkc" $ scope "handler" $ scope "front" $ do
   res <- with db $ RKC.rkcFront from to (maybe T.empty T.decodeUtf8 p) (maybe T.empty T.decodeUtf8 c)
   writeJSON res
 
+rkcPartners :: AppHandler ()
+rkcPartners = scope "rkc" $ scope "handler" $ scope "partners" $ do
+  (from, to) <- getFromTo
+
+  res <- with db $ RKC.partners from to
+  writeJSON res
+
 -- | This action recieve model and id as parameters to lookup for
 -- and json object with values to create new model with specified
 -- id when it's not found
