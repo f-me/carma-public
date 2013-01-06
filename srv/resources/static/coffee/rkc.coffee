@@ -100,13 +100,20 @@ this.fillRKCFilters = (updater, partners) ->
 
     $('#reload').click updater
 
+this.filterRKCArgs = () ->
+  prog = $('#program-select').val()
+  city = $('#city-select').val()
+
+  from = $('#rkc-date-from').val()
+  to = $('#rkc-date-to').val()
+
+  args = "?" + ["program=" + prog, "city=" + city, "from=" + from, "to=" + to].filter((x) -> x).join("&")
+
+  return args
 
 this.setupRKCScreen = (viewName, args) ->
   setTimeout ->
     initReducedModeBtn()
-
-    dateFrom = $('#rkc-date-from')
-    dateTo = $('#rkc-date-to')
 
     caset = $("#rkc-services-table")
     actionst = $("#rkc-actions-table")
@@ -140,8 +147,6 @@ this.setupRKCScreen = (viewName, args) ->
     totalActions = $('#total-actions')
     totalIncompleteActions = $('#total-incomplete-actions')
 
-    dict = global.dictValueCache
-
     # Fill weather cities
     cities = for v in global.dictionaries.DealerCities.entries
       c =
@@ -150,21 +155,14 @@ this.setupRKCScreen = (viewName, args) ->
 
     ko.applyBindings(cities, el "rkc-weather-city-select")
 
-    ps = $('#program-select')
-    cs = $('#city-select')
-
     fmttime = (tm) ->
         fmt = (x) -> if x < 10 then "0" + x else "" + x
         Math.floor(tm / 60) + ":" + fmt(tm % 60)
 
+    getArgs = () -> this.filterRKCArgs()
+
     update = () ->
-      prog = ps.val()
-      city = cs.val()
-
-      from = dateFrom.val()
-      to = dateTo.val()
-
-      args = "?" + ["program=" + prog, "city=" + city, "from=" + from, "to=" + to].filter((x) -> x).join("&")
+      args = getArgs()
 
       $.getJSON("/rkc" + args, (result) ->
         dict = global.dictValueCache

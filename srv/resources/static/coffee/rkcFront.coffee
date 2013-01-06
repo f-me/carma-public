@@ -1,28 +1,14 @@
 this.setupRKCFrontScreen = (viewName, args) ->
   setTimeout ->
 
-    dateFrom = $('#rkc-date-from')
-    dateTo = $('#rkc-date-to')
-
     callstable = $('#rkc-front-calls-table')
-
     return if callstable.hasClass("dataTable")
-
     callst = mkDataTable callstable, { bFilter: false, bInfo: false }
 
-    dict = global.dictValueCache
-
-    ps = $('#program-select')
-    cs = $('#city-select')
+    getArgs = () -> this.filterRKCArgs()
 
     update = () ->
-      prog = ps.val()
-      city = cs.val()
-
-      from = dateFrom.val()
-      to = dateTo.val()
-
-      args = "?" + ["program=" + prog, "city=" + city, "from=" + from, "to=" + to].filter((x) -> x).join("&")
+      args = getArgs()
 
       $.getJSON("/rkc/front" + args, (result) ->
         dict = global.dictValueCache

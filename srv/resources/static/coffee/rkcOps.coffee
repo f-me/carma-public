@@ -1,11 +1,7 @@
 this.setupRKCOpsScreen = (viewName, args) ->
   setTimeout ->
 
-    dateFrom = $('#rkc-date-from')
-    dateTo = $('#rkc-date-to')
-
     eachao = $('#rkc-ops-back-operators-table')
-
     return if eachao.hasClass("dataTable")
 
     actstbl = {}
@@ -20,11 +16,6 @@ this.setupRKCOpsScreen = (viewName, args) ->
 
     eat = mkDataTable eachao, { bFilter: false, bInfo: false }
 
-    dict = global.dictValueCache
-
-    ps = $('#program-select')
-    cs = $('#city-select')
-
     fmttime = (tm) ->
         fmt = (x) -> if x < 10 then "0" + x else "" + x
         Math.floor(tm / 60) + ":" + fmt(tm % 60)
@@ -32,14 +23,10 @@ this.setupRKCOpsScreen = (viewName, args) ->
     fmtavg = (val) ->
         fmttime(val[0]) + "/" + val[1]
 
+    getArgs = () -> this.filterRKCArgs()
+
     update = () ->
-      prog = ps.val()
-      city = cs.val()
-
-      from = dateFrom.val()
-      to = dateTo.val()
-
-      args = "?" + ["program=" + prog, "city=" + city, "from=" + from, "to=" + to].filter((x) -> x).join("&")
+      args = getArgs()
 
       $.getJSON("/rkc" + args, (result) ->
         dict = global.dictValueCache
