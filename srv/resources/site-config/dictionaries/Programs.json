@@ -37,6 +37,10 @@
             "label": "B2B / Авто-Цель"
         },
         {
+            "value": "advocard",
+            "label": "B2C / Адвокард"
+        },
+        {
             "value": "arval",
             "label": "B2B / АРВАЛ"
         },
@@ -123,6 +127,10 @@
         {
             "value": "b2c",
             "label": "B2C Карты"
+        },
+        {
+            "value": "samaraAssis",
+            "label": "Самара-Ассистанс"
         },
         {
             "value": "unicredit",
