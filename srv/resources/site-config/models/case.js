@@ -542,6 +542,18 @@
             }
         },
         {
+            "name": "accord",
+            "canRead": [
+                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
+            ],
+            "canWrite": [
+                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
+            ],
+            "meta": {
+                "label": "Номер согласования"
+            }
+        },
+        {
             "name": "dealerCause",
             "canRead": [
                 "partner",
