@@ -179,7 +179,11 @@
                 "car_checkupDate",
                 "car_checkupMileage",
                 "car_dealerTO",
-                "car_makeYear"
+                "car_makeYear",
+                "car_serviceStart",
+                "car_serviceEnd",
+                "car_warrantyStart",
+                "car_warrantyEnd"
             ],
             "canRead": [
                 "partner",
