@@ -686,7 +686,7 @@ closeSerivceAndSendInfoVW objId = do
 
   act2 <- replaceAction
     "getInfoDealerVW"
-    "Требуется уточнить информацию о ремонте у дилера (только для VW)"
+    "Уточнить информацию о ремонте у дилера/партнёра (VW, PSA)"
     "back" "3" (+7*24*60*60)
     objId
 
