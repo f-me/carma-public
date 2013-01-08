@@ -566,7 +566,7 @@
                 "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
             ],
             "meta": {
-                "label": "Причина неисправности со слов дилера",
+                "label": "Неисправность со слов дилера/партнёра",
                 "infoText": "dealerCause"
             },
             "type": "textarea"
