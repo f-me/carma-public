@@ -631,7 +631,7 @@
             }
         },
         {
-            "name": "vinRen",
+            "name": "vinRent",
             "canRead": [
                 "partner",
                 "front",
