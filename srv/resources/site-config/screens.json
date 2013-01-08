@@ -26,12 +26,12 @@
         { "name"  : "vin",
           "label" : "Обновление базы VIN",
           "type"  : "li",
-          "permissions": ["head","admin","programman"]
+          "permissions": ["head","admin","programman","supervisor","analyst"]
         },
         { "name"  : "partner",
           "label" : "Редактирование партнёров",
           "type"  : "li",
-          "permissions": ["head","parguy"]
+          "permissions": ["head","parguy","programman","supervisor","analyst"]
         },
         { "name"  : "reports",
           "label" : "Отчёты",
