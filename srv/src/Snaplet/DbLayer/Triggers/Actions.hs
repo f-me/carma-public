@@ -520,7 +520,7 @@ actionResultMap = Map.fromList
     act <- replaceAction
       "headCheck"
       "Проверка РКЦ"
-      "head" "1" (+360) objId
+      "supervisor" "1" (+360) objId
     set act "assignedTo" ""
   )
   ,("parguyToBack", \objId -> do
@@ -569,7 +569,7 @@ actionResultMap = Map.fromList
     act <- replaceAction
       "headCheck"
       "Проверка РКЦ"
-      "head" "1" (+360) objId
+      "supervisor" "1" (+360) objId
     set act "assignedTo" ""
   )
   ,("directorConfirm", \objId -> do
