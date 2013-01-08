@@ -631,6 +631,39 @@
             }
         },
         {
+            "name": "vinRen",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "canWrite": [
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "meta": {
+                "label": "VIN подменного автомобиля",
+                "transform": "uppercase"
+            }
+        },
+        {
             "name": "carClass",
             "canRead": [
                 "partner",
