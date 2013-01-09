@@ -179,7 +179,11 @@
                 "car_checkupDate",
                 "car_checkupMileage",
                 "car_dealerTO",
-                "car_makeYear"
+                "car_makeYear",
+                "car_serviceStart",
+                "car_serviceEnd",
+                "car_warrantyStart",
+                "car_warrantyEnd"
             ],
             "canRead": [
                 "partner",
@@ -255,6 +259,22 @@
 		"readonly": true
             }
         },
+        {
+            "name": "vwcreatedate",
+            "canRead": [
+                "vwfake"
+            ],
+            "canWrite": [
+                "vwfake"
+            ],
+            "index": true,
+            "indexCollate": true,
+            "type": "datetime",
+            "meta": {
+                "label": "Дата звонка",
+		"readonly": true
+            }
+        },        
         {
             "name": "callTaker",
             "canRead": [
@@ -538,6 +558,18 @@
             }
         },
         {
+            "name": "accord",
+            "canRead": [
+                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
+            ],
+            "canWrite": [
+                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
+            ],
+            "meta": {
+                "label": "Номер согласования"
+            }
+        },
+        {
             "name": "dealerCause",
             "canRead": [
                 "partner",
@@ -550,7 +582,7 @@
                 "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
             ],
             "meta": {
-                "label": "Причина неисправности со слов дилера",
+                "label": "Неисправность со слов дилера/партнёра",
                 "infoText": "dealerCause"
             },
             "type": "textarea"

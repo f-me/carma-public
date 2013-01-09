@@ -1,0 +1,16 @@
+{
+    "entries": [
+        {
+            "label": "техпомощь",
+            "value": "tech"
+        },
+        {
+            "label": "эвакуатор",
+            "value": "towage"
+        },
+        {
+            "label": "техпомощь и эвакуатор",
+            "value": "techtowage"
+        }
+    ]
+}

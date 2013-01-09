@@ -7,16 +7,11 @@ module Snaplet.DbLayer.Triggers
 import Data.Functor ((<$>))
 import Control.Monad (foldM)
 import Control.Monad.State (gets)
-import Control.Monad.Trans
 import Control.Monad.Trans.State (execStateT)
 
-import Data.List (foldl')
-import Data.Map (Map)
 import qualified Data.Map as Map
-import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 
-import Snap.Snaplet (Handler(..))
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
@@ -37,7 +32,7 @@ triggerUpdate objId commit = do
   let cfg = unionTriggers (compileRecs recs) actions
   loop cfg 5 emptyContext $ Map.singleton objId commit'
   where
-    loop cfg 0 cxt changes = return $ unionMaps changes $ updates cxt
+    loop _ 0 cxt changes = return $ unionMaps changes $ updates cxt
     loop cfg n cxt changes
       | Map.null changes = return $ updates cxt
       | otherwise = do

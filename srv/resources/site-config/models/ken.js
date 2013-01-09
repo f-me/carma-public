@@ -16,35 +16,6 @@
         },
         {
             "targets": [
-                "payment_expectedCost"
-            ],
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ]
-        },
-        {
-            "targets": [
                 "cost_countedCost"
             ],
             "canRead": [

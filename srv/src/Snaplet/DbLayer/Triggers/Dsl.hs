@@ -25,8 +25,10 @@ import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
 
+
 import RuntimeFlag
 
+tryAll :: Alternative f => (a -> f b) -> [a] -> f b
 tryAll f = foldl (<|>) empty . map f
 
 get :: ObjectId -> FieldName -> TriggerMonad b FieldValue

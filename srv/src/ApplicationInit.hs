@@ -35,7 +35,7 @@ import ApplicationHandlers
 import AppHandlers.ActionAssignment
 import AppHandlers.CustomSearches
 ----------------------------------------------------------------------
-import Util (readJSON, UsersDict(..))
+import Util (readJSON)
 
 
 
@@ -71,6 +71,9 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/_/report/:id",  chkAuth . method DELETE $ deleteReportHandler)
          , ("/search/:model", chkAuth . method GET  $ searchHandler)
          , ("/rkc",           chkAuth . method GET  $ rkcHandler)
+         , ("/rkc/weather/:city", chkAuth . method GET $ rkcWeatherHandler)
+         , ("/rkc/front", chkAuth . method GET $ rkcFrontHandler)
+         , ("/rkc/partners", chkAuth . method GET $ rkcPartners)
          , ("/usersDict",     chkAuth . method GET  $ getUsersDict)
          , ("/activeUsers",   chkAuth . method GET  $ getActiveUsers)
          , ("/vin/upload",    chkAuth . method POST $ vinUploadData)
@@ -134,10 +137,10 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
             <*> lookupCfg "pg_db_name"
   -- FIXME: force cInfo evaluation
   pgs <- liftIO $ createPool (Pg.connect cInfo) Pg.close 1 5 20
-  cInfo <- liftIO $ (\u p -> cInfo {connectUser = u, connectPassword = p})
+  cInfoActass <- liftIO $ (\u p -> cInfo {connectUser = u, connectPassword = p})
             <$> lookupCfg "pg_actass_user"
             <*> lookupCfg "pg_actass_pass"
-  pga <- liftIO $ createPool (Pg.connect cInfo) Pg.close 1 5 20
+  pga <- liftIO $ createPool (Pg.connect cInfoActass) Pg.close 1 5 20
 
   v <- nestSnaplet "vin" vin vinInit
   fu <- nestSnaplet "upload" fileUpload fileUploadInit

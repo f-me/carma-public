@@ -1,9 +1,7 @@
 this.setupRKCOpsScreen = (viewName, args) ->
   setTimeout ->
-    frontt = $('#rkc-ops-front-operators-table')
-    eachao = $('#rkc-ops-back-operators-table')
 
-    return if frontt.hasClass('dataTable')
+    eachao = $('#rkc-ops-back-operators-table')
     return if eachao.hasClass("dataTable")
 
     actstbl = {}
@@ -16,36 +14,7 @@ this.setupRKCOpsScreen = (viewName, args) ->
 
     ko.applyBindings(actstbl, el("rkc-ops-back-operators-table"))
 
-    ft = mkDataTable frontt, { bFilter: false, bInfo: false }
     eat = mkDataTable eachao, { bFilter: false, bInfo: false }
-
-    $('#reload').click -> update()
-
-    dict = global.dictValueCache
-
-    programs = for v in global.dictionaries.Programs.entries
-      p =
-        id: v.value
-        name: v.label
-
-    programs.unshift { id: "", name: "Все" }
-
-    ko.applyBindings(programs, el("program-select"))
-
-    cities = for v in global.dictionaries.DealerCities.entries
-      c =
-        id: v.value
-        name: v.label
-
-    cities.unshift { id: "", name: "Все" }
-
-    ko.applyBindings(cities, el("city-select"))
-
-    ps = $('#program-select')
-    ps.change -> update()
-
-    cs = $('#city-select')
-    cs.change -> update()
 
     fmttime = (tm) ->
         fmt = (x) -> if x < 10 then "0" + x else "" + x
@@ -54,24 +23,14 @@ this.setupRKCOpsScreen = (viewName, args) ->
     fmtavg = (val) ->
         fmttime(val[0]) + "/" + val[1]
 
-    update = () ->
-      prog = ps.val()
-      city = cs.val()
+    getArgs = () -> this.filterRKCArgs()
 
-      args = "?" + ["program=" + prog, "city=" + city].filter((x) -> x).join("&")
+    update = () ->
+      args = getArgs()
 
       $.getJSON("/rkc" + args, (result) ->
         dict = global.dictValueCache
-        ft.fnClearTable()
         eat.fnClearTable()
-
-        frows = for finfo in result.front.operators
-          frow = [
-            finfo.name,
-            finfo.roles,
-            fmttime(finfo.avg)]
-
-        ft.fnAddData(frows)
 
         eavision = []
         eavision.length = actstbl.cols.length
@@ -91,6 +50,10 @@ this.setupRKCOpsScreen = (viewName, args) ->
             eat.fnSetColumnVis(i, if c then true else false)
 
         eat.fnAddData(earows))
+
+    partners = ko.observableArray([])
+    this.initRKCDate update, partners
+    this.fillRKCFilters update, partners
 
     global.rkcOpsData = {}
 

@@ -4,10 +4,8 @@ module Snaplet.DbLayer.Triggers.Types where
 import Control.Monad.Trans.State
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Data.Lens.Common
 
 import Snap.Snaplet
-import Snap.Snaplet.RedisDB (RedisDB)
 import Snaplet.DbLayer.Types
 
 
@@ -17,6 +15,7 @@ data TriggerContext = TriggerContext
   ,current :: ObjectMap
   }
 
+emptyContext :: TriggerContext
 emptyContext = TriggerContext Map.empty Map.empty Map.empty
 
 type TriggerMonad b r = StateT TriggerContext (Handler b (DbLayer b)) r

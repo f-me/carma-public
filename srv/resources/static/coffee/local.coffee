@@ -51,6 +51,12 @@ localScreens = ->
       "rkcOps-form":
         constructor: setupRKCOpsScreen
         destructor: removeRKCOpsScreen
+  "rkcFront":
+    "template": "rkcFront-screen-template"
+    "views":
+      "rkcFront-form":
+        constructor: setupRKCFrontScreen
+        destructor: removeRKCFrontScreen
   "reports":
     "template": "reports-screen-template"
     "views":
@@ -94,6 +100,7 @@ localRouter = Backbone.Router.extend
     "supervisor"  : "supervisor"
     "rkc"         : "rkc"
     "rkcOps"      : "rkcOps"
+    "rkcFront"    : "rkcFront"
     "editSms"     : "editSms"
     "printSrv/:model/:id" : "printSrv"
 
@@ -112,6 +119,7 @@ localRouter = Backbone.Router.extend
   supervisor  :      -> renderScreen("supervisor")
   rkc         :      -> renderScreen("rkc")
   rkcOps      :      -> renderScreen("rkcOps")
+  rkcFront    :      -> renderScreen("rkcFront")
   editSms     :      -> renderScreen("editSms")
   printSrv    : (model, id) -> renderScreen "printSrv", {model: model, id: id}
 
