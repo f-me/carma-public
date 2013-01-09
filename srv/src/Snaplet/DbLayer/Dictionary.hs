@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings, TypeSynonymInstances, FlexibleInstances #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Snaplet.DbLayer.Dictionary (
     Dictionary,
@@ -12,7 +13,6 @@ import Control.Arrow
 import Control.Monad
 import Data.Aeson
 import Data.Maybe
-import Data.List
 import qualified Data.ByteString.Lazy.Char8 as LC8
 import qualified Data.Text           as T
 import qualified Data.Text.Encoding  as T
@@ -111,6 +111,7 @@ instance FromJSON RKCCalc where
     HM.foldrWithKey f (return Map.empty) e
     where
       f k v m = Map.insert (T.encodeUtf8 k) <$> parseJSON v <*> m
+  parseJSON _ = empty
 
 instance FromJSON RKCEntry where
   parseJSON (Array a) = V.foldl f (return Map.empty) a
@@ -119,3 +120,5 @@ instance FromJSON RKCEntry where
         name  <- v .: "name"
         value <- v .: "value"
         m >>= return  . Map.union (Map.singleton name value)
+      f _ _ = empty
+  parseJSON _ = empty

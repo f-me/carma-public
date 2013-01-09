@@ -2,7 +2,6 @@ module Utils.RKCCalc where
 
 import qualified Data.Map as M
 import           Data.Map (Map)
-import qualified Data.ByteString.Char8 as B
 import           Data.ByteString (ByteString)
 import           Data.Maybe
 
@@ -28,7 +27,7 @@ setSrvMCost "rent" obj parent dict = printBPrice $ providedFor * dayCost
     providedFor = maybe 0 readDouble $ M.lookup "providedFor" obj
     dayCost     = rkc parent "rentDayCost" dict
 
-setSrvMCost "taxi" obj parent dict = printBPrice $ rkc parent "taxiLimit" dict
+setSrvMCost "taxi" _ parent dict = printBPrice $ rkc parent "taxiLimit" dict
 
 setSrvMCost _        _   _      _    = "0"
 

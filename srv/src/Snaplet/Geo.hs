@@ -159,6 +159,6 @@ distance = twoPointHandler distanceQuery (head . head :: [[Double]] -> Double)
 geoInit :: SnapletInit b Geo
 geoInit = makeSnaplet "geo" "Geoservices" Nothing $ do
     db <- nestSnaplet "postgres" postgres pgsInit
-    cfg <- getSnapletUserConfig
+    _ <- getSnapletUserConfig
     addRoutes routes
     return $ Geo db

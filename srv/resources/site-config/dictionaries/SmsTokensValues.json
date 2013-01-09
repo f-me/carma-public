@@ -200,6 +200,22 @@
             {
                 "value": "ruslan",
                 "label": "+78002504357"
+            },
+            {
+                "value": "citroen",
+                "label": "+78001001223"
+            },
+            {
+                "value": "peugeot",
+                "label": "+78005551810"
+            },
+            {
+                "value": "advocard",
+                "label": "+74956406690"
+            },
+            {
+                "value": "samaraAssis",
+                "label": "+78002500161"
             }
         ],
         "program_from_name": [
@@ -252,7 +268,11 @@
             {"value": "tickets", "label": "RAMC"},
             {"value": "ramc1", "label": "RAMC"},
             {"value": "ramc2", "label": "RAMC"},
-            {"value": "ruslan", "label": "RUS LAN"}
+            {"value": "ruslan", "label": "RUS LAN"},
+            {"value": "citroen","label": "Citroen Assistance"},
+            {"value": "peugeot","label": "Peugeot Assistance"},
+            {"value": "advocard","label": "Advocard"},
+            {"value": "samaraAssis","label": "Samara Assistance"}
         ],
         "program_info": [
             {
@@ -454,6 +474,22 @@
             {
                 "value": "ruslan",
                 "label": "Рус Лан"
+            },
+            {
+                "value": "citroen",
+                "label": "Citroen Assistance"
+            },
+            {
+                "value": "peugeot",
+                "label": "Peugeot Assistance"
+            },
+            {
+                "value": "advocard",
+                "label": "Адвокард"
+            },
+            {
+                "value": "samaraAssis",
+                "label": "Самара-Ассистан"
             }
         ]
     }

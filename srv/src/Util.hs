@@ -28,17 +28,14 @@ import qualified Data.ByteString.Lazy  as L
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lex.Double as B
 
+import Data.String
 import qualified Data.Text          as T
 import qualified Data.Text.Encoding as T
 
 import Data.Aeson as Aeson
 import Data.Aeson.TH
-import Data.Aeson.Types (Parser)
 import Data.Attoparsec.ByteString.Lazy (Result(..))
 import qualified Data.Attoparsec.ByteString.Lazy as Atto
-
-import qualified Database.Redis       as Redis
-import qualified Snap.Snaplet.RedisDB as Redis
 
 import Data.Attoparsec.Combinator (many1, choice)
 import qualified Data.Attoparsec.ByteString.Char8 as A
@@ -99,6 +96,7 @@ $(deriveToJSON id ''UsersDict)
 
 --------------------------------------------------------------------------------
 -- param parser for select
+sParse :: ByteString -> [ByteString]
 sParse prm =
   let A.Done _ r = A.feed (A.parse (c) prm) B.empty
   in r
@@ -107,17 +105,20 @@ sParse prm =
       p = trim $ choice $ map (A.string) ["<=", "<", ">=", ">", "=="]
       c = do
         v    <- n
-        pred <- p
+        pred' <- p
         l    <- n
-        return [v, pred, l]
-      trim p = A.skipSpace *> p <* A.skipSpace
+        return [v, pred', l]
+      trim pars = A.skipSpace *> pars <* A.skipSpace
 
+s2p :: (Eq s, IsString s, Ord a) => s -> (a -> a -> Bool)
 s2p "<=" = (<=)
 s2p "<"  = (<)
 s2p ">"  = (>)
 s2p ">=" = (>=)
 s2p "==" = (==)
+s2p s = error "Invalid argument of s2p"
 
+selectParse :: Map ByteString ByteString -> ByteString -> Bool
 selectParse obj prm =
   let [l,p,r] = sParse prm
       p' = s2p p
@@ -144,22 +145,28 @@ lookupNE key obj = Map.lookup key obj >>= lp
   where lp "" = Nothing
         lp v  = return v
 
+calcCost :: Map ByteString ByteString -> Map ByteString ByteString -> Maybe ByteString
 calcCost srv opt = getCost srv opt >>= calcCost'
   where calcCost' cost = do
           count <- lookupNE "count" opt >>= mbreadDouble
           cost' <- mbreadDouble cost
           return $ printBPrice $ cost' * count
 
+getCost :: Map ByteString ByteString -> Map ByteString ByteString -> Maybe ByteString
 getCost opt srv = getCostField srv >>= flip lookupNE opt
 
+getCostField :: Map ByteString ByteString -> Maybe ByteString
 getCostField srv = lookupNE "payType" srv >>= selectPrice
 
+selectPrice :: ByteString -> Maybe ByteString
 selectPrice v
           | v == "ruamc"                             = Just "price2"
           | any (== v) ["client", "mixed", "refund"] = Just "price1"
           | otherwise                               = Nothing
 
+printPrice :: Double -> String
 printPrice p = printf "%.2f" p
+printBPrice :: Double -> ByteString
 printBPrice p = B.pack $ printPrice p
 
 upCaseStr :: ByteString -> ByteString

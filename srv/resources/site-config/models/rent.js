@@ -206,35 +206,6 @@
         },
         {
             "targets": [
-                "payment_expectedCost"
-            ],
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ]
-        },
-        {
-            "targets": [
                 "payment_partnerCost",
                 "payment_costTranscript"
             ],
@@ -628,6 +599,39 @@
             "groupName": "address",
             "meta": {
                 "label": "Адрес (куда доставить)"
+            }
+        },
+        {
+            "name": "vinRent",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "canWrite": [
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "meta": {
+                "label": "VIN подменного автомобиля",
+                "transform": "uppercase"
             }
         },
         {

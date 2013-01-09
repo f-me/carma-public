@@ -18,8 +18,7 @@ import qualified Control.Exception as E
 
 import qualified Data.Aeson as A
 import qualified Data.Map as M
-import Data.Monoid
-import Data.Maybe (fromMaybe, listToMaybe, mapMaybe, catMaybes)
+import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import Data.ByteString (ByteString)
 import Data.Char
 import Data.List (isPrefixOf, find, elemIndex)
@@ -36,8 +35,6 @@ import qualified Snap.Snaplet.PostgresqlSimple as PS
 import qualified Data.Pool as Pool
 
 import qualified Database.PostgreSQL.Sync as S
-import qualified Database.PostgreSQL.Sync.Base as S
-import qualified Database.PostgreSQL.Sync.Types as S
 import Database.PostgreSQL.Sync.JSON ()
 import qualified Database.PostgreSQL.Report as R
 import qualified Database.PostgreSQL.Report.Xlsx as R

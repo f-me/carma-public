@@ -1,4 +1,4 @@
-{-# LANGUAGE DoAndIfThenElse #-}
+{-# LANGUAGE DoAndIfThenElse, OverloadedStrings #-}
 
 module ApplicationHandlers where
 -- FIXME: reexport AppHandlers/* & remove import AppHandlers.* from AppInit
@@ -20,12 +20,11 @@ import qualified Data.Aeson as Aeson
 import Data.List
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Data.Set (Set)
 import qualified Data.Set as Set
+import Data.String
 import qualified Data.HashMap.Strict as HashMap
 
 import Data.Maybe
-import Data.List (sortBy)
 import Data.Ord (comparing)
 
 import Data.Time
@@ -40,8 +39,11 @@ import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.SimpleLog
 import Snap.Snaplet.Vin
 import Snap.Util.FileServe (serveFile)
+
+import WeatherApi (getWeather', tempC)
 ------------------------------------------------------------------------------
 import qualified Snaplet.DbLayer as DB
+import qualified Snaplet.DbLayer.Types as DB
 import qualified Snaplet.DbLayer.RKC as RKC
 import Snaplet.FileUpload (doUpload', doDeleteAll')
 ------------------------------------------------------------------------------
@@ -71,14 +73,13 @@ redirectToLogin = redirect' "/login/" 303
 -- | If user is not logged in, redirect to login page, pass to
 -- handler otherwise.
 authOrLogin :: AppHandler () -> AppHandler ()
-authOrLogin h = requireUser auth redirectToLogin h
+authOrLogin = requireUser auth redirectToLogin
 
 
 ------------------------------------------------------------------------------
 -- | Render empty login form.
 loginForm :: AppHandler ()
-loginForm = do
-  serveFile $ "snaplets/heist/resources/templates/login.html"
+loginForm = serveFile "snaplets/heist/resources/templates/login.html"
 
 
 ------------------------------------------------------------------------------
@@ -95,14 +96,14 @@ doLogin = ifTop $ do
       creds <- (,)
         <$> getParam "avayaExt"
         <*> getParam "avayaPwd"
-      case creds of
-        (Just ext, Just pwd) -> with auth $ saveUser
+      _ <- case creds of
+        ~(Just ext, Just pwd) -> with auth $ saveUser
           u {userMeta
             = HashMap.insert "avayaExt" (Aeson.toJSON ext)
             $ HashMap.insert "avayaPwd" (Aeson.toJSON pwd)
             $ userMeta u
             }
-      addToLoggedUsers u
+      _ <- addToLoggedUsers u
 
       redirect "/"
 
@@ -213,14 +214,95 @@ searchHandler = scope "searchHandler" $ do
   res <- with db $ DB.searchFullText m (B.split ',' fs) sels q lim
   writeJSON $ map (Map.fromList . zip sels) res
 
+-- rkc helpers
+getFromTo :: AppHandler (Maybe UTCTime, Maybe UTCTime)
+getFromTo = do
+  fromTime <- getParam "from"
+  toTime <- getParam "to"
+
+  tz <- liftIO getCurrentTimeZone
+
+  let
+    parseLocalTime :: ByteString -> Maybe LocalTime
+    parseLocalTime = parseTime defaultTimeLocale "%d.%m.%Y" . BU.toString
+
+    fromTime' = fmap (localTimeToUTC tz) (fromTime >>= parseLocalTime)
+    toTime' = fmap (localTimeToUTC tz) (toTime >>= parseLocalTime)
+
+  return (fromTime', toTime')
+
+getParamOrEmpty :: ByteString -> AppHandler T.Text
+getParamOrEmpty = liftM (maybe T.empty T.decodeUtf8) . getParam
+
 rkcHandler :: AppHandler ()
-rkcHandler = scope "rkcHandler" $ do
-  p <- getParam "program"
-  c <- getParam "city"
+rkcHandler = scope "rkc" $ scope "handler" $ do
+  p <- getParamOrEmpty "program"
+  c <- getParamOrEmpty "city"
+  part <- getParamOrEmpty "partner"
+  (from, to) <- getFromTo
+
+  flt <- liftIO RKC.todayFilter
+  let
+    flt' = flt {
+      RKC.filterFrom = fromMaybe (RKC.filterFrom flt) from,
+      RKC.filterTo = fromMaybe (RKC.filterTo flt) to,
+      RKC.filterProgram = p,
+      RKC.filterCity = c,
+      RKC.filterPartner = part }
+
   usrs <- gets allUsers
-  info <- with db $ RKC.rkc usrs (maybe T.empty T.decodeUtf8 p) (maybe T.empty T.decodeUtf8 c)
+  info <- with db $ RKC.rkc usrs flt'
   writeJSON info
 
+rkcWeatherHandler :: AppHandler ()
+rkcWeatherHandler = scope "rkc" $ scope "handler" $ scope "weather" $ do
+  city <- getParam "city"
+  case city of
+    Nothing -> writeJSON ()
+    Just city' -> do
+      temp <- with db $ do
+        conf <- gets DB.weather
+        w <- liftIO $ getWeather' conf $ BU.toString city'
+        case w of
+          Right w' -> do
+            log Trace $ T.concat ["Weather for city ", T.decodeUtf8 city', " is: ", fromString $ show w']
+            return . show . tempC $ w'
+          Left err -> do
+            log Debug $ T.concat ["Failed to get weather for city ", T.decodeUtf8 city', " due to: ", fromString $ show err]
+            return "-"
+      writeJSON temp
+
+rkcFrontHandler :: AppHandler ()
+rkcFrontHandler = scope "rkc" $ scope "handler" $ scope "front" $ do
+  p <- getParamOrEmpty "program"
+  c <- getParamOrEmpty "city"
+  part <- getParamOrEmpty "partner"
+  (from, to) <- getFromTo
+
+  flt <- liftIO RKC.todayFilter
+  let
+    flt' = flt {
+      RKC.filterFrom = fromMaybe (RKC.filterFrom flt) from,
+      RKC.filterTo = fromMaybe (RKC.filterTo flt) to,
+      RKC.filterProgram = p,
+      RKC.filterCity = c,
+      RKC.filterPartner = part }
+
+  res <- with db $ RKC.rkcFront flt'
+  writeJSON res
+
+rkcPartners :: AppHandler ()
+rkcPartners = scope "rkc" $ scope "handler" $ scope "partners" $ do
+  flt <- liftIO RKC.todayFilter
+  (from, to) <- getFromTo
+
+  let
+    flt' = flt {
+      RKC.filterFrom = fromMaybe (RKC.filterFrom flt) from,
+      RKC.filterTo = fromMaybe (RKC.filterTo flt) to }
+
+  res <- with db $ RKC.partners (RKC.filterFrom flt') (RKC.filterTo flt')
+  writeJSON res
 
 -- | This action recieve model and id as parameters to lookup for
 -- and json object with values to create new model with specified
@@ -228,9 +310,9 @@ rkcHandler = scope "rkcHandler" $ do
 findOrCreateHandler :: AppHandler ()
 findOrCreateHandler = do
   Just model <- getParam "model"
-  Just id    <- getParam "id"
+  Just objId    <- getParam "id"
   commit <- getJSONBody
-  res <- with db $ DB.findOrCreate model id commit
+  res <- with db $ DB.findOrCreate model objId commit
   -- FIXME: try/catch & handle/log error
   writeJSON res
 
@@ -278,22 +360,22 @@ report = scope "report" $ do
 createReportHandler :: AppHandler ()
 createReportHandler = do
   res <- with db $ DB.create "report" $ Map.empty
-  let id = last $ B.split ':' $ fromJust $ Map.lookup "id" res
-  (f:_)      <- with fileUpload $ doUpload' "report" id "templates"
+  let objId = last $ B.split ':' $ fromJust $ Map.lookup "id" res
+  (f:_)      <- with fileUpload $ doUpload' "report" objId "templates"
   Just name  <- getParam "name"
   -- we have to update all model params after fileupload,
   -- because in multipart/form-data requests we do not have
   -- params as usual, see Snap.Util.FileUploads.setProcessFormInputs
-  with db $ DB.update "report" id $
+  _ <- with db $ DB.update "report" objId $
     Map.fromList [ ("templates", BU.fromString f)
                  , ("name",      name) ]
   redirect "/#reports"
 
 deleteReportHandler :: AppHandler ()
 deleteReportHandler = do
-  Just id  <- getParam "id"
-  with db $ DB.delete "report" id
-  with fileUpload $ doDeleteAll' "report" id
+  Just objId  <- getParam "id"
+  with db $ DB.delete "report" objId
+  with fileUpload $ doDeleteAll' "report" objId
   return ()
 
 getUsersDict :: AppHandler ()
@@ -338,23 +420,23 @@ vinStateRemove = scope "vin" $ scope "state" $ scope "remove" $ do
 
 getSrvTarifOptions :: AppHandler ()
 getSrvTarifOptions = do
-  Just id    <- getParam "id"
+  Just objId    <- getParam "id"
   Just model <- getParam "model"
-  srv     <- with db $ DB.read model id
-  partner <- with db $ get $ B.split ':' $
+  srv     <- with db $ DB.read model objId
+  partner <- with db $ getObj $ B.split ':' $
              fromMaybe "" $ Map.lookup "contractor_partnerId" srv
   -- partner services with same serviceName as current service model
-  partnerSrvs <- with db $ mapM get $ getIds "services" partner
+  partnerSrvs <- with db $ mapM getObj $ getIds "services" partner
   case filter (mSrv model) partnerSrvs of
     []     -> return ()
-    (x:xs) -> do
-      tarifOptions <- with db $ mapM get $ getIds "tarifOptions" x
+    (x:_) -> do
+      tarifOptions <- with db $ mapM getObj $ getIds "tarifOptions" x
       writeJSON $ map rebuilOpt tarifOptions
   where
       getIds f m = map (B.split ':') $ B.split ',' $
                    fromMaybe "" $ Map.lookup f m
-      get [m, id] = Map.insert "id" id <$> DB.read m id
-      get _       = return $ Map.empty
+      getObj [m, objId] = Map.insert "id" objId <$> DB.read m objId
+      getObj _       = return $ Map.empty
       mSrv m = (m ==) . fromMaybe "" . Map.lookup "serviceName"
       rebuilOpt :: Map ByteString ByteString -> Map ByteString ByteString
       rebuilOpt o = Map.fromList $
@@ -370,20 +452,20 @@ smsProcessingHandler = scope "sms" $ do
 printServiceHandler :: AppHandler ()
 printServiceHandler = do
   Just model <- getParam "model"
-  Just id <- getParam "id"
-  srv     <- with db $ DB.read model id
+  Just objId <- getParam "id"
+  srv     <- with db $ DB.read model objId
   kase    <- with db $ DB.read' $ fromJust $ Map.lookup "parentId" srv
   actions <- with db $ mapM DB.read' $
              B.split ',' $ Map.findWithDefault "" "actions" kase
-  let id' = B.concat [model, ":", id]
-      action = head' $ filter ((Just id' ==) . Map.lookup "parentId") $ actions
+  let modelId = B.concat [model, ":", objId]
+      action = head' $ filter ((Just modelId ==) . Map.lookup "parentId") $ actions
   writeJSON $ Map.fromList [ ("action" :: ByteString, action)
                            , ("kase",   kase)
                            , ("service", srv)
                            ]
     where
       head' []     = Map.empty
-      head' (x:xs) = x
+      head' (x:_) = x
 
 
 getRuntimeFlags :: AppHandler ()
@@ -405,7 +487,7 @@ setRuntimeFlags = do
     updAll flags s = foldl' upd s $ Map.toList flags
     upd s (k,True)  = Set.insert (read k) s
     upd s (k,False) = Set.delete (read k) s
-    upd _ kv = error $ "Unexpected runtime flag: " ++ show kv
+    -- upd _ kv = error $ "Unexpected runtime flag: " ++ show kv
 
 
 errorsHandler :: AppHandler ()
@@ -421,10 +503,10 @@ logReq commit  = do
   r <- getRequest
   let params = rqParams r
       uri    = rqURI r
-      method = rqMethod r
+      rmethod = rqMethod r
   scoper "reqlogger" $ log Trace $ T.pack $
     show user ++ "; " ++
-    show method ++ " " ++ show uri ++ "; " ++
+    show rmethod ++ " " ++ show uri ++ "; " ++
     "params: " ++ show params ++ "; " ++
     "body: " ++ show commit
 

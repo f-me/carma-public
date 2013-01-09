@@ -112,10 +112,10 @@ actions
             mapM_ (setSrvMCost) =<< B.split ',' <$> get objId "services"
             return ()
                        ])
-          ,("contact_name",
-            [\objId val -> set objId "contact_name" $ upCaseStr val])
-          ,("contact_ownerName", 
-            [\objId val -> set objId "contact_ownerName" $ upCaseStr val])
+          -- ,("contact_name",
+          --   [\objId val -> set objId "contact_name" $ upCaseStr val])
+          -- ,("contact_ownerName", 
+          --   [\objId val -> set objId "contact_ownerName" $ upCaseStr val])
           ,("city", [\objId val -> do
                       oldCity <- lift $ runRedisDB redis $ Redis.hget objId "city"
                       case oldCity of
@@ -520,7 +520,7 @@ actionResultMap = Map.fromList
     act <- replaceAction
       "headCheck"
       "Проверка РКЦ"
-      "head" "1" (+360) objId
+      "supervisor" "1" (+360) objId
     set act "assignedTo" ""
   )
   ,("parguyToBack", \objId -> do
@@ -569,7 +569,7 @@ actionResultMap = Map.fromList
     act <- replaceAction
       "headCheck"
       "Проверка РКЦ"
-      "head" "1" (+360) objId
+      "supervisor" "1" (+360) objId
     set act "assignedTo" ""
   )
   ,("directorConfirm", \objId -> do
@@ -686,7 +686,7 @@ closeSerivceAndSendInfoVW objId = do
 
   act2 <- replaceAction
     "getInfoDealerVW"
-    "Требуется уточнить информацию о ремонте у дилера (только для VW)"
+    "Уточнить информацию о ремонте у дилера/партнёра (VW, PSA)"
     "back" "3" (+7*24*60*60)
     objId
 

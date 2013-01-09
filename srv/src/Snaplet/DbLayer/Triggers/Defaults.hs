@@ -4,7 +4,6 @@ module Snaplet.DbLayer.Triggers.Defaults
   ) where 
 
 import Control.Monad.IO.Class
-import Control.Monad (liftM)
 import Data.Functor
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -22,6 +21,7 @@ import Snaplet.DbLayer.Types
 import Util
 import Utils.RKCCalc
 
+applyDefaults :: ModelName -> Map FieldName B.ByteString -> Handler b (DbLayer b) (Map FieldName B.ByteString)
 applyDefaults model obj = do
   ct <- liftIO $ round . utcTimeToPOSIXSeconds
               <$> getCurrentTime
@@ -59,7 +59,7 @@ applyDefaults model obj = do
           fromMaybe "" $ Map.lookup "parentId" obj
   let kase' = either (\_ -> Map.empty) Map.fromList kase
 
-  obj' <- if model `elem` services
+  obj'' <- if model `elem` services
       then
         return $ Map.union obj' $ Map.fromList
           [("times_expectedServiceStart",   B.pack $ show $ ct + h)
@@ -74,10 +74,10 @@ applyDefaults model obj = do
           ]
       else return obj'
 
-  obj'' <- do
+  obj''' <- do
     case model of
       "cost_serviceTarifOption" -> do
-        o <- liftM (Map.union obj') (pricesFromOpt obj')
+        o <- liftM (Map.union obj'') (pricesFromOpt obj'')
         let srvId = fromMaybe "" $ Map.lookup "parentId" o
         srv <- Redis.runRedisDB redis $ Redis.hgetall srvId
         case Map.fromList <$> srv of
@@ -91,12 +91,12 @@ applyDefaults model obj = do
               , ("cost",  printBPrice $ price*count)
               ]
 
-      _ -> return obj'
+      _ -> return obj''
 
-  return $ Map.union (Map.insert "ctime" (B.pack $ show ct) obj'')
+  return $ Map.union (Map.insert "ctime" (B.pack $ show ct) obj''')
          $ Map.findWithDefault Map.empty model defaults
 
-
+services :: [B.ByteString]
 services =
   ["deliverCar"
   ,"deliverParts"
@@ -119,6 +119,7 @@ services =
   ,"consultation"
   ]
 
+serviceDefaults :: Map FieldName B.ByteString
 serviceDefaults = Map.fromList
   [("status", "creating")
   ,("payType", "ruamc")
@@ -169,6 +170,7 @@ defaults = Map.fromList
   ]
 
 -- | Copy price1 and price2 from tarifOption to new cost_serviceTarifOption
+pricesFromOpt :: Map B.ByteString B.ByteString -> Handler b (DbLayer b) (Map B.ByteString B.ByteString)
 pricesFromOpt obj = do
   case Map.lookup "tarifOptionId" obj of
     Nothing -> return Map.empty
