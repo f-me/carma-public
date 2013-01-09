@@ -214,12 +214,44 @@ searchHandler = scope "searchHandler" $ do
   res <- with db $ DB.searchFullText m (B.split ',' fs) sels q lim
   writeJSON $ map (Map.fromList . zip sels) res
 
+-- rkc helpers
+getFromTo :: AppHandler (Maybe UTCTime, Maybe UTCTime)
+getFromTo = do
+  fromTime <- getParam "from"
+  toTime <- getParam "to"
+
+  tz <- liftIO getCurrentTimeZone
+
+  let
+    parseLocalTime :: ByteString -> Maybe LocalTime
+    parseLocalTime = parseTime defaultTimeLocale "%d.%m.%Y" . BU.toString
+
+    fromTime' = fmap (localTimeToUTC tz) (fromTime >>= parseLocalTime)
+    toTime' = fmap (localTimeToUTC tz) (toTime >>= parseLocalTime)
+
+  return (fromTime', toTime')
+
+getParamOrEmpty :: ByteString -> AppHandler T.Text
+getParamOrEmpty = liftM (maybe T.empty T.decodeUtf8) . getParam
+
 rkcHandler :: AppHandler ()
 rkcHandler = scope "rkc" $ scope "handler" $ do
-  p <- getParam "program"
-  c <- getParam "city"
+  p <- getParamOrEmpty "program"
+  c <- getParamOrEmpty "city"
+  part <- getParamOrEmpty "partner"
+  (from, to) <- getFromTo
+
+  flt <- liftIO RKC.todayFilter
+  let
+    flt' = flt {
+      RKC.filterFrom = fromMaybe (RKC.filterFrom flt) from,
+      RKC.filterTo = fromMaybe (RKC.filterTo flt) to,
+      RKC.filterProgram = p,
+      RKC.filterCity = c,
+      RKC.filterPartner = part }
+
   usrs <- gets allUsers
-  info <- with db $ RKC.rkc usrs (maybe T.empty T.decodeUtf8 p) (maybe T.empty T.decodeUtf8 c)
+  info <- with db $ RKC.rkc usrs flt'
   writeJSON info
 
 rkcWeatherHandler :: AppHandler ()
@@ -242,9 +274,34 @@ rkcWeatherHandler = scope "rkc" $ scope "handler" $ scope "weather" $ do
 
 rkcFrontHandler :: AppHandler ()
 rkcFrontHandler = scope "rkc" $ scope "handler" $ scope "front" $ do
-  p <- getParam "program"
-  c <- getParam "city"
-  res <- with db $ RKC.rkcFront (maybe T.empty T.decodeUtf8 p) (maybe T.empty T.decodeUtf8 c)
+  p <- getParamOrEmpty "program"
+  c <- getParamOrEmpty "city"
+  part <- getParamOrEmpty "partner"
+  (from, to) <- getFromTo
+
+  flt <- liftIO RKC.todayFilter
+  let
+    flt' = flt {
+      RKC.filterFrom = fromMaybe (RKC.filterFrom flt) from,
+      RKC.filterTo = fromMaybe (RKC.filterTo flt) to,
+      RKC.filterProgram = p,
+      RKC.filterCity = c,
+      RKC.filterPartner = part }
+
+  res <- with db $ RKC.rkcFront flt'
+  writeJSON res
+
+rkcPartners :: AppHandler ()
+rkcPartners = scope "rkc" $ scope "handler" $ scope "partners" $ do
+  flt <- liftIO RKC.todayFilter
+  (from, to) <- getFromTo
+
+  let
+    flt' = flt {
+      RKC.filterFrom = fromMaybe (RKC.filterFrom flt) from,
+      RKC.filterTo = fromMaybe (RKC.filterTo flt) to }
+
+  res <- with db $ RKC.partners (RKC.filterFrom flt') (RKC.filterTo flt')
   writeJSON res
 
 -- | This action recieve model and id as parameters to lookup for

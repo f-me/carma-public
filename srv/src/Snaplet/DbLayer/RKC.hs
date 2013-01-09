@@ -1,8 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Snaplet.DbLayer.RKC (
+  Filter(..), todayFilter,
   rkc,
-  rkcFront
+  rkcFront,
+  partners
   ) where
 
 import Prelude hiding (log)
@@ -15,8 +17,10 @@ import Data.Aeson
 import Data.Maybe
 import Data.Monoid
 import Data.List (intersect, sort, nub)
+import Data.String
 import qualified Data.List as L (groupBy)
 import qualified Data.Map as M
+import Data.Time
 import Data.Function
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -48,6 +52,15 @@ withinToday :: T.Text -> T.Text -> PreQuery
 withinToday tbl col = thisDay `mappend` notNull tbl col where
   thisDay = preQuery_ [] [tbl] [equalsNow] [] []
   equalsNow = T.concat ["date_trunc('day', ", tbl, ".", col, " + '4 hours') = date_trunc('day', now())"]
+
+betweenTime :: UTCTime -> UTCTime -> T.Text -> T.Text -> PreQuery
+betweenTime from to tbl col = mconcat [
+  notNull tbl col,
+  preQuery [] [tbl] [T.concat [tbl, ".", col, " >= ?"]] [] [] [asLocal from],
+  preQuery [] [tbl] [T.concat [tbl, ".", col, " < ?"]] [] [] [asLocal to]]
+  where
+    asLocal :: UTCTime -> LocalTime
+    asLocal = utcToLocalTime utc
 
 count :: PreQuery
 count = preQuery_ ["count(*)"] [] [] [] []
@@ -172,8 +185,8 @@ mintQuery qs = do
         [] -> error "Int query returns no rows"
         (PS.Only r:_) -> return r
 
-caseSummary :: (PS.HasPostgres m, MonadLog m) => PreQuery -> m Value
-caseSummary constraints = scope "caseSummary" $ do
+caseSummary :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> PreQuery -> m Value
+caseSummary fromDate toDate constraints = scope "caseSummary" $ do
   log Trace "Loading summary"
   [t, m, d, dur, calc, lim, sat] <- sequence [
     trace "total" (run count),
@@ -194,10 +207,10 @@ caseSummary constraints = scope "caseSummary" $ do
   where
     percentage _ 0 = 100
     percentage n d = n * 100 `div` d
-    run p = liftM (fromMaybe 0) $ mintQuery $ mconcat [p, constraints, withinToday "servicetbl" "createTime"]
+    run p = liftM (fromMaybe 0) $ mintQuery $ mconcat [p, constraints, betweenTime fromDate toDate "servicetbl" "createTime"]
 
-caseServices :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> m Value
-caseServices constraints names = scope "caseServices" $ do
+caseServices :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> PreQuery -> [T.Text] -> m Value
+caseServices fromDate toDate constraints names = scope "caseServices" $ do
   [totals, startAvgs, endAvgs, calcs, lims] <- mapM todayAndGroup [count, averageStart, averageEnd, calculatedCost, limitedCost]
   let
     makeServiceInfo n = object [
@@ -212,18 +225,18 @@ caseServices constraints names = scope "caseServices" $ do
         lookAt = fromMaybe 0 . lookup n
   return $ toJSON $ map makeServiceInfo names
   where
-    todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "servicetbl" "type", p, constraints, withinToday "servicetbl" "createTime", groupBy "servicetbl" "type"]  
+    todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "servicetbl" "type", p, constraints, betweenTime fromDate toDate "servicetbl" "createTime", groupBy "servicetbl" "type"]  
 
-rkcCase :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> m Value
-rkcCase constraints services = scope "rkcCase" $ do
-  s <- caseSummary (mconcat [doneServices, constraints])
-  ss <- caseServices (mconcat [constraints, doneServices]) services
+rkcCase :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> PreQuery -> [T.Text] -> m Value
+rkcCase fromDate toDate constraints services = scope "rkcCase" $ do
+  s <- caseSummary fromDate toDate (mconcat [doneServices, constraints])
+  ss <- caseServices fromDate toDate (mconcat [constraints, doneServices]) services
   return $ object [
     "summary" .= s,
     "services" .= ss]
 
-actionsSummary :: (PS.HasPostgres m, MonadLog m) => PreQuery -> m Value
-actionsSummary constraints = scope "actionsSummary" $ do
+actionsSummary :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> PreQuery -> m Value
+actionsSummary fromDate toDate constraints = scope "actionsSummary" $ do
   log Trace "Loading summary"
   t <- trace "total" (run count)
   u <- trace "undone" (run (mconcat [count, undoneAction]))
@@ -231,10 +244,10 @@ actionsSummary constraints = scope "actionsSummary" $ do
     "total" .= t,
     "undone" .= u]
   where
-    run p = liftM (fromMaybe 0) $ mintQuery $ mconcat [p, constraints, withinToday "actiontbl" "duetime"]
+    run p = liftM (fromMaybe 0) $ mintQuery $ mconcat [p, constraints, betweenTime fromDate toDate "actiontbl" "duetime"]
 
-actionsActions :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> m Value
-actionsActions constraints actions = scope "actionsActions" $ do
+actionsActions :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> PreQuery -> [T.Text] -> m Value
+actionsActions fromDate toDate constraints actions = scope "actionsActions" $ do
   [totals, undones, avgs] <- mapM todayAndGroup [
     (count, "duetime"),
     (mconcat [count, undoneAction], "duetime"),
@@ -250,27 +263,28 @@ actionsActions constraints actions = scope "actionsActions" $ do
         lookAt = fromMaybe 0 . lookup n
   return $ toJSON $ map makeActionInfo actions
   where
-    todayAndGroup (p, tm) = trace "result" $ runQuery_ $ mconcat [select "actiontbl" "name", notNull "actiontbl" "name", p, constraints, withinToday "actiontbl" tm, groupBy "actiontbl" "name"]
+    todayAndGroup (p, tm) = trace "result" $ runQuery_ $ mconcat [select "actiontbl" "name", notNull "actiontbl" "name", p, constraints, betweenTime fromDate toDate "actiontbl" tm, groupBy "actiontbl" "name"]
 
-rkcActions :: (PS.HasPostgres m, MonadLog m) => PreQuery -> [T.Text] -> m Value
-rkcActions constraints actions = scope "rkcActions" $ do
-  s <- actionsSummary constraints
-  as <- actionsActions constraints actions
+rkcActions :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> PreQuery -> [T.Text] -> m Value
+rkcActions fromDate toDate constraints actions = scope "rkcActions" $ do
+  s <- actionsSummary fromDate toDate constraints
+  as <- actionsActions fromDate toDate constraints actions
   return $ object [
     "summary" .= s,
     "actions" .= as]
 
 -- | Average time for each operator and action
-rkcEachActionOpAvg :: (PS.HasPostgres m, MonadLog m) => [(T.Text, T.Text, T.Text)] -> [T.Text] -> m Value
-rkcEachActionOpAvg usrs acts = scope "rkcEachActionOpAvg" $ do
+rkcEachActionOpAvg :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> PreQuery -> [(T.Text, T.Text, T.Text)] -> [T.Text] -> m Value
+rkcEachActionOpAvg fromDate toDate constraints usrs acts = scope "rkcEachActionOpAvg" $ do
   r <- trace "result" $ runQuery_ $ mconcat [
+    constraints,
     select "actiontbl" "assignedTo",
     select "actiontbl" "name",
     averageActionTime,
     count,
     notNull "actiontbl" "name",
     notNull "actiontbl" "assignedTo",
-    withinToday "actiontbl" "duetime",
+    betweenTime fromDate toDate "actiontbl" "duetime",
     groupBy "actiontbl" "assignedTo",
     groupBy "actiontbl" "name",
     orderBy "actiontbl" "assignedTo",
@@ -305,14 +319,47 @@ actionNames = dictKeys "ActionNames"
 ifNotNull :: T.Text -> (T.Text -> PreQuery) -> PreQuery
 ifNotNull value f = if T.null value then mempty else f value
 
-rkc :: (PS.HasPostgres m, MonadLog m) => UsersDict -> T.Text -> T.Text -> m Value
-rkc (UsersDict usrs) program city = scope "rkc" $ do
-  log Trace $ T.concat ["Program: ", program]
-  log Trace $ T.concat ["City: ", city]
+data Filter = Filter {
+  filterFrom :: UTCTime,
+  filterTo :: UTCTime,
+  filterProgram :: T.Text,
+  filterCity :: T.Text,
+  filterPartner :: T.Text }
+    deriving (Eq, Show)
+
+todayFilter :: IO Filter
+todayFilter = do
+  tz <- getCurrentTimeZone
+  now <- fmap zonedTimeToLocalTime getZonedTime
+  let
+    startOfToday = now { localTimeOfDay = midnight }
+    startOfTomorrow = startOfToday { localDay = addDays 1 (localDay startOfToday) }
+
+  return Filter {
+    filterFrom = localTimeToUTC tz startOfToday,
+    filterTo = localTimeToUTC tz startOfTomorrow,
+    filterProgram = "",
+    filterCity = "",
+    filterPartner = "" }
+
+traceFilter :: MonadLog m => Filter -> m ()
+traceFilter (Filter from to prog city partner) = do
+  logTrace "Program: " prog
+  logTrace "City: " city
+  logTrace "From: " $ fromString $ show from
+  logTrace "To: " $ fromString $ show to
+  logTrace "Partner: " partner
+  where
+    logTrace :: MonadLog m => T.Text -> T.Text -> m ()
+    logTrace prefix value = log Trace $ T.concat [prefix, value]
+
+rkc :: (PS.HasPostgres m, MonadLog m) => UsersDict -> Filter -> m Value
+rkc (UsersDict usrs) filt@(Filter fromDate toDate program city partner) = scope "rkc" $ do
+  traceFilter filt
   dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
-  c <- rkcCase constraints (serviceNames dicts)
-  a <- rkcActions constraints (actionNames dicts)
-  ea <- rkcEachActionOpAvg usrs' (actionNames dicts)
+  c <- rkcCase fromDate toDate constraints (serviceNames dicts)
+  a <- rkcActions fromDate toDate constraints (actionNames dicts)
+  ea <- rkcEachActionOpAvg fromDate toDate constraints usrs' (actionNames dicts)
   return $ object [
     "case" .= c,
     "back" .= a,
@@ -320,20 +367,20 @@ rkc (UsersDict usrs) program city = scope "rkc" $ do
   where
     constraints = mconcat [
       ifNotNull program $ equals "casetbl" "program",
-      ifNotNull city $ equals "casetbl" "city"]
+      ifNotNull city $ equals "casetbl" "city",
+      ifNotNull partner $ equals "servicetbl" "contractor_partner"]
     usrs' = sort $ nub $ map toUsr usrs
     toUsr m = (maybe "" T.decodeUtf8 $ M.lookup "value" m, maybe "" T.decodeUtf8 $ M.lookup "label" m, maybe "" T.decodeUtf8 $ M.lookup "roles" m)
 
-rkcFront :: (PS.HasPostgres m, MonadLog m) => T.Text -> T.Text -> m Value
-rkcFront program city = scope "rkc" $ scope "front" $ do
-  log Trace $ T.concat ["Program: ", program]
-  log Trace $ T.concat ["City: ", city]
+rkcFront :: (PS.HasPostgres m, MonadLog m) => Filter -> m Value
+rkcFront filt@(Filter fromDate toDate program city _) = scope "rkc" $ scope "front" $ do
+  traceFilter filt
   calls <- trace "result" $ runQuery_ $ mconcat [
     select "calltbl" "callertype",
     select "calltbl" "calltype",
     count,
 
-    withinToday "calltbl" "calldate",
+    betweenTime fromDate toDate "calltbl" "calldate",
     ifNotNull program $ equals "calltbl" "program",
     ifNotNull city $ equals "calltbl" "city",
     
@@ -352,3 +399,17 @@ rkcFront program city = scope "rkc" $ scope "front" $ do
       "callertype" .= callerType,
       "calltype" .= callType,
       "callcount" .= callsCount]
+
+-- | All partners on services within time interval
+partners :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> m Value
+partners fromDate toDate = scope "rkc" $ scope "partners" $ do
+  log Trace $ T.concat ["From: ", fromString $ show fromDate]
+  log Trace $ T.concat ["To: ", fromString $ show toDate]
+  ps <- trace "result" $ runQuery_ $ mconcat [
+    select "servicetbl" "contractor_partner",
+
+    betweenTime fromDate toDate "servicetbl" "createTime",
+
+    groupBy "servicetbl" "contractor_partner",
+    orderBy "servicetbl" "contractor_partner"]
+  return $ toJSON (mapMaybe PS.fromOnly ps :: [T.Text])

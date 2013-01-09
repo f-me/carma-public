@@ -1,7 +1,7 @@
 this.setupRKCOpsScreen = (viewName, args) ->
   setTimeout ->
-    eachao = $('#rkc-ops-back-operators-table')
 
+    eachao = $('#rkc-ops-back-operators-table')
     return if eachao.hasClass("dataTable")
 
     actstbl = {}
@@ -16,34 +16,6 @@ this.setupRKCOpsScreen = (viewName, args) ->
 
     eat = mkDataTable eachao, { bFilter: false, bInfo: false }
 
-    $('#reload').click -> update()
-
-    dict = global.dictValueCache
-
-    programs = for v in global.dictionaries.Programs.entries
-      p =
-        id: v.value
-        name: v.label
-
-    programs.unshift { id: "", name: "Все" }
-
-    ko.applyBindings(programs, el("program-select"))
-
-    cities = for v in global.dictionaries.DealerCities.entries
-      c =
-        id: v.value
-        name: v.label
-
-    cities.unshift { id: "", name: "Все" }
-
-    ko.applyBindings(cities, el("city-select"))
-
-    ps = $('#program-select')
-    ps.change -> update()
-
-    cs = $('#city-select')
-    cs.change -> update()
-
     fmttime = (tm) ->
         fmt = (x) -> if x < 10 then "0" + x else "" + x
         Math.floor(tm / 60) + ":" + fmt(tm % 60)
@@ -51,11 +23,10 @@ this.setupRKCOpsScreen = (viewName, args) ->
     fmtavg = (val) ->
         fmttime(val[0]) + "/" + val[1]
 
-    update = () ->
-      prog = ps.val()
-      city = cs.val()
+    getArgs = () -> this.filterRKCArgs()
 
-      args = "?" + ["program=" + prog, "city=" + city].filter((x) -> x).join("&")
+    update = () ->
+      args = getArgs()
 
       $.getJSON("/rkc" + args, (result) ->
         dict = global.dictValueCache
@@ -79,6 +50,10 @@ this.setupRKCOpsScreen = (viewName, args) ->
             eat.fnSetColumnVis(i, if c then true else false)
 
         eat.fnAddData(earows))
+
+    partners = ko.observableArray([])
+    this.initRKCDate update, partners
+    this.fillRKCFilters update, partners
 
     global.rkcOpsData = {}
 

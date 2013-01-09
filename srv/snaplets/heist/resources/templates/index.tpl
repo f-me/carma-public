@@ -658,32 +658,63 @@
       <!-- <div class="pane" style="left:0;right:0;overflow-x:hidden;"> -->
       <div class="row-fluid">
         <div class="span12">
+          <h2>Фильтрация</h2>
           <div class="row-fluid">
-            <div class="span2">
-              <h2>Фильтрация</h2>
-            </div>
-            <div class="span4">
-              <div>
-                <div style="float:left; margin-top:+3px">
-                  Город:
+            <div class="span6">
+              <div class="row-fluid">
+                <div class="span4">
+                  <div style="float:left; margin-top:+3px">
+                    Город:
+                  </div>
                 </div>
-                <div style="float:left">
+                <div class="span8">
                   <select id="city-select" data-bind="foreach: $data">
                     <option data-bind="value: id, text: name" />
                   </select>
                 </div>
               </div>
-            </div>
-            <div class="span4">
-              <div>
-                <div style="float:left; margin-top:+3px">
-                  Программа:
+              <div class="row-fluid">
+                <div class="span4">
+                  <div style="float:left; margin-top:+3px">
+                    Программа:
+                  </div>
                 </div>
-                <div style="float:left">
+                <div class="span8">
                   <select id="program-select" data-bind="foreach: $data">
                     <option data-bind="value: id, text: name" />
                   </select>
                 </div>
+              </div>
+              <div class="row-fluid">
+                <div class="span4">
+                  <div style="float:left; margin-top:+3px">
+                    Партнёр:
+                  </div>
+                </div>
+                <div class="span8">
+                  <select id="partner-select" data-bind="foreach: $data">
+                    <option data-bind="value: id, text: name" />
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="span6">
+              <h3>Интервал</h3>
+              <div class="input-append date"
+                   data-provide="datepicker"
+                   data-autoshow-datepicker="true"
+                   data-date-format="dd.mm.yyyy"
+                   data-date-weekstart="1">
+                <input type="text" id="rkc-date-from" class="pane-span focusable" name="from"/>
+                <span class="add-on"><i class="icon icon-calendar" /></span>
+              </div>
+              <div class="input-append date"
+                   data-provide="datepicker"
+                   data-autoshow-datepicker="true"
+                   data-date-format="dd.mm.yyyy"
+                   data-date-weekstart="1">
+                <input type="text" id="rkc-date-to" class="pane-span focusable" name="to"/>
+                <span class="add-on"><i class="icon icon-calendar" /></span>
               </div>
             </div>
             <div class="span2">
@@ -866,38 +897,73 @@
             class="screen-template"
             id="rkcOps-screen-template">
       <div class="row-fluid">
-        <div class="span2">
+        <div class="span12">
           <h2>Фильтрация</h2>
-        </div>
-        <div class="span4">
-          <div>
-            <div style="float:left; margin-top:+3px">
-              Город:
+          <div class="row-fluid">
+            <div class="span6">
+              <div class="row-fluid">
+                <div class="span4">
+                  <div style="float:left; margin-top:+3px">
+                    Город:
+                  </div>
+                </div>
+                <div class="span8">
+                  <select id="city-select" data-bind="foreach: $data">
+                    <option data-bind="value: id, text: name" />
+                  </select>
+                </div>
+              </div>
+              <div class="row-fluid">
+                <div class="span4">
+                  <div style="float:left; margin-top:+3px">
+                    Программа:
+                  </div>
+                </div>
+                <div class="span8">
+                  <select id="program-select" data-bind="foreach: $data">
+                    <option data-bind="value: id, text: name" />
+                  </select>
+                </div>
+              </div>
+              <div class="row-fluid">
+                <div class="span4">
+                  <div style="float:left; margin-top:+3px">
+                    Партнёр:
+                  </div>
+                </div>
+                <div class="span8">
+                  <select id="partner-select" data-bind="foreach: $data">
+                    <option data-bind="value: id, text: name" />
+                  </select>
+                </div>
+              </div>
             </div>
-            <div style="float:left">
-              <select id="city-select" data-bind="foreach: $data">
-                <option data-bind="value: id, text: name" />
-              </select>
+            <div class="span6">
+              <h3>Интервал</h3>
+              <div class="input-append date"
+                   data-provide="datepicker"
+                   data-autoshow-datepicker="true"
+                   data-date-format="dd.mm.yyyy"
+                   data-date-weekstart="1">
+                <input type="text" id="rkc-date-from" class="pane-span focusable" name="from"/>
+                <span class="add-on"><i class="icon icon-calendar" /></span>
+              </div>
+              <div class="input-append date"
+                   data-provide="datepicker"
+                   data-autoshow-datepicker="true"
+                   data-date-format="dd.mm.yyyy"
+                   data-date-weekstart="1">
+                <input type="text" id="rkc-date-to" class="pane-span focusable" name="to"/>
+                <span class="add-on"><i class="icon icon-calendar" /></span>
+              </div>
             </div>
-          </div>
-        </div>
-        <div class="span4">
-          <div>
-            <div style="float:left; margin-top:+3px">
-              Программа:
+            <div class="span2">
+              <div class="control-group">
+                <button id="reload" class="btn">
+                  Обновить
+                </button>
+              </div>
             </div>
-            <div style="float:left">
-              <select id="program-select" data-bind="foreach: $data">
-                <option data-bind="value: id, text: name" />
-              </select>
-            </div>
-          </div>
-        </div>
-        <div class="span2">
-          <div class="control-group">
-            <button id="reload" class="btn">
-              Обновить
-            </button>
           </div>
         </div>
       </div>
@@ -919,38 +985,73 @@
             class="screen-template"
             id="rkcFront-screen-template">
       <div class="row-fluid">
-        <div class="span2">
+        <div class="span12">
           <h2>Фильтрация</h2>
-        </div>
-        <div class="span4">
-          <div>
-            <div style="float:left; margin-top:+3px">
-              Город:
+          <div class="row-fluid">
+            <div class="span6">
+              <div class="row-fluid">
+                <div class="span4">
+                  <div style="float:left; margin-top:+3px">
+                    Город:
+                  </div>
+                </div>
+                <div class="span8">
+                  <select id="city-select" data-bind="foreach: $data">
+                    <option data-bind="value: id, text: name" />
+                  </select>
+                </div>
+              </div>
+              <div class="row-fluid">
+                <div class="span4">
+                  <div style="float:left; margin-top:+3px">
+                    Программа:
+                  </div>
+                </div>
+                <div class="span8">
+                  <select id="program-select" data-bind="foreach: $data">
+                    <option data-bind="value: id, text: name" />
+                  </select>
+                </div>
+              </div>
+              <div class="row-fluid">
+                <div class="span4">
+                  <div style="float:left; margin-top:+3px">
+                    Партнёр:
+                  </div>
+                </div>
+                <div class="span8">
+                  <select id="partner-select" data-bind="foreach: $data">
+                    <option data-bind="value: id, text: name" />
+                  </select>
+                </div>
+              </div>
             </div>
-            <div style="float:left">
-              <select id="city-select" data-bind="foreach: $data">
-                <option data-bind="value: id, text: name" />
-              </select>
+            <div class="span6">
+              <h3>Интервал</h3>
+              <div class="input-append date"
+                   data-provide="datepicker"
+                   data-autoshow-datepicker="true"
+                   data-date-format="dd.mm.yyyy"
+                   data-date-weekstart="1">
+                <input type="text" id="rkc-date-from" class="pane-span focusable" name="from"/>
+                <span class="add-on"><i class="icon icon-calendar" /></span>
+              </div>
+              <div class="input-append date"
+                   data-provide="datepicker"
+                   data-autoshow-datepicker="true"
+                   data-date-format="dd.mm.yyyy"
+                   data-date-weekstart="1">
+                <input type="text" id="rkc-date-to" class="pane-span focusable" name="to"/>
+                <span class="add-on"><i class="icon icon-calendar" /></span>
+              </div>
             </div>
-          </div>
-        </div>
-        <div class="span4">
-          <div>
-            <div style="float:left; margin-top:+3px">
-              Программа:
+            <div class="span2">
+              <div class="control-group">
+                <button id="reload" class="btn">
+                  Обновить
+                </button>
+              </div>
             </div>
-            <div style="float:left">
-              <select id="program-select" data-bind="foreach: $data">
-                <option data-bind="value: id, text: name" />
-              </select>
-            </div>
-          </div>
-        </div>
-        <div class="span2">
-          <div class="control-group">
-            <button id="reload" class="btn">
-              Обновить
-            </button>
           </div>
         </div>
       </div>
