@@ -107,32 +107,28 @@
             "name": "serviceStart",
             "type": "date",
             "meta": {
-                "label": "Дата начала действия сервисного контракта",
-                "required": true
+                "label": "Дата начала действия сервисного контракта"
             }
         },
         {
             "name": "serviceEnd",
             "type": "date",
             "meta": {
-                "label": "Дата окончания действия сервисного контракта",
-                "required": true
+                "label": "Дата окончания действия сервисного контракта"
             }
         },
         {
             "name": "warrantyStart",
             "type": "date",
             "meta": {
-                "label": "Дата начала гарантии",
-                "required": true
+                "label": "Дата начала гарантии"
             }
         },
         {
             "name": "warrantyEnd",
             "type": "date",
             "meta": {
-                "label": "Дата окончания гарантии",
-                "required": true
+                "label": "Дата окончания гарантии"
             }
         },
         {
