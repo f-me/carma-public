@@ -260,6 +260,22 @@
             }
         },
         {
+            "name": "vwcreatedate",
+            "canRead": [
+                "vwfake"
+            ],
+            "canWrite": [
+                "vwfake"
+            ],
+            "index": true,
+            "indexCollate": true,
+            "type": "datetime",
+            "meta": {
+                "label": "Дата звонка",
+		"readonly": true
+            }
+        },        
+        {
             "name": "callTaker",
             "canRead": [
                 "partner",
