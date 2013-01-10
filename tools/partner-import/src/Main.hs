@@ -171,10 +171,10 @@ wtFormat :: Parser ()
 wtFormat =
     let
         dash     = char '-'
-        hourmins = ((digit >> digit) <|> digit) >> char ':' >> (digit >> digit)
-        daytime  = hourmins                     >> dash     >> hourmins
-        weekdays = digit                        >> dash     >> digit
-        singleWT = daytime                      >> char '/' >> weekdays
+        hourmins = ((digit >> digit) <|> digit) >>  char ':' >> (digit >> digit)
+        daytime  = hourmins                     >>  dash     >> hourmins
+        weekdays = (digit >> dash >> digit)     <|> digit
+        singleWT = daytime                      >>  char '/' >> weekdays
     in
       sepBy1 singleWT (char ';') >> return ()
 
@@ -529,10 +529,10 @@ partnerExists cp pid = do
              _ -> error "Unexpected CaRMa response when querying for partner data"
 
 
--- | Default settings for partner list CSV files: tab-separated
+-- | Default settings for partner list CSV files: semicolon-separated
 -- fields, quoted.
 csvSettings :: CSV.CSVSettings
-csvSettings = CSV.CSVS '\t' (Just '\'') (Just '\'') '\t'
+csvSettings = CSV.CSVS ';' (Just '"') (Just '"') ';'
 
 
 usage :: String
