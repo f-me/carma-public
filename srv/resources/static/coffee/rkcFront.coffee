@@ -13,12 +13,15 @@ this.setupRKCFrontScreen = (viewName, args) ->
       $.getJSON("/rkc/front" + args, (result) ->
         dict = global.dictValueCache
         callst.fnClearTable()
+        summary = 0
         callst.fnAddData(
             for c in result.calls
+                summary = summary + c.callcount
                 callrow = [
-                    dict.CallerTypes[c.callertype] || c.callertype,
-                    dict.CallTypes[c.calltype] || c.calltype,
-                    c.callcount]))
+                    dict.CallerTypes[c.callertype] || c.callertype || "Не указан",
+                    dict.CallTypes[c.calltype] || c.calltype || "Не указан",
+                    c.callcount])
+        callst.fnAddData([[" Итого ", " Итого ", summary]]))
 
     partners = ko.observableArray([])
     this.initRKCDate update, partners
