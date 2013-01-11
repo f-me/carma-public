@@ -60,6 +60,7 @@ this.setupRKCOpsScreen = (viewName, args) ->
     global.rkcOpsData.updateHandler = setInterval(update, 30000)
 
     update()
+    this.updatePartners(partners)
 
 this.removeRKCOpsScreen = ->
     t = global.rkcOpsData.updateHandler
