@@ -330,7 +330,7 @@ generateReport tbls relations superCond tpl fileName = scope "generate" $ do
     log Debug "Generating report "
     log Trace "Loading dictionaries"
     tz <- liftIO getCurrentTimeZone
-    dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
+    dicts <- scope "dictionaries" . loadDictionaries $ "resources/site-config/dictionaries"
     -- TODO: Orderby must not be here!
     withPG (R.createReport tbls relations (functions tz dicts) superCond [] [] tpl fileName)
     log Debug "Report generated"

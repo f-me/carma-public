@@ -8,11 +8,16 @@ module Snaplet.DbLayer.Dictionary (
     readRKCCalc
     ) where
 
+import Prelude hiding (log)
+
 import Control.Applicative
 import Control.Arrow
 import Control.Monad
-import Data.Aeson
+import Control.Monad.IO.Class
+import Data.Aeson hiding (Result(..))
+import qualified Data.Aeson as A (Result(..))
 import Data.Maybe
+import Data.String
 import qualified Data.ByteString.Lazy.Char8 as LC8
 import qualified Data.Text           as T
 import qualified Data.Text.Encoding  as T
@@ -21,6 +26,7 @@ import qualified Data.Map            as Map
 import qualified Data.Vector         as V
 import System.FilePath
 import System.Directory
+import System.Log
 
 import Snaplet.DbLayer.Types
 
@@ -85,23 +91,29 @@ loadDictionary f = fmap (decode >=> unEntries) $ LC8.readFile f where
         | otherwise = Nothing
     unEntries d = Just d
 
-loadDictionaries :: FilePath -> IO Dictionary
-loadDictionaries cfg = do
-    contents <- getDirectoryContents cfg
+loadDictionaries :: MonadLog m => FilePath -> m Dictionary
+loadDictionaries cfg = scope "loadDictionaries" $ do
+    contents <- liftIO $ getDirectoryContents cfg
     let
         toName = T.pack . dropExtension . takeFileName
         toFile = (cfg </>)
         isJson = (== ".json") . takeExtension
         (names, files) = unzip . map (toName &&& toFile) . filter isJson $ contents
-    ds <- mapM loadDictionary files
+    ds <- mapM loadDictionary' files
     return $ Dictionaries $ catMaybes $ zipWith (fmap . (,)) names ds
+    where
+        loadDictionary' :: MonadLog m => FilePath -> m (Maybe Dictionary)
+        loadDictionary' f = do
+            r <- liftIO $ loadDictionary f
+            when (not $ isJust r) $ log Warning $ T.concat ["Unable to load dictionary ", fromString f]
+            return r
 
 readRKCCalc :: FilePath -> IO RKCCalc
 readRKCCalc cfgDir = do
   c <- readJSON rkcDict
-  case fromJSON c :: Result RKCCalc of
-    Error e   -> fail $ "Reading of RKCCalc failed with: " ++ e
-    Success r -> return r
+  case fromJSON c :: A.Result RKCCalc of
+    A.Error e   -> fail $ "Reading of RKCCalc failed with: " ++ e
+    A.Success r -> return r
     where
       rkcDict = cfgDir </> "dictionaries" </> "RKCCalc.json"
 

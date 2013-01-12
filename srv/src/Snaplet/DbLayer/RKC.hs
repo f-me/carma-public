@@ -11,7 +11,6 @@ import Prelude hiding (log)
 
 import Control.Arrow
 import Control.Monad
-import Control.Monad.IO.Class
 
 import Data.Aeson
 import Data.Maybe
@@ -356,7 +355,7 @@ traceFilter (Filter from to prog city partner) = do
 rkc :: (PS.HasPostgres m, MonadLog m) => UsersDict -> Filter -> m Value
 rkc (UsersDict usrs) filt@(Filter fromDate toDate program city partner) = scope "rkc" $ do
   traceFilter filt
-  dicts <- scope "dictionaries" . liftIO . loadDictionaries $ "resources/site-config/dictionaries"
+  dicts <- scope "dictionaries" . loadDictionaries $ "resources/site-config/dictionaries"
   c <- rkcCase fromDate toDate constraints (serviceNames dicts)
   a <- rkcActions fromDate toDate constraints (actionNames dicts)
   ea <- rkcEachActionOpAvg fromDate toDate constraints usrs' (actionNames dicts)
