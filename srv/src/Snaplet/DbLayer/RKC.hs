@@ -389,8 +389,41 @@ rkcFront filt@(Filter fromDate toDate program city _) = scope "rkc" $ scope "fro
     orderBy "calltbl" "callertype",
     orderBy "calltbl" "calltype"]
 
+  opCalls <- trace "op calls" $ runQuery_ $ mconcat [
+    select "calltbl" "calltaker",
+    count,
+
+    betweenTime fromDate toDate "calltbl" "calldate",
+    ifNotNull program $ equals "calltbl" "program",
+    ifNotNull city $ equals "calltbl" "city",
+
+    groupBy "calltbl" "calltaker",
+    orderBy "calltbl" "calltaker"]
+
+  opCases <- trace "op cases" $ runQuery_ $ mconcat [
+    select "casetbl" "calltaker",
+    count,
+
+    betweenTime fromDate toDate "casetbl" "calldate",
+    ifNotNull program $ equals "casetbl" "program",
+    ifNotNull city $ equals "casetbl" "city",
+
+    groupBy "casetbl" "calltaker",
+    orderBy "casetbl" "calltaker"]
+
+  let
+    sums :: [(Integer, Integer)] -> (Integer, Integer)
+    sums = foldr1 sumPair where
+      sumPair (lx, ly) (rx, ry) = (lx + rx, ly + ry)
+    opCallsCases :: [(Maybe T.Text, (Integer, Integer))]
+    opCallsCases = map ((head *** sums) . unzip)
+      $ L.groupBy ((==) `on` fst)
+      $ sort
+      $ map (\(name, i) -> (name, (i, 0))) opCalls ++ map (\(name, i) -> (name, (0, i))) opCases
+
   return $ object [
-    "calls" .= map toCall calls]
+    "calls" .= map toCall calls,
+    "ops" .= map toOp opCallsCases]
 
   where
     toCall :: (Maybe T.Text, Maybe T.Text, Integer) -> Value
@@ -398,6 +431,12 @@ rkcFront filt@(Filter fromDate toDate program city _) = scope "rkc" $ scope "fro
       "callertype" .= callerType,
       "calltype" .= callType,
       "callcount" .= callsCount]
+
+    toOp :: (Maybe T.Text, (Integer, Integer)) -> Value
+    toOp (name, (calls, cases)) = object [
+      "name" .= name,
+      "calls" .= calls,
+      "cases" .= cases]
 
 -- | All partners on services within time interval
 partners :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> m Value
