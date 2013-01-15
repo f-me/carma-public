@@ -1,11 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-{-| 
-  
+{-|
+
   CLI tool for CaRMa partner import.
-  
+
   Loads tab-separated CSV files to partner database.
-  
+
  -}
 
 import Control.Applicative
@@ -17,8 +17,8 @@ import Data.Aeson as A
 import Data.Attoparsec.Char8
 
 import Data.Dict
-import Data.List
 import Data.Either
+import Data.List
 import qualified Data.Map as M
 
 import Data.Conduit
@@ -243,6 +243,7 @@ buildProcessors procdef =
 csvIdField :: FieldName
 csvIdField = "Id"
 
+
 csvErrorField :: FieldName
 csvErrorField = e8 "Ошибка"
 
@@ -270,7 +271,7 @@ carmaFieldMapping =
     , (e8 "Контактный телефон ответственного за Assistance", "closeTicketPhone")
     , (e8 "Еmail ответственного за Assistance", "closeTicketEmail")
     , (e8 "Форма налогообложения", "taxScheme")
-    --  , (e8 "Услуга (техпомощь / эвакуатор / техпомощь и эвакуатор)", "xyu_tam")
+    , (e8 "Услуга (техпомощь / эвакуатор / техпомощь и эвакуатор)", "services")
     , (e8 "Телефон для заказа Услуги", "phone1")
     , (e8 "Время работы по предоставлению услуги", "workingTime")
     , (e8 "Комментарии", "comment")
@@ -303,6 +304,8 @@ fieldValidationProcessors =
       buildProcessors $
       map (\n -> (e8 n, pure phoneField, BadPhone)) phoneFields ++
       map (\n -> (e8 n, pure wtField, BadWorkingTime)) wtFields ++
+      
+      -- Label-to-value conversions for dictionary fields
       [ ( e8 "Город"
         , dictField <$> asks cityDict
         , UnknownCity
@@ -380,6 +383,34 @@ isCritical (FieldError UnknownCity _ _) = True
 isCritical _                            = False
 
 
+-- | True if row error is caused by 'UnknownService'.
+isUnknownService :: RowError -> Bool
+isUnknownService (FieldError UnknownService _ _) = True
+isUnknownService _                               = False
+
+
+-- | Update dependant service model instances and references between
+-- services and parent partner model.
+updateRowServices :: Int
+               -- ^ CaRMa port.
+               -> Int 
+               -- ^ Partner ID
+               -> Row
+               -- ^ Processed partner data from CSV (must have @services@
+               -- field).
+               -> IO ()
+updateRowServices cp pid row = do
+  -- Fetch requires service types from @services@ field of row
+  let servs = B8.split ',' $ row M.! "services"
+  -- Create service instances
+  servIds <- forM servs (createService cp pid)
+  -- Write service IDs to partner
+  let servRef = B8.intercalate "," $
+                map (\i -> B8.pack $ "partner_service:" ++ (show i)) servIds
+  _ <- updatePartner cp pid (M.singleton "services" servRef)
+  return ()
+
+
 -- | Check id, then sequentially apply a list of processors to row. If
 -- no id for row is set, apply an extra list of processors for new
 -- rows. Create/update new partners in CaRMa and pass processing
@@ -430,6 +461,14 @@ processRow procs newProcs columnOrder cp freshRow = liftIO $ do
                       Nothing -> createPartner cp $
                                  fst $
                                  applyProcessors newProcs processedRow
+
+  -- Create services for a new partner using value of "services" field
+  -- (must be remapped from CSV field by now; all services must be
+  -- recognized using the services dictionary). Due to impurity this
+  -- cannot be implemented as a row processor.
+  case (pid, carmaPid, any isUnknownService allErrs) of
+    (Nothing, Just n, False) -> updateRowServices cp n processedRow
+    _ -> return ()
 
   -- Add formatted errors list to output CSV row. If CaRMa request was
   -- performed, set new value of partner id. Note that we use
@@ -483,19 +522,19 @@ modelRequest :: Int
              -- ^ Model name.
              -> Maybe Int
              -- ^ Model id.
-             -> RequestMethod 
+             -> RequestMethod
              -> Row
              -- ^ Request payload.
              -> IO Int
 modelRequest cp model pid rm row = do
-  let uri = 
+  let uri =
           case pid of
             Just n  -> modelPidURI cp model n
             Nothing -> modelURI cp model
   rs <- simpleHTTP $
         mkRequestWithBody uri rm "application/json" (BSL.unpack $ encode row)
   rsBody <- getResponseBody rs
-  let Just (IdResponse carmaPid) = 
+  let Just (IdResponse carmaPid) =
           case pid of
             Just n -> Just (IdResponse n)
             Nothing -> decode' (BSL.pack rsBody) :: Maybe IdResponse
@@ -504,6 +543,19 @@ modelRequest cp model pid rm row = do
 
 createPartner :: Int -> Row -> IO Int
 createPartner cp = modelRequest cp "partner" Nothing POST
+
+
+createService :: Int 
+              -> Int
+              -- ^ Parent partner id.
+              -> BS.ByteString
+              -- ^ Value of @serviceName@ field for service.
+              -> IO Int
+createService cp pid srv =
+    modelRequest cp "partner_service" Nothing POST $
+    M.insert "parentId" (B8.pack $ "partner:" ++ (show pid)) $
+    M.insert "serviceName" srv $
+    M.empty
 
 
 updatePartner :: Int -> Int -> Row -> IO Int
