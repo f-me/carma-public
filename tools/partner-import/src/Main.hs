@@ -462,32 +462,36 @@ instance FromJSON IdResponse where
     parseJSON _          = error "Bad CaRMa response"
 
 
--- | Partner create API endpoint.
-partnerURI :: Int
+-- | Model create API endpoint.
+modelURI :: Int
            -- ^ CaRMa port.
-           -> String
-partnerURI cp = concat ["http://localhost:", show cp, "/_/partner/"]
+         -> String
+         -- ^ Model name.
+         -> String
+modelURI cp model = concat ["http://localhost:", show cp, "/_/", model, "/"]
 
 
--- | Partner read/update API endpoint.
-partnerPidURI :: Int -> Int -> String
-partnerPidURI cp pid = (partnerURI cp) ++ (show pid)
+-- | Model read/update API endpoint.
+modelPidURI :: Int -> String -> Int -> String
+modelPidURI cp model pid = (modelURI cp model) ++ (show pid)
 
 
--- | Create/update partner using row data and return its id.
-partnerRequest :: Int
-               -- ^ CaRMa port.
-               -> Maybe Int
-               -- ^ Partner id.
-               -> RequestMethod 
-               -> Row
-               -- ^ Request payload.
-               -> IO Int
-partnerRequest cp pid rm row = do
+-- | Create/update model using row data and return its id.
+modelRequest :: Int
+             -- ^ CaRMa port.
+             -> String
+             -- ^ Model name.
+             -> Maybe Int
+             -- ^ Model id.
+             -> RequestMethod 
+             -> Row
+             -- ^ Request payload.
+             -> IO Int
+modelRequest cp model pid rm row = do
   let uri = 
           case pid of
-            Just n  -> partnerPidURI cp n
-            Nothing -> partnerURI cp
+            Just n  -> modelPidURI cp model n
+            Nothing -> modelURI cp model
   rs <- simpleHTTP $
         mkRequestWithBody uri rm "application/json" (BSL.unpack $ encode row)
   rsBody <- getResponseBody rs
@@ -499,11 +503,11 @@ partnerRequest cp pid rm row = do
 
 
 createPartner :: Int -> Row -> IO Int
-createPartner cp = partnerRequest cp Nothing POST
+createPartner cp = modelRequest cp "partner" Nothing POST
 
 
 updatePartner :: Int -> Int -> Row -> IO Int
-updatePartner cp pid = partnerRequest cp (Just pid) PUT
+updatePartner cp pid = modelRequest cp "partner" (Just pid) PUT
 
 
 -- | Derived from 'postRequestWithBody' from HTTP package.
@@ -523,7 +527,7 @@ mkRequestWithBody urlString method typ body =
 -- | Check if partner exists in the CaRMa database.
 partnerExists :: Int -> Int -> IO Bool
 partnerExists cp pid = do
-  rs <- simpleHTTP $ getRequest $ partnerPidURI cp pid
+  rs <- simpleHTTP $ getRequest $ modelPidURI cp "model" pid
   code <- getResponseCode rs
   return $ case code of
              (2, 0, 0) -> True
