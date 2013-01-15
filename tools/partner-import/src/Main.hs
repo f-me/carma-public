@@ -323,8 +323,8 @@ fieldValidationProcessors =
 
 -- | List of processors to be applied prior to writing a processed row
 -- to output CSV.
-validationProcessors :: IntegrationMonad [RowProcessor]
-validationProcessors =
+mkValidationProcessors :: IntegrationMonad [RowProcessor]
+mkValidationProcessors =
     let
         pureProcessors = [ cityToAddress (e8 "Город") (e8 "Адрес сервисного отдела")
                          ]
@@ -380,11 +380,13 @@ isCritical (FieldError UnknownCity _ _) = True
 isCritical _                            = False
 
 
--- | Check id, remap columns, then sequentially apply a list of
--- processors. Create/update new partners in CaRMa and pass processing
+-- | Check id, then sequentially apply a list of processors to row. If
+-- no id for row is set, apply an extra list of processors for new
+-- rows. Create/update new partners in CaRMa and pass processing
 -- results further along the pipe.
 --
--- We provide keyless 'CSV.Row' to maintain initial column order.
+-- We use keyless 'CSV.Row' as output to maintain initial column
+-- order.
 processRow :: MonadResource m =>
               [RowProcessor]
            -- ^ CSV row processors.
@@ -550,7 +552,7 @@ main = do
   let (cp:input:output:cityFile:carFile:taxFile:servFile:_) = args
   Just dicts <- loadIntegrationDicts cityFile carFile taxFile servFile
 
-  let processors = runReader validationProcessors dicts ++
+  let processors = runReader mkValidationProcessors dicts ++
                    [remappingProcessor carmaFieldMapping]
       newPartnerProcessors = [fieldSetterProcessor carmaConstFields]
       carmaPort = read cp
