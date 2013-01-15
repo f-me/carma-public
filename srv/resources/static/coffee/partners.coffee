@@ -38,16 +38,16 @@ this.setupPartnersForm = (viewName, args) ->
       k['servicesReference'].subscribe ->
         addTarifStuff i for i in k['servicesReference']()
     )
-
+    dict = global.dictValueCache['DealerCities']
     $.getJSON("/allPartners",
         (objs) ->
             dt = t.dataTable()
             dt.fnClearTable()
             rows = for obj in objs
                 [obj.id
-                ,obj.name || ''
-                ,obj.city || ''
-                ,obj.comment || ''
+                ,obj.name       || ''
+                ,dict[obj.city] || ''
+                ,obj.comment    || ''
                 ]
             dt.fnAddData(rows)
     ))
