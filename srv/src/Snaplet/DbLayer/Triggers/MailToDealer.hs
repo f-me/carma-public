@@ -19,7 +19,6 @@ import Data.Time
 import Data.Time.Format
 import System.Locale
 import Data.Configurator (require)
-import Data.Configurator.Types (Configured(..),Value(..))
 import Network.Mail.SMTP
 
 import Snap.Snaplet (getSnapletUserConfig)
@@ -87,7 +86,7 @@ sendMailToDealer actionId = do
     caseId  <- get actionId "caseId"
     program <- get caseId   "program"
     when (program `elem` ["peugeot", "citroen"]) $ do
-      dealerId <- get svcId "towDealer"
+      dealerId <- get svcId "towDealer_partnerId"
       dealer'sMail <- get dealerId "closeTicketEmail"
       when (dealer'sMail /= "") $ do
         cfg <- lift $ getSnapletUserConfig
@@ -99,9 +98,11 @@ sendMailToDealer actionId = do
 
         varMap <- fillVars caseId
 
-        let eml = Address Nothing . TS.pack
+        let eml = Address Nothing
         let msg = simpleMail
-              (eml cfgFrom) (map eml cfgTo) [] []
+              (eml cfgFrom)
+              (map eml $ TS.splitOn "," cfgTo)
+              [] []
               "subj"
               [htmlPart $ render varMap mailTemplate]
         -- NB. notice `forkIO` below
@@ -109,11 +110,6 @@ sendMailToDealer actionId = do
         liftIO $ forkIO
           $ sendMailWithLogin cfgHost cfgUser cfgPass msg
         return ()
-
-instance Configured [String] where
-  convert (List xs) = sequence $ map convert xs
-  convert _ = Nothing
-
 
 -- FIXME: copypaste from SMS.hs
 
