@@ -401,7 +401,7 @@ updateRowServices :: Int
                -> IO ()
 updateRowServices cp pid row = do
   -- Fetch requires service types from @services@ field of row
-  let servs = B8.split ',' $ row M.! "services"
+  let servs = (B8.split ',' $ row M.! "services") ++ ["rent"]
   -- Create service instances
   servIds <- forM servs (createService cp pid)
   -- Write service IDs to partner
