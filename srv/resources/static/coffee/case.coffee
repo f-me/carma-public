@@ -201,7 +201,7 @@ this.initPartnerTables = ($view,parentView) ->
     mkDataTable table, tblOpts
     table.on "click.datatable", "tr", ->
       name = this.children[0].innerText
-      city = global.dictLabelCache['DealerCities'][this.children[1].innerText]
+      city = this.children[1].innerText
       addr = this.children[2].innerText
       svc["#{partnerType}_partner"](name)
       svc["#{partnerType}_address"]("#{city}, #{addr}")
