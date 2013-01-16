@@ -83,32 +83,37 @@ sendMailToDealer actionId = do
     program <- get caseId   "program"
     when (program `elem` ["peugeot", "citroen"]) $ do
       dealerId <- get svcId "towDealer_partnerId"
-      dealer'sMail <- get dealerId "closeTicketEmail"
-      when (dealer'sMail /= "") $ do
-        cfg <- lift $ getSnapletUserConfig
-        cfgHost <- liftIO $ require cfg "psa-smtp-host"
-        cfgUser <- liftIO $ require cfg "psa-smtp-user"
-        cfgPass <- liftIO $ require cfg "psa-smtp-pass"
-        cfgFrom <- liftIO $ require cfg "psq-smtp-from"
-        cfgTo   <- liftIO $ require cfg "psq-smtp-recipients"
+      when (dealerId /= "") $ do
+        dealer'sMail <- get dealerId "closeTicketEmail"
+        when (dealer'sMail /= "") $ do
+          sendMailActually caseId
 
-        varMap <- fillVars caseId
+sendMailActually :: ByteString -> TriggerMonad b ()
+sendMailActually caseId = do
+  cfg <- lift $ getSnapletUserConfig
+  cfgHost <- liftIO $ require cfg "psa-smtp-host"
+  cfgUser <- liftIO $ require cfg "psa-smtp-user"
+  cfgPass <- liftIO $ require cfg "psa-smtp-pass"
+  cfgFrom <- liftIO $ require cfg "psq-smtp-from"
+  cfgTo   <- liftIO $ require cfg "psq-smtp-recipients"
 
-        let eml = Address Nothing
-        let msg = simpleMail
-              (eml cfgFrom)
-              (map eml $ TS.splitOn "," cfgTo)
-              [] []
-              "subj"
-              [htmlPart $ render varMap mailTemplate]
+  varMap <- fillVars caseId
 
-        l <- lift askLog
-        -- NB. notice `forkIO` below
-        -- it also saves us from exceptions thrown while sending an e-mail
-        void $ liftIO $ forkIO $ do
-          let scopeName = "sendMailToDealer(" ++ show actionId ++ ")"
-          scoperLog l (TS.pack scopeName)
-            $ sendMailWithLogin cfgHost cfgUser cfgPass msg
+  let eml = Address Nothing
+  let msg = simpleMail
+        (eml cfgFrom)
+        (map eml $ TS.splitOn "," cfgTo)
+        [] []
+        "subj"
+        [htmlPart $ render varMap mailTemplate]
+
+  l <- lift askLog
+  -- NB. notice `forkIO` below
+  -- it also saves us from exceptions thrown while sending an e-mail
+  void $ liftIO $ forkIO $ do
+    let scopeName = "sendMailToDealer(" ++ show actionId ++ ")"
+    scoperLog l (TS.pack scopeName)
+      $ sendMailWithLogin cfgHost cfgUser cfgPass msg
 
 
 -- FIXME: copypaste from SMS.hs
