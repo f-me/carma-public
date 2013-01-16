@@ -111,7 +111,7 @@ sendMailActually caseId = do
   -- NB. notice `forkIO` below
   -- it also saves us from exceptions thrown while sending an e-mail
   void $ liftIO $ forkIO $ do
-    let scopeName = "sendMailToDealer(" ++ show actionId ++ ")"
+    let scopeName = "sendMailToDealer(" ++ show caseId ++ ")"
     scoperLog l (TS.pack scopeName)
       $ sendMailWithLogin cfgHost cfgUser cfgPass msg
 
