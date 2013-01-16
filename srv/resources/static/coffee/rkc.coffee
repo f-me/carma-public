@@ -227,6 +227,7 @@ this.setupRKCScreen = (viewName, args) ->
 
     updateSMS()
     update()
+    this.updatePartners(partners)
 
 this.removeRKCScreen = ->
     h = global.rkcData.smsHandler

@@ -706,7 +706,6 @@
             {
                 "value": "xTrail",
                 "label": "X-Trail"
-                
             },
             {
                 "value": "tiida",
@@ -714,7 +713,7 @@
             },
             {
                 "value": "ssangYong",
-                "Label": "Ssang Yong"
+                "label": "Ssang Yong"
             },
             {
                 "value": "qashqai",

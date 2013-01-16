@@ -77,6 +77,7 @@ Executable carma
     postgresql-sync-map         >= 0.3.1.1 && < 0.4,
     resource-pool-catchio       >= 0.2 && < 0.3,
     simple-log                  == 0.2.*,
+    smtp-mail                   == 0.1.*,
     snap                        == 0.9.*,
     snap-core                   == 0.9.*,
     snap-loader-static          >= 0.9.0.1 && < 0.10,
@@ -91,7 +92,7 @@ Executable carma
     unordered-containers,
     utf8-string,
     vector                      == 0.10.*,
-    vin-parser                  >= 0.1.8.1 && < 0.2,
+    vin-parser                  >= 0.1.8.4 && < 0.2,
     weather-api                 >= 0.4.1,
     xlsx                        >= 0.0.2.1 && < 0.1
 

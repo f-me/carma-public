@@ -34,6 +34,7 @@ import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
 import Snaplet.DbLayer.Triggers.SMS
+import Snaplet.DbLayer.Triggers.MailToDealer
 
 import Snap.Snaplet.SimpleLog
 
@@ -372,12 +373,15 @@ actionResultMap = Map.fromList
     set act "assignedTo" ""
 
     isReducedMode >>= \case
-      True -> closeSerivceAndSendInfoVW objId
+      True -> do
+        closeSerivceAndSendInfoVW objId
+        sendMailToDealer objId
       False -> do
         void $ replaceAction
           "tellClient"
           "Сообщить клиенту о договорённости"
           "back" "1" (+60) objId
+
   )
   ,("serviceOrderedSMS", \objId -> do
     newPartnerMessage objId
@@ -389,7 +393,9 @@ actionResultMap = Map.fromList
     set svcId "assignedTo" assignee
 
     isReducedMode >>= \case
-      True -> closeSerivceAndSendInfoVW objId
+      True -> do
+        closeSerivceAndSendInfoVW objId
+        sendMailToDealer objId
       False -> do
         tm <- getService objId "times_expectedServiceStart"
         void $ replaceAction
@@ -428,7 +434,9 @@ actionResultMap = Map.fromList
   ,("serviceOrderedAnalyst", \objId -> do
     setService objId "status" "serviceOrdered"
     isReducedMode >>= \case
-      True -> closeAction objId
+      True -> do
+        closeAction objId
+        sendMailToDealer objId
       False -> do
         void $ replaceAction
           "tellClient"
@@ -484,6 +492,7 @@ actionResultMap = Map.fromList
           "Уточнить у клиента окончено ли оказание услуги"
           "back" "3" (+60)
           objId
+        sendMailToDealer objId
   )
   ,("serviceStillInProgress", \objId ->
     isReducedMode >>= \case
@@ -504,6 +513,7 @@ actionResultMap = Map.fromList
   ,("serviceFinished", \objId -> do
     closeSerivceAndSendInfoVW objId
     sendSMS objId "smsTpl:3"
+    sendMailToDealer objId
   )
   ,("complaint", \objId -> do
     closeSerivceAndSendInfoVW objId

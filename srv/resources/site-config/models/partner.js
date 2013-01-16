@@ -49,8 +49,10 @@
         },
         {
             "name": "city",
+            "type": "dictionary",
             "meta": {
-                "label": "Город"
+                "label": "Город",
+                "dictionaryName": "DealerCities"
             }
         },
         {

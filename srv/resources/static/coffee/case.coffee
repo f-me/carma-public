@@ -211,12 +211,12 @@ this.initPartnerTables = ($view,parentView) ->
   # hope that contractor_partner is the only partner
   dealer = if partnerType is "contractor" then 0 else 1
   select = ["isActive=1", "isDealer=#{dealer}"]
-  select.push("city=#{kase.cityLocal()}") if kase.cityLocal()
+  select.push("city=#{kase.city()}") if kase.city()
   url    = if partnerType is "contractor"
               "/partnersFor/#{svc.modelName()}?#{select.join('&')}"
            else
               "/allPartners?#{select.join('&')}"
-
+  dict = global.dictValueCache['DealerCities']
   $.getJSON url, (objs) ->
     # Store partner cache for use with maps
     cache = {}
@@ -224,7 +224,7 @@ this.initPartnerTables = ($view,parentView) ->
       p.name = p.name.trim()
       cache[p.id] = p
       [p.name        || '',
-       p.city        || '',
+       dict[p.city]  || '',
        p.addrDeFacto || '',
        p.phone1      || '',
        p.workingTime || '',
