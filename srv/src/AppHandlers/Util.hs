@@ -18,7 +18,7 @@ import Snap.Snaplet.Auth
 
 import Application
 import Util
-
+import Data.List.Util
 
 ------------------------------------------------------------------------------
 -- | Utility functions
@@ -55,7 +55,7 @@ toBool "1" = "true"
 toBool _   = "false"
 
 quote :: ByteString -> String
-quote x = "'" ++ T.unpack (T.decodeUtf8 x) ++ "'"
+quote x = "'" ++ (replace "'" "''" $ T.unpack (T.decodeUtf8 x)) ++ "'"
 
 int :: ByteString -> String
 int = T.unpack . T.decodeUtf8

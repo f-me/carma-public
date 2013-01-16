@@ -69,6 +69,7 @@ Executable carma
     hedis                       == 0.6.*,
     heist                       == 0.8.*,
     HTTP                        == 4000.2.*,
+    MissingH                    == 1.2.*,
     MonadCatchIO-transformers   >= 0.2 && < 0.4,
     mtl                         == 2.1.*,
     network                     == 2.3.*,
