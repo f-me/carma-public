@@ -18,7 +18,7 @@ import Snap.Snaplet.Auth
 
 import Application
 import Util
-import Data.List.Util
+import Data.List.Utils
 
 ------------------------------------------------------------------------------
 -- | Utility functions
