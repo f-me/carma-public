@@ -2,7 +2,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 module Snaplet.DbLayer.Triggers.MailToDealer where
 
-import Control.Applicative
 import Control.Monad.Trans (lift,liftIO)
 import Control.Monad
 import Control.Concurrent
@@ -15,17 +14,14 @@ import qualified Data.Text as TS
 import qualified Data.Text.Lazy as T
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Data.Time
-import Data.Time.Format
-import System.Locale
+import System.Log
+import System.Log.Base (scoperLog)
 import Data.Configurator (require)
 import Network.Mail.SMTP
 
 import Snap.Snaplet (getSnapletUserConfig)
-import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
-import DictionaryCache
 
 
 -- FIXME: store this in DB or in file
@@ -105,14 +101,17 @@ sendMailToDealer actionId = do
               [] []
               "subj"
               [htmlPart $ render varMap mailTemplate]
+
+        l <- lift askLog
         -- NB. notice `forkIO` below
         -- it also saves us from exceptions thrown while sending an e-mail
-        liftIO $ forkIO
-          $ sendMailWithLogin cfgHost cfgUser cfgPass msg
-        return ()
+        void $ liftIO $ forkIO $ do
+          let scopeName = "sendMailToDealer(" ++ show actionId ++ ")"
+          scoperLog l (TS.pack scopeName)
+            $ sendMailWithLogin cfgHost cfgUser cfgPass msg
+
 
 -- FIXME: copypaste from SMS.hs
-
 render :: Map Text Text -> Text -> Text
 render varMap = T.concat . loop
   where
