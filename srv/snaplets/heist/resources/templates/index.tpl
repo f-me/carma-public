@@ -1067,6 +1067,17 @@
           </thead>
           <tbody />
         </table>
+        <h2>Операторы</h2>
+        <table id="rkc-front-ops-table" class="table table-stripped table-bordered">
+          <thead>
+            <tr>
+              <th width="40%">Оператор</th>
+              <th width="30%">Кол-во принятых звонков</th>
+              <th width="30%">Кол-во созданных кейсов</th>
+            </tr>
+          </thead>
+          <tbody />
+        </table>
       </div>
     </script>
 

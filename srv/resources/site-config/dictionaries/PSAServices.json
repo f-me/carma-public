@@ -10,7 +10,7 @@
         },
         {
             "label": "техпомощь и эвакуатор",
-            "value": "techtowage"
+            "value": "tech,towage"
         }
     ]
 }

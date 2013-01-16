@@ -64,7 +64,7 @@ create model commit = scoper "create" $ do
   log Trace $ fromString $ "Commit: " ++ show commit
   --
   commit' <- triggerCreate model commit
-  let obj = Map.union commit' commit
+  let obj = Map.union commit commit'
   objId <- Redis.create redis model obj
   --
   let obj' = Map.insert (C8.pack "id") objId obj

@@ -285,12 +285,13 @@ instance FromJSON IdResponse where
 
 
 ------------------------------------------------------------------------------
--- | Create a new case from POST parameters listed in 'caseParams'.
--- Perform everse geocoding using coordinates from @lon@ and @lat@
--- parameters, writing the result to field 'caseAddress' of the new
--- case. New action is created for the case.
+-- | Create a new case from JSON in request body. Perform reverse
+-- geocoding using coordinates from values under @lon@ and @lat@,
+-- writing the result to field 'caseAddress' of the new case. New
+-- action is created for the case.
 --
--- Response body is the id of the new case (as integer).
+-- Response body is a JSON of form @{"caseId":<n>}@, where @n@ is the
+-- new case id.
 newCase :: Handler b GeoApp ()
 newCase = do
   -- New case parameters
