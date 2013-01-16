@@ -537,8 +537,12 @@
             "label": "Звенигород"
         },
         {
-            "value": "Zelenogorsk",
-            "label": "Зеленогорск"
+            "value": "Zelenogorsk_kr",
+            "label": "Зеленогорск (Красноярский край)"
+        },
+        {
+            "value": "Zelenogorsk_spb",
+            "label": "Зеленогорск (Ленинградская область)"
         },
         {
             "value": "Zelenodol'sk",
