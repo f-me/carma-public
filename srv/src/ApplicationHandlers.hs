@@ -7,6 +7,7 @@ import Prelude hiding (log)
 
 import Data.Functor
 import Control.Monad
+import Control.Monad.CatchIO
 import Control.Concurrent.STM
 
 import Data.Text.Lazy (toStrict)
@@ -15,6 +16,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
+import qualified Data.ByteString.Lazy as B (toStrict)
 import qualified Data.ByteString.UTF8  as BU
 import qualified Data.Aeson as Aeson
 import Data.List
@@ -44,7 +46,9 @@ import WeatherApi (getWeather', tempC)
 ------------------------------------------------------------------------------
 import qualified Snaplet.DbLayer as DB
 import qualified Snaplet.DbLayer.Types as DB
+import qualified Snaplet.DbLayer.ARC as ARC
 import qualified Snaplet.DbLayer.RKC as RKC
+import qualified Snaplet.DbLayer.Dictionary as Dict
 import Snaplet.FileUpload (doUpload', doDeleteAll')
 ------------------------------------------------------------------------------
 import qualified Nominatim
@@ -149,7 +153,7 @@ createHandler = do
   logReq commit
   res <- with db $ DB.create model commit
   -- FIXME: try/catch & handle/log error
-  writeJSON res
+  logResp res
 
 readHandler :: AppHandler ()
 readHandler = do
@@ -189,7 +193,7 @@ updateHandler = do
   -- Need this hack, or server won't return updated "cost_counted"
   res <- with db $ DB.update model objId $ Map.delete "cost_counted" commit
   -- FIXME: try/catch & handle/log error
-  writeJSON res
+  logResp res
 
 deleteHandler :: AppHandler ()
 deleteHandler = do
@@ -303,6 +307,28 @@ rkcPartners = scope "rkc" $ scope "handler" $ scope "partners" $ do
 
   res <- with db $ RKC.partners (RKC.filterFrom flt') (RKC.filterTo flt')
   writeJSON res
+
+logtest :: AppHandler ()
+logtest = do
+  r <- getRequest
+  log Fatal $ T.decodeUtf8 $ rqURI r
+
+arcReportHandler :: AppHandler ()
+arcReportHandler = scope "arc" $ scope "handler" $ do
+  logtest
+  year <- tryParam B.readInteger "year"
+  month <- tryParam B.readInt "month"
+  dicts <- scope "dictionaries" . Dict.loadDictionaries $ "resources/site-config/dictionaries"
+  with db $ ARC.arcReport dicts year month
+  serveFile "ARC.xlsx"
+  where
+    tryParam :: MonadSnap m => (ByteString -> Maybe (a, ByteString)) -> ByteString -> m a
+    tryParam reader name = do
+      bs <- getParam name
+      case bs >>= reader of
+        Nothing -> error $ "Unable to parse " ++ B.unpack name
+        Just (v, "") -> return v
+        Just (_, _) -> error $ "Unable to parse " ++ B.unpack name
 
 -- | This action recieve model and id as parameters to lookup for
 -- and json object with values to create new model with specified
@@ -510,6 +536,10 @@ logReq commit  = do
     "params: " ++ show params ++ "; " ++
     "body: " ++ show commit
 
+logResp :: Aeson.ToJSON v => v -> AppHandler ()
+logResp r = scope "resplogger" $ do
+  log Trace $ T.decodeUtf8 $ B.toStrict $ Aeson.encode r
+  writeJSON r
 
 ------------------------------------------------------------------------------
 -- | Deny requests from non-local unauthorized users.
