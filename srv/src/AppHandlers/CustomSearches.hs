@@ -32,12 +32,13 @@ partnersForSrvHandler =
           getParam "city"      <*>
           getParam "isActive"  <*>
           getParam "isDealer"  <*>
-          getParam "srv")
+          getParam "srv"       <*>
+          getParam "makes")
     >>= writeJSON
 
-selectPartnersForSrv :: MBS -> MBS -> MBS -> MBS
+selectPartnersForSrv :: MBS -> MBS -> MBS -> MBS -> MBS
                      -> AppHandler [Map ByteString ByteString]
-selectPartnersForSrv city isActive _ service = do
+selectPartnersForSrv city isActive _ service make = do
   rows <- withPG pg_search $ \c -> query_ c $ fromString
     $  "SELECT p.id::text, p.name, p.city,"
     ++ "       p.comment, p.addrDeFacto, p.phone1, p.workingTime,"
@@ -53,6 +54,7 @@ selectPartnersForSrv city isActive _ service = do
     ++ (maybe "" (\x -> "  AND p.city = " ++ quote x) city)
     ++ (maybe "" (\x -> "  AND p.isActive = " ++ toBool x) isActive)
     ++ (maybe "" (\x -> "  AND s.servicename = " ++ quote x) service)
+    ++ (maybe "" (\x -> "  AND " ++ quote x ++ " = ANY (p.makes)") make)
   let fields =
         ["id","name","city","comment" ,"addrDeFacto"
         ,"phone1","workingTime","isDealer","isMobile"
