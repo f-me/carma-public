@@ -175,18 +175,11 @@
                 "dictionaryName": "CarMakers",
                 "required": true,
                 "bounded": true,
-                "label": "Обслуживаемые марки",
-                "sqltype": "text"
+                "label": "Обслуживаемые марки"
             },
             "type": "dictionary-many"
         },
 
-        {
-            "name": "comment",
-            "meta": {
-                "label": "Комментарии"
-            }
-        },
         {
             "name": "isPayBackConfirmed",
             "type": "checkbox",
