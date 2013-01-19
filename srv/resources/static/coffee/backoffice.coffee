@@ -47,7 +47,7 @@ addActions = (actions, table) ->
     row = [id
           ,act.priority || '3'
           ,duetime
-          ,global.dictLabelCache['DealerCities'][act.city]
+          ,global.dictValueCache['DealerCities'][act.city] || ''
           ,act.description || ''
           ,act.comment || '']
   table.fnAddData(rows)
