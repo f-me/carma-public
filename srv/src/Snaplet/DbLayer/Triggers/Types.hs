@@ -59,10 +59,12 @@ reply (Right r) = Right r
 
 instance MonadTrigger TriggerMonad b where
     createObject model obj = liftDb $ scope "trigger" $ scope "create" $ do
+        i <- Redis.create redis model obj
         logObject $ object [
             "model" .= model,
-            "object" .= obj]
-        Redis.create redis model obj
+            "object" .= obj,
+            "id" .= i]
+        return i
     readObject key = do
         v <- TriggerMonad $ lift $ Redis.read' redis key
         liftDb $ scope "trigger" $ scope "read" $ logObject $ object [
