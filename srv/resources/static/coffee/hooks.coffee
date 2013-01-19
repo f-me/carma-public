@@ -2,7 +2,12 @@ this.hooks = ->
   model:
       "*"    : [stdElCb]
   observable:
-      "*"    : [regexpKbHook, dictionaryKbHook, filesKbHook, dateTimeHook]
+      "*"    : [ regexpKbHook
+               , dictionaryKbHook
+               , dictManyHook
+               , filesKbHook
+               , dateTimeHook
+               ]
       "case" : [caseDescsKbHook, caseEventsHistoryKbHook]
       "tarifOption": [tarifOptNameDef]
       "partner": [bindRemoveService, serviceRepeat]
@@ -139,3 +144,37 @@ this.distHook = (instance, knockVM) ->
           $.get distanceQuery(new_coord, other_coord), (resp) ->
             knockVM[n](formatDistance(resp).toString())
 
+this.dictManyHook = (i, k) ->
+  for n in i.dictManyFields
+    do (n) ->
+      dict      = i.fieldHash[n].meta.dictionaryName
+      parent    = i.fieldHash[n].meta.dictionaryParent
+      bounded   = i.fieldHash[n].meta.bounded
+      k["#{n}Many"] = ko.computed
+        # we don't need any value here
+        # I have to retrieve something, to make ko refresh view
+        read: -> k[n](); return ""
+
+        write: (lab) ->
+          return if lab == ""
+          val = global.dictLabelCache[dict][lab]
+          c = splitVals k[n]()
+          return if _.contains c, val
+          c.push val
+          if (bounded and val) or (not bounded)
+            k[n](c.sort().join(','))
+
+      k["#{n}Locals"] = ko.computed
+        read: ->
+          for val in splitVals k[n]()
+            do (val) ->
+              global.dictValueCache[dict] || getDictionary(dict)
+              lab = global.dictValueCache[dict][val]
+              {label: lab || val, value: val}
+
+      k["#{n}Remove"] = (el) ->
+      # FIXME: I think, this should be made with bb observable
+      # arrays, so we can make them in metamodel and use normal
+      # collections, without splitting it manually
+        c = splitVals(k[n]())
+        k[n] _.without(c, el.value).join(',')

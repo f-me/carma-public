@@ -370,3 +370,7 @@ this.toUnix = (d) -> Math.round(d.getTime() / 1000)
 this.sTout = (wait, fn) -> setTimeout fn, wait
 
 this.repeat = (times, v) -> [1..times].map -> v
+
+this.splitVals = (v) ->
+  return [] if not v or v == ""
+  v.split ','

@@ -170,11 +170,16 @@
             }
         },
         {
-            "name": "comment",
+            "name": "makes",
             "meta": {
-                "label": "Комментарии"
-            }
+                "dictionaryName": "CarMakers",
+                "required": true,
+                "bounded": true,
+                "label": "Обслуживаемые марки"
+            },
+            "type": "dictionary-many"
         },
+
         {
             "name": "isPayBackConfirmed",
             "type": "checkbox",

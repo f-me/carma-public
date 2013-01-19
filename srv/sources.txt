@@ -14,3 +14,5 @@ https://github.com/cvb/snap-core nonascii-filenames
 https://github.com/f-me/snap-loader-static
 https://github.com/f-me/snap-loader-dynamic
 https://github.com/f-me/snaplet-postgresql-simple
+
+https://github.com/lpsmith/postgresql-simple 0.3

@@ -212,6 +212,7 @@ this.initPartnerTables = ($view,parentView) ->
   dealer = if partnerType is "contractor" then 0 else 1
   select = ["isActive=1", "isDealer=#{dealer}"]
   select.push("city=#{kase.city()}") if kase.city()
+  select.push("makes=#{kase.car_make()}")  if kase.car_make()
   url    = if partnerType is "contractor"
               "/partnersFor/#{svc.modelName()}?#{select.join('&')}"
            else

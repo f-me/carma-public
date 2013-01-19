@@ -1390,8 +1390,12 @@
             class="field-template"
             id="dictionary-field-template">
       <div class="control-group"
-           {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
-           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
+           {{# meta.required }}
+             data-bind="css: { error: {{name}}Not }"
+           {{/ meta.required }}
+           {{# meta.regexp   }}
+             data-bind="css: { warning: {{name}}Regexp }"
+           {{/ meta.regexp   }}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -1435,6 +1439,79 @@
               />
             </span>
           </div>
+          {{# meta.targetCategory }}
+          <ul data-depends="{{ name }}"
+              data-source="{{ meta.targetCategory }}"
+              data-provide="checklist" />
+          {{/ meta.targetCategory }}
+        </div>
+      </div>
+    </script>
+
+    <!-- like usual dic, but allow sort of multiple selection -->
+    <script type="text/template"
+            class="field-template"
+            id="dictionary-many-field-template">
+      <div class="control-group"
+           {{# meta.required }}
+             data-bind="css: { error: {{name}}Not }"
+           {{/ meta.required }}
+           {{# meta.regexp   }}
+             data-bind="css: { warning: {{name}}Regexp }"
+           {{/ meta.regexp   }}
+           >
+        <div class="control-label">
+          <label>{{ meta.label }}
+            {{# meta.infoText1 }}
+              <i class="icon icon-question-sign"
+                 data-provide="popover"
+                 data-content="{{ meta.infoText1 }}" />
+            {{/ meta.infoText1 }}
+          </label>
+        </div>
+        <div class="controls">
+          <div class="input-append">
+            <!--
+
+            Note the difference between readonly attribute and
+            disabled class from Bootstrap.
+
+            -->
+
+            <input type="text"
+                   class="pane-span
+                          focusable
+                          {{# meta.addClass }}{{meta.addClass}}{{/ meta.addClass }}
+                          {{# readonly }}disabled{{/ readonly }}"
+                   {{# readonly }}readonly{{/ readonly }}
+                   autocomplete="off"
+                   name="{{ name }}"
+                   data-source="global.dictionaries['{{meta.dictionaryName}}']"
+                   data-bind="value: {{ name }}Many,
+                              valueUpdate: 'change'
+                              {{# meta.dictionaryParent }},
+                              attr: { 'data-parent': {{ meta.dictionaryParent }} }
+                              {{/ meta.dictionaryParent }}"
+                   {{^readonly}}
+                   data-provide="typeahead"
+                   {{/readonly}}
+                   />
+            <span class="add-on">
+              <i class="icon icon-chevron-down"
+                {{^readonly}}data-provide="typeahead-toggle"{{/readonly}}
+              />
+            </span>
+          </div>
+          <!-- ko if: {{ name }}Locals().length -->
+          <ul data-bind="foreach: {{ name }}Locals">
+            <li>
+              <span data-bind="text: $data.label" />
+              <a href="" data-bind="click: $parent.{{ name }}Remove" >
+                x
+              </a>
+            </li>
+          </ul>
+          <!-- /ko -->
           {{# meta.targetCategory }}
           <ul data-depends="{{ name }}"
               data-source="{{ meta.targetCategory }}"
