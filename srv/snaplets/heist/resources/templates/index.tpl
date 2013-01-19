@@ -786,7 +786,7 @@
                 <h2>Услуги</h2>
               </div>
               <div class="row-fluid">
-                <table id="rkc-services-table" class="table table-striped table-bordered">
+                <table id="rkc-services-table" class="table table-stripped table-bordered">
                   <thead>
                     <tr>
                       <th width="20%">Услуга</th>
@@ -802,13 +802,30 @@
               </div>
               <div class="row-fluid">
                 <h2>Удовлетворённость клиентов</h2>
-                <div>
+                <div class="span8">
                   <div style="float:left">
                     Процент довольных клиентов:
                   </div>
                   <div style="float:left">
                     <input id="satisfied-percentage" />
                   </div>
+                </div>
+                <div class="span8">
+                  <h2>Претензии</h2>
+                  <table id="rkc-complaints-table" class="table table-stripped table-bordered">
+                    <thead>
+                      <tr>
+                        <th width="30%">Кейс</th>
+                        <th width="70%">Услуги</th>
+                      </tr>
+                    </thead>
+                    <tbody data-bind="foreach: $data">
+                      <td>
+                        <a data-bind="text: caseid, attr: { href: url }" />
+                      </td>
+                      <td data-bind="text: services" />
+                    </tbody>
+                  </table>
                 </div>
               </div>
               <div class="row-fluid">

@@ -337,6 +337,24 @@ rkcEachActionOpAvg fromDate toDate constraints usrs acts = scope "rkcEachActionO
           avgSum st' = (average *** sum) $ unzip $ map snd st'
           average l = sum l `div` fromIntegral (length l)
 
+rkcComplaints :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> PreQuery -> m Value
+rkcComplaints fromDate toDate constraints = scope "rkcComplaints" $ do
+  compls <- trace "result" $ runQuery_ $ mconcat [
+    constraints,
+    select "casetbl" "id",
+    notNull "casetbl" "id",
+    notNull "servicetbl" "type",
+    selectExp ["servicetbl"] "string_agg(servicetbl.type, ' ')",
+    betweenTime fromDate toDate "servicetbl" "createTime",
+    equals "servicetbl" "clientSatisfied" "notSatis",
+    groupBy "casetbl" "id",
+    orderBy "casetbl" "id"]
+  return $ toJSON $ map toCaseId compls
+  where
+    toCaseId :: (Integer, T.Text) -> Value
+    toCaseId (i, srvs) = object [
+      "caseid" .= i,
+      "services" .= T.words srvs]
 
 dictKeys :: T.Text -> Dictionary -> [T.Text]
 dictKeys d = fromMaybe [] . keys [d]
@@ -391,10 +409,12 @@ rkc (UsersDict usrs) filt@(Filter fromDate toDate program city partner) = scope 
   c <- rkcCase filt constraints (serviceNames dicts)
   a <- rkcActions fromDate toDate constraints (actionNames dicts)
   ea <- rkcEachActionOpAvg fromDate toDate constraints usrs' (actionNames dicts)
+  compls <- rkcComplaints fromDate toDate constraints
   return $ object [
     "case" .= c,
     "back" .= a,
-    "eachopactions" .= ea]
+    "eachopactions" .= ea,
+    "complaints" .= compls]
   where
     constraints = mconcat [
       ifNotNull program $ equals "casetbl" "program",

@@ -123,10 +123,12 @@ this.setupRKCScreen = (viewName, args) ->
     caset = $("#rkc-services-table")
     actionst = $("#rkc-actions-table")
     weathert = $('#rkc-weather-table')
+    complt = $('#rkc-complaints-table')
 
     return if caset.hasClass("dataTable")
     return if actionst.hasClass("dataTable")
     return if weathert.hasClass("dataTable")
+    return if complt.hasClass("dataTable")
 
     ct = mkDataTable caset, { bFilter: false, bInfo: false }
     bt = mkDataTable actionst, { bFilter: false, bInfo: false }
@@ -138,6 +140,7 @@ this.setupRKCScreen = (viewName, args) ->
         delBtn.html "<button class=\"btn\">Удалить</button>"
         delBtn.off('click')
         delBtn.on('click', -> wt.fnDeleteRow nRow) }
+    mkDataTable complt, { bFilter: false, bInfo: false }
 
     # Fill general info
     totalServices = $('#total-services')
@@ -159,6 +162,10 @@ this.setupRKCScreen = (viewName, args) ->
         name: v.label
 
     ko.applyBindings(cities, el "rkc-weather-city-select")
+
+    # Complaints
+    complaints = ko.observableArray([])
+    ko.applyBindings(complaints, el "rkc-complaints-table")
 
     fmttime = (tm) ->
         fmt = (x) -> if x < 10 then "0" + x else "" + x
@@ -207,7 +214,17 @@ this.setupRKCScreen = (viewName, args) ->
             binfo.undone,
             fmttime(binfo.average)]
 
-        bt.fnAddData(brows))
+        bt.fnAddData(brows)
+
+        # Update complaints
+        complaints.removeAll()
+        for comp in result.complaints
+          complaints.push({
+            caseid: comp.caseid,
+            url: "/#case/" + comp.caseid,
+            services: for s in comp.services
+              srvname = dict.Services[s] || s
+          }))
 
     partners = ko.observableArray([])
     this.initRKCDate update, partners
