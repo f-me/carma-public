@@ -17,13 +17,15 @@ module Carma.HTTP
     , updateInstance
     , deleteInstance
     , instanceExists
+    , readReferences
     )
 
 where
 
 import Data.Aeson
 import Data.Functor
-import Data.Map as M
+import Data.Map as M hiding (mapMaybe)
+import Data.Maybe
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy.Char8 as BSL
@@ -115,14 +117,14 @@ createInstance cp model row =
 
 
 readInstance :: Int -> String -> Int -> IO InstanceData
-readInstance cp model rid = 
-    snd <$> (instanceRequest cp model (Just rid) GET Nothing 
+readInstance cp model rid =
+    snd <$> (instanceRequest cp model (Just rid) GET Nothing
                                  >>= requireValidResponse)
 
 
 updateInstance :: Int -> String -> Int -> InstanceData -> IO InstanceData
 updateInstance cp model rid row =
-    snd <$> (instanceRequest cp model (Just rid) PUT (Just row) 
+    snd <$> (instanceRequest cp model (Just rid) PUT (Just row)
                         >>= requireValidResponse)
 
 
@@ -147,3 +149,20 @@ instanceExists cp modelName rid = do
      (2, 0, 0) -> True
      (4, 0, 4) -> False
      _ -> error "Unexpected CaRMa response"
+
+
+-- | Read "foo:32" reference into model name and id.
+read1Reference :: FieldValue -> Maybe (String, Int)
+read1Reference val =
+    case B8.split ':' val of
+      (ref:sid:[]) ->
+          case B8.readInt sid of
+            Just (n, _) -> Just (B8.unpack ref, n)
+            Nothing -> Nothing
+      _ -> Nothing
+
+
+-- | Read "foo:32,bar:48" list of references into list of model names
+-- and ids.
+readReferences :: FieldValue -> [(String, Int)]
+readReferences refs = (flip mapMaybe) (B8.split ',' refs) read1Reference
