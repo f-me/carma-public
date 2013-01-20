@@ -163,6 +163,6 @@ read1Reference val =
 
 
 -- | Read "foo:32,bar:48" list of references into list of model names
--- and ids.
+-- and ids. Invalid references are ignored.
 readReferences :: FieldValue -> [(String, Int)]
 readReferences refs = (flip mapMaybe) (B8.split ',' refs) read1Reference
