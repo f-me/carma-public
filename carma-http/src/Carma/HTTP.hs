@@ -139,8 +139,8 @@ instanceExists :: Int
                -> Int
                -- ^ Instance id.
                -> IO Bool
-instanceExists cp modelName pid = do
-  rs <- simpleHTTP $ getRequest $ modelPidURI cp modelName pid
+instanceExists cp modelName rid = do
+  rs <- simpleHTTP $ getRequest $ modelPidURI cp modelName rid
   code <- getResponseCode rs
   return $
    case code of
