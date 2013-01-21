@@ -9,8 +9,8 @@
 
 module Carma.SAGAI
     (-- * Export monad
-      CaseEntry
-    , runCaseExport
+      Export
+    , runExport
 
     -- * Export combinators
     -- ** Basic
@@ -36,6 +36,7 @@ import Control.Monad.Trans.State
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
 
+import Data.Char
 import Data.Dict as D
 import Data.Functor
 import qualified Data.Map as M
@@ -54,11 +55,11 @@ import Carma.SAGAI.Error
 
 -- | A case instance and a list of service instances attached to the
 -- case to be exported to SAGAI.
-type ExportData = (InstanceData, [ServiceEntry])
+type ExportData = (InstanceData, [Service])
 
 
 -- | Model name, id and data of a service.
-type ServiceEntry = (String, Int, InstanceData)
+type Service = (String, Int, InstanceData)
 
 
 data ExportState = ExportState { counter :: Int
@@ -76,78 +77,120 @@ data ExportOptions = ExportOptions { carmaPort :: Int
                                    }
 
 
--- | Monad used to form a SAGAI entry for a case. Reader state stores
--- case and service to be exported. Error monad is provided to early
+-- | Main monad used to form a SAGAI entry. Reader state stores case
+-- and services to be exported. Error monad is provided to early
 -- terminate entry export in case of critical errors. IO may be used
 -- to query CaRMa database.
-type CaseEntry =
+type Export =
     (StateT ExportState
      (ReaderT (ExportData, ExportOptions)
       (ErrorT ExportError IO)))
 
 
-getCase :: CaseEntry InstanceData
 getCase = lift $ asks $ fst . fst
 
 
-getServices :: CaseEntry [ServiceEntry]
+getServices :: Export [Service]
 getServices = lift $ asks $ snd . fst
 
 
-getWazzup :: CaseEntry D.Dict
+getWazzup :: Export D.Dict
 getWazzup = lift $ asks $ wazzup . snd
 
 
-exportError e = lift $ lift $ throwError e
-
-
--- | Perform given actions in context of provided case and services
--- data.
-runCaseExport :: CaseEntry a
-              -> Int
-              -- ^ Initial value for @SEP@ line counter.
-              -> ExportData
-              -> Int
-              -- ^ CaRMa port.
-              -> D.Dict
-              -- ^ Wazzup dictionary.
-              -> IO (Either ExportError a)
-runCaseExport act sepStart input cp wz = do
-    res <- runErrorT $ 
+-- | Perform export action using the provided case and services data
+-- and export options.
+runExport :: Export a
+          -> Int
+          -- ^ Initial value for @SEP@ line counter.
+          -> ExportData
+          -> Int
+          -- ^ CaRMa port.
+          -> D.Dict
+          -- ^ Wazzup dictionary.
+          -> IO (Either ExportError a)
+runExport act sepStart input cp wz = do
+    res <- runErrorT $
            runReaderT (runStateT act $ ExportState sepStart) $
            (input, ExportOptions cp wz)
     return $ fst <$> res
 
 
+
+exportError e = lift $ lift $ throwError e
+
+
+caseExpenseType = do
+  servs <- getServices
+  case null servs of
+    True -> return PhoneServ
+    False -> do
+      nonFalseServs <- getNonFalseServices
+      return $ case null nonFalseServs of
+                 True -> FalseCall
+                 False -> Dossier
+
+
+servExpenseType :: Service -> Export ExpenseType
+servExpenseType (mn, _, d) = do
+  case mn of
+    -- | TODO Add RepTowage branch
+    "towage" -> return Towage
+    "rent"   -> return Rent
+    "tech"   -> do
+            techType <- dataField1 "techType" d
+            case techType of
+              "charge"    -> return Charge
+              "condition" -> return Condition
+              "starter"   -> return Starter
+              _           -> exportError $ UnknownTechType techType
+
+
+-- | A version of 'dataField' which returns empty string if key is not
+-- present in instance data (like 'M.findWithDefault')
+dataField0 :: FieldName -> InstanceData -> FieldValue
+dataField0 fn d = M.findWithDefault BS.empty fn d
+
+
 -- | Get a value of a field in the case entry being exported.
 -- Terminate export if field is not found.
-dataField :: FieldName -> InstanceData -> CaseEntry FieldValue
-dataField fn d = do
+dataField :: FieldName -> InstanceData -> Export FieldValue
+dataField fn d =
   case M.lookup fn d of
     Just fv -> return fv
     Nothing -> exportError $ NoField fn
 
 
--- | A version of 'caseField1' which requires non-empty field value.
-dataField1 :: FieldName -> InstanceData -> CaseEntry FieldValue
+-- | A version of 'dataField' which requires non-empty field value.
+dataField1 :: FieldName -> InstanceData -> Export FieldValue
 dataField1 fn d = do
   fv <- dataField fn d
   case BS.null fv of
     False -> return fv
     True -> exportError $ EmptyField fn
 
+
 caseField fn = getCase >>= dataField fn
-caseField1 fn = getCase >>= dataField1 fn
+caseField1 fn = dataField1 fn =<< getCase
+caseField0 fn = dataField0 fn <$> getCase
 
 
-type CaseField = CaseEntry BS.ByteString
+-- | Return all non-false services from services attached to the case.
+getNonFalseServices :: Export [Service]
+getNonFalseServices = do
+  servs <- getServices
+  return $ filter (\x@(m, i, d) ->
+                       dataField0 "falseCall" d == "none") servs
 
 
-cnst :: a -> CaseEntry a
+type ExportField = Export BS.ByteString
+
+
+cnst :: a -> Export a
 cnst = return
 
 
-newline :: CaseField
+newline :: ExportField
 newline = return $ B8.singleton '\n'
 
 
@@ -191,7 +234,7 @@ padLeft :: Int
 padLeft padLen pad input = BS.append input (genericPad padLen pad input)
 
 
-pdvField :: CaseField
+pdvField :: ExportField
 pdvField = do
   fv <- caseField1 "program"
   case fv of
@@ -200,12 +243,14 @@ pdvField = do
     _         -> exportError $ UnknownProgram fv
 
 
-dtField :: CaseField
+dtField :: ExportField
 dtField = padRight 8 '0' <$> caseField1 "id"
 
 
-vinField :: CaseField
-vinField = caseField1 "car_vin"
+vinField :: ExportField
+vinField = do
+  bs <- caseField1 "car_vin"
+  return $ B8.pack $ map toUpper $ B8.unpack bs
 
 
 dateFormat :: String
@@ -213,21 +258,12 @@ dateFormat = "%d%m%y"
 
 
 -- | Convert timestamp to DDMMYY format.
-timestampToDate :: BS.ByteString -> CaseField
+timestampToDate :: BS.ByteString -> ExportField
 timestampToDate input =
     case parseTime defaultTimeLocale "%s" (B8.unpack input) of
       (Just time :: Maybe UTCTime) ->
           return $ B8.pack $ formatTime defaultTimeLocale dateFormat time
       Nothing -> exportError $ BadTime input
-
-
-caseExpenseType :: CaseEntry ExpenseType
-caseExpenseType = do
-  servs <- getServices
-  return $ case null servs of
-             True -> PhoneServ
-             -- TODO Add FalseCall branch
-             False -> Dossier
 
 
 data ExpenseType = Dossier
@@ -236,8 +272,8 @@ data ExpenseType = Dossier
                  | Charge
                  | Condition
                  | Starter
-                 | Evac
-                 | RepEvac
+                 | Towage
+                 | RepTowage
                  | Rent
                    deriving (Eq, Ord)
 
@@ -259,8 +295,8 @@ codesData = M.fromList
     , (("citroen", Charge),      CodeRow 1825    "DR1" "996L" "446")
     , (("citroen", Condition),   CodeRow 1825    "DR1" "996D" "446")
     , (("citroen", Starter),     CodeRow 1825    "DR1" "996A" "446")
-    , (("citroen", Evac),        CodeRow 2911    "DR1" "9934" "G5F")
-    , (("citroen", RepEvac),     CodeRow 2009    "DR1" "9936" "G5F")
+    , (("citroen", Towage),      CodeRow 2911    "DR1" "9934" "G5F")
+    , (("citroen", RepTowage),   CodeRow 2009    "DR1" "9936" "G5F")
     , (("citroen", Rent),        CodeRow 0       "PV1" "9927" "PZD")
     , (("peugeot", Dossier),     CodeRow 1354.64 "24R" "8999" "G5D")
     , (("peugeot", FalseCall),   CodeRow 677.32  "24E" "8990" "G5D")
@@ -268,21 +304,38 @@ codesData = M.fromList
     , (("peugeot", Charge),      CodeRow 2153.5  "24E" "8962" "G5D")
     , (("peugeot", Condition),   CodeRow 2153.5  "24E" "8954" "G5D")
     , (("peugeot", Starter),     CodeRow 2153.5  "24E" "8963" "G5D")
-    , (("peugeot", Evac),        CodeRow 3434.98 "24E" "8950" "G5D")
-    , (("peugeot", RepEvac),     CodeRow 2370.62 "2RE" "8983" "G5D")
+    , (("peugeot", Towage),      CodeRow 3434.98 "24E" "8950" "G5D")
+    , (("peugeot", RepTowage),   CodeRow 2370.62 "2RE" "8983" "G5D")
     , (("peugeot", Rent),        CodeRow 0       "F6R" "8997" "PZD")
+    ]
+
+
+-- | Daily costs for car rent service.
+rentCosts :: M.Map (FieldValue, FieldValue) Double
+rentCosts = M.fromList
+    [ (("citroen", "psab"),  1758)
+    , (("citroen", "psam1"), 2310)
+    , (("citroen", "psam2"), 3041)
+    , (("citroen", "psah"),  3994)
+    , (("citroen", "psam"),  2310)
+    , (("peugeot", "psab"),  2074.44)
+    , (("peugeot", "psam1"), 2725.8)
+    , (("peugeot", "psam2"), 3588.38)
+    , (("peugeot", "psah"),  4712.92)
+    , (("peugeot", "psam"),  2725.8)
     ]
 
 
 -- | Search for an entry in 'codesData' using program and expense
 -- type, project the result to output.
-codeField :: CaseEntry ExpenseType
+codeField :: Export ExpenseType
           -- ^ Action used to choose an expense type.
           -> (CodeRow -> BS.ByteString)
-          -- ^ Projection function used to produce output from 'codesData' entry.
-          -> CaseField
+          -- ^ Projection function used to produce output from the
+          -- matching 'codesData' entry.
+          -> Export BS.ByteString
 codeField expType proj = do
-  program <- caseField "program" 
+  program <- caseField "program"
   key <- expType
   case M.lookup (program, key) codesData of
     Nothing -> exportError $ UnknownProgram program
@@ -295,25 +348,81 @@ formatCost :: Double -> BS.ByteString
 formatCost gc = BS.concat $ B8.split '.' $ B8.pack $ printf "%.2f" gc
 
 
-caseImpField :: CaseField
+caseImpField :: ExportField
 caseImpField = codeField caseExpenseType impCode
 
 
-caseCauseField :: CaseField
+servImpField :: Service -> ExportField
+servImpField s = codeField (servExpenseType s) impCode
+
+
+caseCauseField :: ExportField
 caseCauseField =
     padRight 15 '0' <$> codeField caseExpenseType causeCode
 
 
-caseDefField :: CaseField
+servCauseField :: Service -> ExportField
+servCauseField s =
+    padRight 15 '0' <$> codeField (servExpenseType s) causeCode
+
+
+caseDefField :: ExportField
 caseDefField = codeField caseExpenseType defCode
 
 
-caseSomField :: CaseField
+
+-- | Extract properly capped amount of days from "providedFor" field
+-- of instance data.
+capRentDays :: InstanceData -> Export Int
+capRentDays d = do
+  sDays <- dataField1 "providedFor" d
+  -- Cap days to be within [0..4]
+  case B8.readInt sDays of
+    Just (n, _) ->
+        return $ if n > 4
+                 then 4
+                 else if n < 0
+                      then 0
+                      else n
+    Nothing -> exportError $ BadDays sDays
+
+
+servDefField :: Service -> ExportField
+servDefField s@(_, _, d) = do
+  et <- servExpenseType s
+  case et of
+    -- Special handling for rental service DEF code.
+    Rent -> 
+        do
+          days <- capRentDays d
+          return $ BS.append "G" $ padRight 2 '0' $ B8.pack $ show days
+    _ -> codeField (servExpenseType s) defCode
+
+
+caseSomField :: ExportField
 caseSomField =
     padRight 10 '0' <$> codeField caseExpenseType (formatCost . cost)
 
 
-sepField :: CaseField
+servSomField :: Service -> ExportField
+servSomField s@(_, _, d) = do
+    et <- servExpenseType s
+    padRight 10 '0' <$> case et of
+      Rent -> 
+          do
+            days <- capRentDays d
+            program <- caseField "program"
+            autoClass <- dataField1 "carClass" d
+            let dailyCost = 
+                    case M.lookup (program, autoClass) rentCosts of
+                      Just dc -> dc
+                      -- Zero cost for unknown car classes.
+                      Nothing -> 0
+            return $ formatCost (dailyCost * (fromIntegral days))
+      _ -> codeField (servExpenseType s) (formatCost . cost)
+
+
+sepField :: ExportField
 sepField = do
   st <- get
   put st{counter = counter st + 1}
@@ -321,16 +430,16 @@ sepField = do
 
 
 -- | TODO: Fix ddgField
-ddgField :: CaseField
+ddgField :: ExportField
 ddgField = cnst "010112"
 --ddgField = timestampToDate =<< caseField1 "car_serviceStart"
 
 
-ddrField :: CaseField
+ddrField :: ExportField
 ddrField = timestampToDate =<< caseField1 "callDate"
 
 
-ddcField :: CaseField
+ddcField :: ExportField
 ddcField = do
   ctime <- liftIO $ getCurrentTime
   return $ B8.pack $ formatTime defaultTimeLocale dateFormat ctime
@@ -354,20 +463,34 @@ somprField = spaces 10
 fillerField = spaces 5
 
 
-comm1Field :: CaseField
+commentPad = padLeft 72 ' '
+
+
+comm1Field :: ExportField
 comm1Field = do
   val <- caseField1 "comment"
   d <- getWazzup
   case labelOfValue val d of
-    Just label -> return label
+    Just label -> return $ commentPad label
     Nothing -> exportError $ UnknownComment val
 
 
-comm2Field = padLeft 72 ' ' <$> caseField "dealerCause"
+comm2Field = commentPad <$> caseField0 "dealerCause"
 
 
--- | TODO: Finish this (query services list)
-comm3CaseField = comm2Field
+comm3CaseField :: ExportField
+comm3CaseField = do
+  servs <- getNonFalseServices
+  return $ case servs of
+    [] -> BS.empty
+    ((m, i, d):_) -> commentPad $ dataField0 "orderNumber" d
+
+
+comm3ServField :: Service -> ExportField
+comm3ServField (m, _, d) =
+    -- | Properly query partner data
+    case m of
+      _ -> return $ commentPad $ dataField0 "orderNumber" d
 
 
 -- | Basic part for any line.
@@ -380,7 +503,7 @@ basicPart =
     ]
 
 
--- | Common part for non-comment lines (prior to @PANNE@ field).
+-- | Common part for all non-comment lines (prior to @PANNE@ field).
 refundPart =
     [ cnst "1"
     , sepField
@@ -392,7 +515,13 @@ refundPart =
     ]
 
 
--- | Common part for non-comment lines (after @DEFAUT@ field).
+casePanneField = cnst "0"
+
+
+servPanneField = cnst "1"
+
+
+-- | Common part for all non-comment lines (after @DEFAUT@ field).
 refundTailPart =
     [ cnst "C"
     , ddcField
@@ -403,47 +532,82 @@ refundTailPart =
 comm1Part =
     [ cnst "3"
     , comm1Field
+    , newline
     ]
 
 
 comm2Part =
     [ cnst "4"
     , comm2Field
+    , newline
     ]
 
 
 comm3CasePart =
     [ cnst "6"
     , comm3CaseField
+    , newline
     ]
 
 
--- | Form a full entry for a case.
---
--- TODO Export services
-caseEntry :: CaseField
-caseEntry =
-    let
-        caseFrontPart = [ basicPart
-                        , [ caseImpField
-                          , caseCauseField
-                          ]
+comm3ServPart s =
+    [ cnst "6"
+    , comm3ServField s
+    , newline
+    ]
+
+-- | Form a full entry for the case and its services.
+caseEntry :: Export BS.ByteString
+caseEntry = do
+  let caseFrontPart = [ basicPart
+                      , [ caseImpField
+                        , caseCauseField
                         ]
-    in
-      BS.concat <$>
-            (mapM id $ concat $
-             caseFrontPart ++ [ refundPart
-                              , [ cnst "0"
-                                , nhmoField
-                                , caseSomField
-                                , somprField
-                                , caseDefField
-                                ]
-                              , refundTailPart
-                              , [ newline
-                                ]
-                              ] ++
-             caseFrontPart ++ [ comm1Part,     [ newline ] ] ++
-             caseFrontPart ++ [ comm2Part,     [ newline ] ] ++
-             caseFrontPart ++ [ comm3CasePart, [ newline ] ]
-            )
+                      ]
+  casePart <- BS.concat <$>
+        (mapM id $ concat $
+         caseFrontPart ++ [ refundPart
+                          , [ casePanneField
+                            , nhmoField
+                            , caseSomField
+                            , somprField
+                            , caseDefField
+                            ]
+                          , refundTailPart
+                          , [ newline ]
+                          ] ++
+         caseFrontPart ++ [ comm1Part     ] ++
+         caseFrontPart ++ [ comm2Part     ] ++
+         caseFrontPart ++ [ comm3CasePart ]
+        )
+
+  -- Export all non-empty services too
+  servs <- getNonFalseServices
+  servsPart <- BS.concat <$> mapM servEntry servs
+  return $ BS.append casePart servsPart
+
+
+
+servEntry :: Service -> Export BS.ByteString
+servEntry s = do
+  let servFrontPart = [ basicPart
+                      , [ servImpField s
+                        , servCauseField s
+                        ]
+                      ]
+  BS.concat <$>
+        (mapM id $ concat $
+         servFrontPart ++ [ refundPart
+                          , [ servPanneField
+                            , nhmoField
+                            , servSomField s
+                            , somprField
+                            , servDefField s
+                            ]
+                          , refundTailPart
+                          , [ newline ]
+                          ] ++
+         servFrontPart ++ [ comm1Part       ] ++
+         servFrontPart ++ [ comm2Part       ] ++
+         servFrontPart ++ [ comm3ServPart s ]
+        )
