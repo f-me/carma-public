@@ -373,18 +373,17 @@ caseDefField = codeField caseExpenseType defCode
 
 -- | Extract properly capped amount of days from "providedFor" field
 -- of instance data.
-capRentDays :: InstanceData -> Export Int
+capRentDays :: InstanceData -> Int
 capRentDays d = do
-  sDays <- dataField1 "providedFor" d
   -- Cap days to be within [0..4]
-  case B8.readInt sDays of
+  case B8.readInt $ dataField0 "providedFor" d of
     Just (n, _) ->
-        return $ if n > 4
-                 then 4
-                 else if n < 0
-                      then 0
-                      else n
-    Nothing -> exportError $ BadDays sDays
+        if n > 4
+        then 4
+        else if n < 0
+             then 0
+             else n
+    Nothing -> 0
 
 
 servDefField :: Service -> ExportField
@@ -394,8 +393,7 @@ servDefField s@(_, _, d) = do
     -- Special handling for rental service DEF code.
     Rent -> 
         do
-          days <- capRentDays d
-          return $ BS.append "G" $ padRight 2 '0' $ B8.pack $ show days
+          return $ BS.append "G" $ padRight 2 '0' $ B8.pack $ show $ capRentDays d
     _ -> codeField (servExpenseType s) defCode
 
 
@@ -410,7 +408,6 @@ servSomField s@(_, _, d) = do
     padRight 10 '0' <$> case et of
       Rent -> 
           do
-            days <- capRentDays d
             program <- caseField "program"
             autoClass <- dataField1 "carClass" d
             let dailyCost = 
@@ -418,7 +415,7 @@ servSomField s@(_, _, d) = do
                       Just dc -> dc
                       -- Zero cost for unknown car classes.
                       Nothing -> 0
-            return $ formatCost (dailyCost * (fromIntegral days))
+            return $ formatCost (dailyCost * (fromIntegral $ capRentDays d))
       _ -> codeField (servExpenseType s) (formatCost . cost)
 
 
