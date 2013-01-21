@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DoAndIfThenElse #-}
 
 {-|
 
@@ -32,7 +33,6 @@ import Control.Monad.Trans.Error
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.State
 
-
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
 
@@ -49,8 +49,7 @@ import Text.Printf
 
 import Carma.HTTP
 import Carma.SAGAI.Error
-
-
+import Carma.SAGAI.Util
 
 
 -- | A case instance and a list of service instances attached to the
@@ -183,6 +182,32 @@ getNonFalseServices = do
                        dataField0 "falseCall" d == "none") servs
 
 
+-- | Check if @callDate@ field of the case contains a date between dates
+-- stored in two other case fields.
+callDateWithin :: FieldName
+               -- ^ Name of field with first date. @callDate@ must exceed this.
+               -> FieldName 
+               -- ^ @callDate@ must not exceed this.
+               -> Export Bool
+callDateWithin f1 f2 = do
+  ts1 <- caseField0 f1
+  ts  <- caseField1 "callDate"
+  ts2 <- caseField0 f2
+  return $ case (parseTimestamp ts1,
+                 parseTimestamp ts,
+                 parseTimestamp ts2) of
+    (Just t1, Just t, Just t2) -> t1 <= t && t > t2
+    _ -> False
+
+
+-- | Check if servicing contract is in effect.
+onService = callDateWithin "car_serviceStart" "car_serviceStop"
+
+
+-- | Check if warranty is in effect.
+onWarranty = callDateWithin "car_warrantyStart" "car_warrantyStop"
+
+
 type ExportField = Export BS.ByteString
 
 
@@ -192,46 +217,6 @@ cnst = return
 
 newline :: ExportField
 newline = return $ B8.singleton '\n'
-
-
--- | Return string required to pad input up to provided length. If
--- input is already not less than required length, return empty
--- string.
-genericPad :: Int
-           -- ^ Required result length.
-           -> Char
-           -- ^ Padding symbol.
-           -> BS.ByteString
-           -- ^ Input string.
-           -> BS.ByteString
-genericPad padLen pad input =
-    if len < padLen
-    then (B8.replicate (padLen - len) pad)
-    else BS.empty
-    where
-      len = BS.length input
-
-
--- | Pad input using 'genericPad', keeping original string to the right.
-padRight :: Int
-         -- ^ Minimal string length.
-         -> Char
-         -- ^ Padding symbol.
-         -> BS.ByteString
-         -- ^ Input string.
-         -> BS.ByteString
-padRight padLen pad input = BS.append (genericPad padLen pad input) input
-
-
--- | Pad input using 'genericPad', keeping original string to the left.
-padLeft :: Int
-        -- ^ Minimal string length.
-        -> Char
-        -- ^ Padding symbol.
-        -> BS.ByteString
-        -- ^ Input string.
-        -> BS.ByteString
-padLeft padLen pad input = BS.append input (genericPad padLen pad input)
 
 
 pdvField :: ExportField
@@ -260,8 +245,8 @@ dateFormat = "%d%m%y"
 -- | Convert timestamp to DDMMYY format.
 timestampToDate :: BS.ByteString -> ExportField
 timestampToDate input =
-    case parseTime defaultTimeLocale "%s" (B8.unpack input) of
-      (Just time :: Maybe UTCTime) ->
+    case parseTimestamp input of
+      Just time ->
           return $ B8.pack $ formatTime defaultTimeLocale dateFormat time
       Nothing -> exportError $ BadTime input
 
@@ -279,34 +264,35 @@ data ExpenseType = Dossier
 
 
 -- | Data for particular type of expense.
-data CodeRow = CodeRow { cost      :: Double
-                       , impCode   :: BS.ByteString
-                       , causeCode :: BS.ByteString
-                       , defCode   :: BS.ByteString
+data CodeRow = CodeRow { cost             :: Double
+                       , impCode          :: BS.ByteString
+                       , serviceImpCode   :: BS.ByteString
+                       , causeCode        :: BS.ByteString
+                       , defCode          :: BS.ByteString
                        }
 
 
 -- | List of costs and I/D/C codes for all programs and expenses.
 codesData :: M.Map (FieldValue, ExpenseType) CodeRow
 codesData = M.fromList
-    [ (("citroen", Dossier),     CodeRow 1148    "DV1" "9938" "G5F")
-    , (("citroen", FalseCall),   CodeRow 574     "DR1" "9939" "296")
-    , (("citroen", PhoneServ),   CodeRow 351     "DV1" "9939" "G5F")
-    , (("citroen", Charge),      CodeRow 1825    "DR1" "996L" "446")
-    , (("citroen", Condition),   CodeRow 1825    "DR1" "996D" "446")
-    , (("citroen", Starter),     CodeRow 1825    "DR1" "996A" "446")
-    , (("citroen", Towage),      CodeRow 2911    "DR1" "9934" "G5F")
-    , (("citroen", RepTowage),   CodeRow 2009    "DR1" "9936" "G5F")
-    , (("citroen", Rent),        CodeRow 0       "PV1" "9927" "PZD")
-    , (("peugeot", Dossier),     CodeRow 1354.64 "24R" "8999" "G5D")
-    , (("peugeot", FalseCall),   CodeRow 677.32  "24E" "8990" "G5D")
-    , (("peugeot", PhoneServ),   CodeRow 414.18  "24E" "8943" "G5D")
-    , (("peugeot", Charge),      CodeRow 2153.5  "24E" "8962" "G5D")
-    , (("peugeot", Condition),   CodeRow 2153.5  "24E" "8954" "G5D")
-    , (("peugeot", Starter),     CodeRow 2153.5  "24E" "8963" "G5D")
-    , (("peugeot", Towage),      CodeRow 3434.98 "24E" "8950" "G5D")
-    , (("peugeot", RepTowage),   CodeRow 2370.62 "2RE" "8983" "G5D")
-    , (("peugeot", Rent),        CodeRow 0       "F6R" "8997" "PZD")
+    [ (("citroen", Dossier),     CodeRow 1148    "DV1" "DV4" "9938" "G5F")
+    , (("citroen", FalseCall),   CodeRow 574     "DR1" "DR4" "9939" "296")
+    , (("citroen", PhoneServ),   CodeRow 351     "DV1" "DV4" "9939" "G5F")
+    , (("citroen", Charge),      CodeRow 1825    "DR1" "DR4" "996L" "446")
+    , (("citroen", Condition),   CodeRow 1825    "DR1" "DR4" "996D" "446")
+    , (("citroen", Starter),     CodeRow 1825    "DR1" "DR4" "996A" "446")
+    , (("citroen", Towage),      CodeRow 2911    "DR1" "DR4" "9934" "G5F")
+    , (("citroen", RepTowage),   CodeRow 2009    "DR1" "DR4" "9936" "G5F")
+    , (("citroen", Rent),        CodeRow 0       "PV1" "PV4" "9927" "PZD")
+    , (("peugeot", Dossier),     CodeRow 1354.64 "24R" "FCA" "8999" "G5D")
+    , (("peugeot", FalseCall),   CodeRow 677.32  "24E" "FCA" "8990" "G5D")
+    , (("peugeot", PhoneServ),   CodeRow 414.18  "24E" "FCA" "8943" "G5D")
+    , (("peugeot", Charge),      CodeRow 2153.5  "24E" "FCA" "8962" "G5D")
+    , (("peugeot", Condition),   CodeRow 2153.5  "24E" "FCA" "8954" "G5D")
+    , (("peugeot", Starter),     CodeRow 2153.5  "24E" "FCA" "8963" "G5D")
+    , (("peugeot", Towage),      CodeRow 3434.98 "24E" "FCA" "8950" "G5D")
+    , (("peugeot", RepTowage),   CodeRow 2370.62 "2RE" "FCA" "8983" "G5D")
+    , (("peugeot", Rent),        CodeRow 0       "F6R" "FCA" "8997" "PZD")
     ]
 
 
@@ -426,10 +412,17 @@ sepField = do
   return $ padRight 6 '0' $ B8.pack $ show $ counter st
 
 
--- | TODO: Fix ddgField
+-- | First check servicing contract, then warranty.
 ddgField :: ExportField
-ddgField = cnst "010112"
---ddgField = timestampToDate =<< caseField1 "car_serviceStart"
+ddgField = do
+  onS <- onService
+  if onS 
+  then timestampToDate =<< caseField1 "car_serviceStart"
+  else do
+    onW <- onWarranty
+    if onW
+    then timestampToDate =<< caseField1 "car_warrantyStart"
+    else return ""
 
 
 ddrField :: ExportField
