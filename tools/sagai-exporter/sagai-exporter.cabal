@@ -21,6 +21,7 @@ executable sagai-exporter
   other-modules:
         Carma.SAGAI
         Carma.SAGAI.Error
+        Carma.SAGAI.Util
 
   build-depends:
     aeson        == 0.6.*,
