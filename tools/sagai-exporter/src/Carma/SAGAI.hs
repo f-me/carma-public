@@ -440,7 +440,7 @@ ddgField = do
     onW <- onWarranty
     if onW
     then timestampToDate =<< caseField1 "car_warrantyStart"
-    else return ""
+    else spaces 6
 
 
 ddrField :: ExportField
