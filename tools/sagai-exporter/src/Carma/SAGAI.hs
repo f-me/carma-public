@@ -422,8 +422,9 @@ servSomField s@(_, _, d) = do
       _ -> codeField (servExpenseType s) (formatCost . cost)
 
 
-sepField :: ExportField
-sepField = do
+-- | Sequential counter.
+composField :: ExportField
+composField = do
   st <- get
   put st{counter = counter st + 1}
   return $ padRight 6 '0' $ B8.pack $ show $ counter st
@@ -513,7 +514,7 @@ basicPart =
 -- | Common part for all non-comment lines (prior to @PANNE@ field).
 refundPart =
     [ cnst "1"
-    , sepField
+    , composField
     , cnst " "
     , ddgField
     , ddrField
