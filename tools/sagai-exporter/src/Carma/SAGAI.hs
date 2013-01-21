@@ -119,6 +119,12 @@ runExport act sepStart input cp wz = do
 exportError e = lift $ lift $ throwError e
 
 
+-- | Find matching ExpenseType for the case.
+--
+-- TODO Find out how to merge this with 'servExpenseType' under one
+-- polymorphic function (parametrized by Export monad for case and
+-- some other monad for a service). This will save us a lot of typing.
+caseExpenseType :: Export ExpenseType
 caseExpenseType = do
   servs <- getServices
   case null servs of
@@ -130,6 +136,7 @@ caseExpenseType = do
                  False -> Dossier
 
 
+-- | Find matching ExpenseType for a service.
 servExpenseType :: Service -> Export ExpenseType
 servExpenseType (mn, _, d) = do
   case mn of
@@ -335,11 +342,21 @@ formatCost gc = BS.concat $ B8.split '.' $ B8.pack $ printf "%.2f" gc
 
 
 caseImpField :: ExportField
-caseImpField = codeField caseExpenseType impCode
+caseImpField = do
+  onS <- onService
+  let proj = if onS
+             then serviceImpCode
+             else impCode
+  codeField caseExpenseType proj
 
 
 servImpField :: Service -> ExportField
-servImpField s = codeField (servExpenseType s) impCode
+servImpField s = do
+  onS <- onService
+  let proj = if onS
+             then serviceImpCode
+             else impCode
+  codeField (servExpenseType s) proj
 
 
 caseCauseField :: ExportField
