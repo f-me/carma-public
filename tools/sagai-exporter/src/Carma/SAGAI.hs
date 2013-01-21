@@ -291,7 +291,7 @@ codesData :: M.Map (FieldValue, ExpenseType) CodeRow
 codesData = M.fromList
     [ (("citroen", Dossier),     CodeRow 1148    "DV1" "9938" "G5F")
     , (("citroen", FalseCall),   CodeRow 574     "DR1" "9939" "296")
-    , (("citroen", PhoneServ),   CodeRow 351     "DV1" "9939" "GF5")
+    , (("citroen", PhoneServ),   CodeRow 351     "DV1" "9939" "G5F")
     , (("citroen", Charge),      CodeRow 1825    "DR1" "996L" "446")
     , (("citroen", Condition),   CodeRow 1825    "DR1" "996D" "446")
     , (("citroen", Starter),     CodeRow 1825    "DR1" "996A" "446")
