@@ -496,7 +496,7 @@ comm3CaseField = do
 
 comm3ServField :: Service -> ExportField
 comm3ServField (m, _, d) =
-    -- | Properly query partner data
+    -- | TODO Properly query partner data
     case m of
       _ -> return $ commentPad $ dataField0 "orderNumber" d
 
