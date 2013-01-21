@@ -451,7 +451,7 @@ kmField = padRight 6 '0' <$> caseField "car_mileage"
 spaces n = return $ B8.replicate n ' '
 
 
-accordField = spaces 6
+accordField = padRight 6 ' ' <$> caseField0 "accord"
 
 
 nhmoField = spaces 5
