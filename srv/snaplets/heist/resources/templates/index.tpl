@@ -1907,7 +1907,8 @@
           <ul class="dropdown-menu">
             {{# dictionary.entries }}
             <li>
-              <a href="#" onclick="addService('{{value}}');">
+              <a href="#"
+                 onclick="addService('{{value}}'); return false;">
                 <i class="icon-{{icon}} icon-black" />
                 {{ label }}
               </a>
