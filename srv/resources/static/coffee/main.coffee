@@ -206,6 +206,11 @@ this.modelSetup = (modelName) ->
       knockVM         : knockVM
       depViews        : depViews
 
+    # update url here, because only top level models made with modelSetup
+    knockVM["id"].subscribe ->
+      global.router.navigate "#{knockVM.modelName()}/#{knockVM.id()}",
+                             { trigger: false }
+
     applyHooks(global.hooks.model, ['*', modelName], elName)
     return knockVM
 
