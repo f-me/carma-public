@@ -46,17 +46,17 @@ this.mainSetup = (localScreens, localRouter, localDictionaries, hooks, user, mod
       # following keys:
       #
       # - model (model definition);
-      # 
+      #
       # - modelName;
-      # 
+      #
       # - mkBackboneModel (Backbone constructor);
-      # 
+      #
       # - bbInstance (Backbone model);
-      # 
+      #
       # - knockVM (Knockout ViewModel bound to view);
-      # 
+      #
       # - depViews (hash with views for every reference/group field).
-      # 
+      #
       # - parentView (name of view for which this view is listed as
       #   dependant (only for group fields; group fields have none of
       #   other values in their viewsWare entry))
@@ -125,7 +125,7 @@ knockBackbone = (instance, viewName) ->
             modelName = svcId.split(':')[0]
             svcName = global.models[modelName].title
             actName = actName + " (#{svcName})"
-          actName 
+          actName
 
   applyHooks global.hooks.observable,
              ['*', instance.model.name],
@@ -329,7 +329,7 @@ applyHooks = (hooks, selectors, args...) ->
 # Find view for this element
 this.elementView = (elt) ->
   _.last($(elt).parents("[id*=view]"))
-  
+
 # Find out which model this element belongs to
 this.elementModel = (elt) ->
   elementView(elt).id.split("-")[0]
