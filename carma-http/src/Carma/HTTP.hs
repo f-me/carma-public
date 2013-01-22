@@ -151,7 +151,7 @@ instanceExists cp modelName rid = do
      _ -> error "Unexpected CaRMa response"
 
 
--- | Read "foo:32" reference into model name and id.
+-- | Read @foo:32@ reference into model name and id.
 read1Reference :: FieldValue -> Maybe (String, Int)
 read1Reference val =
     case B8.split ':' val of
@@ -162,7 +162,7 @@ read1Reference val =
       _ -> Nothing
 
 
--- | Read "foo:32,bar:48" list of references into list of model names
+-- | Read @foo:32,bar:48@ list of references into list of model names
 -- and ids. Invalid references are ignored.
 readReferences :: FieldValue -> [(String, Int)]
 readReferences refs = (flip mapMaybe) (B8.split ',' refs) read1Reference
