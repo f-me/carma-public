@@ -22,7 +22,7 @@ exportCase caseNumber cp wazzup = do
               inst <- readInstance cp m i
               return (m, i, inst))
 
-  fv <- runExport caseEntry 0 (res, servs) cp wazzup
+  fv <- runExport sagaiFullExport 0 (res, servs) cp wazzup
   case fv of
     Left err -> print err
     Right entry -> BS.putStr entry
