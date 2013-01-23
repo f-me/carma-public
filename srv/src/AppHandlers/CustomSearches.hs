@@ -155,5 +155,9 @@ psaCases = do
   rows <- withPG pg_search $
           \c -> query_ c $
                 fromString $ "SELECT id FROM casetbl WHERE " ++
-                "caseStatus='s2' AND (program='citroen' OR program='peugeot');"
+                "caseStatus='s2' AND " ++
+                "(program='citroen' OR program='peugeot') AND " ++
+                "(NOT psaexported='yes' OR psaexported IS NULL) AND " ++
+                "((calldate > car_servicestart AND calldate < car_serviceend) OR " ++
+                "(calldate > car_warrantystart AND calldate < car_warrantyend));"
   writeJSON (map head rows :: [Int])
