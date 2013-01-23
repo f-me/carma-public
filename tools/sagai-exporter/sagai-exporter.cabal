@@ -32,6 +32,7 @@ executable sagai-exporter
     carma-http   == 0.1.*,
     containers   == 0.5.*,
     directory    == 1.2.*,
+    HTTP         == 4000.2.*,
     old-locale   == 1.0.*,
     time         == 1.4.*,
     text         == 0.11.*,

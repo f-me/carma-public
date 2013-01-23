@@ -4,11 +4,15 @@ import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans.State
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy.Char8 as BSL
 
+import Data.Aeson
 import Data.Either
 import Data.Functor
 import Data.Dict as D
 import qualified Data.Map as M
+
+import Network.HTTP
 
 import System.IO
 import System.Directory
@@ -82,8 +86,8 @@ exportManyCases initialCnt cases cp wazzup =
 
 usage :: String
 usage = "Usage: " ++
-        "sagai-export <Wazzup.json> <COMPOS counter file> <CaRMa port number> " ++
-        "<case id1> [<case id2> ..]"
+        "sagai-export <Wazzup.json> <COMPOS counter file> " ++
+        "<CaRMa port number> [<case id1> <case id2> ..]"
 
 
 -- | Load COMPOS counter value from first line of a file. If the file
@@ -106,15 +110,39 @@ saveCompos fp n = do
   writeFile fp (show n)
 
 
+fetchPSACaseNumbers :: Int -> IO [Int]
+fetchPSACaseNumbers cp = do
+  rs <- simpleHTTP $
+        getRequest ("http://localhost:" ++ show cp ++ "/psaCases/")
+  rsb <- getResponseBody rs
+  case decode' $ BSL.pack rsb of
+    Just d -> return d
+    Nothing -> error "Could not read case numbers from CaRMa response"
+
+
+main :: IO ()
 main = do
   args <- getArgs
-  when (length args < 4) $ putStrLn usage >> exitFailure
-  let (carmaPort:caseNumbers) = map read $ drop 2 args
+
+  when (length args < 3) $ putStrLn usage >> exitFailure
+  
+  -- Read CaRMa port
+  let carmaPort = read $ args !! 2
+  -- Load Wazzup dictionary
   Just wazzup <- loadDict (args !! 0)
 
+  -- Load previous COMPOS value
   let composFile = args !! 1
   cnt <- loadCompos composFile
 
+  -- If any case numbers supplied on command line, use them.
+  -- Otherwise, fetch case numbers from local CaRMa.
+  caseNumbers <-
+    case length args == 3 of
+      True -> fetchPSACaseNumbers carmaPort
+      False -> return $ map read $ take 3 args
+
+  -- Bulk export of selected cases
   (newCnt, errors, res) <- exportManyCases cnt caseNumbers carmaPort wazzup
 
   -- Save new COMPOS value
