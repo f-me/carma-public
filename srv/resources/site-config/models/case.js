@@ -608,6 +608,19 @@
             }
         },
         {
+            "name": "psaExported",
+            "type": "checkbox",
+            "canRead": [
+                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
+            ],
+            "canWrite": [
+                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
+            ],
+            "meta": {
+                "label": "Выгружен в PSA"
+            }
+        },
+        {
             "name": "claim",
             "canRead": [
                 "partner",
