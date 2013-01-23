@@ -20,6 +20,7 @@ executable sagai-exporter
 
   other-modules:
         Carma.SAGAI
+        Carma.SAGAI.Codes
         Carma.SAGAI.Error
         Carma.SAGAI.Util
 
@@ -30,7 +31,8 @@ executable sagai-exporter
     carma-dict   == 0.1.*,
     carma-http   == 0.1.*,
     containers   == 0.5.*,
+    directory    == 1.2.*,
     old-locale   == 1.0.*,
     time         == 1.4.*,
+    text         == 0.11.*,
     transformers == 0.3.*
-  

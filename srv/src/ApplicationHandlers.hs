@@ -42,7 +42,7 @@ import Snap.Snaplet.SimpleLog
 import Snap.Snaplet.Vin
 import Snap.Util.FileServe (serveFile)
 
-import WeatherApi (getWeather', tempC)
+import WeatherApi (getWeather', tempC, Config)
 ------------------------------------------------------------------------------
 import qualified Snaplet.DbLayer as DB
 import qualified Snaplet.DbLayer.Types as DB
@@ -260,21 +260,43 @@ rkcHandler = scope "rkc" $ scope "handler" $ do
 
 rkcWeatherHandler :: AppHandler ()
 rkcWeatherHandler = scope "rkc" $ scope "handler" $ scope "weather" $ do
-  city <- getParam "city"
-  case city of
-    Nothing -> writeJSON ()
-    Just city' -> do
-      temp <- with db $ do
-        conf <- gets DB.weather
-        w <- liftIO $ getWeather' conf $ BU.toString city'
-        case w of
-          Right w' -> do
-            log Trace $ T.concat ["Weather for city ", T.decodeUtf8 city', " is: ", fromString $ show w']
-            return . show . tempC $ w'
-          Left err -> do
-            log Debug $ T.concat ["Failed to get weather for city ", T.decodeUtf8 city', " due to: ", fromString $ show err]
-            return "-"
-      writeJSON temp
+  Just u <- with auth currentUser
+  cities <- case HashMap.lookup "weathercities" (userMeta u) of
+    Nothing -> return defaultCities
+    Just cities' -> case Aeson.fromJSON cities' of
+      Aeson.Success r -> return r
+      Aeson.Error e -> do
+        log Error "Can't read weather cities"
+        return defaultCities
+
+  toRemove <- liftM (maybeToList . fmap BU.toString) $ getParam "remove"
+  toAdd <- liftM (maybeToList . fmap BU.toString) $ getParam "add"
+
+  let
+    newCities = nub $ (cities ++ toAdd) \\ toRemove
+
+  with auth $ saveUser $ u {
+    userMeta = HashMap.insert "weathercities" (Aeson.toJSON newCities) (userMeta u) }
+
+  log Trace $ T.concat ["Cities: ", fromString $ intercalate ", " newCities]
+  conf <- with db $ gets DB.weather
+
+  temps <- mapM (liftIO . weatherForCity conf) newCities
+  writeJSON $ Aeson.object [
+    "weathers" .= zipWith toTemp temps newCities]
+
+  where
+    weatherForCity :: WeatherApi.Config -> String -> IO (Either String Double)
+    weatherForCity conf city = liftM (either (Left . show) (Right . tempC)) $
+      getWeather' conf city
+
+    defaultCities :: [String]
+    defaultCities = ["Moskva", "Sankt-Peterburg"]
+
+    toTemp :: Either String Double -> String -> Aeson.Value
+    toTemp t city = Aeson.object [
+      "city" .= city,
+      "temp" .= either (const "-") show t]
 
 rkcFrontHandler :: AppHandler ()
 rkcFrontHandler = scope "rkc" $ scope "handler" $ scope "front" $ do

@@ -16,10 +16,30 @@ initReducedModeBtn = ->
       data: "{\"ReducedActionsMode\": #{not currentState}}"
       success: updState
 
-this.rkcWeatherAddCity = (name) ->
+rkcFillWeather = (result, cities) ->
   dict = global.dictValueCache
-  $.getJSON('/rkc/weather/' + name, (result) ->
-    $('#rkc-weather-table').dataTable().fnAddData([dict.DealerCities[name], result, name]))
+  cities.removeAll()
+  for r in result.weathers
+    cities.push({
+      city: r.city,
+      cityname: dict.DealerCities[r.city] || r.city,
+      temp: r.temp })
+  cities.sort((l, r) -> l.cityname > r.cityname)
+
+this.rkcWeatherRemoveCity = (name) ->
+  setTimeout ->
+    cities = this.wcities
+    $.getJSON('/rkc/weather?remove=' + name, (result) -> rkcFillWeather(result, cities))
+
+this.rkcWeatherAddCity = (name) ->
+  setTimeout ->
+    cities = this.wcities
+    $.getJSON('/rkc/weather?add=' + name, (result) -> rkcFillWeather(result, cities))
+
+this.updateWeather = ->
+  setTimeout ->
+    cities = this.wcities
+    $.getJSON("/rkc/weather", (result) -> rkcFillWeather(result, cities))
 
 this.updatePartners = (partners) ->
   setTimeout ->
@@ -87,10 +107,6 @@ this.fillRKCFilters = (updater, partners) ->
 
     ko.applyBindings(partners, el("partner-select"))
 
-    # Init weather table
-    this.rkcWeatherAddCity('Moskva')
-    this.rkcWeatherAddCity('Sankt-Peterburg')
-
     # Set on-change
     ps = $('#program-select')
     ps.change updater
@@ -130,17 +146,12 @@ this.setupRKCScreen = (viewName, args) ->
     return if weathert.hasClass("dataTable")
     return if complt.hasClass("dataTable")
 
+    this.wcities = ko.observableArray([])
+
+    ko.applyBindings(this.wcities, el "rkc-weather-table")
+
     ct = mkDataTable caset, { bFilter: false, bInfo: false }
     bt = mkDataTable actionst, { bFilter: false, bInfo: false }
-    wt = mkDataTable weathert, {
-      bFilter: false,
-      bInfo: false,
-      fnRowCallback: (nRow, aData, iDisplayIndex, iDisplayIndexFull) ->
-        delBtn = $('td:eq(2)', nRow)
-        delBtn.html "<button class=\"btn\">Удалить</button>"
-        delBtn.off('click')
-        delBtn.on('click', -> wt.fnDeleteRow nRow) }
-    mkDataTable complt, { bFilter: false, bInfo: false }
 
     # Fill general info
     totalServices = $('#total-services')
@@ -245,6 +256,7 @@ this.setupRKCScreen = (viewName, args) ->
     updateSMS()
     update()
     this.updatePartners(partners)
+    this.updateWeather()
 
 this.removeRKCScreen = ->
     h = global.rkcData.smsHandler
@@ -253,4 +265,8 @@ this.removeRKCScreen = ->
     clearInterval t if t?
 
 this.rkcWeatherAddSelectedCity = ->
-  this.rkcWeatherAddCity $('#rkc-weather-city-select').val()
+  this.rkcWeatherAddCity($('#rkc-weather-city-select').val())
+
+this.rkcWeatherRemoveSelectedCity = (e) ->
+  city = $(e).parents('tr').attr('id')
+  this.rkcWeatherRemoveCity(city)

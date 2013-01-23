@@ -14,6 +14,8 @@ where
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
+import qualified Data.Text as T
+import Data.Text.Encoding
 
 import Data.Time.Clock
 import Data.Time.Format
@@ -35,7 +37,7 @@ genericPad padLen pad input =
     then (B8.replicate (padLen - len) pad)
     else BS.empty
     where
-      len = BS.length input
+      len = T.length $ decodeUtf8 input
 
 
 -- | Pad input using 'genericPad', keeping original string to the right.

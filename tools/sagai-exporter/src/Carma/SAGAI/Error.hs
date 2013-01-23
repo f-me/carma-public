@@ -14,6 +14,7 @@ data ExportError = NoField FieldName
                  | UnexpectedFieldValue FieldName FieldValue
                  | UnknownProgram FieldValue
                  | UnknownComment FieldValue
+                 | UnknownService String
                  | UnknownTechType FieldValue
                  | BadTime FieldValue
                  | BadDays FieldValue
