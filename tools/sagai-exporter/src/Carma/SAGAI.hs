@@ -483,7 +483,7 @@ comm1Field = do
   d <- getWazzup
   case labelOfValue val d of
     Just label -> return $ commentPad label
-    Nothing -> exportError $ UnknownComment val
+    Nothing -> return val
 
 
 comm2Field :: ExportField
