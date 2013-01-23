@@ -140,7 +140,7 @@ main = do
   caseNumbers <-
     case length args == 3 of
       True -> fetchPSACaseNumbers carmaPort
-      False -> return $ map read $ take 3 args
+      False -> return $ map read $ drop 3 args
 
   -- Bulk export of selected cases
   (newCnt, errors, res) <- exportManyCases cnt caseNumbers carmaPort wazzup
