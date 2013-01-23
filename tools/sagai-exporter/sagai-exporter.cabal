@@ -20,6 +20,7 @@ executable sagai-exporter
 
   other-modules:
         Carma.SAGAI
+        Carma.SAGAI.Codes
         Carma.SAGAI.Error
         Carma.SAGAI.Util
 
