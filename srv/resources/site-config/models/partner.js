@@ -117,13 +117,6 @@
             }
         },
         {
-            "name": "makers",
-            "meta": {
-                "label": "Обслуживаемые марки"
-            },
-            "type": "textarea"
-        },
-        {
             "name": "serviceAddress",
             "meta": {
                 "label": "Адрес сервисного отдела"
