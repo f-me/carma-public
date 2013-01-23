@@ -275,8 +275,26 @@ caseField0 fn = dataField0 fn <$> getCase
 getNonFalseServices :: ExportMonad m => m [Service]
 getNonFalseServices = do
   servs <- getAllServices
-  return $ filter (\(_, _, d) ->
-                       dataField0 "falseCall" d == "none") servs
+  return $ filter notFalseService servs
+
+
+-- | True if a service was not a false call (@falseCall@ field is
+-- @none@).
+notFalseService :: Service -> Bool
+notFalseService (_, _, d) = dataField0 "falseCall" d == "none"
+
+
+-- | True if service should be exported to SAGAI.
+exportable :: Service -> Bool
+exportable s@(mn, _, d) = notFalseService s && typeOk
+    where typeOk =
+              case mn of
+                "towage" -> True
+                "rent"   -> True
+                "tech"   ->
+                    elem (dataField0 "techType" d)
+                             ["charge", "condition", "starter"]
+                _        -> False
 
 
 -- | Check if @callDate@ field of the case contains a date between dates
@@ -558,6 +576,6 @@ sagaiExport = BS.concat <$> (mapM id entrySpec)
 sagaiFullExport :: CaseExport BS.ByteString
 sagaiFullExport = do
   caseOut <- sagaiExport
-  servs <- getNonFalseServices
+  servs <- filter exportable <$> getAllServices
   servsOut <- BS.concat <$> mapM (\s -> runReaderT sagaiExport s) servs
   return $ BS.concat [caseOut, servsOut]
