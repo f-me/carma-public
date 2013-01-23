@@ -147,3 +147,13 @@ getActionsForCase = do
   let fields =
         ["closeTime", "result", "name", "assignedTo", "comment"]
   writeJSON $ mkMap fields rows
+
+
+-- | Serve JSON list of case numbers to be exported to SAGAI.
+psaCases :: AppHandler ()
+psaCases = do
+  rows <- withPG pg_search $
+          \c -> query_ c $
+                fromString $ "SELECT id FROM casetbl WHERE " ++
+                "caseStatus='s2' AND (program='citroen' OR program='peugeot');"
+  writeJSON (map head rows :: [Int])
