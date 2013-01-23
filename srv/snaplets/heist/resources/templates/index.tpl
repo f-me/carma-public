@@ -895,7 +895,17 @@
                       <th width="20%"></th>
                     </tr>
                   </thead>
-                  <tbody />
+                  <tbody data-bind="foreach: $data">
+                    <tr data-bind="attr: { id: city }">
+                      <td data-bind="text: cityname"></td>
+                      <td data-bind="text: temp"></td>
+                      <td>
+                        <button class="btn" onClick="rkcWeatherRemoveSelectedCity(this)">
+                          Удалить
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
                 </table>
               </div>
             </div>
