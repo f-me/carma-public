@@ -15,9 +15,11 @@
 
 module Carma.SAGAI
     ( CaseExport
+    , ExportState(..)
     , runExport
     , sagaiExport
     , sagaiFullExport
+    , ExportError(..)
     )
 
 where
@@ -214,7 +216,8 @@ getService = ask
 
 
 -- | Perform export action using the provided case and services data
--- and export options.
+-- and export options. If no errors occured, then return action result
+-- and final state of export monad.
 runExport :: CaseExport a
           -> Int
           -- ^ Initial value for @SEP@ line counter.
@@ -224,12 +227,12 @@ runExport :: CaseExport a
           -- ^ CaRMa port.
           -> D.Dict
           -- ^ Wazzup dictionary.
-          -> IO (Either ExportError a)
+          -> IO (Either ExportError (a, ExportState))
 runExport act sepStart input cp wz = do
     res <- runErrorT $
            runReaderT (runStateT act $ ExportState sepStart) $
            (input, ExportOptions cp wz)
-    return $ fst <$> res
+    return res
 
 
 -- | Get a value of a field in the case entry being exported.
@@ -558,4 +561,3 @@ sagaiFullExport = do
   servs <- getNonFalseServices
   servsOut <- BS.concat <$> mapM (\s -> runReaderT sagaiExport s) servs
   return $ BS.concat [caseOut, servsOut]
-  -- Export all non-false services too
