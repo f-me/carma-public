@@ -4,14 +4,17 @@ module Snaplet.DbLayer.Triggers.Types where
 
 import Prelude hiding (log)
 
+import Control.Concurrent (myThreadId)
 import Control.Monad.State
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import Data.ByteString.Lazy (toStrict)
+import qualified Data.HashMap.Strict as HM
 import Data.Map (Map)
 import qualified Data.Map as Map
 
-import Data.Aeson (Value, encode, object, (.=))
+import Data.Aeson (Value, encode, object, (.=), toJSON)
+import qualified Data.Aeson as A (Value(..), Object)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.Time.Clock (getCurrentTime)
@@ -51,7 +54,10 @@ class (Functor (m b), MonadIO (m b), MonadState TriggerContext (m b)) => MonadTr
     liftDb :: Handler b (DbLayer b) r -> m b r
 
 logObject :: MonadLog m => Value -> m ()
-logObject = log Trace . T.decodeUtf8 . toStrict . encode
+logObject (A.Object v) = do
+    thId <- liftIO myThreadId
+    log Trace . T.decodeUtf8 . toStrict . encode
+        . A.Object . HM.insert "threadId" (toJSON $ show thId) $ v
 
 reply :: Either Redis.Reply a -> Either String a
 reply (Left r) = Left (show r)
