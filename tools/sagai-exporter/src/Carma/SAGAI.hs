@@ -501,8 +501,10 @@ fillerField :: ExportField
 fillerField = spaces 5
 
 
+-- | Pad input up to 72 characters with spaces or truncate it to be
+-- under 72 chars. Remove all newlines.
 commentPad :: BS.ByteString -> BS.ByteString
-commentPad = BS.take 72 . padLeft 72 ' '
+commentPad = B8.filter (/= '\n') . BS.take 72 . padLeft 72 ' '
 
 
 comm1Field :: ExportField
