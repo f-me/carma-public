@@ -189,7 +189,8 @@ this.initOSM = (el, parentView) ->
     more_coord_metas = _.map more_coord_field, splitFieldInView
     more_coords = _.map more_coord_metas, (fm) -> findVM(fm.view)[fm.field]()
     for c in more_coords
-      extraBlip osmap, (lonlatFromShortString c).transform(wsgProj, osmProj), "Extras"
+      if c?
+        extraBlip osmap, (lonlatFromShortString c).transform(wsgProj, osmProj), "Extras"
 
 
   ## Bind map to partner list
