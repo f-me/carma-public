@@ -6,22 +6,48 @@ this.setupSupervisorScreen = (viewName, args) ->
     t = $("#supervisor-table");
     return if t.hasClass("dataTable")
     dt = mkDataTable t,
+      aoColumns: repeat(9, null).concat(repeat(2, { bVisible: false}))
       bPaginate: true
       fnRowCallback: (nRow, aData, iDisplayIndex, iDisplayIndexFull) ->
         caseId = aData[0].split('/')[0]
         caseLnk = "<a href='/#case/#{caseId}'> #{aData[0]} </a>"
-        cdate = Date.parse aData[5]
-        gdate = (new Date).setMinutes((new Date).getMinutes() + 30)
-        now = new Date
+        duetime  = Date.parse aData[5]
+        srvStart = Date.parse aData[9]
+        mktime = (n) ->
+          d = new Date
+          d.setMinutes(d.getMinutes() + n)
+          return d
+        d60  = mktime 60
+        d120 = mktime 120
+        d480 = mktime 480
+        now  = new Date
+        name = aData[10]
 
         $('td:eq(0)', nRow).html caseLnk
 
-        # if duedate is past, make it red
-        if cdate < now
-          $(nRow).children().css('background-color', '#ff5555')
-        # if duedate will be past in 30 sec, make it green
-        else if cdate < gdate
-          $(nRow).children().css('background-color', '#99ff00')
+        green  = "#99ff66"
+        orange = "#ff6600"
+        yellow = "#ffcc33"
+        red    = "#ff6666"
+        violet = "#9999ff"
+
+        set = (clr) -> $(nRow).children().css('background-color', clr)
+
+        time = if name == 'orderService' or name == 'orderServiceAnalyst'
+                 srvStart
+               else
+                 duetime
+
+        if time > d480
+          set green
+        if d120 < time < d480
+          set orange
+        if d60 < time < d120
+          set yellow
+        if now < time < d60
+          set red
+        if time < now
+          set violet
 
     $('#reload').click -> dtRedraw(dt)
 
@@ -74,6 +100,8 @@ drawTable = (dt, opt) ->
                  'Открыто'
             duetime = new Date(obj.duetime * 1000)
               .toString("dd.MM.yyyy HH:mm:ss")
+            srvStart = new Date(obj.times_expectedServiceStart * 1000)
+              .toString("dd.MM.yyyy HH:mm:ss")
             [ "#{cid}/#{obj.id} (#{svcName or ''})"
             , closed
             , n[obj.name] || ''
@@ -82,6 +110,9 @@ drawTable = (dt, opt) ->
             , duetime || ''
             , r[obj.result]  || ''
             , obj.priority || ''
+            , global.dictValueCache['DealerCities'][obj.city] || ''
+            , srvStart || ''
+            , obj.name || ''
             ]
           dt.fnAddData(rows)
           dt.fnSort [[5,'asc']]
