@@ -349,7 +349,7 @@ callDateWithin f1 f2 = do
   return $ case (parseTimestamp ts1,
                  parseTimestamp ts,
                  parseTimestamp ts2) of
-    (Just t1, Just t, Just t2) -> t1 <= t && t > t2
+    (Just t1, Just t, Just t2) -> t1 <= t && t < t2
     _ -> False
 
 
