@@ -220,7 +220,12 @@ instance ExportMonad ServiceExport where
               _    ->
                   do
                     -- Fetch contractor code for selected contractor
-                    sPid <- dataField1 "contractor_partnerId" d
+                    let partnerField =
+                            case mn of
+                              "rent"   -> "contractor_partnerId"
+                              "towage" -> "towDealer_partnerId"
+                              _        -> error "Never happens"
+                    sPid <- dataField1 partnerField d
                     cp <- getCarmaPort
                     case read1Reference sPid of
                       Just (_, pid) ->
@@ -235,8 +240,8 @@ instance ExportMonad ServiceExport where
                                         vin   = dataField0 "vinRent" d
                                         carCl = dataField0 "carClass" d
                                     return [oNum, pCode, pName, vin, carCl]
-                              -- "towage" branch
-                              _      -> return [oNum, pCode]
+                              "towage" -> return [oNum, pCode]
+                              _        -> error "Never happens"
                       Nothing -> exportError (UnreadableContractorId sPid) >>
                                  return []
         return $ BS.intercalate " " fields
