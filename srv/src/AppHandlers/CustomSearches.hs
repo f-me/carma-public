@@ -100,9 +100,11 @@ selectActions mClosed mAssignee mRole mFrom mTo = do
     ++ "       (a.closed::int)::text, a.name, a.assignedTo, a.targetGroup,"
     ++ "       (extract (epoch from a.duetime at time zone 'UTC')::int)::text, "
     ++ "       a.result, a.priority, a.description, a.comment,"
-    ++ "       c.city"
-    ++ "  FROM actiontbl a, casetbl c WHERE true"
+    ++ "       c.city,"
+    ++ "       (extract (epoch from s.times_expectedServiceStart at time zone 'UTC')::int)::text"
+    ++ "  FROM actiontbl a, casetbl c, servicetbl s WHERE true"
     ++ "                   AND c.id::text = substring(a.caseId, ':(.*)')"
+    ++ "                   AND s.id::text = substring(a.parentid, ':(.*)')"
     ++ (maybe "" (\x -> "  AND closed = " ++ toBool x) mClosed)
     ++ (maybe "" (\x -> "  AND assignedTo = " ++ quote x) mAssignee)
     ++ (maybe "" (\x -> "  AND targetGroup = " ++ quote x) mRole)
@@ -111,7 +113,7 @@ selectActions mClosed mAssignee mRole mFrom mTo = do
   let fields
         = ["id", "caseId", "parentId", "closed", "name"
           ,"assignedTo", "targetGroup", "duetime", "result"
-          ,"priority", "description", "comment","city"]
+          ,"priority", "description", "comment","city", "times_expectedServiceStart"]
   return $ mkMap fields rows
 
 
@@ -147,3 +149,17 @@ getActionsForCase = do
   let fields =
         ["closeTime", "result", "name", "assignedTo", "comment"]
   writeJSON $ mkMap fields rows
+
+
+-- | Serve JSON list of case numbers to be exported to SAGAI.
+psaCases :: AppHandler ()
+psaCases = do
+  rows <- withPG pg_search $
+          \c -> query_ c $
+                fromString $ "SELECT id FROM casetbl WHERE " ++
+                "caseStatus='s2' AND " ++
+                "(program='citroen' OR program='peugeot') AND " ++
+                "(NOT psaexported='yes' OR psaexported IS NULL) AND " ++
+                "((calldate > car_servicestart AND calldate < car_serviceend) OR " ++
+                "(calldate > car_warrantystart AND calldate < car_warrantyend));"
+  writeJSON (map head rows :: [Int])

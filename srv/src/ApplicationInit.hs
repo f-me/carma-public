@@ -58,6 +58,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/myActions",     chkAuth . method GET    $ myActionsHandler)
          , ("/allActions",    chkAuth . method GET    $ allActionsHandler)
          , ("/allPartners",   chkAuth . method GET    $ allPartnersHandler)
+         , ("/psaCases",      chkAuth . method GET    $ psaCases)
          , ("/partnersFor/:srv",
                               chkAuth . method GET    $ partnersForSrvHandler)
          , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)

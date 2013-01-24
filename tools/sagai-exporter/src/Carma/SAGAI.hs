@@ -99,6 +99,7 @@ type ServiceExport =
 class (Functor m, Monad m, MonadIO m) => ExportMonad m where
     getCase        :: m InstanceData
     getAllServices :: m [Service]
+    getCarmaPort   :: m Int
     getWazzup      :: m D.Dict
     expenseType    :: m ExpenseType
     exportError    :: ExportError -> m a
@@ -115,6 +116,8 @@ instance ExportMonad CaseExport where
     getCase = lift $ asks $ fst . fst
 
     getAllServices = lift $ asks $ snd . fst
+
+    getCarmaPort = lift $ asks $ carmaPort . snd
 
     getWazzup = lift $ asks $ wazzup . snd
 
@@ -152,6 +155,8 @@ instance ExportMonad ServiceExport where
 
     getAllServices = lift $ lift $ asks $ snd . fst
 
+    getCarmaPort = lift $ lift $ asks $ carmaPort . snd
+
     getWazzup = lift $ lift $ asks $ wazzup . snd
 
     exportError e = lift $ lift $ lift $ throwError e
@@ -184,7 +189,8 @@ instance ExportMonad ServiceExport where
         Rent ->
             do
               (_, _, d) <- getService
-              return $ BS.append "G" $ padRight 2 '0' $ B8.pack $ show $ capRentDays d
+              return $ BS.append "G" $
+                     padRight 2 '0' $ B8.pack $ show $ capRentDays d
         _ -> codeField defCode
 
     somField = do
@@ -205,10 +211,40 @@ instance ExportMonad ServiceExport where
           _ -> codeField (formatCost . cost)
 
     comm3Field = do
-        (m, _, d) <- getService
-        -- TODO Properly query partner data
-        case m of
-          _ -> return $ commentPad $ dataField0 "orderNumber" d
+        (mn, _, d) <- getService
+        let oNum = dataField0 "orderNumber" d
+        fields <-
+            case mn of
+              "tech" -> return [oNum]
+              -- More fields are requred for towage/rental service
+              _    ->
+                  do
+                    -- Fetch contractor code for selected contractor
+                    let partnerField =
+                            case mn of
+                              "rent"   -> "contractor_partnerId"
+                              "towage" -> "towDealer_partnerId"
+                              _        -> error "Never happens"
+                    sPid <- dataField1 partnerField d
+                    cp <- getCarmaPort
+                    case read1Reference sPid of
+                      Just (_, pid) ->
+                          do
+                            pCode <- dataField0 "code" <$>
+                                     (liftIO $ readInstance cp "partner" pid)
+                            case mn of
+                              "rent" ->
+                                  do
+                                    let pName =
+                                            dataField0 "contractor_partner" d
+                                        vin   = dataField0 "vinRent" d
+                                        carCl = dataField0 "carClass" d
+                                    return [oNum, pCode, pName, vin, carCl]
+                              "towage" -> return [oNum, pCode]
+                              _        -> error "Never happens"
+                      Nothing -> exportError (UnreadableContractorId sPid) >>
+                                 return []
+        return $ BS.intercalate " " fields
 
 
 getService :: ServiceExport Service
@@ -250,7 +286,8 @@ dataField0 :: FieldName -> InstanceData -> FieldValue
 dataField0 fn d = M.findWithDefault BS.empty fn d
 
 
--- | A version of 'dataField' which requires non-empty field value and terminates with 'EmptyField' otherwise.
+-- | A version of 'dataField' which requires non-empty field value and
+-- terminates with 'EmptyField' error otherwise.
 dataField1 :: ExportMonad m => FieldName -> InstanceData -> m FieldValue
 dataField1 fn d = do
   fv <- dataField fn d
@@ -275,8 +312,26 @@ caseField0 fn = dataField0 fn <$> getCase
 getNonFalseServices :: ExportMonad m => m [Service]
 getNonFalseServices = do
   servs <- getAllServices
-  return $ filter (\(_, _, d) ->
-                       dataField0 "falseCall" d == "none") servs
+  return $ filter notFalseService servs
+
+
+-- | True if a service was not a false call (@falseCall@ field is
+-- @none@).
+notFalseService :: Service -> Bool
+notFalseService (_, _, d) = dataField0 "falseCall" d == "none"
+
+
+-- | True if service should be exported to SAGAI.
+exportable :: Service -> Bool
+exportable s@(mn, _, d) = notFalseService s && typeOk
+    where typeOk =
+              case mn of
+                "towage" -> True
+                "rent"   -> True
+                "tech"   ->
+                    elem (dataField0 "techType" d)
+                             ["charge", "condition", "starter"]
+                _        -> False
 
 
 -- | Check if @callDate@ field of the case contains a date between dates
@@ -294,18 +349,18 @@ callDateWithin f1 f2 = do
   return $ case (parseTimestamp ts1,
                  parseTimestamp ts,
                  parseTimestamp ts2) of
-    (Just t1, Just t, Just t2) -> t1 <= t && t > t2
+    (Just t1, Just t, Just t2) -> t1 <= t && t < t2
     _ -> False
 
 
 -- | Check if servicing contract is in effect.
 onService :: ExportMonad m => m Bool
-onService = callDateWithin "car_serviceStart" "car_serviceStop"
+onService = callDateWithin "car_serviceStart" "car_serviceEnd"
 
 
 -- | Check if warranty is in effect.
 onWarranty :: ExportMonad m => m Bool
-onWarranty = callDateWithin "car_warrantyStart" "car_warrantyStop"
+onWarranty = callDateWithin "car_warrantyStart" "car_warrantyEnd"
 
 
 type ExportField = ExportMonad m => m BS.ByteString
@@ -315,16 +370,24 @@ cnst :: ExportMonad m => a -> m a
 cnst = return
 
 
-newline :: ExportField
-newline = return $ B8.singleton '\n'
+newline :: Char
+newline = '\n'
+
+
+space :: Char
+space = ' '
+
+
+rowBreak :: ExportField
+rowBreak = return $ B8.singleton newline
 
 
 pdvField :: ExportField
 pdvField = do
   fv <- caseField1 "program"
   case fv of
-    "peugeot" -> return $ padRight 9 ' ' "RUMC01R"
-    "citroen" -> return $ padRight 9 ' ' "FRRM01R"
+    "peugeot" -> return $ padRight 9 space "RUMC01R"
+    "citroen" -> return $ padRight 9 space "FRRM01R"
     _         -> exportError $ UnknownProgram fv
 
 
@@ -436,11 +499,11 @@ kmField = padRight 6 '0' <$> caseField "car_mileage"
 
 
 spaces :: ExportMonad m => Int -> m BS.ByteString
-spaces n = return $ B8.replicate n ' '
+spaces n = return $ B8.replicate n space
 
 
 accordField :: ExportField
-accordField = padRight 6 ' ' <$> caseField0 "accord"
+accordField = padRight 6 space <$> caseField0 "accord"
 
 
 nhmoField :: ExportField
@@ -455,8 +518,12 @@ fillerField :: ExportField
 fillerField = spaces 5
 
 
+-- | Pad input up to 72 characters with spaces or truncate it to be
+-- under 72 chars. Remove all newlines.
 commentPad :: BS.ByteString -> BS.ByteString
-commentPad = padLeft 72 ' '
+commentPad = B8.map (\c -> if c == newline then space else c) .
+             BS.take 72 .
+             padLeft 72 ' '
 
 
 comm1Field :: ExportField
@@ -465,7 +532,7 @@ comm1Field = do
   d <- getWazzup
   case labelOfValue val d of
     Just label -> return $ commentPad label
-    Nothing -> exportError $ UnknownComment val
+    Nothing -> return val
 
 
 comm2Field :: ExportField
@@ -507,7 +574,7 @@ refundPart =
     , cnst "C"
     , ddcField
     , fillerField
-    , newline
+    , rowBreak
     ]
 
 
@@ -515,7 +582,7 @@ comm1Part :: ExportPart
 comm1Part =
     [ cnst "3"
     , comm1Field
-    , newline
+    , rowBreak
     ]
 
 
@@ -523,14 +590,14 @@ comm2Part :: ExportPart
 comm2Part =
     [ cnst "4"
     , comm2Field
-    , newline
+    , rowBreak
     ]
 
 comm3Part :: ExportPart
 comm3Part =
     [ cnst "6"
     , comm3Field
-    , newline
+    , rowBreak
     ]
 
 
@@ -558,6 +625,6 @@ sagaiExport = BS.concat <$> (mapM id entrySpec)
 sagaiFullExport :: CaseExport BS.ByteString
 sagaiFullExport = do
   caseOut <- sagaiExport
-  servs <- getNonFalseServices
+  servs <- filter exportable <$> getAllServices
   servsOut <- BS.concat <$> mapM (\s -> runReaderT sagaiExport s) servs
   return $ BS.concat [caseOut, servsOut]
