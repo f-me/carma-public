@@ -99,6 +99,7 @@ type ServiceExport =
 class (Functor m, Monad m, MonadIO m) => ExportMonad m where
     getCase        :: m InstanceData
     getAllServices :: m [Service]
+    getCarmaPort   :: m Int
     getWazzup      :: m D.Dict
     expenseType    :: m ExpenseType
     exportError    :: ExportError -> m a
@@ -115,6 +116,8 @@ instance ExportMonad CaseExport where
     getCase = lift $ asks $ fst . fst
 
     getAllServices = lift $ asks $ snd . fst
+
+    getCarmaPort = lift $ asks $ carmaPort . snd
 
     getWazzup = lift $ asks $ wazzup . snd
 
@@ -151,6 +154,8 @@ instance ExportMonad ServiceExport where
     getCase = lift $ lift $ asks $ fst . fst
 
     getAllServices = lift $ lift $ asks $ snd . fst
+
+    getCarmaPort = lift $ lift $ asks $ carmaPort . snd
 
     getWazzup = lift $ lift $ asks $ wazzup . snd
 
@@ -205,10 +210,33 @@ instance ExportMonad ServiceExport where
           _ -> codeField (formatCost . cost)
 
     comm3Field = do
-        (m, _, d) <- getService
-        -- TODO Properly query partner data
-        case m of
-          _ -> return $ commentPad $ dataField0 "orderNumber" d
+        (mn, _, d) <- getService
+        let oNum = dataField0 "orderNumber" d
+        fields <-
+            case mn of
+              "tech" -> return [oNum]
+              -- More fields are requred for towage/rental service
+              _    ->
+                  do
+                    -- Fetch contractor code for selected contractor
+                    sPid <- dataField1 "contractor_partnerId" d
+                    cp <- getCarmaPort
+                    case B8.readInt sPid of
+                      Just (pid, _) ->
+                          do
+                            pCode <- dataField0 "code" <$>
+                                     (liftIO $ readInstance cp "partner" pid)
+                            case mn of
+                              "rent" ->
+                                  do
+                                    let pName = dataField0 "contractor_partner" d
+                                        vin   = dataField0 "vinRent" d
+                                        carCl = dataField0 "carClass" d
+                                    return [oNum, pCode, pName, vin, carCl]
+                              _      -> return [oNum, pCode]
+                      Nothing -> exportError (UnreadableContractorId sPid) >>
+                                 return []
+        return $ BS.intercalate " " fields
 
 
 getService :: ServiceExport Service
