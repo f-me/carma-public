@@ -222,8 +222,8 @@ instance ExportMonad ServiceExport where
                     -- Fetch contractor code for selected contractor
                     sPid <- dataField1 "contractor_partnerId" d
                     cp <- getCarmaPort
-                    case B8.readInt sPid of
-                      Just (pid, _) ->
+                    case read1Reference sPid of
+                      Just (_, pid) ->
                           do
                             pCode <- dataField0 "code" <$>
                                      (liftIO $ readInstance cp "partner" pid)
