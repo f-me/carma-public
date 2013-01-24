@@ -502,7 +502,7 @@ fillerField = spaces 5
 
 
 commentPad :: BS.ByteString -> BS.ByteString
-commentPad = padLeft 72 ' '
+commentPad = BS.take 72 . padLeft 72 ' '
 
 
 comm1Field :: ExportField
