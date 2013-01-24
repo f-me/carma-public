@@ -269,8 +269,8 @@
             {"value": "ramc1", "label": "RAMC"},
             {"value": "ramc2", "label": "RAMC"},
             {"value": "ruslan", "label": "RUS LAN"},
-            {"value": "citroen","label": "Citroen Assistance"},
-            {"value": "peugeot","label": "Peugeot Assistance"},
+            {"value": "citroen","label": "Citroen"},
+            {"value": "peugeot","label": "Peugeot"},
             {"value": "advocard","label": "Advocard"},
             {"value": "samaraAssis","label": "Samara Assistance"}
         ],
