@@ -8,7 +8,6 @@ import qualified Data.ByteString.Lazy.Char8 as BSL
 
 import Data.Aeson
 import Data.Either
-import Data.Functor
 import Data.Dict as D
 import qualified Data.Map as M
 
@@ -41,7 +40,7 @@ exportCase cnt caseNumber cp wazzup = do
   fv <- runExport sagaiFullExport cnt (res, servs) cp wazzup
   case fv of
     Left err -> return $ Left err
-    Right (entry, ExportState cnt) -> return $ Right (entry, cnt)
+    Right (entry, ExportState newCnt) -> return $ Right (entry, newCnt)
 
 
 -- | Monad which stores value of the COMPOS counter when exporting
