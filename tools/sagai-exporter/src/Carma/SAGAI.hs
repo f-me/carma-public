@@ -189,7 +189,8 @@ instance ExportMonad ServiceExport where
         Rent ->
             do
               (_, _, d) <- getService
-              return $ BS.append "G" $ padRight 2 '0' $ B8.pack $ show $ capRentDays d
+              return $ BS.append "G" $
+                     padRight 2 '0' $ B8.pack $ show $ capRentDays d
         _ -> codeField defCode
 
     somField = do
@@ -229,10 +230,12 @@ instance ExportMonad ServiceExport where
                             case mn of
                               "rent" ->
                                   do
-                                    let pName = dataField0 "contractor_partner" d
+                                    let pName =
+                                            dataField0 "contractor_partner" d
                                         vin   = dataField0 "vinRent" d
                                         carCl = dataField0 "carClass" d
                                     return [oNum, pCode, pName, vin, carCl]
+                              -- "towage" branch
                               _      -> return [oNum, pCode]
                       Nothing -> exportError (UnreadableContractorId sPid) >>
                                  return []
@@ -278,7 +281,8 @@ dataField0 :: FieldName -> InstanceData -> FieldValue
 dataField0 fn d = M.findWithDefault BS.empty fn d
 
 
--- | A version of 'dataField' which requires non-empty field value and terminates with 'EmptyField' otherwise.
+-- | A version of 'dataField' which requires non-empty field value and
+-- terminates with 'EmptyField' error otherwise.
 dataField1 :: ExportMonad m => FieldName -> InstanceData -> m FieldValue
 dataField1 fn d = do
   fv <- dataField fn d
@@ -361,16 +365,24 @@ cnst :: ExportMonad m => a -> m a
 cnst = return
 
 
-newline :: ExportField
-newline = return $ B8.singleton '\n'
+newline :: Char
+newline = '\n'
+
+
+space :: Char
+space = ' '
+
+
+rowBreak :: ExportField
+rowBreak = return $ B8.singleton newline
 
 
 pdvField :: ExportField
 pdvField = do
   fv <- caseField1 "program"
   case fv of
-    "peugeot" -> return $ padRight 9 ' ' "RUMC01R"
-    "citroen" -> return $ padRight 9 ' ' "FRRM01R"
+    "peugeot" -> return $ padRight 9 space "RUMC01R"
+    "citroen" -> return $ padRight 9 space "FRRM01R"
     _         -> exportError $ UnknownProgram fv
 
 
@@ -482,11 +494,11 @@ kmField = padRight 6 '0' <$> caseField "car_mileage"
 
 
 spaces :: ExportMonad m => Int -> m BS.ByteString
-spaces n = return $ B8.replicate n ' '
+spaces n = return $ B8.replicate n space
 
 
 accordField :: ExportField
-accordField = padRight 6 ' ' <$> caseField0 "accord"
+accordField = padRight 6 space <$> caseField0 "accord"
 
 
 nhmoField :: ExportField
@@ -504,7 +516,7 @@ fillerField = spaces 5
 -- | Pad input up to 72 characters with spaces or truncate it to be
 -- under 72 chars. Remove all newlines.
 commentPad :: BS.ByteString -> BS.ByteString
-commentPad = B8.filter (/= '\n') . BS.take 72 . padLeft 72 ' '
+commentPad = B8.filter (/= newline) . BS.take 72 . padLeft 72 ' '
 
 
 comm1Field :: ExportField
@@ -555,7 +567,7 @@ refundPart =
     , cnst "C"
     , ddcField
     , fillerField
-    , newline
+    , rowBreak
     ]
 
 
@@ -563,7 +575,7 @@ comm1Part :: ExportPart
 comm1Part =
     [ cnst "3"
     , comm1Field
-    , newline
+    , rowBreak
     ]
 
 
@@ -571,14 +583,14 @@ comm2Part :: ExportPart
 comm2Part =
     [ cnst "4"
     , comm2Field
-    , newline
+    , rowBreak
     ]
 
 comm3Part :: ExportPart
 comm3Part =
     [ cnst "6"
     , comm3Field
-    , newline
+    , rowBreak
     ]
 
 
