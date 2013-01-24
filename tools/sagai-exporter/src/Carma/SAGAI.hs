@@ -516,7 +516,9 @@ fillerField = spaces 5
 -- | Pad input up to 72 characters with spaces or truncate it to be
 -- under 72 chars. Remove all newlines.
 commentPad :: BS.ByteString -> BS.ByteString
-commentPad = B8.filter (/= newline) . BS.take 72 . padLeft 72 ' '
+commentPad = B8.map (\c -> if c == newline then space else c) .
+             BS.take 72 .
+             padLeft 72 ' '
 
 
 comm1Field :: ExportField
