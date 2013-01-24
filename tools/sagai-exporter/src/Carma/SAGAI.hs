@@ -355,12 +355,12 @@ callDateWithin f1 f2 = do
 
 -- | Check if servicing contract is in effect.
 onService :: ExportMonad m => m Bool
-onService = callDateWithin "car_serviceStart" "car_serviceStop"
+onService = callDateWithin "car_serviceStart" "car_serviceEnd"
 
 
 -- | Check if warranty is in effect.
 onWarranty :: ExportMonad m => m Bool
-onWarranty = callDateWithin "car_warrantyStart" "car_warrantyStop"
+onWarranty = callDateWithin "car_warrantyStart" "car_warrantyEnd"
 
 
 type ExportField = ExportMonad m => m BS.ByteString
