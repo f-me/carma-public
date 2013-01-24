@@ -15,6 +15,7 @@ data ExportError = NoField FieldName
                  | UnknownProgram FieldValue
                  | UnknownService String
                  | UnknownTechType FieldValue
+                 | UnreadableContractorId FieldValue
                  | BadTime FieldValue
                  | BadDays FieldValue
                    deriving Show
