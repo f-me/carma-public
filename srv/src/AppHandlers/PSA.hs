@@ -53,8 +53,9 @@ AND c.car_vin=(SELECT car_vin FROM parentcase);
 
 
 -- | Read case id from @id@ request parameter, serve JSON list of case
--- ids corresponding to towages of the same car which occured within
--- 30 day period prior to the case creation date.
+-- ids corresponding to towages of the same car (as indicated by
+-- matching VINs) which occured within 30 day period prior to the case
+-- creation date.
 repTowages :: AppHandler ()
 repTowages = do
  cid <- (liftM readInt) <$> getParam "id"
