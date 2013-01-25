@@ -66,7 +66,7 @@ codesData = M.fromList
     , (("peugeot", Condition),   CodeRow 2153.5  "24E" "FCA" "8954" "G5D")
     , (("peugeot", Starter),     CodeRow 2153.5  "24E" "FCA" "8963" "G5D")
     , (("peugeot", Towage),      CodeRow 3434.98 "24E" "FCA" "8950" "G5D")
-    , (("peugeot", RepTowage),   CodeRow 2370.62 "2RE" "FCA" "8983" "G5D")
+    , (("peugeot", RepTowage),   CodeRow 2370.62 "24E" "FCA" "8983" "G5D")
     , (("peugeot", Rent),        CodeRow 0       "F6R" "FCA" "8997" "PZD")
     ]
 
