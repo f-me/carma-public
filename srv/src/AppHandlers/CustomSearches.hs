@@ -101,7 +101,7 @@ selectActions mClosed mAssignee mRole mFrom mTo = do
     ++ "       (extract (epoch from a.duetime at time zone 'UTC')::int)::text, "
     ++ "       a.result, a.priority, a.description, a.comment,"
     ++ "       c.city,"
-    ++ "       (extract (epoch from s.times_expectedServiceStart at time zone 'UTC')::int)::text"
+    ++ "       (extract (epoch from s.times_expectedServiceStart at time zone 'UTC')::int8)::text"
     ++ "  FROM actiontbl a, casetbl c, servicetbl s WHERE true"
     ++ "                   AND c.id::text = substring(a.caseId, ':(.*)')"
     ++ "                   AND s.id::text = substring(a.parentid, ':(.*)')"
