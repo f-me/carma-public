@@ -4,7 +4,7 @@
 
   CLI tool for CaRMa partner import.
 
-  Loads tab-separated CSV files to partner database.
+  Loads CSV files into partner database, producing a report.
 
  -}
 
@@ -13,7 +13,6 @@ import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
 
-import Data.Aeson as A
 import Data.Attoparsec.Char8
 
 import Data.Dict
@@ -27,24 +26,22 @@ import qualified Data.Conduit.List as CL
 import qualified Data.CSV.Conduit as CSV
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
-import qualified Data.ByteString.Lazy.Char8 as BSL
 
 import qualified Data.Text as T
 import Data.Text.Encoding
-
-import Network.HTTP
-import Network.URI (parseURI)
 
 import System.Environment
 import System.Exit
 import System.IO
 
 
+import Carma.HTTP
+
+
+-- | Row of CSV file with named fields.
+--
+-- Interchangeable with 'InstanceData'.
 type Row = CSV.MapRow BS.ByteString
-
-type FieldValue = BS.ByteString
-
-type FieldName = BS.ByteString
 
 
 -- | Set of CaRMa dictionaries which parametrize the import process.
@@ -304,7 +301,7 @@ fieldValidationProcessors =
       buildProcessors $
       map (\n -> (e8 n, pure phoneField, BadPhone)) phoneFields ++
       map (\n -> (e8 n, pure wtField, BadWorkingTime)) wtFields ++
-      
+
       -- Label-to-value conversions for dictionary fields
       [ ( e8 "Город"
         , dictField <$> asks cityDict
@@ -393,11 +390,12 @@ isUnknownService _                               = False
 -- services and parent partner model.
 updateRowServices :: Int
                -- ^ CaRMa port.
-               -> Int 
+               -> Int
                -- ^ Partner ID
                -> Row
-               -- ^ Processed partner data from CSV (must have @services@
-               -- field).
+               -- ^ Processed partner data from CSV (must have
+               -- @services@ field with list of required service
+               -- types).
                -> IO ()
 updateRowServices cp pid row = do
   -- Fetch requires service types from @services@ field of row
@@ -440,7 +438,7 @@ processRow procs newProcs columnOrder cp freshRow = liftIO $ do
         Just n -> do
           -- If partner id is set, check if it really exists in the
           -- system.
-          res <- partnerExists cp n
+          res <- instanceExists cp partnerModelName n
           return $ case res of
                      True -> (Just n, [])
                      False -> (Nothing, [UnknownId])
@@ -490,101 +488,29 @@ orderMapRow :: Ord a =>
 orderMapRow columnOrder sourceRow = map ((M.!) sourceRow) columnOrder
 
 
--- | CaRMa JSON response containing "id" field. The rest of fields are
--- ignored.
---
--- TODO: carma-mobile-server contains this code too.
-newtype IdResponse = IdResponse Int deriving Show
-
-instance FromJSON IdResponse where
-    parseJSON (Object v) = IdResponse . read <$> v .: "id"
-    parseJSON _          = error "Bad CaRMa response"
+partnerModelName :: String
+partnerModelName = "partner"
 
 
--- | Model create API endpoint.
-modelURI :: Int
-           -- ^ CaRMa port.
-         -> String
-         -- ^ Model name.
-         -> String
-modelURI cp model = concat ["http://localhost:", show cp, "/_/", model, "/"]
+createPartner :: Int -> InstanceData -> IO Int
+createPartner cp d = fst <$> createInstance cp partnerModelName d
 
 
--- | Model read/update API endpoint.
-modelPidURI :: Int -> String -> Int -> String
-modelPidURI cp model pid = (modelURI cp model) ++ (show pid)
+updatePartner :: Int -> Int -> InstanceData -> IO Int
+updatePartner cp pid d = updateInstance cp partnerModelName pid d >> return pid
 
 
--- | Create/update model using row data and return its id.
-modelRequest :: Int
-             -- ^ CaRMa port.
-             -> String
-             -- ^ Model name.
-             -> Maybe Int
-             -- ^ Model id.
-             -> RequestMethod
-             -> Row
-             -- ^ Request payload.
-             -> IO Int
-modelRequest cp model pid rm row = do
-  let uri =
-          case pid of
-            Just n  -> modelPidURI cp model n
-            Nothing -> modelURI cp model
-  rs <- simpleHTTP $
-        mkRequestWithBody uri rm "application/json" (BSL.unpack $ encode row)
-  rsBody <- getResponseBody rs
-  let Just (IdResponse carmaPid) =
-          case pid of
-            Just n -> Just (IdResponse n)
-            Nothing -> decode' (BSL.pack rsBody) :: Maybe IdResponse
-  return carmaPid
-
-
-createPartner :: Int -> Row -> IO Int
-createPartner cp = modelRequest cp "partner" Nothing POST
-
-
-createService :: Int 
+createService :: Int
               -> Int
               -- ^ Parent partner id.
               -> BS.ByteString
               -- ^ Value of @serviceName@ field for service.
               -> IO Int
-createService cp pid srv =
-    modelRequest cp "partner_service" Nothing POST $
-    M.insert "parentId" (B8.pack $ "partner:" ++ (show pid)) $
-    M.insert "serviceName" srv $
-    M.empty
-
-
-updatePartner :: Int -> Int -> Row -> IO Int
-updatePartner cp pid = modelRequest cp "partner" (Just pid) PUT
-
-
--- | Derived from 'postRequestWithBody' from HTTP package.
-mkRequestWithBody :: String
-                  -- ^ URL string.
-                  -> RequestMethod
-                  -> String
-                  -- ^ Content-type header value.
-                  -> String
-                  -- ^ Request body.
-                  -> Request_String
-mkRequestWithBody urlString method typ body =
-  case parseURI urlString of
-    Nothing -> error ("putRequestWithBody: Not a valid URL - " ++ urlString)
-    Just u  -> setRequestBody (mkRequest method u) (typ, body)
-
--- | Check if partner exists in the CaRMa database.
-partnerExists :: Int -> Int -> IO Bool
-partnerExists cp pid = do
-  rs <- simpleHTTP $ getRequest $ modelPidURI cp "model" pid
-  code <- getResponseCode rs
-  return $ case code of
-             (2, 0, 0) -> True
-             (4, 0, 4) -> False
-             _ -> error "Unexpected CaRMa response when querying for partner data"
+createService cp pid srv = fst <$>
+    (createInstance cp "partner_service" $
+     M.insert "parentId" (B8.pack $ "partner:" ++ (show pid)) $
+     M.insert "serviceName" srv $
+     M.empty)
 
 
 -- | Default settings for partner list CSV files: semicolon-separated
@@ -619,7 +545,7 @@ main = do
        sourceFile input $=
        CSV.intoCSV csvSettings $$
        CL.head :: IO (Maybe (CSV.Row BS.ByteString))
-
+  -- Start output file with header row
   runResourceT $ yield headRow $= CSV.fromCSV csvSettings $$ sinkFile output
 
   -- We use sinkHandle to *append* processing results to header row.

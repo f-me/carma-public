@@ -93,6 +93,7 @@
         },
         {
             "targets": [
+                "urgentService",
                 "cost_counted",
                 "cost_serviceTarifOptions"
             ],
@@ -717,6 +718,13 @@
             "groupName": "countedCost",
             "meta": {
                 "label": "Расчетная стоимость"
+            }
+        },
+        {
+            "name": "urgentService",
+            "type": "checkbox",
+            "meta": {
+                "label": "Приоритетная услуга"
             }
         },
         {

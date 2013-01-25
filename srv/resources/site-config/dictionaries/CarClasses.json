@@ -23,6 +23,26 @@
         {
             "value": "f",
             "label": "F"
+        },
+        {
+            "value": "psab",
+            "label": "PSA B"
+        },
+        {
+            "value": "psam1",
+            "label": "PSA M1"
+        },
+        {
+            "value": "psam2",
+            "label": "PSA M2"
+        },
+        {
+            "value": "psah",
+            "label": "PSA H"
+        },
+        {
+            "value": "psam",
+            "label": "PSA M"
         }
     ]
 }

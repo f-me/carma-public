@@ -74,6 +74,7 @@
         },
         {
             "targets": [
+                "urgentService",
                 "cost_counted",
                 "cost_serviceTarifOptions"
             ],
@@ -1292,7 +1293,14 @@
                 "infoText": "date",
                 "regexp": "date"
             }
-        },        
+        },
+        {
+            "name": "urgentService",
+            "type": "checkbox",
+            "meta": {
+                "label": "Приоритетная услуга"
+            }
+        },
         {
             "name": "status",
             "canRead": [

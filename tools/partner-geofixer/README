@@ -2,8 +2,8 @@
 CaRMa /_/ routes must be accessible from the localhost. RU.txt needs
 to be present in the script directory for zip code recognition.
 
-Make sure settings in geofix.sh and carma-http.awk do match the
-present setup (most importantly, CaRMa port number).
+Make sure CARMA_PARTNER_PUT in carma-http.awk matches the present
+setup (most importantly, CaRMa port number).
 
 1. geofix.sh writes geofix-****.result.txt file:
 

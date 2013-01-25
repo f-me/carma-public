@@ -117,13 +117,6 @@
             }
         },
         {
-            "name": "makers",
-            "meta": {
-                "label": "Обслуживаемые марки"
-            },
-            "type": "textarea"
-        },
-        {
             "name": "serviceAddress",
             "meta": {
                 "label": "Адрес сервисного отдела"
@@ -170,11 +163,16 @@
             }
         },
         {
-            "name": "comment",
+            "name": "makes",
             "meta": {
-                "label": "Комментарии"
-            }
+                "dictionaryName": "CarMakers",
+                "required": true,
+                "bounded": true,
+                "label": "Обслуживаемые марки"
+            },
+            "type": "dictionary-many"
         },
+
         {
             "name": "isPayBackConfirmed",
             "type": "checkbox",

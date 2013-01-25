@@ -37,4 +37,4 @@ postProc = (obj, procs) ->
   for t in procs.time
     obj[t] = time(obj[t])
   for d, f of procs.lookup
-    obj[f] = lookup(d, (obj[f] || '').toLowerCase()) || ''
+    obj[f] = lookup(d, (obj[f] || '')) || f

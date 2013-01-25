@@ -122,6 +122,7 @@
         },
         {
             "targets": [
+                "urgentService",
                 "cost_counted",
                 "cost_serviceTarifOptions"
             ],
@@ -622,6 +623,13 @@
             ],
             "meta": {
                 "label": "Пробег техпомощи за городом"
+            }
+        },
+        {
+            "name": "urgentService",
+            "type": "checkbox",
+            "meta": {
+                "label": "Приоритетная услуга"
             }
         },
         {

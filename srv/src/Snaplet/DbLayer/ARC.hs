@@ -3,6 +3,7 @@
 module Snaplet.DbLayer.ARC (
     query_, query,
     PreQuery(..), preQuery, preQuery_,
+    strQuery,
     runQuery, intQuery,
 
     arcReport,
@@ -68,10 +69,9 @@ instance Monoid PreQuery where
         (nub $ lo ++ ro)
         (la ++ ra)
 
-runQuery :: (PS.HasPostgres m, MonadLog m, PS.FromRow r) => [PreQuery] -> m [r]
-runQuery qs = query compiled a where
-    (PreQuery f t c g o a) = mconcat qs
-    compiled = fromString $ T.unpack $ T.concat [
+strQuery :: PreQuery -> (String, [PS.Action])
+strQuery (PreQuery f t c g o a) = (str, a) where
+    str = T.unpack $ T.concat [
         "select ", T.intercalate ", " f,
         " from ", T.intercalate ", " t,
         nonullcat c [" where ", T.intercalate " and " (map (T.cons '(' . (`T.snoc` ')')) c)],
@@ -79,6 +79,10 @@ runQuery qs = query compiled a where
         nonullcat o [" order by ", T.intercalate ", " o]]
     nonullcat [] _ = ""
     nonullcat _ s = T.concat s
+
+runQuery :: (PS.HasPostgres m, MonadLog m, PS.FromRow r) => [PreQuery] -> m [r]
+runQuery qs = query (fromString compiled) a where
+    (compiled, a) = strQuery (mconcat qs)
 
 intQuery :: (PS.HasPostgres m, MonadLog m) => [PreQuery] -> m Integer
 intQuery qs = do
@@ -99,7 +103,7 @@ withinDay st field = [
 
 rows :: [(T.Text, T.Text -> [T.Text] -> PreQuery)]
 rows = queries where
-    cst = preQuery_ ["count(*)"] ["casetbl", "servicetbl"] ["casetbl.id = servicetbl.parentId"] [] []
+    cst = preQuery_ ["count(*)"] ["casetbl", "servicetbl"] ["'case:' || casetbl.id = servicetbl.parentId"] [] []
     inday st = preQuery_ ["count(*)"] [] (withinDay st "servicetbl.createTime") [] []
     inList :: T.Text -> [T.Text] -> PreQuery
     inList tbl lst = preQuery ["count(*)"] [tbl] [T.concat [tbl, ".program in ?"]] [] [] [PS.In lst]
@@ -180,9 +184,9 @@ saveArcReport f ts fs = saveXlsx f names fields where
 
 -- ARC
 -- select count(*) from calltbl where (date_trunc('day', calltbl.callDate) = TIMESTAMP '2012-08-06');
--- select count (*) from casetbl, servicetbl where (casetbl.id = servicetbl.parentId) and (servicetbl.type = 'tech') and (date_trunc('day', servicetbl.createTime) = TIMESTAMP '2012-08-06');
--- select count(*) from casetbl, servicetbl where (casetbl.id = servicetbl.parentId) and (servicetbl.type = 'towage') and (position('tech' in casetbl.services) != 0) and (date_trunc('day', servicetbl.createTime) = TIMESTAMP '2012-08-06');
--- select count(*) from casetbl, servicetbl where (casetbl.id = servicetbl.parentId) and (servicetbl.type = 'towage') and (date_trunc('day', servicetbl.createTime) = TIMESTAMP '2012-08-06');
--- select count(*) from casetbl, servicetbl where (casetbl.id = servicetbl.parentId) and (servicetbl.type = 'towage') and (casetbl.diagnosis1 = 'dtp') and (date_trunc('day', servicetbl.createTime) = TIMESTAMP '2012-08-06');
--- select count(*) from casetbl, servicetbl where (casetbl.id = servicetbl.parentId) and (servicetbl.type not in ('tech', 'towage')) and (date_trunc('day', servicetbl.createTime) = TIMESTAMP '2012-08-06');
+-- select count (*) from casetbl, servicetbl where ('case:' || casetbl.id = servicetbl.parentId) and (servicetbl.type = 'tech') and (date_trunc('day', servicetbl.createTime) = TIMESTAMP '2012-08-06');
+-- select count(*) from casetbl, servicetbl where ('case:' || casetbl.id = servicetbl.parentId) and (servicetbl.type = 'towage') and (position('tech' in casetbl.services) != 0) and (date_trunc('day', servicetbl.createTime) = TIMESTAMP '2012-08-06');
+-- select count(*) from casetbl, servicetbl where ('case:' || casetbl.id = servicetbl.parentId) and (servicetbl.type = 'towage') and (date_trunc('day', servicetbl.createTime) = TIMESTAMP '2012-08-06');
+-- select count(*) from casetbl, servicetbl where ('case:' || casetbl.id = servicetbl.parentId) and (servicetbl.type = 'towage') and (casetbl.diagnosis1 = 'dtp') and (date_trunc('day', servicetbl.createTime) = TIMESTAMP '2012-08-06');
+-- select count(*) from casetbl, servicetbl where ('case:' || casetbl.id = servicetbl.parentId) and (servicetbl.type not in ('tech', 'towage')) and (date_trunc('day', servicetbl.createTime) = TIMESTAMP '2012-08-06');
 -- 
