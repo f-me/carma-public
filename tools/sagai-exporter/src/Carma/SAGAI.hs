@@ -147,8 +147,8 @@ instance ExportMonad ServiceExport where
     getWazzup = lift $ lift $ asks $ wazzup . snd
 
     exportError e = do
-      s <- getService
-      lift $ lift $ lift $ throwError $ ServiceError s e
+      (m, i, _) <- getService
+      lift $ lift $ lift $ throwError $ ServiceError m i e
 
     expenseType = do
       (mn, _, d) <- getService

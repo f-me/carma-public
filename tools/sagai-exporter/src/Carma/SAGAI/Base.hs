@@ -70,9 +70,10 @@ type ServiceExport =
 
 -- | Critical error during SAGAI case export process.
 data ExportError = CaseError ErrorType
-                 | ServiceError Service ErrorType
+                 | ServiceError String Int ErrorType
                  -- ^ Error occured when processing one of services
-                 -- attached to a case.
+                 -- attached to a case. Model name and id of service
+                 -- are stored.
                    deriving Show
 
 
