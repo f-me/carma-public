@@ -161,7 +161,7 @@ instance ExportMonad ServiceExport where
                     -- Check if this towage is a repeated towage using
                     -- CaRMa HTTP method
                     rs <- simpleHTTP $ getRequest $
-                          methodURI cp $ "repTowage/" ++ (B8.unpack cid)
+                          methodURI cp $ "repTowages/" ++ (B8.unpack cid)
                     rsb <- getResponseBody rs
                     case (decode' $ BSL.pack rsb :: Maybe [Int]) of
                       Just [] -> return Towage
