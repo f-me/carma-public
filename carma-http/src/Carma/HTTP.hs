@@ -19,6 +19,7 @@ module Carma.HTTP
     , instanceExists
     , read1Reference
     , readReferences
+    , methodURI
     )
 
 where
@@ -167,3 +168,13 @@ read1Reference val =
 -- ids. Invalid references are ignored.
 readReferences :: FieldValue -> [(String, Int)]
 readReferences refs = (flip mapMaybe) (B8.split ',' refs) read1Reference
+
+
+-- | Build URI used to call a method of local CaRMa.
+methodURI :: Int
+          -- ^ CaRMa port.
+          -> String 
+          -- ^ Method name/call, like @repTowages/5003@ or @psaCases@,
+          -- no trailing or leading slashes.
+          -> String
+methodURI cp meth = "http://localhost:" ++ show cp ++ "/" ++ meth
