@@ -78,7 +78,7 @@ import Carma.SAGAI.Util
 
 
 -- | A common interface for both 'CaseExport' and 'ServiceExport'
--- monads used to define fields of an export entry. Most of fields are
+-- monads used to define fields of an export entry. Most of fields
 -- simply use this interface. Several have to be included in the class
 -- due to different field content required for case and service
 -- entries.
