@@ -105,6 +105,7 @@ selectActions mClosed mAssignee mRole mFrom mTo = do
     ++ "  FROM actiontbl a, casetbl c, servicetbl s WHERE true"
     ++ "                   AND c.id::text = substring(a.caseId, ':(.*)')"
     ++ "                   AND s.id::text = substring(a.parentid, ':(.*)')"
+    ++ "                   AND s.type::text = substring(a.parentId, '(.*):')"
     ++ (maybe "" (\x -> "  AND closed = " ++ toBool x) mClosed)
     ++ (maybe "" (\x -> "  AND assignedTo = " ++ quote x) mAssignee)
     ++ (maybe "" (\x -> "  AND targetGroup = " ++ quote x) mRole)
