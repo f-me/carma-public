@@ -9,17 +9,39 @@
 
 {-|
 
-  Monads and combinators used to describe export process.
+  This module contains definitions of how to build every field of
+  SAGAI entry, all bound together in 'sagaiFullExport' action.
+
+  Exporting a case with services involves first fetching it from
+  CaRMa, then using is as input data for 'runExport':
+
+  > -- Fetch case
+  > res <- readInstance cp "case" caseNumber
+  > -- Fetch its services
+  > servs <- forM (readReferences $ res M.! "services")
+  >          (\(m, i) -> do
+  >             inst <- readInstance cp m i
+  >             return (m, i, inst))
+  >
+  > -- Perform export action on this data
+  > fv <- runExport sagaiFullExport cnt (res, servs) cp wazzup
+
+  Note that all services attached to the case must be supplied to
+  'runExport', although some of them may not end up being in SAGAI entry.
+
+  Final 'ExportState' as returned by 'runExport' may be used to keep
+  @SEP@ counter value between runs.
 
 -}
 
 module Carma.SAGAI
-    ( CaseExport
-    , ExportState(..)
+    ( -- * Running SAGAI export
+      sagaiFullExport
     , runExport
-    , sagaiExport
-    , sagaiFullExport
+    -- * Export results
+    , ExportState(..)
     , ExportError(..)
+    , ErrorType(..)
     )
 
 where
@@ -49,50 +71,10 @@ import Network.HTTP
 import Text.Printf
 
 import Carma.HTTP
+
+import Carma.SAGAI.Base
 import Carma.SAGAI.Codes
-import Carma.SAGAI.Error
 import Carma.SAGAI.Util
-
-
--- | A case instance and a list of service instances attached to the
--- case to be exported to SAGAI.
-type ExportData = (InstanceData, [Service])
-
-
--- | Model name, id and data of a service.
-type Service = (String, Int, InstanceData)
-
-
-data ExportState = ExportState { counter :: Int
-                               -- ^ Current entry line counter used
-                               -- for @SEP@ field.
-                               }
-
-
--- | Read only options used when processing a case.
-data ExportOptions = ExportOptions { carmaPort :: Int
-                                   -- ^ CaRMa port.
-                                   , wazzup :: D.Dict
-                                   -- ^ Dictionary used on the @comment@
-                                   -- field of a case.
-                                   }
-
-
--- | Main monad used to form a SAGAI entry for a case. Reader state
--- stores the case and its services. Error monad is provided to early
--- terminate entry export in case of critical errors. IO may be used
--- to query CaRMa database.
-type CaseExport =
-    (StateT ExportState
-     (ReaderT (ExportData, ExportOptions)
-      (ErrorT ExportError IO)))
-
-
--- | A sub-monad used when forming a part of a SAGAI entry
--- corresponding to a service. Provides easy access to the currently
--- processed service.
-type ServiceExport =
-    ReaderT Service CaseExport
 
 
 -- | A common interface for both 'CaseExport' and 'ServiceExport'
@@ -106,7 +88,7 @@ class (Functor m, Monad m, MonadIO m) => ExportMonad m where
     getCarmaPort   :: m Int
     getWazzup      :: m D.Dict
     expenseType    :: m ExpenseType
-    exportError    :: ExportError -> m a
+    exportError    :: ErrorType -> m a
 
     getState       :: m ExportState
     putState       :: ExportState -> m ()
@@ -115,6 +97,7 @@ class (Functor m, Monad m, MonadIO m) => ExportMonad m where
     defField       :: m BS.ByteString
     somField       :: m BS.ByteString
     comm3Field     :: m BS.ByteString
+
 
 instance ExportMonad CaseExport where
     getCase = lift $ asks $ fst . fst
@@ -125,7 +108,7 @@ instance ExportMonad CaseExport where
 
     getWazzup = lift $ asks $ wazzup . snd
 
-    exportError e = lift $ lift $ throwError e
+    exportError e = lift $ lift $ throwError $ CaseError e
 
     getState = get
 
@@ -163,7 +146,9 @@ instance ExportMonad ServiceExport where
 
     getWazzup = lift $ lift $ asks $ wazzup . snd
 
-    exportError e = lift $ lift $ lift $ throwError e
+    exportError e = do
+      s <- getService
+      lift $ lift $ lift $ throwError $ ServiceError s e
 
     expenseType = do
       (mn, _, d) <- getService
@@ -266,26 +251,6 @@ instance ExportMonad ServiceExport where
 
 getService :: ServiceExport Service
 getService = ask
-
-
--- | Perform export action using the provided case and services data
--- and export options. If no errors occured, then return action result
--- and final state of export monad.
-runExport :: CaseExport a
-          -> Int
-          -- ^ Initial value for @SEP@ line counter.
-          -> ExportData
-          -- ^ Case and all of its services.
-          -> Int
-          -- ^ CaRMa port.
-          -> D.Dict
-          -- ^ Wazzup dictionary.
-          -> IO (Either ExportError (a, ExportState))
-runExport act sepStart input cp wz = do
-    res <- runErrorT $
-           runReaderT (runStateT act $ ExportState sepStart) $
-           (input, ExportOptions cp wz)
-    return res
 
 
 -- | Get a value of a field in the case entry being exported.
@@ -638,7 +603,8 @@ sagaiExport :: ExportMonad m => m BS.ByteString
 sagaiExport = BS.concat <$> (mapM id entrySpec)
 
 
--- | Form a full entry for the case and its services.
+-- | Form a full entry for the case and its services (only those which
+-- satisfy requirements defined by the spec), producing a ByteString.
 sagaiFullExport :: CaseExport BS.ByteString
 sagaiFullExport = do
   caseOut <- sagaiExport
