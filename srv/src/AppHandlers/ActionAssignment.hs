@@ -1,6 +1,7 @@
 
 module AppHandlers.ActionAssignment where
 
+import Prelude hiding (log)
 import Control.Monad
 import Control.Applicative
 import Data.String (fromString)
@@ -13,6 +14,7 @@ import qualified Data.ByteString.Char8 as B
 
 import Snap
 import Snap.Snaplet.Auth
+import Snap.Snaplet.SimpleLog
 import qualified Snaplet.DbLayer as DB
 import Database.PostgreSQL.Simple
 ----------------------------------------------------------------------
@@ -35,9 +37,9 @@ assignQ pri usr logdUsers = fromString
   ++ "    AND   (assignedTo IS NULL"
   ++ "           OR assignedTo NOT IN ('" ++ logdUsersList ++ "'))"
   ++ "    ORDER BY"
-  ++ "      (act.name IN ('orderService', 'orederServiceSMS')"
+  ++ "      (act.name IN ('orderService', 'orderServiceSMS')"
   ++ "        AND svc.urgentService) DESC NULLS LAST,"
-  ++ "     duetime ASC"
+  ++ "      duetime ASC"
   ++ "    LIMIT 1)"
   ++ "  RETURNING id::text;"
   where
@@ -48,7 +50,7 @@ assignQ pri usr logdUsers = fromString
 
 
 myActionsHandler :: AppHandler ()
-myActionsHandler = do
+myActionsHandler = scoper "myActions" $ do
   Just cUsr <- with auth currentUser
   logdUsers <- map (userLogin.snd) . Map.elems <$> addToLoggedUsers cUsr
 
@@ -61,6 +63,10 @@ myActionsHandler = do
   with db $ forM_ actIds $ \[actId] ->
       DB.update "action" actId
         $ Map.singleton "assignedTo" uLogin
+
+  when (not $ null actIds) $ log Info $ fromString
+    $ "New actions for " ++ show uLogin
+    ++ ": " ++ show actIds
 
   selectActions (Just "0") (Just uLogin) Nothing Nothing Nothing
     >>= writeJSON
