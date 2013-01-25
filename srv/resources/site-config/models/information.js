@@ -25,6 +25,7 @@
         },
         {
             "targets": [
+                "urgentService",
                 "payment_expectedCost"
             ],
             "canRead": [
@@ -683,6 +684,13 @@
                 "label": "Что сказать 3"
             },
             "type": "textarea"
+        },
+        {
+            "name": "urgentService",
+            "type": "checkbox",
+            "meta": {
+                "label": "Приоритетная услуга"
+            }
         },
         {
             "name": "status",
