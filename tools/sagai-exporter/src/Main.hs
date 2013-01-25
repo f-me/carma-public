@@ -111,8 +111,7 @@ saveCompos fp n = do
 
 fetchPSACaseNumbers :: Int -> IO [Int]
 fetchPSACaseNumbers cp = do
-  rs <- simpleHTTP $
-        getRequest ("http://localhost:" ++ show cp ++ "/psaCases/")
+  rs <- simpleHTTP $ getRequest $ methodURI cp "psaCases"
   rsb <- getResponseBody rs
   case decode' $ BSL.pack rsb of
     Just d -> return d

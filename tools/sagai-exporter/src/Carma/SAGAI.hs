@@ -32,7 +32,9 @@ import Control.Monad.Trans.State
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
+import qualified Data.ByteString.Lazy.Char8 as BSL
 
+import Data.Aeson
 import Data.Char
 import Data.Dict as D
 import Data.Functor
@@ -41,6 +43,8 @@ import qualified Data.Map as M
 import Data.Time.Clock
 import Data.Time.Format
 import System.Locale
+
+import Network.HTTP
 
 import Text.Printf
 
@@ -164,8 +168,21 @@ instance ExportMonad ServiceExport where
     expenseType = do
       (mn, _, d) <- getService
       case mn of
-        -- TODO Add RepTowage branch
-        "towage" -> return Towage
+        "towage" ->
+            do
+              cid <- lift $ caseField1 "id"
+              cp <- getCarmaPort
+              liftIO $ do
+                    -- Check if this towage is a repeated towage using
+                    -- CaRMa HTTP method
+                    rs <- simpleHTTP $ getRequest $
+                          methodURI cp $ "repTowage/" ++ (B8.unpack cid)
+                    rsb <- getResponseBody rs
+                    case (decode' $ BSL.pack rsb :: Maybe [Int]) of
+                      Just [] -> return Towage
+                      Just _  -> return RepTowage
+                      -- It's actually an error
+                      Nothing -> return Towage
         "rent"   -> return Rent
         "tech"   -> do
                 techType <- dataField1 "techType" d
