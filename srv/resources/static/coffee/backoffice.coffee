@@ -113,4 +113,4 @@ handleBoUpdate = (table) ->
   return toNotify
 
 boNotify = (elems) ->
-  alert "Измененные строки: #{elems.join(', ')}" unless _.isEmpty elems
+  alert "Ой! Действия просрочились: #{elems.join(', ')}" unless _.isEmpty elems
