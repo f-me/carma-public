@@ -83,16 +83,12 @@ addActions = (actions, table) ->
       svcName = global.models[svcName].title
     id = "#{cid}/#{act.id} (#{svcName or ''})"
     duetime  = new Date(act.duetime * 1000).toString("dd.MM.yyyy HH:mm:ss")
-    srvStart = new Date(act.times_expectedServiceStart * 1000)
-                 .toString("dd.MM.yyyy HH:mm:ss")
     row = [ id
           , act.priority || '3'
           , duetime
           , global.dictValueCache['DealerCities'][act.city] || ''
           , act.description || ''
           , act.comment || ''
-          , srvStart || ''
-          , act.name || ''
           ]
   table.fnAddData(rows)
 
