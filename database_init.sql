@@ -33,6 +33,8 @@ CREATE INDEX ON actiontbl USING hash (targetGroup);
 CREATE INDEX ON actiontbl USING hash (caseId);
 CREATE INDEX ON actiontbl USING btree (duetime) where closed = false;
 
+CREATE INDEX ON servicetbl USING hash (urgentService);
+
 -- case + service view
 create view servicesview as
     select
