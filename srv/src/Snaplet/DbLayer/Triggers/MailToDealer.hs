@@ -95,8 +95,8 @@ sendMailActually caseId = do
   cfgHost <- liftIO $ require cfg "psa-smtp-host"
   cfgUser <- liftIO $ require cfg "psa-smtp-user"
   cfgPass <- liftIO $ require cfg "psa-smtp-pass"
-  cfgFrom <- liftIO $ require cfg "psq-smtp-from"
-  cfgTo   <- liftIO $ require cfg "psq-smtp-recipients"
+  cfgFrom <- liftIO $ require cfg "psa-smtp-from"
+  cfgTo   <- liftIO $ require cfg "psa-smtp-recipients"
 
   varMap <- fillVars caseId
 
@@ -105,7 +105,7 @@ sendMailActually caseId = do
         (eml cfgFrom)
         (map eml $ TS.splitOn "," cfgTo)
         [] []
-        "subj"
+        "Доставлена машина на ремонт"
         [htmlPart $ render varMap mailTemplate]
 
   l <- lift askLog
