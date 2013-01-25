@@ -24,14 +24,20 @@ import AppHandlers.Util
 assignQ :: Int -> AuthUser -> [Text] -> Query
 assignQ pri usr logdUsers = fromString
   $  "UPDATE actiontbl SET assignedTo = '" ++ uLogin ++ "'"
-  ++ "  WHERE id = (SELECT id FROM actiontbl"
+  ++ "  WHERE id = (SELECT act.id"
+  ++ "    FROM actiontbl act, servicetbl svc"
   ++ "    WHERE closed = false"
+  ++ "    AND   svc.id::text = substring(act.parentId, ':(.*)')"
+  ++ "    AND   svc.type::text = substring(act.parentId, '(.*):')"
   ++ "    AND   priority = '" ++ show pri ++ "'"
   ++ "    AND   duetime at time zone 'UTC' - now() < interval '30 minutes'"
   ++ "    AND   targetGroup = '" ++ roleStr uRole ++ "'"
   ++ "    AND   (assignedTo IS NULL"
   ++ "           OR assignedTo NOT IN ('" ++ logdUsersList ++ "'))"
-  ++ "    ORDER BY duetime ASC"
+  ++ "    ORDER BY"
+  ++ "      (act.name IN ('orderService', 'orederServiceSMS')"
+  ++ "        AND svc.urgentService) DESC NULLS LAST,"
+  ++ "     duetime ASC"
   ++ "    LIMIT 1)"
   ++ "  RETURNING id::text;"
   where

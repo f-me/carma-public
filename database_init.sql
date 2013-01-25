@@ -11,6 +11,7 @@ CREATE ROLE carma_geo PASSWORD 'md5a73940ffdfdd8d8b9ecfbfba6cc3e2ab' NOSUPERUSER
 
 CREATE ROLE carma_action_assignment ENCRYPTED PASSWORD 'md5039cf6a6d8de18b95bd103f64c1dfab9' NOSUPERUSER NOCREATEDB NOCREATEROLE INHERIT LOGIN;
 GRANT SELECT, UPDATE ON actiontbl TO carma_action_assignment;
+GRANT SELECT ON servicetbl TO carma_action_assignment;
 
 -- Run this after first sync
 
@@ -32,6 +33,7 @@ CREATE INDEX ON actiontbl USING hash (closed);
 CREATE INDEX ON actiontbl USING hash (targetGroup);
 CREATE INDEX ON actiontbl USING hash (caseId);
 CREATE INDEX ON actiontbl USING btree (duetime) where closed = false;
+CREATE INDEX ON actiontbl USING btree (priority) where closed = false;
 
 CREATE INDEX ON servicetbl USING hash (urgentService);
 
