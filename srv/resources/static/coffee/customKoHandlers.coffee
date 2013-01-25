@@ -9,3 +9,7 @@ ko.bindingHandlers.bindClick =
     fn = valueAccessor()
     $(element).click ->
       fn(element, viewModel)
+
+ko.bindingHandlers.updMultiDict =
+  init: (element, valueAccessor, allBindingsAccessor, kvm) ->
+    fn = valueAccessor()

@@ -636,6 +636,9 @@
                 <th width="10%">Время выполнения</th>
                 <th width="10%">Результат</th>
                 <th width="2%">Пр</th>
+                <th>Город</th>
+                <th>Ожидаемое время начала оказания услуги</th>
+                <th>Название услуги</th>
               </tr>
             </thead>
             <tbody/>
@@ -656,7 +659,7 @@
             class="screen-template"
             id="rkc-screen-template">
       <!-- <div class="pane" style="left:0;right:0;overflow-x:hidden;"> -->
-      <div class="row-fluid">
+      <div class="row-fluid pane nice-scrollbar">
         <div class="span12">
           <h2>Фильтрация</h2>
           <div class="row-fluid">
@@ -700,21 +703,33 @@
             </div>
             <div class="span6">
               <h3>Интервал</h3>
-              <div class="input-append date"
+              <div class="input-append date controls"
                    data-provide="datepicker"
                    data-autoshow-datepicker="true"
                    data-date-format="dd.mm.yyyy"
                    data-date-weekstart="1">
-                <input type="text" id="rkc-date-from" class="pane-span focusable" name="from"/>
-                <span class="add-on"><i class="icon icon-calendar" /></span>
+                <input type="text"
+                       id="rkc-date-from"
+                       class="focusable"
+                       name="from"
+                       />
+                <span class="add-on">
+                  <i class="icon icon-calendar" />
+                </span>
               </div>
               <div class="input-append date"
                    data-provide="datepicker"
                    data-autoshow-datepicker="true"
                    data-date-format="dd.mm.yyyy"
                    data-date-weekstart="1">
-                <input type="text" id="rkc-date-to" class="pane-span focusable" name="to"/>
-                <span class="add-on"><i class="icon icon-calendar" /></span>
+                <input type="text"
+                       id="rkc-date-to"
+                       class="focusable"
+                       name="to"
+                       />
+                <span class="add-on">
+                  <i class="icon icon-calendar" />
+                </span>
               </div>
             </div>
             <div class="span2">
@@ -883,7 +898,17 @@
                       <th width="20%"></th>
                     </tr>
                   </thead>
-                  <tbody />
+                  <tbody data-bind="foreach: $data">
+                    <tr data-bind="attr: { id: city }">
+                      <td data-bind="text: cityname"></td>
+                      <td data-bind="text: temp"></td>
+                      <td>
+                        <button class="btn" onClick="rkcWeatherRemoveSelectedCity(this)">
+                          Удалить
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
                 </table>
               </div>
             </div>
@@ -1373,8 +1398,12 @@
             class="field-template"
             id="dictionary-field-template">
       <div class="control-group"
-           {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
-           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
+           {{# meta.required }}
+             data-bind="css: { error: {{name}}Not }"
+           {{/ meta.required }}
+           {{# meta.regexp   }}
+             data-bind="css: { warning: {{name}}Regexp }"
+           {{/ meta.regexp   }}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -1418,6 +1447,79 @@
               />
             </span>
           </div>
+          {{# meta.targetCategory }}
+          <ul data-depends="{{ name }}"
+              data-source="{{ meta.targetCategory }}"
+              data-provide="checklist" />
+          {{/ meta.targetCategory }}
+        </div>
+      </div>
+    </script>
+
+    <!-- like usual dic, but allow sort of multiple selection -->
+    <script type="text/template"
+            class="field-template"
+            id="dictionary-many-field-template">
+      <div class="control-group"
+           {{# meta.required }}
+             data-bind="css: { error: {{name}}Not }"
+           {{/ meta.required }}
+           {{# meta.regexp   }}
+             data-bind="css: { warning: {{name}}Regexp }"
+           {{/ meta.regexp   }}
+           >
+        <div class="control-label">
+          <label>{{ meta.label }}
+            {{# meta.infoText1 }}
+              <i class="icon icon-question-sign"
+                 data-provide="popover"
+                 data-content="{{ meta.infoText1 }}" />
+            {{/ meta.infoText1 }}
+          </label>
+        </div>
+        <div class="controls">
+          <div class="input-append">
+            <!--
+
+            Note the difference between readonly attribute and
+            disabled class from Bootstrap.
+
+            -->
+
+            <input type="text"
+                   class="pane-span
+                          focusable
+                          {{# meta.addClass }}{{meta.addClass}}{{/ meta.addClass }}
+                          {{# readonly }}disabled{{/ readonly }}"
+                   {{# readonly }}readonly{{/ readonly }}
+                   autocomplete="off"
+                   name="{{ name }}"
+                   data-source="global.dictionaries['{{meta.dictionaryName}}']"
+                   data-bind="value: {{ name }}Many,
+                              valueUpdate: 'change'
+                              {{# meta.dictionaryParent }},
+                              attr: { 'data-parent': {{ meta.dictionaryParent }} }
+                              {{/ meta.dictionaryParent }}"
+                   {{^readonly}}
+                   data-provide="typeahead"
+                   {{/readonly}}
+                   />
+            <span class="add-on">
+              <i class="icon icon-chevron-down"
+                {{^readonly}}data-provide="typeahead-toggle"{{/readonly}}
+              />
+            </span>
+          </div>
+          <!-- ko if: {{ name }}Locals().length -->
+          <ul data-bind="foreach: {{ name }}Locals">
+            <li>
+              <span data-bind="text: $data.label" />
+              <a href="" data-bind="click: $parent.{{ name }}Remove" >
+                x
+              </a>
+            </li>
+          </ul>
+          <!-- /ko -->
           {{# meta.targetCategory }}
           <ul data-depends="{{ name }}"
               data-source="{{ meta.targetCategory }}"
@@ -1830,7 +1932,8 @@
           <ul class="dropdown-menu">
             {{# dictionary.entries }}
             <li>
-              <a href="#" onclick="addService('{{value}}');">
+              <a href="#"
+                 onclick="addService('{{value}}'); return false;">
                 <i class="icon-{{icon}} icon-black" />
                 {{ label }}
               </a>

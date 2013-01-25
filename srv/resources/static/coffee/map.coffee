@@ -155,7 +155,7 @@ this.initOSM = (el, parentView) ->
 
     coords = findVM(coord_meta.view)[coord_meta.field]()
     if coords?
-      coords = lonlatFromShortString(coords)
+      coords = lonlatFromShortString coords
       osmap.setCenter coords.transform(wsgProj, osmProj), zoomLevel
       currentBlip osmap, coords, current_blip_type
 
@@ -171,7 +171,7 @@ this.initOSM = (el, parentView) ->
       if coord_field?
         # coord_view_name and coord_field are already known as per
         # coord_field? branch in geocoding setup
-        findVM(coord_meta.view)[coord_meta.field](coords.toShortString())
+        findVM(coord_meta.view)[coord_meta.field](shortStringFromLonlat coords)
 
       $.getJSON(nominatimRevQuery(coords.lon, coords.lat),
       (res) ->
@@ -189,7 +189,8 @@ this.initOSM = (el, parentView) ->
     more_coord_metas = _.map more_coord_field, splitFieldInView
     more_coords = _.map more_coord_metas, (fm) -> findVM(fm.view)[fm.field]()
     for c in more_coords
-      extraBlip osmap, (lonlatFromShortString c).transform(wsgProj, osmProj), "Extras"
+      if c?
+        extraBlip osmap, (lonlatFromShortString c).transform(wsgProj, osmProj), "Extras"
 
 
   ## Bind map to partner list
@@ -307,7 +308,7 @@ this.partnerBlips = (osmap,
       coords = new OpenLayers.LonLat(blip[1], blip[2])
 
       # Readable coords in WSG
-      string_coords = coords.toShortString()
+      string_coords = shortStringFromLonlat coords
       # Coords to use for map blip
       coords = coords.transform(wsgProj, osmProj)
 
@@ -368,11 +369,16 @@ this.pickPartnerBlip = (
   vm[partnerCoordsField](partnerCoords)
 
 
-# Read "32.54, 56.21" (the way coordinates are stored in model fields)
+# Read "32.54,56.21" (the way coordinates are stored in model fields)
 # into LonLat object
 this.lonlatFromShortString = (coords) ->
   parts = coords.split(",")
   return new OpenLayers.LonLat(parts[0], parts[1])
+
+
+# Convert LonLat object to string in format "32.41,52.33"
+this.shortStringFromLonlat = (coords) ->
+  return "#{coords.lon},#{coords.lat}"
 
 
 # Forward geocoding picker (address -> coordinates)
@@ -408,7 +414,7 @@ this.geoPicker = (fieldName, el) ->
       lonlat = new OpenLayers.LonLat(res[0].lon, res[0].lat)
 
       if coord_field?
-        findVM(viewName)[coord_field](lonlat.toShortString())
+        findVM(viewName)[coord_field](shortStringFromLonlat lonlat)
 
       if map_field?
         osmap = view.find("[name=#{map_field}]").data("osmap")

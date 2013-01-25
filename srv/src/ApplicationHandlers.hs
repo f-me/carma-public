@@ -7,6 +7,7 @@ import Prelude hiding (log)
 
 import Data.Functor
 import Control.Monad
+import Control.Monad.CatchIO
 import Control.Concurrent.STM
 
 import Data.Text.Lazy (toStrict)
@@ -15,6 +16,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
+import qualified Data.ByteString.Lazy as B (toStrict)
 import qualified Data.ByteString.UTF8  as BU
 import qualified Data.Aeson as Aeson
 import Data.List
@@ -40,11 +42,13 @@ import Snap.Snaplet.SimpleLog
 import Snap.Snaplet.Vin
 import Snap.Util.FileServe (serveFile)
 
-import WeatherApi (getWeather', tempC)
+import WeatherApi (getWeather', tempC, Config)
 ------------------------------------------------------------------------------
 import qualified Snaplet.DbLayer as DB
 import qualified Snaplet.DbLayer.Types as DB
+import qualified Snaplet.DbLayer.ARC as ARC
 import qualified Snaplet.DbLayer.RKC as RKC
+import qualified Snaplet.DbLayer.Dictionary as Dict
 import Snaplet.FileUpload (doUpload', doDeleteAll')
 ------------------------------------------------------------------------------
 import qualified Nominatim
@@ -149,7 +153,7 @@ createHandler = do
   logReq commit
   res <- with db $ DB.create model commit
   -- FIXME: try/catch & handle/log error
-  writeJSON res
+  logResp res
 
 readHandler :: AppHandler ()
 readHandler = do
@@ -189,7 +193,7 @@ updateHandler = do
   -- Need this hack, or server won't return updated "cost_counted"
   res <- with db $ DB.update model objId $ Map.delete "cost_counted" commit
   -- FIXME: try/catch & handle/log error
-  writeJSON res
+  logResp res
 
 deleteHandler :: AppHandler ()
 deleteHandler = do
@@ -256,21 +260,43 @@ rkcHandler = scope "rkc" $ scope "handler" $ do
 
 rkcWeatherHandler :: AppHandler ()
 rkcWeatherHandler = scope "rkc" $ scope "handler" $ scope "weather" $ do
-  city <- getParam "city"
-  case city of
-    Nothing -> writeJSON ()
-    Just city' -> do
-      temp <- with db $ do
-        conf <- gets DB.weather
-        w <- liftIO $ getWeather' conf $ BU.toString city'
-        case w of
-          Right w' -> do
-            log Trace $ T.concat ["Weather for city ", T.decodeUtf8 city', " is: ", fromString $ show w']
-            return . show . tempC $ w'
-          Left err -> do
-            log Debug $ T.concat ["Failed to get weather for city ", T.decodeUtf8 city', " due to: ", fromString $ show err]
-            return "-"
-      writeJSON temp
+  Just u <- with auth currentUser
+  cities <- case HashMap.lookup "weathercities" (userMeta u) of
+    Nothing -> return defaultCities
+    Just cities' -> case Aeson.fromJSON cities' of
+      Aeson.Success r -> return r
+      Aeson.Error e -> do
+        log Error "Can't read weather cities"
+        return defaultCities
+
+  toRemove <- liftM (maybeToList . fmap BU.toString) $ getParam "remove"
+  toAdd <- liftM (maybeToList . fmap BU.toString) $ getParam "add"
+
+  let
+    newCities = nub $ (cities ++ toAdd) \\ toRemove
+
+  with auth $ saveUser $ u {
+    userMeta = HashMap.insert "weathercities" (Aeson.toJSON newCities) (userMeta u) }
+
+  log Trace $ T.concat ["Cities: ", fromString $ intercalate ", " newCities]
+  conf <- with db $ gets DB.weather
+
+  temps <- mapM (liftIO . weatherForCity conf) newCities
+  writeJSON $ Aeson.object [
+    "weathers" .= zipWith toTemp temps newCities]
+
+  where
+    weatherForCity :: WeatherApi.Config -> String -> IO (Either String Double)
+    weatherForCity conf city = liftM (either (Left . show) (Right . tempC)) $
+      getWeather' conf city
+
+    defaultCities :: [String]
+    defaultCities = ["Moskva", "Sankt-Peterburg"]
+
+    toTemp :: Either String Double -> String -> Aeson.Value
+    toTemp t city = Aeson.object [
+      "city" .= city,
+      "temp" .= either (const "-") show t]
 
 rkcFrontHandler :: AppHandler ()
 rkcFrontHandler = scope "rkc" $ scope "handler" $ scope "front" $ do
@@ -303,6 +329,28 @@ rkcPartners = scope "rkc" $ scope "handler" $ scope "partners" $ do
 
   res <- with db $ RKC.partners (RKC.filterFrom flt') (RKC.filterTo flt')
   writeJSON res
+
+logtest :: AppHandler ()
+logtest = do
+  r <- getRequest
+  log Fatal $ T.decodeUtf8 $ rqURI r
+
+arcReportHandler :: AppHandler ()
+arcReportHandler = scope "arc" $ scope "handler" $ do
+  logtest
+  year <- tryParam B.readInteger "year"
+  month <- tryParam B.readInt "month"
+  dicts <- scope "dictionaries" . Dict.loadDictionaries $ "resources/site-config/dictionaries"
+  with db $ ARC.arcReport dicts year month
+  serveFile "ARC.xlsx"
+  where
+    tryParam :: MonadSnap m => (ByteString -> Maybe (a, ByteString)) -> ByteString -> m a
+    tryParam reader name = do
+      bs <- getParam name
+      case bs >>= reader of
+        Nothing -> error $ "Unable to parse " ++ B.unpack name
+        Just (v, "") -> return v
+        Just (_, _) -> error $ "Unable to parse " ++ B.unpack name
 
 -- | This action recieve model and id as parameters to lookup for
 -- and json object with values to create new model with specified
@@ -510,6 +558,10 @@ logReq commit  = do
     "params: " ++ show params ++ "; " ++
     "body: " ++ show commit
 
+logResp :: Aeson.ToJSON v => v -> AppHandler ()
+logResp r = scope "resplogger" $ do
+  log Trace $ T.decodeUtf8 $ B.toStrict $ Aeson.encode r
+  writeJSON r
 
 ------------------------------------------------------------------------------
 -- | Deny requests from non-local unauthorized users.

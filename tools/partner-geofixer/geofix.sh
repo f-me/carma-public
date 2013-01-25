@@ -1,4 +1,4 @@
- #! /usr/bin/env bash
+#! /usr/bin/env bash
 
 # --------------------------------------
 # 
@@ -6,7 +6,9 @@
 #
 # Usage:
 #
-#    bash geofix.sh
+#    bash geofix.sh [CaRMa port number]
+#
+#    If no port specified, then default value of 8000 is used.
 #
 # Output files:
 #
@@ -32,13 +34,11 @@ DELAY=0.1
 
 YANDEX_HTTP="http://geocode-maps.yandex.ru/1.x/"
 
-PARTNERS_HTTP="http://localhost:8000/all/partner?fields=id,name,city,addrDeFacto"
+PARTNERS_HTTP1="http://localhost:"
+PARTNERS_PORT="8000"
+PARTNERS_HTTP2="/all/partner?fields=id,name,city,addrDeFacto"
 
 POSTAL_DB="./RU.txt"
-
-# --------------------------------------
-# No configurable parts beyond this line
-# --------------------------------------
 
 command-exists-p () {
     type -P $1 >/dev/null || { echo "$1: command not found" && exit 127; }
@@ -59,6 +59,17 @@ lookup-code () {
 command-exists-p jq
 command-exists-p curl
 file-exists-p ${POSTAL_DB}
+
+
+# Override default CaRMa port when given a command line argument
+if [ $# -gt 0 ]
+then
+    PARTNERS_PORT="$1"
+fi
+
+PARTNERS_HTTP="${PARTNERS_HTTP1}${PARTNERS_PORT}${PARTNERS_HTTP2}"
+echo "Using '${PARTNERS_HTTP}' as CaRMa API endpoint"
+
 
 LOG=$(mktemp geofix-XXXXXX.log)
 SOURCE_LIST=${LOG%log}source.txt

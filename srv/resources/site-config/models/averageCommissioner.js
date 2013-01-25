@@ -59,6 +59,7 @@
         },		
         {
             "targets": [
+                "urgentService",
                 "payment_expectedCost"
             ],
             "canRead": [
@@ -746,6 +747,13 @@
             "groupName": "countedCost",
             "meta": {
                 "label": "Расчетная стоимость"
+            }
+        },
+        {
+            "name": "urgentService",
+            "type": "checkbox",
+            "meta": {
+                "label": "Приоритетная услуга"
             }
         },
         {
