@@ -35,7 +35,7 @@ data ExpenseType = Dossier
                  | Towage
                  | RepTowage
                  | Rent
-                   deriving (Eq, Ord)
+                   deriving (Eq, Ord, Show)
 
 
 -- | Data for particular type of expense.

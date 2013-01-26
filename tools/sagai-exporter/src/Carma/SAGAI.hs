@@ -51,6 +51,7 @@ import Control.Monad.Trans.Class
 import Control.Monad.Trans.Error
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.State
+import Control.Monad.Trans.Writer
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
@@ -60,6 +61,7 @@ import Data.Aeson
 import Data.Char
 import Data.Dict as D
 import Data.Functor
+import Data.List
 import qualified Data.Map as M
 
 import Data.Time.Clock
@@ -138,6 +140,10 @@ instance ExportMonad CaseExport where
       return $ case servs of
         [] -> BS.empty
         ((_, _, d):_) -> commentPad $ dataField0 "orderNumber" d
+
+
+exportLog :: String -> CaseExport ()
+exportLog s = lift $ lift $ tell [s]
 
 
 instance ExportMonad ServiceExport where
@@ -249,7 +255,7 @@ serviceExpenseType (mn, _, d) = do
                 case (decode' $ BSL.pack rsb :: Maybe [Int]) of
                   Just [] -> return Towage
                   Just _  -> return RepTowage
-                  -- It's actually an error
+                  -- TODO It's actually an error
                   Nothing -> return Towage
     "rent"   -> return Rent
     "tech"   -> do
@@ -613,14 +619,36 @@ sagaiExport :: ExportMonad m => m BS.ByteString
 sagaiExport = BS.concat <$> (mapM id entrySpec)
 
 
+-- | Format service data as @towage:312@ (model name and id).
+formatService :: Service -> String
+formatService (mn, i, _) =  mn ++ ":" ++ show i
+
+
+formatServiceList :: [Service] -> String
+formatServiceList ss = "[" ++ (intercalate "," $ map formatService ss) ++ "]"
+
+
+-- | Initialize 'ServiceExport' monad and run 'sagaiExport' in it for
+-- a service.
+runServiceExport :: Service -> CaseExport BS.ByteString
+runServiceExport s = do
+  exportLog $ "Now exporting " ++ formatService s
+  et <- serviceExpenseType s
+  exportLog $ "Expense type of service is " ++ show et
+  runReaderT sagaiExport (s, et)
+
+
 -- | Form a full entry for the case and its services (only those which
 -- satisfy requirements defined by the spec), producing a ByteString.
 sagaiFullExport :: CaseExport BS.ByteString
 sagaiFullExport = do
+  et <- expenseType
+  exportLog $ "Expense type is " ++ show et
   caseOut <- sagaiExport
-  servs <- filter exportable <$> getAllServices
-  servsOut <- BS.concat <$>
-              mapM (\s -> runReaderT sagaiExport . (s,) =<<
-                          serviceExpenseType s)
-              servs
+
+  allServs <- getAllServices
+  let servs = filter exportable allServs
+  exportLog $ "Case services: " ++ formatServiceList allServs ++
+              ", exporting: " ++ formatServiceList servs
+  servsOut <- BS.concat <$> mapM runServiceExport servs
   return $ BS.concat [caseOut, servsOut]

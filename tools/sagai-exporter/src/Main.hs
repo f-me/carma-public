@@ -23,12 +23,13 @@ import Carma.SAGAI
 
 
 -- | Export case and its services. If successfull, return SAGAI entry
--- as a bytestring and a new value of the COMPOS counter.
+-- as a bytestring, a new value of the COMPOS counter and an export
+-- log.
 exportCase :: Int
            -> Int
            -> Int
            -> Dict
-           -> IO (Either ExportError (BS.ByteString, Int))
+           -> IO (Either ExportError (BS.ByteString, Int, [String]))
 exportCase cnt caseNumber cp wazzup = do
   -- Read case with provided number and all of the associated services
   res <- readInstance cp "case" caseNumber
@@ -39,8 +40,10 @@ exportCase cnt caseNumber cp wazzup = do
 
   fv <- runExport sagaiFullExport cnt (res, servs) cp wazzup
   case fv of
-    Left err -> return $ Left err
-    Right ((entry, ExportState newCnt), _) -> return $ Right (entry, newCnt)
+    Left err ->
+        return $ Left err
+    Right ((entry, ExportState newCnt), eLog) ->
+        return $ Right (entry, newCnt, eLog)
 
 
 -- | Monad which stores value of the COMPOS counter when exporting
@@ -71,7 +74,7 @@ exportManyCases initialCnt cases cp wazzup =
           res <- liftIO $ exportCase cnt caseNumber cp wazzup
           case res of
             Left err -> return $ Left (caseNumber, err)
-            Right (entry, newCnt) -> do
+            Right (entry, newCnt, _) -> do
                      put newCnt
                      return $ Right entry
     in do
