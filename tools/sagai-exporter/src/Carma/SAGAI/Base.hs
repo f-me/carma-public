@@ -24,6 +24,7 @@ where
 import Control.Monad.Trans.Error
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.State
+import Control.Monad.Trans.Writer
 import Data.Dict as D
 
 import Carma.HTTP
@@ -52,13 +53,14 @@ data ExportOptions = ExportOptions { carmaPort :: Int
 
 
 -- | Main monad used to form a SAGAI entry for a case. Reader state
--- stores the case and its services. Error monad is provided to early
--- terminate entry export in case of critical errors. IO may be used
--- to query CaRMa database.
+-- stores the case and its services. Writer state keeps log messages.
+-- Error monad is provided to early terminate entry export in case of
+-- critical errors. IO may be used to query CaRMa database.
 type CaseExport =
     (StateT ExportState
      (ReaderT (ExportData, ExportOptions)
-      (ErrorT ExportError IO)))
+      (WriterT [String]
+       (ErrorT ExportError IO))))
 
 
 -- | A sub-monad used when forming a part of a SAGAI entry
@@ -93,8 +95,9 @@ instance Error ExportError
 
 
 -- | Perform export action using the provided case and services data
--- and export options. If no errors occured, then return action result
--- and final state of export monad.
+-- and export options. If no errors occured, then return action
+-- result, final state of export monad and log of operations for this
+-- case.
 runExport :: CaseExport a
           -> Int
           -- ^ Initial value for @SEP@ line counter.
@@ -104,9 +107,9 @@ runExport :: CaseExport a
           -- ^ CaRMa port.
           -> D.Dict
           -- ^ Wazzup dictionary.
-          -> IO (Either ExportError (a, ExportState))
+          -> IO (Either ExportError ((a, ExportState), [String]))
 runExport act sepStart input cp wz = do
-    res <- runErrorT $
-           runReaderT (runStateT act $ ExportState sepStart) $
-           (input, ExportOptions cp wz)
+    let inner = runReaderT (runStateT act $ ExportState sepStart) $
+                (input, ExportOptions cp wz)
+    res <- runErrorT $ runWriterT inner
     return res

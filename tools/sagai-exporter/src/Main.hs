@@ -40,7 +40,7 @@ exportCase cnt caseNumber cp wazzup = do
   fv <- runExport sagaiFullExport cnt (res, servs) cp wazzup
   case fv of
     Left err -> return $ Left err
-    Right (entry, ExportState newCnt) -> return $ Right (entry, newCnt)
+    Right ((entry, ExportState newCnt), _) -> return $ Right (entry, newCnt)
 
 
 -- | Monad which stores value of the COMPOS counter when exporting
@@ -123,7 +123,7 @@ main = do
   args <- getArgs
 
   when (length args < 3) $ putStrLn usage >> exitFailure
-  
+
   -- Read CaRMa port
   let carmaPort = read $ args !! 2
   -- Load Wazzup dictionary

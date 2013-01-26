@@ -108,7 +108,7 @@ instance ExportMonad CaseExport where
 
     getWazzup = lift $ asks $ wazzup . snd
 
-    exportError e = lift $ lift $ throwError $ CaseError e
+    exportError e = lift $ lift $ lift $ throwError $ CaseError e
 
     getState = get
 
@@ -148,7 +148,7 @@ instance ExportMonad ServiceExport where
 
     exportError e = do
       (m, i, _) <- getService
-      lift $ lift $ lift $ throwError $ ServiceError m i e
+      lift $ lift $ lift $ lift $ throwError $ ServiceError m i e
 
     expenseType = do
       (mn, _, d) <- getService
