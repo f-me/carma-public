@@ -29,6 +29,8 @@ import Data.Dict as D
 
 import Carma.HTTP
 
+import Carma.SAGAI.Codes
+
 
 -- | A case instance and a list of services attached to this case.
 type ExportData = (InstanceData, [Service])
@@ -65,9 +67,9 @@ type CaseExport =
 
 -- | A sub-monad used when forming a part of a SAGAI entry
 -- corresponding to a service. Provides easy access to the currently
--- processed service.
+-- processed service and its expense type.
 type ServiceExport =
-    ReaderT Service CaseExport
+    ReaderT (Service, ExpenseType) CaseExport
 
 
 -- | Critical error during SAGAI case export process.

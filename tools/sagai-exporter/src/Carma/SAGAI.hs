@@ -5,7 +5,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-
+{-# LANGUAGE TupleSections #-}
 
 {-|
 
@@ -87,7 +87,10 @@ class (Functor m, Monad m, MonadIO m) => ExportMonad m where
     getAllServices :: m [Service]
     getCarmaPort   :: m Int
     getWazzup      :: m D.Dict
+    -- | Return expense type for the case or currently processed
+    -- service, depending on monad.
     expenseType    :: m ExpenseType
+    -- | Stop export process due to critical error.
     exportError    :: ErrorType -> m a
 
     getState       :: m ExportState
@@ -150,33 +153,7 @@ instance ExportMonad ServiceExport where
       (m, i, _) <- getService
       lift $ lift $ lift $ lift $ throwError $ ServiceError m i e
 
-    expenseType = do
-      (mn, _, d) <- getService
-      case mn of
-        "towage" ->
-            do
-              cid <- lift $ caseField1 "id"
-              cp <- getCarmaPort
-              liftIO $ do
-                    -- Check if this towage is a repeated towage using
-                    -- CaRMa HTTP method
-                    rs <- simpleHTTP $ getRequest $
-                          methodURI cp $ "repTowages/" ++ (B8.unpack cid)
-                    rsb <- getResponseBody rs
-                    case (decode' $ BSL.pack rsb :: Maybe [Int]) of
-                      Just [] -> return Towage
-                      Just _  -> return RepTowage
-                      -- It's actually an error
-                      Nothing -> return Towage
-        "rent"   -> return Rent
-        "tech"   -> do
-                techType <- dataField1 "techType" d
-                case techType of
-                  "charge"    -> return Charge
-                  "condition" -> return Condition
-                  "starter"   -> return Starter
-                  _           -> exportError $ UnknownTechType techType
-        _        -> exportError $ UnknownService mn
+    expenseType = asks snd
 
     getState = lift $ get
 
@@ -250,7 +227,39 @@ instance ExportMonad ServiceExport where
 
 
 getService :: ServiceExport Service
-getService = ask
+getService = asks fst
+
+
+-- | Calculate expense type for a service. Used to initialize
+-- 'ServiceExport' state when processing nested services inside
+-- 'CaseExport' monad.
+serviceExpenseType :: Service -> CaseExport ExpenseType
+serviceExpenseType (mn, _, d) = do
+  case mn of
+    "towage" ->
+        do
+          cid <- caseField1 "id"
+          cp <- getCarmaPort
+          liftIO $ do
+                -- Check if this towage is a repeated towage using
+                -- CaRMa HTTP method
+                rs <- simpleHTTP $ getRequest $
+                      methodURI cp $ "repTowages/" ++ (B8.unpack cid)
+                rsb <- getResponseBody rs
+                case (decode' $ BSL.pack rsb :: Maybe [Int]) of
+                  Just [] -> return Towage
+                  Just _  -> return RepTowage
+                  -- It's actually an error
+                  Nothing -> return Towage
+    "rent"   -> return Rent
+    "tech"   -> do
+            techType <- dataField1 "techType" d
+            case techType of
+              "charge"    -> return Charge
+              "condition" -> return Condition
+              "starter"   -> return Starter
+              _           -> exportError $ UnknownTechType techType
+    _        -> exportError $ UnknownService mn
 
 
 -- | Get a value of a field in the case entry being exported.
@@ -463,6 +472,7 @@ ddgField = do
     onW <- onWarranty
     if onW
     then timestampToDate =<< caseField1 "car_warrantyStart"
+    -- With current /psaCases implementation, this should not happen
     else spaces 6
 
 
@@ -609,5 +619,8 @@ sagaiFullExport :: CaseExport BS.ByteString
 sagaiFullExport = do
   caseOut <- sagaiExport
   servs <- filter exportable <$> getAllServices
-  servsOut <- BS.concat <$> mapM (\s -> runReaderT sagaiExport s) servs
+  servsOut <- BS.concat <$>
+              mapM (\s -> runReaderT sagaiExport . (s,) =<<
+                          serviceExpenseType s)
+              servs
   return $ BS.concat [caseOut, servsOut]
