@@ -978,7 +978,11 @@
                    data-autoshow-datepicker="true"
                    data-date-format="dd.mm.yyyy"
                    data-date-weekstart="1">
-                <input type="text" id="rkc-date-from" class="pane-span focusable" name="from"/>
+                <input type="text"
+                       id="rkc-date-from"
+                       class="focusable"
+                       name="from"
+                       />
                 <span class="add-on"><i class="icon icon-calendar" /></span>
               </div>
               <div class="input-append date"
@@ -986,7 +990,11 @@
                    data-autoshow-datepicker="true"
                    data-date-format="dd.mm.yyyy"
                    data-date-weekstart="1">
-                <input type="text" id="rkc-date-to" class="pane-span focusable" name="to"/>
+                <input type="text"
+                       id="rkc-date-to"
+                       class="focusable"
+                       name="to"
+                       />
                 <span class="add-on"><i class="icon icon-calendar" /></span>
               </div>
             </div>
@@ -1066,7 +1074,11 @@
                    data-autoshow-datepicker="true"
                    data-date-format="dd.mm.yyyy"
                    data-date-weekstart="1">
-                <input type="text" id="rkc-date-from" class="pane-span focusable" name="from"/>
+                <input type="text"
+                       id="rkc-date-from"
+                       class="focusable"
+                       name="from"
+                       />
                 <span class="add-on"><i class="icon icon-calendar" /></span>
               </div>
               <div class="input-append date"
@@ -1074,7 +1086,11 @@
                    data-autoshow-datepicker="true"
                    data-date-format="dd.mm.yyyy"
                    data-date-weekstart="1">
-                <input type="text" id="rkc-date-to" class="pane-span focusable" name="to"/>
+                <input type="text"
+                       id="rkc-date-to"
+                       class="focusable"
+                       name="to"
+                       />
                 <span class="add-on"><i class="icon icon-calendar" /></span>
               </div>
             </div>
