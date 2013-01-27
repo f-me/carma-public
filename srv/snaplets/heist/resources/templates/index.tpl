@@ -159,6 +159,14 @@
         </button>
       </div>
       <div id="center" class="nice-scrollbar call-pane" />
+      <div id="right" class="pane">
+        <button id="reload-screen"
+                class="btn btn-success"
+                type="submit"
+                onClick="reloadScreen()" >
+          Новый звонок
+        </button>
+      </div>
       <div id="bottom">
         <div class="control-group">
           <div class="control-label">

@@ -374,3 +374,7 @@ this.repeat = (times, v) -> [1..times].map -> v
 this.splitVals = (v) ->
   return [] if not v or v == ""
   v.split ','
+
+this.modelsFromUrl = -> window.location.hash.match(/#(.*)\/.*/)[1]
+
+this.reloadScreen = -> global.router.navigate modelsFromUrl(), { trigger: true }
