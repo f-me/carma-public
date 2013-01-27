@@ -3,6 +3,7 @@
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans.State
+import Control.Monad.Trans.Reader
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy.Char8 as BSL
 
@@ -10,13 +11,16 @@ import Data.Aeson
 import Data.Either
 import Data.Dict as D
 import qualified Data.Map as M
+import qualified Data.Text as T
 
 import Network.HTTP
-
+import Control.Concurrent
 import System.IO
 import System.Directory
 import System.Environment
 import System.Exit
+import System.Log as L
+import System.Log.Syslog
 
 import Carma.HTTP
 import Carma.SAGAI
@@ -121,36 +125,58 @@ fetchPSACaseNumbers cp = do
     Nothing -> error "Could not read case numbers from CaRMa response"
 
 
+loggingRules :: IO (IO Rules)
+loggingRules = constant [ rule root $ use defaultPolitics ]
+
+
+mainLog :: ReaderT Log IO a -> IO a
+mainLog a = do
+  l <- newLog loggingRules [syslog_ "sagai-exporter"]
+  withLog l a
+
+
 main :: IO ()
-main = do
-  args <- getArgs
+main =  mainLog $ do
+  args <- liftIO $ getArgs
 
-  when (length args < 3) $ putStrLn usage >> exitFailure
+  when (length args < 3) $ liftIO $ putStrLn usage >> exitFailure
 
+  L.log L.Info "Starting up"
   -- Read CaRMa port
   let carmaPort = read $ args !! 2
+      dictPath  = args !! 0
   -- Load Wazzup dictionary
-  Just wazzup <- loadDict (args !! 0)
+  Just wazzup <- liftIO $ loadDict dictPath
 
+  L.log L.Info $ T.pack $ "CaRMa port: " ++ show carmaPort
   -- Load previous COMPOS value
   let composFile = args !! 1
-  cnt <- loadCompos composFile
+  cnt <- liftIO $ loadCompos composFile
+
+  L.log L.Info $ T.pack $ "COMPOS counter value: " ++ show cnt
 
   -- If any case numbers supplied on command line, use them.
   -- Otherwise, fetch case numbers from local CaRMa.
   caseNumbers <-
     case length args == 3 of
-      True -> fetchPSACaseNumbers carmaPort
+      True -> liftIO $ fetchPSACaseNumbers carmaPort
       False -> return $ map read $ drop 3 args
 
   -- Bulk export of selected cases
-  (newCnt, errors, res) <- exportManyCases cnt caseNumbers carmaPort wazzup
+  L.log L.Info $ T.pack $ "Exporting cases: " ++ show caseNumbers
+  (newCnt, errors, res) <-
+      liftIO $ exportManyCases cnt caseNumbers carmaPort wazzup
 
   -- Save new COMPOS value
-  saveCompos composFile newCnt
+  liftIO $ saveCompos composFile newCnt
 
   -- Dump errors if there're any
-  when (not $ null errors) $ print errors
+  when (not $ null errors) $ forM_ errors $ 
+           \(i, e) -> L.log L.Error $ T.pack $ 
+                      "Error in case " ++ show i ++ ": " ++ show e
 
   -- Dump export result
-  BS.putStr res
+  liftIO $ BS.putStr res
+
+  L.log L.Info "Powering down"
+  liftIO $ threadDelay (1000 * 1000)
