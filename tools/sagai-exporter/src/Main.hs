@@ -192,7 +192,6 @@ mainLog a = do
 
 curlOptions :: [CurlOption]
 curlOptions = [ CurlUseNetRc NetRcRequired
-              , CurlNoProgress True
               , CurlUpload True
               ]
 
@@ -220,7 +219,6 @@ upload ftpHost filepath = do
 handleReadFunction :: Handle -> ReadFunction
 handleReadFunction fh ptr size nmemb _ = do
   actualSize <- hGetBuf fh ptr $ fromInteger . toInteger $ (size * nmemb)
-  print actualSize
   return $
          if (actualSize > 0)
          then Just $ fromInteger $ toInteger actualSize
@@ -255,7 +253,7 @@ main =
                    &= name "v"
                  , ftpHost = Nothing
                    &= name "m"
-                   &= help "Hostname of FTP to upload the result to, if necessary"
+                   &= help "Hostname of FTP to upload the result to"
                  , argCases = def
                    &= args
                  }
