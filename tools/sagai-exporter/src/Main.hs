@@ -198,7 +198,10 @@ loggingRules = constant [ rule root $ use defaultPolitics ]
 
 
 logInfo :: String -> ReaderT Log IO ()
-logInfo = L.log L.Info . T.pack
+logInfo s = do
+  -- TODO Find out how to limit verbosity using simple-log levels
+  v <- liftIO isLoud
+  when v $ L.log L.Info $ T.pack s
 
 
 logError :: String -> ReaderT Log IO ()
@@ -250,7 +253,6 @@ handleReadFunction fh ptr size nmemb _ = do
 data Options = Options { carmaPort     :: Int
                        , composPath    :: FilePath
                        , dictPath      :: Maybe FilePath
-                       , verbose       :: Bool
                        , ftpHost       :: Maybe String
                        , argCases      :: [Int]
                        }
@@ -270,8 +272,6 @@ main =
                  , dictPath = Nothing
                    &= name "d"
                    &= help "Path to a file with Wazzup dictionary"
-                 , verbose = False
-                   &= name "v"
                  , ftpHost = Nothing
                    &= name "m"
                    &= help "Hostname of FTP to upload the result to"
@@ -279,6 +279,7 @@ main =
                    &= args
                    &= typ "CASEID .. "
                  }
+                 &= verbosity
                  &= program programName
     in do
       Options{..} <- cmdArgs $ sample
@@ -295,6 +296,8 @@ main =
          cnt <- liftIO $ loadCompos composPath
          logInfo $ "COMPOS counter value: " ++ show cnt
 
+         -- Load Wazzup dictionary from file if specified, otherwise
+         -- poll CaRMa.
          wazzupRes <-
              case dictPath of
                Just fp -> do
