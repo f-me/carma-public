@@ -1,4 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE RecordWildCards #-}
 
 import Control.Monad
 import Control.Monad.IO.Class
@@ -9,6 +11,7 @@ import qualified Data.ByteString.Lazy.Char8 as BSL
 
 import Data.Aeson
 import Data.Either
+import Data.Functor
 import Data.Dict as D
 import qualified Data.Map as M
 import qualified Data.Text as T
@@ -16,6 +19,7 @@ import qualified Data.Text as T
 import Network.HTTP
 import Control.Concurrent
 import System.IO
+import System.Console.CmdArgs
 import System.Directory
 import System.Environment
 import System.Exit
@@ -90,12 +94,6 @@ exportManyCases initialCnt cases cp wazzup =
       return (finalCnt, errors, BS.concat sagaiEntries)
 
 
-usage :: String
-usage = "Usage: " ++
-        "sagai-export <Wazzup.json> <COMPOS counter file> " ++
-        "<CaRMa port number> [<case id1> <case id2> ..]"
-
-
 -- | Load COMPOS counter value from first line of a file. If the file
 -- does not exist, return 0.
 loadCompos :: FilePath -> IO Int
@@ -116,6 +114,34 @@ saveCompos fp n = do
   writeFile fp (show n)
 
 
+programName :: String
+programName = "sagai-exporter"
+
+
+dictionariesMethod :: String
+dictionariesMethod = "cfg/dictionaries"
+
+
+wazzupName :: String
+wazzupName = "Wazzup"
+
+
+-- | Load Wazzup dictionary from local CaRMa or a file.
+loadWazzup :: Either Int FilePath
+           -- ^ CaRMa port or local file path.
+           -> IO (Maybe Dict)
+loadWazzup (Right fp) = loadDict fp
+loadWazzup (Left cp)  = do
+  rs <- simpleHTTP $ getRequest $ methodURI cp dictionariesMethod
+  rsb <- getResponseBody rs
+  -- Read server response into Map ByteString Value, since carma-dict
+  -- does not support multi-level dictionaries yet
+  let dicts = decode' $ BSL.pack $ rsb :: Maybe (M.Map String Value)
+  return $ case M.lookup wazzupName <$> dicts of
+    Just (Just v) -> decode' $ encode v
+    _             -> Nothing
+
+
 fetchPSACaseNumbers :: Int -> IO [Int]
 fetchPSACaseNumbers cp = do
   rs <- simpleHTTP $ getRequest $ methodURI cp "psaCases"
@@ -131,52 +157,90 @@ loggingRules = constant [ rule root $ use defaultPolitics ]
 
 mainLog :: ReaderT Log IO a -> IO a
 mainLog a = do
-  l <- newLog loggingRules [syslog_ "sagai-exporter"]
+  l <- newLog loggingRules [syslog_ programName]
   withLog l a
 
 
+-- | Holds all options passed from command-line.
+data Options = Options { carmaPort     :: Int
+                       , composPath    :: FilePath
+                       , dictPath      :: Maybe FilePath
+                       , verbose       :: Bool
+                       , ftpHost       :: Maybe String
+                       , argCases      :: [Int]
+                       }
+               deriving (Show, Data, Typeable)
+
+
 main :: IO ()
-main =  mainLog $ do
-  args <- liftIO $ getArgs
+main =
+    let
+        sample = Options
+                 { carmaPort = 8000
+                   &= name "p"
+                   &= help "HTTP port of local CaRMa, defaults to 8000"
+                 , composPath = ".compos"
+                   &= name "c"
+                   &= help "Path to file used to store COMPOS counter value"
+                 , dictPath = Nothing
+                   &= name "d"
+                   &= help "Path to file with Wazzup dictionary"
+                 , verbose = False
+                   &= name "v"
+                 , ftpHost = Nothing
+                   &= name "m"
+                 , argCases = def
+                   &= args
+                 }
+                 &= program programName
+    in do
+      Options{..} <- cmdArgs $ sample
+      mainLog $ do
+         L.log L.Info "Starting up"
+         L.log L.Info $ T.pack $ "CaRMa port: " ++ show carmaPort
 
-  when (length args < 3) $ liftIO $ putStrLn usage >> exitFailure
+         L.log L.Info $ T.pack $ "Reading COMPOS value from " ++ composPath
+         cnt <- liftIO $ loadCompos composPath
+         L.log L.Info $ T.pack $ "COMPOS counter value: " ++ show cnt
 
-  L.log L.Info "Starting up"
-  -- Read CaRMa port
-  let carmaPort = read $ args !! 2
-      dictPath  = args !! 0
-  -- Load Wazzup dictionary
-  Just wazzup <- liftIO $ loadDict dictPath
+         wazzupRes <- case dictPath of
+            Just fp -> do
+                  L.log L.Info $ T.pack $
+                       "Loading Wazzup dictionary from file " ++ fp
+                  liftIO $ loadWazzup (Right fp)
+            Nothing -> do
+                  L.log L.Info "Loading Wazzup dictionary from CaRMa"
+                  liftIO $ loadWazzup (Left carmaPort)
 
-  L.log L.Info $ T.pack $ "CaRMa port: " ++ show carmaPort
-  -- Load previous COMPOS value
-  let composFile = args !! 1
-  cnt <- liftIO $ loadCompos composFile
+         wazzup <- case wazzupRes of
+           Nothing     ->
+               L.log L.Error "Could not load Wazzup dictionary" >>
+               liftIO exitFailure
+           Just w -> return w
 
-  L.log L.Info $ T.pack $ "COMPOS counter value: " ++ show cnt
+         -- If any case numbers supplied on command line, use them.
+         -- Otherwise, fetch case numbers from local CaRMa.
+         caseNumbers <-
+             case argCases of
+               [] -> liftIO $ fetchPSACaseNumbers carmaPort
+               l  -> return l
+         L.log L.Info $ T.pack $ "Exporting cases: " ++ show caseNumbers
 
-  -- If any case numbers supplied on command line, use them.
-  -- Otherwise, fetch case numbers from local CaRMa.
-  caseNumbers <-
-    case length args == 3 of
-      True -> liftIO $ fetchPSACaseNumbers carmaPort
-      False -> return $ map read $ drop 3 args
+         -- Bulk export of selected cases
+         (newCnt, errors, res) <-
+             liftIO $ exportManyCases cnt caseNumbers carmaPort wazzup
 
-  -- Bulk export of selected cases
-  L.log L.Info $ T.pack $ "Exporting cases: " ++ show caseNumbers
-  (newCnt, errors, res) <-
-      liftIO $ exportManyCases cnt caseNumbers carmaPort wazzup
+         -- Save new COMPOS value
+         liftIO $ saveCompos composPath newCnt
 
-  -- Save new COMPOS value
-  liftIO $ saveCompos composFile newCnt
+         -- Dump errors if there're any
+         when (not $ null errors) $ forM_ errors $
+                  \(i, e) -> L.log L.Error $ T.pack $
+                  "Error in case " ++ show i ++ ": " ++ show e
 
-  -- Dump errors if there're any
-  when (not $ null errors) $ forM_ errors $ 
-           \(i, e) -> L.log L.Error $ T.pack $ 
-                      "Error in case " ++ show i ++ ": " ++ show e
+         -- Dump export result
+         liftIO $ BS.putStr res
 
-  -- Dump export result
-  liftIO $ BS.putStr res
+         L.log L.Info "Powering down"
 
-  L.log L.Info "Powering down"
-  liftIO $ threadDelay (1000 * 1000)
+      threadDelay (1000 * 1000)

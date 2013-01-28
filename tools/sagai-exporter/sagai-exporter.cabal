@@ -30,6 +30,7 @@ executable sagai-exporter
     base                 == 4.6.*,
     carma-dict           == 0.1.*,
     carma-http           >= 0.1.2 && < 0.2,
+    cmdargs              == 0.10.*,
     containers           == 0.5.*,
     directory            == 1.2.*,
     HTTP                 == 4000.2.*,
