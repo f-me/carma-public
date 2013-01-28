@@ -370,4 +370,6 @@ main =
                            e -> logError $
                                 "Error when uploading: " ++ show e
          logInfo "Powering down"
+      -- simple-log workaround (don't rush the main thread and wait
+      -- for children)
       threadDelay (1000 * 1000)
