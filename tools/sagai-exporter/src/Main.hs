@@ -23,6 +23,10 @@ import System.Console.CmdArgs
 import System.Directory
 import System.Log as L
 import System.Log.Syslog
+import System.Locale
+
+import Data.Time.Clock
+import Data.Time.Format
 
 import Carma.HTTP
 import Carma.SAGAI
@@ -90,6 +94,16 @@ exportManyCases initialCnt cases cp wazzup =
       let (errors, sagaiEntries) = partitionEithers $ fst totalRes
           finalCnt = snd totalRes
       return (finalCnt, errors, BS.concat sagaiEntries)
+
+
+-- | Store export result in a file in current directory and return its
+-- name.
+dumpResult :: BS.ByteString -> IO FilePath
+dumpResult res = do
+  ct <- getCurrentTime
+  let fn = formatTime defaultTimeLocale "%F_%H-%M-%S" ct
+  BS.writeFile fn res
+  return fn
 
 
 -- | Load COMPOS counter value from first line of a file. If the file
@@ -192,6 +206,7 @@ main =
                    &= name "v"
                  , ftpHost = Nothing
                    &= name "m"
+                   &= help "FTP host to upload the result to, if necessary"
                  , argCases = def
                    &= args
                  }
@@ -248,6 +263,11 @@ main =
                     "Error in case " ++ show i ++ ": " ++ show e
 
                  -- Dump export result
-                 liftIO $ BS.putStr res
+                 case BS.null res of
+                   False -> do
+                     resFn <- liftIO $ dumpResult res
+                     logInfo $ T.pack $ "Saved result to file " ++ resFn
+                   True ->
+                     logInfo $ "No successfully exported cases"
          logInfo "Powering down"
       threadDelay (1000 * 1000)
