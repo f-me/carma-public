@@ -196,19 +196,19 @@ curlOptions = [ CurlUseNetRc NetRcRequired
               ]
 
 
--- | Upload a file to root directory of remote FTP server.
+-- | Upload a file to a root directory of a remote FTP server.
 upload :: String
        -- ^ FTP host name. Login credentials for this machine must be
        -- present in .netrc file.
        -> FilePath
-       -- ^ Local file to be uploaded.
+       -- ^ Name of local file in current directory to be uploaded.
        -> IO CurlCode
-upload ftpHost filepath = do
-  fh <- openFile filepath ReadMode
+upload ftpHost fileName = do
+  fh <- openFile fileName ReadMode
   size <- hFileSize fh
   c <- initialize
   forM_ curlOptions (setopt c)
-  _ <- setopt c $ CurlURL $ "ftp://" ++ ftpHost ++ "/" ++ filepath
+  _ <- setopt c $ CurlURL $ "ftp://" ++ ftpHost ++ "/" ++ fileName
   _ <- setopt c $ CurlInFileSize $ fromInteger size
   _ <- setopt c $ CurlReadFunction $ handleReadFunction fh
   perform c
