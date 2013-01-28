@@ -38,7 +38,7 @@ assignQ pri usr logdUsers = fromString
   ++ "           OR assignedTo NOT IN ('" ++ logdUsersList ++ "'))"
   ++ "    ORDER BY"
   ++ "      (act.name IN ('orderService', 'orderServiceAnalyst')"
-  ++ "        AND svc.urgentService) DESC NULLS LAST,"
+  ++ "        AND coalesce(svc.urgentService, 'notUrgent') <> 'notUrgent') DESC,"
   ++ "      (CASE WHEN act.name IN ('orderService', 'orderServiceAnalyst')"
   ++ "        THEN coalesce(svc.times_expectedServiceStart,act.duetime)"
   ++ "        ELSE act.duetime"

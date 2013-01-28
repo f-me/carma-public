@@ -71,6 +71,7 @@ applyDefaults model obj = do
           ,("times_factDealerInfo",         B.pack $ show $ ct + 7*d)
           ,("createTime",                   B.pack $ show $ ct)
           ,("marginalCost",                 setSrvMCost model obj' kase' dict)
+          ,("urgentService",                "notUrgent")
           ]
       else return obj'
 
