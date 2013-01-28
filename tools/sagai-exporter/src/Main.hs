@@ -201,9 +201,9 @@ logError :: String -> ReaderT Log IO ()
 logError =  L.log L.Error . T.pack
 
 
-mainLog :: Politics -> ReaderT Log IO a -> IO a
-mainLog policy a = do
-  l <- newLog (constant [ rule root $ use policy ]) [syslog_ programName]
+mainLog :: Politics -> Logger -> ReaderT Log IO a -> IO a
+mainLog policy logL a = do
+  l <- newLog (constant [ rule root $ use policy ]) [logL]
   withLog l a
 
 
@@ -248,6 +248,7 @@ data Options = Options { carmaPort     :: Int
                        , dictPath      :: Maybe FilePath
                        , ftpHost       :: Maybe String
                        , argCases      :: [Int]
+                       , useSyslog     :: Bool
                        }
                deriving (Show, Data, Typeable)
 
@@ -266,8 +267,13 @@ main =
                    &= name "d"
                    &= help "Path to a file with Wazzup dictionary"
                  , ftpHost = Nothing
-                   &= name "m"
+                   &= name "h"
                    &= help "Hostname of FTP to upload the result to"
+                 , useSyslog = False
+                   &= explicit
+                   &= name "syslog"
+                   &= name "l"
+                   &= help "Use syslog"
                  , argCases = def
                    &= args
                    &= typ "CASEID .. "
@@ -282,12 +288,16 @@ main =
       vv <- isLoud
       -- True if -q is NOT set
       nq <- isNormal
-      
-      let logPolicy = case (vv, nq) of
+
+      let logL = if useSyslog
+                 then syslog_ programName
+                 else logger text console
+          logPolicy = case (vv, nq) of
                      (True, _)  -> Politics L.Trace L.Trace
                      (_, False) -> Politics L.Fatal L.Fatal
                      _          -> Politics L.Info L.Error
-      mainLog logPolicy $ do
+          
+      mainLog logPolicy logL $ do
          logInfo "Starting up"
          when testMode $ logInfo "No FTP host specified, test mode"
          logInfo $ "CaRMa port: " ++ show carmaPort
