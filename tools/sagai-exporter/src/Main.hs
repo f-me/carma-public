@@ -52,10 +52,16 @@ exportCase :: Int
 exportCase cnt caseNumber cp wazzup = do
   -- Read case with provided number and all of the associated services
   res <- readInstance cp "case" caseNumber
-  servs <- forM (readReferences $ res M.! "services")
-           (\(m, i) -> do
-              inst <- readInstance cp m i
-              return (m, i, inst))
+
+  let refs = M.lookup "services" res
+  servs <-
+      case refs of 
+        Nothing -> return []
+        Just refField ->
+            forM (readReferences refField) $
+                \(m, i) -> do
+                  inst <- readInstance cp m i
+                  return (m, i, inst)
 
   fv <- runExport sagaiFullExport cnt (res, servs) cp wazzup
   case fv of
