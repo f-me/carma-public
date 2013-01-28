@@ -108,8 +108,7 @@ loadCompos fp = do
 
 -- | Write COMPOS counter value to a file.
 saveCompos :: FilePath -> Int -> IO ()
-saveCompos fp n = do
-  writeFile fp (show n)
+saveCompos fp n = writeFile fp (show n)
 
 
 programName :: String
