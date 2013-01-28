@@ -101,7 +101,8 @@ exportManyCases initialCnt cases cp wazzup =
 dumpResult :: BS.ByteString -> IO FilePath
 dumpResult res = do
   ct <- getCurrentTime
-  let fn = formatTime defaultTimeLocale "%F_%H-%M-%S" ct
+  let ft = formatTime defaultTimeLocale "%F_%H-%M-%S" ct
+      fn = ft ++ ".txt"
   BS.writeFile fn res
   return fn
 
