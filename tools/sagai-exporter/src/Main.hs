@@ -2,6 +2,13 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE RecordWildCards #-}
 
+{-|
+  
+  CLI tool used to perform SAGAI export, with logging and FTP
+  operation.
+
+-}
+
 import Control.Concurrent
 import Control.Monad
 import Control.Monad.IO.Class
