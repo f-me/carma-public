@@ -193,24 +193,17 @@ fetchPSACaseNumbers cp = do
   return $ decode' $ BSL.pack rsb
 
 
-loggingRules :: IO (IO Rules)
-loggingRules = constant [ rule root $ use defaultPolitics ]
-
-
 logInfo :: String -> ReaderT Log IO ()
-logInfo s = do
-  -- TODO Find out how to limit verbosity using simple-log levels
-  v <- liftIO isLoud
-  when v $ L.log L.Info $ T.pack s
+logInfo s = L.log L.Trace $ T.pack s
 
 
 logError :: String -> ReaderT Log IO ()
 logError =  L.log L.Error . T.pack
 
 
-mainLog :: ReaderT Log IO a -> IO a
-mainLog a = do
-  l <- newLog loggingRules [syslog_ programName]
+mainLog :: Politics -> ReaderT Log IO a -> IO a
+mainLog policy a = do
+  l <- newLog (constant [ rule root $ use policy ]) [syslog_ programName]
   withLog l a
 
 
@@ -284,7 +277,17 @@ main =
     in do
       Options{..} <- cmdArgs $ sample
       let testMode = isNothing ftpHost
-      mainLog $ do
+
+      -- True if -v is set
+      vv <- isLoud
+      -- True if -q is NOT set
+      nq <- isNormal
+      
+      let logPolicy = case (vv, nq) of
+                     (True, _)  -> Politics L.Trace L.Trace
+                     (_, False) -> Politics L.Fatal L.Fatal
+                     _          -> Politics L.Info L.Error
+      mainLog logPolicy $ do
          logInfo "Starting up"
          when testMode $ logInfo "No FTP host specified, test mode"
          logInfo $ "CaRMa port: " ++ show carmaPort
