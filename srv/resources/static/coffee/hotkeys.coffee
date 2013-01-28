@@ -14,6 +14,9 @@ this.setupHotkeys = ->
   $(document).on  'keydown.closecomp', (e) ->
     # close center on C-m
     hideComplex() if e.ctrlKey and e.keyCode == 77 # m key
+    # reload screen
+    if e.ctrlKey and e.keyCode == 78
+      $("#reload-screen").click()
 
 this.handleLeftHotkey = (e) ->
   arrs = global.keys.arrows
