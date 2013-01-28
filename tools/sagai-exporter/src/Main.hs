@@ -17,6 +17,10 @@ import Data.Dict as D
 import qualified Data.Map as M
 import qualified Data.Text as T
 
+import Data.Time.Clock
+import Data.Time.LocalTime
+import Data.Time.Format
+
 import Network.Curl
 import Network.HTTP
 import System.IO
@@ -25,9 +29,6 @@ import System.Directory
 import System.Log as L
 import System.Log.Syslog
 import System.Locale
-
-import Data.Time.Clock
-import Data.Time.Format
 
 import Carma.HTTP
 import Carma.SAGAI
@@ -102,7 +103,9 @@ exportManyCases initialCnt cases cp wazzup =
 dumpResult :: BS.ByteString -> IO FilePath
 dumpResult res = do
   ct <- getCurrentTime
-  let ft = formatTime defaultTimeLocale "%F_%H-%M-%S" ct
+  tz <- getCurrentTimeZone
+  let lt = utcToLocalTime tz ct
+      ft = formatTime defaultTimeLocale "%F_%H-%M-%S" lt
       fn = ft ++ ".txt"
   BS.writeFile fn res
   return fn
