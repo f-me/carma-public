@@ -687,8 +687,10 @@
         },
         {
             "name": "urgentService",
-            "type": "checkbox",
+            "type": "dictionary",
             "meta": {
+                "bounded": false,
+                "dictionaryName": "UrgentServiceReason",
                 "label": "Приоритетная услуга"
             }
         },
