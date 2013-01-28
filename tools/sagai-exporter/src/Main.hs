@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE RecordWildCards #-}
 
+import Control.Concurrent
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans.State
@@ -16,8 +17,8 @@ import Data.Dict as D
 import qualified Data.Map as M
 import qualified Data.Text as T
 
+import Network.Curl
 import Network.HTTP
-import Control.Concurrent
 import System.IO
 import System.Console.CmdArgs
 import System.Directory
@@ -165,18 +166,55 @@ loggingRules :: IO (IO Rules)
 loggingRules = constant [ rule root $ use defaultPolitics ]
 
 
-logInfo :: T.Text -> ReaderT Log IO ()
-logInfo = L.log L.Info
+logInfo :: String -> ReaderT Log IO ()
+logInfo = L.log L.Info . T.pack
 
 
-logError :: T.Text -> ReaderT Log IO ()
-logError =  L.log L.Error
+logError :: String -> ReaderT Log IO ()
+logError =  L.log L.Error . T.pack
 
 
 mainLog :: ReaderT Log IO a -> IO a
 mainLog a = do
   l <- newLog loggingRules [syslog_ programName]
   withLog l a
+
+
+curlOptions :: [CurlOption]
+curlOptions = [ CurlUseNetRc NetRcRequired
+              , CurlNoProgress True
+              , CurlUpload True
+              ]
+
+
+-- | Upload a file to root directory of remote FTP server.
+upload :: String
+       -- ^ FTP host name. Login credentials for this machine must be
+       -- present in .netrc file.
+       -> FilePath
+       -- ^ Local file to be uploaded.
+       -> IO CurlCode
+upload ftpHost filepath = do
+  fh <- openFile filepath ReadMode
+  size <- hFileSize fh
+  c <- initialize
+  forM_ curlOptions (setopt c)
+  _ <- setopt c $ CurlURL $ "ftp://" ++ ftpHost ++ "/" ++ filepath
+  _ <- setopt c $ CurlInFileSize $ fromInteger size
+  _ <- setopt c $ CurlReadFunction $ handleReadFunction fh
+  perform c
+
+
+-- | curl 'ReadFunction' for a given handle. Used to feed uploaded
+-- data to curl library.
+handleReadFunction :: Handle -> ReadFunction
+handleReadFunction fh ptr size nmemb _ = do
+  actualSize <- hGetBuf fh ptr $ fromInteger . toInteger $ (size * nmemb)
+  print actualSize
+  return $
+         if (actualSize > 0)
+         then Just $ fromInteger $ toInteger actualSize
+         else Nothing
 
 
 -- | Holds all options passed from command-line.
@@ -207,7 +245,7 @@ main =
                    &= name "v"
                  , ftpHost = Nothing
                    &= name "m"
-                   &= help "FTP host to upload the result to, if necessary"
+                   &= help "Hostname of FTP to upload the result to, if necessary"
                  , argCases = def
                    &= args
                  }
@@ -216,19 +254,19 @@ main =
       Options{..} <- cmdArgs $ sample
       mainLog $ do
          logInfo "Starting up"
-         logInfo $ T.pack $ "CaRMa port: " ++ show carmaPort
+         logInfo $ "CaRMa port: " ++ show carmaPort
 
          cwd <- liftIO $ getCurrentDirectory
-         logInfo $ T.pack $ "Current working directory is " ++ cwd
+         logInfo $ "Current working directory is " ++ cwd
 
-         logInfo $ T.pack $ "Reading COMPOS value from " ++ composPath
+         logInfo $ "Reading COMPOS value from " ++ composPath
          cnt <- liftIO $ loadCompos composPath
-         logInfo $ T.pack $ "COMPOS counter value: " ++ show cnt
+         logInfo $ "COMPOS counter value: " ++ show cnt
 
          wazzupRes <-
              case dictPath of
                Just fp -> do
-                  logInfo $ T.pack $
+                  logInfo $
                           "Loading Wazzup dictionary from file " ++ fp
                   liftIO $ loadWazzup (Right fp)
                Nothing -> do
@@ -249,26 +287,44 @@ main =
                logError "Could not fetch case numbers from CaRMa"
            (Just wazzup, Just caseNumbers) ->
                do
-                 logInfo $ T.pack $ "Exporting cases: " ++ show caseNumbers
+                 logInfo $ "Exporting cases: " ++ show caseNumbers
                  -- Bulk export of selected cases
                  (newCnt, errors, res) <-
                      liftIO $
                      exportManyCases cnt caseNumbers carmaPort wazzup
 
-                 -- Save new COMPOS value
-                 liftIO $ saveCompos composPath newCnt
-
                  -- Dump errors if there're any
                  when (not $ null errors) $ forM_ errors $
-                    \(i, e) -> logError $ T.pack $
+                    \(i, e) -> logError $
                     "Error in case " ++ show i ++ ": " ++ show e
+
+                 -- Report brief export stats
+                 let caseCount = length caseNumbers
+                 logInfo $ "Successfully exported " ++ 
+                             (show $ caseCount - (length errors)) ++ 
+                             " out of " ++ (show caseCount) ++
+                             " cases"
+
+                 -- Save new COMPOS value
+                 logInfo $ "Saving new COMPOS counter value: " ++ show newCnt
+                 liftIO $ saveCompos composPath newCnt
 
                  -- Dump export result
                  case BS.null res of
-                   False -> do
-                     resFn <- liftIO $ dumpResult res
-                     logInfo $ T.pack $ "Saved result to file " ++ resFn
                    True ->
                      logInfo $ "No successfully exported cases"
+                   False -> do
+                     resFn <- liftIO $ dumpResult res
+                     logInfo $ "Saved result to file " ++ resFn
+                     case ftpHost of
+                       Nothing -> return ()
+                       Just fh ->
+                           do
+                             logInfo $ "Using FTP at " ++ fh
+                             curlRes <- liftIO $ withCurlDo $ upload fh resFn
+                             case curlRes of
+                               CurlOK -> logInfo "Successfully uploaded to FTP"
+                               e      -> logError $
+                                         "Error when uploading: " ++ show e
          logInfo "Powering down"
       threadDelay (1000 * 1000)
