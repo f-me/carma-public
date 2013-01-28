@@ -19,6 +19,7 @@ import qualified Data.ByteString.Lazy.Char8 as BSL
 
 import Data.Aeson
 import Data.Either
+import Data.Maybe
 import Data.Functor
 import Data.Dict as D
 import qualified Data.Map as M
@@ -84,6 +85,12 @@ psaExported :: InstanceData
 psaExported = M.fromList [("psaExported", "1")]
 
 
+markExported :: Int -> [Int] -> IO ()
+markExported cp caseNumbers = do
+  forM_ caseNumbers $
+        \i -> updateInstance cp "case" i psaExported
+
+
 -- | Export several cases, properly maintaining the COMPOS counter
 -- value. Return final counter value, list of faulty case numbers with
 -- errors, and a bytestring with successfully exported entries.
@@ -95,11 +102,8 @@ exportManyCases :: Int
                 -- ^ CaRMa port.
                 -> Dict
                 -- ^ Wazzup dictionary.
-                -> Bool
-                -- ^ If true, set @psaExported@ field to true for
-                -- every successfully exported case.
                 -> IO (Int, [(Int, ExportError)], BS.ByteString)
-exportManyCases initialCnt cases cp wazzup setFlag =
+exportManyCases initialCnt cases cp wazzup =
     let
         -- Runs 'exportCase' in ComposMonad
         exportCaseWithCompos :: Int
@@ -112,10 +116,6 @@ exportManyCases initialCnt cases cp wazzup setFlag =
             Left err -> return $ Left (caseNumber, err)
             Right (entry, newCnt, _) -> do
                      put newCnt
-                     when setFlag $ do
-                       _ <- liftIO $
-                            updateInstance cp "case" caseNumber psaExported
-                       return ()
                      return $ Right entry
     in do
       -- Export all cases
@@ -253,7 +253,6 @@ data Options = Options { carmaPort     :: Int
                        , verbose       :: Bool
                        , ftpHost       :: Maybe String
                        , argCases      :: [Int]
-                       , testMode      :: Bool
                        }
                deriving (Show, Data, Typeable)
 
@@ -271,10 +270,6 @@ main =
                  , dictPath = Nothing
                    &= name "d"
                    &= help "Path to a file with Wazzup dictionary"
-                 , testMode = False
-                   &= name "t"
-                   &= help "If specified, do not flag exported cases in CaRMa"
-                 -- TODO No-op for now
                  , verbose = False
                    &= name "v"
                  , ftpHost = Nothing
@@ -287,8 +282,10 @@ main =
                  &= program programName
     in do
       Options{..} <- cmdArgs $ sample
+      let testMode = isNothing ftpHost
       mainLog $ do
          logInfo "Starting up"
+         when testMode $ logInfo "No FTP host specified, test mode"
          logInfo $ "CaRMa port: " ++ show carmaPort
 
          cwd <- liftIO $ getCurrentDirectory
@@ -322,48 +319,55 @@ main =
                logError "Could not fetch case numbers from CaRMa"
            (Just wazzup, Just caseNumbers) ->
                do
-                 let setFlag = not testMode
-                 when (not setFlag) $ logInfo $
-                     "Test mode, exported cases will not be flagged in CaRMa"
 
                  logInfo $ "Exporting cases: " ++ show caseNumbers
                  -- Bulk export of selected cases
                  (newCnt, errors, res) <-
-                     liftIO $
-                     exportManyCases cnt caseNumbers carmaPort wazzup setFlag
+                     liftIO $ exportManyCases cnt caseNumbers carmaPort wazzup
 
                  -- Dump errors if there're any
                  when (not $ null errors) $ forM_ errors $
                     \(i, e) -> logError $
-                    "Error in case " ++ show i ++ ": " ++ show e
+                    "Error when exporting case " ++ show i ++ ": " ++ show e
 
                  -- Report brief export stats
                  let caseCount = length caseNumbers
-                 logInfo $ "Successfully exported " ++
-                             (show $ caseCount - (length errors)) ++
-                             " out of " ++ (show caseCount) ++
-                             " cases"
+                     failedNumbers = map fst errors
+                     exportedNumbers =
+                         filter (\i -> not $ elem i failedNumbers) caseNumbers
 
-                 -- Save new COMPOS value
-                 logInfo $ "Saving new COMPOS counter value: " ++ show newCnt
-                 liftIO $ saveCompos composPath newCnt
+                 when (not $ null exportedNumbers) $
+                      logInfo $ "Successfully exported " ++
+                                  (show $ caseCount - (length errors)) ++
+                                  " out of " ++ (show caseCount) ++
+                                  " cases"
 
                  -- Dump export result
                  case BS.null res of
                    True ->
                      logInfo $ "No successfully exported cases"
                    False -> do
-                     resFn <- liftIO $ dumpResult res
-                     logInfo $ "Saved result to file " ++ resFn
                      case ftpHost of
-                       Nothing -> return ()
-                       Just fh ->
-                           do
-                             logInfo $ "Using FTP at " ++ fh
-                             curlRes <- liftIO $ withCurlDo $ upload fh resFn
-                             case curlRes of
-                               CurlOK -> logInfo "Successfully uploaded to FTP"
-                               e      -> logError $
-                                         "Error when uploading: " ++ show e
+                       -- testMode
+                       Nothing -> liftIO $ BS.putStr res
+                       Just fh -> do
+                         resFn <- liftIO $ dumpResult res
+                         logInfo $ "Saved result to file " ++ resFn
+                         logInfo $ "Using FTP at " ++ fh
+                         curlRes <- liftIO $ withCurlDo $ upload fh resFn
+                         case curlRes of
+                           CurlOK -> do
+                             logInfo "Successfully uploaded to FTP"
+
+                             -- Save new COMPOS value
+                             logInfo $ "Saving new COMPOS counter value: " ++
+                                     show newCnt
+                             liftIO $ saveCompos composPath newCnt
+
+                             -- Set psaExported field for exported cases
+                             logInfo "Flagging exported cases in CaRMa"
+                             liftIO $ markExported carmaPort exportedNumbers
+                           e -> logError $
+                                "Error when uploading: " ++ show e
          logInfo "Powering down"
       threadDelay (1000 * 1000)
