@@ -3,7 +3,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 {-|
-  
+
   CLI tool used to perform SAGAI export, with logging and FTP
   operation.
 
@@ -45,9 +45,13 @@ import Carma.SAGAI
 -- as a bytestring, a new value of the COMPOS counter and an export
 -- log.
 exportCase :: Int
+           -- ^ Initial value of the COMPOS counter.
            -> Int
+           -- ^ Case ID.
            -> Int
+           -- ^ CaRMa port.
            -> Dict
+           -- ^ Wazzup dictionary.
            -> IO (Either ExportError (BS.ByteString, Int, [String]))
 exportCase cnt caseNumber cp wazzup = do
   -- Read case with provided number and all of the associated services
@@ -55,7 +59,7 @@ exportCase cnt caseNumber cp wazzup = do
 
   let refs = M.lookup "services" res
   servs <-
-      case refs of 
+      case refs of
         Nothing -> return []
         Just refField ->
             forM (readReferences refField) $
@@ -76,8 +80,12 @@ exportCase cnt caseNumber cp wazzup = do
 type ComposMonad = StateT Int IO
 
 
--- | Export several cases, properly maintaining the COMPOS counter.
--- Return final counter value, list of faulty case numbers with
+psaExported :: InstanceData
+psaExported = M.fromList [("psaExported", "1")]
+
+
+-- | Export several cases, properly maintaining the COMPOS counter
+-- value. Return final counter value, list of faulty case numbers with
 -- errors, and a bytestring with successfully exported entries.
 exportManyCases :: Int
                 -- ^ Initial value of the COMPOS counter.
@@ -87,8 +95,11 @@ exportManyCases :: Int
                 -- ^ CaRMa port.
                 -> Dict
                 -- ^ Wazzup dictionary.
+                -> Bool
+                -- ^ If true, set @psaExported@ field to true for
+                -- every successfully exported case.
                 -> IO (Int, [(Int, ExportError)], BS.ByteString)
-exportManyCases initialCnt cases cp wazzup =
+exportManyCases initialCnt cases cp wazzup setFlag =
     let
         -- Runs 'exportCase' in ComposMonad
         exportCaseWithCompos :: Int
@@ -101,6 +112,10 @@ exportManyCases initialCnt cases cp wazzup =
             Left err -> return $ Left (caseNumber, err)
             Right (entry, newCnt, _) -> do
                      put newCnt
+                     when setFlag $ do
+                       _ <- liftIO $
+                            updateInstance cp "case" caseNumber psaExported
+                       return ()
                      return $ Right entry
     in do
       -- Export all cases
@@ -238,6 +253,7 @@ data Options = Options { carmaPort     :: Int
                        , verbose       :: Bool
                        , ftpHost       :: Maybe String
                        , argCases      :: [Int]
+                       , testMode      :: Bool
                        }
                deriving (Show, Data, Typeable)
 
@@ -251,10 +267,14 @@ main =
                    &= help "HTTP port of local CaRMa, defaults to 8000"
                  , composPath = ".compos"
                    &= name "c"
-                   &= help "Path to file used to store COMPOS counter value"
+                   &= help "Path to a file used to store COMPOS counter value"
                  , dictPath = Nothing
                    &= name "d"
-                   &= help "Path to file with Wazzup dictionary"
+                   &= help "Path to a file with Wazzup dictionary"
+                 , testMode = False
+                   &= name "t"
+                   &= help "If specified, do not flag exported cases in CaRMa"
+                 -- TODO No-op for now
                  , verbose = False
                    &= name "v"
                  , ftpHost = Nothing
@@ -262,6 +282,7 @@ main =
                    &= help "Hostname of FTP to upload the result to"
                  , argCases = def
                    &= args
+                   &= typ "CASEID .. "
                  }
                  &= program programName
     in do
@@ -301,11 +322,15 @@ main =
                logError "Could not fetch case numbers from CaRMa"
            (Just wazzup, Just caseNumbers) ->
                do
+                 let setFlag = not testMode
+                 when (not setFlag) $ logInfo $
+                     "Test mode, exported cases will not be flagged in CaRMa"
+
                  logInfo $ "Exporting cases: " ++ show caseNumbers
                  -- Bulk export of selected cases
                  (newCnt, errors, res) <-
                      liftIO $
-                     exportManyCases cnt caseNumbers carmaPort wazzup
+                     exportManyCases cnt caseNumbers carmaPort wazzup setFlag
 
                  -- Dump errors if there're any
                  when (not $ null errors) $ forM_ errors $
@@ -314,8 +339,8 @@ main =
 
                  -- Report brief export stats
                  let caseCount = length caseNumbers
-                 logInfo $ "Successfully exported " ++ 
-                             (show $ caseCount - (length errors)) ++ 
+                 logInfo $ "Successfully exported " ++
+                             (show $ caseCount - (length errors)) ++
                              " out of " ++ (show caseCount) ++
                              " cases"
 
