@@ -21,8 +21,6 @@ import Control.Concurrent
 import System.IO
 import System.Console.CmdArgs
 import System.Directory
-import System.Environment
-import System.Exit
 import System.Log as L
 import System.Log.Syslog
 
@@ -142,13 +140,11 @@ loadWazzup (Left cp)  = do
     _             -> Nothing
 
 
-fetchPSACaseNumbers :: Int -> IO [Int]
+fetchPSACaseNumbers :: Int -> IO (Maybe [Int])
 fetchPSACaseNumbers cp = do
   rs <- simpleHTTP $ getRequest $ methodURI cp "psaCases"
   rsb <- getResponseBody rs
-  case decode' $ BSL.pack rsb of
-    Just d -> return d
-    Nothing -> error "Could not read case numbers from CaRMa response"
+  return $ decode' $ BSL.pack rsb
 
 
 loggingRules :: IO (IO Rules)
@@ -156,7 +152,7 @@ loggingRules = constant [ rule root $ use defaultPolitics ]
 
 
 logInfo :: T.Text -> ReaderT Log IO ()
-logInfo = L.log L.Info 
+logInfo = L.log L.Info
 
 
 logError :: T.Text -> ReaderT Log IO ()
@@ -214,41 +210,45 @@ main =
          cnt <- liftIO $ loadCompos composPath
          logInfo $ T.pack $ "COMPOS counter value: " ++ show cnt
 
-         wazzupRes <- case dictPath of
-            Just fp -> do
+         wazzupRes <-
+             case dictPath of
+               Just fp -> do
                   logInfo $ T.pack $
-                       "Loading Wazzup dictionary from file " ++ fp
+                          "Loading Wazzup dictionary from file " ++ fp
                   liftIO $ loadWazzup (Right fp)
-            Nothing -> do
+               Nothing -> do
                   logInfo "Loading Wazzup dictionary from CaRMa"
                   liftIO $ loadWazzup (Left carmaPort)
-         case wazzupRes of
-           Nothing ->
+
+         -- If any case numbers supplied on command line, use them.
+         -- Otherwise, fetch case numbers from local CaRMa.
+         cNumRes <-
+             case argCases of
+               [] -> liftIO $ fetchPSACaseNumbers carmaPort
+               l  -> return $ Just l
+
+         case (wazzupRes, cNumRes) of
+           (Nothing, _) ->
                logError "Could not load Wazzup dictionary"
-           Just wazzup -> do
-               -- If any case numbers supplied on command line, use them.
-               -- Otherwise, fetch case numbers from local CaRMa.
-               caseNumbers <-
-                   case argCases of
-                     [] -> liftIO $ fetchPSACaseNumbers carmaPort
-                     l  -> return l
-               logInfo $ T.pack $ "Exporting cases: " ++ show caseNumbers
+           (_, Nothing) ->
+               logError "Could not fetch case numbers from CaRMa"
+           (Just wazzup, Just caseNumbers) ->
+               do
+                 logInfo $ T.pack $ "Exporting cases: " ++ show caseNumbers
+                 -- Bulk export of selected cases
+                 (newCnt, errors, res) <-
+                     liftIO $
+                     exportManyCases cnt caseNumbers carmaPort wazzup
 
-               -- Bulk export of selected cases
-               (newCnt, errors, res) <-
-                   liftIO $ exportManyCases cnt caseNumbers carmaPort wazzup
+                 -- Save new COMPOS value
+                 liftIO $ saveCompos composPath newCnt
 
-               -- Save new COMPOS value
-               liftIO $ saveCompos composPath newCnt
+                 -- Dump errors if there're any
+                 when (not $ null errors) $ forM_ errors $
+                    \(i, e) -> logError $ T.pack $
+                    "Error in case " ++ show i ++ ": " ++ show e
 
-               -- Dump errors if there're any
-               when (not $ null errors) $ forM_ errors $
-                        \(i, e) -> logError $ T.pack $
-                          "Error in case " ++ show i ++ ": " ++ show e
-
-               -- Dump export result
-               liftIO $ BS.putStr res
-
-
+                 -- Dump export result
+                 liftIO $ BS.putStr res
          logInfo "Powering down"
       threadDelay (1000 * 1000)
