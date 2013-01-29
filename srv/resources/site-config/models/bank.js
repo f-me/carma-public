@@ -16,6 +16,7 @@
         },
         {
             "targets": [
+                "urgentService",
                 "payment_expectedCost"
             ],
             "canRead": [
@@ -636,6 +637,15 @@
             "groupName": "countedCost",
             "meta": {
                 "label": "Расчетная стоимость"
+            }
+        },
+        {
+            "name": "urgentService",
+            "type": "dictionary",
+            "meta": {
+                "bounded": false,
+                "dictionaryName": "UrgentServiceReason",
+                "label": "Приоритетная услуга"
             }
         },
         {

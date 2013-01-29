@@ -66,6 +66,7 @@
         },
         {
             "targets": [
+                "urgentService",
                 "cost_counted",
                 "cost_serviceTarifOptions"
             ],
@@ -621,6 +622,15 @@
             "groupName": "countedCost",
             "meta": {
                 "label": "Расчетная стоимость"
+            }
+        },
+        {
+            "name": "urgentService",
+            "type": "dictionary",
+            "meta": {
+                "bounded": false,
+                "dictionaryName": "UrgentServiceReason",
+                "label": "Приоритетная услуга"
             }
         },
         {

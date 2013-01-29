@@ -122,6 +122,7 @@
         },
         {
             "targets": [
+                "urgentService",
                 "cost_counted",
                 "cost_serviceTarifOptions"
             ],
@@ -622,6 +623,41 @@
             ],
             "meta": {
                 "label": "Пробег техпомощи за городом"
+            }
+        },
+        {
+            "name": "orderNumber",
+            "canRead": [
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman"
+            ],
+            "canWrite": [
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman"
+            ],
+            "meta": {
+                "label": "Номер заказ-наряда"
+            }
+        },
+        {
+            "name": "urgentService",
+            "type": "dictionary",
+            "meta": {
+                "bounded": false,
+                "dictionaryName": "UrgentServiceReason",
+                "label": "Приоритетная услуга"
             }
         },
         {

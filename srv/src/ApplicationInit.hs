@@ -34,6 +34,7 @@ import Application
 import ApplicationHandlers
 import AppHandlers.ActionAssignment
 import AppHandlers.CustomSearches
+import AppHandlers.PSA
 ----------------------------------------------------------------------
 import Util (readJSON)
 
@@ -58,9 +59,11 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/myActions",     chkAuth . method GET    $ myActionsHandler)
          , ("/allActions",    chkAuth . method GET    $ allActionsHandler)
          , ("/allPartners",   chkAuth . method GET    $ allPartnersHandler)
-         , ("/psaCases",      chkAuth . method GET    $ psaCases)
          , ("/partnersFor/:srv",
                               chkAuth . method GET    $ partnersForSrvHandler)
+         , ("/psaCases",      chkAuth . method GET    $ psaCases)
+         , ("/repTowages/:id", 
+                              chkAuth . method GET    $ repTowages)
          , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)
          , ("/_/:model",      chkAuth . method POST   $ createHandler)
          , ("/_/:model/:id",  chkAuth . method GET    $ readHandler)

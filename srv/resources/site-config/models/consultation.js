@@ -84,6 +84,7 @@
         },
         {
             "targets": [
+                "urgentService",
                 "payment_partnerCost",
                 "payment_costTranscript"
             ],
@@ -570,6 +571,15 @@
             "groupName": "countedCost",
             "meta": {
                 "label": "Расчетная стоимость"
+            }
+        },
+        {
+            "name": "urgentService",
+            "type": "dictionary",
+            "meta": {
+                "bounded": false,
+                "dictionaryName": "UrgentServiceReason",
+                "label": "Приоритетная услуга"
             }
         },
         {

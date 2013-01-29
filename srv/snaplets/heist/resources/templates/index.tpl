@@ -159,6 +159,14 @@
         </button>
       </div>
       <div id="center" class="nice-scrollbar call-pane" />
+      <div id="right" class="pane">
+        <button id="reload-screen"
+                class="btn btn-success"
+                type="submit"
+                onClick="reloadScreen()" >
+          Новый звонок
+        </button>
+      </div>
       <div id="bottom">
         <div class="control-group">
           <div class="control-label">
@@ -987,7 +995,11 @@
                    data-autoshow-datepicker="true"
                    data-date-format="dd.mm.yyyy"
                    data-date-weekstart="1">
-                <input type="text" id="rkc-date-from" class="pane-span focusable" name="from"/>
+                <input type="text"
+                       id="rkc-date-from"
+                       class="focusable"
+                       name="from"
+                       />
                 <span class="add-on"><i class="icon icon-calendar" /></span>
               </div>
               <div class="input-append date"
@@ -995,7 +1007,11 @@
                    data-autoshow-datepicker="true"
                    data-date-format="dd.mm.yyyy"
                    data-date-weekstart="1">
-                <input type="text" id="rkc-date-to" class="pane-span focusable" name="to"/>
+                <input type="text"
+                       id="rkc-date-to"
+                       class="focusable"
+                       name="to"
+                       />
                 <span class="add-on"><i class="icon icon-calendar" /></span>
               </div>
             </div>
@@ -1075,7 +1091,11 @@
                    data-autoshow-datepicker="true"
                    data-date-format="dd.mm.yyyy"
                    data-date-weekstart="1">
-                <input type="text" id="rkc-date-from" class="pane-span focusable" name="from"/>
+                <input type="text"
+                       id="rkc-date-from"
+                       class="focusable"
+                       name="from"
+                       />
                 <span class="add-on"><i class="icon icon-calendar" /></span>
               </div>
               <div class="input-append date"
@@ -1083,7 +1103,11 @@
                    data-autoshow-datepicker="true"
                    data-date-format="dd.mm.yyyy"
                    data-date-weekstart="1">
-                <input type="text" id="rkc-date-to" class="pane-span focusable" name="to"/>
+                <input type="text"
+                       id="rkc-date-to"
+                       class="focusable"
+                       name="to"
+                       />
                 <span class="add-on"><i class="icon icon-calendar" /></span>
               </div>
             </div>

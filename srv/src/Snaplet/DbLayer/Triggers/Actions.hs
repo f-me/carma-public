@@ -747,8 +747,8 @@ requestFddsVin objId vin = do
 
 setWeather :: MonadTrigger m b => B.ByteString -> B.ByteString -> m b ()
 setWeather objId city = do
-  conf <- liftDb $ gets weather
-  weather <- liftIO $ getWeather' conf $ BU.toString city
+  conf    <- liftDb $ gets weather
+  weather <- liftIO $ getWeather' conf $ BU.toString $ B.filter (/= '\'') city
   case weather of
     Right w   -> do
       liftDb $ scope "weather" $ log Trace $ T.concat

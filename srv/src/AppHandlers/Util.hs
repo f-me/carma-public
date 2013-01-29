@@ -13,12 +13,23 @@ import Data.Aeson as Aeson
 import Data.Time
 import Control.Concurrent.STM
 
+import Language.Haskell.TH
+import Language.Haskell.TH.Quote
+
 import Snap
 import Snap.Snaplet.Auth
 
 import Application
 import Util
 import Data.List.Utils
+
+
+------------------------------------------------------------------------------
+-- | String quasiquotation wrapper, see
+-- http://www.haskell.org/haskellwiki/Poor_man%27s_here_document
+str :: QuasiQuoter
+str = QuasiQuoter { quoteExp = stringE }
+
 
 ------------------------------------------------------------------------------
 -- | Utility functions

@@ -231,7 +231,7 @@ caseSummary filt@(Filter fromDate toDate program city partner) constraints = sco
       consultationCaseRel,
       ifNotNull program $ equals "casetbl" "program",
       ifNotNull city $ equals "casetbl" "city",
-      ifNotNull partner $ equals "casetbl" "contractor_partner"]
+      ifNotNull partner $ equals "consultationtbl" "contractor_partner"]
 
     mech = liftM oneInt $ query
       (fromString $ "select sum(cnt)::integer from (" ++ mechanicL ++ " union " ++ mechanicR ++ ") as foo")

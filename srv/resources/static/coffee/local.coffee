@@ -112,10 +112,10 @@ localRouter = Backbone.Router.extend
   newPartner  :      -> renderScreen("partner", {"id": null})
   loadPartner : (id) -> renderScreen("partner", {"id": id})
   loadCall    : (id) -> renderScreen("call", {"id": id})
-  call        :      -> renderScreen("call")
+  call        :      -> renderScreen("call", {"id": null})
   reports     :      -> renderScreen("reports")
   editVin     : (id) -> renderScreen("editVin", {"id": id})
-  newVin      :      -> renderScreen("newVin")
+  newVin      :      -> renderScreen("newVin", {"id": null})
   supervisor  :      -> renderScreen("supervisor")
   rkc         :      -> renderScreen("rkc")
   rkcOps      :      -> renderScreen("rkcOps")
@@ -374,3 +374,7 @@ this.repeat = (times, v) -> [1..times].map -> v
 this.splitVals = (v) ->
   return [] if not v or v == ""
   v.split ','
+
+this.modelsFromUrl = -> window.location.hash.match(/#(.*)\/.*/)[1]
+
+this.reloadScreen = -> global.router.navigate modelsFromUrl(), { trigger: true }

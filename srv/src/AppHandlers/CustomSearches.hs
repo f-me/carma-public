@@ -1,4 +1,3 @@
-
 module AppHandlers.CustomSearches where
 
 import Control.Applicative
@@ -54,7 +53,9 @@ selectPartnersForSrv city isActive _ service make = do
     ++ (maybe "" (\x -> "  AND p.city = " ++ quote x) city)
     ++ (maybe "" (\x -> "  AND p.isActive = " ++ toBool x) isActive)
     ++ (maybe "" (\x -> "  AND s.servicename = " ++ quote x) service)
-    ++ (maybe "" (\x -> "  AND " ++ quote x ++ " = ANY (p.makes)") make)
+    ++ (maybe "" (\x -> "  AND (("
+                        ++ quote x ++ " = ANY (p.makes) AND p.isdealer = 't')"
+                        ++ "OR p.isdealer = 'f')") make)
   let fields =
         ["id","name","city","comment" ,"addrDeFacto"
         ,"phone1","workingTime","isDealer","isMobile"
@@ -101,10 +102,11 @@ selectActions mClosed mAssignee mRole mFrom mTo = do
     ++ "       (extract (epoch from a.duetime at time zone 'UTC')::int)::text, "
     ++ "       a.result, a.priority, a.description, a.comment,"
     ++ "       c.city,"
-    ++ "       (extract (epoch from s.times_expectedServiceStart at time zone 'UTC')::int)::text"
+    ++ "       (extract (epoch from s.times_expectedServiceStart at time zone 'UTC')::int8)::text"
     ++ "  FROM actiontbl a, casetbl c, servicetbl s WHERE true"
     ++ "                   AND c.id::text = substring(a.caseId, ':(.*)')"
     ++ "                   AND s.id::text = substring(a.parentid, ':(.*)')"
+    ++ "                   AND s.type::text = substring(a.parentId, '(.*):')"
     ++ (maybe "" (\x -> "  AND closed = " ++ toBool x) mClosed)
     ++ (maybe "" (\x -> "  AND assignedTo = " ++ quote x) mAssignee)
     ++ (maybe "" (\x -> "  AND targetGroup = " ++ quote x) mRole)
@@ -149,17 +151,3 @@ getActionsForCase = do
   let fields =
         ["closeTime", "result", "name", "assignedTo", "comment"]
   writeJSON $ mkMap fields rows
-
-
--- | Serve JSON list of case numbers to be exported to SAGAI.
-psaCases :: AppHandler ()
-psaCases = do
-  rows <- withPG pg_search $
-          \c -> query_ c $
-                fromString $ "SELECT id FROM casetbl WHERE " ++
-                "caseStatus='s2' AND " ++
-                "(program='citroen' OR program='peugeot') AND " ++
-                "(NOT psaexported='yes' OR psaexported IS NULL) AND " ++
-                "((calldate > car_servicestart AND calldate < car_serviceend) OR " ++
-                "(calldate > car_warrantystart AND calldate < car_warrantyend));"
-  writeJSON (map head rows :: [Int])
