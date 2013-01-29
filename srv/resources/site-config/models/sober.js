@@ -66,6 +66,7 @@
         },
         {
             "targets": [
+                "urgentService",
                 "cost_counted",
                 "cost_serviceTarifOptions"
             ],
@@ -715,6 +716,15 @@
                 "label": "Мультидрайв"
             },
             "type": "checkbox"
+        },
+        {
+            "name": "urgentService",
+            "type": "dictionary",
+            "meta": {
+                "bounded": false,
+                "dictionaryName": "UrgentServiceReason",
+                "label": "Приоритетная услуга"
+            }
         },
         {
             "name": "status",

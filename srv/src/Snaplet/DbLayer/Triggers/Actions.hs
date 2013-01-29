@@ -744,7 +744,7 @@ requestFddsVin objId vin = do
 
 setWeather objId city = do
   conf    <- lift $ gets weather
-  weather <- liftIO $ getWeather' conf $ BU.toString city
+  weather <- liftIO $ getWeather' conf $ BU.toString $ B.filter (/= '\'') city
   case weather of
     Right w   -> do
       lift $ scope "weather" $ log Trace $ T.concat

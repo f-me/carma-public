@@ -66,6 +66,7 @@
         },
         {
             "targets": [
+                "urgentService",
                 "cost_counted",
                 "cost_serviceTarifOptions"
             ],
@@ -864,6 +865,15 @@
                 "label": "Модель, предоставленного автомобиля"
             },
             "type": "dictionary"
+        },
+        {
+            "name": "urgentService",
+            "type": "dictionary",
+            "meta": {
+                "bounded": false,
+                "dictionaryName": "UrgentServiceReason",
+                "label": "Приоритетная услуга"
+            }
         },
         {
             "name": "status",

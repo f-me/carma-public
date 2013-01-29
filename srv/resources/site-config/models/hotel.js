@@ -163,6 +163,7 @@
         },
         {
             "targets": [
+                "urgentService",
                 "cost_counted",
                 "cost_serviceTarifOptions"
             ],
@@ -638,6 +639,15 @@
             ],
             "meta": {
                 "label": "Срок, на который предоставлена гостиница (дней)"
+            }
+        },
+        {
+            "name": "urgentService",
+            "type": "dictionary",
+            "meta": {
+                "bounded": false,
+                "dictionaryName": "UrgentServiceReason",
+                "label": "Приоритетная услуга"
             }
         },
         {

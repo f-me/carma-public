@@ -59,6 +59,7 @@
         },
         {
             "targets": [
+                "urgentService",
                 "cost_countedCost"
             ],
             "canRead": [
@@ -567,6 +568,15 @@
             "meta": {
                 "label": "Предельная стоимость",
                 "readonly": true
+            }
+        },
+        {
+            "name": "urgentService",
+            "type": "dictionary",
+            "meta": {
+                "bounded": false,
+                "dictionaryName": "UrgentServiceReason",
+                "label": "Приоритетная услуга"
             }
         },
         {
