@@ -556,11 +556,12 @@ logReq commit  = do
       rmethod = rqMethod r
   scoper "reqlogger" $ log Trace $ T.decodeUtf8 $ B.toStrict $ Aeson.encode $ object [
     "threadId" .= show thId,
-    "user" .= user,
-    "method" .= show rmethod,
-    "uri" .= uri,
-    "params" .= params,
-    "body" .= commit]
+    "request" .= object [
+      "user" .= user,
+      "method" .= show rmethod,
+      "uri" .= uri,
+      "params" .= params,
+      "body" .= commit]]
 
 logResp :: Aeson.ToJSON v => v -> AppHandler ()
 logResp r = scope "resplogger" $ do

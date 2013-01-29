@@ -53,11 +53,13 @@ class (Functor (m b), MonadIO (m b), MonadState TriggerContext (m b)) => MonadTr
     dateNow :: (Int -> Int) -> m b FieldValue
     liftDb :: Handler b (DbLayer b) r -> m b r
 
-logObject :: MonadLog m => Value -> m ()
-logObject (A.Object v) = do
+logObject :: MonadLog m => String -> Value -> m ()
+logObject name v = do
     thId <- liftIO myThreadId
-    log Trace . T.decodeUtf8 . toStrict . encode
-        . A.Object . HM.insert "threadId" (toJSON $ show thId) $ v
+    log Trace $ T.decodeUtf8 $ toStrict $ encode $ object [
+        "threadId" .= show thId,
+        "trigger" .= name,
+        "data" .= v]
 
 reply :: Either Redis.Reply a -> Either String a
 reply (Left r) = Left (show r)
@@ -66,37 +68,37 @@ reply (Right r) = Right r
 instance MonadTrigger TriggerMonad b where
     createObject model obj = liftDb $ scope "trigger" $ scope "create" $ do
         i <- Redis.create redis model obj
-        logObject $ object [
+        logObject "create" $ object [
             "model" .= model,
             "object" .= obj,
             "id" .= i]
         return i
     readObject key = do
         v <- TriggerMonad $ lift $ Redis.read' redis key
-        liftDb $ scope "trigger" $ scope "read" $ logObject $ object [
+        liftDb $ scope "trigger" $ scope "read" $ logObject "read" $ object [
             "key" .= key,
             "result" .= v]
         return v
     redisLPush lst vals = liftDb $ scope "trigger" $ scope "lpush" $ do
-        logObject $ object [
+        logObject "lpush" $ object [
             "list" .= lst,
             "values" .= vals]
         runRedisDB redis $ Redis.lpush lst vals
     redisHGet key val = liftDb $ scope "trigger" $ scope "hget" $ do
         result <- runRedisDB redis $ Redis.hget key val
-        logObject $ object [
+        logObject "hget" $ object [
             "key" .= key,
             "member" .= val,
             "result" .= reply result]
         return result
     redisHGetAll key = liftDb $ scope "trigger" $ scope "hgetall" $ do
         result <- runRedisDB redis $ Redis.hgetall key
-        logObject $ object [
+        logObject "hgetall" $ object [
             "key" .= key,
             "result" .= reply result]
         return result
     redisDel keys = liftDb $ scope "trigger" $ scope "del" $ do
-        logObject $ object [
+        logObject "del" $ object [
             "keys" .= keys]
         runRedisDB redis $ Redis.del keys
     dateNow fn = TriggerMonad $ liftIO $ fmap (B.pack . show . fn . round . utcTimeToPOSIXSeconds) getCurrentTime
