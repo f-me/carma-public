@@ -125,8 +125,8 @@ arcReport d year month = scope "arc" $ do
         args = [
             "tz" %= tzMins,
             "month" %= currentMonth,
-            "serviceSelect" %= (format "select count(*), casetbl.program, date_part('day', servicetbl.createTime + '$tz minutes') dy from casetbl, servicetbl where ('case: || casetbl.id = servicetbl.parentId)" ["tz" %= tzMins]),
-            "inThisMonth" %= (format "(date_trunc('month', servicetbl.createTime) = timestamp '$month')" ["month" %= currentMonth]),
+            "serviceSelect" %% "select count(*), casetbl.program, date_part('day', servicetbl.createTime + '$tz minutes') dy from casetbl, servicetbl where ('case: || casetbl.id = servicetbl.parentId)",
+            "inThisMonth" %% "(date_trunc('month', servicetbl.createTime) = timestamp '$month')",
             "serviceGroup" %= ("group by casetbl.program, dy order by casetbl.program, dy" :: String),
             "towage" %= ("(servicetbl.type = 'towage')" :: String)]
 
