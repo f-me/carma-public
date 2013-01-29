@@ -253,6 +253,11 @@ data Options = Options { carmaPort     :: Int
                deriving (Show, Data, Typeable)
 
 
+testHelp :: String
+testHelp = "Not saving new COMPOS value, not flagging exported cases " ++
+           "in test mode"
+
+
 main :: IO ()
 main =
     let
@@ -296,7 +301,7 @@ main =
                      (True, _)  -> Politics L.Trace L.Trace
                      (_, False) -> Politics L.Fatal L.Fatal
                      _          -> Politics L.Info L.Error
-          
+
       mainLog logPolicy logL $ do
          logInfo "Starting up"
          when testMode $ logInfo "No FTP host specified, test mode"
@@ -365,7 +370,10 @@ main =
                    False -> do
                      case ftpHost of
                        -- testMode
-                       Nothing -> liftIO $ BS.putStr res
+                       Nothing -> do
+                         logInfo $ testHelp
+                         logInfo $ "Dumping result to stdout"
+                         liftIO $ BS.putStr res
                        Just fh -> do
                          resFn <- liftIO $ dumpResult res
                          logInfo $ "Saved result to file " ++ resFn
