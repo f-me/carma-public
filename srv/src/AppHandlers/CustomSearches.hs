@@ -53,7 +53,9 @@ selectPartnersForSrv city isActive _ service make = do
     ++ (maybe "" (\x -> "  AND p.city = " ++ quote x) city)
     ++ (maybe "" (\x -> "  AND p.isActive = " ++ toBool x) isActive)
     ++ (maybe "" (\x -> "  AND s.servicename = " ++ quote x) service)
-    ++ (maybe "" (\x -> "  AND " ++ quote x ++ " = ANY (p.makes)") make)
+    ++ (maybe "" (\x -> "  AND (("
+                        ++ quote x ++ " = ANY (p.makes) AND p.isdealer = 't')"
+                        ++ "OR p.isdealer = 'f')") make)
   let fields =
         ["id","name","city","comment" ,"addrDeFacto"
         ,"phone1","workingTime","isDealer","isMobile"
