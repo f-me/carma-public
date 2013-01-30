@@ -337,7 +337,8 @@ exportable s@(mn, _, d) = notFalseService s && typeOk
 -- stored in two other case fields.
 callDateWithin :: ExportMonad m =>
                   FieldName
-               -- ^ Name of field with first date. @callDate@ must exceed this.
+               -- ^ Name of field with first date. @callDate@ must be
+               -- not less that this.
                -> FieldName
                -- ^ @callDate@ must not exceed this.
                -> m Bool
@@ -466,13 +467,16 @@ capRentDays d = do
 composField :: ExportField
 composField = do
   s <- getState
-  putState $ s{counter = counter s + 1}
+  let newCounter' = counter s + 1
+      -- Wrap counter when it reaches 999999
+      newCounter  = if newCounter' > 999999 then 0 else newCounter'
+  putState $ s{counter = newCounter}
   return $ padRight 6 '0' $ B8.pack $ show $ counter s
 
 
--- | First check servicing contract, then warranty.
 ddgField :: ExportField
 ddgField = do
+  -- | First check servicing contract, then warranty.
   onS <- onService
   if onS
   then timestampToDate =<< caseField1 "car_serviceStart"
