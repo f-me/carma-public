@@ -63,6 +63,8 @@ import Data.Dict as D
 import Data.Functor
 import Data.List
 import qualified Data.Map as M
+import qualified Data.Text as T
+import Data.Text.Encoding
 
 import Data.Time.Clock
 import Data.Time.Format
@@ -520,7 +522,9 @@ fillerField = spaces 5
 -- under 72 chars. Remove all newlines.
 commentPad :: BS.ByteString -> BS.ByteString
 commentPad = B8.map (\c -> if c == newline then space else c) .
-             BS.take 72 .
+             encodeUtf8 .
+             T.take 72 .
+             decodeUtf8 .
              padLeft 72 ' '
 
 
