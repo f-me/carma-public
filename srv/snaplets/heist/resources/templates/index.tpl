@@ -1025,108 +1025,99 @@
     <script type="text/template"
             class="screen-template"
             id="rkcFront-screen-template">
-      <div class="row-fluid">
-        <div class="span12">
-          <h2>Фильтрация</h2>
-          <div class="row-fluid">
-            <div class="span6">
-              <div class="row-fluid">
-                <div class="span4">
-                  <div style="float:left; margin-top:+3px">
-                    Город:
-                  </div>
-                </div>
-                <div class="span8">
-                  <select id="city-select" data-bind="foreach: $data">
-                    <option data-bind="value: id, text: name" />
-                  </select>
-                </div>
-              </div>
-              <div class="row-fluid">
-                <div class="span4">
-                  <div style="float:left; margin-top:+3px">
-                    Программа:
-                  </div>
-                </div>
-                <div class="span8">
-                  <select id="program-select" data-bind="foreach: $data">
-                    <option data-bind="value: id, text: name" />
-                  </select>
-                </div>
-              </div>
-              <div class="row-fluid">
-                <div class="span4">
-                  <div style="float:left; margin-top:+3px">
-                    Партнёр:
-                  </div>
-                </div>
-                <div class="span8">
-                  <select id="partner-select" data-bind="foreach: $data">
-                    <option data-bind="value: id, text: name" />
-                  </select>
-                </div>
+      <div class="pane nice-scrollbar span12">
+        <div class="row-fluid">
+          <div class="span6 form-horizontal">
+            <h2>Фильтрация</h2>
+            <div class="control-group">
+              <label class="control-label"> Город: </label>
+              <div class="controls">
+                <select id="city-select" data-bind="foreach: $data">
+                  <option data-bind="value: id, text: name" />
+                </select>
               </div>
             </div>
-            <div class="span6">
-              <h3>Интервал</h3>
-              <div class="input-append date"
-                   data-provide="datepicker"
-                   data-autoshow-datepicker="true"
-                   data-date-format="dd.mm.yyyy"
-                   data-date-weekstart="1">
-                <input type="text"
-                       id="rkc-date-from"
-                       class="focusable"
-                       name="from"
-                       />
-                <span class="add-on"><i class="icon icon-calendar" /></span>
-              </div>
-              <div class="input-append date"
-                   data-provide="datepicker"
-                   data-autoshow-datepicker="true"
-                   data-date-format="dd.mm.yyyy"
-                   data-date-weekstart="1">
-                <input type="text"
-                       id="rkc-date-to"
-                       class="focusable"
-                       name="to"
-                       />
-                <span class="add-on"><i class="icon icon-calendar" /></span>
+            <div class="control-group">
+              <label class="control-label"> Программа: </label>
+              <div class="controls">
+                <select id="program-select" data-bind="foreach: $data">
+                  <option data-bind="value: id, text: name" />
+                </select>
               </div>
             </div>
-            <div class="span2">
-              <div class="control-group">
-                <button id="reload" class="btn">
-                  Обновить
-                </button>
+            <div class="control-group">
+              <label class="control-label"> Партнёр: </label>
+              <div class="controls">
+                <select id="partner-select" data-bind="foreach: $data">
+                  <option data-bind="value: id, text: name" />
+                </select>
               </div>
             </div>
           </div>
+          <div class="span6">
+            <h3>Интервал</h3>
+            <div class="input-append date"
+                 data-provide="datepicker"
+                 data-autoshow-datepicker="true"
+                 data-date-format="dd.mm.yyyy"
+                 data-date-weekstart="1">
+              <input type="text"
+                     id="rkc-date-from"
+                     class="focusable"
+                     name="from"
+                     />
+              <span class="add-on"><i class="icon icon-calendar" /></span>
+            </div>
+            <div class="input-append date"
+                 data-provide="datepicker"
+                 data-autoshow-datepicker="true"
+                 data-date-format="dd.mm.yyyy"
+                 data-date-weekstart="1">
+              <input type="text"
+                     id="rkc-date-to"
+                     class="focusable"
+                     name="to"
+                     />
+              <span class="add-on"><i class="icon icon-calendar" /></span>
+            </div>
+          </div>
+          <div class="span2">
+            <div class="control-group">
+              <button id="reload" class="btn"> Обновить </button>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="row-fluid">
-        <h2>Типы звонков</h2>
-        <table id="rkc-front-calls-table" class="table table-stripped table-bordered">
-          <thead>
-            <tr>
-              <th width="40%">Звонок от</th>
-              <th width="40%">Тип звонка</th>
-              <th width="20%">Количество</th>
-            </tr>
-          </thead>
-          <tbody />
-        </table>
-        <h2>Операторы</h2>
-        <table id="rkc-front-ops-table" class="table table-stripped table-bordered">
-          <thead>
-            <tr>
-              <th width="40%">Оператор</th>
-              <th width="30%">Кол-во принятых звонков</th>
-              <th width="30%">Кол-во созданных кейсов</th>
-            </tr>
-          </thead>
-          <tbody />
-        </table>
+        <div class="row-fluid">
+          <div class="span6">
+            <h2>Типы звонков</h2>
+            <br />
+            <table id="rkc-front-calls-table"
+                   class="table table-stripped table-bordered">
+              <thead>
+                <tr>
+                  <th width="40%">Звонок от</th>
+                  <th width="40%">Тип звонка</th>
+                  <th width="20%">Количество</th>
+                </tr>
+              </thead>
+              <tbody> </tbody>
+            </table>
+          </div>
+          <div class="span6">
+            <h2>Операторы</h2>
+            <table id="rkc-front-ops-table"
+                   class="table table-stripped table-bordered">
+              <thead>
+                <tr>
+                  <th width="40%">Оператор</th>
+                  <th width="30%">Кол-во принятых звонков</th>
+                  <th width="30%">Кол-во созданных кейсов</th>
+                </tr>
+              </thead>
+              <tbody />
+            </table>
+          </div>
+        </div>
       </div>
     </script>
 
