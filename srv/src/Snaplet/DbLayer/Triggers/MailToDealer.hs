@@ -14,8 +14,8 @@ import qualified Data.Text as TS
 import qualified Data.Text.Lazy as T
 import Data.Map (Map)
 import qualified Data.Map as Map
-import System.Log
-import System.Log.Base (scoperLog)
+import System.Log.Simple
+import System.Log.Simple.Base (scoperLog)
 import Data.Configurator (require)
 import Network.Mail.SMTP
 
