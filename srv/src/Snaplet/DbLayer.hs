@@ -41,7 +41,7 @@ import Snap.Snaplet.PostgresqlSimple (pgsInit)
 import Snap.Snaplet.RedisDB (redisDBInit, runRedisDB)
 import Snap.Snaplet.SimpleLog
 #if !defined(mingw32_HOST_OS)
-import System.Log.Syslog
+import System.Log.Simple.Syslog
 #endif
 import qualified Database.Redis as Redis
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
