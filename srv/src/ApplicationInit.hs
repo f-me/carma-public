@@ -56,7 +56,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/callsByPhone/:phone",
                               chkAuth . method GET    $ searchCallsByPhone)
          , ("/actionsFor/:id",chkAuth . method GET    $ getActionsForCase)
-         , ("/myActions",     chkAuth . method GET    $ myActionsHandler)
+         , ("/littleMoreActions",
+                              chkAuth . method PUT    $ littleMoreActionsHandler)
          , ("/allActions",    chkAuth . method GET    $ allActionsHandler)
          , ("/allPartners",   chkAuth . method GET    $ allPartnersHandler)
          , ("/partnersFor/:srv",

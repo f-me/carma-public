@@ -52,8 +52,8 @@ assignQ pri usr logdUsers = fromString
     logdUsersList = T.unpack $ T.intercalate "','" logdUsers
 
 
-myActionsHandler :: AppHandler ()
-myActionsHandler = scoper "myActions" $ do
+littleMoreActionsHandler :: AppHandler ()
+littleMoreActionsHandler = scoper "littleMoreActions" $ do
   Just cUsr <- with auth currentUser
   logdUsers <- map (userLogin.snd) . Map.elems <$> addToLoggedUsers cUsr
 

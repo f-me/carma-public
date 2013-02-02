@@ -80,7 +80,7 @@ allActionsHandler :: AppHandler ()
 allActionsHandler
   = join (selectActions
     <$> getParam "closed"
-    <*> pure Nothing
+    <*> getParam "assignedTo"
     <*> getParam "targetGroup"
     <*> getParam "duetimeFrom"
     <*> getParam "duetimeTo")

@@ -309,6 +309,7 @@
     <script type="text/template"
             id="back-screen-template"
             class="screen-template">
+      <button id="bo-littleMoreAction">Больше действий!</button>
       <table id="back-user-table" class="table table-striped table-bordered">
         <thead>
           <tr>
