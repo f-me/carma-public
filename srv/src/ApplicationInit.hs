@@ -11,7 +11,7 @@ import Data.ByteString (ByteString)
 import Data.Configurator
 import Control.Concurrent.STM
 
-import System.Log(newLog, fileCfg, logger, text, file)
+import System.Log.Simple (newLog, fileCfg, logger, text, file)
 
 import Data.Pool
 import Database.PostgreSQL.Simple as Pg
