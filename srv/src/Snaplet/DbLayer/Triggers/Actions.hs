@@ -27,6 +27,7 @@ import Data.Time.Clock (UTCTime)
 import System.Locale (defaultTimeLocale)
 
 import Snap (gets, with)
+import Snap.Snaplet.Auth
 import Snap.Snaplet.RedisDB
 import qualified Database.Redis as Redis
 import qualified Snaplet.DbLayer.RedisCRUD as RC
@@ -164,6 +165,22 @@ serviceActions = Map.fromList
             ,("priority", "1")
             ,("parentId", objId)
             ,("caseId", kazeId)
+            ,("closed", "0")
+            ]
+          upd kazeId "actions" $ addToList actionId
+      "serviceOrdered" -> do
+          due <- dateNow (+ (1*60))
+          kazeId <- get objId "parentId"
+          currentUser <- maybe "" userLogin <$> getCurrentUser
+          actionId <- new "action" $ Map.fromList
+            [("name", "tellClient")
+            ,("duetime", due)
+            ,("description", utf8 "Сообщить клиенту о договорённости")
+            ,("targetGroup", "back")
+            ,("priority", "1")
+            ,("parentId", objId)
+            ,("caseId", kazeId)
+            ,("assignedTo", T.encodeUtf8 currentUser)
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
