@@ -554,7 +554,7 @@ logReq commit  = do
   let params = rqParams r
       uri    = rqURI r
       rmethod = rqMethod r
-  scoper "reqlogger" $ log Trace $ T.decodeUtf8 $ B.toStrict $ Aeson.encode $ object [
+  scope "detail" $ scope "req" $ log Trace $ T.decodeUtf8 $ B.toStrict $ Aeson.encode $ object [
     "threadId" .= show thId,
     "request" .= object [
       "user" .= user,
@@ -564,7 +564,7 @@ logReq commit  = do
       "body" .= commit]]
 
 logResp :: Aeson.ToJSON v => v -> AppHandler ()
-logResp r = scope "resplogger" $ do
+logResp r = scope "detail" $ scope "resp" $ do
   thId <- liftIO myThreadId
   log Trace $ T.decodeUtf8 $ B.toStrict $ Aeson.encode $ object [
     "threadId" .= show thId,

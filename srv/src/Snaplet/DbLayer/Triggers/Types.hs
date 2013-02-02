@@ -26,7 +26,7 @@ import Snaplet.DbLayer.Types
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import qualified Database.Redis as Redis
 
-import System.Log
+import System.Log.Simple
 
 data TriggerContext = TriggerContext
   {dbCache :: ObjectMap
@@ -66,7 +66,7 @@ reply (Left r) = Left (show r)
 reply (Right r) = Right r
 
 instance MonadTrigger TriggerMonad b where
-    createObject model obj = liftDb $ scope "trigger" $ scope "create" $ do
+    createObject model obj = liftDb $ scope "detail" $ scope "trigger" $ scope "create" $ do
         i <- Redis.create redis model obj
         logObject "create" $ object [
             "model" .= model,
@@ -75,29 +75,29 @@ instance MonadTrigger TriggerMonad b where
         return i
     readObject key = do
         v <- TriggerMonad $ lift $ Redis.read' redis key
-        liftDb $ scope "trigger" $ scope "read" $ logObject "read" $ object [
+        liftDb $ scope "detail" $ scope "trigger" $ scope "read" $ logObject "read" $ object [
             "key" .= key,
             "result" .= v]
         return v
-    redisLPush lst vals = liftDb $ scope "trigger" $ scope "lpush" $ do
+    redisLPush lst vals = liftDb $ scope "detail" $ scope "trigger" $ scope "lpush" $ do
         logObject "lpush" $ object [
             "list" .= lst,
             "values" .= vals]
         runRedisDB redis $ Redis.lpush lst vals
-    redisHGet key val = liftDb $ scope "trigger" $ scope "hget" $ do
+    redisHGet key val = liftDb $ scope "detail" $ scope "trigger" $ scope "hget" $ do
         result <- runRedisDB redis $ Redis.hget key val
         logObject "hget" $ object [
             "key" .= key,
             "member" .= val,
             "result" .= reply result]
         return result
-    redisHGetAll key = liftDb $ scope "trigger" $ scope "hgetall" $ do
+    redisHGetAll key = liftDb $ scope "detail" $ scope "trigger" $ scope "hgetall" $ do
         result <- runRedisDB redis $ Redis.hgetall key
         logObject "hgetall" $ object [
             "key" .= key,
             "result" .= reply result]
         return result
-    redisDel keys = liftDb $ scope "trigger" $ scope "del" $ do
+    redisDel keys = liftDb $ scope "detail" $ scope "trigger" $ scope "del" $ do
         logObject "del" $ object [
             "keys" .= keys]
         runRedisDB redis $ Redis.del keys
