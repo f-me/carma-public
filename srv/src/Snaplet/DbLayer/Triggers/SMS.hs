@@ -13,14 +13,11 @@ import qualified Data.Text as T
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Time
-import Data.Time.Format
 import System.Locale
 
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
-import Snap.Snaplet.RedisDB (runRedisDB)
-import qualified Database.Redis as Redis
 import DictionaryCache
 
 
@@ -44,9 +41,9 @@ formatDate unix = do
 
 
 
-sendSMS :: ByteString -> ByteString -> TriggerMonad b ()
+sendSMS :: MonadTrigger m b => ByteString -> ByteString -> m b ()
 sendSMS actId tplId = do
-  dic <- lift $ getDict id
+  dic <- liftDb $ getDict id
 
   svcId  <- actId  `get` "parentId"
   caseId <- svcId  `get` "parentId"
@@ -85,10 +82,10 @@ sendSMS actId tplId = do
     ,("msg", msg)
     ,("sender", sender)
     ]
-  Right _ <- lift $ runRedisDB redis $ Redis.lpush "smspost" [smsId]
+  Right _ <- redisLPush "smspost" [smsId]
   return ()
 
-updateSMS :: ObjectId -> TriggerMonad b ()
+updateSMS :: MonadTrigger m b => ObjectId -> m b ()
 updateSMS smsId = do
   auto <- get smsId "auto"
   when (auto /= "true") $ do
@@ -114,7 +111,7 @@ updateSMS smsId = do
     when (phone == "") $ do
       get caseId "contact_phone1" >>= set smsId "phone"
 
-    dic <- lift $ getDict id
+    dic <- liftDb $ getDict id
     program <- T.decodeUtf8 <$> caseId `get` "program"
     let sender = T.encodeUtf8
           $ Map.findWithDefault "RAMC" program

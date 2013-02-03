@@ -22,9 +22,9 @@ import Data.Time.Format
 import System.Locale
 
 
--- | Return string required to pad input up to provided length. If
--- input is already not less than required length, return empty
--- string.
+-- | Return string required to pad input up to provided length. Length
+-- is calculated using UTF-8 characters. If input is already not less
+-- than required length, return empty string.
 genericPad :: Int
            -- ^ Required result length.
            -> Char

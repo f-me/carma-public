@@ -11,7 +11,7 @@ import Data.ByteString (ByteString)
 import Data.Configurator
 import Control.Concurrent.STM
 
-import System.Log(newLog, fileCfg, logger, text, file)
+import System.Log.Simple (newLog, fileCfg, logger, text, file)
 
 import Data.Pool
 import Database.PostgreSQL.Simple as Pg
@@ -56,7 +56,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/callsByPhone/:phone",
                               chkAuth . method GET    $ searchCallsByPhone)
          , ("/actionsFor/:id",chkAuth . method GET    $ getActionsForCase)
-         , ("/myActions",     chkAuth . method GET    $ myActionsHandler)
+         , ("/littleMoreActions",
+                              chkAuth . method PUT    $ littleMoreActionsHandler)
          , ("/allActions",    chkAuth . method GET    $ allActionsHandler)
          , ("/allPartners",   chkAuth . method GET    $ allPartnersHandler)
          , ("/partnersFor/:srv",
@@ -130,7 +131,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
 
   runtimeFlags <- liftIO $ newTVarIO Set.empty
-  d <- nestSnaplet "db" db $ initDbLayer allUsrs runtimeFlags "resources/site-config"
+  d <- nestSnaplet "db" db $ initDbLayer authMgr allUsrs runtimeFlags "resources/site-config"
 
   -- init PostgreSQL connection pool that will be used for searching only
   let lookupCfg nm = lookupDefault (error $ show nm) cfg nm

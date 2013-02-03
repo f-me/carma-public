@@ -8,6 +8,7 @@ import Data.Lens.Template
 import Control.Concurrent.STM
 
 import Snap
+import Snap.Snaplet.Auth
 import Snap.Snaplet.PostgresqlSimple (Postgres, HasPostgres(..))
 import Snap.Snaplet.RedisDB (RedisDB)
 import Carma.ModelTables (TableDesc)
@@ -41,6 +42,7 @@ data DbLayer b = DbLayer
     {_redis    :: Snaplet RedisDB
     ,_postgres :: Snaplet Postgres
     ,_dbLog    :: Snaplet SimpleLog
+    ,_auth     :: Snaplet (AuthManager b)
     ,triggers  :: TriggersConfig
     ,fdds      :: Fdds.Conf
     ,syncRelations :: SM.Relations
