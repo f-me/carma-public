@@ -34,8 +34,8 @@ import Network.HTTP
 import System.IO
 import System.Console.CmdArgs
 import System.Directory
-import System.Log as L
-import System.Log.Syslog
+import System.Log.Simple as L
+import System.Log.Simple.Syslog
 import System.Locale
 
 import Carma.HTTP
@@ -213,7 +213,7 @@ curlOptions = [ CurlUseNetRc NetRcRequired
               ]
 
 
--- | Upload a file to a root directory of a remote FTP server.
+-- | Upload a file to the root directory of a remote FTP server.
 upload :: String
        -- ^ FTP host name. Login credentials for this machine must be
        -- present in .netrc file.
@@ -231,7 +231,7 @@ upload ftpHost fileName = do
   perform c
 
 
--- | curl 'ReadFunction' for a given handle. Used to feed uploaded
+-- | Curl 'ReadFunction' for a given handle. Used to feed uploaded
 -- data to curl library.
 handleReadFunction :: Handle -> ReadFunction
 handleReadFunction fh ptr size nmemb _ = do
@@ -273,7 +273,7 @@ main =
                    &= help "Path to a file with Wazzup dictionary"
                  , ftpHost = Nothing
                    &= name "h"
-                   &= help "Hostname of FTP to upload the result to"
+                   &= help "Hostname of FTP server to upload the result to"
                  , useSyslog = False
                    &= explicit
                    &= name "syslog"
