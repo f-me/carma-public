@@ -63,6 +63,8 @@ import Data.Dict as D
 import Data.Functor
 import Data.List
 import qualified Data.Map as M
+import qualified Data.Text as T
+import Data.Text.Encoding
 
 import Data.Time.Clock
 import Data.Time.Format
@@ -335,7 +337,8 @@ exportable s@(mn, _, d) = notFalseService s && typeOk
 -- stored in two other case fields.
 callDateWithin :: ExportMonad m =>
                   FieldName
-               -- ^ Name of field with first date. @callDate@ must exceed this.
+               -- ^ Name of field with first date. @callDate@ must be
+               -- not less that this.
                -> FieldName
                -- ^ @callDate@ must not exceed this.
                -> m Bool
@@ -464,13 +467,16 @@ capRentDays d = do
 composField :: ExportField
 composField = do
   s <- getState
-  putState $ s{counter = counter s + 1}
+  let newCounter' = counter s + 1
+      -- Wrap counter when it reaches 999999
+      newCounter  = if newCounter' > 999999 then 0 else newCounter'
+  putState $ s{counter = newCounter}
   return $ padRight 6 '0' $ B8.pack $ show $ counter s
 
 
--- | First check servicing contract, then warranty.
 ddgField :: ExportField
 ddgField = do
+  -- | First check servicing contract, then warranty.
   onS <- onService
   if onS
   then timestampToDate =<< caseField1 "car_serviceStart"
@@ -520,7 +526,9 @@ fillerField = spaces 5
 -- under 72 chars. Remove all newlines.
 commentPad :: BS.ByteString -> BS.ByteString
 commentPad = B8.map (\c -> if c == newline then space else c) .
-             BS.take 72 .
+             encodeUtf8 .
+             T.take 72 .
+             decodeUtf8 .
              padLeft 72 ' '
 
 

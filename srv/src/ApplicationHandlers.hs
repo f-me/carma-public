@@ -8,6 +8,7 @@ import Prelude hiding (log)
 import Data.Functor
 import Control.Monad
 import Control.Monad.CatchIO
+import Control.Concurrent (myThreadId)
 import Control.Concurrent.STM
 
 import Data.Text.Lazy (toStrict)
@@ -545,22 +546,29 @@ errorsHandler = do
   liftIO $ withLog l $ scope "frontend" $ do
   log Info $ toStrict $ decodeUtf8 r
 
-logReq :: Show v => v -> AppHandler ()
+logReq :: Aeson.ToJSON v => v -> AppHandler ()
 logReq commit  = do
   user <- fmap userLogin <$> with auth currentUser
   r <- getRequest
+  thId <- liftIO myThreadId
   let params = rqParams r
       uri    = rqURI r
       rmethod = rqMethod r
-  scoper "reqlogger" $ log Trace $ T.pack $
-    show user ++ "; " ++
-    show rmethod ++ " " ++ show uri ++ "; " ++
-    "params: " ++ show params ++ "; " ++
-    "body: " ++ show commit
+  scope "detail" $ scope "req" $ log Trace $ T.decodeUtf8 $ B.toStrict $ Aeson.encode $ object [
+    "threadId" .= show thId,
+    "request" .= object [
+      "user" .= user,
+      "method" .= show rmethod,
+      "uri" .= uri,
+      "params" .= params,
+      "body" .= commit]]
 
 logResp :: Aeson.ToJSON v => v -> AppHandler ()
-logResp r = scope "resplogger" $ do
-  log Trace $ T.decodeUtf8 $ B.toStrict $ Aeson.encode r
+logResp r = scope "detail" $ scope "resp" $ do
+  thId <- liftIO myThreadId
+  log Trace $ T.decodeUtf8 $ B.toStrict $ Aeson.encode $ object [
+    "threadId" .= show thId,
+    "response" .= r]
   writeJSON r
 
 ------------------------------------------------------------------------------
