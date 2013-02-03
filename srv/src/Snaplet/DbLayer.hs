@@ -37,11 +37,12 @@ import Data.Configurator
 import WeatherApi.WWOnline (initApi)
 
 import Snap.Snaplet
+import Snap.Snaplet.Auth
 import Snap.Snaplet.PostgresqlSimple (pgsInit)
 import Snap.Snaplet.RedisDB (redisDBInit, runRedisDB)
 import Snap.Snaplet.SimpleLog
 #if !defined(mingw32_HOST_OS)
-import System.Log.Syslog
+import System.Log.Simple.Syslog
 #endif
 import qualified Database.Redis as Redis
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
@@ -164,9 +165,9 @@ smsProcessing = runRedisDB redis $ do
 
 
 initDbLayer
-  :: UsersDict -> TVar RuntimeFlags -> FilePath
+  :: Snaplet (AuthManager b) -> UsersDict -> TVar RuntimeFlags -> FilePath
   -> SnapletInit b (DbLayer b)
-initDbLayer allU rtF cfgDir = makeSnaplet "db-layer" "Storage abstraction"
+initDbLayer sessionMgr allU rtF cfgDir = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
     l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10)
 #if !defined(mingw32_HOST_OS)
@@ -197,6 +198,7 @@ initDbLayer allU rtF cfgDir = makeSnaplet "db-layer" "Storage abstraction"
             (redisDBInit Redis.defaultConnectInfo)
       <*> nestSnaplet "pgsql" postgres pgsInit
       <*> nestSnaplet "dblog" dbLog (simpleLogInit_ l)
+      <*> pure sessionMgr
       <*> liftIO triggersConfig
       <*> (liftIO $ fddsConfig cfg)
       <*> (return rels)

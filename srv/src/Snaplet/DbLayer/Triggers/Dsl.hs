@@ -17,7 +17,8 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.Maybe
 
-import Snap (gets)
+import Snap (gets, with)
+import Snap.Snaplet.Auth
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
 
@@ -81,3 +82,7 @@ isReducedMode :: MonadTrigger m b => m b Bool
 isReducedMode = do
   flags <- liftDb (gets runtimeFlags) >>= liftIO . readTVarIO
   return $ Set.member ReducedActionsMode flags
+
+getCurrentUser :: MonadTrigger m b => m b (Maybe AuthUser)
+getCurrentUser = liftDb (with auth $ currentUser)
+  
