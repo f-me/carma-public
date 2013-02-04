@@ -21,7 +21,7 @@ import Snap.Snaplet.Session
 import Snaplet.Auth.Class
 import Snaplet.SiteConfig
 import Snaplet.SiteConfig.Class
-import Snaplet.DbLayer.Types
+import Snaplet.DbLayer.Types (DbLayer)
 import Snap.Snaplet.Vin
 import Snaplet.FileUpload
 import Snaplet.Geo

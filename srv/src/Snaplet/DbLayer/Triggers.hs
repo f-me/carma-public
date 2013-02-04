@@ -41,7 +41,7 @@ triggerUpdate objId commit = do
               {updates = unionMaps changes $ updates cxt
               ,current = Map.empty
               }
-        cxt'' <- foldM (flip execStateT) cxt' tgs
+        cxt'' <- foldM (flip execStateT) cxt' $ map runTriggerMonad tgs
         loop cfg (n-1) cxt'' $ current cxt''
 
 
@@ -62,6 +62,9 @@ matchingTriggers cfg updates
 
 unionTriggers = Map.unionWith (Map.unionWith (++))
 
+compileRecs :: MonadTrigger m b =>
+  Map.Map k (Map.Map s (Map.Map B.ByteString (Map.Map FieldName FieldValue))) ->
+  Map.Map k (Map.Map s [ObjectId -> B.ByteString -> m b ()])
 compileRecs = Map.map (Map.map mkT)
   where
     mkT m = [\objId val -> case Map.lookup val m of

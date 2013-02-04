@@ -14,8 +14,8 @@ import qualified Data.Text as TS
 import qualified Data.Text.Lazy as T
 import Data.Map (Map)
 import qualified Data.Map as Map
-import System.Log
-import System.Log.Base (scoperLog)
+import System.Log.Simple
+import System.Log.Simple.Base (scoperLog)
 import Data.Configurator (require)
 import Network.Mail.SMTP
 
@@ -59,7 +59,7 @@ mailTemplate = T.pack
   ++ "<p>Заранее благодарим за своевременный ответ, в течение 24 часов.</p>"
 
 
-fillVars :: ByteString -> TriggerMonad b (Map Text Text)
+fillVars :: MonadTrigger m b => ByteString -> m b (Map Text Text)
 fillVars caseId
   =   (return $ Map.empty)
   >>= add "caseId"       (return caseId)
@@ -74,7 +74,7 @@ fillVars caseId
       return $! Map.insert k (T.fromStrict $ T.decodeUtf8 v) m
 
 
-sendMailToDealer :: ByteString -> TriggerMonad b ()
+sendMailToDealer :: MonadTrigger m b => ByteString -> m b ()
 sendMailToDealer actionId = do
   svcId  <- get actionId "parentId"
   let svcName = head $ B.split ':' svcId
@@ -88,9 +88,9 @@ sendMailToDealer actionId = do
         when (dealer'sMail /= "") $ do
           sendMailActually caseId
 
-sendMailActually :: ByteString -> TriggerMonad b ()
+sendMailActually :: MonadTrigger m b => ByteString -> m b ()
 sendMailActually caseId = do
-  cfg <- lift $ getSnapletUserConfig
+  cfg <- liftDb getSnapletUserConfig
   cfgHost <- liftIO $ require cfg "psa-smtp-host"
   cfgUser <- liftIO $ require cfg "psa-smtp-user"
   cfgPass <- liftIO $ require cfg "psa-smtp-pass"
@@ -107,7 +107,7 @@ sendMailActually caseId = do
         "Доставлена машина на ремонт"
         [htmlPart $ render varMap mailTemplate]
 
-  l <- lift askLog
+  l <- liftDb askLog
   -- NB. notice `forkIO` below
   -- it also saves us from exceptions thrown while sending an e-mail
   void $ liftIO $ forkIO $ do

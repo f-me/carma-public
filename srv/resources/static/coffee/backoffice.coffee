@@ -1,17 +1,19 @@
 this.setupBackOffice = ->
   setTimeout((->
+      $('#bo-littleMoreAction').on('click.bo', ->
+        $.ajax
+          type: "PUT"
+          url: "/littleMoreActions"
+          success: setupBoTable)
+
       tables = mkBoTable()
       global.boData = { started: new Date, r: {} }
-      global.boData.iHandler =
-        setInterval((-> $.getJSON("/myActions", setupBoTable)), 17000)
-      $.getJSON("/myActions", setupBoTable)
-      # non polling version for debug purposes
-      # $.getJSON("/all/action", setupBoTable tables)
+      params = "assignedTo=#{global.user.login}&closed=0"
+      $.getJSON("/allActions?#{params}", setupBoTable)
     ), 200)
 
 this.removeBackOffice = ->
-  h = global.boData.iHandler
-  clearInterval h if h?
+  $('#bo-littleMoreAction').off 'click.bo'
 
 mkBoTable = ->
   userTable = $("#back-user-table")

@@ -26,7 +26,7 @@ import qualified Data.Map            as Map
 import qualified Data.Vector         as V
 import System.FilePath
 import System.Directory
-import System.Log
+import System.Log.Simple
 
 import Snaplet.DbLayer.Types
 

@@ -15,14 +15,14 @@ where
 
 import Data.ByteString.Char8 (readInt)
 import Database.PostgreSQL.Simple
+import Database.PostgreSQL.Simple.SqlQQ
 import Snap
 
 import AppHandlers.Util
 import Application
 
-
 psaQuery :: Query
-psaQuery = [str|
+psaQuery = [sql|
 SELECT id FROM casetbl
 WHERE caseStatus='s2'
 AND  (program='citroen' OR program='peugeot')
@@ -40,7 +40,7 @@ psaCases = do
 
 
 rtQuery :: Query
-rtQuery = [str|
+rtQuery = [sql|
 WITH parentcase AS (select calldate, car_vin from casetbl where id=?)
 SELECT c.id FROM casetbl c INNER JOIN towagetbl s
 ON c.id=cast(split_part(s.parentid, ':', 2) as integer)
