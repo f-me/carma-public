@@ -1,4 +1,4 @@
-define [], ->
+define ["utils"], (utils) ->
   setupBackOffice = ->
     setTimeout((->
         $('#bo-littleMoreAction').on('click.bo', ->
@@ -18,8 +18,8 @@ define [], ->
 
   mkBoTable = ->
     userTable = $("#back-user-table")
-    ut = mkDataTable userTable,
-      aoColumns: repeat(6, null).concat(repeat(2, { bVisible: false}))
+    ut = utils.mkDataTable userTable,
+      aoColumns: utils.repeat(6, null).concat(utils.repeat(2, { bVisible: false}))
       fnRowCallback: (nRow, aData, iDisplayIndex, iDisplayIndexFull) ->
         duetime  = Date.parse aData[2]
         srvStart = Date.parse aData[6]

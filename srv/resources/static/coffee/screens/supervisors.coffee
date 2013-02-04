@@ -1,4 +1,4 @@
-define [], ->
+define ["utils"], (utils) ->
   this.setupSupervisorScreen = (viewName, args) ->
     setTimeout ->
       $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
@@ -6,8 +6,8 @@ define [], ->
 
       t = $("#supervisor-table");
       return if t.hasClass("dataTable")
-      dt = mkDataTable t,
-        aoColumns: repeat(9, null).concat(repeat(2, { bVisible: false}))
+      dt = utils.mkDataTable t,
+        aoColumns: utils.repeat(9, null).concat(utils.repeat(2, { bVisible: false}))
         bPaginate: true
         fnRowCallback: (nRow, aData, iDisplayIndex, iDisplayIndexFull) ->
           caseId = aData[0].split('/')[0]

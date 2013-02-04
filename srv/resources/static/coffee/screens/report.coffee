@@ -1,4 +1,4 @@
-define [], ->
+define ["utils"], (utils) ->
   setupReports = (viewName, args) ->
     $.getJSON "/all/report", (reports) ->
       for r in reports
@@ -7,7 +7,7 @@ define [], ->
         r.id = (r.id.split ':')[1]
       global.reports = reports
       ko.applyBindings(global.reports, el "layout" )
-      mkDataTable $('#reports-table'), { sScrollY: '400px' }
+      utils.mkDataTable $('#reports-table'), { sScrollY: '400px' }
 
       d1 = new Date
       d1.setDate 1

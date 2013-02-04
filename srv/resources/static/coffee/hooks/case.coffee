@@ -67,6 +67,9 @@ define [], ->
 
 
   descsKbHook: (instance, knockVM) ->
+    mkServicesDescs = (p, s) ->
+      description: getServiceDesc(p ,s.modelName())
+      title:       s.modelTitle
     knockVM['servicesDescs'] = ko.computed
       read: ->
         p = knockVM['program']()

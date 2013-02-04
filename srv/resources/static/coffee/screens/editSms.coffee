@@ -1,4 +1,4 @@
-define [], ->
+define ["utils"], (utils) ->
   setupSmsTplForm = (viewName, args) ->
 
     refs = [ ]
@@ -13,7 +13,7 @@ define [], ->
 
       t = $("#sms-table");
       return if t.hasClass("dataTable")
-      mkDataTable(t)
+      utils.mkDataTable(t)
 
       t.on("click.datatable", "tr", ->
         id = this.children[0].innerText

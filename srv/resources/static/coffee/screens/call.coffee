@@ -1,4 +1,4 @@
-define [], ->
+define ["utils"], (utils) ->
   setupCallForm = (viewName, args) ->
     knockVM = modelSetup("call") viewName, args,
                        permEl     : "case-permissions"
@@ -9,7 +9,7 @@ define [], ->
     $('input[name="callDate"]').parents('.control-group').hide()
     $('input[name="callTaker"]').parents('.control-group').hide()
     searchTable = $("#call-searchtable")
-    st = mkDataTable searchTable,
+    st = utils.mkDataTable searchTable,
       bFilter : false
       fnRowCallback: (nRow) -> $($(nRow).children()[1]).addClass("capitalize")
     searchTable.on("click.datatable", "tr", ->

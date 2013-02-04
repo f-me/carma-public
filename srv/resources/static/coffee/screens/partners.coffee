@@ -1,4 +1,4 @@
-define ["hooks/partner"], (p) ->
+define ["hooks/partner", "utils"], (p, utils) ->
   setupPartnersForm = (viewName, args) ->
     refs = [field: "services"
            ,forest: "partner-services-references"
@@ -25,7 +25,7 @@ define ["hooks/partner"], (p) ->
 
       t = $("#partner-table");
       return if t.hasClass("dataTable")
-      mkDataTable(t)
+      utils.mkDataTable(t)
 
       t.on("click.datatable", "tr", ->
         id = this.children[0].innerText

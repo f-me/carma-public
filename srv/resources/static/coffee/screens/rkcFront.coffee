@@ -1,4 +1,4 @@
-define [], ->
+define ["utils"], (utils) ->
   this.setupRKCFrontScreen = (viewName, args) ->
     setTimeout ->
 
@@ -8,8 +8,8 @@ define [], ->
       return if callstable.hasClass("dataTable")
       return if opstable.hasClass("dataTable")
 
-      callst = mkDataTable callstable, { bFilter: false, bInfo: false }
-      opst = mkDataTable opstable, { bFilter: false, bInfo: false }
+      callst = utils.mkDataTable callstable, { bFilter: false, bInfo: false }
+      opst   = utils.mkDataTable opstable,   { bFilter: false, bInfo: false }
 
       getArgs = () -> this.filterRKCArgs()
 

@@ -1,4 +1,4 @@
-define [], ->
+define ["utils"], (utils) ->
   initReducedModeBtn = ->
     currentState = false
     btn = $('#rkc-ReducedActionsMode')
@@ -153,8 +153,8 @@ define [], ->
 
       ko.applyBindings(this.wcities, el "rkc-weather-table")
 
-      ct = mkDataTable caset, { bFilter: false, bInfo: false }
-      bt = mkDataTable actionst, { bFilter: false, bInfo: false }
+      ct = utils.mkDataTable caset, { bFilter: false, bInfo: false }
+      bt = utils.mkDataTable actionst, { bFilter: false, bInfo: false }
 
       # Fill general info
       totalServices = $('#total-services')

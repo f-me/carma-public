@@ -1,4 +1,4 @@
-define [], ->
+define ["utils"], (utils) ->
   this.setupRKCOpsScreen = (viewName, args) ->
     setTimeout ->
 
@@ -15,7 +15,7 @@ define [], ->
 
       ko.applyBindings(actstbl, el("rkc-ops-back-operators-table"))
 
-      eat = mkDataTable eachao, { bFilter: false, bInfo: false }
+      eat = utils.mkDataTable eachao, { bFilter: false, bInfo: false }
 
       fmttime = (tm) ->
           fmt = (x) -> if x < 10 then "0" + x else "" + x

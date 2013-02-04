@@ -1,4 +1,4 @@
-define [], ->
+define ["utils"], (utils) ->
   # Case view (renders to #left, #center and #right as well)
   setupCaseMain = (viewName, args) -> setupCaseModel viewName, args
 
@@ -46,7 +46,7 @@ define [], ->
     $("body").on("change.input", ".redirectOnChange", () ->
         setTimeout(( -> window.location.hash = "back"), 500))
 
-    mkDataTable $('#call-searchtable')
+    utils.mkDataTable $('#call-searchtable')
     setupHotkeys()
     kvm = global.viewsWare[viewName].knockVM
     for i of kvm when /.*Not$/.test(i) or i == 'actions'
@@ -134,7 +134,7 @@ define [], ->
                 { aoColumns: repeat(5, null).concat(repeat(3, { bVisible: false})) }
 
     unless table.hasClass("dataTable")
-      mkDataTable table, tblOpts
+      utils.mkDataTable table, tblOpts
       table.on "click.datatable", "tr", ->
         name = this.children[0].innerText
         city = this.children[1].innerText
