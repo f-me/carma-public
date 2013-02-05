@@ -155,6 +155,8 @@ defaults = Map.fromList
     [("hotelProvidedFor", "0")
     ])
   ,("information", serviceDefaults)
+  ,("tech1", serviceDefaults)
+  ,("consultation", serviceDefaults)
   ,("rent", Map.union serviceDefaults $ Map.fromList
     [("carProvidedFor", "0")
     ])
