@@ -6,13 +6,13 @@ this.setupSupervisorScreen = (viewName, args) ->
     t = $("#supervisor-table");
     return if t.hasClass("dataTable")
     dt = mkDataTable t,
-      aoColumns: repeat(9, null).concat(repeat(2, { bVisible: false}))
+      aoColumns: repeat(10, null).concat(repeat(2, { bVisible: false}))
       bPaginate: true
       fnRowCallback: (nRow, aData, iDisplayIndex, iDisplayIndexFull) ->
         caseId = aData[0].split('/')[0]
         caseLnk = "<a href='/#case/#{caseId}'> #{aData[0]} </a>"
         duetime  = Date.parse aData[5]
-        srvStart = Date.parse aData[9]
+        srvStart = Date.parse aData[10]
         mktime = (n) ->
           d = new Date
           d.setMinutes(d.getMinutes() + n)
@@ -21,7 +21,7 @@ this.setupSupervisorScreen = (viewName, args) ->
         d120 = mktime 120
         d480 = mktime 480
         now  = new Date
-        name = aData[10]
+        name = aData[11]
 
         $('td:eq(0)', nRow).html caseLnk
 
@@ -111,6 +111,7 @@ drawTable = (dt, opt) ->
             , r[obj.result]  || ''
             , obj.priority || ''
             , global.dictValueCache['DealerCities'][obj.city] || ''
+            , global.dictValueCache['Programs'][obj.program] || ''
             , srvStart || ''
             , obj.name || ''
             ]
