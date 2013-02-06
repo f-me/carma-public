@@ -289,7 +289,7 @@ rkcWeatherHandler = scope "rkc" $ scope "handler" $ scope "weather" $ do
   where
     weatherForCity :: WeatherApi.Config -> String -> IO (Either String Double)
     weatherForCity conf city = liftM (either (Left . show) (Right . tempC)) $
-      getWeather' conf city
+      getWeather' conf $ filter (/= '\'') city
 
     defaultCities :: [String]
     defaultCities = ["Moskva", "Sankt-Peterburg"]
