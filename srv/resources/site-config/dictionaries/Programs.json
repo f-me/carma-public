@@ -83,7 +83,11 @@
         {
             "value": "map",
             "label": "B2B / Мапфре"
-        }, 
+        },
+        {
+            "value": "mapC",
+            "label": "B2B / Мапфре Citroen"
+        },        
         {
             "value": "micro",
             "label": "B2B / Микропрограммы"
