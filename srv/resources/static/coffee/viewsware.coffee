@@ -10,8 +10,20 @@ this.renderScreen = (screenName, args) ->
   $("li.active").removeClass("active")
   $el(screenName + "-screen-nav").addClass("active")
 
+  partials = {}
+  for p in $('.partial')
+    partials[$(p).attr('id')] = $(p).html()
+
+  # TODO: move this somewhere
+  tpldata =
+    smallinp: -> (cont) ->
+      Mustache.render partials["rkc/smallinput"],
+        label: $(cont).siblings("label").html()
+        id:    $(cont).siblings("input").attr("id")
+
   tpl = $el(screen.template).html()
-  global.topElement.html(tpl)
+  tpl1 = Mustache.render(tpl, tpldata, partials)
+  global.topElement.html(tpl1)
   # Call setup functions for all views, assuming they will set
   # their viewsWare
   for viewName, cs of screen.views when cs.constructor?
