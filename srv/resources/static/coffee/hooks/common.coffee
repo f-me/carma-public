@@ -1,4 +1,4 @@
-define [], ->
+define ["utils"], (u) ->
   distanceQuery = (coord1, coord2) -> stripWs "/geo/distance/#{coord1}/#{coord2}/"
 
   # Transform distance in meters to km
@@ -48,13 +48,13 @@ define [], ->
 
   filesKbHook: (instance, knockVM) ->
     for n in instance.filesFields
-      u = "/upload"
+      upl = "/upload"
       d = "/s/fileupload"
       knockVM["#{n}UploadUrl"] = ko.computed
         read: ->
           return unless knockVM['id']
           path = "#{instance.model.name}/#{knockVM['id']()}/#{n}"
-          "#{u}/#{path}"
+          "#{upl}/#{path}"
       knockVM["#{n}Info"] = ko.computed
         read: ->
           return unless knockVM['id']
@@ -65,7 +65,7 @@ define [], ->
             do (i) ->
               url: "#{d}/#{path}/#{i.trim()}"
               name: i.trim()
-              ctrl: "#{u}/#{path}/#{i.trim()}"
+              ctrl: "#{upl}/#{path}/#{i.trim()}"
 
   # Clear dependant dictionary fields when parent is changed
   # this.dictionaryHook = (elName) ->
@@ -98,17 +98,17 @@ define [], ->
         m = instance.fieldHash[n].meta
 
         # Find VMs and fields to watch for coordinates
-        d1_meta = splitFieldInView m.distanceTo1
+        d1_meta = u.splitFieldInView m.distanceTo1
         if not d1_meta.view?
           vm1 = knockVM
         else
-          vm1 = findVM d1_meta.view
+          vm1 = u.findVM d1_meta.view
 
-        d2_meta = splitFieldInView m.distanceTo2
+        d2_meta = u.splitFieldInView m.distanceTo2
         if not d2_meta.view?
           vm2 = knockVM
         else
-          vm2 = findVM d2_meta.view
+          vm2 = u.findVM d2_meta.view
 
         # Subscribe to change in either of coordinates
         vm1[d1_meta.field].subscribe (new_coord) ->

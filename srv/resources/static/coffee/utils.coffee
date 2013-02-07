@@ -2,6 +2,14 @@ define [], ->
   # jquery -> html(as string) conversion, with selected element
   jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
 
+  # Find VM of reference in a case by its view name.
+  findCaseOrReferenceVM = (view) ->
+    kase = global.viewsWare["case-form"].knockVM
+    if (view is "case-form")
+      kase
+    else
+      _.find kase.servicesReference(), (svc) -> svc.view is view
+
   mkDataTable: (t, opts) ->
     defaults =
       sScrollY  : "500px"
@@ -31,14 +39,6 @@ define [], ->
     e = $("#main-container").find("[name=" + name + "]")[0]
     e.scrollIntoView()
     e.focus()
-
-  # Find VM of reference in a case by its view name.
-  findCaseOrReferenceVM: (view) ->
-    kase = global.viewsWare["case-form"].knockVM
-    if (view is "case-form")
-      kase
-    else
-      _.find kase.servicesReference(), (svc) -> svc.view is view
 
   # Find VM of a view, properly handling reference views or views of
   # field groups. If the view name is "case-form", then return knockVM

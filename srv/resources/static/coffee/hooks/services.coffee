@@ -1,11 +1,11 @@
-define [], ->
+define ["utils"], (u) ->
   partnerOptsHook: (i, knockVM) ->
     knockVM['contractor_partner'].subscribe (n) ->
       return unless knockVM['view']
       v = global.viewsWare[knockVM['view']].depViews['cost_counted'][0]
       $("##{v}").find(".add-opt-btn").remove()
       model = knockVM.modelName()
-      sTout 1000, ->
+      u.sTout 1000, ->
         $.getJSON "/opts/#{knockVM.modelName()}/#{knockVM.id()}", (opts)->
           return if _.isEmpty opts
           tr = Mustache.render(
@@ -36,7 +36,7 @@ define [], ->
 
   srvOptUpd: (instance, knockVM) ->
     knockVM['payType'].subscribe (n) ->
-      sTout 500, ->
+      u.sTout 500, ->
         for o in knockVM['cost_serviceTarifOptionsReference']()
           do (o) ->
             o.model().fetch()
