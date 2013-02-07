@@ -12,8 +12,9 @@ define [
   "screens/report"
   "screens/editVin"
   "screens/editSms"
+  "render/screen"
   ], ( bo, call, kase, partner, print, rkc, rkcFront, rkcOps
-     , supervisor, vin, report, editVin, editSms) ->
+     , supervisor, vin, report, editVin, editSms, r) ->
     localScreens: ->
       "case":
         "template": "case-screen-template"
@@ -98,8 +99,8 @@ define [
         "editSms"     : "editSms"
         "printSrv/:model/:id" : "printSrv"
 
-      loadCase    : (id) -> renderScreen("case", {"id": id})
-      newCase     :      -> renderScreen("case", {"id": null})
+      loadCase    : (id) -> r.renderScreen("case", kase, {"id": id})
+      newCase     :      -> r.renderScreen("case", kase, {"id": null})
       search      :      -> renderScreen("search")
       back        :      -> renderScreen("back")
       vin         :      -> renderScreen("vin")
@@ -111,8 +112,8 @@ define [
       editVin     : (id) -> renderScreen("editVin", {"id": id})
       newVin      :      -> renderScreen("newVin", {"id": null})
       supervisor  :      -> renderScreen("supervisor")
-      rkc         :      -> renderScreen("rkc")
-      rkcOps      :      -> renderScreen("rkcOps")
-      rkcFront    :      -> renderScreen("rkcFront")
+      rkc         :      -> r.renderScreen("rkc", rkc)
+      rkcOps      :      -> r.renderScreen("rkcOps", rkcOps)
+      rkcFront    :      -> r.renderScreen("rkcFront", rkcFront)
       editSms     :      -> renderScreen("editSms")
       printSrv    : (model, id) -> renderScreen "printSrv", {model: model, id: id}

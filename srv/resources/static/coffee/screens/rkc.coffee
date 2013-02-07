@@ -1,277 +1,290 @@
-define ["utils"], (utils) ->
-  initReducedModeBtn = ->
-    currentState = false
-    btn = $('#rkc-ReducedActionsMode')
-    updState = (fs) ->
-        currentState = _.contains fs, "ReducedActionsMode"
-        btnName = if currentState then "Выключить" else "Включить"
-        btn.text btnName
+define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
+  (utils, tpl, partials) ->
+    initReducedModeBtn = ->
+      currentState = false
+      btn = $('#rkc-ReducedActionsMode')
+      updState = (fs) ->
+          currentState = _.contains fs, "ReducedActionsMode"
+          btnName = if currentState then "Выключить" else "Включить"
+          btn.text btnName
 
-    $.getJSON '/runtimeFlags', updState
+      $.getJSON '/runtimeFlags', updState
 
-    btn.click ->
-      $.ajax
-        type: 'PUT'
-        url: '/runtimeFlags'
-        data: "{\"ReducedActionsMode\": #{not currentState}}"
-        success: updState
+      btn.click ->
+        $.ajax
+          type: 'PUT'
+          url: '/runtimeFlags'
+          data: "{\"ReducedActionsMode\": #{not currentState}}"
+          success: updState
 
-  rkcFillWeather = (result, cities) ->
-    dict = global.dictValueCache
-    cities.removeAll()
-    for r in result.weathers
-      cities.push({
-        city: r.city,
-        cityname: dict.DealerCities[r.city] || r.city,
-        temp: r.temp })
-    cities.sort((l, r) -> l.cityname > r.cityname)
-
-  this.rkcWeatherRemoveCity = (name) ->
-    setTimeout ->
-      cities = this.wcities
-      $.getJSON '/rkc/weather?remove=' + name,
-                (result) -> rkcFillWeather(result, cities)
-
-  this.rkcWeatherAddCity = (name) ->
-    setTimeout ->
-      cities = this.wcities
-      $.getJSON '/rkc/weather?add=' + name,
-                (result) -> rkcFillWeather(result, cities)
-
-  this.updateWeather = ->
-    setTimeout ->
-      cities = this.wcities
-      $.getJSON "/rkc/weather",
-                (result) -> rkcFillWeather(result, cities)
-
-  this.updatePartners = (partners) ->
-    setTimeout ->
-      dateFrom = $('#rkc-date-from')
-      dateTo = $('#rkc-date-to')
-
-      from = dateFrom.val()
-      to = dateTo.val()
-
-      partnerArgs = "?" + ["from=" + from, "to=" + to].filter((x) -> x).join("&")
-
-      $.getJSON("/rkc/partners" + partnerArgs, (result) ->
-        partners.removeAll()
-        partners.push({ id: "", name: "Все" })
-        for r in result
-          partners.push({ id: r, name: r }))
-
-  this.initRKCDate = (updater, partners) ->
-    setTimeout ->
-      d1 = new Date
-      d2 = new Date
-      d2.setDate (d1.getDate() + 1)
-
-      dateFrom = $('#rkc-date-from')
-      dateTo = $('#rkc-date-to')
-
-      dateFrom.val (d1.toString 'dd.MM.yyyy')
-      dateTo.val (d2.toString 'dd.MM.yyyy')
-
-      updateps = () -> this.updatePartners(partners)
-
-      dateFrom.change ->
-        updateps()
-        updater()
-      dateTo.change ->
-        updateps()
-        updater()
-
-  this.fillRKCFilters = (updater, partners) ->
-    setTimeout ->
+    rkcFillWeather = (result, cities) ->
       dict = global.dictValueCache
+      cities.removeAll()
+      for r in result.weathers
+        cities.push({
+          city: r.city,
+          cityname: dict.DealerCities[r.city] || r.city,
+          temp: r.temp })
+      cities.sort((l, r) -> l.cityname > r.cityname)
 
-      # Fill programs
-      programs = for v in global.dictionaries.Programs.entries
-        p =
-          id: v.value
-          name: v.label
+    this.rkcWeatherRemoveCity = (name) ->
+      setTimeout ->
+        cities = this.wcities
+        $.getJSON '/rkc/weather?remove=' + name,
+                  (result) -> rkcFillWeather(result, cities)
 
-      programs.unshift { id: "", name: "Все" }
+    this.rkcWeatherAddCity = (name) ->
+      setTimeout ->
+        cities = this.wcities
+        $.getJSON '/rkc/weather?add=' + name,
+                  (result) -> rkcFillWeather(result, cities)
 
-      ko.applyBindings(programs, el("program-select"))
+    this.updateWeather = ->
+      setTimeout ->
+        cities = this.wcities
+        $.getJSON "/rkc/weather",
+                  (result) -> rkcFillWeather(result, cities)
 
-      # Fill cities
-      cities = for v in global.dictionaries.DealerCities.entries
-        c =
-          id: v.value
-          name: v.label
+    this.updatePartners = (partners) ->
+      setTimeout ->
+        dateFrom = $('#rkc-date-from')
+        dateTo = $('#rkc-date-to')
 
-      cities.unshift { id: "", name: "Все" }
+        from = dateFrom.val()
+        to = dateTo.val()
 
-      ko.applyBindings(cities, el("city-select"))
+        partnerArgs = "?" + ["from=" + from, "to=" + to].filter((x) -> x).join("&")
 
-      # Fill partner
-      partners.push({ id: "", name: "Все" })
+        $.getJSON("/rkc/partners" + partnerArgs, (result) ->
+          partners.removeAll()
+          partners.push({ id: "", name: "Все" })
+          for r in result
+            partners.push({ id: r, name: r }))
 
-      ko.applyBindings(partners, el("partner-select"))
+    this.initRKCDate = (updater, partners) ->
+      setTimeout ->
+        d1 = new Date
+        d2 = new Date
+        d2.setDate (d1.getDate() + 1)
 
-      # Set on-change
-      ps = $('#program-select')
-      ps.change updater
+        dateFrom = $('#rkc-date-from')
+        dateTo = $('#rkc-date-to')
 
-      cs = $('#city-select')
-      cs.change updater
+        dateFrom.val (d1.toString 'dd.MM.yyyy')
+        dateTo.val (d2.toString 'dd.MM.yyyy')
 
-      pps = $('#partner-select')
-      pps.change updater
+        updateps = () -> this.updatePartners(partners)
 
-      $('#reload').click updater
+        dateFrom.change ->
+          updateps()
+          updater()
+        dateTo.change ->
+          updateps()
+          updater()
 
-  this.filterRKCArgs = () ->
-    prog = $('#program-select').val()
-    city = $('#city-select').val()
+    this.fillRKCFilters = (updater, partners) ->
+      setTimeout ->
+        dict = global.dictValueCache
 
-    partner = $('#partner-select').val()
+        # Fill programs
+        programs = for v in global.dictionaries.Programs.entries
+          p =
+            id: v.value
+            name: v.label
 
-    from = $('#rkc-date-from').val()
-    to = $('#rkc-date-to').val()
+        programs.unshift { id: "", name: "Все" }
 
-    args = "?" + ["program=" + prog, "city=" + city, "partner=" + partner, "from=" + from, "to=" + to].filter((x) -> x).join("&")
+        ko.applyBindings(programs, el("program-select"))
 
-    return args
+        # Fill cities
+        cities = for v in global.dictionaries.DealerCities.entries
+          c =
+            id: v.value
+            name: v.label
 
-  this.setupRKCScreen = (viewName, args) ->
-    setTimeout ->
-      initReducedModeBtn()
+        cities.unshift { id: "", name: "Все" }
 
-      caset = $("#rkc-services-table")
-      actionst = $("#rkc-actions-table")
-      weathert = $('#rkc-weather-table')
-      complt = $('#rkc-complaints-table')
+        ko.applyBindings(cities, el("city-select"))
 
-      return if caset.hasClass("dataTable")
-      return if actionst.hasClass("dataTable")
-      return if weathert.hasClass("dataTable")
-      return if complt.hasClass("dataTable")
+        # Fill partner
+        partners.push({ id: "", name: "Все" })
 
-      this.wcities = ko.observableArray([])
+        ko.applyBindings(partners, el("partner-select"))
 
-      ko.applyBindings(this.wcities, el "rkc-weather-table")
+        # Set on-change
+        ps = $('#program-select')
+        ps.change updater
 
-      ct = utils.mkDataTable caset, { bFilter: false, bInfo: false }
-      bt = utils.mkDataTable actionst, { bFilter: false, bInfo: false }
+        cs = $('#city-select')
+        cs.change updater
 
-      # Fill general info
-      totalServices = $('#total-services')
-      averageStart = $('#average-towage-tech-start')
-      calculated = $('#calculated-cost')
-      mechanic = $('#mechanic')
-      averageEnd = $('#average-towage-tech-end')
-      limited = $('#limited-cost')
+        pps = $('#partner-select')
+        pps.change updater
 
-      satisfied = $('#satisfied-percentage')
+        $('#reload').click updater
 
-      totalActions = $('#total-actions')
-      totalIncompleteActions = $('#total-incomplete-actions')
+    this.filterRKCArgs = () ->
+      prog = $('#program-select').val()
+      city = $('#city-select').val()
 
-      # Fill weather cities
-      cities = for v in global.dictionaries.DealerCities.entries
-        c =
-          id: v.value
-          name: v.label
+      partner = $('#partner-select').val()
 
-      ko.applyBindings(cities, el "rkc-weather-city-select")
+      from = $('#rkc-date-from').val()
+      to = $('#rkc-date-to').val()
 
-      # Complaints
-      complaints = ko.observableArray([])
-      ko.applyBindings(complaints, el "rkc-complaints-table")
+      args = "?" + ["program=" + prog, "city=" + city, "partner=" + partner, "from=" + from, "to=" + to].filter((x) -> x).join("&")
 
-      fmttime = (tm) ->
-          fmt = (x) -> if x < 10 then "0" + x else "" + x
-          Math.floor(tm / 60) + ":" + fmt(tm % 60)
+      return args
 
-      getArgs = () -> this.filterRKCArgs()
+    this.setupRKCScreen = (viewName, args) ->
+      setTimeout ->
+        initReducedModeBtn()
 
-      update = () ->
-        args = getArgs()
+        caset = $("#rkc-services-table")
+        actionst = $("#rkc-actions-table")
+        weathert = $('#rkc-weather-table')
+        complt = $('#rkc-complaints-table')
 
-        $.getJSON("/rkc" + args, (result) ->
-          dict = global.dictValueCache
-          ct.fnClearTable()
-          bt.fnClearTable()
+        return if caset.hasClass("dataTable")
+        return if actionst.hasClass("dataTable")
+        return if weathert.hasClass("dataTable")
+        return if complt.hasClass("dataTable")
 
-          # Update general info
-          totalServices.val(result.case.summary.total)
-          averageStart.val(Math.round(result.case.summary.delay / 60) + "m")
-          calculated.val(result.case.summary.calculated)
-          mechanic.val(result.case.summary.mech)
-          averageEnd.val(Math.round(result.case.summary.duration / 60) + "m")
-          limited.val(result.case.summary.limited)
+        this.wcities = ko.observableArray([])
 
-          satisfied.val(result.case.summary.satisfied)
+        ko.applyBindings(this.wcities, el "rkc-weather-table")
 
-          # Update services table
-          crows = for cinfo in result.case.services
-            crow = [
-              dict.Services[cinfo.name] || cinfo.name,
-              cinfo.total,
-              Math.round(cinfo.delay / 60) + "m",
-              Math.round(cinfo.duration / 60) + "m",
-              cinfo.calculated,
-              cinfo.limited]
+        ct = utils.mkDataTable caset, { bFilter: false, bInfo: false }
+        bt = utils.mkDataTable actionst, { bFilter: false, bInfo: false }
 
-          ct.fnAddData(crows)
+        # Fill general info
+        totalServices = $('#total-services')
+        averageStart = $('#average-towage-tech-start')
+        calculated = $('#calculated-cost')
+        mechanic = $('#mechanic')
+        averageEnd = $('#average-towage-tech-end')
+        limited = $('#limited-cost')
 
-          totalActions.val(result.back.summary.total)
-          totalIncompleteActions.val(result.back.summary.undone)
+        satisfied = $('#satisfied-percentage')
 
-          # Update actions table
-          brows = for binfo in result.back.actions
-            brow = [
-              dict.ActionNames[binfo.name] || binfo.name,
-              binfo.total,
-              binfo.undone,
-              fmttime(binfo.average)]
+        totalActions = $('#total-actions')
+        totalIncompleteActions = $('#total-incomplete-actions')
 
-          bt.fnAddData(brows)
+        # Fill weather cities
+        cities = for v in global.dictionaries.DealerCities.entries
+          c =
+            id: v.value
+            name: v.label
 
-          # Update complaints
-          complaints.removeAll()
-          for comp in result.complaints
-            complaints.push({
-              caseid: comp.caseid,
-              url: "/#case/" + comp.caseid,
-              services: for s in comp.services
-                srvname = dict.Services[s] || s
-            }))
+        ko.applyBindings(cities, el "rkc-weather-city-select")
 
-      partners = ko.observableArray([])
-      this.initRKCDate update, partners
-      this.fillRKCFilters update, partners
+        # Complaints
+        complaints = ko.observableArray([])
+        ko.applyBindings(complaints, el "rkc-complaints-table")
 
-      global.rkcData = {}
+        fmttime = (tm) ->
+            fmt = (x) -> if x < 10 then "0" + x else "" + x
+            Math.floor(tm / 60) + ":" + fmt(tm % 60)
 
-      # Get SMS
-      sms = $('#sms-processing')
+        getArgs = () -> this.filterRKCArgs()
 
-      updateSMS = () ->
-          $.getJSON("/sms/processing", (result) ->
-              sms.val(result.processing))
+        update = () ->
+          args = getArgs()
 
-      global.rkcData.smsHandler = setInterval(updateSMS, 5000)
-      global.rkcData.updateHandler = setInterval(update, 30000)
+          $.getJSON("/rkc" + args, (result) ->
+            dict = global.dictValueCache
+            ct.fnClearTable()
+            bt.fnClearTable()
 
-      updateSMS()
-      update()
-      this.updatePartners(partners)
-      this.updateWeather()
+            # Update general info
+            totalServices.val(result.case.summary.total)
+            averageStart.val(Math.round(result.case.summary.delay / 60) + "m")
+            calculated.val(result.case.summary.calculated)
+            mechanic.val(result.case.summary.mech)
+            averageEnd.val(Math.round(result.case.summary.duration / 60) + "m")
+            limited.val(result.case.summary.limited)
 
-  this.removeRKCScreen = ->
-      h = global.rkcData.smsHandler
-      clearInterval h if h?
-      t = global.rkcData.updateHandler
-      clearInterval t if t?
+            satisfied.val(result.case.summary.satisfied)
 
-  this.rkcWeatherAddSelectedCity = ->
-    this.rkcWeatherAddCity($('#rkc-weather-city-select').val())
+            # Update services table
+            crows = for cinfo in result.case.services
+              crow = [
+                dict.Services[cinfo.name] || cinfo.name,
+                cinfo.total,
+                Math.round(cinfo.delay / 60) + "m",
+                Math.round(cinfo.duration / 60) + "m",
+                cinfo.calculated,
+                cinfo.limited]
 
-  this.rkcWeatherRemoveSelectedCity = (e) ->
-    city = $(e).parents('tr').attr('id')
-    this.rkcWeatherRemoveCity(city)
+            ct.fnAddData(crows)
 
-  { constructor: setupRKCScreen, destructor: removeRKCScreen }
+            totalActions.val(result.back.summary.total)
+            totalIncompleteActions.val(result.back.summary.undone)
+
+            # Update actions table
+            brows = for binfo in result.back.actions
+              brow = [
+                dict.ActionNames[binfo.name] || binfo.name,
+                binfo.total,
+                binfo.undone,
+                fmttime(binfo.average)]
+
+            bt.fnAddData(brows)
+
+            # Update complaints
+            complaints.removeAll()
+            for comp in result.complaints
+              complaints.push({
+                caseid: comp.caseid,
+                url: "/#case/" + comp.caseid,
+                services: for s in comp.services
+                  srvname = dict.Services[s] || s
+              }))
+
+        partners = ko.observableArray([])
+        this.initRKCDate update, partners
+        this.fillRKCFilters update, partners
+
+        global.rkcData = {}
+
+        # Get SMS
+        sms = $('#sms-processing')
+
+        updateSMS = () ->
+            $.getJSON("/sms/processing", (result) ->
+                sms.val(result.processing))
+
+        global.rkcData.smsHandler = setInterval(updateSMS, 5000)
+        global.rkcData.updateHandler = setInterval(update, 30000)
+
+        updateSMS()
+        update()
+        this.updatePartners(partners)
+        this.updateWeather()
+
+    this.removeRKCScreen = ->
+        h = global.rkcData.smsHandler
+        clearInterval h if h?
+        t = global.rkcData.updateHandler
+        clearInterval t if t?
+
+    this.rkcWeatherAddSelectedCity = ->
+      this.rkcWeatherAddCity($('#rkc-weather-city-select').val())
+
+    this.rkcWeatherRemoveSelectedCity = (e) ->
+      city = $(e).parents('tr').attr('id')
+      this.rkcWeatherRemoveCity(city)
+
+    # function which return object with functions returning functions
+    wraps = (partials) ->
+      smallinp: -> (cont) ->
+        Mustache.render partials["rkc/smallinput"],
+          label: $(cont).siblings("label").html()
+          id:    $(cont).siblings("input").attr("id")
+
+
+    { constructor: setupRKCScreen
+    , destructor: removeRKCScreen
+    , template: tpl
+    , partials: partials
+    , wrappers: wraps }

@@ -1,4 +1,4 @@
-define ["utils"], (utils) ->
+define ["utils", "text!tpl/screens/case.html"], (utils, tpl) ->
   # Case view (renders to #left, #center and #right as well)
   setupCaseMain = (viewName, args) -> setupCaseModel viewName, args
 
@@ -188,9 +188,10 @@ define ["utils"], (utils) ->
   # kb hooks
 
 
-  { constructor : setupCaseMain
-  , destructor: removeCaseMain
-  , addService: addService
-  , makeCase  : makeCase
+  { constructor       : setupCaseMain
+  , destructor        : removeCaseMain
+  , template          : tpl
+  , addService        : addService
+  , makeCase          : makeCase
   , initPartnerTables : initPartnerTables
   }
