@@ -137,7 +137,7 @@ define ["utils"], (u) ->
           write: (lab) ->
             return if lab == ""
             val = global.dictLabelCache[dict][lab]
-            c = splitVals k[n]()
+            c = u.splitVals k[n]()
             return if _.contains c, val
             c.push val
             if (bounded and val) or (not bounded)
@@ -145,7 +145,7 @@ define ["utils"], (u) ->
 
         k["#{n}Locals"] = ko.computed
           read: ->
-            for val in splitVals k[n]()
+            for val in u.splitVals k[n]()
               do (val) ->
                 global.dictValueCache[dict] || getDictionary(dict)
                 lab = global.dictValueCache[dict][val]
@@ -155,7 +155,7 @@ define ["utils"], (u) ->
         # FIXME: I think, this should be made with bb observable
         # arrays, so we can make them in metamodel and use normal
         # collections, without splitting it manually
-          c = splitVals(k[n]())
+          c = u.splitVals(k[n]())
           k[n] _.without(c, el.value).join(',')
 
   # Standard element callback which will scroll model into view and

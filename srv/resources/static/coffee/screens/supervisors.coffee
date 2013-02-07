@@ -1,4 +1,4 @@
-define ["utils"], (utils) ->
+define ["utils", "text!tpl/screens/supervisor.html"], (utils, tpl) ->
   this.setupSupervisorScreen = (viewName, args) ->
     setTimeout ->
       $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
@@ -130,4 +130,6 @@ define ["utils"], (utils) ->
       duetimeFrom: toUnix d1
       duetimeTo: toUnix d2
 
-  { constructor: setupSupervisorScreen }
+  { constructor: setupSupervisorScreen
+  , template: tpl
+  }

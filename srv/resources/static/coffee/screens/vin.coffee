@@ -1,4 +1,4 @@
-define [], ->
+define ["text!tpl/screens/vin.html"], (tpl) ->
   this.setupVinForm = (viewName, args) ->
     $el(viewName).html($el("vin-form-template").html())
     global.viewsWare[viewName] = {}
@@ -31,4 +31,6 @@ define [], ->
 
   this.removeVinAlert = (val) -> $.post "/vin/state", { id: val }
 
-  { constructor: setupVinForm }
+  { constructor: setupVinForm
+  , template: tpl
+  }

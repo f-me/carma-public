@@ -1,4 +1,4 @@
-define ["utils"], (utils) ->
+define ["utils", "text!tpl/screens/editSms.html"], (utils, tpl) ->
   setupSmsTplForm = (viewName, args) ->
 
     refs = [ ]
@@ -34,4 +34,6 @@ define ["utils"], (utils) ->
                   ]
               dt.fnAddData(rows)
       ))
-  { constructor: setupSmsTplForm }
+  { constructor: setupSmsTplForm
+  , template: tpl
+  }

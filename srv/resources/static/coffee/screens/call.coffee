@@ -1,4 +1,4 @@
-define ["utils"], (utils) ->
+define ["utils", "text!tpl/screens/call.html"], (utils, tpl) ->
   setupCallForm = (viewName, args) ->
     knockVM = modelSetup("call") viewName, args,
                        permEl     : "case-permissions"
@@ -49,4 +49,6 @@ define ["utils"], (utils) ->
     $.getJSON("/search/case?q=#{q}&fields=#{searchIn}&select=#{fields}&limit=120", (objs) ->
       fillTable(st, objs))
 
-  { constructor: setupCallForm }
+  { constructor: setupCallForm
+  , template: tpl
+  }

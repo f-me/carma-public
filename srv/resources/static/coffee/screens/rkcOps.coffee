@@ -1,4 +1,4 @@
-define ["utils"], (utils) ->
+define ["utils", "text!tpl/screens/rkcOps.html"], (utils, tpl) ->
   this.setupRKCOpsScreen = (viewName, args) ->
     setTimeout ->
 
@@ -67,4 +67,7 @@ define ["utils"], (utils) ->
       t = global.rkcOpsData.updateHandler
       clearInterval t if t?
 
-  { constructor: setupRKCOpsScreen, destructor: removeRKCOpsScreen }
+  { constructor: setupRKCOpsScreen
+  , destructor: removeRKCOpsScreen
+  , template: tpl
+  }

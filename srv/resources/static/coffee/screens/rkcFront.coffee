@@ -1,4 +1,4 @@
-define ["utils"], (utils) ->
+define ["utils", "text!tpl/screens/rkcFront.html"], (utils, tpl) ->
   this.setupRKCFrontScreen = (viewName, args) ->
     setTimeout ->
 
@@ -54,4 +54,7 @@ define ["utils"], (utils) ->
       t = global.rkcFrontData.updateHandler
       clearInterval t if t?
 
-  { constructor: setupRKCFrontScreen, destructor: removeRKCFrontScreen }
+  { constructor: setupRKCFrontScreen
+  , destructor: removeRKCFrontScreen
+  , template: tpl
+  }

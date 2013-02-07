@@ -1,4 +1,4 @@
-define [], ->
+define ["text!tpl/screens/printSrv.html"], (tpl) ->
   setupPrintSrv = (viewName, {model: model, id: id}) ->
     $(".navbar").hide()
     $.getJSON "/printSrv/#{model}/#{id}", (arg) ->
@@ -40,4 +40,7 @@ define [], ->
     for d, f of procs.lookup
       obj[f] = lookup(d, (obj[f] || '')) || f
 
-  { constructor: setupPrintSrv, destructor: destroyPrintSrv }
+  { constructor: setupPrintSrv
+  , destructor: destroyPrintSrv
+  , template: tpl
+  }

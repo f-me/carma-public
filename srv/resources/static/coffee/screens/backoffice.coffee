@@ -1,4 +1,4 @@
-define ["utils"], (utils) ->
+define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
   setupBackOffice = ->
     setTimeout((->
         $('#bo-littleMoreAction').on('click.bo', ->
@@ -122,4 +122,7 @@ define ["utils"], (utils) ->
   boNotify = (elems) ->
     alert "Ой! Действия просрочились: #{elems.join(', ')}" unless _.isEmpty elems
 
-  { constructor: setupBackOffice, destructor: removeBackOffice }
+  { constructor: setupBackOffice
+  , destructor: removeBackOffice
+  , template: tpl
+  }

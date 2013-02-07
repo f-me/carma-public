@@ -45,6 +45,10 @@ define [], ->
 
     tpl   = screenObj?.template
     tpl ||= $el(screen.template).html()
+
+    unless tpl?
+      throw "Template for screen #{screenName} is not found"
+
     tpl1 = Mustache.render tpl, wrappers, partials
     global.topElement.html(tpl1)
     # Call setup functions for all views, assuming they will set

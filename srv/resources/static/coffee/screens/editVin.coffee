@@ -1,4 +1,4 @@
-define [], ->
+define ["text!tpl/screens/editVin.html"], (tpl) ->
   setupEditVin = (viewName, args)->
     modelSetup("vin") viewName, args,
                        permEl       : "vin-permissions"
@@ -30,4 +30,6 @@ define [], ->
         renderScreen("editVin", args)
       error: (e) ->
         console.log e
-  { constructor: setupEditVin }
+  { constructor: setupEditVin
+  , template: tpl
+  }
