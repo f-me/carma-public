@@ -20,7 +20,7 @@
 #
 # user object is stored in global hash and contains data about
 # current user.
-define ["metamodel"], (metamodel) ->
+define ["model/meta", "model/render"], (metamodel, render) ->
   this.mainSetup = (localScreens, localRouter, localDictionaries, hooks, user, models) ->
     Screens = localScreens
 
@@ -246,8 +246,8 @@ define ["metamodel"], (metamodel) ->
         ko.applyBindings(knockVM, el(v))
 
   setupView = (elName, knockVM,  options) ->
-    tpls = getTemplates("reference-template")
-    depViews = renderKnockVm(elName, knockVM,  options)
+    tpls = render.getTemplates("reference-template")
+    depViews = render.kvm(elName, knockVM,  options)
 
     # Bind the model to Knockout UI
     ko.applyBindings(knockVM, el(elName)) if el(elName)
@@ -268,7 +268,7 @@ define ["metamodel"], (metamodel) ->
           refsForest = getrForest(knockVM, f)
           $("##{refsForest}").empty()
           for r in newValue
-            refBook = mkRefContainer(r, f, refsForest, tpls)
+            refBook = render.mkRefContainer(r, f, refsForest, tpls)
             v = setupView refBook.refView, r,
               permEl: refBook.refView + "-perms"
               groupsForest: options.groupsForest

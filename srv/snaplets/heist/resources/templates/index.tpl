@@ -56,7 +56,7 @@
     <!-- <script src="/s/js/gen/metamodel.js" /> -->
     <script src="/s/js/gen/map.js" />
     <!-- <script src="/s/js/gen/main.js" /> -->
-    <script src="/s/js/gen/viewsware.js" />
+    <!-- <script src="/s/js/gen/viewsware.js" /> -->
     <!-- <script src="/s/js/gen/hooks.js" /> -->
     <!-- <script src="/s/js/gen/local.js" /> -->
     <!-- <script src="/s/js/gen/case.js" /> -->

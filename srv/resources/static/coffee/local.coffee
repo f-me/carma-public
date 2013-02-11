@@ -1,7 +1,7 @@
 #/ Everything local to the customer resides here
 
 require [ "domready"
-        , "main"
+        , "model/main"
         , "routes"
         , "hooks/config"
         , "json!/cfg/dictionaries"
