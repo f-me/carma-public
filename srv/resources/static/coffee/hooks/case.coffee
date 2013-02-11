@@ -1,4 +1,4 @@
-define [], ->
+define ["utils"], (u) ->
   fillEventsHistory = (knockVM) -> ->
     t = $("#call-searchtable")
     st = t.dataTable()
@@ -68,7 +68,7 @@ define [], ->
 
   descsKbHook: (instance, knockVM) ->
     mkServicesDescs = (p, s) ->
-      description: getServiceDesc(p ,s.modelName())
+      description: u.getServiceDesc(p ,s.modelName())
       title:       s.modelTitle
     knockVM['servicesDescs'] = ko.computed
       read: ->

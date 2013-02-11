@@ -10,6 +10,15 @@ define [], ->
     else
       _.find kase.servicesReference(), (svc) -> svc.view is view
 
+  # make this global, still need to use this module as dependency
+  # to make sure that this functions will be loaded
+  window.el  = (id) -> document.getElementById(id)
+  window.$el = (id) -> $(el(id))
+  # like _.has but for list
+  window.hasL = (lst, e) -> _.find(lst, (x) -> x == e)
+
+
+
   mkDataTable: (t, opts) ->
     defaults =
       sScrollY  : "500px"
@@ -31,9 +40,6 @@ define [], ->
     si  = global.dictionaries['ServiceInfo'][program]?[service]
     si ?= global.dictionaries['ServiceInfo']['default']?[service]
 
-  # like _.has but for list
-  hasL: (lst, e) -> _.find(lst, (x) -> x == e)
-
   # Scroll case field into view and focus
   focusField: (name) ->
     e = $("#main-container").find("[name=" + name + "]")[0]
@@ -51,10 +57,8 @@ define [], ->
     else
       findCaseOrReferenceVM(view)
 
-
   # Strip whitespace from string
   stripWs: (s) -> do (s) -> s.replace(/\s+/g, '')
-
 
   # Given a string of form "foo/bar", return object with fields
   # `view=foo` and `field=bar`. If input is of form "bar", then `view`
@@ -102,12 +106,10 @@ define [], ->
   # event.target)' to call the appropriate picker.
   doPick: (pickType, args, elt) ->
     pickers =
-
       callPlease: (modelName) ->
         bb = global.viewsWare["call-form"].bbInstance
         number = bb.get(modelName)
         global.avayaPhone && global.avayaPhone.call(number)
-
       geoPicker: geoPicker
       reverseGeoPicker: reverseGeoPicker
       mapPicker: mapPicker
@@ -164,7 +166,6 @@ define [], ->
             deleteCb(d.acc())
           else
             alert 'error'
-
 
   toUnix: (d) -> Math.round(d.getTime() / 1000)
 

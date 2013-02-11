@@ -68,9 +68,6 @@ this.mainSetup = (localScreens, localRouter, localDictionaries, hooks, user, mod
 
   Backbone.history.start({pushState: false})
 
-this.el  = (id) -> document.getElementById(id)
-this.$el = (id) -> $(el(id))
-
 # Backbone-Knockout bridge
 #
 # Sets additional observables in Knockout model:
