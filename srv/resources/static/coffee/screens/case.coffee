@@ -89,6 +89,8 @@ define ["utils", "text!tpl/screens/case.html"], (utils, tpl) ->
                     e.parent().prev()[0].scrollIntoView()
                     e.find('input')[0].focus()
 
+  utils.build_global_fn 'addService', ['screens/case']
+
   makeCase = () ->
     v = global.viewsWare['call-form'].knockVM
     args =
