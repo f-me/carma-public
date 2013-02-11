@@ -69,7 +69,7 @@
     <!-- <script src="/s/js/gen/rkc.js" /> -->
     <!-- <script src="/s/js/gen/report.js" /> -->
     <script src="/s/js/gen/hotkeys.js" />
-    <script src="/s/js/gen/fileupload.js" />
+    <!-- <script src="/s/js/gen/fileupload.js" /> -->
     <script src="/s/js/gen/avaya.js" />
     <!-- <script src="/s/js/gen/editSms.js" /> -->
     <script src="/s/js/gen/sendSms.js" />
