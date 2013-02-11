@@ -8,7 +8,8 @@ require [ "domready"
         , "json!/cfg/models"
         , "json!/s/screens"
         , "json!/usersDict"
-        ], (dom, Routes, hooks, dicts, user, models, nav, users) ->
+        , "utils"
+        ], (dom, Routes, hooks, dicts, user, models, nav, users, u) ->
 
   filterScreenPerms = (nav) ->
     nav.screens = fScrnPerms(nav)
@@ -64,5 +65,5 @@ require [ "domready"
     if window.location.hash == ""
       redirectToHomePage user
 
-  build_global_fn 'showComplex', ['utils']
-  build_global_fn 'hideComplex', ['utils']
+  u.build_global_fn 'showComplex', ['utils']
+  u.build_global_fn 'hideComplex', ['utils']

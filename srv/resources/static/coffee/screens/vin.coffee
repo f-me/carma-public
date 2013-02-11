@@ -1,4 +1,4 @@
-define ["text!tpl/screens/vin.html"], (tpl) ->
+define ["text!tpl/screens/vin.html", "utils"], (tpl, u) ->
   this.setupVinForm = (viewName, args) ->
     $el(viewName).html($el("vin-form-template").html())
     global.viewsWare[viewName] = {}
@@ -29,7 +29,9 @@ define ["text!tpl/screens/vin.html"], (tpl) ->
       processData : false
       ).done((msg)-> alert( "Result: " + msg))
 
-  this.removeVinAlert = (val) -> $.post "/vin/state", { id: val }
+  removeVinAlert = (val) -> $.post "/vin/state", { id: val }
+
+  u.build_global_fn 'removeVinAlert', ['screens/vin']
 
   { constructor: setupVinForm
   , template: tpl
