@@ -17,7 +17,12 @@ define [], ->
   # like _.has but for list
   window.hasL = (lst, e) -> _.find(lst, (x) -> x == e)
 
-
+  # build global function from local to module one
+  # function should belong to first dependency
+  window.build_global_fn = (name, deps) ->
+    window[name] = ->
+      args = arguments;
+      require deps, (dep) -> dep[name].apply(this, args)
 
   mkDataTable: (t, opts) ->
     defaults =

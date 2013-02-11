@@ -63,3 +63,6 @@ require [ "domready"
       global.avayaPhone = new AvayaWidget($('#avaya-panel'), ext, pwd)
     if window.location.hash == ""
       redirectToHomePage user
+
+  build_global_fn 'showComplex', ['utils']
+  build_global_fn 'hideComplex', ['utils']
