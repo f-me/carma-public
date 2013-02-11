@@ -1,4 +1,4 @@
-define ["utils", "text!tpl/screens/case.html"], (utils, tpl) ->
+define ["utils", "hotkeys", "text!tpl/screens/case.html"], (utils, hotkeys, tpl) ->
   # Case view (renders to #left, #center and #right as well)
   setupCaseMain = (viewName, args) -> setupCaseModel viewName, args
 
@@ -47,7 +47,7 @@ define ["utils", "text!tpl/screens/case.html"], (utils, tpl) ->
         setTimeout(( -> window.location.hash = "back"), 500))
 
     utils.mkDataTable $('#call-searchtable')
-    setupHotkeys()
+    hotkeys.setup()
     kvm = global.viewsWare[viewName].knockVM
     for i of kvm when /.*Not$/.test(i) or i == 'actions'
       do (i) -> kvm[i].subscribe -> mbEnableActionResult(kvm)

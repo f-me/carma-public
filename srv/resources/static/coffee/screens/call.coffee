@@ -1,4 +1,4 @@
-define ["utils", "text!tpl/screens/call.html"], (utils, tpl) ->
+define ["utils", "hotkeys", "text!tpl/screens/call.html"], (utils, hotkeys,  tpl) ->
   setupCallForm = (viewName, args) ->
     knockVM = modelSetup("call") viewName, args,
                        permEl     : "case-permissions"
@@ -22,7 +22,7 @@ define ["utils", "text!tpl/screens/call.html"], (utils, tpl) ->
 
     st.fnSort [[2, "desc"]]
     dtSearchQ st, new Date().toString("dd.MM.yyyy")
-    setupHotkeys()
+    hotkeys.setup()
 
   fillTable = (st, objs) ->
     st.fnClearTable()
