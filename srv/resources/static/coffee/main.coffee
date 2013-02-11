@@ -20,319 +20,324 @@
 #
 # user object is stored in global hash and contains data about
 # current user.
-this.mainSetup = (localScreens, localRouter, localDictionaries, hooks, user, models) ->
-  Screens = localScreens
+define ["metamodel"], (metamodel) ->
+  this.mainSetup = (localScreens, localRouter, localDictionaries, hooks, user, models) ->
+    Screens = localScreens
 
-  dictCache = buildDictionaryCache(localDictionaries)
+    dictCache = buildDictionaryCache(localDictionaries)
 
-  window.global =
-      # «Screen» element which holds all views
-      topElement: $el("layout")
-      screens: Screens
-      router: new localRouter
-      dictionaries: localDictionaries
-      # Maps labels to values for every dictionary
-      dictLabelCache: dictCache.labelCache
-      # Maps values to labels
-      dictValueCache: dictCache.valueCache
-      hooks: hooks
-      user: user
-      models: models
-      activeScreen: null
-      # viewsWare is for bookkeeping of views in current screen.
-      #
-      # Hash keys are DOM tree element IDs associated with the
-      # model (view names). Values are hashes which contain the
-      # following keys:
-      #
-      # - model (model definition);
-      #
-      # - modelName;
-      #
-      # - mkBackboneModel (Backbone constructor);
-      #
-      # - bbInstance (Backbone model);
-      #
-      # - knockVM (Knockout ViewModel bound to view);
-      #
-      # - depViews (hash with views for every reference/group field).
-      #
-      # - parentView (name of view for which this view is listed as
-      #   dependant (only for group fields; group fields have none of
-      #   other values in their viewsWare entry))
-      #
-      # When screen is loaded, viewsWare should generally contain
-      # only keys which correspond to that screen views. View
-      # renderers maintain their viewsWare.
-      viewsWare: {}
+    window.global =
+        # «Screen» element which holds all views
+        topElement: $el("layout")
+        screens: Screens
+        router: new localRouter
+        dictionaries: localDictionaries
+        # Maps labels to values for every dictionary
+        dictLabelCache: dictCache.labelCache
+        # Maps values to labels
+        dictValueCache: dictCache.valueCache
+        hooks: hooks
+        user: user
+        models: models
+        activeScreen: null
+        # viewsWare is for bookkeeping of views in current screen.
+        #
+        # Hash keys are DOM tree element IDs associated with the
+        # model (view names). Values are hashes which contain the
+        # following keys:
+        #
+        # - model (model definition);
+        #
+        # - modelName;
+        #
+        # - mkBackboneModel (Backbone constructor);
+        #
+        # - bbInstance (Backbone model);
+        #
+        # - knockVM (Knockout ViewModel bound to view);
+        #
+        # - depViews (hash with views for every reference/group field).
+        #
+        # - parentView (name of view for which this view is listed as
+        #   dependant (only for group fields; group fields have none of
+        #   other values in their viewsWare entry))
+        #
+        # When screen is loaded, viewsWare should generally contain
+        # only keys which correspond to that screen views. View
+        # renderers maintain their viewsWare.
+        viewsWare: {}
 
-  Backbone.history.start({pushState: false})
+    Backbone.history.start({pushState: false})
 
-# Backbone-Knockout bridge
-#
-# Sets additional observables in Knockout model:
-#
-# - <field>Not for every required field;
-#
-# - maybeId; («—» if Backbone id is not available yet)
-#
-# - modelTitle;
-#
-# - <field>Local for dictionary fields: reads as label, writes real
-#   value back to Backbone model;
-knockBackbone = (instance, viewName) ->
-  knockVM = new kb.ViewModel(instance)
+  # Backbone-Knockout bridge
+  #
+  # Sets additional observables in Knockout model:
+  #
+  # - <field>Not for every required field;
+  #
+  # - maybeId; («—» if Backbone id is not available yet)
+  #
+  # - modelTitle;
+  #
+  # - <field>Local for dictionary fields: reads as label, writes real
+  #   value back to Backbone model;
+  knockBackbone = (instance, viewName) ->
+    knockVM = new kb.ViewModel(instance)
 
-  # Set extra observable for inverse of every required
-  # parameters, with name <fieldName>Not
-  for f in instance.requiredFields
-    knockVM[f + "Not"] =
+    # Set extra observable for inverse of every required
+    # parameters, with name <fieldName>Not
+    for f in instance.requiredFields
+      knockVM[f + "Not"] =
+        kb.observable instance,
+                      key: f
+                      read: (k) -> not instance.get(k)
+
+    for f in instance.referenceFields
+      do (f) ->
+        knockVM[f + 'Reference'] =
+          ko.computed
+            read: ->
+              knockBackbone(i) for i in (knockVM[f]() or [])
+            write: (v) ->
+              knockVM[f](i.model() for i in v)
+
+    knockVM["model"]     = ko.computed { read: -> instance            }
+    knockVM["modelName"] = ko.computed { read: -> instance.model.name }
+
+    knockVM["modelTitle"] = kb.observable instance,
+                                          key : "title"
+                                          read: (k) -> instance.title
+
+    knockVM["maybeId"] =
       kb.observable instance,
-                    key: f
-                    read: (k) -> not instance.get(k)
+                    key : "id"
+                    read: (k) -> if instance.isNew() then "—" else instance.id
 
-  for f in instance.referenceFields
-    do (f) ->
-      knockVM[f + 'Reference'] =
+    if instance.name == "action"
+      knockVM["actionNameLocal"] =
         ko.computed
           read: ->
-            knockBackbone(i) for i in (knockVM[f]() or [])
-          write: (v) ->
-            knockVM[f](i.model() for i in v)
+            actName = global.dictValueCache.ActionNames[knockVM.name()]
+            svcId   = knockVM.parentId()
+            if svcId
+              modelName = svcId.split(':')[0]
+              svcName = global.models[modelName].title
+              actName = actName + " (#{svcName})"
+            actName
 
-  knockVM["model"]     = ko.computed { read: -> instance            }
-  knockVM["modelName"] = ko.computed { read: -> instance.model.name }
+    applyHooks global.hooks.observable,
+               ['*', instance.model.name],
+               instance, knockVM, viewName
 
-  knockVM["modelTitle"] = kb.observable instance,
-                                        key : "title"
-                                        read: (k) -> instance.title
-
-  knockVM["maybeId"] =
-    kb.observable instance,
-                  key : "id"
-                  read: (k) -> if instance.isNew() then "—" else instance.id
-
-  if instance.name == "action"
-    knockVM["actionNameLocal"] =
-      ko.computed
-        read: ->
-          actName = global.dictValueCache.ActionNames[knockVM.name()]
-          svcId   = knockVM.parentId()
-          if svcId
-            modelName = svcId.split(':')[0]
-            svcName = global.models[modelName].title
-            actName = actName + " (#{svcName})"
-          actName
-
-  applyHooks global.hooks.observable,
-             ['*', instance.model.name],
-             instance, knockVM, viewName
-
-  return knockVM
-
-#/ Model functions.
-
-# Return function which will setup views for that model given its
-# form element name and instance id. Standard Backbone-metamodel
-# renderer is used to generate HTML contents in form view. viewsWare
-# is updated properly after the model loading is finished.
-#
-# Following keys are recognized in options argument:
-#
-# - permEl: string, name of element to render permissions template
-# - for model into;
-#
-# - slotsee: array of element IDs:
-#
-#   [foo-title", "overlook"]
-#
-#   which will be ko.applyBindings'd to with model after it's
-#   finished loading, in addition to elName;
-#
-# - fetchCb: function to be bound to "change" event of Backbone
-#   instance. Use this to update references of parent model when
-#   referenced instance views are set up.
-#
-# - refs: Describe what references model has and where to render
-#   their views. This key is an array of objects:
-#
-#   [{
-#      field: "foo",
-#      forest: "foo-subrefs"
-#    },
-#    {
-#      field: "bar",
-#      forest: "main-subref",
-#      modelName: "fooReferencedModel"
-#    }]
-#
-#   field sets the field of parent model where references are stored,
-#   forest is the name of element to render views for references into.
-#
-#   Views generated for references are stored in viewsWare, so that
-#   parent instance can get access to its reference views:
-#
-#   > viewsWare["parent-view"].depViews["some-ref-field"]
-#   ["view-1", "view-2"]
-#
-#   etc., where "view-1" and "view-2" were generated for instances
-#   which are referenced in "some-ref-field".
-#
-# - groupsForest: The name of forest where to render views for field
-#   groups. Views generated for groups are stored in depViews under
-#   viewsWare entry for parent view. Referenced models are
-#   recursively rendered with the same value of groupsForest (so
-#   parent model and its children share the same groupsForest).
-#
-# After model is set, every hook in global.modelHooks["*"] and
-# global.modelHooks[modelName] is called with model view name as
-# argument.
-this.modelSetup = (modelName) ->
-  return (elName, args, options) ->
-
-    [mkBackboneModel, instance, knockVM] =
-      buildModel(modelName, args, options)
-
-    depViews = setupView(elName, knockVM,  options)
-
-    # Bookkeeping
-    global.viewsWare[elName] =
-      model           : global.models[modelName]
-      bbInstance      : instance
-      modelName       : modelName
-      knockVM         : knockVM
-      depViews        : depViews
-
-    # update url here, because only top level models made with modelSetup
-    knockVM["id"].subscribe ->
-      global.router.navigate "#{knockVM.modelName()}/#{knockVM.id()}",
-                             { trigger: false }
-
-    applyHooks(global.hooks.model, ['*', modelName], elName)
     return knockVM
 
-this.buildModel = (modelName, args, options) ->
-    mkBackboneModel = backbonizeModel(global.models, modelName, options)
-    instance = new mkBackboneModel(args)
-    knockVM = knockBackbone(instance)
+  #/ Model functions.
 
-    # External fetch callback
-    instance.bind("change", options.fetchCb) if _.isFunction(options.fetchCb)
+  # Return function which will setup views for that model given its
+  # form element name and instance id. Standard Backbone-metamodel
+  # renderer is used to generate HTML contents in form view. viewsWare
+  # is updated properly after the model loading is finished.
+  #
+  # Following keys are recognized in options argument:
+  #
+  # - permEl: string, name of element to render permissions template
+  # - for model into;
+  #
+  # - slotsee: array of element IDs:
+  #
+  #   [foo-title", "overlook"]
+  #
+  #   which will be ko.applyBindings'd to with model after it's
+  #   finished loading, in addition to elName;
+  #
+  # - fetchCb: function to be bound to "change" event of Backbone
+  #   instance. Use this to update references of parent model when
+  #   referenced instance views are set up.
+  #
+  # - refs: Describe what references model has and where to render
+  #   their views. This key is an array of objects:
+  #
+  #   [{
+  #      field: "foo",
+  #      forest: "foo-subrefs"
+  #    },
+  #    {
+  #      field: "bar",
+  #      forest: "main-subref",
+  #      modelName: "fooReferencedModel"
+  #    }]
+  #
+  #   field sets the field of parent model where references are stored,
+  #   forest is the name of element to render views for references into.
+  #
+  #   Views generated for references are stored in viewsWare, so that
+  #   parent instance can get access to its reference views:
+  #
+  #   > viewsWare["parent-view"].depViews["some-ref-field"]
+  #   ["view-1", "view-2"]
+  #
+  #   etc., where "view-1" and "view-2" were generated for instances
+  #   which are referenced in "some-ref-field".
+  #
+  # - groupsForest: The name of forest where to render views for field
+  #   groups. Views generated for groups are stored in depViews under
+  #   viewsWare entry for parent view. Referenced models are
+  #   recursively rendered with the same value of groupsForest (so
+  #   parent model and its children share the same groupsForest).
+  #
+  # After model is set, every hook in global.modelHooks["*"] and
+  # global.modelHooks[modelName] is called with model view name as
+  # argument.
 
-    # Wait a bit to populate model fields and bind form
-    # elements without PUT-backs to server
-    #
-    # TODO First POST is still broken somewhy.
+  this.modelSetup = (modelName) ->
+    return (elName, args, options) ->
 
-    return [mkBackboneModel, instance, knockVM]
+      [mkBackboneModel, instance, knockVM] =
+        buildModel(modelName, args, options)
 
-this.buildNewModel = (modelName, args, options, cb) ->
-  [mkBackboneModel, instance, knockVM] =
-    buildModel(modelName, args, options)
-  Backbone.Model.prototype.save.call instance, {},
-    success: (model, resp) ->
-      cb(mkBackboneModel, model, knockVM)
+      depViews = setupView(elName, knockVM,  options)
 
-bindDepViews = (knockVM, parentView, depViews) ->
-  for k, v of depViews
-    global.viewsWare[v] =
-      parentView: parentView
-    if _.isArray(v)
-      ko.applyBindings(knockVM, el(s)) for s in v
-    else
-      ko.applyBindings(knockVM, el(v))
+      # Bookkeeping
+      global.viewsWare[elName] =
+        model           : global.models[modelName]
+        bbInstance      : instance
+        modelName       : modelName
+        knockVM         : knockVM
+        depViews        : depViews
 
-setupView = (elName, knockVM,  options) ->
-  tpls = getTemplates("reference-template")
-  depViews = renderKnockVm(elName, knockVM,  options)
+      # update url here, because only top level models made with modelSetup
+      knockVM["id"].subscribe ->
+        global.router.navigate "#{knockVM.modelName()}/#{knockVM.id()}",
+                               { trigger: false }
 
-  # Bind the model to Knockout UI
-  ko.applyBindings(knockVM, el(elName)) if el(elName)
-  # Bind group subforms (note that refs are bound
-  # separately)
-  bindDepViews(knockVM, elName, depViews)
-  # Bind extra views if provided
-  ko.applyBindings knockVM, el(v) for k, v of options.slotsee when el(v)
+      applyHooks(global.hooks.model, ['*', modelName], elName)
+      return knockVM
 
-  knockVM['view'] = elName
+  this.buildModel = (modelName, args, options) ->
+      mkBackboneModel =
+        metamodel.backbonizeModel(global.models, modelName, options)
+      instance = new mkBackboneModel(args)
+      knockVM = knockBackbone(instance)
 
-  for f in knockVM.model().referenceFields
-    do (f) ->
-      pview = $("##{knockVM['view']}")
-      refsForest = getrForest(knockVM, f)
-      $("##{refsForest}").empty()
-      knockVM[f + 'Reference'].subscribe (newValue) ->
+      # External fetch callback
+      instance.bind("change", options.fetchCb) if _.isFunction(options.fetchCb)
+
+      # Wait a bit to populate model fields and bind form
+      # elements without PUT-backs to server
+      #
+      # TODO First POST is still broken somewhy.
+
+      return [mkBackboneModel, instance, knockVM]
+
+  this.buildNewModel = (modelName, args, options, cb) ->
+    [mkBackboneModel, instance, knockVM] =
+      buildModel(modelName, args, options)
+    Backbone.Model.prototype.save.call instance, {},
+      success: (model, resp) ->
+        cb(mkBackboneModel, model, knockVM)
+
+  bindDepViews = (knockVM, parentView, depViews) ->
+    for k, v of depViews
+      global.viewsWare[v] =
+        parentView: parentView
+      if _.isArray(v)
+        ko.applyBindings(knockVM, el(s)) for s in v
+      else
+        ko.applyBindings(knockVM, el(v))
+
+  setupView = (elName, knockVM,  options) ->
+    tpls = getTemplates("reference-template")
+    depViews = renderKnockVm(elName, knockVM,  options)
+
+    # Bind the model to Knockout UI
+    ko.applyBindings(knockVM, el(elName)) if el(elName)
+    # Bind group subforms (note that refs are bound
+    # separately)
+    bindDepViews(knockVM, elName, depViews)
+    # Bind extra views if provided
+    ko.applyBindings knockVM, el(v) for k, v of options.slotsee when el(v)
+
+    knockVM['view'] = elName
+
+    for f in knockVM.model().referenceFields
+      do (f) ->
+        pview = $("##{knockVM['view']}")
         refsForest = getrForest(knockVM, f)
         $("##{refsForest}").empty()
-        for r in newValue
-          refBook = mkRefContainer(r, f, refsForest, tpls)
-          v = setupView refBook.refView, r,
-            permEl: refBook.refView + "-perms"
-            groupsForest: options.groupsForest
-            slotsee: [refBook.refView + "-link"]
-          global.viewsWare[refBook.refView] = {}
-          global.viewsWare[refBook.refView].depViews = v
+        knockVM[f + 'Reference'].subscribe (newValue) ->
+          refsForest = getrForest(knockVM, f)
+          $("##{refsForest}").empty()
+          for r in newValue
+            refBook = mkRefContainer(r, f, refsForest, tpls)
+            v = setupView refBook.refView, r,
+              permEl: refBook.refView + "-perms"
+              groupsForest: options.groupsForest
+              slotsee: [refBook.refView + "-link"]
+            global.viewsWare[refBook.refView] = {}
+            global.viewsWare[refBook.refView].depViews = v
 
-  return depViews
+    return depViews
 
-getrForest = (kvm, fld) ->
-  fcid = "#{kvm.modelName()}-#{kvm.model().cid}-#{fld}-references"
-  fold = "#{kvm.modelName()}-#{fld}-references"
-  if $("##{fcid}")[0]
-    return fcid
-  else
-    return fold
+  getrForest = (kvm, fld) ->
+    fcid = "#{kvm.modelName()}-#{kvm.model().cid}-#{fld}-references"
+    fold = "#{kvm.modelName()}-#{fld}-references"
+    if $("##{fcid}")[0]
+      return fcid
+    else
+      return fold
 
-this.addReference = (knockVM, field, ref, cb) ->
-  field = field + 'Reference' unless /Reference$/.test(field)
-  thisId = knockVM.modelName() + ":" + knockVM.id()
-  ref.args = _.extend({"parentId":thisId}, ref.args)
-  buildNewModel ref.modelName, ref.args, ref.options or {},
-    (mkBackboneModel, instance, refKVM) ->
-      newVal = knockVM[field]().concat refKVM
-      knockVM[field](newVal)
-      cb(_.last knockVM[field]()) if _.isFunction(cb)
+  this.addReference = (knockVM, field, ref, cb) ->
+    field = field + 'Reference' unless /Reference$/.test(field)
+    thisId = knockVM.modelName() + ":" + knockVM.id()
+    ref.args = _.extend({"parentId":thisId}, ref.args)
+    buildNewModel ref.modelName, ref.args, ref.options or {},
+      (mkBackboneModel, instance, refKVM) ->
+        newVal = knockVM[field]().concat refKVM
+        knockVM[field](newVal)
+        cb(_.last knockVM[field]()) if _.isFunction(cb)
 
-this.removeReference = (knockVM, field, ref) ->
-  field = field + 'Reference' unless /Reference$/.test(field)
-  knockVM[field] _.without(knockVM[field](), ref)
+  this.removeReference = (knockVM, field, ref) ->
+    field = field + 'Reference' unless /Reference$/.test(field)
+    knockVM[field] _.without(knockVM[field](), ref)
 
-# Save instance loaded in view
-this.saveInstance = (viewName) -> global.viewsWare[viewName].bbInstance.save()
+  # Save instance loaded in view
+  this.saveInstance = (viewName) -> global.viewsWare[viewName].bbInstance.save()
 
-# Load existing model instance
-this.createInstance = (viewName, id) ->
-  saveInstance(viewName)
-  forgetView(viewName)
-  global.activeScreen.views[viewName](viewName, {})
+  # Load existing model instance
+  this.createInstance = (viewName, id) ->
+    saveInstance(viewName)
+    forgetView(viewName)
+    global.activeScreen.views[viewName](viewName, {})
 
-# Load existing model instance
-this.restoreInstance = (viewName, id) ->
-  forgetView(viewName)
-  global.activeScreen.views[viewName](viewName, {"id": id})
+  # Load existing model instance
+  this.restoreInstance = (viewName, id) ->
+    forgetView(viewName)
+    global.activeScreen.views[viewName](viewName, {"id": id})
 
-# Remove instance currently loaded in view from storage and render
-# that view from scratch (if possible)
-this.removeInstance = (viewName) ->
-  global.viewsWare[viewName].knockVM.model().destroy()
-  forgetView(viewName)
-  setup = global.activeScreen.views[viewName]
-  setup(viewName, {}) if not _.isNull(setup)
+  # Remove instance currently loaded in view from storage and render
+  # that view from scratch (if possible)
+  this.removeInstance = (viewName) ->
+    global.viewsWare[viewName].knockVM.model().destroy()
+    forgetView(viewName)
+    setup = global.activeScreen.views[viewName]
+    setup(viewName, {}) if not _.isNull(setup)
 
-applyHooks = (hooks, selectors, args...) ->
-  fs = _.chain(hooks[k] for k in selectors).flatten().compact().value()
-  f.apply(this, args) for f in fs
+  applyHooks = (hooks, selectors, args...) ->
+    fs = _.chain(hooks[k] for k in selectors).flatten().compact().value()
+    f.apply(this, args) for f in fs
 
-# Find view for this element
-this.elementView = (elt) ->
-  _.last($(elt).parents("[id*=view]"))
+  # Find view for this element
+  this.elementView = (elt) ->
+    _.last($(elt).parents("[id*=view]"))
 
-# Find out which model this element belongs to
-this.elementModel = (elt) ->
-  elementView(elt).id.split("-")[0]
+  # Find out which model this element belongs to
+  this.elementModel = (elt) ->
+    elementView(elt).id.split("-")[0]
 
-# Get field object for named model and field
-this.modelField = (modelName, fieldName) ->
-  _.find(
-    global.models[modelName].fields,
-    (f) -> return f.name == fieldName)
+  # Get field object for named model and field
+  this.modelField = (modelName, fieldName) ->
+    _.find(
+      global.models[modelName].fields,
+      (f) -> return f.name == fieldName)
+
+  { setup: mainSetup }

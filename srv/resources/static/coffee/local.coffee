@@ -1,6 +1,7 @@
 #/ Everything local to the customer resides here
 
 require [ "domready"
+        , "main"
         , "routes"
         , "hooks/config"
         , "json!/cfg/dictionaries"
@@ -9,7 +10,7 @@ require [ "domready"
         , "json!/s/screens"
         , "json!/usersDict"
         , "utils"
-        ], (dom, Routes, hooks, dicts, user, models, nav, users, u) ->
+        ], (dom, main, Routes, hooks, dicts, user, models, nav, users, u) ->
 
   filterScreenPerms = (nav) ->
     nav.screens = fScrnPerms(nav)
@@ -48,7 +49,7 @@ require [ "domready"
       entries:
         for i in users
           {value: i.value, label: i.roles }
-    mainSetup Routes.localScreens(),
+    main.setup Routes.localScreens(),
               Routes.localRouter,
               dicts,
               hooks,
