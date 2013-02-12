@@ -8,6 +8,7 @@ import Prelude hiding (log)
 import Data.Functor
 import Control.Monad
 import Control.Monad.CatchIO
+import Control.Exception (SomeException)
 import Control.Concurrent (myThreadId)
 import Control.Concurrent.STM
 
@@ -148,13 +149,12 @@ geodecode = ifTop $ do
 ------------------------------------------------------------------------------
 -- | CRUD
 createHandler :: AppHandler ()
-createHandler = do
+createHandler = logResp $ do
   Just model <- getParam "model"
   commit <- getJSONBody
   logReq commit
-  res <- with db $ DB.create model commit
+  with db $ DB.create model commit
   -- FIXME: try/catch & handle/log error
-  logResp res
 
 readHandler :: AppHandler ()
 readHandler = do
@@ -186,15 +186,13 @@ readAllHandler = do
     flt prm = \obj -> all (selectParse obj) $ B.split ',' prm
 
 updateHandler :: AppHandler ()
-updateHandler = do
+updateHandler = logResp $ do
   Just model <- getParam "model"
   Just objId <- getParam "id"
   commit <- getJSONBody
   logReq commit
   -- Need this hack, or server won't return updated "cost_counted"
-  res <- with db $ DB.update model objId $ Map.delete "cost_counted" commit
-  -- FIXME: try/catch & handle/log error
-  logResp res
+  with db $ DB.update model objId $ Map.delete "cost_counted" commit
 
 deleteHandler :: AppHandler ()
 deleteHandler = do
@@ -563,13 +561,24 @@ logReq commit  = do
       "params" .= params,
       "body" .= commit]]
 
-logResp :: Aeson.ToJSON v => v -> AppHandler ()
-logResp r = scope "detail" $ scope "resp" $ do
-  thId <- liftIO myThreadId
-  log Trace $ T.decodeUtf8 $ B.toStrict $ Aeson.encode $ object [
-    "threadId" .= show thId,
-    "response" .= r]
-  writeJSON r
+logResp :: Aeson.ToJSON v => AppHandler v -> AppHandler ()
+logResp act = runAct `catch` logFail where
+  runAct = do
+    r' <- act
+    scope "detail" $ scope "resp" $ do
+      thId <- liftIO myThreadId
+      log Trace $ T.decodeUtf8 $ B.toStrict $ Aeson.encode $ object [
+        "threadId" .= show thId,
+        "response" .= r']
+      writeJSON r'
+  logFail :: SomeException -> AppHandler ()
+  logFail e = do
+    scope "detail" $ scope "resp" $ do
+      thId <- liftIO myThreadId
+      log Trace $ T.decodeUtf8 $ B.toStrict $ Aeson.encode $ object [
+        "threadId" .= show thId,
+        "response" .= object ["error" .= show e]]
+    throw e
 
 ------------------------------------------------------------------------------
 -- | Deny requests from non-local unauthorized users.
