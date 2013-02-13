@@ -1,4 +1,4 @@
-define ["utils"], (u) ->
+define ["utils", "model/utils"], (u, mu) ->
   partnerOptsHook: (i, knockVM) ->
     knockVM['contractor_partner'].subscribe (n) ->
       return unless knockVM['view']
@@ -23,7 +23,7 @@ define ["utils"], (u) ->
             s = $("##{v}").find("select")
             return if _.isEmpty s
             o = _.find opts, (opt) -> "#{opt.id}" == s.val()
-            addReference knockVM, 'cost_serviceTarifOptions',
+            mu.addReference knockVM, 'cost_serviceTarifOptions',
               modelName: "cost_serviceTarifOption"
               args     :
                 optionName   : o.optionName

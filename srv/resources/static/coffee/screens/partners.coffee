@@ -1,5 +1,8 @@
-define ["hooks/partner", "utils", "text!tpl/screens/partner.html"],
-  (p, utils, tpl) ->
+define [ "hooks/partner"
+       , "utils"
+       , "text!tpl/screens/partner.html"
+       , "model/utils"],
+  (p, utils, tpl, mu) ->
     setupPartnersForm = (viewName, args) ->
       refs = [field: "services"
              ,forest: "partner-services-references"
@@ -56,7 +59,7 @@ define ["hooks/partner", "utils", "text!tpl/screens/partner.html"],
 
     addNewServiceToPartner = (name) ->
       p = global.viewsWare["partner-view"].knockVM
-      addReference p,
+      mu.addReference p,
                    'services',
                    {modelName: 'partner_service'},
                    afterAddSrv(p)
@@ -73,7 +76,7 @@ define ["hooks/partner", "utils", "text!tpl/screens/partner.html"],
       view.children().last().click -> genNewTarif p
 
     genNewTarif = (kvm) ->
-      addReference kvm, 'tarifOptions', { modelName: 'tarifOption' },
+      mu.addReference kvm, 'tarifOptions', { modelName: 'tarifOption' },
         (k) ->
           p.bindRemove kvm, 'tarifOptions'
           focusRef k

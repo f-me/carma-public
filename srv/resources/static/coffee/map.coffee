@@ -1,6 +1,6 @@
 # TODO Use city in reverse geocoding routines!
 
-define [], ->
+define ["model/utils"], (mu) ->
   # Default marker icon size
   iconSize = new OpenLayers.Size(50, 50)
 
@@ -132,8 +132,8 @@ define [], ->
       return
 
     fieldName = $(el).attr("name")
-    view = $(elementView($(el)))
-    modelName = elementModel($(el))
+    view = $(mu.elementView($(el)))
+    modelName = mu.elementModel($(el))
 
     osmap = new OpenLayers.Map(el.id)
     osmap.addLayer(new OpenLayers.Layer.OSM())
@@ -144,9 +144,9 @@ define [], ->
                     zoomLevel)
 
 
-    coord_field = modelField(modelName, fieldName).meta["targetCoords"]
-    addr_field = modelField(modelName, fieldName).meta["targetAddr"]
-    current_blip_type = modelField(modelName, fieldName).meta["currentBlipType"] or "default"
+    coord_field = mu.modelField(modelName, fieldName).meta["targetCoords"]
+    addr_field = mu.modelField(modelName, fieldName).meta["targetAddr"]
+    current_blip_type = mu.modelField(modelName, fieldName).meta["currentBlipType"] or "default"
 
     ## Bind the map to geocode address & coordinates
 
@@ -185,7 +185,7 @@ define [], ->
       )
 
     ## Read coordinates of static coordinate blips and place them on the map
-    more_coord_field = modelField(modelName, fieldName).meta["moreCoords"]
+    more_coord_field = mu.modelField(modelName, fieldName).meta["moreCoords"]
     if more_coord_field?
       more_coord_metas = _.map more_coord_field, splitFieldInView
       more_coords = _.map more_coord_metas, (fm) -> findVM(fm.view)[fm.field]()
@@ -196,17 +196,17 @@ define [], ->
 
     ## Bind map to partner list
 
-    partner_field = modelField(modelName, fieldName).meta["targetPartner"]
+    partner_field = mu.modelField(modelName, fieldName).meta["targetPartner"]
 
     if partner_field?
-      partner_id_field = modelField(modelName, fieldName).meta["targetPartnerId"]
-      partner_addr_field = modelField(modelName, fieldName).meta["targetPartnerAddr"]
-      partner_coords_field = modelField(modelName, fieldName).meta["targetPartnerCoords"]
+      partner_id_field = mu.modelField(modelName, fieldName).meta["targetPartnerId"]
+      partner_addr_field = mu.modelField(modelName, fieldName).meta["targetPartnerAddr"]
+      partner_coords_field = mu.modelField(modelName, fieldName).meta["targetPartnerCoords"]
 
-      table_field = modelField(modelName, fieldName).meta["partnerTable"]
+      table_field = mu.modelField(modelName, fieldName).meta["partnerTable"]
       table = view.find("table##{table_field}")
 
-      hl_fields = modelField(modelName, fieldName).meta["highlightIdFields"]
+      hl_fields = mu.modelField(modelName, fieldName).meta["highlightIdFields"]
       # Redraw partner blips on map when dragging or zooming
       osmap.events.register("moveend", osmap, (e) ->
         # Calculate new bounding box
@@ -402,13 +402,13 @@ define [], ->
                 .children("input[name=#{fieldName}]")
                 .val()
 
-    viewName = elementView($(el)).id
-    view = $(elementView($(el)))
-    modelName = elementModel $(el)
+    viewName = mu.elementView($(el)).id
+    view = $(mu.elementView($(el)))
+    modelName = mu.elementModel $(el)
 
-    coord_field = modelField(modelName, fieldName).meta['targetCoords']
-    map_field = modelField(modelName, fieldName).meta['targetMap']
-    current_blip_type = modelField(modelName, map_field).meta["currentBlipType"] or "default"
+    coord_field = mu.modelField(modelName, fieldName).meta['targetCoords']
+    map_field = mu.modelField(modelName, fieldName).meta['targetMap']
+    current_blip_type = mu.modelField(modelName, map_field).meta["currentBlipType"] or "default"
 
     $.getJSON(nominatimQuery(addr), (res) ->
       if res.length > 0
@@ -439,15 +439,15 @@ define [], ->
         $(el).parents('.input-append')
              .children("input[name=#{fieldName}]")
              .val())
-    viewName = elementView($(el)).id
-    view = $(elementView($(el)))
-    modelName = elementModel($(el))
+    viewName = mu.elementView($(el)).id
+    view = $(mu.elementView($(el)))
+    modelName = mu.elementModel($(el))
 
     osmCoords = coords.clone().transform(wsgProj, osmProj)
 
-    addr_field = modelField(modelName, fieldName).meta['targetAddr']
-    map_field = modelField(modelName, fieldName).meta['targetMap']
-    current_blip_type = modelField(modelName, map_field).meta["currentBlipType"] or "default"
+    addr_field = mu.modelField(modelName, fieldName).meta['targetAddr']
+    map_field = mu.modelField(modelName, fieldName).meta['targetMap']
+    current_blip_type = mu.modelField(modelName, map_field).meta["currentBlipType"] or "default"
 
     if map_field?
       osmap = view.find("[name=#{map_field}]").data("osmap")
@@ -469,13 +469,13 @@ define [], ->
              .children("input[name=#{fieldName}]")
              .val())
 
-    viewName = elementView($(el)).id
-    view = $(elementView($(el)))
-    modelName = elementModel($(el))
+    viewName = mu.elementView($(el)).id
+    view = $(mu.elementView($(el)))
+    modelName = mu.elementModel($(el))
 
     osmCoords = coords.clone().transform(wsgProj, osmProj)
 
-    addr_field = modelField(modelName, fieldName).meta['targetAddr']
+    addr_field = mu.modelField(modelName, fieldName).meta['targetAddr']
 
     $("#partnerMapModal").modal('show')
 

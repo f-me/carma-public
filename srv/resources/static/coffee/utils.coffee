@@ -1,4 +1,4 @@
-define ["map"], (map) ->
+define ["map", "model/utils"], (map, mu) ->
   # jquery -> html(as string) conversion, with selected element
   jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
 
@@ -155,7 +155,7 @@ define ["map"], (map) ->
           .first()
           .find('.icon.icon-remove')
           .click ->
-            removeReference(parent, field, i)
+            mu.removeReference(parent, field, i)
             bindRemove parent, field, cb
             cb(parent, field, i) if _.isFunction cb
 
