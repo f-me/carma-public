@@ -1,4 +1,4 @@
-define ["utils"], (utils) ->
+define ["utils", "text!tpl/screens/reports.html"], (utils, tpl) ->
   setupReports = (viewName, args) ->
     $.getJSON "/all/report", (reports) ->
       for r in reports
@@ -38,4 +38,6 @@ define ["utils"], (utils) ->
     else
       $('#add-report').submit()
 
-  { constructor: setupReports }
+  { constructor: setupReports
+  , template   : tpl
+  }
