@@ -286,58 +286,8 @@ define ["model/meta", "model/render"], (metamodel, render) ->
     else
       return fold
 
-  this.addReference = (knockVM, field, ref, cb) ->
-    field = field + 'Reference' unless /Reference$/.test(field)
-    thisId = knockVM.modelName() + ":" + knockVM.id()
-    ref.args = _.extend({"parentId":thisId}, ref.args)
-    buildNewModel ref.modelName, ref.args, ref.options or {},
-      (mkBackboneModel, instance, refKVM) ->
-        newVal = knockVM[field]().concat refKVM
-        knockVM[field](newVal)
-        cb(_.last knockVM[field]()) if _.isFunction(cb)
-
-  this.removeReference = (knockVM, field, ref) ->
-    field = field + 'Reference' unless /Reference$/.test(field)
-    knockVM[field] _.without(knockVM[field](), ref)
-
-  # Save instance loaded in view
-  this.saveInstance = (viewName) -> global.viewsWare[viewName].bbInstance.save()
-
-  # Load existing model instance
-  this.createInstance = (viewName, id) ->
-    saveInstance(viewName)
-    forgetView(viewName)
-    global.activeScreen.views[viewName](viewName, {})
-
-  # Load existing model instance
-  this.restoreInstance = (viewName, id) ->
-    forgetView(viewName)
-    global.activeScreen.views[viewName](viewName, {"id": id})
-
-  # Remove instance currently loaded in view from storage and render
-  # that view from scratch (if possible)
-  this.removeInstance = (viewName) ->
-    global.viewsWare[viewName].knockVM.model().destroy()
-    forgetView(viewName)
-    setup = global.activeScreen.views[viewName]
-    setup(viewName, {}) if not _.isNull(setup)
-
   applyHooks = (hooks, selectors, args...) ->
     fs = _.chain(hooks[k] for k in selectors).flatten().compact().value()
     f.apply(this, args) for f in fs
-
-  # Find view for this element
-  this.elementView = (elt) ->
-    _.last($(elt).parents("[id*=view]"))
-
-  # Find out which model this element belongs to
-  this.elementModel = (elt) ->
-    elementView(elt).id.split("-")[0]
-
-  # Get field object for named model and field
-  this.modelField = (modelName, fieldName) ->
-    _.find(
-      global.models[modelName].fields,
-      (f) -> return f.name == fieldName)
 
   { setup: mainSetup }
