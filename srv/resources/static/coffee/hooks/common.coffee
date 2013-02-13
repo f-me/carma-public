@@ -25,7 +25,6 @@ define ["utils", "dictionaries"], (u, dictionary) ->
                         write: (lab) ->
                           # Set real value by label
                           val = global.dictLabelCache[dict][lab]
-                          console.log val, dict, lab
                           # drop value if can't find one for bounded dict
                           if bounded and not val
                           then  instance.set(fieldName, "")
