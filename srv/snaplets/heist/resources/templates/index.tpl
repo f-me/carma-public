@@ -1106,27 +1106,29 @@
 
     <!-- navigation menu templates -->
     <script type="text/html" id="nav-li-template">
-      <!-- ko foreach: screens -->
-        <!-- ko if: type == 'li' -->
-          <li data-bind="if: type == 'li',
-                         attr: { id: name + '-screen-nav' }">
-            <a data-bind="attr: { href: '#' + name}, text: label"/>
-          </li>
-        <!-- /ko -->
-        <!-- ko if: type == 'dropdown' -->
-          <li class="dropdown"
-              data-bind="if: type == 'dropdown'">
-            <a href="#"
-               class="dropdown-toggle"
-               data-toggle="dropdown"
-               data-bind="html: label + '<b class=\'caret\'></b>'">
-              <b class="caret"></b>
-            </a>
-            <ul class="dropdown-menu"
-                data-bind="template: { name: 'nav-li-template' }">
-            </ul>
-          </li>
+      <!-- ko if: $data.screens -->
+        <!-- ko foreach: screens -->
+          <!-- ko if: type == 'li' -->
+            <li data-bind="if: type == 'li',
+                           attr: { id: name + '-screen-nav' }">
+              <a data-bind="attr: { href: '#' + name}, text: label"/>
+            </li>
+          <!-- /ko -->
+          <!-- ko if: type == 'dropdown' -->
+            <li class="dropdown"
+                data-bind="if: type == 'dropdown'">
+              <a href="#"
+                 class="dropdown-toggle"
+                 data-toggle="dropdown"
+                 data-bind="html: label + '<b class=\'caret\'></b>'">
+                <b class="caret"></b>
+              </a>
+              <ul class="dropdown-menu"
+                  data-bind="template: { name: 'nav-li-template' }">
+              </ul>
+            </li>
 
+          <!-- /ko -->
         <!-- /ko -->
       <!-- /ko -->
     </script>
