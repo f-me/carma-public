@@ -1,4 +1,4 @@
-define ["utils"], (u) ->
+define ["utils", "dictionaries"], (u, dict) ->
   distanceQuery = (coord1, coord2) -> stripWs "/geo/distance/#{coord1}/#{coord2}/"
 
   # Transform distance in meters to km
@@ -19,7 +19,7 @@ define ["utils"], (u) ->
                         read: (k) ->
                           # Read label by real value
                           val = instance.get(k)
-                          global.dictValueCache[dict] || getDictionary(dict)
+                          global.dictValueCache[dict] || dict.get(dict)
                           lab = global.dictValueCache[dict][val]
                           return (lab || val)
                         write: (lab) ->
@@ -147,7 +147,7 @@ define ["utils"], (u) ->
           read: ->
             for val in u.splitVals k[n]()
               do (val) ->
-                global.dictValueCache[dict] || getDictionary(dict)
+                global.dictValueCache[dict] || dict.get(dict)
                 lab = global.dictValueCache[dict][val]
                 {label: lab || val, value: val}
 

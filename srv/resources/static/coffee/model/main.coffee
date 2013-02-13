@@ -20,11 +20,20 @@
 #
 # user object is stored in global hash and contains data about
 # current user.
-define ["model/meta", "model/render"], (metamodel, render) ->
-  this.mainSetup = (localScreens, localRouter, localDictionaries, hooks, user, models) ->
+define [ "model/meta"
+       , "model/render"
+       , "dictionaries"
+       ],
+       (metamodel, render, dict) ->
+  this.mainSetup = ( localScreens
+                   , localRouter
+                   , localDictionaries
+                   , hooks
+                   , user
+                   , models) ->
     Screens = localScreens
 
-    dictCache = buildDictionaryCache(localDictionaries)
+    dictCache = dict.buildCache(localDictionaries)
 
     window.global =
         # «Screen» element which holds all views

@@ -1,4 +1,4 @@
-define [], ->
+define ["dictionaries"], (dict) ->
   renderKnockVm = (elName, knockVM, options) ->
     model     = global.models[knockVM.modelName()]
     instance  = knockVM.model()
@@ -135,7 +135,7 @@ define [], ->
 
         if f.type == "dictionary"
           nme = f.meta.dictionaryName
-          dic = global.dictionaries[nme] || getDictionary(nme)
+          dic = global.dictionaries[nme] || dict.get(nme)
           ctx = _.extend ctx, {dictionary: dic}
         ctx = _.extend(f, ctx)
 
