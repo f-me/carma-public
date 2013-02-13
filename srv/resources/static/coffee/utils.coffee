@@ -1,4 +1,4 @@
-define [], ->
+define ["map"], (map) ->
   # jquery -> html(as string) conversion, with selected element
   jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
 
@@ -99,7 +99,7 @@ define [], ->
       if isDealerView or isPartnerView
         initPartnerTables view, parentView
 
-      initOSM(e, parentView) for e in view.find(".osMap")
+      map.initOSM(e, parentView) for e in view.find(".osMap")
 
   hideComplex: ->
     $(".complex-field").hide()
@@ -115,9 +115,9 @@ define [], ->
         bb = global.viewsWare["call-form"].bbInstance
         number = bb.get(modelName)
         global.avayaPhone && global.avayaPhone.call(number)
-      geoPicker: geoPicker
-      reverseGeoPicker: reverseGeoPicker
-      mapPicker: mapPicker
+      geoPicker        : map.geoPicker
+      reverseGeoPicker : map.reverseGeoPicker
+      mapPicker        : map.mapPicker
     pickers[pickType](args, elt)
 
   kdoPick: (pickType, args, k, e) ->
