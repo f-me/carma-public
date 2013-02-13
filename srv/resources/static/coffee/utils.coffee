@@ -17,6 +17,8 @@ define ["map", "model/utils"], (map, mu) ->
   # like _.has but for list
   window.hasL = (lst, e) -> _.find(lst, (x) -> x == e)
 
+  findCaseOrReferenceVM: findCaseOrReferenceVM
+
   # build global function from local to module one
   # function should belong to first dependency
   build_global_fn: (name, deps) ->
@@ -97,7 +99,7 @@ define ["map", "model/utils"], (map, mu) ->
       isDealerView = depViewName.match(/towDealer_partner-view/)
       isPartnerView = depViewName.match(/contractor_partner-view/)
       if isDealerView or isPartnerView
-        initPartnerTables view, parentView
+        require ["screens/case"], (c) -> c.initPartnerTables view, parentView
 
       map.initOSM(e, parentView) for e in view.find(".osMap")
 

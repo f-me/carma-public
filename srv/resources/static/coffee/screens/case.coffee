@@ -133,12 +133,15 @@ define [ "utils"
       partnerType = m[1]
       table = $view.find("table##{partnerType}_partnerTable")
       kase = global.viewsWare["case-form"].knockVM
-      svc = findCaseOrReferenceVM(parentView)
+      svc = utils.findCaseOrReferenceVM(parentView)
       # this options for datatable will hide priorities columns for dealer table
       tblOpts = if partnerType is "contractor"
                   {}
                else
-                  { aoColumns: repeat(5, null).concat(repeat(3, { bVisible: false})) }
+                  { aoColumns: utils
+                      .repeat(5, null)
+                      .concat(utils.repeat(3, { bVisible: false}))
+                  }
 
       unless table.hasClass("dataTable")
         utils.mkDataTable table, tblOpts
