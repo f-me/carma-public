@@ -386,8 +386,8 @@ pdvField :: ExportField
 pdvField = do
   fv <- caseField1 "program"
   case fv of
-    "peugeot" -> return $ padRight 9 space "RUMC01R"
-    "citroen" -> return $ padRight 9 space "FRRM01R"
+    "peugeot" -> return "RUMC01R01"
+    "citroen" -> return "FRRM01R01"
     _         -> exportError $ UnknownProgram fv
 
 

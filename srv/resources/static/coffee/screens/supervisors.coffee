@@ -7,13 +7,15 @@ define ["utils", "text!tpl/screens/supervisor.html"], (utils, tpl) ->
       t = $("#supervisor-table");
       return if t.hasClass("dataTable")
       dt = utils.mkDataTable t,
-        aoColumns: utils.repeat(9, null).concat(utils.repeat(2, { bVisible: false}))
+        aoColumns: utils
+          .repeat(10, null)
+          .concat(utils.repeat(2, { bVisible: false}))
         bPaginate: true
         fnRowCallback: (nRow, aData, iDisplayIndex, iDisplayIndexFull) ->
           caseId = aData[0].split('/')[0]
           caseLnk = "<a href='/#case/#{caseId}'> #{aData[0]} </a>"
           duetime  = Date.parse aData[5]
-          srvStart = Date.parse aData[9]
+          srvStart = Date.parse aData[10]
           mktime = (n) ->
             d = new Date
             d.setMinutes(d.getMinutes() + n)
@@ -22,7 +24,7 @@ define ["utils", "text!tpl/screens/supervisor.html"], (utils, tpl) ->
           d120 = mktime 120
           d480 = mktime 480
           now  = new Date
-          name = aData[10]
+          name = aData[11]
 
           $('td:eq(0)', nRow).html caseLnk
 
@@ -112,6 +114,7 @@ define ["utils", "text!tpl/screens/supervisor.html"], (utils, tpl) ->
               , r[obj.result]  || ''
               , obj.priority || ''
               , global.dictValueCache['DealerCities'][obj.city] || ''
+              , global.dictValueCache['Programs'][obj.program] || ''
               , srvStart || ''
               , obj.name || ''
               ]

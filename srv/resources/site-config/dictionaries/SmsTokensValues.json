@@ -74,6 +74,10 @@
                 "label": "+78002508192"
             },
             {
+                "value": "mapC",
+                "label": "+78002508192"
+            },            
+            {
                 "value": "micro",
                 "label": "+74956406690"
             },
@@ -237,6 +241,7 @@
             {"value": "euroGM", "label": "Europlan"},
             {"value": "corpse", "label": "RAMC"},
             {"value": "map", "label": "Mapfe"},
+            {"value": "mapC", "label": "MapfeCitroen"},
             {"value": "micro", "label": "Assistance"},
             {"value": "covidien", "label": "Covidien"},
             {"value": "covidienVW", "label": "Covidien"},
@@ -347,6 +352,10 @@
                 "value": "map",
                 "label": "Мапфре"
             },
+            {
+                "value": "mapC",
+                "label": "Мапфре Citroen"
+            },            
             {
                 "value": "micro",
                 "label": "РАМК"
