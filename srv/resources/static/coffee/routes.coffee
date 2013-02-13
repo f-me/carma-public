@@ -11,10 +11,11 @@ define [
   "screens/vin"
   "screens/report"
   "screens/editVin"
+  "screens/newVin"
   "screens/editSms"
   "render/screen"
   ], ( bo, call, kase, partner, print, rkc, rkcFront, rkcOps
-     , supervisor, vin, report, editVin, editSms, r) ->
+     , supervisor, vin, report, editVin, newVin, editSms, r) ->
     localScreens: ->
       "case":
         "template": "case-screen-template"
