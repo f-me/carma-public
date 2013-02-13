@@ -1,4 +1,4 @@
-define ["utils", "dictionaries"], (u, dict) ->
+define ["utils", "dictionaries"], (u, dictionary) ->
   distanceQuery = (coord1, coord2) -> stripWs "/geo/distance/#{coord1}/#{coord2}/"
 
   # Transform distance in meters to km
@@ -7,10 +7,10 @@ define ["utils", "dictionaries"], (u, dict) ->
   dictionaryKbHook: (instance, knockVM) ->
     for n of instance.dictionaryFields
       do (n) ->
-        fieldName = instance.dictionaryFields[n]
-        dict      = instance.fieldHash[fieldName].meta.dictionaryName
-        parent    = instance.fieldHash[fieldName].meta.dictionaryParent
-        bounded   = instance.fieldHash[fieldName].meta.bounded
+        fieldName  = instance.dictionaryFields[n]
+        dict       = instance.fieldHash[fieldName].meta.dictionaryName
+        parent     = instance.fieldHash[fieldName].meta.dictionaryParent
+        bounded    = instance.fieldHash[fieldName].meta.bounded
 
         # Perform label-value transformation
         knockVM[fieldName + "Local"] =
@@ -19,12 +19,13 @@ define ["utils", "dictionaries"], (u, dict) ->
                         read: (k) ->
                           # Read label by real value
                           val = instance.get(k)
-                          global.dictValueCache[dict] || dict.get(dict)
+                          global.dictValueCache[dict] || dictionary.get(dict)
                           lab = global.dictValueCache[dict][val]
                           return (lab || val)
                         write: (lab) ->
                           # Set real value by label
                           val = global.dictLabelCache[dict][lab]
+                          console.log val, dict, lab
                           # drop value if can't find one for bounded dict
                           if bounded and not val
                           then  instance.set(fieldName, "")
@@ -147,7 +148,7 @@ define ["utils", "dictionaries"], (u, dict) ->
           read: ->
             for val in u.splitVals k[n]()
               do (val) ->
-                global.dictValueCache[dict] || dict.get(dict)
+                global.dictValueCache[dict] || dictionary.get(dict)
                 lab = global.dictValueCache[dict][val]
                 {label: lab || val, value: val}
 
