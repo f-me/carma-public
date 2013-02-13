@@ -1,5 +1,9 @@
-define ["utils", "text!tpl/screens/rkcFront.html"], (utils, tpl) ->
-  this.setupRKCFrontScreen = (viewName, args) ->
+define [ "utils"
+       , "screens/rkc"
+       , "text!tpl/screens/rkcFront.html"
+       , "text!tpl/partials/rkc.html"
+       ], (utils, rkc, tpl, partials) ->
+  setupRKCFrontScreen = (viewName, args) ->
     setTimeout ->
 
       callstable = $('#rkc-front-calls-table')
@@ -40,21 +44,22 @@ define ["utils", "text!tpl/screens/rkcFront.html"], (utils, tpl) ->
                       o.cases]))
 
       partners = ko.observableArray([])
-      this.initRKCDate update, partners
-      this.fillRKCFilters update, partners
+      rkc.initRKCDate update, partners
+      rkc.fillRKCFilters update, partners
 
       global.rkcFrontData = {}
 
       global.rkcFrontData.updateHandler = setInterval(update, 30000)
 
       update()
-      this.updatePartners(partners)
+      rkc.updatePartners(partners)
 
-  this.removeRKCFrontScreen = ->
+  removeRKCFrontScreen = ->
       t = global.rkcFrontData.updateHandler
       clearInterval t if t?
 
   { constructor: setupRKCFrontScreen
   , destructor: removeRKCFrontScreen
   , template: tpl
+  , partials: partials
   }

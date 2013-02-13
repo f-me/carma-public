@@ -27,25 +27,25 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
           temp: r.temp })
       cities.sort((l, r) -> l.cityname > r.cityname)
 
-    this.rkcWeatherRemoveCity = (name) ->
+    rkcWeatherRemoveCity = (name) ->
       setTimeout ->
         cities = this.wcities
         $.getJSON '/rkc/weather?remove=' + name,
                   (result) -> rkcFillWeather(result, cities)
 
-    this.rkcWeatherAddCity = (name) ->
+    rkcWeatherAddCity = (name) ->
       setTimeout ->
         cities = this.wcities
         $.getJSON '/rkc/weather?add=' + name,
                   (result) -> rkcFillWeather(result, cities)
 
-    this.updateWeather = ->
+    updateWeather = ->
       setTimeout ->
         cities = this.wcities
         $.getJSON "/rkc/weather",
                   (result) -> rkcFillWeather(result, cities)
 
-    this.updatePartners = (partners) ->
+    updatePartners = (partners) ->
       setTimeout ->
         dateFrom = $('#rkc-date-from')
         dateTo = $('#rkc-date-to')
@@ -61,7 +61,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
           for r in result
             partners.push({ id: r, name: r }))
 
-    this.initRKCDate = (updater, partners) ->
+    initRKCDate = (updater, partners) ->
       setTimeout ->
         d1 = new Date
         d2 = new Date
@@ -82,7 +82,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
           updateps()
           updater()
 
-    this.fillRKCFilters = (updater, partners) ->
+    fillRKCFilters = (updater, partners) ->
       setTimeout ->
         dict = global.dictValueCache
 
@@ -136,7 +136,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
 
       return args
 
-    this.setupRKCScreen = (viewName, args) ->
+    setupRKCScreen = (viewName, args) ->
       setTimeout ->
         initReducedModeBtn()
 
@@ -262,18 +262,18 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
         this.updatePartners(partners)
         this.updateWeather()
 
-    this.removeRKCScreen = ->
+    removeRKCScreen = ->
         h = global.rkcData.smsHandler
         clearInterval h if h?
         t = global.rkcData.updateHandler
         clearInterval t if t?
 
-    this.rkcWeatherAddSelectedCity = ->
-      this.rkcWeatherAddCity($('#rkc-weather-city-select').val())
+    rkcWeatherAddSelectedCity = ->
+      rkcWeatherAddCity($('#rkc-weather-city-select').val())
 
-    this.rkcWeatherRemoveSelectedCity = (e) ->
+    rkcWeatherRemoveSelectedCity = (e) ->
       city = $(e).parents('tr').attr('id')
-      this.rkcWeatherRemoveCity(city)
+      rkcWeatherRemoveCity(city)
 
     # function which return object with functions returning functions
     wraps = (partials) ->
@@ -283,8 +283,15 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
           id:    $(cont).siblings("input").attr("id")
 
 
-    { constructor: setupRKCScreen
-    , destructor: removeRKCScreen
-    , template: tpl
-    , partials: partials
-    , wrappers: wraps }
+    { constructor : setupRKCScreen
+    , destructor  : removeRKCScreen
+    , template    : tpl
+    , partials    : partials
+    , wrappers    : wraps
+    , initRKCDate          : initRKCDate
+    , fillRKCFilters       : fillRKCFilters
+    , rkcWeatherRemoveCity : rkcWeatherRemoveCity
+    , rkcWeatherAddCity    : rkcWeatherAddCity
+    , updateWeather        : updateWeather
+    , updatePartners       : updatePartners
+    }
