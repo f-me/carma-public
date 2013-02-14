@@ -151,7 +151,8 @@ sendMailActually actionId = do
     -- FIXME: throws `error` if sendmail exits with error code
     void $ liftIO $ forkIO
       $ scoperLog l (T.concat ["sendMailToPSA(", T.decodeUtf8 actionId, ")"])
-      $ renderSendMail $ (emptyMail $ Address Nothing cfgFrom)
+      $ renderSendMailCustom "/usr/sbin/exim" ["-t", "-r", T.unpack cfgFrom]
+      $ (emptyMail $ Address Nothing cfgFrom)
         {mailTo = map (Address Nothing . T.strip) $ T.splitOn "," cfgTo
         ,mailHeaders
           = [("Subject"
