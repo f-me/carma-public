@@ -36,6 +36,7 @@ import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
 import Snaplet.DbLayer.Triggers.SMS
 import Snaplet.DbLayer.Triggers.MailToDealer
+import Snaplet.DbLayer.Triggers.MailToPSA
 
 import Snap.Snaplet.SimpleLog
 
@@ -392,6 +393,7 @@ actionResultMap = Map.fromList
       objId
     set act "assignedTo" ""
 
+    sendMailToPSA objId
     isReducedMode >>= \case
       True -> do
         closeSerivceAndSendInfoVW objId
@@ -412,6 +414,7 @@ actionResultMap = Map.fromList
     assignee <- get objId "assignedTo"
     set svcId "assignedTo" assignee
 
+    sendMailToPSA objId
     isReducedMode >>= \case
       True -> do
         closeSerivceAndSendInfoVW objId
@@ -453,6 +456,8 @@ actionResultMap = Map.fromList
   )
   ,("serviceOrderedAnalyst", \objId -> do
     setService objId "status" "serviceOrdered"
+    sendMailToPSA objId
+
     isReducedMode >>= \case
       True -> do
         closeAction objId
@@ -616,7 +621,9 @@ actionResultMap = Map.fromList
       "analyst" "1" (+360) objId
     set act "assignedTo" ""
   )
-  ,("vwclosed", closeAction
+  ,("vwclosed", \objId -> do
+    sendMailToPSA objId
+    closeAction objId
   )
   ,("complaintManaged", closeAction
   )
