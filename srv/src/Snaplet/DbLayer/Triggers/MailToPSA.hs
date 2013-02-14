@@ -112,7 +112,7 @@ sendMailActually actionId = do
             ,["Make",                 carMake]
             ,["Model",                txt 13 carModel]
             ,["Energie",              carEngine]
-            ,["Date put on road",     tmFormat "%d.%m.%Y" callDate]
+            ,["Date put on road",     tmFormat "%d/%m/%Y" callDate]
             ,["VIN number",           txt 17 carVIN]
             ,["Reg No",               txt 10 carPlateNum]
             ,["Customer effet",       txt 150 ""] -- FIXME:
