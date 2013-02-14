@@ -5,8 +5,8 @@ module Snaplet.DbLayer.Triggers.MailToPSA
 
 import Prelude hiding (log)
 import Control.Applicative
-import Control.Monad.Trans (liftIO)
 import Control.Monad
+import Control.Monad.Writer.Strict
 import Control.Concurrent
 
 import Data.ByteString (ByteString)
@@ -47,6 +47,7 @@ sendMailToPSA actionId = do
   when (isValidSvc && program `elem` ["peugeot", "citroen"])
     $ sendMailActually actionId
 
+
 sendMailActually :: MonadTrigger m b => ByteString -> m b ()
 sendMailActually actionId = do
     liftDb $ log Trace (T.pack $ "sendMailToPSA(" ++ show actionId ++ ")")
@@ -56,91 +57,77 @@ sendMailActually actionId = do
     caseId  <- get actionId "caseId"
     program <- get caseId   "program"
 
-    let (programCode, carMake) = case program of
-          "peugeot" -> ("RUMC01R", "PEU")
-          "citroen" -> ("FRRM01R", "CIT")
-          _ -> error $ "Invalid program: " ++ show program
+    let body = do
+          fld 4   "BeginOfFile"     <=== "True"
+          fld 50  "Assistance Code" <=== case program of
+            "peugeot" -> "RUMC01R"
+            "citroen" -> "FRRM01R"
+            _ -> error $ "Invalid program: " ++ show program
+          fld 2   "Country Сode" <=== "RU"
+          fld 9   "Task Id"      <===
+            case B.readInt $ B.dropWhile (not.isDigit) caseId of
+              Just (n,"") -> T.pack $ printf "M%08d" n
+              _ -> error $ "Invalid case id: " ++ show caseId
 
-    let caseNum = case B.readInt $ B.dropWhile (not.isDigit) caseId of
-          Just (n,"") -> n
-          _ -> error $ "Invalid case id: " ++ show caseId
+          callDate <- fromMaybe (error "Invalid callDate") . toLocalTime tz
+            <$> lift (get caseId "callDate")
 
-    callDate <- fromMaybe (error "Invalid callDate") . toLocalTime tz
-      <$> get caseId "callDate"
+          fld 5   "Time of Incident" <=== tmFormat "%H:%M" callDate
+          fld 3   "Make"             <=== case program of
+            "peugeot" -> "PEU"
+            "citroen" -> "CIT"
+            _ -> error $ "Invalid program: " ++ show program
 
-    carModel <- get caseId "car_model" -- FIXME: tr
-    carEngine <- get caseId "car_engine" >>= \case
-      "dis" -> return "D"
-      _     -> return "E"
+          fld 13  "Model"   $ get' caseId "car_model"
+          fld 1   "Energie" $ get caseId "car_engine" >>= \case
+            "dis" -> return "D"
+            _     -> return "E"
 
-    carVIN      <- get caseId "car_vin"
-    carPlateNum <- get caseId "car_plateNum"
+          fld 10  "Date put on road" <=== tmFormat "%d/%m/%Y" callDate
+          fld 17  "VIN number"       $ get' caseId "car_vin"
+          fld 10  "Reg No"           $ get' caseId "car_plateNum"
 
-    factServiceStart
-      <- fromMaybe (error "Invalid factServiceStart") . toLocalTime tz
-      <$> get svcId "times_factServiceStart"
+          fld 150 "Customer effet"   <=== "" -- FIXME:
+          fld 150 "Component fault"  <=== "" -- FIXME:
 
-    caseAddr     <- get caseId "caseAddress_address"
-    city         <- get caseId "city"
-    contactName  <- get caseId "contact_name"
-    contactPhone <- get caseId "contact_phone1"
-    contactOwner <- get caseId "contact_contactOwner" >>= \case
-      "0" -> return contactName
-      _   -> get caseId "contact_ownerName"
+          factServiceStart
+            <- fromMaybe (error "Invalid factServiceStart") . toLocalTime tz
+            <$> lift (get svcId "times_factServiceStart")
 
-    let jobType = case B.split ':' svcId of
-          "tech":_ -> "DEPA"
-          "towage":_ -> "REMO"
-          _ -> error $ "Invalid jobType: " ++ show svcId
+          partnerId <- lift $ get svcId "contractor_partnerId"
 
-    towAddr <- get svcId "towAddress_address"
-    partnerId <- get svcId "contractor_partnerId"
-    partnerName   <- get partnerId "name"
-    partnerAddr   <- get partnerId "addrDeFacto"
-    partnerPhone1 <- get partnerId "phone1"
-    partnerPhone2 <- get partnerId "closeTicketPhone"
+          fld 10 "Date of Opening"       <=== tmFormat "%d/%m/%Y" callDate
+          fld 10 "Date of Response"      <=== tmFormat "%d/%m/%Y" factServiceStart
+          fld 5  "Time of Response"      <=== tmFormat "%H:%M" factServiceStart
+          fld 100 "Breakdown Location"   $ get' caseId "caseAddress_address"
+          fld 20  "Breakdown Area"       $ get' caseId "city" -- FIXME: len = 3
+          fld 100 "Breakdown Service"    $ get' partnerId "name"
+          fld 20  "Service Tel Number 1" $ get' partnerId "phone1"
+          fld 20  "Service Tel Number 2" $ get' partnerId "closeTicketPhone"
+          fld 100 "Patrol Address 1"     $ get' partnerId "addrDeFacto"
+          fld 100 "Patrol Address 2"     <===  ""
+          fld 100 "Patrol Address V"     <===  ""
+          fld 50  "User Name"                $ get' caseId "contact_name"
+          fld 20  "User Tel Number"          $ get' caseId "contact_phone1"
+          fld 50  "User Name P"
+            $ get' caseId "contact_contactOwner" >>= \case
+              "0" -> get' caseId "contact_name"
+              _   -> get' caseId "contact_ownerName"
 
-    let tmFormat = (T.pack .) . formatTime defaultTimeLocale
+          fld 4  "Job Type" <=== case B.split ':' svcId of
+            "tech":_ -> "DEPA"
+            "towage":_ -> "REMO"
+            _ -> error $ "Invalid jobType: " ++ show svcId
 
-    let bodyText = TL.encodeUtf8 $ TL.fromChunks
-          $ map ((`T.snoc` '\n') . T.intercalate " : ")
-            [["BeginOfFile",          "True"]
-            ,["Assistance Code",      programCode]
-            ,["Country Сode",         "RU"]
-            ,["Task Id",              T.pack $ printf "M%08d" caseNum]
-            ,["Time of Incident",     tmFormat "%H:%M" callDate]
-            ,["Make",                 carMake]
-            ,["Model",                txt 13 carModel]
-            ,["Energie",              carEngine]
-            ,["Date put on road",     tmFormat "%d/%m/%Y" callDate]
-            ,["VIN number",           txt 17 carVIN]
-            ,["Reg No",               txt 10 carPlateNum]
-            ,["Customer effet",       txt 150 ""] -- FIXME:
-            ,["Component fault",      txt 150 ""] -- FIXME:
-            ,["Date of Opening",      tmFormat "%d/%m/%Y" callDate]
-            ,["Date of Response",     tmFormat "%d/%m/%Y" factServiceStart]
-            ,["Time of Response",     tmFormat "%H:%M" factServiceStart]
-            ,["Breakdown Location",   txt 100 caseAddr]
-            ,["Breakdown Area",       txt 20 city]
-            ,["Breakdown Service",    txt 100 partnerName]
-            ,["Service Tel Number 1", txt 20 partnerPhone1]
-            ,["Service Tel Number 2", txt 20 partnerPhone2]
-            ,["Patrol Address 1",     txt 100 partnerAddr]
-            ,["Patrol Address 2",     ""]
-            ,["Patrol Address V",     ""]
-            ,["User Name",            txt 50 contactName]
-            ,["User Tel Number",      txt 20 contactPhone]
-            ,["User Name P",          txt 50 contactOwner]
-            ,["Job Type",             jobType]
-            ,["Dealer Address G",     txt 200 towAddr]
-            ,["Dealer Address 1",     ""]
-            ,["Dealer Address 2",     ""]
-            ,["Dealer Address V",     ""]
-            ,["Dealer Tel Number",    txt 20 partnerPhone1]
-            ,["End Of File",          "True"]
-            ]
+          fld 200 "Dealer Address G"  $ get' svcId "towAddress_address"
+          fld 200 "Dealer Address 1"  <=== ""
+          fld 200 "Dealer Address 2"  <=== ""
+          fld 200 "Dealer Address V"  <=== ""
+          fld 20  "Dealer Tel Number" $ get' partnerId "phone1"
+          fld 4   "End Of File"      <=== "True"
 
-    let body = Part "text/plain; charset=utf-8"
+    bodyText <- TL.encodeUtf8 . TL.fromChunks <$> execWriterT body
+    let bodyPart = Part "text/plain; charset=utf-8"
           QuotedPrintableText Nothing [] bodyText
 
     cfg     <- liftDb getSnapletUserConfig
@@ -157,15 +144,25 @@ sendMailActually actionId = do
         ,mailHeaders
           = [("Subject"
           ,T.concat ["RAMC ", T.decodeUtf8 svcId, " / ", T.decodeUtf8 actionId])]
-        ,mailParts = [[body]]
+        ,mailParts = [[bodyPart]]
         }
 
+
+get' :: MonadTrigger m b => ByteString -> ByteString -> m b Text
+get' = (fmap T.decodeUtf8 .) . get
+
+fld :: Monad m => Int -> Text -> m Text -> WriterT [Text] m ()
+fld len name f = do
+  val <- lift f
+  tell [T.concat [name, " : ", T.take len val, "\n"]]
+
+(<===) :: Monad m => (m a -> t) -> a -> t
+f <=== v = f $ return v
+
+tmFormat = (T.pack .) . formatTime defaultTimeLocale
 
 toLocalTime :: TimeZone -> ByteString -> Maybe LocalTime
 toLocalTime tz tm = case B.readInt tm of
   Just (s,"") -> Just $ utcToLocalTime tz
     $ posixSecondsToUTCTime $ fromIntegral s
   _ -> Nothing
-
-txt :: Int -> ByteString -> Text
-txt n = T.take n . T.decodeUtf8
