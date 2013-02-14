@@ -1,8 +1,9 @@
 
-{-# LANGUAGE FlexibleInstances #-}
-module Snaplet.DbLayer.Triggers.MailToDealer where
+module Snaplet.DbLayer.Triggers.MailToDealer
+  (sendMailToDealer
+  ) where
 
-import Control.Monad.Trans (lift,liftIO)
+import Control.Monad.Trans (liftIO)
 import Control.Monad
 import Control.Concurrent
 
