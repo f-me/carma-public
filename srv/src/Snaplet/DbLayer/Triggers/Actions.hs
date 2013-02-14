@@ -127,11 +127,11 @@ actions
                         Right Nothing  -> setWeather objId val
                         Right (Just c) -> when (c /= val) $ setWeather objId val
                       ])
-          ,("car_vin", [\objId val ->
-            when (B.length val == 17) $ do
-              let vinKey = B.concat ["vin:", B.map toUpper val]
-              car <- redisHGetAll vinKey
-              case car of
+          ,("car_vin", [\objId val -> do
+            let vin = B.map toUpper $ B.filter isAlphaNum val
+            when (B.length vin == 17) $ do
+              set objId "car_vin" vin
+              redisHGetAll (B.concat ["vin:", vin]) >>= \case
                 Left _    -> return ()
                 Right []  -> do
                   res <- requestFddsVin objId val
