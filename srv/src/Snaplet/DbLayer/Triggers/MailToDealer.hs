@@ -108,7 +108,8 @@ sendMailActually caseId = do
   -- it also saves us from exceptions thrown while sending an e-mail
   void $ liftIO $ forkIO
     $ scoperLog l (T.concat ["sendMailToDealer(", T.decodeUtf8 caseId, ")"])
-      $ renderSendMail $ (emptyMail $ Address Nothing cfgFrom)
+    $ renderSendMailCustom "/usr/sbin/exim" ["-t", "-r", T.unpack cfgFrom]
+    $ (emptyMail $ Address Nothing cfgFrom)
         {mailTo = map (Address Nothing . T.strip) $ T.splitOn "," cfgTo
         ,mailHeaders = [("Subject", "Доставлена машина на ремонт")]
         ,mailParts = [[body]]
