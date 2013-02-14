@@ -81,7 +81,6 @@ Executable carma
     postgresql-sync-map         >= 0.4.0.0 && < 0.5,
     resource-pool-catchio       >= 0.2 && < 0.3,
     simple-log                  == 0.3.*,
-    smtp-mail                   == 0.1.*,
     snap                        == 0.9.*,
     snap-core                   == 0.9.*,
     snap-loader-static          >= 0.9.0.1 && < 0.10,

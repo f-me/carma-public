@@ -5,8 +5,9 @@ module Snaplet.DbLayer.Triggers.MailToPSA
 
 import Prelude hiding (log)
 import Control.Applicative
-import Control.Monad.Trans (lift,liftIO)
+import Control.Monad.Trans (liftIO)
 import Control.Monad
+import Control.Concurrent
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
@@ -19,11 +20,11 @@ import Text.Printf
 import Data.Char
 import Data.Maybe
 import Data.Time
-import Data.Time.Format
 import Data.Time.Clock.POSIX
 import System.Locale (defaultTimeLocale)
 
 import System.Log.Simple
+import System.Log.Simple.Base (scoperLog)
 import Data.Configurator (require)
 import Network.Mail.Mime
 
@@ -142,11 +143,15 @@ sendMailActually actionId = do
     let body = Part "text/plain; charset=utf-8"
           QuotedPrintableText Nothing [] bodyText
 
-    cfg   <- liftDb getSnapletUserConfig
-    cfgTo <- liftIO $ require cfg "psa-smtp-recipients"
+    cfg     <- liftDb getSnapletUserConfig
+    cfgFrom <- liftIO $ require cfg "psa-smtp-from"
+    cfgTo   <- liftIO $ require cfg "psa-smtp-recipients"
 
-    liftIO $ renderSendMail
-      $ (emptyMail $ Address Nothing "psa@ruamc.ru")
+    l <- liftDb askLog
+    -- FIXME: throws `error` if sendmail exits with error code
+    void $ liftIO $ forkIO
+      $ scoperLog l (T.concat ["sendMailToPSA(", T.decodeUtf8 actionId, ")"])
+      $ renderSendMail $ (emptyMail $ Address Nothing cfgFrom)
         {mailTo = map (Address Nothing . T.strip) $ T.splitOn "," cfgTo
         ,mailHeaders
           = [("Subject"
