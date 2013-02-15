@@ -1,6 +1,7 @@
 # TODO Use city in reverse geocoding routines!
 
-define ["model/utils"], (mu) ->
+define ["model/utils", "utils"], (mu, u) ->
+
   # Default marker icon size
   iconSize = new OpenLayers.Size(50, 50)
 
@@ -10,36 +11,26 @@ define ["model/utils"], (mu) ->
   # Low zoom level (partner map overview)
   beyondTheClouds = 10
 
-
   # Trailing slash included
   nominatimHost = "http://nominatim.openstreetmap.org/"
   #this.nominatimHost = "http://192.168.10.2/"
 
-
   nominatimRevQuery = (lon, lat) ->
     return this.nominatimHost +
       "reverse.php?format=json&accept-language=ru-RU,ru&lon=#{lon}&lat=#{lat}"
-
 
   nominatimQuery = (addr) ->
     fixed_addr = addr.replace(/Москва/g, "Московская область")
     return this.nominatimHost +
       "search?format=json&accept-language=ru-RU,ru&q=#{fixed_addr}"
 
-
   wsgProj = new OpenLayers.Projection("EPSG:4326")
-
   osmProj = new OpenLayers.Projection("EPSG:900913")
 
-
   carIcon = "/s/img/car-icon.png"
-
   towIcon = "/s/img/tow-icon.png"
-
   partnerIcon = "/s/img/partner-icon.png"
-
   dealerIcon = "/s/img/dealer-icon.png"
-
 
   iconFromType =
     default: carIcon
@@ -48,13 +39,11 @@ define ["model/utils"], (mu) ->
     partner: partnerIcon
     dealer: dealerIcon
 
-
   # Given regular icon name, return name of highlighted icon
   #
   # Filenames must follow the convention that original icons are named
   # as foo-icon.png and highlighted icons are named as foo-hl-icon.png.
   hlIconName = (filename) -> filename.replace("-icon", "-hl-icon")
-
 
   # Build readable address from reverse Nominatim JSON response
   buildReverseAddress = (res) ->
@@ -68,7 +57,6 @@ define ["model/utils"], (mu) ->
     else
       return addr +  ", " + res.address.house_number
 
-
   # Erase existing marker layer and install a new one of the same name
   reinstallMarkers = (osmap, layerName) ->
     layers = osmap.getLayersByName(layerName)
@@ -78,7 +66,6 @@ define ["model/utils"], (mu) ->
     osmap.addLayer(new_layer)
 
     return new_layer
-
 
   # Setup OpenLayers map
   #
@@ -143,7 +130,6 @@ define ["model/utils"], (mu) ->
                     .transform(wsgProj, osmProj),
                     zoomLevel)
 
-
     coord_field = mu.modelField(modelName, fieldName).meta["targetCoords"]
     addr_field = mu.modelField(modelName, fieldName).meta["targetAddr"]
     current_blip_type = mu.modelField(modelName, fieldName).meta["currentBlipType"] or "default"
@@ -152,9 +138,9 @@ define ["model/utils"], (mu) ->
 
     # Place a blip and recenter if coordinates are already known
     if coord_field?
-      coord_meta = splitFieldInView(coord_field, parentView)
+      coord_meta = u.splitFieldInView(coord_field, parentView)
 
-      coords = findVM(coord_meta.view)[coord_meta.field]()
+      coords = u.findVM(coord_meta.view)[coord_meta.field]()
       if coords?
         coords = lonlatFromShortString coords
         osmap.setCenter coords.transform(wsgProj, osmProj), zoomLevel
@@ -163,7 +149,7 @@ define ["model/utils"], (mu) ->
     # Setup handler to update address and coordinates if the map is
     # clickable
     if addr_field?
-      addr_meta = splitFieldInView(addr_field, parentView)
+      addr_meta = u.splitFieldInView(addr_field, parentView)
 
       osmap.events.register("click", osmap, (e) ->
         coords = osmap.getLonLatFromViewPortPx(e.xy)
@@ -172,13 +158,13 @@ define ["model/utils"], (mu) ->
         if coord_field?
           # coord_view_name and coord_field are already known as per
           # coord_field? branch in geocoding setup
-          findVM(coord_meta.view)[coord_meta.field](shortStringFromLonlat coords)
+          u.findVM(coord_meta.view)[coord_meta.field](shortStringFromLonlat coords)
 
         $.getJSON(nominatimRevQuery(coords.lon, coords.lat),
         (res) ->
           addr = buildReverseAddress(res)
 
-          findVM(addr_meta.view)[addr_meta.field](addr)
+          u.findVM(addr_meta.view)[addr_meta.field](addr)
 
           currentBlip osmap, osmap.getLonLatFromViewPortPx(e.xy), current_blip_type
         )
@@ -187,12 +173,11 @@ define ["model/utils"], (mu) ->
     ## Read coordinates of static coordinate blips and place them on the map
     more_coord_field = mu.modelField(modelName, fieldName).meta["moreCoords"]
     if more_coord_field?
-      more_coord_metas = _.map more_coord_field, splitFieldInView
-      more_coords = _.map more_coord_metas, (fm) -> findVM(fm.view)[fm.field]()
+      more_coord_metas = _.map more_coord_field, u.splitFieldInView
+      more_coords = _.map more_coord_metas, (fm) -> u.findVM(fm.view)[fm.field]()
       for c in more_coords
         if c?
           extraBlip osmap, (lonlatFromShortString c).transform(wsgProj, osmProj), "Extras"
-
 
     ## Bind map to partner list
 
@@ -223,7 +208,7 @@ define ["model/utils"], (mu) ->
             parentView,
             # Fetch current values of fields listed in highlightIdFields
             _.map(hl_fields,
-              (f) -> findVM(parentView)[f]()),
+              (f) -> u.findVM(parentView)[f]()),
             partner_id_field, partner_field, partner_addr_field, partner_coords_field)
         )
       )
@@ -363,7 +348,7 @@ define ["model/utils"], (mu) ->
      partnerIdField, partnerField, partnerAddrField, partnerCoordsField) ->
 
     $("#" + mapId).data("osmap").events.triggerEvent("moveend")
-    vm = findVM(referenceView)
+    vm = u.findVM(referenceView)
     vm[partnerIdField]("partner:" + partnerId)
     vm[partnerField](partnerName)
     vm[partnerAddrField](partnerAddr)
@@ -415,7 +400,7 @@ define ["model/utils"], (mu) ->
         lonlat = new OpenLayers.LonLat(res[0].lon, res[0].lat)
 
         if coord_field?
-          findVM(viewName)[coord_field](shortStringFromLonlat lonlat)
+          u.findVM(viewName)[coord_field](shortStringFromLonlat lonlat)
 
         if map_field?
           osmap = view.find("[name=#{map_field}]").data("osmap")
@@ -458,7 +443,7 @@ define ["model/utils"], (mu) ->
       $.getJSON(nominatimRevQuery coords.lon, coords.lat,
         (res) ->
           addr = buildReverseAddress(res)
-          findVM(viewName)[addr_field](addr)
+          u.findVM(viewName)[addr_field](addr)
       )
 
 

@@ -1,4 +1,4 @@
-define ["map", "model/utils"], (map, mu) ->
+define ["model/utils"], (mu) ->
   # jquery -> html(as string) conversion, with selected element
   jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
 
@@ -113,7 +113,8 @@ define ["map", "model/utils"], (map, mu) ->
       if isDealerView or isPartnerView
         require ["screens/case"], (c) -> c.initPartnerTables view, parentView
 
-      map.initOSM(e, parentView) for e in view.find(".osMap")
+      require ["map"], (map) ->
+        map.initOSM(e, parentView) for e in view.find(".osMap")
 
   hideComplex: ->
     $(".complex-field").hide()
@@ -124,15 +125,16 @@ define ["map", "model/utils"], (map, mu) ->
   # In templates, bind click to 'doPick({{meta.picker}}, ...,
   # event.target)' to call the appropriate picker.
   doPick: (pickType, args, elt) ->
-    pickers =
-      callPlease: (modelName) ->
-        bb = global.viewsWare["call-form"].bbInstance
-        number = bb.get(modelName)
-        global.avayaPhone && global.avayaPhone.call(number)
-      geoPicker        : map.geoPicker
-      reverseGeoPicker : map.reverseGeoPicker
-      mapPicker        : map.mapPicker
-    pickers[pickType](args, elt)
+    require ["map"], (map) ->
+      pickers =
+        callPlease: (modelName) ->
+          bb = global.viewsWare["call-form"].bbInstance
+          number = bb.get(modelName)
+          global.avayaPhone && global.avayaPhone.call(number)
+        geoPicker        : map.geoPicker
+        reverseGeoPicker : map.reverseGeoPicker
+        mapPicker        : map.mapPicker
+      pickers[pickType](args, elt)
 
   kdoPick: (pickType, args, k, e) ->
     doPick pickType, args, e.srcElement if e.ctrlKey and e.keyCode == k
