@@ -25,7 +25,7 @@ define [ "model/meta"
        , "dictionaries"
        ],
        (metamodel, render, dict) ->
-  this.mainSetup = ( localScreens
+  mainSetup = ( localScreens
                    , localRouter
                    , localDictionaries
                    , hooks
@@ -198,7 +198,7 @@ define [ "model/meta"
   # global.modelHooks[modelName] is called with model view name as
   # argument.
 
-  this.modelSetup = (modelName) ->
+  modelSetup = (modelName) ->
     return (elName, args, options) ->
 
       [mkBackboneModel, instance, knockVM] =
@@ -222,7 +222,7 @@ define [ "model/meta"
       applyHooks(global.hooks.model, ['*', modelName], elName)
       return knockVM
 
-  this.buildModel = (modelName, args, options) ->
+  buildModel = (modelName, args, options) ->
       mkBackboneModel =
         metamodel.backbonizeModel(global.models, modelName, options)
       instance = new mkBackboneModel(args)
@@ -238,7 +238,7 @@ define [ "model/meta"
 
       return [mkBackboneModel, instance, knockVM]
 
-  this.buildNewModel = (modelName, args, options, cb) ->
+  buildNewModel = (modelName, args, options, cb) ->
     [mkBackboneModel, instance, knockVM] =
       buildModel(modelName, args, options)
     Backbone.Model.prototype.save.call instance, {},
@@ -299,4 +299,7 @@ define [ "model/meta"
     fs = _.chain(hooks[k] for k in selectors).flatten().compact().value()
     f.apply(this, args) for f in fs
 
-  { setup: mainSetup }
+  { setup         : mainSetup
+  , modelSetup    : modelSetup
+  , buildNewModel : buildNewModel
+  }

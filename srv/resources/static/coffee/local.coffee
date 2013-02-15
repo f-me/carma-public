@@ -10,7 +10,19 @@ require [ "domready"
         , "json!/s/screens"
         , "json!/usersDict"
         , "utils"
-        ], (dom, main, Routes, hooks, dicts, user, models, nav, users, u) ->
+        , "sendSms"
+        ], ( dom
+           , main
+           , Routes
+           , hooks
+           , dicts
+           , user
+           , models
+           , nav
+           , users
+           , u
+           , sendSms
+           ) ->
 
   filterScreenPerms = (nav) ->
     nav.screens = fScrnPerms(nav)
@@ -65,6 +77,8 @@ require [ "domready"
       global.avayaPhone = new AvayaWidget($('#avaya-panel'), ext, pwd)
     if window.location.hash == ""
       redirectToHomePage user
+
+    sendSms.setup()
 
   u.build_global_fn 'showComplex', ['utils']
   u.build_global_fn 'hideComplex', ['utils']
