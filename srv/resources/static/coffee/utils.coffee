@@ -17,6 +17,18 @@ define ["map", "model/utils"], (map, mu) ->
   # like _.has but for list
   window.hasL = (lst, e) -> _.find(lst, (x) -> x == e)
 
+  bindRemove = (parent, field, cb) ->
+    for i in parent["#{field}Reference"]()
+      do (i) ->
+        $("##{i['view']}")
+          .parents('div.accordion-group')
+          .first()
+          .find('.icon.icon-remove')
+          .click ->
+            mu.removeReference(parent, field, i)
+            bindRemove parent, field, cb
+            cb(parent, field, i) if _.isFunction cb
+
   findCaseOrReferenceVM: findCaseOrReferenceVM
 
   # build global function from local to module one
@@ -149,17 +161,7 @@ define ["map", "model/utils"], (map, mu) ->
     e.find('input')[0].focus()
     e.find('input').parents(".accordion-body").first().collapse('show')
 
-  bindRemove: (parent, field, cb) ->
-    for i in parent["#{field}Reference"]()
-      do (i) ->
-        $("##{i['view']}")
-          .parents('div.accordion-group')
-          .first()
-          .find('.icon.icon-remove')
-          .click ->
-            mu.removeReference(parent, field, i)
-            bindRemove parent, field, cb
-            cb(parent, field, i) if _.isFunction cb
+  bindRemove: bindRemove
 
   bindDelete: (parent, field, cb) ->
     bindRemove parent, field, (p, f, kvm) ->
