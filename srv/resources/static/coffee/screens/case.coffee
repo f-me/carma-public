@@ -2,8 +2,9 @@ define [ "utils"
        , "hotkeys"
        , "text!tpl/screens/case.html"
        , "model/utils"
+       , "model/main"
        ],
-  (utils, hotkeys, tpl, mu) ->
+  (utils, hotkeys, tpl, mu, main) ->
     # Case view (renders to #left, #center and #right as well)
     setupCaseMain = (viewName, args) -> setupCaseModel viewName, args
 
@@ -33,7 +34,7 @@ define [ "utils"
         ko.applyBindings(global.viewsWare[viewName].knockVM,
                          el("empty-fields"))
 
-      modelSetup("case") viewName, args,
+      main.modelSetup("case") viewName, args,
                          permEl       : "case-permissions"
                          focusClass   : "focusable"
                          slotsee      : ["case-number"]
@@ -117,7 +118,7 @@ define [ "utils"
         car_make:       v['make']()
         comment:        v['wazzup']()
         callTaker: global.user.meta.realName
-      buildNewModel 'case', args, {},
+      main.buildNewModel 'case', args, {},
         (a, b, k) ->
           global.router.navigate("case/#{k.id()}", { trigger: true })
 

@@ -1,9 +1,9 @@
-define [], ->
+define ["model/main"], (main) ->
   addReference = (knockVM, field, ref, cb) ->
     field = field + 'Reference' unless /Reference$/.test(field)
     thisId = knockVM.modelName() + ":" + knockVM.id()
     ref.args = _.extend({"parentId":thisId}, ref.args)
-    buildNewModel ref.modelName, ref.args, ref.options or {},
+    main.buildNewModel ref.modelName, ref.args, ref.options or {},
       (mkBackboneModel, instance, refKVM) ->
         newVal = knockVM[field]().concat refKVM
         knockVM[field](newVal)
