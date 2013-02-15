@@ -14,7 +14,7 @@ define [ "hooks/partner"
                             focusClass: "focusable"
                             refs: refs
 
-      # utils.build_global_fn 'addNewServiceToPartner', ['screens/partners']
+      utils.build_global_fn 'addNewServiceToPartner', ['screens/partners']
       $("#partner-add-service-container").html(
         Mustache.render $("#add-ref-button-template").html(),
                 fn:    "addNewServiceToPartner();"
@@ -68,7 +68,7 @@ define [ "hooks/partner"
                    afterAddSrv(p)
 
     afterAddSrv = (parent) -> (k) ->
-      focusRef k
+      utils.focusRef k
 
     addTarifStuff = (p) ->
       view = $("##{p['view']}")
@@ -81,8 +81,8 @@ define [ "hooks/partner"
     genNewTarif = (kvm) ->
       mu.addReference kvm, 'tarifOptions', { modelName: 'tarifOption' },
         (k) ->
-          p.bindRemove kvm, 'tarifOptions'
-          focusRef k
+          utils.bindRemove kvm, 'tarifOptions'
+          utils.focusRef k
 
     releasePartnersForm = () ->
       ko.cleanNode($("#partner-errors")[0])
@@ -91,4 +91,5 @@ define [ "hooks/partner"
     { constructor: setupPartnersForm
     , destructor : releasePartnersForm
     , template: tpl
+    , addNewServiceToPartner: addNewServiceToPartner
     }
