@@ -1,17 +1,20 @@
 define [ "hooks/partner"
        , "utils"
        , "text!tpl/screens/partner.html"
-       , "model/utils"],
-  (p, utils, tpl, mu) ->
+       , "model/utils"
+       , "model/main"
+       ],
+  (p, utils, tpl, mu, main) ->
     setupPartnersForm = (viewName, args) ->
       refs = [field: "services"
              ,forest: "partner-services-references"
              ]
-      kvm = modelSetup("partner") viewName, args,
+      kvm = main.modelSetup("partner") viewName, args,
                             permEl: "partner-permissions"
                             focusClass: "focusable"
                             refs: refs
 
+      # utils.build_global_fn 'addNewServiceToPartner', ['screens/partners']
       $("#partner-add-service-container").html(
         Mustache.render $("#add-ref-button-template").html(),
                 fn:    "addNewServiceToPartner();"
@@ -33,7 +36,7 @@ define [ "hooks/partner"
 
         t.on("click.datatable", "tr", ->
           id = this.children[0].innerText
-          kvm = modelSetup("partner") viewName, {"id": id},
+          kvm = main.modelSetup("partner") viewName, {"id": id},
                                 permEl: "partner-permissions"
                                 focusClass: "focusable"
                                 refs: refs

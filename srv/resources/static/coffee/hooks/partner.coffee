@@ -1,4 +1,4 @@
-define [], ->
+define ["utils"], (u) ->
   setServiceRepeat = ->
     kvm = global.viewsWare['partner-view'].knockVM
     return unless kvm
@@ -11,7 +11,7 @@ define [], ->
     kvm['modelTitle'] = kvm['serviceNameLocal']
 
   bindRemoveService: (instance, kvm) ->
-    kvm['services'].subscribe -> bindRemove kvm, 'services'
+    kvm['services'].subscribe -> u.bindRemove kvm, 'services'
 
   serviceRepeat: (instance, kvm) ->
     kvm['serviceRepeat'] = ko.observableArray([])

@@ -1,6 +1,13 @@
-define ["utils", "hotkeys", "text!tpl/screens/call.html"], (utils, hotkeys,  tpl) ->
+define [ "utils"
+       , "hotkeys"
+       , "model/main"
+       , "text!tpl/screens/call.html"
+       ], (utils, hotkeys, main, tpl) ->
+
+  utils.build_global_fn 'makeCase', ['screens/case']
+
   setupCallForm = (viewName, args) ->
-    knockVM = modelSetup("call") viewName, args,
+    knockVM = main.modelSetup("call") viewName, args,
                        permEl     : "case-permissions"
                        slotsee    : ["call-number"]
                        focusClass : "focusable"
