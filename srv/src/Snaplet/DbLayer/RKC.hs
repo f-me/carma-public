@@ -23,13 +23,14 @@ import Data.Time
 import Data.Function
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import Text.Format
 
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 
 import Snaplet.DbLayer.Dictionary
 import Snaplet.DbLayer.ARC
 
-import Snap.Snaplet.SimpleLog
+import Snap.Snaplet.SimpleLog hiding ((%=))
 
 import Util
 
@@ -47,6 +48,9 @@ inList tbl col vals = preQuery [] [tbl] [T.concat [tbl, ".", col, " in ?"]] [] [
 equals :: T.Text -> T.Text -> T.Text -> PreQuery
 equals tbl col val = preQuery [] [tbl] [T.concat [tbl, ".", col, " = ?"]] [] [] [val]
 
+equalsTo :: T.Text -> T.Text -> T.Text -> PreQuery
+equalsTo tbl expr val = preQuery [] [tbl] [T.concat [expr, " = ?"]] [] [] [val]
+
 withinToday :: T.Text -> T.Text -> PreQuery
 withinToday tbl col = thisDay `mappend` notNull tbl col where
   thisDay = preQuery_ [] [tbl] [equalsNow] [] []
@@ -57,9 +61,9 @@ betweenTime from to tbl col = mconcat [
   notNull tbl col,
   preQuery [] [tbl] [T.concat [tbl, ".", col, " >= ?"]] [] [] [asLocal from],
   preQuery [] [tbl] [T.concat [tbl, ".", col, " < ?"]] [] [] [asLocal to]]
-  where
-    asLocal :: UTCTime -> LocalTime
-    asLocal = utcToLocalTime utc
+
+asLocal :: UTCTime -> LocalTime
+asLocal = utcToLocalTime utc
 
 count :: PreQuery
 count = preQuery_ ["count(*)"] [] [] [] []
@@ -231,7 +235,7 @@ caseSummary filt@(Filter fromDate toDate program city partner) constraints = sco
       consultationCaseRel,
       ifNotNull program $ equals "casetbl" "program",
       ifNotNull city $ equals "casetbl" "city",
-      ifNotNull partner $ equals "consultationtbl" "contractor_partner"]
+      ifNotNull partner $ equalsTo "consultationtbl" "trim(consultationtbl.contractor_partner)"]
 
     mech = liftM oneInt $ query
       (fromString $ "select sum(cnt)::integer from (" ++ mechanicL ++ " union " ++ mechanicR ++ ") as foo")
@@ -419,7 +423,7 @@ rkc (UsersDict usrs) filt@(Filter fromDate toDate program city partner) = scope 
     constraints = mconcat [
       ifNotNull program $ equals "casetbl" "program",
       ifNotNull city $ equals "casetbl" "city",
-      ifNotNull partner $ equals "servicetbl" "contractor_partner"]
+      ifNotNull partner $ equalsTo "servicetbl" "trim(servicetbl.contractor_partner)"]
     usrs' = sort $ nub $ map toUsr usrs
     toUsr m = (maybe "" T.decodeUtf8 $ M.lookup "value" m, maybe "" T.decodeUtf8 $ M.lookup "label" m, maybe "" T.decodeUtf8 $ M.lookup "roles" m)
 
@@ -495,11 +499,20 @@ partners :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> m Value
 partners fromDate toDate = scope "rkc" $ scope "partners" $ do
   log Trace $ T.concat ["From: ", fromString $ show fromDate]
   log Trace $ T.concat ["To: ", fromString $ show toDate]
-  ps <- trace "result" $ runQuery_ $ mconcat [
-    select "servicetbl" "contractor_partner",
 
-    betweenTime fromDate toDate "servicetbl" "createTime",
+  let
+    args = [
+      "partner" %= ("trim(servicetbl.contractor_partner)" :: String),
+      "tm" %= ("servicetbl.createTime" :: String)]
 
-    groupBy "servicetbl" "contractor_partner",
-    orderBy "servicetbl" "contractor_partner"]
-  return $ toJSON (mapMaybe PS.fromOnly ps :: [T.Text])
+  ps <- trace "result" $ queryFmt [
+    "select $partner from servicetbl where ($tm is not null) and ($tm >= ?) and ($tm < ?)",
+    " group by $partner order by $partner"] args [asLocal fromDate, asLocal toDate]
+
+  return $ toJSON $ (mapMaybe PS.fromOnly ps :: [T.Text])
+
+queryFmt_ :: (PS.HasPostgres m, MonadLog m, PS.FromRow r) => [String] -> FormatArgs -> m [r]
+queryFmt_ lns args = query_ (fromString $ T.unpack $ format (concat lns) args)
+
+queryFmt :: (PS.HasPostgres m, MonadLog m, PS.ToRow q, PS.FromRow r) => [String] -> FormatArgs -> q -> m [r]
+queryFmt lns args = query (fromString $ T.unpack $ format (concat lns) args)
