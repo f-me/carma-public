@@ -22,7 +22,8 @@ allPartnersHandler
   = join (selectPartners
     <$> getParam "city"
     <*> getParam "isActive"
-    <*> getParam "isDealer")
+    <*> getParam "isDealer"
+    <*> getParam "makes")
   >>= writeJSON
 
 partnersForSrvHandler :: AppHandler ()
@@ -30,14 +31,12 @@ partnersForSrvHandler =
     join (selectPartnersForSrv <$>
           getParam "city"      <*>
           getParam "isActive"  <*>
-          getParam "isDealer"  <*>
-          getParam "srv"       <*>
-          getParam "makes")
+          getParam "srv")
     >>= writeJSON
 
-selectPartnersForSrv :: MBS -> MBS -> MBS -> MBS -> MBS
+selectPartnersForSrv :: MBS -> MBS -> MBS
                      -> AppHandler [Map ByteString ByteString]
-selectPartnersForSrv city isActive _ service make = do
+selectPartnersForSrv city isActive service = do
   rows <- withPG pg_search $ \c -> query_ c $ fromString
     $  "SELECT p.id::text, p.name, p.city,"
     ++ "       p.comment, p.addrDeFacto, p.phone1, p.workingTime,"
@@ -53,9 +52,6 @@ selectPartnersForSrv city isActive _ service make = do
     ++ (maybe "" (\x -> "  AND p.city = " ++ quote x) city)
     ++ (maybe "" (\x -> "  AND p.isActive = " ++ toBool x) isActive)
     ++ (maybe "" (\x -> "  AND s.servicename = " ++ quote x) service)
-    ++ (maybe "" (\x -> "  AND (("
-                        ++ quote x ++ " = ANY (p.makes) AND p.isdealer = 't')"
-                        ++ "OR p.isdealer = 'f')") make)
   let fields =
         ["id","name","city","comment" ,"addrDeFacto"
         ,"phone1","workingTime","isDealer","isMobile"
@@ -63,8 +59,8 @@ selectPartnersForSrv city isActive _ service make = do
         ]
   return $ mkMap fields rows
 
-selectPartners :: MBS -> MBS -> MBS -> AppHandler [Map ByteString ByteString]
-selectPartners city isActive isDealer = do
+selectPartners :: MBS -> MBS -> MBS -> MBS -> AppHandler [Map ByteString ByteString]
+selectPartners city isActive isDealer makes = do
   rows <- withPG pg_search $ \c -> query_ c $ fromString
     $  "SELECT id::text, name, city,"
     ++ "       comment, addrDeFacto, phone1, workingTime,"
@@ -73,24 +69,22 @@ selectPartners city isActive isDealer = do
     ++ (maybe "" (\x -> "  AND city = " ++ quote x) city)
     ++ (maybe "" (\x -> "  AND isActive = " ++ toBool x) isActive)
     ++ (maybe "" (\x -> "  AND isDealer = " ++ toBool x) isDealer)
+    ++ (maybe "" (\x -> "  AND " ++ quote x ++ " = ANY (makes)") makes)
   let fields =
         ["id","name","city","comment" ,"addrDeFacto"
         ,"phone1","workingTime","isDealer","isMobile"
         ]
   return $ mkMap fields rows
 
-
-
 allActionsHandler :: AppHandler ()
 allActionsHandler
   = join (selectActions
     <$> getParam "closed"
-    <*> pure Nothing
+    <*> getParam "assignedTo"
     <*> getParam "targetGroup"
     <*> getParam "duetimeFrom"
     <*> getParam "duetimeTo")
   >>= writeJSON
-
 
 selectActions
   :: MBS -> MBS -> MBS -> MBS -> MBS
@@ -101,7 +95,7 @@ selectActions mClosed mAssignee mRole mFrom mTo = do
     ++ "       (a.closed::int)::text, a.name, a.assignedTo, a.targetGroup,"
     ++ "       (extract (epoch from a.duetime at time zone 'UTC')::int)::text, "
     ++ "       a.result, a.priority, a.description, a.comment,"
-    ++ "       c.city,"
+    ++ "       c.city, c.program,"
     ++ "       (extract (epoch from s.times_expectedServiceStart at time zone 'UTC')::int8)::text"
     ++ "  FROM actiontbl a, casetbl c, servicetbl s WHERE true"
     ++ "                   AND c.id::text = substring(a.caseId, ':(.*)')"
@@ -115,7 +109,8 @@ selectActions mClosed mAssignee mRole mFrom mTo = do
   let fields
         = ["id", "caseId", "parentId", "closed", "name"
           ,"assignedTo", "targetGroup", "duetime", "result"
-          ,"priority", "description", "comment","city", "times_expectedServiceStart"]
+          ,"priority", "description", "comment","city", "program"
+          ,"times_expectedServiceStart"]
   return $ mkMap fields rows
 
 

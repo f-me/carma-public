@@ -27,6 +27,7 @@ import Data.Time.Clock (UTCTime)
 import System.Locale (defaultTimeLocale)
 
 import Snap (gets, with)
+import Snap.Snaplet.Auth
 import Snap.Snaplet.RedisDB
 import qualified Database.Redis as Redis
 import qualified Snaplet.DbLayer.RedisCRUD as RC
@@ -35,6 +36,7 @@ import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
 import Snaplet.DbLayer.Triggers.SMS
 import Snaplet.DbLayer.Triggers.MailToDealer
+import Snaplet.DbLayer.Triggers.MailToPSA
 
 import Snap.Snaplet.SimpleLog
 
@@ -65,7 +67,8 @@ services =
 
 add model field tgs = Map.unionWith (Map.unionWith (++)) $ Map.singleton model (Map.singleton field tgs)
 
-actions :: TriggerMap a
+actions :: MonadTrigger m b => Map.Map ModelName (Map.Map FieldName [ObjectId -> FieldValue -> m b ()])
+-- actions :: TriggerMap a
 actions
     = add "towage" "suburbanMilage" [\objId val -> setSrvMCost objId]
     $ add "tech"   "suburbanMilage" [\objId val -> setSrvMCost objId]
@@ -118,18 +121,17 @@ actions
           -- ,("contact_ownerName", 
           --   [\objId val -> set objId "contact_ownerName" $ upCaseStr val])
           ,("city", [\objId val -> do
-                      oldCity <- lift $ runRedisDB redis $ Redis.hget objId "city"
+                      oldCity <- redisHGet objId "city"
                       case oldCity of
                         Left _         -> return ()
                         Right Nothing  -> setWeather objId val
                         Right (Just c) -> when (c /= val) $ setWeather objId val
                       ])
-          ,("car_vin", [\objId val ->
-            when (B.length val == 17) $ do
-              let vinKey = B.concat ["vin:", B.map toUpper val]
-              car <- lift $ runRedisDB redis
-                          $ Redis.hgetall vinKey
-              case car of
+          ,("car_vin", [\objId val -> do
+            let vin = B.map toUpper $ B.filter isAlphaNum val
+            when (B.length vin == 17) $ do
+              set objId "car_vin" vin
+              redisHGetAll (B.concat ["vin:", vin]) >>= \case
                 Left _    -> return ()
                 Right []  -> do
                   res <- requestFddsVin objId val
@@ -149,6 +151,7 @@ actions
 
 
 -- Создания действий "с нуля"
+serviceActions :: MonadTrigger m b => Map.Map ByteString [ObjectId -> ObjectId -> m b ()]
 serviceActions = Map.fromList
   [("status", [\objId val ->
     case val of
@@ -163,6 +166,22 @@ serviceActions = Map.fromList
             ,("priority", "1")
             ,("parentId", objId)
             ,("caseId", kazeId)
+            ,("closed", "0")
+            ]
+          upd kazeId "actions" $ addToList actionId
+      "serviceOrdered" -> do
+          due <- dateNow (+ (1*60))
+          kazeId <- get objId "parentId"
+          currentUser <- maybe "" userLogin <$> getCurrentUser
+          actionId <- new "action" $ Map.fromList
+            [("name", "tellClient")
+            ,("duetime", due)
+            ,("description", utf8 "Сообщить клиенту о договорённости")
+            ,("targetGroup", "back")
+            ,("priority", "1")
+            ,("parentId", objId)
+            ,("caseId", kazeId)
+            ,("assignedTo", T.encodeUtf8 currentUser)
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
@@ -276,7 +295,7 @@ serviceActions = Map.fromList
     [\objId val -> do
         opts <- get objId "cost_serviceTarifOptions"
         let ids = B.split ',' opts
-        lift $ runRedisDB redis $ Redis.del ids
+        redisDel ids
         set objId "cost_serviceTarifOptions" ""
     ])
   ,("falseCall",
@@ -323,6 +342,7 @@ resultSet1 =
   ,"carmakerApproved", "dealerApproved", "needService"
   ]
 
+actionActions :: MonadTrigger m b => Map.Map ByteString [ObjectId -> ByteString -> m b ()]
 actionActions = Map.fromList
   [("result",
     [\objId val -> when (val `elem` resultSet1) $ do
@@ -341,6 +361,7 @@ actionActions = Map.fromList
     ])
   ]
 
+actionResultMap :: MonadTrigger m b => Map.Map ByteString (ObjectId -> m b ())
 actionResultMap = Map.fromList
   [("busyLine",        \objId -> dateNow (+ (5*60))  >>= set objId "duetime" >> set objId "result" "")
   ,("callLater",       \objId -> dateNow (+ (30*60)) >>= set objId "duetime" >> set objId "result" "")
@@ -372,6 +393,7 @@ actionResultMap = Map.fromList
       objId
     set act "assignedTo" ""
 
+    sendMailToPSA objId
     isReducedMode >>= \case
       True -> do
         closeSerivceAndSendInfoVW objId
@@ -392,6 +414,7 @@ actionResultMap = Map.fromList
     assignee <- get objId "assignedTo"
     set svcId "assignedTo" assignee
 
+    sendMailToPSA objId
     isReducedMode >>= \case
       True -> do
         closeSerivceAndSendInfoVW objId
@@ -433,6 +456,8 @@ actionResultMap = Map.fromList
   )
   ,("serviceOrderedAnalyst", \objId -> do
     setService objId "status" "serviceOrdered"
+    sendMailToPSA objId
+
     isReducedMode >>= \case
       True -> do
         closeAction objId
@@ -596,7 +621,9 @@ actionResultMap = Map.fromList
       "analyst" "1" (+360) objId
     set act "assignedTo" ""
   )
-  ,("vwclosed", closeAction
+  ,("vwclosed", \objId -> do
+    sendMailToPSA objId
+    closeAction objId
   )
   ,("complaintManaged", closeAction
   )
@@ -731,10 +758,10 @@ replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
   closeAction objId
   return actionId
 
-requestFddsVin :: B.ByteString -> B.ByteString -> TriggerMonad b Bool
+requestFddsVin :: MonadTrigger m b => B.ByteString -> B.ByteString -> m b Bool
 requestFddsVin objId vin = do
   let preparedVin = B.unpack $ B.map toUpper vin
-  conf     <- lift $ gets fdds
+  conf     <- liftDb $ gets fdds
   vinState <- liftIO Fdds.vinSearchInit
   result   <- liftIO (try $ Fdds.vinSearch conf vinState preparedVin
                       :: IO (Either SomeException [Fdds.Result]))
@@ -742,12 +769,13 @@ requestFddsVin objId vin = do
     Right v -> return $ any (Fdds.rValid) v
     Left _  -> return False
 
+setWeather :: MonadTrigger m b => B.ByteString -> B.ByteString -> m b ()
 setWeather objId city = do
-  conf    <- lift $ gets weather
+  conf    <- liftDb $ gets weather
   weather <- liftIO $ getWeather' conf $ BU.toString $ B.filter (/= '\'') city
   case weather of
     Right w   -> do
-      lift $ scope "weather" $ log Trace $ T.concat
+      liftDb $ scope "weather" $ log Trace $ T.concat
         [ "got for: ", T.decodeUtf8 objId
         , "; city: " , T.decodeUtf8 city
         , "; weather: ", T.pack $ show w
@@ -755,7 +783,7 @@ setWeather objId city = do
       set objId "temperature" $ B.pack $ show $ tempC w
     Left  err -> do
       set objId "temperature" ""
-      lift $ scope "weather" $ log Debug $ T.concat
+      liftDb $ scope "weather" $ log Debug $ T.concat
         [ "can't retrieve for: ", T.decodeUtf8 objId
         , "; city: " , T.decodeUtf8 city
         , "; error: ", T.pack $ show err
@@ -777,11 +805,12 @@ calcCost id = do
   c <- get id "count" >>= return . fromMaybe 0 . mbreadDouble
   return $ p * c
 
+setSrvMCost :: MonadTrigger m b => B.ByteString -> m b ()
 setSrvMCost id = do
-  obj    <- readR id
-  parent <- readR $ fromJust $ Map.lookup "parentId" obj
-  dict   <- lift $ gets rkcDict
+  obj    <- readObject id
+  parent <- readObject $ fromJust $ Map.lookup "parentId" obj
+  dict   <- liftDb $ gets rkcDict
   set id "marginalCost" $ RKC.setSrvMCost srvName obj parent dict
     where
-      readR   = lift . RC.read' redis
+      -- readR   = lift . RC.read' redis
       srvName = head $ B.split ':' id

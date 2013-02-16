@@ -17,6 +17,10 @@
             "label": "B2B / Цезарь Сателлит"
         },
         {
+            "value": "night",
+            "label": "B2B / Ночной сервис Европкар"
+        },        
+        {
             "value": "tele",
             "label": "B2B / 3S Телематика"
         },
@@ -79,7 +83,11 @@
         {
             "value": "map",
             "label": "B2B / Мапфре"
-        }, 
+        },
+        {
+            "value": "mapC",
+            "label": "B2B / Мапфре Citroen"
+        },        
         {
             "value": "micro",
             "label": "B2B / Микропрограммы"

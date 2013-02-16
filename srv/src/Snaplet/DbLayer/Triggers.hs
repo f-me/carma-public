@@ -30,7 +30,10 @@ triggerUpdate objId commit = do
   let stripUnchanged orig = Map.filterWithKey (\k v -> Map.lookup k orig /= Just v)
   commit' <- (`stripUnchanged` commit) <$> Redis.read' redis objId
   let cfg = unionTriggers (compileRecs recs) actions
-  loop cfg 5 emptyContext $ Map.singleton objId commit'
+  -- Seems that we don't need recursive triggers actually.
+  -- There is only one place where they are used intentionally: filling car
+  -- dimensions when car model is determined.
+  loop cfg 1 emptyContext $ Map.singleton objId commit'
   where
     loop _ 0 cxt changes = return $ unionMaps changes $ updates cxt
     loop cfg n cxt changes
@@ -41,7 +44,7 @@ triggerUpdate objId commit = do
               {updates = unionMaps changes $ updates cxt
               ,current = Map.empty
               }
-        cxt'' <- foldM (flip execStateT) cxt' tgs
+        cxt'' <- foldM (flip execStateT) cxt' $ map runTriggerMonad tgs
         loop cfg (n-1) cxt'' $ current cxt''
 
 
@@ -62,6 +65,9 @@ matchingTriggers cfg updates
 
 unionTriggers = Map.unionWith (Map.unionWith (++))
 
+compileRecs :: MonadTrigger m b =>
+  Map.Map k (Map.Map s (Map.Map B.ByteString (Map.Map FieldName FieldValue))) ->
+  Map.Map k (Map.Map s [ObjectId -> B.ByteString -> m b ()])
 compileRecs = Map.map (Map.map mkT)
   where
     mkT m = [\objId val -> case Map.lookup val m of

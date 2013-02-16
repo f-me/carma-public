@@ -8,6 +8,8 @@ import Prelude hiding (log)
 import Data.Functor
 import Control.Monad
 import Control.Monad.CatchIO
+import Control.Exception (SomeException)
+import Control.Concurrent (myThreadId)
 import Control.Concurrent.STM
 
 import Data.Text.Lazy (toStrict)
@@ -147,13 +149,12 @@ geodecode = ifTop $ do
 ------------------------------------------------------------------------------
 -- | CRUD
 createHandler :: AppHandler ()
-createHandler = do
+createHandler = logResp $ do
   Just model <- getParam "model"
   commit <- getJSONBody
   logReq commit
-  res <- with db $ DB.create model commit
+  with db $ DB.create model commit
   -- FIXME: try/catch & handle/log error
-  logResp res
 
 readHandler :: AppHandler ()
 readHandler = do
@@ -185,15 +186,13 @@ readAllHandler = do
     flt prm = \obj -> all (selectParse obj) $ B.split ',' prm
 
 updateHandler :: AppHandler ()
-updateHandler = do
+updateHandler = logResp $ do
   Just model <- getParam "model"
   Just objId <- getParam "id"
   commit <- getJSONBody
   logReq commit
   -- Need this hack, or server won't return updated "cost_counted"
-  res <- with db $ DB.update model objId $ Map.delete "cost_counted" commit
-  -- FIXME: try/catch & handle/log error
-  logResp res
+  with db $ DB.update model objId $ Map.delete "cost_counted" commit
 
 deleteHandler :: AppHandler ()
 deleteHandler = do
@@ -288,7 +287,7 @@ rkcWeatherHandler = scope "rkc" $ scope "handler" $ scope "weather" $ do
   where
     weatherForCity :: WeatherApi.Config -> String -> IO (Either String Double)
     weatherForCity conf city = liftM (either (Left . show) (Right . tempC)) $
-      getWeather' conf city
+      getWeather' conf $ filter (/= '\'') city
 
     defaultCities :: [String]
     defaultCities = ["Moskva", "Sankt-Peterburg"]
@@ -545,23 +544,41 @@ errorsHandler = do
   liftIO $ withLog l $ scope "frontend" $ do
   log Info $ toStrict $ decodeUtf8 r
 
-logReq :: Show v => v -> AppHandler ()
+logReq :: Aeson.ToJSON v => v -> AppHandler ()
 logReq commit  = do
   user <- fmap userLogin <$> with auth currentUser
   r <- getRequest
+  thId <- liftIO myThreadId
   let params = rqParams r
       uri    = rqURI r
       rmethod = rqMethod r
-  scoper "reqlogger" $ log Trace $ T.pack $
-    show user ++ "; " ++
-    show rmethod ++ " " ++ show uri ++ "; " ++
-    "params: " ++ show params ++ "; " ++
-    "body: " ++ show commit
+  scope "detail" $ scope "req" $ log Trace $ T.decodeUtf8 $ B.toStrict $ Aeson.encode $ object [
+    "threadId" .= show thId,
+    "request" .= object [
+      "user" .= user,
+      "method" .= show rmethod,
+      "uri" .= uri,
+      "params" .= params,
+      "body" .= commit]]
 
-logResp :: Aeson.ToJSON v => v -> AppHandler ()
-logResp r = scope "resplogger" $ do
-  log Trace $ T.decodeUtf8 $ B.toStrict $ Aeson.encode r
-  writeJSON r
+logResp :: Aeson.ToJSON v => AppHandler v -> AppHandler ()
+logResp act = runAct `catch` logFail where
+  runAct = do
+    r' <- act
+    scope "detail" $ scope "resp" $ do
+      thId <- liftIO myThreadId
+      log Trace $ T.decodeUtf8 $ B.toStrict $ Aeson.encode $ object [
+        "threadId" .= show thId,
+        "response" .= r']
+      writeJSON r'
+  logFail :: SomeException -> AppHandler ()
+  logFail e = do
+    scope "detail" $ scope "resp" $ do
+      thId <- liftIO myThreadId
+      log Trace $ T.decodeUtf8 $ B.toStrict $ Aeson.encode $ object [
+        "threadId" .= show thId,
+        "response" .= object ["error" .= show e]]
+    throw e
 
 ------------------------------------------------------------------------------
 -- | Deny requests from non-local unauthorized users.

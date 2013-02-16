@@ -53,6 +53,9 @@ inList tbl col vals = preQuery [] [tbl] [T.concat [tbl, ".", col, " in ?"]] [] [
 equals :: T.Text -> T.Text -> T.Text -> PreQuery
 equals tbl col val = preQuery [] [tbl] [T.concat [tbl, ".", col, " = ?"]] [] [] [val]
 
+equalsTo :: T.Text -> T.Text -> T.Text -> PreQuery
+equalsTo tbl expr val = preQuery [] [tbl] [T.concat [expr, " = ?"]] [] [] [val]
+
 withinToday :: T.Text -> T.Text -> PreQuery
 withinToday tbl col = thisDay `mappend` notNull tbl col where
   thisDay = preQuery_ [] [tbl] [equalsNow] [] []
@@ -63,9 +66,9 @@ betweenTime from to tbl col = mconcat [
   notNull tbl col,
   preQuery [] [tbl] [T.concat [tbl, ".", col, " >= ?"]] [] [] [asLocal from],
   preQuery [] [tbl] [T.concat [tbl, ".", col, " < ?"]] [] [] [asLocal to]]
-  where
-    asLocal :: UTCTime -> LocalTime
-    asLocal = utcToLocalTime utc
+
+asLocal :: UTCTime -> LocalTime
+asLocal = utcToLocalTime utc
 
 count :: PreQuery
 count = preQuery_ ["count(*)"] [] [] [] []
@@ -237,7 +240,7 @@ caseSummary filt@(Filter fromDate toDate program city partner) constraints = sco
       consultationCaseRel,
       ifNotNull program $ equals "casetbl" "program",
       ifNotNull city $ equals "casetbl" "city",
-      ifNotNull partner $ equals "consultationtbl" "contractor_partner"]
+      ifNotNull partner $ equalsTo "consultationtbl" "trim(consultationtbl.contractor_partner)"]
 
     mech = liftM oneInt $ query
       (fromString $ "select sum(cnt)::integer from (" ++ mechanicL ++ " union " ++ mechanicR ++ ") as foo")
@@ -343,6 +346,24 @@ rkcEachActionOpAvg fromDate toDate constraints usrs acts = scope "rkcEachActionO
           avgSum st' = (average *** sum) $ unzip $ map snd st'
           average l = sum l `div` fromIntegral (length l)
 
+rkcComplaints :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> PreQuery -> m Value
+rkcComplaints fromDate toDate constraints = scope "rkcComplaints" $ do
+  compls <- trace "result" $ runQuery_ $ mconcat [
+    constraints,
+    select "casetbl" "id",
+    notNull "casetbl" "id",
+    notNull "servicetbl" "type",
+    selectExp ["servicetbl"] "string_agg(servicetbl.type, ' ')",
+    betweenTime fromDate toDate "servicetbl" "createTime",
+    equals "servicetbl" "clientSatisfied" "notSatis",
+    groupBy "casetbl" "id",
+    orderBy "casetbl" "id"]
+  return $ toJSON $ map toCaseId compls
+  where
+    toCaseId :: (Integer, T.Text) -> Value
+    toCaseId (i, srvs) = object [
+      "caseid" .= i,
+      "services" .= T.words srvs]
 
 dictKeys :: T.Text -> Dictionary -> [T.Text]
 dictKeys d = fromMaybe [] . keys [d]
@@ -397,15 +418,17 @@ rkc (UsersDict usrs) filt@(Filter fromDate toDate program city partner) = scope 
   c <- rkcCase filt constraints (serviceNames dicts)
   a <- rkcActions fromDate toDate constraints (actionNames dicts)
   ea <- rkcEachActionOpAvg fromDate toDate constraints usrs' (actionNames dicts)
+  compls <- rkcComplaints fromDate toDate constraints
   return $ object [
     "case" .= c,
     "back" .= a,
-    "eachopactions" .= ea]
+    "eachopactions" .= ea,
+    "complaints" .= compls]
   where
     constraints = mconcat [
       ifNotNull program $ equals "casetbl" "program",
       ifNotNull city $ equals "casetbl" "city",
-      ifNotNull partner $ equals "servicetbl" "contractor_partner"]
+      ifNotNull partner $ equalsTo "servicetbl" "trim(servicetbl.contractor_partner)"]
     usrs' = sort $ nub $ map toUsr usrs
     toUsr m = (maybe "" T.decodeUtf8 $ M.lookup "value" m, maybe "" T.decodeUtf8 $ M.lookup "label" m, maybe "" T.decodeUtf8 $ M.lookup "roles" m)
 
@@ -470,12 +493,17 @@ partners :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> m Value
 partners fromDate toDate = scope "rkc" $ scope "partners" $ do
   log Trace $ T.concat ["From: ", fromString $ show fromDate]
   log Trace $ T.concat ["To: ", fromString $ show toDate]
+
   let
-    q = concat [
-      "select contractor_partner c from servicetbl where",
+    q = [
+      "select trim(contractor_partner) c from servicetbl where",
       " (createTime >= ?) and (createTime < ?) and (createTime is not null) group by c order by c"]
-  ps <- trace "result" $ fquery q [] [asLocal fromDate, asLocal toDate]
+
+  ps <- trace "result" $ queryFmt q [] [asLocal fromDate, asLocal toDate]
   return $ toJSON (mapMaybe PS.fromOnly ps :: [T.Text])
 
-asLocal :: UTCTime -> LocalTime
-asLocal = utcToLocalTime utc
+queryFmt_ :: (PS.HasPostgres m, MonadLog m, PS.FromRow r) => [String] -> FormatArgs -> m [r]
+queryFmt_ lns args = query_ (fromString $ T.unpack $ format (concat lns) args)
+
+queryFmt :: (PS.HasPostgres m, MonadLog m, PS.ToRow q, PS.FromRow r) => [String] -> FormatArgs -> q -> m [r]
+queryFmt lns args = query (fromString $ T.unpack $ format (concat lns) args)
