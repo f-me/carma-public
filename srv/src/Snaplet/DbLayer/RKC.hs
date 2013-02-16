@@ -25,6 +25,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Text.Format
 
+import qualified Database.PostgreSQL.Simple.ToField as PS
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 
 import Snaplet.DbLayer.Dictionary
@@ -35,8 +36,12 @@ import Snap.Snaplet.SimpleLog hiding ((%=))
 import Util
 
 -------------------------------------------------------------------------------
--- TODO: Use 'model.field' instead of 'table.column'
--------------------------------------------------------------------------------
+-- | query fmt
+fquery_ :: (PS.HasPostgres m, MonadLog m, PS.FromRow r) => String -> FormatArgs -> m [r]
+fquery_ fmt args = query_ (fromString $ T.unpack $ format fmt args)
+
+fquery :: (PS.HasPostgres m, MonadLog m, PS.ToRow q, PS.FromRow r) => String -> FormatArgs -> q -> m [r]
+fquery fmt args v = query (fromString $ T.unpack $ format fmt args) v
 
 runQuery_ :: (PS.HasPostgres m, MonadLog m, PS.FromRow r) => PreQuery -> m [r]
 runQuery_ pq = runQuery [relations pq]
@@ -430,42 +435,31 @@ rkc (UsersDict usrs) filt@(Filter fromDate toDate program city partner) = scope 
 rkcFront :: (PS.HasPostgres m, MonadLog m) => Filter -> m Value
 rkcFront filt@(Filter fromDate toDate program city _) = scope "rkc" $ scope "front" $ do
   traceFilter filt
-  calls <- trace "result" $ runQuery_ $ mconcat [
-    select "calltbl" "callertype",
-    select "calltbl" "calltype",
-    count,
 
-    betweenTime fromDate toDate "calltbl" "calldate",
-    ifNotNull program $ equals "calltbl" "program",
-    ifNotNull city $ equals "calltbl" "city",
-    
-    groupBy "calltbl" "callertype",
-    groupBy "calltbl" "calltype",
+  let
+    args = [
+      "program" %= (if T.null program then "" else "and (program is not null) and (program = ?)" :: String),
+      "city" %= (if T.null city then "" else "and (city is not null) and (city = ?)" :: String)]
 
-    orderBy "calltbl" "callertype",
-    orderBy "calltbl" "calltype"]
+    callq = concat [
+      "select callertype, calltype, count(*) from calltbl where",
+      " (calldate >= ?) and (calldate < ?) and (calldate is not null) $program $city",
+      " group by callertype, calltype order by callertype, calltype"]
+    opCallsq = concat [
+      "select calltaker, count(*) from calltbl where",
+      " (calldate >= ?) and (calldate < ?) and (calldate is not null) $program $city",
+      " group by calltaker order by calltaker"]
+    opCasesq = concat [
+      "select calltaker, count(*) from casetbl where",
+      " (calldate >= ?) and (calldate < ?) and (calldate is not null) $program $city",
+      " group by calltaker order by calltaker"]
 
-  opCalls <- trace "op calls" $ runQuery_ $ mconcat [
-    select "calltbl" "calltaker",
-    count,
+    dateArgs = map PS.toField [asLocal fromDate, asLocal toDate]
+    progCityArgs = map PS.toField $ filter (not . T.null) [program, city]
 
-    betweenTime fromDate toDate "calltbl" "calldate",
-    ifNotNull program $ equals "calltbl" "program",
-    ifNotNull city $ equals "calltbl" "city",
-
-    groupBy "calltbl" "calltaker",
-    orderBy "calltbl" "calltaker"]
-
-  opCases <- trace "op cases" $ runQuery_ $ mconcat [
-    select "casetbl" "calltaker",
-    count,
-
-    betweenTime fromDate toDate "casetbl" "calldate",
-    ifNotNull program $ equals "casetbl" "program",
-    ifNotNull city $ equals "casetbl" "city",
-
-    groupBy "casetbl" "calltaker",
-    orderBy "casetbl" "calltaker"]
+  calls <- trace "result" $ fquery callq args (dateArgs ++ progCityArgs)
+  opCalls <- trace "op calls" $ fquery opCallsq args (dateArgs ++ progCityArgs)
+  opCases <- trace "op cases" $ fquery opCasesq args (dateArgs ++ progCityArgs)
 
   let
     sums :: [(Integer, Integer)] -> (Integer, Integer)
@@ -501,15 +495,12 @@ partners fromDate toDate = scope "rkc" $ scope "partners" $ do
   log Trace $ T.concat ["To: ", fromString $ show toDate]
 
   let
-    args = [
-      "partner" %= ("trim(servicetbl.contractor_partner)" :: String),
-      "tm" %= ("servicetbl.createTime" :: String)]
+    q = [
+      "select trim(contractor_partner) c from servicetbl where",
+      " (createTime >= ?) and (createTime < ?) and (createTime is not null) group by c order by c"]
 
-  ps <- trace "result" $ queryFmt [
-    "select $partner from servicetbl where ($tm is not null) and ($tm >= ?) and ($tm < ?)",
-    " group by $partner order by $partner"] args [asLocal fromDate, asLocal toDate]
-
-  return $ toJSON $ (mapMaybe PS.fromOnly ps :: [T.Text])
+  ps <- trace "result" $ queryFmt q [] [asLocal fromDate, asLocal toDate]
+  return $ toJSON (mapMaybe PS.fromOnly ps :: [T.Text])
 
 queryFmt_ :: (PS.HasPostgres m, MonadLog m, PS.FromRow r) => [String] -> FormatArgs -> m [r]
 queryFmt_ lns args = query_ (fromString $ T.unpack $ format (concat lns) args)
