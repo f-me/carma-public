@@ -1,23 +1,26 @@
 
-{-# LANGUAGE FlexibleInstances #-}
-module Snaplet.DbLayer.Triggers.MailToDealer where
+module Snaplet.DbLayer.Triggers.MailToDealer
+  (sendMailToDealer
+  ) where
 
-import Control.Monad.Trans (lift,liftIO)
+import Control.Monad.Trans (liftIO)
 import Control.Monad
 import Control.Concurrent
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
-import Data.Text.Lazy (Text)
+import qualified Data.ByteString.Lazy as BL
+import Data.Text (Text)
 import qualified Data.Text.Encoding as T
-import qualified Data.Text as TS
-import qualified Data.Text.Lazy as T
+import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Encoding as TL
 import Data.Map (Map)
 import qualified Data.Map as Map
 import System.Log.Simple
 import System.Log.Simple.Base (scoperLog)
 import Data.Configurator (require)
-import Network.Mail.SMTP
+import Network.Mail.Mime
 
 import Snap.Snaplet (getSnapletUserConfig)
 import Snaplet.DbLayer.Triggers.Types
@@ -71,7 +74,7 @@ fillVars caseId
   where
     add k f m = do
       v <- f
-      return $! Map.insert k (T.fromStrict $ T.decodeUtf8 v) m
+      return $! Map.insert k (T.decodeUtf8 v) m
 
 
 sendMailToDealer :: MonadTrigger m b => ByteString -> m b ()
@@ -91,34 +94,30 @@ sendMailToDealer actionId = do
 sendMailActually :: MonadTrigger m b => ByteString -> m b ()
 sendMailActually caseId = do
   cfg <- liftDb getSnapletUserConfig
-  cfgHost <- liftIO $ require cfg "psa-smtp-host"
-  cfgUser <- liftIO $ require cfg "psa-smtp-user"
-  cfgPass <- liftIO $ require cfg "psa-smtp-pass"
   cfgFrom <- liftIO $ require cfg "psa-smtp-from"
-  cfgTo   <- liftIO $ require cfg "psa-smtp-recipients"
+  let cfgTo = "jorpic@gmail.com,anton@formalmethods.ru"
 
   varMap <- fillVars caseId
 
-  let eml = Address Nothing
-  let msg = simpleMail
-        (eml cfgFrom)
-        (map eml $ TS.splitOn "," cfgTo)
-        [] []
-        "Доставлена машина на ремонт"
-        [htmlPart $ render varMap mailTemplate]
+  let body = Part "text/html; charset=utf-8"
+        QuotedPrintableText Nothing [] (render varMap mailTemplate)
 
   l <- liftDb askLog
   -- NB. notice `forkIO` below
   -- it also saves us from exceptions thrown while sending an e-mail
-  void $ liftIO $ forkIO $ do
-    let scopeName = "sendMailToDealer(" ++ show caseId ++ ")"
-    scoperLog l (TS.pack scopeName)
-      $ sendMailWithLogin cfgHost cfgUser cfgPass msg
+  void $ liftIO $ forkIO
+    $ scoperLog l (T.concat ["sendMailToDealer(", T.decodeUtf8 caseId, ")"])
+    $ renderSendMailCustom "/usr/sbin/exim" ["-t", "-r", T.unpack cfgFrom]
+    $ (emptyMail $ Address Nothing cfgFrom)
+        {mailTo = map (Address Nothing . T.strip) $ T.splitOn "," cfgTo
+        ,mailHeaders = [("Subject", "Доставлена машина на ремонт")]
+        ,mailParts = [[body]]
+        }
 
 
 -- FIXME: copypaste from SMS.hs
-render :: Map Text Text -> Text -> Text
-render varMap = T.concat . loop
+render :: Map Text Text -> Text -> BL.ByteString
+render varMap = TL.encodeUtf8 . TL.fromChunks . loop
   where
     loop tpl = case T.breakOn "$" tpl of
       (txt, "") -> [txt]

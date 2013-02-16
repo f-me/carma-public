@@ -36,6 +36,7 @@ import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
 import Snaplet.DbLayer.Triggers.SMS
 import Snaplet.DbLayer.Triggers.MailToDealer
+import Snaplet.DbLayer.Triggers.MailToPSA
 
 import Snap.Snaplet.SimpleLog
 
@@ -126,11 +127,11 @@ actions
                         Right Nothing  -> setWeather objId val
                         Right (Just c) -> when (c /= val) $ setWeather objId val
                       ])
-          ,("car_vin", [\objId val ->
-            when (B.length val == 17) $ do
-              let vinKey = B.concat ["vin:", B.map toUpper val]
-              car <- redisHGetAll vinKey
-              case car of
+          ,("car_vin", [\objId val -> do
+            let vin = B.map toUpper $ B.filter isAlphaNum val
+            when (B.length vin == 17) $ do
+              set objId "car_vin" vin
+              redisHGetAll (B.concat ["vin:", vin]) >>= \case
                 Left _    -> return ()
                 Right []  -> do
                   res <- requestFddsVin objId val
@@ -392,6 +393,7 @@ actionResultMap = Map.fromList
       objId
     set act "assignedTo" ""
 
+    sendMailToPSA objId
     isReducedMode >>= \case
       True -> do
         closeSerivceAndSendInfoVW objId
@@ -412,6 +414,7 @@ actionResultMap = Map.fromList
     assignee <- get objId "assignedTo"
     set svcId "assignedTo" assignee
 
+    sendMailToPSA objId
     isReducedMode >>= \case
       True -> do
         closeSerivceAndSendInfoVW objId
@@ -453,6 +456,8 @@ actionResultMap = Map.fromList
   )
   ,("serviceOrderedAnalyst", \objId -> do
     setService objId "status" "serviceOrdered"
+    sendMailToPSA objId
+
     isReducedMode >>= \case
       True -> do
         closeAction objId
@@ -616,7 +621,9 @@ actionResultMap = Map.fromList
       "analyst" "1" (+360) objId
     set act "assignedTo" ""
   )
-  ,("vwclosed", closeAction
+  ,("vwclosed", \objId -> do
+    sendMailToPSA objId
+    closeAction objId
   )
   ,("complaintManaged", closeAction
   )
