@@ -443,15 +443,15 @@ rkcFront filt@(Filter fromDate toDate program city _) = scope "rkc" $ scope "fro
 
     callq = concat [
       "select callertype, calltype, count(*) from calltbl where",
-      " (calldate >= ?) and (calldate < ?) $program $city",
+      " (calldate >= ?) and (calldate < ?) and (calldate is not null) $program $city",
       " group by callertype, calltype order by callertype, calltype"]
     opCallsq = concat [
       "select calltaker, count(*) from calltbl where",
-      " (calldate >= ?) and (calldate < ?) $program $city",
+      " (calldate >= ?) and (calldate < ?) and (calldate is not null) $program $city",
       " group by calltaker order by calltaker"]
     opCasesq = concat [
       "select calltaker, count(*) from casetbl where",
-      " (calldate >= ?) and (calldate < ?) $program $city",
+      " (calldate >= ?) and (calldate < ?) and (calldate is not null) $program $city",
       " group by calltaker order by calltaker"]
 
     dateArgs = map PS.toField [asLocal fromDate, asLocal toDate]
