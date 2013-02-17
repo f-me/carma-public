@@ -16,12 +16,12 @@ define ["model/utils", "utils"], (mu, u) ->
   #this.nominatimHost = "http://192.168.10.2/"
 
   nominatimRevQuery = (lon, lat) ->
-    return this.nominatimHost +
+    return nominatimHost +
       "reverse.php?format=json&accept-language=ru-RU,ru&lon=#{lon}&lat=#{lat}"
 
   nominatimQuery = (addr) ->
     fixed_addr = addr.replace(/Москва/g, "Московская область")
-    return this.nominatimHost +
+    return nominatimHost +
       "search?format=json&accept-language=ru-RU,ru&q=#{fixed_addr}"
 
   wsgProj = new OpenLayers.Projection("EPSG:4326")
