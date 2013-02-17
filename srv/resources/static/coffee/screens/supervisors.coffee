@@ -130,8 +130,8 @@ define ["utils", "text!tpl/screens/supervisor.html"], (utils, tpl) ->
     drawTable dt,
       closed: $('#closed').val()
       targetGroup: $('#role').val()
-      duetimeFrom: toUnix d1
-      duetimeTo: toUnix d2
+      duetimeFrom: utils.toUnix d1
+      duetimeTo  : utils.toUnix d2
 
   { constructor: setupSupervisorScreen
   , template: tpl
