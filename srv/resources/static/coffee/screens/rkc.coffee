@@ -73,7 +73,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
         dateFrom.val (d1.toString 'dd.MM.yyyy')
         dateTo.val (d2.toString 'dd.MM.yyyy')
 
-        updateps = () -> this.updatePartners(partners)
+        updateps = () -> updatePartners(partners)
 
         dateFrom.change ->
           updateps()
@@ -242,8 +242,8 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
               }))
 
         partners = ko.observableArray([])
-        this.initRKCDate update, partners
-        this.fillRKCFilters update, partners
+        initRKCDate update, partners
+        fillRKCFilters update, partners
 
         global.rkcData = {}
 
@@ -259,8 +259,8 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
 
         updateSMS()
         update()
-        this.updatePartners(partners)
-        this.updateWeather()
+        updatePartners(partners)
+        updateWeather()
 
     removeRKCScreen = ->
         h = global.rkcData.smsHandler

@@ -3,7 +3,7 @@ define [ "utils"
        , "text!tpl/screens/rkcOps.html"
        , "text!tpl/partials/rkc.html"
        ], (utils, rkc, tpl, partials) ->
-  this.setupRKCOpsScreen = (viewName, args) ->
+  setupRKCOpsScreen = (viewName, args) ->
     eachao = $('#rkc-ops-back-operators-table')
     return if eachao.hasClass("dataTable")
 
