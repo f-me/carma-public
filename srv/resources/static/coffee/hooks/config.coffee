@@ -13,7 +13,7 @@ define [ "hooks/common"
                , c.filesKbHook
                , c.dateTimeHook
                ]
-      "case" : [k.descsKbHook, c.eventsHistoryKbHook]
+      "case" : [k.descsKbHook, k.eventsHistoryKbHook]
       "tarifOption": [c.tarifOptNameDef]
       "partner": [p.bindRemoveService, p.serviceRepeat]
       "partner_service": [p.bindTitleServiceName, p.partnerServiceRepeat]
