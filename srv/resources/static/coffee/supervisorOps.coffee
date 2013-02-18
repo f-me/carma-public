@@ -9,36 +9,48 @@ this.setupSupervisorOpsScreen = (viewName, args) ->
       bPaginate: false
       aoColumns: [{}, {}, {}, {}, {bVisible: false}]
       fnCreatedRow: (nRow, aData) ->
-        u = aData[4]
-        koUser =
-          boCities: ko.observable u.boCities
-          boPrograms: ko.observable u.boPrograms
-
-        koUser.boCities.subscribe (update u.value, 'boCities')
-        koUser.boPrograms.subscribe (update u.value, 'boPrograms')
-        dictManyHook userModel, koUser
-
         tpl = $('#dictionary-many-field-template').html()
         $('td:eq(2)', nRow).html(
-          Mustache.render tpl, userModel.fieldHash.boCities
-        )
+          Mustache.render tpl, userModel.fieldHash.boCities)
         $('td:eq(3)', nRow).html(
-          Mustache.render tpl, userModel.fieldHash.boPrograms
-        )
-        ko.applyBindings koUser, nRow
+          Mustache.render tpl, userModel.fieldHash.boPrograms)
+        ko.applyBindings aData[4], nRow
+
 
     $.getJSON "/usersDict", (us) ->
       dt.fnClearTable()
       rows = for u in us when /back/.test u.roles
-        [u.value, u.label, "", "", u]
+        do (u) ->
+          koUser =
+            boCities: ko.observable u.boCities
+            boPrograms: ko.observable u.boPrograms
+
+          dictManyHook userModel, koUser
+          row =
+            [ u.value, u.label
+            , arrStr(koUser.boCitiesLocals())
+            , arrStr(koUser.boProgramsLocals())
+            , koUser]
+
+          update = (fName) -> (val) ->
+            $.ajax
+              type: "PUT"
+              url: "/userMeta/#{u.value}"
+              data: "{\"#{fName}\": \"#{val}\"}"
+            row[2] = arrStr(koUser.boCitiesLocals())
+            row[3] = arrStr(koUser.boProgramsLocals())
+            # i'm so ugly just to fliter out nonmatching rows
+            dt.fnClearTable()
+            dt.fnAddData rows
+
+          koUser.boCities.subscribe (update 'boCities')
+          koUser.boPrograms.subscribe (update 'boPrograms')
+          row
+
       dt.fnAddData rows
 
+arrStr = (arr) -> (a.label for a in arr).join (" ")
 
-update = (login, fName) -> (val) ->
-  $.ajax
-    type: "PUT"
-    url: "/userMeta/#{login}"
-    data: "{\"#{fName}\": \"#{val}\"}"
 
 
 userModel =
