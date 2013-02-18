@@ -126,12 +126,13 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
                       , asRememberPeriod = Just (rmbPer * 24 * 60 * 60)}
                                session authDb
   logdUsrs <- liftIO $ newTVarIO Map.empty
-  !allUsrs <- liftIO $ readJSON authDb
+  let allUsrs = readJSON authDb
 
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
 
   runtimeFlags <- liftIO $ newTVarIO Set.empty
-  d <- nestSnaplet "db" db $ initDbLayer authMgr allUsrs runtimeFlags "resources/site-config"
+  allU <- liftIO allUsrs
+  d <- nestSnaplet "db" db $ initDbLayer authMgr allU runtimeFlags "resources/site-config"
 
   -- init PostgreSQL connection pool that will be used for searching only
   let lookupCfg nm = lookupDefault (error $ show nm) cfg nm

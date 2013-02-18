@@ -253,7 +253,7 @@ rkcHandler = scope "rkc" $ scope "handler" $ do
       RKC.filterCity = c,
       RKC.filterPartner = part }
 
-  usrs <- gets allUsers
+  usrs <- gets allUsers >>= liftIO
   info <- with db $ RKC.rkc usrs flt'
   writeJSON info
 
@@ -426,7 +426,7 @@ deleteReportHandler = do
   return ()
 
 getUsersDict :: AppHandler ()
-getUsersDict = writeJSON =<< gets allUsers
+getUsersDict = gets allUsers >>= liftIO >>= writeJSON
 
 getActiveUsers :: AppHandler ()
 getActiveUsers = do

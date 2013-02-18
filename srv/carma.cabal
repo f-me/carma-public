@@ -107,6 +107,7 @@ Executable carma
     OverloadedStrings,
     RecordWildCards,
     NamedFieldPuns,
+    TupleSections,
     LambdaCase
 
   if flag(development)
