@@ -1,4 +1,4 @@
-define ["utils", "text!tpl/screens/supervisor.html"], (utils, tpl) ->
+define ["utils", "model/main", "text!tpl/screens/supervisor.html"], (utils, main, tpl) ->
   this.setupSupervisorScreen = (viewName, args) ->
     setTimeout ->
       $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
@@ -62,7 +62,7 @@ define ["utils", "text!tpl/screens/supervisor.html"], (utils, tpl) ->
       t.on "click.datatable", "tr", ->
         id = this.children[0].innerText.split('/')[1].replace(/\D/g,'')
         f = ["assignedTo", "priority", "closed", "targetGroup"]
-        modelSetup("action") viewName, {"id": id},
+        main.modelSetup("action") viewName, {"id": id},
                               permEl: "action-permissions"
                               focusClass: "focusable"
                               refs: []
