@@ -76,11 +76,12 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/_/report/:id",  chkAuth . method DELETE $ deleteReportHandler)
          , ("/search/:model", chkAuth . method GET  $ searchHandler)
          , ("/rkc",           chkAuth . method GET  $ rkcHandler)
-         , ("/rkc/weather", chkAuth . method GET $ rkcWeatherHandler)
-         , ("/rkc/front", chkAuth . method GET $ rkcFrontHandler)
-         , ("/rkc/partners", chkAuth . method GET $ rkcPartners)
+         , ("/rkc/weather",   chkAuth . method GET $ rkcWeatherHandler)
+         , ("/rkc/front",     chkAuth . method GET $ rkcFrontHandler)
+         , ("/rkc/partners",  chkAuth . method GET $ rkcPartners)
          , ("/arc/:year/:month", chkAuth . method GET $ arcReportHandler)
          , ("/usersDict",     chkAuth . method GET  $ getUsersDict)
+         , ("/userMeta/:usr", chkAuth . method PUT  $ setUserMeta)
          , ("/activeUsers",   chkAuth . method GET  $ getActiveUsers)
          , ("/vin/upload",    chkAuth . method POST $ vinUploadData)
          , ("/vin/state",     chkAuth . method GET  $ vinStateRead)
@@ -131,7 +132,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
 
   runtimeFlags <- liftIO $ newTVarIO Set.empty
-  allU <- liftIO allUsrs
+  !allU <- liftIO allUsrs
   d <- nestSnaplet "db" db $ initDbLayer authMgr allU runtimeFlags "resources/site-config"
 
   -- init PostgreSQL connection pool that will be used for searching only

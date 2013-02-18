@@ -14,17 +14,16 @@ this.setupSupervisorOpsScreen = (viewName, args) ->
           boCities: ko.observable u.boCities
           boPrograms: ko.observable u.boPrograms
 
+        koUser.boCities.subscribe (update u.value, 'boCities')
+        koUser.boPrograms.subscribe (update u.value, 'boPrograms')
         dictManyHook userModel, koUser
-        koUser.boCities.subscribe (v) ->
-          alert v
 
+        tpl = $('#dictionary-many-field-template').html()
         $('td:eq(2)', nRow).html(
-          Mustache.render $('#dictionary-many-field-template').html(),
-            userModel.fieldHash.boCities
+          Mustache.render tpl, userModel.fieldHash.boCities
         )
         $('td:eq(3)', nRow).html(
-          Mustache.render $('#dictionary-many-field-template').html(),
-            userModel.fieldHash.boPrograms
+          Mustache.render tpl, userModel.fieldHash.boPrograms
         )
         ko.applyBindings koUser, nRow
 
@@ -33,6 +32,14 @@ this.setupSupervisorOpsScreen = (viewName, args) ->
       rows = for u in us when /back/.test u.roles
         [u.value, u.label, "", "", u]
       dt.fnAddData rows
+
+
+update = (login, fName) -> (val) ->
+  $.ajax
+    type: "PUT"
+    url: "/userMeta/#{login}"
+    data: "{\"#{fName}\": \"#{val}\"}"
+
 
 userModel =
   dictManyFields: ['boCities', 'boPrograms']
