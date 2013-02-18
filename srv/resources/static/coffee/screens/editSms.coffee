@@ -1,8 +1,9 @@
-define ["utils", "text!tpl/screens/editSms.html"], (utils, tpl) ->
+define ["utils", "model/main", "text!tpl/screens/editSms.html"],
+       (utils, main, tpl) ->
   setupSmsTplForm = (viewName, args) ->
 
     refs = [ ]
-    modelSetup("smsTpl") viewName, args,
+    main.modelSetup("smsTpl") viewName, args,
                           permEl: "smsTpl-permissions"
                           focusClass: "focusable"
                           refs: refs

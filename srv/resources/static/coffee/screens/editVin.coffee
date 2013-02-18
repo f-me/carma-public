@@ -1,6 +1,6 @@
-define ["text!tpl/screens/editVin.html"], (tpl) ->
+define ["model/main", "text!tpl/screens/editVin.html"], (main, tpl) ->
   setupEditVin = (viewName, args)->
-    modelSetup("vin") viewName, args,
+    main.modelSetup("vin") viewName, args,
                        permEl       : "vin-permissions"
                        focusClass   : "focusable"
                        slotsee      : []
