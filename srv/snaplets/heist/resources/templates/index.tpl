@@ -66,6 +66,7 @@
     <script src="/s/js/gen/call.js" />
     <script src="/s/js/gen/backoffice.js" />
     <script src="/s/js/gen/supervisors.js" />
+    <script src="/s/js/gen/supervisorOps.js" />
     <script src="/s/js/gen/rkc.js" />
     <script src="/s/js/gen/report.js" />
     <script src="/s/js/gen/hotkeys.js" />
@@ -662,6 +663,25 @@
           <div id="action-permissions" />
         </form>
       </div>
+    </script>
+
+    <!-- Supervisor screen template -->
+    <script type="text/template"
+            class="screen-template"
+            id="supervisorOps-screen-template">
+        <div class="form-vertical">
+          <table id="supervisorOps-table" class="table table-striped table-bordered">
+            <thead>
+              <tr>
+                <th>Логин</th>
+                <th>Имя</th>
+                <th>Город</th>
+                <th>Программа</th>
+              </tr>
+            </thead>
+            <tbody/>
+          </table>
+        </div>
     </script>
 
     <!-- RKC screen template -->
