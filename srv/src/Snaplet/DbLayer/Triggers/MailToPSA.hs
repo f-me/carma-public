@@ -111,7 +111,7 @@ sendMailActually actionId = do
           fld 20  "User Tel Number"          $ get' caseId "contact_phone1"
           fld 50  "User Name P"
             $ get' caseId "contact_contactOwner" >>= \case
-              "0" -> get' caseId "contact_name"
+              "1" -> get' caseId "contact_name"
               _   -> get' caseId "contact_ownerName"
 
           fld 4  "Job Type" <=== case B.split ':' svcId of
