@@ -16,6 +16,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
+import qualified Data.Map as Map
 import Text.Printf
 import Data.Char
 import Data.Maybe
@@ -29,8 +30,10 @@ import Data.Configurator (require)
 import Network.Mail.Mime
 
 import Snap.Snaplet (getSnapletUserConfig)
+import Snaplet.DbLayer.Types (getDict)
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
+import DictionaryCache
 
 
 sendMailToPSA :: MonadTrigger m b => ByteString -> m b ()
@@ -51,6 +54,7 @@ sendMailToPSA actionId = do
 sendMailActually :: MonadTrigger m b => ByteString -> m b ()
 sendMailActually actionId = do
     liftDb $ log Trace (T.pack $ "sendMailToPSA(" ++ show actionId ++ ")")
+    dic <- liftDb $ getDict id
     tz <- liftIO getCurrentTimeZone
 
     svcId   <- get actionId "parentId"
@@ -78,7 +82,12 @@ sendMailActually actionId = do
             "citroen" -> "CIT"
             _ -> error $ "Invalid program: " ++ show program
 
-          fld 13  "Model"   $ get' caseId "car_model"
+          fld 13  "Model"   $ do
+            mk <- get' caseId "car_make"
+            md <- get' caseId "car_model"
+            return $ Map.findWithDefault md md
+              $ Map.findWithDefault Map.empty mk
+              $ carModel dic
           fld 1   "Energie" $ get caseId "car_engine" >>= \case
             "dis" -> return "D"
             _     -> return "E"
@@ -101,7 +110,9 @@ sendMailActually actionId = do
           fld 10 "Date of Response"      <=== tmFormat "%d/%m/%Y" factServiceStart
           fld 5  "Time of Response"      <=== tmFormat "%H:%M" factServiceStart
           fld 100 "Breakdown Location"   $ get' caseId "caseAddress_address"
-          fld 20  "Breakdown Area"       $ get' caseId "city" -- FIXME: len = 3
+          fld 20  "Breakdown Area"       $ do
+            c <- get' caseId "city"
+            return $ Map.findWithDefault c c $ city dic
           fld 100 "Breakdown Service"    $ get' partnerId "name"
           fld 20  "Service Tel Number 1" $ get' partnerId "phone1"
           fld 20  "Service Tel Number 2" $ get' partnerId "closeTicketPhone"
