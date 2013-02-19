@@ -39,6 +39,11 @@ localScreens = ->
     "views":
       "action-form":
         constructor: setupSupervisorScreen
+  "supervisorOps":
+    "template": "supervisorOps-screen-template"
+    "views":
+      "action-form":
+        constructor: setupSupervisorOpsScreen
   "rkc":
     "template": "rkc-screen-template"
     "views":
@@ -85,43 +90,45 @@ localScreens = ->
 localRouter = Backbone.Router.extend
   # Must _not_ end with trailing slashes
   routes:
-    "case/:id"    : "loadCase"
-    "case"        : "newCase"
-    "search"      : "search"
-    "vin"         : "vin"
-    "back"        : "back"
-    "call/:id"    : "loadCall"
-    "call"        : "call"
-    "reports"     : "reports"
-    "partner"     : "newPartner"
-    "partner/:id" : "loadPartner"
-    "editVin/:id" : "editVin"
-    "newVin"      : "newVin"
-    "supervisor"  : "supervisor"
-    "rkc"         : "rkc"
-    "rkcOps"      : "rkcOps"
-    "rkcFront"    : "rkcFront"
-    "editSms"     : "editSms"
+    "case/:id"       : "loadCase"
+    "case"           : "newCase"
+    "search"         : "search"
+    "vin"            : "vin"
+    "back"           : "back"
+    "call/:id"       : "loadCall"
+    "call"           : "call"
+    "reports"        : "reports"
+    "partner"        : "newPartner"
+    "partner/:id"    : "loadPartner"
+    "editVin/:id"    : "editVin"
+    "newVin"         : "newVin"
+    "supervisor"     : "supervisor"
+    "supervisorOps"  : "supervisorOps"
+    "rkc"            : "rkc"
+    "rkcOps"         : "rkcOps"
+    "rkcFront"       : "rkcFront"
+    "editSms"        : "editSms"
     "printSrv/:model/:id" : "printSrv"
 
-  loadCase    : (id) -> renderScreen("case", {"id": id})
-  newCase     :      -> renderScreen("case", {"id": null})
-  search      :      -> renderScreen("search")
-  back        :      -> renderScreen("back")
-  vin         :      -> renderScreen("vin")
-  newPartner  :      -> renderScreen("partner", {"id": null})
-  loadPartner : (id) -> renderScreen("partner", {"id": id})
-  loadCall    : (id) -> renderScreen("call", {"id": id})
-  call        :      -> renderScreen("call", {"id": null})
-  reports     :      -> renderScreen("reports")
-  editVin     : (id) -> renderScreen("editVin", {"id": id})
-  newVin      :      -> renderScreen("newVin", {"id": null})
-  supervisor  :      -> renderScreen("supervisor")
-  rkc         :      -> renderScreen("rkc")
-  rkcOps      :      -> renderScreen("rkcOps")
-  rkcFront    :      -> renderScreen("rkcFront")
-  editSms     :      -> renderScreen("editSms")
-  printSrv    : (model, id) -> renderScreen "printSrv", {model: model, id: id}
+  loadCase       : (id) -> renderScreen("case", {"id": id})
+  newCase        :      -> renderScreen("case", {"id": null})
+  search         :      -> renderScreen("search")
+  back           :      -> renderScreen("back")
+  vin            :      -> renderScreen("vin")
+  newPartner     :      -> renderScreen("partner", {"id": null})
+  loadPartner    : (id) -> renderScreen("partner", {"id": id})
+  loadCall       : (id) -> renderScreen("call", {"id": id})
+  call           :      -> renderScreen("call", {"id": null})
+  reports        :      -> renderScreen("reports")
+  editVin        : (id) -> renderScreen("editVin", {"id": id})
+  newVin         :      -> renderScreen("newVin", {"id": null})
+  supervisor     :      -> renderScreen("supervisor")
+  supervisorOps  :      -> renderScreen("supervisorOps")
+  rkc            :      -> renderScreen("rkc")
+  rkcOps         :      -> renderScreen("rkcOps")
+  rkcFront       :      -> renderScreen("rkcFront")
+  editSms        :      -> renderScreen("editSms")
+  printSrv       : (model, id) -> renderScreen "printSrv", {model: model, id: id}
 
 # here is entry point
 $ ->

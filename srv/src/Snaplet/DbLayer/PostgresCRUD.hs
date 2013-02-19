@@ -191,7 +191,13 @@ functions tz dict = [
                 getIndex v = fmap succ . elemIndex v
                 defaultIdx = S.StringValue $ show caseId ++ "/" ++ serviceType ++ ":" ++ show srvId
                 formIdx i = S.StringValue $ show caseId ++ "/" ++ show i
-            return . maybe defaultIdx formIdx . getIndex srvIdName . splitByComma $ caseSrvs
+
+                srvsWords = splitByComma caseSrvs
+                srvIndex
+                    | length srvsWords == 1 = S.StringValue $ show caseId
+                    | otherwise = maybe defaultIdx formIdx $ getIndex srvIdName srvsWords
+
+            return srvIndex
 
         backOperator fs = M.lookup "servicesview.backoperator" fs
                       

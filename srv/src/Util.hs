@@ -72,23 +72,21 @@ data UsersDict = UsersDict [Map.Map B.ByteString B.ByteString]
 instance FromJSON UsersDict where
   parseJSON (Object v) = do
     Array c <- v .: "uidCache"
-    r <- V.mapM (parseUser) c
-    return $ UsersDict $ V.toList r
+    UsersDict . V.toList <$> V.mapM parseUser c
       where
-        parseRoles r = V.mapM (parseJSON) r >>=
-                       return . (B.intercalate ",") . V.toList
+        parseRoles = fmap (B.intercalate "," . V.toList) . V.mapM parseJSON
         parseUser a = do
           Array u <- parseJSON a
           Object u' <- parseJSON $ u V.! 1
-          value <- u' .: "login"
           Array roles <- u' .: "roles"
-          roles' <- parseRoles roles
           meta  <- u' .: "meta"
-          label <- meta .:? "realName" .!= ""
-          return $ Map.fromList [ ("value", value)
-                                , ("label", label)
-                                , ("roles", roles')
-                                ]
+          Map.fromList <$> sequence
+            [ ("value",)      <$> u' .: "login"
+            , ("roles",)      <$> parseRoles roles
+            , ("label",)      <$> meta .:? "realName" .!= ""
+            , ("boCities",)   <$> meta .:? "boCities" .!= ""
+            , ("boPrograms",) <$> meta .:? "boPrograms" .!= ""
+            ]
 
   parseJSON _ = fail "bad arg"
 
