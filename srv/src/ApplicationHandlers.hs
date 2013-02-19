@@ -253,7 +253,7 @@ rkcHandler = scope "rkc" $ scope "handler" $ do
       RKC.filterCity = c,
       RKC.filterPartner = part }
 
-  usrs <- gets allUsers
+  usrs <- gets allUsers >>= liftIO
   info <- with db $ RKC.rkc usrs flt'
   writeJSON info
 
@@ -426,7 +426,19 @@ deleteReportHandler = do
   return ()
 
 getUsersDict :: AppHandler ()
-getUsersDict = writeJSON =<< gets allUsers
+getUsersDict = gets allUsers >>= liftIO >>= writeJSON
+
+setUserMeta :: AppHandler ()
+setUserMeta = do
+  Just login <- fmap T.decodeUtf8 <$> getParam "usr"
+  Aeson.Object commit <- getJSONBody
+  let [(key, val)] = HashMap.toList commit
+  with auth $ do
+    Just u <-  withBackend $ liftIO . (`lookupByLogin` login)
+    saveUser $ u {userMeta = HashMap.insert key val $ userMeta u}
+  writeBS "ok"
+
+
 
 getActiveUsers :: AppHandler ()
 getActiveUsers = do
