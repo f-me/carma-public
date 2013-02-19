@@ -97,8 +97,8 @@ sendMailActually actionId = do
           fld 17  "VIN number"       $ get' caseId "car_vin"
           fld 10  "Reg No"           $ get' caseId "car_plateNum"
 
-          fld 150 "Customer effet"   <=== "" -- FIXME:
-          fld 150 "Component fault"  <=== "" -- FIXME:
+          fld 150 "Customer effet"   $ tr (wazzup dic) <$> get' caseId "comment"
+          fld 150 "Component fault"  $ get' caseId "dealerCause"
 
           factServiceStart
             <- fromMaybe (error "Invalid factServiceStart") . toLocalTime tz
@@ -110,9 +110,7 @@ sendMailActually actionId = do
           fld 10 "Date of Response"      <=== tmFormat "%d/%m/%Y" factServiceStart
           fld 5  "Time of Response"      <=== tmFormat "%H:%M" factServiceStart
           fld 100 "Breakdown Location"   $ get' caseId "caseAddress_address"
-          fld 20  "Breakdown Area"       $ do
-            c <- get' caseId "city"
-            return $ Map.findWithDefault c c $ city dic
+          fld 20  "Breakdown Area"       $ tr (city dic) <$> get' caseId "city"
           fld 100 "Breakdown Service"    $ get' partnerId "name"
           fld 20  "Service Tel Number 1" $ get' partnerId "phone1"
           fld 20  "Service Tel Number 2" $ get' partnerId "closeTicketPhone"
@@ -161,7 +159,12 @@ sendMailActually actionId = do
 
 
 get' :: MonadTrigger m b => ByteString -> ByteString -> m b Text
-get' = (fmap T.decodeUtf8 .) . get
+get' = (fmap (unlines' . T.decodeUtf8) .) . get
+  where
+    unlines' = T.replace "\r" "" . T.replace "\n" " "
+
+tr :: Map.Map Text Text -> Text -> Text
+tr d v =  Map.findWithDefault v v d
 
 fld :: Monad m => Int -> Text -> m Text -> WriterT [Text] m ()
 fld len name f = do
@@ -171,6 +174,7 @@ fld len name f = do
 (<===) :: Monad m => (m a -> t) -> a -> t
 f <=== v = f $ return v
 
+tmFormat :: String -> LocalTime -> Text
 tmFormat = (T.pack .) . formatTime defaultTimeLocale
 
 toLocalTime :: TimeZone -> ByteString -> Maybe LocalTime
