@@ -40,8 +40,8 @@ assignQ pri usr logdUsers = fromString
   ++ "    AND (assignedTo IS NULL"
   ++ "         OR assignedTo NOT IN ('" ++ logdUsersList ++ "'))"
   ++ "    ORDER BY"
-  ++ maybe "" (\set -> "(c.program in (" ++ set ++ ")) DESC") programSet
-  ++ maybe "" (\set -> "(c.city in (" ++ set ++ ")) DESC") citySet
+  ++ maybe "" (\set -> "(c.program IN ('" ++ set ++ "')) DESC,") programSet
+  ++ maybe "" (\set -> "(c.city IN ('" ++ set ++ "')) DESC,") citySet
   ++ "      (act.name IN ('orderService', 'orderServiceAnalyst')"
   ++ "        AND coalesce(svc.urgentService, 'notUrgent') <> 'notUrgent') DESC,"
   ++ "      (CASE WHEN act.name IN ('orderService', 'orderServiceAnalyst')"
