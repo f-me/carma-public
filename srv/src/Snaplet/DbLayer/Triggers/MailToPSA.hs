@@ -83,7 +83,8 @@ sendMailActually actionId = do
             "dis" -> return "D"
             _     -> return "E"
 
-          fld 10  "Date put on road" <=== tmFormat "%d/%m/%Y" callDate
+          buyDate <- toLocalTime tz <$> lift (get caseId "car_buyDate")
+          fld 10  "Date put on road" <=== maybe "" (tmFormat "%d/%m/%Y") buyDate
           fld 17  "VIN number"       $ get' caseId "car_vin"
           fld 10  "Reg No"           $ get' caseId "car_plateNum"
 
