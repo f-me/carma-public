@@ -29,10 +29,10 @@ define ["utils", "model/utils"], (u, mu) ->
                 optionName   : o.optionName
                 tarifOptionId: "tarifOption:#{o.id}"
               ->
-                bindDelete knockVM, 'cost_serviceTarifOptions'
+                u.bindDelete knockVM, 'cost_serviceTarifOptions'
                 r = knockVM['cost_serviceTarifOptionsReference']()
                 $("##{(_.last r)['view']}").parent().collapse("show")
-          bindDelete knockVM, 'cost_serviceTarifOptions'
+          u.bindDelete knockVM, 'cost_serviceTarifOptions'
 
   srvOptUpd: (instance, knockVM) ->
     knockVM['payType'].subscribe (n) ->
