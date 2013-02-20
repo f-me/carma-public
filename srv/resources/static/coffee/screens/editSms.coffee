@@ -35,6 +35,6 @@ define ["utils", "model/main", "text!tpl/screens/editSms.html"],
                   ]
               dt.fnAddData(rows)
       ))
-  { constructor: setupSmsTplForm
-  , template: tpl
-  }
+    { constructor: setupSmsTplForm
+    , template: tpl
+    }

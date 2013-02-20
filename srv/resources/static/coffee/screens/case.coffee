@@ -5,6 +5,8 @@ define [ "utils"
        , "model/main"
        ],
   (utils, hotkeys, tpl, mu, main) ->
+    utils.build_global_fn 'pickPartnerBlip', ['map']
+
     # Case view (renders to #left, #center and #right as well)
     setupCaseMain = (viewName, args) -> setupCaseModel viewName, args
 
