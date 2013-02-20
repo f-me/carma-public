@@ -3,6 +3,7 @@ module Snaplet.DbLayer.Triggers.MailToDealer
   (sendMailToDealer
   ) where
 
+import Control.Applicative
 import Control.Monad.Trans (liftIO)
 import Control.Monad
 import Control.Concurrent
@@ -17,21 +18,27 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
 import Data.Map (Map)
 import qualified Data.Map as Map
+import Data.Time
+import Data.Time.Clock.POSIX
+import System.Locale (defaultTimeLocale)
+
 import System.Log.Simple
 import System.Log.Simple.Base (scoperLog)
 import Data.Configurator (require)
 import Network.Mail.Mime
 
 import Snap.Snaplet (getSnapletUserConfig)
+import Snaplet.DbLayer.Types (getDict)
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
+import DictionaryCache
 
 
 -- FIXME: store this in DB or in file
 mailTemplate :: Text
 mailTemplate = T.pack
   $  "<p>На территорию Вашего ДЦ был доставлен а/м по программе Assistance.</p>"
-  ++ "<table>"
+  ++ "<table border=\"1\">"
   ++ "  <tr><td>Кейс в РАМК</td><td>$caseId$</td></tr>"
   ++ "  <tr><td>VIN номер</td><td>$car_vin$</td></tr>"
   ++ "  <tr><td>Госномер</td><td>$car_plateNum$</td></tr>"
@@ -42,8 +49,8 @@ mailTemplate = T.pack
   ++ "</table>"
   ++ "<p> Просим Вас предоставить дополнительную информацию, после диагностики "
   ++ "а/м в виде таблицы на электронный адрес psa@ruamc.ru :</p>"
-  ++ "<table>"
-  ++ "  <th>"
+  ++ "<table border=\"1\">"
+  ++ "  <th bgcolor=\"SkyBlue\">"
   ++ "    <td>Код дилера</td>"
   ++ "    <td>VIN номер автомобиля</td>"
   ++ "    <td>Пробег а/м на момент поломки</td>"
@@ -57,7 +64,7 @@ mailTemplate = T.pack
   ++ "    <td>Система автомобиля, в которой произошла неисправность</td>"
   ++ "    <td>Неисправная деталь</td>"
   ++ "  </th>"
-  ++ "  <tr></tr>"
+  ++ "  <tr></tr><tr></tr>"
   ++ "</table>"
   ++ "<p>Заранее благодарим за своевременный ответ, в течение 24 часов.</p>"
 
@@ -65,16 +72,25 @@ mailTemplate = T.pack
 fillVars :: MonadTrigger m b => ByteString -> m b (Map Text Text)
 fillVars caseId
   =   (return $ Map.empty)
-  >>= add "caseId"       (return caseId)
-  >>= add "car_vin"      (get caseId "car_vin")
-  >>= add "car_plateNum" (get caseId "car_plateNum")
-  >>= add "car_make"     (get caseId "car_make")
-  >>= add "car_model"    (get caseId "car_model")
-  >>= add "wazzup"       (get caseId "comment")
+  >>= add "caseId"       (return $ txt caseId)
+  >>= add "caseDate"     (get caseId "callDate" >>= formatDate)
+  >>= add "car_vin"      (txt <$> get caseId "car_vin")
+  >>= add "car_plateNum" (txt <$> get caseId "car_plateNum")
+  >>= add "car_make"     (txt <$> get caseId "car_make")
+  >>= add "car_model"    (txt <$> get caseId "car_model")
+  >>= add "wazzup"       (get caseId "comment" >>= tr wazzup . txt)
   where
-    add k f m = do
-      v <- f
-      return $! Map.insert k (T.decodeUtf8 v) m
+    txt = T.decodeUtf8
+    add k f m = f >>= \v -> return (Map.insert k v m)
+    tr d v = Map.findWithDefault v v <$> liftDb (getDict d)
+
+    formatDate tm = case B.readInt tm of
+      Just (s,"") -> do
+        tz <- liftIO getCurrentTimeZone
+        return $ T.pack $ formatTime defaultTimeLocale "%d/%m/%Y"
+          $ utcToLocalTime tz
+          $ posixSecondsToUTCTime $ fromIntegral s
+      _ -> return "???"
 
 
 sendMailToDealer :: MonadTrigger m b => ByteString -> m b ()

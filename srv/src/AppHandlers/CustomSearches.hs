@@ -93,7 +93,7 @@ selectActions mClosed mAssignee mRole mFrom mTo = do
   rows <- withPG pg_search $ \c -> query_ c $ fromString
     $  "SELECT a.id::text, a.caseId, a.parentId,"
     ++ "       (a.closed::int)::text, a.name, a.assignedTo, a.targetGroup,"
-    ++ "       (extract (epoch from a.duetime at time zone 'UTC')::int)::text, "
+    ++ "       (extract (epoch from a.duetime at time zone 'UTC')::int8)::text, "
     ++ "       a.result, a.priority, a.description, a.comment,"
     ++ "       c.city, c.program,"
     ++ "       (extract (epoch from s.times_expectedServiceStart at time zone 'UTC')::int8)::text"
@@ -125,7 +125,7 @@ searchCallsByPhone = do
   rows <- withPG pg_search $ \c -> query c (fromString
     $  "SELECT wazzup, callerName_name, city, program, make, model,"
     ++ "       callTaker, callType,"
-    ++ "       extract (epoch from callDate at time zone 'UTC')::int::text"
+    ++ "       extract (epoch from callDate at time zone 'UTC')::int8::text"
     ++ "  FROM calltbl"
     ++ "  WHERE callerName_phone1 = ?") [phone]
   let fields =
@@ -139,7 +139,7 @@ getActionsForCase = do
   Just caseId <- getParam "id"
   let caseId' = B.append "case:" caseId
   rows <- withPG pg_search $ \c -> query c (fromString
-    $  "SELECT extract (epoch from closeTime at time zone 'UTC')::int::text,"
+    $  "SELECT extract (epoch from closeTime at time zone 'UTC')::int8::text,"
     ++ "       result, name, assignedTo, comment"
     ++ "  FROM actiontbl"
     ++ "  WHERE caseId = ?") [caseId']
