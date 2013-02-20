@@ -19,7 +19,6 @@
     <script src="/s/js/3p/bootstrap.min.js" />
     <script src="/s/js/3p/bootstrap-datepicker.js" />
     <script src="/s/js/3p/bootstrap-typeahead.js" />
-    <script src="/s/js/3p/bootstrap-popover.js" />
 
     <!-- Tabular display -->
     <script src="/s/js/3p/jquery.dataTables.min.js" />
