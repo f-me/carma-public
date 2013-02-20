@@ -1,0 +1,84 @@
+<script type="text/partial" id="rkc/intervals" class="partial">
+  <h3>Интервал</h3>
+  <div class="input-append date"
+       data-provide="datepicker"
+       data-autoshow-datepicker="true"
+       data-date-format="dd.mm.yyyy"
+       data-date-weekstart="1">
+    <input type="text"
+           id="rkc-date-from"
+           class="focusable"
+           name="from"
+           />
+    <span class="add-on"><i class="icon icon-calendar" /></span>
+  </div>
+  <div class="input-append date"
+       data-provide="datepicker"
+       data-autoshow-datepicker="true"
+       data-date-format="dd.mm.yyyy"
+       data-date-weekstart="1">
+    <input type="text"
+           id="rkc-date-to"
+           class="focusable"
+           name="to"
+           />
+    <span class="add-on"><i class="icon icon-calendar" /></span>
+  </div>
+</script>
+
+<script type="text/partial" id="rkc/filters" class="partial">
+  <h3>Фильтрация</h3>
+  <div class="control-group">
+    <label class="control-label"> Город: </label>
+    <div class="controls">
+      <select id="city-select" data-bind="foreach: $data">
+        <option data-bind="value: id, text: name" />
+      </select>
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label"> Программа: </label>
+    <div class="controls">
+      <select id="program-select" data-bind="foreach: $data">
+        <option data-bind="value: id, text: name" />
+      </select>
+    </div>
+  </div>
+  <div class="control-group">
+    <label class="control-label"> Партнёр: </label>
+    <div class="controls">
+      <select id="partner-select" data-bind="foreach: $data">
+        <option data-bind="value: id, text: name" />
+      </select>
+    </div>
+  </div>
+</script>
+
+<script type="text/partial" id="rkc/header" class="partial">
+  <div class="row-fluid">
+    <div class="span6 form-horizontal">
+      {{> rkc/filters }}
+    </div>
+    <div class="span6">
+      {{> rkc/intervals }}
+    </div>
+    <div class="span2">
+      <div class="control-group">
+        <button id="reload" class="btn"> Обновить </button>
+      </div>
+    </div>
+  </div>
+</script>
+
+<script type="text/partial" id="rkc/smallinput" class="partial">
+  <div class="control-group">
+    <div class="row-fluid">
+      <div class="span10">
+        {{ label }}
+      </div>
+      <div class="span2">
+        <input type="text" class="span1" id={{ id }} />
+      </div>
+    </div>
+  </div>
+</script>

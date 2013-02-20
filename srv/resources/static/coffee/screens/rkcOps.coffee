@@ -1,20 +1,22 @@
-this.setupRKCOpsScreen = (viewName, args) ->
-  setTimeout ->
-
+define [ "utils"
+       , "screens/rkc"
+       , "text!tpl/screens/rkcOps.html"
+       , "text!tpl/partials/rkc.html"
+       ], (utils, rkc, tpl, partials) ->
+  setupRKCOpsScreen = (viewName, args) ->
     eachao = $('#rkc-ops-back-operators-table')
     return if eachao.hasClass("dataTable")
 
     actstbl = {}
-    actstbl.cols = for v in global.dictionaries.ActionNames.entries
-        c =
-            name: v.label
+    actstbl.cols =
+      { name: v.label } for v in global.dictionaries.ActionNames.entries
 
     actstbl.cols.unshift { name: "Среднее время обработки действия" }
     actstbl.cols.unshift { name: "Оператор" }
 
     ko.applyBindings(actstbl, el("rkc-ops-back-operators-table"))
 
-    eat = mkDataTable eachao, { bFilter: false, bInfo: false }
+    eat = utils.mkDataTable eachao, { bFilter: false, bInfo: false }
 
     fmttime = (tm) ->
         fmt = (x) -> if x < 10 then "0" + x else "" + x
@@ -52,16 +54,22 @@ this.setupRKCOpsScreen = (viewName, args) ->
         eat.fnAddData(earows))
 
     partners = ko.observableArray([])
-    this.initRKCDate update, partners
-    this.fillRKCFilters update, partners
+    rkc.initRKCDate update, partners
+    rkc.fillRKCFilters update, partners
 
     global.rkcOpsData = {}
 
     global.rkcOpsData.updateHandler = setInterval(update, 30000)
 
     update()
-    this.updatePartners(partners)
+    rkc.updatePartners(partners)
 
-this.removeRKCOpsScreen = ->
-    t = global.rkcOpsData.updateHandler
-    clearInterval t if t?
+  removeRKCOpsScreen = ->
+      t = global.rkcOpsData.updateHandler
+      clearInterval t if t?
+
+  { constructor: setupRKCOpsScreen
+  , destructor: removeRKCOpsScreen
+  , template: tpl
+  , partials: partials
+  }
