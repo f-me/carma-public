@@ -463,8 +463,8 @@ define ["model/utils", "utils"], (mu, u) ->
     addr_field = mu.modelField(modelName, fieldName).meta['targetAddr']
 
     $("#partnerMapModal").modal('show')
-
-    initOSM($("#partnerMapModal").find(".osMap"), viewName)
+    mapEl = $("#partnerMapModal").find(".osMap")[0]
+    initOSM mapEl, viewName
 
   { iconSize              : iconSize
   , zoomLevel             : zoomLevel
