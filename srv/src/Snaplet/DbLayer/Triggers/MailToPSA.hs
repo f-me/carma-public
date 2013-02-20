@@ -16,6 +16,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
+import qualified Data.Map as Map
 import Text.Printf
 import Data.Char
 import Data.Maybe
@@ -29,8 +30,10 @@ import Data.Configurator (require)
 import Network.Mail.Mime
 
 import Snap.Snaplet (getSnapletUserConfig)
+import Snaplet.DbLayer.Types (getDict)
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
+import DictionaryCache
 
 
 sendMailToPSA :: MonadTrigger m b => ByteString -> m b ()
@@ -51,6 +54,7 @@ sendMailToPSA actionId = do
 sendMailActually :: MonadTrigger m b => ByteString -> m b ()
 sendMailActually actionId = do
     liftDb $ log Trace (T.pack $ "sendMailToPSA(" ++ show actionId ++ ")")
+    dic <- liftDb $ getDict id
     tz <- liftIO getCurrentTimeZone
 
     svcId   <- get actionId "parentId"
@@ -78,17 +82,23 @@ sendMailActually actionId = do
             "citroen" -> "CIT"
             _ -> error $ "Invalid program: " ++ show program
 
-          fld 13  "Model"   $ get' caseId "car_model"
+          fld 13  "Model"   $ do
+            mk <- get' caseId "car_make"
+            md <- get' caseId "car_model"
+            return $ Map.findWithDefault md md
+              $ Map.findWithDefault Map.empty mk
+              $ carModel dic
           fld 1   "Energie" $ get caseId "car_engine" >>= \case
             "dis" -> return "D"
             _     -> return "E"
 
-          fld 10  "Date put on road" <=== tmFormat "%d/%m/%Y" callDate
+          buyDate <- toLocalTime tz <$> lift (get caseId "car_buyDate")
+          fld 10  "Date put on road" <=== maybe "" (tmFormat "%d/%m/%Y") buyDate
           fld 17  "VIN number"       $ get' caseId "car_vin"
           fld 10  "Reg No"           $ get' caseId "car_plateNum"
 
-          fld 150 "Customer effet"   <=== "" -- FIXME:
-          fld 150 "Component fault"  <=== "" -- FIXME:
+          fld 150 "Customer effet"   $ tr (wazzup dic) <$> get' caseId "comment"
+          fld 150 "Component fault"  $ get' caseId "dealerCause"
 
           factServiceStart
             <- fromMaybe (error "Invalid factServiceStart") . toLocalTime tz
@@ -100,7 +110,7 @@ sendMailActually actionId = do
           fld 10 "Date of Response"      <=== tmFormat "%d/%m/%Y" factServiceStart
           fld 5  "Time of Response"      <=== tmFormat "%H:%M" factServiceStart
           fld 100 "Breakdown Location"   $ get' caseId "caseAddress_address"
-          fld 20  "Breakdown Area"       $ get' caseId "city" -- FIXME: len = 3
+          fld 20  "Breakdown Area"       $ tr (city dic) <$> get' caseId "city"
           fld 100 "Breakdown Service"    $ get' partnerId "name"
           fld 20  "Service Tel Number 1" $ get' partnerId "phone1"
           fld 20  "Service Tel Number 2" $ get' partnerId "closeTicketPhone"
@@ -111,7 +121,7 @@ sendMailActually actionId = do
           fld 20  "User Tel Number"          $ get' caseId "contact_phone1"
           fld 50  "User Name P"
             $ get' caseId "contact_contactOwner" >>= \case
-              "0" -> get' caseId "contact_name"
+              "1" -> get' caseId "contact_name"
               _   -> get' caseId "contact_ownerName"
 
           fld 4  "Job Type" <=== case B.split ':' svcId of
@@ -149,7 +159,12 @@ sendMailActually actionId = do
 
 
 get' :: MonadTrigger m b => ByteString -> ByteString -> m b Text
-get' = (fmap T.decodeUtf8 .) . get
+get' = (fmap (unlines' . T.decodeUtf8) .) . get
+  where
+    unlines' = T.replace "\r" "" . T.replace "\n" " "
+
+tr :: Map.Map Text Text -> Text -> Text
+tr d v =  Map.findWithDefault v v d
 
 fld :: Monad m => Int -> Text -> m Text -> WriterT [Text] m ()
 fld len name f = do
@@ -159,6 +174,7 @@ fld len name f = do
 (<===) :: Monad m => (m a -> t) -> a -> t
 f <=== v = f $ return v
 
+tmFormat :: String -> LocalTime -> Text
 tmFormat = (T.pack .) . formatTime defaultTimeLocale
 
 toLocalTime :: TimeZone -> ByteString -> Maybe LocalTime
