@@ -7,7 +7,7 @@ define [
   "screens/rkc"
   "screens/rkcFront"
   "screens/rkcOps"
-  "screens/supervisors"
+  "screens/supervisor"
   "screens/supervisorOps"
   "screens/vin"
   "screens/report"
