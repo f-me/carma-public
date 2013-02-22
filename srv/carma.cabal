@@ -98,7 +98,8 @@ Executable carma
     vector                      == 0.10.*,
     vin-parser                  >= 0.2.0.0 && < 0.3,
     weather-api                 >= 0.4.1,
-    xlsx                        >= 0.0.2.1 && < 0.1
+    xlsx                        >= 0.0.2.1 && < 0.1,
+    process-extras              == 0.2.*
 
   if !os(windows)
     build-depends:

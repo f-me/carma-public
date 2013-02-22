@@ -35,6 +35,7 @@ import ApplicationHandlers
 import AppHandlers.ActionAssignment
 import AppHandlers.CustomSearches
 import AppHandlers.PSA
+import AppHandlers.ContractGenerator
 ----------------------------------------------------------------------
 import Util (readJSON)
 
@@ -65,6 +66,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/psaCases",      chkAuth . method GET    $ psaCases)
          , ("/repTowages/:id", 
                               chkAuth . method GET    $ repTowages)
+         , ("/contractGenerator",
+            chkAuth . method GET $ contractGeneratorHandler)
          , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)
          , ("/_/:model",      chkAuth . method POST   $ createHandler)
          , ("/_/:model/:id",  chkAuth . method GET    $ readHandler)
