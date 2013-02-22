@@ -12,7 +12,7 @@ module Util
   ,selectPrice
   ,printBPrice
   ,getCostField
-  ,upCaseStr
+  ,upCaseName
   ) where
 
 import qualified Data.Map as Map
@@ -29,8 +29,8 @@ import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lex.Double as B
 
 import Data.String
-import qualified Data.Text          as T
-import qualified Data.Text.Encoding as T
+import Data.Text (Text)
+import qualified Data.Text as T
 
 import Data.Aeson as Aeson
 import Data.Aeson.TH
@@ -167,8 +167,7 @@ printPrice p = printf "%.2f" p
 printBPrice :: Double -> ByteString
 printBPrice p = B.pack $ printPrice p
 
-upCaseStr :: ByteString -> ByteString
-upCaseStr s = T.encodeUtf8 $ upCaseStr' $ T.decodeUtf8 s
-    where
-      upCaseStr' s = T.unwords $ map upCaseWord $ T.words s
-      upCaseWord w = T.concat [T.toUpper $ T.take 1 w, T.toLower $ T.drop 1 w]
+upCaseName :: Text -> Text
+upCaseName = T.unwords . map upCaseWord . T.words
+  where
+    upCaseWord w = T.concat [T.toUpper $ T.take 1 w, T.toLower $ T.drop 1 w]

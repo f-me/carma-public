@@ -34,6 +34,7 @@ import Snaplet.DbLayer.Types (getDict)
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
 import DictionaryCache
+import Util as U
 
 
 sendMailToPSA :: MonadTrigger m b => ByteString -> m b ()
@@ -117,12 +118,12 @@ sendMailActually actionId = do
           fld 100 "Patrol Address 1"     $ get' partnerId "addrDeFacto"
           fld 100 "Patrol Address 2"     <===  ""
           fld 100 "Patrol Address V"     <===  ""
-          fld 50  "User Name"                $ get' caseId "contact_name"
-          fld 20  "User Tel Number"          $ get' caseId "contact_phone1"
+          fld 50  "User Name"            $ U.upCaseName <$> get' caseId "contact_name"
+          fld 20  "User Tel Number"      $ U.upCaseName <$> get' caseId "contact_phone1"
           fld 50  "User Name P"
             $ get' caseId "contact_contactOwner" >>= \case
-              "1" -> get' caseId "contact_name"
-              _   -> get' caseId "contact_ownerName"
+              "1" -> U.upCaseName <$> get' caseId "contact_name"
+              _   -> U.upCaseName <$> get' caseId "contact_ownerName"
 
           fld 4  "Job Type" <=== case B.split ':' svcId of
             "tech":_ -> "DEPA"
