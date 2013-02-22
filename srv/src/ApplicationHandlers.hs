@@ -406,8 +406,9 @@ report = scope "report" $ do
 createReportHandler :: AppHandler ()
 createReportHandler = do
   res <- with db $ DB.create "report" $ Map.empty
-  let objId = last $ B.split ':' $ fromJust $ Map.lookup "id" res
-  (f:_)      <- with fileUpload $ doUpload' "report" objId "templates"
+  let Just objId = Map.lookup "id" res
+  (f:_)      <- with fileUpload
+    $ doUpload' "report" (U.bToString objId) "templates"
   Just name  <- getParam "name"
   -- we have to update all model params after fileupload,
   -- because in multipart/form-data requests we do not have
@@ -421,8 +422,7 @@ deleteReportHandler :: AppHandler ()
 deleteReportHandler = do
   Just objId  <- getParam "id"
   with db $ DB.delete "report" objId
-  with fileUpload $ doDeleteAll' "report" objId
-  return ()
+  with fileUpload $ doDeleteAll' "report" $ U.bToString objId
 
 getUsersDict :: AppHandler ()
 getUsersDict = gets allUsers >>= liftIO >>= writeJSON

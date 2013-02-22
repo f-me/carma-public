@@ -94,7 +94,6 @@ Executable carma
     time                        >= 1.1 && < 1.5,
     transformers                >= 0.2 && < 0.4,
     unordered-containers,
-    utf8-string,
     vector                      == 0.10.*,
     vin-parser                  >= 0.2.0.0 && < 0.3,
     weather-api                 >= 0.4.1,
