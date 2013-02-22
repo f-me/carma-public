@@ -69,7 +69,6 @@ contractGeneratorHandler = do
   (caseId, _) <- fromJust <$> B.readInt <$> fromJust <$> getParam "caseId"
   tplId  <- fromJust <$> getParam "tplId"
   c      <- with db $ DB.read "contract" tplId
-  liftIO $ traceIO $ show $ caseId
   rows <- withPG pg_search $ \c ->
     query c q [caseId]
   let m = mkMap fields rows
