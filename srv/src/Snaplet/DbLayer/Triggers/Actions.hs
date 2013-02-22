@@ -127,7 +127,10 @@ actions
                         Right Nothing  -> setWeather objId val
                         Right (Just c) -> when (c /= val) $ setWeather objId val
                       ])
-          ,("car_plateNum", [\objId -> set objId "car_plateNum" . B.map toUpper])
+          ,("car_plateNum", [\objId
+            -> set objId "car_plateNum"
+              . T.encodeUtf8 . T.toUpper . T.decodeUtf8
+            ])
           ,("car_vin", [\objId val -> do
             let vin = B.map toUpper $ B.filter isAlphaNum val
             when (B.length vin == 17) $ do
