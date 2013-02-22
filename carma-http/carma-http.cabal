@@ -1,5 +1,5 @@
 name:                carma-http
-version:             0.1.2.0
+version:             0.1.3.0
 synopsis:            Access local CaRMa using HTTP API
 description:         Interface to create/read/update/delete
                      operations of CaRMa HTTP API.
@@ -25,6 +25,7 @@ library
     aeson        == 0.6.*,
     base         == 4.6.*,
     bytestring   == 0.10.*,
+    carma-dict   == 0.1.*,
     containers   == 0.5.*,
     HTTP         == 4000.2.*,
     network      == 2.4.*

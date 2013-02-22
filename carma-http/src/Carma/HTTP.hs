@@ -20,11 +20,13 @@ module Carma.HTTP
     , read1Reference
     , readReferences
     , methodURI
+    , readDictionary
     )
 
 where
 
 import Data.Aeson
+import Data.Dict
 import Data.Functor
 import Data.Map as M hiding (mapMaybe)
 import Data.Maybe
@@ -45,13 +47,17 @@ type FieldName = BS.ByteString
 type InstanceData = M.Map FieldName FieldValue
 
 
+localURIPrefix :: String
+localURIPrefix = "http://localhost:"
+
+
 -- | Model API endpoint.
 modelURI :: Int
            -- ^ CaRMa port.
          -> String
          -- ^ Model name.
          -> String
-modelURI cp model = concat ["http://localhost:", show cp, "/_/", model, "/"]
+modelURI cp model = concat [localURIPrefix, show cp, "/_/", model, "/"]
 
 
 -- | Model read/update/delete API endpoint.
@@ -177,4 +183,27 @@ methodURI :: Int
           -- ^ Method name/call, like @repTowages/5003@ or @psaCases@,
           -- no trailing or leading slashes.
           -> String
-methodURI cp meth = "http://localhost:" ++ show cp ++ "/" ++ meth
+methodURI cp meth = localURIPrefix ++ show cp ++ "/" ++ meth
+
+
+-- | Name of CaRMa HTTP method which serves a hash of all
+-- dictionaries.
+dictionariesMethod :: String
+dictionariesMethod = "cfg/dictionaries"
+
+
+-- | Load a dictionary with given name from CaRMa.
+readDictionary :: Int
+               -- ^ CaRMa port.
+               -> String
+               -- ^ Dictionary name.
+               -> IO (Maybe Dict)
+readDictionary cp name  = do
+  rs <- simpleHTTP $ getRequest $ methodURI cp dictionariesMethod
+  rsb <- getResponseBody rs
+  -- Read server response into Map ByteString Value, since carma-dict
+  -- does not support multi-level dictionaries yet
+  let dicts = decode' $ BSL.pack $ rsb :: Maybe (M.Map String Value)
+  return $ case M.lookup name <$> dicts of
+    Just (Just v) -> decode' $ encode v
+    _             -> Nothing
