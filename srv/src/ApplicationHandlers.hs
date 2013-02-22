@@ -19,7 +19,6 @@ import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as B (toStrict)
-import qualified Data.ByteString.UTF8  as BU
 import qualified Data.Aeson as Aeson
 import Data.List
 import Data.Map (Map)
@@ -57,7 +56,7 @@ import qualified Nominatim
 -----------------------------------------------------------------------------
 import Application
 import AppHandlers.Util
-import Util
+import Util as U
 import RuntimeFlag
 
 
@@ -227,7 +226,7 @@ getFromTo = do
 
   let
     parseLocalTime :: ByteString -> Maybe LocalTime
-    parseLocalTime = parseTime defaultTimeLocale "%d.%m.%Y" . BU.toString
+    parseLocalTime = parseTime defaultTimeLocale "%d.%m.%Y" . U.bToString
 
     fromTime' = fmap (localTimeToUTC tz) (fromTime >>= parseLocalTime)
     toTime' = fmap (localTimeToUTC tz) (toTime >>= parseLocalTime)
@@ -268,8 +267,8 @@ rkcWeatherHandler = scope "rkc" $ scope "handler" $ scope "weather" $ do
         log Error "Can't read weather cities"
         return defaultCities
 
-  toRemove <- liftM (maybeToList . fmap BU.toString) $ getParam "remove"
-  toAdd <- liftM (maybeToList . fmap BU.toString) $ getParam "add"
+  toRemove <- maybeToList . fmap U.bToString <$> getParam "remove"
+  toAdd <- maybeToList . fmap U.bToString <$> getParam "add"
 
   let
     newCities = nub $ (cities ++ toAdd) \\ toRemove
@@ -414,7 +413,7 @@ createReportHandler = do
   -- because in multipart/form-data requests we do not have
   -- params as usual, see Snap.Util.FileUploads.setProcessFormInputs
   _ <- with db $ DB.update "report" objId $
-    Map.fromList [ ("templates", BU.fromString f)
+    Map.fromList [ ("templates", T.encodeUtf8 $ T.pack f)
                  , ("name",      name) ]
   redirect "/#reports"
 

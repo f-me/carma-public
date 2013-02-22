@@ -13,6 +13,7 @@ module Util
   ,printBPrice
   ,getCostField
   ,upCaseStr
+  ,bToString
   ) where
 
 import qualified Data.Map as Map
@@ -172,3 +173,6 @@ upCaseStr s = T.encodeUtf8 $ upCaseStr' $ T.decodeUtf8 s
     where
       upCaseStr' s = T.unwords $ map upCaseWord $ T.words s
       upCaseWord w = T.concat [T.toUpper $ T.take 1 w, T.toLower $ T.drop 1 w]
+
+bToString :: ByteString -> String
+bToString = T.unpack . T.decodeUtf8
