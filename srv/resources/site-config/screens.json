@@ -38,6 +38,12 @@
           "label" : "Редактирование шаблонов смс",
           "type" : "li",
           "permissions" : ["head", "supervisor", "admin", "programman"]
+        },
+        {
+          "name" : "contracts",
+          "label" : "Генератор договоров",
+          "type" : "li",
+          "permissions" : ["head", "admin"]
         }
       ]
     },

@@ -425,6 +425,27 @@ deleteReportHandler = do
   with fileUpload $ doDeleteAll' "report" objId
   return ()
 
+createContractHandler :: AppHandler ()
+createContractHandler = do
+  res <- with db $ DB.create "contract" $ Map.empty
+  let objId = last $ B.split ':' $ fromJust $ Map.lookup "id" res
+  (f:_)      <- with fileUpload $ doUpload' "contract" objId "templates"
+  Just name  <- getParam "name"
+  -- we have to update all model params after fileupload,
+  -- because in multipart/form-data requests we do not have
+  -- params as usual, see Snap.Util.FileUploads.setProcessFormInputs
+  _ <- with db $ DB.update "contract" objId $
+    Map.fromList [ ("templates", BU.fromString f)
+                 , ("name",      name) ]
+  redirect "/#contracts"
+
+deleteContractHandler :: AppHandler ()
+deleteContractHandler = do
+  Just objId  <- getParam "id"
+  with db $ DB.delete "contract" objId
+  with fileUpload $ doDeleteAll' "contract" objId
+  return ()
+
 getUsersDict :: AppHandler ()
 getUsersDict = gets allUsers >>= liftIO >>= writeJSON
 
