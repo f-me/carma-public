@@ -219,8 +219,22 @@
           </button>
         </form>
       </fieldset>
-      </div>
       <div id="vin-alert-container" />
+      </div>
+      <div style="text-align:center;">
+      <fieldset>
+        <legend>Обновление базы партнёров</legend>
+        <form id="partner-import-form" method="post" action="/partner/upload">
+          <p>
+            <input type="file" name="file" accept="text/csv" />
+          </p>
+          <input formenctype="multipart/form-data" 
+                 type="submit" 
+                 class="btn btn-success">
+          </input>
+        </form>
+      </fieldset>
+      </div>
     </script>
 
     <script type="text/template"

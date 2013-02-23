@@ -6,11 +6,13 @@ import Control.Monad
 import Control.Applicative
 import Data.String (fromString)
 
+import qualified Data.HashMap.Strict as HashMap
 import qualified Data.Map as Map
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.ByteString.Char8 as B
+import qualified Data.Aeson as Aeson
 
 import Snap
 import Snap.Snaplet.Auth
@@ -27,16 +29,19 @@ assignQ :: Int -> AuthUser -> [Text] -> Query
 assignQ pri usr logdUsers = fromString
   $  "UPDATE actiontbl SET assignedTo = '" ++ uLogin ++ "'"
   ++ "  WHERE id = (SELECT act.id"
-  ++ "    FROM actiontbl act, servicetbl svc"
+  ++ "    FROM actiontbl act, servicetbl svc, casetbl c"
   ++ "    WHERE closed = false"
-  ++ "    AND   svc.id::text = substring(act.parentId, ':(.*)')"
-  ++ "    AND   svc.type::text = substring(act.parentId, '(.*):')"
-  ++ "    AND   priority = '" ++ show pri ++ "'"
-  ++ "    AND   duetime at time zone 'UTC' - now() < interval '30 minutes'"
-  ++ "    AND   targetGroup = '" ++ roleStr uRole ++ "'"
-  ++ "    AND   (assignedTo IS NULL"
-  ++ "           OR assignedTo NOT IN ('" ++ logdUsersList ++ "'))"
+  ++ "    AND c.id::text = substring(act.caseId, ':(.*)')"
+  ++ "    AND svc.id::text = substring(act.parentId, ':(.*)')"
+  ++ "    AND svc.type::text = substring(act.parentId, '(.*):')"
+  ++ "    AND priority = '" ++ show pri ++ "'"
+  ++ "    AND duetime at time zone 'UTC' - now() < interval '30 minutes'"
+  ++ "    AND targetGroup = '" ++ roleStr uRole ++ "'"
+  ++ "    AND (assignedTo IS NULL"
+  ++ "         OR assignedTo NOT IN ('" ++ logdUsersList ++ "'))"
   ++ "    ORDER BY"
+  ++ maybe "" (\set -> "(c.program IN ('" ++ set ++ "')) DESC,") programSet
+  ++ maybe "" (\set -> "(c.city IN ('" ++ set ++ "')) DESC,") citySet
   ++ "      (act.name IN ('orderService', 'orderServiceAnalyst')"
   ++ "        AND coalesce(svc.urgentService, 'notUrgent') <> 'notUrgent') DESC,"
   ++ "      (CASE WHEN act.name IN ('orderService', 'orderServiceAnalyst')"
@@ -50,6 +55,13 @@ assignQ pri usr logdUsers = fromString
     uRole  = head $ userRoles usr
     roleStr (Role bs) = B.unpack bs
     logdUsersList = T.unpack $ T.intercalate "','" logdUsers
+    mkSet = T.unpack . T.intercalate "','" . T.split (==',')
+    citySet = case HashMap.lookup "boCities" $ userMeta usr of
+      Just (Aeson.String xx) | not $ T.null xx -> Just $ mkSet xx
+      _ -> Nothing
+    programSet = case HashMap.lookup "boPrograms" $ userMeta usr of
+      Just (Aeson.String xx) | not $ T.null xx -> Just $ mkSet xx
+      _ -> Nothing
 
 
 littleMoreActionsHandler :: AppHandler ()

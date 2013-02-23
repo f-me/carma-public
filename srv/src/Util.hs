@@ -12,7 +12,7 @@ module Util
   ,selectPrice
   ,printBPrice
   ,getCostField
-  ,upCaseStr
+  ,upCaseName
   ) where
 
 import qualified Data.Map as Map
@@ -29,8 +29,8 @@ import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lex.Double as B
 
 import Data.String
-import qualified Data.Text          as T
-import qualified Data.Text.Encoding as T
+import Data.Text (Text)
+import qualified Data.Text as T
 
 import Data.Aeson as Aeson
 import Data.Aeson.TH
@@ -72,23 +72,21 @@ data UsersDict = UsersDict [Map.Map B.ByteString B.ByteString]
 instance FromJSON UsersDict where
   parseJSON (Object v) = do
     Array c <- v .: "uidCache"
-    r <- V.mapM (parseUser) c
-    return $ UsersDict $ V.toList r
+    UsersDict . V.toList <$> V.mapM parseUser c
       where
-        parseRoles r = V.mapM (parseJSON) r >>=
-                       return . (B.intercalate ",") . V.toList
+        parseRoles = fmap (B.intercalate "," . V.toList) . V.mapM parseJSON
         parseUser a = do
           Array u <- parseJSON a
           Object u' <- parseJSON $ u V.! 1
-          value <- u' .: "login"
           Array roles <- u' .: "roles"
-          roles' <- parseRoles roles
           meta  <- u' .: "meta"
-          label <- meta .:? "realName" .!= ""
-          return $ Map.fromList [ ("value", value)
-                                , ("label", label)
-                                , ("roles", roles')
-                                ]
+          Map.fromList <$> sequence
+            [ ("value",)      <$> u' .: "login"
+            , ("roles",)      <$> parseRoles roles
+            , ("label",)      <$> meta .:? "realName" .!= ""
+            , ("boCities",)   <$> meta .:? "boCities" .!= ""
+            , ("boPrograms",) <$> meta .:? "boPrograms" .!= ""
+            ]
 
   parseJSON _ = fail "bad arg"
 
@@ -169,8 +167,7 @@ printPrice p = printf "%.2f" p
 printBPrice :: Double -> ByteString
 printBPrice p = B.pack $ printPrice p
 
-upCaseStr :: ByteString -> ByteString
-upCaseStr s = T.encodeUtf8 $ upCaseStr' $ T.decodeUtf8 s
-    where
-      upCaseStr' s = T.unwords $ map upCaseWord $ T.words s
-      upCaseWord w = T.concat [T.toUpper $ T.take 1 w, T.toLower $ T.drop 1 w]
+upCaseName :: Text -> Text
+upCaseName = T.unwords . map upCaseWord . T.words
+  where
+    upCaseWord w = T.concat [T.toUpper $ T.take 1 w, T.toLower $ T.drop 1 w]

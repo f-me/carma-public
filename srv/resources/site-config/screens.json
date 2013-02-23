@@ -19,32 +19,17 @@
       "type"  : "li",
       "permissions": [""]
     },
-    { "type"    : "dropdown",
-      "label"   : "Еще",
-      "permissions": ["front","back","head","parguy","supervisor","director","analyst","account","admin","programman"],
-      "screens" : [
-        { "name"  : "vin",
-          "label" : "Обновление базы VIN",
-          "type"  : "li",
-          "permissions": ["head","admin","programman","supervisor","analyst"]
-        },
-        { "name"  : "partner",
-          "label" : "Редактирование партнёров",
-          "type"  : "li",
-          "permissions": ["head","parguy","programman","supervisor","analyst"]
-        },
-        { "name"  : "reports",
-          "label" : "Отчёты",
-          "type"  : "li",
-          "permissions": ["front","back","head","parguy","supervisor","director","analyst","account","admin","programman"]
-        },
-        { "name"  : "newVin",
-          "label" : "Редактирование VIN",
+    { "type": "dropdown",
+      "label": "Супервизор",
+      "permissions": ["head","supervisor","admin","programman"],
+      "screens": [
+        { "name"  : "supervisor",
+          "label" : "Действия",
           "type"  : "li",
           "permissions": ["head","supervisor","admin","programman"]
         },
-        { "name"  : "supervisor",
-          "label" : "Супервизор",
+        { "name"  : "supervisorOps",
+          "label" : "Операторы",
           "type"  : "li",
           "permissions": ["head","supervisor","admin","programman"]
         },
@@ -53,6 +38,12 @@
           "label" : "Редактирование шаблонов смс",
           "type" : "li",
           "permissions" : ["head", "supervisor", "admin", "programman"]
+        },
+        {
+          "name" : "contracts",
+          "label" : "Генератор договоров",
+          "type" : "li",
+          "permissions" : ["head", "admin"]
         }
       ]
     },
@@ -78,6 +69,32 @@
           "label": "Front Office",
           "type": "li",
           "permissions": ["head", "supervisor", "admin", "programman"]
+        }
+      ]
+    },
+    { "type"    : "dropdown",
+      "label"   : "Еще",
+      "permissions": ["front","back","head","parguy","supervisor","director","analyst","account","admin","programman"],
+      "screens" : [
+        { "name"  : "vin",
+          "label" : "Обновление базы VIN и партнёров",
+          "type"  : "li",
+          "permissions": ["head","admin","programman","supervisor","analyst"]
+        },
+        { "name"  : "partner",
+          "label" : "Редактирование партнёров",
+          "type"  : "li",
+          "permissions": ["head","parguy","programman","supervisor","analyst"]
+        },
+        { "name"  : "reports",
+          "label" : "Отчёты",
+          "type"  : "li",
+          "permissions": ["front","back","head","parguy","supervisor","director","analyst","account","admin","programman"]
+        },
+        { "name"  : "newVin",
+          "label" : "Редактирование VIN",
+          "type"  : "li",
+          "permissions": ["head","supervisor","admin","programman"]
         }
       ]
     }

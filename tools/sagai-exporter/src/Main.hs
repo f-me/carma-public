@@ -20,7 +20,6 @@ import qualified Data.ByteString.Lazy.Char8 as BSL
 import Data.Aeson
 import Data.Either
 import Data.Maybe
-import Data.Functor
 import Data.Dict as D
 import qualified Data.Map as M
 import qualified Data.Text as T
@@ -162,10 +161,6 @@ programName :: String
 programName = "sagai-exporter"
 
 
-dictionariesMethod :: String
-dictionariesMethod = "cfg/dictionaries"
-
-
 wazzupName :: String
 wazzupName = "Wazzup"
 
@@ -175,17 +170,10 @@ loadWazzup :: Either Int FilePath
            -- ^ CaRMa port or local file path.
            -> IO (Maybe Dict)
 loadWazzup (Right fp) = loadDict fp
-loadWazzup (Left cp)  = do
-  rs <- simpleHTTP $ getRequest $ methodURI cp dictionariesMethod
-  rsb <- getResponseBody rs
-  -- Read server response into Map ByteString Value, since carma-dict
-  -- does not support multi-level dictionaries yet
-  let dicts = decode' $ BSL.pack $ rsb :: Maybe (M.Map String Value)
-  return $ case M.lookup wazzupName <$> dicts of
-    Just (Just v) -> decode' $ encode v
-    _             -> Nothing
+loadWazzup (Left cp)  = readDictionary cp wazzupName
 
 
+-- | Attempt to fetch a list of cases to be exported from CaRMa.
 fetchPSACaseNumbers :: Int -> IO (Maybe [Int])
 fetchPSACaseNumbers cp = do
   rs <- simpleHTTP $ getRequest $ methodURI cp "psaCases"

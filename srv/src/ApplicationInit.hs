@@ -35,6 +35,7 @@ import ApplicationHandlers
 import AppHandlers.ActionAssignment
 import AppHandlers.CustomSearches
 import AppHandlers.PSA
+import AppHandlers.ContractGenerator
 ----------------------------------------------------------------------
 import Util (readJSON)
 
@@ -65,6 +66,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/psaCases",      chkAuth . method GET    $ psaCases)
          , ("/repTowages/:id", 
                               chkAuth . method GET    $ repTowages)
+         , ("/contractGenerator",
+            chkAuth . method GET $ contractGeneratorHandler)
          , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)
          , ("/_/:model",      chkAuth . method POST   $ createHandler)
          , ("/_/:model/:id",  chkAuth . method GET    $ readHandler)
@@ -72,16 +75,20 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/_/:model/:id",  chkAuth . method DELETE $ deleteHandler)
          , ("/_/findOrCreate/:model/:id",
                               chkAuth . method POST $ findOrCreateHandler)
-         , ("/_/report/",     chkAuth . method POST $ createReportHandler)
+         , ("/_/report/",     chkAuth . method POST   $ createReportHandler)
          , ("/_/report/:id",  chkAuth . method DELETE $ deleteReportHandler)
+         , ("/_/contract/",     chkAuth . method POST   $ createContractHandler)
+         , ("/_/contract/:id",  chkAuth . method DELETE $ deleteContractHandler)
          , ("/search/:model", chkAuth . method GET  $ searchHandler)
          , ("/rkc",           chkAuth . method GET  $ rkcHandler)
-         , ("/rkc/weather", chkAuth . method GET $ rkcWeatherHandler)
-         , ("/rkc/front", chkAuth . method GET $ rkcFrontHandler)
-         , ("/rkc/partners", chkAuth . method GET $ rkcPartners)
+         , ("/rkc/weather",   chkAuth . method GET $ rkcWeatherHandler)
+         , ("/rkc/front",     chkAuth . method GET $ rkcFrontHandler)
+         , ("/rkc/partners",  chkAuth . method GET $ rkcPartners)
          , ("/arc/:year/:month", chkAuth . method GET $ arcReportHandler)
          , ("/usersDict",     chkAuth . method GET  $ getUsersDict)
+         , ("/userMeta/:usr", chkAuth . method PUT  $ setUserMeta)
          , ("/activeUsers",   chkAuth . method GET  $ getActiveUsers)
+         , ("/partner/upload",   chkAuth . method POST $ partnerUploadData)
          , ("/vin/upload",    chkAuth . method POST $ vinUploadData)
          , ("/vin/state",     chkAuth . method GET  $ vinStateRead)
          , ("/vin/state",     chkAuth . method POST $ vinStateRemove)
@@ -126,12 +133,13 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
                       , asRememberPeriod = Just (rmbPer * 24 * 60 * 60)}
                                session authDb
   logdUsrs <- liftIO $ newTVarIO Map.empty
-  !allUsrs <- liftIO $ readJSON authDb
+  let allUsrs = readJSON authDb
 
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
 
   runtimeFlags <- liftIO $ newTVarIO Set.empty
-  d <- nestSnaplet "db" db $ initDbLayer authMgr allUsrs runtimeFlags "resources/site-config"
+  !allU <- liftIO allUsrs
+  d <- nestSnaplet "db" db $ initDbLayer authMgr allU runtimeFlags "resources/site-config"
 
   -- init PostgreSQL connection pool that will be used for searching only
   let lookupCfg nm = lookupDefault (error $ show nm) cfg nm
