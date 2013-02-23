@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 module Snaplet.FileUpload ( fileUploadInit
-                          , FileUpload
+                          , FileUpload(..)
                           , doUpload'
                           , doDeleteAll'
                           )
