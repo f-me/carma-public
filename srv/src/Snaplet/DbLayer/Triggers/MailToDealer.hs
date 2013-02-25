@@ -105,10 +105,12 @@ sendMailToDealer actionId = do
       when (dealerId /= "") $ do
         dealer'sMail <- get dealerId "closeTicketEmail"
         when (dealer'sMail /= "") $ do
-          sendMailActually caseId dealer'sMail
+          sendMailActually actionId caseId dealer'sMail
 
-sendMailActually :: MonadTrigger m b => ByteString -> ByteString -> m b ()
-sendMailActually caseId addrTo = do
+sendMailActually
+  :: MonadTrigger m b
+  => ByteString -> ByteString -> ByteString -> m b ()
+sendMailActually actId caseId addrTo = do
   cfg <- liftDb getSnapletUserConfig
   cfgFrom <- liftIO $ require cfg "psa-smtp-from"
   let cfgTo = T.decodeUtf8 addrTo `T.append` ",anton@formalmethods.ru"
@@ -118,6 +120,7 @@ sendMailActually caseId addrTo = do
   let body = Part "text/html; charset=utf-8"
         QuotedPrintableText Nothing [] (render varMap mailTemplate)
 
+  let subj = "Доставлена машина на ремонт / " `T.append` T.decodeUtf8 actId
   l <- liftDb askLog
   -- NB. notice `forkIO` below
   -- it also saves us from exceptions thrown while sending an e-mail
@@ -126,7 +129,7 @@ sendMailActually caseId addrTo = do
     $ renderSendMailCustom "/usr/sbin/exim" ["-t", "-r", T.unpack cfgFrom]
     $ (emptyMail $ Address Nothing cfgFrom)
         {mailTo = map (Address Nothing . T.strip) $ T.splitOn "," cfgTo
-        ,mailHeaders = [("Subject", "Доставлена машина на ремонт")]
+        ,mailHeaders = [("Subject", subj)]
         ,mailParts = [[body]]
         }
 
