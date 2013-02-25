@@ -105,13 +105,13 @@ sendMailToDealer actionId = do
       when (dealerId /= "") $ do
         dealer'sMail <- get dealerId "closeTicketEmail"
         when (dealer'sMail /= "") $ do
-          sendMailActually caseId
+          sendMailActually caseId dealer'sMail
 
-sendMailActually :: MonadTrigger m b => ByteString -> m b ()
-sendMailActually caseId = do
+sendMailActually :: MonadTrigger m b => ByteString -> ByteString -> m b ()
+sendMailActually caseId addrTo = do
   cfg <- liftDb getSnapletUserConfig
   cfgFrom <- liftIO $ require cfg "psa-smtp-from"
-  let cfgTo = "jorpic@gmail.com,anton@formalmethods.ru"
+  let cfgTo = T.decodeUtf8 addrTo `T.append` ",anton@formalmethods.ru"
 
   varMap <- fillVars caseId
 
