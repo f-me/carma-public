@@ -29,7 +29,6 @@ import           Data.Maybe
 import qualified Data.Map as Map
 import           Data.String (fromString)
 import qualified Data.ByteString.Char8 as B
-import qualified Data.ByteString.UTF8  as U
 import           Data.ByteString.Lazy (toStrict)
 import           Data.Aeson as Aeson
 
@@ -43,6 +42,7 @@ import           Database.PostgreSQL.Simple.SqlQQ
 import           Application
 import           AppHandlers.Util
 import qualified Snaplet.DbLayer as DB
+import qualified Util as U (bToString)
 
 q = [sql|
      SELECT
@@ -80,7 +80,7 @@ contractGeneratorHandler = do
                    , t
                    ]
   (e, out, err) <- liftIO $
-                   readProcessWithExitCode "fill-pdf.sh" [U.toString p, "-"] $
+                   readProcessWithExitCode "fill-pdf.sh" [U.bToString p, "-"] $
                    toStrict $ Aeson.encode $ head m
   case e of
     ExitSuccess   -> do

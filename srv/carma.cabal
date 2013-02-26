@@ -70,6 +70,7 @@ Executable carma
     heist                       == 0.11.*,
     hformat                     == 0.1.*,
     HTTP                        == 4000.2.*,
+    iconv                       == 0.4.*,
     lens                        == 3.8.*,
     MissingH                    == 1.2.*,
     MonadCatchIO-transformers   >= 0.2 && < 0.4,
@@ -93,9 +94,8 @@ Executable carma
     time                        >= 1.1 && < 1.5,
     transformers                >= 0.2 && < 0.4,
     unordered-containers,
-    utf8-string,
     vector                      == 0.10.*,
-    vin-parser                  >= 0.2.0.0 && < 0.3,
+    vin-parser                  >= 0.2.0.1 && < 0.3,
     weather-api                 >= 0.4.1,
     xlsx                        >= 0.0.2.1 && < 0.1,
     process-extras              == 0.2.*

@@ -13,6 +13,7 @@ module Util
   ,printBPrice
   ,getCostField
   ,upCaseName
+  ,bToString
   ) where
 
 import qualified Data.Map as Map
@@ -31,6 +32,7 @@ import qualified Data.ByteString.Lex.Double as B
 import Data.String
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 
 import Data.Aeson as Aeson
 import Data.Aeson.TH
@@ -166,6 +168,9 @@ printPrice :: Double -> String
 printPrice p = printf "%.2f" p
 printBPrice :: Double -> ByteString
 printBPrice p = B.pack $ printPrice p
+
+bToString :: ByteString -> String
+bToString = T.unpack . T.decodeUtf8
 
 upCaseName :: Text -> Text
 upCaseName = T.unwords . map upCaseWord . T.words
