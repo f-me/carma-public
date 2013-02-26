@@ -12,13 +12,14 @@ import Control.Exception (SomeException)
 import Control.Concurrent (myThreadId)
 import Control.Concurrent.STM
 
-import Data.Text.Lazy (toStrict)
-import Data.Text.Lazy.Encoding (decodeUtf8)
+import Codec.Text.IConv as IConv
+
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
-import qualified Data.ByteString.Lazy as B (toStrict)
+import qualified Data.ByteString.Lazy as LB
 import qualified Data.Aeson as Aeson
 import Data.List
 import Data.Map (Map)
@@ -502,7 +503,8 @@ vinStateRemove = scope "vin" $ scope "state" $ scope "remove" $ do
 
 
 -- | Upload a CSV file and update the partner database, serving a
--- report back to the client.
+-- report back to the client. CP-1251 to UTF-8 conversion is performed
+-- prior to processing, and vice versa when the result is served.
 --
 -- (carma-partner-import package interface).
 partnerUploadData :: AppHandler ()
@@ -510,20 +512,32 @@ partnerUploadData = scope "partner" $ scope "upload" $ do
   carmaPort <- rqServerPort <$> getRequest
   finishedPath <- with fileUpload $ gets finished
   tmpPath <- with fileUpload $ gets tmp
-  (tmpName, _) <- liftIO $ openTempFile tmpPath "pimp.csv"
+  (tmpName, _) <- liftIO $ openTempFile tmpPath "last-pimp.csv"
 
   log Trace "Uploading data"
   (fileName:_) <- with fileUpload $ doUpload' "report" "upload" "data"
 
   let inPath = finishedPath </> "report" </> "upload" </> "data" </> fileName
+      inUtfPath = inPath ++ ".utf8"
       outPath = tmpPath </> tmpName
+      outUtfPath = outPath ++ ".utf8"
+      
   log Trace $ T.pack $ "Input file " ++ inPath
   log Trace $ T.pack $ "Output file " ++ outPath
+
+  log Trace "Recoding input to UTF-8"
+  liftIO $ ((IConv.convert "CP1251" "UTF-8") <$>
+            (LB.readFile inPath))
+             >>= LB.writeFile inUtfPath
 
   log Trace "Loading dictionaries from CaRMa"
   Just dicts <- liftIO $ loadIntegrationDicts $ Left carmaPort
   log Trace "Processing data"
-  liftIO $ processData carmaPort inPath outPath dicts
+  liftIO $ processData carmaPort inUtfPath outUtfPath dicts
+  log Trace "Recoding result to CP1251"
+  liftIO $ ((IConv.convert "UTF-8" "CP1251") <$>
+            (LB.readFile outUtfPath))
+             >>= LB.writeFile outPath
   log Trace "Serve processing report"
   serveFileAs "text/csv" outPath
 
@@ -605,7 +619,7 @@ errorsHandler = do
   l <- gets feLog
   r <- readRequestBody 4096
   liftIO $ withLog l $ scope "frontend" $ do
-  log Info $ toStrict $ decodeUtf8 r
+  log Info $ T.toStrict $ T.decodeUtf8 r
 
 logReq :: Aeson.ToJSON v => v -> AppHandler ()
 logReq commit  = do
@@ -615,7 +629,7 @@ logReq commit  = do
   let params = rqParams r
       uri    = rqURI r
       rmethod = rqMethod r
-  scope "detail" $ scope "req" $ log Trace $ T.decodeUtf8 $ B.toStrict $ Aeson.encode $ object [
+  scope "detail" $ scope "req" $ log Trace $ T.decodeUtf8 $ LB.toStrict $ Aeson.encode $ object [
     "threadId" .= show thId,
     "request" .= object [
       "user" .= user,
@@ -630,7 +644,7 @@ logResp act = runAct `catch` logFail where
     r' <- act
     scope "detail" $ scope "resp" $ do
       thId <- liftIO myThreadId
-      log Trace $ T.decodeUtf8 $ B.toStrict $ Aeson.encode $ object [
+      log Trace $ T.decodeUtf8 $ LB.toStrict $ Aeson.encode $ object [
         "threadId" .= show thId,
         "response" .= r']
       writeJSON r'
@@ -638,7 +652,7 @@ logResp act = runAct `catch` logFail where
   logFail e = do
     scope "detail" $ scope "resp" $ do
       thId <- liftIO myThreadId
-      log Trace $ T.decodeUtf8 $ B.toStrict $ Aeson.encode $ object [
+      log Trace $ T.decodeUtf8 $ LB.toStrict $ Aeson.encode $ object [
         "threadId" .= show thId,
         "response" .= object ["error" .= show e]]
     throw e
