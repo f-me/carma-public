@@ -33,18 +33,6 @@ define ["text!tpl/screens/vin.html", "utils"], (tpl, u) ->
 
   u.build_global_fn 'removeVinAlert', ['screens/vin']
 
-  this.doPartner = ->
-    form     = $el("partner-import-form")[0]
-    formData = new FormData(form)
-
-    $.ajax(
-      type        : "POST"
-      url         : "/partner/upload"
-      data        : formData
-      contentType : false
-      processData : false
-      ).done((msg)-> alert("Done: " + msg))
-
   { constructor: setupVinForm
   , template: tpl
   }

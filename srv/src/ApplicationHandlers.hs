@@ -34,6 +34,8 @@ import Data.Time
 
 import Data.Aeson (object, (.=))
 
+import System.FilePath
+import System.IO
 import System.Locale
 
 import Snap
@@ -41,19 +43,19 @@ import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.SimpleLog
 import Snap.Snaplet.Vin
-import Snap.Util.FileServe (serveFile)
-
-import WeatherApi (getWeather', tempC, Config)
+import Snap.Util.FileServe (serveFile, serveFileAs)
 ------------------------------------------------------------------------------
+import Carma.Partner
+import WeatherApi (getWeather', tempC, Config)
+-----------------------------------------------------------------------------
 import qualified Snaplet.DbLayer as DB
 import qualified Snaplet.DbLayer.Types as DB
 import qualified Snaplet.DbLayer.ARC as ARC
 import qualified Snaplet.DbLayer.RKC as RKC
 import qualified Snaplet.DbLayer.Dictionary as Dict
-import Snaplet.FileUpload (doUpload', doDeleteAll')
+import Snaplet.FileUpload (finished, tmp, doUpload', doDeleteAll')
 ------------------------------------------------------------------------------
 import qualified Nominatim
------------------------------------------------------------------------------
 import Application
 import AppHandlers.Util
 import Util as U
@@ -424,6 +426,28 @@ deleteReportHandler = do
   with db $ DB.delete "report" objId
   with fileUpload $ doDeleteAll' "report" $ U.bToString objId
 
+createContractHandler :: AppHandler ()
+createContractHandler = do
+  res <- with db $ DB.create "contract" $ Map.empty
+  let Just objId = Map.lookup "id" res
+  f:_ <- with fileUpload
+      $ doUpload' "contract" (bToString objId) "templates"
+  Just name  <- getParam "name"
+  -- we have to update all model params after fileupload,
+  -- because in multipart/form-data requests we do not have
+  -- params as usual, see Snap.Util.FileUploads.setProcessFormInputs
+  with db $ DB.update "contract" objId $
+    Map.fromList [ ("templates", fromString f)
+                 , ("name",      name) ]
+  redirect "/#contracts"
+
+deleteContractHandler :: AppHandler ()
+deleteContractHandler = do
+  Just objId  <- getParam "id"
+  with db $ DB.delete "contract" objId
+  with fileUpload $ doDeleteAll' "contract" $ bToString objId
+  return ()
+
 getUsersDict :: AppHandler ()
 getUsersDict = gets allUsers >>= liftIO >>= writeJSON
 
@@ -475,6 +499,34 @@ vinStateRemove = scope "vin" $ scope "state" $ scope "remove" $ do
   res <- getParam "id"
   log Trace $ T.concat ["id: ", maybe "<null>" (T.pack . show) res]
   with vin removeAlert
+
+
+-- | Upload a CSV file and update the partner database, serving a
+-- report back to the client.
+--
+-- (carma-partner-import package interface).
+partnerUploadData :: AppHandler ()
+partnerUploadData = scope "partner" $ scope "upload" $ do
+  carmaPort <- rqServerPort <$> getRequest
+  finishedPath <- with fileUpload $ gets finished
+  tmpPath <- with fileUpload $ gets tmp
+  (tmpName, _) <- liftIO $ openTempFile tmpPath "pimp.csv"
+
+  log Trace "Uploading data"
+  (fileName:_) <- with fileUpload $ doUpload' "report" "upload" "data"
+
+  let inPath = finishedPath </> "report" </> "upload" </> "data" </> fileName
+      outPath = tmpPath </> tmpName
+  log Trace $ T.pack $ "Input file " ++ inPath
+  log Trace $ T.pack $ "Output file " ++ outPath
+
+  log Trace "Loading dictionaries from CaRMa"
+  Just dicts <- liftIO $ loadIntegrationDicts $ Left carmaPort
+  log Trace "Processing data"
+  liftIO $ processData carmaPort inPath outPath dicts
+  log Trace "Serve processing report"
+  serveFileAs "text/csv" outPath
+
 
 getSrvTarifOptions :: AppHandler ()
 getSrvTarifOptions = do

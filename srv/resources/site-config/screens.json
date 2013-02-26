@@ -38,6 +38,12 @@
           "label" : "Редактирование шаблонов смс",
           "type" : "li",
           "permissions" : ["head", "supervisor", "admin", "programman"]
+        },
+        {
+          "name" : "contracts",
+          "label" : "Генератор договоров",
+          "type" : "li",
+          "permissions" : ["head", "admin"]
         }
       ]
     },
@@ -71,7 +77,7 @@
       "permissions": ["front","back","head","parguy","supervisor","director","analyst","account","admin","programman"],
       "screens" : [
         { "name"  : "vin",
-          "label" : "Обновление базы VIN",
+          "label" : "Обновление базы VIN и партнёров",
           "type"  : "li",
           "permissions": ["head","admin","programman","supervisor","analyst"]
         },
