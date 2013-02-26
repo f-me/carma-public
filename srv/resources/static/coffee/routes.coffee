@@ -11,12 +11,28 @@ define [
   "screens/supervisorOps"
   "screens/vin"
   "screens/report"
+  "screens/contract"
   "screens/editVin"
   "screens/newVin"
   "screens/editSms"
   "render/screen"
-  ], ( bo, call, kase, partner, print, rkc, rkcFront, rkcOps
-     , supervisor, supervisorOps, vin, report, editVin, newVin, editSms, r) ->
+  ], ( bo
+     , call
+     , kase
+     , partner
+     , print
+     , rkc
+     , rkcFront
+     , rkcOps
+     , supervisor
+     , supervisorOps
+     , vin
+     , report
+     , contract
+     , editVin
+     , newVin
+     , editSms
+     , r) ->
     localScreens: ->
       "case":
         "template": "case-screen-template"
@@ -67,6 +83,10 @@ define [
         "template": "reports-screen-template"
         "views":
           "reports": report
+      "contracts":
+        "template": "contract-screen-template"
+        "views":
+          "contracts": contract
       "newVin":
         "template": "newVin-screen-template"
       "editVin":
@@ -94,6 +114,7 @@ define [
         "call/:id"       : "loadCall"
         "call"           : "call"
         "reports"        : "reports"
+        "contracts"      : "contracts"
         "partner"        : "newPartner"
         "partner/:id"    : "loadPartner"
         "editVin/:id"    : "editVin"
@@ -116,6 +137,7 @@ define [
       loadCall      : (id) -> r.renderScreen("call", call, {"id": id})
       call          :      -> r.renderScreen("call", call, {"id": null})
       reports       :      -> r.renderScreen("reports", report)
+      contracts     :      -> r.renderScreen("contracts", contract)
       editVin       : (id) -> r.renderScreen("editVin", editVin, {"id": id})
       newVin        :      -> r.renderScreen("newVin", newVin, {"id": null})
       supervisor    :      -> r.renderScreen("supervisor", supervisor)

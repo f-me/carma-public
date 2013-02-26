@@ -1,7 +1,7 @@
 
 module Snaplet.FileUpload
   ( fileUploadInit
-  , FileUpload
+  , FileUpload(..)
   , doUpload'
   , doDeleteAll'
   ) where
