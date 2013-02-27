@@ -659,16 +659,53 @@ logResp act = runAct `catch` logFail where
         "response" .= object ["error" .= show e]]
     throw e
 
+
+localRole :: Role
+localRole = Role "local"
+
+
 ------------------------------------------------------------------------------
 -- | Deny requests from non-local unauthorized users.
 chkAuth :: AppHandler () -> AppHandler ()
-chkAuth f = do
+chkAuth f = chkAuthRoles (hasAnyOfRoles [localRole]) f
+
+
+------------------------------------------------------------------------------
+-- | A predicate for a list of user roles.
+type RoleChecker = [Role] -> Bool
+
+
+------------------------------------------------------------------------------
+-- | Pass only requests from local users or non-local users with a
+-- specific set of roles.
+chkAuthRoles :: RoleChecker
+             -- ^ Check succeeds if user roles satisfy this predicate.
+             -> AppHandler () -> AppHandler ()
+chkAuthRoles roleCheck handler = do
   req <- getRequest
   if rqRemoteAddr req /= rqLocalAddr req
   then with auth currentUser >>= maybe
-      (handleError 401)
-      (\u -> addToLoggedUsers u >> f)
-  else f
+       (handleError 401)
+       (\u -> if roleCheck $ userRoles u
+              then handler
+              else handleError 401)
+  else handler
+
+
+------------------------------------------------------------------------------
+-- | Produce a predicate which matches any list of roles
+alwaysPass :: [Role] -> RoleChecker
+alwaysPass = const . const True
+
+
+hasAnyOfRoles :: [Role] -> RoleChecker
+hasAnyOfRoles authRoles =
+    \userRoles -> any (flip elem authRoles) userRoles
+
+
+hasNoneOfRoles :: [Role] -> RoleChecker
+hasNoneOfRoles authRoles =
+    \userRoles -> not $ any (flip elem authRoles) userRoles
 
 
 handleError :: MonadSnap m => Int -> m ()
