@@ -15,6 +15,7 @@ define [
   "screens/editVin"
   "screens/newVin"
   "screens/editSms"
+  "screens/program"
   "render/screen"
   ], ( bo
      , call
@@ -32,6 +33,7 @@ define [
      , editVin
      , newVin
      , editSms
+     , program
      , r) ->
     localScreens: ->
       "case":
@@ -101,6 +103,10 @@ define [
         "template": "printSrv-screen-template"
         "views":
           "print-table": print
+      "program":
+        "template": "program-screen-template"
+        "views":
+          "program-view": program
 
     # Setup routing
     localRouter: Backbone.Router.extend
@@ -125,6 +131,7 @@ define [
         "rkcOps"         : "rkcOps"
         "rkcFront"       : "rkcFront"
         "editSms"        : "editSms"
+        "program"        : "program"
         "printSrv/:model/:id" : "printSrv"
 
       loadCase      : (id) -> r.renderScreen("case", kase, {"id": id})
@@ -146,5 +153,6 @@ define [
       rkcOps        :      -> r.renderScreen("rkcOps", rkcOps)
       rkcFront      :      -> r.renderScreen("rkcFront", rkcFront)
       editSms       :      -> r.renderScreen("editSms", editSms)
+      program       :      -> r.renderScreen("program", program)
       printSrv      : (model, id) ->
         renderScreen "printSrv", print, {model: model, id: id}
