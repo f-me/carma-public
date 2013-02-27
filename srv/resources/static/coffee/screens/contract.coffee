@@ -1,43 +1,39 @@
-define ["utils", "text!tpl/screens/contract.html"], (utils, tpl) ->
-  setupContracts = (viewName, args) ->
-    $.getJSON "/all/contract", (contracts) ->
-      for r in contracts
-        r.name = '' unless r.name?
-        r.templates = '' unless r.templates?
-        r.id = (r.id.split ':')[1]
-      global.contracts = contracts
-      ko.applyBindings(global.contracts, el "layout" )
-      utils.mkDataTable $('#contracts-table'), { sScrollY: '400px' }
+define [
+    "utils",
+    "model/main",
+    "text!tpl/screens/contract.html"],
+  (utils, main, tpl) ->
+    template: tpl
+    constructor: (viewName, args) ->
+      setupModel = (args) ->
+        main.modelSetup("contract")(
+          viewName, args || {"id": null},
+            permEl: "contract-permissions"
+            focusClass: "focusable"
+            refs: []
+        )
 
-      d1 = new Date
-      d1.setDate 1
-      d2 = new Date
+      setupModel args
+      setTimeout ->
+        $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
+        $.fn.dataTableExt.oStdClasses.sFilter = "dataTables_filter form-inline"
 
-      $('#date-from').val (d1.toString 'dd.MM.yyyy')
-      $('#date-to').val (d2.toString 'dd.MM.yyyy')
+        t = $("#contracts-table")
+        return if t.hasClass("dataTable")
 
-  deleteReport = (e) ->
-    return unless confirm "Вы уверены, что хотите удалить отчет?"
-    objId = $(e).parents('tr').attr('id')
-    $.ajax
-      'type'     : 'DELETE'
-      'url'      : "/_/contract/#{objId}"
-      'success'  : -> forgetScreen(); renderScreen("contracts")
-      'error'    : (xhr) -> console.log xhr; alert 'error'
+        t.on("click.datatable", "tr", ->
+          id = this.children[0].innerText
+          setupModel {"id": id}
+        )
 
-  checkReportUniq = (ev) ->
-    ev.preventDefault()
-    name = $('#add-report input[name=name]').val()
-    tpl  = $('#add-report input[name=templates]').val()
-    if _.find(global.contracts, (e) -> e.name == name)
-      alert "Отчет с таким именем уже существует."
-    else if not name
-      alert "Необходимо ввести название отчета!"
-    else if not tpl
-      alert "Необходимо добавить шаблон!"
-    else
-      $('#add-report').submit()
+        dt = utils.mkDataTable t
 
-  { constructor: setupContracts
-  , template   : tpl
-  }
+        $.getJSON("/all/contract?fields=id,car_vin",
+            (objs) ->
+                dt.fnClearTable()
+                rows = for obj in objs
+                    [obj.id.split(':')[1]
+                    ,obj.car_vin || ''
+                    ]
+                dt.fnAddData(rows)
+        )
