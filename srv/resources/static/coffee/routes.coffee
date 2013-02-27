@@ -83,10 +83,10 @@ define [
         "template": "reports-screen-template"
         "views":
           "reports": report
-      "contracts":
+      "contract":
         "template": "contract-screen-template"
         "views":
-          "contracts": contract
+          "contract-form": contract
       "newVin":
         "template": "newVin-screen-template"
       "editVin":
@@ -114,7 +114,7 @@ define [
         "call/:id"       : "loadCall"
         "call"           : "call"
         "reports"        : "reports"
-        "contracts"      : "contracts"
+        "contract"       : "contract"
         "partner"        : "newPartner"
         "partner/:id"    : "loadPartner"
         "editVin/:id"    : "editVin"
@@ -137,7 +137,7 @@ define [
       loadCall      : (id) -> r.renderScreen("call", call, {"id": id})
       call          :      -> r.renderScreen("call", call, {"id": null})
       reports       :      -> r.renderScreen("reports", report)
-      contracts     :      -> r.renderScreen("contracts", contract)
+      contract      :      -> r.renderScreen("contract", contract)
       editVin       : (id) -> r.renderScreen("editVin", editVin, {"id": id})
       newVin        :      -> r.renderScreen("newVin", newVin, {"id": null})
       supervisor    :      -> r.renderScreen("supervisor", supervisor)
