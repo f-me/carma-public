@@ -16,6 +16,8 @@ import Codec.Text.IConv as IConv
 
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import qualified Data.Text.Lazy as LT
+import qualified Data.Text.Lazy.Encoding as LT
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
@@ -619,7 +621,7 @@ errorsHandler = do
   l <- gets feLog
   r <- readRequestBody 4096
   liftIO $ withLog l $ scope "frontend" $ do
-  log Info $ T.toStrict $ T.decodeUtf8 r
+  log Info $ LT.toStrict $ LT.decodeUtf8 r
 
 logReq :: Aeson.ToJSON v => v -> AppHandler ()
 logReq commit  = do
