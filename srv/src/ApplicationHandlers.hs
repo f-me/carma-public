@@ -687,8 +687,8 @@ chkAuthRoles roleCheck handler = do
   then with auth currentUser >>= maybe
        (handleError 401)
        (\u -> if roleCheck $ userRoles u
-              then handleError 401
-              else handler)
+              then handler
+              else handleError 401)
   else handler
 
 
