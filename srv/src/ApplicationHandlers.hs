@@ -671,6 +671,33 @@ chkAuth f = do
   else f
 
 
+------------------------------------------------------------------------------
+-- | Pass only requests from local users or non-local users with a
+-- specific set of roles.
+chkAuthRoles :: ([Role] -> Bool)
+             -- ^ Check succeeds if user roles satisfy this predicate.
+             -> AppHandler () -> AppHandler ()
+chkAuthRoles roleCheck handler = do
+  req <- getRequest
+  if rqRemoteAddr req /= rqLocalAddr req
+  then with auth currentUser >>= maybe
+       (handleError 401)
+       (\u -> if roleCheck $ userRoles u
+              then handleError 401
+              else handler)
+  else handler
+
+
+anyOfRoles :: [Role] -> ([Role] -> Bool)
+anyOfRoles authRoles =
+    \userRoles -> any (flip elem authRoles) userRoles
+
+
+noneOfRoles :: [Role] -> ([Role] -> Bool)
+noneOfRoles authRoles =
+    \userRoles -> not $ any (flip elem authRoles) userRoles
+
+
 handleError :: MonadSnap m => Int -> m ()
 handleError err = do
     modifyResponse $ setResponseCode err
