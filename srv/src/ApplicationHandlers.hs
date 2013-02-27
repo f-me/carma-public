@@ -621,7 +621,10 @@ errorsHandler = do
   l <- gets feLog
   r <- readRequestBody 4096
   liftIO $ withLog l $ scope "frontend" $ do
-  log Info $ LT.toStrict $ LT.decodeUtf8 r
+  log Info $ lb2t' r
+
+lb2t' :: LB.ByteString -> T.Text
+lb2t' = T.decodeUtf8With T.lenientDecode . LB.toStrict
 
 logReq :: Aeson.ToJSON v => v -> AppHandler ()
 logReq commit  = do
@@ -631,7 +634,7 @@ logReq commit  = do
   let params = rqParams r
       uri    = rqURI r
       rmethod = rqMethod r
-  scope "detail" $ scope "req" $ log Trace $ T.decodeUtf8 $ LB.toStrict $ Aeson.encode $ object [
+  scope "detail" $ scope "req" $ log Trace $ lb2t' $ Aeson.encode $ object [
     "threadId" .= show thId,
     "request" .= object [
       "user" .= user,
@@ -646,7 +649,7 @@ logResp act = runAct `catch` logFail where
     r' <- act
     scope "detail" $ scope "resp" $ do
       thId <- liftIO myThreadId
-      log Trace $ T.decodeUtf8 $ LB.toStrict $ Aeson.encode $ object [
+      log Trace $ lb2t' $ Aeson.encode $ object [
         "threadId" .= show thId,
         "response" .= r']
       writeJSON r'
@@ -654,7 +657,7 @@ logResp act = runAct `catch` logFail where
   logFail e = do
     scope "detail" $ scope "resp" $ do
       thId <- liftIO myThreadId
-      log Trace $ T.decodeUtf8 $ LB.toStrict $ Aeson.encode $ object [
+      log Trace $ lb2t' $ Aeson.encode $ object [
         "threadId" .= show thId,
         "response" .= object ["error" .= show e]]
     throw e
