@@ -32,13 +32,11 @@ define ["model/utils"], (mu) ->
   # args: id - id of datatable element
   # to: id of element where href will be set
   # fname is not working, don't know why
-  window.dt2csv = (id, to, fname = "table.csv") ->
+  window.dt2csv = (id, to) ->
     m = $("##{id} tr").map (i,e) -> $(e).children().map (i,e) -> $(e).text()
     s = ($.map m[1..-1], (e, i) -> $.makeArray(e).join(';')).join "\n"
     $("##{to}").attr 'href',
       " data:application/octet-stream
-      ; charset=utf-8
-      ; download=\"#{fname}\"
       ; base64
       , #{Base64.encode s}"
     s
