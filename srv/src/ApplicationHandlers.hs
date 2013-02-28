@@ -16,6 +16,7 @@ import Codec.Text.IConv as IConv
 
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import qualified Data.Text.Encoding.Error as T
 import qualified Data.Text.Lazy as LT
 import qualified Data.Text.Lazy.Encoding as LT
 
