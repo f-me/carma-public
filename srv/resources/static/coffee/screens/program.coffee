@@ -32,7 +32,6 @@ define [ "model/main"
             rows = for obj in objs
                 [obj.id.split(':')[1]
                 ,obj.label   || ''
-                ,obj.value   || ''
                 ]
             dt.fnAddData(rows)
 
