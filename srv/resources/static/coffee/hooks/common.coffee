@@ -1,5 +1,5 @@
 define ["utils", "dictionaries"], (u, dictionary) ->
-  distanceQuery = (coord1, coord2) -> stripWs "/geo/distance/#{coord1}/#{coord2}/"
+  distanceQuery = (coord1, coord2) -> u.stripWs "/geo/distance/#{coord1}/#{coord2}/"
 
   # Transform distance in meters to km
   formatDistance = (dist) -> Math.round ((parseInt dist) / 1000)

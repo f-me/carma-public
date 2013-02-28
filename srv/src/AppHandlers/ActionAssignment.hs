@@ -6,6 +6,7 @@ import Control.Monad
 import Control.Applicative
 import Data.String (fromString)
 
+import Data.List (intercalate)
 import qualified Data.HashMap.Strict as HashMap
 import qualified Data.Map as Map
 import Data.Text (Text)
@@ -36,7 +37,7 @@ assignQ pri usr logdUsers = fromString
   ++ "    AND svc.type::text = substring(act.parentId, '(.*):')"
   ++ "    AND priority = '" ++ show pri ++ "'"
   ++ "    AND duetime at time zone 'UTC' - now() < interval '30 minutes'"
-  ++ "    AND targetGroup = '" ++ roleStr uRole ++ "'"
+  ++ "    AND targetGroup IN ('" ++ uRoles ++ "')"
   ++ "    AND (assignedTo IS NULL"
   ++ "         OR assignedTo NOT IN ('" ++ logdUsersList ++ "'))"
   ++ "    ORDER BY"
@@ -52,8 +53,7 @@ assignQ pri usr logdUsers = fromString
   ++ "  RETURNING id::text;"
   where
     uLogin = T.unpack $ userLogin usr
-    uRole  = head $ userRoles usr
-    roleStr (Role bs) = B.unpack bs
+    uRoles = intercalate "','" [B.unpack r | Role r <- userRoles usr]
     logdUsersList = T.unpack $ T.intercalate "','" logdUsers
     mkSet = T.unpack . T.intercalate "','" . T.split (==',')
     citySet = case HashMap.lookup "boCities" $ userMeta usr of

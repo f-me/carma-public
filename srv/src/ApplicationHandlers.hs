@@ -14,16 +14,15 @@ import Control.Concurrent.STM
 
 import Codec.Text.IConv as IConv
 
-import Data.Text.Lazy (toStrict)
-import Data.Text.Lazy.Encoding (decodeUtf8)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import qualified Data.Text.Encoding.Error as T
+import qualified Data.Text.Lazy as LT
+import qualified Data.Text.Lazy.Encoding as LT
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
-import qualified Data.ByteString.Lazy as LB (toStrict, readFile, writeFile)
-import qualified Data.ByteString.UTF8  as BU
-
+import qualified Data.ByteString.Lazy as LB
 import qualified Data.Aeson as Aeson
 import Data.List
 import Data.Map (Map)
@@ -63,7 +62,7 @@ import Snaplet.FileUpload (finished, tmp, doUpload', doDeleteAll')
 import qualified Nominatim
 import Application
 import AppHandlers.Util
-import Util
+import Util as U
 import RuntimeFlag
 
 
@@ -233,7 +232,7 @@ getFromTo = do
 
   let
     parseLocalTime :: ByteString -> Maybe LocalTime
-    parseLocalTime = parseTime defaultTimeLocale "%d.%m.%Y" . BU.toString
+    parseLocalTime = parseTime defaultTimeLocale "%d.%m.%Y" . U.bToString
 
     fromTime' = fmap (localTimeToUTC tz) (fromTime >>= parseLocalTime)
     toTime' = fmap (localTimeToUTC tz) (toTime >>= parseLocalTime)
@@ -274,8 +273,8 @@ rkcWeatherHandler = scope "rkc" $ scope "handler" $ scope "weather" $ do
         log Error "Can't read weather cities"
         return defaultCities
 
-  toRemove <- liftM (maybeToList . fmap BU.toString) $ getParam "remove"
-  toAdd <- liftM (maybeToList . fmap BU.toString) $ getParam "add"
+  toRemove <- maybeToList . fmap U.bToString <$> getParam "remove"
+  toAdd <- maybeToList . fmap U.bToString <$> getParam "add"
 
   let
     newCities = nub $ (cities ++ toAdd) \\ toRemove
@@ -413,14 +412,15 @@ report = scope "report" $ do
 createReportHandler :: AppHandler ()
 createReportHandler = do
   res <- with db $ DB.create "report" $ Map.empty
-  let objId = last $ B.split ':' $ fromJust $ Map.lookup "id" res
-  (f:_)      <- with fileUpload $ doUpload' "report" objId "templates"
+  let Just objId = Map.lookup "id" res
+  (f:_)      <- with fileUpload
+    $ doUpload' "report" (U.bToString objId) "templates"
   Just name  <- getParam "name"
   -- we have to update all model params after fileupload,
   -- because in multipart/form-data requests we do not have
   -- params as usual, see Snap.Util.FileUploads.setProcessFormInputs
   _ <- with db $ DB.update "report" objId $
-    Map.fromList [ ("templates", BU.fromString f)
+    Map.fromList [ ("templates", T.encodeUtf8 $ T.pack f)
                  , ("name",      name) ]
   redirect "/#reports"
 
@@ -428,20 +428,20 @@ deleteReportHandler :: AppHandler ()
 deleteReportHandler = do
   Just objId  <- getParam "id"
   with db $ DB.delete "report" objId
-  with fileUpload $ doDeleteAll' "report" objId
-  return ()
+  with fileUpload $ doDeleteAll' "report" $ U.bToString objId
 
 createContractHandler :: AppHandler ()
 createContractHandler = do
   res <- with db $ DB.create "contract" $ Map.empty
-  let objId = last $ B.split ':' $ fromJust $ Map.lookup "id" res
-  (f:_)      <- with fileUpload $ doUpload' "contract" objId "templates"
+  let Just objId = Map.lookup "id" res
+  f:_ <- with fileUpload
+      $ doUpload' "contract" (bToString objId) "templates"
   Just name  <- getParam "name"
   -- we have to update all model params after fileupload,
   -- because in multipart/form-data requests we do not have
   -- params as usual, see Snap.Util.FileUploads.setProcessFormInputs
-  _ <- with db $ DB.update "contract" objId $
-    Map.fromList [ ("templates", BU.fromString f)
+  with db $ DB.update "contract" objId $
+    Map.fromList [ ("templates", fromString f)
                  , ("name",      name) ]
   redirect "/#contracts"
 
@@ -449,7 +449,7 @@ deleteContractHandler :: AppHandler ()
 deleteContractHandler = do
   Just objId  <- getParam "id"
   with db $ DB.delete "contract" objId
-  with fileUpload $ doDeleteAll' "contract" objId
+  with fileUpload $ doDeleteAll' "contract" $ bToString objId
   return ()
 
 getUsersDict :: AppHandler ()
@@ -622,7 +622,10 @@ errorsHandler = do
   l <- gets feLog
   r <- readRequestBody 4096
   liftIO $ withLog l $ scope "frontend" $ do
-  log Info $ toStrict $ decodeUtf8 r
+  log Info $ lb2t' r
+
+lb2t' :: LB.ByteString -> T.Text
+lb2t' = T.decodeUtf8With T.lenientDecode . LB.toStrict
 
 logReq :: Aeson.ToJSON v => v -> AppHandler ()
 logReq commit  = do
@@ -632,7 +635,7 @@ logReq commit  = do
   let params = rqParams r
       uri    = rqURI r
       rmethod = rqMethod r
-  scope "detail" $ scope "req" $ log Trace $ T.decodeUtf8 $ LB.toStrict $ Aeson.encode $ object [
+  scope "detail" $ scope "req" $ log Trace $ lb2t' $ Aeson.encode $ object [
     "threadId" .= show thId,
     "request" .= object [
       "user" .= user,
@@ -647,7 +650,7 @@ logResp act = runAct `catch` logFail where
     r' <- act
     scope "detail" $ scope "resp" $ do
       thId <- liftIO myThreadId
-      log Trace $ T.decodeUtf8 $ LB.toStrict $ Aeson.encode $ object [
+      log Trace $ lb2t' $ Aeson.encode $ object [
         "threadId" .= show thId,
         "response" .= r']
       writeJSON r'
@@ -655,21 +658,58 @@ logResp act = runAct `catch` logFail where
   logFail e = do
     scope "detail" $ scope "resp" $ do
       thId <- liftIO myThreadId
-      log Trace $ T.decodeUtf8 $ LB.toStrict $ Aeson.encode $ object [
+      log Trace $ lb2t' $ Aeson.encode $ object [
         "threadId" .= show thId,
         "response" .= object ["error" .= show e]]
     throw e
 
+
+localRole :: Role
+localRole = Role "local"
+
+
 ------------------------------------------------------------------------------
 -- | Deny requests from non-local unauthorized users.
 chkAuth :: AppHandler () -> AppHandler ()
-chkAuth f = do
+chkAuth f = chkAuthRoles (hasAnyOfRoles [localRole]) f
+
+
+------------------------------------------------------------------------------
+-- | A predicate for a list of user roles.
+type RoleChecker = [Role] -> Bool
+
+
+------------------------------------------------------------------------------
+-- | Pass only requests from local users or non-local users with a
+-- specific set of roles.
+chkAuthRoles :: RoleChecker
+             -- ^ Check succeeds if user roles satisfy this predicate.
+             -> AppHandler () -> AppHandler ()
+chkAuthRoles roleCheck handler = do
   req <- getRequest
   if rqRemoteAddr req /= rqLocalAddr req
   then with auth currentUser >>= maybe
-      (handleError 401)
-      (\u -> addToLoggedUsers u >> f)
-  else f
+       (handleError 401)
+       (\u -> if roleCheck $ userRoles u
+              then handler
+              else handleError 401)
+  else handler
+
+
+------------------------------------------------------------------------------
+-- | Produce a predicate which matches any list of roles
+alwaysPass :: [Role] -> RoleChecker
+alwaysPass = const . const True
+
+
+hasAnyOfRoles :: [Role] -> RoleChecker
+hasAnyOfRoles authRoles =
+    \userRoles -> any (flip elem authRoles) userRoles
+
+
+hasNoneOfRoles :: [Role] -> RoleChecker
+hasNoneOfRoles authRoles =
+    \userRoles -> not $ any (flip elem authRoles) userRoles
 
 
 handleError :: MonadSnap m => Int -> m ()

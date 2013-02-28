@@ -50,20 +50,20 @@ mailTemplate = T.pack
   ++ "<p> Просим Вас предоставить дополнительную информацию, после диагностики "
   ++ "а/м в виде таблицы на электронный адрес psa@ruamc.ru :</p>"
   ++ "<table border=\"1\">"
-  ++ "  <th bgcolor=\"SkyBlue\">"
-  ++ "    <td>Код дилера</td>"
-  ++ "    <td>VIN номер автомобиля</td>"
-  ++ "    <td>Пробег а/м на момент поломки</td>"
-  ++ "    <td>Номер заказа-наряда ремонта у дилера</td>"
-  ++ "    <td>Время/Дата поступления автомобиля</td>"
-  ++ "    <td>Время/дата диагностики</td>"
-  ++ "    <td>Запланированное время/дата окончания работ</td>"
-  ++ "    <td>Реальное время/дата окончания работ</td>"
-  ++ "    <td>Гарантия / негарантия</td>"
-  ++ "    <td>Описание причины неисправности</td>"
-  ++ "    <td>Система автомобиля, в которой произошла неисправность</td>"
-  ++ "    <td>Неисправная деталь</td>"
-  ++ "  </th>"
+  ++ "  <tr bgcolor=\"SkyBlue\">"
+  ++ "    <th>Код дилера</th>"
+  ++ "    <th>VIN номер автомобиля</th>"
+  ++ "    <th>Пробег а/м на момент поломки</th>"
+  ++ "    <th>Номер заказа-наряда ремонта у дилера</th>"
+  ++ "    <th>Время/Дата поступления автомобиля</th>"
+  ++ "    <th>Время/дата диагностики</th>"
+  ++ "    <th>Запланированное время/дата окончания работ</th>"
+  ++ "    <th>Реальное время/дата окончания работ</th>"
+  ++ "    <th>Гарантия / негарантия</th>"
+  ++ "    <th>Описание причины неисправности</th>"
+  ++ "    <th>Система автомобиля, в которой произошла неисправность</th>"
+  ++ "    <th>Неисправная деталь</th>"
+  ++ "  </tr>"
   ++ "  <tr></tr><tr></tr>"
   ++ "</table>"
   ++ "<p>Заранее благодарим за своевременный ответ, в течение 24 часов.</p>"
@@ -105,19 +105,22 @@ sendMailToDealer actionId = do
       when (dealerId /= "") $ do
         dealer'sMail <- get dealerId "closeTicketEmail"
         when (dealer'sMail /= "") $ do
-          sendMailActually caseId
+          sendMailActually actionId caseId dealer'sMail
 
-sendMailActually :: MonadTrigger m b => ByteString -> m b ()
-sendMailActually caseId = do
+sendMailActually
+  :: MonadTrigger m b
+  => ByteString -> ByteString -> ByteString -> m b ()
+sendMailActually actId caseId addrTo = do
   cfg <- liftDb getSnapletUserConfig
   cfgFrom <- liftIO $ require cfg "psa-smtp-from"
-  let cfgTo = "jorpic@gmail.com,anton@formalmethods.ru"
+  let cfgTo = T.decodeUtf8 addrTo `T.append` ",anton@formalmethods.ru"
 
   varMap <- fillVars caseId
 
   let body = Part "text/html; charset=utf-8"
         QuotedPrintableText Nothing [] (render varMap mailTemplate)
 
+  let subj = "Доставлена машина на ремонт / " `T.append` T.decodeUtf8 actId
   l <- liftDb askLog
   -- NB. notice `forkIO` below
   -- it also saves us from exceptions thrown while sending an e-mail
@@ -126,7 +129,7 @@ sendMailActually caseId = do
     $ renderSendMailCustom "/usr/sbin/exim" ["-t", "-r", T.unpack cfgFrom]
     $ (emptyMail $ Address Nothing cfgFrom)
         {mailTo = map (Address Nothing . T.strip) $ T.splitOn "," cfgTo
-        ,mailHeaders = [("Subject", "Доставлена машина на ремонт")]
+        ,mailHeaders = [("Subject", subj)]
         ,mailParts = [[body]]
         }
 
