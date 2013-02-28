@@ -8,6 +8,7 @@ define [ "model/main"
     kvm = main.modelSetup("program") viewName, args,
                           permEl: "program-permissions"
                           focusClass: "focusable"
+                          slotsee: ["program-files"]
                           refs: []
 
     $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
@@ -22,6 +23,7 @@ define [ "model/main"
       kvm = main.modelSetup("program") viewName, {"id": id},
                             permEl: "program-permissions"
                             focusClass: "focusable"
+                            slotsee: ["program-files"]
                             refs: []
       k = global.viewsWare['program-view'].knockVM
 
