@@ -38,7 +38,7 @@
             "type": "dictionary-many"
         },
         {
-            "name": "contractss",
+            "name": "contracts",
             "type": "files",
             "meta": {
                 "label": "Шаблон договора"
