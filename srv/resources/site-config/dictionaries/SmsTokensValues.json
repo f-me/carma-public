@@ -150,6 +150,10 @@
                 "label": "+78002503673"
             },
             {
+                "value": "fordPlus",
+                "label": "+78002503673"
+            },
+            {
                 "value": "cadold",
                 "label": "+78002501218"
             },
@@ -187,7 +191,7 @@
             },
             {
                 "value": "Cash",
-                "label": "++74956406690"
+                "label": "+74956406690"
             },
             {
                 "value": "tickets",
@@ -260,6 +264,7 @@
             {"value": "bp", "label": "BP Assistance"},
             {"value": "chartis", "label": "Chartis"},
             {"value": "ford", "label": "Ford"},
+            {"value": "fordPlus", "label": "Ford"},
             {"value": "cadold", "label": "GM"},
             {"value": "cad2012", "label": "GM"},
             {"value": "chevyko", "label": "GM"},
@@ -426,6 +431,10 @@
             },
             {
                 "value": "ford",
+                "label": "Ford Помощь на дорогах"
+            },
+            {
+                "value": "fordPlus",
                 "label": "Ford Помощь на дорогах"
             },
             {
