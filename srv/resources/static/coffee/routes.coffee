@@ -132,6 +132,7 @@ define [
         "rkcFront"       : "rkcFront"
         "editSms"        : "editSms"
         "program"        : "program"
+        "program/:id"    : "loadProgram"
         "printSrv/:model/:id" : "printSrv"
 
       loadCase      : (id) -> r.renderScreen("case", kase, {"id": id})
@@ -154,5 +155,6 @@ define [
       rkcFront      :      -> r.renderScreen("rkcFront", rkcFront)
       editSms       :      -> r.renderScreen("editSms", editSms)
       program       :      -> r.renderScreen("program", program)
+      loadProgram   : (id) -> r.renderScreen("program", program, {"id": id})
       printSrv      : (model, id) ->
         renderScreen "printSrv", print, {model: model, id: id}
