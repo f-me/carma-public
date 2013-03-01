@@ -17,8 +17,8 @@ import Codec.Text.IConv as IConv
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Encoding.Error as T
-import qualified Data.Text.Lazy as LT
-import qualified Data.Text.Lazy.Encoding as LT
+-- import qualified Data.Text.Lazy as LT
+-- import qualified Data.Text.Lazy.Encoding as LT
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
@@ -271,7 +271,7 @@ rkcWeatherHandler = scope "rkc" $ scope "handler" $ scope "weather" $ do
     Nothing -> return defaultCities
     Just cities' -> case Aeson.fromJSON cities' of
       Aeson.Success r -> return r
-      Aeson.Error e -> do
+      Aeson.Error _ -> do
         log Error "Can't read weather cities"
         return defaultCities
 
@@ -281,8 +281,11 @@ rkcWeatherHandler = scope "rkc" $ scope "handler" $ scope "weather" $ do
   let
     newCities = nub $ (cities ++ toAdd) \\ toRemove
 
-  with auth $ saveUser $ u {
-    userMeta = HashMap.insert "weathercities" (Aeson.toJSON newCities) (userMeta u) }
+  _ <- with auth $ saveUser $ u {
+    userMeta = HashMap.insert "weathercities"
+                              (Aeson.toJSON newCities)
+                              (userMeta u)
+    }
 
   log Trace $ T.concat ["Cities: ", fromString $ intercalate ", " newCities]
   conf <- with db $ gets DB.weather
@@ -442,7 +445,7 @@ createContractHandler = do
   -- we have to update all model params after fileupload,
   -- because in multipart/form-data requests we do not have
   -- params as usual, see Snap.Util.FileUploads.setProcessFormInputs
-  with db $ DB.update "contract" objId $
+  _ <- with db $ DB.update "contract" objId $
     Map.fromList [ ("templates", fromString f)
                  , ("name",      name) ]
   redirect "/#contracts"
@@ -462,7 +465,7 @@ setUserMeta = do
   Just login <- fmap T.decodeUtf8 <$> getParam "usr"
   Aeson.Object commit <- getJSONBody
   let [(key, val)] = HashMap.toList commit
-  with auth $ do
+  _ <- with auth $ do
     Just u <-  withBackend $ liftIO . (`lookupByLogin` login)
     saveUser $ u {userMeta = HashMap.insert key val $ userMeta u}
   writeBS "ok"
