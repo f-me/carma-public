@@ -100,6 +100,7 @@ class (Functor m, Monad m, MonadIO m) => ExportMonad m where
     getState       :: m ExportState
     putState       :: ExportState -> m ()
 
+    -- Fields for which export rules differ between case and services.
     panneField     :: m BS.ByteString
     defField       :: m BS.ByteString
     somField       :: m BS.ByteString
@@ -212,10 +213,17 @@ instance ExportMonad ServiceExport where
                               "rent"   -> "contractor_partnerId"
                               "towage" -> "towDealer_partnerId"
                               _        -> error "Never happens"
-                    sPid <- dataField1 partnerField d
+                    sPid <- dataField0 partnerField d
                     cp <- getCarmaPort
-                    case read1Reference sPid of
-                      Just (_, pid) ->
+                    case (BS.null sPid, read1Reference sPid) of
+                      -- If no partnerId specified, do not add any
+                      -- extra information to comm3 field.
+                      (True, _) -> return []
+                      (False, Nothing) ->
+                          exportError (UnreadableContractorId sPid) >> return []
+                      -- Otherwise, fetch contractor information using
+                      -- his code...
+                      (False, Just (_, pid)) ->
                           do
                             pCode <- dataField0 "code" <$>
                                      (liftIO $ readInstance cp "partner" pid)
@@ -229,8 +237,6 @@ instance ExportMonad ServiceExport where
                                     return [oNum, pCode, pName, vin, carCl]
                               "towage" -> return [oNum, pCode]
                               _        -> error "Never happens"
-                      Nothing -> exportError (UnreadableContractorId sPid) >>
-                                 return []
         return $ BS.intercalate " " fields
 
 
