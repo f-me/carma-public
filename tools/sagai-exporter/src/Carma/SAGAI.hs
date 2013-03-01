@@ -207,7 +207,9 @@ instance ExportMonad ServiceExport where
               -- More fields are requred for towage/rental service
               _    ->
                   do
-                    -- Fetch contractor code for selected contractor
+                    -- Try to fetch contractor code (not to be
+                    -- confused with partner id) for selected
+                    -- contractor
                     let partnerField =
                             case mn of
                               "rent"   -> "contractor_partnerId"
@@ -215,28 +217,27 @@ instance ExportMonad ServiceExport where
                               _        -> error "Never happens"
                         sPid = dataField0 partnerField d
                     cp <- getCarmaPort
-                    case (BS.null sPid, read1Reference sPid) of
-                      -- If no partnerId specified, do not add any
-                      -- extra information to comm3 field.
-                      (True, _) -> return []
+                    pCode <- case (BS.null sPid, read1Reference sPid) of
+                      -- If no partnerId specified, do not add partner
+                      -- code to extra information to comm3 field.
+                      (True, _) ->
+                          return "#?"
                       (False, Nothing) ->
-                          exportError (UnreadableContractorId sPid) >> return []
-                      -- Otherwise, fetch contractor information using
-                      -- his code...
+                          exportError (UnreadableContractorId sPid) >>
+                          return ""
                       (False, Just (_, pid)) ->
+                          dataField0 "code" <$>
+                          (liftIO $ readInstance cp "partner" pid)
+                    case mn of
+                      "rent" ->
                           do
-                            pCode <- dataField0 "code" <$>
-                                     (liftIO $ readInstance cp "partner" pid)
-                            case mn of
-                              "rent" ->
-                                  do
-                                    let pName =
-                                            dataField0 "contractor_partner" d
-                                        vin   = dataField0 "vinRent" d
-                                        carCl = dataField0 "carClass" d
-                                    return [oNum, pCode, pName, vin, carCl]
-                              "towage" -> return [oNum, pCode]
-                              _        -> error "Never happens"
+                            let pName =
+                                    dataField0 "contractor_partner" d
+                                vin   = dataField0 "vinRent" d
+                                carCl = dataField0 "carClass" d
+                            return [oNum, pCode, pName, vin, carCl]
+                      "towage" -> return [oNum, pCode]
+                      _        -> error "Never happens"
         return $ BS.intercalate " " fields
 
 
