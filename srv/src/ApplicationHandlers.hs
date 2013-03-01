@@ -42,6 +42,8 @@ import System.FilePath
 import System.IO
 import System.Locale
 
+import Database.PostgreSQL.Simple (query_)
+
 import Snap
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
@@ -623,6 +625,16 @@ errorsHandler = do
   r <- readRequestBody 4096
   liftIO $ withLog l $ scope "frontend" $ do
   log Info $ lb2t' r
+
+unassignedActionsHandler :: AppHandler ()
+unassignedActionsHandler = do
+  r <- withPG pg_search
+       $ \c -> query_ c $ fromString
+               $  " SELECT count(1) FROM actiontbl"
+               ++ " WHERE name = 'orderService'"
+               ++ " AND assignedTo is null"
+               ++ " AND closed = false"
+  writeJSON $ join (r :: [[Int]])
 
 lb2t' :: LB.ByteString -> T.Text
 lb2t' = T.decodeUtf8With T.lenientDecode . LB.toStrict
