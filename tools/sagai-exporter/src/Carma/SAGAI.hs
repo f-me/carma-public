@@ -213,7 +213,7 @@ instance ExportMonad ServiceExport where
                               "rent"   -> "contractor_partnerId"
                               "towage" -> "towDealer_partnerId"
                               _        -> error "Never happens"
-                    sPid <- dataField0 partnerField d
+                        sPid = dataField0 partnerField d
                     cp <- getCarmaPort
                     case (BS.null sPid, read1Reference sPid) of
                       -- If no partnerId specified, do not add any
