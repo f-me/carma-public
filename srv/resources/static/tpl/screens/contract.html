@@ -1,75 +1,35 @@
-<!-- reports generation screen -->
-<div id="report-get"
-     style="width:30%;margin:0 auto;text-align:center;">
-  <fieldset>
-    <legend>Договоры</legend>
-    <form action="/contractGenerator" method="GET" class="form-horizontal">
-      <div class="control-group">
-        <label class="control-label"> Номер кейса </label>
-        <input type="text"
-               name="caseId"/>
-      </div>
-      <div class="control-group">
-        <label class="control-label"> Шаблон </label>
-        <select name="tplId" data-bind="foreach: $data">
-          <option data-bind="value: id, text: name" />
-        </select>
-      </div>
-      <div class="control-group">
-        <button class="btn btn-success" type="submit">Выгрузить</button>
-      </div>
-    </form>
-  </fieldset>
-</div>
+<div class="table-and-details">
+  <div class="left class nice-scrollbar pane">
+    <div id="table-filter" class="form-inline well">
+      <label>Дата создания:</label>
+      от <input id="date-min" type="text" />
+      до <input id="date-max" type="text" />
+      <a id="csv" onclick="dt2csv('contracts-table', 'csv')" download="data.csv">
+          Выгрузить данные в файл
+      </a>
+    </div>
+    <table id="contracts-table" class="table table-striped table-bordered"/>
+  </div>
 
-<div id="all-contracts" class="row">
-  <div class="span4">
-    <h3>Добавить договор</h3>
-    <form id="add-contract"
-          action="/_/contract"
-          method="POST"
-          enctype="multipart/form-data">
-      <label>Название договора</label>
-      <input name="name" type="text">
-      <label>Шаблон</label>
-      <input name="templates" type="file">
-      <label>
-        <input class="btn btn-success"
-               type="submit"
-               value="Добавить"
-               onClick="checkReportUniq(event)">
+  <div class="right nice-scrollbar pane">
+    <form class="form-vertical">
+      <button class="btn btn-action" type="button"
+              onclick="location.hash='contract';location.reload(true);">
+        <i class="icon icon-plus"></i>Добавить контракт
+      </button>
+      <div id="contract-form" />
+      <div id="contract-permissions" />
     </form>
   </div>
 
-  <div class="span8">
-    <table class="table table-striped table-bordered dataTable"
-           id="reports-table">
-      <thead>
-        <tr>
-          <th width="40%">Название</th>
-          <th width="40%">Имя файла</th>
-          <th width="10%"></th>
-        </tr>
-      </thead>
-      <tbody data-bind="foreach: $data">
-        <tr data-bind="attr: { id: id }">
-          <td data-bind="text: name"></td>
-          <td>
-            <a data-bind="text: templates,
-                          attr: {
-                          href: '/s/fileupload/report/' + id +
-                          '/templates/' + templates
-                          }">
-            </a>
-          </td>
-          <td>
-            <button class="btn"
-                    onClick="deleteReport(this)">
-              Удалить
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="right nice-scrollbar pane">
+    <form class="form-vertical">
+      <button class="btn btn-action" type="button"
+              onclick="location.hash='contract';location.reload(true);">
+        <i class="icon icon-plus"></i>Добавить контракт
+      </button>
+      <div id="contract-form" />
+      <div id="contract-permissions" />
+    </form>
   </div>
 </div>
