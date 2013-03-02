@@ -5,6 +5,8 @@ define ["model/main", "render/screen"], (main, render) ->
   # Save instance loaded in view
   saveInstance = (viewName) -> global.viewsWare[viewName].bbInstance.save()
 
+  window.saveInstance = saveInstance
+
   addReference: (knockVM, field, ref, cb) ->
     field = field + 'Reference' unless /Reference$/.test(field)
     thisId = knockVM.modelName() + ":" + knockVM.id()
