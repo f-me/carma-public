@@ -684,9 +684,15 @@ localRole = Role "local"
 
 
 ------------------------------------------------------------------------------
--- | Deny requests from non-local unauthorized users.
+-- | Deny requests from unauthenticated or non-local users.
 chkAuth :: AppHandler () -> AppHandler ()
 chkAuth f = chkAuthRoles (hasAnyOfRoles [localRole]) f
+
+
+------------------------------------------------------------------------------
+-- | Deny requests from unauthenticated users.
+chkLogin :: AppHandler () -> AppHandler ()
+chkLogin = chkAuthRoles alwaysPass
 
 
 ------------------------------------------------------------------------------
@@ -713,8 +719,8 @@ chkAuthRoles roleCheck handler = do
 
 ------------------------------------------------------------------------------
 -- | Produce a predicate which matches any list of roles
-alwaysPass :: [Role] -> RoleChecker
-alwaysPass = const . const True
+alwaysPass :: RoleChecker
+alwaysPass = const True
 
 
 hasAnyOfRoles :: [Role] -> RoleChecker
