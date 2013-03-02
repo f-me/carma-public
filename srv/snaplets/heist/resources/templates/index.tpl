@@ -106,7 +106,6 @@
                 <li><a id="avaya-accept" href="#">Принять звонок</a></li>
               </ul>
             </li>
-            <li class="divider-vertical" />
             <!-- ko template: { name: 'nav-li-template' }-->
             <!-- /ko -->
           </ul>
