@@ -683,6 +683,16 @@ localRole :: Role
 localRole = Role "local"
 
 
+partnerRole :: Role
+partnerRole = Role "partner"
+
+
+------------------------------------------------------------------------------
+-- | Deny requests from unauthenticated users.
+chkLogin :: AppHandler () -> AppHandler ()
+chkLogin = chkAuthRoles alwaysPass
+
+
 ------------------------------------------------------------------------------
 -- | Deny requests from unauthenticated or non-local users.
 chkAuth :: AppHandler () -> AppHandler ()
@@ -690,9 +700,11 @@ chkAuth f = chkAuthRoles (hasAnyOfRoles [localRole]) f
 
 
 ------------------------------------------------------------------------------
--- | Deny requests from unauthenticated users.
-chkLogin :: AppHandler () -> AppHandler ()
-chkLogin = chkAuthRoles alwaysPass
+-- | Deny requests from unauthenticated or non-partner users.
+--
+-- Auth checker for partner screens
+chkAuthPartner :: AppHandler () -> AppHandler ()
+chkAuthPartner f = chkAuthRoles (hasAnyOfRoles [partnerRole, "head", "supervisor"]) f
 
 
 ------------------------------------------------------------------------------
