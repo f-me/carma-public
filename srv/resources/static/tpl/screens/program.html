@@ -8,7 +8,6 @@
         <tr>
           <th>#</th>
           <th>Название</th>
-          <th>Внутреннее название</th>
         </tr>
       </thead>
       <tbody/>
@@ -24,6 +23,18 @@
 
   <div class="form-vertical">
     <div id="program-view" />
+    <div id="program-files">
+      <h4 data-bind="visible: contractsInfo">Загруженные шаблоны:</h4>
+      <ul class="unstyled"
+          data-bind="foreach: contractsInfo, setdata: contracts">
+        <li>
+          <a data-bind="attr: { href: url }, text: name" />
+          <i class="icon icon-remove"
+             data-bind="setdata: name"
+             onclick="deleteFile(this)"/>
+        </li>
+      </ul>
+    </div>
     <div id="program-permissions" />
   </div>
 </div>

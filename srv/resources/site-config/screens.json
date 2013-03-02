@@ -91,6 +91,11 @@
           "permissions": ["head","supervisor","admin","programman"]
         }
       ]
+    },
+    { "name"  : "program",
+      "label" : "Редактирование програм",
+      "type"  : "li",
+      "permissions": ["admin", "head"]
     }
   ]
 }

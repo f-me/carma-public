@@ -52,11 +52,16 @@ define ["utils", "dictionaries"], (u, dictionary) ->
       d = "/s/fileupload"
       knockVM["#{n}UploadUrl"] = ko.computed
         read: ->
+          # some strange magick, if remove knockVM['maybeId']()
+          # then this won't be recomputed when id will be defined
+          # in program model still works well on case and others
+          knockVM['maybeId']()
           return unless knockVM['id']
           path = "#{instance.model.name}/#{knockVM['id']()}/#{n}"
           "#{upl}/#{path}"
       knockVM["#{n}Info"] = ko.computed
         read: ->
+          knockVM['maybeId']()
           return unless knockVM['id']
           path = "#{instance.model.name}/#{knockVM['id']()}/#{n}"
           fs = knockVM[n]()
