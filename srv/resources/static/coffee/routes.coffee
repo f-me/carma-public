@@ -15,6 +15,7 @@ define [
   "screens/editVin"
   "screens/newVin"
   "screens/editSms"
+  "screens/program"
   "render/screen"
   ], ( bo
      , call
@@ -32,6 +33,7 @@ define [
      , editVin
      , newVin
      , editSms
+     , program
      , r) ->
     localScreens: ->
       "case":
@@ -83,10 +85,10 @@ define [
         "template": "reports-screen-template"
         "views":
           "reports": report
-      "contracts":
+      "contract":
         "template": "contract-screen-template"
         "views":
-          "contracts": contract
+          "contract-form": contract
       "newVin":
         "template": "newVin-screen-template"
       "editVin":
@@ -101,6 +103,10 @@ define [
         "template": "printSrv-screen-template"
         "views":
           "print-table": print
+      "program":
+        "template": "program-screen-template"
+        "views":
+          "program-view": program
 
     # Setup routing
     localRouter: Backbone.Router.extend
@@ -114,7 +120,8 @@ define [
         "call/:id"       : "loadCall"
         "call"           : "call"
         "reports"        : "reports"
-        "contracts"      : "contracts"
+        "contract"       : "contract"
+        "contract/:id"   : "newContract"
         "partner"        : "newPartner"
         "partner/:id"    : "loadPartner"
         "editVin/:id"    : "editVin"
@@ -125,6 +132,8 @@ define [
         "rkcOps"         : "rkcOps"
         "rkcFront"       : "rkcFront"
         "editSms"        : "editSms"
+        "program"        : "program"
+        "program/:id"    : "loadProgram"
         "printSrv/:model/:id" : "printSrv"
 
       loadCase      : (id) -> r.renderScreen("case", kase, {"id": id})
@@ -137,7 +146,8 @@ define [
       loadCall      : (id) -> r.renderScreen("call", call, {"id": id})
       call          :      -> r.renderScreen("call", call, {"id": null})
       reports       :      -> r.renderScreen("reports", report)
-      contracts     :      -> r.renderScreen("contracts", contract)
+      contract      :      -> r.renderScreen("contract", contract)
+      newContract   : (id) -> r.renderScreen("contract", contract, {"id": id})
       editVin       : (id) -> r.renderScreen("editVin", editVin, {"id": id})
       newVin        :      -> r.renderScreen("newVin", newVin, {"id": null})
       supervisor    :      -> r.renderScreen("supervisor", supervisor)
@@ -146,5 +156,7 @@ define [
       rkcOps        :      -> r.renderScreen("rkcOps", rkcOps)
       rkcFront      :      -> r.renderScreen("rkcFront", rkcFront)
       editSms       :      -> r.renderScreen("editSms", editSms)
+      program       :      -> r.renderScreen("program", program)
+      loadProgram   : (id) -> r.renderScreen("program", program, {"id": id})
       printSrv      : (model, id) ->
         renderScreen "printSrv", print, {model: model, id: id}

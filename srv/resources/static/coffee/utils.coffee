@@ -29,6 +29,24 @@ define ["model/utils"], (mu) ->
             bindRemove parent, field, cb
             cb(parent, field, i) if _.isFunction cb
 
+  # args: id - id of datatable element
+  # to: id of element where href will be set
+  # fname is not working, don't know why
+  window.dt2csv = (id, to) ->
+    h = $($("##{id}").dataTable().fnSettings().nTHead)
+          .find('th').map (i,e) -> $(e).text()
+    d = $("##{id}").dataTable()
+    m = d.$("tr", {filter: 'applied'})
+         .map (i,e) -> $(e).children()
+                           .map (i,e) -> $(e).text()
+    head = ($.makeArray(h).join ';') + "\n"
+    s = ($.map m, (e, i) -> $.makeArray(e).join(';')).join "\n"
+    $("##{to}").attr 'href',
+      " data:application/octet-stream
+      ; base64
+      , #{Base64.encode(head + s)}"
+    s
+
   findCaseOrReferenceVM: findCaseOrReferenceVM
 
   # build global function from local to module one

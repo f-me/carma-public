@@ -186,6 +186,16 @@ textarea.pane-span,
   width: 25%;
 }
 
+.table-and-details .left {
+  left: 0;
+  width: 70%;
+}
+
+.table-and-details .right {
+  right: 0;
+  width: 25%;
+}
+
 .capitalize { text-transform: capitalize; }
 
 #case-comments-i { width: 100% }

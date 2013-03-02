@@ -47,6 +47,9 @@
     <!-- masked input for datetime fields -->
     <script src="/s/js/3p/jquery.maskedinput-1.3.js" />
 
+    <!-- base 64 encode/decode library -->
+    <script src="/s/js/3p/b64.js" />
+
     <script src="/s/js/gen/customKoHandlers.js" />
 
     <!-- Model processing -->

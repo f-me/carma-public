@@ -100,6 +100,7 @@ class (Functor m, Monad m, MonadIO m) => ExportMonad m where
     getState       :: m ExportState
     putState       :: ExportState -> m ()
 
+    -- Fields for which export rules differ between case and services.
     panneField     :: m BS.ByteString
     defField       :: m BS.ByteString
     somField       :: m BS.ByteString
@@ -206,31 +207,37 @@ instance ExportMonad ServiceExport where
               -- More fields are requred for towage/rental service
               _    ->
                   do
-                    -- Fetch contractor code for selected contractor
+                    -- Try to fetch contractor code (not to be
+                    -- confused with partner id) for selected
+                    -- contractor
                     let partnerField =
                             case mn of
                               "rent"   -> "contractor_partnerId"
                               "towage" -> "towDealer_partnerId"
                               _        -> error "Never happens"
-                    sPid <- dataField1 partnerField d
+                        sPid = dataField0 partnerField d
                     cp <- getCarmaPort
-                    case read1Reference sPid of
-                      Just (_, pid) ->
+                    pCode <- case (BS.null sPid, read1Reference sPid) of
+                      -- If no partnerId specified, do not add partner
+                      -- code to extra information to comm3 field.
+                      (True, _) ->
+                          return "#?"
+                      (False, Nothing) ->
+                          exportError (UnreadableContractorId sPid) >>
+                          return ""
+                      (False, Just (_, pid)) ->
+                          dataField0 "code" <$>
+                          (liftIO $ readInstance cp "partner" pid)
+                    case mn of
+                      "rent" ->
                           do
-                            pCode <- dataField0 "code" <$>
-                                     (liftIO $ readInstance cp "partner" pid)
-                            case mn of
-                              "rent" ->
-                                  do
-                                    let pName =
-                                            dataField0 "contractor_partner" d
-                                        vin   = dataField0 "vinRent" d
-                                        carCl = dataField0 "carClass" d
-                                    return [oNum, pCode, pName, vin, carCl]
-                              "towage" -> return [oNum, pCode]
-                              _        -> error "Never happens"
-                      Nothing -> exportError (UnreadableContractorId sPid) >>
-                                 return []
+                            let pName =
+                                    dataField0 "contractor_partner" d
+                                vin   = dataField0 "vinRent" d
+                                carCl = dataField0 "carClass" d
+                            return [oNum, pCode, pName, vin, carCl]
+                      "towage" -> return [oNum, pCode]
+                      _        -> error "Never happens"
         return $ BS.intercalate " " fields
 
 

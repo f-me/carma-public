@@ -1,6 +1,13 @@
 define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
   setupBackOffice = ->
     setTimeout((->
+        $.getJSON "/actions/unassigned", (r) ->
+          txt = if r[0] > 0
+              "Заказов услуг в очереди: #{r[0]}"
+            else
+              "В очереде нет заказов услуг"
+          $("#actions-queue-count").text txt
+
         $('#bo-littleMoreAction').on('click.bo', ->
           $.ajax
             type: "PUT"
