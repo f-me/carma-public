@@ -558,7 +558,7 @@ actionResultMap = Map.fromList
     act <- replaceAction
       "headCheck"
       "Проверка РКЦ"
-      "supervisor" "1" (+360) objId
+      "op_checker" "1" (+360) objId
     set act "assignedTo" ""
   )
   ,("parguyToBack", \objId -> do
@@ -607,7 +607,7 @@ actionResultMap = Map.fromList
     act <- replaceAction
       "headCheck"
       "Проверка РКЦ"
-      "supervisor" "1" (+360) objId
+      "op_checker" "1" (+360) objId
     set act "assignedTo" ""
   )
   ,("directorConfirm", \objId -> do
@@ -721,13 +721,13 @@ closeSerivceAndSendInfoVW objId = do
   act1 <- replaceAction
     "closeCase"
     "Закрыть заявку"
-    "back" "3" (changeTime (+7*24*60*60) tm)
+    "op_close" "3" (changeTime (+7*24*60*60) tm)
     objId
 
   act2 <- replaceAction
     "getInfoDealerVW"
     "Уточнить информацию о ремонте у дилера/партнёра (VW, PSA)"
-    "back" "3" (+7*24*60*60)
+    "op_dealer" "3" (+7*24*60*60)
     objId
 
   partner <- getService objId "contractor_partner"
