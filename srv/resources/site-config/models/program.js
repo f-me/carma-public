@@ -28,6 +28,25 @@
             }
         },
         {
+            "name": "client",
+            "meta": {
+            "label": "Заказчик"
+            }
+
+        },
+        {
+            "name": "clientCode",
+            "meta": {
+                "label": "Код заказчика"
+            }
+        },
+        {
+            "name": "clientAddress",
+            "meta": {
+                "label": "Адрес заказчика"
+            }
+        },
+        {
             "name": "services",
             "meta": {
                 "dictionaryName": "Services",
