@@ -39,7 +39,6 @@ define ["model/utils"], (mu) ->
 
   # args: id - id of datatable element
   # to: id of element where href will be set
-  # fname is not working, don't know why
   window.dt2csv = (id, to) ->
     h = $($("##{id}").dataTable().fnSettings().nTHead)
           .find('th').map (i,e) -> $(e).text()
