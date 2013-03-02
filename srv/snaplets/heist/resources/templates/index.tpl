@@ -107,11 +107,6 @@
                 <li><a id="avaya-accept" href="#">Принять звонок</a></li>
               </ul>
             </li>
-            <li>
-              <a href="#sms-send-modal" data-toggle="modal">
-                <i class="icon icon-envelope icon-white"></i>
-              </a>
-            </li>
             <li class="divider-vertical" />
             <!-- ko template: { name: 'nav-li-template' }-->
             <!-- /ko -->
@@ -1129,6 +1124,13 @@
             <li data-bind="if: type == 'li',
                            attr: { id: name + '-screen-nav' }">
               <a data-bind="attr: { href: '#' + name}, text: label"/>
+            </li>
+          <!-- /ko -->
+          <!-- ko if: type == 'sms' -->
+            <li>
+              <a href="#sms-send-modal" data-toggle="modal">
+                <i class="icon icon-envelope icon-white"></i>
+              </a>
             </li>
           <!-- /ko -->
           <!-- ko if: type == 'dropdown' -->
