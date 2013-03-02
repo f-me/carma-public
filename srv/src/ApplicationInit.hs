@@ -79,8 +79,10 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
                               chkAuth . method POST $ findOrCreateHandler)
          , ("/_/report/",     chkAuth . method POST   $ createReportHandler)
          , ("/_/report/:id",  chkAuth . method DELETE $ deleteReportHandler)
-         , ("/_/contract/",     chkAuth . method POST   $ createContractHandler)
-         , ("/_/contract/:id",  chkAuth . method DELETE $ deleteContractHandler)
+         , ("/_/contract/",
+            chkAuthPartner . method POST   $ createContractHandler)
+         , ("/_/contract/:id",
+            chkAuthPartner . method DELETE $ deleteContractHandler)
          , ("/search/:model", chkAuth . method GET  $ searchHandler)
          , ("/rkc",           chkAuth . method GET  $ rkcHandler)
          , ("/rkc/weather",   chkAuth . method GET $ rkcWeatherHandler)
