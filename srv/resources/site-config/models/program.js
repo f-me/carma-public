@@ -1,6 +1,6 @@
  {
     "name": "program",
-    "title": "Прогарма",
+    "title": "Прогармма",
     "canCreate": true,
     "canRead": true,
     "canUpdate": ["admin"],
@@ -13,6 +13,13 @@
          }
     ],
     "fields": [
+        {
+            "name": "active",
+            "type": "checkbox",
+            "meta": {
+                "label": "Активна"
+            }
+        },
         {
             "name": "value",
             "meta": {
