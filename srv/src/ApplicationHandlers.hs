@@ -704,7 +704,8 @@ chkAuth f = chkAuthRoles (hasAnyOfRoles [localRole]) f
 --
 -- Auth checker for partner screens
 chkAuthPartner :: AppHandler () -> AppHandler ()
-chkAuthPartner f = chkAuthRoles (hasAnyOfRoles [partnerRole, "head", "supervisor"]) f
+chkAuthPartner f =
+  chkAuthRoles (hasAnyOfRoles [partnerRole, Role "head", Role "supervisor"]) f
 
 
 ------------------------------------------------------------------------------
