@@ -637,7 +637,7 @@ unassignedActionsHandler = do
                ++ " WHERE name = 'orderService'"
                ++ " AND assignedTo is null"
                ++ " AND closed = false"
-  writeJSON $ join (r :: [[Int]])
+  writeJSON $ join (r :: [[Integer]])
 
 lb2t' :: LB.ByteString -> T.Text
 lb2t' = T.decodeUtf8With T.lenientDecode . LB.toStrict
