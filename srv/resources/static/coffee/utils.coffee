@@ -17,6 +17,14 @@ define ["model/utils"], (mu) ->
   # like _.has but for list
   window.hasL = (lst, e) -> _.find(lst, (x) -> x == e)
 
+  window.successfulSave = ->
+    $span = $(this).siblings(".save-result")
+    setTimeout((->
+      $span.text("Сохранено успешно")
+      $span.show()
+      $span.fadeOut(2000))
+    , 500)
+
   bindRemove = (parent, field, cb) ->
     for i in parent["#{field}Reference"]()
       do (i) ->
@@ -157,14 +165,9 @@ define ["model/utils"], (mu) ->
   kdoPick: (pickType, args, k, e) ->
     doPick pickType, args, e.srcElement if e.ctrlKey and e.keyCode == k
 
+
   # FIXME: This could be a callback for main.js:saveInstance
-  successfulSave: ->
-    $span = $(this).siblings(".save-result")
-    setTimeout((->
-      $span.text("Сохранено успешно")
-      $span.show()
-      $span.fadeOut(2000))
-    , 500)
+  successfulSave: successfulSave
 
   checkAccordion: (e) ->
     acc = e.parents('.accordion-body') #.hasClass('in')
