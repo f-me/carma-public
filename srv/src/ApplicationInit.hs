@@ -60,6 +60,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/littleMoreActions",
                               chkAuth . method PUT    $ littleMoreActionsHandler)
          , ("/allActions",    chkAuth . method GET    $ allActionsHandler)
+         , ("actions/unassigned",
+                              chkAuth . method GET    $ unassignedActionsHandler)
          , ("/allPartners",   chkAuth . method GET    $ allPartnersHandler)
          , ("/partnersFor/:srv",
                               chkAuth . method GET    $ partnersForSrvHandler)
