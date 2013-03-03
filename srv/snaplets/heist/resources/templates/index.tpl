@@ -48,35 +48,41 @@
     <!-- masked input for datetime fields -->
     <script src="/s/js/3p/jquery.maskedinput-1.3.js" />
 
+    <!-- base 64 encode/decode library -->
+    <script src="/s/js/3p/b64.js" />
+
     <script src="/s/js/gen/customKoHandlers.js" />
 
     <!-- Model processing -->
     <script src="/s/js/search.js" />
-    <script src="/s/js/gen/dictionaries.js" />
-    <script src="/s/js/gen/metamodel.js" />
-    <script src="/s/js/gen/map.js" />
-    <script src="/s/js/gen/main.js" />
-    <script src="/s/js/gen/viewsware.js" />
-    <script src="/s/js/gen/hooks.js" />
-    <script src="/s/js/gen/local.js" />
-    <script src="/s/js/gen/case.js" />
-    <script src="/s/js/gen/vin.js" />
-    <script src="/s/js/gen/editVin.js" />
-    <script src="/s/js/gen/partners.js" />
-    <script src="/s/js/gen/call.js" />
-    <script src="/s/js/gen/backoffice.js" />
-    <script src="/s/js/gen/supervisors.js" />
-    <script src="/s/js/gen/supervisorOps.js" />
-    <script src="/s/js/gen/rkc.js" />
-    <script src="/s/js/gen/report.js" />
-    <script src="/s/js/gen/hotkeys.js" />
-    <script src="/s/js/gen/fileupload.js" />
+    <!-- <script src="/s/js/gen/dictionaries.js" /> -->
+    <!-- <script src="/s/js/gen/metamodel.js" /> -->
+    <!-- <script src="/s/js/gen/map.js" /> -->
+    <!-- <script src="/s/js/gen/main.js" /> -->
+    <!-- <script src="/s/js/gen/viewsware.js" /> -->
+    <!-- <script src="/s/js/gen/hooks.js" /> -->
+    <!-- <script src="/s/js/gen/local.js" /> -->
+    <!-- <script src="/s/js/gen/case.js" /> -->
+    <!-- <script src="/s/js/gen/vin.js" /> -->
+    <!-- <script src="/s/js/gen/editVin.js" /> -->
+    <!-- <script src="/s/js/gen/partners.js" /> -->
+    <!-- <script src="/s/js/gen/call.js" /> -->
+    <!-- <script src="/s/js/gen/backoffice.js" /> -->
+    <!-- <script src="/s/js/gen/supervisors.js" /> -->
+    <!-- <script src="/s/js/gen/rkc.js" /> -->
+    <!-- <script src="/s/js/gen/report.js" /> -->
+    <!-- <script src="/s/js/gen/hotkeys.js" /> -->
+    <!-- <script src="/s/js/gen/fileupload.js" /> -->
     <script src="/s/js/gen/avaya.js" />
-    <script src="/s/js/gen/editSms.js" />
-    <script src="/s/js/gen/sendSms.js" />
-    <script src="/s/js/gen/rkcOps.js" />
-    <script src="/s/js/gen/rkcFront.js" />
-    <script src="/s/js/gen/printService.js" />
+    <!-- <script src="/s/js/gen/editSms.js" /> -->
+    <!-- <script src="/s/js/gen/sendSms.js" /> -->
+    <!-- <script src="/s/js/gen/rkcOps.js" /> -->
+    <!-- <script src="/s/js/gen/rkcFront.js" /> -->
+    <!-- <script src="/s/js/gen/printService.js" /> -->
+
+    <script src="/s/js/3p/require.js" />
+    <script src="/s/js/gen/requireCfg.js" />
+    <script src="/s/js/gen/local.js" />
 
   </head>
   <body>
@@ -101,12 +107,6 @@
                 <li><a id="avaya-accept" href="#">Принять звонок</a></li>
               </ul>
             </li>
-            <li>
-              <a href="#sms-send-modal" data-toggle="modal">
-                <i class="icon icon-envelope icon-white"></i>
-              </a>
-            </li>
-            <li class="divider-vertical" />
             <!-- ko template: { name: 'nav-li-template' }-->
             <!-- /ko -->
           </ul>
@@ -137,115 +137,6 @@
     <div class="container-fluid" id="main-container">
       <div class="row-fluid" id="layout" />
     </div>
-
-    <!-- Call handling screen layout -->
-    <script type="text/template"
-            class="screen-template"
-            id="call-screen-template">
-      <div id="left" class="nice-scrollbar call-pane">
-        <div class="control-group">
-          <div class="control-label">
-            <label>Номер</label>
-          </div>
-          <div class="controls">
-            <input type="text" disabled id="call-number"
-                   data-bind="value: maybeId"/>
-          </div>
-        </div>
-        <div id="call-form"/>
-        <button class="btn btn-success"
-                type="submit"
-                onClick="makeCase()" >
-          Новый кейс
-        </button>
-      </div>
-      <div id="center" class="nice-scrollbar call-pane" />
-      <div id="right" class="pane">
-        <button id="reload-screen"
-                class="btn btn-success"
-                type="submit"
-                onClick="reloadScreen()" >
-          Новый звонок
-        </button>
-      </div>
-      <div id="bottom">
-        <div class="control-group">
-          <div class="control-label">
-            <label>Поиск</label>
-          </div>
-          <div class="controls">
-            <input type="text" class="input-xlarge" id="search-query">
-          </div>
-        </div>
-        <table id="call-searchtable" class="table table-striped table-bordered">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>ФИО</th>
-              <th>Дата звонка</th>
-              <th>Телефон</th>
-              <th>Номер машины</th>
-              <th>VIN</th>
-              <th>Программа</th>
-              <th>Комментарий</th>
-            </tr>
-          </thead>
-          <tbody/>
-        </table>
-      </div>
-    </script>
-
-    <!-- Case screen layout -->
-    <script type="text/template"
-            class="screen-template"
-            id="case-screen-template">
-      <!-- Main case form -->
-      <div id="left"
-           class="nice-scrollbar pane">
-        <div class="form-vertical">
-          <div class="control-group">
-            <div class="control-label">
-              <label>Номер</label>
-            </div>
-            <div class="controls">
-              <input type="text" disabled id="case-number"
-                     data-bind="value: maybeId"/>
-            </div>
-          </div>
-          <div id="case-form" />
-          <div class="control-group">
-            <div class="control-label">
-              <label>Услуги</label>
-            </div>
-            <div class="controls">
-              <span id="service-picker-container" />
-            </div>
-          </div>
-          <div id="case-permissions" />
-        </div>
-      </div>
-
-      <!-- Central pane with subform -->
-      <!--
-      TODO Should be spanN when fluid containers are fixed in
-           Bootstrap upstream. -->
-      <div id="center"
-           class="nice-scrollbar pane">
-      </div>
-
-      <!-- Rightmost pane with list of empty fields and action notes
-      -->
-      <div id="right" class="nice-scrollbar pane">
-        <form class="form-vertical">
-          <div class="control-group">
-            <div class="controls">
-              <span class="accordion" id="case-actions-references" />
-            </div>
-          </div>
-        </form>
-        <div id="empty-fields-placeholder" />
-      </div>
-    </script>
 
     <!-- Search screen -->
     <script type="text/template"
@@ -306,150 +197,6 @@
       </table>
     </script>
 
-    <!-- Backoffice screen -->
-    <script type="text/template"
-            id="back-screen-template"
-            class="screen-template">
-      <button id="bo-littleMoreAction">Больше действий!</button>
-      <table id="back-user-table" class="table table-striped table-bordered">
-        <thead>
-          <tr>
-            <th>Кейс</th>
-            <th>Приоритет</th>
-            <th>Дата выполнения</th>
-            <th>Город</th>
-            <th>Что делать?</th>
-            <th>Комментарии</th>
-          </tr>
-        </thead>
-        <tbody/>
-      </table>
-    </script>
-
-    <!-- reports generation screen -->
-    <script type="text/template"
-            id="reports-screen-template"
-            class="screen-template">
-      <div id="report-get"
-           style="width:30%;margin:0 auto;text-align:center;">
-      <fieldset>
-        <legend>Отчёты</legend>
-        <form action="/report">
-          <p>
-            <div class="input-append date"
-                 data-provide="datepicker"
-                 data-autoshow-datepicker="true"
-                 data-date-format="dd.mm.yyyy"
-                 data-date-weekstart="1">
-              <input type="text" id="date-from" class="pane-span focusable" name="from"/>
-              <span class="add-on"><i class="icon icon-calendar" /></span>
-            </div>
-            <div class="input-append date"
-                 data-provide="datepicker"
-                 data-autoshow-datepicker="true"
-                 data-date-format="dd.mm.yyyy"
-                 data-date-weekstart="1">
-              <input type="text" id="date-to" class="pane-span focusable" name="to"/>
-              <span class="add-on"><i class="icon icon-calendar" /></span>
-            </div>
-            <select name="program" data-bind="foreach: $data">
-              <option data-bind="value: id, text: name" />
-            </select>
-          </p>
-          <button class="btn btn-success" type="submit">Отчёт</button>
-        </form>
-      </fieldset>
-      </div>
-
-      <div id="all-reports" class="row">
-        <div class="span4">
-          <h3>Добавить отчет</h3>
-          <form id="add-report"
-                action="/_/report"
-                method="POST"
-                enctype="multipart/form-data">
-            <label>Название отчета</label>
-            <input name="name" type="text">
-            <label>Шаблон</label>
-            <input name="templates" type="file">
-            <label>
-            <input class="btn btn-success"
-                   type="submit"
-                   value="Добавить"
-                   onClick="checkReportUniq(event)">
-          </form>
-        </div>
-
-        <div class="span8">
-        <table class="table table-striped table-bordered dataTable"
-               id="reports-table">
-          <thead>
-            <tr>
-              <th width="40%">Название</th>
-              <th width="40%">Имя файла</th>
-              <th width="10%"></th>
-            </tr>
-          </thead>
-          <tbody data-bind="foreach: $data">
-            <tr data-bind="attr: { id: id }">
-              <td data-bind="text: name"></td>
-              <td>
-                <a data-bind="text: templates,
-                              attr: {
-                                href: '/s/fileupload/report/' + id +
-                                      '/templates/' + templates
-                                      }">
-                </a>
-              </td>
-              <td>
-                <buttom class="btn"
-                        onClick="deleteReport(this)">
-                  Удалить
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      </div>
-
-    </script>
-
-    <!-- Import VINs screen -->
-    <script type="text/template"
-            id="vin-screen-template"
-            class="screen-template">
-      <div id="vin-form" />
-    </script>
-
-    <!-- Edit VIN screens -->
-    <script type="text/template"
-            id="newVin-screen-template"
-            class="screen-template">
-      <div align="center">
-        <form id="new-vin"
-              method="POST"
-              action="/_/findOrCreate/vin"
-              onSubmit="doNewVin(event)">
-          <label>Введите VIN</label>
-          <input name="id" type="text">
-          <label>
-          <input type="submit" class="btn btn-success">
-        </form>
-      </div>
-    </script>
-
-    <script type="text/template"
-            id="editVin-screen-template"
-            class="screen-template">
-      <div id="left"  class="nice-scrollbar pane">
-        <div id="vin-form" class="form-vertical"/>
-        <div id="vin-permissions"/>
-      </div>
-      <div id="center" class="nice-scrollbar pane"/>
-      <div id="right"  class="nice-scrollbar pane"/>
-    </script>
-
     <script type="text/template"
             id="vin-form-template"
             class="view-template">
@@ -470,8 +217,22 @@
           </button>
         </form>
       </fieldset>
-      </div>
       <div id="vin-alert-container" />
+      </div>
+      <div style="text-align:center;">
+      <fieldset>
+        <legend>Обновление базы партнёров</legend>
+        <form id="partner-import-form" method="post" action="/partner/upload">
+          <p>
+            <input type="file" name="file" accept="text/csv" />
+          </p>
+          <input formenctype="multipart/form-data" 
+                 type="submit" 
+                 class="btn btn-success">
+          </input>
+        </form>
+      </fieldset>
+      </div>
     </script>
 
     <script type="text/template"
@@ -497,512 +258,6 @@
             {{/ alerts}}
           </div>
         </div>
-      </div>
-    </script>
-
-    <!-- Partner screen template -->
-    <script type="text/template"
-            class="screen-template"
-            id="partner-screen-template">
-
-      <div id="partner-left" class="nice-scrollbar pane">
-        <div id="partner-errors"
-             class="alert alert-error"
-             data-bind="visible: kvm().serviceRepeat().length > 0">
-          Следующие сервисы присутствуют в количестве более одного,
-          при работе с кейсом будет использован только первый!
-          <ul data-bind="foreach: kvm().serviceRepeat">
-            <li data-bind="text: $data"> </li>
-          </ul>
-        </div>
-        <form class="form-vertical">
-          <button class="btn btn-action" type="button"
-            onclick="location.hash='partner';location.reload(true);">
-            <i class="icon icon-plus"></i>Добавить партнёра
-          </button>
-          <br/><br/>
-          <table id="partner-table" class="table table-striped table-bordered">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Название</th>
-                <th>Город</th>
-                <th>Комментарии</th>
-              </tr>
-            </thead>
-            <tbody/>
-          </table>
-        </form>
-      </div>
-
-      <div id="partner-center" class="nice-scrollbar pane">
-        <form class="form-vertical">
-          <div id="partner-view" />
-
-          <div id="partnerMapModal"
-               class="modal hide fade"
-               tabindex="-1"
-               role="dialog">
-
-            <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal">×</button>
-              <h3 id="myModalLabel">Выбор координат</h3>
-            </div>
-
-            <div id="partner-view">
-            <div class="modal-body">
-              <div style="height:600px;" id="partnerMap" class="osMap"
-                   name="coords"></div>
-            </div>
-            </div>
-
-            <div class="modal-footer">
-              <button class="btn btn-primary" data-dismiss="modal">Сохранить</button>
-            </div>
-          </div>
-
-          <div class="control-group">
-            <div class="control-label">
-              <label>Услуги</label>
-            </div>
-            <div id="partner-add-service-container"/>
-          </div>
-          <div id="partner-permissions" />
-        </form>
-      </div>
-    </script>
-
-    <!-- Edit sms template screen template -->
-    <script type="text/template"
-            class="screen-template"
-            id="editSms-screen-template">
-
-      <div id="sms-left" class="nice-scrollbar pane">
-          <button class="btn btn-action" type="button"
-            onclick="location.hash='editSms';location.reload(true);">
-            <i class="icon icon-plus"></i>Добавить шаблон
-          </button>
-          <br/><br/>
-          <table id="sms-table" class="table table-striped table-bordered">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Имя шаблона</th>
-                <th>Текст</th>
-              </tr>
-            </thead>
-            <tbody/>
-          </table>
-      </div>
-
-      <div id="sms-right" class="nice-scrollbar pane">
-        <form class="form-vertical">
-          <div id="smsTpl-form" />
-          <div class="control-group">
-          </div>
-          <div id="smsTpl-permissions" />
-        </form>
-      </div>
-    </script>
-
-
-    <!-- Supervisor screen template -->
-    <script type="text/template"
-            class="screen-template"
-            id="supervisor-screen-template">
-
-      <div id="supervisor-left" class="nice-scrollbar pane">
-        <div class="form-vertical">
-          <div id="table-filter" class="form-inline well">
-            <label>Диапазон:</label>
-            <input id="date-min" type="text" />
-            -
-            <input id="date-max" type="text" />
-
-            <select id="role" data-bind="foreach: entries">
-              <option data-bind="value: value, text: label"/>
-            </select>
-
-            <select id="closed">
-              <option value="0">Открытые</option>
-              <option value="1">Закрытые</option>
-              <option value="">Открытые и закрытые</option>
-            </select>
-            </br>
-            <div class="control-group">
-              <button id="reload" class="btn" >
-                Обновить
-              </button>
-            </div>
-          </div>
-          <table id="supervisor-table" class="table table-striped table-bordered">
-            <thead>
-              <tr>
-                <th width="1%"># кейса/действия</th>
-                <th width="1%">Закрыто?</th>
-                <th width="10%">Тип действия</th>
-                <th width="10%">Ответственный</th>
-                <th width="5%">Роль</th>
-                <th width="10%">Время выполнения</th>
-                <th width="10%">Результат</th>
-                <th width="2%">Пр</th>
-                <th>Город</th>
-                <th>Программа</th>
-                <th>Ожидаемое время начала оказания услуги</th>
-                <th>Название услуги</th>
-              </tr>
-            </thead>
-            <tbody/>
-          </table>
-        </div>
-      </div>
-
-      <div id="supervisor-right" class="nice-scrollbar pane">
-        <form class="form-vertical">
-          <div id="action-form" />
-          <div id="action-permissions" />
-        </form>
-      </div>
-    </script>
-
-    <!-- Supervisor screen template -->
-    <script type="text/template"
-            class="screen-template"
-            id="supervisorOps-screen-template">
-        <div class="form-vertical">
-          <table id="supervisorOps-table" class="table table-striped table-bordered">
-            <thead>
-              <tr>
-                <th>Логин</th>
-                <th>Имя</th>
-                <th>Город</th>
-                <th>Программа</th>
-              </tr>
-            </thead>
-            <tbody/>
-          </table>
-        </div>
-    </script>
-
-    <!-- RKC screen template -->
-    <script type="text/template"
-            class="screen-template"
-            id="rkc-screen-template">
-      <div class="span12 pane nice-scrollbar">
-        {{> rkc/header }}
-        <div class="row-fluid">
-          <div class="span6">
-            <h2>Кейсы</h2>
-            <div class="row-fluid">
-              <div class="span6 form-horizontal">
-                {{# smallinp }}
-                <label> Количество оказанных услуг всего </label>
-                <input id="total-services" />
-                {{/ smallinp }}
-
-                {{# smallinp }}
-                <label> Среднее время прибытия эвакуатора/техпомощи </label>
-                <input id="average-towage-tech-start" />
-                {{/ smallinp }}
-
-                {{# smallinp }}
-                <label> Общая стоимость услуг у партнёров </label>
-                <input id="calculated-cost" />
-                {{/ smallinp }}
-              </div>
-              <div class="span6 form-horizontal">
-                {{# smallinp }}
-                <label> Количество конференций с механиком </label>
-                <input id="mechanic" />
-                {{/ smallinp }}
-
-                {{# smallinp }}
-                <label>
-                  Среднее время разгрузки/окончания
-                  услуги по эвакуации/техпомощи
-                </label>
-                <input id="average-towage-tech-end" />
-                {{/ smallinp }}
-
-                {{# smallinp }}
-                <label> Общая стоимость услуг для заказчиков </label>
-                <input id="limited-cost" />
-                {{/ smallinp }}
-              </div>
-            </div>
-          </div>
-          <div class="span6">
-            <h2>Действия</h2>
-            {{# smallinp }}
-            <label> Общее количество действий на сегодня </label>
-            <input id="total-actions" />
-            {{/ smallinp }}
-
-            {{# smallinp }}
-            <label> Общее количество невыполненных действий </label>
-            <input id="total-incomplete-actions" />
-            {{/ smallinp }}
-          </div>
-        </div>
-        <div class="row-fluid">
-          <!-- <h2>Услуги</h2> -->
-          <div class="span6">
-            <table id="rkc-services-table"
-                   class="table table-striped table-bordered">
-              <thead>
-                <tr>
-                  <th width="20%">Услуга</th>
-                  <th width="10%">Кол-во</th>
-                  <th width="10%">Среднее время ожидания</th>
-                  <th width="20%">Среднее время оказания</th>
-                  <th width="20%">Стоимость у партнёров</th>
-                  <th width="20%">Стоимость для заказчиков</th>
-                </tr>
-              </thead>
-              <tbody />
-            </table>
-          </div>
-          <div class="span6">
-            <table id="rkc-actions-table"
-                   class="table table-stripped table-bordered">
-              <thead>
-                <tr>
-                  <th width="50%">Действие</th>
-                  <th width="15%">Общее количество действий</th>
-                  <th width="15%">Невыполненные действия</th>
-                  <th width="20%">Среднее время выполнения действия</th>
-                </tr>
-              </thead>
-              <tbody />
-            </table>
-          </div>
-        </div>
-        <div class="row-fluid">
-          <div class="span6">
-            <h2>Удовлетворённость клиентов</h2>
-            Процент довольных клиентов:
-            <input id="satisfied-percentage" disabled="true" class="span1"/>
-            <h2>Претензии</h2>
-            <table id="rkc-complaints-table"
-                   class="table table-stripped table-bordered">
-              <thead>
-                <tr>
-                  <th width="30%">Кейс</th>
-                  <th width="70%">Услуги</th>
-                      </tr>
-              </thead>
-              <tbody data-bind="foreach: $data">
-                <td>
-                  <a data-bind="text: caseid, attr: { href: url }" />
-                </td>
-                <td data-bind="text: services" />
-              </tbody>
-            </table>
-            <h2>SMS</h2>
-            Количество SMS в обработке:
-            <input id="sms-processing" disabled="true" class="span1"/>
-            <h2>Ускоренная обработка заявок</h2>
-            <button id="rkc-ReducedActionsMode" style="float:left"/>
-          </div>
-          <div class="span6">
-            <h2>Погода</h2>
-            <select id="rkc-weather-city-select" data-bind="foreach: $data">
-              <option data-bind="value: id, text: name" />
-            </select>
-            <button class="btn" onClick="rkcWeatherAddSelectedCity(this)">
-              Добавить
-            </button>
-            <table class="table table-striped table-bordered"
-                   id="rkc-weather-table">
-              <thead>
-                <tr>
-                  <th width="60%">Город</th>
-                  <th width="20%">Погода</th>
-                  <th width="20%"></th>
-                </tr>
-              </thead>
-              <tbody data-bind="foreach: $data">
-                <tr data-bind="attr: { id: city }">
-                  <td data-bind="text: cityname"></td>
-                  <td data-bind="text: temp"></td>
-                <td>
-                  <button class="btn" onClick="rkcWeatherRemoveSelectedCity(this)">
-                    Удалить
-                  </button>
-                </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-    </script>
-
-    <!-- RKC operators screen template -->
-    <script type="text/template"
-            class="screen-template"
-            id="rkcOps-screen-template">
-      <div class="pane nice-scrollbar span12">
-        {{> rkc/header }}
-        <div class="row-fluid">
-          <h2>Операторы Back Office</h2>
-          <table id="rkc-ops-back-operators-table"
-                 class="table table-stripped table-bordered">
-            <thead>
-              <tr data-bind="foreach: cols">
-                <th data-bind="text: name"></th>
-              </tr>
-            </thead>
-            <tbody />
-          </table>
-        </div>
-      </div>
-    </script>
-
-    <!-- RKC front operators screen template -->
-    <script type="text/template"
-            class="screen-template"
-            id="rkcFront-screen-template">
-      <div class="pane nice-scrollbar span12">
-        {{> rkc/header }}
-        <div class="row-fluid">
-          <div class="span6">
-            <h2>Типы звонков</h2>
-            <br />
-            <table id="rkc-front-calls-table"
-                   class="table table-stripped table-bordered">
-              <thead>
-                <tr>
-                  <th width="40%">Звонок от</th>
-                  <th width="40%">Тип звонка</th>
-                  <th width="20%">Количество</th>
-                </tr>
-              </thead>
-              <tbody> </tbody>
-            </table>
-          </div>
-          <div class="span6">
-            <h2>Операторы</h2>
-            <table id="rkc-front-ops-table"
-                   class="table table-stripped table-bordered">
-              <thead>
-                <tr>
-                  <th width="40%">Оператор</th>
-                  <th width="30%">Кол-во принятых звонков</th>
-                  <th width="30%">Кол-во созданных кейсов</th>
-                </tr>
-              </thead>
-              <tbody />
-            </table>
-          </div>
-        </div>
-      </div>
-    </script>
-
-    <!-- print service template screen template -->
-    <script type="text/template"
-            class="screen-template"
-            id="printSrv-screen-template">
-      <div id="print-table">
-        <table class="table-condensed">
-          <tr>
-            <td> Клиент </td>
-            <td data-bind="text: kase.program"> </td>
-          </tr>
-          <tr>
-            <td> Номер происшествия </td>
-            <td data-bind="text:kase.id"> </td>
-          </tr>
-          <tr>
-            <td> Дата и время звонка </td>
-            <td data-bind="text: kase.callDate"> </td>
-          </tr>
-          <tr>
-            <td> Дата и время создания услуги </td>
-            <td data-bind="text: service.createTime"> </td>
-          </tr>
-          <tr>
-            <td> Услуга </td>
-            <td data-bind="text: service.type"> </td>
-          </tr>
-          <tr>
-            <td> ФИО звонящего </td>
-            <td style="text-transform:capitalize;"
-                data-bind="text: kase.contact_name">
-            </td>
-          </tr>
-          <tr>
-            <td> Владелец </td>
-            <td data-bind="text: kase.contact_ownerName"> </td>
-          </tr>
-          <tr>
-            <td> Что случилось </td>
-            <td data-bind="text: kase.comment"> </td>
-          </tr>
-          <tr>
-            <td> Марка автомобиля </td>
-            <td data-bind="text: kase.car_make"> </td>
-          </tr>
-          <tr>
-            <td> Модель автомобиля </td>
-            <td data-bind="text: kase.car_model"> </td>
-          </tr>
-          <tr>
-            <td> Регистрационный номер автомобиля </td>
-            <td data-bind="text: kase.car_plateNum"> </td>
-          </tr>
-          <tr>
-            <td> VIN автомобиля  </td>
-            <td data-bind="text: kase.car_vin"> </td>
-          </tr>
-          <tr>
-            <td> VIN проверен </td>
-            <td data-bind="text: kase.vinChecked"> </td>
-          </tr>
-          <tr>
-            <td> Адрес места поломки </td>
-            <td data-bind="text: kase.caseAddress_address"> </td>
-          </tr>
-          <tr>
-            <td> Адрес, куда эвакуируют автомобиль </td>
-            <td data-bind="text: service.towAddress_address"> </td>
-          </tr>
-          <tr>
-            <td> Фактическое время начала оказания услуги </td>
-            <td data-bind="text: service.times_factServiceStart"> </td>
-          </tr>
-          <tr>
-            <td> Фактическое время окончания оказания услуги </td>
-            <td data-bind="text: service.times_factServiceEnd"> </td>
-          </tr>
-          <tr>
-            <td> Название партнёра </td>
-            <td data-bind="text: service.contractor_partner">  </td>
-          </tr>
-          <tr>
-            <td> Стоимость услуги у партнёра </td>
-            <td data-bind="text: service.payment_partnerCost"> </td>
-          </tr>
-          <tr>
-            <td> Расшифровка стоимости </td>
-            <td data-bind="text: service.payment_costTranscript"> </td>
-          </tr>
-          <tr>
-            <td> Комментарий </td>
-            <td data-bind="text: kase.betaComment"> </td>
-          </tr>
-          <tr>
-            <td> Статус услуги </td>
-            <td data-bind="text: service.status"> </td>
-          </tr>
-          <tr>
-            <td> Сотрудник принявший звонок </td>
-            <td data-bind="text: kase.callTaker"> </td>
-          </tr>
-          <tr>
-            <td> Сотрудник заказавший услугу </td>
-            <td data-bind="text: service.assignedTo"> </td>
-          </tr>
-        </table>
       </div>
     </script>
 
@@ -1862,27 +1117,36 @@
 
     <!-- navigation menu templates -->
     <script type="text/html" id="nav-li-template">
-      <!-- ko foreach: screens -->
-        <!-- ko if: type == 'li' -->
-          <li data-bind="if: type == 'li',
-                         attr: { id: name + '-screen-nav' }">
-            <a data-bind="attr: { href: '#' + name}, text: label"/>
-          </li>
-        <!-- /ko -->
-        <!-- ko if: type == 'dropdown' -->
-          <li class="dropdown"
-              data-bind="if: type == 'dropdown'">
-            <a href="#"
-               class="dropdown-toggle"
-               data-toggle="dropdown"
-               data-bind="html: label + '<b class=\'caret\'></b>'">
-              <b class="caret"></b>
-            </a>
-            <ul class="dropdown-menu"
-                data-bind="template: { name: 'nav-li-template' }">
-            </ul>
-          </li>
+      <!-- ko if: $data.screens -->
+        <!-- ko foreach: screens -->
+          <!-- ko if: type == 'li' -->
+            <li data-bind="if: type == 'li',
+                           attr: { id: name + '-screen-nav' }">
+              <a data-bind="attr: { href: '#' + name}, text: label"/>
+            </li>
+          <!-- /ko -->
+          <!-- ko if: type == 'sms' -->
+            <li>
+              <a href="#sms-send-modal" data-toggle="modal">
+                <i class="icon icon-envelope icon-white"></i>
+              </a>
+            </li>
+          <!-- /ko -->
+          <!-- ko if: type == 'dropdown' -->
+            <li class="dropdown"
+                data-bind="if: type == 'dropdown'">
+              <a href="#"
+                 class="dropdown-toggle"
+                 data-toggle="dropdown"
+                 data-bind="html: label + '<b class=\'caret\'></b>'">
+                <b class="caret"></b>
+              </a>
+              <ul class="dropdown-menu"
+                  data-bind="template: { name: 'nav-li-template' }">
+              </ul>
+            </li>
 
+          <!-- /ko -->
         <!-- /ko -->
       <!-- /ko -->
     </script>
@@ -1912,91 +1176,6 @@
       <div>{{ workingTime }}</div>
       <div><a class="btn btn-mini btn-primary"
               onclick="pickPartnerBlip('{{ parentView }}', '{{ mapId }}', '{{ id }}', '{{ name }}', '{{ addrDeFacto }}', '{{ coords }}', '{{ partnerIdField }}', '{{ partnerField }}', '{{ partnerAddrField }}', '{{ partnerCoordsField }}');">Выбрать</a></div>
-    </script>
-
-    <script type="text/partial" id="rkc/intervals" class="partial">
-      <h3>Интервал</h3>
-      <div class="input-append date"
-           data-provide="datepicker"
-           data-autoshow-datepicker="true"
-           data-date-format="dd.mm.yyyy"
-           data-date-weekstart="1">
-        <input type="text"
-               id="rkc-date-from"
-               class="focusable"
-               name="from"
-               />
-        <span class="add-on"><i class="icon icon-calendar" /></span>
-      </div>
-      <div class="input-append date"
-           data-provide="datepicker"
-           data-autoshow-datepicker="true"
-           data-date-format="dd.mm.yyyy"
-           data-date-weekstart="1">
-        <input type="text"
-               id="rkc-date-to"
-               class="focusable"
-               name="to"
-               />
-        <span class="add-on"><i class="icon icon-calendar" /></span>
-      </div>
-    </script>
-
-    <script type="text/partial" id="rkc/filters" class="partial">
-      <h3>Фильтрация</h3>
-      <div class="control-group">
-        <label class="control-label"> Город: </label>
-        <div class="controls">
-          <select id="city-select" data-bind="foreach: $data">
-            <option data-bind="value: id, text: name" />
-          </select>
-        </div>
-      </div>
-      <div class="control-group">
-        <label class="control-label"> Программа: </label>
-        <div class="controls">
-          <select id="program-select" data-bind="foreach: $data">
-            <option data-bind="value: id, text: name" />
-          </select>
-        </div>
-      </div>
-      <div class="control-group">
-        <label class="control-label"> Партнёр: </label>
-        <div class="controls">
-          <select id="partner-select" data-bind="foreach: $data">
-            <option data-bind="value: id, text: name" />
-          </select>
-        </div>
-      </div>
-    </script>
-
-    <script type="text/partial" id="rkc/header" class="partial">
-      <div class="row-fluid">
-          <div class="span6 form-horizontal">
-            {{> rkc/filters }}
-          </div>
-          <div class="span6">
-            {{> rkc/intervals }}
-          </div>
-          <div class="span2">
-            <div class="control-group">
-              <button id="reload" class="btn"> Обновить </button>
-            </div>
-          </div>
-        </div>
-    </script>
-
-    <script type="text/partial" id="rkc/smallinput" class="partial">
-      <div class="control-group">
-        <div class="row-fluid">
-          <div class="span10">
-            {{ label }}
-          </div>
-          <div class="span2">
-            <input type="text" class="span1" id={{ id }} />
-          </div>
-        </div>
-      </div>
     </script>
 
   </body>

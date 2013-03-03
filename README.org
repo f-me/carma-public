@@ -180,26 +180,4 @@
 
   User management is available via [[https://github.com/dzhus/snap-auth-cli][snap-auth-cli]].
   
-* To do
-** IN_PROGRESS Provide case model
-** IN_PROGRESS [1/2] Tech assistance model
-   - [X] techType — dictionary
-   - [ ] techContractor — references
-** IN_PROGRESS [1/2] Towage model
-   - [X] towerType & towType       — dictionaries
-   - [ ] towDealer & towContractor — references
-** TODO Provide dealer and partner models
-   With proper field index annotations for redson search API.
 
-** MAYBE Generate navbar from screens description
-** TODO [/] More client-side caching
-   - [ ] templates;
-   - [ ] models;
-** TODO Client settings
-   Some settings need to be served to client code (to use in JS):
-   
-    - serverSyncThrottle;
-    - serverSyncDelay;
-    - timelineUpdateInterval;
-
-** MAYBE Better JavaScript tables solution

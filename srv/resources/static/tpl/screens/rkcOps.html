@@ -1,0 +1,16 @@
+<!-- RKC operators screen template -->
+<div class="pane nice-scrollbar span12">
+  {{> rkc/header }}
+  <div class="row-fluid">
+    <h2>Операторы Back Office</h2>
+    <table id="rkc-ops-back-operators-table"
+           class="table table-stripped table-bordered">
+      <thead>
+        <tr data-bind="foreach: cols">
+          <th data-bind="text: name"></th>
+        </tr>
+      </thead>
+      <tbody />
+    </table>
+  </div>
+</div>

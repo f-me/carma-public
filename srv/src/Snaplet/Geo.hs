@@ -20,16 +20,14 @@ module Snaplet.Geo
 where
 
 import Control.Applicative
+import Control.Lens
 import Control.Monad
-
 import Control.Monad.State
 
 import Data.Aeson as A
 
 import Data.Attoparsec.ByteString.Char8
 import Data.ByteString.Char8 (ByteString)
-
-import Data.Lens.Template
 
 import qualified Data.Vector as V
 import qualified Data.Vector.Mutable as VM (unsafeNew, unsafeWrite)
@@ -43,7 +41,7 @@ data Geo = Geo
     { _postgres :: Snaplet Postgres
     }
 
-makeLens ''Geo
+makeLenses ''Geo
 
 
 instance HasPostgres (Handler b Geo) where

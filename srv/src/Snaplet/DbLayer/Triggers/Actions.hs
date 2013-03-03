@@ -10,7 +10,6 @@ import Control.Applicative
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as L
 import qualified Data.ByteString.Char8 as B
-import qualified Data.ByteString.UTF8  as BU
 import qualified Data.Text          as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Map as Map
@@ -40,7 +39,7 @@ import Snaplet.DbLayer.Triggers.MailToPSA
 
 import Snap.Snaplet.SimpleLog
 
-import Util
+import Util as U
 import qualified  Utils.RKCCalc as RKC
 
 services =
@@ -127,7 +126,10 @@ actions
                         Right Nothing  -> setWeather objId val
                         Right (Just c) -> when (c /= val) $ setWeather objId val
                       ])
-          ,("car_plateNum", [\objId -> set objId "car_plateNum" . B.map toUpper])
+          ,("car_plateNum", [\objId
+            -> set objId "car_plateNum"
+              . T.encodeUtf8 . T.toUpper . T.decodeUtf8
+            ])
           ,("car_vin", [\objId val -> do
             let vin = B.map toUpper $ B.filter isAlphaNum val
             when (B.length vin == 17) $ do
@@ -556,7 +558,7 @@ actionResultMap = Map.fromList
     act <- replaceAction
       "headCheck"
       "Проверка РКЦ"
-      "supervisor" "1" (+360) objId
+      "op_checker" "1" (+360) objId
     set act "assignedTo" ""
   )
   ,("parguyToBack", \objId -> do
@@ -605,7 +607,7 @@ actionResultMap = Map.fromList
     act <- replaceAction
       "headCheck"
       "Проверка РКЦ"
-      "supervisor" "1" (+360) objId
+      "op_checker" "1" (+360) objId
     set act "assignedTo" ""
   )
   ,("directorConfirm", \objId -> do
@@ -719,14 +721,16 @@ closeSerivceAndSendInfoVW objId = do
   act1 <- replaceAction
     "closeCase"
     "Закрыть заявку"
-    "back" "3" (changeTime (+7*24*60*60) tm)
+    "op_close" "3" (changeTime (+7*24*60*60) tm)
     objId
+  set act1 "assignedTo" ""
 
   act2 <- replaceAction
     "getInfoDealerVW"
     "Уточнить информацию о ремонте у дилера/партнёра (VW, PSA)"
-    "back" "3" (+7*24*60*60)
+    "op_dealer" "3" (+7*24*60*60)
     objId
+  set act2 "assignedTo" ""
 
   partner <- getService objId "contractor_partner"
   comment <- get objId "comment"
@@ -773,7 +777,7 @@ requestFddsVin objId vin = do
 setWeather :: MonadTrigger m b => B.ByteString -> B.ByteString -> m b ()
 setWeather objId city = do
   conf    <- liftDb $ gets weather
-  weather <- liftIO $ getWeather' conf $ BU.toString $ B.filter (/= '\'') city
+  weather <- liftIO $ getWeather' conf $ U.bToString $ B.filter (/= '\'') city
   case weather of
     Right w   -> do
       liftDb $ scope "weather" $ log Trace $ T.concat

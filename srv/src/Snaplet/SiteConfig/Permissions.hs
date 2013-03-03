@@ -1,4 +1,3 @@
-
 module Snaplet.SiteConfig.Permissions
     ( SuperUser(..)
     -- * Commit checking
@@ -11,7 +10,7 @@ module Snaplet.SiteConfig.Permissions
 
 where
 
-import Data.Lens.Common
+import Control.Lens
 
 import Data.List
 import qualified Data.Map as M
@@ -32,12 +31,19 @@ type User = Either SuperUser AuthUser
 
 
 -- | Map between CRUD methods and form permission lenses.
-methodMap :: [(Method, Lens Model Permissions)]
-methodMap = [ (POST,   canCreateM)
-            , (GET,    canReadM)
-            , (PUT,    canUpdateM)
-            , (DELETE, canDeleteM)
-            ]
+--
+-- TODO Find out how to define a type for methodMap and use just one
+-- of these.
+methodMap1 = [ (POST,   canCreateM)
+             , (GET,    canReadM)
+             , (PUT,    canUpdateM)
+             , (DELETE, canDeleteM)
+             ]
+methodMap2 = [ (POST,   canCreateM)
+             , (GET,    canReadM)
+             , (PUT,    canUpdateM)
+             , (DELETE, canDeleteM)
+             ]
 
 
 -- | Check if provided roles meet the permission requirements.
@@ -95,11 +101,12 @@ getModelPermissions :: User -> Model -> [Method]
 getModelPermissions (Left SuperUser) _ = [POST, GET, PUT, DELETE]
 getModelPermissions (Right user) model =
     let
+--        askPermission :: Lens' Model Permissions -> Bool
         askPermission perm = intersectPermissions
                              (model ^. perm)
                              (userRoles user)
         rawPerms = map fst $
-                   filter (\(_, p) -> askPermission p) methodMap
+                   filter (\(_, p) -> askPermission p) methodMap1
     in
       if (elem POST rawPerms)
       then rawPerms ++ [PUT]
@@ -155,8 +162,9 @@ stripModel user model =
                          readableFields
         formPerms = getModelPermissions user model
         -- List of lens setters to be applied to model
+        boolFormPerms :: [Model -> Model]
         boolFormPerms = map (\(m, p) ->
-                             p ^= (stripMapper $ elem m formPerms)) 
-                        methodMap
+                             p .~ (stripMapper $ elem m formPerms))
+                        methodMap2
     in
       foldl' (\m f -> f m) model{fields = strippedFields} boolFormPerms
