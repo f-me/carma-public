@@ -723,12 +723,14 @@ closeSerivceAndSendInfoVW objId = do
     "Закрыть заявку"
     "op_close" "3" (changeTime (+7*24*60*60) tm)
     objId
+  set act1 "assignedTo" ""
 
   act2 <- replaceAction
     "getInfoDealerVW"
     "Уточнить информацию о ремонте у дилера/партнёра (VW, PSA)"
     "op_dealer" "3" (+7*24*60*60)
     objId
+  set act2 "assignedTo" ""
 
   partner <- getService objId "contractor_partner"
   comment <- get objId "comment"
