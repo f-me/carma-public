@@ -131,7 +131,8 @@ actions
               . T.encodeUtf8 . T.toUpper . T.decodeUtf8
             ])
           ,("car_vin", [\objId val -> do
-            let vin = B.map toUpper $ B.filter isAlphaNum val
+            let vin = T.encodeUtf8 . T.toUpper . T.filter isAlphaNum
+                    $ T.decodeUtf8 val
             when (B.length vin == 17) $ do
               set objId "car_vin" vin
               redisHGetAll (B.concat ["vin:", vin]) >>= \case
