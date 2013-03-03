@@ -20,7 +20,7 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
       txt = if r[0] > 0
           "Заказов услуг в очереди: #{r[0]}"
         else
-          "В очереде нет заказов услуг"
+          "В очереди нет заказов услуг"
       $("#actions-queue-count").text txt
       setTimeout(updateUnassigned, 3000)
 
