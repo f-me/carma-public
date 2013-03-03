@@ -58,7 +58,7 @@ userModel =
   fieldHash:
     boCities:
       name: 'boCities'
-      meta: {dictionaryName: 'DealerCities'}
+      meta: {dictionaryName: 'DealerCities', bounded: true}
     boPrograms:
       name: 'boPrograms'
-      meta: {dictionaryName: 'Programs'}
+      meta: {dictionaryName: 'Programs', bounded: true}
