@@ -4,8 +4,9 @@ module Snaplet.DbLayer.Types where
 
 import Data.Map (Map)
 import Data.ByteString (ByteString)
-import Data.Lens.Template
+
 import Control.Concurrent.STM
+import Control.Lens
 
 import Snap
 import Snap.Snaplet.Auth
@@ -58,7 +59,7 @@ data TriggersConfig = TriggersConfig
   {recommendations :: Map ModelName (Map FieldName (Map FieldValue Object))
   }
 
-makeLens ''DbLayer
+makeLenses ''DbLayer
 
 instance HasPostgres (Handler b (DbLayer b)) where
     getPostgresState = with postgres get

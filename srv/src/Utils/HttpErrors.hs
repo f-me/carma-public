@@ -1,12 +1,11 @@
 module Utils.HttpErrors (finishWithError) where
 
-import qualified Data.ByteString.Char8 as B
+import qualified Data.Text as T
 import Snap.Snaplet
 import Snap.Core
 
-finishWithError :: Int -> B.ByteString -> Handler a b c
+finishWithError :: Int -> String -> Handler a b c
 finishWithError code message = do
   modifyResponse $ setResponseCode code
-  writeBS message
-  r <- getResponse
-  finishWith r
+  writeText $ T.pack message
+  getResponse >>= finishWith

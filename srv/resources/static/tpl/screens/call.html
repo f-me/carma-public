@@ -1,0 +1,53 @@
+<!-- Call handling screen layout -->
+  <div id="left" class="nice-scrollbar call-pane">
+    <div class="control-group">
+      <div class="control-label">
+        <label>Номер</label>
+      </div>
+      <div class="controls">
+        <input type="text" disabled id="call-number"
+               data-bind="value: maybeId"/>
+      </div>
+    </div>
+    <div id="call-form"/>
+    <button class="btn btn-success"
+            type="submit"
+            onClick="makeCase()" >
+      Новый кейс
+    </button>
+  </div>
+  <div id="center" class="nice-scrollbar call-pane" />
+  <div id="right" class="pane">
+    <button id="reload-screen"
+            class="btn btn-success"
+            type="submit"
+            onClick="reloadScreen()" >
+      Новый звонок
+    </button>
+  </div>
+  <div id="bottom">
+    <div class="control-group">
+      <div class="control-label">
+        <label>Поиск</label>
+      </div>
+      <div class="controls">
+        <input type="text" class="input-xlarge" id="search-query">
+      </div>
+    </div>
+    <table id="call-searchtable" class="table table-striped table-bordered">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>ФИО</th>
+          <th>Дата звонка</th>
+          <th>Телефон</th>
+          <th>Номер машины</th>
+          <th>VIN</th>
+          <th>Программа</th>
+          <th>Комментарий</th>
+        </tr>
+      </thead>
+      <tbody/>
+    </table>
+  </div>
+

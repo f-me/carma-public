@@ -88,6 +88,7 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "DealerCities",
+                "bounded":true,
                 "label": "Город"
             }
         },

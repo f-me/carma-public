@@ -4,12 +4,10 @@ module Snaplet.SiteConfig.Models
 
 
 import Control.Applicative
+import Control.Lens hiding ((.=))
 import Control.Monad (filterM)
 import Data.Aeson as Aeson
 import Data.Maybe (fromMaybe)
-
-import Data.Lens.Common ((^=), (^.))
-import Data.Lens.Template
 
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
@@ -49,7 +47,7 @@ data Field = Field { name           :: FieldName
                    , _canRead       :: Permissions
                    , _canWrite      :: Permissions
                    }
-makeLens ''Field
+makeLenses ''Field
 
 -- | A list of properties to be applied to named fields.
 data Application = Application { targets    :: FieldTargets
@@ -57,7 +55,7 @@ data Application = Application { targets    :: FieldTargets
                                , _apRead    :: Maybe Permissions
                                , _apWrite   :: Maybe Permissions
                                }
-makeLens ''Application
+makeLenses ''Application
  
 
 
@@ -76,7 +74,7 @@ data Model = Model { modelName      :: ModelName
                    , _canUpdateM    :: Permissions
                    , _canDeleteM    :: Permissions
                    }
-makeLens ''Model
+makeLenses ''Model
 
 -- | Used when field type is not specified in model description.
 defaultFieldType :: B.ByteString
@@ -214,7 +212,7 @@ doApplications model =
                 patchBits :: [Field -> Field]
                 patchBits = [mergeFieldsMeta (apMeta ap)] ++
                           map (\(from, to) -> 
-                                   maybe id (to ^=) (ap ^. from))
+                                   maybe id (to .~) (ap ^. from))
                           [ (apRead,  canRead)
                           , (apWrite, canWrite)
                           ]

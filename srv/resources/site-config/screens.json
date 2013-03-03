@@ -1,4 +1,13 @@
 { "screens" : [
+    { "name"  : "sms",
+      "type"  : "sms",
+      "permissions" : ["front","back","head","parguy","supervisor","director","analyst","parguy","account","admin","programman"]
+    },
+    { "name"  : "contract",
+      "label" : "Контракты",
+      "type"  : "li",
+      "permissions": ["head", "supervisor", "partner"]
+    },
     { "name"  : "call",
       "label" : "Звонок",
       "type"  : "li",
@@ -13,11 +22,6 @@
       "label" : "Бэкофис",
       "type"  : "li",
       "permissions": ["front","back","head","parguy","supervisor","analyst"]
-    },
-    { "name"  : "search",
-      "label" : "Поиск",
-      "type"  : "li",
-      "permissions": [""]
     },
     { "type": "dropdown",
       "label": "Супервизор",
@@ -71,7 +75,7 @@
       "permissions": ["front","back","head","parguy","supervisor","director","analyst","account","admin","programman"],
       "screens" : [
         { "name"  : "vin",
-          "label" : "Обновление базы VIN",
+          "label" : "Обновление базы VIN и партнёров",
           "type"  : "li",
           "permissions": ["head","admin","programman","supervisor","analyst"]
         },
@@ -89,6 +93,11 @@
           "label" : "Редактирование VIN",
           "type"  : "li",
           "permissions": ["head","supervisor","admin","programman"]
+        },
+        { "name"  : "program",
+          "label" : "Редактирование програм",
+          "type"  : "li",
+          "permissions": ["admin", "head"]
         }
       ]
     }

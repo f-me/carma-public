@@ -1,23 +1,23 @@
-{-# LANGUAGE TemplateHaskell #-}
-module Snaplet.FileUpload ( fileUploadInit
-                          , FileUpload
-                          , doUpload'
-                          , doDeleteAll'
-                          )
-where
 
-import Control.Monad.IO.Class
+module Snaplet.FileUpload
+  ( fileUploadInit
+  , FileUpload(..)
+  , doUpload'
+  , doDeleteAll'
+  ) where
+
 import Control.Monad
 
-import Snap (gets)
-import Snap.Core
+import Snap (gets, liftIO)
+import Snap.Core hiding (path)
 import Snap.Snaplet
 import Snap.Util.FileUploads
 
+import Data.List (foldl')
+import Data.String
 import Data.Maybe
 import Data.Configurator
-import qualified Data.ByteString.Char8 as B
-import qualified Data.ByteString.UTF8  as BU
+import Data.ByteString (ByteString)
 
 import System.Directory
 import System.FilePath
@@ -25,13 +25,14 @@ import System.FilePath
 import Data.Aeson as A
 
 import Utils.HttpErrors
+import Util as U
 
 data FileUpload = FU { cfg      :: UploadPolicy
                      , tmp      :: FilePath
                      , finished :: FilePath
                      }
 
-routes :: [(BU.ByteString, Handler b FileUpload ())]
+routes :: [(ByteString, Handler b FileUpload ())]
 routes = [ (":model/:id/:field",       method POST   $ doUpload)
          , (":model/:id/:field/:name", method DELETE $ doDelete)
          , (":model/:id",              method DELETE $ doDeleteAll)
@@ -40,68 +41,68 @@ routes = [ (":model/:id/:field",       method POST   $ doUpload)
 doDeleteAll :: Handler b FileUpload ()
 doDeleteAll = do
   model <- getParamOrDie "model"
-  objId    <- getParamOrDie "id"
+  objId <- getParamOrDie "id"
   doDeleteAll' model objId
 
-doDeleteAll' :: BU.ByteString -> BU.ByteString -> Handler b FileUpload ()
+doDeleteAll' :: String -> String -> Handler b FileUpload ()
 doDeleteAll' model objId = do
-  f     <- gets finished
-  let model' = BU.toString model
-      id'    = BU.toString objId
-      path'   = f </> model' </> id'
-  when (elem ".." [model', id']) pass
-  e <- liftIO $ doesDirectoryExist path'
-  when (not e) $ finishWithError 404 $ BU.fromString $ model' </> id'
-  liftIO $ removeDirectoryRecursive path'
+  f <- gets finished
+  let path = f </> model </> objId
+  when (elem ".." [model, objId]) pass
+  liftIO (doesDirectoryExist path) >>= \case
+    False -> finishWithError 404 $ model </> objId
+    True  -> liftIO $ removeDirectoryRecursive path
 
 doDelete :: Handler b FileUpload ()
 doDelete = do
   f     <- gets finished
   model <- getParamOrDie "model"
-  id    <- getParamOrDie "id"
+  objId <- getParamOrDie "id"
   field <- getParamOrDie "field"
   name  <- getParamOrDie "name"
-  let splited = map (BU.toString) [model, id, field, name]
-      path'    = foldl (</>) f splited
-  when (elem ".." splited) pass
-  e <- liftIO $ doesFileExist path'
-  when (not e) $ finishWithError 404 name
-  liftIO $ removeFile path'
-  writeBS name
+
+  let path' = [model, objId, field, name]
+  when (elem ".." path') pass
+  let path  = foldl' (</>) f path'
+  liftIO (doesFileExist path) >>= \case
+    False -> finishWithError 404 name
+    True  -> do
+      liftIO $ removeFile path
+      writeText $ fromString name
 
 doUpload :: Handler b FileUpload ()
 doUpload = do
   model <- getParamOrDie "model"
-  objId    <- getParamOrDie "id"
+  objId <- getParamOrDie "id"
   field <- getParamOrDie "field"
   r <- doUpload' model objId field
   -- modifyResponse $ setResponseCode 200
   writeLBS $ A.encode r
 
+doUpload' :: String -> String -> String -> Handler b FileUpload [String]
 doUpload' model objId field = do
   tmpd <- gets tmp
   cfg  <- gets cfg
   f    <- gets finished
-  handleFileUploads tmpd cfg (partPol cfg) (uploadHandler f model objId field)
+  handleFileUploads tmpd cfg (const $ partPol cfg) $
+    liftIO . fmap catMaybes . mapM (\(info, r) -> case r of
+      Left _    -> return Nothing
+      Right res -> do
+        let justFname = U.bToString . fromJust $ partFileName info
+        let path      = f </> model </> objId </> field
+        createDirectoryIfMissing True path
+        copyFile res $ path </> justFname
+        return $ Just justFname)
 
 getParamOrDie name =
-  getParam name >>=
-  maybe (finishWithError 403 $ "need " `B.append` name) return
+  getParam name >>= \case
+    Nothing -> finishWithError 403 $ "need " ++ U.bToString name
+    Just p  -> return $ U.bToString p
 
-partPol cfg _ = allowWithMaximumSize $ getMaximumFormInputSize cfg
+partPol :: UploadPolicy -> PartUploadPolicy
+partPol = allowWithMaximumSize . getMaximumFormInputSize
 
-uploadHandler f model objId field l =
-    liftIO $ liftM (catMaybes) $ mapM (handle f model objId field) l
-
-handle _ _     _  _     (_   , Left _ ) = return Nothing
-handle d model objId field (info, Right f) = do
-  createDirectoryIfMissing True path
-  copyFile f $ path </> justFname
-  return $ Just justFname
-    where
-      justFname = BU.toString $ fromJust $ partFileName info
-      path      = d </> B.unpack model </> B.unpack objId </> B.unpack field
-
+fileUploadInit :: SnapletInit b FileUpload
 fileUploadInit =
     makeSnaplet "fileupload" "fileupload" Nothing $ do
       cfg      <- getSnapletUserConfig

@@ -6,8 +6,8 @@ import Data.Text (Text)
 import Data.Map (Map)
 import Data.Set (Set)
 import Data.Time.Clock (UTCTime)
-import Data.Lens.Template
 import Control.Concurrent.STM
+import Control.Lens
 
 import Data.Pool
 import Database.PostgreSQL.Simple as Pg
@@ -52,7 +52,7 @@ data App = App
 
 type AppHandler = Handler App App
 
-makeLens ''App
+makeLenses ''App
 
 instance HasHeist App where
   heistLens = subSnaplet heist

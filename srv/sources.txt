@@ -1,6 +1,10 @@
 ./
 https://github.com/f-me/fdds
+https://github.com/f-me/carma-dict
+https://github.com/f-me/carma-http
 https://github.com/f-me/carma-sync
+https://github.com/f-me/carma-partner-import
+https://github.com/f-me/hs-weather-api
 https://github.com/f-me/postgresql-simple 0.3-stable
 https://github.com/f-me/postgresql-sync-map
 https://github.com/f-me/vin-parser
@@ -11,7 +15,5 @@ https://github.com/f-me/snaplet-simple-log
 https://github.com/mvoidex/simple-log-syslog
 https://github.com/mvoidex/hformat
 
-https://github.com/cvb/snap-core nonascii-filenames
-https://github.com/f-me/snap-loader-static
-https://github.com/f-me/snap-loader-dynamic
+https://github.com/f-me/snap-core nonascii-filenames
 https://github.com/f-me/snaplet-postgresql-simple
