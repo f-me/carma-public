@@ -7,6 +7,25 @@
   "canDelete": false,
   "fields": [
     {
+      "name": "ctime",
+      "canRead": ["partner"],
+      "canWrite": ["partner"],
+      "type": "datetime",
+      "meta": {
+        "invisible": true,
+        "label": "Дата создания записи"
+      }
+    },
+    {
+      "name": "program",
+      "canRead": ["partner"],
+      "canWrite": ["partner"],
+      "meta": {
+        "invisible": true,
+        "label": "Программа"
+      }
+    },
+    {
       "name": "carVin",
       "canRead": ["partner"],
       "canWrite": ["partner"],
@@ -115,7 +134,7 @@
       }
     },
     {
-      "name": "carCheckupMileage",
+      "name": "carCheckupMilage",
       "canRead": ["partner"],
       "canWrite": ["partner"],
       "meta": {
