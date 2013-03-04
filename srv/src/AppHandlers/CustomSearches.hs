@@ -156,13 +156,13 @@ selectContracts = do
   rows <- withPG pg_search $ \c -> query c (fromString
     $  "SELECT id::text,"
     ++ "  extract (epoch from ctime at time zone 'UTC')::int8::text,"
-    ++ "  carVin, carMake, carModel, carColor, carPlateNum, cardNumber,"
+    ++ "  carVin, carMake, carModel, carColor, carPlateNum, cardNumber::text,"
     ++ "  carMakeYear::text, carCheckPeriod::text,"
     ++ "  extract (epoch from carBuyDate at time zone 'UTC')::int8::text,"
     ++ "  extract (epoch from warrantyStart at time zone 'UTC')::int8::text,"
     ++ "  extract (epoch from contractValidFromDate at time zone 'UTC')::int8::text,"
     ++ "  extract (epoch from contractValidUntilDate at time zone 'UTC')::int8::text,"
-    ++ "  contractValidUntilMilage, milageTO, cardOwner, manager,"
+    ++ "  contractValidUntilMilage::text, milageTO::text, cardOwner, manager,"
     ++ "  carSeller, carDealerTO"
     ++ "  FROM contracttbl"
     ++ "  WHERE program = ? AND ctime between ? AND ?") [prg, dateFrom, dateTo]
