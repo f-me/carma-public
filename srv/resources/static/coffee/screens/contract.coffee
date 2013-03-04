@@ -11,6 +11,7 @@ define [
             permEl: "contract-permissions"
             focusClass: "focusable"
             refs: []
+            bb: { manual_save: true }
         )
 
       setupModel args
