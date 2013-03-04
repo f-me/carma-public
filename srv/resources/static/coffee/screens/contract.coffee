@@ -7,7 +7,7 @@ define [
     constructor: (viewName, args) ->
       setupModel = (args) ->
         main.modelSetup("contract")(
-          viewName, args || {"id": null},
+          viewName, args,
             permEl: "contract-permissions"
             focusClass: "focusable"
             refs: []
@@ -72,7 +72,7 @@ mkTableSkeleton = (model, fields) ->
       ,fn:
         if desc.type == 'dictionary'
           d = global.dictValueCache[desc.meta.dictionaryName]
-          (v) -> d[v[f]] || v[f]
+          (v) -> d[v[f]] || v[f] || ''
         else if desc.type == 'date'
           (v) -> if v[f]
               new Date(v[f] * 1000).toString "dd.MM.yyyy"

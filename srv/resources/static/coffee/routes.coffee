@@ -120,8 +120,8 @@ define [
         "call/:id"       : "loadCall"
         "call"           : "call"
         "reports"        : "reports"
-        "contract"       : "contract"
-        "contract/:id"   : "newContract"
+        "contract/:p"    : "newContract"
+        "contract/:p/:id": "getContract"
         "partner"        : "newPartner"
         "partner/:id"    : "loadPartner"
         "editVin/:id"    : "editVin"
@@ -146,8 +146,10 @@ define [
       loadCall      : (id) -> r.renderScreen("call", call, {"id": id})
       call          :      -> r.renderScreen("call", call, {"id": null})
       reports       :      -> r.renderScreen("reports", report)
-      contract      :      -> r.renderScreen("contract", contract)
-      newContract   : (id) -> r.renderScreen("contract", contract, {"id": id})
+      newContract   :(p)   -> r.renderScreen "contract", contract,
+                                {"program": p, "id": null}
+      getContract   :(p,id) -> r.renderScreen "contract", contract,
+                                {"program": p, "id": id}
       editVin       : (id) -> r.renderScreen("editVin", editVin, {"id": id})
       newVin        :      -> r.renderScreen("newVin", newVin, {"id": null})
       supervisor    :      -> r.renderScreen("supervisor", supervisor)
