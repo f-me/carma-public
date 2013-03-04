@@ -7,16 +7,18 @@ define [
     constructor: (viewName, args) ->
       setupModel = (args) ->
         main.modelSetup("contract")(
-          viewName, args || {"id": null},
+          viewName, args,
             permEl: "contract-permissions"
             focusClass: "focusable"
             refs: []
+            bb: { manual_save: true }
         )
 
       setupModel args
       setTimeout ->
         sk = mkTableSkeleton global.models.contract,
               [ {name: "#", fn: (o) -> o.id.split(':')[1]}
+              , "ctime"
               , "carVin"
               , "carMake"
               , "carModel"
@@ -70,9 +72,15 @@ mkTableSkeleton = (model, fields) ->
       ,fn:
         if desc.type == 'dictionary'
           d = global.dictValueCache[desc.meta.dictionaryName]
-          (v) -> d[v[f]] || ''
+          (v) -> d[v[f]] || v[f] || ''
         else if desc.type == 'date'
-          (v) -> if v[f] then new Date(v[f] * 1000).toString "dd.MM.yyyy" else ''
+          (v) -> if v[f]
+              new Date(v[f] * 1000).toString "dd.MM.yyyy"
+            else ''
+        else if desc.type == 'datetime'
+          (v) -> if v[f]
+              new Date(v[f] * 1000).toString "dd.MM.yyyy HH:mm:ss"
+            else ''
         else
           (v) -> v[f] || ''
       }

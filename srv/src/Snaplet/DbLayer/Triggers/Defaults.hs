@@ -52,7 +52,7 @@ applyDefaults model obj = do
               , ("validUntil" , B.pack $ show $ ct + y)
               , ("makeYear"   , B.pack cy)
               ]
-    _ -> return cd
+    _ -> return obj
 
   dict <- gets rkcDict
   kase <- Redis.runRedisDB redis $ Redis.hgetall $
