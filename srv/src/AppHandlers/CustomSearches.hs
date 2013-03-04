@@ -146,3 +146,18 @@ getActionsForCase = do
   let fields =
         ["closeTime", "result", "name", "assignedTo", "comment"]
   writeJSON $ mkMap fields rows
+
+
+selectContracts :: AppHandler ()
+selectContracts = do
+  dateFrom <- getParam "from"
+  dateTo   <- getParam "to"
+  Just prg <- getParam "program"
+  rows <- withPG pg_search $ \c -> query c (fromString
+    $  "SELECT extract (epoch from closeTime at time zone 'UTC')::int8::text,"
+    ++ "       result, name, assignedTo, comment"
+    ++ "  FROM actiontbl"
+    ++ "  WHERE caseId = ?") [prg]
+  let fields =
+        ["closeTime", "result", "name", "assignedTo", "comment"]
+  writeJSON $ mkMap fields rows

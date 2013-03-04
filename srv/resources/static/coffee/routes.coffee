@@ -161,4 +161,4 @@ define [
       program       :      -> r.renderScreen("program", program)
       loadProgram   : (id) -> r.renderScreen("program", program, {"id": id})
       printSrv      : (model, id) ->
-        renderScreen "printSrv", print, {model: model, id: id}
+        r.renderScreen "printSrv", print, {model: model, id: id}
