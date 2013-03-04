@@ -17,7 +17,7 @@ define [
       setupModel args
       setTimeout ->
         sk = mkTableSkeleton global.models.contract,
-              [ {name: "#", fn: (o) -> o.id.split(':')[1]}
+              [ {name: "#", fn: (o) -> o.id}
               , "ctime"
               , "carVin"
               , "carMake"
@@ -55,7 +55,10 @@ define [
 
         dt = utils.mkDataTable t
 
-        $.getJSON("/all/contract"
+        $('#date-min').val (new Date).addDays(-1).toString('yyyy-MM-dd')
+        $('#date-max').val (new Date).toString('yyyy-MM-dd')
+
+        $.getJSON("/allContracts/#{args.program}"
             (objs) ->
                 dt.fnClearTable()
                 dt.fnAddData(objs.map sk.mkRow)

@@ -2,7 +2,7 @@ module AppHandlers.CustomSearches where
 
 import Control.Applicative
 import Data.String (fromString)
-
+import Data.Maybe
 import Data.Map (Map)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
@@ -150,14 +150,27 @@ getActionsForCase = do
 
 selectContracts :: AppHandler ()
 selectContracts = do
-  dateFrom <- getParam "from"
-  dateTo   <- getParam "to"
+  dateFrom <- fromMaybe "1970-01-01" <$> getParam "from"
+  dateTo   <- fromMaybe "2970-01-01" <$> getParam "to"
   Just prg <- getParam "program"
   rows <- withPG pg_search $ \c -> query c (fromString
-    $  "SELECT extract (epoch from closeTime at time zone 'UTC')::int8::text,"
-    ++ "       result, name, assignedTo, comment"
-    ++ "  FROM actiontbl"
-    ++ "  WHERE caseId = ?") [prg]
+    $  "SELECT id::text,"
+    ++ "  extract (epoch from ctime at time zone 'UTC')::int8::text,"
+    ++ "  carVin, carMake, carModel, carColor, carPlateNum, cardNumber,"
+    ++ "  carMakeYear::text, carCheckPeriod::text,"
+    ++ "  extract (epoch from carBuyDate at time zone 'UTC')::int8::text,"
+    ++ "  extract (epoch from warrantyStart at time zone 'UTC')::int8::text,"
+    ++ "  extract (epoch from contractValidFromDate at time zone 'UTC')::int8::text,"
+    ++ "  extract (epoch from contractValidUntilDate at time zone 'UTC')::int8::text,"
+    ++ "  contractValidUntilMilage, milageTO, cardOwner, manager,"
+    ++ "  carSeller, carDealerTO"
+    ++ "  FROM contracttbl"
+    ++ "  WHERE program = ? AND ctime between ? AND ?") [prg, dateFrom, dateTo]
   let fields =
-        ["closeTime", "result", "name", "assignedTo", "comment"]
+        [ "id", "ctime", "carVin", "carMake", "carModel", "carColor"
+        , "carPlateNum", "cardNumber", "carMakeYear", "carCheckPeriod"
+        , "carBuyDate", "warrantyStart", "contractValidFromDate"
+        , "contractValidUntilDate", "contractValidUntilMilage"
+        , "milageTO", "cardOwner", "manager", "carSeller", "carDealerTO"
+        ]
   writeJSON $ mkMap fields rows
