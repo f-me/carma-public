@@ -1,5 +1,8 @@
 define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
+  unassignedShouldTick = true
+
   setupBackOffice = ->
+    unassignedShouldTick = true
     setTimeout((->
         updateUnassigned()
 
@@ -21,11 +24,12 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
           "Заказов услуг в очереди: #{r[0]}"
         else
           "В очереди нет заказов услуг"
-      $("#actions-queue-count").text txt
-      setTimeout(updateUnassigned, 3000)
-
+      if unassignedShouldTick
+        $("#actions-queue-count").text txt
+        setTimeout(updateUnassigned, 3000)
 
   removeBackOffice = ->
+    unassignedShouldTick = false
     $('#bo-littleMoreAction').off 'click.bo'
 
   mkBoTable = ->

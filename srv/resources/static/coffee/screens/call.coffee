@@ -5,6 +5,7 @@ define [ "utils"
        ], (utils, hotkeys, main, tpl) ->
 
   utils.build_global_fn 'makeCase', ['screens/case']
+  utils.build_global_fn 'reloadScreen', ['utils']
 
   setupCallForm = (viewName, args) ->
     knockVM = main.modelSetup("call") viewName, args,
