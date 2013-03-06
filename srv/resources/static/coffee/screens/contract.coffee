@@ -11,8 +11,11 @@ define [
             permEl: "contract-permissions"
             focusClass: "focusable"
             refs: []
-            bb: { manual_save: true }
-        )
+            bb: { manual_save: true })
+        if args.id
+          $('#render-contract').attr(
+            "href",
+            "/renderContract?prog=1&ctr=#{args.id}")
 
       setupModel args
       setTimeout ->
