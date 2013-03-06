@@ -174,7 +174,7 @@ fillFromContract vin objId = do
   case res of
     [] -> return False
     [row] -> do
-      zipWithM_ (maybe (return ()) (set objId))
+      zipWithM_ (maybe (return ()) . (set objId))
         ["program", "car_make", "car_model", "car_plateNum", "car_checkPeriod"
         ,"car_serviceStart", "car_serviceEnd","car_checkupMileage"]
         row
