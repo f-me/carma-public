@@ -1,12 +1,10 @@
 define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
+  unassignedShouldTick = true
+
   setupBackOffice = ->
+    unassignedShouldTick = true
     setTimeout((->
-        $.getJSON "/actions/unassigned", (r) ->
-          txt = if r[0] > 0
-              "Заказов услуг в очереди: #{r[0]}"
-            else
-              "В очереде нет заказов услуг"
-          $("#actions-queue-count").text txt
+        updateUnassigned()
 
         $('#bo-littleMoreAction').on('click.bo', ->
           $.ajax
@@ -20,7 +18,18 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
         $.getJSON("/allActions?#{params}", setupBoTable)
       ), 200)
 
+  updateUnassigned = ->
+    $.getJSON "/actions/unassigned", (r) ->
+      txt = if r[0] > 0
+          "Заказов услуг в очереди: #{r[0]}"
+        else
+          "В очереди нет заказов услуг"
+      if unassignedShouldTick
+        $("#actions-queue-count").text txt
+        setTimeout(updateUnassigned, 3000)
+
   removeBackOffice = ->
+    unassignedShouldTick = false
     $('#bo-littleMoreAction').off 'click.bo'
 
   mkBoTable = ->

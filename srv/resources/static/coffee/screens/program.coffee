@@ -4,7 +4,7 @@ define [ "model/main"
        ],
 (main, utils, tpl) ->
   constructor: (viewName, args) ->
-
+    f = $("#program-files").html()
     kvm = main.modelSetup("program") viewName, args,
                           permEl: "program-permissions"
                           focusClass: "focusable"
@@ -19,7 +19,11 @@ define [ "model/main"
     return if t.hasClass("dataTable")
     utils.mkDataTable(t)
 
+    kvm['maybeId'].subscribe ->
+      t.dataTable().fnAddData [[ kvm['id'](), kvm['label']() ]]
+
     t.on "click.datatable", "tr", ->
+      $("#program-files").html(f)
       id = this.children[0].innerText
       kvm = main.modelSetup("program") viewName, {"id": id},
                             permEl: "program-permissions"

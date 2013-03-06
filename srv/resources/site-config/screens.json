@@ -3,10 +3,10 @@
       "type"  : "sms",
       "permissions" : ["front","back","head","parguy","supervisor","director","analyst","parguy","account","admin","programman"]
     },
-    { "name"  : "contract",
-      "label" : "Контракты",
+    { "name"  : "contract/ruslan",
+      "label" : "Контракты РУС ЛАН",
       "type"  : "li",
-      "permissions": ["head", "supervisor", "partner"]
+      "permissions": ["ruslan"]
     },
     { "name"  : "call",
       "label" : "Звонок",
@@ -95,7 +95,7 @@
           "permissions": ["head","supervisor","admin","programman"]
         },
         { "name"  : "program",
-          "label" : "Редактирование програм",
+          "label" : "Редактирование программ",
           "type"  : "li",
           "permissions": ["admin", "head"]
         }

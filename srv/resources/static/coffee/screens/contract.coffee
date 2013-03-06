@@ -7,34 +7,39 @@ define [
     constructor: (viewName, args) ->
       setupModel = (args) ->
         main.modelSetup("contract")(
-          viewName, args || {"id": null},
+          viewName, args,
             permEl: "contract-permissions"
             focusClass: "focusable"
             refs: []
-        )
+            bb: { manual_save: true })
+        if args.id
+          $('#render-contract').attr(
+            "href",
+            "/renderContract?prog=1&ctr=#{args.id}")
 
       setupModel args
       setTimeout ->
         sk = mkTableSkeleton global.models.contract,
-              [ {name: "#", fn: (o) -> o.id.split(':')[1]}
+              [ {name: "#", fn: (o) -> o.id}
+              , "ctime"
               , "carVin"
               , "carMake"
               , "carModel"
-              , "carColor"
-              , "carPlateNum"
-              , "carMakeYear"
+#              , "carColor"
+#              , "carPlateNum"
+#              , "carMakeYear"
               , "carCheckPeriod"
-              , "carBuyDate"
-              , "warrantyStart"
-              , "cardNumber"
+#              , "carBuyDate"
+#              , "warrantyStart"
+#              , "cardNumber"
               , "contractValidFromDate"
               , "contractValidUntilDate"
               , "contractValidUntilMilage"
-              , "milageTO"
-              , "cardOwner"
+#              , "milageTO"
+#              , "cardOwner"
               , "manager"
-              , "carSeller"
-              , "carDealerTO"
+#              , "carSeller"
+#              , "carDealerTO"
               ]
 
         $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
@@ -53,7 +58,10 @@ define [
 
         dt = utils.mkDataTable t
 
-        $.getJSON("/all/contract"
+        $('#date-min').val (new Date).addDays(-1).toString('yyyy-MM-dd')
+        $('#date-max').val (new Date).toString('yyyy-MM-dd')
+
+        $.getJSON("/allContracts/#{args.program}"
             (objs) ->
                 dt.fnClearTable()
                 dt.fnAddData(objs.map sk.mkRow)
@@ -70,9 +78,15 @@ mkTableSkeleton = (model, fields) ->
       ,fn:
         if desc.type == 'dictionary'
           d = global.dictValueCache[desc.meta.dictionaryName]
-          (v) -> d[v[f]] || ''
+          (v) -> d[v[f]] || v[f] || ''
         else if desc.type == 'date'
-          (v) -> if v[f] then new Date(v[f] * 1000).toString "dd.MM.yyyy" else ''
+          (v) -> if v[f]
+              new Date(v[f] * 1000).toString "dd.MM.yyyy"
+            else ''
+        else if desc.type == 'datetime'
+          (v) -> if v[f]
+              new Date(v[f] * 1000).toString "dd.MM.yyyy HH:mm:ss"
+            else ''
         else
           (v) -> v[f] || ''
       }

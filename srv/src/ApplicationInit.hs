@@ -53,7 +53,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/s/",            serveDirectory "resources/static")
          , ("/s/screens",     serveFile "resources/site-config/screens.json")
          , ("/report",        chkAuth . method GET  $ report)
-         , ("/all/:model",    chkLogin . method GET  $ readAllHandler)
+         , ("/all/:model",    chkAuth . method GET  $ readAllHandler)
          , ("/callsByPhone/:phone",
                               chkAuth . method GET    $ searchCallsByPhone)
          , ("/actionsFor/:id",chkAuth . method GET    $ getActionsForCase)
@@ -68,9 +68,11 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/psaCases",      chkAuth . method GET    $ psaCases)
          , ("/repTowages/:id", 
                               chkAuth . method GET    $ repTowages)
-         , ("/contractGenerator",
-            chkAuth . method GET $ contractGeneratorHandler)
-         , ("/_whoami/",      chkLogin . method GET   $ serveUserCake)
+         , ("/allContracts/:program",
+                              chkLogin . method GET   $ selectContracts)
+         , ("/renderContract",
+                              chkLogin . method GET    $ renderContractHandler)
+         , ("/_whoami/",      chkLogin . method GET    $ serveUserCake)
          , ("/_/:model",      chkLogin . method POST   $ createHandler)
          , ("/_/:model/:id",  chkLogin . method GET    $ readHandler)
          , ("/_/:model/:id",  chkLogin . method PUT    $ updateHandler)
@@ -79,10 +81,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
                               chkAuth . method POST $ findOrCreateHandler)
          , ("/_/report/",     chkAuth . method POST   $ createReportHandler)
          , ("/_/report/:id",  chkAuth . method DELETE $ deleteReportHandler)
-         , ("/_/contract/",
-            chkAuthPartner . method POST   $ createContractHandler)
-         , ("/_/contract/:id",
-            chkAuthPartner . method DELETE $ deleteContractHandler)
          , ("/search/:model", chkAuth . method GET  $ searchHandler)
          , ("/rkc",           chkAuth . method GET  $ rkcHandler)
          , ("/rkc/weather",   chkAuth . method GET $ rkcWeatherHandler)

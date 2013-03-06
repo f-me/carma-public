@@ -435,28 +435,6 @@ deleteReportHandler = do
   with db $ DB.delete "report" objId
   with fileUpload $ doDeleteAll' "report" $ U.bToString objId
 
-createContractHandler :: AppHandler ()
-createContractHandler = do
-  res <- with db $ DB.create "contract" $ Map.empty
-  let Just objId = Map.lookup "id" res
-  f:_ <- with fileUpload
-      $ doUpload' "contract" (bToString objId) "templates"
-  Just name  <- getParam "name"
-  -- we have to update all model params after fileupload,
-  -- because in multipart/form-data requests we do not have
-  -- params as usual, see Snap.Util.FileUploads.setProcessFormInputs
-  _ <- with db $ DB.update "contract" objId $
-    Map.fromList [ ("templates", fromString f)
-                 , ("name",      name) ]
-  redirect "/#contracts"
-
-deleteContractHandler :: AppHandler ()
-deleteContractHandler = do
-  Just objId  <- getParam "id"
-  with db $ DB.delete "contract" objId
-  with fileUpload $ doDeleteAll' "contract" $ bToString objId
-  return ()
-
 getUsersDict :: AppHandler ()
 getUsersDict = gets allUsers >>= liftIO >>= writeJSON
 
@@ -690,8 +668,12 @@ partnerRole = Role "partner"
 ------------------------------------------------------------------------------
 -- | Deny requests from unauthenticated users.
 chkLogin :: AppHandler () -> AppHandler ()
-chkLogin = chkAuthRoles alwaysPass
+chkLogin h = chkAuthRoles alwaysPass (claimActivity >> h)
 
+claimActivity :: AppHandler ()
+claimActivity
+  = with auth currentUser
+  >>= maybe (return ()) (void . addToLoggedUsers)
 
 ------------------------------------------------------------------------------
 -- | Deny requests from unauthenticated or non-local users.

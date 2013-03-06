@@ -54,6 +54,8 @@ define ["model/utils"], (mu) ->
       , #{Base64.encode(head + s)}"
     s
 
+  modelsFromUrl = -> window.location.hash.match(/#(.*)\/.*/)[1]
+
   findCaseOrReferenceVM: findCaseOrReferenceVM
 
   # build global function from local to module one
@@ -212,6 +214,6 @@ define ["model/utils"], (mu) ->
     return [] if not v or v == ""
     v.split ','
 
-  modelsFromUrl: -> window.location.hash.match(/#(.*)\/.*/)[1]
+  modelsFromUrl: modelsFromUrl
 
   reloadScreen: -> global.router.navigate modelsFromUrl(), { trigger: true }
