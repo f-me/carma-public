@@ -162,15 +162,21 @@ fillFromContract :: MonadTrigger m b => ByteString -> ByteString -> m b Bool
 fillFromContract vin objId = do
   pgPool <- liftDb PG.getPostgresState
   res <- liftDb $ PG.query (fromString
-    $  "SELECT program, carMake, carModel, carPlateNum, carSeller"
+    $  "SELECT"
+    ++ "  program, carMake, carModel, carPlateNum,"
+    ++ "  carCheckPeriod::text"
+    ++ "  extract (epoch from contractValidFromDate)::int8::text,"
+    ++ "  extract (epoch from contractValidUntilDate)::int8::text,"
+    ++ "  milageTO::text"
     ++ "  FROM contracttbl"
     ++ "  WHERE carVin = ?"
     ++ "  ORDER BY ctime DESC LIMIT 1") [vin]
   case res of
     [] -> return False
     [row] -> do
-      zipWithM_ (set objId)
-        ["program", "car_make", "car_model", "car_plateNum", "car_seller"]
+      zipWithM_ (maybe (return ()) (set objId))
+        ["program", "car_make", "car_model", "car_plateNum", "car_checkPeriod"
+        ,"car_serviceStart", "car_serviceEnd","car_checkupMileage"]
         row
       return True
 
