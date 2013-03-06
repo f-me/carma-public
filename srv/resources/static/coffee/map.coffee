@@ -446,7 +446,9 @@ define ["model/utils", "utils"], (mu, u) ->
           u.findVM(viewName)[addr_field](addr)
       )
 
-
+  # Coordinates picker which uses a modal window to render the map in.
+  #
+  # Fills a field with coordinates chosen on the map.
   mapPicker = (fieldName, el) ->
     coords =
       lonlatFromShortString(
@@ -462,9 +464,10 @@ define ["model/utils", "utils"], (mu, u) ->
 
     addr_field = mu.modelField(modelName, fieldName).meta['targetAddr']
 
-    $("#partnerMapModal").modal('show')
     mapEl = $("#partnerMapModal").find(".osMap")[0]
-    initOSM mapEl, viewName
+    $("#partnerMapModal").modal('show')
+    
+    setTimeout((-> initOSM mapEl, viewName), 1000)
 
   { iconSize              : iconSize
   , zoomLevel             : zoomLevel
