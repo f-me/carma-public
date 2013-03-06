@@ -668,8 +668,12 @@ partnerRole = Role "partner"
 ------------------------------------------------------------------------------
 -- | Deny requests from unauthenticated users.
 chkLogin :: AppHandler () -> AppHandler ()
-chkLogin = chkAuthRoles alwaysPass
+chkLogin h = chkAuthRoles alwaysPass (claimActivity >> h)
 
+claimActivity :: AppHandler ()
+claimActivity
+  = with auth currentUser
+  >>= maybe (return ()) (void . addToLoggedUsers)
 
 ------------------------------------------------------------------------------
 -- | Deny requests from unauthenticated or non-local users.
