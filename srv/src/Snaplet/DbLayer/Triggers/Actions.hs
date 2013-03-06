@@ -164,7 +164,7 @@ fillFromContract vin objId = do
   res <- liftDb $ PG.query (fromString
     $  "SELECT"
     ++ "  program, carMake, carModel, carPlateNum,"
-    ++ "  carCheckPeriod::text"
+    ++ "  carCheckPeriod::text,"
     ++ "  extract (epoch from contractValidFromDate)::int8::text,"
     ++ "  extract (epoch from contractValidUntilDate)::int8::text,"
     ++ "  milageTO::text"
