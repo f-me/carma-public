@@ -21,14 +21,6 @@
             }
         },
         {
-            "name": "value",
-            "meta": {
-                "label": "Внутреннее название",
-                "invisible": true,
-                "readonly": true
-            }
-        },
-        {
             "name": "label",
             "meta": {
                 "label": "Название"
