@@ -23,10 +23,6 @@
 
 module AppHandlers.ContractGenerator where
 
-import           Control.Applicative ((<$>))
-
-import           Data.Maybe
-import qualified Data.Map as Map
 import           Data.String (fromString)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -43,6 +39,7 @@ import           Database.PostgreSQL.Simple.SqlQQ
 import           Application
 import           AppHandlers.Util
 
+q :: Query
 q = [sql|
      SELECT
           carVin
