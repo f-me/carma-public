@@ -2,8 +2,7 @@ module Snaplet.DbLayer.Triggers.Actions where
 
 import Prelude hiding (log)
 
-import Control.Arrow (first)
-import Control.Monad (when, unless, void, forM, forM_, filterM)
+import Control.Monad
 import Control.Monad.Trans
 import Control.Exception
 import Control.Applicative
@@ -132,20 +131,22 @@ actions
                     $ T.decodeUtf8 val
             when (B.length vin == 17) $ do
               set objId "car_vin" vin
-              redisHGetAll (B.concat ["vin:", vin]) >>= \case
-                Left _    -> return ()
-                Right []  -> do
-                  res <- requestFddsVin objId val
-                  set objId "vinChecked"
-                    $ if res then "fdds" else "vinNotFound"
-                Right car -> do
-                  set objId "vinChecked" "base"
-                  let setIfEmpty (name,val)
-                        | name == "car_plateNum" = return ()
-                        | otherwise = do
-                          val' <- get objId name
-                          when (val' == "") $ set objId name val
-                  mapM_ setIfEmpty car
+              fillFromContract vin objId >>= \case
+                True -> set objId "vinChecked" "base"
+                False -> redisHGetAll (B.concat ["vin:", vin]) >>= \case
+                  Left _    -> return ()
+                  Right []  -> do
+                    res <- requestFddsVin objId val
+                    set objId "vinChecked"
+                      $ if res then "fdds" else "vinNotFound"
+                  Right car -> do
+                    set objId "vinChecked" "base"
+                    let setIfEmpty (name,val)
+                          | name == "car_plateNum" = return ()
+                          | otherwise = do
+                            val' <- get objId name
+                            when (val' == "") $ set objId name val
+                    mapM_ setIfEmpty car
             ])
           ])
         ,("contract", Map.fromList
@@ -156,6 +157,22 @@ actions
 
 bToUpper :: ByteString -> ByteString
 bToUpper = T.encodeUtf8 . T.toUpper . T.decodeUtf8
+
+fillFromContract :: MonadTrigger m b => ByteString -> ByteString -> m b Bool
+fillFromContract vin objId = do
+  pgPool <- liftDb PG.getPostgresState
+  res <- liftDb $ PG.query (fromString
+    $  "SELECT program, carMake, carModel, carPlateNum, carSeller"
+    ++ "  FROM contracttbl"
+    ++ "  WHERE carVin = ?"
+    ++ "  ORDER BY ctime DESC LIMIT 1") [vin]
+  case res of
+    [] -> return False
+    [row] -> do
+      zipWithM_ (set objId)
+        ["program", "car_make", "car_model", "car_plateNum", "car_seller"]
+        row
+      return True
 
 
 serviceActions :: MonadTrigger m b => Map.Map ByteString [ObjectId -> ObjectId -> m b ()]
