@@ -2,7 +2,7 @@
   "name": "contract",
   "title": "contract",
   "canCreate": true,
-  "canRead": true,
+  "canRead": false,
   "canUpdate": true,
   "canDelete": false,
   "fields": [
@@ -38,8 +38,6 @@
     },
     {
       "name": "carSeller",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Дилер, продавший автомобиль"
@@ -72,8 +70,6 @@
     },
     {
       "name": "carPlateNum",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "transform": "uppercase",
@@ -84,8 +80,6 @@
     },
     {
       "name": "carMakeYear",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Год производства автомобиля",
@@ -94,8 +88,6 @@
     },
     {
       "name": "carColor",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "type": "dictionary",
       "meta": {
         "required": true,
@@ -106,8 +98,6 @@
     },
     {
       "name": "carBuyDate",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "type": "date",
       "meta": {
         "required": true,
@@ -116,8 +106,6 @@
     },
     {
       "name": "carCheckupDate",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "type": "date",
       "meta": {
         "required": true,
@@ -126,8 +114,6 @@
     },
     {
       "name": "carDealerTO",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Дилер у которого проходило последнее ТО"
@@ -135,8 +121,6 @@
     },
     {
       "name": "carCheckupMilage",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Пробег на последнем ТО",
@@ -145,8 +129,6 @@
     },
     {
       "name": "carTransmission",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "type": "dictionary",
       "meta": {
         "required": true,
@@ -158,8 +140,6 @@
     },
     {
       "name": "carEngine",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "type": "dictionary",
       "meta": {
         "required": true,
@@ -180,8 +160,6 @@
     },
     {
       "name": "contractType",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Тип контракта"
@@ -189,8 +167,6 @@
     },
     {
       "name": "cardNumber",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Номер карты участника"
@@ -238,8 +214,6 @@
     },
     {
       "name": "cardOwner",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "ФИО владельца карты"
@@ -256,8 +230,6 @@
     },
     {
       "name": "warrantyStart",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "type": "date",
       "meta": {
         "required": true,
@@ -266,8 +238,6 @@
     },
     {
       "name": "warrantyEnd",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "type": "date",
       "meta": {
         "required": true,
