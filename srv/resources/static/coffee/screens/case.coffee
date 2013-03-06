@@ -178,9 +178,9 @@ define [ "utils"
            p.addrDeFacto || '',
            p.phone1      || '',
            p.workingTime || '',
-           p.priority1   || '',
            p.priority2   || '',
            p.priority3   || '',
+           p.priority1   || '',
            p.id]
         # this last id will never be shown, but I need this, to add
         # partnerid as attribute of the row to pass it then to

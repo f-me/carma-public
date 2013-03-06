@@ -70,8 +70,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
                               chkAuth . method GET    $ repTowages)
          , ("/allContracts/:program",
                               chkLogin . method GET   $ selectContracts)
-         , ("/contractGenerator",
-                              chkLogin . method GET    $ contractGeneratorHandler)
+         , ("/renderContract",
+                              chkLogin . method GET    $ renderContractHandler)
          , ("/_whoami/",      chkLogin . method GET    $ serveUserCake)
          , ("/_/:model",      chkLogin . method POST   $ createHandler)
          , ("/_/:model/:id",  chkLogin . method GET    $ readHandler)

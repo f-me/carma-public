@@ -95,7 +95,7 @@
           "permissions": ["head","supervisor","admin","programman"]
         },
         { "name"  : "program",
-          "label" : "Редактирование програм",
+          "label" : "Редактирование программ",
           "type"  : "li",
           "permissions": ["admin", "head"]
         }

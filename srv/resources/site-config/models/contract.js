@@ -191,7 +191,6 @@
       "name": "cardNumber",
       "canRead": ["partner"],
       "canWrite": ["partner"],
-      "type": "picker",
       "meta": {
         "required": true,
         "label": "Номер карты участника"

@@ -19,6 +19,9 @@ define [ "model/main"
     return if t.hasClass("dataTable")
     utils.mkDataTable(t)
 
+    kvm['maybeId'].subscribe ->
+      t.dataTable().fnAddData [[ kvm['id'](), kvm['label']() ]]
+
     t.on "click.datatable", "tr", ->
       $("#program-files").html(f)
       id = this.children[0].innerText

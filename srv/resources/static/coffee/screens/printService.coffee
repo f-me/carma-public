@@ -38,7 +38,7 @@ define ["text!tpl/screens/printSrv.html"], (tpl) ->
     for t in procs.time
       obj[t] = time(obj[t])
     for d, f of procs.lookup
-      obj[f] = lookup(d, (obj[f] || '')) || f
+      obj[f] = lookup(d, (obj[f] || '')) || obj[f] || ''
 
   { constructor: setupPrintSrv
   , destructor: destroyPrintSrv

@@ -2,8 +2,7 @@ module Snaplet.DbLayer.Triggers.Actions where
 
 import Prelude hiding (log)
 
-import Control.Arrow (first)
-import Control.Monad (when, unless, void, forM, forM_, filterM)
+import Control.Monad
 import Control.Monad.Trans
 import Control.Exception
 import Control.Applicative
@@ -16,6 +15,7 @@ import qualified Data.Map as Map
 import Data.Char
 import Data.Maybe
 import Data.Aeson as Aeson
+import Data.String (fromString)
 
 import qualified Fdds as Fdds
 ------------------------------------------------------------------------------
@@ -30,6 +30,7 @@ import Snap.Snaplet.Auth
 import Snap.Snaplet.RedisDB
 import qualified Database.Redis as Redis
 import qualified Snaplet.DbLayer.RedisCRUD as RC
+import qualified Snap.Snaplet.PostgresqlSimple as PG
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
@@ -107,14 +108,12 @@ actions
             ])
           ])
         ,("case", Map.fromList
-          [("partner", [\objId val -> do
-            mapM_ (setSrvMCost) =<< B.split ',' <$> get objId "services"
-            return ()
-                       ])
-          ,("program", [\objId val -> do
-            mapM_ (setSrvMCost) =<< B.split ',' <$> get objId "services"
-            return ()
-                       ])
+          [("partner", [\objId _ -> do
+            mapM_ setSrvMCost =<< B.split ',' <$> get objId "services"
+            ])
+          ,("program", [\objId _ -> do
+            mapM_ setSrvMCost =<< B.split ',' <$> get objId "services"
+            ])
           -- ,("contact_name",
           --   [\objId val -> set objId "contact_name" $ upCaseStr val])
           -- ,("contact_ownerName", 
@@ -126,35 +125,56 @@ actions
                         Right Nothing  -> setWeather objId val
                         Right (Just c) -> when (c /= val) $ setWeather objId val
                       ])
-          ,("car_plateNum", [\objId
-            -> set objId "car_plateNum"
-              . T.encodeUtf8 . T.toUpper . T.decodeUtf8
-            ])
+          ,("car_plateNum", [\o -> set o "car_plateNum" . bToUpper])
           ,("car_vin", [\objId val -> do
             let vin = T.encodeUtf8 . T.toUpper . T.filter isAlphaNum
                     $ T.decodeUtf8 val
             when (B.length vin == 17) $ do
               set objId "car_vin" vin
-              redisHGetAll (B.concat ["vin:", vin]) >>= \case
-                Left _    -> return ()
-                Right []  -> do
-                  res <- requestFddsVin objId val
-                  set objId "vinChecked"
-                    $ if res then "fdds" else "vinNotFound"
-                Right car -> do
-                  set objId "vinChecked" "base"
-                  let setIfEmpty (name,val)
-                        | name == "car_plateNum" = return ()
-                        | otherwise = do
-                          val' <- get objId name
-                          when (val' == "") $ set objId name val
-                  mapM_ setIfEmpty car
+              fillFromContract vin objId >>= \case
+                True -> set objId "vinChecked" "base"
+                False -> redisHGetAll (B.concat ["vin:", vin]) >>= \case
+                  Left _    -> return ()
+                  Right []  -> do
+                    res <- requestFddsVin objId val
+                    set objId "vinChecked"
+                      $ if res then "fdds" else "vinNotFound"
+                  Right car -> do
+                    set objId "vinChecked" "base"
+                    let setIfEmpty (name,val)
+                          | name == "car_plateNum" = return ()
+                          | otherwise = do
+                            val' <- get objId name
+                            when (val' == "") $ set objId name val
+                    mapM_ setIfEmpty car
             ])
+          ])
+        ,("contract", Map.fromList
+          [("carPlateNum",  [\o -> set o "carPlateNum" . bToUpper])
+          ,("carVin",       [\o -> set o "carVin" . bToUpper])
           ])
         ]
 
+bToUpper :: ByteString -> ByteString
+bToUpper = T.encodeUtf8 . T.toUpper . T.decodeUtf8
 
--- Создания действий "с нуля"
+fillFromContract :: MonadTrigger m b => ByteString -> ByteString -> m b Bool
+fillFromContract vin objId = do
+  pgPool <- liftDb PG.getPostgresState
+  res <- liftDb $ PG.query (fromString
+    $  "SELECT program, carMake, carModel, carPlateNum, carSeller"
+    ++ "  FROM contracttbl"
+    ++ "  WHERE carVin = ?"
+    ++ "  ORDER BY ctime DESC LIMIT 1") [vin]
+  case res of
+    [] -> return False
+    [row] -> do
+      zipWithM_ (set objId)
+        ["program", "car_make", "car_model", "car_plateNum", "car_seller"]
+        row
+      return True
+
+
 serviceActions :: MonadTrigger m b => Map.Map ByteString [ObjectId -> ObjectId -> m b ()]
 serviceActions = Map.fromList
   [("status", [\objId val ->
