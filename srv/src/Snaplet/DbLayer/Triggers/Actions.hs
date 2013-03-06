@@ -16,6 +16,7 @@ import qualified Data.Map as Map
 import Data.Char
 import Data.Maybe
 import Data.Aeson as Aeson
+import Data.String (fromString)
 
 import qualified Fdds as Fdds
 ------------------------------------------------------------------------------
@@ -30,6 +31,7 @@ import Snap.Snaplet.Auth
 import Snap.Snaplet.RedisDB
 import qualified Database.Redis as Redis
 import qualified Snaplet.DbLayer.RedisCRUD as RC
+import qualified Snap.Snaplet.PostgresqlSimple as PG
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
@@ -107,14 +109,12 @@ actions
             ])
           ])
         ,("case", Map.fromList
-          [("partner", [\objId val -> do
-            mapM_ (setSrvMCost) =<< B.split ',' <$> get objId "services"
-            return ()
-                       ])
-          ,("program", [\objId val -> do
-            mapM_ (setSrvMCost) =<< B.split ',' <$> get objId "services"
-            return ()
-                       ])
+          [("partner", [\objId _ -> do
+            mapM_ setSrvMCost =<< B.split ',' <$> get objId "services"
+            ])
+          ,("program", [\objId _ -> do
+            mapM_ setSrvMCost =<< B.split ',' <$> get objId "services"
+            ])
           -- ,("contact_name",
           --   [\objId val -> set objId "contact_name" $ upCaseStr val])
           -- ,("contact_ownerName", 
@@ -126,10 +126,7 @@ actions
                         Right Nothing  -> setWeather objId val
                         Right (Just c) -> when (c /= val) $ setWeather objId val
                       ])
-          ,("car_plateNum", [\objId
-            -> set objId "car_plateNum"
-              . T.encodeUtf8 . T.toUpper . T.decodeUtf8
-            ])
+          ,("car_plateNum", [\o -> set o "car_plateNum" . bToUpper])
           ,("car_vin", [\objId val -> do
             let vin = T.encodeUtf8 . T.toUpper . T.filter isAlphaNum
                     $ T.decodeUtf8 val
@@ -151,10 +148,16 @@ actions
                   mapM_ setIfEmpty car
             ])
           ])
+        ,("contract", Map.fromList
+          [("carPlateNum",  [\o -> set o "carPlateNum" . bToUpper])
+          ,("carVin",       [\o -> set o "carVin" . bToUpper])
+          ])
         ]
 
+bToUpper :: ByteString -> ByteString
+bToUpper = T.encodeUtf8 . T.toUpper . T.decodeUtf8
 
--- Создания действий "с нуля"
+
 serviceActions :: MonadTrigger m b => Map.Map ByteString [ObjectId -> ObjectId -> m b ()]
 serviceActions = Map.fromList
   [("status", [\objId val ->
