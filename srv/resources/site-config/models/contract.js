@@ -37,22 +37,6 @@
       }
     },
     {
-      "name": "program",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
-      "meta": {
-        "invisible": true
-      }
-    },
-    {
-      "name": "ctime",
-      "type": "datetime",
-      "canRead": true,
-      "meta": {
-        "invisible": true
-      }
-    },
-    {
       "name": "carSeller",
       "meta": {
         "required": true,
