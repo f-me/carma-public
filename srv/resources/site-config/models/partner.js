@@ -76,7 +76,8 @@
                 "infoText": "coords",
                 "picker": "mapPicker",
                 "targetAddr": "addrDeFacto",
-                "targetCoords": "coords"
+                "targetCoords": "coords",
+                "currentBlipType": "partner"
             }
         },
         {
