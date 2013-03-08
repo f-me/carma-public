@@ -153,6 +153,16 @@ selectContracts = do
   dateFrom <- fromMaybe "1970-01-01" <$> getParam "from"
   dateTo   <- fromMaybe "2970-01-01" <$> getParam "to"
   Just prg <- getParam "program"
+  responeContract "WHERE program = ? AND ctime between ? AND ?"
+    [prg, dateFrom, dateTo]
+
+selectContract :: AppHandler ()
+selectContract = do
+  Just id <- getParam "id"
+  responeContract "WHERE id::text = ?" [id]
+
+responeContract :: String -> [ByteString] -> AppHandler ()
+responeContract whereClause whereArgs = do
   rows <- withPG pg_search $ \c -> query c (fromString
     $  "SELECT id::text,"
     ++ "  extract (epoch from ctime at time zone 'UTC')::int8::text,"
@@ -164,8 +174,8 @@ selectContracts = do
     ++ "  extract (epoch from contractValidUntilDate at time zone 'UTC')::int8::text,"
     ++ "  contractValidUntilMilage::text, milageTO::text, cardOwner, manager,"
     ++ "  carSeller, carDealerTO"
-    ++ "  FROM contracttbl"
-    ++ "  WHERE program = ? AND ctime between ? AND ?") [prg, dateFrom, dateTo]
+    ++ "  FROM contracttbl "
+    ++ whereClause) whereArgs
   let fields =
         [ "id", "ctime", "carVin", "carMake", "carModel", "carColor"
         , "carPlateNum", "cardNumber", "carMakeYear", "carCheckPeriod"

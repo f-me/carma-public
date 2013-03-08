@@ -6,7 +6,7 @@ define [
     template: tpl
     constructor: (viewName, args) ->
       setupModel = (args) ->
-        main.modelSetup("contract")(
+        m = main.modelSetup("contract")(
           viewName, args,
             permEl: "contract-permissions"
             focusClass: "focusable"
@@ -16,8 +16,9 @@ define [
           $('#render-contract').attr(
             "href",
             "/renderContract?prog=1&ctr=#{args.id}")
+        return m
 
-      setupModel args
+      kvm = setupModel args
       setTimeout ->
         sk = mkTableSkeleton global.models.contract,
               [ {name: "#", fn: (o) -> o.id}
@@ -66,6 +67,11 @@ define [
                 dt.fnClearTable()
                 dt.fnAddData(objs.map sk.mkRow)
         )
+
+        kvm['maybeId'].subscribe ->
+          $.getJSON "/getContract/#{kvm['id']()}", (objs) ->
+            dt.fnAddData objs.map sk.mkRow
+
 
 mkTableSkeleton = (model, fields) ->
   h = {}
