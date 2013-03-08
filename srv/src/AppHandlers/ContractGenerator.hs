@@ -47,16 +47,16 @@ q = [sql|
         , carMake
         , carModel
         , carPlateNum
-        , carBuydate::date::text
+        , to_char(carBuydate, 'DD/MM/YYYY')
         , cardNumber::text
-        , contractValidFromDate::date::text
-        , contractValidUntilDate::date::text
+        , to_char(contractValidFromDate, 'DD/MM/YYYY')
+        , to_char(contractValidUntilDate, 'DD/MM/YYYY')
         , contractValidUntilMilage::text
         , milageTO::text
         , carCheckPeriod::text
         , cardOwner
         , manager
-        , warrantyStart::text
+        , to_char(warrantyStart, 'DD/MM/YYYY')
         , client, clientCode, clientAddress
     FROM contracttbl c, programtbl p
     WHERE c.id = ? AND p.id = ?
