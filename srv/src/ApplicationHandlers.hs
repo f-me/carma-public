@@ -12,8 +12,6 @@ import Control.Exception (SomeException)
 import Control.Concurrent (myThreadId)
 import Control.Concurrent.STM
 
-import Codec.Text.IConv as IConv
-
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Encoding.Error as T
@@ -491,8 +489,7 @@ vinStateRemove = scope "vin" $ scope "state" $ scope "remove" $ do
 
 
 -- | Upload a CSV file and update the partner database, serving a
--- report back to the client. CP-1251 to UTF-8 conversion is performed
--- prior to processing, and vice versa when the result is served.
+-- report back to the client.
 --
 -- (carma-partner-import package interface).
 partnerUploadData :: AppHandler ()
@@ -509,26 +506,15 @@ partnerUploadData = scope "partner" $ scope "upload" $ do
   (fileName:_) <- with fileUpload $ doUpload' "report" "upload" "data"
 
   let inPath = finishedPath </> "report" </> "upload" </> "data" </> fileName
-      inUtfPath = inPath ++ ".utf8"
       outPath = tmpPath </> tmpName
-      outUtfPath = outPath ++ ".utf8"
 
   log Trace $ T.pack $ "Input file " ++ inPath
   log Trace $ T.pack $ "Output file " ++ outPath
 
-  log Trace "Recoding input to UTF-8"
-  liftIO $ ((IConv.convert "CP1251" "UTF-8") <$>
-            (LB.readFile inPath))
-             >>= LB.writeFile inUtfPath
-
   log Trace "Loading dictionaries from CaRMa"
   Just dicts <- liftIO $ loadIntegrationDicts $ Left carmaPort
   log Trace "Processing data"
-  liftIO $ processData carmaPort inUtfPath outUtfPath dicts
-  log Trace "Recoding result to CP1251"
-  liftIO $ ((IConv.convert "UTF-8" "CP1251") <$>
-            (LB.readFile outUtfPath))
-             >>= LB.writeFile outPath
+  liftIO $ processData carmaPort inPath outPath dicts
   log Trace "Serve processing report"
   serveFileAs "text/csv" outPath
 
