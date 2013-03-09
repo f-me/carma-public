@@ -54,10 +54,8 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html"], (utils, main
 
       $('#reload').click -> dtRedraw(dt)
 
-      r = {}
-      r.entries =
-        e for e in global.dictionaries.Roles.entries when e.value == 'back' or
-                                                          e.value == 'analyst'
+      # deep copy
+      r = $.extend(true, {}, global.dictionaries.Roles)
       r.entries.unshift {value: "", label: "Все роли"}
 
       ko.applyBindings r, $('#role')[0]
