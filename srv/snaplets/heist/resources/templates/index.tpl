@@ -19,7 +19,6 @@
     <script src="/s/js/3p/bootstrap.min.js" />
     <script src="/s/js/3p/bootstrap-datepicker.js" />
     <script src="/s/js/3p/bootstrap-typeahead.js" />
-    <script src="/s/js/3p/bootstrap-popover.js" />
 
     <!-- Tabular display -->
     <script src="/s/js/3p/jquery.dataTables.min.js" />
@@ -701,7 +700,7 @@
             id="map-field-template">
       <div class="control-group">
         <div class="controls">
-          <div style="height:600px;" id="{{ viewName }}-{{ name }}"
+          <div id="{{ viewName }}-{{ name }}"
                name="{{ name }}"
                class="osMap"></div>
         </div>

@@ -47,16 +47,16 @@ q = [sql|
         , carMake
         , carModel
         , carPlateNum
-        , carBuydate::date::text
+        , to_char(carBuydate at time zone 'UTC', 'DD/MM/YYYY')
         , cardNumber::text
-        , contractValidFromDate::date::text
-        , contractValidUntilDate::date::text
+        , to_char(contractValidFromDate at time zone 'UTC', 'DD/MM/YYYY')
+        , to_char(contractValidUntilDate at time zone 'UTC', 'DD/MM/YYYY')
         , contractValidUntilMilage::text
         , milageTO::text
         , carCheckPeriod::text
         , cardOwner
         , manager
-        , warrantyStart::text
+        , to_char(warrantyStart at time zone 'UTC', 'DD/MM/YYYY')
         , client, clientCode, clientAddress
     FROM contracttbl c, programtbl p
     WHERE c.id = ? AND p.id = ?

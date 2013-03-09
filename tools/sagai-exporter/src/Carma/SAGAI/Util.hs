@@ -14,8 +14,6 @@ where
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
-import qualified Data.Text as T
-import Data.Text.Encoding
 
 import Data.Time.Clock
 import Data.Time.Format
@@ -23,8 +21,8 @@ import System.Locale
 
 
 -- | Return string required to pad input up to provided length. Length
--- is calculated using UTF-8 characters. If input is already not less
--- than required length, return empty string.
+-- is calculated using bytes. If input is already not less than
+-- required length, return empty string.
 genericPad :: Int
            -- ^ Required result length.
            -> Char
@@ -37,7 +35,7 @@ genericPad padLen pad input =
     then (B8.replicate (padLen - len) pad)
     else BS.empty
     where
-      len = T.length $ decodeUtf8 input
+      len = BS.length input
 
 
 -- | Pad input using 'genericPad', keeping original string to the right.

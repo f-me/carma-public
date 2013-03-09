@@ -252,15 +252,6 @@ actionCaseId = "caseId"
 caseActions :: Text
 caseActions = "actions"
 
-
-caseProgram :: Text
-caseProgram = "program"
-
-
-defaultProgram :: Value
-defaultProgram = "ramc2"
-
-
 ------------------------------------------------------------------------------
 -- | Build reference to a case for use in 'actionCaseId'.
 caseIdReference :: Int -> String
@@ -315,8 +306,7 @@ newCase = do
                $ HM.delete "lon"
                $ HM.delete "lat"
                $ HM.delete "car_vin" -- we'll insert it later to run trigger
-               -- Insert defaults for new case
-               $ HM.insert caseProgram defaultProgram jsonRq'
+               $ jsonRq'
 
   modifyResponse $ setContentType "application/json"
   caseU <- caseCreateUpdateURI Nothing

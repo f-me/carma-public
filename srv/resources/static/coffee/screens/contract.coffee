@@ -6,7 +6,7 @@ define [
     template: tpl
     constructor: (viewName, args) ->
       setupModel = (args) ->
-        main.modelSetup("contract")(
+        m = main.modelSetup("contract")(
           viewName, args,
             permEl: "contract-permissions"
             focusClass: "focusable"
@@ -16,8 +16,9 @@ define [
           $('#render-contract').attr(
             "href",
             "/renderContract?prog=1&ctr=#{args.id}")
+        return m
 
-      setupModel args
+      kvm = setupModel args
       setTimeout ->
         sk = mkTableSkeleton global.models.contract,
               [ {name: "#", fn: (o) -> o.id}
@@ -26,9 +27,9 @@ define [
               , "carMake"
               , "carModel"
 #              , "carColor"
-#              , "carPlateNum"
+              , "carPlateNum"
 #              , "carMakeYear"
-              , "carCheckPeriod"
+#              , "carCheckPeriod"
 #              , "carBuyDate"
 #              , "warrantyStart"
 #              , "cardNumber"
@@ -61,11 +62,22 @@ define [
         $('#date-min').val (new Date).addDays(-1).toString('yyyy-MM-dd')
         $('#date-max').val (new Date).toString('yyyy-MM-dd')
 
-        $.getJSON("/allContracts/#{args.program}"
-            (objs) ->
-                dt.fnClearTable()
-                dt.fnAddData(objs.map sk.mkRow)
-        )
+        fillTable = (objs) ->
+          dt.fnClearTable()
+          dt.fnAddData(objs.map sk.mkRow)
+
+        $("#filter-btn").on 'click', ->
+          min = $('#date-min').val()
+          max = $('#date-max').val()
+          path = "/allContracts/#{args.program}?from=#{min}&to=#{max}"
+          $.getJSON path, fillTable
+
+        $.getJSON "/allContracts/#{args.program}", fillTable
+
+        kvm['maybeId'].subscribe ->
+          $.getJSON "/getContract/#{kvm['id']()}", (objs) ->
+            dt.fnAddData objs.map sk.mkRow
+
 
 mkTableSkeleton = (model, fields) ->
   h = {}

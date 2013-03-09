@@ -44,12 +44,19 @@ require [ "domready"
     return false
 
   redirectToHomePage = (user) ->
-    mainRole = user.roles[0]
-    if mainRole == "front"
+    if _.contains user.roles, "front"
       homePage = "call"
-    else if mainRole == "back"
+    else if _.contains user.roles, "back"
       homePage = "back"
-    global.router.navigate(homePage, {trigger: true})
+    else if _.contains user.roles, "ruslan"
+      homePage = "contract/ruslan"
+    else if _.contains user.roles, "supervisor"
+      homePage = "supervisor"
+    else if _.contains user.roles, "parguy"
+      homePage = "partner"
+    else if _.contains user.roles, "head"
+      homePage = "rkc"
+    global.router.navigate homePage, {trigger: true}
 
   # this will be called on dom ready
   dom ->
