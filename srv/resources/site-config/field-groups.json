@@ -121,14 +121,14 @@
             "name": "warrantyStart",
             "type": "date",
             "meta": {
-                "label": "Дата начала гарантии"
+                "label": "Начало действия программы"
             }
         },
         {
             "name": "warrantyEnd",
             "type": "date",
             "meta": {
-                "label": "Дата окончания гарантии"
+                "label": "Окончание действия программы"
             }
         },
         {
