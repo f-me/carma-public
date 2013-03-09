@@ -97,10 +97,12 @@ selectActions mClosed mAssignee mRole mFrom mTo = do
     ++ "       a.result, a.priority, a.description, a.comment,"
     ++ "       c.city, c.program,"
     ++ "       (extract (epoch from s.times_expectedServiceStart at time zone 'UTC')::int8)::text"
-    ++ "  FROM actiontbl a, casetbl c, servicetbl s WHERE true"
+    ++ "  FROM "
+    ++ "    (actiontbl a LEFT JOIN servicetbl s"
+    ++ "      ON  s.id::text = substring(a.parentid, ':(.*)')"
+    ++ "      AND s.type::text = substring(a.parentId, '(.*):')),"
+    ++ "    casetbl c WHERE true"
     ++ "                   AND c.id::text = substring(a.caseId, ':(.*)')"
-    ++ "                   AND s.id::text = substring(a.parentid, ':(.*)')"
-    ++ "                   AND s.type::text = substring(a.parentId, '(.*):')"
     ++ (maybe "" (\x -> "  AND closed = " ++ toBool x) mClosed)
     ++ (maybe "" (\x -> "  AND assignedTo = " ++ quote x) mAssignee)
     ++ (maybe "" (\x -> "  AND targetGroup = " ++ quote x) mRole)
