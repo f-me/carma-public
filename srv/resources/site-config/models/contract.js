@@ -193,22 +193,22 @@
       }
     },
     {
-      "name": "contractValidUntilMilage",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
-      "meta": {
-        "required": true,
-        "label": "Программа действует до (пробег)",
-        "sqltype": "integer"
-      }
-    },
-    {
       "name": "milageTO",
       "canRead": ["partner"],
       "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Пробег при регистрации в программе",
+        "sqltype": "integer"
+      }
+    },
+    {
+      "name": "contractValidUntilMilage",
+      "canRead": ["partner"],
+      "canWrite": ["partner"],
+      "meta": {
+        "required": true,
+        "label": "Программа действует до (пробег)",
         "sqltype": "integer"
       }
     },
