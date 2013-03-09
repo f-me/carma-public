@@ -201,7 +201,7 @@
             class="view-template">
       <div style="text-align:center;">
       <fieldset>
-        <legend>Импорт VIN</legend>
+        <legend>Загрузка данных</legend>
         <form id="vin-import-form" onsubmit="doVin(); return false;">
           <p>
             <select name="program" id="vin-program-select" data-bind="foreach: $data">
