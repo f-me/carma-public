@@ -70,11 +70,12 @@
     },
     {
       "name": "carPlateNum",
+      "canRead": ["partner"],
+      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "transform": "uppercase",
         "label": "Госномер",
-        "required": true,
         "regexp": "plateNum"
       }
     },
@@ -153,7 +154,7 @@
       "canRead": ["partner"],
       "canWrite": ["partner"],
       "meta": {
-        "required": true,
+        "invisible": true,
         "label": "Межсервисный интервал",
         "sqltype": "integer"
       }
