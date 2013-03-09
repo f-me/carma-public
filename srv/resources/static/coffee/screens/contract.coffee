@@ -62,11 +62,17 @@ define [
         $('#date-min').val (new Date).addDays(-1).toString('yyyy-MM-dd')
         $('#date-max').val (new Date).toString('yyyy-MM-dd')
 
-        $.getJSON("/allContracts/#{args.program}"
-            (objs) ->
-                dt.fnClearTable()
-                dt.fnAddData(objs.map sk.mkRow)
-        )
+        fillTable = (objs) ->
+          dt.fnClearTable()
+          dt.fnAddData(objs.map sk.mkRow)
+
+        $("#filter-btn").on 'click', ->
+          min = $('#date-min').val()
+          max = $('#date-max').val()
+          path = "/allContracts/#{args.program}?from=#{min}&to=#{max}"
+          $.getJSON path, fillTable
+
+        $.getJSON "/allContracts/#{args.program}", fillTable
 
         kvm['maybeId'].subscribe ->
           $.getJSON "/getContract/#{kvm['id']()}", (objs) ->
