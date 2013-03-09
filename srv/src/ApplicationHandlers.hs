@@ -45,11 +45,13 @@ import System.Locale
 import Database.PostgreSQL.Simple (query_)
 
 import Snap
+import Snap.Http.Server.Config as S
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.SimpleLog
 import Snap.Snaplet.Vin
 import Snap.Util.FileServe (serveFile, serveFileAs)
+
 ------------------------------------------------------------------------------
 import Carma.Partner
 import WeatherApi (getWeather', tempC, Config)
@@ -495,7 +497,10 @@ vinStateRemove = scope "vin" $ scope "state" $ scope "remove" $ do
 -- (carma-partner-import package interface).
 partnerUploadData :: AppHandler ()
 partnerUploadData = scope "partner" $ scope "upload" $ do
-  carmaPort <- rqServerPort <$> getRequest
+  sCfg <- liftIO $ commandLineConfig (emptyConfig :: S.Config Snap a)
+  let carmaPort = case getPort sCfg of
+                    Just n -> n
+                    Nothing -> error "No port"
   finishedPath <- with fileUpload $ gets finished
   tmpPath <- with fileUpload $ gets tmp
   (tmpName, _) <- liftIO $ openTempFile tmpPath "last-pimp.csv"
@@ -507,7 +512,7 @@ partnerUploadData = scope "partner" $ scope "upload" $ do
       inUtfPath = inPath ++ ".utf8"
       outPath = tmpPath </> tmpName
       outUtfPath = outPath ++ ".utf8"
-      
+
   log Trace $ T.pack $ "Input file " ++ inPath
   log Trace $ T.pack $ "Output file " ++ outPath
 
