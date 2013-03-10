@@ -207,19 +207,22 @@ curlOptions = [ CurlUseNetRc NetRcRequired
               ]
 
 
--- | Upload a file to the root directory of a remote FTP server.
+-- | Upload a file to a remote FTP server.
 upload :: String
-       -- ^ FTP host name. Login credentials for this machine must be
-       -- present in .netrc file.
+       -- ^ URL of FTP server. Login credentials for this machine must
+       -- be present in .netrc file.
        -> FilePath
        -- ^ Name of local file in current directory to be uploaded.
+       -> FilePath
+       -- ^ Remote file name for the uploaded file, possibly including
+       -- a relative path from the server root directory.
        -> IO CurlCode
-upload ftpHost fileName = do
+upload ftpURL fileName remotePath = do
   fh <- openFile fileName ReadMode
   size <- hFileSize fh
   c <- initialize
   forM_ curlOptions (setopt c)
-  _ <- setopt c $ CurlURL $ "ftp://" ++ ftpHost ++ "/" ++ fileName
+  _ <- setopt c $ CurlURL $ ftpURL ++ "/" ++ remotePath
   _ <- setopt c $ CurlInFileSize $ fromInteger size
   _ <- setopt c $ CurlReadFunction $ handleReadFunction fh
   perform c
@@ -240,7 +243,8 @@ handleReadFunction fh ptr size nmemb _ = do
 data Options = Options { carmaPort     :: Int
                        , composPath    :: FilePath
                        , dictPath      :: Maybe FilePath
-                       , ftpHost       :: Maybe String
+                       , ftpServer     :: Maybe String
+                       , remotePath    :: Maybe FilePath
                        , caseProgram   :: Maybe String
                        , argCases      :: [Int]
                        , useSyslog     :: Bool
@@ -251,6 +255,13 @@ data Options = Options { carmaPort     :: Int
 testHelp :: String
 testHelp = "Not saving new COMPOS value, not flagging exported cases " ++
            "in test mode"
+
+
+remotePathHelp :: String
+remotePathHelp =
+    "Relative file name (including path) used when uploading the result " ++
+    "to FTP server. " ++
+    "If not set, a generic name in the root directory is used."
 
 
 main :: IO ()
@@ -266,15 +277,19 @@ main =
                  , dictPath = Nothing
                    &= name "d"
                    &= help "Path to a file with Wazzup dictionary"
-                 , ftpHost = Nothing
-                   &= name "h"
-                   &= help "Hostname of FTP server to upload the result to"
+                 , ftpServer = Nothing
+                   &= name "f"
+                   &= help ("URL of an FTP server to upload the result to. " ++
+                            "Must include URL scheme prefix.")
                  , caseProgram = Nothing
                    &= explicit
                    &= name "program"
                    &= name "o"
                    &= help ("When case id's are not provided explicitly, " ++
                             "export only cases for the specified program")
+                 , remotePath = Nothing
+                   &= name "r"
+                   &= help remotePathHelp
                  , useSyslog = False
                    &= explicit
                    &= name "syslog"
@@ -288,7 +303,7 @@ main =
                  &= program programName
     in do
       Options{..} <- cmdArgs $ sample
-      let testMode = isNothing ftpHost
+      let testMode = isNothing ftpServer
 
       -- True if -v is set
       vv <- isLoud
@@ -387,17 +402,24 @@ main =
                    True ->
                      logInfo $ "No successfully exported cases"
                    False -> do
-                     case ftpHost of
+                     case ftpServer of
                        -- testMode
                        Nothing -> do
                          logInfo $ testHelp
                          logInfo $ "Dumping result to stdout"
                          liftIO $ BS.putStr res
                        Just fh -> do
+                         -- Backup the result locally.
                          resFn <- liftIO $ dumpResult res
+                         -- If remote path is not specified, use generic name.
+                         let remPath = case remotePath of
+                                         Just rp -> rp
+                                         Nothing -> resFn
                          logInfo $ "Saved result to file " ++ resFn
                          logInfo $ "Using FTP at " ++ fh
-                         curlRes <- liftIO $ withCurlDo $ upload fh resFn
+                         logInfo $ "Uploading to " ++ remPath
+                         curlRes <- liftIO $
+                                    withCurlDo $ upload fh resFn remPath
                          case curlRes of
                            CurlOK -> do
                              logInfo "Successfully uploaded to FTP"
