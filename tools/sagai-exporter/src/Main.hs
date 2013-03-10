@@ -175,7 +175,7 @@ loadWazzup (Left cp)  = readDictionary cp wazzupName
 
 -- | Attempt to fetch a list of cases to be exported from CaRMa, as
 -- returned by @/psaCases@.
-fetchPSACaseNumbers :: Int 
+fetchPSACaseNumbers :: Int
                     -- ^ CaRMa port.
                     -> Maybe String
                     -- ^ Filter cases by this program name when set.
@@ -300,9 +300,9 @@ main =
                  then syslog_ programName
                  else logger text console
           -- Translate -v/-q into simple-log logging policy.
-          -- 
+          --
           -- When -v is specified, logInfo's are included in the log.
-          -- 
+          --
           -- When -q is specified, logInfo's and logError's are
           -- ignored.
           --
@@ -332,19 +332,18 @@ main =
          wazzupRes <-
              case dictPath of
                Just fp -> do
-                  logInfo $
-                          "Loading Wazzup dictionary from file " ++ fp
-                  liftIO $ loadWazzup (Right fp)
+                 logInfo $ "Loading Wazzup dictionary from file " ++ fp
+                 liftIO $ loadWazzup (Right fp)
                Nothing -> do
-                  logInfo "Loading Wazzup dictionary from CaRMa"
-                  liftIO $ loadWazzup (Left carmaPort)
+                 logInfo "Loading Wazzup dictionary from CaRMa"
+                 liftIO $ loadWazzup (Left carmaPort)
 
          -- If any case numbers supplied on command line, use them.
          -- Otherwise, fetch case numbers from local CaRMa.
          cNumRes <-
              case argCases of
                [] -> do
-                 logInfo $ 
+                 logInfo $
                      "Fetching case numbers from CaRMa (" ++
                      maybe "all valid programs" (++ " program") caseProgram ++
                      ")"
