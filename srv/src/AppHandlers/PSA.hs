@@ -21,8 +21,22 @@ import Snap
 import AppHandlers.Util
 import Application
 
+
+-- | Query parametrized by program name, used in 'psaCases'.
 psaQuery :: Query
 psaQuery = [sql|
+SELECT id FROM casetbl
+WHERE caseStatus='s2'
+AND  (program=?)
+AND  (NOT psaexported='yes' OR psaexported IS NULL)
+AND  ((calldate > car_servicestart AND calldate < car_serviceend)
+ OR   (calldate > car_warrantystart AND calldate < car_warrantyend));
+|]
+
+
+-- | Non-parametric query for 'psaCases'.
+psaQuery0 :: Query
+psaQuery0 = [sql|
 SELECT id FROM casetbl
 WHERE caseStatus='s2'
 AND  (program='citroen' OR program='peugeot')
@@ -32,10 +46,17 @@ AND  ((calldate > car_servicestart AND calldate < car_serviceend)
 |]
 
 
--- | Serve JSON list of case numbers to be exported to SAGAI.
+-- | Read program name from @program@ request parameter, serve JSON
+-- list of case numbers for that program to be exported to SAGAI, as
+-- selected by 'psaQuery'. If @program@ is not present, serve list of
+-- all exportable case numbers according to 'psaQuery0'.
 psaCases :: AppHandler ()
 psaCases = do
-  rows <- withPG pg_search $ \c -> query_ c psaQuery
+  program <- getParam "program"
+  rows <- withPG pg_search $
+          \c -> case program of
+                  Just p -> query c psaQuery [p]
+                  Nothing -> query_ c psaQuery0
   writeJSON (map head rows :: [Int])
 
 

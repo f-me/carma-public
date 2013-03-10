@@ -65,7 +65,10 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/allPartners",   chkAuth . method GET    $ allPartnersHandler)
          , ("/partnersFor/:srv",
                               chkAuth . method GET    $ partnersForSrvHandler)
-         , ("/psaCases",      chkAuth . method GET    $ psaCases)
+         , ("/psaCases/",
+                              chkAuth . method GET    $ psaCases)
+         , ("/psaCases/:program",
+                              chkAuth . method GET    $ psaCases)
          , ("/repTowages/:id", 
                               chkAuth . method GET    $ repTowages)
          , ("/allContracts/:program",
