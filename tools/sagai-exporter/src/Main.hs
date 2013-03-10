@@ -173,10 +173,16 @@ loadWazzup (Right fp) = loadDict fp
 loadWazzup (Left cp)  = readDictionary cp wazzupName
 
 
--- | Attempt to fetch a list of cases to be exported from CaRMa.
-fetchPSACaseNumbers :: Int -> IO (Maybe [Int])
-fetchPSACaseNumbers cp = do
-  rs <- simpleHTTP $ getRequest $ methodURI cp "psaCases"
+-- | Attempt to fetch a list of cases to be exported from CaRMa, as
+-- returned by @/psaCases@.
+fetchPSACaseNumbers :: Int 
+                    -- ^ CaRMa port.
+                    -> Maybe String
+                    -- ^ Filter cases by this program name when set.
+                    -> IO (Maybe [Int])
+fetchPSACaseNumbers cp pn = do
+  rs <- simpleHTTP $ getRequest $
+        methodURI cp ("psaCases/" ++ fromMaybe "" pn)
   rsb <- getResponseBody rs
   return $ decode' $ BSL.pack rsb
 
@@ -235,6 +241,7 @@ data Options = Options { carmaPort     :: Int
                        , composPath    :: FilePath
                        , dictPath      :: Maybe FilePath
                        , ftpHost       :: Maybe String
+                       , caseProgram   :: Maybe String
                        , argCases      :: [Int]
                        , useSyslog     :: Bool
                        }
@@ -262,6 +269,12 @@ main =
                  , ftpHost = Nothing
                    &= name "h"
                    &= help "Hostname of FTP server to upload the result to"
+                 , caseProgram = Nothing
+                   &= explicit
+                   &= name "program"
+                   &= name "o"
+                   &= help ("When case id's are not provided explicitly, " ++
+                            "export only cases for the specified program")
                  , useSyslog = False
                    &= explicit
                    &= name "syslog"
@@ -282,9 +295,21 @@ main =
       -- True if -q is NOT set
       nq <- isNormal
 
+      -- Choose logging facility (stderr or syslog)
       let logL = if useSyslog
                  then syslog_ programName
                  else logger text console
+          -- Translate -v/-q into simple-log logging policy.
+          -- 
+          -- When -v is specified, logInfo's are included in the log.
+          -- 
+          -- When -q is specified, logInfo's and logError's are
+          -- ignored.
+          --
+          -- When none of -v/-q options are specified, only logError's
+          -- are logged.
+          --
+          -- -v supercedes -q.
           logPolicy = case (vv, nq) of
                      (True, _)  -> Politics L.Trace L.Trace
                      (_, False) -> Politics L.Fatal L.Fatal
@@ -318,8 +343,15 @@ main =
          -- Otherwise, fetch case numbers from local CaRMa.
          cNumRes <-
              case argCases of
-               [] -> liftIO $ fetchPSACaseNumbers carmaPort
-               l  -> return $ Just l
+               [] -> do
+                 logInfo $ 
+                     "Fetching case numbers from CaRMa (" ++
+                     maybe "all valid programs" (++ " program") caseProgram ++
+                     ")"
+                 liftIO $ fetchPSACaseNumbers carmaPort caseProgram
+               l  -> do
+                 logInfo $ "Using case numbers specified in the command line"
+                 return $ Just l
 
          case (wazzupRes, cNumRes) of
            (Nothing, _) ->
