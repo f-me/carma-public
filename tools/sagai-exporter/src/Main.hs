@@ -173,10 +173,16 @@ loadWazzup (Right fp) = loadDict fp
 loadWazzup (Left cp)  = readDictionary cp wazzupName
 
 
--- | Attempt to fetch a list of cases to be exported from CaRMa.
-fetchPSACaseNumbers :: Int -> IO (Maybe [Int])
-fetchPSACaseNumbers cp = do
-  rs <- simpleHTTP $ getRequest $ methodURI cp "psaCases"
+-- | Attempt to fetch a list of cases to be exported from CaRMa, as
+-- returned by @/psaCases@.
+fetchPSACaseNumbers :: Int
+                    -- ^ CaRMa port.
+                    -> Maybe String
+                    -- ^ Filter cases by this program name when set.
+                    -> IO (Maybe [Int])
+fetchPSACaseNumbers cp pn = do
+  rs <- simpleHTTP $ getRequest $
+        methodURI cp ("psaCases/" ++ fromMaybe "" pn)
   rsb <- getResponseBody rs
   return $ decode' $ BSL.pack rsb
 
@@ -201,19 +207,22 @@ curlOptions = [ CurlUseNetRc NetRcRequired
               ]
 
 
--- | Upload a file to the root directory of a remote FTP server.
+-- | Upload a file to a remote FTP server.
 upload :: String
-       -- ^ FTP host name. Login credentials for this machine must be
-       -- present in .netrc file.
+       -- ^ URL of FTP server. Login credentials for this machine must
+       -- be present in .netrc file.
        -> FilePath
        -- ^ Name of local file in current directory to be uploaded.
+       -> FilePath
+       -- ^ Remote file name for the uploaded file, possibly including
+       -- a relative path from the server root directory.
        -> IO CurlCode
-upload ftpHost fileName = do
+upload ftpURL fileName remotePath = do
   fh <- openFile fileName ReadMode
   size <- hFileSize fh
   c <- initialize
   forM_ curlOptions (setopt c)
-  _ <- setopt c $ CurlURL $ "ftp://" ++ ftpHost ++ "/" ++ fileName
+  _ <- setopt c $ CurlURL $ ftpURL ++ "/" ++ remotePath
   _ <- setopt c $ CurlInFileSize $ fromInteger size
   _ <- setopt c $ CurlReadFunction $ handleReadFunction fh
   perform c
@@ -234,7 +243,9 @@ handleReadFunction fh ptr size nmemb _ = do
 data Options = Options { carmaPort     :: Int
                        , composPath    :: FilePath
                        , dictPath      :: Maybe FilePath
-                       , ftpHost       :: Maybe String
+                       , ftpServer     :: Maybe String
+                       , remotePath    :: Maybe FilePath
+                       , caseProgram   :: Maybe String
                        , argCases      :: [Int]
                        , useSyslog     :: Bool
                        }
@@ -244,6 +255,13 @@ data Options = Options { carmaPort     :: Int
 testHelp :: String
 testHelp = "Not saving new COMPOS value, not flagging exported cases " ++
            "in test mode"
+
+
+remotePathHelp :: String
+remotePathHelp =
+    "Relative file name (including path) used when uploading the result " ++
+    "to FTP server. " ++
+    "If not set, a generic name in the root directory is used."
 
 
 main :: IO ()
@@ -259,9 +277,19 @@ main =
                  , dictPath = Nothing
                    &= name "d"
                    &= help "Path to a file with Wazzup dictionary"
-                 , ftpHost = Nothing
-                   &= name "h"
-                   &= help "Hostname of FTP server to upload the result to"
+                 , ftpServer = Nothing
+                   &= name "f"
+                   &= help ("URL of an FTP server to upload the result to. " ++
+                            "Must include URL scheme prefix.")
+                 , caseProgram = Nothing
+                   &= explicit
+                   &= name "program"
+                   &= name "o"
+                   &= help ("When case id's are not provided explicitly, " ++
+                            "export only cases for the specified program")
+                 , remotePath = Nothing
+                   &= name "r"
+                   &= help remotePathHelp
                  , useSyslog = False
                    &= explicit
                    &= name "syslog"
@@ -275,16 +303,28 @@ main =
                  &= program programName
     in do
       Options{..} <- cmdArgs $ sample
-      let testMode = isNothing ftpHost
+      let testMode = isNothing ftpServer
 
       -- True if -v is set
       vv <- isLoud
       -- True if -q is NOT set
       nq <- isNormal
 
+      -- Choose logging facility (stderr or syslog)
       let logL = if useSyslog
                  then syslog_ programName
                  else logger text console
+          -- Translate -v/-q into simple-log logging policy.
+          --
+          -- When -v is specified, logInfo's are included in the log.
+          --
+          -- When -q is specified, logInfo's and logError's are
+          -- ignored.
+          --
+          -- When none of -v/-q options are specified, only logError's
+          -- are logged.
+          --
+          -- -v supercedes -q.
           logPolicy = case (vv, nq) of
                      (True, _)  -> Politics L.Trace L.Trace
                      (_, False) -> Politics L.Fatal L.Fatal
@@ -307,19 +347,25 @@ main =
          wazzupRes <-
              case dictPath of
                Just fp -> do
-                  logInfo $
-                          "Loading Wazzup dictionary from file " ++ fp
-                  liftIO $ loadWazzup (Right fp)
+                 logInfo $ "Loading Wazzup dictionary from file " ++ fp
+                 liftIO $ loadWazzup (Right fp)
                Nothing -> do
-                  logInfo "Loading Wazzup dictionary from CaRMa"
-                  liftIO $ loadWazzup (Left carmaPort)
+                 logInfo "Loading Wazzup dictionary from CaRMa"
+                 liftIO $ loadWazzup (Left carmaPort)
 
          -- If any case numbers supplied on command line, use them.
          -- Otherwise, fetch case numbers from local CaRMa.
          cNumRes <-
              case argCases of
-               [] -> liftIO $ fetchPSACaseNumbers carmaPort
-               l  -> return $ Just l
+               [] -> do
+                 logInfo $
+                     "Fetching case numbers from CaRMa (" ++
+                     maybe "all valid programs" (++ " program") caseProgram ++
+                     ")"
+                 liftIO $ fetchPSACaseNumbers carmaPort caseProgram
+               l  -> do
+                 logInfo $ "Using case numbers specified in the command line"
+                 return $ Just l
 
          case (wazzupRes, cNumRes) of
            (Nothing, _) ->
@@ -356,17 +402,24 @@ main =
                    True ->
                      logInfo $ "No successfully exported cases"
                    False -> do
-                     case ftpHost of
+                     case ftpServer of
                        -- testMode
                        Nothing -> do
                          logInfo $ testHelp
                          logInfo $ "Dumping result to stdout"
                          liftIO $ BS.putStr res
                        Just fh -> do
+                         -- Backup the result locally.
                          resFn <- liftIO $ dumpResult res
+                         -- If remote path is not specified, use generic name.
+                         let remPath = case remotePath of
+                                         Just rp -> rp
+                                         Nothing -> resFn
                          logInfo $ "Saved result to file " ++ resFn
                          logInfo $ "Using FTP at " ++ fh
-                         curlRes <- liftIO $ withCurlDo $ upload fh resFn
+                         logInfo $ "Uploading to " ++ remPath
+                         curlRes <- liftIO $
+                                    withCurlDo $ upload fh resFn remPath
                          case curlRes of
                            CurlOK -> do
                              logInfo "Successfully uploaded to FTP"

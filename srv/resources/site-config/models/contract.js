@@ -70,8 +70,9 @@
     },
     {
       "name": "carPlateNum",
+      "canRead": ["partner"],
+      "canWrite": ["partner"],
       "meta": {
-        "required": true,
         "transform": "uppercase",
         "label": "Госномер",
         "required": true,
