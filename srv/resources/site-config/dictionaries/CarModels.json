@@ -922,6 +922,10 @@
                 "label": "Golf"
             },
             {
+                "value": "golfPlus",
+                "label": "Golf Plus"
+            },            
+            {
                 "value": "touran",
                 "label": "Touran"
             },
