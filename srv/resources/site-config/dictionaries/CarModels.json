@@ -910,6 +910,10 @@
                 "label": "Passat"
             },
             {
+                "value": "passatCC",
+                "label": "Passat CC"
+            },            
+            {
                 "value": "jetta",
                 "label": "Jetta"
             },
