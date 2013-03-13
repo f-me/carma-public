@@ -67,7 +67,7 @@ define ["model/utils"], (mu) ->
     $("##{to}").attr 'href',
       " data:application/octet-stream
       ; base64
-      , #{Base64.encode(head + s)}"
+      , #{Base64.encode('\uFEFF' + head + s)}"
     s
 
   modelsFromUrl = -> window.location.hash.match(/#(.*)\/.*/)[1]
