@@ -25,6 +25,22 @@ define ["model/utils"], (mu) ->
       $span.fadeOut(2000))
     , 500)
 
+  window.users_with_roles = (roles) ->
+    f = _.filter global.all_users, (u) ->
+      not _.isEmpty(_.intersection(roles, u.roles.split ','))
+    entries: for i in f
+      { value: i.value, label: "#{i.label} (#{i.value})" }
+
+
+  window.getDictionary = (d) ->
+    console.log 'dicts', d
+    dict = global.dictionaries[d]
+    console.log 'found dict', dict
+    return dict if dict
+    console.log 'gonna eval'
+    return eval(d)
+
+
   bindRemove = (parent, field, cb) ->
     for i in parent["#{field}Reference"]()
       do (i) ->
