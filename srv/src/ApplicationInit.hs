@@ -89,6 +89,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/_/report/",     chkAuth . method POST   $ createReportHandler)
          , ("/_/report/:id",  chkAuth . method DELETE $ deleteReportHandler)
          , ("/search/:model", chkAuth . method GET  $ searchHandler)
+         , ("/stats/towAvgTime/:city",
+            chkAuth . method GET  $ towAvgTime)
          , ("/rkc",           chkAuth . method GET  $ rkcHandler)
          , ("/rkc/weather",   chkAuth . method GET $ rkcWeatherHandler)
          , ("/rkc/front",     chkAuth . method GET $ rkcFrontHandler)

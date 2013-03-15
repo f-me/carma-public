@@ -560,7 +560,8 @@ AND t.times_expectedServiceStart <= c.callDate + INTERVAL '01:30:00';
 |]
 
 -- | Read city name from @city@ request parameter and return results
--- of 'towAvgTime' query for that city as a single-element JSON list.
+-- of 'towAvgTime' query for that city as a single-element JSON list
+-- (possibly containing @null@ if the time cannot be calculated).
 towAvgTime :: AppHandler ()
 towAvgTime = do
   city <- getParam "city"
@@ -568,7 +569,7 @@ towAvgTime = do
     Just c -> do
           rows <- withPG pg_search $
                   \conn -> query conn towAvgTimeQuery [c]
-          writeJSON (map head rows :: [Int])
+          writeJSON (map head rows :: [Maybe Int])
     _ -> error "Could not read city from request"
 
 smsProcessingHandler :: AppHandler ()
