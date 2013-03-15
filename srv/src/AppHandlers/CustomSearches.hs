@@ -157,7 +157,7 @@ selectContracts = do
   dateFrom <- fromMaybe "1970-01-01" <$> getParam "from"
   dateTo   <- fromMaybe "2970-01-01" <$> getParam "to"
   Just prg <- getParam "program"
-  responeContract "WHERE program = ? AND ctime between ? AND ?"
+  responeContract "WHERE program = ? AND date(ctime) between ? AND ?"
     [prg, dateFrom, dateTo]
 
 selectContract :: AppHandler ()
