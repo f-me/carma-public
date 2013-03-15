@@ -130,11 +130,12 @@ sendMailActually actionId = do
             "towage":_ -> "REMO"
             _ -> error $ "Invalid jobType: " ++ show svcId
 
+          dealerId <- lift $ get svcId "towDealer_partnerId"
           fld 200 "Dealer Address G"  $ get' svcId "towAddress_address"
           fld 200 "Dealer Address 1"  <=== ""
           fld 200 "Dealer Address 2"  <=== ""
           fld 200 "Dealer Address V"  <=== ""
-          fld 20  "Dealer Tel Number" $ get' partnerId "phone1"
+          fld 20  "Dealer Tel Number" $ get' dealerId "phone1"
           fld 4   "End Of File"      <=== "True"
 
     bodyText <- TL.encodeUtf8 . TL.fromChunks <$> execWriterT body
