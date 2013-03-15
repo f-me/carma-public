@@ -1,3 +1,4 @@
+{-# LANGUAGE QuasiQuotes #-}
 module AppHandlers.CustomSearches where
 
 import Control.Applicative
@@ -9,6 +10,7 @@ import qualified Data.ByteString.Char8 as B
 
 import Snap
 import Database.PostgreSQL.Simple
+import Database.PostgreSQL.Simple.SqlQQ
 --------------------------------------------------------------------
 import Application
 import AppHandlers.Util
@@ -188,3 +190,16 @@ responeContract whereClause whereArgs = do
         , "milageTO", "cardOwner", "manager", "carSeller", "carDealerTO"
         ]
   writeJSON $ mkMap fields rows
+
+busyOpsq = [sql|
+SELECT assignedTo, count(1)::text
+FROM   actiontbl
+WHERE  closed = 'f'
+GROUP BY assignedTo
+HAVING   assignedTo is not null AND assignedTo != ''
+|]
+
+busyOps :: AppHandler ()
+busyOps = do
+  rows <- withPG pg_search $ \c -> query_ c $ fromString busyOpsq
+  writeJSON $ mkMap ["name", "count"] rows
