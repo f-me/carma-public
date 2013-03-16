@@ -62,6 +62,7 @@ define  [ "utils"
       for i in d
         ops[i.name] = i.count
       $("#supervisorOps-table tr").each (i,e) ->
+        $(e).children('td').css('background-color', '')
         if ops[ $($(e).find('td')[0]).text() ] > 5
           $(e).children('td').css('background-color', '#FF8888')
       setTimeout updateBusy, 5000 if tick
