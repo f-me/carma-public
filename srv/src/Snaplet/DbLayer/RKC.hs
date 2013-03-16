@@ -551,8 +551,8 @@ WITH actiontimes AS (
  AND a.name='orderService'
  AND (? or c.program = ?)
  AND (? or c.city = ?)
- AND (? or c.calldate >= ?)
- AND (? or c.calldate < ?)
+ AND c.calldate >= ?
+ AND c.calldate < ?
  GROUP BY a.parentid)
 SELECT extract(epoch from avg(max)) FROM actiontimes;
 |]
@@ -571,8 +571,8 @@ WITH actiontimes AS (
  AND s.type='towage'
  AND (? or c.program = ?)
  AND (? or c.city = ?)
- AND (? or c.calldate >= ?)
- AND (? or c.calldate < ?)
+ AND c.calldate >= ?
+ AND c.calldate < ?
  GROUP BY a.parentid)
 SELECT extract(epoch from avg(max)) FROM actiontimes;
 |]
