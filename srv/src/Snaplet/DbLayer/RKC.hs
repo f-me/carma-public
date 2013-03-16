@@ -507,3 +507,38 @@ queryFmt_ lns args = query_ (fromString $ T.unpack $ format (concat lns) args)
 
 queryFmt :: (PS.HasPostgres m, MonadLog m, PS.ToRow q, PS.FromRow r) => [String] -> FormatArgs -> q -> m [r]
 queryFmt lns args = query (fromString $ T.unpack $ format (concat lns) args)
+
+-- | Calculate average processing time (in seconds) of a service.
+--
+-- TODO timespan/partner filtering
+procAvgTimeQuery :: Query
+procAvgTimeQuery = [sql|
+WITH actiontimes AS (
+ SELECT (max(a.closeTime - a.ctime))
+ FROM actiontbl a, casetbl c, servicetbl s
+ WHERE cast(split_part(a.caseid, ':', 2) as integer)=c.id
+ AND cast(split_part(a.parentid, ':', 2) as integer)=s.id
+ AND a.name='orderService'
+ AND c.city=?
+ AND c.program=?
+ GROUP BY a.parentid)
+SELECT extract(epoch from avg(max)) FROM actiontimes;
+|]
+
+-- | Calculate average tower arrival time (in seconds)
+--
+-- TODO timespan/partner filtering
+towArriveAvgTimeQuery :: Query
+towArriveAvgTimeQuery = [sql|
+WITH actiontimes AS (
+ SELECT (max(s.times_factServiceEnd - a.ctime))
+ FROM actiontbl a, casetbl c, servicetbl s
+ WHERE cast(split_part(a.caseid, ':', 2) as integer)=c.id
+ AND cast(split_part(a.parentid, ':', 2) as integer)=s.id
+ AND a.name='orderService'
+ AND s.type='towage'
+ AND c.city=?
+ AND c.program=?
+ GROUP BY a.parentid)
+SELECT extract(epoch from avg(max)) FROM actiontimes;
+|]
