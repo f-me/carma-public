@@ -370,7 +370,7 @@ rkcComplaints fromDate toDate constraints = scope "rkcComplaints" $ do
 -- | Calculate @stats@ numbers of @/rkc@ response (average processing
 -- times).
 rkcStats :: (PS.HasPostgres m, MonadLog m) => Filter -> m Value
-rkcStats filt@(Filter from to program city _) = scope "rkcStats" $ do
+rkcStats (Filter from to program city _) = scope "rkcStats" $ do
   let qParams = ( T.null program
                 , program
                 , T.null city
@@ -380,9 +380,9 @@ rkcStats filt@(Filter from to program city _) = scope "rkcStats" $ do
                 )
   rsp1 <- PS.query procAvgTimeQuery qParams
   rsp2 <- PS.query towStartAvgTimeQuery qParams
-  let procAvgTime :: Maybe Int
+  let procAvgTime :: Maybe Double
       procAvgTime = head $ head rsp1
-      towStartAvgTime :: Maybe Int
+      towStartAvgTime :: Maybe Double
       towStartAvgTime = head $ head rsp2
   return $ object [ "procAvgTime" .= procAvgTime
                   , "towStartAvgTime" .= towStartAvgTime
