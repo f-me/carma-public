@@ -1,3 +1,4 @@
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Snaplet.DbLayer.RKC (
@@ -26,6 +27,7 @@ import qualified Data.Text.Encoding as T
 import Text.Format
 
 import qualified Database.PostgreSQL.Simple.ToField as PS
+import Database.PostgreSQL.Simple.SqlQQ
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 
 import Snaplet.DbLayer.Dictionary
@@ -365,6 +367,18 @@ rkcComplaints fromDate toDate constraints = scope "rkcComplaints" $ do
       "caseid" .= i,
       "services" .= T.words srvs]
 
+rkcStats :: (PS.HasPostgres m, MonadLog m) => Filter -> m Value
+rkcStats filt@(Filter _ _ program city _) = scope "rkcStats" $ do
+  rsp1 <- PS.query procAvgTimeQuery [program, city]
+  rsp2 <- PS.query towArriveAvgTimeQuery [program, city]
+  let procAvgTime :: Maybe Int
+      procAvgTime = head $ head rsp1
+      towArriveAvgTime :: Maybe Int
+      towArriveAvgTime = head $ head rsp2
+  return $ object [ "procAvgTime" .= procAvgTime
+                  , "towArriveAvgTime" .= towArriveAvgTime
+                  ]
+
 dictKeys :: T.Text -> Dictionary -> [T.Text]
 dictKeys d = fromMaybe [] . keys [d]
 
@@ -419,11 +433,13 @@ rkc (UsersDict usrs) filt@(Filter fromDate toDate program city partner) = scope 
   a <- rkcActions fromDate toDate constraints (actionNames dicts)
   ea <- rkcEachActionOpAvg fromDate toDate constraints usrs' (actionNames dicts)
   compls <- rkcComplaints fromDate toDate constraints
+  s <- rkcStats filt
   return $ object [
     "case" .= c,
     "back" .= a,
     "eachopactions" .= ea,
-    "complaints" .= compls]
+    "complaints" .= compls,
+    "stats" .= s]
   where
     constraints = mconcat [
       ifNotNull program $ equals "casetbl" "program",
@@ -511,7 +527,7 @@ queryFmt lns args = query (fromString $ T.unpack $ format (concat lns) args)
 -- | Calculate average processing time (in seconds) of a service.
 --
 -- TODO timespan/partner filtering
-procAvgTimeQuery :: Query
+procAvgTimeQuery :: PS.Query
 procAvgTimeQuery = [sql|
 WITH actiontimes AS (
  SELECT (max(a.closeTime - a.ctime))
@@ -519,8 +535,8 @@ WITH actiontimes AS (
  WHERE cast(split_part(a.caseid, ':', 2) as integer)=c.id
  AND cast(split_part(a.parentid, ':', 2) as integer)=s.id
  AND a.name='orderService'
- AND c.city=?
  AND c.program=?
+ AND c.city=?
  GROUP BY a.parentid)
 SELECT extract(epoch from avg(max)) FROM actiontimes;
 |]
@@ -528,7 +544,7 @@ SELECT extract(epoch from avg(max)) FROM actiontimes;
 -- | Calculate average tower arrival time (in seconds)
 --
 -- TODO timespan/partner filtering
-towArriveAvgTimeQuery :: Query
+towArriveAvgTimeQuery :: PS.Query
 towArriveAvgTimeQuery = [sql|
 WITH actiontimes AS (
  SELECT (max(s.times_factServiceEnd - a.ctime))
@@ -537,8 +553,8 @@ WITH actiontimes AS (
  AND cast(split_part(a.parentid, ':', 2) as integer)=s.id
  AND a.name='orderService'
  AND s.type='towage'
- AND c.city=?
  AND c.program=?
+ AND c.city=?
  GROUP BY a.parentid)
 SELECT extract(epoch from avg(max)) FROM actiontimes;
 |]
