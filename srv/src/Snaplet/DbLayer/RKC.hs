@@ -367,10 +367,19 @@ rkcComplaints fromDate toDate constraints = scope "rkcComplaints" $ do
       "caseid" .= i,
       "services" .= T.words srvs]
 
+-- | Calculate @stats@ numbers of @/rkc@ response (average processing
+-- times).
 rkcStats :: (PS.HasPostgres m, MonadLog m) => Filter -> m Value
-rkcStats filt@(Filter _ _ program city _) = scope "rkcStats" $ do
-  rsp1 <- PS.query procAvgTimeQuery [program, city]
-  rsp2 <- PS.query towStartAvgTimeQuery [program, city]
+rkcStats filt@(Filter from to program city _) = scope "rkcStats" $ do
+  let qParams = ( T.null program
+                , program
+                , T.null city
+                , city
+                , from
+                , to
+                )
+  rsp1 <- PS.query procAvgTimeQuery qParams
+  rsp2 <- PS.query towStartAvgTimeQuery qParams
   let procAvgTime :: Maybe Int
       procAvgTime = head $ head rsp1
       towStartAvgTime :: Maybe Int
@@ -526,7 +535,12 @@ queryFmt lns args = query (fromString $ T.unpack $ format (concat lns) args)
 
 -- | Calculate average processing time (in seconds) of a service.
 --
--- TODO timespan/partner filtering
+-- Parametrized by: program (boolean flag & value for this parameter,
+-- where flag is *false* if filtering by that parameter should be
+-- active), city (flag & value), from (value, always active), to
+-- (always active).
+--
+-- TODO partner filtering
 procAvgTimeQuery :: PS.Query
 procAvgTimeQuery = [sql|
 WITH actiontimes AS (
@@ -535,15 +549,17 @@ WITH actiontimes AS (
  WHERE cast(split_part(a.caseid, ':', 2) as integer)=c.id
  AND cast(split_part(a.parentid, ':', 2) as integer)=s.id
  AND a.name='orderService'
- AND c.program=?
- AND c.city=?
+ AND (? or c.program = ?)
+ AND (? or c.city = ?)
+ AND (? or c.calldate >= ?)
+ AND (? or c.calldate < ?)
  GROUP BY a.parentid)
 SELECT extract(epoch from avg(max)) FROM actiontimes;
 |]
 
 -- | Calculate average tower arrival time (in seconds).
 --
--- TODO timespan/partner filtering
+-- Parametrized in the same way as 'procAvgTimeQuery'.
 towStartAvgTimeQuery :: PS.Query
 towStartAvgTimeQuery = [sql|
 WITH actiontimes AS (
@@ -553,8 +569,10 @@ WITH actiontimes AS (
  AND cast(split_part(a.parentid, ':', 2) as integer)=s.id
  AND a.name='orderService'
  AND s.type='towage'
- AND c.program=?
- AND c.city=?
+ AND (? or c.program = ?)
+ AND (? or c.city = ?)
+ AND (? or c.calldate >= ?)
+ AND (? or c.calldate < ?)
  GROUP BY a.parentid)
 SELECT extract(epoch from avg(max)) FROM actiontimes;
 |]
