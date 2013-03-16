@@ -370,13 +370,13 @@ rkcComplaints fromDate toDate constraints = scope "rkcComplaints" $ do
 rkcStats :: (PS.HasPostgres m, MonadLog m) => Filter -> m Value
 rkcStats filt@(Filter _ _ program city _) = scope "rkcStats" $ do
   rsp1 <- PS.query procAvgTimeQuery [program, city]
-  rsp2 <- PS.query towArriveAvgTimeQuery [program, city]
+  rsp2 <- PS.query towStartAvgTimeQuery [program, city]
   let procAvgTime :: Maybe Int
       procAvgTime = head $ head rsp1
-      towArriveAvgTime :: Maybe Int
-      towArriveAvgTime = head $ head rsp2
+      towStartAvgTime :: Maybe Int
+      towStartAvgTime = head $ head rsp2
   return $ object [ "procAvgTime" .= procAvgTime
-                  , "towArriveAvgTime" .= towArriveAvgTime
+                  , "towStartAvgTime" .= towStartAvgTime
                   ]
 
 dictKeys :: T.Text -> Dictionary -> [T.Text]
@@ -541,11 +541,11 @@ WITH actiontimes AS (
 SELECT extract(epoch from avg(max)) FROM actiontimes;
 |]
 
--- | Calculate average tower arrival time (in seconds)
+-- | Calculate average tower arrival time (in seconds).
 --
 -- TODO timespan/partner filtering
-towArriveAvgTimeQuery :: PS.Query
-towArriveAvgTimeQuery = [sql|
+towStartAvgTimeQuery :: PS.Query
+towStartAvgTimeQuery = [sql|
 WITH actiontimes AS (
  SELECT (max(s.times_factServiceEnd - a.ctime))
  FROM actiontbl a, casetbl c, servicetbl s
