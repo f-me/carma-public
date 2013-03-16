@@ -569,7 +569,7 @@ towAvgTime = do
     Just c -> do
           rows <- withPG pg_search $
                   \conn -> query conn towAvgTimeQuery [c]
-          writeJSON (map head rows :: [Maybe Int])
+          writeJSON (map head rows :: Maybe Double)
     _ -> error "Could not read city from request"
 
 smsProcessingHandler :: AppHandler ()
