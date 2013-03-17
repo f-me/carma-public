@@ -1,3 +1,4 @@
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Snaplet.DbLayer.RKC (
@@ -26,6 +27,7 @@ import qualified Data.Text.Encoding as T
 import Text.Format
 
 import qualified Database.PostgreSQL.Simple.ToField as PS
+import Database.PostgreSQL.Simple.SqlQQ
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 
 import Snaplet.DbLayer.Dictionary
@@ -365,6 +367,27 @@ rkcComplaints fromDate toDate constraints = scope "rkcComplaints" $ do
       "caseid" .= i,
       "services" .= T.words srvs]
 
+-- | Calculate @stats@ numbers of @/rkc@ response (average processing
+-- times).
+rkcStats :: (PS.HasPostgres m, MonadLog m) => Filter -> m Value
+rkcStats (Filter from to program city _) = scope "rkcStats" $ do
+  let qParams = ( T.null program
+                , program
+                , T.null city
+                , city
+                , from
+                , to
+                )
+  rsp1 <- PS.query procAvgTimeQuery qParams
+  rsp2 <- PS.query towStartAvgTimeQuery qParams
+  let procAvgTime :: Maybe Double
+      procAvgTime = head $ head rsp1
+      towStartAvgTime :: Maybe Double
+      towStartAvgTime = head $ head rsp2
+  return $ object [ "procAvgTime" .= procAvgTime
+                  , "towStartAvgTime" .= towStartAvgTime
+                  ]
+
 dictKeys :: T.Text -> Dictionary -> [T.Text]
 dictKeys d = fromMaybe [] . keys [d]
 
@@ -419,11 +442,13 @@ rkc (UsersDict usrs) filt@(Filter fromDate toDate program city partner) = scope 
   a <- rkcActions fromDate toDate constraints (actionNames dicts)
   ea <- rkcEachActionOpAvg fromDate toDate constraints usrs' (actionNames dicts)
   compls <- rkcComplaints fromDate toDate constraints
+  s <- rkcStats filt
   return $ object [
     "case" .= c,
     "back" .= a,
     "eachopactions" .= ea,
-    "complaints" .= compls]
+    "complaints" .= compls,
+    "stats" .= s]
   where
     constraints = mconcat [
       ifNotNull program $ equals "casetbl" "program",
@@ -507,3 +532,47 @@ queryFmt_ lns args = query_ (fromString $ T.unpack $ format (concat lns) args)
 
 queryFmt :: (PS.HasPostgres m, MonadLog m, PS.ToRow q, PS.FromRow r) => [String] -> FormatArgs -> q -> m [r]
 queryFmt lns args = query (fromString $ T.unpack $ format (concat lns) args)
+
+-- | Calculate average processing time (in seconds) of a service.
+--
+-- Parametrized by: program (boolean flag & value for this parameter,
+-- where flag is *false* if filtering by that parameter should be
+-- active), city (flag & value), from (value, always active), to
+-- (always active).
+--
+-- TODO partner filtering
+procAvgTimeQuery :: PS.Query
+procAvgTimeQuery = [sql|
+WITH actiontimes AS (
+ SELECT (max(a.closeTime - a.ctime))
+ FROM actiontbl a, casetbl c, servicetbl s
+ WHERE cast(split_part(a.caseid, ':', 2) as integer)=c.id
+ AND cast(split_part(a.parentid, ':', 2) as integer)=s.id
+ AND a.name='orderService'
+ AND (? or c.program = ?)
+ AND (? or c.city = ?)
+ AND c.calldate >= ?
+ AND c.calldate < ?
+ GROUP BY a.parentid)
+SELECT extract(epoch from avg(max)) FROM actiontimes;
+|]
+
+-- | Calculate average tower arrival time (in seconds).
+--
+-- Parametrized in the same way as 'procAvgTimeQuery'.
+towStartAvgTimeQuery :: PS.Query
+towStartAvgTimeQuery = [sql|
+WITH actiontimes AS (
+ SELECT (max(s.times_factServiceEnd - a.ctime))
+ FROM actiontbl a, casetbl c, servicetbl s
+ WHERE cast(split_part(a.caseid, ':', 2) as integer)=c.id
+ AND cast(split_part(a.parentid, ':', 2) as integer)=s.id
+ AND a.name='orderService'
+ AND s.type='towage'
+ AND (? or c.program = ?)
+ AND (? or c.city = ?)
+ AND c.calldate >= ?
+ AND c.calldate < ?
+ GROUP BY a.parentid)
+SELECT extract(epoch from avg(max)) FROM actiontimes;
+|]

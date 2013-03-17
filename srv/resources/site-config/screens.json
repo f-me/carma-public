@@ -97,7 +97,7 @@
         { "name"  : "program",
           "label" : "Редактирование программ",
           "type"  : "li",
-          "permissions": ["admin", "head"]
+          "permissions": ["admin", "head", "programman"]
         }
       ]
     }

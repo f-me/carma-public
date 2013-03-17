@@ -34,7 +34,8 @@ AND  ((calldate > car_servicestart AND calldate < car_serviceend)
 |]
 
 
--- | Non-parametric query for 'psaCases'.
+-- | Non-parametric query for 'psaCases', includes @citroen@ and
+-- @peugeot@ programs.
 psaQuery0 :: Query
 psaQuery0 = [sql|
 SELECT id FROM casetbl

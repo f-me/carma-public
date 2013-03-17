@@ -12,6 +12,10 @@ import qualified Data.ByteString.Char8 as B
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 
+import Data.Time.Clock (getCurrentTime)
+import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
+import System.Locale (defaultTimeLocale)
+
 import Data.Map (Map)
 import qualified Data.Map as Map
 import qualified Data.Set as Set
@@ -62,10 +66,13 @@ upd objId field fn = get objId field >>= set objId field . fn
 
 new :: MonadTrigger m b => ModelName -> Object -> m b ObjectId
 new model obj = do
-  intId <- createObject model obj
+  ct <- liftIO $ round . utcTimeToPOSIXSeconds
+        <$> getCurrentTime
+  let obj' = Map.insert "ctime" (B.pack $ show ct) obj
+  intId <- createObject model obj'
   let objId = B.concat [model, ":", intId]
-  let obj'  = Map.insert "id" intId obj
-  ST.modify $ \st -> st{current = Map.insert objId obj' $ current st}
+  let obj''  = Map.insert "id" intId obj'
+  ST.modify $ \st -> st{current = Map.insert objId obj'' $ current st}
   return objId
 
 

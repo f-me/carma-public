@@ -1,3 +1,4 @@
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE DoAndIfThenElse, OverloadedStrings #-}
 
 module ApplicationHandlers where
@@ -40,7 +41,8 @@ import System.FilePath
 import System.IO
 import System.Locale
 
-import Database.PostgreSQL.Simple (query_)
+import Database.PostgreSQL.Simple (Query, query_, query)
+import Database.PostgreSQL.Simple.SqlQQ
 
 import Snap
 import Snap.Http.Server.Config as S
@@ -543,6 +545,32 @@ getSrvTarifOptions = do
       rebuilOpt o = Map.fromList $
                     [("id"        , fromMaybe "" $ Map.lookup "id" o)
                     ,("optionName", fromMaybe "" $ Map.lookup "optionName" o)]
+
+-- | Calculate average tower arrival time (in seconds) for today,
+-- parametrized by city. Only towage services expected within 90
+-- minutes since the original call time are counted.
+towAvgTimeQuery :: Query
+towAvgTimeQuery = [sql|
+SELECT extract(epoch from avg(t.times_factServiceStart - c.callDate))
+FROM casetbl c, towagetbl t
+WHERE cast(split_part(t.parentid, ':', 2) as integer)=c.id
+AND c.city=?
+AND (CURRENT_DATE, INTERVAL '1 day') OVERLAPS (c.callDate, c.callDate)
+AND t.times_expectedServiceStart <= c.callDate + INTERVAL '01:30:00';
+|]
+
+-- | Read city name from @city@ request parameter and return results
+-- of 'towAvgTime' query for that city as a single-element JSON list
+-- (possibly containing @null@ if the time cannot be calculated).
+towAvgTime :: AppHandler ()
+towAvgTime = do
+  city <- getParam "city"
+  case city of
+    Just c -> do
+          rows <- withPG pg_search $
+                  \conn -> query conn towAvgTimeQuery [c]
+          writeJSON (map head rows :: Maybe Double)
+    _ -> error "Could not read city from request"
 
 smsProcessingHandler :: AppHandler ()
 smsProcessingHandler = scope "sms" $ do

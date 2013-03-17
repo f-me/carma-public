@@ -160,6 +160,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
         # Fill general info
         totalServices = $('#total-services')
         averageStart = $('#average-towage-tech-start')
+        procAvgTime = $('#processing-average-time')
         calculated = $('#calculated-cost')
         mechanic = $('#mechanic')
         averageEnd = $('#average-towage-tech-end')
@@ -196,9 +197,10 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
             ct.fnClearTable()
             bt.fnClearTable()
 
-            # Update general info
+            # Update general statistics fields from JSON response data
             totalServices.val(result.case.summary.total)
-            averageStart.val(Math.round(result.case.summary.delay / 60) + "m")
+            averageStart.val(Math.round(result.stats.towStartAvgTime / 60) + "m")
+            procAvgTime.val(Math.round(result.stats.procAvgTime / 60) + "m")
             calculated.val(result.case.summary.calculated)
             mechanic.val(result.case.summary.mech)
             averageEnd.val(Math.round(result.case.summary.duration / 60) + "m")

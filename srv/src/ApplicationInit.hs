@@ -62,6 +62,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/allActions",    chkAuth . method GET    $ allActionsHandler)
          , ("actions/unassigned",
                               chkAuth . method GET    $ unassignedActionsHandler)
+         , ("actions/busyOps",
+                              chkAuth . method GET    $ busyOps)
          , ("/allPartners",   chkAuth . method GET    $ allPartnersHandler)
          , ("/partnersFor/:srv",
                               chkAuth . method GET    $ partnersForSrvHandler)
@@ -87,6 +89,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/_/report/",     chkAuth . method POST   $ createReportHandler)
          , ("/_/report/:id",  chkAuth . method DELETE $ deleteReportHandler)
          , ("/search/:model", chkAuth . method GET  $ searchHandler)
+         , ("/stats/towAvgTime/:city",
+            chkAuth . method GET  $ towAvgTime)
          , ("/rkc",           chkAuth . method GET  $ rkcHandler)
          , ("/rkc/weather",   chkAuth . method GET $ rkcWeatherHandler)
          , ("/rkc/front",     chkAuth . method GET $ rkcFrontHandler)
@@ -95,7 +99,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/usersDict",     chkLogin . method GET  $ getUsersDict)
          , ("/userMeta/:usr", chkAuth . method PUT  $ setUserMeta)
          , ("/activeUsers",   chkAuth . method GET  $ getActiveUsers)
-         , ("/partner/upload",   chkAuth . method POST $ partnerUploadData)
+         , ("/partner/upload.csv",
+            chkAuth . method POST $ partnerUploadData)
          , ("/vin/upload",    chkAuth . method POST $ vinUploadData)
          , ("/vin/state",     chkAuth . method GET  $ vinStateRead)
          , ("/vin/state",     chkAuth . method POST $ vinStateRemove)
