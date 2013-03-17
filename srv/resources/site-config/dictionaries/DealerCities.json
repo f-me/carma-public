@@ -22,7 +22,7 @@
         },
         {
             "value": "Buluzuk",
-            "label": "Булузук"
+            "label": "Бузулук"
         },        
         {
             "value": "Noyabrsk",
@@ -788,6 +788,10 @@
             "value": "Krasnoarmejsk",
             "label": "Красноармейск"
         },
+        {
+            "value": "Krasnoznamensk",
+            "label": "Краснознаменск"
+        },        
         {
             "value": "Krasnovishersk",
             "label": "Красновишерск"
