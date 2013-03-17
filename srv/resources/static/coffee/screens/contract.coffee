@@ -67,16 +67,18 @@ define [
           dt.fnAddData(objs.map sk.mkRow)
 
         $("#filter-btn").on 'click', ->
-          min = $('#date-min').val()
-          max = $('#date-max').val()
-          path = "/allContracts/#{args.program}?from=#{min}&to=#{max}"
-          $.getJSON path, fillTable
+          getContracts args.program, fillTable
 
-        $.getJSON "/allContracts/#{args.program}", fillTable
+        getContracts args.program, fillTable
 
         kvm['maybeId'].subscribe ->
-          $.getJSON "/getContract/#{kvm['id']()}", (objs) ->
-            dt.fnAddData objs.map sk.mkRow
+          getContracts kvm['id']() (objs) -> dt.fnAddData objs.map sk.mkRow
+
+getContracts = (args, cb) ->
+  min = $('#date-min').val()
+  max = $('#date-max').val()
+  path = "/allContracts/#{args}?from=#{min}&to=#{max}"
+  $.getJSON path, cb
 
 
 mkTableSkeleton = (model, fields) ->

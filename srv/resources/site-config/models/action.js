@@ -107,7 +107,7 @@
         "meta": {
             "label": "Ответственный",
             "invisible": true,
-            "dictionaryName": "users"
+            "dictionaryName": "users_with_roles: head, back, supervisor, parguy, account, analyst, op_checker, op_close, op_dealer"
         }
       },
       {

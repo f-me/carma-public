@@ -2,7 +2,9 @@ define  [ "utils"
         , "hooks/common"
         , "text!tpl/screens/supervisorOps.html"
         ], (utils, hook, tpl) ->
-  this.setupSupervisorOpsScreen = (viewName, args) ->
+  # data = { tick: true }
+  tick = true
+  setupSupervisorOpsScreen = (viewName, args) ->
     setTimeout ->
       $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
       $.fn.dataTableExt.oStdClasses.sFilter = "dataTables_filter form-inline"
@@ -52,7 +54,18 @@ define  [ "utils"
             row
 
         dt.fnAddData rows
+        updateBusy()
 
+  updateBusy = ->
+    $.getJSON "actions/busyOps", (d) ->
+      ops = {}
+      for i in d
+        ops[i.name] = i.count
+      $("#supervisorOps-table tr").each (i,e) ->
+        $(e).children('td').css('background-color', '')
+        if ops[ $($(e).find('td')[0]).text() ] > 5
+          $(e).children('td').css('background-color', '#FF8888')
+      setTimeout updateBusy, 5000 if tick
 
   arrStr = (arr) -> (a.label for a in arr).join (" ")
 
@@ -67,6 +80,8 @@ define  [ "utils"
         name: 'boPrograms'
         meta: {dictionaryName: 'Programs'}
 
-  { constructor: setupSupervisorOpsScreen
-  , template: tpl
-  }
+  removeSupervisorOpsScreen = -> tick = false
+
+  constructor: setupSupervisorOpsScreen
+  destructor : removeSupervisorOpsScreen
+  template: tpl
