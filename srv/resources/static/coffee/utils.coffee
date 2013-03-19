@@ -144,6 +144,10 @@ define ["model/utils"], (mu) ->
       view: view_name
       field: field_name
 
+  # Format a numeric value from seconds to minutes
+  formatSecToMin: (s) ->
+    Math.round(s / 60) + "m"
+
   # Hide all views on center pane and show view for first reference
   # stored in <fieldName> of model loaded into <parentView> there
   showComplex: (parentView, fieldName) ->

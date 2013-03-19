@@ -84,3 +84,12 @@ define ["utils"], (u) ->
     knockVM['contact_phone1'].subscribe fillEventsHistory(knockVM)
     knockVM['actions'].subscribe fillEventsHistory(knockVM)
     knockVM['comments'].subscribe fillEventsHistory(knockVM)
+
+  # Display daily service stats in central pane when `city` field of
+  # case is changed.
+  cityStatsHook: (instance, knockVM) ->
+    cityField = "city"
+    u.hideComplex
+    knockVM[cityField].subscribe (new_city) ->
+      $.getJSON "/stats/towAvgTime/" + new_city,
+        (r) -> $("#city-towage-average-time").text(u.formatSecToMin(r[0]))

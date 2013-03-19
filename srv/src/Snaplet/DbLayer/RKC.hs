@@ -544,16 +544,19 @@ queryFmt lns args = query (fromString $ T.unpack $ format (concat lns) args)
 procAvgTimeQuery :: PS.Query
 procAvgTimeQuery = [sql|
 WITH actiontimes AS (
- SELECT (max(a.closeTime - a.ctime))
- FROM actiontbl a, casetbl c, servicetbl s
- WHERE cast(split_part(a.caseid, ':', 2) as integer)=c.id
- AND cast(split_part(a.parentid, ':', 2) as integer)=s.id
- AND a.name='orderService'
+ SELECT (max(a2.closeTime - a1.ctime))
+ FROM casetbl c, servicetbl s, actiontbl a1, actiontbl a2
+ WHERE a1.parentid=a2.parentid
+ AND (a2.result='serviceOrdered' 
+      OR a2.result='serviceOrderedSMS')
+ AND a1.name='orderService'
+ AND cast(split_part(a1.caseid, ':', 2) as integer)=c.id
+ AND cast(split_part(a1.parentid, ':', 2) as integer)=s.id
  AND (? or c.program = ?)
  AND (? or c.city = ?)
  AND c.calldate >= ?
  AND c.calldate < ?
- GROUP BY a.parentid)
+ GROUP BY a1.parentid)
 SELECT extract(epoch from avg(max)) FROM actiontimes;
 |]
 

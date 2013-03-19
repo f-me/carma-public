@@ -1049,6 +1049,12 @@
           <span data-bind="text: caseAddress_address"/><br/>
           <span data-bind="text: caseAddress_comment"/>
         </p>
+        <br />
+        <p data-bind="visible: cityLocal">
+          <b>Расчётное значение ожидания эвакуатора в
+            г.&nbsp;<span data-bind="text: cityLocal"/>:</b>
+          <span id="city-towage-average-time" />
+        </p>
         <div class="program">
           <h1 data-bind="text: programLocal"></h1>
           <div data-bind="html:programDesc"></div>
