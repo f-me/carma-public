@@ -572,7 +572,7 @@ WITH actiontimes AS (
  AND cast(split_part(a.parentid, ':', 2) as integer)=s.id
  AND a.name='orderService'
  AND a.ctime < s.times_factServiceStart
- AND s.type='towage'
+ AND (s.type='towage' OR s.type='tech')
  AND (? or c.program = ?)
  AND (? or c.city = ?)
  AND c.calldate >= ?
