@@ -571,6 +571,7 @@ WITH actiontimes AS (
  WHERE cast(split_part(a.caseid, ':', 2) as integer)=c.id
  AND cast(split_part(a.parentid, ':', 2) as integer)=s.id
  AND a.name='orderService'
+ AND a.ctime < s.times_factServiceStart
  AND s.type='towage'
  AND (? or c.program = ?)
  AND (? or c.city = ?)
