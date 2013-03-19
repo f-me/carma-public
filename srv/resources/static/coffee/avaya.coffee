@@ -51,7 +51,9 @@ class @AvayaWidget
 
     phone.callInfo = (number, line) ->
       phone.calling()
-      panel.find(".search-query").val(number)
+      panel.find(".search-query")
+        .val(number)
+        .css("background", if number in redNumbers then "coral" else "white")
 
       numberParts = number.match(/\+7(\d\d\d)(\d\d\d)(\d\d)(\d*)/)
       if numberParts
@@ -68,6 +70,20 @@ class @AvayaWidget
 
   call: (number) ->
     @__phone.call(number)
+
+
+redNumbers =
+  [ "+79851996802"
+  , "+79151747332"
+  , "+79067510641"
+  , "+79623619523"
+  , "+79267474413"
+  , "+79162169927"
+  , "+79168454204"
+  , "+79264304598"
+  , "+79851996802"
+  , "+79851996809"
+  ]
 
 lineInfo =
   "VW+BOSCH":
