@@ -566,7 +566,7 @@ SELECT extract(epoch from avg(max)) FROM actiontimes;
 towStartAvgTimeQuery :: PS.Query
 towStartAvgTimeQuery = [sql|
 WITH actiontimes AS (
- SELECT (max(s.times_factServiceEnd - a.ctime))
+ SELECT (max(s.times_factServiceStart - a.ctime))
  FROM actiontbl a, casetbl c, servicetbl s
  WHERE cast(split_part(a.caseid, ':', 2) as integer)=c.id
  AND cast(split_part(a.parentid, ':', 2) as integer)=s.id
