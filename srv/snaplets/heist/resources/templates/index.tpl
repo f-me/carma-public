@@ -221,7 +221,7 @@
       <div style="text-align:center;">
       <fieldset>
         <legend>Обновление базы партнёров</legend>
-        <form id="partner-import-form" method="post" action="/partner/upload">
+        <form id="partner-import-form" method="post" action="/partner/upload.csv">
           <p>
             <input type="file" name="file" accept="text/csv" />
           </p>
