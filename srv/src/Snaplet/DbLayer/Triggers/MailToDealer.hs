@@ -114,7 +114,7 @@ sendMailActually
 sendMailActually actId caseId addrTo = do
   cfg <- liftDb getSnapletUserConfig
   cfgFrom <- liftIO $ require cfg "psa-smtp-from"
-  cfgTo'  <- liftIO $ require cfg "psa-smtp-from"
+  cfgTo'  <- liftIO $ require cfg "psa-smtp-copyto"
   let cfgTo = if cfgTo' /= ""
         then T.decodeUtf8 addrTo `T.append` "," `T.append` cfgTo'
         else cfgTo'
