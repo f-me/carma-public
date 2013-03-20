@@ -6,43 +6,37 @@ define [
     template: tpl
     constructor: (viewName, args) ->
       setupModel = (args) ->
-        m = main.modelSetup("contract")(
+        if args.id
+          $('#render-contract').attr(
+            "href",
+            "/renderContract?prog=#{args.program}&ctr=#{args.id}")
+        main.modelSetup("contract")(
           viewName, args,
             permEl: "contract-permissions"
             focusClass: "focusable"
             refs: []
             bb: { manual_save: true })
-        if args.id
-          $('#render-contract').attr(
-            "href",
-            "/renderContract?prog=1&ctr=#{args.id}")
-        return m
 
       kvm = setupModel args
       setTimeout ->
-        sk = mkTableSkeleton global.models.contract,
+        tableCols =
               [ {name: "#", fn: (o) -> o.id}
               , "ctime"
               , "carVin"
               , "carMake"
               , "carModel"
-#              , "carColor"
-              , "carPlateNum"
-#              , "carMakeYear"
-#              , "carCheckPeriod"
-#              , "carBuyDate"
-#              , "warrantyStart"
-#              , "cardNumber"
-              , "contractValidFromDate"
+              ]
+        if args.program == '1'
+          tableCols.append "carPlateNum"
+
+        tableCols.concat(
+              [ "contractValidFromDate"
               , "contractValidUntilDate"
               , "contractValidUntilMilage"
-#              , "milageTO"
-#              , "cardOwner"
               , "manager"
-#              , "carSeller"
-#              , "carDealerTO"
-              ]
+              ])
 
+        sk = mkTableSkeleton global.models.contract, tableCols
         $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
         $.fn.dataTableExt.oStdClasses.sFilter = "dataTables_filter form-inline"
 
@@ -71,7 +65,9 @@ define [
 
         getContracts args.program, fillTable
 
-        kvm['maybeId'].subscribe ->
+        if args.id == null && args.program == '2'
+          kvm.carMake 'vw'
+        kvm.maybeId.subscribe ->
           getContracts kvm['id']() (objs) -> dt.fnAddData objs.map sk.mkRow
 
 getContracts = (args, cb) ->
