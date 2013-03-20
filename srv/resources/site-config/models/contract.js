@@ -45,8 +45,8 @@
     },
     {
       "name": "carMake",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
+      "canRead": ["ruslan","vwpartner"],
+      "canWrite": ["ruslan"],
       "type": "dictionary",
       "meta": {
         "required": true,
@@ -57,8 +57,8 @@
     },
     {
       "name": "carModel",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
+      "canRead": ["ruslan","vwpartner"],
+      "canWrite": ["ruslan","vwpartner"],
       "type": "dictionary",
       "meta": {
         "required": true,
@@ -70,8 +70,8 @@
     },
     {
       "name": "carPlateNum",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
+      "canRead": ["ruslan"],
+      "canWrite": ["ruslan"],
       "meta": {
         "transform": "uppercase",
         "label": "Госномер",
@@ -81,6 +81,8 @@
     },
     {
       "name": "carMakeYear",
+      "canRead": ["ruslan","vwpartner"],
+      "canWrite": ["ruslan","vwpartner"],
       "meta": {
         "required": true,
         "label": "Год производства автомобиля",
@@ -122,6 +124,8 @@
     },
     {
       "name": "carCheckupMilage",
+      "canRead": ["vwpartner"],
+      "canWrite": ["vwpartner"],
       "meta": {
         "required": true,
         "label": "Пробег на последнем ТО",
@@ -151,8 +155,8 @@
     },
     {
       "name": "carCheckPeriod",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
+      "canRead": ["ruslan"],
+      "canWrite": ["ruslan"],
       "meta": {
         "required": true,
         "label": "Межсервисный интервал",
@@ -168,6 +172,8 @@
     },
     {
       "name": "cardNumber",
+      "canRead": ["vwpartner"],
+      "canWrite": ["vwpartner"],
       "meta": {
         "required": true,
         "label": "Номер карты участника"
@@ -195,8 +201,8 @@
     },
     {
       "name": "milageTO",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
+      "canRead": ["ruslan"],
+      "canWrite": ["ruslan"],
       "meta": {
         "required": true,
         "label": "Пробег при регистрации в программе",
@@ -221,6 +227,27 @@
       }
     },
     {
+      "name": "techType",
+      "canRead": ["vwpartner"],
+      "canWrite": ["vwpartner"],
+      "type": "dictionary",
+      "meta": {
+        "required": true,
+        "dictionaryName": "ToType",
+        "bounded": true,
+        "label": "Вид ТО"
+      }
+    },
+    {
+      "name": "orderNumber",
+      "canRead": ["vwpartner"],
+      "canWrite": ["vwpartner"],
+      "meta": {
+        "required": true,
+        "label": "Номер заказ-наряда"
+      }
+    },
+    {
       "name": "manager",
       "canRead": ["partner"],
       "canWrite": ["partner"],
@@ -242,7 +269,7 @@
       "type": "date",
       "meta": {
         "required": true,
-        "label": "Дата оуончания действия программы"
+        "label": "Дата окончания действия программы"
       }
     }
   ]
