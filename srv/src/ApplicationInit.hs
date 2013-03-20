@@ -20,7 +20,8 @@ import Snap.Core
 import Snap.Snaplet
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth hiding (session)
-import Snap.Snaplet.Auth.Backends.JsonFile
+import Snap.Snaplet.Auth.Backends.PostgresqlSimple
+import Snap.Snaplet.PostgresqlSimple (pgsInit)
 import Snap.Snaplet.Session.Backends.CookieSession
 import Snap.Util.FileServe (serveDirectory, serveFile)
 ------------------------------------------------------------------------------
@@ -127,30 +128,27 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   sesKey <- liftIO $
             lookupDefault "resources/private/client_session_key.aes"
                           cfg "session-key"
-  rmbKey <- liftIO $
-            lookupDefault "resources/private/site_key.txt"
-                          cfg "remember-key"
-  rmbPer <- liftIO $
-            lookupDefault 14
-                          cfg "remember-period"
-  authDb <- liftIO $
-            lookupDefault "resources/private/users.json"
-                          cfg "user-db"
+  authDbFile
+        <- liftIO $
+           lookupDefault "resources/private/users.json"
+                         cfg "user-db"
 
-  s <- nestSnaplet "session" session $
-       initCookieSessionManager sesKey "_session" Nothing
-  authMgr <- nestSnaplet "auth" auth $
-       initJsonFileAuthManager
-       defAuthSettings{ asSiteKey = rmbKey
-                      , asRememberPeriod = Just (rmbPer * 24 * 60 * 60)}
-                               session authDb
   logdUsrs <- liftIO $ newTVarIO Map.empty
-  let allUsrs = readJSON authDb
+  let allUsrs = readJSON authDbFile
 
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
 
   runtimeFlags <- liftIO $ newTVarIO Set.empty
   !allU <- liftIO allUsrs
+
+  -- Authentication
+  ad <- nestSnaplet "auth_db" authDb pgsInit
+
+  s <- nestSnaplet "session" session $
+       initCookieSessionManager sesKey "_session" Nothing
+
+  authMgr <- nestSnaplet "auth" auth $ initPostgresAuth session ad
+
   d <- nestSnaplet "db" db $ initDbLayer authMgr allU runtimeFlags "resources/site-config"
 
   -- init PostgreSQL connection pool that will be used for searching only
@@ -176,4 +174,4 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        [logger text (file "log/frontend.log")]
 
   addRoutes routes
-  return $ App h s authMgr logdUsrs allUsrs c d pgs pga v fu g l runtimeFlags
+  return $ App h s authMgr logdUsrs allUsrs c d pgs pga v fu g l runtimeFlags ad

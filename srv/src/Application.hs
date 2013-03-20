@@ -15,6 +15,7 @@ import Database.PostgreSQL.Simple as Pg
 import Snap
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth
+import Snap.Snaplet.PostgresqlSimple
 import Snap.Snaplet.Session
 
 ------------------------------------------------------------------------------
@@ -47,6 +48,7 @@ data App = App
     , _geo        :: Snaplet Geo
     , feLog       :: Log
     , runtimeFlags:: TVar (Set RuntimeFlag)
+    , _authDb     :: Snaplet Postgres
     }
 
 
