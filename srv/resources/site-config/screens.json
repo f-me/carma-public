@@ -3,10 +3,15 @@
       "type"  : "sms",
       "permissions" : ["front","back","head","parguy","supervisor","director","analyst","parguy","account","admin","programman"]
     },
-    { "name"  : "contract/ruslan",
+    { "name"  : "contract/1",
       "label" : "Контракты РУС ЛАН",
       "type"  : "li",
       "permissions": ["ruslan"]
+    },
+    { "name"  : "contract/2",
+      "label" : "Контракты VW",
+      "type"  : "li",
+      "permissions": ["vwpartner"]
     },
     { "name"  : "call",
       "label" : "Звонок",
