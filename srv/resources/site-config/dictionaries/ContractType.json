@@ -1,0 +1,44 @@
+{
+    "entries": [
+        {
+            "value": "warranty",
+            "label": "Гарантия"
+        },
+        {
+            "value": "plus2",
+            "label": "Service Plus (2-years)"
+        },
+        {
+            "value": "optimum2",
+            "label": "Service Optimum (2-years)"
+        },
+        {
+            "value": "maximum2",
+            "label": "Service Maximum (2-years)"
+        },
+        {
+            "value": "plus3",
+            "label": "Service Plus (3-years)"
+        },
+        {
+            "value": "optimum3",
+            "label": "Service Optimum (3-years)"
+        },
+        {
+            "value": "maximum3",
+            "label": "Service Maximum (3-years)"
+        },
+        {
+            "value": "essentialDrive",
+            "label": "Essential Drive"
+        },
+        {
+            "value": "perfectDrive",
+            "label": "Perfect Drive"
+        },
+        {
+            "value": "freeDrive",
+            "label": "Free Drive"
+        }
+    ]
+}
