@@ -27,7 +27,7 @@ define [
               , "carModel"
               ]
         if args.program == '1'
-          tableCols.append "carPlateNum"
+          tableCols.push "carPlateNum"
 
         tableCols.concat(
               [ "contractValidFromDate"
@@ -53,7 +53,7 @@ define [
 
         dt = utils.mkDataTable t
 
-        $('#date-min').val (new Date).addDays(-1).toString('yyyy-MM-dd')
+        $('#date-min').val (new Date).addDays(-30).toString('yyyy-MM-dd')
         $('#date-max').val (new Date).toString('yyyy-MM-dd')
 
         fillTable = (objs) ->
