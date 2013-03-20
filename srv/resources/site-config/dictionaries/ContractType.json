@@ -1,6 +1,10 @@
 {
     "entries": [
         {
+            "value": "warranty",
+            "label": "Гарантия"
+        },
+        {
             "value": "plus2",
             "label": "Service Plus (2-years)"
         },
