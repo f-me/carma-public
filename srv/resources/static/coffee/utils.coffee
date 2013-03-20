@@ -25,6 +25,22 @@ define ["model/utils"], (mu) ->
       $span.fadeOut(2000))
     , 500)
 
+  window.users_with_roles = (roles) ->
+    f = _.filter global.all_users, (u) ->
+      not _.isEmpty(_.intersection(roles, u.roles.split ','))
+    entries: for i in f
+      { value: i.value, label: "#{i.label} (#{i.value})" }
+
+
+  window.getDictionary = (d) ->
+    console.log 'dicts', d
+    dict = global.dictionaries[d]
+    console.log 'found dict', dict
+    return dict if dict
+    console.log 'gonna eval'
+    return eval(d)
+
+
   bindRemove = (parent, field, cb) ->
     for i in parent["#{field}Reference"]()
       do (i) ->
@@ -51,7 +67,7 @@ define ["model/utils"], (mu) ->
     $("##{to}").attr 'href',
       " data:application/octet-stream
       ; base64
-      , #{Base64.encode(head + s)}"
+      , #{Base64.encode('\uFEFF' + head + s)}"
     s
 
   modelsFromUrl = -> window.location.hash.match(/#(.*)\/.*/)[1]
@@ -127,6 +143,10 @@ define ["model/utils"], (mu) ->
     obj =
       view: view_name
       field: field_name
+
+  # Format a numeric value from seconds to minutes
+  formatSecToMin: (s) ->
+    Math.round(s / 60) + "m"
 
   # Hide all views on center pane and show view for first reference
   # stored in <fieldName> of model loaded into <parentView> there

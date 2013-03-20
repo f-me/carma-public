@@ -2,9 +2,30 @@
   <div class="left class nice-scrollbar pane">
     <div id="table-filter" class="form-inline well">
       <label>Дата создания:</label>
-      от <input id="date-min" type="text" />
-      до <input id="date-max" type="text" />
+      <div class="row-fluid">
+        <div class="input-append date span2"
+             data-provide="datepicker"
+             data-autoshow-datepicker="true"
+             data-date-format="yyyy-mm-dd"
+             data-date-weekstart="1">
+          <label>
+            от <input id="date-min" class="input-small" type="text" />
+            <span class="add-on"><i class="icon icon-calendar" /></span>
+          </label>
+
+        </div>
+        <div class="input-append date span2"
+             data-provide="datepicker"
+             data-autoshow-datepicker="true"
+             data-date-format="yyyy-mm-dd"
+             data-date-weekstart="1">
+          <label>
+            до <input id="date-max" class="input-small" type="text" />
+            <span class="add-on"><i class="icon icon-calendar" /></span>
+          </label>
+        </div>
       <button id="filter-btn"> Обновить </button>
+      </div>
       <a id="csv" onclick="dt2csv('contracts-table', 'csv')" download="data.csv">
           Выгрузить данные в файл
       </a>

@@ -160,6 +160,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
         # Fill general info
         totalServices = $('#total-services')
         averageStart = $('#average-towage-tech-start')
+        procAvgTime = $('#processing-average-time')
         calculated = $('#calculated-cost')
         mechanic = $('#mechanic')
         averageEnd = $('#average-towage-tech-end')
@@ -196,12 +197,13 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
             ct.fnClearTable()
             bt.fnClearTable()
 
-            # Update general info
+            # Update general statistics fields from JSON response data
             totalServices.val(result.case.summary.total)
-            averageStart.val(Math.round(result.case.summary.delay / 60) + "m")
+            averageStart.val(utils.formatSecToMin(result.stats.towStartAvgTime))
+            procAvgTime.val(utils.formatSecToMin(result.stats.procAvgTime))
             calculated.val(result.case.summary.calculated)
             mechanic.val(result.case.summary.mech)
-            averageEnd.val(Math.round(result.case.summary.duration / 60) + "m")
+            averageEnd.val(utils.formatSecToMin(result.case.summary.duration))
             limited.val(result.case.summary.limited)
 
             satisfied.val(result.case.summary.satisfied)
@@ -211,8 +213,8 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
               crow = [
                 dict.Services[cinfo.name] || cinfo.name,
                 cinfo.total,
-                Math.round(cinfo.delay / 60) + "m",
-                Math.round(cinfo.duration / 60) + "m",
+                utils.formatSecToMin(cinfo.delay),
+                utils.formatSecToMin(cinfo.duration),
                 cinfo.calculated,
                 cinfo.limited]
 

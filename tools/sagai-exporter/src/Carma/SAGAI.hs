@@ -375,8 +375,8 @@ cnst :: ExportMonad m => a -> m a
 cnst = return
 
 
-newline :: Char
-newline = '\n'
+newline :: B8.ByteString
+newline = "\r\n"
 
 
 space :: Char
@@ -384,7 +384,7 @@ space = ' '
 
 
 rowBreak :: ExportField
-rowBreak = return $ B8.singleton newline
+rowBreak = return newline
 
 
 pdvField :: ExportField
@@ -530,7 +530,7 @@ fillerField = spaces 5
 -- | Pad input up to 72 characters with spaces or truncate it to be
 -- under 72 chars. Remove all newlines.
 commentPad :: BS.ByteString -> BS.ByteString
-commentPad = B8.map (\c -> if c == newline then space else c) .
+commentPad = B8.map (\c -> if B8.elem c newline then space else c) .
              BS.take 72 .
              padLeft 72 ' '
 

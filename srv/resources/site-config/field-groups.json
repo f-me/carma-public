@@ -522,7 +522,7 @@
             "name": "factServiceStart",
             "type": "datetime",
             "meta": {
-                "label": "Фактическое  время начала оказания услуги",
+                "label": "Фактическое время начала оказания услуги",
                 "infoText": "datetime",
                 "regexp": "datetime"
             }

@@ -221,7 +221,7 @@
       <div style="text-align:center;">
       <fieldset>
         <legend>Обновление базы партнёров</legend>
-        <form id="partner-import-form" method="post" action="/partner/upload">
+        <form id="partner-import-form" method="post" action="/partner/upload.csv">
           <p>
             <input type="file" name="file" accept="text/csv" />
           </p>
@@ -1048,6 +1048,12 @@
           <b>Адрес кейса:</b>
           <span data-bind="text: caseAddress_address"/><br/>
           <span data-bind="text: caseAddress_comment"/>
+        </p>
+        <br />
+        <p data-bind="visible: cityLocal">
+          <b>Расчётное значение ожидания эвакуатора в
+            г.&nbsp;<span data-bind="text: cityLocal"/>:</b>
+          <span id="city-towage-average-time" />
         </p>
         <div class="program">
           <h1 data-bind="text: programLocal"></h1>
