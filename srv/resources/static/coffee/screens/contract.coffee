@@ -27,7 +27,7 @@ define [
               , "carModel"
               ]
         if args.program == '1'
-          tableCols.append "carPlateNum"
+          tableCols.push "carPlateNum"
 
         tableCols.concat(
               [ "contractValidFromDate"
