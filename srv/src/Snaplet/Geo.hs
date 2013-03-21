@@ -29,12 +29,12 @@ import Control.Monad.State
 import Data.Aeson as A
 
 import Data.Attoparsec.ByteString.Char8
-import Data.ByteString.Char8 (ByteString)
+import Data.ByteString.Char8 as BS (ByteString, concat)
 import qualified Data.ByteString.Lazy.Char8 as BSL
 
 import Data.Configurator
 import Database.PostgreSQL.Simple.SqlQQ
-
+import Data.Text.Encoding
 import qualified Data.Vector as V
 import qualified Data.Vector.Mutable as VM (unsafeNew, unsafeWrite)
 
@@ -187,20 +187,23 @@ distance = twoPointHandler distanceQuery (head . head :: [[Double]] -> Double)
 ------------------------------------------------------------------------------
 -- | True only for names of Russian cities which are federal subjects
 -- (in UTF-8, ru-RU).
-isFederal :: String -> Bool
-isFederal s = (s == "Москва") || (s == "Санкт-Петербург")
+isFederal :: ByteString -> Bool
+isFederal s = (s == e8 "Москва") || (s == e8 "Санкт-Петербург")
+    where
+      e8 = encodeUtf8
 
 
 ------------------------------------------------------------------------------
 -- | City and street address. 'FromJSON' instance parses a UTF-8
 -- response from the Nominatim reverse geocoder, properly handling
 -- federal city names.
-data FullAddress = FullAddress (Maybe String) (Maybe String) deriving Show
+data FullAddress = FullAddress (Maybe ByteString) (Maybe ByteString) 
+                   deriving Show
 
 
 instance FromJSON FullAddress where
     parseJSON (Object v) = do
-        (err::Maybe String) <- v .:? "error"
+        (err::Maybe ByteString) <- v .:? "error"
         case err of
           Just _ -> fail "Geocoding failed"
           Nothing -> do
@@ -218,7 +221,7 @@ instance FromJSON FullAddress where
                 -- Include house number information in the street
                 -- address, if present
                 streetAddr = case (street, house) of
-                               (Just s, Just h) -> Just $ concat [s, ", ", h]
+                               (Just s, Just h) -> Just $ BS.concat [s, ", ", h]
                                _ -> street
                 -- Use the name of the state as the city name for
                 -- federal cities
