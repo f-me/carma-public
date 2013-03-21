@@ -118,6 +118,15 @@
             }
         },
         {
+            "name": "contractType",
+            "meta": {
+                "label": "Тип контракта",
+                "dictionaryName": "ContractType",
+                "bounded": true
+            },
+            "type": "dictionary"
+        },        
+        {
             "name": "transmission",
             "meta": {
                 "label": "Коробка передач",

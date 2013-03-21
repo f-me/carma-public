@@ -64,7 +64,18 @@ mailTemplate = T.pack
   ++ "    <th>Система автомобиля, в которой произошла неисправность</th>"
   ++ "    <th>Неисправная деталь</th>"
   ++ "  </tr>"
-  ++ "  <tr></tr><tr></tr>"
+  ++ "  <tr align=\"center\">"
+  ++ "    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>"
+  ++ "    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>"
+  ++ "  </tr>"
+  ++ "  <tr align=\"center\">"
+  ++ "    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>"
+  ++ "    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>"
+  ++ "  </tr>"
+  ++ "  <tr align=\"center\">"
+  ++ "    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>"
+  ++ "    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>"
+  ++ "  </tr>"
   ++ "</table>"
   ++ "<p>Заранее благодарим за своевременный ответ, в течение 24 часов.</p>"
 
@@ -114,7 +125,10 @@ sendMailActually
 sendMailActually actId caseId addrTo = do
   cfg <- liftDb getSnapletUserConfig
   cfgFrom <- liftIO $ require cfg "psa-smtp-from"
-  let cfgTo = T.decodeUtf8 addrTo `T.append` ",anton@formalmethods.ru"
+  cfgTo'  <- liftIO $ require cfg "psa-smtp-copyto"
+  let cfgTo = if cfgTo' /= ""
+        then T.decodeUtf8 addrTo `T.append` "," `T.append` cfgTo'
+        else cfgTo'
 
   varMap <- fillVars caseId
 
