@@ -222,10 +222,10 @@ actionIdReference n = BS.pack $ "action:" ++ (show n)
 
 
 ------------------------------------------------------------------------------
--- | Create a new case from JSON in request body. Perform reverse
--- geocoding using coordinates from values under @lon@ and @lat@,
--- writing the result to field 'caseAddress' of the new case. New
--- action is created for the case.
+-- | Create a new case from a JSON object provided in request body.
+-- Perform reverse geocoding using coordinates from values under @lon@
+-- and @lat@, writing the obtained city and street address to the new
+-- case. New @callMeMaybe@ action is created for the case.
 --
 -- Response body is a JSON of form @{"caseId":<n>}@, where @n@ is the
 -- new case id.
