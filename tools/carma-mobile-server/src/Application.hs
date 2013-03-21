@@ -30,6 +30,7 @@ import Data.Attoparsec.ByteString.Char8
 import Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as BSL
+import Data.Dict
 import qualified Data.Text as T (pack)
 import Data.Text.Encoding (encodeUtf8)
 
@@ -58,6 +59,8 @@ data GeoApp = GeoApp
     , _redis :: Snaplet RedisDB
     , carmaPort :: Int
     -- ^ Port of CaRMa instance running on localhost.
+    , cityDict :: Dict
+    -- ^ Dictionary used to map city names to internal values.
     }
 
 makeLenses ''GeoApp
@@ -235,12 +238,15 @@ newCase = do
       coords = parseMaybe (\j -> (,) <$> (j .:"lon") <*> (j .: "lat")) jsonRq0
       car_vin = HM.lookup "car_vin" jsonRq
 
+  dict <- gets cityDict
+
   jsonRq' <- case coords of
     Nothing -> return jsonRq
     -- Reverse geocode coordinates from lon/lat
     Just (lon,lat) -> revGeocode lon lat >>= \case
-      (addr, _) ->
+      (addr, city) ->
         return $
+        (maybe id (HM.insert caseCity) $ city >>= (flip valueOfLabel dict)) $
         (maybe id (HM.insert caseAddress) addr) $
         HM.insert caseCoords (BS.pack $ concat [show lon, ",", show lat]) $
         jsonRq
@@ -293,9 +299,13 @@ geoAppInit = makeSnaplet "geo" "Geoservices" Nothing $ do
     cfg <- getSnapletUserConfig
 
     cp <- liftIO $ lookupDefault 8000 cfg "carma_port"
+    dName <- liftIO $ lookupDefault "DealerCities" cfg "cities-dictionary"
 
     addRoutes routes
-    return $ GeoApp db rdb cp
+    cDict' <- liftIO $ readDictionary cp dName
+    case cDict' of
+      Just cDict -> return $ GeoApp db rdb cp cDict
+      Nothing -> error "Could not load cities dictionary from CaRMa"
 
 
 ------------------------------------------------------------------------------
