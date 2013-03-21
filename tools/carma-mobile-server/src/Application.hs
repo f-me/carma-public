@@ -80,6 +80,13 @@ routes = [ ("/geo/partner/:pid", method PUT $ updatePosition)
 getCarmaPort :: Handler b GeoApp Int
 getCarmaPort = gets carmaPort
 
+
+------------------------------------------------------------------------------
+-- | Pack coordinates to a string of format @33.12,57.32@.
+coordsToString :: Double -> Double -> String
+coordsToString lon lat = (show lon) ++ "," ++ (show lat)
+
+
 ------------------------------------------------------------------------------
 -- | Name of address field in partner model.
 partnerAddress :: ByteString
@@ -109,7 +116,7 @@ revGeocode :: Double
 revGeocode lon lat = do
   cp <- getCarmaPort
   (addr :: Maybe (HM.HashMap ByteString ByteString)) <- liftIO $ do
-     let coords = (show lon) ++ "," ++ (show lat)
+     let coords = coordsToString lon lat
      resp <- H.simpleHTTP $ H.getRequest $
              methodURI cp ("geo/revSearch/" ++ coords)
      body <- H.getResponseBody resp
@@ -248,7 +255,7 @@ newCase = do
         return $
         (maybe id (HM.insert caseCity) $ city >>= (flip valueOfLabel dict)) $
         (maybe id (HM.insert caseAddress) addr) $
-        HM.insert caseCoords (BS.pack $ concat [show lon, ",", show lat]) $
+        HM.insert caseCoords (BS.pack $ coordsToString lon lat) $
         jsonRq
 
   -- Form the body of the new case request to send to CaRMa
