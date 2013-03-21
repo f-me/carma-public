@@ -64,8 +64,8 @@ instance HasPostgres (Handler b Geo) where
 
 
 routes :: [(ByteString, Handler b Geo ())]
-routes = [ ("/partners/:coords1/:coords2", method GET withinPartners >> return ())
-         , ("/distance/:coords1/:coords2", method GET distance >> return ())
+routes = [ ("/partners/:coords1/:coords2", method GET withinPartners)
+         , ("/distance/:coords1/:coords2", method GET distance)
          , ("/revSearch/:coords", method GET revSearch)
          ]
 
@@ -197,7 +197,7 @@ isFederal s = (s == e8 "Москва") || (s == e8 "Санкт-Петербур�
 -- | City and street address. 'FromJSON' instance parses a UTF-8
 -- response from the Nominatim reverse geocoder, properly handling
 -- federal city names.
-data FullAddress = FullAddress (Maybe ByteString) (Maybe ByteString) 
+data FullAddress = FullAddress (Maybe ByteString) (Maybe ByteString)
                    deriving Show
 
 
