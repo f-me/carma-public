@@ -28,7 +28,7 @@ where
 import Data.Aeson
 import Data.Dict
 import Data.Functor
-import Data.Map as M hiding (mapMaybe)
+import Data.HashMap.Strict as M
 import Data.Maybe
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
@@ -44,7 +44,7 @@ type FieldValue = BS.ByteString
 type FieldName = BS.ByteString
 
 -- | An instance of a model is a set of key-value pairs.
-type InstanceData = M.Map FieldName FieldValue
+type InstanceData = M.HashMap FieldName FieldValue
 
 
 localURIPrefix :: String
@@ -201,9 +201,9 @@ readDictionary :: Int
 readDictionary cp name  = do
   rs <- simpleHTTP $ getRequest $ methodURI cp dictionariesMethod
   rsb <- getResponseBody rs
-  -- Read server response into Map ByteString Value, since carma-dict
-  -- does not support multi-level dictionaries yet
-  let dicts = decode' $ BSL.pack $ rsb :: Maybe (M.Map String Value)
+  -- Read server response into @HashMap String Value@, since
+  -- carma-dict does not support multi-level dictionaries yet
+  let dicts = decode' $ BSL.pack $ rsb :: Maybe (M.HashMap String Value)
   return $ case M.lookup name <$> dicts of
     Just (Just v) -> decode' $ encode v
     _             -> Nothing
