@@ -83,6 +83,7 @@ Executable carma
     simple-log                  == 0.3.*,
     snap                        == 0.11.*,
     snap-core                   == 0.9.*,
+    snap-extras                 == 0.5.*,
     snap-loader-static          >= 0.9.0.1 && < 0.10,
     snap-server                 == 0.9.*,
     snaplet-postgresql-simple   == 0.3.*,
