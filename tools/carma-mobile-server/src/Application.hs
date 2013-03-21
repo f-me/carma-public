@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 {-|
 
@@ -38,6 +39,7 @@ import Data.Time.Clock
 import Data.Time.Format
 
 import qualified Database.Redis as R
+import Database.PostgreSQL.Simple.SqlQQ
 
 import qualified Network.HTTP as H
 
@@ -105,7 +107,8 @@ revGeocode lon lat = do
   cp <- getCarmaPort
   (addr :: Maybe (HM.HashMap ByteString ByteString)) <- liftIO $ do
      let coords = (show lon) ++ "," ++ (show lat)
-     resp <- H.simpleHTTP (H.getRequest $ methodURI cp ("geo/revSearch/" ++ coords))
+     resp <- H.simpleHTTP $ H.getRequest $
+             methodURI cp ("geo/revSearch/" ++ coords)
      body <- H.getResponseBody resp
      return $ decode' $ BSL.pack body
   case addr of
@@ -146,15 +149,22 @@ updatePartnerData pid lon lat addr mtime =
         coordString = concat [show lon, ",", show lat]
         body = HM.fromList $
                [ (partnerCoords, BS.pack coordString)
-               , (partnerMtime, BS.pack $ formatTime defaultTimeLocale "%s" mtime)] ++
+               , (partnerMtime,
+                  BS.pack $ formatTime defaultTimeLocale "%s" mtime)] ++
                (maybe [] (\a -> [(partnerAddress, a)]) addr)
     in do
       cp <- getCarmaPort
       liftIO $ updateInstance cp "partner" pid body >> return ()
 
 
+------------------------------------------------------------------------------
+-- | Used to fetch messages for a partner with id supplied as a query
+-- parameter.
 getMessageQuery :: Query
-getMessageQuery = "SELECT message FROM partnerMessageTbl where partnerId=? order by ctime desc limit 1;"
+getMessageQuery = [sql|
+SELECT message FROM partnerMessageTbl
+WHERE partnerId=? order by ctime desc limit 1;
+|]
 
 
 getMessage :: Handler b GeoApp ()
@@ -229,7 +239,7 @@ newCase = do
     Nothing -> return jsonRq
     -- Reverse geocode coordinates from lon/lat
     Just (lon,lat) -> revGeocode lon lat >>= \case
-      (addr, _) -> 
+      (addr, _) ->
         return $
         (maybe id (HM.insert caseAddress) addr) $
         HM.insert caseCoords (BS.pack $ concat [show lon, ",", show lat]) $
@@ -268,8 +278,9 @@ newCase = do
   let actId = fst actResp
   liftIO $ updateInstance cp "case" caseId $ HM.fromList $
           [ (caseActions, actionIdReference actId) ]
-          -- we update car_vin here to trigger vin-search
-          -- (it's a bit easier than adding correct trigger handling on POST request)
+          -- we update car_vin here to trigger vin-search (it's a bit
+          -- easier than adding correct trigger handling on POST
+          -- request)
           ++ maybe [] (\vin -> [("car_vin", vin)]) car_vin
 
   writeLBS . encode $ object $ [ "caseId" .= show caseId ]
