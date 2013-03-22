@@ -31,6 +31,7 @@ import Data.Aeson as A
 import Data.Attoparsec.ByteString.Char8
 import Data.ByteString.Char8 as BS (ByteString, concat)
 import qualified Data.ByteString.Lazy.Char8 as BSL
+import Data.Map as M
 
 import Data.Configurator
 import Database.PostgreSQL.Simple.SqlQQ
@@ -244,7 +245,8 @@ instance ToJSON FullAddress where
 -- | Use Nominatim to perform a reverse search for an address at
 -- coordinates provided in @coords@ request parameter. Response body
 -- is a JSON object with keys @city@ and @address@ (possibly with null
--- values).
+-- values), or a single key @error@ if Nominatim geocoding failed
+-- completely.
 revSearch :: Handler b Geo ()
 revSearch = do
   nom <- gets nominatimUrl
@@ -265,7 +267,7 @@ revSearch = do
         -- Repack Nominatim response into a nicer JSON
         case addr' of
           Right addr -> writeJSON (addr :: FullAddress)
-          Left msg -> error msg
+          Left msg -> writeJSON (M.singleton ("error" :: String) msg)
 
 
 geoInit :: SnapletInit b Geo
