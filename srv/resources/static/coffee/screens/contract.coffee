@@ -53,8 +53,8 @@ define [
 
         dt = utils.mkDataTable t
 
-        $('#date-min').val (new Date).addDays(-30).toString('yyyy-MM-dd')
-        $('#date-max').val (new Date).toString('yyyy-MM-dd')
+        $('#date-min').val (new Date).addDays(-30).toString('dd/MM/yyyy')
+        $('#date-max').val (new Date).toString('dd/MM/yyyy')
 
         fillTable = (objs) ->
           dt.fnClearTable()
@@ -70,9 +70,13 @@ define [
         kvm.maybeId.subscribe ->
           getContracts kvm['id']() (objs) -> dt.fnAddData objs.map sk.mkRow
 
+reformatDate = (date)->
+  [_, d, m, y] = date.match(/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/)
+  "#{y}-#{m}-#{d}"
+
 getContracts = (args, cb) ->
-  min = $('#date-min').val()
-  max = $('#date-max').val()
+  min = reformatDate $('#date-min').val()
+  max = reformatDate $('#date-max').val()
   path = "/allContracts/#{args}?from=#{min}&to=#{max}"
   $.getJSON path, cb
 
