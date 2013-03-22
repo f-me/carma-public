@@ -29,8 +29,7 @@ SELECT id FROM casetbl
 WHERE caseStatus='s2'
 AND  (program=?)
 AND  (NOT psaexported='yes' OR psaexported IS NULL)
-AND  ((calldate > car_servicestart AND calldate < car_serviceend)
- OR   (calldate > car_warrantystart AND calldate < car_warrantyend));
+AND  (calldate > car_warrantystart AND calldate < car_warrantyend);
 |]
 
 
@@ -42,8 +41,7 @@ SELECT id FROM casetbl
 WHERE caseStatus='s2'
 AND  (program='citroen' OR program='peugeot')
 AND  (NOT psaexported='yes' OR psaexported IS NULL)
-AND  ((calldate > car_servicestart AND calldate < car_serviceend)
- OR   (calldate > car_warrantystart AND calldate < car_warrantyend));
+AND  (calldate > car_warrantystart AND calldate < car_warrantyend);
 |]
 
 
