@@ -432,7 +432,7 @@ define ["model/utils", "utils"], (mu, u) ->
       currentBlip osmap, osmap.getCenter(), current_blip_type
 
     if addr_field?
-      $.getJSON(nominatimRevQuery coords.lon, coords.lat,
+      $.getJSON(geoRevQuery coords.lon, coords.lat,
         (res) ->
           addr = buildReverseAddress(res)
           u.findVM(viewName)[addr_field](addr)
@@ -465,7 +465,7 @@ define ["model/utils", "utils"], (mu, u) ->
   , zoomLevel             : zoomLevel
   , beyondTheClouds       : beyondTheClouds
   , nominatimHost         : nominatimHost
-  , nominatimRevQuery     : nominatimRevQuery
+  , geoRevQuery           : geoRevQuery
   , nominatimQuery        : nominatimQuery
   , wsgProj               : wsgProj
   , osmProj               : osmProj
