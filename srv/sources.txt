@@ -7,6 +7,7 @@ https://github.com/f-me/carma-partner-import
 https://github.com/f-me/hs-weather-api
 https://github.com/f-me/postgresql-simple 0.3-stable
 https://github.com/f-me/postgresql-sync-map
+https://github.com/f-me/snap-extras
 https://github.com/f-me/vin-parser
 https://github.com/f-me/xlsx
 

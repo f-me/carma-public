@@ -63,7 +63,6 @@ import qualified Snaplet.DbLayer.RKC as RKC
 import qualified Snaplet.DbLayer.Dictionary as Dict
 import Snaplet.FileUpload (finished, tmp, doUpload', doDeleteAll')
 ------------------------------------------------------------------------------
-import qualified Nominatim
 import Application
 import AppHandlers.Util
 import Util as U
@@ -146,14 +145,6 @@ smspost = do
   Right _ <- with db $ DB.submitTask "smspost" smsId
   writeBS ""
 
-
-------------------------------------------------------------------------------
--- | Geodecode mockup.
-geodecode :: AppHandler ()
-geodecode = ifTop $ do
-  addr <- fromMaybe "Moscow" <$> getParam "addr"
-  resp <- liftIO $ Nominatim.geodecode addr
-  writeJSON resp
 
 ------------------------------------------------------------------------------
 -- | CRUD
