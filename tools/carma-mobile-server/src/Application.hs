@@ -6,7 +6,9 @@
 
 {-|
 
-Standalone application to update partner coordinates.
+Standalone application used to update partner coordinates and create
+new cases in CaRMa. Used as a gateway to CaRMa for mobile
+applications.
 
 -}
 
