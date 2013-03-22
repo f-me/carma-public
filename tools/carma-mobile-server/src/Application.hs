@@ -22,7 +22,6 @@ import Control.Monad
 import Control.Monad.State hiding (ap)
 
 import Data.Aeson as Aeson
-import Data.Aeson.Types (parseMaybe)
 import qualified Data.HashMap.Strict as HM
 
 import Data.Attoparsec.ByteString.Char8
@@ -245,21 +244,23 @@ newCase :: Handler b GeoApp ()
 newCase = do
   -- New case parameters
   rqb <- readRequestBody 4096
-  let -- Read values into ByteStrings
-      Just jsonRq0 :: Maybe (HM.HashMap ByteString (Either Double ByteString)) =
+  let -- Do not enforce typing on values when reading JSON
+      Just jsonRq0 :: Maybe (HM.HashMap ByteString Value) =
                       Aeson.decode rqb
       coords = (,) <$> (HM.lookup "lon" jsonRq0) <*> (HM.lookup "lat" jsonRq0)
-      jsonRq = HM.map (\(Right r) -> r) $
-               HM.filter (\case 
-                          Right _ -> True
-                          _       -> False) jsonRq0
+      -- Now read all values but coords into ByteStrings
+      jsonRq = HM.map (\(String s) -> encodeUtf8 s) $
+               HM.filter (\case
+                          String _ -> True
+                          _        -> False)
+               jsonRq0
       car_vin = HM.lookup "car_vin" jsonRq
 
   dict <- gets cityDict
 
   jsonRq' <- case coords of
     -- Reverse geocode coordinates from lon/lat
-    Just (Left lon, Left lat) -> revGeocode lon lat >>= \case
+    Just (Number (D lon), Number (D lat)) -> revGeocode lon lat >>= \case
       (addr, city) ->
         return $
         (maybe id (HM.insert caseCity) $ city >>= (flip valueOfLabel dict)) $
