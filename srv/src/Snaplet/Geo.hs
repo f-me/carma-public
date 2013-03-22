@@ -208,10 +208,10 @@ instance FromJSON FullAddress where
           Just _ -> fail "Geocoding failed"
           Nothing -> do
             addr <- v .: "address"
-            state <- addr .: "state"
-            road <- addr .:? "road" .!= Nothing
-            ped <- addr .:? "pedestrian" .!= Nothing
-            city <- addr .:? "city" .!= Nothing
+            road  <- addr .:? "road"         .!= Nothing
+            ped   <- addr .:? "pedestrian"   .!= Nothing
+            city  <- addr .:? "city"         .!= Nothing
+            state <- addr .:? "state"        .!= Nothing
             house <- addr .:? "house_number" .!= Nothing
             let -- Use road/pedestrian fields to pick the street name
                 street = case (road, ped) of
@@ -225,9 +225,11 @@ instance FromJSON FullAddress where
                                _ -> street
                 -- Use the name of the state as the city name for
                 -- federal cities
-                realCity = if isFederal state
-                           then Just state
-                           else city
+                realCity = case (city, state) of
+                             (c, Just s) -> if isFederal s
+                                            then Just s
+                                            else c
+                             _ -> city
             return $ FullAddress realCity streetAddr
     parseJSON _ = fail "Bad Nominatim response"
 
