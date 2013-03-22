@@ -13,11 +13,8 @@ define ["model/utils", "utils"], (mu, u) ->
 
   # Trailing slash included
   nominatimHost = "http://nominatim.openstreetmap.org/"
-  #this.nominatimHost = "http://192.168.10.2/"
 
-  nominatimRevQuery = (lon, lat) ->
-    return nominatimHost +
-      "reverse.php?format=json&accept-language=ru-RU,ru&lon=#{lon}&lat=#{lat}"
+  geoRevQuery = (lon, lat) -> "/revSearch/#{lon},#{lat}/"
 
   nominatimQuery = (addr) ->
     fixed_addr = addr.replace(/Москва/g, "Московская область")
@@ -48,15 +45,10 @@ define ["model/utils", "utils"], (mu, u) ->
   # Build readable address from reverse Nominatim JSON response
   buildReverseAddress = (res) ->
     if (res.error)
-      return null
-
-    addr = (res.address.road || res.address.pedestrian)
-
-    if (_.isUndefined(res.address.house_number))
-      return addr
+      null
     else
-      return addr +  ", " + res.address.house_number
-
+      res.address
+  
   # Erase existing marker layer and install a new one of the same name
   reinstallMarkers = (osmap, layerName) ->
     layers = osmap.getLayersByName(layerName)
@@ -146,8 +138,8 @@ define ["model/utils", "utils"], (mu, u) ->
         osmap.setCenter coords.transform(wsgProj, osmProj), zoomLevel
         currentBlip osmap, coords, current_blip_type
 
-    # Setup handler to update address and coordinates if the map is
-    # clickable
+    # Setup handler to update target address and coordinates if the
+    # map is clickable
     if addr_field?
       addr_meta = u.splitFieldInView(addr_field, parentView)
 
@@ -160,7 +152,7 @@ define ["model/utils", "utils"], (mu, u) ->
           # coord_field? branch in geocoding setup
           u.findVM(coord_meta.view)[coord_meta.field](shortStringFromLonlat coords)
 
-        $.getJSON(nominatimRevQuery(coords.lon, coords.lat),
+        $.getJSON(geoRevQuery(coords.lon, coords.lat),
         (res) ->
           addr = buildReverseAddress(res)
 
