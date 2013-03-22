@@ -110,9 +110,8 @@ sendMailToDealer actionId = do
   let svcName = head $ B.split ':' svcId
   when (svcId /= "" && svcName == "towage") $ do
     caseId  <- get actionId "caseId"
---    program <- get caseId   "program"
---    when (program `elem` ["peugeot", "citroen"]) $ do
-    do
+    program <- get caseId   "program"
+    when (program `elem` ["peugeot", "citroen"]) $ do
       dealerId <- get svcId "towDealer_partnerId"
       when (dealerId /= "") $ do
         dealer'sMail <- get dealerId "closeTicketEmail"
