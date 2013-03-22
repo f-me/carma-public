@@ -121,15 +121,7 @@ instance ExportMonad CaseExport where
 
     putState = put
 
-    expenseType = do
-      servs <- getAllServices
-      case null servs of
-        True -> return PhoneServ
-        False -> do
-          nonFalseServs <- getNonFalseServices
-          return $ case null nonFalseServs of
-                     True -> FalseCall
-                     False -> Dossier
+    expenseType = return Dossier
 
     panneField = cnst "0"
 
