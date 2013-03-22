@@ -263,8 +263,12 @@ newCase = do
     Just (Number (D lon), Number (D lat)) -> revGeocode lon lat >>= \case
       (city, addr) ->
         return $
+        -- Translate input city name to corresponding dictionary key
         (maybe id (HM.insert caseCity) $ city >>= (flip valueOfLabel dict)) $
-        (maybe id (HM.insert caseAddress) addr) $
+        -- Prepend street address with city name
+        (maybe id (\a -> HM.insert caseAddress
+                         (maybe a (\c -> BS.concat [c, ", ", a]) city))
+                         addr) $
         HM.insert caseCoords (BS.pack $ coordsToString lon lat) $
         jsonRq
     _ -> return jsonRq
