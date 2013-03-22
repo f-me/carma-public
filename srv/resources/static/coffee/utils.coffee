@@ -113,12 +113,9 @@ define ["model/utils"], (mu) ->
   # for case.
   findVM: (view) ->
     vw = global.viewsWare[view]
-    if vw
-      if vw.parentView?
+    if vw and vw.parentView?
         # Find VM of a group rendered in a view.
         findCaseOrReferenceVM(vw.parentView)
-      else
-        return vw.knockVM
     else
       findCaseOrReferenceVM(view)
 
