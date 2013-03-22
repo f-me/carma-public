@@ -304,12 +304,12 @@ caseField :: ExportMonad m => FieldName -> m FieldValue
 caseField fn = dataField fn =<< getCase
 
 
-caseField1 :: ExportMonad m => FieldName -> m FieldValue
-caseField1 fn = dataField1 fn =<< getCase
-
-
 caseField0 :: ExportMonad m => FieldName -> m FieldValue
 caseField0 fn = dataField0 fn <$> getCase
+
+
+caseField1 :: ExportMonad m => FieldName -> m FieldValue
+caseField1 fn = dataField1 fn =<< getCase
 
 
 -- | Return all non-false services from services attached to the case.
@@ -360,7 +360,10 @@ callDateWithin f1 f2 = do
 
 -- | Check if servicing contract is in effect.
 onService :: ExportMonad m => m Bool
-onService = callDateWithin "car_serviceStart" "car_serviceEnd"
+onService = do
+  d <- callDateWithin "car_warrantyStart" "car_warrantyEnd"
+  ct <- caseField0 "car_contractType"
+  return $ d && (not $ elem ct ["warranty", ""])
 
 
 -- | Field contents produced during case/service export.
