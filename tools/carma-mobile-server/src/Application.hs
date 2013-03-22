@@ -31,6 +31,7 @@ import Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import Data.Dict
+import Data.Maybe
 import qualified Data.Text as T (pack)
 import Data.Text.Encoding (encodeUtf8)
 
@@ -115,19 +116,22 @@ revGeocode :: Double
            -> Handler b GeoApp (Maybe ByteString, Maybe ByteString)
 revGeocode lon lat = do
   cp <- getCarmaPort
-  (addr :: Maybe (HM.HashMap ByteString ByteString)) <- liftIO $ do
+  (addr :: Maybe (HM.HashMap ByteString (Maybe ByteString))) <- liftIO $ do
      let coords = coordsToString lon lat
      resp <- H.simpleHTTP $ H.getRequest $
              methodURI cp ("geo/revSearch/" ++ coords)
      body <- H.getResponseBody resp
      return $ decode' $ BSL.pack body
   case addr of
-    Just m -> return (HM.lookup "city" m, HM.lookup "address" m)
+    Just m -> 
+        return ( fromMaybe Nothing $ HM.lookup "city" m
+               , fromMaybe Nothing $ HM.lookup "address" m)
     Nothing -> return (Nothing, Nothing)
 
 
 ------------------------------------------------------------------------------
--- | Update partner position, setting new address if possible.
+-- | Update partner position from request parameters @lon@ and @lat@,
+-- setting new address if possible.
 updatePosition :: Handler b GeoApp ()
 updatePosition = do
   lon' <- getParamWith double "lon"
