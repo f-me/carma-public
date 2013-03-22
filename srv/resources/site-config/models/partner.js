@@ -56,6 +56,16 @@
             }
         },
         {
+            "name": "makes",
+            "meta": {
+                "dictionaryName": "CarMakers",
+                "required": true,
+                "bounded": true,
+                "label": "Обслуживаемые марки"
+            },
+            "type": "dictionary-many"
+        },
+        {
             "name": "addrDeJure",
             "meta": {
                 "label": "Юридический адрес"
@@ -163,17 +173,6 @@
                 "label": "Форма налогообложения"
             }
         },
-        {
-            "name": "makes",
-            "meta": {
-                "dictionaryName": "CarMakers",
-                "required": true,
-                "bounded": true,
-                "label": "Обслуживаемые марки"
-            },
-            "type": "dictionary-many"
-        },
-
         {
             "name": "isPayBackConfirmed",
             "type": "checkbox",
