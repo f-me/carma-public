@@ -261,7 +261,7 @@ newCase = do
   jsonRq' <- case coords of
     -- Reverse geocode coordinates from lon/lat
     Just (Number (D lon), Number (D lat)) -> revGeocode lon lat >>= \case
-      (addr, city) ->
+      (city, addr) ->
         return $
         (maybe id (HM.insert caseCity) $ city >>= (flip valueOfLabel dict)) $
         (maybe id (HM.insert caseAddress) addr) $
