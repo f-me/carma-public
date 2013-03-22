@@ -244,6 +244,7 @@ serviceExpenseType :: Service -> CaseExport ExpenseType
 serviceExpenseType s@(mn, _, d) = do
   case (notFalseService s, mn) of
     (False, _) -> return FalseCall
+    (_, "consultation") -> return PhoneServ
     (_, "towage") ->
         do
           cid <- caseField1 "id"
@@ -326,9 +327,10 @@ exportable :: Service -> Bool
 exportable s@(mn, _, d) = notFalseService s && typeOk
     where typeOk =
               case mn of
-                "towage" -> True
-                "rent"   -> True
-                "tech"   ->
+                "consultation" -> True
+                "towage"       -> True
+                "rent"         -> True
+                "tech"         ->
                     elem (dataField0 "techType" d)
                              ["charge", "condition", "starter"]
                 _        -> False
