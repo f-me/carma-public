@@ -246,11 +246,13 @@ getService = asks fst
 
 -- | Calculate expense type for a service. Used to initialize
 -- 'ServiceExport' state when processing nested services inside
--- 'CaseExport' monad.
+-- 'CaseExport' monad (so that service expense type is computed only
+-- once).
 serviceExpenseType :: Service -> CaseExport ExpenseType
-serviceExpenseType (mn, _, d) = do
-  case mn of
-    "towage" ->
+serviceExpenseType s@(mn, _, d) = do
+  case (notFalseService s, mn) of
+    (False, _) -> return FalseCall
+    (_, "towage") ->
         do
           cid <- caseField1 "id"
           cp <- getCarmaPort
@@ -265,8 +267,8 @@ serviceExpenseType (mn, _, d) = do
                   Just _  -> return RepTowage
                   -- TODO It's actually an error
                   Nothing -> return Towage
-    "rent"   -> return Rent
-    "tech"   -> do
+    (_, "rent") -> return Rent
+    (_, "tech") -> do
             techType <- dataField1 "techType" d
             case techType of
               "charge"    -> return Charge
@@ -313,17 +315,18 @@ caseField1 :: ExportMonad m => FieldName -> m FieldValue
 caseField1 fn = dataField1 fn =<< getCase
 
 
--- | Return all non-false services from services attached to the case.
+-- | Return all exportable non-false services from services attached
+-- to the case.
 getNonFalseServices :: ExportMonad m => m [Service]
 getNonFalseServices = do
   servs <- getAllServices
   return $ filter notFalseService servs
 
 
--- | True if a service was not a false call (@falseCall@ field is
--- @none@).
+-- | True if a service is exportable and was not a false call
+-- (@falseCall@ field is @none@ or @bill@).
 notFalseService :: Service -> Bool
-notFalseService (_, _, d) = dataField0 "falseCall" d == "none"
+notFalseService (_, _, d) = elem (dataField0 "falseCall" d) ["none", "bill"]
 
 
 -- | True if service should be exported to SAGAI.
