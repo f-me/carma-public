@@ -243,7 +243,8 @@ instance ToJSON FullAddress where
 ------------------------------------------------------------------------------
 -- | Use Nominatim to perform a reverse search for an address at
 -- coordinates provided in @coords@ request parameter. Response body
--- is a JSON object with keys @city@ and @address@.
+-- is a JSON object with keys @city@ and @address@ (possibly with null
+-- values).
 revSearch :: Handler b Geo ()
 revSearch = do
   nom <- gets nominatimUrl
