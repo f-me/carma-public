@@ -39,6 +39,18 @@
         {
             "value": "programman",
             "label": "Менеджер по программам"
+        },
+        {
+            "value": "op_checker",
+            "label": "Проверка РКЦ"
+        },
+        {
+            "value": "op_close",
+            "label": "Закрытие заявок"
+        },
+        {
+            "value": "op_dealer",
+            "label": "Получение информации"
         }
     ]
 }

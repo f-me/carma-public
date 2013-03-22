@@ -187,6 +187,7 @@ define [ "utils"
         # the service kvm
         table.data("cache", cache)
         table.fnClearTable()
+        table.fnSort [[5, "asc"]]
         r = table.fnAddData(rows)
         n = table.fnSettings().aoData[ r[0] ]
         # this will set partnerid attribute to each row
