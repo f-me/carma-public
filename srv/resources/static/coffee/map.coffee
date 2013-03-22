@@ -14,7 +14,7 @@ define ["model/utils", "utils"], (mu, u) ->
   # Trailing slash included
   nominatimHost = "http://nominatim.openstreetmap.org/"
 
-  geoRevQuery = (lon, lat) -> "/revSearch/#{lon},#{lat}/"
+  geoRevQuery = (lon, lat) -> "/geo/revSearch/#{lon},#{lat}/"
 
   nominatimQuery = (addr) ->
     fixed_addr = addr.replace(/Москва/g, "Московская область")
