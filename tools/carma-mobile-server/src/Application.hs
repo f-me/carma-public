@@ -235,8 +235,9 @@ actionIdReference n = BS.pack $ "action:" ++ (show n)
 ------------------------------------------------------------------------------
 -- | Create a new case from a JSON object provided in request body.
 -- Perform reverse geocoding using coordinates from values under @lon@
--- and @lat@, writing the obtained city and street address to the new
--- case. New @callMeMaybe@ action is created for the case.
+-- and @lat@ (read as JSON doubles), writing the obtained city and
+-- street address to the new case. New @callMeMaybe@ action is created
+-- for the case.
 --
 -- Response body is a JSON of form @{"caseId":<n>}@, where @n@ is the
 -- new case id.
@@ -244,23 +245,29 @@ newCase :: Handler b GeoApp ()
 newCase = do
   -- New case parameters
   rqb <- readRequestBody 4096
-  let Just jsonRq = Aeson.decode rqb
-      Just jsonRq0 = Aeson.decode rqb
-      coords = parseMaybe (\j -> (,) <$> (j .:"lon") <*> (j .: "lat")) jsonRq0
+  let -- Read values into ByteStrings
+      Just jsonRq0 :: Maybe (HM.HashMap ByteString (Either Double ByteString)) =
+                      Aeson.decode rqb
+      coords = (,) <$> (HM.lookup "lon" jsonRq0) <*> (HM.lookup "lat" jsonRq0)
+      jsonRq = HM.map (\(Right r) -> r) $
+               HM.filter (\case 
+                          Right _ -> True
+                          _       -> False) jsonRq0
       car_vin = HM.lookup "car_vin" jsonRq
 
   dict <- gets cityDict
 
   jsonRq' <- case coords of
-    Nothing -> return jsonRq
     -- Reverse geocode coordinates from lon/lat
-    Just (lon,lat) -> revGeocode lon lat >>= \case
+    Just (Left lon, Left lat) -> revGeocode lon lat >>= \case
       (addr, city) ->
         return $
         (maybe id (HM.insert caseCity) $ city >>= (flip valueOfLabel dict)) $
         (maybe id (HM.insert caseAddress) addr) $
         HM.insert caseCoords (BS.pack $ coordsToString lon lat) $
         jsonRq
+    _ -> return jsonRq
+
 
   -- Form the body of the new case request to send to CaRMa
   let caseBody =  HM.delete "lon" $
