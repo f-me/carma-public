@@ -363,11 +363,7 @@ onService :: ExportMonad m => m Bool
 onService = callDateWithin "car_serviceStart" "car_serviceEnd"
 
 
--- | Check if warranty is in effect.
-onWarranty :: ExportMonad m => m Bool
-onWarranty = callDateWithin "car_warrantyStart" "car_warrantyEnd"
-
-
+-- | Field contents produced during case/service export.
 type ExportField = ExportMonad m => m BS.ByteString
 
 
@@ -480,17 +476,7 @@ composField = do
 
 
 ddgField :: ExportField
-ddgField = do
-  -- | First check servicing contract, then warranty.
-  onS <- onService
-  if onS
-  then timestampToDate =<< caseField1 "car_serviceStart"
-  else do
-    onW <- onWarranty
-    if onW
-    then timestampToDate =<< caseField1 "car_warrantyStart"
-    -- With current /psaCases implementation, this should not happen
-    else spaces 6
+ddgField = caseField1 "car_warrantyStart"
 
 
 ddrField :: ExportField
