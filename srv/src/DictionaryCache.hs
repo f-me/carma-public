@@ -34,7 +34,7 @@ loadDictionaries usrs dir = do
   DictCache
     <$> flatDict (dir </> "DealerCities.json")
     <*> flatDict (dir </> "Wazzup.json")
-    <*> flatDict (dir </> "CarMakes.json")
+    <*> flatDict (dir </> "CarMakers.json")
     <*> nestDict (dir </> "CarModels.json")
     <*> flatDict (dir </> "SmsTokens.json")
     <*> nestDict (dir </> "SmsTokensValues.json")
