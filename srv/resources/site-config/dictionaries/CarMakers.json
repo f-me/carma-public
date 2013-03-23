@@ -25,6 +25,10 @@
             "label": "Ford"
         },
         {
+            "value": "lada",
+            "label": "ВАЗ (Lada)"
+        },        
+        {
             "value": "bmw",
             "label": "BMW"
         },

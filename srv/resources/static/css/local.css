@@ -199,3 +199,7 @@ textarea.pane-span,
 .capitalize { text-transform: capitalize; }
 
 #case-comments-i { width: 100% }
+
+.osMap {
+  height: 600px;
+}

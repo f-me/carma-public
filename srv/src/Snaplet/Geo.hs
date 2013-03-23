@@ -1,8 +1,8 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 {-|
 
@@ -28,6 +28,7 @@ import Data.Aeson as A
 
 import Data.Attoparsec.ByteString.Char8
 import Data.ByteString.Char8 (ByteString)
+import Database.PostgreSQL.Simple.SqlQQ
 
 import qualified Data.Vector as V
 import qualified Data.Vector.Mutable as VM (unsafeNew, unsafeWrite)
@@ -61,7 +62,8 @@ coords = (,) <$> double <* anyChar <*> double
 
 
 ------------------------------------------------------------------------------
--- | Apply a supplied parser to read data from named parameter.
+-- | Apply a supplied parser to read data from a named request
+-- parameter.
 getParamWith :: MonadSnap m => Parser a -> ByteString -> m (Maybe a)
 getParamWith parser name = do
   input <- liftM (parseOnly parser) <$> getParam name
@@ -71,14 +73,14 @@ getParamWith parser name = do
 
 
 ------------------------------------------------------------------------------
--- | Get pair of coordinates from parameter.
+-- | Get pair of coordinates from a named request parameter.
 getCoordsParam :: MonadSnap m => ByteString -> m (Maybe (Double, Double))
 getCoordsParam = getParamWith coords
 
 
 ------------------------------------------------------------------------------
--- | Row schema for geo_partners table query results.
-newtype Partner = Partner (Int, Double, Double, Maybe Bool, Maybe Bool) 
+-- | Row schema for @partnertbl@ table query results.
+newtype Partner = Partner (Int, Double, Double, Maybe Bool, Maybe Bool)
                   deriving (FromRow, Show)
 
 
@@ -98,7 +100,7 @@ instance ToJSON Partner where
 -- | Read two points from `coords1` and `coords2` request parameters,
 -- splice lon1, lat1, lon2 and lat2 on the query and serve the results
 -- as JSON, or fail if coordinates could not be read.
-twoPointHandler :: (FromRow a, ToJSON r) => 
+twoPointHandler :: (FromRow a, ToJSON r) =>
                    Query
                 -> ([a] -> r)
                 -- ^ Convert SQL results to a value served in JSON.
@@ -118,38 +120,52 @@ twoPointHandler q queryToResult = do
 
 ------------------------------------------------------------------------------
 -- | Query to fetch partners within a box, with mobile partners coming
--- last.
+-- last. See 'withinPartners'.
 --
 -- Splice lon1, lat1 and lon2, lat2 on the query, where coordinates
 -- are those of opposite 2D box points.
 withinQuery :: Query
-withinQuery = "SELECT id, st_x(coords), st_y(coords), isDealer, isMobile FROM partnertbl WHERE coords && ST_SetSRID(ST_MakeBox2D(ST_Point(?, ?), ST_Point(?, ?)), 4326) ORDER BY (case when isMobile then 1 when isMobile is null then 2 else 3 end) DESC;"
+withinQuery = [sql|
+SELECT id, st_x(coords), st_y(coords), isDealer, isMobile
+FROM partnertbl
+WHERE coords && ST_SetSRID(ST_MakeBox2D(ST_Point(?, ?), ST_Point(?, ?)), 4326)
+ORDER BY
+(case when isMobile then 1 when isMobile is null then 2 else 3 end)
+DESC;
+|]
 
 
 ------------------------------------------------------------------------------
 -- | Query to calculate approximate distance (in meters) between two
--- points.
+-- points. See 'distance'.
 --
 -- Splice lon1, lat1 and lon2, lat2 on the query, where coordinates
 -- are those used to measure distance.
 distanceQuery :: Query
-distanceQuery = "SELECT ST_Distance_Sphere(ST_PointFromText('POINT(? ?)', 4326), ST_PointFromText('POINT(? ?)', 4326));"
+distanceQuery = [sql|
+SELECT ST_Distance_Sphere(ST_PointFromText('POINT(? ?)', 4326),
+                          ST_PointFromText('POINT(? ?)', 4326));
+|]
 
 
 ------------------------------------------------------------------------------
--- | Serve list of partners within a specified rectangle.
+-- | Serve a list of partners located within a rectangle given by
+-- coordinates of two opposite points specified in request parameters
+-- @coord1@ and @coord2@.
 --
--- Response body is a list of 5-tuples @[partner_id, lon, lat,
+-- Response body is a JSON list of 5-tuples @[partner_id, lon, lat,
 -- isDealer, isMobile]@. Mobile partners come last.
 withinPartners :: Handler b Geo ()
 withinPartners = twoPointHandler withinQuery (id :: [Partner] -> [Partner])
 
 
 ------------------------------------------------------------------------------
--- | Calculate distance between two WSG84 points.
+-- | Calculate distance between two WSG84 points specified in request
+-- parameters @coord1@ and @coord2@. Response body is the distance in
+-- meters as double:
 --
--- Response body is the distance in meters as double
--- (@6560535.12574021@).
+-- > /distance/37.144775245113,55.542910552955/38.140411231441,56.006347982652/
+-- 80825.169705850
 distance :: Handler b Geo ()
 distance = twoPointHandler distanceQuery (head . head :: [[Double]] -> Double)
 

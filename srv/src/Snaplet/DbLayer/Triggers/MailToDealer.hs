@@ -18,6 +18,7 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
 import Data.Map (Map)
 import qualified Data.Map as Map
+import Data.Char (isNumber)
 import Data.Time
 import Data.Time.Clock.POSIX
 import System.Locale (defaultTimeLocale)
@@ -64,7 +65,18 @@ mailTemplate = T.pack
   ++ "    <th>Система автомобиля, в которой произошла неисправность</th>"
   ++ "    <th>Неисправная деталь</th>"
   ++ "  </tr>"
-  ++ "  <tr></tr><tr></tr>"
+  ++ "  <tr align=\"center\">"
+  ++ "    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>"
+  ++ "    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>"
+  ++ "  </tr>"
+  ++ "  <tr align=\"center\">"
+  ++ "    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>"
+  ++ "    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>"
+  ++ "  </tr>"
+  ++ "  <tr align=\"center\">"
+  ++ "    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>"
+  ++ "    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>"
+  ++ "  </tr>"
   ++ "</table>"
   ++ "<p>Заранее благодарим за своевременный ответ, в течение 24 часов.</p>"
 
@@ -72,17 +84,24 @@ mailTemplate = T.pack
 fillVars :: MonadTrigger m b => ByteString -> m b (Map Text Text)
 fillVars caseId
   =   (return $ Map.empty)
-  >>= add "caseId"       (return $ txt caseId)
+  >>= add "caseId"       (return $ T.filter isNumber $ txt caseId)
   >>= add "caseDate"     (get caseId "callDate" >>= formatDate)
   >>= add "car_vin"      (txt <$> get caseId "car_vin")
   >>= add "car_plateNum" (txt <$> get caseId "car_plateNum")
-  >>= add "car_make"     (txt <$> get caseId "car_make")
-  >>= add "car_model"    (txt <$> get caseId "car_model")
-  >>= add "wazzup"       (get caseId "comment" >>= tr wazzup . txt)
+  >>= add "wazzup"       (get caseId "comment"   >>= tr wazzup . txt)
+  >>= add "car_make"     (get caseId "car_make"  >>= tr carMake . txt)
+  >>= add "car_model"    getCarModel
   where
     txt = T.decodeUtf8
     add k f m = f >>= \v -> return (Map.insert k v m)
     tr d v = Map.findWithDefault v v <$> liftDb (getDict d)
+    getCarModel = do
+      mk <- txt <$> get caseId "car_make"
+      md <- txt <$> get caseId "car_model"
+      dc <- liftDb $ getDict carModel
+      return
+        $ Map.findWithDefault md md
+        $ Map.findWithDefault Map.empty mk dc
 
     formatDate tm = case B.readInt tm of
       Just (s,"") -> do
@@ -99,9 +118,8 @@ sendMailToDealer actionId = do
   let svcName = head $ B.split ':' svcId
   when (svcId /= "" && svcName == "towage") $ do
     caseId  <- get actionId "caseId"
---    program <- get caseId   "program"
---    when (program `elem` ["peugeot", "citroen"]) $ do
-    do
+    program <- get caseId   "program"
+    when (program `elem` ["peugeot", "citroen"]) $ do
       dealerId <- get svcId "towDealer_partnerId"
       when (dealerId /= "") $ do
         dealer'sMail <- get dealerId "closeTicketEmail"
@@ -114,7 +132,10 @@ sendMailActually
 sendMailActually actId caseId addrTo = do
   cfg <- liftDb getSnapletUserConfig
   cfgFrom <- liftIO $ require cfg "psa-smtp-from"
-  let cfgTo = T.decodeUtf8 addrTo `T.append` ",anton@formalmethods.ru"
+  cfgTo'  <- liftIO $ require cfg "psa-smtp-copyto"
+  let cfgTo = if cfgTo' /= ""
+        then T.decodeUtf8 addrTo `T.append` "," `T.append` cfgTo'
+        else cfgTo'
 
   varMap <- fillVars caseId
 
