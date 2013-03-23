@@ -45,11 +45,11 @@ serveModels = do
       getResponse >>= finishWith
     Just cu -> do
       -- Substitute user roles stored in PG
-      pgRoles <- (gets authDb >>=) . flip withTop $ userRolesPG cu
+      cu' <- (gets authDb >>=) . flip withTop $ replaceRolesFromPG cu
       ms <- gets models
       modifyResponse $ setContentType "application/json"
       writeLBS $ Aeson.encode
-               $ M.map (stripModel $ Right cu{userRoles = pgRoles}) ms
+               $ M.map (stripModel $ Right cu') ms
 
 
 serveDictionaries :: Handler b (SiteConfig b) ()

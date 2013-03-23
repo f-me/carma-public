@@ -14,6 +14,7 @@ schema:
 
 module Snaplet.Auth.PGRoles
     ( userRolesPG
+    , replaceRolesFromPG
     )
 where
 
@@ -41,3 +42,10 @@ userRolesPG user =
       Just (UserId uid) -> do
         rows <- query userRolesQuery (Only uid)
         return $ map (Role . head) rows
+
+
+------------------------------------------------------------------------------
+-- | Replace roles for a user with those stored in Postgres.
+replaceRolesFromPG :: HasPostgres m => AuthUser -> m AuthUser
+replaceRolesFromPG user = 
+    userRolesPG user >>= \roles -> return user{userRoles = roles}
