@@ -161,6 +161,10 @@
             "label": "B2B / Chartis Assistance"
         },
         {
+            "value": "lada",
+            "label": "ВАЗ (Lada): «ЛадаЦентрБелгород»"
+        },        
+        {
             "value": "ford",
             "label": "Ford"
         },

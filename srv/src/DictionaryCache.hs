@@ -21,6 +21,7 @@ import System.FilePath
 data DictCache = DictCache 
   {city        :: Map Text Text
   ,wazzup      :: Map Text Text
+  ,carMake     :: Map Text Text
   ,carModel    :: Map Text (Map Text Text)
   ,smsToken    :: Map Text Text
   ,smsTokenVal :: Map Text (Map Text Text)
@@ -33,6 +34,7 @@ loadDictionaries usrs dir = do
   DictCache
     <$> flatDict (dir </> "DealerCities.json")
     <*> flatDict (dir </> "Wazzup.json")
+    <*> flatDict (dir </> "CarMakers.json")
     <*> nestDict (dir </> "CarModels.json")
     <*> flatDict (dir </> "SmsTokens.json")
     <*> nestDict (dir </> "SmsTokensValues.json")

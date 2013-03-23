@@ -118,6 +118,15 @@
             }
         },
         {
+            "name": "contractType",
+            "meta": {
+                "label": "Тип контракта",
+                "dictionaryName": "ContractType",
+                "bounded": true
+            },
+            "type": "dictionary"
+        },        
+        {
             "name": "transmission",
             "meta": {
                 "label": "Коробка передач",
@@ -638,15 +647,15 @@
             }
         },
         {
+            "name": "partnerTable",
+            "type": "partnerTable"
+        },
+        {
             "name": "partnerMap",
             "type": "map",
             "meta": {
                 "targetCoords": "case-form/caseAddress_coords"
             }
-        },
-        {
-            "name": "partnerTable",
-            "type": "partnerTable"
         }
     ],
     "vinContact": [

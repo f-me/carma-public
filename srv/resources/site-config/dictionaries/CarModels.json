@@ -540,6 +540,48 @@
                 "label": "Spectra"
             }
         ],
+        "lada": [
+            {
+                "value": "2104",
+                "label": "2104"
+            },
+            {
+                "value": "2107",
+                "label": "2107"
+            },
+            {
+                "value": "2113Samara",
+                "label": "2113 (Samara)"
+            },
+            {
+                "value": "2114Samara",
+                "label": "2114 (Samara)"
+            },            
+            {
+                "value": "2115Samara",
+                "label": "2115 (Samara)"
+            },
+            {
+                "value": "2121Niva",
+                "label": "2121 (Niva)"
+            },
+            {
+                "value": "granta",
+                "label": "Granta"
+            },
+            {
+                "value": "kalina",
+                "label": "Kalina"
+            },
+            {
+                "value": "priora",
+                "label": "Priora"
+            },            
+            {
+                "value": "largus",
+                "label": "Largus"
+            }            
+        ],        
         "lancia": [
             {
                 "value": "thesis",

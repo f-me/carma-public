@@ -181,7 +181,8 @@
                 "car_dealerTO",
                 "car_makeYear",
                 "car_warrantyStart",
-                "car_warrantyEnd"
+                "car_warrantyEnd",
+                "car_contractType"                
             ],
             "canRead": [
                 "partner",

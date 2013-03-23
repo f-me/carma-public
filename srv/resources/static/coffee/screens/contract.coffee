@@ -6,43 +6,37 @@ define [
     template: tpl
     constructor: (viewName, args) ->
       setupModel = (args) ->
-        m = main.modelSetup("contract")(
+        if args.id
+          $('#render-contract').attr(
+            "href",
+            "/renderContract?prog=#{args.program}&ctr=#{args.id}")
+        main.modelSetup("contract")(
           viewName, args,
             permEl: "contract-permissions"
             focusClass: "focusable"
             refs: []
             bb: { manual_save: true })
-        if args.id
-          $('#render-contract').attr(
-            "href",
-            "/renderContract?prog=1&ctr=#{args.id}")
-        return m
 
       kvm = setupModel args
       setTimeout ->
-        sk = mkTableSkeleton global.models.contract,
+        tableCols =
               [ {name: "#", fn: (o) -> o.id}
               , "ctime"
               , "carVin"
               , "carMake"
               , "carModel"
-#              , "carColor"
-              , "carPlateNum"
-#              , "carMakeYear"
-#              , "carCheckPeriod"
-#              , "carBuyDate"
-#              , "warrantyStart"
-#              , "cardNumber"
-              , "contractValidFromDate"
+              ]
+        if args.program == '1'
+          tableCols.push "carPlateNum"
+
+        tableCols.concat(
+              [ "contractValidFromDate"
               , "contractValidUntilDate"
               , "contractValidUntilMilage"
-#              , "milageTO"
-#              , "cardOwner"
               , "manager"
-#              , "carSeller"
-#              , "carDealerTO"
-              ]
+              ])
 
+        sk = mkTableSkeleton global.models.contract, tableCols
         $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
         $.fn.dataTableExt.oStdClasses.sFilter = "dataTables_filter form-inline"
 
@@ -59,8 +53,8 @@ define [
 
         dt = utils.mkDataTable t
 
-        $('#date-min').val (new Date).addDays(-1).toString('yyyy-MM-dd')
-        $('#date-max').val (new Date).toString('yyyy-MM-dd')
+        $('#date-min').val (new Date).addDays(-30).toString('dd/MM/yyyy')
+        $('#date-max').val (new Date).toString('dd/MM/yyyy')
 
         fillTable = (objs) ->
           dt.fnClearTable()
@@ -71,12 +65,18 @@ define [
 
         getContracts args.program, fillTable
 
-        kvm['maybeId'].subscribe ->
+        if args.id == null && args.program == '2'
+          kvm.carMake 'vw'
+        kvm.maybeId.subscribe ->
           getContracts kvm['id']() (objs) -> dt.fnAddData objs.map sk.mkRow
 
+reformatDate = (date)->
+  [_, d, m, y] = date.match(/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/)
+  "#{y}-#{m}-#{d}"
+
 getContracts = (args, cb) ->
-  min = $('#date-min').val()
-  max = $('#date-max').val()
+  min = reformatDate $('#date-min').val()
+  max = reformatDate $('#date-max').val()
   path = "/allContracts/#{args}?from=#{min}&to=#{max}"
   $.getJSON path, cb
 
