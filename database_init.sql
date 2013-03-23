@@ -13,7 +13,6 @@ CREATE ROLE carma_action_assignment ENCRYPTED PASSWORD 'md5039cf6a6d8de18b95bd10
 GRANT SELECT, UPDATE ON actiontbl TO carma_action_assignment;
 GRANT SELECT ON servicetbl TO carma_action_assignment;
 GRANT SELECT ON casetbl TO carma_action_assignment;
-
 -- Run this after first sync
 
 GRANT SELECT, UPDATE ON partnertbl TO carma_geo;
@@ -176,3 +175,6 @@ create view servicesview as
     where c.id::text = substring(s.parentId, ':(.*)');
 
 GRANT SELECT ON servicesview TO carma_db_sync;
+
+CREATE TABLE snap_auth_user_roles (uid INTEGER references snap_auth_user(uid),
+                                   role TEXT);
