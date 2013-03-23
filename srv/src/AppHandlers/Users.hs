@@ -1,4 +1,5 @@
-{-# LANGUAGE  DoAndIfThenElse #-}
+{-# LANGUAGE DoAndIfThenElse #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 {-|
 
@@ -17,6 +18,8 @@ where
 
 import Snap
 import Snap.Snaplet.Auth hiding (session)
+import Snap.Snaplet.PostgresqlSimple
+import Database.PostgreSQL.Simple.SqlQQ
 
 import Application
 import AppHandlers.Util
@@ -76,6 +79,26 @@ hasNoneOfRoles authRoles =
 
 
 ------------------------------------------------------------------------------
+-- | Select list of roles for a user with uid given as a query
+-- parameter.
+userRolesQuery :: Query
+userRolesQuery = [sql|
+SELECT role FROM snap_auth_user_roles WHERE uid=?;
+|]
+
+
+------------------------------------------------------------------------------
+-- | Get list of roles from the database for a user.
+userRolesPG :: HasPostgres m => AuthUser -> m [Role]
+userRolesPG user =
+    case userId user of
+      Nothing -> return []
+      Just (UserId uid) -> do
+        rows <- query userRolesQuery (Only uid)
+        return $ map (Role . head) rows
+
+
+------------------------------------------------------------------------------
 -- | Pass only requests from localhost users or non-localhost users
 -- with a specific set of roles.
 chkAuthRoles :: RoleChecker
@@ -87,9 +110,12 @@ chkAuthRoles roleCheck handler = do
   if rqRemoteAddr req /= rqLocalAddr req
   then with auth currentUser >>= maybe
        (handleError 401)
-       (\u -> if roleCheck $ userRoles u
-              then handler
-              else handleError 401)
+       (\u -> do
+          uRoles <- with authDb $ userRolesPG u
+          if roleCheck uRoles
+          then handler
+          else handleError 401)
+  -- No checks for requests from localhost
   else handler
 
 
