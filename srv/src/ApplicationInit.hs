@@ -134,13 +134,13 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   logdUsrs <- liftIO $ newTVarIO Map.empty
   let allUsrs = readJSON authDbFile
 
-  c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
+  -- Authentication DB
+  ad <- nestSnaplet "auth_db" authDb pgsInit
+
+  c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config" authDb
 
   runtimeFlags <- liftIO $ newTVarIO Set.empty
   !allU <- liftIO allUsrs
-
-  -- Authentication
-  ad <- nestSnaplet "auth_db" authDb pgsInit
 
   s <- nestSnaplet "session" session $
        initCookieSessionManager sesKey "_session" Nothing

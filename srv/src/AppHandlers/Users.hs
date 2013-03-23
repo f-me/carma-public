@@ -1,5 +1,4 @@
 {-# LANGUAGE DoAndIfThenElse #-}
-{-# LANGUAGE QuasiQuotes #-}
 
 {-|
 
@@ -19,11 +18,10 @@ where
 
 import Snap
 import Snap.Snaplet.Auth hiding (session)
-import Snap.Snaplet.PostgresqlSimple
-import Database.PostgreSQL.Simple.SqlQQ
 
 import Application
 import AppHandlers.Util
+import Snaplet.Auth.PGRoles
 
 
 ------------------------------------------------------------------------------
@@ -77,26 +75,6 @@ hasAnyOfRoles authRoles =
 hasNoneOfRoles :: [Role] -> RoleChecker
 hasNoneOfRoles authRoles =
     \userRoles -> not $ any (flip elem authRoles) userRoles
-
-
-------------------------------------------------------------------------------
--- | Select list of roles for a user with uid given as a query
--- parameter.
-userRolesQuery :: Query
-userRolesQuery = [sql|
-SELECT role FROM snap_auth_user_roles WHERE uid=?;
-|]
-
-
-------------------------------------------------------------------------------
--- | Get list of roles from the database for a user.
-userRolesPG :: HasPostgres m => AuthUser -> m [Role]
-userRolesPG user =
-    case userId user of
-      Nothing -> return []
-      Just (UserId uid) -> do
-        rows <- query userRolesQuery (Only uid)
-        return $ map (Role . head) rows
 
 
 ------------------------------------------------------------------------------

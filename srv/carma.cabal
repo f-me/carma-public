@@ -49,6 +49,7 @@ Executable carma
     Snaplet.FileUpload,
     Snaplet.Geo,
     Snaplet.Auth.Class,
+    Snaplet.Auth.PGRoles,
     Utils.HttpErrors,
     Utils.RKCCalc,
     Util
