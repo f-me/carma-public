@@ -130,13 +130,6 @@ doLogout = ifTop $ do
   with auth logout
   redirectToLogin
 
-------------------------------------------------------------------------------
--- | Serve user account data back to client.
-serveUserCake :: AppHandler ()
-serveUserCake = ifTop
-  $ with auth currentUser
-  >>= maybe (error "impossible happened") writeJSON
-
 
 ------------------------------------------------------------------------------
 -- | Geodecode mockup.

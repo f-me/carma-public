@@ -12,6 +12,7 @@ module AppHandlers.Users
     , chkAuthLocal
     , chkAuthPartner
     , claimActivity
+    , serveUserCake
     )
 
 where
@@ -123,3 +124,14 @@ claimActivity :: AppHandler ()
 claimActivity
   = with auth currentUser
   >>= maybe (return ()) (void . addToLoggedUsers)
+
+
+------------------------------------------------------------------------------
+-- | Serve user account data back to client.
+serveUserCake :: AppHandler ()
+serveUserCake = ifTop $
+  with auth currentUser >>= maybe
+           (error "impossible happened")
+           (\u -> do
+              uRoles <- with authDb $ userRolesPG u
+              writeJSON u{userRoles = uRoles})
