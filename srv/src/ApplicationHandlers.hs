@@ -1,5 +1,5 @@
 {-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE DoAndIfThenElse, OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module ApplicationHandlers where
 -- FIXME: reexport AppHandlers/* & remove import AppHandlers.* from AppInit
@@ -674,80 +674,3 @@ logResp act = runAct `catch` logFail where
         "threadId" .= show thId,
         "response" .= object ["error" .= show e]]
     throw e
-
-
-localRole :: Role
-localRole = Role "local"
-
-
-partnerRole :: Role
-partnerRole = Role "partner"
-
-
-------------------------------------------------------------------------------
--- | Deny requests from unauthenticated users.
-chkLogin :: AppHandler () -> AppHandler ()
-chkLogin h = chkAuthRoles alwaysPass (claimActivity >> h)
-
-claimActivity :: AppHandler ()
-claimActivity
-  = with auth currentUser
-  >>= maybe (return ()) (void . addToLoggedUsers)
-
-------------------------------------------------------------------------------
--- | Deny requests from unauthenticated or non-local users.
-chkAuth :: AppHandler () -> AppHandler ()
-chkAuth f = chkAuthRoles (hasAnyOfRoles [localRole]) f
-
-
-------------------------------------------------------------------------------
--- | Deny requests from unauthenticated or non-partner users.
---
--- Auth checker for partner screens
-chkAuthPartner :: AppHandler () -> AppHandler ()
-chkAuthPartner f =
-  chkAuthRoles (hasAnyOfRoles [partnerRole, Role "head", Role "supervisor"]) f
-
-
-------------------------------------------------------------------------------
--- | A predicate for a list of user roles.
-type RoleChecker = [Role] -> Bool
-
-
-------------------------------------------------------------------------------
--- | Pass only requests from local users or non-local users with a
--- specific set of roles.
-chkAuthRoles :: RoleChecker
-             -- ^ Check succeeds if user roles satisfy this predicate.
-             -> AppHandler () -> AppHandler ()
-chkAuthRoles roleCheck handler = do
-  req <- getRequest
-  if rqRemoteAddr req /= rqLocalAddr req
-  then with auth currentUser >>= maybe
-       (handleError 401)
-       (\u -> if roleCheck $ userRoles u
-              then handler
-              else handleError 401)
-  else handler
-
-
-------------------------------------------------------------------------------
--- | Produce a predicate which matches any list of roles
-alwaysPass :: RoleChecker
-alwaysPass = const True
-
-
-hasAnyOfRoles :: [Role] -> RoleChecker
-hasAnyOfRoles authRoles =
-    \userRoles -> any (flip elem authRoles) userRoles
-
-
-hasNoneOfRoles :: [Role] -> RoleChecker
-hasNoneOfRoles authRoles =
-    \userRoles -> not $ any (flip elem authRoles) userRoles
-
-
-handleError :: MonadSnap m => Int -> m ()
-handleError err = do
-    modifyResponse $ setResponseCode err
-    getResponse >>= finishWith

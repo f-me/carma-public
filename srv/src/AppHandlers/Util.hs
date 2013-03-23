@@ -50,6 +50,12 @@ rmFromLoggedUsers u = do
          $ Map.delete $ userLogin u
 
 
+handleError :: MonadSnap m => Int -> m ()
+handleError err = do
+    modifyResponse $ setResponseCode err
+    getResponse >>= finishWith
+
+
 toBool :: ByteString -> String
 toBool "1" = "true"
 toBool _   = "false"
