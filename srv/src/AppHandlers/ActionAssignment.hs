@@ -1,4 +1,3 @@
-
 module AppHandlers.ActionAssignment where
 
 import Prelude hiding (log)
@@ -24,6 +23,8 @@ import Database.PostgreSQL.Simple
 import Application
 import AppHandlers.CustomSearches
 import AppHandlers.Util
+
+import Snaplet.Auth.PGRoles
 
 
 assignQ :: Int -> AuthUser -> [Text] -> Query
@@ -68,14 +69,16 @@ assignQ pri usr logdUsers = fromString
 littleMoreActionsHandler :: AppHandler ()
 littleMoreActionsHandler = scoper "littleMoreActions" $ do
   Just cUsr <- with auth currentUser
-  logdUsers <- map (userLogin.snd) . Map.elems <$> addToLoggedUsers cUsr
+  -- Use PG roles to assign actions
+  cUsr' <- with authDb $ replaceRolesFromPG cUsr
+  logdUsers <- map (userLogin.snd) . Map.elems <$> addToLoggedUsers cUsr'
 
-  actIds1 <- withPG pg_actass (`query_` assignQ 1 cUsr logdUsers)
-  actIds2 <- withPG pg_actass (`query_` assignQ 2 cUsr logdUsers)
-  actIds3 <- withPG pg_actass (`query_` assignQ 3 cUsr logdUsers)
+  actIds1 <- withPG pg_actass (`query_` assignQ 1 cUsr' logdUsers)
+  actIds2 <- withPG pg_actass (`query_` assignQ 2 cUsr' logdUsers)
+  actIds3 <- withPG pg_actass (`query_` assignQ 3 cUsr' logdUsers)
   let actIds = actIds1 ++ actIds2 ++ actIds3
 
-  let uLogin = T.encodeUtf8 $ userLogin cUsr
+  let uLogin = T.encodeUtf8 $ userLogin cUsr'
   with db $ forM_ actIds $ \[actId] ->
       DB.update "action" actId
         $ Map.singleton "assignedTo" uLogin

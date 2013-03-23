@@ -47,5 +47,5 @@ userRolesPG user =
 ------------------------------------------------------------------------------
 -- | Replace roles for a user with those stored in Postgres.
 replaceRolesFromPG :: HasPostgres m => AuthUser -> m AuthUser
-replaceRolesFromPG user = 
+replaceRolesFromPG user =
     userRolesPG user >>= \roles -> return user{userRoles = roles}
