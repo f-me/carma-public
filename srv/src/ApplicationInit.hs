@@ -1,4 +1,3 @@
-
 {-# LANGUAGE BangPatterns #-}
 module ApplicationInit (appInit) where
 
@@ -42,8 +41,6 @@ import AppHandlers.Users
 import Util (readJSON)
 
 
-
-
 ------------------------------------------------------------------------------
 -- | The application's routes.
 routes :: [(ByteString, AppHandler ())]
@@ -54,65 +51,65 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/nominatim",     method GET geodecode)
          , ("/s/",            serveDirectory "resources/static")
          , ("/s/screens",     serveFile "resources/site-config/screens.json")
-         , ("/report",        chkAuth . method GET  $ report)
-         , ("/all/:model",    chkAuth . method GET  $ readAllHandler)
+         , ("/report",        chkAuthLocal . method GET  $ report)
+         , ("/all/:model",    chkAuthLocal . method GET  $ readAllHandler)
          , ("/callsByPhone/:phone",
-                              chkAuth . method GET    $ searchCallsByPhone)
-         , ("/actionsFor/:id",chkAuth . method GET    $ getActionsForCase)
+                              chkAuthLocal . method GET    $ searchCallsByPhone)
+         , ("/actionsFor/:id",chkAuthLocal . method GET    $ getActionsForCase)
          , ("/littleMoreActions",
-                              chkAuth . method PUT    $ littleMoreActionsHandler)
-         , ("/allActions",    chkAuth . method GET    $ allActionsHandler)
+                              chkAuthLocal . method PUT    $ littleMoreActionsHandler)
+         , ("/allActions",    chkAuthLocal . method GET    $ allActionsHandler)
          , ("actions/unassigned",
-                              chkAuth . method GET    $ unassignedActionsHandler)
+                              chkAuthLocal . method GET    $ unassignedActionsHandler)
          , ("actions/busyOps",
-                              chkAuth . method GET    $ busyOps)
-         , ("/allPartners",   chkAuth . method GET    $ allPartnersHandler)
+                              chkAuthLocal . method GET    $ busyOps)
+         , ("/allPartners",   chkAuthLocal . method GET    $ allPartnersHandler)
          , ("/partnersFor/:srv",
-                              chkAuth . method GET    $ partnersForSrvHandler)
+                              chkAuthLocal . method GET    $ partnersForSrvHandler)
          , ("/psaCases/",
-                              chkAuth . method GET    $ psaCases)
+                              chkAuthLocal . method GET    $ psaCases)
          , ("/psaCases/:program",
-                              chkAuth . method GET    $ psaCases)
-         , ("/repTowages/:id", 
-                              chkAuth . method GET    $ repTowages)
+                              chkAuthLocal . method GET    $ psaCases)
+         , ("/repTowages/:id",
+                              chkAuthLocal . method GET    $ repTowages)
          , ("/allContracts/:program",
-                              chkLogin . method GET   $ selectContracts)
+                              chkAuth . method GET   $ selectContracts)
          , ("/getContract/:id",
-                              chkLogin . method GET   $ selectContract)
+                              chkAuth . method GET   $ selectContract)
          , ("/renderContract",
-                              chkLogin . method GET    $ renderContractHandler)
-         , ("/_whoami/",      chkLogin . method GET    $ serveUserCake)
-         , ("/_/:model",      chkLogin . method POST   $ createHandler)
-         , ("/_/:model/:id",  chkLogin . method GET    $ readHandler)
-         , ("/_/:model/:id",  chkLogin . method PUT    $ updateHandler)
-         , ("/_/:model/:id",  chkLogin . method DELETE $ deleteHandler)
+                              chkAuth . method GET    $ renderContractHandler)
+         , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)
+         , ("/_/:model",      chkAuth . method POST   $ createHandler)
+         , ("/_/:model/:id",  chkAuth . method GET    $ readHandler)
+         , ("/_/:model/:id",  chkAuth . method PUT    $ updateHandler)
+         , ("/_/:model/:id",  chkAuth . method DELETE $ deleteHandler)
          , ("/_/findOrCreate/:model/:id",
-                              chkAuth . method POST $ findOrCreateHandler)
-         , ("/_/report/",     chkAuth . method POST   $ createReportHandler)
-         , ("/_/report/:id",  chkAuth . method DELETE $ deleteReportHandler)
-         , ("/search/:model", chkAuth . method GET  $ searchHandler)
+                              chkAuthLocal . method POST $ findOrCreateHandler)
+         , ("/_/report/",     chkAuthLocal . method POST   $ createReportHandler)
+         , ("/_/report/:id",  chkAuthLocal . method DELETE $ deleteReportHandler)
+         , ("/search/:model", chkAuthLocal . method GET  $ searchHandler)
          , ("/stats/towAvgTime/:city",
-            chkAuth . method GET  $ towAvgTime)
-         , ("/rkc",           chkAuth . method GET  $ rkcHandler)
-         , ("/rkc/weather",   chkAuth . method GET $ rkcWeatherHandler)
-         , ("/rkc/front",     chkAuth . method GET $ rkcFrontHandler)
-         , ("/rkc/partners",  chkAuth . method GET $ rkcPartners)
-         , ("/arc/:year/:month", chkAuth . method GET $ arcReportHandler)
-         , ("/usersDict",     chkLogin . method GET  $ getUsersDict)
-         , ("/userMeta/:usr", chkAuth . method PUT  $ setUserMeta)
-         , ("/activeUsers",   chkAuth . method GET  $ getActiveUsers)
+            chkAuthLocal . method GET  $ towAvgTime)
+         , ("/rkc",           chkAuthLocal . method GET  $ rkcHandler)
+         , ("/rkc/weather",   chkAuthLocal . method GET $ rkcWeatherHandler)
+         , ("/rkc/front",     chkAuthLocal . method GET $ rkcFrontHandler)
+         , ("/rkc/partners",  chkAuthLocal . method GET $ rkcPartners)
+         , ("/arc/:year/:month", chkAuthLocal . method GET $ arcReportHandler)
+         , ("/usersDict",     chkAuth . method GET  $ getUsersDict)
+         , ("/userMeta/:usr", chkAuthLocal . method PUT  $ setUserMeta)
+         , ("/activeUsers",   chkAuthLocal . method GET  $ getActiveUsers)
          , ("/partner/upload.csv",
-            chkAuth . method POST $ partnerUploadData)
-         , ("/vin/upload",    chkAuth . method POST $ vinUploadData)
-         , ("/vin/state",     chkAuth . method GET  $ vinStateRead)
-         , ("/vin/state",     chkAuth . method POST $ vinStateRemove)
-         , ("/opts/:model/:id/", chkAuth . method GET $ getSrvTarifOptions)
-         , ("/smspost",       chkAuth . method POST $ smspost)
-         , ("/sms/processing", chkAuth . method GET $ smsProcessingHandler)
+            chkAuthLocal . method POST $ partnerUploadData)
+         , ("/vin/upload",    chkAuthLocal . method POST $ vinUploadData)
+         , ("/vin/state",     chkAuthLocal . method GET  $ vinStateRead)
+         , ("/vin/state",     chkAuthLocal . method POST $ vinStateRemove)
+         , ("/opts/:model/:id/", chkAuthLocal . method GET $ getSrvTarifOptions)
+         , ("/smspost",       chkAuthLocal . method POST $ smspost)
+         , ("/sms/processing", chkAuthLocal . method GET $ smsProcessingHandler)
          , ("/printSrv/:model/:id",
-            chkAuth . method GET $ printServiceHandler)
-         , ("/runtimeFlags",  chkAuth . method GET  $ getRuntimeFlags)
-         , ("/runtimeFlags",  chkAuth . method PUT  $ setRuntimeFlags)
+            chkAuthLocal . method GET $ printServiceHandler)
+         , ("/runtimeFlags",  chkAuthLocal . method GET  $ getRuntimeFlags)
+         , ("/runtimeFlags",  chkAuthLocal . method PUT  $ setRuntimeFlags)
          , ("/errors",        method POST errorsHandler)
          ]
 

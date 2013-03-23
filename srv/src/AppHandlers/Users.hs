@@ -7,8 +7,8 @@ Combinators and helpers for user permission checking.
 -}
 
 module AppHandlers.Users
-    ( chkLogin
-    , chkAuth
+    ( chkAuth
+    , chkAuthLocal
     , chkAuthPartner
     , claimActivity
     )
@@ -22,6 +22,9 @@ import Application
 import AppHandlers.Util
 
 
+------------------------------------------------------------------------------
+-- | Users with this role are considered local (not be confused with
+-- users from localhost).
 localRole :: Role
 localRole = Role "local"
 
@@ -32,14 +35,14 @@ partnerRole = Role "partner"
 
 ------------------------------------------------------------------------------
 -- | Deny requests from unauthenticated users.
-chkLogin :: AppHandler () -> AppHandler ()
-chkLogin h = chkAuthRoles alwaysPass (claimActivity >> h)
+chkAuth :: AppHandler () -> AppHandler ()
+chkAuth h = chkAuthRoles alwaysPass (claimActivity >> h)
 
 
 ------------------------------------------------------------------------------
 -- | Deny requests from unauthenticated or non-local users.
-chkAuth :: AppHandler () -> AppHandler ()
-chkAuth f = chkAuthRoles (hasAnyOfRoles [localRole]) f
+chkAuthLocal :: AppHandler () -> AppHandler ()
+chkAuthLocal f = chkAuthRoles (hasAnyOfRoles [localRole]) f
 
 
 ------------------------------------------------------------------------------
