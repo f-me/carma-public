@@ -572,7 +572,7 @@ actionResultMap = Map.fromList
   )
   ,("complaint", \objId -> do
     closeSerivceAndSendInfoVW objId
-    setService objId "clientSatisfied" "0"
+    setService objId "clientSatisfied" "notSatis"
     act1 <- replaceAction
       "complaintResolution"
       "Клиент предъявил претензию"
