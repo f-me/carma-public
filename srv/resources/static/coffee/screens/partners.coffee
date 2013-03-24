@@ -54,7 +54,7 @@ define [ "hooks/partner"
                 rows = for obj in objs
                     [obj.id
                     ,obj.name       || ''
-                    ,dict[obj.city] || ''
+                    ,dict[obj.city] || obj.city
                     ,obj.comment    || ''
                     ]
                 dt.fnAddData(rows)
