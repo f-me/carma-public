@@ -199,6 +199,20 @@ serviceActions = Map.fromList
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
+      "recallClient" -> do
+          due <- getService objId "times_expectedServiceStart"
+          kazeId <- get objId "parentId"
+          actionId <- new "action" $ Map.fromList
+            [("name", "callMeMaybe")
+            ,("duetime", due)
+            ,("description", utf8 "Перезвонить клиенту")
+            ,("targetGroup", "back")
+            ,("priority", "1")
+            ,("parentId", objId)
+            ,("caseId", kazeId)
+            ,("closed", "0")
+            ]
+          upd kazeId "actions" $ addToList actionId
       "serviceOrdered" -> do
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
