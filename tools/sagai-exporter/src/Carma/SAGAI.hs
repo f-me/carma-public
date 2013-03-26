@@ -229,7 +229,7 @@ instance ExportMonad ServiceExport where
                             return [oNum, pCode, pName, vin, carCl]
                       "towage" -> return [oNum, pCode]
                       _        -> error "Never happens"
-        return $ BS.intercalate " " fields
+        return $ commentPad $ BS.intercalate " " fields
 
 
 getService :: ServiceExport Service
