@@ -539,9 +539,10 @@ comm1Field :: ExportField
 comm1Field = do
   val <- caseField1 "comment"
   d <- getWazzup
-  case labelOfValue val d of
-    Just label -> return $ commentPad label
-    Nothing -> return val
+  return $ commentPad $ 
+         case labelOfValue val d of
+           Just label -> label
+           Nothing -> val
 
 
 comm2Field :: ExportField
