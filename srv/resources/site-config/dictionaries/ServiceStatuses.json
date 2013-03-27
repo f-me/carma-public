@@ -9,6 +9,10 @@
             "label": "Создание"
         },
         {
+            "value": "recallClient",
+            "label": "Перезвонить клиенту позже"
+        },
+        {
             "value": "clientCanceled",
             "label": "Клиент отказался от услуги"
         },        

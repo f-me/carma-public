@@ -236,7 +236,7 @@ instance ExportMonad ServiceExport where
                             return [oNum, pCode, pName, vin, carCl]
                       "towage" -> return [oNum, pCode]
                       _        -> error "Never happens"
-        return $ BS.intercalate " " fields
+        return $ commentPad $ BS.intercalate " " fields
 
 
 getService :: ServiceExport Service
@@ -539,9 +539,10 @@ comm1Field :: ExportField
 comm1Field = do
   val <- caseField1 "comment"
   d <- getWazzup
-  case labelOfValue val d of
-    Just label -> return $ commentPad label
-    Nothing -> return val
+  return $ commentPad $ 
+         case labelOfValue val d of
+           Just label -> label
+           Nothing -> val
 
 
 comm2Field :: ExportField
