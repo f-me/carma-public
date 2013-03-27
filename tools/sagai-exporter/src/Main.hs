@@ -21,7 +21,7 @@ import Data.Aeson
 import Data.Either
 import Data.Maybe
 import Data.Dict as D
-import qualified Data.Map as M
+import qualified Data.HashMap.Strict as HM
 import qualified Data.Text as T
 
 import Data.Time.Clock
@@ -57,7 +57,7 @@ exportCase cnt caseNumber cp wazzup = do
   -- Read case with provided number and all of the associated services
   res <- readInstance cp "case" caseNumber
 
-  let refs = M.lookup "services" res
+  let refs = HM.lookup "services" res
   servs <-
       case refs of
         Nothing -> return []
@@ -81,7 +81,7 @@ type ComposMonad = StateT Int IO
 
 
 psaExported :: InstanceData
-psaExported = M.fromList [("psaExported", "1")]
+psaExported = HM.fromList [("psaExported", "1")]
 
 
 markExported :: Int -> [Int] -> IO ()
@@ -313,7 +313,7 @@ main =
       -- Choose logging facility (stderr or syslog)
       let logL = if useSyslog
                  then syslog_ programName
-                 else logger text console
+                 else logger text consoleErr
           -- Translate -v/-q into simple-log logging policy.
           --
           -- When -v is specified, logInfo's are included in the log.

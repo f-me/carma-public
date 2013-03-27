@@ -969,7 +969,7 @@
     <script type="text/template"
             id="service-picker-template">
       <ul class="nav nav-pills">
-        <li class="dropdown">
+        <li class="dropup">
           <button class="dropdown-toggle btn btn-action"
                   type="button"
                   data-toggle="dropdown">

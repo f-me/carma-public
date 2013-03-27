@@ -4,6 +4,7 @@ module Snaplet.DbLayer.Triggers.SMS where
 import Control.Applicative
 import Control.Monad.Trans (lift,liftIO)
 import Control.Monad
+import Control.Exception
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
@@ -36,8 +37,10 @@ render varMap = T.concat . loop
 
 formatDate :: String -> IO String
 formatDate unix = do
-  tm <- utcToLocalZonedTime $ readTime defaultTimeLocale "%s" unix
-  return $ formatTime defaultTimeLocale "%F %R" tm
+  res <- try $ utcToLocalZonedTime $ readTime defaultTimeLocale "%s" unix
+  return $ case res :: Either SomeException ZonedTime of
+    Right tm -> formatTime defaultTimeLocale "%F %R" tm
+    Left  _  -> "неизвестно"
 
 
 

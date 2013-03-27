@@ -1,4 +1,5 @@
 ./
-https://github.com/f-me/snap-loader-static
-https://github.com/f-me/snap-loader-dynamic
+https://github.com/f-me/carma-dict
+https://github.com/f-me/carma-http hashmap-instance-data
+https://github.com/f-me/postgresql-simple 0.3-stable
 https://github.com/f-me/snaplet-postgresql-simple

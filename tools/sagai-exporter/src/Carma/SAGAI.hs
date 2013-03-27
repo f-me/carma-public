@@ -61,6 +61,7 @@ import Data.Aeson
 import Data.Char
 import Data.Dict as D
 import Data.Functor
+import qualified Data.HashMap.Strict as HM
 import Data.List
 import qualified Data.Map as M
 
@@ -236,7 +237,7 @@ instance ExportMonad ServiceExport where
                             return [oNum, pCode, pName, vin, carCl]
                       "towage" -> return [oNum, pCode]
                       _        -> error "Never happens"
-        return $ BS.intercalate " " fields
+        return $ commentPad $ BS.intercalate " " fields
 
 
 getService :: ServiceExport Service
@@ -279,7 +280,7 @@ serviceExpenseType (mn, _, d) = do
 -- Terminate export if field is not found.
 dataField :: ExportMonad m => FieldName -> InstanceData -> m FieldValue
 dataField fn d =
-  case M.lookup fn d of
+  case HM.lookup fn d of
     Just fv -> return fv
     Nothing -> exportError $ NoField fn
 
@@ -287,7 +288,7 @@ dataField fn d =
 -- | A version of 'dataField' which returns empty string if key is not
 -- present in instance data (like 'M.findWithDefault')
 dataField0 :: FieldName -> InstanceData -> FieldValue
-dataField0 fn d = M.findWithDefault BS.empty fn d
+dataField0 fn d = HM.lookupDefault BS.empty fn d
 
 
 -- | A version of 'dataField' which requires non-empty field value and
@@ -539,9 +540,10 @@ comm1Field :: ExportField
 comm1Field = do
   val <- caseField1 "comment"
   d <- getWazzup
-  case labelOfValue val d of
-    Just label -> return $ commentPad label
-    Nothing -> return val
+  return $ commentPad $ 
+         case labelOfValue val d of
+           Just label -> label
+           Nothing -> val
 
 
 comm2Field :: ExportField
