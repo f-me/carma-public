@@ -400,7 +400,9 @@ dtField = padRight 8 '0' <$> caseField1 "id"
 vinField :: ExportField
 vinField = do
   bs <- caseField1 "car_vin"
-  return $ B8.pack $ map toUpper $ B8.unpack bs
+  if (B8.length bs) == 17
+  then return $ B8.pack $ map toUpper $ B8.unpack bs
+  else exportError $ BadVin bs
 
 
 dateFormat :: String
