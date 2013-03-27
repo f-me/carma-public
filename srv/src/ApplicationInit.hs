@@ -37,8 +37,6 @@ import AppHandlers.CustomSearches
 import AppHandlers.PSA
 import AppHandlers.ContractGenerator
 import AppHandlers.Users
-----------------------------------------------------------------------
-import Util (readJSON)
 
 
 ------------------------------------------------------------------------------
@@ -94,7 +92,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/rkc/front",     chkAuthLocal . method GET $ rkcFrontHandler)
          , ("/rkc/partners",  chkAuthLocal . method GET $ rkcPartners)
          , ("/arc/:year/:month", chkAuthLocal . method GET $ arcReportHandler)
-         , ("/usersDict",     chkAuth . method GET  $ getUsersDict)
+         -- TODO Rename this method
+         , ("/usersDict",     chkAuth . method GET  $ serveUsersList)
          , ("/userMeta/:usr", chkAuthLocal . method PUT  $ setUserMeta)
          , ("/activeUsers",   chkAuthLocal . method GET  $ getActiveUsers)
          , ("/partner/upload.csv",
@@ -125,13 +124,8 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   sesKey <- liftIO $
             lookupDefault "resources/private/client_session_key.aes"
                           cfg "session-key"
-  authDbFile
-        <- liftIO $
-           lookupDefault "resources/private/users.json"
-                         cfg "user-db"
 
   logdUsrs <- liftIO $ newTVarIO Map.empty
-  let allUsrs = readJSON authDbFile
 
   -- Authentication DB
   ad <- nestSnaplet "auth_db" authDb pgsInit
@@ -139,14 +133,13 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config" authDb
 
   runtimeFlags <- liftIO $ newTVarIO Set.empty
-  !allU <- liftIO allUsrs
 
   s <- nestSnaplet "session" session $
        initCookieSessionManager sesKey "_session" Nothing
 
   authMgr <- nestSnaplet "auth" auth $ initPostgresAuth session ad
 
-  d <- nestSnaplet "db" db $ initDbLayer authMgr allU runtimeFlags "resources/site-config"
+  d <- nestSnaplet "db" db $ initDbLayer authMgr authDb runtimeFlags "resources/site-config"
 
   -- init PostgreSQL connection pool that will be used for searching only
   let lookupCfg nm = lookupDefault (error $ show nm) cfg nm
@@ -171,4 +164,4 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        [logger text (file "log/frontend.log")]
 
   addRoutes routes
-  return $ App h s authMgr logdUsrs allUsrs c d pgs pga v fu g l runtimeFlags ad
+  return $ App h s authMgr logdUsrs c d pgs pga v fu g l runtimeFlags ad

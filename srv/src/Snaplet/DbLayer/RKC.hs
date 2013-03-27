@@ -30,6 +30,7 @@ import qualified Database.PostgreSQL.Simple.ToField as PS
 import Database.PostgreSQL.Simple.SqlQQ
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 
+import Snaplet.Auth.PGUsersDict
 import Snaplet.DbLayer.Dictionary
 import Snaplet.DbLayer.ARC
 
@@ -434,8 +435,8 @@ traceFilter (Filter from to prog city partner) = do
     logTrace :: MonadLog m => T.Text -> T.Text -> m ()
     logTrace prefix value = log Trace $ T.concat [prefix, value]
 
-rkc :: (PS.HasPostgres m, MonadLog m) => UsersDict -> Filter -> m Value
-rkc (UsersDict usrs) filt@(Filter fromDate toDate program city partner) = scope "rkc" $ do
+rkc :: (PS.HasPostgres m, MonadLog m) => UsersList -> Filter -> m Value
+rkc (UsersList usrs) filt@(Filter fromDate toDate program city partner) = scope "rkc" $ do
   traceFilter filt
   dicts <- scope "dictionaries" . loadDictionaries $ "resources/site-config/dictionaries"
   c <- rkcCase filt constraints (serviceNames dicts)

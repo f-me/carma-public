@@ -28,7 +28,6 @@ import Snaplet.FileUpload
 import Snaplet.Geo
 import Snap.Snaplet.SimpleLog
 
-import Util (UsersDict)
 import RuntimeFlag
 
 ------------------------------------------------------------------------------
@@ -38,7 +37,6 @@ data App = App
     , _session    :: Snaplet SessionManager
     , _auth       :: Snaplet (AuthManager App)
     , loggedUsers :: TVar (Map Text (UTCTime, AuthUser))
-    , allUsers    :: IO UsersDict
     , _siteConfig :: Snaplet (SiteConfig App)
     , _db         :: Snaplet (DbLayer App)
     , pg_search   :: Pool Pg.Connection

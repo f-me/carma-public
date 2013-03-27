@@ -66,7 +66,8 @@ sendSMS actId tplId = do
         [("program_info", (smsTokenVal dic Map.! "program_info") Map.! program)
         ,("program_contact_info",
             (smsTokenVal dic Map.! "program_contact_info") Map.! program)
-        ,("case.backoperator_name", Map.findWithDefault opName opName $ user dic)
+         -- TODO Use actual realName from user meta
+        ,("case.backoperator_name", opName)
         ,("case.city", Map.findWithDefault "Город" cityVal $ city dic)
         ,("case.id", (!!1) . T.splitOn ":" $ T.decodeUtf8 caseId)
         ,("service.times_factServiceStart", svcStart)

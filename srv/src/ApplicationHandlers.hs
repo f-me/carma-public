@@ -56,6 +56,7 @@ import Snap.Util.FileServe (serveFile, serveFileAs)
 import Carma.Partner
 import WeatherApi (getWeather', tempC, Config)
 -----------------------------------------------------------------------------
+import Snaplet.Auth.PGUsersDict
 import qualified Snaplet.DbLayer as DB
 import qualified Snaplet.DbLayer.Types as DB
 import qualified Snaplet.DbLayer.ARC as ARC
@@ -246,7 +247,7 @@ rkcHandler = scope "rkc" $ scope "handler" $ do
       RKC.filterCity = c,
       RKC.filterPartner = part }
 
-  usrs <- gets allUsers >>= liftIO
+  usrs <- with authDb usersListPG
   info <- with db $ RKC.rkc usrs flt'
   writeJSON info
 
@@ -421,8 +422,8 @@ deleteReportHandler = do
   with db $ DB.delete "report" objId
   with fileUpload $ doDeleteAll' "report" $ U.bToString objId
 
-getUsersDict :: AppHandler ()
-getUsersDict = gets allUsers >>= liftIO >>= writeJSON
+serveUsersList :: AppHandler ()
+serveUsersList = with authDb usersListPG >>= writeJSON
 
 setUserMeta :: AppHandler ()
 setUserMeta = do

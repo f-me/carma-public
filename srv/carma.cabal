@@ -49,6 +49,7 @@ Executable carma
     Snaplet.Geo,
     Snaplet.Auth.Class,
     Snaplet.Auth.PGRoles,
+    Snaplet.Auth.PGUsersDict,
     Utils.HttpErrors,
     Utils.RKCCalc,
     Util
