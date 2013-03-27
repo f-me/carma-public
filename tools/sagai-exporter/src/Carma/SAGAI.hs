@@ -377,7 +377,7 @@ cnst = return
 
 
 newline :: B8.ByteString
-newline = "\r\n"
+newline = "\n"
 
 
 space :: Char
