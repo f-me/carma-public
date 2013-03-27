@@ -758,6 +758,12 @@ newPartnerMessage objId = do
 
 closeSerivceAndSendInfoVW objId = do
   setService objId "status" "serviceOk"
+
+  partner <- getService objId "contractor_partner"
+  comment <- get objId "comment"
+  let addParComment act = set act "comment"
+        $ B.concat [utf8 "Партнёр: ", partner, "\n\n", comment]
+
   tm <- getService objId "times_expectedServiceClosure"
   act1 <- replaceAction
     "closeCase"
@@ -765,18 +771,18 @@ closeSerivceAndSendInfoVW objId = do
     "op_close" "3" (changeTime (+7*24*60*60) tm)
     objId
   set act1 "assignedTo" ""
+  addParComment act1
 
-  act2 <- replaceAction
-    "getInfoDealerVW"
-    "Уточнить информацию о ремонте у дилера/партнёра (VW, PSA)"
-    "op_dealer" "3" (+7*24*60*60)
-    objId
-  set act2 "assignedTo" ""
+  program <- get objId "caseId" >>= (`get` "program")
+  when (program `elem` ["vwMotor", "vwcargo", "peugeot", "citroen"]) $ do
+    act2 <- replaceAction
+      "getInfoDealerVW"
+      "Уточнить информацию о ремонте у дилера/партнёра (VW, PSA)"
+      "op_dealer" "3" (+7*24*60*60)
+      objId
+    set act2 "assignedTo" ""
+    addParComment act2
 
-  partner <- getService objId "contractor_partner"
-  comment <- get objId "comment"
-  let comment' = B.concat [utf8 "Партнёр: ", partner, "\n\n", comment]
-  mapM_ (\act -> set act "comment" comment') [act1, act2]
 
 
 closeAction objId = do
