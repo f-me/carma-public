@@ -118,6 +118,10 @@
                 "label": "+74956406690"
             },
             {
+                "value": "lada",
+                "label": "+74956401297"
+            },            
+            {
                 "value": "autopres",
                 "label": "+74956406690"
             },
@@ -328,7 +332,7 @@
                 "label": "Covidien"
             },
             {
-                "value": "rnbase  RN",
+                "value": "rnbase",
                 "label": "RNcard"
             },
             {
@@ -383,6 +387,10 @@
                 "value": "fordPlus",
                 "label": "Ford"
             },
+            {
+                "value": "lada",
+                "label": "Lada"
+            },            
             {
                 "value": "cadold",
                 "label": "GM"
@@ -653,6 +661,10 @@
                 "value": "atlant",
                 "label": "Атлант М"
             },
+            {
+                "value": "lada",
+                "label": "ВАЗ (Lada)"
+            },            
             {
                 "value": "Cash",
                 "label": "РАМК"
