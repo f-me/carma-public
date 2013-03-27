@@ -52,8 +52,10 @@ exportCase :: Int
            -- ^ CaRMa port.
            -> Dict
            -- ^ Wazzup dictionary.
+           -> String
+           -- ^ Name of an output character set.
            -> IO (Either ExportError (BS.ByteString, Int, [String]))
-exportCase cnt caseNumber cp wazzup = do
+exportCase cnt caseNumber cp wazzup encName = do
   -- Read case with provided number and all of the associated services
   res <- readInstance cp "case" caseNumber
 
@@ -67,7 +69,7 @@ exportCase cnt caseNumber cp wazzup = do
                   inst <- readInstance cp m i
                   return (m, i, inst)
 
-  fv <- runExport sagaiFullExport cnt (res, servs) cp wazzup
+  fv <- runExport sagaiFullExport cnt (res, servs) cp wazzup encName
   case fv of
     Left err ->
         return $ Left err
@@ -101,8 +103,10 @@ exportManyCases :: Int
                 -- ^ CaRMa port.
                 -> Dict
                 -- ^ Wazzup dictionary.
+                -> String
+                -- ^ Name of an output character set.
                 -> IO (Int, [(Int, ExportError)], BS.ByteString)
-exportManyCases initialCnt cases cp wazzup =
+exportManyCases initialCnt cases cp wazzup encName =
     let
         -- Runs 'exportCase' in ComposMonad
         exportCaseWithCompos :: Int
@@ -110,7 +114,7 @@ exportManyCases initialCnt cases cp wazzup =
                                 (Either (Int, ExportError) BS.ByteString)
         exportCaseWithCompos caseNumber = do
           cnt <- get
-          res <- liftIO $ exportCase cnt caseNumber cp wazzup
+          res <- liftIO $ exportCase cnt caseNumber cp wazzup encName
           case res of
             Left err -> return $ Left (caseNumber, err)
             Right (entry, newCnt, _) -> do
@@ -245,6 +249,7 @@ data Options = Options { carmaPort     :: Int
                        , dictPath      :: Maybe FilePath
                        , ftpServer     :: Maybe String
                        , remotePath    :: Maybe FilePath
+                       , encoding      :: String
                        , caseProgram   :: Maybe String
                        , argCases      :: [Int]
                        , useSyslog     :: Bool
@@ -290,6 +295,9 @@ main =
                  , remotePath = Nothing
                    &= name "r"
                    &= help remotePathHelp
+                 , encoding = "UTF-8"
+                   &= name "e"
+                   &= help "Output encoding"
                  , useSyslog = False
                    &= explicit
                    &= name "syslog"
@@ -378,7 +386,8 @@ main =
                  logInfo $ "Exporting cases: " ++ show caseNumbers
                  -- Bulk export of selected cases
                  (newCnt, errors, res) <-
-                     liftIO $ exportManyCases cnt caseNumbers carmaPort wazzup
+                     liftIO $
+                     exportManyCases cnt caseNumbers carmaPort wazzup encoding
 
                  -- Dump errors if there're any
                  when (not $ null errors) $ forM_ errors $

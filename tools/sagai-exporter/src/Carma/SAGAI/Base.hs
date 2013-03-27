@@ -27,6 +27,8 @@ import Control.Monad.Trans.State
 import Control.Monad.Trans.Writer
 import Data.Dict as D
 
+import Data.Text.ICU.Convert
+
 import Carma.HTTP
 
 import Carma.SAGAI.Codes
@@ -51,6 +53,10 @@ data ExportOptions = ExportOptions { carmaPort :: Int
                                    , wazzup :: D.Dict
                                    -- ^ Dictionary used on the @comment@
                                    -- field of a case.
+                                   , utfConv :: Converter
+                                   -- ^ A converter used to encode
+                                   -- text from UTF-8 to target
+                                   -- encoding.
                                    }
 
 
@@ -110,9 +116,12 @@ runExport :: CaseExport a
           -- ^ CaRMa port.
           -> D.Dict
           -- ^ Wazzup dictionary.
+          -> String
+          -- ^ Name of an output character set.
           -> IO (Either ExportError ((a, ExportState), [String]))
-runExport act sepStart input cp wz = do
+runExport act sepStart input cp wz eName = do
+    e <- open eName Nothing
     let inner = runReaderT (runStateT act $ ExportState sepStart) $
-                (input, ExportOptions cp wz)
+                (input, ExportOptions cp wz e)
     res <- runErrorT $ runWriterT inner
     return res

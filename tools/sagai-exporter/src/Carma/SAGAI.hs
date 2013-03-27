@@ -24,7 +24,7 @@
   >             return (m, i, inst))
   >
   > -- Perform export action on this data
-  > fv <- runExport sagaiFullExport cnt (res, servs) cp wazzup
+  > fv <- runExport sagaiFullExport cnt (res, servs) cp wazzup encName
 
   Note that all services attached to the case must be supplied to
   'runExport', although some of them may not end up being in SAGAI entry.
@@ -64,6 +64,8 @@ import Data.Functor
 import qualified Data.HashMap.Strict as HM
 import Data.List
 import qualified Data.Map as M
+import Data.Text.Encoding
+import Data.Text.ICU.Convert
 
 import Data.Time.Clock
 import Data.Time.Format
@@ -90,6 +92,7 @@ class (Functor m, Monad m, MonadIO m) => ExportMonad m where
     getAllServices :: m [Service]
     getCarmaPort   :: m Int
     getWazzup      :: m D.Dict
+    getConverter   :: m Converter
     -- | Return expense type for the case or currently processed
     -- service, depending on monad.
     expenseType    :: m ExpenseType
@@ -115,6 +118,8 @@ instance ExportMonad CaseExport where
 
     getWazzup = lift $ asks $ wazzup . snd
 
+    getConverter = lift $ asks $ utfConv . snd
+
     exportError e = lift $ lift $ lift $ throwError $ CaseError e
 
     getState = get
@@ -139,8 +144,8 @@ instance ExportMonad CaseExport where
 
     comm3Field = do
       servs <- getNonFalseServices
-      return $ case servs of
-        [] -> BS.empty
+      case servs of
+        [] -> return BS.empty
         ((_, _, d):_) -> commentPad $ dataField0 "orderNumber" d
 
 
@@ -156,6 +161,8 @@ instance ExportMonad ServiceExport where
     getCarmaPort = lift $ lift $ asks $ carmaPort . snd
 
     getWazzup = lift $ lift $ asks $ wazzup . snd
+
+    getConverter = lift $ lift $ asks $ utfConv . snd
 
     exportError e = do
       (m, i, _) <- getService
@@ -237,7 +244,7 @@ instance ExportMonad ServiceExport where
                             return [oNum, pCode, pName, vin, carCl]
                       "towage" -> return [oNum, pCode]
                       _        -> error "Never happens"
-        return $ commentPad $ BS.intercalate " " fields
+        commentPad $ BS.intercalate " " fields
 
 
 getService :: ServiceExport Service
@@ -531,25 +538,39 @@ fillerField = spaces 5
 
 
 -- | Pad input up to 72 characters with spaces or truncate it to be
--- under 72 chars. Remove all newlines.
-commentPad :: BS.ByteString -> BS.ByteString
-commentPad = B8.map (\c -> if B8.elem c newline then space else c) .
-             BS.take 72 .
-             padLeft 72 ' '
+-- under 72 chars. Remove all newlines. Truncation and padding is done
+-- wrt to bytestring length when encoded using output character set,
+-- not UTF-8. However, actual conversion is deferred and the result
+-- string uses UTF-8.
+commentPad :: ExportMonad m =>
+              BS.ByteString
+           -- ^ Input bytestring in UTF-8.
+           -> m BS.ByteString
+commentPad input =
+    do
+      e <- getConverter
+      -- Convert bytestring to output encoding, pad&truncate, then
+      -- recode back to UTF-8.
+      let inBS = fromUnicode e $ decodeUtf8 input
+          inBS' = B8.map (\c -> if B8.elem c newline then space else c) $
+                  BS.take 72 $
+                  padLeft 72 ' ' $
+                  inBS
+          outBS = encodeUtf8 $ toUnicode e inBS'
+      return outBS
 
 
 comm1Field :: ExportField
 comm1Field = do
   val <- caseField1 "comment"
   d <- getWazzup
-  return $ commentPad $ 
-         case labelOfValue val d of
-           Just label -> label
-           Nothing -> val
+  commentPad $ case labelOfValue val d of
+                 Just label -> label
+                 Nothing -> val
 
 
 comm2Field :: ExportField
-comm2Field = commentPad <$> caseField0 "dealerCause"
+comm2Field = commentPad =<< caseField0 "dealerCause"
 
 
 -- | A list of field combinators to form a part of export entry.
@@ -666,4 +687,6 @@ sagaiFullExport = do
   exportLog $ "Case services: " ++ formatServiceList allServs ++
               ", exporting: " ++ formatServiceList servs
   servsOut <- BS.concat <$> mapM runServiceExport servs
-  return $ BS.concat [caseOut, servsOut]
+
+  e <- getConverter
+  return $ fromUnicode e $ decodeUtf8 $ BS.concat [caseOut, servsOut]
