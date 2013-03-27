@@ -90,6 +90,7 @@ data ErrorType = NoField FieldName
                | UnreadableContractorId FieldValue
                | BadTime FieldValue
                | BadDays FieldValue
+               | BadVin FieldValue
                  deriving Show
 
 
