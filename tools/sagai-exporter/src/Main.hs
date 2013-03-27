@@ -313,7 +313,7 @@ main =
       -- Choose logging facility (stderr or syslog)
       let logL = if useSyslog
                  then syslog_ programName
-                 else logger text console
+                 else logger text consoleErr
           -- Translate -v/-q into simple-log logging policy.
           --
           -- When -v is specified, logInfo's are included in the log.
