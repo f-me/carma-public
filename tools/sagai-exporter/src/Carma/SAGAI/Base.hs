@@ -25,8 +25,9 @@ import Control.Monad.Trans.Error
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Writer
-import Data.Dict as D
 
+import Data.ByteString as BS
+import Data.Dict as D
 import Data.Text.ICU.Convert
 
 import Carma.HTTP
@@ -44,6 +45,9 @@ type Service = (String, Int, InstanceData)
 
 data ExportState = ExportState { counter :: Int
                                -- ^ Line counter used for @SEP@ field.
+                               , content :: ByteString
+                               -- ^ All SAGAI entry content generated
+                               -- so far.
                                }
 
 
@@ -89,7 +93,6 @@ data ExportError = CaseError ErrorType
 
 data ErrorType = NoField FieldName
                | EmptyField FieldName
-               | UnexpectedFieldValue FieldName FieldValue
                | UnknownProgram FieldValue
                | UnknownService String
                | UnknownTechType FieldValue
@@ -121,7 +124,7 @@ runExport :: CaseExport a
           -> IO (Either ExportError ((a, ExportState), [String]))
 runExport act sepStart input cp wz eName = do
     e <- open eName Nothing
-    let inner = runReaderT (runStateT act $ ExportState sepStart) $
+    let inner = runReaderT (runStateT act $ ExportState sepStart BS.empty) $
                 (input, ExportOptions cp wz e)
     res <- runErrorT $ runWriterT inner
     return res
