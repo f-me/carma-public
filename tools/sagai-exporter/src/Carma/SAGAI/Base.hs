@@ -93,7 +93,6 @@ data ExportError = CaseError ErrorType
 
 data ErrorType = NoField FieldName
                | EmptyField FieldName
-               | UnexpectedFieldValue FieldName FieldValue
                | UnknownProgram FieldValue
                | UnknownService String
                | UnknownTechType FieldValue
