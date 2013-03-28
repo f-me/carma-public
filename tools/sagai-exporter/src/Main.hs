@@ -73,7 +73,7 @@ exportCase cnt caseNumber cp wazzup encName = do
   case fv of
     Left err ->
         return $ Left err
-    Right ((entry, ExportState newCnt), eLog) ->
+    Right ((_, ExportState newCnt entry), eLog) ->
         return $ Right (entry, newCnt, eLog)
 
 
