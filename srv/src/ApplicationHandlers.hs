@@ -538,16 +538,19 @@ getSrvTarifOptions = do
                     ,("optionName", fromMaybe "" $ Map.lookup "optionName" o)]
 
 -- | Calculate average tower arrival time (in seconds) for today,
--- parametrized by city. Only towage services expected within 90
--- minutes since the original call time are counted.
+-- parametrized by city (a value from DealerCities dictionary).
 towAvgTimeQuery :: Query
 towAvgTimeQuery = [sql|
-SELECT extract(epoch from avg(t.times_factServiceStart - c.callDate))
-FROM casetbl c, towagetbl t
-WHERE cast(split_part(t.parentid, ':', 2) as integer)=c.id
-AND c.city=?
-AND (CURRENT_DATE, INTERVAL '1 day') OVERLAPS (c.callDate, c.callDate)
-AND t.times_expectedServiceStart <= c.callDate + INTERVAL '01:30:00';
+WITH towtimes AS (
+ SELECT max(t.times_factServiceStart - a.ctime)
+ FROM actiontbl a, casetbl c, towagetbl t
+ WHERE cast(split_part(a.parentid, ':', 2) as integer)=t.id
+ AND cast(split_part(a.caseid, ':', 2) as integer)=c.id
+ AND a.name='orderService'
+ AND c.city=?
+ AND (CURRENT_DATE, INTERVAL '1 day') OVERLAPS (c.callDate, c.callDate)
+ GROUP BY a.parentid)
+SELECT extract(epoch from avg(max)) FROM towtimes;
 |]
 
 -- | Read city name from @city@ request parameter and return results
