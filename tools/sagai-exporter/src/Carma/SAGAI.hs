@@ -584,9 +584,11 @@ pushComment :: ExportMonad m =>
 pushComment input =
     do
       inBS <- recode input
+      -- Assume space is single-byte in any of used encodings
+      space' <- B8.head <$> (recode $ B8.singleton space)
       let outBS = B8.map (\c -> if B8.elem c newline then space else c) $
                   BS.take 72 $
-                  padLeft 72 ' ' $
+                  padLeft 72 space' $
                   inBS
       pushRaw outBS
 
