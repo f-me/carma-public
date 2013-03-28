@@ -144,9 +144,9 @@ instance ExportMonad CaseExport where
 
     comm3Field = do
       servs <- getNonFalseServices
-      case servs of
+      commentPad $ case servs of
         [] -> return BS.empty
-        ((_, _, d):_) -> commentPad $ dataField0 "orderNumber" d
+        ((_, _, d):_) -> dataField0 "orderNumber" d
 
 
 exportLog :: String -> CaseExport ()
