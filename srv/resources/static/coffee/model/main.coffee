@@ -134,6 +134,12 @@ define [ "model/meta"
               actName = actName + " (#{svcName})"
             actName
 
+    for f of instance.fieldHash
+      knockVM["#{f}Disabled"] = ko.computed
+        read: ->
+          not _.isNaN parseInt(knockVM["maybeId"]())
+        write: (a) -> null
+
     applyHooks global.hooks.observable,
                ['*', instance.model.name],
                instance, knockVM, viewName

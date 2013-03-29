@@ -345,10 +345,19 @@
   }
 
   $(function () {
-    $('body').on('focus.typeahead.data-api', '[data-provide="typeahead"]', initDictionary)
+    $('body').on('focus.typeahead.data-api', '[data-provide="typeahead"]',
+                 function(e) {
+                     if ($(this).data('disabled')) return
+                     initDictionary(e)
+                 })
     $('body').on('click.typeahead.data-api', '[data-provide="typeahead-toggle"]', function (e) {
+        if ($(this).data('disabled')) return
         var $this = $(this)
         var inp = $this.parent().prev() // FIXME: less ad-hoc search required
+
+        // disabled from ko handler
+        if (inp.data('disabled')) return
+
         var dat = inp.data('typeahead') || initDictionary.call(inp, e)
         dat && dat.toggle()
         inp.focus();

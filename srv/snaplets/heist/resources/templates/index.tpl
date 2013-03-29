@@ -294,7 +294,8 @@
                     {{# readonly }}disabled{{/ readonly }}
                     rows="7"
                     data-bind="value: {{ name }},
-                               valueUpdate: 'afterkeydown'" />
+                               valueUpdate: 'afterkeydown',
+                               disabled: {{ name }}Disabled" />
         </div>
       </div>
     </script>
@@ -333,7 +334,8 @@
                  {{/ meta.transform }}
                  {{# readonly }}readonly{{/ readonly }}
                  data-bind="value: {{ name }},
-                            valueUpdate: 'afterkeydown'" />
+                            valueUpdate: 'afterkeydown',
+                            readonly: {{ name }}Disabled" />
         </div>
       </div>
     </script>
@@ -361,7 +363,8 @@
                  name="{{ name }}"
                  {{# readonly }}readonly{{/ readonly }}
                  data-bind="value: {{ name }}DateTime,
-                            valueUpdate: 'change'" />
+                            valueUpdate: 'change',
+                            disabled: {{ name }}Disabled" />
         </div>
       </div>
     </script>
@@ -390,14 +393,16 @@
                data-autoshow-datepicker="true"
                data-date-format="dd.mm.yyyy"
                data-date-weekstart="1"
-               {{/ readonly }}>
+               {{/ readonly }}
+               data-bind="pickerDisable: {{ name }}Disabled">
             <input type="text"
                    class="pane-span focusable"
                    autocomplete="off"
                    name="{{ name }}"
                    {{# readonly }}readonly{{/ readonly }}
                    data-bind="value: {{ name }},
-                              valueUpdate: 'afterkeydown'" />
+                              valueUpdate: 'afterkeydown',
+                              readonly: {{ name }}Disabled" />
             <span class="add-on"><i class="icon icon-calendar" /></span>
           </div>
         </div>
@@ -425,7 +430,8 @@
                    autocomplete="off"
                    name="{{ name }}"
                    data-bind="value: {{ name }},
-                              valueUpdate: 'afterkeydown'"
+                              valueUpdate: 'afterkeydown',
+                              disabled: {{ name }}Disabled"
                    onkeyDown="kdoPick('{{ meta.picker }}',
                                       '{{ name }}',
                                       73, event);"
@@ -482,7 +488,9 @@
                               valueUpdate: 'change'
                               {{# meta.dictionaryParent }},
                               attr: { 'data-parent': {{ meta.dictionaryParent }} }
-                              {{/ meta.dictionaryParent }}"
+                              {{/ meta.dictionaryParent }},
+                              disabled: {{ name }}Disabled,
+                              pickerDisable: {{ name }}Disabled"
                    {{^readonly}}
                    data-provide="typeahead"
                    {{/readonly}}
@@ -545,7 +553,10 @@
                               valueUpdate: 'change'
                               {{# meta.dictionaryParent }},
                               attr: { 'data-parent': {{ meta.dictionaryParent }} }
-                              {{/ meta.dictionaryParent }}"
+                              {{/ meta.dictionaryParent }},
+                              disabled: {{ name }}Disabled,
+                              pickerDisable: {{ name }}Disabled"
+
                    {{^readonly}}
                    data-provide="typeahead"
                    {{/readonly}}
@@ -603,7 +614,8 @@
                    {{/ meta.transform }}
                    name="{{ name }}"
                    data-bind="value: {{ name }},
-                              valueUpdate: 'afterkeydown'"
+                              valueUpdate: 'afterkeydown',
+                              disabled: {{ name }}Disabled"
                    onkeyDown="kdoPick('{{ meta.picker }}',
                                       '{{ name }}',
                                       66, event);"
@@ -637,7 +649,9 @@
               <input type="radio"
                      name="{{ name }}"
                      value="{{ value }}"
-                     data-bind="checked: {{ name }}"></input>
+                     data-bind="checked: {{ name }},
+                                disabled: {{ name }}Disabled"
+                     ></input>
               {{ label }}
             </label>
           {{/ dictionary.entries }}
@@ -663,7 +677,8 @@
           <select name="{{ name }}"
                   {{# readonly }}disabled{{/ readonly }}
                   data-bind="value: {{ name }},
-                             valueUpdate: 'change'">
+                             valueUpdate: 'change',
+                             disabled: {{ name }}Disabled">
             {{# dictionary.entries }}
             <option value="{{value}}">{{meta.label}}</option>
             {{/ dictionary.entries }}
@@ -682,7 +697,8 @@
                    name="{{ name }}"
                    {{# readonly }}disabled{{/ readonly }}
                    data-bind="checked: {{ name }},
-                              valueUpdate: 'change'" />
+                              valueUpdate: 'change',
+                              disabled: {{ name }}Disabled" />
           {{ meta.label }}
           {{# meta.infoText1 }}
             <i class="icon icon-question-sign"
@@ -783,7 +799,8 @@
                    onfocus="showComplex('{{ viewName }}', '{{ name }}');"
                    {{# readonly }}readonly{{/ readonly }}
                    data-bind="value: {{ name }},
-                              valueUpdate: 'afterkeydown'" />
+                              valueUpdate: 'afterkeydown',
+                              disabled: {{ name }}Disabled" />
             <span class="add-on">
               <i onclick="showComplex('{{ viewName }}', '{{ name }}');"
                  class="icon icon-share" />
@@ -1012,8 +1029,15 @@
       <form data-bind="attr: { action: {{name}}UploadUrl }, setdata: {{name}}"
             method="post"
             enctype="multipart/form-data">
-        <input type="file" name="files" />
-        <input type="button" value="Загрузить" onClick="uploadFile(this)" />
+        <input type="file"
+               name="files"
+               data-bind="disabled: {{ name }}Disabled"
+               />
+        <input type="button"
+               value="Загрузить"
+               onClick="uploadFile(this)"
+               data-bind="disabled: {{ name }}Disabled"
+               />
       </form>
     </script>
 
