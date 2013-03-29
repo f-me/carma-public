@@ -2,10 +2,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 {-|
 
-Standalone application to update partner coordinates.
+Standalone application used to update partner coordinates and create
+new cases in CaRMa. Used as a gateway to CaRMa for mobile
+applications.
 
 -}
 
@@ -16,11 +19,11 @@ module Application
 where
 
 import Control.Applicative
+import Control.Lens hiding ((.=), createInstance)
 import Control.Monad
 import Control.Monad.State hiding (ap)
 
 import Data.Aeson as Aeson
-import Data.Aeson.Types (parseMaybe)
 import qualified Data.HashMap.Strict as HM
 
 import Data.Attoparsec.ByteString.Char8
@@ -28,21 +31,20 @@ import Data.Attoparsec.ByteString.Char8
 import Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as BSL
+import Data.Dict
+import Data.Maybe
 import qualified Data.Text as T (pack)
-import Data.Text (Text)
-import Data.Text.Encoding (decodeUtf8)
+import Data.Text.Encoding (encodeUtf8)
 
 import Data.Configurator
 
 import Data.Time.Clock
 import Data.Time.Format
 
-import Data.Lens.Template
-
 import qualified Database.Redis as R
+import Database.PostgreSQL.Simple.SqlQQ
 
 import qualified Network.HTTP as H
-import Network.URI (parseURI)
 
 import System.Locale
 
@@ -51,17 +53,19 @@ import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple
 import Snap.Snaplet.RedisDB
 
+import Carma.HTTP
+
 
 data GeoApp = GeoApp
     { _postgres :: Snaplet Postgres
     , _redis :: Snaplet RedisDB
-    , nominatimReverse :: String
-    -- ^ URI to Nominatim reverse.php up to first ?
     , carmaPort :: Int
     -- ^ Port of CaRMa instance running on localhost.
+    , cityDict :: Dict
+    -- ^ Dictionary used to map city names to internal values.
     }
 
-makeLens ''GeoApp
+makeLenses ''GeoApp
 
 
 instance HasPostgres (Handler b GeoApp) where
@@ -75,45 +79,14 @@ routes = [ ("/geo/partner/:pid", method PUT $ updatePosition)
          ]
 
 
-------------------------------------------------------------------------------
--- | URI for reverse geocoding request.
-nominatimRevURI :: Double -> Double -> Handler b GeoApp String
-nominatimRevURI lon lat = do
-  nh <- gets nominatimReverse
-  return $
-    concat [nh
-           , "format=json&accept-language=ru-RU,ru&"
-           , "lon=", show lon, "&"
-           , "lat=", show lat
-           ]
+getCarmaPort :: Handler b GeoApp Int
+getCarmaPort = gets carmaPort
 
 
 ------------------------------------------------------------------------------
--- | URI for POST/PUT requests to create or update a new case.
-caseCreateUpdateURI :: (Maybe Int)
-                    -- ^ Case ID.
-                    -> Handler b GeoApp String
-caseCreateUpdateURI cid' = do
-  cp <- gets carmaPort
-  return $ concat ["http://localhost:", show cp, "/_/case/", cid]
-  where
-    cid = maybe "" show cid'
-
-
-------------------------------------------------------------------------------
--- | URI for POST request to create a new action
-actionCreateURI ::Handler b GeoApp String
-actionCreateURI = do
-  cp <- gets carmaPort
-  return $ concat ["http://localhost:", show cp, "/_/action/"]
-
-
-------------------------------------------------------------------------------
--- | URI for PUT request to update partner data.
-partnerUpdateURI :: Int -> Handler b GeoApp String
-partnerUpdateURI pid = do
-  cp <- gets carmaPort
-  return $ concat ["http://localhost:", show cp, "/_/partner/", show pid]
+-- | Pack coordinates to a string of format @33.12,57.32@.
+coordsToString :: Double -> Double -> String
+coordsToString lon lat = (show lon) ++ "," ++ (show lat)
 
 
 ------------------------------------------------------------------------------
@@ -135,47 +108,31 @@ partnerMtime = "mtime"
 
 
 ------------------------------------------------------------------------------
--- | Address line as parsed from Nominatim reverse geocoder JSON
--- response.
-newtype Address = Address ByteString deriving Show
-
-
-instance FromJSON Address where
-    parseJSON (Object v) = Address <$> do
-        (err::Maybe String) <- v .:? "error"
-        case err of
-          Just _ -> fail "Geocoding failed"
-          Nothing -> do
-            addr <- v .: "address"
-            road <- addr .: "road"
-            house <- addr .:? "house_number" .!= Nothing
-            return $ case house of
-                       Just h -> BS.concat [road, ", ", h]
-                       Nothing -> road
-    parseJSON _ = fail "Bad Nominatim response"
-
-instance ToJSON Address where
-    toJSON (Address s) = String $ decodeUtf8 s
-
-
-------------------------------------------------------------------------------
--- | Attempt to perform reverse geocoding.
+-- | Try to obtain city and street address from coordinates using
+-- reverse geocoding.
 revGeocode :: Double
            -- ^ Longitude.
            -> Double
            -- ^ Latitude.
-           -> Handler b GeoApp (Maybe Address)
+           -> Handler b GeoApp (Maybe ByteString, Maybe ByteString)
 revGeocode lon lat = do
-  nomU <- nominatimRevURI lon lat
-  (addr :: Maybe Address) <- liftIO $ do
-     resp <- H.simpleHTTP (H.getRequest nomU)
+  cp <- getCarmaPort
+  (addr :: Maybe (HM.HashMap ByteString (Maybe ByteString))) <- liftIO $ do
+     let coords = coordsToString lon lat
+     resp <- H.simpleHTTP $ H.getRequest $
+             methodURI cp ("geo/revSearch/" ++ coords)
      body <- H.getResponseBody resp
      return $ decode' $ BSL.pack body
-  return addr
+  case addr of
+    Just m -> 
+        return ( fromMaybe Nothing $ HM.lookup "city" m
+               , fromMaybe Nothing $ HM.lookup "address" m)
+    Nothing -> return (Nothing, Nothing)
 
 
 ------------------------------------------------------------------------------
--- | Update partner position, setting new address if possible.
+-- | Update partner position from request parameters @lon@ and @lat@,
+-- setting new address if possible.
 updatePosition :: Handler b GeoApp ()
 updatePosition = do
   lon' <- getParamWith double "lon"
@@ -183,7 +140,7 @@ updatePosition = do
   (pid' :: Maybe Int) <- getParamWith decimal "pid"
   case (lon', lat', pid') of
     (Just lon, Just lat, Just pid) -> do
-       addr <- revGeocode lon lat
+       addr <- snd <$> revGeocode lon lat
        mtime <- liftIO $ getCurrentTime
        updatePartnerData pid lon lat addr mtime
     _ -> error "Bad request"
@@ -197,26 +154,32 @@ updatePartnerData :: Int
                   -- ^ Longitude.
                   -> Double
                   -- ^ Latitude.
-                  -> (Maybe Address)
+                  -> (Maybe ByteString)
                   -- ^ New address if available.
                   -> UTCTime
+                  -- ^ New partner mtime.
                   -> Handler b GeoApp ()
 updatePartnerData pid lon lat addr mtime =
     let
         coordString = concat [show lon, ",", show lat]
-        body = BSL.unpack $ encode $ object $
-               [decodeUtf8 partnerCoords .= coordString] ++
-               [decodeUtf8 partnerMtime .= formatTime defaultTimeLocale "%s" mtime] ++
-               (maybe [] (\(Address a) -> [decodeUtf8 partnerAddress .= a]) addr)
+        body = HM.fromList $
+               [ (partnerCoords, BS.pack coordString)
+               , (partnerMtime,
+                  BS.pack $ formatTime defaultTimeLocale "%s" mtime)] ++
+               (maybe [] (\a -> [(partnerAddress, a)]) addr)
     in do
-      parU <- partnerUpdateURI pid
-      liftIO $ H.simpleHTTP
-           (putRequestWithBody parU "application/json" body)
-      return ()
+      cp <- getCarmaPort
+      liftIO $ updateInstance cp "partner" pid body >> return ()
 
 
+------------------------------------------------------------------------------
+-- | Used to fetch messages for a partner with id supplied as a query
+-- parameter.
 getMessageQuery :: Query
-getMessageQuery = "SELECT message FROM partnerMessageTbl where partnerId=? order by ctime desc limit 1;"
+getMessageQuery = [sql|
+SELECT message FROM partnerMessageTbl
+WHERE partnerId=? order by ctime desc limit 1;
+|]
 
 
 getMessage :: Handler b GeoApp ()
@@ -231,119 +194,125 @@ getMessage = do
 
 ------------------------------------------------------------------------------
 -- | Name of case coordinates field in case model.
-caseCoords :: Text
+caseCoords :: ByteString
 caseCoords = "caseAddress_coords"
 
 
 ------------------------------------------------------------------------------
 -- | Name of case address field in case model.
-caseAddress :: Text
+caseAddress :: ByteString
 caseAddress = "caseAddress_address"
 
 
 ------------------------------------------------------------------------------
+-- | Name of case city field in case model.
+caseCity :: ByteString
+caseCity = "city"
+
+
+------------------------------------------------------------------------------
 -- | Name of case id field in action model.
-actionCaseId :: Text
+actionCaseId :: ByteString
 actionCaseId = "caseId"
 
 
 ------------------------------------------------------------------------------
 -- | Name of actions field in case model.
-caseActions :: Text
+caseActions :: ByteString
 caseActions = "actions"
 
 ------------------------------------------------------------------------------
 -- | Build reference to a case for use in 'actionCaseId'.
-caseIdReference :: Int -> String
-caseIdReference n = "case:" ++ (show n)
+caseIdReference :: Int -> ByteString
+caseIdReference n = BS.pack $ "case:" ++ (show n)
 
 
 ------------------------------------------------------------------------------
 -- | Build reference to an action for use in 'caseActions'.
-actionIdReference :: Int -> String
-actionIdReference n = "action:" ++ (show n)
+actionIdReference :: Int -> ByteString
+actionIdReference n = BS.pack $ "action:" ++ (show n)
 
 
 ------------------------------------------------------------------------------
--- | CaRMa JSON response containing "id" field. The rest of fields are
--- ignored.
-newtype IdResponse = IdResponse Int deriving Show
-
-
-instance FromJSON IdResponse where
-    parseJSON (Object v) = IdResponse . read <$> v .: "id"
-    parseJSON _          = error "Bad CaRMa response"
-
-
-------------------------------------------------------------------------------
--- | Create a new case from JSON in request body. Perform reverse
--- geocoding using coordinates from values under @lon@ and @lat@,
--- writing the result to field 'caseAddress' of the new case. New
--- action is created for the case.
+-- | Create a new case from a JSON object provided in request body.
+-- Perform reverse geocoding using coordinates from values under @lon@
+-- and @lat@ (read as JSON doubles), writing the obtained city and
+-- street address to the new case. New @callMeMaybe@ action is created
+-- for the case.
 --
 -- Response body is a JSON of form @{"caseId":<n>}@, where @n@ is the
 -- new case id.
 newCase :: Handler b GeoApp ()
 newCase = do
   -- New case parameters
-  Just jsonRq <- Aeson.decode <$> readRequestBody 4096
+  rqb <- readRequestBody 4096
+  let -- Do not enforce typing on values when reading JSON
+      Just jsonRq0 :: Maybe (HM.HashMap ByteString Value) =
+                      Aeson.decode rqb
+      coords = (,) <$> (HM.lookup "lon" jsonRq0) <*> (HM.lookup "lat" jsonRq0)
+      -- Now read all values but coords into ByteStrings
+      jsonRq = HM.map (\(String s) -> encodeUtf8 s) $
+               HM.filter (\case
+                          String _ -> True
+                          _        -> False)
+               jsonRq0
+      car_vin = HM.lookup "car_vin" jsonRq
 
-  let coords = parseMaybe (\j -> (,) <$> (j .:"lon") <*> (j .: "lat")) jsonRq
-  let car_vin = parseMaybe (.: "car_vin") jsonRq
+  dict <- gets cityDict
 
   jsonRq' <- case coords of
-    Nothing -> return jsonRq
     -- Reverse geocode coordinates from lon/lat
-    Just (lon,lat) -> revGeocode lon lat >>= \case
-      Nothing -> return jsonRq
-      Just addr -> return
-        $ HM.insert caseAddress (toJSON addr)
-        $ HM.insert caseCoords  (String $ T.pack $ concat [show lon, ",", show lat])
-        $ jsonRq
+    Just (Number (D lon), Number (D lat)) -> revGeocode lon lat >>= \case
+      (city, addr) ->
+        return $
+        -- Translate input city name to corresponding dictionary key
+        (maybe id (HM.insert caseCity) $ city >>= (flip valueOfLabel dict)) $
+        -- Prepend street address with city name
+        (maybe id (\a -> HM.insert caseAddress
+                         (maybe a (\c -> BS.concat [c, ", ", a]) city))
+                         addr) $
+        HM.insert caseCoords (BS.pack $ coordsToString lon lat) $
+        jsonRq
+    _ -> return jsonRq
+
 
   -- Form the body of the new case request to send to CaRMa
-  let caseBody = BSL.unpack $ encode
-               $ HM.delete "lon"
-               $ HM.delete "lat"
-               $ HM.delete "car_vin" -- we'll insert it later to run trigger
-               $ jsonRq'
+  let caseBody =  HM.delete "lon" $
+                  HM.delete "lat" $
+                  HM.delete "car_vin" $ -- we'll insert it later to run trigger
+                  jsonRq'
 
   modifyResponse $ setContentType "application/json"
-  caseU <- caseCreateUpdateURI Nothing
-  caseResp <- liftIO $ H.simpleHTTP
-          (H.postRequestWithBody caseU "application/json" caseBody)
+  cp <- getCarmaPort
+  caseResp <- liftIO $ createInstance cp "case" caseBody
 
   now <- liftIO $ getCurrentTime
-  let nowStr = formatTime defaultTimeLocale "%s" (now :: UTCTime)
+  let nowStr = BS.pack $ formatTime defaultTimeLocale "%s" (now :: UTCTime)
   -- Fetch id of the created case and create a new action for this id
-  caseRespBody <- liftIO $ H.getResponseBody caseResp
-  let Just (IdResponse caseId) = decode' (BSL.pack caseRespBody) :: Maybe IdResponse
-      descr = T.pack
+  let caseId = fst caseResp
+      descr = encodeUtf8 $ T.pack
             $  "Клиент заказал услугу с помощью мобильного приложения. "
             ++ "Требуется перезвонить ему и уточнить детали"
-      actBody = BSL.unpack $ encode $ object $
-                [ actionCaseId .= caseIdReference caseId
-                , "name" .= ("callMeMaybe" :: Text)
-                , "targetGroup" .= ("back" :: Text)
-                , "duetime" .= nowStr
-                , "priority" .= ("1" :: Text)
-                , "closed"   .= ("0" :: Text)
-                , "description" .= descr
+      actBody = HM.fromList
+                [ (actionCaseId, caseIdReference caseId)
+                , ("name", "callMeMaybe")
+                , ("targetGroup", "back")
+                , ("duetime", nowStr)
+                , ("priority", "1")
+                , ("closed", "0")
+                , ("description", descr)
                 ]
-  actU <- actionCreateURI
-  actResp <- liftIO $ H.simpleHTTP
-             (H.postRequestWithBody actU "application/json" actBody)
+  actResp <- liftIO $ createInstance cp "action" actBody
 
-  -- Fetch id of the created action and update reverse reference in the case.
-  actRespBody <- liftIO $ H.getResponseBody actResp
-  let Just (IdResponse actId) = decode' (BSL.pack actRespBody) :: Maybe IdResponse
-  caseU' <- caseCreateUpdateURI (Just caseId)
-  liftIO $ H.simpleHTTP $
-         putRequestWithBody caseU' "application/json" $ BSL.unpack $ encode $ object $
-          [ caseActions .= actionIdReference actId ]
-          -- we update car_vin here to trigger vin-search
-          -- (it's a bit easier than adding correct trigger handling on POST request)
-          ++ maybe [] (\vin -> ["car_vin" .= (vin :: Text)]) car_vin
+  -- Fetch id of the created action and update the reverse reference
+  -- in the case.
+  let actId = fst actResp
+  liftIO $ updateInstance cp "case" caseId $ HM.fromList $
+          [ (caseActions, actionIdReference actId) ]
+          -- we update car_vin here to trigger vin-search (it's a bit
+          -- easier than adding correct trigger handling on POST
+          -- request)
+          ++ maybe [] (\vin -> [("car_vin", vin)]) car_vin
 
   writeLBS . encode $ object $ [ "caseId" .= show caseId ]
 
@@ -354,19 +323,18 @@ geoAppInit = makeSnaplet "geo" "Geoservices" Nothing $ do
     rdb <- nestSnaplet "redis" redis $ redisDBInit R.defaultConnectInfo
     cfg <- getSnapletUserConfig
 
-    nh <- liftIO $ lookupDefault
-          "http://nominatim.openstreetmap.org/reverse.php?"
-          cfg
-          "nominatim_reverse"
-
     cp <- liftIO $ lookupDefault 8000 cfg "carma_port"
+    dName <- liftIO $ lookupDefault "DealerCities" cfg "cities-dictionary"
 
     addRoutes routes
-    return $ GeoApp db rdb nh cp
+    cDict' <- liftIO $ readDictionary cp dName
+    case cDict' of
+      Just cDict -> return $ GeoApp db rdb cp cDict
+      Nothing -> error "Could not load cities dictionary from CaRMa"
 
 
 ------------------------------------------------------------------------------
--- | Use the supplied parser to read data from request parameter.
+-- | Apply a parser to read data from a named request parameter.
 getParamWith :: MonadSnap m =>
                 Parser a
              -> ByteString
@@ -377,12 +345,3 @@ getParamWith parser name = do
   return $ case input of
              Just (Right p) -> Just p
              _ -> Nothing
-
-
-------------------------------------------------------------------------------
--- | Derived from 'postRequestWithBody' from HTTP package.
-putRequestWithBody :: String -> String -> String -> H.Request_String
-putRequestWithBody urlString typ body =
-  case parseURI urlString of
-    Nothing -> error ("putRequestWithBody: Not a valid URL - " ++ urlString)
-    Just u  -> H.setRequestBody (H.mkRequest H.PUT u) (typ, body)

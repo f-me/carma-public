@@ -18,7 +18,7 @@ define ["utils", "model/main", "text!tpl/screens/editSms.html"],
 
         t.on("click.datatable", "tr", ->
           id = this.children[0].innerText
-          modelSetup("smsTpl") viewName, {"id": id},
+          main.modelSetup("smsTpl") viewName, {"id": id},
                                 permEl: "smsTpl-permissions"
                                 focusClass: "focusable"
                                 refs: refs

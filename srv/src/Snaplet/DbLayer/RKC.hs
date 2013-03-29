@@ -550,8 +550,8 @@ WITH actiontimes AS (
  AND (a2.result='serviceOrdered' 
       OR a2.result='serviceOrderedSMS')
  AND a1.name='orderService'
+ AND a1.parentid=concat(s.type, ':', s.id)
  AND cast(split_part(a1.caseid, ':', 2) as integer)=c.id
- AND cast(split_part(a1.parentid, ':', 2) as integer)=s.id
  AND (? or c.program = ?)
  AND (? or c.city = ?)
  AND c.calldate >= ?
@@ -568,8 +568,8 @@ towStartAvgTimeQuery = [sql|
 WITH actiontimes AS (
  SELECT (max(s.times_factServiceStart - a.ctime))
  FROM actiontbl a, casetbl c, servicetbl s
- WHERE cast(split_part(a.caseid, ':', 2) as integer)=c.id
- AND cast(split_part(a.parentid, ':', 2) as integer)=s.id
+ WHERE a.parentid = concat(s.type, ':', s.id)
+ AND cast(split_part(a.caseid, ':', 2) as integer)=c.id
  AND a.name='orderService'
  AND a.ctime < s.times_factServiceStart
  AND (s.type='towage' OR s.type='tech')
