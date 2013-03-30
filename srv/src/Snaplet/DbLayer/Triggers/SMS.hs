@@ -4,6 +4,7 @@ module Snaplet.DbLayer.Triggers.SMS where
 import Control.Applicative
 import Control.Monad.Trans (lift,liftIO)
 import Control.Monad
+import Control.Exception
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
@@ -34,10 +35,12 @@ render varMap = T.concat . loop
     evalVar v = Map.findWithDefault v v varMap
 
 
-formatDate :: String -> IO String
+formatDate :: String -> IO Text
 formatDate unix = do
-  tm <- utcToLocalZonedTime $ readTime defaultTimeLocale "%s" unix
-  return $ formatTime defaultTimeLocale "%F %R" tm
+  res <- try $ utcToLocalZonedTime $ readTime defaultTimeLocale "%s" unix
+  return $ case res :: Either SomeException ZonedTime of
+    Right tm -> T.pack $ formatTime defaultTimeLocale "%F %R" tm
+    Left  _  -> "неизвестно"
 
 
 
@@ -56,8 +59,10 @@ sendSMS actId tplId = do
         $ Map.findWithDefault "RAMC" program
         $ smsTokenVal dic Map.! "program_from_name"
 
-  svcTm <- svcId `get` "times_factServiceStart"
-  svcStart <- T.pack <$> liftIO (formatDate $ T.unpack $ T.decodeUtf8 svcTm)
+  eSvcTm <- svcId `get` "times_expectedServiceStart"
+  eSvcStart <- liftIO $ formatDate $ T.unpack $ T.decodeUtf8 eSvcTm
+  fSvcTm <- svcId `get` "times_factServiceStart"
+  fSvcStart <- liftIO $ formatDate $ T.unpack $ T.decodeUtf8 fSvcTm
 
   let varMap = Map.fromList
         [("program_info", (smsTokenVal dic Map.! "program_info") Map.! program)
@@ -66,7 +71,8 @@ sendSMS actId tplId = do
         ,("case.backoperator_name", Map.findWithDefault opName opName $ user dic)
         ,("case.city", Map.findWithDefault "Город" cityVal $ city dic)
         ,("case.id", (!!1) . T.splitOn ":" $ T.decodeUtf8 caseId)
-        ,("service.times_factServiceStart", svcStart)
+        ,("service.times_factServiceStart", fSvcStart)
+        ,("service.times_expectedServiceStart", eSvcStart)
         ]
   templateText <- T.decodeUtf8 <$> tplId `get` "text"
   let msg = T.encodeUtf8 $ render varMap templateText

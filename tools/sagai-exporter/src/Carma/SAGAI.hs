@@ -12,7 +12,10 @@
   This module contains definitions of how to build every field of
   SAGAI entry, all bound together in 'sagaiFullExport' action.
 
-  Exporting a case with services involves first fetching it from
+  All field combinators (type 'ExportField') use 'push' or 'pushRaw'
+  to add contents to SAGAI entry.
+
+  Exporting a case with services requires first fetching it from
   CaRMa, then using is as input data for 'runExport':
 
   > -- Fetch case
@@ -24,13 +27,14 @@
   >             return (m, i, inst))
   >
   > -- Perform export action on this data
-  > fv <- runExport sagaiFullExport cnt (res, servs) cp wazzup
+  > fv <- runExport sagaiFullExport cnt (res, servs) cp wazzup encName
 
   Note that all services attached to the case must be supplied to
   'runExport', although some of them may not end up being in SAGAI entry.
 
-  Final 'ExportState' as returned by 'runExport' may be used to keep
-  @SEP@ counter value between runs.
+  Final 'ExportState' as returned by 'runExport' contains a fully
+  formed SAGAI entry, and may also be used to keep @SEP@ counter value
+  between runs.
 
 -}
 
@@ -61,8 +65,11 @@ import Data.Aeson
 import Data.Char
 import Data.Dict as D
 import Data.Functor
+import qualified Data.HashMap.Strict as HM
 import Data.List
 import qualified Data.Map as M
+import Data.Text.Encoding
+import Data.Text.ICU.Convert
 
 import Data.Time.Clock
 import Data.Time.Format
@@ -89,9 +96,11 @@ class (Functor m, Monad m, MonadIO m) => ExportMonad m where
     getAllServices :: m [Service]
     getCarmaPort   :: m Int
     getWazzup      :: m D.Dict
+    getConverter   :: m Converter
     -- | Return expense type for the case or currently processed
     -- service, depending on monad.
     expenseType    :: m ExpenseType
+
     -- | Stop export process due to critical error.
     exportError    :: ErrorType -> m a
 
@@ -99,10 +108,10 @@ class (Functor m, Monad m, MonadIO m) => ExportMonad m where
     putState       :: ExportState -> m ()
 
     -- Fields for which export rules differ between case and services.
-    panneField     :: m BS.ByteString
-    defField       :: m BS.ByteString
-    somField       :: m BS.ByteString
-    comm3Field     :: m BS.ByteString
+    panneField     :: m Int
+    defField       :: m Int
+    somField       :: m Int
+    comm3Field     :: m Int
 
 
 instance ExportMonad CaseExport where
@@ -113,6 +122,8 @@ instance ExportMonad CaseExport where
     getCarmaPort = lift $ asks $ carmaPort . snd
 
     getWazzup = lift $ asks $ wazzup . snd
+
+    getConverter = lift $ asks $ utfConv . snd
 
     exportError e = lift $ lift $ lift $ throwError $ CaseError e
 
@@ -132,17 +143,18 @@ instance ExportMonad CaseExport where
 
     panneField = cnst "0"
 
-    defField = codeField defCode
+    defField = push =<< codeField defCode
 
-    somField = padRight 10 '0' <$> codeField (formatCost . cost)
+    somField = push =<< padRight 10 '0' <$> codeField (formatCost . cost)
 
     comm3Field = do
       servs <- getNonFalseServices
-      return $ case servs of
+      pushComment $ case servs of
         [] -> BS.empty
-        ((_, _, d):_) -> commentPad $ dataField0 "orderNumber" d
+        ((_, _, d):_) -> dataField0 "orderNumber" d
 
 
+-- | Add an entry to export log.
 exportLog :: String -> CaseExport ()
 exportLog s = lift $ lift $ tell [s]
 
@@ -155,6 +167,8 @@ instance ExportMonad ServiceExport where
     getCarmaPort = lift $ lift $ asks $ carmaPort . snd
 
     getWazzup = lift $ lift $ asks $ wazzup . snd
+
+    getConverter = lift $ lift $ asks $ utfConv . snd
 
     exportError e = do
       (m, i, _) <- getService
@@ -170,7 +184,7 @@ instance ExportMonad ServiceExport where
 
     defField = do
       et <- expenseType
-      case et of
+      push =<< case et of
         -- Special handling for rental service DEF code.
         Rent ->
             do
@@ -181,7 +195,7 @@ instance ExportMonad ServiceExport where
 
     somField = do
         et <- expenseType
-        padRight 10 '0' <$> case et of
+        push =<< padRight 10 '0' <$> case et of
           -- Special handling for rental service cost calculation.
           Rent ->
               do
@@ -236,9 +250,36 @@ instance ExportMonad ServiceExport where
                             return [oNum, pCode, pName, vin, carCl]
                       "towage" -> return [oNum, pCode]
                       _        -> error "Never happens"
-        return $ BS.intercalate " " fields
+        pushComment $ BS.intercalate " " fields
 
 
+-- | Recode a string from UTF-8 to the output encoding specified in
+-- export options.
+recode :: ExportMonad m => BS.ByteString -> m BS.ByteString
+recode bs = do
+  c <- getConverter
+  return $ fromUnicode c $ decodeUtf8 bs
+
+
+-- | Recode and add new contents to SAGAI entry, return count of bytes
+-- added.
+push :: ExportMonad m => BS.ByteString -> m Int
+push bs = recode bs >>= pushRaw
+
+
+-- | Add new contents to SAGAI entry as is without recoding, return
+-- count of bytes added.
+--
+-- Used when an input ByteString needs to be recoded and then
+-- processed prior to pushing.
+pushRaw :: ExportMonad m => BS.ByteString -> m Int
+pushRaw bs = do
+  s <- getState
+  putState s{content = BS.append (content s) bs}
+  return $ BS.length bs
+
+
+-- | Return the service being processed.
 getService :: ServiceExport Service
 getService = asks fst
 
@@ -279,7 +320,7 @@ serviceExpenseType (mn, _, d) = do
 -- Terminate export if field is not found.
 dataField :: ExportMonad m => FieldName -> InstanceData -> m FieldValue
 dataField fn d =
-  case M.lookup fn d of
+  case HM.lookup fn d of
     Just fv -> return fv
     Nothing -> exportError $ NoField fn
 
@@ -287,7 +328,7 @@ dataField fn d =
 -- | A version of 'dataField' which returns empty string if key is not
 -- present in instance data (like 'M.findWithDefault')
 dataField0 :: FieldName -> InstanceData -> FieldValue
-dataField0 fn d = M.findWithDefault BS.empty fn d
+dataField0 fn d = HM.lookupDefault BS.empty fn d
 
 
 -- | A version of 'dataField' which requires non-empty field value and
@@ -368,15 +409,17 @@ onWarranty :: ExportMonad m => m Bool
 onWarranty = callDateWithin "car_warrantyStart" "car_warrantyEnd"
 
 
-type ExportField = ExportMonad m => m BS.ByteString
+-- | An action which pushes new content to contents of the SAGAI entry
+-- and returns count of bytes added.
+type ExportField = ExportMonad m => m Int
 
 
-cnst :: ExportMonad m => a -> m a
-cnst = return
+cnst :: ExportMonad m => BS.ByteString -> m Int
+cnst = push
 
 
 newline :: B8.ByteString
-newline = "\r\n"
+newline = "\n"
 
 
 space :: Char
@@ -384,26 +427,28 @@ space = ' '
 
 
 rowBreak :: ExportField
-rowBreak = return newline
+rowBreak = push newline
 
 
 pdvField :: ExportField
 pdvField = do
   fv <- caseField1 "program"
   case fv of
-    "peugeot" -> return "RUMC01R01"
-    "citroen" -> return "FRRM01R01"
+    "peugeot" -> push "RUMC01R01"
+    "citroen" -> push "FRRM01R01"
     _         -> exportError $ UnknownProgram fv
 
 
 dtField :: ExportField
-dtField = padRight 8 '0' <$> caseField1 "id"
+dtField = push =<< padRight 8 '0' <$> caseField1 "id"
 
 
 vinField :: ExportField
 vinField = do
   bs <- caseField1 "car_vin"
-  return $ B8.pack $ map toUpper $ B8.unpack bs
+  if (B8.length bs) == 17
+  then push $ B8.pack $ map toUpper $ B8.unpack bs
+  else exportError $ BadVin bs
 
 
 dateFormat :: String
@@ -415,7 +460,7 @@ timestampToDate :: BS.ByteString -> ExportField
 timestampToDate input =
     case parseTimestamp input of
       Just time ->
-          return $ B8.pack $ formatTime defaultTimeLocale dateFormat time
+          push $ B8.pack $ formatTime defaultTimeLocale dateFormat time
       Nothing -> exportError $ BadTime input
 
 
@@ -446,11 +491,11 @@ impField = do
   let proj = if onS
              then serviceImpCode
              else impCode
-  codeField proj
+  push =<< codeField proj
 
 
 causeField :: ExportField
-causeField = padRight 15 '0' <$> codeField causeCode
+causeField = push =<< padRight 15 '0' <$> codeField causeCode
 
 
 -- | Extract properly capped amount of days from "providedFor" field
@@ -476,7 +521,7 @@ composField = do
       -- Wrap counter when it reaches 999999
       newCounter  = if newCounter' > 999999 then 0 else newCounter'
   putState $ s{counter = newCounter}
-  return $ padRight 6 '0' $ B8.pack $ show $ counter s
+  push $ padRight 6 '0' $ B8.pack $ show $ counter s
 
 
 ddgField :: ExportField
@@ -500,19 +545,19 @@ ddrField = timestampToDate =<< caseField1 "callDate"
 ddcField :: ExportField
 ddcField = do
   ctime <- liftIO $ getCurrentTime
-  return $ B8.pack $ formatTime defaultTimeLocale dateFormat ctime
+  push $ B8.pack $ formatTime defaultTimeLocale dateFormat ctime
 
 
 kmField :: ExportField
-kmField = padRight 6 '0' <$> caseField "car_mileage"
+kmField = push =<< padRight 6 '0' <$> caseField "car_mileage"
 
 
-spaces :: ExportMonad m => Int -> m BS.ByteString
-spaces n = return $ B8.replicate n space
+spaces :: ExportMonad m => Int -> m Int
+spaces n = push $ B8.replicate n space
 
 
 accordField :: ExportField
-accordField = padRight 6 space <$> caseField0 "accord"
+accordField = push =<< padRight 6 space <$> caseField0 "accord"
 
 
 nhmoField :: ExportField
@@ -528,28 +573,42 @@ fillerField = spaces 5
 
 
 -- | Pad input up to 72 characters with spaces or truncate it to be
--- under 72 chars. Remove all newlines.
-commentPad :: BS.ByteString -> BS.ByteString
-commentPad = B8.map (\c -> if B8.elem c newline then space else c) .
-             BS.take 72 .
-             padLeft 72 ' '
+-- under 72 chars. Remove all newlines. Truncation and padding is done
+-- wrt to bytestring length when encoded using output character set,
+-- not UTF-8. Processed string is then added to entry contents. Return
+-- count of bytes added.
+pushComment :: ExportMonad m =>
+              BS.ByteString
+           -- ^ Input bytestring in UTF-8.
+           -> m Int
+pushComment input =
+    do
+      inBS <- recode input
+      -- Assume space is single-byte in any of used encodings
+      space' <- B8.head <$> (recode $ B8.singleton space)
+      let outBS = B8.map (\c -> if B8.elem c newline then space else c) $
+                  BS.take 72 $
+                  padLeft 72 space' $
+                  inBS
+      pushRaw outBS
 
 
 comm1Field :: ExportField
 comm1Field = do
   val <- caseField1 "comment"
   d <- getWazzup
-  case labelOfValue val d of
-    Just label -> return $ commentPad label
-    Nothing -> return val
+  pushComment $ case labelOfValue val d of
+                  Just label -> label
+                  Nothing -> val
 
 
 comm2Field :: ExportField
-comm2Field = commentPad <$> caseField0 "dealerCause"
+comm2Field = pushComment =<< caseField0 "dealerCause"
 
 
--- | A list of field combinators to form a part of export entry.
-type ExportPart = ExportMonad m => [m BS.ByteString]
+-- | A list of field combinators (typed as ExportField) to form a part
+-- of export entry.
+type ExportPart = ExportMonad m => [m Int]
 
 
 -- | Basic part for any line.
@@ -625,9 +684,9 @@ entrySpec = concat $
 
 
 -- | Form an entry for the case or the service, depending on the
--- particular monad.
-sagaiExport :: ExportMonad m => m BS.ByteString
-sagaiExport = BS.concat <$> (mapM id entrySpec)
+-- particular monad. Return total count of bytes added.
+sagaiExport :: ExportMonad m => m Int
+sagaiExport = sum <$> mapM id entrySpec
 
 
 -- | Format service data as @towage:312@ (model name and id).
@@ -641,7 +700,7 @@ formatServiceList ss = "[" ++ (intercalate "," $ map formatService ss) ++ "]"
 
 -- | Initialize 'ServiceExport' monad and run 'sagaiExport' in it for
 -- a service.
-runServiceExport :: Service -> CaseExport BS.ByteString
+runServiceExport :: Service -> CaseExport Int
 runServiceExport s = do
   exportLog $ "Now exporting " ++ formatService s
   et <- serviceExpenseType s
@@ -650,8 +709,9 @@ runServiceExport s = do
 
 
 -- | Form a full entry for the case and its services (only those which
--- satisfy requirements defined by the spec), producing a ByteString.
-sagaiFullExport :: CaseExport BS.ByteString
+-- satisfy requirements defined by the spec). Return total byte count
+-- in the entry.
+sagaiFullExport :: CaseExport Int
 sagaiFullExport = do
   et <- expenseType
   exportLog $ "Expense type is " ++ show et
@@ -661,5 +721,6 @@ sagaiFullExport = do
   let servs = filter exportable allServs
   exportLog $ "Case services: " ++ formatServiceList allServs ++
               ", exporting: " ++ formatServiceList servs
-  servsOut <- BS.concat <$> mapM runServiceExport servs
-  return $ BS.concat [caseOut, servsOut]
+  servsOut <- sum <$> mapM runServiceExport servs
+
+  return $ caseOut + servsOut

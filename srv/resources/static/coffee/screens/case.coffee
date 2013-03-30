@@ -147,7 +147,7 @@ define [ "utils"
                   }
 
       unless table.hasClass("dataTable")
-        utils.mkDataTable table, tblOpts
+        utils.mkDataTable table, $.extend(tblOpts, {sScrollY: "200px"})
         table.on "click.datatable", "tr", ->
           name = this.children[0].innerText
           city = this.children[1].innerText
