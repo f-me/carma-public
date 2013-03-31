@@ -2,11 +2,11 @@
 
 {-|
 
-  Expense types, codes and servicing costs.
-  
-  These should not fall into wrong hands.
+Expense types, codes and servicing costs.
 
-  TODO Load sensitive data from external files.
+These should not fall into wrong hands.
+
+TODO Load sensitive data from external files.
 
 -}
 
