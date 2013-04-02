@@ -1,6 +1,6 @@
 {-|
 
-  Various string helpers used during export process.
+Various string helpers used during export process.
 
 -}
 
