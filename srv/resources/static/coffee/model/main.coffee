@@ -137,7 +137,9 @@ define [ "model/meta"
     for f of instance.fieldHash
       knockVM["#{f}Disabled"] = ko.computed
         read: ->
-          not _.isNaN parseInt(knockVM["maybeId"]())
+          mbid = parseInt(knockVM["maybeId"]())
+          dixi = if knockVM["dixi"] then knockVM["dixi"]()
+          (not _.isNaN mbid) and dixi
         write: (a) -> null
 
     applyHooks global.hooks.observable,

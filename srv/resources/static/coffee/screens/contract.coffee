@@ -14,8 +14,7 @@ define [
           viewName, args,
             permEl: "contract-permissions"
             focusClass: "focusable"
-            refs: []
-            bb: { manual_save: true })
+            refs: [])
 
       kvm = setupModel args
       setTimeout ->

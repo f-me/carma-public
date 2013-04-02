@@ -710,6 +710,31 @@
       </div>
     </script>
 
+    <script type="text/template"
+            class="field-template"
+            id="checkbutton-field-template">
+      <div class="control-group">
+        <div class="controls checkbutton">
+          <label class="checkbox inline">
+            <input type="checkbox"
+                   name="{{ name }}"
+                   {{# readonly }}disabled{{/ readonly }}
+                   data-bind="checked: {{ name }},
+                              valueUpdate: 'change',
+                              disabled: {{ name }}Disabled" />
+            <span class="btn btn-success"
+                  data-bind="disabled: {{ name }}Disabled">
+              {{ meta.label }}
+            </span>
+          {{# meta.infoText1 }}
+            <i class="icon icon-question-sign"
+               data-provide="popover"
+               data-content="{{ meta.infoText1 }}" />
+          {{/ meta.infoText1 }}
+          </label>
+        </div>
+      </div>
+    </script>
 
     <script type="text/template"
             class="field-template"
