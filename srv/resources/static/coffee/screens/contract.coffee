@@ -68,7 +68,7 @@ define [
         if args.id == null && args.program == '2'
           kvm.carMake 'vw'
         kvm.maybeId.subscribe ->
-          getContracts kvm['id']() (objs) -> dt.fnAddData objs.map sk.mkRow
+          getContracts kvm['id'](), (objs) -> dt.fnAddData objs.map sk.mkRow
 
 reformatDate = (date)->
   [_, d, m, y] = date.match(/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/)
