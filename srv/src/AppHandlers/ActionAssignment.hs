@@ -24,7 +24,7 @@ import Application
 import AppHandlers.CustomSearches
 import AppHandlers.Util
 
-import Snaplet.Auth.PGRoles
+import Snaplet.Auth.PGUsers
 
 
 assignQ :: Int -> AuthUser -> [Text] -> Query

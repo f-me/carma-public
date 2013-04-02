@@ -56,7 +56,7 @@ import Snap.Util.FileServe (serveFile, serveFileAs)
 import Carma.Partner
 import WeatherApi (getWeather', tempC, Config)
 -----------------------------------------------------------------------------
-import Snaplet.Auth.PGUsersDict
+import Snaplet.Auth.PGUsers
 import qualified Snaplet.DbLayer as DB
 import qualified Snaplet.DbLayer.Types as DB
 import qualified Snaplet.DbLayer.ARC as ARC

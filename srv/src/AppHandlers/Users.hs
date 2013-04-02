@@ -21,7 +21,7 @@ import Snap.Snaplet.Auth hiding (session)
 
 import Application
 import AppHandlers.Util
-import Snaplet.Auth.PGRoles
+import Snaplet.Auth.PGUsers
 
 
 ------------------------------------------------------------------------------

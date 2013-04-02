@@ -21,7 +21,7 @@ import Snap.Snaplet.PostgresqlSimple
 
 ----------------------------------------------------------------------
 import Snaplet.Auth.Class
-import Snaplet.Auth.PGRoles
+import Snaplet.Auth.PGUsers
 
 import Snaplet.SiteConfig.Types
 import Snaplet.SiteConfig.Permissions

@@ -30,7 +30,7 @@ import qualified Database.PostgreSQL.Simple.ToField as PS
 import Database.PostgreSQL.Simple.SqlQQ
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 
-import Snaplet.Auth.PGUsersDict
+import Snaplet.Auth.PGUsers
 import Snaplet.DbLayer.Dictionary
 import Snaplet.DbLayer.ARC
 
