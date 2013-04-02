@@ -317,7 +317,7 @@ rkcActions fromDate toDate constraints actions = scope "rkcActions" $ do
     "actions" .= as]
 
 -- | Average time for each operator and action
-rkcEachActionOpAvg :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> PreQuery -> [(T.Text, T.Text, T.Text)] -> [T.Text] -> m Value
+rkcEachActionOpAvg :: (PS.HasPostgres m, MonadLog m) => UTCTime -> UTCTime -> PreQuery -> [(T.Text, T.Text)] -> [T.Text] -> m Value
 rkcEachActionOpAvg fromDate toDate constraints usrs acts = scope "rkcEachActionOpAvg" $ do
   r <- trace "result" $ runQuery_ $ mconcat [
     constraints,
@@ -337,8 +337,8 @@ rkcEachActionOpAvg fromDate toDate constraints usrs acts = scope "rkcEachActionO
     groupResult :: [(T.Text, T.Text, Integer, Integer)] -> [(T.Text, [(T.Text, (Integer, Integer))])]
     groupResult = map (first head . unzip) . L.groupBy ((==) `on` fst) . map (\(aTo, nm, avgTm, cnt) -> (aTo, (nm, (avgTm, cnt))))
 
-    toInfo :: [(T.Text, [(T.Text, (Integer, Integer))])] -> (T.Text, T.Text, T.Text) -> Maybe Value
-    toInfo stats (n, label, _) = fmap fromStat $ lookup n stats where
+    toInfo :: [(T.Text, [(T.Text, (Integer, Integer))])] -> (T.Text, T.Text) -> Maybe Value
+    toInfo stats (n, label) = fmap fromStat $ lookup n stats where
       fromStat :: [(T.Text, (Integer, Integer))] -> Value
       fromStat st = object [
         "name" .= label,
@@ -456,7 +456,7 @@ rkc (UsersList usrs) filt@(Filter fromDate toDate program city partner) = scope 
       ifNotNull city $ equals "casetbl" "city",
       ifNotNull partner $ equalsTo "servicetbl" "trim(servicetbl.contractor_partner)"]
     usrs' = sort $ nub $ map toUsr usrs
-    toUsr m = (maybe "" T.decodeUtf8 $ M.lookup "value" m, maybe "" T.decodeUtf8 $ M.lookup "label" m, maybe "" T.decodeUtf8 $ M.lookup "roles" m)
+    toUsr m = (maybe "" T.decodeUtf8 $ M.lookup "value" m, maybe "" T.decodeUtf8 $ M.lookup "label" m)
 
 rkcFront :: (PS.HasPostgres m, MonadLog m) => Filter -> m Value
 rkcFront filt@(Filter fromDate toDate program city _) = scope "rkc" $ scope "front" $ do
