@@ -27,8 +27,8 @@ import AppHandlers.Util
 import Snaplet.Auth.PGUsers
 
 
-assignQ :: Int -> AuthUser -> [Text] -> Query
-assignQ pri usr logdUsers = fromString
+assignQ :: Int -> AuthUser -> UserMeta -> [Text] -> Query
+assignQ pri usr meta logdUsers = fromString
   $  "UPDATE actiontbl SET assignedTo = '" ++ uLogin ++ "'"
   ++ "  WHERE id = (SELECT act.id"
   ++ "    FROM (actiontbl act LEFT JOIN servicetbl svc"
@@ -55,27 +55,28 @@ assignQ pri usr logdUsers = fromString
   ++ "  RETURNING id::text;"
   where
     uLogin = T.unpack $ userLogin usr
-    uRoles = intercalate "','" [B.unpack r | Role r <- userRoles usr]
+    uRoles = intercalate "','" [B.unpack r | Role r <- metaRoles meta]
     logdUsersList = T.unpack $ T.intercalate "','" logdUsers
-    mkSet = T.unpack . T.intercalate "','" . T.split (==',')
-    citySet = case HashMap.lookup "boCities" $ userMeta usr of
-      Just (Aeson.String xx) | not $ T.null xx -> Just $ mkSet xx
+    mkSet = B.unpack . B.intercalate "','"
+    citySet = case boCities meta of
+      Just c | not $ null c -> Just $ mkSet c
       _ -> Nothing
-    programSet = case HashMap.lookup "boPrograms" $ userMeta usr of
-      Just (Aeson.String xx) | not $ T.null xx -> Just $ mkSet xx
+    programSet = case boPrograms meta of
+      Just p | not $ null p -> Just $ mkSet p
       _ -> Nothing
 
 
 littleMoreActionsHandler :: AppHandler ()
 littleMoreActionsHandler = scoper "littleMoreActions" $ do
   Just cUsr <- with auth currentUser
-  -- Use PG roles to assign actions
+  -- Use PG roles to assign actions and PG meta for city&program filters
   cUsr' <- with authDb $ replaceRolesFromPG cUsr
+  Just meta <- with authDb $ userMetaPG cUsr
   logdUsers <- map (userLogin.snd) . Map.elems <$> addToLoggedUsers cUsr'
 
-  actIds1 <- withPG pg_actass (`query_` assignQ 1 cUsr' logdUsers)
-  actIds2 <- withPG pg_actass (`query_` assignQ 2 cUsr' logdUsers)
-  actIds3 <- withPG pg_actass (`query_` assignQ 3 cUsr' logdUsers)
+  actIds1 <- withPG pg_actass (`query_` assignQ 1 cUsr' meta logdUsers)
+  actIds2 <- withPG pg_actass (`query_` assignQ 2 cUsr' meta logdUsers)
+  actIds3 <- withPG pg_actass (`query_` assignQ 3 cUsr' meta logdUsers)
   let actIds = actIds1 ++ actIds2 ++ actIds3
 
   let uLogin = T.encodeUtf8 $ userLogin cUsr'
