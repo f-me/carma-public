@@ -167,7 +167,8 @@ fetchExportDicts cp = do
   w <- readDictionary cp "Wazzup"
   t <- readDictionary cp "TechTypes"
   c <- readDictionary cp "CarClasses"
-  return $ ExportDicts <$> w <*> t <*> c
+  r <- readDictionary cp "Result"
+  return $ ExportDicts <$> w <*> t <*> c <*> r
 
 
 -- | Attempt to fetch a list of cases to be exported from CaRMa, as

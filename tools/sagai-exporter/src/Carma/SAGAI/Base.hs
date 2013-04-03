@@ -63,6 +63,9 @@ data ExportDicts = ExportDicts { wazzup :: D.Dict
                                , carClasses :: D.Dict
                                -- ^ Dictionary used on the @carClass@
                                -- field of a @rent@ service.
+                               , result :: D.Dict
+                               -- ^ Dictionary used on the @result@
+                               -- field of a @consultation@ service.
                                }
 
 

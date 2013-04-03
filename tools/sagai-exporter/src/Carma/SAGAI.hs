@@ -263,6 +263,12 @@ instance ExportMonad ServiceExport where
                           dataField0 "code" <$>
                           (liftIO $ readInstance cp "partner" pid)
                     return [oNum, pCode]
+              "consultation" ->
+                  do
+                    res <- labelOfValue
+                           (dataField0 "result" d)
+                           (getDict result)
+                    return [oNum, res]
               _ -> error "Never happens"
         pushComment $ BS.intercalate " " fields
 
