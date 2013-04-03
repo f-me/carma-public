@@ -163,8 +163,8 @@ usersListPG = do
   rows <- query_ allUsersQuery
   return $ UsersList $ map toEntry rows
       where
-        toEntry :: ([Text] :. UserMeta) -> UserEntry
-        toEntry ((login:[]) :. meta) = 
+        toEntry :: ((Only Text) :. UserMeta) -> UserEntry
+        toEntry ((Only login) :. meta) = 
             (M.insert "value" $ encodeUtf8 login) $
             (M.insert "label" $ encodeUtf8 $
              fromMaybe login $ realName meta) $
