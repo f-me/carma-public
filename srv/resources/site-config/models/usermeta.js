@@ -39,6 +39,13 @@
             "meta": {
                 "dictionaryName": "Programs"
             }
+        },
+        {
+            "name": "weathercities",
+            "type": "dictionary-many",
+            "meta": {
+                "dictionaryName": "DealerCities"
+            }
         }
     ]
 }
