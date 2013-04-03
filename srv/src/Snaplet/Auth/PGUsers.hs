@@ -139,6 +139,8 @@ replaceRolesFromPG user =
 type UserEntry = M.Map ByteString ByteString
 
 
+-- | List of entries for all users present in the database, used to
+-- serve user DB to client.
 data UsersList = UsersList [UserEntry]
                  deriving (Show)
 

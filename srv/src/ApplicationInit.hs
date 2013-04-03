@@ -92,8 +92,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/rkc/front",     chkAuthLocal . method GET $ rkcFrontHandler)
          , ("/rkc/partners",  chkAuthLocal . method GET $ rkcPartners)
          , ("/arc/:year/:month", chkAuthLocal . method GET $ arcReportHandler)
-         -- TODO Rename this method
-         , ("/usersDict",     chkAuth . method GET  $ serveUsersList)
+         , ("/usersList",     chkAuth . method GET  $ serveUsersList)
          , ("/userMeta/:usr", chkAuthLocal . method PUT  $ setUserMeta)
          , ("/activeUsers",   chkAuthLocal . method GET  $ getActiveUsers)
          , ("/partner/upload.csv",
