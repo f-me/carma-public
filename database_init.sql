@@ -177,7 +177,7 @@ create view servicesview as
 GRANT SELECT ON servicesview TO carma_db_sync;
 
 -- Run after first CaRMa run with PG auth backend installed
-CREATE TABLE usermetatbl (uid INTEGER REFERENCES snap_auth_user(uid),
+CREATE TABLE usermetatbl (id INTEGER REFERENCES snap_auth_user(uid),
                           roles TEXT[],
                           realName TEXT,
                           boCities TEXT[],

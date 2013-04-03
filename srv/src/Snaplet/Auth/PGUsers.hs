@@ -12,7 +12,7 @@ system.
 
 Roles are stored in @usermetatbl@ table with the following schema:
 
-> CREATE TABLE usermetatbl (uid INTEGER references snap_auth_user(uid),
+> CREATE TABLE usermetatbl (id INTEGER references snap_auth_user(uid),
 >                           role TEXT[],
 >                           realName TEXT,
 >                           boCities TEXT[],
@@ -86,7 +86,7 @@ instance FromField [ByteString] where
 -- parameter.
 userMetaQuery :: Query
 userMetaQuery = [sql|
-SELECT * FROM usermetatbl WHERE uid=?;
+SELECT * FROM usermetatbl WHERE id=?;
 |]
 
 
@@ -94,7 +94,7 @@ SELECT * FROM usermetatbl WHERE uid=?;
 -- | Select logins, roles and metas for all users.
 allUsersQuery :: Query
 allUsersQuery = [sql|
-SELECT u.login, m.* FROM usermetatbl m, snap_auth_user u WHERE u.uid=m.uid;
+SELECT u.login, m.* FROM usermetatbl m, snap_auth_user u WHERE u.uid=m.id;
 |]
 
 
