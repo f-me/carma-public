@@ -113,6 +113,8 @@ class (Functor m, Monad m, MonadIO m) => ExportMonad m where
     panneField     :: m Int
     defField       :: m Int
     somField       :: m Int
+    comm1Field     :: m Int
+    comm2Field     :: m Int
     comm3Field     :: m Int
 
 
@@ -140,6 +142,12 @@ instance ExportMonad CaseExport where
     defField = push =<< codeField defCode
 
     somField = push =<< padRight 10 '0' <$> codeField (formatCost . cost)
+
+    comm1Field = do
+      val <- caseField1 "comment"
+      pushComment =<< tryLabelOfValue val (getDict wazzup)
+
+    comm2Field = pushComment =<< caseField0 "dealerCause"
 
     comm3Field = do
       servs <- getNonFalseServices
@@ -203,6 +211,20 @@ instance ExportMonad ServiceExport where
                           Nothing -> 0
                 return $ formatCost (dailyCost * (fromIntegral $ capRentDays d))
           _ -> codeField (formatCost . cost)
+
+    comm1Field = do
+        (mn, _, _) <- getService
+        -- Override COMM1 contents only for rental service
+        case mn of
+          "rent" -> pushComment =<< caseField0 "contactName"
+          _      -> lift $ comm1Field
+
+    comm2Field = do
+        (mn, _, d) <- getService
+        -- Override COMM1 contents only for rental service
+        case mn of
+          "rent" -> pushComment $ B8.pack $ show $ capRentDays d
+          _      -> lift $ comm2Field
 
     comm3Field = do
         (mn, _, d) <- getService
@@ -604,16 +626,6 @@ tryLabelOfValue val dict = do
   return $ case D.labelOfValue val d of
     Just label -> label
     Nothing -> val
-
-
-comm1Field :: ExportField
-comm1Field = do
-  val <- caseField1 "comment"
-  pushComment =<< tryLabelOfValue val (getDict wazzup)
-
-
-comm2Field :: ExportField
-comm2Field = pushComment =<< caseField0 "dealerCause"
 
 
 -- | A list of field combinators (typed as ExportField) to form a part
