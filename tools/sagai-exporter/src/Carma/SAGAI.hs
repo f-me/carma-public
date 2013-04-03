@@ -240,7 +240,7 @@ instance ExportMonad ServiceExport where
                       (False, Just (_, pid)) ->
                           dataField0 "code" <$>
                           (liftIO $ readInstance cp "partner" pid)
-м                    return [oNum, pCode]
+                    return [oNum, pCode]
               _ -> error "Never happens"
         pushComment $ BS.intercalate " " fields
 
