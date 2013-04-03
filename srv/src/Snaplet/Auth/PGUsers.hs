@@ -15,8 +15,8 @@ Roles are stored in @usermetatbl@ table with the following schema:
 > CREATE TABLE usermetatbl (uid INTEGER references snap_auth_user(uid),
 >                           role TEXT[],
 >                           realName TEXT,
->                           boCities TEXT,
->                           boPrograms TEXT);
+>                           boCities TEXT[],
+>                           boPrograms TEXT[]);
 
 -}
 
@@ -63,8 +63,8 @@ import qualified Data.Vector as V
 -- weathercities (TODO) is stored as a list.
 data UserMeta = UserMeta { metaRoles  :: [Role]
                          , realName   :: Text
-                         , boCities   :: Text
-                         , boPrograms :: Text
+                         , boCities   :: [ByteString]
+                         , boPrograms :: [ByteString]
                          }
 
 
@@ -79,6 +79,10 @@ instance FromRow UserMeta where
 
 instance FromField [Role] where
     fromField f dat = (map Role . V.toList) <$> fromField f dat
+
+
+instance FromField [ByteString] where
+    fromField f dat = V.toList <$> fromField f dat
 
 
 ------------------------------------------------------------------------------
@@ -162,7 +166,8 @@ usersListPG = do
         toEntry ((login:[]) :. meta) = 
             (M.insert "value" $ encodeUtf8 login) $
             (M.insert "label" $ encodeUtf8 $ realName meta) $
-            (M.insert "roles" $ 
-              intercalate "," $
+            (M.insert "roles" $ intercalate "," $
               map (\(Role r) -> r) $ metaRoles meta) $
+            (M.insert "boCities" $ intercalate "," $ boCities meta) $
+            (M.insert "boPrograms" $ intercalate "," $ boPrograms meta) $
             M.empty
