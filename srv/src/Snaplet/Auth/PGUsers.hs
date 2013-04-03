@@ -42,6 +42,7 @@ import Data.Aeson.TH
 import Data.ByteString.Char8 (ByteString, intercalate)
 import Data.Text (Text)
 import Data.Text.Encoding
+import Data.Maybe
 import Data.Map as M (Map, empty, insert)
 import Data.HashMap.Strict (HashMap)
 
@@ -62,9 +63,9 @@ import qualified Data.Vector as V
 -- boCities/Programs are both stored as comma-separated strings.
 -- weathercities (TODO) is stored as a list.
 data UserMeta = UserMeta { metaRoles  :: [Role]
-                         , realName   :: Text
-                         , boCities   :: [ByteString]
-                         , boPrograms :: [ByteString]
+                         , realName   :: Maybe Text
+                         , boCities   :: Maybe [ByteString]
+                         , boPrograms :: Maybe [ByteString]
                          }
 
 
@@ -133,8 +134,8 @@ replaceRolesFromPG user =
 
 
 -- | UserEntry contains keys: @value@ for login, @label@ for realName
--- meta, @roles@ for comma-separated list of user roles, all other
--- meta keys.
+-- meta (or login when realName is not present), @roles@ for
+-- comma-separated list of user roles, all other meta keys.
 type UserEntry = M.Map ByteString ByteString
 
 
@@ -165,9 +166,12 @@ usersListPG = do
         toEntry :: ([Text] :. UserMeta) -> UserEntry
         toEntry ((login:[]) :. meta) = 
             (M.insert "value" $ encodeUtf8 login) $
-            (M.insert "label" $ encodeUtf8 $ realName meta) $
+            (M.insert "label" $ encodeUtf8 $
+             fromMaybe login $ realName meta) $
             (M.insert "roles" $ intercalate "," $
-              map (\(Role r) -> r) $ metaRoles meta) $
-            (M.insert "boCities" $ intercalate "," $ boCities meta) $
-            (M.insert "boPrograms" $ intercalate "," $ boPrograms meta) $
+             map (\(Role r) -> r) $ metaRoles meta) $
+            (M.insert "boCities" $ intercalate "," $ 
+             fromMaybe [] $ boCities meta) $
+            (M.insert "boPrograms" $ intercalate "," $
+             fromMaybe [] $ boPrograms meta) $
             M.empty
