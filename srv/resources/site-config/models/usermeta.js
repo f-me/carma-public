@@ -23,13 +23,22 @@
             "name": "roles",
             "meta": {
                 "label": "Роли"
+            },
+            "type": "dictionary-many"
+        },
+        {
+            "name": "boCities",
+            "type": "dictionary-many",
+            "meta": {
+                "dictionaryName": "DealerCities"
             }
         },
         {
-            "name": "boCities"
-        },
-        {
-            "name": "boPrograms"
+            "name": "boPrograms",
+            "type": "dictionary-many",
+            "meta": {
+                "dictionaryName": "Programs"
+            }
         }
     ]
 }
