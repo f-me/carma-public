@@ -49,6 +49,9 @@ data CodeRow = CodeRow { cost             :: Double
 
 
 -- | List of costs and I/C/D codes for all programs and expenses.
+--
+-- Costs for Rent expenses are ignored (see 'rentCostsPSA' &
+-- 'rentCosts' instead).
 codesData :: M.Map (FieldValue, ExpenseType) CodeRow
 codesData = M.fromList
     [ (("citroen", Dossier),     CodeRow 1148    "DV1" "DV4" "9938" "G5F")
@@ -68,7 +71,7 @@ codesData = M.fromList
     , (("peugeot", Starter),     CodeRow 2153.5  "24E" "FCA" "8963" "G5D")
     , (("peugeot", Towage),      CodeRow 3434.98 "24E" "FCA" "8950" "G5D")
     , (("peugeot", RepTowage),   CodeRow 2370.62 "24E" "FCA" "8983" "G5D")
-    , (("peugeot", Rent),        CodeRow 0       "F6R" "FCA" "8997" "PZD")
+    , (("peugeot", Rent),        CodeRow 0       "24E" "FCA" "8997" "PZD")
     ]
 
 
