@@ -15,6 +15,7 @@ module Carma.SAGAI.Codes
     ( ExpenseType(..)
     , CodeRow(..)
     , codesData
+    , rentCostsPSA
     , rentCosts
     )
 
@@ -71,17 +72,27 @@ codesData = M.fromList
     ]
 
 
--- | Daily costs for car rent service.
+-- | Daily costs for car rent service provided by PSA dealers.
+--
+-- Map key is a @(program, carClass)@ tuple.
+rentCostsPSA :: M.Map (FieldValue, FieldValue) Double
+rentCostsPSA = M.fromList
+    [ (("citroen", "psab"),  1729)
+    , (("citroen", "psam1"), 2034)
+    , (("citroen", "psam2"), 2848)
+    , (("peugeot", "psab"),  2040.22)
+    , (("peugeot", "psam1"), 2400.12)
+    , (("peugeot", "psam2"), 3360.64)
+    ]
+
+
+-- | Daily costs for car rent service provided by third-party dealers.
 rentCosts :: M.Map (FieldValue, FieldValue) Double
 rentCosts = M.fromList
-    [ (("citroen", "psab"),  1758)
-    , (("citroen", "psam1"), 2310)
-    , (("citroen", "psam2"), 3041)
-    , (("citroen", "psah"),  3994)
-    , (("citroen", "psam"),  2310)
-    , (("peugeot", "psab"),  2074.44)
-    , (("peugeot", "psam1"), 2725.8)
-    , (("peugeot", "psam2"), 3588.38)
-    , (("peugeot", "psah"),  4712.92)
-    , (("peugeot", "psam"),  2725.8)
+    [ (("citroen", "psab"),  1441)
+    , (("citroen", "psam1"), 1695)
+    , (("citroen", "psam2"), 2373)
+    , (("peugeot", "psab"),  1700.38)
+    , (("peugeot", "psam1"), 2000.1)
+    , (("peugeot", "psam2"), 2800.14)
     ]

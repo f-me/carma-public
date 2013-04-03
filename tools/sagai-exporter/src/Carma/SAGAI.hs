@@ -193,9 +193,9 @@ instance ExportMonad ServiceExport where
               do
                 program <- caseField "program"
                 (_, _, d) <- getService
-                autoClass <- dataField1 "carClass" d
+                carClass <- dataField1 "carClass" d
                 let dailyCost =
-                        case M.lookup (program, autoClass) rentCosts of
+                        case M.lookup (program, carClass) rentCosts of
                           Just dc -> dc
                           -- Zero cost for unknown car classes.
                           Nothing -> 0
