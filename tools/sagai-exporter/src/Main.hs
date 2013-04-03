@@ -8,6 +8,7 @@ CLI tool used to perform SAGAI export, with logging and FTP operation.
 
 -}
 
+import Control.Applicative
 import Control.Concurrent
 import Control.Monad
 import Control.Monad.IO.Class
@@ -19,7 +20,6 @@ import qualified Data.ByteString.Lazy.Char8 as BSL
 import Data.Aeson
 import Data.Either
 import Data.Maybe
-import Data.Dict as D
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Text as T
 
@@ -49,12 +49,11 @@ exportCase :: Int
            -- ^ Case ID.
            -> Int
            -- ^ CaRMa port.
-           -> Dict
-           -- ^ Wazzup dictionary.
+           -> ExportDicts
            -> String
            -- ^ Name of an output character set.
            -> IO (Either ExportError (BS.ByteString, Int, [String]))
-exportCase cnt caseNumber cp wazzup encName = do
+exportCase cnt caseNumber cp ds encName = do
   -- Read case with provided number and all of the associated services
   res <- readInstance cp "case" caseNumber
 
@@ -68,7 +67,7 @@ exportCase cnt caseNumber cp wazzup encName = do
                   inst <- readInstance cp m i
                   return (m, i, inst)
 
-  fv <- runExport sagaiFullExport cnt (res, servs) cp wazzup encName
+  fv <- runExport sagaiFullExport cnt (res, servs) cp ds encName
   case fv of
     Left err ->
         return $ Left err
@@ -100,12 +99,11 @@ exportManyCases :: Int
                 -- ^ List of case IDs.
                 -> Int
                 -- ^ CaRMa port.
-                -> Dict
-                -- ^ Wazzup dictionary.
+                -> ExportDicts
                 -> String
                 -- ^ Name of an output character set.
                 -> IO (Int, [(Int, ExportError)], BS.ByteString)
-exportManyCases initialCnt cases cp wazzup encName =
+exportManyCases initialCnt cases cp ds encName =
     let
         -- Runs 'exportCase' in ComposMonad
         exportCaseWithCompos :: Int
@@ -113,7 +111,7 @@ exportManyCases initialCnt cases cp wazzup encName =
                                 (Either (Int, ExportError) BS.ByteString)
         exportCaseWithCompos caseNumber = do
           cnt <- get
-          res <- liftIO $ exportCase cnt caseNumber cp wazzup encName
+          res <- liftIO $ exportCase cnt caseNumber cp ds encName
           case res of
             Left err -> return $ Left (caseNumber, err)
             Right (entry, newCnt, _) -> do
@@ -164,16 +162,12 @@ programName :: String
 programName = "sagai-exporter"
 
 
-wazzupName :: String
-wazzupName = "Wazzup"
-
-
--- | Load Wazzup dictionary from local CaRMa or a file.
-loadWazzup :: Either Int FilePath
-           -- ^ CaRMa port or local file path.
-           -> IO (Maybe Dict)
-loadWazzup (Right fp) = loadDict fp
-loadWazzup (Left cp)  = readDictionary cp wazzupName
+fetchExportDicts :: Int -> IO (Maybe ExportDicts)
+fetchExportDicts cp = do
+  w <- readDictionary cp "Wazzup"
+  t <- readDictionary cp "TechTypes"
+  c <- readDictionary cp "CarClasses"
+  return $ ExportDicts <$> w <*> t <*> c
 
 
 -- | Attempt to fetch a list of cases to be exported from CaRMa, as
@@ -245,7 +239,6 @@ handleReadFunction fh ptr size nmemb _ = do
 -- | Holds all options passed from command-line.
 data Options = Options { carmaPort     :: Int
                        , composPath    :: FilePath
-                       , dictPath      :: Maybe FilePath
                        , ftpServer     :: Maybe String
                        , remotePath    :: Maybe FilePath
                        , encoding      :: String
@@ -278,9 +271,6 @@ main =
                  , composPath = ".compos"
                    &= name "c"
                    &= help "Path to a file used to store COMPOS counter value"
-                 , dictPath = Nothing
-                   &= name "d"
-                   &= help "Path to a file with Wazzup dictionary"
                  , ftpServer = Nothing
                    &= name "f"
                    &= help ("URL of an FTP server to upload the result to. " ++
@@ -349,16 +339,10 @@ main =
          cnt <- liftIO $ loadCompos composPath
          logInfo $ "COMPOS counter value: " ++ show cnt
 
-         -- Load Wazzup dictionary from file if specified, otherwise
-         -- poll CaRMa.
-         wazzupRes <-
-             case dictPath of
-               Just fp -> do
-                 logInfo $ "Loading Wazzup dictionary from file " ++ fp
-                 liftIO $ loadWazzup (Right fp)
-               Nothing -> do
-                 logInfo "Loading Wazzup dictionary from CaRMa"
-                 liftIO $ loadWazzup (Left carmaPort)
+         -- Load Wazzup dictionaries from CaRMa.
+         dictsRes <- do
+             logInfo "Loading dictionaries from CaRMa"
+             liftIO $ fetchExportDicts carmaPort
 
          -- If any case numbers supplied on command line, use them.
          -- Otherwise, fetch case numbers from local CaRMa.
@@ -374,19 +358,19 @@ main =
                  logInfo $ "Using case numbers specified in the command line"
                  return $ Just l
 
-         case (wazzupRes, cNumRes) of
+         case (dictsRes, cNumRes) of
            (Nothing, _) ->
-               logError "Could not load Wazzup dictionary"
+               logError "Could not load dictionaries from CaRMa"
            (_, Nothing) ->
                logError "Could not fetch case numbers from CaRMa"
-           (Just wazzup, Just caseNumbers) ->
+           (Just dicts, Just caseNumbers) ->
                do
 
                  logInfo $ "Exporting cases: " ++ show caseNumbers
                  -- Bulk export of selected cases
                  (newCnt, errors, res) <-
                      liftIO $
-                     exportManyCases cnt caseNumbers carmaPort wazzup encoding
+                     exportManyCases cnt caseNumbers carmaPort dicts encoding
 
                  -- Dump errors if there're any
                  when (not $ null errors) $ forM_ errors $

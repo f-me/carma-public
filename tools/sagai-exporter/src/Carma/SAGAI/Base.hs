@@ -9,6 +9,7 @@ module Carma.SAGAI.Base
     ( ExportData
     , Service
     , ExportState(..)
+    , ExportDicts(..)
     , ExportOptions(..)
     -- * Export monads
     , CaseExport
@@ -51,12 +52,24 @@ data ExportState = ExportState { counter :: Int
                                }
 
 
+-- | Various dictionaries used during export process to map values
+-- stored in fields to corresponding dictionary labels.
+data ExportDicts = ExportDicts { wazzup :: D.Dict
+                               -- ^ Dictionary used on the @comment@
+                               -- field of a case.
+                               , techTypes :: D.Dict
+                               -- ^ Dictionary used on the @techType@
+                               -- field of a @tech@ service.
+                               , carClasses :: D.Dict
+                               -- ^ Dictionary used on the @carClass@
+                               -- field of a @rent@ service.
+                               }
+
+
 -- | Read only options used when processing a case.
 data ExportOptions = ExportOptions { carmaPort :: Int
                                    -- ^ CaRMa port.
-                                   , wazzup :: D.Dict
-                                   -- ^ Dictionary used on the @comment@
-                                   -- field of a case.
+                                   , dicts :: ExportDicts
                                    , utfConv :: Converter
                                    -- ^ A converter used to encode
                                    -- text from UTF-8 to target
@@ -97,6 +110,7 @@ data ErrorType = NoField FieldName
                | UnknownService String
                | UnknownTechType FieldValue
                | UnreadableContractorId FieldValue
+               | UnknownDictValue FieldValue
                | BadTime FieldValue
                | BadDays FieldValue
                | BadVin FieldValue
@@ -117,14 +131,14 @@ runExport :: CaseExport a
           -- ^ Case and all of its services.
           -> Int
           -- ^ CaRMa port.
-          -> D.Dict
-          -- ^ Wazzup dictionary.
+          -> ExportDicts
           -> String
           -- ^ Name of an output character set.
           -> IO (Either ExportError ((a, ExportState), [String]))
-runExport act sepStart input cp wz eName = do
+runExport act sepStart input cp ds eName = do
     e <- open eName Nothing
-    let inner = runReaderT (runStateT act $ ExportState sepStart BS.empty) $
-                (input, ExportOptions cp wz e)
+    let options = ExportOptions cp ds e
+        inner = runReaderT (runStateT act $ ExportState sepStart BS.empty) $
+                (input, options)
     res <- runErrorT $ runWriterT inner
     return res
