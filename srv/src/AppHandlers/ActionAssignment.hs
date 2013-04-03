@@ -6,13 +6,11 @@ import Control.Applicative
 import Data.String (fromString)
 
 import Data.List (intercalate)
-import qualified Data.HashMap.Strict as HashMap
 import qualified Data.Map as Map
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.ByteString.Char8 as B
-import qualified Data.Aeson as Aeson
 
 import Snap
 import Snap.Snaplet.Auth

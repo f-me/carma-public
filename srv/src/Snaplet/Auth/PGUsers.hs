@@ -34,19 +34,14 @@ module Snaplet.Auth.PGUsers
 where
 
 import Control.Applicative
-import Data.Functor
-import Control.Monad
 
-import Data.Aeson
 import Data.Aeson.TH
 import Data.ByteString.Char8 (ByteString, intercalate)
 import Data.Text (Text)
 import Data.Text.Encoding
 import Data.Maybe
 import Data.Map as M (Map, empty, insert)
-import Data.HashMap.Strict (HashMap)
 
-import Database.PostgreSQL.Simple ((:.))
 import Database.PostgreSQL.Simple.FromRow
 import Database.PostgreSQL.Simple.FromField
 import Database.PostgreSQL.Simple.SqlQQ
@@ -145,17 +140,6 @@ data UsersList = UsersList [UserEntry]
                  deriving (Show)
 
 $(deriveToJSON id ''UsersList)
-
-
-------------------------------------------------------------------------------
--- | Select all user logins together with comma-separated lists of
--- attached roles.
-usersListQuery :: Query
-usersListQuery = [sql|
-SELECT login,roles
-FROM snap_auth_user u, usermetatbl m
-WHERE r.uid=m.uid;
-|]
 
 
 ------------------------------------------------------------------------------
