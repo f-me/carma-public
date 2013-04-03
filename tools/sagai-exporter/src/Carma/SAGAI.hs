@@ -27,7 +27,7 @@ CaRMa, then using is as input data for 'runExport':
 >             return (m, i, inst))
 >
 > -- Perform export action on this data
-> fv <- runExport sagaiFullExport cnt (res, servs) cp wazzup encName
+> fv <- runExport sagaiFullExport cnt (res, servs) cp dicts encName
 
 Note that all services attached to the case must be supplied to
 'runExport', although some of them may not end up being in SAGAI entry.
@@ -42,6 +42,7 @@ module Carma.SAGAI
     ( -- * Running SAGAI export
       sagaiFullExport
     , runExport
+    , ExportDicts(..)
     -- * Export results
     , ExportState(..)
     , ExportError(..)
@@ -63,7 +64,7 @@ import qualified Data.ByteString.Lazy.Char8 as BSL
 
 import Data.Aeson
 import Data.Char
-import Data.Dict as D
+import qualified Data.Dict as D
 import Data.Functor
 import qualified Data.HashMap.Strict as HM
 import Data.List
@@ -95,7 +96,8 @@ class (Functor m, Monad m, MonadIO m) => ExportMonad m where
     getCase        :: m InstanceData
     getAllServices :: m [Service]
     getCarmaPort   :: m Int
-    getWazzup      :: m D.Dict
+    -- | Fetch a dictionary from export options using a projection.
+    getDict        :: (ExportDicts -> D.Dict) -> m D.Dict
     getConverter   :: m Converter
     -- | Return expense type for the case or currently processed
     -- service, depending on monad.
@@ -121,7 +123,7 @@ instance ExportMonad CaseExport where
 
     getCarmaPort = lift $ asks $ carmaPort . snd
 
-    getWazzup = lift $ asks $ wazzup . snd
+    getDict proj = lift $ asks $ proj . dicts . snd
 
     getConverter = lift $ asks $ utfConv . snd
 
@@ -158,7 +160,7 @@ instance ExportMonad ServiceExport where
 
     getCarmaPort = lift $ lift $ asks $ carmaPort . snd
 
-    getWazzup = lift $ lift $ asks $ wazzup . snd
+    getDict proj = lift $ lift $ asks $ proj . dicts . snd
 
     getConverter = lift $ lift $ asks $ utfConv . snd
 
@@ -207,18 +209,25 @@ instance ExportMonad ServiceExport where
         let oNum = dataField0 "orderNumber" d
         fields <-
             case mn of
-              "tech" -> return [oNum]
+              "tech" ->
+                  do
+                    tType <- labelOfValue
+                             (dataField0 "techType" d)
+                             (getDict techTypes)
+                    return [oNum, tType]
               -- More fields are requred for towage/rental service
-              _    ->
+              "rent" ->
+                  do
+                    carCl <- labelOfValue
+                             (dataField0 "carClass" d)
+                             (getDict carClasses)
+                    return [carCl, oNum]
+              "towage" ->
                   do
                     -- Try to fetch contractor code (not to be
                     -- confused with partner id) for selected
                     -- contractor
-                    let partnerField =
-                            case mn of
-                              "rent"   -> "contractor_partnerId"
-                              "towage" -> "towDealer_partnerId"
-                              _        -> error "Never happens"
+                    let partnerField = "towDealer_partnerId"
                         sPid = dataField0 partnerField d
                     cp <- getCarmaPort
                     pCode <- case (BS.null sPid, read1Reference sPid) of
@@ -227,21 +236,12 @@ instance ExportMonad ServiceExport where
                       (True, _) ->
                           return "#?"
                       (False, Nothing) ->
-                          exportError (UnreadableContractorId sPid) >>
-                          return ""
+                          exportError (UnreadableContractorId sPid)
                       (False, Just (_, pid)) ->
                           dataField0 "code" <$>
                           (liftIO $ readInstance cp "partner" pid)
-                    case mn of
-                      "rent" ->
-                          do
-                            let pName =
-                                    dataField0 "contractor_partner" d
-                                vin   = dataField0 "vinRent" d
-                                carCl = dataField0 "carClass" d
-                            return [oNum, pCode, pName, vin, carCl]
-                      "towage" -> return [oNum, pCode]
-                      _        -> error "Never happens"
+м                    return [oNum, pCode]
+              _ -> error "Never happens"
         pushComment $ BS.intercalate " " fields
 
 
@@ -557,11 +557,11 @@ fillerField :: ExportField
 fillerField = spaces 5
 
 
--- | Pad input up to 72 characters with spaces or truncate it to be
--- under 72 chars. Remove all newlines. Truncation and padding is done
--- wrt to bytestring length when encoded using output character set,
--- not UTF-8. Processed string is then added to entry contents. Return
--- count of bytes added.
+-- | Pad input up to 72 characters with spaces or truncate it to be no
+-- longer than 72 chars. Remove all newlines. Truncation and padding
+-- is done wrt to bytestring length when encoded using output
+-- character set, not UTF-8. Processed string is then added to entry
+-- contents. Return count of bytes added.
 pushComment :: ExportMonad m =>
               BS.ByteString
            -- ^ Input bytestring in UTF-8.
@@ -578,13 +578,38 @@ pushComment input =
       pushRaw outBS
 
 
+-- | Map a label of a dictionary to its value, terminate export with
+-- 'UnknownDictValue' error otherwise.
+labelOfValue :: ExportMonad m =>
+                BS.ByteString
+             -> (m D.Dict)
+             -- ^ A projection used to fetch dictionary from export
+             -- monad state.
+             -> m BS.ByteString
+labelOfValue val dict = do
+  d <- dict
+  case D.labelOfValue val d of
+    Just label -> return label
+    Nothing -> exportError $ UnknownDictValue val
+
+
+-- | Try to map a label of a dictionary to its value, fall back to
+-- label if its value is not found.
+tryLabelOfValue :: ExportMonad m =>
+                   BS.ByteString
+                -> (m D.Dict)
+                -> m BS.ByteString
+tryLabelOfValue val dict = do
+  d <- dict
+  return $ case D.labelOfValue val d of
+    Just label -> label
+    Nothing -> val
+
+
 comm1Field :: ExportField
 comm1Field = do
   val <- caseField1 "comment"
-  d <- getWazzup
-  pushComment $ case labelOfValue val d of
-                  Just label -> label
-                  Nothing -> val
+  pushComment =<< tryLabelOfValue val (getDict wazzup)
 
 
 comm2Field :: ExportField
@@ -631,6 +656,7 @@ refundPart =
     ]
 
 
+-- | First (ENR=3) comment part.
 comm1Part :: ExportPart
 comm1Part =
     [ cnst "3"
@@ -639,6 +665,7 @@ comm1Part =
     ]
 
 
+-- | Second (ENR=4) comment part.
 comm2Part :: ExportPart
 comm2Part =
     [ cnst "4"
@@ -646,6 +673,8 @@ comm2Part =
     , rowBreak
     ]
 
+
+-- | Third (ENR=6) comment part.
 comm3Part :: ExportPart
 comm3Part =
     [ cnst "6"
@@ -654,7 +683,7 @@ comm3Part =
     ]
 
 
--- | Defines all lines and fields in a full entry for the case.
+-- | Defines all lines and fields in an entry for a case or a service.
 entrySpec :: ExportPart
 entrySpec = concat $
     [ basicPart
