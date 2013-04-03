@@ -16,7 +16,8 @@ Roles are stored in @usermetatbl@ table with the following schema:
 >                           role TEXT[],
 >                           realName TEXT,
 >                           boCities TEXT[],
->                           boPrograms TEXT[]);
+>                           boPrograms TEXT[],
+>                           weathercities TEXT[]);
 
 -}
 
@@ -57,10 +58,11 @@ import qualified Data.Vector as V
 --
 -- boCities/Programs are both stored as comma-separated strings.
 -- weathercities (TODO) is stored as a list.
-data UserMeta = UserMeta { metaRoles  :: [Role]
-                         , realName   :: Maybe Text
-                         , boCities   :: Maybe [ByteString]
-                         , boPrograms :: Maybe [ByteString]
+data UserMeta = UserMeta { metaRoles     :: [Role]
+                         , realName      :: Maybe Text
+                         , boCities      :: Maybe [ByteString]
+                         , boPrograms    :: Maybe [ByteString]
+                         , weatherCities :: Maybe [ByteString]
                          }
 
 
@@ -68,6 +70,7 @@ instance FromRow UserMeta where
     fromRow = (field :: RowParser Int) >>
         UserMeta
         <$> field
+        <*> field
         <*> field
         <*> field
         <*> field

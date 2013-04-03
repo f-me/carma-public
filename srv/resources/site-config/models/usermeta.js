@@ -41,7 +41,7 @@
             }
         },
         {
-            "name": "weathercities",
+            "name": "weatherCities",
             "type": "dictionary-many",
             "meta": {
                 "dictionaryName": "DealerCities"

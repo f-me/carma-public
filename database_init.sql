@@ -181,4 +181,5 @@ CREATE TABLE usermetatbl (id INTEGER REFERENCES snap_auth_user(uid),
                           roles TEXT[],
                           realName TEXT,
                           boCities TEXT[],
-                          boPrograms TEXT[]);
+                          boPrograms TEXT[],
+                          weatherCities TEXT[]);
