@@ -4,8 +4,7 @@
 
 {-|
 
-  CLI tool used to perform SAGAI export, with logging and FTP
-  operation.
+CLI tool used to perform SAGAI export, with logging and FTP operation.
 
 -}
 
