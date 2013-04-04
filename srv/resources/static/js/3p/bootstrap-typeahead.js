@@ -347,9 +347,10 @@
   $(function () {
     $('body').on('focus.typeahead.data-api', '[data-provide="typeahead"]',
                  function(e) {
-                     if ($(this).data('disabled')) return
-                     initDictionary(e)
-                 })
+                     if ($(this).data('disabled')) return;
+                     var that = this;
+                     initDictionary.call(that, e);
+                 });
     $('body').on('click.typeahead.data-api', '[data-provide="typeahead-toggle"]', function (e) {
         if ($(this).data('disabled')) return
         var $this = $(this)
