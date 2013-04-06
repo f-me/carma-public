@@ -48,13 +48,14 @@ applyDefaults model obj = do
       user' <- liftIO $ setPassword user password
       uRes <- with auth $ withBackend $ \bk -> liftIO $ save bk user'
       case uRes of
-        -- TODO Sync Redis id counter for usermeta with new user ID
-        Right newUser -> 
+        Left _ -> error "Could not create new user"
+        Right newUser -> do
+            -- Sync uid for usermeta with new user ID
+            let (Just (UserId uid)) = userId newUser
             -- Now strip login/password from meta commit.
             return $ Map.delete "login" 
                    $ Map.delete "password"
-        Left _ -> 
-            error "Could not create new user"
+                   $ Map.insert "uid" (encodeUtf8 uid) obj
 
     "case" -> return cd
     "call" -> return cd

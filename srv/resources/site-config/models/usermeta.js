@@ -14,6 +14,13 @@
     ],
     "fields": [
         {
+            "name": "uid",
+            "meta": {
+                "invisible": true,
+                "sqltype": "integer"
+            }
+        },
+        {
             "name": "realName",
             "meta": {
                 "label": "Настоящее имя"

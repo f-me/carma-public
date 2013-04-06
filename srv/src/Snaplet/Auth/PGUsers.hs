@@ -12,9 +12,10 @@ system.
 
 Roles are stored in @usermetatbl@ table with the following schema:
 
-> CREATE TABLE usermetatbl (id INTEGER references snap_auth_user(uid),
->                           role TEXT[],
+> CREATE TABLE usermetatbl (id INTEGER,
+>                           uid INTEGER references snap_auth_user(uid),
 >                           realName TEXT,
+>                           roles TEXT[],
 >                           boCities TEXT[],
 >                           boPrograms TEXT[],
 >                           weathercities TEXT[]);
@@ -58,8 +59,8 @@ import qualified Data.Vector as V
 --
 -- boCities/Programs are both stored as comma-separated strings.
 -- weathercities (TODO) is stored as a list.
-data UserMeta = UserMeta { metaRoles     :: [Role]
-                         , realName      :: Maybe Text
+data UserMeta = UserMeta { realName      :: Maybe Text
+                         , metaRoles     :: [Role]
                          , boCities      :: Maybe [ByteString]
                          , boPrograms    :: Maybe [ByteString]
                          , weatherCities :: Maybe [ByteString]
@@ -67,7 +68,7 @@ data UserMeta = UserMeta { metaRoles     :: [Role]
 
 
 instance FromRow UserMeta where
-    fromRow = (field :: RowParser Int) >>
+    fromRow = (field :: RowParser Int) >> (field :: RowParser Int) >>
         UserMeta
         <$> field
         <*> field
@@ -89,7 +90,7 @@ instance FromField [ByteString] where
 -- parameter.
 userMetaQuery :: Query
 userMetaQuery = [sql|
-SELECT * FROM usermetatbl WHERE id=?;
+SELECT * FROM usermetatbl WHERE uid=?;
 |]
 
 
@@ -97,7 +98,7 @@ SELECT * FROM usermetatbl WHERE id=?;
 -- | Select logins, roles and metas for all users.
 allUsersQuery :: Query
 allUsersQuery = [sql|
-SELECT u.login, m.* FROM usermetatbl m, snap_auth_user u WHERE u.uid=m.id;
+SELECT u.login, m.* FROM usermetatbl m, snap_auth_user u WHERE u.uid=m.uid;
 |]
 
 
@@ -133,12 +134,14 @@ replaceRolesFromPG user =
     userRolesPG user >>= \roles -> return user{userRoles = roles}
 
 
+------------------------------------------------------------------------------
 -- | UserEntry contains keys: @value@ for login, @label@ for realName
 -- meta (or login when realName is not present), @roles@ for
 -- comma-separated list of user roles, all other meta keys.
 type UserEntry = M.Map ByteString ByteString
 
 
+------------------------------------------------------------------------------
 -- | List of entries for all users present in the database, used to
 -- serve user DB to client.
 data UsersList = UsersList [UserEntry]
