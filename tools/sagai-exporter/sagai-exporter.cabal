@@ -40,5 +40,6 @@ executable sagai-exporter
     simple-log-syslog    == 0.2.*,
     time                 == 1.4.*,
     text                 == 0.11.*,
+    text-icu             == 0.6.*,
     transformers         == 0.3.*,
     unordered-containers == 0.2.*

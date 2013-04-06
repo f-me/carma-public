@@ -371,11 +371,13 @@ rkcComplaints fromDate toDate constraints = scope "rkcComplaints" $ do
 -- | Calculate @stats@ numbers of @/rkc@ response (average processing
 -- times).
 rkcStats :: (PS.HasPostgres m, MonadLog m) => Filter -> m Value
-rkcStats (Filter from to program city _) = scope "rkcStats" $ do
+rkcStats (Filter from to program city partner) = scope "rkcStats" $ do
   let qParams = ( T.null program
                 , program
                 , T.null city
                 , city
+                , T.null partner
+                , partner
                 , from
                 , to
                 )
@@ -534,14 +536,12 @@ queryFmt_ lns args = query_ (fromString $ T.unpack $ format (concat lns) args)
 queryFmt :: (PS.HasPostgres m, MonadLog m, PS.ToRow q, PS.FromRow r) => [String] -> FormatArgs -> q -> m [r]
 queryFmt lns args = query (fromString $ T.unpack $ format (concat lns) args)
 
--- | Calculate average processing time (in seconds) of a service.
+-- | Calculate average service processing time (in seconds).
 --
 -- Parametrized by: program (boolean flag & value for this parameter,
 -- where flag is *false* if filtering by that parameter should be
--- active), city (flag & value), from (value, always active), to
--- (always active).
---
--- TODO partner filtering
+-- active), city (flag & value), partner name (flag & value), from
+-- (value, always active), to (always active).
 procAvgTimeQuery :: PS.Query
 procAvgTimeQuery = [sql|
 WITH actiontimes AS (
@@ -551,10 +551,11 @@ WITH actiontimes AS (
  AND (a2.result='serviceOrdered' 
       OR a2.result='serviceOrderedSMS')
  AND a1.name='orderService'
+ AND a1.parentid=concat(s.type, ':', s.id)
  AND cast(split_part(a1.caseid, ':', 2) as integer)=c.id
- AND cast(split_part(a1.parentid, ':', 2) as integer)=s.id
  AND (? or c.program = ?)
  AND (? or c.city = ?)
+ AND (? or s.contractor_partner = ?)
  AND c.calldate >= ?
  AND c.calldate < ?
  GROUP BY a1.parentid)
@@ -569,13 +570,14 @@ towStartAvgTimeQuery = [sql|
 WITH actiontimes AS (
  SELECT (max(s.times_factServiceStart - a.ctime))
  FROM actiontbl a, casetbl c, servicetbl s
- WHERE cast(split_part(a.caseid, ':', 2) as integer)=c.id
- AND cast(split_part(a.parentid, ':', 2) as integer)=s.id
+ WHERE a.parentid = concat(s.type, ':', s.id)
+ AND cast(split_part(a.caseid, ':', 2) as integer)=c.id
  AND a.name='orderService'
  AND a.ctime < s.times_factServiceStart
  AND (s.type='towage' OR s.type='tech')
  AND (? or c.program = ?)
  AND (? or c.city = ?)
+ AND (? or s.contractor_partner = ?)
  AND c.calldate >= ?
  AND c.calldate < ?
  GROUP BY a.parentid)

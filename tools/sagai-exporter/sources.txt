@@ -1,5 +1,5 @@
 ./
 https://github.com/f-me/carma-dict
-https://github.com/f-me/carma-http hashmap-instance-data
+https://github.com/f-me/carma-http
 https://github.com/f-me/simple-log
 https://github.com/f-me/simple-log-syslog

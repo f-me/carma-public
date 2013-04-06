@@ -512,6 +512,18 @@ actionResultMap = Map.fromList
           "Сообщить клиенту о договорённости"
           "back" "1" (+60) objId
   )
+  ,("dealerNotApproved", \objId ->
+    void $ replaceAction
+      "tellDealerDenied"
+      "Сообщить об отказе дилера"
+      "back" "3" (+60) objId
+  )
+  ,("carmakerNotApproved", \objId ->
+    void $ replaceAction
+      "tellMakerDenied"
+      "Сообщить об отказе автопроизводителя"
+      "back" "3" (+60) objId
+  )
   ,("partnerNotOkCancel", \objId -> do
       setService objId "status" "cancelService"
       void $ replaceAction
