@@ -22,7 +22,7 @@ Roles are stored in @usermetatbl@ table with the following schema:
 -}
 
 module Snaplet.Auth.PGUsers
-    ( -- * User roles 
+    ( -- * User roles
       userRolesPG
     , replaceRolesFromPG
       -- * User meta
@@ -146,21 +146,27 @@ $(deriveToJSON id ''UsersList)
 
 
 ------------------------------------------------------------------------------
+-- | Convert user meta to all-string values.
+toEntry :: Text -> UserMeta -> UserEntry
+toEntry login meta =
+    (M.insert "label" $ encodeUtf8 $
+      fromMaybe login $ realName meta) $
+    (M.insert "roles" $ intercalate "," $
+      map (\(Role r) -> r) $ metaRoles meta) $
+    (M.insert "boCities" $ intercalate "," $
+      fromMaybe [] $ boCities meta) $
+    (M.insert "boPrograms" $ intercalate "," $
+      fromMaybe [] $ boPrograms meta) $
+    M.empty
+
+
+------------------------------------------------------------------------------
 -- | Get list of all users from the database.
 usersListPG :: HasPostgres m => m UsersList
 usersListPG = do
   rows <- query_ allUsersQuery
-  return $ UsersList $ map toEntry rows
+  return $ UsersList $ map toEntry' rows
       where
-        toEntry :: ((Only Text) :. UserMeta) -> UserEntry
-        toEntry ((Only login) :. meta) = 
-            (M.insert "value" $ encodeUtf8 login) $
-            (M.insert "label" $ encodeUtf8 $
-             fromMaybe login $ realName meta) $
-            (M.insert "roles" $ intercalate "," $
-             map (\(Role r) -> r) $ metaRoles meta) $
-            (M.insert "boCities" $ intercalate "," $ 
-             fromMaybe [] $ boCities meta) $
-            (M.insert "boPrograms" $ intercalate "," $
-             fromMaybe [] $ boPrograms meta) $
-            M.empty
+        toEntry' :: ((Only Text) :. UserMeta) -> UserEntry
+        toEntry' ((Only login) :. meta) =
+            (M.insert "value" $ encodeUtf8 login) $ toEntry login meta
