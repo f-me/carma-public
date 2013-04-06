@@ -576,6 +576,7 @@ WITH actiontimes AS (
  AND (s.type='towage' OR s.type='tech')
  AND (? or c.program = ?)
  AND (? or c.city = ?)
+ AND (? or s.contractor_partner = ?)
  AND c.calldate >= ?
  AND c.calldate < ?
  GROUP BY a.parentid)
