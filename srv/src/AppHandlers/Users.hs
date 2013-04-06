@@ -112,4 +112,5 @@ serveUserCake = ifTop $
            (error "impossible happened")
            (\u -> do
               uRoles <- with authDb $ userRolesPG u
+              -- TODO Somehow include PG meta here
               writeJSON u{userRoles = uRoles})

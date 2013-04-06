@@ -103,6 +103,8 @@ SELECT u.login, m.* FROM usermetatbl m, snap_auth_user u WHERE u.uid=m.id;
 
 ------------------------------------------------------------------------------
 -- | Get meta from the database for a user.
+--
+-- TODO Use carma-sync here, drop rigid Haskell usermeta model.
 userMetaPG :: HasPostgres m => AuthUser -> m (Maybe UserMeta)
 userMetaPG user =
     case userId user of
