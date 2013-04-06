@@ -36,6 +36,7 @@ import AppHandlers.ActionAssignment
 import AppHandlers.CustomSearches
 import AppHandlers.PSA
 import AppHandlers.ContractGenerator
+import AppHandlers.ModelFilter
 ----------------------------------------------------------------------
 import Util (readJSON)
 
@@ -53,6 +54,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/s/screens",     serveFile "resources/site-config/screens.json")
          , ("/report",        chkAuth . method GET  $ report)
          , ("/all/:model",    chkAuth . method GET  $ readAllHandler)
+         , ("/filterPartner/:id", method GET  $ filterPartner)
          , ("/callsByPhone/:phone",
                               chkAuth . method GET    $ searchCallsByPhone)
          , ("/actionsFor/:id",chkAuth . method GET    $ getActionsForCase)

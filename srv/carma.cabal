@@ -26,6 +26,7 @@ Executable carma
     AppHandlers.ActionAssignment,
     AppHandlers.CustomSearches,
     AppHandlers.PSA
+    AppHandlers.ModelFilter,
     Snaplet.DbLayer,
     Snaplet.DbLayer.RedisCRUD,
     Snaplet.DbLayer.PostgresCRUD,

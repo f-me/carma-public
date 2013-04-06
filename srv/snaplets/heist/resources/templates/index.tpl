@@ -913,6 +913,28 @@
       </div>
     </script>
 
+    <script type="text/template"
+            class="reference-template"
+            id="programPermissions-reference-template">
+      <div class="accordion-group">
+        <div class="accordion-heading"
+             id="{{ refView }}-link">
+          <a class="accordion-toggle"
+             data-bind="text: contractField"
+             data-target="#{{ refView }}-head"
+             data-toggle="collapse"></a>
+        </div>
+
+        <div id="{{ refView }}-head"
+             class="accordion-body collapse {{^refId}}in{{/refId}}">
+          <div class="accordion-inner {{ refClass }}"
+               id="{{ refView }}">
+            <!-- Instance contents are rendered here -->
+          </div>
+        </div>
+      </div>
+    </script>
+
     <!-- Group view container -->
     <script type="text/template"
             class="group-template"

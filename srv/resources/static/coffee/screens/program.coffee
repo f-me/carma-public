@@ -1,8 +1,18 @@
 define [ "model/main"
+         "model/utils"
          "utils"
          "text!tpl/screens/program.html"
        ],
-(main, utils, tpl) ->
+(main, mu, utils, tpl) ->
+  this.addNewPermissionToProgram = (name) ->
+    p = global.viewsWare["program-view"].knockVM
+    mu.addReference p,
+                 'programPermissions',
+                 {modelName: 'programPermissions'},
+                 afterAddSrv(p)
+
+  afterAddSrv = (parent) -> (k) -> utils.focusRef k
+
   constructor: (viewName, args) ->
     f = $("#program-files").html()
     kvm = main.modelSetup("program") viewName, args,
@@ -42,6 +52,12 @@ define [ "model/main"
                 ,obj.label   || ''
                 ]
             dt.fnAddData(rows)
+
+    $("#program-add-programPermissions-container").html(
+      Mustache.render $("#add-ref-button-template").html(),
+              fn:    "addNewPermissionToProgram();"
+              label: "Добавить ограничение на поле контракта"
+    )
 
   destructor: ->
   template: tpl
