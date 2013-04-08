@@ -25,7 +25,10 @@ import Control.Monad.Trans.Error
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Writer
+
+import Data.ByteString as BS
 import Data.Dict as D
+import Data.Text.ICU.Convert
 
 import Carma.HTTP
 
@@ -42,6 +45,9 @@ type Service = (String, Int, InstanceData)
 
 data ExportState = ExportState { counter :: Int
                                -- ^ Line counter used for @SEP@ field.
+                               , content :: ByteString
+                               -- ^ All SAGAI entry content generated
+                               -- so far.
                                }
 
 
@@ -51,6 +57,10 @@ data ExportOptions = ExportOptions { carmaPort :: Int
                                    , wazzup :: D.Dict
                                    -- ^ Dictionary used on the @comment@
                                    -- field of a case.
+                                   , utfConv :: Converter
+                                   -- ^ A converter used to encode
+                                   -- text from UTF-8 to target
+                                   -- encoding.
                                    }
 
 
@@ -83,13 +93,13 @@ data ExportError = CaseError ErrorType
 
 data ErrorType = NoField FieldName
                | EmptyField FieldName
-               | UnexpectedFieldValue FieldName FieldValue
                | UnknownProgram FieldValue
                | UnknownService String
                | UnknownTechType FieldValue
                | UnreadableContractorId FieldValue
                | BadTime FieldValue
                | BadDays FieldValue
+               | BadVin FieldValue
                  deriving Show
 
 
@@ -109,9 +119,12 @@ runExport :: CaseExport a
           -- ^ CaRMa port.
           -> D.Dict
           -- ^ Wazzup dictionary.
+          -> String
+          -- ^ Name of an output character set.
           -> IO (Either ExportError ((a, ExportState), [String]))
-runExport act sepStart input cp wz = do
-    let inner = runReaderT (runStateT act $ ExportState sepStart) $
-                (input, ExportOptions cp wz)
+runExport act sepStart input cp wz eName = do
+    e <- open eName Nothing
+    let inner = runReaderT (runStateT act $ ExportState sepStart BS.empty) $
+                (input, ExportOptions cp wz e)
     res <- runErrorT $ runWriterT inner
     return res

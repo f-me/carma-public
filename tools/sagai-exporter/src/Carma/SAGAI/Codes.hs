@@ -2,11 +2,11 @@
 
 {-|
 
-  Expense types, codes and servicing costs.
-  
-  These should not fall into wrong hands.
+Expense types, codes and servicing costs.
 
-  TODO Load sensitive data from external files.
+These should not fall into wrong hands.
+
+TODO Load sensitive data from external files.
 
 -}
 
@@ -47,7 +47,7 @@ data CodeRow = CodeRow { cost             :: Double
                        }
 
 
--- | List of costs and I/D/C codes for all programs and expenses.
+-- | List of costs and I/C/D codes for all programs and expenses.
 codesData :: M.Map (FieldValue, ExpenseType) CodeRow
 codesData = M.fromList
     [ (("citroen", Dossier),     CodeRow 1148    "DV1" "DV4" "9938" "G5F")

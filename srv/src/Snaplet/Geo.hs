@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE QuasiQuotes #-}
@@ -8,7 +9,8 @@
 
 Geoservices snaplet.
 
-TODO Use contrib already to switch to JSON and serve HTTP errors.
+All coordinates read by various handlers from request parameters are
+in WSG84 in @<longitude>,<latitude>@ format, as @33.77,52.128@.
 
 -}
 
@@ -20,26 +22,39 @@ module Snaplet.Geo
 where
 
 import Control.Applicative
-import Control.Lens
+import Control.Lens hiding ((.=))
 import Control.Monad
 import Control.Monad.State
 
 import Data.Aeson as A
 
 import Data.Attoparsec.ByteString.Char8
-import Data.ByteString.Char8 (ByteString)
-import Database.PostgreSQL.Simple.SqlQQ
+import Data.ByteString.Char8 as BS (ByteString, concat)
+import qualified Data.ByteString.Lazy.Char8 as BSL
+import Data.Map as M
 
+import Data.Configurator
+import Database.PostgreSQL.Simple.SqlQQ
+import Data.Text.Encoding
 import qualified Data.Vector as V
 import qualified Data.Vector.Mutable as VM (unsafeNew, unsafeWrite)
 
+import Network.HTTP as H (simpleHTTP, getRequest, getResponseBody)
+
 import Snap.Core
+import Snap.Extras.JSON
 import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple
 
 
 data Geo = Geo
-    { _postgres :: Snaplet Postgres
+    { _postgres     :: Snaplet Postgres
+    , nominatimUrl  :: String
+    -- ^ Nominatim installation URL (with trailing slash).
+    , nominatimLang :: String
+    -- ^ Preferred language for search results (in RFC 2616
+    -- Accept-Language format, or a comma-separated list of language
+    -- codes).
     }
 
 makeLenses ''Geo
@@ -50,8 +65,9 @@ instance HasPostgres (Handler b Geo) where
 
 
 routes :: [(ByteString, Handler b Geo ())]
-routes = [ ("/partners/:coords1/:coords2", method GET $ withinPartners >> return ())
-         , ("/distance/:coords1/:coords2", method GET $ distance >> return ())
+routes = [ ("/partners/:coords1/:coords2", method GET withinPartners)
+         , ("/distance/:coords1/:coords2", method GET distance)
+         , ("/revSearch/:coords", method GET revSearch)
          ]
 
 
@@ -62,8 +78,7 @@ coords = (,) <$> double <* anyChar <*> double
 
 
 ------------------------------------------------------------------------------
--- | Apply a supplied parser to read data from a named request
--- parameter.
+-- | Apply a parser to read data from a named request parameter.
 getParamWith :: MonadSnap m => Parser a -> ByteString -> m (Maybe a)
 getParamWith parser name = do
   input <- liftM (parseOnly parser) <$> getParam name
@@ -73,13 +88,13 @@ getParamWith parser name = do
 
 
 ------------------------------------------------------------------------------
--- | Get pair of coordinates from a named request parameter.
+-- | Get a pair of coordinates from a named request parameter.
 getCoordsParam :: MonadSnap m => ByteString -> m (Maybe (Double, Double))
 getCoordsParam = getParamWith coords
 
 
 ------------------------------------------------------------------------------
--- | Row schema for @partnertbl@ table query results.
+-- | Row schema for 'withinQuery' results.
 newtype Partner = Partner (Int, Double, Double, Maybe Bool, Maybe Bool)
                   deriving (FromRow, Show)
 
@@ -103,7 +118,7 @@ instance ToJSON Partner where
 twoPointHandler :: (FromRow a, ToJSON r) =>
                    Query
                 -> ([a] -> r)
-                -- ^ Convert SQL results to a value served in JSON.
+                -- ^ Converts SQL results to a value served in JSON.
                 -> Handler b Geo ()
 twoPointHandler q queryToResult = do
   c1 <- getCoordsParam "coords1"
@@ -160,7 +175,7 @@ withinPartners = twoPointHandler withinQuery (id :: [Partner] -> [Partner])
 
 
 ------------------------------------------------------------------------------
--- | Calculate distance between two WSG84 points specified in request
+-- | Calculate distance between two points specified in request
 -- parameters @coord1@ and @coord2@. Response body is the distance in
 -- meters as double:
 --
@@ -170,9 +185,97 @@ distance :: Handler b Geo ()
 distance = twoPointHandler distanceQuery (head . head :: [[Double]] -> Double)
 
 
+------------------------------------------------------------------------------
+-- | True only for names of Russian cities which are federal subjects
+-- (in UTF-8, ru-RU).
+isFederal :: ByteString -> Bool
+isFederal s = (s == e8 "Москва") || (s == e8 "Санкт-Петербург")
+    where
+      e8 = encodeUtf8
+
+
+------------------------------------------------------------------------------
+-- | City and street address. 'FromJSON' instance parses a UTF-8
+-- response from the Nominatim reverse geocoder, properly handling
+-- federal city names.
+data FullAddress = FullAddress (Maybe ByteString) (Maybe ByteString)
+                   deriving Show
+
+
+instance FromJSON FullAddress where
+    parseJSON (Object v) = do
+        (err::Maybe ByteString) <- v .:? "error"
+        case err of
+          Just _ -> fail "Geocoding failed"
+          Nothing -> do
+            addr <- v .: "address"
+            road  <- addr .:? "road"         .!= Nothing
+            ped   <- addr .:? "pedestrian"   .!= Nothing
+            city  <- addr .:? "city"         .!= Nothing
+            state <- addr .:? "state"        .!= Nothing
+            house <- addr .:? "house_number" .!= Nothing
+            let -- Use road/pedestrian fields to pick the street name
+                street = case (road, ped) of
+                           (r, Nothing) -> r
+                           (Nothing, p) -> p
+                           _ -> Nothing
+                -- Include house number information in the street
+                -- address, if present
+                streetAddr = case (street, house) of
+                               (Just s, Just h) -> Just $ BS.concat [s, ", ", h]
+                               _ -> street
+                -- Use the name of the state as the city name for
+                -- federal cities
+                realCity = case (city, state) of
+                             (c, Just s) -> if isFederal s
+                                            then Just s
+                                            else c
+                             _ -> city
+            return $ FullAddress realCity streetAddr
+    parseJSON _ = fail "Bad Nominatim response"
+
+
+instance ToJSON FullAddress where
+    toJSON (FullAddress c s) = object [ "city" .= c
+                                      , "address" .= s
+                                      ]
+
+
+------------------------------------------------------------------------------
+-- | Use Nominatim to perform a reverse search for an address at
+-- coordinates provided in @coords@ request parameter. Response body
+-- is a JSON object with keys @city@ and @address@ (possibly with null
+-- values), or a single key @error@ if Nominatim geocoding failed
+-- completely.
+revSearch :: Handler b Geo ()
+revSearch = do
+  nom <- gets nominatimUrl
+  lang <- gets nominatimLang
+  coords' <- getCoordsParam "coords"
+  case coords' of
+    Nothing -> error "Bad request"
+    -- Read coords and send reverse geocoding request to Nominatim
+    Just (lon, lat) -> do
+        let fullUrl = nom ++
+                      "reverse.php?format=json" ++
+                      "&accept-language=" ++ lang ++
+                      "&lon=" ++ (show lon) ++
+                      "&lat=" ++ (show lat)
+        addr' <- liftIO $ do
+            rsb <- simpleHTTP (H.getRequest fullUrl) >>= getResponseBody
+            return $ eitherDecode' $ BSL.pack rsb
+        -- Repack Nominatim response into a nicer JSON
+        case addr' of
+          Right addr -> writeJSON (addr :: FullAddress)
+          Left msg -> writeJSON (M.singleton ("error" :: String) msg)
+
+
 geoInit :: SnapletInit b Geo
 geoInit = makeSnaplet "geo" "Geoservices" Nothing $ do
     db <- nestSnaplet "postgres" postgres pgsInit
-    _ <- getSnapletUserConfig
+    cfg <- getSnapletUserConfig
+    nom <- liftIO $ lookupDefault "http://nominatim.openstreetmap.org/"
+           cfg "nominatim-url"
+    lang <- liftIO $ lookupDefault "ru-RU,ru" cfg "nominatim-lang"
     addRoutes routes
-    return $ Geo db
+    return $ Geo db nom lang
