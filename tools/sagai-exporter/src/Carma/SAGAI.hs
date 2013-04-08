@@ -9,32 +9,32 @@
 
 {-|
 
-  This module contains definitions of how to build every field of
-  SAGAI entry, all bound together in 'sagaiFullExport' action.
+This module contains definitions of how to build every field of
+SAGAI entry, all bound together in 'sagaiFullExport' action.
 
-  All field combinators (type 'ExportField') use 'push' or 'pushRaw'
-  to add contents to SAGAI entry.
+All field combinators (type 'ExportField') use 'push' or 'pushRaw'
+to add contents to SAGAI entry.
 
-  Exporting a case with services requires first fetching it from
-  CaRMa, then using is as input data for 'runExport':
+Exporting a case with services requires first fetching it from
+CaRMa, then using is as input data for 'runExport':
 
-  > -- Fetch case
-  > res <- readInstance cp "case" caseNumber
-  > -- Fetch its services
-  > servs <- forM (readReferences $ res M.! "services")
-  >          (\(m, i) -> do
-  >             inst <- readInstance cp m i
-  >             return (m, i, inst))
-  >
-  > -- Perform export action on this data
-  > fv <- runExport sagaiFullExport cnt (res, servs) cp wazzup encName
+> -- Fetch case
+> res <- readInstance cp "case" caseNumber
+> -- Fetch its services
+> servs <- forM (readReferences $ res M.! "services")
+>          (\(m, i) -> do
+>             inst <- readInstance cp m i
+>             return (m, i, inst))
+>
+> -- Perform export action on this data
+> fv <- runExport sagaiFullExport cnt (res, servs) cp wazzup encName
 
-  Note that all services attached to the case must be supplied to
-  'runExport', although some of them may not end up being in SAGAI entry.
+Note that all services attached to the case must be supplied to
+'runExport', although some of them may not end up being in SAGAI entry.
 
-  Final 'ExportState' as returned by 'runExport' contains a fully
-  formed SAGAI entry, and may also be used to keep @SEP@ counter value
-  between runs.
+Final 'ExportState' as returned by 'runExport' contains a fully
+formed SAGAI entry, and may also be used to keep @SEP@ counter value
+between runs.
 
 -}
 
