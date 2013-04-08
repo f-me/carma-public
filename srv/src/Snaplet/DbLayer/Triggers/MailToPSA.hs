@@ -49,7 +49,10 @@ sendMailToPSA actionId = do
   caseId  <- get actionId "caseId"
   program <- get caseId   "program"
   when (isValidSvc && program `elem` ["peugeot", "citroen"])
-    $ sendMailActually actionId
+    $ get svcId "payType" >>= \case
+      "ruamc" -> sendMailActually actionId
+      "mixed" -> sendMailActually actionId
+      _ -> return ()
 
 
 sendMailActually :: MonadTrigger m b => ByteString -> m b ()
