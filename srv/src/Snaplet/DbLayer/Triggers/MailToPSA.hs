@@ -101,7 +101,10 @@ sendMailActually actionId = do
           fld 17  "VIN number"       $ get' caseId "car_vin"
           fld 10  "Reg No"           $ get' caseId "car_plateNum"
 
-          fld 150 "Customer effet"   $ tr (wazzup dic) <$> get' caseId "comment"
+          actionResult <- lift $ get actionId "result"
+          fld 150 "Customer effet"   $ case actionResult of
+            "clientCanceledService" -> tr (cancelReason dic) <$> get' svcId "clientCancelReason"
+            _                       -> tr (wazzup dic) <$> get' caseId "comment"
           fld 150 "Component fault"  $ get' caseId "dealerCause"
 
           factServiceStart
