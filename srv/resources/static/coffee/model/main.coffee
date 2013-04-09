@@ -216,9 +216,7 @@ define [ "model/meta"
         $.ajax modelHref,
           async: false
           dataType: 'json'
-          success: (m) ->
-            console.log m
-            models[modelName] = m
+          success: (m) -> models[modelName] = m
 
       [mkBackboneModel, instance, knockVM] =
         buildModel(modelName, models, args, options)
