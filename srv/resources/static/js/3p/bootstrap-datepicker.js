@@ -410,6 +410,7 @@
 
     function addPicker(e) {
             var $this = $(this)
+            if ($this.data('disabled')) return
             if (!$this.data('datepicker')) {
                 e.preventDefault()
                 $this.datepicker($this.data())
@@ -419,6 +420,7 @@
     };
 
     function hidePicker(e) {
+            if ($(this).data('disabled')) return
             $(this).data('datepicker').hide()
     };
 
