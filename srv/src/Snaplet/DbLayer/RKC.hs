@@ -553,6 +553,7 @@ WITH actiontimes AS (
  AND a1.name='orderService'
  AND a1.parentid=concat(s.type, ':', s.id)
  AND cast(split_part(a1.caseid, ':', 2) as integer)=c.id
+ AND s.times_expectedServiceStart <= (a1.ctime + INTERVAL '01:00:00')
  AND (? or c.program = ?)
  AND (? or c.city = ?)
  AND (? or s.contractor_partner = ?)

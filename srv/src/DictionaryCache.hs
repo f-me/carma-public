@@ -25,6 +25,7 @@ data DictCache = DictCache
   ,carModel    :: Map Text (Map Text Text)
   ,smsToken    :: Map Text Text
   ,smsTokenVal :: Map Text (Map Text Text)
+  ,cancelReason:: Map Text Text
   }
 
 
@@ -37,6 +38,7 @@ loadDictionaries dir = do
     <*> nestDict (dir </> "CarModels.json")
     <*> flatDict (dir </> "SmsTokens.json")
     <*> nestDict (dir </> "SmsTokensValues.json")
+    <*> flatDict (dir </> "ClientCancelReason.json")
 
 
 flatDict :: FilePath -> IO (Map Text Text)
