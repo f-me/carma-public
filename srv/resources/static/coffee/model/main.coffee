@@ -90,7 +90,7 @@ define [ "model/meta"
   #
   # - <field>Local for dictionary fields: reads as label, writes real
   #   value back to Backbone model;
-  knockBackbone = (instance, viewName) ->
+  knockBackbone = (instance, viewName, model) ->
     knockVM = new kb.ViewModel(instance)
 
     # Set extra observable for inverse of every required
@@ -112,6 +112,7 @@ define [ "model/meta"
 
     knockVM["model"]     = ko.computed { read: -> instance            }
     knockVM["modelName"] = ko.computed { read: -> instance.model.name }
+    knockVM["modelDesc"] = ko.computed { read: -> model               }
 
     knockVM["modelTitle"] = kb.observable instance,
                                           key : "title"
@@ -130,7 +131,7 @@ define [ "model/meta"
             svcId   = knockVM.parentId()
             if svcId
               modelName = svcId.split(':')[0]
-              svcName = global.models[modelName].title
+              svcName = model.title
               actName = actName + " (#{svcName})"
             actName
 
@@ -206,17 +207,27 @@ define [ "model/meta"
   # global.modelHooks[modelName] is called with model view name as
   # argument.
 
-  modelSetup = (modelName) ->
+  modelSetup = (modelName, modelHref) ->
     return (elName, args, options) ->
 
+      # save copy of models
+      models = $.extend true, {}, global.models
+      if modelHref
+        $.ajax modelHref,
+          async: false
+          dataType: 'json'
+          success: (m) ->
+            console.log m
+            models[modelName] = m
+
       [mkBackboneModel, instance, knockVM] =
-        buildModel(modelName, args, options)
+        buildModel(modelName, models, args, options)
 
       depViews = setupView(elName, knockVM,  options)
 
       # Bookkeeping
       global.viewsWare[elName] =
-        model           : global.models[modelName]
+        model           : models[modelName]
         bbInstance      : instance
         modelName       : modelName
         knockVM         : knockVM
@@ -230,11 +241,11 @@ define [ "model/meta"
       applyHooks(global.hooks.model, ['*', modelName], elName)
       return knockVM
 
-  buildModel = (modelName, args, options) ->
+  buildModel = (modelName, models, args, options) ->
       mkBackboneModel =
-        metamodel.backbonizeModel(global.models, modelName, options)
+        metamodel.backbonizeModel(models, modelName, options)
       instance = new mkBackboneModel(args)
-      knockVM = knockBackbone(instance)
+      knockVM = knockBackbone(instance, null, models[modelName])
 
       # External fetch callback
       instance.bind("change", options.fetchCb) if _.isFunction(options.fetchCb)
