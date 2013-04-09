@@ -26,7 +26,6 @@ Executable carma
     AppHandlers.ActionAssignment,
     AppHandlers.CustomSearches,
     AppHandlers.PSA
-    AppHandlers.ModelFilter,
     Snaplet.DbLayer,
     Snaplet.DbLayer.RedisCRUD,
     Snaplet.DbLayer.PostgresCRUD,
@@ -45,6 +44,7 @@ Executable carma
     Snaplet.SiteConfig.Types,
     Snaplet.SiteConfig.Models,
     Snaplet.SiteConfig.Permissions,
+    Snaplet.SiteConfig.SpecialPermissions,
     Snaplet.FileUpload,
     Snaplet.Geo,
     Snaplet.Auth.Class,

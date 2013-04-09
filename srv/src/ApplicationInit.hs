@@ -36,7 +36,6 @@ import AppHandlers.ActionAssignment
 import AppHandlers.CustomSearches
 import AppHandlers.PSA
 import AppHandlers.ContractGenerator
-import AppHandlers.ModelFilter
 ----------------------------------------------------------------------
 import Util (readJSON)
 
@@ -54,7 +53,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/s/screens",     serveFile "resources/site-config/screens.json")
          , ("/report",        chkAuth . method GET  $ report)
          , ("/all/:model",    chkAuth . method GET  $ readAllHandler)
-         , ("/filterPartner/:id", method GET  $ filterPartner)
          , ("/callsByPhone/:phone",
                               chkAuth . method GET    $ searchCallsByPhone)
          , ("/actionsFor/:id",chkAuth . method GET    $ getActionsForCase)
@@ -148,7 +146,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   logdUsrs <- liftIO $ newTVarIO Map.empty
   let allUsrs = readJSON authDb
 
-  c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config"
+
 
   runtimeFlags <- liftIO $ newTVarIO Set.empty
   !allU <- liftIO allUsrs
@@ -169,6 +167,8 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
             <*> lookupCfg "pg_actass_pass"
   pga <- liftIO $ createPool (Pg.connect cInfoActass) Pg.close 1 5 20
 
+  c <- nestSnaplet "cfg" siteConfig $ initSiteConfig "resources/site-config" pgs
+  
   v <- nestSnaplet "vin" vin vinInit
   fu <- nestSnaplet "upload" fileUpload fileUploadInit
   g <- nestSnaplet "geo" geo geoInit
