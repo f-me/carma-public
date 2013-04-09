@@ -44,8 +44,7 @@ serveModels = do
       modifyResponse $ setResponseCode 401
       getResponse >>= finishWith
     Just cu -> do
-      -- Substitute user roles stored in PG
-      cu' <- (gets authDb >>=) . flip withTop $ replaceRolesFromPG cu
+      cu' <- (gets authDb >>=) . flip withTop $ replaceMetaRolesFromPG cu
       ms <- gets models
       modifyResponse $ setContentType "application/json"
       writeLBS $ Aeson.encode

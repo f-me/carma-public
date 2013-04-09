@@ -68,7 +68,7 @@ littleMoreActionsHandler :: AppHandler ()
 littleMoreActionsHandler = scoper "littleMoreActions" $ do
   Just cUsr <- with auth currentUser
   -- Use PG roles to assign actions and PG meta for city&program filters
-  cUsr' <- with authDb $ replaceRolesFromPG cUsr
+  cUsr' <- with authDb $ replaceMetaRolesFromPG cUsr
   Just meta <- with authDb $ userMetaPG cUsr
   logdUsers <- map (userLogin.snd) . Map.elems <$> addToLoggedUsers cUsr'
 
