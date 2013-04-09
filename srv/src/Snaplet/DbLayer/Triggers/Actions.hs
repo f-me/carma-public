@@ -199,6 +199,7 @@ serviceActions = Map.fromList
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
+          sendSMS actionId "smsTpl:13"
       "recallClient" -> do
           due <- getService objId "times_expectedServiceStart"
           kazeId <- get objId "parentId"
@@ -213,6 +214,7 @@ serviceActions = Map.fromList
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
+          sendSMS actionId "smsTpl:13"
       "serviceOrdered" -> do
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
@@ -243,6 +245,7 @@ serviceActions = Map.fromList
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
+          sendSMS actionId "smsTpl:13"
       "dealerConf" -> do
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
@@ -257,6 +260,7 @@ serviceActions = Map.fromList
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
+          sendSMS actionId "smsTpl:13"
       "pleaseCheck" -> do
           due <- dateNow (+ (5*60))
           kazeId <- get objId "parentId"
