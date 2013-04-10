@@ -13,3 +13,15 @@ ko.bindingHandlers.bindClick =
 ko.bindingHandlers.updMultiDict =
   init: (element, valueAccessor, allBindingsAccessor, kvm) ->
     fn = valueAccessor()
+
+ko.bindingHandlers.disabled =
+  update: (el, acc, allBindigns, kvm) ->
+    $(el).attr('disabled', acc()())
+
+ko.bindingHandlers.readonly =
+  update: (el, acc, allBindigns, kvm) ->
+    $(el).attr('readonly', acc()())
+
+ko.bindingHandlers.pickerDisable =
+  update: (el, acc, allBindigns, kvm) ->
+    $(el).data('disabled', acc()())
