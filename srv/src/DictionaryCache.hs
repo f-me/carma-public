@@ -26,6 +26,7 @@ data DictCache = DictCache
   ,smsToken    :: Map Text Text
   ,smsTokenVal :: Map Text (Map Text Text)
   ,user        :: Map Text Text
+  ,cancelReason:: Map Text Text
   }
 
 
@@ -39,6 +40,7 @@ loadDictionaries usrs dir = do
     <*> flatDict (dir </> "SmsTokens.json")
     <*> nestDict (dir </> "SmsTokensValues.json")
     <*> pure usrs
+    <*> flatDict (dir </> "ClientCancelReason.json")
 
 
 

@@ -496,6 +496,14 @@
             }
         },
         {
+            "name": "clientCancelReason",
+            "type": "dictionary",
+            "meta": {
+              "dictionaryName": "ClientCancelReason",
+              "label": "Причина отказа клиента"
+            }
+        },
+        {
             "name": "falseCallPercent",
             "canRead":  [ ],
             "canWrite": [ ],
