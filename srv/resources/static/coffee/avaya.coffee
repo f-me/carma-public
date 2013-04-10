@@ -14,10 +14,10 @@ class Phone
           @calling()
         else
           @notCalling()
-      else if msg.type == "display"    
+      else if msg.type == "display"
         m = msg.display.match(/a=\s*(\d+)\s*to\s*(.*\S)\s*/)
         if m
-          number = m[1].replace(/^(98|8|)/,'+7')
+          number = m[1].replace(/^(98|8|)(\d{10})$/, '\+7$2')
           @callInfo(number, m[2])
 
   acceptCall: ->
