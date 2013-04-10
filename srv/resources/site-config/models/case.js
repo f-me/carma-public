@@ -616,6 +616,7 @@
                 "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
             ],
             "meta": {
+                "readonly": true,
                 "label": "Выгружен в PSA"
             }
         },

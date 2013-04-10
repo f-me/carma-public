@@ -271,6 +271,16 @@
         "required": true,
         "label": "Дата окончания действия программы"
       }
+    },
+    {
+      "name": "dixi",
+      "type": "checkbox",
+      "canRead" : ["ruslan"],
+      "canWrite": ["ruslan"],
+      "meta": {
+          "label": "Сохранить",
+          "widget": "checkbutton"
+      }
     }
   ]
 }

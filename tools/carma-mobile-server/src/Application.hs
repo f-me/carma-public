@@ -314,7 +314,7 @@ newCase = do
           -- request)
           ++ maybe [] (\vin -> [("car_vin", vin)]) car_vin
 
-  writeLBS . encode $ object $ [ "caseId" .= show caseId ]
+  writeLBS . encode $ object $ [ "caseId" .= caseId ]
 
 
 geoAppInit :: SnapletInit b GeoApp

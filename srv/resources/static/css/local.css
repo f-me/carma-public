@@ -203,3 +203,8 @@ textarea.pane-span,
 .osMap {
   height: 600px;
 }
+
+.checkbutton label input {
+    position:absolute;
+    top:-20px;
+}
