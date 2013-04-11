@@ -25,8 +25,12 @@
             "name": "contractField",
             "canRead": ["head"],
             "canWrite": ["head"],
+            "type": "dictionary",
             "meta": {
-                "label": "Тип поля"
+                "label": "Тип поля",
+                "dictionaryName": "ContractFields",
+                "required": true,
+                "bounded":true
             }
         },
         {
