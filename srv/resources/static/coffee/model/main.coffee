@@ -106,7 +106,7 @@ define [ "model/meta"
         knockVM[f + 'Reference'] =
           ko.computed
             read: ->
-              knockBackbone(i) for i in (knockVM[f]() or [])
+              knockBackbone(i, null, i.model) for i in (knockVM[f]() or [])
             write: (v) ->
               knockVM[f](i.model() for i in v)
 
@@ -257,7 +257,7 @@ define [ "model/meta"
 
   buildNewModel = (modelName, args, options, cb) ->
     [mkBackboneModel, instance, knockVM] =
-      buildModel(modelName, args, options)
+      buildModel(modelName, global.models, args, options)
     Backbone.Model.prototype.save.call instance, {},
       success: (model, resp) ->
         cb(mkBackboneModel, model, knockVM)
