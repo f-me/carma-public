@@ -23,7 +23,8 @@ q field = fromString
           $ "SELECT contractfield, "
           ++ "(case " ++ (show field) ++ " when true then 't' else 'f' end) "
           ++ "FROM programpermissionstbl "
-          ++ "WHERE parentid is not null "
+          ++ "WHERE contractfield is not null "
+          ++ "AND parentid is not null "
           ++ "AND split_part(parentid, ':', 2) = ?"
 
 stripContract :: Model -> ByteString -> ByteString
