@@ -6,6 +6,7 @@ define [
     template: tpl
     constructor: (viewName, args) ->
       modelHref = "/cfg/model/contract?pid=#{args.program}"
+      modelTable = "#{modelHref}&field=showtable"
       setupModel = (args) ->
         if args.id
           $('#render-contract').attr(
@@ -18,7 +19,7 @@ define [
             refs: [])
 
       kvm = setupModel args
-      $.getJSON modelHref, (model) ->
+      $.getJSON modelTable, (model) ->
         tableCols =
               [ {name: "#", fn: (o) -> o.id}
               , "ctime"

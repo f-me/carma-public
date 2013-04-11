@@ -10,6 +10,7 @@ import Control.Monad.State
 import Data.Maybe
 import qualified Data.Map as M
 import qualified Data.Aeson as Aeson
+import           Data.ByteString (ByteString)
 
 import Data.Pool
 import Database.PostgreSQL.Simple as Pg
@@ -33,7 +34,6 @@ serveModel :: HasAuth b => Handler b (SiteConfig b) ()
 serveModel = do
   mcu   <- withAuth currentUser
   name  <- fromJust <$> getParam "name"
-  pid   <- getParam "pid"
   model <- M.lookup name <$> gets models
   case return (,) `ap` mcu `ap` model of
     Nothing -> do
@@ -41,12 +41,17 @@ serveModel = do
       getResponse >>= finishWith
     Just (cu, m) -> do
       modifyResponse $ setContentType "application/json"
-      let stripped = stripModel (Right cu) m
-      case name of
-        "contract" -> do
-          when (pid == Nothing) $ finishWithError 401 "need pid param"
-          stripContract stripped (fromJust pid) >>= writeLBS . Aeson.encode
-        _          -> writeLBS $ Aeson.encode stripped
+      writeModel name (stripModel (Right cu) m)
+
+writeModel :: ByteString -> Model -> Handler b (SiteConfig b) ()
+writeModel "contract" model = do
+  field <- fromMaybe "showform" <$> getParam "field"
+  pid   <- getParam "pid"
+  when (pid == Nothing) $ finishWithError 401 "need pid param"
+  model' <- stripContract model (fromJust pid) field
+  writeLBS $ Aeson.encode model'
+
+writeModel _          model = writeLBS $ Aeson.encode model
 
 serveModels :: HasAuth b => Handler b (SiteConfig b) ()
 serveModels = do
