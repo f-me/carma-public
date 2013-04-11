@@ -20,7 +20,6 @@ define [ "model/main"
                           focusClass: "focusable"
                           slotsee: ["program-files"]
                           refs: []
-                          bb: { manual_save: true }
 
     $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
     $.fn.dataTableExt.oStdClasses.sFilter = "dataTables_filter form-inline"
@@ -40,7 +39,7 @@ define [ "model/main"
                             focusClass: "focusable"
                             slotsee: ["program-files"]
                             refs: []
-                            bb: { manual_save: true }
+
       k = global.viewsWare['program-view'].knockVM
 
     $.getJSON "/all/program",
