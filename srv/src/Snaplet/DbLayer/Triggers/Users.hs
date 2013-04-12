@@ -62,4 +62,4 @@ updateUsermetaTrigger objId obj = do
              case uRes' of
                Left e -> error $
                          "Could not save new password for user: " ++ show e
-               Right _ -> return obj
+               Right _ -> return $ M.delete "password" obj
