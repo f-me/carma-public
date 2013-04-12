@@ -962,7 +962,7 @@
         <div class="accordion-heading"
              id="{{ refView }}-link">
           <a class="accordion-toggle"
-             data-bind="text: contractField"
+             data-bind="text: contractFieldLocal"
              data-target="#{{ refView }}-head"
              data-toggle="collapse"></a>
         </div>
