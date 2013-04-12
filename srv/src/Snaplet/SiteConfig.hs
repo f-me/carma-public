@@ -1,11 +1,13 @@
+{-# LANGUAGE TemplateHaskell #-}
 
 module Snaplet.SiteConfig
-  (initSiteConfig
-  ,SiteConfig(..)
+  ( SiteConfig
+  , initSiteConfig
   ) where
 
 import Control.Applicative
 import Control.Monad
+import Control.Lens
 import Control.Monad.State
 import Data.Maybe
 import qualified Data.Map as M
@@ -18,9 +20,11 @@ import Database.PostgreSQL.Simple as Pg
 import Snap.Core
 import Snap.Snaplet
 import Snap.Snaplet.Auth
+import Snap.Snaplet.PostgresqlSimple
 
 ----------------------------------------------------------------------
 import Snaplet.Auth.Class
+import Snaplet.Auth.PGUsers
 
 import Snaplet.SiteConfig.Config
 import Snaplet.SiteConfig.Permissions
@@ -61,10 +65,11 @@ serveModels = do
       modifyResponse $ setResponseCode 401
       getResponse >>= finishWith
     Just cu -> do
+      cu' <- (gets authDb >>=) . flip withTop $ replaceMetaRolesFromPG cu
       ms <- gets models
       modifyResponse $ setContentType "application/json"
       writeLBS $ Aeson.encode
-               $ M.map (stripModel $ Right cu) ms
+               $ M.map (stripModel $ Right cu') ms
 
 
 serveDictionaries :: Handler b (SiteConfig b) ()
@@ -73,11 +78,14 @@ serveDictionaries = ifTop $ do
   modifyResponse $ setContentType "application/json"
   writeLBS $ Aeson.encode ds
 
-
-initSiteConfig
-  :: HasAuth b
-  => FilePath -> Pool Pg.Connection -> SnapletInit b (SiteConfig b)
-initSiteConfig cfgDir pg_pool = makeSnaplet
+initSiteConfig :: HasAuth b
+                  => FilePath
+                  -> Pool Pg.Connection
+                  -> Lens' b (Snaplet Postgres)
+                  -- ^ Lens to a snaplet with Postgres DB used to check
+                  -- user roles.
+                  -> SnapletInit b (SiteConfig b)
+initSiteConfig cfgDir pg_pool authDb = makeSnaplet
   "site-config" "Site configuration storage"
   Nothing $ do -- ?
     addRoutes
@@ -85,7 +93,6 @@ initSiteConfig cfgDir pg_pool = makeSnaplet
       ,("model/:name",  method GET serveModel)
       ,("dictionaries", method GET serveDictionaries)
       ]
-    SiteConfig
-      <$> liftIO (loadModels cfgDir)
-      <*> liftIO (loadDictionaries cfgDir)
-      <*> (return pg_pool)
+    (mdls, dicts) <- liftIO $ 
+                     (,) <$> loadModels cfgDir <*> loadDictionaries cfgDir
+    return $ SiteConfig mdls dicts pg_pool authDb

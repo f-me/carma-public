@@ -8,12 +8,15 @@ import Data.Functor
 import Data.Map (Map)
 import qualified Data.Map as Map
 import qualified Data.ByteString.Char8 as B
+import Data.Text.Encoding
 import Data.Time.Clock (getCurrentTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 import Data.Time.Format (formatTime)
 import Data.Maybe
 import System.Locale (defaultTimeLocale)
 import Snap
+import Snap.Snaplet.Auth
+
 import qualified Database.Redis       as Redis
 import qualified Snap.Snaplet.RedisDB as Redis
 import Snaplet.DbLayer.Types
@@ -36,6 +39,24 @@ applyDefaults model obj = do
               $ Map.insert "isActive" "0"
               $ Map.insert "isDealer" "0"
               $ obj
+
+    "usermeta" -> do
+      -- Create new user when creating user meta
+      let login = obj Map.! "login"
+          password = obj Map.! "password"
+          user = defAuthUser{userLogin = decodeUtf8 login}
+      user' <- liftIO $ setPassword user password
+      uRes <- with auth $ withBackend $ \bk -> liftIO $ save bk user'
+      case uRes of
+        Left _ -> error "Could not create new user"
+        Right newUser -> do
+            -- Sync uid for usermeta with new user ID
+            let (Just (UserId uid)) = userId newUser
+            -- Now strip login/password from meta commit.
+            return $ Map.delete "login" 
+                   $ Map.delete "password"
+                   $ Map.insert "uid" (encodeUtf8 uid) obj
+
     "case" -> return cd
     "call" -> return cd
     "cost_serviceTarifOption" -> return $ Map.insert "count" "1" obj

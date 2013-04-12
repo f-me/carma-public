@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE Rank2Types #-}
 
 module Snaplet.DbLayer
   (create
@@ -17,6 +18,7 @@ module Snaplet.DbLayer
 
 import Prelude hiding (read, log)
 import Control.Applicative
+import Control.Lens
 import Control.Monad
 import Control.Monad.State
 import Control.Concurrent.STM
@@ -38,13 +40,14 @@ import WeatherApi.WWOnline (initApi)
 
 import Snap.Snaplet
 import Snap.Snaplet.Auth
-import Snap.Snaplet.PostgresqlSimple (pgsInit)
+import Snap.Snaplet.PostgresqlSimple (Postgres, pgsInit)
 import Snap.Snaplet.RedisDB (redisDBInit, runRedisDB)
 import Snap.Snaplet.SimpleLog
 #if !defined(mingw32_HOST_OS)
 import System.Log.Simple.Syslog
 #endif
 import qualified Database.Redis as Redis
+
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import qualified Snaplet.DbLayer.PostgresCRUD as Postgres
 import qualified Database.PostgreSQL.Sync.Base as S
@@ -164,10 +167,15 @@ smsProcessing = runRedisDB redis $ do
   return $ i + ri
 
 
-initDbLayer
-  :: Snaplet (AuthManager b) -> UsersDict -> TVar RuntimeFlags -> FilePath
-  -> SnapletInit b (DbLayer b)
-initDbLayer sessionMgr allU rtF cfgDir = makeSnaplet "db-layer" "Storage abstraction"
+-- TODO Use lens to an external AuthManager
+initDbLayer :: Snaplet (AuthManager b) 
+            -> Lens' b (Snaplet Postgres)
+            -- ^ Lens to a snaplet with Postgres DB used for user
+            -- authorization.
+            -> TVar RuntimeFlags 
+            -> FilePath
+            -> SnapletInit b (DbLayer b)
+initDbLayer sessionMgr adb rtF cfgDir = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
     l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10)
 #if !defined(mingw32_HOST_OS)
@@ -182,18 +190,11 @@ initDbLayer sessionMgr allU rtF cfgDir = makeSnaplet "db-layer" "Storage abstrac
     cfg <- getSnapletUserConfig
     wkey <- liftIO $ lookupDefault "" cfg "weather-key"
 
-    let usrDic
-          = Map.fromList
-            [(u' Map.! "value", u' Map.! "label")
-            | u <- us
-            , let u' = Map.map T.decodeUtf8 u]
-          where UsersDict us = allU
-
     dc <- liftIO
-          $ loadDictionaries usrDic "resources/site-config/dictionaries"
+          $ loadDictionaries "resources/site-config/dictionaries"
           >>= newTVarIO
 
-    DbLayer
+    DbLayer adb
       <$> nestSnaplet "redis" redis
             (redisDBInit Redis.defaultConnectInfo)
       <*> nestSnaplet "pgsql" postgres pgsInit
@@ -203,11 +204,11 @@ initDbLayer sessionMgr allU rtF cfgDir = makeSnaplet "db-layer" "Storage abstrac
       <*> (liftIO $ fddsConfig cfg)
       <*> (return rels)
       <*> (return tbls)
-      <*> (return allU)
       <*> (return dc)
       <*> (return $ initApi wkey)
       <*> (liftIO $ readRKCCalc cfgDir)
       <*> pure rtF
+
 ----------------------------------------------------------------------
 triggersConfig :: IO TriggersConfig
 triggersConfig = do

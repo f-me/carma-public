@@ -22,6 +22,7 @@ Executable carma
     Application,
     ApplicationInit,
     ApplicationHandlers,
+    AppHandlers.Users,
     AppHandlers.Util,
     AppHandlers.ActionAssignment,
     AppHandlers.CustomSearches,
@@ -48,6 +49,7 @@ Executable carma
     Snaplet.FileUpload,
     Snaplet.Geo,
     Snaplet.Auth.Class,
+    Snaplet.Auth.PGUsers,
     Utils.HttpErrors,
     Utils.RKCCalc,
     Util

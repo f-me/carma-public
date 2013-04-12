@@ -1,9 +1,8 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 
-{-# LANGUAGE DeriveDataTypeable, TemplateHaskell #-}
 module Util
   (readJSON
   ,readJSONfromLBS
-  ,UsersDict(..)
   ,selectParse
   ,mbreadInt
   ,mbreadDouble
@@ -66,33 +65,6 @@ readJSONfromLBS' src s
       Error err -> throw $ FromJSONError src err
     err -> throw $ AttoparsecError src (show err)
 
---------------------------------------------------------------------------------
-
-data UsersDict = UsersDict [Map.Map B.ByteString B.ByteString]
-                 deriving (Show)
-
-instance FromJSON UsersDict where
-  parseJSON (Object v) = do
-    Array c <- v .: "uidCache"
-    UsersDict . V.toList <$> V.mapM parseUser c
-      where
-        parseRoles = fmap (B.intercalate "," . V.toList) . V.mapM parseJSON
-        parseUser a = do
-          Array u <- parseJSON a
-          Object u' <- parseJSON $ u V.! 1
-          Array roles <- u' .: "roles"
-          meta  <- u' .: "meta"
-          Map.fromList <$> sequence
-            [ ("value",)      <$> u' .: "login"
-            , ("roles",)      <$> parseRoles roles
-            , ("label",)      <$> meta .:? "realName" .!= ""
-            , ("boCities",)   <$> meta .:? "boCities" .!= ""
-            , ("boPrograms",) <$> meta .:? "boPrograms" .!= ""
-            ]
-
-  parseJSON _ = fail "bad arg"
-
-$(deriveToJSON id ''UsersDict)
 
 --------------------------------------------------------------------------------
 -- param parser for select
