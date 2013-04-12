@@ -199,6 +199,7 @@ serviceActions = Map.fromList
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
+          sendSMS actionId "smsTpl:13"
       "recallClient" -> do
           due <- getService objId "times_expectedServiceStart"
           kazeId <- get objId "parentId"
@@ -213,6 +214,7 @@ serviceActions = Map.fromList
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
+          sendSMS actionId "smsTpl:13"
       "serviceOrdered" -> do
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
@@ -243,6 +245,7 @@ serviceActions = Map.fromList
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
+          sendSMS actionId "smsTpl:13"
       "dealerConf" -> do
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
@@ -257,6 +260,7 @@ serviceActions = Map.fromList
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
+          sendSMS actionId "smsTpl:13"
       "pleaseCheck" -> do
           due <- dateNow (+ (5*60))
           kazeId <- get objId "parentId"
@@ -412,7 +416,7 @@ actionResultMap = Map.fromList
   ,("bigDelay",        \objId -> dateNow (+ (6*60*60)) >>= set objId "duetime" >> set objId "result" "")
   ,("weekDelay",        \objId -> dateNow (+ (7*24*60*60)) >>= set objId "duetime" >> set objId "result" "")
   ,("partnerNotFound", \objId -> dateNow (+ (2*60*60)) >>= set objId "duetime" >> set objId "result" "")
-  ,("clientCanceledService", \objId -> closeAction objId >> sendSMS objId "smsTpl:2")
+  ,("clientCanceledService", \objId -> closeAction objId >> sendSMS objId "smsTpl:2" >> sendMailToPSA objId)
   ,("unassignPlease",  \objId -> set objId "assignedTo" "" >> set objId "result" "")
   ,("needPartner",     \objId -> do
      setService objId "status" "needPartner"
