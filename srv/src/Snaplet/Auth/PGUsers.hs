@@ -69,7 +69,12 @@ instance FromRow UserMeta where
     fromRow = (field :: RowParser Int) >> (field :: RowParser Int) >>
         UserMeta
         <$> field
-        <*> field
+        -- NULL roles is no roles
+        <*> (do
+              f <- field
+              case f of
+                Just rls -> return rls
+                Nothing  -> return [])
         <*> field
         <*> field
         <*> field
