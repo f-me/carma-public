@@ -38,6 +38,7 @@ Executable carma
     Snaplet.DbLayer.Triggers.Defaults,
     Snaplet.DbLayer.Triggers.Dsl,
     Snaplet.DbLayer.Triggers.Types,
+    Snaplet.DbLayer.Triggers.Users,
     Snaplet.DbLayer.Types,
     Snaplet.SiteConfig,
     Snaplet.SiteConfig.Class,
