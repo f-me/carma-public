@@ -13,6 +13,11 @@ system.
 Roles are stored in @usermetatbl@ table as created from the @usermeta@
 model.
 
+Populating user roles and meta from PG:
+
+> u <- with auth currentUser
+> u' <- with authDb $ replaceMetaRolesFromPG u
+
 -}
 
 module Snaplet.Auth.PGUsers
@@ -140,10 +145,11 @@ $(deriveToJSON id ''UsersList)
 
 
 ------------------------------------------------------------------------------
--- | Convert user meta to a map with all-string values.
+-- | Convert user meta to a map with all-string values, adding @value@
+-- and @label@ keys for login and realName meta values, respectively.
 toEntry :: Text
         -- ^ User login.
-        -> UserMeta 
+        -> UserMeta
         -> UserEntry
 toEntry login meta =
     (M.insert "value" $ encodeUtf8 login) $
