@@ -53,7 +53,8 @@
             "type": "dictionary-many",
             "meta": {
                 "label": "boCities",
-                "dictionaryName": "DealerCities"
+                "dictionaryName": "DealerCities",
+                "invisible": true
             }
         },
         {
@@ -61,7 +62,8 @@
             "type": "dictionary-many",
             "meta": {
                 "label": "boPrograms",
-                "dictionaryName": "Programs"
+                "dictionaryName": "Programs",
+                "invisible": true
             }
         },
         {
@@ -69,7 +71,8 @@
             "type": "dictionary-many",
             "meta": {
                 "label": "weatherCities",
-                "dictionaryName": "DealerCities"
+                "dictionaryName": "DealerCities",
+                "invisible": true
             }
         }
     ]
