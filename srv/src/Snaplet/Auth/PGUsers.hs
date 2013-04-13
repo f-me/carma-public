@@ -37,7 +37,7 @@ import Control.Applicative
 
 import Data.Aeson
 import Data.Aeson.TH
-import Data.ByteString.Char8 (ByteString, intercalate)
+import Data.ByteString.Char8 (ByteString, intercalate, pack)
 import Data.Text (Text)
 import Data.Text.Encoding
 import Data.Maybe
@@ -57,7 +57,8 @@ import qualified Data.Vector as V
 -- | A rigid Haskell-only model for user meta stored in @usermetatbl@.
 -- Matches a subset of @usermeta@ CRUD model. Usermeta instance id &
 -- uid are ignored.
-data UserMeta = UserMeta { realName      :: Maybe Text
+data UserMeta = UserMeta { metaId        :: Int
+                         , realName      :: Maybe Text
                          , metaRoles     :: [Role]
                          , boCities      :: Maybe [ByteString]
                          , boPrograms    :: Maybe [ByteString]
@@ -66,8 +67,10 @@ data UserMeta = UserMeta { realName      :: Maybe Text
 
 
 instance FromRow UserMeta where
-    fromRow = (field :: RowParser Int) >> (field :: RowParser Int) >>
-        UserMeta
+    fromRow = do
+      mid <- field :: RowParser Int
+      field :: RowParser Int
+      UserMeta mid
         <$> field
         -- NULL roles is no roles
         <*> (do
@@ -133,8 +136,6 @@ userRolesPG user = do
 -- | UserEntry contains keys: @value@ for login, @label@ for realName
 -- meta (or login when realName is not present), all other meta keys
 -- (joining lists into strings using commas when necessary).
---
--- Used to serve the list of users to client.
 type UserEntry = M.Map ByteString ByteString
 
 
@@ -160,6 +161,7 @@ toEntry login meta =
     (M.insert "value" $ encodeUtf8 login) $
     (M.insert "label" $ encodeUtf8 $
       fromMaybe login $ realName meta) $
+    (M.insert "mid" $ pack $ show $ metaId meta) $
     (M.insert "roles" $ intercalate "," $
       map (\(Role r) -> r) $ metaRoles meta) $
     (M.insert "boCities" $ intercalate "," $

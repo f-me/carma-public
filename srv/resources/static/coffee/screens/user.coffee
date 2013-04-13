@@ -20,7 +20,7 @@ define [ "utils"
         # Show user form when a table row is clicked
         t.on("click.datatable", "tr", ->
           id = this.children[0].innerText
-          kvm = main.modelSetup("user") viewName, {"id": id},
+          kvm = main.modelSetup("usermeta") viewName, {"id": id},
                                 permEl: "user-permissions"
                                 focusClass: "focusable"
           k = global.viewsWare['user-view'].knockVM
@@ -31,9 +31,9 @@ define [ "utils"
                 dt = t.dataTable()
                 dt.fnClearTable()
                 rows = for obj in objs
-                    [0
-                    ,obj.value       || ''
-                    ,obj.label       || ''
+                    [ obj.mid
+                    , obj.value || ''
+                    , obj.label || ''
                     ]
                 dt.fnAddData(rows)
         ))
