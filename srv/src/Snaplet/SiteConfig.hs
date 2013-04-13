@@ -45,8 +45,9 @@ serveModel = do
       modifyResponse $ setResponseCode 401
       getResponse >>= finishWith
     Just (cu, m) -> do
+      cu' <- (gets authDb >>=) . flip withTop $ replaceMetaRolesFromPG cu
       modifyResponse $ setContentType "application/json"
-      writeModel name (stripModel (Right cu) m)
+      writeModel name (stripModel (Right cu') m)
 
 writeModel :: ByteString -> Model -> Handler b (SiteConfig b) ()
 writeModel "contract" model = do
