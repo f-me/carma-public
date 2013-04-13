@@ -43,7 +43,8 @@
         {
             "name": "roles",
             "meta": {
-                "label": "Роли"
+                "label": "Роли",
+                "dictionaryName": "Roles"
             },
             "type": "dictionary-many"
         },
