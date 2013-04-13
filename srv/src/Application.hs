@@ -15,6 +15,7 @@ import Database.PostgreSQL.Simple as Pg
 import Snap
 import Snap.Snaplet.Heist
 import Snap.Snaplet.Auth
+import Snap.Snaplet.PostgresqlSimple
 import Snap.Snaplet.Session
 
 ------------------------------------------------------------------------------
@@ -27,7 +28,6 @@ import Snaplet.FileUpload
 import Snaplet.Geo
 import Snap.Snaplet.SimpleLog
 
-import Util (UsersDict)
 import RuntimeFlag
 
 ------------------------------------------------------------------------------
@@ -37,7 +37,6 @@ data App = App
     , _session    :: Snaplet SessionManager
     , _auth       :: Snaplet (AuthManager App)
     , loggedUsers :: TVar (Map Text (UTCTime, AuthUser))
-    , allUsers    :: IO UsersDict
     , _siteConfig :: Snaplet (SiteConfig App)
     , _db         :: Snaplet (DbLayer App)
     , pg_search   :: Pool Pg.Connection
@@ -47,6 +46,7 @@ data App = App
     , _geo        :: Snaplet Geo
     , feLog       :: Log
     , runtimeFlags:: TVar (Set RuntimeFlag)
+    , _authDb     :: Snaplet Postgres
     }
 
 

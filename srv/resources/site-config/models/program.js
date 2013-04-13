@@ -61,6 +61,13 @@
             "meta": {
                 "label": "Шаблон договора"
             }
+        },
+        {
+            "name": "programPermissions",
+            "type": "reference",
+            "meta": {
+                "label": "Ограничение прав"
+            }
         }
     ]
 }

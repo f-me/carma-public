@@ -1,4 +1,3 @@
-
 module AppHandlers.ActionAssignment where
 
 import Prelude hiding (log)
@@ -7,13 +6,11 @@ import Control.Applicative
 import Data.String (fromString)
 
 import Data.List (intercalate)
-import qualified Data.HashMap.Strict as HashMap
 import qualified Data.Map as Map
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.ByteString.Char8 as B
-import qualified Data.Aeson as Aeson
 
 import Snap
 import Snap.Snaplet.Auth
@@ -25,9 +22,11 @@ import Application
 import AppHandlers.CustomSearches
 import AppHandlers.Util
 
+import Snaplet.Auth.PGUsers
 
-assignQ :: Int -> AuthUser -> [Text] -> Query
-assignQ pri usr logdUsers = fromString
+
+assignQ :: Int -> AuthUser -> UserMeta -> [Text] -> Query
+assignQ pri usr meta logdUsers = fromString
   $  "UPDATE actiontbl SET assignedTo = '" ++ uLogin ++ "'"
   ++ "  WHERE id = (SELECT act.id"
   ++ "    FROM (actiontbl act LEFT JOIN servicetbl svc"
@@ -54,28 +53,31 @@ assignQ pri usr logdUsers = fromString
   ++ "  RETURNING id::text;"
   where
     uLogin = T.unpack $ userLogin usr
-    uRoles = intercalate "','" [B.unpack r | Role r <- userRoles usr]
+    uRoles = intercalate "','" [B.unpack r | Role r <- metaRoles meta]
     logdUsersList = T.unpack $ T.intercalate "','" logdUsers
-    mkSet = T.unpack . T.intercalate "','" . T.split (==',')
-    citySet = case HashMap.lookup "boCities" $ userMeta usr of
-      Just (Aeson.String xx) | not $ T.null xx -> Just $ mkSet xx
+    mkSet = B.unpack . B.intercalate "','"
+    citySet = case boCities meta of
+      Just c | not $ null c -> Just $ mkSet c
       _ -> Nothing
-    programSet = case HashMap.lookup "boPrograms" $ userMeta usr of
-      Just (Aeson.String xx) | not $ T.null xx -> Just $ mkSet xx
+    programSet = case boPrograms meta of
+      Just p | not $ null p -> Just $ mkSet p
       _ -> Nothing
 
 
 littleMoreActionsHandler :: AppHandler ()
 littleMoreActionsHandler = scoper "littleMoreActions" $ do
   Just cUsr <- with auth currentUser
-  logdUsers <- map (userLogin.snd) . Map.elems <$> addToLoggedUsers cUsr
+  -- Use PG roles to assign actions and PG meta for city&program filters
+  cUsr' <- with authDb $ replaceMetaRolesFromPG cUsr
+  Just meta <- with authDb $ userMetaPG cUsr
+  logdUsers <- map (userLogin.snd) . Map.elems <$> addToLoggedUsers cUsr'
 
-  actIds1 <- withPG pg_actass (`query_` assignQ 1 cUsr logdUsers)
-  actIds2 <- withPG pg_actass (`query_` assignQ 2 cUsr logdUsers)
-  actIds3 <- withPG pg_actass (`query_` assignQ 3 cUsr logdUsers)
+  actIds1 <- withPG pg_actass (`query_` assignQ 1 cUsr' meta logdUsers)
+  actIds2 <- withPG pg_actass (`query_` assignQ 2 cUsr' meta logdUsers)
+  actIds3 <- withPG pg_actass (`query_` assignQ 3 cUsr' meta logdUsers)
   let actIds = actIds1 ++ actIds2 ++ actIds3
 
-  let uLogin = T.encodeUtf8 $ userLogin cUsr
+  let uLogin = T.encodeUtf8 $ userLogin cUsr'
   with db $ forM_ actIds $ \[actId] ->
       DB.update "action" actId
         $ Map.singleton "assignedTo" uLogin

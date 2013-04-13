@@ -8,7 +8,7 @@ require [ "domready"
         , "json!/_whoami"
         , "json!/cfg/models"
         , "json!/s/screens"
-        , "json!/usersDict"
+        , "json!/usersList"
         , "utils"
         , "sendSms"
         ], ( dom
