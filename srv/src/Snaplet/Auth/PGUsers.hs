@@ -159,9 +159,9 @@ toEntry :: Text
         -> UserEntry
 toEntry login meta =
     (M.insert "value" $ encodeUtf8 login) $
-    (M.insert "label" $ encodeUtf8 $
-      fromMaybe login $ realName meta) $
+    (M.insert "label" rn) $
     (M.insert "mid" $ pack $ show $ metaId meta) $
+    (M.insert "realName" rn) $
     (M.insert "roles" $ intercalate "," $
       map (\(Role r) -> r) $ metaRoles meta) $
     (M.insert "boCities" $ intercalate "," $
@@ -169,6 +169,8 @@ toEntry login meta =
     (M.insert "boPrograms" $ intercalate "," $
       fromMaybe [] $ boPrograms meta) $
     M.empty
+    where
+      rn = encodeUtf8 $ fromMaybe login $ realName meta
 
 
 ------------------------------------------------------------------------------
