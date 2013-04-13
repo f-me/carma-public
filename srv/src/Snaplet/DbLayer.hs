@@ -67,8 +67,7 @@ create model commit = scoper "create" $ do
   log Trace $ fromString $ "Model: " ++ show model
   log Trace $ fromString $ "Commit: " ++ show commit
   --
-  commit' <- triggerCreate model commit
-  let obj = Map.union commit commit'
+  obj <- triggerCreate model =<< applyDefaults model commit
   objId <- Redis.create redis model obj
   --
   let obj' = Map.insert (C8.pack "id") objId obj
@@ -92,8 +91,7 @@ findOrCreate model objId commit = do
   r <- read model objId
   case Map.toList r of
     [] -> do
-      commit' <- triggerCreate model commit
-      let obj = Map.union commit' commit
+      obj <- triggerCreate model =<< applyDefaults model commit
       Redis.create' redis model objId obj
     _  -> return r
 
@@ -114,7 +112,7 @@ update model objId commit = scoper "update" $ do
   let fullId = B.concat [model, ":", objId]
   -- FIXME: catch NotFound => transfer from postgres to redis
   -- (Copy on write)
-  changes <- triggerUpdate fullId commit
+  changes <- triggerUpdate model objId commit
   Right _ <- Redis.updateMany redis changes
   -- 
   let
