@@ -206,7 +206,7 @@ serviceActions = Map.fromList
           actionId <- new "action" $ Map.fromList
             [("name", "callMeMaybe")
             ,("duetime", due)
-            ,("description", utf8 "Перезвонить клиенту")
+            ,("description", utf8 "Заказ услуги через мобильное приложение")
             ,("targetGroup", "back")
             ,("priority", "1")
             ,("parentId", objId)
