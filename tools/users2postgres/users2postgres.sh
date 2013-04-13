@@ -20,7 +20,7 @@ http_commands="${outfile}.http.sh"
 sql_commands="${outfile}.sql"
 
 # Create users & metas
-cat ${users} | jq '.uidCache | .[][1] | {login: .login, password: (null | tostring), realName: .meta.realName, roles: (.roles | map (.+",") | add )} | tostring' | sed -e 's/,\\"/\\"/' | sed -e "s/\(.*\)/curl -X POST localhost:${CARMA_PORT}\/_\/usermeta\/ --data \1/" > ${http_commands}
+cat ${users} | jq '.uidCache | .[][1] | {login: .login, password: (null | tostring), realName: (.meta.realName // ("")), roles: (.roles | map (.+",") | add )} | tostring' | sed -e 's/,\\"/\\"/' | sed -e "s/\(.*\)/curl -X POST localhost:${CARMA_PORT}\/_\/usermeta\/ --data \1/" > ${http_commands}
 # Update passwords directly in Postgres
 cat ${users} | jq -r ".uidCache | .[][1] | \"UPDATE snap_auth_user SET password = '\" + .pw + \"' WHERE login = '\" + .login + \"';\"" > ${sql_commands}
 
