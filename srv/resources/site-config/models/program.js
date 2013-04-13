@@ -56,6 +56,22 @@
             "type": "dictionary-many"
         },
         {
+            "name": "carCheckPeriodDefault",
+            "meta": {
+                "required": true,
+                "label": "Межсервисный интервал по умолчанию",
+                "sqltype": "integer"
+            }
+        },
+        {
+            "name": "duedateDefault",
+            "meta": {
+                "required": true,
+                "label": "Срок действия программы по умолчанию",
+                "sqltype": "integer"
+            }
+        },
+        {
             "name": "contracts",
             "type": "files",
             "meta": {
