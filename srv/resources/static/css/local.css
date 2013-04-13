@@ -71,6 +71,16 @@ body {
   width: 50%;
 }
 
+#user-left {
+  left: 0;
+  width: 45%;
+}
+
+#user-center {
+  right: 0;
+  width: 50%;
+}
+
 .container-fluid {
   padding: 1%;
 }
