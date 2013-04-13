@@ -21,9 +21,10 @@
             }
         },
         {
-            "name": "realName",
+            "name": "login",
             "meta": {
-                "label": "Настоящее имя"
+                "label": "Логин",
+                "nosql": true
             }
         },
         {
@@ -31,6 +32,12 @@
             "meta": {
                 "label": "Пароль",
                 "nosql": true
+            }
+        },
+        {
+            "name": "realName",
+            "meta": {
+                "label": "Настоящее имя"
             }
         },
         {
