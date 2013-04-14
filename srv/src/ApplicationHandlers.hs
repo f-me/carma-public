@@ -78,7 +78,7 @@ indexPage = ifTop $ render "index"
 
 
 ------------------------------------------------------------------------------
--- | Serve JSON object with build-time Git information
+-- | Serve a JSON object with build-time Git information.
 serveGitStats :: AppHandler ()
 serveGitStats = 
     writeJSON $
