@@ -69,11 +69,22 @@ import AppHandlers.Util
 import Util as U
 import RuntimeFlag
 
+import GitStats
 
 ------------------------------------------------------------------------------
 -- | Render empty form for model.
 indexPage :: AppHandler ()
 indexPage = ifTop $ render "index"
+
+
+------------------------------------------------------------------------------
+-- | Serve JSON object with build-time Git information
+serveGitStats :: AppHandler ()
+serveGitStats = 
+    writeJSON $
+    Aeson.object [ "gitCommitHash" .= gitCommitHash
+                 , "gitCommitTime" .= gitCommitTime
+                 ]
 
 
 ------------------------------------------------------------------------------

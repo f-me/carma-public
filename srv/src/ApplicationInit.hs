@@ -76,6 +76,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/renderContract",
                               chkAuth . method GET    $ renderContractHandler)
          , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)
+         , ("/_version/",     chkAuth . method GET    $ serveGitStats)
          , ("/_/:model",      chkAuth . method POST   $ createHandler)
          , ("/_/:model/:id",  chkAuth . method GET    $ readHandler)
          , ("/_/:model/:id",  chkAuth . method PUT    $ updateHandler)
