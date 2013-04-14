@@ -21,6 +21,20 @@
             }
         },
         {
+            "name": "login",
+            "meta": {
+                "label": "Логин",
+                "nosql": true
+            }
+        },
+        {
+            "name": "password",
+            "meta": {
+                "label": "Пароль",
+                "nosql": true
+            }
+        },
+        {
             "name": "realName",
             "meta": {
                 "label": "Настоящее имя"
@@ -29,7 +43,8 @@
         {
             "name": "roles",
             "meta": {
-                "label": "Роли"
+                "label": "Роли",
+                "dictionaryName": "Roles"
             },
             "type": "dictionary-many"
         },
@@ -37,21 +52,27 @@
             "name": "boCities",
             "type": "dictionary-many",
             "meta": {
-                "dictionaryName": "DealerCities"
+                "label": "boCities",
+                "dictionaryName": "DealerCities",
+                "invisible": true
             }
         },
         {
             "name": "boPrograms",
             "type": "dictionary-many",
             "meta": {
-                "dictionaryName": "Programs"
+                "label": "boPrograms",
+                "dictionaryName": "Programs",
+                "invisible": true
             }
         },
         {
             "name": "weatherCities",
             "type": "dictionary-many",
             "meta": {
-                "dictionaryName": "DealerCities"
+                "label": "weatherCities",
+                "dictionaryName": "DealerCities",
+                "invisible": true
             }
         }
     ]

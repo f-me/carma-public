@@ -89,6 +89,11 @@
           "type"  : "li",
           "permissions": ["head","parguy","programman","supervisor","analyst"]
         },
+        { "name"  : "user",
+          "label" : "Редактирование пользователей",
+          "type"  : "li",
+          "permissions": ["admin"]
+        },
         { "name"  : "reports",
           "label" : "Отчёты",
           "type"  : "li",

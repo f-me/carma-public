@@ -275,8 +275,8 @@
     {
       "name": "dixi",
       "type": "checkbox",
-      "canRead" : ["ruslan"],
-      "canWrite": ["ruslan"],
+      "canRead" : true,
+      "canWrite": true,
       "meta": {
           "label": "Сохранить",
           "widget": "checkbutton"

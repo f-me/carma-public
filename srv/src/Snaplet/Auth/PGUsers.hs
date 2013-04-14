@@ -13,6 +13,11 @@ system.
 Roles are stored in @usermetatbl@ table as created from the @usermeta@
 model.
 
+Populating user roles and meta from PG:
+
+> u <- with auth currentUser
+> u' <- with authDb $ replaceMetaRolesFromPG u
+
 -}
 
 module Snaplet.Auth.PGUsers
@@ -32,7 +37,7 @@ import Control.Applicative
 
 import Data.Aeson
 import Data.Aeson.TH
-import Data.ByteString.Char8 (ByteString, intercalate)
+import Data.ByteString.Char8 (ByteString, intercalate, pack)
 import Data.Text (Text)
 import Data.Text.Encoding
 import Data.Maybe
@@ -52,7 +57,8 @@ import qualified Data.Vector as V
 -- | A rigid Haskell-only model for user meta stored in @usermetatbl@.
 -- Matches a subset of @usermeta@ CRUD model. Usermeta instance id &
 -- uid are ignored.
-data UserMeta = UserMeta { realName      :: Maybe Text
+data UserMeta = UserMeta { metaId        :: Int
+                         , realName      :: Maybe Text
                          , metaRoles     :: [Role]
                          , boCities      :: Maybe [ByteString]
                          , boPrograms    :: Maybe [ByteString]
@@ -61,10 +67,17 @@ data UserMeta = UserMeta { realName      :: Maybe Text
 
 
 instance FromRow UserMeta where
-    fromRow = (field :: RowParser Int) >> (field :: RowParser Int) >>
-        UserMeta
+    fromRow = do
+      mid <- field :: RowParser Int
+      field :: RowParser Int
+      UserMeta mid
         <$> field
-        <*> field
+        -- NULL roles is no roles
+        <*> (do
+              f <- field
+              case f of
+                Just rls -> return rls
+                Nothing  -> return [])
         <*> field
         <*> field
         <*> field
@@ -123,8 +136,6 @@ userRolesPG user = do
 -- | UserEntry contains keys: @value@ for login, @label@ for realName
 -- meta (or login when realName is not present), all other meta keys
 -- (joining lists into strings using commas when necessary).
---
--- Used to serve the list of users to client.
 type UserEntry = M.Map ByteString ByteString
 
 
@@ -140,15 +151,17 @@ $(deriveToJSON id ''UsersList)
 
 
 ------------------------------------------------------------------------------
--- | Convert user meta to a map with all-string values.
+-- | Convert user meta to a map with all-string values, adding @value@
+-- and @label@ keys for login and realName meta values, respectively.
 toEntry :: Text
         -- ^ User login.
-        -> UserMeta 
+        -> UserMeta
         -> UserEntry
 toEntry login meta =
     (M.insert "value" $ encodeUtf8 login) $
-    (M.insert "label" $ encodeUtf8 $
-      fromMaybe login $ realName meta) $
+    (M.insert "label" rn) $
+    (M.insert "mid" $ pack $ show $ metaId meta) $
+    (M.insert "realName" rn) $
     (M.insert "roles" $ intercalate "," $
       map (\(Role r) -> r) $ metaRoles meta) $
     (M.insert "boCities" $ intercalate "," $
@@ -156,6 +169,8 @@ toEntry login meta =
     (M.insert "boPrograms" $ intercalate "," $
       fromMaybe [] $ boPrograms meta) $
     M.empty
+    where
+      rn = encodeUtf8 $ fromMaybe login $ realName meta
 
 
 ------------------------------------------------------------------------------
