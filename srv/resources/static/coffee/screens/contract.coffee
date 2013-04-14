@@ -12,11 +12,18 @@ define [
           $('#render-contract').attr(
             "href",
             "/renderContract?prog=#{args.program}&ctr=#{args.id}")
-        main.modelSetup("contract", modelHref)(
+        kvm = main.modelSetup("contract", modelHref)(
           viewName, args,
             permEl: "contract-permissions"
             focusClass: "focusable"
             refs: [])
+
+        if _.find(global.user.roles, (r) -> r == 'contractUser')
+          kvm['commentDisabled'](false) if kvm['commentDisabled']
+          kvm['isActiveDisabled'](false)  if kvm['isActiveDisabled']
+        if _.find(global.user.roles, (r) -> r == 'contractAdmin')
+          kvm['disableDixi'](true)
+        return kvm
 
       kvm = setupModel args
       $.getJSON modelTable, (model) ->
