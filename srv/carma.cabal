@@ -69,6 +69,7 @@ Executable carma
     easy-file                   == 0.1.*,
     fdds                        >= 0.1.0.1 && < 0.2,
     filepath                    == 1.3.*,
+    haskell-src                 == 1.0.*,
     hedis                       == 0.6.*,
     heist                       == 0.11.*,
     hformat                     == 0.1.*,
