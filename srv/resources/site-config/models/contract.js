@@ -17,6 +17,15 @@
       }
     },
     {
+        "name": "isActive",
+        "type": "checkbox",
+        "canRead":  true,
+        "canWrite": true,
+        "meta": {
+            "label": "Активен"
+        }
+    },
+    {
       "name": "program",
       "canRead": ["partner"],
       "canWrite": ["partner"],
@@ -271,6 +280,16 @@
         "required": true,
         "label": "Дата окончания действия программы"
       }
+    },
+    {
+        "name": "comment",
+        "canRead": true,
+        "canWrite": true,
+        "type": "textarea",
+        "meta": {
+            "label": "Комментарий",
+            "required": true
+        }
     },
     {
       "name": "dixi",
