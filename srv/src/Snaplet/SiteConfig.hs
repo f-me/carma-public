@@ -52,8 +52,10 @@ serveModel = do
 writeModel :: ByteString -> Model -> Handler b (SiteConfig b) ()
 writeModel "contract" model = do
   field <- fromMaybe "showform" <$> getParam "field"
+  when (field /= "showform" && field /= "showtable") $
+    finishWithError 403 "field param should have showform of showtable value"
   pid   <- getParam "pid"
-  when (pid == Nothing) $ finishWithError 401 "need pid param"
+  when (pid == Nothing) $ finishWithError 403 "need pid param"
   model' <- stripContract model (fromJust pid) field
   writeLBS $ Aeson.encode model'
 
