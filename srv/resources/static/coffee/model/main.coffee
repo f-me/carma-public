@@ -131,7 +131,7 @@ define [ "model/meta"
             svcId   = knockVM.parentId()
             if svcId
               modelName = svcId.split(':')[0]
-              svcName = model.title
+              svcName = global.models[modelName].title
               actName = actName + " (#{svcName})"
             actName
 
