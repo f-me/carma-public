@@ -135,13 +135,22 @@ define [ "model/meta"
               actName = actName + " (#{svcName})"
             actName
 
+    knockVM['disableDixi'] = ko.observable(false)
+
     for f of instance.fieldHash
-      knockVM["#{f}Disabled"] = ko.computed
-        read: ->
-          mbid = parseInt(knockVM["maybeId"]())
-          dixi = if knockVM["dixi"] then knockVM["dixi"]()
-          (not _.isNaN mbid) and dixi
-        write: (a) -> null
+      do (f) ->
+        disabled = ko.observable(true)
+        knockVM["#{f}Disabled"] = ko.computed
+          read: ->
+            mbid = parseInt(knockVM["maybeId"]())
+            dixi = if knockVM["dixi"] then knockVM["dixi"]()
+            console.log
+            (not _.isNaN mbid) and
+            dixi               and
+            disabled()         and not
+            knockVM['disableDixi']()
+          write: (a) ->
+            disabled(not not a)
 
     applyHooks global.hooks.observable,
                ['*', instance.model.name],
