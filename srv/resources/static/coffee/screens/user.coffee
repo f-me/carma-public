@@ -26,7 +26,7 @@ define [ "utils"
           k = global.viewsWare['user-view'].knockVM
         )
         # Populate the table
-        $.getJSON("/usersList",
+        $.getJSON("/allUsers",
             (objs) ->
                 dt = t.dataTable()
                 dt.fnClearTable()

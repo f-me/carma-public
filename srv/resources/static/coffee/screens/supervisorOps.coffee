@@ -23,7 +23,7 @@ define  [ "utils"
           ko.applyBindings aData[4], nRow
 
 
-      $.getJSON "/usersList", (us) ->
+      $.getJSON "/allUsers", (us) ->
         dt.fnClearTable()
         rows = for u in us when /back/.test u.roles
           do (u) ->
