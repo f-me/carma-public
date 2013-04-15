@@ -114,7 +114,6 @@
         },
         {
             "name": "birthday",
-            "type": "datetime",
             "meta": {
                 "label": "День рождения"
             }
