@@ -1,16 +1,16 @@
- {
+{
     "name": "usermeta",
     "title": "Метаданные пользователя",
     "canCreate": ["admin"],
     "canRead": true,
     "canUpdate": ["admin"],
     "canDelete": ["admin"],
-     "applications": [
-         {
+    "applications": [
+        {
             "targets": true,
             "canWrite": true,
             "canRead": true
-         }
+        }
     ],
     "fields": [
         {
@@ -20,17 +20,17 @@
                 "sqltype": "integer"
             }
         },
-       {
+        {
             "name": "isActive",
             "type": "checkbox",
             "meta": {
-                "label": "Активен",
+                "label": "Активен"
             }
         },
         {
             "name": "realName",
             "meta": {
-                "label": "ФИО пользователя",
+                "label": "ФИО пользователя"
             }
         },
         {
@@ -140,6 +140,6 @@
                 "label": "Программы",
                 "dictionaryName": "Programs"
             }
-        },
+        }
     ]
 }
