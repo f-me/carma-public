@@ -90,7 +90,7 @@ chkAuthRoles roleCheck handler = do
   then with auth currentUser >>= maybe
        (handleError 401)
        (\u -> do
-          uRoles <- with authDb $ userRolesPG u
+          uRoles <- with db $ userRolesPG u
           if roleCheck uRoles
           then handler
           else handleError 401)
@@ -111,5 +111,5 @@ serveUserCake = ifTop $
   with auth currentUser >>= maybe
            (error "impossible happened")
            (\u -> do
-              u' <- with authDb $ replaceMetaRolesFromPG u
+              u' <- with db $ replaceMetaRolesFromPG u
               writeJSON u')

@@ -1,6 +1,8 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeOperators #-}
@@ -16,7 +18,7 @@ model.
 Populating user roles and meta from PG:
 
 > Just u <- with auth currentUser
-> u' <- with authDb $ replaceMetaRolesFromPG u
+> u' <- with db $ replaceMetaRolesFromPG u
 
 -}
 
@@ -37,14 +39,13 @@ import Control.Applicative
 
 import Data.Aeson
 import Data.Aeson.TH
-import Data.ByteString.Char8 (ByteString, intercalate, pack)
+import Data.ByteString.Char8 (ByteString, pack)
 import Data.Text (Text)
 import Data.Text.Encoding
 import Data.Maybe
-import Data.Map as M (Map, empty, insert, toList)
+import Data.Map as M hiding (map)
 import Data.HashMap.Strict as HM (HashMap, fromList)
 
-import Database.PostgreSQL.Simple.FromRow
 import Database.PostgreSQL.Simple.FromField
 import Database.PostgreSQL.Simple.SqlQQ
 
@@ -53,48 +54,40 @@ import Snap.Snaplet.PostgresqlSimple
 
 import qualified Data.Vector as V
 
-
--- | A rigid Haskell-only model for user meta stored in @usermetatbl@.
--- Matches a subset of @usermeta@ CRUD model. Usermeta uid is ignored.
-data UserMeta = UserMeta { metaId        :: Int
-                         , realName      :: Maybe Text
-                         , metaRoles     :: [Role]
-                         , boCities      :: Maybe [ByteString]
-                         , boPrograms    :: Maybe [ByteString]
-                         , weatherCities :: Maybe [ByteString]
-                         }
+import Snaplet.DbLayer as DB
+import Snaplet.DbLayer.Types
 
 
-instance FromRow UserMeta where
-    fromRow = do
-      mid <- field :: RowParser Int
-      field :: RowParser Int
-      UserMeta mid
-        <$> field
-        -- NULL roles is no roles
-        <*> (do
-              f <- field
-              case f of
-                Just rls -> return rls
-                Nothing  -> return [])
-        <*> field
-        <*> field
-        <*> field
+-- | A usermeta instance converted to a HashMap used by legacy user
+-- meta of Snap authentication system.
+--
+-- HashMap values are guaranteed to use 'String' constructor of
+-- 'Value'.
+--
+-- The following fields of usermeta are not present: @login@, @uid@.
+--
+-- New fields added: @mid@ for usermeta id, @value@ for login, @label@
+-- for realName.
+newtype UserMeta = UserMeta (HashMap Text Value) deriving (Show, ToJSON)
 
 
 instance FromField [Role] where
     fromField f dat = (map Role . V.toList) <$> fromField f dat
 
 
-instance FromField [ByteString] where
-    fromField f dat = V.toList <$> fromField f dat
+------------------------------------------------------------------------------
+-- | Select meta for a user with uid given as a query parameter.
+userRolesQuery :: Query
+userRolesQuery = [sql|
+SELECT roles FROM usermetatbl WHERE uid=?;
+|]
 
 
 ------------------------------------------------------------------------------
--- | Select meta for a user with uid given as a query parameter.
-userMetaQuery :: Query
-userMetaQuery = [sql|
-SELECT * FROM usermetatbl WHERE uid=?;
+-- | Select meta id for a user with uid given as a query parameter.
+userMidQuery :: Query
+userMidQuery = [sql|
+SELECT id FROM usermetatbl WHERE uid=?;
 |]
 
 
@@ -107,35 +100,25 @@ SELECT u.login, m.* FROM usermetatbl m, snap_auth_user u WHERE u.uid=m.uid;
 
 
 ------------------------------------------------------------------------------
--- | Get meta from the database for a user.
---
--- TODO Use carma-sync here, drop rigid Haskell usermeta model.
-userMetaPG :: HasPostgres m => AuthUser -> m (Maybe UserMeta)
-userMetaPG user =
-    case userId user of
-      Nothing -> return Nothing
-      Just (UserId uid) -> do
-        rows <- query userMetaQuery (Only uid)
-        return $ case rows of
-          (e:_) -> Just e
-          _     -> Nothing
-
-
-------------------------------------------------------------------------------
--- | Get list of roles from the database for a user.
-userRolesPG :: HasPostgres m => AuthUser -> m [Role]
-userRolesPG user = do
-    meta <- userMetaPG user
-    case meta of
-      Just m -> return $ metaRoles m
-      Nothing -> return []
-
-
-------------------------------------------------------------------------------
--- | UserEntry contains keys: @value@ for login, @label@ for realName
--- meta (or login when realName is not present), all other meta keys
--- (joining lists into strings using commas when necessary).
-type UserEntry = M.Map ByteString ByteString
+-- | Convert a usermeta instance as read from DbLayer to use with
+-- Snap.
+toSnapMeta :: Map ByteString ByteString -> HashMap Text Value
+toSnapMeta usermeta =
+    HM.fromList $
+    map (\(k, v) -> (decodeUtf8 k, String $ decodeUtf8 v)) $
+    M.toList $
+    -- Strip internal fields
+    M.delete "login" $
+    M.delete "uid" $
+    M.delete "id" $
+    -- Add user meta id under mid key
+    M.insert "mid" (usermeta ! "id") $
+    -- Add dictionary-like fields (map login to realName)
+    M.insert "value" login $
+    M.insert "label" (fromMaybe login $ M.lookup "realName" usermeta) $
+    usermeta
+    where
+      login = usermeta ! "login"
 
 
 ------------------------------------------------------------------------------
@@ -143,63 +126,56 @@ type UserEntry = M.Map ByteString ByteString
 -- serve user DB to client.
 --
 -- Previously known as @UsersDict@.
-data UsersList = UsersList [UserEntry]
+data UsersList = UsersList [UserMeta]
                  deriving (Show)
 
 $(deriveToJSON id ''UsersList)
 
 
 ------------------------------------------------------------------------------
--- | Convert user meta to a map with all-string values, adding @value@
--- and @label@ keys for login and realName meta values, respectively.
-toEntry :: Text
-        -- ^ User login.
-        -> UserMeta
-        -> UserEntry
-toEntry login meta =
-    (M.insert "value" $ encodeUtf8 login) $
-    (M.insert "label" rn) $
-    (M.insert "mid" $ pack $ show $ metaId meta) $
-    (M.insert "realName" rn) $
-    (M.insert "roles" $ intercalate "," $
-      map (\(Role r) -> r) $ metaRoles meta) $
-    (M.insert "boCities" $ intercalate "," $
-      fromMaybe [] $ boCities meta) $
-    (M.insert "boPrograms" $ intercalate "," $
-      fromMaybe [] $ boPrograms meta) $
-    M.empty
-    where
-      rn = encodeUtf8 $ fromMaybe login $ realName meta
+-- | Get list of roles from the database for a user.
+userRolesPG :: HasPostgres m => AuthUser -> m [Role]
+userRolesPG user =
+    case userId user of
+      Nothing -> return []
+      Just (UserId uid) -> do
+        rows <- query userRolesQuery (Only uid)
+        return $ case rows of
+          ((e:_):_) -> e
+          _     -> []
 
 
 ------------------------------------------------------------------------------
--- | Convert user meta entry to a map with all-string values, as used
--- by legacy user meta from Snap authentication system.
-toSnapMeta :: UserEntry -> HashMap Text Value
-toSnapMeta = HM.fromList .
-             map (\(k, v) -> (decodeUtf8 k, String $ decodeUtf8 v)) .
-             M.toList
+-- | Get meta from the database for a user.
+userMetaPG :: AuthUser -> DbHandler b (Maybe UserMeta)
+userMetaPG user =
+    case userId user of
+      Nothing -> return Nothing
+      Just (UserId uid) -> do
+        mid' <- query userMidQuery (Only uid)
+        case mid' of
+          (((mid :: Int):_):_) -> do
+            -- This will read usermeta instance from Redis. If we
+            -- could only read Postgres rows to commits.
+            res <- DB.read "usermeta" $ pack $ show mid
+            return $ Just $ UserMeta $ toSnapMeta res
+          _     -> return Nothing
 
 
 ------------------------------------------------------------------------------
 -- | Get list of all users from the database.
 usersListPG :: HasPostgres m => m UsersList
 usersListPG = do
-  rows <- query_ allUsersQuery
-  return $ UsersList $ map toEntry' rows
-      where
-        toEntry' :: ((Only Text) :. UserMeta) -> UserEntry
-        toEntry' ((Only login) :. meta) = toEntry login meta
+  return $ UsersList []
 
 
 ------------------------------------------------------------------------------
 -- | Replace roles and meta for a user with those stored in Postgres.
-replaceMetaRolesFromPG :: HasPostgres m => AuthUser -> m AuthUser
+replaceMetaRolesFromPG :: AuthUser -> DbHandler b AuthUser
 replaceMetaRolesFromPG user = do
   ur <- userRolesPG user
   umRes <- userMetaPG user
-  let login = userLogin user
-      um' = case umRes of
-              Just um -> toSnapMeta $ toEntry login um
+  let um' = case umRes of
+              Just (UserMeta um) -> um
               Nothing -> userMeta user
   return user{userRoles = ur, userMeta = um'}
