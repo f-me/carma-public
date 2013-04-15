@@ -15,7 +15,7 @@ model.
 
 Populating user roles and meta from PG:
 
-> u <- with auth currentUser
+> Just u <- with auth currentUser
 > u' <- with authDb $ replaceMetaRolesFromPG u
 
 -}
@@ -55,8 +55,7 @@ import qualified Data.Vector as V
 
 
 -- | A rigid Haskell-only model for user meta stored in @usermetatbl@.
--- Matches a subset of @usermeta@ CRUD model. Usermeta instance id &
--- uid are ignored.
+-- Matches a subset of @usermeta@ CRUD model. Usermeta uid is ignored.
 data UserMeta = UserMeta { metaId        :: Int
                          , realName      :: Maybe Text
                          , metaRoles     :: [Role]
