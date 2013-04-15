@@ -25,7 +25,7 @@ Populating user roles and meta from PG:
 module Snaplet.Auth.PGUsers
     ( -- * User roles & meta
       userRolesPG
-    , UserMeta(..)
+    , UserMeta
     , userMetaPG
     , replaceMetaRolesFromPG
       -- * List of all users
@@ -39,7 +39,7 @@ import Control.Applicative
 
 import Data.Aeson
 import Data.Aeson.TH
-import Data.ByteString.Char8 (ByteString, pack)
+import Data.ByteString.Char8 (ByteString, intercalate, pack)
 import Data.Text (Text)
 import Data.Text.Encoding
 import Data.Maybe
@@ -75,6 +75,10 @@ instance FromField [Role] where
     fromField f dat = (map Role . V.toList) <$> fromField f dat
 
 
+instance FromField [ByteString] where
+    fromField f dat = V.toList <$> fromField f dat
+
+
 ------------------------------------------------------------------------------
 -- | Select meta for a user with uid given as a query parameter.
 userRolesQuery :: Query
@@ -88,14 +92,6 @@ SELECT roles FROM usermetatbl WHERE uid=?;
 userMidQuery :: Query
 userMidQuery = [sql|
 SELECT id FROM usermetatbl WHERE uid=?;
-|]
-
-
-------------------------------------------------------------------------------
--- | Select logins and metas for all users.
-allUsersQuery :: Query
-allUsersQuery = [sql|
-SELECT u.login, m.* FROM usermetatbl m, snap_auth_user u WHERE u.uid=m.uid;
 |]
 
 
@@ -119,17 +115,6 @@ toSnapMeta usermeta =
     usermeta
     where
       login = usermeta ! "login"
-
-
-------------------------------------------------------------------------------
--- | List of entries for all users present in the database, used to
--- serve user DB to client.
---
--- Previously known as @UsersDict@.
-data UsersList = UsersList [UserMeta]
-                 deriving (Show)
-
-$(deriveToJSON id ''UsersList)
 
 
 ------------------------------------------------------------------------------
@@ -163,13 +148,6 @@ userMetaPG user =
 
 
 ------------------------------------------------------------------------------
--- | Get list of all users from the database.
-usersListPG :: HasPostgres m => m UsersList
-usersListPG = do
-  return $ UsersList []
-
-
-------------------------------------------------------------------------------
 -- | Replace roles and meta for a user with those stored in Postgres.
 replaceMetaRolesFromPG :: AuthUser -> DbHandler b AuthUser
 replaceMetaRolesFromPG user = do
@@ -179,3 +157,53 @@ replaceMetaRolesFromPG user = do
               Just (UserMeta um) -> um
               Nothing -> userMeta user
   return user{userRoles = ur, userMeta = um'}
+
+
+------------------------------------------------------------------------------
+-- | List of entries for all users present in the database, used to
+-- serve user DB to client.
+--
+-- Previously known as @UsersDict@.
+data UsersList = UsersList [HM.HashMap ByteString ByteString]
+                 deriving (Show)
+
+$(deriveToJSON id ''UsersList)
+
+
+------------------------------------------------------------------------------
+-- | Select logins and metas for all users.
+allUsersQuery :: Query
+allUsersQuery = [sql|
+SELECT m.id, u.login, m.realName, m.roles, m.boCities, m.boPrograms 
+FROM usermetatbl m, snap_auth_user u
+WHERE u.uid=m.uid;
+|]
+
+
+------------------------------------------------------------------------------
+-- | Fetch list of all users from the database, return @(mid, value,
+-- label)@ for every user.
+usersListPG :: HasPostgres m => m UsersList
+usersListPG = do
+  rows <- query_ allUsersQuery
+  return $ UsersList $ map toEntry rows
+      where
+        toEntry :: (Int,
+                    ByteString,
+                    Maybe ByteString,
+                    Maybe [Role],
+                    Maybe [ByteString],
+                    Maybe [ByteString])
+                 -> HM.HashMap ByteString ByteString
+        toEntry (mid, login, rn, rls, boC, boP) =
+            HM.fromList
+                  [ ("mid", pack $ show $ mid)
+                  , ("value", login)
+                  , ("label", fromMaybe login rn)
+                  , ("roles",
+                     intercalate "," (map (\(Role r) -> r) $ fromMaybe [] rls))
+                  , ("boCities",
+                     intercalate "," $ fromMaybe [] boC)
+                  , ("boPrograms",
+                     intercalate "," $ fromMaybe [] boP)
+                  ]

@@ -461,10 +461,10 @@ rkc (UsersList usrs) filt@(Filter fromDate toDate program city partner) = scope 
     usrs' = sort $ nub $ map toUsr usrs
     -- Build value-label pair from UserMeta, used to map logins to
     -- realNames
-    toUsr (UserMeta m) = (k, v)
+    toUsr m = (k, v)
         where
-          String k = m HM.! "value"
-          String v = m HM.! "label"
+          k = T.decodeUtf8 $ m HM.! "value"
+          v = T.decodeUtf8 $ m HM.! "label"
         
 
 rkcFront :: (PS.HasPostgres m, MonadLog m) => Filter -> m Value
