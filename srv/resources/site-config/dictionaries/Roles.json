@@ -63,6 +63,14 @@
         {
             "value": "op_dealer",
             "label": "Аналитик по работе с дилерами"
+        },
+        {
+            "value": "contract_admin",
+            "label": "Администратор contract"
+        }
+        {
+            "value": "contract_user",
+            "label": "Пользователь contract"
         }
     ]
 }
