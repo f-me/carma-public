@@ -36,8 +36,7 @@
         {
             "name": "login",
             "meta": {
-                "label": "Логин",
-                "nosql": true
+                "label": "Логин"
             }
         },
         {
