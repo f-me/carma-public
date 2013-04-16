@@ -158,7 +158,7 @@ defaults = Map.fromList
   ,("tech1", serviceDefaults)
   ,("consultation", serviceDefaults)
   ,("rent", Map.union serviceDefaults $ Map.fromList
-    [("carProvidedFor", "0")
+    [("providedFor", "0")
     ])
   ,("sober", Map.union serviceDefaults $ Map.fromList
     [("multidrive", "0")
