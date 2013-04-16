@@ -72,6 +72,7 @@ import Data.Text.Encoding
 import Data.Text.ICU.Convert
 
 import Data.Time.Clock
+import Data.Time.Clock.POSIX
 import Data.Time.Format
 import System.Locale
 
@@ -460,7 +461,9 @@ timestampToDate :: BS.ByteString -> ExportField
 timestampToDate input =
     case parseTimestamp input of
       Just time ->
-          push $ B8.pack $ formatTime defaultTimeLocale dateFormat time
+          -- TODO Fix this
+          push $ B8.pack $ formatTime defaultTimeLocale dateFormat $
+                 (addUTCTime posixDayLength time)
       Nothing -> exportError $ BadTime input
 
 
