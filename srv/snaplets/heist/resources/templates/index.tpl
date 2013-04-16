@@ -342,6 +342,47 @@
 
     <script type="text/template"
             class="field-template"
+            id="password-field-template">
+      <div class="control-group"
+           {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
+           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
+           >
+        <div class="control-label">
+          <label>{{ meta.label }}
+            {{# meta.infoText1 }}
+              <i class="icon icon-question-sign"
+                 data-provide="popover"
+                 data-content="{{ meta.infoText1 }}" />
+            {{/ meta.infoText1 }}
+          </label>
+        </div>
+        <div class="controls">
+          <input type="text"
+                 class="pane-span focusable"
+                 autocomplete="off"
+                 name="{{ name }}"
+                 {{# meta.transform }}
+                    style="text-transform:{{meta.transform}};"
+                 {{/ meta.transform }}
+                 {{# readonly }}readonly{{/ readonly }}
+                 data-bind="value: {{ name }},
+                            valueUpdate: 'afterkeydown',
+                            readonly: {{ name }}Disabled"/>
+          <div class="text-right">
+            <button class="btn btn-info"
+                    type="button"
+                    onclick="doPick('passwordPicker',
+                                    '{{ name }}',
+                                    event.target);">
+              <i class="icon-refresh" /> Создать пароль
+            </button>
+          </div>
+        </div>
+      </div>
+    </script>
+
+    <script type="text/template"
+            class="field-template"
             id="datetime-field-template">
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
@@ -687,6 +728,7 @@
       </div>
     </script>
 
+    <!-- type=checkbox field -->
     <script type="text/template"
             class="field-template"
             id="checkbox-field-template">
@@ -736,6 +778,7 @@
       </div>
     </script>
 
+    <!-- OpenLayers map container field -->
     <script type="text/template"
             class="field-template"
             id="map-field-template">

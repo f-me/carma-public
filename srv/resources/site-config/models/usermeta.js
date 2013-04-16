@@ -42,6 +42,7 @@
         },
         {
             "name": "password",
+            "type": "password",
             "meta": {
                 "label": "Пароль",
                 "nosql": true,
@@ -131,6 +132,7 @@
         },
         {
             "name": "birthday",
+            "type": "date",
             "meta": {
                 "label": "День рождения"
             }
