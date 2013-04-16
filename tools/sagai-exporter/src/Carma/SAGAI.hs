@@ -548,7 +548,7 @@ composField = do
 
 
 ddgField :: ExportField
-ddgField = push =<< caseField1 "car_warrantyStart"
+ddgField = timestampToDate =<< caseField1 "car_warrantyStart"
 
 
 ddrField :: ExportField
