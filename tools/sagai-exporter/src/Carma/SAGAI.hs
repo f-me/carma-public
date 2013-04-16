@@ -73,6 +73,7 @@ import Data.Text.Encoding
 import Data.Text.ICU.Convert
 
 import Data.Time.Clock
+import Data.Time.Clock.POSIX
 import Data.Time.Format
 import System.Locale
 
@@ -487,6 +488,19 @@ timestampToDate input =
       Nothing -> exportError $ BadTime input
 
 
+-- | Convert timestamp to DDMMYY format, adding one full day.
+--
+-- TODO This is a dirty workaround, we should fix the date problem in
+-- CaRMa instead.
+timestampToDate' :: BS.ByteString -> ExportField
+timestampToDate' input =
+    case parseTimestamp input of
+      Just time ->
+          push $ B8.pack $ formatTime defaultTimeLocale dateFormat $
+                 (addUTCTime posixDayLength time)
+      Nothing -> exportError $ BadTime input
+
+
 -- | Search for an entry in 'codesData' using program name of the case
 -- and expense type, project the result to output.
 codeField :: ExportMonad m =>
@@ -548,7 +562,7 @@ composField = do
 
 
 ddgField :: ExportField
-ddgField = timestampToDate =<< caseField1 "car_warrantyStart"
+ddgField = timestampToDate' =<< caseField1 "car_warrantyStart"
 
 
 ddrField :: ExportField
@@ -558,6 +572,7 @@ ddrField = timestampToDate =<< caseField1 "callDate"
 ddcField :: ExportField
 ddcField = do
   ctime <- liftIO $ getCurrentTime
+  -- TODO Probably we need to use locale of PSA server here.
   push $ B8.pack $ formatTime defaultTimeLocale dateFormat ctime
 
 
@@ -596,11 +611,11 @@ pushComment :: ExportMonad m =>
            -> m Int
 pushComment input =
     do
-      inBS <- recode input
+      let input' = B8.map (\c -> if B8.elem c newline then space else c) input
+      inBS <- recode input'
       -- Assume space is single-byte in any of used encodings
       space' <- B8.head <$> (recode $ B8.singleton space)
-      let outBS = B8.map (\c -> if B8.elem c newline then space else c) $
-                  BS.take 72 $
+      let outBS = BS.take 72 $
                   padLeft 72 space' $
                   inBS
       pushRaw outBS
