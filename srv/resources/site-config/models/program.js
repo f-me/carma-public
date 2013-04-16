@@ -1,6 +1,6 @@
  {
     "name": "program",
-    "title": "Прогармма",
+    "title": "Программа",
     "canCreate": true,
     "canRead": true,
     "canUpdate": ["admin"],
