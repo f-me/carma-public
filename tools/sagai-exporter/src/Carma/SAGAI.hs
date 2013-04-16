@@ -461,6 +461,15 @@ timestampToDate :: BS.ByteString -> ExportField
 timestampToDate input =
     case parseTimestamp input of
       Just time ->
+          push $ B8.pack $ formatTime defaultTimeLocale dateFormat time
+      Nothing -> exportError $ BadTime input
+
+
+-- | Convert timestamp to DDMMYY format, adding one full day.
+timestampToDate' :: BS.ByteString -> ExportField
+timestampToDate' input =
+    case parseTimestamp input of
+      Just time ->
           -- TODO Fix this
           push $ B8.pack $ formatTime defaultTimeLocale dateFormat $
                  (addUTCTime posixDayLength time)
@@ -532,11 +541,11 @@ ddgField = do
   -- | First check servicing contract, then warranty.
   onS <- onService
   if onS
-  then timestampToDate =<< caseField1 "car_serviceStart"
+  then timestampToDate' =<< caseField1 "car_serviceStart"
   else do
     onW <- onWarranty
     if onW
-    then timestampToDate =<< caseField1 "car_warrantyStart"
+    then timestampToDate' =<< caseField1 "car_warrantyStart"
     -- With current /psaCases implementation, this should not happen
     else spaces 6
 
@@ -548,6 +557,7 @@ ddrField = timestampToDate =<< caseField1 "callDate"
 ddcField :: ExportField
 ddcField = do
   ctime <- liftIO $ getCurrentTime
+  -- TODO Probably we need to use locale of PSA server here.
   push $ B8.pack $ formatTime defaultTimeLocale dateFormat ctime
 
 
