@@ -3,6 +3,12 @@
       "type"  : "sms",
       "permissions" : ["front","back","head","parguy","supervisor","director","analyst","parguy","account","admin","programman"]
     },
+    { "name" : "contracts",
+      "label": "Экраны контрактов",
+      "type" : "dropdown",
+      "permissions": ["head", "admin"],
+      "screens": []
+    },
     { "name"  : "contract/1",
       "label" : "Контракты РУС ЛАН",
       "type"  : "li",
