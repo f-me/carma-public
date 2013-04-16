@@ -21,6 +21,7 @@ module Carma.HTTP
     , readReferences
     , methodURI
     , readDictionary
+    , manyFieldDivisor
     )
 
 where
@@ -159,6 +160,13 @@ instanceExists cp modelName rid = do
      _ -> error "Unexpected CaRMa response"
 
 
+-- | Separates individual values in dictionary-many fields and
+-- reference list fields. @B8.split manyFieldDivisor@ may be applied
+-- to a 'FieldValue' to obtain the corresponding list.
+manyFieldDivisor :: Char
+manyFieldDivisor = ','
+
+
 -- | Read reference of format @foo:32@ into model name and id.
 read1Reference :: FieldValue -> Maybe (String, Int)
 read1Reference val =
@@ -173,7 +181,8 @@ read1Reference val =
 -- | Read input of format @foo:32,bar:48@ into list of model names and
 -- ids. Invalid references are ignored.
 readReferences :: FieldValue -> [(String, Int)]
-readReferences refs = (flip mapMaybe) (B8.split ',' refs) read1Reference
+readReferences refs = 
+    (flip mapMaybe) (B8.split manyFieldDivisor refs) read1Reference
 
 
 -- | Build URI used to call a method of local CaRMa.
