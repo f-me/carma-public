@@ -114,6 +114,7 @@ class (Functor m, Monad m, MonadIO m) => ExportMonad m where
     panneField     :: m Int
     defField       :: m Int
     somField       :: m Int
+    -- Commentary fields (dubbed LIB3/LIB4/LIB6 in the spec).
     comm1Field     :: m Int
     comm2Field     :: m Int
     comm3Field     :: m Int
