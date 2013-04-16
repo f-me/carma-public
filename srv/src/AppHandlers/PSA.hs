@@ -14,6 +14,7 @@ module AppHandlers.PSA
 where
 
 import Data.ByteString.Char8 (readInt)
+import Data.List
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.SqlQQ
 import Snap
@@ -59,29 +60,48 @@ psaCases = do
   writeJSON (map head rows :: [Int])
 
 
+-- | Towages within previous 30 days, used in 'repTowages'.
 rtQuery :: Query
 rtQuery = [sql|
 WITH parentcase AS (select calldate, car_vin, comment from casetbl where id=?)
 SELECT c.id FROM casetbl c INNER JOIN towagetbl s
 ON c.id=cast(split_part(s.parentid, ':', 2) as integer)
 WHERE s.parentid is not null
+AND c.car_vin=(SELECT car_vin FROM parentcase);
 AND (s.status='serviceOk' OR s.status='serviceClosed')
 AND c.calldate >= ((SELECT calldate FROM parentcase) - INTERVAL '30 days')
 AND c.calldate < (SELECT calldate FROM parentcase)
 AND c.comment=(SELECT comment FROM parentcase)
+|]
+
+
+-- | Recharges within previous 24 hours, used in 'repTowages'.
+rtQuery' :: Query
+rtQuery' = [sql|
+WITH parentcase AS (select calldate, car_vin, comment from casetbl where id=?)
+SELECT c.id FROM casetbl c INNER JOIN techtbl s
+ON c.id=cast(split_part(s.parentid, ':', 2) as integer)
+WHERE s.parentid is not null
 AND c.car_vin=(SELECT car_vin FROM parentcase);
+AND s.falseCall='bill'
+AND s.techType='charge'
+AND c.calldate >= ((SELECT calldate FROM parentcase) - INTERVAL '1 day')
+AND c.calldate <= (SELECT calldate FROM parentcase)
+AND c.comment=(SELECT comment FROM parentcase)
 |]
 
 
 -- | Read case id from @id@ request parameter, serve JSON list of case
 -- ids corresponding to towages of the same car (as indicated by
 -- matching VIN and case comment) which occured within 30 day period
--- prior to the case creation date.
+-- prior to the case creation date or battery recharges of the same
+-- car within previous 24 hours.
 repTowages :: AppHandler ()
 repTowages = do
  cid <- (liftM readInt) <$> getParam "id"
  case cid of
    Just (Just (n, _)) -> do
                rows <- withPG pg_search $ \c -> query c rtQuery [n]
-               writeJSON (map head rows :: [Int])
+               rows' <- withPG pg_search $ \c -> query c rtQuery' [n]
+               writeJSON (nub $ map head (rows ++ rows') :: [Int])
    _ -> error "Could not read case id from request"
