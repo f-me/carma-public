@@ -31,7 +31,20 @@ define ["model/utils"], (mu) ->
     entries: for i in f
       { value: i.value, label: "#{i.label} (#{i.value})" }
 
-
+  window.user_programs = () ->
+    d = {}
+    $.ajax
+      type: 'GET',
+      url: "/all/program",
+      dataType: 'json',
+      success: (objs) ->
+        console.log "yo!"
+        d = entries: for obj in objs
+          { value: obj.id.split(':')[1], label: obj.label || '' }
+        
+      async: false
+    return d
+      
   window.getDictionary = (d) ->
     console.log 'dicts', d
     dict = global.dictionaries[d]

@@ -138,7 +138,7 @@
             "type": "dictionary-many",
             "meta": {
                 "label": "Программы",
-                "dictionaryName": "Programs"
+                "dictionaryName": "user_programs:"
             }
         }
     ]
