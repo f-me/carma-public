@@ -8,6 +8,7 @@ define [ "utils"
       kvm = main.modelSetup("usermeta") viewName, args,
                             permEl: "user-permissions"
                             focusClass: "focusable"
+                            bb: { manual_save: true }
 
       setTimeout(->
         $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
@@ -23,7 +24,7 @@ define [ "utils"
           kvm = main.modelSetup("usermeta") viewName, {"id": id},
                                 permEl: "user-permissions"
                                 focusClass: "focusable"
-          k = global.viewsWare['user-view'].knockVM
+                                bb: { manual_save: true }
         )
         # Populate the table
         $.getJSON("/allUsers",
