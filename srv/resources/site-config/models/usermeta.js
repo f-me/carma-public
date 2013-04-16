@@ -36,8 +36,7 @@
         {
             "name": "login",
             "meta": {
-                "label": "Логин",
-                "nosql": true
+                "label": "Логин"
             }
         },
         {
@@ -114,7 +113,6 @@
         },
         {
             "name": "birthday",
-            "type": "datetime",
             "meta": {
                 "label": "День рождения"
             }

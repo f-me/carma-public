@@ -247,7 +247,7 @@ rkcHandler = scope "rkc" $ scope "handler" $ do
       RKC.filterCity = c,
       RKC.filterPartner = part }
 
-  usrs <- with authDb usersListPG
+  usrs <- with db usersListPG
   info <- with db $ RKC.rkc usrs flt'
   writeJSON info
 
@@ -423,7 +423,7 @@ deleteReportHandler = do
   with fileUpload $ doDeleteAll' "report" $ U.bToString objId
 
 serveUsersList :: AppHandler ()
-serveUsersList = with authDb usersListPG >>= writeJSON
+serveUsersList = with db usersListPG >>= writeJSON
 
 setUserMeta :: AppHandler ()
 setUserMeta = do

@@ -93,7 +93,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/rkc/front",     chkAuthLocal . method GET $ rkcFrontHandler)
          , ("/rkc/partners",  chkAuthLocal . method GET $ rkcPartners)
          , ("/arc/:year/:month", chkAuthLocal . method GET $ arcReportHandler)
-         , ("/usersList",     chkAuth . method GET  $ serveUsersList)
+         , ("/allUsers",      chkAuth . method GET  $ serveUsersList)
          , ("/userMeta/:usr", chkAuthLocal . method PUT  $ setUserMeta)
          , ("/activeUsers",   chkAuthLocal . method GET  $ getActiveUsers)
          , ("/partner/upload.csv",
@@ -155,7 +155,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   pga <- liftIO $ createPool (Pg.connect cInfoActass) Pg.close 1 5 20
 
   c <- nestSnaplet "cfg" siteConfig $
-       initSiteConfig "resources/site-config" pgs authDb
+       initSiteConfig "resources/site-config" pgs db
 
   v <- nestSnaplet "vin" vin vinInit
   fu <- nestSnaplet "upload" fileUpload fileUploadInit

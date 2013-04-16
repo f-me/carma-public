@@ -15,6 +15,8 @@ where
 import Data.Maybe
 import Data.Map as M ((!), delete, insert, lookup)
 import Data.Text.Encoding
+import Data.Time.Calendar.Julian
+import Data.Time.Clock
 
 import Snap
 import Snap.Snaplet.Auth
@@ -47,20 +49,31 @@ createUsermetaTrigger obj = do
 -- @password@ from commit. Must be used with @usermeta@ commits only.
 updateUsermetaTrigger :: ObjectId -> Object -> DbHandler b Object
 updateUsermetaTrigger objId obj = do
-  case (M.lookup "login" obj, M.lookup "password" obj) of
-    (Nothing, Nothing) -> return obj
-    (login', password') -> do
+  case (M.lookup "login" obj,
+        M.lookup "password" obj,
+        M.lookup "isActive" obj) of
+    (Nothing, Nothing, Nothing) -> return obj
+    (login', password', active') -> do
       -- Could use DB.read here if it didn't result in cyclic module dependency
       fullMeta <- Redis.read redis "usermeta" objId
       let uid = UserId (decodeUtf8 $ fullMeta ! "uid")
+      -- Read corresponding Auth user
       uRes <- with auth $ withBackend $ \bk -> liftIO $ lookupByUserId bk uid
       case uRes of
         Nothing -> error $ "Could not find user with uid=" ++ show uid
         Just user -> do
              let newLogin = fromMaybe (userLogin user) (decodeUtf8 <$> login')
                  pwAction = maybe return (flip setPassword) password'
+                 pizdaRulu = Just $ UTCTime (fromJulian 3001 0 0) 0
+                 lockAction =
+                     case active' of
+                       Just "1" -> \u -> u{userLockedOutUntil = Nothing}
+                       Just "0" -> \u -> u{userLockedOutUntil = pizdaRulu}
+                       _ -> id
+             -- Save new user data
              uRes' <- with auth $ withBackend $
-                      \bk -> liftIO $ pwAction user{userLogin=newLogin} >>= save bk
+                      \bk -> liftIO $ save bk =<<
+                             (pwAction . lockAction) user{userLogin=newLogin}
              case uRes' of
                Left e -> error $
                          "Could not save login/password for user: " ++ show e

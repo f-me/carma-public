@@ -27,6 +27,8 @@ import Snap.Snaplet.PostgresqlSimple
 import Snaplet.Auth.Class
 import Snaplet.Auth.PGUsers
 
+import Snaplet.DbLayer.Types (DbLayer)
+
 import Snaplet.SiteConfig.Config
 import Snaplet.SiteConfig.Permissions
 import Snaplet.SiteConfig.SpecialPermissions
@@ -85,9 +87,9 @@ serveDictionaries = ifTop $ do
 initSiteConfig :: HasAuth b
                   => FilePath
                   -> Pool Pg.Connection
-                  -> Lens' b (Snaplet Postgres)
-                  -- ^ Lens to a snaplet with Postgres DB used to check
-                  -- user roles.
+                  -> Lens' b (Snaplet (DbLayer b))
+                  -- ^ Lens to DbLayer snaplet used for user roles &
+                  -- meta storage.
                   -> SnapletInit b (SiteConfig b)
 initSiteConfig cfgDir pg_pool authDb = makeSnaplet
   "site-config" "Site configuration storage"

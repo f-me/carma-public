@@ -19,6 +19,7 @@ import Data.Monoid
 import Data.List (intersect, sort, nub)
 import Data.String
 import qualified Data.List as L (groupBy)
+import qualified Data.HashMap.Strict as HM
 import qualified Data.Map as M
 import Data.Time
 import Data.Function
@@ -458,7 +459,13 @@ rkc (UsersList usrs) filt@(Filter fromDate toDate program city partner) = scope 
       ifNotNull city $ equals "casetbl" "city",
       ifNotNull partner $ equalsTo "servicetbl" "trim(servicetbl.contractor_partner)"]
     usrs' = sort $ nub $ map toUsr usrs
-    toUsr m = (maybe "" T.decodeUtf8 $ M.lookup "value" m, maybe "" T.decodeUtf8 $ M.lookup "label" m)
+    -- Build value-label pair from UserMeta, used to map logins to
+    -- realNames
+    toUsr m = (k, v)
+        where
+          k = T.decodeUtf8 $ m HM.! "value"
+          v = T.decodeUtf8 $ m HM.! "label"
+        
 
 rkcFront :: (PS.HasPostgres m, MonadLog m) => Filter -> m Value
 rkcFront filt@(Filter fromDate toDate program city _) = scope "rkc" $ scope "front" $ do
