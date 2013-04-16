@@ -207,7 +207,7 @@ instance ExportMonad ServiceExport where
                 carClass <- dataField1 "carClass" d
                 -- Select costs table depending on whether the rent
                 -- service contractor is a PSA dealer.
-                let sPid = dataField1 "contractor_partnerId" d
+                sPid <- dataField1 "contractor_partnerId" d
                 case (read1Reference sPid) of
                   Nothing ->
                       exportError (UnreadableContractorId sPid)
