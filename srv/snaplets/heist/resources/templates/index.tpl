@@ -1193,8 +1193,8 @@
 
     <!-- navigation menu templates -->
     <script type="text/html" id="nav-li-template">
-      <!-- ko if: $data.screens -->
-        <!-- ko foreach: screens -->
+      <!-- ko if: $data -->
+        <!-- ko foreach: $data -->
           <!-- ko if: type == 'li' -->
             <li data-bind="if: type == 'li',
                            attr: { id: name + '-screen-nav' }">
