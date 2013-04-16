@@ -205,12 +205,24 @@ instance ExportMonad ServiceExport where
                 program <- caseField "program"
                 (_, _, d) <- getService
                 carClass <- dataField1 "carClass" d
-                let dailyCost =
-                        case M.lookup (program, carClass) rentCosts of
-                          Just dc -> dc
-                          -- Zero cost for unknown car classes.
-                          Nothing -> 0
-                return $ formatCost (dailyCost * (fromIntegral $ capRentDays d))
+                -- Select costs table depending on whether the rent
+                -- service contractor is a PSA dealer.
+                let sPid = dataField0 "contractor_partnerId" d
+                case (read1Reference sPid) of
+                  Nothing ->
+                      exportError (UnreadableContractorId sPid)
+                  Just (_, pid) -> do
+                      psaDealer <- isPSADealer pid
+                      let costs = if psaDealer
+                                  then rentCostsPSA
+                                  else rentCosts
+                          dailyCost =
+                              case M.lookup (program, carClass) costs of
+                                Just dc -> dc
+                                -- Zero cost for unknown car classes.
+                                Nothing -> 0
+                      return $ formatCost $
+                             dailyCost * (fromIntegral $ capRentDays d)
           _ -> codeField (formatCost . cost)
 
     comm1Field = do
@@ -423,6 +435,20 @@ callDateWithin f1 f2 = do
                  parseTimestamp ts2) of
     (Just t1, Just t, Just t2) -> t1 <= t && t < t2
     _ -> False
+
+
+-- | True if a dealer with given id is a PSA dealer and PSA costs must
+-- be applied.
+isPSADealer :: ExportMonad m =>
+               Int
+            -- ^ Id of a @partner@ instance.
+            -> m Bool
+isPSADealer pid = do
+  cp <- getCarmaPort
+  makes <- B8.split manyFieldDivisor <$> dataField0 "makes" <$> 
+           (liftIO $ readInstance cp "partner" pid)
+  return $ (not $ null makes) &&
+           any (flip elem ["citroen", "peugeot"]) makes
 
 
 -- | Check if servicing contract is in effect.
