@@ -16,7 +16,7 @@ type Name  = ByteString
 type Label = ByteString
 type Permissions = [ByteString]
 
-newtype Screens = Screens [Value] deriving Show
+newtype Screens = Screens [Screen] deriving Show
 
 data Screen = Sms      Name       Permissions
             | Li       Name Label Permissions
@@ -24,8 +24,8 @@ data Screen = Sms      Name       Permissions
               deriving Show
 
 instance FromJSON Screens where
-  parseJSON (Object v) = Screens <$> v .: "screens"
-  parseJSON _          = fail "can't find screens"
+  parseJSON (Array v) = Screens <$> parseJSON (Array v)
+  parseJSON o          = fail $ "can't find screens" ++ show o
 
 instance FromJSON Screen where
   parseJSON (Object v) = do
@@ -42,10 +42,10 @@ instance FromJSON Screen where
   parseJSON _ = fail "wrong object in screen list"
 
 instance ToJSON Screens where
-  toJSON (Screens s) = object ["screens" .= s]
+  toJSON (Screens s) = toJSON s
 
 instance ToJSON Screen where
-  toJSON (Sms name p) = object ["name" .= name, "permissions" .= p]
+  toJSON (Sms name p) = object [ "name" .= name, "permissions" .= p]
   toJSON (Li  n l p ) = object [ "name"        .= n
                                , "label"       .= l
                                , "permissions" .= p

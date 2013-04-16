@@ -1,4 +1,4 @@
-{ "screens" : [
+[
     { "name"  : "sms",
       "type"  : "sms",
       "permissions" : ["front","back","head","parguy","supervisor","director","analyst","parguy","account","admin","programman"]
@@ -114,5 +114,5 @@
         }
       ]
     }
-  ]
-}
+]
+
