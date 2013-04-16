@@ -49,6 +49,22 @@
             }
         },
         {
+            "name": "roles",
+            "type": "dictionary-many",
+            "meta": {
+                "label": "Роль в системе",
+                "dictionaryName": "Roles"
+            }
+        },
+        {
+            "name": "programs",
+            "type": "dictionary-many",
+            "meta": {
+                "label": "Программы",
+                "dictionaryName": "user_programs:"
+            }
+        },
+        {
             "name": "boCities",
             "type": "dictionary-many",
             "meta": {
@@ -123,22 +139,6 @@
             "name": "position",
             "meta": {
                 "label": "Должность"
-            }
-        },
-        {
-            "name": "roles",
-            "type": "dictionary-many",
-            "meta": {
-                "label": "Роль в системе",
-                "dictionaryName": "Roles"
-            }
-        },
-        {
-            "name": "programs",
-            "type": "dictionary-many",
-            "meta": {
-                "label": "Программы",
-                "dictionaryName": "user_programs:"
             }
         }
     ]
