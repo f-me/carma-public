@@ -36,14 +36,16 @@
         {
             "name": "login",
             "meta": {
-                "label": "Логин"
+                "label": "Логин",
+                "required": true
             }
         },
         {
             "name": "password",
             "meta": {
                 "label": "Пароль",
-                "nosql": true
+                "nosql": true,
+                "required": true
             }
         },
         {
