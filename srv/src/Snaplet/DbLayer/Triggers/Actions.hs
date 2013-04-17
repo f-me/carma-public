@@ -232,7 +232,6 @@ serviceActions = Map.fromList
             ]
           upd kazeId "actions" $ addToList act1
           due <- dateNow (+ (14*24*60*60))
-          act2 <- replaceAction
           act1 <- new "action" $ Map.fromList
             [("name", "addBill")
             ,("duetime", due)
