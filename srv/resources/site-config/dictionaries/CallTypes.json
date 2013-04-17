@@ -36,11 +36,19 @@
             {
                 "value": "infoPr",
                 "label": "Информация/О программе"
+            },           
+            {
+                "value": "infoPrOther",
+                "label": "Информация/Другое"
             },
             {
                 "value": "switchD",
                 "label": "Переключение/Партнёр"
             },
+            {
+                "value": "switchDealer",
+                "label": "Переключение/Дилер"
+            },            
             {
                 "value": "switchIn",
                 "label": "Переключение/Внутренний номер"
@@ -92,6 +100,14 @@
                 "label": "Переключение/Внутренний номер"
             },
             {
+                "value": "switchDealer",
+                "label": "Переключение/Дилер"
+            },             
+            {
+                "value": "infoPrOther",
+                "label": "Информация/Другое"
+            },            
+            {
                 "value": "contracts",
                 "label": "Договора"
             },
@@ -129,6 +145,14 @@
                 "value": "switchIn",
                 "label": "Переключение/Внутренний номер"
             },
+            {
+                "value": "switchDealer",
+                "label": "Переключение/Дилер"
+            },             
+            {
+                "value": "infoPrOther",
+                "label": "Информация/Другое"
+            },                
             {
                 "value": "contracts",
                 "label": "Договора"
@@ -172,6 +196,14 @@
                 "label": "Переключение/Внутренний номер"
             },
             {
+                "value": "switchDealer",
+                "label": "Переключение/Дилер"
+            },             
+            {
+                "value": "infoPrOther",
+                "label": "Информация/Другое"
+            },                
+            {
                 "value": "contracts",
                 "label": "Договора"
             },
@@ -202,7 +234,15 @@
             {
                 "value": "switchIn",
                 "label": "Переключение/Внутренний номер"
-            }
+            },
+            {
+                "value": "switchDealer",
+                "label": "Переключение/Дилер"
+            },             
+            {
+                "value": "infoPrOther",
+                "label": "Информация/Другое"
+            }                
         ]
     }
 }

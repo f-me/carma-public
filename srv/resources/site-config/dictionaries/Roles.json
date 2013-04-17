@@ -1,20 +1,32 @@
 {
     "entries": [
         {
+            "value": "local",
+            "label": "Локальный пользователь"
+        },
+        {
             "value": "front",
-            "label": "Front Office"
+            "label": "Оператор Front Office"
         },
         {
             "value": "back",
-            "label": "Back Office"
+            "label": "Оператор Back Office"
+        },
+        {
+            "value": "analyst",
+            "label": "Аналитик"
         },
         {
             "value": "head",
-            "label": "РКЦ"
+            "label": "Глава РКЦ"
         },
         {
             "value": "parguy",
-            "label": "МпП"
+            "label": "Менеджер по партнёрам"
+        },
+        {
+            "value": "partner",
+            "label": "Партнёр"
         },
         {
             "value": "supervisor",
@@ -42,15 +54,23 @@
         },
         {
             "value": "op_checker",
-            "label": "Проверка РКЦ"
+            "label": "Аналитик по проверке кейсов"
         },
         {
             "value": "op_close",
-            "label": "Закрытие заявок"
+            "label": "Аналитик по закрытию кейсов"
         },
         {
             "value": "op_dealer",
-            "label": "Получение информации"
+            "label": "Аналитик по работе с дилерами"
+        },
+        {
+            "value": "contract_admin",
+            "label": "Администратор contract"
+        },
+        {
+            "value": "contract_user",
+            "label": "Пользователь contract"
         }
     ]
 }

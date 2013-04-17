@@ -5,19 +5,28 @@ define [
   (utils, main, tpl) ->
     template: tpl
     constructor: (viewName, args) ->
+      modelHref = "/cfg/model/contract?pid=#{args.program}"
+      modelTable = "#{modelHref}&field=showtable"
       setupModel = (args) ->
         if args.id
           $('#render-contract').attr(
             "href",
             "/renderContract?prog=#{args.program}&ctr=#{args.id}")
-        main.modelSetup("contract")(
+        kvm = main.modelSetup("contract", modelHref)(
           viewName, args,
             permEl: "contract-permissions"
             focusClass: "focusable"
             refs: [])
 
+        if _.find(global.user.roles, (r) -> r == 'contract_user')
+          kvm['commentDisabled'](false) if kvm['commentDisabled']
+          kvm['isActiveDisabled'](false)  if kvm['isActiveDisabled']
+        if _.find(global.user.roles, (r) -> r == 'contract_admin')
+          kvm['disableDixi'](true)
+        return kvm
+
       kvm = setupModel args
-      setTimeout ->
+      $.getJSON modelTable, (model) ->
         tableCols =
               [ {name: "#", fn: (o) -> o.id}
               , "ctime"
@@ -35,7 +44,7 @@ define [
               , "manager"
               ])
 
-        sk = mkTableSkeleton global.models.contract, tableCols
+        sk = mkTableSkeleton model, tableCols
         $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
         $.fn.dataTableExt.oStdClasses.sFilter = "dataTables_filter form-inline"
 
@@ -79,12 +88,17 @@ getContracts = (args, cb) ->
   path = "/allContracts/#{args}?from=#{min}&to=#{max}"
   $.getJSON path, cb
 
-
 mkTableSkeleton = (model, fields) ->
   h = {}
   model.fields.map (f) -> h[f.name] = f
 
-  fs = fields.map (f) ->
+  # remove columns that we don't have in model
+  fieldNames = _.pluck model.fields, 'name'
+  filterFields = _.filter fields, (e) ->
+    return true if typeof e is 'object'
+    _.contains(fieldNames, e)
+
+  fs = filterFields.map (f) ->
     if typeof f == 'string'
       desc = h[f]
       {name: desc.meta.label

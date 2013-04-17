@@ -134,6 +134,7 @@ define ["utils", "dictionaries"], (u, dictionary) ->
         dict      = i.fieldHash[n].meta.dictionaryName
         parent    = i.fieldHash[n].meta.dictionaryParent
         bounded   = i.fieldHash[n].meta.bounded
+        global.dictValueCache[dict] || dictionary.get(dict)
         k["#{n}Many"] = ko.computed
           # we don't need any value here
           # I have to retrieve something, to make ko refresh view
@@ -152,7 +153,6 @@ define ["utils", "dictionaries"], (u, dictionary) ->
           read: ->
             for val in u.splitVals k[n]()
               do (val) ->
-                global.dictValueCache[dict] || dictionary.get(dict)
                 lab = global.dictValueCache[dict][val]
                 {label: lab || val, value: val}
 

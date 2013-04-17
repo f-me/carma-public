@@ -60,6 +60,10 @@
     field will be updated with the distance between two coordinates
     set in the referenced fields. See `distHook`.
 
+  - `nosql`: when true, do not sync field to Postgres, which is useful
+    when simulating faux client-only fields processed by triggers
+    only.
+
   Non-meta field annotations are described in [[https://github.com/f-me/snaplet-redson/blob/master/README.org][snaplet-redson]] docs.
 * Dictionaries
 ** Syntax

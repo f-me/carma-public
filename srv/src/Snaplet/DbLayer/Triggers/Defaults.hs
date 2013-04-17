@@ -14,6 +14,7 @@ import Data.Time.Format (formatTime)
 import Data.Maybe
 import System.Locale (defaultTimeLocale)
 import Snap
+
 import qualified Database.Redis       as Redis
 import qualified Snap.Snaplet.RedisDB as Redis
 import Snaplet.DbLayer.Types
@@ -21,6 +22,7 @@ import Snaplet.DbLayer.Types
 import Util
 import Utils.RKCCalc
 
+-- | Populate a commit with default field values.
 applyDefaults :: ModelName -> Map FieldName B.ByteString -> Handler b (DbLayer b) (Map FieldName B.ByteString)
 applyDefaults model obj = do
   ct <- liftIO $ round . utcTimeToPOSIXSeconds
@@ -158,7 +160,7 @@ defaults = Map.fromList
   ,("tech1", serviceDefaults)
   ,("consultation", serviceDefaults)
   ,("rent", Map.union serviceDefaults $ Map.fromList
-    [("carProvidedFor", "0")
+    [("providedFor", "0")
     ])
   ,("sober", Map.union serviceDefaults $ Map.fromList
     [("multidrive", "0")

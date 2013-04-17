@@ -25,13 +25,12 @@ data DictCache = DictCache
   ,carModel    :: Map Text (Map Text Text)
   ,smsToken    :: Map Text Text
   ,smsTokenVal :: Map Text (Map Text Text)
-  ,user        :: Map Text Text
   ,cancelReason:: Map Text Text
   }
 
 
-loadDictionaries :: Map Text Text -> FilePath -> IO DictCache
-loadDictionaries usrs dir = do
+loadDictionaries :: FilePath -> IO DictCache
+loadDictionaries dir = do
   DictCache
     <$> flatDict (dir </> "DealerCities.json")
     <*> flatDict (dir </> "Wazzup.json")
@@ -39,9 +38,7 @@ loadDictionaries usrs dir = do
     <*> nestDict (dir </> "CarModels.json")
     <*> flatDict (dir </> "SmsTokens.json")
     <*> nestDict (dir </> "SmsTokensValues.json")
-    <*> pure usrs
     <*> flatDict (dir </> "ClientCancelReason.json")
-
 
 
 flatDict :: FilePath -> IO (Map Text Text)

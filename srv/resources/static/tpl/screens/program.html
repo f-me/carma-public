@@ -1,3 +1,4 @@
+<div class="span12 pane">
 <div id="program-left" class="span4">
   <div class="row-fluid">
   </div>
@@ -15,7 +16,7 @@
   </div>
 </div>
 
-<div id="program-center" class="span8">
+<div id="program-center" class="span8 nice-scrollbar">
     <button class="btn btn-action" type="button"
               onclick="location.hash='program';location.reload(true)">
       <i class="icon icon-plus"></i>Добавить программу
@@ -23,6 +24,7 @@
 
   <div class="form-vertical">
     <div id="program-view" />
+
     <div id="program-files">
       <h4 data-bind="visible: contractsInfo">Загруженные шаблоны:</h4>
       <ul class="unstyled"
@@ -35,6 +37,15 @@
         </li>
       </ul>
     </div>
+
+    <div class="control-group">
+      <div class="control-label">
+        <label>Поля контракта</label>
+      </div>
+      <div id="program-add-programPermissions-container"/>
+    </div>
+
     <div id="program-permissions" />
   </div>
+</div>
 </div>
