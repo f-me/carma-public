@@ -37,7 +37,7 @@ import AppHandlers.CustomSearches
 import AppHandlers.PSA
 import AppHandlers.ContractGenerator
 import AppHandlers.Users
-
+import AppHandlers.Screens
 
 ------------------------------------------------------------------------------
 -- | The application's routes.
@@ -48,6 +48,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/logout/",       doLogout)
          , ("/s/",            serveDirectory "resources/static")
          , ("/s/screens",     serveFile "resources/site-config/screens.json")
+         , ("/screens",       method GET $ getScreens)
          , ("/report",        chkAuthLocal . method GET  $ report)
          , ("/all/:model",    chkAuthLocal . method GET  $ readAllHandler)
          , ("/callsByPhone/:phone",

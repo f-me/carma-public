@@ -1,7 +1,13 @@
-{ "screens" : [
+[
     { "name"  : "sms",
       "type"  : "sms",
       "permissions" : ["front","back","head","parguy","supervisor","director","analyst","parguy","account","admin","programman"]
+    },
+    { "name" : "contracts",
+      "label": "Экраны контрактов",
+      "type" : "dropdown",
+      "permissions": ["head", "admin"],
+      "screens": []
     },
     { "name"  : "contract/1",
       "label" : "Контракты РУС ЛАН",
@@ -29,6 +35,7 @@
       "permissions": ["front","back","head","parguy","supervisor","analyst"]
     },
     { "type": "dropdown",
+      "name": "supervisorList",
       "label": "Супервизор",
       "permissions": ["head","supervisor","admin","programman"],
       "screens": [
@@ -52,6 +59,7 @@
     },
     {
       "type": "dropdown",
+      "name": "rkcList",
       "label": "Экран РКЦ",
       "permissions": ["head", "supervisor", "admin", "programman"],
       "screens": [
@@ -76,6 +84,7 @@
       ]
     },
     { "type"    : "dropdown",
+      "name"    : "more",
       "label"   : "Еще",
       "permissions": ["front","back","head","parguy","supervisor","director","analyst","account","admin","programman"],
       "screens" : [
@@ -111,5 +120,5 @@
         }
       ]
     }
-  ]
-}
+]
+
