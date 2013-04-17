@@ -38,12 +38,12 @@ define ["model/utils"], (mu) ->
       url: "/all/program",
       dataType: 'json',
       success: (objs) ->
-        d = entries: for obj in objs
-          { value: obj.id.split(':')[1], label: obj.label || '' }
-        
+        d = entries: (for obj in objs
+          { value: obj.id.split(':')[1], label: obj.label || '' })
+
       async: false
     return d
-      
+
   window.getDictionary = (d) ->
     console.log 'dicts', d
     dict = global.dictionaries[d]
