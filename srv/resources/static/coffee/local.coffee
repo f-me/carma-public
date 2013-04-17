@@ -72,7 +72,7 @@ require [ "domready"
 
     avayaCred = document.cookie.match /avaya=([^;]*)/
     if avayaCred?[1]
-      extPwd = unescape(avayaCred).match /(.*)\|(.*)/
+      extPwd = unescape(avayaCred[1]).match /(.*)\|(.*)/
       if extPwd
         global.avayaPhone = new AvayaWidget($('#avaya-panel'), extPwd[1], extPwd[2])
     if window.location.hash == ""
