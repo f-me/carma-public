@@ -219,7 +219,7 @@ serviceActions = Map.fromList
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
           currentUser <- maybe "" userLogin <$> getCurrentUser
-          actionId <- new "action" $ Map.fromList
+          act1 <- new "action" $ Map.fromList
             [("name", "tellClient")
             ,("duetime", due)
             ,("description", utf8 "Сообщить клиенту о договорённости")
@@ -230,7 +230,21 @@ serviceActions = Map.fromList
             ,("assignedTo", T.encodeUtf8 currentUser)
             ,("closed", "0")
             ]
-          upd kazeId "actions" $ addToList actionId
+          upd kazeId "actions" $ addToList act1
+          due <- dateNow (+ (14*24*60*60))
+          act2 <- replaceAction
+          act1 <- new "action" $ Map.fromList
+            [("name", "addBill")
+            ,("duetime", due)
+            ,("description", utf8 "Прикрепить счёт")
+            ,("targetGroup", "parguy")
+            ,("priority", "1")
+            ,("parentId", objId)
+            ,("caseId", kazeId)
+            ,("assignedTo", "")
+            ,("closed", "0")
+            ]
+          upd kazeId "actions" $ addToList act2
       "mechanicConf" -> do
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
