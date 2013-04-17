@@ -91,7 +91,7 @@
         { "name"  : "usermeta",
           "label" : "Редактирование пользователей",
           "type"  : "li",
-          "permissions": ["admin"]
+          "permissions": ["admin", "head", "supervisor", "programman"]
         },
         { "name"  : "reports",
           "label" : "Отчёты",
