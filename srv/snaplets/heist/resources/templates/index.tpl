@@ -365,6 +365,7 @@
                     style="text-transform:{{meta.transform}};"
                  {{/ meta.transform }}
                  {{# readonly }}readonly{{/ readonly }}
+                 placeholder="********"
                  data-bind="value: {{ name }},
                             valueUpdate: 'afterkeydown',
                             readonly: {{ name }}Disabled"/>
