@@ -2,6 +2,7 @@
 module Snaplet.DbLayer.Triggers
   (triggerUpdate
   ,triggerCreate
+  , applyDefaults
   ) where
 
 import Data.Functor ((<$>))
@@ -18,22 +19,30 @@ import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Defaults
 import Snaplet.DbLayer.Triggers.Actions
 import Snaplet.DbLayer.Triggers.Dsl
-
+import Snaplet.DbLayer.Triggers.Users
 
 
 triggerCreate :: ModelName -> Object -> DbHandler b Object
-triggerCreate = applyDefaults
+triggerCreate model obj = 
+    case model of
+      "usermeta" -> createUsermetaTrigger obj
+      _ -> return obj
 
-triggerUpdate :: ObjectId -> Object -> DbHandler b ObjectMap
-triggerUpdate objId commit = do
+
+triggerUpdate :: ModelName -> ObjectId -> Object -> DbHandler b ObjectMap
+triggerUpdate model objId commit = do
+  let fullId = B.concat [model, ":", objId]
   recs <- gets (recommendations . triggers)
   let stripUnchanged orig = Map.filterWithKey (\k v -> Map.lookup k orig /= Just v)
-  commit' <- (`stripUnchanged` commit) <$> Redis.read' redis objId
+  commit' <- (`stripUnchanged` commit) <$> Redis.read' redis fullId
+  commit'' <- case model of
+                "usermeta" -> updateUsermetaTrigger objId commit'
+                _          -> return commit'
   let cfg = unionTriggers (compileRecs recs) actions
   -- Seems that we don't need recursive triggers actually.
   -- There is only one place where they are used intentionally: filling car
   -- dimensions when car model is determined.
-  loop cfg 1 emptyContext $ Map.singleton objId commit'
+  loop cfg 1 emptyContext $ Map.singleton fullId commit''
   where
     loop _ 0 cxt changes = return $ unionMaps changes $ updates cxt
     loop cfg n cxt changes

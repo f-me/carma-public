@@ -14,6 +14,10 @@
                 "label": "+74956409001"
             },
             {
+                "value": "chezer",
+                "label": "+74956406690"
+            },            
+            {
                 "value": "tele",
                 "label": "+74956406690"
             },
@@ -252,6 +256,11 @@
                 "label": "Telematica"
             },
             {
+                "value": "chezer",
+                "label": "Caesar"
+            },            
+            
+            {
                 "value": "arc",
                 "label": "RAMC"
             },
@@ -485,6 +494,10 @@
                 "value": "tele",
                 "label": "3S Телематика"
             },
+            {
+                "value": "chezer",
+                "label": "Цезарь Сателлит"
+            },            
             {
                 "value": "arc",
                 "label": "Arc B2B"

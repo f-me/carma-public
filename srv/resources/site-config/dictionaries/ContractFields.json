@@ -1,0 +1,120 @@
+{
+   "entries" : [
+     {
+         "value" : "isActive",
+         "label" : "Активен"
+     },
+     {
+         "value" : "program",
+         "label" : "Программа"
+      },
+      {
+         "value" : "carVin",
+         "label" : "VIN"
+      },
+      {
+         "value" : "carSeller",
+         "label" : "Дилер, продавший автомобиль"
+      },
+      {
+         "value" : "carMake",
+         "label" : "Марка"
+      },
+      {
+         "value" : "carModel",
+         "label" : "Модель"
+      },
+      {
+         "value" : "carPlateNum",
+         "label" : "Госномер"
+      },
+      {
+         "value" : "carMakeYear",
+         "label" : "Год производства автомобиля"
+      },
+      {
+         "value" : "carColor",
+         "label" : "Цвет"
+      },
+      {
+         "value" : "carBuyDate",
+         "label" : "Дата покупки"
+      },
+      {
+         "value" : "carCheckupDate",
+         "label" : "Дата последнего ТО"
+      },
+      {
+         "value" : "carDealerTO",
+         "label" : "Дилер у которого проходило последнее ТО"
+      },
+      {
+         "value" : "carCheckupMilage",
+         "label" : "Пробег на последнем ТО"
+      },
+      {
+         "value" : "carTransmission",
+         "label" : "Коробка передач"
+      },
+      {
+         "value" : "carEngine",
+         "label" : "Тип двигателя"
+      },
+      {
+         "value" : "carCheckPeriod",
+         "label" : "Межсервисный интервал"
+      },
+      {
+         "value" : "contractType",
+         "label" : "Тип контракта"
+      },
+      {
+         "value" : "cardNumber",
+         "label" : "Номер карты участника"
+      },
+      {
+         "value" : "contractValidFromDate",
+         "label" : "Дата регистрации в программе"
+      },
+      {
+         "value" : "contractValidUntilDate",
+         "label" : "Программа действует до (дата)"
+      },
+      {
+         "value" : "milageTO",
+         "label" : "Пробег при регистрации в программе"
+      },
+      {
+         "value" : "contractValidUntilMilage",
+         "label" : "Программа действует до (пробег)"
+      },
+      {
+         "value" : "cardOwner",
+         "label" : "ФИО владельца карты"
+      },
+      {
+         "value" : "techType",
+         "label" : "Вид ТО"
+      },
+      {
+         "value" : "orderNumber",
+         "label" : "Номер заказ-наряда"
+      },
+      {
+         "value" : "manager",
+         "label" : "ФИО менеджера"
+      },
+      {
+         "value" : "warrantyStart",
+         "label" : "Дата начала действия программы"
+      },
+      {
+         "value" : "warrantyEnd",
+         "label" : "Дата окончания действия программы"
+      },
+      {
+          "value" : "comment",
+          "label" : "Комментарий"
+      }
+   ]
+}

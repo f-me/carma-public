@@ -23,13 +23,15 @@ define  [ "utils"
           ko.applyBindings aData[4], nRow
 
 
-      $.getJSON "/usersDict", (us) ->
+      $.getJSON "/allUsers", (us) ->
         dt.fnClearTable()
         rows = for u in us when /back/.test u.roles
           do (u) ->
             koUser =
               boCities: ko.observable u.boCities
+              boCitiesDisabled: ko.observable false
               boPrograms: ko.observable u.boPrograms
+              boProgramsDisabled: ko.observable false
 
             hook.dictManyHook userModel, koUser
             row =

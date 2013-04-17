@@ -3,6 +3,7 @@ define [
   "screens/call"
   "screens/case"
   "screens/partners"
+  "screens/user"
   "screens/printService"
   "screens/rkc"
   "screens/rkcFront"
@@ -21,6 +22,7 @@ define [
      , call
      , kase
      , partner
+     , user
      , print
      , rkc
      , rkcFront
@@ -61,6 +63,10 @@ define [
         "template": "partner-screen-template"
         "views":
           "partner-view": partner
+      "user":
+        "template": "user-screen-template"
+        "views":
+          "user-view": user
       "supervisor":
         "template": "supervisor-screen-template"
         "views":
@@ -124,6 +130,8 @@ define [
         "contract/:p/:id": "getContract"
         "partner"        : "newPartner"
         "partner/:id"    : "loadPartner"
+        "usermeta"       : "newUser"
+        "usermeta/:id"   : "loadUser"
         "editVin/:id"    : "editVin"
         "newVin"         : "newVin"
         "supervisor"     : "supervisor"
@@ -143,6 +151,8 @@ define [
       vin           :      -> r.renderScreen("vin", vin)
       newPartner    :      -> r.renderScreen("partner", partner, {"id": null})
       loadPartner   : (id) -> r.renderScreen("partner", partner, {"id": id})
+      newUser       :      -> r.renderScreen("user", user, {"id": null})
+      loadUser      : (id) -> r.renderScreen("user", user, {"id": id})
       loadCall      : (id) -> r.renderScreen("call", call, {"id": id})
       call          :      -> r.renderScreen("call", call, {"id": null})
       reports       :      -> r.renderScreen("reports", report)

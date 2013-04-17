@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell, FlexibleInstances #-}
+{-# LANGUAGE Rank2Types #-}
 
 module Snaplet.DbLayer.Types where
 
@@ -21,7 +22,6 @@ import qualified WeatherApi as W
 
 import qualified Fdds as Fdds
 import DictionaryCache
-import Util (UsersDict)
 import RuntimeFlag
 
 type ObjectId = ByteString
@@ -40,7 +40,8 @@ type RKCCalc     = Map ProgramName RKCEntry
 type DbHandler b r = Handler b (DbLayer b) r
 
 data DbLayer b = DbLayer
-    {_redis    :: Snaplet RedisDB
+    {authDb    :: Lens' b (Snaplet Postgres)
+    ,_redis    :: Snaplet RedisDB
     ,_postgres :: Snaplet Postgres
     ,_dbLog    :: Snaplet SimpleLog
     ,_auth     :: Snaplet (AuthManager b)
@@ -48,7 +49,6 @@ data DbLayer b = DbLayer
     ,fdds      :: Fdds.Conf
     ,syncRelations :: SM.Relations
     ,syncTables :: [TableDesc]
-    ,allUsers  :: UsersDict
     ,dictCache :: TVar DictCache
     ,weather   :: W.Config
     ,rkcDict   :: RKCCalc
