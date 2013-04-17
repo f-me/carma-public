@@ -106,21 +106,8 @@ doLogin = ifTop $ do
   r <- isJust <$> getParam "remember"
   res <- with auth $ loginByUsername l (ClearText p) r
   case res of
-    Left _ -> redirectToLogin
-    Right u -> do
-      creds <- (,)
-        <$> getParam "avayaExt"
-        <*> getParam "avayaPwd"
-      _ <- case creds of
-        ~(Just ext, Just pwd) -> with auth $ saveUser
-          u {userMeta
-            = HashMap.insert "avayaExt" (Aeson.toJSON ext)
-            $ HashMap.insert "avayaPwd" (Aeson.toJSON pwd)
-            $ userMeta u
-            }
-      _ <- addToLoggedUsers u
-
-      redirect "/"
+    Left _  -> redirectToLogin
+    Right u -> addToLoggedUsers u >> redirect "/"
 
 
 doLogout :: AppHandler ()

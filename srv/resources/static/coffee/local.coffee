@@ -69,10 +69,12 @@ require [ "domready"
     global.keys = {}
     global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
     ko.applyBindings global.nav, $('#nav')[0]
-    ext = user.meta.avayaExt
-    pwd = user.meta.avayaPwd
-    if ext and pwd
-      global.avayaPhone = new AvayaWidget($('#avaya-panel'), ext, pwd)
+
+    avayaCred = document.cookie.match /avaya=([^;]*)/
+    if avayaCred?[1]
+      extPwd = unescape(avayaCred).match /(.*)\|(.*)/
+      if extPwd
+        global.avayaPhone = new AvayaWidget($('#avaya-panel'), extPwd[1], extPwd[2])
     if window.location.hash == ""
       redirectToHomePage user
 
