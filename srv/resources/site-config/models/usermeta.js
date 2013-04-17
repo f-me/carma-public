@@ -1,10 +1,10 @@
 {
     "name": "usermeta",
     "title": "Метаданные пользователя",
-    "canCreate": ["admin"],
+    "canCreate": ["admin", "head", "supervisor"],
     "canRead": true,
-    "canUpdate": ["admin"],
-    "canDelete": ["admin"],
+    "canUpdate": ["admin", "head", "supervisor"],
+    "canDelete": ["admin", "head", "supervisor"],
     "applications": [
         {
             "targets": true,
