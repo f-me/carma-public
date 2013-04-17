@@ -6,18 +6,8 @@
     { "name" : "contracts",
       "label": "Экраны контрактов",
       "type" : "dropdown",
-      "permissions": ["head", "admin", "partner"],
+      "permissions": ["admin", "partner", "contract_admin", "contract_user"],
       "screens": []
-    },
-    { "name"  : "contract/1",
-      "label" : "Контракты РУС ЛАН",
-      "type"  : "li",
-      "permissions": ["ruslan"]
-    },
-    { "name"  : "contract/2",
-      "label" : "Контракты VW",
-      "type"  : "li",
-      "permissions": ["vwpartner"]
     },
     { "name"  : "call",
       "label" : "Звонок",
