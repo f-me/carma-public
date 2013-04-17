@@ -47,6 +47,8 @@
     },
     {
       "name": "carSeller",
+      "canRead": ["partner"],
+      "canWrite": ["partner"],      
       "meta": {
         "required": true,
         "label": "Дилер, продавший автомобиль"
@@ -54,8 +56,8 @@
     },
     {
       "name": "carMake",
-      "canRead": ["ruslan","vwpartner"],
-      "canWrite": ["ruslan"],
+      "canRead": ["partner"],
+      "canWrite": ["partner"],
       "type": "dictionary",
       "meta": {
         "required": true,
@@ -66,8 +68,8 @@
     },
     {
       "name": "carModel",
-      "canRead": ["ruslan","vwpartner"],
-      "canWrite": ["ruslan","vwpartner"],
+      "canRead": ["partner"],
+      "canWrite": ["partner"],
       "type": "dictionary",
       "meta": {
         "required": true,
@@ -79,8 +81,8 @@
     },
     {
       "name": "carPlateNum",
-      "canRead": ["ruslan"],
-      "canWrite": ["ruslan"],
+      "canRead": ["partner"],
+      "canWrite": ["partner"],
       "meta": {
         "transform": "uppercase",
         "label": "Госномер",
@@ -90,8 +92,8 @@
     },
     {
       "name": "carMakeYear",
-      "canRead": ["ruslan","vwpartner"],
-      "canWrite": ["ruslan","vwpartner"],
+      "canRead": ["partner"],
+      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Год производства автомобиля",
@@ -100,6 +102,8 @@
     },
     {
       "name": "carColor",
+      "canRead": ["partner"],
+      "canWrite": ["partner"],      
       "type": "dictionary",
       "meta": {
         "required": true,
@@ -110,6 +114,8 @@
     },
     {
       "name": "carBuyDate",
+      "canRead": ["partner"],
+      "canWrite": ["partner"],      
       "type": "date",
       "meta": {
         "required": true,
@@ -118,6 +124,8 @@
     },
     {
       "name": "carCheckupDate",
+      "canRead": ["partner"],
+      "canWrite": ["partner"],      
       "type": "date",
       "meta": {
         "required": true,
@@ -126,6 +134,8 @@
     },
     {
       "name": "carDealerTO",
+      "canRead": ["partner"],
+      "canWrite": ["partner"],      
       "meta": {
         "required": true,
         "label": "Дилер у которого проходило последнее ТО"
@@ -133,8 +143,8 @@
     },
     {
       "name": "carCheckupMilage",
-      "canRead": ["vwpartner"],
-      "canWrite": ["vwpartner"],
+      "canRead": ["partner"],
+      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Пробег на последнем ТО",
@@ -144,6 +154,8 @@
     {
       "name": "carTransmission",
       "type": "dictionary",
+      "canRead": ["partner"],
+      "canWrite": ["partner"],      
       "meta": {
         "required": true,
         "label": "Коробка передач",
@@ -155,6 +167,8 @@
     {
       "name": "carEngine",
       "type": "dictionary",
+      "canRead": ["partner"],
+      "canWrite": ["partner"],      
       "meta": {
         "required": true,
         "label": "Тип двигателя",
@@ -164,8 +178,8 @@
     },
     {
       "name": "carCheckPeriod",
-      "canRead": ["ruslan"],
-      "canWrite": ["ruslan"],
+      "canRead": ["partner"],
+      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Межсервисный интервал",
@@ -174,6 +188,8 @@
     },
     {
       "name": "contractType",
+      "canRead": ["partner"],
+      "canWrite": ["partner"],      
       "meta": {
         "required": true,
         "label": "Тип контракта"
@@ -181,8 +197,8 @@
     },
     {
       "name": "cardNumber",
-      "canRead": ["vwpartner"],
-      "canWrite": ["vwpartner"],
+      "canRead": ["partner"],
+      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Номер карты участника"
@@ -210,8 +226,8 @@
     },
     {
       "name": "milageTO",
-      "canRead": ["ruslan"],
-      "canWrite": ["ruslan"],
+      "canRead": ["partner"],
+      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Пробег при регистрации в программе",
@@ -230,6 +246,8 @@
     },
     {
       "name": "cardOwner",
+      "canRead": ["partner"],
+      "canWrite": ["partner"],      
       "meta": {
         "required": true,
         "label": "ФИО владельца карты"
@@ -237,8 +255,8 @@
     },
     {
       "name": "techType",
-      "canRead": ["vwpartner"],
-      "canWrite": ["vwpartner"],
+      "canRead": ["partner"],
+      "canWrite": ["partner"],
       "type": "dictionary",
       "meta": {
         "required": true,
@@ -249,8 +267,8 @@
     },
     {
       "name": "orderNumber",
-      "canRead": ["vwpartner"],
-      "canWrite": ["vwpartner"],
+      "canRead": ["partner"],
+      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Номер заказ-наряда"
@@ -267,6 +285,8 @@
     },
     {
       "name": "warrantyStart",
+      "canRead": ["partner"],
+      "canWrite": ["partner"],      
       "type": "date",
       "meta": {
         "required": true,
@@ -275,6 +295,8 @@
     },
     {
       "name": "warrantyEnd",
+      "canRead": ["partner"],
+      "canWrite": ["partner"],      
       "type": "date",
       "meta": {
         "required": true,
@@ -283,6 +305,8 @@
     },
     {
         "name": "comment",
+      "canRead": ["partner"],
+      "canWrite": ["partner"],        
         "canRead": true,
         "canWrite": true,
         "type": "textarea",
@@ -292,7 +316,7 @@
         }
     },
     {
-      "name": "dixi",
+      "name": "dixi",  
       "type": "checkbox",
       "canRead" : true,
       "canWrite": true,
