@@ -2,8 +2,9 @@ define [ "hooks/common"
        , "hooks/case"
        , "hooks/services"
        , "hooks/partner"
+       , "hooks/actions"
        ],
-       (c, k, s, p) ->
+       (c, k, s, p, a) ->
   model:
       "*"    : [c.stdElCb]
   observable:
@@ -24,3 +25,4 @@ define [ "hooks/common"
       "sober" : [s.partnerOptsHook, s.srvOptUpd]
       "hotel" : [s.partnerOptsHook, s.srvOptUpd, s.costsMark]
       "towage": [s.partnerOptsHook, s.srvOptUpd, s.costsMark, c.distHook]
+      "actions": [a.nameLocal]
