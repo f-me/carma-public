@@ -1261,7 +1261,7 @@
                 <b class="caret"></b>
               </a>
               <ul class="dropdown-menu"
-                  data-bind="template: { name: 'nav-li-template' }">
+                  data-bind="template: { name: 'nav-li-template', data: screens }">
               </ul>
             </li>
 
