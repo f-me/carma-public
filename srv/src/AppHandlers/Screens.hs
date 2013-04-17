@@ -102,8 +102,8 @@ getScreens = do
   s  <- liftIO readScreens
   cu <- fromJust <$> withAuth currentUser
   [(roles, progIds)] <- with db $ query q (Only $ getUid $ userId cu)
-        :: Handler App App [([ByteString], [ByteString])]
-  programs <- with db $ query qProgram (Only (In progIds))
+        :: Handler App App [([ByteString], Maybe [ByteString])]
+  programs <- with db $ query qProgram (Only (In $ fromMaybe [] progIds))
         :: Handler App App [Program]
   case s of
     Right s' -> writeJSON $ processScreens s' roles programs
