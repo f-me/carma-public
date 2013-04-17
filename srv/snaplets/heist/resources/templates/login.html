@@ -21,7 +21,7 @@
         $("form").submit(function() {
           var ext = $("input[name=avayaExt]")
           var pwd = $("input[name=avayaPwd]")
-          document.cookie = "avaya=" + escape(ext.val() + "|" + pwd.val())
+          document.cookie = "path=/; avaya=" + escape(ext.val() + "|" + pwd.val())
           ext.val('')
           pwd.val('')
           return true
