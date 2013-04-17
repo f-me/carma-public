@@ -29,7 +29,9 @@ define  [ "utils"
           do (u) ->
             koUser =
               boCities: ko.observable u.boCities
+              boCitiesDisabled: ko.observable false
               boPrograms: ko.observable u.boPrograms
+              boProgramsDisabled: ko.observable false
 
             hook.dictManyHook userModel, koUser
             row =
