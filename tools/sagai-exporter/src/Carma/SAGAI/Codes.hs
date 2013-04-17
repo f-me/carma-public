@@ -15,6 +15,7 @@ module Carma.SAGAI.Codes
     ( ExpenseType(..)
     , CodeRow(..)
     , codesData
+    , rentCostsPSA
     , rentCosts
     )
 
@@ -48,6 +49,9 @@ data CodeRow = CodeRow { cost             :: Double
 
 
 -- | List of costs and I/C/D codes for all programs and expenses.
+--
+-- Costs for Rent expenses are ignored (see 'rentCostsPSA' &
+-- 'rentCosts' instead).
 codesData :: M.Map (FieldValue, ExpenseType) CodeRow
 codesData = M.fromList
     [ (("citroen", Dossier),     CodeRow 1148    "DV1" "DV4" "9938" "G5F")
@@ -67,21 +71,31 @@ codesData = M.fromList
     , (("peugeot", Starter),     CodeRow 2153.5  "24E" "FCA" "8963" "G5D")
     , (("peugeot", Towage),      CodeRow 3434.98 "24E" "FCA" "8950" "G5D")
     , (("peugeot", RepTowage),   CodeRow 2370.62 "24E" "FCA" "8983" "G5D")
-    , (("peugeot", Rent),        CodeRow 0       "F6R" "FCA" "8997" "PZD")
+    , (("peugeot", Rent),        CodeRow 0       "24E" "FCA" "8997" "PZD")
     ]
 
 
--- | Daily costs for car rent service.
+-- | Daily costs for car rent service provided by PSA dealers.
+--
+-- Map key is a @(program, carClass)@ tuple.
+rentCostsPSA :: M.Map (FieldValue, FieldValue) Double
+rentCostsPSA = M.fromList
+    [ (("citroen", "psab"),  1729)
+    , (("citroen", "psam1"), 2034)
+    , (("citroen", "psam2"), 2848)
+    , (("peugeot", "psab"),  2040.22)
+    , (("peugeot", "psam1"), 2400.12)
+    , (("peugeot", "psam2"), 3360.64)
+    ]
+
+
+-- | Daily costs for car rent service provided by third-party dealers.
 rentCosts :: M.Map (FieldValue, FieldValue) Double
 rentCosts = M.fromList
-    [ (("citroen", "psab"),  1758)
-    , (("citroen", "psam1"), 2310)
-    , (("citroen", "psam2"), 3041)
-    , (("citroen", "psah"),  3994)
-    , (("citroen", "psam"),  2310)
-    , (("peugeot", "psab"),  2074.44)
-    , (("peugeot", "psam1"), 2725.8)
-    , (("peugeot", "psam2"), 3588.38)
-    , (("peugeot", "psah"),  4712.92)
-    , (("peugeot", "psam"),  2725.8)
+    [ (("citroen", "psab"),  1441)
+    , (("citroen", "psam1"), 1695)
+    , (("citroen", "psam2"), 2373)
+    , (("peugeot", "psab"),  1700.38)
+    , (("peugeot", "psam1"), 2000.1)
+    , (("peugeot", "psam2"), 2800.14)
     ]
