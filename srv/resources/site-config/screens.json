@@ -6,7 +6,7 @@
     { "name" : "contracts",
       "label": "Экраны контрактов",
       "type" : "dropdown",
-      "permissions": ["head", "admin"],
+      "permissions": ["head", "admin", "partner"],
       "screens": []
     },
     { "name"  : "contract/1",
