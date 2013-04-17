@@ -57,13 +57,17 @@ instance FromJSON Screen where
   parseJSON _ = fail "wrong object in screen list"
 
 instance ToJSON Screen where
-  toJSON (Sms name p) = object [ "name" .= name, "permissions" .= p]
+  toJSON (Sms name p) = object [ "name" .= name
+                               , "type" .= B8.pack "sms"
+                               , "permissions" .= p]
   toJSON (Li  n l p ) = object [ "name"        .= n
                                , "label"       .= l
+                               , "type"        .= B8.pack "li"
                                , "permissions" .= p
                                ]
   toJSON (Dropdown n l p ss) = object  [ "name"        .= n
                                        , "label"       .= l
+                                       , "type"        .= B8.pack "dropdown"
                                        , "permissions" .= p
                                        , "screens"     .= ss
                                        ]
