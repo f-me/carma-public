@@ -55,22 +55,13 @@ define [
       , headerHtml: th
       }
 
-    template: tpl
-    constructor: (viewName, args) ->
-      modelHref = "/cfg/model/contract?pid=#{args.program}"
+    init = (viewName, args, model) ->
       modelTable = "#{modelHref}&field=showtable"
       setupModel = (args) ->
         if args.id
           $('#render-contract').attr(
             "href",
             "/renderContract?prog=#{args.program}&ctr=#{args.id}")
-
-        model = null
-        $.ajax modelHref,
-          async: false
-          dataType: 'json'
-          success: (m) ->
-            model = m
 
         kvm = main.modelSetup("contract", model)(
           viewName, args,
@@ -137,4 +128,13 @@ define [
           kvm.carMake 'vw'
         kvm.maybeId.subscribe ->
           getContracts kvm['id'](), (objs) -> dt.fnAddData objs.map sk.mkRow
+
+    template: tpl
+    constructor: (viewName, args) ->
+      modelHref = "/cfg/model/contract?pid=#{args.program}"
+
+      $.ajax modelHref,
+        dataType: 'json'
+        success: (model) ->
+          init viewName, args, model
 
