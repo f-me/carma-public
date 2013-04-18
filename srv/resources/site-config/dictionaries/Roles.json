@@ -41,6 +41,10 @@
             "label": "Аналитик"
         },
         {
+            "value": "psaanalyst",
+            "label": "Аналитик PSA"
+        },             
+        {
             "value": "account",
             "label": "Бухгалтер"
         },
@@ -66,11 +70,11 @@
         },
         {
             "value": "contract_admin",
-            "label": "Администратор contract"
+            "label": "Администратор контрактов"
         },
         {
             "value": "contract_user",
-            "label": "Пользователь contract"
+            "label": "Пользователь экрана конрактов"
         }
     ]
 }

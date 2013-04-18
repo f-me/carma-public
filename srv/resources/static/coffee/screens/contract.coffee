@@ -8,6 +8,9 @@ define [
       [_, d, m, y] = date.match(/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/)
       "#{y}-#{m}-#{d}"
 
+    getContract = (id, cb) ->
+      $.getJSON "/getContract/#{id}", cb
+
     getContracts = (args, cb) ->
       min = reformatDate $('#date-min').val()
       max = reformatDate $('#date-max').val()
@@ -70,13 +73,32 @@ define [
             refs: [])
 
         if _.find(global.user.roles, (r) -> r == 'contract_user')
-          kvm['commentDisabled'](false) if kvm['commentDisabled']
-          kvm['isActiveDisabled'](false)  if kvm['isActiveDisabled']
+          kvm['commentDisabled'](false)  if kvm['commentDisabled']
+          kvm['isActiveDisabled'](false) if kvm['isActiveDisabled']
         if _.find(global.user.roles, (r) -> r == 'contract_admin')
           kvm['disableDixi'](true)
+
+        kvm["updateUrl"] = ->
+          h = window.location.href.split '/'
+          if h[-3..-1][0] == "#contract"
+            # /#contract/progid/id case
+            u = h[-3..-1].join '/'
+            global.router.navigate "#{h[-3..-2].join '/'}/#{kvm['id']()}",
+              { trigger: false }
+          else
+            # /#contract/progid case
+            global.router.navigate "#{h[-2..-1].join '/'}/#{kvm['id']()}",
+              { trigger: false }
+
         return kvm
 
       kvm = setupModel args
+
+      $('#new-contract-btn').on 'click', (e) ->
+        e.preventDefault()
+        location.hash = "#contract/#{args.program}"
+        location.reload(true)
+
       $.getJSON modelTable, (model) ->
         tableCols =
               [ {name: "#", fn: (o) -> o.id}
@@ -88,7 +110,7 @@ define [
         if args.program == '1'
           tableCols.push "carPlateNum"
 
-        tableCols.concat(
+        tableCols = tableCols.concat(
               [ "contractValidFromDate"
               , "contractValidUntilDate"
               , "contractValidUntilMilage"
@@ -107,7 +129,9 @@ define [
 
         t.on("click.datatable", "tr", ->
           id = this.children[0].innerText
-          setupModel {"id": id}
+          k  = setupModel {"id": id}
+          k["updateUrl"]()
+          k
         )
 
         dt = utils.mkDataTable t
@@ -126,13 +150,12 @@ define [
 
         if args.id == null && args.program == '2'
           kvm.carMake 'vw'
-        kvm.maybeId.subscribe ->
-          getContracts kvm['id'](), (objs) -> dt.fnAddData objs.map sk.mkRow
+        kvm.dixi.subscribe ->
+          getContract kvm['id'](), (objs) -> dt.fnAddData objs.map sk.mkRow
 
     template: tpl
     constructor: (viewName, args) ->
       modelHref = "/cfg/model/contract?pid=#{args.program}"
-
       $.getJSON modelHref, (model) ->
         init viewName, args, model
 

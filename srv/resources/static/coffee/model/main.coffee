@@ -225,7 +225,9 @@ define [ "model/meta"
         depViews        : depViews
 
       # update url here, because only top level models made with modelSetup
-      knockVM["maybeId"].subscribe ->
+      knockVM["maybeId"].subscribe -> knockVM["updateUrl"]()
+
+      knockVM["updateUrl"] = ->
         global.router.navigate "#{knockVM.modelName()}/#{knockVM.id()}",
                                { trigger: false }
 
