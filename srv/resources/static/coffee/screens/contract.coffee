@@ -56,7 +56,7 @@ define [
         if args.program == '1'
           tableCols.push "carPlateNum"
 
-        tableCols.concat(
+        tableCols = tableCols.concat(
               [ "contractValidFromDate"
               , "contractValidUntilDate"
               , "contractValidUntilMilage"
