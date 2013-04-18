@@ -58,7 +58,7 @@ define [
       , headerHtml: th
       }
 
-    init = (viewName, args, model) ->
+    init = (viewName, args, model, modelHref) ->
       modelTable = "#{modelHref}&field=showtable"
       setupModel = (args) ->
         if args.id
@@ -157,5 +157,5 @@ define [
     constructor: (viewName, args) ->
       modelHref = "/cfg/model/contract?pid=#{args.program}"
       $.getJSON modelHref, (model) ->
-        init viewName, args, model
+        init viewName, args, model, modelHref
 
