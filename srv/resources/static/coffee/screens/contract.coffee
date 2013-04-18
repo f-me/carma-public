@@ -3,6 +3,58 @@ define [
     "model/main",
     "text!tpl/screens/contract.html"],
   (utils, main, tpl) ->
+    
+    reformatDate = (date)->
+      [_, d, m, y] = date.match(/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/)
+      "#{y}-#{m}-#{d}"
+
+    getContracts = (args, cb) ->
+      min = reformatDate $('#date-min').val()
+      max = reformatDate $('#date-max').val()
+      path = "/allContracts/#{args}?from=#{min}&to=#{max}"
+      $.getJSON path, cb
+
+    mkTableSkeleton = (model, fields) ->
+      h = {}
+      model.fields.map (f) -> h[f.name] = f
+
+      # remove columns that we don't have in model
+      fieldNames = _.pluck model.fields, 'name'
+      filterFields = _.filter fields, (e) ->
+        return true if typeof e is 'object'
+        _.contains(fieldNames, e)
+
+      fs = filterFields.map (f) ->
+        if typeof f == 'string'
+          desc = h[f]
+          {name: desc.meta.label
+          ,fn:
+            if desc.type == 'dictionary'
+              d = global.dictValueCache[desc.meta.dictionaryName]
+              (v) -> d[v[f]] || v[f] || ''
+            else if desc.type == 'date'
+              (v) -> if v[f]
+                  new Date(v[f] * 1000).toString "dd.MM.yyyy"
+                else ''
+            else if desc.type == 'datetime'
+              (v) -> if v[f]
+                  new Date(v[f] * 1000).toString "dd.MM.yyyy HH:mm:ss"
+                else ''
+            else
+              (v) -> v[f] || ''
+          }
+        else
+          f
+
+      th = $('<thead/>')
+      tr = $('<tr/>')
+      th.append tr
+      fs.map (f) -> tr.append $('<th/>', {html: f.name})
+
+      { mkRow: ((obj) -> fs.map (f) -> f.fn obj)
+      , headerHtml: th
+      }
+
     template: tpl
     constructor: (viewName, args) ->
       modelHref = "/cfg/model/contract?pid=#{args.program}"
@@ -86,53 +138,3 @@ define [
         kvm.maybeId.subscribe ->
           getContracts kvm['id'](), (objs) -> dt.fnAddData objs.map sk.mkRow
 
-  reformatDate = (date)->
-    [_, d, m, y] = date.match(/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/)
-    "#{y}-#{m}-#{d}"
-
-  getContracts = (args, cb) ->
-    min = reformatDate $('#date-min').val()
-    max = reformatDate $('#date-max').val()
-    path = "/allContracts/#{args}?from=#{min}&to=#{max}"
-    $.getJSON path, cb
-
-  mkTableSkeleton = (model, fields) ->
-    h = {}
-    model.fields.map (f) -> h[f.name] = f
-
-    # remove columns that we don't have in model
-    fieldNames = _.pluck model.fields, 'name'
-    filterFields = _.filter fields, (e) ->
-      return true if typeof e is 'object'
-      _.contains(fieldNames, e)
-
-    fs = filterFields.map (f) ->
-      if typeof f == 'string'
-        desc = h[f]
-        {name: desc.meta.label
-        ,fn:
-          if desc.type == 'dictionary'
-            d = global.dictValueCache[desc.meta.dictionaryName]
-            (v) -> d[v[f]] || v[f] || ''
-          else if desc.type == 'date'
-            (v) -> if v[f]
-                new Date(v[f] * 1000).toString "dd.MM.yyyy"
-              else ''
-          else if desc.type == 'datetime'
-            (v) -> if v[f]
-                new Date(v[f] * 1000).toString "dd.MM.yyyy HH:mm:ss"
-              else ''
-          else
-            (v) -> v[f] || ''
-        }
-      else
-        f
-
-    th = $('<thead/>')
-    tr = $('<tr/>')
-    th.append tr
-    fs.map (f) -> tr.append $('<th/>', {html: f.name})
-
-    { mkRow: ((obj) -> fs.map (f) -> f.fn obj)
-    , headerHtml: th
-    }
