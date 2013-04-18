@@ -133,8 +133,6 @@ define [
     constructor: (viewName, args) ->
       modelHref = "/cfg/model/contract?pid=#{args.program}"
 
-      $.ajax modelHref,
-        dataType: 'json'
-        success: (model) ->
-          init viewName, args, model
+      $.getJSON modelHref, (model) ->
+        init viewName, args, model
 
