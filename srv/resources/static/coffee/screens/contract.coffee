@@ -12,7 +12,15 @@ define [
           $('#render-contract').attr(
             "href",
             "/renderContract?prog=#{args.program}&ctr=#{args.id}")
-        kvm = main.modelSetup("contract", modelHref)(
+
+        model = null
+        $.ajax modelHref,
+          async: false
+          dataType: 'json'
+          success: (m) ->
+            model = m
+
+        kvm = main.modelSetup("contract", model)(
           viewName, args,
             permEl: "contract-permissions"
             focusClass: "focusable"

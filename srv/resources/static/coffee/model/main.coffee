@@ -204,16 +204,12 @@ define [ "model/meta"
   # global.modelHooks[modelName] is called with model view name as
   # argument.
 
-  modelSetup = (modelName, modelHref) ->
+  modelSetup = (modelName, model) ->
     return (elName, args, options) ->
 
       # save copy of models
       models = $.extend true, {}, global.models
-      if modelHref
-        $.ajax modelHref,
-          async: false
-          dataType: 'json'
-          success: (m) -> models[modelName] = m
+      models[modelName] = model if model
 
       [mkBackboneModel, instance, knockVM] =
         buildModel(modelName, models, args, options)
