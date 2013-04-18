@@ -39,6 +39,12 @@ define [
         return kvm
 
       kvm = setupModel args
+
+      $('#new-contract-btn').on 'click', (e) ->
+        e.preventDefault()
+        location.hash = "#contract/#{args.program}"
+        location.reload(true)
+
       $.getJSON modelTable, (model) ->
         tableCols =
               [ {name: "#", fn: (o) -> o.id}
