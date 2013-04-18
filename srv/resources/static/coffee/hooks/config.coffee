@@ -25,4 +25,4 @@ define [ "hooks/common"
       "sober" : [s.partnerOptsHook, s.srvOptUpd]
       "hotel" : [s.partnerOptsHook, s.srvOptUpd, s.costsMark]
       "towage": [s.partnerOptsHook, s.srvOptUpd, s.costsMark, c.distHook]
-      "actions": [a.nameLocal]
+      "action": [a.nameLocal]

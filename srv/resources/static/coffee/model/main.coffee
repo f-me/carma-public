@@ -139,9 +139,9 @@ define [ "model/meta"
             knockVM['disableDixi']()
           write: (a) ->
             disabled(not not a)
-
+    
     applyHooks global.hooks.observable,
-               ['*', instance.model.name, 'actions'],
+               ['*', instance.model.name],
                instance, knockVM, viewName
 
     return knockVM
