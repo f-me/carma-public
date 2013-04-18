@@ -23,6 +23,19 @@ define [
           kvm['isActiveDisabled'](false)  if kvm['isActiveDisabled']
         if _.find(global.user.roles, (r) -> r == 'contract_admin')
           kvm['disableDixi'](true)
+
+        kvm["updateUrl"] = ->
+          h = window.location.href.split '/'
+          if h[-3..-1][0] == "#contract"
+            # /#contract/progid/id case
+            u = h[-3..-1].join '/'
+            global.router.navigate "#{h[-3..-2].join '/'}/#{kvm['id']()}",
+              { trigger: false }
+          else
+            # /#contract/progid case
+            global.router.navigate "#{h[-2..-1].join '/'}/#{kvm['id']()}",
+              { trigger: false }
+
         return kvm
 
       kvm = setupModel args
@@ -56,7 +69,9 @@ define [
 
         t.on("click.datatable", "tr", ->
           id = this.children[0].innerText
-          setupModel {"id": id}
+          k  = setupModel {"id": id}
+          k["updateUrl"]()
+          k
         )
 
         dt = utils.mkDataTable t
