@@ -7,8 +7,8 @@ require [ "domready"
         , "json!/cfg/dictionaries"
         , "json!/_whoami"
         , "json!/cfg/models"
-        , "json!/s/screens"
-        , "json!/usersDict"
+        , "json!/screens"
+        , "json!/allUsers"
         , "utils"
         , "sendSms"
         ], ( dom
@@ -23,18 +23,6 @@ require [ "domready"
            , u
            , sendSms
            ) ->
-
-  filterScreenPerms = (nav) ->
-    nav.screens = fScrnPerms(nav)
-    return nav
-
-  fScrnPerms = (nav) ->
-    p = global.user.roles
-    nav.screens =
-      for s in nav.screens when not _.isEmpty _.intersection(s.permissions, p)
-        s.screens = fScrnPerms(s) if s.screens
-        s
-    return nav.screens
 
   window.onerror = (msg, url, line) ->
     $.ajax
@@ -77,14 +65,16 @@ require [ "domready"
               user,
               models
     global.all_users = users
-    global.nav = filterScreenPerms nav
+    global.nav = nav
     global.keys = {}
     global.keys.arrows = {left: 37, up: 38, right: 39, down: 40 }
     ko.applyBindings global.nav, $('#nav')[0]
-    ext = user.meta.avayaExt
-    pwd = user.meta.avayaPwd
-    if ext and pwd
-      global.avayaPhone = new AvayaWidget($('#avaya-panel'), ext, pwd)
+
+    avayaCred = document.cookie.match /avaya=([^;]*)/
+    if avayaCred?[1]
+      extPwd = unescape(avayaCred[1]).match /(.*)\|(.*)/
+      if extPwd
+        global.avayaPhone = new AvayaWidget($('#avaya-panel'), extPwd[1], extPwd[2])
     if window.location.hash == ""
       redirectToHomePage user
 

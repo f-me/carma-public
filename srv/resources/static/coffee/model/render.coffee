@@ -1,6 +1,6 @@
 define ["dictionaries"], (dict) ->
   renderKnockVm = (elName, knockVM, options) ->
-    model     = global.models[knockVM.modelName()]
+    model     = knockVM.modelDesc()
     instance  = knockVM.model()
     content   = renderFields(model, elName, options, knockVM)
     groupTpls = getTemplates("group-template")

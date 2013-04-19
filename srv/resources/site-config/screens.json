@@ -1,17 +1,13 @@
-{ "screens" : [
+[
     { "name"  : "sms",
       "type"  : "sms",
       "permissions" : ["front","back","head","parguy","supervisor","director","analyst","parguy","account","admin","programman"]
     },
-    { "name"  : "contract/1",
-      "label" : "Контракты РУС ЛАН",
-      "type"  : "li",
-      "permissions": ["ruslan"]
-    },
-    { "name"  : "contract/2",
-      "label" : "Контракты VW",
-      "type"  : "li",
-      "permissions": ["vwpartner"]
+    { "name" : "contracts",
+      "label": "Экраны контрактов",
+      "type" : "dropdown",
+      "permissions": ["admin", "partner", "contract_admin", "contract_user"],
+      "screens": []
     },
     { "name"  : "call",
       "label" : "Звонок",
@@ -29,6 +25,7 @@
       "permissions": ["front","back","head","parguy","supervisor","analyst"]
     },
     { "type": "dropdown",
+      "name": "supervisorList",
       "label": "Супервизор",
       "permissions": ["head","supervisor","admin","programman"],
       "screens": [
@@ -52,6 +49,7 @@
     },
     {
       "type": "dropdown",
+      "name": "rkcList",
       "label": "Экран РКЦ",
       "permissions": ["head", "supervisor", "admin", "programman"],
       "screens": [
@@ -76,6 +74,7 @@
       ]
     },
     { "type"    : "dropdown",
+      "name"    : "more",
       "label"   : "Еще",
       "permissions": ["front","back","head","parguy","supervisor","director","analyst","account","admin","programman"],
       "screens" : [
@@ -88,6 +87,11 @@
           "label" : "Редактирование партнёров",
           "type"  : "li",
           "permissions": ["head","parguy","programman","supervisor","analyst"]
+        },
+        { "name"  : "usermeta",
+          "label" : "Редактирование пользователей",
+          "type"  : "li",
+          "permissions": ["admin", "head", "supervisor", "programman"]
         },
         { "name"  : "reports",
           "label" : "Отчёты",
@@ -106,5 +110,5 @@
         }
       ]
     }
-  ]
-}
+]
+

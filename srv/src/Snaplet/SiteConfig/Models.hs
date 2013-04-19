@@ -27,11 +27,13 @@ import Snaplet.SiteConfig.Types
 data Permissions = Roles [B.ByteString]
                  | Everyone
                  | Nobody
+                 deriving (Show)
 
 
 data FieldTargets = Fields [FieldName]
                   | AllFields
                   | NoneFields
+                  deriving (Show)
 
 
 -- | Map of field annotations which are transparently handled by
@@ -46,7 +48,7 @@ data Field = Field { name           :: FieldName
                    , meta           :: Maybe FieldMeta
                    , _canRead       :: Permissions
                    , _canWrite      :: Permissions
-                   }
+                   } deriving (Show)
 makeLenses ''Field
 
 -- | A list of properties to be applied to named fields.
@@ -54,9 +56,9 @@ data Application = Application { targets    :: FieldTargets
                                , apMeta     :: Maybe FieldMeta
                                , _apRead    :: Maybe Permissions
                                , _apWrite   :: Maybe Permissions
-                               }
+                               } deriving (Show)
 makeLenses ''Application
- 
+
 
 
 -- | Model describes fields and permissions.
@@ -73,7 +75,7 @@ data Model = Model { modelName      :: ModelName
                    , _canReadM      :: Permissions
                    , _canUpdateM    :: Permissions
                    , _canDeleteM    :: Permissions
-                   }
+                   } deriving (Show)
 makeLenses ''Model
 
 -- | Used when field type is not specified in model description.

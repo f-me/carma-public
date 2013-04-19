@@ -593,10 +593,10 @@
                 "front",
                 "back",
                 "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
-                "parguy"
+                "parguy", "psaanalyst"
             ],
             "canWrite": [
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
+                "psaanalyst"
             ],
             "type": "dictionary",
             "meta": {

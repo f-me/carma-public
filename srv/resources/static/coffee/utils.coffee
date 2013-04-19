@@ -31,6 +31,18 @@ define ["model/utils"], (mu) ->
     entries: for i in f
       { value: i.value, label: "#{i.label} (#{i.value})" }
 
+  window.user_programs = () ->
+    d = {}
+    $.ajax
+      type: 'GET',
+      url: "/all/program",
+      dataType: 'json',
+      success: (objs) ->
+        d = entries: (for obj in objs
+          { value: obj.id.split(':')[1], label: obj.label || '' })
+
+      async: false
+    return d
 
   window.getDictionary = (d) ->
     console.log 'dicts', d
@@ -72,6 +84,14 @@ define ["model/utils"], (mu) ->
 
   modelsFromUrl = -> window.location.hash.match(/#(.*)\/.*/)[1]
 
+  # Generate a random password of given length (default 10)
+  genPassword = (len) ->
+    chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz123456789"
+    temp = ""
+    tlen = len || 10
+    for i in [0..tlen]
+      temp += chars.charAt Math.floor Math.random() * chars.length
+    return temp
   findCaseOrReferenceVM: findCaseOrReferenceVM
 
   # build global function from local to module one
@@ -178,6 +198,11 @@ define ["model/utils"], (mu) ->
           bb = global.viewsWare["call-form"].bbInstance
           number = bb.get(modelName)
           global.avayaPhone && global.avayaPhone.call(number)
+        # Set a field to a new randomly generated password
+        passwordPicker   : (fieldName, el) ->
+          viewName = mu.elementView($(el)).id
+          kvm = global.viewsWare[viewName].knockVM
+          kvm[fieldName] genPassword()
         geoPicker        : map.geoPicker
         reverseGeoPicker : map.reverseGeoPicker
         mapPicker        : map.mapPicker
