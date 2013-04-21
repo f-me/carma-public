@@ -270,7 +270,7 @@ instance ExportMonad ServiceExport where
                       -- If no partnerId specified, do not add partner
                       -- code to extra information to comm3 field.
                       (True, _) ->
-                          return "#?"
+                          return ""
                       (False, Nothing) ->
                           exportError (UnreadableContractorId sPid)
                       (False, Just (_, pid)) ->

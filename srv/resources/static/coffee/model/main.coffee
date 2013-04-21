@@ -123,18 +123,6 @@ define [ "model/meta"
                     key : "id"
                     read: (k) -> if instance.isNew() then "—" else instance.id
 
-    if instance.name == "action"
-      knockVM["actionNameLocal"] =
-        ko.computed
-          read: ->
-            actName = global.dictValueCache.ActionNames[knockVM.name()]
-            svcId   = knockVM.parentId()
-            if svcId
-              modelName = svcId.split(':')[0]
-              svcName = global.models[modelName].title
-              actName = actName + " (#{svcName})"
-            actName
-
     knockVM['disableDixi'] = ko.observable(false)
 
     for f of instance.fieldHash
@@ -151,7 +139,7 @@ define [ "model/meta"
             knockVM['disableDixi']()
           write: (a) ->
             disabled(not not a)
-
+    
     applyHooks global.hooks.observable,
                ['*', instance.model.name],
                instance, knockVM, viewName
@@ -216,16 +204,12 @@ define [ "model/meta"
   # global.modelHooks[modelName] is called with model view name as
   # argument.
 
-  modelSetup = (modelName, modelHref) ->
+  modelSetup = (modelName, model) ->
     return (elName, args, options) ->
 
       # save copy of models
       models = $.extend true, {}, global.models
-      if modelHref
-        $.ajax modelHref,
-          async: false
-          dataType: 'json'
-          success: (m) -> models[modelName] = m
+      models[modelName] = model if model
 
       [mkBackboneModel, instance, knockVM] =
         buildModel(modelName, models, args, options)
@@ -241,7 +225,9 @@ define [ "model/meta"
         depViews        : depViews
 
       # update url here, because only top level models made with modelSetup
-      knockVM["maybeId"].subscribe ->
+      knockVM["maybeId"].subscribe -> knockVM["updateUrl"]()
+
+      knockVM["updateUrl"] = ->
         global.router.navigate "#{knockVM.modelName()}/#{knockVM.id()}",
                                { trigger: false }
 
