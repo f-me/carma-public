@@ -3,7 +3,7 @@ define [
     "model/main",
     "text!tpl/screens/contract.html"],
   (utils, main, tpl) ->
-    
+
     reformatDate = (date)->
       [_, d, m, y] = date.match(/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/)
       "#{y}-#{m}-#{d}"
@@ -149,7 +149,7 @@ define [
         getContracts args.program, fillTable
 
         if args.id == null && args.program == '2'
-          kvm.carMake 'vw'
+          kvm.carMake 'vw' if kvm.carMake
         kvm.dixi.subscribe ->
           getContract kvm['id'](), (objs) -> dt.fnAddData objs.map sk.mkRow
 
@@ -158,4 +158,3 @@ define [
       modelHref = "/cfg/model/contract?pid=#{args.program}"
       $.getJSON modelHref, (model) ->
         init viewName, args, model, modelHref
-
