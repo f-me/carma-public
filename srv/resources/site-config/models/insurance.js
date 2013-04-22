@@ -468,6 +468,32 @@
         },
         {
             "name": "clientCancelReason",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman",
+                "parguy"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman"
+            ],            
             "type": "dictionary",
             "meta": {
               "dictionaryName": "ClientCancelReason",

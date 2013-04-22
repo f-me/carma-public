@@ -3,7 +3,7 @@ define [
     "model/main",
     "text!tpl/screens/contract.html"],
   (utils, main, tpl) ->
-    
+    program = null
     reformatDate = (date)->
       [_, d, m, y] = date.match(/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/)
       "#{y}-#{m}-#{d}"
@@ -64,7 +64,7 @@ define [
         if args.id
           $('#render-contract').attr(
             "href",
-            "/renderContract?prog=#{args.program}&ctr=#{args.id}")
+            "/renderContract?prog=#{program}&ctr=#{args.id}")
 
         kvm = main.modelSetup("contract", model)(
           viewName, args,
@@ -149,13 +149,13 @@ define [
         getContracts args.program, fillTable
 
         if args.id == null && args.program == '2'
-          kvm.carMake 'vw'
+          kvm.carMake 'vw' if kvm.carMake
         kvm.dixi.subscribe ->
           getContract kvm['id'](), (objs) -> dt.fnAddData objs.map sk.mkRow
 
     template: tpl
     constructor: (viewName, args) ->
       modelHref = "/cfg/model/contract?pid=#{args.program}"
+      program = args.program
       $.getJSON modelHref, (model) ->
         init viewName, args, model, modelHref
-
