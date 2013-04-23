@@ -152,6 +152,8 @@ actions
         ,("contract", Map.fromList
           [("carPlateNum",  [\o -> set o "carPlateNum" . bToUpper])
           ,("carVin",       [\o -> set o "carVin" . bToUpper])
+          ,("carCheckPeriod", [setContractValidUntilMilage])
+          ,("milageTO",       [setContractValidUntilMilage])
           ])
         ]
 
@@ -895,3 +897,14 @@ setSrvMCost id = do
     where
       -- readR   = lift . RC.read' redis
       srvName = head $ B.split ':' id
+
+setContractValidUntilMilage :: MonadTrigger m b =>
+                               B.ByteString -> B.ByteString -> m b ()
+setContractValidUntilMilage obj val = do
+  v      <- get obj "contractValidUntilMilage"
+  check  <- mbreadDouble <$> get obj "carCheckPeriod"
+  milage <- mbreadDouble <$> get obj "milageTO"
+  case (v, check, milage) of
+    ("", Just c, Just m) -> setMillage $ printBPrice $ c + m
+    _ -> return ()
+    where setMillage = set obj "contractValidUntilMilage"
