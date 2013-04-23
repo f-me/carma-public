@@ -412,17 +412,6 @@ deleteReportHandler = do
 serveUsersList :: AppHandler ()
 serveUsersList = with db usersListPG >>= writeJSON
 
-setUserMeta :: AppHandler ()
-setUserMeta = do
-  Just login <- fmap T.decodeUtf8 <$> getParam "usr"
-  Aeson.Object commit <- getJSONBody
-  let [(key, val)] = HashMap.toList commit
-  _ <- with auth $ do
-    Just u <-  withBackend $ liftIO . (`lookupByLogin` login)
-    saveUser $ u {userMeta = HashMap.insert key val $ userMeta u}
-  writeBS "ok"
-
-
 
 getActiveUsers :: AppHandler ()
 getActiveUsers = do
