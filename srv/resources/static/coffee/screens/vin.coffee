@@ -1,6 +1,7 @@
 define ["text!tpl/screens/vin.html", "utils"], (tpl, u) ->
   this.setupVinForm = (viewName, args) ->
-    $el(viewName).html($el("vin-form-template").html())
+    $el(viewName).html($el("vin-form-template").html() +
+        $el("partner-form-template").html())
     global.viewsWare[viewName] = {}
 
     programs = for v in global.dictionaries.Programs.entries

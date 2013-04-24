@@ -218,6 +218,11 @@
       </fieldset>
       <div id="vin-alert-container" />
       </div>
+    </script>
+    
+    <script type="text/template"
+            id="partner-form-template"
+            class="view-template">
       <div style="text-align:center;">
       <fieldset>
         <legend>Обновление базы партнёров</legend>
