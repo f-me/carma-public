@@ -11,7 +11,7 @@ define ["utils"], (u) ->
         st.fnClearTable()
         dict = global.dictValueCache
 
-        for i of calls
+        rows = for i of calls
           obj = calls[i]
           callDate = if obj.callDate
               new Date(obj.callDate * 1000).toString("dd.MM.yyyy HH:mm")
@@ -38,10 +38,10 @@ define ["utils"], (u) ->
                 , comment.join("<br/>")
                 , ''
                 ]
+        st.fnAddData rows
 
-          st.fnAddData(row)
 
-        for r in actions
+        rows = for r in actions
           result = dict.ActionResults[r.result] or ''
           name = dict.ActionNames[r.name] or ''
           aTo  = global.dictValueCache['users'][r.assignedTo] or
@@ -53,17 +53,17 @@ define ["utils"], (u) ->
                 , name
                 , r.comment or ''
                 , result ]
-
-          st.fnAddData(row)
+        st.fnAddData rows
 
         return if _.isEmpty knockVM['comments']()
-        for c in knockVM['comments']()
-          st.fnAddData [ c.date
-                       , global.dictValueCache['users'][c.user] || ''
-                       , "Комментарий"
-                       , c.comment
-                       , ""
-                       ]
+        rows = for c in knockVM['comments']()
+           [ c.date
+           , global.dictValueCache['users'][c.user] || ''
+           , "Комментарий"
+           , c.comment
+           , ""
+           ]
+        st.fnAddData rows
 
 
   descsKbHook: (instance, knockVM) ->
