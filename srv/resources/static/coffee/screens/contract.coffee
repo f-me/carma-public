@@ -192,7 +192,6 @@ define [
     constructor: (viewName, args) ->
       modelHref = "/cfg/model/contract?pid=#{args.program}"
       program = args.program
+      setupVinForm "vin-form", args
       $.getJSON modelHref, (model) ->
         init viewName, args, model, modelHref
-        
-        setupVinForm viewName, args
