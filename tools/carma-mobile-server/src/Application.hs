@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -44,6 +45,9 @@ import Data.Time.Format
 import qualified Database.Redis as R
 import Database.PostgreSQL.Simple.SqlQQ
 
+import qualified Data.Vector as V
+import qualified Data.Vector.Mutable as VM (unsafeNew, unsafeWrite)
+
 import qualified Network.HTTP as H
 
 import System.Locale
@@ -52,6 +56,7 @@ import Snap.Core
 import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple
 import Snap.Snaplet.RedisDB
+
 
 import Carma.HTTP
 
@@ -75,6 +80,7 @@ instance HasPostgres (Handler b GeoApp) where
 routes :: [(ByteString, Handler b GeoApp ())]
 routes = [ ("/geo/partner/:pid", method PUT $ updatePosition)
          , ("/geo/partner/:pid", method GET $ getMessage)
+         , ("/geo/partnersAround/:coords", method GET $ partnersAround)
          , ("/geo/case/", method POST $ newCase)
          ]
 
@@ -124,7 +130,7 @@ revGeocode lon lat = do
      body <- H.getResponseBody resp
      return $ decode' $ BSL.pack body
   case addr of
-    Just m -> 
+    Just m ->
         return ( fromMaybe Nothing $ HM.lookup "city" m
                , fromMaybe Nothing $ HM.lookup "address" m)
     Nothing -> return (Nothing, Nothing)
@@ -317,6 +323,59 @@ newCase = do
   writeLBS . encode $ object $ [ "caseId" .= caseId ]
 
 
+------------------------------------------------------------------------------
+-- | Wrapper type for @/geo/partnersAround@ results.
+newtype Partner = Partner (Int, Double, Double, Maybe Bool, Maybe Bool,
+                           Maybe ByteString, Maybe ByteString, Maybe ByteString)
+                  deriving (FromRow)
+
+
+instance ToJSON Partner where
+  toJSON (Partner (a, b, c, d, e, f, g, h)) = Array $ V.create $ do
+    mv <- VM.unsafeNew 8
+    VM.unsafeWrite mv 0 (toJSON a)
+    VM.unsafeWrite mv 1 (toJSON b)
+    VM.unsafeWrite mv 2 (toJSON c)
+    VM.unsafeWrite mv 3 (toJSON d)
+    VM.unsafeWrite mv 4 (toJSON e)
+    VM.unsafeWrite mv 5 (toJSON f)
+    VM.unsafeWrite mv 6 (toJSON g)
+    VM.unsafeWrite mv 7 (toJSON h)
+    return mv
+  {-# INLINE toJSON #-}
+
+
+------------------------------------------------------------------------------
+-- | Splice lon, lat and limit onto query and fetch list of partners
+-- ordered by distance to the provided point, in ascending order.
+partnersAroundQuery :: Query
+partnersAroundQuery = [sql|
+SELECT id, st_x(coords), st_y(coords),
+isDealer, isMobile,
+name, addrDeFacto, phone1
+FROM partnertbl
+ORDER BY
+ST_Distance_Sphere(coords, ST_PointFromText('POINT(? ?)', 4326)) ASC
+LIMIT ?;
+|]
+
+
+------------------------------------------------------------------------------
+-- | Read @coords@, @limit@ parameters and server JSON list of
+-- partners around a point.
+partnersAround :: Handler b GeoApp ()
+partnersAround = do
+  cds <- getParamWith coords "coords"
+  limit <- getParam "limit"
+  case cds of
+    Just (lon, lat) -> do
+      results :: [Partner] <- query partnersAroundQuery
+                              (lon, lat, fromMaybe "20" limit)
+      modifyResponse $ setContentType "application/json"
+      writeLBS $ Aeson.encode results
+    _ -> error "Bad request"
+
+
 geoAppInit :: SnapletInit b GeoApp
 geoAppInit = makeSnaplet "geo" "Geoservices" Nothing $ do
     db <- nestSnaplet "postgres" postgres pgsInit
@@ -331,6 +390,12 @@ geoAppInit = makeSnaplet "geo" "Geoservices" Nothing $ do
     case cDict' of
       Just cDict -> return $ GeoApp db rdb cp cDict
       Nothing -> error "Could not load cities dictionary from CaRMa"
+
+
+------------------------------------------------------------------------------
+-- | Parse "52.32,3.45" (no spaces) into pair of doubles.
+coords :: Parser (Double, Double)
+coords = (,) <$> double <* anyChar <*> double
 
 
 ------------------------------------------------------------------------------
