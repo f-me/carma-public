@@ -20,29 +20,41 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
     rkcFillWeather = (result, cities) ->
       dict = global.dictValueCache
       cities.removeAll()
-      for r in result.weathers
-        cities.push({
-          city: r.city,
-          cityname: dict.DealerCities[r.city] || r.city,
-          temp: r.temp })
+      for r in result.weather
+        cities.push
+          city: r.city
+          cityname: dict.DealerCities[r.city] || r.city
+          temp: r.temp
+          delCity: rkcWeatherRemoveCity r.city
       cities.sort((l, r) -> l.cityname > r.cityname)
 
-    rkcWeatherRemoveCity = (name) ->
+    getCookie = (key) ->
+      x = document.cookie.match(new RegExp "#{key}=([^;]*)")
+      x && JSON.parse(unescape x[1])
+
+    updateCookie = (key, def, fn) ->
+      obj = getCookie(key) || def
+      val = escape(JSON.stringify(fn obj))
+      document.cookie = "#{key}=#{val}; path=/;"
+
+    rkcWeatherRemoveCity = (name) -> () ->
       setTimeout ->
-        cities = this.wcities
-        $.getJSON '/rkc/weather?remove=' + name,
-                  (result) -> rkcFillWeather(result, cities)
+        updateCookie 'rkcWeather', [], (val) ->
+          _.filter val, (c) -> c != name
+        updateWeather()
 
     rkcWeatherAddCity = (name) ->
       setTimeout ->
-        cities = this.wcities
-        $.getJSON '/rkc/weather?add=' + name,
-                  (result) -> rkcFillWeather(result, cities)
+        updateCookie 'rkcWeather', [], (val) ->
+          val.push(name) if not _.contains(val, name)
+          val
+        updateWeather()
 
     updateWeather = ->
       setTimeout ->
         cities = this.wcities
-        $.getJSON "/rkc/weather",
+        cfg = document.cookie.match /rkcWeather=([^;]*)/
+        $.getJSON "/rkc/weather?cities=#{cfg?[1] || ''}",
                   (result) -> rkcFillWeather(result, cities)
 
     updatePartners = (partners) ->
@@ -139,6 +151,9 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
     setupRKCScreen = (viewName, args) ->
       setTimeout ->
         initReducedModeBtn()
+
+        $('#add-weather').on 'click', ->
+          rkcWeatherAddCity($('#rkc-weather-city-select').val())
 
         caset = $("#rkc-services-table")
         actionst = $("#rkc-actions-table")
@@ -269,13 +284,6 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
         clearInterval h if h?
         t = global.rkcData.updateHandler
         clearInterval t if t?
-
-    rkcWeatherAddSelectedCity = ->
-      rkcWeatherAddCity($('#rkc-weather-city-select').val())
-
-    rkcWeatherRemoveSelectedCity = (e) ->
-      city = $(e).parents('tr').attr('id')
-      rkcWeatherRemoveCity(city)
 
     # function which return object with functions returning functions
     wraps = (partials) ->

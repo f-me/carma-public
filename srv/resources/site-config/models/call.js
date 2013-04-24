@@ -93,7 +93,7 @@
             }
         },
         {
-            "name": "make",
+            "name": "carMake",
             "meta": {
                 "dictionaryName": "CarMakers",
                 "label": "Марка"
@@ -101,10 +101,10 @@
             "type": "dictionary"
         },
         {
-            "name": "model",
+            "name": "carModel",
             "meta": {
                 "dictionaryName": "CarModels",
-                "dictionaryParent": "make",
+                "dictionaryParent": "carMake",
                 "label": "Модель"
             },
             "type": "dictionary"
