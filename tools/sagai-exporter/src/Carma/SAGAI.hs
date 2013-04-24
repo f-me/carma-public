@@ -324,9 +324,9 @@ getService = asks fst
 -- once).
 serviceExpenseType :: Service -> CaseExport ExpenseType
 serviceExpenseType s@(mn, _, d) = do
-  case (notFalseService s, mn) of
-    (False, _) -> return FalseCall
+  case (falseService s, mn) of
     (_, "consultation") -> return PhoneServ
+    (True, _) -> return FalseCall
     (_, "towage") ->
         do
           cid <- caseField1 "id"
@@ -390,10 +390,10 @@ caseField1 :: ExportMonad m => FieldName -> m FieldValue
 caseField1 fn = dataField1 fn =<< getCase
 
 
--- | True if a service was not a false call (@falseCall@ field is
--- @none@).
-notFalseService :: Service -> Bool
-notFalseService (_, _, d) = dataField0 "falseCall" d == "none"
+-- | True if a service is a billed false call (@falseCall@ field is
+-- @bill@).
+falseService :: Service -> Bool
+falseService (_, _, d) = dataField0 "falseCall" d == "bill"
 
 
 -- | True if service should be exported to SAGAI.
