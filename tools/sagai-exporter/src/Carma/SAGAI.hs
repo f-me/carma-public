@@ -152,7 +152,7 @@ instance ExportMonad CaseExport where
     comm2Field = pushComment =<< caseField0 "dealerCause"
 
     comm3Field = do
-      servs <- getNonFalseServices
+      servs <- filter exportable <$> getAllServices
       pushComment $ case servs of
         [] -> BS.empty
         ((_, _, d):_) -> dataField0 "orderNumber" d
@@ -390,24 +390,18 @@ caseField1 :: ExportMonad m => FieldName -> m FieldValue
 caseField1 fn = dataField1 fn =<< getCase
 
 
--- | Return all exportable non-false services from services attached
--- to the case.
-getNonFalseServices :: ExportMonad m => m [Service]
-getNonFalseServices = do
-  servs <- getAllServices
-  return $ filter notFalseService servs
-
-
--- | True if a service is exportable and was not a false call
--- (@falseCall@ field is @none@ or @bill@).
+-- | True if a service was not a false call (@falseCall@ field is
+-- @none@).
 notFalseService :: Service -> Bool
-notFalseService (_, _, d) = elem (dataField0 "falseCall" d) ["none", "bill"]
+notFalseService (_, _, d) = dataField0 "falseCall" d == "none"
 
 
 -- | True if service should be exported to SAGAI.
 exportable :: Service -> Bool
-exportable s@(mn, _, d) = notFalseService s && typeOk
-    where typeOk =
+exportable (mn, _, d) = exportableFalse && typeOk
+    where
+          -- Check model type
+          typeOk =
               case mn of
                 "consultation" -> True
                 "towage"       -> True
@@ -416,6 +410,8 @@ exportable s@(mn, _, d) = notFalseService s && typeOk
                     elem (dataField0 "techType" d)
                              ["charge", "condition", "starter"]
                 _        -> False
+          -- Check falseCall field
+          exportableFalse = elem (dataField0 "falseCall" d) ["none", "bill"]
 
 
 -- | Check if @callDate@ field of the case contains a date between dates
