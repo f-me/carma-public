@@ -117,7 +117,8 @@ define [ "utils"
         contact_ownerEmail:   v['callerName_ownerEmail']()
         program:        v['program']()
         city:           v['city']()
-        car_make:       v['make']()
+        car_make:       v['carMake']()
+        car_model:      v['carModel']()
         comment:        v['wazzup']()
         callTaker: global.user.meta.realName
       main.buildNewModel 'case', args, {},
