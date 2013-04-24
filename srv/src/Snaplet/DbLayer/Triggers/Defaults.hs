@@ -172,6 +172,10 @@ defaults = Map.fromList
   ,("transportation", Map.union serviceDefaults $ Map.fromList
     [("transportType", "continue")
     ])
+   ,("programPermissions", Map.fromList
+    [ ("showTable", "1")
+    , ("showForm",  "1")
+    ])
   ]
 
 -- | Copy price1 and price2 from tarifOption to new cost_serviceTarifOption

@@ -28,7 +28,6 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.String
-import qualified Data.HashMap.Strict as HashMap
 
 import Data.Maybe
 import Data.Ord (comparing)
@@ -54,7 +53,7 @@ import Snap.Util.FileServe (serveFile, serveFileAs)
 
 ------------------------------------------------------------------------------
 import Carma.Partner
-import WeatherApi (getWeather', tempC, Config)
+import WeatherApi (getWeather', tempC)
 -----------------------------------------------------------------------------
 import Snaplet.Auth.PGUsers
 import qualified Snaplet.DbLayer as DB
@@ -240,46 +239,23 @@ rkcHandler = scope "rkc" $ scope "handler" $ do
 
 rkcWeatherHandler :: AppHandler ()
 rkcWeatherHandler = scope "rkc" $ scope "handler" $ scope "weather" $ do
-  Just u <- with auth currentUser
-  cities <- case HashMap.lookup "weathercities" (userMeta u) of
-    Nothing -> return defaultCities
-    Just cities' -> case Aeson.fromJSON cities' of
-      Aeson.Success r -> return r
-      Aeson.Error _ -> do
-        log Error "Can't read weather cities"
-        return defaultCities
+  let defaults = ["Moskva", "Sankt-Peterburg"]
+  cities <- (fromMaybe defaults . (>>= (Aeson.decode . LB.fromStrict)))
+    <$> getParam "cities"
 
-  toRemove <- maybeToList . fmap U.bToString <$> getParam "remove"
-  toAdd <- maybeToList . fmap U.bToString <$> getParam "add"
+  log Trace $ T.concat ["Cities: ", fromString $ intercalate ", " cities]
 
-  let
-    newCities = nub $ (cities ++ toAdd) \\ toRemove
-
-  _ <- with auth $ saveUser $ u {
-    userMeta = HashMap.insert "weathercities"
-                              (Aeson.toJSON newCities)
-                              (userMeta u)
-    }
-
-  log Trace $ T.concat ["Cities: ", fromString $ intercalate ", " newCities]
   conf <- with db $ gets DB.weather
+  let weatherForCity = liftIO . getWeather' conf . filter (/= '\'')
+  let toTemp t city = Aeson.object [
+        "city" .= city,
+        "temp" .= either (const "-") (show.tempC) t]
 
-  temps <- mapM (liftIO . weatherForCity conf) newCities
+  temps <- mapM weatherForCity cities
   writeJSON $ Aeson.object [
-    "weathers" .= zipWith toTemp temps newCities]
+    "weather" .= zipWith toTemp temps cities]
 
-  where
-    weatherForCity :: WeatherApi.Config -> String -> IO (Either String Double)
-    weatherForCity conf city = liftM (either (Left . show) (Right . tempC)) $
-      getWeather' conf $ filter (/= '\'') city
 
-    defaultCities :: [String]
-    defaultCities = ["Moskva", "Sankt-Peterburg"]
-
-    toTemp :: Either String Double -> String -> Aeson.Value
-    toTemp t city = Aeson.object [
-      "city" .= city,
-      "temp" .= either (const "-") show t]
 
 rkcFrontHandler :: AppHandler ()
 rkcFrontHandler = scope "rkc" $ scope "handler" $ scope "front" $ do
@@ -411,17 +387,6 @@ deleteReportHandler = do
 
 serveUsersList :: AppHandler ()
 serveUsersList = with db usersListPG >>= writeJSON
-
-setUserMeta :: AppHandler ()
-setUserMeta = do
-  Just login <- fmap T.decodeUtf8 <$> getParam "usr"
-  Aeson.Object commit <- getJSONBody
-  let [(key, val)] = HashMap.toList commit
-  _ <- with auth $ do
-    Just u <-  withBackend $ liftIO . (`lookupByLogin` login)
-    saveUser $ u {userMeta = HashMap.insert key val $ userMeta u}
-  writeBS "ok"
-
 
 
 getActiveUsers :: AppHandler ()
