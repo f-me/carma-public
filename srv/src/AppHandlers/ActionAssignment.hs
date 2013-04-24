@@ -34,17 +34,22 @@ assignQ pri usr logdUsers = fromString
   ++ "    FROM (actiontbl act LEFT JOIN servicetbl svc"
   ++ "      ON  svc.type::text = substring(act.parentId, '(.*):')"
   ++ "      AND svc.id::text = substring(act.parentId, ':(.*)')),"
-  ++ "      casetbl c"
+  ++ "      casetbl c, usermetatbl u"
   ++ "    WHERE closed = false"
+  ++ "    AND u.login = '" ++ uLogin ++ "'"
   ++ "    AND c.id::text = substring(act.caseId, ':(.*)')"
   ++ "    AND priority = '" ++ show pri ++ "'"
   ++ "    AND duetime at time zone 'UTC' - now() < interval '30 minutes'"
-  ++ "    AND targetGroup IN ('" ++ uRoles ++ "')"
+  ++ "    AND targetGroup = ANY (u.roles)"
   ++ "    AND (assignedTo IS NULL"
   ++ "         OR assignedTo NOT IN ('" ++ logdUsersList ++ "'))"
+  ++ "    AND (coalesce("
+  ++ "            array_length(u.boPrograms, 1),"
+  ++ "            array_length(u.boCities, 1)) is null"
+  ++ "         OR (c.program = ANY (u.boPrograms) OR c.city = ANY (u.boCities)))"
   ++ "    ORDER BY"
-  ++ maybe "" (\set -> "(c.program IN ('" ++ set ++ "')) DESC,") programSet
-  ++ maybe "" (\set -> "(c.city IN ('" ++ set ++ "')) DESC,") citySet
+  ++ "      (u.boPrograms IS NOT NULL AND c.program = ANY (u.boPrograms)) DESC,"
+  ++ "      (u.boCities   IS NOT NULL AND c.city    = ANY (u.boCities)) DESC,"
   ++ "      (act.name IN ('orderService', 'orderServiceAnalyst')"
   ++ "        AND coalesce(svc.urgentService, 'notUrgent') <> 'notUrgent') DESC,"
   ++ "      (CASE WHEN act.name IN ('orderService', 'orderServiceAnalyst')"
@@ -55,22 +60,12 @@ assignQ pri usr logdUsers = fromString
   ++ "  RETURNING id::text;"
   where
     uLogin = T.unpack $ userLogin usr
-    uRoles = intercalate "','" [B.unpack r | Role r <- userRoles usr]
     logdUsersList = T.unpack $ T.intercalate "','" logdUsers
-    mkSet = T.unpack . T.intercalate "','" . T.split (==',')
-    citySet = case HashMap.lookup "boCities" $ userMeta usr of
-      Just (Aeson.String xx) | not $ T.null xx -> Just $ mkSet xx
-      _ -> Nothing
-    programSet = case HashMap.lookup "boPrograms" $ userMeta usr of
-      Just (Aeson.String xx) | not $ T.null xx -> Just $ mkSet xx
-      _ -> Nothing
 
 
 littleMoreActionsHandler :: AppHandler ()
 littleMoreActionsHandler = scoper "littleMoreActions" $ do
-  Just cUsr <- with auth currentUser
-  -- Use PG roles to assign actions and PG meta for city&program filters
-  cUsr' <- with db $ replaceMetaRolesFromPG cUsr
+  Just cUsr' <- with auth currentUser
   logdUsers <- map (userLogin.snd) . Map.elems <$> addToLoggedUsers cUsr'
 
   actIds1 <- withPG pg_actass (`query_` assignQ 1 cUsr' logdUsers)
