@@ -101,7 +101,7 @@ define [] , ->
               #
               # TODO Still PUT-backs
               this.save() unless this.hasChanged("id")
-        this.bind("change", _.throttle(realUpdates, 500), this)
+        this.bind("change", _.debounce(realUpdates, 1000), this)
       set: (key, val, options) ->
         attrs
         # we can get set(k,v,opts) or set(obj,opts)
