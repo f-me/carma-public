@@ -5,7 +5,9 @@ define "screenman", ["utils", "model/main"], (utils, main) ->
       {@tableName, @objURL} = params
       @sLength = "dataTables_length form-inline"
       @sFilter = "dataTables_filter form-inline"
-      @columns = []
+      @objsToRows = null
+      @dataTable = null
+      @dataTableOpts = null
       
     show: ->
       $.fn.dataTableExt.oStdClasses.sLength = @sLength
@@ -13,52 +15,42 @@ define "screenman", ["utils", "model/main"], (utils, main) ->
       
       $table = $("##{@tableName}-table")
       unless $table.hasClass "dataTable"
-        utils.mkDataTable $table
-        $.getJSON @objURL, (objs) ->
-          dataTable = $table.dataTable()
-          dataTable.fnClearTable()
-          rows = (makeRow obj for obj in objs)
-          dataTable.fnAddData rows
-          
-        makeRow = (obj) =>
-          formatRow = (columns) ->
-            _.map columns, (column) ->
-              switch column
-                when "id" then obj[column].split(':')[1]
-                else obj[column] || ""
-          
-          if _.isEmpty @columns
-            columns = _.keys obj
-            formatRow columns
-          else
-            formatRow @columns
-          
+        @dataTable = utils.mkDataTable $table, @dataTableOpts
+        @setObjs @objURL
     
-    setColumns: (columns) ->
-      @columns = columns
+    setObjs: (objURL) ->
+      objURL ?= @objURL
+      $.getJSON objURL, (objs) =>
+        @dataTable.fnClearTable()
+        rows = @objsToRows? objs
+        @dataTable.fnAddData rows
       @
     
+    setObjsToRowsConverter: (fun) ->
+      @objsToRows = fun
+      @
+    
+    setDataTableOptions: (options) ->
+      @dataTableOpts = options
+      @
+      
     on: (eventName, elementName, callback) ->
       $("##{@tableName}-table").on(eventName, elementName, callback)
       @
   
   class Screen
-    constructor: (params) ->
-      {@modelName, @tpl, @viewName} = params
-      @permEl = "#{@modelName}-permissions"
-      @focusClass = "focusable"
-      @slotSee = []
-      @refs = []
-      @groupsForest = ""
+    constructor: (@callback) ->
       @table = null
       
-    show: (args) ->
-      options = {@permEl, @focusClass, @slotSee, @refs, @groupForest}
-      kvm = main.modelSetup(@modelName) @viewName, args, options
+    show: ->
+      do @callback
       do @table?.show
       
     addTable: (params) ->
       @table = new Table(params)
+    
+    getTable: ->
+      @table
 
   class ScreenMan
     # screens array
@@ -66,10 +58,10 @@ define "screenman", ["utils", "model/main"], (utils, main) ->
     # value -> instance of the Screen class
     screens = []
 
-    addScreen: (name, params) ->
-      screens[name] = new Screen(params)
+    addScreen: (name, callback) ->
+      screens[name] = new Screen(callback)
 
-    showScreen: (name, args) ->
-      screens[name]?.show args
+    showScreen: (name) ->
+      do screens[name]?.show
 
   new ScreenMan

@@ -1,24 +1,38 @@
 define ["model/main", "text!tpl/screens/editSms.html", "screenman"],
   (main, tpl, screenman) ->
-    setupForm = (viewName, args) ->
-      screenParams =
-        modelName: "smsTpl"
-        tpl: tpl
-        viewName: viewName
+    modelSetup = (modelName, viewName, args) ->
+      permEl = "#{modelName}-permissions"
+      focusClass = "focusable"
+      refs = []
+      options = {permEl, focusClass, refs}
+      main.modelSetup(modelName) viewName, args, options
+    
+    objsToRows = (objs) ->
+      columns = ["id", "name", "text"]
+      makeRow = (obj) ->
+        _.map columns, (column) ->
+          switch column
+            when "id" then obj[column].split(':')[1]
+            else obj[column] || ""
+      
+      rows = (makeRow obj for obj in objs)
+    
+    screenSetup = (viewName, args) ->
+      modelName = "smsTpl"
+      
       tableParams = 
         tableName: "sms"
         objURL: "/all/smsTpl?fields=id,name,text,notActive"
-      screenman.addScreen("smsTpl", screenParams)
+      
+      screenman.addScreen(modelName, ->
+        modelSetup modelName, viewName, args)
         .addTable(tableParams)
-        .setColumns(["id", "name", "text"])
+        .setObjsToRowsConverter(objsToRows)
         .on("click.datatable", "tr", ->
-          id = this.children[0].innerText
-          main.modelSetup("smsTpl") viewName, {"id": id},
-                                permEl: "smsTpl-permissions"
-                                focusClass: "focusable"
-                                refs: []
-          )
-      screenman.showScreen "smsTpl", args
+          id = @children[0].innerText
+          modelSetup modelName, viewName, {id})
+      
+      screenman.showScreen modelName
     
-    constructor: setupForm
+    constructor: screenSetup
     template   : tpl
