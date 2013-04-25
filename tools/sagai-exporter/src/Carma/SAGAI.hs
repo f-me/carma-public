@@ -283,7 +283,7 @@ instance ExportMonad ServiceExport where
                            (dataField0 "result" d)
                            (getDict result)
                     return [oNum, res]
-              _ -> error "Never happens"
+              _ -> exportError $ UnknownService mn
         pushComment $ BS.intercalate " " fields
 
 
