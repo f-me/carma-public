@@ -398,7 +398,7 @@ falseService (_, _, d) = dataField0 "falseCall" d == "bill"
 
 -- | True if service should be exported to SAGAI.
 exportable :: Service -> Bool
-exportable (mn, _, d) = exportableFalse && typeOk
+exportable (mn, _, d) = statusOk && typeOk
     where
           -- Check model type
           typeOk =
@@ -410,8 +410,12 @@ exportable (mn, _, d) = exportableFalse && typeOk
                     elem (dataField0 "techType" d)
                              ["charge", "condition", "starter"]
                 _        -> False
-          -- Check falseCall field
-          exportableFalse = elem (dataField0 "falseCall" d) ["none", "bill"]
+          -- Check status and falseCall fields
+          statusOk = (falseCall == "none" && status == "serviceClosed") ||
+                     (falseCall == "bill" && status == "clientCanceled")
+              where
+                falseCall = dataField0 "falseCall" d
+                status = dataField0 "status" d
 
 
 -- | Check if @callDate@ field of the case contains a date between dates
