@@ -192,14 +192,31 @@ responeContract whereClause whereArgs = do
   writeJSON $ mkMap fields rows
 
 busyOpsq = [sql|
-SELECT assignedTo, count(1)::text
-FROM   actiontbl
-WHERE  closed = 'f'
-GROUP BY assignedTo
-HAVING   assignedTo is not null AND assignedTo != ''
-|]
+  SELECT assignedTo, count(1)::text
+  FROM   actiontbl
+  WHERE  closed = 'f'
+  GROUP BY assignedTo
+  HAVING   assignedTo is not null AND assignedTo != ''
+  |]
 
 busyOps :: AppHandler ()
 busyOps = do
   rows <- withPG pg_search $ \c -> query_ c $ fromString busyOpsq
   writeJSON $ mkMap ["name", "count"] rows
+
+
+getLatestCases :: AppHandler ()
+getLatestCases = do
+  rows <- withPG pg_search $ \c -> query_ c $ fromString $ [sql|
+    SELECT
+      id::text, contact_name,
+      extract (epoch from callDate at time zone 'UTC')::int8::text,
+      contact_phone1, car_plateNum, car_vin, program, comment
+    FROM casetbl
+    ORDER BY callDate ASC
+    LIMIT 120
+    |]
+  writeJSON $ mkMap
+    ["id", "contact_name", "callDate", "contact_phone1"
+    ,"car_plateNum", "car_vin", "program", "comment"]
+    rows
