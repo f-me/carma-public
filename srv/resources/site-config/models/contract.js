@@ -183,7 +183,8 @@
       "meta": {
         "required": true,
         "label": "Межсервисный интервал",
-        "sqltype": "integer"
+        "sqltype": "integer",
+        "koupdate": "change"
       }
     },
     {
@@ -211,7 +212,8 @@
       "type": "date",
       "meta": {
         "required": true,
-        "label": "Дата регистрации в программе"
+        "label": "Дата регистрации в программе",
+        "koupdate": "change"
       }
     },
     {
@@ -231,7 +233,8 @@
       "meta": {
         "required": true,
         "label": "Пробег при регистрации в программе",
-        "sqltype": "integer"
+        "sqltype": "integer",
+        "koupdate": "change"
       }
     },
     {
