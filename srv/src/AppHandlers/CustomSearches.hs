@@ -187,14 +187,79 @@ selectContracts = do
 
 
 busyOpsq = [sql|
-SELECT assignedTo, count(1)::text
-FROM   actiontbl
-WHERE  closed = 'f'
-GROUP BY assignedTo
-HAVING   assignedTo is not null AND assignedTo != ''
-|]
+  SELECT assignedTo, count(1)::text
+  FROM   actiontbl
+  WHERE  closed = 'f'
+  GROUP BY assignedTo
+  HAVING   assignedTo is not null AND assignedTo != ''
+  |]
 
 busyOps :: AppHandler ()
 busyOps = do
   rows <- withPG pg_search $ \c -> query_ c $ fromString busyOpsq
   writeJSON $ mkMap ["name", "count"] rows
+
+
+getLatestCases :: AppHandler ()
+getLatestCases = do
+  rows <- withPG pg_search $ \c -> query_ c $ fromString $ [sql|
+    SELECT
+      id::text, contact_name,
+      extract (epoch from callDate at time zone 'UTC')::int8::text,
+      contact_phone1, car_plateNum, car_vin, program, comment
+    FROM casetbl
+    ORDER BY callDate ASC
+    LIMIT 120
+    |]
+  writeJSON $ mkMap
+    ["id", "contact_name", "callDate", "contact_phone1"
+    ,"car_plateNum", "car_vin", "program", "comment"]
+    rows
+
+searchCases :: AppHandler ()
+searchCases = do
+  Just q <- getParam "q"
+  rows <- withPG pg_search $ \c -> query c (fromString $ [sql|
+    SELECT
+      id::text, contact_name,
+      extract (epoch from callDate at time zone 'UTC')::int8::text,
+      contact_phone1, car_plateNum, car_vin, program, comment
+    FROM casetbl
+    WHERE
+      lower(id::text
+        || ' ' || to_char(callDate + '4:00','DD.MM.YYYY')
+        || ' ' || coalesce(comment, '')
+        || ' ' || coalesce(betaComment, '')
+        || ' ' || coalesce(city, '')
+        || ' ' || coalesce(dealerCause, '')
+        || ' ' || coalesce(contact_name, '')
+        || ' ' || coalesce(contact_phone1, '')
+        || ' ' || coalesce(contact_phone2, '')
+        || ' ' || coalesce(contact_phone3, '')
+        || ' ' || coalesce(contact_phone4, '')
+        || ' ' || coalesce(contact_ownerEmail, '')
+        || ' ' || coalesce(contact_ownerName, '')
+        || ' ' || coalesce(contact_ownerPhone1, '')
+        || ' ' || coalesce(contact_ownerPhone2, '')
+        || ' ' || coalesce(contact_ownerPhone3, '')
+        || ' ' || coalesce(car_vin, '')
+        || ' ' || coalesce(car_plateNum, '')
+        || ' ' || coalesce(car_make, '')
+        || ' ' || coalesce(car_model, '')
+        || ' ' || coalesce(car_makeYear::text, '')
+        || ' ' || coalesce(to_char(car_buyDate + '4:00','DD.MM.YYYY'), '')
+        || ' ' || coalesce(to_char(car_checkupDate + '4:00','DD.MM.YYYY'), '')
+        || ' ' || coalesce(car_seller, '')
+        || ' ' || coalesce(car_dealerTO, '')
+        || ' ' || coalesce(cardNumber_cardNumber, '')
+        || ' ' || coalesce(cardNumber_cardOwner, '')
+        || ' ' || coalesce(caseAddress_address, '')
+        || ' ' || coalesce(program, '')
+      ) like lower('%' || ? || '%')
+    ORDER BY callDate ASC
+    LIMIT 100
+    |]) [q]
+  writeJSON $ mkMap
+    ["id", "contact_name", "callDate", "contact_phone1"
+    ,"car_plateNum", "car_vin", "program", "comment"]
+    rows

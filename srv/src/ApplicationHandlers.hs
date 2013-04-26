@@ -181,22 +181,6 @@ deleteHandler = do
   res        <- with db $ DB.delete model objId
   writeJSON res
 
-searchHandler :: AppHandler ()
-searchHandler = scope "searchHandler" $ do
-  Just q <- getParam "q"
-  Just m <- getParam "model"
-  Just fs <- getParam "fields"
-  Just sel <- getParam "select"
-  let
-    getInt v = do
-      s <- v
-      (x, _) <- B.readInt s
-      return x
-    sels = B.split ',' sel
-  lim <- liftM (maybe 100 id . getInt) $ getParam "limit"
-  res <- with db $ DB.searchFullText m (B.split ',' fs) sels q lim
-  writeJSON $ map (Map.fromList . zip sels) res
-
 -- rkc helpers
 getFromTo :: AppHandler (Maybe UTCTime, Maybe UTCTime)
 getFromTo = do
