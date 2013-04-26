@@ -8,22 +8,24 @@ define "screenman", ["utils", "model/main"], (utils, main) ->
       @objsToRows = null
       @dataTable = null
       @dataTableOpts = null
+      @$tableEl = null
       
     show: ->
       $.fn.dataTableExt.oStdClasses.sLength = @sLength
       $.fn.dataTableExt.oStdClasses.sFilter = @sFilter
       
-      $table = $("##{@tableName}-table")
-      unless $table.hasClass "dataTable"
-        @dataTable = utils.mkDataTable $table, @dataTableOpts
+      @$tableEl = $("##{@tableName}-table")
+      unless @$tableEl.hasClass "dataTable"
+        @dataTable = utils.mkDataTable @$tableEl, @dataTableOpts
         @setObjs @objURL
     
     setObjs: (objURL) ->
       objURL ?= @objURL
-      $.getJSON objURL, (objs) =>
-        @dataTable.fnClearTable()
-        rows = @objsToRows? objs
-        @dataTable.fnAddData rows
+      unless objURL is ""
+        $.getJSON objURL, (objs) =>
+          @dataTable.fnClearTable()
+          rows = @objsToRows? objs
+          @dataTable.fnAddData rows
       @
     
     setObjsToRowsConverter: (fun) ->
