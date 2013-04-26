@@ -273,14 +273,9 @@ rkcPartners = scope "rkc" $ scope "handler" $ scope "partners" $ do
   res <- with db $ RKC.partners (RKC.filterFrom flt') (RKC.filterTo flt')
   writeJSON res
 
-logtest :: AppHandler ()
-logtest = do
-  r <- getRequest
-  log Fatal $ T.decodeUtf8 $ rqURI r
 
 arcReportHandler :: AppHandler ()
 arcReportHandler = scope "arc" $ scope "handler" $ do
-  logtest
   year <- tryParam B.readInteger "year"
   month <- tryParam B.readInt "month"
   dicts <- scope "dictionaries" . Dict.loadDictionaries $ "resources/site-config/dictionaries"
@@ -371,13 +366,6 @@ deleteReportHandler = do
 
 serveUsersList :: AppHandler ()
 serveUsersList = with db usersListPG >>= writeJSON
-
-
-getActiveUsers :: AppHandler ()
-getActiveUsers = do
-  tvar <- gets loggedUsers
-  logdUsers <- liftIO $ readTVarIO tvar
-  writeJSON $ Map.keys logdUsers
 
 
 ------------------------------------------------------------------------------
