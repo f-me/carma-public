@@ -11,10 +11,10 @@ define [
     getContract = (id, cb) ->
       $.getJSON "/getContract/#{id}", cb
 
-    getContracts = (args, cb) ->
+    getContracts = (pgm, cb) ->
       min = reformatDate $('#date-min').val()
       max = reformatDate $('#date-max').val()
-      path = "/allContracts/#{args}?from=#{min}&to=#{max}"
+      path = "/allContracts/#{pgm}?from=#{min}&to=#{max}"
       $.getJSON path, cb
 
     mkTableSkeleton = (model, fields) ->
