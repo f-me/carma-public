@@ -315,6 +315,9 @@
     },
     {
       "name": "owner",
+      "canRead": false,
+      "canWrite": false,
+      "type": "textarea",
       "meta": {
         "invisible": true
       }
