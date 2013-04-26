@@ -4,7 +4,6 @@ module ApplicationInit (appInit) where
 import Control.Applicative
 import Control.Monad.IO.Class
 
-import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.ByteString (ByteString)
 import Data.Configurator
@@ -122,8 +121,6 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
             lookupDefault "resources/private/client_session_key.aes"
                           cfg "session-key"
 
-  logdUsrs <- liftIO $ newTVarIO Map.empty
-
   runtimeFlags <- liftIO $ newTVarIO Set.empty
 
   s <- nestSnaplet "session" session $
@@ -162,4 +159,5 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        [logger text (file "log/frontend.log")]
 
   addRoutes routes
-  return $ App h s authMgr logdUsrs c d pgs pga v fu g l runtimeFlags ad
+  wrapSite (claimUserActivity>>)
+  return $ App h s authMgr c d pgs pga v fu g l runtimeFlags ad

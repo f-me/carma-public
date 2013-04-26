@@ -65,6 +65,7 @@ import Snaplet.FileUpload (finished, tmp, doUpload', doDeleteAll')
 ------------------------------------------------------------------------------
 import Application
 import AppHandlers.Util
+import AppHandlers.Users
 import Util as U
 import RuntimeFlag
 
@@ -104,15 +105,12 @@ doLogin = ifTop $ do
   p <- fromMaybe "" <$> getParam "password"
   r <- isJust <$> getParam "remember"
   res <- with auth $ loginByUsername l (ClearText p) r
-  case res of
-    Left _  -> redirectToLogin
-    Right u -> addToLoggedUsers u >> redirect "/"
+  either (const redirectToLogin) (const $ redirect "/") res
 
 
 doLogout :: AppHandler ()
 doLogout = ifTop $ do
-  Just u <- with auth currentUser
-  rmFromLoggedUsers u
+  claimUserLogout
   with auth logout
   redirectToLogin
 

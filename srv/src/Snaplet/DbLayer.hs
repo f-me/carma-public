@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 
 module Snaplet.DbLayer
@@ -39,9 +38,7 @@ import Snap.Snaplet.Auth
 import Snap.Snaplet.PostgresqlSimple (Postgres, pgsInit)
 import Snap.Snaplet.RedisDB (redisDBInit, runRedisDB)
 import Snap.Snaplet.SimpleLog
-#if !defined(mingw32_HOST_OS)
 import System.Log.Simple.Syslog
-#endif
 import qualified Database.Redis as Redis
 
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
@@ -158,11 +155,7 @@ initDbLayer :: Snaplet (AuthManager b)
 initDbLayer sessionMgr adb rtF cfgDir = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
     l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10)
-#if !defined(mingw32_HOST_OS)
       [logger text (file "log/db.log"), syslog "carma" [PID] USER]
-#else
-      [logger text (file "log/db.log")]
-#endif
     liftIO $ withLog l $ log Info "Server started"
     rels <- liftIO $ Postgres.loadRelations "resources/site-config/syncs.json" l
     tbls <- liftIO $ MT.loadTables "resources/site-config/models" "resources/site-config/field-groups.json"
