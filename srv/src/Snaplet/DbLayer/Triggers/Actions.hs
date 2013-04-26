@@ -21,8 +21,8 @@ import qualified Fdds as Fdds
 ------------------------------------------------------------------------------
 import WeatherApi (getWeather', tempC)
 -----------------------------------------------------------------------------
-import Data.Time.Format (parseTime)
-import Data.Time.Clock (UTCTime)
+import Data.Time.Format (parseTime, formatTime)
+import Data.Time.Clock (UTCTime, addUTCTime)
 import System.Locale (defaultTimeLocale)
 
 import Snap (gets, with)
@@ -154,6 +154,7 @@ actions
           ,("carVin",       [\o -> set o "carVin" . bToUpper])
           ,("carCheckPeriod", [setContractValidUntilMilage])
           ,("milageTO",       [setContractValidUntilMilage])
+          ,("contractValidFromDate", [setContractValidUntilDate])
           ])
         ]
 
@@ -900,7 +901,7 @@ setSrvMCost id = do
 
 setContractValidUntilMilage :: MonadTrigger m b =>
                                B.ByteString -> B.ByteString -> m b ()
-setContractValidUntilMilage obj val = do
+setContractValidUntilMilage obj _ = do
   v      <- get obj "contractValidUntilMilage"
   check  <- mbreadDouble <$> get obj "carCheckPeriod"
   milage <- mbreadDouble <$> get obj "milageTO"
@@ -908,3 +909,20 @@ setContractValidUntilMilage obj val = do
     ("", Just c, Just m) -> setMillage $ printBPrice $ c + m
     _ -> return ()
     where setMillage = set obj "contractValidUntilMilage"
+
+setContractValidUntilDate ::  MonadTrigger m b =>
+                              B.ByteString -> B.ByteString -> m b ()
+setContractValidUntilDate obj val = do
+  let d = parseTime defaultTimeLocale "%s" $ B.unpack val :: Maybe UTCTime
+  v   <- get obj "contractValidUntilDate"
+  p   <- get obj "program"
+  due <- mbreadInt <$> get (B.concat ["program:", p]) "duedateDefault"
+  case (v, d, due) of
+    ("", Just d', Just due') -> setUntilDate $ addUTCTime (d2s due') d'
+    _ -> return ()
+  where
+    d2s d = (fromIntegral d) * 24 * 60 * 60
+    setUntilDate =
+      set obj "contractValidUntilDate" .
+      B.pack .
+      formatTime defaultTimeLocale "%s"
