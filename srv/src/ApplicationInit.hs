@@ -85,7 +85,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
                               chkAuthLocal . method POST $ findOrCreateHandler)
          , ("/_/report/",     chkAuthLocal . method POST   $ createReportHandler)
          , ("/_/report/:id",  chkAuthLocal . method DELETE $ deleteReportHandler)
-         , ("/search/:model", chkAuthLocal . method GET  $ searchHandler)
+         , ("/searchCases",   chkAuthLocal . method GET  $ searchCases)
          , ("/latestCases",   chkAuthLocal . method GET  $ getLatestCases)
          , ("/stats/towAvgTime/:city",
             chkAuthLocal . method GET  $ towAvgTime)
