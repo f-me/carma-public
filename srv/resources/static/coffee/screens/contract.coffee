@@ -8,9 +8,6 @@ define [
       [_, d, m, y] = date.match(/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/)
       "#{y}-#{m}-#{d}"
 
-    getContract = (id, cb) ->
-      $.getJSON "/getContract/#{id}", cb
-
     getContracts = (pgm, cb) ->
       min = reformatDate $('#date-min').val()
       max = reformatDate $('#date-max').val()
@@ -151,7 +148,8 @@ define [
         if args.id == null && args.program == '2'
           kvm.carMake 'vw' if kvm.carMake
         kvm.dixi.subscribe ->
-          getContract kvm['id'](), (objs) -> dt.fnAddData objs.map sk.mkRow
+          $.getJSON "/_/contract/#{kvm.id()}", (obj) ->
+            dt.fnAddData sk.mkRow obj
 
     template: tpl
     constructor: (viewName, args) ->

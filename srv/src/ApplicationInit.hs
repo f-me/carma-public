@@ -72,8 +72,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
                               chkAuthLocal . method GET    $ repTowages)
          , ("/allContracts/:program",
                               chkAuth . method GET   $ selectContracts)
-         , ("/getContract/:id",
-                              chkAuth . method GET   $ selectContract)
          , ("/renderContract",
                               chkAuth . method GET    $ renderContractHandler)
          , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)
