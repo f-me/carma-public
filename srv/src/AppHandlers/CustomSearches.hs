@@ -161,7 +161,7 @@ selectContracts = do
   Just prg <- getParam "program"
 
   rows <- withPG pg_search $ \c -> query c (fromString
-    $  "SELECT id::text,"
+    $  "SELECT c.id::text,"
     ++ "  extract (epoch from ctime at time zone 'UTC')::int8::text,"
     ++ "  carVin, carMake, carModel, carColor, carPlateNum, cardNumber::text,"
     ++ "  carMakeYear::text, carCheckPeriod::text,"
@@ -171,9 +171,11 @@ selectContracts = do
     ++ "  extract (epoch from contractValidUntilDate at time zone 'UTC')::int8::text,"
     ++ "  contractValidUntilMilage::text, milageTO::text, cardOwner, manager,"
     ++ "  carSeller, carDealerTO"
-    ++ "  FROM contracttbl "
-    ++ "WHERE program = ? AND date(ctime) between ? AND ?")
-    [prg, dateFrom, dateTo]
+    ++ "  FROM contracttbl c, usermetatbl u"
+    ++ "  WHERE ? = ANY (u.programs)"
+    ++ "    AND (coalesce(u.isDealer,false) = false OR c.owner = u.login)"
+    ++ "    AND c.program = ? AND date(ctime) between ? AND ?")
+    [prg, prg, dateFrom, dateTo]
   let fields =
         [ "id", "ctime", "carVin", "carMake", "carModel", "carColor"
         , "carPlateNum", "cardNumber", "carMakeYear", "carCheckPeriod"

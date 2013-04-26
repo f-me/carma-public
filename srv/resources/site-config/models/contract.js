@@ -315,7 +315,6 @@
     },
     {
       "name": "owner",
-      "type": "text",
       "meta": {
         "invisible": true
       }
