@@ -31,7 +31,8 @@ define ["model/utils"], (mu) ->
     entries: for i in f
       { value: i.value, label: "#{i.label} (#{i.value})" }
 
-  window.user_programs = () ->
+  # Dictionary of all user-created programs
+  window.allProgramsDict = () ->
     d = {}
     $.ajax
       type: 'GET',
@@ -40,9 +41,16 @@ define ["model/utils"], (mu) ->
       success: (objs) ->
         d = entries: (for obj in objs
           { value: obj.id.split(':')[1], label: obj.label || '' })
-
       async: false
     return d
+
+  # Dictionary of all programs assigned to current user
+  window.userProgramsDict = () ->
+    # Requires user to re-login to update list of available programs
+    pgms = global.user.meta.programs.split ','
+    entries: _.filter(allProgramsDict().entries,
+      (e) -> _.contains pgms, e.value)
+
 
   window.getDictionary = (d) ->
     console.log 'dicts', d

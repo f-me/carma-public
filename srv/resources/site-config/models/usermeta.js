@@ -62,7 +62,7 @@
             "type": "dictionary-many",
             "meta": {
                 "label": "Программы",
-                "dictionaryName": "user_programs:"
+                "dictionaryName": "allProgramsDict:"
             }
         },
         {
