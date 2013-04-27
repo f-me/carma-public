@@ -133,6 +133,20 @@
             "meta": {
                 "label": "Должность"
             }
+        },
+        {
+            "name": "lastactivity",
+            "type": "datetime",
+            "meta": {
+                "invisible": "true"
+            }
+        },
+        {
+            "name": "lastlogout",
+            "type": "datetime",
+            "meta": {
+                "invisible": "true"
+            }
         }
     ]
 }
