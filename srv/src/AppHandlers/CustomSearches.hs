@@ -9,6 +9,7 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 
 import Snap
+import Snap.Snaplet.Auth
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.SqlQQ
 --------------------------------------------------------------------
@@ -159,6 +160,7 @@ selectContracts = do
   dateFrom <- fromMaybe "1970-01-01" <$> getParam "from"
   dateTo   <- fromMaybe "2970-01-01" <$> getParam "to"
   Just prg <- getParam "program"
+  Just usr <- with auth currentUser
 
   rows <- withPG pg_search $ \c -> query c (fromString
     $  "SELECT c.id::text,"
@@ -172,10 +174,10 @@ selectContracts = do
     ++ "  contractValidUntilMilage::text, milageTO::text, cardOwner, manager,"
     ++ "  carSeller, carDealerTO"
     ++ "  FROM contracttbl c, usermetatbl u"
-    ++ "  WHERE ? = ANY (u.programs)"
+    ++ "  WHERE u.login = ? AND ? = ANY (u.programs)"
     ++ "    AND (coalesce(u.isDealer,false) = false OR c.owner = u.login)"
     ++ "    AND c.program = ? AND date(ctime) between ? AND ?")
-    [prg, prg, dateFrom, dateTo]
+    (userLogin usr, prg, prg, dateFrom, dateTo)
   let fields =
         [ "id", "ctime", "carVin", "carMake", "carModel", "carColor"
         , "carPlateNum", "cardNumber", "carMakeYear", "carCheckPeriod"
