@@ -3,7 +3,7 @@
 * Prerequisites
   - we aim at GHC 7.6.1 compatibility;
   
-  - snap-0.9 is required;
+  - snap-0.11 is required;
 
   - Backbone 0.9.1 is included with backported [[https://github.com/documentcloud/backbone/commit/a865aa41f13c371d104da9446c3ccb6a16671658][patch]] from upstream;
 
@@ -170,18 +170,5 @@
    entry of dictionary is used for list of typeahead items.
    
    Typeahead is recreated on every focus if parent value is changed.
-* Security
-
-  Sample user db is included under `resources/private/users.json`.
-
-  Available accounts:
-
-  - admin @ <empty password> (roles "front", "back", "parguy", "head");
-  - frontuser @ <empty password> (role "front")
-  - backuser @ <empty password> (role "back")
-  - parguyuser @ <empty password> (role "parguy")
-  - headuser @ <empty password> (role "head")
-
-  User management is available via [[https://github.com/dzhus/snap-auth-cli][snap-auth-cli]].
   
 
