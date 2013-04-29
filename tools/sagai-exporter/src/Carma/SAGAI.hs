@@ -152,7 +152,7 @@ instance ExportMonad CaseExport where
     comm2Field = pushComment =<< caseField0 "dealerCause"
 
     comm3Field = do
-      servs <- getNonFalseServices
+      servs <- filter exportable <$> getAllServices
       pushComment $ case servs of
         [] -> BS.empty
         ((_, _, d):_) -> dataField0 "orderNumber" d
@@ -283,7 +283,7 @@ instance ExportMonad ServiceExport where
                            (dataField0 "result" d)
                            (getDict result)
                     return [oNum, res]
-              _ -> error "Never happens"
+              _ -> exportError $ UnknownService mn
         pushComment $ BS.intercalate " " fields
 
 
@@ -324,9 +324,9 @@ getService = asks fst
 -- once).
 serviceExpenseType :: Service -> CaseExport ExpenseType
 serviceExpenseType s@(mn, _, d) = do
-  case (notFalseService s, mn) of
-    (False, _) -> return FalseCall
+  case (falseService s, mn) of
     (_, "consultation") -> return PhoneServ
+    (True, _) -> return FalseCall
     (_, "towage") ->
         do
           cid <- caseField1 "id"
@@ -390,24 +390,18 @@ caseField1 :: ExportMonad m => FieldName -> m FieldValue
 caseField1 fn = dataField1 fn =<< getCase
 
 
--- | Return all exportable non-false services from services attached
--- to the case.
-getNonFalseServices :: ExportMonad m => m [Service]
-getNonFalseServices = do
-  servs <- getAllServices
-  return $ filter notFalseService servs
-
-
--- | True if a service is exportable and was not a false call
--- (@falseCall@ field is @none@ or @bill@).
-notFalseService :: Service -> Bool
-notFalseService (_, _, d) = elem (dataField0 "falseCall" d) ["none", "bill"]
+-- | True if a service is a billed false call (@falseCall@ field is
+-- @bill@).
+falseService :: Service -> Bool
+falseService (_, _, d) = dataField0 "falseCall" d == "bill"
 
 
 -- | True if service should be exported to SAGAI.
 exportable :: Service -> Bool
-exportable s@(mn, _, d) = notFalseService s && typeOk
-    where typeOk =
+exportable (mn, _, d) = statusOk && typeOk
+    where
+          -- Check model type
+          typeOk =
               case mn of
                 "consultation" -> True
                 "towage"       -> True
@@ -416,6 +410,12 @@ exportable s@(mn, _, d) = notFalseService s && typeOk
                     elem (dataField0 "techType" d)
                              ["charge", "condition", "starter"]
                 _        -> False
+          -- Check status and falseCall fields
+          statusOk = (falseCall == "none" && status == "serviceClosed") ||
+                     (falseCall == "bill" && status == "clientCanceled")
+              where
+                falseCall = dataField0 "falseCall" d
+                status = dataField0 "status" d
 
 
 -- | Check if @callDate@ field of the case contains a date between dates

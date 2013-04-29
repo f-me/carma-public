@@ -8,12 +8,14 @@ import Data.Functor
 import Data.Map (Map)
 import qualified Data.Map as Map
 import qualified Data.ByteString.Char8 as B
+import qualified Data.Text.Encoding as T
 import Data.Time.Clock (getCurrentTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 import Data.Time.Format (formatTime)
 import Data.Maybe
 import System.Locale (defaultTimeLocale)
 import Snap
+import Snap.Snaplet.Auth
 
 import qualified Database.Redis       as Redis
 import qualified Snap.Snaplet.RedisDB as Redis
@@ -41,6 +43,11 @@ applyDefaults model obj = do
     "case" -> return cd
     "call" -> return cd
     "cost_serviceTarifOption" -> return $ Map.insert "count" "1" obj
+    "contract" -> do
+      Just u <- with auth currentUser
+      let uLogin = T.encodeUtf8 $ userLogin u
+      return $ Map.insert "owner" uLogin obj
+
     "taxi" -> do
       let parentId = obj Map.! "parentId"
       Right caseAddr <- Redis.runRedisDB redis

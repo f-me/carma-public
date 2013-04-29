@@ -125,7 +125,7 @@
       <select id="rkc-weather-city-select" data-bind="foreach: $data">
         <option data-bind="value: id, text: name" />
       </select>
-      <button class="btn" onClick="rkcWeatherAddSelectedCity(this)">
+      <button class="btn" id="add-weather">
         Добавить
       </button>
       <table class="table table-striped table-bordered"
@@ -142,7 +142,7 @@
             <td data-bind="text: cityname"></td>
             <td data-bind="text: temp"></td>
             <td>
-              <button class="btn" onClick="rkcWeatherRemoveSelectedCity(this)">
+              <button class="btn" data-bind="click: delCity">
                 Удалить
               </button>
             </td>

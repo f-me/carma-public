@@ -43,7 +43,7 @@ define  [ "utils"
             update = (fName) -> (val) ->
               $.ajax
                 type: "PUT"
-                url: "/userMeta/#{u.value}"
+                url: "/_/usermeta/#{u.mid}"
                 data: "{\"#{fName}\": \"#{val}\"}"
               row[2] = arrStr(koUser.boCitiesLocals())
               row[3] = arrStr(koUser.boProgramsLocals())

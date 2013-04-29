@@ -307,16 +307,23 @@
       }
     },
     {
-        "name": "comment",
+      "name": "comment",
       "canRead": ["partner"],
       "canWrite": ["partner"],
-        "canRead": true,
-        "canWrite": true,
-        "type": "textarea",
-        "meta": {
-            "label": "Комментарий",
-            "required": true
-        }
+      "type": "textarea",
+      "meta": {
+        "label": "Комментарий",
+        "required": true
+      }
+    },
+    {
+      "name": "owner",
+      "canRead": false,
+      "canWrite": false,
+      "type": "textarea",
+      "meta": {
+        "invisible": true
+      }
     },
     {
       "name": "dixi",

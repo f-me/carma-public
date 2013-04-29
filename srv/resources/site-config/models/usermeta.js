@@ -84,15 +84,6 @@
             }
         },
         {
-            "name": "weatherCities",
-            "type": "dictionary-many",
-            "meta": {
-                "label": "weatherCities",
-                "dictionaryName": "DealerCities",
-                "invisible": true
-            }
-        },
-        {
             "name": "isDealer",
             "type": "checkbox",
             "meta": {
@@ -141,6 +132,20 @@
             "name": "position",
             "meta": {
                 "label": "Должность"
+            }
+        },
+        {
+            "name": "lastactivity",
+            "type": "datetime",
+            "meta": {
+                "invisible": "true"
+            }
+        },
+        {
+            "name": "lastlogout",
+            "type": "datetime",
+            "meta": {
+                "invisible": "true"
             }
         }
     ]

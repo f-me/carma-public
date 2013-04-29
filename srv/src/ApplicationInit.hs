@@ -4,7 +4,6 @@ module ApplicationInit (appInit) where
 import Control.Applicative
 import Control.Monad.IO.Class
 
-import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.ByteString (ByteString)
 import Data.Configurator
@@ -72,8 +71,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
                               chkAuthLocal . method GET    $ repTowages)
          , ("/allContracts/:program",
                               chkAuth . method GET   $ selectContracts)
-         , ("/getContract/:id",
-                              chkAuth . method GET   $ selectContract)
          , ("/renderContract",
                               chkAuth . method GET    $ renderContractHandler)
          , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)
@@ -85,7 +82,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
                               chkAuthLocal . method POST $ findOrCreateHandler)
          , ("/_/report/",     chkAuthLocal . method POST   $ createReportHandler)
          , ("/_/report/:id",  chkAuthLocal . method DELETE $ deleteReportHandler)
-         , ("/search/:model", chkAuthLocal . method GET  $ searchHandler)
+         , ("/searchCases",   chkAuthLocal . method GET  $ searchCases)
+         , ("/latestCases",   chkAuthLocal . method GET  $ getLatestCases)
          , ("/stats/towAvgTime/:city",
             chkAuthLocal . method GET  $ towAvgTime)
          , ("/rkc",           chkAuthLocal . method GET  $ rkcHandler)
@@ -94,13 +92,11 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/rkc/partners",  chkAuthLocal . method GET $ rkcPartners)
          , ("/arc/:year/:month", chkAuthLocal . method GET $ arcReportHandler)
          , ("/allUsers",      chkAuth . method GET  $ serveUsersList)
-         , ("/userMeta/:usr", chkAuthLocal . method PUT  $ setUserMeta)
-         , ("/activeUsers",   chkAuthLocal . method GET  $ getActiveUsers)
          , ("/partner/upload.csv",
             chkAuthLocal . method POST $ partnerUploadData)
-         , ("/vin/upload",    chkAuthLocal . method POST $ vinUploadData)
-         , ("/vin/state",     chkAuthLocal . method GET  $ vinStateRead)
-         , ("/vin/state",     chkAuthLocal . method POST $ vinStateRemove)
+         , ("/vin/upload",    chkAuth . method POST $ vinUploadData)
+         , ("/vin/state",     chkAuth . method GET  $ vinStateRead)
+         , ("/vin/state",     chkAuth . method POST $ vinStateRemove)
          , ("/opts/:model/:id/", chkAuthLocal . method GET $ getSrvTarifOptions)
          , ("/smspost",       chkAuthLocal . method POST $ smspost)
          , ("/sms/processing", chkAuthLocal . method GET $ smsProcessingHandler)
@@ -124,8 +120,6 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   sesKey <- liftIO $
             lookupDefault "resources/private/client_session_key.aes"
                           cfg "session-key"
-
-  logdUsrs <- liftIO $ newTVarIO Map.empty
 
   runtimeFlags <- liftIO $ newTVarIO Set.empty
 
@@ -165,4 +159,5 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        [logger text (file "log/frontend.log")]
 
   addRoutes routes
-  return $ App h s authMgr logdUsrs c d pgs pga v fu g l runtimeFlags ad
+  wrapSite (claimUserActivity>>)
+  return $ App h s authMgr c d pgs pga v fu g l runtimeFlags ad
