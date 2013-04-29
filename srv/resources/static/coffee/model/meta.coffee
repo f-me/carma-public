@@ -101,7 +101,7 @@ define [] , ->
               #
               # TODO Still PUT-backs
               this.save() unless this.hasChanged("id")
-        this.bind("change", _.throttle(realUpdates, 500), this)
+        this.bind("change", _.debounce(realUpdates, 1000), this)
       set: (key, val, options) ->
         attrs
         # we can get set(k,v,opts) or set(obj,opts)
@@ -213,18 +213,3 @@ define [] , ->
     return M
 
   { backbonizeModel: backbonizeModel }
-
-# genRefAccessors = (bindInst, field, refs) =>
-#   tp = (f) -> _.chain(f v).tap(bindInst.trigger("change:#{@field}")).value()
-#   genFor = (name, fun) ->
-#     bindInst["#{name}#{ucfirst field}"] = fun
-#   set = (refs) -> bindInst.set(field, refs)
-#   get =        -> bindInst.get(field)
-
-#   genFor 'get',        -> get field
-#   genFor 'set', set
-#   genFor 'add', (refs) -> set(_.union get(), toA refs)
-#   genFor 'rem', (refs) -> set _.reject get(),
-#     (r) -> if _.any(refs, (c) -> c.id == r.id and c.name == r.name) then true
-
-# ucfirst = (str) -> str.replace /(\b)([a-zA-Z])/, (l) -> l.toUpperCase()
