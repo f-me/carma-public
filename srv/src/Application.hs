@@ -36,7 +36,6 @@ data App = App
     { _heist      :: Snaplet (Heist App)
     , _session    :: Snaplet SessionManager
     , _auth       :: Snaplet (AuthManager App)
-    , loggedUsers :: TVar (Map Text (UTCTime, AuthUser))
     , _siteConfig :: Snaplet (SiteConfig App)
     , _db         :: Snaplet (DbLayer App)
     , pg_search   :: Pool Pg.Connection
@@ -65,6 +64,9 @@ instance HasSiteConfig App where
 
 instance MonadLog (Handler App App) where
   askLog = with db askLog
+
+instance HasPostgres (Handler b App) where
+  getPostgresState = with authDb get
 
 
 withPG

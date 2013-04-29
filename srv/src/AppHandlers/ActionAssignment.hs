@@ -2,17 +2,11 @@ module AppHandlers.ActionAssignment where
 
 import Prelude hiding (log)
 import Control.Monad
-import Control.Applicative
 import Data.String (fromString)
 
-import Data.List (intercalate)
-import qualified Data.HashMap.Strict as HashMap
 import qualified Data.Map as Map
-import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import qualified Data.ByteString.Char8 as B
-import qualified Data.Aeson as Aeson
 
 import Snap
 import Snap.Snaplet.Auth
@@ -24,12 +18,15 @@ import Application
 import AppHandlers.CustomSearches
 import AppHandlers.Util
 
-import Snaplet.Auth.PGUsers
 
-
-assignQ :: Int -> AuthUser -> [Text] -> Query
-assignQ pri usr logdUsers = fromString
-  $  "UPDATE actiontbl SET assignedTo = '" ++ uLogin ++ "'"
+assignQ :: Int -> AuthUser -> Query
+assignQ pri usr = fromString
+  $  "WITH activeUsers AS ("
+  ++ "  SELECT login"
+  ++ "  FROM usermetatbl"
+  ++ "  WHERE (lastlogout IS NULL OR lastlogout < lastactivity)"
+  ++ "    AND now() - lastactivity < '10 min') "
+  ++ "UPDATE actiontbl SET assignedTo = '" ++ uLogin ++ "'"
   ++ "  WHERE id = (SELECT act.id"
   ++ "    FROM ((SELECT * FROM actiontbl WHERE closed = false) act"
   ++ "      LEFT JOIN servicetbl svc"
@@ -41,7 +38,7 @@ assignQ pri usr logdUsers = fromString
   ++ "    AND duetime at time zone 'UTC' - now() < interval '30 minutes'"
   ++ "    AND targetGroup = ANY (u.roles)"
   ++ "    AND (assignedTo IS NULL"
-  ++ "         OR assignedTo NOT IN ('" ++ logdUsersList ++ "'))"
+  ++ "         OR assignedTo NOT IN activeUsers)"
   ++ "    AND (coalesce("
   ++ "            array_length(u.boPrograms, 1),"
   ++ "            array_length(u.boCities, 1)) is null"
@@ -59,17 +56,15 @@ assignQ pri usr logdUsers = fromString
   ++ "  RETURNING id::text;"
   where
     uLogin = T.unpack $ userLogin usr
-    logdUsersList = T.unpack $ T.intercalate "','" logdUsers
 
 
 littleMoreActionsHandler :: AppHandler ()
 littleMoreActionsHandler = scoper "littleMoreActions" $ do
   Just cUsr' <- with auth currentUser
-  logdUsers <- map (userLogin.snd) . Map.elems <$> addToLoggedUsers cUsr'
 
-  actIds1 <- withPG pg_actass (`query_` assignQ 1 cUsr' logdUsers)
-  actIds2 <- withPG pg_actass (`query_` assignQ 2 cUsr' logdUsers)
-  actIds3 <- withPG pg_actass (`query_` assignQ 3 cUsr' logdUsers)
+  actIds1 <- withPG pg_actass (`query_` assignQ 1 cUsr')
+  actIds2 <- withPG pg_actass (`query_` assignQ 2 cUsr')
+  actIds3 <- withPG pg_actass (`query_` assignQ 3 cUsr')
   let actIds = actIds1 ++ actIds2 ++ actIds3
 
   let uLogin = T.encodeUtf8 $ userLogin cUsr'

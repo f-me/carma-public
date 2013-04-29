@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE Rank2Types #-}
 
 module Snaplet.DbLayer
@@ -8,7 +7,6 @@ module Snaplet.DbLayer
   ,update
   ,delete
   ,submitTask
-  ,searchFullText
   ,generateReport
   ,readAll
   ,smsProcessing
@@ -19,18 +17,15 @@ module Snaplet.DbLayer
 import Prelude hiding (read, log)
 import Control.Applicative
 import Control.Lens
-import Control.Monad
 import Control.Monad.State
 import Control.Concurrent.STM
 import qualified Data.Map as Map
-import qualified Data.Set as Set
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
 import Data.Maybe (fromJust, isJust)
 import Data.String
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
 
 import Network.URI (parseURI)
 import qualified Fdds
@@ -43,15 +38,12 @@ import Snap.Snaplet.Auth
 import Snap.Snaplet.PostgresqlSimple (Postgres, pgsInit)
 import Snap.Snaplet.RedisDB (redisDBInit, runRedisDB)
 import Snap.Snaplet.SimpleLog
-#if !defined(mingw32_HOST_OS)
 import System.Log.Simple.Syslog
-#endif
 import qualified Database.Redis as Redis
 
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import qualified Snaplet.DbLayer.PostgresCRUD as Postgres
 import qualified Database.PostgreSQL.Sync.Base as S
-import qualified Database.PostgreSQL.Sync.Types as S
 
 import Snaplet.DbLayer.Types
 import qualified Carma.ModelTables as MT (loadTables)
@@ -135,19 +127,6 @@ submitTask queueName taskId
   = runRedisDB redis
   $ Redis.lpush queueName [taskId]
 
-searchFullText :: ByteString -> [ByteString] -> [ByteString] -> ByteString -> Int -> Handler b (DbLayer b) [[ByteString]]
-searchFullText mname fs sels q lim = do
-  tbls <- gets syncTables
-  res <- Postgres.search tbls mname fs sels q lim
-  return $ map (map showValue) res
-  where
-    showValue :: S.FieldValue -> ByteString
-    showValue (S.IntValue s) = T.encodeUtf8 . T.pack . show $ s
-    showValue (S.DoubleValue s) = T.encodeUtf8 . T.pack . show $ s
-    showValue (S.BoolValue s) = T.encodeUtf8 . T.pack . show $ s
-    showValue (S.StringValue s) = T.encodeUtf8 . T.pack $ s
-    showValue (S.TimeValue s) = T.encodeUtf8 . T.pack . (show :: Integer -> String) . floor $ s
-    showValue _ = C8.empty
 
 generateReport :: (T.Text -> [T.Text]) -> FilePath -> FilePath -> Handler b (DbLayer b) ()
 generateReport superCond template filename = do
@@ -176,11 +155,7 @@ initDbLayer :: Snaplet (AuthManager b)
 initDbLayer sessionMgr adb rtF cfgDir = makeSnaplet "db-layer" "Storage abstraction"
   Nothing $ do
     l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10)
-#if !defined(mingw32_HOST_OS)
       [logger text (file "log/db.log"), syslog "carma" [PID] USER]
-#else
-      [logger text (file "log/db.log")]
-#endif
     liftIO $ withLog l $ log Info "Server started"
     rels <- liftIO $ Postgres.loadRelations "resources/site-config/syncs.json" l
     tbls <- liftIO $ MT.loadTables "resources/site-config/models" "resources/site-config/field-groups.json"

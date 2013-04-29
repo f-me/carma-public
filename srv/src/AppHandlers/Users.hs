@@ -10,7 +10,8 @@ module AppHandlers.Users
     ( chkAuth
     , chkAuthLocal
     , chkAuthPartner
-    , claimActivity
+    , claimUserActivity
+    , claimUserLogout
     , serveUserCake
     )
 
@@ -18,6 +19,7 @@ where
 
 import Snap
 import Snap.Snaplet.Auth hiding (session)
+import Snap.Snaplet.PostgresqlSimple
 
 import Application
 import AppHandlers.Util
@@ -38,7 +40,7 @@ partnerRole = Role "partner"
 ------------------------------------------------------------------------------
 -- | Deny requests from unauthenticated users.
 chkAuth :: AppHandler () -> AppHandler ()
-chkAuth h = chkAuthRoles alwaysPass (claimActivity >> h)
+chkAuth h = chkAuthRoles alwaysPass h
 
 
 ------------------------------------------------------------------------------
@@ -98,10 +100,19 @@ chkAuthRoles roleCheck handler = do
   else handler
 
 
-claimActivity :: AppHandler ()
-claimActivity
-  = with auth currentUser
-  >>= maybe (return ()) (void . addToLoggedUsers)
+claimUserActivity :: AppHandler ()
+claimUserActivity = with auth currentUser >>= \case
+  Nothing -> return ()
+  Just u  -> void $ execute
+    "UPDATE usermetatbl SET lastactivity = NOW() WHERE login = ?"
+    [userLogin u]
+
+claimUserLogout :: AppHandler ()
+claimUserLogout = with auth currentUser >>= \case
+  Nothing -> return ()
+  Just u  -> void $ execute
+    "UPDATE usermetatbl SET lastlogout = NOW() WHERE login = ?"
+    [userLogin u]
 
 
 ------------------------------------------------------------------------------
