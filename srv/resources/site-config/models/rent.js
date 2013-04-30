@@ -980,6 +980,32 @@
             }
         },
         {
+            "name": "orderNumber",
+            "canRead": [
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman"
+            ],
+            "canWrite": [
+                "head",
+                "supervisor",
+                "director",
+                "analyst",
+                "parguy",
+                "account",
+                "admin",
+                "programman"
+            ],
+            "meta": {
+                "label": "Номер заказ-наряда"
+            }
+        },        
+        {
             "name": "warrantyCase",
             "canRead": [
                 "partner",
