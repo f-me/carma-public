@@ -48,7 +48,7 @@
     {
       "name": "carSeller",
       "canRead": ["partner"],
-      "canWrite": ["partner"],      
+      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Дилер, продавший автомобиль"
@@ -103,7 +103,7 @@
     {
       "name": "carColor",
       "canRead": ["partner"],
-      "canWrite": ["partner"],      
+      "canWrite": ["partner"],
       "type": "dictionary",
       "meta": {
         "required": true,
@@ -115,7 +115,7 @@
     {
       "name": "carBuyDate",
       "canRead": ["partner"],
-      "canWrite": ["partner"],      
+      "canWrite": ["partner"],
       "type": "date",
       "meta": {
         "required": true,
@@ -125,7 +125,7 @@
     {
       "name": "carCheckupDate",
       "canRead": ["partner"],
-      "canWrite": ["partner"],      
+      "canWrite": ["partner"],
       "type": "date",
       "meta": {
         "required": true,
@@ -135,7 +135,7 @@
     {
       "name": "carDealerTO",
       "canRead": ["partner"],
-      "canWrite": ["partner"],      
+      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Дилер у которого проходило последнее ТО"
@@ -155,7 +155,7 @@
       "name": "carTransmission",
       "type": "dictionary",
       "canRead": ["partner"],
-      "canWrite": ["partner"],      
+      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Коробка передач",
@@ -168,7 +168,7 @@
       "name": "carEngine",
       "type": "dictionary",
       "canRead": ["partner"],
-      "canWrite": ["partner"],      
+      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Тип двигателя",
@@ -183,13 +183,14 @@
       "meta": {
         "required": true,
         "label": "Межсервисный интервал",
-        "sqltype": "integer"
+        "sqltype": "integer",
+        "koupdate": "change"
       }
     },
     {
       "name": "contractType",
       "canRead": ["partner"],
-      "canWrite": ["partner"],      
+      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Тип контракта"
@@ -211,7 +212,8 @@
       "type": "date",
       "meta": {
         "required": true,
-        "label": "Дата регистрации в программе"
+        "label": "Дата регистрации в программе",
+        "koupdate": "change"
       }
     },
     {
@@ -231,7 +233,8 @@
       "meta": {
         "required": true,
         "label": "Пробег при регистрации в программе",
-        "sqltype": "integer"
+        "sqltype": "integer",
+        "koupdate": "change"
       }
     },
     {
@@ -247,7 +250,7 @@
     {
       "name": "cardOwner",
       "canRead": ["partner"],
-      "canWrite": ["partner"],      
+      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "ФИО владельца карты"
@@ -286,7 +289,7 @@
     {
       "name": "warrantyStart",
       "canRead": ["partner"],
-      "canWrite": ["partner"],      
+      "canWrite": ["partner"],
       "type": "date",
       "meta": {
         "required": true,
@@ -296,7 +299,7 @@
     {
       "name": "warrantyEnd",
       "canRead": ["partner"],
-      "canWrite": ["partner"],      
+      "canWrite": ["partner"],
       "type": "date",
       "meta": {
         "required": true,
@@ -304,19 +307,26 @@
       }
     },
     {
-        "name": "comment",
+      "name": "comment",
       "canRead": ["partner"],
-      "canWrite": ["partner"],        
-        "canRead": true,
-        "canWrite": true,
-        "type": "textarea",
-        "meta": {
-            "label": "Комментарий",
-            "required": true
-        }
+      "canWrite": ["partner"],
+      "type": "textarea",
+      "meta": {
+        "label": "Комментарий",
+        "required": true
+      }
     },
     {
-      "name": "dixi",  
+      "name": "owner",
+      "canRead": false,
+      "canWrite": false,
+      "type": "textarea",
+      "meta": {
+        "invisible": true
+      }
+    },
+    {
+      "name": "dixi",
       "type": "checkbox",
       "canRead" : true,
       "canWrite": true,

@@ -10,7 +10,7 @@ define [
       "#{y}-#{m}-#{d}"
 
     getContractURL = (id) ->
-      "/getContract/#{id}"
+      "/_/contract/#{id}"
 
     getContractsURL = (program) ->
       min = reformatDate $('#date-min').val()

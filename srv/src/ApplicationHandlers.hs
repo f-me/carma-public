@@ -65,6 +65,7 @@ import Snaplet.FileUpload (finished, tmp, doUpload', doDeleteAll')
 ------------------------------------------------------------------------------
 import Application
 import AppHandlers.Util
+import AppHandlers.Users
 import Util as U
 import RuntimeFlag
 
@@ -104,15 +105,12 @@ doLogin = ifTop $ do
   p <- fromMaybe "" <$> getParam "password"
   r <- isJust <$> getParam "remember"
   res <- with auth $ loginByUsername l (ClearText p) r
-  case res of
-    Left _  -> redirectToLogin
-    Right u -> addToLoggedUsers u >> redirect "/"
+  either (const redirectToLogin) (const $ redirect "/") res
 
 
 doLogout :: AppHandler ()
 doLogout = ifTop $ do
-  Just u <- with auth currentUser
-  rmFromLoggedUsers u
+  claimUserLogout
   with auth logout
   redirectToLogin
 
@@ -180,22 +178,6 @@ deleteHandler = do
   Just objId <- getParam "id"
   res        <- with db $ DB.delete model objId
   writeJSON res
-
-searchHandler :: AppHandler ()
-searchHandler = scope "searchHandler" $ do
-  Just q <- getParam "q"
-  Just m <- getParam "model"
-  Just fs <- getParam "fields"
-  Just sel <- getParam "select"
-  let
-    getInt v = do
-      s <- v
-      (x, _) <- B.readInt s
-      return x
-    sels = B.split ',' sel
-  lim <- liftM (maybe 100 id . getInt) $ getParam "limit"
-  res <- with db $ DB.searchFullText m (B.split ',' fs) sels q lim
-  writeJSON $ map (Map.fromList . zip sels) res
 
 -- rkc helpers
 getFromTo :: AppHandler (Maybe UTCTime, Maybe UTCTime)
@@ -289,14 +271,9 @@ rkcPartners = scope "rkc" $ scope "handler" $ scope "partners" $ do
   res <- with db $ RKC.partners (RKC.filterFrom flt') (RKC.filterTo flt')
   writeJSON res
 
-logtest :: AppHandler ()
-logtest = do
-  r <- getRequest
-  log Fatal $ T.decodeUtf8 $ rqURI r
 
 arcReportHandler :: AppHandler ()
 arcReportHandler = scope "arc" $ scope "handler" $ do
-  logtest
   year <- tryParam B.readInteger "year"
   month <- tryParam B.readInt "month"
   dicts <- scope "dictionaries" . Dict.loadDictionaries $ "resources/site-config/dictionaries"
@@ -387,13 +364,6 @@ deleteReportHandler = do
 
 serveUsersList :: AppHandler ()
 serveUsersList = with db usersListPG >>= writeJSON
-
-
-getActiveUsers :: AppHandler ()
-getActiveUsers = do
-  tvar <- gets loggedUsers
-  logdUsers <- liftIO $ readTVarIO tvar
-  writeJSON $ Map.keys logdUsers
 
 
 ------------------------------------------------------------------------------

@@ -31,25 +31,6 @@ getJSONBody :: Aeson.FromJSON v => AppHandler v
 getJSONBody = Util.readJSONfromLBS <$> readRequestBody 4096
 
 
-addToLoggedUsers :: AuthUser -> AppHandler (Map Text (UTCTime,AuthUser))
-addToLoggedUsers u = do
-  logTVar <- gets loggedUsers
-  logdUsers <- liftIO $ readTVarIO logTVar
-  now <- liftIO getCurrentTime
-  let logdUsers' = Map.insert (userLogin u) (now,u)
-        -- filter out inactive users
-        $ Map.filter ((>addUTCTime (-90*60) now).fst) logdUsers
-  liftIO $ atomically $ writeTVar logTVar logdUsers'
-  return logdUsers'
-
-
-rmFromLoggedUsers :: AuthUser -> AppHandler ()
-rmFromLoggedUsers u = do
-  logdUsrs <- gets loggedUsers
-  liftIO $ atomically $ modifyTVar' logdUsrs
-         $ Map.delete $ userLogin u
-
-
 handleError :: MonadSnap m => Int -> m ()
 handleError err = do
     modifyResponse $ setResponseCode err
