@@ -153,9 +153,22 @@ instance ExportMonad CaseExport where
 
     comm3Field = do
       servs <- filter exportable <$> getAllServices
-      pushComment $ case servs of
-        [] -> BS.empty
-        ((_, _, d):_) -> dataField0 "orderNumber" d
+      let towages = filter (\(mn, _, _) -> mn == "towage") servs
+      -- Include order number of the first exportable service, include
+      -- contractor code of the first towage service (if present).
+      fields <-
+          case servs of
+            [] -> return []
+            ((_, _, d):_) ->
+                do
+                  let oNum = dataField0 "orderNumber" d
+                  case towages of
+                    [] -> return [oNum]
+                    (s:_) ->
+                        do
+                          pCode <- contractorCode s towagePid
+                          return [oNum, pCode]
+      pushComment $ BS.intercalate " " fields
 
 
 -- | Add an entry to export log.
@@ -241,7 +254,7 @@ instance ExportMonad ServiceExport where
           _      -> lift $ comm2Field
 
     comm3Field = do
-        (mn, _, d) <- getService
+        s@(mn, _, d) <- getService
         let oNum = dataField0 "orderNumber" d
         fields <-
             case mn of
@@ -260,22 +273,7 @@ instance ExportMonad ServiceExport where
                     return [carCl, oNum]
               "towage" ->
                   do
-                    -- Try to fetch contractor code (not to be
-                    -- confused with partner id) for selected
-                    -- contractor
-                    let partnerField = "towDealer_partnerId"
-                        sPid = dataField0 partnerField d
-                    cp <- getCarmaPort
-                    pCode <- case (BS.null sPid, read1Reference sPid) of
-                      -- If no partnerId specified, do not add partner
-                      -- code to extra information to comm3 field.
-                      (True, _) ->
-                          return ""
-                      (False, Nothing) ->
-                          exportError (UnreadableContractorId sPid)
-                      (False, Just (_, pid)) ->
-                          dataField0 "code" <$>
-                          (liftIO $ readInstance cp "partner" pid)
+                    pCode <- contractorCode s towagePid
                     return [oNum, pCode]
               "consultation" ->
                   do
@@ -437,6 +435,33 @@ callDateWithin f1 f2 = do
                  parseTimestamp ts2) of
     (Just t1, Just t, Just t2) -> t1 <= t && t < t2
     _ -> False
+
+
+-- | Name of a towage service field with a reference to partner id.
+towagePid :: FieldName
+towagePid = "towDealer_partnerId"
+
+
+-- | Extract contractor code (not to be confused with partner id) from
+-- a service. Return empty string if no partner is selected.
+contractorCode :: ExportMonad m =>
+                  Service
+               -> FieldName
+               -- ^ Name of service field which stores a reference to
+               -- partner id (i.e. @towDealer_partnerId@).
+               -> m FieldValue
+contractorCode (_, _, d) partnerField = do
+  let sPid = dataField0 partnerField d
+  cp <- getCarmaPort
+  case (BS.null sPid, read1Reference sPid) of
+    -- If no partnerId specified, do not add partner
+    -- code to extra information to comm3 field.
+    (True, _) ->
+        return ""
+    (False, Nothing) ->
+        exportError (UnreadableContractorId sPid)
+    (False, Just (_, pid)) ->
+        dataField0 "code" <$> (liftIO $ readInstance cp "partner" pid)
 
 
 -- | True if a dealer with given id is a PSA dealer and PSA costs must
