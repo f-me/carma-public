@@ -339,7 +339,12 @@
                  {{/ meta.transform }}
                  {{# readonly }}readonly{{/ readonly }}
                  data-bind="value: {{ name }},
+                            {{# meta.koupdate }}
+                            valueUpdate: '{{meta.koupdate}}',
+                            {{/ meta.koupdate }}
+                            {{^ meta.koupdate }}
                             valueUpdate: 'afterkeydown',
+                            {{/ meta.koupdate }}
                             readonly: {{ name }}Disabled" />
         </div>
       </div>
@@ -448,7 +453,12 @@
                    name="{{ name }}"
                    {{# readonly }}readonly{{/ readonly }}
                    data-bind="value: {{ name }},
+                              {{# meta.koupdate }}
+                              valueUpdate: '{{meta.koupdate}}',
+                              {{/ meta.koupdate }}
+                              {{^ meta.koupdate }}
                               valueUpdate: 'afterkeydown',
+                              {{/ meta.koupdate }}
                               readonly: {{ name }}Disabled" />
             <span class="add-on"><i class="icon icon-calendar" /></span>
           </div>
