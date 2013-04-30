@@ -210,7 +210,7 @@ getLatestCases = do
       extract (epoch from callDate at time zone 'UTC')::int8::text,
       contact_phone1, car_plateNum, car_vin, program, comment
     FROM casetbl
-    ORDER BY callDate ASC
+    ORDER BY callDate DESC
     LIMIT 120
     |]
   writeJSON $ mkMap
@@ -258,7 +258,7 @@ searchCases = do
         || ' ' || coalesce(caseAddress_address, '')
         || ' ' || coalesce(program, '')
       ) like lower('%' || ? || '%')
-    ORDER BY callDate ASC
+    ORDER BY callDate DESC
     LIMIT 100
     |]) [q]
   writeJSON $ mkMap
