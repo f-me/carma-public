@@ -279,10 +279,11 @@ instance ExportMonad ServiceExport where
                     return [oNum, pCode]
               "consultation" ->
                   do
+                    cid <- caseField1 "id"
                     res <- labelOfValue
                            (dataField0 "result" d)
                            (getDict result)
-                    return [oNum, res]
+                    return [cid, res]
               _ -> exportError $ UnknownService mn
         pushComment $ BS.intercalate " " fields
 
