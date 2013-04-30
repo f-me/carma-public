@@ -472,7 +472,7 @@ isPSADealer :: ExportMonad m =>
             -> m Bool
 isPSADealer pid = do
   cp <- getCarmaPort
-  makes <- B8.split manyFieldDivisor <$> dataField0 "makes" <$> 
+  makes <- B8.split manyFieldDivisor <$> dataField0 "makes" <$>
            (liftIO $ readInstance cp "partner" pid)
   return $ (not $ null makes) &&
            any (flip elem ["citroen", "peugeot"]) makes
