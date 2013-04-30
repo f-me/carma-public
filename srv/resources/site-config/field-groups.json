@@ -462,7 +462,7 @@
         {
             "name": "calculatedCost",
             "meta": {
-                "label": "Рассчётная стоимость",
+                "label": "Расчётная стоимость",
                 "sqltype": "integer"
             }
         },
@@ -755,7 +755,7 @@
         {
                 "name": "counted",
                 "meta": {
-                   "label": "Расчетная стоимость",
+                   "label": "Расчётная стоимость",
                    "readonly": true,
                    "sqltype": "decimal(12,4)"
                 }
