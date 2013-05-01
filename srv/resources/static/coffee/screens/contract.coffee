@@ -20,6 +20,7 @@ define [
     formatTableColumns = (program) ->
       tableCols =
             [ {name: "#", fn: (o) -> o.id}
+            , "isActive"
             , "ctime"
             , "carVin"
             , "carMake"
@@ -46,18 +47,18 @@ define [
         _.contains(fieldNames, e)
 
       fs = filterFields.map (f) ->
-        if typeof f == 'string'
+        if typeof f is 'string'
           desc = h[f]
           {name: desc.meta.label
           ,fn:
-            if desc.type == 'dictionary'
+            if desc.type is 'dictionary'
               d = global.dictValueCache[desc.meta.dictionaryName]
               (v) -> d[v[f]] || v[f] || ''
-            else if desc.type == 'date'
+            else if desc.type is 'date'
               (v) -> if v[f]
                   new Date(v[f] * 1000).toString "dd.MM.yyyy"
                 else ''
-            else if desc.type == 'datetime'
+            else if desc.type is 'datetime'
               (v) -> if v[f]
                   new Date(v[f] * 1000).toString "dd.MM.yyyy HH:mm:ss"
                 else ''
@@ -75,6 +76,24 @@ define [
       { mkRow: ((obj) -> fs.map (f) -> f.fn obj)
       , headerHtml: th
       }
+
+    dataTableOptions = ->
+      # sorting function for 'isActive' column
+      $.fn.dataTableExt.afnSortData['dom-checkbox'] = (oSettings, iColumn) ->
+        aData = []
+        $('td:eq('+iColumn+') input', oSettings.oApi._fnGetTrNodes(oSettings)).each(->
+          aData.push(if @checked is true then "1" else "0"))
+        aData
+      
+      aoColumnDefs: [
+        sSortDataType: 'dom-checkbox'
+        aTargets: [1]
+      ]
+
+      fnRowCallback: (nRow, aData, iDisplayIndex, iDisplayIndexFull) ->
+        $.getJSON(getContractURL(aData[0]), (contract) ->
+          $('td:eq(1)', nRow).html("<input type='checkbox' name='isActive' #{if contract.isActive is "1" then 'checked'} disabled='disabled' />")
+        )
 
     modelSetup = (modelName, viewName, args, programModel) ->
       if args.id
@@ -129,7 +148,7 @@ define [
         $table = $("#contracts-table")
         $table.append sk.headerHtml
         $table.append "<tbody/>"
- 
+
         objsToRows = (objs) ->
           objs.map sk.mkRow
 
@@ -139,6 +158,7 @@ define [
         table = screenman.addScreen(modelName, ->)
           .addTable(tableParams)
           .setObjsToRowsConverter(objsToRows)
+          .setDataTableOptions(do dataTableOptions)
           .on("click.datatable", "tr", ->
             id = @children[0].innerText
             k  = modelSetup modelName, viewName, {"id": id, "program": args.program}, programModel
