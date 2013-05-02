@@ -402,9 +402,8 @@ exportable (mn, _, d) = statusOk && typeOk
                 "consultation" -> True
                 "towage"       -> True
                 "rent"         -> True
-                "tech"         ->
-                    elem (dataField0 "techType" d)
-                             ["charge", "condition", "starter"]
+                "tech"         -> elem (dataField0 "techType" d)
+                                  ["charge", "condition", "starter"]
                 _        -> False
           -- Check status and falseCall fields
           statusOk = (falseCall == "none" && status == "serviceClosed") ||
@@ -656,9 +655,9 @@ fillerField = spaces 5
 -- character set, not UTF-8. Processed string is then added to entry
 -- contents. Return count of bytes added.
 pushComment :: ExportMonad m =>
-              BS.ByteString
-           -- ^ Input bytestring in UTF-8.
-           -> m Int
+               BS.ByteString
+            -- ^ Input bytestring in UTF-8.
+            -> m Int
 pushComment input =
     do
       let input' = B8.map (\c -> if B8.elem c newline then space else c) input
@@ -781,9 +780,19 @@ entrySpec = concat $
 
 
 -- | Form an entry for the case or the service, depending on the
--- particular monad. Return total count of bytes added.
-sagaiExport :: ExportMonad m => m Int
-sagaiExport = sum <$> mapM id entrySpec
+-- particular monad. If an unexpected amount of bytes is produced,
+-- raise 'WrongLength' error. Return total count of bytes added.
+sagaiExport :: ExportMonad m =>
+               Int
+            -- ^ Expected byte count.
+            -> m Int
+sagaiExport m = do
+  n <- sum <$> mapM id entrySpec
+  if n == m
+  then return n
+  else do
+    s <- content <$> getState
+    exportError $ WrongLength n s
 
 
 -- | Format service data as @towage:312@ (model name and id).
@@ -795,6 +804,11 @@ formatServiceList :: [Service] -> String
 formatServiceList ss = "[" ++ (intercalate "," $ map formatService ss) ++ "]"
 
 
+-- | Expected length of a SAGAI entry for a case or a service.
+expectedEntryLength :: Int
+expectedEntryLength = (132 + 1) * 4
+
+
 -- | Initialize 'ServiceExport' monad and run 'sagaiExport' in it for
 -- a service.
 runServiceExport :: Service -> CaseExport Int
@@ -802,7 +816,7 @@ runServiceExport s = do
   exportLog $ "Now exporting " ++ formatService s
   et <- serviceExpenseType s
   exportLog $ "Expense type of service is " ++ show et
-  runReaderT sagaiExport (s, et)
+  runReaderT (sagaiExport expectedEntryLength) (s, et)
 
 
 -- | Form a full entry for the case and its services (only those which
@@ -812,7 +826,7 @@ sagaiFullExport :: CaseExport Int
 sagaiFullExport = do
   et <- expenseType
   exportLog $ "Expense type is " ++ show et
-  caseOut <- sagaiExport
+  caseOut <- sagaiExport expectedEntryLength
 
   allServs <- getAllServices
   let servs = filter exportable allServs
