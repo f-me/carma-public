@@ -179,7 +179,7 @@ defaults = Map.fromList
   ,("transportation", Map.union serviceDefaults $ Map.fromList
     [("transportType", "continue")
     ])
-   ,("programPermissions", Map.fromList
+  ,("programPermissions", Map.fromList
     [ ("showTable", "1")
     , ("showForm",  "1")
     ])
