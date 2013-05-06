@@ -271,7 +271,7 @@ findSameContract = do
   vin <- getParam "carVin"
   num <- getParam "cardNumber"
   rows <- withPG pg_search $ \c -> query_ c $ fromString
-    $  " SELECT id::text, ctime::text"
+    $  " SELECT id::text, to_char(ctime, 'YYYY-MM-DD HH24:MI')"
     ++ " FROM contracttbl"
     ++ " WHERE ctime > now() - interval '30 days' AND (false "
     ++ (maybe "" (\x -> " OR carVin = "     ++ quote x) vin)
