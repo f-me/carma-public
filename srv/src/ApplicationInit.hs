@@ -73,6 +73,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
                               chkAuth . method GET   $ selectContracts)
          , ("/renderContract",
                               chkAuth . method GET    $ renderContractHandler)
+         , ("contracts/findSame",
+                             chkAuth . method GET    $ findSameContract)
          , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)
          , ("/_/:model",      chkAuth . method POST   $ createHandler)
          , ("/_/:model/:id",  chkAuth . method GET    $ readHandler)

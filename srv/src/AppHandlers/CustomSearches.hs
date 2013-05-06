@@ -265,3 +265,16 @@ searchCases = do
     ["id", "contact_name", "callDate", "contact_phone1"
     ,"car_plateNum", "car_vin", "program", "comment"]
     rows
+
+findSameContract :: AppHandler ()
+findSameContract = do
+  vin <- getParam "carVin"
+  num <- getParam "cardNumber"
+  rows <- withPG pg_search $ \c -> query_ c $ fromString
+    $  " SELECT id::text, ctime::text"
+    ++ " FROM contracttbl"
+    ++ " WHERE ctime > now() - interval '30 days' AND (false "
+    ++ (maybe "" (\x -> " OR carVin = "     ++ quote x) vin)
+    ++ (maybe "" (\x -> " OR cardNumber = " ++ quote x) num)
+    ++ ")"
+  writeJSON $ mkMap ["id", "ctime"] rows
