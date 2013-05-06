@@ -183,6 +183,9 @@ defaults = Map.fromList
     [ ("showTable", "1")
     , ("showForm",  "1")
     ])
+  ,("contract", Map.fromList
+    [("isActive", "1")
+    ])
   ]
 
 -- | Copy price1 and price2 from tarifOption to new cost_serviceTarifOption
