@@ -14,6 +14,14 @@ define [
       path = "/allContracts/#{pgm}?from=#{min}&to=#{max}"
       $.getJSON path, cb
 
+    findSame = (kvm, cb) ->
+      vin = kvm['carVin']?()
+      num = kvm['cardNumber']?()
+      params  = "?"
+      params += "carVin=#{vin}&"    if vin
+      params += "cardNumber=#{num}" if num
+      $.getJSON "/contracts/findSame#{params}", cb
+
     mkTableSkeleton = (model, fields) ->
       h = {}
       model.fields.map (f) -> h[f.name] = f
@@ -86,6 +94,19 @@ define [
             # /#contract/progid case
             global.router.navigate "#{h[-2..-1].join '/'}/#{kvm['id']()}",
               { trigger: false }
+
+        # need this timeout, so this event won't be fired on saved
+        # model, after it's first fetch
+        utils.sTout 3000, ->
+          kvm["dixi"].subscribe (v) ->
+            return unless v
+            findSame kvm, (r) ->
+              return if _.isEmpty(r)
+              txt = "В течении 30 дней уже были созданы контракты с
+                     таким же vin или номером карты участника, их id:
+                     #{_.pluck(r, 'id').join(', ')}. Всеравно сохранить?"
+              return if confirm(txt)
+              kvm["dixi"](false)
 
         return kvm
 
