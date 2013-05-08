@@ -108,6 +108,7 @@ class (Functor m, Monad m, MonadIO m) => ExportMonad m where
     putState       :: ExportState -> m ()
 
     -- Fields for which export rules differ between case and services.
+    ddrField       :: m Int
     panneField     :: m Int
     defField       :: m Int
     somField       :: m Int
@@ -135,6 +136,12 @@ instance ExportMonad CaseExport where
     putState = put
 
     expenseType = return Dossier
+
+    ddrField = do
+      servs <- filter exportable <$> getAllServices
+      timestampToDate =<< case servs of
+        [] -> caseField1 "callDate"
+        ((_, _, d):_) -> dataField1 "times_factServiceStart" d
 
     panneField = cnst "0"
 
@@ -193,6 +200,10 @@ instance ExportMonad ServiceExport where
     getState = lift $ get
 
     putState = lift . put
+
+    ddrField = getService >>=
+               \(_, _, d) -> dataField1 "times_factServiceStart" d >>=
+               timestampToDate
 
     panneField = cnst "1"
 
@@ -612,10 +623,6 @@ composField = do
 
 ddgField :: ExportField
 ddgField = timestampToDate' =<< caseField1 "car_warrantyStart"
-
-
-ddrField :: ExportField
-ddrField = timestampToDate =<< caseField1 "callDate"
 
 
 ddcField :: ExportField
