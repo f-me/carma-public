@@ -117,6 +117,7 @@ data ErrorType = NoField FieldName
                | BadTime FieldValue
                | BadDays FieldValue
                | BadVin FieldValue
+               | WrongLength Int ByteString
                  deriving Show
 
 
