@@ -153,6 +153,10 @@
             "label": "B2C / АК БАРС"
         },
         {
+            "value": "castrol",
+            "label": "B2C / Кастрол"
+        },
+        {
             "value": "bp",
             "label": "B2B / BP"
         },
