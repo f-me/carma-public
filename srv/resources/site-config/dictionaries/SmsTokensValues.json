@@ -218,6 +218,10 @@
                 "label": "+74956406690"
             },
             {
+                "value": "castrol",
+                "label": "+74956406690"
+            },
+            {
                 "value": "ruslan",
                 "label": "+78002504357"
             },
@@ -323,6 +327,10 @@
             {
                 "value": "micro",
                 "label": "Assistance"
+            },
+            {
+                "value": "castrol",
+                "label": "Castrol"
             },
             {
                 "value": "covidien",
@@ -525,6 +533,10 @@
             {
                 "value": "auimp",
                 "label": "ДЦ Автоимпорт"
+            },
+            {
+                "value": "castrol",
+                "label": "B2C/ Кастрол"
             },
             {
                 "value": "tvd",

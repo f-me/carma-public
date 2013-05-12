@@ -210,7 +210,7 @@ getLatestCases = do
       extract (epoch from callDate at time zone 'UTC')::int8::text,
       contact_phone1, car_plateNum, car_vin, program, comment
     FROM casetbl
-    ORDER BY callDate ASC
+    ORDER BY callDate DESC
     LIMIT 120
     |]
   writeJSON $ mkMap
@@ -258,10 +258,23 @@ searchCases = do
         || ' ' || coalesce(caseAddress_address, '')
         || ' ' || coalesce(program, '')
       ) like lower('%' || ? || '%')
-    ORDER BY callDate ASC
+    ORDER BY callDate DESC
     LIMIT 100
     |]) [q]
   writeJSON $ mkMap
     ["id", "contact_name", "callDate", "contact_phone1"
     ,"car_plateNum", "car_vin", "program", "comment"]
     rows
+
+findSameContract :: AppHandler ()
+findSameContract = do
+  vin <- getParam "carVin"
+  num <- getParam "cardNumber"
+  rows <- withPG pg_search $ \c -> query_ c $ fromString
+    $  " SELECT id::text, to_char(ctime, 'YYYY-MM-DD HH24:MI')"
+    ++ " FROM contracttbl"
+    ++ " WHERE ctime > now() - interval '30 days' AND (false "
+    ++ (maybe "" (\x -> " OR carVin = "     ++ quote x) vin)
+    ++ (maybe "" (\x -> " OR cardNumber = " ++ quote x) num)
+    ++ ")"
+  writeJSON $ mkMap ["id", "ctime"] rows

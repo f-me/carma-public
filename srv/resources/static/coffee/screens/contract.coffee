@@ -36,6 +36,14 @@ define [
             , "manager"
             ])
 
+    findSame = (kvm, cb) ->
+      vin = kvm['carVin']?()
+      num = kvm['cardNumber']?()
+      params  = "?"
+      params += "carVin=#{vin}&"    if vin
+      params += "cardNumber=#{num}" if num
+      $.getJSON "/contracts/findSame#{params}", cb
+
     mkTableSkeleton = (tableModel, fields) ->
       h = {}
       tableModel.fields.map (f) -> h[f.name] = f
@@ -125,6 +133,19 @@ define [
           global.router.navigate "#{h[-2..-1].join '/'}/#{kvm['id']()}",
             { trigger: false }
 
+        # need this timeout, so this event won't be fired on saved
+        # model, after it's first fetch
+        utils.sTout 3000, ->
+          kvm["dixi"].subscribe (v) ->
+            return unless v
+            findSame kvm, (r) ->
+              return if _.isEmpty(r)
+              txt = "В течении 30 дней уже были созданы контракты с
+                     таким же vin или номером карты участника, их id:
+                     #{_.pluck(r, 'id').join(', ')}. Всеравно сохранить?"
+              return if confirm(txt)
+              kvm["dixi"](false)
+
       return kvm
 
     programSetup = (viewName, args, programModel, programURL) ->
@@ -142,9 +163,7 @@ define [
       tableModelURL = "#{programURL}&field=showtable"
 
       $.getJSON tableModelURL, (tableModel) ->
-        
         sk = mkTableSkeleton tableModel, formatTableColumns args.program
-        
         $table = $("#contracts-table")
         $table.append sk.headerHtml
         $table.append "<tbody/>"
@@ -171,7 +190,7 @@ define [
         if args.id == null && args.program == '2'
           kvm.carMake 'vw' if kvm.carMake
         kvm.dixi.subscribe ->
-          $.getJSON getContractURL kvm['id'](), (objs) ->
+          $.getJSON getContractURL(kvm['id']()), (objs) ->
             table.dataTable.fnAddData objs.map sk.mkRow
 
         screenman.showScreen modelName

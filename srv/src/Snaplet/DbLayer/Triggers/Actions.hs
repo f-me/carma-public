@@ -903,10 +903,11 @@ setContractValidUntilMilage :: MonadTrigger m b =>
                                B.ByteString -> B.ByteString -> m b ()
 setContractValidUntilMilage obj _ = do
   v      <- get obj "contractValidUntilMilage"
-  check  <- mbreadDouble <$> get obj "carCheckPeriod"
-  milage <- mbreadDouble <$> get obj "milageTO"
-  case (v, check, milage) of
-    ("", Just c, Just m) -> setMillage $ printBPrice $ c + m
+  milage <- mbreadInt <$> get obj "milageTO"
+  p   <- get obj "program"
+  per <- mbreadInt <$> get (B.concat ["program:", p]) "carCheckPeriodDefault"
+  case (v, per, milage) of
+    ("", Just c, Just m) -> setMillage $ B.pack $ show $ c + m
     _ -> return ()
     where setMillage = set obj "contractValidUntilMilage"
 
