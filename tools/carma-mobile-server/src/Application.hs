@@ -359,7 +359,7 @@ name, addrDeFacto, phone1
 FROM partnertbl
 WHERE isDealer
 AND name != ''
-AND (? or ANY(makes) = ?)
+AND (? or ? = ANY(makes))
 ORDER BY
 ST_Distance_Sphere(coords, ST_PointFromText('POINT(? ?)', 4326)) ASC
 LIMIT ?;
