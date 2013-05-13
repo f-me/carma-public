@@ -1,50 +1,73 @@
 define [
     "utils",
     "model/main",
-    "text!tpl/screens/contract.html"],
-  (utils, main, tpl) ->
-    program = null
+    "text!tpl/screens/contract.html",
+    "screenman"],
+  (utils, main, tpl, screenman) ->
+
     reformatDate = (date)->
       [_, d, m, y] = date.match(/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/)
       "#{y}-#{m}-#{d}"
 
-    getContracts = (pgm, cb) ->
+    getContractURL = (id) ->
+      "/_/contract/#{id}"
+
+    getContractsURL = (program) ->
       min = reformatDate $('#date-min').val()
       max = reformatDate $('#date-max').val()
-      path = "/allContracts/#{pgm}?from=#{min}&to=#{max}"
-      $.getJSON path, cb
+      "/allContracts/#{program}?from=#{min}&to=#{max}"
+
+    formatTableColumns = (program) ->
+      tableCols =
+            [ {name: "#", fn: (o) -> o.id}
+            , "isActive"
+            , "ctime"
+            , "carVin"
+            , "carMake"
+            , "carModel"
+            ]
+      if program == '1'
+        tableCols.push "carPlateNum"
+
+      tableCols = tableCols.concat(
+            [ "contractValidFromDate"
+            , "contractValidUntilDate"
+            , "contractValidUntilMilage"
+            , "manager"
+            ])
 
     findSame = (kvm, cb) ->
       vin = kvm['carVin']?()
       num = kvm['cardNumber']?()
-      params  = "?"
-      params += "carVin=#{vin}&"    if vin
-      params += "cardNumber=#{num}" if num
-      $.getJSON "/contracts/findSame#{params}", cb
+      params  = ["id=#{kvm.id()}"]
+      params.unshift "carVin=#{vin}"     if vin
+      params.unshift "cardNumber=#{num}" if num
+      console.log params
+      $.getJSON "/contracts/findSame?#{params.join('&')}", cb
 
-    mkTableSkeleton = (model, fields) ->
+    mkTableSkeleton = (tableModel, fields) ->
       h = {}
-      model.fields.map (f) -> h[f.name] = f
+      tableModel.fields.map (f) -> h[f.name] = f
 
       # remove columns that we don't have in model
-      fieldNames = _.pluck model.fields, 'name'
+      fieldNames = _.pluck tableModel.fields, 'name'
       filterFields = _.filter fields, (e) ->
         return true if typeof e is 'object'
         _.contains(fieldNames, e)
 
       fs = filterFields.map (f) ->
-        if typeof f == 'string'
+        if typeof f is 'string'
           desc = h[f]
           {name: desc.meta.label
           ,fn:
-            if desc.type == 'dictionary'
+            if desc.type is 'dictionary'
               d = global.dictValueCache[desc.meta.dictionaryName]
               (v) -> d[v[f]] || v[f] || ''
-            else if desc.type == 'date'
+            else if desc.type is 'date'
               (v) -> if v[f]
                   new Date(v[f] * 1000).toString "dd.MM.yyyy"
                 else ''
-            else if desc.type == 'datetime'
+            else if desc.type is 'datetime'
               (v) -> if v[f]
                   new Date(v[f] * 1000).toString "dd.MM.yyyy HH:mm:ss"
                 else ''
@@ -63,118 +86,120 @@ define [
       , headerHtml: th
       }
 
-    init = (viewName, args, model, modelHref) ->
-      modelTable = "#{modelHref}&field=showtable"
-      setupModel = (args) ->
-        if args.id
-          $('#render-contract').attr(
-            "href",
-            "/renderContract?prog=#{program}&ctr=#{args.id}")
+    dataTableOptions = ->
+      # sorting function for 'isActive' column
+      $.fn.dataTableExt.afnSortData['dom-checkbox'] = (oSettings, iColumn) ->
+        aData = []
+        $('td:eq('+iColumn+') input', oSettings.oApi._fnGetTrNodes(oSettings)).each(->
+          aData.push(if @checked is true then "1" else "0"))
+        aData
 
-        kvm = main.modelSetup("contract", model)(
-          viewName, args,
-            permEl: "contract-permissions"
-            focusClass: "focusable"
-            refs: [])
+      aoColumnDefs: [
+        sSortDataType: 'dom-checkbox'
+        aTargets: [1]
+      ]
 
-        if _.find(global.user.roles, (r) -> r == 'contract_user')
-          kvm['commentDisabled'](false)  if kvm['commentDisabled']
-          kvm['isActiveDisabled'](false) if kvm['isActiveDisabled']
-        if _.find(global.user.roles, (r) -> r == 'contract_admin')
-          kvm['disableDixi'](true)
+      fnRowCallback: (nRow, aData, iDisplayIndex, iDisplayIndexFull) ->
+        $.getJSON(getContractURL(aData[0]), (contract) ->
+          $('td:eq(1)', nRow).html("<input type='checkbox' name='isActive' #{if contract.isActive is "1" then 'checked'} disabled='disabled' />")
+        )
 
-        kvm["updateUrl"] = ->
-          h = window.location.href.split '/'
-          if h[-3..-1][0] == "#contract"
-            # /#contract/progid/id case
-            u = h[-3..-1].join '/'
-            global.router.navigate "#{h[-3..-2].join '/'}/#{kvm['id']()}",
-              { trigger: false }
-          else
-            # /#contract/progid case
-            global.router.navigate "#{h[-2..-1].join '/'}/#{kvm['id']()}",
-              { trigger: false }
+    modelSetup = (modelName, viewName, args, programModel) ->
+      if args.id
+        $('#render-contract').attr(
+          "href",
+          "/renderContract?prog=#{args.program}&ctr=#{args.id}")
 
-        # need this timeout, so this event won't be fired on saved
-        # model, after it's first fetch
-        utils.sTout 3000, ->
-          kvm["dixi"].subscribe (v) ->
-            return unless v
-            findSame kvm, (r) ->
-              return if _.isEmpty(r)
-              txt = "В течении 30 дней уже были созданы контракты с
-                     таким же vin или номером карты участника, их id:
-                     #{_.pluck(r, 'id').join(', ')}. Всеравно сохранить?"
-              return if confirm(txt)
-              kvm["dixi"](false)
+      kvm = main.modelSetup(modelName, programModel)(
+        viewName, args,
+          permEl: "contract-permissions"
+          focusClass: "focusable"
+          refs: [])
 
-        return kvm
+      if _.find(global.user.roles, (r) -> r == 'contract_user')
+        kvm['commentDisabled'](false)  if kvm['commentDisabled']
+        kvm['isActiveDisabled'](false) if kvm['isActiveDisabled']
+      if _.find(global.user.roles, (r) -> r == 'contract_admin')
+        kvm['disableDixi'](true)
 
-      kvm = setupModel args
+      kvm["updateUrl"] = ->
+        h = window.location.href.split '/'
+        if h[-3..-1][0] == "#contract"
+          # /#contract/progid/id case
+          u = h[-3..-1].join '/'
+          global.router.navigate "#{h[-3..-2].join '/'}/#{kvm['id']()}",
+            { trigger: false }
+        else
+          # /#contract/progid case
+          global.router.navigate "#{h[-2..-1].join '/'}/#{kvm['id']()}",
+            { trigger: false }
+
+      # need this timeout, so this event won't be fired on saved
+      # model, after it's first fetch
+      utils.sTout 3000, ->
+        kvm["dixi"].subscribe (v) ->
+          return unless v
+          findSame kvm, (r) ->
+            return if _.isEmpty(r)
+            txt = "В течении 30 дней уже были созданы контракты с
+                   таким же vin или номером карты участника, их id:
+                   #{_.pluck(r, 'id').join(', ')}. Всеравно сохранить?"
+            return if confirm(txt)
+            kvm["dixi"](false)
+
+      return kvm
+
+    programSetup = (viewName, args, programModel, programURL) ->
+      $('#date-min').val (new Date).addDays(-30).toString('dd/MM/yyyy')
+      $('#date-max').val (new Date).toString('dd/MM/yyyy')
 
       $('#new-contract-btn').on 'click', (e) ->
         e.preventDefault()
         location.hash = "#contract/#{args.program}"
         location.reload(true)
 
-      $.getJSON modelTable, (model) ->
-        tableCols =
-              [ {name: "#", fn: (o) -> o.id}
-              , "ctime"
-              , "carVin"
-              , "carMake"
-              , "carModel"
-              ]
-        if args.program == '1'
-          tableCols.push "carPlateNum"
+      modelName = "contract"
+      kvm = modelSetup modelName, viewName, args, programModel
 
-        tableCols = tableCols.concat(
-              [ "contractValidFromDate"
-              , "contractValidUntilDate"
-              , "contractValidUntilMilage"
-              , "manager"
-              ])
+      tableModelURL = "#{programURL}&field=showtable"
 
-        sk = mkTableSkeleton model, tableCols
-        $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
-        $.fn.dataTableExt.oStdClasses.sFilter = "dataTables_filter form-inline"
+      $.getJSON tableModelURL, (tableModel) ->
+        sk = mkTableSkeleton tableModel, formatTableColumns args.program
+        $table = $("#contracts-table")
+        $table.append sk.headerHtml
+        $table.append "<tbody/>"
 
-        t = $("#contracts-table")
-        return if t.hasClass("dataTable")
+        objsToRows = (objs) ->
+          objs.map sk.mkRow
 
-        t.append sk.headerHtml
-        t.append "<tbody/>"
-
-        t.on("click.datatable", "tr", ->
-          id = this.children[0].innerText
-          k  = setupModel {"id": id}
-          k["updateUrl"]()
-          k
-        )
-
-        dt = utils.mkDataTable t
-
-        $('#date-min').val (new Date).addDays(-30).toString('dd/MM/yyyy')
-        $('#date-max').val (new Date).toString('dd/MM/yyyy')
-
-        fillTable = (objs) ->
-          dt.fnClearTable()
-          dt.fnAddData(objs.map sk.mkRow)
+        tableParams =
+          tableName: "contracts"
+          objURL: getContractsURL args.program
+        table = screenman.addScreen(modelName, ->)
+          .addTable(tableParams)
+          .setObjsToRowsConverter(objsToRows)
+          .setDataTableOptions(do dataTableOptions)
+          .on("click.datatable", "tr", ->
+            id = @children[0].innerText
+            k  = modelSetup modelName, viewName, {"id": id, "program": args.program}, programModel
+            k["updateUrl"]()
+            k)
 
         $("#filter-btn").on 'click', ->
-          getContracts args.program, fillTable
-
-        getContracts args.program, fillTable
+          table.setObjs getContractsURL args.program
 
         if args.id == null && args.program == '2'
           kvm.carMake 'vw' if kvm.carMake
         kvm.dixi.subscribe ->
-          $.getJSON "/_/contract/#{kvm.id()}", (obj) ->
-            dt.fnAddData sk.mkRow obj
+          $.getJSON getContractURL(kvm['id']()), (obj) ->
+            table.dataTable.fnAddData sk.mkRow obj
+
+        screenman.showScreen modelName
+
+    screenSetup = (viewName, args) ->
+      programURL = "/cfg/model/contract?pid=#{args.program}"
+      $.getJSON programURL, (programModel) ->
+        programSetup viewName, args, programModel, programURL
 
     template: tpl
-    constructor: (viewName, args) ->
-      modelHref = "/cfg/model/contract?pid=#{args.program}"
-      program = args.program
-      $.getJSON modelHref, (model) ->
-        init viewName, args, model, modelHref
+    constructor: screenSetup
