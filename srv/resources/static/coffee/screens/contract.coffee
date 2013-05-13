@@ -39,10 +39,11 @@ define [
     findSame = (kvm, cb) ->
       vin = kvm['carVin']?()
       num = kvm['cardNumber']?()
-      params  = "?"
-      params += "carVin=#{vin}&"    if vin
-      params += "cardNumber=#{num}" if num
-      $.getJSON "/contracts/findSame#{params}", cb
+      params  = ["id=#{kvm.id()}"]
+      params.unshift "carVin=#{vin}"     if vin
+      params.unshift "cardNumber=#{num}" if num
+      console.log params
+      $.getJSON "/contracts/findSame?#{params.join('&')}", cb
 
     mkTableSkeleton = (tableModel, fields) ->
       h = {}
@@ -92,7 +93,7 @@ define [
         $('td:eq('+iColumn+') input', oSettings.oApi._fnGetTrNodes(oSettings)).each(->
           aData.push(if @checked is true then "1" else "0"))
         aData
-      
+
       aoColumnDefs: [
         sSortDataType: 'dom-checkbox'
         aTargets: [1]
@@ -202,4 +203,3 @@ define [
 
     template: tpl
     constructor: screenSetup
-
