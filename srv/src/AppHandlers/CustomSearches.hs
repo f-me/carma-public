@@ -15,7 +15,7 @@ import Database.PostgreSQL.Simple.SqlQQ
 --------------------------------------------------------------------
 import Application
 import AppHandlers.Util
-
+import Utils.HttpErrors
 
 type MBS = Maybe ByteString
 
@@ -270,11 +270,18 @@ findSameContract :: AppHandler ()
 findSameContract = do
   vin <- getParam "carVin"
   num <- getParam "cardNumber"
-  rows <- withPG pg_search $ \c -> query_ c $ fromString
-    $  " SELECT id::text, to_char(ctime, 'YYYY-MM-DD HH24:MI')"
-    ++ " FROM contracttbl"
-    ++ " WHERE ctime > now() - interval '30 days' AND (false "
-    ++ (maybe "" (\x -> " OR carVin = "     ++ quote x) vin)
-    ++ (maybe "" (\x -> " OR cardNumber = " ++ quote x) num)
-    ++ ")"
-  writeJSON $ mkMap ["id", "ctime"] rows
+  id  <- getParam "id"
+
+  case id of
+    Nothing  -> finishWithError 403 "need id param"
+    Just id' -> do
+      rows <- withPG pg_search $ \c -> query_ c $ fromString
+        $  " SELECT id::text, to_char(ctime, 'YYYY-MM-DD HH24:MI')"
+        ++ " FROM contracttbl"
+        ++ " WHERE ctime > now() - interval '30 days'"
+        ++ " AND id != " ++ quote id'
+        ++ "AND (false "
+        ++ (maybe "" (\x -> " OR carVin = "     ++ quote x) vin)
+        ++ (maybe "" (\x -> " OR cardNumber = " ++ quote x) num)
+        ++ ")"
+      writeJSON $ mkMap ["id", "ctime"] rows
