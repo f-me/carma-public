@@ -49,7 +49,8 @@ define [ "model/main"
         global.viewsWare["#{modelName}-view"].knockVM)
     screenman.showScreen modelName
 
-    kvm['maybeId'].subscribe ->
+
+    $('#program-permissions').find('.btn-success').on 'click', ->
       table.dataTable.fnAddData [[ kvm['id'](), kvm['label']() ]]
 
     $("#program-add-programPermissions-container").html(

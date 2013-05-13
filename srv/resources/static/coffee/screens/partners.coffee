@@ -45,7 +45,7 @@ define [ "utils"
         tableName: "partner"
         objURL: "/allPartners"
 
-      screenman.addScreen(modelName, -> )
+      table = screenman.addScreen(modelName, -> )
         .addTable(tableParams)
         .setObjsToRowsConverter(objsToRows)
         .on("click.datatable", "tr", ->
@@ -57,6 +57,19 @@ define [ "utils"
           k['servicesReference'].subscribe ->
             addTarifStuff i for i in k['servicesReference']())
       screenman.showScreen modelName
+
+      $('#partner-permissions').find('.btn-success').on 'click', ->
+        obj =
+          addrDeFacto: kvm.addrDeFacto()
+          city: kvm.city()
+          comment: kvm.comment()
+          id: kvm.id()
+          isDealer: kvm.isDealer()
+          isMobile: kvm.isMobile()
+          name: kvm.name()
+          phone1: kvm.phone1()
+          workingTime: kvm.workingTime()
+        table.dataTable.fnAddData objsToRows [obj]
 
     addNewServiceToPartner = (name) ->
       p = global.viewsWare["partner-view"].knockVM

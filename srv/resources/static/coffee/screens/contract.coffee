@@ -190,8 +190,8 @@ define [
         if args.id == null && args.program == '2'
           kvm.carMake 'vw' if kvm.carMake
         kvm.dixi.subscribe ->
-          $.getJSON getContractURL(kvm['id']()), (objs) ->
-            table.dataTable.fnAddData objs.map sk.mkRow
+          $.getJSON getContractURL(kvm['id']()), (obj) ->
+            table.dataTable.fnAddData sk.mkRow obj
 
         screenman.showScreen modelName
 
