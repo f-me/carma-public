@@ -145,6 +145,10 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
       $('select[name=supervisor-table_length]').val(100)
       $('select[name=supervisor-table_length]').change()
 
+      $(->
+        objURL = do formatObjURL
+        table.setObjs objURL unless objURL is "")
+
   { constructor: screenSetup
   , template: tpl
   }
