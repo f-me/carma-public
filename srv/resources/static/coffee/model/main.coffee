@@ -132,14 +132,21 @@ define [ "model/meta"
           read: ->
             mbid = parseInt(knockVM["maybeId"]())
             dixi = if knockVM["dixi"] then knockVM["dixi"]()
-            console.log
             (not _.isNaN mbid) and
             dixi               and
             disabled()         and not
             knockVM['disableDixi']()
           write: (a) ->
             disabled(not not a)
-    
+
+    # make submit button disabled
+    # until all required fields are filled
+    knockVM['dixiDisabled'] = ko.computed ->
+      isFilled = _.all(_.map(instance.requiredFields, (field) ->
+        not knockVM[field + 'Not']()), _.identity)
+      dixi = if knockVM["dixi"] then knockVM["dixi"]() else false
+      if dixi or not isFilled then true else false
+
     applyHooks global.hooks.observable,
                ['*', instance.model.name],
                instance, knockVM, viewName

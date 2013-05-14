@@ -177,17 +177,6 @@
       }
     },
     {
-      "name": "carCheckPeriod",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
-      "meta": {
-        "required": true,
-        "label": "Межсервисный интервал",
-        "sqltype": "integer",
-        "koupdate": "change"
-      }
-    },
-    {
       "name": "contractType",
       "canRead": ["partner"],
       "canWrite": ["partner"],
