@@ -6,7 +6,7 @@ define [ "model/main"
        ],
 (main, mu, utils, tpl, screenman) ->
 
-  addNewPermissionToProgram = (name) ->
+  this.addNewPermissionToProgram = (name) ->
     p = global.viewsWare["program-view"].knockVM
     mu.addReference p,
                  'programPermissions',
