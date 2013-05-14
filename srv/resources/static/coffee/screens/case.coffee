@@ -158,9 +158,14 @@ define [ "utils"
         utils.mkDataTable table, $.extend(tblOpts, {sScrollY: "200px"})
         table.on "click.datatable", "tr", ->
           name = this.children[0].innerText
-          addr = this.children[1].innerText
+          if partnerType is "contractor"
+            addr = this.children[1].innerText
+            svc["#{partnerType}_address"](addr)
+          else
+            city = this.children[1].innerText
+            addr = this.children[2].innerText
+            svc["#{partnerType}_address"]("#{city}, #{addr}")
           svc["#{partnerType}_partner"](name)
-          svc["#{partnerType}_address"](addr)
           svc["#{partnerType}_partnerId"]($(this).attr('partnerid'))
 
       table = table.dataTable()
