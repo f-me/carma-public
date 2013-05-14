@@ -44,7 +44,6 @@ define [
       params  = ["id=#{kvm.id()}"]
       params.unshift "carVin=#{vin}"     if vin
       params.unshift "cardNumber=#{num}" if num
-      console.log params
       $.getJSON "/contracts/findSame?#{params.join('&')}", cb
 
     mkTableSkeleton = (tableModel, fields) ->
@@ -100,6 +99,10 @@ define [
         sSortDataType: 'dom-checkbox'
         aTargets: [1]
       ]
+
+      # enable horizontal scrolling
+      sScrollX: "100%"
+      sScrollXInner: "110%"
 
     modelSetup = (modelName, viewName, args, programModel) ->
       if args.id
