@@ -1,18 +1,32 @@
-define [ "hooks/partner"
-       , "utils"
+define [ "utils"
        , "text!tpl/screens/partner.html"
        , "model/utils"
        , "model/main"
+       , "screenman"
        ],
-  (p, utils, tpl, mu, main) ->
-    setupPartnersForm = (viewName, args) ->
+  (utils, tpl, mu, main, screenman) ->
+
+    modelSetup = (modelName, viewName, args) ->
+      permEl = "#{modelName}-permissions"
+      focusClass = "focusable"
       refs = [field: "services"
              ,forest: "partner-services-references"
              ]
-      kvm = main.modelSetup("partner") viewName, args,
-                            permEl: "partner-permissions"
-                            focusClass: "focusable"
-                            refs: refs
+      options = {permEl, focusClass, refs}
+      main.modelSetup(modelName) viewName, args, options
+
+    objsToRows = (objs) ->
+      dict = global.dictValueCache['DealerCities']
+      rows = for obj in objs
+        [obj.id
+        ,obj.name       || ''
+        ,dict[obj.city] || obj.city
+        ,obj.comment    || ''
+        ]
+
+    screenSetup = (viewName, args) ->
+      modelName = "partner"
+      kvm = modelSetup modelName, viewName, args
 
       utils.build_global_fn 'addNewServiceToPartner', ['screens/partners']
       $("#partner-add-service-container").html(
@@ -26,39 +40,36 @@ define [ "hooks/partner"
       # allerts
       global.alertObj = { kvm: ko.observable(kvm)}
       ko.applyBindings(global.alertObj, $("#partner-errors")[0])
-      setTimeout(->
-        $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
-        $.fn.dataTableExt.oStdClasses.sFilter = "dataTables_filter form-inline"
 
-        t = $("#partner-table");
-        return if t.hasClass("dataTable")
-        utils.mkDataTable(t)
+      tableParams =
+        tableName: "partner"
+        objURL: "/allPartners"
 
-        t.on("click.datatable", "tr", ->
-          id = this.children[0].innerText
-          kvm = main.modelSetup("partner") viewName, {"id": id},
-                                permEl: "partner-permissions"
-                                focusClass: "focusable"
-                                refs: refs
-          k = global.viewsWare['partner-view'].knockVM
+      table = screenman.addScreen(modelName, -> )
+        .addTable(tableParams)
+        .setObjsToRowsConverter(objsToRows)
+        .on("click.datatable", "tr", ->
+          id = @children[0].innerText
+          kvm = modelSetup modelName, viewName, {id}
+          k = global.viewsWare["#{modelName}-view"].knockVM
           global.alertObj.kvm(kvm)
 
           k['servicesReference'].subscribe ->
-            addTarifStuff i for i in k['servicesReference']()
-        )
-        dict = global.dictValueCache['DealerCities']
-        $.getJSON("/allPartners",
-            (objs) ->
-                dt = t.dataTable()
-                dt.fnClearTable()
-                rows = for obj in objs
-                    [obj.id
-                    ,obj.name       || ''
-                    ,dict[obj.city] || obj.city
-                    ,obj.comment    || ''
-                    ]
-                dt.fnAddData(rows)
-        ))
+            addTarifStuff i for i in k['servicesReference']())
+      screenman.showScreen modelName
+
+      $('#partner-permissions').find('.btn-success').on 'click', ->
+        obj =
+          addrDeFacto: kvm.addrDeFacto()
+          city: kvm.city()
+          comment: kvm.comment()
+          id: kvm.id()
+          isDealer: kvm.isDealer()
+          isMobile: kvm.isMobile()
+          name: kvm.name()
+          phone1: kvm.phone1()
+          workingTime: kvm.workingTime()
+        table.dataTable.fnAddData objsToRows [obj]
 
     addNewServiceToPartner = (name) ->
       p = global.viewsWare["partner-view"].knockVM
@@ -84,12 +95,12 @@ define [ "hooks/partner"
           utils.bindRemove kvm, 'tarifOptions'
           utils.focusRef k
 
-    releasePartnersForm = () ->
+    screenRelease = () ->
       ko.cleanNode($("#partner-errors")[0])
       delete global.alertObj
 
-    { constructor: setupPartnersForm
-    , destructor : releasePartnersForm
+    { constructor: screenSetup
+    , destructor : screenRelease
     , template: tpl
     , addNewServiceToPartner: addNewServiceToPartner
     }

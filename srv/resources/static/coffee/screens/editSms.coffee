@@ -1,39 +1,38 @@
-define ["utils", "model/main", "text!tpl/screens/editSms.html"],
-  (utils, main, tpl) ->
-    setupSmsTplForm = (viewName, args) ->
-
-      refs = [ ]
-      main.modelSetup("smsTpl") viewName, args,
-                            permEl: "smsTpl-permissions"
-                            focusClass: "focusable"
-                            refs: refs
-
-      setTimeout(->
-        $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
-        $.fn.dataTableExt.oStdClasses.sFilter = "dataTables_filter form-inline"
-
-        t = $("#sms-table");
-        return if t.hasClass("dataTable")
-        utils.mkDataTable(t)
-
-        t.on("click.datatable", "tr", ->
-          id = this.children[0].innerText
-          main.modelSetup("smsTpl") viewName, {"id": id},
-                                permEl: "smsTpl-permissions"
-                                focusClass: "focusable"
-                                refs: refs
-        )
-
-        $.getJSON("/all/smsTpl?fields=id,name,text,notActive",
-            (objs) ->
-                dt = t.dataTable()
-                dt.fnClearTable()
-                rows = for obj in objs
-                    [obj.id.split(':')[1]
-                    ,obj.name || ''
-                    ,obj.text || ''
-                    ]
-                dt.fnAddData(rows)
-        ))
-    constructor: setupSmsTplForm
+define ["model/main", "text!tpl/screens/editSms.html", "screenman"],
+  (main, tpl, screenman) ->
+    modelSetup = (modelName, viewName, args) ->
+      permEl = "#{modelName}-permissions"
+      focusClass = "focusable"
+      refs = []
+      options = {permEl, focusClass, refs}
+      main.modelSetup(modelName) viewName, args, options
+    
+    objsToRows = (objs) ->
+      columns = ["id", "name", "text"]
+      makeRow = (obj) ->
+        _.map columns, (column) ->
+          switch column
+            when "id" then obj[column].split(':')[1]
+            else obj[column] || ""
+      
+      rows = (makeRow obj for obj in objs)
+    
+    screenSetup = (viewName, args) ->
+      modelName = "smsTpl"
+      
+      tableParams = 
+        tableName: "sms"
+        objURL: "/all/smsTpl?fields=id,name,text,notActive"
+      
+      screenman.addScreen(modelName, ->
+        modelSetup modelName, viewName, args)
+        .addTable(tableParams)
+        .setObjsToRowsConverter(objsToRows)
+        .on("click.datatable", "tr", ->
+          id = @children[0].innerText
+          modelSetup modelName, viewName, {id})
+      
+      screenman.showScreen modelName
+    
+    constructor: screenSetup
     template   : tpl

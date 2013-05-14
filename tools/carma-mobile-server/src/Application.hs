@@ -346,14 +346,20 @@ instance ToJSON Partner where
 
 
 ------------------------------------------------------------------------------
--- | Splice lon, lat and limit onto query and fetch list of partners
--- ordered by distance to the provided point, in ascending order.
+-- | Splice 5 parameters: car brand (boolean flag if this filter is
+-- enabled (active low) & value for this parameter), lon, lat and
+-- limit onto query; then fetch list of partners ordered by distance
+-- to the provided point, in ascending order. Serve only dealer
+-- partners with non-empty names.
 partnersAroundQuery :: Query
 partnersAroundQuery = [sql|
 SELECT id, st_x(coords), st_y(coords),
 isDealer, isMobile,
 name, addrDeFacto, phone1
 FROM partnertbl
+WHERE isDealer
+AND name != ''
+AND (? or ? = ANY(makes))
 ORDER BY
 ST_Distance_Sphere(coords, ST_PointFromText('POINT(? ?)', 4326)) ASC
 LIMIT ?;
@@ -367,10 +373,16 @@ partnersAround :: Handler b GeoApp ()
 partnersAround = do
   cds <- getParamWith coords "coords"
   limit <- getParam "limit"
+  brand <- getParam "car_make"
   case cds of
     Just (lon, lat) -> do
-      results :: [Partner] <- query partnersAroundQuery
-                              (lon, lat, fromMaybe "20" limit)
+      let qParams = ( isNothing brand
+                    , fromMaybe "" brand
+                    , lon
+                    , lat
+                    , fromMaybe "20" limit
+                    )
+      results :: [Partner] <- query partnersAroundQuery qParams
       modifyResponse $ setContentType "application/json"
       writeLBS $ Aeson.encode results
     _ -> error "Bad request"

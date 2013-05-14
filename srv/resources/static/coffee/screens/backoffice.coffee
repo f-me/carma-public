@@ -15,7 +15,8 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
         tables = mkBoTable()
         global.boData = { started: new Date, r: {} }
         params = "assignedTo=#{global.user.login}&closed=0"
-        $.getJSON("/allActions?#{params}", setupBoTable)
+        # FIXME: remove this, when backend will be fast enough (it will, be sure)
+        setTimeout (-> $.getJSON("/allActions?#{params}", setupBoTable)), 1500
       ), 200)
 
   updateUnassigned = ->
