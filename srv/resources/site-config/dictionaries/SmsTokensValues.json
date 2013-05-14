@@ -245,7 +245,7 @@
         "program_from_name": [
             {
                 "value": "aston",
-                "label": "Aston Martin"
+                "label": "AstonMartin"
             },
             {
                 "value": "bentley",
@@ -278,7 +278,7 @@
             },
             {
                 "value": "avtoC",
-                "label": "Avto-T"
+                "label": "AvtoT"
             },
             {
                 "value": "arval",
@@ -390,7 +390,7 @@
             },
             {
                 "value": "bp",
-                "label": "BP Assistance"
+                "label": "BPAssistance"
             },
             {
                 "value": "chartis",
