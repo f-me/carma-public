@@ -1304,11 +1304,13 @@
       </div>
     </script>
 
+    <!-- Partner map popup -->
     <script type="text/template" id="partner-popup-template">
       <div><strong>{{ name }}</strong></div>
       <div>{{ addrDeFacto }}</div>
       <div>{{ phone1 }}</div>
       <div>{{ workingTime }}</div>
+      <div>{{ comment }}</div>
       <div><a class="btn btn-mini btn-primary"
               onclick="pickPartnerBlip('{{ parentView }}', '{{ mapId }}', '{{ id }}', '{{ name }}', '{{ addrDeFacto }}', '{{ coords }}', '{{ partnerIdField }}', '{{ partnerField }}', '{{ partnerAddrField }}', '{{ partnerCoordsField }}');">Выбрать</a></div>
     </script>
