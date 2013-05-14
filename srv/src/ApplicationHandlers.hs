@@ -382,7 +382,10 @@ vinUploadData = scope "vin" $ scope "upload" $ do
       log Trace $ T.concat ["Initializing state for file: ", T.pack f]
       with vin $ initUploadState f
       log Trace $ T.concat ["Uploading data from file: ", T.pack f]
-      with vin $ uploadData (T.unpack . T.decodeUtf8 $ p) f
+      -- Set current user as owner
+      Just u <- with auth currentUser
+      let Just (UserId uid) = userId u
+      with vin $ uploadData (T.encodeUtf8 uid) (T.unpack . T.decodeUtf8 $ p) f
 
 vinStateRead :: AppHandler ()
 vinStateRead = scope "vin" $ scope "state" $ scope "get" $ do
