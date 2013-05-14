@@ -42,7 +42,6 @@ define [
       params  = ["id=#{kvm.id()}"]
       params.unshift "carVin=#{vin}"     if vin
       params.unshift "cardNumber=#{num}" if num
-      console.log params
       $.getJSON "/contracts/findSame?#{params.join('&')}", cb
 
     mkTableSkeleton = (tableModel, fields) ->
@@ -103,6 +102,10 @@ define [
         $.getJSON(getContractURL(aData[0]), (contract) ->
           $('td:eq(1)', nRow).html("<input type='checkbox' name='isActive' #{if contract.isActive is "1" then 'checked'} disabled='disabled' />")
         )
+
+      # enable horizontal scrolling
+      sScrollX: "100%"
+      sScrollXInner: "110%"
 
     modelSetup = (modelName, viewName, args, programModel) ->
       if args.id
