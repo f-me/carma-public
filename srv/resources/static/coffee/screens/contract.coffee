@@ -20,7 +20,9 @@ define [
     formatTableColumns = (program) ->
       tableCols =
             [ {name: "#", fn: (o) -> o.id}
-            , "isActive"
+            , {name: "Активен"
+              ,fn: (v) -> if v.isActive == "true" then "✓" else ""
+              }
             , "ctime"
             , "carVin"
             , "carMake"
@@ -98,11 +100,6 @@ define [
         sSortDataType: 'dom-checkbox'
         aTargets: [1]
       ]
-
-      fnRowCallback: (nRow, aData, iDisplayIndex, iDisplayIndexFull) ->
-        $.getJSON(getContractURL(aData[0]), (contract) ->
-          $('td:eq(1)', nRow).html("<input type='checkbox' name='isActive' #{if contract.isActive is "1" then 'checked'} disabled='disabled' />")
-        )
 
     modelSetup = (modelName, viewName, args, programModel) ->
       if args.id
