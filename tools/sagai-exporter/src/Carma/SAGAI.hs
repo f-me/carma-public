@@ -1,11 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DoAndIfThenElse #-}
-{-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE TupleSections #-}
 
 {-|
 
@@ -111,6 +108,7 @@ class (Functor m, Monad m, MonadIO m) => ExportMonad m where
     putState       :: ExportState -> m ()
 
     -- Fields for which export rules differ between case and services.
+    ddrField       :: m Int
     panneField     :: m Int
     defField       :: m Int
     somField       :: m Int
@@ -139,6 +137,12 @@ instance ExportMonad CaseExport where
 
     expenseType = return Dossier
 
+    ddrField = do
+      servs <- filter exportable <$> getAllServices
+      timestampToDate =<< case servs of
+        [] -> caseField1 "callDate"
+        ((_, _, d):_) -> dataField1 "times_factServiceStart" d
+
     panneField = cnst "0"
 
     defField = push =<< codeField defCode
@@ -153,9 +157,22 @@ instance ExportMonad CaseExport where
 
     comm3Field = do
       servs <- filter exportable <$> getAllServices
-      pushComment $ case servs of
-        [] -> BS.empty
-        ((_, _, d):_) -> dataField0 "orderNumber" d
+      let towages = filter (\(mn, _, _) -> mn == "towage") servs
+      -- Include order number of the first exportable service, include
+      -- contractor code of the first towage service (if present).
+      fields <-
+          case servs of
+            [] -> return []
+            ((_, _, d):_) ->
+                do
+                  let oNum = dataField0 "orderNumber" d
+                  case towages of
+                    [] -> return [oNum]
+                    (s:_) ->
+                        do
+                          pCode <- contractorCode s towagePid
+                          return [oNum, pCode]
+      pushComment $ BS.intercalate " " fields
 
 
 -- | Add an entry to export log.
@@ -183,6 +200,10 @@ instance ExportMonad ServiceExport where
     getState = lift $ get
 
     putState = lift . put
+
+    ddrField = getService >>=
+               \(_, _, d) -> dataField1 "times_factServiceStart" d >>=
+               timestampToDate
 
     panneField = cnst "1"
 
@@ -241,7 +262,7 @@ instance ExportMonad ServiceExport where
           _      -> lift $ comm2Field
 
     comm3Field = do
-        (mn, _, d) <- getService
+        s@(mn, _, d) <- getService
         let oNum = dataField0 "orderNumber" d
         fields <-
             case mn of
@@ -260,29 +281,15 @@ instance ExportMonad ServiceExport where
                     return [carCl, oNum]
               "towage" ->
                   do
-                    -- Try to fetch contractor code (not to be
-                    -- confused with partner id) for selected
-                    -- contractor
-                    let partnerField = "towDealer_partnerId"
-                        sPid = dataField0 partnerField d
-                    cp <- getCarmaPort
-                    pCode <- case (BS.null sPid, read1Reference sPid) of
-                      -- If no partnerId specified, do not add partner
-                      -- code to extra information to comm3 field.
-                      (True, _) ->
-                          return ""
-                      (False, Nothing) ->
-                          exportError (UnreadableContractorId sPid)
-                      (False, Just (_, pid)) ->
-                          dataField0 "code" <$>
-                          (liftIO $ readInstance cp "partner" pid)
+                    pCode <- contractorCode s towagePid
                     return [oNum, pCode]
               "consultation" ->
                   do
+                    cid <- caseField1 "id"
                     res <- labelOfValue
                            (dataField0 "result" d)
                            (getDict result)
-                    return [oNum, res]
+                    return [cid, res]
               _ -> exportError $ UnknownService mn
         pushComment $ BS.intercalate " " fields
 
@@ -406,9 +413,8 @@ exportable (mn, _, d) = statusOk && typeOk
                 "consultation" -> True
                 "towage"       -> True
                 "rent"         -> True
-                "tech"         ->
-                    elem (dataField0 "techType" d)
-                             ["charge", "condition", "starter"]
+                "tech"         -> elem (dataField0 "techType" d)
+                                  ["charge", "condition", "starter"]
                 _        -> False
           -- Check status and falseCall fields
           statusOk = (falseCall == "none" && status == "serviceClosed") ||
@@ -438,6 +444,33 @@ callDateWithin f1 f2 = do
     _ -> False
 
 
+-- | Name of a towage service field with a reference to partner id.
+towagePid :: FieldName
+towagePid = "towDealer_partnerId"
+
+
+-- | Extract contractor code (not to be confused with partner id) from
+-- a service. Return empty string if no partner is selected.
+contractorCode :: ExportMonad m =>
+                  Service
+               -> FieldName
+               -- ^ Name of service field which stores a reference to
+               -- partner id (i.e. @towDealer_partnerId@).
+               -> m FieldValue
+contractorCode (_, _, d) partnerField = do
+  let sPid = dataField0 partnerField d
+  cp <- getCarmaPort
+  case (BS.null sPid, read1Reference sPid) of
+    -- If no partnerId specified, do not add partner
+    -- code to extra information to comm3 field.
+    (True, _) ->
+        return ""
+    (False, Nothing) ->
+        exportError (UnreadableContractorId sPid)
+    (False, Just (_, pid)) ->
+        dataField0 "code" <$> (liftIO $ readInstance cp "partner" pid)
+
+
 -- | True if a dealer with given id is a PSA dealer and PSA costs must
 -- be applied.
 isPSADealer :: ExportMonad m =>
@@ -446,7 +479,7 @@ isPSADealer :: ExportMonad m =>
             -> m Bool
 isPSADealer pid = do
   cp <- getCarmaPort
-  makes <- B8.split manyFieldDivisor <$> dataField0 "makes" <$> 
+  makes <- B8.split manyFieldDivisor <$> dataField0 "makes" <$>
            (liftIO $ readInstance cp "partner" pid)
   return $ (not $ null makes) &&
            any (flip elem ["citroen", "peugeot"]) makes
@@ -592,10 +625,6 @@ ddgField :: ExportField
 ddgField = timestampToDate' =<< caseField1 "car_warrantyStart"
 
 
-ddrField :: ExportField
-ddrField = timestampToDate =<< caseField1 "callDate"
-
-
 ddcField :: ExportField
 ddcField = do
   ctime <- liftIO $ getCurrentTime
@@ -633,9 +662,9 @@ fillerField = spaces 5
 -- character set, not UTF-8. Processed string is then added to entry
 -- contents. Return count of bytes added.
 pushComment :: ExportMonad m =>
-              BS.ByteString
-           -- ^ Input bytestring in UTF-8.
-           -> m Int
+               BS.ByteString
+            -- ^ Input bytestring in UTF-8.
+            -> m Int
 pushComment input =
     do
       let input' = B8.map (\c -> if B8.elem c newline then space else c) input
@@ -758,9 +787,19 @@ entrySpec = concat $
 
 
 -- | Form an entry for the case or the service, depending on the
--- particular monad. Return total count of bytes added.
-sagaiExport :: ExportMonad m => m Int
-sagaiExport = sum <$> mapM id entrySpec
+-- particular monad. If an unexpected amount of bytes is produced,
+-- raise 'WrongLength' error. Return total count of bytes added.
+sagaiExport :: ExportMonad m =>
+               Int
+            -- ^ Expected byte count.
+            -> m Int
+sagaiExport m = do
+  n <- sum <$> mapM id entrySpec
+  if n == m
+  then return n
+  else do
+    s <- content <$> getState
+    exportError $ WrongLength n s
 
 
 -- | Format service data as @towage:312@ (model name and id).
@@ -772,6 +811,11 @@ formatServiceList :: [Service] -> String
 formatServiceList ss = "[" ++ (intercalate "," $ map formatService ss) ++ "]"
 
 
+-- | Expected length of a SAGAI entry for a case or a service.
+expectedEntryLength :: Int
+expectedEntryLength = (132 + 1) * 4
+
+
 -- | Initialize 'ServiceExport' monad and run 'sagaiExport' in it for
 -- a service.
 runServiceExport :: Service -> CaseExport Int
@@ -779,7 +823,7 @@ runServiceExport s = do
   exportLog $ "Now exporting " ++ formatService s
   et <- serviceExpenseType s
   exportLog $ "Expense type of service is " ++ show et
-  runReaderT sagaiExport (s, et)
+  runReaderT (sagaiExport expectedEntryLength) (s, et)
 
 
 -- | Form a full entry for the case and its services (only those which
@@ -789,7 +833,7 @@ sagaiFullExport :: CaseExport Int
 sagaiFullExport = do
   et <- expenseType
   exportLog $ "Expense type is " ++ show et
-  caseOut <- sagaiExport
+  caseOut <- sagaiExport expectedEntryLength
 
   allServs <- getAllServices
   let servs = filter exportable allServs

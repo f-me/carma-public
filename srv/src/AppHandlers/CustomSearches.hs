@@ -15,7 +15,7 @@ import Database.PostgreSQL.Simple.SqlQQ
 --------------------------------------------------------------------
 import Application
 import AppHandlers.Util
-
+import Utils.HttpErrors
 
 type MBS = Maybe ByteString
 
@@ -165,6 +165,7 @@ selectContracts = do
   rows <- withPG pg_search $ \c -> query c (fromString
     $  "SELECT c.id::text,"
     ++ "  extract (epoch from ctime at time zone 'UTC')::int8::text,"
+    ++ "  c.isActive::text,"
     ++ "  carVin, carMake, carModel, carColor, carPlateNum, cardNumber::text,"
     ++ "  carMakeYear::text, carCheckPeriod::text,"
     ++ "  extract (epoch from carBuyDate at time zone 'UTC')::int8::text,"
@@ -179,7 +180,7 @@ selectContracts = do
     ++ "    AND c.program = ? AND date(ctime) between ? AND ?")
     (userLogin usr, prg, prg, dateFrom, dateTo)
   let fields =
-        [ "id", "ctime", "carVin", "carMake", "carModel", "carColor"
+        [ "id", "ctime", "isActive", "carVin", "carMake", "carModel", "carColor"
         , "carPlateNum", "cardNumber", "carMakeYear", "carCheckPeriod"
         , "carBuyDate", "warrantyStart", "contractValidFromDate"
         , "contractValidUntilDate", "contractValidUntilMilage"
@@ -265,3 +266,23 @@ searchCases = do
     ["id", "contact_name", "callDate", "contact_phone1"
     ,"car_plateNum", "car_vin", "program", "comment"]
     rows
+
+findSameContract :: AppHandler ()
+findSameContract = do
+  vin <- getParam "carVin"
+  num <- getParam "cardNumber"
+  id  <- getParam "id"
+
+  case id of
+    Nothing  -> finishWithError 403 "need id param"
+    Just id' -> do
+      rows <- withPG pg_search $ \c -> query_ c $ fromString
+        $  " SELECT id::text, to_char(ctime, 'YYYY-MM-DD HH24:MI')"
+        ++ " FROM contracttbl"
+        ++ " WHERE ctime > now() - interval '30 days'"
+        ++ " AND id != " ++ quote id'
+        ++ "AND (false "
+        ++ (maybe "" (\x -> " OR carVin = "     ++ quote x) vin)
+        ++ (maybe "" (\x -> " OR cardNumber = " ++ quote x) num)
+        ++ ")"
+      writeJSON $ mkMap ["id", "ctime"] rows

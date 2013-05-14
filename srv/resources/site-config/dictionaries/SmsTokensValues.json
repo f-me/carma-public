@@ -218,6 +218,10 @@
                 "label": "+74956406690"
             },
             {
+                "value": "castrol",
+                "label": "+74956406690"
+            },
+            {
                 "value": "ruslan",
                 "label": "+78002504357"
             },
@@ -241,7 +245,7 @@
         "program_from_name": [
             {
                 "value": "aston",
-                "label": "Aston Martin"
+                "label": "AstonMartin"
             },
             {
                 "value": "bentley",
@@ -274,7 +278,7 @@
             },
             {
                 "value": "avtoC",
-                "label": "Avto-T"
+                "label": "AvtoT"
             },
             {
                 "value": "arval",
@@ -323,6 +327,10 @@
             {
                 "value": "micro",
                 "label": "Assistance"
+            },
+            {
+                "value": "castrol",
+                "label": "Castrol"
             },
             {
                 "value": "covidien",
@@ -382,7 +390,7 @@
             },
             {
                 "value": "bp",
-                "label": "BP Assistance"
+                "label": "BPAssistance"
             },
             {
                 "value": "chartis",
@@ -525,6 +533,10 @@
             {
                 "value": "auimp",
                 "label": "ДЦ Автоимпорт"
+            },
+            {
+                "value": "castrol",
+                "label": "B2C/ Кастрол"
             },
             {
                 "value": "tvd",

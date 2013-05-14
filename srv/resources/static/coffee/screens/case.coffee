@@ -139,22 +139,33 @@ define [ "utils"
       kase = global.viewsWare["case-form"].knockVM
       svc = utils.findCaseOrReferenceVM(parentView)
       # this options for datatable will hide priorities columns for dealer table
-      tblOpts = if partnerType is "contractor"
-                  {}
-               else
-                  { aoColumns: utils
-                      .repeat(5, null)
-                      .concat(utils.repeat(3, { bVisible: false}))
-                  }
+      tblOpts = if partnerType is 'contractor'
+        table.css("word-break", "break-all")
+        {
+          aoColumnDefs: [
+            {bVisible: false, aTargets: [1]}
+            {sWidth: "50px", aTargets: [4]}
+            {sWidth: "10px", aTargets: [5,6,7]}
+          ]
+        }
+      else
+        { aoColumns: utils
+          .repeat(5, null)
+          .concat(utils.repeat(3, { bVisible: false}))
+        }
 
       unless table.hasClass("dataTable")
         utils.mkDataTable table, $.extend(tblOpts, {sScrollY: "200px"})
         table.on "click.datatable", "tr", ->
           name = this.children[0].innerText
-          city = this.children[1].innerText
-          addr = this.children[2].innerText
+          if partnerType is "contractor"
+            addr = this.children[1].innerText
+            svc["#{partnerType}_address"](addr)
+          else
+            city = this.children[1].innerText
+            addr = this.children[2].innerText
+            svc["#{partnerType}_address"]("#{city}, #{addr}")
           svc["#{partnerType}_partner"](name)
-          svc["#{partnerType}_address"]("#{city}, #{addr}")
           svc["#{partnerType}_partnerId"]($(this).attr('partnerid'))
 
       table = table.dataTable()
