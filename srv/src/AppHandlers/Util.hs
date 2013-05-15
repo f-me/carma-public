@@ -4,17 +4,13 @@ module AppHandlers.Util where
 
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
 
 import Data.Aeson as Aeson
-import Data.Time
-import Control.Concurrent.STM
 
 import Snap
-import Snap.Snaplet.Auth
 
 import Application
 import Util
