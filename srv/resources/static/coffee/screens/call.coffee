@@ -25,9 +25,13 @@ define [ "utils"
       window.location.hash = "case/" + id
     )
 
+    sq = $('#search-query')
+    sq.tagautocomplete
+      character: '!'
+      source:    {entries: ['!', '!VIN:', '!госномер:']}
+
     e = jQuery.Event 'keypress'
     e.which = 32
-    sq = $('#search-query')
     sq.keypress(_.debounce((-> dtSearch st), 1500))
       .change(-> sq.trigger e)
 

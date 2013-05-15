@@ -39,12 +39,8 @@ body {
   text-align: left;
 }
 
-#call-searchtable_filter {
+#search-query {
   width: 30%;
-}
-
-#call-searchtable_filter input {
-  width: 90%;
 }
 
 #left {

@@ -234,38 +234,43 @@ searchCases = do
       id::text, contact_name,
       extract (epoch from callDate at time zone 'UTC')::int8::text,
       contact_phone1, car_plateNum, car_vin, program, comment
-    FROM casetbl
-    WHERE
-      lower(id::text
-        || ' ' || to_char(callDate + '4:00','DD.MM.YYYY')
-        || ' ' || coalesce(comment, '')
-        || ' ' || coalesce(betaComment, '')
-        || ' ' || coalesce(city, '')
-        || ' ' || coalesce(dealerCause, '')
-        || ' ' || coalesce(contact_name, '')
-        || ' ' || coalesce(contact_phone1, '')
-        || ' ' || coalesce(contact_phone2, '')
-        || ' ' || coalesce(contact_phone3, '')
-        || ' ' || coalesce(contact_phone4, '')
-        || ' ' || coalesce(contact_ownerEmail, '')
-        || ' ' || coalesce(contact_ownerName, '')
-        || ' ' || coalesce(contact_ownerPhone1, '')
-        || ' ' || coalesce(contact_ownerPhone2, '')
-        || ' ' || coalesce(contact_ownerPhone3, '')
-        || ' ' || coalesce(car_vin, '')
-        || ' ' || coalesce(car_plateNum, '')
-        || ' ' || coalesce(car_make, '')
-        || ' ' || coalesce(car_model, '')
-        || ' ' || coalesce(car_makeYear::text, '')
-        || ' ' || coalesce(to_char(car_buyDate + '4:00','DD.MM.YYYY'), '')
-        || ' ' || coalesce(to_char(car_checkupDate + '4:00','DD.MM.YYYY'), '')
-        || ' ' || coalesce(car_seller, '')
-        || ' ' || coalesce(car_dealerTO, '')
-        || ' ' || coalesce(cardNumber_cardNumber, '')
-        || ' ' || coalesce(cardNumber_cardOwner, '')
-        || ' ' || coalesce(caseAddress_address, '')
-        || ' ' || coalesce(program, '')
-      ) like lower('%' || trim(?) || '%')
+    FROM (select lower(trim(?)) as q) as query, casetbl
+    WHERE CASE
+      WHEN query.q ~ '!\d+'
+        THEN id = trim(leading '!' from query.q)::int4
+      WHEN query.q LIKE '!vin:%'
+        THEN lower(car_vin) = substring(query.q from '!vin:(.*)')
+      ELSE
+        lower(      to_char(callDate + '4:00','DD.MM.YYYY')
+          || ' ' || coalesce(comment, '')
+          || ' ' || coalesce(betaComment, '')
+          || ' ' || coalesce(city, '')
+          || ' ' || coalesce(dealerCause, '')
+          || ' ' || coalesce(contact_name, '')
+          || ' ' || coalesce(contact_phone1, '')
+          || ' ' || coalesce(contact_phone2, '')
+          || ' ' || coalesce(contact_phone3, '')
+          || ' ' || coalesce(contact_phone4, '')
+          || ' ' || coalesce(contact_ownerEmail, '')
+          || ' ' || coalesce(contact_ownerName, '')
+          || ' ' || coalesce(contact_ownerPhone1, '')
+          || ' ' || coalesce(contact_ownerPhone2, '')
+          || ' ' || coalesce(contact_ownerPhone3, '')
+          || ' ' || coalesce(car_vin, '')
+          || ' ' || coalesce(car_plateNum, '')
+          || ' ' || coalesce(car_make, '')
+          || ' ' || coalesce(car_model, '')
+          || ' ' || coalesce(car_makeYear::text, '')
+          || ' ' || coalesce(to_char(car_buyDate + '4:00','DD.MM.YYYY'), '')
+          || ' ' || coalesce(to_char(car_checkupDate + '4:00','DD.MM.YYYY'), '')
+          || ' ' || coalesce(car_seller, '')
+          || ' ' || coalesce(car_dealerTO, '')
+          || ' ' || coalesce(cardNumber_cardNumber, '')
+          || ' ' || coalesce(cardNumber_cardOwner, '')
+          || ' ' || coalesce(caseAddress_address, '')
+          || ' ' || coalesce(program, '')
+        ) like '%' || query.q || '%'
+      END
     ORDER BY callDate DESC
     LIMIT 100
     |]) [q]
@@ -273,6 +278,7 @@ searchCases = do
     ["id", "contact_name", "callDate", "contact_phone1"
     ,"car_plateNum", "car_vin", "program", "comment"]
     rows
+
 
 findSameContract :: AppHandler ()
 findSameContract = do

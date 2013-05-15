@@ -19,6 +19,7 @@
     <script src="/s/js/3p/bootstrap.min.js" />
     <script src="/s/js/3p/bootstrap-datepicker.js" />
     <script src="/s/js/3p/bootstrap-typeahead.js" />
+    <script src="/s/js/3p/bootstrap-tagautocomplete.js" />
 
     <!-- Tabular display -->
     <script src="/s/js/3p/jquery.dataTables.min.js" />
@@ -49,6 +50,9 @@
 
     <!-- base 64 encode/decode library -->
     <script src="/s/js/3p/b64.js" />
+
+    <!-- unicode support for regexps -->
+    <script src="/s/js/3p/unicode-regex.js" />
 
     <script src="/s/js/gen/customKoHandlers.js" />
 
