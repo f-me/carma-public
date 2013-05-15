@@ -53,11 +53,8 @@ class @AvayaWidget
       phone.calling()
       panel.find(".search-query").val(number)
 
-      numberParts = number.match(/\+7(\d\d\d)(\d\d\d)(\d\d)(\d*)/)
-      if numberParts
-        numberParts.shift()
-        $("#search-query").val(numberParts.join(" "))
-        $("#search-query").change()
+      $("#search-query").val(number)
+      $("#search-query").change()
 
       vm = global.viewsWare['call-form'].knockVM
       vm.callerName_phone1(number)
