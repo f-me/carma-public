@@ -39,10 +39,14 @@ define ["model/utils"], (mu) ->
       url: "/all/program",
       dataType: 'json',
       success: (objs) ->
-        d = entries: (for obj in objs
-              { value: obj.id.split(':')[1], label: obj.label || '' })
-            vin_entries: (for obj in objs
-              { value: obj.id.split(':')[1], label: obj.vinFormat || '' })
+        d = { entries:
+               for obj in objs
+                { value: obj.id.split(':')[1], label: obj.label || '' }
+
+              vin_entries:
+               for obj in objs
+                { value: obj.id.split(':')[1], label: obj.label || '' }
+            }
       async: false
     return d
 
