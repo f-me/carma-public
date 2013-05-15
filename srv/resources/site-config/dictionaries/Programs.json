@@ -133,9 +133,21 @@
             "label": "B2B / Автопрестус"
         },
         {
-            "value": "b2c",
-            "label": "B2C Карты"
+            "value": "b2cSt",
+            "label": "B2C / Стандарт"
         },
+        {
+            "value": "b2cPl",
+            "label": "B2C / Платинум"
+        },
+        {
+            "value": "b2cPr",
+            "label": "B2C / Премиум"
+        },
+        {
+            "value": "b2cL",
+            "label": "B2C / Лайт"
+        },        
         {
             "value": "samaraAssis",
             "label": "B2B / Самара-Ассистанс"
