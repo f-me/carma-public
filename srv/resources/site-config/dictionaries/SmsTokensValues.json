@@ -130,9 +130,21 @@
                 "label": "+74956406690"
             },
             {
-                "value": "b2c",
+                "value": "b2cPl",
                 "label": "+78002507262"
             },
+            {
+                "value": "b2cPr",
+                "label": "+78002507262"
+            },
+            {
+                "value": "b2cSt",
+                "label": "+78002507262"
+            },
+            {
+                "value": "b2cL",
+                "label": "+78002507262"
+            },            
             {
                 "value": "unicredit",
                 "label": "+78002507300"
@@ -373,9 +385,21 @@
                 "label": "Autoprestus"
             },
             {
-                "value": "b2c",
+                "value": "b2cPl",
                 "label": "RAMC"
             },
+            {
+                "value": "b2cPr",
+                "label": "RAMC"
+            },
+            {
+                "value": "b2cSt",
+                "label": "RAMC"
+            },
+            {
+                "value": "b2cL",
+                "label": "RAMC"
+            },            
             {
                 "value": "unicredit",
                 "label": "Unicreditbank"
@@ -615,9 +639,21 @@
                 "label": "Автопрестус"
             },
             {
-                "value": "b2c",
+                "value": "b2cPl",
                 "label": "B2C Карты"
             },
+            {
+                "value": "b2cPr",
+                "label": "B2C Карты"
+            },
+            {
+                "value": "b2cL",
+                "label": "B2C Карты"
+            },
+            {
+                "value": "b2cSt",
+                "label": "B2C Карты"
+            },            
             {
                 "value": "unicredit",
                 "label": "ЮниКредитбанк"
