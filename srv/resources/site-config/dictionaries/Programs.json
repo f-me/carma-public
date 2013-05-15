@@ -134,19 +134,19 @@
         },
         {
             "value": "b2cSt",
-            "label": "B2C / Стандарт"
+            "label": "B2C карты / Стандарт"
         },
         {
             "value": "b2cPl",
-            "label": "B2C / Платинум"
+            "label": "B2C карты / Платинум"
         },
         {
             "value": "b2cPr",
-            "label": "B2C / Премиум"
+            "label": "B2C карты / Премиум"
         },
         {
             "value": "b2cL",
-            "label": "B2C / Лайт"
+            "label": "B2C карты / Лайт"
         },        
         {
             "value": "samaraAssis",
