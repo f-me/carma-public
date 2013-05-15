@@ -50,7 +50,10 @@ define ["model/utils"], (mu) ->
   window.userProgramsDict = () ->
     # Requires user to re-login to update list of available programs
     pgms = global.user.meta.programs.split ','
-    entries: _.filter(allProgramsDict().entries,
+    allPgms = allProgramsDict()
+    entries: _.filter(allPgms.entries,
+      (e) -> _.contains pgms, e.value)
+    vin_entries: _.filter(allPgms.vin_entries,
       (e) -> _.contains pgms, e.value)
 
 
