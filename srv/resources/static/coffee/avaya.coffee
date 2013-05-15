@@ -1,4 +1,3 @@
-
 class Phone
   constructor: (ext,pwd) ->
     url = "ws://#{location.hostname}:8001/avaya/#{ext}/#{pwd}"
@@ -84,7 +83,7 @@ lineInfo =
     program: "B2B / Arc B2B"
   "RAMC B2C":
     greeting: "Русский АвтоМотоКлуб, имя оператора, добрый день! (Здравствуйте!)"
-    program: "B2C"
+    program: "B2C / Стандарт"
   "RUS-LAN":
     greeting: "Рус-Лан ассистанс, имя оператора, добрый день, чем могу Вам помочь?"
     program: "Рус Лан"
