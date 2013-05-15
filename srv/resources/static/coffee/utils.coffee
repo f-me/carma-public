@@ -45,7 +45,7 @@ define ["model/utils"], (mu) ->
 
               vin_entries:
                for obj in objs
-                { value: obj.id.split(':')[1], label: obj.vinFormat || '' }
+                { value: obj.vinFormat, label: obj.label || '' }
             }
       async: false
     return d
