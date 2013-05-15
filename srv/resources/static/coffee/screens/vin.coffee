@@ -7,7 +7,7 @@ define ["text!tpl/screens/vin.html", "utils"], (tpl, u) ->
     # by portal users, use appropriate set of programs.
     if _.contains(global.user.roles, "partner")
       all_html = vin_html
-      programs = userProgramsDict().entries
+      programs = userProgramsDict().vin_entries
     else
       all_html = vin_html + partner_html
       programs = global.dictionaries.Programs.entries

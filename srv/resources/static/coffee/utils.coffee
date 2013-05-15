@@ -40,7 +40,9 @@ define ["model/utils"], (mu) ->
       dataType: 'json',
       success: (objs) ->
         d = entries: (for obj in objs
-          { value: obj.id.split(':')[1], label: obj.label || '' })
+              { value: obj.id.split(':')[1], label: obj.label || '' })
+            vin_entries: (for obj in objs
+              { value: obj.id.split(':')[1], label: obj.vinFormat || '' })
       async: false
     return d
 
