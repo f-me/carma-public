@@ -258,7 +258,7 @@ searchCases = do
         || ' ' || coalesce(cardNumber_cardOwner, '')
         || ' ' || coalesce(caseAddress_address, '')
         || ' ' || coalesce(program, '')
-      ) like lower('%' || ? || '%')
+      ) like lower('%' || trim(?) || '%')
     ORDER BY callDate DESC
     LIMIT 100
     |]) [q]
