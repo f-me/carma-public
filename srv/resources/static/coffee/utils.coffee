@@ -45,7 +45,11 @@ define ["model/utils"], (mu) ->
 
               vin_entries:
                for obj in objs
-                { value: obj.vinFormat, label: obj.label || '' }
+                {
+                  value: obj.vinFormat
+                  label: obj.label || ''
+                  pname: obj.id.split(':')[1]
+                }
             }
       async: false
     return d
@@ -61,7 +65,7 @@ define ["model/utils"], (mu) ->
 
       vin_entries:
         _.filter(allPgms.vin_entries,
-                 (e) -> _.contains pgms, e.value)
+                 (e) -> _.contains pgms, e.pname)
     }
 
 
