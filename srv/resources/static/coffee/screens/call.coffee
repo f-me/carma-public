@@ -25,8 +25,11 @@ define [ "utils"
       window.location.hash = "case/" + id
     )
 
-    $('#search-query').keypress(_.debounce((-> dtSearch st), 1500))
-    $('#search-query').change(-> dtSearch st)
+    e = jQuery.Event 'keypress'
+    e.which = 32
+    sq = $('#search-query')
+    sq.keypress(_.debounce((-> dtSearch st), 1500))
+      .change(-> sq.trigger e)
 
     st.fnSort [[2, "desc"]]
     dtSearch st
