@@ -294,8 +294,8 @@ newCase = do
 
   -- Set default program (if not provided by client), then form a new
   -- case request to send to CaRMa
-  let setProg   = maybe id (const $ HM.insert caseProgram defaultProgram)
-                  (HM.lookup "program" jsonRq')
+  let setProg   = maybe (HM.insert caseProgram defaultProgram) (const id)
+                  (HM.lookup caseProgram jsonRq')
       caseBody  = setProg $
                   HM.delete "lon" $
                   HM.delete "lat" $
