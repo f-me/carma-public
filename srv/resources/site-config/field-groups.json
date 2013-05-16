@@ -640,6 +640,19 @@
             }
         },
         {
+            "name": "partnerCancel",
+            "type": "checkbox",
+            "meta": {
+                "title": "Отказ партнёра",
+                "id": "partnerCancel",
+                "launchLabel": "Отказ партнёра",
+                "saveLabel": "Сохранить",
+                "cancelLabel": "Отменить",
+                "nosql": true,
+                "widget": "modalDialog"
+            }
+        },
+        {
             "name": "coords",
             "meta": {
                 "label": "Координаты",

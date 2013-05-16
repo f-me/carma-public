@@ -1156,6 +1156,36 @@
       </button>
     </script>
 
+    <!-- Modal dialog template -->
+    <script type="text/template"
+            class="field-template"
+            id="modalDialog-field-template">
+      <div class="control-group">
+        <div class="controls checkbutton">
+          <label class="inline">
+            <input type="checkbox"
+                   name="{{ name }}"
+                   {{# readonly }}disabled{{/ readonly }}
+                   data-bind="checked: {{ name }},
+                              valueUpdate: 'change',
+                              disabled: {{ name }}Disabled" />
+            <a href="#{{ meta.id }}-modal" role="button" class="btn btn-danger" data-toggle="modal" data-bind="disabled: {{ name }}Disabled">{{ meta.launchLabel}}</a>
+          </label>
+        </div>
+        <div id="{{ meta.id }}-modal" class="modal hide fade">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h3>{{ meta.title }}</h3>
+          </div>
+          <div id="{{ meta.id }}-form" class="modal-body"/>
+          <div class="modal-footer">
+            <button id="{{ meta.id }}-save" class="btn btn-primary">{{ meta.saveLabel }}</button>
+            <button class="btn" data-dismiss="modal"
+            aria-hidden="true">{{ meta.cancelLabel}}</button>
+          </div>
+        </div>
+      </div>
+    </script>
 
     <!-- Default case group view template -->
     <script type="text/template"
