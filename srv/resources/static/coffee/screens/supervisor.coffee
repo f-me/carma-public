@@ -7,7 +7,7 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
     bPaginate: true
     fnRowCallback: (nRow, aData, iDisplayIndex, iDisplayIndexFull) ->
       caseId = aData[0].split('/')[0]
-      caseLnk = "<a href='/#case/#{caseId}'> #{aData[0]} </a>"
+      caseLnk = "<a style='color: black' href='/#case/#{caseId}'> #{aData[0]} </a>"
       duetime  = Date.parse aData[5]
       srvStart = Date.parse aData[10]
       mktime = (n) ->
