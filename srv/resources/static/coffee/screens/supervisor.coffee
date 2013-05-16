@@ -118,7 +118,6 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
     ko.applyBindings r, $('#role')[0]
     $('#role').val 'back'
 
-
     objURL = do formatObjURL
     tableParams =
       tableName: "supervisor"
@@ -145,10 +144,6 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
     table.dataTable.fnSort [[5,'asc']]
     $('select[name=supervisor-table_length]').val(100)
     $('select[name=supervisor-table_length]').change()
-
-    $(->
-      objURL = do formatObjURL
-      table.setObjs objURL unless objURL is "")
 
   { constructor: screenSetup
   , template: tpl
