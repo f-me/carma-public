@@ -17,8 +17,10 @@ module AppHandlers.PSA.Base
 where
 
 import Data.List
-import Database.PostgreSQL.Simple
+import Database.PostgreSQL.Simple hiding (query)
 import Database.PostgreSQL.Simple.SqlQQ
+
+import Snap.Snaplet.PostgresqlSimple
 
 
 -- | Query used to select exportable case ids, parametrized by program
@@ -83,11 +85,11 @@ AND c.comment=(SELECT comment FROM parentcase);
 -- matching VIN and case comment) which occured within 30 day period
 -- prior to the case creation date or battery recharges of the same
 -- car within previous 24 hours.
-repTowages :: Connection
-           -> Int
+repTowages :: HasPostgres m =>
+              Int
            -- ^ Case ID.
-           -> IO [Int]
-repTowages c n = do
-  rows <- query c rtQuery [n]
-  rows' <- query c rtQuery' [n]
+           -> m [Int]
+repTowages n = do
+  rows <- query rtQuery [n]
+  rows' <- query rtQuery' [n]
   return $ nub $ map head (rows ++ rows')

@@ -12,7 +12,7 @@ module AppHandlers.PSA
 where
 
 import Data.ByteString.Char8 (readInt)
-import Database.PostgreSQL.Simple
+import Snap.Snaplet.PostgresqlSimple
 import Snap
 
 import AppHandlers.PSA.Base
@@ -27,10 +27,9 @@ import Application
 psaCasesHandler :: AppHandler ()
 psaCasesHandler = do
   program <- getParam "program"
-  rows <- withPG pg_search $
-          \c -> case program of
-                  Just p -> query c psaQuery [p]
-                  Nothing -> query_ c psaQuery0
+  rows <- with db $ case program of
+            Just p -> query psaQuery [p]
+            Nothing -> query_ psaQuery0
   writeJSON (map head rows :: [Int])
 
 
@@ -42,6 +41,6 @@ repTowagesHandler = do
  case cid of
    Just (Just (n, _)) ->
        do
-         ids <- withPG pg_search $ \c -> repTowages c n
+         ids <- with db $ repTowages n
          writeJSON ids
    _ -> error "Could not read case id from request"
