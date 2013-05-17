@@ -16,6 +16,7 @@ module AppHandlers.PSA.Base
 
 where
 
+import Data.ByteString (ByteString)
 import Data.List
 import Database.PostgreSQL.Simple hiding (query)
 import Database.PostgreSQL.Simple.SqlQQ
@@ -52,7 +53,7 @@ AND  (calldate > car_warrantystart AND calldate < car_warrantyend);
 rtQuery :: Query
 rtQuery = [sql|
 WITH parentcase AS (select calldate, car_vin, comment from casetbl where id=?)
-SELECT s.id FROM casetbl c INNER JOIN towagetbl s
+SELECT concat(s.name, ':', s.id) FROM casetbl c INNER JOIN towagetbl s
 ON c.id=cast(split_part(s.parentid, ':', 2) as integer)
 WHERE s.parentid is not null
 AND c.car_vin=(SELECT car_vin FROM parentcase)
@@ -68,7 +69,7 @@ AND c.comment=(SELECT comment FROM parentcase);
 rtQuery' :: Query
 rtQuery' = [sql|
 WITH parentcase AS (select calldate, car_vin, comment from casetbl where id=?)
-SELECT s.id FROM casetbl c INNER JOIN techtbl s
+SELECT concat(s.name, ':', s.id) FROM casetbl c INNER JOIN techtbl s
 ON c.id=cast(split_part(s.parentid, ':', 2) as integer)
 WHERE s.parentid is not null
 AND c.car_vin=(SELECT car_vin FROM parentcase)
@@ -80,7 +81,7 @@ AND c.comment=(SELECT comment FROM parentcase);
 |]
 
 
--- | Given a case id, serve a list of towage service id's
+-- | Given a case id, return a list of towage/tech service references
 -- corresponding to repeated towages of the same car (as indicated by
 -- matching VIN and case comment) which occured within 30 day period
 -- prior to the case creation date or battery recharges of the same
@@ -88,7 +89,7 @@ AND c.comment=(SELECT comment FROM parentcase);
 repTowages :: HasPostgres m =>
               Int
            -- ^ Case ID.
-           -> m [Int]
+           -> m [ByteString]
 repTowages n = do
   rows <- query rtQuery [n]
   rows' <- query rtQuery' [n]

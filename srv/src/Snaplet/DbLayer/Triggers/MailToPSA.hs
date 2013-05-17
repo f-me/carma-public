@@ -201,8 +201,8 @@ sendRepTowageMail :: MonadTrigger m b =>
                   -- ^ Case id.
                   -> Int
                   -- ^ Towage service id.
-                  -> [Int]
-                  -- ^ Ids of previous towages.
+                  -> [ByteString]
+                  -- ^ References to previous towages.
                   -> m b ()
 sendRepTowageMail caseId towageId prevIds = do
   cfg     <- liftDb getSnapletUserConfig
@@ -211,7 +211,8 @@ sendRepTowageMail caseId towageId prevIds = do
   l <- liftDb askLog
   liftIO $ scoperLog l (T.intercalate " " $
                         ["sendRepTowageMail"] ++ 
-                        (map (T.pack . show) $ [caseId, towageId] ++ prevIds)) $
+                        (map (T.pack . show) [caseId, towageId]) ++ 
+                        map T.decodeUtf8 prevIds) $
            return ()
 
 
