@@ -80,7 +80,7 @@ AND c.comment=(SELECT comment FROM parentcase);
 rtQuery' :: Query
 rtQuery' = [sql|
 WITH parentcase AS (select calldate, car_vin, comment from casetbl where id=?)
-SELECT c.id FROM casetbl c INNER JOIN techtbl s
+SELECT s.id FROM casetbl c INNER JOIN techtbl s
 ON c.id=cast(split_part(s.parentid, ':', 2) as integer)
 WHERE s.parentid is not null
 AND c.car_vin=(SELECT car_vin FROM parentcase)
