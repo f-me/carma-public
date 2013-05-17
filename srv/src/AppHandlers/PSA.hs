@@ -7,8 +7,9 @@
 -}
 
 module AppHandlers.PSA
-    ( psaCases
+    ( psaCasesHandler
     , repTowages
+    , repTowagesHandler
     )
 
 where
@@ -50,8 +51,8 @@ AND  (calldate > car_warrantystart AND calldate < car_warrantyend);
 -- list of case numbers for that program to be exported to SAGAI, as
 -- selected by 'psaQuery'. If @program@ is not present, serve list of
 -- all exportable case numbers according to 'psaQuery0'.
-psaCases :: AppHandler ()
-psaCases = do
+psaCasesHandler :: AppHandler ()
+psaCasesHandler = do
   program <- getParam "program"
   rows <- withPG pg_search $
           \c -> case program of
@@ -91,17 +92,29 @@ AND c.comment=(SELECT comment FROM parentcase);
 |]
 
 
--- | Read case id from @id@ request parameter, serve JSON list of case
--- ids corresponding to towages of the same car (as indicated by
+-- | Given a case id, serve a list of towage service id's
+-- corresponding to repeated towages of the same car (as indicated by
 -- matching VIN and case comment) which occured within 30 day period
 -- prior to the case creation date or battery recharges of the same
 -- car within previous 24 hours.
-repTowages :: AppHandler ()
-repTowages = do
+repTowages :: Connection
+           -> Int
+           -- ^ Case ID.
+           -> IO [Int]
+repTowages c n = do
+  rows <- query c rtQuery [n]
+  rows' <- query c rtQuery' [n]
+  return $ nub $ map head (rows ++ rows')
+
+
+-- | Handler wrapper for 'repTowages'. Read case id from @id@ request
+-- parameter, serve JSON list of case ids for repeated towages.
+repTowagesHandler :: AppHandler ()
+repTowagesHandler = do
  cid <- (liftM readInt) <$> getParam "id"
  case cid of
-   Just (Just (n, _)) -> do
-               rows <- withPG pg_search $ \c -> query c rtQuery [n]
-               rows' <- withPG pg_search $ \c -> query c rtQuery' [n]
-               writeJSON (nub $ map head (rows ++ rows') :: [Int])
+   Just (Just (n, _)) ->
+       do
+         ids <- withPG pg_search $ \c -> repTowages c n
+         writeJSON ids
    _ -> error "Could not read case id from request"
