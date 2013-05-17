@@ -180,11 +180,11 @@ tryRepTowageMail action = do
 
   -- Check if an action is created for towage
   case B.split ':' svcRef of
-    "towage:":t:_ -> do
+    "towage":t:_ -> do
         caseRef <- get action "caseId"
         -- Extract corresponding case id.
         case B.split ':' caseRef of
-          "case:":n:_ ->
+          "case":n:_ ->
               case (B.readInt t, B.readInt n) of
                 (Just (tid, _), Just (cid, _)) -> do
                     prevIds <- liftDb $ repTowages cid
