@@ -53,7 +53,7 @@ AND  (calldate > car_warrantystart AND calldate < car_warrantyend);
 rtQuery :: Query
 rtQuery = [sql|
 WITH parentcase AS (select calldate, car_vin, comment from casetbl where id=?)
-SELECT concat(s.name, ':', s.id) FROM casetbl c INNER JOIN towagetbl s
+SELECT concat(s.type, ':', s.id) FROM casetbl c INNER JOIN towagetbl s
 ON c.id=cast(split_part(s.parentid, ':', 2) as integer)
 WHERE s.parentid is not null
 AND c.car_vin=(SELECT car_vin FROM parentcase)
@@ -69,7 +69,7 @@ AND c.comment=(SELECT comment FROM parentcase);
 rtQuery' :: Query
 rtQuery' = [sql|
 WITH parentcase AS (select calldate, car_vin, comment from casetbl where id=?)
-SELECT concat(s.name, ':', s.id) FROM casetbl c INNER JOIN techtbl s
+SELECT concat(s.type, ':', s.id) FROM casetbl c INNER JOIN techtbl s
 ON c.id=cast(split_part(s.parentid, ':', 2) as integer)
 WHERE s.parentid is not null
 AND c.car_vin=(SELECT car_vin FROM parentcase)
