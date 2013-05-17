@@ -34,12 +34,13 @@ partnersForSrvHandler =
     join (selectPartnersForSrv <$>
           getParam "city"      <*>
           getParam "isActive"  <*>
-          getParam "srv")
+          getParam "srv"       <*>
+          getParam "makes")
     >>= writeJSON
 
-selectPartnersForSrv :: MBS -> MBS -> MBS
+selectPartnersForSrv :: MBS -> MBS -> MBS -> MBS
                      -> AppHandler [Map ByteString ByteString]
-selectPartnersForSrv city isActive service = do
+selectPartnersForSrv city isActive service makes = do
   rows <- withPG pg_search $ \c -> query_ c $ fromString
     $  "SELECT p.id::text, p.name, p.city,"
     ++ "       p.comment, p.addrDeFacto, p.phone1, p.workingTime,"
@@ -55,6 +56,11 @@ selectPartnersForSrv city isActive service = do
     ++ (maybe "" (\x -> "  AND p.city = " ++ quote x) city)
     ++ (maybe "" (\x -> "  AND p.isActive = " ++ toBool x) isActive)
     ++ (maybe "" (\x -> "  AND s.servicename = " ++ quote x) service)
+    -- array_dims(make) IS NULL is array emptiness check
+    ++ (maybe " AND array_dims(makes) IS NULL"
+              (\x -> "  AND " ++ quote x ++ " = ANY (makes)")
+              makes)
+
   let fields =
         ["id","name","city","comment" ,"addrDeFacto"
         ,"phone1","workingTime","isDealer","isMobile"
@@ -258,7 +264,7 @@ searchCases = do
         || ' ' || coalesce(cardNumber_cardOwner, '')
         || ' ' || coalesce(caseAddress_address, '')
         || ' ' || coalesce(program, '')
-      ) like lower('%' || ? || '%')
+      ) like lower('%' || trim(?) || '%')
     ORDER BY callDate DESC
     LIMIT 100
     |]) [q]

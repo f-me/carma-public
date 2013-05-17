@@ -19,6 +19,7 @@ define ["model/main", "render/screen"], (main, render) ->
 
   removeReference: (knockVM, field, ref) ->
     field = field + 'Reference' unless /Reference$/.test(field)
+    ref['parentId']?('')
     knockVM[field] _.without(knockVM[field](), ref)
 
   # Load existing model instance

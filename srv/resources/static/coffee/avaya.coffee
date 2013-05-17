@@ -1,4 +1,3 @@
-
 class Phone
   constructor: (ext,pwd) ->
     url = "ws://#{location.hostname}:8001/avaya/#{ext}/#{pwd}"
@@ -53,11 +52,8 @@ class @AvayaWidget
       phone.calling()
       panel.find(".search-query").val(number)
 
-      numberParts = number.match(/\+7(\d\d\d)(\d\d\d)(\d\d)(\d*)/)
-      if numberParts
-        numberParts.shift()
-        $("#search-query").val(numberParts.join(" "))
-        $("#search-query").change()
+      $("#search-query").val(number)
+      $("#search-query").change()
 
       vm = global.viewsWare['call-form'].knockVM
       vm.callerName_phone1(number)
@@ -87,7 +83,7 @@ lineInfo =
     program: "B2B / Arc B2B"
   "RAMC B2C":
     greeting: "Русский АвтоМотоКлуб, имя оператора, добрый день! (Здравствуйте!)"
-    program: "B2C"
+    program: "B2C карты / Стандарт"
   "RUS-LAN":
     greeting: "Рус-Лан ассистанс, имя оператора, добрый день, чем могу Вам помочь?"
     program: "Рус Лан"
