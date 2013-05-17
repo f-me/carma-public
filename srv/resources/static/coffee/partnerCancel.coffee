@@ -31,8 +31,10 @@ define ["model/main"], (main) ->
 
         partnerCancelVM.ctime(Math.round((new Date).getTime() / 1000))
 
-        partnerId = parseInt fnPartnerId().split(':')[1]
-        partnerCancelVM.partnerId(partnerId)
+        strPartnerId = fnPartnerId()
+        if strPartnerId
+          partnerId = parseInt strPartnerId.split(':')[1]
+          partnerCancelVM.partnerId(partnerId)
 
         # we really need this because triggers do not trigger on `POST`
         # so, if {template:"xxx"} comes with POST (not with PUT), then
@@ -40,12 +42,14 @@ define ["model/main"], (main) ->
         vPartnerCancel.bbInstance.save()
 
         $("##{modelName}-save")
-          .off('click')
-        #  .on('click', ->
-        #    $("##{modelName}-modal").modal("hide")
-        #    $.post('/partnerCancel',
-        #      partnerCancelId: "partnerCancel:#{vPartnerCancel.bbInstance.id}"
-        #    )
-        #  )
+          .on('click', (event) ->
+            event.preventDefault()
+            $("##{modelName}-modal").modal('hide')
+
+            # send data here
+            # $.post('/partnerCancel',
+            #   partnerCancelId: "partnerCancel:#{vPartnerCancel.bbInstance.id}"
+            # )
+          )
       )
     )

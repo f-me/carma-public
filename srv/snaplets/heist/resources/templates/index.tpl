@@ -1169,19 +1169,28 @@
                    data-bind="checked: {{ name }},
                               valueUpdate: 'change',
                               disabled: {{ name }}Disabled" />
-            <a href="#{{ meta.id }}-modal" role="button" class="btn btn-danger" data-toggle="modal" data-bind="disabled: {{ name }}Disabled">{{ meta.launchLabel}}</a>
+            <button type="button"
+                data-toggle="modal"
+                data-target="#{{ meta.id }}-modal"
+                class="btn btn-danger"
+                data-bind="disabled: {{ name }}Disabled">{{ meta.launchLabel}}</button>
           </label>
         </div>
         <div id="{{ meta.id }}-modal" class="modal hide fade">
           <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <button type="button"
+                class="close"
+                data-dismiss="modal"
+                aria-hidden="true">&times;</button>
             <h3>{{ meta.title }}</h3>
           </div>
           <div id="{{ meta.id }}-form" class="modal-body"/>
           <div class="modal-footer">
-            <button id="{{ meta.id }}-save" class="btn btn-primary">{{ meta.saveLabel }}</button>
-            <button class="btn" data-dismiss="modal"
-            aria-hidden="true">{{ meta.cancelLabel}}</button>
+            <button id="{{ meta.id }}-save"
+                class="btn btn-primary">{{ meta.saveLabel }}</button>
+            <button class="btn"
+                data-dismiss="modal"
+                aria-hidden="true">{{ meta.cancelLabel}}</button>
           </div>
         </div>
       </div>

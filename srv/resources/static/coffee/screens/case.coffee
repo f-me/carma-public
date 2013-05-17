@@ -212,7 +212,8 @@ define [ "utils"
           $(tr).attr('partnerid', "partner:#{id}")
 
       # init modal dialog
-      partnerCancel.setup(svc.contractor_partnerId) if partnerType is "contractor"
+      if partnerType is "contractor"
+        partnerCancel.setup(svc.contractor_partnerId)
 
     #############################################################################
     # kb hooks
