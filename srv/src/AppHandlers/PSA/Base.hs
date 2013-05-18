@@ -81,8 +81,8 @@ AND c.comment=(SELECT comment FROM parentcase);
 |]
 
 
--- | Given a case id, return a list of towage/tech service references
--- corresponding to repeated towages of the same car (as indicated by
+-- | Given a case id, if it contains a repeated towages, return a list
+-- of towage/tech service references for the same car (as indicated by
 -- matching VIN and case comment) which occured within 30 day period
 -- prior to the case creation date or battery recharges of the same
 -- car within previous 24 hours.

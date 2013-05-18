@@ -34,7 +34,8 @@ psaCasesHandler = do
 
 
 -- | Handler wrapper for 'repTowages'. Read case id from @id@ request
--- parameter, serve JSON list of service ids for repeated towages.
+-- parameter, serve JSON list of service references if the case has a
+-- repeated towage.
 repTowagesHandler :: AppHandler ()
 repTowagesHandler = do
  cid <- (liftM readInt) <$> getParam "id"
