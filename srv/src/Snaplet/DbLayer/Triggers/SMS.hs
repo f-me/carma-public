@@ -21,18 +21,7 @@ import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
 import DictionaryCache
 
-
-
-render :: Map Text Text -> Text -> Text
-render varMap = T.concat . loop
-  where
-    loop tpl = case T.breakOn "$" tpl of
-      (txt, "") -> [txt]
-      (txt, tpl') -> case T.breakOn "$" $ T.tail tpl' of
-        (expr, "")    -> [txt, evalVar expr]
-        (expr, tpl'') -> txt : evalVar expr : loop (T.tail tpl'')
-
-    evalVar v = Map.findWithDefault v v varMap
+import Util as U
 
 
 formatDate :: String -> IO Text
@@ -76,7 +65,7 @@ sendSMS actId tplId = do
         ,("service.times_expectedServiceStart", eSvcStart)
         ]
   templateText <- T.decodeUtf8 <$> tplId `get` "text"
-  let msg = T.encodeUtf8 $ render varMap templateText
+  let msg = T.encodeUtf8 $ U.render varMap templateText
 
   now <- dateNow id
   smsId <- new "sms" $ Map.fromList
@@ -111,7 +100,7 @@ updateSMS smsId = do
     _ <- get smsId "template"
     tmp <- T.decodeUtf8 <$> (get smsId "template" >>= (`get` "text"))
     when (msg == "" && tmp /= "") $ do
-      let txt = T.encodeUtf8 $ render varMap tmp
+      let txt = T.encodeUtf8 $ U.render varMap tmp
       set smsId "msg" txt
 
     phone <- get smsId "phone"
