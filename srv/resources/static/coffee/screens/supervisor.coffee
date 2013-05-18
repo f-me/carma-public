@@ -120,36 +120,35 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
 
 
     objURL = do formatObjURL
-    if objURL isnt ""
-      tableParams =
-        tableName: "supervisor"
-        objURL: objURL
+    tableParams =
+      tableName: "supervisor"
+      objURL: objURL
 
-      modelName = "action"
+    modelName = "action"
 
-      table = screenman.addScreen(modelName, ->)
-        .addTable(tableParams)
-        .setObjsToRowsConverter(objsToRows)
-        .setDataTableOptions(do dataTableOptions)
-        .on("click.datatable", "tr", ->
-          id = @children[0].innerText.split('/')[1].replace(/\D/g,'')
-          modelSetup modelName, viewName, {id}
-          global.viewsWare["#{modelName}-form"].knockVM)
+    table = screenman.addScreen(modelName, ->)
+      .addTable(tableParams)
+      .setObjsToRowsConverter(objsToRows)
+      .setDataTableOptions(do dataTableOptions)
+      .on("click.datatable", "tr", ->
+        id = @children[0].innerText.split('/')[1].replace(/\D/g,'')
+        modelSetup modelName, viewName, {id}
+        global.viewsWare["#{modelName}-form"].knockVM)
 
-      screenman.showScreen modelName
+    screenman.showScreen modelName
 
-      $('#reload').click ->
-        objURL = do formatObjURL
-        table.setObjs objURL unless objURL is ""
+    $('#reload').click ->
+      objURL = do formatObjURL
+      table.setObjs objURL unless objURL is ""
 
 
-      table.dataTable.fnSort [[5,'asc']]
-      $('select[name=supervisor-table_length]').val(100)
-      $('select[name=supervisor-table_length]').change()
+    table.dataTable.fnSort [[5,'asc']]
+    $('select[name=supervisor-table_length]').val(100)
+    $('select[name=supervisor-table_length]').change()
 
-      $(->
-        objURL = do formatObjURL
-        table.setObjs objURL unless objURL is "")
+    $(->
+      objURL = do formatObjURL
+      table.setObjs objURL unless objURL is "")
 
   { constructor: screenSetup
   , template: tpl
