@@ -78,7 +78,7 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
       , srvStart || ''
       , obj.name || ''
       ]
-  
+
   formatObjURL = ->
     dateFrom = Date.parse $('#date-min').val()
     dateTo = Date.parse $('#date-max').val()
@@ -88,7 +88,7 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
         targetGroup: $('#role').val()
         duetimeFrom: utils.toUnix dateFrom
         duetimeTo  : utils.toUnix dateTo
-      
+
       select = []
       select.push("closed=#{opt.closed}") if opt.closed
       select.push("targetGroup=#{opt.targetGroup}") if opt.targetGroup
@@ -97,7 +97,7 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
       objURL = "/allActions?#{select.join('&')}"
     else
       ""
-  
+
   modelSetup = (modelName, viewName, args) ->
     permEl = "#{modelName}-permissions"
     focusClass = "focusable"
@@ -105,21 +105,28 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
     forceRender = ["assignedTo", "priority", "closed", "targetGroup"]
     options = {permEl, focusClass, refs, forceRender}
     main.modelSetup(modelName) viewName, args, options
-  
+
   screenSetup = (viewName, args) ->
     dateFrom = (new Date).addDays(-14)
     dateTo = (new Date).addDays(+7)
     $('#date-min').val dateFrom.toString('dd.MM.yyyy HH:mm')
     $('#date-max').val dateTo.toString('dd.MM.yyyy HH:mm')
-    
+
+    # deep copy
+    r = $.extend(true, {}, global.dictionaries.Roles)
+    r.entries.unshift {value: "", label: "Все роли"}
+    ko.applyBindings r, $('#role')[0]
+    $('#role').val 'back'
+
+
     objURL = do formatObjURL
     if objURL isnt ""
-      tableParams = 
+      tableParams =
         tableName: "supervisor"
         objURL: objURL
-      
+
       modelName = "action"
-      
+
       table = screenman.addScreen(modelName, ->)
         .addTable(tableParams)
         .setObjsToRowsConverter(objsToRows)
@@ -128,19 +135,14 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
           id = @children[0].innerText.split('/')[1].replace(/\D/g,'')
           modelSetup modelName, viewName, {id}
           global.viewsWare["#{modelName}-form"].knockVM)
-      
+
       screenman.showScreen modelName
-      
+
       $('#reload').click ->
         objURL = do formatObjURL
         table.setObjs objURL unless objURL is ""
-      
-      # deep copy
-      r = $.extend(true, {}, global.dictionaries.Roles)
-      r.entries.unshift {value: "", label: "Все роли"}
-      ko.applyBindings r, $('#role')[0]
-      $('#role').val 'back'
-      
+
+
       table.dataTable.fnSort [[5,'asc']]
       $('select[name=supervisor-table_length]').val(100)
       $('select[name=supervisor-table_length]').change()
