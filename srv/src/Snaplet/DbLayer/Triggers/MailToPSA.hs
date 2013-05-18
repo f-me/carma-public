@@ -1,7 +1,6 @@
 
 module Snaplet.DbLayer.Triggers.MailToPSA
   ( sendMailToPSA
-  , tryRepTowageMail
   ) where
 
 import Prelude hiding (log)
@@ -29,8 +28,6 @@ import System.Log.Simple
 import System.Log.Simple.Base (scoperLog)
 import Data.Configurator (require)
 import Network.Mail.Mime
-
-import AppHandlers.PSA.Base
 
 import Snap.Snaplet (getSnapletUserConfig)
 import Snaplet.DbLayer.Types (getDict)
@@ -167,53 +164,6 @@ sendMailActually actionId = do
           ,T.concat ["RAMC ", T.decodeUtf8 svcId, " / ", T.decodeUtf8 actionId])]
         ,mailParts = [[bodyPart]]
         }
-
-
--- | If an action is bound to a towage service which is a repeated
--- towage, send a mail to PSA.
-tryRepTowageMail :: MonadTrigger m b => 
-                    ByteString
-                 -- ^ A reference to an action (@action:321@).
-                 -> m b ()
-tryRepTowageMail action = do
-  svcRef <- get action "parentId"
-
-  -- Check if an action is created for towage
-  case B.split ':' svcRef of
-    "towage":t:_ -> do
-        caseRef <- get action "caseId"
-        -- Extract corresponding case id.
-        case B.split ':' caseRef of
-          "case":n:_ ->
-              case (B.readInt t, B.readInt n) of
-                (Just (tid, _), Just (cid, _)) -> do
-                    prevIds <- liftDb $ repTowages cid
-                    sendRepTowageMail cid tid prevIds
-                _ -> return ()
-          _ -> return ()
-    _ -> return ()
-
-
--- | Check if a case has associated repeated towages, send a mail to
--- PSA if so.
-sendRepTowageMail :: MonadTrigger m b =>
-                     Int
-                  -- ^ Case id.
-                  -> Int
-                  -- ^ Towage service id.
-                  -> [ByteString]
-                  -- ^ References to previous towages.
-                  -> m b ()
-sendRepTowageMail caseId towageId prevIds = do
-  cfg     <- liftDb getSnapletUserConfig
---  cfgFrom <- liftIO $ require cfg "psa-smtp-from"
---  cfgTo   <- liftIO $ require cfg "psa-smtp-recipients"
-  l <- liftDb askLog
-  liftIO $ scoperLog l (T.intercalate " " $
-                        ["sendRepTowageMail"] ++ 
-                        (map (T.pack . show) [caseId, towageId]) ++ 
-                        map T.decodeUtf8 prevIds) $
-           return ()
 
 
 get' :: MonadTrigger m b => ByteString -> ByteString -> m b Text
