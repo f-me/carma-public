@@ -66,7 +66,7 @@ import Snaplet.FileUpload (finished, tmp, doUpload', doDeleteAll')
 import Application
 import AppHandlers.Util
 import AppHandlers.Users
-import Util as U
+import Util as U hiding (render)
 import RuntimeFlag
 
 

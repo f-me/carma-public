@@ -13,15 +13,17 @@ module Util
   ,getCostField
   ,upCaseName
   ,bToString
+  , formatTimestamp
+  , render
   ) where
 
 import qualified Data.Map as Map
 import Data.Map (Map)
-import qualified Data.Vector as V
 import Data.Maybe
 
 import Control.Exception
 import Control.Applicative
+import Control.Monad.Trans (liftIO)
 import Data.Typeable
 import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Lazy  as L
@@ -33,8 +35,11 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 
+import Data.Time
+import Data.Time.Clock.POSIX
+import System.Locale (defaultTimeLocale)
+
 import Data.Aeson as Aeson
-import Data.Aeson.TH
 import Data.Attoparsec.ByteString.Lazy (Result(..))
 import qualified Data.Attoparsec.ByteString.Lazy as Atto
 
@@ -42,6 +47,7 @@ import Data.Attoparsec.Combinator (many1, choice)
 import qualified Data.Attoparsec.ByteString.Char8 as A
 
 import Text.Printf (printf)
+
 
 data JSONParseException
   = AttoparsecError FilePath String
@@ -148,3 +154,31 @@ upCaseName :: Text -> Text
 upCaseName = T.unwords . map upCaseWord . T.words
   where
     upCaseWord w = T.concat [T.toUpper $ T.take 1 w, T.toLower $ T.drop 1 w]
+
+
+-- | Simple templater (extracted from SMS module)
+render :: Map Text Text 
+       -- ^ Context.
+       -> Text
+       -- ^ Template. Context keys @like_this@ are referenced
+       -- @$like_this$@.
+       -> Text
+render varMap = T.concat . loop
+  where
+    loop tpl = case T.breakOn "$" tpl of
+      (txt, "") -> [txt]
+      (txt, tpl') -> case T.breakOn "$" $ T.tail tpl' of
+        (expr, "")    -> [txt, evalVar expr]
+        (expr, tpl'') -> txt : evalVar expr : loop (T.tail tpl'')
+
+    evalVar v = Map.findWithDefault v v varMap
+
+
+-- | Format timestamp as "DD/MM/YYYY".
+formatTimestamp tm = case B.readInt tm of
+  Just (s,"") -> do
+    tz <- liftIO getCurrentTimeZone
+    return $ T.pack $ formatTime defaultTimeLocale "%d/%m/%Y"
+      $ utcToLocalTime tz
+      $ posixSecondsToUTCTime $ fromIntegral s
+  _ -> return "???"
