@@ -260,12 +260,13 @@ define ["model/utils", "utils"], (mu, u) ->
   #
   # - partnerAddrField: same as partnerField, but for partner address
   # - partnerCoordsField: ... but for partner coordinates
+  # - partnerIdField: ... but for partner id
   partnerBlips = (osmap,
-                       partners, tableCache,
-                       parentView,
-                       highlightIds,
-                       partnerIdField, partnerField,
-                       partnerAddrField, partnerCoordsField) ->
+                  partners, tableCache,
+                  parentView,
+                  highlightIds,
+                  partnerIdField, partnerField,
+                  partnerAddrField, partnerCoordsField) ->
     markers = do (osmap) -> reinstallMarkers(osmap, "Partners")
     tpl = $("#partner-popup-template").html()
 

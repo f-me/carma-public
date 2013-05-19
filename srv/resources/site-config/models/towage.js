@@ -413,6 +413,7 @@
                 "contractor_partnerTable",
                 "contractor_partnerMap",
                 "contractor_coords",
+                "contractor_partnerCancel",
                 "contractor_address"
             ],
             "canRead": [

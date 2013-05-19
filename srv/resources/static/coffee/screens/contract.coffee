@@ -116,9 +116,9 @@ define [
           focusClass: "focusable"
           refs: [])
 
+      kvm['isActiveDisabled'](false)
       if _.find(global.user.roles, (r) -> r == 'contract_user')
         kvm['commentDisabled'](false)  if kvm['commentDisabled']
-        kvm['isActiveDisabled'](false) if kvm['isActiveDisabled']
       if _.find(global.user.roles, (r) -> r == 'contract_admin')
         kvm['disableDixi'](true)
 

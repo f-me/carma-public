@@ -3,8 +3,9 @@ define [ "utils"
        , "text!tpl/screens/case.html"
        , "model/utils"
        , "model/main"
+       , "partnerCancel"
        ],
-  (utils, hotkeys, tpl, mu, main) ->
+  (utils, hotkeys, tpl, mu, main, partnerCancel) ->
     utils.build_global_fn 'pickPartnerBlip', ['map']
 
     # Case view (renders to #left, #center and #right as well)
@@ -209,6 +210,10 @@ define [ "utils"
           tr = s.nTr
           id = s._aData[8]
           $(tr).attr('partnerid', "partner:#{id}")
+
+      # init modal dialog
+      if partnerType is "contractor"
+        partnerCancel.setup(svc.contractor_partnerId)
 
     #############################################################################
     # kb hooks

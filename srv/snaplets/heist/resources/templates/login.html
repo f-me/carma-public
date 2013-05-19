@@ -6,7 +6,9 @@
     <link rel="stylesheet" href="/s/css/bootstrap.min.css" />
     <link rel="stylesheet" href="/s/css/local.css" />
     <script src="/s/js/3p/jquery-1.7.1.min.js"></script>
+    <script src="/s/js/3p/jquery.browser.js"></script>
     <script type="text/javascript">
+
       $(function() {
         $(".field").first().focus();
         var msg = "<div class='span6 offset2'>                             \
@@ -14,9 +16,10 @@
         версии не ниже 10, установить его можно по следующей ссылке:       \
         <a href='http://www.google.com/chrome'> www.google.com/chrome </a> \
         </div>";
-        var ua  = navigator.userAgent.match(/.*Chrome\/([0-9]{2})/);
-        if (!ua || parseInt(ua[1]) < 10)
+
+        if (!$.browser.mozilla && !$.browser.webkit) {
           $("body").html(msg);
+        }
 
         $("form").submit(function() {
           var ext = $("input[name=avayaExt]")

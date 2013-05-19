@@ -216,6 +216,14 @@ caseCity :: ByteString
 caseCity = "city"
 
 
+caseProgram :: ByteString
+caseProgram = "program"
+
+
+defaultProgram :: ByteString
+defaultProgram = "ramc2"
+
+
 ------------------------------------------------------------------------------
 -- | Name of case id field in action model.
 actionCaseId :: ByteString
@@ -226,6 +234,7 @@ actionCaseId = "caseId"
 -- | Name of actions field in case model.
 caseActions :: ByteString
 caseActions = "actions"
+
 
 ------------------------------------------------------------------------------
 -- | Build reference to a case for use in 'actionCaseId'.
@@ -282,8 +291,13 @@ newCase = do
     _ -> return jsonRq
 
 
-  -- Form the body of the new case request to send to CaRMa
-  let caseBody =  HM.delete "lon" $
+
+  -- Set default program (if not provided by client), then form a new
+  -- case request to send to CaRMa
+  let setProg   = maybe (HM.insert caseProgram defaultProgram) (const id)
+                  (HM.lookup caseProgram jsonRq')
+      caseBody  = setProg $
+                  HM.delete "lon" $
                   HM.delete "lat" $
                   HM.delete "car_vin" $ -- we'll insert it later to run trigger
                   jsonRq'

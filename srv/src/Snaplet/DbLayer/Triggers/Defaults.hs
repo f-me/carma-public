@@ -43,10 +43,14 @@ applyDefaults model obj = do
     "case" -> return cd
     "call" -> return cd
     "cost_serviceTarifOption" -> return $ Map.insert "count" "1" obj
-    "contract" -> do
-      Just u <- with auth currentUser
-      let uLogin = T.encodeUtf8 $ userLogin u
-      return $ Map.insert "owner" uLogin obj
+    "contract" ->
+      -- Store user id in owner field if it's not present
+      case Map.lookup "owner" obj of
+        Nothing -> do
+          Just u <- with auth currentUser
+          let Just (UserId uid) = userId u
+          return $ Map.insert "owner" (T.encodeUtf8 uid) obj
+        _ -> return obj
 
     "taxi" -> do
       let parentId = obj Map.! "parentId"

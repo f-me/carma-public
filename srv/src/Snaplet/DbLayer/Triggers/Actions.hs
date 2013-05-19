@@ -1,3 +1,4 @@
+{-# LANGUAGE QuasiQuotes #-}
 module Snaplet.DbLayer.Triggers.Actions where
 
 import Prelude hiding (log)
@@ -31,6 +32,7 @@ import Snap.Snaplet.RedisDB
 import qualified Database.Redis as Redis
 import qualified Snaplet.DbLayer.RedisCRUD as RC
 import qualified Snap.Snaplet.PostgresqlSimple as PG
+import Database.PostgreSQL.Simple.SqlQQ
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
@@ -163,23 +165,27 @@ bToUpper = T.encodeUtf8 . T.toUpper . T.decodeUtf8
 
 fillFromContract :: MonadTrigger m b => ByteString -> ByteString -> m b Bool
 fillFromContract vin objId = do
-  pgPool <- liftDb PG.getPostgresState
-  res <- liftDb $ PG.query (fromString
-    $  "SELECT"
-    ++ "  program, carMake, carModel, carPlateNum,"
-    ++ "  carCheckPeriod::text,"
-    ++ "  extract (epoch from contractValidFromDate)::int8::text,"
-    ++ "  extract (epoch from contractValidUntilDate)::int8::text,"
-    ++ "  milageTO::text"
-    ++ "  FROM contracttbl"
-    ++ "  WHERE carVin = ?"
-    ++ "  ORDER BY ctime DESC LIMIT 1") [vin]
+  res <- liftDb $ PG.query (fromString [sql|
+    SELECT
+      program, carMake, carModel, carPlateNum,
+      carCheckPeriod::text,
+      extract (epoch from contractValidFromDate)::int8::text,
+      extract (epoch from contractValidUntilDate)::int8::text,
+      milageTO::text, cardNumber, carMakeYear::text,
+      contractValidUntilMilage::text,
+      extract (epoch from contractValidFromDate)::int8::text
+      FROM contracttbl
+      WHERE carVin = ?
+      ORDER BY ctime DESC LIMIT 1
+    |]) [vin]
   case res of
     [] -> return False
     [row] -> do
       zipWithM_ (maybe (return ()) . (set objId))
         ["program", "car_make", "car_model", "car_plateNum", "car_checkPeriod"
-        ,"car_serviceStart", "car_serviceEnd","car_checkupMileage"]
+        ,"car_serviceStart", "car_serviceEnd","car_checkupMileage"
+        ,"cardNumber_cardNumber", "car_makeYear", "cardNumber_validUntilMilage"
+        ,"cardNumber_validFrom"]
         row
       return True
 
@@ -191,6 +197,13 @@ serviceActions = Map.fromList
       "backoffice" -> do
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
+          -- Check if backoffice transfer is related to callMeMaybe action
+          relatedUser <- liftDb $ PG.query (fromString [sql|
+            SELECT coalesce(a.assignedTo, '') FROM actiontbl a
+              WHERE a.caseId = ?
+                AND a.name = 'callMeMaybe' AND a.result <> 'communicated'
+              LIMIT 1
+            |]) [kazeId]
           actionId <- new "action" $ Map.fromList
             [("name", "orderService")
             ,("duetime", due)
@@ -200,9 +213,11 @@ serviceActions = Map.fromList
             ,("parentId", objId)
             ,("caseId", kazeId)
             ,("closed", "0")
+            ,("assignedTo", case relatedUser of { [[u]] -> u; _ -> "" })
             ]
           upd kazeId "actions" $ addToList actionId
           sendSMS actionId "smsTpl:13"
+          tryRepTowageMail actionId
       "recallClient" -> do
           due <- getService objId "times_expectedServiceStart"
           kazeId <- get objId "parentId"
