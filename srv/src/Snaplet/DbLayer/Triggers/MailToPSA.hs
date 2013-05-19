@@ -1,6 +1,6 @@
 
 module Snaplet.DbLayer.Triggers.MailToPSA
-  (sendMailToPSA
+  ( sendMailToPSA
   ) where
 
 import Prelude hiding (log)

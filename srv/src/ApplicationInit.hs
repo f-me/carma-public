@@ -64,11 +64,11 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/partnersFor/:srv",
                               chkAuthLocal . method GET    $ partnersForSrvHandler)
          , ("/psaCases/",
-                              chkAuthLocal . method GET    $ psaCases)
+                              chkAuthLocal . method GET    $ psaCasesHandler)
          , ("/psaCases/:program",
-                              chkAuthLocal . method GET    $ psaCases)
+                              chkAuthLocal . method GET    $ psaCasesHandler)
          , ("/repTowages/:id",
-                              chkAuthLocal . method GET    $ repTowages)
+                              chkAuthLocal . method GET    $ repTowagesHandler)
          , ("/allContracts/:program",
                               chkAuth . method GET   $ selectContracts)
          , ("/renderContract",

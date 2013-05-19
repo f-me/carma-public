@@ -31,18 +31,43 @@ define ["model/utils"], (mu) ->
     entries: for i in f
       { value: i.value, label: "#{i.label} (#{i.value})" }
 
-  window.user_programs = () ->
+  # Dictionary of all user-created programs
+  window.allProgramsDict = () ->
     d = {}
     $.ajax
       type: 'GET',
       url: "/all/program",
       dataType: 'json',
       success: (objs) ->
-        d = entries: (for obj in objs
-          { value: obj.id.split(':')[1], label: obj.label || '' })
+        d = { entries:
+               for obj in objs
+                { value: obj.id.split(':')[1], label: obj.label || '' }
 
+              vin_entries:
+               for obj in objs
+                {
+                  value: obj.vinFormat
+                  label: obj.label || ''
+                  pname: obj.id.split(':')[1]
+                }
+            }
       async: false
     return d
+
+  # Dictionary of all programs assigned to current user
+  window.userProgramsDict = () ->
+    # Requires user to re-login to update list of available programs
+    pgms = global.user.meta.programs.split ','
+    allPgms = allProgramsDict()
+    { entries:
+        _.filter(allPgms.entries,
+                 (e) -> _.contains pgms, e.value)
+
+      vin_entries:
+        _.filter(allPgms.vin_entries,
+                 (e) -> _.contains pgms, e.pname)
+    }
+
 
   window.getDictionary = (d) ->
     console.log 'dicts', d

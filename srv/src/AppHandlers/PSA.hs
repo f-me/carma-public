@@ -1,5 +1,3 @@
-{-# LANGUAGE QuasiQuotes #-}
-
 {-|
 
   API methods used by PSA integration points.
@@ -7,101 +5,43 @@
 -}
 
 module AppHandlers.PSA
-    ( psaCases
-    , repTowages
+    ( psaCasesHandler
+    , repTowagesHandler
     )
 
 where
 
 import Data.ByteString.Char8 (readInt)
-import Data.List
-import Database.PostgreSQL.Simple
-import Database.PostgreSQL.Simple.SqlQQ
+import Snap.Snaplet.PostgresqlSimple
 import Snap
 
+import AppHandlers.PSA.Base
 import AppHandlers.Util
 import Application
-
-
--- | Query parametrized by program name, used in 'psaCases'.
-psaQuery :: Query
-psaQuery = [sql|
-SELECT id FROM casetbl
-WHERE caseStatus='s2'
-AND  (program=?)
-AND  (NOT psaexported='yes' OR psaexported IS NULL)
-AND  (calldate > car_warrantystart AND calldate < car_warrantyend);
-|]
-
-
--- | Non-parametric query for 'psaCases', includes @citroen@ and
--- @peugeot@ programs.
-psaQuery0 :: Query
-psaQuery0 = [sql|
-SELECT id FROM casetbl
-WHERE caseStatus='s2'
-AND  (program='citroen' OR program='peugeot')
-AND  (NOT psaexported='yes' OR psaexported IS NULL)
-AND  (calldate > car_warrantystart AND calldate < car_warrantyend);
-|]
 
 
 -- | Read program name from @program@ request parameter, serve JSON
 -- list of case numbers for that program to be exported to SAGAI, as
 -- selected by 'psaQuery'. If @program@ is not present, serve list of
 -- all exportable case numbers according to 'psaQuery0'.
-psaCases :: AppHandler ()
-psaCases = do
+psaCasesHandler :: AppHandler ()
+psaCasesHandler = do
   program <- getParam "program"
-  rows <- withPG pg_search $
-          \c -> case program of
-                  Just p -> query c psaQuery [p]
-                  Nothing -> query_ c psaQuery0
+  rows <- with db $ case program of
+            Just p -> query psaQuery [p]
+            Nothing -> query_ psaQuery0
   writeJSON (map head rows :: [Int])
 
 
--- | Towages within previous 30 days, used in 'repTowages'.
-rtQuery :: Query
-rtQuery = [sql|
-WITH parentcase AS (select calldate, car_vin, comment from casetbl where id=?)
-SELECT c.id FROM casetbl c INNER JOIN towagetbl s
-ON c.id=cast(split_part(s.parentid, ':', 2) as integer)
-WHERE s.parentid is not null
-AND c.car_vin=(SELECT car_vin FROM parentcase)
-AND (s.status='serviceOk' OR s.status='serviceClosed')
-AND c.calldate >= ((SELECT calldate FROM parentcase) - INTERVAL '30 days')
-AND c.calldate < (SELECT calldate FROM parentcase)
-AND c.comment=(SELECT comment FROM parentcase);
-|]
-
-
--- | Recharges within previous 24 hours, used in 'repTowages'.
-rtQuery' :: Query
-rtQuery' = [sql|
-WITH parentcase AS (select calldate, car_vin, comment from casetbl where id=?)
-SELECT c.id FROM casetbl c INNER JOIN techtbl s
-ON c.id=cast(split_part(s.parentid, ':', 2) as integer)
-WHERE s.parentid is not null
-AND c.car_vin=(SELECT car_vin FROM parentcase)
-AND s.falseCall='bill'
-AND s.techType='charge'
-AND c.calldate >= ((SELECT calldate FROM parentcase) - INTERVAL '1 day')
-AND c.calldate <= (SELECT calldate FROM parentcase)
-AND c.comment=(SELECT comment FROM parentcase);
-|]
-
-
--- | Read case id from @id@ request parameter, serve JSON list of case
--- ids corresponding to towages of the same car (as indicated by
--- matching VIN and case comment) which occured within 30 day period
--- prior to the case creation date or battery recharges of the same
--- car within previous 24 hours.
-repTowages :: AppHandler ()
-repTowages = do
+-- | Handler wrapper for 'repTowages'. Read case id from @id@ request
+-- parameter, serve JSON list of service references if the case has a
+-- repeated towage.
+repTowagesHandler :: AppHandler ()
+repTowagesHandler = do
  cid <- (liftM readInt) <$> getParam "id"
  case cid of
-   Just (Just (n, _)) -> do
-               rows <- withPG pg_search $ \c -> query c rtQuery [n]
-               rows' <- withPG pg_search $ \c -> query c rtQuery' [n]
-               writeJSON (nub $ map head (rows ++ rows') :: [Int])
+   Just (Just (n, _)) ->
+       do
+         ids <- with db $ repTowages n
+         writeJSON ids
    _ -> error "Could not read case id from request"

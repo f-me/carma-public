@@ -84,6 +84,14 @@
             "meta": {
                 "label": "Ограничение прав"
             }
+        },
+        {
+            "name": "vinFormat",
+            "type": "dictionary",
+            "meta": {
+                "dictionaryName": "Programs",
+                "label": "Формат файлов VIN"
+            }
         }
     ]
 }

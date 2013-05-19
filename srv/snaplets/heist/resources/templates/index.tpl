@@ -201,11 +201,11 @@
             class="view-template">
       <div style="text-align:center;">
       <fieldset>
-        <legend>Загрузка данных</legend>
+        <legend>Загрузка VIN</legend>
         <form id="vin-import-form" onsubmit="doVin(); return false;">
           <p>
             <select name="program" id="vin-program-select" data-bind="foreach: $data">
-              <option data-bind="value: id, text: name" />
+              <option data-bind="value: value, text: label" />
             </select>
             <input type="file"
                    name="file"
@@ -218,6 +218,11 @@
       </fieldset>
       <div id="vin-alert-container" />
       </div>
+    </script>
+    
+    <script type="text/template"
+            id="partner-form-template"
+            class="view-template">
       <div style="text-align:center;">
       <fieldset>
         <legend>Обновление базы партнёров</legend>
@@ -1151,6 +1156,45 @@
       </button>
     </script>
 
+    <!-- Modal dialog template -->
+    <script type="text/template"
+            class="field-template"
+            id="modalDialog-field-template">
+      <div class="control-group">
+        <div class="controls checkbutton">
+          <label class="inline">
+            <input type="checkbox"
+                   name="{{ name }}"
+                   {{# readonly }}disabled{{/ readonly }}
+                   data-bind="checked: {{ name }},
+                              valueUpdate: 'change',
+                              disabled: {{ name }}Disabled" />
+            <button type="button"
+                data-toggle="modal"
+                data-target="#{{ meta.id }}-modal"
+                class="btn btn-danger"
+                data-bind="disabled: {{ name }}Disabled">{{ meta.launchLabel}}</button>
+          </label>
+        </div>
+        <div id="{{ meta.id }}-modal" class="modal hide fade">
+          <div class="modal-header">
+            <button type="button"
+                class="close"
+                data-dismiss="modal"
+                aria-hidden="true">&times;</button>
+            <h3>{{ meta.title }}</h3>
+          </div>
+          <div id="{{ meta.id }}-form" class="modal-body"/>
+          <div class="modal-footer">
+            <button id="{{ meta.id }}-save"
+                class="btn btn-primary">{{ meta.saveLabel }}</button>
+            <button class="btn"
+                data-dismiss="modal"
+                aria-hidden="true">{{ meta.cancelLabel}}</button>
+          </div>
+        </div>
+      </div>
+    </script>
 
     <!-- Default case group view template -->
     <script type="text/template"

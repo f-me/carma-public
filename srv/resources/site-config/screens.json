@@ -9,6 +9,11 @@
       "permissions": ["admin", "partner", "contract_admin", "contract_user"],
       "screens": []
     },
+    { "name" : "vin",
+      "label": "Загрузка VIN",
+      "type" : "li",
+      "permissions": ["partner"]
+    },
     { "name"  : "call",
       "label" : "Звонок",
       "type"  : "li",
