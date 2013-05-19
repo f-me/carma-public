@@ -182,7 +182,7 @@ selectContracts = do
     ++ "  carSeller, carDealerTO"
     ++ "  FROM contracttbl c, usermetatbl u"
     ++ "  WHERE u.login = ? AND ? = ANY (u.programs)"
-    ++ "    AND (coalesce(u.isDealer,false) = false OR c.owner = u.login)"
+    ++ "    AND (coalesce(u.isDealer,false) = false OR c.owner = u.uid)"
     ++ "    AND c.program = ? AND date(ctime) between ? AND ?")
     (userLogin usr, prg, prg, dateFrom, dateTo)
   let fields =

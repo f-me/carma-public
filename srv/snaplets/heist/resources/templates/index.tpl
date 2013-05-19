@@ -201,11 +201,11 @@
             class="view-template">
       <div style="text-align:center;">
       <fieldset>
-        <legend>Загрузка данных</legend>
+        <legend>Загрузка VIN</legend>
         <form id="vin-import-form" onsubmit="doVin(); return false;">
           <p>
             <select name="program" id="vin-program-select" data-bind="foreach: $data">
-              <option data-bind="value: id, text: name" />
+              <option data-bind="value: value, text: label" />
             </select>
             <input type="file"
                    name="file"
@@ -218,6 +218,11 @@
       </fieldset>
       <div id="vin-alert-container" />
       </div>
+    </script>
+    
+    <script type="text/template"
+            id="partner-form-template"
+            class="view-template">
       <div style="text-align:center;">
       <fieldset>
         <legend>Обновление базы партнёров</legend>

@@ -1,13 +1,20 @@
 define ["text!tpl/screens/vin.html", "utils"], (tpl, u) ->
   this.setupVinForm = (viewName, args) ->
-    $el(viewName).html($el("vin-form-template").html())
+    vin_html = $el("vin-form-template").html()
+    partner_html = $el("partner-form-template").html()
+
+    # Do not show partner bulk upload form when the screen is accessed
+    # by portal users, use appropriate set of programs.
+    if _.contains(global.user.roles, "partner")
+      all_html = vin_html
+      programs = userProgramsDict().vin_entries
+    else
+      all_html = vin_html + partner_html
+      programs = global.dictionaries.Programs.entries
+
+    $el(viewName).html(all_html)
+    
     global.viewsWare[viewName] = {}
-
-    programs = for v in global.dictionaries.Programs.entries
-      p =
-        id: v.value
-        name: v.label
-
     ko.applyBindings(programs, el("vin-program-select"))
 
     setInterval(getVinAlerts, 1000)
