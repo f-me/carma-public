@@ -113,6 +113,7 @@ Executable carma
     RecordWildCards,
     NamedFieldPuns,
     TupleSections,
+    QuasiQuotes,
     LambdaCase
 
   if flag(development)

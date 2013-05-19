@@ -165,22 +165,27 @@ bToUpper = T.encodeUtf8 . T.toUpper . T.decodeUtf8
 
 fillFromContract :: MonadTrigger m b => ByteString -> ByteString -> m b Bool
 fillFromContract vin objId = do
-  res <- liftDb $ PG.query (fromString
-    $  "SELECT"
-    ++ "  program, carMake, carModel, carPlateNum,"
-    ++ "  carCheckPeriod::text,"
-    ++ "  extract (epoch from contractValidFromDate)::int8::text,"
-    ++ "  extract (epoch from contractValidUntilDate)::int8::text,"
-    ++ "  milageTO::text"
-    ++ "  FROM contracttbl"
-    ++ "  WHERE carVin = ?"
-    ++ "  ORDER BY ctime DESC LIMIT 1") [vin]
+  res <- liftDb $ PG.query (fromString [sql|
+    SELECT
+      program, carMake, carModel, carPlateNum,
+      carCheckPeriod::text,
+      extract (epoch from contractValidFromDate)::int8::text,
+      extract (epoch from contractValidUntilDate)::int8::text,
+      milageTO::text, cardNumber, carMakeYear::text,
+      contractValidUntilMilage::text,
+      extract (epoch from contractValidFromDate)::int8::text
+      FROM contracttbl
+      WHERE carVin = ?
+      ORDER BY ctime DESC LIMIT 1
+    |]) [vin]
   case res of
     [] -> return False
     [row] -> do
       zipWithM_ (maybe (return ()) . (set objId))
         ["program", "car_make", "car_model", "car_plateNum", "car_checkPeriod"
-        ,"car_serviceStart", "car_serviceEnd","car_checkupMileage"]
+        ,"car_serviceStart", "car_serviceEnd","car_checkupMileage"
+        ,"cardNumber_cardNumber", "car_makeYear", "cardNumber_validUntilMilage"
+        ,"cardNumber_validFrom"]
         row
       return True
 
