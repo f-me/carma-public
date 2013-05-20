@@ -545,7 +545,7 @@ unassignedActionsHandler = do
        $ \c -> query_ c $ fromString
                $  " SELECT count(1) FROM actiontbl"
                ++ " WHERE name = 'orderService'"
-               ++ " AND assignedTo is null"
+               ++ " AND (assignedTo = '' OR assignedTo is null)"
                ++ " AND closed = false"
   writeJSON $ join (r :: [[Integer]])
 
