@@ -58,7 +58,8 @@ selectPartnersForSrv city isActive service makes = do
     ++ (maybe "" (\x -> "  AND s.servicename = " ++ quote x) service)
     -- array_dims(make) IS NULL is array emptiness check
     ++ (maybe " AND array_dims(makes) IS NULL"
-              (\x -> "  AND " ++ quote x ++ " = ANY (makes)")
+              (\x -> "  AND (array_dims(makes) IS NULL OR "
+                     ++ quote x ++ " = ANY (makes))")
               makes)
 
   let fields =
