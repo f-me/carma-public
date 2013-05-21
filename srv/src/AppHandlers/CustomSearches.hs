@@ -58,7 +58,8 @@ selectPartnersForSrv city isActive service makes = do
     ++ (maybe "" (\x -> "  AND s.servicename = " ++ quote x) service)
     -- array_dims(make) IS NULL is array emptiness check
     ++ (maybe " AND array_dims(makes) IS NULL"
-              (\x -> "  AND " ++ quote x ++ " = ANY (makes)")
+              (\x -> "  AND (array_dims(makes) IS NULL OR "
+                     ++ quote x ++ " = ANY (makes))")
               makes)
 
   let fields =
@@ -182,7 +183,7 @@ selectContracts = do
     ++ "  carSeller, carDealerTO"
     ++ "  FROM contracttbl c, usermetatbl u"
     ++ "  WHERE u.login = ? AND ? = ANY (u.programs)"
-    ++ "    AND (coalesce(u.isDealer,false) = false OR c.owner = u.uid)"
+    ++ "    AND (coalesce(u.isDealer,false) = false OR c.owner = u.uid::text)"
     ++ "    AND c.program = ? AND date(ctime) between ? AND ?")
     (userLogin usr, prg, prg, dateFrom, dateTo)
   let fields =

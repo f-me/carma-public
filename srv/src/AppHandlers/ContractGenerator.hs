@@ -44,8 +44,8 @@ q = [sql|
      SELECT
           carVin
         , carSeller
-        , carMake
-        , carModel
+        , carMaker.label
+        , carModel.label
         , carPlateNum
         , to_char(carBuydate at time zone 'UTC', 'DD/MM/YYYY')
         , cardNumber::text
@@ -58,8 +58,11 @@ q = [sql|
         , manager
         , to_char(warrantyStart at time zone 'UTC', 'DD/MM/YYYY')
         , client, clientCode, clientAddress
-    FROM contracttbl c, programtbl p
-    WHERE c.id = ? AND p.id = ?
+    FROM contracttbl c, programtbl p,
+         "CarMaker" carMaker, "CarModel" carModel
+    WHERE carMaker.value = carMake AND carModel.value = carModel
+      AND c.program::int4 = p.id
+      AND c.id = ?
 |]
 
 fields = [ "car_vin"
@@ -90,7 +93,7 @@ renderContractHandler = do
     $ \c -> query c
       (fromString "SELECT contracts FROM programtbl WHERE id = ?")
       [programId]
-  [row] <- withPG pg_search $ \c -> query c q [contractId, programId]
+  [row] <- withPG pg_search $ \c -> query c q [contractId]
   let [m] = mkMap fields [row]
       f = T.encodeUtf8 $ T.concat ["attachment; filename=\"", tplFName, "\""]
       p = T.concat [ "resources/static/fileupload/program/"
