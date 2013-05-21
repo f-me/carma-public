@@ -20,7 +20,7 @@ define ["utils"], (u) ->
           comment = []
           wazzup  = dict.Wazzup[obj.wazzup] || obj.wazzup || ''
           comment.push("Что случилось: #{wazzup}") if wazzup
-          callType = dict.CallerTypes[obj.callType] || obj.callType || ''
+          callType = dict.CallTypes[obj.callType] || obj.callType || ''
           comment.push("Тип звонка: #{callType}") if callType
           comment.push("ФИО: #{obj.callerName_name}") if obj.callerName_name
           city = dict['DealerCities'][obj.city]
