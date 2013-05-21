@@ -1184,6 +1184,10 @@
                 aria-hidden="true">&times;</button>
             <h3>{{ meta.title }}</h3>
           </div>
+          <div id="{{ meta.id }}-alert-container" class="alert">
+            <button type="button" class="close">&times;</button>
+            <div class="alert-message"></div>
+          </div>
           <div id="{{ meta.id }}-form" class="modal-body"/>
           <div class="modal-footer">
             <button id="{{ meta.id }}-save"

@@ -31,10 +31,28 @@ define ["model/main"], (main) ->
 
         partnerCancelVM.ctime(Math.round((new Date).getTime() / 1000))
 
+        showAlert = (needShow) ->
+          $alert = $("##{modelName}-alert-container")
+          if needShow
+            $alert.find(".alert-message").text("Забыли указать Партнёра в таблице?")
+            $alert.show()
+            $alert.find('.close').on('click', ->
+              $alert.hide()
+              $("##{modelName}-modal").modal('hide')
+            )
+          else
+            $alert.hide()
+
         strPartnerId = fnPartnerId()
         if strPartnerId
           partnerId = parseInt strPartnerId.split(':')[1]
           partnerCancelVM.partnerId(partnerId)
+          # hide alert
+          showAlert false
+        else
+          # partnerId not defined
+          # warn user about needed choose partner from table
+          showAlert true
 
         # we really need this because triggers do not trigger on `POST`
         # so, if {template:"xxx"} comes with POST (not with PUT), then
