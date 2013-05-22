@@ -31,17 +31,17 @@ var config =
 function main() {
   var srcDir = process.argv[3] || '.'
   // var files  = fs.readdirSync(srcDir)
+  console.log(
+    'CREATE TABLE Dictionary'
+    + '\n  (id          SERIAL PRIMARY KEY'
+    + '\n  ,name        text UNIQUE NOT NULL'
+    + '\n  ,description text'
+    + '\n  ,parent      int4 REFERENCES Dictionary'
+    + '\n  );\n')
   config.forEach(function (d){
     fs.readFile(srcDir + '/' + d.file + '.json', 'utf8', function(err,data) {
       var sql = json2sql(d, JSON.parse(data))
       if (process.argv[2] === 'scheme') {
-        console.log(
-          'CREATE TABLE Dictionary'
-          + '\n  (id          SERIAL PRIMARY KEY'
-          + '\n  ,name        text UNIQUE NOT NULL'
-          + '\n  ,description text'
-          + '\n  ,parent      int4 REFERENCES Dictionary'
-          + '\n  );\n')
         console.log(sql.tbl)
       }
       else if (process.argv[2] === 'data')
