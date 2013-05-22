@@ -833,6 +833,7 @@
       <table id="{{name}}" class="table table-striped table-bordered">
         <thead>
           <tr>
+            <th></th>
             <th>Название</th>
             <th>Город</th>
             <th>Адрес</th>
