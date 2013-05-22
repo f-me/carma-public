@@ -460,6 +460,9 @@ define ["model/utils", "utils"], (mu, u) ->
     mapEl = $("#partnerMapModal").find(".osMap")[0]
     $("#partnerMapModal").modal('show')
     
+    if $(mapEl).hasClass("olMap")
+      $(el).data("osmap").destroy()
+      
     setTimeout((-> initOSM mapEl, viewName), 1000)
 
   { iconSize              : iconSize
