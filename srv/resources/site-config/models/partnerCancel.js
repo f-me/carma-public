@@ -32,6 +32,14 @@
       }
     },
     {
+      "name": "owner",
+      "canRead": true,
+      "canWrite": true,
+      "meta": {
+        "invisible": true
+      }
+    },
+    {
       "name": "partnerCancelReason",
       "canRead": true,
       "canWrite": true,

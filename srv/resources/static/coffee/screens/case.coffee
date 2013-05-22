@@ -236,7 +236,7 @@ define [ "utils"
 
       # init modal dialog
       if partnerType is "contractor"
-        partnerCancel.setup(svc.contractor_partnerId)
+        partnerCancel.setup(svc.contractor_partnerId, svc.contractor_partner)
 
     #############################################################################
     # kb hooks
