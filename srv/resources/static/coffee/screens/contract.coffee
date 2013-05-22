@@ -56,9 +56,8 @@ define [
 
       fs = filterFields.map (field) ->
         # get field description
-        # field may be a string or object with 'name' and 'fn' params
-        # 'name' param may be a label already if its missing in model
-        # or model field name
+        # field may be a string or object with 'name', 'label' and 'fn' params
+        # if type of field is string it should contain model fields name value
         desc = if field?.name then h[field.name] else h[field]
 
         # define field label

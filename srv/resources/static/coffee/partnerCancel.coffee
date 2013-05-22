@@ -45,9 +45,8 @@ define ["model/main"], (main) ->
           else
             $alert.hide()
 
-        strPartnerId = fnPartnerId()
-        if strPartnerId
-          partnerId = strPartnerId.split(':')[1]
+        partnerId = fnPartnerId()
+        if partnerId
           partnerCancelVM.partnerId(partnerId)
           # hide alert
           showAlert false
