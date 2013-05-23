@@ -189,9 +189,9 @@ define [ "utils"
             $(this).removeClass "icon-plus-sign"
           # Do not select partner when expanding comments
           e.stopPropagation()
- 
+
       dtable = table.dataTable()
-          
+
       # hope that contractor_partner is the only partner
       dealer = if partnerType is "contractor" then 0 else 1
       select = ["isActive=1", "isDealer=#{dealer}"]
