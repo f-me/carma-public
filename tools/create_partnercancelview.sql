@@ -1,5 +1,5 @@
 CREATE VIEW partnercancelview AS
-  SELECT pc.*, p.name as partner, substring(pc.partnerid, ':(.*)') as case
+  SELECT pc.*, p.name as partner, substring(pc.caseid, ':(.*)') as case
   FROM      partnercanceltbl pc
   LEFT JOIN partnertbl       p
   ON p.id::text = substring(pc.partnerid, ':(.*)');
