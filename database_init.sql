@@ -175,3 +175,11 @@ create view servicesview as
     where c.id::text = substring(s.parentId, ':(.*)');
 
 GRANT SELECT ON servicesview TO carma_db_sync;
+
+CREATE VIEW partnercancelview AS
+  SELECT pc.*, p.partner
+  FROM      partnercanceltbl pc
+  LEFT JOIN partnertbl       p
+  ON p.id::text = substring(pc.partnerid, ':(.*)');
+
+GRANT SELECT ON partnercancelview TO carma_db_sync;
