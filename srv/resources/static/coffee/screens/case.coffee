@@ -231,7 +231,7 @@ define [ "utils"
         for i in r
           s  = dtable.fnSettings().aoData[ i ]
           tr = s.nTr
-          id = s._aData[8]
+          id = s._aData[9]
           $(tr).attr('partnerid', "partner:#{id}")
 
       # init modal dialog
