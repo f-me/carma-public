@@ -9,9 +9,11 @@ define ["model/main"], (main) ->
       modelName = "partnerCancel"
       $("##{modelName}-modal").on('show', () ->
         refs = []
-        main.modelSetup("#{modelName}") "#{modelName}-form", {id:null},
+        k = main.modelSetup("#{modelName}") "#{modelName}-form", {id:null},
           focusClass: "focusable"
           refs: refs
+
+        k['updateUrl'] = ->
 
         vPartnerCancel = global.viewsWare["#{modelName}-form"]
         partnerCancelVM = vPartnerCancel.knockVM
