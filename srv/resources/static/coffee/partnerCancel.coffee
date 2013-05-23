@@ -65,7 +65,7 @@ define ["model/main"], (main) ->
         # write entry to comments history
         addToHistory = ->
           reasonCode = partnerCancelVM.partnerCancelReason()
-          reason = _.find global.dictionaries.ClientCancelReason.entries, (r) ->
+          reason = _.find global.dictionaries.PartnerCancelReason.entries, (r) ->
             r.value is reasonCode
           comment =
             date: (new Date()).toString('dd.MM.yyyy HH:mm')

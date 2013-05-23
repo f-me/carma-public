@@ -45,7 +45,7 @@
       "canWrite": true,
       "type": "dictionary",
       "meta": {
-        "dictionaryName": "ClientCancelReason",
+        "dictionaryName": "PartnerCancelReason",
         "label": "Причина отказа партнера"
       }
     },
