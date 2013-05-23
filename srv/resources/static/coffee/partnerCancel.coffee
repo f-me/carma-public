@@ -28,7 +28,7 @@ define ["model/main"], (main) ->
         # fill hidden fields
         vCase = global.viewsWare['case-form']
         if vCase
-          partnerCancelVM.caseId(vCase.bbInstance.id)
+          partnerCancelVM.caseId("case:#{vCase.bbInstance.id}")
 
         ctime = Math.round((new Date).getTime() / 1000)
         partnerCancelVM.ctime("#{ctime}")
