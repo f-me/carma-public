@@ -486,7 +486,7 @@ define ["model/utils", "utils"], (mu, u) ->
     $("#partnerMapModal").modal('show')
 
     if $(mapEl).hasClass("olMap")
-      $(el).data("osmap").destroy()
+      $(mapEl).data("osmap").destroy()
 
     setTimeout((-> initOSM mapEl, viewName), 1000)
 
