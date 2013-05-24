@@ -238,10 +238,6 @@ define [ "utils"
       if partnerType is "contractor"
         partnerCancel.setup(svc.contractor_partnerId, svc.contractor_partner)
 
-    #############################################################################
-    # kb hooks
-
-
     { constructor       : setupCaseMain
     , destructor        : removeCaseMain
     , template          : tpl
