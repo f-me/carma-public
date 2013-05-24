@@ -184,6 +184,8 @@ define [] , ->
               if date
                 timestamp = Math.round(date.getTime() / 1000)
                 json[k] = String(timestamp)
+              else
+                delete json[k]
             # serialize references to name1:id1,name2:id2,... string
             if this.fieldHash[k].type == 'reference'
               json[k] = ("#{r.name}:#{r.id}" for r in json[k]).join(',')
