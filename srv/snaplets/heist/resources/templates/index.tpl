@@ -51,9 +51,6 @@
     <!-- base 64 encode/decode library -->
     <script src="/s/js/3p/b64.js" />
 
-    <!-- unicode support for regexps -->
-    <script src="/s/js/3p/unicode-regex.js" />
-
     <script src="/s/js/gen/customKoHandlers.js" />
 
     <!-- Model processing -->
