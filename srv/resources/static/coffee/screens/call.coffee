@@ -25,15 +25,19 @@ define [ "utils"
       window.location.hash = "case/" + id
     )
 
+    $('#search-help').popover
+      content: "Справка по поиску"
+
     sq = $('#search-query')
     sq.tagautocomplete
       character: '!'
-      source:    {entries: ['!', '!VIN:', '!госномер:']}
+      source:    {entries: ['!Кейс:', '!VIN:', '!Госномер:', '!Тел:']}
 
     e = jQuery.Event 'keypress'
-    e.which = 32
+    e.which = 61
     sq.keypress(_.debounce((-> dtSearch st), 1500))
       .change(-> sq.trigger e)
+      .focus(-> sq.trigger e)
 
     st.fnSort [[2, "desc"]]
     dtSearch st
@@ -56,7 +60,7 @@ define [ "utils"
     st.fnAddData(rows)
 
   dtSearch = (st) ->
-    q = $('#search-query').val()
+    q = $('#search-query').val().trim()
     url = if q.length == 0 then "/latestCases" else "/searchCases?q=#{q}"
     $.getJSON url, (objs) -> fillTable st, objs
 
