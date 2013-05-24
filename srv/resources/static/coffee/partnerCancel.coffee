@@ -12,6 +12,7 @@ define ["model/main"], (main) ->
         k = main.modelSetup("#{modelName}") "#{modelName}-form", {id:null},
           focusClass: "focusable"
           refs: refs
+          bb: { maual_save: true }
 
         k['updateUrl'] = ->
 
@@ -59,11 +60,6 @@ define ["model/main"], (main) ->
 
         partnerCancelVM.owner(global.user.login)
 
-        # we really need this because triggers do not trigger on `POST`
-        # so, if {template:"xxx"} comes with POST (not with PUT), then
-        # our template substitution trigger is not fired
-        vPartnerCancel.bbInstance.save()
-
         # write entry to comments history
         addToHistory = ->
           reasonCode = partnerCancelVM.partnerCancelReason()
@@ -85,7 +81,7 @@ define ["model/main"], (main) ->
           .off('click')
           .on('click', (event) ->
             event.preventDefault()
-
+            vPartnerCancel.bbInstance.save()
             do addToHistory
 
             $("##{modelName}-modal").modal('hide')
