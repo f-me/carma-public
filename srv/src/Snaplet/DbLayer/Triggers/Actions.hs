@@ -110,7 +110,7 @@ actions
             ])
           ])
         ,("case", Map.fromList
-          [("caseStatus", [\caseId st -> case st of
+          [("caseStatus", [\kazeId st -> case st of
             "s0.5" -> do
               due <- dateNow (+ (1*60))
               actionId <- new "action" $ Map.fromList
@@ -119,11 +119,11 @@ actions
                 ,("description", utf8 "Требуется дополнительная обработка кейса")
                 ,("targetGroup", "back")
                 ,("priority", "1")
-                ,("caseId", cazeId)
+                ,("caseId", kazeId)
                 ,("closed", "0")
                 ]
               upd kazeId "actions" $ addToList actionId
-              _      -> return ()])
+            _      -> return ()])
           ,("partner", [\objId _ -> do
             mapM_ setSrvMCost =<< B.split ',' <$> get objId "services"
             ])
