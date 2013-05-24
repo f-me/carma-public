@@ -110,7 +110,21 @@ actions
             ])
           ])
         ,("case", Map.fromList
-          [("partner", [\objId _ -> do
+          [("caseStatus", [\caseId st -> case st of
+            "s0.5" -> do
+              due <- dateNow (+ (1*60))
+              actionId <- new "action" $ Map.fromList
+                [("name", "tellMeMore")
+                ,("duetime", due)
+                ,("description", utf8 "Требуется дополнительная обработка кейса")
+                ,("targetGroup", "back")
+                ,("priority", "1")
+                ,("caseId", cazeId)
+                ,("closed", "0")
+                ]
+              upd kazeId "actions" $ addToList actionId
+              _      -> return ()])
+          ,("partner", [\objId _ -> do
             mapM_ setSrvMCost =<< B.split ',' <$> get objId "services"
             ])
           ,("program", [\objId _ -> do
@@ -617,6 +631,14 @@ actionResultMap = Map.fromList
         tm <- getService objId "times_expectedServiceEnd"
         dateNow (changeTime (+5*60) tm) >>= set objId "duetime"
         set objId "result" ""
+  )
+  ,("caseInformationGained", \objId -> do
+    tm <- getService objId "times_expectedServiceStart"
+    void $ replaceAction
+      "checkStatus"
+      "Уточнить статус оказания услуги"
+      "back" "3" (changeTime (+5*60) tm)
+      objId
   )
   ,("clientWaiting", \objId -> do
     tm <- getService objId "times_expectedServiceStart"

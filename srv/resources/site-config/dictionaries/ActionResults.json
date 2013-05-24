@@ -35,7 +35,7 @@
                 "value": "busyLine",
                 "label": "Не дозвонился"
             }
-        ],        
+        ],
         "orderServiceAnalyst": [
             {
                 "value": "serviceOrderedAnalyst",
@@ -474,6 +474,16 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
+            }
+        ],
+        "tellMeMore": [
+            {
+                "value": "caseInformationGained",
+                "label": "Дозвонился и услугу заказал"
+            },
+            {
+                "value": "busyLine",
+                "label": "Не дозвонился"
             }
         ]
     }

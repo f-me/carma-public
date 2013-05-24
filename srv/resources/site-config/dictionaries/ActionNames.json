@@ -11,7 +11,7 @@
         {
             "value": "orderServiceAnalyst",
             "label": "Заказ услуги аналитиком"
-        },        
+        },
         {
             "value": "needPartner",
             "label": "Требуется партнёр"
@@ -63,7 +63,7 @@
         {
             "value": "analystCheck",
             "label": "Проверка аналитиком"
-        },        
+        },
         {
             "value": "getInfoDealerVW",
             "label": "Уточнить информацию о ремонте у дилера/партнёра (VW, PSA)"
@@ -95,6 +95,10 @@
         {
             "value": "tellMakerDenied",
             "label": "Оповещение об отказе автопроизводителя"
+        },
+        {
+            "value": "tellMeMore",
+            "label": "Требуется дополнительная обработка кейса"
         }
     ]
 }
