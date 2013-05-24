@@ -196,12 +196,14 @@ define [
           .addTable(tableParams)
           .setObjsToRowsConverter(objsToRows)
           .setDataTableOptions(do dataTableOptions)
+        table
           .on("click.datatable", "tr", ->
-            id = @children[0].innerText
-            k  = modelSetup modelName, viewName,
-              {"id": id, "program": args.program}, programModel
-            k["updateUrl"]()
-            k)
+            if table.fnGetPosition this
+              id = @children[0].innerText
+              k  = modelSetup modelName, viewName,
+                {"id": id, "program": args.program}, programModel
+              k["updateUrl"]()
+              k)
 
         $("#filter-btn").on 'click', ->
           table.setObjs getContractsURL args.program

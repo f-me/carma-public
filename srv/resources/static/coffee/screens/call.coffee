@@ -21,8 +21,9 @@ define [ "utils"
       bFilter : false
       fnRowCallback: (nRow) -> $($(nRow).children()[1]).addClass("capitalize")
     searchTable.on("click.datatable", "tr", ->
-      id = this.children[0].innerText
-      window.location.hash = "case/" + id
+      if searchTable.fnGetPosition this
+        id = this.children[0].innerText
+        window.location.hash = "case/" + id
     )
 
     $('#search-help').popover

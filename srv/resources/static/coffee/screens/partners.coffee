@@ -48,14 +48,16 @@ define [ "utils"
       table = screenman.addScreen(modelName, -> )
         .addTable(tableParams)
         .setObjsToRowsConverter(objsToRows)
+      table
         .on("click.datatable", "tr", ->
-          id = @children[0].innerText
-          kvm = modelSetup modelName, viewName, {id}
-          k = global.viewsWare["#{modelName}-view"].knockVM
-          global.alertObj.kvm(kvm)
+          if table.fnGetPosition this
+            id = @children[0].innerText
+            kvm = modelSetup modelName, viewName, {id}
+            k = global.viewsWare["#{modelName}-view"].knockVM
+            global.alertObj.kvm(kvm)
 
-          k['servicesReference'].subscribe ->
-            addTarifStuff i for i in k['servicesReference']())
+            k['servicesReference'].subscribe ->
+              addTarifStuff i for i in k['servicesReference']())
       screenman.showScreen modelName
 
       $('#partner-permissions').find('.btn-success').on 'click', ->
