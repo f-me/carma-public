@@ -19,22 +19,21 @@ define [
 
     formatTableColumns = (program) ->
       tableCols =
-            [ {name: "id", label: "#"}
-            , {name: "isActive"}
+            [ { name: "id", label: "#" }
+            , { name: "isActive"
+              , fn  : (c) -> if c.isActive == "true" then "✓" else ""
+              }
             , "ctime"
             , "carVin"
             , "carMake"
             , "carModel"
-            ]
-      if program == '1'
-        tableCols.push "carPlateNum"
-
-      tableCols = tableCols.concat(
-            [ "contractValidFromDate"
+            , "carPlateNum"
+            , "contractValidFromDate"
             , "contractValidUntilDate"
             , "contractValidUntilMilage"
             , "manager"
-            ])
+            , "owner"
+            ]
 
     findSame = (kvm, cb) ->
       vin = kvm['carVin']?()
@@ -92,10 +91,6 @@ define [
             field
           if name is 'id'
             (contract) -> contract.id
-          else if name is 'isActive'
-            (contract) -> if contract.isActive == "true" then "✓" else ""
-          else if name is 'owner'
-            (contract) -> global.dictValueCache.users[contract.owner]
 
         # define field value render function
         defineFn = ->
@@ -120,18 +115,8 @@ define [
       }
 
     dataTableOptions = ->
-      # sorting function for 'isActive' column
-      $.fn.dataTableExt.afnSortData['dom-checkbox'] = (oSettings, iColumn) ->
-        aData = []
-        $('td:eq('+iColumn+') input', oSettings.oApi._fnGetTrNodes(oSettings)).each(->
-          aData.push(if @checked is true then "1" else "0"))
-        aData
-
-      aoColumnDefs: [
-        sSortDataType: 'dom-checkbox'
-        aTargets: [1]
-      ]
-
+      aoColumnDefs: [ aTargets: [1] ]
+      aaSorting   : [ [1, 'desc' ] ]
       # enable horizontal scrolling
       sScrollX: "100%"
       sScrollXInner: "110%"
@@ -213,7 +198,8 @@ define [
           .setDataTableOptions(do dataTableOptions)
           .on("click.datatable", "tr", ->
             id = @children[0].innerText
-            k  = modelSetup modelName, viewName, {"id": id, "program": args.program}, programModel
+            k  = modelSetup modelName, viewName,
+              {"id": id, "program": args.program}, programModel
             k["updateUrl"]()
             k)
 
