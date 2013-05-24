@@ -29,6 +29,7 @@ import System.Locale (defaultTimeLocale)
 import Snap (gets, with)
 import Snap.Snaplet.Auth
 import Snap.Snaplet.RedisDB
+import Snap.Snaplet.Auth
 import qualified Database.Redis as Redis
 import qualified Snaplet.DbLayer.RedisCRUD as RC
 import qualified Snap.Snaplet.PostgresqlSimple as PG
@@ -445,7 +446,11 @@ actionActions = Map.fromList
              "Заказать услугу"
              "back" "1" (+5*60) objId
 
-    ,\objId _al -> dateNow id >>= set objId "closeTime"
+    ,\objId _al -> do
+      dateNow id >>= set objId "closeTime"
+      Just u <- liftDb $ with auth currentUser
+      set objId "assignedTo" $ T.encodeUtf8 $ userLogin u
+
     ,\objId val -> maybe (return ()) ($objId)
       $ Map.lookup val actionResultMap
     ])
