@@ -1,2 +1,2 @@
 
-insert into version values (0,0,0, now());
+insert into version values (0,0,2);

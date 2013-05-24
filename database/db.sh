@@ -15,6 +15,11 @@ function get_db_version {
 
   DB_VERSION="$DB_VERSION_A.$DB_VERSION_B.$DB_VERSION_C"
 
+  if [[ ! $DB_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ; then
+    echo !!! Invalid DB version $DB_VERSION >&2
+    exit 1
+  fi
+
   echo === Current DB version is \'$DB_VERSION\'.
 }
 
