@@ -479,7 +479,7 @@
         "tellMeMore": [
             {
                 "value": "caseInformationGained",
-                "label": "Дозвонился и услугу заказал"
+                "label": "Кейс обработан"
             },
             {
                 "value": "busyLine",
