@@ -1182,11 +1182,6 @@ INSERT INTO "CarModel" (value, label, parent)
          id
     FROM "CarMaker" WHERE value = 'citroen';
 INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'jumpy',
-         'Jumper',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
   SELECT 'nemo',
          'Nemo',
          id
@@ -3184,9 +3179,6 @@ INSERT INTO "City" (value, label) VALUES
 INSERT INTO "City" (value, label) VALUES
  ('Volgograd'
  ,'Волгоград');
-INSERT INTO "City" (value, label) VALUES
- ('Volzhskij'
- ,'Волжский');
 INSERT INTO "City" (value, label) VALUES
  ('Volzhskij'
  ,'Волжский');
