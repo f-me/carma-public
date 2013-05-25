@@ -214,3 +214,8 @@ textarea.pane-span,
     position:absolute;
     top:-20px;
 }
+
+#partnerMapModal {
+  left: 35%;
+  width: 65%;
+}
