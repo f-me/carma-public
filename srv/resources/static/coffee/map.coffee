@@ -47,7 +47,10 @@ define ["model/utils", "utils"], (mu, u) ->
     if (res.error)
       null
     else
-      res.address
+      if res.city?
+        res.city + ', ' + res.address
+      else
+        res.address
 
   # Build city field value (or null, if the city is unknown)
   buildReverseCity = (res) ->
