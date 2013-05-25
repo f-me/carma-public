@@ -30,7 +30,8 @@
             ],
             "meta": {
                 "targetAddr": "caseAddress_address",
-                "targetCoords": "caseAddress_coords"
+                "targetCoords": "caseAddress_coords",
+                "cityField": "city"
             }
         },
         {
