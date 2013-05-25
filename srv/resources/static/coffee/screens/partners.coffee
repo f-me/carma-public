@@ -12,7 +12,8 @@ define [ "utils"
       refs = [field: "services"
              ,forest: "partner-services-references"
              ]
-      options = {permEl, focusClass, refs}
+      slotsee = ["map-address"]
+      options = {permEl, focusClass, refs, slotsee}
       main.modelSetup(modelName) viewName, args, options
 
     objsToRows = (objs) ->
