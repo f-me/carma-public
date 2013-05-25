@@ -198,7 +198,7 @@ define [
           .setDataTableOptions(do dataTableOptions)
         table
           .on("click.datatable", "tr", ->
-            if table.fnGetPosition this
+            if table.dataTable.fnGetPosition this
               id = @children[0].innerText
               k  = modelSetup modelName, viewName,
                 {"id": id, "program": args.program}, programModel
