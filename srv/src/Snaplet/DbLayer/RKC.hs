@@ -586,6 +586,7 @@ WITH actiontimes AS (
  AND (? or c.program = ?)
  AND (? or c.city = ?)
  AND (? or s.contractor_partner = ?)
+ AND s.suburbanmilage = '0'
  AND c.calldate >= ?
  AND c.calldate < ?
  GROUP BY a.parentid)
