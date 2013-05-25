@@ -481,14 +481,21 @@ define ["model/utils", "utils"], (mu, u) ->
     osmCoords = coords.clone().transform(wsgProj, osmProj)
 
     addr_field = mu.modelField(modelName, fieldName).meta['targetAddr']
+    blip_type = mu.modelField(modelName, fieldName).meta['currentBlipType']
 
     mapEl = $("#partnerMapModal").find(".osMap")[0]
+    
+    $("#partnerMapModal").one "shown", ->
+      # Recenter the map if it already exists
+      if $(mapEl).hasClass("olMap")
+        oMap = $(mapEl).data("osmap")
+        currentBlip oMap, osmCoords, blip_type
+        oMap.setCenter osmCoords
+        oMap.events.triggerEvent "moveend"
+      else
+        initOSM mapEl, viewName
+
     $("#partnerMapModal").modal('show')
-
-    if $(mapEl).hasClass("olMap")
-      $(mapEl).data("osmap").destroy()
-
-    setTimeout((-> initOSM mapEl, viewName), 1000)
 
   { iconSize              : iconSize
   , zoomLevel             : zoomLevel
