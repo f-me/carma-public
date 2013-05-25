@@ -544,7 +544,7 @@ unassignedActionsHandler = do
   r <- withPG pg_search
        $ \c -> query_ c $ fromString
                $  " SELECT count(1) FROM actiontbl"
-               ++ " WHERE name IN ('orderService', 'callMeMaybe', 'tellMeMore')"
+               ++ " WHERE name IN ('orderService', 'callMeMaybe')"
                ++ " AND (assignedTo = '' OR assignedTo is null)"
                ++ " AND closed = false"
   writeJSON $ join (r :: [[Integer]])

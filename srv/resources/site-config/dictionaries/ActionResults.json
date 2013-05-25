@@ -475,16 +475,6 @@
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
             }
-        ],
-        "tellMeMore": [
-            {
-                "value": "caseInformationGained",
-                "label": "Кейс обработан"
-            },
-            {
-                "value": "busyLine",
-                "label": "Не дозвонился"
-            }
         ]
     }
 }
