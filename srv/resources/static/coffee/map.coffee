@@ -17,9 +17,8 @@ define ["model/utils", "utils"], (mu, u) ->
   geoRevQuery = (lon, lat) -> "/geo/revSearch/#{lon},#{lat}/"
 
   geoQuery = (addr) ->
-    fixed_addr = addr.replace(/Москва/g, "Московская область")
     return nominatimHost +
-      "search?format=json&accept-language=ru-RU,ru&q=#{fixed_addr}"
+      "search?format=json&accept-language=ru-RU,ru&q=#{addr}"
 
   wsgProj = new OpenLayers.Projection("EPSG:4326")
   osmProj = new OpenLayers.Projection("EPSG:900913")
