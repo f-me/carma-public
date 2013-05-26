@@ -494,10 +494,6 @@
             }
         },
         {
-            "name": "caseAddress",
-            "groupName": "address"
-        },
-        {
             "name": "city",
             "canRead": [
                 "partner",
@@ -520,6 +516,10 @@
                 "bounded": true,
                 "infoText": "city"
             }
+        },
+        {
+            "name": "caseAddress",
+            "groupName": "address"
         },
         {
             "name": "temperature",
