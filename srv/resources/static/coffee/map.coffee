@@ -48,7 +48,10 @@ define ["model/utils", "utils"], (mu, u) ->
       null
     else
       if res.city?
-        res.city + ', ' + res.address
+        if res.address?
+          res.city + ', ' + res.address
+        else
+          res.city
       else
         res.address
 
