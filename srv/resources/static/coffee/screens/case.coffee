@@ -175,6 +175,9 @@ define [ "utils"
             svc["#{partnerType}_address"]("#{city}, #{addr}")
           svc["#{partnerType}_partner"](name)
           svc["#{partnerType}_partnerId"]($(this).attr('partnerid'))
+          $(".osMap").each (e) ->
+            if $(this).hasClass("olMap")
+              $(this).data("osmap").events.triggerEvent "moveend"
 
         # Toggle a comment row
         table.on "click.comment", ".rowexpand", (e) ->
