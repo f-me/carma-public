@@ -140,7 +140,8 @@ define ["model/utils", "utils"], (mu, u) ->
     current_blip_type =
       mu.modelField(modelName, fieldName).meta["currentBlipType"] or "default"
 
-    ## Bind the map to geocode address & coordinates
+    if city_field?
+      city_meta = u.splitFieldInView city_field, parentView
 
     # Place a blip and recenter if coordinates are already known
     if coord_field?
@@ -152,9 +153,8 @@ define ["model/utils", "utils"], (mu, u) ->
         osmap.setCenter coords.transform(wsgProj, osmProj), zoomLevel
         currentBlip osmap, coords, current_blip_type
       else
-        # Otherwise, center on city, not placing a blip
+        # Otherwise, just center on the city, not placing a blip
         if city_field?
-          city_meta = u.splitFieldInView city_field, parentView
           city = u.findVM(city_meta.view)[city_meta.field]()
           fixed_city = global.dictValueCache.DealerCities[city]
           $.getJSON geoQuery(fixed_city), (res) ->
@@ -177,7 +177,7 @@ define ["model/utils", "utils"], (mu, u) ->
                  .transform(osmProj, wsgProj)
 
         if coord_field?
-          # coord_view_name and coord_field are already known as per
+          # coord_field and coord_meta are already known as per
           # coord_field? branch in geocoding setup
           u.findVM(coord_meta.view)[coord_meta.field](shortStringFromLonlat coords)
 
