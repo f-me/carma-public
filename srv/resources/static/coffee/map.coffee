@@ -6,7 +6,7 @@ define ["model/utils", "utils"], (mu, u) ->
   iconSize = new OpenLayers.Size(50, 50)
 
   # Default map zoom level
-  zoomLevel = 16
+  zoomLevel = 14
 
   # Low zoom level (partner map overview)
   beyondTheClouds = 10
@@ -16,7 +16,7 @@ define ["model/utils", "utils"], (mu, u) ->
 
   geoRevQuery = (lon, lat) -> "/geo/revSearch/#{lon},#{lat}/"
 
-  nominatimQuery = (addr) ->
+  geoQuery = (addr) ->
     fixed_addr = addr.replace(/Москва/g, "Московская область")
     return nominatimHost +
       "search?format=json&accept-language=ru-RU,ru&q=#{fixed_addr}"
@@ -132,11 +132,6 @@ define ["model/utils", "utils"], (mu, u) ->
     osmap = new OpenLayers.Map(el.id)
     osmap.addLayer(new OpenLayers.Layer.OSM())
 
-    # Default location
-    osmap.setCenter(new OpenLayers.LonLat(37.617874,55.757549)
-                    .transform(wsgProj, osmProj),
-                    zoomLevel)
-
     coord_field = mu.modelField(modelName, fieldName).meta["targetCoords"]
     addr_field = mu.modelField(modelName, fieldName).meta["targetAddr"]
     city_field = mu.modelField(modelName, fieldName).meta["cityField"]
@@ -150,10 +145,25 @@ define ["model/utils", "utils"], (mu, u) ->
       coord_meta = u.splitFieldInView(coord_field, parentView)
 
       coords = u.findVM(coord_meta.view)[coord_meta.field]()
-      if coords?
+      if coords? && coords.length > 0
         coords = lonlatFromShortString coords
         osmap.setCenter coords.transform(wsgProj, osmProj), zoomLevel
         currentBlip osmap, coords, current_blip_type
+      else
+        # Otherwise, center on city, not placing a blip
+        if city_field?
+          city_meta = u.splitFieldInView city_field, parentView
+          city = u.findVM(city_meta.view)[city_meta.field]()
+          fixed_city = global.dictValueCache.DealerCities[city]
+          $.getJSON geoQuery(fixed_city), (res) ->
+            if res.length > 0
+              lonlat = new OpenLayers.LonLat res[0].lon, res[0].lat
+              osmap.setCenter lonlat.transform(wsgProj, osmProj), zoomLevel
+        # Otherwise, center on the default location
+        else
+          osmap.setCenter(new OpenLayers.LonLat(37.617874,55.757549)
+                          .transform(wsgProj, osmProj),
+                         zoomLevel)
 
     # Setup handler to update target address and coordinates if the
     # map is clickable
@@ -175,7 +185,6 @@ define ["model/utils", "utils"], (mu, u) ->
           u.findVM(addr_meta.view)[addr_meta.field](addr)
 
           if city_field?
-            city_meta = u.splitFieldInView(city_field, parentView)
             city = buildReverseCity(res)
             u.findVM(city_meta.view)[city_meta.field](city)
 
@@ -411,7 +420,7 @@ define ["model/utils", "utils"], (mu, u) ->
     current_blip_type =
       mu.modelField(modelName, map_field).meta["currentBlipType"] or "default"
 
-    $.getJSON(nominatimQuery(addr), (res) ->
+    $.getJSON(geoQuery(addr), (res) ->
       if res.length > 0
         lonlat = new OpenLayers.LonLat(res[0].lon, res[0].lat)
 
@@ -487,7 +496,7 @@ define ["model/utils", "utils"], (mu, u) ->
     blip_type = mu.modelField(modelName, fieldName).meta['currentBlipType']
 
     mapEl = $("#partnerMapModal").find(".osMap")[0]
-    
+
     $("#partnerMapModal").one "shown", ->
       # Recenter the map if it already exists
       if $(mapEl).hasClass("olMap")
@@ -505,7 +514,7 @@ define ["model/utils", "utils"], (mu, u) ->
   , beyondTheClouds       : beyondTheClouds
   , nominatimHost         : nominatimHost
   , geoRevQuery           : geoRevQuery
-  , nominatimQuery        : nominatimQuery
+  , geoQuery              : geoQuery
   , wsgProj               : wsgProj
   , osmProj               : osmProj
   , carIcon               : carIcon
