@@ -309,8 +309,8 @@
       "name": "owner",
       "canRead": ["partner"],
       "canWrite": false,
-      "type": "textarea",
       "meta": {
+        "invisible": true,
         "label": "Дилер"
       }
     },
