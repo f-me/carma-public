@@ -718,6 +718,48 @@
             }
         },
         {
+            "name": "paid",
+            "canRead": [
+                "manager",
+                "accManager"
+            ],
+            "canWrite": [
+                "accManager"
+            ],
+            "meta": {
+                "label": "Оплата"
+            },
+            "type": "checkbox"
+        },
+        {
+            "name": "scan",
+            "canRead": [
+                "manager",
+                "accManager"
+            ],
+            "canWrite": [
+                "accManager"
+            ],
+            "meta": {
+                "label": "Скан загружен"
+            },
+            "type": "checkbox"
+        },
+        {
+            "name": "original",
+            "canRead": [
+                "manager",
+                "accManager"
+            ],
+            "canWrite": [
+                "accManager"
+            ],
+            "meta": {
+                "label": "Оригинал получен"
+            },
+            "type": "checkbox"
+        },        
+        {
             "name": "multidrive",
             "canRead": [
                 "partner",
