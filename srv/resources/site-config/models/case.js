@@ -627,7 +627,7 @@
             "name": "psaExported",
             "type": "checkbox",
             "canRead": [
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman", "psaanalyst"
             ],
             "canWrite": [
                 "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
