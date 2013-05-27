@@ -13,10 +13,6 @@
             "label": "Оператор Back Office"
         },
         {
-            "value": "analyst",
-            "label": "Аналитик"
-        },
-        {
             "value": "head",
             "label": "Глава РКЦ"
         },
