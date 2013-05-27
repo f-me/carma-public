@@ -27,6 +27,10 @@
         {
             "value": "manager",
             "label": "Менеджер по счетам"
+        },
+        {
+            "value": "accManager",
+            "label": "Управляющий счетами"
         },        
         {
             "value": "partner",
