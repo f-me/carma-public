@@ -597,7 +597,10 @@
                 "parguy", "psaanalyst"
             ],
             "canWrite": [
-                "psaanalyst"
+                "psaanalyst",
+                "front",
+                "back",
+                "head", "supervisor", "director", "analyst", "parguy", "account", "admin"
             ],
             "type": "dictionary",
             "meta": {
