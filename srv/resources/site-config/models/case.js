@@ -608,6 +608,19 @@
             }
         },
         {
+            "name": "psaExportNeeded",
+            "type": "checkbox",
+            "canRead": [
+                "head", "supervisor", "director", "admin", "psaanalyst"
+            ],
+            "canWrite": [
+                "head", "supervisor", "director", "admin", "psaanalyst"
+            ],
+            "meta": {
+                "label": "Требуется выгрузка в PSA"
+            }
+        },
+        {
             "name": "psaExported",
             "type": "checkbox",
             "canRead": [
