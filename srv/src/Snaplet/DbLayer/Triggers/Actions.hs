@@ -115,7 +115,7 @@ actions
             "s0.5" -> do
               due <- dateNow (+ (1*60))
               actionId <- new "action" $ Map.fromList
-                [("name", "callMeMaybe")
+                [("name", "tellMeMore")
                 ,("duetime", due)
                 ,("description", utf8 "Требуется дополнительная обработка кейса")
                 ,("targetGroup", "back")
