@@ -52,7 +52,7 @@ class @AvayaWidget
       phone.calling()
       panel.find(".search-query").val(number)
 
-      $("#search-query").val(number)
+      $("#search-query").val("!Тел:" + number)
       $("#search-query").change()
 
       vm = global.viewsWare['call-form'].knockVM
