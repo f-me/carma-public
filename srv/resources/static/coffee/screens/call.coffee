@@ -62,6 +62,7 @@ define [ "utils"
 
   dtSearch = (st) ->
     q = $('#search-query').val().trim()
+    q = q.replace '+', ''
     url = if q.length == 0 then "/latestCases" else "/searchCases?q=#{q}"
     $.getJSON url, (objs) -> fillTable st, objs
 
