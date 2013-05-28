@@ -641,15 +641,11 @@
         },
         {
             "name": "partnerCancel",
-            "type": "checkbox",
             "meta": {
-                "title": "Отказ партнёра",
-                "id": "partnerCancel",
-                "launchLabel": "Отказ партнёра",
-                "saveLabel": "Сохранить",
-                "cancelLabel": "Отменить",
+                "label": "Отказ партнёра",
+                "click": "showPartnerCancelDialog",
                 "nosql": true,
-                "widget": "modalDialog"
+                "widget": "modalDialogButton"
             }
         },
         {

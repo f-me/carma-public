@@ -1,4 +1,4 @@
-define ["utils", "model/utils"], (u, mu) ->
+define ["utils", "model/utils", "partnerCancel"], (u, mu, partnerCancel) ->
   partnerOptsHook: (i, knockVM) ->
     knockVM['contractor_partner'].subscribe (n) ->
       return unless knockVM['view']
@@ -57,3 +57,9 @@ define ["utils", "model/utils"], (u, mu) ->
       else
         mc.removeClass('error')
         cc.removeClass('error')
+
+  bindPartnerCancelDialog: (instance, knockVM) ->
+    knockVM['showPartnerCancelDialog'] = ->
+      partnerCancel.setup(knockVM.contractor_partnerId, knockVM.contractor_partner)
+
+
