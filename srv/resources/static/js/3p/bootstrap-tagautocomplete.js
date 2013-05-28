@@ -46,7 +46,7 @@
           text.substring(0, position)
           + val.substring(this.length_of_query)
           + text.substring(position));
-      var newPos = position + val.length - 1;
+      var newPos = position + val.length - (this.length_of_query ? 1 : 0);
       this.$element[0].setSelectionRange(newPos, newPos);
       this.$element.change();
 
@@ -66,9 +66,9 @@
 
   , matcher: function (item) {
       var tquery = this.extractor();
+      this.length_of_query = tquery.length
       if(!tquery) return false;
 
-      this.length_of_query = tquery.length
       return ~item.toLowerCase().indexOf(tquery)
     }
 
