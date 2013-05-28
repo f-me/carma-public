@@ -1,0 +1,14 @@
+{
+  "name": "fault-parser",
+  "version": "0.1.0",
+  "description": "Parse faults types catalog from CSV to JSON files",
+  "author": "i2m <ildar@formalmethods.ru>",
+
+  "devDependencies": {
+    "coffee-script": "latest"
+  },
+
+  "dependencies": {
+    "csv": "git://github.com/wdavidw/node-csv-parser.git"
+  }
+}

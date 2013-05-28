@@ -5,6 +5,10 @@
             "label": "Front Office"
         },
         {
+            "value": "s0.5",
+            "label": "Требуется дополнительная информация"
+        },
+        {
             "value": "s1",
             "label": "Back Office"
         },

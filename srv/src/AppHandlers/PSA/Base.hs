@@ -29,7 +29,7 @@ import Snap.Snaplet.PostgresqlSimple
 psaQuery :: Query
 psaQuery = [sql|
 SELECT id FROM casetbl
-WHERE caseStatus='s2'
+WHERE psaExportNeeded='yes'
 AND  (program=?)
 AND  (NOT psaexported='yes' OR psaexported IS NULL)
 AND  (calldate > car_warrantystart AND calldate < car_warrantyend);
@@ -41,7 +41,7 @@ AND  (calldate > car_warrantystart AND calldate < car_warrantyend);
 psaQuery0 :: Query
 psaQuery0 = [sql|
 SELECT id FROM casetbl
-WHERE caseStatus='s2'
+WHERE psaExportNeeded='yes'
 AND  (program='citroen' OR program='peugeot')
 AND  (NOT psaexported='yes' OR psaexported IS NULL)
 AND  (calldate > car_warrantystart AND calldate < car_warrantyend);

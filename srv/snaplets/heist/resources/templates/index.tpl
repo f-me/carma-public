@@ -19,6 +19,7 @@
     <script src="/s/js/3p/bootstrap.min.js" />
     <script src="/s/js/3p/bootstrap-datepicker.js" />
     <script src="/s/js/3p/bootstrap-typeahead.js" />
+    <script src="/s/js/3p/bootstrap-tagautocomplete.js" />
 
     <!-- Tabular display -->
     <script src="/s/js/3p/jquery.dataTables.min.js" />
@@ -829,6 +830,7 @@
       <table id="{{name}}" class="table table-striped table-bordered">
         <thead>
           <tr>
+            <th></th>
             <th>Название</th>
             <th>Город</th>
             <th>Адрес</th>

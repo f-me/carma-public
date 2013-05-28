@@ -157,12 +157,15 @@ define ["model/utils"], (mu) ->
   # field groups. If the view name is "case-form", then return knockVM
   # for case.
   findVM: (view) ->
-    vw = global.viewsWare[view]
-    if vw and vw.parentView?
+    if global.viewsWare["case-form"]
+      vw = global.viewsWare[view]
+      if vw and vw.parentView?
         # Find VM of a group rendered in a view.
         findCaseOrReferenceVM(vw.parentView)
+      else
+        findCaseOrReferenceVM(view)
     else
-      findCaseOrReferenceVM(view)
+      global.viewsWare[view].knockVM
 
   # Strip whitespace from string
   stripWs: (s) -> do (s) -> s.replace(/\s+/g, '')

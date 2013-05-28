@@ -39,12 +39,8 @@ body {
   text-align: left;
 }
 
-#call-searchtable_filter {
+#search-query {
   width: 30%;
-}
-
-#call-searchtable_filter input {
-  width: 90%;
 }
 
 #left {
@@ -217,4 +213,9 @@ textarea.pane-span,
 .checkbutton label input {
     position:absolute;
     top:-20px;
+}
+
+#partnerMapModal {
+  left: 35%;
+  width: 65%;
 }

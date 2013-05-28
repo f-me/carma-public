@@ -13,10 +13,6 @@
             "label": "Оператор Back Office"
         },
         {
-            "value": "analyst",
-            "label": "Аналитик"
-        },
-        {
             "value": "head",
             "label": "Глава РКЦ"
         },
@@ -24,6 +20,14 @@
             "value": "parguy",
             "label": "Менеджер по партнёрам"
         },
+        {
+            "value": "manager",
+            "label": "Менеджер по счетам"
+        },
+        {
+            "value": "accManager",
+            "label": "Управляющий счетами"
+        },        
         {
             "value": "partner",
             "label": "Партнёр"
@@ -74,7 +78,7 @@
         },
         {
             "value": "contract_user",
-            "label": "Пользователь экрана конрактов"
+            "label": "Пользователь экрана контрактов"
         }
     ]
 }

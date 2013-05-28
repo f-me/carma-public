@@ -307,11 +307,11 @@
     },
     {
       "name": "owner",
-      "canRead": false,
+      "canRead": ["partner"],
       "canWrite": false,
-      "type": "textarea",
       "meta": {
-        "invisible": true
+        "invisible": true,
+        "label": "Дилер"
       }
     },
     {

@@ -21,15 +21,24 @@ define [ "utils"
       bFilter : false
       fnRowCallback: (nRow) -> $($(nRow).children()[1]).addClass("capitalize")
     searchTable.on("click.datatable", "tr", ->
-      id = this.children[0].innerText
-      window.location.hash = "case/" + id
+      if (searchTable.fnGetPosition this) != null
+        id = this.children[0].innerText
+        window.location.hash = "case/" + id
     )
 
-    e = jQuery.Event 'keypress'
-    e.which = 32
+    $('#search-help').popover
+      content: "Справка по поиску"
+
     sq = $('#search-query')
+    sq.tagautocomplete
+      character: '!'
+      source:    {entries: ['!Кейс:', '!VIN:', '!Госномер:', '!Тел:']}
+
+    e = jQuery.Event 'keypress'
+    e.which = 61
     sq.keypress(_.debounce((-> dtSearch st), 1500))
       .change(-> sq.trigger e)
+      .focus(-> sq.trigger e)
 
     st.fnSort [[2, "desc"]]
     dtSearch st
@@ -52,7 +61,8 @@ define [ "utils"
     st.fnAddData(rows)
 
   dtSearch = (st) ->
-    q = $('#search-query').val()
+    q = $('#search-query').val().trim()
+    q = q.replace '+', ''
     url = if q.length == 0 then "/latestCases" else "/searchCases?q=#{q}"
     $.getJSON url, (objs) -> fillTable st, objs
 

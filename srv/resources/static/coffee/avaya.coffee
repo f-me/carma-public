@@ -74,7 +74,7 @@ lineInfo =
     program: "GM / Chevrolet Korea"
   "GM+BOSCH":
     greeting: "GM ассистанс, добрый день, чем могу Вам помочь?"
-    program: "GM / Cadillac до 2012"
+    program: "GM / Opel (после 01.04.2011)"
   "FORD+BOSCH":
     greeting: "Ford помощь на дорогах, имя оператора, добрый день, чем могу Вам помочь?"
     program: "Ford"

@@ -59,9 +59,9 @@ define ["utils"], (u) ->
         rows = for c in knockVM['comments']()
            [ c.date
            , global.dictValueCache['users'][c.user] || ''
-           , "Комментарий"
+           , (if c?.type? then c.type else "Комментарий")
            , c.comment
-           , ""
+           , (if c?.result? then c.result else "")
            ]
         st.fnAddData rows
 
