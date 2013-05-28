@@ -51,7 +51,7 @@ define [ "utils"
         .setObjsToRowsConverter(objsToRows)
       table
         .on("click.datatable", "tr", ->
-          if table.dataTable.fnGetPosition this
+          if (table.dataTable.fnGetPosition this) != null
             id = @children[0].innerText
             kvm = modelSetup modelName, viewName, {id}
             k = global.viewsWare["#{modelName}-view"].knockVM
