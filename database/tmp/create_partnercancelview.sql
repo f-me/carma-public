@@ -1,3 +1,4 @@
+DROP   VIEW IF EXISTS partnercancelview;
 CREATE VIEW partnercancelview AS
   SELECT pc.*, p.name as partner, substring(pc.caseid, ':(.*)') as case
   FROM      partnercanceltbl pc
