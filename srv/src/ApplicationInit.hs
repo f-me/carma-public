@@ -49,7 +49,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/s/screens",     serveFile "resources/site-config/screens.json")
          , ("/screens",       method GET $ getScreens)
          , ("/report",        chkAuthLocal . method GET  $ report)
-         , ("/all/:model",    chkAuthLocal . method GET  $ readAllHandler)
+         , ("/all/:model",    chkAuth . method GET  $ readAllHandler)
          , ("/callsByPhone/:phone",
                               chkAuthLocal . method GET    $ searchCallsByPhone)
          , ("/actionsFor/:id",chkAuthLocal . method GET    $ getActionsForCase)

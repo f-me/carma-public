@@ -2,10 +2,7 @@
 
 module Application where
 
-import Data.Text (Text)
-import Data.Map (Map)
 import Data.Set (Set)
-import Data.Time.Clock (UTCTime)
 import Control.Concurrent.STM
 import Control.Lens
 

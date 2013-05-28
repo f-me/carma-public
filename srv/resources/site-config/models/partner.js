@@ -87,6 +87,7 @@
                 "picker": "mapPicker",
                 "targetAddr": "addrDeFacto",
                 "targetCoords": "coords",
+                "cityField": "city",
                 "currentBlipType": "partner"
             }
         },

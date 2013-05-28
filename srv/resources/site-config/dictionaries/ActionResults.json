@@ -35,7 +35,17 @@
                 "value": "busyLine",
                 "label": "Не дозвонился"
             }
-        ],        
+        ],
+        "tellMeMore": [
+            {
+                "value": "communicated",
+                "label": "Коммуникация произведена"
+            },
+            {
+                "value": "busyLine",
+                "label": "Не дозвонился"
+            }
+        ],
         "orderServiceAnalyst": [
             {
                 "value": "serviceOrderedAnalyst",

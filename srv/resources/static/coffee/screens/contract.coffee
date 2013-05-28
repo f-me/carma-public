@@ -19,24 +19,21 @@ define [
 
     formatTableColumns = (program) ->
       tableCols =
-            [ {name: "#", fn: (o) -> o.id}
-            , {name: "Активен"
-              ,fn: (v) -> if v.isActive == "true" then "✓" else ""
+            [ { name: "id", label: "#" }
+            , { name: "isActive"
+              , fn  : (c) -> if c.isActive == "true" then "✓" else ""
               }
             , "ctime"
             , "carVin"
             , "carMake"
             , "carModel"
-            ]
-      if program == '1'
-        tableCols.push "carPlateNum"
-
-      tableCols = tableCols.concat(
-            [ "contractValidFromDate"
+            , "carPlateNum"
+            , "contractValidFromDate"
             , "contractValidUntilDate"
             , "contractValidUntilMilage"
             , "manager"
-            ])
+            , "owner"
+            ]
 
     findSame = (kvm, cb) ->
       vin = kvm['carVin']?()
@@ -56,27 +53,57 @@ define [
         return true if typeof e is 'object'
         _.contains(fieldNames, e)
 
-      fs = filterFields.map (f) ->
-        if typeof f is 'string'
-          desc = h[f]
-          {name: desc.meta.label
-          ,fn:
-            if desc.type is 'dictionary'
-              d = global.dictValueCache[desc.meta.dictionaryName]
-              (v) -> d[v[f]] || v[f] || ''
-            else if desc.type is 'date'
-              (v) -> if v[f]
-                  new Date(v[f] * 1000).toString "dd.MM.yyyy"
-                else ''
-            else if desc.type is 'datetime'
-              (v) -> if v[f]
-                  new Date(v[f] * 1000).toString "dd.MM.yyyy HH:mm:ss"
-                else ''
-            else
-              (v) -> v[f] || ''
-          }
-        else
-          f
+      fs = filterFields.map (field) ->
+        # get field description
+        # field may be a string or object with 'name', 'label' and 'fn' params
+        # if type of field is string it should contain model fields name value
+        desc = if field?.name then h[field.name] else h[field]
+
+        # define field label
+        defineLabel = ->
+          # for fields which haven't label in model like 'id' field
+          label = field.label if field?.label?
+          # try to find field label in model
+          label = desc.meta.label if desc?.meta?.label?
+          label
+
+        # define value render function by field type
+        defineFnByType = ->
+          if desc.type is 'dictionary'
+            d = global.dictValueCache[desc.meta.dictionaryName]
+            (contract) -> d[contract[field]] || contract[field] || ''
+          else if desc.type is 'date'
+            (contract) -> if contract[field]
+                new Date(contract[field] * 1000).toString "dd.MM.yyyy"
+              else ''
+          else if desc.type is 'datetime'
+            (contract) -> if contract[field]
+                new Date(contract[field] * 1000).toString "dd.MM.yyyy HH:mm:ss"
+              else ''
+          else
+            (contract) -> contract[field] || ''
+
+        # define value render function by field name
+        defineFnByName = ->
+          name = if field?.name
+            field.name
+          else
+            field
+          if name is 'id'
+            (contract) -> contract.id
+
+        # define field value render function
+        defineFn = ->
+          # for fields wich have predefined render function
+          fn = field.fn if field?.fn?
+          # try get by field type or name
+          fn = do defineFnByName if not fn?
+          fn = do defineFnByType if not fn?
+          fn
+
+        name = do defineLabel
+        fn = do defineFn
+        {name, fn}
 
       th = $('<thead/>')
       tr = $('<tr/>')
@@ -88,18 +115,8 @@ define [
       }
 
     dataTableOptions = ->
-      # sorting function for 'isActive' column
-      $.fn.dataTableExt.afnSortData['dom-checkbox'] = (oSettings, iColumn) ->
-        aData = []
-        $('td:eq('+iColumn+') input', oSettings.oApi._fnGetTrNodes(oSettings)).each(->
-          aData.push(if @checked is true then "1" else "0"))
-        aData
-
-      aoColumnDefs: [
-        sSortDataType: 'dom-checkbox'
-        aTargets: [1]
-      ]
-
+      aoColumnDefs: [ aTargets: [1] ]
+      aaSorting   : [ [1, 'desc' ] ]
       # enable horizontal scrolling
       sScrollX: "100%"
       sScrollXInner: "110%"
@@ -179,11 +196,14 @@ define [
           .addTable(tableParams)
           .setObjsToRowsConverter(objsToRows)
           .setDataTableOptions(do dataTableOptions)
+        table
           .on("click.datatable", "tr", ->
-            id = @children[0].innerText
-            k  = modelSetup modelName, viewName, {"id": id, "program": args.program}, programModel
-            k["updateUrl"]()
-            k)
+            if (table.dataTable.fnGetPosition this) != null
+              id = @children[0].innerText
+              k  = modelSetup modelName, viewName,
+                {"id": id, "program": args.program}, programModel
+              k["updateUrl"]()
+              k)
 
         $("#filter-btn").on 'click', ->
           table.setObjs getContractsURL args.program

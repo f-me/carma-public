@@ -28,7 +28,10 @@
     this.sorter = this.options.sorter || this.sorter
     this.highlighter = this.options.highlighter || this.highlighter
     this.$menu = $(this.options.menu).appendTo('body')
-    this.options.source = eval(this.options.source)
+
+    if (typeof this.options.source === "string") {
+      this.options.source = eval(this.options.source)
+    }
 
     if (!this.options.parent)
         this.options.source = this.options.source.entries
@@ -40,7 +43,7 @@
             this.options.source = []
         this.parent = this.options.parent
     }
-        
+
     if (this.options.source.length > 0 && typeof this.options.source[0] == 'object')
         this.source = this.labelsFor(this.options.source)
     else

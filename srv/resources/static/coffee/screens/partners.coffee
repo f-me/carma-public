@@ -12,7 +12,8 @@ define [ "utils"
       refs = [field: "services"
              ,forest: "partner-services-references"
              ]
-      options = {permEl, focusClass, refs}
+      slotsee = ["map-address"]
+      options = {permEl, focusClass, refs, slotsee}
       main.modelSetup(modelName) viewName, args, options
 
     objsToRows = (objs) ->
@@ -48,14 +49,16 @@ define [ "utils"
       table = screenman.addScreen(modelName, -> )
         .addTable(tableParams)
         .setObjsToRowsConverter(objsToRows)
+      table
         .on("click.datatable", "tr", ->
-          id = @children[0].innerText
-          kvm = modelSetup modelName, viewName, {id}
-          k = global.viewsWare["#{modelName}-view"].knockVM
-          global.alertObj.kvm(kvm)
+          if (table.dataTable.fnGetPosition this) != null
+            id = @children[0].innerText
+            kvm = modelSetup modelName, viewName, {id}
+            k = global.viewsWare["#{modelName}-view"].knockVM
+            global.alertObj.kvm(kvm)
 
-          k['servicesReference'].subscribe ->
-            addTarifStuff i for i in k['servicesReference']())
+            k['servicesReference'].subscribe ->
+              addTarifStuff i for i in k['servicesReference']())
       screenman.showScreen modelName
 
       $('#partner-permissions').find('.btn-success').on 'click', ->

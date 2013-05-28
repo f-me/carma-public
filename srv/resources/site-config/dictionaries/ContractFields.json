@@ -115,6 +115,10 @@
       {
           "value" : "comment",
           "label" : "Комментарий"
+      },
+      {
+          "value" : "owner",
+          "label" : "Дилер"
       }
    ]
 }

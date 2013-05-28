@@ -29,6 +29,7 @@ import System.Locale (defaultTimeLocale)
 import Snap (gets, with)
 import Snap.Snaplet.Auth
 import Snap.Snaplet.RedisDB
+import Snap.Snaplet.Auth
 import qualified Database.Redis as Redis
 import qualified Snaplet.DbLayer.RedisCRUD as RC
 import qualified Snap.Snaplet.PostgresqlSimple as PG
@@ -110,7 +111,21 @@ actions
             ])
           ])
         ,("case", Map.fromList
-          [("partner", [\objId _ -> do
+          [("caseStatus", [\kazeId st -> case st of
+            "s0.5" -> do
+              due <- dateNow (+ (1*60))
+              actionId <- new "action" $ Map.fromList
+                [("name", "tellMeMore")
+                ,("duetime", due)
+                ,("description", utf8 "Требуется дополнительная обработка кейса")
+                ,("targetGroup", "back")
+                ,("priority", "1")
+                ,("caseId", kazeId)
+                ,("closed", "0")
+                ]
+              upd kazeId "actions" $ addToList actionId
+            _      -> return ()])
+          ,("partner", [\objId _ -> do
             mapM_ setSrvMCost =<< B.split ',' <$> get objId "services"
             ])
           ,("program", [\objId _ -> do
@@ -431,7 +446,11 @@ actionActions = Map.fromList
              "Заказать услугу"
              "back" "1" (+5*60) objId
 
-    ,\objId _al -> dateNow id >>= set objId "closeTime"
+    ,\objId _al -> do
+      dateNow id >>= set objId "closeTime"
+      Just u <- liftDb $ with auth currentUser
+      set objId "assignedTo" $ T.encodeUtf8 $ userLogin u
+
     ,\objId val -> maybe (return ()) ($objId)
       $ Map.lookup val actionResultMap
     ])

@@ -30,7 +30,8 @@
             ],
             "meta": {
                 "targetAddr": "caseAddress_address",
-                "targetCoords": "caseAddress_coords"
+                "targetCoords": "caseAddress_coords",
+                "cityField": "city"
             }
         },
         {
@@ -493,10 +494,6 @@
             }
         },
         {
-            "name": "caseAddress",
-            "groupName": "address"
-        },
-        {
             "name": "city",
             "canRead": [
                 "partner",
@@ -519,6 +516,10 @@
                 "bounded": true,
                 "infoText": "city"
             }
+        },
+        {
+            "name": "caseAddress",
+            "groupName": "address"
         },
         {
             "name": "temperature",
@@ -596,7 +597,10 @@
                 "parguy", "psaanalyst"
             ],
             "canWrite": [
-                "psaanalyst"
+                "psaanalyst",
+                "front",
+                "back",
+                "head", "supervisor", "director", "analyst", "parguy", "account", "admin"
             ],
             "type": "dictionary",
             "meta": {
@@ -607,10 +611,23 @@
             }
         },
         {
+            "name": "psaExportNeeded",
+            "type": "checkbox",
+            "canRead": [
+                "head", "supervisor", "director", "admin", "psaanalyst"
+            ],
+            "canWrite": [
+                "head", "supervisor", "director", "admin", "psaanalyst"
+            ],
+            "meta": {
+                "label": "Требуется выгрузка в PSA"
+            }
+        },
+        {
             "name": "psaExported",
             "type": "checkbox",
             "canRead": [
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman", "psaanalyst"
             ],
             "canWrite": [
                 "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
