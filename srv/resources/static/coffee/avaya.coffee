@@ -54,7 +54,7 @@ class @AvayaWidget
         .val(number)
         .css("background", if number in redNumbers then "coral" else "white")
 
-      $("#search-query").val(number)
+      $("#search-query").val("!Тел:" + number)
       $("#search-query").change()
 
       vm = global.viewsWare['call-form'].knockVM
