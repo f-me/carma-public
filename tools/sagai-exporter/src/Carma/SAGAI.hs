@@ -266,12 +266,7 @@ instance ExportMonad ServiceExport where
         let oNum = dataField0 "orderNumber" d
         fields <-
             case mn of
-              "tech" ->
-                  do
-                    tType <- labelOfValue
-                             (dataField0 "techType" d)
-                             (getDict techTypes)
-                    return [oNum, tType]
+              "tech" -> return [oNum]
               -- More fields are requred for towage/rental service
               "rent" ->
                   do
