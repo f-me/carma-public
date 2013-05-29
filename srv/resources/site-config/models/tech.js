@@ -236,7 +236,8 @@
                 "targetPartnerAddr": "contractor_address",
                 "targetPartnerCoords": "contractor_coords",
                 "partnerTable": "contractor_partnerTable",
-                "highlightIdFields": ["contractor_partnerId"]
+                "highlightIdFields": ["contractor_partnerId"],
+                "cityField": "case-form/city"
             }
         },
         {
