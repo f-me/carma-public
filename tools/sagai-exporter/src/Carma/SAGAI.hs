@@ -156,10 +156,14 @@ instance ExportMonad CaseExport where
     comm2Field = pushComment =<< caseField0 "dealerCause"
 
     comm3Field = do
-      servs <- filter exportable <$> getAllServices
-      let towages = filter (\(mn, _, _) -> mn == "towage") servs
-      -- Include order number of the first exportable service, include
-      -- contractor code of the first towage service (if present).
+      servs <- getAllServices
+      let twgPred = \(mn, _, d) ->
+                      mn == "towage" &&
+                      dataField0 "falseCall" d == "none"
+          towages = filter twgPred servs
+      -- Include order number of the first (possibly non-exportable)
+      -- service, include contractor code of the first non-false
+      -- towage service (if present).
       fields <-
           case servs of
             [] -> return []
