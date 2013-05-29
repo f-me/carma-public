@@ -165,6 +165,7 @@ actions
                             when (val' == "") $ set objId name val
                     mapM_ setIfEmpty car
             ])
+          ,("psaExportNeeded", [\caseRef _ -> tryRepTowageMail caseRef])
           ])
         ,("contract", Map.fromList
           [("carPlateNum",  [\o -> set o "carPlateNum" . bToUpper])
