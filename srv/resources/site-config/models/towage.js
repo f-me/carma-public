@@ -133,7 +133,8 @@
                 "targetAddr": "towAddress_address",
                 "targetCoords": "towAddress_coords",
                 "currentBlipType": "dealer",
-                "moreCoords": ["case-form/caseAddress_coords"]
+                "moreCoords": ["case-form/caseAddress_coords"],
+                "cityField": "case-form/city"
             }
         },
         {
