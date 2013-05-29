@@ -276,8 +276,12 @@ instance ExportMonad ServiceExport where
                     return [carCl, oNum]
               "towage" ->
                   do
-                    pCode <- contractorCode s towagePid
-                    return [oNum, pCode]
+                    isFalse <- falseService <$> getService
+                    if isFalse
+                    then return [oNum]
+                    else do
+                      pCode <- contractorCode s towagePid
+                      return [oNum, pCode]
               "consultation" ->
                   do
                     cid <- caseField1 "id"
