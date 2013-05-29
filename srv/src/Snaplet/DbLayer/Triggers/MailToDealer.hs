@@ -142,40 +142,41 @@ sendMailActually actId caseId addrTo = do
     $ sendEximMail cfgFrom cfgTo subj body
 
 
--- | If an action is bound to a towage service which is a repeated
--- towage, send a mail to PSA.
+-- | If a case has towage services which is a repeated towage, send a
+-- mail to PSA.
 tryRepTowageMail :: MonadTrigger m b =>
                     ByteString
-                 -- ^ A reference to an action in the trigger monad
+                 -- ^ A reference to a case in the trigger monad
                  -- context.
                  -> m b ()
-tryRepTowageMail action = do
-  svcRef <- get action "parentId"
+tryRepTowageMail caseRef = do
+  serviceRefs <- B.split ',' <$> get caseRef "services"
 
   -- Extract references and proceed to sendRepTowageMail, which
   -- actually does the job.
 
-  -- Check if an action is created for towage
-  case B.split ':' svcRef of
-    "towage":t:_ -> do
-        caseRef <- get action "caseId"
-        -- Extract corresponding case id.
-        case B.split ':' caseRef of
-          "case":n:_ ->
-              case (B.readInt t, B.readInt n) of
-                (Just (_, _), Just (cid, _)) -> do
-                    prevRefs <- liftDb $ repTowages cid
-                    program <- get caseRef "program"
-                    case (prevRefs, program) of
-                      ([], _) -> return ()
-                      (pr, "citroen") ->
-                        sendRepTowageMail caseRef svcRef (last pr) Citroen
-                      (pr, "peugeot") ->
-                        sendRepTowageMail caseRef svcRef (last pr) Peugeot
-                      _ -> return ()
-                _ -> return ()
-          _ -> return ()
-    _ -> return ()
+  -- Check if a service is a towage
+  forM_ serviceRefs \svcRef ->
+    case B.split ':' svcRef of
+      "towage":t:_ -> do
+          caseRef <- get action "caseId"
+          -- Extract corresponding case id.
+          case B.split ':' caseRef of
+            "case":n:_ ->
+                case (B.readInt t, B.readInt n) of
+                  (Just (_, _), Just (cid, _)) -> do
+                      prevRefs <- liftDb $ repTowages cid
+                      program <- get caseRef "program"
+                      case (prevRefs, program) of
+                        ([], _) -> return ()
+                        (pr, "citroen") ->
+                          sendRepTowageMail caseRef svcRef (last pr) Citroen
+                        (pr, "peugeot") ->
+                          sendRepTowageMail caseRef svcRef (last pr) Peugeot
+                        _ -> return ()
+                  _ -> return ()
+            _ -> return ()
+      _ -> return ()
 
 
 data PSAProgram = Citroen
