@@ -25,3 +25,16 @@ ko.bindingHandlers.readonly =
 ko.bindingHandlers.pickerDisable =
   update: (el, acc, allBindigns, kvm) ->
     $(el).data('disabled', acc()())
+
+ko.bindingHandlers.bindDict =
+  init: (el, acc, allBindigns, kvm) ->
+    dict = switch $(el).attr('data-source-type')
+      when 'remote' then new RemoteDict
+      else               new LocalDict(el, acc, allBindigns, kvm)
+
+    menu = new ThMenu($(el), { select: kvm[acc()] })
+    k = new ThKeys(menu, dict)
+
+    $(el)
+      .on('keypress.typeahead', $.proxy(@.keypress, @))
+      .on('keyup.typeahead',    $.proxy(@.keyup, @))

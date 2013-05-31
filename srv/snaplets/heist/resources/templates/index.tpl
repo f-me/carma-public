@@ -51,6 +51,11 @@
     <!-- base 64 encode/decode library -->
     <script src="/s/js/3p/b64.js" />
 
+    <!-- typeahead menu -->
+    <script src="/s/js/gen/lib/th-menu.js" />
+    <script src="/s/js/gen/lib/th-keys.js" />
+    <script src="/s/js/gen/lib/local-dict.js" />
+
     <script src="/s/js/gen/customKoHandlers.js" />
 
     <!-- Model processing -->
@@ -541,22 +546,19 @@
                    {{# readonly }}readonly{{/ readonly }}
                    autocomplete="off"
                    name="{{ name }}"
-                   data-source="global.dictionaries['{{meta.dictionaryName}}']"
+                   data-source="{{meta.dictionaryName}}"
+                   data-source-type="{{meta.dictionaryType}}"
                    data-bind=" value: {{ name }}Local,
                               valueUpdate: 'change'
                               {{# meta.dictionaryParent }},
                               attr: { 'data-parent': {{ meta.dictionaryParent }} }
                               {{/ meta.dictionaryParent }},
                               disabled: {{ name }}Disabled,
-                              pickerDisable: {{ name }}Disabled"
-                   {{^readonly}}
-                   data-provide="typeahead"
-                   {{/readonly}}
+                              pickerDisable: {{ name }}Disabled,
+                              bindDict: '{{ name }}'"
                    />
             <span class="add-on">
-              <i class="icon icon-chevron-down"
-                {{^readonly}}data-provide="typeahead-toggle"{{/readonly}}
-              />
+              <i class="icon icon-chevron-down" />
             </span>
           </div>
           {{# meta.targetCategory }}
