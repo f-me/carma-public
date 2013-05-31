@@ -121,6 +121,15 @@ define [
       sScrollX: "100%"
       sScrollXInner: "110%"
 
+    logoSetup = (args) ->
+      modelName = "program"
+      $.getJSON "/_/#{modelName}/#{args.program}", (instance) ->
+        instance.modelName = modelName
+        instance.fieldName = "logo"
+        instance.logo = instance.logo.split(',')[0]
+        $logo = Mustache.render $("#logo-help-template").html(), instance
+        $("#table-filter").parent().prepend($logo)
+
     modelSetup = (modelName, viewName, args, programModel) ->
       if args.id
         $('#render-contract').attr(
@@ -174,6 +183,8 @@ define [
         e.preventDefault()
         location.hash = "#contract/#{args.program}"
         location.reload(true)
+
+      logoSetup(args)
 
       modelName = "contract"
       kvm = modelSetup modelName, viewName, args, programModel

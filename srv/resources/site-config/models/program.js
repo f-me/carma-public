@@ -92,6 +92,21 @@
                 "dictionaryName": "Programs",
                 "label": "Формат файлов VIN"
             }
+        },
+        {
+            "name": "logo",
+            "type": "files",
+            "meta": {
+                "label": "Логотип",
+                "widget": "logo"
+            }
+        },
+        {
+            "name": "help",
+            "type": "textarea",
+            "meta": {
+                "label": "Справка"
+            }
         }
     ]
 }

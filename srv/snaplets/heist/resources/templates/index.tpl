@@ -1158,6 +1158,60 @@
       </button>
     </script>
 
+    <!-- Logo with help template -->
+    <script type="text/template"
+            class="field-template"
+            id="logo-help-template">
+      <div class="form-inline well">
+        <div class="media">
+          <a class="pull-left" href="#">
+            <img class="media-object" data-src="holder.js/260x180"
+              style="width: 260px; height: 180px;"
+              src="{{#logo}}/s/fileupload/{{ modelName }}/{{ id }}/{{ fieldName
+              }}/{{ logo }}{{/logo}}" />
+          </a>
+          <div class="media-body">
+            <h4>{{ label }}</h4>
+            <p>{{ help }}</p>
+          </div>
+        </div>
+      </div>
+    </script>
+
+    <!-- Logo upload template -->
+    <script type="text/template"
+            class="field-template"
+            id="logo-field-template">
+      <div class="control-group">
+        <div class="control-label">
+          <label>{{ meta.label }}</label>
+        </div>
+        <div class="controls">
+          <form data-bind="attr: { action: {{name}}UploadUrl }, setdata: {{name}}"
+                method="post"
+                enctype="multipart/form-data">
+            <input type="file"
+                   name="files"
+                   data-bind="disabled: {{ name }}Disabled"
+                   />
+            <input type="button"
+                   value="Загрузить"
+                   onClick="uploadFile(this)"
+                   data-bind="disabled: {{ name }}Disabled"
+                   />
+            <ul data-bind="foreach: {{ name }}Info, setdata: logo">
+              <li>
+                <a data-bind="attr: { href: url }, text: name"/>
+                <i class="icon icon-remove"
+                   data-bind="setdata: name"
+                   onclick="deleteFile(this)"/>
+              </li>
+            </ul>
+          </form>
+        </div>
+      </div>
+    </script>
+
     <!-- Modal dialog template -->
     <script type="text/template"
             class="field-template"
