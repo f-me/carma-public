@@ -48,6 +48,31 @@ require [ "domready"
       homePage = "rkc"
     global.router.navigate homePage, {trigger: true}
 
+  setModelWatcher = ->
+    setInterval setModelState, 100
+
+  getModelState = ->
+    a = (v?.bbInstance?.attributeQueue for k,v of window.global.viewsWare)
+    _.all (_.isEmpty(v) for v in a), _.identity
+
+  setModelStateMark = (state) ->
+    if state
+      $(".brand").css('color', 'green')
+    else
+      $(".brand").css('color', 'red')
+
+  setModelStateEvent = (state) ->
+    if state
+      $(window).off "beforeunload.modelwatcher"
+    else
+      $(window).on "beforeunload.modelwatcher", ->
+        "Бро! Что-то не успело сохраниться11"
+
+  setModelState = ->
+    s = getModelState()
+    setModelStateMark(s)
+    setModelStateEvent(s)
+
   # this will be called on dom ready
   dom ->
     dicts.users =
@@ -79,6 +104,8 @@ require [ "domready"
       redirectToHomePage user
 
     sendSms.setup()
+
+    setModelWatcher()
 
   u.build_global_fn 'showComplex', ['utils']
   u.build_global_fn 'hideComplex', ['utils']
