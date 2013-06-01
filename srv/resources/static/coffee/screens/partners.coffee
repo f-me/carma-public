@@ -54,11 +54,10 @@ define [ "utils"
           if (table.dataTable.fnGetPosition this) != null
             id = @children[0].innerText
             kvm = modelSetup modelName, viewName, {id}
-            k = global.viewsWare["#{modelName}-view"].knockVM
             global.alertObj.kvm(kvm)
 
-            k['servicesReference'].subscribe ->
-              addTarifStuff i for i in k['servicesReference']())
+            subscribeTarifStuff(modelName)
+        )
       screenman.showScreen modelName
 
       $('#partner-permissions').find('.btn-success').on 'click', ->
@@ -74,6 +73,8 @@ define [ "utils"
           workingTime: kvm.workingTime()
         table.dataTable.fnAddData objsToRows [obj]
 
+      subscribeTarifStuff(modelName)
+
     addNewServiceToPartner = (name) ->
       p = global.viewsWare["partner-view"].knockVM
       mu.addReference p,
@@ -83,6 +84,11 @@ define [ "utils"
 
     afterAddSrv = (parent) -> (k) ->
       utils.focusRef k
+
+    subscribeTarifStuff = (modelName) ->
+      k = global.viewsWare["#{modelName}-view"].knockVM
+      k['servicesReference'].subscribe ->
+        addTarifStuff i for i in k['servicesReference']()
 
     addTarifStuff = (p) ->
       view = $("##{p['view']}")

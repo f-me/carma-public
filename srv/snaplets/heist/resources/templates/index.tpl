@@ -1162,42 +1162,41 @@
     <script type="text/template"
             class="field-template"
             id="modalDialog-field-template">
+      <div id="{{ id }}-modal" class="modal hide fade">
+        <div class="modal-header">
+          <button type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-hidden="true">&times;</button>
+          <h3>{{ title }}</h3>
+        </div>
+        <div id="{{ id }}-alert-container" class="alert">
+          <button type="button" class="close">&times;</button>
+          <div class="alert-message"></div>
+        </div>
+        <div id="{{ id }}-form" class="modal-body"/>
+          <div class="modal-footer">
+            <button id="{{ id }}-save"
+                class="btn btn-primary">{{ saveLabel }}</button>
+            <button class="btn"
+                data-dismiss="modal"
+                aria-hidden="true">{{ cancelLabel}}</button>
+          </div>
+        </div>
+      </div>
+    </script>
+    <!-- Modal dialog launch button -->
+    <script type="text/template"
+            class="field-template"
+            id="modalDialogButton-field-template">
       <div class="control-group">
         <div class="controls checkbutton">
           <label class="inline">
-            <input type="checkbox"
-                   name="{{ name }}"
-                   {{# readonly }}disabled{{/ readonly }}
-                   data-bind="checked: {{ name }},
-                              valueUpdate: 'change',
-                              disabled: {{ name }}Disabled" />
             <button type="button"
-                data-toggle="modal"
-                data-target="#{{ meta.id }}-modal"
                 class="btn btn-danger"
-                data-bind="disabled: {{ name }}Disabled">{{ meta.launchLabel}}</button>
+                data-bind="disabled: {{ name }}Disabled, click: {{meta.click}}"
+                >{{ meta.label}}</button>
           </label>
-        </div>
-        <div id="{{ meta.id }}-modal" class="modal hide fade">
-          <div class="modal-header">
-            <button type="button"
-                class="close"
-                data-dismiss="modal"
-                aria-hidden="true">&times;</button>
-            <h3>{{ meta.title }}</h3>
-          </div>
-          <div id="{{ meta.id }}-alert-container" class="alert">
-            <button type="button" class="close">&times;</button>
-            <div class="alert-message"></div>
-          </div>
-          <div id="{{ meta.id }}-form" class="modal-body"/>
-          <div class="modal-footer">
-            <button id="{{ meta.id }}-save"
-                class="btn btn-primary">{{ meta.saveLabel }}</button>
-            <button class="btn"
-                data-dismiss="modal"
-                aria-hidden="true">{{ meta.cancelLabel}}</button>
-          </div>
         </div>
       </div>
     </script>

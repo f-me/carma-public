@@ -1,104 +1,72 @@
 {
     "entries": [
         {
-            "value": "security",
+            "value": "diag1.1",
             "label": "Безопасности"
         },
         {
-            "value": "intake",
+            "value": "diag1.2",
             "label": "Впускная"
         },
         {
-            "value": "exhaust",
+            "value": "diag1.3",
             "label": "Выпуска отработавших газов"
         },
         {
-            "value": "engine",
+            "value": "diag1.4",
             "label": "Двигатель"
         },
         {
-            "value": "ignit",
-            "label": "Зажигания"
-        },
-        {
-            "value": "body",
+            "value": "diag1.5",
             "label": "Кузов"
         },
         {
-            "value": "lights",
+            "value": "diag1.6",
             "label": "Осветительные приборы"
         },
         {
-            "value": "condit",
-            "label": "Охлаждения / подогрева воздуха салона"
+            "value": "diag1.7",
+            "label": "Охлаждение / подогрева воздуха салона"
         },
         {
-            "value": "engcool",
+            "value": "diag1.8",
             "label": "Охлаждения двигателя"
         },
         {
-            "value": "susp",
+            "value": "diag1.9",
             "label": "Подвеска"
         },
         {
-            "value": "misc",
-            "label": "Привода вспомогательных агрегатов"
+            "value": "diag1.10",
+            "label": "Привод вспомогательных агрегатов"
         },
         {
-            "value": "steer",
+            "value": "diag1.11",
             "label": "Рулевого управления"
         },
         {
-            "value": "clutch",
-            "label": "Сцепление"
+            "value": "diag1.12",
+            "label": "Система блокировки и сигнализация"
         },
         {
-            "value": "fuel",
+            "value": "diag1.13",
+            "label": "Система зажигания"
+        },
+        {
+            "value": "diag1.14",
             "label": "Топливная"
         },
         {
-            "value": "brake",
-            "label": "Тормозная"
+            "value": "diag1.15",
+            "label": "Тормозная "
         },
         {
-            "value": "gears",
+            "value": "diag1.16",
             "label": "Трансмиссия"
         },
         {
-            "value": "pcm",
-            "label": "Управления двигателем"
-        },
-        {
-            "value": "electro",
+            "value": "diag1.17",
             "label": "Электрооборудование"
-        },
-        {
-            "value": "vandal",
-            "label": "Вандализм"
-        },
-        {
-            "value": "dtp",
-            "label": "ДТП"
-        },
-        {
-            "value": "keyLost",
-            "label": "Ключи утеряны"
-        },
-        {
-            "value": "signal",
-            "label": "Сигнализация"
-        },
-        {
-            "value": "needDiagnostic",
-            "label": "Требуется диагностика в дилерском центре"
-        },
-        {
-            "value": "tread",
-            "label": "Шины/Колеса"
-        },
-        {
-            "value": "electronics",
-            "label": "Электроника"
         }
     ]
 }

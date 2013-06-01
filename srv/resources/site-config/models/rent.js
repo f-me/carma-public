@@ -174,6 +174,7 @@
                 "contractor_partner",
                 "contractor_partnerId",
                 "contractor_partnerTable",
+                "contractor_partnerCancel",
                 "contractor_address"
             ],
             "canRead": [
@@ -983,23 +984,13 @@
             "name": "orderNumber",
             "canRead": [
                 "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
                 "admin",
-                "programman"
+                "psaanalyst"
             ],
             "canWrite": [
                 "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
                 "admin",
-                "programman"
+                "psaanalyst"
             ],
             "meta": {
                 "label": "Номер заказ-наряда"

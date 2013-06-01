@@ -156,10 +156,14 @@ instance ExportMonad CaseExport where
     comm2Field = pushComment =<< caseField0 "dealerCause"
 
     comm3Field = do
-      servs <- filter exportable <$> getAllServices
-      let towages = filter (\(mn, _, _) -> mn == "towage") servs
-      -- Include order number of the first exportable service, include
-      -- contractor code of the first towage service (if present).
+      servs <- getAllServices
+      let twgPred = \s@(mn, _, _) ->
+                      mn == "towage" &&
+                      (not $ falseService s)
+          towages = filter twgPred servs
+      -- Include order number of the first (possibly non-exportable)
+      -- service, include contractor code of the first non-false
+      -- towage service (if present).
       fields <-
           case servs of
             [] -> return []
@@ -266,12 +270,7 @@ instance ExportMonad ServiceExport where
         let oNum = dataField0 "orderNumber" d
         fields <-
             case mn of
-              "tech" ->
-                  do
-                    tType <- labelOfValue
-                             (dataField0 "techType" d)
-                             (getDict techTypes)
-                    return [oNum, tType]
+              "tech" -> return [oNum]
               -- More fields are requred for towage/rental service
               "rent" ->
                   do
@@ -281,8 +280,12 @@ instance ExportMonad ServiceExport where
                     return [carCl, oNum]
               "towage" ->
                   do
-                    pCode <- contractorCode s towagePid
-                    return [oNum, pCode]
+                    isFalse <- falseService <$> getService
+                    if isFalse
+                    then return [oNum]
+                    else do
+                      pCode <- contractorCode s towagePid
+                      return [oNum, pCode]
               "consultation" ->
                   do
                     cid <- caseField1 "id"
@@ -397,10 +400,10 @@ caseField1 :: ExportMonad m => FieldName -> m FieldValue
 caseField1 fn = dataField1 fn =<< getCase
 
 
--- | True if a service is a billed false call (@falseCall@ field is
--- @bill@).
+-- | True if a service is a false call (@falseCall@ field is not
+-- @none@).
 falseService :: Service -> Bool
-falseService (_, _, d) = dataField0 "falseCall" d == "bill"
+falseService (_, _, d) = dataField0 "falseCall" d /= "none"
 
 
 -- | True if service should be exported to SAGAI.

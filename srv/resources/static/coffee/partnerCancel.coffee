@@ -5,9 +5,19 @@ define ["model/main"], (main) ->
   # "partner:{PARTNER_ID}"
   # @param fnPartnerName function which returns partner name
   setup: (fnPartnerId, fnPartnerName) ->
-    $(->
-      modelName = "partnerCancel"
-      $("##{modelName}-modal").on('show', () ->
+    modelName = "partnerCancel"
+
+    $('body').append(
+      Mustache.render $("#modalDialog-field-template").html(),
+              title: "Отказ партнёра"
+              id: modelName
+              saveLabel: "Сохранить"
+              cancelLabel: "Отменить"
+    )
+    $modalDialog = $("##{modelName}-modal")
+
+    $modalDialog
+      .on('show', () ->
         refs = []
         k = main.modelSetup("#{modelName}") "#{modelName}-form", {id:null},
           focusClass: "focusable"
@@ -43,12 +53,12 @@ define ["model/main"], (main) ->
             $alert.show()
             $alert.find('.close').on('click', ->
               $alert.hide()
-              $("##{modelName}-modal").modal('hide')
+              $modalDialog.modal('hide')
             )
           else
             $alert.hide()
 
-        partnerId = fnPartnerId()
+        partnerId = fnPartnerId() if fnPartnerId
         if partnerId
           partnerCancelVM.partnerId(partnerId)
           # hide alert
@@ -84,7 +94,11 @@ define ["model/main"], (main) ->
             vPartnerCancel.bbInstance.save()
             do addToHistory
 
-            $("##{modelName}-modal").modal('hide')
+            $modalDialog.modal('hide')
           )
       )
-    )
+      .on('hidden', () ->
+        $(@).remove()
+      )
+
+    $modalDialog.modal 'show'
