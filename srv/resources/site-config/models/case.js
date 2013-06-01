@@ -256,7 +256,7 @@
             "type": "datetime",
             "meta": {
                 "label": "Дата звонка",
-		"readonly": true
+                "readonly": true
             }
         },
         {
@@ -272,9 +272,9 @@
             "type": "datetime",
             "meta": {
                 "label": "Дата звонка",
-		"readonly": true
+                "readonly": true
             }
-        },        
+        },
         {
             "name": "callTaker",
             "canRead": [
@@ -374,7 +374,6 @@
             "type": "dictionary",
             "meta": {
                 "dictionaryName": "Diagnosis3",
-                "dictionaryParent": "diagnosis2",
                 "label": "Описание причины неисправности",
                 "infoText": "diagnosis3"
             }

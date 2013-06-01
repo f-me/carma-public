@@ -32,17 +32,15 @@ triggerCreate model obj =
 triggerUpdate :: ModelName -> ObjectId -> Object -> DbHandler b ObjectMap
 triggerUpdate model objId commit = do
   let fullId = B.concat [model, ":", objId]
-  recs <- gets (recommendations . triggers)
   let stripUnchanged orig = Map.filterWithKey (\k v -> Map.lookup k orig /= Just v)
   commit' <- (`stripUnchanged` commit) <$> Redis.read' redis fullId
   commit'' <- case model of
                 "usermeta" -> updateUsermetaTrigger objId commit'
                 _          -> return commit'
-  let cfg = unionTriggers (compileRecs recs) actions
   -- Seems that we don't need recursive triggers actually.
   -- There is only one place where they are used intentionally: filling car
   -- dimensions when car model is determined.
-  loop cfg 1 emptyContext $ Map.singleton fullId commit''
+  loop actions 1 emptyContext $ Map.singleton fullId commit''
   where
     loop _ 0 cxt changes = return $ unionMaps changes $ updates cxt
     loop cfg n cxt changes
@@ -71,8 +69,6 @@ matchingTriggers cfg updates
         model = fst $ B.break (==':') objId
         modelTriggers = Map.findWithDefault Map.empty model cfg
         applyTriggers tgs val = map (\t -> t objId val) tgs
-
-unionTriggers = Map.unionWith (Map.unionWith (++))
 
 compileRecs :: MonadTrigger m b =>
   Map.Map k (Map.Map s (Map.Map B.ByteString (Map.Map FieldName FieldValue))) ->
