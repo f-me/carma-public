@@ -984,23 +984,13 @@
             "name": "orderNumber",
             "canRead": [
                 "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
                 "admin",
-                "programman"
+                "psaanalyst"
             ],
             "canWrite": [
                 "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
                 "admin",
-                "programman"
+                "psaanalyst"
             ],
             "meta": {
                 "label": "Номер заказ-наряда"
