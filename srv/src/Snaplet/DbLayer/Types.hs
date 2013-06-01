@@ -45,7 +45,6 @@ data DbLayer b = DbLayer
     ,_postgres :: Snaplet Postgres
     ,_dbLog    :: Snaplet SimpleLog
     ,_auth     :: Snaplet (AuthManager b)
-    ,triggers  :: TriggersConfig
     ,fdds      :: Fdds.Conf
     ,syncRelations :: SM.Relations
     ,syncTables :: [TableDesc]
@@ -54,10 +53,6 @@ data DbLayer b = DbLayer
     ,rkcDict   :: RKCCalc
     ,runtimeFlags :: TVar RuntimeFlags
     }
-
-data TriggersConfig = TriggersConfig
-  {recommendations :: Map ModelName (Map FieldName (Map FieldValue Object))
-  }
 
 makeLenses ''DbLayer
 
