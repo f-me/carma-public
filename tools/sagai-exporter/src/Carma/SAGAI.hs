@@ -157,9 +157,9 @@ instance ExportMonad CaseExport where
 
     comm3Field = do
       servs <- getAllServices
-      let twgPred = \(mn, _, d) ->
+      let twgPred = \s@(mn, _, _) ->
                       mn == "towage" &&
-                      dataField0 "falseCall" d == "none"
+                      (not $ falseService s)
           towages = filter twgPred servs
       -- Include order number of the first (possibly non-exportable)
       -- service, include contractor code of the first non-false
@@ -400,10 +400,10 @@ caseField1 :: ExportMonad m => FieldName -> m FieldValue
 caseField1 fn = dataField1 fn =<< getCase
 
 
--- | True if a service is a billed false call (@falseCall@ field is
--- @bill@).
+-- | True if a service is a false call (@falseCall@ field is not
+-- @none@).
 falseService :: Service -> Bool
-falseService (_, _, d) = dataField0 "falseCall" d == "bill"
+falseService (_, _, d) = dataField0 "falseCall" d /= "none"
 
 
 -- | True if service should be exported to SAGAI.
