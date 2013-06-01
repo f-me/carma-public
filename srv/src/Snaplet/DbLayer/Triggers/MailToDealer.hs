@@ -156,10 +156,9 @@ tryRepTowageMail caseRef = do
   -- actually does the job.
 
   -- Check if a service is a towage
-  forM_ serviceRefs \svcRef ->
+  forM_ serviceRefs $ \svcRef ->
     case B.split ':' svcRef of
       "towage":t:_ -> do
-          caseRef <- get action "caseId"
           -- Extract corresponding case id.
           case B.split ':' caseRef of
             "case":n:_ ->
