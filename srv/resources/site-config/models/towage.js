@@ -133,7 +133,8 @@
                 "targetAddr": "towAddress_address",
                 "targetCoords": "towAddress_coords",
                 "currentBlipType": "dealer",
-                "moreCoords": ["case-form/caseAddress_coords"]
+                "moreCoords": ["case-form/caseAddress_coords"],
+                "cityField": "case-form/city"
             }
         },
         {
@@ -304,7 +305,8 @@
                 "targetAddr": "towerAddress_address",
                 "targetCoords": "towerAddress_coords",
                 "currentBlipType": "tow",
-                "moreCoords": ["case-form/caseAddress_coords"]
+                "moreCoords": ["case-form/caseAddress_coords"],
+                "cityField": "case-form/city"
             }
         },
         {
@@ -353,7 +355,8 @@
                 "targetPartnerAddr": "towDealer_address",
                 "targetPartnerCoords": "towDealer_coords",
                 "partnerTable": "towDealer_partnerTable",
-                "highlightIdFields": ["contractor_partnerId", "towDealer_partnerId"]
+                "highlightIdFields": ["contractor_partnerId", "towDealer_partnerId"],
+                "cityField": "case-form/city"
             }
         },
         {
@@ -403,7 +406,8 @@
                 "targetPartnerAddr": "contractor_address",
                 "targetPartnerCoords": "contractor_coords",
                 "partnerTable": "contractor_partnerTable",
-                "highlightIdFields": ["contractor_partnerId", "towDealer_partnerId"]
+                "highlightIdFields": ["contractor_partnerId", "towDealer_partnerId"],
+                "cityField": "case-form/city"
             }
         },
         {
@@ -1276,23 +1280,13 @@
             "name": "orderNumber",
             "canRead": [
                 "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
                 "admin",
-                "programman"
+                "psaanalyst"
             ],
             "canWrite": [
                 "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
                 "admin",
-                "programman"
+                "psaanalyst"
             ],
             "meta": {
                 "label": "Номер заказ-наряда"

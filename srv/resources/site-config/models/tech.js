@@ -194,6 +194,7 @@
                 "contractor_partnerTable",
                 "contractor_partnerMap",
                 "contractor_coords",
+                "contractor_partnerCancel",
                 "contractor_address"
             ],
             "canRead": [
@@ -235,7 +236,8 @@
                 "targetPartnerAddr": "contractor_address",
                 "targetPartnerCoords": "contractor_coords",
                 "partnerTable": "contractor_partnerTable",
-                "highlightIdFields": ["contractor_partnerId"]
+                "highlightIdFields": ["contractor_partnerId"],
+                "cityField": "case-form/city"
             }
         },
         {
@@ -663,23 +665,13 @@
             "name": "orderNumber",
             "canRead": [
                 "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
                 "admin",
-                "programman"
+                "psaanalyst"
             ],
             "canWrite": [
                 "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
                 "admin",
-                "programman"
+                "psaanalyst"
             ],
             "meta": {
                 "label": "Номер заказ-наряда"

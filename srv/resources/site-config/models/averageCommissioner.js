@@ -263,6 +263,7 @@
             "targets": [
                 "contractor_partner",
                 "contractor_partnerTable",
+                "contractor_partnerCancel",
                 "contractor_address"
             ],
             "canRead": [
