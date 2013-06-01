@@ -93,7 +93,7 @@ functions tz dict = [
 
         lookupField fs = lookupFieldWithDefault (last fs) fs
 
-        lookupFieldWithDefault def [] = Nothing
+        lookupFieldWithDefault _   [] = Nothing
         lookupFieldWithDefault def fs = tryLook <|> Just def where
             tryLook = do
                 ks <- mapM (fmap T.pack . fromStringField) fs
@@ -165,8 +165,10 @@ functions tz dict = [
             d2 <- M.lookup "servicesview.diagnosis2" fs
             d3 <- M.lookup "servicesview.diagnosis3" fs
             s  <- M.lookup "servicesview.type" fs
-            (S.StringValue d2') <- lookupFieldWithDefault "150" [S.StringValue "FaultCode", S.StringValue "diagnosis2", d]
-            (S.StringValue d3') <- lookupFieldWithDefault "09"  [S.StringValue "FaultCode", S.StringValue "diagnosis3", d]
+            (S.StringValue d2') <- lookupFieldWithDefault (S.StringValue "150")
+                                      [S.StringValue "FaultCode", S.StringValue "diagnosis2", d2]
+            (S.StringValue d3') <- lookupFieldWithDefault (S.StringValue "09")
+                                      [S.StringValue "FaultCode", S.StringValue "diagnosis3", d3]
             (S.StringValue s')  <- lookupField [S.StringValue "FaultCode", S.StringValue "service", s]
             return $ S.StringValue $ d2' ++ d3' ++ s'
             
