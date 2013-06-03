@@ -8,6 +8,7 @@ class ThMenu
     @$menu       = $(@.options.menu).appendTo('body')
 
     @selectcb    = options.select
+    @dict        = options.dict
 
     @shown = false
 
@@ -16,7 +17,23 @@ class ThMenu
       .on('mousedown.typeahead',        $.proxy(@.mousedown, @))
       .on('mouseenter.typeahead', 'li', $.proxy(@.mouseenter, @))
 
-  destructor: -> @$menu.remove
+    @$element
+      .on('blur.typeahead',     $.proxy(@.blur, @))
+      .on('keypress.typeahead', $.proxy(@.keypress, @))
+      .on('keyup.typeahead',    $.proxy(@.keyup, @))
+
+    if $.browser.webkit or $.browser.msie
+      @$element.on('keydown.typeahead', $.proxy(@.keypress, @))
+
+  destructor: ->
+    @$menu.remove
+    @$element
+      .off('blur.typeahead')
+      .off('keypress.typeahead')
+      .off('keyup.typeahead')
+
+    if $.browser.webkit or $.browser.msie
+      @$element.off('keydown.typeahead')
 
   select: ->
     @selectcb @.$menu.find('.active').attr('data-value')
@@ -104,6 +121,44 @@ class ThMenu
 
   mousedown: (e) -> e.stopPropagation(); e.preventDefault()
 
-  draw: (items) ->
-    return @.hide() if _.isEmpty items
-    return @.render(items).show()
+  draw: () ->
+    v = @dict.lookup(@$element.val())
+    return @.hide() if _.isEmpty v
+    return @.render(v).show()
+
+  keyup: (e) ->
+    switch e.keyCode
+      when 40, 38 # down arrow, up arrow
+        @draw() unless @shown
+      when 9, 16  # tab, shift
+        return
+      when 13     # enter
+        if @shown
+        then @select()
+        else @draw()
+
+      when 27     # escape
+        @hide()
+
+      else
+        @draw()
+
+    e.stopPropagation()
+    e.preventDefault()
+
+  keypress: (e) ->
+    return unless @shown
+
+    switch e.keyCode
+      when 9, 13, 27 # tab, enter, escape
+        e.preventDefault()
+
+      when 38        # up arrow
+        e.preventDefault()
+        @prev()
+
+      when 40        # down arrow
+        e.preventDefault()
+        @next()
+
+    e.stopPropagation()

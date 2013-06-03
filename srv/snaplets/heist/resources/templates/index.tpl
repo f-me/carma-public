@@ -53,7 +53,6 @@
 
     <!-- typeahead menu -->
     <script src="/s/js/gen/lib/th-menu.js" />
-    <script src="/s/js/gen/lib/th-keys.js" />
     <script src="/s/js/gen/lib/local-dict.js" />
 
     <script src="/s/js/gen/customKoHandlers.js" />

@@ -32,9 +32,6 @@ ko.bindingHandlers.bindDict =
       when 'remote' then new RemoteDict
       else               new LocalDict(el, acc, allBindigns, kvm)
 
-    menu = new ThMenu($(el), { select: kvm[acc()] })
-    k = new ThKeys(menu, dict)
-
-    $(el)
-      .on('keypress.typeahead', $.proxy(@.keypress, @))
-      .on('keyup.typeahead',    $.proxy(@.keyup, @))
+    menu = new ThMenu $(el),
+      select: kvm[acc()]
+      dict  : dict
