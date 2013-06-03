@@ -173,7 +173,6 @@ initDbLayer sessionMgr adb rtF cfgDir = makeSnaplet "db-layer" "Storage abstract
       <*> nestSnaplet "pgsql" postgres pgsInit
       <*> nestSnaplet "dblog" dbLog (simpleLogInit_ l)
       <*> pure sessionMgr
-      <*> liftIO triggersConfig
       <*> (liftIO $ fddsConfig cfg)
       <*> (return rels)
       <*> (return tbls)
@@ -183,11 +182,6 @@ initDbLayer sessionMgr adb rtF cfgDir = makeSnaplet "db-layer" "Storage abstract
       <*> pure rtF
 
 ----------------------------------------------------------------------
-triggersConfig :: IO TriggersConfig
-triggersConfig = do
-  recs <- readJSON "resources/site-config/recommendations.json"
-  return $ TriggersConfig recs
-
 
 fddsConfig cfg = do
   uri   <- require cfg "fdds-uri"

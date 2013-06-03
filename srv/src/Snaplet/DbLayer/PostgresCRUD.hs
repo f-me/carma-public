@@ -72,7 +72,7 @@ functions tz dict = [
     R.uses ["servicesview.falseCall"] $ R.constFunction "FALSECALL" falseFun,
     R.uses ["servicesview.falseCall"] $ R.constFunction "BILL" billFun,
     R.uses ["servicesview.clientSatisfied"] $ R.constFunction "SATISFIED" satisfiedFun,
-    R.uses ["servicesview.diagnosis1", "servicesview.type"] $ R.constFunction "FAULTCODE" faultFun,
+    R.uses ["servicesview.diagnosis2", "servicesview.diagnosis3", "servicesview.type"] $ R.constFunction "FAULTCODE" faultFun,
     R.uses ["servicesview.car_make"] $ R.constFunction "VEHICLEMAKE" vehicleMakeFun,
     R.uses ["servicesview.car_make", "servicesview.car_model"] $ R.constFunction "VEHICLEMODEL" vehicleModelFun,
     R.uses ["servicesview.caseid", "servicesview.services", "servicesview.id", "servicesview.type"] $ R.constFunction "SERVICEID" serviceId,
@@ -91,12 +91,13 @@ functions tz dict = [
         fromStringField (S.StringValue s) = Just s
         fromStringField _ = Nothing
 
-        lookupField [] = Nothing
-        lookupField fs = tryLook <|> justLast where
+        lookupField fs = lookupFieldWithDefault (last fs) fs
+
+        lookupFieldWithDefault _   [] = Nothing
+        lookupFieldWithDefault def fs = tryLook <|> Just def where
             tryLook = do
                 ks <- mapM (fmap T.pack . fromStringField) fs
                 fmap (S.StringValue . T.unpack) $ lookAny ks dict
-            justLast = Just $ last fs
         
         ifFun [i, t, f]
             | i `elem` [S.StringValue "1", S.StringValue "true", S.StringValue "Y", S.IntValue 1, S.BoolValue True] = t
@@ -161,11 +162,15 @@ functions tz dict = [
                 _ -> ""
             
         faultFun fs = do
-            d <- M.lookup "servicesview.diagnosis1" fs
-            s <- M.lookup "servicesview.type" fs
-            (S.StringValue d') <- lookupField [S.StringValue "FaultCode", S.StringValue "diagnosis1", d]
-            (S.StringValue s') <- lookupField [S.StringValue "FaultCode", S.StringValue "service", s]
-            return $ S.StringValue $ d' ++ "09" ++ s'
+            d2 <- M.lookup "servicesview.diagnosis2" fs
+            d3 <- M.lookup "servicesview.diagnosis3" fs
+            s  <- M.lookup "servicesview.type" fs
+            (S.StringValue d2') <- lookupFieldWithDefault (S.StringValue "150")
+                                      [S.StringValue "FaultCode", S.StringValue "diagnosis2", d2]
+            (S.StringValue d3') <- lookupFieldWithDefault (S.StringValue "09")
+                                      [S.StringValue "FaultCode", S.StringValue "diagnosis3", d3]
+            (S.StringValue s')  <- lookupField [S.StringValue "FaultCode", S.StringValue "service", s]
+            return $ S.StringValue $ d2' ++ d3' ++ s'
             
         vehicleMakeFun fs = do
             m <- M.lookup "servicesview.car_make" fs
