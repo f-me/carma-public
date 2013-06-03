@@ -1,4 +1,4 @@
-define ["utils", "dictionaries"], (u, dictionary) ->
+define ["utils", "dictionaries", "lib/local-dict"], (u, dictionary, ld) ->
   distanceQuery = (coord1, coord2) -> u.stripWs "/geo/distance/#{coord1}/#{coord2}/"
 
   # Transform distance in meters to km
@@ -11,26 +11,39 @@ define ["utils", "dictionaries"], (u, dictionary) ->
         dict       = instance.fieldHash[fieldName].meta.dictionaryName
         parent     = instance.fieldHash[fieldName].meta.dictionaryParent
         bounded    = instance.fieldHash[fieldName].meta.bounded
+        dictType   = instance.fieldHash[fieldName].meta.dictionaryType
+
+        dictOpts   =
+          kvm   : knockVM
+          dict  : dict
+          parent: parent
+
+        dict = switch dictType
+          when 'remote' then new RemoteDict
+          else               new ld.LocalDict(dictOpts)
 
         # Perform label-value transformation
-        knockVM[fieldName + "Local"] =
+        knockVM["#{fieldName}Local"] =
           kb.observable instance,
                         key: fieldName
                         read: (k) ->
                           # Read label by real value
                           val = instance.get(k)
-                          global.dictValueCache[dict] || dictionary.get(dict)
-                          lab = global.dictValueCache[dict][val]
+                          lab = dict.getLab(val)
                           return (lab || val)
                         write: (lab) ->
                           # Set real value by label
-                          val = global.dictLabelCache[dict][lab]
+                          val = dict.getVal(lab)
                           # drop value if can't find one for bounded dict
                           if bounded and not val
                           then  instance.set(fieldName, "")
                           else  instance.set(fieldName, val || lab)
                         ,
                         knockVM
+
+        knockVM["#{fieldName}Typeahead"] =
+          new ThMenu { select: knockVM[fieldName], dict: dict }
+
 
   regexpKbHook: (instance, knockVM) ->
     # Set observable with name <fieldName>Regexp for inverse of
@@ -134,7 +147,7 @@ define ["utils", "dictionaries"], (u, dictionary) ->
         dict      = i.fieldHash[n].meta.dictionaryName
         parent    = i.fieldHash[n].meta.dictionaryParent
         bounded   = i.fieldHash[n].meta.bounded
-        global.dictValueCache[dict] || dictionary.get(dict)
+        # global.dictValueCache[dict] || dictionary.get(dict)
         k["#{n}Many"] = ko.computed
           # we don't need any value here
           # I have to retrieve something, to make ko refresh view

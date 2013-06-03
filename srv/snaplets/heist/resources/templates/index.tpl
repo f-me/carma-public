@@ -53,7 +53,7 @@
 
     <!-- typeahead menu -->
     <script src="/s/js/gen/lib/th-menu.js" />
-    <script src="/s/js/gen/lib/local-dict.js" />
+    <!-- <script src="/s/js/gen/lib/local-dict.js" /> -->
 
     <script src="/s/js/gen/customKoHandlers.js" />
 
@@ -545,18 +545,14 @@
                    {{# readonly }}readonly{{/ readonly }}
                    autocomplete="off"
                    name="{{ name }}"
-                   data-source="{{meta.dictionaryName}}"
-                   data-source-type="{{meta.dictionaryType}}"
-                   data-bind=" value: {{ name }}Local,
-                              valueUpdate: 'change'
-                              {{# meta.dictionaryParent }},
-                              attr: { 'data-parent': {{ meta.dictionaryParent }} }
-                              {{/ meta.dictionaryParent }},
+                   data-bind="value: {{ name }}Local,
+                              valueUpdate: 'change',
                               disabled: {{ name }}Disabled,
                               pickerDisable: {{ name }}Disabled,
                               bindDict: '{{ name }}'"
                    />
             <span class="add-on">
+                  <!-- data-bind="click: {{ name }}Typeahead.draw()"> -->
               <i class="icon icon-chevron-down" />
             </span>
           </div>

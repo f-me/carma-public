@@ -1,9 +1,8 @@
 class ThMenu
-  constructor: (element, options) ->
-    @$element    = $(element)
+  constructor: (options) ->
     @options     = $.extend({}, $.fn.typeahead.defaults, options)
-    @matcher     = @.options.matcher || @.matcher
-    @sorter      = @.options.sorter || @.sorter
+    @matcher     = @.options.matcher     || @.matcher
+    @sorter      = @.options.sorter      || @.sorter
     @highlighter = @.options.highlighter || @.highlighter
     @$menu       = $(@.options.menu).appendTo('body')
 
@@ -17,6 +16,8 @@ class ThMenu
       .on('mousedown.typeahead',        $.proxy(@.mousedown, @))
       .on('mouseenter.typeahead', 'li', $.proxy(@.mouseenter, @))
 
+  setElement: (el) ->
+    @$element = $(el)
     @$element
       .on('blur.typeahead',     $.proxy(@.blur, @))
       .on('keypress.typeahead', $.proxy(@.keypress, @))
@@ -122,6 +123,7 @@ class ThMenu
   mousedown: (e) -> e.stopPropagation(); e.preventDefault()
 
   draw: () ->
+    return @ unless @$element
     v = @dict.lookup(@$element.val())
     return @.hide() if _.isEmpty v
     return @.render(v).show()

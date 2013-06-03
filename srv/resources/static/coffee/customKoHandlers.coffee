@@ -28,10 +28,4 @@ ko.bindingHandlers.pickerDisable =
 
 ko.bindingHandlers.bindDict =
   init: (el, acc, allBindigns, kvm) ->
-    dict = switch $(el).attr('data-source-type')
-      when 'remote' then new RemoteDict
-      else               new LocalDict(el, acc, allBindigns, kvm)
-
-    menu = new ThMenu $(el),
-      select: kvm[acc()]
-      dict  : dict
+    kvm["#{acc()}Typeahead"].setElement(el)
