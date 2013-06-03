@@ -1158,26 +1158,6 @@
       </button>
     </script>
 
-    <!-- Logo with help template -->
-    <script type="text/template"
-            class="field-template"
-            id="logo-help-template">
-      <div class="form-inline well">
-        <div class="media">
-          <a class="pull-left" href="#">
-            <img class="media-object" data-src="holder.js/260x180"
-              style="width: 260px; height: 180px;"
-              src="{{#logo}}/s/fileupload/{{ modelName }}/{{ id }}/{{ fieldName
-              }}/{{ logo }}{{/logo}}" />
-          </a>
-          <div class="media-body">
-            <h4>{{ label }}</h4>
-            <p>{{ help }}</p>
-          </div>
-        </div>
-      </div>
-    </script>
-
     <!-- Logo upload template -->
     <script type="text/template"
             class="field-template"

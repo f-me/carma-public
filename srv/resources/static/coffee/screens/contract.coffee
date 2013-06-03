@@ -122,13 +122,13 @@ define [
       sScrollXInner: "110%"
 
     logoSetup = (args) ->
-      modelName = "program"
-      $.getJSON "/_/#{modelName}/#{args.program}", (instance) ->
-        instance.modelName = modelName
-        instance.fieldName = "logo"
-        instance.logo = instance.logo.split(',')[0]
-        $logo = Mustache.render $("#logo-help-template").html(), instance
-        $("#table-filter").parent().prepend($logo)
+      $.getJSON "/_/program/#{args.program}", (instance) ->
+        $("#logo").attr("src", ->
+          fileName = instance.logo.split(',')[0]
+          "/s/fileupload/program/#{args.program}/logo/#{fileName}"
+        )
+        $("#help-program").text(instance.label)
+        $("#help-text").text(instance.help)
 
     modelSetup = (modelName, viewName, args, programModel) ->
       if args.id
