@@ -121,6 +121,15 @@ define [
       sScrollX: "100%"
       sScrollXInner: "110%"
 
+    logoSetup = (args) ->
+      $.getJSON "/_/program/#{args.program}", (instance) ->
+        $("#logo").attr("src", ->
+          fileName = instance.logo.split(',')[0]
+          "/s/fileupload/program/#{args.program}/logo/#{fileName}"
+        )
+        $("#help-program").text(instance.label)
+        $("#help-text").text(instance.help)
+
     modelSetup = (modelName, viewName, args, programModel) ->
       if args.id
         $('#render-contract').attr(
@@ -174,6 +183,8 @@ define [
         e.preventDefault()
         location.hash = "#contract/#{args.program}"
         location.reload(true)
+
+      logoSetup(args)
 
       modelName = "contract"
       kvm = modelSetup modelName, viewName, args, programModel
