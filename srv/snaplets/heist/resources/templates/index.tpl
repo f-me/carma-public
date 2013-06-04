@@ -551,8 +551,8 @@
                               pickerDisable: {{ name }}Disabled,
                               bindDict: '{{ name }}'"
                    />
-            <span class="add-on">
-                  <!-- data-bind="click: {{ name }}Typeahead.draw()"> -->
+            <span class="add-on"
+                  data-bind="click: {{ name }}Typeahead.draw">
               <i class="icon icon-chevron-down" />
             </span>
           </div>
