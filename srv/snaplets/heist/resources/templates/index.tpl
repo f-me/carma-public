@@ -1141,14 +1141,17 @@
           <input type="file"
                  name="files"
                  style="display:none;"
-                 onchange="$(this).parent().children().eq(1).val($(this).val());"
+                 onchange="$(this).siblings('.file-path').val($(this).val());"
                  data-bind="disabled: {{ name }}Disabled"
+                 class="file-container"
                  />
           <input type="text"
                  name="subfiles"
+                 class="file-path"
+                 disabled
                  />
           <a class="btn"
-                  onclick="$(this).parent().children().eq(0).click();"
+                  onclick="$(this).siblings('.file-container').click();"
                   >Обзор
           </a>
           <a type="button"
