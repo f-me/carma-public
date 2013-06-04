@@ -1,5 +1,5 @@
 class ThMenu
-  constructor: (options) ->
+  constructor: (options) =>
     @options     = $.extend({}, $.fn.typeahead.defaults, options)
     @matcher     = @.options.matcher     || @.matcher
     @sorter      = @.options.sorter      || @.sorter
@@ -16,7 +16,7 @@ class ThMenu
       .on('mousedown.typeahead',        $.proxy(@.mousedown, @))
       .on('mouseenter.typeahead', 'li', $.proxy(@.mouseenter, @))
 
-  setElement: (el) ->
+  setElement: (el) =>
     @$element = $(el)
     @$element
       .on('blur.typeahead',     $.proxy(@.blur, @))
@@ -26,7 +26,7 @@ class ThMenu
     if $.browser.webkit or $.browser.msie
       @$element.on('keydown.typeahead', $.proxy(@.keypress, @))
 
-  destructor: ->
+  destructor: =>
     @$menu.remove
     @$element
       .off('blur.typeahead')
@@ -36,12 +36,12 @@ class ThMenu
     if $.browser.webkit or $.browser.msie
       @$element.off('keydown.typeahead')
 
-  select: ->
+  select: =>
     @selectcb @.$menu.find('.active').attr('data-value')
     @hide()
     return @
 
-  show: ->
+  show: =>
     pos = $.extend {}, @.$element.offset(),
       height: @.$element[0].offsetHeight
 
@@ -55,21 +55,21 @@ class ThMenu
     $(document).on('mousedown', $.proxy(@.hide, @))
     return @
 
-  hide: ->
+  hide: =>
     return @ unless @.shown
     @$menu.hide()
     @shown = false
     $(document).off('mousedown', @.hide)
     return @
 
-  toggle: ->
+  toggle: =>
     if @shown
     then @hide()
     else @show()
     return @
 
   setItems: @render
-  render: (items) ->
+  render: (items) =>
     that = @
 
     itms = $.map items, (v, k) ->
@@ -86,12 +86,12 @@ class ThMenu
     @$menu.html(itms)
     return @
 
-  inViewport: (el) ->
+  inViewport: (el) =>
     m = @$menu
     elOffset = el.offset().top - m.offset().top
     return 0 < elOffset && elOffset < m.height()
 
-  next: (event) ->
+  next: (event) =>
     active = @$menu.find('.active').removeClass('active')
     next   = active.next()
 
@@ -100,7 +100,7 @@ class ThMenu
     next.addClass('active')
     @inViewport(next) || next[0].scrollIntoView()
 
-  prev: (event) ->
+  prev: (event) =>
     active = @$menu.find('.active').removeClass('active')
     prev   = active.prev()
 
@@ -109,26 +109,26 @@ class ThMenu
     prev.addClass('active')
     @inViewport(prev) || prev[0].scrollIntoView()
 
-  blur: (e) -> setTimeout((=> @hide()), 150)
+  blur: (e) => setTimeout((=> @hide()), 150)
 
-  click: (e) ->
+  click: (e) =>
     e.stopPropagation()
     e.preventDefault()
     @select()
 
-  mouseenter: (e) ->
+  mouseenter: (e) =>
     @.$menu.find('.active').removeClass('active')
     $(e.currentTarget).addClass('active')
 
   mousedown: (e) -> e.stopPropagation(); e.preventDefault()
 
-  draw: () ->
+  draw: () =>
     return @ unless @$element
     v = @dict.lookup(@$element.val())
     return @.hide() if _.isEmpty v
     return @.render(v).show()
 
-  keyup: (e) ->
+  keyup: (e) =>
     switch e.keyCode
       when 40, 38 # down arrow, up arrow
         @draw() unless @shown
@@ -148,7 +148,7 @@ class ThMenu
     e.stopPropagation()
     e.preventDefault()
 
-  keypress: (e) ->
+  keypress: (e) =>
     return unless @shown
 
     switch e.keyCode
