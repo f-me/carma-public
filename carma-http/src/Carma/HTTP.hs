@@ -2,8 +2,7 @@
 
 {-|
 
-  Interface to HTTP API for CRUD operations on model instances as
-  provided by CaRMa server running on localhost.
+  Interface to HTTP API provided by a CaRMa server.
 
 -}
 
@@ -11,14 +10,26 @@ module Carma.HTTP
     ( FieldName
     , FieldValue
     , InstanceData
+
+    -- * CaRMa API monad
+    , CarmaOptions(..)
+    , defaultCarmaOptions
+    , CarmaIO
+    , runCarma
+
+    -- * CRUD operations
     , instanceRequest
     , createInstance
     , readInstance
     , updateInstance
     , deleteInstance
     , instanceExists
+
+    -- * Parsing reference lists
     , read1Reference
     , readReferences
+
+    -- * Auxiliary methods
     , methodURI
     , readDictionary
     , manyFieldDivisor
@@ -26,7 +37,10 @@ module Carma.HTTP
 
 where
 
-import Data.Aeson
+import Control.Monad.IO.Class
+import Control.Monad.Trans.Reader
+
+import Data.Aeson hiding (Result)
 import Data.Dict
 import Data.Functor
 import Data.HashMap.Strict as M
@@ -36,6 +50,7 @@ import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Lazy.Char8 as BSL
 
 import Network.HTTP
+import Network.Stream (Result)
 
 import Carma.HTTP.Util
 
@@ -48,8 +63,31 @@ type FieldName = BS.ByteString
 type InstanceData = M.HashMap FieldName FieldValue
 
 
-localURIPrefix :: String
-localURIPrefix = "http://localhost:"
+-- | Options used to connect to a running CaRMa instance.
+data CarmaOptions = CarmaOptions { carmaPort :: Int }
+
+
+defaultCarmaOptions :: CarmaOptions
+defaultCarmaOptions = CarmaOptions 8000
+
+
+-- | A monad which keeps a single open connection for a sequence of
+-- CaRMa requests.
+type CarmaIO = ReaderT (CarmaOptions, HandleStream String) IO
+
+
+getPort :: CarmaIO Int
+getPort = asks (carmaPort . fst)
+
+
+sendRequest :: Request String -> CarmaIO (Result (Response String))
+sendRequest req = do
+  s <- asks snd
+  liftIO $ sendHTTP s req
+
+
+localhost :: String
+localhost = "127.0.0.1"
 
 
 -- | Model API endpoint.
@@ -58,7 +96,7 @@ modelURI :: Int
          -> String
          -- ^ Model name.
          -> String
-modelURI cp model = concat [localURIPrefix, show cp, "/_/", model, "/"]
+modelURI cp model = concat ["http://", localhost, ":", show cp, "/_/", model, "/"]
 
 
 -- | Model read/update/delete API endpoint.
@@ -66,30 +104,37 @@ modelPidURI :: Int -> String -> Int -> String
 modelPidURI cp model pid = (modelURI cp model) ++ (show pid)
 
 
+runCarma :: CarmaOptions -> CarmaIO a -> IO a
+runCarma opts action = do
+  s <- openStream localhost (carmaPort opts)
+  res <- runReaderT action (opts, s)
+  close s >> return res
+
+
 -- | Send request to c/r/u/d an instance of model, possibly using new
 -- instance data. Return id and instance data from server response.
-instanceRequest :: Int
-                -- ^ CaRMa port.
-                -> String
+instanceRequest :: String
                 -- ^ Model name.
                 -> Maybe Int
                 -- ^ Model id.
                 -> RequestMethod
                 -> Maybe InstanceData
                 -- ^ Request payload.
-                -> IO (Int, Maybe InstanceData)
-instanceRequest cp model rid rm row = do
+                -> CarmaIO (Int, Maybe InstanceData)
+instanceRequest model rid rm row = do
+  cp <- getPort
   let uri =
           case rid of
             Just n  -> modelPidURI cp model n
             Nothing -> modelURI cp model
-  rs <- simpleHTTP $
+  s <- asks snd
+  rs <- liftIO $ sendHTTP s $
         case row of
           Just payload ->
               mkRequestWithBody uri rm $
               Just ("application/json", BSL.unpack $ encode payload)
           Nothing -> mkRequestWithBody uri rm Nothing
-  inst <- (decode' . BSL.pack) <$> getResponseBody rs
+  inst <- liftIO $ (decode' . BSL.pack) <$> getResponseBody rs
   return $ case rid of
     -- We already know id
     Just n -> (n, inst)
@@ -119,40 +164,39 @@ requireValidResponse (cid, rs) =
       Nothing -> error "No valid CaRMa response"
 
 
-createInstance :: Int -> String -> InstanceData -> IO (Int, InstanceData)
-createInstance cp model row =
-    instanceRequest cp model Nothing POST (Just row)
+createInstance :: String -> InstanceData -> CarmaIO (Int, InstanceData)
+createInstance model row =
+    instanceRequest model Nothing POST (Just row)
                         >>= requireValidResponse
 
 
-readInstance :: Int -> String -> Int -> IO InstanceData
-readInstance cp model rid =
-    snd <$> (instanceRequest cp model (Just rid) GET Nothing
+readInstance :: String -> Int -> CarmaIO InstanceData
+readInstance model rid =
+    snd <$> (instanceRequest model (Just rid) GET Nothing
                                  >>= requireValidResponse)
 
 
-updateInstance :: Int -> String -> Int -> InstanceData -> IO InstanceData
-updateInstance cp model rid row =
-    snd <$> (instanceRequest cp model (Just rid) PUT (Just row)
+updateInstance :: String -> Int -> InstanceData -> CarmaIO InstanceData
+updateInstance model rid row =
+    snd <$> (instanceRequest model (Just rid) PUT (Just row)
                         >>= requireValidResponse)
 
 
-deleteInstance :: Int -> String -> Int -> IO ()
-deleteInstance cp model rid =
-    instanceRequest cp model (Just rid) DELETE Nothing >> return ()
+deleteInstance :: String -> Int -> CarmaIO ()
+deleteInstance model rid =
+    instanceRequest model (Just rid) DELETE Nothing >> return ()
 
 
 -- | Check if instance exists in the CaRMa database.
-instanceExists :: Int
-               -- ^ CaRMa port.
-               -> String
+instanceExists :: String
                -- ^ Model name.
                -> Int
                -- ^ Instance id.
-               -> IO Bool
-instanceExists cp modelName rid = do
-  rs <- simpleHTTP $ getRequest $ modelPidURI cp modelName rid
-  code <- getResponseCode rs
+               -> CarmaIO Bool
+instanceExists modelName rid = do
+  cp <- getPort
+  rs <- sendRequest $ getRequest $ modelPidURI cp modelName rid
+  code <- liftIO $ getResponseCode rs
   return $
    case code of
      (2, 0, 0) -> True
@@ -192,7 +236,7 @@ methodURI :: Int
           -- ^ Method name/call, like @repTowages/5003@ or @psaCases@,
           -- no trailing or leading slashes.
           -> String
-methodURI cp meth = localURIPrefix ++ show cp ++ "/" ++ meth
+methodURI cp meth = concat ["http://", localhost, ":", show cp, "/", meth]
 
 
 -- | Name of CaRMa HTTP method which serves a hash of all
@@ -202,14 +246,13 @@ dictionariesMethod = "cfg/dictionaries"
 
 
 -- | Load a dictionary with given name from CaRMa.
-readDictionary :: Int
-               -- ^ CaRMa port.
-               -> String
+readDictionary :: String
                -- ^ Dictionary name.
-               -> IO (Maybe Dict)
-readDictionary cp name  = do
-  rs <- simpleHTTP $ getRequest $ methodURI cp dictionariesMethod
-  rsb <- getResponseBody rs
+               -> CarmaIO (Maybe Dict)
+readDictionary name = do
+  cp <- getPort
+  rs <- sendRequest $ getRequest $ methodURI cp dictionariesMethod
+  rsb <- liftIO $ getResponseBody rs
   -- Read server response into @HashMap String Value@, since
   -- carma-dict does not support multi-level dictionaries yet
   let dicts = decode' $ BSL.pack $ rsb :: Maybe (M.HashMap String Value)
