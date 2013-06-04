@@ -47,7 +47,7 @@ define ["utils", "dictionaries"], (u, dictionary) ->
       )(fieldName, new RegExp(global.dictLabelCache["_regexps"][regexp]))
 
   filesKbHook: (instance, knockVM) ->
-    for n in instance.filesFields
+    _.each instance.filesFields, (n) ->
       upl = "/upload"
       d = "/s/fileupload"
       knockVM["#{n}UploadUrl"] = ko.computed

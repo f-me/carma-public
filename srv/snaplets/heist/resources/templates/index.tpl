@@ -1137,15 +1137,35 @@
       <form data-bind="attr: { action: {{name}}UploadUrl }, setdata: {{name}}"
             method="post"
             enctype="multipart/form-data">
-        <input type="file"
-               name="files"
-               data-bind="disabled: {{ name }}Disabled"
-               />
-        <input type="button"
-               value="Загрузить"
-               onClick="uploadFile(this)"
-               data-bind="disabled: {{ name }}Disabled"
-               />
+        <div class="input-append">
+          <input type="file"
+                 name="files"
+                 style="display:none;"
+                 onchange="$(this).parent().children().eq(1).val($(this).val());"
+                 data-bind="disabled: {{ name }}Disabled"
+                 />
+          <input type="text"
+                 name="subfiles"
+                 />
+          <a class="btn"
+                  onclick="$(this).parent().children().eq(0).click();"
+                  >Обзор
+          </a>
+          <a type="button"
+                 class="btn"
+                 onClick="uploadFile(this)"
+                 data-bind="disabled: {{ name }}Disabled"
+                 >Загрузить
+          </a>
+        </div>
+        <ul data-bind="foreach: {{ name }}Info, setdata: {{ name }}">
+          <li>
+            <a data-bind="attr: { href: url }, text: name"/>
+            <i class="icon icon-remove"
+               data-bind="setdata: name"
+               onclick="deleteFile(this)"/>
+          </li>
+        </ul>
       </form>
     </script>
 
@@ -1156,40 +1176,6 @@
               type="button">
         <i class="icon icon-plus"></i>{{ label }}
       </button>
-    </script>
-
-    <!-- Logo upload template -->
-    <script type="text/template"
-            class="field-template"
-            id="logo-field-template">
-      <div class="control-group">
-        <div class="control-label">
-          <label>{{ meta.label }}</label>
-        </div>
-        <div class="controls">
-          <form data-bind="attr: { action: {{name}}UploadUrl }, setdata: {{name}}"
-                method="post"
-                enctype="multipart/form-data">
-            <input type="file"
-                   name="files"
-                   data-bind="disabled: {{ name }}Disabled"
-                   />
-            <input type="button"
-                   value="Загрузить"
-                   onClick="uploadFile(this)"
-                   data-bind="disabled: {{ name }}Disabled"
-                   />
-            <ul data-bind="foreach: {{ name }}Info, setdata: logo">
-              <li>
-                <a data-bind="attr: { href: url }, text: name"/>
-                <i class="icon icon-remove"
-                   data-bind="setdata: name"
-                   onclick="deleteFile(this)"/>
-              </li>
-            </ul>
-          </form>
-        </div>
-      </div>
     </script>
 
     <!-- Modal dialog template -->

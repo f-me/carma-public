@@ -15,7 +15,7 @@ define [], ->
     alert "Загрузка завершилась неудачно"
 
   uploadFile: (e) ->
-          form = $(e).parent('form')
+          form = $(e).closest('form')
           data = form.data()
           url  = form.attr('action')
           fd   = new FormData(form[0])
@@ -26,7 +26,7 @@ define [], ->
           xhr.addEventListener("abort", uploadError, false)
           xhr.open("POST", url)
           xhr.send(fd)
-          form.find('input:file').val("")
+          form.find('input:file').val("").trigger("change")
 
   deleteFile: (e) ->
     pdata = $(e).parents('ul').data()
