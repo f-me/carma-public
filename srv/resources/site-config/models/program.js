@@ -97,8 +97,7 @@
             "name": "logo",
             "type": "files",
             "meta": {
-                "label": "Логотип",
-                "widget": "logo"
+                "label": "Логотип"
             }
         },
         {
