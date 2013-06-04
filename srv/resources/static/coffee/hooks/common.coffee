@@ -8,14 +8,14 @@ define ["utils", "dictionaries", "lib/local-dict"], (u, dictionary, ld) ->
     for n of instance.dictionaryFields
       do (n) ->
         fieldName  = instance.dictionaryFields[n]
-        dict       = instance.fieldHash[fieldName].meta.dictionaryName
+        dictName   = instance.fieldHash[fieldName].meta.dictionaryName
         parent     = instance.fieldHash[fieldName].meta.dictionaryParent
         bounded    = instance.fieldHash[fieldName].meta.bounded
         dictType   = instance.fieldHash[fieldName].meta.dictionaryType
 
         dictOpts   =
           kvm   : knockVM
-          dict  : dict
+          dict  : dictName
           parent: parent
 
         dict = switch dictType
@@ -144,10 +144,21 @@ define ["utils", "dictionaries", "lib/local-dict"], (u, dictionary, ld) ->
   dictManyHook: (i, k) ->
     for n in i.dictManyFields
       do (n) ->
-        dict      = i.fieldHash[n].meta.dictionaryName
+        dictName  = i.fieldHash[n].meta.dictionaryName
         parent    = i.fieldHash[n].meta.dictionaryParent
         bounded   = i.fieldHash[n].meta.bounded
-        # global.dictValueCache[dict] || dictionary.get(dict)
+        dictType  = i.fieldHash[n].meta.dictionaryType
+
+        dictOpts   =
+          kvm   : k
+          dict  : dictName
+          parent: parent
+
+        dict = switch dictType
+          when 'remote' then new RemoteDict
+          else               new ld.LocalDict(dictOpts)
+
+
         k["#{n}Many"] = ko.computed
           # we don't need any value here
           # I have to retrieve something, to make ko refresh view
@@ -155,7 +166,7 @@ define ["utils", "dictionaries", "lib/local-dict"], (u, dictionary, ld) ->
 
           write: (lab) ->
             return if lab == ""
-            val = global.dictLabelCache[dict][lab]
+            val = dict.getVal(lab)
             c = u.splitVals k[n]()
             return if _.contains c, val
             c.push val
@@ -166,7 +177,7 @@ define ["utils", "dictionaries", "lib/local-dict"], (u, dictionary, ld) ->
           read: ->
             for val in u.splitVals k[n]()
               do (val) ->
-                lab = global.dictValueCache[dict][val]
+                lab = dict.getLab(val)
                 {label: lab || val, value: val}
 
         k["#{n}Remove"] = (el) ->
