@@ -349,7 +349,7 @@ serviceExpenseType s@(mn, _, d) = do
                 rs <- simpleHTTP $ getRequest $
                       methodURI cp $ "repTowages/" ++ (B8.unpack cid)
                 rsb <- getResponseBody rs
-                case (decode' $ BSL.pack rsb :: Maybe [Int]) of
+                case (decode' $ BSL.pack rsb :: Maybe [B8.ByteString]) of
                   Just [] -> return Towage
                   Just _  -> return RepTowage
                   -- TODO It's actually an error
