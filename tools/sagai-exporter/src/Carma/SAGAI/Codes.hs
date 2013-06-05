@@ -80,22 +80,22 @@ codesData = M.fromList
 -- Map key is a @(program, carClass)@ tuple.
 rentCostsPSA :: M.Map (FieldValue, FieldValue) Double
 rentCostsPSA = M.fromList
-    [ (("citroen", "psab"),  1729)
-    , (("citroen", "psam1"), 2034)
-    , (("citroen", "psam2"), 2848)
-    , (("peugeot", "psab"),  2040.22)
-    , (("peugeot", "psam1"), 2400.12)
-    , (("peugeot", "psam2"), 3360.64)
+    [ (("citroen", "psab"),  1758)
+    , (("citroen", "psam1"), 2310)
+    , (("citroen", "psam2"), 3041)
+    , (("peugeot", "psab"),  2074.44)
+    , (("peugeot", "psam1"), 2725.80)
+    , (("peugeot", "psam2"), 3588.38)
     ]
 
 
 -- | Daily costs for car rent service provided by third-party dealers.
 rentCosts :: M.Map (FieldValue, FieldValue) Double
 rentCosts = M.fromList
-    [ (("citroen", "psab"),  1441)
-    , (("citroen", "psam1"), 1695)
-    , (("citroen", "psam2"), 2373)
-    , (("peugeot", "psab"),  1700.38)
-    , (("peugeot", "psam1"), 2000.1)
-    , (("peugeot", "psam2"), 2800.14)
+    [ (("citroen", "psab"),  1465)
+    , (("citroen", "psam1"), 1925)
+    , (("citroen", "psam2"), 2534)
+    , (("peugeot", "psab"),  1728.7)
+    , (("peugeot", "psam1"), 2271.5)
+    , (("peugeot", "psam2"), 2900.32)
     ]
