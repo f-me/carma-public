@@ -63,7 +63,7 @@ codesData = M.fromList
     , (("citroen", Towage),      CodeRow 2911    "DR1" "DR4" "9934" "G5F")
     , (("citroen", RepTowage),   CodeRow 2009    "DR1" "DR4" "9936" "G5F")
     , (("citroen", Rent),        CodeRow 0       "PV1" "PV4" "9927" "PZD")
-    , (("peugeot", Dossier),     CodeRow 1354.64 "24R" "FCA" "8999" "G5D")
+    , (("peugeot", Dossier),     CodeRow 1354.64 "24E" "FCA" "8999" "G5D")
     , (("peugeot", FalseCall),   CodeRow 677.32  "24E" "FCA" "8943" "G5D")
     , (("peugeot", PhoneServ),   CodeRow 414.18  "24E" "FCA" "8990" "G5D")
     , (("peugeot", Charge),      CodeRow 2153.5  "24E" "FCA" "8962" "G5D")
