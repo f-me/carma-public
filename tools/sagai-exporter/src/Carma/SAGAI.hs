@@ -161,11 +161,13 @@ instance ExportMonad CaseExport where
                       mn == "towage" &&
                       (not $ falseService s)
           towages = filter twgPred servs
+          notMistake = \(_, _, d) ->
+                         dataField0 "status" d /= "mistake"
       -- Include order number of the first (possibly non-exportable)
       -- service, include contractor code of the first non-false
       -- towage service (if present).
       fields <-
-          case servs of
+          case filter notMistake servs of
             [] -> return []
             ((_, _, d):_) ->
                 do
