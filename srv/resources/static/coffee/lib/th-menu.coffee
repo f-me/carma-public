@@ -1,5 +1,5 @@
 class ThMenu
-  constructor: (options) =>
+  constructor: (options) ->
     @options     = $.extend({}, $.fn.typeahead.defaults, options)
     @matcher     = @.options.matcher     || @.matcher
     @sorter      = @.options.sorter      || @.sorter
