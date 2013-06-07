@@ -73,6 +73,7 @@ SELECT concat(s.type, ':', s.id) FROM casetbl c INNER JOIN techtbl s
 ON c.id=cast(split_part(s.parentid, ':', 2) as integer)
 WHERE s.parentid is not null
 AND c.car_vin=(SELECT car_vin FROM parentcase)
+AND (s.status='serviceOk' OR s.status='serviceClosed')
 AND s.falseCall='none'
 AND s.techType='charge'
 AND c.calldate >= ((SELECT calldate FROM parentcase) - INTERVAL '2 days')
