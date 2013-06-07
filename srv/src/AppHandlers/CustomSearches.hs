@@ -197,7 +197,7 @@ selectContracts = do
         ]
   writeJSON $ mkMap fields rows
 
-
+busyOpsq :: String
 busyOpsq = [sql|
   SELECT assignedTo, count(1)::text
   FROM   actiontbl
@@ -248,11 +248,11 @@ searchCases = do
 
 findSameContract :: AppHandler ()
 findSameContract = do
-  vin <- getParam "carVin"
-  num <- getParam "cardNumber"
-  id  <- getParam "id"
+  cvin <- getParam "carVin"
+  num  <- getParam "cardNumber"
+  cid  <- getParam "id"
 
-  case id of
+  case cid of
     Nothing  -> finishWithError 403 "need id param"
     Just id' -> do
       rows <- withPG pg_search $ \c -> query_ c $ fromString
@@ -261,7 +261,26 @@ findSameContract = do
         ++ " WHERE ctime > now() - interval '30 days'"
         ++ " AND id != " ++ quote id'
         ++ "AND (false "
-        ++ (maybe "" (\x -> " OR carVin = "     ++ quote x) vin)
+        ++ (maybe "" (\x -> " OR carVin = "     ++ quote x) cvin)
         ++ (maybe "" (\x -> " OR cardNumber = " ++ quote x) num)
         ++ ")"
       writeJSON $ mkMap ["id", "ctime"] rows
+
+vinReverseLookup :: AppHandler ()
+vinReverseLookup = do
+  carvin <- fromJust <$> getParam "vin"
+  q      <- withPG pg_search $ \c -> query c (fromString $ [sql|
+     SELECT carvin
+          , concat('', carmake)
+          , concat('', carmodel)
+          , concat('', program)
+     FROM contracttbl
+     WHERE id IN
+     (SELECT max(id)
+      FROM contracttbl
+      WHERE isactive = 't'
+      GROUP BY carvin, program
+      HAVING reverse(carvin) ilike reverse(?) || '%'
+      ORDER BY max(id) DESC)
+    |]) [carvin]
+  writeJSON $ mkMap ["vin", "make", "model", "program"] q
