@@ -37,8 +37,9 @@ applyDefaults model obj = do
       cd = Map.insert "callDate" (B.pack $ show ct) obj
   obj' <- case model of
     "partner" -> return
-              $ Map.insert "isActive" "0"
-              $ Map.insert "isDealer" "0"
+              $ Map.insertWith (flip const) "isActive" "0"
+              $ Map.insertWith (flip const) "isDealer" "0"
+              $ Map.insertWith (flip const) "isMobile" "0"
               $ obj
     "case" -> return cd
     "call" -> return cd
