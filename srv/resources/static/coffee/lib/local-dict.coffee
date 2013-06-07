@@ -5,7 +5,7 @@ define ["lib/meta-dict"], (m) ->
       @kvm    = @opts.kvm
       @parent = @opts.parent
       @bounded= @opts.bounded
-      @s = window.global.dictionaries[@dict] || retrieve(@dict)
+      @s = window.global.dictionaries[@dict] || @_retrieve(@dict)
       unless @s
         throw new Error("Unknown dictionary #{$(@el).attr('data-source')}")
       if @parent and _.isFunction @kvm[@parent]
