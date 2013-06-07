@@ -101,6 +101,14 @@ define [ "utils"
 
     makeCase = () ->
       v = global.viewsWare['call-form'].knockVM
+
+      callerType = v['callerType']()
+      if callerType == 'client' or callerType == 'partner'
+        v['callType']('newCase')
+      else if not callerType
+        v['callerType']('client')
+        v['callType']('newCase')
+
       args =
         contact_name:   v['callerName_name']()
         contact_phone1: v['callerName_phone1']()
