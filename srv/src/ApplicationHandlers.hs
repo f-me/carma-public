@@ -164,14 +164,14 @@ readAllHandler = do
     flt prm = \obj -> all (selectParse obj) $ B.split ',' prm
 
 updateHandler :: AppHandler ()
-updateHandler = logResp $ do
+updateHandler = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
   commit <- getJSONBody
   logReq commit
   with db (DB.read model objId) >>= \case
     obj | Map.null obj -> handleError 404
-        | otherwise    -> void $ with db
+        | otherwise    -> logResp $ with db
             $ DB.update model objId
             -- Need this hack, or server won't return updated "cost_counted"
             $ Map.delete "cost_counted" commit

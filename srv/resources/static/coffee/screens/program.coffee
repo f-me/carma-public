@@ -33,8 +33,6 @@ define [ "model/main"
     modelName = "program"
     kvm = modelSetup modelName, viewName, args
 
-    f = $("#program-files").html()
-
     tableParams =
       tableName: "program"
       objURL: "/all/program"
@@ -43,7 +41,6 @@ define [ "model/main"
       .addTable(tableParams)
       .setObjsToRowsConverter(objsToRows)
       .on("click.datatable", "tr", ->
-        $("#program-files").html(f)
         id = @children[0].innerText
         modelSetup modelName, viewName, {id}
         global.viewsWare["#{modelName}-view"].knockVM)
