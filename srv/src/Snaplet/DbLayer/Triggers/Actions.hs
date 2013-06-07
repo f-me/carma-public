@@ -457,7 +457,11 @@ actionActions = Map.fromList
       $ Map.lookup val actionResultMap
     ])
   ,("closed",
-    [\objId val -> when (val == "1") $ closeAction objId
+    [\objId -> \case
+      "1" -> closeAction objId
+      "0" -> do
+        kazeId <- get objId "caseId"
+        upd kazeId "actions" $ addToList objId
     ])
   ]
 
