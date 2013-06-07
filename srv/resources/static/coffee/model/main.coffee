@@ -22,7 +22,7 @@
 # current user.
 define [ "model/meta"
        , "model/render"
-       , "dictionaries"
+       , "lib/local-dict"
        ],
        (metamodel, render, dict) ->
   mainSetup = ( localScreens

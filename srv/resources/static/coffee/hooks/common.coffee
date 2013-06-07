@@ -1,4 +1,6 @@
-define ["utils", "dictionaries", "lib/local-dict"], (u, dictionary, ld) ->
+define [ "utils"
+       , "dictionaries"
+       ], (u, d) ->
   distanceQuery = (coord1, coord2) ->
     u.stripWs "/geo/distance/#{coord1}/#{coord2}/"
 
@@ -19,9 +21,7 @@ define ["utils", "dictionaries", "lib/local-dict"], (u, dictionary, ld) ->
           dict  : dictName
           parent: parent
 
-        dict = switch dictType
-          when 'remote' then new RemoteDict
-          else               new ld.LocalDict(dictOpts)
+        dict = new d.dicts[dictType || 'LocalDict'](dictOpts)
 
         # Perform label-value transformation
         knockVM["#{fieldName}Local"] =
@@ -29,7 +29,7 @@ define ["utils", "dictionaries", "lib/local-dict"], (u, dictionary, ld) ->
                         key: fieldName
                         read: (k) ->
                           # Read label by real value
-                          val = instance.get(k)
+                          val = knockVM[k]()
                           lab = dict.getLab(val)
                           return (lab || val)
                         write: (lab) ->
@@ -37,13 +37,15 @@ define ["utils", "dictionaries", "lib/local-dict"], (u, dictionary, ld) ->
                           val = dict.getVal(lab)
                           # drop value if can't find one for bounded dict
                           if bounded and not val
-                          then  instance.set(fieldName, "")
-                          else  instance.set(fieldName, val || lab)
+                          then  knockVM[fieldName]("")
+                          else  knockVM[fieldName](val || lab)
                         ,
                         knockVM
 
         knockVM["#{fieldName}Typeahead"] =
-          new ThMenu { select: knockVM[fieldName], dict: dict }
+          new ThMenu
+            select: (v) -> knockVM[fieldName](dict.id2val(v))
+            dict  : dict
 
 
   regexpKbHook: (instance, knockVM) ->
@@ -54,7 +56,7 @@ define ["utils", "dictionaries", "lib/local-dict"], (u, dictionary, ld) ->
       fieldName = instance.regexpFields[n]
       regexp = instance.fieldHash[fieldName].meta.regexp
       ((f, r) ->
-        knockVM[fieldName + "Regexp"] =
+        knockVM["#{fieldName}Regexp"] =
               kb.observable instance,
                             key: f
                             read: (k) -> not r.test instance.get(k)
@@ -63,7 +65,7 @@ define ["utils", "dictionaries", "lib/local-dict"], (u, dictionary, ld) ->
   filesKbHook: (instance, knockVM) ->
     for n in instance.filesFields
       upl = "/upload"
-      d = "/s/fileupload"
+      p   = "/s/fileupload"
       knockVM["#{n}UploadUrl"] = ko.computed
         read: ->
           # some strange magick, if remove knockVM['maybeId']()
@@ -82,7 +84,7 @@ define ["utils", "dictionaries", "lib/local-dict"], (u, dictionary, ld) ->
           return [] unless fs
           for i in fs.split(',')
             do (i) ->
-              url: "#{d}/#{path}/#{i.trim()}"
+              url: "#{p}/#{path}/#{i.trim()}"
               name: i.trim()
               ctrl: "#{upl}/#{path}/#{i.trim()}"
 
@@ -155,10 +157,7 @@ define ["utils", "dictionaries", "lib/local-dict"], (u, dictionary, ld) ->
           dict  : dictName
           parent: parent
 
-        dict = switch dictType
-          when 'remote' then new RemoteDict
-          else               new ld.LocalDict(dictOpts)
-
+        dict = new d.dicts[dictType || 'LocalDict'](dictOpts)
 
         k["#{n}Many"] = ko.computed
           # we don't need any value here

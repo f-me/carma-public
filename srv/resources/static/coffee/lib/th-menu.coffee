@@ -37,7 +37,7 @@ class ThMenu
       @$element.off('keydown.typeahead')
 
   select: =>
-    @selectcb @.$menu.find('.active').attr('data-value')
+    @selectcb(@.$menu.find('.active').attr('data-value'))
     @hide()
     return @
 
@@ -124,9 +124,9 @@ class ThMenu
 
   draw: () =>
     return @ unless @$element
-    v = @dict.lookup(@$element.val())
-    return @.hide() if _.isEmpty v
-    return @.render(v).show()
+    @dict.lookup @$element.val(), (v) =>
+      return @.hide() if _.isEmpty v
+      return @.render(v).show()
 
   keyup: (e) =>
     switch e.keyCode

@@ -1,11 +1,11 @@
-define ["dictionaries"], (dict) ->
-  class LocalDict
+define ["lib/meta-dict"], (m) ->
+  class LocalDict extends m.dict
     constructor: (@opts) ->
       @dict   = @opts.dict
       @kvm    = @opts.kvm
       @parent = @opts.parent
       @bounded= @opts.bounded
-      @s = window.global.dictionaries[@dict] || dict.get(@dict)
+      @s = window.global.dictionaries[@dict] || retrieve(@dict)
       unless @s
         throw new Error("Unknown dictionary #{$(@el).attr('data-source')}")
       if @parent and _.isFunction @kvm[@parent]
@@ -34,13 +34,13 @@ define ["dictionaries"], (dict) ->
       window.global.dictValueCache[@dict][val]
       # @dictValues()[val]
 
-    lookup: (q) ->
+    lookup: (q, cb) ->
       @q = q
-      return @dictValues() if _.isEmpty(q)
+      return cb(@dictValues()) if _.isEmpty(q)
       r = {}
       r[k] = v for k,v of @dictValues() when @match(q, v)
       @found = r
-      r
+      cb(r)
 
     match: (q, item) ->
       ~item.toLowerCase().indexOf(q.toLowerCase())
@@ -54,4 +54,71 @@ define ["dictionaries"], (dict) ->
       r[k] = v for k, v of @found
       r
 
-  LocalDict: LocalDict
+    _retrieve: (name) ->
+      # if looks like not very usual name
+      if name.match(/:/)
+        d = name.match(/(.*):(.*)/)
+        [fn, args] = [d[1], d[2].split(',').map (e) -> e.trim()]
+        dict = window[fn](args)
+        buildGlobalDict(name, dict)
+        return dict
+
+      dict = {entries: []}
+      $.ajax
+        url: "/all/#{name}?fields=id,name&select=isActive==1"
+        dataType: "json"
+        async: false
+        success: (rsp) ->
+          dict.entries = for e in rsp
+            {value: e.id, label: e.name}
+          res = mkCache dict
+          window.global.dictLabelCache[name] = res.labelCache
+          window.global.dictValueCache[name] = res.valueCache
+          window.global.dictionaries[name] = dict
+      return dict
+
+  buildGlobalDict = (name, dict) ->
+    data = mkCache(dict)
+    window.global.dictLabelCache[name] = data.labelCache
+    window.global.dictValueCache[name] = data.valueCache
+    window.global.dictionaries[name]   = dict
+
+  mkCache = (dict) ->
+    labelCache = {}
+    valueCache = {}
+
+    if _.isArray(dict.entries)
+      for e of dict.entries
+        l = dict.entries[e].label
+        v = dict.entries[e].value
+        labelCache[l] = v
+        valueCache[v] = l
+    else
+      for c of dict.entries
+        for e of dict.entries[c]
+          l = dict.entries[c][e].label
+          v = dict.entries[c][e].value
+          if l and v
+            labelCache[l] = v
+            valueCache[v] = l
+
+    return (
+      labelCache: labelCache
+      valueCache: valueCache)
+
+
+  dict: LocalDict
+  buildCache: (localDictionaries) ->
+    dictLabelCache = {}
+    dictValueCache = {}
+
+    # Build caches (TODO: Do this on server some day)
+    for d of localDictionaries
+      do (d) ->
+        res = mkCache localDictionaries[d]
+        dictLabelCache[d] = res.labelCache
+        dictValueCache[d] = res.valueCache
+
+    return (
+      labelCache: dictLabelCache
+      valueCache: dictValueCache)

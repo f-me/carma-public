@@ -24,7 +24,7 @@ define [
               , fn  : (c) -> if c.isActive == "true" then "✓" else ""
               }
             , "ctime"
-            , "carVin"
+            , { name: "carVin", fn: (v) -> v.carVin }
             , "carMake"
             , "carModel"
             , "carPlateNum"
