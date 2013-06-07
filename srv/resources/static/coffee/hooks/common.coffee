@@ -44,7 +44,9 @@ define [ "utils"
 
         knockVM["#{fieldName}Typeahead"] =
           new ThMenu
-            select: (v) -> knockVM[fieldName](dict.id2val(v))
+            select: (v) ->
+              knockVM[fieldName](dict.id2val(v))
+              knockVM[fieldName].valueHasMutated()
             dict  : dict
 
 
