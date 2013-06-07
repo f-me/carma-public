@@ -123,10 +123,9 @@ define [
 
     logoSetup = (args) ->
       $.getJSON "/_/program/#{args.program}", (instance) ->
-        $("#logo").attr("src", ->
-          fileName = instance.logo.split(',')[0]
-          "/s/fileupload/program/#{args.program}/logo/#{fileName}"
-        )
+        logofn = instance.logo?.split(',')?[0]
+        logourl= "/s/fileupload/program/#{args.program}/logo/#{logofn}"
+        $("#logo").attr "src", logourl if logofn
         $("#help-program").text(instance.label)
         $("#help-text").text(instance.help)
 
