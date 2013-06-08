@@ -143,6 +143,11 @@ define ["model/utils", "utils"], (mu, u) ->
     if city_field?
       city_meta = u.splitFieldInView city_field, parentView
 
+    # Center on the default location first
+    osmap.setCenter(new OpenLayers.LonLat(37.617874,55.757549)
+                   .transform(wsgProj, osmProj),
+                   zoomLevel)
+
     # Place a blip and recenter if coordinates are already known
     if coord_field?
       coord_meta = u.splitFieldInView(coord_field, parentView)
@@ -156,16 +161,12 @@ define ["model/utils", "utils"], (mu, u) ->
         # Otherwise, just center on the city, not placing a blip
         if city_field?
           city = u.findVM(city_meta.view)[city_meta.field]()
-          fixed_city = global.dictValueCache.DealerCities[city]
-          $.getJSON geoQuery(fixed_city), (res) ->
-            if res.length > 0
-              lonlat = new OpenLayers.LonLat res[0].lon, res[0].lat
-              osmap.setCenter lonlat.transform(wsgProj, osmProj), zoomLevel
-        # Otherwise, center on the default location
-        else
-          osmap.setCenter(new OpenLayers.LonLat(37.617874,55.757549)
-                          .transform(wsgProj, osmProj),
-                         zoomLevel)
+          if city? && city.length > 0
+            fixed_city = global.dictValueCache.DealerCities[city]
+            $.getJSON geoQuery(fixed_city), (res) ->
+              if res.length > 0
+                lonlat = new OpenLayers.LonLat res[0].lon, res[0].lat
+                osmap.setCenter lonlat.transform(wsgProj, osmProj), zoomLevel
 
     # Setup handler to update target address and coordinates if the
     # map is clickable
