@@ -99,7 +99,8 @@ define [ "model/meta"
       knockVM[f + "Not"] =
         kb.observable instance,
                       key: f
-                      read: (k) -> not instance.get(k)
+                      read: (k) ->
+                        knockVM[k + "Regexp"]?() or not instance.get(k)
 
     for f in instance.referenceFields
       do (f) ->

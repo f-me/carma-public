@@ -37,8 +37,9 @@ applyDefaults model obj = do
       cd = Map.insert "callDate" (B.pack $ show ct) obj
   obj' <- case model of
     "partner" -> return
-              $ Map.insert "isActive" "0"
-              $ Map.insert "isDealer" "0"
+              $ Map.insertWith (flip const) "isActive" "0"
+              $ Map.insertWith (flip const) "isDealer" "0"
+              $ Map.insertWith (flip const) "isMobile" "0"
               $ obj
     "case" -> return cd
     "call" -> return cd
@@ -75,7 +76,7 @@ applyDefaults model obj = do
   obj'' <- if model `elem` services
       then
         return $ Map.union obj' $ Map.fromList
-          [("times_expectedServiceStart",   B.pack $ show $ ct + h)
+          [("times_expectedServiceStart",   B.pack $ show $ ct + 50*60)
           ,("times_factServiceStart",       B.pack $ show $ ct + h)
           ,("times_expectedServiceEnd",     B.pack $ show $ ct + 2*h)
           ,("times_expectedServiceClosure", B.pack $ show $ ct + 12*h)
