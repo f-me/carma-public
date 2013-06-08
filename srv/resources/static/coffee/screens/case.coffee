@@ -173,6 +173,10 @@ define [ "utils"
         # Select partner and copy its data to case fields
         table.on "click.datatable", "tr", ->
           name = this.children[1].innerText
+
+          # Highlight the clicked row
+          utils.highlightDataTableRow $(this)
+          
           if partnerType is "contractor"
             addr = this.children[2].innerText
             svc["#{partnerType}_address"](addr)
@@ -245,6 +249,9 @@ define [ "utils"
           tr = s.nTr
           id = s._aData[9]
           $(tr).attr('partnerid', "partner:#{id}")
+          # Highlight the previously selected partner
+          if svc["#{partnerType}_partnerId"]() == "partner:#{id}"
+            $(tr).addClass("selected-row")
 
     { constructor       : setupCaseMain
     , destructor        : removeCaseMain

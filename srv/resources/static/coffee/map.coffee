@@ -382,6 +382,8 @@ define ["model/utils", "utils"], (mu, u) ->
     vm[partnerField](partnerName)
     vm[partnerAddrField](partnerAddr)
     vm[partnerCoordsField](partnerCoords)
+    trs = $("[partnerid='partner:#{partnerId}']")
+    u.highlightDataTableRow trs
 
 
   # Read "32.54,56.21" (the way coordinates are stored in model fields)

@@ -248,6 +248,12 @@ define ["model/utils"], (mu) ->
     return if acc.hasClass('in')
     acc.collapse('show')
 
+  # Add selected-row class to a datatables row, remove this class from
+  # all other rows in the same table
+  highlightDataTableRow: (tr) ->
+    tr.siblings(".selected-row").removeClass("selected-row")
+    tr.addClass("selected-row")
+
   getWeather: (city, cb) ->
     url = "/#{city}"
     $.getJSON "/weather/#{city}", (data) -> cb(data)
