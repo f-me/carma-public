@@ -104,7 +104,7 @@ doLogin = ifTop $ do
   l <- fromMaybe "" <$> getParam "login"
   p <- fromMaybe "" <$> getParam "password"
   r <- isJust <$> getParam "remember"
-  res <- with auth $ loginByUsername l (ClearText p) r
+  res <- with auth $ loginByUsername (T.decodeUtf8 l) (ClearText p) r
   either (const redirectToLogin) (const $ redirect "/") res
 
 
@@ -428,7 +428,7 @@ partnerUploadData = scope "partner" $ scope "upload" $ do
   log Trace $ T.pack $ "Output file " ++ outPath
 
   log Trace "Loading dictionaries from CaRMa"
-  Just dicts <- liftIO $ loadIntegrationDicts $ Left carmaPort
+  Just dicts <- liftIO $ loadIntegrationDicts carmaPort
   log Trace "Processing data"
   liftIO $ processData carmaPort inPath outPath dicts
   log Trace "Serve processing report"

@@ -117,7 +117,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   cfg <- getSnapletUserConfig
 
   h <- nestSnaplet "heist" heist $ heistInit "resources/templates"
-  addAuthSplices auth
+  addAuthSplices h auth
 
   sesKey <- liftIO $
             lookupDefault "resources/private/client_session_key.aes"
