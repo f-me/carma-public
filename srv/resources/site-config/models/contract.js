@@ -38,9 +38,7 @@
       "name": "carVin",
       "canRead": ["partner"],
       "canWrite": ["partner"],
-      "type": "dictionary",
       "meta": {
-        "dictionaryType": "VinDict",
         "required": true,
         "label": "VIN",
         "transform": "uppercase",

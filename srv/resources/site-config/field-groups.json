@@ -2,7 +2,9 @@
     "car": [
         {
             "name": "vin",
+            "type": "dictionary",
             "meta": {
+                "dictionaryType": "VinDict",
                 "label": "VIN",
                 "transform": "uppercase",
                 "required": true,
