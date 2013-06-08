@@ -13,6 +13,7 @@ https://github.com/f-me/xlsx
 
 https://github.com/f-me/simple-log
 https://github.com/f-me/snaplet-simple-log
+https://github.com/f-me/snaplet-redis
 https://github.com/mvoidex/simple-log-syslog
 https://github.com/mvoidex/hformat
 
