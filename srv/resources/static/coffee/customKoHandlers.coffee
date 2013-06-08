@@ -25,3 +25,7 @@ ko.bindingHandlers.readonly =
 ko.bindingHandlers.pickerDisable =
   update: (el, acc, allBindigns, kvm) ->
     $(el).data('disabled', acc()())
+
+ko.bindingHandlers.bindDict =
+  init: (el, acc, allBindigns, kvm) ->
+    kvm["#{acc()}Typeahead"].setElement(el)

@@ -1,4 +1,4 @@
-define ["dictionaries"], (dict) ->
+define [], () ->
   renderKnockVm = (elName, knockVM, options) ->
     model     = knockVM.modelDesc()
     instance  = knockVM.model()
@@ -133,10 +133,6 @@ define ["dictionaries"], (dict) ->
           # like changing screen
           f.meta.infoText1 = global.dictionaries.InfoText[f.meta.infoText]
 
-        if f.type == "dictionary"
-          nme = f.meta.dictionaryName
-          dic = global.dictionaries[nme] || dict.get(nme)
-          ctx = _.extend ctx, {dictionary: dic}
         ctx = _.extend(f, ctx)
 
         # We temprorarily change field type when rendering

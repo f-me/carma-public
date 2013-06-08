@@ -1,5 +1,8 @@
-define ["utils", "dictionaries"], (u, dictionary) ->
-  distanceQuery = (coord1, coord2) -> u.stripWs "/geo/distance/#{coord1}/#{coord2}/"
+define [ "utils"
+       , "dictionaries"
+       ], (u, d) ->
+  distanceQuery = (coord1, coord2) ->
+    u.stripWs "/geo/distance/#{coord1}/#{coord2}/"
 
   # Transform distance in meters to km
   formatDistance = (dist) -> Math.round ((parseInt dist) / 1000)
@@ -8,29 +11,44 @@ define ["utils", "dictionaries"], (u, dictionary) ->
     for n of instance.dictionaryFields
       do (n) ->
         fieldName  = instance.dictionaryFields[n]
-        dict       = instance.fieldHash[fieldName].meta.dictionaryName
+        dictName   = instance.fieldHash[fieldName].meta.dictionaryName
         parent     = instance.fieldHash[fieldName].meta.dictionaryParent
         bounded    = instance.fieldHash[fieldName].meta.bounded
+        dictType   = instance.fieldHash[fieldName].meta.dictionaryType
+
+        dictOpts   =
+          kvm   : knockVM
+          dict  : dictName
+          parent: parent
+
+        dict = new d.dicts[dictType || 'LocalDict'](dictOpts)
 
         # Perform label-value transformation
-        knockVM[fieldName + "Local"] =
+        knockVM["#{fieldName}Local"] =
           kb.observable instance,
                         key: fieldName
                         read: (k) ->
                           # Read label by real value
-                          val = instance.get(k)
-                          global.dictValueCache[dict] || dictionary.get(dict)
-                          lab = global.dictValueCache[dict][val]
+                          val = knockVM[k]()
+                          lab = dict.getLab(val)
                           return (lab || val)
                         write: (lab) ->
                           # Set real value by label
-                          val = global.dictLabelCache[dict][lab]
+                          val = dict.getVal(lab)
                           # drop value if can't find one for bounded dict
                           if bounded and not val
-                          then  instance.set(fieldName, "")
-                          else  instance.set(fieldName, val || lab)
+                          then  knockVM[fieldName]("")
+                          else  knockVM[fieldName](val || lab)
                         ,
                         knockVM
+
+        knockVM["#{fieldName}Typeahead"] =
+          new ThMenu
+            select: (v) ->
+              knockVM[fieldName](dict.id2val(v))
+              knockVM[fieldName].valueHasMutated()
+            dict  : dict
+
 
   regexpKbHook: (instance, knockVM) ->
     # Set observable with name <fieldName>Regexp for inverse of
@@ -40,7 +58,7 @@ define ["utils", "dictionaries"], (u, dictionary) ->
       fieldName = instance.regexpFields[n]
       regexp = instance.fieldHash[fieldName].meta.regexp
       ((f, r) ->
-        knockVM[fieldName + "Regexp"] =
+        knockVM["#{fieldName}Regexp"] =
               kb.observable instance,
                             key: f
                             read: (k) -> not r.test instance.get(k)
@@ -49,7 +67,7 @@ define ["utils", "dictionaries"], (u, dictionary) ->
   filesKbHook: (instance, knockVM) ->
     _.each instance.filesFields, (n) ->
       upl = "/upload"
-      d = "/s/fileupload"
+      p   = "/s/fileupload"
       knockVM["#{n}UploadUrl"] = ko.computed
         read: ->
           # some strange magick, if remove knockVM['maybeId']()
@@ -68,7 +86,7 @@ define ["utils", "dictionaries"], (u, dictionary) ->
           return [] unless fs
           for i in fs.split(',')
             do (i) ->
-              url: "#{d}/#{path}/#{i.trim()}"
+              url: "#{p}/#{path}/#{i.trim()}"
               name: i.trim()
               ctrl: "#{upl}/#{path}/#{i.trim()}"
 
@@ -131,10 +149,18 @@ define ["utils", "dictionaries"], (u, dictionary) ->
   dictManyHook: (i, k) ->
     for n in i.dictManyFields
       do (n) ->
-        dict      = i.fieldHash[n].meta.dictionaryName
+        dictName  = i.fieldHash[n].meta.dictionaryName
         parent    = i.fieldHash[n].meta.dictionaryParent
         bounded   = i.fieldHash[n].meta.bounded
-        global.dictValueCache[dict] || dictionary.get(dict)
+        dictType  = i.fieldHash[n].meta.dictionaryType
+
+        dictOpts   =
+          kvm   : k
+          dict  : dictName
+          parent: parent
+
+        dict = new d.dicts[dictType || 'LocalDict'](dictOpts)
+
         k["#{n}Many"] = ko.computed
           # we don't need any value here
           # I have to retrieve something, to make ko refresh view
@@ -142,7 +168,7 @@ define ["utils", "dictionaries"], (u, dictionary) ->
 
           write: (lab) ->
             return if lab == ""
-            val = global.dictLabelCache[dict][lab]
+            val = dict.getVal(lab)
             c = u.splitVals k[n]()
             return if _.contains c, val
             c.push val
@@ -153,7 +179,7 @@ define ["utils", "dictionaries"], (u, dictionary) ->
           read: ->
             for val in u.splitVals k[n]()
               do (val) ->
-                lab = global.dictValueCache[dict][val]
+                lab = dict.getLab(val)
                 {label: lab || val, value: val}
 
         k["#{n}Remove"] = (el) ->
