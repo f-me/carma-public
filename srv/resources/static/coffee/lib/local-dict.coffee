@@ -55,14 +55,6 @@ define ["lib/meta-dict"], (m) ->
       r
 
     _retrieve: (name) ->
-      # if looks like not very usual name
-      if name.match(/:/)
-        d = name.match(/(.*):(.*)/)
-        [fn, args] = [d[1], d[2].split(',').map (e) -> e.trim()]
-        dict = window[fn](args)
-        buildGlobalDict(name, dict)
-        return dict
-
       dict = {entries: []}
       $.ajax
         url: "/all/#{name}?fields=id,name&select=isActive==1"

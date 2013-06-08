@@ -1,6 +1,7 @@
 define [ "lib/local-dict"
        , "lib/vin-dict"
-       ], (ld, vd) ->
+       , "lib/bo-users-dict"
+       ], ->
 
   dicts = {}
   for a in arguments when a.dict?

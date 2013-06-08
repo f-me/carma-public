@@ -211,6 +211,18 @@ busyOps = do
   rows <- withPG pg_search $ \c -> query_ c $ fromString busyOpsq
   writeJSON $ mkMap ["name", "count"] rows
 
+boUsers :: AppHandler ()
+boUsers = do
+  rows <- withPG pg_search $ \c -> query_ c [sql|
+    SELECT realname, login
+      FROM usermetatbl
+      WHERE (lastlogout IS NULL OR lastlogout < lastactivity)
+        AND now() - lastactivity < '20 min'
+        AND roles && ARRAY[
+          'head','back','supervisor','parguy','account',
+          'analyst','op_checker','op_close','op_dealer']
+    |]
+  writeJSON $ mkMap ["name", "login"] rows
 
 getLatestCases :: AppHandler ()
 getLatestCases = do

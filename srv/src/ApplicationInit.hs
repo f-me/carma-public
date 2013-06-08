@@ -94,6 +94,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/rkc/partners",  chkAuthLocal . method GET $ rkcPartners)
          , ("/arc/:year/:month", chkAuthLocal . method GET $ arcReportHandler)
          , ("/allUsers",      chkAuth . method GET  $ serveUsersList)
+         , ("/boUsers",       chkAuth . method GET  $ boUsers)
          , ("/partner/upload.csv",
             chkAuthLocal . method POST $ partnerUploadData)
          , ("/vin/upload",    chkAuth . method POST $ vinUploadData)

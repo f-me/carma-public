@@ -25,12 +25,6 @@ define ["model/utils"], (mu) ->
       $span.fadeOut(2000))
     , 500)
 
-  window.users_with_roles = (roles) ->
-    f = _.filter global.all_users, (u) ->
-      not _.isEmpty(_.intersection(roles, u.roles.split ','))
-    entries: for i in f
-      { value: i.value, label: "#{i.label} (#{i.value})" }
-
   # Dictionary of all user-created programs
   window.allProgramsDict = () ->
     d = {}
