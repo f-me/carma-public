@@ -189,6 +189,13 @@ define [ "utils"
           c = u.splitVals(k[n]())
           k[n] _.without(c, el.value).join(',')
 
+        k["#{n}Typeahead"] =
+          new ThMenu
+            select: (v) ->
+              # FIXME: find more appropriate way to set values here
+              k["#{n}Many"](dict.getLab(dict.id2val(v)))
+            dict  : dict
+
   # Standard element callback which will scroll model into view and
   # focus on first field
   stdElCb: (elName) ->
