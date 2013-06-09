@@ -224,6 +224,25 @@ boUsers = do
     |]
   writeJSON $ mkMap ["name", "login"] rows
 
+allDealers :: AppHandler ()
+allDealers = do
+  rows <- withPG pg_search $ \c -> query_ c [sql|
+    SELECT id::text, name
+      FROM partnertbl
+      WHERE isActive AND isDealer
+    |]
+  writeJSON $ mkMap ["id", "name"] rows
+
+allDealersForMake :: AppHandler ()
+allDealersForMake = do
+  Just make <- getParam "make"
+  rows <- withPG pg_search $ \c -> query c [sql|
+    SELECT id::text, name
+      FROM partnertbl
+      WHERE isActive AND isDealer AND ? = ANY (makes)
+    |] [make]
+  writeJSON $ mkMap ["id", "name"] rows
+
 getLatestCases :: AppHandler ()
 getLatestCases = do
   rows <- withPG pg_search $ \c -> query_ c $ fromString $ [sql|

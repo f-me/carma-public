@@ -603,22 +603,17 @@
                    {{# readonly }}readonly{{/ readonly }}
                    autocomplete="off"
                    name="{{ name }}"
-                   data-source="global.dictionaries['{{meta.dictionaryName}}']"
                    data-bind="value: {{ name }}Many,
-                              valueUpdate: 'change'
-                              {{# meta.dictionaryParent }},
-                              attr: { 'data-parent': {{ meta.dictionaryParent }} }
-                              {{/ meta.dictionaryParent }},
+                              valueUpdate: 'change',
                               disabled: {{ name }}Disabled,
-                              pickerDisable: {{ name }}Disabled"
+                              pickerDisable: {{ name }}Disabled,
+                              bindDict: '{{ name }}'"
 
-                   {{^readonly}}
-                   data-provide="typeahead"
-                   {{/readonly}}
+
                    />
-            <span class="add-on">
+            <span class="add-on"
+                  data-bind="click: {{ name }}Typeahead.draw">
               <i class="icon icon-chevron-down"
-                {{^readonly}}data-provide="typeahead-toggle"{{/readonly}}
               />
             </span>
           </div>
