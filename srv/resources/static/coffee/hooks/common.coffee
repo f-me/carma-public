@@ -29,7 +29,7 @@ define [ "utils"
                           return (lab || val)
                         write: (lab) ->
                           # Set real value by label
-                          return if knockVM["#{fieldName}Disabled"]
+                          return if knockVM["#{fieldName}Disabled"]()
                           val = dict.getVal(lab)
                           # drop value if can't find one for bounded dict
                           if bounded and not val
