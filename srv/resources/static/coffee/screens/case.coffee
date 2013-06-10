@@ -63,12 +63,9 @@ define [ "utils"
     mbEnableActionResult = (kvm) ->
       nots = (i for i of kvm when /.*Not$/.test i)
       if (_.any nots, (e) -> kvm[e]())
-        $("[name=result]").attr('disabled', 'disabled')
-        $("[name=result]").next().find("i").removeAttr("data-provide")
+        k["resultDisabled"](true)  for k in kvm["actionsReference"]()
       else
-        $("[name=result]").removeAttr 'disabled'
-        $("[name=result]").next().find("i")
-          .attr("data-provide", "typeahead-toggle")
+        k["resultDisabled"](false) for k in kvm["actionsReference"]()
 
     setCommentsHandler = ->
       $("#case-comments-b").on 'click', ->
@@ -176,7 +173,7 @@ define [ "utils"
 
           # Highlight the clicked row
           utils.highlightDataTableRow $(this)
-          
+
           if partnerType is "contractor"
             addr = this.children[2].innerText
             svc["#{partnerType}_address"](addr)

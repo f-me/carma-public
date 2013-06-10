@@ -10,4 +10,3 @@ define [], ->
             svcName = global.models[modelName].title
             actName = actName + " (#{svcName})"
           actName
-          

@@ -128,11 +128,11 @@ define [ "model/meta"
 
     for f of instance.fieldHash
       do (f) ->
-        disabled = ko.observable(true)
+        disabled = ko.observable(false)
         knockVM["#{f}Disabled"] = ko.computed
           read: ->
             mbid = parseInt(knockVM["maybeId"]())
-            dixi = if knockVM["dixi"] then knockVM["dixi"]()
+            dixi = if knockVM["dixi"] then knockVM["dixi"]() else true
             (not _.isNaN mbid) and
             dixi               and
             disabled()         and not
