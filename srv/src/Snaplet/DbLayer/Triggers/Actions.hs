@@ -142,7 +142,9 @@ actions
                         Right Nothing  -> setWeather objId val
                         Right (Just c) -> when (c /= val) $ setWeather objId val
                       ])
-          ,("car_plateNum", [\o -> set o "car_plateNum" . bToUpper])
+          ,("car_plateNum", [\objId val ->
+            when (B.length val > 5)
+              $ set objId "car_plateNum" $ bToUpper val])
           ,("car_vin", [\objId val -> do
             let vin = T.encodeUtf8 . T.toUpper . T.filter isAlphaNum
                     $ T.decodeUtf8 val
