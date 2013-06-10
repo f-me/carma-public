@@ -132,7 +132,7 @@ class ThMenu
     switch e.keyCode
       when 40, 38 # down arrow, up arrow
         @draw() unless @shown
-      when 9, 16  # tab, shift
+      when 9, 16, 37, 39  # tab, shift, left, right
         return
       when 13     # enter
         if @shown
