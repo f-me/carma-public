@@ -1,6 +1,6 @@
 define ["lib/meta-dict", ], (m) ->
   class VinDict extends m.dict
-    lookup: (q, cb) ->
+    find: (q, cb) ->
       return cb({}) if q.length < 5
       $.getJSON "/vin/reverseLookup/#{q}", (r) =>
         @found = _.pluck r, 'vin'

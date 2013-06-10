@@ -34,7 +34,7 @@ define ["lib/meta-dict"], (m) ->
       window.global.dictValueCache[@dict][val]
       # @dictValues()[val]
 
-    lookup: (q, cb) ->
+    find: (q, cb) ->
       @q = q
       return cb(@dictValues()) if _.isEmpty(q)
       r = {}

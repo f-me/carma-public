@@ -11,7 +11,7 @@ define ["lib/meta-dict", ], (m) ->
           for e in rsp
             @valueCache[e.id] = e.name
 
-    lookup: (q, cb) ->
+    find: (q, cb) ->
       carMake = @kvm.car_make()
       $.getJSON "/dealers/#{carMake}", (@dealers) =>
         cb(_.pluck @dealers, 'name')

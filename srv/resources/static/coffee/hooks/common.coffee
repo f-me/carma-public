@@ -45,6 +45,8 @@ define [ "utils"
               knockVM[fieldName].valueHasMutated()
             dict  : dict
 
+        knockVM["#{fieldName}Disabled"].subscribe (v) ->
+          dict.disabled = v
 
   regexpKbHook: (instance, knockVM) ->
     # Set observable with name <fieldName>Regexp for inverse of

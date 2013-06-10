@@ -1,6 +1,6 @@
 define ["lib/meta-dict", ], (m) ->
   class BoUsersDict extends m.dict
-    lookup: (q, cb) ->
+    find: (q, cb) ->
       $.getJSON "/boUsers", (@users) =>
         cb(_.pluck @users, 'name')
 
