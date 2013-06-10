@@ -74,6 +74,7 @@
             "type": "date",
             "meta": {
                 "label": "Дата покупки",
+                "regexp": "date",
                 "required": true
             }
         },
