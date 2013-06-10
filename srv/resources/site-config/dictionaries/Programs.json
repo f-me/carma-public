@@ -217,6 +217,10 @@
             "label": "GM / Hummer"
         },
         {
+            "value": "gmofficial",
+            "label": "GM / Служебные"
+        },
+        {
             "value": "opel",
             "label": "GM / Opel (после 01.04.2011)"
         },
