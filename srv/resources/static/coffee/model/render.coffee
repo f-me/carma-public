@@ -1,4 +1,4 @@
-define [], () ->
+define ["dictionaries"], (d) ->
   renderKnockVm = (elName, knockVM, options) ->
     model     = knockVM.modelDesc()
     instance  = knockVM.model()
@@ -132,6 +132,10 @@ define [], () ->
           # use infoText1, so we can't brake it on next rendering phaze
           # like changing screen
           f.meta.infoText1 = global.dictionaries.InfoText[f.meta.infoText]
+
+        if f.type == "dictionary"
+          dict = d.dictFromMeta knockVM, f.meta
+          ctx = _.extend ctx, {dictionary: dict}
 
         ctx = _.extend(f, ctx)
 

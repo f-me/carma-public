@@ -16,12 +16,7 @@ define [ "utils"
         bounded    = instance.fieldHash[fieldName].meta.bounded
         dictType   = instance.fieldHash[fieldName].meta.dictionaryType
 
-        dictOpts   =
-          kvm   : knockVM
-          dict  : dictName
-          parent: parent
-
-        dict = new d.dicts[dictType || 'LocalDict'](dictOpts)
+        dict = d.dictFromMeta knockVM, instance.fieldHash[fieldName].meta
 
         # Perform label-value transformation
         knockVM["#{fieldName}Local"] =
@@ -34,6 +29,7 @@ define [ "utils"
                           return (lab || val)
                         write: (lab) ->
                           # Set real value by label
+                          return if knockVM["#{fieldName}Disabled"]
                           val = dict.getVal(lab)
                           # drop value if can't find one for bounded dict
                           if bounded and not val
@@ -154,12 +150,7 @@ define [ "utils"
         bounded   = i.fieldHash[n].meta.bounded
         dictType  = i.fieldHash[n].meta.dictionaryType
 
-        dictOpts   =
-          kvm   : k
-          dict  : dictName
-          parent: parent
-
-        dict = new d.dicts[dictType || 'LocalDict'](dictOpts)
+        dict = d.dictFromMeta k, i.fieldHash[n].meta
 
         k["#{n}Many"] = ko.computed
           # we don't need any value here
@@ -168,6 +159,7 @@ define [ "utils"
 
           write: (lab) ->
             return if lab == ""
+            return if k["#{n}Disabled"]
             val = dict.getVal(lab)
             c = u.splitVals k[n]()
             return if _.contains c, val
@@ -183,9 +175,10 @@ define [ "utils"
                 {label: lab || val, value: val}
 
         k["#{n}Remove"] = (el) ->
-        # FIXME: I think, this should be made with bb observable
-        # arrays, so we can make them in metamodel and use normal
-        # collections, without splitting it manually
+          return if k["#{n}Disabled"]
+          # FIXME: I think, this should be made with bb observable
+          # arrays, so we can make them in metamodel and use normal
+          # collections, without splitting it manually
           c = u.splitVals(k[n]())
           k[n] _.without(c, el.value).join(',')
 

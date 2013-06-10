@@ -693,7 +693,7 @@
           </label>
         </div>
         <div class="controls">
-          {{# dictionary.entries }}
+          {{# dictionary.source }}
             <label class="radio">
               <!-- Mustache.js contexts support bubbling -->
               <input type="radio"
@@ -704,7 +704,7 @@
                      ></input>
               {{ label }}
             </label>
-          {{/ dictionary.entries }}
+          {{/ dictionary.source }}
         </div>
       </div>
     </script>

@@ -10,3 +10,10 @@ define [ "lib/local-dict"
     dicts[a.dict.name] = a.dict
 
   dicts: dicts
+  dictFromMeta: (kvm, meta) ->
+    type = meta.dictionaryType
+    opts =
+      kvm   : kvm
+      dict  : meta.dictionaryName
+      parent: meta.dictionaryParent
+    new dicts[type || 'LocalDict'](opts)
