@@ -5,7 +5,6 @@ define ["lib/local-dict"], (m) ->
       fn    = @[f.trim()]
       throw new Error("Unknown dictionary #{f.trim}") unless fn
       args  = a.split(',').map((e) -> e.trim()) unless _.isEmpty args
-      console.log 'cdict'
       fn.call(@, args)
 
     getLab: (val) -> @dictValues()[val]
