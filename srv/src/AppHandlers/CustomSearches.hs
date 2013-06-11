@@ -296,13 +296,14 @@ vinReverseLookup = do
           , concat('', carmake)
           , concat('', carmodel)
           , concat('', program)
+          , to_char(buyDate, 'DD.MM.YYYY')
      FROM contracttbl
      WHERE id IN
      (SELECT max(id)
       FROM contracttbl
-      WHERE isactive = 't'
+      WHERE isactive = 't' AND dixi = 't'
       GROUP BY carvin, program
-      HAVING reverse(carvin) ilike reverse(?) || '%'
+      HAVING lower(carvin) like '%' || lower(?) || '%'
       ORDER BY max(id) DESC)
     |]) [carvin]
-  writeJSON $ mkMap ["vin", "make", "model", "program"] q
+  writeJSON $ mkMap ["vin", "make", "model", "program", "buyDate"] q
