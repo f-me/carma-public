@@ -19,7 +19,6 @@ define ["lib/local-dict"], (m) ->
     programsVinEntries: =>
       $.bgetJSON "/all/program", (objs) =>
         @source = for obj in objs
-               console.log obj
                { value: obj.vinFormat
                , label: obj.label || ''
                , pname: obj.id.split(':')[1]
