@@ -224,15 +224,6 @@ boUsers = do
     |]
   writeJSON $ mkMap ["name", "login"] rows
 
-allDealers :: AppHandler ()
-allDealers = do
-  rows <- withPG pg_search $ \c -> query_ c [sql|
-    SELECT id::text, name
-      FROM partnertbl
-      WHERE isActive AND isDealer
-    |]
-  writeJSON $ mkMap ["id", "name"] rows
-
 allDealersForMake :: AppHandler ()
 allDealersForMake = do
   Just make <- getParam "make"
