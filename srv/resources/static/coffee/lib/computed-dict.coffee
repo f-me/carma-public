@@ -11,9 +11,8 @@ define ["lib/local-dict"], (m) ->
     getLab: (val) -> @dictValues()[val]
 
   # Dictionary of all user-created programs
-    allPrograms: (cb) =>
+    allPrograms: =>
       $.bgetJSON "/all/program", (objs) =>
-        console.log 'allprograms', objs
         @source = for obj in objs
           { value: obj.id.split(':')[1], label: obj.label || '' }
 
