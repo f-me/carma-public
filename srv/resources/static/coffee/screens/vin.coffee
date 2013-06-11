@@ -1,4 +1,7 @@
-define ["text!tpl/screens/vin.html", "utils"], (tpl, u) ->
+define [ "text!tpl/screens/vin.html"
+       , "utils"
+       , "dictionaries"
+       ], (tpl, u, d) ->
   this.setupVinForm = (viewName, args) ->
     vin_html = $el("vin-form-template").html()
     partner_html = $el("partner-form-template").html()
@@ -7,13 +10,13 @@ define ["text!tpl/screens/vin.html", "utils"], (tpl, u) ->
     # by portal users, use appropriate set of programs.
     if _.contains(global.user.roles, "partner")
       all_html = vin_html
-      programs = userProgramsDict().vin_entries
+      programs = new d.dicts["ComputedDict"]({ dict: 'programsVinEntries' })
     else
       all_html = vin_html + partner_html
-      programs = global.dictionaries.Programs.entries
+      programs = new d.dicts["ComputedDict"]({ dict: 'allPrograms' })
 
     $el(viewName).html(all_html)
-    
+
     global.viewsWare[viewName] = {}
     ko.applyBindings(programs, el("vin-program-select"))
 

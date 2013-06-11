@@ -1,6 +1,6 @@
 define ["lib/local-dict"], (m) ->
   class ComputedDict extends m.dict
-    constructor: (@opts, readycb) ->
+    constructor: (@opts) ->
       [f, a] = @opts.dict.split ':'
       fn    = @[f.trim()]
       throw new Error("Unknown dictionary #{f.trim}") unless fn
@@ -19,9 +19,10 @@ define ["lib/local-dict"], (m) ->
     programsVinEntries: =>
       $.bgetJSON "/all/program", (objs) =>
         @source = for obj in objs
+               console.log obj
                { value: obj.vinFormat
-                 label: obj.label || ''
-                 pname: obj.id.split(':')[1]
+               , label: obj.label || ''
+               , pname: obj.id.split(':')[1]
                }
 
   dict: ComputedDict
