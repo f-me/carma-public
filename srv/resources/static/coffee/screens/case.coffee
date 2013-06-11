@@ -63,12 +63,9 @@ define [ "utils"
     mbEnableActionResult = (kvm) ->
       nots = (i for i of kvm when /.*Not$/.test i)
       if (_.any nots, (e) -> kvm[e]())
-        $("[name=result]").attr('disabled', 'disabled')
-        $("[name=result]").next().find("i").removeAttr("data-provide")
+        k["resultDisabled"](true)  for k in kvm["actionsReference"]()
       else
-        $("[name=result]").removeAttr 'disabled'
-        $("[name=result]").next().find("i")
-          .attr("data-provide", "typeahead-toggle")
+        k["resultDisabled"](false) for k in kvm["actionsReference"]()
 
     setCommentsHandler = ->
       $("#case-comments-b").on 'click', ->
@@ -101,6 +98,14 @@ define [ "utils"
 
     makeCase = () ->
       v = global.viewsWare['call-form'].knockVM
+
+      callerType = v['callerType']()
+      if callerType == 'client' or callerType == 'partner'
+        v['callType']('newCase')
+      else if not callerType
+        v['callerType']('client')
+        v['callType']('newCase')
+
       args =
         contact_name:   v['callerName_name']()
         contact_phone1: v['callerName_phone1']()
@@ -165,6 +170,10 @@ define [ "utils"
         # Select partner and copy its data to case fields
         table.on "click.datatable", "tr", ->
           name = this.children[1].innerText
+
+          # Highlight the clicked row
+          utils.highlightDataTableRow $(this)
+
           if partnerType is "contractor"
             addr = this.children[2].innerText
             svc["#{partnerType}_address"](addr)
@@ -237,6 +246,9 @@ define [ "utils"
           tr = s.nTr
           id = s._aData[9]
           $(tr).attr('partnerid', "partner:#{id}")
+          # Highlight the previously selected partner
+          if svc["#{partnerType}_partnerId"]() == "partner:#{id}"
+            $(tr).addClass("selected-row")
 
     { constructor       : setupCaseMain
     , destructor        : removeCaseMain

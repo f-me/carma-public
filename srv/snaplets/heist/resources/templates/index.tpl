@@ -51,6 +51,10 @@
     <!-- base 64 encode/decode library -->
     <script src="/s/js/3p/b64.js" />
 
+    <!-- typeahead menu -->
+    <script src="/s/js/gen/lib/th-menu.js" />
+    <!-- <script src="/s/js/gen/lib/local-dict.js" /> -->
+
     <script src="/s/js/gen/customKoHandlers.js" />
 
     <!-- Model processing -->
@@ -541,22 +545,15 @@
                    {{# readonly }}readonly{{/ readonly }}
                    autocomplete="off"
                    name="{{ name }}"
-                   data-source="global.dictionaries['{{meta.dictionaryName}}']"
-                   data-bind=" value: {{ name }}Local,
-                              valueUpdate: 'change'
-                              {{# meta.dictionaryParent }},
-                              attr: { 'data-parent': {{ meta.dictionaryParent }} }
-                              {{/ meta.dictionaryParent }},
+                   data-bind="value: {{ name }}Local,
+                              valueUpdate: 'change',
                               disabled: {{ name }}Disabled,
-                              pickerDisable: {{ name }}Disabled"
-                   {{^readonly}}
-                   data-provide="typeahead"
-                   {{/readonly}}
+                              pickerDisable: {{ name }}Disabled,
+                              bindDict: '{{ name }}'"
                    />
-            <span class="add-on">
-              <i class="icon icon-chevron-down"
-                {{^readonly}}data-provide="typeahead-toggle"{{/readonly}}
-              />
+            <span class="add-on"
+                  data-bind="click: {{ name }}Typeahead.draw">
+              <i class="icon icon-chevron-down" />
             </span>
           </div>
           {{# meta.targetCategory }}
@@ -606,22 +603,17 @@
                    {{# readonly }}readonly{{/ readonly }}
                    autocomplete="off"
                    name="{{ name }}"
-                   data-source="global.dictionaries['{{meta.dictionaryName}}']"
                    data-bind="value: {{ name }}Many,
-                              valueUpdate: 'change'
-                              {{# meta.dictionaryParent }},
-                              attr: { 'data-parent': {{ meta.dictionaryParent }} }
-                              {{/ meta.dictionaryParent }},
+                              valueUpdate: 'change',
                               disabled: {{ name }}Disabled,
-                              pickerDisable: {{ name }}Disabled"
+                              pickerDisable: {{ name }}Disabled,
+                              bindDict: '{{ name }}'"
 
-                   {{^readonly}}
-                   data-provide="typeahead"
-                   {{/readonly}}
+
                    />
-            <span class="add-on">
+            <span class="add-on"
+                  data-bind="click: {{ name }}Typeahead.draw">
               <i class="icon icon-chevron-down"
-                {{^readonly}}data-provide="typeahead-toggle"{{/readonly}}
               />
             </span>
           </div>
@@ -701,7 +693,7 @@
           </label>
         </div>
         <div class="controls">
-          {{# dictionary.entries }}
+          {{# dictionary.source }}
             <label class="radio">
               <!-- Mustache.js contexts support bubbling -->
               <input type="radio"
@@ -712,7 +704,7 @@
                      ></input>
               {{ label }}
             </label>
-          {{/ dictionary.entries }}
+          {{/ dictionary.source }}
         </div>
       </div>
     </script>
@@ -1137,15 +1129,38 @@
       <form data-bind="attr: { action: {{name}}UploadUrl }, setdata: {{name}}"
             method="post"
             enctype="multipart/form-data">
-        <input type="file"
-               name="files"
-               data-bind="disabled: {{ name }}Disabled"
-               />
-        <input type="button"
-               value="Загрузить"
-               onClick="uploadFile(this)"
-               data-bind="disabled: {{ name }}Disabled"
-               />
+        <div class="input-append">
+          <input type="file"
+                 name="files"
+                 style="display:none;"
+                 onchange="$(this).siblings('.file-path').val($(this).val());"
+                 data-bind="disabled: {{ name }}Disabled"
+                 class="file-container"
+                 />
+          <input type="text"
+                 name="subfiles"
+                 class="file-path"
+                 disabled
+                 />
+          <a class="btn"
+                  onclick="$(this).siblings('.file-container').click();"
+                  >Обзор
+          </a>
+          <a type="button"
+                 class="btn"
+                 onClick="uploadFile(this)"
+                 data-bind="disabled: {{ name }}Disabled"
+                 >Загрузить
+          </a>
+        </div>
+        <ul data-bind="foreach: {{ name }}Info, setdata: {{ name }}">
+          <li>
+            <a data-bind="attr: { href: url }, text: name"/>
+            <i class="icon icon-remove"
+               data-bind="setdata: name"
+               onclick="deleteFile(this)"/>
+          </li>
+        </ul>
       </form>
     </script>
 

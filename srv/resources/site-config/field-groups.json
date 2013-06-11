@@ -2,7 +2,9 @@
     "car": [
         {
             "name": "vin",
+            "type": "dictionary",
             "meta": {
+                "dictionaryType": "VinDict",
                 "label": "VIN",
                 "transform": "uppercase",
                 "required": true,
@@ -11,9 +13,12 @@
         },
         {
             "name": "seller",
+            "type": "dictionary",
             "meta": {
+                "dictionaryType": "DealersDict",
+                "bounded": true,
                 "label": "Дилер, продавший автомобиль",
-                "required": true                
+                "required": true
             }
         },
         {
@@ -69,6 +74,7 @@
             "type": "date",
             "meta": {
                 "label": "Дата покупки",
+                "regexp": "date",
                 "required": true
             }
         },
@@ -81,7 +87,10 @@
         },
         {
             "name": "dealerTO",
+            "type": "dictionary",
             "meta": {
+                "dictionaryType": "DealersDict",
+                "bounded": true,
                 "label": "Дилер у которого проходило последнее ТО",
                 "required": true
             }

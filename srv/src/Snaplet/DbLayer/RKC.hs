@@ -575,9 +575,16 @@ SELECT extract(epoch from avg(max)) FROM actiontimes;
 -- Parametrized in the same way as 'procAvgTimeQuery'.
 towStartAvgTimeQuery :: PS.Query
 towStartAvgTimeQuery = [sql|
-WITH actiontimes AS (
+WITH
+ services AS (
+  SELECT type, id, times_factServiceStart, contractor_partner, suburbanmilage
+    FROM techtbl
+  UNION ALL
+  SELECT type, id, times_factServiceStart, contractor_partner, suburbanmilage
+    FROM towagetbl),
+ actiontimes AS (
  SELECT (max(s.times_factServiceStart - a.ctime))
- FROM actiontbl a, casetbl c, servicetbl s
+ FROM actiontbl a, casetbl c, services s
  WHERE a.parentid = concat(s.type, ':', s.id)
  AND cast(split_part(a.caseid, ':', 2) as integer)=c.id
  AND a.name='orderService'

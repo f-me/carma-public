@@ -219,3 +219,15 @@ textarea.pane-span,
   left: 35%;
   width: 65%;
 }
+
+table.dataTable tr.selected-row {
+  background-color: #ffc0c0;
+}
+
+table.dataTable tr.selected-row td {
+  background-color: #ffc0c0;
+}
+
+table.dataTable tr.selected-row td.sorting_1 {
+  background-color: #ffc0c0;
+}
