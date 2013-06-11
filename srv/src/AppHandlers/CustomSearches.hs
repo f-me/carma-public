@@ -296,7 +296,7 @@ vinReverseLookup = do
           , concat('', carmake)
           , concat('', carmodel)
           , concat('', program)
-          , to_char(buyDate, 'DD.MM.YYYY')
+          , to_char(carBuyDate, 'DD.MM.YYYY')
      FROM contracttbl
      WHERE id IN
      (SELECT max(id)
