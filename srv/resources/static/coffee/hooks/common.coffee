@@ -161,7 +161,7 @@ define [ "utils"
 
           write: (lab) ->
             return if lab == ""
-            return if k["#{n}Disabled"]
+            return if k["#{n}Disabled"]()
             val = dict.getVal(lab)
             c = u.splitVals k[n]()
             return if _.contains c, val
@@ -177,7 +177,7 @@ define [ "utils"
                 {label: lab || val, value: val}
 
         k["#{n}Remove"] = (el) ->
-          return if k["#{n}Disabled"]
+          return if k["#{n}Disabled"]()
           # FIXME: I think, this should be made with bb observable
           # arrays, so we can make them in metamodel and use normal
           # collections, without splitting it manually

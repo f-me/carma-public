@@ -49,7 +49,10 @@
       "name": "carSeller",
       "canRead": ["partner"],
       "canWrite": ["partner"],
+      "type": "dictionary",
       "meta": {
+        "dictionaryType": "DealersDict",
+        "bounded": true,
         "required": true,
         "label": "Дилер, продавший автомобиль"
       }
@@ -138,8 +141,11 @@
       "name": "carDealerTO",
       "canRead": ["partner"],
       "canWrite": ["partner"],
+      "type": "dictionary",
       "meta": {
         "required": true,
+        "dictionaryType": "DealersDict",
+        "bounded": true,
         "label": "Дилер у которого проходило последнее ТО"
       }
     },

@@ -8,7 +8,7 @@ define ["lib/meta-dict", ], (m) ->
           do (i) ->
             make  = window.global.dictValueCache.CarMakers[i.make]  || i.make
             model = window.global.dictValueCache.CarMakers[i.model] || i.model
-            "#{i.vin} <br /> #{make} #{model}"
+            "#{i.vin} <br/> #{make} #{model} <br/> #{i.buyDate}"
         cb(a)
 
     id2val: (i) -> @found[i]

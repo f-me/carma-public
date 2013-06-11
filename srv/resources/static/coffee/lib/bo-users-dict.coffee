@@ -9,4 +9,6 @@ define ["lib/meta-dict", ], (m) ->
     getLab: (val) ->
       window.global.dictValueCache.users[val]
 
+    getVal: (lab) ->
+      window.global.dictLabelCache.users[lab]
   dict: BoUsersDict
