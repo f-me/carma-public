@@ -79,6 +79,10 @@
         {
             "value": "contract_user",
             "label": "Пользователь экрана контрактов"
+        },
+        {
+            "value": "vwfake",
+            "label": "vwfake"
         }
     ]
 }

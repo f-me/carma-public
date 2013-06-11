@@ -161,11 +161,13 @@ instance ExportMonad CaseExport where
                       mn == "towage" &&
                       (not $ falseService s)
           towages = filter twgPred servs
+          notMistake = \(_, _, d) ->
+                         dataField0 "status" d /= "mistake"
       -- Include order number of the first (possibly non-exportable)
       -- service, include contractor code of the first non-false
       -- towage service (if present).
       fields <-
-          case servs of
+          case filter notMistake servs of
             [] -> return []
             ((_, _, d):_) ->
                 do
@@ -347,7 +349,7 @@ serviceExpenseType s@(mn, _, d) = do
                 rs <- simpleHTTP $ getRequest $
                       methodURI cp $ "repTowages/" ++ (B8.unpack cid)
                 rsb <- getResponseBody rs
-                case (decode' $ BSL.pack rsb :: Maybe [Int]) of
+                case (decode' $ BSL.pack rsb :: Maybe [B8.ByteString]) of
                   Just [] -> return Towage
                   Just _  -> return RepTowage
                   -- TODO It's actually an error

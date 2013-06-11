@@ -119,6 +119,7 @@
       "type": "date",
       "meta": {
         "required": true,
+        "regexp": "date",
         "label": "Дата покупки"
       }
     },
@@ -129,6 +130,7 @@
       "type": "date",
       "meta": {
         "required": true,
+        "regexp": "date",
         "label": "Дата последнего ТО"
       }
     },
@@ -201,6 +203,7 @@
       "type": "date",
       "meta": {
         "required": true,
+        "regexp": "date",
         "label": "Дата регистрации в программе",
         "koupdate": "change"
       }
@@ -212,6 +215,7 @@
       "type": "date",
       "meta": {
         "required": true,
+        "regexp": "date",
         "label": "Программа действует до (дата)"
       }
     },
@@ -282,6 +286,7 @@
       "type": "date",
       "meta": {
         "required": true,
+        "regexp": "date",
         "label": "Дата начала действия программы"
       }
     },
@@ -292,6 +297,7 @@
       "type": "date",
       "meta": {
         "required": true,
+        "regexp": "date",
         "label": "Дата окончания действия программы"
       }
     },

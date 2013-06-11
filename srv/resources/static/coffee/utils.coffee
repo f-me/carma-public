@@ -2,6 +2,14 @@ define ["model/utils"], (mu) ->
   # jquery -> html(as string) conversion, with selected element
   jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
 
+  $.bgetJSON = (url, cb) ->
+    $.ajax
+      type     : 'GET'
+      url      : url
+      dataType : 'json'
+      success  : cb
+      async    : false
+
   # Find VM of reference in a case by its view name.
   findCaseOrReferenceVM = (view) ->
     kase = global.viewsWare["case-form"].knockVM
@@ -25,34 +33,6 @@ define ["model/utils"], (mu) ->
       $span.fadeOut(2000))
     , 500)
 
-  window.users_with_roles = (roles) ->
-    f = _.filter global.all_users, (u) ->
-      not _.isEmpty(_.intersection(roles, u.roles.split ','))
-    entries: for i in f
-      { value: i.value, label: "#{i.label} (#{i.value})" }
-
-  # Dictionary of all user-created programs
-  window.allProgramsDict = () ->
-    d = {}
-    $.ajax
-      type: 'GET',
-      url: "/all/program",
-      dataType: 'json',
-      success: (objs) ->
-        d = { entries:
-               for obj in objs
-                { value: obj.id.split(':')[1], label: obj.label || '' }
-
-              vin_entries:
-               for obj in objs
-                {
-                  value: obj.vinFormat
-                  label: obj.label || ''
-                  pname: obj.id.split(':')[1]
-                }
-            }
-      async: false
-    return d
 
   # Dictionary of all programs assigned to current user
   window.userProgramsDict = () ->
@@ -247,6 +227,12 @@ define ["model/utils"], (mu) ->
     acc = e.parents('.accordion-body') #.hasClass('in')
     return if acc.hasClass('in')
     acc.collapse('show')
+
+  # Add selected-row class to a datatables row, remove this class from
+  # all other rows in the same table
+  highlightDataTableRow: (tr) ->
+    tr.siblings(".selected-row").removeClass("selected-row")
+    tr.addClass("selected-row")
 
   getWeather: (city, cb) ->
     url = "/#{city}"

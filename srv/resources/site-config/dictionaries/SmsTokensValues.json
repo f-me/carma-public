@@ -198,6 +198,10 @@
                 "label": "+78002501218"
             },
             {
+                "value": "gmofficial",
+                "label": "+78002501218"
+            },
+            {
                 "value": "vmMotor",
                 "label": "+78007007011"
             },
@@ -457,6 +461,10 @@
                 "label": "GM"
             },
             {
+                "value": "gmofficial",
+                "label": "GM"
+            },
+            {
                 "value": "vmMotor",
                 "label": "VW"
             },
@@ -704,6 +712,10 @@
             },
             {
                 "value": "opel",
+                "label": "GM Assistance"
+            },
+            {
+                "value": "gmofficial",
                 "label": "GM Assistance"
             },
             {

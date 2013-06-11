@@ -94,11 +94,15 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/rkc/partners",  chkAuthLocal . method GET $ rkcPartners)
          , ("/arc/:year/:month", chkAuthLocal . method GET $ arcReportHandler)
          , ("/allUsers",      chkAuth . method GET  $ serveUsersList)
+         , ("/boUsers",       chkAuth . method GET  $ boUsers)
+         , ("/dealers",       chkAuth . method GET  $ allDealers)
+         , ("/dealers/:make", chkAuth . method GET  $ allDealersForMake)
          , ("/partner/upload.csv",
             chkAuthLocal . method POST $ partnerUploadData)
          , ("/vin/upload",    chkAuth . method POST $ vinUploadData)
          , ("/vin/state",     chkAuth . method GET  $ vinStateRead)
          , ("/vin/state",     chkAuth . method POST $ vinStateRemove)
+         , ("/vin/reverseLookup/:vin", chkAuth . method GET  $ vinReverseLookup)
          , ("/opts/:model/:id/", chkAuthLocal . method GET $ getSrvTarifOptions)
          , ("/smspost",       chkAuthLocal . method POST $ smspost)
          , ("/sms/processing", chkAuthLocal . method GET $ smsProcessingHandler)
@@ -117,7 +121,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   cfg <- getSnapletUserConfig
 
   h <- nestSnaplet "heist" heist $ heistInit "resources/templates"
-  addAuthSplices auth
+  addAuthSplices h auth
 
   sesKey <- liftIO $
             lookupDefault "resources/private/client_session_key.aes"
