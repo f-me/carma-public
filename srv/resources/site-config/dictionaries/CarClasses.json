@@ -30,11 +30,15 @@
         },
         {
             "value": "psam1",
-            "label": "PSA M1"
+            "label": "PSA M1 или коммерческие"
         },
         {
             "value": "psam2",
             "label": "PSA M2"
+        },
+        {
+            "value": "psah",
+            "label": "PSA H"
         }
     ]
 }
