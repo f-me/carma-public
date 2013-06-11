@@ -95,7 +95,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/arc/:year/:month", chkAuthLocal . method GET $ arcReportHandler)
          , ("/allUsers",      chkAuth . method GET  $ serveUsersList)
          , ("/boUsers",       chkAuth . method GET  $ boUsers)
-         , ("/dealers",       chkAuth . method GET  $ allDealers)
          , ("/dealers/:make", chkAuth . method GET  $ allDealersForMake)
          , ("/partner/upload.csv",
             chkAuthLocal . method POST $ partnerUploadData)
