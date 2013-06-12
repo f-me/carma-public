@@ -378,18 +378,21 @@ vinUploadData = scope "vin" $ scope "upload" $ do
   (f:_) <- with fileUpload $ doUpload' "report" "upload" "data"
   log Trace $ T.concat ["Uploaded to file: ", T.pack f]
   prog <- getParam "program"
-  case prog of
-    Nothing -> log Error "Program not specified"
-    Just p -> do
+  vinFormat <- getParam "format"
+  case (prog, vinFormat) of
+    (_, Nothing) -> log Error "VIN format not specified"
+    (Nothing, _) -> log Error "Program not specified"
+    (Just p, Just v) -> do
       log Info $ T.concat ["Uploading ", T.pack f]
       log Trace $ T.concat ["Program: ", T.decodeUtf8 p]
+      log Trace $ T.concat ["VIN format: ", T.decodeUtf8 v]
       log Trace $ T.concat ["Initializing state for file: ", T.pack f]
       with vin $ initUploadState f
       log Trace $ T.concat ["Uploading data from file: ", T.pack f]
       -- Set current user as owner
       Just u <- with auth currentUser
       let Just (UserId uid) = userId u
-      with vin $ uploadData (T.encodeUtf8 uid) (T.unpack . T.decodeUtf8 $ p) f
+      with vin $ uploadData (T.encodeUtf8 uid) p (T.unpack . T.decodeUtf8 $ v) f
 
 vinStateRead :: AppHandler ()
 vinStateRead = scope "vin" $ scope "state" $ scope "get" $ do
