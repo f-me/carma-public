@@ -192,7 +192,8 @@ fillFromContract vin objId = do
       extract (epoch from contractValidUntilDate)::int8::text,
       milageTO::text, cardNumber, carMakeYear::text,
       contractValidUntilMilage::text,
-      extract (epoch from contractValidFromDate)::int8::text
+      extract (epoch from contractValidFromDate)::int8::text,
+      carSeller, carDealerTO
       FROM contracttbl
       WHERE carVin = ?
       ORDER BY ctime DESC LIMIT 1
@@ -204,7 +205,7 @@ fillFromContract vin objId = do
         ["program", "car_make", "car_model", "car_plateNum", "car_checkPeriod"
         ,"car_serviceStart", "car_serviceEnd","car_checkupMileage"
         ,"cardNumber_cardNumber", "car_makeYear", "cardNumber_validUntilMilage"
-        ,"cardNumber_validFrom"]
+        ,"cardNumber_validFrom", "car_seller", "car_dealerTO"]
         row
       return True
 
