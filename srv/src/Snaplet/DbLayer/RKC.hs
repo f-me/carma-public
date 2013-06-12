@@ -21,7 +21,6 @@ import Data.List (intersect, sort, nub)
 import Data.String
 import qualified Data.List as L (groupBy)
 import qualified Data.HashMap.Strict as HM
-import qualified Data.Map as M
 import Data.Time
 import Data.Function
 import qualified Data.Text as T
@@ -38,7 +37,6 @@ import Snaplet.DbLayer.ARC
 
 import Snap.Snaplet.SimpleLog hiding ((%=))
 
-import Util
 
 -------------------------------------------------------------------------------
 -- | query fmt
