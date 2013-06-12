@@ -169,24 +169,25 @@ selectContracts = do
   Just prg <- getParam "program"
   Just usr <- with auth currentUser
 
-  rows <- withPG pg_search $ \c -> query c (fromString
-    $  "SELECT c.id::text,"
-    ++ "  extract (epoch from ctime at time zone 'UTC')::int8::text,"
-    ++ "  c.isActive::text,"
-    ++ "  carVin, carMake, carModel, carColor, carPlateNum, cardNumber::text,"
-    ++ "  carMakeYear::text, carCheckPeriod::text,"
-    ++ "  extract (epoch from carBuyDate at time zone 'UTC')::int8::text,"
-    ++ "  extract (epoch from warrantyStart at time zone 'UTC')::int8::text,"
-    ++ "  extract (epoch from contractValidFromDate at time zone 'UTC')::int8::text,"
-    ++ "  extract (epoch from contractValidUntilDate at time zone 'UTC')::int8::text,"
-    ++ "  contractValidUntilMilage::text, milageTO::text, cardOwner, manager,"
-    ++ "  carSeller, carDealerTO,"
-    ++ "  u.realname"
-    ++ "  FROM contracttbl c, usermetatbl u"
-    ++ "  WHERE u.login = ? AND ? = ANY (u.programs)"
-    ++ "    AND (coalesce(u.isDealer,false) = false OR c.owner = u.uid::text)"
-    ++ "    AND c.program = ? AND date(ctime) between ? AND ?")
-    (userLogin usr, prg, prg, dateFrom, dateTo)
+  rows <- withPG pg_search $ \c -> query c [sql|
+    SELECT c.id::text,
+      extract (epoch from ctime at time zone 'UTC')::int8::text,
+      c.isActive::text,
+      carVin, carMake, carModel, carColor, carPlateNum, cardNumber::text,
+      carMakeYear::text, carCheckPeriod::text,
+      extract (epoch from carBuyDate at time zone 'UTC')::int8::text,
+      extract (epoch from warrantyStart at time zone 'UTC')::int8::text,
+      extract (epoch from contractValidFromDate at time zone 'UTC')::int8::text,
+      extract (epoch from contractValidUntilDate at time zone 'UTC')::int8::text,
+      contractValidUntilMilage::text, milageTO::text, cardOwner, manager,
+      carSeller, carDealerTO,
+      u.realname
+      FROM contracttbl c, usermetatbl u
+      WHERE dixi
+        AND u.login = ? AND ? = ANY (u.programs)
+        AND (coalesce(u.isDealer,false) = false OR c.owner = u.uid::text)
+        AND c.program = ? AND date(ctime) between ? AND ?
+    |] (userLogin usr, prg, prg, dateFrom, dateTo)
   let fields =
         [ "id", "ctime", "isActive", "carVin", "carMake", "carModel", "carColor"
         , "carPlateNum", "cardNumber", "carMakeYear", "carCheckPeriod"
