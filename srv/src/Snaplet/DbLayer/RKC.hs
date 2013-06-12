@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -446,13 +447,15 @@ rkc (UsersList usrs) filt@(Filter fromDate toDate program city partner) = scope 
   a <- rkcActions fromDate toDate constraints (actionNames dicts)
   ea <- rkcEachActionOpAvg fromDate toDate constraints usrs' (actionNames dicts)
   compls <- rkcComplaints fromDate toDate constraints
+  (mobis :: [(T.Text, UTCTime, T.Text)]) <- PS.query_ mobileStatsQuery
   s <- rkcStats filt
   return $ object [
     "case" .= c,
     "back" .= a,
     "eachopactions" .= ea,
     "complaints" .= compls,
-    "stats" .= s]
+    "stats" .= s,
+    "mobilePartners" .= mobis]
   where
     constraints = mconcat [
       ifNotNull program $ equals "casetbl" "program",
@@ -598,4 +601,11 @@ WITH
  AND c.calldate < ?
  GROUP BY a.parentid)
 SELECT extract(epoch from avg(max)) FROM actiontimes;
+|]
+
+mobileStatsQuery :: PS.Query
+mobileStatsQuery = [sql|
+SELECT name, mtime, addrDeFacto
+FROM partnertbl
+WHERE isMobile = '1';
 |]
