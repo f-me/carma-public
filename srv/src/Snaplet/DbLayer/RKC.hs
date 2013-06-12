@@ -445,7 +445,18 @@ rkc (UsersList usrs) filt@(Filter fromDate toDate program city partner) = scope 
   a <- rkcActions fromDate toDate constraints (actionNames dicts)
   ea <- rkcEachActionOpAvg fromDate toDate constraints usrs' (actionNames dicts)
   compls <- rkcComplaints fromDate toDate constraints
-  (mobis :: [(T.Text, UTCTime, T.Text)]) <- PS.query_ mobileStatsQuery
+  
+  -- TODO Use UTCTime here when database schema is ported to use
+  -- timestamp with timezone.
+  (mobis :: [(Maybe T.Text, Maybe LocalTime, Maybe T.Text)]) <-
+    PS.query_ mobileStatsQuery
+  -- Serve partner mtime as string
+  let mobis' =
+        map (\(n, t, a) -> (fs n,
+                            maybe "" show t,
+                            fs a)) mobis
+        where fs = fromMaybe ""
+        
   s <- rkcStats filt
   return $ object [
     "case" .= c,
@@ -453,7 +464,7 @@ rkc (UsersList usrs) filt@(Filter fromDate toDate program city partner) = scope 
     "eachopactions" .= ea,
     "complaints" .= compls,
     "stats" .= s,
-    "mobilePartners" .= mobis]
+    "mobilePartners" .= mobis']
   where
     constraints = mconcat [
       ifNotNull program $ equals "casetbl" "program",
