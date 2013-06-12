@@ -9,12 +9,12 @@ define [ "text!tpl/screens/vin.html"
     # Do not show partner bulk upload form when the screen is accessed
     # by portal users, use appropriate set of programs.
     dict = (n) -> new d.dicts["ComputedDict"]({ dict: n })
+    programs = dict('vinPrograms').source
     if _.contains(global.user.roles, "partner")
       all_html = vin_html
-      programs = dict('programsVinEntries').source
     else
       all_html = vin_html + partner_html
-      programs = dict('allPrograms').source
+
 
     $el(viewName).html(all_html)
 

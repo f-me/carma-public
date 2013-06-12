@@ -36,7 +36,8 @@ define ["model/utils"], (mu) ->
 
   # Dictionary of all programs assigned to current user
   window.userProgramsDict = () ->
-    # Requires user to re-login to update list of available programs
+    # Requires user to reload the page to update list of available
+    # programs
     pgms = global.user.meta.programs.split ','
     allPgms = allProgramsDict()
     { entries:
