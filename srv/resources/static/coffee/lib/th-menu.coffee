@@ -123,11 +123,23 @@ class ThMenu
 
   mousedown: (e) -> e.stopPropagation(); e.preventDefault()
 
-  draw: () =>
+  # debounce here will decrease request rate for remote dictionaries
+  # still it's small enough to not be noticable for regular dicts
+  draw: _.debounce((-> @_draw()), 300)
+
+  _draw:  =>
     return @ unless @$element
     @dict.lookup @$element.val(), (v) =>
       return @.hide() if _.isEmpty v
       return @.render(v).show()
+
+  # this methos is for .add-on arrow on the field
+  drawAll: =>
+    return @ unless @$element
+    @dict.lookup "", (v) =>
+      return @.hide() if _.isEmpty v
+      return @.render(v).show()
+
 
   keyup: (e) =>
     switch e.keyCode
