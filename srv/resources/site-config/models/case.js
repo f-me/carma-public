@@ -244,12 +244,12 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
-                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
             ],
             "index": true,
             "indexCollate": true,
@@ -271,8 +271,7 @@
             "indexCollate": true,
             "type": "datetime",
             "meta": {
-                "label": "Дата звонка",
-                "readonly": true
+                "label": "Дата звонка"
             }
         },
         {
