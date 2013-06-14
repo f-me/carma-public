@@ -120,7 +120,9 @@ create view servicesview as
         a.assignedTo as backoperator,
 
         p1.code as partner_code,
-        p2.code as dealer_code
+        p2.code as dealer_code,
+        p3.code as seller_code,
+        p4.code as to_dealer_code
 
     from casetbl c, servicetbl s
         left outer join (
@@ -176,4 +178,6 @@ create view servicesview as
         on s.contractor_partnerId = 'partner:' || p1.id
         left outer join partnertbl p2
         on t.towDealer_partnerId = 'partner:' || p2.id
+        left outer join partnertbl p3 on c.car_seller = p3.id
+        left outer join partnertbl p4 on c.car_dealerTO = p4.id
     where c.id::text = substring(s.parentId, ':(.*)');
