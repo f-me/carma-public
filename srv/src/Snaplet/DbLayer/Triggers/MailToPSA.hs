@@ -71,7 +71,7 @@ sendMailActually actionId = do
             "peugeot" -> "RUMC01R"
             "citroen" -> "FRRM01R"
             _ -> error $ "Invalid program: " ++ show program
-          fld 2   "Country Сode" <=== "RU"
+          fld 2   "Country Code" <=== "RU"
           fld 9   "Task Id"      <===
             case B.readInt $ B.dropWhile (not.isDigit) caseId of
               Just (n,"") -> T.pack $ printf "M%08d" n
