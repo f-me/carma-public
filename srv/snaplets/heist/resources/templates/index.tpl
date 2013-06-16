@@ -210,7 +210,7 @@
         <form id="vin-import-form" onsubmit="doVin(); return false;">
           <p>
             <select name="program" id="vin-program-select" data-bind="foreach: $data">
-              <option data-bind="value: value, text: label" />
+              <option data-bind="value: value, text: label, attr: { 'data-format': vinFormat }" />
             </select>
             <input type="file"
                    name="file"
