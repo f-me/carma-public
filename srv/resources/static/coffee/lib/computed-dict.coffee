@@ -30,11 +30,11 @@ define ["lib/local-dict"], (m) ->
           , vinFormat: obj.vinFormat
           }
         @source =
-          if _.contains global.user.roles "partner"
+          if _.contains global.user.roles, "partner"
             _.filter(all_pgms,
                     (e) -> _.contains user_pgms, e.value)
           else
-            if _.contains global.user.roles "programman"
+            if _.contains global.user.roles, "programman"
               all_pgms
             else
               []
