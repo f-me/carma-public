@@ -258,7 +258,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
                   mrow =
                     [ minfo.name
                     , if minfo.mtime.length > 0
-                        new Date(JSON.parse minfo.mtime).
+                        new Date(1000 * JSON.parse minfo.mtime).
                         toString('dd.MM.yyyy HH:mm')
                       else
                         ""
