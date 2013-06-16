@@ -159,6 +159,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
         actionst = $("#rkc-actions-table")
         weathert = $('#rkc-weather-table')
         complt = $('#rkc-complaints-table')
+        mobit = $('#rkc-mobile-partners-table')
 
         return if caset.hasClass("dataTable")
         return if actionst.hasClass("dataTable")
@@ -171,6 +172,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
 
         ct = utils.mkDataTable caset, { bFilter: false, bInfo: false }
         bt = utils.mkDataTable actionst, { bFilter: false, bInfo: false }
+        mt = utils.mkDataTable mobit, { bFilter: false, bInfo: false }
 
         # Fill general info
         totalServices = $('#total-services')
@@ -247,6 +249,19 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
                 fmttime(binfo.average)]
 
             bt.fnAddData(brows)
+
+            $.getJSON "/all/partner/?select=isMobile==1,isActive==1" +
+                      "&fields=name,mtime,city,addrDeFacto",
+              (result) ->
+                mt.fnClearTable()
+                mrows = for minfo in result
+                  mrow =
+                    [ minfo.name
+                    , new Date(JSON.parse minfo.mtime).
+                      toString('dd.MM.yyyy HH:mm')
+                    , minfo.addrDeFacto
+                    ]
+                mt.fnAddData(mrows)
 
             # Update complaints
             complaints.removeAll()
