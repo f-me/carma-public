@@ -257,8 +257,11 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
                 mrows = for minfo in result
                   mrow =
                     [ minfo.name
-                    , new Date(JSON.parse minfo.mtime).
-                      toString('dd.MM.yyyy HH:mm')
+                    , if minfo.mtime.length > 0
+                        new Date(JSON.parse minfo.mtime).
+                        toString('dd.MM.yyyy HH:mm')
+                      else
+                        ""
                     , minfo.addrDeFacto
                     ]
                 mt.fnAddData(mrows)
