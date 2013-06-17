@@ -314,7 +314,6 @@
       "type": "textarea",
       "meta": {
         "label": "Комментарий",
-        "required": true
       }
     },
     {
