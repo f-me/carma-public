@@ -250,6 +250,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
 
             bt.fnAddData(brows)
 
+            # Fill mobile partners table
             $.getJSON "/all/partner/?select=isMobile==1,isActive==1" +
                       "&fields=name,mtime,city,addrDeFacto",
               (result) ->
@@ -262,6 +263,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
                         toString('dd.MM.yyyy HH:mm')
                       else
                         ""
+                    , dict.DealerCities[minfo.city] || minfo.city
                     , minfo.addrDeFacto
                     ]
                 mt.fnAddData(mrows)
