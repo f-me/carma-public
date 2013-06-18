@@ -313,7 +313,7 @@
       "canWrite": ["partner"],
       "type": "textarea",
       "meta": {
-        "label": "Комментарий",
+        "label": "Комментарий"
       }
     },
     {
