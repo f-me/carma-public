@@ -1,14 +1,14 @@
-define ["lib/meta-dict", ], (m) ->
+define ["lib/local-dict", ], (m) ->
   class BoUsersDict extends m.dict
+    constructor: (@opts) ->
+      @opts['dict'] = 'users'
+      super
+
     find: (q, cb) ->
-      $.getJSON "/boUsers", (@users) =>
-        cb(_.pluck @users, 'name')
+      console.log 'bofind', @, @source
+      $.bgetJSON "/boUsers", (users) =>
+        @source = for u in users
+          { value: u.login, label: "#{u.name} (#{u.login})" }
+      super
 
-    id2val: (i) -> @users[i].login
-
-    getLab: (val) ->
-      window.global.dictValueCache.users[val]
-
-    getVal: (lab) ->
-      window.global.dictLabelCache.users[lab]
   dict: BoUsersDict

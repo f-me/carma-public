@@ -42,14 +42,14 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "meta": {
@@ -65,14 +65,14 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "meta": {
@@ -87,13 +87,13 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman"
             ],
             "meta": {
                 "label": "Карта участника",
@@ -111,13 +111,13 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ]
         },
@@ -140,14 +140,14 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ]
         },
@@ -189,14 +189,14 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ]
         },
@@ -214,7 +214,7 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ]
         },
@@ -271,8 +271,7 @@
             "indexCollate": true,
             "type": "datetime",
             "meta": {
-                "label": "Дата звонка",
-                "readonly": true
+                "label": "Дата звонка"
             }
         },
         {
@@ -281,7 +280,7 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
@@ -296,14 +295,14 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "type": "dictionary",
@@ -320,13 +319,13 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "type": "dictionary",
@@ -343,12 +342,12 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman"
             ],
             "type": "dictionary",
             "meta": {
@@ -364,12 +363,12 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "vwfake", "account", "admin", "programman"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "vwfake", "account", "admin", "programman"
             ],
             "type": "dictionary",
             "meta": {
@@ -384,12 +383,12 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "vwfake", "account", "admin", "programman"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "vwfake", "account", "admin", "programman"
             ],
             "type": "dictionary",
             "meta": {
@@ -412,14 +411,14 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "index": true,
@@ -439,14 +438,14 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "groupName": "car"
@@ -457,12 +456,12 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin",
 				"programman"
             ],
             "groupName": "cardNumber"
@@ -473,14 +472,14 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "type": "dictionary",
@@ -498,13 +497,13 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "type": "dictionary",
@@ -526,12 +525,12 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman"
             ],
             "meta": {
                 "label": "Температура",
@@ -544,12 +543,12 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman"
             ],
             "type": "datetime",
             "meta": {
@@ -559,10 +558,10 @@
         {
             "name": "accord",
             "canRead": [
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman"
             ],
             "canWrite": [
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman"
             ],
             "meta": {
                 "label": "Номер согласования"
@@ -574,11 +573,11 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman"
             ],
             "canWrite": [
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman"
             ],
             "meta": {
                 "label": "Неисправность со слов дилера/партнёра",
@@ -592,14 +591,14 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy", "psaanalyst"
             ],
             "canWrite": [
                 "psaanalyst",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin"
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin"
             ],
             "type": "dictionary",
             "meta": {
@@ -626,10 +625,10 @@
             "name": "psaExported",
             "type": "checkbox",
             "canRead": [
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman", "psaanalyst"
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman", "psaanalyst"
             ],
             "canWrite": [
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman"
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman"
             ],
             "meta": {
                 "readonly": true,
@@ -642,13 +641,13 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "meta": {
@@ -663,13 +662,13 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "meta": {
@@ -703,14 +702,14 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "type": "files",
@@ -724,14 +723,14 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy",
                 "account"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "type": "json",

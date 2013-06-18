@@ -199,13 +199,13 @@
                 "partner",
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "canWrite": [
                 "front",
                 "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
                 "parguy"
             ],
             "meta": {

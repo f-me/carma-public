@@ -25,6 +25,7 @@ import qualified Data.ByteString.Lazy as LB
 import qualified Data.Aeson as Aeson
 import Data.List
 import Data.Map (Map)
+import qualified Data.HashMap.Strict as HM
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.String
@@ -380,16 +381,33 @@ vinUploadData = scope "vin" $ scope "upload" $ do
   prog <- getParam "program"
   case prog of
     Nothing -> log Error "Program not specified"
-    Just p -> do
+    Just pgmId -> do
       log Info $ T.concat ["Uploading ", T.pack f]
-      log Trace $ T.concat ["Program: ", T.decodeUtf8 p]
+      log Trace $ T.concat ["Program: ", T.decodeUtf8 pgmId]
+
+      -- Check if this program is available for user
+      Just u <- with auth currentUser
+      u' <- with db $ replaceMetaRolesFromPG u
+      let Aeson.String userPgms' = HM.lookupDefault "" "programs" $ userMeta u'
+          userPgms = B.split ',' $ T.encodeUtf8 userPgms'
+      when (not $ 
+            (elem (Role "partner") (userRoles u') && elem pgmId userPgms) ||
+            (elem (Role "programman") (userRoles u'))) $
+            handleError 403
+
+      -- Find out which format is used for this program
+      progObj <- with db $ DB.read "program" pgmId
+      let vF = Map.findWithDefault "" "vinFormat" progObj
+
+      log Trace $ T.concat ["VIN format: ", T.decodeUtf8 vF]
+
       log Trace $ T.concat ["Initializing state for file: ", T.pack f]
       with vin $ initUploadState f
       log Trace $ T.concat ["Uploading data from file: ", T.pack f]
+
       -- Set current user as owner
-      Just u <- with auth currentUser
       let Just (UserId uid) = userId u
-      with vin $ uploadData (T.encodeUtf8 uid) (T.unpack . T.decodeUtf8 $ p) f
+      with vin $ uploadData (T.encodeUtf8 uid) pgmId (T.unpack . T.decodeUtf8 $ vF) f
 
 vinStateRead :: AppHandler ()
 vinStateRead = scope "vin" $ scope "state" $ scope "get" $ do

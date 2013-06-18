@@ -104,7 +104,7 @@ SELECT id FROM usermetatbl WHERE uid=?;
 
 ------------------------------------------------------------------------------
 -- | Convert a usermeta instance as read from DbLayer to use with
--- Snap.
+-- Snap. Values always use 'String' constructor.
 toSnapMeta :: Map ByteString ByteString -> HashMap Text Value
 toSnapMeta usermeta =
     HM.fromList $
@@ -189,7 +189,8 @@ WHERE u.uid=m.uid;
 
 ------------------------------------------------------------------------------
 -- | Fetch list of all users from the database, return @(mid, value,
--- label)@ for every user.
+-- label)@ for every user as well as some extra meta values required
+-- by client.
 usersListPG :: HasPostgres m => m UsersList
 usersListPG = do
   rows <- query_ allUsersQuery

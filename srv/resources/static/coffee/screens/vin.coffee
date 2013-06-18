@@ -1,19 +1,23 @@
-define ["text!tpl/screens/vin.html", "utils"], (tpl, u) ->
+define [ "text!tpl/screens/vin.html"
+       , "utils"
+       , "dictionaries"
+       ], (tpl, u, d) ->
   this.setupVinForm = (viewName, args) ->
     vin_html = $el("vin-form-template").html()
     partner_html = $el("partner-form-template").html()
 
     # Do not show partner bulk upload form when the screen is accessed
     # by portal users, use appropriate set of programs.
+    dict = (n) -> new d.dicts["ComputedDict"]({ dict: n })
+    programs = dict('vinPrograms').source
     if _.contains(global.user.roles, "partner")
       all_html = vin_html
-      programs = userProgramsDict().vin_entries
     else
       all_html = vin_html + partner_html
-      programs = global.dictionaries.Programs.entries
+
 
     $el(viewName).html(all_html)
-    
+
     global.viewsWare[viewName] = {}
     ko.applyBindings(programs, el("vin-program-select"))
 
@@ -27,6 +31,8 @@ define ["text!tpl/screens/vin.html", "utils"], (tpl, u) ->
   this.doVin = ->
     form     = $el("vin-import-form")[0]
     formData = new FormData(form)
+    vinFormat = $("#vin-program-select").find("option:selected").data("format")
+    formData.append("format", vinFormat)
 
     $.ajax(
       type        : "POST"

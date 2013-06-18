@@ -49,16 +49,16 @@
       {
         "name": "comment",
         "type": "textarea",
-        "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
-        "canWrite":["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
+        "canRead": ["front","back","head", "supervisor", "director", "analyst", "vwfake","parguy", "account", "admin", "programman", "account", "parguy"],
+        "canWrite":["front","back","head", "supervisor", "director", "analyst", "vwfake","parguy", "account", "admin", "programman", "account", "parguy"],
         "meta": {
           "label": "Комментарий"
         }
       },
       {
         "name": "result",
-        "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
-        "canWrite":["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"], 
+        "canRead": ["front","back","head", "supervisor", "director", "analyst", "vwfake","parguy", "account", "admin", "programman", "account", "parguy"],
+        "canWrite":["front","back","head", "supervisor", "director", "analyst", "vwfake","parguy", "account", "admin", "programman", "account", "parguy"], 
         "type": "dictionary",
         "meta": {
           "addClass": "redirectOnChange",
@@ -101,8 +101,8 @@
       },
       {
         "name": "assignedTo",
-        "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
-        "canWrite":["back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"], 
+        "canRead": ["front","back","head", "supervisor", "director", "analyst", "vwfake","parguy", "account", "admin", "programman", "account", "parguy"],
+        "canWrite":["back","head", "supervisor", "director", "analyst", "vwfake","parguy", "account", "admin", "programman"], 
         "type": "dictionary",
         "meta": {
             "label": "Ответственный",
@@ -112,8 +112,8 @@
       },
       {
         "name": "targetGroup",
-        "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
-        "canWrite":["back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"], 
+        "canRead": ["front","back","head", "supervisor", "director", "analyst", "vwfake","parguy", "account", "admin", "programman", "account", "parguy"],
+        "canWrite":["back","head", "supervisor", "director", "analyst", "vwfake","parguy", "account", "admin", "programman"], 
         "type": "dictionary",
         "meta": {
             "label": "Роль",
@@ -123,8 +123,8 @@
       },
       {
         "name": "priority",
-        "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
-        "canWrite":["back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"], 
+        "canRead": ["front","back","head", "supervisor", "director", "analyst", "vwfake","parguy", "account", "admin", "programman", "account", "parguy"],
+        "canWrite":["back","head", "supervisor", "director", "analyst", "vwfake","parguy", "account", "admin", "programman"], 
         "meta": {
             "label": "Приоритет",
             "invisible": true
@@ -132,8 +132,8 @@
       },
       {
         "name": "closed",
-        "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
-        "canWrite":["back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"], 
+        "canRead": ["front","back","head", "supervisor", "director", "analyst", "vwfake","parguy", "account", "admin", "programman", "account", "parguy"],
+        "canWrite":["back","head", "supervisor", "director", "analyst", "vwfake","parguy", "account", "admin", "programman"], 
         "type": "checkbox",
         "meta": {
             "label": "Закрыто",

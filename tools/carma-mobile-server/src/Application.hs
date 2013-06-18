@@ -58,14 +58,15 @@ import Snap.Snaplet.PostgresqlSimple
 import Snap.Snaplet.RedisDB
 
 
-import Carma.HTTP
+import Carma.HTTP hiding (runCarma)
+import qualified Carma.HTTP as CH (runCarma)
 
 
 data GeoApp = GeoApp
     { _postgres :: Snaplet Postgres
     , _redis :: Snaplet RedisDB
-    , carmaPort :: Int
-    -- ^ Port of CaRMa instance running on localhost.
+    , carmaOptions :: CarmaOptions
+    -- ^ Options of CaRMa running on localhost.
     , cityDict :: Dict
     -- ^ Dictionary used to map city names to internal values.
     }
@@ -85,8 +86,10 @@ routes = [ ("/geo/partner/:pid", method PUT $ updatePosition)
          ]
 
 
-getCarmaPort :: Handler b GeoApp Int
-getCarmaPort = gets carmaPort
+runCarma :: CarmaIO a -> Handler b GeoApp a
+runCarma action = do
+  co <- gets carmaOptions
+  liftIO $ CH.runCarma co action
 
 
 ------------------------------------------------------------------------------
@@ -122,11 +125,11 @@ revGeocode :: Double
            -- ^ Latitude.
            -> Handler b GeoApp (Maybe ByteString, Maybe ByteString)
 revGeocode lon lat = do
-  cp <- getCarmaPort
+  cp <-  gets (carmaPort . carmaOptions)
   (addr :: Maybe (HM.HashMap ByteString (Maybe ByteString))) <- liftIO $ do
-     let coords = coordsToString lon lat
+     let coords' = coordsToString lon lat
      resp <- H.simpleHTTP $ H.getRequest $
-             methodURI cp ("geo/revSearch/" ++ coords)
+             methodURI cp ("geo/revSearch/" ++ coords')
      body <- H.getResponseBody resp
      return $ decode' $ BSL.pack body
   case addr of
@@ -174,8 +177,7 @@ updatePartnerData pid lon lat addr mtime =
                   BS.pack $ formatTime defaultTimeLocale "%s" mtime)] ++
                (maybe [] (\a -> [(partnerAddress, a)]) addr)
     in do
-      cp <- getCarmaPort
-      liftIO $ updateInstance cp "partner" pid body >> return ()
+      runCarma $ updateInstance "partner" pid body >> return ()
 
 
 ------------------------------------------------------------------------------
@@ -264,7 +266,7 @@ newCase = do
   let -- Do not enforce typing on values when reading JSON
       Just jsonRq0 :: Maybe (HM.HashMap ByteString Value) =
                       Aeson.decode rqb
-      coords = (,) <$> (HM.lookup "lon" jsonRq0) <*> (HM.lookup "lat" jsonRq0)
+      coords' = (,) <$> (HM.lookup "lon" jsonRq0) <*> (HM.lookup "lat" jsonRq0)
       -- Now read all values but coords into ByteStrings
       jsonRq = HM.map (\(String s) -> encodeUtf8 s) $
                HM.filter (\case
@@ -275,7 +277,7 @@ newCase = do
 
   dict <- gets cityDict
 
-  jsonRq' <- case coords of
+  jsonRq' <- case coords' of
     -- Reverse geocode coordinates from lon/lat
     Just (Number (D lon), Number (D lat)) -> revGeocode lon lat >>= \case
       (city, addr) ->
@@ -303,8 +305,7 @@ newCase = do
                   jsonRq'
 
   modifyResponse $ setContentType "application/json"
-  cp <- getCarmaPort
-  caseResp <- liftIO $ createInstance cp "case" caseBody
+  caseResp <- runCarma $ createInstance "case" caseBody
 
   now <- liftIO $ getCurrentTime
   let nowStr = BS.pack $ formatTime defaultTimeLocale "%s" (now :: UTCTime)
@@ -322,12 +323,12 @@ newCase = do
                 , ("closed", "0")
                 , ("description", descr)
                 ]
-  actResp <- liftIO $ createInstance cp "action" actBody
+  actResp <- runCarma $ createInstance "action" actBody
 
   -- Fetch id of the created action and update the reverse reference
   -- in the case.
   let actId = fst actResp
-  liftIO $ updateInstance cp "case" caseId $ HM.fromList $
+  runCarma $ updateInstance "case" caseId $ HM.fromList $
           [ (caseActions, actionIdReference actId) ]
           -- we update car_vin here to trigger vin-search (it's a bit
           -- easier than adding correct trigger handling on POST
@@ -360,40 +361,46 @@ instance ToJSON Partner where
 
 
 ------------------------------------------------------------------------------
--- | Splice 5 parameters: car brand (boolean flag if this filter is
--- enabled (active low) & value for this parameter), lon, lat and
--- limit onto query; then fetch list of partners ordered by distance
--- to the provided point, in ascending order. Serve only dealer
--- partners with non-empty names.
+-- | Splice 5 parameters: lon, lat, car brand (boolean flag if this
+-- filter is enabled (active low) & value for this parameter), maximum
+-- distance (flag & value) and limit onto query; then fetch list of
+-- partners ordered by distance to the provided point, in ascending
+-- order. Serve only dealer partners with non-empty names.
 partnersAroundQuery :: Query
 partnersAroundQuery = [sql|
+WITH subquery AS (
+  SELECT *, ST_Distance_Sphere(coords, ST_PointFromText('POINT(? ?)', 4326)) dist
+  FROM partnertbl
+  WHERE isDealer
+  AND name != ''
+  AND (? or ? = ANY(makes)))
 SELECT id, st_x(coords), st_y(coords),
 isDealer, isMobile,
 name, addrDeFacto, phone1
-FROM partnertbl
-WHERE isDealer
-AND name != ''
-AND (? or ? = ANY(makes))
-ORDER BY
-ST_Distance_Sphere(coords, ST_PointFromText('POINT(? ?)', 4326)) ASC
+FROM subquery
+WHERE (? or dist < ?)
+ORDER BY dist ASC
 LIMIT ?;
 |]
 
 
 ------------------------------------------------------------------------------
--- | Read @coords@, @limit@ parameters and server JSON list of
--- partners around a point.
+-- | Read @coords@, @limit@, @car_make@, @dist@ request parameters and
+-- serve a JSON list of partners around a point.
 partnersAround :: Handler b GeoApp ()
 partnersAround = do
   cds <- getParamWith coords "coords"
   limit <- getParam "limit"
   brand <- getParam "car_make"
+  (dist :: Maybe Int)  <- getParamWith decimal "dist"
   case cds of
     Just (lon, lat) -> do
-      let qParams = ( isNothing brand
-                    , fromMaybe "" brand
-                    , lon
+      let qParams = ( lon
                     , lat
+                    , isNothing brand
+                    , fromMaybe "" brand
+                    , isNothing dist
+                    , maybe 100000 (* 1000) dist
                     , fromMaybe "20" limit
                     )
       results :: [Partner] <- query partnersAroundQuery qParams
@@ -409,12 +416,13 @@ geoAppInit = makeSnaplet "geo" "Geoservices" Nothing $ do
     cfg <- getSnapletUserConfig
 
     cp <- liftIO $ lookupDefault 8000 cfg "carma_port"
+    let cOpts = defaultCarmaOptions{carmaPort = cp}
     dName <- liftIO $ lookupDefault "DealerCities" cfg "cities-dictionary"
 
     addRoutes routes
-    cDict' <- liftIO $ readDictionary cp dName
+    cDict' <- liftIO $ CH.runCarma cOpts $ readDictionary dName
     case cDict' of
-      Just cDict -> return $ GeoApp db rdb cp cDict
+      Just cDict -> return $ GeoApp db rdb cOpts cDict
       Nothing -> error "Could not load cities dictionary from CaRMa"
 
 

@@ -13,7 +13,6 @@ define [ "utils"
                        slotsee    : ["call-number"]
                        focusClass : "focusable"
                        groupsForest : "center"
-    knockVM['callTaker'](global.user.meta.realName)
     $('input[name="callDate"]').parents('.control-group').hide()
     $('input[name="callTaker"]').parents('.control-group').hide()
     searchTable = $("#call-searchtable")
