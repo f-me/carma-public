@@ -42,7 +42,10 @@ applyDefaults model obj = do
               $ Map.insertWith (flip const) "isMobile" "0"
               $ obj
     "case" -> return cd
-    "call" -> return cd
+    "call" -> do
+          Just u <- with auth currentUser
+          let login = T.encodeUtf8 $ userLogin u
+          return $ Map.insert "callTaker" login obj
     "cost_serviceTarifOption" -> return $ Map.insert "count" "1" obj
     "contract" ->
       -- Store user id in owner field if it's not present

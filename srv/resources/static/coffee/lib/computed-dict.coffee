@@ -1,28 +1,43 @@
 define ["lib/local-dict"], (m) ->
   class ComputedDict extends m.dict
-    constructor: (@opts, readycb) ->
+    constructor: (@opts) ->
       [f, a] = @opts.dict.split ':'
       fn    = @[f.trim()]
       throw new Error("Unknown dictionary #{f.trim}") unless fn
       args  = a.split(',').map((e) -> e.trim()) unless _.isEmpty args
-      console.log 'cdict'
       fn.call(@, args)
 
     getLab: (val) -> @dictValues()[val]
 
-  # Dictionary of all user-created programs
-    allPrograms: (cb) =>
+    # Dictionary of all user-created programs
+    allPrograms: =>
       $.bgetJSON "/all/program", (objs) =>
-        console.log 'allprograms', objs
         @source = for obj in objs
           { value: obj.id.split(':')[1], label: obj.label || '' }
 
-    programsVinEntries: =>
+    # Dictionary of all programs available to user from VIN screen.
+    # - partner may see only his own programs
+    # - programman role may access all programs
+    # - all other users may do nothing
+    vinPrograms: =>
       $.bgetJSON "/all/program", (objs) =>
-        @source = for obj in objs
-               { value: obj.vinFormat
-                 label: obj.label || ''
-                 pname: obj.id.split(':')[1]
-               }
+        # Requires user to reload the page to update list of available
+        # programs
+        user_pgms = global.user.meta.programs.split ','
+        all_pgms = for obj in objs
+          { value: obj.id.split(':')[1]
+          , label: obj.label || ''
+          , vinFormat: obj.vinFormat
+          }
+        @source =
+          if _.contains global.user.roles, "partner"
+            _.filter(all_pgms,
+                    (e) -> _.contains user_pgms, e.value)
+          else
+            if _.contains global.user.roles, "programman"
+              all_pgms
+            else
+              []
+              
 
   dict: ComputedDict

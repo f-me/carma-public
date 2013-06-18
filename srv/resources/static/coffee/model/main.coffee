@@ -126,27 +126,32 @@ define [ "model/meta"
 
     knockVM['disableDixi'] = ko.observable(false)
 
-    for f of instance.fieldHash
-      do (f) ->
+    for f, v of instance.fieldHash
+      do (f, v) ->
         disabled = ko.observable(false)
-        knockVM["#{f}Disabled"] = ko.computed
+        readonly = v.meta?.readonly
+        knockVM["#{f}DisableDixi"] = ko.observable(false)
+        knockVM["#{f}Disabled"]    = ko.computed
           read: ->
             mbid = parseInt(knockVM["maybeId"]())
-            dixi = if knockVM["dixi"] then knockVM["dixi"]() else true
-            (not _.isNaN mbid) and
-            dixi               and
-            disabled()         and not
+            return true if readonly
+            dixi = knockVM['dixi']?() and not knockVM["#{f}DisableDixi"]()
+            (not _.isNaN mbid)   and
+            (dixi or disabled()) and not
             knockVM['disableDixi']()
           write: (a) ->
             disabled(not not a)
 
-    # make submit button disabled
+    # make dixi button disabled
     # until all required fields are filled
-    knockVM['dixiDisabled'] = ko.computed ->
-      isFilled = _.all(_.map(instance.requiredFields, (field) ->
-        not knockVM[field + 'Not']()), _.identity)
-      dixi = if knockVM["dixi"] then knockVM["dixi"]() else false
-      if dixi or not isFilled then true else false
+    knockVM['disableDixiU'] = ko.computed ->
+      return unless knockVM['dixi']
+      notFlds  = _.map instance.requiredFields, (f) -> not knockVM["#{f}Not"]()
+      isFilled = _.all notFlds, _.identity
+      if isFilled
+        knockVM['dixiDisabled'](false) unless knockVM['dixi']()
+      else
+        knockVM['dixiDisabled'](true)
 
     applyHooks global.hooks.observable,
                ['*', instance.model.name],

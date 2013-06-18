@@ -210,7 +210,7 @@
         <form id="vin-import-form" onsubmit="doVin(); return false;">
           <p>
             <select name="program" id="vin-program-select" data-bind="foreach: $data">
-              <option data-bind="value: value, text: label" />
+              <option data-bind="value: value, text: label, attr: { 'data-format': vinFormat }" />
             </select>
             <input type="file"
                    name="file"
@@ -552,7 +552,7 @@
                               bindDict: '{{ name }}'"
                    />
             <span class="add-on"
-                  data-bind="click: {{ name }}Typeahead.draw">
+                  data-bind="click: {{ name }}Typeahead.drawAll">
               <i class="icon icon-chevron-down" />
             </span>
           </div>
@@ -612,7 +612,7 @@
 
                    />
             <span class="add-on"
-                  data-bind="click: {{ name }}Typeahead.draw">
+                  data-bind="click: {{ name }}Typeahead.drawAll">
               <i class="icon icon-chevron-down"
               />
             </span>

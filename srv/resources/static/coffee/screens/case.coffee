@@ -57,15 +57,14 @@ define [ "utils"
       utils.mkDataTable $('#call-searchtable')
       hotkeys.setup()
       kvm = global.viewsWare[viewName].knockVM
-      for i of kvm when /.*Not$/.test(i) or i == 'actions'
-        do (i) -> kvm[i].subscribe -> mbEnableActionResult(kvm)
 
-    mbEnableActionResult = (kvm) ->
-      nots = (i for i of kvm when /.*Not$/.test i)
-      if (_.any nots, (e) -> kvm[e]())
-        k["resultDisabled"](true)  for k in kvm["actionsReference"]()
-      else
-        k["resultDisabled"](false) for k in kvm["actionsReference"]()
+      do (kvm) ->
+        ko.computed ->
+          nots = (i for i of kvm when /.*Not$/.test i)
+          if (_.any nots, (e) -> kvm[e]())
+            k["resultDisabled"](true)  for k in kvm["actionsReference"]()
+          else
+            k["resultDisabled"](false) for k in kvm["actionsReference"]()
 
     setCommentsHandler = ->
       $("#case-comments-b").on 'click', ->

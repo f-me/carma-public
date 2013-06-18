@@ -45,8 +45,8 @@ define [ "utils"
               knockVM[fieldName].valueHasMutated()
             dict  : dict
 
-        knockVM["#{fieldName}Disabled"].subscribe (v) ->
-          dict.disabled = v
+        # dict.disabled = knockVM["#{fieldName}Disabled"]()
+        knockVM["#{fieldName}Disabled"].subscribe (v) -> dict.disabled = v
 
   regexpKbHook: (instance, knockVM) ->
     # Set observable with name <fieldName>Regexp for inverse of
@@ -190,6 +190,9 @@ define [ "utils"
               # FIXME: find more appropriate way to set values here
               k["#{n}Many"](dict.getLab(dict.id2val(v)))
             dict  : dict
+
+        dict.disabled = k["#{n}Disabled"]()
+        k["#{n}Disabled"].subscribe (v) -> dict.disabled = v
 
   # Standard element callback which will scroll model into view and
   # focus on first field

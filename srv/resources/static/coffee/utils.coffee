@@ -33,22 +33,6 @@ define ["model/utils"], (mu) ->
       $span.fadeOut(2000))
     , 500)
 
-
-  # Dictionary of all programs assigned to current user
-  window.userProgramsDict = () ->
-    # Requires user to re-login to update list of available programs
-    pgms = global.user.meta.programs.split ','
-    allPgms = allProgramsDict()
-    { entries:
-        _.filter(allPgms.entries,
-                 (e) -> _.contains pgms, e.value)
-
-      vin_entries:
-        _.filter(allPgms.vin_entries,
-                 (e) -> _.contains pgms, e.pname)
-    }
-
-
   window.getDictionary = (d) ->
     console.log 'dicts', d
     dict = global.dictionaries[d]
