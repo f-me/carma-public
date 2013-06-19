@@ -16,7 +16,7 @@ Exporting a case with services requires first fetching it from
 CaRMa, then using is as input data for 'runExport':
 
 > -- Fetch case
-> res <- readInstance cp "case" caseNumber
+> res <- readInstance "case" caseNumber
 > -- Fetch its services
 > servs <- forM (readReferences $ res M.! "services")
 >          (\(m, i) -> do
@@ -24,10 +24,14 @@ CaRMa, then using is as input data for 'runExport':
 >             return (m, i, inst))
 >
 > -- Perform export action on this data
-> fv <- runExport sagaiFullExport cnt (res, servs) cp dicts encName
+> fv <- runExport sagaiFullExport cnt (res, servs) dicts encName
 
 Note that all services attached to the case must be supplied to
-'runExport', although some of them may not end up being in SAGAI entry.
+'runExport', although some of them may not end up being in SAGAI
+entry.
+
+Export monads (see "Carma.SAGAI.Base") have 'CarmaIO' at the monad
+chain root to maintain a connection to a CaRMa database.
 
 Final 'ExportState' as returned by 'runExport' contains a fully
 formed SAGAI entry, and may also be used to keep @SEP@ counter value
@@ -93,7 +97,6 @@ import Carma.SAGAI.Util
 class (Functor m, Monad m, MonadIO m) => ExportMonad m where
     getCase        :: m InstanceData
     getAllServices :: m [Service]
-    getCarmaPort   :: m Int
     -- | Fetch a dictionary from export options using a projection.
     getDict        :: (ExportDicts -> D.Dict) -> m D.Dict
     getConverter   :: m Converter
@@ -106,6 +109,9 @@ class (Functor m, Monad m, MonadIO m) => ExportMonad m where
 
     getState       :: m ExportState
     putState       :: ExportState -> m ()
+
+    -- | Perform a CaRMa API action.
+    liftCIO        :: CarmaIO a -> m a
 
     -- Fields for which export rules differ between case and services.
     ddrField       :: m Int
@@ -123,8 +129,6 @@ instance ExportMonad CaseExport where
 
     getAllServices = lift $ asks $ snd . fst
 
-    getCarmaPort = lift $ asks $ carmaPort . snd
-
     getDict proj = lift $ asks $ proj . dicts . snd
 
     getConverter = lift $ asks $ utfConv . snd
@@ -134,6 +138,8 @@ instance ExportMonad CaseExport where
     getState = get
 
     putState = put
+
+    liftCIO = lift . lift . lift . lift
 
     expenseType = return Dossier
 
@@ -191,8 +197,6 @@ instance ExportMonad ServiceExport where
 
     getAllServices = lift $ lift $ asks $ snd . fst
 
-    getCarmaPort = lift $ lift $ asks $ carmaPort . snd
-
     getDict proj = lift $ lift $ asks $ proj . dicts . snd
 
     getConverter = lift $ lift $ asks $ utfConv . snd
@@ -206,6 +210,8 @@ instance ExportMonad ServiceExport where
     getState = lift $ get
 
     putState = lift . put
+
+    liftCIO = lift . lift . lift . lift . lift
 
     ddrField = getService >>=
                \(_, _, d) -> dataField1 "times_factServiceStart" d >>=
@@ -342,12 +348,11 @@ serviceExpenseType s@(mn, _, d) = do
     (_, "towage") ->
         do
           cid <- caseField1 "id"
-          cp <- getCarmaPort
+          uri <- liftCIO $ methodURI $ "repTowages/" ++ (B8.unpack cid)
           liftIO $ do
                 -- Check if this towage is a repeated towage using
                 -- CaRMa HTTP method
-                rs <- simpleHTTP $ getRequest $
-                      methodURI cp $ "repTowages/" ++ (B8.unpack cid)
+                rs <- simpleHTTP $ getRequest uri
                 rsb <- getResponseBody rs
                 case (decode' $ BSL.pack rsb :: Maybe [B8.ByteString]) of
                   Just [] -> return Towage
@@ -464,7 +469,6 @@ contractorCode :: ExportMonad m =>
                -> m FieldValue
 contractorCode (_, _, d) partnerField = do
   let sPid = dataField0 partnerField d
-  cp <- getCarmaPort
   case (BS.null sPid, read1Reference sPid) of
     -- If no partnerId specified, do not add partner
     -- code to extra information to comm3 field.
@@ -473,7 +477,7 @@ contractorCode (_, _, d) partnerField = do
     (False, Nothing) ->
         exportError (UnreadableContractorId sPid)
     (False, Just (_, pid)) ->
-        dataField0 "code" <$> (liftIO $ readInstance cp "partner" pid)
+        dataField0 "code" <$> (liftCIO $ readInstance "partner" pid)
 
 
 -- | True if a dealer with given id is a PSA dealer and PSA costs must
@@ -483,8 +487,7 @@ isPSADealer :: ExportMonad m =>
             -- ^ Id of a @partner@ instance.
             -> m Bool
 isPSADealer pid = do
-  cp <- getCarmaPort
-  inst <- liftIO $ readInstance cp "partner" pid
+  inst <- liftCIO $ readInstance "partner" pid
   let makes = B8.split manyFieldDivisor $ dataField0 "makes" inst
       isDealer = dataField0 "isDealer" inst == "1"
   return $ isDealer &&
