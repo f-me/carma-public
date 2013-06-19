@@ -30,7 +30,6 @@ module Carma.HTTP
     , readReferences
 
     -- * Auxiliary methods
-    , getPort
     , methodURI
     , readDictionary
     , manyFieldDivisor
@@ -226,18 +225,18 @@ read1Reference val =
 -- | Read input of format @foo:32,bar:48@ into list of model names and
 -- ids. Invalid references are ignored.
 readReferences :: FieldValue -> [(String, Int)]
-readReferences refs = 
+readReferences refs =
     (flip mapMaybe) (B8.split manyFieldDivisor refs) read1Reference
 
 
 -- | Build URI used to call a method of local CaRMa.
-methodURI :: Int
-          -- ^ CaRMa port.
-          -> String 
+methodURI :: String
           -- ^ Method name/call, like @repTowages/5003@ or @psaCases@,
           -- no trailing or leading slashes.
-          -> String
-methodURI cp meth = concat ["http://", localhost, ":", show cp, "/", meth]
+          -> CarmaIO String
+methodURI meth =
+    getPort >>= \cp ->
+        return $ concat ["http://", localhost, ":", show cp, "/", meth]
 
 
 -- | Name of CaRMa HTTP method which serves a hash of all
