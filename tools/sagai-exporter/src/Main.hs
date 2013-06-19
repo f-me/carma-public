@@ -12,6 +12,7 @@ import Control.Applicative
 import Control.Concurrent
 import Control.Monad
 import Control.Monad.IO.Class
+import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Reader
 import qualified Data.ByteString as BS
@@ -36,7 +37,8 @@ import System.Log.Simple as L
 import System.Log.Simple.Syslog
 import System.Locale
 
-import Carma.HTTP
+import Carma.HTTP hiding (carmaPort)
+import qualified Carma.HTTP as H (carmaPort)
 import Carma.SAGAI
 
 
@@ -47,15 +49,13 @@ exportCase :: Int
            -- ^ Initial value of the COMPOS counter.
            -> Int
            -- ^ Case ID.
-           -> Int
-           -- ^ CaRMa port.
            -> ExportDicts
            -> String
            -- ^ Name of an output character set.
-           -> IO (Either ExportError (BS.ByteString, Int, [String]))
-exportCase cnt caseNumber cp ds encName = do
+           -> CarmaIO (Either ExportError (BS.ByteString, Int, [String]))
+exportCase cnt caseNumber ds encName = do
   -- Read case with provided number and all of the associated services
-  res <- readInstance cp "case" caseNumber
+  res <- readInstance "case" caseNumber
 
   let refs = HM.lookup "services" res
   servs <-
@@ -64,10 +64,10 @@ exportCase cnt caseNumber cp ds encName = do
         Just refField ->
             forM (readReferences refField) $
                 \(m, i) -> do
-                  inst <- readInstance cp m i
+                  inst <- readInstance m i
                   return (m, i, inst)
 
-  fv <- runExport sagaiFullExport cnt (res, servs) cp ds encName
+  fv <- runExport sagaiFullExport cnt (res, servs) ds encName
   case fv of
     Left err ->
         return $ Left err
@@ -77,17 +77,18 @@ exportCase cnt caseNumber cp ds encName = do
 
 -- | Monad which stores value of the COMPOS counter when exporting
 -- multiple cases.
-type ComposMonad = StateT Int IO
+type ComposMonad = StateT Int CarmaIO
 
 
-psaExported :: InstanceData
-psaExported = HM.fromList [("psaExported", "1")]
-
-
-markExported :: Int -> [Int] -> IO ()
-markExported cp caseNumbers = do
+-- | Mark cases as exported to PSA.
+markExported :: [Int]
+             -- ^ List of case ids.
+             -> CarmaIO ()
+markExported caseNumbers = do
   forM_ caseNumbers $
-        \i -> updateInstance cp "case" i psaExported
+        \i -> updateInstance "case" i psaExported
+              where
+                psaExported = HM.fromList [("psaExported", "1")]
 
 
 -- | Export several cases, properly maintaining the COMPOS counter
@@ -97,13 +98,11 @@ exportManyCases :: Int
                 -- ^ Initial value of the COMPOS counter.
                 -> [Int]
                 -- ^ List of case IDs.
-                -> Int
-                -- ^ CaRMa port.
                 -> ExportDicts
                 -> String
                 -- ^ Name of an output character set.
-                -> IO (Int, [(Int, ExportError)], BS.ByteString)
-exportManyCases initialCnt cases cp ds encName =
+                -> CarmaIO (Int, [(Int, ExportError)], BS.ByteString)
+exportManyCases initialCnt cases ds encName =
     let
         -- Runs 'exportCase' in ComposMonad
         exportCaseWithCompos :: Int
@@ -111,7 +110,7 @@ exportManyCases initialCnt cases cp ds encName =
                                 (Either (Int, ExportError) BS.ByteString)
         exportCaseWithCompos caseNumber = do
           cnt <- get
-          res <- liftIO $ exportCase cnt caseNumber cp ds encName
+          res <- lift $ exportCase cnt caseNumber ds encName
           case res of
             Left err -> return $ Left (caseNumber, err)
             Right (entry, newCnt, _) -> do
@@ -162,40 +161,37 @@ programName :: String
 programName = "sagai-exporter"
 
 
-fetchExportDicts :: Int -> IO (Maybe ExportDicts)
-fetchExportDicts cp = do
-  w <- readDictionary cp "Wazzup"
-  t <- readDictionary cp "TechTypes"
-  c <- readDictionary cp "CarClasses"
-  r <- readDictionary cp "Result"
+fetchExportDicts :: CarmaIO (Maybe ExportDicts)
+fetchExportDicts = do
+  w <- readDictionary "Wazzup"
+  t <- readDictionary "TechTypes"
+  c <- readDictionary "CarClasses"
+  r <- readDictionary "Result"
   return $ ExportDicts <$> w <*> t <*> c <*> r
 
 
 -- | Attempt to fetch a list of cases to be exported from CaRMa, as
 -- returned by @/psaCases@.
-fetchPSACaseNumbers :: Int
-                    -- ^ CaRMa port.
-                    -> Maybe String
+fetchPSACaseNumbers :: Maybe String
                     -- ^ Filter cases by this program name when set.
-                    -> IO (Maybe [Int])
-fetchPSACaseNumbers cp pn = do
-  rs <- simpleHTTP $ getRequest $
-        methodURI cp ("psaCases/" ++ fromMaybe "" pn)
-  rsb <- getResponseBody rs
+                    -> CarmaIO (Maybe [Int])
+fetchPSACaseNumbers pn = do
+  uri <- methodURI ("psaCases/" ++ fromMaybe "" pn)
+  rsb <- liftIO $ (simpleHTTP $ getRequest uri) >>= getResponseBody
   return $ decode' $ BSL.pack rsb
 
 
-logInfo :: String -> ReaderT Log IO ()
+logInfo :: String -> ReaderT Log CarmaIO ()
 logInfo s = L.log L.Trace $ T.pack s
 
 
-logError :: String -> ReaderT Log IO ()
+logError :: String -> ReaderT Log CarmaIO ()
 logError =  L.log L.Error . T.pack
 
 
-mainLog :: Politics -> Logger -> ReaderT Log IO a -> IO a
+mainLog :: Politics -> Logger -> ReaderT Log CarmaIO a -> CarmaIO a
 mainLog policy logL a = do
-  l <- newLog (constant [ rule root $ use policy ]) [logL]
+  l <- liftIO $ newLog (constant [ rule root $ use policy ]) [logL]
   withLog l a
 
 
@@ -327,8 +323,9 @@ main =
                      (True, _)  -> Politics L.Trace L.Trace
                      (_, False) -> Politics L.Fatal L.Fatal
                      _          -> Politics L.Info L.Error
+          carmaOpts = defaultCarmaOptions{H.carmaPort = carmaPort}
 
-      mainLog logPolicy logL $ do
+      runCarma carmaOpts $ mainLog logPolicy logL $ do
          logInfo "Starting up"
          when testMode $ logInfo "No FTP host specified, test mode"
          logInfo $ "CaRMa port: " ++ show carmaPort
@@ -343,7 +340,7 @@ main =
          -- Load Wazzup dictionaries from CaRMa.
          dictsRes <- do
              logInfo "Loading dictionaries from CaRMa"
-             liftIO $ fetchExportDicts carmaPort
+             lift fetchExportDicts
 
          -- If any case numbers supplied on command line, use them.
          -- Otherwise, fetch case numbers from local CaRMa.
@@ -354,7 +351,7 @@ main =
                      "Fetching case numbers from CaRMa (" ++
                      maybe "all valid programs" (++ " program") caseProgram ++
                      ")"
-                 liftIO $ fetchPSACaseNumbers carmaPort caseProgram
+                 lift $ fetchPSACaseNumbers caseProgram
                l  -> do
                  logInfo $ "Using case numbers specified in the command line"
                  return $ Just l
@@ -370,8 +367,8 @@ main =
                  logInfo $ "Exporting cases: " ++ show caseNumbers
                  -- Bulk export of selected cases
                  (newCnt, errors, res) <-
-                     liftIO $
-                     exportManyCases cnt caseNumbers carmaPort dicts encoding
+                     lift $
+                     exportManyCases cnt caseNumbers dicts encoding
 
                  -- Dump errors if there're any
                  when (not $ null errors) $ forM_ errors $
@@ -424,7 +421,7 @@ main =
 
                              -- Set psaExported field for exported cases
                              logInfo "Flagging exported cases in CaRMa"
-                             liftIO $ markExported carmaPort exportedNumbers
+                             lift $ markExported exportedNumbers
                            e -> logError $
                                 "Error when uploading: " ++ show e
          logInfo "Powering down"

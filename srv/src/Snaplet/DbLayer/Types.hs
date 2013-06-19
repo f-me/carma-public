@@ -25,11 +25,11 @@ import DictionaryCache
 import RuntimeFlag
 
 type ObjectId = ByteString
-type Object = Map FieldName ByteString
-type ObjectMap = Map ObjectId Object
-type ModelName = ByteString
 type FieldName = ByteString
 type FieldValue = ByteString
+type Object = Map FieldName FieldValue
+type ObjectMap = Map ObjectId Object
+type ModelName = ByteString
 
 type ProgramName = ByteString
 type RKCName     = ByteString
