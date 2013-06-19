@@ -22,6 +22,7 @@ module Carma.SAGAI.Base
 
 where
 
+import Control.Monad.IO.Class
 import Control.Monad.Trans.Error
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.State
@@ -70,9 +71,7 @@ data ExportDicts = ExportDicts { wazzup :: D.Dict
 
 
 -- | Read only options used when processing a case.
-data ExportOptions = ExportOptions { carmaPort :: Int
-                                   -- ^ CaRMa port.
-                                   , dicts :: ExportDicts
+data ExportOptions = ExportOptions { dicts :: ExportDicts
                                    , utfConv :: Converter
                                    -- ^ A converter used to encode
                                    -- text from UTF-8 to target
@@ -83,12 +82,12 @@ data ExportOptions = ExportOptions { carmaPort :: Int
 -- | Main monad used to form a SAGAI entry for a case. Reader state
 -- stores the case and its services. Writer state keeps log messages.
 -- Error monad is provided to early terminate entry export in case of
--- critical errors. IO may be used to query CaRMa database.
+-- critical errors. CarmaIO may be used to query CaRMa database.
 type CaseExport =
     (StateT ExportState
      (ReaderT (ExportData, ExportOptions)
       (WriterT [String]
-       (ErrorT ExportError IO))))
+       (ErrorT ExportError CarmaIO))))
 
 
 -- | A sub-monad used when forming a part of a SAGAI entry
@@ -133,15 +132,13 @@ runExport :: CaseExport a
           -- ^ Initial value for @SEP@ line counter.
           -> ExportData
           -- ^ Case and all of its services.
-          -> Int
-          -- ^ CaRMa port.
           -> ExportDicts
           -> String
           -- ^ Name of an output character set.
-          -> IO (Either ExportError ((a, ExportState), [String]))
-runExport act sepStart input cp ds eName = do
-    e <- open eName Nothing
-    let options = ExportOptions cp ds e
+          -> CarmaIO (Either ExportError ((a, ExportState), [String]))
+runExport act sepStart input ds eName = do
+    e <- liftIO $ open eName Nothing
+    let options = ExportOptions ds e
         inner = runReaderT (runStateT act $ ExportState sepStart BS.empty) $
                 (input, options)
     res <- runErrorT $ runWriterT inner
