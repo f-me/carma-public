@@ -239,19 +239,13 @@ methodURI meth =
         return $ concat ["http://", localhost, ":", show cp, "/", meth]
 
 
--- | Name of CaRMa HTTP method which serves a hash of all
--- dictionaries.
-dictionariesMethod :: String
-dictionariesMethod = "cfg/dictionaries"
-
-
 -- | Load a dictionary with given name from CaRMa.
 readDictionary :: String
                -- ^ Dictionary name.
                -> CarmaIO (Maybe Dict)
 readDictionary name = do
-  cp <- getPort
-  rs <- sendRequest $ getRequest $ methodURI cp dictionariesMethod
+  uri <- methodURI "cfg/dictionaries"
+  rs <- sendRequest $ getRequest uri
   rsb <- liftIO $ getResponseBody rs
   -- Read server response into @HashMap String Value@, since
   -- carma-dict does not support multi-level dictionaries yet
