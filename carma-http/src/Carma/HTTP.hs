@@ -30,6 +30,7 @@ module Carma.HTTP
     , readReferences
 
     -- * Auxiliary methods
+    , getPort
     , methodURI
     , readDictionary
     , manyFieldDivisor
