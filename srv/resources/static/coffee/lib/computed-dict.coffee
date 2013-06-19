@@ -23,7 +23,11 @@ define ["lib/local-dict"], (m) ->
       $.bgetJSON "/all/program", (objs) =>
         # Requires user to reload the page to update list of available
         # programs
-        user_pgms = global.user.meta.programs.split ','
+        user_pgms =
+          if global.user.meta.programs
+            global.user.meta.programs.split ','
+          else
+            []
         all_pgms = for obj in objs
           { value: obj.id.split(':')[1]
           , label: obj.label || ''
