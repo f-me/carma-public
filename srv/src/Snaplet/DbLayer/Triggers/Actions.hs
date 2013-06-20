@@ -237,7 +237,6 @@ serviceActions = Map.fromList
             ]
           upd kazeId "actions" $ addToList actionId
           sendSMS actionId "smsTpl:13"
-          tryRepTowageMail actionId
       "recallClient" -> do
           due <- getService objId "times_expectedServiceStart"
           kazeId <- get objId "parentId"
