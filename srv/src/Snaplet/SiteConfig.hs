@@ -21,7 +21,6 @@ import Database.PostgreSQL.Simple as Pg
 import Snap.Core
 import Snap.Snaplet
 import Snap.Snaplet.Auth
-import Snap.Snaplet.PostgresqlSimple
 
 ----------------------------------------------------------------------
 import Snaplet.Auth.Class
