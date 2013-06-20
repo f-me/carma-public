@@ -62,7 +62,7 @@ import qualified Snaplet.DbLayer.Types as DB
 import qualified Snaplet.DbLayer.ARC as ARC
 import qualified Snaplet.DbLayer.RKC as RKC
 import qualified Snaplet.DbLayer.Dictionary as Dict
-import Snaplet.FileUpload (finished, tmp, doUpload', doDeleteAll')
+import Snaplet.FileUpload (finished, tmp, doUpload')
 ------------------------------------------------------------------------------
 import Application
 import AppHandlers.Util
@@ -365,7 +365,8 @@ deleteReportHandler :: AppHandler ()
 deleteReportHandler = do
   Just objId  <- getParam "id"
   with db $ DB.delete "report" objId
-  with fileUpload $ doDeleteAll' "report" $ U.bToString objId
+  -- TODO Rewrite this using CRUD triggers
+  -- with fileUpload $ doDeleteAll' "report" $ U.bToString objId
 
 serveUsersList :: AppHandler ()
 serveUsersList = with db usersListPG >>= writeJSON

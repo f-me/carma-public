@@ -1,17 +1,21 @@
+{-# LANGUAGE Rank2Types #-}
+
+{-|
+
+Handle file uploads using @attachment@ model.
+
+-}
 
 module Snaplet.FileUpload
   ( fileUploadInit
   , FileUpload(..)
   , doUpload'
-  , doDeleteAll'
   ) where
 
+import Control.Lens
 import Control.Monad
 
-import Snap (gets, liftIO)
-import Snap.Core hiding (path)
-import Snap.Snaplet
-import Snap.Util.FileUploads
+import Data.Aeson as A
 
 import Data.List (foldl')
 import Data.String
@@ -22,55 +26,30 @@ import Data.ByteString (ByteString)
 import System.Directory
 import System.FilePath
 
-import Data.Aeson as A
+import Snap (gets, liftIO)
+import Snap.Core hiding (path)
+import Snap.Snaplet
+import Snap.Util.FileUploads
+
+import Snaplet.Auth.Class
+import Snaplet.Auth.PGUsers
+
+import Snaplet.DbLayer.Types (DbLayer)
 
 import Utils.HttpErrors
 import Util as U
 
-data FileUpload = FU { cfg      :: UploadPolicy
-                     , tmp      :: FilePath
-                     , finished :: FilePath
-                     }
+data FileUpload b = FU { cfg      :: UploadPolicy
+                       , tmp      :: FilePath
+                       , finished :: FilePath
+                       , db       :: Lens' b (Snaplet (DbLayer b))
+                       }
 
-routes :: [(ByteString, Handler b FileUpload ())]
+routes :: [(ByteString, Handler b (FileUpload b) ())]
 routes = [ (":model/:id/:field",       method POST   $ doUpload)
-         , (":model/:id/:field/:name", method DELETE $ doDelete)
-         , (":model/:id",              method DELETE $ doDeleteAll)
          ]
 
-doDeleteAll :: Handler b FileUpload ()
-doDeleteAll = do
-  model <- getParamOrDie "model"
-  objId <- getParamOrDie "id"
-  doDeleteAll' model objId
-
-doDeleteAll' :: String -> String -> Handler b FileUpload ()
-doDeleteAll' model objId = do
-  f <- gets finished
-  let path = f </> model </> objId
-  when (elem ".." [model, objId]) pass
-  liftIO (doesDirectoryExist path) >>= \case
-    False -> finishWithError 404 $ model </> objId
-    True  -> liftIO $ removeDirectoryRecursive path
-
-doDelete :: Handler b FileUpload ()
-doDelete = do
-  f     <- gets finished
-  model <- getParamOrDie "model"
-  objId <- getParamOrDie "id"
-  field <- getParamOrDie "field"
-  name  <- getParamOrDie "name"
-
-  let path' = [model, objId, field, name]
-  when (elem ".." path') pass
-  let path  = foldl' (</>) f path'
-  liftIO (doesFileExist path) >>= \case
-    False -> finishWithError 404 name
-    True  -> do
-      liftIO $ removeFile path
-      writeText $ fromString name
-
-doUpload :: Handler b FileUpload ()
+doUpload :: Handler b (FileUpload b) ()
 doUpload = do
   model <- getParamOrDie "model"
   objId <- getParamOrDie "id"
@@ -79,7 +58,7 @@ doUpload = do
   -- modifyResponse $ setResponseCode 200
   writeLBS $ A.encode r
 
-doUpload' :: String -> String -> String -> Handler b FileUpload [String]
+doUpload' :: String -> String -> String -> Handler b (FileUpload b) [String]
 doUpload' model objId field = do
   tmpd <- gets tmp
   cfg  <- gets cfg
@@ -96,14 +75,17 @@ doUpload' model objId field = do
 
 getParamOrDie name =
   getParam name >>= \case
-    Nothing -> finishWithError 403 $ "need " ++ U.bToString name
+    Nothing -> finishWithError 403 $
+               "Required parameter not set: " ++ U.bToString name
     Just p  -> return $ U.bToString p
 
 partPol :: UploadPolicy -> PartUploadPolicy
 partPol = allowWithMaximumSize . getMaximumFormInputSize
 
-fileUploadInit :: SnapletInit b FileUpload
-fileUploadInit =
+fileUploadInit :: HasAuth b =>
+                  Lens' b (Snaplet (DbLayer b))
+               -> SnapletInit b (FileUpload b)
+fileUploadInit db =
     makeSnaplet "fileupload" "fileupload" Nothing $ do
       cfg      <- getSnapletUserConfig
       maxFile  <- liftIO $ lookupDefault 100  cfg "max-file-size"
@@ -124,4 +106,4 @@ fileUploadInit =
                      $ setUploadTimeout        inact
                        defaultUploadPolicy
       addRoutes routes
-      return $ FU pol tmp finished
+      return $ FU pol tmp finished db
