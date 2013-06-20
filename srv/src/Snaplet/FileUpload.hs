@@ -4,20 +4,20 @@
 
 Handle file uploads using @attachment@ model.
 
+TODO: Handle @attachment@ model permissions in upload handlers.
+
 -}
 
 module Snaplet.FileUpload
   ( fileUploadInit
   , FileUpload(..)
-  , doUpload'
+  , doUpload
   ) where
 
 import Control.Lens
-import Control.Monad
 
 import Data.Aeson as A
 
-import Data.List (foldl')
 import Data.String
 import Data.Maybe
 import Data.Configurator
@@ -42,36 +42,51 @@ import Util as U
 data FileUpload b = FU { cfg      :: UploadPolicy
                        , tmp      :: FilePath
                        , finished :: FilePath
+                       -- ^ Root directory of finished uploads.
                        , db       :: Lens' b (Snaplet (DbLayer b))
                        }
 
 routes :: [(ByteString, Handler b (FileUpload b) ())]
-routes = [ (":model/:id/:field",       method POST   $ doUpload)
+routes = [ (":model/:id/:field",       method POST   $ attachToField)
          ]
 
-doUpload :: Handler b (FileUpload b) ()
-doUpload = do
+-- | Create a new attachment (an instance of @attachment@ model) and
+-- add a reference to it in a field of another model instance, set by
+-- @model@, @id@ and @field@ request parameters. Serve JSON with
+-- @attachment@ instance data in response.
+attachToField :: Handler b (FileUpload b) ()
+attachToField = do
   model <- getParamOrDie "model"
   objId <- getParamOrDie "id"
   field <- getParamOrDie "field"
-  r <- doUpload' model objId field
+  r <- doUpload $ model </> objId </> field
   -- modifyResponse $ setResponseCode 200
   writeLBS $ A.encode r
 
-doUpload' :: String -> String -> String -> Handler b (FileUpload b) [String]
-doUpload' model objId field = do
+-- | Store a file upload from the request using a provided directory
+-- (relative to finished uploads path), return its file name.
+--
+-- Full path to the uploaded file may be obtained as follows (@fu@ is
+-- a lens to a FileUpload snaplet):
+--
+-- > fName <- with fu $ doUpload relPath
+-- > finishedRoot <- with fu $ gets finished
+-- > let path = finishedRoot </> relPath </> fName
+doUpload :: FilePath -> Handler b (FileUpload b) String
+doUpload relPath = do
   tmpd <- gets tmp
   cfg  <- gets cfg
   f    <- gets finished
-  handleFileUploads tmpd cfg (const $ partPol cfg) $
+  fns  <- handleFileUploads tmpd cfg (const $ partPol cfg) $
     liftIO . fmap catMaybes . mapM (\(info, r) -> case r of
       Left _    -> return Nothing
       Right res -> do
         let justFname = U.bToString . fromJust $ partFileName info
-        let path      = f </> model </> objId </> field
+        let path      = f </> relPath
         createDirectoryIfMissing True path
         copyFile res $ path </> justFname
         return $ Just justFname)
+  return $ head fns
 
 getParamOrDie name =
   getParam name >>= \case
@@ -89,7 +104,6 @@ fileUploadInit db =
     makeSnaplet "fileupload" "fileupload" Nothing $ do
       cfg      <- getSnapletUserConfig
       maxFile  <- liftIO $ lookupDefault 100  cfg "max-file-size"
-      -- maxInp   <- liftIO $ lookupDefault 10   cfg "max-form-inputs"
       minRate  <- liftIO $ lookupDefault 1000 cfg "min-upload-rate"
       kickLag  <- liftIO $ lookupDefault 10   cfg "min-rate-kick-lag"
       inact    <- liftIO $ lookupDefault 20   cfg "inactivity-timeout"
@@ -98,9 +112,11 @@ fileUploadInit db =
       -- we need some values in bytes
       let maxFile' = maxFile * 1024
           minRate' = minRate * 1024
+          -- Every thread is for a single file
+          maxInp   = 1
           pol      = setProcessFormInputs         True
                      $ setMaximumFormInputSize maxFile'
-                     -- $ setMaximumNumberOfFormInputs maxInp
+                     $ setMaximumNumberOfFormInputs maxInp
                      $ setMinimumUploadRate    minRate'
                      $ setMinimumUploadSeconds kickLag
                      $ setUploadTimeout        inact

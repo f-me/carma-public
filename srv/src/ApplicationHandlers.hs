@@ -62,7 +62,7 @@ import qualified Snaplet.DbLayer.Types as DB
 import qualified Snaplet.DbLayer.ARC as ARC
 import qualified Snaplet.DbLayer.RKC as RKC
 import qualified Snaplet.DbLayer.Dictionary as Dict
-import Snaplet.FileUpload (finished, tmp, doUpload')
+import Snaplet.FileUpload (finished, tmp, doUpload)
 ------------------------------------------------------------------------------
 import Application
 import AppHandlers.Util
@@ -350,8 +350,8 @@ createReportHandler :: AppHandler ()
 createReportHandler = do
   res <- with db $ DB.create "report" $ Map.empty
   let Just objId = Map.lookup "id" res
-  (f:_)      <- with fileUpload
-    $ doUpload' "report" (U.bToString objId) "templates"
+  f <- with fileUpload $ 
+       doUpload $ "report" </> (U.bToString objId) </> "templates"
   Just name  <- getParam "name"
   -- we have to update all model params after fileupload,
   -- because in multipart/form-data requests we do not have
@@ -377,7 +377,11 @@ serveUsersList = with db usersListPG >>= writeJSON
 vinUploadData :: AppHandler ()
 vinUploadData = scope "vin" $ scope "upload" $ do
   log Trace "Uploading data"
-  (f:_) <- with fileUpload $ doUpload' "report" "upload" "data"
+  fName <- with fileUpload $ doUpload "vin-upload-data"
+
+  finishedRoot <- with fileUpload $ gets finished
+  let f = finishedRoot </> "vin-upload-data" </> fName
+
   log Trace $ T.concat ["Uploaded to file: ", T.pack f]
   prog <- getParam "program"
   case prog of
@@ -433,14 +437,14 @@ partnerUploadData = scope "partner" $ scope "upload" $ do
   let carmaPort = case getPort sCfg of
                     Just n -> n
                     Nothing -> error "No port"
-  finishedPath <- with fileUpload $ gets finished
+  finishedRoot <- with fileUpload $ gets finished
   tmpPath <- with fileUpload $ gets tmp
   (tmpName, _) <- liftIO $ openTempFile tmpPath "last-pimp.csv"
 
   log Trace "Uploading data"
-  (fileName:_) <- with fileUpload $ doUpload' "report" "upload" "data"
+  fileName <- with fileUpload $ doUpload "partner-upload-data"
 
-  let inPath = finishedPath </> "report" </> "upload" </> "data" </> fileName
+  let inPath = finishedRoot </> "partner-upload-data" </> fileName
       outPath = tmpPath </> tmpName
 
   log Trace $ T.pack $ "Input file " ++ inPath
