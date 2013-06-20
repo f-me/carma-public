@@ -15,11 +15,14 @@ cabal-version:       >=1.8
 
 library
   exposed-modules:
-    Data.Model
+    Data.Model,
+    Data.Model.Sql,
+    Carma.Model.Program
   -- other-modules:       
   hs-source-dirs:    src
   build-depends:
-    base ==4.6.*
+    base ==4.6.*,
+    text
 
   extensions:
     DataKinds, KindSignatures, TypeOperators,
