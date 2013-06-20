@@ -18,10 +18,11 @@ import Control.Lens
 
 import Data.Aeson as A
 
-import Data.String
+import qualified Data.Map as M
 import Data.Maybe
 import Data.Configurator
 import Data.ByteString (ByteString)
+import qualified Data.ByteString as BS
 
 import System.Directory
 import System.FilePath
@@ -34,6 +35,7 @@ import Snap.Util.FileUploads
 import Snaplet.Auth.Class
 import Snaplet.Auth.PGUsers
 
+import qualified Snaplet.DbLayer as DB
 import Snaplet.DbLayer.Types (DbLayer)
 
 import Utils.HttpErrors
@@ -50,6 +52,12 @@ routes :: [(ByteString, Handler b (FileUpload b) ())]
 routes = [ (":model/:id/:field",       method POST   $ attachToField)
          ]
 
+
+-- | Lift DbLayer handler action to FileUpload handler.
+withDb :: Handler b (DbLayer b) a -> Handler b (FileUpload b) a
+withDb = (gets db >>=) . flip withTop
+
+
 -- | Create a new attachment (an instance of @attachment@ model) and
 -- add a reference to it in a field of another model instance, set by
 -- @model@, @id@ and @field@ request parameters. Serve JSON with
@@ -59,9 +67,15 @@ attachToField = do
   model <- getParamOrDie "model"
   objId <- getParamOrDie "id"
   field <- getParamOrDie "field"
-  r <- doUpload $ model </> objId </> field
+  fName <- doUpload $ model </> objId </> field
+  let parentRef = BS.concat [stringToB model, ":", stringToB objId]
+  attach <- withDb $
+            DB.create "attachment" $
+            M.fromList [ ("filename", stringToB fName)
+                       , ("parentRef", parentRef)
+                       ]
   -- modifyResponse $ setResponseCode 200
-  writeLBS $ A.encode r
+  writeLBS $ A.encode attach
 
 -- | Store a file upload from the request using a provided directory
 -- (relative to finished uploads path), return its file name.
