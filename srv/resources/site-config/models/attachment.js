@@ -7,7 +7,7 @@
     "canDelete": true,
     "fields": [
         {
-            "name":"parentId",
+            "name": "parentRef",
             "canRead": true,
             "canWrite": true,
             "meta": {
