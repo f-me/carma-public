@@ -1,4 +1,5 @@
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE DoAndIfThenElse #-}
 
 {-|
 
@@ -15,6 +16,7 @@ module Snaplet.FileUpload
   ) where
 
 import Control.Lens
+import Control.Concurrent.STM
 
 import Data.Aeson as A
 
@@ -22,7 +24,9 @@ import qualified Data.Map as M
 import Data.Maybe
 import Data.Configurator
 import Data.ByteString (ByteString)
+import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
+import Data.HashSet as HS
 
 import System.Directory
 import System.FilePath
@@ -36,7 +40,7 @@ import Snaplet.Auth.Class
 import Snaplet.Auth.PGUsers
 
 import qualified Snaplet.DbLayer as DB
-import Snaplet.DbLayer.Types (DbLayer)
+import Snaplet.DbLayer.Types
 
 import Utils.HttpErrors
 import Util as U
@@ -46,6 +50,9 @@ data FileUpload b = FU { cfg      :: UploadPolicy
                        , finished :: FilePath
                        -- ^ Root directory of finished uploads.
                        , db       :: Lens' b (Snaplet (DbLayer b))
+                       , locks    :: TVar (HS.HashSet ByteString)
+                       -- ^ Set of references to currently locked
+                       -- instances.
                        }
 
 routes :: [(ByteString, Handler b (FileUpload b) ())]
@@ -66,9 +73,10 @@ withDb = (gets db >>=) . flip withTop
 -- in response, including @<newid>@.
 uploadInField :: Handler b (FileUpload b) ()
 uploadInField = do
-  model <- getParamOrDie "model"
-  objId <- getParamOrDie "id"
-  field <- getParamOrDie "field"
+  -- 'Just' here for these have already been matched by Snap router
+  Just model <- getParam "model"
+  Just objId <- getParam "id"
+  Just field <- getParam "field"
 
   -- Create empty attachment instance
   attach <- withDb $ DB.create "attachment" M.empty
@@ -82,8 +90,44 @@ uploadInField = do
   _ <- withDb $ DB.update "attachment" aid $
                 M.singleton "filename" (stringToB fName)
 
-  -- modifyResponse $ setResponseCode 200
+  attachToField model objId field $ B8.append "attachment:" aid
+
   withDb (DB.read "attachment" aid) >>= (writeLBS . A.encode)
+
+-- | Append a reference of form @attachment:213@ to a field of another
+-- instance. This handler is thread-safe.
+attachToField :: ModelName
+              -- ^ Name of target instance model.
+              -> ObjectId
+              -- ^ Id of target instance.
+              -> FieldName
+              -- ^ Field name in target instance.
+              -> ByteString
+              -- ^ A reference to an attachment instance to be added
+              -- in a field of target instance.
+              -> Handler b (FileUpload b) ()
+attachToField modelName instanceId field ref = do
+  l <- gets locks
+  -- Lock the field or wait for lock release
+  liftIO $ atomically $ do
+    hs <- readTVar l
+    if HS.member lockName hs
+    then retry
+    else writeTVar l (HS.insert lockName hs)
+  -- Append new ref to the target field
+  inst <- withDb $ DB.read modelName instanceId
+  let newRefs = addRef (M.findWithDefault "" field inst) ref
+  withDb $ DB.update modelName instanceId $ M.insert field newRefs inst
+  -- Unlock the field
+  liftIO $ atomically $ do
+    hs <- readTVar l
+    writeTVar l (HS.delete lockName hs)
+  return ()
+    where
+      addRef ""    ref = ref
+      addRef field ref = BS.concat [field, ",", ref]
+      lockName = BS.concat [modelName, ":", instanceId, "/", field]
+
 
 -- | Store a file upload from the request using a provided directory
 -- (relative to finished uploads path), return full path to the
@@ -138,4 +182,5 @@ fileUploadInit db =
                      $ setUploadTimeout        inact
                        defaultUploadPolicy
       addRoutes routes
-      return $ FU pol tmp finished db
+      l <- liftIO $ newTVarIO HS.empty
+      return $ FU pol tmp finished db l
