@@ -502,8 +502,6 @@ define ["model/utils", "utils"], (mu, u) ->
     view = $(mu.elementView($(el)))
     modelName = mu.elementModel($(el))
 
-    osmCoords = coords.clone().transform(wsgProj, osmProj)
-
     addr_field = mu.modelField(modelName, fieldName).meta['targetAddr']
     blip_type = mu.modelField(modelName, fieldName).meta['currentBlipType']
 
@@ -514,6 +512,7 @@ define ["model/utils", "utils"], (mu, u) ->
       if $(mapEl).hasClass("olMap")
         oMap = $(mapEl).data("osmap")
         if coords?
+          osmCoords = coords.clone().transform(wsgProj, osmProj)
           currentBlip oMap, osmCoords, blip_type
           oMap.setCenter osmCoords
         oMap.events.triggerEvent "moveend"
