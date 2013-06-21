@@ -23,6 +23,9 @@ define ["model/utils", "utils"], (mu, u) ->
   wsgProj = new OpenLayers.Projection("EPSG:4326")
   osmProj = new OpenLayers.Projection("EPSG:900913")
 
+  # Center on Moscow by default
+  defaultCoords = new OpenLayers.LonLat(37.617874,55.757549)
+
   carIcon = "/s/img/car-icon.png"
   towIcon = "/s/img/tow-icon.png"
   partnerIcon = "/s/img/partner-icon.png"
@@ -144,8 +147,7 @@ define ["model/utils", "utils"], (mu, u) ->
       city_meta = u.splitFieldInView city_field, parentView
 
     # Center on the default location first
-    osmap.setCenter(new OpenLayers.LonLat(37.617874,55.757549)
-                   .transform(wsgProj, osmProj),
+    osmap.setCenter(defaultCoords.transform(wsgProj, osmProj),
                    zoomLevel)
 
     # Place a blip and recenter if coordinates are already known
@@ -514,7 +516,9 @@ define ["model/utils", "utils"], (mu, u) ->
         if coords?
           osmCoords = coords.clone().transform(wsgProj, osmProj)
           currentBlip oMap, osmCoords, blip_type
-          oMap.setCenter osmCoords
+        else
+          osmCoords = defaultCoords.clone().transform(wsgProj, osmProj)
+        oMap.setCenter osmCoords
         oMap.events.triggerEvent "moveend"
       else
         initOSM mapEl, viewName
