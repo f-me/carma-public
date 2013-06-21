@@ -7,14 +7,6 @@
     "canDelete": true,
     "fields": [
         {
-            "name": "parentRef",
-            "canRead": true,
-            "canWrite": true,
-            "meta": {
-                "invisible": true
-            }
-        },
-        {
             "name": "filename",
             "canRead": [
                 "partner",
