@@ -21,3 +21,6 @@ data Program = Program
 --  , logo                  :: Field "logo"
 --  , help                  :: Field "help"
   } deriving Typeable
+
+instance Model Program where
+  type TableName Program = "programtbl"

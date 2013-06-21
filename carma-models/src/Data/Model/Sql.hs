@@ -7,20 +7,19 @@ module Data.Model.Sql
 
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.ToField
-import Data.Typeable
 import GHC.TypeLits
 
 import Data.Model
 
 
 mkSelectDictQuery
-  :: (SingI name, Typeable model, SqlConstraint ctr)
+  :: (Model model, SingI (TableName model), SingI name, SqlConstraint ctr)
   => (model -> Field name typ) -> ctr
   -> (String, ValueType ctr)
 mkSelectDictQuery f ctr = (sql, sqlVal ctr)
   where
     sql = "SELECT id::text, " ++ fieldName f ++ "::text"
-        ++ " FROM " ++ show (modelName f)
+        ++ " FROM " ++ show (tableName f)
         ++ " WHERE " ++ sqlPart ctr
 
 
@@ -45,7 +44,7 @@ data SqlEq name typ model = SqlEq
   , eqc_val   :: typ
   }
 
-instance (Typeable model, SingI name, ToField typ)
+instance (SingI name, ToField typ)
   => SqlConstraint (SqlEq name typ model)
   where
     type ValueType (SqlEq name typ model) = Only typ

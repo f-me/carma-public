@@ -1,9 +1,10 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Data.Model
-  ( Field
+  ( Model(..)
+  , Field
   , fieldName
-  , modelName
+  , tableName
   , ident
   ) where
 
@@ -15,17 +16,20 @@ import GHC.TypeLits
 data Ident model = Ident Int
 data Field (name :: Symbol) typ = Field
 
+class Typeable m => Model m where
+  type TableName m :: Symbol
 
 fieldName :: SingI name => (model -> Field name typ) -> String
 fieldName (_ :: model -> Field name typ)
   = fromSing (sing :: Sing name)
 
 
-modelName :: Typeable model => (model -> Field name typ) -> String
-modelName (_ :: model -> Field name typ)
-  = tyConName $ typeRepTyCon $ typeOf (undefined :: model)
+tableName
+  :: (Model model, SingI (TableName model))
+  => (model -> Field name typ) -> String
+tableName (_ :: model -> Field name typ)
+  = fromSing (sing :: Sing (TableName model))
 
 
 ident :: Field "id" (Ident model)
 ident =  Field
-
