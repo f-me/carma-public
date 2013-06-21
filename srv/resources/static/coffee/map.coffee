@@ -389,8 +389,11 @@ define ["model/utils", "utils"], (mu, u) ->
   # Read "32.54,56.21" (the way coordinates are stored in model fields)
   # into LonLat object
   lonlatFromShortString = (coords) ->
-    parts = coords.split(",")
-    return new OpenLayers.LonLat(parts[0], parts[1])
+    if coords.length > 0
+      parts = coords.split(",")
+      new OpenLayers.LonLat(parts[0], parts[1])
+    else
+      null
 
 
   # Convert LonLat object to string in format "32.41,52.33"
@@ -456,6 +459,10 @@ define ["model/utils", "utils"], (mu, u) ->
         $(el).parents('.input-append')
              .children("input[name=#{fieldName}]")
              .val())
+
+    if not coords?
+      return
+
     viewName = mu.elementView($(el)).id
     view = $(mu.elementView($(el)))
     modelName = mu.elementModel($(el))
@@ -506,8 +513,9 @@ define ["model/utils", "utils"], (mu, u) ->
       # Recenter the map if it already exists
       if $(mapEl).hasClass("olMap")
         oMap = $(mapEl).data("osmap")
-        currentBlip oMap, osmCoords, blip_type
-        oMap.setCenter osmCoords
+        if coords?
+          currentBlip oMap, osmCoords, blip_type
+          oMap.setCenter osmCoords
         oMap.events.triggerEvent "moveend"
       else
         initOSM mapEl, viewName
