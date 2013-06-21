@@ -62,7 +62,7 @@ import qualified Snaplet.DbLayer.Types as DB
 import qualified Snaplet.DbLayer.ARC as ARC
 import qualified Snaplet.DbLayer.RKC as RKC
 import qualified Snaplet.DbLayer.Dictionary as Dict
-import Snaplet.FileUpload (finished, tmp, doUpload)
+import Snaplet.FileUpload (tmp, doUpload)
 ------------------------------------------------------------------------------
 import Application
 import AppHandlers.Util
@@ -377,17 +377,16 @@ serveUsersList = with db usersListPG >>= writeJSON
 vinUploadData :: AppHandler ()
 vinUploadData = scope "vin" $ scope "upload" $ do
   log Trace "Uploading data"
-  fName <- with fileUpload $ doUpload "vin-upload-data"
+  fPath <- with fileUpload $ doUpload "vin-upload-data"
 
-  finishedRoot <- with fileUpload $ gets finished
-  let f = finishedRoot </> "vin-upload-data" </> fName
+  let fName = takeFileName fPath
 
-  log Trace $ T.concat ["Uploaded to file: ", T.pack f]
+  log Trace $ T.concat ["Uploaded to file: ", T.pack fName]
   prog <- getParam "program"
   case prog of
     Nothing -> log Error "Program not specified"
     Just pgmId -> do
-      log Info $ T.concat ["Uploading ", T.pack f]
+      log Info $ T.concat ["Uploading ", T.pack fName]
       log Trace $ T.concat ["Program: ", T.decodeUtf8 pgmId]
 
       -- Check if this program is available for user
@@ -406,13 +405,13 @@ vinUploadData = scope "vin" $ scope "upload" $ do
 
       log Trace $ T.concat ["VIN format: ", T.decodeUtf8 vF]
 
-      log Trace $ T.concat ["Initializing state for file: ", T.pack f]
-      with vin $ initUploadState f
-      log Trace $ T.concat ["Uploading data from file: ", T.pack f]
+      log Trace $ T.concat ["Initializing state for file: ", T.pack fName]
+      with vin $ initUploadState fName
+      log Trace $ T.concat ["Uploading data from file: ", T.pack fName]
 
       -- Set current user as owner
       let Just (UserId uid) = userId u
-      with vin $ uploadData (T.encodeUtf8 uid) pgmId (T.unpack . T.decodeUtf8 $ vF) f
+      with vin $ uploadData (T.encodeUtf8 uid) pgmId (T.unpack . T.decodeUtf8 $ vF) fPath
 
 vinStateRead :: AppHandler ()
 vinStateRead = scope "vin" $ scope "state" $ scope "get" $ do
@@ -437,15 +436,13 @@ partnerUploadData = scope "partner" $ scope "upload" $ do
   let carmaPort = case getPort sCfg of
                     Just n -> n
                     Nothing -> error "No port"
-  finishedRoot <- with fileUpload $ gets finished
   tmpPath <- with fileUpload $ gets tmp
   (tmpName, _) <- liftIO $ openTempFile tmpPath "last-pimp.csv"
 
   log Trace "Uploading data"
-  fileName <- with fileUpload $ doUpload "partner-upload-data"
+  inPath <- with fileUpload $ doUpload "partner-upload-data"
 
-  let inPath = finishedRoot </> "partner-upload-data" </> fileName
-      outPath = tmpPath </> tmpName
+  let outPath = tmpPath </> tmpName
 
   log Trace $ T.pack $ "Input file " ++ inPath
   log Trace $ T.pack $ "Output file " ++ outPath

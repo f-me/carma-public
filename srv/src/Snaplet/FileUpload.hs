@@ -22,7 +22,7 @@ import qualified Data.Map as M
 import Data.Maybe
 import Data.Configurator
 import Data.ByteString (ByteString)
-import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as B8
 
 import System.Directory
 import System.FilePath
@@ -49,58 +49,60 @@ data FileUpload b = FU { cfg      :: UploadPolicy
                        }
 
 routes :: [(ByteString, Handler b (FileUpload b) ())]
-routes = [ (":model/:id/:field",       method POST   $ attachToField)
+routes = [ (":model/:id/:field",       method POST   $ uploadInField)
          ]
 
-
--- | Lift DbLayer handler action to FileUpload handler.
+-- | Lift a DbLayer handler action to FileUpload handler.
 withDb :: Handler b (DbLayer b) a -> Handler b (FileUpload b) a
 withDb = (gets db >>=) . flip withTop
 
-
--- | Create a new attachment (an instance of @attachment@ model) and
--- add a reference to it in a field of another model instance, set by
--- @model@, @id@ and @field@ request parameters. Serve JSON with
--- @attachment@ instance data in response.
-attachToField :: Handler b (FileUpload b) ()
-attachToField = do
+-- | Upload a file, create a new attachment (an instance of
+-- @attachment@ model) and add a reference to it in a field of another
+-- existing model instance, set by @model@, @id@ and @field@ request
+-- parameters.
+--
+-- The file is stored under @attachment/<newid>@ directory hierarchy
+-- of finished uploads dir. Serve JSON with @attachment@ instance data
+-- in response, including @<newid>@.
+uploadInField :: Handler b (FileUpload b) ()
+uploadInField = do
   model <- getParamOrDie "model"
   objId <- getParamOrDie "id"
   field <- getParamOrDie "field"
-  fName <- doUpload $ model </> objId </> field
-  let parentRef = BS.concat [stringToB model, ":", stringToB objId]
-  attach <- withDb $
-            DB.create "attachment" $
-            M.fromList [ ("filename", stringToB fName)
-                       , ("parentRef", parentRef)
-                       ]
+
+  -- Create empty attachment instance
+  attach <- withDb $ DB.create "attachment" M.empty
+
+  -- Store the file
+  let aid = attach M.! "id"
+  fPath <- doUpload $ "attachment" </> (B8.unpack aid)
+
+  -- Save filename in attachment
+  let fName = takeFileName fPath
+  _ <- withDb $ DB.update "attachment" aid $
+                M.singleton "filename" (stringToB fName)
+
   -- modifyResponse $ setResponseCode 200
-  writeLBS $ A.encode attach
+  withDb (DB.read "attachment" aid) >>= (writeLBS . A.encode)
 
 -- | Store a file upload from the request using a provided directory
--- (relative to finished uploads path), return its file name.
---
--- Full path to the uploaded file may be obtained as follows (@fu@ is
--- a lens to a FileUpload snaplet):
---
--- > fName <- with fu $ doUpload relPath
--- > finishedRoot <- with fu $ gets finished
--- > let path = finishedRoot </> relPath </> fName
-doUpload :: FilePath -> Handler b (FileUpload b) String
+-- (relative to finished uploads path), return full path to the
+-- uploaded file.
+doUpload :: FilePath -> Handler b (FileUpload b) FilePath
 doUpload relPath = do
   tmpd <- gets tmp
   cfg  <- gets cfg
-  f    <- gets finished
+  root <- gets finished
   fns  <- handleFileUploads tmpd cfg (const $ partPol cfg) $
     liftIO . fmap catMaybes . mapM (\(info, r) -> case r of
       Left _    -> return Nothing
       Right res -> do
         let justFname = U.bToString . fromJust $ partFileName info
-        let path      = f </> relPath
+        let path      = root </> relPath
         createDirectoryIfMissing True path
         copyFile res $ path </> justFname
         return $ Just justFname)
-  return $ head fns
+  return $ root </> relPath </> head fns
 
 getParamOrDie name =
   getParam name >>= \case
