@@ -156,7 +156,9 @@ updatePosition = do
 
 
 ------------------------------------------------------------------------------
--- | Send HTTP PUT request to CaRMa API to update partner data.
+-- | Send HTTP PUT request to CaRMa API to update partner data,
+-- setting new values for fields @coords@, @addrDeFacto@ and @mtime@.
+-- Note that city value is not updated.
 updatePartnerData :: Int
                   -- ^ Partner id.
                   -> Double
