@@ -147,7 +147,7 @@ define ["model/utils", "utils"], (mu, u) ->
       city_meta = u.splitFieldInView city_field, parentView
 
     # Center on the default location first
-    osmap.setCenter(defaultCoords.transform(wsgProj, osmProj),
+    osmap.setCenter(defaultCoords.clone().transform(wsgProj, osmProj),
                    zoomLevel)
 
     # Place a blip and recenter if coordinates are already known
@@ -520,7 +520,7 @@ define ["model/utils", "utils"], (mu, u) ->
         oMap = $(mapEl).data("osmap")
 
         # Center on the default location first
-        oMap.setCenter defaultCoords.transform(wsgProj, osmProj)
+        oMap.setCenter defaultCoords.clone().transform(wsgProj, osmProj)
 
         # Center on partner coordinates
         if coords?
@@ -530,6 +530,7 @@ define ["model/utils", "utils"], (mu, u) ->
         else
           # Otherwise, just center on the city, not placing a blip
           if city_field?
+            city_meta = u.splitFieldInView city_field, viewName         
             city = u.findVM(city_meta.view)[city_meta.field]()
             centerMapOnCity oMap, city
 
