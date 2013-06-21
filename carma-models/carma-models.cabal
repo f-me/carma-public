@@ -22,7 +22,8 @@ library
   hs-source-dirs:    src
   build-depends:
     base ==4.6.*,
-    text
+    text,
+    postgresql-simple == 0.3.3.*
 
   extensions:
     DataKinds, KindSignatures, TypeOperators,
