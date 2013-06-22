@@ -697,27 +697,6 @@
             }
         },
         {
-            "name": "files",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
-                "parguy",
-                "account"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
-                "parguy"
-            ],
-            "type": "reference",
-            "meta": {
-                "label": "Прикрепленные файлы"
-            }
-        },
-        {
             "name": "comments",
             "canRead": [
                 "partner",
@@ -736,6 +715,27 @@
             "type": "json",
             "meta": {
                 "invisible": true
+            }
+        },
+        {
+            "name": "files",
+            "canRead": [
+                "partner",
+                "front",
+                "back",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
+                "parguy",
+                "account"
+            ],
+            "canWrite": [
+                "front",
+                "back",
+                "head", "supervisor", "director", "analyst", "vwfake", "parguy", "account", "admin", "programman",
+                "parguy"
+            ],
+            "type": "reference",
+            "meta": {
+                "label": "Прикрепленные файлы"
             }
         }
     ]

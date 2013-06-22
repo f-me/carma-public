@@ -22,7 +22,7 @@ define [] , ->
     referenceFields  = []
     requiredFields   = []
     regexpFields     = []
-    filesFields      = []
+    fileFields       = []
     jsonFields       = []
     dateTimeFields   = []
     distFields       = []
