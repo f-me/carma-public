@@ -21,6 +21,7 @@ define ["text!tpl/screens/uploads.html"], (tpl) ->
       unknown  : ko.observableArray()
     ko.applyBindings bvm, $(box).get(0)
 
+    # Upload the file asynchronously
     $.ajax(
       type        : "POST"
       url         : "/upload/case/bulk/files/"
@@ -33,7 +34,7 @@ define ["text!tpl/screens/uploads.html"], (tpl) ->
         xhr.upload.addEventListener("progress",
           (e) ->
             if e.lengthComputable
-              # Update or remove progress bar as upload progresses
+              # Update progress bar as upload progresses
               fraction = e.loaded / e.total
               percent = fraction * 100.0
               box.find(".bar").css "width", percent + "%"
@@ -67,6 +68,7 @@ define ["text!tpl/screens/uploads.html"], (tpl) ->
   this.renderUploadsForm = (viewName, args) ->
     $("#upload-files-tip").tooltip()
 
+    # Fake browse button
     $("#upload-browse-btn").click () ->
       $(this).siblings("#upload-dialog").click()
 
