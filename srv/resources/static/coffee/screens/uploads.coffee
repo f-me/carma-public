@@ -51,20 +51,20 @@ define ["text!tpl/screens/uploads.html"], (tpl) ->
           bvm.unknown.push t[1]
         if bvm.unknown().length > 0
           box.addClass "alert-warning"
-          bvm.msg "Файл загружен, но есть неопознанные номера кейсов"
+          bvm.msg "Файл загружен, но некоторые номера кейсов не распознаны"
         else
           if bvm.cases().length == 0
             box.addClass "alert-error"
             bvm.msg "Файл загружен, но номера кейсов не распознаны"
           else
             box.addClass "alert-success"
-            bvm.msg "Файл успешно загружен"          
+            bvm.msg "Файл успешно загружен"
         ).
       fail((res) ->
         box.addClass "alert-error"
         bvm.msg "Во время загрузки произошла критическая ошибка")
-      
-        
+
+
   this.renderUploadsForm = (viewName, args) ->
     $("#upload-files-tip").tooltip()
 
@@ -89,7 +89,7 @@ define ["text!tpl/screens/uploads.html"], (tpl) ->
       # Flush files list
       $("#upload-dialog").val("")
       $("#upload-dialog").change()
-      
+
   { constructor: renderUploadsForm
   , template: tpl
   }
