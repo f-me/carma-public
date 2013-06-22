@@ -50,11 +50,9 @@
         <div data-bind="visible: cases().length > 0">
           Прикреплено к кейсам:
           <span data-bind="foreach: cases">
-            <a data-bind="attr: { href: '/#case/' + $data }"
-               target="blank">
+            <a data-bind="attr: { href: '/#case/' + $data }" target="blank">
               <i class="icon icon-file" /><b data-bind="text: $data" />
             </a>
-            <span data-bind="text: $index">,</span>
           </span>
         </div>
         <div data-bind="visible: unknown().length > 0">
