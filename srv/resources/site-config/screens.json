@@ -98,6 +98,11 @@
           "type"  : "li",
           "permissions": ["admin", "head", "supervisor", "programman"]
         },
+        { "name"  : "uploads",
+          "label" : "Загрузка файлов",
+          "type"  : "li",
+          "permissions": ["admin", "head", "supervisor", "account"]
+        },
         { "name"  : "reports",
           "label" : "Отчёты",
           "type"  : "li",

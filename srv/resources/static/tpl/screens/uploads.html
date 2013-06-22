@@ -1,0 +1,69 @@
+<!-- Import VINs screen -->
+<div id="uploads-form">
+  <div class="central-form">
+    <fieldset>
+      <legend>Загрузка файлов</legend>
+      <form id="upload-files-form">
+        <label for="upload-files">
+          Выберите файлы для загрузки
+          <a href="#" id="upload-files-tip"
+             data-html="true"
+             data-placement="right"
+             title="Каждый файл будет прикреплён к кейсам, номера которых
+                    указаны его имени,
+                    например: <i>75521,78214.pdf</i>"
+             >
+            <i class="icon icon-question-sign" />
+          </a>
+        </label>
+        <div class="input-append" id="upload-files">
+          <input type="file"
+                 id="upload-dialog"
+                 name="upload-dialog[]"
+                 style="display:none;"
+                 multiple
+                 />
+          <input type="text"
+                 style="width: 50%;"
+                 id="upload-names"
+                 disabled
+                 />
+          <a class="btn" id="upload-browse-btn">
+            <i class="icon icon-folder-open" />&nbsp;Обзор
+          </a>
+          <a class="btn btn-success" id="upload-send">
+            <i class="icon icon-upload icon-white" />&nbsp;Загрузить
+          </a>
+        </div>
+      </form>
+      <div id="uploaded-files"
+           style="overflow-y: scroll;" />
+    </fieldset>
+    <script type="text/template"
+            id="upload-box-template">
+      <div class="alert alert-info upload-box">
+        <button class="close" data-dismiss="alert">
+          <i class="icon icon-remove"/>
+        </button>
+        <b data-bind="text: filename" /><br />
+        <span data-bind="text: msg" />
+        <div data-bind="visible: cases().length > 0">
+          Прикреплено к кейсам:
+          <span data-bind="foreach: cases">
+            <a data-bind="attr: { href: '/#case/' + $data }" target="blank">
+              <i class="icon icon-file" /><b data-bind="text: $data" />
+            </a>
+          </span>
+        </div>
+        <div data-bind="visible: unknown().length > 0">
+          Следующие кейсы не найдены:
+          <span data-bind="foreach: unknown">
+            <i class="icon icon-question-sign" /><b data-bind="text: $data" />
+          </span>
+        </div>
+        <div class="progress progress-striped active">
+          <div class="bar" style="width: 0%;"></div>
+      </div>
+    </script>
+  </div>
+</div>

@@ -22,7 +22,7 @@ define [] , ->
     referenceFields  = []
     requiredFields   = []
     regexpFields     = []
-    filesFields      = []
+    fileFields       = []
     jsonFields       = []
     dateTimeFields   = []
     distFields       = []
@@ -42,7 +42,7 @@ define [] , ->
       referenceFields.push(f.name)  if f.type == "reference"
       dictionaryFields.push(f.name) if f.type == "dictionary"
       dictManyFields.push(f.name)   if f.type == "dictionary-many"
-      filesFields.push(f.name)      if f.type == "files"
+      fileFields.push(f.name)       if f.type == "file"
       jsonFields.push(f.name)       if f.type == "json"
       dateTimeFields.push(f.name)   if f.type == "datetime"
       groups.push(f.groupName)      if f.groupName? and f.groupName not in groups
@@ -63,7 +63,7 @@ define [] , ->
       # List of fields with regexp checks
       regexpFields: regexpFields
       # List of files fields
-      filesFields: filesFields
+      fileFields: fileFields
       dateTimeFields: dateTimeFields
       distFields: distFields
       # List of groups present in model

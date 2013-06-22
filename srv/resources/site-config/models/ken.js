@@ -828,7 +828,7 @@
                 "programman",
                 "parguy"
             ],
-            "type": "files",
+            "type": "reference",
             "meta": {
                 "label": "Прикрепленные файлы"
             }
