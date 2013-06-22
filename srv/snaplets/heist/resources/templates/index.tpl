@@ -25,7 +25,7 @@
     <script src="/s/js/3p/jquery.dataTables.min.js" />
 
     <!-- Responsive UI javascript library -->
-    <script src="/s/js/3p/knockout-2.0.0.js" />
+    <script src="/s/js/3p/knockout-2.2.1.js" />
 
     <!-- Utility library, Backbone dependency -->
     <script src="/s/js/3p/underscore-1.3.1.min.js" />
