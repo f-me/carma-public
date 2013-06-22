@@ -22,6 +22,7 @@ import Control.Concurrent.STM
 import Data.Aeson as A hiding (Object)
 import Data.Attoparsec.Text as P
 
+import Data.Either
 import qualified Data.Map as M
 import Data.Maybe
 import Data.Configurator
@@ -73,15 +74,17 @@ type AttachmentTarget = (ModelName, ObjectId, FieldName)
 
 -- | Upload a file, create a new attachment (an instance of
 -- @attachment@ model), add references to it in a given set of other
--- instance fields. Return the created attachment object and a list of
--- attachment targets used.
+-- instance fields. Return the created attachment object, lists of
+-- failed (left) and successful (right) attachment targets. Target is
+-- unsuccessful if a referenced instance does not exist.
 --
 -- The file is stored under @attachment/<newid>@ directory hierarchy
 -- of finished uploads dir.
 uploadInManyFields :: (FilePath -> [AttachmentTarget])
                    -- ^ Convert the uploaded file name to a list of
                    -- fields in instances to attach the file to.
-                   -> Handler b (FileUpload b) (Object, [AttachmentTarget])
+                   -> Handler b (FileUpload b)
+                      (Object, [AttachmentTarget], [AttachmentTarget])
 uploadInManyFields flds = do
   -- Create empty attachment instance
   attach <- withDb $ DB.create "attachment" M.empty
@@ -95,32 +98,47 @@ uploadInManyFields flds = do
   _ <- withDb $ DB.update "attachment" aid $
                 M.singleton "filename" (stringToB fName)
 
+  -- Attach to target field for existing instances
   let targets = flds fName
-  forM_ targets $ \(model, objId, field) ->
-      attachToField model objId field $ B8.append "attachment:" aid
+  results <-
+      forM targets $ \t@(model, objId, field) -> do
+          e <- withDb $ DB.exists model objId
+          if e
+          then do
+              attachToField model objId field $ B8.append "attachment:" aid
+              return $ Right t
+          else
+              return $ Left t
+  let (failedTargets, succTargets) = partitionEithers results
 
+  -- Serve back full attachment instance
   obj <- withDb $ DB.read "attachment" aid
-  return (obj, targets)
+
+  return (obj, failedTargets, succTargets)
 
 -- | Upload and attach a file (as in 'uploadInManyFields'), but read a
 -- list of instance ids from the file name (@732,123,452.pdf@; all
 -- non-digit characters serve as instance id separators). @model@ and
 -- @field@ are read from request parameters.
 --
--- Server response is a JSON object with two keys: @attachment@
+-- Server response is a JSON object with three keys: @attachment@
 -- contains an attachment object, @targets@ contains a list of triples
--- with attachment targets used.
+-- with attachment targets used, @unknown@ is a failed attachment
+-- target list.
 uploadBulk :: Handler b (FileUpload b) ()
 uploadBulk = do
   -- 'Just' here for these have already been matched by Snap router
   Just model <- getParam "model"
   Just field <- getParam "field"
-  res <- uploadInManyFields $
+  (obj, failedTargets, succTargets) <-
+      uploadInManyFields $
              \fName -> map (\i -> (model, i, field)) (readIds fName)
-  writeLBS $ A.encode $ A.object [ "attachment" A..= fst res
-                                 , "targets"    A..= snd res]
+  writeLBS $ A.encode $ A.object [ "attachment" A..= obj
+                                 , "targets"    A..= succTargets
+                                 , "unknown"    A..= failedTargets
+                                 ]
       where
-        -- Read a list of decimal instance id from a file name,
+        -- Read a list of decimal instance ids from a file name,
         -- skipping everything else.
         readIds :: FilePath -> [ObjectId]
         readIds fn =
@@ -135,8 +153,8 @@ uploadInField = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
   Just field <- getParam "field"
-  res <- uploadInManyFields $ const [(model, objId, field)]
-  writeLBS $ A.encode $ fst res
+  (res, _, _) <- uploadInManyFields $ const [(model, objId, field)]
+  writeLBS $ A.encode $ res
 
 -- | Append a reference of form @attachment:213@ to a field of another
 -- instance. This handler is thread-safe.
