@@ -65,8 +65,6 @@ define ["text!tpl/screens/uploads.html"], (tpl) ->
       
         
   this.renderUploadsForm = (viewName, args) ->
-    window.kos = []
-    
     $("#upload-files-tip").tooltip()
 
     $("#upload-browse-btn").click () ->
