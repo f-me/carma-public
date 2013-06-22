@@ -221,7 +221,8 @@ serviceActions = Map.fromList
           relatedUser <- liftDb $ PG.query (fromString [sql|
             SELECT coalesce(a.assignedTo, '') FROM actiontbl a
               WHERE a.caseId = ?
-                AND a.name = 'tellMeMore' AND a.result <> 'communicated'
+                AND a.name IN ('tellMeMore', 'callMeMaybe')
+                AND a.result <> 'communicated'
               LIMIT 1
             |]) [kazeId]
           actionId <- new "action" $ Map.fromList
