@@ -60,8 +60,8 @@ data FileUpload b = FU { cfg      :: UploadPolicy
                        }
 
 routes :: [(ByteString, Handler b (FileUpload b) ())]
-routes = [ (":model/bulk/:field",      method POST   $ uploadBulk)
-         , (":model/:id/:field",       method POST   $ uploadInField)
+routes = [ (":model/bulk/:field",      method POST uploadBulk)
+         , (":model/:id/:field",       method POST uploadInField)
          ]
 
 -- | Lift a DbLayer handler action to FileUpload handler.
@@ -88,7 +88,7 @@ uploadInManyFields flds = do
 
   -- Store the file
   let aid = attach M.! "id"
-  fPath <- doUpload $ "attachment" </> (B8.unpack aid)
+  fPath <- doUpload $ "attachment" </> B8.unpack aid
 
   -- Save filename in attachment
   let fName = takeFileName fPath
@@ -168,8 +168,8 @@ attachToField modelName instanceId field ref = do
     writeTVar l (HS.delete lockName hs)
   return ()
     where
-      addRef ""    ref = ref
-      addRef field ref = BS.concat [field, ",", ref]
+      addRef ""    r = r
+      addRef field r = BS.concat [field, ",", r]
       lockName = BS.concat [modelName, ":", instanceId, "/", field]
 
 -- | Store a file upload from the request using a provided directory
@@ -190,12 +190,6 @@ doUpload relPath = do
         copyFile res $ path </> justFname
         return $ Just justFname)
   return $ root </> relPath </> head fns
-
-getParamOrDie name =
-  getParam name >>= \case
-    Nothing -> finishWithError 403 $
-               "Required parameter not set: " ++ U.bToString name
-    Just p  -> return $ U.bToString p
 
 partPol :: UploadPolicy -> PartUploadPolicy
 partPol = allowWithMaximumSize . getMaximumFormInputSize
