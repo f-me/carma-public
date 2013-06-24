@@ -74,31 +74,38 @@ type AttachmentTarget = (ModelName, ObjectId, FieldName)
 
 -- | Upload a file, create a new attachment (an instance of
 -- @attachment@ model), add references to it in a given set of other
--- instance fields. Return the created attachment object, lists of
--- failed (left) and successful (right) attachment targets. Target is
--- unsuccessful if a referenced instance does not exist.
+-- instance fields (attachment targets) which depend on the filename.
+-- Rename the saved file after reading attachment targets. Return the
+-- created attachment object, lists of failed (left) and successful
+-- (right) attachment targets. Target is unsuccessful if a referenced
+-- instance does not exist.
 --
 -- The file is stored under @attachment/<newid>@ directory hierarchy
 -- of finished uploads dir.
 uploadInManyFields :: (FilePath -> [AttachmentTarget])
                    -- ^ Convert the uploaded file name to a list of
                    -- fields in instances to attach the file to.
+                   -> Maybe (FilePath -> FilePath)
+                   -- ^ Change source file name when saving.
                    -> Handler b (FileUpload b)
                       (Object, [AttachmentTarget], [AttachmentTarget])
-uploadInManyFields flds = do
+uploadInManyFields flds nameFun = do
   -- Create empty attachment instance
   attach <- withDb $ DB.create "attachment" M.empty
 
   -- Store the file
   let aid = attach M.! "id"
-  fPath <- doUpload $ "attachment" </> B8.unpack aid
+  fPath <- doUpload ("attachment" </> B8.unpack aid)
 
-  -- Save filename in attachment
-  let fName = takeFileName fPath
+  -- Save new filename in attachment
+  let (fDir, fName) = splitFileName fPath
+      newName = (fromMaybe id nameFun) fName
+  liftIO $ renameFile fPath (fDir </> newName)
   _ <- withDb $ DB.update "attachment" aid $
-                M.singleton "filename" (stringToB fName)
+                M.singleton "filename" (stringToB newName)
 
-  -- Attach to target field for existing instances
+  -- Attach to target field for existing instances, using the original
+  -- filename
   let targets = flds fName
   results <-
       forM targets $ \t@(model, objId, field) -> do
@@ -132,8 +139,9 @@ uploadBulk = do
   Just model <- getParam "model"
   Just field <- getParam "field"
   (obj, failedTargets, succTargets) <-
-      uploadInManyFields $
-             \fName -> map (\i -> (model, i, field)) (readIds fName)
+      uploadInManyFields
+             (\fName -> map (\i -> (model, i, field)) (readIds fName))
+             (Just cutIds)
   writeLBS $ A.encode $ A.object [ "attachment" A..= obj
                                  , "targets"    A..= succTargets
                                  , "unknown"    A..= failedTargets
@@ -148,6 +156,9 @@ uploadBulk = do
                        (skipWhile (not . isDigit) >> decimal) 
                        (char '-'))
             (T.pack fn)
+        -- Cut out all ids from a filename prior to the first dash char.
+        cutIds :: FilePath -> FilePath
+        cutIds = tail . dropWhile (/= '-')
 
 -- | Upload and attach a file (as in 'uploadInManyFields') to a single
 -- instance, given by @model@, @id@ and @field@ request parameters.
@@ -156,7 +167,7 @@ uploadInField = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
   Just field <- getParam "field"
-  (res, _, _) <- uploadInManyFields $ const [(model, objId, field)]
+  (res, _, _) <- uploadInManyFields (const [(model, objId, field)]) Nothing
   writeLBS $ A.encode $ res
 
 -- | Append a reference of form @attachment:213@ to a field of another
@@ -190,13 +201,15 @@ attachToField modelName instanceId field ref = do
   return ()
     where
       addRef ""    r = r
-      addRef field r = BS.concat [field, ",", r]
+      addRef val   r = BS.concat [val, ",", r]
       lockName = BS.concat [modelName, ":", instanceId, "/", field]
 
--- | Store a file upload from the request using a provided directory
--- (relative to finished uploads path), return full path to the
+-- | Store a file upload from the request, return full path to the
 -- uploaded file.
-doUpload :: FilePath -> Handler b (FileUpload b) FilePath
+doUpload :: FilePath
+         -- ^ Store a file in this directory (relative to finished
+         -- uploads path)
+         -> Handler b (FileUpload b) FilePath
 doUpload relPath = do
   tmpd <- gets tmp
   cfg  <- gets cfg
