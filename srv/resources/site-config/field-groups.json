@@ -12,16 +12,6 @@
             }
         },
         {
-            "name": "seller",
-            "type": "dictionary",
-            "meta": {
-                "dictionaryType": "DealersDict",
-                "bounded": true,
-                "label": "Дилер, продавший автомобиль",
-                "required": true
-            }
-        },
-        {
             "name": "make",
             "meta": {
                 "dictionaryName": "CarMakers",
@@ -41,6 +31,16 @@
             },
             "type": "dictionary"
         },
+        {
+            "name": "seller",
+            "type": "dictionary",
+            "meta": {
+                "dictionaryType": "DealersDict",
+                "bounded": true,
+                "label": "Дилер, продавший автомобиль",
+                "required": true
+            }
+        },        
         {
             "name": "plateNum",
             "meta": {
