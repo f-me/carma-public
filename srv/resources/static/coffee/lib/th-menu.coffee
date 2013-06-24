@@ -125,7 +125,7 @@ class ThMenu
 
   # debounce here will decrease request rate for remote dictionaries
   # still it's small enough to not be noticable for regular dicts
-  draw: _.debounce((-> @_draw()), 300)
+  draw: _.debounce((-> @_draw()), 150)
 
   _draw:  =>
     return @ unless @$element

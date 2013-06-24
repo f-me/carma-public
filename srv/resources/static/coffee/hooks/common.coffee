@@ -151,6 +151,7 @@ define [ "utils"
   dictManyHook: (m, k) ->
     for f in m.fields when f.type == "dictionary-many"
       do (f) ->
+        n         = f.name
         dictName  = f.meta.dictionaryName
         parent    = f.meta.dictionaryParent
         bounded   = f.meta.bounded
