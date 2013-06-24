@@ -34,4 +34,6 @@ define [ "hooks/common"
       "tech"  : [s.partnerOptsHook, s.srvOptUpd, s.costsMark, s.bindPartnerCancelDialog]
       "tech1": [s.bindPartnerCancelDialog]
       "tickets": [s.bindPartnerCancelDialog]
-      "towage": [s.partnerOptsHook, s.srvOptUpd, s.costsMark, c.distHook, s.bindPartnerCancelDialog]
+      # "towage": [s.partnerOptsHook, s.srvOptUpd, s.costsMark, c.distHook, s.bindPartnerCancelDialog]
+      # FIXME: remove dist hook
+      "towage": [s.partnerOptsHook, s.srvOptUpd, s.costsMark, s.bindPartnerCancelDialog]

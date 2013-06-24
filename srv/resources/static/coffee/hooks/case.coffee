@@ -66,10 +66,10 @@ define ["utils"], (u) ->
         st.fnAddData rows
 
 
-  descsKbHook: (instance, knockVM) ->
+  descsKbHook: (model, knockVM) ->
     mkServicesDescs = (p, s) ->
-      description: u.getServiceDesc(p ,s.modelName())
-      title:       s.modelTitle
+      description: u.getServiceDesc(p ,s._meta.model.name)
+      title:       s._meta.model.title
     knockVM['servicesDescs'] = ko.computed
       read: ->
         p = knockVM['program']()
@@ -80,14 +80,14 @@ define ["utils"], (u) ->
       read: ->
         global.dictionaries['ProgramInfo'][knockVM['program']()]
 
-  eventsHistoryKbHook: (instance, knockVM) ->
+  eventsHistoryKbHook: (model, knockVM) ->
     knockVM['contact_phone1'].subscribe fillEventsHistory(knockVM)
     knockVM['actions'].subscribe fillEventsHistory(knockVM)
     knockVM['comments'].subscribe fillEventsHistory(knockVM)
 
   # Display daily service stats in central pane when `city` field of
   # case is changed.
-  cityStatsHook: (instance, knockVM) ->
+  cityStatsHook: (model, knockVM) ->
     cityField = "city"
     u.hideComplex
     knockVM[cityField].subscribe (new_city) ->

@@ -25,16 +25,13 @@
     <script src="/s/js/3p/jquery.dataTables.min.js" />
 
     <!-- Responsive UI javascript library -->
-    <script src="/s/js/3p/knockout-2.0.0.js" />
+    <script src="/s/js/3p/knockout-2.2.0.js" />
 
     <!-- Utility library, Backbone dependency -->
     <script src="/s/js/3p/underscore-1.3.1.min.js" />
 
     <!-- Loose MVC -->
     <script src="/s/js/3p/backbone-0.9.1.min.js" />
-
-    <!-- Knockback is a Knockout + Backbone glue -->
-    <script src="/s/js/3p/knockback-0.13.min.js" />
 
     <!-- Simple templates -->
     <script src="/s/js/3p/mustache.js" />
@@ -910,10 +907,10 @@
                id="{{ refView }}-link">
             <a class="icon icon-remove" />
             <a
-               data-bind="text: modelTitle">
+               data-bind="text: _meta.model.title">
                Услуга…
             </a>
-            <a data-bind="attr: { href: '#printSrv/'+modelName()+'/'+id() }"
+            <a data-bind="attr: { href: '#printSrv/'+_meta.model.name+'/'+id() }"
                target="_blank">
               [Печать]
           </a>
@@ -1267,7 +1264,7 @@
           </ul>
 
           <dl data-bind="foreach: servicesReference">
-            <dt data-bind="text: modelTitle">
+            <dt data-bind="text: _meta.model.title">
               <dd>
                 <ul class="unstyled"
                     data-bind="foreach: filesInfo, setdata: files">

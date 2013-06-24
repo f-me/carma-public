@@ -1,7 +1,7 @@
 define ["dictionaries"], (d) ->
   renderKnockVm = (elName, knockVM, options) ->
-    model     = knockVM.modelDesc()
-    instance  = knockVM.model()
+    model     = knockVM._meta.model
+    cid       = knockVM._meta.cid
     content   = renderFields(model, elName, options, knockVM)
     groupTpls = getTemplates("group-template")
     depViews  = {}
@@ -11,7 +11,7 @@ define ["dictionaries"], (d) ->
         $el(elName).html(cont)
         $el(options.permEl).html renderPermissions(model, elName)
       else
-        view = mkSubviewName(gName, 0, instance.name, instance.cid)
+        view = mkSubviewName(gName, 0, model.name, cid)
         depViews[gName] = [view]
 
         # Subforms for groups
@@ -23,7 +23,7 @@ define ["dictionaries"], (d) ->
         # custom elements to decorate view
         $el(view).find('.content').html(content[gName])
 
-    defaultGroup = "default-#{instance.model.name}"
+    defaultGroup = "default-#{model.name}"
     if _.has(groupTpls, defaultGroup)
       depViews["default-group"] = defaultGroup
       $el(options.groupsForest).append(
@@ -37,13 +37,15 @@ define ["dictionaries"], (d) ->
     return depViews
 
   mkRefContainer = (ref, field, forest, templates)->
+    modelName = ref._meta.model.name
+    cid       = ref._meta.cid
     refBook =
       refN: 0
-      refModelName: ref.modelName()
+      refModelName: modelName
       refId: ref.id()
       refField: field
-      refClass: mkSubviewClass(field, ref.model().name, ref.model().cid)
-      refView: mkSubviewName(field, 0, ref.model().name, ref.model().cid)
+      refClass: mkSubviewClass(field, modelName, cid)
+      refView: mkSubviewName(field, 0, modelName, cid)
 
     refView = renderDep(refBook, templates)
     $el(forest).append(refView)
@@ -92,7 +94,7 @@ define ["dictionaries"], (d) ->
     readonly  = false
     mainGroup = "_"
     slices
-    cid       = knockVM.model().cid
+    cid       = knockVM._meta.cid
 
     # Currently we store the name of «current group» while traversing
     # all model fields. When this name changes, we consider the

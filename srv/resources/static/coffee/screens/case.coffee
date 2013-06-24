@@ -126,7 +126,7 @@ define [ "utils"
         comment:        v['wazzup']()
         callTaker: global.user.meta.realName
       main.buildNewModel 'case', args, {},
-        (a, b, k) ->
+        (m, k) ->
           global.router.navigate("case/#{k.id()}", { trigger: true })
 
 
@@ -210,7 +210,7 @@ define [ "utils"
       select.push("city=#{kase.city()}") if kase.city()
       select.push("makes=#{kase.car_make()}")  if kase.car_make()
       url    = if partnerType is "contractor"
-                  "/partnersFor/#{svc.modelName()}?#{select.join('&')}"
+                  "/partnersFor/#{svc._meta.model.name}?#{select.join('&')}"
                else
                   "/allPartners?#{select.join('&')}"
       dict = global.dictValueCache['DealerCities']
