@@ -117,9 +117,10 @@ uploadInManyFields flds = do
   return (obj, failedTargets, succTargets)
 
 -- | Upload and attach a file (as in 'uploadInManyFields'), but read a
--- list of instance ids from the file name (@732,123,452.pdf@; all
--- non-digit characters serve as instance id separators). @model@ and
--- @field@ are read from request parameters.
+-- list of instance ids from the file name (@732,123,452-foo09.pdf@
+-- reads to @[732, 123, 452]@; all non-digit characters serve as
+-- instance id separators, no number past the first @-@ character are
+-- read). @model@ and @field@ are read from request parameters.
 --
 -- Server response is a JSON object with three keys: @attachment@
 -- contains an attachment object, @targets@ contains a list of triples
@@ -143,7 +144,9 @@ uploadBulk = do
         readIds :: FilePath -> [ObjectId]
         readIds fn =
             either (const []) (map $ stringToB . (show :: Int -> String)) $
-            parseOnly (many1 $ skipWhile (not . isDigit) >> decimal)
+            parseOnly (manyTill 
+                       (skipWhile (not . isDigit) >> decimal) 
+                       (char '-'))
             (T.pack fn)
 
 -- | Upload and attach a file (as in 'uploadInManyFields') to a single
