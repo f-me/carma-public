@@ -239,7 +239,7 @@ serviceActions = Map.fromList
             SELECT coalesce(a.assignedTo, '') FROM actiontbl a
               WHERE a.caseId = ?
                 AND a.name IN ('tellMeMore', 'callMeMaybe')
-                AND a.result <> 'communicated'
+                AND coalesce(a.result, '') <> 'communicated'
               LIMIT 1
             |]) [kazeId]
           actionId <- new "action" $ Map.fromList
