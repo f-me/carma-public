@@ -45,6 +45,7 @@ define ["text!tpl/screens/uploads.html"], (tpl) ->
         box.find(".progress").fadeOut()
         box.removeClass "alert-info").
       done((res) ->
+        bvm.filename(res.attachment.filename)
         for t in res.targets
           bvm.cases.push t[1]
         for t in res.unknown
