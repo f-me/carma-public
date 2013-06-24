@@ -70,10 +70,14 @@ define ["text!tpl/screens/uploads.html"], (tpl) ->
 
   this.renderUploadsForm = (viewName, args) ->
     $("#upload-files-tip").tooltip()
+    $("#upload-cleanup-tip").tooltip()
 
     # Fake browse button
     $("#upload-browse-btn").click () ->
       $(this).siblings("#upload-dialog").click()
+
+    $("#upload-cleanup").click () ->
+      $("#uploaded-files .alert-success").slideUp()
 
     # Show file names when selecting files
     $("#upload-dialog").change () ->

@@ -6,25 +6,25 @@
       <form id="upload-files-form">
         <label for="upload-files">
           Выберите файлы для загрузки
-          <a href="#" id="upload-files-tip"
+          <a id="upload-files-tip"
              data-html="true"
              data-placement="right"
              title="Каждый файл будет прикреплён к кейсам, номера которых
                     перечислены в начале его имени,
-                    например: <i>75521,78214-Акт315(19.03).pdf</i>"
+                    например: <i>75521,78214-Акт315.pdf</i>"
              >
             <i class="icon icon-question-sign" />
           </a>
         </label>
-        <div class="input-append" id="upload-files">
+        <div style="float: left; width: 80%" 
+             class="input-append" id="upload-files">
           <input type="file"
                  id="upload-dialog"
-                 name="upload-dialog[]"
                  style="display:none;"
                  multiple
                  />
           <input type="text"
-                 style="width: 50%;"
+                 style="width: 75%;"
                  id="upload-names"
                  disabled
                  />
@@ -35,8 +35,19 @@
             <i class="icon icon-upload icon-white" />&nbsp;Загрузить
           </a>
         </div>
+        <div style="float: right;">
+          <a id="upload-cleanup-tip"
+             data-html="true"
+             title="Скрыть все успешно загруженные файлы">
+            <button class="btn btn-small btn-info"
+                    id="upload-cleanup">
+              <i class="icon icon-white icon-ok" />
+            </button>
+          </a>
+        </div>
       </form>
-      <div id="uploaded-files"
+      <div style="clear: both;"
+           id="uploaded-files"
            style="overflow-y: scroll;" />
     </fieldset>
    </div>
