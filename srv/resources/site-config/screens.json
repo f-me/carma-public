@@ -101,7 +101,7 @@
         { "name"  : "uploads",
           "label" : "Загрузка файлов",
           "type"  : "li",
-          "permissions": ["admin", "head", "supervisor", "account"]
+          "permissions": ["admin", "head", "accManager"]
         },
         { "name"  : "reports",
           "label" : "Отчёты",
