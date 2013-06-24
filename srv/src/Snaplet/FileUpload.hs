@@ -158,7 +158,9 @@ uploadBulk = do
             (T.pack fn)
         -- Cut out all ids from a filename prior to the first dash char.
         cutIds :: FilePath -> FilePath
-        cutIds = tail . dropWhile (/= '-')
+        cutIds fp = if elem '-' fp
+                    then tail $ dropWhile (/= '-') fp
+                    else fp
 
 -- | Upload and attach a file (as in 'uploadInManyFields') to a single
 -- instance, given by @model@, @id@ and @field@ request parameters.
