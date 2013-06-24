@@ -212,7 +212,7 @@ fillFromContract vin objId = do
 
 -- | Aautomatically change case status according to statuses
 -- of the contained services.
-updateCaseStatus :: MonadTrigger m b => ByteString -> b m ()
+updateCaseStatus :: MonadTrigger m b => ByteString -> m b ()
 updateCaseStatus caseId =
   set caseId "caseStatus" =<< do
     services <- B.split ',' <$> get caseId "services"
