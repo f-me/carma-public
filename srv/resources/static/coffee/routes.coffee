@@ -4,6 +4,7 @@ define [
   "screens/case"
   "screens/partners"
   "screens/user"
+  "screens/uploads"
   "screens/printService"
   "screens/rkc"
   "screens/rkcFront"
@@ -23,6 +24,7 @@ define [
      , kase
      , partner
      , user
+     , uploads
      , print
      , rkc
      , rkcFront
@@ -67,6 +69,10 @@ define [
         "template": "user-screen-template"
         "views":
           "user-view": user
+      "uploads":
+        "template": "uploads-screen-template"
+        "views":
+          "user-view": uploads         
       "supervisor":
         "template": "supervisor-screen-template"
         "views":
@@ -121,6 +127,7 @@ define [
         "case/:id"       : "loadCase"
         "case"           : "newCase"
         "search"         : "search"
+        "uploads"        : "uploads"
         "vin"            : "vin"
         "back"           : "back"
         "call/:id"       : "loadCall"
@@ -147,6 +154,7 @@ define [
       loadCase      : (id) -> r.renderScreen("case", kase, {"id": id})
       newCase       :      -> r.renderScreen("case", kase, {"id": null})
       search        :      -> renderScreen("search")
+      uploads       :      -> r.renderScreen("uploads", uploads)
       back          :      -> r.renderScreen("back", bo)
       vin           :      -> r.renderScreen("vin", vin)
       newPartner    :      -> r.renderScreen("partner", partner, {"id": null})

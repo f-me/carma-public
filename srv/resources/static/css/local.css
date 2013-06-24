@@ -231,3 +231,8 @@ table.dataTable tr.selected-row td {
 table.dataTable tr.selected-row td.sorting_1 {
   background-color: #ffc0c0;
 }
+
+.central-form {
+  width: 60%;
+  margin-left:20%;
+}

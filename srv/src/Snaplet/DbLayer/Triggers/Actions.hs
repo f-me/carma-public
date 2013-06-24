@@ -125,6 +125,7 @@ actions
                 ]
               upd kazeId "actions" $ addToList actionId
             _      -> return ()])
+          ,("services", [\caseId _ -> updateCaseStatus caseId])
           ,("partner", [\objId _ -> do
             mapM_ setSrvMCost =<< B.split ',' <$> get objId "services"
             ])
@@ -209,6 +210,22 @@ fillFromContract vin objId = do
         row
       return True
 
+-- | Aautomatically change case status according to statuses
+-- of the contained services.
+updateCaseStatus :: MonadTrigger m b => ByteString -> m b ()
+updateCaseStatus caseId =
+  set caseId "caseStatus" =<< do
+    services <- B.split ',' <$> get caseId "services"
+    statuses <- mapM (`get` "status") services
+    return $ case statuses of
+      _ | any (== "creating") statuses
+          -> "s0" -- Front Office
+        | all (`elem` ["serviceClosed","falseCall","mistake"]) statuses
+          -> "s2" -- closed
+        | all (== "cancelService") statuses
+          -> "s3" -- cancel
+        | otherwise -> "s1" -- Back Office
+
 
 serviceActions :: MonadTrigger m b => Map.Map ByteString [ObjectId -> ObjectId -> m b ()]
 serviceActions = Map.fromList
@@ -221,7 +238,8 @@ serviceActions = Map.fromList
           relatedUser <- liftDb $ PG.query (fromString [sql|
             SELECT coalesce(a.assignedTo, '') FROM actiontbl a
               WHERE a.caseId = ?
-                AND a.name = 'callMeMaybe' AND a.result <> 'communicated'
+                AND a.name IN ('tellMeMore', 'callMeMaybe')
+                AND a.result <> 'communicated'
               LIMIT 1
             |]) [kazeId]
           actionId <- new "action" $ Map.fromList
@@ -237,7 +255,6 @@ serviceActions = Map.fromList
             ]
           upd kazeId "actions" $ addToList actionId
           sendSMS actionId "smsTpl:13"
-          tryRepTowageMail actionId
       "recallClient" -> do
           due <- getService objId "times_expectedServiceStart"
           kazeId <- get objId "parentId"
@@ -369,7 +386,13 @@ serviceActions = Map.fromList
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
-      _ -> return ()]
+      _ -> return ()
+    -- Another one service status trigger.
+    -- Sets corresponding case status.
+    ,\objId val -> do
+      set objId "status" val -- push change to the commit stack
+      get objId "parentId" >>= updateCaseStatus
+    ]
   )
   ,("clientSatisfied",
     [\objId val ->

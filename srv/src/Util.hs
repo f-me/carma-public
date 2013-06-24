@@ -13,6 +13,7 @@ module Util
   ,getCostField
   ,upCaseName
   ,bToString
+  ,stringToB
   , formatTimestamp
   , render
   ) where
@@ -147,8 +148,13 @@ printPrice p = printf "%.2f" p
 printBPrice :: Double -> ByteString
 printBPrice p = B.pack $ printPrice p
 
+-- | Convert UTF-8 encoded BS to Haskell string.
 bToString :: ByteString -> String
 bToString = T.unpack . T.decodeUtf8
+
+-- | Inverse of 'bToString'.
+stringToB :: String -> ByteString
+stringToB = T.encodeUtf8 . T.pack
 
 upCaseName :: Text -> Text
 upCaseName = T.unwords . map upCaseWord . T.words

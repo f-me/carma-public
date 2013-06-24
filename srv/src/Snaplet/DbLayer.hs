@@ -6,6 +6,7 @@ module Snaplet.DbLayer
   ,read'
   ,update
   ,delete
+  ,exists
   ,submitTask
   ,generateReport
   ,readAll
@@ -39,7 +40,7 @@ import Snap.Snaplet.PostgresqlSimple (Postgres, pgsInit)
 import Snap.Snaplet.RedisDB (redisDBInit, runRedisDB)
 import Snap.Snaplet.SimpleLog
 import System.Log.Simple.Syslog
-import qualified Database.Redis as Redis
+import qualified Database.Redis as Redis hiding (exists)
 
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import qualified Snaplet.DbLayer.PostgresCRUD as Postgres
@@ -120,6 +121,10 @@ update model objId commit = scoper "update" $ do
 
 delete :: ByteString -> ByteString -> Handler b (DbLayer b) ()
 delete model objId = Redis.delete redis model objId
+
+
+exists :: ModelName -> ObjectId -> Handler b (DbLayer b) Bool
+exists model objId = Redis.exists redis model objId
 
 
 submitTask :: ByteString -> ByteString -> Handler b (DbLayer b) (Either Redis.Reply Integer)

@@ -46,18 +46,6 @@
       }
     },
     {
-      "name": "carSeller",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
-      "type": "dictionary",
-      "meta": {
-        "dictionaryType": "DealersDict",
-        "bounded": true,
-        "required": true,
-        "label": "Дилер, продавший автомобиль"
-      }
-    },
-    {
       "name": "carMake",
       "canRead": ["partner"],
       "canWrite": ["partner"],
@@ -80,6 +68,18 @@
         "dictionaryParent": "carMake",
         "bounded": true,
         "label": "Модель"
+      }
+    },
+    {
+      "name": "carSeller",
+      "canRead": ["partner"],
+      "canWrite": ["partner"],
+      "type": "dictionary",
+      "meta": {
+        "dictionaryType": "DealersDict",
+        "bounded": true,
+        "required": true,
+        "label": "Дилер, продавший автомобиль"
       }
     },
     {

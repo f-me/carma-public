@@ -25,7 +25,7 @@
     <script src="/s/js/3p/jquery.dataTables.min.js" />
 
     <!-- Responsive UI javascript library -->
-    <script src="/s/js/3p/knockout-2.0.0.js" />
+    <script src="/s/js/3p/knockout-2.2.1.js" />
 
     <!-- Utility library, Backbone dependency -->
     <script src="/s/js/3p/underscore-1.3.1.min.js" />
@@ -932,6 +932,18 @@
       </div>
     </script>
 
+    <!-- 
+         Attachment list reference template. By convention, such
+         fields are named "files".
+    -->
+    <script type="text/template"
+            class="reference-template"
+            id="files-reference-template">
+        <div class="accordion-group {{ refClass }}"
+             id="{{ refView }}" />
+        <!-- Attachment contents are rendered here -->
+    </script>
+
     <script type="text/template"
             class="reference-template"
             id="actions-reference-template">
@@ -1124,44 +1136,10 @@
     <!-- File upload template -->
     <script type="text/template"
             class="field-template"
-            id="files-field-template">
+            id="file-field-template">
       <label>{{ meta.label }}</label>
-      <form data-bind="attr: { action: {{name}}UploadUrl }, setdata: {{name}}"
-            method="post"
-            enctype="multipart/form-data">
-        <div class="input-append">
-          <input type="file"
-                 name="files"
-                 style="display:none;"
-                 onchange="$(this).siblings('.file-path').val($(this).val());"
-                 data-bind="disabled: {{ name }}Disabled"
-                 class="file-container"
-                 />
-          <input type="text"
-                 name="subfiles"
-                 class="file-path"
-                 disabled
-                 />
-          <a class="btn"
-                  onclick="$(this).siblings('.file-container').click();"
-                  >Обзор
-          </a>
-          <a type="button"
-                 class="btn"
-                 onClick="uploadFile(this)"
-                 data-bind="disabled: {{ name }}Disabled"
-                 >Загрузить
-          </a>
-        </div>
-        <ul data-bind="foreach: {{ name }}Info, setdata: {{ name }}">
-          <li>
-            <a data-bind="attr: { href: url }, text: name"/>
-            <i class="icon icon-remove"
-               data-bind="setdata: name"
-               onclick="deleteFile(this)"/>
-          </li>
-        </ul>
-      </form>
+      <i class="icon icon-file" />
+      <a data-bind="attr: { href: {{ name }}Url }, text: {{ name }}"/>
     </script>
 
     <script type="text/template"
@@ -1254,33 +1232,33 @@
             <dd data-bind="html: description"></dd>
           </div>
           <br />
-          <h4 data-bind="visible: filesInfo">Загруженные файлы:</h4>
+          <!-- <h4 data-bind="visible: filesInfo">Загруженные файлы:</h4> -->
 
-          <ul class="unstyled"
-              data-bind="foreach: filesInfo, setdata: files">
-            <li>
-              <a data-bind="attr: { href: url }, text: name" />
-              <i class="icon icon-remove"
-                 data-bind="setdata: name"
-                 onclick="deleteFile(this)"/>
-            </li>
-          </ul>
+          <!-- <ul class="unstyled" -->
+          <!--     data-bind="foreach: filesInfo, setdata: files"> -->
+          <!--   <li> -->
+          <!--     <a data-bind="attr: { href: url }, text: name" /> -->
+          <!--     <i class="icon icon-remove" -->
+          <!--        data-bind="setdata: name" -->
+          <!--        onclick="deleteFile(this)"/> -->
+          <!--   </li> -->
+          <!-- </ul> -->
 
-          <dl data-bind="foreach: servicesReference">
-            <dt data-bind="text: modelTitle">
-              <dd>
-                <ul class="unstyled"
-                    data-bind="foreach: filesInfo, setdata: files">
-                  <li>
-                    <a data-bind="attr: { href: url }, text: name" />
-                    <i class="icon icon-remove"
-                       data-bind="setdata: name"
-                       onclick="deleteFile(this)"/>
-                  </li>
-                </ul>
-              </dd>
-            </dt>
-          </dl>
+          <!-- <dl data-bind="foreach: servicesReference"> -->
+          <!--   <dt data-bind="text: modelTitle"> -->
+          <!--     <dd> -->
+          <!--       <ul class="unstyled" -->
+          <!--           data-bind="foreach: filesInfo, setdata: files"> -->
+          <!--         <li> -->
+          <!--           <a data-bind="attr: { href: url }, text: name" /> -->
+          <!--           <i class="icon icon-remove" -->
+          <!--              data-bind="setdata: name" -->
+          <!--              onclick="deleteFile(this)"/> -->
+          <!--         </li> -->
+          <!--       </ul> -->
+          <!--     </dd> -->
+          <!--   </dt> -->
+          <!-- </dl> -->
 
           <h4>История звонков</h4>
           <table id="call-searchtable" class="table table-striped table-bordered">

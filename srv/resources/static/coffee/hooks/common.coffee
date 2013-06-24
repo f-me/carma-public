@@ -63,18 +63,13 @@ define [ "utils"
       )(fieldName, new RegExp(global.dictLabelCache["_regexps"][regexp]))
 
   filesKbHook: (instance, knockVM) ->
-    _.each instance.filesFields, (n) ->
+    _.each instance.fileFields, (n) ->
       upl = "/upload"
-      p   = "/s/fileupload"
-      knockVM["#{n}UploadUrl"] = ko.computed
+      p   = "/s/fileupload/attachment/" + instance.id
+      knockVM["#{n}Url"] = ko.computed
         read: ->
-          # some strange magick, if remove knockVM['maybeId']()
-          # then this won't be recomputed when id will be defined
-          # in program model still works well on case and others
-          knockVM['maybeId']()
-          return unless knockVM['id']
-          path = "#{instance.model.name}/#{knockVM['id']()}/#{n}"
-          "#{upl}/#{path}"
+          fs = knockVM[n]()
+          p + "/" + fs
       knockVM["#{n}Info"] = ko.computed
         read: ->
           knockVM['maybeId']()
