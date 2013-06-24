@@ -16,6 +16,7 @@ define ["text!tpl/screens/uploads.html"], (tpl) ->
     bvm =
       msg      : ko.observable "Выполняю загрузку…"
       filename : ko.observable file.name
+      aid      : ko.observable null
       cases    : ko.observableArray()
       # Array of unknown case ids from filename
       unknown  : ko.observableArray()
@@ -45,6 +46,7 @@ define ["text!tpl/screens/uploads.html"], (tpl) ->
         box.find(".progress").fadeOut()
         box.removeClass "alert-info").
       done((res) ->
+        bvm.aid(res.attachment.id)
         bvm.filename(res.attachment.filename)
         for t in res.targets
           bvm.cases.push t[1]

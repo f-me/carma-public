@@ -45,7 +45,11 @@
         <button class="close" data-dismiss="alert">
           <i class="icon icon-remove"/>
         </button>
-        <b data-bind="text: filename" /><br />
+        <a target="blank"
+           data-bind="attr: { href: 's/fileupload/attachment/' + aid() + '/' + filename()}">
+          <i class="icon icon-download-alt" /><b data-bind="text: filename" />
+        </a>
+        <br />
         <span data-bind="text: msg" />
         <div data-bind="visible: cases().length > 0">
           Прикреплено к кейсам:
