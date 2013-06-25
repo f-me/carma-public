@@ -21,7 +21,7 @@ define [ "utils"
       rows = for obj in objs
         [obj.id
         ,obj.name       || ''
-        ,dict[obj.city] || obj.city
+        ,dict[obj.city] || obj.city || ''
         ,obj.comment    || ''
         ]
 
