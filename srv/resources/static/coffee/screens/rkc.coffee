@@ -69,7 +69,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
 
         $.getJSON("/rkc/partners" + partnerArgs, (result) ->
           partners.removeAll()
-          partners.push({ id: "", name: "Все" })
+          partners.push({ id: "*", name: "Все" })
           for r in result
             partners.push({ id: r, name: r }))
 
@@ -104,7 +104,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
             id: v.value
             name: v.label
 
-        programs.unshift { id: "", name: "Все" }
+        programs.unshift { id: "*", name: "Все" }
 
         ko.applyBindings(programs, el("program-select"))
 
@@ -114,12 +114,12 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
             id: v.value
             name: v.label
 
-        cities.unshift { id: "", name: "Все" }
+        cities.unshift { id: "*", name: "Все" }
 
         ko.applyBindings(cities, el("city-select"))
 
         # Fill partner
-        partners.push({ id: "", name: "Все" })
+        partners.push({ id: "*", name: "Все" })
 
         ko.applyBindings(partners, el("partner-select"))
 
@@ -138,15 +138,15 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
     this.filterRKCArgs = () ->
       prog = $('#program-select').val()
       city = $('#city-select').val()
-
       partner = $('#partner-select').val()
-
       from = $('#rkc-date-from').val()
       to = $('#rkc-date-to').val()
 
-      args = "?" + ["program=" + prog, "city=" + city, "partner=" + partner, "from=" + from, "to=" + to].filter((x) -> x).join("&")
-
-      return args
+      args = ["from=#{from || ''}", "to=#{to || ''}"]
+      args.push "program=#{prog}"    if prog    != "*"
+      args.push "city=#{city}"       if city    != "*"
+      args.push "partner=#{partner}" if partner != "*"
+      return "?" + args.join "&"
 
     setupRKCScreen = (viewName, args) ->
       setTimeout ->
