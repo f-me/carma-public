@@ -36,12 +36,21 @@ define [ "utils"
         ko.applyBindings(global.viewsWare[viewName].knockVM,
                          el("empty-fields"))
 
-      main.modelSetup("case") viewName, args,
+      kvm = main.modelSetup("case") viewName, args,
                          permEl       : "case-permissions"
                          focusClass   : "focusable"
                          slotsee      : ["case-number"]
                          groupsForest : "center"
                          fetchCb      : fetchCb
+
+      ctx = {fields: (f for f in kvm._meta.model.fields when f.meta?.required)}
+      setCommentsHandler()
+
+      $("#empty-fields-placeholder").html(
+          Mustache.render($("#empty-fields-template").html(), ctx))
+
+      ko.applyBindings(kvm, el("empty-fields"))
+
 
       # Render service picker
       #

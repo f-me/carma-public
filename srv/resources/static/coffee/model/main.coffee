@@ -93,8 +93,9 @@ define [ "model/render"
     # Set extra observable for inverse of every required
     # parameters, with name <fieldName>Not
     for f in required
-      n = f.name
-      kvm["#{n}Not"] = ko.computed -> kvm["#{n}Regexp"]?() or not kvm[n]()
+      do (f) ->
+        n = f.name
+        kvm["#{n}Not"] = ko.computed -> kvm["#{n}Regexp"]?() or not kvm[n]()
 
     for f in fields when f.type == "reference"
       do (f) ->
