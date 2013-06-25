@@ -94,7 +94,7 @@ define [ "model/render"
     # parameters, with name <fieldName>Not
     for f in required
       n = f.name
-      kvm["#{n}Not"] = ko.computed -> kvm["#{n}Regexp"]?() or not kvm[n]
+      kvm["#{n}Not"] = ko.computed -> kvm["#{n}Regexp"]?() or not kvm[n]()
 
     for f in fields when f.type == "reference"
       do (f) ->
