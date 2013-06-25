@@ -10,12 +10,15 @@
              data-html="true"
              data-placement="right"
              title="Каждый файл будет прикреплён к кейсам, номера которых
-                    перечислены в начале его имени,
-                    например: <i>75521,78214-Акт315.pdf</i>"
+                    перечислены в начале его имени до первого дефиса,
+                    например: <i>75521,78214-Акт315.pdf</i> →
+                    кейсы 75521 и 78214"
              >
             <i class="icon icon-question-sign" />
           </a>
         </label>
+
+        <!-- File chooser widget -->
         <div style="float: left; width: 80%" 
              class="input-append" id="upload-files">
           <input type="file"
@@ -31,15 +34,17 @@
           <a class="btn" id="upload-browse-btn">
             <i class="icon icon-folder-open" />&nbsp;Обзор
           </a>
-          <a class="btn btn-success" id="upload-send">
+          <a class="btn btn-primary" id="upload-send">
             <i class="icon icon-upload icon-white" />&nbsp;Загрузить
           </a>
         </div>
+
+        <!-- Cleanup button -->
         <div style="float: right;">
           <a id="upload-cleanup-tip"
              data-html="true"
              title="Скрыть все успешно загруженные файлы">
-            <button class="btn btn-small btn-info"
+            <button class="btn btn-small btn-success"
                     id="upload-cleanup">
               <i class="icon icon-white icon-ok" />
             </button>
@@ -52,32 +57,50 @@
     </fieldset>
    </div>
 </div>
+<!-- File upload progress bar template -->
 <script type="text/template"
         id="upload-box-template">
   <div class="alert alert-info upload-box">
     <button class="close" data-dismiss="alert">
       &times;
     </button>
-    <a target="blank"
-       data-bind="attr: { href: 's/fileupload/attachment/' + aid() + '/' + filename()}">
-      <i class="icon icon-download-alt" /><b data-bind="text: filename" />
-    </a>
-    <br />
-    <span data-bind="text: msg" />
+
+    <div>
+      <a target="_blank"
+         data-bind="attr: { href: 's/fileupload/attachment/' + aid() + '/' + filename()}">
+        <i class="icon icon-download-alt" /><b data-bind="text: filename" />
+      </a>
+    </div>
+    <div data-bind="text: msg" />
+
     <div data-bind="visible: cases().length > 0">
-      Прикреплено к кейсам:
-      <span data-bind="foreach: cases">
-        <a data-bind="attr: { href: '/#case/' + $data }" target="blank">
-          <i class="icon icon-file" /><b data-bind="text: $data" />
-        </a>
+      Прикреплён к кейсам:
+      <span class="case-numbers" data-bind="foreach: cases">
+        <a data-bind="attr: { href: '/#case/' + $data }" target="_blank">
+          <i class="icon icon-file" /><b data-bind="text: $data" /></a><a
+             href="#" class="text-error"
+             onclick="detachFromCase(this); return false;"
+             data-bind="attr: { 'data-target': $data }">×</a>
       </span>
     </div>
+
+    <form class="attach-form" style="display: none; height: 15px">
+      <input type="text"
+             pattern="\d+"
+             class="attach-field"
+             placeholder="Введите номер кейса и Enter" />
+    </form>
+    <div style="text-size:smaller;" data-bind="visible: attach">
+      <a href="#" class="attach-button"><i class="icon icon-plus" />Добавить кейс</a>
+    </div>
+
     <div data-bind="visible: unknown().length > 0">
       Следующие кейсы не найдены:
       <span data-bind="foreach: unknown">
-        <i class="icon icon-question-sign" /><b data-bind="text: $data" />
+        <i class="icon icon-trash" /><b data-bind="text: $data" />
       </span>
     </div>
+
     <div class="progress progress-striped active">
       <div class="bar" style="width: 0%;"></div>
     </div>
