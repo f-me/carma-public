@@ -18,6 +18,13 @@ define ["text!tpl/screens/printSrv.html"], (tpl) ->
           Services        : 'type'
           ServiceStatuses : 'status'
 
+      # for comments table
+      arg.kase.commentsParsed = ko.computed ->
+        parsed = $.parseJSON arg.kase.comments
+        _.each parsed, (comment) ->
+          comment.user = global.dictValueCache['users'][comment.user]
+        parsed
+
       ko.applyBindings arg, el("print-table")
 
   destroyPrintSrv = () ->
