@@ -60,25 +60,27 @@ define [ "utils"
 
   filesKbHook: (model, kvm) ->
     for f in model.fields when f.type == "file"
-      n   = f.name
-      upl = "/upload"
-      p   = "/s/fileupload/attachment/" + kvm.id()
-      kvm["#{n}Url"] = ko.computed
-        read: ->
-          fs = kvm[n]()
-          p + "/" + fs
-      kvm["#{n}Info"] = ko.computed
-        read: ->
-          kvm['maybeId']()
-          return unless kvm['id']
-          path = "#{model.name}/#{kvm['id']()}/#{n}"
-          fs = kvm[n]()
-          return [] unless fs
-          for i in fs.split(',')
-            do (i) ->
-              url: "#{p}/#{path}/#{i.trim()}"
-              name: i.trim()
-              ctrl: "#{upl}/#{path}/#{i.trim()}"
+      do(f) ->
+        n   = f.name
+        upl = "/upload"
+        kvm["#{n}Url"] = ko.computed
+          read: ->
+            p  = "/s/fileupload/attachment/" + kvm.id()
+            fs = kvm[n]()
+            p + "/" + fs
+        kvm["#{n}Info"] = ko.computed
+          read: ->
+            p = "/s/fileupload/attachment/" + kvm.id()
+            kvm['maybeId']()
+            return unless kvm['id']
+            path = "#{model.name}/#{kvm['id']()}/#{n}"
+            fs = kvm[n]()
+            return [] unless fs
+            for i in fs.split(',')
+              do (i) ->
+                url: "#{p}/#{path}/#{i.trim()}"
+                name: i.trim()
+                ctrl: "#{upl}/#{path}/#{i.trim()}"
 
   # Clear dependant dictionary fields when parent is changed
   # this.dictionaryHook = (elName) ->
