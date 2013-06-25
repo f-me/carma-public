@@ -58,16 +58,16 @@ define [ "utils"
               ko.computed -> not r.test kvm[f]()
       )(fieldName, new RegExp(global.dictLabelCache["_regexps"][regexp]))
 
-  filesKbHook: (model, knockVM) ->
+  filesKbHook: (model, kvm) ->
     for f in model.fields when f.type == "file"
       n   = f.name
       upl = "/upload"
-      p   = "/s/fileupload/attachment/" + knockVM.id()
-      knockVM["#{n}Url"] = ko.computed
+      p   = "/s/fileupload/attachment/" + kvm.id()
+      kvm["#{n}Url"] = ko.computed
         read: ->
-          fs = knockVM[n]()
+          fs = kvm[n]()
           p + "/" + fs
-      knockVM["#{n}Info"] = ko.computed
+      kvm["#{n}Info"] = ko.computed
         read: ->
           kvm['maybeId']()
           return unless kvm['id']
