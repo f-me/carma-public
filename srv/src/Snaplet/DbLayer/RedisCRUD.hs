@@ -10,7 +10,7 @@ import Data.Either
 import qualified Data.ByteString.Char8 as B
 import qualified Data.Map as M
 
-import Database.Redis
+import Database.Redis as R
 import Snap.Snaplet
 import Snap.Snaplet.RedisDB
 import Snaplet.DbLayer.Types
@@ -76,3 +76,12 @@ delete r model objId = runRedisDB r $ do
   let key = objKey model objId
   Right _ <- del [key]
   return ()
+
+exists :: Lens' (DbLayer b) (Snaplet RedisDB) 
+       -> ModelName 
+       -> ObjectId 
+       -> Handler b (DbLayer b) Bool
+exists r model objId = runRedisDB r $ do
+  Right res <- R.exists $ objKey model objId
+  return res
+

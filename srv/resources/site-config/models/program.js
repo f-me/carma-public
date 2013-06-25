@@ -73,7 +73,7 @@
         },
         {
             "name": "contracts",
-            "type": "files",
+            "type": "file",
             "meta": {
                 "label": "Шаблон договора"
             }
@@ -95,7 +95,7 @@
         },
         {
             "name": "logo",
-            "type": "files",
+            "type": "file",
             "meta": {
                 "label": "Логотип"
             }

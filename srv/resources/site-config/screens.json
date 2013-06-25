@@ -1,7 +1,7 @@
 [
     { "name"  : "sms",
       "type"  : "sms",
-      "permissions" : ["front","back","head","parguy","supervisor","director","analyst","parguy","account","admin","programman"]
+      "permissions" : ["front","back","head","parguy","vwfake","supervisor","director","analyst","parguy","account","admin","programman"]
     },
     { "name" : "contracts",
       "label": "Экраны контрактов",
@@ -17,32 +17,32 @@
     { "name"  : "call",
       "label" : "Звонок",
       "type"  : "li",
-      "permissions": ["front","back","head","parguy","supervisor","director","analyst","parguy","account","admin","programman"]
+      "permissions": ["front","back","vwfake","head","parguy","supervisor","director","analyst","parguy","account","admin","programman"]
     },
     { "name"  :"case",
       "label" : "Кейс",
       "type"  : "li",
-      "permissions": ["front","back","head","parguy","supervisor","director","analyst","account","admin","programman"]
+      "permissions": ["front","back","vwfake","head","parguy","supervisor","director","analyst","account","admin","programman"]
     },
     { "name"  : "back",
       "label" : "Бэкофис",
       "type"  : "li",
-      "permissions": ["front","back","head","parguy","supervisor","analyst"]
+      "permissions": ["front","back","vwfake","head","parguy","supervisor","analyst"]
     },
     { "type": "dropdown",
       "name": "supervisorList",
       "label": "Супервизор",
-      "permissions": ["head","supervisor","admin","programman"],
+      "permissions": ["head","supervisor","vwfake","admin","programman"],
       "screens": [
         { "name"  : "supervisor",
           "label" : "Действия",
           "type"  : "li",
-          "permissions": ["head","supervisor","admin","programman"]
+          "permissions": ["head","supervisor","vwfake","admin","programman"]
         },
         { "name"  : "supervisorOps",
           "label" : "Операторы",
           "type"  : "li",
-          "permissions": ["head","supervisor","admin","programman"]
+          "permissions": ["head","supervisor","vwfake","admin","programman"]
         },
         {
           "name" : "editSms",
@@ -56,25 +56,25 @@
       "type": "dropdown",
       "name": "rkcList",
       "label": "Экран РКЦ",
-      "permissions": ["head", "supervisor", "admin", "programman"],
+      "permissions": ["head", "supervisor", "vwfake", "admin", "programman"],
       "screens": [
         {
           "name": "rkc",
           "label": "Услуги",
           "type": "li",
-          "permissions": ["head", "supervisor", "admin", "programman"]
+          "permissions": ["head", "supervisor", "vwfake", "admin", "programman"]
         },
         {
           "name": "rkcOps",
           "label": "Операторы",
           "type": "li",
-          "permissions": ["head", "supervisor", "admin", "programman"]
+          "permissions": ["head", "supervisor", "vwfake", "admin", "programman"]
         },
         {
           "name": "rkcFront",
           "label": "Front Office",
           "type": "li",
-          "permissions": ["head", "supervisor", "admin", "programman"]
+          "permissions": ["head", "supervisor", "vwfake", "admin", "programman"]
         }
       ]
     },
@@ -97,6 +97,11 @@
           "label" : "Редактирование пользователей",
           "type"  : "li",
           "permissions": ["admin", "head", "supervisor", "programman"]
+        },
+        { "name"  : "uploads",
+          "label" : "Загрузка файлов",
+          "type"  : "li",
+          "permissions": ["admin", "head", "accManager"]
         },
         { "name"  : "reports",
           "label" : "Отчёты",

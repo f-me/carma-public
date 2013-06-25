@@ -115,13 +115,18 @@ toSnapMeta usermeta =
     M.delete "uid" $
     M.delete "id" $
     -- Add user meta id under mid key
-    M.insert "mid" (usermeta ! "id") $
+    M.insert "mid" mid $
     -- Add dictionary-like fields (map login to realName)
     M.insert "value" login $
     M.insert "label" (fromMaybe login $ M.lookup "realName" usermeta) $
     usermeta
     where
-      login = usermeta ! "login"
+      mid =
+          fromMaybe (error $ "No id field in usermeta " ++ show usermeta) $
+          M.lookup "id" usermeta
+      login =
+          fromMaybe (error $ "No login field in usermeta " ++ show usermeta) $
+          M.lookup "login" usermeta
 
 
 ------------------------------------------------------------------------------
@@ -181,7 +186,7 @@ $(deriveToJSON id ''UsersList)
 -- | Select logins and metas for all users.
 allUsersQuery :: Query
 allUsersQuery = [sql|
-SELECT m.id, u.login, m.realName, m.roles, m.boCities, m.boPrograms 
+SELECT m.id, u.login, m.realName, m.roles, m.boCities, m.boPrograms
 FROM usermetatbl m, snap_auth_user u
 WHERE u.uid=m.uid;
 |]

@@ -21,7 +21,6 @@ import Database.PostgreSQL.Simple as Pg
 import Snap.Core
 import Snap.Snaplet
 import Snap.Snaplet.Auth
-import Snap.Snaplet.PostgresqlSimple
 
 ----------------------------------------------------------------------
 import Snaplet.Auth.Class
@@ -99,6 +98,6 @@ initSiteConfig cfgDir pg_pool authDb = makeSnaplet
       ,("model/:name",  method GET serveModel)
       ,("dictionaries", method GET serveDictionaries)
       ]
-    (mdls, dicts) <- liftIO $ 
+    (mdls, dicts) <- liftIO $
                      (,) <$> loadModels cfgDir <*> loadDictionaries cfgDir
     return $ SiteConfig mdls dicts pg_pool authDb

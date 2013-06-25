@@ -58,21 +58,16 @@ define [ "utils"
               ko.computed -> not r.test kvm[f]()
       )(fieldName, new RegExp(global.dictLabelCache["_regexps"][regexp]))
 
-  filesKbHook: (model, kvm) ->
-    for f in model.fields when f.type == "files"
-      upl = "/upload"
-      p   = "/s/fileupload"
+  filesKbHook: (model, knockVM) ->
+    for f in model.fields when f.type == "file"
       n   = f.name
-      kvm["#{n}UploadUrl"] = ko.computed
+      upl = "/upload"
+      p   = "/s/fileupload/attachment/" + knockVM.id()
+      knockVM["#{n}Url"] = ko.computed
         read: ->
-          # some strange magick, if remove kvm['maybeId']()
-          # then this won't be recomputed when id will be defined
-          # in program model still works well on case and others
-          kvm['maybeId']()
-          return unless kvm['id']
-          path = "#{model.name}/#{kvm['id']()}/#{n}"
-          "#{upl}/#{path}"
-      kvm["#{n}Info"] = ko.computed
+          fs = knockVM[n]()
+          p + "/" + fs
+      knockVM["#{n}Info"] = ko.computed
         read: ->
           kvm['maybeId']()
           return unless kvm['id']

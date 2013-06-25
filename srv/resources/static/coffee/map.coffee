@@ -23,6 +23,9 @@ define ["model/utils", "utils"], (mu, u) ->
   wsgProj = new OpenLayers.Projection("EPSG:4326")
   osmProj = new OpenLayers.Projection("EPSG:900913")
 
+  # Center on Moscow by default
+  defaultCoords = new OpenLayers.LonLat(37.617874,55.757549)
+
   carIcon = "/s/img/car-icon.png"
   towIcon = "/s/img/tow-icon.png"
   partnerIcon = "/s/img/partner-icon.png"
@@ -144,8 +147,7 @@ define ["model/utils", "utils"], (mu, u) ->
       city_meta = u.splitFieldInView city_field, parentView
 
     # Center on the default location first
-    osmap.setCenter(new OpenLayers.LonLat(37.617874,55.757549)
-                   .transform(wsgProj, osmProj),
+    osmap.setCenter(defaultCoords.clone().transform(wsgProj, osmProj),
                    zoomLevel)
 
     # Place a blip and recenter if coordinates are already known
@@ -161,12 +163,7 @@ define ["model/utils", "utils"], (mu, u) ->
         # Otherwise, just center on the city, not placing a blip
         if city_field?
           city = u.findVM(city_meta.view)[city_meta.field]()
-          if city? && city.length > 0
-            fixed_city = global.dictValueCache.DealerCities[city]
-            $.getJSON geoQuery(fixed_city), (res) ->
-              if res.length > 0
-                lonlat = new OpenLayers.LonLat res[0].lon, res[0].lat
-                osmap.setCenter lonlat.transform(wsgProj, osmProj), zoomLevel
+          centerMapOnCity osmap, city
 
     # Setup handler to update target address and coordinates if the
     # map is clickable
@@ -366,6 +363,16 @@ define ["model/utils", "utils"], (mu, u) ->
             osmap.addPopup(popup))
         markers.addMarker(mrk)
 
+  # Center an OSM on a city. City is a label of DealerCities
+  # dictionary.
+  centerMapOnCity = (osmap, city) ->
+    if city? && city.length > 0
+      fixed_city = global.dictValueCache.DealerCities[city]
+      $.getJSON geoQuery(fixed_city), (res) ->
+        if res.length > 0
+          lonlat = new OpenLayers.LonLat res[0].lon, res[0].lat
+          osmap.setCenter lonlat.transform(wsgProj, osmProj), zoomLevel
+
 
   # Splice partner data into specified fields of a reference
   #
@@ -389,8 +396,11 @@ define ["model/utils", "utils"], (mu, u) ->
   # Read "32.54,56.21" (the way coordinates are stored in model fields)
   # into LonLat object
   lonlatFromShortString = (coords) ->
-    parts = coords.split(",")
-    return new OpenLayers.LonLat(parts[0], parts[1])
+    if coords.length > 0
+      parts = coords.split(",")
+      new OpenLayers.LonLat(parts[0], parts[1])
+    else
+      null
 
 
   # Convert LonLat object to string in format "32.41,52.33"
@@ -456,6 +466,10 @@ define ["model/utils", "utils"], (mu, u) ->
         $(el).parents('.input-append')
              .children("input[name=#{fieldName}]")
              .val())
+
+    if not coords?
+      return
+
     viewName = mu.elementView($(el)).id
     view = $(mu.elementView($(el)))
     modelName = mu.elementModel($(el))
@@ -495,9 +509,7 @@ define ["model/utils", "utils"], (mu, u) ->
     view = $(mu.elementView($(el)))
     modelName = mu.elementModel($(el))
 
-    osmCoords = coords.clone().transform(wsgProj, osmProj)
-
-    addr_field = mu.modelField(modelName, fieldName).meta['targetAddr']
+    city_field = mu.modelField(modelName, fieldName).meta['cityField']
     blip_type = mu.modelField(modelName, fieldName).meta['currentBlipType']
 
     mapEl = $("#partnerMapModal").find(".osMap")[0]
@@ -506,8 +518,22 @@ define ["model/utils", "utils"], (mu, u) ->
       # Recenter the map if it already exists
       if $(mapEl).hasClass("olMap")
         oMap = $(mapEl).data("osmap")
-        currentBlip oMap, osmCoords, blip_type
-        oMap.setCenter osmCoords
+
+        # Center on the default location first
+        oMap.setCenter defaultCoords.clone().transform(wsgProj, osmProj)
+
+        # Center on partner coordinates
+        if coords?
+          osmCoords = coords.clone().transform(wsgProj, osmProj)
+          oMap.setCenter osmCoords
+          currentBlip oMap, osmCoords, blip_type
+        else
+          # Otherwise, just center on the city, not placing a blip
+          if city_field?
+            city_meta = u.splitFieldInView city_field, viewName         
+            city = u.findVM(city_meta.view)[city_meta.field]()
+            centerMapOnCity oMap, city
+
         oMap.events.triggerEvent "moveend"
       else
         initOSM mapEl, viewName

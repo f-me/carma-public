@@ -26,7 +26,7 @@ import Snap.Util.FileServe (serveDirectory, serveFile)
 import Snap.Snaplet.Vin
 import Snaplet.SiteConfig
 import Snaplet.DbLayer
-import Snaplet.FileUpload
+import qualified Snaplet.FileUpload as FU
 import Snaplet.Geo
 ------------------------------------------------------------------------------
 import Application
@@ -157,7 +157,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
        initSiteConfig "resources/site-config" pgs db
 
   v <- nestSnaplet "vin" vin vinInit
-  fu <- nestSnaplet "upload" fileUpload fileUploadInit
+  fu <- nestSnaplet "upload" fileUpload $ FU.fileUploadInit db
   g <- nestSnaplet "geo" geo geoInit
 
   l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10)
