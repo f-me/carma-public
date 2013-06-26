@@ -10,6 +10,14 @@ define ["model/utils"], (mu) ->
       success  : cb
       async    : false
 
+  $.putJSON = (url, obj) ->
+    $.ajax
+      type        : "PUT"
+      url         : url
+      data        : JSON.stringify obj
+      processData : false
+      contentType : "application/json"
+
   # Find VM of reference in a case by its view name.
   findCaseOrReferenceVM = (view) ->
     kase = global.viewsWare["case-form"].knockVM
