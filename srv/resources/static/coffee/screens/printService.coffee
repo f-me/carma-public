@@ -2,6 +2,9 @@ define ["text!tpl/screens/printSrv.html"], (tpl) ->
   setupPrintSrv = (viewName, {model: model, id: id}) ->
     $(".navbar").hide()
     $.getJSON "/printSrv/#{model}/#{id}", (arg) ->
+      arg.service = arg.service[0]
+      arg.kase    = arg.kase[0]
+
       arg.service.assignedTo = lookup('users', arg.service.assignedTo)
       arg.service.type = model
       postProc arg.kase,

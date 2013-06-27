@@ -515,24 +515,44 @@ smsProcessingHandler = scope "sms" $ do
   writeJSON $ object [
     "processing" .= res]
 
+lookupSrvQ = [sql|
+  SELECT c.id::text
+       , c.comment
+       , c.owner
+       , c.partnerid
+       , p.name
+  FROM partnercanceltbl c
+  LEFT JOIN partnertbl p
+  ON p.id::text = substring(c.partnerid, ':(.*)')
+  WHERE c.serviceid = ?
+|]
+
 printServiceHandler :: AppHandler ()
 printServiceHandler = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
   srv     <- with db $ DB.read model objId
-  kase    <- with db $ DB.read' $ fromJust $ Map.lookup "parentId" srv
+  kase    <- with db $ DB.read' $ fromMaybe "" $ Map.lookup "parentId" srv
   actions <- with db $ mapM DB.read' $
              B.split ',' $ Map.findWithDefault "" "actions" kase
   let modelId = B.concat [model, ":", objId]
-      action = head' $ filter ((Just modelId ==) . Map.lookup "parentId") $ actions
-  writeJSON $ Map.fromList [ ("action" :: ByteString, action)
-                           , ("kase",   kase)
-                           , ("service", srv)
+      action  = head' $ filter ((Just modelId ==) . Map.lookup "parentId")
+                      $ actions
+  rows <- withPG pg_search $ \conn -> query conn lookupSrvQ [modelId]
+  writeJSON $ Map.fromList [ ("action" :: ByteString, [action])
+                           , ("kase",    [kase])
+                           , ("service", [srv])
+                           , ("cancels", cancelMap rows)
                            ]
     where
       head' []     = Map.empty
-      head' (x:_) = x
-
+      head' (x:_)  = x
+      cancelMap rows = mkMap [ "id"
+                             , "comment"
+                             , "owner"
+                             , "partnerid"
+                             , "partnerName"
+                             ] rows
 
 getRuntimeFlags :: AppHandler ()
 getRuntimeFlags
