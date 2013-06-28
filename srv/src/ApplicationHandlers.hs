@@ -357,7 +357,7 @@ createReportHandler = do
   -- because in multipart/form-data requests we do not have
   -- params as usual, see Snap.Util.FileUploads.setProcessFormInputs
   _ <- with db $ DB.update "report" objId $
-    Map.fromList [ ("templates", T.encodeUtf8 $ T.pack f)
+    Map.fromList [ ("templates", T.encodeUtf8 $ T.pack $ takeFileName f)
                  , ("name",      name) ]
   redirect "/#reports"
 
