@@ -207,10 +207,11 @@
         <form id="vin-import-form" onsubmit="doVin(); return false;">
           <p>
             <select name="program" id="vin-program-select" data-bind="foreach: $data">
-              <option data-bind="value: value, text: label, attr: { 'data-format': vinFormat }" />
+              <option data-bind="value: value, text: label" />
             </select>
             <input type="file"
                    name="file"
+                   id="vin-upload-file"
                    accept="text/csv|application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
           </p>
           <button class="btn btn-success" type="submit">

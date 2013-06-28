@@ -85,15 +85,6 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
         dateFrom.val (d1.toString 'dd.MM.yyyy')
         dateTo.val (d2.toString 'dd.MM.yyyy')
 
-        updateps = () -> updatePartners(partners)
-
-        dateFrom.change ->
-          updateps()
-          updater()
-        dateTo.change ->
-          updateps()
-          updater()
-
     fillRKCFilters = (updater, partners) ->
       setTimeout ->
         dict = global.dictValueCache
@@ -316,7 +307,6 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
                 sms.val(result.processing))
 
         global.rkcData.smsHandler = setInterval(updateSMS, 5000)
-        global.rkcData.updateHandler = setInterval(update, 30000)
 
         updateSMS()
         update()
@@ -326,8 +316,6 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
     removeRKCScreen = ->
         h = global.rkcData.smsHandler
         clearInterval h if h?
-        t = global.rkcData.updateHandler
-        clearInterval t if t?
 
     # function which return object with functions returning functions
     wraps = (partials) ->
