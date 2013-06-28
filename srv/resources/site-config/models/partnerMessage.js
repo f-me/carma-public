@@ -4,33 +4,36 @@
       "meta": {
         "invisible": true
       },
+      "type": null,
+      "groupName": null,
       "name": "ctime"
     },
     {
       "meta": {
         "label": "Кейс"
       },
-      "canWrite": true,
-      "canRead": true,
+      "type": null,
+      "groupName": null,
       "name": "caseId"
     },
     {
       "meta": {
         "label": "Партнёр"
       },
-      "canWrite": true,
-      "canRead": true,
+      "type": null,
+      "groupName": null,
       "name": "partnerId"
     },
     {
       "meta": {
         "label": "Сообщение"
       },
-      "canWrite": true,
-      "canRead": true,
+      "type": null,
+      "groupName": null,
       "name": "message"
     }
   ],
+  "applications": [],
   "canDelete": true,
   "canUpdate": true,
   "canRead": true,

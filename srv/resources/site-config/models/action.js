@@ -4,293 +4,133 @@
       "meta": {
         "invisible": true
       },
-      "canWrite": true,
-      "canRead": true,
+      "type": null,
+      "groupName": null,
       "name": "parentId"
     },
     {
       "meta": {
         "invisible": true
       },
-      "canWrite": true,
-      "canRead": true,
+      "type": null,
+      "groupName": null,
       "name": "caseId"
     },
     {
       "meta": {
-        "invisible": true,
-        "dictionaryName": "ActionNames"
+        "dictionaryName": "ActionNames",
+        "invisible": true
       },
       "type": "dictionary",
-      "canRead": true,
+      "groupName": null,
       "name": "name"
     },
     {
-      "canRead": true,
+      "meta": null,
       "type": "statictext",
+      "groupName": null,
       "name": "description"
     },
     {
       "meta": {
-        "readonly": true,
-        "label": "Ожидаемое время выполнения"
+        "label": "Ожидаемое время выполнения",
+        "readonly": true
       },
-      "canWrite": true,
-      "canRead": true,
       "type": "datetime",
+      "groupName": null,
       "name": "duetime"
     },
     {
       "meta": {
         "label": "Комментарий"
       },
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "account",
-        "parguy"
-      ],
-      "canRead": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "account",
-        "parguy"
-      ],
       "type": "textarea",
+      "groupName": null,
       "name": "comment"
     },
     {
       "meta": {
-        "dictionaryParent": "name",
-        "dictionaryName": "ActionResults",
+        "addClass": "redirectOnChange",
         "label": "Результат",
-        "addClass": "redirectOnChange"
+        "dictionaryName": "ActionResults",
+        "dictionaryParent": "name"
       },
       "type": "dictionary",
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "account",
-        "parguy"
-      ],
-      "canRead": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "account",
-        "parguy"
-      ],
+      "groupName": null,
       "name": "result"
     },
     {
       "meta": {
         "invisible": true
       },
-      "canRead": true,
       "type": "datetime",
+      "groupName": null,
       "name": "ctime"
     },
     {
       "meta": {
         "invisible": true
       },
-      "canRead": true,
       "type": "datetime",
+      "groupName": null,
       "name": "mtime"
     },
     {
       "meta": {
         "invisible": true
       },
-      "canRead": true,
       "type": "datetime",
+      "groupName": null,
       "name": "openTime"
     },
     {
       "meta": {
         "invisible": true
       },
-      "canRead": true,
       "type": "datetime",
+      "groupName": null,
       "name": "closeTime"
     },
     {
       "meta": {
-        "dictionaryType": "BoUsersDict",
+        "label": "Ответственный",
         "invisible": true,
-        "label": "Ответственный"
+        "dictionaryType": "BoUsersDict"
       },
       "type": "dictionary",
-      "canWrite": [
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman"
-      ],
-      "canRead": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "account",
-        "parguy"
-      ],
+      "groupName": null,
       "name": "assignedTo"
     },
     {
       "meta": {
-        "dictionaryName": "Roles",
+        "label": "Роль",
         "invisible": true,
-        "label": "Роль"
+        "dictionaryName": "Roles"
       },
       "type": "dictionary",
-      "canWrite": [
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman"
-      ],
-      "canRead": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "account",
-        "parguy"
-      ],
+      "groupName": null,
       "name": "targetGroup"
     },
     {
       "meta": {
-        "invisible": true,
-        "label": "Приоритет"
+        "label": "Приоритет",
+        "invisible": true
       },
-      "canWrite": [
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman"
-      ],
-      "canRead": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "account",
-        "parguy"
-      ],
+      "type": null,
+      "groupName": null,
       "name": "priority"
     },
     {
       "meta": {
-        "invisible": true,
-        "label": "Закрыто"
+        "label": "Закрыто",
+        "invisible": true
       },
       "type": "checkbox",
-      "canWrite": [
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman"
-      ],
-      "canRead": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "account",
-        "parguy"
-      ],
+      "groupName": null,
       "name": "closed"
     }
   ],
+  "applications": [],
   "canDelete": true,
   "canUpdate": true,
   "canRead": true,

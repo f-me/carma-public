@@ -97,8 +97,7 @@ stripModel u m = do
   let fieldsMap = M.fromList readableFields
   let fieldFilter f fs = case M.lookup (name f) fieldsMap of
         Nothing -> fs
-        Just True  -> f {_canWrite = Everyone } : fs
-        Just False -> f {_canWrite = Nobody } : fs
+        Just wr -> f {canWrite = wr} : fs
   return $ m {fields = foldr fieldFilter [] $ fields m}
 
 

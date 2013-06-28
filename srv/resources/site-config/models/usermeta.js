@@ -2,9 +2,11 @@
   "fields": [
     {
       "meta": {
-        "sqltype": "integer",
-        "invisible": true
+        "invisible": true,
+        "sqltype": "integer"
       },
+      "type": null,
+      "groupName": null,
       "name": "uid"
     },
     {
@@ -12,63 +14,73 @@
         "label": "Активен"
       },
       "type": "checkbox",
+      "groupName": null,
       "name": "isActive"
     },
     {
       "meta": {
         "label": "ФИО пользователя"
       },
+      "type": null,
+      "groupName": null,
       "name": "realName"
     },
     {
       "meta": {
-        "required": true,
-        "label": "Логин"
+        "label": "Логин",
+        "required": true
       },
+      "type": null,
+      "groupName": null,
       "name": "login"
     },
     {
       "meta": {
-        "required": true,
+        "label": "Пароль",
         "nosql": true,
-        "label": "Пароль"
+        "required": true
       },
       "type": "password",
+      "groupName": null,
       "name": "password"
     },
     {
       "meta": {
-        "dictionaryName": "Roles",
-        "label": "Роль в системе"
+        "label": "Роль в системе",
+        "dictionaryName": "Roles"
       },
       "type": "dictionary-many",
+      "groupName": null,
       "name": "roles"
     },
     {
       "meta": {
-        "dictionaryType": "ComputedDict",
+        "label": "Программы",
         "dictionaryName": "allPrograms",
-        "label": "Программы"
+        "dictionaryType": "ComputedDict"
       },
       "type": "dictionary-many",
+      "groupName": null,
       "name": "programs"
     },
     {
       "meta": {
-        "invisible": true,
+        "label": "boCities",
         "dictionaryName": "DealerCities",
-        "label": "boCities"
+        "invisible": true
       },
       "type": "dictionary-many",
+      "groupName": null,
       "name": "boCities"
     },
     {
       "meta": {
-        "invisible": true,
+        "label": "boPrograms",
         "dictionaryName": "Programs",
-        "label": "boPrograms"
+        "invisible": true
       },
       "type": "dictionary-many",
+      "groupName": null,
       "name": "boPrograms"
     },
     {
@@ -76,37 +88,48 @@
         "label": "Дилер"
       },
       "type": "checkbox",
+      "groupName": null,
       "name": "isDealer"
     },
     {
       "meta": {
         "label": "Рабочий телефон"
       },
+      "type": null,
+      "groupName": null,
       "name": "workPhone"
     },
     {
       "meta": {
         "label": "Добавочный номер"
       },
+      "type": null,
+      "groupName": null,
       "name": "workPhoneSuffix"
     },
     {
       "meta": {
         "label": "Мобильный телефон"
       },
+      "type": null,
+      "groupName": null,
       "name": "mobilePhone"
     },
     {
       "meta": {
         "label": "Домашний телефон"
       },
+      "type": null,
+      "groupName": null,
       "name": "homePhone"
     },
     {
       "meta": {
-        "label": "E-mail",
-        "regexp": "email"
+        "regexp": "email",
+        "label": "E-mail"
       },
+      "type": null,
+      "groupName": null,
       "name": "email"
     },
     {
@@ -114,12 +137,15 @@
         "label": "День рождения"
       },
       "type": "date",
+      "groupName": null,
       "name": "birthday"
     },
     {
       "meta": {
         "label": "Должность"
       },
+      "type": null,
+      "groupName": null,
       "name": "position"
     },
     {
@@ -127,6 +153,7 @@
         "invisible": "true"
       },
       "type": "datetime",
+      "groupName": null,
       "name": "lastactivity"
     },
     {
@@ -134,16 +161,11 @@
         "invisible": "true"
       },
       "type": "datetime",
+      "groupName": null,
       "name": "lastlogout"
     }
   ],
-  "applications": [
-    {
-      "canRead": true,
-      "canWrite": true,
-      "targets": true
-    }
-  ],
+  "applications": [],
   "canDelete": [
     "admin",
     "head",

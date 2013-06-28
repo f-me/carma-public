@@ -4,60 +4,39 @@
       "meta": {
         "invisible": true
       },
-      "canWrite": true,
-      "canRead": true,
+      "type": null,
+      "groupName": null,
       "name": "parentId"
     },
     {
       "meta": {
-        "bounded": true,
-        "required": true,
+        "label": "Тип поля",
         "dictionaryName": "ContractFields",
-        "label": "Тип поля"
+        "required": true,
+        "bounded": true
       },
       "type": "dictionary",
-      "canWrite": [
-        "head"
-      ],
-      "canRead": [
-        "head"
-      ],
+      "groupName": null,
       "name": "contractField"
     },
     {
       "meta": {
         "label": "Отображается в таблице"
       },
-      "canWrite": [
-        "head"
-      ],
-      "canRead": [
-        "head"
-      ],
       "type": "checkbox",
+      "groupName": null,
       "name": "showTable"
     },
     {
       "meta": {
         "label": "Отображается в форме"
       },
-      "canWrite": [
-        "head"
-      ],
-      "canRead": [
-        "head"
-      ],
       "type": "checkbox",
+      "groupName": null,
       "name": "showForm"
     }
   ],
-  "applications": [
-    {
-      "canRead": true,
-      "canWrite": true,
-      "targets": true
-    }
-  ],
+  "applications": [],
   "canDelete": [
     "admin"
   ],

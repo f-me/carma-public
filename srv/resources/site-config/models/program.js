@@ -5,56 +5,70 @@
         "label": "Активна"
       },
       "type": "checkbox",
+      "groupName": null,
       "name": "active"
     },
     {
       "meta": {
         "label": "Название"
       },
+      "type": null,
+      "groupName": null,
       "name": "label"
     },
     {
       "meta": {
         "label": "Заказчик"
       },
+      "type": null,
+      "groupName": null,
       "name": "client"
     },
     {
       "meta": {
         "label": "Код заказчика"
       },
+      "type": null,
+      "groupName": null,
       "name": "clientCode"
     },
     {
       "meta": {
         "label": "Адрес заказчика"
       },
+      "type": null,
+      "groupName": null,
       "name": "clientAddress"
     },
     {
-      "type": "dictionary-many",
       "meta": {
-        "label": "Услуги, предоставляемые по программе",
-        "bounded": true,
+        "dictionaryName": "Services",
         "required": true,
-        "dictionaryName": "Services"
+        "bounded": true,
+        "label": "Услуги, предоставляемые по программе"
       },
+      "type": "dictionary-many",
+      "groupName": null,
       "name": "services"
     },
     {
       "meta": {
-        "sqltype": "integer",
+        "required": true,
         "label": "Межсервисный интервал по умолчанию",
-        "required": true
+        "sqltype": "integer"
       },
+      "type": null,
+      "groupName": null,
       "name": "carCheckPeriodDefault"
     },
     {
       "meta": {
-        "sqltype": "integer",
+        "required": true,
         "label": "Срок действия программы по умолчанию",
-        "required": true
+        "sqltype": "integer"
       },
+      "type": null,
+      "groupName": null,
       "name": "duedateDefault"
     },
     {
@@ -62,6 +76,7 @@
         "label": "Шаблон договора"
       },
       "type": "file",
+      "groupName": null,
       "name": "contracts"
     },
     {
@@ -69,14 +84,16 @@
         "label": "Ограничение прав"
       },
       "type": "reference",
+      "groupName": null,
       "name": "programPermissions"
     },
     {
       "meta": {
-        "label": "Формат файлов VIN",
-        "dictionaryName": "Programs"
+        "dictionaryName": "Programs",
+        "label": "Формат файлов VIN"
       },
       "type": "dictionary",
+      "groupName": null,
       "name": "vinFormat"
     },
     {
@@ -84,6 +101,7 @@
         "label": "Логотип"
       },
       "type": "file",
+      "groupName": null,
       "name": "logo"
     },
     {
@@ -91,16 +109,11 @@
         "label": "Справка"
       },
       "type": "textarea",
+      "groupName": null,
       "name": "help"
     }
   ],
-  "applications": [
-    {
-      "canRead": true,
-      "canWrite": true,
-      "targets": true
-    }
-  ],
+  "applications": [],
   "canDelete": [
     "admin"
   ],

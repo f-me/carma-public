@@ -1,92 +1,37 @@
 {
   "fields": [
     {
+      "meta": null,
+      "type": null,
       "groupName": "car",
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "parguy"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "parguy",
-        "account"
-      ],
       "name": "car"
     },
     {
+      "meta": null,
+      "type": null,
       "groupName": "cardNumber",
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "parguy"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "parguy",
-        "account"
-      ],
       "name": "cardNumber"
     },
     {
       "meta": {
-        "infoText": "ownerName",
-        "label": "Владелец"
+        "label": "Владелец",
+        "infoText": "ownerName"
       },
+      "type": null,
       "groupName": "carContact",
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "parguy"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "parguy",
-        "account"
-      ],
       "name": "contact"
     },
     {
       "meta": {
-        "infoText": "program",
-        "targetCategory": "program"
+        "targetCategory": "program",
+        "infoText": "program"
       },
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "parguy"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "parguy",
-        "account"
-      ],
+      "type": null,
+      "groupName": null,
       "name": "program"
     }
   ],
-  "applications": [
-    {
-      "canRead": true,
-      "canWrite": true,
-      "targets": true
-    }
-  ],
+  "applications": [],
   "canDelete": false,
   "canUpdate": true,
   "canRead": true,

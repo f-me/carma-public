@@ -4,68 +4,74 @@
       "meta": {
         "invisible": true
       },
-      "canWrite": true,
-      "canRead": true,
+      "type": null,
+      "groupName": null,
       "name": "parentId"
     },
     {
       "meta": {
         "invisible": true
       },
-      "canWrite": true,
-      "canRead": true,
+      "type": null,
+      "groupName": null,
       "name": "tarifOptionId"
     },
     {
       "meta": {
-        "readonly": true,
-        "label": "Название опции"
+        "label": "Название опции",
+        "readonly": true
       },
+      "type": null,
+      "groupName": null,
       "name": "optionName"
     },
     {
       "meta": {
-        "readonly": true,
-        "label": "Цена за единицу"
+        "label": "Цена за единицу",
+        "readonly": true
       },
+      "type": null,
+      "groupName": null,
       "name": "price"
     },
     {
       "meta": {
-        "regexp": "number",
-        "label": "Количество"
+        "label": "Количество",
+        "regexp": "number"
       },
+      "type": null,
+      "groupName": null,
       "name": "count"
     },
     {
       "meta": {
-        "readonly": true,
-        "label": "Стоимость"
+        "label": "Стоимость",
+        "readonly": true
       },
+      "type": null,
+      "groupName": null,
       "name": "cost"
     },
     {
       "meta": {
-        "invisible": true,
-        "label": "Стоимость за единицу за нал"
+        "label": "Стоимость за единицу за нал",
+        "invisible": true
       },
+      "type": null,
+      "groupName": null,
       "name": "price1"
     },
     {
       "meta": {
-        "invisible": true,
-        "label": "Стоимость за единицу по безналу"
+        "label": "Стоимость за единицу по безналу",
+        "invisible": true
       },
+      "type": null,
+      "groupName": null,
       "name": "price2"
     }
   ],
-  "applications": [
-    {
-      "canRead": true,
-      "canWrite": true,
-      "targets": true
-    }
-  ],
+  "applications": [],
   "canDelete": true,
   "canUpdate": true,
   "canRead": true,

@@ -5,39 +5,11 @@
         "label": "Файл"
       },
       "type": "file",
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy",
-        "account"
-      ],
+      "groupName": null,
       "name": "filename"
     }
   ],
+  "applications": [],
   "canDelete": true,
   "canUpdate": false,
   "canRead": true,

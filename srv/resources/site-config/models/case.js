@@ -2,37 +2,11 @@
   "fields": [
     {
       "meta": {
-        "readonly": true,
-        "label": "Дата звонка"
+        "label": "Дата звонка",
+        "readonly": true
       },
       "type": "datetime",
-      "indexCollate": true,
-      "index": true,
-      "canWrite": [
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "parguy",
-        "account",
-        "admin",
-        "programman"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy",
-        "account"
-      ],
+      "groupName": null,
       "name": "callDate"
     },
     {
@@ -40,456 +14,142 @@
         "label": "Дата звонка"
       },
       "type": "datetime",
-      "indexCollate": true,
-      "index": true,
-      "canWrite": [
-        "vwfake"
-      ],
-      "canRead": [
-        "vwfake"
-      ],
+      "groupName": null,
       "name": "vwcreatedate"
     },
     {
       "meta": {
-        "readonly": true,
-        "label": "Сотрудник РАМК"
+        "label": "Сотрудник РАМК",
+        "readonly": true
       },
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy",
-        "account"
-      ],
+      "type": null,
+      "groupName": null,
       "name": "callTaker"
     },
     {
       "meta": {
-        "infoText": "comment",
-        "required": true,
+        "dictionaryName": "Wazzup",
         "label": "Что случилось",
-        "dictionaryName": "Wazzup"
+        "required": true,
+        "infoText": "comment"
       },
       "type": "dictionary",
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy",
-        "account"
-      ],
+      "groupName": null,
       "name": "comment"
     },
     {
       "meta": {
-        "infoText": "system",
-        "required": true,
+        "dictionaryName": "Diagnosis1",
         "label": "Система",
-        "dictionaryName": "Diagnosis1"
+        "required": true,
+        "infoText": "system"
       },
       "type": "dictionary",
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
+      "groupName": null,
       "name": "diagnosis1"
     },
     {
       "meta": {
-        "infoText": "detail",
-        "label": "Узел/деталь",
+        "dictionaryName": "Diagnosis2",
         "dictionaryParent": "diagnosis1",
-        "dictionaryName": "Diagnosis2"
+        "label": "Узел/деталь",
+        "infoText": "detail"
       },
       "type": "dictionary",
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman"
-      ],
+      "groupName": null,
       "name": "diagnosis2"
     },
     {
       "meta": {
-        "infoText": "diagnosis3",
+        "dictionaryName": "Diagnosis3",
         "label": "Описание причины неисправности",
-        "dictionaryName": "Diagnosis3"
+        "infoText": "diagnosis3"
       },
       "type": "dictionary",
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "account",
-        "admin",
-        "programman"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "account",
-        "admin",
-        "programman"
-      ],
+      "groupName": null,
       "name": "diagnosis3"
     },
     {
       "meta": {
-        "infoText": "recomendation",
+        "dictionaryName": "Diagnosis4",
         "label": "Рекомендация",
-        "dictionaryName": "Diagnosis4"
+        "infoText": "recomendation"
       },
       "type": "dictionary",
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "account",
-        "admin",
-        "programman"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "account",
-        "admin",
-        "programman"
-      ],
+      "groupName": null,
       "name": "diagnosis4"
     },
     {
       "meta": {
-        "required": true,
-        "label": "Клиент"
+        "label": "Клиент",
+        "required": true
       },
+      "type": null,
       "groupName": "carContact",
       "name": "contact"
     },
     {
       "meta": {
-        "infoText": "program",
-        "targetCategory": "program",
-        "bounded": true,
-        "required": true,
+        "dictionaryName": "Programs",
         "label": "Программа",
-        "dictionaryName": "Programs"
+        "required": true,
+        "bounded": true,
+        "targetCategory": "program",
+        "infoText": "program"
       },
       "type": "dictionary",
-      "index": true,
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy",
-        "account"
-      ],
+      "groupName": null,
       "name": "program"
     },
     {
+      "meta": null,
+      "type": null,
       "groupName": "car",
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy",
-        "account"
-      ],
       "name": "car"
     },
     {
+      "meta": null,
+      "type": null,
       "groupName": "cardNumber",
-      "canWrite": [
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
       "name": "cardNumber"
     },
     {
       "meta": {
-        "infoText": "vinChecked",
-        "bounded": true,
-        "required": true,
+        "dictionaryName": "VINChecked",
         "label": "Участие в программе",
-        "dictionaryName": "VINChecked"
+        "required": true,
+        "bounded": true,
+        "infoText": "vinChecked"
       },
       "type": "dictionary",
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy",
-        "account"
-      ],
+      "groupName": null,
       "name": "vinChecked"
     },
     {
       "meta": {
-        "infoText": "city",
-        "bounded": true,
-        "required": true,
+        "dictionaryName": "DealerCities",
         "label": "Город",
-        "dictionaryName": "DealerCities"
+        "required": true,
+        "bounded": true,
+        "infoText": "city"
       },
       "type": "dictionary",
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
+      "groupName": null,
       "name": "city"
     },
     {
+      "meta": null,
+      "type": null,
       "groupName": "address",
       "name": "caseAddress"
     },
     {
       "meta": {
-        "infoText": "temperature",
-        "label": "Температура"
+        "label": "Температура",
+        "infoText": "temperature"
       },
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman"
-      ],
+      "type": null,
+      "groupName": null,
       "name": "temperature"
     },
     {
@@ -497,260 +157,70 @@
         "label": "Дата починки"
       },
       "type": "datetime",
-      "canWrite": [
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy",
-        "account"
-      ],
+      "groupName": null,
       "name": "repair"
     },
     {
       "meta": {
         "label": "Номер согласования"
       },
-      "canWrite": [
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman"
-      ],
-      "canRead": [
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman"
-      ],
+      "type": null,
+      "groupName": null,
       "name": "accord"
     },
     {
-      "type": "textarea",
       "meta": {
-        "infoText": "dealerCause",
-        "label": "Неисправность со слов дилера/партнёра"
+        "label": "Неисправность со слов дилера/партнёра",
+        "infoText": "dealerCause"
       },
-      "canWrite": [
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman"
-      ],
+      "type": "textarea",
+      "groupName": null,
       "name": "dealerCause"
     },
     {
       "meta": {
-        "label": "Статус кейса",
-        "dictionaryName": "CaseStatuses",
+        "required": true,
         "bounded": true,
-        "required": true
+        "dictionaryName": "CaseStatuses",
+        "label": "Статус кейса"
       },
       "type": "dictionary",
-      "canWrite": [
-        "psaanalyst",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy",
-        "psaanalyst"
-      ],
+      "groupName": null,
       "name": "caseStatus"
     },
     {
       "meta": {
         "label": "Требуется выгрузка в PSA"
       },
-      "canWrite": [
-        "head",
-        "supervisor",
-        "director",
-        "admin",
-        "psaanalyst"
-      ],
-      "canRead": [
-        "head",
-        "supervisor",
-        "director",
-        "admin",
-        "psaanalyst"
-      ],
       "type": "checkbox",
+      "groupName": null,
       "name": "psaExportNeeded"
     },
     {
       "meta": {
-        "label": "Выгружен в PSA",
-        "readonly": true
+        "readonly": true,
+        "label": "Выгружен в PSA"
       },
-      "canWrite": [
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman"
-      ],
-      "canRead": [
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "psaanalyst"
-      ],
       "type": "checkbox",
+      "groupName": null,
       "name": "psaExported"
     },
     {
-      "type": "textarea",
       "meta": {
-        "infoText": "claim",
-        "label": "Претензия / Благодарность"
+        "label": "Претензия / Благодарность",
+        "infoText": "claim"
       },
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
+      "type": "textarea",
+      "groupName": null,
       "name": "claim"
     },
     {
-      "type": "textarea",
       "meta": {
-        "infoText": "betaComment",
-        "label": "Комментарии"
+        "label": "Комментарии",
+        "infoText": "betaComment"
       },
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
+      "type": "textarea",
+      "groupName": null,
       "name": "betaComment"
     },
     {
@@ -758,18 +228,16 @@
         "label": "Услуги"
       },
       "type": "reference",
-      "canWrite": true,
-      "canRead": true,
+      "groupName": null,
       "name": "services"
     },
     {
       "meta": {
-        "invisible": true,
-        "label": "Действия"
+        "label": "Действия",
+        "invisible": true
       },
       "type": "reference",
-      "canWrite": true,
-      "canRead": true,
+      "groupName": null,
       "name": "actions"
     },
     {
@@ -777,36 +245,7 @@
         "invisible": true
       },
       "type": "json",
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy",
-        "account"
-      ],
+      "groupName": null,
       "name": "comments"
     },
     {
@@ -814,44 +253,15 @@
         "label": "Прикрепленные файлы"
       },
       "type": "reference",
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy",
-        "account"
-      ],
+      "groupName": null,
       "name": "files"
     }
   ],
   "applications": [
     {
       "meta": {
-        "targetCoords": "caseAddress_coords",
-        "targetMap": "caseAddress_map"
+        "targetMap": "caseAddress_map",
+        "targetCoords": "caseAddress_coords"
       },
       "targets": [
         "caseAddress_address"
@@ -859,8 +269,8 @@
     },
     {
       "meta": {
-        "targetAddr": "caseAddress_address",
-        "targetMap": "caseAddress_map"
+        "targetMap": "caseAddress_map",
+        "targetAddr": "caseAddress_address"
       },
       "targets": [
         "caseAddress_coords"
@@ -868,9 +278,9 @@
     },
     {
       "meta": {
-        "cityField": "city",
+        "targetAddr": "caseAddress_address",
         "targetCoords": "caseAddress_coords",
-        "targetAddr": "caseAddress_address"
+        "cityField": "city"
       },
       "targets": [
         "caseAddress_map"
@@ -878,38 +288,9 @@
     },
     {
       "meta": {
-        "infoText": "caseAddress",
-        "label": "Адрес места поломки"
+        "label": "Адрес места поломки",
+        "infoText": "caseAddress"
       },
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "account",
-        "admin",
-        "programman",
-        "parguy",
-        "account"
-      ],
       "targets": [
         "caseAddress_address"
       ]
@@ -918,158 +299,17 @@
       "meta": {
         "label": "Звонящий"
       },
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy",
-        "account"
-      ],
       "targets": [
         "contact_name"
       ]
     },
     {
       "meta": {
-        "infoText": "cardnum",
-        "label": "Карта участника"
+        "label": "Карта участника",
+        "infoText": "cardnum"
       },
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
       "targets": [
         "cardNumber_cardNumber"
-      ]
-    },
-    {
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
-      "targets": [
-        "caseAddress_map",
-        "caseAddress_coords",
-        "caseAddress_city",
-        "caseAddress_comment"
-      ]
-    },
-    {
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy",
-        "account"
-      ],
-      "targets": [
-        "contact_email",
-        "contact_phone1",
-        "contact_phone2",
-        "contact_phone3",
-        "contact_phone4",
-        "contact_ownerName",
-        "contact_contactOwner",
-        "contact_ownerEmail",
-        "contact_ownerPhone1",
-        "contact_ownerPhone2",
-        "contact_ownerPhone3",
-        "contact_ownerPhone4"
       ]
     },
     {
@@ -1081,92 +321,9 @@
       ]
     },
     {
-      "canWrite": [
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy",
-        "account"
-      ],
-      "targets": [
-        "car_vin",
-        "car_seller",
-        "car_make",
-        "car_model",
-        "car_plateNum",
-        "car_color",
-        "car_transmission",
-        "car_engine",
-        "car_liters",
-        "car_capacity",
-        "car_dims",
-        "car_weight",
-        "car_checkPeriod",
-        "car_class",
-        "car_buyDate",
-        "car_mileage",
-        "car_checkupDate",
-        "car_checkupMileage",
-        "car_dealerTO",
-        "car_makeYear",
-        "car_warrantyStart",
-        "car_warrantyEnd",
-        "car_contractType"
-      ]
-    },
-    {
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy"
-      ],
-      "targets": [
-        "cardNumber_validFrom",
-        "cardNumber_validUntil",
-        "cardNumber_validUntilMilage",
-        "cardNumber_milageTO",
-        "cardNumber_serviceInterval",
-        "cardNumber_cardOwner",
-        "cardNumber_manager"
-      ]
-    },
-    {
       "meta": {
-        "infoText": "platenum",
-        "mainToo": true
+        "mainToo": true,
+        "infoText": "platenum"
       },
       "targets": [
         "car_plateNum"
@@ -1174,8 +331,8 @@
     },
     {
       "meta": {
-        "infoText": "owner",
-        "mainToo": true
+        "mainToo": true,
+        "infoText": "owner"
       },
       "targets": [
         "contact_contactOwner"

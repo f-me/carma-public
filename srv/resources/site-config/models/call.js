@@ -2,142 +2,102 @@
   "fields": [
     {
       "meta": {
-        "readonly": true,
-        "label": "Дата звонка"
+        "label": "Дата звонка",
+        "readonly": true
       },
       "type": "datetime",
-      "indexCollate": true,
-      "index": true,
-      "canWrite": [
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman"
-      ],
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy",
-        "account"
-      ],
+      "groupName": null,
       "name": "callDate"
     },
     {
       "meta": {
-        "readonly": true,
+        "label": "Сотрудник РАМК",
         "required": true,
-        "label": "Сотрудник РАМК"
+        "readonly": true
       },
-      "canRead": [
-        "partner",
-        "front",
-        "back",
-        "head",
-        "supervisor",
-        "director",
-        "analyst",
-        "vwfake",
-        "parguy",
-        "account",
-        "admin",
-        "programman",
-        "parguy",
-        "account"
-      ],
+      "type": null,
+      "groupName": null,
       "name": "callTaker"
     },
     {
       "meta": {
-        "label": "Программа",
+        "dictionaryName": "Programs",
         "bounded": true,
-        "dictionaryName": "Programs"
+        "label": "Программа"
       },
       "type": "dictionary",
+      "groupName": null,
       "name": "program"
     },
     {
       "meta": {
-        "label": "Что случилось",
-        "dictionaryName": "Wazzup"
+        "dictionaryName": "Wazzup",
+        "label": "Что случилось"
       },
       "type": "dictionary",
+      "groupName": null,
       "name": "wazzup"
     },
     {
       "meta": {
         "label": "ФИО"
       },
+      "type": null,
       "groupName": "carContact",
       "name": "callerName"
     },
     {
       "meta": {
-        "dictionaryName": "CallerTypes",
+        "label": "Кто звонит?",
         "bounded": true,
-        "label": "Кто звонит?"
+        "dictionaryName": "CallerTypes"
       },
       "type": "dictionary",
+      "groupName": null,
       "name": "callerType"
     },
     {
       "meta": {
-        "label": "Город",
+        "dictionaryName": "DealerCities",
         "bounded": true,
-        "dictionaryName": "DealerCities"
+        "label": "Город"
       },
       "type": "dictionary",
+      "groupName": null,
       "name": "city"
     },
     {
-      "type": "dictionary",
       "meta": {
-        "label": "Марка",
-        "dictionaryName": "CarMakers"
+        "dictionaryName": "CarMakers",
+        "label": "Марка"
       },
+      "type": "dictionary",
+      "groupName": null,
       "name": "carMake"
     },
     {
-      "type": "dictionary",
       "meta": {
-        "label": "Модель",
+        "dictionaryName": "CarModels",
         "dictionaryParent": "carMake",
-        "dictionaryName": "CarModels"
+        "label": "Модель"
       },
+      "type": "dictionary",
+      "groupName": null,
       "name": "carModel"
     },
     {
       "meta": {
-        "label": "Тип звонка",
-        "bounded": true,
+        "dictionaryName": "CallTypes",
         "dictionaryParent": "callerType",
-        "dictionaryName": "CallTypes"
+        "bounded": true,
+        "label": "Тип звонка"
       },
       "type": "dictionary",
+      "groupName": null,
       "name": "callType"
     }
   ],
-  "applications": [
-    {
-      "canRead": true,
-      "canWrite": true,
-      "targets": true
-    }
-  ],
+  "applications": [],
   "canDelete": true,
   "canUpdate": true,
   "canRead": true,

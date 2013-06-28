@@ -2,57 +2,64 @@
   "fields": [
     {
       "meta": {
-        "sqltype": "timestamp",
-        "invisible": true
+        "invisible": true,
+        "sqltype": "timestamp"
       },
+      "type": null,
+      "groupName": null,
       "name": "ctime"
     },
     {
       "meta": {
-        "sqltype": "text",
-        "invisible": true
+        "invisible": true,
+        "sqltype": "text"
       },
+      "type": null,
+      "groupName": null,
       "name": "status"
     },
     {
       "meta": {
-        "sqltype": "timestamp",
-        "invisible": true
+        "invisible": true,
+        "sqltype": "timestamp"
       },
+      "type": null,
+      "groupName": null,
       "name": "sentTime"
     },
     {
       "meta": {
-        "sqltype": "timestamp",
-        "invisible": true
+        "invisible": true,
+        "sqltype": "timestamp"
       },
+      "type": null,
+      "groupName": null,
       "name": "deliveredTime"
     },
     {
       "meta": {
         "label": "Кейс"
       },
-      "canWrite": true,
-      "canRead": true,
+      "type": null,
+      "groupName": null,
       "name": "caseId"
     },
     {
       "meta": {
-        "regexp": "phone",
-        "label": "Кому"
+        "label": "Кому",
+        "regexp": "phone"
       },
-      "canWrite": true,
-      "canRead": true,
+      "type": null,
+      "groupName": null,
       "name": "phone"
     },
     {
       "meta": {
-        "label": "Шаблон",
-        "dictionaryName": "smsTpl"
+        "dictionaryName": "smsTpl",
+        "label": "Шаблон"
       },
       "type": "dictionary",
-      "canWrite": true,
-      "canRead": true,
+      "groupName": null,
       "name": "template"
     },
     {
@@ -60,17 +67,19 @@
         "label": "Текст сообщения"
       },
       "type": "textarea",
-      "canWrite": true,
-      "canRead": true,
+      "groupName": null,
       "name": "msg"
     },
     {
       "meta": {
         "invisible": true
       },
+      "type": null,
+      "groupName": null,
       "name": "sender"
     }
   ],
+  "applications": [],
   "canDelete": true,
   "canUpdate": true,
   "canRead": true,

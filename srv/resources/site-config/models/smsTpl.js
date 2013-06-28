@@ -4,8 +4,8 @@
       "meta": {
         "label": "Имя шаблона"
       },
-      "canWrite": true,
-      "canRead": true,
+      "type": null,
+      "groupName": null,
       "name": "name"
     },
     {
@@ -13,30 +13,28 @@
         "label": "Текст"
       },
       "type": "textarea",
-      "canWrite": true,
-      "canRead": true,
+      "groupName": null,
       "name": "text"
     },
     {
       "meta": {
-        "label": "Кому отправлять",
-        "dictionaryName": "SmsRecieverNames"
+        "dictionaryName": "SmsRecieverNames",
+        "label": "Кому отправлять"
       },
       "type": "dictionary",
-      "canWrite": true,
-      "canRead": true,
+      "groupName": null,
       "name": "smsReciever"
     },
     {
       "meta": {
         "label": "Активный"
       },
-      "canWrite": true,
-      "canRead": true,
       "type": "checkbox",
+      "groupName": null,
       "name": "isActive"
     }
   ],
+  "applications": [],
   "canDelete": true,
   "canUpdate": true,
   "canRead": true,

@@ -2,45 +2,44 @@
   "fields": [
     {
       "meta": {
-        "sqltype": "timestamp",
-        "invisible": true
+        "invisible": true,
+        "sqltype": "timestamp"
       },
-      "canWrite": true,
-      "canRead": true,
+      "type": null,
+      "groupName": null,
       "name": "ctime"
     },
     {
       "meta": {
         "invisible": true
       },
-      "canWrite": true,
-      "canRead": true,
+      "type": null,
+      "groupName": null,
       "name": "caseId"
     },
     {
       "meta": {
         "invisible": true
       },
-      "canWrite": true,
-      "canRead": true,
+      "type": null,
+      "groupName": null,
       "name": "partnerId"
     },
     {
       "meta": {
         "invisible": true
       },
-      "canWrite": true,
-      "canRead": true,
+      "type": null,
+      "groupName": null,
       "name": "owner"
     },
     {
       "meta": {
-        "label": "Причина отказа партнера",
-        "dictionaryName": "PartnerCancelReason"
+        "dictionaryName": "PartnerCancelReason",
+        "label": "Причина отказа партнера"
       },
       "type": "dictionary",
-      "canWrite": true,
-      "canRead": true,
+      "groupName": null,
       "name": "partnerCancelReason"
     },
     {
@@ -48,11 +47,11 @@
         "label": "Комментарий"
       },
       "type": "textarea",
-      "canWrite": true,
-      "canRead": true,
+      "groupName": null,
       "name": "comment"
     }
   ],
+  "applications": [],
   "canDelete": true,
   "canUpdate": true,
   "canRead": true,
