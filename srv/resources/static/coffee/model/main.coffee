@@ -80,13 +80,17 @@ define [ "model/render"
   # - maybeId; («—» if Backbone id is not available yet)
   #
   # - modelTitle;
-  buildKVM = (model, fetched) ->
+  buildKVM = (model, elName, fetched) ->
 
     fields   = model.fields
     required = (f for f in fields when f.meta?.required)
 
     # Build kvm with fetched data if have one
     kvm = {}
+    # FIXME: use this hack only for disthook and it's finvm, find
+    # more appropriate way to handle that
+    global.viewsWare[elName] ?= {}
+    global.viewsWare[elName]['knockVM'] = kvm if elName
     for f in fields
       kvm[f.name] = ko.observable(fetched?[f.name])
 
@@ -109,7 +113,10 @@ define [ "model/render"
               rs = kvm[f.name]().split(',')
               return [] unless rs
               ms = (m.split(':') for m in rs)
-              buildModel(m[0], global.models, {id: m[1]})[0] for m in ms
+              for m in ms
+                k = buildModel(m[0], global.models, {id: m[1]})[0]
+                k.parent = kvm
+                k
             write: (v) ->
               ks = ("#{k._meta.model.name}:#{k.id()}" for k in v).join(',')
               kvm[f.name](ks)
@@ -226,7 +233,7 @@ define [ "model/render"
       models = $.extend true, {}, global.models
       models[modelName] = model if model
 
-      [kvm, q] = buildModel(modelName, models, args, options)
+      [kvm, q] = buildModel(modelName, models, args, options, elName)
 
       depViews = setupView(elName, kvm,  options)
 
@@ -247,8 +254,8 @@ define [ "model/render"
       applyHooks(global.hooks.model, ['*', modelName], elName)
       return kvm
 
-  buildModel = (modelName, models, args, options) ->
-      knockVM = buildKVM(models[modelName])
+  buildModel = (modelName, models, args, options, elName) ->
+      knockVM = buildKVM(models[modelName], elName)
       knockVM[k](v) for k, v of args
       q = new sync.CrudQueue(knockVM, models[modelName], options)
       knockVM._meta.q = q
