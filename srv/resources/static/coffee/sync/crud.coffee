@@ -27,6 +27,7 @@ define ["sync/datamap"], (m) ->
     _save: _.debounce((-> @save()), 1300)
 
     save: (cb) =>
+      @saveKvm() unless @persisted
       method = if @persisted then "PUT" else "POST"
       url    = if @persisted then "#{@url}/#{@kvm.id()}" else @url
       @qbackup = _.clone(@q)
@@ -52,5 +53,10 @@ define ["sync/datamap"], (m) ->
       @qbackup = {}
       console.error "CRUD sync: save of '#{@model.name}:#{@kvm.id()}' failed
  with '#{x.status}: #{x.statusText}'"
+
+    # push all non empty kvm fields to the save queue, on first post for example
+    saveKvm: =>
+      for f in @model.fields when @kvm[f.name]()
+        @q[f.name] = @kvm[f.name]()
 
   CrudQueue: CrudQueue

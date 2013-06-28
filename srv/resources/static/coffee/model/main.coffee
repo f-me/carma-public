@@ -256,7 +256,7 @@ define [ "model/render"
 
   buildModel = (modelName, models, args, options, elName) ->
       knockVM = buildKVM(models[modelName], elName)
-      knockVM[k](v) for k, v of args
+      knockVM[k]?(v) for k, v of args
       q = new sync.CrudQueue(knockVM, models[modelName], options)
       knockVM._meta.q = q
       return [knockVM, q]
