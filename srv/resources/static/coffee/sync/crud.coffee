@@ -1,6 +1,6 @@
 define ["sync/datamap"], (m) ->
   class CrudQueue
-    constructor: (@kvm, @model) ->
+    constructor: (@kvm, @model, @options) ->
       @url = "/_/#{@model.name}"
       @q       = {}
       @qbackup = {}
@@ -19,7 +19,7 @@ define ["sync/datamap"], (m) ->
         do (f) =>
           @kvm[f.name].subscribe (v) =>
             @q[f.name] = v
-            @._save()
+            @._save() unless @options?.manual_save
 
     fetch: =>
       $.bgetJSON "#{@url}/#{@kvm.id()}", (o) => @updadeKvm m.s2cObj(o, @ftypes)

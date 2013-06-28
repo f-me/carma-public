@@ -250,13 +250,16 @@ define [ "model/render"
   buildModel = (modelName, models, args, options) ->
       knockVM = buildKVM(models[modelName])
       knockVM[k](v) for k, v of args
-      q = new sync.CrudQueue(knockVM, models[modelName])
+      q = new sync.CrudQueue(knockVM, models[modelName], options)
       knockVM._meta.q = q
       return [knockVM, q]
 
   buildNewModel = (modelName, args, options, cb) ->
     [knockVM, q] = buildModel(modelName, global.models, args, options)
-    q.save -> cb(global.models[modelName], knockVM)
+    if _.isFunction cb
+      q.save -> cb(global.models[modelName], knockVM)
+    else
+      q.save()
     return [knockVM, q]
 
   bindDepViews = (knockVM, parentView, depViews) ->
