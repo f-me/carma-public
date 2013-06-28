@@ -1,55 +1,71 @@
 {
-    "name": "programPermissions",
-    "title": "",
-    "canCreate": true,
-    "canRead": true,
-    "canUpdate": ["admin"],
-    "canDelete": ["admin"],
-     "applications": [
-         {
-            "targets": true,
-            "canWrite": true,
-            "canRead": true
-         }
-    ],
-    "fields": [
-        {
-            "name": "parentId",
-            "canRead": true,
-            "canWrite": true,
-            "meta": {
-                "invisible": true
-            }
-        },
-        {
-            "name": "contractField",
-            "canRead": ["head"],
-            "canWrite": ["head"],
-            "type": "dictionary",
-            "meta": {
-                "label": "Тип поля",
-                "dictionaryName": "ContractFields",
-                "required": true,
-                "bounded":true
-            }
-        },
-        {
-            "name": "showTable",
-            "type": "checkbox",
-            "canRead": ["head"],
-            "canWrite": ["head"],
-            "meta": {
-                "label": "Отображается в таблице"
-            }
-        },
-        {
-            "name": "showForm",
-            "type": "checkbox",
-            "canRead": ["head"],
-            "canWrite": ["head"],
-            "meta": {
-                "label": "Отображается в форме"
-            }
-        }
-    ]
+  "fields": [
+    {
+      "meta": {
+        "invisible": true
+      },
+      "canWrite": true,
+      "canRead": true,
+      "name": "parentId"
+    },
+    {
+      "meta": {
+        "bounded": true,
+        "required": true,
+        "dictionaryName": "ContractFields",
+        "label": "Тип поля"
+      },
+      "type": "dictionary",
+      "canWrite": [
+        "head"
+      ],
+      "canRead": [
+        "head"
+      ],
+      "name": "contractField"
+    },
+    {
+      "meta": {
+        "label": "Отображается в таблице"
+      },
+      "canWrite": [
+        "head"
+      ],
+      "canRead": [
+        "head"
+      ],
+      "type": "checkbox",
+      "name": "showTable"
+    },
+    {
+      "meta": {
+        "label": "Отображается в форме"
+      },
+      "canWrite": [
+        "head"
+      ],
+      "canRead": [
+        "head"
+      ],
+      "type": "checkbox",
+      "name": "showForm"
+    }
+  ],
+  "applications": [
+    {
+      "canRead": true,
+      "canWrite": true,
+      "targets": true
+    }
+  ],
+  "canDelete": [
+    "admin"
+  ],
+  "canUpdate": [
+    "admin"
+  ],
+  "canRead": true,
+  "canCreate": true,
+  "title": "",
+  "name": "programPermissions"
 }

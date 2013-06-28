@@ -1,80 +1,80 @@
 {
-    "name": "sms",
-    "title": "смс",
-    "canCreate": true,
-    "canRead": true,
-    "canUpdate": true,
-    "canDelete": true,
-    "fields": [
-      {
-        "name":"ctime",
-        "meta": {
-          "invisible":true,
-          "sqltype": "timestamp"
-        }
+  "fields": [
+    {
+      "meta": {
+        "sqltype": "timestamp",
+        "invisible": true
       },
-      {
-        "name":"status",
-        "meta": {
-          "invisible":true,
-          "sqltype":"text"
-        }
+      "name": "ctime"
+    },
+    {
+      "meta": {
+        "sqltype": "text",
+        "invisible": true
       },
-      {
-        "name":"sentTime",
-        "meta": {
-          "invisible":true,
-          "sqltype":"timestamp"
-        }
+      "name": "status"
+    },
+    {
+      "meta": {
+        "sqltype": "timestamp",
+        "invisible": true
       },
-      {
-        "name":"deliveredTime",
-        "meta": {
-          "invisible":true,
-          "sqltype":"timestamp"
-        }
+      "name": "sentTime"
+    },
+    {
+      "meta": {
+        "sqltype": "timestamp",
+        "invisible": true
       },
-      {
-        "name":"caseId",
-        "canRead": true,
-        "canWrite": true,
-        "meta": {
-            "label": "Кейс"
-        }
+      "name": "deliveredTime"
+    },
+    {
+      "meta": {
+        "label": "Кейс"
       },
-      {
-        "name": "phone",
-        "canRead": true,
-        "canWrite": true,
-        "meta": {
-          "label": "Кому",
-          "regexp": "phone"
-        }
+      "canWrite": true,
+      "canRead": true,
+      "name": "caseId"
+    },
+    {
+      "meta": {
+        "regexp": "phone",
+        "label": "Кому"
       },
-      {
-        "name": "template",
-        "canRead": true,
-        "canWrite": true,
-        "type": "dictionary",
-        "meta": {
-          "dictionaryName": "smsTpl",
-          "label": "Шаблон"
-        }
+      "canWrite": true,
+      "canRead": true,
+      "name": "phone"
+    },
+    {
+      "meta": {
+        "label": "Шаблон",
+        "dictionaryName": "smsTpl"
       },
-      {
-        "name": "msg",
-        "canRead": true,
-        "canWrite": true,
-        "type":"textarea",
-        "meta": {
-          "label": "Текст сообщения"
-        }
+      "type": "dictionary",
+      "canWrite": true,
+      "canRead": true,
+      "name": "template"
+    },
+    {
+      "meta": {
+        "label": "Текст сообщения"
       },
-      {
-        "name": "sender",
-        "meta": {
-          "invisible": true
-        }
-      }
-    ]
+      "type": "textarea",
+      "canWrite": true,
+      "canRead": true,
+      "name": "msg"
+    },
+    {
+      "meta": {
+        "invisible": true
+      },
+      "name": "sender"
+    }
+  ],
+  "canDelete": true,
+  "canUpdate": true,
+  "canRead": true,
+  "canCreate": true,
+  "title": "смс",
+  "name": "sms"
 }

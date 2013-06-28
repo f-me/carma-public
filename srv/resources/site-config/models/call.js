@@ -1,123 +1,147 @@
 {
-    "name": "call",
-    "title": "Входящий звонок",
-    "canCreate": true,
-    "canRead": true,
-    "canUpdate": true,
-    "canDelete": true,
-    "applications": [
-        {
-            "targets": true,
-            "canWrite": true,
-            "canRead": true
-        }
-    ],
-    "fields": [
-        {
-            "name": "callDate",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head", "supervisor", "director", "analyst", "vwfake","parguy", "account", "admin", "programman",
-                "parguy",
-                "account"
-            ],
-            "canWrite": [
-                "head", "supervisor", "director", "analyst", "vwfake","parguy", "account", "admin", "programman"
-            ],
-            "index": true,
-            "indexCollate": true,
-            "type": "datetime",
-            "meta": {
-                "label": "Дата звонка",
-                "readonly": true
-            }
-        },
-        {
-            "name": "callTaker",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head", "supervisor", "director", "analyst", "vwfake","parguy", "account", "admin", "programman",
-                "parguy",
-                "account"
-            ],
-            "meta": {
-                "label": "Сотрудник РАМК",
-                "required": true,
-                "readonly": true
-            }
-        },
-        {
-            "name": "program",
-            "type": "dictionary",
-            "meta": {
-                "dictionaryName": "Programs",
-                "bounded":true,
-                "label": "Программа"
-            }
-        },
-        {
-            "name": "wazzup",
-            "type": "dictionary",
-            "meta": {
-                "dictionaryName": "Wazzup",
-                "label": "Что случилось"
-            }
-        },
-        {
-            "name": "callerName",
-            "groupName": "carContact",
-            "meta": {
-                "label": "ФИО"
-            }
-        },
-        {
-            "name": "callerType",
-            "type": "dictionary",
-            "meta": {
-                "label": "Кто звонит?",
-                "bounded":true,
-                "dictionaryName": "CallerTypes"
-            }
-        },
-        {
-            "name": "city",
-            "type": "dictionary",
-            "meta": {
-                "dictionaryName": "DealerCities",
-                "bounded":true,
-                "label": "Город"
-            }
-        },
-        {
-            "name": "carMake",
-            "meta": {
-                "dictionaryName": "CarMakers",
-                "label": "Марка"
-            },
-            "type": "dictionary"
-        },
-        {
-            "name": "carModel",
-            "meta": {
-                "dictionaryName": "CarModels",
-                "dictionaryParent": "carMake",
-                "label": "Модель"
-            },
-            "type": "dictionary"
-        },
-        {
-            "name": "callType",
-            "type": "dictionary",
-            "meta": {
-                "dictionaryName": "CallTypes",
-                "dictionaryParent": "callerType",
-                "bounded":true,
-                "label": "Тип звонка"
-            }
-        }
-    ]
+  "fields": [
+    {
+      "meta": {
+        "readonly": true,
+        "label": "Дата звонка"
+      },
+      "type": "datetime",
+      "indexCollate": true,
+      "index": true,
+      "canWrite": [
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman"
+      ],
+      "canRead": [
+        "partner",
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy",
+        "account"
+      ],
+      "name": "callDate"
+    },
+    {
+      "meta": {
+        "readonly": true,
+        "required": true,
+        "label": "Сотрудник РАМК"
+      },
+      "canRead": [
+        "partner",
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy",
+        "account"
+      ],
+      "name": "callTaker"
+    },
+    {
+      "meta": {
+        "label": "Программа",
+        "bounded": true,
+        "dictionaryName": "Programs"
+      },
+      "type": "dictionary",
+      "name": "program"
+    },
+    {
+      "meta": {
+        "label": "Что случилось",
+        "dictionaryName": "Wazzup"
+      },
+      "type": "dictionary",
+      "name": "wazzup"
+    },
+    {
+      "meta": {
+        "label": "ФИО"
+      },
+      "groupName": "carContact",
+      "name": "callerName"
+    },
+    {
+      "meta": {
+        "dictionaryName": "CallerTypes",
+        "bounded": true,
+        "label": "Кто звонит?"
+      },
+      "type": "dictionary",
+      "name": "callerType"
+    },
+    {
+      "meta": {
+        "label": "Город",
+        "bounded": true,
+        "dictionaryName": "DealerCities"
+      },
+      "type": "dictionary",
+      "name": "city"
+    },
+    {
+      "type": "dictionary",
+      "meta": {
+        "label": "Марка",
+        "dictionaryName": "CarMakers"
+      },
+      "name": "carMake"
+    },
+    {
+      "type": "dictionary",
+      "meta": {
+        "label": "Модель",
+        "dictionaryParent": "carMake",
+        "dictionaryName": "CarModels"
+      },
+      "name": "carModel"
+    },
+    {
+      "meta": {
+        "label": "Тип звонка",
+        "bounded": true,
+        "dictionaryParent": "callerType",
+        "dictionaryName": "CallTypes"
+      },
+      "type": "dictionary",
+      "name": "callType"
+    }
+  ],
+  "applications": [
+    {
+      "canRead": true,
+      "canWrite": true,
+      "targets": true
+    }
+  ],
+  "canDelete": true,
+  "canUpdate": true,
+  "canRead": true,
+  "canCreate": true,
+  "title": "Входящий звонок",
+  "name": "call"
 }

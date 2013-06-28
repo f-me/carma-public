@@ -1,956 +1,1006 @@
 {
-    "name": "information",
-    "title": "Информирование о происшествии",
-    "canCreate": true,
-    "canRead": true,
-    "canUpdate": true,
-    "canDelete": true,
-    "applications": [
-        {
-            "targets": [
-                "expectedServiceStart",
-                "factServiceStart",
-                "expectedServiceEnd",
-                "factServiceEnd",
-                "expectedServiceFinancialClosure",
-                "factServiceFinancialClosure",
-                "expectedDealerInfo",
-                "factDealerInfo",
-                "expectedServiceClosure",
-                "factServiceClosure"
-            ],
-            "meta": {
-                "regexp": "datetime"
-            }
-        },
-        {
-            "targets": [
-                "urgentService",
-                "payment_expectedCost"
-            ],
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ]
-        },
-        {
-            "targets": [
-                "payment_partnerCost",
-                "payment_costTranscript"
-            ],
-            "canRead": [
-                "back",
-                "front",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "back",
-                "front",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ]
-        },
-        {
-            "targets": [
-                "payment_calculatedCost",
-                "payment_overcosted"
-            ],
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ]
-        },
-        {
-            "targets": [
-                "payment_limitedCost"
-            ],
-            "canRead": [
-                "back",
-                "front",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ]
-        },
-        {
-            "targets": [
-                "payment_paidByRUAMC",
-                "payment_paidByClient"
-            ],
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "back",
-                "front",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ]
-        },
-        {
-            "targets": [
-                "bill_billNumber",
-                "bill_billingCost",
-                "bill_billingDate"
-            ],
-            "canRead": [
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "parguy"
-            ]
-        },
-        {
-            "targets": [
-                "times_expectedServiceStart"
-            ],
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ]
-        },
-        {
-            "targets": [
-                "times_factServiceStart",
-                "times_expectedServiceEnd",
-                "times_factServiceEnd",
-                "times_expectedServiceFinancialClosure",
-                "times_factServiceFinancialClosure",
-                "times_expectedServiceClosure",
-                "times_factServiceClosure",
-                "times_repairEndDate"
-            ],
-            "canRead": [
-                "back",
-                "front",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "canWrite": [
-                "back",
-                "front",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ]
-        }
-    ],
-    "fields": [
-        {
-            "name": "parentId",
-            "canRead": true,
-            "canWrite": true,
-            "meta": {
-                "invisible": true
-            }
-        },
-        {
-            "name": "createTime",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy",
-                "account"
-            ],
-            "type": "datetime",
-            "meta": {
-                "label": "Дата создания услуги",
-                "readonly": true
-            }
-        },
-        {
-            "name": "payType",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "type": "dictionary",
-            "meta": {
-                "dictionaryName": "PaymentTypes",
-                "bounded":true,
-                "label": "Тип оплаты"
-            }
-        },
-        {
-            "name": "payment",
-            "groupName": "payment"
-        },
-        {
-            "name": "times",
-            "groupName": "times"
-        },
-        {
-            "name": "falseCall",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "type": "dictionary",
-            "meta": {
-                "dictionaryName": "FalseStatuses",
-                "bounded":true,
-                "label": "Ложный вызов",
-                "infoText": "falsecall"
-            }
-        },
-        {
-            "name": "clientCancelReason",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ],            
-            "type": "dictionary",
-            "meta": {
-              "dictionaryName": "ClientCancelReason",
-              "label": "Причина отказа клиента"
-            }
-        },
-        {
-            "name": "falseCallPercent",
-            "canRead":  [ ],
-            "canWrite": [ ],
-            "meta": {
-                "invisible": true
-            }
-        },
-        {
-            "name": "bill",
-            "groupName": "bill"
-        },
-        {
-            "name": "contractor",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy",
-                "account"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "groupName": "partner",
-            "meta": {
-                "label": "Название партнёра"
-            }
-        },
-        {
-            "name": "contact1",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "meta": {
-                "label": "Контакт 1"
-            }
-        },
-        {
-            "name": "contactPhone1",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "meta": {
-                "label": "Телефон 1",
-                "regexp": "phone"
-            },
-            "type": "phone"
-        },
-        {
-            "name": "whatToSay1",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "meta": {
-                "label": "Что сказать 1"
-            },
-            "type": "textarea"
-        },
-        {
-            "name": "contact2",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "meta": {
-                "label": "Контакт 2"
-            }
-        },
-        {
-            "name": "contactPhone2",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "meta": {
-                "label": "Телефон 2",
-                "regexp": "phone"
-            },
-            "type": "phone"
-        },
-        {
-            "name": "whatToSay2",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "meta": {
-                "label": "Что сказать 2"
-            },
-            "type": "textarea"
-        },
-        {
-            "name": "contact3",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "meta": {
-                "label": "Контакт 3"
-            }
-        },
-        {
-            "name": "contactPhone3",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "meta": {
-                "label": "Телефон 3",
-                "regexp": "phone"
-            },
-            "type": "phone"
-        },
-        {
-            "name": "whatToSay3",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "meta": {
-                "label": "Что сказать 3"
-            },
-            "type": "textarea"
-        },
-        {
-            "name": "paid",
-            "canRead": [
-                "manager",
-                "accManager"
-            ],
-            "canWrite": [
-                "accManager"
-            ],
-            "meta": {
-                "label": "Оплата"
-            },
-            "type": "checkbox"
-        },
-        {
-            "name": "scan",
-            "canRead": [
-                "manager",
-                "accManager"
-            ],
-            "canWrite": [
-                "accManager"
-            ],
-            "meta": {
-                "label": "Скан загружен"
-            },
-            "type": "checkbox"
-        },
-        {
-            "name": "original",
-            "canRead": [
-                "manager",
-                "accManager"
-            ],
-            "canWrite": [
-                "accManager"
-            ],
-            "meta": {
-                "label": "Оригинал получен"
-            },
-            "type": "checkbox"
-        },        
-        {
-            "name": "urgentService",
-            "type": "dictionary",
-            "meta": {
-                "bounded": false,
-                "dictionaryName": "UrgentServiceReason",
-                "label": "Приоритетная услуга"
-            }
-        },
-        {
-            "name": "status",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "type": "dictionary",
-            "meta": {
-                "label": "Статус услуги",
-                "bounded":true,
-                "dictionaryName": "ServiceStatuses"
-            }
-        },
-        {
-            "name": "clientSatisfied",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "type": "dictionary",
-            "meta": {
-                "dictionaryName": "Satisfaction",
-                "label": "Клиент доволен"
-            }
-        },
-        {
-            "name": "warrantyCase",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "type": "checkbox",
-            "meta": {
-                "label": "Гарантийный случай"
-            }
-        },
-        {
-            "name": "files",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "type": "reference",
-            "meta": {
-                "label": "Прикрепленные файлы"
-            }
-        },
-        {
-            "name": "assignedTo",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy",
-                "account"
-            ],
-            "canWrite": [],
-            "meta": {
-                "invisible": true,
-                "readonly": true
-            }
-        },
-        {
-            "name": "falseCallPercent",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst", "vwfake",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy",
-                "account"
-            ],
-            "canWrite": [],
-            "meta": {
-                "invisible": true,
-                "readonly": true
-            }
-        }
-    ]
+  "fields": [
+    {
+      "meta": {
+        "invisible": true
+      },
+      "canWrite": true,
+      "canRead": true,
+      "name": "parentId"
+    },
+    {
+      "meta": {
+        "readonly": true,
+        "label": "Дата создания услуги"
+      },
+      "type": "datetime",
+      "canRead": [
+        "partner",
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy",
+        "account"
+      ],
+      "name": "createTime"
+    },
+    {
+      "meta": {
+        "label": "Тип оплаты",
+        "bounded": true,
+        "dictionaryName": "PaymentTypes"
+      },
+      "type": "dictionary",
+      "canWrite": [
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman"
+      ],
+      "canRead": [
+        "partner",
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "name": "payType"
+    },
+    {
+      "groupName": "payment",
+      "name": "payment"
+    },
+    {
+      "groupName": "times",
+      "name": "times"
+    },
+    {
+      "meta": {
+        "infoText": "falsecall",
+        "label": "Ложный вызов",
+        "bounded": true,
+        "dictionaryName": "FalseStatuses"
+      },
+      "type": "dictionary",
+      "canWrite": [
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman"
+      ],
+      "canRead": [
+        "partner",
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "name": "falseCall"
+    },
+    {
+      "meta": {
+        "label": "Причина отказа клиента",
+        "dictionaryName": "ClientCancelReason"
+      },
+      "type": "dictionary",
+      "canWrite": [
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman"
+      ],
+      "canRead": [
+        "partner",
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "name": "clientCancelReason"
+    },
+    {
+      "meta": {
+        "invisible": true
+      },
+      "canWrite": [],
+      "canRead": [],
+      "name": "falseCallPercent"
+    },
+    {
+      "groupName": "bill",
+      "name": "bill"
+    },
+    {
+      "meta": {
+        "label": "Название партнёра"
+      },
+      "groupName": "partner",
+      "canWrite": [
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman"
+      ],
+      "canRead": [
+        "partner",
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy",
+        "account"
+      ],
+      "name": "contractor"
+    },
+    {
+      "meta": {
+        "label": "Контакт 1"
+      },
+      "canWrite": [
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "account",
+        "admin",
+        "programman"
+      ],
+      "canRead": [
+        "partner",
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "name": "contact1"
+    },
+    {
+      "type": "phone",
+      "meta": {
+        "regexp": "phone",
+        "label": "Телефон 1"
+      },
+      "canWrite": [
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "account",
+        "admin",
+        "programman"
+      ],
+      "canRead": [
+        "partner",
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "name": "contactPhone1"
+    },
+    {
+      "type": "textarea",
+      "meta": {
+        "label": "Что сказать 1"
+      },
+      "canWrite": [
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "account",
+        "admin",
+        "programman"
+      ],
+      "canRead": [
+        "partner",
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "name": "whatToSay1"
+    },
+    {
+      "meta": {
+        "label": "Контакт 2"
+      },
+      "canWrite": [
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "account",
+        "admin",
+        "programman"
+      ],
+      "canRead": [
+        "partner",
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "name": "contact2"
+    },
+    {
+      "type": "phone",
+      "meta": {
+        "regexp": "phone",
+        "label": "Телефон 2"
+      },
+      "canWrite": [
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "account",
+        "admin",
+        "programman"
+      ],
+      "canRead": [
+        "partner",
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "name": "contactPhone2"
+    },
+    {
+      "type": "textarea",
+      "meta": {
+        "label": "Что сказать 2"
+      },
+      "canWrite": [
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "account",
+        "admin",
+        "programman"
+      ],
+      "canRead": [
+        "partner",
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "name": "whatToSay2"
+    },
+    {
+      "meta": {
+        "label": "Контакт 3"
+      },
+      "canWrite": [
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "account",
+        "admin",
+        "programman"
+      ],
+      "canRead": [
+        "partner",
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "name": "contact3"
+    },
+    {
+      "type": "phone",
+      "meta": {
+        "regexp": "phone",
+        "label": "Телефон 3"
+      },
+      "canWrite": [
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "account",
+        "admin",
+        "programman"
+      ],
+      "canRead": [
+        "partner",
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "name": "contactPhone3"
+    },
+    {
+      "type": "textarea",
+      "meta": {
+        "label": "Что сказать 3"
+      },
+      "canWrite": [
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "account",
+        "admin",
+        "programman"
+      ],
+      "canRead": [
+        "partner",
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "name": "whatToSay3"
+    },
+    {
+      "type": "checkbox",
+      "meta": {
+        "label": "Оплата"
+      },
+      "canWrite": [
+        "accManager"
+      ],
+      "canRead": [
+        "manager",
+        "accManager"
+      ],
+      "name": "paid"
+    },
+    {
+      "type": "checkbox",
+      "meta": {
+        "label": "Скан загружен"
+      },
+      "canWrite": [
+        "accManager"
+      ],
+      "canRead": [
+        "manager",
+        "accManager"
+      ],
+      "name": "scan"
+    },
+    {
+      "type": "checkbox",
+      "meta": {
+        "label": "Оригинал получен"
+      },
+      "canWrite": [
+        "accManager"
+      ],
+      "canRead": [
+        "manager",
+        "accManager"
+      ],
+      "name": "original"
+    },
+    {
+      "meta": {
+        "label": "Приоритетная услуга",
+        "dictionaryName": "UrgentServiceReason",
+        "bounded": false
+      },
+      "type": "dictionary",
+      "name": "urgentService"
+    },
+    {
+      "meta": {
+        "dictionaryName": "ServiceStatuses",
+        "bounded": true,
+        "label": "Статус услуги"
+      },
+      "type": "dictionary",
+      "canWrite": [
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "canRead": [
+        "partner",
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "name": "status"
+    },
+    {
+      "meta": {
+        "label": "Клиент доволен",
+        "dictionaryName": "Satisfaction"
+      },
+      "type": "dictionary",
+      "canWrite": [
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman"
+      ],
+      "canRead": [
+        "partner",
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "name": "clientSatisfied"
+    },
+    {
+      "meta": {
+        "label": "Гарантийный случай"
+      },
+      "type": "checkbox",
+      "canWrite": [
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "canRead": [
+        "partner",
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "name": "warrantyCase"
+    },
+    {
+      "meta": {
+        "label": "Прикрепленные файлы"
+      },
+      "type": "reference",
+      "canWrite": [
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "canRead": [
+        "partner",
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "name": "files"
+    },
+    {
+      "meta": {
+        "readonly": true,
+        "invisible": true
+      },
+      "canWrite": [],
+      "canRead": [
+        "partner",
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy",
+        "account"
+      ],
+      "name": "assignedTo"
+    },
+    {
+      "meta": {
+        "readonly": true,
+        "invisible": true
+      },
+      "canWrite": [],
+      "canRead": [
+        "partner",
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy",
+        "account"
+      ],
+      "name": "falseCallPercent"
+    }
+  ],
+  "applications": [
+    {
+      "meta": {
+        "regexp": "datetime"
+      },
+      "targets": [
+        "expectedServiceStart",
+        "factServiceStart",
+        "expectedServiceEnd",
+        "factServiceEnd",
+        "expectedServiceFinancialClosure",
+        "factServiceFinancialClosure",
+        "expectedDealerInfo",
+        "factDealerInfo",
+        "expectedServiceClosure",
+        "factServiceClosure"
+      ]
+    },
+    {
+      "canWrite": [
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman"
+      ],
+      "canRead": [
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman"
+      ],
+      "targets": [
+        "urgentService",
+        "payment_expectedCost"
+      ]
+    },
+    {
+      "canWrite": [
+        "back",
+        "front",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman"
+      ],
+      "canRead": [
+        "back",
+        "front",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "targets": [
+        "payment_partnerCost",
+        "payment_costTranscript"
+      ]
+    },
+    {
+      "canRead": [
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "targets": [
+        "payment_calculatedCost",
+        "payment_overcosted"
+      ]
+    },
+    {
+      "canRead": [
+        "back",
+        "front",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman"
+      ],
+      "targets": [
+        "payment_limitedCost"
+      ]
+    },
+    {
+      "canWrite": [
+        "back",
+        "front",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "canRead": [
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "targets": [
+        "payment_paidByRUAMC",
+        "payment_paidByClient"
+      ]
+    },
+    {
+      "canWrite": [
+        "parguy"
+      ],
+      "canRead": [
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman",
+        "parguy"
+      ],
+      "targets": [
+        "bill_billNumber",
+        "bill_billingCost",
+        "bill_billingDate"
+      ]
+    },
+    {
+      "canWrite": [
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman"
+      ],
+      "canRead": [
+        "partner",
+        "front",
+        "back",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman"
+      ],
+      "targets": [
+        "times_expectedServiceStart"
+      ]
+    },
+    {
+      "canWrite": [
+        "back",
+        "front",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman"
+      ],
+      "canRead": [
+        "back",
+        "front",
+        "head",
+        "supervisor",
+        "director",
+        "analyst",
+        "vwfake",
+        "parguy",
+        "account",
+        "admin",
+        "programman"
+      ],
+      "targets": [
+        "times_factServiceStart",
+        "times_expectedServiceEnd",
+        "times_factServiceEnd",
+        "times_expectedServiceFinancialClosure",
+        "times_factServiceFinancialClosure",
+        "times_expectedServiceClosure",
+        "times_factServiceClosure",
+        "times_repairEndDate"
+      ]
+    }
+  ],
+  "canDelete": true,
+  "canUpdate": true,
+  "canRead": true,
+  "canCreate": true,
+  "title": "Информирование о происшествии",
+  "name": "information"
 }

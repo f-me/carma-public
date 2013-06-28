@@ -1,43 +1,43 @@
 {
-    "name": "tarifOption",
-    "title": "Тарифная опция",
-    "canCreate": true,
-    "canRead": true,
-    "canUpdate": true,
-    "canDelete": true,
-    "applications": [
-        {
-            "targets": true,
-            "canWrite": true,
-            "canRead": true
-        }
-    ],
-    "fields": [
-        {
-            "name": "parentId",
-            "canRead": true,
-            "canWrite": true,
-            "meta": {
-                "invisible": true
-            }
-        },
-        {
-            "name": "optionName",
-            "meta": {
-                "label": "Название опции"
-            }
-        },
-        {
-            "name": "price1",
-            "meta": {
-                "label": "Стоимость за единицу за нал"
-            }
-        },
-        {
-            "name": "price2",
-            "meta": {
-                "label": "Стоимость за единицу по безналу"
-            }
-        }
-    ]
+  "fields": [
+    {
+      "meta": {
+        "invisible": true
+      },
+      "canWrite": true,
+      "canRead": true,
+      "name": "parentId"
+    },
+    {
+      "meta": {
+        "label": "Название опции"
+      },
+      "name": "optionName"
+    },
+    {
+      "meta": {
+        "label": "Стоимость за единицу за нал"
+      },
+      "name": "price1"
+    },
+    {
+      "meta": {
+        "label": "Стоимость за единицу по безналу"
+      },
+      "name": "price2"
+    }
+  ],
+  "applications": [
+    {
+      "canRead": true,
+      "canWrite": true,
+      "targets": true
+    }
+  ],
+  "canDelete": true,
+  "canUpdate": true,
+  "canRead": true,
+  "canCreate": true,
+  "title": "Тарифная опция",
+  "name": "tarifOption"
 }

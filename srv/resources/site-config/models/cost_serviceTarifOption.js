@@ -1,76 +1,75 @@
 {
-    "name": "cost_serviceTarifOption",
-    "title": "Тарифная опция",
-    "canCreate": true,
-    "canRead": true,
-    "canUpdate": true,
-    "canDelete": true,
-    "applications": [
-        {
-            "targets": true,
-            "canWrite": true,
-            "canRead": true
-        }
-    ],
-    "fields": [
-        {
-            "name": "parentId",
-            "canRead": true,
-            "canWrite": true,
-            "meta": {
-                "invisible": true
-            }
-        },
-        {
-            "name": "tarifOptionId",
-            "canRead": true,
-            "canWrite": true,
-            "meta":{
-                "invisible": true
-            }
-
-        },
-        {
-            "name": "optionName",
-            "meta": {
-                "label": "Название опции",
-                "readonly": true
-            }
-        },
-        {
-            "name": "price",
-            "meta": {
-                "label": "Цена за единицу",
-                "readonly": true
-            }
-        },
-        {
-            "name": "count",
-            "meta": {
-                "label": "Количество",
-                "regexp": "number"
-            }
-        },
-        {
-            "name": "cost",
-            "meta": {
-                "label": "Стоимость",
-                "readonly": true
-            }
-        },
-        {
-            "name": "price1",
-            "meta": {
-                "label": "Стоимость за единицу за нал",
-                "invisible": true
-            }
-        },
-        {
-            "name": "price2",
-            "meta": {
-                "label": "Стоимость за единицу по безналу",
-                "invisible": true
-            }
-        }
-    ]
+  "fields": [
+    {
+      "meta": {
+        "invisible": true
+      },
+      "canWrite": true,
+      "canRead": true,
+      "name": "parentId"
+    },
+    {
+      "meta": {
+        "invisible": true
+      },
+      "canWrite": true,
+      "canRead": true,
+      "name": "tarifOptionId"
+    },
+    {
+      "meta": {
+        "readonly": true,
+        "label": "Название опции"
+      },
+      "name": "optionName"
+    },
+    {
+      "meta": {
+        "readonly": true,
+        "label": "Цена за единицу"
+      },
+      "name": "price"
+    },
+    {
+      "meta": {
+        "regexp": "number",
+        "label": "Количество"
+      },
+      "name": "count"
+    },
+    {
+      "meta": {
+        "readonly": true,
+        "label": "Стоимость"
+      },
+      "name": "cost"
+    },
+    {
+      "meta": {
+        "invisible": true,
+        "label": "Стоимость за единицу за нал"
+      },
+      "name": "price1"
+    },
+    {
+      "meta": {
+        "invisible": true,
+        "label": "Стоимость за единицу по безналу"
+      },
+      "name": "price2"
+    }
+  ],
+  "applications": [
+    {
+      "canRead": true,
+      "canWrite": true,
+      "targets": true
+    }
+  ],
+  "canDelete": true,
+  "canUpdate": true,
+  "canRead": true,
+  "canCreate": true,
+  "title": "Тарифная опция",
+  "name": "cost_serviceTarifOption"
 }

@@ -1,153 +1,165 @@
 {
-    "name": "usermeta",
-    "title": "Метаданные пользователя",
-    "canCreate": ["admin", "head", "supervisor"],
-    "canRead": true,
-    "canUpdate": ["admin", "head", "supervisor"],
-    "canDelete": ["admin", "head", "supervisor"],
-    "applications": [
-        {
-            "targets": true,
-            "canWrite": true,
-            "canRead": true
-        }
-    ],
-    "fields": [
-        {
-            "name": "uid",
-            "meta": {
-                "invisible": true,
-                "sqltype": "integer"
-            }
-        },
-        {
-            "name": "isActive",
-            "type": "checkbox",
-            "meta": {
-                "label": "Активен"
-            }
-        },
-        {
-            "name": "realName",
-            "meta": {
-                "label": "ФИО пользователя"
-            }
-        },
-        {
-            "name": "login",
-            "meta": {
-                "label": "Логин",
-                "required": true
-            }
-        },
-        {
-            "name": "password",
-            "type": "password",
-            "meta": {
-                "label": "Пароль",
-                "nosql": true,
-                "required": true
-            }
-        },
-        {
-            "name": "roles",
-            "type": "dictionary-many",
-            "meta": {
-                "label": "Роль в системе",
-                "dictionaryName": "Roles"
-            }
-        },
-        {
-            "name": "programs",
-            "type": "dictionary-many",
-            "meta": {
-                "label": "Программы",
-                "dictionaryName": "allPrograms",
-                "dictionaryType": "ComputedDict"
-            }
-        },
-        {
-            "name": "boCities",
-            "type": "dictionary-many",
-            "meta": {
-                "label": "boCities",
-                "dictionaryName": "DealerCities",
-                "invisible": true
-            }
-        },
-        {
-            "name": "boPrograms",
-            "type": "dictionary-many",
-            "meta": {
-                "label": "boPrograms",
-                "dictionaryName": "Programs",
-                "invisible": true
-            }
-        },
-        {
-            "name": "isDealer",
-            "type": "checkbox",
-            "meta": {
-                "label": "Дилер"
-            }
-        },
-        {
-            "name": "workPhone",
-            "meta": {
-                "label": "Рабочий телефон"
-            }
-        },
-        {
-            "name": "workPhoneSuffix",
-            "meta": {
-                "label": "Добавочный номер"
-            }
-        },
-        {
-            "name": "mobilePhone",
-            "meta": {
-                "label": "Мобильный телефон"
-            }
-        },
-        {
-            "name": "homePhone",
-            "meta": {
-                "label": "Домашний телефон"
-            }
-        },
-        {
-            "name": "email",
-            "meta": {
-                "regexp": "email",
-                "label": "E-mail"
-            }
-        },
-        {
-            "name": "birthday",
-            "type": "date",
-            "meta": {
-                "label": "День рождения"
-            }
-        },
-        {
-            "name": "position",
-            "meta": {
-                "label": "Должность"
-            }
-        },
-        {
-            "name": "lastactivity",
-            "type": "datetime",
-            "meta": {
-                "invisible": "true"
-            }
-        },
-        {
-            "name": "lastlogout",
-            "type": "datetime",
-            "meta": {
-                "invisible": "true"
-            }
-        }
-    ]
+  "fields": [
+    {
+      "meta": {
+        "sqltype": "integer",
+        "invisible": true
+      },
+      "name": "uid"
+    },
+    {
+      "meta": {
+        "label": "Активен"
+      },
+      "type": "checkbox",
+      "name": "isActive"
+    },
+    {
+      "meta": {
+        "label": "ФИО пользователя"
+      },
+      "name": "realName"
+    },
+    {
+      "meta": {
+        "required": true,
+        "label": "Логин"
+      },
+      "name": "login"
+    },
+    {
+      "meta": {
+        "required": true,
+        "nosql": true,
+        "label": "Пароль"
+      },
+      "type": "password",
+      "name": "password"
+    },
+    {
+      "meta": {
+        "dictionaryName": "Roles",
+        "label": "Роль в системе"
+      },
+      "type": "dictionary-many",
+      "name": "roles"
+    },
+    {
+      "meta": {
+        "dictionaryType": "ComputedDict",
+        "dictionaryName": "allPrograms",
+        "label": "Программы"
+      },
+      "type": "dictionary-many",
+      "name": "programs"
+    },
+    {
+      "meta": {
+        "invisible": true,
+        "dictionaryName": "DealerCities",
+        "label": "boCities"
+      },
+      "type": "dictionary-many",
+      "name": "boCities"
+    },
+    {
+      "meta": {
+        "invisible": true,
+        "dictionaryName": "Programs",
+        "label": "boPrograms"
+      },
+      "type": "dictionary-many",
+      "name": "boPrograms"
+    },
+    {
+      "meta": {
+        "label": "Дилер"
+      },
+      "type": "checkbox",
+      "name": "isDealer"
+    },
+    {
+      "meta": {
+        "label": "Рабочий телефон"
+      },
+      "name": "workPhone"
+    },
+    {
+      "meta": {
+        "label": "Добавочный номер"
+      },
+      "name": "workPhoneSuffix"
+    },
+    {
+      "meta": {
+        "label": "Мобильный телефон"
+      },
+      "name": "mobilePhone"
+    },
+    {
+      "meta": {
+        "label": "Домашний телефон"
+      },
+      "name": "homePhone"
+    },
+    {
+      "meta": {
+        "label": "E-mail",
+        "regexp": "email"
+      },
+      "name": "email"
+    },
+    {
+      "meta": {
+        "label": "День рождения"
+      },
+      "type": "date",
+      "name": "birthday"
+    },
+    {
+      "meta": {
+        "label": "Должность"
+      },
+      "name": "position"
+    },
+    {
+      "meta": {
+        "invisible": "true"
+      },
+      "type": "datetime",
+      "name": "lastactivity"
+    },
+    {
+      "meta": {
+        "invisible": "true"
+      },
+      "type": "datetime",
+      "name": "lastlogout"
+    }
+  ],
+  "applications": [
+    {
+      "canRead": true,
+      "canWrite": true,
+      "targets": true
+    }
+  ],
+  "canDelete": [
+    "admin",
+    "head",
+    "supervisor"
+  ],
+  "canUpdate": [
+    "admin",
+    "head",
+    "supervisor"
+  ],
+  "canRead": true,
+  "canCreate": [
+    "admin",
+    "head",
+    "supervisor"
+  ],
+  "title": "Метаданные пользователя",
+  "name": "usermeta"
 }

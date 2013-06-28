@@ -1,62 +1,62 @@
 {
-  "name": "partnerCancel",
-  "title": "Отказ партнера",
-  "canCreate": true,
-  "canRead": true,
-  "canUpdate": true,
-  "canDelete": true,
   "fields": [
     {
-      "name": "ctime",
-      "canRead": true,
-      "canWrite": true,
       "meta": {
-        "invisible": true,
-        "sqltype": "timestamp"
-      }
+        "sqltype": "timestamp",
+        "invisible": true
+      },
+      "canWrite": true,
+      "canRead": true,
+      "name": "ctime"
     },
     {
-      "name": "caseId",
-      "canRead": true,
-      "canWrite": true,
       "meta": {
         "invisible": true
-      }
+      },
+      "canWrite": true,
+      "canRead": true,
+      "name": "caseId"
     },
     {
-      "name": "partnerId",
-      "canRead": true,
-      "canWrite": true,
       "meta": {
         "invisible": true
-      }
+      },
+      "canWrite": true,
+      "canRead": true,
+      "name": "partnerId"
     },
     {
-      "name": "owner",
-      "canRead": true,
-      "canWrite": true,
       "meta": {
         "invisible": true
-      }
+      },
+      "canWrite": true,
+      "canRead": true,
+      "name": "owner"
     },
     {
-      "name": "partnerCancelReason",
-      "canRead": true,
-      "canWrite": true,
+      "meta": {
+        "label": "Причина отказа партнера",
+        "dictionaryName": "PartnerCancelReason"
+      },
       "type": "dictionary",
-      "meta": {
-        "dictionaryName": "PartnerCancelReason",
-        "label": "Причина отказа партнера"
-      }
+      "canWrite": true,
+      "canRead": true,
+      "name": "partnerCancelReason"
     },
     {
-      "name": "comment",
-      "canRead": true,
-      "canWrite": true,
-      "type": "textarea",
       "meta": {
         "label": "Комментарий"
-      }
+      },
+      "type": "textarea",
+      "canWrite": true,
+      "canRead": true,
+      "name": "comment"
     }
-  ]
+  ],
+  "canDelete": true,
+  "canUpdate": true,
+  "canRead": true,
+  "canCreate": true,
+  "title": "Отказ партнера",
+  "name": "partnerCancel"
 }
