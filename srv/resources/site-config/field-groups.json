@@ -36,8 +36,6 @@
       "name": "model"
     },
     {
-      "indexCollate": true,
-      "index": true,
       "meta": {
         "regexp": "plateNum",
         "required": true,
@@ -81,8 +79,6 @@
   ],
   "vinContact": [
     {
-      "indexCollate": true,
-      "index": true,
       "meta": {
         "label": "ФИО",
         "transform": "capitalize"
@@ -90,8 +86,6 @@
       "name": "name"
     },
     {
-      "indexCollate": true,
-      "index": true,
       "type": "phone",
       "meta": {
         "regexp": "phone",
@@ -101,7 +95,6 @@
       "name": "phone1"
     },
     {
-      "index": true,
       "meta": {
         "regexp": "email",
         "label": "Email"
@@ -199,8 +192,6 @@
       "name": "seller"
     },
     {
-      "indexCollate": true,
-      "index": true,
       "meta": {
         "regexp": "plateNum",
         "required": true,
@@ -426,8 +417,6 @@
   ],
   "contact": [
     {
-      "indexCollate": true,
-      "index": true,
       "meta": {
         "label": "ФИО",
         "transform": "capitalize"
@@ -435,8 +424,6 @@
       "name": "name"
     },
     {
-      "indexCollate": true,
-      "index": true,
       "type": "phone",
       "meta": {
         "regexp": "phone",
@@ -446,7 +433,6 @@
       "name": "phone1"
     },
     {
-      "index": true,
       "type": "phone",
       "meta": {
         "regexp": "phone",
@@ -455,7 +441,6 @@
       "name": "phone2"
     },
     {
-      "index": true,
       "type": "phone",
       "meta": {
         "regexp": "phone",
@@ -464,7 +449,6 @@
       "name": "phone3"
     },
     {
-      "index": true,
       "type": "phone",
       "meta": {
         "regexp": "phone",
@@ -473,7 +457,6 @@
       "name": "phone4"
     },
     {
-      "index": true,
       "meta": {
         "regexp": "email",
         "label": "Email"
@@ -483,8 +466,6 @@
   ],
   "carContact": [
     {
-      "indexCollate": true,
-      "index": true,
       "meta": {
         "label": "Звонящий",
         "transform": "capitalize"
@@ -492,8 +473,6 @@
       "name": "name"
     },
     {
-      "indexCollate": true,
-      "index": true,
       "type": "phone",
       "meta": {
         "regexp": "phone",
@@ -503,7 +482,6 @@
       "name": "phone1"
     },
     {
-      "index": true,
       "type": "phone",
       "meta": {
         "regexp": "phone",
@@ -512,7 +490,6 @@
       "name": "phone2"
     },
     {
-      "index": true,
       "type": "phone",
       "meta": {
         "regexp": "phone",
@@ -521,7 +498,6 @@
       "name": "phone3"
     },
     {
-      "index": true,
       "type": "phone",
       "meta": {
         "regexp": "phone",
@@ -530,7 +506,6 @@
       "name": "phone4"
     },
     {
-      "index": true,
       "meta": {
         "regexp": "email",
         "label": "Email"
@@ -546,8 +521,6 @@
       "name": "contactOwner"
     },
     {
-      "indexCollate": true,
-      "index": true,
       "meta": {
         "label": "Владелец",
         "transform": "capitalize"
@@ -555,8 +528,6 @@
       "name": "ownerName"
     },
     {
-      "indexCollate": true,
-      "index": true,
       "type": "phone",
       "meta": {
         "regexp": "phone",
@@ -566,7 +537,6 @@
       "name": "ownerPhone1"
     },
     {
-      "index": true,
       "type": "phone",
       "meta": {
         "regexp": "phone",
@@ -575,7 +545,6 @@
       "name": "ownerPhone2"
     },
     {
-      "index": true,
       "type": "phone",
       "meta": {
         "regexp": "phone",
@@ -584,7 +553,6 @@
       "name": "ownerPhone3"
     },
     {
-      "index": true,
       "type": "phone",
       "meta": {
         "regexp": "phone",
@@ -593,7 +561,6 @@
       "name": "ownerPhone4"
     },
     {
-      "index": true,
       "meta": {
         "regexp": "email",
         "label": "Email"
