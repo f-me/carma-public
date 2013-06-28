@@ -13,10 +13,10 @@ import Control.Monad.State
 import Data.Maybe
 import qualified Data.Map as M
 import qualified Data.Aeson as Aeson
-import           Data.ByteString (ByteString)
 
 import Data.Pool
 import Database.PostgreSQL.Simple as Pg
+import Database.PostgreSQL.Simple.SqlQQ
 
 import Snap.Core
 import Snap.Snaplet
@@ -24,17 +24,16 @@ import Snap.Snaplet.Auth
 
 ----------------------------------------------------------------------
 import Snaplet.Auth.Class
-import Snaplet.Auth.PGUsers
 
 import Snaplet.DbLayer.Types (DbLayer)
 
 import Snaplet.SiteConfig.Config
-import Snaplet.SiteConfig.Permissions
 import Snaplet.SiteConfig.SpecialPermissions
 import Snaplet.SiteConfig.Models
 import Snaplet.SiteConfig.Dictionaries
 
 import Utils.HttpErrors
+
 
 serveModel :: HasAuth b => Handler b (SiteConfig b) ()
 serveModel = do
@@ -46,21 +45,23 @@ serveModel = do
       modifyResponse $ setResponseCode 401
       getResponse >>= finishWith
     Just (cu, m) -> do
-      cu' <- (gets authDb >>=) . flip withTop $ replaceMetaRolesFromPG cu
       modifyResponse $ setContentType "application/json"
-      writeModel name (stripModel (Right cu') m)
+      stripModel cu m >>= writeModel
 
-writeModel :: ByteString -> Model -> Handler b (SiteConfig b) ()
-writeModel "contract" model = do
-  field <- fromMaybe "showform" <$> getParam "field"
-  when (field /= "showform" && field /= "showtable") $
-    finishWithError 403 "field param should have showform of showtable value"
-  pid   <- getParam "pid"
-  when (pid == Nothing) $ finishWithError 403 "need pid param"
-  model' <- stripContract model (fromJust pid) field
-  writeLBS $ Aeson.encode model'
 
-writeModel _          model = writeLBS $ Aeson.encode model
+writeModel :: Model -> Handler b (SiteConfig b) ()
+writeModel model
+  = case modelName model of
+    "contract" -> do
+      field <- fromMaybe "showform" <$> getParam "field"
+      when (field /= "showform" && field /= "showtable") $
+        finishWithError 403 "field param should have showform of showtable value"
+      pid   <- getParam "pid"
+      when (pid == Nothing) $ finishWithError 403 "need pid param"
+      model' <- stripContract model (fromJust pid) field
+      writeLBS $ Aeson.encode model'
+    _ -> writeLBS $ Aeson.encode model
+
 
 serveModels :: HasAuth b => Handler b (SiteConfig b) ()
 serveModels = do
@@ -70,11 +71,35 @@ serveModels = do
       modifyResponse $ setResponseCode 401
       getResponse >>= finishWith
     Just cu -> do
-      cu' <- (gets authDb >>=) . flip withTop $ replaceMetaRolesFromPG cu
       ms <- gets models
+      strippedModels <- forM (M.toList ms)
+        $ \(nm, m) -> (nm,) <$> stripModel cu m
+
       modifyResponse $ setContentType "application/json"
       writeLBS $ Aeson.encode
-               $ M.map (stripModel $ Right cu') ms
+               $ M.fromList strippedModels
+
+
+stripModel :: AuthUser -> Model -> Handler b (SiteConfig b) Model
+stripModel u m = do
+  let Just uid = userId u
+  let withPG f = gets pg_search >>= liftIO . (`withResource` f)
+  readableFields <- withPG $ \c -> query c [sql|
+    select p.field, max(p.w::int)::bool
+      from "FieldPermission" p, usermetatbl u
+      where u.uid = ?::int
+        and p.model = ?
+        and p.r = true
+        and p.role = ANY (u.roles)
+      group by p.field
+    |]
+    (unUid uid, modelName m)
+  let fieldsMap = M.fromList readableFields
+  let fieldFilter f fs = case M.lookup (name f) fieldsMap of
+        Nothing -> fs
+        Just True  -> f {_canWrite = Everyone } : fs
+        Just False -> f {_canWrite = Nobody } : fs
+  return $ m {fields = foldr fieldFilter [] $ fields m}
 
 
 serveDictionaries :: Handler b (SiteConfig b) ()
