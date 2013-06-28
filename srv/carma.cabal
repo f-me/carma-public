@@ -46,7 +46,6 @@ Executable carma
     Snaplet.SiteConfig.Dictionaries,
     Snaplet.SiteConfig.Types,
     Snaplet.SiteConfig.Models,
-    Snaplet.SiteConfig.Permissions,
     Snaplet.SiteConfig.SpecialPermissions,
     Snaplet.FileUpload,
     Snaplet.Geo,
