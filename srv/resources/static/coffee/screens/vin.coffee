@@ -31,8 +31,6 @@ define [ "text!tpl/screens/vin.html"
   this.doVin = ->
     form     = $el("vin-import-form")[0]
     formData = new FormData(form)
-    vinFormat = $("#vin-program-select").find("option:selected").data("format")
-    formData.append("format", vinFormat)
 
     $.ajax(
       type        : "POST"
