@@ -120,4 +120,26 @@
       </tr>
     </tbody>
   </table>
+
+  <table class="table table-condensed table-striped table-bordered">
+    <caption><strong>Отказы партнёров</strong></caption>
+    <thead>
+      <tr>
+        <th>Дата и время</th>
+        <th>Оператор</th>
+        <th>Партнёр</th>
+        <th>Причина отказа</th>
+        <th>Комментарий</th>
+      </tr>
+    </thead>
+    <tbody data-bind="foreach: cancelsParsed">
+      <tr>
+        <td data-bind="text: $data.ctime"></td>
+        <td data-bind="text: $data.owner"></td>
+        <td data-bind="text: $data.partnerName"></td>
+        <td data-bind="text: $data.partnercancelreason"></td>
+        <td data-bind="text: $data.comment"></td>
+      </tr>
+    </tbody>
+  </table>
 </div>

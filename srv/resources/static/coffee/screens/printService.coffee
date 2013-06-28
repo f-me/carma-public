@@ -28,6 +28,15 @@ define ["text!tpl/screens/printSrv.html"], (tpl) ->
           comment.user = global.dictValueCache['users'][comment.user]
         parsed
 
+      # for partners cancels table
+      arg.cancelsParsed = ko.computed ->
+        _.map arg.cancels, (c) ->
+          cancel = _.clone c
+          cancel.owner = global.dictValueCache['users'][cancel.owner]
+          cancel.partnercancelreason =
+            global.dictValueCache['PartnerCancelReason'][cancel.partnercancelreason] || ''
+          cancel
+
       ko.applyBindings arg, el("print-table")
 
   destroyPrintSrv = () ->
