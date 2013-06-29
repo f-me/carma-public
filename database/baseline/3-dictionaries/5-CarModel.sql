@@ -1437,7 +1437,7 @@ INSERT INTO "CarModel" (value, label, parent)
     FROM "CarMaker" WHERE value = 'ford';
 INSERT INTO "CarModel" (value, label, parent)
   SELECT 'tourenoConnect',
-         'Toureno Connect',
+         'Tourneo Connect',
          id
     FROM "CarMaker" WHERE value = 'ford';
 INSERT INTO "CarModel" (value, label, parent)
