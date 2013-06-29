@@ -121,7 +121,7 @@ create view servicesview as
         p2.code as dealer_code,
         p3.code as seller_code,
         p3.name as car_seller_name,
-        p4.code as to_dealer_code
+        p4.code as to_dealer_code,
         p4.name as car_dealerto_name
 
     from casetbl c
