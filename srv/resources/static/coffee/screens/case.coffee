@@ -133,6 +133,8 @@ define [ "utils"
 
     removeCaseMain = ->
       $("body").off "change.input"
+      $('.navbar').css "-webkit-transform", ""
+
 
     # get partners and show them in table
     # this is called from local.coffe:showCase
