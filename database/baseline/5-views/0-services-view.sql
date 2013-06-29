@@ -23,7 +23,6 @@ create view servicesview as
         c.contact_owneremail,
         c.program,
         c.car_vin,
-        c.car_seller,
         c.car_make,
         c.car_model,
         c.car_platenum,
@@ -31,7 +30,6 @@ create view servicesview as
         c.car_color,
         c.car_buydate,
         c.car_checkupdate,
-        c.car_dealerto,
         c.car_mileage,
         c.car_checkupmileage,
         c.car_transmission,
@@ -122,7 +120,9 @@ create view servicesview as
         p1.code as partner_code,
         p2.code as dealer_code,
         p3.code as seller_code,
+        p3.name as car_seller_name,
         p4.code as to_dealer_code
+        p4.name as car_dealerto_name
 
     from casetbl c
         left outer join partnertbl p3 on c.car_seller = p3.id::text
