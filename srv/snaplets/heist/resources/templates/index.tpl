@@ -117,6 +117,13 @@
           <ifLoggedIn>
             <ul class="nav pull-right">
               <li class="divider-vertical" />
+              <li id="navbar-achievements" class="dropdown" style="display: none">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                  <i class="icon-star icon-white" />
+                </a>
+                <ul class="dropdown-menu">
+                </ul>
+              </li>
               <li class="dropdown">
                 <a href="#"
                    class="dropdown-toggle"
