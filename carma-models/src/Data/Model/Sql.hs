@@ -12,6 +12,8 @@ import GHC.TypeLits
 import Data.Model
 
 
+
+
 mkSelectDictQuery
   :: (Model model, SingI (TableName model), SingI name, SqlConstraint ctr)
   => (model -> Field name typ) -> ctr

@@ -1,7 +1,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Data.Model
-  ( Model(..)
+  ( Ident(..)
+  , Model(..)
   , Field
   , fieldName
   , tableName
@@ -13,7 +14,15 @@ import Data.Typeable
 import GHC.TypeLits
 
 
-data Ident model = Ident Int
+data Ident model = Ident {identVal :: Int}
+  deriving Eq
+
+instance Model m => Show (Ident m) where
+  show (Ident x :: Ident m) = "Ident " ++ modelName ++ " " ++ show x
+    where
+      modelName = show $ typeOf (undefined :: m)
+
+
 data Field (name :: Symbol) typ = Field
 
 class Typeable m => Model m where

@@ -24,3 +24,9 @@ data Program = Program
 
 instance Model Program where
   type TableName Program = "programtbl"
+
+-- known programs
+citroen = Ident 56 :: Ident Program
+peugeot = Ident 57 :: Ident Program
+vwMotor = Ident 63 :: Ident Program
+vwCargo = Ident 64 :: Ident Program
