@@ -42,11 +42,8 @@ define ["model/utils"], (mu) ->
     , 500)
 
   window.getDictionary = (d) ->
-    console.log 'dicts', d
     dict = global.dictionaries[d]
-    console.log 'found dict', dict
     return dict if dict
-    console.log 'gonna eval'
     return eval(d)
 
 
@@ -195,8 +192,8 @@ define ["model/utils"], (mu) ->
     require ["map"], (map) ->
       pickers =
         callPlease: (modelName) ->
-          bb = global.viewsWare["call-form"].bbInstance
-          number = bb.get(modelName)
+          kvm = global.viewsWare["call-form"].knockVM
+          number = kvm[modelName]?()
           global.avayaPhone && global.avayaPhone.call(number)
         # Set a field to a new randomly generated password
         passwordPicker   : (fieldName, el) ->
@@ -243,7 +240,7 @@ define ["model/utils"], (mu) ->
       deleteCb = (args...) -> cb(args) if _.isFunction cb
       $.ajax
         'type'     : 'DELETE'
-        'url'      : "/_/#{kvm.modelName()}/#{kvm.id()}"
+        'url'      : "/_/#{kvm._meta.model.name}/#{kvm.id()}"
         'success'  : -> deleteCb
         'error'    : (xhr) ->
           if xhr.status == 404

@@ -6,7 +6,8 @@ define [], ->
   forgetView = (viewName) ->
     vW = global.viewsWare[viewName]
     # View may have not setup any knockVM (static views like search)
-    if not _.isUndefined(vW.knockVM) then kb.vmRelease(vW.knockVM)
+    # FIXME: do we have to release knockvm at all?
+    # if not _.isUndefined(vW.knockVM) then kb.vmRelease(vW.knockVM)
     vW = {}
     $el(viewName).empty()
 

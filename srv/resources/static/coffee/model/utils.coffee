@@ -3,16 +3,16 @@ define ["model/main", "render/screen"], (main, render) ->
   elementView = (elt) -> _.last($(elt).parents("[id*=view]"))
 
   # Save instance loaded in view
-  saveInstance = (viewName) -> global.viewsWare[viewName].bbInstance.save()
+  saveInstance = (viewName) -> global.viewsWare[viewName].knockVM._meta.q.save()
 
   window.saveInstance = saveInstance
 
   addReference: (knockVM, field, ref, cb) ->
-    field = field + 'Reference' unless /Reference$/.test(field)
-    thisId = knockVM.modelName() + ":" + knockVM.id()
+    field = "#{field}Reference" unless /Reference$/.test(field)
+    thisId = knockVM._meta.model.name + ":" + knockVM.id()
     ref.args = _.extend({"parentId":thisId}, ref.args)
     main.buildNewModel ref.modelName, ref.args, ref.options or {},
-      (mkBackboneModel, instance, refKVM) ->
+      (model, refKVM) ->
         newVal = knockVM[field]().concat refKVM
         knockVM[field](newVal)
         cb(_.last knockVM[field]()) if _.isFunction(cb)

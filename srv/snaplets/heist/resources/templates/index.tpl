@@ -33,9 +33,6 @@
     <!-- Loose MVC -->
     <script src="/s/js/3p/backbone-0.9.1.min.js" />
 
-    <!-- Knockback is a Knockout + Backbone glue -->
-    <script src="/s/js/3p/knockback-0.13.min.js" />
-
     <!-- Simple templates -->
     <script src="/s/js/3p/mustache.js" />
 
@@ -918,10 +915,10 @@
                id="{{ refView }}-link">
             <a class="icon icon-remove" />
             <a
-               data-bind="text: modelTitle">
+               data-bind="text: _meta.model.title">
                Услуга…
             </a>
-            <a data-bind="attr: { href: '#printSrv/'+modelName()+'/'+id() }"
+            <a data-bind="attr: { href: '#printSrv/'+_meta.model.name+'/'+id() }"
                target="_blank">
               [Печать]
           </a>
