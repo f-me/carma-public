@@ -21,21 +21,17 @@ define ["text!tpl/screens/printSrv.html"], (tpl) ->
           Services        : 'type'
           ServiceStatuses : 'status'
 
-      # for comments table
-      arg.kase.commentsParsed = ko.computed ->
-        parsed = $.parseJSON arg.kase.comments
-        _.each parsed, (comment) ->
-          comment.user = global.dictValueCache['users'][comment.user]
-        parsed
+      for s in (arg.cancels || [])
+        postProc s,
+          lookup:
+            users               : 'owner'
+            PartnerCancelReason : 'partnerCancelReason'
+          time: ['ctime']
 
-      # for partners cancels table
-      arg.cancelsParsed = ko.computed ->
-        _.map arg.cancels, (c) ->
-          cancel = _.clone c
-          cancel.owner = global.dictValueCache['users'][cancel.owner]
-          cancel.partnercancelreason =
-            global.dictValueCache['PartnerCancelReason'][cancel.partnercancelreason] || ''
-          cancel
+      for s in (arg.comments || [])
+        postProc s,
+          lookup:
+            users: 'owner'
 
       ko.applyBindings arg, el("print-table")
 

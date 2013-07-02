@@ -112,7 +112,7 @@
         <th>Текст</th>
       </tr>
     </thead>
-    <tbody data-bind="foreach: kase.commentsParsed">
+    <tbody data-bind="foreach: kase.comments">
       <tr>
         <td data-bind="text: $data.date"></td>
         <td data-bind="text: $data.user"></td>
@@ -132,12 +132,12 @@
         <th>Комментарий</th>
       </tr>
     </thead>
-    <tbody data-bind="foreach: cancelsParsed">
+    <tbody data-bind="foreach: cancels">
       <tr>
         <td data-bind="text: $data.ctime"></td>
         <td data-bind="text: $data.owner"></td>
         <td data-bind="text: $data.partnerName"></td>
-        <td data-bind="text: $data.partnercancelreason"></td>
+        <td data-bind="text: $data.partnerCancelReason"></td>
         <td data-bind="text: $data.comment"></td>
       </tr>
     </tbody>

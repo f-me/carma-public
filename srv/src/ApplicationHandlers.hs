@@ -520,6 +520,8 @@ lookupSrvQ = [sql|
        , c.comment
        , c.owner
        , c.partnerid
+       , (extract (epoch from c.ctime at time zone 'UTC')::int8)::text
+       , c.partnercancelreason
        , p.name
   FROM partnercanceltbl c
   LEFT JOIN partnertbl p
@@ -551,6 +553,8 @@ printServiceHandler = do
                              , "comment"
                              , "owner"
                              , "partnerid"
+                             , "ctime"
+                             , "partnerCancelReason"
                              , "partnerName"
                              ] rows
 
