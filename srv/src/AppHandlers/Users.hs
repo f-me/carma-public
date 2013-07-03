@@ -18,6 +18,7 @@ module AppHandlers.Users
 where
 
 import Data.Aeson
+import Data.Int
 import qualified Data.HashMap.Strict as HM
 
 import Snap
@@ -151,9 +152,9 @@ serveUserCake
       writeJSON $ u
         {userMeta = HM.insert "achievements"
           (object
-            ["calls" .= (calls :: Int)
-            ,"orders" .= (orders :: Int)
-            ,"actions" .= (actions :: Int)
+            ["calls" .= (calls :: Int64)
+            ,"orders" .= (orders :: Int64)
+            ,"actions" .= (actions :: Int64)
             ])
           (userMeta u)
         }
