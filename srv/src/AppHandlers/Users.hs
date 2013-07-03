@@ -127,10 +127,18 @@ serveUserCake
   >>= \case
     Nothing -> handleError 401
     Just u'  -> do
-      u <- with db $ replaceMetaRolesFromPG u'
-      achievements <- userAchievements u
-      writeJSON $ u
-        {userMeta = HM.insert "achievements"
-          (toJSON achievements)
-          (userMeta u)
+      usr <- with db $ replaceMetaRolesFromPG u'
+      achievements <- userAchievements usr
+      let homePage = case userRoles usr of
+            rs | Role "front"      `elem` rs -> "/#call"
+               | Role "back"       `elem` rs -> "/#back"
+               | Role "supervisor" `elem` rs -> "/#supervisor"
+               | Role "parguy"     `elem` rs -> "/#partner"
+               | Role "head"       `elem` rs -> "/#rkc"
+               | otherwise                   -> ""
+      writeJSON $ usr
+        {userMeta
+          = HM.insert "achievements" (toJSON achievements)
+          $ HM.insert "homepage" homePage
+          $ userMeta usr
         }
