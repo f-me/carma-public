@@ -944,9 +944,36 @@
     <script type="text/template"
             class="reference-template"
             id="files-reference-template">
+      <form class="accordion-group {{ refField }}-attach-form"
+            action="/upload/{{ modelName }}/{{ id }}/{{ refField }}">
+        <!-- File chooser widget -->
+        <div class="input-append" style="width:100%" id="upload-files">
+          <input type="file"
+                 class="file-container"
+                 onchange="$(this).siblings('.file-path').val($(this).val());"
+                 data-bind="disabled: {{ refField }}Disabled"
+                 style="display:none;" />
+          <input type="text"
+                 class="file-path"
+                 style="width: 50%;"
+                 disabled
+                 />
+          <a class="btn"
+             data-bind="disabled: {{ refField }}Disabled"
+             onclick="$(this).siblings('.file-container').click();"
+             >
+            <i class="icon icon-folder-open" />&nbsp;Обзор
+          </a>
+          <a class="btn btn-primary"
+             onclick="$(this)">
+             <i class="icon icon-upload icon-white" />&nbsp;Загрузить
+          </a>
+        </div>
+        
         <div class="accordion-group {{ refClass }}"
              id="{{ refView }}" />
         <!-- Attachment contents are rendered here -->
+      </form>
     </script>
 
     <script type="text/template"
