@@ -2,6 +2,9 @@ define ["text!tpl/screens/printSrv.html"], (tpl) ->
   setupPrintSrv = (viewName, {model: model, id: id}) ->
     $(".navbar").hide()
     $.getJSON "/printSrv/#{model}/#{id}", (arg) ->
+      arg.service = arg.service[0]
+      arg.kase    = arg.kase[0]
+
       arg.service.assignedTo = lookup('users', arg.service.assignedTo)
       arg.service.type = model
       postProc arg.kase,
@@ -17,6 +20,18 @@ define ["text!tpl/screens/printSrv.html"], (tpl) ->
         lookup:
           Services        : 'type'
           ServiceStatuses : 'status'
+
+      for s in (arg.cancels || [])
+        postProc s,
+          lookup:
+            users               : 'owner'
+            PartnerCancelReason : 'partnerCancelReason'
+          time: ['ctime']
+
+      for s in (arg.comments || [])
+        postProc s,
+          lookup:
+            users: 'owner'
 
       ko.applyBindings arg, el("print-table")
 

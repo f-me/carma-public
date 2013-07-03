@@ -1,6 +1,9 @@
 DROP   VIEW IF EXISTS partnercancelview;
 CREATE VIEW partnercancelview AS
-  SELECT pc.*, p.name as partner, substring(pc.caseid, ':(.*)') as case
+  SELECT pc.*
+       , p.name as partner
+       , substring(pc.caseid   , ':(.*)') as case
+       , substring(pc.serviceid, ':(.*)') as service
   FROM      partnercanceltbl pc
   LEFT JOIN partnertbl       p
   ON p.id::text = substring(pc.partnerid, ':(.*)');

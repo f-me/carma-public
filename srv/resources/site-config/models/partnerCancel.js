@@ -32,6 +32,14 @@
       }
     },
     {
+      "name": "serviceId",
+      "canRead": true,
+      "canWrite": true,
+      "meta": {
+        "invisible": true
+      }
+    },
+    {
       "name": "owner",
       "canRead": true,
       "canWrite": true,
