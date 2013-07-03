@@ -11,7 +11,7 @@ define [ "hooks/common"
       "*"    : [ c.regexpKbHook
                , c.dictionaryKbHook
                , c.dictManyHook
-               , c.filesKbHook
+               , c.fileKbHook
                , c.dateTimeHook
                ]
 
