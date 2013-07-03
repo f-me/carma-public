@@ -192,11 +192,12 @@ define [ "text!tpl/screens/uploads.html"
     $("#upload-send").click () ->
       # Upload all files
       files = $(this).siblings("#upload-dialog")[0].files
-      for n in [0..(files.length - 1)]
-        sendFile files.item(n)
-      # Flush files list
-      $("#upload-dialog").val("")
-      $("#upload-dialog").change()
+      if files.length > 0
+        for n in [0..(files.length - 1)]
+          sendFile files.item(n)
+        # Flush files list
+        $("#upload-dialog").val("")
+        $("#upload-dialog").change()
 
   { constructor: renderUploadsForm
   , template: tpl
