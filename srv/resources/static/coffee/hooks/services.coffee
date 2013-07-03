@@ -59,6 +59,5 @@ define ["utils", "model/utils", "partnerCancel"], (u, mu, partnerCancel) ->
         mc.removeClass('error')
         cc.removeClass('error')
 
-  bindPartnerCancelDialog: (model, knockVM) ->
-    knockVM['showPartnerCancelDialog'] = ->
-      partnerCancel.setup(knockVM.contractor_partnerId, knockVM.contractor_partner)
+  bindPartnerCancelDialog: (model, kvm) ->
+    kvm['showPartnerCancelDialog'] = -> partnerCancel.setup kvm
