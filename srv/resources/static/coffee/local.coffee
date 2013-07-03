@@ -81,20 +81,15 @@ require [ "domready"
     sendSms.setup()
 
     # achievements
-    achv = $('#navbar-achievements')
-    achvLst = $('#navbar-achievements ul')
-    achTpl = (txt) ->
-      '<li class="disabled"><a><i class="icon-star icon"/>' +
-        '&nbsp;&nbsp;' + txt +
-        '</a></li>'
-    if user.meta.achievements.calls > 100
-      achvLst.append achTpl "Принято больше ста звонков за последние 20 дней"
-      achv.show()
-    if user.meta.achievements.orders > 100
-      achvLst.append achTpl "Заказано больше ста услуг за последние 20 дней"
-      achv.show()
-    if user.meta.achievements.actions > 100
-      achvLst.append achTpl "Больше ста действий выполнено вовремя за последние 20 дней"
+    if user.meta.achievements.length
+      achv = $('#navbar-achievements')
+      achvLst = $('#navbar-achievements ul')
+      achTpl = (txt) ->
+        '<li class="disabled"><a><i class="icon-star icon"/>' +
+          '&nbsp;&nbsp;' + txt +
+          '</a></li>'
+      for a in user.meta.achievements
+        achvLst.append achTpl a
       achv.show()
 
 

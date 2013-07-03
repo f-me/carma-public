@@ -18,17 +18,15 @@ module AppHandlers.Users
 where
 
 import Data.Aeson
-import Data.Int
 import qualified Data.HashMap.Strict as HM
 
 import Snap
 import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.PostgresqlSimple
-import qualified Database.PostgreSQL.Simple as PG
-import Database.PostgreSQL.Simple.SqlQQ
 
 import Application
 import AppHandlers.Util
+import AppHandlers.UserAchievements
 import Snaplet.Auth.PGUsers
 
 
@@ -130,31 +128,9 @@ serveUserCake
     Nothing -> handleError 401
     Just u'  -> do
       u <- with db $ replaceMetaRolesFromPG u'
-      [(calls,orders,actions)] <- withPG pg_search $ \c -> PG.query c [sql|
-        with
-          calls  as (
-            select count(*) as res from calltbl
-              where callTaker = ?
-                and calldate > now() - interval '20 days'),
-          orders as (
-            select count(*) as res from actiontbl
-              where closed and assignedTo = ?
-                and closeTime > now() - interval '20 days'
-                and name = 'orderService'),
-          actions as (
-            select count(*) as res from actiontbl
-              where closed and assignedTo = ?
-                and closeTime > now() - interval '20 days'
-                and dueTime <= closeTime)
-          select calls.res, orders.res, actions.res
-            from calls, orders, actions
-        |] (userLogin u, userLogin u, userLogin u)
+      achievements <- userAchievements u
       writeJSON $ u
         {userMeta = HM.insert "achievements"
-          (object
-            ["calls" .= (calls :: Int64)
-            ,"orders" .= (orders :: Int64)
-            ,"actions" .= (actions :: Int64)
-            ])
+          (toJSON achievements)
           (userMeta u)
         }
