@@ -81,7 +81,7 @@ define [ "text!tpl/screens/uploads.html"
     box.appendTo $("#uploaded-files")
     box.fadeIn()
 
-    # A small KVM for user interactaction
+    # A small KVM for user interaction
     bvm =
       msg      : ko.observable "Выполняю загрузку…"
       filename : ko.observable file.name
@@ -160,7 +160,7 @@ define [ "text!tpl/screens/uploads.html"
           af = $(this).find(".attach-field")
           res = attachToCase bvm, af
 
-        # Forget existing validity violations
+        # Forget existing validity violations when case number changes
         box.find(".attach-field").change () ->
           $(this)[0].setCustomValidity("");
 
@@ -175,23 +175,27 @@ define [ "text!tpl/screens/uploads.html"
 
     # Fake browse button
     $("#upload-browse-btn").click () ->
-      $(this).siblings("#upload-dialog").click()
+      $("#upload-dialog").click()
 
     $("#upload-cleanup").click () ->
       $("#uploaded-files .alert-success").slideUp()
+
+    $("#upload-files-form").submit (e) ->
+      $("#upload-send").click()
+      false
 
     # Show file names when selecting files
     $("#upload-dialog").change () ->
       files = this.files
       if files.length > 0
         names = (files.item(n).name for n in [0..(files.length - 1)])
-        $(this).siblings("#upload-names").val names.join " "
+        $("#upload-names").val names.join " "
       else
-        $(this).siblings("#upload-names").val ""
+        $("#upload-names").val ""
 
     $("#upload-send").click () ->
       # Upload all files
-      files = $(this).siblings("#upload-dialog")[0].files
+      files = $("#upload-dialog")[0].files
       if files.length > 0
         for n in [0..(files.length - 1)]
           sendFile files.item(n)
