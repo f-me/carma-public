@@ -1,7 +1,9 @@
 define ["text!tpl/screens/printSrv.html"], (tpl) ->
   setupPrintSrv = (viewName, {model: model, id: id}) ->
     $(".navbar").hide()
+
     $.getJSON "/printSrv/#{model}/#{id}", (arg) ->
+
       arg.service = arg.service[0]
       arg.kase    = arg.kase[0]
 
@@ -28,10 +30,11 @@ define ["text!tpl/screens/printSrv.html"], (tpl) ->
             PartnerCancelReason : 'partnerCancelReason'
           time: ['ctime']
 
-      for s in (arg.comments || [])
+      arg.kase.comments = $.parseJSON arg.kase.comments
+      for s in (arg.kase.comments || [])
         postProc s,
           lookup:
-            users: 'owner'
+            users: 'user'
 
       ko.applyBindings arg, el("print-table")
 
@@ -50,10 +53,12 @@ define ["text!tpl/screens/printSrv.html"], (tpl) ->
     global.dictValueCache[dict][val] || ''
 
   postProc = (obj, procs) ->
-    for t in procs.time
-      obj[t] = time(obj[t])
-    for d, f of procs.lookup
-      obj[f] = lookup(d, (obj[f] || '')) || obj[f] || ''
+    if procs.time
+      for t in procs.time
+        obj[t] = time(obj[t])
+    if procs.lookup
+      for d, f of procs.lookup
+        obj[f] = lookup(d, (obj[f] || '')) || obj[f] || ''
 
   { constructor: setupPrintSrv
   , destructor: destroyPrintSrv
