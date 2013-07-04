@@ -21,6 +21,10 @@ q = [sql|
           , p.workingTime
           , (p.isDealer::int)::text
           , (p.isMobile::int)::text
+          , p.code
+          , p.addrDeJure
+          , p.addrDeFacto
+          , p.personInCharge
           , s.priority2
           , s.priority3
           , s.servicename
@@ -31,6 +35,10 @@ q = [sql|
      AND s.parentid != ''
      AND s.parentid != 'partner:null'
      WHERE true
+     AND name IS NOT NULL
+     AND name != ''
+     LIMIT (random() * 100) :: int
+     OFFSET (random() * 10) :: int
 |]
 
 partnersSearchH :: AppHandler ()
@@ -38,6 +46,7 @@ partnersSearchH = do
   rows <- withPG pg_search $ \c -> query_ c $ fromString q
   let fields = ["id","name","city","comment" ,"addrDeFacto"
                ,"phone1","workingTime","isDealer","isMobile"
+               ,"code", "addrDeJure","addrDeFacto", "personInCharge"
                ,"priority2", "priority3", "serviceName"
                ]
   writeJSON $ mkMap fields rows

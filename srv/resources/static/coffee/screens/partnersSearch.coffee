@@ -1,7 +1,8 @@
 define [ "utils"
        , "model/main"
+       , "sync/dipq"
        , "text!tpl/screens/partnersSearch.html"
-       ], (utils, m, tpl) ->
+       ], (utils, m, sync, tpl) ->
 
   cbMeta = (l, n) ->
     name: n
@@ -74,19 +75,42 @@ define [ "utils"
   txt = $("#text-field-template").html()
   md  = $("#dictionary-many-field-template").html()
   cb  = $("#checkbox-field-template").html()
-  srch = Mustache.render txt, fh['search'] #{ meta: { label: "Поиск" } }
-  city = Mustache.render md,  fh['city'] #{ meta: { label: "Город" } }
-  make = Mustache.render md,  fh['make'] #{ meta: { label: "Марка" } }
-  srvs = Mustache.render md,  fh['services'] #{ meta: { label: "Марка" } }
-  pr2  = Mustache.render md,  fh['priority2'] #{ meta: { label: "ПБГ"   } }
-  pr3  = Mustache.render md,  fh['priority3'] #{ meta: { label: "ПНГ"   } }
-  dlr  = Mustache.render cb,  fh['isDealer'] # cbMeta("Дилер", "dealer")
-  mbp  = Mustache.render cb,  fh['mobilePartner'] #cbMeta("Мобильный партнер", "mobilePartner")
-  wn   = Mustache.render cb,  fh['workNow'] #cbMeta("Работают сейчас", "workNow")
+  srch = Mustache.render txt, fh['search']
+  city = Mustache.render md,  fh['city']
+  make = Mustache.render md,  fh['make']
+  srvs = Mustache.render md,  fh['services']
+  pr2  = Mustache.render md,  fh['priority2']
+  pr3  = Mustache.render md,  fh['priority3']
+  dlr  = Mustache.render cb,  fh['isDealer']
+  mbp  = Mustache.render cb,  fh['mobilePartner']
+  wn   = Mustache.render cb,  fh['workNow']
+
+  srvLab = (val) -> window.global.dictValueCache.Services[val] || val
 
   constructor: ->
     kvm = m.buildKVM(model, "partnersSearch-content")
+    q = new sync.DipQueue(kvm, model)
+    kvm._meta.q = q
+    kvm['searchResults'] = ko.observable()
+    kvm['searchH'] = ko.computed ->
+      s = kvm['searchResults']()
+      return [] unless s
+      r = {}
+      for v in s
+        r[v.id] ?= v
+        r[v.id]['services'] ?= []
+        r[v.id]['services'].push
+          name     : srvLab v.serviceName
+          priority2: v.priority2
+          priority3: v.priority3
+      r
+
+    kvm['searchProcessed'] = ko.computed ->
+      for k, v of kvm['searchH']()
+        v.services = _.sortBy v.services, (v) -> [v.priority2, v.priority3]
+        v
     ko.applyBindings kvm, $('#partnersSearch-content')[0]
+
   template: tpl
   partials: partialize
     search        : srch
