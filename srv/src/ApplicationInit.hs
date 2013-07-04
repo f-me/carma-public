@@ -37,6 +37,7 @@ import AppHandlers.PSA
 import AppHandlers.ContractGenerator
 import AppHandlers.Users
 import AppHandlers.Screens
+import AppHandlers.PartnersSearch
 
 ------------------------------------------------------------------------------
 -- | The application's routes.
@@ -51,24 +52,24 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/report",        chkAuthLocal . method GET  $ report)
          , ("/all/:model",    chkAuth . method GET  $ readAllHandler)
          , ("/callsByPhone/:phone",
-                              chkAuthLocal . method GET    $ searchCallsByPhone)
-         , ("/actionsFor/:id",chkAuthLocal . method GET    $ getActionsForCase)
+                              chkAuthLocal . method GET $ searchCallsByPhone)
+         , ("/actionsFor/:id",chkAuthLocal . method GET $ getActionsForCase)
          , ("/littleMoreActions",
-                              chkAuthLocal . method PUT    $ littleMoreActionsHandler)
-         , ("/allActions",    chkAuthLocal . method GET    $ allActionsHandler)
+            chkAuthLocal . method PUT $ littleMoreActionsHandler)
+         , ("/allActions",    chkAuthLocal . method GET $ allActionsHandler)
          , ("actions/unassigned",
-                              chkAuthLocal . method GET    $ unassignedActionsHandler)
-         , ("actions/busyOps",
-                              chkAuthLocal . method GET    $ busyOps)
-         , ("/allPartners",   chkAuthLocal . method GET    $ allPartnersHandler)
+            chkAuthLocal . method GET $ unassignedActionsHandler)
+         , ("actions/busyOps", chkAuthLocal . method GET $ busyOps)
+         , ("partners/search", chkAuthLocal . method GET  $ partnersSearchH)
+         , ("/allPartners",   chkAuthLocal . method GET  $ allPartnersHandler)
          , ("/partnersFor/:srv",
-                              chkAuthLocal . method GET    $ partnersForSrvHandler)
+                              chkAuthLocal . method GET $ partnersForSrvHandler)
          , ("/psaCases/",
-                              chkAuthLocal . method GET    $ psaCasesHandler)
+                              chkAuthLocal . method GET $ psaCasesHandler)
          , ("/psaCases/:program",
-                              chkAuthLocal . method GET    $ psaCasesHandler)
+                              chkAuthLocal . method GET $ psaCasesHandler)
          , ("/repTowages/:id",
-                              chkAuthLocal . method GET    $ repTowagesHandler)
+                              chkAuthLocal . method GET $ repTowagesHandler)
          , ("/allContracts/:program",
                               chkAuth . method GET   $ selectContracts)
          , ("/renderContract",

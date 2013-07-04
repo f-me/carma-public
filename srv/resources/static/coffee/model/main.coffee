@@ -332,4 +332,5 @@ define [ "model/render"
   { setup         : mainSetup
   , modelSetup    : modelSetup
   , buildNewModel : buildNewModel
+  , buildKVM      : buildKVM
   }

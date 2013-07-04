@@ -18,7 +18,7 @@ define [
   "screens/newVin"
   "screens/editSms"
   "screens/program"
-  "screens/partnersLookup"
+  "screens/partnersSearch"
   "render/screen"
   ], ( bo
      , call
@@ -39,7 +39,7 @@ define [
      , newVin
      , editSms
      , program
-     , partnersLookup
+     , partnersSearch
      , r) ->
     localScreens: ->
       "case":
@@ -74,7 +74,7 @@ define [
       "uploads":
         "template": "uploads-screen-template"
         "views":
-          "user-view": uploads         
+          "user-view": uploads
       "supervisor":
         "template": "supervisor-screen-template"
         "views":
@@ -121,9 +121,9 @@ define [
         "template": "program-screen-template"
         "views":
           "program-view": program
-      "partnersLookup":
+      "partnersSearch":
         "views":
-          "lookup-view": partnersLookup
+          "search-view": partnersSearch
 
     # Setup routing
     localRouter: Backbone.Router.extend
@@ -155,7 +155,7 @@ define [
         "program"        : "program"
         "program/:id"    : "loadProgram"
         "printSrv/:model/:id" : "printSrv"
-        "partnersLookup" : "partnersLookup"
+        "partnersSearch" : "partnersSearch"
 
       loadCase      : (id) -> r.renderScreen("case", kase, {"id": id})
       newCase       :      -> r.renderScreen("case", kase, {"id": null})
@@ -186,4 +186,4 @@ define [
       loadProgram   : (id) -> r.renderScreen("program", program, {"id": id})
       printSrv      : (model, id) ->
         r.renderScreen "printSrv", print, {model: model, id: id}
-      partnersLookup:      -> r.renderScreen("partnersLookup", partnersLookup)
+      partnersSearch:      -> r.renderScreen("partnersSearch", partnersSearch)
