@@ -31,6 +31,14 @@
       },
       "type": null,
       "groupName": null,
+      "name": "serviceId"
+    },
+    {
+      "meta": {
+        "invisible": true
+      },
+      "type": null,
+      "groupName": null,
       "name": "owner"
     },
     {

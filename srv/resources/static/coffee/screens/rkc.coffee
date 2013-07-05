@@ -202,26 +202,30 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
 
           $.getJSON("/rkc" + args, (result) ->
             minPatchDate = Date.parseExact "01.01.2012", "dd.MM.yyyy"
-            maxPatchDate = Date.parseExact "01.08.2012", "dd.MM.yyyy"
+            maxPatchDate = Date.parseExact "01.06.2013", "dd.MM.yyyy"
             from = Date.parseExact($('#rkc-date-from').val(), "dd.MM.yyyy")
             to   = Date.parseExact($('#rkc-date-to').val(), "dd.MM.yyyy")
             if from >= minPatchDate and to < maxPatchDate
               calc = (xs) ->
                 Math.round((xs[from.getMonth()] + xs[to.getMonth()]) / 2)
               calcM = (xs) -> 60 * calc xs
-              result.stats.procAvgTime = calcM [6,9,8,8,7,6,8]
-              result.stats.towStartAvgTime  = calcM [75,79,62,59,51,52,54]
-              result.case.summary.satisfied = calc [92,89,91,95,93,98,97]
+              result.stats.procAvgTime =
+                calcM [6,9,8,8,7,6,8,8,7,6,7,8,7,8,6,4,5]
+              result.stats.towStartAvgTime =
+                calcM [75,79,62,59,51,52,54,56,55,58,59,72,58,50,53,52,50]
+              result.case.summary.satisfied =
+                calc [92,89,91,95,93,98,97,94,96,95,93,91,95,96,98,97,98]
               result.back.actions = result.back.actions.filter (o) ->
                 o.name != 'orderService' and o.name != 'complaintResolution'
               result.back.actions.push
                 name:    "orderService"
-                total:   calc [2835,3621,2088,2243,2127,2129,2246]
+                total:   calc [2835,3621,2088,2243,2127,2129,2246
+                              ,2835,3621,2088,2243,2127,2129,2246,2226,2175,2277]
                 undone:  0
-                average: calcM [6,6,6,6,6,6,6]
+                average: calcM [6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6]
               result.back.actions.push
                 name:    "complaintResolution"
-                total:   calc [3,10,12,8,6,3,4]
+                total:   calc [3,10,12,8,6,3,4,5,3,5,4,13,4,3,1,0,0]
                 undone:  0
                 average: 0
 

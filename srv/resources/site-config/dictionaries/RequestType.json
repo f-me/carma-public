@@ -3,6 +3,18 @@
         {
             "value": "cons",
             "label": "Консультация"
-        }
+        },
+        {
+            "value": "first",
+            "label": "Первичный осмотр"
+        },
+        {
+            "value": "evaluation",
+            "label": "Оценка"
+        },
+        {
+            "value": "rep",
+            "label": "Отчёт"
+        }        
     ]
 }

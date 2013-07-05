@@ -74,13 +74,18 @@ define  [ "utils"
 
   userModel =
     dictManyFields: ['boCities', 'boPrograms']
-    fieldHash:
-      boCities:
-        name: 'boCities'
-        meta: {dictionaryName: 'DealerCities'}
-      boPrograms:
-        name: 'boPrograms'
-        meta: {dictionaryName: 'Programs'}
+    fields: [
+      { name: 'boCities'
+      , meta: {dictionaryName: 'DealerCities'}
+      , type: "dictionary-many" },
+      { name: 'boPrograms'
+      , meta: {dictionaryName: 'Programs'}
+      , type: "dictionary-many"
+      } ]
+
+  userModel['fieldHash'] = {}
+  for f in userModel.fields
+    userModel['fieldHash'][f.name] = f
 
   removeSupervisorOpsScreen = -> tick = false
 

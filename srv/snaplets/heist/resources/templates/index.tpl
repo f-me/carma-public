@@ -33,9 +33,6 @@
     <!-- Loose MVC -->
     <script src="/s/js/3p/backbone-0.9.1.min.js" />
 
-    <!-- Knockback is a Knockout + Backbone glue -->
-    <script src="/s/js/3p/knockback-0.13.min.js" />
-
     <!-- Simple templates -->
     <script src="/s/js/3p/mustache.js" />
 
@@ -117,6 +114,13 @@
           <ifLoggedIn>
             <ul class="nav pull-right">
               <li class="divider-vertical" />
+              <li id="navbar-achievements" class="dropdown" style="display: none">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                  <i class="icon-star icon-white" />
+                </a>
+                <ul class="dropdown-menu">
+                </ul>
+              </li>
               <li class="dropdown">
                 <a href="#"
                    class="dropdown-toggle"
@@ -911,10 +915,10 @@
                id="{{ refView }}-link">
             <a class="icon icon-remove" />
             <a
-               data-bind="text: modelTitle">
+               data-bind="text: _meta.model.title">
                Услуга…
             </a>
-            <a data-bind="attr: { href: '#printSrv/'+modelName()+'/'+id() }"
+            <a data-bind="attr: { href: '#printSrv/'+_meta.model.name+'/'+id() }"
                target="_blank">
               [Печать]
           </a>
@@ -940,9 +944,36 @@
     <script type="text/template"
             class="reference-template"
             id="files-reference-template">
+      <form class="accordion-group {{ refField }}-attach-form"
+            action="/upload/{{ modelName }}/{{ id }}/{{ refField }}">
+        <!-- File chooser widget -->
+        <div class="input-append" style="width:100%" id="upload-files">
+          <input type="file"
+                 class="file-container"
+                 onchange="$(this).siblings('.file-path').val($(this).val());"
+                 data-bind="disabled: {{ refField }}Disabled"
+                 style="display:none;" />
+          <input type="text"
+                 class="file-path"
+                 style="width: 50%;"
+                 disabled
+                 />
+          <a class="btn"
+             data-bind="disabled: {{ refField }}Disabled"
+             onclick="$(this).siblings('.file-container').click();"
+             >
+            <i class="icon icon-folder-open" />&nbsp;Обзор
+          </a>
+          <a class="btn btn-primary"
+             onclick="$(this)">
+             <i class="icon icon-upload icon-white" />&nbsp;Загрузить
+          </a>
+        </div>
+        
         <div class="accordion-group {{ refClass }}"
              id="{{ refView }}" />
         <!-- Attachment contents are rendered here -->
+      </form>
     </script>
 
     <script type="text/template"

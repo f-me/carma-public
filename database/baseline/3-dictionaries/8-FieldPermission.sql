@@ -65,6 +65,7 @@ insert into "FieldPermission" (role, model, field, r, w) values
 ('all', 'partnerCancel', 'ctime', true, true),
 ('all', 'partnerCancel', 'caseId', true, true),
 ('all', 'partnerCancel', 'partnerId', true, true),
+('all', 'partnerCancel', 'serviceId', true, true),
 ('all', 'partnerCancel', 'owner', true, true),
 ('all', 'partnerCancel', 'partnerCancelReason', true, true),
 ('all', 'partnerCancel', 'comment', true, true),

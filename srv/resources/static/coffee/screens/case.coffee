@@ -36,12 +36,21 @@ define [ "utils"
         ko.applyBindings(global.viewsWare[viewName].knockVM,
                          el("empty-fields"))
 
-      main.modelSetup("case") viewName, args,
+      kvm = main.modelSetup("case") viewName, args,
                          permEl       : "case-permissions"
                          focusClass   : "focusable"
                          slotsee      : ["case-number"]
                          groupsForest : "center"
                          fetchCb      : fetchCb
+
+      ctx = {fields: (f for f in kvm._meta.model.fields when f.meta?.required)}
+      setCommentsHandler()
+
+      $("#empty-fields-placeholder").html(
+          Mustache.render($("#empty-fields-template").html(), ctx))
+
+      ko.applyBindings(kvm, el("empty-fields"))
+
 
       # Render service picker
       #
@@ -126,13 +135,15 @@ define [ "utils"
         comment:        v['wazzup']()
         callTaker: global.user.meta.realName
       main.buildNewModel 'case', args, {},
-        (a, b, k) ->
+        (m, k) ->
           global.router.navigate("case/#{k.id()}", { trigger: true })
 
 
 
     removeCaseMain = ->
       $("body").off "change.input"
+      $('.navbar').css "-webkit-transform", ""
+
 
     # get partners and show them in table
     # this is called from local.coffe:showCase
@@ -210,7 +221,7 @@ define [ "utils"
       select.push("city=#{kase.city()}") if kase.city()
       select.push("makes=#{kase.car_make()}")  if kase.car_make()
       url    = if partnerType is "contractor"
-                  "/partnersFor/#{svc.modelName()}?#{select.join('&')}"
+                  "/partnersFor/#{svc._meta.model.name}?#{select.join('&')}"
                else
                   "/allPartners?#{select.join('&')}"
       dict = global.dictValueCache['DealerCities']
