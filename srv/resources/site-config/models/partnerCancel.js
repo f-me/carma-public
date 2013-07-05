@@ -1,70 +1,69 @@
 {
-  "name": "partnerCancel",
-  "title": "Отказ партнера",
-  "canCreate": true,
-  "canRead": true,
-  "canUpdate": true,
-  "canDelete": true,
   "fields": [
     {
-      "name": "ctime",
-      "canRead": true,
-      "canWrite": true,
       "meta": {
         "invisible": true,
         "sqltype": "timestamp"
-      }
+      },
+      "type": null,
+      "groupName": null,
+      "name": "ctime"
     },
     {
-      "name": "caseId",
-      "canRead": true,
-      "canWrite": true,
       "meta": {
         "invisible": true
-      }
+      },
+      "type": null,
+      "groupName": null,
+      "name": "caseId"
     },
     {
-      "name": "partnerId",
-      "canRead": true,
-      "canWrite": true,
       "meta": {
         "invisible": true
-      }
+      },
+      "type": null,
+      "groupName": null,
+      "name": "partnerId"
     },
     {
-      "name": "serviceId",
-      "canRead": true,
-      "canWrite": true,
       "meta": {
         "invisible": true
-      }
+      },
+      "type": null,
+      "groupName": null,
+      "name": "serviceId"
     },
     {
-      "name": "owner",
-      "canRead": true,
-      "canWrite": true,
       "meta": {
         "invisible": true
-      }
+      },
+      "type": null,
+      "groupName": null,
+      "name": "owner"
     },
     {
-      "name": "partnerCancelReason",
-      "canRead": true,
-      "canWrite": true,
-      "type": "dictionary",
       "meta": {
         "dictionaryName": "PartnerCancelReason",
         "label": "Причина отказа партнера"
-      }
+      },
+      "type": "dictionary",
+      "groupName": null,
+      "name": "partnerCancelReason"
     },
     {
-      "name": "comment",
-      "canRead": true,
-      "canWrite": true,
-      "type": "textarea",
       "meta": {
         "label": "Комментарий"
-      }
+      },
+      "type": "textarea",
+      "groupName": null,
+      "name": "comment"
     }
-  ]
+  ],
+  "applications": [],
+  "canDelete": true,
+  "canUpdate": true,
+  "canRead": true,
+  "canCreate": true,
+  "title": "Отказ партнера",
+  "name": "partnerCancel"
 }
