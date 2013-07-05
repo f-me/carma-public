@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-export DB_NAME=carma
+export DB_NAME=${2:=carma}
 export PSQL="psql $DB_NAME -v ON_ERROR_STOP=1"
 
 
@@ -53,6 +53,7 @@ function exec_file {
 
 
 function setup_db {
+  createdb $DB_NAME
   for f in `find baseline -type f | sort` ; do
     exec_file $f
   done
@@ -163,5 +164,5 @@ elif [[ "$1" == "update" ]] ; then
 elif [[ "$1" == "stat" ]] ; then
   db_stat
 else
-  echo "Usage: ./db.sh [setup|update|stat]"
+  echo "Usage: ./db.sh [setup|update|stat] db_name"
 fi
