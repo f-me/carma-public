@@ -4,10 +4,6 @@ define [ "utils"
        , "text!tpl/screens/partnersSearch.html"
        ], (utils, m, sync, tpl) ->
 
-  cbMeta = (l, n) ->
-    name: n
-    meta: { label: l }
-
   model =
     name: "partnerSearch"
     title: "Экран поиска партнеров"
@@ -109,7 +105,10 @@ define [ "utils"
       for k, v of kvm['searchH']()
         v.services = _.sortBy v.services, (v) -> [v.priority2, v.priority3]
         v
+    kvm['selectedPartner'] = ko.observable(NaN)
+    kvm['selectPartner'] = (partner, ev) -> kvm['selectedPartner'](partner.id)
     ko.applyBindings kvm, $('#partnersSearch-content')[0]
+    q.search()
 
   template: tpl
   partials: partialize

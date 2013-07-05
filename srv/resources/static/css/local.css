@@ -236,3 +236,7 @@ table.dataTable tr.selected-row td.sorting_1 {
   width: 60%;
   margin-left:20%;
 }
+
+.selected-partner {
+  border-right: 4px solid #ff9999
+}
