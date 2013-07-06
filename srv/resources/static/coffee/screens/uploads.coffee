@@ -22,12 +22,9 @@ define [ "text!tpl/screens/uploads.html"
       caseObj.files = ref
       return true
 
-  # Remove an attachment reference from case, provided an element with
-  # associated data-target="<caseId>" attribute within an .upload-box
-  # element.
-  this.detachFromCase = (link) ->
-    bvm = $(link).parents(".upload-box").data("bvm")
-    caseId = $(link).data("target")
+  # Remove an attachment reference from case, provided file's bvm and
+  # case number.
+  this.detachFromCase = (bvm, caseId) ->
     caseUrl = "/_/case/" + caseId
     attId = bvm.aid()
     ref = "attachment:" + attId
@@ -86,6 +83,7 @@ define [ "text!tpl/screens/uploads.html"
       msg      : ko.observable "Выполняю загрузку…"
       filename : ko.observable file.name
       aid      : ko.observable null
+      # Array of case ids this file has been attached to
       cases    : ko.observableArray()
       # Array of unknown case ids from filename
       unknown  : ko.observableArray()
@@ -113,19 +111,21 @@ define [ "text!tpl/screens/uploads.html"
           , false)
         return xhr
       ).
-      always((res) ->
+      always(() ->
         box.find(".progress").fadeOut()
         box.removeClass "alert-info").
-      fail((res) ->
+      fail(() ->
         box.addClass "alert-error"
         bvm.msg "Во время загрузки произошла критическая ошибка").
       done((res) ->
         bvm.aid(res.attachment.id)
         bvm.filename(res.attachment.filename)
+
         for t in res.targets
           bvm.cases.push t[1]
         for t in res.unknown
           bvm.unknown.push t[1]
+
         if bvm.cases().length == 0
           box.addClass "alert-error"
           bvm.msg "Файл загружен, но номера кейсов не распознаны"
@@ -150,9 +150,8 @@ define [ "text!tpl/screens/uploads.html"
             box.find(".attach-button").show()
 
         # "Delete case" links
-        box.find(".detach-button").click () ->
+        box.on "click", ".detach-button", () ->
           detachFromCase bvm, $(this).data("target")
-          bvm.cases.remove $(this).data("target")
           false
 
         # Hook up case add routine for input field

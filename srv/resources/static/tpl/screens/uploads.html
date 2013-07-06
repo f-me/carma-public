@@ -78,8 +78,7 @@
       <span class="case-numbers" data-bind="foreach: cases">
         <a data-bind="attr: { href: '/#case/' + $data }" target="_blank">
           <i class="icon icon-file" /><b data-bind="text: $data" /></a><a
-             href="#" class="text-error"
-             onclick="detachFromCase(this); return false;"
+             href="#" class="detach-button text-error"
              data-bind="attr: { 'data-target': $data }">×</a>
       </span>
     </div>
