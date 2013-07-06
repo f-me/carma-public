@@ -1,15 +1,33 @@
-# Bulk uploads screen
+# Bulk uploads screen handlers, inline-uploader widget handlers.
 #
-# Uses "attachment" model and /upload/case/bulk/files handler.
+# Uses "attachment" model and /upload/case/[bulk|<n>]/files server
+# handlers.
 define [ "text!tpl/screens/uploads.html"
        , "model/utils"], (tpl, mu) ->
+  # Base object for asynchronous requests to /uploads.
+  #
+  # props is an object with extra properties of $.ajax
+  @ajaxUpload = (url, file, props) ->
+    fd = new FormData()
+    fd.append("file", file)
+
+    baseProps = 
+      type        : "POST"
+      url         : url
+      contentType : false
+      processData : false
+      data        : fd
+      dataType    : "json"
+    
+    $.ajax _.extend(baseProps, props)
+  
   # Destructively add a reference to attachment:<attId> to files field
-  # of case instance object
+  # of a case instance object
   #
   # Return true if a reference to this attachment is already present
   #
   # TODO This might be replaced by a regular reference-adding routine
-  this.addAttIdToCaseObj = (attId, caseObj) ->
+  @addAttIdToCaseObj = (attId, caseObj) ->
     ref = "attachment:" + attId
     if caseObj.files? && caseObj.files.length > 0
       # No dupe references
@@ -24,7 +42,7 @@ define [ "text!tpl/screens/uploads.html"
 
   # Remove an attachment reference from case, provided file's bvm and
   # case number.
-  this.detachFromCase = (bvm, caseId) ->
+  @detachFromCase = (bvm, caseId) ->
     caseUrl = "/_/case/" + caseId
     attId = bvm.aid()
     ref = "attachment:" + attId
@@ -38,7 +56,7 @@ define [ "text!tpl/screens/uploads.html"
   # Attach a file to a case, provided file's bvm and a field
   # containing case number. Check for dupes/unknown cases. Set af's
   # validity in case of error. Push new case id to bvm.cases.
-  this.attachToCase = (bvm, af) ->
+  @attachToCase = (bvm, af) ->
     caseId = af.val()
     caseUrl = "/_/case/" + caseId
     attId = bvm.aid()
@@ -64,11 +82,9 @@ define [ "text!tpl/screens/uploads.html"
           $.putJSON(caseUrl, {files: res.files}).
             done(() -> bvm.cases.push caseId))
 
-  # Upload new attachment, render file progress bar and whistles
-  this.sendFile = (file) ->
-    fd = new FormData()
-    fd.append("file", file)
-
+  # Upload new attachment, render file progress bar and whistles.
+  # Argument is a File object.
+  @sendFile = (file) ->
     uid = _.uniqueId "upload-"
 
     # A box for this upload, with a progress bar and whistles
@@ -92,14 +108,8 @@ define [ "text!tpl/screens/uploads.html"
     ko.applyBindings bvm, $(box)[0]
 
     # Upload the file asynchronously
-    $.ajax(
-      type        : "POST"
-      url         : "/upload/case/bulk/files/"
-      contentType : false
-      processData : false
-      data        : fd
-      dataType    : "json"
-      xhr         : () ->
+    @ajaxUpload("/upload/case/bulk/files/", file,
+      xhr: () ->
         xhr = new XMLHttpRequest()
         xhr.upload.addEventListener("progress",
           (e) ->
@@ -168,7 +178,7 @@ define [ "text!tpl/screens/uploads.html"
 
   # Render file browser widget, setup all hooks and screen-global
   # handlers
-  this.renderUploadsForm = (viewName, args) ->
+  @renderUploadsForm = (viewName, args) ->
     $("#upload-files-tip").tooltip()
     $("#upload-cleanup-tip").tooltip()
 
@@ -185,7 +195,7 @@ define [ "text!tpl/screens/uploads.html"
 
     # Show file names when selecting files
     $("#upload-dialog").change () ->
-      files = this.files
+      files = @files
       if files.length > 0
         names = (files.item(n).name for n in [0..(files.length - 1)])
         $("#upload-names").val names.join " "
@@ -202,6 +212,45 @@ define [ "text!tpl/screens/uploads.html"
         $("#upload-dialog").val("")
         $("#upload-dialog").change()
 
-  { constructor: renderUploadsForm
-  , template: tpl
+  # Add an attachment reference to an instance, provided a form from
+  # inline-uploader template
+  @inlineUploadFile = (form) ->
+    formMeta = form.data()
+    url      = form.attr('action')
+    files    = form.find(".upload-dialog")[0].files
+    if files.length > 0
+      @ajaxUpload(url, files[0]).
+      fail((e) ->
+        console.log e
+        alert "Не удалось загрузить файл!"
+      ).
+      # Re-read instance data when a new attachment is added
+      done(() -> formMeta.knockVM._meta.q.fetch())
+      
+      form.find('input:file').val("").trigger("change")
+
+  # Delete an attachment reference from an instance, provided an
+  # element from reference template with data-attachment and
+  # data-field fields set.
+  @inlineDetachFile = (e) ->
+    attId = e.data("attachment")
+    field = e.data("field")
+    ref = "attachment:#{attId}"
+
+    return unless confirm "Вы уверены, что хотите открепить этот файл?"
+    
+    formMeta = e.parent().parent().siblings("form").data()
+    kvm = formMeta.knockVM
+
+    # Cut out attachment ref and re-save the instance
+    kvm[field] _.without(kvm[field]().split(','), ref).join(',')
+    kvm._meta.q.save()
+
+    # Suitable for onClick on <a>
+    false
+    
+  { constructor:      renderUploadsForm
+  , inlineUploadFile: inlineUploadFile
+  , inlineDetachFile: inlineDetachFile
+  , template:         tpl
   }

@@ -58,6 +58,8 @@ define [ "utils"
               ko.computed -> not r.test kvm[f]()
       )(fieldName, new RegExp(global.dictLabelCache["_regexps"][regexp]))
 
+  # For a field <name> with type=file, add an extra observable
+  # <name>Url with absolute URL to the stored file.
   fileKbHook: (model, kvm) ->
     for f in model.fields when f.type == "file"
       do(f) ->

@@ -231,7 +231,8 @@
     },
     {
       "meta": {
-        "label": "Прикрепленные файлы"
+        "label": "Прикрепленные файлы",
+        "widget": "inline-uploader"
       },
       "type": "reference",
       "groupName": null,

@@ -82,5 +82,3 @@ require [ "domready"
   u.build_global_fn 'doPick', ['utils']
   u.build_global_fn 'kdoPick', ['utils']
   u.build_global_fn 'focusField', ['utils']
-  u.build_global_fn 'uploadFile', ['fileupload']
-  u.build_global_fn 'deleteFile', ['fileupload']

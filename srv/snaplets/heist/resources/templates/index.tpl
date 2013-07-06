@@ -852,6 +852,48 @@
       </div>
     </script>
 
+    <!-- Container field template for attachment reference list, with
+         upload form. See also files-reference-template for each item
+         template. -->
+    <script type="text/template"
+            class="field-template"
+            id="inline-uploader-field-template">
+      <div class="controls">
+        <div class="accordion accordion-group">
+          <label>Файлы</label>
+          <div id="{{ modelName }}-{{ cid }}-{{ name }}-references" />
+          <form data-bind="attr: { action: '/upload/{{ modelName }}/'+maybeId()+'/{{ name }}'},
+                           setdata: {{ name }}"
+                style="margin-bottom: 0;">
+            <!-- File chooser widget -->
+            <div class="input-append" style="width:100%">
+              <input type="file"
+                     class="upload-dialog"
+                     onchange="$(this).siblings('.upload-names').val($(this).val());"
+                     data-bind="disabled: {{ name }}Disabled"
+                     style="display:none;" />
+              <input type="text"
+                     class="upload-names"
+                     style="width: 50%;"
+                     disabled
+                     />
+              <a class="btn"
+                 data-bind="disabled: {{ name }}Disabled"
+                 onclick="$(this).siblings('.upload-dialog').click();"
+                 >
+                <i class="icon icon-folder-open" />&nbsp;Обзор
+              </a>
+              <a class="btn btn-primary"
+                 data-bind="disabled: {{ name }}Disabled"
+                 onClick="inlineUploadFile($(this).closest('form'));">
+                <i class="icon icon-upload icon-white" />&nbsp;Загрузить
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </script>
+
     <!--
 
          Special template used to render first field of group in
@@ -939,41 +981,21 @@
 
     <!-- 
          Attachment list reference template. By convention, such
-         fields are named "files".
+         fields are named "files". See also file-field-template.
     -->
     <script type="text/template"
             class="reference-template"
             id="files-reference-template">
-      <form class="accordion-group {{ refField }}-attach-form"
-            action="/upload/{{ modelName }}/{{ id }}/{{ refField }}">
-        <!-- File chooser widget -->
-        <div class="input-append" style="width:100%" id="upload-files">
-          <input type="file"
-                 class="file-container"
-                 onchange="$(this).siblings('.file-path').val($(this).val());"
-                 data-bind="disabled: {{ refField }}Disabled"
-                 style="display:none;" />
-          <input type="text"
-                 class="file-path"
-                 style="width: 50%;"
-                 disabled
-                 />
-          <a class="btn"
-             data-bind="disabled: {{ refField }}Disabled"
-             onclick="$(this).siblings('.file-container').click();"
-             >
-            <i class="icon icon-folder-open" />&nbsp;Обзор
-          </a>
-          <a class="btn btn-primary"
-             onclick="$(this)">
-             <i class="icon icon-upload icon-white" />&nbsp;Загрузить
-          </a>
-        </div>
-        
-        <div class="accordion-group {{ refClass }}"
-             id="{{ refView }}" />
+      <div>
+        <a href="#"
+           class="detach-button text-error"
+           onClick="inlineDetachFile($(this))"
+           data-attachment="{{ refId }}"
+           data-field="{{ refField }}">×</a>
+        <span class="{{ refClass }}"
+              id="{{ refView }}" />
         <!-- Attachment contents are rendered here -->
-      </form>
+      </div>
     </script>
 
     <script type="text/template"
@@ -1169,9 +1191,8 @@
     <script type="text/template"
             class="field-template"
             id="file-field-template">
-      <label>{{ meta.label }}</label>
       <i class="icon icon-file" />
-      <a data-bind="attr: { href: {{ name }}Url }, text: {{ name }}"/>
+      <a class="file-name" data-bind="attr: { href: {{ name }}Url }, text: {{ name }}"/>
     </script>
 
     <script type="text/template"
