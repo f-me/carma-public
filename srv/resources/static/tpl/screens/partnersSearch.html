@@ -1,6 +1,22 @@
 <div id="partnersSearch-content">
+
+  <!-- customized popover tpl with increased max-width -->
+  <div id="custom-popover" class="fade in bottom">
+    <div class="popover" style="max-width:1000px">
+      <div class="arrow" />
+      <div class="popover-content" />
+    </div>
+  </div>
+
   <div class="row-fluid">
     <div class="span10">
+      <a id="case-info" class="offset10"
+         data-toggle="popover"
+         data-placement="bottom"
+         data-html="true"
+         data-bind="attr: { 'data-content': caseInfo }">
+        Информация о кейсе
+      </a>
       <div class="row-fluid">
         {{> search }}
       </div>

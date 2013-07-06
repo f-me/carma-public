@@ -107,7 +107,19 @@ define [ "utils"
         v
     kvm['selectedPartner'] = ko.observable(NaN)
     kvm['selectPartner'] = (partner, ev) -> kvm['selectedPartner'](partner.id)
+    kvm['caseInfo'] = """
+  <ul class='unstyled'>
+    <li> <b>Кто звонил:</b> Барковская Дарья Александровна +79162169928 </li>
+    <li> <b>Номер кеса:</b> 66767 </li>
+    <li> <b>Адрес кейса:</b> Москва, Кутузовский пр. 38</li>
+    <li> <b>Название программы: </b> Ford </li>
+    <li> <b> </b> </li>
+    <li> <b> </b> </li>
+    <li> <b> </b> </li>
+  </ul>
+  """
     ko.applyBindings kvm, $('#partnersSearch-content')[0]
+    $("#case-info").popover { template: $("#custom-popover").html() }
     q.search()
 
   template: tpl
