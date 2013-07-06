@@ -3,7 +3,10 @@ define ["utils"], (u) ->
     t = $("#call-searchtable")
     st = t.dataTable()
     # return if table template is not yet rendered
-    return unless $("#call-searchtable")[0]
+    # FIXME: remove dat shit and some day, use more knockout friendly solution
+    unless $("#call-searchtable")[0]
+      setTimeout fillEventsHistory(knockVM), 300
+      return
 
     phone = knockVM['contact_phone1']()
     $('.navbar').css "-webkit-transform",
