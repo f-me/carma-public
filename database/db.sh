@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-export DB_NAME=${2:=carma}
+export DB_NAME=${2:-carma}
 export PSQL="psql $DB_NAME -v ON_ERROR_STOP=1"
 
 
