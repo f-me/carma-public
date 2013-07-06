@@ -73,9 +73,10 @@
     },
     {
       "meta": {
-        "label": "Шаблон договора"
+        "label": "Шаблон договора",
+        "widget": "inline-uploader"
       },
-      "type": "file",
+      "type": "reference",
       "groupName": null,
       "name": "contracts"
     },
@@ -98,9 +99,10 @@
     },
     {
       "meta": {
-        "label": "Логотип"
+        "label": "Логотип",
+        "widget": "inline-uploader"
       },
-      "type": "file",
+      "type": "reference",
       "groupName": null,
       "name": "logo"
     },
