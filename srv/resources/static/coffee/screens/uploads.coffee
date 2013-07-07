@@ -168,6 +168,7 @@ define [ "text!tpl/screens/uploads.html"
         box.find(".attach-form").submit (e) ->
           af = $(this).find(".attach-field")
           res = attachToCase bvm, af
+          false
 
         # Forget existing validity violations when case number changes
         box.find(".attach-field").change () ->
