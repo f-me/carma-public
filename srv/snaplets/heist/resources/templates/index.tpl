@@ -860,7 +860,7 @@
             id="inline-uploader-field-template">
       <div class="controls">
         <div class="accordion accordion-group">
-          <label>Файлы</label>
+          <label>{{ meta.label }}</label>
           <div id="{{ modelName }}-{{ cid }}-{{ name }}-references" />
           <form data-bind="attr: { action: '/upload/{{ modelName }}/'+maybeId()+'/{{ name }}'},
                            setdata: {{ name }}"
