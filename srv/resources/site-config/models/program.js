@@ -102,7 +102,8 @@
       "meta": {
         "label": "Логотип",
         "widget": "inline-uploader",
-        "reference-widget": "files"
+        "reference-widget": "files",
+        "single-uploader": true
       },
       "type": "reference",
       "groupName": null,

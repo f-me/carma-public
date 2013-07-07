@@ -39,6 +39,14 @@
     for dictionary fields here to use `radio-field-template` instead
     of `dictionary-field-template`. See also pickTemplate @
     viewsware.coffee)
+
+  - `reference-widget`: override template used for rendering reference
+    container (like `widget` meta, but for `reference-template`s
+    instead of `field-templates`s)
+
+  - `single-uploader`: when true, if `inline-uploader` widget is used,
+    then uploader is shown only when no files have been attached in
+    that field yet
     
   - `required`: highlight field with red outline and show it in
     rightmost pane when it's empty
