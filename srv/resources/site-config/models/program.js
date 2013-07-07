@@ -74,7 +74,8 @@
     {
       "meta": {
         "label": "Шаблон договора",
-        "widget": "inline-uploader"
+        "widget": "inline-uploader",
+        "reference-widget": "files"
       },
       "type": "reference",
       "groupName": null,
@@ -100,7 +101,8 @@
     {
       "meta": {
         "label": "Логотип",
-        "widget": "inline-uploader"
+        "widget": "inline-uploader",
+        "reference-widget": "files"
       },
       "type": "reference",
       "groupName": null,
