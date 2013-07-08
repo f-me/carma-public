@@ -130,6 +130,7 @@
         <th>Партнёр</th>
         <th>Причина отказа</th>
         <th>Комментарий</th>
+        <th>Услуга</th>
       </tr>
     </thead>
     <tbody data-bind="foreach: cancels">
@@ -139,6 +140,7 @@
         <td data-bind="text: $data.partnerName"></td>
         <td data-bind="text: $data.partnerCancelReason"></td>
         <td data-bind="text: $data.comment"></td>
+        <td data-bind="text: $data.service"></td>
       </tr>
     </tbody>
   </table>

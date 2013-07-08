@@ -24,10 +24,12 @@ define ["text!tpl/screens/printSrv.html"], (tpl) ->
           ServiceStatuses : 'status'
 
       for s in (arg.cancels || [])
+        s.service = s.serviceid.split(':')[0]
         postProc s,
           lookup:
             users               : 'owner'
             PartnerCancelReason : 'partnerCancelReason'
+            Services            : 'service'
           time: ['ctime']
 
       arg.kase.comments = $.parseJSON arg.kase.comments
