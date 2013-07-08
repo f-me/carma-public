@@ -63,11 +63,11 @@ define [ "utils"
   fileKbHook: (model, kvm) ->
     for f in model.fields when f.type == "file"
       do(f) ->
-        n   = encodeURIComponent f.name
+        n   = f.name
         kvm["#{n}Url"] = ko.computed
           read: ->
             p  = "/s/fileupload/attachment/" + kvm.id()
-            fs = kvm[n]()
+            fs = encodeURIComponent kvm[n]()
             p + "/" + fs
           
   # Clear dependant dictionary fields when parent is changed
