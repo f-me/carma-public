@@ -15,7 +15,7 @@ define [ "utils"
                        groupsForest : "center"
     $('input[name="callDate"]').parents('.control-group').hide()
     $('input[name="callTaker"]').parents('.control-group').hide()
-    searchTable = $("#call-searchtable")
+    searchTable = $("#call-scrn-searchtable")
     st = utils.mkDataTable searchTable,
       bFilter : false
       fnRowCallback: (nRow) -> $($(nRow).children()[1]).addClass("capitalize")

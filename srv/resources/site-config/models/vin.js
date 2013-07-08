@@ -1,48 +1,41 @@
 {
-    "name": "vin",
-    "title": "VIN",
-    "canCreate": false,
-    "canRead": true,
-    "canUpdate": true,
-    "canDelete": false,
-    "applications": [
-        {
-            "targets": true,
-            "canWrite": true,
-            "canRead": true
-        }
-    ],
-    "fields": [
-        {
-            "name": "car",
-            "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
-             "canWrite": [ "front", "back", "head", "parguy" ],
-            "groupName": "car"
-        },
-        {
-            "name": "cardNumber",
-            "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
-             "canWrite": [ "front", "back", "head", "parguy" ],
-            "groupName": "cardNumber"
-        },
-        {
-            "name": "contact",
-            "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
-            "canWrite": [ "front", "back", "head", "parguy" ],
-            "groupName": "carContact",
-            "meta": {
-                "label": "Владелец",
-                "infoText": "ownerName"
-            }
-        },
-        {
-             "name": "program",
-             "canRead": [ "partner", "front", "back", "head", "parguy", "account" ],
-             "canWrite": [ "front", "back", "head", "parguy" ],
-             "meta": {
-                 "targetCategory": "program",
-                 "infoText": "program"
-             }
-         }
-    ]
+  "fields": [
+    {
+      "meta": null,
+      "type": null,
+      "groupName": "car",
+      "name": "car"
+    },
+    {
+      "meta": null,
+      "type": null,
+      "groupName": "cardNumber",
+      "name": "cardNumber"
+    },
+    {
+      "meta": {
+        "label": "Владелец",
+        "infoText": "ownerName"
+      },
+      "type": null,
+      "groupName": "carContact",
+      "name": "contact"
+    },
+    {
+      "meta": {
+        "targetCategory": "program",
+        "infoText": "program"
+      },
+      "type": null,
+      "groupName": null,
+      "name": "program"
+    }
+  ],
+  "applications": [],
+  "canDelete": false,
+  "canUpdate": true,
+  "canRead": true,
+  "canCreate": false,
+  "title": "VIN",
+  "name": "vin"
 }

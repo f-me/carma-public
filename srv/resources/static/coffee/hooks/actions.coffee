@@ -1,5 +1,5 @@
 define [], ->
-  nameLocal: (instance, knockVM) ->
+  nameLocal: (model, knockVM) ->
     knockVM["actionNameLocal"] =
       ko.computed
         read: ->

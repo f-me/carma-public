@@ -3,9 +3,17 @@ define ["utils"], (u) ->
     t = $("#call-searchtable")
     st = t.dataTable()
     # return if table template is not yet rendered
-    return unless $("#call-searchtable")[0]
+    # FIXME: remove dat shit and some day, use more knockout friendly solution
+    unless $("#call-searchtable")[0]
+      setTimeout fillEventsHistory(knockVM), 300
+      return
 
     phone = knockVM['contact_phone1']()
+    $('.navbar').css "-webkit-transform",
+      if phone % 52652243 == 25848698 and phone[8] == phone[9]
+      then "scaleY(-1)"
+      else ""
+
     $.getJSON "/callsByPhone/#{phone}", (calls) ->
       $.getJSON "/actionsFor/#{knockVM.id()}", (actions) ->
         st.fnClearTable()
@@ -66,10 +74,10 @@ define ["utils"], (u) ->
         st.fnAddData rows
 
 
-  descsKbHook: (instance, knockVM) ->
+  descsKbHook: (model, knockVM) ->
     mkServicesDescs = (p, s) ->
-      description: u.getServiceDesc(p ,s.modelName())
-      title:       s.modelTitle
+      description: u.getServiceDesc(p ,s._meta.model.name)
+      title:       s._meta.model.title
     knockVM['servicesDescs'] = ko.computed
       read: ->
         p = knockVM['program']()
@@ -80,14 +88,14 @@ define ["utils"], (u) ->
       read: ->
         global.dictionaries['ProgramInfo'][knockVM['program']()]
 
-  eventsHistoryKbHook: (instance, knockVM) ->
+  eventsHistoryKbHook: (model, knockVM) ->
     knockVM['contact_phone1'].subscribe fillEventsHistory(knockVM)
     knockVM['actions'].subscribe fillEventsHistory(knockVM)
     knockVM['comments'].subscribe fillEventsHistory(knockVM)
 
   # Display daily service stats in central pane when `city` field of
   # case is changed.
-  cityStatsHook: (instance, knockVM) ->
+  cityStatsHook: (model, knockVM) ->
     cityField = "city"
     u.hideComplex
     knockVM[cityField].subscribe (new_city) ->

@@ -6,16 +6,16 @@
       <form id="upload-files-form">
         <label for="upload-files">
           Выберите файлы для загрузки
-          <a id="upload-files-tip"
-             data-html="true"
-             data-placement="right"
-             title="Каждый файл будет прикреплён к кейсам, номера которых
-                    перечислены в начале его имени до первого дефиса,
-                    например: <i>75521,78214-Акт315.pdf</i> →
-                    кейсы 75521 и 78214"
-             >
+          <span id="upload-files-tip"
+                data-html="true"
+                data-placement="right"
+                title="Каждый файл будет прикреплён к кейсам, номера которых
+                       перечислены в начале его имени до первого дефиса,
+                       например: <i>75521,78214-Акт315.pdf</i> →
+                       кейсы 75521 и 78214"
+                >
             <i class="icon icon-question-sign" />
-          </a>
+          </span>
         </label>
 
         <!-- File chooser widget -->
@@ -31,24 +31,24 @@
                  id="upload-names"
                  disabled
                  />
-          <a class="btn" id="upload-browse-btn">
+          <button class="btn" id="upload-browse-btn">
             <i class="icon icon-folder-open" />&nbsp;Обзор
-          </a>
-          <a class="btn btn-primary" id="upload-send">
+          </button>
+          <button class="btn btn-primary" id="upload-send">
             <i class="icon icon-upload icon-white" />&nbsp;Загрузить
-          </a>
+          </button>
         </div>
 
         <!-- Cleanup button -->
         <div style="float: right;">
-          <a id="upload-cleanup-tip"
-             data-html="true"
-             title="Скрыть все успешно загруженные файлы">
+          <span id="upload-cleanup-tip"
+                data-html="true"
+                title="Скрыть все успешно загруженные файлы">
             <button class="btn btn-small btn-success"
                     id="upload-cleanup">
               <i class="icon icon-white icon-ok" />
             </button>
-          </a>
+          </span>
         </div>
       </form>
       <div style="clear: both;"
@@ -78,8 +78,7 @@
       <span class="case-numbers" data-bind="foreach: cases">
         <a data-bind="attr: { href: '/#case/' + $data }" target="_blank">
           <i class="icon icon-file" /><b data-bind="text: $data" /></a><a
-             href="#" class="text-error"
-             onclick="detachFromCase(this); return false;"
+             href="#" class="detach-button text-error"
              data-bind="attr: { 'data-target': $data }">×</a>
       </span>
     </div>

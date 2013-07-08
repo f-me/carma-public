@@ -1,9 +1,7 @@
 {-# LANGUAGE Rank2Types #-}
 module Snaplet.SiteConfig.Class where
 
-import Control.Lens
 import Snap.Snaplet
-
 import Snaplet.SiteConfig
 
 
