@@ -92,10 +92,7 @@ define ["model/main"], (main) ->
           .off('click')
           .on('click', (event) ->
             event.preventDefault()
-            # FIXME: force save with new q
-            # vPartnerCancel.bbInstance.save()
-            do addToHistory
-
+            partnerCancelVM._meta.q.save()
             $modalDialog.modal('hide')
           )
       )
