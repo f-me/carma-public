@@ -12,36 +12,11 @@ define [ "utils"
 
     setupCaseModel = (viewName, args) ->
 
-      # Default values
-      # FIXME: User's name and creation date are better to be assigned by
-      # the server.
-
-
-      # Render list of required fields in right pane
-      #
-      # bbInstance is available only after model has been loaded. The
-      # only way to execute custom code inside modelSetup is using
-      # fetchCb option. By the time slotsee's are bound, fetchCb may
-      # not have been called yet, thus we explicitly use applyBindings
-      # here.
-      fetchCb =  () ->
-        instance = global.viewsWare[viewName].bbInstance
-        ctx =
-          "fields": _.map(instance.requiredFields, (f) -> instance.fieldHash[f])
-        setCommentsHandler()
-
-        $("#empty-fields-placeholder").html(
-          Mustache.render($("#empty-fields-template").html(), ctx))
-
-        ko.applyBindings(global.viewsWare[viewName].knockVM,
-                         el("empty-fields"))
-
       kvm = main.modelSetup("case") viewName, args,
                          permEl       : "case-permissions"
                          focusClass   : "focusable"
                          slotsee      : ["case-number"]
                          groupsForest : "center"
-                         fetchCb      : fetchCb
 
       ctx = {fields: (f for f in kvm._meta.model.fields when f.meta?.required)}
       setCommentsHandler()
