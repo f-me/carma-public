@@ -53,6 +53,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/callsByPhone/:phone",
                               chkAuthLocal . method GET    $ searchCallsByPhone)
          , ("/actionsFor/:id",chkAuthLocal . method GET    $ getActionsForCase)
+         , ("/cancelsFor/:id",chkAuthLocal . method GET    $ getCancelsForCase)
          , ("/littleMoreActions",
                               chkAuthLocal . method PUT    $ littleMoreActionsHandler)
          , ("/allActions",    chkAuthLocal . method GET    $ allActionsHandler)
