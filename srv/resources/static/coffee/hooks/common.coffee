@@ -63,7 +63,7 @@ define [ "utils"
   fileKbHook: (model, kvm) ->
     for f in model.fields when f.type == "file"
       do(f) ->
-        n   = f.name
+        n   = encodeURIComponent f.name
         kvm["#{n}Url"] = ko.computed
           read: ->
             p  = "/s/fileupload/attachment/" + kvm.id()
