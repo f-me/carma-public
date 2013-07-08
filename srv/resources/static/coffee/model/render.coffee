@@ -1,7 +1,7 @@
 define ["dictionaries"], (d) ->
   renderKnockVm = (elName, knockVM, options) ->
-    model     = knockVM.modelDesc()
-    instance  = knockVM.model()
+    model     = knockVM._meta.model
+    cid       = knockVM._meta.cid
     content   = renderFields(model, elName, options, knockVM)
     groupTpls = getTemplates("group-template")
     depViews  = {}
@@ -11,7 +11,7 @@ define ["dictionaries"], (d) ->
         $el(elName).html(cont)
         $el(options.permEl).html renderPermissions(model, elName)
       else
-        view = mkSubviewName(gName, 0, instance.name, instance.cid)
+        view = mkSubviewName(gName, 0, model.name, cid)
         depViews[gName] = [view]
 
         # Subforms for groups
@@ -23,7 +23,7 @@ define ["dictionaries"], (d) ->
         # custom elements to decorate view
         $el(view).find('.content').html(content[gName])
 
-    defaultGroup = "default-#{instance.model.name}"
+    defaultGroup = "default-#{model.name}"
     if _.has(groupTpls, defaultGroup)
       depViews["default-group"] = defaultGroup
       $el(options.groupsForest).append(
@@ -37,13 +37,17 @@ define ["dictionaries"], (d) ->
     return depViews
 
   mkRefContainer = (ref, field, forest, templates)->
+    modelName = ref._meta.model.name
+    cid       = ref._meta.cid
+    fname     = field.name
     refBook =
       refN: 0
-      refModelName: ref.modelName()
+      refModelName: modelName
       refId: ref.id()
-      refField: field
-      refClass: mkSubviewClass(field, ref.model().name, ref.model().cid)
-      refView: mkSubviewName(field, 0, ref.model().name, ref.model().cid)
+      refField: fname
+      refWidget: field.meta["reference-widget"]
+      refClass: mkSubviewClass(fname, modelName, cid)
+      refView: mkSubviewName(fname, 0, modelName, cid)
 
     refView = renderDep(refBook, templates)
     $el(forest).append(refView)
@@ -92,7 +96,7 @@ define ["dictionaries"], (d) ->
     readonly  = false
     mainGroup = "_"
     slices
-    cid       = knockVM.model().cid
+    cid       = knockVM._meta.cid
 
     # Currently we store the name of «current group» while traversing
     # all model fields. When this name changes, we consider the
@@ -224,6 +228,8 @@ define ["dictionaries"], (d) ->
   #
   # refField - name of field of parent model which stores reference;
   #
+  # refWidget - overrides field name when picking reference template;
+  #
   # refView - name of reference view. where instance will be rendered
   # after loading.
   #
@@ -232,8 +238,8 @@ define ["dictionaries"], (d) ->
   # refBook may contain any other keys as well and will be passed to
   # Mustache.render as a context.
   #
-  # Templates will be pickTemplate'd against using
-  # <refModelName>-<refField>, simply <refField> or default template.
+  # Templates will be pickTemplate'd against using <refWidget>, simply
+  # <refField> or default template.
   #
   # Every view template MUST set div with id=<refView> and
   # class=<refClass> where model will be setup; an element with
@@ -245,7 +251,8 @@ define ["dictionaries"], (d) ->
   # maintain unique ids.
   renderDep = (refBook, templates) ->
     typed_tpl = refBook.refField
-    return Mustache.render pickTemplate(templates, [typed_tpl, ""]), refBook
+    widget_tpl = refBook.refWidget || typed_tpl
+    return Mustache.render pickTemplate(templates, [widget_tpl, typed_tpl, ""]), refBook
 
   # Pick a template from cache which matches one of given names first.
   pickTemplate = (templates, names) ->

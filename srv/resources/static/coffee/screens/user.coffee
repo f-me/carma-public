@@ -8,7 +8,7 @@ define [ "utils"
       kvm = main.modelSetup("usermeta") viewName, args,
                             permEl: "user-permissions"
                             focusClass: "focusable"
-                            bb: { manual_save: true }
+                            manual_save: true
 
       $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
       $.fn.dataTableExt.oStdClasses.sFilter = "dataTables_filter form-inline"
@@ -20,16 +20,16 @@ define [ "utils"
       # Add empty table row when a new user starts to be created
       kvm['maybeId'].subscribe ->
         t.dataTable().fnAddData [[kvm['id'](), kvm['login'](), kvm['realName']()]]
-        
+
       # Show user form when a table row is clicked
       t.on("click.datatable", "tr", ->
         id = this.children[0].innerText
         kvm = main.modelSetup("usermeta") viewName, {"id": id},
                               permEl: "user-permissions"
                               focusClass: "focusable"
-                              bb: { manual_save: true }
+                              manual_save: true
       )
-      
+
       # Populate the table
       $.getJSON("/allUsers",
           (objs) ->

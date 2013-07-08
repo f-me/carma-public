@@ -7,15 +7,15 @@ define ["utils"], (u) ->
     r = (v[0].serviceNameLocal() for k, v of groups when v.length > 1)
     kvm.serviceRepeat(r)
 
-  bindTitleServiceName: (instance, kvm) ->
+  bindTitleServiceName: (model, kvm) ->
     kvm['modelTitle'] = kvm['serviceNameLocal']
 
-  bindRemoveService: (instance, kvm) ->
+  bindRemoveService: (model, kvm) ->
     kvm['services'].subscribe -> u.bindRemove kvm, 'services'
 
-  serviceRepeat: (instance, kvm) ->
+  serviceRepeat: (model, kvm) ->
     kvm['serviceRepeat'] = ko.observableArray([])
     kvm['services'].subscribe -> setServiceRepeat()
 
-  partnerServiceRepeat: (instance, kvm) ->
+  partnerServiceRepeat: (model, kvm) ->
     kvm['serviceName'].subscribe -> setServiceRepeat()

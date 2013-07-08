@@ -1,12 +1,12 @@
 define ["utils", "model/utils", "partnerCancel"], (u, mu, partnerCancel) ->
-  partnerOptsHook: (i, knockVM) ->
+  partnerOptsHook: (model, knockVM) ->
     knockVM['contractor_partner'].subscribe (n) ->
       return unless knockVM['view']
       v = global.viewsWare[knockVM['view']].depViews['cost_counted'][0]
       $("##{v}").find(".add-opt-btn").remove()
-      model = knockVM.modelName()
+      model = knockVM._meta.model.name
       u.sTout 1000, ->
-        $.getJSON "/opts/#{knockVM.modelName()}/#{knockVM.id()}", (opts)->
+        $.getJSON "/opts/#{model}/#{knockVM.id()}", (opts)->
           return if _.isEmpty opts
           tr = Mustache.render(
                 $('#tarif-opt-sel-template').html(),
@@ -34,19 +34,20 @@ define ["utils", "model/utils", "partnerCancel"], (u, mu, partnerCancel) ->
                 $("##{(_.last r)['view']}").parent().collapse("show")
           u.bindDelete knockVM, 'cost_serviceTarifOptions'
 
-  srvOptUpd: (instance, knockVM) ->
+  srvOptUpd: (model, knockVM) ->
     knockVM['payType'].subscribe (n) ->
       u.sTout 500, ->
         for o in knockVM['cost_serviceTarifOptionsReference']()
           do (o) ->
             o.model().fetch()
 
-  costsMark: (instance, knockVM) ->
+  costsMark: (model, knockVM) ->
     knockVM['marginalCost'].subscribe -> mbMark()
 
     knockVM['cost_counted'].subscribe -> mbMark()
     mbMark = ->
       v = knockVM.view
+      # FIXME: change this to observables
       mc = $("##{v}").find('[name=marginalCost]').parents('.control-group')
       cc = $("##{v}").find('[name=cost_counted]').parents('.control-group')
       mf = parseFloat(knockVM['marginalCost']())
@@ -58,8 +59,5 @@ define ["utils", "model/utils", "partnerCancel"], (u, mu, partnerCancel) ->
         mc.removeClass('error')
         cc.removeClass('error')
 
-  bindPartnerCancelDialog: (instance, knockVM) ->
-    knockVM['showPartnerCancelDialog'] = ->
-      partnerCancel.setup(knockVM.contractor_partnerId, knockVM.contractor_partner)
-
-
+  bindPartnerCancelDialog: (model, kvm) ->
+    kvm['showPartnerCancelDialog'] = -> partnerCancel.setup kvm

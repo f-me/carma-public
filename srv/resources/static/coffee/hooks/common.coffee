@@ -7,82 +7,69 @@ define [ "utils"
   # Transform distance in meters to km
   formatDistance = (dist) -> Math.round ((parseInt dist) / 1000)
 
-  dictionaryKbHook: (instance, knockVM) ->
-    for n of instance.dictionaryFields
-      do (n) ->
-        fieldName  = instance.dictionaryFields[n]
-        dictName   = instance.fieldHash[fieldName].meta.dictionaryName
-        parent     = instance.fieldHash[fieldName].meta.dictionaryParent
-        bounded    = instance.fieldHash[fieldName].meta.bounded
-        dictType   = instance.fieldHash[fieldName].meta.dictionaryType
+  # - <field>Local for dictionary fields: reads as label, writes real
+  #   value back to Backbone model;
+  dictionaryKbHook: (m, kvm) ->
+    for f in m.fields when f.type == "dictionary"
+      do (f) ->
+        fieldName  = f.name
+        dictName   = f.meta.dictionaryName
+        parent     = f.meta.dictionaryParent
+        bounded    = f.meta.bounded
+        dictType   = f.meta.dictionaryType
 
-        dict = d.dictFromMeta knockVM, instance.fieldHash[fieldName].meta
-
+        dict = d.dictFromMeta kvm, f.meta
         # Perform label-value transformation
-        knockVM["#{fieldName}Local"] =
-          kb.observable instance,
-                        key: fieldName
-                        read: (k) ->
-                          # Read label by real value
-                          val = knockVM[k]()
-                          lab = dict.getLab(val)
-                          return (lab || val)
-                        write: (lab) ->
-                          # Set real value by label
-                          return if knockVM["#{fieldName}Disabled"]()
-                          val = dict.getVal(lab)
-                          # drop value if can't find one for bounded dict
-                          if bounded and not val
-                          then  knockVM[fieldName]("")
-                          else  knockVM[fieldName](val || lab)
-                        ,
-                        knockVM
+        kvm["#{fieldName}Local"] =
+          ko.computed
+            read: ->
+              # Read label by real value
+              val = kvm[fieldName]()
+              lab = dict.getLab(val)
+              return (lab || val)
+            write: (lab) ->
+              # Set real value by label
+              return if kvm["#{fieldName}Disabled"]()
+              val = dict.getVal(lab)
+              # drop value if can't find one for bounded dict
+              if bounded and not val
+              then  kvm[fieldName]("")
+              else  kvm[fieldName](val || lab)
 
-        knockVM["#{fieldName}Typeahead"] =
+        kvm["#{fieldName}Typeahead"] =
           new ThMenu
             select: (v) ->
-              knockVM[fieldName](dict.id2val(v))
-              knockVM[fieldName].valueHasMutated()
+              kvm[fieldName](dict.id2val(v))
+              kvm[fieldName].valueHasMutated()
             dict  : dict
 
-        # dict.disabled = knockVM["#{fieldName}Disabled"]()
-        knockVM["#{fieldName}Disabled"].subscribe (v) -> dict.disabled = v
+        # dict.disabled = kvm["#{fieldName}Disabled"]()
+        kvm["#{fieldName}Disabled"].subscribe (v) -> dict.disabled = v
 
-  regexpKbHook: (instance, knockVM) ->
+  regexpKbHook: (model, kvm) ->
     # Set observable with name <fieldName>Regexp for inverse of
     # result of regexp checking for every field with meta.regexp
     # annotation. Observable is True when regexp fails.
-    for n of instance.regexpFields
-      fieldName = instance.regexpFields[n]
-      regexp = instance.fieldHash[fieldName].meta.regexp
+    for f in model.fields when f.meta?.regexp?
+      fieldName = f.name
+      regexp    = f.meta.regexp
       ((f, r) ->
-        knockVM["#{fieldName}Regexp"] =
-              kb.observable instance,
-                            key: f
-                            read: (k) -> not r.test instance.get(k)
+        kvm["#{f}Regexp"] =
+              ko.computed -> not r.test kvm[f]()
       )(fieldName, new RegExp(global.dictLabelCache["_regexps"][regexp]))
 
-  filesKbHook: (instance, knockVM) ->
-    _.each instance.fileFields, (n) ->
-      upl = "/upload"
-      p   = "/s/fileupload/attachment/" + instance.id
-      knockVM["#{n}Url"] = ko.computed
-        read: ->
-          fs = knockVM[n]()
-          p + "/" + fs
-      knockVM["#{n}Info"] = ko.computed
-        read: ->
-          knockVM['maybeId']()
-          return unless knockVM['id']
-          path = "#{instance.model.name}/#{knockVM['id']()}/#{n}"
-          fs = knockVM[n]()
-          return [] unless fs
-          for i in fs.split(',')
-            do (i) ->
-              url: "#{p}/#{path}/#{i.trim()}"
-              name: i.trim()
-              ctrl: "#{upl}/#{path}/#{i.trim()}"
-
+  # For a field <name> with type=file, add an extra observable
+  # <name>Url with absolute URL to the stored file.
+  fileKbHook: (model, kvm) ->
+    for f in model.fields when f.type == "file"
+      do(f) ->
+        n   = f.name
+        kvm["#{n}Url"] = ko.computed
+          read: ->
+            p  = "/s/fileupload/attachment/" + kvm.id()
+            fs = kvm[n]()
+            p + "/" + fs
+          
   # Clear dependant dictionary fields when parent is changed
   # this.dictionaryHook = (elName) ->
   #   instance = global.viewsWare[elName].bbInstance
@@ -95,34 +82,35 @@ define [ "utils"
   #         instance.bind("change:" + parent, (v) -> instance.set(f, ""))
   #       )(fieldName)
 
-  dateTimeHook: (i, k) ->
-    for n in i.dateTimeFields
-      do (n) ->
+  dateTimeHook: (m, k) ->
+    for f in m.fields when f.type == "datetime"
+      do (f) ->
+        n = f.name
         k["#{n}DateTime"] = ko.computed
           read :       -> k[n]()
           write: (val) -> if Date.parse(val) then k[n](val) else k[n]("")
 
-  tarifOptNameDef: (i, k) ->
-    k["nameOrDef"] = ko.computed
-      read: -> k["optionName"]() or "Тарифная опция…"
+  tarifOptNameDef: (m, k) ->
+    k["nameOrDef"] = ko.computed -> k["optionName"]() or "Тарифная опция…"
 
   # Update a field with the distance between two coordinates whenever
   # they change
-  distHook: (instance, knockVM) ->
-    for n in instance.distFields
-      do (n) ->
-        m = instance.fieldHash[n].meta
+  distHook: (model, kvm) ->
+    for f in model.fields when f.meta?.distanceTo1? and f.meta?.distanceTo2?
+      do (f) ->
+        n = f.name
+        m = f.meta
 
         # Find VMs and fields to watch for coordinates
         d1_meta = u.splitFieldInView m.distanceTo1
         if not d1_meta.view?
-          vm1 = knockVM
+          vm1 = kvm
         else
           vm1 = u.findVM d1_meta.view
 
         d2_meta = u.splitFieldInView m.distanceTo2
         if not d2_meta.view?
-          vm2 = knockVM
+          vm2 = kvm
         else
           vm2 = u.findVM d2_meta.view
 
@@ -131,23 +119,30 @@ define [ "utils"
           other_coord = vm2[d2_meta.field]()
           if other_coord
             $.get distanceQuery(new_coord, other_coord), (resp) ->
-              knockVM[n](formatDistance(resp).toString())
+              kvm[n](formatDistance(resp).toString())
 
         vm2[d2_meta.field].subscribe (new_coord) ->
           other_coord = vm1[d1_meta.field]()
           if other_coord
             $.get distanceQuery(new_coord, other_coord), (resp) ->
-              knockVM[n](formatDistance(resp).toString())
+              kvm[n](formatDistance(resp).toString())
 
-  dictManyHook: (i, k) ->
-    for n in i.dictManyFields
-      do (n) ->
-        dictName  = i.fieldHash[n].meta.dictionaryName
-        parent    = i.fieldHash[n].meta.dictionaryParent
-        bounded   = i.fieldHash[n].meta.bounded
-        dictType  = i.fieldHash[n].meta.dictionaryType
+  # - <field>Locals for dictionary fields: reads array
+  #  of { label: ..., value: ... } objects
+  # - <field>Many fields: reads nothing, writes - add value
+  # to list of values, but only if there is no such val allready
+  # - <field>Remove field value is a function, which recieve
+  # value and remove it from list
+  dictManyHook: (m, k) ->
+    for f in m.fields when f.type == "dictionary-many"
+      do (f) ->
+        n         = f.name
+        dictName  = f.meta.dictionaryName
+        parent    = f.meta.dictionaryParent
+        bounded   = f.meta.bounded
+        dictType  = f.meta.dictionaryType
 
-        dict = d.dictFromMeta k, i.fieldHash[n].meta
+        dict = d.dictFromMeta k, f.meta
 
         k["#{n}Many"] = ko.computed
           # we don't need any value here

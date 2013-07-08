@@ -30,13 +30,14 @@ define [ "text!tpl/screens/vin.html"
 
   this.doVin = ->
     form     = $el("vin-import-form")[0]
-    formData = new FormData(form)
-    vinFormat = $("#vin-program-select").find("option:selected").data("format")
-    formData.append("format", vinFormat)
+    formData = new FormData()
+    pid = $("#vin-program-select").val()
+    vinFile = $("#vin-upload-file")[0].files[0]
+    formData.append("file", vinFile)
 
     $.ajax(
       type        : "POST"
-      url         : "/vin/upload"
+      url         : "/vin/upload?program=" + pid
       data        : formData
       contentType : false
       processData : false
