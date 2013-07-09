@@ -21,7 +21,11 @@ import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.Auth.Backends.PostgresqlSimple
 import Snap.Snaplet.PostgresqlSimple (pgsInit)
 import Snap.Snaplet.Session.Backends.CookieSession
-import Snap.Util.FileServe (serveDirectory, serveFile)
+import Snap.Util.FileServe ( serveFile
+                           , simpleDirectoryConfig
+                           , serveDirectoryWith
+                           , DirectoryConfig(..)
+                           )
 ------------------------------------------------------------------------------
 import Snap.Snaplet.Vin
 import Snaplet.SiteConfig
@@ -45,7 +49,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/login/",        method GET loginForm)
          , ("/login/",        method POST doLogin)
          , ("/logout/",       doLogout)
-         , ("/s/",            serveDirectory "resources/static")
+         , ("/s/",            serveDirectoryWith dconf "resources/static")
          , ("/s/screens",     serveFile "resources/site-config/screens.json")
          , ("/screens",       method GET $ getScreens)
          , ("/report",        chkAuthLocal . method GET  $ report)
@@ -113,6 +117,10 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/errors",        method POST errorsHandler)
          ]
 
+dconf :: DirectoryConfig (Handler App App)
+dconf = simpleDirectoryConfig{preServeHook = h}
+  where
+    h _ = modifyResponse $ setHeader "Cache-Control" "no-cache, must-revalidate"
 
 ------------------------------------------------------------------------------
 -- | The application initializer.
