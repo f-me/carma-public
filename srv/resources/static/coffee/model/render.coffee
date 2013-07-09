@@ -45,7 +45,7 @@ define ["dictionaries"], (d) ->
       refModelName: modelName
       refId: ref.id()
       refField: fname
-      refWidget: field.meta["reference-widget"]
+      refWidget: field.meta?["reference-widget"]
       refClass: mkSubviewClass(fname, modelName, cid)
       refView: mkSubviewName(fname, 0, modelName, cid)
 
