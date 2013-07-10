@@ -54,7 +54,7 @@ function exec_file {
 
 function setup_db {
   createdb $DB_NAME
-  for f in `find baseline -type f | sort` ; do
+  for f in `find baseline -type f | sort -t'/' -k 2,2n -k 3,3n` ; do
     exec_file $f
   done
   get_db_version
@@ -63,7 +63,7 @@ function setup_db {
 
 function update_db {
   get_db_version
-  for f in `find patches -type f | sort` ; do
+  for f in `find patches -type f | sort -t. -k 1,1n -k 2,2n -k 3,3n` ; do
     get_patch_version $f
     if [[ "$PATCH_VERSION" > "$DB_VERSION" ]] ; then
       exec_file $f
