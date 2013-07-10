@@ -216,7 +216,9 @@
       "name": "mtime"
     },
     {
-      "meta": null,
+      "meta": {
+        "reference-widget": "partner_services"
+      },
       "type": "reference",
       "groupName": null,
       "name": "services"
