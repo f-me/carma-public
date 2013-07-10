@@ -1,9 +1,10 @@
 <!-- print service template screen template -->
-<div id="print-table" class="nice-scrollbar pane">
-  <table class="table-condensed">
+<div id="print-table" class="row-fluid">
+  <div class="span6" style="page-break-after:always;">
+  <table class="table table-condensed">
     <tr>
-      <td> Клиент </td>
-      <td data-bind="text: kase.program"> </td>
+      <td width="30%"> Клиент </td>
+      <td width="70%" data-bind="text: kase.program"> </td>
     </tr>
     <tr>
       <td> Номер происшествия </td>
@@ -102,7 +103,9 @@
       <td data-bind="text: service.assignedTo"> </td>
     </tr>
   </table>
+  </div>
 
+  <div class="span6">
   <table class="table table-condensed table-striped table-bordered">
     <caption><strong>Комментарии</strong></caption>
     <thead>
@@ -144,4 +147,5 @@
       </tr>
     </tbody>
   </table>
+  </div>
 </div>
