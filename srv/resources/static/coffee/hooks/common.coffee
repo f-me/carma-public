@@ -67,7 +67,7 @@ define [ "utils"
         kvm["#{n}Url"] = ko.computed
           read: ->
             p  = "/s/fileupload/attachment/" + kvm.id()
-            fs = kvm[n]()
+            fs = encodeURIComponent kvm[n]()
             p + "/" + fs
           
   # Clear dependant dictionary fields when parent is changed

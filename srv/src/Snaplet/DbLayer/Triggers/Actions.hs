@@ -153,20 +153,10 @@ actions
               set objId "car_vin" vin
               fillFromContract vin objId >>= \case
                 True -> set objId "vinChecked" "base"
-                False -> redisHGetAll (B.concat ["vin:", vin]) >>= \case
-                  Left _    -> return ()
-                  Right []  -> do
+                False -> do
                     res <- requestFddsVin objId val
                     set objId "vinChecked"
                       $ if res then "fdds" else "vinNotFound"
-                  Right car -> do
-                    set objId "vinChecked" "base"
-                    let setIfEmpty (name,val)
-                          | name == "car_plateNum" = return ()
-                          | otherwise = do
-                            val' <- get objId name
-                            when (val' == "") $ set objId name val
-                    mapM_ setIfEmpty car
             ])
           ,("psaExportNeeded",
             [\caseRef val -> when (val == "1") $ tryRepTowageMail caseRef])
