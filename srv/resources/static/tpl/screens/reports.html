@@ -33,7 +33,7 @@
   </fieldset>
 </div>
 
-<div id="all-reports" class="row">
+<div id="all-reports" class="row" style="margin-left:0">
   <div class="span4">
     <h3>Добавить отчет</h3>
     <form id="add-report"
@@ -69,7 +69,7 @@
             <a data-bind="text: templates,
                           attr: {
                           href: '/s/fileupload/report/' + id +
-                          '/templates/' + templates
+                          '/templates/' + encodeURIComponent(templates)
                           }">
             </a>
           </td>

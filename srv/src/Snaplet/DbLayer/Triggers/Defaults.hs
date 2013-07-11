@@ -45,7 +45,7 @@ applyDefaults model obj = do
     "call" -> do
           Just u <- with auth currentUser
           let login = T.encodeUtf8 $ userLogin u
-          return $ Map.insert "callTaker" login obj
+          return $ Map.insert "callTaker" login cd
     "cost_serviceTarifOption" -> return $ Map.insert "count" "1" obj
     "contract" ->
       -- Store user id in owner field if it's not present

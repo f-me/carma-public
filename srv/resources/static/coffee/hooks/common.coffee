@@ -58,30 +58,18 @@ define [ "utils"
               ko.computed -> not r.test kvm[f]()
       )(fieldName, new RegExp(global.dictLabelCache["_regexps"][regexp]))
 
-  filesKbHook: (model, kvm) ->
+  # For a field <name> with type=file, add an extra observable
+  # <name>Url with absolute URL to the stored file.
+  fileKbHook: (model, kvm) ->
     for f in model.fields when f.type == "file"
       do(f) ->
         n   = f.name
-        upl = "/upload"
         kvm["#{n}Url"] = ko.computed
           read: ->
             p  = "/s/fileupload/attachment/" + kvm.id()
-            fs = kvm[n]()
+            fs = encodeURIComponent kvm[n]()
             p + "/" + fs
-        kvm["#{n}Info"] = ko.computed
-          read: ->
-            p = "/s/fileupload/attachment/" + kvm.id()
-            kvm['maybeId']()
-            return unless kvm['id']
-            path = "#{model.name}/#{kvm['id']()}/#{n}"
-            fs = kvm[n]()
-            return [] unless fs
-            for i in fs.split(',')
-              do (i) ->
-                url: "#{p}/#{path}/#{i.trim()}"
-                name: i.trim()
-                ctrl: "#{upl}/#{path}/#{i.trim()}"
-
+          
   # Clear dependant dictionary fields when parent is changed
   # this.dictionaryHook = (elName) ->
   #   instance = global.viewsWare[elName].bbInstance

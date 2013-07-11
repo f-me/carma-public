@@ -1,40 +1,43 @@
 {
-    "name": "partnerMessage",
-    "title": "Сообщение для партнёра",
-    "canCreate": true,
-    "canRead": true,
-    "canUpdate": true,
-    "canDelete": true,
-    "fields": [
-      {
-        "name":"ctime",
-        "meta": {
-          "invisible":true
-        }
+  "fields": [
+    {
+      "meta": {
+        "invisible": true
       },
-      {
-        "name":"caseId",
-        "canRead": true,
-        "canWrite": true,
-        "meta": {
-            "label": "Кейс"
-        }
+      "type": null,
+      "groupName": null,
+      "name": "ctime"
+    },
+    {
+      "meta": {
+        "label": "Кейс"
       },
-      {
-        "name":"partnerId",
-        "canRead": true,
-        "canWrite": true,
-        "meta": {
-            "label": "Партнёр"
-        }
+      "type": null,
+      "groupName": null,
+      "name": "caseId"
+    },
+    {
+      "meta": {
+        "label": "Партнёр"
       },
-      {
-        "name":"message",
-        "canRead": true,
-        "canWrite": true,
-        "meta": {
-            "label": "Сообщение"
-        }
-      }
-    ]
+      "type": null,
+      "groupName": null,
+      "name": "partnerId"
+    },
+    {
+      "meta": {
+        "label": "Сообщение"
+      },
+      "type": null,
+      "groupName": null,
+      "name": "message"
+    }
+  ],
+  "applications": [],
+  "canDelete": true,
+  "canUpdate": true,
+  "canRead": true,
+  "canCreate": true,
+  "title": "Сообщение для партнёра",
+  "name": "partnerMessage"
 }

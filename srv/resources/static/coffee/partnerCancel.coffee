@@ -1,11 +1,12 @@
 define ["model/main"], (main) ->
 
   # Function to init modal dialog
-  # @param fnPartnerId function which returns id in format
-  # "partner:{PARTNER_ID}"
-  # @param fnPartnerName function which returns partner name
-  setup: (fnPartnerId, fnPartnerName) ->
+  # @param kvm is service knockout model
+  setup: (kvm) ->
     modelName = "partnerCancel"
+    partnerId   = kvm.contractor_partnerId()
+    partnerName = kvm.contractor_partner()
+    serviceId   = "#{kvm._meta.model.name}:#{kvm.id()}"
 
     $('body').append(
       Mustache.render $("#modalDialog-field-template").html(),
@@ -22,7 +23,7 @@ define ["model/main"], (main) ->
         k = main.modelSetup("#{modelName}") "#{modelName}-form", {id:null},
           focusClass: "focusable"
           refs: refs
-          bb: { maual_save: true }
+          manual_save: true
 
         k['updateUrl'] = ->
 
@@ -38,10 +39,11 @@ define ["model/main"], (main) ->
 
         saveBtnDisable true
 
+        partnerCancelVM.serviceId(serviceId)
         # fill hidden fields
-        vCase = global.viewsWare['case-form']
+        vCase = global.viewsWare['case-form']?.knockVM
         if vCase
-          partnerCancelVM.caseId("case:#{vCase.bbInstance.id}")
+          partnerCancelVM.caseId("case:#{vCase.id()}")
 
         ctime = Math.round((new Date).getTime() / 1000)
         partnerCancelVM.ctime("#{ctime}")
@@ -58,7 +60,6 @@ define ["model/main"], (main) ->
           else
             $alert.hide()
 
-        partnerId = fnPartnerId() if fnPartnerId
         if partnerId
           partnerCancelVM.partnerId(partnerId)
           # hide alert
@@ -70,30 +71,11 @@ define ["model/main"], (main) ->
 
         partnerCancelVM.owner(global.user.login)
 
-        # write entry to comments history
-        addToHistory = ->
-          reasonCode = partnerCancelVM.partnerCancelReason()
-          reason = _.find global.dictionaries.PartnerCancelReason.entries, (r) ->
-            r.value is reasonCode
-          comment =
-            date: (new Date()).toString('dd.MM.yyyy HH:mm')
-            user: global.user.login
-            type: "Отказ партнёра"
-            comment: fnPartnerName()
-            result: "#{reason.label}"
-          k = global.viewsWare['case-form'].knockVM
-          if _.isEmpty k['comments']()
-            k['comments'] [comment]
-          else
-            k['comments'] k['comments']().concat comment
-
         $("##{modelName}-save")
           .off('click')
           .on('click', (event) ->
             event.preventDefault()
-            vPartnerCancel.bbInstance.save()
-            do addToHistory
-
+            partnerCancelVM._meta.q.save()
             $modalDialog.modal('hide')
           )
       )

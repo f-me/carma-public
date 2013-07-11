@@ -16,6 +16,7 @@ define ["model/main"], (main) ->
       buttonDisabled true
       vSms = global.viewsWare['sms-send-form']
       smsVM = vSms.knockVM
+      smsVM['updateUrl'] = ->
       smsVM.msg.subscribe (msg) ->
         buttonDisabled (msg == "" || smsVM.phoneRegexp())
 
@@ -24,18 +25,18 @@ define ["model/main"], (main) ->
 
       vCase = global.viewsWare['case-form']
       if vCase
-        smsVM.caseId(vCase.bbInstance.id)
+        smsVM.caseId(vCase.knockVM.id())
 
       # we really need this because triggers do not trigger on `POST`
       # so, if {template:"xxx"} comes with POST (not with PUT), then
       # our template substitution trigger is not fired
-      vSms.bbInstance.save()
+      smsVM._meta.q.save()
 
       $('#do-send-sms')
         .off('click')
         .on('click', () ->
           $('#sms-send-modal').modal('hide')
-          $.post('/smspost', {smsId: "sms:#{vSms.bbInstance.id}"})
+          $.post('/smspost', {smsId: "sms:#{smsVM.id()}"})
           )
     )
   ,1000)

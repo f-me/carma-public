@@ -1,7 +1,12 @@
 define ["text!tpl/screens/printSrv.html"], (tpl) ->
   setupPrintSrv = (viewName, {model: model, id: id}) ->
     $(".navbar").hide()
+
     $.getJSON "/printSrv/#{model}/#{id}", (arg) ->
+
+      arg.service = arg.service[0]
+      arg.kase    = arg.kase[0]
+
       arg.service.assignedTo = lookup('users', arg.service.assignedTo)
       arg.service.type = model
       postProc arg.kase,
@@ -17,6 +22,21 @@ define ["text!tpl/screens/printSrv.html"], (tpl) ->
         lookup:
           Services        : 'type'
           ServiceStatuses : 'status'
+
+      for s in (arg.cancels || [])
+        s.service = s.serviceid.split(':')[0]
+        postProc s,
+          lookup:
+            users               : 'owner'
+            PartnerCancelReason : 'partnerCancelReason'
+            Services            : 'service'
+          time: ['ctime']
+
+      arg.kase.comments = $.parseJSON arg.kase.comments
+      for s in (arg.kase.comments || [])
+        postProc s,
+          lookup:
+            users: 'user'
 
       ko.applyBindings arg, el("print-table")
 
@@ -35,10 +55,12 @@ define ["text!tpl/screens/printSrv.html"], (tpl) ->
     global.dictValueCache[dict][val] || ''
 
   postProc = (obj, procs) ->
-    for t in procs.time
-      obj[t] = time(obj[t])
-    for d, f of procs.lookup
-      obj[f] = lookup(d, (obj[f] || '')) || obj[f] || ''
+    if procs.time
+      for t in procs.time
+        obj[t] = time(obj[t])
+    if procs.lookup
+      for d, f of procs.lookup
+        obj[f] = lookup(d, (obj[f] || '')) || obj[f] || ''
 
   { constructor: setupPrintSrv
   , destructor: destroyPrintSrv

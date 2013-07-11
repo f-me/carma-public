@@ -74,7 +74,6 @@ echo "Using '${PARTNERS_HTTP}' as CaRMa API endpoint"
 LOG=$(mktemp geofix-XXXXXX.log)
 SOURCE_LIST=${LOG%log}source.txt
 RES_LIST=${LOG%log}result.txt
-RES_SQL=${LOG%log}sql
 echo "Writing verbose import log at ${LOG}"
 
 log () {
@@ -182,7 +181,7 @@ do
         new_addr=$(echo ${res} | \
             jq -r '.name')
 
-        # When searching only by city, name is equal to city, so drop it
+        # When searching only by city, address is equal to city, so drop it
         if [ "${new_addr}" = "${new_city}" ]
         then
             new_addr=""

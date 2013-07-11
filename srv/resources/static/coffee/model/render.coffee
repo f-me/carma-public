@@ -39,13 +39,15 @@ define ["dictionaries"], (d) ->
   mkRefContainer = (ref, field, forest, templates)->
     modelName = ref._meta.model.name
     cid       = ref._meta.cid
+    fname     = field.name
     refBook =
       refN: 0
       refModelName: modelName
       refId: ref.id()
-      refField: field
-      refClass: mkSubviewClass(field, modelName, cid)
-      refView: mkSubviewName(field, 0, modelName, cid)
+      refField: fname
+      refWidget: field.meta?["reference-widget"]
+      refClass: mkSubviewClass(fname, modelName, cid)
+      refView: mkSubviewName(fname, 0, modelName, cid)
 
     refView = renderDep(refBook, templates)
     $el(forest).append(refView)
@@ -226,6 +228,8 @@ define ["dictionaries"], (d) ->
   #
   # refField - name of field of parent model which stores reference;
   #
+  # refWidget - overrides field name when picking reference template;
+  #
   # refView - name of reference view. where instance will be rendered
   # after loading.
   #
@@ -234,8 +238,8 @@ define ["dictionaries"], (d) ->
   # refBook may contain any other keys as well and will be passed to
   # Mustache.render as a context.
   #
-  # Templates will be pickTemplate'd against using
-  # <refModelName>-<refField>, simply <refField> or default template.
+  # Templates will be pickTemplate'd against using <refWidget>, simply
+  # <refField> or default template.
   #
   # Every view template MUST set div with id=<refView> and
   # class=<refClass> where model will be setup; an element with
@@ -247,7 +251,8 @@ define ["dictionaries"], (d) ->
   # maintain unique ids.
   renderDep = (refBook, templates) ->
     typed_tpl = refBook.refField
-    return Mustache.render pickTemplate(templates, [typed_tpl, ""]), refBook
+    widget_tpl = refBook.refWidget || typed_tpl
+    return Mustache.render pickTemplate(templates, [widget_tpl, typed_tpl, ""]), refBook
 
   # Pick a template from cache which matches one of given names first.
   pickTemplate = (templates, names) ->

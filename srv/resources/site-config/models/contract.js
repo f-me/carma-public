@@ -1,339 +1,321 @@
 {
-  "name": "contract",
-  "title": "contract",
-  "canCreate": true,
-  "canRead": false,
-  "canUpdate": true,
-  "canDelete": false,
   "fields": [
     {
-      "name": "ctime",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
-      "type": "datetime",
       "meta": {
         "invisible": true,
         "label": "Дата создания записи"
-      }
+      },
+      "type": "datetime",
+      "groupName": null,
+      "name": "ctime"
     },
     {
-        "name": "isActive",
-        "type": "checkbox",
-        "canRead":  true,
-        "canWrite": true,
-        "meta": {
-            "label": "Активен"
-        }
+      "meta": {
+        "label": "Активен"
+      },
+      "type": "checkbox",
+      "groupName": null,
+      "name": "isActive"
     },
     {
-      "name": "program",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "meta": {
         "invisible": true,
         "label": "Программа"
-      }
+      },
+      "type": null,
+      "groupName": null,
+      "name": "program"
     },
     {
-      "name": "carVin",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "VIN",
         "transform": "uppercase",
         "regexp": "vin"
-      }
+      },
+      "type": null,
+      "groupName": null,
+      "name": "carVin"
     },
     {
-      "name": "carMake",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
-      "type": "dictionary",
       "meta": {
         "required": true,
         "dictionaryName": "CarMakers",
         "bounded": true,
         "label": "Марка"
-      }
+      },
+      "type": "dictionary",
+      "groupName": null,
+      "name": "carMake"
     },
     {
-      "name": "carModel",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
-      "type": "dictionary",
       "meta": {
         "required": true,
         "dictionaryName": "CarModels",
         "dictionaryParent": "carMake",
         "bounded": true,
         "label": "Модель"
-      }
+      },
+      "type": "dictionary",
+      "groupName": null,
+      "name": "carModel"
     },
     {
-      "name": "carSeller",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
-      "type": "dictionary",
       "meta": {
         "dictionaryType": "DealersDict",
         "bounded": true,
         "required": true,
         "label": "Дилер, продавший автомобиль"
-      }
+      },
+      "type": "dictionary",
+      "groupName": null,
+      "name": "carSeller"
     },
     {
-      "name": "carPlateNum",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "meta": {
         "transform": "uppercase",
         "label": "Госномер",
         "required": true,
         "regexp": "plateNum"
-      }
+      },
+      "type": null,
+      "groupName": null,
+      "name": "carPlateNum"
     },
     {
-      "name": "carMakeYear",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Год производства автомобиля",
         "sqltype": "integer"
-      }
+      },
+      "type": null,
+      "groupName": null,
+      "name": "carMakeYear"
     },
     {
-      "name": "carColor",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
-      "type": "dictionary",
       "meta": {
         "required": true,
         "dictionaryName": "Colors",
         "bounded": true,
         "label": "Цвет"
-      }
+      },
+      "type": "dictionary",
+      "groupName": null,
+      "name": "carColor"
     },
     {
-      "name": "carBuyDate",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
-      "type": "date",
       "meta": {
         "required": true,
         "regexp": "date",
         "label": "Дата покупки"
-      }
+      },
+      "type": "date",
+      "groupName": null,
+      "name": "carBuyDate"
     },
     {
-      "name": "carCheckupDate",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
-      "type": "date",
       "meta": {
         "required": true,
         "regexp": "date",
         "label": "Дата последнего ТО"
-      }
+      },
+      "type": "date",
+      "groupName": null,
+      "name": "carCheckupDate"
     },
     {
-      "name": "carDealerTO",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
-      "type": "dictionary",
       "meta": {
         "required": true,
         "dictionaryType": "DealersDict",
         "bounded": true,
         "label": "Дилер у которого проходило последнее ТО"
-      }
+      },
+      "type": "dictionary",
+      "groupName": null,
+      "name": "carDealerTO"
     },
     {
-      "name": "carCheckupMilage",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Пробег на последнем ТО",
         "sqltype": "integer"
-      }
+      },
+      "type": null,
+      "groupName": null,
+      "name": "carCheckupMilage"
     },
     {
-      "name": "carTransmission",
-      "type": "dictionary",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Коробка передач",
         "dictionaryName": "Transmission",
-        "required": true,
         "widget": "radio"
-      }
+      },
+      "type": "dictionary",
+      "groupName": null,
+      "name": "carTransmission"
     },
     {
-      "name": "carEngine",
-      "type": "dictionary",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Тип двигателя",
         "dictionaryName": "EngineType",
         "widget": "radio"
-      }
+      },
+      "type": "dictionary",
+      "groupName": null,
+      "name": "carEngine"
     },
     {
-      "name": "contractType",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Тип контракта"
-      }
+      },
+      "type": null,
+      "groupName": null,
+      "name": "contractType"
     },
     {
-      "name": "cardNumber",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Номер карты участника"
-      }
+      },
+      "type": null,
+      "groupName": null,
+      "name": "cardNumber"
     },
     {
-      "name": "contractValidFromDate",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
-      "type": "date",
       "meta": {
         "required": true,
         "regexp": "date",
         "label": "Дата регистрации в программе",
         "koupdate": "change"
-      }
+      },
+      "type": "date",
+      "groupName": null,
+      "name": "contractValidFromDate"
     },
     {
-      "name": "contractValidUntilDate",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
-      "type": "date",
       "meta": {
         "required": true,
         "regexp": "date",
         "label": "Программа действует до (дата)"
-      }
+      },
+      "type": "date",
+      "groupName": null,
+      "name": "contractValidUntilDate"
     },
     {
-      "name": "milageTO",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Пробег при регистрации в программе",
         "sqltype": "integer",
         "koupdate": "change"
-      }
+      },
+      "type": null,
+      "groupName": null,
+      "name": "milageTO"
     },
     {
-      "name": "contractValidUntilMilage",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Программа действует до (пробег)",
         "sqltype": "integer"
-      }
+      },
+      "type": null,
+      "groupName": null,
+      "name": "contractValidUntilMilage"
     },
     {
-      "name": "cardOwner",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "ФИО владельца карты"
-      }
+      },
+      "type": null,
+      "groupName": null,
+      "name": "cardOwner"
     },
     {
-      "name": "techType",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
-      "type": "dictionary",
       "meta": {
         "required": true,
         "dictionaryName": "ToType",
         "bounded": true,
         "label": "Вид ТО"
-      }
+      },
+      "type": "dictionary",
+      "groupName": null,
+      "name": "techType"
     },
     {
-      "name": "orderNumber",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "Номер заказ-наряда"
-      }
+      },
+      "type": null,
+      "groupName": null,
+      "name": "orderNumber"
     },
     {
-      "name": "manager",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
       "meta": {
         "required": true,
         "label": "ФИО менеджера"
-      }
+      },
+      "type": null,
+      "groupName": null,
+      "name": "manager"
     },
     {
-      "name": "warrantyStart",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
-      "type": "date",
       "meta": {
         "required": true,
         "regexp": "date",
         "label": "Дата начала действия программы"
-      }
+      },
+      "type": "date",
+      "groupName": null,
+      "name": "warrantyStart"
     },
     {
-      "name": "warrantyEnd",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
-      "type": "date",
       "meta": {
         "required": true,
         "regexp": "date",
         "label": "Дата окончания действия программы"
-      }
+      },
+      "type": "date",
+      "groupName": null,
+      "name": "warrantyEnd"
     },
     {
-      "name": "comment",
-      "canRead": ["partner"],
-      "canWrite": ["partner"],
-      "type": "textarea",
       "meta": {
         "label": "Комментарий"
-      }
+      },
+      "type": "textarea",
+      "groupName": null,
+      "name": "comment"
     },
     {
-      "name": "owner",
-      "canRead": ["partner"],
-      "canWrite": false,
       "meta": {
         "invisible": true,
         "label": "Дилер"
-      }
+      },
+      "type": null,
+      "groupName": null,
+      "name": "owner"
     },
     {
-      "name": "dixi",
-      "type": "checkbox",
-      "canRead" : true,
-      "canWrite": true,
       "meta": {
-          "label": "Сохранить",
-          "widget": "checkbutton"
-      }
+        "label": "Сохранить",
+        "widget": "checkbutton"
+      },
+      "type": "checkbox",
+      "groupName": null,
+      "name": "dixi"
     }
-  ]
+  ],
+  "applications": [],
+  "canDelete": false,
+  "canUpdate": true,
+  "canRead": false,
+  "canCreate": true,
+  "title": "contract",
+  "name": "contract"
 }

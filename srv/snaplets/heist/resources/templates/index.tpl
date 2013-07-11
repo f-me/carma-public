@@ -114,6 +114,13 @@
           <ifLoggedIn>
             <ul class="nav pull-right">
               <li class="divider-vertical" />
+              <li id="navbar-achievements" class="dropdown" style="display: none">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                  <i class="icon-star icon-white" />
+                </a>
+                <ul class="dropdown-menu">
+                </ul>
+              </li>
               <li class="dropdown">
                 <a href="#"
                    class="dropdown-toggle"
@@ -845,6 +852,51 @@
       </div>
     </script>
 
+    <!-- Container field template for attachment reference list, with
+         upload form. See also files-reference-template for each item
+         template. -->
+    <script type="text/template"
+            class="field-template"
+            id="inline-uploader-field-template">
+      <div class="controls">
+        <div class="accordion accordion-group">
+          <label>{{ meta.label }}</label>
+          <div id="{{ modelName }}-{{ cid }}-{{ name }}-references" />
+          <form data-bind="attr: { action: '/upload/{{ modelName }}/'+maybeId()+'/{{ name }}'},
+                           {{#meta.single-uploader}}
+                           visible: _.isEmpty({{name}}()),
+                           {{/meta.single-uploader}}
+                           setdata: {{ name }}"
+                style="margin-bottom: 0;">
+            <!-- File chooser widget -->
+            <div class="input-append" style="width:100%">
+              <input type="file"
+                     class="upload-dialog"
+                     onchange="$(this).siblings('.upload-names').val($(this).val());"
+                     data-bind="disabled: {{ name }}Disabled"
+                     style="display:none;" />
+              <input type="text"
+                     class="upload-names"
+                     style="width: 50%;"
+                     disabled
+                     />
+              <a class="btn"
+                 data-bind="disabled: {{ name }}Disabled"
+                 onclick="$(this).siblings('.upload-dialog').click();"
+                 >
+                <i class="icon icon-folder-open" />&nbsp;Обзор
+              </a>
+              <a class="btn btn-primary"
+                 data-bind="disabled: {{ name }}Disabled"
+                 onClick="inlineUploadFile($(this).closest('form'));">
+                <i class="icon icon-upload icon-white" />&nbsp;Загрузить
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </script>
+
     <!--
 
          Special template used to render first field of group in
@@ -930,16 +982,52 @@
       </div>
     </script>
 
+    <script type="text/template"
+            class="reference-template"
+            id="partner_services-reference-template">
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <div class="accordion-toggle"
+               data-target="#{{ refView }}-head"
+               data-toggle="collapse"
+               id="{{ refView }}-link">
+            <a class="icon icon-remove" />
+            <a
+               data-bind="text: serviceNameLocal">
+               Тариф
+            </a>
+
+          </div>
+        </div>
+
+        <div id="{{ refView }}-head"
+             class="accordion-body collapse in">
+          <div class="accordion-inner {{ refClass }}"
+               id="{{ refView }}">
+            <!-- Instance contents are rendered here -->
+
+          </div>
+        </div>
+      </div>
+    </script>
+
     <!-- 
          Attachment list reference template. By convention, such
-         fields are named "files".
+         fields are named "files". See also file-field-template.
     -->
     <script type="text/template"
             class="reference-template"
             id="files-reference-template">
-        <div class="accordion-group {{ refClass }}"
-             id="{{ refView }}" />
+      <div>
+        <a href="#"
+           class="detach-button text-error"
+           onClick="inlineDetachFile($(this))"
+           data-attachment="{{ refId }}"
+           data-field="{{ refField }}">×</a>
+        <span class="{{ refClass }}"
+              id="{{ refView }}" />
         <!-- Attachment contents are rendered here -->
+      </div>
     </script>
 
     <script type="text/template"
@@ -1135,9 +1223,8 @@
     <script type="text/template"
             class="field-template"
             id="file-field-template">
-      <label>{{ meta.label }}</label>
       <i class="icon icon-file" />
-      <a data-bind="attr: { href: {{ name }}Url }, text: {{ name }}"/>
+      <a class="file-name" data-bind="attr: { href: {{ name }}Url }, text: {{ name }}"/>
     </script>
 
     <script type="text/template"

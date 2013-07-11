@@ -306,7 +306,7 @@ define [ "model/render"
     refsForest = getrForest(knockVM, f.name)
     $("##{refsForest}").empty()
     for r in knockVM["#{f.name}Reference"]()
-      refBook = render.mkRefContainer(r, f.name, refsForest, tpls)
+      refBook = render.mkRefContainer(r, f, refsForest, tpls)
       v = setupView refBook.refView, r,
         permEl: refBook.refView + "-perms"
         groupsForest: options.groupsForest

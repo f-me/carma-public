@@ -1,55 +1,50 @@
 {
-    "name": "programPermissions",
-    "title": "",
-    "canCreate": true,
-    "canRead": true,
-    "canUpdate": ["admin"],
-    "canDelete": ["admin"],
-     "applications": [
-         {
-            "targets": true,
-            "canWrite": true,
-            "canRead": true
-         }
-    ],
-    "fields": [
-        {
-            "name": "parentId",
-            "canRead": true,
-            "canWrite": true,
-            "meta": {
-                "invisible": true
-            }
-        },
-        {
-            "name": "contractField",
-            "canRead": ["head"],
-            "canWrite": ["head"],
-            "type": "dictionary",
-            "meta": {
-                "label": "Тип поля",
-                "dictionaryName": "ContractFields",
-                "required": true,
-                "bounded":true
-            }
-        },
-        {
-            "name": "showTable",
-            "type": "checkbox",
-            "canRead": ["head"],
-            "canWrite": ["head"],
-            "meta": {
-                "label": "Отображается в таблице"
-            }
-        },
-        {
-            "name": "showForm",
-            "type": "checkbox",
-            "canRead": ["head"],
-            "canWrite": ["head"],
-            "meta": {
-                "label": "Отображается в форме"
-            }
-        }
-    ]
+  "fields": [
+    {
+      "meta": {
+        "invisible": true
+      },
+      "type": null,
+      "groupName": null,
+      "name": "parentId"
+    },
+    {
+      "meta": {
+        "label": "Тип поля",
+        "dictionaryName": "ContractFields",
+        "required": true,
+        "bounded": true
+      },
+      "type": "dictionary",
+      "groupName": null,
+      "name": "contractField"
+    },
+    {
+      "meta": {
+        "label": "Отображается в таблице"
+      },
+      "type": "checkbox",
+      "groupName": null,
+      "name": "showTable"
+    },
+    {
+      "meta": {
+        "label": "Отображается в форме"
+      },
+      "type": "checkbox",
+      "groupName": null,
+      "name": "showForm"
+    }
+  ],
+  "applications": [],
+  "canDelete": [
+    "admin"
+  ],
+  "canUpdate": [
+    "admin"
+  ],
+  "canRead": true,
+  "canCreate": true,
+  "title": "",
+  "name": "programPermissions"
 }

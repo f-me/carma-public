@@ -17,12 +17,16 @@ module AppHandlers.Users
 
 where
 
+import Data.Aeson
+import qualified Data.HashMap.Strict as HM
+
 import Snap
 import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.PostgresqlSimple
 
 import Application
 import AppHandlers.Util
+import AppHandlers.UserAchievements
 import Snaplet.Auth.PGUsers
 
 
@@ -118,9 +122,23 @@ claimUserLogout = with auth currentUser >>= \case
 ------------------------------------------------------------------------------
 -- | Serve user account data back to client.
 serveUserCake :: AppHandler ()
-serveUserCake = ifTop $
-  with auth currentUser >>= maybe
-           (error "impossible happened")
-           (\u -> do
-              u' <- with db $ replaceMetaRolesFromPG u
-              writeJSON u')
+serveUserCake
+  = ifTop $ with auth currentUser
+  >>= \case
+    Nothing -> handleError 401
+    Just u'  -> do
+      usr <- with db $ replaceMetaRolesFromPG u'
+      achievements <- userAchievements usr
+      let homePage = case userRoles usr of
+            rs | Role "front"      `elem` rs -> "/#call"
+               | Role "back"       `elem` rs -> "/#back"
+               | Role "supervisor" `elem` rs -> "/#supervisor"
+               | Role "parguy"     `elem` rs -> "/#partner"
+               | Role "head"       `elem` rs -> "/#rkc"
+               | otherwise                   -> ""
+      writeJSON $ usr
+        {userMeta
+          = HM.insert "achievements" (toJSON achievements)
+          $ HM.insert "homepage" homePage
+          $ userMeta usr
+        }

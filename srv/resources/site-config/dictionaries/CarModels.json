@@ -1026,6 +1026,10 @@
                 "label": "Bronco"
             },
             {
+                "value": "bMax",
+                "label": "B-Max"
+            },
+            {
                 "value": "sMax",
                 "label": "S-Max"
             },
@@ -1098,6 +1102,10 @@
                 "label": "Explorer"
             },
             {
+                "value": "f250",
+                "label": "F250"
+            },
+            {
                 "value": "faction",
                 "label": "Faction"
             },
@@ -1127,7 +1135,7 @@
             },
             {
                 "value": "fordGT",
-                "label": "Ford GT"
+                "label": "GT"
             },
             {
                 "value": "ikon",
@@ -1199,7 +1207,7 @@
             },
             {
                 "value": "tourenoConnect",
-                "label": "Toureno Connect"
+                "label": "Tourneo Connect"
             },
             {
                 "value": "transit",
