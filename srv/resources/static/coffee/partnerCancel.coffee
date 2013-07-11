@@ -71,23 +71,6 @@ define ["model/main"], (main) ->
 
         partnerCancelVM.owner(global.user.login)
 
-        # write entry to comments history
-        addToHistory = ->
-          reasonCode = partnerCancelVM.partnerCancelReason()
-          reason = _.find global.dictionaries.PartnerCancelReason.entries, (r) ->
-            r.value is reasonCode
-          comment =
-            date: (new Date()).toString('dd.MM.yyyy HH:mm')
-            user: global.user.login
-            type: "Отказ партнёра"
-            comment: partnerName
-            result: "#{reason.label}"
-          k = global.viewsWare['case-form'].knockVM
-          if _.isEmpty k['comments']()
-            k['comments'] [comment]
-          else
-            k['comments'] k['comments']().concat comment
-
         $("##{modelName}-save")
           .off('click')
           .on('click', (event) ->

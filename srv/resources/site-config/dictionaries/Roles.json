@@ -83,6 +83,10 @@
         {
             "value": "vwfake",
             "label": "vwfake"
+        },
+        {
+            "value": "all",
+            "label": "Все"
         }
     ]
 }

@@ -69,7 +69,7 @@
             <a data-bind="text: templates,
                           attr: {
                           href: '/s/fileupload/report/' + id +
-                          '/templates/' + templates
+                          '/templates/' + encodeURIComponent(templates)
                           }">
             </a>
           </td>

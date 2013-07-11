@@ -1347,7 +1347,7 @@ INSERT INTO "CarModel" (value, label, parent)
     FROM "CarMaker" WHERE value = 'ford';
 INSERT INTO "CarModel" (value, label, parent)
   SELECT 'fordGT',
-         'Ford GT',
+         'GT',
          id
     FROM "CarMaker" WHERE value = 'ford';
 INSERT INTO "CarModel" (value, label, parent)
@@ -1910,4 +1910,14 @@ INSERT INTO "CarModel" (value, label, parent)
          '4370',
          id
     FROM "CarMaker" WHERE value = 'maz';
+INSERT INTO "CarModel" (value, label, parent)
+  SELECT 'bMax',
+         'B-Max',
+         id
+    FROM "CarMaker" WHERE value = 'ford';
+INSERT INTO "CarModel" (value, label, parent)
+  SELECT 'f250',
+         'F250',
+         id
+    FROM "CarMaker" WHERE value = 'ford';
 

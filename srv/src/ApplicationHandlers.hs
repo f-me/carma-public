@@ -523,6 +523,7 @@ lookupSrvQ = [sql|
        , (extract (epoch from c.ctime at time zone 'UTC')::int8)::text
        , c.partnercancelreason
        , p.name
+       , c.serviceid
   FROM partnercanceltbl c
   LEFT JOIN partnertbl p
   ON p.id::text = substring(c.partnerid, ':(.*)')
@@ -556,6 +557,7 @@ printServiceHandler = do
                              , "ctime"
                              , "partnerCancelReason"
                              , "partnerName"
+                             , "serviceid"
                              ] rows
 
 getRuntimeFlags :: AppHandler ()
