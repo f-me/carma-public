@@ -52,7 +52,7 @@
   </div>
 
   <div class="row-fluid">
-    <div class="span4 well">
+    <div class="span4 well" id="search-result" style="overflow-y: auto;">
       <ol data-bind="foreach: searchProcessed">
         <li data-bind="css: {
                        'selected-partner': id == $parent.selectedPartner()

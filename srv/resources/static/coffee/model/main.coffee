@@ -94,6 +94,9 @@ define [ "model/render"
     for f in fields
       kvm[f.name] = ko.observable(fetched?[f.name])
 
+    # set id only when it wasn't set from from prefetched data
+    kvm['id'] = ko.observable(fetched?['id'])
+
     # Set extra observable for inverse of every required
     # parameters, with name <fieldName>Not
     for f in required
@@ -114,7 +117,7 @@ define [ "model/render"
               return [] unless rs
               ms = (m.split(':') for m in rs)
               for m in ms
-                k = buildModel(m[0], global.models, {id: m[1]})[0]
+                k = buildKVM(global.models[m[0]], null, {id: m[1]})
                 k.parent = kvm
                 k
             write: (v) ->
@@ -123,7 +126,6 @@ define [ "model/render"
 
     kvm["_meta"] = { model: model, cid: _.uniqueId("#{model.name}_") }
 
-    kvm['id'] = ko.observable()
     kvm["maybeId"] = ko.computed -> kvm['id']() or "—"
 
     # disable dixi filed for model
@@ -259,6 +261,14 @@ define [ "model/render"
       knockVM[k]?(v) for k, v of args
       q = new sync.CrudQueue(knockVM, models[modelName], options)
       knockVM._meta.q = q
+      for f in models[modelName].fields when f.type == "reference"
+        do (f) ->
+          for r in knockVM["#{f.name}Reference"]()
+            do (r) ->
+              rq = new sync.CrudQueue(r, r._meta.model, options)
+              console.log rq, r, r._meta.model, r.id()
+              r._meta.q = rq
+              rq.fetch()
       return [knockVM, q]
 
   buildNewModel = (modelName, args, options, cb) ->

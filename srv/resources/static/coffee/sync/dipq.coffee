@@ -1,5 +1,5 @@
-define ["sync/datamap"], (m) ->
-  class DipQueue
+define ["sync/metaq", "sync/datamap"], (metaq, m) ->
+  class DipQueue extends metaq
     constructor: (@kvm, @model, @options) ->
       @url = "/partners/search"
       @ftypes  = {}

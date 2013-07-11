@@ -73,6 +73,7 @@ define [ "hooks/common"
                , s.srvOptUpd
                , s.costsMark
                , s.bindPartnerCancelDialog
+               , s.openPartnerSearch
                ]
 
       "tech1" : [s.bindPartnerCancelDialog]

@@ -83,7 +83,42 @@ define [ "utils"
 
   srvLab = (val) -> window.global.dictValueCache.Services[val] || val
 
-  constructor: ->
+  loadContext = (kvm, args) ->
+    return unless args?.model
+    return unless localStorage['partnersSearch']
+    ctx = JSON.parse localStorage['partnersSearch']
+    if args.model == "case"
+      kase = ctx['case'].data
+      {id, data} = ctx['service']
+      srvName = id.split(':')[0]
+      kaseKVM = m.buildKVM global.models['case'], '', kase
+      srvKVM  = m.buildKVM global.models[srvName], '', data
+      kvm['city'](kaseKVM.city())
+      kvm['make'](kaseKVM.car_make())
+      kvm['services'](srvName)
+      kvm['caseInfo'] = """
+    <ul class='unstyled'>
+      <li>
+        <b>Кто звонил:</b> #{kaseKVM.contact_name()} #{kaseKVM.contact_phone1()}
+      </li>
+      <li> <b>Номер кеса:</b> #{kaseKVM.id()} </li>
+      <li> <b>Адрес кейса:</b> #{kaseKVM.caseAddress_address()}</li>
+      <li> <b>Название программы: </b> #{kaseKVM.programLocal()} </li>
+      <li> <b> </b> </li>
+      <li> <b> </b> </li>
+      <li> <b> </b> </li>
+    </ul>
+    """
+    # cleanup localstore
+    localStorage.removeItem 'partnersSearch'
+
+  resizeResults = ->
+    t = $("#search-result").offset().top
+    w = $(window).height()
+    console.log 'resizing', t, w, w-t-50
+    $("#search-result").height(w-t-10)
+
+  constructor: (view, args) ->
     kvm = m.buildKVM(model, "partnersSearch-content")
     q = new sync.DipQueue(kvm, model)
     kvm._meta.q = q
@@ -107,20 +142,16 @@ define [ "utils"
         v
     kvm['selectedPartner'] = ko.observable(NaN)
     kvm['selectPartner'] = (partner, ev) -> kvm['selectedPartner'](partner.id)
-    kvm['caseInfo'] = """
-  <ul class='unstyled'>
-    <li> <b>Кто звонил:</b> Барковская Дарья Александровна +79162169928 </li>
-    <li> <b>Номер кеса:</b> 66767 </li>
-    <li> <b>Адрес кейса:</b> Москва, Кутузовский пр. 38</li>
-    <li> <b>Название программы: </b> Ford </li>
-    <li> <b> </b> </li>
-    <li> <b> </b> </li>
-    <li> <b> </b> </li>
-  </ul>
-  """
+    loadContext kvm, args
+
+    kvm['caseInfo'] ?= ""
     ko.applyBindings kvm, $('#partnersSearch-content')[0]
     $("#case-info").popover { template: $("#custom-popover").html() }
     q.search()
+
+    # responsive web design damn it, can't use heigth: Nvw because of header
+    resizeResults()
+    $(window).resize resizeResults
 
   template: tpl
   partials: partialize

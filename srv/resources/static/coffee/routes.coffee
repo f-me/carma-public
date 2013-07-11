@@ -155,7 +155,8 @@ define [
         "program"        : "program"
         "program/:id"    : "loadProgram"
         "printSrv/:model/:id" : "printSrv"
-        "partnersSearch" : "partnersSearch"
+        "partnersSearch"        : "partnersSearch"
+        "partnersSearch/:model" : "partnersSearchModel"
 
       loadCase      : (id) -> r.renderScreen("case", kase, {"id": id})
       newCase       :      -> r.renderScreen("case", kase, {"id": null})
@@ -186,4 +187,6 @@ define [
       loadProgram   : (id) -> r.renderScreen("program", program, {"id": id})
       printSrv      : (model, id) ->
         r.renderScreen "printSrv", print, {model: model, id: id}
-      partnersSearch:      -> r.renderScreen("partnersSearch", partnersSearch)
+      partnersSearch     : -> r.renderScreen("partnersSearch", partnersSearch)
+      partnersSearchModel: (model) ->
+        r.renderScreen "partnersSearch", partnersSearch, {model: model}

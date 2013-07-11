@@ -155,11 +155,15 @@ groupFieldName parent field = B.concat [parent, "_", field]
 spliceGroups :: Groups -> Model -> Model
 spliceGroups groups model =
     let
+        mergeMetas f gf = Just $ M.union
+                          (fromMaybe M.empty $ meta f)
+                          (fromMaybe M.empty $ meta gf)
         updateNames f = fromMaybe [f] $ do
             n <- groupName f
             grp <- M.lookup n groups
             return $ map (\gf -> gf{ groupName = Just n
                                    , name = groupFieldName (name f) (name gf)
+                                   , meta = mergeMetas f gf
                                    }) grp
     in
         model{fields = concatMap updateNames $ fields model}

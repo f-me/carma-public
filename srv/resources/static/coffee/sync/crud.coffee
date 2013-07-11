@@ -1,5 +1,5 @@
-define ["sync/datamap"], (m) ->
-  class CrudQueue
+define ["sync/metaq", "sync/datamap"], (metaq, m) ->
+  class CrudQueue extends metaq
     constructor: (@kvm, @model, @options) ->
       @url = "/_/#{@model.name}"
       @q       = {}

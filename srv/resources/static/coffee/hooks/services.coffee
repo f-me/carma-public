@@ -61,3 +61,11 @@ define ["utils", "model/utils", "partnerCancel"], (u, mu, partnerCancel) ->
 
   bindPartnerCancelDialog: (model, kvm) ->
     kvm['showPartnerCancelDialog'] = -> partnerCancel.setup kvm
+
+  openPartnerSearch: (model, kvm) ->
+    kvm['openPartnerSearch'] = (k) ->
+      srvId = "#{k._meta.model.name}:#{k.id()}"
+      srv  = {id: srvId                  , data: k._meta.q.toRawObj()}
+      kase = {id: "case:#{k.parent.id()}", data: k.parent._meta.q.toRawObj()}
+      localStorage['partnersSearch'] = JSON.stringify {case: kase, service: srv}
+      window.open("/#partnersSearch/case", "_blank")

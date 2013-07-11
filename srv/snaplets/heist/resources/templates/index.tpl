@@ -1263,6 +1263,38 @@
         </div>
       </div>
     </script>
+
+    <script type="text/template"
+            class="field-template"
+            id="partner-field-template">
+      <div class="control-group"
+           {{# meta.required }}
+           data-bind="css: { error: {{name}}Not }"
+           {{/ meta.required}}
+           >
+        <div class="control-label">
+          <label>{{ meta.label }}
+            {{# meta.infoText1 }}
+              <i class="icon icon-question-sign"
+                 data-provide="popover"
+                 data-content="{{ meta.infoText1 }}" />
+            {{/ meta.infoText1 }}
+          </label>
+        </div>
+        <div class="controls input-append">
+          <input type="text"
+                 class="pane-span focusable"
+                 name="{{ name }}"
+                 disabled
+                 data-bind="value: {{ name }}" />
+          <span class="add-on">
+            <i class="icon icon-search"
+               data-bind="click: openPartnerSearch" />
+          </span>
+        </div>
+      </div>
+    </script>
+
     <!-- Modal dialog launch button -->
     <script type="text/template"
             class="field-template"

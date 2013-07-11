@@ -120,33 +120,6 @@
         "label": "Адрес"
       },
       "name": "address"
-    },
-    {
-      "meta": {
-        "widget": "modalDialogButton",
-        "nosql": true,
-        "click": "showPartnerCancelDialog",
-        "label": "Отказ партнёра"
-      },
-      "name": "partnerCancel"
-    },
-    {
-      "meta": {
-        "invisible": true,
-        "label": "Координаты"
-      },
-      "name": "coords"
-    },
-    {
-      "type": "partnerTable",
-      "name": "partnerTable"
-    },
-    {
-      "meta": {
-        "targetCoords": "case-form/caseAddress_coords"
-      },
-      "type": "map",
-      "name": "partnerMap"
     }
   ],
   "car": [
