@@ -63,13 +63,22 @@ function setup_db {
 
 function update_db {
   get_db_version
+  local A=$DB_VERSION_A
+  local B=$DB_VERSION_B
+  local C=$DB_VERSION_C
+
   for f in `find patches -type f | sort -t. -k 1,1n -k 2,2n -k 3,3n` ; do
     get_patch_version $f
-    if [[ "$PATCH_VERSION" > "$DB_VERSION" ]] ; then
+    local X=$PATCH_VERSION_A
+    local Y=$PATCH_VERSION_B
+    local Z=$PATCH_VERSION_C
+
+    if [[ ($X -gt $A) ||
+          (($X -eq $A) && ($Y -gt $B)) ||
+          (($X -eq $A) && ($Y -eq $B) && ($Z -gt $C)) ]] ; then
       exec_file $f
 
-      local P_SQL_VER="($PATCH_VERSION_A,$PATCH_VERSION_B,$PATCH_VERSION_C)"
-      $PSQL -c "insert into version (A,B,C) values $P_SQL_VER;"
+      $PSQL -c "insert into version (A,B,C) values ($X,$Y,$Z);"
     fi
   done
   get_db_version
