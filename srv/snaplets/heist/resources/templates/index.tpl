@@ -1289,7 +1289,7 @@
                  data-bind="value: {{ name }}" />
           <span class="add-on">
             <i class="icon icon-search"
-               data-bind="click: openPartnerSearch" />
+               data-bind="click: openPartnerSearch.bind($data, '{{ name }}')" />
           </span>
         </div>
       </div>

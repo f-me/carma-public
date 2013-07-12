@@ -1,4 +1,8 @@
-define ["utils", "model/utils", "partnerCancel"], (u, mu, partnerCancel) ->
+define [ "utils"
+       , "model/utils"
+       , "partnerCancel"
+       , "screens/partnersSearch"
+       ], (u, mu, partnerCancel, pSearch) ->
   partnerOptsHook: (model, knockVM) ->
     knockVM['contractor_partner'].subscribe (n) ->
       return unless knockVM['view']
@@ -62,10 +66,29 @@ define ["utils", "model/utils", "partnerCancel"], (u, mu, partnerCancel) ->
   bindPartnerCancelDialog: (model, kvm) ->
     kvm['showPartnerCancelDialog'] = -> partnerCancel.setup kvm
 
+  # sync with partner search screen
   openPartnerSearch: (model, kvm) ->
-    kvm['openPartnerSearch'] = (k) ->
-      srvId = "#{k._meta.model.name}:#{k.id()}"
-      srv  = {id: srvId                  , data: k._meta.q.toRawObj()}
-      kase = {id: "case:#{k.parent.id()}", data: k.parent._meta.q.toRawObj()}
-      localStorage['partnersSearch'] = JSON.stringify {case: kase, service: srv}
+    # subscibe partner fields to partnersSearch screen events
+    for f in model.fields when f.meta?.widget == "partner"
+      do (f) ->
+        n = pSearch.subName f.name, model.name, kvm.id()
+        global.pubSub.sub n, (val) ->
+          v = JSON.parse val
+          kvm[f.name](v.name)
+          kvm["#{f.name}Id"](v.id)
+
+    # this fn should be called from click event, in other case
+    # it will be blocked by chrome policies
+    kvm['openPartnerSearch'] = (field) ->
+      # serialize current case and service
+      srvId = "#{kvm._meta.model.name}:#{kvm.id()}"
+      srv  =
+        id: srvId
+        data: kvm._meta.q.toRawObj()
+      kase =
+        id: "case:#{kvm.parent.id()}"
+        data: kvm.parent._meta.q.toRawObj()
+
+      localStorage[pSearch.storeKey] =
+        JSON.stringify {case: kase, service: srv, field: field}
       window.open("/#partnersSearch/case", "_blank")

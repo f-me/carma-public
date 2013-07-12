@@ -11,6 +11,7 @@ require [ "domready"
         , "json!/allUsers"
         , "utils"
         , "sendSms"
+        , "lstorePubSub"
         ], ( dom
            , main
            , Routes
@@ -22,6 +23,7 @@ require [ "domready"
            , users
            , u
            , sendSms
+           , pubSub
            ) ->
 
   window.onerror = (msg, url, line) ->
@@ -41,12 +43,14 @@ require [ "domready"
       entries:
         for i in users
           {value: i.value, label: i.roles }
+
     main.setup Routes.localScreens(),
               Routes.localRouter,
               dicts,
               hooks,
               user,
-              models
+              models,
+              new pubSub
     global.all_users = users
     global.nav = nav
     global.keys = {}

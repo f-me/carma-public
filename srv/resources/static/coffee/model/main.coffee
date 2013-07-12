@@ -27,7 +27,8 @@ define [ "model/render"
                    , localDictionaries
                    , hooks
                    , user
-                   , models) ->
+                   , models
+                   , pubSub) ->
     Screens = localScreens
 
     dictCache = dict.buildCache(localDictionaries)
@@ -46,6 +47,7 @@ define [ "model/render"
         user: user
         models: models
         activeScreen: null
+        pubSub: pubSub
         # viewsWare is for bookkeeping of views in current screen.
         #
         # Hash keys are DOM tree element IDs associated with the
@@ -266,7 +268,6 @@ define [ "model/render"
           for r in knockVM["#{f.name}Reference"]()
             do (r) ->
               rq = new sync.CrudQueue(r, r._meta.model, options)
-              console.log rq, r, r._meta.model, r.id()
               r._meta.q = rq
               rq.fetch()
       return [knockVM, q]

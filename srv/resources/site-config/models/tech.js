@@ -86,7 +86,6 @@
     },
     {
       "meta": {
-        "widget": "partner",
         "label": "Партнёр"
       },
       "type": null,

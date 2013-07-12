@@ -4,6 +4,14 @@ define [ "utils"
        , "text!tpl/screens/partnersSearch.html"
        ], (utils, m, sync, tpl) ->
 
+  storeKey = 'partnersSearch'
+  subName = (fld, model, id) ->
+    if id
+      "search_#{model}:#{id}_#{fld}"
+    else
+      "search_#{model}_#{fld}"
+
+
   model =
     name: "partnerSearch"
     title: "Экран поиска партнеров"
@@ -59,9 +67,9 @@ define [ "utils"
       }
       ]
 
+  # fh is just mapping from field name to field
   fh = {}
-  for f in model.fields
-    fh[f.name] = f
+  fh[f.name] = f for f in model.fields
 
   mkPartials = (ps) ->
     $("<script class='partial' id='#{k}'>").html(v)[0].outerHTML for k,v of ps
@@ -109,13 +117,15 @@ define [ "utils"
       <li> <b> </b> </li>
     </ul>
     """
+    kvm['selectPartner'] = (partner, ev) ->
+      kvm['selectedPartner'](partner.id)
+      global.pubSub.pub subName(ctx.field, id), JSON.stringify(partner)
     # cleanup localstore
     localStorage.removeItem 'partnersSearch'
 
   resizeResults = ->
     t = $("#search-result").offset().top
     w = $(window).height()
-    console.log 'resizing', t, w, w-t-50
     $("#search-result").height(w-t-10)
 
   constructor: (view, args) ->
@@ -141,7 +151,6 @@ define [ "utils"
         v.services = _.sortBy v.services, (v) -> [v.priority2, v.priority3]
         v
     kvm['selectedPartner'] = ko.observable(NaN)
-    kvm['selectPartner'] = (partner, ev) -> kvm['selectedPartner'](partner.id)
     loadContext kvm, args
 
     kvm['caseInfo'] ?= ""
@@ -153,6 +162,10 @@ define [ "utils"
     resizeResults()
     $(window).resize resizeResults
 
+  # key to retrieve data for partnerSearch screen from localstore
+  storeKey: storeKey
+  # key that service should subscribe to get data back
+  subName: subName
   template: tpl
   partials: partialize
     search        : srch
