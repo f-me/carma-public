@@ -13,6 +13,7 @@ module Snaplet.FileUpload
   ( fileUploadInit
   , FileUpload(..)
   , doUpload
+  , getAttachmentPath
   ) where
 
 import Control.Lens
@@ -47,7 +48,6 @@ import Snaplet.Auth.PGUsers
 import qualified Snaplet.DbLayer as DB
 import Snaplet.DbLayer.Types
 
-import Utils.HttpErrors
 import Util as U
 
 data FileUpload b = FU { cfg      :: UploadPolicy
@@ -152,8 +152,8 @@ uploadBulk = do
         readIds :: FilePath -> [ObjectId]
         readIds fn =
             either (const []) (map $ stringToB . (show :: Int -> String)) $
-            parseOnly (manyTill 
-                       (skipWhile (not . isDigit) >> decimal) 
+            parseOnly (manyTill
+                       (skipWhile (not . isDigit) >> decimal)
                        (char '-'))
             (T.pack fn)
         -- Cut out all ids from a filename prior to the first dash char.
@@ -171,6 +171,21 @@ uploadInField = do
   Just field <- getParam "field"
   (res, _, _) <- uploadInManyFields (const [(model, objId, field)]) Nothing
   writeLBS $ A.encode $ res
+
+
+-- | Return path to an attached file (prepended by finished uploads
+-- dir).
+getAttachmentPath :: ObjectId
+                  -- ^ Attachment ID.
+                  -> Handler b (FileUpload b) FilePath
+getAttachmentPath aid = do
+  obj <- withDb $ DB.read "attachment" aid
+  fPath <- gets finished
+  case M.lookup "filename" obj of
+    Just fName -> return $
+                  fPath </> "attachment" </> 
+                  B8.unpack aid </> B8.unpack fName
+    _ -> error $ "Broken attachment" ++ B8.unpack aid
 
 -- | Append a reference of form @attachment:213@ to a field of another
 -- instance. This handler is thread-safe.

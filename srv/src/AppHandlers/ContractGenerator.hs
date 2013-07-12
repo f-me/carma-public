@@ -23,12 +23,12 @@
 
 module AppHandlers.ContractGenerator where
 
-import           Data.String (fromString)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.ByteString.Lazy as B (toStrict)
 import           Data.Aeson as Aeson
 
+import           System.FilePath
 import           System.Process.ByteString
 import           System.Exit (ExitCode(..))
 
@@ -38,6 +38,7 @@ import           Database.PostgreSQL.Simple.SqlQQ
 
 import           Application
 import           AppHandlers.Util
+import           Snaplet.FileUpload hiding (db)
 
 q :: Query
 q = [sql|
@@ -89,20 +90,19 @@ renderContractHandler :: AppHandler ()
 renderContractHandler = do
   Just contractId <- fmap T.decodeUtf8 <$> getParam "ctr"
   Just programId  <- fmap T.decodeUtf8 <$> getParam "prog"
-  [[tplFName]]    <- withPG pg_search
-    $ \c -> query c
-      (fromString "SELECT contracts FROM programtbl WHERE id = ?")
-      [programId]
+  [Only aid] <- withPG pg_search $ \c -> query c
+                [sql|
+                 SELECT a.id::text FROM attachmenttbl a, programtbl p
+                 WHERE p.contracts=concat('attachment:', a.id) and p.id = ?
+                 |]
+                [programId]
   [row] <- withPG pg_search $ \c -> query c q [contractId]
+  tplPath <- with fileUpload $ getAttachmentPath aid
   let [m] = mkMap fields [row]
-      f = T.encodeUtf8 $ T.concat ["attachment; filename=\"", tplFName, "\""]
-      p = T.concat [ "resources/static/fileupload/program/"
-                   , programId
-                   , "/contracts/"
-                   , tplFName
-                   ]
+      tplFName = takeFileName tplPath
+      f = T.encodeUtf8 $ T.pack $ concat ["attachment; filename=\"", tplFName, "\""]
   (e, out, err) <- liftIO
-    $ readProcessWithExitCode "fill-pdf.sh" [T.unpack p, "-"]
+    $ readProcessWithExitCode "fill-pdf.sh" [tplPath, "-"]
     $ B.toStrict $ Aeson.encode m
   case e of
     ExitSuccess   -> do
