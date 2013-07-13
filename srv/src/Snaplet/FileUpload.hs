@@ -172,7 +172,6 @@ uploadInField = do
   (res, _, _) <- uploadInManyFields (const [(model, objId, field)]) Nothing
   writeLBS $ A.encode $ res
 
-
 -- | Return path to an attached file (prepended by finished uploads
 -- dir).
 getAttachmentPath :: ObjectId
