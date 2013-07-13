@@ -59,11 +59,11 @@ q = [sql|
         , manager
         , to_char(warrantyStart at time zone 'UTC', 'DD/MM/YYYY')
         , client, clientCode, clientAddress
-    FROM contracttbl c, programtbl p,
-         "CarMaker" carMaker, "CarModel" carModel
-    WHERE carMaker.value = carMake AND carModel.value = carModel
-      AND c.program::int4 = p.id
-      AND c.id = ?
+     FROM contracttbl c
+     INNER JOIN programtbl p ON c.program::int4 = p.id
+     LEFT JOIN "CarMaker" carMaker ON carMaker.value = carMake
+     LEFT JOIN "CarModel" carModel ON carModel.value = carModel
+     WHERE c.id = ?
 |]
 
 fields = [ "car_vin"
