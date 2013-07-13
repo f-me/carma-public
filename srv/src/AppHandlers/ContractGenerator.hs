@@ -90,24 +90,30 @@ renderContractHandler :: AppHandler ()
 renderContractHandler = do
   Just contractId <- fmap T.decodeUtf8 <$> getParam "ctr"
   Just programId  <- fmap T.decodeUtf8 <$> getParam "prog"
-  [Only aid] <- withPG pg_search $ \c -> query c
+  aids <- withPG pg_search $ \c -> query c
                 [sql|
                  SELECT a.id::text FROM attachmenttbl a, programtbl p
                  WHERE p.contracts=concat('attachment:', a.id) and p.id = ?
                  |]
                 [programId]
-  [row] <- withPG pg_search $ \c -> query c q [contractId]
-  tplPath <- with fileUpload $ getAttachmentPath aid
-  let [m] = mkMap fields [row]
-      tplFName = takeFileName tplPath
-      f = T.encodeUtf8 $ T.pack $ concat ["attachment; filename=\"", tplFName, "\""]
-  (e, out, err) <- liftIO
-    $ readProcessWithExitCode "fill-pdf.sh" [tplPath, "-"]
-    $ B.toStrict $ Aeson.encode m
-  case e of
-    ExitSuccess   -> do
-      modifyResponse $ setHeader "Content-Disposition" f
-      writeBS out
-    ExitFailure _ -> writeBS err
-
-
+  case aids of
+    [Only aid] -> do
+        tplPath <- with fileUpload $ getAttachmentPath aid
+        contracts <- withPG pg_search $ \c -> query c q [contractId]
+        case contracts of
+          [row] -> do
+              let [m] = mkMap fields [row]
+                  tplFName = takeFileName tplPath
+                  f = T.encodeUtf8
+                      $ T.pack
+                      $ concat ["attachment; filename=\"", tplFName, "\""]
+              (e, out, err) <- liftIO
+                        $ readProcessWithExitCode "fill-pdf.sh" [tplPath, "-"]
+                        $ B.toStrict $ Aeson.encode m
+              case e of
+                ExitSuccess   -> do
+                    modifyResponse $ setHeader "Content-Disposition" f
+                    writeBS out
+                ExitFailure _ -> writeBS err
+          [] -> error "No contract selected (bad id or broken contract data)"
+    [] -> error "No template attached to program or bad program id"
