@@ -97,11 +97,11 @@ renderContractHandler = do
                  |]
                 [programId]
   case aids of
-    [Only aid] -> do
+    (Only aid:_) -> do
         tplPath <- with fileUpload $ getAttachmentPath aid
         contracts <- withPG pg_search $ \c -> query c q [contractId]
         case contracts of
-          [row] -> do
+          (row:_) -> do
               let [m] = mkMap fields [row]
                   tplFName = takeFileName tplPath
                   f = T.encodeUtf8
