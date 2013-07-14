@@ -177,7 +177,7 @@ fillFromContract :: MonadTrigger m b => ByteString -> ByteString -> m b Bool
 fillFromContract vin objId = do
   res <- liftDb $ PG.query (fromString [sql|
     SELECT
-      program, carMake, carModel, carPlateNum,
+      p.value, carMake, carModel, carPlateNum,
       carCheckPeriod::text,
       extract (epoch from contractValidFromDate)::int8::text,
       extract (epoch from contractValidUntilDate)::int8::text,
@@ -185,8 +185,8 @@ fillFromContract vin objId = do
       contractValidUntilMilage::text,
       extract (epoch from contractValidFromDate)::int8::text,
       carSeller, carDealerTO
-      FROM contracttbl
-      WHERE carVin = ?
+      FROM contracttbl c LEFT JOIN programtbl p ON p.id::text = c.program
+      WHERE isactive AND dixi AND carVin = ?
       ORDER BY ctime DESC LIMIT 1
     |]) [vin]
   case res of
