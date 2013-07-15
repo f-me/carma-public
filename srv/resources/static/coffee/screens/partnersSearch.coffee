@@ -11,6 +11,7 @@ define [ "utils"
     else
       "search_#{model}_#{fld}"
 
+  open = (prm) -> window.open("/#partnersSearch/#{prm}", "_blank")
 
   model =
     name: "partnerSearch"
@@ -91,20 +92,16 @@ define [ "utils"
 
   srvLab = (val) -> window.global.dictValueCache.Services[val] || val
 
-  loadContext = (kvm, args) ->
-    return unless args?.model
-    return unless localStorage['partnersSearch']
-    ctx = JSON.parse localStorage['partnersSearch']
-    if args.model == "case"
-      kase = ctx['case'].data
-      {id, data} = ctx['service']
-      srvName = id.split(':')[0]
-      kaseKVM = m.buildKVM global.models['case'], '', kase
-      srvKVM  = m.buildKVM global.models[srvName], '', data
-      kvm['city'](kaseKVM.city())
-      kvm['make'](kaseKVM.car_make())
-      kvm['services'](srvName)
-      kvm['caseInfo'] = """
+  setupCase = (kvm, ctx) ->
+    kase = ctx['case'].data
+    {id, data} = ctx['service']
+    srvName = id.split(':')[0]
+    kaseKVM = m.buildKVM global.models['case'], '', kase
+    srvKVM  = m.buildKVM global.models[srvName], '', data
+    kvm['city'](kaseKVM.city())
+    kvm['make'](kaseKVM.car_make())
+    kvm['services'](srvName)
+    kvm['caseInfo'] = """
     <ul class='unstyled'>
       <li>
         <b>Кто звонил:</b> #{kaseKVM.contact_name()} #{kaseKVM.contact_phone1()}
@@ -117,6 +114,18 @@ define [ "utils"
       <li> <b> </b> </li>
     </ul>
     """
+
+  loadContext = (kvm, args) ->
+    return unless args?.model
+    return unless localStorage['partnersSearch']
+    ctx = JSON.parse localStorage['partnersSearch']
+    switch args.model
+      when "case"
+        setupCase ctx, kvm
+      when "call"
+        kvm['city'](ctx.city)
+        kvm['make'](ctx.carMake)
+
     kvm['selectPartner'] = (partner, ev) ->
       kvm['selectedPartner'](partner.id)
       global.pubSub.pub subName(ctx.field, id), JSON.stringify(partner)
@@ -166,6 +175,7 @@ define [ "utils"
   storeKey: storeKey
   # key that service should subscribe to get data back
   subName: subName
+  open: open
   template: tpl
   partials: partialize
     search        : srch
