@@ -177,26 +177,32 @@ fillFromContract :: MonadTrigger m b => ByteString -> ByteString -> m b Bool
 fillFromContract vin objId = do
   res <- liftDb $ PG.query (fromString [sql|
     SELECT
-      program, carMake, carModel, carPlateNum,
-      carCheckPeriod::text,
+      p.value, carMake, carModel, carPlateNum, carColor,
+      carTransmission, carEngine, contractType, carCheckPeriod::text,
+      extract (epoch from carBuyDate)::int8::text,
+      extract (epoch from carCheckupDate)::int8::text,
       extract (epoch from contractValidFromDate)::int8::text,
       extract (epoch from contractValidUntilDate)::int8::text,
       milageTO::text, cardNumber, carMakeYear::text,
       contractValidUntilMilage::text,
       extract (epoch from contractValidFromDate)::int8::text,
+      extract (epoch from contractValidUntilDate)::int8::text,
       carSeller, carDealerTO
-      FROM contracttbl
-      WHERE carVin = ?
+      FROM contracttbl c LEFT JOIN programtbl p ON p.id::text = c.program
+      WHERE isactive AND dixi AND carVin = ?
       ORDER BY ctime DESC LIMIT 1
     |]) [vin]
   case res of
     [] -> return False
     [row] -> do
       zipWithM_ (maybe (return ()) . (set objId))
-        ["program", "car_make", "car_model", "car_plateNum", "car_checkPeriod"
+        ["program", "car_make", "car_model", "car_plateNum" ,"car_color"
+        ,"car_transmission","car_engine", "car_contractType", "car_checkPeriod"
+        ,"car_buyDate", "car_checkupDate"
         ,"car_serviceStart", "car_serviceEnd","car_checkupMileage"
         ,"cardNumber_cardNumber", "car_makeYear", "cardNumber_validUntilMilage"
-        ,"cardNumber_validFrom", "car_seller", "car_dealerTO"]
+        ,"cardNumber_validFrom", "cardNumber_validUntil"
+        ,"car_seller", "car_dealerTO"]
         row
       return True
 
@@ -458,7 +464,7 @@ actionActions :: MonadTrigger m b => Map.Map ByteString [ObjectId -> ByteString 
 actionActions = Map.fromList
   [("result",
     [\objId val -> when (val `elem` resultSet1) $ do
-         setService objId "status" "orderService"
+         setServiceStatus objId "orderService"
          void $ replaceAction
              "orderService"
              "Заказать услугу"
@@ -491,7 +497,7 @@ actionResultMap = Map.fromList
   ,("clientCanceledService", \objId -> closeAction objId >> sendSMS objId "smsTpl:2" >> sendMailToPSA objId)
   ,("unassignPlease",  \objId -> set objId "assignedTo" "" >> set objId "result" "")
   ,("needPartner",     \objId -> do
-     setService objId "status" "needPartner"
+     setServiceStatus objId "needPartner"
      newAction <- replaceAction
          "needPartner"
          "Требуется найти партнёра для оказания услуги"
@@ -501,7 +507,7 @@ actionResultMap = Map.fromList
   ,("serviceOrdered", \objId -> do
     newPartnerMessage objId
 
-    setService objId "status" "serviceOrdered"
+    setServiceStatus objId "serviceOrdered"
     svcId    <- get objId "parentId"
     assignee <- get objId "assignedTo"
     set svcId "assignedTo" assignee
@@ -529,7 +535,7 @@ actionResultMap = Map.fromList
     newPartnerMessage objId
     sendSMS objId "smsTpl:1"
 
-    setService objId "status" "serviceOrdered"
+    setServiceStatus objId "serviceOrdered"
     svcId    <- get objId "parentId"
     assignee <- get objId "assignedTo"
     set svcId "assignedTo" assignee
@@ -567,7 +573,7 @@ actionResultMap = Map.fromList
     set act "assignedTo" ""
   )
   ,("needPartnerAnalyst",     \objId -> do
-     setService objId "status" "needPartner"
+     setServiceStatus objId "needPartner"
      newAction <- replaceAction
          "needPartner"
          "Требуется найти партнёра для оказания услуги"
@@ -575,7 +581,7 @@ actionResultMap = Map.fromList
      set newAction "assignedTo" ""
   )
   ,("serviceOrderedAnalyst", \objId -> do
-    setService objId "status" "serviceOrdered"
+    setServiceStatus objId "serviceOrdered"
     sendMailToPSA objId
 
     isReducedMode >>= \case
@@ -601,7 +607,7 @@ actionResultMap = Map.fromList
       "back" "3" (+60) objId
   )
   ,("partnerNotOkCancel", \objId -> do
-      setService objId "status" "cancelService"
+      setServiceStatus objId "cancelService"
       void $ replaceAction
          "cancelService"
          "Требуется отказаться от заказанной услуги"
@@ -619,7 +625,7 @@ actionResultMap = Map.fromList
           objId
   )
   ,("serviceDelayed", \objId -> do
-    setService objId "status" "serviceDelayed"
+    setServiceStatus objId "serviceDelayed"
     void $ replaceAction
       "tellDelayClient"
       "Сообщить клиенту о задержке начала оказания услуги"
@@ -627,7 +633,7 @@ actionResultMap = Map.fromList
       objId
   )
   ,("serviceInProgress", \objId -> do
-    setService objId "status" "serviceInProgress"
+    setServiceStatus objId "serviceInProgress"
     isReducedMode >>= \case
       True -> closeAction objId
       False -> do
@@ -639,7 +645,7 @@ actionResultMap = Map.fromList
           objId
   )
   ,("prescheduleService", \objId -> do
-    setService objId "status" "serviceInProgress"
+    setServiceStatus objId "serviceInProgress"
     isReducedMode >>= \case
       True -> closeAction objId
       False -> do
@@ -777,7 +783,7 @@ actionResultMap = Map.fromList
   )
   ,("analystChecked", closeAction)
   ,("caseClosed", \objId -> do
-    setService objId "status" "serviceClosed"
+    setServiceStatus objId "serviceClosed"
     closeAction objId
   )
   ,("partnerGivenCloseTime", \objId -> do
@@ -795,11 +801,11 @@ actionResultMap = Map.fromList
      sendSMS objId "smsTpl:2"
   )
   ,("clientNotified", \objId -> do
-     setService objId "status" "serviceClosed"
+     setServiceStatus objId "serviceClosed"
      closeAction objId
   )
   ,("notNeedService", \objId -> do
-     setService objId "status" "serviceClosed"
+     setServiceStatus objId "serviceClosed"
      closeAction objId
   )
   ]
@@ -812,6 +818,13 @@ changeTime fn x y = case B.readInt x of
 setService objId field val = do
   svcId <- get objId "parentId"
   set svcId field val
+
+-- Due to disabled trigger recursion we need to call updateCaseStatus manually
+-- on each service.status change
+setServiceStatus actId val = do
+  svcId <- get actId "parentId"
+  set svcId "status" val
+  get svcId "parentId" >>= updateCaseStatus
 
 getService objId field
   = get objId "parentId"
@@ -845,7 +858,7 @@ newPartnerMessage objId = do
 
 
 closeSerivceAndSendInfoVW objId = do
-  setService objId "status" "serviceOk"
+  setServiceStatus objId "serviceOk"
 
   partner <- getService objId "contractor_partner"
   comment <- get objId "comment"
