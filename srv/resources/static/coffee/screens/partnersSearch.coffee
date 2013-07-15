@@ -109,9 +109,12 @@ define [ "utils"
       <li> <b>Номер кеса:</b> #{kaseKVM.id()} </li>
       <li> <b>Адрес кейса:</b> #{kaseKVM.caseAddress_address()}</li>
       <li> <b>Название программы: </b> #{kaseKVM.programLocal()} </li>
-      <li> <b> </b> </li>
-      <li> <b> </b> </li>
-      <li> <b> </b> </li>
+      <li> <b> Марка: </b> #{kaseKVM.car_makeLocal()}</li>
+      <li> <b> Модель: </b> #{kaseKVM.car_modelLocal()}</li>
+      <li> <b> Госномер: </b> #{kaseKVM.car_plateNum()}</li>
+      <li> <b> Цвет: </b> #{kaseKVM.car_colorLocal()}</li>
+      <li> <b> VIN:</b> #{kaseKVM.car_vin()}</li>
+      <li> <b> Тип оплаты:</b> #{srvKVM.payTypeLocal()}</li>
     </ul>
     """
 
@@ -121,7 +124,7 @@ define [ "utils"
     ctx = JSON.parse localStorage['partnersSearch']
     switch args.model
       when "case"
-        setupCase ctx, kvm
+        setupCase kvm, ctx
       when "call"
         kvm['city'](ctx.city)
         kvm['make'](ctx.carMake)
