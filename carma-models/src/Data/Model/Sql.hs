@@ -1,44 +1,54 @@
 
 module Data.Model.Sql
-  (mkSelectDictQuery
+  (mkSelect
   ,SqlEq(..)
-  ,SqlConstraint(..)
   ) where
 
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.ToField
 import GHC.TypeLits
+import Text.Printf
 
 import Data.Model
 
 
+mkSelect
+  :: (SqlProjection proj, SqlPredicate pred)
+  => proj -> pred -> (String, PredicateArgs pred)
+mkSelect proj pred
+  = (projectionSql proj ++ " WHERE " ++ predicateSql pred
+    ,predicateArgs pred)
+
+class SqlProjection proj where
+  projectionSql :: proj -> String
 
 
-mkSelectDictQuery
-  :: (Model model, SingI (TableName model), SingI name, SqlConstraint ctr)
-  => (model -> Field name typ) -> ctr
-  -> (String, ValueType ctr)
-mkSelectDictQuery f ctr = (sql, sqlVal ctr)
+instance
+    (Model model, FromRow (t1,t2)
+    ,SingI f1, SingI f2, SingI (TableName model))
+    => SqlProjection (model -> Field f1 t1, model -> Field f2 t2)
   where
-    sql = "SELECT id::text, " ++ fieldName f ++ "::text"
-        ++ " FROM " ++ show (tableName f)
-        ++ " WHERE " ++ sqlPart ctr
+    projectionSql (f1,f2)
+      = printf "SELECT %s, %s FROM %s"
+        (fieldName f1) (fieldName f2) (tableName f1)
 
 
-class ToRow (ValueType ctr) => SqlConstraint ctr where
-  type ValueType ctr
-  sqlPart :: ctr -> String
-  sqlVal  :: ctr -> ValueType ctr
 
-instance SqlConstraint () where
-  type ValueType () = ()
-  sqlPart _ = "true"
-  sqlVal  _ = ()
 
-instance (SqlConstraint c1, SqlConstraint c2) => SqlConstraint (c1, c2) where
-  type ValueType (c1, c2) = ValueType c1 :. ValueType c2
-  sqlPart (c1,c2) = sqlPart c1 ++ " AND " ++ sqlPart c2
-  sqlVal  (c1,c2) = sqlVal c1 :. sqlVal c2
+class ToRow (PredicateArgs pred) => SqlPredicate pred where
+  type PredicateArgs pred
+  predicateSql  :: pred -> String
+  predicateArgs :: pred -> PredicateArgs pred
+
+instance SqlPredicate () where
+  type PredicateArgs () = ()
+  predicateSql  _ = "true"
+  predicateArgs _ = ()
+
+instance (SqlPredicate p1, SqlPredicate p2) => SqlPredicate (p1, p2) where
+  type PredicateArgs (p1, p2) = PredicateArgs p1 :. PredicateArgs p2
+  predicateSql  (p1,p2) = predicateSql p1 ++ " AND " ++ predicateSql p2
+  predicateArgs (p1,p2) = predicateArgs p1 :. predicateArgs p2
 
 
 data SqlEq name typ model = SqlEq
@@ -47,8 +57,8 @@ data SqlEq name typ model = SqlEq
   }
 
 instance (SingI name, ToField typ)
-  => SqlConstraint (SqlEq name typ model)
+  => SqlPredicate (SqlEq name typ model)
   where
-    type ValueType (SqlEq name typ model) = Only typ
-    sqlPart c = fieldName (eqc_field c) ++ " = ?"
-    sqlVal    = Only . eqc_val
+    type PredicateArgs (SqlEq name typ model) = Only typ
+    predicateSql c = fieldName (eqc_field c) ++ " = ?"
+    predicateArgs  = Only . eqc_val

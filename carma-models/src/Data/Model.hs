@@ -6,10 +6,10 @@ module Data.Model
   , Field
   , fieldName
   , tableName
-  , ident
   ) where
 
 
+import qualified Database.PostgreSQL.Simple.FromField as Pg
 import Data.Typeable
 import GHC.TypeLits
 
@@ -21,6 +21,9 @@ instance Model m => Show (Ident m) where
   show (Ident x :: Ident m) = "Ident " ++ modelName ++ " " ++ show x
     where
       modelName = show $ typeOf (undefined :: m)
+
+instance Pg.FromField (Ident m) where
+  fromField f x = Ident `fmap` Pg.fromField f x
 
 
 data Field (name :: Symbol) typ = Field
@@ -38,7 +41,3 @@ tableName
   => (model -> Field name typ) -> String
 tableName (_ :: model -> Field name typ)
   = fromSing (sing :: Sing (TableName model))
-
-
-ident :: Field "id" (Ident model)
-ident =  Field
