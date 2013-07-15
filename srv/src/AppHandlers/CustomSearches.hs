@@ -322,6 +322,7 @@ vinReverseLookup = do
       WHERE isactive = 't' AND dixi = 't'
       GROUP BY carvin, program
       HAVING lower(carvin) like '%' || lower(?) || '%'
-      ORDER BY max(id) DESC)
+      ORDER BY max(id) DESC
+      LIMIT 15)
     |]) [carvin]
   writeJSON $ mkMap ["vin", "make", "model", "program", "buyDate"] q
