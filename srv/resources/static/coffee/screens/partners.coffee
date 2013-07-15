@@ -69,7 +69,6 @@ define [ "utils"
           isDealer: kvm.isDealer()
           isMobile: kvm.isMobile()
           name: kvm.name()
-          phone1: kvm.phone1()
           workingTime: kvm.workingTime()
         table.dataTable.fnAddData objsToRows [obj]
 

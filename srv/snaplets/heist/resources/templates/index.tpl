@@ -1154,6 +1154,81 @@
       </div>
     </script>
 
+    <!-- Template for fields with unknown type -->
+    <script type="text/template"
+            class="field-template"
+            id="dict-objects-field-template">
+      <div class="control-group">
+        <div class="control-label">
+          <label>{{ meta.label }}
+            {{# meta.infoText1 }}
+            <i class="icon icon-question-sign"
+               data-provide="popover"
+               data-content="{{ meta.infoText1 }}" />
+            {{/ meta.infoText1 }}
+          </label>
+        </div>
+        <ul data-bind="foreach: {{ name }}Objects">
+          <li>
+          <div class="control-group"
+               {{# meta.regexp }}data-bind="css: { warning: regexp }"{{/ meta.regexp}}
+               >
+            <div class="control-label">
+              <label>
+                <span data-bind="text: keyLocal" />
+                <a href="#" class="text-error"
+                   data-bind="click: $parent.{{name}}DeleteObj">×</a>
+              </label>
+            </div>
+            <div class="controls">
+                <input type="text"
+                       class="pane-span focusable"
+                       autocomplete="off"
+                       {{# meta.transform }}
+                       style="text-transform:{{meta.transform}};"
+                       {{/ meta.transform }}
+                       {{# readonly }}readonly{{/ readonly }}
+                       data-bind="value: value,
+                                  valueUpdate: 'afterkeydown'" />
+            </div>
+          </div>
+          {{# meta.showNote }}
+          <div class="control-group">
+            <div class="control-label">
+              <label>{{ meta.noteLabel }}</label>
+            </div>
+            <div class="controls">
+              <input type="text"
+                     class="pane-span focusable"
+                     autocomplete="off"
+                     {{# readonly }}readonly{{/ readonly }}
+                     data-bind="value: note,
+                                valueUpdate: 'afterkeydown'" />
+            </div>
+          </div>
+          {{/ meta.showNote }}
+          </li>
+        </ul>
+
+        <ul class="nav nav-pills">
+          <li class="dropup">
+            <button class="dropdown-toggle btn btn-action"
+                    type="button"
+                    data-toggle="dropdown">
+              <i class="icon icon-plus" />&nbsp;{{ meta.addLabel }}
+            </button>
+            <ul class="dropdown-menu" data-bind="foreach: {{name}}KeyDictionary">
+              <li>
+                <a data-bind="text: label,
+                              click: $parent.{{name}}AddObj"
+                   href="#" />
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </script>
+
     <!-- Form controls wrt user permissions -->
     <script type="text/template"
             id="permission-template">

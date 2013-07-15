@@ -62,14 +62,6 @@
     },
     {
       "meta": {
-        "label": "Юридический адрес"
-      },
-      "type": null,
-      "groupName": null,
-      "name": "addrDeJure"
-    },
-    {
-      "meta": {
         "label": "Фактический адрес"
       },
       "type": null,
@@ -93,19 +85,17 @@
     },
     {
       "meta": {
-        "label": "Время работы"
+         "label": "Телефоны",
+         "jsonSchema": "dict-objects",
+         "dictionaryName": "PhoneTypes",
+         "noteLabel": "Время работы",
+         "showNote": true,
+         "regexp": "phone",
+         "addLabel": "Добавить телефон и время работы",
+         "widget": "dict-objects"
       },
-      "type": null,
-      "groupName": null,
-      "name": "workingTime"
-    },
-    {
-      "meta": {
-        "label": "Телефоны диспетчерской"
-      },
-      "type": null,
-      "groupName": null,
-      "name": "phone1"
+      "type": "json",
+      "name": "phones"
     },
     {
       "meta": {
@@ -117,20 +107,26 @@
     },
     {
       "meta": {
-        "label": "Телефон для закрытия заявок"
+        "label": "Адреса",
+        "jsonSchema": "dict-objects",
+        "dictionaryName": "AddressTypes",
+        "addLabel": "Добавить адрес",
+        "widget": "dict-objects"
       },
-      "type": null,
-      "groupName": null,
-      "name": "closeTicketPhone"
+      "type": "json",
+      "name": "addrs"
     },
     {
       "meta": {
-        "label": "Email для закрытия заявок",
-        "regexp": "email"
+        "label": "E-mail",
+        "jsonSchema": "dict-objects",
+        "dictionaryName": "EmailTypes",
+        "regexp": "email",
+        "addLabel": "Добавить e-mail",
+        "widget": "dict-objects"
       },
-      "type": null,
-      "groupName": null,
-      "name": "closeTicketEmail"
+      "type": "json",
+      "name": "emails"
     },
     {
       "meta": {
@@ -139,56 +135,6 @@
       "type": null,
       "groupName": null,
       "name": "personInCharge"
-    },
-    {
-      "meta": {
-        "label": "Адрес сервисного отдела"
-      },
-      "type": null,
-      "groupName": null,
-      "name": "serviceAddress"
-    },
-    {
-      "meta": {
-        "label": "Телефон сервисного отдела",
-        "regexp": "phone"
-      },
-      "type": null,
-      "groupName": null,
-      "name": "servicePhone"
-    },
-    {
-      "meta": {
-        "label": "Время работы сервисного отдела"
-      },
-      "type": null,
-      "groupName": null,
-      "name": "serviceWorking"
-    },
-    {
-      "meta": {
-        "label": "Адрес отдела продаж"
-      },
-      "type": null,
-      "groupName": null,
-      "name": "salesAddress"
-    },
-    {
-      "meta": {
-        "label": "Телефон отдела продаж",
-        "regexp": "phone"
-      },
-      "type": null,
-      "groupName": null,
-      "name": "salesPhone"
-    },
-    {
-      "meta": {
-        "label": "Время работы отдела продаж"
-      },
-      "type": null,
-      "groupName": null,
-      "name": "salesWorking"
     },
     {
       "meta": {

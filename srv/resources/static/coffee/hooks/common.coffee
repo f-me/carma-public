@@ -69,7 +69,7 @@ define [ "utils"
             p  = "/s/fileupload/attachment/" + kvm.id()
             fs = encodeURIComponent kvm[n]()
             p + "/" + fs
-          
+
   # Clear dependant dictionary fields when parent is changed
   # this.dictionaryHook = (elName) ->
   #   instance = global.viewsWare[elName].bbInstance
@@ -183,6 +183,115 @@ define [ "utils"
 
         dict.disabled = k["#{n}Disabled"]()
         k["#{n}Disabled"].subscribe (v) -> dict.disabled = v
+
+  # For every field {n} with type=json and json-schema=dict-objects,
+  # create a new observable {n}Objects, which is an observable array
+  # of submodels bound to JSON objects stored in this field in an
+  # array.
+  #
+  # Every object/submodel have fields/writable observables:
+  #
+  # - "value" which is data stored in that field
+  #
+  # - "key" is a value of an entry from the dictionary specified in
+  # json-dict meta. Key is associated with data.
+  #
+  # - "note", an arbitary text annotation.
+  #
+  # Key dictionary entries are available through {n}KeyDictionary
+  # observable.
+  jsonDictObjsHook: (model, kvm) ->
+    for f in model.fields when f.type == "json" &&
+                               f.meta?["jsonSchema"] == "dict-objects"
+      do (f) ->
+        n      = f.name
+        nP     = "#{n}Objects"
+        # Dictionary used to tag objects in the field
+        dict   = d.dictFromMeta kvm, f.meta
+        # Regular expression used to check "value" part of every
+        # object in the field
+        regexp = f.meta.regexp
+
+        # Given a JS object and its index in the underlying json
+        # field, return a corresponding item for the {n}Objects array.
+        # client argument is true if new object is added from client
+        objItem = (obj, i, client) ->
+          if client?
+            # Placeholder in field contents
+            if kvm[n]()? && kvm[n]().length > 0
+              full = JSON.parse kvm[n]()
+            else
+              full = []
+            full[i] = obj
+            kvm[n] JSON.stringify full
+            
+          # An observable bound to a field in a JSON object
+          subfieldObservable = (sf) ->
+            # Initial value
+            kob = ko.observable obj[sf]
+              
+            kob.subscribe (val) ->
+              full = JSON.parse kvm[n]()
+              full[i][sf] = val
+              kvm[n] JSON.stringify full
+            kob
+            
+          value: subfieldObservable "value"
+          key: subfieldObservable "key"
+          note: subfieldObservable "note"
+          idx: ko.observable i
+          
+          # Derived from dictionaryKbHook. Maps value of key to
+          # corresponding label of the widget dictionary.
+          keyLocal: ko.computed
+            read: ->
+              # Read label by real value
+              val = if kvm[nP]()[i] then kvm[nP]()[i].key() else ""
+              lab = dict.getLab(val)
+              return (lab || val)
+
+          regexp: ko.computed ->
+            if regexp? && kvm[nP]()[i]
+              r = new RegExp global.dictLabelCache["_regexps"][regexp]
+              not r.test kvm[nP]()[i].value()
+            else
+              false
+                      
+        kvm[nP] = ko.observableArray()
+        # Populate {n}Objects with initial values
+        init = false
+        kvm[n].subscribe (newValue) ->
+          if not init
+            kvm[nP].removeAll()
+            if newValue.length > 0
+              objs = JSON.parse newValue
+              for i in [0...objs.length]
+                kvm[nP].push objItem objs[i], i
+            init = true
+
+        # Add new empty object provided an entry from the associated
+        # dictionary
+        kvm["#{n}AddObj"] =
+          (v) ->
+            i = kvm[nP]().length || 0
+            obj = key: v.value
+            # Prevent double writeback to JSON when field is empty
+            if not init
+              init = true
+            kvm[nP].push objItem obj, i, true
+
+        # Delete an object by its index
+        kvm["#{n}DeleteObj"] =
+          (v) ->
+            # Remove key by index from field JSON
+            newFull = JSON.parse kvm[n]()
+            newFull.splice v.idx(), 1
+            # Rebuild {n}Objects afterwards
+            init = false
+            kvm[n] JSON.stringify newFull
+            
+        kvm["#{n}KeyDictionary"] =
+          ko.observable global.dictionaries[f.meta.dictionaryName].entries
 
   # Standard element callback which will scroll model into view and
   # focus on first field

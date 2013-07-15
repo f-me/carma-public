@@ -13,6 +13,7 @@ define [ "hooks/common"
                , c.dictManyHook
                , c.fileKbHook
                , c.dateTimeHook
+               , c.jsonDictObjsHook
                ]
 
       "action" : [a.nameLocal]

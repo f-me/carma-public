@@ -1,0 +1,16 @@
+{
+    "entries": [
+        {
+            "value": "close",
+            "label": "Закрытие заявок"
+        },
+        {
+            "value": "order",
+            "label": "Заказ услуг"
+        },
+        {
+            "value": "list",
+            "label": "Для рассылки"
+        }
+    ]
+}
