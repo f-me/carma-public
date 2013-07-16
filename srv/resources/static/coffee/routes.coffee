@@ -2,6 +2,7 @@ define [
   "screens/backoffice"
   "screens/call"
   "screens/case"
+  "screens/dictionaries"
   "screens/partners"
   "screens/user"
   "screens/uploads"
@@ -23,6 +24,7 @@ define [
   ], ( bo
      , call
      , kase
+     , dictionaries
      , partner
      , user
      , uploads
@@ -46,6 +48,10 @@ define [
         "template": "case-screen-template"
         "views":
           "case-form": kase
+      "dictionaries":
+        "template": "dictionaries-screen-template"
+        "views":
+          "dictionaries-view": dictionaries
       "search":
         "template": "search-screen-template"
         "views":
@@ -131,6 +137,8 @@ define [
       routes:
         "case/:id"       : "loadCase"
         "case"           : "newCase"
+        "dictionaries"   : "dictionaries"
+        "dictionaries/:dict" : "editDictionary"
         "search"         : "search"
         "uploads"        : "uploads"
         "vin"            : "vin"
@@ -159,6 +167,8 @@ define [
 
       loadCase      : (id) -> r.renderScreen("case", kase, {"id": id})
       newCase       :      -> r.renderScreen("case", kase, {"id": null})
+      dictionaries  :      -> r.renderScreen("dictionaries", dictionaries, {"dict": null})
+      editDictionary : (dict) -> r.renderScreen("dictionaries", dictionaries, {"dict": dict})
       search        :      -> renderScreen("search")
       uploads       :      -> r.renderScreen("uploads", uploads)
       back          :      -> r.renderScreen("back", bo)
