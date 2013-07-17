@@ -69,7 +69,6 @@ define [ "utils"
           isDealer: kvm.isDealer()
           isMobile: kvm.isMobile()
           name: kvm.name()
-          workingTime: kvm.workingTime()
         table.dataTable.fnAddData objsToRows [obj]
 
       subscribeTarifStuff(modelName)
