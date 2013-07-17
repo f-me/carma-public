@@ -62,29 +62,6 @@
     },
     {
       "meta": {
-        "label": "Фактический адрес"
-      },
-      "type": null,
-      "groupName": null,
-      "name": "addrDeFacto"
-    },
-    {
-      "meta": {
-        "widget": "picker",
-        "label": "Координаты фактического адреса",
-        "infoText": "coords",
-        "picker": "mapPicker",
-        "targetAddr": "addrDeFacto",
-        "targetCoords": "coords",
-        "cityField": "city",
-        "currentBlipType": "partner"
-      },
-      "type": "coords",
-      "groupName": null,
-      "name": "coords"
-    },
-    {
-      "meta": {
          "label": "Телефоны",
          "jsonSchema": "dict-objects",
          "dictionaryName": "PhoneTypes",
