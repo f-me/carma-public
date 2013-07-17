@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-export CARMA_PORT=${1:-8000}
+export CARMA_PORT=${CARMA_PORT:=8000}
 
 OUTPUT=$(mktemp /tmp/phonesXXXXXX-tmp)
 OUTPUT2=$(mktemp /tmp/phonesXXXXXX-out)
