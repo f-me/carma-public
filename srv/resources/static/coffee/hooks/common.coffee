@@ -283,7 +283,7 @@ define [ "utils"
         # Delete an object by its index
         kvm["#{n}DeleteObj"] =
           (v) ->
-            return unless confirm "Вы уверены, что хотите удалить запись #{v.value}?"
+            return unless confirm "Вы уверены, что хотите удалить запись #{v.value()}?"
             # Remove key by index from field JSON
             newFull = JSON.parse kvm[n]()
             newFull.splice v.idx(), 1
