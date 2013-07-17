@@ -68,6 +68,9 @@ require [ "domready"
 
     sendSms.setup()
 
+    if user.login == "darya" or user.login == "e.balabanova"
+      $('#icon-user').removeClass('icon-user').addClass('icon-heart')
+
     # achievements
     if user.meta.achievements.length
       achv = $('#navbar-achievements')

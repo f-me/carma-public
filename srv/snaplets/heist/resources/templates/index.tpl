@@ -125,7 +125,7 @@
                 <a href="#"
                    class="dropdown-toggle"
                    data-toggle="dropdown">
-                  <i class="icon-user icon-white" />&nbsp;<loggedInUser />
+                  <i id="icon-user" class="icon-user icon-white" />&nbsp;<loggedInUser />
                   <b class="caret"></b>
                 </a>
                 <ul class="dropdown-menu">

@@ -11,6 +11,7 @@ define [ "utils"
     else
       "search_#{model}_#{fld}"
 
+  open = (prm) -> window.open("/#partnersSearch/#{prm}", "_blank")
 
   model =
     name: "partnerSearch"
@@ -91,20 +92,16 @@ define [ "utils"
 
   srvLab = (val) -> window.global.dictValueCache.Services[val] || val
 
-  loadContext = (kvm, args) ->
-    return unless args?.model
-    return unless localStorage['partnersSearch']
-    ctx = JSON.parse localStorage['partnersSearch']
-    if args.model == "case"
-      kase = ctx['case'].data
-      {id, data} = ctx['service']
-      srvName = id.split(':')[0]
-      kaseKVM = m.buildKVM global.models['case'], '', kase
-      srvKVM  = m.buildKVM global.models[srvName], '', data
-      kvm['city'](kaseKVM.city())
-      kvm['make'](kaseKVM.car_make())
-      kvm['services'](srvName)
-      kvm['caseInfo'] = """
+  setupCase = (kvm, ctx) ->
+    kase = ctx['case'].data
+    {id, data} = ctx['service']
+    srvName = id.split(':')[0]
+    kaseKVM = m.buildKVM global.models['case'], '', kase
+    srvKVM  = m.buildKVM global.models[srvName], '', data
+    kvm['city'](kaseKVM.city())
+    kvm['make'](kaseKVM.car_make())
+    kvm['services'](srvName)
+    kvm['caseInfo'] = """
     <ul class='unstyled'>
       <li>
         <b>Кто звонил:</b> #{kaseKVM.contact_name()} #{kaseKVM.contact_phone1()}
@@ -112,11 +109,26 @@ define [ "utils"
       <li> <b>Номер кеса:</b> #{kaseKVM.id()} </li>
       <li> <b>Адрес кейса:</b> #{kaseKVM.caseAddress_address()}</li>
       <li> <b>Название программы: </b> #{kaseKVM.programLocal()} </li>
-      <li> <b> </b> </li>
-      <li> <b> </b> </li>
-      <li> <b> </b> </li>
+      <li> <b> Марка: </b> #{kaseKVM.car_makeLocal()}</li>
+      <li> <b> Модель: </b> #{kaseKVM.car_modelLocal()}</li>
+      <li> <b> Госномер: </b> #{kaseKVM.car_plateNum()}</li>
+      <li> <b> Цвет: </b> #{kaseKVM.car_colorLocal()}</li>
+      <li> <b> VIN:</b> #{kaseKVM.car_vin()}</li>
+      <li> <b> Тип оплаты:</b> #{srvKVM.payTypeLocal()}</li>
     </ul>
     """
+
+  loadContext = (kvm, args) ->
+    return unless args?.model
+    return unless localStorage['partnersSearch']
+    ctx = JSON.parse localStorage['partnersSearch']
+    switch args.model
+      when "case"
+        setupCase kvm, ctx
+      when "call"
+        kvm['city'](ctx.city)
+        kvm['make'](ctx.carMake)
+
     kvm['selectPartner'] = (partner, ev) ->
       kvm['selectedPartner'](partner.id)
       global.pubSub.pub subName(ctx.field, id), JSON.stringify(partner)
@@ -166,6 +178,7 @@ define [ "utils"
   storeKey: storeKey
   # key that service should subscribe to get data back
   subName: subName
+  open: open
   template: tpl
   partials: partialize
     search        : srch

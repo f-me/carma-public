@@ -91,4 +91,4 @@ define [ "utils"
 
       localStorage[pSearch.storeKey] =
         JSON.stringify {case: kase, service: srv, field: field}
-      window.open("/#partnersSearch/case", "_blank")
+      pSearch.open('case')
