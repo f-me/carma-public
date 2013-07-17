@@ -2,8 +2,8 @@
 
 export CARMA_PORT=${1:-8000}
 
-OUTPUT=$(mktemp addrsXXXXXX-tmp)
-OUTPUT2=$(mktemp addrsXXXXXX-out)
+OUTPUT=$(mktemp /tmp/addrsXXXXXX-tmp)
+OUTPUT2=$(mktemp /tmp/addrsXXXXXX-out)
 
 curl -s "http://localhost:${CARMA_PORT}/all/partner" | \
     jq -c -r '.[] | .id + "|\(if .addrDeJure and ((.addrDeJure) == "" | not) then [{key:("jure"), value:.addrDeJure}] else [] end + if .salesAddress and ((.salesAddress) == "" | not) then [{key:("sales"), value:.salesAddress}] else [] end + if .serviceAddress and ((.serviceAddress) == "" | not) then [{key:("serv"), value:.serviceAddress}] else [] end)"' > ${OUTPUT}

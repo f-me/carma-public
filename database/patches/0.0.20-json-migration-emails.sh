@@ -2,8 +2,8 @@
 
 export CARMA_PORT=${1:-8000}
 
-OUTPUT=$(mktemp emailsXXXXXX-tmp)
-OUTPUT2=$(mktemp emailsXXXXXX-out)
+OUTPUT=$(mktemp /tmp/emailsXXXXXX-tmp)
+OUTPUT2=$(mktemp /tmp/emailsXXXXXX-out)
 
 curl -s "http://localhost:${CARMA_PORT}/all/partner" | \
     jq -c -r '.[] | .id + "|\(if .closeTicketEmail and ((.closeTicketEmail) == "" | not) then [{key:("close"), value:.closeTicketEmail}] else [] end)"' > ${OUTPUT}
