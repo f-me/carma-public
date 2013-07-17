@@ -224,23 +224,23 @@ define [ "utils"
               full = []
             full[i] = obj
             kvm[n] JSON.stringify full
-            
+
           # An observable bound to a field in a JSON object
           subfieldObservable = (sf) ->
             # Initial value
             kob = ko.observable obj[sf]
-              
+
             kob.subscribe (val) ->
               full = JSON.parse kvm[n]()
               full[i][sf] = val
               kvm[n] JSON.stringify full
             kob
-            
+
           value: subfieldObservable "value"
           key: subfieldObservable "key"
           note: subfieldObservable "note"
           idx: ko.observable i
-          
+
           # Derived from dictionaryKbHook. Maps value of key to
           # corresponding label of the widget dictionary.
           keyLocal: ko.computed
@@ -256,7 +256,7 @@ define [ "utils"
               not r.test kvm[nP]()[i].value()
             else
               false
-                      
+
         kvm[nP] = ko.observableArray()
         # Populate {n}Objects with initial values
         init = false
@@ -283,13 +283,14 @@ define [ "utils"
         # Delete an object by its index
         kvm["#{n}DeleteObj"] =
           (v) ->
+            return unless confirm "Вы уверены, что хотите удалить запись #{v.value}?"
             # Remove key by index from field JSON
             newFull = JSON.parse kvm[n]()
             newFull.splice v.idx(), 1
             # Rebuild {n}Objects afterwards
             init = false
             kvm[n] JSON.stringify newFull
-            
+
         kvm["#{n}KeyDictionary"] =
           ko.observable global.dictionaries[f.meta.dictionaryName].entries
 
