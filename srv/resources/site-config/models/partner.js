@@ -99,14 +99,6 @@
     },
     {
       "meta": {
-        "label": "Факс"
-      },
-      "type": null,
-      "groupName": null,
-      "name": "fax"
-    },
-    {
-      "meta": {
         "label": "Адреса",
         "jsonSchema": "dict-objects",
         "dictionaryName": "AddressTypes",
