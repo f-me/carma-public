@@ -263,7 +263,7 @@ define [ "utils"
         kvm[n].subscribe (newValue) ->
           if not init
             kvm[nP].removeAll()
-            if newValue.length > 0
+            if newValue?.length > 0
               objs = JSON.parse newValue
               for i in [0...objs.length]
                 kvm[nP].push objItem objs[i], i
