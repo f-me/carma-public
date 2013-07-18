@@ -64,6 +64,8 @@ Executable carma
     bytestring-lexing           == 0.4.*,
     carma-sync                  >= 0.1.6 && < 0.2,
     carma-partner-import        == 0.4,
+    comonad                     == 3.0.*,
+    semigroupoids               == 3.0.*,
     configurator                == 0.2.*,
     containers                  == 0.5.*,
     directory                   == 1.2.*,
