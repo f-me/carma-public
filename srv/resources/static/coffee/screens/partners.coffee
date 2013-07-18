@@ -62,14 +62,15 @@ define [ "utils"
 
       $('#partner-permissions').find('.btn-success').on 'click', ->
         obj =
-          addrDeFacto: kvm.addrDeFacto()
+          addrDeFacto:
+                _.filter(kvm["addrsObjects"](),
+                        (svm) -> svm.key() == "fact")[0]?.value()
           city: kvm.city()
           comment: kvm.comment()
           id: kvm.id()
           isDealer: kvm.isDealer()
           isMobile: kvm.isMobile()
           name: kvm.name()
-          workingTime: kvm.workingTime()
         table.dataTable.fnAddData objsToRows [obj]
 
       subscribeTarifStuff(modelName)

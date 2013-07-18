@@ -263,7 +263,7 @@ define [ "utils"
         kvm[n].subscribe (newValue) ->
           if not init
             kvm[nP].removeAll()
-            if newValue.length > 0
+            if newValue?.length > 0
               objs = JSON.parse newValue
               for i in [0...objs.length]
                 kvm[nP].push objItem objs[i], i
@@ -283,6 +283,7 @@ define [ "utils"
         # Delete an object by its index
         kvm["#{n}DeleteObj"] =
           (v) ->
+            return unless confirm "Вы уверены, что хотите удалить запись #{v.value()}?"
             # Remove key by index from field JSON
             newFull = JSON.parse kvm[n]()
             newFull.splice v.idx(), 1

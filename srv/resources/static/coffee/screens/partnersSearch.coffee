@@ -117,6 +117,9 @@ define [ "utils"
       <li> <b> Тип оплаты:</b> #{srvKVM.payTypeLocal()}</li>
     </ul>
     """
+    kvm['selectPartner'] = (partner, ev) ->
+      kvm['selectedPartner'](partner.id)
+      global.pubSub.pub subName(ctx.field, id), partner
 
   loadContext = (kvm, args) ->
     return unless args?.model
@@ -129,9 +132,6 @@ define [ "utils"
         kvm['city'](ctx.city)
         kvm['make'](ctx.carMake)
 
-    kvm['selectPartner'] = (partner, ev) ->
-      kvm['selectedPartner'](partner.id)
-      global.pubSub.pub subName(ctx.field, id), JSON.stringify(partner)
     # cleanup localstore
     localStorage.removeItem 'partnersSearch'
 

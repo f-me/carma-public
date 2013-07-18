@@ -73,9 +73,9 @@ define [ "utils"
       do (f) ->
         n = pSearch.subName f.name, model.name, kvm.id()
         global.pubSub.sub n, (val) ->
-          v = JSON.parse val
-          kvm[f.name](v.name)
-          kvm["#{f.name}Id"](v.id)
+          kvm[f.name](val.name)
+          kvm["#{f.name}Id"]?(val.id)
+          kvm["#{f.name.split('_')[0]}_address"]?(val.addrDeFacto)
 
     # this fn should be called from click event, in other case
     # it will be blocked by chrome policies
