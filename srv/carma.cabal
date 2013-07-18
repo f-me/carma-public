@@ -1,11 +1,11 @@
 Name:                carma
 Version:             0.1.0.1
-Synopsis:            Call center assistance system
-Description:         Project Description Here
+Synopsis:            CRM
+Description:         Customer relationship management and call center assistance system
 License:             AllRightsReserved
 Author:              Formal Methods
-Maintainer:          maintainer@example.com
-Stability:           Experimental
+Maintainer:          dev@formalmethods.ru
+Stability:           Do not touch anything
 Category:            Web
 Build-type:          Simple
 Cabal-version:       >=1.6
