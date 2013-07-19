@@ -61,7 +61,7 @@
             <li data-bind="text: name" />
             <li data-bind="html: '<b>Телефон:</b>' +
                            phone1 +
-                           '(' + workingTime + ')'" />
+                           '(' + workingtime + ')'" />
             <li data-bind="html: '<b>Комментарий:</b>' + comment" />
           </ul>
           <div class="accordion-toggle collapsed"
@@ -73,13 +73,13 @@
                class="accordion-body collapse">
             <div class="accordion-inner">
               <b>Ответственное лицо:</b>
-              <!-- ko text: personInCharge --> <!-- /ko -->
+              <!-- ko text: personincharge --> <!-- /ko -->
               <br />
               <b>Юридический адрес:</b>
-              <!-- ko text: addrDeJure --> <!-- /ko -->
+              <!-- ko text: addrdejure --> <!-- /ko -->
               <br />
               <b>Фактический адрес:</b>
-              <!-- ko text: addrDeFacto --> <!-- /ko -->
+              <!-- ko text: addrdefacto --> <!-- /ko -->
               <br />
               <ul data-bind="foreach: services">
                 <li data-bind="text: name + 

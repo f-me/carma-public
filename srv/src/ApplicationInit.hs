@@ -41,7 +41,6 @@ import AppHandlers.PSA
 import AppHandlers.ContractGenerator
 import AppHandlers.Users
 import AppHandlers.Screens
-import AppHandlers.PartnersSearch
 
 ------------------------------------------------------------------------------
 -- | The application's routes.
@@ -65,7 +64,6 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("actions/unassigned",
             chkAuthLocal . method GET $ unassignedActionsHandler)
          , ("actions/busyOps", chkAuthLocal . method GET $ busyOps)
-         , ("partners/search", chkAuthLocal . method GET  $ partnersSearchH)
          , ("/allPartners",   chkAuthLocal . method GET  $ allPartnersHandler)
          , ("/partnersFor/:srv",
                               chkAuthLocal . method GET $ partnersForSrvHandler)

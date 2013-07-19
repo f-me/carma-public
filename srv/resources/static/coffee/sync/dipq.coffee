@@ -1,7 +1,7 @@
 define ["sync/metaq", "sync/datamap"], (metaq, m) ->
   class DipQueue extends metaq
     constructor: (@kvm, @model, @options) ->
-      @url = "/partners/search"
+      @url = "/geo/partners"
       @ftypes  = {}
       @ftypes[f.name] = f.type for f in @model.fields
 
@@ -12,14 +12,14 @@ define ["sync/metaq", "sync/datamap"], (metaq, m) ->
     _search: _.debounce((-> @search()), 300)
 
     search: =>
-      JSON.stringify m.c2sObj(@qbackup, @ftypes)
+      @url = "#{@url}/1,1/100,100"
       q = {}
       for f in @model.fields when @kvm[f.name]()
         q[f.name] = @kvm[f.name]()
       $.ajax
         url      : @url
         dataType : 'json'
-        data     : JSON.stringify m.c2sObj(q, @ftypes)
+        data     : m.c2sObj(q, @ftypes)
         success  : @successCb
         error    : @errorCb
 
