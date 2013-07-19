@@ -66,7 +66,7 @@ define ["utils"], (u) ->
             row = [ ctime
                   , owner
                   , 'Отказ партнера'
-                  , comment
+                  , pname + ': ' + comment
                   , reason
                   ]
           st.fnAddData rows
