@@ -7,6 +7,13 @@
       "type": "file",
       "groupName": null,
       "name": "filename"
+    },
+    {
+      "meta": {
+        "label": "Файл",
+        "invisible": true
+      },
+      "name": "hash"
     }
   ],
   "applications": [],
