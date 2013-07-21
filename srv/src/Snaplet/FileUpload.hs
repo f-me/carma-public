@@ -77,7 +77,7 @@ withDb = (gets db >>=) . flip withTop
 -- | SQL query used to select attachment id by hash. Parametrized by
 -- hash value.
 hashToAid :: Query
-hashToAid = [sql|SELECT id FROM attachmenttbl WHERE hash=?;|]
+hashToAid = [sql|SELECT id::text FROM attachmenttbl WHERE hash=?;|]
 
 -- | A field of an instance to attach an attachment to.
 type AttachmentTarget = (ModelName, ObjectId, FieldName)
@@ -119,7 +119,9 @@ uploadInManyFields flds nameFun = do
           newDir     = root </> "attachment" </> B8.unpack aid
           newName    = (fromMaybe id nameFun) fName
       -- Move file to attachment/<aid>
-      liftIO $ renameFile fPath (newDir </> newName)
+      liftIO $ createDirectoryIfMissing True newDir >>
+               copyFile fPath (newDir </> newName) >>
+               removeFile fPath
       _ <- withDb $ DB.update "attachment" aid $
                     M.insert "hash" (stringToB $ show hash) $
                     M.singleton "filename" (stringToB newName)
