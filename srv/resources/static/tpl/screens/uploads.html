@@ -71,6 +71,11 @@
         <i class="icon icon-download-alt" /><b data-bind="text: filename" />
       </a>
     </div>
+
+    <div data-bind="visible: dupe">
+      Такой же файл уже загружался ранее
+    </div>
+
     <div data-bind="text: msg" />
 
     <div data-bind="visible: cases().length > 0">
