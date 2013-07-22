@@ -141,6 +141,10 @@ define [ "utils"
     $("#search-result").height(w-t-10)
 
   constructor: (view, args) ->
+    # remove padding so blank space after removing navbar can be used
+    $('body').css('padding-top', '0px')
+    $(".navbar").hide()
+
     kvm = m.buildKVM(model, "partnersSearch-content")
     q = new sync.DipQueue(kvm, model)
     kvm._meta.q = q
