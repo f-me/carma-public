@@ -96,25 +96,26 @@ define [ "utils"
     kase = ctx['case'].data
     {id, data} = ctx['service']
     srvName = id.split(':')[0]
-    kaseKVM = m.buildKVM global.models['case'], '', kase
-    srvKVM  = m.buildKVM global.models[srvName], '', data
+    kaseKVM = m.buildKVM global.models['case'],  {fetched: kase}
+    srvKVM  = m.buildKVM global.models[srvName], {fetched: data}
     kvm['city'](kaseKVM.city())
     kvm['make'](kaseKVM.car_make())
     kvm['services'](srvName)
     kvm['caseInfo'] = """
     <ul class='unstyled'>
       <li>
-        <b>Кто звонил:</b> #{kaseKVM.contact_name()} #{kaseKVM.contact_phone1()}
+        <b>Кто звонил:</b>
+        #{kaseKVM.contact_name() || ''} #{kaseKVM.contact_phone1() || ''}
       </li>
-      <li> <b>Номер кеса:</b> #{kaseKVM.id()} </li>
-      <li> <b>Адрес кейса:</b> #{kaseKVM.caseAddress_address()}</li>
-      <li> <b>Название программы: </b> #{kaseKVM.programLocal()} </li>
-      <li> <b> Марка: </b> #{kaseKVM.car_makeLocal()}</li>
-      <li> <b> Модель: </b> #{kaseKVM.car_modelLocal()}</li>
-      <li> <b> Госномер: </b> #{kaseKVM.car_plateNum()}</li>
-      <li> <b> Цвет: </b> #{kaseKVM.car_colorLocal()}</li>
-      <li> <b> VIN:</b> #{kaseKVM.car_vin()}</li>
-      <li> <b> Тип оплаты:</b> #{srvKVM.payTypeLocal()}</li>
+      <li> <b>Номер кеса:</b> #{kaseKVM.id() || ''} </li>
+      <li> <b>Адрес кейса:</b> #{kaseKVM.caseAddress_address() || ''}</li>
+      <li> <b>Название программы: </b> #{kaseKVM.programLocal() || ''} </li>
+      <li> <b> Марка: </b> #{kaseKVM.car_makeLocal() || ''}</li>
+      <li> <b> Модель: </b> #{kaseKVM.car_modelLocal() || ''}</li>
+      <li> <b> Госномер: </b> #{kaseKVM.car_plateNum() || ''}</li>
+      <li> <b> Цвет: </b> #{kaseKVM.car_colorLocal() || ''}</li>
+      <li> <b> VIN:</b> #{kaseKVM.car_vin() || ''}</li>
+      <li> <b> Тип оплаты:</b> #{srvKVM.payTypeLocal() || ''}</li>
     </ul>
     """
     kvm['selectPartner'] = (partner, ev) ->
