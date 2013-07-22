@@ -82,22 +82,27 @@ define [ "model/render"
   # - maybeId; («—» if Backbone id is not available yet)
   #
   # - modelTitle;
-  buildKVM = (model, elName, fetched) ->
+  buildKVM = (model, options) ->
+
+    {elName, fetched, queue, queueOptions} = options
 
     fields   = model.fields
     required = (f for f in fields when f.meta?.required)
 
     # Build kvm with fetched data if have one
     kvm = {}
-    # FIXME: use this hack only for disthook and it's finvm, find
-    # more appropriate way to handle that
-    global.viewsWare[elName] ?= {}
-    global.viewsWare[elName]['knockVM'] = kvm if elName
-    for f in fields
-      kvm[f.name] = ko.observable(fetched?[f.name])
+    kvm["_meta"] = { model: model, cid: _.uniqueId("#{model.name}_") }
+
+    # build observables for real model fields
+    kvm[f.name] = ko.observable(null) for f in fields
 
     # set id only when it wasn't set from from prefetched data
     kvm['id'] = ko.observable(fetched?['id'])
+
+    # set queue if have one, and sync it with backend
+    q = new sync.CrudQueue(kvm, model, queueOptions)
+    kvm._meta.q = q
+    kvm[f.name](fetched[f.name]) for f in fields when fetched?[f.name]
 
     # Set extra observable for inverse of every required
     # parameters, with name <fieldName>Not
@@ -106,6 +111,8 @@ define [ "model/render"
         n = f.name
         kvm["#{n}Not"] = ko.computed -> kvm["#{n}Regexp"]?() or not kvm[n]()
 
+    # Setup reference fields they will be stored in <name>Reference as array
+    # of kvm models
     for f in fields when f.type == "reference"
       do (f) ->
         kvm["#{f.name}Reference"] =
@@ -119,14 +126,14 @@ define [ "model/render"
               return [] unless rs
               ms = (m.split(':') for m in rs)
               for m in ms
-                k = buildKVM(global.models[m[0]], null, {id: m[1]})
+                k = buildKVM global.models[m[0]],
+                  fetched: {id: m[1]}
+                  queue:   queue
                 k.parent = kvm
                 k
             write: (v) ->
               ks = ("#{k._meta.model.name}:#{k.id()}" for k in v).join(',')
               kvm[f.name](ks)
-
-    kvm["_meta"] = { model: model, cid: _.uniqueId("#{model.name}_") }
 
     kvm["maybeId"] = ko.computed -> kvm['id']() or "—"
 
@@ -259,18 +266,12 @@ define [ "model/render"
       return kvm
 
   buildModel = (modelName, models, args, options, elName) ->
-      knockVM = buildKVM(models[modelName], elName)
-      knockVM[k]?(v) for k, v of args
-      q = new sync.CrudQueue(knockVM, models[modelName], options)
-      knockVM._meta.q = q
-      for f in models[modelName].fields when f.type == "reference"
-        do (f) ->
-          for r in knockVM["#{f.name}Reference"]()
-            do (r) ->
-              rq = new sync.CrudQueue(r, r._meta.model, options)
-              r._meta.q = rq
-              rq.fetch()
-      return [knockVM, q]
+      kvm = buildKVM models[modelName],
+        elName: elName
+        queue: sync.CrudQueue
+        queueOptions: options
+        fetched: args
+      return [kvm, kvm._meta.q]
 
   buildNewModel = (modelName, args, options, cb) ->
     [knockVM, q] = buildModel(modelName, global.models, args, options)
