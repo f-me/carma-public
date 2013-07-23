@@ -4,7 +4,7 @@ CREATE VIEW partnercancelview AS
        , p.name as partner
        , substring(pc.caseid   , ':(.*)') as case
        , substring(pc.serviceid, ':(.*)') as service
-       , substring(pc.serviceid, '(.*):') as serviceName
+       , substring(pc.serviceid, '(.*):') as type
        , c.city
   FROM      partnercanceltbl pc
   LEFT JOIN partnertbl       p
