@@ -18,7 +18,7 @@ define [ "utils"
     title: "Экран поиска партнеров"
     fields: [
       { name: "search"
-      , meta: { label: "Поиск" }
+      , meta: { label: "Поиск", nosearch: true }
       },
       { name: "city"
       , type: "dictionary-many"
