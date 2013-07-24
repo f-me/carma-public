@@ -216,15 +216,6 @@
     },
     {
       "meta": {
-        "label": "Комментарии",
-        "infoText": "betaComment"
-      },
-      "type": "textarea",
-      "groupName": null,
-      "name": "betaComment"
-    },
-    {
-      "meta": {
         "label": "Услуги"
       },
       "type": "reference",

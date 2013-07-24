@@ -71,10 +71,16 @@
         <i class="icon icon-download-alt" /><b data-bind="text: filename" />
       </a>
     </div>
+
+    <div data-bind="visible: dupe">
+      Такой же файл уже загружался ранее
+    </div>
+
     <div data-bind="text: msg" />
 
     <div data-bind="visible: cases().length > 0">
-      Прикреплён к кейсам:
+      Прикреплён к кейсам<span data-bind="visible: cases().length > 3">
+        (всего <span data-bind="text: cases().length"/>)</span>:
       <span class="case-numbers" data-bind="foreach: cases">
         <a data-bind="attr: { href: '/#case/' + $data }" target="_blank">
           <i class="icon icon-file" /><b data-bind="text: $data" /></a><a
@@ -94,7 +100,8 @@
     </div>
 
     <div data-bind="visible: unknown().length > 0">
-      Следующие кейсы не найдены:
+      Следующие кейсы не найдены<span data-bind="visible: unknown().length > 3">
+        (всего <span data-bind="text: unknown().length"/>)</span>:
       <span data-bind="foreach: unknown">
         <i class="icon icon-trash" /><b data-bind="text: $data" />
       </span>

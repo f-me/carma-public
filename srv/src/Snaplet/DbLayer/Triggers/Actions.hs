@@ -143,6 +143,27 @@ actions
                         Right Nothing  -> setWeather objId val
                         Right (Just c) -> when (c /= val) $ setWeather objId val
                       ])
+          ,("cardNumber_cardOwner", [\objId val -> do
+              let cardOwner = T.decodeUtf8 val
+              when (T.length cardOwner > 7) $ do
+                res <- liftDb $ PG.query (fromString [sql|
+                  SELECT
+                    extract (epoch from contractValidFromDate)::int8::text,
+                    extract (epoch from contractValidUntilDate)::int8::text
+                    FROM contracttbl c, programtbl p
+                    WHERE isactive AND dixi
+                      AND p.id::text = c.program AND p.value = 'vtb24'
+                      AND c.cardOwner = ?
+                    ORDER BY ctime DESC LIMIT 1
+                  |]) [cardOwner]
+                case res of
+                  []    -> set objId "vinChecked" "vinNotFound"
+                  row:_ -> do
+                    zipWithM_ (maybe (return ()) . (set objId))
+                      ["cardNumber_validFrom", "cardNumber_validUntil"]
+                      row
+                    set objId "vinChecked" "base"
+              ])
           ,("car_plateNum", [\objId val ->
             when (B.length val > 5)
               $ set objId "car_plateNum" $ bToUpper val])
