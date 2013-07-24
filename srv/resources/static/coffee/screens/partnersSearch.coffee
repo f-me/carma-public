@@ -150,6 +150,7 @@ define [ "utils"
     kvm = m.buildKVM(model, "partnersSearch-content")
     q = new sync.DipQueue(kvm, model)
     kvm._meta.q = q
+    kvm['choosenSort'] = ko.observableArray(["priority3"])
     kvm['searchResults'] = ko.observable()
     kvm['searchH'] = ko.computed ->
       s = kvm['searchResults']()
@@ -159,15 +160,21 @@ define [ "utils"
         r[v.id] ?= v
         r[v.id]['services'] ?= []
         r[v.id]['services'].push
-          name     : srvLab v.serviceName
+          label    : srvLab v.servicename
+          name     : v.servicename
           priority2: v.priority2
           priority3: v.priority3
       r
 
     kvm['searchProcessed'] = ko.computed ->
-      for k, v of kvm['searchH']()
+      sort = kvm['choosenSort']()[0]
+      srvs = kvm['servicesLocals']()
+      s = for k, v of kvm['searchH']()
         v.services = _.sortBy v.services, (v) -> [v.priority2, v.priority3]
         v
+      return s if _.isEmpty srvs
+      _.sortBy s, (v) ->
+        parseInt (_.find v.services, (s) -> s.name == srvs[0].value)?[sort]
     kvm['selectedPartner'] = ko.observable(NaN)
     loadContext kvm, args
 

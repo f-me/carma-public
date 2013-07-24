@@ -39,11 +39,6 @@
 
       </div>
     </div>
-    <!-- <div class="span4"> -->
-    <!--   <div style="border: 1px solid; height: 120px" > -->
-    <!--     case txt here -->
-    <!--   </div> -->
-    <!-- </div> -->
     <div class="span2">
       {{> dealer        }}
       {{> mobilePartner }}
@@ -52,44 +47,54 @@
   </div>
 
   <div class="row-fluid">
-    <div class="span4 well" id="search-result" style="overflow-y: auto;">
-      <ol data-bind="foreach: searchProcessed">
-        <li data-bind="css: {
-                       'selected-partner': id == $parent.selectedPartner()
-                       }">
-          <ul class="unstyled" data-bind="click: $parent.selectPartner">
-            <li data-bind="text: name" />
-            <li data-bind="html: '<b>Телефон:</b>' +
-                           phone1 +
-                           '(' + workingtime + ')'" />
-            <li data-bind="html: '<b>Комментарий:</b>' + comment" />
-          </ul>
-          <div class="accordion-toggle collapsed"
-               data-toggle="collapse"
-               data-bind="attr: { 'data-target': '#partner' + id }" >
-            <a> Посмотреть полную информацию </a>
-          </div>
-          <div data-bind="attr: {id: 'partner' + id}"
-               class="accordion-body collapse">
-            <div class="accordion-inner">
-              <b>Ответственное лицо:</b>
-              <!-- ko text: personincharge --> <!-- /ko -->
-              <br />
-              <b>Юридический адрес:</b>
-              <!-- ko text: addrdejure --> <!-- /ko -->
-              <br />
-              <b>Фактический адрес:</b>
-              <!-- ko text: addrdefacto --> <!-- /ko -->
-              <br />
-              <ul data-bind="foreach: services">
-                <li data-bind="text: name + 
-                               ' ПБГ:' + priority2 +
-                               ' ПНГ:' + priority3" />
-              </ul>
+    <div class="span4 well">
+      <div class="row-fluid">
+        <select class="span2"
+                style="float: right;"
+                data-bind="selectedOptions: choosenSort">
+          <option value="priority2"> ПБГ </option>
+          <option value="priority3"> ПНГ </option>
+        </select>
+      </div>
+      <div id="search-result" class="row-fluid" style="overflow-y: auto;">
+        <ol data-bind="foreach: searchProcessed">
+          <li data-bind="css: {
+                         'selected-partner': id == $parent.selectedPartner()
+                         }">
+            <ul class="unstyled" data-bind="click: $parent.selectPartner">
+              <li data-bind="text: name" />
+              <li data-bind="html: '<b>Телефон:</b>' +
+                             phone1 +
+                             '(' + workingtime + ')'" />
+              <li data-bind="html: '<b>Комментарий:</b>' + comment" />
+            </ul>
+            <div class="accordion-toggle collapsed"
+                 data-toggle="collapse"
+                 data-bind="attr: { 'data-target': '#partner' + id }" >
+              <a> Посмотреть полную информацию </a>
             </div>
-          </div>
-        </li>
-      </ol>
+            <div data-bind="attr: {id: 'partner' + id}"
+                 class="accordion-body collapse">
+              <div class="accordion-inner">
+                <b>Ответственное лицо:</b>
+                <!-- ko text: personincharge --> <!-- /ko -->
+                <br />
+                <b>Юридический адрес:</b>
+                <!-- ko text: addrdejure --> <!-- /ko -->
+                <br />
+                <b>Фактический адрес:</b>
+                <!-- ko text: addrdefacto --> <!-- /ko -->
+                <br />
+                <ul data-bind="foreach: services">
+                  <li data-bind="text: label + 
+                                 ' ПБГ:' + priority2 +
+                                 ' ПНГ:' + priority3" />
+                </ul>
+              </div>
+            </div>
+          </li>
+        </ol>
+      </div>
     </div>
 
     <div class="span8">
