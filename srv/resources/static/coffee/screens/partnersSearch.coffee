@@ -101,6 +101,7 @@ define [ "utils"
     kvm['city'](kaseKVM.city())
     kvm['make'](kaseKVM.car_make())
     kvm['services'](srvName)
+    kvm['isDealer'](ctx['field'].split('_')[0] != 'contractor')
     kvm['caseInfo'] = """
     <ul class='unstyled'>
       <li>

@@ -74,12 +74,12 @@ routes = [ ("/partners/:coords1/:coords2", method GET withinPartners)
 
 instance (ToField a, ToField b, ToField c, ToField d, ToField e, ToField f,
           ToField g, ToField h, ToField i, ToField j, ToField k, ToField l,
-          ToField m, ToField n)
-    => ToRow (a,b,c,d,e,f,g,h,i,j,k,l,m,n) where
-    toRow (a,b,c,d,e,f,g,h,i,j,k,l,m,n) =
+          ToField m, ToField n, ToField o)
+    => ToRow (a,b,c,d,e,f,g,h,i,j,k,l,m,n,o) where
+    toRow (a,b,c,d,e,f,g,h,i,j,k,l,m,n,o) =
         [toField a, toField b, toField c, toField d, toField e, toField f,
          toField g, toField h, toField i, toField j, toField k, toField l,
-         toField m, toField n]
+         toField m, toField n, toField o]
 
 ------------------------------------------------------------------------------
 -- | Parse "52.32,3.45" (no spaces) into pair of doubles.
@@ -163,6 +163,7 @@ AND   (? OR p.makes && string_to_array(?, ','))
 AND   (? OR s.servicename in ?)
 AND   (? OR s.priority2 = ?)
 AND   (? OR s.priority3 = ?)
+AND   isDealer = ?
 ORDER BY
 (case when isMobile then 1 when isMobile is null then 2 else 3 end)
 DESC) r;
@@ -196,11 +197,12 @@ withinPartners = do
   c1 <- getCoordsParam "coords1"
   c2 <- getCoordsParam "coords2"
 
-  city <- fromMaybe "" <$> getParam "city"
-  make <- fromMaybe "" <$> getParam "make"
-  srv  <- fromMaybe "" <$> getParam "services"
-  pr2  <- fromMaybe "" <$> getParam "priority2"
-  pr3  <- fromMaybe "" <$> getParam "priority3"
+  city <- fromMaybe ""  <$> getParam "city"
+  make <- fromMaybe ""  <$> getParam "make"
+  srv  <- fromMaybe ""  <$> getParam "services"
+  pr2  <- fromMaybe ""  <$> getParam "priority2"
+  pr3  <- fromMaybe ""  <$> getParam "priority3"
+  dlr  <- fromMaybe "0" <$> getParam "isDealer"
 
   let [city', make', srv', pr2', pr3'] =
         Prelude.map (BS.split ',') [city, make, srv, pr2, pr3]
@@ -213,6 +215,7 @@ withinPartners = do
                                                 , BS.null srv, In srv'
                                                 , BS.null pr2, In pr2'
                                                 , BS.null pr3, In pr3'
+                                                , dlr
                                                 )
                    modifyResponse $ setContentType "application/json"
                    writeLBS $ A.encode $ recode results
