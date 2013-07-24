@@ -3,6 +3,7 @@ define [ "lib/local-dict"
        , "lib/bo-users-dict"
        , "lib/computed-dict"
        , "lib/dealers-dict"
+       , "lib/cardOwner-dict"
        ], ->
 
   dicts = {}

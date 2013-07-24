@@ -211,6 +211,14 @@
     },
     {
       "meta": {
+        "label": "Клиент/Доверенное лицо будет сопровождать автомобиль"
+      },
+      "type": "checkbox",
+      "groupName": null,
+      "name": "companion"
+    },    
+    {
+      "meta": {
         "label": "Пробег эвакуатора за городом"
       },
       "type": null,

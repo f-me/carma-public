@@ -74,6 +74,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
                               chkAuthLocal . method GET    $ psaCasesHandler)
          , ("/repTowages/:id",
                               chkAuthLocal . method GET    $ repTowagesHandler)
+         , ("/cardOwnerLookup", chkAuth . method GET  $ cardOwnerLookup)
          , ("/allContracts/:program",
                               chkAuth . method GET   $ selectContracts)
          , ("/renderContract",
