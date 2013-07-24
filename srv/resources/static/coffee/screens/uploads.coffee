@@ -103,6 +103,8 @@ define [ "text!tpl/screens/uploads.html"
       cases    : ko.observableArray()
       # Array of unknown case ids from filename
       unknown  : ko.observableArray()
+      # True if the file was uploaded as a duplicate
+      dupe     : ko.observable false
       # Allow attaching to extra cases
       attach : ko.observable false
     ko.applyBindings bvm, $(box)[0]
@@ -130,7 +132,8 @@ define [ "text!tpl/screens/uploads.html"
       done((res) ->
         bvm.aid(res.attachment.id)
         bvm.filename(res.attachment.filename)
-
+        bvm.dupe(res.dupe)
+        
         for t in res.targets
           bvm.cases.push t[1]
         for t in res.unknown

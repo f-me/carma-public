@@ -1,6 +1,21 @@
 <!-- print service template screen template -->
-<div id="print-table" class="row-fluid">
-  <div class="span6" style="page-break-after:always;">
+
+<style type="text/css" media="print">
+  #print-table {
+    overflow-y: hidden;
+    position: relative;
+    font-size: 10px;
+    top: 0;
+    padding: 0;
+    margin: 0;
+  }
+  .table {
+    margin-bottom: 12px;
+  }
+</style>
+
+<div id="print-table" class="row-fluid nice-scrollbar pane">
+  <div class="span6 offset2">
   <table class="table table-condensed">
     <tr>
       <td width="30%"> Клиент </td>
@@ -102,29 +117,13 @@
       <td> Сотрудник заказавший услугу </td>
       <td data-bind="text: service.assignedTo"> </td>
     </tr>
-  </table>
-  </div>
-
-  <div class="span6">
-  <table class="table table-condensed table-striped table-bordered">
-    <caption><strong>Комментарии</strong></caption>
-    <thead>
-      <tr>
-        <th>Дата и время</th>
-        <th>Оператор</th>
-        <th>Текст</th>
-      </tr>
-    </thead>
-    <tbody data-bind="foreach: kase.comments">
-      <tr>
-        <td data-bind="text: $data.date"></td>
-        <td data-bind="text: $data.user"></td>
-        <td data-bind="text: $data.comment"></td>
-      </tr>
-    </tbody>
+    <tr>
+      <td> Ложный вызов </td>
+      <td data-bind="text: service.falseCall"> </td>
+    </tr>
   </table>
 
-  <table class="table table-condensed table-striped table-bordered">
+  <table class="table table-condensed">
     <caption><strong>Отказы партнёров</strong></caption>
     <thead>
       <tr>
@@ -147,5 +146,23 @@
       </tr>
     </tbody>
   </table>
+
+  <table class="table table-condensed">
+    <thead>
+      <tr>
+        <th>Дата и время</th>
+        <th>Оператор</th>
+        <th>Текст</th>
+      </tr>
+    </thead>
+    <tbody data-bind="foreach: kase.comments">
+      <tr>
+        <td data-bind="text: $data.date"></td>
+        <td data-bind="text: $data.user"></td>
+        <td data-bind="text: $data.comment"></td>
+      </tr>
+    </tbody>
+  </table>
+
   </div>
 </div>

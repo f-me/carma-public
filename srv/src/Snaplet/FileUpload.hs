@@ -24,13 +24,17 @@ import Data.Aeson as A hiding (Object)
 import Data.Attoparsec.Text as P
 
 import Data.Either
+import Data.Functor
 import qualified Data.Map as M
 import Data.Maybe
 import Data.Configurator
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Char8 as B8
+import Data.Digest.Pure.MD5 (md5)
 import qualified Data.HashSet as HS
+import Database.PostgreSQL.Simple.SqlQQ
 import Data.Char
 import qualified Data.Text as T
 
@@ -40,6 +44,7 @@ import System.FilePath
 import Snap (gets, liftIO)
 import Snap.Core hiding (path)
 import Snap.Snaplet
+import Snap.Snaplet.PostgresqlSimple hiding (field)
 import Snap.Util.FileUploads
 
 import Snaplet.Auth.Class
@@ -69,6 +74,11 @@ routes = [ (":model/bulk/:field",      method POST uploadBulk)
 withDb :: Handler b (DbLayer b) a -> Handler b (FileUpload b) a
 withDb = (gets db >>=) . flip withTop
 
+-- | SQL query used to select attachment id by hash. Parametrized by
+-- hash value.
+hashToAid :: Query
+hashToAid = [sql|SELECT id::text FROM attachmenttbl WHERE hash=?;|]
+
 -- | A field of an instance to attach an attachment to.
 type AttachmentTarget = (ModelName, ObjectId, FieldName)
 
@@ -77,7 +87,8 @@ type AttachmentTarget = (ModelName, ObjectId, FieldName)
 -- instance fields (attachment targets) which depend on the filename.
 -- Rename the saved file after reading attachment targets. Return the
 -- created attachment object, lists of failed (left) and successful
--- (right) attachment targets. Target is unsuccessful if a referenced
+-- (right) attachment targets, and a flag indicating that the file was
+-- recognized as a duplicate. Target is unsuccessful if a referenced
 -- instance does not exist.
 --
 -- The file is stored under @attachment/<newid>@ directory hierarchy
@@ -88,21 +99,34 @@ uploadInManyFields :: (FilePath -> [AttachmentTarget])
                    -> Maybe (FilePath -> FilePath)
                    -- ^ Change source file name when saving.
                    -> Handler b (FileUpload b)
-                      (Object, [AttachmentTarget], [AttachmentTarget])
+                      (Object, [AttachmentTarget], [AttachmentTarget], Bool)
 uploadInManyFields flds nameFun = do
-  -- Create empty attachment instance
-  attach <- withDb $ DB.create "attachment" M.empty
-
   -- Store the file
-  let aid = attach M.! "id"
-  fPath <- doUpload ("attachment" </> B8.unpack aid)
+  fPath <- doUpload =<< gets tmp
+  let (_, fName) = splitFileName fPath
 
-  -- Save new filename in attachment
-  let (fDir, fName) = splitFileName fPath
-      newName = (fromMaybe id nameFun) fName
-  liftIO $ renameFile fPath (fDir </> newName)
-  _ <- withDb $ DB.update "attachment" aid $
-                M.singleton "filename" (stringToB newName)
+  hash <- liftIO $ md5 <$> BL.readFile fPath
+
+  -- Check for duplicate files
+  res <- withDb $ query hashToAid (Only $ show hash)
+  (aid, dupe) <- case res of
+    [] -> do
+      -- Create empty attachment instance
+      attach <- withDb $ DB.create "attachment" M.empty
+
+      root <- gets finished
+      let aid        = attach M.! "id"
+          newDir     = root </> "attachment" </> B8.unpack aid
+          newName    = (fromMaybe id nameFun) fName
+      -- Move file to attachment/<aid>
+      liftIO $ createDirectoryIfMissing True newDir >>
+               copyFile fPath (newDir </> newName) >>
+               removeFile fPath
+      _ <- withDb $ DB.update "attachment" aid $
+                    M.insert "hash" (stringToB $ show hash) $
+                    M.singleton "filename" (stringToB newName)
+      return (aid, False)
+    (Only aid:_) -> return (aid, True)
 
   -- Attach to target field for existing instances, using the original
   -- filename
@@ -121,7 +145,7 @@ uploadInManyFields flds nameFun = do
   -- Serve back full attachment instance
   obj <- withDb $ DB.read "attachment" aid
 
-  return (obj, failedTargets, succTargets)
+  return (obj, failedTargets, succTargets, dupe)
 
 -- | Upload and attach a file (as in 'uploadInManyFields'), but read a
 -- list of instance ids from the file name (@732,123,452-foo09.pdf@
@@ -129,22 +153,23 @@ uploadInManyFields flds nameFun = do
 -- instance id separators, no number past the first @-@ character are
 -- read). @model@ and @field@ are read from request parameters.
 --
--- Server response is a JSON object with three keys: @attachment@
+-- Server response is a JSON object with four keys: @attachment@
 -- contains an attachment object, @targets@ contains a list of triples
 -- with attachment targets used, @unknown@ is a failed attachment
--- target list.
+-- target list, @dupe@ is true if the file was a duplicate.
 uploadBulk :: Handler b (FileUpload b) ()
 uploadBulk = do
   -- 'Just' here for these have already been matched by Snap router
   Just model <- getParam "model"
   Just field <- getParam "field"
-  (obj, failedTargets, succTargets) <-
+  (obj, failedTargets, succTargets, dupe) <-
       uploadInManyFields
              (\fName -> map (\i -> (model, i, field)) (readIds fName))
              (Just cutIds)
   writeLBS $ A.encode $ A.object [ "attachment" A..= obj
                                  , "targets"    A..= succTargets
                                  , "unknown"    A..= failedTargets
+                                 , "dupe"       A..= dupe
                                  ]
       where
         -- Read a list of decimal instance ids from a file name,
@@ -169,7 +194,7 @@ uploadInField = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
   Just field <- getParam "field"
-  (res, _, _) <- uploadInManyFields (const [(model, objId, field)]) Nothing
+  (res, _, _, _) <- uploadInManyFields (const [(model, objId, field)]) Nothing
   writeLBS $ A.encode $ res
 
 -- | Return path to an attached file (prepended by finished uploads
@@ -182,7 +207,7 @@ getAttachmentPath aid = do
   fPath <- gets finished
   case M.lookup "filename" obj of
     Just fName -> return $
-                  fPath </> "attachment" </> 
+                  fPath </> "attachment" </>
                   B8.unpack aid </> B8.unpack fName
     _ -> error $ "Broken attachment" ++ B8.unpack aid
 

@@ -22,6 +22,7 @@ define ["text!tpl/screens/printSrv.html"], (tpl) ->
         lookup:
           Services        : 'type'
           ServiceStatuses : 'status'
+          FalseStatuses   : 'falseCall'
 
       for s in (arg.cancels || [])
         s.service = s.serviceid.split(':')[0]
