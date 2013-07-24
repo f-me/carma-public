@@ -404,8 +404,10 @@
     },
     {
       "meta": {
-        "label": "ФИО владельца карты"
+        "label": "ФИО владельца карты",
+        "dictionaryType": "CardOwnerDict"
       },
+      "type": "dictionary",
       "name": "cardOwner"
     },
     {

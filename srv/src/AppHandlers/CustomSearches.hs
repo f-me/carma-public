@@ -326,3 +326,17 @@ vinReverseLookup = do
       LIMIT 15)
     |]) [carvin]
   writeJSON $ mkMap ["vin", "make", "model", "program", "buyDate"] q
+
+
+cardOwnerLookup :: AppHandler ()
+cardOwnerLookup = do
+  cardOwner <- fromJust <$> getParam "q"
+  res <- withPG pg_search $ \c -> query c (fromString $ [sql|
+     SELECT cardOwner FROM contracttbl c, programtbl p
+      WHERE isactive AND dixi
+        AND p.id::text = c.program
+        AND p.value = 'vtb24'
+        AND cardOwner ilike '%' || ? || '%'
+        LIMIT 15
+    |]) [cardOwner]
+  writeJSON $ mkMap ["cardOwner"] res
