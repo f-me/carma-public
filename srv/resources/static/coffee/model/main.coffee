@@ -100,8 +100,7 @@ define [ "model/render"
     kvm['id'] = ko.observable(fetched?['id'])
 
     # set queue if have one, and sync it with backend
-    q = new sync.CrudQueue(kvm, model, queueOptions)
-    kvm._meta.q = q
+    kvm._meta.q = new queue(kvm, model, queueOptions) if queue
     kvm[f.name](fetched[f.name]) for f in fields when fetched?[f.name]
 
     # Set extra observable for inverse of every required
