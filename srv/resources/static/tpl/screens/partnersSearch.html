@@ -10,16 +10,6 @@
 
   <div class="row-fluid">
     <div class="span10">
-      <a id="case-info" class="offset10"
-         data-toggle="popover"
-         data-placement="bottom"
-         data-html="true"
-         data-bind="attr: { 'data-content': caseInfo }">
-        Информация о кейсе
-      </a>
-      <div class="row-fluid">
-        {{> search }}
-      </div>
       <div class="row-fluid">
         <div class="span3">
           {{> city }}
@@ -40,6 +30,14 @@
       </div>
     </div>
     <div class="span2">
+      <a id="case-info"
+         data-toggle="popover"
+         data-placement="bottom"
+         data-html="true"
+         data-bind="attr: { 'data-content': caseInfo }">
+        Информация о кейсе
+      </a>
+
       {{> dealer        }}
       {{> mobilePartner }}
       {{> workNow       }}
@@ -49,6 +47,16 @@
   <div class="row-fluid">
     <div class="span4 well">
       <div class="row-fluid">
+      <div class="control-group span10">
+        <input type="text"
+               placeholder="Поиск"
+               class="pane-span focusable"
+               autocomplete="off"
+               name="search"
+               data-bind="value: search,
+                          valueUpdate: 'afterkeydown',
+                          readonly: searchDisabled">
+      </div>
         <select class="span2"
                 style="float: right;"
                 data-bind="selectedOptions: choosenSort">

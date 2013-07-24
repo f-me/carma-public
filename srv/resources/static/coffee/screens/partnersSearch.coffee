@@ -2,7 +2,8 @@ define [ "utils"
        , "model/main"
        , "sync/dipq"
        , "text!tpl/screens/partnersSearch.html"
-       ], (utils, m, sync, tpl) ->
+       , "text!tpl/partials/partnersSearch.html"
+       ], (utils, m, sync, tpl, partials) ->
 
   storeKey = 'partnersSearch'
   subName = (fld, model, id) ->
@@ -77,10 +78,8 @@ define [ "utils"
 
   partialize = (ps) -> mkPartials(ps).join('')
 
-  txt = $("#text-field-template").html()
-  md  = $("#dictionary-many-field-template").html()
+  md  = $(partials).html()
   cb  = $("#checkbox-field-template").html()
-  srch = Mustache.render txt, fh['search']
   city = Mustache.render md,  fh['city']
   make = Mustache.render md,  fh['make']
   srvs = Mustache.render md,  fh['services']
@@ -214,7 +213,6 @@ define [ "utils"
   open: open
   template: tpl
   partials: partialize
-    search        : srch
     city          : city
     make          : make
     dealer        : dlr
