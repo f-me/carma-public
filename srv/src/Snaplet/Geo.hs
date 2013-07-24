@@ -38,8 +38,6 @@ import Data.Configurator
 import Database.PostgreSQL.Simple.SqlQQ
 import Database.PostgreSQL.Simple.ToField (ToField(..))
 import Data.Text.Encoding
-import qualified Data.Vector as V
-import qualified Data.Vector.Mutable as VM (unsafeNew, unsafeWrite)
 
 import Network.HTTP as H (simpleHTTP, getRequest, getResponseBody)
 
@@ -204,7 +202,7 @@ withinPartners = do
   dlr  <- fromMaybe "0" <$> getParam "isDealer"
   mp   <- fromMaybe "0" <$> getParam "mobilePartner"
 
-  let [city', make', srv', pr2', pr3'] =
+  let [city', _, srv', pr2', pr3'] =
         Prelude.map (BS.split ',') [city, make, srv, pr2, pr3]
 
   case (c1, c2) of
