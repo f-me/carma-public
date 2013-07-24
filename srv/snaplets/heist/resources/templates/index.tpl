@@ -1535,14 +1535,15 @@
 
     <!-- Partner map popup -->
     <script type="text/template" id="partner-popup-template">
-      <div><strong>{{ name }}</strong></div>
-      <div>{{ addrDeFacto }}</div>
-      <div>{{ phone1 }}</div>
-      <div>{{ workingTime }}</div>
-      <div>{{ comment }}</div>
-      <div><a class="btn btn-mini btn-primary"
-              onclick="pickPartnerBlip('{{ parentView }}', '{{ mapId }}', '{{ id }}', '{{ name }}', '{{ addrDeFacto }}', '{{ coords }}', '{{ partnerIdField }}', '{{ partnerField }}', '{{ partnerAddrField }}', '{{ partnerCoordsField }}');">Выбрать</a></div>
+      <div>
+        <div><strong>{{ name }}</strong></div>
+        <div>{{ address }}</div>
+        <div>{{ phone }}</div>
+        <div>{{ comment }}</div>
+        <div class="btn-div">
+          <a class="btn btn-mini btn-primary">Выбрать</a>
+        </div>
+      </div>
     </script>
-
   </body>
 </html>

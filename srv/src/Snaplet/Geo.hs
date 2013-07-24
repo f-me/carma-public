@@ -146,6 +146,9 @@ FROM
      , coalesce(p.code, '')           as code
      , coalesce(p.addrDeJure, '')     as addrDeJure
      , coalesce(p.addrDeFacto, '')    as addrDeFacto
+     , coalesce(p.addrs :: text, '')  as addrs
+     , coalesce(p.phones :: text, '') as phones
+     , coalesce(p.emails :: text, '') as emails
      , coalesce(p.personInCharge, '') as personInCharge
      , coalesce(s.priority2, '')      as priority2
      , coalesce(s.priority3, '')      as priority3

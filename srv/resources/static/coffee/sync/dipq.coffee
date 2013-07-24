@@ -1,7 +1,7 @@
 define ["sync/metaq", "sync/datamap"], (metaq, m) ->
   class DipQueue extends metaq
     constructor: (@kvm, @model, @options) ->
-      @url = "/geo/partners"
+      @api = "/geo/partners"
       @ftypes  = {}
       @ftypes[f.name] = f.type for f in @model.fields
 
@@ -12,7 +12,12 @@ define ["sync/metaq", "sync/datamap"], (metaq, m) ->
     _search: _.debounce((-> @search()), 300)
 
     search: =>
-      @url = "#{@url}/1,1/100,100"
+      a = @kvm["mapA"]
+      b = @kvm["mapB"]
+      if a? && b?
+        @url = "#{@api}/#{a.lon},#{a.lat}/#{b.lon},#{b.lat}/"
+      else
+        @url = "#{@api}/1,1/100,100/"
       q = {}
       for f in @model.fields when @kvm[f.name]()
         q[f.name] = @kvm[f.name]()

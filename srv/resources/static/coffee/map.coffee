@@ -3,7 +3,7 @@
 define ["model/utils", "utils"], (mu, u) ->
 
   # Default marker icon size
-  iconSize = new OpenLayers.Size(50, 50)
+  iconSize = new OpenLayers.Size(40, 40)
 
   # Default map zoom level
   zoomLevel = 14
@@ -44,6 +44,7 @@ define ["model/utils", "utils"], (mu, u) ->
   # as foo-icon.png and highlighted icons are named as foo-hl-icon.png.
   hlIconName = (filename) -> filename.replace("-icon", "-hl-icon")
 
+
   # Build readable address from reverse Nominatim JSON response
   buildReverseAddress = (res) ->
     if (res.error)
@@ -57,12 +58,14 @@ define ["model/utils", "utils"], (mu, u) ->
       else
         res.address
 
+
   # Build city field value (or null, if the city is unknown)
   buildReverseCity = (res) ->
     if (res.error)
       null
     else
       global.dictLabelCache.DealerCities[res.city] || null
+
 
   # Erase existing marker layer and install a new one of the same name
   reinstallMarkers = (osmap, layerName) ->
@@ -73,6 +76,7 @@ define ["model/utils", "utils"], (mu, u) ->
     osmap.addLayer(new_layer)
 
     return new_layer
+
 
   # Setup OpenLayers map
   #
@@ -217,32 +221,6 @@ define ["model/utils", "utils"], (mu, u) ->
       table = view.find("table##{table_field}")
 
       hl_fields = mu.modelField(modelName, fieldName).meta["highlightIdFields"]
-      # Redraw partner blips on map when dragging or zooming
-      osmap.events.register("moveend", osmap, (e) ->
-        # Calculate new bounding box
-        bounds = osmap.getExtent()
-        pts = bounds.toArray()
-        a = new OpenLayers.LonLat(pts[0], pts[1])
-        b = new OpenLayers.LonLat(pts[2], pts[3])
-        a.transform(osmProj, wsgProj)
-        b.transform(osmProj, wsgProj)
-        $.getJSON("/geo/partners/#{a.lon},#{a.lat}/#{b.lon},#{b.lat}/", (pres) ->
-          # Use cache from table beneath a map for partner metadata
-          partnerBlips(
-            osmap, pres, table.data("cache"),
-            parentView,
-            # Fetch current values of fields listed in highlightIdFields
-            _.map(hl_fields,
-              (f) -> u.findVM(parentView)[f]()),
-            partner_id_field, partner_field, partner_addr_field, partner_coords_field)
-        )
-      )
-      # This is a workaround to make sure table cache is loaded prior to
-      # partner markers rendering.
-      _.delay(
-        () ->
-         osmap.setCenter(osmap.getCenter(), beyondTheClouds, false, true)
-        500)
 
     $(el).data("osmap", osmap)
 
@@ -272,98 +250,7 @@ define ["model/utils", "utils"], (mu, u) ->
       new OpenLayers.Marker(coords, ico))
 
 
-  # Render list of partner markers on the map
-  #
-  # Arguments:
-  #
-  # - osmap: map to render on
-  #
-  # - partners: a list of [id, lon, lat, isDealer, isMobile] 5-tuples
-  #
-  # - tableCache: a hash of all partners, where key is id and value is
-  #               an object with fields "name", "addrDeFacto", "phone1",
-  #               "workingTime", "isMobile"
-  #
-  # - highlightIds: list of "partner:N" strings for highlighted partners
-  #
-  # - parentView: parentView for contractor
-  #
-  # - partnerField: clicking a button in marker popup will set this
-  #                 value in given VM to partner name
-  #
-  # - partnerAddrField: same as partnerField, but for partner address
-  # - partnerCoordsField: ... but for partner coordinates
-  # - partnerIdField: ... but for partner id
-  partnerBlips = (osmap,
-                  partners, tableCache,
-                  parentView,
-                  highlightIds,
-                  partnerIdField, partnerField,
-                  partnerAddrField, partnerCoordsField) ->
-    markers = do (osmap) -> reinstallMarkers(osmap, "Partners")
-    tpl = $("#partner-popup-template").html()
-
-    for blip in partners
-      do (blip) ->
-        id = blip[0]
-        # cache ids are numeric, highlightIds are strings (being values
-        # of knockVM)
-        hl = _.include(highlightIds, "partner:" + id.toString())
-
-        partner_cache = tableCache[id]
-        is_dealer = blip[3]
-        is_mobile = blip[4]
-
-        # Skip partners which are not in table or highlighted
-        return if not (partner_cache or hl)
-
-        coords = new OpenLayers.LonLat(blip[1], blip[2])
-
-        # Readable coords in WSG
-        string_coords = shortStringFromLonlat coords
-        # Coords to use for map blip
-        coords = coords.transform(wsgProj, osmProj)
-
-        if is_mobile
-          ico = towIcon
-        else
-          if is_dealer
-            ico = dealerIcon
-          else
-            ico = partnerIcon
-
-        if (hl)
-          ico = hlIconName(ico)
-
-        mrk = new OpenLayers.Marker(
-            coords, new OpenLayers.Icon(ico, iconSize))
-
-        # Show partner info from table cache when clicking marker
-        if (partner_cache)
-          mrk.events.register("click", mrk, (e) ->
-
-            # Let popup know where to put new partner data
-            extra_ctx =
-              numid: id
-              mapId: osmap.div.id
-              parentView: parentView
-              partnerField: partnerField
-              partnerIdField: partnerIdField
-              partnerAddrField: partnerAddrField
-              partnerCoordsField: partnerCoordsField
-              coords: string_coords
-            ctx =_.extend(partner_cache, extra_ctx)
-
-            popup = new OpenLayers.Popup.FramedCloud(
-              partner_cache.id, mrk.lonlat,
-              new OpenLayers.Size(200, 200),
-              Mustache.render(tpl, ctx),
-              null, true)
-
-            osmap.addPopup(popup))
-        markers.addMarker(mrk)
-
-  # Center an OSM on a city. City is a label of DealerCities
+  # Center an OSM on a city. City is a value from DealerCities
   # dictionary.
   centerMapOnCity = (osmap, city) ->
     if city? && city.length > 0
@@ -372,25 +259,6 @@ define ["model/utils", "utils"], (mu, u) ->
         if res.length > 0
           lonlat = new OpenLayers.LonLat res[0].lon, res[0].lat
           osmap.setCenter lonlat.transform(wsgProj, osmProj), zoomLevel
-
-
-  # Splice partner data into specified fields of a reference
-  #
-  # TODO We have to store all data in the associated HTML because
-  # partner table is in a different view and thus is inaccessible.
-  pickPartnerBlip = (
-     referenceView, mapId,
-     partnerId, partnerName, partnerAddr, partnerCoords,
-     partnerIdField, partnerField, partnerAddrField, partnerCoordsField) ->
-
-    $("#" + mapId).data("osmap").events.triggerEvent("moveend")
-    vm = u.findVM(referenceView)
-    vm[partnerIdField]("partner:" + partnerId)
-    vm[partnerField](partnerName)
-    vm[partnerAddrField](partnerAddr)
-    vm[partnerCoordsField](partnerCoords)
-    trs = $("[partnerid='partner:#{partnerId}']")
-    u.highlightDataTableRow trs
 
 
   # Read "32.54,56.21" (the way coordinates are stored in model fields)
@@ -530,7 +398,7 @@ define ["model/utils", "utils"], (mu, u) ->
         else
           # Otherwise, just center on the city, not placing a blip
           if city_field?
-            city_meta = u.splitFieldInView city_field, viewName         
+            city_meta = u.splitFieldInView city_field, viewName
             city = u.findVM(city_meta.view)[city_meta.field]()
             centerMapOnCity oMap, city
 
@@ -558,8 +426,6 @@ define ["model/utils", "utils"], (mu, u) ->
   , initOSM               : initOSM
   , currentBlip           : currentBlip
   , extraBlip             : extraBlip
-  , partnerBlips          : partnerBlips
-  , pickPartnerBlip       : pickPartnerBlip
   , lonlatFromShortString : lonlatFromShortString
   , shortStringFromLonlat : shortStringFromLonlat
   , geoPicker             : geoPicker

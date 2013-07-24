@@ -2,6 +2,7 @@ define ["model/utils"], (mu) ->
   # jquery -> html(as string) conversion, with selected element
   jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
 
+  # Synchronous JSON request
   $.bgetJSON = (url, cb) ->
     $.ajax
       type     : 'GET'
@@ -226,6 +227,18 @@ define ["model/utils"], (mu) ->
   getWeather: (city, cb) ->
     url = "/#{city}"
     $.getJSON "/weather/#{city}", (data) -> cb(data)
+
+  # Extract value of the first object from "dict-objects"-field JSON
+  # contents with matching "key". If no such entries found, return
+  # value of the first object in the field.
+  keyedJsonValue: (json, key) ->
+    if json.length > 0
+      chunks = JSON.parse json
+      o = _.find chunks, (o) -> o.key == key
+      if o?
+        o.value
+      else
+        chunks[0].value
 
   focusRef: (kvm) ->
     e = $('#' + kvm['view'])
