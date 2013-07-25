@@ -228,10 +228,7 @@ define ["model/utils"], (mu) ->
     $.getJSON "/weather/#{city}", (data) -> cb(data)
 
   focusRef: (kvm) ->
-    e = $('#' + kvm['view'])
-    e.parent().prev()[0].scrollIntoView()
-    e.find('input')[0].focus()
-    e.find('input').parents(".accordion-body").first().collapse('show')
+    mu.focusReference kvm
 
   bindRemove: bindRemove
 

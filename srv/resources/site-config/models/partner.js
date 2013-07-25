@@ -219,9 +219,7 @@
       "meta": {
         "reference-widget": "partner_services",
         "model": "partner_service",
-        "add-reference-field-label": "Услуги",
-        "add-reference-fn": "showPartnServRefTarget",
-        "add-reference-btn-label": "Добавить услугу"
+        "reference-label": "Добавить услугу"
       },
       "type": "reference",
       "groupName": null,

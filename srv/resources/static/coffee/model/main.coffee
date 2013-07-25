@@ -309,28 +309,9 @@ define [ "model/render"
       do (f) ->
         if f.meta?.model
           # define add-reference-button ko.bindingHandlers.bindClick function
-          knockVM[f.meta['add-reference-fn']] = ->
-            fieldName = f.name
-            modelName = f.meta.model
-
-            field = "#{fieldName}Reference" unless /Reference$/.test(fieldName)
-            thisId = knockVM._meta.model.name + ":" + knockVM.id()
-
-            ref =
-              modelName: modelName
-              args: {"parentId": thisId}
-
-            buildNewModel ref.modelName, ref.args, {},
-              (model, refKVM) ->
-                newVal = knockVM[field]().concat refKVM
-                knockVM[field](newVal)
-
-                # focus reference
-                lastRefKVM = _.last knockVM[field]()
-                e = $('#' + lastRefKVM['view'])
-                e.parent().prev()[0].scrollIntoView()
-                e.find('input')[0].focus()
-                e.find('input').parents(".accordion-body").first().collapse('show')
+          knockVM["add#{f.name}"] = ->
+            addRef knockVM, f.name, {modelName: f.meta.model}, (knockVM) ->
+              focusRef(knockVM)
 
   renderRefs = (knockVM, f, tpls, options) ->
     refsForest = getrForest(knockVM, f.name)
@@ -343,6 +324,22 @@ define [ "model/render"
         slotsee: [refBook.refView + "-link"]
       global.viewsWare[refBook.refView] = {}
       global.viewsWare[refBook.refView].depViews = v
+
+  addRef = (knockVM, field, ref, cb) ->
+    field = "#{field}Reference" unless /Reference$/.test(field)
+    thisId = knockVM._meta.model.name + ":" + knockVM.id()
+    ref.args = _.extend({"parentId":thisId}, ref.args)
+    buildNewModel ref.modelName, ref.args, ref.options or {},
+      (model, refKVM) ->
+        newVal = knockVM[field]().concat refKVM
+        knockVM[field](newVal)
+        cb(_.last knockVM[field]()) if _.isFunction(cb)
+
+  focusRef = (kvm) ->
+    e = $('#' + kvm['view'])
+    e.parent().prev()[0].scrollIntoView()
+    e.find('input')[0].focus()
+    e.find('input').parents(".accordion-body").first().collapse('show')
 
 
   getrForest = (kvm, fld) ->
@@ -362,4 +359,6 @@ define [ "model/render"
   { setup         : mainSetup
   , modelSetup    : modelSetup
   , buildNewModel : buildNewModel
+  , addRef        : addRef
+  , focusRef      : focusRef
   }
