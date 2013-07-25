@@ -1,0 +1,59 @@
+<script type="text/partial" id="dict-many" class="partial">
+      <div class="control-group"
+           {{# meta.required }}
+             data-bind="css: { error: {{name}}Not }"
+           {{/ meta.required }}
+           {{# meta.regexp   }}
+             data-bind="css: { warning: {{name}}Regexp }"
+           {{/ meta.regexp   }}
+           >
+        <div class="controls">
+          <div class="input-append">
+            <!--
+
+            Note the difference between readonly attribute and
+            disabled class from Bootstrap.
+
+            -->
+
+            <input type="text"
+                   placeholder='{{ meta.label }}'
+                   class="pane-span
+                          focusable
+                          {{# meta.addClass }}{{meta.addClass}}{{/ meta.addClass }}
+                          {{# readonly }}disabled{{/ readonly }}"
+                   {{# readonly }}readonly{{/ readonly }}
+                   autocomplete="off"
+                   name="{{ name }}"
+                   data-bind="value: {{ name }}Many,
+                              valueUpdate: 'change',
+                              disabled: {{ name }}Disabled,
+                              pickerDisable: {{ name }}Disabled,
+                              bindDict: '{{ name }}'"
+
+
+                   />
+            <span class="add-on"
+                  data-bind="click: {{ name }}Typeahead.drawAll">
+              <i class="icon icon-chevron-down"
+              />
+            </span>
+          </div>
+          <!-- ko if: {{ name }}Locals().length -->
+          <ul data-bind="foreach: {{ name }}Locals">
+            <li>
+              <span data-bind="text: $data.label" />
+              <a href="" data-bind="click: $parent.{{ name }}Remove" >
+                x
+              </a>
+            </li>
+          </ul>
+          <!-- /ko -->
+          {{# meta.targetCategory }}
+          <ul data-depends="{{ name }}"
+              data-source="{{ meta.targetCategory }}"
+              data-provide="checklist" />
+          {{/ meta.targetCategory }}
+        </div>
+      </div>
+</script>
