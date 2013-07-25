@@ -28,26 +28,7 @@ define [ "utils"
             else row.push fieldValue
         row
 
-    showProgramModelComponents = ->
-      $("#program-model-components").removeClass("hide")
-      $("#program-add-programPermissions-container").html(
-        Mustache.render $("#add-ref-button-template").html(),
-                fn:    "addNewPermissionToProgram();"
-                label: "Добавить ограничение на поле контракта"
-      )
-
-      afterAddSrv = (parent) -> (k) -> utils.focusRef k
-
-      this.addNewPermissionToProgram = (name) ->
-        p = global.viewsWare["dictionaries-view"].knockVM
-        mu.addReference p,
-                     'programPermissions',
-                     {modelName: 'programPermissions'},
-                     afterAddSrv(p)
-
-
     screenSetup = (viewName, args) ->
-
       dictName = args.dict
 
       if dictName
@@ -80,9 +61,6 @@ define [ "utils"
         $("#add-new-item-btn").on 'click', ->
           location.hash="#dictionaries/#{dictName}"
           location.reload true
-
-        if (dictName is 'program')
-          do showProgramModelComponents
 
     constructor: screenSetup
     template: tpl

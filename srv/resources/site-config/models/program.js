@@ -83,7 +83,11 @@
     },
     {
       "meta": {
-        "label": "Ограничение прав"
+        "label": "Ограничение прав",
+        "model": "programPermissions",
+        "add-reference-field-label": "Поля контракта",
+        "add-reference-fn": "showProgPermRefTarget",
+        "add-reference-btn-label": "Добавить ограничение на поле контракта"
       },
       "type": "reference",
       "groupName": null,

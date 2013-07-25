@@ -282,6 +282,8 @@ define [ "model/render"
     tpls = render.getTemplates("reference-template")
     depViews = render.kvm(elName, knockVM,  options)
 
+    setupRefAddButton knockVM
+
     # Bind the model to Knockout UI
     ko.applyBindings(knockVM, el(elName)) if el(elName)
     # Bind group subforms (note that refs are bound
@@ -301,6 +303,34 @@ define [ "model/render"
           renderRefs(knockVM, f, tpls, options)
         renderRefs(knockVM, f, tpls, options)
     return depViews
+
+  setupRefAddButton = (knockVM) ->
+    for f in knockVM._meta.model.fields when f.type == 'reference'
+      do (f) ->
+        if f.meta?.model
+          # define add-reference-button ko.bindingHandlers.bindClick function
+          knockVM[f.meta['add-reference-fn']] = ->
+            fieldName = f.name
+            modelName = f.meta.model
+
+            field = "#{fieldName}Reference" unless /Reference$/.test(fieldName)
+            thisId = knockVM._meta.model.name + ":" + knockVM.id()
+
+            ref =
+              modelName: modelName
+              args: {"parentId": thisId}
+
+            buildNewModel ref.modelName, ref.args, {},
+              (model, refKVM) ->
+                newVal = knockVM[field]().concat refKVM
+                knockVM[field](newVal)
+
+                # focus reference
+                lastRefKVM = _.last knockVM[field]()
+                e = $('#' + lastRefKVM['view'])
+                e.parent().prev()[0].scrollIntoView()
+                e.find('input')[0].focus()
+                e.find('input').parents(".accordion-body").first().collapse('show')
 
   renderRefs = (knockVM, f, tpls, options) ->
     refsForest = getrForest(knockVM, f.name)

@@ -29,13 +29,6 @@ define [ "utils"
       modelName = "partner"
       kvm = modelSetup modelName, viewName, args
 
-      utils.build_global_fn 'addNewServiceToPartner', ['screens/partners']
-      $("#partner-add-service-container").html(
-        Mustache.render $("#add-ref-button-template").html(),
-                fn:    "addNewServiceToPartner();"
-                label: "Добавить услугу"
-      )
-
       # I need this object because I can't clean foreach binding, once
       # it's created, to use this proxy object to keep current partner's
       # allerts
@@ -75,16 +68,6 @@ define [ "utils"
 
       subscribeTarifStuff(modelName)
 
-    addNewServiceToPartner = (name) ->
-      p = global.viewsWare["partner-view"].knockVM
-      mu.addReference p,
-                   'services',
-                   {modelName: 'partner_service'},
-                   afterAddSrv(p)
-
-    afterAddSrv = (parent) -> (k) ->
-      utils.focusRef k
-
     subscribeTarifStuff = (modelName) ->
       k = global.viewsWare["#{modelName}-view"].knockVM
       k['servicesReference'].subscribe ->
@@ -111,5 +94,4 @@ define [ "utils"
     { constructor: screenSetup
     , destructor : screenRelease
     , template: tpl
-    , addNewServiceToPartner: addNewServiceToPartner
     }
