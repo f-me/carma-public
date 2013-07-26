@@ -69,7 +69,8 @@
         "picker": "mapPicker",
         "cityField": "city",
         "targetAddrs": "addrs",
-        "targetCoords": "coords"
+        "targetCoords": "coords",
+        "currentBlipType": "partner"
       },
       "type": "coords",
       "groupName": null,
