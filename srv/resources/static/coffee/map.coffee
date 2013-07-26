@@ -264,7 +264,7 @@ define ["model/utils", "utils"], (mu, u) ->
   # Read "32.54,56.21" (the way coordinates are stored in model fields)
   # into LonLat object
   lonlatFromShortString = (coords) ->
-    if coords.length > 0
+    if coords?.length > 0
       parts = coords.split(",")
       new OpenLayers.LonLat(parts[0], parts[1])
     else
