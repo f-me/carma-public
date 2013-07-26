@@ -240,6 +240,16 @@ define ["model/utils"], (mu) ->
       else
         chunks[0].value
 
+  # Set value of the first object from "dict-objects"-field JSON
+  # contents with matching "key", return new JSON string.
+  setKeyedJsonValue: (json, key, value) ->
+    if json.length > 0
+      chunks = JSON.parse json
+      o = _.find chunks, (o) -> o.key == key
+      if o?
+        o.value = value
+      JSON.stringify chunks
+
   # FIXME: remove this function definition
   # and correct module dependencies
   focusRef: mu.focusReference

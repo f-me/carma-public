@@ -143,6 +143,7 @@ define ["model/utils", "utils"], (mu, u) ->
 
     coord_field = mu.modelField(modelName, fieldName).meta["targetCoords"]
     addr_field = mu.modelField(modelName, fieldName).meta["targetAddr"]
+    addrs_field = mu.modelField(modelName, fieldName).meta["targetAddrs"]
     city_field = mu.modelField(modelName, fieldName).meta["cityField"]
     current_blip_type =
       mu.modelField(modelName, fieldName).meta["currentBlipType"] or "default"
@@ -171,8 +172,11 @@ define ["model/utils", "utils"], (mu, u) ->
 
     # Setup handler to update target address and coordinates if the
     # map is clickable
-    if addr_field?
-      addr_meta = u.splitFieldInView(addr_field, parentView)
+    if addr_field? or addrs_field?
+      if addr_field?
+        addr_meta = u.splitFieldInView(addr_field, parentView)
+      if addrs_field?
+        addrs_meta = u.splitFieldInView(addrs_field, parentView)
 
       osmap.events.register("click", osmap, (e) ->
         coords = osmap.getLonLatFromViewPortPx(e.xy)
@@ -186,7 +190,14 @@ define ["model/utils", "utils"], (mu, u) ->
         $.getJSON(geoRevQuery(coords.lon, coords.lat),
         (res) ->
           addr = buildReverseAddress(res)
-          u.findVM(addr_meta.view)[addr_meta.field](addr)
+          if addr_meta?
+            u.findVM(addr_meta.view)[addr_meta.field](addr)
+
+          # Write address to first "fact" address of partner
+          if addrs_meta?
+            json = u.findVM(addrs_meta.view)[addrs_meta.field]()
+            u.findVM(addrs_meta.view)[addrs_meta.field](
+              setKeyedJsonValue json, "fact", addr)
 
           if city_field?
             city = buildReverseCity(res)
@@ -204,23 +215,6 @@ define ["model/utils", "utils"], (mu, u) ->
       for c in more_coords
         if c?
           extraBlip osmap, (lonlatFromShortString c).transform(wsgProj, osmProj), "Extras"
-
-    ## Bind map to partner list
-
-    partner_field = mu.modelField(modelName, fieldName).meta["targetPartner"]
-
-    if partner_field?
-      partner_id_field =
-        mu.modelField(modelName, fieldName).meta["targetPartnerId"]
-      partner_addr_field =
-        mu.modelField(modelName, fieldName).meta["targetPartnerAddr"]
-      partner_coords_field =
-        mu.modelField(modelName, fieldName).meta["targetPartnerCoords"]
-
-      table_field = mu.modelField(modelName, fieldName).meta["partnerTable"]
-      table = view.find("table##{table_field}")
-
-      hl_fields = mu.modelField(modelName, fieldName).meta["highlightIdFields"]
 
     $(el).data("osmap", osmap)
 
@@ -361,11 +355,13 @@ define ["model/utils", "utils"], (mu, u) ->
           u.findVM(viewName)[addr_field](addr)
       )
 
-  # Coordinates picker which uses a modal window to render the map in.
+  # Coordinates picker for partner screen which uses a modal window to
+  # render the map in.
   #
-  # Fills a field with coordinates chosen on the map.
+  # Fills a field with coordinates chosen on the map, writes spot
+  # address to first "fact" address of `addrs` JSON field.
   #
-  # Recognizes the same field metas as initOSM.
+  # Recognizes the same field metas as initOSM and `targetAddrs`.
   mapPicker = (fieldName, el) ->
     coords =
       lonlatFromShortString(

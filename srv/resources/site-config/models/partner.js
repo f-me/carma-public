@@ -62,6 +62,20 @@
     },
     {
       "meta": {
+        "widget": "picker",
+        "label": "Координаты фактического адреса",
+        "required": true,
+        "infoText": "coords",
+        "picker": "partnerCoordsPicker",
+        "cityField": "city",
+        "targetAddrs": "addrs",
+      },
+      "type": "coords",
+      "groupName": null,
+      "name": "coords"
+    },
+    {
+      "meta": {
          "label": "Телефоны",
          "jsonSchema": "dict-objects",
          "dictionaryName": "PhoneTypes",
