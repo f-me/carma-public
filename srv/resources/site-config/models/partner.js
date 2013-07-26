@@ -68,7 +68,8 @@
         "infoText": "coords",
         "picker": "mapPicker",
         "cityField": "city",
-        "targetAddrs": "addrs"
+        "targetAddrs": "addrs",
+        "targetCoords": "coords"
       },
       "type": "coords",
       "groupName": null,
