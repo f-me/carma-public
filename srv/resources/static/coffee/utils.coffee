@@ -227,6 +227,8 @@ define ["model/utils"], (mu) ->
     url = "/#{city}"
     $.getJSON "/weather/#{city}", (data) -> cb(data)
 
+  # FIXME: remove this function definition
+  # and correct module dependencies
   focusRef: mu.focusReference
 
   bindRemove: bindRemove

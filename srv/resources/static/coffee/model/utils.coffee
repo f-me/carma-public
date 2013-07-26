@@ -7,8 +7,12 @@ define ["model/main", "render/screen"], (main, render) ->
 
   window.saveInstance = saveInstance
 
+  # FIXME: remove this function definition
+  # and correct module dependencies
   addReference: main.addRef
 
+  # FIXME: remove this function definition
+  # and correct module dependencies
   focusReference: main.focusRef
 
   removeReference: (knockVM, field, ref) ->
