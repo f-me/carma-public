@@ -121,6 +121,13 @@ define [ "model/render"
               ks = ("#{k._meta.model.name}:#{k.id()}" for k in v).join(',')
               kvm[f.name](ks)
 
+        # setup reference add button
+        if f.meta?.model
+          # define add-reference-button ko.bindingHandlers.bindClick function
+          kvm["add#{f.name}"] = ->
+            addRef kvm, f.name, {modelName: f.meta.model}, (kvm) ->
+              focusRef(kvm)
+
     kvm["_meta"] = { model: model, cid: _.uniqueId("#{model.name}_") }
 
     kvm['id'] = ko.observable()
@@ -282,8 +289,6 @@ define [ "model/render"
     tpls = render.getTemplates("reference-template")
     depViews = render.kvm(elName, knockVM,  options)
 
-    setupRefAddButton knockVM
-
     # Bind the model to Knockout UI
     ko.applyBindings(knockVM, el(elName)) if el(elName)
     # Bind group subforms (note that refs are bound
@@ -303,15 +308,6 @@ define [ "model/render"
           renderRefs(knockVM, f, tpls, options)
         renderRefs(knockVM, f, tpls, options)
     return depViews
-
-  setupRefAddButton = (knockVM) ->
-    for f in knockVM._meta.model.fields when f.type == 'reference'
-      do (f) ->
-        if f.meta?.model
-          # define add-reference-button ko.bindingHandlers.bindClick function
-          knockVM["add#{f.name}"] = ->
-            addRef knockVM, f.name, {modelName: f.meta.model}, (knockVM) ->
-              focusRef(knockVM)
 
   renderRefs = (knockVM, f, tpls, options) ->
     refsForest = getrForest(knockVM, f.name)

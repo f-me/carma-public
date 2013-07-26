@@ -227,8 +227,7 @@ define ["model/utils"], (mu) ->
     url = "/#{city}"
     $.getJSON "/weather/#{city}", (data) -> cb(data)
 
-  focusRef: (kvm) ->
-    mu.focusReference kvm
+  focusRef: mu.focusReference
 
   bindRemove: bindRemove
 

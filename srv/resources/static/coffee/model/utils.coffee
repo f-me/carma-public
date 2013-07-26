@@ -7,11 +7,9 @@ define ["model/main", "render/screen"], (main, render) ->
 
   window.saveInstance = saveInstance
 
-  addReference: (knockVM, field, ref, cb) ->
-    main.addRef knockVM, field, ref, cb
+  addReference: main.addRef
 
-  focusReference: (knockVM) ->
-    main.focusRef knockVM
+  focusReference: main.focusRef
 
   removeReference: (knockVM, field, ref) ->
     field = field + 'Reference' unless /Reference$/.test(field)
