@@ -231,7 +231,7 @@ define ["model/utils"], (mu) ->
   # Extract value of the first object from "dict-objects"-field JSON
   # contents with matching "key". If no such entries found, return
   # value of the first object in the field.
-  keyedJsonValue: (json, key) ->
+  getKeyedJsonValue: (json, key) ->
     if json.length > 0
       chunks = JSON.parse json
       o = _.find chunks, (o) -> o.key == key
