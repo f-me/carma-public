@@ -159,6 +159,7 @@ ON  p.id = cast(split_part(s.parentid, ':', 2) as integer)
 AND s.parentid is not null
 AND s.parentid != ''
 WHERE coords && ST_SetSRID(ST_MakeBox2D(ST_Point(?, ?), ST_Point(?, ?)), 4326)
+AND   p.isActive = 't'
 AND   (? OR p.city in ?)
 AND   (? OR p.makes && string_to_array(?, ','))
 AND   (? OR s.servicename in ?)
