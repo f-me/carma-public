@@ -232,7 +232,7 @@ define ["model/utils"], (mu) ->
   # contents with matching "key". If no such entries found, return
   # value of the first object in the field.
   getKeyedJsonValue: (json, key) ->
-    if json.length > 0
+    if json?.length > 0
       chunks = JSON.parse json
       o = _.find chunks, (o) -> o.key == key
       if o?
@@ -241,13 +241,19 @@ define ["model/utils"], (mu) ->
         chunks[0].value
 
   # Set value of the first object from "dict-objects"-field JSON
-  # contents with matching "key", return new JSON string.
+  # contents with matching "key" (create it if no object matches key),
+  # return new JSON string.
   setKeyedJsonValue: (json, key, value) ->
-    if json.length > 0
+    if json?.length > 0
       chunks = JSON.parse json
       o = _.find chunks, (o) -> o.key == key
       if o?
         o.value = value
+      else
+        o =
+          key: key
+          value: value      
+        chunks = [o]
       JSON.stringify chunks
 
   # FIXME: remove this function definition
