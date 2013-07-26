@@ -64,7 +64,12 @@
           <option value="priority3"> ПНГ </option>
         </select>
       </div>
-      <div id="search-result" class="row-fluid" style="overflow-y: auto;">
+      <div id="search-result" class="row-fluid" style="overflow-y:
+                                                       auto;">
+        <div data-bind="visible: searchProcessed().length == 0"
+             style="text-align: center">
+          <em>Не найдено партнёров, удовлетворяющих условиям поиска</em>
+        </div>
         <ol data-bind="foreach: searchProcessed">
           <li data-bind="css: {
                          'selected-partner': id == $parent.selectedPartner()
