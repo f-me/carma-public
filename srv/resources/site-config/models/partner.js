@@ -66,7 +66,7 @@
         "label": "Координаты фактического адреса",
         "required": true,
         "infoText": "coords",
-        "picker": "partnerCoordsPicker",
+        "picker": "mapPicker",
         "cityField": "city",
         "targetAddrs": "addrs"
       },
