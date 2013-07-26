@@ -133,15 +133,20 @@ define [ "utils"
       global.pubSub.pub subName(ctx.field, id), partner
 
   loadContext = (kvm, args) ->
-    return unless args?.model
-    return unless localStorage['partnersSearch']
-    ctx = JSON.parse localStorage['partnersSearch']
+    s = localStorage['partnersSearch']
+    ctx = JSON.parse s if s
+    console.log args.model
     switch args.model
       when "case"
+        return unless args?.model and s
         setupCase kvm, ctx
       when "call"
+        $("#case-info").css 'visibility', 'hidden'
+        return unless args?.model and s
         kvm['city'](ctx.city)
         kvm['make'](ctx.carMake)
+      else
+        $("#case-info").css 'visibility', 'hidden'
 
     # cleanup localstore
     localStorage.removeItem 'partnersSearch'
@@ -223,14 +228,14 @@ define [ "utils"
 
     getFactAddress = (addrs) ->
       utils.keyedJsonValue addrs, "fact"
-      
+
     getPhone = (phones) ->
       if kvm["isDealer"]()
         key = "serv"
       else
         key = "disp"
-      utils.keyedJsonValue phones, key          
-          
+      utils.keyedJsonValue phones, key
+
     # Draw partners on map
     redrawPartners = (newPartners) ->
       partnerLayer = map.reinstallMarkers(osmap, "partners")
@@ -248,7 +253,7 @@ define [ "utils"
 
           if p.id == kvm["selectedPartner"]()
             ico = map.hlIconName(ico)
-            
+
           coords = new OpenLayers.LonLat p.st_x, p.st_y
           # Add blip to map
           mark = new OpenLayers.Marker(
@@ -265,7 +270,7 @@ define [ "utils"
             popup = new OpenLayers.Popup.FramedCloud(
               p.id, mark.lonlat,
               new OpenLayers.Size(200, 200),
-              Mustache.render(partnerPopupTpl, p),              
+              Mustache.render(partnerPopupTpl, p),
               null, true)
             osmap.addPopup popup
 
@@ -277,7 +282,7 @@ define [ "utils"
             # Otherwise just delete the button
             else
               $(popup.div).find(".btn-div").remove()
-          
+
           partnerLayer.addMarker(mark)
 
     # Redo the search when dragging or zooming
@@ -357,7 +362,7 @@ define [ "utils"
 
     # Force first map data rendering
     osmap.events.triggerEvent("moveend")
-    
+
     $("#map").data("osmap", osmap)
 
   # deep check that anything in @val@ has @q@
@@ -422,7 +427,7 @@ define [ "utils"
     $(window).resize resizeResults
 
     setupMap kvm
-    
+
     kvm['caseInfo'] ?= ""
     ko.applyBindings kvm, $('#partnersSearch-content')[0]
     $("#case-info").popover { template: $("#custom-popover").html() }
