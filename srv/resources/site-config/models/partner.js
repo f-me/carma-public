@@ -68,7 +68,7 @@
         "infoText": "coords",
         "picker": "partnerCoordsPicker",
         "cityField": "city",
-        "targetAddrs": "addrs",
+        "targetAddrs": "addrs"
       },
       "type": "coords",
       "groupName": null,
