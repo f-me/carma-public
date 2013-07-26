@@ -104,7 +104,7 @@ define [ "utils"
     kvm['city'](kaseKVM.city())
     kvm['make'](kaseKVM.car_make())
     kvm['services'](srvName)
-    unless ctx['field'].split('_')[0] != 'contractor'
+    unless ctx['field'].split('_')[0] == 'contractor'
       # then it's dealer
       kvm['isDealer'](true)
       kvm['isDealerDisabled'](true)
