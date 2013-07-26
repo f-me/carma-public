@@ -240,11 +240,9 @@ define ["model/utils"], (mu) ->
       else
         chunks[0].value
 
-  focusRef: (kvm) ->
-    e = $('#' + kvm['view'])
-    e.parent().prev()[0].scrollIntoView()
-    e.find('input')[0].focus()
-    e.find('input').parents(".accordion-body").first().collapse('show')
+  # FIXME: remove this function definition
+  # and correct module dependencies
+  focusRef: mu.focusReference
 
   bindRemove: bindRemove
 

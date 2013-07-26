@@ -132,7 +132,9 @@
     },
     {
       "meta": {
-        "reference-widget": "partner_services"
+        "reference-widget": "partner_services",
+        "model": "partner_service",
+        "reference-label": "Добавить услугу"
       },
       "type": "reference",
       "groupName": null,

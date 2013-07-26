@@ -846,10 +846,28 @@
     <script type="text/template"
             class="field-template"
             id="reference-field-template">
-      <div class="controls">
-        <span class="accordion"
-              id="{{ modelName }}-{{ cid }}-{{ name }}-references" />
-      </div>
+        <div class="control-group">
+
+          <div class="control-label">
+            <label></label>
+          </div>
+
+          <div class="controls">
+            <span class="accordion"
+                  id="{{ modelName }}-{{ cid }}-{{ name }}-references" />
+          </div>
+
+          {{# meta.model}}
+          <div id="add-reference-button" class="controls">
+            <button class="dropdown-toggle btn btn-action"
+                    data-bind="bindClick: add{{ name }}"
+                    type="button">
+              <i class="icon icon-plus"></i>&nbsp;{{ meta.reference-label }}
+            </button>
+          </div>
+          {{/ meta.model}}
+
+        </div>
     </script>
 
     <!-- Container field template for attachment reference list, with

@@ -134,6 +134,13 @@ define [ "model/render"
               ks = ("#{k._meta.model.name}:#{k.id()}" for k in v).join(',')
               kvm[f.name](ks)
 
+        # setup reference add button
+        if f.meta?.model
+          # define add-reference-button ko.bindingHandlers.bindClick function
+          kvm["add#{f.name}"] = ->
+            addRef kvm, f.name, {modelName: f.meta.model}, (kvm) ->
+              focusRef(kvm)
+
     kvm["maybeId"] = ko.computed -> kvm['id']() or "—"
 
     # disable dixi filed for model
@@ -325,6 +332,22 @@ define [ "model/render"
       global.viewsWare[refBook.refView] = {}
       global.viewsWare[refBook.refView].depViews = v
 
+  addRef = (knockVM, field, ref, cb) ->
+    field = "#{field}Reference" unless /Reference$/.test(field)
+    thisId = knockVM._meta.model.name + ":" + knockVM.id()
+    ref.args = _.extend({"parentId":thisId}, ref.args)
+    buildNewModel ref.modelName, ref.args, ref.options or {},
+      (model, refKVM) ->
+        newVal = knockVM[field]().concat refKVM
+        knockVM[field](newVal)
+        cb(_.last knockVM[field]()) if _.isFunction(cb)
+
+  focusRef = (kvm) ->
+    e = $('#' + kvm['view'])
+    e.parent().prev()[0].scrollIntoView()
+    e.find('input')[0].focus()
+    e.find('input').parents(".accordion-body").first().collapse('show')
+
 
   getrForest = (kvm, fld) ->
     modelName = kvm._meta.model.name
@@ -344,4 +367,6 @@ define [ "model/render"
   , modelSetup    : modelSetup
   , buildNewModel : buildNewModel
   , buildKVM      : buildKVM
+  , addRef        : addRef
+  , focusRef      : focusRef
   }
