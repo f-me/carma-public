@@ -3,7 +3,8 @@ define [ "utils"
        , "model/main"
        , "sync/dipq"
        , "text!tpl/screens/partnersSearch.html"
-       ], (utils, map, m, sync, tpl) ->
+       , "text!tpl/partials/partnersSearch.html"
+       ], (utils, map, m, sync, tpl, partials) ->
 
   storeKey = 'partnersSearch'
   subName = (fld, model, id) ->
@@ -19,7 +20,7 @@ define [ "utils"
     title: "Экран поиска партнеров"
     fields: [
       { name: "search"
-      , meta: { label: "Поиск" }
+      , meta: { label: "Поиск", nosearch: true }
       },
       { name: "city"
       , type: "dictionary-many"
@@ -79,10 +80,8 @@ define [ "utils"
   partialize = (ps) -> mkPartials(ps).join('')
 
   partnerPopupTpl = $("#partner-popup-template").html()
-  txt = $("#text-field-template").html()
-  md  = $("#dictionary-many-field-template").html()
+  md  = $(partials).html()
   cb  = $("#checkbox-field-template").html()
-  srch = Mustache.render txt, fh['search']
   city = Mustache.render md,  fh['city']
   make = Mustache.render md,  fh['make']
   srvs = Mustache.render md,  fh['services']
@@ -105,7 +104,10 @@ define [ "utils"
     kvm['city'](kaseKVM.city())
     kvm['make'](kaseKVM.car_make())
     kvm['services'](srvName)
-    kvm['isDealer'](ctx['field'].split('_')[0] != 'contractor')
+    unless ctx['field'].split('_')[0] != 'contractor'
+      # then it's dealer
+      kvm['isDealer'](true)
+      kvm['isDealerDisabled'](true)
     kvm['caseInfo'] = """
     <ul class='unstyled'>
       <li>
@@ -358,6 +360,16 @@ define [ "utils"
     
     $("#map").data("osmap", osmap)
 
+  # deep check that anything in @val@ has @q@
+  checkMatch = (q, val) ->
+    if _.isArray val
+      _.any val, (a) -> checkMatch(q, a)
+    else if _.isObject val
+      _.any (checkMatch(q, v) for k, v of val), _.identity
+    else
+      !!~String(val).toLowerCase().indexOf(q.toLowerCase())
+  window.checkMatch = checkMatch
+
   constructor: (view, args) ->
     # remove padding so blank space after removing navbar can be used
     $('body').css('padding-top', '0px')
@@ -366,6 +378,7 @@ define [ "utils"
     kvm = m.buildKVM(model, "partnersSearch-content")
     q = new sync.DipQueue(kvm, model)
     kvm._meta.q = q
+    kvm['id'](1) # just to make disabled observables work
     kvm['choosenSort'] = ko.observableArray(["priority3"])
     kvm['searchResults'] = ko.observable()
     kvm['searchH'] = ko.computed ->
@@ -382,15 +395,21 @@ define [ "utils"
           priority3: v.priority3
       r
 
+    kvm["searchK"] = ko.computed(->kvm["search"]()).extend { throttle: 300 }
     kvm['searchProcessed'] = ko.computed ->
       sort = kvm['choosenSort']()[0]
       srvs = kvm['servicesLocals']()
+      flt  = kvm['searchK']()
       s = for k, v of kvm['searchH']()
         v.services = _.sortBy v.services, (v) -> [v.priority2, v.priority3]
         v
-      return s if _.isEmpty srvs
-      _.sortBy s, (v) ->
-        parseInt (_.find v.services, (s) -> s.name == srvs[0].value)?[sort]
+      unless _.isEmpty srvs
+        s = _.sortBy s, (v) ->
+          parseInt (_.find v.services, (s) -> s.name == srvs[0].value)?[sort]
+      if flt
+        s = _.filter s, (v) -> checkMatch flt, v
+      return s
+
     kvm['selectedPartner'] = ko.observable(NaN)
 
     kvm["cityPlaces"] = ko.observableArray []
@@ -419,7 +438,6 @@ define [ "utils"
   open: open
   template: tpl
   partials: partialize
-    search        : srch
     city          : city
     make          : make
     dealer        : dlr
