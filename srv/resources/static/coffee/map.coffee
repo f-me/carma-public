@@ -197,7 +197,7 @@ define ["model/utils", "utils"], (mu, u) ->
           if addrs_meta?
             json = u.findVM(addrs_meta.view)[addrs_meta.field]()
             u.findVM(addrs_meta.view)[addrs_meta.field](
-              setKeyedJsonValue json, "fact", addr)
+              u.setKeyedJsonValue json, "fact", addr)
 
           if city_field?
             city = buildReverseCity(res)
