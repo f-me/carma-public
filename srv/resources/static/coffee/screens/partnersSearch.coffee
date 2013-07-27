@@ -211,6 +211,20 @@ define [ "utils"
       29.4298095703125, 59.6337814331055,
       30.7591361999512, 60.2427024841309)
 
+  # Format addrs field for partner info template
+  getFactAddress = (addrs) ->
+    if addrs?.length > 0
+      utils.getKeyedJsonValue (JSON.parse addrs), "fact"
+
+  # Format phones field for partner info template
+  getPhone = (kvm, phones) ->
+    if phones?.length > 0        
+      if kvm["isDealer"]()
+        key = "serv"
+      else
+        key = "disp"
+      utils.getKeyedJsonValue (JSON.parse phones), key
+
   # Install OpenLayers map in #map element, setup repositioning hooks
   setupMap = (kvm) ->
     osmap = new OpenLayers.Map("map")
@@ -225,18 +239,6 @@ define [ "utils"
       osmap.addLayer backLayer
       backLayer.addMarker(
         new OpenLayers.Marker coords, ico)
-
-    getFactAddress = (addrs) ->
-      if addrs?.length > 0
-        utils.getKeyedJsonValue (JSON.parse addrs), "fact"
-
-    getPhone = (phones) ->
-      if phones?.length > 0        
-        if kvm["isDealer"]()
-          key = "serv"
-        else
-          key = "disp"
-        utils.getKeyedJsonValue (JSON.parse phones), key
 
     # Draw partners on map
     redrawPartners = (newPartners) ->
@@ -267,7 +269,7 @@ define [ "utils"
             # Format JSON fields
             extra_ctx =
               address: getFactAddress p.addrs
-              phone: getPhone p.phones
+              phone: getPhone kvm, p.phones
             ctx = _.extend p, extra_ctx
             popup = new OpenLayers.Popup.FramedCloud(
               p.id, mark.lonlat,
