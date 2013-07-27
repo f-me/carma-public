@@ -281,9 +281,6 @@ define [ "utils"
           (v) ->
             i = kvm[nP]().length || 0
             obj = key: v.value
-            # Prevent double writeback to JSON when field is empty
-            if not init
-              init = true
             kvm[nP].push objItem obj, i, true
 
         # Delete an object by its index
