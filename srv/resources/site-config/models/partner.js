@@ -62,6 +62,20 @@
     },
     {
       "meta": {
+         "label": "Телефоны",
+         "jsonSchema": "dict-objects",
+         "dictionaryName": "PhoneTypes",
+         "noteLabel": "Время работы",
+         "showNote": true,
+         "regexp": "phone",
+         "addLabel": "Добавить телефон и время работы",
+         "widget": "dict-objects"
+      },
+      "type": "json",
+      "name": "phones"
+    },
+    {
+      "meta": {
         "widget": "picker",
         "label": "Координаты фактического адреса",
         "required": true,
@@ -75,20 +89,6 @@
       "type": "coords",
       "groupName": null,
       "name": "coords"
-    },
-    {
-      "meta": {
-         "label": "Телефоны",
-         "jsonSchema": "dict-objects",
-         "dictionaryName": "PhoneTypes",
-         "noteLabel": "Время работы",
-         "showNote": true,
-         "regexp": "phone",
-         "addLabel": "Добавить телефон и время работы",
-         "widget": "dict-objects"
-      },
-      "type": "json",
-      "name": "phones"
     },
     {
       "meta": {
