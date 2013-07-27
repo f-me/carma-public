@@ -233,12 +233,11 @@ define ["model/utils"], (mu) ->
   # value of the first object in the field.
   getKeyedJsonValue: (json, key) ->
     if json?.length > 0
-      chunks = JSON.parse json
-      o = _.find chunks, (o) -> o.key == key
+      o = _.find json, (o) -> o.key == key
       if o?
         o.value
       else
-        chunks[0].value
+        json[0].value
 
   # Set value of the first object from "dict-objects"-field JSON
   # contents with matching "key" (create it if no object matches key),
@@ -247,16 +246,15 @@ define ["model/utils"], (mu) ->
     newObj =
       key: key
       value: value
-    if json?.length > 0
-      chunks = JSON.parse json
-      o = _.find chunks, (o) -> o.key == key
+    if json?
+      o = _.find json, (o) -> o.key == key
       if o?
         o.value = value
       else
-        chunks = chunks.concat [newObj]
+        json = json.concat [newObj]
     else
-      chunks = [newObj]
-    JSON.stringify chunks
+      json = [newObj]
+    json
 
   # FIXME: remove this function definition
   # and correct module dependencies

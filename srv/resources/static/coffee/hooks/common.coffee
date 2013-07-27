@@ -224,12 +224,12 @@ define [ "utils"
           if client?
             # Placeholder in field contents
             if kvm[n]()? && kvm[n]().length > 0
-              full = JSON.parse kvm[n]()
+              full = kvm[n]()
             else
               full = []
             full[i] = obj
             noloop = true
-            kvm[n] JSON.stringify full
+            kvm[n] full
             noloop = false
 
           # An observable bound to a field in a JSON object
@@ -238,10 +238,10 @@ define [ "utils"
             kob = ko.observable obj[sf]
 
             kob.subscribe (val) ->
-              full = JSON.parse kvm[n]()
+              full = kvm[n]()
               full[i][sf] = val
               noloop = true
-              kvm[n] JSON.stringify full
+              kvm[n] full
               noloop = false
             kob
 
@@ -272,9 +272,8 @@ define [ "utils"
           if not noloop
             kvm[nP].removeAll()
             if newValue?.length > 0
-              objs = JSON.parse newValue
-              for i in [0...objs.length]
-                kvm[nP].push objItem objs[i], i
+              for i in [0...newValue.length]
+                kvm[nP].push objItem newValue[i], i
 
         # Add new empty object provided an entry from the associated
         # dictionary
@@ -292,11 +291,10 @@ define [ "utils"
           (v) ->
             return unless confirm "Вы уверены, что хотите удалить запись #{v.value()}?"
             # Remove key by index from field JSON
-            newFull = JSON.parse kvm[n]()
+            newFull = kvm[n]()
             newFull.splice v.idx(), 1
             # Rebuild {n}Objects afterwards
-            init = false
-            kvm[n] JSON.stringify newFull
+            kvm[n] newFull
 
         kvm["#{n}KeyDictionary"] =
           ko.observable global.dictionaries[f.meta.dictionaryName].entries

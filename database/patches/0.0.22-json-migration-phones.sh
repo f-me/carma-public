@@ -11,7 +11,7 @@ curl -s "http://localhost:${CARMA_PORT}/all/partner" | \
 while read line
 do
     pid=$(echo ${line} | cut -d'|' -f1 | cut -d: -f2)
-    req="$(echo ${line} | cut -d'|' -f2 | jq -R '.' | jq -R '.')"
+    req="$(echo ${line} | cut -d'|' -f2 | jq -R '.')"
     echo curl -X PUT localhost:${CARMA_PORT}/_/partner/${pid} --data "'"'{"phones":'${req}'}'"'" | grep -v "\[\]" >> ${OUTPUT2}
 done < ${OUTPUT}
 
