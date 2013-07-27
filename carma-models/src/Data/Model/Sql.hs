@@ -1,65 +1,109 @@
 
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE OverlappingInstances #-}
+
 module Data.Model.Sql
-  (mkSelect
-  ,SqlEq(..)
+  (select
+  ,eq
   ) where
 
+import Text.Printf
+import Data.String (fromString)
+import Data.List (intersperse)
+
 import Database.PostgreSQL.Simple
+import Database.PostgreSQL.Simple.FromField hiding (Field)
+import Database.PostgreSQL.Simple.FromRow
 import Database.PostgreSQL.Simple.ToField
 import GHC.TypeLits
-import Text.Printf
 
 import Data.Model
 
 
-mkSelect
-  :: (SqlProjection proj, SqlPredicate pred)
-  => proj -> pred -> (String, PredicateArgs pred)
-mkSelect proj pred
-  = (projectionSql proj ++ " WHERE " ++ predicateSql pred
-    ,predicateArgs pred)
+select :: (FromRow (QRes q), SqlQ q) => q -> Connection -> IO [QRes q]
+select q c = uncurry (query c) $ mkSelect q
 
-class SqlProjection proj where
-  projectionSql :: proj -> String
+mkSelect :: SqlQ q => q -> (Query, QArg q)
+mkSelect q =
+  (fromString
+    $ printf "SELECT %s FROM %s"
+      (concat $ intersperse ", " $ queryProjection q)
+      (show $ queryFrom q)
+    ++ case queryPredicate q of
+      [] -> ""
+      ps -> " WHERE " ++ concat (intersperse " AND " ps)
+  ,queryArgs q
+  )
 
 
-instance
-    (Model model, FromRow (t1,t2)
-    ,SingI f1, SingI f2, SingI (TableName model))
-    => SqlProjection
-      (model -> Field t1 (FOpt f1 d1), model -> Field t2 (FOpt f2 d2))
+class (ToRow (QArg q), Model (QMod q)) => SqlQ q where
+  type QRes q
+  type QArg q
+  type QMod q
+  queryProjection :: q -> [String]
+  queryPredicate  :: q -> [String]
+  queryFrom       :: q -> String
+  queryArgs       :: q -> QArg q
+
+
+instance (Model m, SingI nm, FromField t)
+    => SqlQ (m -> Field t (FOpt nm desc))
   where
-    projectionSql (f1,f2)
-      = printf "SELECT %s, %s FROM %s"
-        (fieldName f1) (fieldName f2) (tableName f1)
+    type QRes (m -> Field t (FOpt nm desc)) = Only t
+    type QArg (m -> Field t (FOpt nm desc)) = ()
+    type QMod (m -> Field t (FOpt nm desc)) = m
+    queryProjection f = [fieldName f]
+    queryPredicate  f = []
+    queryFrom       _ = tableName (undefined :: m)
+    queryArgs       _ = ()
+
+instance (Model m, SingI nm, FromField t, SqlQ q, QMod q ~ m)
+    => SqlQ ((m -> Field t (FOpt nm desc)) :. q)
+  where
+    type QRes ((m -> Field t (FOpt nm desc)) :. q) = Only t :. QRes q
+    type QArg ((m -> Field t (FOpt nm desc)) :. q) = QArg q
+    type QMod ((m -> Field t (FOpt nm desc)) :. q) = m
+    queryProjection (f :. q) = fieldName f : queryProjection q
+    queryPredicate  (f :. q) = queryPredicate q
+    queryFrom       _        = tableName (undefined :: m)
+    queryArgs       (f :. q) = queryArgs q
+
+-- NB!
+instance FromRow a => FromRow (a :. ()) where
+  fromRow = fmap (:. ()) fromRow
 
 
-
-
-class ToRow (PredicateArgs pred) => SqlPredicate pred where
-  type PredicateArgs pred
-  predicateSql  :: pred -> String
-  predicateArgs :: pred -> PredicateArgs pred
-
-instance SqlPredicate () where
-  type PredicateArgs () = ()
-  predicateSql  _ = "true"
-  predicateArgs _ = ()
-
-instance (SqlPredicate p1, SqlPredicate p2) => SqlPredicate (p1, p2) where
-  type PredicateArgs (p1, p2) = PredicateArgs p1 :. PredicateArgs p2
-  predicateSql  (p1,p2) = predicateSql p1 ++ " AND " ++ predicateSql p2
-  predicateArgs (p1,p2) = predicateArgs p1 :. predicateArgs p2
-
-
-data SqlEq model typ name desc = SqlEq
-  { eqc_field :: model -> Field typ (FOpt name desc)
-  , eqc_val   :: typ
+data SqlP m t = SqlP
+  {sqlP_fieldName :: String
+  ,sqlP_argValue  :: t
+  ,sqlP_op        :: String
   }
 
-instance (SingI name, ToField typ)
-  => SqlPredicate (SqlEq model typ name desc)
+instance (Model m, ToField t) => SqlQ (SqlP m t) where
+  type QRes (SqlP m t) = ()
+  type QArg (SqlP m t) = Only t
+  type QMod (SqlP m t) = m
+  queryProjection _ = []
+  queryPredicate  p = [printf "%s %s ?" (sqlP_fieldName p) (sqlP_op p)]
+  queryFrom       _ = tableName (undefined :: m)
+  queryArgs       p = Only $ sqlP_argValue p
+
+instance (Model m, ToField t, SqlQ q, QMod q ~ m)
+    => SqlQ (SqlP m t :. q)
   where
-    type PredicateArgs (SqlEq model typ name desc) = Only typ
-    predicateSql c = fieldName (eqc_field c) ++ " = ?"
-    predicateArgs  = Only . eqc_val
+    type QRes (SqlP m t :. q) = QRes q
+    type QArg (SqlP m t :. q) = Only t :. QArg q
+    type QMod (SqlP m t :. q) = m
+    queryProjection  (p :. q) = queryProjection q
+    queryPredicate   (p :. q)
+      = printf "%s %s ?" (sqlP_fieldName p) (sqlP_op p)
+      : queryPredicate q
+    queryFrom        _        = tableName (undefined :: m)
+    queryArgs        (p :. q) = Only (sqlP_argValue p) :. queryArgs q
+
+
+eq
+  :: (Model m, SingI nm)
+  => (m -> Field t (FOpt nm desc)) -> t
+  -> SqlP m t
+eq f v = SqlP (fieldName f) v "="
