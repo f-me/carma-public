@@ -244,17 +244,19 @@ define ["model/utils"], (mu) ->
   # contents with matching "key" (create it if no object matches key),
   # return new JSON string.
   setKeyedJsonValue: (json, key, value) ->
+    newObj =
+      key: key
+      value: value
     if json?.length > 0
       chunks = JSON.parse json
       o = _.find chunks, (o) -> o.key == key
       if o?
         o.value = value
       else
-        o =
-          key: key
-          value: value      
-        chunks = [o]
-      JSON.stringify chunks
+        chunks = chunks.concat [newObj]
+    else
+      chunks = [newObj]
+    JSON.stringify chunks
 
   # FIXME: remove this function definition
   # and correct module dependencies
