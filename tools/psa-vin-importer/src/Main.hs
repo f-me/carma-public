@@ -1,8 +1,12 @@
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE OverloadedStrings #-}
-module Main
+{-|
 
-where
+CLI tool used to import VIN database files provided by ARC Europe.
+
+-}
+
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 import Data.ByteString as BS (ByteString, readFile)
 
@@ -16,9 +20,15 @@ import Database.PostgreSQL.Simple.Copy
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.SqlQQ
 
+import Network.Curl
+
 import System.Environment
+import System.Console.CmdArgs
 import System.IO
 import System.IO.Temp
+import System.Log.Simple as L
+import System.Log.Simple.Syslog
+
 
 arcCSVSettings :: CSVSettings
 arcCSVSettings = defCSVSettings{csvSep = ';', csvQuoteChar = Nothing}
@@ -67,6 +77,13 @@ SELECT p.id as carSeller,
 FROM psa_vin_import, partnertbl p
 WHERE dealer_code = p.code;
 |]
+
+data Options = Options { carmaPort :: Int
+                       , url       :: String
+                       , programId :: Int
+                       , useSyslog :: Bool
+                       }
+               deriving (Show, Data, Typeable)
 
 main :: IO ()
 main = do
