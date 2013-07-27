@@ -227,14 +227,16 @@ define [ "utils"
         new OpenLayers.Marker coords, ico)
 
     getFactAddress = (addrs) ->
-      utils.getKeyedJsonValue addrs, "fact"
+      if addrs?.length > 0
+        utils.getKeyedJsonValue (JSON.parse addrs), "fact"
 
     getPhone = (phones) ->
-      if kvm["isDealer"]()
-        key = "serv"
-      else
-        key = "disp"
-      utils.getKeyedJsonValue phones, key
+      if phones?.length > 0        
+        if kvm["isDealer"]()
+          key = "serv"
+        else
+          key = "disp"
+        utils.getKeyedJsonValue (JSON.parse phones), key
 
     # Draw partners on map
     redrawPartners = (newPartners) ->
