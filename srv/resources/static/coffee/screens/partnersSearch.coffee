@@ -135,7 +135,6 @@ define [ "utils"
   loadContext = (kvm, args) ->
     s = localStorage['partnersSearch']
     ctx = JSON.parse s if s
-    console.log args.model
     switch args.model
       when "case"
         return unless args?.model and s
@@ -176,6 +175,7 @@ define [ "utils"
   # some zoom level, or simply zoomed to fit bounds).
   bindCityPlaces = (kvm) ->
     kvm["city"].subscribe (newCities) ->
+      return unless newCities?
       chunks = _.reject newCities.split(","), _.isEmpty
       kvm["cityPlacesExpected"] = chunks.length
       kvm["cityPlaces"].removeAll()
