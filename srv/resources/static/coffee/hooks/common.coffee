@@ -294,6 +294,8 @@ define [ "utils"
         kvm["#{n}KeyDictionary"] =
           ko.observable global.dictionaries[f.meta.dictionaryName].entries
 
+        kvm[n].valueHasMutated()
+
   # Standard element callback which will scroll model into view and
   # focus on first field
   stdElCb: (elName) ->
