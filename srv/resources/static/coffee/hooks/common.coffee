@@ -212,6 +212,11 @@ define [ "utils"
         # object in the field
         regexp = f.meta.regexp
 
+        # Set to true when sub-vms from {n}Objects update parent field
+        # observable. Breaks dependency loops. Has to be false by
+        # default to allow parent field changes from outside.
+        noloop = false
+
         # Given a JS object and its index in the underlying json
         # field, return a corresponding item for the {n}Objects array.
         # client argument is true if new object is added from client
@@ -223,7 +228,9 @@ define [ "utils"
             else
               full = []
             full[i] = obj
+            noloop = true
             kvm[n] JSON.stringify full
+            noloop = false
 
           # An observable bound to a field in a JSON object
           subfieldObservable = (sf) ->
@@ -233,7 +240,9 @@ define [ "utils"
             kob.subscribe (val) ->
               full = JSON.parse kvm[n]()
               full[i][sf] = val
+              noloop = true
               kvm[n] JSON.stringify full
+              noloop = false
             kob
 
           value: subfieldObservable "value"
@@ -258,16 +267,14 @@ define [ "utils"
               false
 
         kvm[nP] = ko.observableArray()
-        # Populate {n}Objects with initial values
-        init = false
+        # Build dependent sub-vms from parent field value
         kvm[n].subscribe (newValue) ->
-          if not init
+          if not noloop
             kvm[nP].removeAll()
             if newValue?.length > 0
               objs = JSON.parse newValue
               for i in [0...objs.length]
                 kvm[nP].push objItem objs[i], i
-            init = true
 
         # Add new empty object provided an entry from the associated
         # dictionary
@@ -294,6 +301,7 @@ define [ "utils"
         kvm["#{n}KeyDictionary"] =
           ko.observable global.dictionaries[f.meta.dictionaryName].entries
 
+        # Populate {n}Objects with initial values
         kvm[n].valueHasMutated()
 
   # Standard element callback which will scroll model into view and
