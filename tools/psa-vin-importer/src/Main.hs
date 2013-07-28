@@ -1,12 +1,13 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE RecordWildCards #-}
+
 {-|
 
 CLI tool used to import VIN database files provided by ARC Europe.
 
 -}
-
-{-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
 
 import qualified Data.ByteString.Lazy as BL
 import Data.ByteString as BS (ByteString, readFile)
@@ -62,13 +63,14 @@ pgConnect = connect defaultConnectInfo { connectUser = "carma_db_sync"
                                        , connectDatabase = "carma"
                                        }
 
+
 copyStart :: Query
-copyStart = [sql|COPY psa_vin_import FROM STDIN (DELIMITER ';');|]      
+copyStart = [sql|COPY psa_vin_import FROM STDIN (DELIMITER ';');|]
 
 
 transferContracts :: Query
 transferContracts = [sql|
-INSERT INTO contracttbl                     
+INSERT INTO contracttbl
 SELECT p.id as carSeller,
        to_timestamp(valid_from, 'DD-MM-YYYY') as warrantyStart,
        to_timestamp(valid_to, 'DD-MM-YYYY') as warrantyEnd,
@@ -79,33 +81,62 @@ FROM psa_vin_import, partnertbl p
 WHERE dealer_code = p.code;
 |]
 
+
+programName :: String
+programName = "sagai-exporter"
+
+
 data Options = Options { carmaPort :: Int
-                       , url       :: String
-                       , programId :: Int
+                       , url       :: Maybe String
+                       , programId :: Maybe Int
+                       , ownerId   :: Int
                        , useSyslog :: Bool
                        }
                deriving (Show, Data, Typeable)
 
+
 main :: IO ()
-main = do
-  (fromFile:_) <- getArgs
-  (tmp, tmpHandle) <- openTempFile tmpDir "psavin.csv"
+main =
+  let
+    sample = Options
+             { carmaPort = 8000
+               &= name "p"
+               &= help "HTTP port of local CaRMa, defaults to 8000"
+             , useSyslog = False
+               &= explicit
+               &= name "syslog"
+               &= name "l"
+               &= help "Use syslog"
+             , programId = Nothing
+               &= explicit
+               &= name "program"
+               &= name "o"
+               &= help "Program ID used for imported contracts"
+             , url = def
+               &= args
+               &= typ "URL"
+             }
+             &= program programName
+  in do
+    Options{..} <- cmdArgs $ sample
+    (fromFile:_) <- getArgs
+    (tmp, tmpHandle) <- openTempFile tmpDir "psavin.csv"
 
-  -- Basic CSV preprocessing
-  runResourceT $ transformCSV arcCSVSettings
-                              (sourceFile fromFile)
-                              processor
-                              (sinkHandle tmpHandle)
-  hClose tmpHandle
+    -- Basic CSV preprocessing
+    runResourceT $ transformCSV arcCSVSettings
+                                (sourceFile fromFile)
+                                processor
+                                (sinkHandle tmpHandle)
+    hClose tmpHandle
 
-  -- Postgres bulk import
-  conn <- pgConnect
-  copy_ conn copyStart
-  BL.readFile tmp >>= mapM_ (putCopyData conn) . BL.toChunks
-  res <- putCopyEnd conn
+    -- Postgres bulk import
+    conn <- pgConnect
+    copy_ conn copyStart
+    BL.readFile tmp >>= mapM_ (putCopyData conn) . BL.toChunks
+    res <- putCopyEnd conn
 
-  execute_ conn transferContracts
+    execute_ conn transferContracts
 
-  close conn
-  hClose tmpHandle
-  print res
+    close conn
+    hClose tmpHandle
+    print res
