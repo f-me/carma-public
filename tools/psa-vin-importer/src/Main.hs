@@ -8,11 +8,12 @@ CLI tool used to import VIN database files provided by ARC Europe.
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
+import qualified Data.ByteString.Lazy as BL
 import Data.ByteString as BS (ByteString, readFile)
 
 import Data.Conduit
 import Data.Conduit.Binary
-import Data.Conduit.List as CL
+import Data.Conduit.List as CL hiding (mapM_)
 
 import Data.CSV.Conduit
 
@@ -98,10 +99,9 @@ main = do
   hClose tmpHandle
 
   -- Postgres bulk import
-  tmpData <- BS.readFile tmp
   conn <- pgConnect
   copy_ conn copyStart
-  putCopyData conn tmpData
+  BL.readFile tmp >>= mapM_ (putCopyData conn) . BL.toChunks
   res <- putCopyEnd conn
 
   execute_ conn transferContracts
