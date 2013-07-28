@@ -1,16 +1,20 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE OverlappingInstances #-}
 
 module Data.Model
   ( Ident(..)
   , Model(..)
-  , Field
-  , F
+  , Field, F
   , FOpt
+  , FieldDesc(..)
   , fieldName
   , tableName
+  , modelFields
   ) where
 
 
+import Data.Text (Text)
+import qualified Data.Text as T
 import Database.PostgreSQL.Simple.FromField (FromField(..))
 import Data.Typeable
 import GHC.TypeLits
@@ -25,7 +29,7 @@ tableName (_ :: model)
 
 
 data Ident model = Ident {identVal :: Int}
-  deriving Eq
+  deriving (Typeable, Eq)
 
 instance Model m => Show (Ident m) where
   show (Ident x :: Ident m) = "Ident " ++ modelName ++ " " ++ show x
@@ -44,3 +48,30 @@ type F t n d = Field t (FOpt n d)
 fieldName :: SingI name => (model -> Field typ (FOpt name desc)) -> String
 fieldName (_ :: model -> Field typ (FOpt name desc))
   = fromSing (sing :: Sing name)
+
+
+
+data FieldDesc = FieldDesc
+  {fd_fieldName :: Text
+  ,fd_fieldDesc :: Text
+  ,fd_fieldType :: TypeRep
+  }
+  deriving Show
+
+
+class ModelFields ctr where
+  modelFields :: ctr -> [FieldDesc]
+
+instance (ModelFields ctr, Typeable t, SingI nm, SingI desc)
+    => ModelFields (Field t (FOpt nm desc) -> ctr)
+  where
+    modelFields f
+      = FieldDesc
+        {fd_fieldName = T.pack $ fromSing (sing :: Sing nm)
+        ,fd_fieldDesc = T.pack $ fromSing (sing :: Sing desc)
+        ,fd_fieldType = typeOf   (undefined :: t)
+        }
+      : modelFields (f Field)
+
+instance ModelFields m where
+  modelFields _ = []
