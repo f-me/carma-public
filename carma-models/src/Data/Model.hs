@@ -1,5 +1,4 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverlappingInstances #-}
 
 module Data.Model
   ( Ident(..)
@@ -51,7 +50,7 @@ fieldName (_ :: model -> Field typ (FOpt name desc))
 
 
 
-data FieldDesc = FieldDesc
+data FieldDesc m = FieldDesc
   {fd_fieldName :: Text
   ,fd_fieldDesc :: Text
   ,fd_fieldType :: TypeRep
@@ -59,11 +58,11 @@ data FieldDesc = FieldDesc
   deriving Show
 
 
-class ModelFields ctr where
-  modelFields :: ctr -> [FieldDesc]
+class ModelFields m ctr where
+  modelFields :: ctr -> [FieldDesc m]
 
-instance (ModelFields ctr, Typeable t, SingI nm, SingI desc)
-    => ModelFields (Field t (FOpt nm desc) -> ctr)
+instance (ModelFields m ctr, Typeable t, SingI nm, SingI desc)
+    => ModelFields m (Field t (FOpt nm desc) -> ctr)
   where
     modelFields f
       = FieldDesc
@@ -73,5 +72,5 @@ instance (ModelFields ctr, Typeable t, SingI nm, SingI desc)
         }
       : modelFields (f Field)
 
-instance ModelFields m where
+instance ModelFields m m where
   modelFields _ = []
