@@ -4,17 +4,21 @@
 
 module Data.Model.Sql
   (select
+  ,selectJSON
   ,eq
   ) where
 
 import Text.Printf
 import Data.String (fromString)
 import Data.List (intersperse)
+import qualified Data.Text as T
 
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.FromField hiding (Field)
 import Database.PostgreSQL.Simple.FromRow
 import Database.PostgreSQL.Simple.ToField
+import Data.Aeson (ToJSON(..))
+import qualified Data.Aeson as Aeson
 import GHC.TypeLits
 
 import Data.Model
@@ -22,6 +26,26 @@ import Data.Model
 
 select :: (FromRow (QRes q), SqlQ q) => q -> Connection -> IO [QRes q]
 select q c = uncurry (query c) $ mkSelect q
+
+
+class ToValueList xs where
+  toValueList :: xs -> [Aeson.Value]
+instance ToJSON x => ToValueList (Only x) where
+  toValueList (Only x) = [toJSON x]
+instance (ToJSON x, ToValueList xs) => ToValueList (Only x :. xs) where
+  toValueList (Only x :. xs) = toJSON x : toValueList xs
+instance ToJSON x => ToValueList (Only x :. ()) where
+  toValueList (Only x :. ()) = [toJSON x]
+
+selectJSON
+  :: (ToValueList (QRes q), SqlQ q, FromRow (QRes q))
+  => q -> Connection -> IO [Aeson.Value]
+selectJSON q c = select q c >>= return
+  . map
+    ( Aeson.object
+    . zip (map T.pack $ queryProjection q)
+    . toValueList
+    )
 
 mkSelect :: SqlQ q => q -> (Query, QArg q)
 mkSelect q =

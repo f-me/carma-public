@@ -15,15 +15,18 @@ cabal-version:       >=1.8
 
 library
   exposed-modules:
+    Test,
     Data.Model,
     Data.Model.Sql,
-    Carma.Model.Program
+    Carma.Model.Program,
+    Carma.Model.City
   -- other-modules:       
   hs-source-dirs:    src
   build-depends:
-    base ==4.6.*,
-    text,
-    postgresql-simple == 0.3.3.*
+    base == 4.6.*,
+    text == 0.11.*,
+    postgresql-simple == 0.3.3.*,
+    aeson == 0.6.*
 
   extensions:
     DataKinds, KindSignatures, TypeOperators,
