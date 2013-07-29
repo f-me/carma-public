@@ -87,7 +87,7 @@ main = do
   putCopyData conn tmpData
   res <- putCopyEnd conn
 
-  execute_ transferContracts
+  execute_ conn transferContracts
 
   close conn
   hClose tmpHandle
