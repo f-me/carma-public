@@ -215,7 +215,7 @@ define [ "utils"
   # Format addrs field for partner info template
   getFactAddress = (addrs) ->
     if addrs?.length > 0
-      utils.getKeyedJsonValue (JSON.parse addrs), "fact"
+      utils.getKeyedJsonValue addrs, "fact"
 
   # Format phones field for partner info template
   getPhone = (kvm, phones) ->
@@ -224,7 +224,7 @@ define [ "utils"
         key = "serv"
       else
         key = "disp"
-      utils.getKeyedJsonValue (JSON.parse phones), key
+      utils.getKeyedJsonValue phones, key
 
   # Install OpenLayers map in #map element, setup repositioning hooks
   setupMap = (kvm) ->
