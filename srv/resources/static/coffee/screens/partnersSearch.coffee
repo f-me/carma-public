@@ -136,10 +136,10 @@ define [ "utils"
   loadContext = (kvm, args) ->
     s = localStorage['partnersSearch']
     ctx = JSON.parse s if s
-    $("#case-info").hide()
+    $("#case-info").css 'visibility', 'hidden'
     switch args?.model
       when "case"
-        $("#case-info").show()
+        $("#case-info").css 'visibility', 'visible'
         return unless args?.model and s
         setupCase kvm, ctx
       when "call"
