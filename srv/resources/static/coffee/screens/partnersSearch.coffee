@@ -136,17 +136,18 @@ define [ "utils"
   loadContext = (kvm, args) ->
     s = localStorage['partnersSearch']
     ctx = JSON.parse s if s
+    $("#case-info").hide()
     switch args?.model
       when "case"
+        $("#case-info").show()
         return unless args?.model and s
         setupCase kvm, ctx
       when "call"
-        $("#case-info").css 'visibility', 'hidden'
         return unless args?.model and s
         kvm['city'](ctx.city)
         kvm['make'](ctx.carMake)
-      else
-        $("#case-info").css 'visibility', 'hidden'
+      when "mobile"
+        kvm['mobilePartner'](true)
 
     # cleanup localstore
     localStorage.removeItem 'partnersSearch'
