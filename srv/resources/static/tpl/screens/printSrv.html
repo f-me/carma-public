@@ -10,7 +10,7 @@
     margin: 0;
   }
   .table {
-    margin-bottom: 12px;
+    margin-bottom: 8px;
   }
 </style>
 
@@ -102,10 +102,6 @@
       <td data-bind="text: service.payment_costTranscript"> </td>
     </tr>
     <tr>
-      <td> Комментарий </td>
-      <td data-bind="text: kase.betaComment"> </td>
-    </tr>
-    <tr>
       <td> Статус услуги </td>
       <td data-bind="text: service.status"> </td>
     </tr>
@@ -148,6 +144,7 @@
   </table>
 
   <table class="table table-condensed">
+    <caption><strong>Комментарии</strong></caption>
     <thead>
       <tr>
         <th>Дата и время</th>
