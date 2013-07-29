@@ -46,7 +46,7 @@ define [ "utils"
       , meta:
           dictionaryName: "Priorities"
           dictionaryType: "ComputedDict"
-          bounded: true
+          bounded: false
           label: "ПБГ"
       },
       { name: "priority3"
@@ -54,7 +54,7 @@ define [ "utils"
       , meta:
           dictionaryName: "Priorities"
           dictionaryType: "ComputedDict"
-          bounded: true
+          bounded: false
           label: "ПНГ"
       },
       { name: "isDealer"

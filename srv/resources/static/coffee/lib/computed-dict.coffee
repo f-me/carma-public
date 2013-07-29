@@ -43,6 +43,6 @@ define ["lib/local-dict"], (m) ->
             else
               []
 
-    Priorities: => @source = [1..30].map (e) -> s=String(e);{value:s,label:s}
+    Priorities: => @source = [1..3].map (e) -> s=String(e);{value:s,label:s}
 
   dict: ComputedDict
