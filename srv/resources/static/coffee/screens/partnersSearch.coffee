@@ -2,9 +2,10 @@ define [ "utils"
        , "map"
        , "model/main"
        , "sync/dipq"
+       , "dictionaries"
        , "text!tpl/screens/partnersSearch.html"
        , "text!tpl/partials/partnersSearch.html"
-       ], (utils, map, m, sync, tpl, partials) ->
+       ], (utils, map, m, sync, dict, tpl, partials) ->
 
   storeKey = 'partnersSearch'
   subName = (fld, model, id) ->
@@ -135,7 +136,7 @@ define [ "utils"
   loadContext = (kvm, args) ->
     s = localStorage['partnersSearch']
     ctx = JSON.parse s if s
-    switch args.model
+    switch args?.model
       when "case"
         return unless args?.model and s
         setupCase kvm, ctx
@@ -218,7 +219,7 @@ define [ "utils"
 
   # Format phones field for partner info template
   getPhone = (kvm, phones) ->
-    if phones?.length > 0        
+    if phones?.length > 0
       if kvm["isDealer"]()
         key = "serv"
       else
@@ -384,6 +385,10 @@ define [ "utils"
     $('body').css('padding-top', '0px')
     $(".navbar").hide()
 
+    PhoneTypes   = new dict.dicts['LocalDict'] {dict: 'PhoneTypes'}
+    AddressTypes = new dict.dicts['LocalDict'] {dict: 'AddressTypes'}
+    EmailTypes   = new dict.dicts['LocalDict'] {dict: 'EmailTypes'}
+
     kvm = m.buildKVM(model, "partnersSearch-content")
     q = new sync.DipQueue(kvm, model)
     kvm._meta.q = q
@@ -402,6 +407,19 @@ define [ "utils"
           name     : v.servicename
           priority2: v.priority2
           priority3: v.priority3
+        v.phones ||= null
+        v.addrs  ||= null
+        v.emails ||= null
+        r[v.id]['phones'] = _.map JSON.parse(v.phones), (p) ->
+          p.label = PhoneTypes.getLab(p.key)
+          p.note  ||= ''
+          p
+        r[v.id]['addrs'] = _.map JSON.parse(v.addrs), (p) ->
+          p.label = AddressTypes.getLab(p.key)
+          p
+        r[v.id]['emails'] = _.map JSON.parse(v.emails), (p) ->
+          p.label = EmailTypes.getLab(p.key)
+          p
       r
 
     kvm["searchK"] = ko.computed(->kvm["search"]()).extend { throttle: 300 }
