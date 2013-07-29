@@ -81,6 +81,10 @@
             "label": "Пользователь экрана контрактов"
         },
         {
+            "value": "partners_user",
+            "label": "Пользователь экрана ДиП"
+        },        
+        {
             "value": "vwfake",
             "label": "vwfake"
         },
