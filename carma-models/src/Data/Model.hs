@@ -8,7 +8,7 @@ module Data.Model
   , FieldDesc(..)
   , fieldName
   , tableName
-  , modelFields
+  , ModelFields, modelFields
   ) where
 
 

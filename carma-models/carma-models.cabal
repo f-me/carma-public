@@ -18,18 +18,21 @@ library
     Test,
     Data.Model,
     Data.Model.Sql,
+    Data.Model.View,
     Carma.Model.Program,
     Carma.Model.City
   -- other-modules:       
   hs-source-dirs:    src
   build-depends:
+    aeson == 0.6.*,
     base == 4.6.*,
-    text == 0.11.*,
+    containers,
     postgresql-simple == 0.3.3.*,
-    aeson == 0.6.*
+    text == 0.11.*
 
   extensions:
     DataKinds, KindSignatures, TypeOperators,
     TypeFamilies,
     MultiParamTypeClasses, FlexibleInstances, FlexibleContexts,
-    DeriveDataTypeable
+    DeriveDataTypeable,
+    OverloadedStrings
