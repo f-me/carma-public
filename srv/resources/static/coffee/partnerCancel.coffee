@@ -1,12 +1,10 @@
 define ["model/main"], (main) ->
 
   # Function to init modal dialog
-  # @param kvm is service knockout model
-  setup: (kvm) ->
+  # @param partnerId : int
+  # @param serviceId : String - in format "#{serviceName}:#{serviceId}"
+  setup: (partnerId, serviceId) ->
     modelName = "partnerCancel"
-    partnerId   = kvm.contractor_partnerId()
-    partnerName = kvm.contractor_partner()
-    serviceId   = "#{kvm._meta.model.name}:#{kvm.id()}"
 
     $('body').append(
       Mustache.render $("#modalDialog-field-template").html(),
@@ -51,7 +49,7 @@ define ["model/main"], (main) ->
         showAlert = (needShow) ->
           $alert = $("##{modelName}-alert-container")
           if needShow
-            $alert.find(".alert-message").text("Забыли указать Партнёра в таблице?")
+            $alert.find(".alert-message").text("Забыли указать Партнёра?")
             $alert.show()
             $alert.find('.close').on('click', ->
               $alert.hide()

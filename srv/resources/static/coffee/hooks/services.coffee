@@ -1,8 +1,7 @@
 define [ "utils"
        , "model/utils"
-       , "partnerCancel"
        , "screens/partnersSearch"
-       ], (u, mu, partnerCancel, pSearch) ->
+       ], (u, mu, pSearch) ->
   partnerOptsHook: (model, knockVM) ->
     knockVM['contractor_partner'].subscribe (n) ->
       return unless knockVM['view']
@@ -62,9 +61,6 @@ define [ "utils"
       else
         mc.removeClass('error')
         cc.removeClass('error')
-
-  bindPartnerCancelDialog: (model, kvm) ->
-    kvm['showPartnerCancelDialog'] = -> partnerCancel.setup kvm
 
   # sync with partner search screen
   openPartnerSearch: (model, kvm) ->

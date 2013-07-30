@@ -4,7 +4,8 @@ define [ "utils"
        , "sync/dipq"
        , "text!tpl/screens/partnersSearch.html"
        , "text!tpl/partials/partnersSearch.html"
-       ], (utils, map, m, sync, tpl, partials) ->
+       , "partnerCancel"
+       ], (utils, map, m, sync, tpl, partials, partnerCancel) ->
 
   storeKey = 'partnersSearch'
   subName = (fld, model, id) ->
@@ -131,6 +132,27 @@ define [ "utils"
       # Highlight partner blip on map
       $("#map").trigger "drawpartners"
       global.pubSub.pub subName(ctx.field, id), partner
+
+    initPartnerCancel kvm, srvKVM
+
+  initPartnerCancel = (kvm, srvKVM) ->
+    prevId = undefined
+
+    showIfPartnerChanged = (currId) ->
+      if prevId and prevId isnt currId
+        showPartnerCancelDialog prevId
+      prevId = currId
+
+    showPartnerCancelDialog = (partnerId) ->
+      srvName = srvKVM._meta.model.name
+      srvId = srvKVM.id()
+      serviceId = "#{srvName}:#{srvId}"
+      partnerCancel.setup partnerId, serviceId
+
+    kvm['selectedPartner'].subscribe showIfPartnerChanged
+
+    kvm['showPartnerCancelDialog'] = (partner, ev) ->
+      showPartnerCancelDialog partner.id
 
   loadContext = (kvm, args) ->
     s = localStorage['partnersSearch']
