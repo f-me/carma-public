@@ -3,7 +3,8 @@ define ["model/main"], (main) ->
   # Function to init modal dialog
   # @param partnerId : int
   # @param serviceId : String - in format "#{serviceName}:#{serviceId}"
-  setup: (partnerId, serviceId) ->
+  # @param caseId    : String - in format "case:#{caseId}"
+  setup: (partnerId, serviceId, caseId) ->
     modelName = "partnerCancel"
 
     $('body').append(
@@ -18,18 +19,15 @@ define ["model/main"], (main) ->
     $modalDialog
       .on('show', () ->
         refs = []
-        k = main.modelSetup("#{modelName}") "#{modelName}-form", {id:null},
+        kvm = main.modelSetup("#{modelName}") "#{modelName}-form", {id:null},
           focusClass: "focusable"
           refs: refs
           manual_save: true
 
-        k['updateUrl'] = ->
-
-        vPartnerCancel = global.viewsWare["#{modelName}-form"]
-        partnerCancelVM = vPartnerCancel.knockVM
+        kvm['updateUrl'] = ->
 
         # make save button disabled until user choose a reason
-        partnerCancelVM.partnerCancelReason.subscribe (reason) ->
+        kvm.partnerCancelReason.subscribe (reason) ->
           saveBtnDisable reason is ""
 
         saveBtnDisable = (disabled) ->
@@ -37,14 +35,13 @@ define ["model/main"], (main) ->
 
         saveBtnDisable true
 
-        partnerCancelVM.serviceId(serviceId)
         # fill hidden fields
-        vCase = global.viewsWare['case-form']?.knockVM
-        if vCase
-          partnerCancelVM.caseId("case:#{vCase.id()}")
+        kvm.serviceId(serviceId)
+
+        kvm.caseId(caseId)
 
         ctime = Math.round((new Date).getTime() / 1000)
-        partnerCancelVM.ctime("#{ctime}")
+        kvm.ctime("#{ctime}")
 
         showAlert = (needShow) ->
           $alert = $("##{modelName}-alert-container")
@@ -59,7 +56,7 @@ define ["model/main"], (main) ->
             $alert.hide()
 
         if partnerId
-          partnerCancelVM.partnerId(partnerId)
+          kvm.partnerId(partnerId)
           # hide alert
           showAlert false
         else
@@ -67,13 +64,13 @@ define ["model/main"], (main) ->
           # warn user about needed choose partner from table
           showAlert true
 
-        partnerCancelVM.owner(global.user.login)
+        kvm.owner(global.user.login)
 
         $("##{modelName}-save")
           .off('click')
           .on('click', (event) ->
             event.preventDefault()
-            partnerCancelVM._meta.q.save()
+            kvm._meta.q.save()
             $modalDialog.modal('hide')
           )
       )

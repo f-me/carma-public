@@ -133,9 +133,9 @@ define [ "utils"
       $("#map").trigger "drawpartners"
       global.pubSub.pub subName(ctx.field, id), partner
 
-    initPartnerCancel kvm, srvKVM
+    initPartnerCancel kvm, srvKVM, kaseKVM
 
-  initPartnerCancel = (kvm, srvKVM) ->
+  initPartnerCancel = (kvm, srvKVM, kaseKVM) ->
     prevId = undefined
 
     showIfPartnerChanged = (currId) ->
@@ -144,10 +144,11 @@ define [ "utils"
       prevId = currId
 
     showPartnerCancelDialog = (partnerId) ->
-      srvName = srvKVM._meta.model.name
-      srvId = srvKVM.id()
+      srvName   = srvKVM._meta.model.name
+      srvId     = srvKVM.id()
       serviceId = "#{srvName}:#{srvId}"
-      partnerCancel.setup partnerId, serviceId
+      caseId = "case:#{kaseKVM.id()}"
+      partnerCancel.setup partnerId, serviceId, caseId
 
     kvm['selectedPartner'].subscribe showIfPartnerChanged
 
