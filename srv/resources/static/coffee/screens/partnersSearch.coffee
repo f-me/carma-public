@@ -189,9 +189,9 @@ define [ "utils"
               # TODO Remove this hack (#837) after Cities dict is
               # implemented properly
               if c == "Moskva"
-                place = Moscow
+                place = map.Moscow
               else if c == "Sankt-Peterburg"
-                place = Petersburg
+                place = map.Petersburg
               else
                 # Decode Nominatim bounding box using proper argument order
                 bb = res[0].boundingbox
@@ -199,19 +199,6 @@ define [ "utils"
                   coords: new OpenLayers.LonLat res[0].lon, res[0].lat
                   bounds: new OpenLayers.Bounds bb[2], bb[0], bb[3], bb[1]
               kvm["cityPlaces"].push place
-
-  # Cut off everything beyond The Wall
-  Moscow =
-    coords: new OpenLayers.LonLat(37.617874, 55.757549)
-    bounds: new OpenLayers.Bounds(
-      37.2, 55.5,
-      37.9674301147461, 56.0212249755859)
-
-  Petersburg =
-    coords: new OpenLayers.LonLat(30.312458, 59.943168)
-    bounds: new OpenLayers.Bounds(
-      29.4298095703125, 59.6337814331055,
-      30.7591361999512, 60.2427024841309)
 
   # Format addrs field for partner info template
   getFactAddress = (addrs) ->
@@ -310,13 +297,15 @@ define [ "utils"
       if places.length <= 1
         # Starting with no places || no location or city set on case.
         if _.isEmpty places || _.isUndefined places[0].coords
-          place = Moscow
+          place = map.Moscow
         else
           place = places[0]
         # Select zoom level from bounds
         if place.bounds?
           osmap.zoomToExtent(
             place.bounds.clone().transform(map.wsgProj, map.osmProj), true)
+        else
+          osmap.zoomTo map.defaultZoomLevel
         # Then recenter on the very place for better positioning (your
         # experience may vary)
         osmap.setCenter(
@@ -337,13 +326,21 @@ define [ "utils"
             # A place without bounds is usually a crash site pin.
             # Enabling closefitting after bounds have been extended with
             # single coordinate pin produces visually more appealing
-            # results.
+            # results
             if places.length == 2
               closefit = true
             bounds.extend p.coords
 
-        osmap.zoomToExtent(
-          bounds.transform(map.wsgProj, map.osmProj), closefit)
+        gbounds = bounds.transform(map.wsgProj, map.osmProj)
+        osmap.zoomToExtent gbounds, closefit
+
+        # Occasionally closefitting occludes boundless places, so we
+        # fix this
+        ex = osmap.getExtent().transform map.osmProj, map.wsgProj
+        for p in places
+          if not ex.containsLonLat p.coords
+            osmap.zoomToExtent gbounds, false
+            break
 
     # Refit map when more cities are selected
     kvm["cityPlaces"].subscribe (newCityPlaces) ->
