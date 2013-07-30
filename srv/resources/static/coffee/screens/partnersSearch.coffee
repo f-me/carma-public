@@ -146,6 +146,7 @@ define [ "utils"
         return unless args?.model and s
         kvm['city'](ctx.city)
         kvm['make'](ctx.carMake)
+        kvm['isDealer'](true)
       when "mobile"
         kvm['mobilePartner'](true)
 
