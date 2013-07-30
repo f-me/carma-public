@@ -8,7 +8,7 @@ define ["model/utils", "utils"], (mu, u) ->
   # Default map zoom level (used when a POI displayed on map has no
   # bounds)
   defaultZoomLevel = 13
-  
+
   geoRevQuery = (lon, lat) -> "/geo/revSearch/#{lon},#{lat}/"
 
   geoQuery = (addr) ->
@@ -52,6 +52,32 @@ define ["model/utils", "utils"], (mu, u) ->
       29.4298095703125, 59.6337814331055,
       30.7591361999512, 60.2427024841309)
 
+  # Build a place (structure with `coords` and `bounds` fields,
+  # containind OpenLayers LonLat and Bounds, respectively) from
+  # geoQuery response
+  buildPlace = (res) ->
+    if res.error
+      null
+    else
+      if res.length > 0
+        bb = res[0].boundingbox
+        coords: new OpenLayers.LonLat res[0].lon, res[0].lat
+        bounds: new OpenLayers.Bounds bb[2], bb[0], bb[3], bb[1]
+
+  # Build a place for city from geoQuery response
+  buildCityPlace = (res) ->
+    # Override coordinates and boundaries for certain cities.
+    #
+    # TODO Remove this hack (#837) after Cities dict is implemented
+    # properly
+    switch res[0]?.osm_id
+      when "102269"
+        Moscow
+      when "337422"
+        Petersburg
+      else
+        buildPlace res
+
   # Read "32.54,56.21" (the way coordinates are stored in model fields)
   # into LonLat object
   lonlatFromShortString = (coords) ->
@@ -94,6 +120,23 @@ define ["model/utils", "utils"], (mu, u) ->
     osmap.addLayer(new_layer)
 
     return new_layer
+
+  # Center map on place bounds or coordinates
+  setPlace = (osmap, place) ->
+    t = (o) -> o.clone().transform wsgProj, osmProj
+    if place.bounds?
+      osmap.zoomToExtent t place.bounds
+    else
+      osmap.setCenter t place.coordinates
+
+  # Center an OSM on a city. City is a value from DealerCities
+  # dictionary.
+  centerMapOnCity = (osmap, city) ->
+    if city?.length > 0
+      fixed_city = global.dictValueCache.DealerCities[city]
+      $.getJSON geoQuery(fixed_city), (res) ->
+        if res.length > 0
+          setPlace osmap, buildCityPlace res
 
   # Setup OpenLayers map
   #
@@ -145,21 +188,23 @@ define ["model/utils", "utils"], (mu, u) ->
       mu.modelField(modelName, fieldName).meta["currentBlipType"] or "default"
 
     # Center on the default location first
-    osmap.setCenter(Moscow.coords.clone().transform(wsgProj, osmProj),
-                    defaultZoomLevel)
+    setPlace osmap, Moscow
+
+    # Fit city on map
+    if city_field?
+      city = kvm[city_field]()
+      centerMapOnCity osmap, city
 
     # Place a blip and recenter if coordinates are already known
     if coord_field?
       coords = kvm[coord_field]()
       if coords? && coords.length > 0
         coords = lonlatFromShortString coords
-        osmap.setCenter coords.transform(wsgProj, osmProj), defaultZoomLevel
+        if city?.length > 0
+          osmap.setCenter coords.transform wsgProj, osmProj
+        else
+          osmap.setCenter coords.transform(wsgProj, osmProj), defaultZoomLevel
         currentBlip osmap, coords, current_blip_type
-      else
-        # Otherwise, just center on the city, not placing a blip
-        if city_field?
-          city = kvm[city_field]()
-          centerMapOnCity osmap, city
 
     # Setup handler to update target address and coordinates if the
     # map is clickable
@@ -174,7 +219,7 @@ define ["model/utils", "utils"], (mu, u) ->
         $.getJSON(geoRevQuery(coords.lon, coords.lat),
         (res) ->
           addr = buildReverseAddress res
-          
+
           if addr_field?
             kvm[addr_field](addr)
 
@@ -201,16 +246,6 @@ define ["model/utils", "utils"], (mu, u) ->
     markers = reinstallMarkers(osmap, "CURRENT")
     markers.addMarker(
       new OpenLayers.Marker(coords, ico))
-
-  # Center an OSM on a city. City is a value from DealerCities
-  # dictionary.
-  centerMapOnCity = (osmap, city) ->
-    if city? && city.length > 0
-      fixed_city = global.dictValueCache.DealerCities[city]
-      $.getJSON geoQuery(fixed_city), (res) ->
-        if res.length > 0
-          lonlat = new OpenLayers.LonLat res[0].lon, res[0].lat
-          osmap.setCenter lonlat.transform(wsgProj, osmProj), defaultZoomLevel
 
   # Forward geocoding picker (address -> coordinates)
   #
@@ -241,16 +276,14 @@ define ["model/utils", "utils"], (mu, u) ->
 
     $.getJSON(geoQuery(addr), (res) ->
       if res.length > 0
-        lonlat = new OpenLayers.LonLat(res[0].lon, res[0].lat)
+        lonlat = new OpenLayers.LonLat res[0].lon, res[0].lat
 
         if coord_field?
-          u.findVM(viewName)[coord_field](shortStringFromLonlat lonlat)
+          u.findVM(viewName)[coord_field] shortStringFromLonlat lonlat
 
         if map_field?
           osmap = view.find("[name=#{map_field}]").data("osmap")
-          osmap.setCenter(
-                lonlat.transform(wsgProj, osmProj),
-                defaultZoomLevel)
+          setPlace osmap, buildPlace res
           currentBlip osmap, osmap.getCenter(), current_blip_type
     )
 
@@ -348,6 +381,8 @@ define ["model/utils", "utils"], (mu, u) ->
   { iconSize              : iconSize
   , defaultZoomLevel      : defaultZoomLevel
   , geoQuery              : geoQuery
+  , buildPlace            : buildPlace
+  , buildCityPlace        : buildCityPlace
   , Moscow                : Moscow
   , Petersburg            : Petersburg
   , wsgProj               : wsgProj

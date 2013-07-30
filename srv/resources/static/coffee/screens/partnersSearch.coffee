@@ -188,18 +188,7 @@ define [ "utils"
           fixed_city = global.dictValueCache.DealerCities[c]
           $.getJSON map.geoQuery(fixed_city), (res) ->
             if res.length > 0
-              # TODO Remove this hack (#837) after Cities dict is
-              # implemented properly
-              if c == "Moskva"
-                place = map.Moscow
-              else if c == "Sankt-Peterburg"
-                place = map.Petersburg
-              else
-                # Decode Nominatim bounding box using proper argument order
-                bb = res[0].boundingbox
-                place =
-                  coords: new OpenLayers.LonLat res[0].lon, res[0].lat
-                  bounds: new OpenLayers.Bounds bb[2], bb[0], bb[3], bb[1]
+              place = map.buildCityPlace res
               kvm["cityPlaces"].push place
 
   # Format addrs field for partner info template
