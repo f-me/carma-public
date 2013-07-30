@@ -3,9 +3,10 @@ define [ "utils"
        , "model/main"
        , "sync/dipq"
        , "dictionaries"
+       , "lib/time"
        , "text!tpl/screens/partnersSearch.html"
        , "text!tpl/partials/partnersSearch.html"
-       ], (utils, map, m, sync, dict, tpl, partials) ->
+       ], (utils, map, m, sync, dict, time, tpl, partials) ->
 
   storeKey = 'partnersSearch'
   subName = (fld, model, id) ->
@@ -67,7 +68,7 @@ define [ "utils"
       },
       { name: "workNow"
       , type: "checkbox"
-      , meta: { label: "Работают сейчас" }
+      , meta: { label: "Работают сейчас", nosearch: true}
       }
       ]
 
@@ -434,6 +435,13 @@ define [ "utils"
           parseInt (_.find v.services, (s) -> s.name == srvs[0].value)?[sort]
       if flt
         s = _.filter s, (v) -> checkMatch flt, v
+      if kvm['workNow']()
+        s = _.filter s, (v) ->
+          k = if v.isdealer then 'serv' else 'disp'
+          times = _.reduce (_.filter v.phones, ({key}) -> key == k),
+                           ((a, {note}) -> "#{a}, #{(note or '')}"),
+                           ''
+          time.isWorkingNow time.parseWorkTimes(times)
       return s
 
     kvm['selectedPartner'] = ko.observable(NaN)
