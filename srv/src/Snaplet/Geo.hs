@@ -29,7 +29,7 @@ import Control.Monad.State
 import Data.Aeson as A
 
 import Data.Attoparsec.ByteString.Char8
-import Data.ByteString.Char8 as BS (ByteString, concat, split, null)
+import Data.ByteString.Char8 as BS (ByteString, concat)
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import Data.Map as M
 import Data.Maybe
@@ -71,13 +71,11 @@ routes = [ ("/partners/:coords1/:coords2", method GET withinPartners)
          ]
 
 instance (ToField a, ToField b, ToField c, ToField d, ToField e, ToField f,
-          ToField g, ToField h, ToField i, ToField j, ToField k, ToField l,
-          ToField m, ToField n, ToField o, ToField p)
-    => ToRow (a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) where
-    toRow (a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p) =
+          ToField g, ToField h, ToField i, ToField j, ToField k)
+    => ToRow (a,b,c,d,e,f,g,h,i,j,k) where
+    toRow (a,b,c,d,e,f,g,h,i,j,k) =
         [toField a, toField b, toField c, toField d, toField e, toField f,
-         toField g, toField h, toField i, toField j, toField k, toField l,
-         toField m, toField n, toField o, toField p]
+         toField g, toField h, toField i, toField j, toField k]
 
 ------------------------------------------------------------------------------
 -- | Parse "52.32,3.45" (no spaces) into pair of doubles.
@@ -131,43 +129,7 @@ twoPointHandler q queryToResult = do
 -- are those of opposite 2D box points.
 withinQuery :: Query
 withinQuery = [sql|
-SELECT row_to_json(r) :: text
-FROM
-(SELECT p.id
-     , st_x(p.coords)
-     , st_y(p.coords)
-     , p.isDealer
-     , p.isMobile
-     , coalesce(p.name, '')           as name
-     , coalesce(p.city, '')           as city
-     , coalesce(p.comment, '')        as comment
-     , coalesce(p.phone1, '')         as phone1
-     , coalesce(p.workingTime, '')    as workingTime
-     , coalesce(p.code, '')           as code
-     , coalesce(p.addrDeJure, '')     as addrDeJure
-     , coalesce(p.addrDeFacto, '')    as addrDeFacto
-     , coalesce(p.addrs :: text, '')  as addrs
-     , coalesce(p.phones :: text, '') as phones
-     , coalesce(p.emails :: text, '') as emails
-     , coalesce(p.personInCharge, '') as personInCharge
-     , coalesce(s.priority2, '')      as priority2
-     , coalesce(s.priority3, '')      as priority3
-     , coalesce(s.servicename, '')    as servicename
-FROM partnertbl p
-INNER JOIN partner_servicetbl s
-ON  p.id = cast(split_part(s.parentid, ':', 2) as integer)
-AND s.parentid is not null
-AND s.parentid != ''
-WHERE coords && ST_SetSRID(ST_MakeBox2D(ST_Point(?, ?), ST_Point(?, ?)), 4326)
-AND   p.isActive = 't'
-AND   (? OR p.city in ?)
-AND   (? OR p.makes && string_to_array(?, ','))
-AND   (? OR s.servicename in ?)
-AND   (? OR s.priority2 = ?)
-AND   (? OR s.priority3 = ?)
-AND   isDealer = ?
-AND   (case when isMobile then '1' else '0' end) = ?
-) r;
+SELECT geowithin(?,?,?,?,?,?,?,?,?,?,?)
 |]
 
 
@@ -206,19 +168,11 @@ withinPartners = do
   dlr  <- fromMaybe "0" <$> getParam "isDealer"
   mp   <- fromMaybe "0" <$> getParam "mobilePartner"
 
-  let [city', _, srv', pr2', pr3'] =
-        Prelude.map (BS.split ',') [city, make, srv, pr2, pr3]
-
   case (c1, c2) of
     (Just (lon1, lat1), Just (lon2, lat2)) -> do
                    results <- query withinQuery ( lon1, lat1, lon2, lat2
-                                                , BS.null city, In city'
-                                                , BS.null make, make
-                                                , BS.null srv, In srv'
-                                                , BS.null pr2, In pr2'
-                                                , BS.null pr3, In pr3'
-                                                , dlr
-                                                , mp
+                                                , city, make, srv, pr2, pr3
+                                                , dlr, mp
                                                 )
                    modifyResponse $ setContentType "application/json"
                    writeLBS $ A.encode $ recode results
