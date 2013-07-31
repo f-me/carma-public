@@ -137,8 +137,8 @@ define [
       routes:
         "case/:id"       : "loadCase"
         "case"           : "newCase"
-        "dictionaries"   : "dictionaries"
-        "dictionaries/:dict" : "editDictionary"
+        "dictionaries/:dict" : "dictionaries"
+        "dictionaries/:dict/:id" : "editDictionary"
         "search"         : "search"
         "uploads"        : "uploads"
         "vin"            : "vin"
@@ -168,8 +168,8 @@ define [
 
       loadCase      : (id) -> r.renderScreen("case", kase, {"id": id})
       newCase       :      -> r.renderScreen("case", kase, {"id": null})
-      dictionaries  :      -> r.renderScreen("dictionaries", dictionaries, {"dict": null})
-      editDictionary : (dict) -> r.renderScreen("dictionaries", dictionaries, {"dict": dict})
+      dictionaries  : (dict) -> r.renderScreen("dictionaries", dictionaries, {dict})
+      editDictionary : (dict, id) -> r.renderScreen("dictionaries", dictionaries, {dict, id})
       search        :      -> renderScreen("search")
       uploads       :      -> r.renderScreen("uploads", uploads)
       back          :      -> r.renderScreen("back", bo)
