@@ -180,7 +180,7 @@ define ["model/utils", "utils"], (mu, u) ->
 
           # Write address to first "fact" address of partner
           if addrs_field?
-            json = u.findVM(addrs_meta.view)[addrs_meta.field]()
+            json = kvm[addrs_field]()
             kvm[addrs_field] (u.setKeyedJsonValue json, "fact", addr)
 
           if city_field?
