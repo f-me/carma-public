@@ -56,7 +56,7 @@ $$
              , coalesce(s.priority3, '')      as priority3
              , coalesce(s.servicename, '')    as servicename
         FROM partnertbl p
-        INNER JOIN partner_servicetbl s
+        LEFT JOIN partner_servicetbl s
         ON  p.id = cast(split_part(s.parentid, ':', 2) as integer)
         AND s.parentid is not null
         AND s.parentid != ''
