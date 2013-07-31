@@ -25,8 +25,8 @@ $$
     ca  text[] = string_to_array(city, ',');
     ma  text[] = string_to_array(makes, ',');
     sa  text[] = string_to_array(services, ',');
-    p2a text[] = string_to_array(services, ',');
-    p3a text[] = string_to_array(services, ',');
+    p2a text[] = string_to_array(priority2, ',');
+    p3a text[] = string_to_array(priority3, ',');
     se  boolean = array_dims(sa)  IS NULL;
     ce  boolean = array_dims(ca)  IS NULL;
     me  boolean = array_dims(ma)  IS NULL;
