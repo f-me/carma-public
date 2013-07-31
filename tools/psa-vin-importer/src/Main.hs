@@ -64,6 +64,35 @@ pgConnect = connect defaultConnectInfo { connectUser = "carma_db_sync"
                                        }
 
 
+cacheCreate :: Query
+cacheCreate = [sql|
+CREATE TEMPORARY TABLE psa_vin_import 
+( fdds_id                 text,
+  dealer_code             text,
+  dealer_name             text,
+  valid_from              text,
+  valid_to                text,
+  vin_number              text,
+  licence_plate_no        text,
+  make                    text,
+  model                   text,
+  arc_model_code          text,
+  first_registration_date text,
+  vehicle_type            text,
+  country_first_sold      text,
+  assistance_type         text,
+  reporting_date          text,
+  creation_date           text,
+  country_current_reg     text,
+  mileage                 text,
+  deleted                 text,
+  deliver_date            text,
+  modification_date       text,
+  telematic               text
+);
+|]
+
+
 copyStart :: Query
 copyStart = [sql|COPY psa_vin_import FROM STDIN (DELIMITER ';');|]
 
@@ -71,12 +100,22 @@ copyStart = [sql|COPY psa_vin_import FROM STDIN (DELIMITER ';');|]
 transferContracts :: Query
 transferContracts = [sql|
 INSERT INTO contracttbl
-SELECT p.id as carSeller,
-       to_timestamp(valid_from, 'DD-MM-YYYY') as warrantyStart,
-       to_timestamp(valid_to, 'DD-MM-YYYY') as warrantyEnd,
-       vin_number as carVin,
-       license_plate_no as carPlateNum,
-       first_registration_date as carBuyDate
+           (carSeller, 
+            program,
+            owner,
+            warrantyStart,
+            warrantyEnd,
+            carVin,
+            carPlateNum,
+            carBuyDate)
+SELECT p.id,
+       ?,
+       ?,
+       to_timestamp(valid_from, 'DD-MM-YYYY'),
+       to_timestamp(valid_to, 'DD-MM-YYYY'),
+       vin_number,
+       licence_plate_no,
+       to_timestamp(first_registration_date, 'DD-MM-YYYY')
 FROM psa_vin_import, partnertbl p
 WHERE dealer_code = p.code;
 |]
@@ -122,7 +161,6 @@ main =
     Options{..} <- cmdArgs $ sample
     let fromFile = url
 
-
     (tmp, tmpHandle) <- openTempFile tmpDir "psavin.csv"
 
     -- Basic CSV preprocessing
@@ -134,11 +172,12 @@ main =
 
     -- Postgres bulk import
     conn <- pgConnect
+    execute_ conn cacheCreate
     copy_ conn copyStart
     BL.readFile tmp >>= mapM_ (putCopyData conn) . BL.toChunks
     res <- putCopyEnd conn
 
-    execute_ conn transferContracts
+    execute conn transferContracts (programId, ownerId)
 
     close conn
     hClose tmpHandle
