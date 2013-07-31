@@ -138,6 +138,56 @@ define ["model/utils", "utils"], (mu, u) ->
         if res.length > 0
           setPlace osmap, buildCityPlace res
 
+  # Reposition and rezoom a map so that all places fit
+  fitPlaces = (osmap, places) ->
+    # Show one place or even fall back to default place
+    if places.length <= 1
+      # Starting with no places || no location or city set on case.
+      if _.isEmpty places || _.isUndefined places[0].coords
+        place = Moscow
+      else
+        place = places[0]
+      # Select zoom level from bounds
+      if place.bounds?
+        osmap.zoomToExtent(
+          place.bounds.clone().transform(wsgProj, osmProj), true)
+      else
+        osmap.zoomTo defaultZoomLevel
+      # Then recenter on the very place for better positioning (your
+      # experience may vary)
+      osmap.setCenter place.coords.clone().transform wsgProj, osmProj
+
+    # Fit several places in viewport
+    else
+      # Pick first bounded place
+      place = _.find places, (p) -> !_.isUndefined p.bounds
+      bounds = place.bounds.clone()
+      # Closefitting hides encircled cities at times
+      closefit = false
+      # Grow to include all other places
+      for p in places
+        if p.bounds?
+          bounds.extend p.bounds
+        else
+          # A place without bounds is usually a crash site pin.
+          # Enabling closefitting after bounds have been extended with
+          # single coordinate pin produces visually more appealing
+          # results
+          if places.length == 2
+            closefit = true
+          bounds.extend p.coords
+
+      gbounds = bounds.transform wsgProj, osmProj
+      osmap.zoomToExtent gbounds, closefit
+
+      # Occasionally closefitting occludes boundless places, so we fix
+      # this
+      ex = osmap.getExtent().transform map.osmProj, map.wsgProj
+      for p in places
+        if not ex.containsLonLat p.coords
+          osmap.zoomToExtent gbounds, false
+          break
+
   # Setup OpenLayers map
   #
   # - parentView: parent view this map belongs to. This is used to set
@@ -397,6 +447,7 @@ define ["model/utils", "utils"], (mu, u) ->
   , dealerIcon            : dealerIcon
   , hlIconName            : hlIconName
   , reinstallMarkers      : reinstallMarkers
+  , fitPlaces             : fitPlaces
 
   , initOSM               : initOSM
   , currentBlip           : currentBlip

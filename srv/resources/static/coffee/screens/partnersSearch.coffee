@@ -282,66 +282,15 @@ define [ "utils"
       kvm["mapB"] = b
       kvm._meta.q._search()
 
-    # Fit places into the viewport
-    reposition = (places) ->
-      # Show one place or even fall back to default place
-      if places.length <= 1
-        # Starting with no places || no location or city set on case.
-        if _.isEmpty places || _.isUndefined places[0].coords
-          place = map.Moscow
-        else
-          place = places[0]
-        # Select zoom level from bounds
-        if place.bounds?
-          osmap.zoomToExtent(
-            place.bounds.clone().transform(map.wsgProj, map.osmProj), true)
-        else
-          osmap.zoomTo map.defaultZoomLevel
-        # Then recenter on the very place for better positioning (your
-        # experience may vary)
-        osmap.setCenter(
-          place.coords.clone().transform(map.wsgProj, map.osmProj))
-
-      # Fit several places in viewport
-      else
-        # Pick first bounded place
-        place = _.find places, (p) -> !_.isUndefined p.bounds
-        bounds = place.bounds.clone()
-        # Closefitting hides encircled cities at times
-        closefit = false
-        # Grow to include all other places
-        for p in places
-          if p.bounds?
-            bounds.extend p.bounds
-          else
-            # A place without bounds is usually a crash site pin.
-            # Enabling closefitting after bounds have been extended with
-            # single coordinate pin produces visually more appealing
-            # results
-            if places.length == 2
-              closefit = true
-            bounds.extend p.coords
-
-        gbounds = bounds.transform(map.wsgProj, map.osmProj)
-        osmap.zoomToExtent gbounds, closefit
-
-        # Occasionally closefitting occludes boundless places, so we
-        # fix this
-        ex = osmap.getExtent().transform map.osmProj, map.wsgProj
-        for p in places
-          if not ex.containsLonLat p.coords
-            osmap.zoomToExtent gbounds, false
-            break
-
     # Refit map when more cities are selected
     kvm["cityPlaces"].subscribe (newCityPlaces) ->
       # Refit map only if all cities have been fetched (prevents
       # blinking Moscow syndrome)
       return if kvm["cityPlacesExpected"] > kvm["cityPlaces"]().length
       if kvm["caseCoords"]?
-        reposition [coords: kvm["caseCoords"]].concat newCityPlaces
+        map.fitPlaces [coords: kvm["caseCoords"]].concat newCityPlaces
       else
-        reposition newCityPlaces
+        map.fitPlaces newCityPlaces
 
     # Set initial position
     kvm["cityPlaces"].valueHasMutated()
