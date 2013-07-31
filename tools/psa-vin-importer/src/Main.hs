@@ -87,8 +87,8 @@ programName = "sagai-exporter"
 
 
 data Options = Options { carmaPort :: Int
-                       , url       :: Maybe String
-                       , programId :: Maybe Int
+                       , url       :: String
+                       , programId :: Int
                        , ownerId   :: Int
                        , useSyslog :: Bool
                        }
@@ -102,24 +102,27 @@ main =
              { carmaPort = 8000
                &= name "p"
                &= help "HTTP port of local CaRMa, defaults to 8000"
+             , url = def
+               &= argPos 0
+               &= typ "FILE"
+             , programId = def
+               &= argPos 1
+               &= typ "PROGRAM-ID"
+             , ownerId = def
+               &= argPos 2
+               &= typ "OWNER-ID"
              , useSyslog = False
                &= explicit
                &= name "syslog"
                &= name "l"
                &= help "Use syslog"
-             , programId = Nothing
-               &= explicit
-               &= name "program"
-               &= name "o"
-               &= help "Program ID used for imported contracts"
-             , url = def
-               &= args
-               &= typ "URL"
              }
              &= program programName
   in do
     Options{..} <- cmdArgs $ sample
-    (fromFile:_) <- getArgs
+    let fromFile = url
+
+
     (tmp, tmpHandle) <- openTempFile tmpDir "psavin.csv"
 
     -- Basic CSV preprocessing
