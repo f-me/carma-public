@@ -1,81 +1,95 @@
 define ["model/main"], (main) ->
 
-  # Function to init modal dialog
-  # @param partnerId : int
-  # @param serviceId : String - in format "#{serviceName}:#{serviceId}"
-  # @param caseId    : String - in format "case:#{caseId}"
-  setup: (partnerId, serviceId, caseId) ->
-    modelName = "partnerCancel"
+  class CancelDialog
 
-    $('body').append(
-      Mustache.render $("#modalDialog-field-template").html(),
-              title: "Отказ партнёра"
-              id: modelName
-              saveLabel: "Сохранить"
-              cancelLabel: "Отменить"
-    )
-    $modalDialog = $("##{modelName}-modal")
+    constructor: ->
+      @callbacks =
+        save: []
 
-    $modalDialog
-      .on('show', () ->
-        refs = []
-        kvm = main.modelSetup("#{modelName}") "#{modelName}-form", {id:null},
-          focusClass: "focusable"
-          refs: refs
-          manual_save: true
+    # Function to init modal dialog
+    # @param partnerId : int
+    # @param serviceId : String - in format "#{serviceName}:#{serviceId}"
+    # @param caseId    : String - in format "case:#{caseId}"
+    setup: (partnerId, serviceId, caseId) ->
+      modelName = "partnerCancel"
 
-        kvm['updateUrl'] = ->
+      $('body').append(
+        Mustache.render $("#modalDialog-field-template").html(),
+                title: "Отказ партнёра"
+                id: modelName
+                saveLabel: "Сохранить"
+                cancelLabel: "Отменить"
+      )
+      $modalDialog = $("##{modelName}-modal")
 
-        # make save button disabled until user choose a reason
-        kvm.partnerCancelReason.subscribe (reason) ->
-          saveBtnDisable reason is ""
+      $modalDialog
+        .on('show', () =>
+          refs = []
+          kvm = main.modelSetup("#{modelName}") "#{modelName}-form", {id:null},
+            focusClass: "focusable"
+            refs: refs
+            manual_save: true
 
-        saveBtnDisable = (disabled) ->
-          $("##{modelName}-save").attr('disabled', disabled)
+          kvm['updateUrl'] = ->
 
-        saveBtnDisable true
+          # make save button disabled until user choose a reason
+          kvm.partnerCancelReason.subscribe (reason) ->
+            saveBtnDisable reason is ""
 
-        # fill hidden fields
-        kvm.serviceId(serviceId)
+          saveBtnDisable = (disabled) ->
+            $("##{modelName}-save").attr('disabled', disabled)
 
-        kvm.caseId(caseId)
+          saveBtnDisable true
 
-        ctime = Math.round((new Date).getTime() / 1000)
-        kvm.ctime("#{ctime}")
+          # fill hidden fields
+          kvm.serviceId(serviceId)
 
-        showAlert = (needShow) ->
-          $alert = $("##{modelName}-alert-container")
-          if needShow
-            $alert.find(".alert-message").text("Забыли указать Партнёра?")
-            $alert.show()
-            $alert.find('.close').on('click', ->
+          kvm.caseId(caseId)
+
+          ctime = Math.round((new Date).getTime() / 1000)
+          kvm.ctime("#{ctime}")
+
+          showAlert = (needShow) ->
+            $alert = $("##{modelName}-alert-container")
+            if needShow
+              $alert.find(".alert-message").text("Забыли указать Партнёра?")
+              $alert.show()
+              $alert.find('.close').on('click', ->
+                $alert.hide()
+                $modalDialog.modal('hide')
+              )
+            else
               $alert.hide()
-              $modalDialog.modal('hide')
-            )
+
+          if partnerId
+            kvm.partnerId(partnerId)
+            # hide alert
+            showAlert false
           else
-            $alert.hide()
+            # partnerId not defined
+            # warn user about needed choose partner from table
+            showAlert true
 
-        if partnerId
-          kvm.partnerId(partnerId)
-          # hide alert
-          showAlert false
-        else
-          # partnerId not defined
-          # warn user about needed choose partner from table
-          showAlert true
+          kvm.owner(global.user.login)
 
-        kvm.owner(global.user.login)
+          $("##{modelName}-save")
+            .off('click')
+            .on('click', (event) =>
+              event.preventDefault()
+              kvm._meta.q.save()
+              $modalDialog.modal('hide')
 
-        $("##{modelName}-save")
-          .off('click')
-          .on('click', (event) ->
-            event.preventDefault()
-            kvm._meta.q.save()
-            $modalDialog.modal('hide')
-          )
-      )
-      .on('hidden', () ->
-        $(@).remove()
-      )
+              do cb for cb in @callbacks.save
+            )
+        )
+        .on('hidden', () ->
+          $(@).remove()
+        )
 
-    $modalDialog.modal 'show'
+      $modalDialog.modal 'show'
+
+    onSave: (cb) ->
+      @callbacks.save.push cb
+
+  new CancelDialog
+
