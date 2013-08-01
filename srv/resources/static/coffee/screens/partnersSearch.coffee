@@ -128,35 +128,25 @@ define [ "utils"
     """
     kvm['caseCoords'] = map.lonlatFromShortString kaseKVM.caseAddress_coords()
     kvm['selectPartner'] = (partner, ev) ->
-      kvm['selectedPartner'](partner.id)
+      prevPartner = kvm['selectedPartner']()
+      selPartner = partner.id
+      # cancel previously selected partner
+      if prevPartner and prevPartner isnt selPartner
+        partnerCancel.setup prevPartner, ctx.service.id, ctx.case.id
+
+      kvm['selectedPartner'](selPartner)
       # Highlight partner blip on map
       $("#map").trigger "drawpartners"
       global.pubSub.pub subName(ctx.field, id), partner
 
-    initPartnerCancel kvm, ctx
-
-  initPartnerCancel = (kvm, ctx) ->
-    prevId = undefined
-
-    showIfPartnerChanged = (currId) ->
-      if prevId and prevId isnt currId
-        showPartnerCancelDialog prevId
-      prevId = currId
-
-    showPartnerCancelDialog = (partnerId) ->
-      partnerCancel.setup partnerId, ctx.service.id, ctx.case.id
+    kvm['showPartnerCancelDialog'] = (partner, ev) ->
+      partnerCancel.setup partner.id, ctx.service.id, ctx.case.id
       partnerCancel.onSave ->
-        prevId = undefined
         emptyPartner =
           name: ""
           addrdefacto: ""
           id: ""
-        kvm['selectPartner'](emptyPartner)
-
-    kvm['selectedPartner'].subscribe showIfPartnerChanged
-
-    kvm['showPartnerCancelDialog'] = (partner, ev) ->
-      showPartnerCancelDialog partner.id
+        global.pubSub.pub subName(ctx.field, id), emptyPartner
 
   loadContext = (kvm, args) ->
     s = localStorage['partnersSearch']
