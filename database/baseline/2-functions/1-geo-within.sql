@@ -69,7 +69,7 @@ $$
         AND   (p2e OR s.priority2   = ANY(p2a))
         AND   (p3e OR s.priority3   = ANY(p3a))
         AND   (case when p.isDealer then true else false end) = isDlr
-        AND   (case when p.isMobile then true else false end) = isMbl
+        AND   case when isMbl then p.isMobile = isMbl else true end
         AND   case when isDealer
               then me OR p.makes && ma
               else me OR array_dims(p.makes) IS NULL OR p.makes && ma
