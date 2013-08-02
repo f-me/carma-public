@@ -66,7 +66,7 @@ pgConnect = connect defaultConnectInfo { connectUser = "carma_db_sync"
 
 cacheCreate :: Query
 cacheCreate = [sql|
-CREATE TEMPORARY TABLE psa_vin_import 
+CREATE TEMPORARY TABLE psa_vin_import
 ( fdds_id                 text,
   dealer_code             text,
   dealer_name             text,
@@ -100,24 +100,36 @@ copyStart = [sql|COPY psa_vin_import FROM STDIN (DELIMITER ';');|]
 transferContracts :: Query
 transferContracts = [sql|
 INSERT INTO contracttbl
-           (carSeller, 
+           (carSeller,
             program,
             owner,
+            ctime,
             warrantyStart,
             warrantyEnd,
             carVin,
             carPlateNum,
-            carBuyDate)
+            carBuyDate,
+            carMake,
+            carModel,
+            dixi,
+            isActive)
 SELECT p.id,
        ?,
        ?,
+       now(),
        to_timestamp(valid_from, 'DD-MM-YYYY'),
        to_timestamp(valid_to, 'DD-MM-YYYY'),
        vin_number,
        licence_plate_no,
-       to_timestamp(first_registration_date, 'DD-MM-YYYY')
-FROM psa_vin_import, partnertbl p
-WHERE dealer_code = p.code;
+       to_timestamp(first_registration_date, 'DD-MM-YYYY'),
+       m.value,
+       l.value,
+       't',
+       't'
+FROM psa_vin_import
+LEFT OUTER JOIN partnertbl p ON dealer_code = p.code
+LEFT OUTER JOIN "CarMaker" m ON lower(make) = lower(m.label)
+LEFT OUTER JOIN "CarModel" l ON lower(model) = lower(l.label);
 |]
 
 
