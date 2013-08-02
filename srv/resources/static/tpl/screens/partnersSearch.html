@@ -84,10 +84,18 @@
                   Отказ
                 </button>
               </li>
-              <li data-bind="html: '<b>Телефон:</b>' +
-                             phone1 +
-                             '(' + workingtime + ')'" />
-              <li data-bind="html: '<b>Комментарий:</b>' + comment" />
+              <li data-bind="html: '<b>Телефон: </b>' + phone +
+                             '(' + workingTime + ')'" />
+              <li data-bind="html: '<b>Город: </b>' + cityLocal" />
+              <li data-bind="html: '<b>Фактический адрес: </b>' + factAddr" />
+              <li data-bind="html: '<b>Обслуживаемые марки: </b>' + makesLocal"/>
+              <li data-bind="html: '<b>Комментарий: </b>' + comment" />
+            </ul>
+            <b>Услуги:</b>
+            <ul data-bind="foreach: services">
+              <li data-bind="text: label +
+                             ' ПБГ:' + priority2 +
+                             ' ПНГ:' + priority3" />
             </ul>
             <div class="accordion-toggle collapsed"
                  data-toggle="collapse"
@@ -113,12 +121,6 @@
                 <b>Emails:</b>
                 <ul data-bind="foreach: emails">
                   <li data-bind="text: label + ': ' + value" />
-                </ul>
-                <b>Услуги:</b>
-                <ul data-bind="foreach: services">
-                  <li data-bind="text: label + 
-                                 ' ПБГ:' + priority2 +
-                                 ' ПНГ:' + priority3" />
                 </ul>
               </div>
             </div>

@@ -349,6 +349,8 @@ define [ "utils"
     PhoneTypes   = new dict.dicts['LocalDict'] {dict: 'PhoneTypes'}
     AddressTypes = new dict.dicts['LocalDict'] {dict: 'AddressTypes'}
     EmailTypes   = new dict.dicts['LocalDict'] {dict: 'EmailTypes'}
+    DealerCities = new dict.dicts['LocalDict'] {dict: 'DealerCities'}
+    CarMakers    = new dict.dicts['LocalDict'] {dict: 'CarMakers'}
 
     kvm = m.buildKVM(model, "partnersSearch-content")
     q = new sync.DipQueue(kvm, model)
@@ -368,6 +370,9 @@ define [ "utils"
           name     : v.servicename
           priority2: v.priority2
           priority3: v.priority3
+        r[v.id]['cityLocal'] = DealerCities.getLab(v.city) || ''
+        r[v.id]['makesLocal'] =
+          (_.map v.makes, (m) -> CarMakers.getLab(m)).join(', ')
         v.phones ||= null
         v.addrs  ||= null
         v.emails ||= null
@@ -381,6 +386,14 @@ define [ "utils"
         r[v.id]['emails'] = _.map JSON.parse(v.emails), (p) ->
           p.label = EmailTypes.getLab(p.key)
           p
+        phones = _.filter r[v.id]['phones'], ({key}) ->
+          key == (if v.isdealer then 'serv' else 'disp')
+        showPhone = phones?[0] or r[v.id]['phones']?[0]
+        console.log showPhone
+        r[v.id]['phone']       = showPhone?.value || ''
+        r[v.id]['workingTime'] = showPhone?.note  || ''
+        r[v.id]['factAddr'] =
+          (_.filter r[v.id]['addrs'], ({key}) -> key == 'fact')[0]?.value || ''
       r
 
     kvm["searchK"] = ko.computed(->kvm["search"]()).extend { throttle: 300 }
