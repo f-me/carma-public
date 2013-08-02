@@ -106,11 +106,12 @@ define [ "utils"
     kvm['fromCase'] = true
     kvm['city'](kaseKVM.city())
     kvm['make'](kaseKVM.car_make())
-    kvm['services'](srvName)
     kvm['selectedPartner'](srvKVM["#{ctx['field']}Id"]?())
     # Set isDealer flag depending on what field we came from
     unless ctx['field'].split('_')[0] == 'contractor'
       kvm['isDealer'](true)
+    else
+      kvm['services'](srvName)
     kvm['isDealerDisabled'](true)
     kvm['caseInfo'] = """
     <ul class='unstyled'>
