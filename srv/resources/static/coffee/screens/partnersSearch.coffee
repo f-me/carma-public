@@ -389,7 +389,6 @@ define [ "utils"
         phones = _.filter r[v.id]['phones'], ({key}) ->
           key == (if v.isdealer then 'serv' else 'disp')
         showPhone = phones?[0] or r[v.id]['phones']?[0]
-        console.log showPhone
         r[v.id]['phone']       = showPhone?.value || ''
         r[v.id]['workingTime'] = showPhone?.note  || ''
         r[v.id]['factAddr'] =
