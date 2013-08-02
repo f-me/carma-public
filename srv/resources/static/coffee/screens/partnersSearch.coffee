@@ -343,8 +343,9 @@ define [ "utils"
 
   constructor: (view, args) ->
     # remove padding so blank space after removing navbar can be used
-    $('body').css('padding-top', '0px')
-    $(".navbar").hide()
+    if args?
+      $('body').css('padding-top', '0px')
+      $(".navbar").hide()
 
     PhoneTypes   = new dict.dicts['LocalDict'] {dict: 'PhoneTypes'}
     AddressTypes = new dict.dicts['LocalDict'] {dict: 'AddressTypes'}
