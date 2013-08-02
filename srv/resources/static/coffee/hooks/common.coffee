@@ -155,7 +155,7 @@ define [ "utils"
             val = dict.getVal(lab)
             c = u.splitVals k[n]()
             return if _.contains c, val
-            c.push val
+            c.push (val or lab)
             if (bounded and val) or (not bounded)
               k[n](c.sort().join(','))
 

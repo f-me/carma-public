@@ -2,10 +2,12 @@ define [ "utils"
        , "map"
        , "model/main"
        , "sync/dipq"
+       , "dictionaries"
+       , "lib/time"
+       , "partnerCancel"
        , "text!tpl/screens/partnersSearch.html"
        , "text!tpl/partials/partnersSearch.html"
-       , "partnerCancel"
-       ], (utils, map, m, sync, tpl, partials, partnerCancel) ->
+       ], (utils, map, m, sync, dict, time, partnerCancel, tpl, partials) ->
 
   storeKey = 'partnersSearch'
   subName = (fld, model, id) ->
@@ -46,7 +48,7 @@ define [ "utils"
       , meta:
           dictionaryName: "Priorities"
           dictionaryType: "ComputedDict"
-          bounded: true
+          bounded: false
           label: "ПБГ"
       },
       { name: "priority3"
@@ -54,7 +56,7 @@ define [ "utils"
       , meta:
           dictionaryName: "Priorities"
           dictionaryType: "ComputedDict"
-          bounded: true
+          bounded: false
           label: "ПНГ"
       },
       { name: "isDealer"
@@ -67,7 +69,7 @@ define [ "utils"
       },
       { name: "workNow"
       , type: "checkbox"
-      , meta: { label: "Работают сейчас" }
+      , meta: { label: "Работают сейчас", nosearch: true}
       }
       ]
 
@@ -156,17 +158,19 @@ define [ "utils"
   loadContext = (kvm, args) ->
     s = localStorage['partnersSearch']
     ctx = JSON.parse s if s
-    switch args.model
+    $("#case-info").css 'visibility', 'hidden'
+    switch args?.model
       when "case"
+        $("#case-info").css 'visibility', 'visible'
         return unless args?.model and s
         setupCase kvm, ctx
       when "call"
-        $("#case-info").css 'visibility', 'hidden'
         return unless args?.model and s
         kvm['city'](ctx.city)
         kvm['make'](ctx.carMake)
-      else
-        $("#case-info").css 'visibility', 'hidden'
+        kvm['isDealer'](true)
+      when "mobile"
+        kvm['mobilePartner'](true)
 
     # cleanup localstore
     localStorage.removeItem 'partnersSearch'
@@ -208,9 +212,9 @@ define [ "utils"
               # TODO Remove this hack (#837) after Cities dict is
               # implemented properly
               if c == "Moskva"
-                place = Moscow
+                place = map.Moscow
               else if c == "Sankt-Peterburg"
-                place = Petersburg
+                place = map.Petersburg
               else
                 # Decode Nominatim bounding box using proper argument order
                 bb = res[0].boundingbox
@@ -219,23 +223,10 @@ define [ "utils"
                   bounds: new OpenLayers.Bounds bb[2], bb[0], bb[3], bb[1]
               kvm["cityPlaces"].push place
 
-  # Cut off everything beyond The Wall
-  Moscow =
-    coords: new OpenLayers.LonLat(37.617874, 55.757549)
-    bounds: new OpenLayers.Bounds(
-      37.2, 55.5,
-      37.9674301147461, 56.0212249755859)
-
-  Petersburg =
-    coords: new OpenLayers.LonLat(30.312458, 59.943168)
-    bounds: new OpenLayers.Bounds(
-      29.4298095703125, 59.6337814331055,
-      30.7591361999512, 60.2427024841309)
-
   # Format addrs field for partner info template
   getFactAddress = (addrs) ->
     if addrs?.length > 0
-      utils.getKeyedJsonValue (JSON.parse addrs), "fact"
+      utils.getKeyedJsonValue addrs, "fact"
 
   # Format phones field for partner info template
   getPhone = (kvm, phones) ->
@@ -244,7 +235,7 @@ define [ "utils"
         key = "serv"
       else
         key = "disp"
-      utils.getKeyedJsonValue (JSON.parse phones), key
+      utils.getKeyedJsonValue phones, key
 
   # Install OpenLayers map in #map element, setup repositioning hooks
   setupMap = (kvm) ->
@@ -329,13 +320,15 @@ define [ "utils"
       if places.length <= 1
         # Starting with no places || no location or city set on case.
         if _.isEmpty places || _.isUndefined places[0].coords
-          place = Moscow
+          place = map.Moscow
         else
           place = places[0]
         # Select zoom level from bounds
         if place.bounds?
           osmap.zoomToExtent(
             place.bounds.clone().transform(map.wsgProj, map.osmProj), true)
+        else
+          osmap.zoomTo map.defaultZoomLevel
         # Then recenter on the very place for better positioning (your
         # experience may vary)
         osmap.setCenter(
@@ -356,13 +349,21 @@ define [ "utils"
             # A place without bounds is usually a crash site pin.
             # Enabling closefitting after bounds have been extended with
             # single coordinate pin produces visually more appealing
-            # results.
+            # results
             if places.length == 2
               closefit = true
             bounds.extend p.coords
 
-        osmap.zoomToExtent(
-          bounds.transform(map.wsgProj, map.osmProj), closefit)
+        gbounds = bounds.transform(map.wsgProj, map.osmProj)
+        osmap.zoomToExtent gbounds, closefit
+
+        # Occasionally closefitting occludes boundless places, so we
+        # fix this
+        ex = osmap.getExtent().transform map.osmProj, map.wsgProj
+        for p in places
+          if not ex.containsLonLat p.coords
+            osmap.zoomToExtent gbounds, false
+            break
 
     # Refit map when more cities are selected
     kvm["cityPlaces"].subscribe (newCityPlaces) ->
@@ -405,6 +406,10 @@ define [ "utils"
     $('body').css('padding-top', '0px')
     $(".navbar").hide()
 
+    PhoneTypes   = new dict.dicts['LocalDict'] {dict: 'PhoneTypes'}
+    AddressTypes = new dict.dicts['LocalDict'] {dict: 'AddressTypes'}
+    EmailTypes   = new dict.dicts['LocalDict'] {dict: 'EmailTypes'}
+
     kvm = m.buildKVM(model, "partnersSearch-content")
     q = new sync.DipQueue(kvm, model)
     kvm._meta.q = q
@@ -423,6 +428,19 @@ define [ "utils"
           name     : v.servicename
           priority2: v.priority2
           priority3: v.priority3
+        v.phones ||= null
+        v.addrs  ||= null
+        v.emails ||= null
+        r[v.id]['phones'] = _.map JSON.parse(v.phones), (p) ->
+          p.label = PhoneTypes.getLab(p.key)
+          p.note  ||= ''
+          p
+        r[v.id]['addrs'] = _.map JSON.parse(v.addrs), (p) ->
+          p.label = AddressTypes.getLab(p.key)
+          p
+        r[v.id]['emails'] = _.map JSON.parse(v.emails), (p) ->
+          p.label = EmailTypes.getLab(p.key)
+          p
       r
 
     kvm["searchK"] = ko.computed(->kvm["search"]()).extend { throttle: 300 }
@@ -438,6 +456,13 @@ define [ "utils"
           parseInt (_.find v.services, (s) -> s.name == srvs[0].value)?[sort]
       if flt
         s = _.filter s, (v) -> checkMatch flt, v
+      if kvm['workNow']()
+        s = _.filter s, (v) ->
+          k = if v.isdealer then 'serv' else 'disp'
+          times = _.reduce (_.filter v.phones, ({key}) -> key == k),
+                           ((a, {note}) -> "#{a}, #{(note or '')}"),
+                           ''
+          time.isWorkingNow time.parseWorkTimes(times)
       return s
 
     kvm['selectedPartner'] = ko.observable(null)

@@ -148,10 +148,7 @@ class ThMenu
       when 9, 16, 37, 39  # tab, shift, left, right
         return
       when 13     # enter
-        if @shown
-        then @select()
-        else @draw()
-
+        @select() if @shown
       when 27     # escape
         @hide()
 
