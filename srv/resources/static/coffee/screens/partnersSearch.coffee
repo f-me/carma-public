@@ -4,9 +4,10 @@ define [ "utils"
        , "sync/dipq"
        , "dictionaries"
        , "lib/time"
+       , "partnerCancel"
        , "text!tpl/screens/partnersSearch.html"
        , "text!tpl/partials/partnersSearch.html"
-       ], (utils, map, m, sync, dict, time, tpl, partials) ->
+       ], (utils, map, m, sync, dict, time, partnerCancel, tpl, partials) ->
 
   storeKey = 'partnersSearch'
   subName = (fld, model, id) ->
@@ -95,6 +96,19 @@ define [ "utils"
 
   srvLab = (val) -> window.global.dictValueCache.Services[val] || val
 
+  selectPartner = (kvm, partner) ->
+    if _.isNull partner
+      kvm['selectedPartner'](null)
+      global.pubSub.pub subName(ctx.field, id),
+        name: ''
+        addrdefacto: ''
+        id: ''
+    else
+      kvm['selectedPartner'](partner.id)
+      # Highlight partner blip on map
+      $("#map").trigger "drawpartners"
+      global.pubSub.pub subName(ctx.field, id), partner
+
   # Add some of case data to screen kvm
   setupCase = (kvm, ctx) ->
     kase = ctx['case'].data
@@ -128,11 +142,18 @@ define [ "utils"
     </ul>
     """
     kvm['caseCoords'] = map.lonlatFromShortString kaseKVM.caseAddress_coords()
+
     kvm['selectPartner'] = (partner, ev) ->
-      kvm['selectedPartner'](partner.id)
-      # Highlight partner blip on map
-      $("#map").trigger "drawpartners"
-      global.pubSub.pub subName(ctx.field, id), partner
+      selected = kvm['selectedPartner']()
+      # don't select same partner twice
+      return if selected == partner?.id
+      if _.isNull selected
+        selectPartner(kvm, partner)
+      else
+        partnerCancel.setup selected, ctx.service.id, ctx.case.id
+        partnerCancel.onSave -> selectPartner(kvm, partner)
+
+    kvm['showPartnerCancelDialog'] = (partner, ev) -> kvm['selectPartner'](null)
 
   loadContext = (kvm, args) ->
     s = localStorage['partnersSearch']
@@ -382,7 +403,7 @@ define [ "utils"
           time.isWorkingNow time.parseWorkTimes(times)
       return s
 
-    kvm['selectedPartner'] = ko.observable(NaN)
+    kvm['selectedPartner'] = ko.observable(null)
 
     kvm["cityPlaces"] = ko.observableArray []
     bindCityPlaces kvm
