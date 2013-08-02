@@ -309,9 +309,9 @@ define [ "utils"
       # blinking Moscow syndrome)
       return if kvm["cityPlacesExpected"] > kvm["cityPlaces"]().length
       if kvm["caseCoords"]?
-        map.fitPlaces [coords: kvm["caseCoords"]].concat newCityPlaces
+        map.fitPlaces osmap, [coords: kvm["caseCoords"]].concat newCityPlacess
       else
-        map.fitPlaces newCityPlaces
+        map.fitPlaces osmap, newCityPlaces
 
     # Set initial position
     kvm["cityPlaces"].valueHasMutated()
