@@ -77,8 +77,12 @@
             <ul class="unstyled" data-bind="click: $parent.selectPartner">
               <li data-bind="text: name" />
               <li data-bind="visible: id == $parent.selectedPartner()">
-                <button type="button" class="btn btn-danger" data-bind="click: $parent.showPartnerCancelDialog"><i class="icon-list-alt icon-white"></i>
-                  Отказ</button>
+                <button type="button"
+                        class="btn btn-danger"
+                        data-bind="click: $parent.showPartnerCancelDialog">
+                  <i class="icon-list-alt icon-white"></i>
+                  Отказ
+                </button>
               </li>
               <li data-bind="html: '<b>Телефон:</b>' +
                              phone1 +
