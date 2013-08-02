@@ -94,6 +94,19 @@ define [ "utils"
 
   srvLab = (val) -> window.global.dictValueCache.Services[val] || val
 
+  selectPartner = (kvm, partner) ->
+    if _.isNull partner
+      kvm['selectedPartner'](null)
+      global.pubSub.pub subName(ctx.field, id),
+        name: ''
+        addrdefacto: ''
+        id: ''
+    else
+      kvm['selectedPartner'](partner.id)
+      # Highlight partner blip on map
+      $("#map").trigger "drawpartners"
+      global.pubSub.pub subName(ctx.field, id), partner
+
   # Add some of case data to screen kvm
   setupCase = (kvm, ctx) ->
     kase = ctx['case'].data
@@ -127,26 +140,18 @@ define [ "utils"
     </ul>
     """
     kvm['caseCoords'] = map.lonlatFromShortString kaseKVM.caseAddress_coords()
+
     kvm['selectPartner'] = (partner, ev) ->
-      prevPartner = kvm['selectedPartner']()
-      selPartner = partner.id
-      # cancel previously selected partner
-      if prevPartner and prevPartner isnt selPartner
-        partnerCancel.setup prevPartner, ctx.service.id, ctx.case.id
+      selected = kvm['selectedPartner']()
+      # don't select same partner twice
+      return if selected == partner?.id
+      if _.isNull selected
+        selectPartner(kvm, partner)
+      else
+        partnerCancel.setup selected, ctx.service.id, ctx.case.id
+        partnerCancel.onSave -> selectPartner(kvm, partner)
 
-      kvm['selectedPartner'](selPartner)
-      # Highlight partner blip on map
-      $("#map").trigger "drawpartners"
-      global.pubSub.pub subName(ctx.field, id), partner
-
-    kvm['showPartnerCancelDialog'] = (partner, ev) ->
-      partnerCancel.setup partner.id, ctx.service.id, ctx.case.id
-      partnerCancel.onSave ->
-        emptyPartner =
-          name: ""
-          addrdefacto: ""
-          id: ""
-        global.pubSub.pub subName(ctx.field, id), emptyPartner
+    kvm['showPartnerCancelDialog'] = (partner, ev) -> kvm['selectPartner'](null)
 
   loadContext = (kvm, args) ->
     s = localStorage['partnersSearch']
@@ -234,7 +239,7 @@ define [ "utils"
 
   # Format phones field for partner info template
   getPhone = (kvm, phones) ->
-    if phones?.length > 0        
+    if phones?.length > 0
       if kvm["isDealer"]()
         key = "serv"
       else
@@ -435,7 +440,7 @@ define [ "utils"
         s = _.filter s, (v) -> checkMatch flt, v
       return s
 
-    kvm['selectedPartner'] = ko.observable(NaN)
+    kvm['selectedPartner'] = ko.observable(null)
 
     kvm["cityPlaces"] = ko.observableArray []
     bindCityPlaces kvm
