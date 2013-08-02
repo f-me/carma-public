@@ -62,5 +62,19 @@ define [ "utils"
           location.hash="#dictionaries/#{dictName}"
           location.reload true
 
+        # setup 'show only active records' button
+        hasActiveField = _.find kvm._meta.model.fields, (f) ->
+          f.name is "active"
+
+        if hasActiveField
+          $("#active-items-btn").on 'click', ->
+            objUrl = tableParams.objURL
+            unless $(@).hasClass('active')
+              objUrl = "#{objUrl}/?select=active==1"
+            table.setObjs objUrl
+          $("#active-items-btn").show()
+        else
+          $("#active-items-btn").hide()
+
     constructor: screenSetup
     template: tpl
