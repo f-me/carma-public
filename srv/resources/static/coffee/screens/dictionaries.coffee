@@ -68,10 +68,10 @@ define [ "utils"
 
         if hasActiveField
           $("#active-items-btn").on 'click', ->
+            objUrl = tableParams.objURL
             unless $(@).hasClass('active')
-              table.setObjs "#{tableParams.objURL}/?select=active==1"
-            else
-              table.setObjs "#{tableParams.objURL}"
+              objUrl = "#{objUrl}/?select=active==1"
+            table.setObjs objUrl
           $("#active-items-btn").show()
         else
           $("#active-items-btn").hide()
