@@ -96,19 +96,6 @@ define [ "utils"
 
   srvLab = (val) -> window.global.dictValueCache.Services[val] || val
 
-  selectPartner = (kvm, partner) ->
-    if _.isNull partner
-      kvm['selectedPartner'](null)
-      global.pubSub.pub subName(ctx.field, id),
-        name: ''
-        addrdefacto: ''
-        id: ''
-    else
-      kvm['selectedPartner'](partner.id)
-      # Highlight partner blip on map
-      $("#map").trigger "drawpartners"
-      global.pubSub.pub subName(ctx.field, id), partner
-
   # Add some of case data to screen kvm
   setupCase = (kvm, ctx) ->
     kase = ctx['case'].data
@@ -120,6 +107,7 @@ define [ "utils"
     kvm['city'](kaseKVM.city())
     kvm['make'](kaseKVM.car_make())
     kvm['services'](srvName)
+    kvm['selectedPartner'](srvKVM["#{ctx['field']}Id"]?())
     # Set isDealer flag depending on what field we came from
     unless ctx['field'].split('_')[0] == 'contractor'
       kvm['isDealer'](true)
@@ -142,6 +130,19 @@ define [ "utils"
     </ul>
     """
     kvm['caseCoords'] = map.lonlatFromShortString kaseKVM.caseAddress_coords()
+
+    selectPartner = (kvm, partner) ->
+      if _.isNull partner
+        kvm['selectedPartner'](null)
+        global.pubSub.pub subName(ctx.field, id),
+          name: ''
+          addrdefacto: ''
+          id: ''
+      else
+        kvm['selectedPartner'](partner.id)
+        # Highlight partner blip on map
+        $("#map").trigger "drawpartners"
+        global.pubSub.pub subName(ctx.field, id), partner
 
     kvm['selectPartner'] = (partner, ev) ->
       selected = kvm['selectedPartner']()
