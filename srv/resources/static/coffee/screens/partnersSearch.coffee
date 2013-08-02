@@ -152,7 +152,7 @@ define [ "utils"
       if _.isNull selected
         selectPartner(kvm, partner)
       else
-        partnerCancel.setup selected, ctx.service.id, ctx.case.id
+        partnerCancel.setup "partner:#{selected}", ctx.service.id, ctx.case.id
         partnerCancel.onSave -> selectPartner(kvm, partner)
 
     kvm['showPartnerCancelDialog'] = (partner, ev) -> kvm['selectPartner'](null)
