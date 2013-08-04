@@ -273,12 +273,12 @@ serviceActions = Map.fromList
           upd kazeId "actions" $ addToList actionId
           sendSMS actionId "smsTpl:13"
       "recallClient" -> do
-          due <- getService objId "times_expectedServiceStart"
+          due <- dateNow (+ (15*60))
           kazeId <- get objId "parentId"
           actionId <- new "action" $ Map.fromList
-            [("name", "callMeMaybe")
+            [("name", "tellMeMore")
             ,("duetime", due)
-            ,("description", utf8 "Заказ услуги через мобильное приложение")
+            ,("description", utf8  "Заказ услуги (требуется дополнительная информация)")
             ,("targetGroup", "back")
             ,("priority", "1")
             ,("parentId", objId)
