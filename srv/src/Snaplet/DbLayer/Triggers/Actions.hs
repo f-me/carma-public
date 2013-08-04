@@ -676,7 +676,6 @@ actionResultMap = Map.fromList
           "Уточнить у клиента окончено ли оказание услуги"
           "back" "3" (+60)
           objId
-        sendMailToDealer objId
   )
   ,("serviceStillInProgress", \objId ->
     isReducedMode >>= \case
