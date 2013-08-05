@@ -110,11 +110,13 @@ sendMailToDealer actionId = do
     caseId  <- get actionId "caseId"
     program <- get caseId   "program"
     when (program `elem` ["peugeot", "citroen"]) $ do
-      dealerId <- get svcId "towDealer_partnerId"
-      when (dealerId /= "") $ do
-        dealer'sMail <- get dealerId "closeTicketEmail"
-        when (dealer'sMail /= "") $ do
-          sendMailActually actionId caseId dealer'sMail
+      payType <- get svcId "payType"
+      when (payType `elem` ["raumc", "mixed", "refund"]) $ do
+        dealerId <- get svcId "towDealer_partnerId"
+        when (dealerId /= "") $ do
+          dealer'sMail <- get dealerId "closeTicketEmail"
+          when (dealer'sMail /= "") $ do
+            sendMailActually actionId caseId dealer'sMail
 
 sendMailActually
   :: MonadTrigger m b

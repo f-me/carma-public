@@ -94,6 +94,10 @@
                 "label": "C-Crosser"
             },
             {
+                "value": "C-Elysee",
+                "label": "C-Elysee"
+            },
+            {
                 "value": "cZero",
                 "label": "C-Zero"
             },
@@ -1106,6 +1110,10 @@
                 "label": "F250"
             },
             {
+                "value": "f150",
+                "label": "F150"
+            },
+            {
                 "value": "faction",
                 "label": "Faction"
             },
@@ -1132,6 +1140,10 @@
             {
                 "value": "galaxy",
                 "label": "Galaxy"
+            },
+            {
+                "value": "grandCMax",
+                "label": "GRAND"
             },
             {
                 "value": "fordGT",
