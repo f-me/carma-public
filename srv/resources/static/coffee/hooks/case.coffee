@@ -112,6 +112,7 @@ define ["utils"], (u) ->
 
   eventsHistoryKbHook: (model, knockVM) ->
     fillEventsHistory(knockVM)()
+    knockVM['fillEventHistory'] = fillEventsHistory(knockVM)
     knockVM['contact_phone1'].subscribe fillEventsHistory(knockVM)
     knockVM['actions'].subscribe fillEventsHistory(knockVM)
     knockVM['comments'].subscribe fillEventsHistory(knockVM)

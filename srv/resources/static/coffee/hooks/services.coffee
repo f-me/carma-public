@@ -72,6 +72,7 @@ define [ "utils"
           kvm[f.name](val.name)
           kvm["#{f.name}Id"]?(val.id)
           kvm["#{f.name.split('_')[0]}_address"]?(val.addrDeFacto)
+          kvm['parent']['fillEventHistory']()
 
     # this fn should be called from click event, in other case
     # it will be blocked by chrome policies
