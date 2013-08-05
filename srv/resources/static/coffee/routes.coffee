@@ -20,6 +20,7 @@ define [
   "screens/editSms"
   "screens/program"
   "screens/partnersSearch"
+  "screens/servicesSearch"
   "render/screen"
   ], ( bo
      , call
@@ -42,6 +43,7 @@ define [
      , editSms
      , program
      , partnersSearch
+     , servicesSearch
      , r) ->
     localScreens: ->
       "case":
@@ -130,6 +132,9 @@ define [
       "partnersSearch":
         "views":
           "search-view": partnersSearch
+      "servicesSearch":
+        "views":
+          "search-view": servicesSearch
 
     # Setup routing
     localRouter: Backbone.Router.extend
@@ -165,6 +170,7 @@ define [
         "printSrv/:model/:id" : "printSrv"
         "partnersSearch"        : "partnersSearch"
         "partnersSearch/:model" : "partnersSearchModel"
+        "servicesSearch"        : "servicesSearch"
 
       loadCase      : (id) -> r.renderScreen("case", kase, {"id": id})
       newCase       :      -> r.renderScreen("case", kase, {"id": null})
@@ -200,3 +206,4 @@ define [
       partnersSearch     : -> r.renderScreen("partnersSearch", partnersSearch)
       partnersSearchModel: (model) ->
         r.renderScreen "partnersSearch", partnersSearch, {model: model}
+      servicesSearch     : -> r.renderScreen("servicesSearch", servicesSearch)

@@ -1,0 +1,32 @@
+<div>
+  ololo
+  <table id="tbl">
+    <tr data-bind="foreach: showFields">
+      <th data-bind="text: meta.label" />
+    </tr>
+    <!-- ko foreach: kvms -->
+    <tr data-bind="foreach: $root.showFields">
+      <td data-bind="render: $parent" />
+    </tr>
+    <!-- /ko -->
+  </table>
+</div>
+
+<script type="text/template" id="dictionary-txt-template">
+  <div data-bind="text: $parent[name + 'Local']" />
+</script>
+
+<script type="text/template" id="dictionary-txt-template">
+  <!-- ko text: $parent[name + 'Local'] -->
+  <!-- /ko -->
+</script>
+
+<script type="text/template" id="text-txt-template">
+  <!-- ko text: $parent[name] -->
+  <!-- /ko -->
+</script>
+
+<script type="text/template" id="checkbox-txt-template">
+  <!-- ko text: $parent[name]() ? '✓' : '' -->
+  <!-- /ko -->
+</script>

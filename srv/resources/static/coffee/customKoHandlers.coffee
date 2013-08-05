@@ -29,3 +29,8 @@ ko.bindingHandlers.pickerDisable =
 ko.bindingHandlers.bindDict =
   init: (el, acc, allBindigns, kvm) ->
     kvm["#{acc()}Typeahead"].setElement(el)
+
+ko.bindingHandlers.render =
+  init: (el, acc, allBindigns, ctx) ->
+    tpl = acc()._meta.tpls[ctx.name]
+    ko.utils.setHtml el, tpl
