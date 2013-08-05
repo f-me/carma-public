@@ -13,6 +13,7 @@ define ["lib/meta-dict"], (m) ->
           @source = @s.entries[val]
           @dictValueCache = null
           @dictLabelCache = null
+        @kvm[@parent].valueHasMutated()
       else
         @source = @s.entries
 
