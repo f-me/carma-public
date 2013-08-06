@@ -106,6 +106,7 @@ define [ "utils"
     kvm['fromCase'] = true
     kvm['city'](kaseKVM.city())
     kvm['make'](kaseKVM.car_make())
+    kvm['field'] = ctx['field']
     kvm['selectedPartner'](srvKVM["#{ctx['field']}Id"]?())
     # Set isDealer flag depending on what field we came from
     unless ctx['field'].split('_')[0] == 'contractor'
@@ -139,12 +140,21 @@ define [ "utils"
         kvm['selectedPartner'](null)
         global.pubSub.pub subName(ctx.field, id),
           name: ''
-          addrdefacto: ''
+          addrDeFacto: ''
           id: ''
       else
         kvm['selectedPartner'](partner.id)
         # Highlight partner blip on map
         $("#map").trigger "drawpartners"
+        if kvm['field'].split('_')[0] == 'contractor'
+          partner['addrDeFacto'] =
+            (_.find partner.addrs, (a) -> a.key == 'fact')?['value']
+        else
+          partner['addrDeFacto']  =
+            (_.find partner.addrs, (a) -> a.key == 'serv')?['value']
+          partner['addrDeFacto'] ?=
+            (_.find partner.addrs, (a) -> a.key == 'fact')?['value']
+        partner['addrDeFacto'] ?= ''
         global.pubSub.pub subName(ctx.field, id), partner
 
     kvm['selectPartner'] = (partner, ev) ->
