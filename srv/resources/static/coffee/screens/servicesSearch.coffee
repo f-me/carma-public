@@ -36,10 +36,15 @@ define [ "utils"
   showFields = (model, flds) ->
     ko.observableArray _.filter model.fields, (f) -> _.contains flds, f.name
 
-  window.addField = (flds, fldName) ->
-    f = _.find model.fields, (f) -> f.name == fldName
-    return unless f
-    flds.push(f)
+  window.addFields = (flds, fldNames) ->
+    fs = _.filter model.fields, (f) -> f.name == fldName
+    return unless fs
+    flds.push(f) for f in fs
+
+  window.delField = (flds, fldName) ->
+    fs = _.filter model.fields, (f) -> f.name == fldName
+    return unless fs
+    flds.removeAll(fs)
 
   constructor: ->
     kvm1 = main.buildKVM model,
