@@ -313,7 +313,7 @@ define [ "utils"
       # blinking Moscow syndrome)
       return if kvm["cityPlacesExpected"] > kvm["cityPlaces"]().length
       if kvm["caseCoords"]?
-        map.fitPlaces osmap, [coords: kvm["caseCoords"]].concat newCityPlacess
+        map.fitPlaces osmap, [coords: kvm["caseCoords"]].concat newCityPlaces
       else
         map.fitPlaces osmap, newCityPlaces
 
