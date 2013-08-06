@@ -128,6 +128,8 @@ define [ "utils"
       <li> <b> Цвет: </b> #{kaseKVM.car_colorLocal() || ''}</li>
       <li> <b> VIN:</b> #{kaseKVM.car_vin() || ''}</li>
       <li> <b> Тип оплаты:</b> #{srvKVM.payTypeLocal() || ''}</li>
+      <li> <b> Клиент/Доверенное лицо будет сопровождать автомобиль:</b>
+      #{if srvKVM.companion?() then '✓' else '' }</li>
     </ul>
     """
     kvm['caseCoords'] = map.lonlatFromShortString kaseKVM.caseAddress_coords()
