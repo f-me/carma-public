@@ -197,16 +197,6 @@ define [ "utils"
     t = $("#map").offset().top
     $("#map").height(w-t-5)
 
-  # Obtain coordinates of city (internal value) or return null in case
-  # of failure
-  cityToCoords = (city, coords) ->
-    fixed_city = global.dictValueCache.DealerCities[city]
-    $.getJSON map.geoQuery(fixed_city), (res) ->
-      if res.length > 0
-        coords = new OpenLayers.LonLat res[0].lon, res[0].lat
-      else
-        coords = null
-
   # Bind cityPlaces observableArray to list of places of currently
   # selected cities in `city`. A place is an object with fields
   # `coords` (OpenLayers coordinate) and `bounds` (bounding box as an
