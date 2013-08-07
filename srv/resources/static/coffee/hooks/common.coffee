@@ -4,9 +4,6 @@ define [ "utils"
   distanceQuery = (coord1, coord2) ->
     u.stripWs "/geo/distance/#{coord1}/#{coord2}/"
 
-  # Transform distance in meters to km
-  formatDistance = (dist) -> Math.round ((parseInt dist) / 1000)
-
   # - <field>Local for dictionary fields: reads as label, writes real
   #   value back to Backbone model;
   dictionaryKbHook: (m, kvm) ->
@@ -119,13 +116,13 @@ define [ "utils"
           other_coord = vm2[d2_meta.field]()
           if other_coord
             $.get distanceQuery(new_coord, other_coord), (resp) ->
-              kvm[n](formatDistance(resp).toString())
+              kvm[n](u.formatDistance(resp).toString())
 
         vm2[d2_meta.field].subscribe (new_coord) ->
           other_coord = vm1[d1_meta.field]()
           if other_coord
             $.get distanceQuery(new_coord, other_coord), (resp) ->
-              kvm[n](formatDistance(resp).toString())
+              kvm[n](u.formatDistance(resp).toString())
 
   # - <field>Locals for dictionary fields: reads array
   #  of { label: ..., value: ... } objects

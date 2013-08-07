@@ -148,12 +148,12 @@ define [ "utils"
         $("#map").trigger "drawpartners"
         if kvm['field'].split('_')[0] == 'contractor'
           partner['addrDeFacto'] =
-            (_.find partner.addrs, (a) -> a.key == 'fact')?['value']
+            utils.getKeyedJsonValue partner.addrs, 'fact'
         else
           partner['addrDeFacto']  =
-            (_.find partner.addrs, (a) -> a.key == 'serv')?['value']
+            utils.getKeyedJsonValue partner.addrs, 'serv'
           partner['addrDeFacto'] ?=
-            (_.find partner.addrs, (a) -> a.key == 'fact')?['value']
+            utils.getKeyedJsonValue partner.addrs, 'fact'
         partner['addrDeFacto'] ?= ''
         global.pubSub.pub subName(ctx.field, id), partner
 
@@ -165,7 +165,9 @@ define [ "utils"
         selectPartner(kvm, partner)
       else
         partnerCancel.setup "partner:#{selected}", ctx.service.id, ctx.case.id
-        partnerCancel.onSave -> selectPartner(kvm, partner)
+        partnerCancel.onSave ->
+          selectPartner(kvm, partner)
+          $("#map").trigger "drawpartners"
 
     kvm['showPartnerCancelDialog'] = (partner, ev) -> kvm['selectPartner'](null)
 
@@ -196,16 +198,6 @@ define [ "utils"
 
     t = $("#map").offset().top
     $("#map").height(w-t-5)
-
-  # Obtain coordinates of city (internal value) or return null in case
-  # of failure
-  cityToCoords = (city, coords) ->
-    fixed_city = global.dictValueCache.DealerCities[city]
-    $.getJSON map.geoQuery(fixed_city), (res) ->
-      if res.length > 0
-        coords = new OpenLayers.LonLat res[0].lon, res[0].lat
-      else
-        coords = null
 
   # Bind cityPlaces observableArray to list of places of currently
   # selected cities in `city`. A place is an object with fields
@@ -246,14 +238,20 @@ define [ "utils"
     osmap.addLayer(new OpenLayers.Layer.OSM())
     osmap.zoomToMaxExtent()
 
-    # Crash site blip
+    # Crash site blip initial position
     if kvm["caseCoords"]?
       coords = kvm["caseCoords"].clone().transform(map.wsgProj, map.osmProj)
-      ico = new OpenLayers.Icon(map.carIcon, map.iconSize)
-      backLayer = new OpenLayers.Layer.Markers("back")
-      osmap.addLayer backLayer
-      backLayer.addMarker(
-        new OpenLayers.Marker coords, ico)
+      map.currentBlip osmap, coords, "car"
+
+    # Crash site relocation on map click
+    osmap.events.register "click", osmap, (e) ->
+      raw_coords = osmap.getLonLatFromViewPortPx(e.xy)
+      map.currentBlip osmap, raw_coords, "car"
+
+      coords = raw_coords.clone().transform(map.osmProj, map.wsgProj)
+      kvm["caseCoords"] = coords
+
+      kvm._meta.q._search()      
 
     # Draw partners on map
     redrawPartners = (newPartners) ->
@@ -389,6 +387,7 @@ define [ "utils"
         v.phones ||= null
         v.addrs  ||= null
         v.emails ||= null
+        v.distance ||= null
         r[v.id]['phones'] = _.map JSON.parse(v.phones), (p) ->
           p.label = PhoneTypes.getLab(p.key)
           p.note  ||= ''
@@ -404,6 +403,7 @@ define [ "utils"
         showPhone = phones?[0] or r[v.id]['phones']?[0]
         r[v.id]['phone']       = showPhone?.value || ''
         r[v.id]['workingTime'] = showPhone?.note  || ''
+        r[v.id]['distanceFormatted'] = utils.formatDistance v.distance
         r[v.id]['factAddr'] =
           (_.filter r[v.id]['addrs'], ({key}) -> key == 'fact')[0]?.value || ''
       r
