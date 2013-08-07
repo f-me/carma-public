@@ -107,7 +107,7 @@ define [ "utils"
     kvm['city'](kaseKVM.city())
     kvm['make'](kaseKVM.car_make())
     kvm['field'] = ctx['field']
-    pid = parseInt srvKVM["#{ctx['field']}Id"].split(":")[1]
+    pid = parseInt srvKVM["#{ctx['field']}Id"]()?.split(":")[1]
     kvm['selectedPartner'](pid?())
     # Set isDealer flag depending on what field we came from
     unless ctx['field'].split('_')[0] == 'contractor'
