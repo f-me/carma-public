@@ -57,7 +57,7 @@ define [ "utils"
           dictionaryName: "Priorities"
           dictionaryType: "ComputedDict"
           bounded: false
-          label: "ПНГ"
+          label: "ПБЗ"
       },
       { name: "isDealer"
       , type: "checkbox"
