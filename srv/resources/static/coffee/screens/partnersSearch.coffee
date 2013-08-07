@@ -165,7 +165,9 @@ define [ "utils"
         selectPartner(kvm, partner)
       else
         partnerCancel.setup "partner:#{selected}", ctx.service.id, ctx.case.id
-        partnerCancel.onSave -> selectPartner(kvm, partner)
+        partnerCancel.onSave ->
+          selectPartner(kvm, partner)
+          $("#map").trigger "drawpartners"
 
     kvm['showPartnerCancelDialog'] = (partner, ev) -> kvm['selectPartner'](null)
 
