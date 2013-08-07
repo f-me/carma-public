@@ -238,10 +238,20 @@ define [ "utils"
     osmap.addLayer(new OpenLayers.Layer.OSM())
     osmap.zoomToMaxExtent()
 
-    # Crash site blip
+    # Crash site blip initial position
     if kvm["caseCoords"]?
       coords = kvm["caseCoords"].clone().transform(map.wsgProj, map.osmProj)
       map.currentBlip osmap, coords, "car"
+
+    # Crash site relocation on map click
+    osmap.events.register "click", osmap, (e) ->
+      raw_coords = osmap.getLonLatFromViewPortPx(e.xy)
+      map.currentBlip osmap, raw_coords, "car"
+
+      coords = raw_coords.clone().transform(map.osmProj, map.wsgProj)
+      kvm["caseCoords"] = coords
+
+      kvm._meta.q._search()      
 
     # Draw partners on map
     redrawPartners = (newPartners) ->
