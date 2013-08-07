@@ -1,0 +1,3 @@
+./
+https://github.com/f-me/simple-log
+https://github.com/f-me/simple-log-syslog
