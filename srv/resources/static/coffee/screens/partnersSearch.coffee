@@ -241,11 +241,7 @@ define [ "utils"
     # Crash site blip
     if kvm["caseCoords"]?
       coords = kvm["caseCoords"].clone().transform(map.wsgProj, map.osmProj)
-      ico = new OpenLayers.Icon(map.carIcon, map.iconSize)
-      backLayer = new OpenLayers.Layer.Markers("back")
-      osmap.addLayer backLayer
-      backLayer.addMarker(
-        new OpenLayers.Marker coords, ico)
+      map.currentBlip osmap, coords, "car"
 
     # Draw partners on map
     redrawPartners = (newPartners) ->
