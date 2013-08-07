@@ -225,7 +225,7 @@ fillFromContract vin objId = do
         ,"car_checkupMileage", "cardNumber_milageTO"
         ,"cardNumber_cardNumber", "car_makeYear", "cardNumber_validUntilMilage"
         ,"cardNumber_validFrom", "cardNumber_validUntil"
-        ,"cardNumber_warrantyStart", "cardNumber_warrantyEnd"
+        ,"car_warrantyStart", "car_warrantyEnd"
         ,"car_seller", "car_dealerTO"]
         row
       return True
