@@ -256,6 +256,9 @@ define ["model/utils"], (mu) ->
       json = [newObj]
     json
 
+  # Transform distance in meters to km
+  formatDistance: (dist) -> Math.round ((parseInt dist) / 1000)
+
   # FIXME: remove this function definition
   # and correct module dependencies
   focusRef: mu.focusReference
