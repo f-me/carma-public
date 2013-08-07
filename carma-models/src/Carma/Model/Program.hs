@@ -25,6 +25,7 @@ data Program = Program
 
 instance Model Program where
   type TableName Program = "programtbl"
+  modelFields = getModelFields Program
 
 -- known programs
 citroen = Ident 56 :: Ident Program

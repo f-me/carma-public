@@ -8,19 +8,22 @@ module Data.Model
   , FieldDesc(..)
   , fieldName
   , tableName
-  , ModelFields, modelFields
+  , GetModelFields, getModelFields
   ) where
 
 
+import Control.Applicative
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Aeson.Types as Aeson
 import Database.PostgreSQL.Simple.FromField (FromField(..))
-import Data.Typeable
+import Data.Dynamic
 import GHC.TypeLits
 
 
 class (SingI (TableName m), Typeable m) => Model m where
   type TableName m :: Symbol
+  modelFields :: [FieldDesc m]
 
 tableName :: Model model => model -> String
 tableName (_ :: model)
@@ -38,6 +41,10 @@ instance Model m => Show (Ident m) where
 instance FromField (Ident m) where
   fromField f x = Ident `fmap` fromField f x
 
+instance FromJSON (Ident m) where
+  parseJSON = fmap Ident . parseJSON
+
+
 
 data FOpt (name :: Symbol) (desc :: Symbol) = FOpt
 data Field typ opt = Field
@@ -51,26 +58,29 @@ fieldName (_ :: model -> Field typ (FOpt name desc))
 
 
 data FieldDesc m = FieldDesc
-  {fd_fieldName :: Text
-  ,fd_fieldDesc :: Text
-  ,fd_fieldType :: TypeRep
+  {fd_name      :: Text
+  ,fd_desc      :: Text
+  ,fd_type      :: TypeRep
+  ,fd_parseJSON :: Value -> Parser Dynamic
   }
-  deriving Show
 
 
-class ModelFields m ctr where
-  modelFields :: ctr -> [FieldDesc m]
+class GetModelFields m ctr where
+  getModelFields :: ctr -> [FieldDesc m]
 
-instance (ModelFields m ctr, Typeable t, SingI nm, SingI desc)
-    => ModelFields m (Field t (FOpt nm desc) -> ctr)
+instance
+    (GetModelFields m ctr, SingI nm, SingI desc
+    ,FromJSON t, Typeable t)
+    => GetModelFields m (Field t (FOpt nm desc) -> ctr)
   where
-    modelFields f
+    getModelFields f
       = FieldDesc
-        {fd_fieldName = T.pack $ fromSing (sing :: Sing nm)
-        ,fd_fieldDesc = T.pack $ fromSing (sing :: Sing desc)
-        ,fd_fieldType = typeOf   (undefined :: t)
+        {fd_name      = T.pack $ fromSing (sing :: Sing nm)
+        ,fd_desc      = T.pack $ fromSing (sing :: Sing desc)
+        ,fd_type      = typeOf   (undefined :: t)
+        ,fd_parseJSON = \v -> toDyn <$> (parseJSON v :: Parser t)
         }
-      : modelFields (f Field)
+      : getModelFields (f Field)
 
-instance ModelFields m m where
-  modelFields _ = []
+instance GetModelFields m m where
+  getModelFields _ = []

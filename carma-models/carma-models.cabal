@@ -17,6 +17,7 @@ library
   exposed-modules:
     Test,
     Data.Model,
+    Data.Model.Patch,
     Data.Model.Sql,
     Data.Model.View,
     Carma.Model.Program,
@@ -27,6 +28,7 @@ library
     aeson == 0.6.*,
     base == 4.6.*,
     containers,
+    unordered-containers == 0.2.*,
     postgresql-simple == 0.3.3.*,
     text == 0.11.*
 
@@ -35,4 +37,4 @@ library
     TypeFamilies,
     MultiParamTypeClasses, FlexibleInstances, FlexibleContexts,
     DeriveDataTypeable,
-    OverloadedStrings
+    OverloadedStrings, TupleSections

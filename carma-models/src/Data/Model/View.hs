@@ -47,13 +47,13 @@ instance ToJSON (View m) where
     ]
 
 
-defaultView :: (Model m, ModelFields m ctr) => ctr -> View m
+defaultView :: (Model m, GetModelFields m ctr) => ctr -> View m
 defaultView ctr
   = setDefaultModelName
   $ View
     { modelName = ""
     , title = ""
-    , fields = map defaultFieldView $ modelFields ctr
+    , fields = map defaultFieldView $ getModelFields ctr
     }
   where
     setDefaultModelName (v :: View m)
@@ -62,13 +62,13 @@ defaultView ctr
 
 defaultFieldView :: FieldDesc m -> FieldView m
 defaultFieldView f = FieldView
-  { name      = fd_fieldName f
-  , fieldType = translateFieldType $ fd_fieldType f
-  , meta      = Map.singleton "label" $ fd_fieldDesc f
+  { name      = fd_name f
+  , fieldType = translateFieldType $ fd_type f
+  , meta      = Map.singleton "label" (Aeson.String $ fd_desc f)
   , canWrite  = True
   }
 
 
 translateFieldType tr = case show tr of
   "Int" -> "int"
-  t     -> error $ "translateFieldType: unkonwn type " ++ r
+  t     -> error $ "translateFieldType: unkonwn type " ++ t
