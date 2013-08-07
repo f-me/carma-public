@@ -148,12 +148,12 @@ define [ "utils"
         $("#map").trigger "drawpartners"
         if kvm['field'].split('_')[0] == 'contractor'
           partner['addrDeFacto'] =
-            (_.find partner.addrs, (a) -> a.key == 'fact')?['value']
+            utils.getKeyedJsonValue partner.addrs, 'fact'
         else
           partner['addrDeFacto']  =
-            (_.find partner.addrs, (a) -> a.key == 'serv')?['value']
+            utils.getKeyedJsonValue partner.addrs, 'serv'
           partner['addrDeFacto'] ?=
-            (_.find partner.addrs, (a) -> a.key == 'fact')?['value']
+            utils.getKeyedJsonValue partner.addrs, 'fact'
         partner['addrDeFacto'] ?= ''
         global.pubSub.pub subName(ctx.field, id), partner
 
