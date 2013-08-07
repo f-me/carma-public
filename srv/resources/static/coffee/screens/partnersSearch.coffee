@@ -385,6 +385,11 @@ define [ "utils"
           name     : v.servicename
           priority2: v.priority2
           priority3: v.priority3
+          showStr  : do ->
+            show  = srvLab v.servicename
+            show += " ПБГ: #{v.priority2}" if v.priority2
+            show += " ПБЗ: #{v.priority3}" if v.priority3
+            show
         r[v.id]['cityLocal'] = DealerCities.getLab(v.city) || ''
         r[v.id]['makesLocal'] =
           (_.map v.makes, (m) -> CarMakers.getLab(m)).join(', ')
@@ -410,6 +415,7 @@ define [ "utils"
         r[v.id]['distanceFormatted'] = utils.formatDistance v.distance
         r[v.id]['factAddr'] =
           (_.filter r[v.id]['addrs'], ({key}) -> key == 'fact')[0]?.value || ''
+
       r
 
     kvm["searchK"] = ko.computed(->kvm["search"]()).extend { throttle: 300 }

@@ -98,9 +98,9 @@
             </ul>
             <b>Услуги:</b>
             <ul data-bind="foreach: services">
-              <li data-bind="text: label +
-                             ' ПБГ:' + priority2 +
-                             ' ПБЗ:' + priority3" />
+              <!-- ko if: label -->
+              <li data-bind="text: showStr" />
+              <!-- /ko -->
             </ul>
             <div class="accordion-toggle collapsed"
                  data-toggle="collapse"
