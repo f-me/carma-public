@@ -89,7 +89,10 @@ define ["model/utils", "utils"], (mu, u) ->
 
   # Convert LonLat object to string in format "32.41,52.33"
   shortStringFromLonlat = (coords) ->
-    return "#{coords.lon},#{coords.lat}"
+    if coords?
+      return "#{coords.lon},#{coords.lat}"
+    else
+      null
 
   carIcon = "/s/img/car-icon.png"
   towIcon = "/s/img/tow-icon.png"

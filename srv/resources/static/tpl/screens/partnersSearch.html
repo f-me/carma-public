@@ -75,11 +75,16 @@
                          'selected-partner': id == $parent.selectedPartner()
                          }">
             <ul class="unstyled" data-bind="click: $parent.selectPartner">
-              <li data-bind="text: name" />
+              <li>
+                <span data-bind="text: name" />
+                <span data-bind="visible: distance">
+                  (<span data-bind="text: distanceFormatted" />&nbsp;км)
+                </span>
+              </li>
               <li data-bind="visible: id == $parent.selectedPartner()">
                 <button type="button"
-                        class="btn btn-danger"
-                        data-bind="click: $parent.showPartnerCancelDialog">
+                        class="btn btn-danger" data-bind="click:
+                        $parent.showPartnerCancelDialog">
                   <i class="icon-list-alt icon-white"></i>
                   Отказ
                 </button>

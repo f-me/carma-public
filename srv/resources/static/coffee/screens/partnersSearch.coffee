@@ -381,6 +381,7 @@ define [ "utils"
         v.phones ||= null
         v.addrs  ||= null
         v.emails ||= null
+        v.distance ||= null
         r[v.id]['phones'] = _.map JSON.parse(v.phones), (p) ->
           p.label = PhoneTypes.getLab(p.key)
           p.note  ||= ''
@@ -396,6 +397,7 @@ define [ "utils"
         showPhone = phones?[0] or r[v.id]['phones']?[0]
         r[v.id]['phone']       = showPhone?.value || ''
         r[v.id]['workingTime'] = showPhone?.note  || ''
+        r[v.id]['distanceFormatted'] = utils.formatDistance v.distance
         r[v.id]['factAddr'] =
           (_.filter r[v.id]['addrs'], ({key}) -> key == 'fact')[0]?.value || ''
       r
