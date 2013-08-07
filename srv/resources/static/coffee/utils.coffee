@@ -230,14 +230,14 @@ define ["model/utils"], (mu) ->
 
   # Extract value of the first object from "dict-objects"-field JSON
   # contents with matching "key". If no such entries found, return
-  # value of the first object in the field.
+  # null.
   getKeyedJsonValue: (json, key) ->
     if json?.length > 0
       o = _.find json, (o) -> o.key == key
       if o?
         o.value
       else
-        json[0].value
+        null
 
   # Set value of the first object from "dict-objects"-field JSON
   # contents with matching "key" (create it if no object matches key),
