@@ -107,8 +107,11 @@ define [ "utils"
     kvm['city'](kaseKVM.city())
     kvm['make'](kaseKVM.car_make())
     kvm['field'] = ctx['field']
-    pid = parseInt srvKVM["#{ctx['field']}Id"]()?.split(":")[1]
-    kvm['selectedPartner'](pid?())
+    pid = srvKVM["#{ctx['field']}Id"]()?.split(":")[1]
+    if pid?
+      kvm['selectedPartner'] parseInt pid
+    else
+      kvm['selectedPartner'] null
     # Set isDealer flag depending on what field we came from
     unless ctx['field'].split('_')[0] == 'contractor'
       kvm['isDealer'](true)
@@ -252,7 +255,7 @@ define [ "utils"
       coords = raw_coords.clone().transform(map.osmProj, map.wsgProj)
       kvm["caseCoords"] = coords
 
-      kvm._meta.q._search()      
+      kvm._meta.q._search()
 
     # Draw partners on map
     redrawPartners = (newPartners) ->
