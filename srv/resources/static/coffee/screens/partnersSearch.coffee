@@ -107,7 +107,7 @@ define [ "utils"
     kvm['city'](kaseKVM.city())
     kvm['make'](kaseKVM.car_make())
     kvm['field'] = ctx['field']
-    pid = srvKVM["#{ctx['field']}Id"]()?.split(":")[1]
+    pid = srvKVM["#{ctx['field']}Id"]()
     if pid?
       kvm['selectedPartner'] parseInt pid
     else
