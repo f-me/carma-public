@@ -41,3 +41,13 @@ instance Model m => FromJSON (Patch m) where
         Nothing -> fail $ "Unexpected field: " ++ show name
         Just p  -> (name,) <$> (fd_parseJSON p) val
   parseJSON j = fail $ "JSON object expected but here is what I have: " ++ show j
+
+
+instance Model m => ToJSON (Patch m) where
+  toJSON (Patch m) = object [(k, toJS k v) | (k,v) <- HashMap.toList m]
+    where
+      fields :: HashMap Text (FieldDesc m)
+      fields = HashMap.fromList [(fd_name f, f) | f <- modelFields]
+      toJS k = fd_toJSON $ fields HashMap.! k
+
+

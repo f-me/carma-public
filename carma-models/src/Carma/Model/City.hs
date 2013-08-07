@@ -2,9 +2,9 @@
 module Carma.Model.City where
 
 
+import Data.Aeson
 import Data.Text
 import Data.Typeable
-import Data.Aeson.Types
 
 import Data.Model
 
@@ -15,6 +15,9 @@ data Coords = Coords -- {lon :: Double, lat :: Double}
 
 instance FromJSON Coords where
   parseJSON v = return Coords
+
+instance ToJSON Coords where
+  toJSON (Coords) = object []
 
 data City = City
   {ident    :: F (Ident City) "id"       "id"
