@@ -27,7 +27,8 @@ define [ "model/render"
                    , localDictionaries
                    , hooks
                    , user
-                   , models) ->
+                   , models
+                   , pubSub) ->
     Screens = localScreens
 
     dictCache = dict.buildCache(localDictionaries)
@@ -46,6 +47,7 @@ define [ "model/render"
         user: user
         models: models
         activeScreen: null
+        pubSub: pubSub
         # viewsWare is for bookkeeping of views in current screen.
         #
         # Hash keys are DOM tree element IDs associated with the
@@ -80,19 +82,26 @@ define [ "model/render"
   # - maybeId; («—» if Backbone id is not available yet)
   #
   # - modelTitle;
-  buildKVM = (model, elName, fetched) ->
+  buildKVM = (model, options) ->
+
+    {elName, fetched, queue, queueOptions} = options
 
     fields   = model.fields
     required = (f for f in fields when f.meta?.required)
 
     # Build kvm with fetched data if have one
     kvm = {}
-    # FIXME: use this hack only for disthook and it's finvm, find
-    # more appropriate way to handle that
-    global.viewsWare[elName] ?= {}
-    global.viewsWare[elName]['knockVM'] = kvm if elName
-    for f in fields
-      kvm[f.name] = ko.observable(fetched?[f.name])
+    kvm["_meta"] = { model: model, cid: _.uniqueId("#{model.name}_") }
+
+    # build observables for real model fields
+    kvm[f.name] = ko.observable(null) for f in fields
+
+    # set id only when it wasn't set from from prefetched data
+    kvm['id'] = ko.observable(fetched?['id'])
+
+    # set queue if have one, and sync it with backend
+    kvm._meta.q = new queue(kvm, model, queueOptions) if queue
+    kvm[f.name](fetched[f.name]) for f in fields when fetched?[f.name]
 
     # Set extra observable for inverse of every required
     # parameters, with name <fieldName>Not
@@ -101,6 +110,8 @@ define [ "model/render"
         n = f.name
         kvm["#{n}Not"] = ko.computed -> kvm["#{n}Regexp"]?() or not kvm[n]()
 
+    # Setup reference fields they will be stored in <name>Reference as array
+    # of kvm models
     for f in fields when f.type == "reference"
       do (f) ->
         kvm["#{f.name}Reference"] =
@@ -114,16 +125,22 @@ define [ "model/render"
               return [] unless rs
               ms = (m.split(':') for m in rs)
               for m in ms
-                k = buildModel(m[0], global.models, {id: m[1]})[0]
+                k = buildKVM global.models[m[0]],
+                  fetched: {id: m[1]}
+                  queue:   queue
                 k.parent = kvm
                 k
             write: (v) ->
               ks = ("#{k._meta.model.name}:#{k.id()}" for k in v).join(',')
               kvm[f.name](ks)
 
-    kvm["_meta"] = { model: model, cid: _.uniqueId("#{model.name}_") }
+        # setup reference add button
+        if f.meta?.model
+          # define add-reference-button ko.bindingHandlers.bindClick function
+          kvm["add#{f.name}"] = ->
+            addRef kvm, f.name, {modelName: f.meta.model}, (kvm) ->
+              focusRef(kvm)
 
-    kvm['id'] = ko.observable()
     kvm["maybeId"] = ko.computed -> kvm['id']() or "—"
 
     # disable dixi filed for model
@@ -255,11 +272,12 @@ define [ "model/render"
       return kvm
 
   buildModel = (modelName, models, args, options, elName) ->
-      knockVM = buildKVM(models[modelName], elName)
-      knockVM[k]?(v) for k, v of args
-      q = new sync.CrudQueue(knockVM, models[modelName], options)
-      knockVM._meta.q = q
-      return [knockVM, q]
+      kvm = buildKVM models[modelName],
+        elName: elName
+        queue: sync.CrudQueue
+        queueOptions: options
+        fetched: args
+      return [kvm, kvm._meta.q]
 
   buildNewModel = (modelName, args, options, cb) ->
     [knockVM, q] = buildModel(modelName, global.models, args, options)
@@ -314,6 +332,22 @@ define [ "model/render"
       global.viewsWare[refBook.refView] = {}
       global.viewsWare[refBook.refView].depViews = v
 
+  addRef = (knockVM, field, ref, cb) ->
+    field = "#{field}Reference" unless /Reference$/.test(field)
+    thisId = knockVM._meta.model.name + ":" + knockVM.id()
+    ref.args = _.extend({"parentId":thisId}, ref.args)
+    buildNewModel ref.modelName, ref.args, ref.options or {},
+      (model, refKVM) ->
+        newVal = knockVM[field]().concat refKVM
+        knockVM[field](newVal)
+        cb(_.last knockVM[field]()) if _.isFunction(cb)
+
+  focusRef = (kvm) ->
+    e = $('#' + kvm['view'])
+    e.parent().prev()[0].scrollIntoView()
+    e.find('input')[0].focus()
+    e.find('input').parents(".accordion-body").first().collapse('show')
+
 
   getrForest = (kvm, fld) ->
     modelName = kvm._meta.model.name
@@ -332,4 +366,7 @@ define [ "model/render"
   { setup         : mainSetup
   , modelSetup    : modelSetup
   , buildNewModel : buildNewModel
+  , buildKVM      : buildKVM
+  , addRef        : addRef
+  , focusRef      : focusRef
   }

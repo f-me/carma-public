@@ -117,7 +117,13 @@
           "label" : "Редактирование программ",
           "type"  : "li",
           "permissions": ["admin", "head", "programman"]
+        },
+        { "name"  : "partnersSearch",
+          "label" : "Дилеры и партнеры",
+          "type"  : "li",
+          "permissions": ["partners_user"]
         }
+
       ]
     }
 ]

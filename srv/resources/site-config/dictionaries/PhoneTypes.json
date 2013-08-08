@@ -1,0 +1,28 @@
+{
+    "entries": [
+        {
+            "value": "disp",
+            "label": "Диспетчерская"
+        },
+        {
+            "value": "close",
+            "label": "Закрытие заявок"
+        },
+        {
+            "value": "serv",
+            "label": "Сервисный отдел"
+        },
+        {
+            "value": "sales",
+            "label": "Отдел продаж"
+        },
+        {
+            "value": "fax",
+            "label": "Факс"
+        },
+        {
+            "value": "man",
+            "label": "Ответственное лицо"
+        }
+    ]
+}

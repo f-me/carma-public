@@ -7,15 +7,13 @@ define ["model/main", "render/screen"], (main, render) ->
 
   window.saveInstance = saveInstance
 
-  addReference: (knockVM, field, ref, cb) ->
-    field = "#{field}Reference" unless /Reference$/.test(field)
-    thisId = knockVM._meta.model.name + ":" + knockVM.id()
-    ref.args = _.extend({"parentId":thisId}, ref.args)
-    main.buildNewModel ref.modelName, ref.args, ref.options or {},
-      (model, refKVM) ->
-        newVal = knockVM[field]().concat refKVM
-        knockVM[field](newVal)
-        cb(_.last knockVM[field]()) if _.isFunction(cb)
+  # FIXME: remove this function definition
+  # and correct module dependencies
+  addReference: main.addRef
+
+  # FIXME: remove this function definition
+  # and correct module dependencies
+  focusReference: main.focusRef
 
   removeReference: (knockVM, field, ref) ->
     field = field + 'Reference' unless /Reference$/.test(field)
