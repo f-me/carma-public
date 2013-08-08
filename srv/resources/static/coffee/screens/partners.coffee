@@ -49,7 +49,6 @@ define [ "utils"
             kvm = modelSetup modelName, viewName, {id}
             global.alertObj.kvm(kvm)
 
-            subscribeTarifStuff(modelName)
         )
       screenman.showScreen modelName
 
@@ -65,27 +64,6 @@ define [ "utils"
           isMobile: kvm.isMobile()
           name: kvm.name()
         table.dataTable.fnAddData objsToRows [obj]
-
-      subscribeTarifStuff(modelName)
-
-    subscribeTarifStuff = (modelName) ->
-      k = global.viewsWare["#{modelName}-view"].knockVM
-      k['servicesReference'].subscribe ->
-        addTarifStuff i for i in k['servicesReference']()
-
-    addTarifStuff = (p) ->
-      view = $("##{p['view']}")
-      button = Mustache.render $("#add-ref-button-template").html(),
-        fn:    ""
-        label: "Добавить опцию"
-      view.children().last().after button
-      view.children().last().click -> genNewTarif p
-
-    genNewTarif = (kvm) ->
-      mu.addReference kvm, 'tarifOptions', { modelName: 'tarifOption' },
-        (k) ->
-          utils.bindRemove kvm, 'tarifOptions'
-          utils.focusRef k
 
     screenRelease = () ->
       ko.cleanNode($("#partner-errors")[0])
