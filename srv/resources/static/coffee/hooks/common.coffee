@@ -294,7 +294,8 @@ define [ "utils"
           ko.observable global.dictionaries[f.meta.dictionaryName].entries
 
         # Populate {n}Objects with initial values
-        kvm[n].valueHasMutated()
+        if kvm[n]()?
+          kvm[n].valueHasMutated()
 
   # Standard element callback which will scroll model into view and
   # focus on first field
