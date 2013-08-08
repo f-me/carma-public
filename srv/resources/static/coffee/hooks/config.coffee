@@ -13,36 +13,37 @@ define [ "hooks/common"
                , c.dictManyHook
                , c.fileKbHook
                , c.dateTimeHook
+               , c.jsonDictObjsHook
                ]
 
       "action" : [a.nameLocal]
 
-      "averageCommissioner" : [s.bindPartnerCancelDialog]
+      "averageCommissioner" : [ s.openPartnerSearch ]
 
-      "bank" : [s.bindPartnerCancelDialog]
+      "bank" : [ s.openPartnerSearch ]
 
       "case" : [ k.descsKbHook
                , k.eventsHistoryKbHook
                , k.cityStatsHook
                ]
 
-      "consultation" : [s.bindPartnerCancelDialog]
+      "consultation" : [ s.openPartnerSearch ]
 
-      "continue" : [s.bindPartnerCancelDialog]
+      "continue" : [ s.openPartnerSearch ]
 
       "cost_serviceTarifOption" : [c.tarifOptNameDef]
 
-      "deliverClient" : [s.bindPartnerCancelDialog]
+      "deliverClient" : [ s.openPartnerSearch ]
 
       "hotel" : [ s.partnerOptsHook
                 , s.srvOptUpd
                 , s.costsMark
-                , s.bindPartnerCancelDialog
+                , s.openPartnerSearch
                 ]
 
-      "insurance" : [s.bindPartnerCancelDialog]
+      "insurance" : [ s.openPartnerSearch ]
 
-      "ken" : [s.bindPartnerCancelDialog]
+      "ken" : [ s.openPartnerSearch ]
 
       "partner" : [p.bindRemoveService, p.serviceRepeat]
 
@@ -53,12 +54,12 @@ define [ "hooks/common"
       "rent" : [ s.partnerOptsHook
                , s.srvOptUpd
                , s.costsMark
-               , s.bindPartnerCancelDialog
+               , s.openPartnerSearch
                ]
 
       "sober" : [ s.partnerOptsHook
                 , s.srvOptUpd
-                , s.bindPartnerCancelDialog
+                , s.openPartnerSearch
                 ]
 
       "tarifOption" : [c.tarifOptNameDef]
@@ -66,22 +67,21 @@ define [ "hooks/common"
       "taxi" : [ s.partnerOptsHook
                , s.srvOptUpd
                , s.costsMark
-               , s.bindPartnerCancelDialog
+               , s.openPartnerSearch
                ]
 
       "tech" : [ s.partnerOptsHook
                , s.srvOptUpd
                , s.costsMark
-               , s.bindPartnerCancelDialog
+               , s.openPartnerSearch
                ]
 
-      "tech1" : [s.bindPartnerCancelDialog]
+      "tech1" : [ s.openPartnerSearch ]
 
-      "tickets" : [s.bindPartnerCancelDialog]
+      "tickets" : [ s.openPartnerSearch ]
 
       "towage" : [ s.partnerOptsHook
                  , s.srvOptUpd
                  , s.costsMark
-                 , c.distHook
-                 , s.bindPartnerCancelDialog
+                 , s.openPartnerSearch
                  ]

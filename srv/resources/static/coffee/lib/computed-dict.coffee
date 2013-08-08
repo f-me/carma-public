@@ -3,7 +3,7 @@ define ["lib/local-dict"], (m) ->
     constructor: (@opts) ->
       [f, a] = @opts.dict.split ':'
       fn    = @[f.trim()]
-      throw new Error("Unknown dictionary #{f.trim}") unless fn
+      throw new Error("Unknown dictionary #{f.trim()}") unless fn
       args  = a.split(',').map((e) -> e.trim()) unless _.isEmpty args
       fn.call(@, args)
 
@@ -42,6 +42,7 @@ define ["lib/local-dict"], (m) ->
               all_pgms
             else
               []
-              
+
+    Priorities: => @source = [1..3].map (e) -> s=String(e);{value:s,label:s}
 
   dict: ComputedDict

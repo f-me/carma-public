@@ -1,0 +1,143 @@
+<div id="partnersSearch-content">
+
+  <!-- customized popover tpl with increased max-width -->
+  <div id="custom-popover" class="fade in bottom">
+    <div class="popover" style="max-width:1000px">
+      <div class="arrow" />
+      <div class="popover-content" />
+    </div>
+  </div>
+
+  <div class="row-fluid">
+    <div class="span10">
+      <div class="row-fluid">
+        <div class="span3">
+          {{> city }}
+        </div>
+        <div class="span3">
+          {{> make }}
+        </div>
+        <div class="span3">
+          {{> services }}
+        </div>
+        <div class="span1">
+          {{> priority2 }}
+        </div>
+        <div class="span1">
+          {{> priority3 }}
+        </div>
+
+      </div>
+    </div>
+    <div class="span2">
+      <a id="case-info"
+         data-toggle="popover"
+         data-placement="bottom"
+         data-html="true"
+         data-bind="attr: { 'data-content': caseInfo }">
+        Информация о кейсе
+      </a>
+
+      {{> dealer        }}
+      {{> mobilePartner }}
+      {{> workNow       }}
+    </div>
+  </div>
+
+  <div class="row-fluid">
+    <div class="span4 well">
+      <div class="row-fluid">
+      <div class="control-group span10">
+        <input type="text"
+               placeholder="Поиск"
+               class="pane-span focusable"
+               autocomplete="off"
+               name="search"
+               data-bind="value: search,
+                          valueUpdate: 'afterkeydown',
+                          readonly: searchDisabled">
+      </div>
+        <select class="span2"
+                style="float: right;"
+                data-bind="selectedOptions: choosenSort">
+          <option value="priority2"> ПБГ </option>
+          <option value="priority3"> ПБЗ </option>
+        </select>
+      </div>
+      <div id="search-result" class="row-fluid" style="overflow-y:
+                                                       auto;">
+        <div data-bind="visible: searchProcessed().length == 0"
+             style="text-align: center">
+          <em>Не найдено партнёров, удовлетворяющих условиям поиска</em>
+        </div>
+        <ol data-bind="foreach: searchProcessed">
+          <li data-bind="css: {
+                         'selected-partner': id == $parent.selectedPartner()
+                         }">
+            <ul class="unstyled" data-bind="click: $parent.selectPartner">
+              <li>
+                <span data-bind="text: name" />
+                <span data-bind="visible: distance">
+                  (<span data-bind="text: distanceFormatted" />&nbsp;км)
+                </span>
+              </li>
+              <li data-bind="visible: id == $parent.selectedPartner()">
+                <button type="button"
+                        class="btn btn-danger" data-bind="click:
+                        $parent.showPartnerCancelDialog">
+                  <i class="icon-list-alt icon-white"></i>
+                  Отказ
+                </button>
+              </li>
+              <li data-bind="html: '<b>Телефон: </b>' + phone +
+                             ' (' + workingTime + ')'" />
+              <li data-bind="html: '<b>Город: </b>' + cityLocal" />
+              <li data-bind="html: '<b>Фактический адрес: </b>' + factAddr" />
+              <li data-bind="html: '<b>Обслуживаемые марки: </b>' + makesLocal"/>
+              <li data-bind="html: '<b>Комментарий: </b>' + comment" />
+            </ul>
+            <b>Услуги:</b>
+            <ul data-bind="foreach: services">
+              <!-- ko if: label -->
+              <li data-bind="text: showStr" />
+              <!-- /ko -->
+            </ul>
+            <div class="accordion-toggle collapsed"
+                 data-toggle="collapse"
+                 data-bind="attr: { 'data-target': '#partner' + id }" >
+              <a> Посмотреть полную информацию </a>
+            </div>
+            <div data-bind="attr: {id: 'partner' + id}"
+                 class="accordion-body collapse">
+              <div class="accordion-inner">
+                <b>Ответственное лицо:</b>
+                <!-- ko text: personincharge --> <!-- /ko -->
+                <br />
+                <b>Телефоны:</b>
+                <ul data-bind="foreach: phones">
+                  <li data-bind="html: label + '<br/>' +
+                                 ' Телефон:' + value +
+                                 ' Время работы:' + note" />
+                </ul>
+                <b>Адреса:</b>
+                <ul data-bind="foreach: addrs">
+                  <li data-bind="text: label + ': ' + value" />
+                </ul>
+                <b>Emails:</b>
+                <ul data-bind="foreach: emails">
+                  <li data-bind="text: label + ': ' + value" />
+                </ul>
+              </div>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- wrapper to allign map with partners list -->
+    <div style="margin-top: 1px;">
+      <div class="span8 osMap" id="map" />
+    </div>
+  </div>
+
+</div>

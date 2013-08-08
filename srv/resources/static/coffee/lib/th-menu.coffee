@@ -99,7 +99,7 @@ class ThMenu
     next = $(@$menu.find('li')[0]) unless next.length
 
     next.addClass('active')
-    @inViewport(next) || next[0].scrollIntoView()
+    @inViewport(next) || next[0].scrollIntoView(false)
 
   prev: (event) =>
     active = @$menu.find('.active').removeClass('active')
@@ -108,7 +108,7 @@ class ThMenu
     prev = @$menu.find('li').last() unless prev.length
 
     prev.addClass('active')
-    @inViewport(prev) || prev[0].scrollIntoView()
+    @inViewport(prev) || prev[0].scrollIntoView(false)
 
   blur: (e) => setTimeout((=> @hide()), 150)
 
@@ -148,10 +148,7 @@ class ThMenu
       when 9, 16, 37, 39  # tab, shift, left, right
         return
       when 13     # enter
-        if @shown
-        then @select()
-        else @draw()
-
+        @select() if @shown
       when 27     # escape
         @hide()
 

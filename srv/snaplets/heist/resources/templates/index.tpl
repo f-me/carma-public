@@ -846,10 +846,28 @@
     <script type="text/template"
             class="field-template"
             id="reference-field-template">
-      <div class="controls">
-        <span class="accordion"
-              id="{{ modelName }}-{{ cid }}-{{ name }}-references" />
-      </div>
+        <div class="control-group">
+
+          <div class="control-label">
+            <label></label>
+          </div>
+
+          <div class="controls">
+            <span class="accordion"
+                  id="{{ modelName }}-{{ cid }}-{{ name }}-references" />
+          </div>
+
+          {{# meta.model}}
+          <div id="add-reference-button" class="controls">
+            <button class="dropdown-toggle btn btn-action"
+                    data-bind="bindClick: add{{ name }}"
+                    type="button">
+              <i class="icon icon-plus"></i>&nbsp;{{ meta.reference-label }}
+            </button>
+          </div>
+          {{/ meta.model}}
+
+        </div>
     </script>
 
     <!-- Container field template for attachment reference list, with
@@ -1154,6 +1172,81 @@
       </div>
     </script>
 
+    <!-- Template for fields with unknown type -->
+    <script type="text/template"
+            class="field-template"
+            id="dict-objects-field-template">
+      <div class="control-group">
+        <div class="control-label">
+          <label>{{ meta.label }}
+            {{# meta.infoText1 }}
+            <i class="icon icon-question-sign"
+               data-provide="popover"
+               data-content="{{ meta.infoText1 }}" />
+            {{/ meta.infoText1 }}
+          </label>
+        </div>
+        <ul data-bind="foreach: {{ name }}Objects">
+          <li>
+          <div class="control-group"
+               {{# meta.regexp }}data-bind="css: { warning: regexp }"{{/ meta.regexp}}
+               >
+            <div class="control-label">
+              <label>
+                <span data-bind="text: keyLocal" />
+                <a href="#" class="text-error"
+                   data-bind="click: $parent.{{name}}DeleteObj">×</a>
+              </label>
+            </div>
+            <div class="controls">
+                <input type="text"
+                       class="pane-span focusable"
+                       autocomplete="off"
+                       {{# meta.transform }}
+                       style="text-transform:{{meta.transform}};"
+                       {{/ meta.transform }}
+                       {{# readonly }}readonly{{/ readonly }}
+                       data-bind="value: value,
+                                  valueUpdate: 'afterkeydown'" />
+            </div>
+          </div>
+          {{# meta.showNote }}
+          <div class="control-group">
+            <div class="control-label">
+              <label>{{ meta.noteLabel }}</label>
+            </div>
+            <div class="controls">
+              <input type="text"
+                     class="pane-span focusable"
+                     autocomplete="off"
+                     {{# readonly }}readonly{{/ readonly }}
+                     data-bind="value: note,
+                                valueUpdate: 'afterkeydown'" />
+            </div>
+          </div>
+          {{/ meta.showNote }}
+          </li>
+        </ul>
+
+        <ul class="nav nav-pills">
+          <li class="dropup">
+            <button class="dropdown-toggle btn btn-action"
+                    type="button"
+                    data-toggle="dropdown">
+              <i class="icon icon-plus" />&nbsp;{{ meta.addLabel }}
+            </button>
+            <ul class="dropdown-menu" data-bind="foreach: {{name}}KeyDictionary">
+              <li>
+                <a data-bind="text: label,
+                              click: $parent.{{name}}AddObj"
+                   href="#" />
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </script>
+
     <!-- Form controls wrt user permissions -->
     <script type="text/template"
             id="permission-template">
@@ -1263,6 +1356,38 @@
         </div>
       </div>
     </script>
+
+    <script type="text/template"
+            class="field-template"
+            id="partner-field-template">
+      <div class="control-group"
+           {{# meta.required }}
+           data-bind="css: { error: {{name}}Not }"
+           {{/ meta.required}}
+           >
+        <div class="control-label">
+          <label>{{ meta.label }}
+            {{# meta.infoText1 }}
+              <i class="icon icon-question-sign"
+                 data-provide="popover"
+                 data-content="{{ meta.infoText1 }}" />
+            {{/ meta.infoText1 }}
+          </label>
+        </div>
+        <div class="controls input-append">
+          <input type="text"
+                 class="pane-span focusable"
+                 name="{{ name }}"
+                 disabled
+                 data-bind="value: {{ name }}" />
+          <span class="add-on">
+            <i class="icon icon-search"
+               data-bind="click: openPartnerSearch.bind($data, '{{ name }}')" />
+          </span>
+        </div>
+      </div>
+    </script>
+
     <!-- Modal dialog launch button -->
     <script type="text/template"
             class="field-template"
@@ -1428,14 +1553,15 @@
 
     <!-- Partner map popup -->
     <script type="text/template" id="partner-popup-template">
-      <div><strong>{{ name }}</strong></div>
-      <div>{{ addrDeFacto }}</div>
-      <div>{{ phone1 }}</div>
-      <div>{{ workingTime }}</div>
-      <div>{{ comment }}</div>
-      <div><a class="btn btn-mini btn-primary"
-              onclick="pickPartnerBlip('{{ parentView }}', '{{ mapId }}', '{{ id }}', '{{ name }}', '{{ addrDeFacto }}', '{{ coords }}', '{{ partnerIdField }}', '{{ partnerField }}', '{{ partnerAddrField }}', '{{ partnerCoordsField }}');">Выбрать</a></div>
+      <div>
+        <div><strong>{{ name }}</strong></div>
+        <div>{{ address }}</div>
+        <div>{{ phone }}</div>
+        <div>{{ comment }}</div>
+        <div class="btn-div">
+          <a class="btn btn-mini btn-primary">Выбрать</a>
+        </div>
+      </div>
     </script>
-
   </body>
 </html>

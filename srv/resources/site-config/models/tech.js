@@ -224,30 +224,6 @@
   "applications": [
     {
       "meta": {
-        "label": "Партнёр"
-      },
-      "targets": [
-        "contractor_partner"
-      ]
-    },
-    {
-      "meta": {
-        "targetPartner": "contractor_partner",
-        "targetPartnerId": "contractor_partnerId",
-        "targetPartnerAddr": "contractor_address",
-        "targetPartnerCoords": "contractor_coords",
-        "partnerTable": "contractor_partnerTable",
-        "highlightIdFields": [
-          "contractor_partnerId"
-        ],
-        "cityField": "case-form/city"
-      },
-      "targets": [
-        "contractor_partnerMap"
-      ]
-    },
-    {
-      "meta": {
         "mainToo": true
       },
       "targets": [

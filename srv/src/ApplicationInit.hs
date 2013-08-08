@@ -59,21 +59,20 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/actionsFor/:id",chkAuthLocal . method GET    $ getActionsForCase)
          , ("/cancelsFor/:id",chkAuthLocal . method GET    $ getCancelsForCase)
          , ("/littleMoreActions",
-                              chkAuthLocal . method PUT    $ littleMoreActionsHandler)
-         , ("/allActions",    chkAuthLocal . method GET    $ allActionsHandler)
+            chkAuthLocal . method PUT $ littleMoreActionsHandler)
+         , ("/allActions",    chkAuthLocal . method GET $ allActionsHandler)
          , ("actions/unassigned",
-                              chkAuthLocal . method GET    $ unassignedActionsHandler)
-         , ("actions/busyOps",
-                              chkAuthLocal . method GET    $ busyOps)
-         , ("/allPartners",   chkAuthLocal . method GET    $ allPartnersHandler)
+            chkAuthLocal . method GET $ unassignedActionsHandler)
+         , ("actions/busyOps", chkAuthLocal . method GET $ busyOps)
+         , ("/allPartners",   chkAuthLocal . method GET  $ allPartnersHandler)
          , ("/partnersFor/:srv",
-                              chkAuthLocal . method GET    $ partnersForSrvHandler)
+                              chkAuthLocal . method GET $ partnersForSrvHandler)
          , ("/psaCases/",
-                              chkAuthLocal . method GET    $ psaCasesHandler)
+                              chkAuthLocal . method GET $ psaCasesHandler)
          , ("/psaCases/:program",
-                              chkAuthLocal . method GET    $ psaCasesHandler)
+                              chkAuthLocal . method GET $ psaCasesHandler)
          , ("/repTowages/:id",
-                              chkAuthLocal . method GET    $ repTowagesHandler)
+                              chkAuthLocal . method GET $ repTowagesHandler)
          , ("/cardOwnerLookup", chkAuth . method GET  $ cardOwnerLookup)
          , ("/allContracts/:program",
                               chkAuth . method GET   $ selectContracts)

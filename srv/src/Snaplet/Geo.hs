@@ -4,6 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TypeOperators #-}
 
 {-|
 
@@ -32,12 +33,13 @@ import Data.Attoparsec.ByteString.Char8
 import Data.ByteString.Char8 as BS (ByteString, concat)
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import Data.Map as M
+import Data.HashMap.Strict as HM (delete)
+import Data.Maybe as Maybe
 
 import Data.Configurator
 import Database.PostgreSQL.Simple.SqlQQ
+import Database.PostgreSQL.Simple.ToField (ToField(..))
 import Data.Text.Encoding
-import qualified Data.Vector as V
-import qualified Data.Vector.Mutable as VM (unsafeNew, unsafeWrite)
 
 import Network.HTTP as H (simpleHTTP, getRequest, getResponseBody)
 
@@ -62,6 +64,20 @@ makeLenses ''Geo
 
 instance HasPostgres (Handler b Geo) where
     getPostgresState = with postgres $ get
+
+
+-- | Works almost like '(:.)' for 'ToField' instances. Start with `()`
+-- and append as many fields as needed:
+--
+-- > () :* f1 :* f2 :* f3
+--
+-- Initial `()` saves the type hassle.
+data a :* b = a :* b deriving (Eq, Ord, Show, Read)
+
+infixl 3 :*
+
+instance (ToRow a, ToField b) => ToRow (a :* b) where
+    toRow (a :* b) = toRow $ a :. (Only b)
 
 
 routes :: [(ByteString, Handler b Geo ())]
@@ -94,24 +110,6 @@ getCoordsParam = getParamWith coords
 
 
 ------------------------------------------------------------------------------
--- | Row schema for 'withinQuery' results.
-newtype Partner = Partner (Int, Double, Double, Maybe Bool, Maybe Bool)
-                  deriving (FromRow, Show)
-
-
-instance ToJSON Partner where
-    toJSON (Partner (a, b, c, d, e)) = Array $ V.create $ do
-                         mv <- VM.unsafeNew 5
-                         VM.unsafeWrite mv 0 (toJSON a)
-                         VM.unsafeWrite mv 1 (toJSON b)
-                         VM.unsafeWrite mv 2 (toJSON c)
-                         VM.unsafeWrite mv 3 (toJSON d)
-                         VM.unsafeWrite mv 4 (toJSON e)
-                         return mv
-    {-# INLINE toJSON #-}
-
-
-------------------------------------------------------------------------------
 -- | Read two points from `coords1` and `coords2` request parameters,
 -- splice lon1, lat1, lon2 and lat2 on the query and serve the results
 -- as JSON, or fail if coordinates could not be read.
@@ -135,18 +133,13 @@ twoPointHandler q queryToResult = do
 
 ------------------------------------------------------------------------------
 -- | Query to fetch partners within a box, with mobile partners coming
--- last. See 'withinPartners'.
+-- last. See 'withinPartners' and `geowithin` SQL stored procedure.
 --
--- Splice lon1, lat1 and lon2, lat2 on the query, where coordinates
--- are those of opposite 2D box points.
+-- Splice 13 parameters, starting with lon1, lat1 and lon2, lat2 on
+-- the query, where coordinates are those of opposite 2D box points.
 withinQuery :: Query
 withinQuery = [sql|
-SELECT id, st_x(coords), st_y(coords), isDealer, isMobile
-FROM partnertbl
-WHERE coords && ST_SetSRID(ST_MakeBox2D(ST_Point(?, ?), ST_Point(?, ?)), 4326)
-ORDER BY
-(case when isMobile then 1 when isMobile is null then 2 else 3 end)
-DESC;
+SELECT geowithin(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 |]
 
 
@@ -166,12 +159,52 @@ SELECT ST_Distance_Sphere(ST_PointFromText('POINT(? ?)', 4326),
 ------------------------------------------------------------------------------
 -- | Serve a list of partners located within a rectangle given by
 -- coordinates of two opposite points specified in request parameters
--- @coord1@ and @coord2@.
+-- @coord1@ and @coord2@. Coordinates in @from@ param define central
+-- point from which distances are calculated (optional). Partners
+-- maybe be filteres with @city@, @make@, @services@, @priority2@ and
+-- @priority3@, @isDealer@, @mobilePartner@ params.
 --
--- Response body is a JSON list of 5-tuples @[partner_id, lon, lat,
--- isDealer, isMobile]@. Mobile partners come last.
+-- Response body is a list of JSON objects, representing partners
+-- joined with partner_service (see @withinQuery@ for list of fields).
+-- Mobile partners come last.
 withinPartners :: Handler b Geo ()
-withinPartners = twoPointHandler withinQuery (id :: [Partner] -> [Partner])
+withinPartners = do
+  c1 <- getCoordsParam "coords1"
+  c2 <- getCoordsParam "coords2"
+  c <- getCoordsParam "from"
+
+  city <- fromMaybe ""  <$> getParam "city"
+  make <- fromMaybe ""  <$> getParam "make"
+  srv  <- fromMaybe ""  <$> getParam "services"
+  pr2  <- fromMaybe ""  <$> getParam "priority2"
+  pr3  <- fromMaybe ""  <$> getParam "priority3"
+  dlr  <- fromMaybe "0" <$> getParam "isDealer"
+  mp   <- fromMaybe "0" <$> getParam "mobilePartner"
+
+  let (centered, lonc, latc) =
+          case c of
+            Just (lon, lat) -> (True, lon, lat)
+            _               -> (False, 0, 0)
+
+  case (c1, c2) of
+    (Just (lon1, lat1), Just (lon2, lat2)) -> do
+        let qParams = ()
+                      :* lon1 :* lat1 :* lon2 :* lat2
+                      :* lonc :* latc
+                      :* city :* make
+                      :* srv  :* pr2 :* pr3
+                      :* dlr  :* mp
+        results <- recode <$> query withinQuery qParams
+        -- Do not serve useless distance if center point is not cet
+        let results' = if centered
+                       then results
+                       else Prelude.map (HM.delete "distance") results
+        modifyResponse $ setContentType "application/json"
+        writeLBS $ A.encode results'
+    _ -> error "Bad request"
+    where
+      recode :: [[BSL.ByteString]] -> [A.Object]
+      recode = Maybe.mapMaybe (A.decode) . Prelude.concat
 
 
 ------------------------------------------------------------------------------

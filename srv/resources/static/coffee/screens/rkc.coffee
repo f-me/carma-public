@@ -271,7 +271,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
 
             # Fill mobile partners table
             $.getJSON "/all/partner/?select=isMobile==1,isActive==1" +
-                      "&fields=name,mtime,city,addrDeFacto",
+                      "&fields=name,mtime,city,addrs",
               (result) ->
                 mt.fnClearTable()
                 mrows = for minfo in result
@@ -283,7 +283,10 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
                       else
                         ""
                     , dict.DealerCities[minfo.city] || minfo.city
-                    , minfo.addrDeFacto
+                    , if minfo.addrs.length > 0
+                        utils.getKeyedJsonValue (JSON.parse minfo.addrs), "fact"
+                      else
+                        ""
                     ]
                 mt.fnAddData(mrows)
 

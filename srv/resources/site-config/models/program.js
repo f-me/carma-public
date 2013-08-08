@@ -83,7 +83,9 @@
     },
     {
       "meta": {
-        "label": "Ограничение прав"
+        "label": "Ограничение прав",
+        "model": "programPermissions",
+        "reference-label": "Добавить ограничение на поле контракта"
       },
       "type": "reference",
       "groupName": null,
