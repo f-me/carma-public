@@ -30,7 +30,8 @@ define [], ->
     datetime : s2cDate("dd.MM.yyyy HH:mm")
     json     : s2cJson
 
-  c2s = (val, type) -> (c2sTypes[type] || (v) -> String(v))(val)
+  defaultc2s = (v) -> if v then String(v) else ""
+  c2s = (val, type) -> (c2sTypes[type] || defaultc2s)(val)
   s2c = (val, type) -> (s2cTypes[type] || _.identity)(val)
 
   mapObj = (mapper) -> (obj, types) ->
