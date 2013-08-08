@@ -2,6 +2,7 @@ define ["model/utils"], (mu) ->
   # jquery -> html(as string) conversion, with selected element
   jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
 
+  # Synchronous JSON request
   $.bgetJSON = (url, cb) ->
     $.ajax
       type     : 'GET'
@@ -227,11 +228,40 @@ define ["model/utils"], (mu) ->
     url = "/#{city}"
     $.getJSON "/weather/#{city}", (data) -> cb(data)
 
-  focusRef: (kvm) ->
-    e = $('#' + kvm['view'])
-    e.parent().prev()[0].scrollIntoView()
-    e.find('input')[0].focus()
-    e.find('input').parents(".accordion-body").first().collapse('show')
+  # Extract value of the first object from "dict-objects"-field JSON
+  # contents with matching "key". If no such entries found, return
+  # null.
+  getKeyedJsonValue: (json, key) ->
+    if json?.length > 0
+      o = _.find json, (o) -> o.key == key
+      if o?
+        o.value
+      else
+        null
+
+  # Set value of the first object from "dict-objects"-field JSON
+  # contents with matching "key" (create it if no object matches key),
+  # return new JSON string.
+  setKeyedJsonValue: (json, key, value) ->
+    newObj =
+      key: key
+      value: value
+    if json?
+      o = _.find json, (o) -> o.key == key
+      if o?
+        o.value = value
+      else
+        json = json.concat [newObj]
+    else
+      json = [newObj]
+    json
+
+  # Transform distance in meters to km
+  formatDistance: (dist) -> Math.round ((parseInt dist) / 1000)
+
+  # FIXME: remove this function definition
+  # and correct module dependencies
+  focusRef: mu.focusReference
 
   bindRemove: bindRemove
 

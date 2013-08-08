@@ -208,6 +208,8 @@ fillFromContract vin objId = do
       contractValidUntilMilage::text,
       extract (epoch from contractValidFromDate)::int8::text,
       extract (epoch from contractValidUntilDate)::int8::text,
+      extract (epoch from warrantyStart)::int8::text,
+      extract (epoch from warrantyEnd)::int8::text,
       carSeller, carDealerTO
       FROM contracttbl c LEFT JOIN programtbl p ON p.id::text = c.program
       WHERE isactive AND dixi AND carVin = ?
@@ -223,6 +225,7 @@ fillFromContract vin objId = do
         ,"car_checkupMileage", "cardNumber_milageTO"
         ,"cardNumber_cardNumber", "car_makeYear", "cardNumber_validUntilMilage"
         ,"cardNumber_validFrom", "cardNumber_validUntil"
+        ,"car_warrantyStart", "car_warrantyEnd"
         ,"car_seller", "car_dealerTO"]
         row
       return True

@@ -2,6 +2,7 @@ define [
   "screens/backoffice"
   "screens/call"
   "screens/case"
+  "screens/dictionaries"
   "screens/partners"
   "screens/user"
   "screens/uploads"
@@ -18,11 +19,12 @@ define [
   "screens/newVin"
   "screens/editSms"
   "screens/program"
-  "screens/partnersLookup"
+  "screens/partnersSearch"
   "render/screen"
   ], ( bo
      , call
      , kase
+     , dictionaries
      , partner
      , user
      , uploads
@@ -39,13 +41,17 @@ define [
      , newVin
      , editSms
      , program
-     , partnersLookup
+     , partnersSearch
      , r) ->
     localScreens: ->
       "case":
         "template": "case-screen-template"
         "views":
           "case-form": kase
+      "dictionaries":
+        "template": "dictionaries-screen-template"
+        "views":
+          "dictionaries-view": dictionaries
       "search":
         "template": "search-screen-template"
         "views":
@@ -74,7 +80,7 @@ define [
       "uploads":
         "template": "uploads-screen-template"
         "views":
-          "user-view": uploads         
+          "user-view": uploads
       "supervisor":
         "template": "supervisor-screen-template"
         "views":
@@ -121,9 +127,9 @@ define [
         "template": "program-screen-template"
         "views":
           "program-view": program
-      "partnersLookup":
+      "partnersSearch":
         "views":
-          "lookup-view": partnersLookup
+          "search-view": partnersSearch
 
     # Setup routing
     localRouter: Backbone.Router.extend
@@ -131,6 +137,8 @@ define [
       routes:
         "case/:id"       : "loadCase"
         "case"           : "newCase"
+        "dictionaries/:dict" : "dictionaries"
+        "dictionaries/:dict/:id" : "editDictionary"
         "search"         : "search"
         "uploads"        : "uploads"
         "vin"            : "vin"
@@ -155,10 +163,13 @@ define [
         "program"        : "program"
         "program/:id"    : "loadProgram"
         "printSrv/:model/:id" : "printSrv"
-        "partnersLookup" : "partnersLookup"
+        "partnersSearch"        : "partnersSearch"
+        "partnersSearch/:model" : "partnersSearchModel"
 
       loadCase      : (id) -> r.renderScreen("case", kase, {"id": id})
       newCase       :      -> r.renderScreen("case", kase, {"id": null})
+      dictionaries  : (dict) -> r.renderScreen("dictionaries", dictionaries, {dict})
+      editDictionary : (dict, id) -> r.renderScreen("dictionaries", dictionaries, {dict, id})
       search        :      -> renderScreen("search")
       uploads       :      -> r.renderScreen("uploads", uploads)
       back          :      -> r.renderScreen("back", bo)
@@ -186,4 +197,6 @@ define [
       loadProgram   : (id) -> r.renderScreen("program", program, {"id": id})
       printSrv      : (model, id) ->
         r.renderScreen "printSrv", print, {model: model, id: id}
-      partnersLookup:      -> r.renderScreen("partnersLookup", partnersLookup)
+      partnersSearch     : -> r.renderScreen("partnersSearch", partnersSearch)
+      partnersSearchModel: (model) ->
+        r.renderScreen "partnersSearch", partnersSearch, {model: model}

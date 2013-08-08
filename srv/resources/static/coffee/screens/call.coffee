@@ -1,8 +1,9 @@
 define [ "utils"
        , "hotkeys"
        , "model/main"
+       , "screens/partnersSearch"
        , "text!tpl/screens/call.html"
-       ], (utils, hotkeys, main, tpl) ->
+       ], (utils, hotkeys, main, pSearch, tpl) ->
 
   utils.build_global_fn 'makeCase', ['screens/case']
   utils.build_global_fn 'reloadScreen', ['utils']
@@ -42,6 +43,7 @@ define [ "utils"
     st.fnSort [[2, "desc"]]
     dtSearch st
     hotkeys.setup()
+    $("#search-partner").on 'click', partnerSearchClick
 
   fillTable = (st, objs) ->
     st.fnClearTable()
@@ -64,6 +66,14 @@ define [ "utils"
     q = q.replace '+', ''
     url = if q.length == 0 then "/latestCases" else "/searchCases?q=#{q}"
     $.getJSON url, (objs) -> fillTable st, objs
+
+  partnerSearchClick = ->
+    kvm = global.viewsWare['call-form'].knockVM
+    if kvm.callerType() == "client" or _.isEmpty kvm.callerType()
+      kvm.callerType("client")
+      kvm.callType("switchDealer")
+    localStorage[pSearch.storeKey] = JSON.stringify kvm._meta.q.toRawObj()
+    pSearch.open('call')
 
   { constructor: setupCallForm
   , template: tpl

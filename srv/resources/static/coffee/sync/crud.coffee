@@ -1,5 +1,5 @@
-define ["sync/datamap"], (m) ->
-  class CrudQueue
+define ["sync/metaq", "sync/datamap"], (metaq, m) ->
+  class CrudQueue extends metaq
     constructor: (@kvm, @model, @options) ->
       @url = "/_/#{@model.name}"
       @q       = {}
@@ -27,9 +27,11 @@ define ["sync/datamap"], (m) ->
     _save: _.debounce((-> @save()), 1300)
 
     save: (cb) =>
+      cb ?= _.identity # just to be sure we have something to call
       @saveKvm() unless @persisted
       method = if @persisted then "PUT" else "POST"
       url    = if @persisted then "#{@url}/#{@kvm.id()}" else @url
+      return cb(@kvm, @model) if _.isEmpty @q
       @qbackup = _.clone(@q)
       @q       = {}
       $.ajax
@@ -46,7 +48,7 @@ define ["sync/datamap"], (m) ->
       @persisted ||= true
       @updadeKvm(m.s2cObj(json, @ftypes))
       @qbackup = {}
-      cb(@kvm, @model) if _.isFunction(cb)
+      cb(@kvm, @model)
 
     saveErrorCb: (x, status) =>
       @q = _.defaults(@q, @qbackup)
@@ -58,5 +60,14 @@ define ["sync/datamap"], (m) ->
     saveKvm: =>
       for f in @model.fields when @kvm[f.name]()
         @q[f.name] = @kvm[f.name]()
+
+    # sync new model, if it's not persisted(have no id), then just save it
+    # in other case first save all that we have and then fetch data from backend
+    sync: (cb) =>
+      cb ?= _.identity
+      unless @persisted
+        @safeKvm
+        return @save(cb)
+      @save => @fetch(); cb(@kvm, @model)
 
   CrudQueue: CrudQueue

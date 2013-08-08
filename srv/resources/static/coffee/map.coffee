@@ -3,46 +3,18 @@
 define ["model/utils", "utils"], (mu, u) ->
 
   # Default marker icon size
-  iconSize = new OpenLayers.Size(50, 50)
+  iconSize = new OpenLayers.Size(40, 40)
 
-  # Default map zoom level
-  zoomLevel = 14
-
-  # Low zoom level (partner map overview)
-  beyondTheClouds = 10
-
-  # Trailing slash included
-  nominatimHost = "http://nominatim.openstreetmap.org/"
+  # Default map zoom level (used when a POI displayed on map has no
+  # bounds)
+  defaultZoomLevel = 13
 
   geoRevQuery = (lon, lat) -> "/geo/revSearch/#{lon},#{lat}/"
 
   geoQuery = (addr) ->
+    nominatimHost = "http://nominatim.openstreetmap.org/"
     return nominatimHost +
       "search?format=json&accept-language=ru-RU,ru&q=#{addr}"
-
-  wsgProj = new OpenLayers.Projection("EPSG:4326")
-  osmProj = new OpenLayers.Projection("EPSG:900913")
-
-  # Center on Moscow by default
-  defaultCoords = new OpenLayers.LonLat(37.617874,55.757549)
-
-  carIcon = "/s/img/car-icon.png"
-  towIcon = "/s/img/tow-icon.png"
-  partnerIcon = "/s/img/partner-icon.png"
-  dealerIcon = "/s/img/dealer-icon.png"
-
-  iconFromType =
-    default: carIcon
-    car: carIcon
-    tow: towIcon
-    partner: partnerIcon
-    dealer: dealerIcon
-
-  # Given regular icon name, return name of highlighted icon
-  #
-  # Filenames must follow the convention that original icons are named
-  # as foo-icon.png and highlighted icons are named as foo-hl-icon.png.
-  hlIconName = (filename) -> filename.replace("-icon", "-hl-icon")
 
   # Build readable address from reverse Nominatim JSON response
   buildReverseAddress = (res) ->
@@ -64,6 +36,84 @@ define ["model/utils", "utils"], (mu, u) ->
     else
       global.dictLabelCache.DealerCities[res.city] || null
 
+  wsgProj = new OpenLayers.Projection("EPSG:4326")
+  osmProj = new OpenLayers.Projection("EPSG:900913")
+
+  # Cut off everything beyond The Wall
+  Moscow =
+    coords: new OpenLayers.LonLat(37.617874, 55.757549)
+    bounds: new OpenLayers.Bounds(
+      37.2, 55.5,
+      37.9674301147461, 56.0212249755859)
+
+  Petersburg =
+    coords: new OpenLayers.LonLat(30.312458, 59.943168)
+    bounds: new OpenLayers.Bounds(
+      29.4298095703125, 59.6337814331055,
+      30.7591361999512, 60.2427024841309)
+
+  # Build a place (structure with `coords` and `bounds` fields,
+  # containind OpenLayers LonLat and Bounds, respectively) from
+  # geoQuery response
+  buildPlace = (res) ->
+    if res.error
+      null
+    else
+      if res.length > 0
+        bb = res[0].boundingbox
+        coords: new OpenLayers.LonLat res[0].lon, res[0].lat
+        bounds: new OpenLayers.Bounds bb[2], bb[0], bb[3], bb[1]
+
+  # Build a place for city from geoQuery response
+  buildCityPlace = (res) ->
+    # Override coordinates and boundaries for certain cities.
+    #
+    # TODO Remove this hack (#837) after Cities dict is implemented
+    # properly
+    switch res[0]?.osm_id
+      when "102269"
+        Moscow
+      when "337422"
+        Petersburg
+      else
+        buildPlace res
+
+  # Read "32.54,56.21" (the way coordinates are stored in model fields)
+  # into LonLat object
+  lonlatFromShortString = (coords) ->
+    if coords?.length > 0
+      parts = coords.split(",")
+      new OpenLayers.LonLat(parts[0], parts[1])
+    else
+      null
+
+  # Convert LonLat object to string in format "32.41,52.33"
+  shortStringFromLonlat = (coords) ->
+    if coords?
+      return "#{coords.lon},#{coords.lat}"
+    else
+      null
+
+  carIcon = "/s/img/car-icon.png"
+  towIcon = "/s/img/tow-icon.png"
+  partnerIcon = "/s/img/partner-icon.png"
+  dealerIcon = "/s/img/dealer-icon.png"
+
+  # Map values "default", "car", "tow", "partner", "dealer" to icon
+  # absolute paths
+  iconFromType =
+    default: carIcon
+    car: carIcon
+    tow: towIcon
+    partner: partnerIcon
+    dealer: dealerIcon
+
+  # Given regular icon name, return name of highlighted icon
+  #
+  # Filenames must follow the convention that original icons are named
+  # as foo-icon.png and highlighted icons are named as foo-hl-icon.png.
+  hlIconName = (filename) -> filename.replace("-icon", "-hl-icon")
+
   # Erase existing marker layer and install a new one of the same name
   reinstallMarkers = (osmap, layerName) ->
     layers = osmap.getLayersByName(layerName)
@@ -73,6 +123,73 @@ define ["model/utils", "utils"], (mu, u) ->
     osmap.addLayer(new_layer)
 
     return new_layer
+
+  # Center map on place bounds or coordinates
+  setPlace = (osmap, place) ->
+    t = (o) -> o.clone().transform wsgProj, osmProj
+    if place.bounds?
+      osmap.zoomToExtent t place.bounds
+    else
+      osmap.setCenter t place.coordinates
+
+  # Center an OSM on a city. City is a value from DealerCities
+  # dictionary.
+  centerMapOnCity = (osmap, city) ->
+    if city?.length > 0
+      fixed_city = global.dictValueCache.DealerCities[city]
+      $.getJSON geoQuery(fixed_city), (res) ->
+        if res.length > 0
+          setPlace osmap, buildCityPlace res
+
+  # Reposition and rezoom a map so that all places fit
+  fitPlaces = (osmap, places) ->
+    # Show one place or even fall back to default place
+    if places.length <= 1
+      # Starting with no places || no location or city set on case.
+      if _.isEmpty places || _.isUndefined places[0].coords
+        place = Moscow
+      else
+        place = places[0]
+      # Select zoom level from bounds
+      if place.bounds?
+        osmap.zoomToExtent(
+          place.bounds.clone().transform(wsgProj, osmProj), true)
+      else
+        osmap.zoomTo defaultZoomLevel
+      # Then recenter on the very place for better positioning (your
+      # experience may vary)
+      osmap.setCenter place.coords.clone().transform wsgProj, osmProj
+
+    # Fit several places in viewport
+    else
+      # Pick first bounded place
+      place = _.find places, (p) -> !_.isUndefined p.bounds
+      bounds = place.bounds.clone()
+      # Closefitting hides encircled cities at times
+      closefit = false
+      # Grow to include all other places
+      for p in places
+        if p.bounds?
+          bounds.extend p.bounds
+        else
+          # A place without bounds is usually a crash site pin.
+          # Enabling closefitting after bounds have been extended with
+          # single coordinate pin produces visually more appealing
+          # results
+          if places.length == 2
+            closefit = true
+          bounds.extend p.coords
+
+      gbounds = bounds.transform wsgProj, osmProj
+      osmap.zoomToExtent gbounds, closefit
+
+      # Occasionally closefitting occludes boundless places, so we fix
+      # this
+      ex = osmap.getExtent().transform map.osmProj, map.wsgProj
+      for p in places
+        if not ex.containsLonLat p.coords
+          osmap.zoomToExtent gbounds, false
+          break
 
   # Setup OpenLayers map
   #
@@ -84,40 +201,18 @@ define ["model/utils", "utils"], (mu, u) ->
   #
   # - targetAddr: if set, map will be clickable, enabled for reverse
   #               geocoding and clicking the map will write address to
-  #               this field of model. If the annotation has the form of
-  #               `view_name/field_name`, then the field `field_name` in
-  #               `view_name` view will be used instead of parent view.
+  #               this field of model.
+  #
+  # - targetAddrs
   #
   # - targetCoords: read initial position & current blip from this field
   #                 of model; write geocoding results here (only if it's
-  #                 enabled with `targetAddr` meta!). Metas of form
-  #                 `case-form/field` are treated as in `targetAddr`.
+  #                 enabled with `targetAddr` meta!)
   #
   # - cityField: contains city associated with the address shown on
   #              the map. Used to select initial map location when
   #              coordinates are not set, filled with city name when a
   #              new location is picked on the map.
-  #
-  # - moreCoords: this meta is a list of field names (possibly prefixed
-  #               with view names as in `targetAddr`), where every field
-  #               stores coordinates. Static blips for every field will
-  #               be placed on the map. Blips are not updated as
-  #               coordinates in the referenced fields change.
-  #
-  # - targetPartner: if set, map will show partner blips from table set
-  #                  in `partnerTable` annotation on the same model. The
-  #                  table must be present in the same view. Clicking a
-  #                  blip will write partner information to fields of
-  #                  the model as set in metas:
-  #
-  #                  partner name    → targetPartner
-  #                  partner id      → targetPartnerId
-  #                  partner address → targetPartnerAddr
-  #                  partner coords  → targetPartnerCoords
-  #
-  # - highlightIdFields: a list of fields of the same model which
-  #                      contain ids of partners which are to be
-  #                      highlighted on the map
   #
   # - currentBlipType: one of types listed in the iconFromType map, used
   #                    to set the name icon used fo the «current blip».
@@ -133,119 +228,68 @@ define ["model/utils", "utils"], (mu, u) ->
     fieldName = $(el).attr("name")
     view = $(mu.elementView($(el)))
     modelName = mu.elementModel($(el))
+    kvm = u.findVM parentView
 
     osmap = new OpenLayers.Map(el.id)
     osmap.addLayer(new OpenLayers.Layer.OSM())
 
     coord_field = mu.modelField(modelName, fieldName).meta["targetCoords"]
     addr_field = mu.modelField(modelName, fieldName).meta["targetAddr"]
+    addrs_field = mu.modelField(modelName, fieldName).meta["targetAddrs"]
     city_field = mu.modelField(modelName, fieldName).meta["cityField"]
     current_blip_type =
       mu.modelField(modelName, fieldName).meta["currentBlipType"] or "default"
 
-    if city_field?
-      city_meta = u.splitFieldInView city_field, parentView
-
     # Center on the default location first
-    osmap.setCenter(defaultCoords.clone().transform(wsgProj, osmProj),
-                   zoomLevel)
+    setPlace osmap, Moscow
+
+    # Fit city on map
+    if city_field?
+      city = kvm[city_field]()
+      centerMapOnCity osmap, city
 
     # Place a blip and recenter if coordinates are already known
     if coord_field?
-      coord_meta = u.splitFieldInView(coord_field, parentView)
-
-      coords = u.findVM(coord_meta.view)[coord_meta.field]()
+      coords = kvm[coord_field]()
       if coords? && coords.length > 0
         coords = lonlatFromShortString coords
-        osmap.setCenter coords.transform(wsgProj, osmProj), zoomLevel
+        if city?.length > 0
+          osmap.setCenter coords.transform wsgProj, osmProj
+        else
+          osmap.setCenter coords.transform(wsgProj, osmProj), defaultZoomLevel
         currentBlip osmap, coords, current_blip_type
-      else
-        # Otherwise, just center on the city, not placing a blip
-        if city_field?
-          city = u.findVM(city_meta.view)[city_meta.field]()
-          centerMapOnCity osmap, city
 
     # Setup handler to update target address and coordinates if the
     # map is clickable
-    if addr_field?
-      addr_meta = u.splitFieldInView(addr_field, parentView)
-
+    if addr_field? or addrs_field?
       osmap.events.register("click", osmap, (e) ->
         coords = osmap.getLonLatFromViewPortPx(e.xy)
                  .transform(osmProj, wsgProj)
 
         if coord_field?
-          # coord_field and coord_meta are already known as per
-          # coord_field? branch in geocoding setup
-          u.findVM(coord_meta.view)[coord_meta.field](shortStringFromLonlat coords)
+          kvm[coord_field] shortStringFromLonlat coords
 
         $.getJSON(geoRevQuery(coords.lon, coords.lat),
         (res) ->
-          addr = buildReverseAddress(res)
-          u.findVM(addr_meta.view)[addr_meta.field](addr)
+          addr = buildReverseAddress res
+
+          if addr_field?
+            kvm[addr_field](addr)
+
+          # Write address to first "fact" address of partner
+          if addrs_field?
+            json = kvm[addrs_field]()
+            kvm[addrs_field] (u.setKeyedJsonValue json, "fact", addr)
 
           if city_field?
             city = buildReverseCity(res)
-            u.findVM(city_meta.view)[city_meta.field](city)
+            kvm[city_field](city)
 
           currentBlip osmap, osmap.getLonLatFromViewPortPx(e.xy), current_blip_type
         )
       )
 
-    ## Read coordinates of static coordinate blips and place them on the map
-    more_coord_field = mu.modelField(modelName, fieldName).meta["moreCoords"]
-    if more_coord_field?
-      more_coord_metas = _.map more_coord_field, u.splitFieldInView
-      more_coords = _.map more_coord_metas, (fm) -> u.findVM(fm.view)[fm.field]()
-      for c in more_coords
-        if c?
-          extraBlip osmap, (lonlatFromShortString c).transform(wsgProj, osmProj), "Extras"
-
-    ## Bind map to partner list
-
-    partner_field = mu.modelField(modelName, fieldName).meta["targetPartner"]
-
-    if partner_field?
-      partner_id_field =
-        mu.modelField(modelName, fieldName).meta["targetPartnerId"]
-      partner_addr_field =
-        mu.modelField(modelName, fieldName).meta["targetPartnerAddr"]
-      partner_coords_field =
-        mu.modelField(modelName, fieldName).meta["targetPartnerCoords"]
-
-      table_field = mu.modelField(modelName, fieldName).meta["partnerTable"]
-      table = view.find("table##{table_field}")
-
-      hl_fields = mu.modelField(modelName, fieldName).meta["highlightIdFields"]
-      # Redraw partner blips on map when dragging or zooming
-      osmap.events.register("moveend", osmap, (e) ->
-        # Calculate new bounding box
-        bounds = osmap.getExtent()
-        pts = bounds.toArray()
-        a = new OpenLayers.LonLat(pts[0], pts[1])
-        b = new OpenLayers.LonLat(pts[2], pts[3])
-        a.transform(osmProj, wsgProj)
-        b.transform(osmProj, wsgProj)
-        $.getJSON("/geo/partners/#{a.lon},#{a.lat}/#{b.lon},#{b.lat}/", (pres) ->
-          # Use cache from table beneath a map for partner metadata
-          partnerBlips(
-            osmap, pres, table.data("cache"),
-            parentView,
-            # Fetch current values of fields listed in highlightIdFields
-            _.map(hl_fields,
-              (f) -> u.findVM(parentView)[f]()),
-            partner_id_field, partner_field, partner_addr_field, partner_coords_field)
-        )
-      )
-      # This is a workaround to make sure table cache is loaded prior to
-      # partner markers rendering.
-      _.delay(
-        () ->
-         osmap.setCenter(osmap.getCenter(), beyondTheClouds, false, true)
-        500)
-
     $(el).data("osmap", osmap)
-
 
   # Move the current position blip on a map.
   #
@@ -255,158 +299,6 @@ define ["model/utils", "utils"], (mu, u) ->
     markers = reinstallMarkers(osmap, "CURRENT")
     markers.addMarker(
       new OpenLayers.Marker(coords, ico))
-
-
-  # Place the blip on a (possibly existing) layer of a map, preserving
-  # the existing blips. Extra blips use the "default" icon.
-  extraBlip = (osmap, coords, layerName) ->
-    layers = osmap.getLayersByName(layerName)
-    if (!_.isEmpty(layers))
-      layer = layers[0]
-    else
-      layer = new OpenLayers.Layer.Markers(layerName)
-      osmap.addLayer(layer)
-
-    ico = new OpenLayers.Icon(iconFromType.default, iconSize)
-    layer.addMarker(
-      new OpenLayers.Marker(coords, ico))
-
-
-  # Render list of partner markers on the map
-  #
-  # Arguments:
-  #
-  # - osmap: map to render on
-  #
-  # - partners: a list of [id, lon, lat, isDealer, isMobile] 5-tuples
-  #
-  # - tableCache: a hash of all partners, where key is id and value is
-  #               an object with fields "name", "addrDeFacto", "phone1",
-  #               "workingTime", "isMobile"
-  #
-  # - highlightIds: list of "partner:N" strings for highlighted partners
-  #
-  # - parentView: parentView for contractor
-  #
-  # - partnerField: clicking a button in marker popup will set this
-  #                 value in given VM to partner name
-  #
-  # - partnerAddrField: same as partnerField, but for partner address
-  # - partnerCoordsField: ... but for partner coordinates
-  # - partnerIdField: ... but for partner id
-  partnerBlips = (osmap,
-                  partners, tableCache,
-                  parentView,
-                  highlightIds,
-                  partnerIdField, partnerField,
-                  partnerAddrField, partnerCoordsField) ->
-    markers = do (osmap) -> reinstallMarkers(osmap, "Partners")
-    tpl = $("#partner-popup-template").html()
-
-    for blip in partners
-      do (blip) ->
-        id = blip[0]
-        # cache ids are numeric, highlightIds are strings (being values
-        # of knockVM)
-        hl = _.include(highlightIds, "partner:" + id.toString())
-
-        partner_cache = tableCache[id]
-        is_dealer = blip[3]
-        is_mobile = blip[4]
-
-        # Skip partners which are not in table or highlighted
-        return if not (partner_cache or hl)
-
-        coords = new OpenLayers.LonLat(blip[1], blip[2])
-
-        # Readable coords in WSG
-        string_coords = shortStringFromLonlat coords
-        # Coords to use for map blip
-        coords = coords.transform(wsgProj, osmProj)
-
-        if is_mobile
-          ico = towIcon
-        else
-          if is_dealer
-            ico = dealerIcon
-          else
-            ico = partnerIcon
-
-        if (hl)
-          ico = hlIconName(ico)
-
-        mrk = new OpenLayers.Marker(
-            coords, new OpenLayers.Icon(ico, iconSize))
-
-        # Show partner info from table cache when clicking marker
-        if (partner_cache)
-          mrk.events.register("click", mrk, (e) ->
-
-            # Let popup know where to put new partner data
-            extra_ctx =
-              numid: id
-              mapId: osmap.div.id
-              parentView: parentView
-              partnerField: partnerField
-              partnerIdField: partnerIdField
-              partnerAddrField: partnerAddrField
-              partnerCoordsField: partnerCoordsField
-              coords: string_coords
-            ctx =_.extend(partner_cache, extra_ctx)
-
-            popup = new OpenLayers.Popup.FramedCloud(
-              partner_cache.id, mrk.lonlat,
-              new OpenLayers.Size(200, 200),
-              Mustache.render(tpl, ctx),
-              null, true)
-
-            osmap.addPopup(popup))
-        markers.addMarker(mrk)
-
-  # Center an OSM on a city. City is a label of DealerCities
-  # dictionary.
-  centerMapOnCity = (osmap, city) ->
-    if city? && city.length > 0
-      fixed_city = global.dictValueCache.DealerCities[city]
-      $.getJSON geoQuery(fixed_city), (res) ->
-        if res.length > 0
-          lonlat = new OpenLayers.LonLat res[0].lon, res[0].lat
-          osmap.setCenter lonlat.transform(wsgProj, osmProj), zoomLevel
-
-
-  # Splice partner data into specified fields of a reference
-  #
-  # TODO We have to store all data in the associated HTML because
-  # partner table is in a different view and thus is inaccessible.
-  pickPartnerBlip = (
-     referenceView, mapId,
-     partnerId, partnerName, partnerAddr, partnerCoords,
-     partnerIdField, partnerField, partnerAddrField, partnerCoordsField) ->
-
-    $("#" + mapId).data("osmap").events.triggerEvent("moveend")
-    vm = u.findVM(referenceView)
-    vm[partnerIdField]("partner:" + partnerId)
-    vm[partnerField](partnerName)
-    vm[partnerAddrField](partnerAddr)
-    vm[partnerCoordsField](partnerCoords)
-    trs = $("[partnerid='partner:#{partnerId}']")
-    u.highlightDataTableRow trs
-
-
-  # Read "32.54,56.21" (the way coordinates are stored in model fields)
-  # into LonLat object
-  lonlatFromShortString = (coords) ->
-    if coords.length > 0
-      parts = coords.split(",")
-      new OpenLayers.LonLat(parts[0], parts[1])
-    else
-      null
-
-
-  # Convert LonLat object to string in format "32.41,52.33"
-  shortStringFromLonlat = (coords) ->
-    return "#{coords.lon},#{coords.lat}"
-
 
   # Forward geocoding picker (address -> coordinates)
   #
@@ -437,19 +329,16 @@ define ["model/utils", "utils"], (mu, u) ->
 
     $.getJSON(geoQuery(addr), (res) ->
       if res.length > 0
-        lonlat = new OpenLayers.LonLat(res[0].lon, res[0].lat)
+        lonlat = new OpenLayers.LonLat res[0].lon, res[0].lat
 
         if coord_field?
-          u.findVM(viewName)[coord_field](shortStringFromLonlat lonlat)
+          u.findVM(viewName)[coord_field] shortStringFromLonlat lonlat
 
         if map_field?
           osmap = view.find("[name=#{map_field}]").data("osmap")
-          osmap.setCenter(
-                lonlat.transform(wsgProj, osmProj),
-                zoomLevel)
+          setPlace osmap, buildPlace res
           currentBlip osmap, osmap.getCenter(), current_blip_type
     )
-
 
   # Reverse geocoding picker (coordinates -> address)
   #
@@ -493,11 +382,13 @@ define ["model/utils", "utils"], (mu, u) ->
           u.findVM(viewName)[addr_field](addr)
       )
 
-  # Coordinates picker which uses a modal window to render the map in.
+  # Coordinates picker for partner screen which uses a modal window to
+  # render the map in.
   #
-  # Fills a field with coordinates chosen on the map.
+  # Fills a field with coordinates chosen on the map, writes spot
+  # address to first "fact" address of `addrs` JSON field.
   #
-  # Recognizes the same field metas as initOSM.
+  # Recognizes the same field metas as initOSM and `targetAddrs`.
   mapPicker = (fieldName, el) ->
     coords =
       lonlatFromShortString(
@@ -530,7 +421,7 @@ define ["model/utils", "utils"], (mu, u) ->
         else
           # Otherwise, just center on the city, not placing a blip
           if city_field?
-            city_meta = u.splitFieldInView city_field, viewName         
+            city_meta = u.splitFieldInView city_field, viewName
             city = u.findVM(city_meta.view)[city_meta.field]()
             centerMapOnCity oMap, city
 
@@ -541,27 +432,29 @@ define ["model/utils", "utils"], (mu, u) ->
     $("#partnerMapModal").modal('show')
 
   { iconSize              : iconSize
-  , zoomLevel             : zoomLevel
-  , beyondTheClouds       : beyondTheClouds
-  , nominatimHost         : nominatimHost
-  , geoRevQuery           : geoRevQuery
+  , defaultZoomLevel      : defaultZoomLevel
   , geoQuery              : geoQuery
+  , buildPlace            : buildPlace
+  , buildCityPlace        : buildCityPlace
+  , Moscow                : Moscow
+  , Petersburg            : Petersburg
   , wsgProj               : wsgProj
   , osmProj               : osmProj
+
+  , lonlatFromShortString : lonlatFromShortString
+  , shortStringFromLonlat : shortStringFromLonlat
+
   , carIcon               : carIcon
   , towIcon               : towIcon
   , partnerIcon           : partnerIcon
   , dealerIcon            : dealerIcon
   , hlIconName            : hlIconName
-  , buildReverseAddress   : buildReverseAddress
   , reinstallMarkers      : reinstallMarkers
+  , fitPlaces             : fitPlaces
+
   , initOSM               : initOSM
   , currentBlip           : currentBlip
-  , extraBlip             : extraBlip
-  , partnerBlips          : partnerBlips
-  , pickPartnerBlip       : pickPartnerBlip
-  , lonlatFromShortString : lonlatFromShortString
-  , shortStringFromLonlat : shortStringFromLonlat
+
   , geoPicker             : geoPicker
   , reverseGeoPicker      : reverseGeoPicker
   , mapPicker             : mapPicker
