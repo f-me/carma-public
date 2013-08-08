@@ -30,7 +30,7 @@ define [], ->
     datetime : s2cDate("dd.MM.yyyy HH:mm")
     json     : s2cJson
 
-  defaultc2s = (v) -> if v then String(v) else ""
+  defaultc2s = (v) -> if _.isNull(v) then "" else String(v)
   c2s = (val, type) -> (c2sTypes[type] || defaultc2s)(val)
   s2c = (val, type) -> (s2cTypes[type] || _.identity)(val)
 
