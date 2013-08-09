@@ -26,6 +26,14 @@
     },
     {
       "meta": {
+        "label": "Свободен",
+        "invisible": true
+      },
+      "type": "checkbox",
+      "name": "isFree"
+    },
+    {
+      "meta": {
         "label": "Название"
       },
       "type": null,

@@ -45,6 +45,7 @@ $$
              , st_y(p.coords)
              , p.isDealer
              , p.isMobile
+             , p.isFree
              , ST_Distance_Sphere(p.coords, ST_Point(xc, yc))
                                               as distance
              , coalesce(p.name, '')           as name
