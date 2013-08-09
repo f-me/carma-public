@@ -111,6 +111,12 @@ partnerCoords = "coords"
 
 
 ------------------------------------------------------------------------------
+-- | Name of status field in partner model.
+partnerIsFree :: ByteString
+partnerIsFree = "isFree"
+
+
+------------------------------------------------------------------------------
 -- | Name of modification time field in partner model.
 partnerMtime :: ByteString
 partnerMtime = "mtime"
@@ -144,12 +150,13 @@ updatePosition :: Handler b GeoApp ()
 updatePosition = do
   lon' <- getParamWith double "lon"
   lat' <- getParamWith double "lat"
+  free <- getParamWith bool "isFree"
   (pid' :: Maybe Int) <- getParamWith decimal "pid"
   case (lon', lat', pid') of
     (Just lon, Just lat, Just pid) -> do
        addr <- snd <$> revGeocode lon lat
        mtime <- liftIO $ getCurrentTime
-       updatePartnerData pid lon lat addr mtime
+       updatePartnerData pid lon lat (fromMaybe True free) addr mtime
     _ -> error "Bad request"
 
 
@@ -163,16 +170,20 @@ updatePartnerData :: Int
                   -- ^ Longitude.
                   -> Double
                   -- ^ Latitude.
+                  -> Bool
+                  -- ^ Partner status.
                   -> (Maybe ByteString)
                   -- ^ New address if available.
                   -> UTCTime
                   -- ^ New partner mtime.
                   -> Handler b GeoApp ()
-updatePartnerData pid lon lat addr mtime =
+updatePartnerData pid lon lat free addr mtime =
     let
         coordString = concat [show lon, ",", show lat]
+        isFree = if free then "1" else "0"
         body = HM.fromList $
                [ (partnerCoords, BS.pack coordString)
+               , (partnerIsFree, BS.pack isFree)
                , (partnerMtime,
                   BS.pack $ formatTime defaultTimeLocale "%s" mtime)] ++
                (maybe [] (\a -> [(partnerAddress, a)]) addr)
@@ -430,6 +441,12 @@ geoAppInit = makeSnaplet "geo" "Geoservices" Nothing $ do
 -- | Parse "52.32,3.45" (no spaces) into pair of doubles.
 coords :: Parser (Double, Double)
 coords = (,) <$> double <* anyChar <*> double
+
+
+------------------------------------------------------------------------------
+-- | Parse "true" or "false" into boolean.
+bool :: Parser Bool
+bool = (string "true" >> return True) <|> (string "false" >> return False)
 
 
 ------------------------------------------------------------------------------
