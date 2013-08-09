@@ -111,7 +111,7 @@ sendMailToDealer actionId = do
     program <- get caseId   "program"
     when (program `elem` ["peugeot", "citroen"]) $ do
       payType <- get svcId "payType"
-      when (payType `elem` ["raumc", "mixed", "refund"]) $ do
+      when (payType `elem` ["ruamc", "mixed", "refund"]) $ do
         dealerId <- get svcId "towDealer_partnerId"
         when (dealerId /= "") $ do
           dealer'sMail <- get dealerId "closeTicketEmail"
