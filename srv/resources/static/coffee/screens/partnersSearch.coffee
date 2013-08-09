@@ -265,7 +265,10 @@ define [ "utils"
         do (p) ->
           # Pick partner icon
           if p.ismobile
-            ico = map.towIcon
+            if p.isfree
+              ico = map.towIcon
+            else
+              ico = map.busyTowIcon
           else
             if p.isdealer
               ico = map.dealerIcon
