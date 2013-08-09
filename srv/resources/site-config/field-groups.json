@@ -638,6 +638,15 @@
       "meta": {
         "regexp": "datetime",
         "infoText": "datetime",
+        "label": "Время выезда партнёра"
+      },
+      "type": "datetime",
+      "name": "expectedDispatch"
+    },
+    {
+      "meta": {
+        "regexp": "datetime",
+        "infoText": "datetime",
         "label": "Фактическое время начала оказания услуги"
       },
       "type": "datetime",
