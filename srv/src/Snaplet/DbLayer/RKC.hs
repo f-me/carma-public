@@ -591,5 +591,5 @@ AND (? or c.city = ?)
 AND (? or s.contractor_partner = ?)
 AND s.suburbanmilage = '0'
 AND c.calldate >= ?
-AND c.calldate < ?);
+AND c.calldate < ?;
 |]
