@@ -34,7 +34,6 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import Data.Dict
 import Data.Maybe
-import Data.List
 import qualified Data.Text as T (pack)
 import Data.Text.Encoding (encodeUtf8)
 
@@ -193,28 +192,10 @@ updatePartnerData pid lon lat free addr mtime =
       -- Update addrs with new "fact" address. Not thread-safe.
       body' <- case addr of
         Nothing -> return body
-        Just newAddr -> do
+        Just newFactAddr -> do
           pData <- runCarma $ readInstance "partner" pid
-          let oldAddrs :: Maybe [HM.HashMap ByteString ByteString]
-              oldAddrs = Aeson.decode' =<<
-                         (BSL.fromStrict <$> HM.lookup partnerAddress pData)
-              factAddr = HM.fromList $
-                         [ ("key", "fact")
-                         , ("value", newAddr)
-                         ]
-              newAddrs = BSL.toStrict $ Aeson.encode $
-                -- Create new addrs record if it does not exist
-                case oldAddrs of
-                  Nothing -> [factAddr]
-                  Just aos ->
-                    let
-                      isFact o = fromMaybe "" (HM.lookup "key" o) == "fact"
-                    in
-                      -- Replace existing "fact" address or insert a new
-                      -- one
-                      case findIndex isFact aos of
-                        Just iFact -> aos & element iFact .~ factAddr
-                        Nothing -> aos ++ [factAddr]
+          let oldAddrs = fromMaybe "" $ HM.lookup partnerAddress pData
+              newAddrs = setKeyedJsonValue oldAddrs partnerAddress newFactAddr
           return $ HM.insert partnerAddress newAddrs body
       runCarma $ updateInstance "partner" pid body' >> return ()
 
