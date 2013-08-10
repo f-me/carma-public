@@ -575,10 +575,12 @@ towStartAvgTimeQuery :: PS.Query
 towStartAvgTimeQuery = [sql|
 WITH
  services AS (
-  SELECT type, id, times_factServiceStart, contractor_partner, suburbanmilage
+  SELECT type, id, parentid, times_factServiceStart, times_expectedDispatch,
+         contractor_partner, suburbanmilage
     FROM techtbl
   UNION ALL
-  SELECT type, id, times_factServiceStart, contractor_partner, suburbanmilage
+  SELECT type, id, parentid, times_factServiceStart, times_expectedDispatch,
+         contractor_partner, suburbanmilage
     FROM towagetbl)
 SELECT extract(epoch from avg(s.times_factServiceStart - s.times_expectedDispatch))
 FROM casetbl c, services s
