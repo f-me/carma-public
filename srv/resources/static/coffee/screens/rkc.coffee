@@ -284,7 +284,7 @@ define ["utils", "text!tpl/screens/rkc.html", "text!tpl/partials/rkc.html"],
                         ""
                     , dict.DealerCities[minfo.city] || minfo.city
                     , if minfo.addrs.length > 0
-                        utils.getKeyedJsonValue (JSON.parse minfo.addrs), "fact"
+                        (utils.getKeyedJsonValue (JSON.parse minfo.addrs), "fact") || ""
                       else
                         ""
                     ]
