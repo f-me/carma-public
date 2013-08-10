@@ -1,5 +1,5 @@
 Name:                carma-mobile-server
-Version:             0.2.1
+Version:             0.2.2
 Synopsis:            Outer world interface for CaRMa
 Description:         Standalone application to handle requests from mobile
                      partners and clients, using CaRMa HTTP API.

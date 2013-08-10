@@ -34,6 +34,7 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as BSL
 import Data.Dict
 import Data.Maybe
+import Data.List
 import qualified Data.Text as T (pack)
 import Data.Text.Encoding (encodeUtf8)
 
@@ -99,9 +100,10 @@ coordsToString lon lat = (show lon) ++ "," ++ (show lat)
 
 
 ------------------------------------------------------------------------------
--- | Name of address field in partner model.
+-- | Name of address field in partner model (must contain JSON data
+-- with dict-objects schema).
 partnerAddress :: ByteString
-partnerAddress = "addrDeFacto"
+partnerAddress = "addrs"
 
 
 ------------------------------------------------------------------------------
@@ -188,7 +190,33 @@ updatePartnerData pid lon lat free addr mtime =
                   BS.pack $ formatTime defaultTimeLocale "%s" mtime)] ++
                (maybe [] (\a -> [(partnerAddress, a)]) addr)
     in do
-      runCarma $ updateInstance "partner" pid body >> return ()
+      -- Update addrs with new "fact" address. Not thread-safe.
+      body' <- case addr of
+        Nothing -> return body
+        Just newAddr -> do
+          pData <- runCarma $ readInstance "partner" pid
+          let oldAddrs :: Maybe [HM.HashMap ByteString ByteString]
+              oldAddrs = Aeson.decode' =<<
+                         (BSL.fromStrict <$> HM.lookup partnerAddress pData)
+              factAddr = HM.fromList $
+                         [ ("key", "fact")
+                         , ("value", newAddr)
+                         ]
+              newAddrs = BSL.toStrict $ Aeson.encode $
+                -- Create new addrs record if it does not exist
+                case oldAddrs of
+                  Nothing -> [factAddr]
+                  Just aos ->
+                    let
+                      isFact o = fromMaybe "" (HM.lookup "key" o) == "fact"
+                    in
+                      -- Replace existing "fact" address or insert a new
+                      -- one
+                      case findIndex isFact aos of
+                        Just iFact -> aos & element iFact .~ factAddr
+                        Nothing -> aos ++ [factAddr]
+          return $ HM.insert partnerAddress newAddrs body
+      runCarma $ updateInstance "partner" pid body' >> return ()
 
 
 ------------------------------------------------------------------------------
