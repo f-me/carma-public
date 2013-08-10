@@ -33,10 +33,14 @@ module Carma.HTTP
     , methodURI
     , readDictionary
     , manyFieldDivisor
+    -- ** Dict-objects JSON helpers  
+    , getKeyedJsonValue
+    , setKeyedJsonValue
     )
 
 where
 
+import Control.Lens hiding (createInstance)
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
 
@@ -44,6 +48,7 @@ import Data.Aeson hiding (Result)
 import Data.Dict
 import Data.Functor
 import Data.HashMap.Strict as M
+import Data.List
 import Data.Maybe
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
@@ -253,3 +258,52 @@ readDictionary name = do
   return $ case M.lookup name <$> dicts of
     Just (Just v) -> decode' $ encode v
     _             -> Nothing
+
+
+-- | Extract value of the first object from "dict-objects"-field JSON
+-- contents with matching "key". If no such entries found, return
+-- Nothing.
+getKeyedJsonValue :: FieldValue
+                  -- ^ Contents of JSON field using dict-objects
+                  -- schema.
+                  -> FieldValue
+                  -- ^ Key.
+                  -> Maybe FieldValue
+getKeyedJsonValue field key =
+  M.lookup "value" =<<
+  find (\o -> (fromMaybe "" $ M.lookup "key" o) == key) =<<
+  parsed
+  where
+    parsed :: Maybe [M.HashMap FieldName FieldValue]
+    parsed = decode' $ BSL.fromStrict field
+
+
+
+-- | Set value of the first object from "dict-objects"-field JSON
+-- contents with matching "key" (create it if no object matches key),
+-- return new JSON string.
+setKeyedJsonValue :: FieldValue
+                  -- ^ Contents of JSON field using dict-objects
+                  -- schema.
+                  -> FieldValue
+                  -- ^ Key.
+                  -> FieldValue
+                  -- ^ Value.
+                  -> FieldValue
+setKeyedJsonValue field key value =
+  let
+    parsed :: Maybe [M.HashMap FieldName FieldValue]
+    parsed = decode' $ BSL.fromStrict field
+    newEntry = M.fromList $
+               [ ("key", key)
+               , ("value", value)
+               ]
+    keyPred o = fromMaybe "" (M.lookup "key" o) == key
+  in
+    BSL.toStrict $ encode $
+    case parsed of
+      Nothing -> [newEntry]
+      Just objs ->
+        case findIndex keyPred objs of
+          Just iMatch -> objs & element iMatch .~ newEntry
+          Nothing -> objs ++ [newEntry]
