@@ -50,7 +50,11 @@
       "name": "falseCallPercent"
     },
     {
-      "meta": null,
+      "meta": {
+        "label": "Добавить опцию",
+        "model": "tarifOption",
+        "reference-label": "Добавить тарифную опцию"
+      },
       "type": "reference",
       "groupName": null,
       "name": "tarifOptions"

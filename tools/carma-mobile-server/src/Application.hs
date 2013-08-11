@@ -125,11 +125,9 @@ revGeocode :: Double
            -- ^ Latitude.
            -> Handler b GeoApp (Maybe ByteString, Maybe ByteString)
 revGeocode lon lat = do
-  cp <-  gets (carmaPort . carmaOptions)
+  uri <- runCarma $ methodURI ("geo/revSearch/" ++ coordsToString lon lat)
   (addr :: Maybe (HM.HashMap ByteString (Maybe ByteString))) <- liftIO $ do
-     let coords' = coordsToString lon lat
-     resp <- H.simpleHTTP $ H.getRequest $
-             methodURI cp ("geo/revSearch/" ++ coords')
+     resp <- H.simpleHTTP $ H.getRequest uri
      body <- H.getResponseBody resp
      return $ decode' $ BSL.pack body
   case addr of
