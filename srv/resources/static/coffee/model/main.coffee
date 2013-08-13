@@ -27,7 +27,6 @@ define [ "model/render"
                    , localDictionaries
                    , hooks
                    , user
-                   , models
                    , pubSub) ->
     Screens = localScreens
 
@@ -45,7 +44,16 @@ define [ "model/render"
         dictValueCache: dictCache.valueCache
         hooks: hooks
         user: user
-        models: models
+        model: do ->
+          modelCache = {}
+          (name) ->
+            # load model into cache if it is not already there
+            if not modelCache[name]
+              $.ajax "/cfg/model/#{name}",
+                async: false
+                dataType: 'json'
+                success: (m) -> modelCache[name] = m
+            modelCache[name]
         activeScreen: null
         pubSub: pubSub
         # viewsWare is for bookkeeping of views in current screen.
@@ -125,7 +133,7 @@ define [ "model/render"
               return [] unless rs
               ms = (m.split(':') for m in rs)
               for m in ms
-                k = buildKVM global.models[m[0]],
+                k = buildKVM global.model(m[0]),
                   fetched: {id: m[1]}
                   queue:   queue
                 k.parent = kvm
@@ -245,19 +253,15 @@ define [ "model/render"
   # maybe with filtered some fields or something
   modelSetup = (modelName, model) ->
     return (elName, args, options) ->
-
-      # save copy of models
-      models = $.extend true, {}, global.models
-      models[modelName] = model if model
-
-      [kvm, q] = buildModel(modelName, models, args, options, elName)
+      model = global.model(modelName) if not model
+      [kvm, q] = buildModel(model, args, options, elName)
 
       depViews = setupView(elName, kvm,  options)
 
       # Bookkeeping
       global.viewsWare[elName] =
-        model           : models[modelName]
-        modelName       : modelName
+        model           : model
+        modelName       : model.name
         knockVM         : kvm
         depViews        : depViews
 
@@ -268,11 +272,11 @@ define [ "model/render"
         global.router.navigate "#{kvm._meta.model.name}/#{kvm.id()}",
                                { trigger: false }
 
-      applyHooks(global.hooks.model, ['*', modelName], elName)
+      applyHooks(global.hooks.model, ['*', model.name], elName)
       return kvm
 
-  buildModel = (modelName, models, args, options, elName) ->
-      kvm = buildKVM models[modelName],
+  buildModel = (model, args, options, elName) ->
+      kvm = buildKVM model,
         elName: elName
         queue: sync.CrudQueue
         queueOptions: options
@@ -280,9 +284,9 @@ define [ "model/render"
       return [kvm, kvm._meta.q]
 
   buildNewModel = (modelName, args, options, cb) ->
-    [knockVM, q] = buildModel(modelName, global.models, args, options)
+    [knockVM, q] = buildModel(global.model(modelName), args, options)
     if _.isFunction cb
-      q.save -> cb(global.models[modelName], knockVM)
+      q.save -> cb(global.model(modelName), knockVM)
     else
       q.save()
     return [knockVM, q]

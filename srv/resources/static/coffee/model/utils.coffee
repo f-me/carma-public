@@ -48,5 +48,5 @@ define ["model/main", "render/screen"], (main, render) ->
   # Get field object for named model and field
   modelField: (modelName, fieldName) ->
     _.find(
-      global.models[modelName].fields,
+      global.model(modelName).fields,
       (f) -> return f.name == fieldName)

@@ -59,14 +59,6 @@ writeModel model
     _ -> return model
 
 
-serveModels :: HasAuth b => Handler b (SiteConfig b) ()
-serveModels = do
-  Just cu <- withAuth currentUser
-  ms <- gets models
-  strippedModels <- forM (M.toList ms)
-    $ \(nm, m) -> (nm,) <$> stripModel cu m
-  writeJSON $ M.fromList strippedModels
-
 
 stripModel :: AuthUser -> Model -> Handler b (SiteConfig b) Model
 stripModel u m = do
@@ -101,8 +93,7 @@ initSiteConfig cfgDir pg_pool = makeSnaplet
   "site-config" "Site configuration storage"
   Nothing $ do -- ?
     addRoutes
-      [("models",       method GET serveModels)
-      ,("model/:name",  method GET serveModel)
+      [("model/:name",  method GET serveModel)
       ,("dictionaries", method GET serveDictionaries)
       ]
     liftIO $ SiteConfig
