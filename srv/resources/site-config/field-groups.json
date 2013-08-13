@@ -121,6 +121,13 @@
         "label": "Адрес"
       },
       "name": "address"
+    },
+    {
+      "meta": {
+        "invisible": true,
+        "label": "Координаты"
+      },
+      "name": "coords"
     }
   ],
   "car": [
