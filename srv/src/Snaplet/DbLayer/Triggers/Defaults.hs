@@ -79,7 +79,6 @@ applyDefaults model obj = do
 
   obj'' <- if model `elem` services
       then do
-        let callDate = mbreadInt =<< Map.lookup "callDate" kase'
         return $ Map.union obj' $ Map.fromList
           [("times_expectedServiceStart",   B.pack $ show $ ct + 50*60)
           ,("times_factServiceStart",       B.pack $ show $ ct + h)
@@ -88,8 +87,7 @@ applyDefaults model obj = do
           ,("times_factServiceClosure",     B.pack $ show $ ct + 12*h)
           ,("times_expectedDealerInfo",     B.pack $ show $ ct + 7*d)
           ,("times_factDealerInfo",         B.pack $ show $ ct + 7*d)
-          ,("times_expectedDispatch",       
-            maybe "" (\i -> B.pack $ show $ i + 5 * m) callDate)
+          ,("times_expectedDispatch",       B.pack $ show $ ct + 5 * m)
           ,("createTime",                   B.pack $ show $ ct)
           ,("marginalCost",                 setSrvMCost model obj' kase' dict)
           ,("urgentService",                "notUrgent")
