@@ -70,8 +70,10 @@ define [ "utils"
         n = pSearch.subName f.name, model.name, kvm.id()
         global.pubSub.sub n, (val) ->
           kvm[f.name](val.name)
-          kvm["#{f.name}Id"]?(val.id)
-          kvm["#{f.name.split('_')[0]}_address"]?(val.addrDeFacto)
+          kvm["#{f.name}Id"]?("partner:#{val.id}")
+          kvm["#{f.name.split('_')[0]}_address"]?(
+            u.getKeyedJsonValue val.addrs, "fact")
+          kvm["#{f.name.split('_')[0]}_coords"]? val.coords
           kvm['parent']['fillEventHistory']()
 
     # this fn should be called from click event, in other case

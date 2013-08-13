@@ -575,25 +575,21 @@ towStartAvgTimeQuery :: PS.Query
 towStartAvgTimeQuery = [sql|
 WITH
  services AS (
-  SELECT type, id, times_factServiceStart, contractor_partner, suburbanmilage
+  SELECT type, id, parentid, times_factServiceStart, times_expectedDispatch,
+         contractor_partner, suburbanmilage
     FROM techtbl
   UNION ALL
-  SELECT type, id, times_factServiceStart, contractor_partner, suburbanmilage
-    FROM towagetbl),
- actiontimes AS (
- SELECT (max(s.times_factServiceStart - a.ctime))
- FROM actiontbl a, casetbl c, services s
- WHERE a.parentid = concat(s.type, ':', s.id)
- AND cast(split_part(a.caseid, ':', 2) as integer)=c.id
- AND a.name='orderService'
- AND a.ctime < s.times_factServiceStart
- AND (s.type='towage' OR s.type='tech')
- AND (? or c.program = ?)
- AND (? or c.city = ?)
- AND (? or s.contractor_partner = ?)
- AND s.suburbanmilage = '0'
- AND c.calldate >= ?
- AND c.calldate < ?
- GROUP BY a.parentid)
-SELECT extract(epoch from avg(max)) FROM actiontimes;
+  SELECT type, id, parentid, times_factServiceStart, times_expectedDispatch,
+         contractor_partner, suburbanmilage
+    FROM towagetbl)
+SELECT extract(epoch from avg(s.times_factServiceStart - s.times_expectedDispatch))
+FROM casetbl c, services s
+WHERE cast(split_part(s.parentid, ':', 2) as integer)=c.id
+AND (s.type='towage' OR s.type='tech')
+AND (? or c.program = ?)
+AND (? or c.city = ?)
+AND (? or s.contractor_partner = ?)
+AND s.suburbanmilage = '0'
+AND c.calldate >= ?
+AND c.calldate < ?;
 |]
