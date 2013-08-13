@@ -20,7 +20,7 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import Data.ByteString (ByteString)
 import Data.Char
-import Data.List (isPrefixOf, elemIndex)
+import Data.List (elemIndex)
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -87,12 +87,10 @@ functions tz dict = [
         capitalize "" = ""
         capitalize (c:cs) = toUpper c : map toLower cs
 
-        phoneFmt s@('+':'7': xs@[a,b,c,d,e,f,g,h,i,j])
+        phoneFmt ('+':'7': xs@[a,b,c,d,e,f,g,h,i,j])
           | all isDigit xs
             = printf "+7 (%s) %s %s %s" [a,b,c] [d,e,f] [g,h] [i,j]
-          | otherwise = s
-
-        substr f l = take l . drop f
+        phoneFmt s = s
 
         composeComment = S.StringValue . \case
           [S.StringValue s]
