@@ -107,11 +107,13 @@ define [ "utils"
     kvm['city'](kaseKVM.city())
     kvm['make'](kaseKVM.car_make())
     kvm['field'] = ctx['field']
-    pid = srvKVM["#{ctx['field']}Id"]()
-    if pid?
-      kvm['selectedPartner'] parseInt pid
+
+    pid = parseInt srvKVM["#{ctx['field']}Id"]()?.split(":")[1]
+    if _.isNumber(pid) && !_.isNaN(pid)
+      kvm['selectedPartner'] pid
     else
       kvm['selectedPartner'] null
+
     # Set isDealer flag depending on what field we came from
     unless ctx['field'].split('_')[0] == 'contractor'
       kvm['isDealer'](true)
@@ -265,7 +267,10 @@ define [ "utils"
         do (p) ->
           # Pick partner icon
           if p.ismobile
-            ico = map.towIcon
+            if p.isfree
+              ico = map.towIcon
+            else
+              ico = map.busyTowIcon
           else
             if p.isdealer
               ico = map.dealerIcon
@@ -413,6 +418,7 @@ define [ "utils"
         r[v.id]['phone']       = showPhone?.value || ''
         r[v.id]['workingTime'] = showPhone?.note  || ''
         r[v.id]['distanceFormatted'] = utils.formatDistance v.distance
+        r[v.id]['coords'] = "#{v.st_x},#{v.st_y}"
         r[v.id]['factAddr'] =
           (_.filter r[v.id]['addrs'], ({key}) -> key == 'fact')[0]?.value || ''
 

@@ -121,6 +121,13 @@
         "label": "Адрес"
       },
       "name": "address"
+    },
+    {
+      "meta": {
+        "invisible": true,
+        "label": "Координаты"
+      },
+      "name": "coords"
     }
   ],
   "car": [
@@ -633,6 +640,15 @@
       },
       "type": "datetime",
       "name": "expectedServiceStart"
+    },
+    {
+      "meta": {
+        "regexp": "datetime",
+        "infoText": "datetime",
+        "label": "Время выезда партнёра"
+      },
+      "type": "datetime",
+      "name": "expectedDispatch"
     },
     {
       "meta": {
