@@ -30,6 +30,8 @@ create view servicesview as
         c.car_color,
         c.car_buydate,
         c.car_checkupdate,
+        c.car_warrantystart,
+        c.car_warrantyend,
         c.car_mileage,
         c.car_checkupmileage,
         c.car_transmission,
