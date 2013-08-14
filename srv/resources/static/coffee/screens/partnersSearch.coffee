@@ -385,16 +385,17 @@ define [ "utils"
       for v in s
         r[v.id] ?= v
         r[v.id]['services'] ?= []
-        r[v.id]['services'].push
-          label    : srvLab v.servicename
-          name     : v.servicename
-          priority2: v.priority2
-          priority3: v.priority3
-          showStr  : do ->
-            show  = srvLab v.servicename
-            show += " ПБГ: #{v.priority2}" if v.priority2
-            show += " ПБЗ: #{v.priority3}" if v.priority3
-            show
+        if v.servicename.length > 0
+          r[v.id]['services'].push
+            label    : srvLab v.servicename
+            name     : v.servicename
+            priority2: v.priority2
+            priority3: v.priority3
+            showStr  : do ->
+              show  = srvLab v.servicename
+              show += " ПБГ: #{v.priority2}" if v.priority2
+              show += " ПБЗ: #{v.priority3}" if v.priority3
+              show
         r[v.id]['cityLocal'] = DealerCities.getLab(v.city) || ''
         r[v.id]['makesLocal'] =
           (_.map v.makes, (m) -> CarMakers.getLab(m)).join(', ')
