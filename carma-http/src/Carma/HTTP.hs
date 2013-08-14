@@ -33,8 +33,9 @@ module Carma.HTTP
     , methodURI
     , readDictionary
     , manyFieldDivisor
-    -- ** Dict-objects JSON helpers  
+    -- ** Dict-objects JSON helpers
     , getKeyedJsonValue
+    , getAllKeyedJsonValues
     , setKeyedJsonValue
     )
 
@@ -47,7 +48,7 @@ import Control.Monad.Trans.Reader
 import Data.Aeson hiding (Result)
 import Data.Dict
 import Data.Functor
-import Data.HashMap.Strict as M
+import Data.HashMap.Strict as M hiding (filter)
 import Data.List
 import Data.Maybe
 import qualified Data.ByteString as BS
@@ -260,6 +261,9 @@ readDictionary name = do
     _             -> Nothing
 
 
+type JsonDictObjects = [M.HashMap FieldName FieldValue]
+
+
 -- | Extract value of the first object from "dict-objects"-field JSON
 -- contents with matching "key". If no such entries found, return
 -- Nothing.
@@ -270,13 +274,20 @@ getKeyedJsonValue :: FieldValue
                   -- ^ Key.
                   -> Maybe FieldValue
 getKeyedJsonValue field key =
-  M.lookup "value" =<<
-  find (\o -> (fromMaybe "" $ M.lookup "key" o) == key) =<<
-  parsed
-  where
-    parsed :: Maybe [M.HashMap FieldName FieldValue]
-    parsed = decode' $ BSL.fromStrict field
+  case getAllKeyedJsonValues field key of
+    (e:_) -> Just e
+    []    -> Nothing
 
+
+-- | Extract values of all objects from "dict-objects"-field JSON
+-- contents with matching keys.
+getAllKeyedJsonValues :: FieldValue
+                      -> FieldValue
+                      -> [FieldValue]
+getAllKeyedJsonValues field key =
+  mapMaybe (M.lookup "value") $
+  filter (\o -> (fromMaybe "" $ M.lookup "key" o) == key) $
+  (fromMaybe [] $ decode' $ BSL.fromStrict field :: JsonDictObjects)
 
 
 -- | Set value of the first object from "dict-objects"-field JSON
