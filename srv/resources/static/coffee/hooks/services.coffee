@@ -71,8 +71,8 @@ define [ "utils"
         global.pubSub.sub n, (val) ->
           kvm[f.name](val.name)
           kvm["#{f.name}Id"]?("partner:#{val.id}")
-          kvm["#{f.name.split('_')[0]}_address"]?(
-            u.getKeyedJsonValue val.addrs, "fact")
+          addr = u.getKeyedJsonValue val.addrs, "fact"
+          kvm["#{f.name.split('_')[0]}_address"]?(addr || "")
           kvm["#{f.name.split('_')[0]}_coords"]? val.coords
           kvm['parent']['fillEventHistory']()
 
