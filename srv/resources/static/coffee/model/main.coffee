@@ -93,9 +93,6 @@ define [ "model/render"
     kvm = {}
     kvm["_meta"] = { model: model, cid: _.uniqueId("#{model.name}_") }
 
-    global.viewsWare[elName] ?= {}
-    global.viewsWare[elName]['knockVM'] = kvm if elName
-
     # build observables for real model fields
     kvm[f.name] = ko.observable(null) for f in fields
 
