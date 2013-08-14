@@ -120,25 +120,32 @@
             </div>
             <div data-bind="attr: {id: 'partner' + id}"
                  class="accordion-body collapse">
-              <div class="accordion-inner">
-                <b>Ответственное лицо:</b>
-                <!-- ko text: personincharge --> <!-- /ko -->
-                <br />
-                <b>Телефоны:</b>
-                <ul data-bind="foreach: phones">
-                  <li data-bind="html: label + '<br/>' +
-                                 ' Телефон:' + value +
-                                 ' Время работы:' + note" />
-                </ul>
-                <b>Адреса:</b>
-                <ul data-bind="foreach: addrs">
-                  <li data-bind="text: label + ': ' + value" />
-                </ul>
-                <b>Emails:</b>
-                <ul data-bind="foreach: emails">
-                  <li data-bind="text: label + ': ' + value" />
-                </ul>
-              </div>
+              <ul class="unstyled accordion-inner">
+                <li data-bind="visible: personincharge">
+                  <b>Ответственное лицо:</b>
+                  <span data-bind="text: personincharge" />
+                </li>
+                <li data-bind="visible: phones.length > 0">
+                  <b>Телефоны:</b>
+                  <ul data-bind="foreach: phones">
+                    <li data-bind="html: label + '<br/>' +
+                                   ' Телефон:' + value +
+                                   ' Время работы:' + note" />
+                  </ul>
+                </li>
+                <li data-bind="visible: addrs.length > 0">
+                  <b>Адреса:</b>
+                  <ul data-bind="foreach: addrs">
+                    <li data-bind="text: label + ': ' + value" />
+                  </ul>
+                </li>
+                <li data-bind="visible: emails.length > 0">
+                  <b>Emails:</b>
+                  <ul data-bind="foreach: emails">
+                    <li data-bind="text: label + ': ' + value" />
+                  </ul>
+                </li>
+              </ul>
             </div>
           </li>
         </ol>
