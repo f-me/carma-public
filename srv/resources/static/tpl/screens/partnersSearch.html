@@ -90,13 +90,18 @@
                     Отказ
                   </button>
                 </li>
-                <li data-bind="html: '<b>Телефон: </b>' + phone +
+                <li data-bind="visible: phone,
+                               html: '<b>Телефон: </b>' + phone +
                                ' (' + workingTime + ')'" />
-                <li data-bind="html: '<b>Город: </b>' + cityLocal" />
-                <li data-bind="html: '<b>Фактический адрес: </b>' + factAddr" />
-                <li data-bind="html: '<b>Обслуживаемые марки: </b>' + makesLocal"/>
-                <li data-bind="html: '<b>Комментарий: </b>' + comment" />
-              <li>
+                <li data-bind="visible: cityLocal,
+                               html: '<b>Город: </b>' + cityLocal" />
+                <li data-bind="visible: factAddr,
+                               html: '<b>Фактический адрес: </b>' + factAddr" />
+                <li data-bind="visible: makesLocal,
+                               html: '<b>Обслуживаемые марки: </b>' + makesLocal"/>
+                <li data-bind="visible: comment,
+                               html: '<b>Комментарий: </b>' + comment" />
+              <li data-bind="visible: services.length > 0">
                 <b>Услуги:</b>
                 <ul data-bind="foreach: services">
                   <!-- ko if: label -->
