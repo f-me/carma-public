@@ -18,6 +18,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Aeson.Types as Aeson
 import Database.PostgreSQL.Simple.FromField (FromField(..))
+import Database.PostgreSQL.Simple.ToField   (ToField(..), Action)
 import Data.Dynamic
 import GHC.TypeLits
 
@@ -48,6 +49,9 @@ instance FromJSON (Ident m) where
 instance ToJSON (Ident m) where
   toJSON (Ident i) = toJSON i
 
+instance ToField (Ident m) where
+  toField (Ident i) = toField i
+
 
 data FOpt (name :: Symbol) (desc :: Symbol) = FOpt
 data Field typ opt = Field
@@ -66,6 +70,7 @@ data FieldDesc m = FieldDesc
   ,fd_type      :: TypeRep
   ,fd_parseJSON :: Value -> Parser Dynamic
   ,fd_toJSON    :: Dynamic -> Value
+  ,fd_toField   :: Dynamic -> Action
   }
 
 
@@ -74,7 +79,7 @@ class GetModelFields m ctr where
 
 instance
     (GetModelFields m ctr, SingI nm, SingI desc
-    ,FromJSON t, ToJSON t, Typeable t)
+    ,FromJSON t, ToJSON t, ToField t, Typeable t)
     => GetModelFields m (Field t (FOpt nm desc) -> ctr)
   where
     getModelFields f
@@ -83,7 +88,8 @@ instance
         ,fd_desc      = T.pack $ fromSing (sing :: Sing desc)
         ,fd_type      = typeOf   (undefined :: t)
         ,fd_parseJSON = \v -> toDyn <$> (parseJSON v :: Parser t)
-        ,fd_toJSON    = \d -> toJSON (fromJust $ fromDynamic d :: t)
+        ,fd_toJSON    = \d -> toJSON  (fromJust $ fromDynamic d :: t)
+        ,fd_toField   = \d -> toField (fromJust $ fromDynamic d :: t)
         }
       : getModelFields (f Field)
 

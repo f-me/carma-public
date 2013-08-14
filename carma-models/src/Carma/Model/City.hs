@@ -5,6 +5,7 @@ module Carma.Model.City where
 import Data.Aeson
 import Data.Text
 import Data.Typeable
+import Database.PostgreSQL.Simple.ToField   (ToField(..))
 
 import Data.Model
 
@@ -19,6 +20,10 @@ instance FromJSON Coords where
 instance ToJSON Coords where
   toJSON (Coords) = object []
 
+instance ToField Coords where
+  toField = undefined
+
+
 data City = City
   {ident    :: F (Ident City) "id"       "id"
   ,city     :: F Text         "city"     "Название"
@@ -30,4 +35,3 @@ data City = City
 instance Model City where
   type TableName City = "City"
   modelFields = getModelFields City
-
