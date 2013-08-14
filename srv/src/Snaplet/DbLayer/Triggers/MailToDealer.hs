@@ -117,7 +117,7 @@ sendMailToDealer actionId = do
         dealerId <- get svcId "towDealer_partnerId"
         when (dealerId /= "") $ do
           dms <- get dealerId "emails"
-          let mails = getAllKeyedJsonValues dms "fact"
+          let mails = getAllKeyedJsonValues dms "close"
           when (mails /= []) $ do
             sendMailActually actionId caseId $
               B.intercalate "," mails
