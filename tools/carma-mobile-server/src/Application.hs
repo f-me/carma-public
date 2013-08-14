@@ -195,7 +195,7 @@ updatePartnerData pid lon lat free addr mtime =
         Just newFactAddr -> do
           pData <- runCarma $ readInstance "partner" pid
           let oldAddrs = fromMaybe "" $ HM.lookup partnerAddress pData
-              newAddrs = setKeyedJsonValue oldAddrs partnerAddress newFactAddr
+              newAddrs = setKeyedJsonValue oldAddrs "fact" newFactAddr
           return $ HM.insert partnerAddress newAddrs body
       runCarma $ updateInstance "partner" pid body' >> return ()
 
