@@ -585,6 +585,7 @@ WITH
 SELECT extract(epoch from avg(s.times_factServiceStart - s.times_expectedDispatch))
 FROM casetbl c, services s
 WHERE cast(split_part(s.parentid, ':', 2) as integer)=c.id
+AND (s.times_factServiceStart > s.times_expectedDispatch)
 AND (s.type='towage' OR s.type='tech')
 AND (? or c.program = ?)
 AND (? or c.city = ?)
