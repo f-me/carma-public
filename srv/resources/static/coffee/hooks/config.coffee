@@ -83,6 +83,6 @@ define [ "hooks/common"
       "towage" : [ s.partnerOptsHook
                  , s.srvOptUpd
                  , s.costsMark
-                 , s.distHook
+                 , c.distHook
                  , s.openPartnerSearch
                  ]
