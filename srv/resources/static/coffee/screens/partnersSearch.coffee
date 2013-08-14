@@ -82,7 +82,6 @@ define [ "utils"
 
   partialize = (ps) -> mkPartials(ps).join('')
 
-  partnerPopupTpl = $("#partner-popup-template").html()
   md  = $(partials).html()
   cb  = $("#checkbox-field-template").html()
   city = Mustache.render md,  fh['city']
@@ -288,6 +287,8 @@ define [ "utils"
 
           # Bind info popup to blip click event
           mark.events.register "click", mark, () ->
+            partner_popup = $ $("#partner-" + p.id + "-info").clone().html()
+            partner_popup.find(".full-info-link").hide()
             # Format JSON fields
             extra_ctx =
               address: getFactAddress p.addrs
@@ -296,18 +297,17 @@ define [ "utils"
             popup = new OpenLayers.Popup.FramedCloud(
               p.id, mark.lonlat,
               new OpenLayers.Size(200, 200),
-              Mustache.render(partnerPopupTpl, p),
+              partner_popup.html(),
               null, true)
             osmap.addPopup popup
 
             # Provide select button if came from case
             if kvm["fromCase"]
-              $(popup.div).find(".btn").click (e) ->
+              $(popup.div).find(".btn-div").show()
+              $(popup.div).find(".select-btn").click (e) ->
                 kvm["selectPartner"](p, e)
                 $("#map").trigger "drawpartners"
-            # Otherwise just delete the button
-            else
-              $(popup.div).find(".btn-div").remove()
+              popup.updateSize()
 
           partnerLayer.addMarker(mark)
 

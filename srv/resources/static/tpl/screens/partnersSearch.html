@@ -73,35 +73,41 @@
         <ol data-bind="foreach: searchProcessed">
           <li data-bind="css: {
                          'selected-partner': id == $parent.selectedPartner()
-                         }">
-            <ul class="unstyled" data-bind="click: $parent.selectPartner">
+                         }, attr: { id: 'partner-' + id + '-info' }">
+            <div>
+              <ul class="unstyled" data-bind="click: $parent.selectPartner">
+                <li>
+                  <span data-bind="text: name" />
+                  <span data-bind="visible: distance">
+                    (<span data-bind="text: distanceFormatted" />&nbsp;км)
+                  </span>
+                </li>
+                <li data-bind="visible: id == $parent.selectedPartner()">
+                  <button type="button"
+                          class="btn btn-danger" data-bind="click:
+                                                            $parent.showPartnerCancelDialog">
+                    <i class="icon-list-alt icon-white"></i>
+                    Отказ
+                  </button>
+                </li>
+                <li data-bind="html: '<b>Телефон: </b>' + phone +
+                               ' (' + workingTime + ')'" />
+                <li data-bind="html: '<b>Город: </b>' + cityLocal" />
+                <li data-bind="html: '<b>Фактический адрес: </b>' + factAddr" />
+                <li data-bind="html: '<b>Обслуживаемые марки: </b>' + makesLocal"/>
+                <li data-bind="html: '<b>Комментарий: </b>' + comment" />
               <li>
-                <span data-bind="text: name" />
-                <span data-bind="visible: distance">
-                  (<span data-bind="text: distanceFormatted" />&nbsp;км)
-                </span>
+                <b>Услуги:</b>
+                <ul data-bind="foreach: services">
+                  <!-- ko if: label -->
+                  <li data-bind="text: showStr" />
+                  <!-- /ko -->
+                </ul>
               </li>
-              <li data-bind="visible: id == $parent.selectedPartner()">
-                <button type="button"
-                        class="btn btn-danger" data-bind="click:
-                        $parent.showPartnerCancelDialog">
-                  <i class="icon-list-alt icon-white"></i>
-                  Отказ
-                </button>
-              </li>
-              <li data-bind="html: '<b>Телефон: </b>' + phone +
-                             ' (' + workingTime + ')'" />
-              <li data-bind="html: '<b>Город: </b>' + cityLocal" />
-              <li data-bind="html: '<b>Фактический адрес: </b>' + factAddr" />
-              <li data-bind="html: '<b>Обслуживаемые марки: </b>' + makesLocal"/>
-              <li data-bind="html: '<b>Комментарий: </b>' + comment" />
-            </ul>
-            <b>Услуги:</b>
-            <ul data-bind="foreach: services">
-              <!-- ko if: label -->
-              <li data-bind="text: showStr" />
-              <!-- /ko -->
-            </ul>
+              <div class="btn-div" style="display: none">
+                <a class="select-btn btn btn-mini btn-primary">Выбрать</a>
+              </div>
+            </div>
             <div class="accordion-toggle collapsed"
                  data-toggle="collapse"
                  data-bind="attr: { 'data-target': '#partner' + id }" >
