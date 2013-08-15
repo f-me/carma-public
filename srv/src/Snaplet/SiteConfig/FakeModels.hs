@@ -174,6 +174,7 @@ newCaseFields =
     [("required", Aeson.Bool True)
     ,("bounded", Aeson.Bool True)
     ,("dictionaryName", "CarModels")
+    ,("dictionaryParent", "car_make")
     ,("mainOnly", Aeson.Bool True)
     ]
   ,mkF "car_seller" "dictionary" "Дилер, продавший автомобиль"

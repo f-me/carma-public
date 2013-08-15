@@ -33,7 +33,10 @@ define [ "utils"
               then  kvm[fieldName]("")
               else  kvm[fieldName](val || lab)
 
-        kvm["#{fieldName}Typeahead"] =
+        # Use builder here, because same field can be in group
+        # and in the main section, and we need to have
+        # different instances og thMenu for them
+        kvm["#{fieldName}TypeaheadBuilder"] = ->
           new ThMenu
             select: (v) ->
               kvm[fieldName](dict.id2val(v))
@@ -171,7 +174,7 @@ define [ "utils"
           c = u.splitVals(k[n]())
           k[n] _.without(c, el.value).join(',')
 
-        k["#{n}Typeahead"] =
+        k["#{n}TypeaheadBuilder"] = ->
           new ThMenu
             select: (v) ->
               # FIXME: find more appropriate way to set values here
