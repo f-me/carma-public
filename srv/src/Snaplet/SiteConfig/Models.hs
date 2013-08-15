@@ -57,7 +57,6 @@ data Application = Application { targets    :: [FieldName]
 data Model = Model { modelName      :: ModelName
                    , title          :: B.ByteString
                    , fields         :: [Field]
-                   , defaults       :: M.Map FieldName FieldValue
                    , applications   :: [Application]
                    , _canCreateM    :: Permissions
                    , _canReadM      :: Permissions
@@ -76,7 +75,6 @@ instance FromJSON Model where
         v .:  "name"                      <*>
         v .:  "title"                     <*>
         v .:  "fields"                    <*>
-        v .:? "defaults"     .!= M.empty  <*>
         v .:? "applications" .!= []       <*>
         v .:? "canCreate"    .!= Nobody   <*>
         v .:? "canRead"      .!= Nobody   <*>
@@ -90,7 +88,6 @@ instance ToJSON Model where
       [ "name"       .= modelName mdl
       , "title"      .= title mdl
       , "fields"     .= fields mdl
-      , "defaults"   .= defaults mdl
       , "canCreate"  .= _canCreateM mdl
       , "canRead"    .= _canReadM mdl
       , "canUpdate"  .= _canUpdateM mdl
