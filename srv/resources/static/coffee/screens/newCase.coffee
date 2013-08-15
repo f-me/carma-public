@@ -16,6 +16,11 @@ define [ 'utils'
                          modelArg     : 'newCase'
                          hooks        : ['*']
 
+      ctx = {fields: (f for f in kvm._meta.model.fields when f.meta?.required)}
+      $("#empty-fields-placeholder").html(
+          Mustache.render $("#empty-fields-template").html(), ctx)
+
+      ko.applyBindings(kvm, el("empty-fields"))
       # Render service picker
       $("#service-picker-container").html(
         Mustache.render(
@@ -24,7 +29,17 @@ define [ 'utils'
             ,drop: 'down'
             }))
 
+      $('#go-back-to-call').on 'click', ->
+        global.router.navigate "call", {trigger: true}
+
+      $('#go-to-full-case').on 'click', ->
+        kvm = global.viewsWare["case-form"].knockVM
+        global.router.navigate "case/#{kvm.id()}", {trigger: true}
+
+
     removeCaseMain = ->
+      $('#go-back-to-call').off 'click'
+      $('#go-to-full-case').off 'click'
       $('body').off 'change.input'
       $('.navbar').css '-webkit-transform', ''
 

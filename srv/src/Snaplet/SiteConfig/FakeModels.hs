@@ -145,7 +145,7 @@ newCaseFields =
     [("infoText", "capitalize")
     ,("mainOnly", Aeson.Bool True)
     ]
-  ,mkF "contact_ownerPhone1" "phone" "Контактный телефон"
+  ,mkF "contact_ownerPhone1" "phone" "Контактный телефон владельца"
     [("regexp", "phone")
     ,("picker", "callPlease")
     ,("mainOnly", Aeson.Bool True)
@@ -156,6 +156,13 @@ newCaseFields =
     ,("bounded", Aeson.Bool True)
     ,("targetCategory", "program")
     ,("infoText", "program")
+    ]
+  ,mkF "car_vin" "dictionary" "VIN"
+    [("required", Aeson.Bool True)
+    ,("regexp", "vin")
+    ,("transform", "uppercase")
+    ,("dictionaryType", "VinDict")
+    ,("mainOnly", Aeson.Bool True)
     ]
   ,mkF "car_make" "dictionary" "Марка"
     [("required", Aeson.Bool True)
@@ -172,7 +179,7 @@ newCaseFields =
   ,mkF "car_seller" "dictionary" "Дилер, продавший автомобиль"
     [("required", Aeson.Bool True)
     ,("bounded", Aeson.Bool True)
-    ,("dictionaryName", "DealersDict")
+    ,("dictionaryType", "DealersDict")
     ,("mainOnly", Aeson.Bool True)
     ]
   ,mkF "car_buyDate" "date" "Дата покупки"
@@ -183,7 +190,7 @@ newCaseFields =
   ,mkF "car_dealerTO" "dictionary" "Дилер у которого проходило последнее ТО"
     [("required", Aeson.Bool True)
     ,("bounded", Aeson.Bool True)
-    ,("dictionaryName", "DealersDict")
+    ,("dictionaryType", "DealersDict")
     ,("mainOnly", Aeson.Bool True)
     ]
   ,mkF "car_mileage" "text" "Текущий пробег"
