@@ -305,14 +305,14 @@ define [ "model/render"
   setupView = (elName, knockVM,  options) ->
     tpls = render.getTemplates("reference-template")
     depViews = render.kvm(elName, knockVM,  options)
-
-    # Bind the model to Knockout UI
-    ko.applyBindings(knockVM, el(elName)) if el(elName)
     # Bind group subforms (note that refs are bound
     # separately)
     bindDepViews(knockVM, elName, depViews)
     # Bind extra views if provided
     ko.applyBindings knockVM, el(v) for k, v of options.slotsee when el(v)
+
+    # Bind the model to Knockout UI
+    ko.applyBindings(knockVM, el(elName)) if el(elName)
 
     knockVM['view'] = elName
 
