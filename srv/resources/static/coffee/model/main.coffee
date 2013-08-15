@@ -184,10 +184,8 @@ define [ "model/render"
       else
         kvm['dixiDisabled'](true)
 
-    applyHooks global.hooks.observable,
-               ['*', model.name],
-               model, kvm
-
+    hooks = queueOptions.hooks or ['*', model.name]
+    applyHooks global.hooks.observable, hooks, model, kvm
     return kvm
 
   #/ Model functions.
@@ -273,7 +271,8 @@ define [ "model/render"
         global.router.navigate "#{kvm._meta.model.name}/#{kvm.id()}",
                                { trigger: false }
 
-      applyHooks(global.hooks.model, ['*', model.name], elName)
+      hooks = options.hooks or ['*', model.name]
+      applyHooks global.hooks.model, hooks, elName
       return kvm
 
   buildModel = (model, args, options, elName) ->
