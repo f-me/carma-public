@@ -1277,7 +1277,7 @@
     <script type="text/template"
             id="service-picker-template">
       <ul class="nav nav-pills">
-        <li class="dropup">
+        <li class="drop{{drop}}">
           <button class="dropdown-toggle btn btn-action"
                   type="button"
                   data-toggle="dropdown">
@@ -1288,6 +1288,30 @@
             <li>
               <a href="#"
                  onclick="addService('{{value}}'); return false;">
+                <i class="icon-{{icon}} icon-black" />
+                {{ label }}
+              </a>
+            </li>
+            {{/ dictionary.entries }}
+          </ul>
+        </li>
+      </ul>
+    </script>
+
+    <script type="text/template"
+            id="newService-picker-template">
+      <ul class="nav nav-pills">
+        <li class="drop{{drop}}">
+          <button class="dropdown-toggle btn btn-action"
+                  type="button"
+                  data-toggle="dropdown">
+            <i class="icon icon-plus" />Добавить услугу
+          </button>
+          <ul class="dropdown-menu">
+            {{# dictionary.entries }}
+            <li>
+              <a href="#"
+                 onclick="addNewService('{{value}}'); return false;">
                 <i class="icon-{{icon}} icon-black" />
                 {{ label }}
               </a>

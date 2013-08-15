@@ -24,9 +24,9 @@ define ["dictionaries"], (d) ->
         $el(view).find('.content').html(content[gName])
 
     if options.defaultGroup and _.has(groupTpls, options.defaultGroup)
-      depViews["default-group"] = defaultGroup
+      depViews["default-group"] = options.defaultGroup
       $el(options.groupsForest).append(
-            renderDep { refField: defaultGroup }, groupTpls)
+            renderDep { refField: options.defaultGroup }, groupTpls)
     if _.isFunction(options.renderRefCb)
       options.renderCb(r, subViewN)
 

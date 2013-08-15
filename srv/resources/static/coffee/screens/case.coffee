@@ -33,8 +33,11 @@ define [ "utils"
       # We use Bootstrap's glyphs if "icon" key is set in dictionary
       # entry.
       $("#service-picker-container").html(
-        Mustache.render($("#service-picker-template").html(),
-                        {dictionary: global.dictionaries["Services"]}))
+        Mustache.render(
+          $("#service-picker-template").html(),
+            {dictionary: global.dictionaries["Services"]
+            ,drop: 'up'
+            }))
 
       $("body").on("change.input", ".redirectOnChange", () ->
           setTimeout(( -> window.location.hash = "back"), 500))

@@ -184,7 +184,7 @@ define [ "model/render"
       else
         kvm['dixiDisabled'](true)
 
-    hooks = queueOptions.hooks or ['*', model.name]
+    hooks = queueOptions?.hooks or ['*', model.name]
     applyHooks global.hooks.observable, hooks, model, kvm
     return kvm
 
@@ -267,8 +267,9 @@ define [ "model/render"
       # update url here, because only top level models made with modelSetup
       kvm["maybeId"].subscribe -> kvm["updateUrl"]()
 
+      screenName = options.screenName or modelName
       kvm["updateUrl"] = ->
-        global.router.navigate "#{kvm._meta.model.name}/#{kvm.id()}",
+        global.router.navigate "#{screenName}/#{kvm.id()}",
                                { trigger: false }
 
       hooks = options.hooks or ['*', model.name]

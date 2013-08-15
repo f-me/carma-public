@@ -5,7 +5,7 @@ define [ "utils"
        , "text!tpl/screens/call.html"
        ], (utils, hotkeys, main, pSearch, tpl) ->
 
-  utils.build_global_fn 'makeCase', ['screens/case']
+  utils.build_global_fn 'makeCase', ['screens/newCase']
   utils.build_global_fn 'reloadScreen', ['utils']
 
   setupCallForm = (viewName, args) ->
