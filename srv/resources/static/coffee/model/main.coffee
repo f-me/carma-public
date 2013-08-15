@@ -46,14 +46,15 @@ define [ "model/render"
         user: user
         model: do ->
           modelCache = {}
-          (name) ->
-            # load model into cache if it is not already there
-            if not modelCache[name]
-              $.ajax "/cfg/model/#{name}",
+          (name, arg) ->
+            url = "/cfg/model/#{name}"
+            url = url + "?arg=#{arg}" if arg
+            if not modelCache[url]
+              $.ajax url,
                 async: false
                 dataType: 'json'
-                success: (m) -> modelCache[name] = m
-            modelCache[name]
+                success: (m) -> modelCache[url] = m
+            modelCache[url]
         activeScreen: null
         pubSub: pubSub
         # viewsWare is for bookkeeping of views in current screen.
@@ -253,7 +254,7 @@ define [ "model/render"
   # maybe with filtered some fields or something
   modelSetup = (modelName, model) ->
     return (elName, args, options) ->
-      model = global.model(modelName) if not model
+      model = global.model(modelName, options.modelArg) if not model
       [kvm, q] = buildModel(model, args, options, elName)
 
       depViews = setupView(elName, kvm,  options)
@@ -284,9 +285,10 @@ define [ "model/render"
       return [kvm, kvm._meta.q]
 
   buildNewModel = (modelName, args, options, cb) ->
-    [knockVM, q] = buildModel(global.model(modelName), args, options)
+    model = global.model(modelName, options.modelArg)
+    [knockVM, q] = buildModel(model, args, options)
     if _.isFunction cb
-      q.save -> cb(global.model(modelName), knockVM)
+      q.save -> cb(model, knockVM)
     else
       q.save()
     return [knockVM, q]
