@@ -218,7 +218,10 @@ fillFromContract vin objId = do
   case res of
     [] -> return False
     [row] -> do
-      zipWithM_ (maybe (return ()) . (set objId))
+      let setIfEmpty oid nm val = get oid nm >>= \case
+              "" -> set objId nm val
+              _  -> return ()
+      zipWithM_ (maybe (return ()) . (setIfEmpty objId))
         ["program", "car_make", "car_model", "car_plateNum" ,"car_color"
         ,"car_transmission","car_engine", "car_contractType", "car_checkPeriod"
         ,"car_buyDate", "car_checkupDate", "car_serviceStart", "car_serviceEnd"
