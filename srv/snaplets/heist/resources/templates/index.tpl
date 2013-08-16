@@ -1572,18 +1572,5 @@
         <input type="button" class="btn reload" value="Обновить стоимость" />
       </div>
     </script>
-
-    <!-- Partner map popup -->
-    <script type="text/template" id="partner-popup-template">
-      <div>
-        <div><strong>{{ name }}</strong></div>
-        <div>{{ address }}</div>
-        <div>{{ phone }}</div>
-        <div>{{ comment }}</div>
-        <div class="btn-div">
-          <a class="btn btn-mini btn-primary">Выбрать</a>
-        </div>
-      </div>
-    </script>
   </body>
 </html>
