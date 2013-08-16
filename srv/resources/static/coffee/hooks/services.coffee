@@ -3,7 +3,7 @@ define [ "utils"
        , "screens/partnersSearch"
        ], (u, mu, pSearch) ->
   partnerOptsHook: (model, knockVM) ->
-    knockVM['contractor_partner'].subscribe (n) ->
+    knockVM['contractor_partner']?.subscribe (n) ->
       return unless knockVM['view']
       v = global.viewsWare[knockVM['view']].depViews['cost_counted'][0]
       $("##{v}").find(".add-opt-btn").remove()
@@ -38,16 +38,16 @@ define [ "utils"
           u.bindDelete knockVM, 'cost_serviceTarifOptions'
 
   srvOptUpd: (model, knockVM) ->
-    knockVM['payType'].subscribe (n) ->
+    knockVM['payType']?.subscribe (n) ->
       u.sTout 500, ->
         for o in knockVM['cost_serviceTarifOptionsReference']()
           do (o) ->
             o.model().fetch()
 
   costsMark: (model, knockVM) ->
-    knockVM['marginalCost'].subscribe -> mbMark()
+    knockVM['marginalCost']?.subscribe -> mbMark()
 
-    knockVM['cost_counted'].subscribe -> mbMark()
+    knockVM['cost_counted']?.subscribe -> mbMark()
     mbMark = ->
       v = knockVM.view
       # FIXME: change this to observables

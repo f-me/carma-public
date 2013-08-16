@@ -119,7 +119,7 @@ define [ "model/render"
         n = f.name
         kvm["#{n}Not"] = ko.computed -> kvm["#{n}Regexp"]?() or not kvm[n]()
 
-    # Setup reference fields they will be stored in <name>Reference as array
+    # Setup reference fields: they will be stored in <name>Reference as array
     # of kvm models
     for f in fields when f.type == "reference"
       do (f) ->
@@ -127,14 +127,14 @@ define [ "model/render"
           ko.computed
             read: ->
               # FIXME: this will be evaluated on every write
-              # so reference kvms is better be cached oe there will be
+              # so reference kvms is better be cached or there will be
               # get on every new reference creation
               return [] unless kvm[f.name]()
               rs = kvm[f.name]().split(',')
               return [] unless rs
               ms = (m.split(':') for m in rs)
               for m in ms
-                k = buildKVM global.model(m[0]),
+                k = buildKVM global.model(m[0], queueOptions?.modelArg),
                   fetched: {id: m[1]}
                   queue:   queue
                 k.parent = kvm
@@ -147,8 +147,11 @@ define [ "model/render"
         if f.meta?.model
           # define add-reference-button ko.bindingHandlers.bindClick function
           kvm["add#{f.name}"] = ->
-            addRef kvm, f.name, {modelName: f.meta.model}, (kvm) ->
-              focusRef(kvm)
+            opts =
+              modelName: f.meta.model
+              options:
+                modelArg: queueOptions?.modelArg
+            addRef kvm, f.name, opts, (kvm) -> focusRef(kvm)
 
     kvm["maybeId"] = ko.computed -> kvm['id']() or "—"
 

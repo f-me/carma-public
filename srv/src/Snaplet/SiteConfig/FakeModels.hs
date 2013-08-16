@@ -23,7 +23,10 @@ newSvc name = Model
 
 newSvcFields :: B.ByteString -> [Field]
 newSvcFields name
-  = [mkF "times_expectedServiceStart" "datetime" "Ожидаемое время начала оказания услуги"
+  = [mkF "parentId" "text" "Ссылка на кейс"
+      [("invisible", Aeson.Bool True)
+      ]
+    ,mkF "times_expectedServiceStart" "datetime" "Ожидаемое время начала оказания услуги"
       [("regexp", "datetime")
       ,("infoText", "datetime")
       ,("mainOnly", Aeson.Bool True)
