@@ -44,6 +44,10 @@
             {
                 "value": "busyLine",
                 "label": "Не дозвонился"
+            },
+            {
+                "value": "okButNoService",
+                "lablel": "Коммуникация завершена, услуга не требуется"
             }
         ],
         "orderServiceAnalyst": [

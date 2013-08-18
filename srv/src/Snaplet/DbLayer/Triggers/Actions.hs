@@ -795,6 +795,13 @@ actionResultMap = Map.fromList
   )
   ,("communicated", closeAction
   )
+  ,("okButNoService", \objId -> do
+    caseId <- get objId "caseId"
+    get caseId "services" >>= \case
+      "" -> set caseId "caseStatus" "s2" -- closed
+      _  -> return ()
+    closeAction objId
+  )
   ,("accountConfirm", \objId -> do
     act <- replaceAction
       "analystCheck"
