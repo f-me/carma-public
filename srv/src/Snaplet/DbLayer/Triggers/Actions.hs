@@ -241,12 +241,14 @@ updateCaseStatus caseId =
     services <- B.split ',' <$> get caseId "services"
     statuses <- mapM (`get` "status") services
     return $ case statuses of
-      _ | any (== "creating") statuses
-          -> "s0" -- Front Office
-        | all (`elem` ["serviceClosed","falseCall","mistake"]) statuses
+      _ | all (`elem` ["serviceClosed","falseCall","mistake"]) statuses
+          -> "s2" -- closed
+        | all (`elem` ["cancelService","serviceClosed"]) statuses
           -> "s2" -- closed
         | all (== "cancelService") statuses
           -> "s3" -- cancel
+        | any (== "creating") statuses
+          -> "s0" -- Front Office
         | otherwise -> "s1" -- Back Office
 
 
