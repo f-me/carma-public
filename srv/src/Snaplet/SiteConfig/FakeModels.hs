@@ -3,6 +3,7 @@ module Snaplet.SiteConfig.FakeModels where
 
 import Data.Aeson as Aeson
 import qualified Data.Map as Map
+import Data.Text (Text)
 import qualified Data.Text.Encoding as T
 import qualified Data.ByteString as B
 
@@ -12,7 +13,8 @@ import Snaplet.SiteConfig.Models
 newSvc :: B.ByteString -> Model
 newSvc name = Model
   { modelName    = name
-  , title        = T.encodeUtf8 "Новая услуга"
+  , title
+      = T.encodeUtf8 $ Map.findWithDefault "Неизвестная услуга" name svcNames
   , fields       = newSvcFields name
   , applications = []
   , _canCreateM  = Everyone
@@ -20,6 +22,29 @@ newSvc name = Model
   , _canUpdateM  = Everyone
   , _canDeleteM  = Everyone
   }
+
+svcNames :: Map.Map B.ByteString Text
+svcNames = Map.fromList
+  [("averageCommissioner","Аварийный комиссар")
+  ,("bank","Банковская поддержка")
+  ,("consultation","Консультация")
+  ,("continue","Продолжение путешествия")
+  ,("deliverCar","Доставка ТС")
+  ,("deliverClient","Доставка клиента к отремонтированному автомобилю")
+  ,("deliverParts","Доставка запчастей")
+  ,("hotel","Гостиница")
+  ,("information","Информирование о происшествии")
+  ,("insurance","Сбор справок для страховой компании")
+  ,("ken","Юридическая помощь")
+  ,("rent","Подменный автомобиль")
+  ,("sober","Трезвый водитель")
+  ,("taxi","Такси")
+  ,("tech1","ТО")
+  ,("tech","Техпомощь")
+  ,("tickets","Заказ билетов")
+  ,("towage","Эвакуация")
+  ,("transportation","Транспортировка")
+  ]
 
 newSvcFields :: B.ByteString -> [Field]
 newSvcFields name
