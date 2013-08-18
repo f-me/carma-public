@@ -35,6 +35,15 @@ define [ 'utils'
       $('#go-back-to-call').on 'click', ->
         global.router.navigate "call", {trigger: true}
 
+      $('#go-back-and-transfer-to-bo').on 'click', ->
+        kvm = global.viewsWare["case-form"].knockVM
+        # FIXME!
+        # FIXME! Possible race condition on the server: several triggers on
+        # service.status will run in parallel and try to update case.actions.
+        for svc in kvm.servicesReference()
+          svc.status 'backoffice'
+        global.router.navigate "call", {trigger: true}
+
       $('#go-to-full-case').on 'click', ->
         kvm = global.viewsWare["case-form"].knockVM
         global.router.navigate "case/#{kvm.id()}", {trigger: true}
@@ -55,6 +64,7 @@ define [ 'utils'
 
     removeCaseMain = ->
       $('#go-back-to-call').off 'click'
+      $('#go-back-and-transfer-to-bo').off 'click'
       $('#go-to-full-case').off 'click'
       $('body').off 'change.input'
       $('.navbar').css '-webkit-transform', ''
