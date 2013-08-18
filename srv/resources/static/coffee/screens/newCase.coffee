@@ -10,6 +10,7 @@ define [ 'utils'
       kvm = main.modelSetup('case') viewName, args,
                          permEl       : 'case-permissions'
                          groupsForest : "center"
+                         defaultGroup : "default-newCase"
                          slotsee      : ["case-number"]
                          focusClass   : 'focusable'
                          screenName   : 'newCase'
@@ -36,6 +37,19 @@ define [ 'utils'
         kvm = global.viewsWare["case-form"].knockVM
         global.router.navigate "case/#{kvm.id()}", {trigger: true}
 
+      $("#case-comments-b").on 'click', ->
+        i = $("#case-comments-i")
+        return if _.isEmpty i.val()
+        comment =
+          date: (new Date()).toString('dd.MM.yyyy HH:mm')
+          user: global.user.login
+          comment: i.val()
+        k = global.viewsWare['case-form'].knockVM
+        if _.isEmpty k['comments']()
+          k['comments'] [comment]
+        else
+          k['comments'] k['comments']().concat comment
+        i.val("")
 
     removeCaseMain = ->
       $('#go-back-to-call').off 'click'

@@ -16,14 +16,6 @@
 
 <div id="center" class="nice-scrollbar pane">
   <div class="form-vertical">
-    <div class="controls">
-      <span id="service-picker-container" />
-    </div>
-    <div class="control-group">
-      <div class="controls">
-        <span class="accordion" id="case-services-references" />
-      </div>
-    </div>
   </div>
 </div>
 
@@ -45,3 +37,26 @@
   <div id="empty-fields-placeholder" />
 </div>
 
+<!-- Default case group view template -->
+<script type="text/template"
+        class="group-template"
+        id="default-newCase-group-template">
+  <fieldset class="complex-field default-complex-field" id="default-newCase">
+    <div id="case-comments">
+      <label> Комментарий </label>
+      <textarea  id="case-comments-i" rows="3"  />
+      <br />
+      <button    id="case-comments-b" class="btn">
+        Добавить комментарий
+      </button>
+    </div>
+    <div class="controls">
+      <span id="service-picker-container" />
+    </div>
+    <div class="control-group">
+      <div class="controls">
+        <span class="accordion" id="case-services-references" />
+      </div>
+    </div>
+  </fieldset>
+</script>

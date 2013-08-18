@@ -178,7 +178,6 @@ newCaseFields =
     ,("bounded", Aeson.Bool True)
     ,("dictionaryParent", "car_make")
     ,("dictionaryName", "CarModels")
-    ,("dictionaryParent", "car_make")
     ,("mainOnly", Aeson.Bool True)
     ]
   ,mkF "car_seller" "dictionary" "Дилер, продавший автомобиль"
@@ -264,6 +263,8 @@ newCaseFields =
     ,("dictionaryName", "CaseStatuses")
     ]
   ,mkF "services" "reference" "Услуги"
+    [("invisible", Aeson.Bool True)]
+  ,mkF "comments" "json" "Комментарии"
     [("invisible", Aeson.Bool True)]
   ]
 
