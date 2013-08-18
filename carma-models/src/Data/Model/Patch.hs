@@ -14,6 +14,10 @@ import qualified Data.HashMap.Strict as HashMap
 import Data.Text (Text)
 import qualified Data.Text as T
 
+import Database.PostgreSQL.Simple.FromRow
+import Database.PostgreSQL.Simple.ToField
+import Database.PostgreSQL.Simple.ToRow
+
 import Data.Maybe (fromJust)
 import Data.Dynamic
 import GHC.TypeLits
@@ -50,3 +54,19 @@ instance Model m => ToJSON (Patch m) where
       fields :: HashMap Text (FieldDesc m)
       fields = HashMap.fromList [(fd_name f, f) | f <- modelFields]
       toJS k = fd_toJSON $ fields HashMap.! k
+
+
+instance Model m => FromRow (Patch m) where
+  fromRow = Patch . HashMap.fromList <$> sequence
+    [(fd_name f,) <$> fd_fromField f
+    | f <- modelFields :: [FieldDesc m]
+    ]
+
+instance Model m => ToRow (Patch m) where
+  toRow (Patch m) = map fieldToRow $ HashMap.toList m
+    where
+      fields :: HashMap Text (FieldDesc m)
+      fields = HashMap.fromList [(fd_name f, f) | f <- modelFields]
+      fieldToRow (nm, val) = case HashMap.lookup nm fields of
+        Nothing -> error $ "BUG: unexpected field " ++ show nm
+        Just f  -> fd_toField f val

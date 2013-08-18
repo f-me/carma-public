@@ -17,6 +17,7 @@ import Data.Maybe (fromJust)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Aeson.Types as Aeson
+import Database.PostgreSQL.Simple.FromRow (RowParser,field)
 import Database.PostgreSQL.Simple.FromField (FromField(..))
 import Database.PostgreSQL.Simple.ToField   (ToField(..), Action)
 import Data.Dynamic
@@ -27,9 +28,8 @@ class (SingI (TableName m), Typeable m) => Model m where
   type TableName m :: Symbol
   modelFields :: [FieldDesc m]
 
-tableName :: Model model => model -> String
-tableName (_ :: model)
-  = fromSing (sing :: Sing (TableName model))
+tableName :: forall model . Model model => model -> String
+tableName _ = fromSing (sing :: Sing (TableName model))
 
 
 data Ident model = Ident {identVal :: Int}
@@ -70,6 +70,7 @@ data FieldDesc m = FieldDesc
   ,fd_type      :: TypeRep
   ,fd_parseJSON :: Value -> Parser Dynamic
   ,fd_toJSON    :: Dynamic -> Value
+  ,fd_fromField :: RowParser Dynamic
   ,fd_toField   :: Dynamic -> Action
   }
 
@@ -79,7 +80,7 @@ class GetModelFields m ctr where
 
 instance
     (GetModelFields m ctr, SingI nm, SingI desc
-    ,FromJSON t, ToJSON t, ToField t, Typeable t)
+    ,FromJSON t, ToJSON t, FromField t, ToField t, Typeable t)
     => GetModelFields m (Field t (FOpt nm desc) -> ctr)
   where
     getModelFields f
@@ -89,6 +90,7 @@ instance
         ,fd_type      = typeOf   (undefined :: t)
         ,fd_parseJSON = \v -> toDyn <$> (parseJSON v :: Parser t)
         ,fd_toJSON    = \d -> toJSON  (fromJust $ fromDynamic d :: t)
+        ,fd_fromField = toDyn <$> (field :: RowParser t)
         ,fd_toField   = \d -> toField (fromJust $ fromDynamic d :: t)
         }
       : getModelFields (f Field)

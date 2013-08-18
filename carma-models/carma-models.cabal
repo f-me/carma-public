@@ -18,6 +18,7 @@ library
     Test,
     Data.Model,
     Data.Model.Patch,
+    Data.Model.Patch.Sql,
     Data.Model.Sql,
     Data.Model.View,
     Carma.Model.Program,

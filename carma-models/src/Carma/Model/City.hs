@@ -6,6 +6,7 @@ import Data.Aeson
 import Data.Text
 import Data.Typeable
 import Database.PostgreSQL.Simple.ToField   (ToField(..))
+import Database.PostgreSQL.Simple.FromField (FromField(..))
 
 import Data.Model
 
@@ -22,6 +23,9 @@ instance ToJSON Coords where
 
 instance ToField Coords where
   toField = undefined
+
+instance FromField Coords where
+  fromField = undefined
 
 
 data City = City
