@@ -30,6 +30,8 @@ define [ 'utils'
             ,drop: 'down'
             }))
 
+      hotkeys.setup()
+
       $('#go-back-to-call').on 'click', ->
         global.router.navigate "call", {trigger: true}
 
