@@ -95,7 +95,7 @@ functions tz dict = [
         composeComment = S.StringValue . \case
           [S.StringValue s]
             -> case A.decode $ L.encodeUtf8 $ L.pack s of
-              Just [A.Array a] -> concatMap mkComment $ V.toList a
+              Just (A.Array a) -> concatMap mkComment $ V.toList a
               _ -> ""
           _ -> ""
          where

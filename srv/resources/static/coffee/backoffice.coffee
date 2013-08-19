@@ -82,7 +82,7 @@ addActions = (actions, table) ->
     cid = act.caseId.split(':')[1]
     if act.parentId
       svcName = act.parentId.split(':')[0]
-      svcName = global.models[svcName].title
+      svcName = global.model(svcName).title
     id = "#{cid}/#{act.id} (#{svcName or ''})"
     duetime  = new Date(act.duetime * 1000).toString("dd.MM.yyyy HH:mm:ss")
     srvStart = new Date(act.times_expectedServiceStart * 1000)

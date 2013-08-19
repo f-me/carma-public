@@ -100,8 +100,8 @@ define [ "utils"
     kase = ctx['case'].data
     {id, data} = ctx['service']
     srvName = id.split(':')[0]
-    kaseKVM = m.buildKVM global.models['case'],  {fetched: kase}
-    srvKVM  = m.buildKVM global.models[srvName], {fetched: data}
+    kaseKVM = m.buildKVM global.model('case'),  {fetched: kase}
+    srvKVM  = m.buildKVM global.model(srvName), {fetched: data}
     kvm['fromCase'] = true
     kvm['city'](kaseKVM.city())
     kvm['make'](kaseKVM.car_make())

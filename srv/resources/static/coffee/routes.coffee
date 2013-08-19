@@ -2,6 +2,7 @@ define [
   "screens/backoffice"
   "screens/call"
   "screens/case"
+  "screens/newCase"
   "screens/dictionaries"
   "screens/partners"
   "screens/user"
@@ -24,6 +25,7 @@ define [
   ], ( bo
      , call
      , kase
+     , newCase
      , dictionaries
      , partner
      , user
@@ -48,6 +50,10 @@ define [
         "template": "case-screen-template"
         "views":
           "case-form": kase
+      "newCase":
+        "template": "case-screen-template"
+        "views":
+          "case-form": newCase
       "dictionaries":
         "template": "dictionaries-screen-template"
         "views":
@@ -136,7 +142,7 @@ define [
       # Must _not_ end with trailing slashes
       routes:
         "case/:id"       : "loadCase"
-        "case"           : "newCase"
+        "newCase/:id"    : "loadNewCase"
         "dictionaries/:dict" : "dictionaries"
         "dictionaries/:dict/:id" : "editDictionary"
         "search"         : "search"
@@ -167,7 +173,7 @@ define [
         "partnersSearch/:model" : "partnersSearchModel"
 
       loadCase      : (id) -> r.renderScreen("case", kase, {"id": id})
-      newCase       :      -> r.renderScreen("case", kase, {"id": null})
+      loadNewCase   : (id) -> r.renderScreen("newCase", newCase, {"id": id})
       dictionaries  : (dict) -> r.renderScreen("dictionaries", dictionaries, {dict})
       editDictionary : (dict, id) -> r.renderScreen("dictionaries", dictionaries, {dict, id})
       search        :      -> renderScreen("search")
