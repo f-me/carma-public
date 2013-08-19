@@ -243,9 +243,9 @@ updateCaseStatus caseId =
     return $ case statuses of
       _ | all (`elem` ["serviceClosed","falseCall","mistake"]) statuses
           -> "s2" -- closed
-        | all (`elem` ["cancelService","serviceClosed"]) statuses
+        | all (`elem` ["clientCanceled","serviceClosed"]) statuses
           -> "s2" -- closed
-        | all (== "cancelService") statuses
+        | all (`elem` ["clientCanceled", "cancelService"]) statuses
           -> "s3" -- cancel
         | any (== "creating") statuses
           -> "s0" -- Front Office
