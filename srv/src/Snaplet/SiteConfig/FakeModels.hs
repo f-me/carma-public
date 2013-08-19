@@ -77,6 +77,15 @@ newSvcFields name
         [("widget", "partner")
         ,("mainOnly", Aeson.Bool True)
         ]
+      ,mkF "towDealer_partnerId" "text" ""
+        [("invisible", Aeson.Bool True)
+        ]
+      ,mkF "towDealer_address" "text" ""
+        [("invisible", Aeson.Bool True)
+        ]
+      ,mkF "towDealer_coords" "text" ""
+        [("invisible", Aeson.Bool True)
+        ]
       ,mkF "towerType" "dictionary" "Тип эвакуатора"
         [("dictionaryName", "TowerTypes")
         ,("bounded",       Aeson.Bool True)
