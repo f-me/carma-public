@@ -6,7 +6,6 @@ require [ "domready"
         , "hooks/config"
         , "json!/cfg/dictionaries"
         , "json!/_whoami"
-        , "json!/cfg/models"
         , "json!/screens"
         , "json!/allUsers"
         , "utils"
@@ -18,7 +17,6 @@ require [ "domready"
            , hooks
            , dicts
            , user
-           , models
            , nav
            , users
            , u
@@ -49,7 +47,6 @@ require [ "domready"
               dicts,
               hooks,
               user,
-              models,
               new pubSub
     global.all_users = users
     global.nav = nav

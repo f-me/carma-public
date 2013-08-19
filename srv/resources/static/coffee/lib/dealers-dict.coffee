@@ -6,7 +6,7 @@ define ["lib/local-dict", ], (m) ->
       @cacheByLab = {}
 
       # We use DealersDict on the case screen and on the contracts screen also.
-      # This is the reasson for the double name check in the following line.
+      # This is the reason for the double name check in the following line.
       carMake = (@kvm.car_make || @kvm.carMake)?()
       (@kvm.car_make || @kvm.carMake)?.subscribe (v) =>
         $.getJSON "/dealers/#{v}", (@dealers) =>

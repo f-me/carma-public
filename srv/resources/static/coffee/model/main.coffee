@@ -27,7 +27,6 @@ define [ "model/render"
                    , localDictionaries
                    , hooks
                    , user
-                   , models
                    , pubSub) ->
     Screens = localScreens
 
@@ -45,7 +44,17 @@ define [ "model/render"
         dictValueCache: dictCache.valueCache
         hooks: hooks
         user: user
-        models: models
+        model: do ->
+          modelCache = {}
+          (name, arg) ->
+            url = "/cfg/model/#{name}"
+            url = url + "?arg=#{arg}" if arg
+            if not modelCache[url]
+              $.ajax url,
+                async: false
+                dataType: 'json'
+                success: (m) -> modelCache[url] = m
+            modelCache[url]
         activeScreen: null
         pubSub: pubSub
         # viewsWare is for bookkeeping of views in current screen.
@@ -110,7 +119,7 @@ define [ "model/render"
         n = f.name
         kvm["#{n}Not"] = ko.computed -> kvm["#{n}Regexp"]?() or not kvm[n]()
 
-    # Setup reference fields they will be stored in <name>Reference as array
+    # Setup reference fields: they will be stored in <name>Reference as array
     # of kvm models
     for f in fields when f.type == "reference"
       do (f) ->
@@ -118,14 +127,14 @@ define [ "model/render"
           ko.computed
             read: ->
               # FIXME: this will be evaluated on every write
-              # so reference kvms is better be cached oe there will be
+              # so reference kvms is better be cached or there will be
               # get on every new reference creation
               return [] unless kvm[f.name]()
               rs = kvm[f.name]().split(',')
               return [] unless rs
               ms = (m.split(':') for m in rs)
               for m in ms
-                k = buildKVM global.models[m[0]],
+                k = buildKVM global.model(m[0], queueOptions?.modelArg),
                   fetched: {id: m[1]}
                   queue:   queue
                 k.parent = kvm
@@ -138,8 +147,11 @@ define [ "model/render"
         if f.meta?.model
           # define add-reference-button ko.bindingHandlers.bindClick function
           kvm["add#{f.name}"] = ->
-            addRef kvm, f.name, {modelName: f.meta.model}, (kvm) ->
-              focusRef(kvm)
+            opts =
+              modelName: f.meta.model
+              options:
+                modelArg: queueOptions?.modelArg
+            addRef kvm, f.name, opts, (kvm) -> focusRef(kvm)
 
     kvm["maybeId"] = ko.computed -> kvm['id']() or "—"
 
@@ -175,10 +187,8 @@ define [ "model/render"
       else
         kvm['dixiDisabled'](true)
 
-    applyHooks global.hooks.observable,
-               ['*', model.name],
-               model, kvm
-
+    hooks = queueOptions?.hooks or ['*', model.name]
+    applyHooks global.hooks.observable, hooks, model, kvm
     return kvm
 
   #/ Model functions.
@@ -245,34 +255,32 @@ define [ "model/render"
   # maybe with filtered some fields or something
   modelSetup = (modelName, model) ->
     return (elName, args, options) ->
-
-      # save copy of models
-      models = $.extend true, {}, global.models
-      models[modelName] = model if model
-
-      [kvm, q] = buildModel(modelName, models, args, options, elName)
+      model = global.model(modelName, options.modelArg) if not model
+      [kvm, q] = buildModel(model, args, options, elName)
 
       depViews = setupView(elName, kvm,  options)
 
       # Bookkeeping
       global.viewsWare[elName] =
-        model           : models[modelName]
-        modelName       : modelName
+        model           : model
+        modelName       : model.name
         knockVM         : kvm
         depViews        : depViews
 
       # update url here, because only top level models made with modelSetup
       kvm["maybeId"].subscribe -> kvm["updateUrl"]()
 
+      screenName = options.screenName or modelName
       kvm["updateUrl"] = ->
-        global.router.navigate "#{kvm._meta.model.name}/#{kvm.id()}",
+        global.router.navigate "#{screenName}/#{kvm.id()}",
                                { trigger: false }
 
-      applyHooks(global.hooks.model, ['*', modelName], elName)
+      hooks = options.hooks or ['*', model.name]
+      applyHooks global.hooks.model, hooks, elName
       return kvm
 
-  buildModel = (modelName, models, args, options, elName) ->
-      kvm = buildKVM models[modelName],
+  buildModel = (model, args, options, elName) ->
+      kvm = buildKVM model,
         elName: elName
         queue: sync.CrudQueue
         queueOptions: options
@@ -280,9 +288,10 @@ define [ "model/render"
       return [kvm, kvm._meta.q]
 
   buildNewModel = (modelName, args, options, cb) ->
-    [knockVM, q] = buildModel(modelName, global.models, args, options)
+    model = global.model(modelName, options.modelArg)
+    [knockVM, q] = buildModel(model, args, options)
     if _.isFunction cb
-      q.save -> cb(global.models[modelName], knockVM)
+      q.save -> cb(model, knockVM)
     else
       q.save()
     return [knockVM, q]
@@ -299,14 +308,14 @@ define [ "model/render"
   setupView = (elName, knockVM,  options) ->
     tpls = render.getTemplates("reference-template")
     depViews = render.kvm(elName, knockVM,  options)
-
-    # Bind the model to Knockout UI
-    ko.applyBindings(knockVM, el(elName)) if el(elName)
     # Bind group subforms (note that refs are bound
     # separately)
     bindDepViews(knockVM, elName, depViews)
     # Bind extra views if provided
     ko.applyBindings knockVM, el(v) for k, v of options.slotsee when el(v)
+
+    # Bind the model to Knockout UI
+    ko.applyBindings(knockVM, el(elName)) if el(elName)
 
     knockVM['view'] = elName
 

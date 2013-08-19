@@ -55,7 +55,7 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
     rows = for obj in objs
       if obj.parentId
         svcName = obj.parentId.split(':')[0]
-        svcName = global.models[svcName].title
+        svcName = global.model(svcName).title
       cid = obj.caseId.split(':')[1]
       closed = if obj.closed == "1"
           'Закрыто'

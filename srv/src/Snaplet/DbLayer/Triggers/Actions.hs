@@ -218,7 +218,10 @@ fillFromContract vin objId = do
   case res of
     [] -> return False
     [row] -> do
-      zipWithM_ (maybe (return ()) . (set objId))
+      let setIfEmpty oid nm val = get oid nm >>= \case
+              "" -> set objId nm val
+              _  -> return ()
+      zipWithM_ (maybe (return ()) . (setIfEmpty objId))
         ["program", "car_make", "car_model", "car_plateNum" ,"car_color"
         ,"car_transmission","car_engine", "car_contractType", "car_checkPeriod"
         ,"car_buyDate", "car_checkupDate", "car_serviceStart", "car_serviceEnd"
@@ -238,12 +241,14 @@ updateCaseStatus caseId =
     services <- B.split ',' <$> get caseId "services"
     statuses <- mapM (`get` "status") services
     return $ case statuses of
-      _ | any (== "creating") statuses
-          -> "s0" -- Front Office
-        | all (`elem` ["serviceClosed","falseCall","mistake"]) statuses
+      _ | all (`elem` ["serviceClosed","falseCall","mistake"]) statuses
           -> "s2" -- closed
-        | all (== "cancelService") statuses
+        | all (`elem` ["clientCanceled","serviceClosed"]) statuses
+          -> "s2" -- closed
+        | all (`elem` ["clientCanceled", "cancelService"]) statuses
           -> "s3" -- cancel
+        | any (== "creating") statuses
+          -> "s0" -- Front Office
         | otherwise -> "s1" -- Back Office
 
 
@@ -789,6 +794,13 @@ actionResultMap = Map.fromList
   ,("complaintManaged", closeAction
   )
   ,("communicated", closeAction
+  )
+  ,("okButNoService", \objId -> do
+    caseId <- get objId "caseId"
+    get caseId "services" >>= \case
+      "" -> set caseId "caseStatus" "s2" -- closed
+      _  -> return ()
+    closeAction objId
   )
   ,("accountConfirm", \objId -> do
     act <- replaceAction
