@@ -188,7 +188,8 @@ newCaseFields =
     ,("mainOnly", Aeson.Bool True)
     ]
   ,mkF "program" "dictionary" "Программа"
-    [("dictionaryName", "Programs")
+    [("dictionaryName", "casePrograms")
+    ,("dictionaryType", "ComputedDict")
     ,("required", Aeson.Bool True)
     ,("bounded", Aeson.Bool True)
     ,("targetCategory", "program")
