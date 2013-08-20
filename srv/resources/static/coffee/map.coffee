@@ -322,6 +322,8 @@ define ["model/utils", "utils"], (mu, u) ->
   # - targetMap: name of map field to write geocoding results into
   #              (recenter & set new blip on map)
   #
+  # - currentBlipType: used for map blip when targetMap is set
+  # 
   # - targetCoords: name of field to write geocoding results into
   #                 (coordinates in "lon, lat" format). This meta is
   #                 also used by the map to set the initial position
@@ -353,14 +355,13 @@ define ["model/utils", "utils"], (mu, u) ->
 
 
   # Given a readable addres, try to fill a set of model fields,
-  # updating coordinates, map position and city.
+  # updating coordinates and map position.
   #
   # Options is an object with following keys:
   #
   # - coord_field
   # - osmap
   # - current_blip_type
-  # - city_field
   spliceAddress = (addr, kvm, options) ->
     $.getJSON(geoQuery(addr), (res) ->
       if res.length > 0
