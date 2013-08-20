@@ -90,7 +90,7 @@
         "infoText": "coords",
         "picker": "mapPicker",
         "cityField": "city",
-        "targetAddrs": "addrs",
+        "targetAddr": "factAddr",
         "targetCoords": "coords",
         "currentBlipType": "partner"
       },

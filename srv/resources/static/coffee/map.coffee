@@ -212,9 +212,6 @@ define ["model/utils", "utils"], (mu, u) ->
   #               geocoding and clicking the map will write address to
   #               this field of model.
   #
-  # - targetAddrs: JSON field with dict-objects JSON schema with
-  #                address list, first object with "fact" key is used.
-  #
   # - targetCoords: read initial position & current blip from this field
   #                 of model; write geocoding results here (only if it's
   #                 enabled with `targetAddr` meta!)
@@ -242,7 +239,6 @@ define ["model/utils", "utils"], (mu, u) ->
 
     coord_field = mu.modelField(modelName, fieldName).meta["targetCoords"]
     addr_field = mu.modelField(modelName, fieldName).meta["targetAddr"]
-    addrs_field = mu.modelField(modelName, fieldName).meta["targetAddrs"]
     city_field = mu.modelField(modelName, fieldName).meta["cityField"]
     current_blip_type =
       mu.modelField(modelName, fieldName).meta["currentBlipType"] or "default"
@@ -276,7 +272,7 @@ define ["model/utils", "utils"], (mu, u) ->
 
     # Setup handlers to update target address and coordinates if the
     # map is clickable
-    if addr_field? or addrs_field?
+    if addr_field?
       osmap.events.register("click", osmap, (e) ->
         coords = osmap.getLonLatFromViewPortPx(e.xy)
                  .transform(osmProj, wsgProj)
@@ -284,6 +280,8 @@ define ["model/utils", "utils"], (mu, u) ->
         if coord_field?
           kvm[coord_field] shortStringFromLonlat coords
 
+        currentBlip osmap, osmap.getLonLatFromViewPortPx(e.xy), current_blip_type
+        
         $.getJSON(geoRevQuery(coords.lon, coords.lat),
         (res) ->
           addr = buildReverseAddress res
@@ -291,16 +289,9 @@ define ["model/utils", "utils"], (mu, u) ->
           if addr_field?
             kvm[addr_field](addr)
 
-          # Write address to first "fact" address of partner
-          if addrs_field?
-            json = kvm[addrs_field]()
-            kvm[addrs_field] (u.setKeyedJsonValue json, "fact", addr)
-
           if city_field?
             city = buildReverseCity(res)
             kvm[city_field](city)
-
-          currentBlip osmap, osmap.getLonLatFromViewPortPx(e.xy), current_blip_type
         )
       )
 
