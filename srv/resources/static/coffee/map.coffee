@@ -290,7 +290,10 @@ define ["model/utils", "utils"], (mu, u) ->
 
           if city_field?
             city = buildReverseCity(res)
-            kvm[city_field](city)
+            # Do not overwrite current city if new city is not
+            # recognized
+            if city?
+              kvm[city_field](city)
         )
       )
 
