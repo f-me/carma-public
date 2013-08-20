@@ -39,6 +39,26 @@ define ["model/utils", "utils"], (mu, u) ->
   wsgProj = new OpenLayers.Projection("EPSG:4326")
   osmProj = new OpenLayers.Projection("EPSG:900913")
 
+  # Build a place (structure with `coords` and `bounds` fields,
+  # containind OpenLayers LonLat and Bounds, respectively) from
+  # geoQuery response.
+  #
+  # Places use WSG projection for coordinates and bounds.
+  buildPlace = (res) ->
+    if res.error
+      null
+    else
+      if res.length > 0
+        # If possible, pick first result with osm_type = "relation",
+        # because "node" results usually have no suitable bondingbox
+        # property.
+        el = _.find res, (r) -> r.osm_type == "relation"
+        if not el?
+          el = res[0]
+        bb = el.boundingbox
+        coords: new OpenLayers.LonLat el.lon, el.lat
+        bounds: new OpenLayers.Bounds bb[2], bb[0], bb[3], bb[1]
+
   # Cut off everything beyond The Wall
   Moscow =
     coords: new OpenLayers.LonLat(37.617874, 55.757549)
@@ -51,18 +71,6 @@ define ["model/utils", "utils"], (mu, u) ->
     bounds: new OpenLayers.Bounds(
       29.4298095703125, 59.6337814331055,
       30.7591361999512, 60.2427024841309)
-
-  # Build a place (structure with `coords` and `bounds` fields,
-  # containind OpenLayers LonLat and Bounds, respectively) from
-  # geoQuery response
-  buildPlace = (res) ->
-    if res.error
-      null
-    else
-      if res.length > 0
-        bb = res[0].boundingbox
-        coords: new OpenLayers.LonLat res[0].lon, res[0].lat
-        bounds: new OpenLayers.Bounds bb[2], bb[0], bb[3], bb[1]
 
   # Build a place for city from geoQuery response
   buildCityPlace = (res) ->
@@ -82,8 +90,8 @@ define ["model/utils", "utils"], (mu, u) ->
   # into LonLat object
   lonlatFromShortString = (coords) ->
     if coords?.length > 0
-      parts = coords.split(",")
-      new OpenLayers.LonLat(parts[0], parts[1])
+      parts = coords.split ","
+      new OpenLayers.LonLat parts[0], parts[1]
     else
       null
 
@@ -186,7 +194,7 @@ define ["model/utils", "utils"], (mu, u) ->
 
       # Occasionally closefitting occludes boundless places, so we fix
       # this
-      ex = osmap.getExtent().transform map.osmProj, map.wsgProj
+      ex = osmap.getExtent().transform osmProj, wsgProj
       for p in places
         if not ex.containsLonLat p.coords
           osmap.zoomToExtent gbounds, false
@@ -204,7 +212,8 @@ define ["model/utils", "utils"], (mu, u) ->
   #               geocoding and clicking the map will write address to
   #               this field of model.
   #
-  # - targetAddrs
+  # - targetAddrs: JSON field with dict-objects JSON schema with
+  #                address list, first object with "fact" key is used.
   #
   # - targetCoords: read initial position & current blip from this field
   #                 of model; write geocoding results here (only if it's
@@ -241,24 +250,27 @@ define ["model/utils", "utils"], (mu, u) ->
     current_blip_type =
       mu.modelField(modelName, fieldName).meta["currentBlipType"] or "default"
 
-    # Center on the default location first
-    setPlace osmap, Moscow
+    # Place a blip and initialize places if coordinates are already
+    # known
+    places = []
+    if coord_field?
+      coords_string = kvm[coord_field]()
+      if coords_string?.length > 0
+        coords = lonlatFromShortString coords_string
+        places = [coords: coords]
+        currentBlip osmap, (coords.clone().transform wsgProj, osmProj),
+          current_blip_type
+    fitPlaces osmap, places
 
-    # Fit city on map
+    # Refit city on map if possible
     if city_field?
       city = kvm[city_field]()
-      centerMapOnCity osmap, city
-
-    # Place a blip and recenter if coordinates are already known
-    if coord_field?
-      coords = kvm[coord_field]()
-      if coords? && coords.length > 0
-        coords = lonlatFromShortString coords
-        if city?.length > 0
-          osmap.setCenter coords.transform wsgProj, osmProj
-        else
-          osmap.setCenter coords.transform(wsgProj, osmProj), defaultZoomLevel
-        currentBlip osmap, coords, current_blip_type
+      if city?.length > 0
+        fixed_city = global.dictValueCache.DealerCities[city]
+        $.getJSON geoQuery(fixed_city), (res) ->
+          if res.length > 0
+            places = places.concat [buildCityPlace res]
+            fitPlaces osmap, places
 
     # Setup handler to update target address and coordinates if the
     # map is clickable
@@ -293,6 +305,8 @@ define ["model/utils", "utils"], (mu, u) ->
     $(el).data("osmap", osmap)
 
   # Move the current position blip on a map.
+  #
+  # - coords: OpenLayers.Coords, in OSM projection
   #
   # - type: one of types in iconFromType
   currentBlip = (osmap, coords, type) ->
