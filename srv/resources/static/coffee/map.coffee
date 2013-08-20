@@ -339,17 +339,38 @@ define ["model/utils", "utils"], (mu, u) ->
     current_blip_type =
       mu.modelField(modelName, map_field).meta["currentBlipType"] or "default"
 
+    osmap = view.find("[name=#{map_field}]").data("osmap")
+
+    kvm = u.findVM(viewName)
+
+    spliceAddress addr, kvm,
+      coord_field: coord_field
+      osmap: osmap
+      current_blip_type: current_blip_type
+
+
+  # Given a readable addres, try to fill a set of model fields,
+  # updating coordinates, map position and city.
+  #
+  # Options is an object with following keys:
+  #
+  # - coord_field
+  # - osmap
+  # - current_blip_type
+  # - city_field
+  spliceAddress = (addr, kvm, options) ->
     $.getJSON(geoQuery(addr), (res) ->
       if res.length > 0
         lonlat = new OpenLayers.LonLat res[0].lon, res[0].lat
 
-        if coord_field?
-          u.findVM(viewName)[coord_field] shortStringFromLonlat lonlat
+        if options.coord_field?
+          kvm[options.coord_field] shortStringFromLonlat lonlat
 
-        if map_field?
-          osmap = view.find("[name=#{map_field}]").data("osmap")
-          setPlace osmap, buildPlace res
-          currentBlip osmap, osmap.getCenter(), current_blip_type
+        if options.osmap?
+          setPlace options.osmap, buildPlace res
+          currentBlip options.osmap,
+            lonlat.clone().transform(wsgProj, osmProj),
+            options.current_blip_type
     )
 
   # Reverse geocoding picker (coordinates -> address)
@@ -405,14 +426,14 @@ define ["model/utils", "utils"], (mu, u) ->
     search_button = modal.find("#map-search-button")
 
     city_field = mu.modelField(model_name, field_name).meta["cityField"]
-    
+
     # Initialize search field with city if factAddr is empty
     if city_field? && kvm['factAddr']()?.length == 0
       city = kvm[city_field]()
       if city?.length > 0
         fixed_city = global.dictValueCache.DealerCities[city]
         search.val(fixed_city)
-        
+
     coord_field = mu.modelField(model_name, field_name).meta['targetCoords']
     current_blip_type =
       mu.modelField(model_name, field_name).meta["currentBlipType"] or "default"
@@ -428,19 +449,12 @@ define ["model/utils", "utils"], (mu, u) ->
         if e.which == 13
           search_button.trigger "click"
       search_button.click () ->
-        $.getJSON(geoQuery(search.val()),
-          (res) ->
-            if res.length > 0
-              lonlat = new OpenLayers.LonLat res[0].lon, res[0].lat
-              
-              if coord_field?
-                kvm[coord_field] shortStringFromLonlat lonlat
+        osmap = $(map_el).data("osmap")
+        spliceAddress search.val(), kvm,
+          coord_field: coord_field
+          osmap: osmap
+          current_blip_type: current_blip_type
 
-              osmap = $(map_el).data("osmap")
-              fitPlaces osmap, [buildPlace res]
-              currentBlip osmap, osmap.getCenter(), current_blip_type              
-          )
-      
       initOSM map_el, view_name
 
     # Unbind handlers to avoid multiple handler calls when the map
