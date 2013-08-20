@@ -134,12 +134,7 @@ define ["model/utils", "utils"], (mu, u) ->
     return new_layer
 
   # Center map on place bounds or coordinates
-  setPlace = (osmap, place) ->
-    t = (o) -> o.clone().transform wsgProj, osmProj
-    if place.bounds?
-      osmap.zoomToExtent t place.bounds
-    else
-      osmap.setCenter t place.coordinates
+  setPlace = (osmap, place) -> fitPlaces osmap, [place]
 
   # Center an OSM on a city. City is a value from DealerCities
   # dictionary.
@@ -380,8 +375,6 @@ define ["model/utils", "utils"], (mu, u) ->
     view = $(mu.elementView($(el)))
     modelName = mu.elementModel($(el))
 
-    osmCoords = coords.clone().transform(wsgProj, osmProj)
-
     addr_field = mu.modelField(modelName, fieldName).meta['targetAddr']
     map_field = mu.modelField(modelName, fieldName).meta['targetMap']
     current_blip_type =
@@ -389,7 +382,7 @@ define ["model/utils", "utils"], (mu, u) ->
 
     if map_field?
       osmap = view.find("[name=#{map_field}]").data("osmap")
-      osmap.setCenter(osmCoords, zoomLevel)
+      setPlace osmap, coords: coords
       currentBlip osmap, osmap.getCenter(), current_blip_type
 
     if addr_field?
@@ -401,19 +394,60 @@ define ["model/utils", "utils"], (mu, u) ->
 
   # Coordinates picker for partner screen which uses a modal window to
   # render the map in. Recognizes the same field metas as initOSM.
-  mapPicker = (fieldName, el) ->
+  mapPicker = (field_name, el) ->
     modal = $("#partnerMapModal")
     map_el = modal.find(".osMap")[0]
     view_name = mu.elementView($(el)).id
+    model_name = mu.elementModel($(el))
     kvm = u.findVM view_name
+
+    search = modal.find("#map-search-field")
+    search_button = modal.find("#map-search-button")
+
+    city_field = mu.modelField(model_name, field_name).meta["cityField"]
+    
+    # Initialize search field with city if factAddr is empty
+    if city_field? && kvm['factAddr']()?.length == 0
+      city = kvm[city_field]()
+      if city?.length > 0
+        fixed_city = global.dictValueCache.DealerCities[city]
+        search.val(fixed_city)
+        
+    coord_field = mu.modelField(model_name, field_name).meta['targetCoords']
+    current_blip_type =
+      mu.modelField(model_name, field_name).meta["currentBlipType"] or "default"
 
     $("#partnerMapModal").one "shown", ->
       # Resize map container to fit the modal window container
       w = $(window).height()
       modal.find(".modal-body").css('max-height', w * 0.80)
       modal.find(".osMap").height(w * 0.5)
+
+      # Activate simple map search
+      search.keypress (e) ->
+        if e.which == 13
+          search_button.trigger "click"
+      search_button.click () ->
+        $.getJSON(geoQuery(search.val()),
+          (res) ->
+            if res.length > 0
+              lonlat = new OpenLayers.LonLat res[0].lon, res[0].lat
+              
+              if coord_field?
+                kvm[coord_field] shortStringFromLonlat lonlat
+
+              osmap = $(map_el).data("osmap")
+              fitPlaces osmap, [buildPlace res]
+              currentBlip osmap, osmap.getCenter(), current_blip_type              
+          )
       
       initOSM map_el, view_name
+
+    # Unbind handlers to avoid multiple handler calls when the map
+    # popup is shown again
+    $("#partnerMapModal").one "hidden", ->
+      search.off "keypress"
+      search_button.off "click"
 
     $("#partnerMapModal").modal('show')
 
