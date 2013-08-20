@@ -70,6 +70,13 @@ define [ "utils"
       { name: "workNow"
       , type: "checkbox"
       , meta: { label: "Работают сейчас", nosearch: true}
+      },
+      # Case coordinates, stored as "lon,lat" text in WSG projection
+      { name: "coords"
+      , meta: { label: "Координаты места поломки", nosearch: true}
+      },
+      { name: "address"
+      , meta: { label: "Адрес места поломки", nosearch: true}
       }
       ]
 
@@ -138,7 +145,8 @@ define [ "utils"
       #{if srvKVM.companion?() then '✓' else '' }</li>
     </ul>
     """
-    kvm['caseCoords'] = map.lonlatFromShortString kaseKVM.caseAddress_coords()
+    kvm['coords'] kaseKVM.caseAddress_coords()
+    kvm['address'] kaseKVM.caseAddress_address()
 
     selectPartner = (kvm, partner) ->
       if _.isNull partner
@@ -179,6 +187,8 @@ define [ "utils"
   loadContext = (kvm, args) ->
     s = localStorage['partnersSearch']
     ctx = JSON.parse s if s
+    # By default, map is unclickable
+    kvm['mapClickable'] = false
     $("#case-info").css 'visibility', 'hidden'
     switch args?.model
       when "case"
@@ -190,6 +200,22 @@ define [ "utils"
         kvm['city'](ctx.city)
         kvm['make'](ctx.carMake)
         kvm['isDealer'](true)
+
+        kvm['coords'] ctx.coords
+        kvm['address'] ctx.address
+        # Allow resetting address & city of case
+        kvm['mapClickable'] = true
+
+        # Show heads-up address search field
+        $("#map-search-overlay").show()
+
+        # Asynchronously push kvm updates to pubsub for call model
+        setupPusher = (field) ->
+          kvm[field].subscribe (val) ->
+            n = subName field, 'call', ctx.id
+            global.pubSub.pub n, kvm[field]()
+        setupPusher 'coords'
+        setupPusher 'address'
       when "mobile"
         kvm['mobilePartner'](true)
 
@@ -203,6 +229,13 @@ define [ "utils"
 
     t = $("#map").offset().top
     $("#map").height(w-t-5)
+
+    # Position address search field over the map in right top corner
+    ar_w = $("#map-search-overlay").width()
+    map_r = $("#map").offset().left + $("#map").width()
+    $("#map-search-overlay").offset
+      top: t + 5
+      left: map_r - ar_w - 10
 
   # Bind cityPlaces observableArray to list of places of currently
   # selected cities in `city`. A place is an object with fields
@@ -244,19 +277,50 @@ define [ "utils"
     osmap.zoomToMaxExtent()
 
     # Crash site blip initial position
-    if kvm["caseCoords"]?
-      coords = kvm["caseCoords"].clone().transform(map.wsgProj, map.osmProj)
+    if kvm["coords"]()?
+      coords =
+        (map.lonlatFromShortString kvm["coords"]())
+        .clone()
+        .transform(map.wsgProj, map.osmProj)
       map.currentBlip osmap, coords, "car"
 
-    # Crash site relocation on map click
-    osmap.events.register "click", osmap, (e) ->
-      raw_coords = osmap.getLonLatFromViewPortPx(e.xy)
-      map.currentBlip osmap, raw_coords, "car"
+    if kvm["mapClickable"]
+      # Crash site relocation on map click
+      osmap.events.register "click", osmap, (e) ->
+        raw_coords = osmap.getLonLatFromViewPortPx(e.xy)
+        coords = raw_coords.clone().transform(map.osmProj, map.wsgProj)
 
-      coords = raw_coords.clone().transform(map.osmProj, map.wsgProj)
-      kvm["caseCoords"] = coords
+        map.spliceCoords coords, kvm,
+          coord_field: "coords"
+          osmap: osmap
+          current_blip_type: "car"
+          addr_field: "address"
+          # city_field: "city"
 
-      kvm._meta.q._search()
+        kvm._meta.q._search()
+
+      # Address search box handlers
+      search = $("#map-search-field")
+      search_button = $("#map-search-button")
+
+      # Start search string with currently selected city
+      if _.isEmpty kvm['address']()
+        city = kvm['cityLocals']()[0]?.label
+        console.log city
+        search.val(city)
+      
+      search.keypress (e) ->
+        if e.which == 13
+          search_button.trigger "click"
+
+      search_button.click () ->
+        map.spliceAddress search.val(), kvm,
+          coord_field: "coords"
+          osmap: osmap
+          current_blip_type: "car"
+          city_field: "city"
+
+        kvm._meta.q._search()
 
     # Draw partners on map
     redrawPartners = (newPartners) ->
@@ -329,8 +393,9 @@ define [ "utils"
       # Refit map only if all cities have been fetched (prevents
       # blinking Moscow syndrome)
       return if kvm["cityPlacesExpected"] > kvm["cityPlaces"]().length
-      if kvm["caseCoords"]?
-        map.fitPlaces osmap, [coords: kvm["caseCoords"]].concat newCityPlaces
+      if kvm["coords"]()?
+        coords = map.lonlatFromShortString kvm["coords"]()
+        map.fitPlaces osmap, [coords: coords].concat newCityPlaces
       else
         map.fitPlaces osmap, newCityPlaces
 
@@ -458,14 +523,13 @@ define [ "utils"
     resizeResults()
     $(window).resize resizeResults
 
-    setupMap kvm
-
     kvm['caseInfo'] ?= ""
     ko.applyBindings kvm, $('#partnersSearch-content')[0]
     $("#case-info").popover { template: $("#custom-popover").html() }
-    q.search()
 
-    # FIXME Remove this
+    setupMap kvm
+
+    # Store a hook to KVM for debugging
     $("#partnersSearch-content").data "kvm", kvm
 
   # key to retrieve data for partnerSearch screen from localstore

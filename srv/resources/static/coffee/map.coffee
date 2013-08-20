@@ -454,7 +454,7 @@ define ["model/utils", "utils"], (mu, u) ->
     city_field = mu.modelField(model_name, field_name).meta["cityField"]
 
     # Initialize search field with city if factAddr is empty
-    if city_field? && kvm['factAddr']()?.length == 0
+    if city_field? && _.isEmpty kvm['factAddr']()
       city = kvm[city_field]()
       if city?.length > 0
         fixed_city = global.dictValueCache.DealerCities[city]

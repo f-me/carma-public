@@ -97,6 +97,8 @@ define [ 'utils'
         city:                 v['city']()
         car_make:             v['carMake']()
         car_model:            v['carModel']()
+        caseAddress_coords:   v['coords']()
+        caseAddress_address:  v['address']()
         comment:              v['wazzup']()
         callTaker:            global.user.meta.realName
       main.buildNewModel 'case', args, {},
