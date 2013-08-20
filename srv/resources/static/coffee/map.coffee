@@ -85,8 +85,8 @@ define ["model/utils", "utils"], (mu, u) ->
       else
         buildPlace res
 
-  # Read "32.54,56.21" (the way coordinates are stored in model fields)
-  # into LonLat object
+  # Read "32.54,56.21" (the way coordinates are stored in model
+  # fields) into LonLat object (WSG projection)
   lonlatFromShortString = (coords) ->
     if coords?.length > 0
       parts = coords.split ","
@@ -94,7 +94,8 @@ define ["model/utils", "utils"], (mu, u) ->
     else
       null
 
-  # Convert LonLat object to string in format "32.41,52.33"
+  # Convert LonLat object (in WSG projection) to a string in format
+  # "32.41,52.33"
   shortStringFromLonlat = (coords) ->
     if coords?
       return "#{coords.lon},#{coords.lat}"
