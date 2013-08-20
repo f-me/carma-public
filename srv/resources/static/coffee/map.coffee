@@ -275,26 +275,12 @@ define ["model/utils", "utils"], (mu, u) ->
       osmap.events.register("click", osmap, (e) ->
         coords = osmap.getLonLatFromViewPortPx(e.xy)
                  .transform(osmProj, wsgProj)
-
-        if coord_field?
-          kvm[coord_field] shortStringFromLonlat coords
-
-        currentBlip osmap, osmap.getLonLatFromViewPortPx(e.xy), current_blip_type
-
-        $.getJSON(geoRevQuery(coords.lon, coords.lat),
-        (res) ->
-          addr = buildReverseAddress res
-
-          if addr_field?
-            kvm[addr_field](addr)
-
-          if city_field?
-            city = buildReverseCity(res)
-            # Do not overwrite current city if new city is not
-            # recognized
-            if city?
-              kvm[city_field](city)
-        )
+        spliceCoords coords, kvm,
+          coord_field: coord_field
+          osmap: osmap
+          current_blip_type: current_blip_type
+          city_field: city_field
+          addr_field: addr_field
       )
 
     $(el).data("osmap", osmap)
@@ -314,6 +300,66 @@ define ["model/utils", "utils"], (mu, u) ->
   clearBlip = (osmap) ->
     reinstallMarkers osmap, "CURRENT"
 
+  # Given a readable addres, try to fill a set of model fields,
+  # updating coordinates and map position.
+  #
+  # Options is an object with following keys:
+  #
+  # - coord_field
+  # - osmap
+  # - current_blip_type
+  #
+  # Every key is optional.
+  spliceAddress = (addr, kvm, options) ->
+    $.getJSON(geoQuery(addr), (res) ->
+      if res.length > 0
+        lonlat = new OpenLayers.LonLat res[0].lon, res[0].lat
+
+        if options.coord_field?
+          kvm[options.coord_field] shortStringFromLonlat lonlat
+
+        if options.osmap?
+          setPlace options.osmap, buildPlace res
+          currentBlip options.osmap,
+            lonlat.clone().transform(wsgProj, osmProj),
+            options.current_blip_type
+    )
+
+  # Give OpenLayers.Coords object (in WSG projection), try to fill a
+  # set of model fields, updating text coordinates, map position, city
+  # and address.
+  #
+  # Options is an object with following keys:
+  #
+  # - coord_field
+  # - osmap
+  # - current_blip_type
+  # - addr_field
+  # - city_field
+  spliceCoords = (coords, kvm, options) ->
+    osmCoords = coords.clone().transform wsgProj, osmProj
+
+    if options.coord_field?
+      kvm[options.coord_field] shortStringFromLonlat coords
+
+    if options.osmap?
+      currentBlip options.osmap, osmCoords, options.current_blip_type
+
+    if options.addr_field? || options.city_field?
+      $.getJSON(geoRevQuery(coords.lon, coords.lat),
+      (res) ->
+        addr = buildReverseAddress res
+
+        if options.addr_field?
+          kvm[options.addr_field](addr)
+
+        if options.city_field?
+          city = buildReverseCity(res)
+          # Do not overwrite current city if new city is not
+          # recognized
+          if city?
+            kvm[options.city_field](city)
+      )
 
   # Forward geocoding picker (address -> coordinates)
   #
@@ -323,7 +369,7 @@ define ["model/utils", "utils"], (mu, u) ->
   #              (recenter & set new blip on map)
   #
   # - currentBlipType: used for map blip when targetMap is set
-  # 
+  #
   # - targetCoords: name of field to write geocoding results into
   #                 (coordinates in "lon, lat" format). This meta is
   #                 also used by the map to set the initial position
@@ -353,30 +399,6 @@ define ["model/utils", "utils"], (mu, u) ->
       osmap: osmap
       current_blip_type: current_blip_type
 
-
-  # Given a readable addres, try to fill a set of model fields,
-  # updating coordinates and map position.
-  #
-  # Options is an object with following keys:
-  #
-  # - coord_field
-  # - osmap
-  # - current_blip_type
-  spliceAddress = (addr, kvm, options) ->
-    $.getJSON(geoQuery(addr), (res) ->
-      if res.length > 0
-        lonlat = new OpenLayers.LonLat res[0].lon, res[0].lat
-
-        if options.coord_field?
-          kvm[options.coord_field] shortStringFromLonlat lonlat
-
-        if options.osmap?
-          setPlace options.osmap, buildPlace res
-          currentBlip options.osmap,
-            lonlat.clone().transform(wsgProj, osmProj),
-            options.current_blip_type
-    )
-
   # Reverse geocoding picker (coordinates -> address)
   #
   # Recognized field metas:
@@ -400,22 +422,22 @@ define ["model/utils", "utils"], (mu, u) ->
     view = $(mu.elementView($(el)))
     modelName = mu.elementModel($(el))
 
-    addr_field = mu.modelField(modelName, fieldName).meta['targetAddr']
     map_field = mu.modelField(modelName, fieldName).meta['targetMap']
+    osmap = view.find("[name=#{map_field}]").data("osmap")
+
+    setPlace osmap, coords: coords
+
+    addr_field = mu.modelField(modelName, fieldName).meta['targetAddr']
+    city_field = mu.modelField(modelName, fieldName).meta['cityField']
     current_blip_type =
       mu.modelField(modelName, map_field).meta["currentBlipType"] or "default"
-
-    if map_field?
-      osmap = view.find("[name=#{map_field}]").data("osmap")
-      setPlace osmap, coords: coords
-      currentBlip osmap, osmap.getCenter(), current_blip_type
-
-    if addr_field?
-      $.getJSON(geoRevQuery coords.lon, coords.lat,
-        (res) ->
-          addr = buildReverseAddress(res)
-          u.findVM(viewName)[addr_field](addr)
-      )
+    kvm = u.findVM(viewName)
+    
+    spliceCoords coords, kvm,
+      osmap: osmap
+      current_blip_type: current_blip_type
+      addr_field: addr_field
+      city_field: city_field
 
   # Coordinates picker for partner screen which uses a modal window to
   # render the map in. Recognizes the same field metas as initOSM.
@@ -493,6 +515,9 @@ define ["model/utils", "utils"], (mu, u) ->
 
   , initOSM               : initOSM
   , currentBlip           : currentBlip
+
+  , spliceCoords          : spliceCoords
+  , spliceAddress         : spliceAddress
 
   , geoPicker             : geoPicker
   , reverseGeoPicker      : reverseGeoPicker
