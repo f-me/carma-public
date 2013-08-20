@@ -249,6 +249,7 @@ define ["model/utils", "utils"], (mu, u) ->
     # Place a blip and initialize places if coordinates are already
     # known
     places = []
+    clearBlip osmap
     if coord_field?
       coords_string = kvm[coord_field]()
       if coords_string?.length > 0
@@ -284,7 +285,7 @@ define ["model/utils", "utils"], (mu, u) ->
           kvm[coord_field] shortStringFromLonlat coords
 
         currentBlip osmap, osmap.getLonLatFromViewPortPx(e.xy), current_blip_type
-        
+
         $.getJSON(geoRevQuery(coords.lon, coords.lat),
         (res) ->
           addr = buildReverseAddress res
@@ -310,6 +311,11 @@ define ["model/utils", "utils"], (mu, u) ->
     markers = reinstallMarkers(osmap, "CURRENT")
     markers.addMarker(
       new OpenLayers.Marker(coords, ico))
+
+  # Clear current blip marker
+  clearBlip = (osmap) ->
+    reinstallMarkers osmap, "CURRENT"
+
 
   # Forward geocoding picker (address -> coordinates)
   #
@@ -396,12 +402,18 @@ define ["model/utils", "utils"], (mu, u) ->
   # Coordinates picker for partner screen which uses a modal window to
   # render the map in. Recognizes the same field metas as initOSM.
   mapPicker = (fieldName, el) ->
-    map_el = $("#partnerMapModal").find(".osMap")[0]
+    modal = $("#partnerMapModal")
+    map_el = modal.find(".osMap")[0]
     view_name = mu.elementView($(el)).id
-    kvm = u.findVM view_name    
-    
+    kvm = u.findVM view_name
+
     $("#partnerMapModal").one "shown", ->
-        initOSM map_el, view_name
+      # Resize map container to fit the modal window container
+      w = $(window).height()
+      modal.find(".modal-body").css('max-height', w * 0.80)
+      modal.find(".osMap").height(w * 0.5)
+      
+      initOSM map_el, view_name
 
     $("#partnerMapModal").modal('show')
 

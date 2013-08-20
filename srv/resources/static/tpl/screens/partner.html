@@ -45,16 +45,23 @@
         <h3 id="myModalLabel">Выбор координат</h3>
       </div>
 
-      <div id="partner-view">
+      <div id="partner-view" class="modal-map-bound">
         <div class="modal-body">
-          <div style="height:600px;" id="partnerMap" class="osMap"
-               name="coords"></div>
-        </div>
-        <div class="controls" id="map-address">
-          <input type="text"
-                 class="pane-span"
-                 data-bind="value: factAddr"
-                 readonly />
+          <div class="controls" id="map-search">
+            Поиск: <input type="text"
+                          id="map-search"
+                          class="span6" />
+          </div>
+          <div id="partnerMap"
+               class="osMap"
+               name="coords" />
+          <div style="margin-top:10px;"
+               class="controls" id="map-address">
+            Выбрано: <input type="text"
+                            class="span6"
+                            data-bind="value: factAddr"
+                            readonly />
+          </div>
         </div>
       </div>
 
