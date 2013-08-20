@@ -407,7 +407,7 @@ define ["model/utils", "utils"], (mu, u) ->
   #
   # - targetAddr
   #
-  # - TODO cityField
+  # - cityField
   reverseGeoPicker = (fieldName, el) ->
     coords =
       lonlatFromShortString(
