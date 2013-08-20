@@ -226,16 +226,18 @@ define ["model/utils", "utils"], (mu, u) ->
   #                    Current blip is enabled only when geocoding is
   #                    active (see targetAddr).
   initOSM = (el, parentView) ->
+    # Create new map only if does not exist yet
     if $(el).hasClass("olMap")
+      osmap = $(el).data "osmap"
       only_reposition = true
-      
+    else
+      osmap = new OpenLayers.Map(el.id)
+      osmap.addLayer(new OpenLayers.Layer.OSM())
+
     fieldName = $(el).attr("name")
     view = $(mu.elementView($(el)))
     modelName = mu.elementModel($(el))
     kvm = u.findVM parentView
-
-    osmap = new OpenLayers.Map(el.id)
-    osmap.addLayer(new OpenLayers.Layer.OSM())
 
     coord_field = mu.modelField(modelName, fieldName).meta["targetCoords"]
     addr_field = mu.modelField(modelName, fieldName).meta["targetAddr"]
