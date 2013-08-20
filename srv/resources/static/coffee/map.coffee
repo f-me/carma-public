@@ -72,10 +72,9 @@ define ["model/utils", "utils"], (mu, u) ->
       29.4298095703125, 59.6337814331055,
       30.7591361999512, 60.2427024841309)
 
-  # Build a place for city from geoQuery response
+  # Build a place for city from geoQuery response (overrides
+  # coordinates and boundaries for certain key cities)
   buildCityPlace = (res) ->
-    # Override coordinates and boundaries for certain cities.
-    #
     # TODO Remove this hack (#837) after Cities dict is implemented
     # properly
     switch res[0]?.osm_id
@@ -150,7 +149,8 @@ define ["model/utils", "utils"], (mu, u) ->
         if res.length > 0
           setPlace osmap, buildCityPlace res
 
-  # Reposition and rezoom a map so that all places fit
+  # Reposition and rezoom a map so that all places (see `buildPlace`)
+  # fit. Set default place (Moscow) if places array is empty.
   fitPlaces = (osmap, places) ->
     # Show one place or even fall back to default place
     if places.length <= 1
@@ -229,12 +229,9 @@ define ["model/utils", "utils"], (mu, u) ->
   #                    Current blip is enabled only when geocoding is
   #                    active (see targetAddr).
   initOSM = (el, parentView) ->
-    # Recenter map if it already exists to account for partner position
-    # updates
     if $(el).hasClass("olMap")
-      $(el).data("osmap").events.triggerEvent("moveend")
-      return
-
+      only_reposition = true
+      
     fieldName = $(el).attr("name")
     view = $(mu.elementView($(el)))
     modelName = mu.elementModel($(el))
@@ -262,17 +259,22 @@ define ["model/utils", "utils"], (mu, u) ->
           current_blip_type
     fitPlaces osmap, places
 
-    # Refit city on map if possible
+    # Show whole city on map if a valid city is set and coords have
+    # not been recognized (fitting whole city when coords are set
+    # makes no sense)
     if city_field?
       city = kvm[city_field]()
       if city?.length > 0
         fixed_city = global.dictValueCache.DealerCities[city]
         $.getJSON geoQuery(fixed_city), (res) ->
           if res.length > 0
-            places = places.concat [buildCityPlace res]
-            fitPlaces osmap, places
+            if _.isEmpty places
+              fitPlaces osmap, [buildCityPlace res]
 
-    # Setup handler to update target address and coordinates if the
+    # If the map already exists, stop here
+    return if only_reposition
+
+    # Setup handlers to update target address and coordinates if the
     # map is clickable
     if addr_field? or addrs_field?
       osmap.events.register("click", osmap, (e) ->
@@ -398,51 +400,14 @@ define ["model/utils", "utils"], (mu, u) ->
       )
 
   # Coordinates picker for partner screen which uses a modal window to
-  # render the map in.
-  #
-  # Fills a field with coordinates chosen on the map, writes spot
-  # address to first "fact" address of `addrs` JSON field.
-  #
-  # Recognizes the same field metas as initOSM and `targetAddrs`.
+  # render the map in. Recognizes the same field metas as initOSM.
   mapPicker = (fieldName, el) ->
-    coords =
-      lonlatFromShortString(
-        $(el).parents('.input-append')
-             .children("input[name=#{fieldName}]")
-             .val())
-
-    viewName = mu.elementView($(el)).id
-    view = $(mu.elementView($(el)))
-    modelName = mu.elementModel($(el))
-
-    city_field = mu.modelField(modelName, fieldName).meta['cityField']
-    blip_type = mu.modelField(modelName, fieldName).meta['currentBlipType']
-
-    mapEl = $("#partnerMapModal").find(".osMap")[0]
-
+    map_el = $("#partnerMapModal").find(".osMap")[0]
+    view_name = mu.elementView($(el)).id
+    kvm = u.findVM view_name    
+    
     $("#partnerMapModal").one "shown", ->
-      # Recenter the map if it already exists
-      if $(mapEl).hasClass("olMap")
-        oMap = $(mapEl).data("osmap")
-
-        # Center on the default location first
-        oMap.setCenter defaultCoords.clone().transform(wsgProj, osmProj)
-
-        # Center on partner coordinates
-        if coords?
-          osmCoords = coords.clone().transform(wsgProj, osmProj)
-          oMap.setCenter osmCoords
-          currentBlip oMap, osmCoords, blip_type
-        else
-          # Otherwise, just center on the city, not placing a blip
-          if city_field?
-            city_meta = u.splitFieldInView city_field, viewName
-            city = u.findVM(city_meta.view)[city_meta.field]()
-            centerMapOnCity oMap, city
-
-        oMap.events.triggerEvent "moveend"
-      else
-        initOSM mapEl, viewName
+        initOSM map_el, view_name
 
     $("#partnerMapModal").modal('show')
 
