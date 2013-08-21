@@ -53,6 +53,7 @@
         "dictionaryName": "Diagnosis2",
         "dictionaryParent": "diagnosis1",
         "label": "Узел/деталь",
+        "required": true,
         "infoText": "detail"
       },
       "type": "dictionary",
