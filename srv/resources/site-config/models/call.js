@@ -68,6 +68,21 @@
     },
     {
       "meta": {
+        "label": "Координаты места поломки",
+        "invisible": true
+      },
+      "type": "coords",
+      "name": "coords"
+    },
+    {
+      "meta": {
+        "label": "Адрес места поломки",
+        "invisible": true
+      },
+      "name": "address"
+    },
+    {
+      "meta": {
         "dictionaryName": "CarMakers",
         "label": "Марка"
       },

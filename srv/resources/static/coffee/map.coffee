@@ -39,6 +39,26 @@ define ["model/utils", "utils"], (mu, u) ->
   wsgProj = new OpenLayers.Projection("EPSG:4326")
   osmProj = new OpenLayers.Projection("EPSG:900913")
 
+  # Build a place (structure with `coords` and `bounds` fields,
+  # containind OpenLayers LonLat and Bounds, respectively) from
+  # geoQuery response.
+  #
+  # Places use WSG projection for coordinates and bounds.
+  buildPlace = (res) ->
+    if res.error
+      null
+    else
+      if res.length > 0
+        # If possible, pick first result with osm_type = "relation",
+        # because "node" results usually have no suitable bondingbox
+        # property.
+        el = _.find res, (r) -> r.osm_type == "relation"
+        if not el?
+          el = res[0]
+        bb = el.boundingbox
+        coords: new OpenLayers.LonLat el.lon, el.lat
+        bounds: new OpenLayers.Bounds bb[2], bb[0], bb[3], bb[1]
+
   # Cut off everything beyond The Wall
   Moscow =
     coords: new OpenLayers.LonLat(37.617874, 55.757549)
@@ -52,22 +72,9 @@ define ["model/utils", "utils"], (mu, u) ->
       29.4298095703125, 59.6337814331055,
       30.7591361999512, 60.2427024841309)
 
-  # Build a place (structure with `coords` and `bounds` fields,
-  # containind OpenLayers LonLat and Bounds, respectively) from
-  # geoQuery response
-  buildPlace = (res) ->
-    if res.error
-      null
-    else
-      if res.length > 0
-        bb = res[0].boundingbox
-        coords: new OpenLayers.LonLat res[0].lon, res[0].lat
-        bounds: new OpenLayers.Bounds bb[2], bb[0], bb[3], bb[1]
-
-  # Build a place for city from geoQuery response
+  # Build a place for city from geoQuery response (overrides
+  # coordinates and boundaries for certain key cities)
   buildCityPlace = (res) ->
-    # Override coordinates and boundaries for certain cities.
-    #
     # TODO Remove this hack (#837) after Cities dict is implemented
     # properly
     switch res[0]?.osm_id
@@ -78,16 +85,17 @@ define ["model/utils", "utils"], (mu, u) ->
       else
         buildPlace res
 
-  # Read "32.54,56.21" (the way coordinates are stored in model fields)
-  # into LonLat object
+  # Read "32.54,56.21" (the way coordinates are stored in model
+  # fields) into LonLat object (WSG projection)
   lonlatFromShortString = (coords) ->
     if coords?.length > 0
-      parts = coords.split(",")
-      new OpenLayers.LonLat(parts[0], parts[1])
+      parts = coords.split ","
+      new OpenLayers.LonLat parts[0], parts[1]
     else
       null
 
-  # Convert LonLat object to string in format "32.41,52.33"
+  # Convert LonLat object (in WSG projection) to a string in format
+  # "32.41,52.33"
   shortStringFromLonlat = (coords) ->
     if coords?
       return "#{coords.lon},#{coords.lat}"
@@ -126,12 +134,7 @@ define ["model/utils", "utils"], (mu, u) ->
     return new_layer
 
   # Center map on place bounds or coordinates
-  setPlace = (osmap, place) ->
-    t = (o) -> o.clone().transform wsgProj, osmProj
-    if place.bounds?
-      osmap.zoomToExtent t place.bounds
-    else
-      osmap.setCenter t place.coordinates
+  setPlace = (osmap, place) -> fitPlaces osmap, [place]
 
   # Center an OSM on a city. City is a value from DealerCities
   # dictionary.
@@ -142,7 +145,8 @@ define ["model/utils", "utils"], (mu, u) ->
         if res.length > 0
           setPlace osmap, buildCityPlace res
 
-  # Reposition and rezoom a map so that all places fit
+  # Reposition and rezoom a map so that all places (see `buildPlace`)
+  # fit. Set default place (Moscow) if places array is empty.
   fitPlaces = (osmap, places) ->
     # Show one place or even fall back to default place
     if places.length <= 1
@@ -186,7 +190,7 @@ define ["model/utils", "utils"], (mu, u) ->
 
       # Occasionally closefitting occludes boundless places, so we fix
       # this
-      ex = osmap.getExtent().transform map.osmProj, map.wsgProj
+      ex = osmap.getExtent().transform osmProj, wsgProj
       for p in places
         if not ex.containsLonLat p.coords
           osmap.zoomToExtent gbounds, false
@@ -204,8 +208,6 @@ define ["model/utils", "utils"], (mu, u) ->
   #               geocoding and clicking the map will write address to
   #               this field of model.
   #
-  # - targetAddrs
-  #
   # - targetCoords: read initial position & current blip from this field
   #                 of model; write geocoding results here (only if it's
   #                 enabled with `targetAddr` meta!)
@@ -220,79 +222,72 @@ define ["model/utils", "utils"], (mu, u) ->
   #                    Current blip is enabled only when geocoding is
   #                    active (see targetAddr).
   initOSM = (el, parentView) ->
-    # Recenter map if it already exists to account for partner position
-    # updates
+    # Create new map only if does not exist yet
     if $(el).hasClass("olMap")
-      $(el).data("osmap").events.triggerEvent("moveend")
-      return
+      osmap = $(el).data "osmap"
+      only_reposition = true
+    else
+      osmap = new OpenLayers.Map(el.id)
+      osmap.addLayer(new OpenLayers.Layer.OSM())
 
     fieldName = $(el).attr("name")
     view = $(mu.elementView($(el)))
     modelName = mu.elementModel($(el))
     kvm = u.findVM parentView
 
-    osmap = new OpenLayers.Map(el.id)
-    osmap.addLayer(new OpenLayers.Layer.OSM())
-
     coord_field = mu.modelField(modelName, fieldName).meta["targetCoords"]
     addr_field = mu.modelField(modelName, fieldName).meta["targetAddr"]
-    addrs_field = mu.modelField(modelName, fieldName).meta["targetAddrs"]
     city_field = mu.modelField(modelName, fieldName).meta["cityField"]
     current_blip_type =
       mu.modelField(modelName, fieldName).meta["currentBlipType"] or "default"
 
-    # Center on the default location first
-    setPlace osmap, Moscow
+    # Place a blip and initialize places if coordinates are already
+    # known
+    places = []
+    clearBlip osmap
+    if coord_field?
+      coords_string = kvm[coord_field]()
+      if coords_string?.length > 0
+        coords = lonlatFromShortString coords_string
+        places = [coords: coords]
+        currentBlip osmap, (coords.clone().transform wsgProj, osmProj),
+          current_blip_type
+    fitPlaces osmap, places
 
-    # Fit city on map
+    # Show whole city on map if a valid city is set and coords have
+    # not been recognized (fitting whole city when coords are set
+    # makes no sense)
     if city_field?
       city = kvm[city_field]()
-      centerMapOnCity osmap, city
+      if city?.length > 0
+        fixed_city = global.dictValueCache.DealerCities[city]
+        $.getJSON geoQuery(fixed_city), (res) ->
+          if res.length > 0
+            if _.isEmpty places
+              fitPlaces osmap, [buildCityPlace res]
 
-    # Place a blip and recenter if coordinates are already known
-    if coord_field?
-      coords = kvm[coord_field]()
-      if coords? && coords.length > 0
-        coords = lonlatFromShortString coords
-        if city?.length > 0
-          osmap.setCenter coords.transform wsgProj, osmProj
-        else
-          osmap.setCenter coords.transform(wsgProj, osmProj), defaultZoomLevel
-        currentBlip osmap, coords, current_blip_type
+    # If the map already exists, stop here
+    return if only_reposition
 
-    # Setup handler to update target address and coordinates if the
+    # Setup handlers to update target address and coordinates if the
     # map is clickable
-    if addr_field? or addrs_field?
+    if addr_field?
       osmap.events.register("click", osmap, (e) ->
         coords = osmap.getLonLatFromViewPortPx(e.xy)
                  .transform(osmProj, wsgProj)
-
-        if coord_field?
-          kvm[coord_field] shortStringFromLonlat coords
-
-        $.getJSON(geoRevQuery(coords.lon, coords.lat),
-        (res) ->
-          addr = buildReverseAddress res
-
-          if addr_field?
-            kvm[addr_field](addr)
-
-          # Write address to first "fact" address of partner
-          if addrs_field?
-            json = kvm[addrs_field]()
-            kvm[addrs_field] (u.setKeyedJsonValue json, "fact", addr)
-
-          if city_field?
-            city = buildReverseCity(res)
-            kvm[city_field](city)
-
-          currentBlip osmap, osmap.getLonLatFromViewPortPx(e.xy), current_blip_type
-        )
+        spliceCoords coords, kvm,
+          coord_field: coord_field
+          osmap: osmap
+          current_blip_type: current_blip_type
+          city_field: city_field
+          addr_field: addr_field
       )
 
     $(el).data("osmap", osmap)
 
   # Move the current position blip on a map.
+  #
+  # - coords: OpenLayers.Coords, in OSM projection
   #
   # - type: one of types in iconFromType
   currentBlip = (osmap, coords, type) ->
@@ -301,12 +296,79 @@ define ["model/utils", "utils"], (mu, u) ->
     markers.addMarker(
       new OpenLayers.Marker(coords, ico))
 
+  # Clear current blip marker
+  clearBlip = (osmap) ->
+    reinstallMarkers osmap, "CURRENT"
+
+  # Given a readable addres, try to fill a set of model fields,
+  # updating coordinates and map position.
+  #
+  # Options is an object with following keys:
+  #
+  # - coord_field
+  # - osmap
+  # - current_blip_type
+  #
+  # Every key is optional.
+  spliceAddress = (addr, kvm, options) ->
+    $.getJSON(geoQuery(addr), (res) ->
+      if res.length > 0
+        lonlat = new OpenLayers.LonLat res[0].lon, res[0].lat
+
+        if options.coord_field?
+          kvm[options.coord_field] shortStringFromLonlat lonlat
+
+        if options.osmap?
+          setPlace options.osmap, buildPlace res
+          currentBlip options.osmap,
+            lonlat.clone().transform(wsgProj, osmProj),
+            options.current_blip_type
+    )
+
+  # Give OpenLayers.Coords object (in WSG projection), try to fill a
+  # set of model fields, updating text coordinates, map position, city
+  # and address.
+  #
+  # Options is an object with following keys:
+  #
+  # - coord_field
+  # - osmap
+  # - current_blip_type
+  # - addr_field
+  # - city_field
+  spliceCoords = (coords, kvm, options) ->
+    osmCoords = coords.clone().transform wsgProj, osmProj
+
+    if options.coord_field?
+      kvm[options.coord_field] shortStringFromLonlat coords
+
+    if options.osmap?
+      currentBlip options.osmap, osmCoords, options.current_blip_type
+
+    if options.addr_field? || options.city_field?
+      $.getJSON(geoRevQuery(coords.lon, coords.lat),
+      (res) ->
+        addr = buildReverseAddress res
+
+        if options.addr_field?
+          kvm[options.addr_field](addr)
+
+        if options.city_field?
+          city = buildReverseCity(res)
+          # Do not overwrite current city if new city is not
+          # recognized
+          if city?
+            kvm[options.city_field](city)
+      )
+
   # Forward geocoding picker (address -> coordinates)
   #
   # For field with this picker type, following metas are recognized:
   #
   # - targetMap: name of map field to write geocoding results into
   #              (recenter & set new blip on map)
+  #
+  # - currentBlipType: used for map blip when targetMap is set
   #
   # - targetCoords: name of field to write geocoding results into
   #                 (coordinates in "lon, lat" format). This meta is
@@ -328,18 +390,14 @@ define ["model/utils", "utils"], (mu, u) ->
     current_blip_type =
       mu.modelField(modelName, map_field).meta["currentBlipType"] or "default"
 
-    $.getJSON(geoQuery(addr), (res) ->
-      if res.length > 0
-        lonlat = new OpenLayers.LonLat res[0].lon, res[0].lat
+    osmap = view.find("[name=#{map_field}]").data("osmap")
 
-        if coord_field?
-          u.findVM(viewName)[coord_field] shortStringFromLonlat lonlat
+    kvm = u.findVM(viewName)
 
-        if map_field?
-          osmap = view.find("[name=#{map_field}]").data("osmap")
-          setPlace osmap, buildPlace res
-          currentBlip osmap, osmap.getCenter(), current_blip_type
-    )
+    spliceAddress addr, kvm,
+      coord_field: coord_field
+      osmap: osmap
+      current_blip_type: current_blip_type
 
   # Reverse geocoding picker (coordinates -> address)
   #
@@ -349,7 +407,7 @@ define ["model/utils", "utils"], (mu, u) ->
   #
   # - targetAddr
   #
-  # - TODO cityField
+  # - cityField
   reverseGeoPicker = (fieldName, el) ->
     coords =
       lonlatFromShortString(
@@ -364,71 +422,72 @@ define ["model/utils", "utils"], (mu, u) ->
     view = $(mu.elementView($(el)))
     modelName = mu.elementModel($(el))
 
-    osmCoords = coords.clone().transform(wsgProj, osmProj)
+    map_field = mu.modelField(modelName, fieldName).meta['targetMap']
+    osmap = view.find("[name=#{map_field}]").data("osmap")
+
+    setPlace osmap, coords: coords
 
     addr_field = mu.modelField(modelName, fieldName).meta['targetAddr']
-    map_field = mu.modelField(modelName, fieldName).meta['targetMap']
+    city_field = mu.modelField(modelName, fieldName).meta['cityField']
     current_blip_type =
       mu.modelField(modelName, map_field).meta["currentBlipType"] or "default"
-
-    if map_field?
-      osmap = view.find("[name=#{map_field}]").data("osmap")
-      osmap.setCenter(osmCoords, zoomLevel)
-      currentBlip osmap, osmap.getCenter(), current_blip_type
-
-    if addr_field?
-      $.getJSON(geoRevQuery coords.lon, coords.lat,
-        (res) ->
-          addr = buildReverseAddress(res)
-          u.findVM(viewName)[addr_field](addr)
-      )
+    kvm = u.findVM(viewName)
+    
+    spliceCoords coords, kvm,
+      osmap: osmap
+      current_blip_type: current_blip_type
+      addr_field: addr_field
+      city_field: city_field
 
   # Coordinates picker for partner screen which uses a modal window to
-  # render the map in.
-  #
-  # Fills a field with coordinates chosen on the map, writes spot
-  # address to first "fact" address of `addrs` JSON field.
-  #
-  # Recognizes the same field metas as initOSM and `targetAddrs`.
-  mapPicker = (fieldName, el) ->
-    coords =
-      lonlatFromShortString(
-        $(el).parents('.input-append')
-             .children("input[name=#{fieldName}]")
-             .val())
+  # render the map in. Recognizes the same field metas as initOSM.
+  mapPicker = (field_name, el) ->
+    modal = $("#partnerMapModal")
+    map_el = modal.find(".osMap")[0]
+    view_name = mu.elementView($(el)).id
+    model_name = mu.elementModel($(el))
+    kvm = u.findVM view_name
 
-    viewName = mu.elementView($(el)).id
-    view = $(mu.elementView($(el)))
-    modelName = mu.elementModel($(el))
+    search = modal.find("#map-search-field")
+    search_button = modal.find("#map-search-button")
 
-    city_field = mu.modelField(modelName, fieldName).meta['cityField']
-    blip_type = mu.modelField(modelName, fieldName).meta['currentBlipType']
+    city_field = mu.modelField(model_name, field_name).meta["cityField"]
 
-    mapEl = $("#partnerMapModal").find(".osMap")[0]
+    # Initialize search field with city if factAddr is empty
+    if city_field? && _.isEmpty kvm['factAddr']()
+      city = kvm[city_field]()
+      if city?.length > 0
+        fixed_city = global.dictValueCache.DealerCities[city]
+        search.val(fixed_city)
+
+    coord_field = mu.modelField(model_name, field_name).meta['targetCoords']
+    current_blip_type =
+      mu.modelField(model_name, field_name).meta["currentBlipType"] or "default"
 
     $("#partnerMapModal").one "shown", ->
-      # Recenter the map if it already exists
-      if $(mapEl).hasClass("olMap")
-        oMap = $(mapEl).data("osmap")
+      # Resize map container to fit the modal window container
+      w = $(window).height()
+      modal.find(".modal-body").css('max-height', w * 0.80)
+      modal.find(".osMap").height(w * 0.5)
 
-        # Center on the default location first
-        oMap.setCenter defaultCoords.clone().transform(wsgProj, osmProj)
+      # Activate simple map search
+      search.keypress (e) ->
+        if e.which == 13
+          search_button.trigger "click"
+      search_button.click () ->
+        osmap = $(map_el).data("osmap")
+        spliceAddress search.val(), kvm,
+          coord_field: coord_field
+          osmap: osmap
+          current_blip_type: current_blip_type
 
-        # Center on partner coordinates
-        if coords?
-          osmCoords = coords.clone().transform(wsgProj, osmProj)
-          oMap.setCenter osmCoords
-          currentBlip oMap, osmCoords, blip_type
-        else
-          # Otherwise, just center on the city, not placing a blip
-          if city_field?
-            city_meta = u.splitFieldInView city_field, viewName
-            city = u.findVM(city_meta.view)[city_meta.field]()
-            centerMapOnCity oMap, city
+      initOSM map_el, view_name
 
-        oMap.events.triggerEvent "moveend"
-      else
-        initOSM mapEl, viewName
+    # Unbind handlers to avoid multiple handler calls when the map
+    # popup is shown again
+    $("#partnerMapModal").one "hidden", ->
+      search.off "keypress"
+      search_button.off "click"
 
     $("#partnerMapModal").modal('show')
 
@@ -456,6 +515,9 @@ define ["model/utils", "utils"], (mu, u) ->
 
   , initOSM               : initOSM
   , currentBlip           : currentBlip
+
+  , spliceCoords          : spliceCoords
+  , spliceAddress         : spliceAddress
 
   , geoPicker             : geoPicker
   , reverseGeoPicker      : reverseGeoPicker
