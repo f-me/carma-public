@@ -327,6 +327,31 @@ vinReverseLookup = do
     |]) [carvin]
   writeJSON $ mkMap ["vin", "make", "model", "program", "buyDate"] q
 
+cardNumberLookup :: AppHandler ()
+cardNumberLookup = do
+  p  <- getParam "program"
+  cn <- getParam "cardNumber"
+  case (p, cn) of
+    (Just program, Just cardNumber) -> do
+      q      <- withPG pg_search $ \c -> query c (fromString $ [sql|
+        SELECT cardNumber
+             , concat('', carVin)
+             , concat('', carmake)
+             , concat('', carmodel)
+             , to_char(carBuyDate, 'DD.MM.YYYY')
+        FROM contracttbl
+        WHERE id IN
+        (SELECT max(c.id)
+         FROM contracttbl c
+         LEFT JOIN programtbl p ON p.id::text = c.program
+         WHERE c.isactive AND c.dixi AND p.value = ?
+         GROUP BY cardNumber, c.program
+         HAVING lower(c.cardNumber) like '%' || lower(?) || '%'
+         ORDER BY max(c.id) DESC
+         LIMIT 15)
+       |]) [program, cardNumber]
+      writeJSON $ mkMap ["cardNumber", "vin", "make", "model", "buyDate"] q
+    (_, _) -> error "Bad request: program & cardNumber parameters not set"
 
 cardOwnerLookup :: AppHandler ()
 cardOwnerLookup = do

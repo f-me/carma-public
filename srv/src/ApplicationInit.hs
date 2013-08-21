@@ -107,6 +107,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/vin/state",     chkAuth . method GET  $ vinStateRead)
          , ("/vin/state",     chkAuth . method POST $ vinStateRemove)
          , ("/vin/reverseLookup/:vin", chkAuth . method GET  $ vinReverseLookup)
+         , ("contracts/findByCard/:program/:cardNumber",
+            chkAuth . method GET    $ cardNumberLookup)
          , ("/opts/:model/:id/", chkAuthLocal . method GET $ getSrvTarifOptions)
          , ("/smspost",       chkAuthLocal . method POST $ smspost)
          , ("/sms/processing", chkAuthLocal . method GET $ smsProcessingHandler)
