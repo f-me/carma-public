@@ -252,8 +252,10 @@ newCaseFields =
     ,("transform", "uppercase")
     ,("mainOnly", Aeson.Bool True)
     ]
-  ,mkF "cardNumber_cardNumber" "text" "Номер карты участника"
-    [("mainOnly", Aeson.Bool True)]
+  ,mkF "cardNumber_cardNumber" "dictionary" "Номер карты участника"
+    [("mainOnly", Aeson.Bool True)
+    ,("dictionaryType", "CardsDict")
+    ]
   ,mkF "car_makeYear" "text" "Год производства автомобиля"
     [("mainOnly", Aeson.Bool True)]
   ,mkF "car_color" "dictionary" "Цвет"
