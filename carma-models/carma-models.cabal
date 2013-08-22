@@ -21,8 +21,12 @@ library
     Data.Model.Patch.Sql,
     Data.Model.Sql,
     Data.Model.View,
-    Carma.Model.Program,
-    Carma.Model.City
+    Carma.Model.Types,
+    Carma.Model.City,
+    Carma.Model.CarMake,
+    Carma.Model.CarModel,
+    Carma.Model.Contract,
+    Carma.Model.Program
   -- other-modules:       
   hs-source-dirs:    src
   build-depends:
@@ -31,7 +35,8 @@ library
     containers,
     unordered-containers == 0.2.*,
     postgresql-simple == 0.3.3.*,
-    text == 0.11.*
+    text == 0.11.*,
+    time == 1.4.*
 
   extensions:
     DataKinds, KindSignatures, TypeOperators,
