@@ -41,19 +41,34 @@
          role="dialog">
 
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">×</button>
+        <a class="close" data-dismiss="modal">×</a>
         <h3 id="myModalLabel">Выбор координат</h3>
       </div>
 
-      <div id="partner-view">
+      <div id="partner-view" class="modal-map-bound">
         <div class="modal-body">
-          <div style="height:600px;" id="partnerMap" class="osMap"
-               name="coords"></div>
+          <div style="margin-bottom:10px;"
+               id="map-address"
+               class="controls">
+            <div class="input-append">
+              <input type="text"
+                     id="map-search-field"
+                     data-bind="value: factAddr"
+                     class="span6" />
+              <span class="add-on" id="map-search-button">
+                <i class="icon icon-search"/>
+              </span>
+            </div>
+          </div>
+
+          <div id="partnerMap"
+               class="osMap"
+               name="coords" />
         </div>
       </div>
 
       <div class="modal-footer">
-        <button class="btn btn-primary" data-dismiss="modal">Сохранить</button>
+        <a class="btn btn-primary" data-dismiss="modal">Сохранить</a>
       </div>
     </div>
 

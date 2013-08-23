@@ -53,6 +53,7 @@
         "dictionaryName": "Diagnosis2",
         "dictionaryParent": "diagnosis1",
         "label": "Узел/деталь",
+        "required": true,
         "infoText": "detail"
       },
       "type": "dictionary",
@@ -262,7 +263,8 @@
     {
       "meta": {
         "targetMap": "caseAddress_map",
-        "targetAddr": "caseAddress_address"
+        "targetAddr": "caseAddress_address",
+        "cityField": "city"
       },
       "targets": [
         "caseAddress_coords"

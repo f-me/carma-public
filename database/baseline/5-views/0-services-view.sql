@@ -83,6 +83,7 @@ create view servicesview as
         s.payment_overcosted,
         s.payment_paidbyruamc,
         s.payment_paidbyclient,
+        s.times_expecteddispatch,
         s.times_expectedservicestart,
         s.times_factservicestart,
         s.times_expectedserviceend,
