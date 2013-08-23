@@ -91,7 +91,8 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
 
       select = []
       select.push("closed=#{opt.closed}") if opt.closed
-      select.push("targetGroup=#{opt.targetGroup}") if opt.targetGroup
+      if opt.targetGroup and opt.targetGroup != "all"
+        select.push("targetGroup=#{opt.targetGroup}")
       select.push("duetimeFrom=#{opt.duetimeFrom}") if opt.duetimeFrom
       select.push("duetimeTo=#{opt.duetimeTo}") if opt.duetimeTo
       objURL = "/allActions?#{select.join('&')}"
@@ -114,7 +115,7 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
 
     # deep copy
     r = $.extend(true, {}, global.dictionaries.Roles)
-    r.entries.unshift {value: "", label: "Все роли"}
+    r.entries.unshift {value: "all", label: "Все роли"}
     ko.applyBindings r, $('#role')[0]
     $('#role').val 'back'
 
