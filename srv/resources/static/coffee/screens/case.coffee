@@ -88,8 +88,57 @@ define [ "utils"
       $("body").off "change.input"
       $('.navbar').css "-webkit-transform", ""
 
+    # Load case data from contract, possibly ignoring a set of given
+    # case fields
+    loadContract = (cid, ignored_fields) ->
+      fieldMap =
+        [ { from: "carVin", to: "car_vin" }
+        , { from: "carMake", to: "car_make" }
+        , { from: "carModel", to: "car_model" }
+        , { from: "carPlateNum", to: "car_plateNum" }
+        , { from: "carColor", to: "car_color" }
+        , { from: "carTransmission", to: "car_transmission" }
+        , { from: "carEngine", to: "car_engine" }
+        , { from: "contractType", to: "car_contractType" }
+        , { from: "carCheckPeriod", to: "car_checkPeriod" }
+        , { from: "carBuyDate", to: "car_buyDate" }
+        , { from: "carCheckupDate", to: "car_checkupDate" }
+        , { from: "contractValidFromDate", to: "car_serviceStart" }
+        , { from: "contractValidUntilDate", to: "car_serviceEnd" }
+        , { from: "carCheckupMilage", to: "car_checkupMileage" }
+        , { from: "milageTO", to: "cardNumber_milageTO" }
+        , { from: "cardNumber", to: "cardNumber_cardNumber" }
+        , { from: "carMakeYear", to: "car_makeYear" }
+        , { from: "contractValidUntilMilage", to: "cardNumber_validUntilMilage" }
+        , { from: "contractValidFromDate", to: "cardNumber_validFrom" }
+        , { from: "contractValidUntilDate", to: "cardNumber_validUntil" }
+        , { from: "warrantyStart", to: "car_warrantyStart" }
+        , { from: "warrantyEnd", to: "car_warrantyEnd" }
+        , { from: "carSeller", to: "car_seller" }
+        , { from: "carDealerTO", to: "car_dealerTO" }
+        ]
+
+      kvm = global.viewsWare["case-form"].knockVM
+      
+      $.getJSON "/_/contract/#{cid}", (res) ->
+        for field in _.filter fieldMap, ((f) -> !_.contains ignored_fields, f.to)
+          do (field) ->
+            # Do not splice unknown contract fields, do not overwrite
+            # existing case fields
+            if res[field.from]? && _.isEmpty kvm[field.to]()
+              if field.proj?
+                kvm[field.to] field.proj res[field.from]
+              else
+                kvm[field.to] res[field.from]
+
+    loadContractCard = (cid) -> loadContract cid, ["cardNumber_cardNumber"]
+
+    # Globalize loader so that cards-dict can use it
+    utils.build_global_fn 'loadContractCard', ['screens/case']
+
     { constructor       : setupCaseMain
     , destructor        : removeCaseMain
     , template          : tpl
     , addService        : addService
+    , loadContractCard  : loadContractCard
     }

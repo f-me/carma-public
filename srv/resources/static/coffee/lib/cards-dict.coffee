@@ -3,16 +3,26 @@ define ["lib/meta-dict"], (m) ->
   class CardsDict extends m.dict
     find: (q, cb) ->
       program = global.viewsWare["case-form"].knockVM["program"]()
+      # Start searching from 4 digits
       return cb({}) if q.length < 4 or _.isEmpty program
       $.getJSON "/contracts/findByCard/#{program}/#{q}", (r) =>
-        @found = _.pluck r, 'cardNumber'
+        @found = r
         a = for i in r
           do (i) ->
             make  = window.global.dictValueCache.CarMakers[i.make]  || i.make
             model = window.global.dictValueCache.CarMakers[i.model] || i.model
-            "#{i.cardNumber}<br/>#{i.vin}<br/>#{make} #{model}<br/>#{i.buyDate}"
+            tpl = _.foldl([ "№{{cardNumber}}"
+                          , "{{#vin}}<br />{{vin}}{{/vin}}"
+                          , "{{#make}}<br />{{make}} {{model}}{{/make}}"
+                          , "{{#buyDate}}<br />{{buyDate}}{{/buyDate}}"
+                          ], ((m, s) -> m + s), "")
+            Mustache.render tpl, i
         cb(a)
 
-    id2val: (i) -> @found[i]
+    # Assume that id2val is only called when a dictionary item is
+    # selected by user and load contract into case when this happens
+    id2val: (i) ->
+      loadContractCard @found[i].cid
+      @found[i].cardNumber
 
   dict: CardsDict

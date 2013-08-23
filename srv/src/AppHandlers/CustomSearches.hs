@@ -327,6 +327,10 @@ vinReverseLookup = do
     |]) [carvin]
   writeJSON $ mkMap ["vin", "make", "model", "program", "buyDate"] q
 
+
+-- | Serve a list of contract suggestions given a program and
+-- cardNumber (possibly a part of the whole string) in request
+-- parameters.
 cardNumberLookup :: AppHandler ()
 cardNumberLookup = do
   p  <- getParam "program"
@@ -334,7 +338,8 @@ cardNumberLookup = do
   case (p, cn) of
     (Just program, Just cardNumber) -> do
       q      <- withPG pg_search $ \c -> query c (fromString $ [sql|
-        SELECT cardNumber
+        SELECT id::text
+             , cardNumber
              , concat('', carVin)
              , concat('', carmake)
              , concat('', carmodel)
@@ -350,7 +355,7 @@ cardNumberLookup = do
          ORDER BY max(c.id) DESC
          LIMIT 15)
        |]) [program, cardNumber]
-      writeJSON $ mkMap ["cardNumber", "vin", "make", "model", "buyDate"] q
+      writeJSON $ mkMap ["cid", "cardNumber", "vin", "make", "model", "buyDate"] q
     (_, _) -> error "Bad request: program & cardNumber parameters not set"
 
 cardOwnerLookup :: AppHandler ()
