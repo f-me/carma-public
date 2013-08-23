@@ -17,7 +17,13 @@ define ["lib/meta-dict"], (m) ->
                           , "{{#buyDate}}<br />{{buyDate}}{{/buyDate}}"
                           ], ((m, s) -> m + s), "")
             Mustache.render tpl, i
-        cb(a)
+        # Assume that as input size increases, suggestion list narrows
+        # down to a single option which is then selected without extra
+        # user interaction
+        if r.length == 1
+          @id2val 0
+        else
+          cb a
 
     # Assume that id2val is only called when a dictionary item is
     # selected by user and load contract into case when this happens
