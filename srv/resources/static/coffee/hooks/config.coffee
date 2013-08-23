@@ -45,7 +45,7 @@ define [ "hooks/common"
 
       "ken" : [ s.openPartnerSearch ]
 
-      "partner" : [p.bindRemoveService, p.serviceRepeat]
+      "partner" : [p.bindRemoveService, p.serviceRepeat, p.factAddr]
 
       "partner_service" : [ p.bindTitleServiceName
                           , p.partnerServiceRepeat

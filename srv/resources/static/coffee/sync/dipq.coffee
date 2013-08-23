@@ -14,7 +14,7 @@ define ["sync/metaq", "sync/datamap", "map"], (metaq, m, map) ->
     search: =>
       a = @kvm["mapA"]
       b = @kvm["mapB"]
-      c = map.shortStringFromLonlat @kvm["caseCoords"]
+      c = @kvm["coords"]()
       if c?
         from = "?from=#{c}"
       else

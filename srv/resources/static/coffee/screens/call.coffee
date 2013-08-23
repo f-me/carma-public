@@ -72,6 +72,13 @@ define [ "utils"
     if kvm.callerType() == "client" or _.isEmpty kvm.callerType()
       kvm.callerType("client")
       kvm.callType("switchDealer")
+
+    # Subscribe call model to updates to coords & address fields
+    for f in ["coords", "address"]
+      do (f) ->
+        n = pSearch.subName f, "call", kvm.id()
+        global.pubSub.sub n, kvm[f]
+      
     localStorage[pSearch.storeKey] = JSON.stringify kvm._meta.q.toRawObj()
     pSearch.open('call')
 
