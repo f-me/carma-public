@@ -103,8 +103,6 @@ define [ "utils"
         , { from: "carCheckPeriod", to: "car_checkPeriod" }
         , { from: "carBuyDate", to: "car_buyDate" }
         , { from: "carCheckupDate", to: "car_checkupDate" }
-        , { from: "contractValidFromDate", to: "car_serviceStart" }
-        , { from: "contractValidUntilDate", to: "car_serviceEnd" }
         , { from: "carCheckupMilage", to: "car_checkupMileage" }
         , { from: "milageTO", to: "cardNumber_milageTO" }
         , { from: "cardNumber", to: "cardNumber_cardNumber" }
