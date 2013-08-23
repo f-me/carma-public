@@ -1,4 +1,4 @@
-define ["utils"], (u) ->
+define ["utils", "dictionaries"], (u, d) ->
   fillEventsHistory = (knockVM) -> ->
     t = $("#call-searchtable")
     st = t.dataTable()
@@ -125,3 +125,13 @@ define ["utils"], (u) ->
     knockVM[cityField].subscribe (new_city) ->
       $.getJSON "/stats/towAvgTime/" + new_city,
         (r) -> $("#city-towage-average-time").text(u.formatSecToMin(r[0]))
+
+  regionHook: (model, knockVM) ->
+    RegionDict = new d.dicts['RegionDict'] {dict: 'region'}
+    knockVM['region'] = ko.computed
+      read: ->
+        regions = RegionDict.findRegionByCity knockVM['city']()
+        regionLabels = for region in regions
+          region.label
+        regionLabels.join(', ')
+
