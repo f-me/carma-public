@@ -3,8 +3,9 @@ define [ "utils"
        , "text!tpl/screens/case.html"
        , "model/utils"
        , "model/main"
+       , "sync/datamap"
        ],
-  (utils, hotkeys, tpl, mu, main) ->
+  (utils, hotkeys, tpl, mu, main, dm) ->
     utils.build_global_fn 'pickPartnerBlip', ['map']
 
     # Case view (renders to #left, #center and #right as well)
@@ -91,6 +92,7 @@ define [ "utils"
     # Load case data from contract, possibly ignoring a set of given
     # case fields
     loadContract = (cid, ignored_fields) ->
+      date = (v) -> dm.s2c v, "date"
       fieldMap =
         [ { from: "carVin", to: "car_vin" }
         , { from: "carMake", to: "car_make" }
@@ -101,17 +103,17 @@ define [ "utils"
         , { from: "carEngine", to: "car_engine" }
         , { from: "contractType", to: "car_contractType" }
         , { from: "carCheckPeriod", to: "car_checkPeriod" }
-        , { from: "carBuyDate", to: "car_buyDate" }
-        , { from: "carCheckupDate", to: "car_checkupDate" }
+        , { from: "carBuyDate", to: "car_buyDate", proj: date }
+        , { from: "carCheckupDate", to: "car_checkupDate", proj: date }
         , { from: "carCheckupMilage", to: "car_checkupMileage" }
         , { from: "milageTO", to: "cardNumber_milageTO" }
         , { from: "cardNumber", to: "cardNumber_cardNumber" }
         , { from: "carMakeYear", to: "car_makeYear" }
         , { from: "contractValidUntilMilage", to: "cardNumber_validUntilMilage" }
-        , { from: "contractValidFromDate", to: "cardNumber_validFrom" }
-        , { from: "contractValidUntilDate", to: "cardNumber_validUntil" }
-        , { from: "warrantyStart", to: "car_warrantyStart" }
-        , { from: "warrantyEnd", to: "car_warrantyEnd" }
+        , { from: "contractValidFromDate", to: "cardNumber_validFrom", proj: date }
+        , { from: "contractValidUntilDate", to: "cardNumber_validUntil", proj: date }
+        , { from: "warrantyStart", to: "car_warrantyStart", proj: date }
+        , { from: "warrantyEnd", to: "car_warrantyEnd", proj: date }
         , { from: "carSeller", to: "car_seller" }
         , { from: "carDealerTO", to: "car_dealerTO" }
         ]
