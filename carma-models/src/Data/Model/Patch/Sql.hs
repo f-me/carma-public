@@ -6,6 +6,7 @@ module Data.Model.Patch.Sql
 
 import Prelude hiding (read)
 
+import Control.Applicative
 import Data.Int (Int64)
 import Data.String
 import Text.Printf
@@ -19,13 +20,27 @@ import Data.Model
 import Data.Model.Patch
 
 
+create :: forall m . Model m => Patch m -> Connection -> IO (Ident m)
+create p c = head . head <$> query c (fromString q) p
+  where
+    m = untypedPatch p
+    -- we use `map fst . HashMap.toList` instead of `HashMap.keys`
+    -- just to be sure that `insFields` are in the same order as
+    -- `ToRow (Patch m)` expects
+    insFields = map fst $ HashMap.toList m
+    q = printf "INSERT INTO %s (%s) VALUES (%s) RETURNING id"
+      (show $ tableName (undefined :: m))
+      (T.unpack $ T.intercalate ", " insFields)
+      (T.unpack $ T.intercalate ", " $ replicate (length insFields) "?")
+
+
 read :: forall m . Model m => Ident m -> Connection -> IO [Patch m]
 read (Ident i) c = query c (fromString q) [i]
   where
     fields = [fd_name f | f <- modelFields :: [FieldDesc m]]
     q = printf "SELECT %s FROM %s WHERE id = ?"
       (T.unpack $ T.intercalate ", " fields)
-      (tableName (undefined :: m))
+      (show $ tableName (undefined :: m))
 
 
 readMany :: forall m . Model m => Connection -> IO [Patch m]
@@ -34,4 +49,18 @@ readMany c = query_ c (fromString q)
     fields = [fd_name f | f <- modelFields :: [FieldDesc m]]
     q = printf "SELECT %s FROM %s"
       (T.unpack $ T.intercalate ", " fields)
-      (tableName (undefined :: m))
+      (show $ tableName (undefined :: m))
+
+
+update :: forall m . Model m => Ident m -> Patch m -> Connection -> IO Int64
+update (Ident i) p c = execute c (fromString q) p
+  where
+    m = untypedPatch p
+    -- we use `map fst . HashMap.toList` instead of `HashMap.keys`
+    -- just to be sure that `insFields` are in the same order as
+    -- `ToRow (Patch m)` expects
+    updFields = map (T.concat . (:["=?"]) . fst) $ HashMap.toList m
+    q = printf "UPDATE %s SET %s WHERE id = %d"
+      (T.unpack $ T.intercalate ", " updFields)
+      (show $ tableName (undefined :: m))
+      i

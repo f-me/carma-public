@@ -33,7 +33,7 @@ data Contract = Contract
   ,contractType      :: F Text             "contractType"      "" -- FIXME dict
   ,cardNumber        :: F Text             "cardNumber"        ""
   ,validFromDate     :: F Day              "validFromDate"     "" -- NB contractValidFromDate
-  ,validUntilDate    :: F Day              "validUntilDate"    "" -- NB contactValidUntilDate
+  ,validUntilDate    :: F Day              "validUntilDate"    "" -- NB contractValidUntilDate
   ,validUntilMilage  :: F Int32            "validUntilMilage"  ""
   ,milageTO          :: F Int32            "milageTO"          ""
   ,cardOwner         :: F Text             "cardOwner"         ""
