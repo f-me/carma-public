@@ -43,13 +43,14 @@ read (Ident i) c = query c (fromString q) [i]
       (show $ tableName (undefined :: m))
 
 
-readMany :: forall m . Model m => Connection -> IO [Patch m]
-readMany c = query_ c (fromString q)
+readMany :: forall m . Model m => Int64 -> Int64 -> Connection -> IO [Patch m]
+readMany lim off c = query_ c (fromString q)
   where
     fields = [fd_name f | f <- modelFields :: [FieldDesc m]]
-    q = printf "SELECT %s FROM %s"
+    q = printf "SELECT %s FROM %s ORDER BY id LIMIT %i OFFSET %i"
       (T.unpack $ T.intercalate ", " fields)
       (show $ tableName (undefined :: m))
+      lim off
 
 
 update :: forall m . Model m => Ident m -> Patch m -> Connection -> IO Int64
