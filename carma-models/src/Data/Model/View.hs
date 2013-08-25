@@ -47,14 +47,12 @@ instance ToJSON (View m) where
     ]
 
 
-defaultView
-  :: forall m ctr . (Model m, GetModelFields m ctr) => ctr -> View m
-defaultView ctr
-  = View
-    { modelName = T.pack $ tableName (undefined :: m)
-    , title = ""
-    , fields = map defaultFieldView $ getModelFields ctr
-    }
+defaultView :: forall m . Model m => View m
+defaultView = View
+  { modelName = T.pack $ tableName (undefined :: m)
+  , title = ""
+  , fields = [defaultFieldView f | f <- modelFields :: [FieldDesc m]]
+  }
 
 
 defaultFieldView :: FieldDesc m -> FieldView m

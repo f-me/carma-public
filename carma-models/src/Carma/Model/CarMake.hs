@@ -4,6 +4,7 @@ module Carma.Model.CarMake where
 import Data.Text
 import Data.Typeable
 import Data.Model
+import Data.Model.View
 
 
 data CarMake = CarMake
@@ -17,3 +18,6 @@ data CarMake = CarMake
 instance Model CarMake where
   type TableName CarMake = "CarMake"
   modelFields = getModelFields CarMake
+
+
+view = defaultView :: View CarMake

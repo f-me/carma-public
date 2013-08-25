@@ -7,6 +7,8 @@ import Data.Model
 import Data.Typeable
 import Data.Vector (Vector)
 
+import Data.Model.View
+
 
 data Dictinoary = Dictionary
   { ident
@@ -26,3 +28,6 @@ data Dictinoary = Dictionary
 instance Model Dictionary where
   type TableName Dictionary = "Dictionary"
   modelFields = getModelFields Dictionary
+
+
+view = defaultView :: View Dictionary
