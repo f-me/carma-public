@@ -15,7 +15,6 @@ cabal-version:       >=1.8
 
 library
   exposed-modules:
-    Test,
     Data.Model,
     Data.Model.Patch,
     Data.Model.Patch.Sql,
@@ -26,17 +25,19 @@ library
     Carma.Model.CarMake,
     Carma.Model.CarModel,
     Carma.Model.Contract,
+    Carma.Model.Dictionary,
     Carma.Model.Program
   -- other-modules:       
   hs-source-dirs:    src
   build-depends:
-    aeson == 0.6.*,
-    base == 4.6.*,
-    containers,
+    aeson                == 0.6.*,
+    base                 == 4.6.*,
+    containers           == 0.5.*,
     unordered-containers == 0.2.*,
-    postgresql-simple == 0.3.3.*,
-    text == 0.11.*,
-    time == 1.4.*
+    postgresql-simple    == 0.3.3.*,
+    text                 == 0.11.*,
+    time                 == 1.4.*,
+    vector               == 0.10.*
 
   extensions:
     DataKinds, KindSignatures, TypeOperators,

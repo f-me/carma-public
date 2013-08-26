@@ -10,7 +10,7 @@ import Data.Vector (Vector)
 import Data.Model.View
 
 
-data Dictinoary = Dictionary
+data Dictionary = Dictionary
   { ident
     :: F (Ident Dictionary)         "id"          ""
   , name
