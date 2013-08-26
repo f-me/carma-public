@@ -88,6 +88,11 @@ define [ "hooks/common"
                        , s.openPartnerSearch
                        ]
 
+      "deliverCar" : [ s.partnerOptsHook
+                     , s.srvOptUpd
+                     , s.costsMark
+                     , s.openPartnerSearch
+                     ]
 
       "tech1" : [ s.openPartnerSearch ]
 
