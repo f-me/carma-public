@@ -25,6 +25,7 @@ define [ "hooks/common"
       "case" : [ k.descsKbHook
                , k.eventsHistoryKbHook
                , k.cityStatsHook
+               , k.regionHook
                ]
 
       "consultation" : [ s.openPartnerSearch ]
