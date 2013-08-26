@@ -127,11 +127,10 @@ define ["utils", "dictionaries"], (u, d) ->
         (r) -> $("#city-towage-average-time").text(u.formatSecToMin(r[0]))
 
   regionHook: (model, knockVM) ->
-    RegionDict = new d.dicts['RegionDict'] {dict: 'region'}
+    RegionDict = new d.dicts['RegionDict']
     knockVM['region'] = ko.computed
       read: ->
         regions = RegionDict.findRegionByCity knockVM['city']()
-        regionLabels = for region in regions
-          region.label
+        regionLabels = _.pluck regions, 'label'
         regionLabels.join(', ')
 
