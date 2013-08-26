@@ -82,6 +82,13 @@ define [ "hooks/common"
                          , s.openPartnerSearch
                          ]
 
+      "deliverParts" : [ s.partnerOptsHook
+                       , s.srvOptUpd
+                       , s.costsMark
+                       , s.openPartnerSearch
+                       ]
+
+
       "tech1" : [ s.openPartnerSearch ]
 
       "tickets" : [ s.openPartnerSearch ]
