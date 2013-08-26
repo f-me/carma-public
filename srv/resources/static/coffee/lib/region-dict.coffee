@@ -1,18 +1,28 @@
-define ["lib/meta-dict", ], (m) ->
+define ["lib/local-dict", ], (m) ->
   class RegionDict extends m.dict
     constructor: () ->
       @dict   = 'region'
-      regions = {entries: []}
       $.bgetJSON "/all/#{@dict}", (rsp) =>
         _.each rsp, (region) ->
-          region.cities = region.cities?.split(',')
+          region.value = region.cities
+          delete region.cities
 
-        regions.entries = rsp
-        window.global.dictionaries[@dict] = regions
-      @source = regions.entries
+        @source = rsp
+        window.global.dictLabelCache[@dict] = @dictLabels()
+        window.global.dictValueCache[@dict] = @dictValues()
+        window.global.dictionaries[@dict] = {entries: @source}
 
-    findRegionByCity: (city) ->
-      _.filter @source, (region) ->
-        _.include region.cities, city
+    dictValues: ->
+      iterator = (memo, region) ->
+        cities = region.value?.split(',')
+        _.each cities, (city) ->
+          memo[city] = if memo[city]
+            [memo[city], region.label].join(', ')
+          else
+            region.label
+        memo
+
+      @dictValueCache ||=
+        _.reduce @source, iterator, {}
 
   dict: RegionDict

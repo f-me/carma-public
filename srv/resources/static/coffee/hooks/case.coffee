@@ -130,7 +130,5 @@ define ["utils", "dictionaries"], (u, d) ->
     RegionDict = new d.dicts['RegionDict']
     knockVM['region'] = ko.computed
       read: ->
-        regions = RegionDict.findRegionByCity knockVM['city']()
-        regionLabels = _.pluck regions, 'label'
-        regionLabels.join(', ')
+        RegionDict.getLab knockVM['city']()
 
