@@ -11,7 +11,11 @@ define [ "utils"
       focusClass = "focusable"
       refs = []
       options = {permEl, focusClass, refs}
-      main.modelSetup(modelName) viewName, args, options
+      kvm = main.modelSetup(modelName) viewName, args, options
+      kvm['updateUrl'] = ->
+        global.router.navigate "dictionaries/#{modelName}/#{kvm.id()}",
+                               { trigger: false }
+      kvm
 
     visibleFields = ->
       [{name:'id', label:'#'}
@@ -49,8 +53,10 @@ define [ "utils"
           .setObjsToRowsConverter(objsToRows)
           .on("click.datatable", "tr", ->
             id = @children[0].innerText
-            modelSetup dictName, viewName, {id}
-            global.viewsWare["dictionaries-view"].knockVM)
+            k = modelSetup dictName, viewName, {id}
+            k['updateUrl']()
+            k)
+
         screenman.showScreen dictName
 
         $('#permissions').find('.btn-success').on 'click', ->
