@@ -174,6 +174,7 @@ define [ "utils"
       selected = kvm['selectedPartner']()
       # don't select same partner twice
       return if selected == partner?.id
+      return if partner?.isfree == false
       if _.isNull selected
         selectPartner(kvm, partner)
       else
@@ -306,9 +307,8 @@ define [ "utils"
       # Start search string with currently selected city
       if _.isEmpty kvm['address']()
         city = kvm['cityLocals']()[0]?.label
-        console.log city
         search.val(city)
-      
+
       search.keypress (e) ->
         if e.which == 13
           search_button.trigger "click"

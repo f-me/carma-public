@@ -91,8 +91,9 @@
     },
     {
       "meta": {
-        "dictionaryName": "Programs",
         "label": "Программа",
+        "dictionaryName": "casePrograms",
+        "dictionaryType": "ComputedDict",
         "required": true,
         "bounded": true,
         "targetCategory": "program",
