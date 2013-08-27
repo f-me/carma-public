@@ -1448,6 +1448,10 @@
           <span data-bind="text: caseAddress_address"/><br/>
           <span data-bind="text: caseAddress_comment"/>
         </p>
+        <p data-bind="visible: cityLocal">
+          <b>Регион:</b>
+          <span data-bind="text: region" />
+        </p>
         <br />
         <p data-bind="visible: cityLocal">
           <b>Расчётное значение ожидания эвакуатора в

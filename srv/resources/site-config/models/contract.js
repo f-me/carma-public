@@ -169,9 +169,11 @@
     {
       "meta": {
         "required": true,
-        "label": "Тип контракта"
+        "label": "Тип контракта",
+        "bounded": true,
+        "dictionaryName": "ContractType"
       },
-      "type": null,
+      "type": "dictionary",
       "groupName": null,
       "name": "contractType"
     },

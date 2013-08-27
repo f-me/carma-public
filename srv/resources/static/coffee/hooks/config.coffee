@@ -25,6 +25,7 @@ define [ "hooks/common"
       "case" : [ k.descsKbHook
                , k.eventsHistoryKbHook
                , k.cityStatsHook
+               , k.regionHook
                ]
 
       "consultation" : [ s.openPartnerSearch ]
@@ -75,6 +76,24 @@ define [ "hooks/common"
                , s.costsMark
                , s.openPartnerSearch
                ]
+
+      "transportation" : [ s.partnerOptsHook
+                         , s.srvOptUpd
+                         , s.costsMark
+                         , s.openPartnerSearch
+                         ]
+
+      "deliverParts" : [ s.partnerOptsHook
+                       , s.srvOptUpd
+                       , s.costsMark
+                       , s.openPartnerSearch
+                       ]
+
+      "deliverCar" : [ s.partnerOptsHook
+                     , s.srvOptUpd
+                     , s.costsMark
+                     , s.openPartnerSearch
+                     ]
 
       "tech1" : [ s.openPartnerSearch ]
 

@@ -173,11 +173,6 @@ define ["model/utils"], (mu) ->
     $(".complex-field").hide()
 
     view.show ->
-      isDealerView = depViewName.match(/towDealer_partner-view/)
-      isPartnerView = depViewName.match(/contractor_partner-view/)
-      if isDealerView or isPartnerView
-        require ["screens/case"], (c) -> c.initPartnerTables view, parentView
-
       require ["map"], (map) ->
         map.initOSM(e, parentView) for e in view.find(".osMap")
 

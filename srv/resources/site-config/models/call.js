@@ -21,7 +21,8 @@
     },
     {
       "meta": {
-        "dictionaryName": "Programs",
+        "dictionaryName": "casePrograms",
+        "dictionaryType": "ComputedDict",
         "bounded": true,
         "label": "Программа"
       },

@@ -90,7 +90,8 @@
         </div>
         <ol data-bind="foreach: searchProcessed">
           <li data-bind="css: {
-                         'selected-partner': id == $parent.selectedPartner()
+                         'selected-partner': id == $parent.selectedPartner(),
+                         'disabled-partner': isfree == false
                          }, attr: { id: 'partner-' + id + '-info' }">
             <div>
               <ul class="unstyled" data-bind="click: $parent.selectPartner">
@@ -99,6 +100,9 @@
                   <span data-bind="visible: distance">
                     (<span data-bind="text: distanceFormatted" />&nbsp;км)
                   </span>
+                  <!-- ko if: ismobile -->
+                  <img src="s/img/tow-icon.png" width="30px" height="30px"/>
+                  <!-- /ko -->
                 </li>
                 <li data-bind="visible: id == $parent.selectedPartner()">
                   <button type="button"
