@@ -3,11 +3,13 @@
 
 module Data.Model.View where
 
+import Data.List
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Aeson as Aeson
+import Data.Typeable
 
 import Data.Model
 import Data.Model.Sql
@@ -64,6 +66,12 @@ defaultFieldView f = FieldView
   }
 
 
-translateFieldType tr = case show tr of
-  "Int" -> "int"
-  t     -> error $ "translateFieldType: unkonwn type " ++ t
+translateFieldType tr
+  | show (typeRepTyCon tr) == "Maybe"
+    = translateFieldType (head $ typeRepArgs tr)
+  | otherwise = case show tr of
+    "Int"  -> "int"
+    "Text" -> "text"
+    t | "Vector" `isPrefixOf` t -> "multi-dict"
+      | "Ident " `isPrefixOf` t -> "reference"
+      | otherwise -> error $ "translateFieldType: unkonwn type " ++ t

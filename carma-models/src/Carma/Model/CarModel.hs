@@ -11,8 +11,7 @@ import Carma.Model.CarMake (CarMake)
 
 
 data CarModel = CarModel
-  {ident :: F (Ident CarModel) "id"      "id"
-  ,value :: F Text             "value"   "value"
+  {value :: F Text             "value"   "value"
   ,label :: F Text             "label"   "Модель"
   ,parent:: F (Ident CarMake)  "parent"  "Марка машины"
   }

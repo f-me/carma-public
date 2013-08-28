@@ -2,13 +2,14 @@
 
 module Data.Model
   ( Ident(..)
+  , ident
   , Model(..)
   , Field, F
   , FOpt
   , FieldDesc(..)
   , fieldName
   , tableName
-  , GetModelFields, getModelFields
+  , getModelFields
   ) where
 
 
@@ -63,6 +64,8 @@ fieldName (_ :: model -> Field typ (FOpt name desc))
   = fromSing (sing :: Sing name)
 
 
+ident :: m -> F (Ident m) "id" ""
+ident = undefined
 
 data FieldDesc m = FieldDesc
   {fd_name      :: Text

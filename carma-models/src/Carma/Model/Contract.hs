@@ -15,8 +15,7 @@ import Carma.Model.CarModel (CarModel)
 
 -- FIXME: add maybes
 data Contract = Contract
-  {ident             :: F (Ident Contract) "id"                "id"
-  ,carVin            :: F Text             "carVin"            ""
+  {carVin            :: F Text             "carVin"            ""
   ,carSeller         :: F Text             "carSeller"         "" -- FK Partner
   ,carMake           :: F (Ident CarMake)  "carMake"           "" -- FIXME: redundant
   ,carModel          :: F (Ident CarModel) "carModel"          ""

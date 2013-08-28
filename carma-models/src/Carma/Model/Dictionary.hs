@@ -11,9 +11,7 @@ import Data.Model.View
 
 
 data Dictionary = Dictionary
-  { ident
-    :: F (Ident Dictionary)         "id"          ""
-  , name
+  { name
     :: F Text                       "name"        "Название"
   , description
     :: F Text                       "description" "Описание"

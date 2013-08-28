@@ -29,8 +29,7 @@ instance FromField Coords where
 
 
 data City = City
-  {ident    :: F (Ident City) "id"       "id"
-  ,city     :: F Text         "city"     "Название"
+  {city     :: F Text         "city"     "Название"
   ,coords   :: F Coords       "coords"   "Координаты"
   ,timezone :: F Text         "timezone" "Часовой пояс"
   }

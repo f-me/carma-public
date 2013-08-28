@@ -8,8 +8,7 @@ import Data.Model.View
 
 
 data CarMake = CarMake
-  {ident :: F (Ident CarMake) "id" "id"
-  ,value :: F Text            "value" "value"
+  {value :: F Text            "value" "value"
   ,label :: F Text            "label" "Марка"
   }
   deriving Typeable

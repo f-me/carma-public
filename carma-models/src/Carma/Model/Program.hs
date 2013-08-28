@@ -7,8 +7,7 @@ import Data.Typeable
 
 
 data Program = Program
-  { ident                 :: F (Ident Program) "id"     ""
-  , active                :: F Bool            "active" ""
+  { active                :: F Bool            "active" ""
   , label                 :: F Text            "label"  ""
 --  , client                :: Field "client"
 --  , clientCode            :: Field "clientCode"
