@@ -37,16 +37,32 @@ ko.bindingHandlers.render =
 
 ko.bindingHandlers.sort =
   update: (el, name, allBindings, viewModel, ctx) ->
-    $(el).prepend("<i class='icon-resize-vertical'></i>")
+    # add icon to show sorting direction
+    defaultClass = 'icon-resize-vertical'
+    $(el).prepend("<i class=#{defaultClass}></i>")
+
+    # toggle sorting direction when user clicks on column header
     $(el).toggle(
       () ->
+        # reset icon for others columns
+        resetSort el, defaultClass
+        # change icon to sorting ascending
         $(el).find('i').removeClass()
         $(el).find('i').addClass 'icon-arrow-up'
+        # launch sorting
         ctx.$root["#{name()}SortASC"]()
       ,
       () ->
+        # reset icon for others columns
+        resetSort el, defaultClass
+        # change icon to sorting descending
         $(el).find('i').removeClass()
         $(el).find('i').addClass 'icon-arrow-down'
+        # launch sorting
         ctx.$root["#{name()}SortDSC"]()
     )
+
+    # reset icon to default (without sorting) for all column headers
+    resetSort = (el, defaultClass) ->
+      $(el).closest('thead').children().find('i').removeClass().addClass(defaultClass)
 
