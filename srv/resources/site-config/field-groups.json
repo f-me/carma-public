@@ -637,6 +637,7 @@
       "meta": {
         "regexp": "datetime",
         "infoText": "datetime",
+        "required": true,
         "label": "Ожидаемое время начала оказания услуги"
       },
       "type": "datetime",
@@ -664,6 +665,7 @@
       "meta": {
         "regexp": "datetime",
         "infoText": "datetime",
+        "required": true,
         "label": "Ожидаемое время окончания оказания услуги"
       },
       "type": "datetime",
@@ -700,6 +702,7 @@
       "meta": {
         "regexp": "datetime",
         "infoText": "datetime",
+        "required": true,
         "label": "Ожидаемое время закрытия услуги"
       },
       "type": "datetime",

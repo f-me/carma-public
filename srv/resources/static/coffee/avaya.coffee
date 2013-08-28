@@ -62,7 +62,7 @@ class @AvayaWidget
       info = lineInfo[line]
       if info
         panel.find("#avaya-info").text(info.greeting)
-        vm.programLocal(info.program)
+        vm.program(info.program)
 
   call: (number) ->
     @__phone.call(number)
@@ -81,58 +81,59 @@ redNumbers =
   , "+79851996809"
   ]
 
+# FIXME: make a real dictionary from this
 lineInfo =
   "VW+BOSCH":
     greeting: "VW Гарантия мобильности, имя оператора, чем могу Вам помочь?"
-    program: "VW / Легковые автомобили"
+    program: "vwMotor"
   "GM KOREA":
     greeting: "GM ассистанс, добрый день, чем могу Вам помочь?"
-    program: "GM / Chevrolet Korea"
+    program: "chevyko"
   "GM+BOSCH":
     greeting: "GM ассистанс, добрый день, чем могу Вам помочь?"
-    program: "GM / Opel (после 01.04.2011)"
+    program: "opel"
   "FORD+BOSCH":
     greeting: "Ford помощь на дорогах, имя оператора, добрый день, чем могу Вам помочь?"
-    program: "Ford"
+    program: "ford"
   "ARC CLUBS":
     greeting: "Русский АвтоМотоКлуб, имя оператора, добрый день! (Здравствуйте!)"
-    program: "B2B / Arc B2B"
+    program: "arc"
   "RAMC B2C":
     greeting: "Русский АвтоМотоКлуб, имя оператора, добрый день! (Здравствуйте!)"
-    program: "B2C карты / Стандарт"
+    program: "b2cSt"
   "RUS-LAN":
     greeting: "Рус-Лан ассистанс, имя оператора, добрый день, чем могу Вам помочь?"
-    program: "Рус Лан"
+    program: "ruslan"
   "ATLANT-M":
     greeting: "Атлант М Ассистанс, имя оператора, добрый день, чем могу Вам помочь?"
-    program: "Атлант М"
+    program: "atlant"
   "CHARTIS":
     greeting: "Надёжный патруль Чартис, имя оператора, добрый день, чем могу Вам помочь?"
-    program: "Chartis Assistance"
+    program: "Chartis Assistance" ## ???
   "VW AVILON":
     greeting: "Авилон ассистанс, имя оператора, добрый день, чем могу Вам помочь?"
-    program: "B2B / Авилон"
+    program: "avilon"
   "NEZAVISIMOST":
     greeting: "Независимость Ассистанс, имя оператора, добрый день, чем могу Вам помочь?"
-    program: "Независимость"
+    program: "nz"
   "EUROPLAN":
     greeting: "Европлан Ассистанс, имя оператора, добрый день, чем могу Вам помочь?"
-    program: "B2B / Европлан"
+    program: "euro"
   "MAPFRE":
     greeting: "Ассистанс центр МАПФРЕ УОРРЭНТИ, добрый день, чем могу Вам помочь?"
-    program: "B2B / Мапфре"
+    program: "map"
   "FWC VNUKOVO":
     greeting: "Фольксваген Внуково Ассистанс, имя оператора, добрый день, чем могу Вам помочь?"
-    program: "B2B / VW Внуково"
+    program: "vnukovo"
   "RN CART":
     greeting: "Москва Помощь на Дорогах, имя оператора, добрый день, чем могу Вам помочь?"
-    program: "B2B / РН-карт-Москва Базовая"
+    program: "B2B / РН-карт-Москва Базовая" ## ???
   "UNICREDITBANK":
     greeting: "Русский АвтоМотоКлуб, имя оператора, добрый день! (Здравствуйте!)"
-    program: "B2C / ЮниКредитбанк"
+    program: "unicredit"
   "VTB 24":
     greeting: "Русский АвтоМотоКлуб, имя оператора, добрый день! (Здравствуйте!)"
-    program: "B2C / ВТБ 24"
+    program: "vtb24"
   "RAMC":
     greeting: "Русский АвтоМотоКлуб, имя оператора, добрый день! (Здравствуйте!)"
     program: ""

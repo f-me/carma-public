@@ -12,7 +12,9 @@ define [], ->
       console.error("datamap: can't parse date '#{v}' with '#{fmt}'")
       ""
 
-  s2cDate = (fmt) -> (v) -> new Date(v * 1000).toString(fmt)
+  s2cDate = (fmt) -> (v) ->
+        return null if _.isEmpty v
+        new Date(v * 1000).toString(fmt)
 
   s2cJson = (v) ->
     return null if _.isEmpty v
