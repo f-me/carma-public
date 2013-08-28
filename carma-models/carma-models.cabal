@@ -20,6 +20,7 @@ library
     Data.Model.Patch.Sql,
     Data.Model.Sql,
     Data.Model.View,
+    Carma.Model,
     Carma.Model.Types,
     Carma.Model.City,
     Carma.Model.CarMake,
