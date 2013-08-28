@@ -343,9 +343,10 @@
   "cardNumber": [
     {
       "meta": {
-        "label": "Номер карты участника"
+        "label": "Номер карты участника",
+        "dictionaryType": "CardsDict"
       },
-      "type": "picker",
+      "type": "dictionary",
       "name": "cardNumber"
     },
     {

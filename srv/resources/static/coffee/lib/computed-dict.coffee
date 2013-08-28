@@ -9,6 +9,14 @@ define ["lib/local-dict"], (m) ->
 
     getLab: (val) -> @dictValues()[val]
 
+    # Dictionary of all user-created programs, used in case model
+    # (TODO backwards-compatible hack for #711)
+    casePrograms: =>
+      $.bgetJSON "/all/program", (objs) =>
+        valued_objs = _.filter objs, (p) -> !_.isEmpty(p.value)
+        @source = for obj in valued_objs
+          { value: obj.value, label: obj.label || '' }
+
     # Dictionary of all user-created programs
     allPrograms: =>
       $.bgetJSON "/all/program", (objs) =>
