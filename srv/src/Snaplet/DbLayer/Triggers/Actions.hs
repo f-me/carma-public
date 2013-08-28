@@ -481,6 +481,19 @@ serviceActions = Map.fromList
       let h = 3600 -- seconds
       set objId "times_expectedServiceEnd"     $ B.pack $ show $ tm + 1*h
       set objId "times_expectedServiceClosure" $ B.pack $ show $ tm + 11*h
+      set objId "times_factServiceStart" ""
+    ])
+  ,("times_expectedDispatch",
+    [\objId _ -> set objId "times_factServiceStart" ""
+    ])   
+  ,("times_expectedServiceEnd",
+    [\objId _ -> set objId "times_factServiceEnd" ""
+    ])
+  ,("times_expectedDealerInfo",
+    [\objId _ -> set objId "times_factDealerInfo" ""
+    ])
+  ,("times_expectedServiceClosure",
+    [\objId _ -> set objId "times_factServiceClosure" ""
     ])
   ]
 

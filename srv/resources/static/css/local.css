@@ -211,8 +211,7 @@ textarea.pane-span,
 }
 
 .checkbutton label input {
-    position:absolute;
-    top:-20px;
+  display: none;
 }
 
 #partnerMapModal {
