@@ -65,6 +65,15 @@ define [ "utils"
       model     : model
       kvms      : [kvm1, kvm2]
       showFields: showFields model, ['search', 'city']
+      searchSortASC: () ->
+        console.log "Started searchSortASC function"
+      searchSortDSC: () ->
+        console.log "Started searchSortDSC function"
+      citySortASC: () ->
+        console.log "Started citySortASC function"
+      citySortDSC: () ->
+        console.log "Started citySortDSC function"
+
     global.rr = rr
     ko.applyBindings(rr, $("#tbl")[0])
 

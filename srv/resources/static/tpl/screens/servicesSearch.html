@@ -1,14 +1,21 @@
 <div>
   ololo
-  <table id="tbl">
-    <tr data-bind="foreach: showFields">
-      <th data-bind="text: meta.label" />
-    </tr>
-    <!-- ko foreach: kvms -->
-    <tr data-bind="foreach: $root.showFields">
-      <td data-bind="render: $parent" />
-    </tr>
-    <!-- /ko -->
+  <table id="tbl" class="table table-striped table-hover">
+    <thead>
+      <tr data-bind="foreach: showFields">
+        <th>
+          <button class="btn btn-link" data-bind="text: meta.label, sort: name">
+          </button>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- ko foreach: kvms -->
+      <tr data-bind="foreach: $root.showFields">
+        <td data-bind="render: $parent" />
+      </tr>
+      <!-- /ko -->
+    </tbody>
   </table>
 </div>
 

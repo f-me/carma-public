@@ -34,3 +34,19 @@ ko.bindingHandlers.render =
   init: (el, acc, allBindigns, ctx) ->
     tpl = acc()._meta.tpls[ctx.name]
     ko.utils.setHtml el, tpl
+
+ko.bindingHandlers.sort =
+  update: (el, name, allBindings, viewModel, ctx) ->
+    $(el).prepend("<i class='icon-resize-vertical'></i>")
+    $(el).toggle(
+      () ->
+        $(el).find('i').removeClass()
+        $(el).find('i').addClass 'icon-arrow-up'
+        ctx.$root["#{name()}SortASC"]()
+      ,
+      () ->
+        $(el).find('i').removeClass()
+        $(el).find('i').addClass 'icon-arrow-down'
+        ctx.$root["#{name()}SortDSC"]()
+    )
+
