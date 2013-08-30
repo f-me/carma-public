@@ -558,7 +558,8 @@ timestampToDate input =
       Nothing -> exportError $ BadTime input
 
 
--- | Convert timestamp to DDMMYY format, adding one full day.
+-- | Convert a timestamp to DDMMYY format, adding one full day if the
+-- timestamp is not at midnight.
 --
 -- TODO This is a dirty workaround, we should fix the date problem in
 -- CaRMa instead.
@@ -566,8 +567,11 @@ timestampToDate' :: BS.ByteString -> ExportField
 timestampToDate' input =
     case parseTimestamp input of
       Just time ->
-          push $ B8.pack $ formatTime defaultTimeLocale dateFormat $
-                 (addUTCTime posixDayLength time)
+          push $ B8.pack $ formatTime defaultTimeLocale dateFormat fixedTime
+          where
+            fixedTime = if utctDayTime time == 0
+                        then time
+                        else addUTCTime posixDayLength time
       Nothing -> exportError $ BadTime input
 
 
