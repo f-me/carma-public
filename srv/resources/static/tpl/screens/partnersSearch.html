@@ -101,7 +101,12 @@
                     (<span data-bind="text: distanceFormatted" />&nbsp;км)
                   </span>
                   <!-- ko if: ismobile -->
+                  <!-- ko if: isfree -->
                   <img src="s/img/tow-icon.png" width="30px" height="30px"/>
+                  <!-- /ko -->
+                  <!-- ko ifnot: isfree -->
+                  <img src="s/img/busy-tow-icon.png" width="30px" height="30px"/>
+                  <!-- /ko -->
                   <!-- /ko -->
                 </li>
                 <li data-bind="visible: id == $parent.selectedPartner()">
