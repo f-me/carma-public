@@ -79,11 +79,9 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
     userTable.on("click.datatable", "tr", ->
       colText = this.children[0].innerText
       [_,caseId,actId] = colText.match(/(\d+)\/(\d+)/)
-      now = Math.round((new Date).getTime() / 1000)
       $.ajax
-        type: "PUT"
-        url: "/_/action/#{actId}"
-        data: "{\"openTime\":\"#{now}\"}"
+        type: "POST"
+        url: "/backoffice/openAction/#{actId}"
       window.location.hash = "case/#{caseId}"
     )
     return [userTable]

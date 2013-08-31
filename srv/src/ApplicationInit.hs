@@ -60,6 +60,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/cancelsFor/:id",chkAuthLocal . method GET    $ getCancelsForCase)
          , ("/littleMoreActions",
             chkAuthLocal . method PUT $ littleMoreActionsHandler)
+         , ("/backoffice/openAction/:actionid",
+            chkAuthLocal . method POST $ openAction)
          , ("/allActions",    chkAuthLocal . method GET $ allActionsHandler)
          , ("actions/unassigned",
             chkAuthLocal . method GET $ unassignedActionsHandler)
