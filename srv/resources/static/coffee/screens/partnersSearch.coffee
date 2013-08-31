@@ -150,11 +150,13 @@ define [ "utils"
 
     selectPartner = (kvm, partner) ->
       if _.isNull partner
+        # Deselect partner
         kvm['selectedPartner'](null)
         global.pubSub.pub subName(ctx.field, id),
           name: ''
           addrDeFacto: ''
           id: ''
+          distanceFormatted: ''
       else
         kvm['selectedPartner'](partner.id)
         # Highlight partner blip on map
