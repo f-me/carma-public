@@ -30,11 +30,14 @@ import Snaplet.SiteConfig.Dictionaries
 
 import Utils.HttpErrors
 
+import qualified Carma.Model.Dictionary as Dictionary
+
 
 writeJSON :: Aeson.ToJSON v => v -> Handler a b ()
 writeJSON v = do
   modifyResponse $ setContentType "application/json"
   writeLBS $ Aeson.encode v
+
 
 serveModel :: HasAuth b => Handler b (SiteConfig b) ()
 serveModel = do
@@ -45,7 +48,9 @@ serveModel = do
         $ case name of
           "case" -> newCase
           _      -> newSvc name
-      _ -> M.lookup name <$> gets models
+      _ -> case name of
+        "Dictionary" -> return $ Aeson.decode $ Aeson.encode Dictionary.view
+        _ -> M.lookup name <$> gets models
 
   case return (,) `ap` mcu `ap` model of
     Nothing -> finishWithError 401 ""
