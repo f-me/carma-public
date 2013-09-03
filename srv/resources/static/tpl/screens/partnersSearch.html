@@ -96,7 +96,7 @@
             <div>
               <ul class="unstyled" data-bind="click: $parent.selectPartner">
                 <li>
-                  <span data-bind="text: name" />
+                  <span data-bind="html: '<h5><big>' + name + '</big></h5>'" />
                   <span data-bind="visible: distance">
                     (<span data-bind="text: distanceFormatted" />&nbsp;км)
                   </span>
@@ -132,7 +132,7 @@
                 <b>Услуги:</b>
                 <ul data-bind="foreach: services">
                   <!-- ko if: label -->
-                  <li data-bind="text: showStr" />
+                  <li data-bind="html: showStr" />
                   <!-- /ko -->
                 </ul>
               </li>

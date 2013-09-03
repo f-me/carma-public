@@ -459,9 +459,9 @@ define [ "utils"
             priority2: v.priority2
             priority3: v.priority3
             showStr  : do ->
-              show  = srvLab v.servicename
-              show += " ПБГ: #{v.priority2}" if v.priority2
-              show += " ПБЗ: #{v.priority3}" if v.priority3
+              show  = "<span class='label label-info'>#{srvLab v.servicename}</span>"
+              show += " <span class='label label-important'>ПБГ: #{v.priority2}</span>" if v.priority2
+              show += " <span class='label label-warning'>ПБЗ: #{v.priority3}</span>" if v.priority3
               show
         r[v.id]['cityLocal'] = DealerCities.getLab(v.city) || ''
         r[v.id]['makesLocal'] =
