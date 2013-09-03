@@ -52,14 +52,14 @@ instance Model m => ToJSON (Patch m) where
   toJSON (Patch m) = object [(k, toJS k v) | (k,v) <- HashMap.toList m]
     where
       fields :: HashMap Text (FieldDesc m)
-      fields = HashMap.fromList [(fd_name f, f) | f <- modelFields]
+      fields = HashMap.fromList [(fd_name f, f) | f <- identDesc : modelFields]
       toJS k = fd_toJSON $ fields HashMap.! k
 
 
 instance Model m => FromRow (Patch m) where
   fromRow = Patch . HashMap.fromList <$> sequence
     [(fd_name f,) <$> fd_fromField f
-    | f <- modelFields :: [FieldDesc m]
+    | f <- identDesc : modelFields :: [FieldDesc m]
     ]
 
 instance Model m => ToRow (Patch m) where

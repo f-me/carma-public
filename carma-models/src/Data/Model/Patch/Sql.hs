@@ -2,7 +2,11 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Data.Model.Patch.Sql
-  where
+  (create
+  ,read
+  ,readMany
+  ,update
+  ) where
 
 import Prelude hiding (read)
 
@@ -37,7 +41,7 @@ create p c = head . head <$> query c (fromString q) p
 read :: forall m . Model m => Ident m -> Connection -> IO [Patch m]
 read (Ident i) c = query c (fromString q) [i]
   where
-    fields = [fd_name f | f <- modelFields :: [FieldDesc m]]
+    fields = [fd_name f | f <- identDesc : modelFields :: [FieldDesc m]]
     q = printf "SELECT %s FROM %s WHERE id = ?"
       (T.unpack $ T.intercalate ", " fields)
       (show $ tableName (undefined :: m))
@@ -46,7 +50,7 @@ read (Ident i) c = query c (fromString q) [i]
 readMany :: forall m . Model m => Int64 -> Int64 -> Connection -> IO [Patch m]
 readMany lim off c = query_ c (fromString q)
   where
-    fields = [fd_name f | f <- modelFields :: [FieldDesc m]]
+    fields = [fd_name f | f <- identDesc : modelFields :: [FieldDesc m]]
     q = printf "SELECT %s FROM %s ORDER BY id LIMIT %i OFFSET %i"
       (T.unpack $ T.intercalate ", " fields)
       (show $ tableName (undefined :: m))

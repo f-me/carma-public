@@ -2,7 +2,7 @@
 
 module Data.Model
   ( Ident(..)
-  , ident
+  , ident, identDesc
   , Model(..)
   , Field, F
   , FOpt
@@ -65,7 +65,18 @@ fieldName (_ :: model -> Field typ (FOpt name desc))
 
 
 ident :: m -> F (Ident m) "id" ""
-ident = undefined
+ident _ = Field
+
+identDesc :: forall m . Model m => FieldDesc m
+identDesc = FieldDesc
+  {fd_name      = "id"
+  ,fd_desc      = "Object id"
+  ,fd_type      = typeOf (undefined :: Ident m)
+  ,fd_parseJSON = \v -> toDyn <$> (parseJSON v :: Parser (Ident m))
+  ,fd_toJSON    = \d -> toJSON  (fromJust $ fromDynamic d :: Ident m)
+  ,fd_fromField = toDyn <$> (field :: RowParser (Ident m))
+  ,fd_toField   = \d -> toField (fromJust $ fromDynamic d :: Ident m)
+  }
 
 data FieldDesc m = FieldDesc
   {fd_name      :: Text
