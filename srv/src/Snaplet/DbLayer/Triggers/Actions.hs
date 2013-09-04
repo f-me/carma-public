@@ -600,11 +600,11 @@ actionResultMap = Map.fromList
         when (not $ elem (Role "back") (userRoles u)) $
            set act "assignedTo" ""
   )
-  ,("partnerNotOk", \objId -> do
-    act <- replaceAction
+  ,("partnerNotOk", void .
+    replaceAction
       "cancelService"
       "Требуется отказаться от заказанной услуги"
-      "bo_control" "1" (+60) objId
+      "bo_control" "1" (+60)
   )
   ,("moveToAnalyst", \objId -> do
     act <- replaceAction
@@ -642,17 +642,17 @@ actionResultMap = Map.fromList
           "Сообщить клиенту о договорённости"
           "bo_control" "1" (+60) objId
   )
-  ,("dealerNotApproved", \objId -> do
-    act <- replaceAction
+  ,("dealerNotApproved", void .
+    replaceAction
       "tellDealerDenied"
       "Сообщить об отказе дилера"
-      "bo_control" "3" (+60) objId
+      "bo_control" "3" (+60)
   )
-  ,("carmakerNotApproved", \objId -> do
-    act <- replaceAction
+  ,("carmakerNotApproved", void .
+    replaceAction
       "tellMakerDenied"
       "Сообщить об отказе автопроизводителя"
-      "bo_control" "3" (+60) objId
+      "bo_control" "3" (+60)
   )
   ,("partnerNotOkCancel", \objId -> do
       setServiceStatus objId "cancelService"
