@@ -102,8 +102,6 @@ create view servicesview as
         s.contractor_partnerId,
         s.contractor_address,
         s.contractor_coords,
-        s.contractor_partnermap,
-        s.contractor_partnertable,
         s.warrantycase,
         s.paid,
         s.scan,
