@@ -566,10 +566,11 @@ actionResultMap = Map.fromList
         closeSerivceAndSendInfoVW objId
         sendMailToDealer objId
       False -> do
-        void $ replaceAction
+        act <- replaceAction
           "tellClient"
           "Сообщить клиенту о договорённости"
           "bo_control" "1" (+60) objId
+        set act "assignedTo" ""
 
   )
   ,("serviceOrderedSMS", \objId -> do
@@ -588,11 +589,12 @@ actionResultMap = Map.fromList
         sendMailToDealer objId
       False -> do
         tm <- getService objId "times_expectedServiceStart"
-        void $ replaceAction
+        act <- replaceAction
           "checkStatus"
           "Уточнить статус оказания услуги"
           "bo_control" "3" (changeTime (+5*60) tm)
           objId
+        set act "assignedTo" ""
   )
   ,("partnerNotOk", \objId -> do
     act <- replaceAction
