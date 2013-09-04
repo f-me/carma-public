@@ -303,7 +303,7 @@ serviceActions = Map.fromList
             [("name", "tellClient")
             ,("duetime", due)
             ,("description", utf8 "Сообщить клиенту о договорённости")
-            ,("targetGroup", "back")
+            ,("targetGroup", "bo_control")
             ,("priority", "1")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -331,7 +331,7 @@ serviceActions = Map.fromList
             [("name", "mechanicConf")
             ,("duetime", due)
             ,("description", utf8 "Требуется конференция с механиком")
-            ,("targetGroup", "back")
+            ,("targetGroup", "bo_control")
             ,("priority", "2")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -346,7 +346,7 @@ serviceActions = Map.fromList
             [("name", "dealerConf")
             ,("duetime", due)
             ,("description", utf8 "Требуется конференция с дилером")
-            ,("targetGroup", "back")
+            ,("targetGroup", "bo_control")
             ,("priority", "2")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -362,7 +362,7 @@ serviceActions = Map.fromList
             ,("duetime", due)
             ,("description",
                 utf8 "Клиент попросил уточнить, когда начётся оказание услуги")
-            ,("targetGroup", "back")
+            ,("targetGroup", "bo_control")
             ,("priority", "3")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -376,7 +376,7 @@ serviceActions = Map.fromList
             [("name", "dealerApproval")
             ,("duetime", due)
             ,("description", utf8 "Требуется согласование с дилером")
-            ,("targetGroup", "back")
+            ,("targetGroup", "bo_control")
             ,("priority", "2")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -390,7 +390,7 @@ serviceActions = Map.fromList
             [("name", "carmakerApproval")
             ,("duetime", due)
             ,("description", utf8 "Требуется согласование с заказчиком программы")
-            ,("targetGroup", "back")
+            ,("targetGroup", "bo_control")
             ,("priority", "2")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -404,7 +404,7 @@ serviceActions = Map.fromList
             [("name", "cancelService")
             ,("duetime", due)
             ,("description", utf8 "Клиент отказался от услуги (сообщил об этом оператору Front Office)")
-            ,("targetGroup", "back")
+            ,("targetGroup", "bo_control")
             ,("priority", "1")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -570,7 +570,7 @@ actionResultMap = Map.fromList
         void $ replaceAction
           "tellClient"
           "Сообщить клиенту о договорённости"
-          "back" "1" (+60) objId
+          "bo_control" "1" (+60) objId
 
   )
   ,("serviceOrderedSMS", \objId -> do
@@ -592,19 +592,19 @@ actionResultMap = Map.fromList
         void $ replaceAction
           "checkStatus"
           "Уточнить статус оказания услуги"
-          "back" "3" (changeTime (+5*60) tm)
+          "bo_control" "3" (changeTime (+5*60) tm)
           objId
   )
   ,("partnerNotOk", void . replaceAction
       "cancelService"
       "Требуется отказаться от заказанной услуги"
-      "back" "1" (+60)
+      "bo_control" "1" (+60)
   )
   ,("moveToAnalyst", \objId -> do
     act <- replaceAction
       "orderServiceAnalyst"
       "Заказ услуги аналитиком"
-      "analyst" "1" (+60) objId
+      "back" "1" (+60) objId
     set act "assignedTo" ""
   )
   ,("moveToBack", \objId -> do
@@ -634,26 +634,26 @@ actionResultMap = Map.fromList
         void $ replaceAction
           "tellClient"
           "Сообщить клиенту о договорённости"
-          "back" "1" (+60) objId
+          "bo_control" "1" (+60) objId
   )
   ,("dealerNotApproved", \objId ->
     void $ replaceAction
       "tellDealerDenied"
       "Сообщить об отказе дилера"
-      "back" "3" (+60) objId
+      "bo_control" "3" (+60) objId
   )
   ,("carmakerNotApproved", \objId ->
     void $ replaceAction
       "tellMakerDenied"
       "Сообщить об отказе автопроизводителя"
-      "back" "3" (+60) objId
+      "bo_control" "3" (+60) objId
   )
   ,("partnerNotOkCancel", \objId -> do
       setServiceStatus objId "cancelService"
       void $ replaceAction
          "cancelService"
          "Требуется отказаться от заказанной услуги"
-         "back" "1" (+60) objId
+         "bo_control" "1" (+60) objId
   )
   ,("partnerOk", \objId ->
     isReducedMode >>= \case
@@ -663,7 +663,7 @@ actionResultMap = Map.fromList
         void $ replaceAction
           "checkStatus"
           "Уточнить статус оказания услуги"
-          "back" "3" (changeTime (+5*60) tm)
+          "bo_control" "3" (changeTime (+5*60) tm)
           objId
   )
   ,("serviceDelayed", \objId -> do
@@ -671,7 +671,7 @@ actionResultMap = Map.fromList
     void $ replaceAction
       "tellDelayClient"
       "Сообщить клиенту о задержке начала оказания услуги"
-      "back" "1" (+60)
+      "bo_control" "1" (+60)
       objId
   )
   ,("serviceInProgress", \objId -> do
@@ -683,7 +683,7 @@ actionResultMap = Map.fromList
         void $ replaceAction
           "checkEndOfService"
           "Уточнить у клиента окончено ли оказание услуги"
-          "back" "3" (changeTime (+5*60) tm)
+          "bo_control" "3" (changeTime (+5*60) tm)
           objId
   )
   ,("prescheduleService", \objId -> do
@@ -695,7 +695,7 @@ actionResultMap = Map.fromList
         void $ replaceAction
           "checkEndOfService"
           "Уточнить у клиента окончено ли оказание услуги"
-          "back" "3" (+60)
+          "bo_control" "3" (+60)
           objId
   )
   ,("serviceStillInProgress", \objId ->
@@ -711,7 +711,7 @@ actionResultMap = Map.fromList
     void $ replaceAction
       "checkStatus"
       "Уточнить статус оказания услуги"
-      "back" "3" (changeTime (+5*60) tm)
+      "bo_control" "3" (changeTime (+5*60) tm)
       objId
   )
   ,("serviceFinished", \objId -> do
@@ -741,7 +741,7 @@ actionResultMap = Map.fromList
     act <- replaceAction
       "parguyNeedInfo"
       "Менеджер по Партнёрам запросил доп. информацию"
-      "back" "3" (+360) objId
+      "bo_control" "3" (+360) objId
     set act "assignedTo" ""
   )
   ,("backToParyguy", \objId -> do
