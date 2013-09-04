@@ -63,7 +63,6 @@ create view servicesview as
         c.dealercause,
         c.casestatus,
         c.claim,
-        c.betacomment,
         c.services,
         c.actions,
         c.files as casefiles,
