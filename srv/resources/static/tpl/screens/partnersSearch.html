@@ -96,7 +96,9 @@
             <div>
               <ul class="unstyled" data-bind="click: $parent.selectPartner">
                 <li>
-                  <span data-bind="html: '<h5><big>' + name + '</big></h5>'" />
+                  <span>
+                    <span data-bind="html: '<b><big>' + name + '</big></b>'" />
+                  </span>
                   <span data-bind="visible: distance">
                     (<span data-bind="text: distanceFormatted" />&nbsp;км)
                   </span>
