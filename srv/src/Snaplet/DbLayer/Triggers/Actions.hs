@@ -309,6 +309,12 @@ serviceActions = Map.fromList
             ,("caseId", kazeId)
             ,("closed", "0")
             ]
+          Just u <- liftDb $ with auth currentUser
+          when (not 
+                (elem (Role "bo_control") (userRoles u) && 
+                 elem (Role "back") (userRoles u))) $
+          set act1 "assignedTo" ""
+          
           upd kazeId "actions" $ addToList act1
           due <- dateNow (+ (14*24*60*60))
           act2 <- new "action" $ Map.fromList
