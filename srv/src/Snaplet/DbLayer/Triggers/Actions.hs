@@ -298,6 +298,7 @@ serviceActions = Map.fromList
       "serviceOrdered" -> do
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
+          Just u <- liftDb $ with auth currentUser
           currentUser <- maybe "" userLogin <$> getCurrentUser
           act1 <- new "action" $ Map.fromList
             [("name", "tellClient")
@@ -309,7 +310,6 @@ serviceActions = Map.fromList
             ,("caseId", kazeId)
             ,("closed", "0")
             ]
-          Just u <- liftDb $ with auth currentUser
           when (not 
                 (elem (Role "bo_control") (userRoles u) && 
                  elem (Role "back") (userRoles u))) $
