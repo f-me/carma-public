@@ -569,7 +569,7 @@ actionResultMap = Map.fromList
     sendMailToPSA objId
     isReducedMode >>= \case
       True -> do
-        closeSerivceAndSendInfoVW objId
+        closeServiceAndSendInfoVW objId
         sendMailToDealer objId
       False -> do
         act <- replaceAction
@@ -594,7 +594,7 @@ actionResultMap = Map.fromList
     sendMailToPSA objId
     isReducedMode >>= \case
       True -> do
-        closeSerivceAndSendInfoVW objId
+        closeServiceAndSendInfoVW objId
         sendMailToDealer objId
       False -> do
         tm <- getService objId "times_expectedServiceStart"
@@ -735,12 +735,12 @@ actionResultMap = Map.fromList
       objId
   )
   ,("serviceFinished", \objId -> do
-    closeSerivceAndSendInfoVW objId
+    closeServiceAndSendInfoVW objId
     sendSMS objId "smsTpl:3"
     sendMailToDealer objId
   )
   ,("complaint", \objId -> do
-    closeSerivceAndSendInfoVW objId
+    closeServiceAndSendInfoVW objId
     setService objId "clientSatisfied" "notSatis"
     act1 <- replaceAction
       "complaintResolution"
@@ -925,7 +925,7 @@ newPartnerMessage objId = do
     ]
 
 
-closeSerivceAndSendInfoVW objId = do
+closeServiceAndSendInfoVW objId = do
   setServiceStatus objId "serviceOk"
 
   partner <- getService objId "contractor_partner"
