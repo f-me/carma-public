@@ -313,7 +313,7 @@ serviceActions = Map.fromList
           when (not 
                 (elem (Role "bo_control") (userRoles u) && 
                  elem (Role "back") (userRoles u))) $
-          set act1 "assignedTo" ""
+            set act1 "assignedTo" ""
           
           upd kazeId "actions" $ addToList act1
           due <- dateNow (+ (14*24*60*60))
