@@ -307,7 +307,6 @@ serviceActions = Map.fromList
             ,("priority", "1")
             ,("parentId", objId)
             ,("caseId", kazeId)
-            ,("assignedTo", T.encodeUtf8 currentUser)
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList act1
@@ -599,6 +598,7 @@ actionResultMap = Map.fromList
       "cancelService"
       "Требуется отказаться от заказанной услуги"
       "bo_control" "1" (+60)
+    set act "assignedTo" ""
   )
   ,("moveToAnalyst", \objId -> do
     act <- replaceAction
@@ -641,12 +641,14 @@ actionResultMap = Map.fromList
       "tellDealerDenied"
       "Сообщить об отказе дилера"
       "bo_control" "3" (+60) objId
+    set act "assignedTo" ""
   )
   ,("carmakerNotApproved", \objId ->
     void $ replaceAction
       "tellMakerDenied"
       "Сообщить об отказе автопроизводителя"
       "bo_control" "3" (+60) objId
+    set act "assignedTo" ""
   )
   ,("partnerNotOkCancel", \objId -> do
       setServiceStatus objId "cancelService"
