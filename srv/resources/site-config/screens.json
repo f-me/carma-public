@@ -27,7 +27,7 @@
     { "name"  : "back",
       "label" : "Бэкофис",
       "type"  : "li",
-      "permissions": ["front","back","vwfake","head","parguy","supervisor","analyst"]
+      "permissions": ["front","back","bo_control","vwfake","head","parguy","supervisor","analyst"]
     },
     { "type": "dropdown",
       "name": "supervisorList",
