@@ -594,10 +594,11 @@ actionResultMap = Map.fromList
           "bo_control" "3" (changeTime (+5*60) tm)
           objId
   )
-  ,("partnerNotOk", void . replaceAction
+  ,("partnerNotOk", \objId -> do
+    act <- replaceAction
       "cancelService"
       "Требуется отказаться от заказанной услуги"
-      "bo_control" "1" (+60)
+      "bo_control" "1" (+60) objId
     set act "assignedTo" ""
   )
   ,("moveToAnalyst", \objId -> do
@@ -636,15 +637,15 @@ actionResultMap = Map.fromList
           "Сообщить клиенту о договорённости"
           "bo_control" "1" (+60) objId
   )
-  ,("dealerNotApproved", \objId ->
-    void $ replaceAction
+  ,("dealerNotApproved", \objId -> do
+    act <- replaceAction
       "tellDealerDenied"
       "Сообщить об отказе дилера"
       "bo_control" "3" (+60) objId
     set act "assignedTo" ""
   )
-  ,("carmakerNotApproved", \objId ->
-    void $ replaceAction
+  ,("carmakerNotApproved", \objId -> do
+    act <- replaceAction
       "tellMakerDenied"
       "Сообщить об отказе автопроизводителя"
       "bo_control" "3" (+60) objId
