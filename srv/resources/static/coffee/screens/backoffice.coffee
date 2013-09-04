@@ -1,23 +1,12 @@
 define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
   unassignedShouldTick = true
 
-  # True if order-type actions are to be automatically assigned to the
-  # user
-  isBackOperator = ->
-    (_.contains global.user.roles, "back") &&
-    (!_.contains global.user.roles, "bo_control")
-
   setupBackOffice = ->
     unassignedShouldTick = true
     setTimeout((->
         updateUnassigned()
 
-        if isBackOperator()
-          $('#bo-littleMoreAction').hide()
-          setupPoller()
-        else
-          $('#bo-wait').hide()        
-          $('#bo-littleMoreAction').on 'click.bo', pullNewActions
+        setupPoller()
 
         tables = mkBoTable()
         global.boData = { started: new Date, r: {} }
@@ -32,7 +21,7 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
     cycle_resolution = 500
     # Poll server every n cycles
     poll_cycles = 30
-    
+
     current_cycle = 0
     bar = $("#bo-wait-progress")
     setInterval((->
@@ -43,21 +32,20 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
         current_cycle = 0
       ), cycle_resolution)
 
+  # Fetch /littleMoreActions response, update actions table or
+  # redirect to case
   pullNewActions = ->
     $.ajax
       type: "PUT"
       url: "/littleMoreActions"
-      success: handleNewActions
-
-  # Given /littleMoreActions response, update actions table or
-  # redirect to case
-  handleNewActions = (res) ->
-    if !_.isEmpty res
-      if isBackOperator()
-        act = res[0]
-        openCaseAction act.id, act.caseId.split(':')[1]
-      else
-        setupBoTable res
+      success:  ->
+        if !_.isEmpty res
+          setupBoTable res
+          if _.contains global.user.roles, "back"
+            act = _.find res, (a) ->
+              _.contains ["orderService", "orderServiceAnalyst", "tellMeMore", "callMeMaybe"], a.name
+            if act?
+              openCaseAction act.id, act.caseId.split(':')[1]
 
   updateUnassigned = ->
     $.getJSON "/actions/unassigned", (r) ->
@@ -134,7 +122,6 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
       userTable = $("#back-user-table")
       addActions(actions,  userTable.dataTable())
       boNotify handleBoUpdate(userTable)
-
 
   addActions = (actions, table) ->
     table.fnClearTable()
