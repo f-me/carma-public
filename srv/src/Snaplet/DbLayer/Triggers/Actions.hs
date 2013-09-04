@@ -570,7 +570,9 @@ actionResultMap = Map.fromList
           "tellClient"
           "Сообщить клиенту о договорённости"
           "bo_control" "1" (+60) objId
-        set act "assignedTo" ""
+        Just u <- liftDb $ with auth currentUser
+        when (not $ elem (Role "back") (userRoles u)) $
+           set act "assignedTo" ""
 
   )
   ,("serviceOrderedSMS", \objId -> do
@@ -594,14 +596,15 @@ actionResultMap = Map.fromList
           "Уточнить статус оказания услуги"
           "bo_control" "3" (changeTime (+5*60) tm)
           objId
-        set act "assignedTo" ""
+        Just u <- liftDb $ with auth currentUser
+        when (not $ elem (Role "back") (userRoles u)) $
+           set act "assignedTo" ""
   )
   ,("partnerNotOk", \objId -> do
     act <- replaceAction
       "cancelService"
       "Требуется отказаться от заказанной услуги"
       "bo_control" "1" (+60) objId
-    set act "assignedTo" ""
   )
   ,("moveToAnalyst", \objId -> do
     act <- replaceAction
@@ -644,14 +647,12 @@ actionResultMap = Map.fromList
       "tellDealerDenied"
       "Сообщить об отказе дилера"
       "bo_control" "3" (+60) objId
-    set act "assignedTo" ""
   )
   ,("carmakerNotApproved", \objId -> do
     act <- replaceAction
       "tellMakerDenied"
       "Сообщить об отказе автопроизводителя"
       "bo_control" "3" (+60) objId
-    set act "assignedTo" ""
   )
   ,("partnerNotOkCancel", \objId -> do
       setServiceStatus objId "cancelService"
