@@ -571,9 +571,10 @@ actionResultMap = Map.fromList
           "Сообщить клиенту о договорённости"
           "bo_control" "1" (+60) objId
         Just u <- liftDb $ with auth currentUser
-        when (not $ elem (Role "back") (userRoles u)) $
+        when (not 
+              (elem (Role "bo_control") (userRoles u) && 
+               elem (Role "back") (userRoles u))) $
            set act "assignedTo" ""
-
   )
   ,("serviceOrderedSMS", \objId -> do
     newPartnerMessage objId
@@ -597,7 +598,9 @@ actionResultMap = Map.fromList
           "bo_control" "3" (changeTime (+5*60) tm)
           objId
         Just u <- liftDb $ with auth currentUser
-        when (not $ elem (Role "back") (userRoles u)) $
+        when (not 
+              (elem (Role "bo_control") (userRoles u) && 
+               elem (Role "back") (userRoles u))) $
            set act "assignedTo" ""
   )
   ,("partnerNotOk", void .
@@ -637,10 +640,15 @@ actionResultMap = Map.fromList
         closeAction objId
         sendMailToDealer objId
       False -> do
-        void $ replaceAction
+        act <- replaceAction
           "tellClient"
           "Сообщить клиенту о договорённости"
           "bo_control" "1" (+60) objId
+        Just u <- liftDb $ with auth currentUser
+        when (not 
+              (elem (Role "bo_control") (userRoles u) && 
+               elem (Role "back") (userRoles u))) $
+           set act "assignedTo" ""
   )
   ,("dealerNotApproved", void .
     replaceAction
