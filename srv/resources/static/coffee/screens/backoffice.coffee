@@ -1,8 +1,8 @@
 define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
-  unassignedShouldTick = true
+  pollersShouldTick = true
 
   setupBackOffice = ->
-    unassignedShouldTick = true
+    pollersShouldTick = true
     setTimeout((->
         updateUnassigned()
         global.boData = { started: new Date, r: {} }
@@ -12,7 +12,7 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
         setupPoller()
       ), 200)
 
-  # Install automatic actions poller for "back" roles
+  # Install automatic actions poller
   setupPoller = ->
     # In ms
     cycle_resolution = 500
@@ -21,13 +21,17 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
 
     current_cycle = 0
     bar = $("#bo-wait-progress")
-    setInterval((->
+    worker = ->
       percent = current_cycle / poll_cycles * 100.0
       bar.css "width", percent + "%"
+
       if current_cycle++ == poll_cycles
         pullActions()
         current_cycle = 0
-      ), cycle_resolution)
+
+      if pollersShouldTick
+        setTimeout worker, cycle_resolution
+    worker()
 
   # Fetch /littleMoreActions response (possibly assigning new
   # actions), redirect to case when an order action found or fill
@@ -50,19 +54,21 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
               openCaseAction act.id, act.caseId.split(':')[1]
           setupBoTable res
 
+  # Update unassigned actions count and queue next update
   updateUnassigned = ->
     $.getJSON "/actions/unassigned", (r) ->
       txt = if r[0] > 0
           "Заказов услуг в очереди: #{r[0]}"
         else
           "В очереди нет заказов услуг"
-      if unassignedShouldTick
+      if pollersShouldTick
         $("#actions-queue-count").text txt
         setTimeout(updateUnassigned, 3000)
 
   removeBackOffice = ->
-    unassignedShouldTick = false
-    $('#bo-littleMoreAction').off 'click.bo'
+    # Stop auto-polling backoffice-related server handlers when we
+    # leave #back
+    pollersShouldTick = false
 
   mkBoTable = ->
     userTable = $("#back-user-table")
