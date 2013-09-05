@@ -8,6 +8,8 @@ import Control.Applicative
 import Control.Monad
 import Control.Monad.State
 import Data.Maybe
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import qualified Data.Map as M
 import qualified Data.Aeson as Aeson
 
@@ -31,6 +33,9 @@ import Snaplet.SiteConfig.Dictionaries
 import Utils.HttpErrors
 
 import qualified Carma.Model.Dictionary as Dictionary
+import qualified Carma.Model.CarMake as CarMake
+import qualified Carma.Model.CarModel as CarModel
+import qualified Carma.Model.NewCaseField as NewCaseField
 
 
 writeJSON :: Aeson.ToJSON v => v -> Handler a b ()
@@ -41,17 +46,21 @@ writeJSON v = do
 
 serveModel :: HasAuth b => Handler b (SiteConfig b) ()
 serveModel = do
-  mcu   <- withAuth currentUser
-  name  <- fromJust <$> getParam "name"
-  model <- getParam "arg" >>= \case
-      Just "newCase" -> return $ Just
+  Just name  <- getParam "name"
+  model <- getParam "arg" >>= \arg ->
+    case T.splitOn ":" . T.decodeUtf8 <$> arg of
+      Just ["newCase",pgm] -> fmap Just
         $ case name of
-          "case" -> newCase
-          _      -> newSvc name
+          "case" -> newCase pgm
+          _      -> newSvc pgm name
       _ -> case name of
-        "Dictionary" -> return $ Aeson.decode $ Aeson.encode Dictionary.view
+        "Dictionary"   -> return $ Aeson.decode $ Aeson.encode Dictionary.view
+        "CarMake"      -> return $ Aeson.decode $ Aeson.encode CarMake.view
+        "CarModel"     -> return $ Aeson.decode $ Aeson.encode CarModel.view
+        "NewCaseField" -> return $ Aeson.decode $ Aeson.encode NewCaseField.view
         _ -> M.lookup name <$> gets models
 
+  mcu   <- withAuth currentUser
   case return (,) `ap` mcu `ap` model of
     Nothing -> finishWithError 401 ""
     Just (cu, m) -> stripModel cu m >>= writeModel

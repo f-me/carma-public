@@ -1,27 +1,70 @@
 
-module Snaplet.SiteConfig.FakeModels where
+{-# LANGUAGE QuasiQuotes #-}
+
+module Snaplet.SiteConfig.FakeModels
+  (newCase
+  ,newSvc
+  ) where
 
 import Data.Aeson as Aeson
+import Data.Maybe
+import Data.Map (Map)
 import qualified Data.Map as Map
+import Data.String (fromString)
 import Data.Text (Text)
 import qualified Data.Text.Encoding as T
+import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
 
+import Data.Pool
+import Database.PostgreSQL.Simple
+import Database.PostgreSQL.Simple.SqlQQ
+
+import Snap
+import Snaplet.SiteConfig.Config
 import Snaplet.SiteConfig.Models
 
 
-newSvc :: B.ByteString -> Model
-newSvc name = Model
-  { modelName    = name
-  , title
-      = T.encodeUtf8 $ Map.findWithDefault "Неизвестная услуга" name svcNames
-  , fields       = newSvcFields name
-  , applications = []
-  , _canCreateM  = Everyone
-  , _canReadM    = Everyone
-  , _canUpdateM  = Everyone
-  , _canDeleteM  = Everyone
-  }
+type ModelConfig = Map ByteString (Text, Bool)
+
+
+modelConfig :: Text -> Handler b (SiteConfig b) ModelConfig
+modelConfig pgm = do
+  pg    <- gets pg_search
+  let q = fromString [sql|
+      select c.field, c.label, c.w
+        from "NewCaseField" c, programtbl p
+        where p.id = c.program and c.r and p.value = ?
+      |]
+  let mkMap xs = Map.fromList [(f,(l,w)) | (f,l,w) <- xs]
+  mkMap <$> liftIO (withResource pg $ \c -> query c q [pgm])
+
+
+filterFields :: ModelConfig -> [Field] -> [Field]
+filterFields cfg = catMaybes . map tr
+  where
+    tr f
+      = Map.lookup (name f) cfg
+      >>= \(l, w) -> return
+        $ f {meta = Map.insert "label" (Aeson.String l) <$> meta f
+          , canWrite = w}
+
+
+newSvc :: Text -> B.ByteString -> Handler b (SiteConfig b) Model
+newSvc pgm name = do
+  cfg <- modelConfig pgm
+  return $ Model
+    { modelName    = name
+    , title
+        = T.encodeUtf8 $ Map.findWithDefault "Неизвестная услуга" name svcNames
+    , fields       = filterFields cfg $ newSvcFields name
+    , applications = []
+    , _canCreateM  = Everyone
+    , _canReadM    = Everyone
+    , _canUpdateM  = Everyone
+    , _canDeleteM  = Everyone
+    }
+
 
 svcNames :: Map.Map B.ByteString Text
 svcNames = Map.fromList
@@ -131,17 +174,19 @@ newSvcFields name
       ]
     ]
 
-newCase :: Model
-newCase = Model
-  { modelName    = "case"
-  , title        = T.encodeUtf8 "Новый кейс"
-  , fields       = newCaseFields
-  , applications = []
-  , _canCreateM  = Everyone
-  , _canReadM    = Everyone
-  , _canUpdateM  = Everyone
-  , _canDeleteM  = Everyone
-  }
+newCase :: Text -> Handler b (SiteConfig b) Model
+newCase pgm = do
+  cfg <- modelConfig pgm
+  return $ Model
+    { modelName    = "case"
+    , title        = T.encodeUtf8 "Новый кейс"
+    , fields       = filterFields cfg $ newCaseFields
+    , applications = []
+    , _canCreateM  = Everyone
+    , _canReadM    = Everyone
+    , _canUpdateM  = Everyone
+    , _canDeleteM  = Everyone
+    }
 
 
 newCaseFields :: [Field]
@@ -306,6 +351,9 @@ newCaseFields =
   ]
 
 
+mkF
+  :: ByteString -> ByteString -> Text -> [(ByteString, Value)]
+  -> Field
 mkF nm typ lab mt = Field
   { name      = nm
   , fieldType = typ

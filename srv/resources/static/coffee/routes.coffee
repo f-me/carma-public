@@ -142,9 +142,10 @@ define [
       # Must _not_ end with trailing slashes
       routes:
         "case/:id"       : "loadCase"
-        "newCase/:id"    : "loadNewCase"
-        "dictionaries/:dict" : "dictionaries"
-        "dictionaries/:dict/:id" : "editDictionary"
+        "newCase/:p/:id" : "loadNewCase"
+        "dict"           : "dictAll"
+        "dict/:dict"     : "dictOne"
+        "dict/:dict/:id" : "dictEditEntry"
         "search"         : "search"
         "uploads"        : "uploads"
         "vin"            : "vin"
@@ -173,10 +174,13 @@ define [
         "partnersSearch/:model" : "partnersSearchModel"
 
       loadCase      : (id) -> r.renderScreen("case", kase, {"id": id})
-      loadNewCase   : (id) -> r.renderScreen("newCase", newCase, {"id": id})
-      dictionaries  : (dict) -> r.renderScreen("dictionaries", dictionaries, {dict})
-      editDictionary : (dict, id) -> r.renderScreen("dictionaries", dictionaries, {dict, id})
-      search        :      -> renderScreen("search")
+      loadNewCase   : (p,id) ->
+                              r.renderScreen("newCase", newCase, {"program":p, "id": id})
+      dictAll       :      -> r.renderScreen("dictionaries", dictionaries, {})
+      dictOne       : (dict) ->
+                              r.renderScreen("dictionaries", dictionaries, {dict})
+      dictEditEntry : (dict,id) ->
+                              r.renderScreen("dictionaries", dictionaries, {dict, id})
       uploads       :      -> r.renderScreen("uploads", uploads)
       back          :      -> r.renderScreen("back", bo)
       vin           :      -> r.renderScreen("vin", vin)
@@ -187,10 +191,9 @@ define [
       loadCall      : (id) -> r.renderScreen("call", call, {"id": id})
       call          :      -> r.renderScreen("call", call, {"id": null})
       reports       :      -> r.renderScreen("reports", report)
-      newContract   :(p)   -> r.renderScreen "contract", contract,
-                                {"program": p, "id": null}
-      getContract   :(p,id) -> r.renderScreen "contract", contract,
-                                {"program": p, "id": id}
+      newContract   : (p)  -> r.renderScreen "contract", contract, {"program": p, "id": null}
+      getContract   : (p,id) ->
+                              r.renderScreen "contract", contract, {"program": p, "id": id}
       editVin       : (id) -> r.renderScreen("editVin", editVin, {"id": id})
       newVin        :      -> r.renderScreen("newVin", newVin, {"id": null})
       supervisor    :      -> r.renderScreen("supervisor", supervisor)
@@ -201,7 +204,7 @@ define [
       editSms       :      -> r.renderScreen("editSms", editSms)
       program       :      -> r.renderScreen("program", program)
       loadProgram   : (id) -> r.renderScreen("program", program, {"id": id})
-      printSrv      : (model, id) ->
+      printSrv      : (model,id) ->
         r.renderScreen "printSrv", print, {model: model, id: id}
       partnersSearch     : -> r.renderScreen("partnersSearch", partnersSearch)
       partnersSearchModel: (model) ->
