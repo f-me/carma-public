@@ -204,6 +204,8 @@ selectContracts = do
         AND u.login = ? AND ? = ANY (u.programs)
         AND (coalesce(u.isDealer,false) = false OR c.owner = u.uid::text)
         AND c.program = ? AND date(ctime) between ? AND ?
+      ORDER BY c.id DESC
+      LIMIT 500
     |] (userLogin usr, prg, prg, dateFrom, dateTo)
   let fields =
         [ "id", "ctime", "isActive", "carVin", "carMake", "carModel", "carColor"

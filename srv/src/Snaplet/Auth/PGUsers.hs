@@ -179,7 +179,7 @@ replaceMetaRolesFromPG user = do
 data UsersList = UsersList [HM.HashMap ByteString ByteString]
                  deriving (Show)
 
-$(deriveToJSON id ''UsersList)
+$(deriveToJSON defaultOptions ''UsersList)
 
 
 ------------------------------------------------------------------------------
