@@ -1,0 +1,65 @@
+
+CREATE TABLE "NewCaseField" (
+    id SERIAL PRIMARY KEY,
+    field   text UNIQUE NOT NULL,
+    program int NOT NULL,
+    label text NOT NULL,
+    r bool NOT NULL,
+    w bool NOT NULL
+);
+
+insert into "NewCaseField" (program, field, label, r, w) values
+  (1,'parentId', 'Ссылка на кейс', true, true)
+, (1,'times_expectedServiceStart', 'Ожидаемое время начала оказания услуги', true, true)
+, (1,'times_expectedServiceEnd', 'Ожидаемое время окончания оказания услуги', true, true)
+, (1,'times_expectedDispatch', 'Время выезда партнёра', true, true)
+, (1,'payType', 'Тип оплаты', true, true)
+, (1,'towDealer_partner', 'Дилер (куда эвакуируют автомобиль)', true, true)
+, (1,'towDealer_partnerId', '', true, true)
+, (1,'towDealer_address', '', true, true)
+, (1,'towDealer_coords', '', true, true)
+, (1,'towerType', 'Тип эвакуатора', true, true)
+, (1,'towType', 'Вид эвакуации', true, true)
+, (1,'accident', 'ДТП', true, true)
+, (1,'vandalism', 'Случай вандализма', true, true)
+, (1,'canNeutral', 'Переключается на нейтральную передачу', true, true)
+, (1,'towingPointPresent', 'Есть буксировочный крюк', true, true)
+, (1,'manipulatorPossible', 'Есть место для манипулятора', true, true)
+, (1,'companion', 'Клиент/Доверенное лицо будет сопровождать автомобиль', true, true)
+, (1,'techType', 'Услуга', true, true)
+, (1,'taxiFrom_address', 'Где забрать', true, true)
+, (1,'urgentService', 'Приоритетная услуга', true, true)
+, (1,'status', 'Статус услуги', true, true)
+, (1,'comment', 'Что случилось', true, true)
+, (1,'diagnosis1', 'Система', true, true)
+, (1,'diagnosis2', 'Узел/деталь', true, true)
+, (1,'diagnosis3', 'Описание причины неисправности', true, true)
+, (1,'contact_name', 'Звонящий', true, true)
+, (1,'contact_phone1', 'Контактный телефон', true, true)
+, (1,'contact_contactOwner', 'Звонящий владелец?', true, true)
+, (1,'contact_ownerName', 'Владелец', true, true)
+, (1,'contact_ownerPhone1', 'Контактный телефон владельца', true, true)
+, (1,'program', 'Программа', true, true)
+, (1,'car_vin', 'VIN', true, true)
+, (1,'car_make', 'Марка', true, true)
+, (1,'car_model', 'Модель', true, true)
+, (1,'car_seller', 'Дилер, продавший автомобиль', true, true)
+, (1,'car_buyDate', 'Дата покупки', true, true)
+, (1,'car_dealerTO', 'Дилер у которого проходило последнее ТО', true, true)
+, (1,'car_mileage', 'Текущий пробег', true, true)
+, (1,'car_checkupMileage', 'Пробег на последнем ТО', true, true)
+, (1,'vinChecked', 'Участие в программе', true, true)
+, (1,'car_plateNum', 'Госномер', true, true)
+, (1,'cardNumber_cardNumber', 'Номер карты участника', true, true)
+, (1,'car_makeYear', 'Год производства автомобиля', true, true)
+, (1,'car_color', 'Цвет', true, true)
+, (1,'car_transmission', 'Коробка передач', true, true)
+, (1,'city', 'Город', true, true)
+, (1,'caseAddress_address', 'Адрес места поломки', true, true)
+, (1,'caseAddress_comment', 'Примечания', true, true)
+, (1,'caseAddress_coords', 'Координаты', true, true)
+, (1,'caseAddress_map', '', true, true)
+, (1,'caseStatus', 'Статус кейса', true, true)
+, (1,'services', 'Услуги', true, true)
+, (1,'comments', 'Комментарии', true, true)
+;

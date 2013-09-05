@@ -11037,6 +11037,7 @@ insert into "FieldPermission" (role, model, field, r, w) values
 ('admin', 'towage', 'companion', true, true),
 ('programman', 'towage', 'companion', true, true),
 ('partner', 'towage', 'companion', true, false),
+<<<<<<< HEAD
 ('bo_control', 'action', 'comment', true, true),
 ('bo_control', 'action', 'result', true, true),
 ('bo_control', 'action', 'assignedTo', true, true),
@@ -11906,4 +11907,20 @@ insert into "FieldPermission" (role, model, field, r, w) values
 ('bo_control', 'transportation', 'times_repairEndDate', true, true),
 ('bo_control', 'vin', 'program', true, true),
 ('bo_control', 'towage', 'companion', true, true),
-('bo_control', 'attachment', 'filename', true, true);
+('bo_control', 'attachment', 'filename', true, true),
+
+('all', 'CarMake', 'value', true, true),
+('all', 'CarMake', 'label', true, true),
+('all', 'CarModel', 'value', true, true),
+('all', 'CarModel', 'label', true, true),
+('all', 'CarModel', 'parent', true, true),
+('all', 'Dictionary', 'name', true, true),
+('all', 'Dictionary', 'description', true, true),
+('all', 'Dictionary', 'parent', true, true),
+('all', 'Dictionary', 'majorFields', true, true),
+('all', 'NewCaseField', 'field', true, true),
+('all', 'NewCaseField', 'program', true, true),
+('all', 'NewCaseField', 'label', true, true),
+('all', 'NewCaseField', 'r', true, true),
+('all', 'NewCaseField', 'w', true, true)
+;

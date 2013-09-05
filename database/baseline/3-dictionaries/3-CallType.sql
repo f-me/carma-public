@@ -6,9 +6,6 @@ CREATE TABLE "CallType"
   ,UNIQUE (label, parent)
   );
 CREATE UNIQUE INDEX ON "CallType" (label) WHERE parent IS NULL;
-INSERT INTO Dictionary (name, parent)
-  SELECT 'CallType', id
-    FROM Dictionary WHERE name = 'CallerType';
 
 INSERT INTO "CallType" (value, label, parent)
   SELECT 'newCase',
