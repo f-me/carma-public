@@ -88,6 +88,27 @@ define ["model/utils"], (mu) ->
       temp += chars.charAt Math.floor Math.random() * chars.length
     return temp
 
+  isMatch = (q, str) -> !!~String(str).toLowerCase().indexOf(q.toLowerCase())
+
+  kvmCheckMatch = (q, kvm) ->
+    v = for f in kvm._meta.model.fields
+      if f.type == "dictionary"
+        isMatch(q, kvm["#{f.name}Local"]())
+      else if f.type == "dictionary-many"
+        checkMatch(q, _.pluck(kvm["#{f.name}Locals"](), 'label'))
+      else if f.type == "reference"
+        _.any kvm["#{f.name}References"](), (k) -> kvmCheckMatch(q, k)
+      else if f.type == "nested-model"
+        _.any kvm["#{f.name}Nested"](), (k) -> kvmCheckMatch(q, k)
+      else if f.type == "json" and f.meta?.jsonSchema == "dict-objects"
+        _.any kvm["#{f.name}Objects"](),
+              (k) -> _.any ['keyLocal', 'value', 'note'],
+                          (s) -> checkMatch(q, k[s]?())
+      else
+        checkMatch(q, kvm[f.name]())
+
+    _.any v
+
   # deep check that anything in @val@ has @q@
   checkMatch = (q, val) ->
     if _.isArray val
@@ -302,3 +323,4 @@ define ["model/utils"], (mu) ->
   reloadScreen: -> global.router.navigate modelsFromUrl(), { trigger: true }
 
   checkMatch: checkMatch
+  kvmCheckMatch: kvmCheckMatch

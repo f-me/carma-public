@@ -164,14 +164,14 @@
                                    ' Время работы:' + (note() || '')" />
                   </ul>
                 </li>
-                <li data-bind="visible: addrsObjects.length > 0">
+                <li data-bind="visible: addrsObjects().length > 0">
                   <b>Адреса:</b>
                   <ul data-bind="foreach: addrsObjects">
                     <li data-bind="text: keyLocal() + ': ' + (value() || '')" />
                   </ul>
                 </li>
-                <li data-bind="visible: emailsObjects.length > 0">
-                  <b>Emails:</b>
+                <li data-bind="visible: emailsObjects().length > 0">
+                  <b>E-mails:</b>
                   <ul data-bind="foreach: emailsObjects">
                     <li data-bind="text: keyLocal() + ': ' + (value() || '')" />
                   </ul>

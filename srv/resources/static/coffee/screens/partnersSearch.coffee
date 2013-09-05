@@ -420,10 +420,10 @@ define [ "utils"
 
         filters:
           searchq:  (v) ->
-            return true if kvm['searchK']()
-            utils.checkMatch kvm['searchK'](), v
+            return true unless kvm['searchK']()
+            utils.kvmCheckMatch kvm['searchK'](), v
           workNow: (v) ->
-            return true if kvm['workNow']()
+            return true unless kvm['workNow']()
             k = if v.isdealer() then 'serv' else 'disp'
             times = _.reduce (_.filter v.phones(), (p) -> p.key() == k),
                              ((a, p) -> "#{a}, #{(p.note() or '')}"),
@@ -439,6 +439,7 @@ define [ "utils"
                        (s) -> s.servicename() == srvs[0].value)?[sort]?()
 
     kvm['searchProcessed'].set_sorter('only')
+    kvm['searchProcessed'].change_filters ['searchq', 'workNow']
     kvm['selectedPartner'] = ko.observable(null)
 
     kvm["cityPlaces"] = ko.observableArray []
