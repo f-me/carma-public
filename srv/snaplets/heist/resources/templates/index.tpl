@@ -48,13 +48,17 @@
     <!-- base 64 encode/decode library -->
     <script src="/s/js/3p/b64.js" />
 
+    <!-- global libs, that is not handled by require js -->
     <!-- typeahead menu -->
-    <script src="/s/js/gen/lib/th-menu.js" />
-    <!-- <script src="/s/js/gen/lib/local-dict.js" /> -->
+    <script src="/s/js/gen/globallibs/th-menu.js" />
 
-    <script src="/s/js/gen/customKoHandlers.js" />
+    <script src="/s/js/gen/globallibs/observableSet.js" />
+    <script src="/s/js/gen/globallibs/sorted.js" />
+
+    <script src="/s/js/gen/globallibs/customKoHandlers.js" />
 
     <!-- Model processing -->
+    <!-- FIXME: I think we should temove this already -->
     <script src="/s/js/search.js" />
     <!-- <script src="/s/js/gen/dictionaries.js" /> -->
     <!-- <script src="/s/js/gen/metamodel.js" /> -->

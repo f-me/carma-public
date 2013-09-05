@@ -93,10 +93,10 @@ define [ "model/render"
   # - modelTitle;
   buildKVM = (model, options) ->
 
-    {elName, fetched, queue, queueOptions} = options
+    {elName, fetched, queue, queueOptions, models} = options
 
-    fields   = model.fields
-    required = (f for f in fields when f.meta?.required)
+    fields    = model.fields
+    required  = (f for f in fields when f.meta?.required)
 
     # Build kvm with fetched data if have one
     kvm = {}
@@ -154,6 +154,14 @@ define [ "model/render"
             addRef kvm, f.name, opts, (kvm) -> focusRef(kvm)
 
     kvm["maybeId"] = ko.computed -> kvm['id']() or "—"
+
+    for f in fields when f.type == "nested-model"
+      do (f) ->
+        kvm["#{f.name}Nested"] = ko.computed ->
+          _.map (_.compact kvm[f.name]()), (fetched) ->
+            buildKVM models[f.meta.modelName],
+              fetched: fetched
+              models: models
 
     # disable dixi filed for model
     kvm['disableDixi'] = ko.observable(false)

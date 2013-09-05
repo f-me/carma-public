@@ -5,9 +5,23 @@ define [ "utils"
        , "dictionaries"
        , "lib/time"
        , "partnerCancel"
+       , "screens/partnersSearch/models"
+       , "sync/metaq"
        , "text!tpl/screens/partnersSearch.html"
        , "text!tpl/partials/partnersSearch.html"
-       ], (utils, map, m, sync, dict, time, partnerCancel, tpl, partials) ->
+       ], ( utils
+          , map
+          , m
+          , sync
+          , dict
+          , time
+          , partnerCancel
+          , models
+          , metaq
+          , tpl
+          , partials) ->
+
+  model = models.PartnerSearch
 
   storeKey = 'partnersSearch'
   subName = (fld, model, id) ->
@@ -17,68 +31,6 @@ define [ "utils"
       "search_#{model}_#{fld}"
 
   open = (prm) -> window.open("/#partnersSearch/#{prm}", "_blank")
-
-  model =
-    name: "partnerSearch"
-    title: "Экран поиска партнеров"
-    fields: [
-      { name: "search"
-      , meta: { label: "Поиск", nosearch: true }
-      },
-      { name: "city"
-      , type: "dictionary-many"
-      , meta:
-          dictionaryName: "DealerCities"
-          label: "Город"
-      },
-      { name: "make"
-      , type: "dictionary-many"
-      , meta:
-          dictionaryName: "CarMakers"
-          label: "Марка"
-      },
-      { name: "services"
-      , type: "dictionary-many"
-      , meta:
-          dictionaryName: "Services"
-          label: "Услуги"
-      },
-      { name: "priority2"
-      , type: "dictionary-many"
-      , meta:
-          dictionaryName: "Priorities"
-          dictionaryType: "ComputedDict"
-          bounded: false
-          label: "ПБГ"
-      },
-      { name: "priority3"
-      , type: "dictionary-many"
-      , meta:
-          dictionaryName: "Priorities"
-          dictionaryType: "ComputedDict"
-          bounded: false
-          label: "ПБЗ"
-      },
-      { name: "isDealer"
-      , type: "checkbox"
-      , meta: { label: "Дилер" }
-      },
-      { name: "mobilePartner"
-      , type: "checkbox"
-      , meta: { label: "Мобильный партнер" }
-      },
-      { name: "workNow"
-      , type: "checkbox"
-      , meta: { label: "Работают сейчас", nosearch: true}
-      },
-      # Case coordinates, stored as "lon,lat" text in WSG projection
-      { name: "coords"
-      , meta: { label: "Координаты места поломки", nosearch: true}
-      },
-      { name: "address"
-      , meta: { label: "Адрес места поломки", nosearch: true}
-      }
-      ]
 
   # fh is just mapping from field name to field
   fh = {}
@@ -158,19 +110,17 @@ define [ "utils"
           id: ''
           distanceFormatted: ''
       else
-        kvm['selectedPartner'](partner.id)
+        kvm['selectedPartner'](partner.id())
         # Highlight partner blip on map
         $("#map").trigger "drawpartners"
         if kvm['field'].split('_')[0] == 'contractor'
           partner['addrDeFacto'] =
-            utils.getKeyedJsonValue partner.addrs, 'fact'
+            utils.getKeyedJsonValue partner.addrs(), 'fact'
         else
-          partner['addrDeFacto']  =
-            utils.getKeyedJsonValue partner.addrs, 'serv'
-          partner['addrDeFacto'] ?=
-            utils.getKeyedJsonValue partner.addrs, 'fact'
-        partner['addrDeFacto'] ?= ''
-        global.pubSub.pub subName(ctx.field, id), partner
+          a = partner['addrDeFacto']
+          a(utils.getKeyedJsonValue partner.addrs(), 'serv')
+          a(utils.getKeyedJsonValue partner.addrs(), 'fact') unless a()
+        global.pubSub.pub subName(ctx.field, id), partner._meta.q.toRawObj()
 
     kvm['selectPartner'] = (partner, ev) ->
       selected = kvm['selectedPartner']()
@@ -331,21 +281,21 @@ define [ "utils"
       for p in newPartners
         do (p) ->
           # Pick partner icon
-          if p.ismobile
-            if p.isfree
+          if p.ismobile()
+            if p.isfree()
               ico = map.towIcon
             else
               ico = map.busyTowIcon
           else
-            if p.isdealer
+            if p.isdealer()
               ico = map.dealerIcon
             else
               ico = map.partnerIcon
 
-          if p.id == kvm["selectedPartner"]()
+          if p.id() == kvm["selectedPartner"]()
             ico = map.hlIconName(ico)
 
-          coords = new OpenLayers.LonLat p.st_x, p.st_y
+          coords = new OpenLayers.LonLat p.st_x(), p.st_y()
           # Add blip to map
           mark = new OpenLayers.Marker(
             coords.transform(map.wsgProj, map.osmProj),
@@ -353,15 +303,15 @@ define [ "utils"
 
           # Bind info popup to blip click event
           mark.events.register "click", mark, () ->
-            partner_popup = $ $("#partner-" + p.id + "-info").clone().html()
+            partner_popup = $ $("#partner-" + p.id() + "-info").clone().html()
             partner_popup.find(".full-info-link").hide()
             # Format JSON fields
             extra_ctx =
-              address: getFactAddress p.addrs
-              phone: getPhone kvm, p.phones
+              address: getFactAddress p.addrs()
+              phone: getPhone kvm, p.phones()
             ctx = _.extend p, extra_ctx
             popup = new OpenLayers.Popup.FramedCloud(
-              p.id, mark.lonlat,
+              p.id(), mark.lonlat,
               new OpenLayers.Size(200, 200),
               partner_popup.html(),
               null, true)
@@ -417,27 +367,11 @@ define [ "utils"
 
     $("#map").data("osmap", osmap)
 
-  # deep check that anything in @val@ has @q@
-  checkMatch = (q, val) ->
-    if _.isArray val
-      _.any val, (a) -> checkMatch(q, a)
-    else if _.isObject val
-      _.any (checkMatch(q, v) for k, v of val), _.identity
-    else
-      !!~String(val).toLowerCase().indexOf(q.toLowerCase())
-  window.checkMatch = checkMatch
-
   constructor: (view, args) ->
     # remove padding so blank space after removing navbar can be used
     if args?
       $('body').css('padding-top', '0px')
       $(".navbar").hide()
-
-    PhoneTypes   = new dict.dicts['LocalDict'] {dict: 'PhoneTypes'}
-    AddressTypes = new dict.dicts['LocalDict'] {dict: 'AddressTypes'}
-    EmailTypes   = new dict.dicts['LocalDict'] {dict: 'EmailTypes'}
-    DealerCities = new dict.dicts['LocalDict'] {dict: 'DealerCities'}
-    CarMakers    = new dict.dicts['LocalDict'] {dict: 'CarMakers'}
 
     kvm = m.buildKVM(model, "partnersSearch-content")
     q = new sync.DipQueue(kvm, model)
@@ -448,72 +382,68 @@ define [ "utils"
     kvm['searchH'] = ko.computed ->
       s = kvm['searchResults']()
       return [] unless s
-      r = {}
-      for v in s
-        r[v.id] ?= v
-        r[v.id]['services'] ?= []
-        if v.servicename.length > 0
-          r[v.id]['services'].push
-            label    : srvLab v.servicename
-            name     : v.servicename
-            priority2: v.priority2
-            priority3: v.priority3
-            showStr  : do ->
-              show  = "<span class='label label-info'>#{srvLab v.servicename}</span>"
-              show += " <span class='label label-important'>ПБГ: #{v.priority2}</span>" if v.priority2
-              show += " <span class='label label-warning'>ПБЗ: #{v.priority3}</span>" if v.priority3
-              show
-        r[v.id]['cityLocal'] = DealerCities.getLab(v.city) || ''
-        r[v.id]['makesLocal'] =
-          (_.map v.makes, (m) -> CarMakers.getLab(m)).join(', ')
-        v.phones ||= null
-        v.addrs  ||= null
-        v.emails ||= null
-        v.distance ||= null
-        r[v.id]['phones'] = _.map JSON.parse(v.phones), (p) ->
-          p.label = PhoneTypes.getLab(p.key)
-          p.note  ||= ''
-          p
-        r[v.id]['addrs'] = _.map JSON.parse(v.addrs), (p) ->
-          p.label = AddressTypes.getLab(p.key)
-          p
-        r[v.id]['emails'] = _.map JSON.parse(v.emails), (p) ->
-          p.label = EmailTypes.getLab(p.key)
-          p
-        phones = _.filter r[v.id]['phones'], ({key}) ->
-          key == (if v.isdealer then 'serv' else 'disp')
-        showPhone = phones?[0] or r[v.id]['phones']?[0]
-        r[v.id]['phone']       = showPhone?.value || ''
-        r[v.id]['workingTime'] = showPhone?.note  || ''
-        r[v.id]['distanceFormatted'] = utils.formatDistance v.distance
-        r[v.id]['coords'] = "#{v.st_x},#{v.st_y}"
-        r[v.id]['factAddr'] =
-          (_.filter r[v.id]['addrs'], ({key}) -> key == 'fact')[0]?.value || ''
+      ms = for i in s
+        k = m.buildKVM models.SearchResults, {fetched: i, models: models}
+        k._meta.q = new metaq(k, models.SearchResults)
 
-      r
+        k['distanceFormatted'] = ko.computed ->
+          utils.formatDistance k['distance']()
+
+        k['factAddr'] = ko.computed ->
+          (_.filter k['addrs'](), ({key}) -> key == 'fact')[0]?.value || ''
+
+        k['makesLocalsString'] = ko.computed ->
+          (_.pluck k['makesLocals'](), 'label').join(',')
+
+        k['coords'] = ko.computed -> "#{k['st_x']()},#{k['st_y']()}"
+
+        for nested in k['servicesNested']()
+          do (nested) ->
+            nested['showStr'] = ko.computed ->
+              show  = "<span class='label label-info'>
+                       #{srvLab nested.servicenameLocal()}
+                       </span>"
+              if nested.priority2()
+                show += " <span class='label label-important'>
+                          ПБГ: #{nested.priority2()}
+                          </span>"
+              if nested.priority3()
+                show += " <span class='label label-warning'>
+                          ПБЗ: #{nested.priority3()}
+                          </span>"
+              show
+
+        k
+      return ms
+
+    kvm['searchA'] = ko.computed -> _.values kvm['searchH']()
 
     kvm["searchK"] = ko.computed(->kvm["search"]()).extend { throttle: 300 }
-    kvm['searchProcessed'] = ko.computed ->
-      sort = kvm['choosenSort']()[0]
-      srvs = kvm['servicesLocals']()
-      flt  = kvm['searchK']()
-      s = for k, v of kvm['searchH']()
-        v.services = _.sortBy v.services, (v) -> [v.priority2, v.priority3]
-        v
-      unless _.isEmpty srvs
-        s = _.sortBy s, (v) ->
-          parseInt (_.find v.services, (s) -> s.name == srvs[0].value)?[sort]
-      if flt
-        s = _.filter s, (v) -> checkMatch flt, v
-      if kvm['workNow']()
-        s = _.filter s, (v) ->
-          k = if v.isdealer then 'serv' else 'disp'
-          times = _.reduce (_.filter v.phones, ({key}) -> key == k),
-                           ((a, {note}) -> "#{a}, #{(note or '')}"),
-                           ''
-          time.isWorkingNow time.parseWorkTimes(times)
-      return s
 
+    kvm['searchProcessed'] = ko.sorted
+        kvms: kvm['searchA']
+
+        filters:
+          searchq:  (v) ->
+            return true if kvm['searchK']()
+            utils.checkMatch kvm['searchK'](), v
+          workNow: (v) ->
+            return true if kvm['workNow']()
+            k = if v.isdealer() then 'serv' else 'disp'
+            times = _.reduce (_.filter v.phones(), (p) -> p.key() == k),
+                             ((a, p) -> "#{a}, #{(p.note() or '')}"),
+                             ''
+            time.isWorkingNow time.parseWorkTimes(times)
+
+        sorters:
+          only: (v) ->
+            sort = kvm['choosenSort']()[0]
+            srvs = kvm['servicesLocals']()
+            unless _.isEmpty srvs
+              parseInt (_.find v.servicesNested(),
+                       (s) -> s.servicename() == srvs[0].value)?[sort]?()
+
+    kvm['searchProcessed'].set_sorter('only')
     kvm['selectedPartner'] = ko.observable(null)
 
     kvm["cityPlaces"] = ko.observableArray []

@@ -87,6 +87,17 @@ define ["model/utils"], (mu) ->
     for i in [0..tlen]
       temp += chars.charAt Math.floor Math.random() * chars.length
     return temp
+
+  # deep check that anything in @val@ has @q@
+  checkMatch = (q, val) ->
+    if _.isArray val
+      _.any val, (a) -> checkMatch(q, a)
+    else if _.isObject val
+      _.any (checkMatch(q, v) for k, v of val), _.identity
+    else
+      !!~String(val).toLowerCase().indexOf(q.toLowerCase())
+  window.checkMatch = checkMatch
+
   findCaseOrReferenceVM: findCaseOrReferenceVM
 
   # build global function from local to module one
@@ -282,8 +293,12 @@ define ["model/utils"], (mu) ->
 
   splitVals: (v) ->
     return [] if not v or v == ""
+    # some times we send them as array right from backend
+    return v if _.isArray v
     v.split ','
 
   modelsFromUrl: modelsFromUrl
 
   reloadScreen: -> global.router.navigate modelsFromUrl(), { trigger: true }
+
+  checkMatch: checkMatch
