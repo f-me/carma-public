@@ -740,6 +740,30 @@
       </div>
     </script>
 
+    <!-- type=Bool field -->
+    <script type="text/template"
+            class="field-template"
+            id="Bool-field-template">
+      <div class="control-group">
+        <div class="controls">
+          <label class="checkbox inline">
+            <input type="checkbox"
+                   name="{{ name }}"
+                   {{# readonly }}disabled{{/ readonly }}
+                   data-bind="checked: {{ name }},
+                              valueUpdate: 'change',
+                              disabled: {{ name }}Disabled" />
+          {{ meta.label }}
+          {{# meta.infoText1 }}
+            <i class="icon icon-question-sign"
+               data-provide="popover"
+               data-content="{{ meta.infoText1 }}" />
+          {{/ meta.infoText1 }}
+          </label>
+        </div>
+      </div>
+    </script>
+
     <!-- type=checkbox field -->
     <script type="text/template"
             class="field-template"

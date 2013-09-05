@@ -22,12 +22,14 @@ define [], ->
 
   c2sTypes =
     checkbox : (v) -> if v then "1" else "0"
+    Bool     : (v) -> v
     date     : c2sDate("dd.MM.yyyy")
     datetime : c2sDate("dd.MM.yyyy HH:mm")
     json     : JSON.stringify
 
   s2cTypes =
     checkbox : (v) -> v == "1"
+    Bool     : (v) -> v
     date     : s2cDate("dd.MM.yyyy")
     datetime : s2cDate("dd.MM.yyyy HH:mm")
     json     : s2cJson
