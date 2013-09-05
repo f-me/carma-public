@@ -5,14 +5,11 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
     unassignedShouldTick = true
     setTimeout((->
         updateUnassigned()
-
-        setupPoller()
-
-        tables = mkBoTable()
         global.boData = { started: new Date, r: {} }
-        params = "assignedTo=#{global.user.login}&closed=0"
-        # FIXME: remove this, when backend will be fast enough (it will, be sure)
-        setTimeout (-> $.getJSON("/allActions?#{params}", setupBoTable)), 1500
+        # FIXME: remove this, when backend will be fast enough (it
+        # will, be sure)
+        setTimeout pullActions, 1500
+        setupPoller()
       ), 200)
 
   # Install automatic actions poller for "back" roles
@@ -28,24 +25,30 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
       percent = current_cycle / poll_cycles * 100.0
       bar.css "width", percent + "%"
       if current_cycle++ == poll_cycles
-        pullNewActions()
+        pullActions()
         current_cycle = 0
       ), cycle_resolution)
 
-  # Fetch /littleMoreActions response, update actions table or
-  # redirect to case
-  pullNewActions = ->
+  # Fetch /littleMoreActions response (possibly assigning new
+  # actions), redirect to case when an order action found or fill
+  # actions table for the current user
+  pullActions = ->
     $.ajax
       type: "PUT"
       url: "/littleMoreActions"
-      success:  ->
+      success:  (res) ->
         if !_.isEmpty res
-          setupBoTable res
           if _.contains global.user.roles, "back"
             act = _.find res, (a) ->
-              _.contains ["orderService", "orderServiceAnalyst", "tellMeMore", "callMeMaybe"], a.name
+              _.contains(
+                [ "orderService"
+                , "orderServiceAnalyst"
+                , "tellMeMore"
+                , "callMeMaybe"],
+                a.name)
             if act?
               openCaseAction act.id, act.caseId.split(':')[1]
+          setupBoTable res
 
   updateUnassigned = ->
     $.getJSON "/actions/unassigned", (r) ->
