@@ -305,11 +305,6 @@ define [ "utils"
           mark.events.register "click", mark, () ->
             partner_popup = $ $("#partner-" + p.id() + "-info").clone().html()
             partner_popup.find(".full-info-link").hide()
-            # Format JSON fields
-            extra_ctx =
-              address: getFactAddress p.addrs()
-              phone: getPhone kvm, p.phones()
-            ctx = _.extend p, extra_ctx
             popup = new OpenLayers.Popup.FramedCloud(
               p.id(), mark.lonlat,
               new OpenLayers.Size(200, 200),

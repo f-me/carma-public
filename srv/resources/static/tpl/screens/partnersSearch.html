@@ -92,7 +92,7 @@
           <li data-bind="css: {
                          'selected-partner': id() == $parent.selectedPartner(),
                          'disabled-partner': isfree() == false
-                         }, attr: { id: 'partner-' + id + '-info' }">
+                         }, attr: { id: 'partner-' + id() + '-info' }">
             <div>
               <ul class="unstyled" data-bind="click: $parent.selectPartner">
                 <li>
