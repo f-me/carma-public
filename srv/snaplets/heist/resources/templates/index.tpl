@@ -556,8 +556,7 @@
                               pickerDisable: {{ name }}Disabled,
                               bindDict: '{{ name }}'"
                    />
-            <span class="add-on"
-                  data-bind="click: {{ name }}Typeahead.drawAll">
+            <span class="add-on">
               <i class="icon icon-chevron-down" />
             </span>
           </div>
@@ -616,8 +615,7 @@
 
 
                    />
-            <span class="add-on"
-                  data-bind="click: {{ name }}Typeahead.drawAll">
+            <span class="add-on">
               <i class="icon icon-chevron-down"
               />
             </span>
@@ -1277,7 +1275,7 @@
     <script type="text/template"
             id="service-picker-template">
       <ul class="nav nav-pills">
-        <li class="dropup">
+        <li class="drop{{drop}}">
           <button class="dropdown-toggle btn btn-action"
                   type="button"
                   data-toggle="dropdown">
@@ -1288,6 +1286,30 @@
             <li>
               <a href="#"
                  onclick="addService('{{value}}'); return false;">
+                <i class="icon-{{icon}} icon-black" />
+                {{ label }}
+              </a>
+            </li>
+            {{/ dictionary.entries }}
+          </ul>
+        </li>
+      </ul>
+    </script>
+
+    <script type="text/template"
+            id="newService-picker-template">
+      <ul class="nav nav-pills">
+        <li class="drop{{drop}}">
+          <button class="dropdown-toggle btn btn-action"
+                  type="button"
+                  data-toggle="dropdown">
+            <i class="icon icon-plus" />Добавить услугу
+          </button>
+          <ul class="dropdown-menu">
+            {{# dictionary.entries }}
+            <li>
+              <a href="#"
+                 onclick="addNewService('{{value}}'); return false;">
                 <i class="icon-{{icon}} icon-black" />
                 {{ label }}
               </a>
@@ -1426,6 +1448,10 @@
           <span data-bind="text: caseAddress_address"/><br/>
           <span data-bind="text: caseAddress_comment"/>
         </p>
+        <p data-bind="visible: cityLocal">
+          <b>Регион:</b>
+          <span data-bind="text: region" />
+        </p>
         <br />
         <p data-bind="visible: cityLocal">
           <b>Расчётное значение ожидания эвакуатора в
@@ -1548,19 +1574,6 @@
           {{/ opts }}
         </select>
         <input type="button" class="btn reload" value="Обновить стоимость" />
-      </div>
-    </script>
-
-    <!-- Partner map popup -->
-    <script type="text/template" id="partner-popup-template">
-      <div>
-        <div><strong>{{ name }}</strong></div>
-        <div>{{ address }}</div>
-        <div>{{ phone }}</div>
-        <div>{{ comment }}</div>
-        <div class="btn-div">
-          <a class="btn btn-mini btn-primary">Выбрать</a>
-        </div>
       </div>
     </script>
   </body>

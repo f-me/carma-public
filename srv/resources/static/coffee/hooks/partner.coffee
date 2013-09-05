@@ -19,3 +19,15 @@ define ["utils"], (u) ->
 
   partnerServiceRepeat: (model, kvm) ->
     kvm['serviceName'].subscribe -> setServiceRepeat()
+
+  # Provides r/w access to first "fact" of partner's addresses
+  factAddr: (model, kvm) ->
+    addrs_field = 'addrs'
+    fact_key = 'fact'
+    kvm['factAddr'] =
+      ko.computed
+        read: ->
+          u.getKeyedJsonValue kvm[addrs_field](), fact_key
+        write: (val) ->
+          json = kvm[addrs_field]()
+          kvm[addrs_field] (u.setKeyedJsonValue json, fact_key, val)

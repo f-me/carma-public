@@ -26,6 +26,14 @@
     },
     {
       "meta": {
+        "label": "Свободен",
+        "invisible": true
+      },
+      "type": "checkbox",
+      "name": "isFree"
+    },
+    {
+      "meta": {
         "label": "Название"
       },
       "type": null,
@@ -82,7 +90,7 @@
         "infoText": "coords",
         "picker": "mapPicker",
         "cityField": "city",
-        "targetAddrs": "addrs",
+        "targetAddr": "factAddr",
         "targetCoords": "coords",
         "currentBlipType": "partner"
       },

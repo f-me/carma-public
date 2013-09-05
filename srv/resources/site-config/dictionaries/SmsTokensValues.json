@@ -648,19 +648,19 @@
             },
             {
                 "value": "b2cPl",
-                "label": "B2C Карты"
+                "label": "B2C"
             },
             {
                 "value": "b2cPr",
-                "label": "B2C Карты"
+                "label": "B2C"
             },
             {
                 "value": "b2cL",
-                "label": "B2C Карты"
+                "label": "B2C"
             },
             {
                 "value": "b2cSt",
-                "label": "B2C Карты"
+                "label": "B2C"
             },            
             {
                 "value": "unicredit",

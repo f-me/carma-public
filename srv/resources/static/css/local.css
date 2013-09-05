@@ -211,8 +211,7 @@ textarea.pane-span,
 }
 
 .checkbutton label input {
-    position:absolute;
-    top:-20px;
+  display: none;
 }
 
 #partnerMapModal {
@@ -239,4 +238,8 @@ table.dataTable tr.selected-row td.sorting_1 {
 
 .selected-partner {
   border-right: 4px solid #ff9999
+}
+
+.disabled-partner {
+  color: #aaaaaa
 }

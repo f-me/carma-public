@@ -1,4 +1,4 @@
-define ["sync/metaq", "sync/datamap"], (metaq, m) ->
+define ["sync/metaq", "sync/datamap", "map"], (metaq, m, map) ->
   class DipQueue extends metaq
     constructor: (@kvm, @model, @options) ->
       @api = "/geo/partners"
@@ -14,8 +14,13 @@ define ["sync/metaq", "sync/datamap"], (metaq, m) ->
     search: =>
       a = @kvm["mapA"]
       b = @kvm["mapB"]
+      c = @kvm["coords"]()
+      if c?
+        from = "?from=#{c}"
+      else
+        from = ""
       if a? && b?
-        @url = "#{@api}/#{a.lon},#{a.lat}/#{b.lon},#{b.lat}/"
+        @url = "#{@api}/#{a.lon},#{a.lat}/#{b.lon},#{b.lat}/#{from}"
       else
         @url = "#{@api}/1,1/100,100/"
       q = {}

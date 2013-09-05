@@ -1,9 +1,11 @@
 define [ "lib/local-dict"
        , "lib/vin-dict"
+       , "lib/cards-dict"
        , "lib/bo-users-dict"
        , "lib/computed-dict"
        , "lib/dealers-dict"
        , "lib/cardOwner-dict"
+       , "lib/region-dict"
        ], ->
 
   dicts = {}

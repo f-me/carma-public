@@ -28,7 +28,12 @@ ko.bindingHandlers.pickerDisable =
 
 ko.bindingHandlers.bindDict =
   init: (el, acc, allBindigns, kvm) ->
-    kvm["#{acc()}Typeahead"].setElement(el)
+    th = kvm["#{acc()}TypeaheadBuilder"]()
+    th.setElement(el)
+    # bind th.draw here, because we don't have ready th
+    # during binding any more, see bug #1148
+    $(el).next().on 'click', th.drawAll
+
 
 ko.bindingHandlers.render =
   init: (el, acc, allBindigns, ctx) ->
@@ -64,5 +69,8 @@ ko.bindingHandlers.sort =
 
     # reset icon to default (without sorting) for all column headers
     resetSort = (el, defaultClass) ->
-      $(el).closest('thead').children().find('i').removeClass().addClass(defaultClass)
-
+      $(el).closest('thead')
+           .children()
+           .find('i')
+           .removeClass()
+           .addClass(defaultClass)

@@ -12,7 +12,9 @@ define [], ->
       console.error("datamap: can't parse date '#{v}' with '#{fmt}'")
       ""
 
-  s2cDate = (fmt) -> (v) -> new Date(v * 1000).toString(fmt)
+  s2cDate = (fmt) -> (v) ->
+        return null if _.isEmpty v
+        new Date(v * 1000).toString(fmt)
 
   s2cJson = (v) ->
     return null if _.isEmpty v
@@ -30,7 +32,8 @@ define [], ->
     datetime : s2cDate("dd.MM.yyyy HH:mm")
     json     : s2cJson
 
-  c2s = (val, type) -> (c2sTypes[type] || (v) -> String(v))(val)
+  defaultc2s = (v) -> if _.isNull(v) then "" else String(v)
+  c2s = (val, type) -> (c2sTypes[type] || defaultc2s)(val)
   s2c = (val, type) -> (s2cTypes[type] || _.identity)(val)
 
   mapObj = (mapper) -> (obj, types) ->

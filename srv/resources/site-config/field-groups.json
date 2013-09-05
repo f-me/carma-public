@@ -121,6 +121,13 @@
         "label": "Адрес"
       },
       "name": "address"
+    },
+    {
+      "meta": {
+        "invisible": true,
+        "label": "Координаты"
+      },
+      "name": "coords"
     }
   ],
   "car": [
@@ -336,9 +343,10 @@
   "cardNumber": [
     {
       "meta": {
-        "label": "Номер карты участника"
+        "label": "Номер карты участника",
+        "dictionaryType": "CardsDict"
       },
-      "type": "picker",
+      "type": "dictionary",
       "name": "cardNumber"
     },
     {
@@ -629,10 +637,20 @@
       "meta": {
         "regexp": "datetime",
         "infoText": "datetime",
+        "required": true,
         "label": "Ожидаемое время начала оказания услуги"
       },
       "type": "datetime",
       "name": "expectedServiceStart"
+    },
+    {
+      "meta": {
+        "regexp": "datetime",
+        "infoText": "datetime",
+        "label": "Время выезда партнёра"
+      },
+      "type": "datetime",
+      "name": "expectedDispatch"
     },
     {
       "meta": {
@@ -647,6 +665,7 @@
       "meta": {
         "regexp": "datetime",
         "infoText": "datetime",
+        "required": true,
         "label": "Ожидаемое время окончания оказания услуги"
       },
       "type": "datetime",
@@ -683,6 +702,7 @@
       "meta": {
         "regexp": "datetime",
         "infoText": "datetime",
+        "required": true,
         "label": "Ожидаемое время закрытия услуги"
       },
       "type": "datetime",

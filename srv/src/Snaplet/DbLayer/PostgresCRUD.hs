@@ -20,12 +20,16 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import Data.ByteString (ByteString)
 import Data.Char
-import Data.List (isPrefixOf, elemIndex)
-import qualified Data.ByteString.Lazy.Char8 as L8
+import Data.List (elemIndex)
+import qualified Data.ByteString.Lazy as LB
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import qualified Data.Text.Lazy as L
+import qualified Data.Text.Lazy.Encoding as L
 import Data.Time
 import Data.Time.Clock.POSIX
+import qualified Data.HashMap.Strict as HM
+import qualified Data.Vector  as V
 
 import qualified Database.PostgreSQL.Simple as P
 import qualified Snap.Snaplet.PostgresqlSimple as PS
@@ -36,6 +40,7 @@ import Database.PostgreSQL.Sync.JSON ()
 import qualified Database.PostgreSQL.Report as R
 import qualified Database.PostgreSQL.Report.Xlsx as R
 import System.Locale
+import Text.Printf
 
 import Snaplet.DbLayer.Dictionary
 import Snap.Snaplet.SimpleLog
@@ -60,6 +65,7 @@ functions tz dict = [
     R.onString "UPPER" (map toUpper),
     R.onString "LOWER" (map toLower),
     R.onString "PHONE" phoneFmt,
+    R.function "COMMENT" composeComment,
     R.function "CONCAT" concatFields,
     R.functionMaybe "LOOKUP" lookupField,
     R.function "IF" ifFun,
@@ -81,12 +87,24 @@ functions tz dict = [
         capitalize "" = ""
         capitalize (c:cs) = toUpper c : map toLower cs
 
-        phoneFmt s
-            | ("+7" `isPrefixOf` s) && all isDigit (drop 2 s) && length s == 12 = unwords ["+7", "(" ++ substr 2 3 s ++ ")", substr 5 3 s, substr 8 2 s, substr 10 2 s]
-            | otherwise = s
-        
-        substr f l = take l . drop f
-        
+        phoneFmt ('+':'7': xs@[a,b,c,d,e,f,g,h,i,j])
+          | all isDigit xs
+            = printf "+7 (%s) %s %s %s" [a,b,c] [d,e,f] [g,h] [i,j]
+        phoneFmt s = s
+
+        composeComment = S.StringValue . \case
+          [S.StringValue s]
+            -> case A.decode $ L.encodeUtf8 $ L.pack s of
+              Just (A.Array a) -> concatMap mkComment $ V.toList a
+              _ -> ""
+          _ -> ""
+         where
+          mkComment = \case
+            A.Object o -> case HM.lookup "comment" o of
+              Just (A.String s) -> T.unpack s ++ "\n--\n"
+              _ -> ""
+            _ -> ""
+
         concatFields fs = S.StringValue $ concat $ mapMaybe fromStringField fs
         fromStringField (S.StringValue s) = Just s
         fromStringField _ = Nothing
@@ -98,12 +116,12 @@ functions tz dict = [
             tryLook = do
                 ks <- mapM (fmap T.pack . fromStringField) fs
                 fmap (S.StringValue . T.unpack) $ lookAny ks dict
-        
+
         ifFun [i, t, f]
             | i `elem` [S.StringValue "1", S.StringValue "true", S.StringValue "Y", S.IntValue 1, S.BoolValue True] = t
             | otherwise = f
         ifFun _ = S.StringValue ""
-        
+
         toPosix :: S.FieldValue -> Maybe POSIXTime
         toPosix (S.TimeValue t) = Just t
         toPosix (S.StringValue s) = case reads s of
@@ -219,7 +237,7 @@ escope s act = catch (scope_ s act) onError where
 loadRelations :: FilePath -> Log -> IO S.Relations
 loadRelations f l = withLog l $ do
     log Trace "Loading relations"
-    liftIO $ fmap (fromMaybe (error "Unable to load relations") . A.decode) $ L8.readFile f
+    liftIO $ fmap (fromMaybe (error "Unable to load relations") . A.decode) $ LB.readFile f
 
 createIO :: [MT.TableDesc] -> Log -> IO ()
 createIO tbls l = do

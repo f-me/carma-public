@@ -79,11 +79,9 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
     userTable.on("click.datatable", "tr", ->
       colText = this.children[0].innerText
       [_,caseId,actId] = colText.match(/(\d+)\/(\d+)/)
-      now = Math.round((new Date).getTime() / 1000)
       $.ajax
-        type: "PUT"
-        url: "/_/action/#{actId}"
-        data: "{\"openTime\":\"#{now}\"}"
+        type: "POST"
+        url: "/backoffice/openAction/#{actId}"
       window.location.hash = "case/#{caseId}"
     )
     return [userTable]
@@ -100,7 +98,7 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
       cid = act.caseId.split(':')[1]
       if act.parentId
         svcName = act.parentId.split(':')[0]
-        svcName = global.models[svcName].title
+        svcName = global.model(svcName).title
       id = "#{cid}/#{act.id} (#{svcName or ''})"
       duetime  = new Date(act.duetime * 1000).toString("dd.MM.yyyy HH:mm:ss")
       srvStart = new Date(act.times_expectedServiceStart * 1000)

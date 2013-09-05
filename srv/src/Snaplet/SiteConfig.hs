@@ -25,6 +25,7 @@ import Snaplet.Auth.Class
 import Snaplet.SiteConfig.Config
 import Snaplet.SiteConfig.SpecialPermissions
 import Snaplet.SiteConfig.Models
+import Snaplet.SiteConfig.FakeModels
 import Snaplet.SiteConfig.Dictionaries
 
 import Utils.HttpErrors
@@ -39,7 +40,13 @@ serveModel :: HasAuth b => Handler b (SiteConfig b) ()
 serveModel = do
   mcu   <- withAuth currentUser
   name  <- fromJust <$> getParam "name"
-  model <- M.lookup name <$> gets models
+  model <- getParam "arg" >>= \case
+      Just "newCase" -> return $ Just
+        $ case name of
+          "case" -> newCase
+          _      -> newSvc name
+      _ -> M.lookup name <$> gets models
+
   case return (,) `ap` mcu `ap` model of
     Nothing -> finishWithError 401 ""
     Just (cu, m) -> stripModel cu m >>= writeModel
@@ -58,14 +65,6 @@ writeModel model
       stripContract model (fromJust pid) field
     _ -> return model
 
-
-serveModels :: HasAuth b => Handler b (SiteConfig b) ()
-serveModels = do
-  Just cu <- withAuth currentUser
-  ms <- gets models
-  strippedModels <- forM (M.toList ms)
-    $ \(nm, m) -> (nm,) <$> stripModel cu m
-  writeJSON $ M.fromList strippedModels
 
 
 stripModel :: AuthUser -> Model -> Handler b (SiteConfig b) Model
@@ -99,10 +98,9 @@ initSiteConfig :: HasAuth b
                   -> SnapletInit b (SiteConfig b)
 initSiteConfig cfgDir pg_pool = makeSnaplet
   "site-config" "Site configuration storage"
-  Nothing $ do -- ?
+  Nothing $ do
     addRoutes
-      [("models",       method GET serveModels)
-      ,("model/:name",  method GET serveModel)
+      [("model/:name",  method GET serveModel)
       ,("dictionaries", method GET serveDictionaries)
       ]
     liftIO $ SiteConfig

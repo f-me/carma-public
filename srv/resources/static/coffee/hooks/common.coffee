@@ -4,9 +4,6 @@ define [ "utils"
   distanceQuery = (coord1, coord2) ->
     u.stripWs "/geo/distance/#{coord1}/#{coord2}/"
 
-  # Transform distance in meters to km
-  formatDistance = (dist) -> Math.round ((parseInt dist) / 1000)
-
   # - <field>Local for dictionary fields: reads as label, writes real
   #   value back to Backbone model;
   dictionaryKbHook: (m, kvm) ->
@@ -36,7 +33,10 @@ define [ "utils"
               then  kvm[fieldName]("")
               else  kvm[fieldName](val || lab)
 
-        kvm["#{fieldName}Typeahead"] =
+        # Use builder here, because same field can be in group
+        # and in the main section, and we need to have
+        # different instances og thMenu for them
+        kvm["#{fieldName}TypeaheadBuilder"] = ->
           new ThMenu
             select: (v) ->
               kvm[fieldName](dict.id2val(v))
@@ -119,13 +119,13 @@ define [ "utils"
           other_coord = vm2[d2_meta.field]()
           if other_coord
             $.get distanceQuery(new_coord, other_coord), (resp) ->
-              kvm[n](formatDistance(resp).toString())
+              kvm[n](u.formatDistance(resp).toString())
 
         vm2[d2_meta.field].subscribe (new_coord) ->
           other_coord = vm1[d1_meta.field]()
           if other_coord
             $.get distanceQuery(new_coord, other_coord), (resp) ->
-              kvm[n](formatDistance(resp).toString())
+              kvm[n](u.formatDistance(resp).toString())
 
   # - <field>Locals for dictionary fields: reads array
   #  of { label: ..., value: ... } objects
@@ -174,7 +174,7 @@ define [ "utils"
           c = u.splitVals(k[n]())
           k[n] _.without(c, el.value).join(',')
 
-        k["#{n}Typeahead"] =
+        k["#{n}TypeaheadBuilder"] = ->
           new ThMenu
             select: (v) ->
               # FIXME: find more appropriate way to set values here
@@ -297,7 +297,8 @@ define [ "utils"
           ko.observable global.dictionaries[f.meta.dictionaryName].entries
 
         # Populate {n}Objects with initial values
-        kvm[n].valueHasMutated()
+        if kvm[n]()?
+          kvm[n].valueHasMutated()
 
   # Standard element callback which will scroll model into view and
   # focus on first field

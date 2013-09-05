@@ -60,6 +60,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/cancelsFor/:id",chkAuthLocal . method GET    $ getCancelsForCase)
          , ("/littleMoreActions",
             chkAuthLocal . method PUT $ littleMoreActionsHandler)
+         , ("/backoffice/openAction/:actionid",
+            chkAuthLocal . method POST $ openAction)
          , ("/allActions",    chkAuthLocal . method GET $ allActionsHandler)
          , ("actions/unassigned",
             chkAuthLocal . method GET $ unassignedActionsHandler)
@@ -107,6 +109,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/vin/state",     chkAuth . method GET  $ vinStateRead)
          , ("/vin/state",     chkAuth . method POST $ vinStateRemove)
          , ("/vin/reverseLookup/:vin", chkAuth . method GET  $ vinReverseLookup)
+         , ("contracts/findByCard/:program/:cardNumber",
+            chkAuth . method GET    $ cardNumberLookup)
          , ("/opts/:model/:id/", chkAuthLocal . method GET $ getSrvTarifOptions)
          , ("/smspost",       chkAuthLocal . method POST $ smspost)
          , ("/sms/processing", chkAuthLocal . method GET $ smsProcessingHandler)

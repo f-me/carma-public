@@ -57,7 +57,7 @@ define [ "utils"
           dictionaryName: "Priorities"
           dictionaryType: "ComputedDict"
           bounded: false
-          label: "ПНГ"
+          label: "ПБЗ"
       },
       { name: "isDealer"
       , type: "checkbox"
@@ -70,6 +70,13 @@ define [ "utils"
       { name: "workNow"
       , type: "checkbox"
       , meta: { label: "Работают сейчас", nosearch: true}
+      },
+      # Case coordinates, stored as "lon,lat" text in WSG projection
+      { name: "coords"
+      , meta: { label: "Координаты места поломки", nosearch: true}
+      },
+      { name: "address"
+      , meta: { label: "Адрес места поломки", nosearch: true}
       }
       ]
 
@@ -82,7 +89,6 @@ define [ "utils"
 
   partialize = (ps) -> mkPartials(ps).join('')
 
-  partnerPopupTpl = $("#partner-popup-template").html()
   md  = $(partials).html()
   cb  = $("#checkbox-field-template").html()
   city = Mustache.render md,  fh['city']
@@ -101,12 +107,19 @@ define [ "utils"
     kase = ctx['case'].data
     {id, data} = ctx['service']
     srvName = id.split(':')[0]
-    kaseKVM = m.buildKVM global.models['case'],  {fetched: kase}
-    srvKVM  = m.buildKVM global.models[srvName], {fetched: data}
+    kaseKVM = m.buildKVM global.model('case'),  {fetched: kase}
+    srvKVM  = m.buildKVM global.model(srvName), {fetched: data}
     kvm['fromCase'] = true
     kvm['city'](kaseKVM.city())
     kvm['make'](kaseKVM.car_make())
-    kvm['selectedPartner'](srvKVM["#{ctx['field']}Id"]?())
+    kvm['field'] = ctx['field']
+
+    pid = parseInt srvKVM["#{ctx['field']}Id"]()?.split(":")[1]
+    if _.isNumber(pid) && !_.isNaN(pid)
+      kvm['selectedPartner'] pid
+    else
+      kvm['selectedPartner'] null
+
     # Set isDealer flag depending on what field we came from
     unless ctx['field'].split('_')[0] == 'contractor'
       kvm['isDealer'](true)
@@ -128,38 +141,57 @@ define [ "utils"
       <li> <b> Цвет: </b> #{kaseKVM.car_colorLocal() || ''}</li>
       <li> <b> VIN:</b> #{kaseKVM.car_vin() || ''}</li>
       <li> <b> Тип оплаты:</b> #{srvKVM.payTypeLocal() || ''}</li>
+      <li> <b> Клиент/Доверенное лицо будет сопровождать автомобиль:</b>
+      #{if srvKVM.companion?() then '✓' else '' }</li>
     </ul>
     """
-    kvm['caseCoords'] = map.lonlatFromShortString kaseKVM.caseAddress_coords()
+    kvm['coords'] kaseKVM.caseAddress_coords()
+    kvm['address'] kaseKVM.caseAddress_address()
 
     selectPartner = (kvm, partner) ->
       if _.isNull partner
+        # Deselect partner
         kvm['selectedPartner'](null)
         global.pubSub.pub subName(ctx.field, id),
           name: ''
-          addrdefacto: ''
+          addrDeFacto: ''
           id: ''
+          distanceFormatted: ''
       else
         kvm['selectedPartner'](partner.id)
         # Highlight partner blip on map
         $("#map").trigger "drawpartners"
+        if kvm['field'].split('_')[0] == 'contractor'
+          partner['addrDeFacto'] =
+            utils.getKeyedJsonValue partner.addrs, 'fact'
+        else
+          partner['addrDeFacto']  =
+            utils.getKeyedJsonValue partner.addrs, 'serv'
+          partner['addrDeFacto'] ?=
+            utils.getKeyedJsonValue partner.addrs, 'fact'
+        partner['addrDeFacto'] ?= ''
         global.pubSub.pub subName(ctx.field, id), partner
 
     kvm['selectPartner'] = (partner, ev) ->
       selected = kvm['selectedPartner']()
       # don't select same partner twice
       return if selected == partner?.id
+      return if partner?.isfree == false
       if _.isNull selected
         selectPartner(kvm, partner)
       else
         partnerCancel.setup "partner:#{selected}", ctx.service.id, ctx.case.id
-        partnerCancel.onSave -> selectPartner(kvm, partner)
+        partnerCancel.onSave ->
+          selectPartner(kvm, partner)
+          $("#map").trigger "drawpartners"
 
     kvm['showPartnerCancelDialog'] = (partner, ev) -> kvm['selectPartner'](null)
 
   loadContext = (kvm, args) ->
     s = localStorage['partnersSearch']
     ctx = JSON.parse s if s
+    # By default, map is unclickable
+    kvm['mapClickable'] = false
     $("#case-info").css 'visibility', 'hidden'
     switch args?.model
       when "case"
@@ -171,6 +203,22 @@ define [ "utils"
         kvm['city'](ctx.city)
         kvm['make'](ctx.carMake)
         kvm['isDealer'](true)
+
+        kvm['coords'] ctx.coords
+        kvm['address'] ctx.address
+        # Allow resetting address & city of case
+        kvm['mapClickable'] = true
+
+        # Show heads-up address search field
+        $("#map-search-overlay").show()
+
+        # Asynchronously push kvm updates to pubsub for call model
+        setupPusher = (field) ->
+          kvm[field].subscribe (val) ->
+            n = subName field, 'call', ctx.id
+            global.pubSub.pub n, kvm[field]()
+        setupPusher 'coords'
+        setupPusher 'address'
       when "mobile"
         kvm['mobilePartner'](true)
 
@@ -185,15 +233,12 @@ define [ "utils"
     t = $("#map").offset().top
     $("#map").height(w-t-5)
 
-  # Obtain coordinates of city (internal value) or return null in case
-  # of failure
-  cityToCoords = (city, coords) ->
-    fixed_city = global.dictValueCache.DealerCities[city]
-    $.getJSON map.geoQuery(fixed_city), (res) ->
-      if res.length > 0
-        coords = new OpenLayers.LonLat res[0].lon, res[0].lat
-      else
-        coords = null
+    # Position address search field over the map in right top corner
+    ar_w = $("#map-search-overlay").width()
+    map_r = $("#map").offset().left + $("#map").width()
+    $("#map-search-overlay").offset
+      top: t + 5
+      left: map_r - ar_w - 10
 
   # Bind cityPlaces observableArray to list of places of currently
   # selected cities in `city`. A place is an object with fields
@@ -234,14 +279,50 @@ define [ "utils"
     osmap.addLayer(new OpenLayers.Layer.OSM())
     osmap.zoomToMaxExtent()
 
-    # Crash site blip
-    if kvm["caseCoords"]?
-      coords = kvm["caseCoords"].clone().transform(map.wsgProj, map.osmProj)
-      ico = new OpenLayers.Icon(map.carIcon, map.iconSize)
-      backLayer = new OpenLayers.Layer.Markers("back")
-      osmap.addLayer backLayer
-      backLayer.addMarker(
-        new OpenLayers.Marker coords, ico)
+    # Crash site blip initial position
+    if kvm["coords"]()?
+      coords =
+        (map.lonlatFromShortString kvm["coords"]())
+        .clone()
+        .transform(map.wsgProj, map.osmProj)
+      map.currentBlip osmap, coords, "car"
+
+    if kvm["mapClickable"]
+      # Crash site relocation on map click
+      osmap.events.register "click", osmap, (e) ->
+        raw_coords = osmap.getLonLatFromViewPortPx(e.xy)
+        coords = raw_coords.clone().transform(map.osmProj, map.wsgProj)
+
+        map.spliceCoords coords, kvm,
+          coord_field: "coords"
+          osmap: osmap
+          current_blip_type: "car"
+          addr_field: "address"
+          # city_field: "city"
+
+        kvm._meta.q._search()
+
+      # Address search box handlers
+      search = $("#map-search-field")
+      search_button = $("#map-search-button")
+
+      # Start search string with currently selected city
+      if _.isEmpty kvm['address']()
+        city = kvm['cityLocals']()[0]?.label
+        search.val(city)
+
+      search.keypress (e) ->
+        if e.which == 13
+          search_button.trigger "click"
+
+      search_button.click () ->
+        map.spliceAddress search.val(), kvm,
+          coord_field: "coords"
+          osmap: osmap
+          current_blip_type: "car"
+          city_field: "city"
+
+        kvm._meta.q._search()
 
     # Draw partners on map
     redrawPartners = (newPartners) ->
@@ -251,7 +332,10 @@ define [ "utils"
         do (p) ->
           # Pick partner icon
           if p.ismobile
-            ico = map.towIcon
+            if p.isfree
+              ico = map.towIcon
+            else
+              ico = map.busyTowIcon
           else
             if p.isdealer
               ico = map.dealerIcon
@@ -269,6 +353,8 @@ define [ "utils"
 
           # Bind info popup to blip click event
           mark.events.register "click", mark, () ->
+            partner_popup = $ $("#partner-" + p.id + "-info").clone().html()
+            partner_popup.find(".full-info-link").hide()
             # Format JSON fields
             extra_ctx =
               address: getFactAddress p.addrs
@@ -277,18 +363,17 @@ define [ "utils"
             popup = new OpenLayers.Popup.FramedCloud(
               p.id, mark.lonlat,
               new OpenLayers.Size(200, 200),
-              Mustache.render(partnerPopupTpl, p),
+              partner_popup.html(),
               null, true)
             osmap.addPopup popup
 
             # Provide select button if came from case
             if kvm["fromCase"]
-              $(popup.div).find(".btn").click (e) ->
+              $(popup.div).find(".btn-div").show()
+              $(popup.div).find(".select-btn").click (e) ->
                 kvm["selectPartner"](p, e)
                 $("#map").trigger "drawpartners"
-            # Otherwise just delete the button
-            else
-              $(popup.div).find(".btn-div").remove()
+              popup.updateSize()
 
           partnerLayer.addMarker(mark)
 
@@ -310,8 +395,9 @@ define [ "utils"
       # Refit map only if all cities have been fetched (prevents
       # blinking Moscow syndrome)
       return if kvm["cityPlacesExpected"] > kvm["cityPlaces"]().length
-      if kvm["caseCoords"]?
-        map.fitPlaces osmap, [coords: kvm["caseCoords"]].concat newCityPlacess
+      if kvm["coords"]()?
+        coords = map.lonlatFromShortString kvm["coords"]()
+        map.fitPlaces osmap, [coords: coords].concat newCityPlaces
       else
         map.fitPlaces osmap, newCityPlaces
 
@@ -366,17 +452,24 @@ define [ "utils"
       for v in s
         r[v.id] ?= v
         r[v.id]['services'] ?= []
-        r[v.id]['services'].push
-          label    : srvLab v.servicename
-          name     : v.servicename
-          priority2: v.priority2
-          priority3: v.priority3
+        if v.servicename.length > 0
+          r[v.id]['services'].push
+            label    : srvLab v.servicename
+            name     : v.servicename
+            priority2: v.priority2
+            priority3: v.priority3
+            showStr  : do ->
+              show  = "<span class='label label-info'>#{srvLab v.servicename}</span>"
+              show += " <span class='label label-important'>ПБГ: #{v.priority2}</span>" if v.priority2
+              show += " <span class='label label-warning'>ПБЗ: #{v.priority3}</span>" if v.priority3
+              show
         r[v.id]['cityLocal'] = DealerCities.getLab(v.city) || ''
         r[v.id]['makesLocal'] =
           (_.map v.makes, (m) -> CarMakers.getLab(m)).join(', ')
         v.phones ||= null
         v.addrs  ||= null
         v.emails ||= null
+        v.distance ||= null
         r[v.id]['phones'] = _.map JSON.parse(v.phones), (p) ->
           p.label = PhoneTypes.getLab(p.key)
           p.note  ||= ''
@@ -392,8 +485,11 @@ define [ "utils"
         showPhone = phones?[0] or r[v.id]['phones']?[0]
         r[v.id]['phone']       = showPhone?.value || ''
         r[v.id]['workingTime'] = showPhone?.note  || ''
+        r[v.id]['distanceFormatted'] = utils.formatDistance v.distance
+        r[v.id]['coords'] = "#{v.st_x},#{v.st_y}"
         r[v.id]['factAddr'] =
           (_.filter r[v.id]['addrs'], ({key}) -> key == 'fact')[0]?.value || ''
+
       r
 
     kvm["searchK"] = ko.computed(->kvm["search"]()).extend { throttle: 300 }
@@ -429,14 +525,13 @@ define [ "utils"
     resizeResults()
     $(window).resize resizeResults
 
-    setupMap kvm
-
     kvm['caseInfo'] ?= ""
     ko.applyBindings kvm, $('#partnersSearch-content')[0]
     $("#case-info").popover { template: $("#custom-popover").html() }
-    q.search()
 
-    # FIXME Remove this
+    setupMap kvm
+
+    # Store a hook to KVM for debugging
     $("#partnersSearch-content").data "kvm", kvm
 
   # key to retrieve data for partnerSearch screen from localstore

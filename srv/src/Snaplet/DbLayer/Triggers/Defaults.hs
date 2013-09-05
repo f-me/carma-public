@@ -31,9 +31,10 @@ applyDefaults model obj = do
               <$> getCurrentTime
   cy <- liftIO $ formatTime defaultTimeLocale "%Y"
               <$> getCurrentTime
-  let h  = 60*60 :: Int
+  let m  = 60 :: Int
+      h  = 60 * m
       d  = 24 * h
-      y  = d * 365
+      y  = 365 * d
       cd = Map.insert "callDate" (B.pack $ show ct) obj
   obj' <- case model of
     "partner" -> return
@@ -77,7 +78,7 @@ applyDefaults model obj = do
   let kase' = either (\_ -> Map.empty) Map.fromList kase
 
   obj'' <- if model `elem` services
-      then
+      then do
         return $ Map.union obj' $ Map.fromList
           [("times_expectedServiceStart",   B.pack $ show $ ct + 50*60)
           ,("times_factServiceStart",       B.pack $ show $ ct + h)
@@ -86,6 +87,7 @@ applyDefaults model obj = do
           ,("times_factServiceClosure",     B.pack $ show $ ct + 12*h)
           ,("times_expectedDealerInfo",     B.pack $ show $ ct + 7*d)
           ,("times_factDealerInfo",         B.pack $ show $ ct + 7*d)
+          ,("times_expectedDispatch",       B.pack $ show $ ct + 5 * m)
           ,("createTime",                   B.pack $ show $ ct)
           ,("marginalCost",                 setSrvMCost model obj' kase' dict)
           ,("urgentService",                "notUrgent")

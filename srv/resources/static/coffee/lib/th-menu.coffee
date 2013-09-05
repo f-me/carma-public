@@ -46,10 +46,20 @@ class ThMenu
     pos = $.extend {}, @.$element.offset(),
       height: @.$element[0].offsetHeight
 
-    @$menu.css
-      top: pos.top + pos.height
-      left: pos.left
-      minWidth: @.$element.width() + "px"
+    # if element in bottom area of the screen
+    if pos.top > $(window).height() / 2
+      # .. show menu above it
+      paddingBottom = pos.height / 2 + 4
+      @$menu.css
+        top: pos.top - @$menu.height() - paddingBottom
+        left: pos.left
+        minWidth: @.$element.width() + "px"
+    else
+      # .. show menu below it
+      @$menu.css
+        top: pos.top + pos.height
+        left: pos.left
+        minWidth: @.$element.width() + "px"
 
     @$menu.show()
     @shown = true

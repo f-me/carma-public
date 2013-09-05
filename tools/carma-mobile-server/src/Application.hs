@@ -99,15 +99,22 @@ coordsToString lon lat = (show lon) ++ "," ++ (show lat)
 
 
 ------------------------------------------------------------------------------
--- | Name of address field in partner model.
+-- | Name of address field in partner model (must contain JSON data
+-- with dict-objects schema).
 partnerAddress :: ByteString
-partnerAddress = "addrDeFacto"
+partnerAddress = "addrs"
 
 
 ------------------------------------------------------------------------------
 -- | Name of coordinates field in partner model.
 partnerCoords :: ByteString
 partnerCoords = "coords"
+
+
+------------------------------------------------------------------------------
+-- | Name of status field in partner model.
+partnerIsFree :: ByteString
+partnerIsFree = "isFree"
 
 
 ------------------------------------------------------------------------------
@@ -125,11 +132,9 @@ revGeocode :: Double
            -- ^ Latitude.
            -> Handler b GeoApp (Maybe ByteString, Maybe ByteString)
 revGeocode lon lat = do
-  cp <-  gets (carmaPort . carmaOptions)
+  uri <- runCarma $ methodURI ("geo/revSearch/" ++ coordsToString lon lat)
   (addr :: Maybe (HM.HashMap ByteString (Maybe ByteString))) <- liftIO $ do
-     let coords' = coordsToString lon lat
-     resp <- H.simpleHTTP $ H.getRequest $
-             methodURI cp ("geo/revSearch/" ++ coords')
+     resp <- H.simpleHTTP $ H.getRequest uri
      body <- H.getResponseBody resp
      return $ decode' $ BSL.pack body
   case addr of
@@ -146,12 +151,13 @@ updatePosition :: Handler b GeoApp ()
 updatePosition = do
   lon' <- getParamWith double "lon"
   lat' <- getParamWith double "lat"
+  free <- getParamWith bool "isFree"
   (pid' :: Maybe Int) <- getParamWith decimal "pid"
   case (lon', lat', pid') of
     (Just lon, Just lat, Just pid) -> do
        addr <- snd <$> revGeocode lon lat
        mtime <- liftIO $ getCurrentTime
-       updatePartnerData pid lon lat addr mtime
+       updatePartnerData pid lon lat (fromMaybe True free) addr mtime
     _ -> error "Bad request"
 
 
@@ -165,21 +171,33 @@ updatePartnerData :: Int
                   -- ^ Longitude.
                   -> Double
                   -- ^ Latitude.
+                  -> Bool
+                  -- ^ Partner status.
                   -> (Maybe ByteString)
                   -- ^ New address if available.
                   -> UTCTime
                   -- ^ New partner mtime.
                   -> Handler b GeoApp ()
-updatePartnerData pid lon lat addr mtime =
+updatePartnerData pid lon lat free addr mtime =
     let
         coordString = concat [show lon, ",", show lat]
+        isFree = if free then "1" else "0"
         body = HM.fromList $
                [ (partnerCoords, BS.pack coordString)
+               , (partnerIsFree, BS.pack isFree)
                , (partnerMtime,
                   BS.pack $ formatTime defaultTimeLocale "%s" mtime)] ++
                (maybe [] (\a -> [(partnerAddress, a)]) addr)
     in do
-      runCarma $ updateInstance "partner" pid body >> return ()
+      -- Update addrs with new "fact" address. Not thread-safe.
+      body' <- case addr of
+        Nothing -> return body
+        Just newFactAddr -> do
+          pData <- runCarma $ readInstance "partner" pid
+          let oldAddrs = fromMaybe "" $ HM.lookup partnerAddress pData
+              newAddrs = setKeyedJsonValue oldAddrs "fact" newFactAddr
+          return $ HM.insert partnerAddress newAddrs body
+      runCarma $ updateInstance "partner" pid body' >> return ()
 
 
 ------------------------------------------------------------------------------
@@ -432,6 +450,12 @@ geoAppInit = makeSnaplet "geo" "Geoservices" Nothing $ do
 -- | Parse "52.32,3.45" (no spaces) into pair of doubles.
 coords :: Parser (Double, Double)
 coords = (,) <$> double <* anyChar <*> double
+
+
+------------------------------------------------------------------------------
+-- | Parse "true" or "false" into boolean.
+bool :: Parser Bool
+bool = (string "true" >> return True) <|> (string "false" >> return False)
 
 
 ------------------------------------------------------------------------------

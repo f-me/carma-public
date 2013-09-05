@@ -7,6 +7,6 @@ define [], ->
           svcId   = knockVM.parentId()
           if svcId
             modelName = svcId.split(':')[0]
-            svcName = global.models[modelName].title
+            svcName = global.model(modelName).title
             actName = actName + " (#{svcName})"
           actName

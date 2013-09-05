@@ -3,7 +3,7 @@ define [ "utils"
        , "screens/partnersSearch"
        ], (u, mu, pSearch) ->
   partnerOptsHook: (model, knockVM) ->
-    knockVM['contractor_partner'].subscribe (n) ->
+    knockVM['contractor_partner']?.subscribe (n) ->
       return unless knockVM['view']
       v = global.viewsWare[knockVM['view']].depViews['cost_counted'][0]
       $("##{v}").find(".add-opt-btn").remove()
@@ -38,16 +38,16 @@ define [ "utils"
           u.bindDelete knockVM, 'cost_serviceTarifOptions'
 
   srvOptUpd: (model, knockVM) ->
-    knockVM['payType'].subscribe (n) ->
+    knockVM['payType']?.subscribe (n) ->
       u.sTout 500, ->
         for o in knockVM['cost_serviceTarifOptionsReference']()
           do (o) ->
             o.model().fetch()
 
   costsMark: (model, knockVM) ->
-    knockVM['marginalCost'].subscribe -> mbMark()
+    knockVM['marginalCost']?.subscribe -> mbMark()
 
-    knockVM['cost_counted'].subscribe -> mbMark()
+    knockVM['cost_counted']?.subscribe -> mbMark()
     mbMark = ->
       v = knockVM.view
       # FIXME: change this to observables
@@ -70,8 +70,14 @@ define [ "utils"
         n = pSearch.subName f.name, model.name, kvm.id()
         global.pubSub.sub n, (val) ->
           kvm[f.name](val.name)
-          kvm["#{f.name}Id"]?(val.id)
-          kvm["#{f.name.split('_')[0]}_address"]?(val.addrDeFacto)
+          kvm["#{f.name}Id"]?("partner:#{val.id}")
+          addr = u.getKeyedJsonValue val.addrs, "fact"
+          field_basename = f.name.split('_')[0]
+          kvm["#{field_basename}_address"]?(addr || "")
+          kvm["#{field_basename}_coords"]? val.coords
+          if (field_basename == "towDealer") && val.distanceFormatted?
+            kvm["dealerDistance"](val.distanceFormatted)
+          kvm['parent']['fillEventHistory']()
 
     # this fn should be called from click event, in other case
     # it will be blocked by chrome policies

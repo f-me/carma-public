@@ -7,6 +7,7 @@ define ["sync/metaq", "sync/datamap"], (metaq, m) ->
       @ftypes  = {}
       @persisted = @kvm.id()?
       @ftypes[f.name] = f.type for f in @model.fields
+      @debounced_save = _.debounce((-> @save()), 1300)
       # when we have id, first fetch data and only after that subscribe
       # to changes, fetch will block, so we won't get fetched data to the save
       # queue
@@ -24,7 +25,7 @@ define ["sync/metaq", "sync/datamap"], (metaq, m) ->
     fetch: =>
       $.bgetJSON "#{@url}/#{@kvm.id()}", (o) => @updadeKvm m.s2cObj(o, @ftypes)
 
-    _save: _.debounce((-> @save()), 1300)
+    _save: => @debounced_save()
 
     save: (cb) =>
       cb ?= _.identity # just to be sure we have something to call

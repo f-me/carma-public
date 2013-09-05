@@ -515,6 +515,19 @@ smsProcessingHandler = scope "sms" $ do
   writeJSON $ object [
     "processing" .= res]
 
+-- | Read @actionid@ request parameter and set @openTime@ of that
+-- action to current time.
+openAction :: AppHandler ()
+openAction = do
+  aid <- getParam "actionid"
+  case aid of
+    Nothing -> error "Could not read actionid parameter"
+    Just i -> do
+      dn <- liftIO $ projNow id
+      res <- with db $ DB.update "action" i $
+                       Map.singleton "openTime" dn
+      writeJSON res
+
 lookupSrvQ = [sql|
   SELECT c.id::text
        , c.comment

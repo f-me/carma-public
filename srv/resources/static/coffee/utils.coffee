@@ -173,11 +173,6 @@ define ["model/utils"], (mu) ->
     $(".complex-field").hide()
 
     view.show ->
-      isDealerView = depViewName.match(/towDealer_partner-view/)
-      isPartnerView = depViewName.match(/contractor_partner-view/)
-      if isDealerView or isPartnerView
-        require ["screens/case"], (c) -> c.initPartnerTables view, parentView
-
       require ["map"], (map) ->
         map.initOSM(e, parentView) for e in view.find(".osMap")
 
@@ -230,14 +225,14 @@ define ["model/utils"], (mu) ->
 
   # Extract value of the first object from "dict-objects"-field JSON
   # contents with matching "key". If no such entries found, return
-  # value of the first object in the field.
+  # null.
   getKeyedJsonValue: (json, key) ->
     if json?.length > 0
       o = _.find json, (o) -> o.key == key
       if o?
         o.value
       else
-        json[0].value
+        null
 
   # Set value of the first object from "dict-objects"-field JSON
   # contents with matching "key" (create it if no object matches key),
@@ -255,6 +250,9 @@ define ["model/utils"], (mu) ->
     else
       json = [newObj]
     json
+
+  # Transform distance in meters to km
+  formatDistance: (dist) -> Math.round ((parseInt dist) / 1000)
 
   # FIXME: remove this function definition
   # and correct module dependencies

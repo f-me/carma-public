@@ -21,7 +21,8 @@
     },
     {
       "meta": {
-        "dictionaryName": "Programs",
+        "dictionaryName": "casePrograms",
+        "dictionaryType": "ComputedDict",
         "bounded": true,
         "label": "Программа"
       },
@@ -65,6 +66,21 @@
       "type": "dictionary",
       "groupName": null,
       "name": "city"
+    },
+    {
+      "meta": {
+        "label": "Координаты места поломки",
+        "invisible": true
+      },
+      "type": "coords",
+      "name": "coords"
+    },
+    {
+      "meta": {
+        "label": "Адрес места поломки",
+        "invisible": true
+      },
+      "name": "address"
     },
     {
       "meta": {

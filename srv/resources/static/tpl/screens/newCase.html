@@ -1,0 +1,69 @@
+<!-- NewCase screen layout -->
+<div id="left" class="nice-scrollbar pane">
+  <div class="form-vertical">
+    <div class="control-group">
+      <div class="control-label">
+        <label>Номер</label>
+      </div>
+      <div class="controls">
+        <input type="text" disabled id="case-number"
+               data-bind="value: maybeId"/>
+      </div>
+    </div>
+    <div id="case-form" />
+  </div>
+</div>
+
+<div id="center" class="nice-scrollbar pane">
+  <div class="form-vertical">
+  </div>
+</div>
+
+<div id="right" class="nice-scrollbar pane">
+  <div class="control-group">
+    <button class="btn btn-success"
+            type="submit"
+            id="go-back-to-call">
+     Сохранить и вернуться
+    </button>
+  </div>
+  <div class="control-group">
+    <button class="btn btn-success"
+            type="submit"
+            id="go-back-and-transfer-to-bo">
+     Передать в бэкофис и вернуться
+    </button>
+  </div>
+  <div class="control-group">
+    <button class="btn btn-success"
+            type="submit"
+            id="go-to-full-case">
+     Перейти на кейс
+    </button>
+  </div>
+  <div id="empty-fields-placeholder" />
+</div>
+
+<!-- Default case group view template -->
+<script type="text/template"
+        class="group-template"
+        id="default-newCase-group-template">
+  <fieldset class="complex-field default-complex-field" id="default-newCase">
+    <div id="case-comments">
+      <label> Комментарий </label>
+      <textarea  id="case-comments-i" rows="3"  />
+      <br />
+      <button    id="case-comments-b" class="btn">
+        Добавить комментарий
+      </button>
+    </div>
+    <div class="controls">
+      <span id="service-picker-container" />
+    </div>
+    <div class="control-group">
+      <div class="controls">
+        <span class="accordion" id="case-services-references" />
+      </div>
+    </div>
+  </fieldset>
+</script>

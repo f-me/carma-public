@@ -24,6 +24,8 @@ import System.Log.Simple.Base (scoperLog)
 import Data.Configurator (require)
 import Network.Mail.Mime
 
+import Carma.HTTP
+
 import AppHandlers.PSA.Base
 
 import Snap.Snaplet (getSnapletUserConfig)
@@ -110,11 +112,15 @@ sendMailToDealer actionId = do
     caseId  <- get actionId "caseId"
     program <- get caseId   "program"
     when (program `elem` ["peugeot", "citroen"]) $ do
-      dealerId <- get svcId "towDealer_partnerId"
-      when (dealerId /= "") $ do
-        dealer'sMail <- get dealerId "closeTicketEmail"
-        when (dealer'sMail /= "") $ do
-          sendMailActually actionId caseId dealer'sMail
+      payType <- get svcId "payType"
+      when (payType `elem` ["ruamc", "mixed", "refund"]) $ do
+        dealerId <- get svcId "towDealer_partnerId"
+        when (dealerId /= "") $ do
+          dms <- get dealerId "emails"
+          let mails = getAllKeyedJsonValues dms "close"
+          when (mails /= []) $ do
+            sendMailActually actionId caseId $
+              B.intercalate "," mails
 
 sendMailActually
   :: MonadTrigger m b

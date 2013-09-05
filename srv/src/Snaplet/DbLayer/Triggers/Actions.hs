@@ -208,6 +208,8 @@ fillFromContract vin objId = do
       contractValidUntilMilage::text,
       extract (epoch from contractValidFromDate)::int8::text,
       extract (epoch from contractValidUntilDate)::int8::text,
+      extract (epoch from warrantyStart)::int8::text,
+      extract (epoch from warrantyEnd)::int8::text,
       carSeller, carDealerTO
       FROM contracttbl c LEFT JOIN programtbl p ON p.id::text = c.program
       WHERE isactive AND dixi AND carVin = ?
@@ -216,13 +218,17 @@ fillFromContract vin objId = do
   case res of
     [] -> return False
     [row] -> do
-      zipWithM_ (maybe (return ()) . (set objId))
+      let setIfEmpty oid nm val = get oid nm >>= \case
+              "" -> set objId nm val
+              _  -> return ()
+      zipWithM_ (maybe (return ()) . (setIfEmpty objId))
         ["program", "car_make", "car_model", "car_plateNum" ,"car_color"
         ,"car_transmission","car_engine", "car_contractType", "car_checkPeriod"
         ,"car_buyDate", "car_checkupDate", "car_serviceStart", "car_serviceEnd"
         ,"car_checkupMileage", "cardNumber_milageTO"
         ,"cardNumber_cardNumber", "car_makeYear", "cardNumber_validUntilMilage"
         ,"cardNumber_validFrom", "cardNumber_validUntil"
+        ,"car_warrantyStart", "car_warrantyEnd"
         ,"car_seller", "car_dealerTO"]
         row
       return True
@@ -235,12 +241,14 @@ updateCaseStatus caseId =
     services <- B.split ',' <$> get caseId "services"
     statuses <- mapM (`get` "status") services
     return $ case statuses of
-      _ | any (== "creating") statuses
-          -> "s0" -- Front Office
-        | all (`elem` ["serviceClosed","falseCall","mistake"]) statuses
+      _ | all (`elem` ["serviceClosed","falseCall","mistake"]) statuses
           -> "s2" -- closed
-        | all (== "cancelService") statuses
+        | all (`elem` ["clientCanceled","serviceClosed"]) statuses
+          -> "s2" -- closed
+        | all (`elem` ["clientCanceled", "cancelService"]) statuses
           -> "s3" -- cancel
+        | any (== "creating") statuses
+          -> "s0" -- Front Office
         | otherwise -> "s1" -- Back Office
 
 
@@ -273,12 +281,12 @@ serviceActions = Map.fromList
           upd kazeId "actions" $ addToList actionId
           sendSMS actionId "smsTpl:13"
       "recallClient" -> do
-          due <- getService objId "times_expectedServiceStart"
+          due <- dateNow (+ (15*60))
           kazeId <- get objId "parentId"
           actionId <- new "action" $ Map.fromList
-            [("name", "callMeMaybe")
+            [("name", "tellMeMore")
             ,("duetime", due)
-            ,("description", utf8 "Заказ услуги через мобильное приложение")
+            ,("description", utf8  "Заказ услуги (требуется дополнительная информация)")
             ,("targetGroup", "back")
             ,("priority", "1")
             ,("parentId", objId)
@@ -473,6 +481,19 @@ serviceActions = Map.fromList
       let h = 3600 -- seconds
       set objId "times_expectedServiceEnd"     $ B.pack $ show $ tm + 1*h
       set objId "times_expectedServiceClosure" $ B.pack $ show $ tm + 11*h
+      set objId "times_factServiceStart" ""
+    ])
+  ,("times_expectedDispatch",
+    [\objId _ -> set objId "times_factServiceStart" ""
+    ])   
+  ,("times_expectedServiceEnd",
+    [\objId _ -> set objId "times_factServiceEnd" ""
+    ])
+  ,("times_expectedDealerInfo",
+    [\objId _ -> set objId "times_factDealerInfo" ""
+    ])
+  ,("times_expectedServiceClosure",
+    [\objId _ -> set objId "times_factServiceClosure" ""
     ])
   ]
 
@@ -676,7 +697,6 @@ actionResultMap = Map.fromList
           "Уточнить у клиента окончено ли оказание услуги"
           "back" "3" (+60)
           objId
-        sendMailToDealer objId
   )
   ,("serviceStillInProgress", \objId ->
     isReducedMode >>= \case
@@ -787,6 +807,13 @@ actionResultMap = Map.fromList
   ,("complaintManaged", closeAction
   )
   ,("communicated", closeAction
+  )
+  ,("okButNoService", \objId -> do
+    caseId <- get objId "caseId"
+    get caseId "services" >>= \case
+      "" -> set caseId "caseStatus" "s2" -- closed
+      _  -> return ()
+    closeAction objId
   )
   ,("accountConfirm", \objId -> do
     act <- replaceAction

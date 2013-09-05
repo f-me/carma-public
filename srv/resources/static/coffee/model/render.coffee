@@ -23,11 +23,10 @@ define ["dictionaries"], (d) ->
         # custom elements to decorate view
         $el(view).find('.content').html(content[gName])
 
-    defaultGroup = "default-#{model.name}"
-    if _.has(groupTpls, defaultGroup)
-      depViews["default-group"] = defaultGroup
+    if options.defaultGroup and _.has(groupTpls, options.defaultGroup)
+      depViews["default-group"] = options.defaultGroup
       $el(options.groupsForest).append(
-            renderDep { refField: defaultGroup }, groupTpls)
+            renderDep { refField: options.defaultGroup }, groupTpls)
     if _.isFunction(options.renderRefCb)
       options.renderCb(r, subViewN)
 

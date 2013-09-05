@@ -5,12 +5,17 @@
 -- Splice lon1, lat1 and lon2, lat2 on the query, where coordinates
 -- are those of opposite 2D box points.
 drop function if exists geowithin ( float, float, float,  float
+                                  , float, float
                                   , text, text, text, text, text
                                   , boolean,  boolean);
 create or replace function GeoWithin ( x1 float
                                      , y1 float
                                      , x2 float
                                      , y2 float
+                                     , xc float
+                                     -- ^ Center point longitude (0 if not used).
+                                     , yc float
+                                     -- ^ Center point latitude (0 if not used).
                                      , city text
                                      , makes text
                                      , services text
@@ -40,14 +45,13 @@ $$
              , st_y(p.coords)
              , p.isDealer
              , p.isMobile
+             , p.isFree
+             , ST_Distance_Sphere(p.coords, ST_Point(xc, yc))
+                                              as distance
              , coalesce(p.name, '')           as name
              , coalesce(p.city, '')           as city
              , coalesce(p.comment, '')        as comment
-             , coalesce(p.phone1, '')         as phone1
-             , coalesce(p.workingTime, '')    as workingTime
              , coalesce(p.code, '')           as code
-             , coalesce(p.addrDeJure, '')     as addrDeJure
-             , coalesce(p.addrDeFacto, '')    as addrDeFacto
              , coalesce(p.addrs  :: text, '') as addrs
              , coalesce(p.phones :: text, '') as phones
              , coalesce(p.emails :: text, '') as emails
@@ -69,7 +73,7 @@ $$
         AND   (se  OR s.servicename = ANY(sa))
         AND   (p2e OR s.priority2   = ANY(p2a))
         AND   (p3e OR s.priority3   = ANY(p3a))
-        AND   (case when p.isDealer then true else false end) = isDlr
+        AND   case when isDlr then p.isDealer = true  else true end
         AND   case when isMbl then p.isMobile = isMbl else true end
         AND   case when isDealer
               then me OR p.makes && ma
