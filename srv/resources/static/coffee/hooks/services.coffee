@@ -71,7 +71,7 @@ define [ "utils"
         global.pubSub.sub n, (val) ->
           kvm[f.name](val.name)
           kvm["#{f.name}Id"]?("partner:#{val.id}")
-          addr = u.getKeyedJsonValue val.addrs, "fact"
+          addr = u.getKeyedJsonValue (JSON.parse val.addrs), "fact"
           field_basename = f.name.split('_')[0]
           kvm["#{field_basename}_address"]?(addr || "")
           kvm["#{field_basename}_coords"]? val.coords

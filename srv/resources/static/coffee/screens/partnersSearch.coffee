@@ -114,8 +114,7 @@ define [ "utils"
         # Highlight partner blip on map
         $("#map").trigger "drawpartners"
         if kvm['field'].split('_')[0] == 'contractor'
-          partner['addrDeFacto'] =
-            utils.getKeyedJsonValue partner.addrs(), 'fact'
+          partner['addrDeFacto'] utils.getKeyedJsonValue partner.addrs(), 'fact'
         else
           a = partner['addrDeFacto']
           a(utils.getKeyedJsonValue partner.addrs(), 'serv')
