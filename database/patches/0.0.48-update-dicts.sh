@@ -11,6 +11,11 @@ $PSQL -f baseline/3-dictionaries/15-NewCaseField.sql
 
 
 $PSQL << EOF
+insert into "NewCaseField" (program, field, label, r, w)
+  select p.id, f.field, f.label, f.r, f.w
+    from "NewCaseField" f, programtbl p
+    where p.id > 1;
+
 insert into "FieldPermission" (role, model, field, r, w) values
  ('all', 'CarMake', 'value', true, true)
 ,('all', 'CarMake', 'label', true, true)

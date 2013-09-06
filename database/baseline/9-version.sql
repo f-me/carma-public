@@ -1,1 +1,1 @@
-insert into version values (0,0,47);
+insert into version values (0,0,48);

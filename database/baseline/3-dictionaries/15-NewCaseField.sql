@@ -1,7 +1,7 @@
 
 CREATE TABLE "NewCaseField" (
     id SERIAL PRIMARY KEY,
-    field   text UNIQUE NOT NULL,
+    field   text NOT NULL,
     program int NOT NULL,
     label text NOT NULL,
     r bool NOT NULL,
