@@ -27,7 +27,9 @@ library
     Carma.Model.CarModel,
     Carma.Model.Contract,
     Carma.Model.Dictionary,
-    Carma.Model.Program
+    Carma.Model.Program,
+    Carma.Model.NewCaseField
+
   -- other-modules:       
   hs-source-dirs:    src
   build-depends:

@@ -66,6 +66,6 @@ update (Ident i) p c = execute c (fromString q) p
     -- `ToRow (Patch m)` expects
     updFields = map (T.concat . (:["=?"]) . fst) $ HashMap.toList m
     q = printf "UPDATE %s SET %s WHERE id = %d"
-      (T.unpack $ T.intercalate ", " updFields)
       (show $ tableName (undefined :: m))
+      (T.unpack $ T.intercalate ", " updFields)
       i

@@ -61,9 +61,18 @@ defaultFieldView :: FieldDesc m -> FieldView m
 defaultFieldView f = FieldView
   { name      = fd_name f
   , fieldType = translateFieldType $ fd_type f
-  , meta      = Map.singleton "label" (Aeson.String $ fd_desc f)
+  , meta      = Map.fromList
+    $  [("label", Aeson.String $ fd_desc f)]
+    ++ case words $ show $ fd_type f of
+      ["Ident", model] ->
+        [("dictionaryName", Aeson.String $ T.pack model)
+        ,("dictionaryType", "ModelDict")
+        ,("bounded", Aeson.Bool True)
+        ]
+      _ -> []
   , canWrite  = True
   }
+
 
 
 translateFieldType tr
@@ -72,6 +81,7 @@ translateFieldType tr
   | otherwise = case show tr of
     "Int"  -> "int"
     "Text" -> "text"
+    "Bool" -> "Bool"
     t | "Vector" `isPrefixOf` t -> "multi-dict"
-      | "Ident " `isPrefixOf` t -> "reference"
+      | "Ident " `isPrefixOf` t -> "dictionary" -- dictionary ?
       | otherwise -> error $ "translateFieldType: unkonwn type " ++ t

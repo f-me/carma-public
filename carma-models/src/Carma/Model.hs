@@ -13,9 +13,11 @@ import qualified Data.Map as Map
 import Data.Typeable
 
 import Data.Model
-import Carma.Model.Dictionary (Dictionary)
-import Carma.Model.CarMake    (CarMake)
-import Carma.Model.CarModel   (CarModel)
+import Carma.Model.Dictionary   (Dictionary)
+import Carma.Model.CarMake      (CarMake)
+import Carma.Model.CarModel     (CarModel)
+import Carma.Model.NewCaseField (NewCaseField)
+import Carma.Model.Program      (Program)
 
 
 dispatch :: forall a . Text -> (forall m . Model m => m -> a) -> Maybe a
@@ -27,4 +29,6 @@ dispatch model fn = Map.lookup model modelMap
       [add (undefined :: Dictionary)
       ,add (undefined :: CarMake)
       ,add (undefined :: CarModel)
+      ,add (undefined :: NewCaseField)
+      ,add (undefined :: Program)
       ]
