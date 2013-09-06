@@ -26,16 +26,25 @@ define [ "utils"
       _.map instances, (inst) ->
         row = []
         _.each do visibleFields, (field) ->
-          fieldValue = inst[field.name] || ''
-          switch field.name
-            when 'id' then row.push fieldValue.split(':')[1]
-            else row.push fieldValue
+          row.push(inst[field.name] || '')
         row
 
     screenSetup = (viewName, args) ->
-      dictName = args.dict
+      dicts = [{id: null, name: 'Выберите справочник' }]
+      $.bgetJSON '/_/Dictionary', (ds) =>
+        for d in ds
+          dicts.push({id: d.id, name: d.description})
+      ko.applyBindings(dicts, el("dict-select"))
+      $('#dict-select').change ->
+        if @value
+          location.hash="dict/#{@value}"
+          location.reload true
 
-      if dictName
+      if args.dict
+        dictName = null
+        $.bgetJSON "/_/Dictionary/#{args.dict}", (d) ->
+          dictName = d.name
+
         kvm = modelSetup dictName, viewName, args
 
         tableHeader = _.reduce(do visibleFields, (memo, field) ->
@@ -46,7 +55,7 @@ define [ "utils"
 
         tableParams =
           tableName: "dict"
-          objURL: "/all/#{dictName}"
+          objURL: "/_/#{dictName}"
 
         table = screenman.addScreen(dictName, -> )
           .addTable(tableParams)
@@ -65,7 +74,7 @@ define [ "utils"
           table.dataTable.fnAddData [row]
 
         $("#add-new-item-btn").on 'click', ->
-          location.hash="#dictionaries/#{dictName}"
+          location.hash="#dict/#{args.dict}"
           location.reload true
 
         # setup 'show only active records' button
