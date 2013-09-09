@@ -62,19 +62,22 @@ littleMoreActionsHandler :: AppHandler ()
 littleMoreActionsHandler = scoper "littleMoreActions" $ do
   Just cUsr' <- with auth currentUser
 
-  actIds1 <- withPG pg_actass (`query_` assignQ 1 cUsr')
-  actIds2 <- withPG pg_actass (`query_` assignQ 2 cUsr')
-  actIds3 <- withPG pg_actass (`query_` assignQ 3 cUsr')
-  let actIds = actIds1 ++ actIds2 ++ actIds3
+  actIds'   <- withPG pg_actass (`query_` assignQ 1 cUsr')
+  actIds''  <- case actIds' of
+                 [] -> return actIds'
+                 _  -> withPG pg_actass (`query_` assignQ 2 cUsr')
+  actIds''' <- case actIds'' of
+                 [] -> return actIds''
+                 _  -> withPG pg_actass (`query_` assignQ 3 cUsr')
 
   let uLogin = T.encodeUtf8 $ userLogin cUsr'
-  with db $ forM_ actIds $ \[actId] ->
+  with db $ forM_ actIds''' $ \[actId] ->
       DB.update "action" actId
         $ Map.singleton "assignedTo" uLogin
 
-  when (not $ null actIds) $ log Info $ fromString
+  when (not $ null actIds''') $ log Info $ fromString
     $ "New actions for " ++ show uLogin
-    ++ ": " ++ show actIds
+    ++ ": " ++ show actIds'''
 
   selectActions (Just "0") (Just uLogin) Nothing Nothing Nothing
     >>= writeJSON

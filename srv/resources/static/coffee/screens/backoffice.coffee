@@ -1,37 +1,74 @@
 define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
-  unassignedShouldTick = true
+  pollersShouldTick = true
 
   setupBackOffice = ->
-    unassignedShouldTick = true
+    pollersShouldTick = true
     setTimeout((->
         updateUnassigned()
-
-        $('#bo-littleMoreAction').on('click.bo', ->
-          $.ajax
-            type: "PUT"
-            url: "/littleMoreActions"
-            success: setupBoTable)
-
-        tables = mkBoTable()
         global.boData = { started: new Date, r: {} }
-        params = "assignedTo=#{global.user.login}&closed=0"
-        # FIXME: remove this, when backend will be fast enough (it will, be sure)
-        setTimeout (-> $.getJSON("/allActions?#{params}", setupBoTable)), 1500
+        # FIXME: remove this, when backend will be fast enough (it
+        # will, be sure)
+        setTimeout pullActions, 1500
+        setupPoller()
       ), 200)
 
+  # Install automatic actions poller
+  setupPoller = ->
+    # In ms
+    cycle_resolution = 500
+    # Poll server every n cycles
+    poll_cycles = 30
+
+    current_cycle = 0
+    bar = $("#bo-wait-progress")
+    worker = ->
+      percent = current_cycle / poll_cycles * 100.0
+      bar.css "width", percent + "%"
+
+      if current_cycle++ == poll_cycles
+        pullActions()
+        current_cycle = 0
+
+      if pollersShouldTick
+        setTimeout worker, cycle_resolution
+    worker()
+
+  # Fetch /littleMoreActions response (possibly assigning new
+  # actions), redirect to case when an order action found or fill
+  # actions table for the current user
+  pullActions = ->
+    $.ajax
+      type: "PUT"
+      url: "/littleMoreActions"
+      success:  (res) ->
+        if !_.isEmpty res
+          if _.contains global.user.roles, "back"
+            act = _.find res, (a) ->
+              _.contains(
+                [ "orderService"
+                , "orderServiceAnalyst"
+                , "tellMeMore"
+                , "callMeMaybe"],
+                a.name)
+            if act?
+              openCaseAction act.id, act.caseId.split(':')[1]
+          setupBoTable res
+
+  # Update unassigned actions count and queue next update
   updateUnassigned = ->
     $.getJSON "/actions/unassigned", (r) ->
       txt = if r[0] > 0
           "Заказов услуг в очереди: #{r[0]}"
         else
           "В очереди нет заказов услуг"
-      if unassignedShouldTick
+      if pollersShouldTick
         $("#actions-queue-count").text txt
         setTimeout(updateUnassigned, 3000)
 
   removeBackOffice = ->
-    unassignedShouldTick = false
-    $('#bo-littleMoreAction').off 'click.bo'
+    # Stop auto-polling backoffice-related server handlers when we
+    # leave #back
+    pollersShouldTick = false
 
   mkBoTable = ->
     userTable = $("#back-user-table")
@@ -79,18 +116,21 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
     userTable.on("click.datatable", "tr", ->
       colText = this.children[0].innerText
       [_,caseId,actId] = colText.match(/(\d+)\/(\d+)/)
-      $.ajax
-        type: "POST"
-        url: "/backoffice/openAction/#{actId}"
-      window.location.hash = "case/#{caseId}"
+      openCaseAction actId, caseId
     )
     return [userTable]
+
+  # Start working on an action and redirect to its case
+  openCaseAction = (actId, caseId) ->
+    $.ajax
+      type: "POST"
+      url: "/backoffice/openAction/#{actId}"
+    window.location.hash = "case/#{caseId}"
 
   setupBoTable = (actions) ->
       userTable = $("#back-user-table")
       addActions(actions,  userTable.dataTable())
       boNotify handleBoUpdate(userTable)
-
 
   addActions = (actions, table) ->
     table.fnClearTable()

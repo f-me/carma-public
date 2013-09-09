@@ -1,7 +1,7 @@
 [
     { "name"  : "sms",
       "type"  : "sms",
-      "permissions" : ["front","back","head","parguy","vwfake","supervisor","director","analyst","parguy","account","admin","programman"]
+      "permissions" : ["front","back","bo_control","head","parguy","vwfake","supervisor","director","analyst","parguy","account","admin","programman"]
     },
     { "name" : "contracts",
       "label": "Экраны контрактов",
@@ -17,17 +17,17 @@
     { "name"  : "call",
       "label" : "Звонок",
       "type"  : "li",
-      "permissions": ["front","back","vwfake","head","parguy","supervisor","director","analyst","parguy","account","admin","programman"]
+      "permissions": ["front","back","bo_control","vwfake","head","parguy","supervisor","director","analyst","parguy","account","admin","programman"]
     },
     { "name"  :"case",
       "label" : "Кейс",
       "type"  : "li",
-      "permissions": ["front","back","vwfake","head","parguy","supervisor","director","analyst","account","admin","programman"]
+      "permissions": ["front","back","bo_control","vwfake","head","parguy","supervisor","director","analyst","account","admin","programman"]
     },
     { "name"  : "back",
       "label" : "Бэкофис",
       "type"  : "li",
-      "permissions": ["front","back","vwfake","head","parguy","supervisor","analyst"]
+      "permissions": ["front","back","bo_control","vwfake","head","parguy","supervisor","analyst"]
     },
     { "type": "dropdown",
       "name": "supervisorList",
@@ -81,7 +81,7 @@
     { "type"    : "dropdown",
       "name"    : "more",
       "label"   : "Еще",
-      "permissions": ["front","back","head","parguy","supervisor","director","analyst","account","admin","programman"],
+      "permissions": ["front","back","bo_control","head","parguy","supervisor","director","analyst","account","admin","programman"],
       "screens" : [
         { "name"  : "vin",
           "label" : "Обновление базы VIN и партнёров",
@@ -106,7 +106,7 @@
         { "name"  : "reports",
           "label" : "Отчёты",
           "type"  : "li",
-          "permissions": ["front","back","head","parguy","supervisor","director","analyst","account","admin","programman"]
+          "permissions": ["front","back","bo_control","head","parguy","supervisor","director","analyst","account","admin","programman"]
         },
         { "name"  : "newVin",
           "label" : "Редактирование VIN",

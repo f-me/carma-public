@@ -7,7 +7,7 @@
             },
             {
                 "value": "serviceOrderedSMS",
-                "label": "Услуга заказана (SMS)"
+                "label": "Услуга заказана, клиент оповещён (SMS)"
             },
             {
                 "value": "needPartner",
@@ -166,7 +166,7 @@
                 "label": "Отказ от партнёра"
             },
             {
-                "value": "partnerNotOkCalncel",
+                "value": "partnerNotOkCancel",
                 "label": "Полный отказ от услуг"
             },
             {
