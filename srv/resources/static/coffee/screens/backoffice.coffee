@@ -5,6 +5,7 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
     pollersShouldTick = true
     setTimeout((->
         updateUnassigned()
+        tables = mkBoTable()        
         global.boData = { started: new Date, r: {} }
         # FIXME: remove this, when backend will be fast enough (it
         # will, be sure)
