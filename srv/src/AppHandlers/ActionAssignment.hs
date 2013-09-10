@@ -17,6 +17,7 @@ import Database.PostgreSQL.Simple
 import Application
 import AppHandlers.CustomSearches
 import AppHandlers.Util
+import Util
 
 
 assignQ :: Int -> AuthUser -> Query
@@ -71,9 +72,12 @@ littleMoreActionsHandler = scoper "littleMoreActions" $ do
                  _   -> return actIds''
 
   let uLogin = T.encodeUtf8 $ userLogin cUsr'
+  now <- liftIO $ projNow id
   with db $ forM_ actIds''' $ \[actId] ->
       DB.update "action" actId
-        $ Map.singleton "assignedTo" uLogin
+        $ Map.fromList [("assignedTo", uLogin)
+                       ,("assignTime", now)
+                       ]
 
   when (not $ null actIds''') $ log Info $ fromString
     $ "New actions for " ++ show uLogin

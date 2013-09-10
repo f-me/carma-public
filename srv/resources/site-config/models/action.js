@@ -89,6 +89,13 @@
         "invisible": true
       },
       "type": "datetime",
+      "name": "assignTime"
+    },
+    {
+      "meta": {
+        "invisible": true
+      },
+      "type": "datetime",
       "groupName": null,
       "name": "openTime"
     },

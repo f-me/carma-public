@@ -267,6 +267,7 @@ serviceActions = Map.fromList
                 AND coalesce(a.result, '') <> 'communicated'
               LIMIT 1
             |]) [kazeId]
+          now <- dateNow id
           actionId <- new "action" $ Map.fromList
             [("name", "orderService")
             ,("duetime", due)
@@ -276,6 +277,7 @@ serviceActions = Map.fromList
             ,("parentId", objId)
             ,("caseId", kazeId)
             ,("closed", "0")
+            ,("assignTime", now)
             ,("assignedTo", case relatedUser of { [[u]] -> u; _ -> "" })
             ]
           upd kazeId "actions" $ addToList actionId
@@ -300,9 +302,11 @@ serviceActions = Map.fromList
           kazeId <- get objId "parentId"
           Just u <- liftDb $ with auth currentUser
           currentUser <- maybe "" userLogin <$> getCurrentUser
+          now <- dateNow id
           act1 <- new "action" $ Map.fromList
             [("name", "tellClient")
             ,("duetime", due)
+            ,("assignTime", now)
             ,("description", utf8 "Сообщить клиенту о договорённости")
             ,("targetGroup", "bo_control")
             ,("priority", "1")
@@ -976,11 +980,13 @@ replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
   svcId <- get objId "parentId"
   due <- dateNow dueDelta
   kazeId <- get svcId "parentId"
+  now <- dateNow id
   actionId <- new "action" $ Map.fromList
     [("name", actionName)
     ,("description", utf8 actionDesc)
     ,("targetGroup", targetGroup)
     ,("assignedTo", assignee)
+    ,("assignTime", now)
     ,("priority", priority)
     ,("duetime", due)
     ,("parentId", svcId)
