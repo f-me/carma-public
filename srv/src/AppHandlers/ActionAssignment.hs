@@ -64,11 +64,11 @@ littleMoreActionsHandler = scoper "littleMoreActions" $ do
 
   actIds'   <- withPG pg_actass (`query_` assignQ 1 cUsr')
   actIds''  <- case actIds' of
-                 [] -> return actIds'
-                 _  -> withPG pg_actass (`query_` assignQ 2 cUsr')
+                 []  -> withPG pg_actass (`query_` assignQ 2 cUsr')
+                 _   -> return actIds'
   actIds''' <- case actIds'' of
-                 [] -> return actIds''
-                 _  -> withPG pg_actass (`query_` assignQ 3 cUsr')
+                 []  -> withPG pg_actass (`query_` assignQ 3 cUsr')
+                 _   -> return actIds''
 
   let uLogin = T.encodeUtf8 $ userLogin cUsr'
   with db $ forM_ actIds''' $ \[actId] ->
