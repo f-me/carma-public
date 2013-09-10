@@ -25,18 +25,18 @@ import Snaplet.SiteConfig.Config
 import Snaplet.SiteConfig.Models
 
 
-type ModelConfig = Map ByteString (Text, Bool)
+type ModelConfig = Map ByteString (Text, Bool, Bool, Text)
 
 
 modelConfig :: Text -> Handler b (SiteConfig b) ModelConfig
 modelConfig pgm = do
   pg    <- gets pg_search
   let q = fromString [sql|
-      select c.field, c.label, c.w
+      select c.field, c.label, c.w, c.required, c.info
         from "NewCaseField" c, programtbl p
         where p.id = c.program and c.r and p.value = ?
       |]
-  let mkMap xs = Map.fromList [(f,(l,w)) | (f,l,w) <- xs]
+  let mkMap xs = Map.fromList [(f,(l,w,rq,inf)) | (f,l,w,rq,inf) <- xs]
   mkMap <$> liftIO (withResource pg $ \c -> query c q [pgm])
 
 
@@ -45,8 +45,12 @@ filterFields cfg = catMaybes . map tr
   where
     tr f
       = Map.lookup (name f) cfg
-      >>= \(l, w) -> return
-        $ f {meta = Map.insert "label" (Aeson.String l) <$> meta f
+      >>= \(l, w, rq, inf) -> return
+        $ f {meta
+            = Map.insert "label" (Aeson.String l)
+            . Map.insert "required" (Aeson.Bool rq)
+            . Map.insert "infoText" (Aeson.String inf)
+            <$> meta f
           , canWrite = w}
 
 
@@ -154,7 +158,6 @@ newSvcFields name
       [mkF "techType" "dictionary" "Услуга"
         [("dictionaryName", "TechTypes")
         ,("bounded",       Aeson.Bool True)
-        ,("required",      Aeson.Bool True)
         ]
       ]
     "taxi" ->
@@ -193,12 +196,10 @@ newCaseFields :: [Field]
 newCaseFields =
   [mkF "comment" "dictionary" "Что случилось"
     [("dictionaryName", "Wazzup")
-    ,("required",       Aeson.Bool True)
     ,("infoText",       "comment")
     ]
   ,mkF "diagnosis1" "dictionary" "Система"
     [("dictionaryName", "Diagnosis1")
-    ,("required",       Aeson.Bool True)
     ,("infoText",       "system")
     ]
   ,mkF "diagnosis2" "dictionary" "Узел/деталь"
@@ -235,65 +236,54 @@ newCaseFields =
   ,mkF "program" "dictionary" "Программа"
     [("dictionaryName", "casePrograms")
     ,("dictionaryType", "ComputedDict")
-    ,("required", Aeson.Bool True)
     ,("bounded", Aeson.Bool True)
     ,("targetCategory", "program")
     ,("infoText", "program")
     ]
   ,mkF "car_vin" "dictionary" "VIN"
-    [("required", Aeson.Bool True)
-    ,("regexp", "vin")
+    [("regexp", "vin")
     ,("transform", "uppercase")
     ,("dictionaryType", "VinDict")
     ,("mainOnly", Aeson.Bool True)
     ]
   ,mkF "car_make" "dictionary" "Марка"
-    [("required", Aeson.Bool True)
-    ,("bounded", Aeson.Bool True)
+    [("bounded", Aeson.Bool True)
     ,("dictionaryName", "CarMakers")
     ,("mainOnly", Aeson.Bool True)
     ]
   ,mkF "car_model" "dictionary" "Модель"
-    [("required", Aeson.Bool True)
-    ,("bounded", Aeson.Bool True)
+    [("bounded", Aeson.Bool True)
     ,("dictionaryParent", "car_make")
     ,("dictionaryName", "CarModels")
     ,("mainOnly", Aeson.Bool True)
     ]
   ,mkF "car_seller" "dictionary" "Дилер, продавший автомобиль"
-    [("required", Aeson.Bool True)
-    ,("bounded", Aeson.Bool True)
+    [("bounded", Aeson.Bool True)
     ,("dictionaryType", "DealersDict")
     ,("mainOnly", Aeson.Bool True)
     ]
   ,mkF "car_buyDate" "date" "Дата покупки"
-    [("required", Aeson.Bool True)
-    ,("regexp", "date")
+    [("regexp", "date")
     ,("mainOnly", Aeson.Bool True)
     ]
   ,mkF "car_dealerTO" "dictionary" "Дилер у которого проходило последнее ТО"
-    [("required", Aeson.Bool True)
-    ,("bounded", Aeson.Bool True)
+    [("bounded", Aeson.Bool True)
     ,("dictionaryType", "DealersDict")
     ,("mainOnly", Aeson.Bool True)
     ]
   ,mkF "car_mileage" "text" "Текущий пробег"
-    [("required", Aeson.Bool True)
-    ,("mainOnly", Aeson.Bool True)
+    [("mainOnly", Aeson.Bool True)
     ]
   ,mkF "car_checkupMileage" "text" "Пробег на последнем ТО"
-    [("required", Aeson.Bool True)
-    ,("mainOnly", Aeson.Bool True)
+    [("mainOnly", Aeson.Bool True)
     ]
   ,mkF "vinChecked" "dictionary" "Участие в программе"
-    [("required", Aeson.Bool True)
-    ,("bounded", Aeson.Bool True)
+    [("bounded", Aeson.Bool True)
     ,("infoText", "vinChecked")
     ,("dictionaryName", "VINChecked")
     ]
   ,mkF "car_plateNum" "text" "Госномер"
-    [("required", Aeson.Bool True)
-    ,("regexp", "plateNum")
+    [("regexp", "plateNum")
     ,("transform", "uppercase")
     ,("mainOnly", Aeson.Bool True)
     ]
@@ -304,20 +294,17 @@ newCaseFields =
   ,mkF "car_makeYear" "text" "Год производства автомобиля"
     [("mainOnly", Aeson.Bool True)]
   ,mkF "car_color" "dictionary" "Цвет"
-    [("required", Aeson.Bool True)
-    ,("bounded", Aeson.Bool True)
+    [("bounded", Aeson.Bool True)
     ,("dictionaryName", "Colors")
     ,("mainOnly", Aeson.Bool True)
     ]
   ,mkF "car_transmission" "dictionary" "Коробка передач"
-    [("required", Aeson.Bool True)
-    ,("widget", "radio")
+    [("widget", "radio")
     ,("dictionaryName", "Transmission")
     ,("mainOnly", Aeson.Bool True)
     ]
   ,mkF "city" "dictionary" "Город"
-    [("required", Aeson.Bool True)
-    ,("bounded", Aeson.Bool True)
+    [("bounded", Aeson.Bool True)
     ,("infoText", "city")
     ,("dictionaryName", "DealerCities")
     ]
@@ -340,8 +327,7 @@ newCaseFields =
     ,("targetAddr", "caseAddress_address")
     ]
   ,mkF "caseStatus" "dictionary" "Статус кейса"
-    [("required", Aeson.Bool True)
-    ,("bounded", Aeson.Bool True)
+    [("bounded", Aeson.Bool True)
     ,("dictionaryName", "CaseStatuses")
     ]
   ,mkF "services" "reference" "Услуги"
