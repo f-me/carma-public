@@ -5,8 +5,8 @@ $PSQL -c 'drop table if exists "NewCaseField"'
 $PSQL -f baseline/3-dictionaries/15-NewCaseField.sql
 
 $PSQL << EOF
-insert into "NewCaseField" (program, field, label, r, w)
-  select p.id, f.field, f.label, f.r, f.w
+insert into "NewCaseField" (program, field, label, r, w, required)
+  select p.id, f.field, f.label, f.r, f.w, f.required
     from "NewCaseField" f, programtbl p
     where p.id > 1;
 

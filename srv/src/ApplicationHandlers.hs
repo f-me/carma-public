@@ -179,7 +179,7 @@ readHandler = do
 readManyHandler :: AppHandler ()
 readManyHandler = do
   Just model  <- getParam "model"
-  limit  <- fromMaybe 100 . fmap readInt <$> getParam "limit"
+  limit  <- fromMaybe 2000 . fmap readInt <$> getParam "limit"
   offset <- fromMaybe   0 . fmap readInt <$> getParam "offset"
   let readModel :: forall m . Model m => m -> AppHandler ()
       readModel _ = do
