@@ -547,13 +547,12 @@ actionResultMap = Map.fromList
   -- in HH:MM format
   ,("defer",           \objId -> do
       deferBy <- get objId "deferBy"
+      set objId "deferBy" "" >> set objId "result" ""
       case (map B.readInt $ B.split ':' deferBy) of
         (Just (hours, _):Just (minutes, _):_) ->
             when (0 <= hours && 0 <= minutes && minutes <= 59) $
                  dateNow (+ (60 * (hours * 60 + minutes)))
                              >>= set objId "duetime" 
-                             >> set objId "deferBy" ""
-                             >> set objId "result" ""
         _ -> return ()
   )
   ,("needPartner",     \objId -> do
