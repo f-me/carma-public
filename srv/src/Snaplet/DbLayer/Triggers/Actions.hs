@@ -552,6 +552,7 @@ actionResultMap = Map.fromList
             when (0 <= hours && 0 <= minutes && minutes <= 59) $
                  dateNow (+ (60 * (hours * 60 + minutes)))
                              >>= set objId "duetime" 
+                             >> set objId "deferBy" ""
                              >> set objId "result" ""
         _ -> return ()
   )
