@@ -543,6 +543,18 @@ actionResultMap = Map.fromList
   ,("partnerNotFound", \objId -> dateNow (+ (2*60*60)) >>= set objId "duetime" >> set objId "result" "")
   ,("clientCanceledService", \objId -> closeAction objId >> sendSMS objId "smsTpl:2" >> sendMailToPSA objId)
   ,("unassignPlease",  \objId -> set objId "assignedTo" "" >> set objId "result" "")
+  -- Defer an action by an amount of time specified in deferBy field
+  -- in HH:MM format
+  ,("defer",           \objId -> do
+      deferBy <- get objId "deferBy"
+      case (map B.readInt $ B.split ':' deferBy) of
+        (Just (hours, _):Just (minutes, _):_) ->
+            when (0 <= hours && 0 <= minutes && minutes <= 59) $
+                 dateNow (+ (60 * (hours * 60 + minutes)))
+                             >>= set objId "duetime" 
+                             >> set objId "result" ""
+        _ -> return ()
+  )
   ,("needPartner",     \objId -> do
      setServiceStatus objId "needPartner"
      newAction <- replaceAction
