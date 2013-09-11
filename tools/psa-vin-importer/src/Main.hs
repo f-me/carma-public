@@ -134,7 +134,7 @@ LEFT OUTER JOIN "CarModel" l ON lower(model) = lower(l.label);
 
 
 programName :: String
-programName = "sagai-exporter"
+programName = "psa-vin-importer"
 
 
 data Options = Options { carmaPort :: Int
