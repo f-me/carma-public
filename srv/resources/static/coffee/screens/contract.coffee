@@ -163,17 +163,18 @@ define [
       # model, after it's first fetch
       utils.sTout 3000, ->
         subs = []
+        subs["always_true"] = kvm["dixi"].subscribe ->
+          kvm["dixi"](true)
         subs["dialog"] = kvm["dixi"].subscribe (v) ->
+          subs["dialog"].dispose()
           findSame kvm, (r) ->
             return if _.isEmpty(r)
             txt = "В течении 30 дней уже были созданы контракты с
                    таким же vin или номером карты участника, их id:
                    #{_.pluck(r, 'id').join(', ')}. Всеравно сохранить?"
-            if result = confirm(txt)
-              subs["always_true"] = kvm["dixi"].subscribe ->
-                kvm["dixi"](true)
-            subs["dialog"].dispose()
-            kvm["dixi"](result)
+            unless confirm(txt)
+              subs["always_true"].dispose()
+              kvm["dixi"](false)
 
       return kvm
 
