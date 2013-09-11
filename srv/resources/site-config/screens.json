@@ -122,8 +122,12 @@
           "label" : "Дилеры и партнеры",
           "type"  : "li",
           "permissions": ["partners_user"]
+        },
+        { "name"  : "dict",
+          "label" : "Редактирование справочников",
+          "type"  : "li",
+          "permissions": ["admin", "head"]
         }
-
       ]
     }
 ]

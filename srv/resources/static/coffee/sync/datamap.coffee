@@ -21,16 +21,20 @@ define [], ->
     JSON.parse(v)
 
   c2sTypes =
-    checkbox : (v) -> if v then "1" else "0"
-    date     : c2sDate("dd.MM.yyyy")
-    datetime : c2sDate("dd.MM.yyyy HH:mm")
-    json     : JSON.stringify
+    checkbox  : (v) -> if v then "1" else "0"
+    Bool      : (v) -> v
+    dictionary: (v) -> if _.isNull v then '' else v
+    date      : c2sDate("dd.MM.yyyy")
+    datetime  : c2sDate("dd.MM.yyyy HH:mm")
+    json      : JSON.stringify
 
   s2cTypes =
-    checkbox : (v) -> v == "1"
-    date     : s2cDate("dd.MM.yyyy")
-    datetime : s2cDate("dd.MM.yyyy HH:mm")
-    json     : s2cJson
+    checkbox  : (v) -> v == "1"
+    Bool      : (v) -> v
+    dictionary: (v) -> v
+    date      : s2cDate("dd.MM.yyyy")
+    datetime  : s2cDate("dd.MM.yyyy HH:mm")
+    json      : s2cJson
 
   defaultc2s = (v) -> if _.isNull(v) then "" else String(v)
   c2s = (val, type) -> (c2sTypes[type] || defaultc2s)(val)

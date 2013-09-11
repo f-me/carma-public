@@ -3,7 +3,6 @@ CREATE TABLE "City"
   ,value text
   ,label text UNIQUE NOT NULL
   );
-INSERT INTO Dictionary (name) VALUES ('City');
 
 INSERT INTO "City" (value, label) VALUES
  ('Abinsk'

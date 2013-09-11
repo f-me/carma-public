@@ -14,7 +14,7 @@ define [ 'utils'
                          slotsee      : ["case-number"]
                          focusClass   : 'focusable'
                          screenName   : 'newCase'
-                         modelArg     : 'newCase'
+                         modelArg     : "newCase:#{args.program}"
                          hooks        : ['*']
 
       ctx = {fields: (f for f in kvm._meta.model.fields when f.meta?.required)}
@@ -102,15 +102,17 @@ define [ 'utils'
         comment:              v['wazzup']()
         callTaker:            global.user.meta.realName
       main.buildNewModel 'case', args, {},
-        (m, k) ->
-          global.router.navigate("newCase/#{k.id()}", { trigger: true })
+        (m, k) -> global.router.navigate(
+          "newCase/#{k.program()}/#{k.id()}",
+          {trigger: true})
 
 
     addNewService = (name) ->
       kvm = global.viewsWare["case-form"].knockVM
+      modelArg = "newCase:#{kvm.program()}"
       mu.addReference kvm,
         'services',
-        {modelName : name, options: {modelArg: 'newCase', hooks: ['*']}},
+        {modelName : name, options: {modelArg: modelArg, hooks: ['*']}},
         (k) ->
           e = $('#' + k['view'])
           e.parent().prev()[0]?.scrollIntoView()

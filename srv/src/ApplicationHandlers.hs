@@ -1,5 +1,5 @@
 {-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module ApplicationHandlers where
 -- FIXME: reexport AppHandlers/* & remove import AppHandlers.* from AppInit
@@ -16,13 +16,12 @@ import Control.Concurrent.STM
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Encoding.Error as T
--- import qualified Data.Text.Lazy as LT
--- import qualified Data.Text.Lazy.Encoding as LT
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.Aeson as Aeson
+import Data.Aeson (object, (.=))
 import Data.List
 import Data.Map (Map)
 import qualified Data.HashMap.Strict as HM
@@ -35,14 +34,14 @@ import Data.Ord (comparing)
 
 import Data.Time
 
-import Data.Aeson (object, (.=))
-
 import System.FilePath
 import System.IO
 import System.Locale
 
 import Database.PostgreSQL.Simple (Query, query_, query)
 import Database.PostgreSQL.Simple.SqlQQ
+import qualified Snap.Snaplet.PostgresqlSimple as PS
+import Data.Pool (withResource)
 
 import Snap
 import Snap.Http.Server.Config as S
@@ -70,6 +69,9 @@ import AppHandlers.Users
 import Util as U hiding (render)
 import RuntimeFlag
 
+import Carma.Model
+import Data.Model.Patch (Patch)
+import qualified Data.Model.Patch.Sql as Patch
 
 ------------------------------------------------------------------------------
 -- | Render empty form for model.
@@ -127,21 +129,68 @@ smspost = do
 
 ------------------------------------------------------------------------------
 -- | CRUD
+
+-- FIXME: this is way too slow
+readInt :: (Read i, Integral i) => ByteString -> i
+readInt = read . read . show
+
+readIdent :: ByteString -> Ident m
+readIdent = Ident . readInt
+
+
 createHandler :: AppHandler ()
-createHandler = logResp $ do
+createHandler = do
   Just model <- getParam "model"
-  commit <- getJSONBody
-  logReq commit
-  with db $ DB.create model commit
-  -- FIXME: try/catch & handle/log error
+  let createModel :: forall m . Model m => m -> AppHandler Aeson.Value
+      createModel _ = do
+        commit <- getJSONBody :: AppHandler (Patch m)
+        s <- PS.getPostgresState
+        i <- liftIO $ withResource (PS.pgPool s) (Patch.create commit)
+        return $ Aeson.object ["id" .= i]
+  case Carma.Model.dispatch (T.decodeUtf8 model) createModel of
+    Just fn -> logResp $ fn
+    Nothing -> logResp $ do
+      commit <- getJSONBody
+      logReq commit
+      with db $ DB.create model commit
+
 
 readHandler :: AppHandler ()
 readHandler = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
-  with db (DB.read model objId) >>= \case
-    obj | Map.null obj -> handleError 404
-        | otherwise    -> writeJSON obj
+  let readModel :: forall m . Model m => m -> AppHandler ()
+      readModel _ = do
+        res <- with db $ do
+          let ident = readIdent objId :: Ident m
+          s <- PS.getPostgresState
+          liftIO $ withResource (PS.pgPool s) (Patch.read ident)
+        case res of
+          [obj] -> writeJSON obj
+          []    -> handleError 404
+          _     -> error $ "BUG in readHandler: " ++ show (Aeson.encode res)
+  case Carma.Model.dispatch (T.decodeUtf8 model) readModel of
+    Just fn -> fn
+    _ -> with db (DB.read model objId) >>= \case
+      obj | Map.null obj -> handleError 404
+          | otherwise    -> writeJSON obj
+
+
+readManyHandler :: AppHandler ()
+readManyHandler = do
+  Just model  <- getParam "model"
+  limit  <- fromMaybe 2000 . fmap readInt <$> getParam "limit"
+  offset <- fromMaybe   0 . fmap readInt <$> getParam "offset"
+  let readModel :: forall m . Model m => m -> AppHandler ()
+      readModel _ = do
+        res <- with db $ do
+          s   <- PS.getPostgresState
+          liftIO $ withResource (PS.pgPool s) (Patch.readMany limit offset)
+        writeJSON (res :: [Patch m])
+  case Carma.Model.dispatch (T.decodeUtf8 model) readModel of
+    Just fn -> fn
+    _       -> handleError 404
+
 
 readAllHandler :: AppHandler ()
 readAllHandler = do
@@ -168,14 +217,29 @@ updateHandler :: AppHandler ()
 updateHandler = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
-  commit <- getJSONBody
-  logReq commit
-  with db (DB.read model objId) >>= \case
-    obj | Map.null obj -> handleError 404
-        | otherwise    -> logResp $ with db
-            $ DB.update model objId
-            -- Need this hack, or server won't return updated "cost_counted"
-            $ Map.delete "cost_counted" commit
+  let updateModel :: forall m . Model m => m -> AppHandler ()
+      updateModel _ = do
+        let ident = readIdent objId :: Ident m
+        commit <- getJSONBody :: AppHandler (Patch m)
+        res <- with db $ do
+          s   <- PS.getPostgresState
+          liftIO $ withResource (PS.pgPool s) (Patch.update ident commit)
+        case res of
+          0 -> handleError 404
+          _ -> writeJSON $ Aeson.object []
+
+  case Carma.Model.dispatch (T.decodeUtf8 model) updateModel of
+    Just fn -> fn
+    Nothing -> do
+      commit <- getJSONBody
+      logReq commit
+      with db (DB.read model objId) >>= \case
+        obj | Map.null obj -> handleError 404
+            | otherwise    -> logResp $ with db
+                $ DB.update model objId
+                -- Need this hack, or server won't return updated "cost_counted"
+                $ Map.delete "cost_counted" commit
+
 
 deleteHandler :: AppHandler ()
 deleteHandler = do

@@ -3,7 +3,6 @@ CREATE TABLE "ActionName"
   ,value text
   ,label text UNIQUE NOT NULL
   );
-INSERT INTO Dictionary (name) VALUES ('ActionName');
 
 INSERT INTO "ActionName" (value, label) VALUES
  ('orderService'
