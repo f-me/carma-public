@@ -47,7 +47,8 @@
     {
       "meta": {
         "label": "Роль в системе",
-        "dictionaryName": "Roles"
+        "dictionaryName": "Roles",
+        "bounded": true
       },
       "type": "dictionary-many",
       "groupName": null,
