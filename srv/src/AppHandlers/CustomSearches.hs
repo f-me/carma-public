@@ -4,7 +4,7 @@ module AppHandlers.CustomSearches where
 import Control.Applicative
 import Data.String (fromString)
 import Data.Maybe
-import Data.Map (Map)
+import Data.Map as M (Map, (!), delete, fromList) 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 
@@ -217,8 +217,39 @@ selectContracts = do
         ]
   writeJSON $ mkMap fields rows
 
-busyOpsq :: String
-busyOpsq = [sql|
+opStatsQ :: Query
+opStatsQ = [sql|
+  SELECT u.login, ca.name, ca.caseId, 
+         (extract (epoch from ca.openTime)::int8)::text,
+         (extract (epoch from ca.closeTime)::int8)::text
+  FROM (SELECT a.*, row_number() OVER
+        (PARTITION BY assignedto ORDER BY openTime DESC)
+        FROM actiontbl a
+        WHERE openTime IS NOT NULL) ca,
+  usermetatbl u
+  WHERE ca.row_number = 1
+  AND u.login = ca.assignedTo
+  AND ('back' = ANY (u.roles) OR 'bo_control' = ANY (u.roles))
+  ORDER BY closeTime;
+  |]
+
+-- | Serve backoffice operator stats (users with roles
+-- back/bo_control) in JSON as a map from user logins to objects with
+-- fields `aName`, `caseId`, `openTime` and `closeTime`.
+opStats :: AppHandler ()
+opStats = do
+  rows <- withPG pg_search $ \c -> query_ c opStatsQ
+  let obj = mkMap [ "login"
+                  , "aName"
+                  , "caseId"
+                  , "openTime"
+                  , "closeTime"]
+            rows
+      obj' = M.fromList $ map (\m -> (m ! "login", M.delete "login" m)) obj
+  writeJSON obj'
+
+busyOpsQ :: Query
+busyOpsQ = [sql|
   SELECT assignedTo, count(1)::text
   FROM   actiontbl
   WHERE  closed = 'f'
@@ -228,8 +259,8 @@ busyOpsq = [sql|
 
 busyOps :: AppHandler ()
 busyOps = do
-  rows <- withPG pg_search $ \c -> query_ c $ fromString busyOpsq
-  writeJSON $ mkMap ["name", "count"] rows
+  rows <- withPG pg_search $ \c -> query_ c busyOpsQ
+  writeJSON $ mkMap [ "login", "count"] rows
 
 boUsers :: AppHandler ()
 boUsers = do

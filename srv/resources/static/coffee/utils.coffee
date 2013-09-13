@@ -190,10 +190,20 @@ define ["model/utils"], (mu) ->
     obj =
       view: view_name
       field: field_name
+   
 
   # Format a numeric value from seconds to minutes
   formatSecToMin: (s) ->
-    Math.round(s / 60) + "m"
+    Math.round(s / 60) + "м"
+
+  # Format a numeric value from seconds to minutes
+  formatSec: (s) ->
+    mins = Math.round(s / 60 % 60)
+    hours = Math.round(s / 3600 % 3600)
+    if hours == 0
+      "#{mins}м"
+    else
+      "#{hours}ч #{mins}м"
 
   # Hide all views on center pane and show view for first reference
   # stored in <fieldName> of model loaded into <parentView> there
