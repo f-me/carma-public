@@ -1,10 +1,11 @@
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module AppHandlers.CustomSearches where
 
 import Control.Applicative
 import Data.String (fromString)
 import Data.Maybe
-import Data.Map as M (Map, (!), delete, fromList) 
+import Data.Map as M (Map, (!), delete, fromList)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 
@@ -225,7 +226,7 @@ selectContracts = do
 
 opStatsQ :: Query
 opStatsQ = [sql|
-  SELECT u.login, ca.name, ca.caseId, 
+  SELECT u.login, ca.name, ca.caseId,
          (extract (epoch from ca.openTime)::int8)::text,
          (extract (epoch from ca.closeTime)::int8)::text
   FROM (SELECT a.*, row_number() OVER
@@ -267,6 +268,35 @@ busyOps :: AppHandler ()
 busyOps = do
   rows <- withPG pg_search $ \c -> query_ c busyOpsQ
   writeJSON $ mkMap [ "login", "count"] rows
+
+actStatsOrderQ :: Query
+actStatsOrderQ = [sql|
+  SELECT count(*)::text
+  FROM actiontbl
+  WHERE assignedTo IS NULL OR assignedTo = ''
+  AND name = ANY('{ "orderService", "orderServiceAnalyst"
+                  , "tellMeMore", "callMeMaybe"}');
+  |]
+
+actStatsControlQ :: Query
+actStatsControlQ = [sql|
+  SELECT count(*)::text
+  FROM actiontbl
+  WHERE assignedTo IS NULL OR assignedTo = ''
+  AND name = ANY('{ "tellClient", "checkStatus"
+                  , "tellDelayClient", "checkEndOfService"
+                  , "getInfoDealerVW"}');
+  |]
+
+-- | Serve JSON object with fields `order` and `control`, each
+-- containing a number of unassigned actions in that category.
+actStats :: AppHandler ()
+actStats = do
+  (Only orders:_) <- withPG pg_search $ \c -> query_ c actStatsOrderQ
+  (Only controls:_) <- withPG pg_search $ \c -> query_ c actStatsControlQ
+  writeJSON $ M.fromList
+                ([ ("order", orders)
+                 , ("control", controls)] :: [(ByteString, ByteString)])
 
 boUsers :: AppHandler ()
 boUsers = do

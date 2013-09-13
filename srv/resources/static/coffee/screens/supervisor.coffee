@@ -155,6 +155,10 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
     $('select[name=supervisor-table_length]').val(100)
     $('select[name=supervisor-table_length]').change()
 
+    $.getJSON "/supervisor/actStats", (as) ->
+      $("#unassigned-orders").text(as.order)
+      $("#unassigned-controls").text(as.control)
+
   { constructor: screenSetup
   , template: tpl
   }
