@@ -198,11 +198,7 @@
         },        
         {
             "value": "cadold",
-            "label": "GM / Cadillac до 2012"
-        },
-        {
-            "value": "cad2012",
-            "label": "GM / Cadillac после 2012"
+            "label": "Cadillac"
         },
         {
             "value": "chevyko",
