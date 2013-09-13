@@ -551,7 +551,7 @@ actionResultMap = Map.fromList
   -- in HH:MM format
   ,("defer",           \objId -> do
       deferBy <- get objId "deferBy"
-      set objId "deferBy" "" >> set objId "result" ""
+      set objId "deferBy" "" >> set objId "result" ""  >> set objId "closeTime" ""
       case (map B.readInt $ B.split ':' deferBy) of
         (Just (hours, _):Just (minutes, _):_) ->
             when (0 <= hours && 0 <= minutes && minutes <= 59) $
