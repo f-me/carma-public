@@ -43,6 +43,8 @@ import Snaplet.DbLayer.Triggers.MailToPSA
 
 import Snap.Snaplet.SimpleLog
 
+import Carma.HTTP (read1Reference)
+
 import Util as U
 import qualified  Utils.RKCCalc as RKC
 
@@ -914,6 +916,14 @@ getService objId field
   = get objId "parentId"
   >>= (`get` field)
 
+-- | Get the name of an action's service.
+getServiceType :: MonadTrigger m b =>
+                  FieldValue
+               -- ^ Action id.
+               -> m b (Maybe String)
+getServiceType actId = do
+  v <- get actId "parentId"
+  return $ fst <$> read1Reference v
 
 newPartnerMessage objId = do
   svcId <- get objId "parentId"
@@ -959,11 +969,18 @@ closeServiceAndSendInfoVW objId = do
   addParComment act1
 
   program <- get objId "caseId" >>= (`get` "program")
+  st <- getServiceType objId
   when (program `elem` ["vwMotor", "vwcargo", "peugeot", "citroen"]) $ do
+    dueDelta <- if program `elem` ["peugeot", "citroen"] && st == Just "tech"
+                then do
+                  fse <- getService objId "times_factServiceEnd"
+                  return $ changeTime (+5*60) fse
+                else
+                  return (+7*24*60*60)
     act2 <- replaceAction
       "getInfoDealerVW"
       "Уточнить информацию о ремонте у дилера/партнёра (VW, PSA)"
-      "op_dealer" "3" (+7*24*60*60)
+      "op_dealer" "3" dueDelta
       objId
     set act2 "assignedTo" ""
     addParComment act2
