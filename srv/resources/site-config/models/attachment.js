@@ -10,10 +10,17 @@
     },
     {
       "meta": {
-        "label": "Файл",
         "invisible": true
       },
       "name": "hash"
+    },
+    {
+      "meta": {
+        "invisible": true
+      },
+      "type": "datetime",
+      "groupName": null,
+      "name": "ctime"
     }
   ],
   "applications": [],
