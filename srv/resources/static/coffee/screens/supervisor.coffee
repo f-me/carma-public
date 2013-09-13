@@ -2,14 +2,14 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
 
   dataTableOptions = ->
     aoColumns: utils
-      .repeat(10, null)
+      .repeat(11, null)
       .concat(utils.repeat(2, { bVisible: false}))
     bPaginate: true
     fnRowCallback: (nRow, aData, iDisplayIndex, iDisplayIndexFull) ->
       caseId = aData[0].split('/')[0]
       caseLnk = "<a style='color: black' href='/#case/#{caseId}'> #{aData[0]} </a>"
       duetime  = Date.parse aData[5]
-      srvStart = Date.parse aData[10]
+      srvStart = Date.parse aData[11]
       mktime = (n) ->
         d = new Date
         d.setMinutes(d.getMinutes() + n)
@@ -18,7 +18,7 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
       d120 = mktime 120
       d480 = mktime 480
       now  = new Date
-      name = aData[11]
+      name = aData[12]
 
       $('td:eq(0)', nRow).html caseLnk
 
@@ -65,12 +65,21 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
         .toString("dd.MM.yyyy HH:mm:ss")
       srvStart = new Date(obj.times_expectedServiceStart * 1000)
         .toString("dd.MM.yyyy HH:mm:ss")
+      timeLabel =
+        if _.isEmpty obj.assignedTo
+          utils.timeFrom obj.ctime
+        else
+          if _.isEmpty obj.closeTime
+            utils.timeFrom obj.assignTime
+          else
+            utils.timeFrom obj.openTime, obj.closeTime
       [ "#{cid}/#{obj.id} (#{svcName or ''})"
       , closed
       , n[obj.name] || ''
       , u[obj.assignedTo] || ''
       , g[obj.targetGroup] || obj.targetGroup || ''
       , duetime || ''
+      , timeLabel
       , r[obj.result] || ''
       , obj.priority || ''
       , global.dictValueCache['DealerCities'][obj.city] || ''

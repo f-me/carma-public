@@ -104,6 +104,10 @@ selectActions mClosed mAssignee mRole mFrom mTo = do
     $  "SELECT a.id::text, a.caseId, a.parentId,"
     ++ "       (a.closed::int)::text, a.name, a.assignedTo, a.targetGroup,"
     ++ "       (extract (epoch from a.duetime at time zone 'UTC')::int8)::text, "
+    ++ "       (extract (epoch from a.ctime at time zone 'UTC')::int8)::text, "
+    ++ "       (extract (epoch from a.assigntime at time zone 'UTC')::int8)::text, "
+    ++ "       (extract (epoch from a.opentime at time zone 'UTC')::int8)::text, "
+    ++ "       (extract (epoch from a.closetime at time zone 'UTC')::int8)::text, "
     ++ "       a.result, a.priority, a.description, a.comment,"
     ++ "       c.city, c.program,"
     ++ "       (extract (epoch from"
@@ -121,10 +125,12 @@ selectActions mClosed mAssignee mRole mFrom mTo = do
     ++ (maybe "" (\x -> "  AND extract (epoch from duetime) >= " ++ int x) mFrom)
     ++ (maybe "" (\x -> "  AND extract (epoch from duetime) <= " ++ int x) mTo)
   let fields
-        = ["id", "caseId", "parentId", "closed", "name"
-          ,"assignedTo", "targetGroup", "duetime", "result"
-          ,"priority", "description", "comment","city", "program"
-          ,"times_expectedServiceStart"]
+        = [ "id", "caseId", "parentId", "closed", "name"
+          , "assignedTo", "targetGroup", "duetime"
+          , "ctime", "assignTime", "openTime", "closeTime"
+          , "result"
+          , "priority", "description", "comment","city", "program"
+          , "times_expectedServiceStart"]
   return $ mkMap fields rows
 
 

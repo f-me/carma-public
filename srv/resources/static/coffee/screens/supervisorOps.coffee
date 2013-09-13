@@ -30,6 +30,7 @@ define  [ "utils"
       $.getJSON "/allUsers", (us) ->
        $.getJSON "/supervisor/opStats", (os) ->
         dt.fnClearTable()
+
         rows = for u in us when (/back/.test u.roles ||
                                  /bo_control/.test u.roles)
           do (u) ->
@@ -42,21 +43,12 @@ define  [ "utils"
             hook.dictManyHook userModel, koUser
             login = u.value
 
-            now = new Date()
-            # Calculate delta from current time to given timestamp,
-            # return formatted and unformatted delta in a list
-            timeSince = (ts) ->
-              return null if _.isEmpty ts
-              d = new Date(ts * 1000)
-              delta = ((now - d) /  1000)
-              return [utils.formatSec delta, delta]
-
             if os[login]
               [idle, [formattedTs, ts]] =
                 if _.isEmpty os[login].closeTime
-                  [false, timeSince os[login].openTime]
+                  [false, utils.timeFrom os[login].openTime]
                 else
-                  [true, timeSince os[login].closeTime]
+                  [true, utils.timeFrom os[login].closeTime]
                   
               [caseLink, actionLabel] =
                 if idle
