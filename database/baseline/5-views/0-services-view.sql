@@ -22,6 +22,7 @@ create view servicesview as
         c.contact_ownerphone4,
         c.contact_owneremail,
         c.program,
+        pgm.label as programLabel
         c.car_vin,
         c.car_make,
         c.car_model,
@@ -125,6 +126,7 @@ create view servicesview as
         p4.name as car_dealerto_name
 
     from casetbl c
+        left outer join programtbl pgm on c.program = pgm.value
         left outer join partnertbl p3 on c.car_seller = p3.id::text
         left outer join partnertbl p4 on c.car_dealerTO = p4.id::text
       , servicetbl s
