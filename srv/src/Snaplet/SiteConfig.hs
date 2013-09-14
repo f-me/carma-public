@@ -12,6 +12,8 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Map as M
 import qualified Data.Aeson as Aeson
+import qualified Data.HashMap.Strict as HM
+import qualified Data.Vector as V
 
 import Data.Pool
 import Database.PostgreSQL.Simple as Pg
@@ -32,10 +34,12 @@ import Snaplet.SiteConfig.Dictionaries
 
 import Utils.HttpErrors
 
+import Data.Model.Sql
 import qualified Carma.Model.Dictionary as Dictionary
 import qualified Carma.Model.CarMake as CarMake
 import qualified Carma.Model.CarModel as CarModel
 import qualified Carma.Model.NewCaseField as NewCaseField
+import qualified Carma.Model.Program as Program
 
 
 writeJSON :: Aeson.ToJSON v => v -> Handler a b ()
@@ -103,7 +107,15 @@ stripModel u m = do
 
 
 serveDictionaries :: Handler b (SiteConfig b) ()
-serveDictionaries = gets dictionaries >>= writeJSON
+serveDictionaries = do
+  let withPG f = gets pg_search >>= liftIO . (`withResource` f)
+  programs <- withPG $ selectJSON
+    (Program.value :. Program.label :. eq Program.active True)
+  Aeson.Object dictMap <- gets dictionaries
+  writeJSON $ Aeson.Object
+    $ HM.insert "Programs"
+      (Aeson.object [("entries", Aeson.Array $ V.fromList programs)])
+      dictMap
 
 
 initSiteConfig :: HasAuth b
