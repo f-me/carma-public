@@ -37,7 +37,7 @@ library
     base                 == 4.6.*,
     containers           == 0.5.*,
     unordered-containers == 0.2.*,
-    postgresql-simple    == 0.3.3.*,
+    postgresql-simple    == 0.3.*,
     text                 == 0.11.*,
     time                 == 1.4.*,
     vector               == 0.10.*
