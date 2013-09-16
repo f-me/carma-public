@@ -18,6 +18,7 @@ import Carma.Model.CarMake      (CarMake)
 import Carma.Model.CarModel     (CarModel)
 import Carma.Model.NewCaseField (NewCaseField)
 import Carma.Model.Program      (Program)
+import Carma.Model.Region       (Region)
 
 
 dispatch :: forall a . Text -> (forall m . Model m => m -> a) -> Maybe a
@@ -31,4 +32,5 @@ dispatch model fn = Map.lookup model modelMap
       ,add (undefined :: CarModel)
       ,add (undefined :: NewCaseField)
       ,add (undefined :: Program)
+      ,add (undefined :: Region)
       ]
