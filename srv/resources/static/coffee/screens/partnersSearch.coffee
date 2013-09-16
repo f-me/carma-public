@@ -424,7 +424,7 @@ define [ "utils"
           workNow: (v) ->
             return true unless kvm['workNow']()
             k = if v.isdealer() then 'serv' else 'disp'
-            times = _.reduce (_.filter v.phones(), (p) -> p.key() == k),
+            times = _.reduce (_.filter v.phonesObjects(), (p) -> p.key() == k),
                              ((a, p) -> "#{a}, #{(p.note() or '')}"),
                              ''
             time.isWorkingNow time.parseWorkTimes(times)
