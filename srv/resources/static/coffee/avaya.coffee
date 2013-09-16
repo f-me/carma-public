@@ -68,6 +68,12 @@ class @AvayaWidget
 
 # FIXME: make a real dictionary from this
 lineInfo =
+  "PEUGEOT+Bosch":
+    greeting: "Пежо ассистанс, имя оператора, здравствуйте."
+    program: "peugeot"
+  "CITROEN+Bosch":
+    greeting: "Ситроен ассистанс, имя оператора, здравствуйте."
+    program: "citroen"
   "VW+BOSCH":
     greeting: "VW Гарантия мобильности, имя оператора, чем могу Вам помочь?"
     program: "vwMotor"
