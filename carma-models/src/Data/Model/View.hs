@@ -53,7 +53,7 @@ defaultView :: forall m . Model m => View m
 defaultView = View
   { modelName = T.pack $ tableName (undefined :: m)
   , title = ""
-  , fields = [defaultFieldView f | f <- modelFields :: [FieldDesc m]]
+  , fields = [defaultFieldView f | f <- identDesc:modelFields :: [FieldDesc m]]
   }
 
 
