@@ -3,31 +3,20 @@ define [ "utils"
        , "model/utils"
        , "model/main"
        , "screenman"
+       , "lib/model-dict"
        ],
-  (utils, tpl, mu, main, screenman) ->
+  (utils, tpl, mu, main, screenman, modelDict) ->
 
-    modelSetup = (modelName, viewName, args) ->
+    modelSetup = (dict, viewName, args) ->
       permEl = "permissions"
       focusClass = "focusable"
       refs = []
       options = {permEl, focusClass, refs}
-      kvm = main.modelSetup(modelName) viewName, args, options
+      kvm = main.modelSetup(dict.name) viewName, args, options
       kvm['updateUrl'] = ->
-        global.router.navigate "dictionaries/#{modelName}/#{kvm.id()}",
+        global.router.navigate "dict/#{dict.id}/#{kvm.id()}",
                                { trigger: false }
       kvm
-
-    visibleFields = ->
-      [{name:'id', label:'#'}
-      ,{name:'label', label:'Название'}
-      ,{name:'value', label:'Значение'}]
-
-    objsToRows = (instances) ->
-      _.map instances, (inst) ->
-        row = []
-        _.each do visibleFields, (field) ->
-          row.push(inst[field.name] || '')
-        row
 
     screenSetup = (viewName, args) ->
       dicts = [{id: null, name: 'Выберите справочник' }]
@@ -41,17 +30,34 @@ define [ "utils"
           location.reload true
 
       if args.dict
-        dictName = null
-        $.bgetJSON "/_/Dictionary/#{args.dict}", (d) ->
-          dictName = d.name
+        dict = null
+        majorFields = null
+        $.bgetJSON "/_/Dictionary/#{args.dict}", (d) -> dict = d
+        dictName = dict.name
+        dictModel = global.model dictName
 
-        kvm = modelSetup dictName, viewName, args
+        majorFields = []
+        for f in dict.majorFields
+          fDesc = _.find dictModel.fields, (mf) -> mf.name == f
+          if fDesc
+            tr = (v) -> v
+            if fDesc.type == 'dictionary' and f != 'id'
+              d = new modelDict.dict {dict: fDesc.meta.dictionaryName}
+              tr = (v) -> d.getLab v
+            majorFields.push {name: f, label: fDesc.meta.label, tr: tr}
 
-        tableHeader = _.reduce(do visibleFields, (memo, field) ->
-          memo + "<th>#{field.label}</th>"
-        , '')
-        tableHeader = "<thead><tr>#{tableHeader}</tr></thead>"
+        kvm = modelSetup dict, viewName, args
+
+        tableHeader = _.map(
+            _.pluck(majorFields, 'label'),
+            (l) -> "<th>#{l}</th>")
+        tableHeader = "<thead><tr>#{tableHeader.join('')}</tr></thead>"
         $("#dict-table").append(tableHeader)
+
+        objsToRows = (objs) ->
+          _.map objs, (obj) ->
+            for f in majorFields
+              f.tr(obj[f.name]) || ''
 
         tableParams =
           tableName: "dict"
@@ -62,15 +68,14 @@ define [ "utils"
           .setObjsToRowsConverter(objsToRows)
           .on("click.datatable", "tr", ->
             id = @children[0].innerText
-            k = modelSetup dictName, viewName, {id}
+            k = modelSetup dict, viewName, {id}
             k['updateUrl']()
             k)
 
         screenman.showScreen dictName
 
         $('#permissions').find('.btn-success').on 'click', ->
-          row = _.map do visibleFields, (field) ->
-            kvm[field.name]?() || ''
+          row = _.map majorFields, (field) -> kvm[field.name]?() || ''
           table.dataTable.fnAddData [row]
 
         $("#add-new-item-btn").on 'click', ->
