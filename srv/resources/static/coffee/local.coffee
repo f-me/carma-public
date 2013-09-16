@@ -10,6 +10,7 @@ require [ "domready"
         , "json!/allUsers"
         , "utils"
         , "sendSms"
+        , "globallibs/bug-report"
         , "lstorePubSub"
         ], ( dom
            , main
@@ -21,6 +22,7 @@ require [ "domready"
            , users
            , u
            , sendSms
+           , bug
            , pubSub
            ) ->
 
@@ -64,6 +66,8 @@ require [ "domready"
       global.router.navigate user.meta.homepage, {trigger: true}
 
     sendSms.setup()
+
+    new bug.BugReport {el: $('#send-bug-report')}
 
     if user.login == "darya" or user.login == "e.balabanova"
       $('#icon-user').removeClass('icon-user').addClass('icon-heart')

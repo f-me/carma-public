@@ -48,6 +48,9 @@
     <!-- base 64 encode/decode library -->
     <script src="/s/js/3p/b64.js" />
 
+    <!-- Joseph Meyers md5 implementation -->
+    <script src="/s/js/3p/md5.js" />
+
     <!-- global libs, that is not handled by require js -->
     <!-- typeahead menu -->
     <script src="/s/js/gen/globallibs/th-menu.js" />
@@ -114,6 +117,11 @@
             </li>
             <!-- ko template: { name: 'nav-li-template' }-->
             <!-- /ko -->
+            <li>
+              <a id="send-bug-report" href="#">
+                <i class="icon-fire icon-white"></i>
+              </a>
+            </li>
           </ul>
           <ifLoggedIn>
             <ul class="nav pull-right">
