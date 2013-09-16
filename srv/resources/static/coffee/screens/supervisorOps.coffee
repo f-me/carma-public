@@ -11,21 +11,28 @@ define  [ "utils"
 
       t = $("#supervisorOps-table")
       return if t.hasClass("dataTable")
+
       dt = utils.mkDataTable t,
         bPaginate: false
-        aoColumns: [{}, {}, {}, {}, {bVisible: false}]
+        aoColumns: [ {}, {}, {}, {}
+                   , {"sWidth": "5%"}
+                   , {"sWidth": "10%"}
+                   , {}, {bVisible: false}]
         fnCreatedRow: (nRow, aData) ->
           tpl = $('#dictionary-many-field-template').html()
           $('td:eq(2)', nRow).html(
             Mustache.render tpl, userModel.fieldHash.boCities)
           $('td:eq(3)', nRow).html(
             Mustache.render tpl, userModel.fieldHash.boPrograms)
-          ko.applyBindings aData[4], nRow
+          ko.applyBindings aData[7], nRow
 
 
       $.getJSON "/allUsers", (us) ->
+       $.getJSON "/supervisor/opStats", (os) ->
         dt.fnClearTable()
-        rows = for u in us when /back/.test u.roles
+
+        rows = for u in us when (/back/.test u.roles ||
+                                 /bo_control/.test u.roles)
           do (u) ->
             koUser =
               boCities: ko.observable u.boCities
@@ -34,11 +41,37 @@ define  [ "utils"
               boProgramsDisabled: ko.observable false
 
             hook.dictManyHook userModel, koUser
+            login = u.value
+
+            if os[login]
+              [idle, [formattedTs, ts]] =
+                if _.isEmpty os[login].closeTime
+                  [false, utils.timeFrom os[login].openTime]
+                else
+                  [true, utils.timeFrom os[login].closeTime]
+                  
+              [caseLink, actionLabel] =
+                if idle
+                  ["нет", null]
+                else
+                  cid = os[login].caseId.split(':')[1]
+                  [ "<a href=\"/#case/#{cid}\" target=\"_blank\">#{cid}</a>"
+                  , global.dictValueCache['ActionNames'][os[login].aName]
+                  ]
+
+              rowStats =
+                [ caseLink
+                , formattedTs
+                , actionLabel
+                ]
+            else
+              rowStats = [null, null, null]
+
             row =
               [ u.value, u.label
               , arrStr(koUser.boCitiesLocals())
               , arrStr(koUser.boProgramsLocals())
-              , koUser]
+              ].concat(rowStats).concat([koUser])
 
             update = (fName) -> (val) ->
               $.ajax
@@ -59,10 +92,10 @@ define  [ "utils"
         updateBusy()
 
   updateBusy = ->
-    $.getJSON "actions/busyOps", (d) ->
+    $.getJSON "/supervisor/busyOps", (d) ->
       ops = {}
       for i in d
-        ops[i.name] = i.count
+        ops[i.login] = i.count
       $("#supervisorOps-table tr").each (i,e) ->
         $(e).children('td').css('background-color', '')
         if ops[ $($(e).find('td')[0]).text() ] > 5

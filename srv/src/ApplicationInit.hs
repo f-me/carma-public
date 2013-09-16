@@ -58,14 +58,16 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
                               chkAuthLocal . method GET    $ searchCallsByPhone)
          , ("/actionsFor/:id",chkAuthLocal . method GET    $ getActionsForCase)
          , ("/cancelsFor/:id",chkAuthLocal . method GET    $ getCancelsForCase)
-         , ("/littleMoreActions",
+         , ("/allActions",    chkAuthLocal . method GET $ allActionsHandler)
+         , ("/backoffice/littleMoreActions",
             chkAuthLocal . method PUT $ littleMoreActionsHandler)
          , ("/backoffice/openAction/:actionid",
-            chkAuthLocal . method POST $ openAction)
-         , ("/allActions",    chkAuthLocal . method GET $ allActionsHandler)
-         , ("actions/unassigned",
+            chkAuthLocal . method PUT $ openAction)
+         , ("/backoffice/unassigned",
             chkAuthLocal . method GET $ unassignedActionsHandler)
-         , ("actions/busyOps", chkAuthLocal . method GET $ busyOps)
+         , ("/supervisor/busyOps",  chkAuthLocal . method GET $ busyOps)
+         , ("/supervisor/opStats",  chkAuthLocal . method GET $ opStats)
+         , ("/supervisor/actStats", chkAuthLocal . method GET $ actStats)
          , ("/allPartners",   chkAuthLocal . method GET  $ allPartnersHandler)
          , ("/partnersFor/:srv",
                               chkAuthLocal . method GET $ partnersForSrvHandler)

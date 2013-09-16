@@ -1,10 +1,11 @@
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module AppHandlers.CustomSearches where
 
 import Control.Applicative
 import Data.String (fromString)
 import Data.Maybe
-import Data.Map (Map)
+import Data.Map as M (Map, (!), delete, fromList)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 
@@ -104,6 +105,10 @@ selectActions mClosed mAssignee mRole mFrom mTo = do
     $  "SELECT a.id::text, a.caseId, a.parentId,"
     ++ "       (a.closed::int)::text, a.name, a.assignedTo, a.targetGroup,"
     ++ "       (extract (epoch from a.duetime at time zone 'UTC')::int8)::text, "
+    ++ "       (extract (epoch from a.ctime at time zone 'UTC')::int8)::text, "
+    ++ "       (extract (epoch from a.assigntime at time zone 'UTC')::int8)::text, "
+    ++ "       (extract (epoch from a.opentime at time zone 'UTC')::int8)::text, "
+    ++ "       (extract (epoch from a.closetime at time zone 'UTC')::int8)::text, "
     ++ "       a.result, a.priority, a.description, a.comment,"
     ++ "       c.city, c.program,"
     ++ "       (extract (epoch from"
@@ -121,10 +126,12 @@ selectActions mClosed mAssignee mRole mFrom mTo = do
     ++ (maybe "" (\x -> "  AND extract (epoch from duetime) >= " ++ int x) mFrom)
     ++ (maybe "" (\x -> "  AND extract (epoch from duetime) <= " ++ int x) mTo)
   let fields
-        = ["id", "caseId", "parentId", "closed", "name"
-          ,"assignedTo", "targetGroup", "duetime", "result"
-          ,"priority", "description", "comment","city", "program"
-          ,"times_expectedServiceStart"]
+        = [ "id", "caseId", "parentId", "closed", "name"
+          , "assignedTo", "targetGroup", "duetime"
+          , "ctime", "assignTime", "openTime", "closeTime"
+          , "result"
+          , "priority", "description", "comment","city", "program"
+          , "times_expectedServiceStart"]
   return $ mkMap fields rows
 
 
@@ -217,8 +224,39 @@ selectContracts = do
         ]
   writeJSON $ mkMap fields rows
 
-busyOpsq :: String
-busyOpsq = [sql|
+opStatsQ :: Query
+opStatsQ = [sql|
+  SELECT u.login, ca.name, ca.caseId,
+         (extract (epoch from ca.openTime)::int8)::text,
+         (extract (epoch from ca.closeTime)::int8)::text
+  FROM (SELECT a.*, row_number() OVER
+        (PARTITION BY assignedto ORDER BY openTime DESC)
+        FROM actiontbl a
+        WHERE openTime IS NOT NULL) ca,
+  usermetatbl u
+  WHERE ca.row_number = 1
+  AND u.login = ca.assignedTo
+  AND ('back' = ANY (u.roles) OR 'bo_control' = ANY (u.roles))
+  ORDER BY closeTime;
+  |]
+
+-- | Serve backoffice operator stats (users with roles
+-- back/bo_control) in JSON as a map from user logins to objects with
+-- fields `aName`, `caseId`, `openTime` and `closeTime`.
+opStats :: AppHandler ()
+opStats = do
+  rows <- withPG pg_search $ \c -> query_ c opStatsQ
+  let obj = mkMap [ "login"
+                  , "aName"
+                  , "caseId"
+                  , "openTime"
+                  , "closeTime"]
+            rows
+      obj' = M.fromList $ map (\m -> (m ! "login", M.delete "login" m)) obj
+  writeJSON obj'
+
+busyOpsQ :: Query
+busyOpsQ = [sql|
   SELECT assignedTo, count(1)::text
   FROM   actiontbl
   WHERE  closed = 'f'
@@ -228,8 +266,37 @@ busyOpsq = [sql|
 
 busyOps :: AppHandler ()
 busyOps = do
-  rows <- withPG pg_search $ \c -> query_ c $ fromString busyOpsq
-  writeJSON $ mkMap ["name", "count"] rows
+  rows <- withPG pg_search $ \c -> query_ c busyOpsQ
+  writeJSON $ mkMap [ "login", "count"] rows
+
+actStatsOrderQ :: Query
+actStatsOrderQ = [sql|
+  SELECT count(*)::text
+  FROM actiontbl
+  WHERE assignedTo IS NULL OR assignedTo = ''
+  AND name = ANY('{ "orderService", "orderServiceAnalyst"
+                  , "tellMeMore", "callMeMaybe"}');
+  |]
+
+actStatsControlQ :: Query
+actStatsControlQ = [sql|
+  SELECT count(*)::text
+  FROM actiontbl
+  WHERE assignedTo IS NULL OR assignedTo = ''
+  AND name = ANY('{ "tellClient", "checkStatus"
+                  , "tellDelayClient", "checkEndOfService"
+                  , "getInfoDealerVW"}');
+  |]
+
+-- | Serve JSON object with fields `order` and `control`, each
+-- containing a number of unassigned actions in that category.
+actStats :: AppHandler ()
+actStats = do
+  (Only orders:_) <- withPG pg_search $ \c -> query_ c actStatsOrderQ
+  (Only controls:_) <- withPG pg_search $ \c -> query_ c actStatsControlQ
+  writeJSON $ M.fromList
+                ([ ("order", orders)
+                 , ("control", controls)] :: [(ByteString, ByteString)])
 
 boUsers :: AppHandler ()
 boUsers = do

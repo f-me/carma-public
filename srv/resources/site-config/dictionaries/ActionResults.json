@@ -102,10 +102,6 @@
                 "label": "Клиент отказался от услуги"
             },
             {
-                "value": "bigDelay",
-                "label": "Отложить на 6 часов"
-            },
-            {
                 "value": "defer",
                 "label": "Отложить"
             }
@@ -242,14 +238,6 @@
                 "label": "Претензия разрешена"
             },
             {
-                "value": "bigDelay",
-                "label": "Отложить на 6 часов"
-            },
-            {
-                "value": "weekDelay",
-                "label": "Отложить на неделю"
-            },
-            {
                 "value": "defer",
                 "label": "Отложить"
             }
@@ -268,14 +256,6 @@
                 "label": "Вернуть в Backoffice"
             },
             {
-                "value": "bigDelay",
-                "label": "Отложить на 6 часов"
-            },
-            {
-                "value": "weekDelay",
-                "label": "Отложить на неделю"
-            },
-            {
                 "value": "defer",
                 "label": "Отложить"
             }
@@ -284,14 +264,6 @@
             {
                 "value": "backToParyguy",
                 "label": "Вернуть менеджеру по партнёрам"
-            },
-            {
-                "value": "bigDelay",
-                "label": "Отложить на 6 часов"
-            },
-            {
-                "value": "weekDelay",
-                "label": "Отложить на неделю"
             },
             {
                 "value": "defer",
@@ -316,14 +288,6 @@
                 "label": "Ок (без проверки директором и бухгалтерией)"
             },
             {
-                "value": "bigDelay",
-                "label": "Отложить на 6 часов"
-            },
-            {
-                "value": "weekDelay",
-                "label": "Отложить на неделю"
-            },
-            {
                 "value": "defer",
                 "label": "Отложить"
             }
@@ -342,14 +306,6 @@
                 "label": "Ок (без проверки бухгалтерией)"
             },
             {
-                "value": "bigDelay",
-                "label": "Отложить на 6 часов"
-            },
-            {
-                "value": "weekDelay",
-                "label": "Отложить на неделю"
-            },
-            {
                 "value": "defer",
                 "label": "Отложить"
             }
@@ -364,14 +320,6 @@
                 "label": "Проверено бухгалтерией"
             },
             {
-                "value": "bigDelay",
-                "label": "Отложить на 6 часов"
-            },
-            {
-                "value": "weekDelay",
-                "label": "Отложить на неделю"
-            },
-            {
                 "value": "defer",
                 "label": "Отложить"
             }
@@ -380,14 +328,6 @@
             {
                 "value": "analystChecked",
                 "label": "Проверено аналитиком"
-            },
-            {
-                "value": "bigDelay",
-                "label": "Отложить на 6 часов"
-            },
-            {
-                "value": "weekDelay",
-                "label": "Отложить на неделю"
             },
             {
                 "value": "defer",
@@ -406,14 +346,6 @@
             {
                 "value": "vwclosed",
                 "label": "Информация получена"
-            },
-            {
-                "value": "bigDelay",
-                "label": "Отложить на 6 часов"
-            },
-            {
-                "value": "weekDelay",
-                "label": "Отложить на неделю"
             },
             {
                 "value": "defer",
@@ -436,14 +368,6 @@
             {
                 "value": "partnerGivenCloseTime",
                 "label": "Закрыть заявку позже"
-            },
-            {
-                "value": "bigDelay",
-                "label": "Отложить на 6 часов"
-            },
-            {
-                "value": "weekDelay",
-                "label": "Отложить на неделю"
             },
             {
                 "value": "defer",

@@ -119,6 +119,15 @@ define ["model/utils"], (mu) ->
       !!~String(val).toLowerCase().indexOf(q.toLowerCase())
   window.checkMatch = checkMatch
 
+  # Format a numeric value from seconds to hours and minutes
+  formatSec = (s) ->
+    mins = Math.round(s / 60 % 60)
+    hours = Math.round(s / 3600 % 3600)
+    if hours == 0
+      "#{mins}м"
+    else
+      "#{hours}ч #{mins}м"
+
   findCaseOrReferenceVM: findCaseOrReferenceVM
 
   # build global function from local to module one
@@ -191,9 +200,20 @@ define ["model/utils"], (mu) ->
       view: view_name
       field: field_name
 
+  # Calculate delta between two timestamps, return formatted and
+  # unformatted delta in a list. If second timestamp is omitted,
+  # current time is used.
+  timeFrom: (from, to) ->
+    return null if _.isEmpty from
+    d = new Date(from * 1000)
+    if _.isEmpty to
+      to = new Date()
+    delta = (to - d) / 1000
+    return [formatSec delta, delta]
+
   # Format a numeric value from seconds to minutes
   formatSecToMin: (s) ->
-    Math.round(s / 60) + "m"
+    Math.round(s / 60) + "м"
 
   # Hide all views on center pane and show view for first reference
   # stored in <fieldName> of model loaded into <parentView> there

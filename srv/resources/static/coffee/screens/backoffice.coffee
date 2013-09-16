@@ -40,7 +40,7 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
   pullActions = ->
     $.ajax
       type: "PUT"
-      url: "/littleMoreActions"
+      url: "/backoffice/littleMoreActions"
       success:  (res) ->
         if !_.isEmpty res
           if _.contains global.user.roles, "back"
@@ -57,7 +57,7 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
 
   # Update unassigned actions count and queue next update
   updateUnassigned = ->
-    $.getJSON "/actions/unassigned", (r) ->
+    $.getJSON "/backoffice/unassigned", (r) ->
       txt = if r[0] > 0
           "Заказов услуг в очереди: #{r[0]}"
         else
@@ -124,7 +124,7 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
   # Start working on an action and redirect to its case
   openCaseAction = (actId, caseId) ->
     $.ajax
-      type: "POST"
+      type: "PUT"
       url: "/backoffice/openAction/#{actId}"
     window.location.hash = "case/#{caseId}"
 

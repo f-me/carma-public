@@ -1,0 +1,256 @@
+{
+    "entries": [
+        {
+            "value": "aston",
+            "label": "ACTA / Aston Martin"
+        },
+        {
+            "value": "bentley",
+            "label": "ACTA / Bentley"
+        },
+        {
+            "value": "nz",
+            "label": "B2B / Независимость"
+        },
+        {
+            "value": "chezer",
+            "label": "B2B / Цезарь Сателлит"
+        },
+        {
+            "value": "night",
+            "label": "B2B / Ночной сервис Европкар"
+        },        
+        {
+            "value": "tele",
+            "label": "B2B / 3S Телематика"
+        },
+        {
+            "value": "arc",
+            "label": "B2B / Arc B2B"
+        },
+        {
+            "value": "hyundai",
+            "label": "B2B / RTR Hyundai"
+        },
+        {
+            "value": "avilon",
+            "label": "B2B / Авилон"
+        },
+        {
+            "value": "avtoC",
+            "label": "B2B / Авто-Цель"
+        },
+        {
+            "value": "advocard",
+            "label": "B2C / Адвокард"
+        },
+        {
+            "value": "arval",
+            "label": "B2B / АРВАЛ"
+        },
+        {
+            "value": "jenser",
+            "label": "B2B / Дженсер Ясенево"
+        },
+        {
+            "value": "auimp",
+            "label": "B2B / ДЦ Автоимпорт"
+        },       
+        {
+            "value": "tvd",
+            "label": "B2B / ДЦ ТВД-Авто"
+        },
+        {
+            "value": "euro",
+            "label": "B2B / Европлан"
+        },
+        {
+            "value": "euroVW",
+            "label": "B2B / Европлан/VW"
+        },
+        {
+            "value": "euroFord",
+            "label": "B2B / Европлан/Ford"
+        },
+        {
+            "value": "euroGM",
+            "label": "B2B / Европлан/GM"
+        },
+        {
+            "value": "corpse",
+            "label": "B2B / ИП Трубкин"
+        },
+        {
+            "value": "map",
+            "label": "B2B / Мапфре"
+        },
+        {
+            "value": "mapC",
+            "label": "B2B / Мапфре Citroen"
+        },        
+        {
+            "value": "micro",
+            "label": "B2B / Микропрограммы"
+        },
+        {
+            "value": "covidien",
+            "label": "B2B / Ковидиен"
+        },
+        {
+            "value": "covidienVW",
+            "label": "B2B / Ковидиен/VW"
+        },
+        {
+            "value": "covidienFord",
+            "label": "B2B / Ковидиен/Ford"
+        },
+        {
+            "value": "covidienGM",
+            "label": "B2B / Ковидиен/GM"
+        },
+        {
+            "value": "rnbase",
+            "label": "B2B / РН-карт-Москва Базовая"
+        },
+        {
+            "value": "rnstandard",
+            "label": "B2B / РН-карт-Москва Стандарт"
+        },
+        {
+            "value": "lyckoil",
+            "label": "B2B / ЛУКОЙЛ-Петрокоммерц"
+        },
+        {
+            "value": "vnukovo",
+            "label": "B2B / VW Внуково"
+        },
+        {
+            "value": "bm",
+            "label": "B2B / Блок Моторс"
+        },
+        {
+            "value": "autopres",
+            "label": "B2B / Автопрестус"
+        },
+        {
+            "value": "b2cSt",
+            "label": "B2C карты / Стандарт"
+        },
+        {
+            "value": "b2cPl",
+            "label": "B2C карты / Платинум"
+        },
+        {
+            "value": "b2cPr",
+            "label": "B2C карты / Премиум"
+        },
+        {
+            "value": "b2cL",
+            "label": "B2C карты / Лайт"
+        },        
+        {
+            "value": "samaraAssis",
+            "label": "B2B / Самара-Ассистанс"
+        },
+        {
+            "value": "unicredit",
+            "label": "B2C / ЮниКредитбанк"
+        },
+        {
+            "value": "vtb24",
+            "label": "B2C / ВТБ 24"
+        },
+        {
+            "value": "akbars",
+            "label": "B2C / АК БАРС"
+        },
+        {
+            "value": "castrol",
+            "label": "B2C / Кастрол"
+        },
+        {
+            "value": "bp",
+            "label": "B2B / BP"
+        },
+        {
+            "value": "chartis",
+            "label": "B2B / Chartis Assistance"
+        },
+        {
+            "value": "lada",
+            "label": "ВАЗ (Lada): «ЛадаЦентрБелгород»"
+        },        
+        {
+            "value": "ford",
+            "label": "Ford"
+        },
+        {
+            "value": "fordPlus",
+            "label": "Ford+"
+        },
+        {
+            "value": "citroen",
+            "label": "Citroen"
+        },
+        {
+            "value": "peugeot",
+            "label": "Peugeot"
+        },        
+        {
+            "value": "cadold",
+            "label": "Cadillac"
+        },
+        {
+            "value": "chevyko",
+            "label": "GM / Chevrolet Korea"
+        },
+        {
+            "value": "chevyna",
+            "label": "GM / Chevrolet NAV"
+        },
+        {
+            "value": "hum",
+            "label": "GM / Hummer"
+        },
+        {
+            "value": "gmofficial",
+            "label": "GM / Служебные"
+        },
+        {
+            "value": "opel",
+            "label": "GM / Opel (после 01.04.2011)"
+        },
+        {
+            "value": "vwMotor",
+            "label": "VW / Легковые автомобили"
+        },
+        {
+            "value": "vwcargo",
+            "label": "VW / Коммерческие автомобили"
+        },
+        {
+            "value": "vwCarePoint",
+            "label": "VW / Продленная гарантия мобильности"
+        },         
+        {
+            "value": "atlant",
+            "label": "B2B / Атлант М"
+        },
+        {
+            "value": "tickets",
+            "label": "Заказ билетов"
+        },
+        {
+            "value": "ramc1",
+            "label": "B2B / По безналу"
+        },
+        {
+            "value": "ramc2",
+            "label": "РАМК"
+        },
+        {
+            "value": "ruslan",
+            "label": "B2B / Рус Лан"
+        }
+    ]
+}
