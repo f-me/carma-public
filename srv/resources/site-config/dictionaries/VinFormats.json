@@ -1,0 +1,84 @@
+{
+    "entries": [
+        {
+            "value": "avilon",
+            "label": "B2B / Авилон"
+        },
+        {
+            "value": "jenser",
+            "label": "B2B / Дженсер Ясенево"
+        },
+        {
+            "value": "euro",
+            "label": "B2B / Европлан"
+        },
+        {
+            "value": "b2c",
+            "label": "B2C"
+        },
+        {
+            "value": "vtb24",
+            "label": "B2C / ВТБ 24"
+        },
+        {
+            "value": "chartis",
+            "label": "B2B / Chartis Assistance"
+        },
+        {
+            "value": "ford",
+            "label": "Ford"
+        },
+        {
+            "value": "fordPlus",
+            "label": "Ford+"
+        },
+        {
+            "value": "citroen",
+            "label": "Citroen"
+        },
+        {
+            "value": "peugeot",
+            "label": "Peugeot"
+        },        
+        {
+            "value": "cadold",
+            "label": "Cadillac"
+        },
+        {
+            "value": "chevyko",
+            "label": "GM / Chevrolet Korea"
+        },
+        {
+            "value": "chevyna",
+            "label": "GM / Chevrolet NAV"
+        },
+        {
+            "value": "hum",
+            "label": "GM / Hummer"
+        },
+        {
+            "value": "opel",
+            "label": "GM / Opel"
+        },
+        {
+            "value": "vwMotor",
+            "label": "VW / Легковые автомобили"
+        },
+        {
+            "value": "vwcargo",
+            "label": "VW / Коммерческие автомобили"
+        },
+        {
+            "value": "atlant",
+            "label": "B2B / Атлант М"
+        },
+        {
+            "value": "ruslan",
+            "label": "B2B / Рус Лан"
+        },
+        {
+            "value": "common",
+            "label": "Универсальный формат"
+        }
+    ]
+}
