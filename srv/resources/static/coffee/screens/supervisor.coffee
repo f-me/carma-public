@@ -46,13 +46,13 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
       if time < now
         set violet
 
-  objsToRows = (objs) ->
+  objsToRows = (res) ->
     n = global.dictValueCache['ActionNames']
     r = global.dictValueCache['ActionResults']
     u = global.dictValueCache['users']
     g = global.dictValueCache['Roles']
 
-    rows = for obj in objs
+    rows = for obj in res.actions
       if obj.parentId
         svcName = obj.parentId.split(':')[0]
         svcName = global.model(svcName).title
@@ -67,10 +67,10 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
         .toString("dd.MM.yyyy HH:mm:ss")
       timeLabel =
         if _.isEmpty obj.assignedTo
-          utils.timeFrom obj.ctime
+          utils.timeFrom obj.ctime, res.reqTime
         else
           if _.isEmpty obj.closeTime
-            utils.timeFrom obj.assignTime
+            utils.timeFrom obj.assignTime, res.reqTime
           else
             utils.timeFrom obj.openTime, obj.closeTime
       [ "#{cid}/#{obj.id} (#{svcName or ''})"
@@ -104,7 +104,7 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
         select.push("targetGroup=#{opt.targetGroup}")
       select.push("duetimeFrom=#{opt.duetimeFrom}") if opt.duetimeFrom
       select.push("duetimeTo=#{opt.duetimeTo}") if opt.duetimeTo
-      objURL = "/allActions?#{select.join('&')}"
+      objURL = "/supervisor/allActions?#{select.join('&')}"
     else
       ""
 

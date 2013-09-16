@@ -91,14 +91,17 @@ selectPartners city isActive isDealer makes = do
   return $ mkMap fields rows
 
 allActionsHandler :: AppHandler ()
-allActionsHandler
-  = join (selectActions
-    <$> getParam "closed"
-    <*> getParam "assignedTo"
-    <*> getParam "targetGroup"
-    <*> getParam "duetimeFrom"
-    <*> getParam "duetimeTo")
-  >>= writeJSON
+allActionsHandler = do
+  acts <- join (selectActions
+          <$> getParam "closed"
+          <*> getParam "assignedTo"
+          <*> getParam "targetGroup"
+          <*> getParam "duetimeFrom"
+          <*> getParam "duetimeTo")
+  dn <- liftIO $ projNow id
+  writeJSON $ A.object [ "actions" .= acts
+                       , "reqTime" .= dn
+                       ]
 
 selectActions
   :: MBS -> MBS -> MBS -> MBS -> MBS
