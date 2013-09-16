@@ -14,10 +14,7 @@ define  [ "utils"
 
       dt = utils.mkDataTable t,
         bPaginate: false
-        aoColumns: [ {}, {}, {}, {}
-                   , {"sWidth": "5%"}
-                   , {"sWidth": "10%"}
-                   , {}, {bVisible: false}]
+        aoColumns: utils.repeat(7,null).concat [{bVisible: false}]
         fnCreatedRow: (nRow, aData) ->
           tpl = $('#dictionary-many-field-template').html()
           $('td:eq(2)', nRow).html(
