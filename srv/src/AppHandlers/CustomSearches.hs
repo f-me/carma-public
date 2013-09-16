@@ -3,6 +3,7 @@
 module AppHandlers.CustomSearches where
 
 import Control.Applicative
+import Data.Aeson as A
 import Data.String (fromString)
 import Data.Maybe
 import Data.Map as M (Map, (!), delete, fromList)
@@ -17,6 +18,8 @@ import Database.PostgreSQL.Simple.SqlQQ
 import Application
 import AppHandlers.Util
 import Utils.HttpErrors
+import Util
+
 
 type MBS = Maybe ByteString
 
@@ -240,9 +243,15 @@ opStatsQ = [sql|
   ORDER BY closeTime;
   |]
 
--- | Serve backoffice operator stats (users with roles
--- back/bo_control) in JSON as a map from user logins to objects with
--- fields `aName`, `caseId`, `openTime` and `closeTime`.
+-- | Serve backoffice operator stats, containing last opened action
+-- info for every user with roles back/bo_control:
+--
+-- > {
+-- >   reqTime: 123892,
+-- >   stats: [{login:.., aName:.., caseId:.., openTime:.., closeTime:..}, ..]
+-- > }
+--       
+-- fields `aName`, `caseId`, `openTime`, `closeTime` and `reqTime`.
 opStats :: AppHandler ()
 opStats = do
   rows <- withPG pg_search $ \c -> query_ c opStatsQ
@@ -253,7 +262,10 @@ opStats = do
                   , "closeTime"]
             rows
       obj' = M.fromList $ map (\m -> (m ! "login", M.delete "login" m)) obj
-  writeJSON obj'
+  dn <- liftIO $ projNow id
+  writeJSON $ A.object [ "reqTime" .= dn
+                       , "stats" .= obj'
+                       ]
 
 busyOpsQ :: Query
 busyOpsQ = [sql|

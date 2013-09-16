@@ -205,10 +205,12 @@ define ["model/utils"], (mu) ->
   # current time is used.
   timeFrom: (from, to) ->
     return null if _.isEmpty from
-    d = new Date(from * 1000)
+    from = new Date(from * 1000)
     if _.isEmpty to
       to = new Date()
-    delta = (to - d) / 1000
+    else
+      to = new Date(to * 1000)
+    delta = (to - from) / 1000
     return [formatSec delta, delta]
 
   # Format a numeric value from seconds to minutes

@@ -43,20 +43,21 @@ define  [ "utils"
             hook.dictManyHook userModel, koUser
             login = u.value
 
-            if os[login]
+            stats = os.stats[login]
+            if stats              
               [idle, [formattedTs, ts]] =
-                if _.isEmpty os[login].closeTime
-                  [false, utils.timeFrom os[login].openTime]
+                if _.isEmpty stats.closeTime
+                  [false, (utils.timeFrom stats.openTime, os.reqTime)]
                 else
-                  [true, utils.timeFrom os[login].closeTime]
+                  [true, (utils.timeFrom stats.closeTime, os.reqTime)]
                   
               [caseLink, actionLabel] =
                 if idle
                   ["нет", null]
                 else
-                  cid = os[login].caseId.split(':')[1]
+                  cid = stats.caseId.split(':')[1]
                   [ "<a href=\"/#case/#{cid}\" target=\"_blank\">#{cid}</a>"
-                  , global.dictValueCache['ActionNames'][os[login].aName]
+                  , global.dictValueCache['ActionNames'][stats.aName]
                   ]
 
               rowStats =
