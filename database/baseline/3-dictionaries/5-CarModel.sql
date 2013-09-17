@@ -393,4 +393,12 @@ COPY "CarModel" (id, value, label, parent) FROM stdin;
 383	grandCMax	GRAND C-Max	6
 384	f150	F150	6
 385	С-Elysee	С-Elysee	13
+386	wingle5	Wingle 5	47
+387	C20R	C20R	47
+388	C30	C30	47
+389	C50	C50	47
+390	Hover M2	Hover M2	47
+391	Hover M4	Hover M4	47
+392	Hover H6	Hover H6	47
+393	Hover H5-E	Hover H5-E	47
 \.

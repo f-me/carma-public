@@ -51,4 +51,5 @@ COPY "CarMake" (id, value, label) FROM stdin;
 44	toyota	Toyota
 45	volvo	Volvo
 46	maz	Maz
+47	greatWall	Great Wall
 \.
