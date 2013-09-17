@@ -26,15 +26,10 @@ require [ "domready"
            , pubSub
            ) ->
 
-  window.onerror = (msg, url, line) ->
-    $.ajax
-      type: "POST"
-      url : "/errors"
-      data: "#{msg} #{url} #{line}"
-    return false
-
   # this will be called on dom ready
   dom ->
+    new bug.BugReport {el: $('#send-bug-report')}
+
     dicts.users =
       entries:
         for i in users
@@ -66,8 +61,6 @@ require [ "domready"
       global.router.navigate user.meta.homepage, {trigger: true}
 
     sendSms.setup()
-
-    new bug.BugReport {el: $('#send-bug-report')}
 
     if user.login == "darya" or user.login == "e.balabanova"
       $('#icon-user').removeClass('icon-user').addClass('icon-heart')

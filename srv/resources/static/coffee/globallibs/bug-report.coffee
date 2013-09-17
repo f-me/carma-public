@@ -4,6 +4,7 @@ define ["sync/datamap"], (m) ->
     constructor: (options) ->
       @sp = "%20"
       @br = "%0A"
+      @vertBar = "%7C"
       @setElement options.el if options.el
       @mail_subject = options.mail_subject or
                       "BUG:#{@sp}Сообщение#{@sp}из#{@sp}CaRMa"
@@ -11,11 +12,15 @@ define ["sync/datamap"], (m) ->
       @mail_cc = options.mail_cc or "pavel.golovnin@ruamc.ru"
       @stack = []
 
-      @error = console.error
-      console.error = =>
-        args = Array.prototype.slice.call arguments
-        @stack.push args
-        @error.apply console, args
+      @error = window.onerror
+      window.onerror = (msg, url, line) =>
+        err = "#{msg} #{url} #{line}"
+        @stack.push err
+        $.ajax
+          type: "POST"
+          url : "/errors"
+          data: err
+        @error? msg, url, line
 
     setElement: (el) =>
       @$element = $(el)
@@ -23,17 +28,15 @@ define ["sync/datamap"], (m) ->
 
     sendReport: =>
       url = location.href
-      model = []
-      queue = []
-      queueBackup = []
+      models = []
 
-      _.each global.viewsWare, (view) ->
+      _.each global?.viewsWare, (view) ->
         if view.knockVM
-          model.push view.knockVM._meta.q.toJSON()
-          ftypes = {}
-          ftypes[f.name] = f.type for f in view.model.fields
-          queue.push JSON.stringify m.c2sObj(view.knockVM._meta.q.q, ftypes)
-          queueBackup.push JSON.stringify m.c2sObj(view.knockVM._meta.q.qbackup, ftypes)
+          model = view.knockVM._meta.q.toJSON()
+          ftypes = view.knockVM._meta.q.ftypes
+          queue = m.c2sObj(view.knockVM._meta.q.q, ftypes)
+          queueBackup = m.c2sObj(view.knockVM._meta.q.qbackup, ftypes)
+          models.push {model, queue, queueBackup}
 
       body = "#{@br}Ваша последовательность действий, при которой воспроизводится ошибка. Опишите пожалуйста максимально подробно."
       body += "#{@br}"
@@ -42,29 +45,20 @@ define ["sync/datamap"], (m) ->
       body += "#{@br}Какой результат был получен?"
       body += "#{@br}"
       body += "#{@br}"
-
       body += "#{@br}======== Информация для разработчиков ========"
-      body += "#{@br}URL:#{url}"
-
-      consoleBase64 = @encodeBase64 @stack.join(@br)
-      body += "#{@br}Console:#{consoleBase64}"
-      body += "#{@br}Console MD5:#{md5 consoleBase64}"
-
-      modelBase64 = @encodeBase64 model.join(@br)
-      body += "#{@br}Model:#{modelBase64}"
-      body += "#{@br}Model MD5:#{md5 modelBase64}"
-
-      queueBase64 = @encodeBase64 queue.join(@br)
-      body += "#{@br}Queue:#{queueBase64}"
-      body += "#{@br}Queue MD5:#{md5 queueBase64}"
-
-      queueBackupBase64 = @encodeBase64 queueBackup.join(@br)
-      body += "#{@br}Queue Backup:#{queueBackupBase64}"
-      body += "#{@br}Queue Backup MD5:#{md5 queueBackupBase64}"
+      content =
+        url: url,
+        console: @stack,
+        models: models
+      contentB64 = @encodeBase64 JSON.stringify content
+      body += "#{@br}#{contentB64}#{@vertBar}#{md5 contentB64}"
 
       location.href = "mailto:#{@mail_to}?cc=#{@mail_cc}
                        &subject=#{@mail_subject}
                        &body=#{body}"
+
+      # remove collected errors
+      @stack.length = 0
 
     encodeBase64: (str) ->
       btoa unescape encodeURIComponent str
