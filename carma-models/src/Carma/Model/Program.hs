@@ -2,8 +2,9 @@
 module Carma.Model.Program where
 
 import Data.Text
-import Data.Model
 import Data.Typeable
+import Data.Model
+import Data.Model.View
 
 
 data Program = Program
@@ -26,6 +27,7 @@ data Program = Program
 instance Model Program where
   type TableName Program = "programtbl"
   modelFields = getModelFields Program
+  modelView _ = defaultView
 
 -- known programs
 citroen = Ident 56 :: Ident Program

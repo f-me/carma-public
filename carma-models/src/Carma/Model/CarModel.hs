@@ -21,5 +21,4 @@ data CarModel = CarModel
 instance Model CarModel where
   type TableName CarModel = "CarModel"
   modelFields = getModelFields CarModel
-
-view = defaultView :: View CarModel
+  modelView _ = defaultView

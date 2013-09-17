@@ -6,6 +6,8 @@ import Data.Model
 import Data.Typeable
 import Data.Vector
 
+import Data.Model.View
+
 
 data Region = Region
   { label  :: F Text "label"  "Название региона"
@@ -16,3 +18,4 @@ data Region = Region
 instance Model Region where
   type TableName Region = "Region"
   modelFields = getModelFields Region
+  modelView _ = defaultView

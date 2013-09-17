@@ -9,6 +9,7 @@ import Database.PostgreSQL.Simple.ToField   (ToField(..))
 import Database.PostgreSQL.Simple.FromField (FromField(..))
 
 import Data.Model
+import Data.Model.View
 
 
 -- FIXME: Carma.Types
@@ -38,3 +39,4 @@ data City = City
 instance Model City where
   type TableName City = "City"
   modelFields = getModelFields City
+  modelView _ = defaultView

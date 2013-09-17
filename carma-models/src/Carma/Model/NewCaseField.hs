@@ -28,6 +28,5 @@ data NewCaseField = NewCaseField
 instance Model NewCaseField where
   type TableName NewCaseField = "NewCaseField"
   modelFields = getModelFields NewCaseField
+  modelView _ = defaultView
 
-
-view = defaultView :: View NewCaseField

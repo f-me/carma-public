@@ -26,6 +26,4 @@ data Dictionary = Dictionary
 instance Model Dictionary where
   type TableName Dictionary = "Dictionary"
   modelFields = getModelFields Dictionary
-
-
-view = defaultView :: View Dictionary
+  modelView _ = defaultView

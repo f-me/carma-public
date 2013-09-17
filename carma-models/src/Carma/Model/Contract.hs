@@ -6,8 +6,9 @@ import Data.Time.Clock (UTCTime)
 import Data.Int
 import Data.Text
 import Data.Typeable
-import Data.Model
 
+import Data.Model
+import Data.Model.View
 import Carma.Model.Types
 import Carma.Model.CarMake (CarMake)
 import Carma.Model.CarModel (CarModel)
@@ -54,3 +55,4 @@ data Contract = Contract
 instance Model Contract where
   type TableName Contract = "Contract"
   modelFields = getModelFields Contract
+  modelView _ = defaultView

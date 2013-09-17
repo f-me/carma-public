@@ -13,44 +13,11 @@ import Data.Typeable
 
 import Data.Model
 import Data.Model.Sql
+import Data.Model.View.Types
 
 
-data FieldView m = FieldView
-  { name      :: Text
-  , fieldType :: Text
-  , meta      :: Map Text Aeson.Value
-  , canWrite  :: Bool
-  }
-
-instance ToJSON (FieldView m) where
-  toJSON f = object
-    [ "name"     .= name f
-    , "type"     .= fieldType f
-    , "canWrite" .= canWrite f
-    , "meta"     .= meta f
-    ]
-
-data View m = View
-  { modelName :: Text
-  , title     :: Text
-  , fields    :: [FieldView m]
-  }
-
-
-instance ToJSON (View m) where
-  toJSON v = object
-    [ "name"      .= modelName v
-    , "title"     .= title v
-    , "fields"    .= fields v
-    , "canCreate" .= True
-    , "canRead"   .= True
-    , "canUpdate" .= True
-    , "canDelete" .= True
-    ]
-
-
-defaultView :: forall m . Model m => View m
-defaultView = View
+defaultView :: forall m . Model m => ModelView m
+defaultView = ModelView
   { modelName = T.pack $ tableName (undefined :: m)
   , title = ""
   , fields = [defaultFieldView f | f <- identDesc:modelFields :: [FieldDesc m]]
@@ -63,6 +30,9 @@ defaultFieldView f = FieldView
   , fieldType = translateFieldType $ fd_type f
   , meta      = Map.fromList
     $  [("label", Aeson.String $ fd_desc f)]
+    ++ case fd_name f of
+      "id" -> [("invisible", Aeson.Bool True)]
+      _ -> []
     ++ case words $ show $ fd_type f of
       ["Ident", model] ->
         [("dictionaryName", Aeson.String $ T.pack model)

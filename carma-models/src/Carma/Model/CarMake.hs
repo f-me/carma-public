@@ -17,6 +17,4 @@ data CarMake = CarMake
 instance Model CarMake where
   type TableName CarMake = "CarMake"
   modelFields = getModelFields CarMake
-
-
-view = defaultView :: View CarMake
+  modelView _ = defaultView

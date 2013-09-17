@@ -10,6 +10,8 @@ module Data.Model
   , fieldName
   , tableName
   , getModelFields
+  -- from Data.Model.View.Types
+  , ModelView(..)
   ) where
 
 
@@ -24,10 +26,13 @@ import Database.PostgreSQL.Simple.ToField   (ToField(..), Action)
 import Data.Dynamic
 import GHC.TypeLits
 
+import Data.Model.View.Types
+
 
 class (SingI (TableName m), Typeable m) => Model m where
   type TableName m :: Symbol
   modelFields :: [FieldDesc m]
+  modelView :: Text -> ModelView m
 
 tableName :: forall model . Model model => model -> String
 tableName _ = fromSing (sing :: Sing (TableName model))
