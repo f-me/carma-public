@@ -1,4 +1,6 @@
 
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Snaplet.SiteConfig
   ( SiteConfig
   , initSiteConfig
@@ -35,10 +37,8 @@ import Snaplet.SiteConfig.Dictionaries
 import Utils.HttpErrors
 
 import Data.Model.Sql
-import qualified Carma.Model.Dictionary as Dictionary
-import qualified Carma.Model.CarMake as CarMake
-import qualified Carma.Model.CarModel as CarModel
-import qualified Carma.Model.NewCaseField as NewCaseField
+import qualified Data.Model as Model
+import qualified Carma.Model as Model
 import qualified Carma.Model.Program as Program
 
 
@@ -57,18 +57,18 @@ serveModel = do
         $ case name of
           "case" -> newCase pgm
           _      -> newSvc pgm name
-      _ -> case name of
-        "Dictionary"   -> return $ Aeson.decode $ Aeson.encode Dictionary.view
-        "CarMake"      -> return $ Aeson.decode $ Aeson.encode CarMake.view
-        "CarModel"     -> return $ Aeson.decode $ Aeson.encode CarModel.view
-        "NewCaseField" -> return $ Aeson.decode $ Aeson.encode NewCaseField.view
-        _ -> M.lookup name <$> gets models
+      _ -> case Model.dispatch (T.decodeUtf8 name) viewForModel of
+        Just res -> return res
+        Nothing  -> M.lookup name <$> gets models
 
   mcu   <- withAuth currentUser
   case return (,) `ap` mcu `ap` model of
     Nothing -> finishWithError 401 ""
     Just (cu, m) -> stripModel cu m >>= writeModel
 
+viewForModel :: forall m . Model.Model m => m -> Maybe Model
+viewForModel _
+  = Aeson.decode $ Aeson.encode (Model.modelView "" :: Model.ModelView m)
 
 writeModel :: Model -> Handler b (SiteConfig b) ()
 writeModel model
