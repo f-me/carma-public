@@ -50,6 +50,7 @@ filterFields cfg = catMaybes . map tr
             = Map.insert "label" (Aeson.String l)
             . Map.insert "required" (Aeson.Bool rq)
             . Map.insert "infoText" (Aeson.String inf)
+            . Map.insert "readonly" (Aeson.Bool $ not w)
             <$> meta f
           , canWrite = w}
 
