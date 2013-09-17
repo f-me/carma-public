@@ -17,6 +17,10 @@ data NewCaseField = NewCaseField
     :: F (Ident Program)            "program"     "Название программы"
   , label
     :: F Text                       "label"       "Подпись к полю"
+  , info
+    :: F Text                       "info"        "Текст для всплывающей подсказки"
+  , required
+    :: F Bool                       "required"    "Обязательное поле"
   , r
     :: F Bool                       "r"           "Доступно для чтения"
   , w
