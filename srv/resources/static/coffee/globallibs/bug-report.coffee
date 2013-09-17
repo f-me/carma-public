@@ -5,26 +5,19 @@ define ["sync/datamap"], (m) ->
       @sp = "%20"
       @br = "%0A"
       @vertBar = "%7C"
-      @setElement options.el if options.el
-      @mail_subject = options.mail_subject or
+      @setElement options.el if options?.el
+      @mail_subject = options?.mail_subject or
                       "BUG:#{@sp}Сообщение#{@sp}из#{@sp}CaRMa"
-      @mail_to = options.mail_to or "support@formalmethods.ru"
-      @mail_cc = options.mail_cc or "pavel.golovnin@ruamc.ru"
+      @mail_to = options?.mail_to or "support@formalmethods.ru"
+      @mail_cc = options?.mail_cc or "pavel.golovnin@ruamc.ru"
       @stack = []
-
-      @error = window.onerror
-      window.onerror = (msg, url, line) =>
-        err = "#{msg} #{url} #{line}"
-        @stack.push err
-        $.ajax
-          type: "POST"
-          url : "/errors"
-          data: err
-        @error? msg, url, line
 
     setElement: (el) =>
       @$element = $(el)
       @$element.on('click', @sendReport)
+
+    addError: (msg, url, line) =>
+      @stack.push "#{msg} #{url} #{line}"
 
     sendReport: =>
       url = location.href

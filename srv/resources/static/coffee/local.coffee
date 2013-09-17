@@ -26,9 +26,19 @@ require [ "domready"
            , pubSub
            ) ->
 
+  bugReport = new bug.BugReport
+
+  window.onerror = (msg, url, line) ->
+    bugReport.addError msg, url, line
+    $.ajax
+      type: "POST"
+      url : "/errors"
+      data: "#{msg} #{url} #{line}"
+    return false
+
   # this will be called on dom ready
   dom ->
-    new bug.BugReport {el: $('#send-bug-report')}
+    bugReport.setElement $('#send-bug-report')
 
     dicts.users =
       entries:
