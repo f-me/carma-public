@@ -1,4 +1,6 @@
-update "Dictionary" set majorFields = array['id','program','label'] where id = 2;
+update "Dictionary" set majorFields = array['value','label'] where id = 0;
+update "Dictionary" set majorFields = array['value','label'] where id = 1;
+update "Dictionary" set majorFields = array['program','label'] where id = 2;
 insert into "CarMake" (id,value,label) values (47,'greatWall','Great Wall');
 COPY "CarModel" (id, value, label, parent) FROM stdin;
 386	wingle5	Wingle 5	47

@@ -36,12 +36,12 @@ define [ "utils"
         dictName = dict.name
         dictModel = global.model dictName
 
-        majorFields = []
+        majorFields = [{name:'id', label:'#', tr: (v) -> v}]
         for f in dict.majorFields
           fDesc = _.find dictModel.fields, (mf) -> mf.name == f
           if fDesc
             tr = (v) -> v
-            if fDesc.type == 'dictionary' and f != 'id'
+            if fDesc.type == 'dictionary'
               d = new modelDict.dict {dict: fDesc.meta.dictionaryName}
               tr = (v) -> d.getLab v
             majorFields.push {name: f, label: fDesc.meta.label, tr: tr}
