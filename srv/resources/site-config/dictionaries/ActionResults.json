@@ -3,7 +3,7 @@
         "orderService": [
             {
                 "value": "serviceOrdered",
-                "label": "Услуга заказана"
+                "label": "Услуга заказана, клиенту не дозвонились"
             },
             {
                 "value": "serviceOrderedSMS",
