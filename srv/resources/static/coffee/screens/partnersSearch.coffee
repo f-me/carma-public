@@ -371,7 +371,7 @@ define [ "utils"
     q = new sync.DipQueue(kvm, model)
     kvm._meta.q = q
     kvm['id'](1) # just to make disabled observables work
-    kvm['choosenSort'] = ko.observableArray(["priority3"])
+    kvm['choosenSort'] = ko.observableArray(["priority2"])
     kvm['searchResults'] = ko.observable()
     kvm['searchH'] = ko.computed ->
       s = kvm['searchResults']()
