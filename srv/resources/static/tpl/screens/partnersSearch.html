@@ -122,9 +122,14 @@
                     Отказ
                   </button>
                 </li>
-                <li data-bind="visible: phone,
-                               html: '<b>Телефон: </b>' + phone +
-                               ' (' + workingTime + ')'" />
+                <li data-bind="visible: phonesObjects().length > 0">
+                  <b>Телефоны:</b>
+                  <ul data-bind="foreach: phonesObjects()">
+                    <li data-bind="html: keyLocal() + '<br/>' +
+                                   ' Телефон:' + (value() || '')+
+                                   ' Время работы:' + (note() || '')" />
+                  </ul>
+                </li>
                 <li data-bind="visible: cityLocal,
                                html: '<b>Город: </b>' + cityLocal()" />
                 <li data-bind="visible: factAddr,
@@ -158,14 +163,6 @@
                 <li data-bind="visible: personincharge">
                   <b>Ответственное лицо:</b>
                   <span data-bind="text: personincharge" />
-                </li>
-                <li data-bind="visible: phonesObjects().length > 0">
-                  <b>Телефоны:</b>
-                  <ul data-bind="foreach: phonesObjects()">
-                    <li data-bind="html: keyLocal() + '<br/>' +
-                                   ' Телефон:' + (value() || '')+
-                                   ' Время работы:' + (note() || '')" />
-                  </ul>
                 </li>
                 <li data-bind="visible: addrsObjects().length > 0">
                   <b>Адреса:</b>
