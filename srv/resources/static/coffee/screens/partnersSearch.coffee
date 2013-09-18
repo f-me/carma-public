@@ -433,6 +433,7 @@ define [ "utils"
           only: (v) ->
             sort = kvm['choosenSort']()[0]
             srvs = kvm['servicesLocals']()
+            return v.distanceFormatted() if sort == "distance"
             unless _.isEmpty srvs
               parseInt (_.find v.servicesNested(),
                        (s) -> s.servicename() == srvs[0].value)?[sort]?()

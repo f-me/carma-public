@@ -80,6 +80,9 @@
                 data-bind="selectedOptions: choosenSort">
           <option value="priority2"> ПБГ </option>
           <option value="priority3"> ПБЗ </option>
+          <!-- ko if: coords -->
+          <option value="distance"> Дистанция </option>
+          <!-- /ko -->
         </select>
       </div>
       <div id="search-result" class="row-fluid" style="overflow-y:
