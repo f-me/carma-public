@@ -17,6 +17,7 @@ import Database.PostgreSQL.Simple
 import Application
 import AppHandlers.CustomSearches
 import AppHandlers.Util
+import Util
 
 
 assignQ :: Int -> AuthUser -> Query
@@ -62,19 +63,25 @@ littleMoreActionsHandler :: AppHandler ()
 littleMoreActionsHandler = scoper "littleMoreActions" $ do
   Just cUsr' <- with auth currentUser
 
-  actIds1 <- withPG pg_actass (`query_` assignQ 1 cUsr')
-  actIds2 <- withPG pg_actass (`query_` assignQ 2 cUsr')
-  actIds3 <- withPG pg_actass (`query_` assignQ 3 cUsr')
-  let actIds = actIds1 ++ actIds2 ++ actIds3
+  actIds'   <- withPG pg_actass (`query_` assignQ 1 cUsr')
+  actIds''  <- case actIds' of
+                 []  -> withPG pg_actass (`query_` assignQ 2 cUsr')
+                 _   -> return actIds'
+  actIds''' <- case actIds'' of
+                 []  -> withPG pg_actass (`query_` assignQ 3 cUsr')
+                 _   -> return actIds''
 
   let uLogin = T.encodeUtf8 $ userLogin cUsr'
-  with db $ forM_ actIds $ \[actId] ->
+  now <- liftIO $ projNow id
+  with db $ forM_ actIds''' $ \[actId] ->
       DB.update "action" actId
-        $ Map.singleton "assignedTo" uLogin
+        $ Map.fromList [("assignedTo", uLogin)
+                       ,("assignTime", now)
+                       ]
 
-  when (not $ null actIds) $ log Info $ fromString
+  when (not $ null actIds''') $ log Info $ fromString
     $ "New actions for " ++ show uLogin
-    ++ ": " ++ show actIds
+    ++ ": " ++ show actIds'''
 
   selectActions (Just "0") (Just uLogin) Nothing Nothing Nothing
     >>= writeJSON

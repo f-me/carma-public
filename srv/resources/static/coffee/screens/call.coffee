@@ -26,6 +26,13 @@ define [ "utils"
         window.location.hash = "case/" + id
     )
 
+    isProgramDefined = -> 
+      p = knockVM.program()
+      p && p != ''
+    $('#new-case').prop 'disabled', not isProgramDefined()
+    knockVM.program.subscribe (pgm) ->
+      $('#new-case').prop 'disabled', not isProgramDefined()
+
     $('#search-help').popover
       content: "Справка по поиску"
 

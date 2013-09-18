@@ -71,9 +71,12 @@ define [ "utils"
         global.pubSub.sub n, (val) ->
           kvm[f.name](val.name)
           kvm["#{f.name}Id"]?("partner:#{val.id}")
-          addr = u.getKeyedJsonValue val.addrs, "fact"
-          kvm["#{f.name.split('_')[0]}_address"]?(addr || "")
-          kvm["#{f.name.split('_')[0]}_coords"]? val.coords
+          addr = u.getKeyedJsonValue (JSON.parse val.addrs), "fact"
+          field_basename = f.name.split('_')[0]
+          kvm["#{field_basename}_address"]?(addr || "")
+          kvm["#{field_basename}_coords"]? val.coords
+          if (field_basename == "towDealer") && val.distanceFormatted?
+            kvm["dealerDistance"](val.distanceFormatted)
           kvm['parent']['fillEventHistory']()
 
     # this fn should be called from click event, in other case

@@ -14,7 +14,7 @@ define ["lib/local-dict", ], (m) ->
 
     getLab: (val) ->
       if val?.match /^\d+$/
-        res = @dictValues[val]
+        res = @dictValues()[val]
         unless res
           $.bgetJSON "/_/partner/#{val}", (rsp) -> res = rsp['name']
         res

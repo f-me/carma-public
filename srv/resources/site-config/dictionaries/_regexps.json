@@ -27,6 +27,10 @@
       {
           "label": "number",
           "value": "^[0-9]+$"
+      },
+      {
+          "label": "timespan",
+          "value": "(^\\d+:[012345][0-9]$)|^$"
       }
   ]
 }

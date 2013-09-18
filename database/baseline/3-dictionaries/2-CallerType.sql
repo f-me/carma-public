@@ -3,7 +3,6 @@ CREATE TABLE "CallerType"
   ,value text
   ,label text UNIQUE NOT NULL
   );
-INSERT INTO Dictionary (name) VALUES ('CallerType');
 
 INSERT INTO "CallerType" (value, label) VALUES
  ('client'

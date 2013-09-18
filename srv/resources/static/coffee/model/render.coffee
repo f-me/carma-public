@@ -134,7 +134,8 @@ define ["dictionaries"], (d) ->
         if f.meta and _.has(f.meta, "infoText")
           # use infoText1, so we can't brake it on next rendering phaze
           # like changing screen
-          f.meta.infoText1 = global.dictionaries.InfoText[f.meta.infoText]
+          infoText = global.dictionaries.InfoText[f.meta.infoText]
+          f.meta.infoText1 = infoText || f.meta.infoText
 
         if f.type == "dictionary"
           dict = d.dictFromMeta knockVM, f.meta

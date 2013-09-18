@@ -275,7 +275,7 @@ define ["model/utils", "utils"], (mu, u) ->
       osmap.events.register("click", osmap, (e) ->
         coords = osmap.getLonLatFromViewPortPx(e.xy)
                  .transform(osmProj, wsgProj)
-        spliceCoords coords, kvm,
+        spliceCoords coords, (u.findVM parentView),
           coord_field: coord_field
           osmap: osmap
           current_blip_type: current_blip_type

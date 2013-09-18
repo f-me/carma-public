@@ -2,1939 +2,403 @@ CREATE TABLE "CarModel"
   (id     SERIAL PRIMARY KEY
   ,value  text
   ,label  text NOT NULL
-  ,parent int4 REFERENCES "CarMaker" ON DELETE SET NULL
+  ,parent int4 REFERENCES "CarMake" ON DELETE SET NULL
   ,UNIQUE (label, parent)
   );
 CREATE UNIQUE INDEX ON "CarModel" (label) WHERE parent IS NULL;
-INSERT INTO Dictionary (name, parent)
-  SELECT 'CarModel', id
-    FROM Dictionary WHERE name = 'CarMaker';
 
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'alfa147',
-         '147',
-         id
-    FROM "CarMaker" WHERE value = 'alfa';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'alfa166',
-         '166',
-         id
-    FROM "CarMaker" WHERE value = 'alfa';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'a2',
-         'A2',
-         id
-    FROM "CarMaker" WHERE value = 'audi';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'a3',
-         'A3',
-         id
-    FROM "CarMaker" WHERE value = 'audi';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'a4',
-         'A4',
-         id
-    FROM "CarMaker" WHERE value = 'audi';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'a6',
-         'A6',
-         id
-    FROM "CarMaker" WHERE value = 'audi';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'a8',
-         'A8',
-         id
-    FROM "CarMaker" WHERE value = 'audi';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'arnage',
-         'Arnage',
-         id
-    FROM "CarMaker" WHERE value = 'bentley';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'continental',
-         'Continental Flying Spur',
-         id
-    FROM "CarMaker" WHERE value = 'bentley';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'chrysler300',
-         '300',
-         id
-    FROM "CarMaker" WHERE value = 'chrysler';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'sebring',
-         'Sebring',
-         id
-    FROM "CarMaker" WHERE value = 'chrysler';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'c1',
-         'C1',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'c2',
-         'C2',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'berlingo',
-         'Berlingo',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'c15',
-         'C15',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'c3Picasso',
-         'C3 Picasso',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'c3Pluriel',
-         'C3 Pluriel',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'c4Aircross',
-         'C4 Aircross',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'c4Picasso',
-         'C4 Picasso',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'c8',
-         'C8',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'cCrosser',
-         'C-Crosser',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'cZero',
-         'C-Zero',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'ds3',
-         'DS3',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'ds4',
-         'DS4',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'ds5',
-         'DS5',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'jumper',
-         'Jumper',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'nemo',
-         'Nemo',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'saxo',
-         'Saxo',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'xsaraPicasso',
-         'Xsara Picasso',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'zx',
-         'ZX',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'evasionJumpy',
-         'Evasion/Jumpy',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'c3',
-         'C3',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'c4',
-         'C4',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'c5',
-         'C5',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'c6',
-         'C6',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'xsara',
-         'Xsara',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'alero',
-         'Alero',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'aveo',
-         'Aveo',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'beretta',
-         'Beretta',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'blazer',
-         'Blazer',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'camaro',
-         'Camaro',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'capriceCh',
-         'Caprice',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'captiva',
-         'Captiva',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'cavalier',
-         'Cavalier',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'celta',
-         'Celta',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'cheyenne',
-         'Cheyenne',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'cobaltCh',
-         'Cobalt',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'colorado',
-         'Colorado',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'wind',
-         'Corsa Wind',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'corsica',
-         'Corsica',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'corvette',
-         'Corvette',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'cruze',
-         'Cruze',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'epicaCh',
-         'Epica',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'evanda',
-         'Evanda',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'express',
-         'Express',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'orlando',
-         'Orlando',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'hhr',
-         'HHR',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'impalaSS',
-         'Impala SS',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'ipanemaGL',
-         'Ipanema GL',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'jimmy',
-         'Jimmy',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'lacetti',
-         'Lacetti',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'lanosCh',
-         'Lanos',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'impala',
-         'Impala',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'lumina',
-         'Lumina',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'malibu',
-         'Malibu',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'metro',
-         'Metro',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'monteCarlo',
-         'Monte Carlo',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'monza',
-         'Monza',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'niva',
-         'NIVA',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'prism',
-         'Prism',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 's10',
-         'S-10',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'spark',
-         'Spark',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'ss',
-         'SS',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'suburban',
-         'Suburban',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'tacuma',
-         'Tacuma',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'tahoe',
-         'Tahoe',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'trackerConv',
-         'Tracker Convertible',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'trackerHard',
-         'Tracker Hardtop',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'trailBlazer',
-         'Trail Blazer',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'Trans',
-         'Trans Sport',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'venture',
-         'Venture',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'viva',
-         'Viva',
-         id
-    FROM "CarMaker" WHERE value = 'chevy';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'chairman',
-         'Chairman',
-         id
-    FROM "CarMaker" WHERE value = 'daewoo';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'espero',
-         'Espero',
-         id
-    FROM "CarMaker" WHERE value = 'daewoo';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'matiz',
-         'Matiz',
-         id
-    FROM "CarMaker" WHERE value = 'daewoo';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'nexia',
-         'Nexia',
-         id
-    FROM "CarMaker" WHERE value = 'daewoo';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'tosca',
-         'Tosca',
-         id
-    FROM "CarMaker" WHERE value = 'daewoo';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'caliber',
-         'Caliber',
-         id
-    FROM "CarMaker" WHERE value = 'dodge';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'albea',
-         'Albea',
-         id
-    FROM "CarMaker" WHERE value = 'fiat';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'bravo',
-         'Bravo',
-         id
-    FROM "CarMaker" WHERE value = 'fiat';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'panda',
-         'Panda',
-         id
-    FROM "CarMaker" WHERE value = 'fiat';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'punto',
-         'Punto',
-         id
-    FROM "CarMaker" WHERE value = 'fiat';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'epica',
-         'Epica',
-         id
-    FROM "CarMaker" WHERE value = 'holden';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'statesman',
-         'Statesman',
-         id
-    FROM "CarMaker" WHERE value = 'holden';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'caprice',
-         'Caprice',
-         id
-    FROM "CarMaker" WHERE value = 'holden';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'accord',
-         'Accord',
-         id
-    FROM "CarMaker" WHERE value = 'honda';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'civic',
-         'Civic',
-         id
-    FROM "CarMaker" WHERE value = 'honda';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'fit',
-         'Fit',
-         id
-    FROM "CarMaker" WHERE value = 'honda';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'jazz',
-         'Jazz',
-         id
-    FROM "CarMaker" WHERE value = 'honda';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'legend',
-         'Legend',
-         id
-    FROM "CarMaker" WHERE value = 'honda';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'logo',
-         'Logo',
-         id
-    FROM "CarMaker" WHERE value = 'honda';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'i10',
-         'i10',
-         id
-    FROM "CarMaker" WHERE value = 'hyundai';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'i20',
-         'i20',
-         id
-    FROM "CarMaker" WHERE value = 'hyundai';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'i30',
-         'i30',
-         id
-    FROM "CarMaker" WHERE value = 'hyundai';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'centennial',
-         'Centennial',
-         id
-    FROM "CarMaker" WHERE value = 'hyundai';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'equus',
-         'Equus',
-         id
-    FROM "CarMaker" WHERE value = 'hyundai';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'cheryQQ',
-         'Chery QQ (Sweet)',
-         id
-    FROM "CarMaker" WHERE value = 'hyundai';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'accent',
-         'Accent',
-         id
-    FROM "CarMaker" WHERE value = 'hyundai';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'atos',
-         'Atos',
-         id
-    FROM "CarMaker" WHERE value = 'hyundai';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'elantra',
-         'Elantra',
-         id
-    FROM "CarMaker" WHERE value = 'hyundai';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'genesis',
-         'Genesis',
-         id
-    FROM "CarMaker" WHERE value = 'hyundai';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'getz',
-         'Getz',
-         id
-    FROM "CarMaker" WHERE value = 'hyundai';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'santaFe',
-         'Santa Fe new',
-         id
-    FROM "CarMaker" WHERE value = 'hyundai';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'solaris',
-         'Solaris',
-         id
-    FROM "CarMaker" WHERE value = 'hyundai';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'sonata',
-         'Sonata',
-         id
-    FROM "CarMaker" WHERE value = 'hyundai';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'xg',
-         'XG',
-         id
-    FROM "CarMaker" WHERE value = 'hyundai';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'sType',
-         'S-Type',
-         id
-    FROM "CarMaker" WHERE value = 'jaguar';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'xf',
-         'XF',
-         id
-    FROM "CarMaker" WHERE value = 'jaguar';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'xj',
-         'XJ',
-         id
-    FROM "CarMaker" WHERE value = 'jaguar';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'xType',
-         'X-Type',
-         id
-    FROM "CarMaker" WHERE value = 'jaguar';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'ceed',
-         'Cee''d',
-         id
-    FROM "CarMaker" WHERE value = 'kia';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'cerato',
-         'Cerato',
-         id
-    FROM "CarMaker" WHERE value = 'kia';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'magentis',
-         'Magentis',
-         id
-    FROM "CarMaker" WHERE value = 'kia';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'opirus',
-         'Opirus',
-         id
-    FROM "CarMaker" WHERE value = 'kia';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'picanto',
-         'Picanto',
-         id
-    FROM "CarMaker" WHERE value = 'kia';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'rio',
-         'Rio',
-         id
-    FROM "CarMaker" WHERE value = 'kia';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'spectra',
-         'Spectra',
-         id
-    FROM "CarMaker" WHERE value = 'kia';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '2104',
-         '2104',
-         id
-    FROM "CarMaker" WHERE value = 'lada';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '2107',
-         '2107',
-         id
-    FROM "CarMaker" WHERE value = 'lada';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '2113Samara',
-         '2113 (Samara)',
-         id
-    FROM "CarMaker" WHERE value = 'lada';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '2114Samara',
-         '2114 (Samara)',
-         id
-    FROM "CarMaker" WHERE value = 'lada';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '2115Samara',
-         '2115 (Samara)',
-         id
-    FROM "CarMaker" WHERE value = 'lada';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '2121Niva',
-         '2121 (Niva)',
-         id
-    FROM "CarMaker" WHERE value = 'lada';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'granta',
-         'Granta',
-         id
-    FROM "CarMaker" WHERE value = 'lada';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'kalina',
-         'Kalina',
-         id
-    FROM "CarMaker" WHERE value = 'lada';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'priora',
-         'Priora',
-         id
-    FROM "CarMaker" WHERE value = 'lada';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'largus',
-         'Largus',
-         id
-    FROM "CarMaker" WHERE value = 'lada';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'thesis',
-         'Thesis',
-         id
-    FROM "CarMaker" WHERE value = 'lancia';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'defender',
-         'Defender',
-         id
-    FROM "CarMaker" WHERE value = 'land';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'discavery',
-         'Discavery',
-         id
-    FROM "CarMaker" WHERE value = 'land';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'freelander',
-         'Freelander',
-         id
-    FROM "CarMaker" WHERE value = 'land';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'range',
-         'Range Rover',
-         id
-    FROM "CarMaker" WHERE value = 'land';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'rangeEvoque',
-         'Range Rover Evoque',
-         id
-    FROM "CarMaker" WHERE value = 'land';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'rangeSport',
-         'Range Rover Sport',
-         id
-    FROM "CarMaker" WHERE value = 'land';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'gs',
-         'GS',
-         id
-    FROM "CarMaker" WHERE value = 'lexus';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'is',
-         'IS',
-         id
-    FROM "CarMaker" WHERE value = 'lexus';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'ls',
-         'LS',
-         id
-    FROM "CarMaker" WHERE value = 'lexus';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'quattroporte',
-         'Quattroporte',
-         id
-    FROM "CarMaker" WHERE value = 'maserati';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'mazda2',
-         '2',
-         id
-    FROM "CarMaker" WHERE value = 'mazda';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'mazda3',
-         '3',
-         id
-    FROM "CarMaker" WHERE value = 'mazda';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'mazda6',
-         '6',
-         id
-    FROM "CarMaker" WHERE value = 'mazda';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'demio',
-         'Demio',
-         id
-    FROM "CarMaker" WHERE value = 'mazda';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'aClass',
-         'A',
-         id
-    FROM "CarMaker" WHERE value = 'mercedes';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'bClass',
-         'B',
-         id
-    FROM "CarMaker" WHERE value = 'mercedes';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'cClass',
-         'C',
-         id
-    FROM "CarMaker" WHERE value = 'mercedes';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'eClass',
-         'E',
-         id
-    FROM "CarMaker" WHERE value = 'mercedes';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'sClass',
-         'S',
-         id
-    FROM "CarMaker" WHERE value = 'mercedes';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'cls',
-         'CLS',
-         id
-    FROM "CarMaker" WHERE value = 'mercedes';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'colt',
-         'Colt',
-         id
-    FROM "CarMaker" WHERE value = 'mitsubishi';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'galant',
-         'Galant',
-         id
-    FROM "CarMaker" WHERE value = 'mitsubishi';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'lancer',
-         'Lancer',
-         id
-    FROM "CarMaker" WHERE value = 'mitsubishi';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'proudia',
-         'Proudia',
-         id
-    FROM "CarMaker" WHERE value = 'mitsubishi';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'almera',
-         'Almera',
-         id
-    FROM "CarMaker" WHERE value = 'nissan';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'cedric',
-         'Cedric',
-         id
-    FROM "CarMaker" WHERE value = 'nissan';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'cima',
-         'Cima',
-         id
-    FROM "CarMaker" WHERE value = 'nissan';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'laurel',
-         'Laurel',
-         id
-    FROM "CarMaker" WHERE value = 'nissan';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'maxima',
-         'Maxima',
-         id
-    FROM "CarMaker" WHERE value = 'nissan';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'micra',
-         'Micra',
-         id
-    FROM "CarMaker" WHERE value = 'nissan';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'murano',
-         'Murano',
-         id
-    FROM "CarMaker" WHERE value = 'nissan';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'note',
-         'Note',
-         id
-    FROM "CarMaker" WHERE value = 'nissan';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'president',
-         'President',
-         id
-    FROM "CarMaker" WHERE value = 'nissan';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'primera',
-         'Primera',
-         id
-    FROM "CarMaker" WHERE value = 'nissan';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'pathfinder',
-         'Pathfinder',
-         id
-    FROM "CarMaker" WHERE value = 'nissan';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'teana',
-         'Teana',
-         id
-    FROM "CarMaker" WHERE value = 'nissan';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'xTrail',
-         'X-Trail',
-         id
-    FROM "CarMaker" WHERE value = 'nissan';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'tiida',
-         'Tiida',
-         id
-    FROM "CarMaker" WHERE value = 'nissan';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'ssangYong',
-         'Ssang Yong',
-         id
-    FROM "CarMaker" WHERE value = 'nissan';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'qashqai',
-         'Qashqai',
-         id
-    FROM "CarMaker" WHERE value = 'nissan';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'agila',
-         'Agila',
-         id
-    FROM "CarMaker" WHERE value = 'opel';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'antara',
-         'Antara',
-         id
-    FROM "CarMaker" WHERE value = 'opel';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'astra',
-         'Astra',
-         id
-    FROM "CarMaker" WHERE value = 'opel';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'astragtc',
-         'Astra GTC',
-         id
-    FROM "CarMaker" WHERE value = 'opel';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'calibra',
-         'Calibra',
-         id
-    FROM "CarMaker" WHERE value = 'opel';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'combo',
-         'Combo',
-         id
-    FROM "CarMaker" WHERE value = 'opel';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'corsa',
-         'Corsa',
-         id
-    FROM "CarMaker" WHERE value = 'opel';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'frontera',
-         'Frontera',
-         id
-    FROM "CarMaker" WHERE value = 'opel';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'insignia',
-         'Insignia',
-         id
-    FROM "CarMaker" WHERE value = 'opel';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'kadett',
-         'Kadett',
-         id
-    FROM "CarMaker" WHERE value = 'opel';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'meriva',
-         'Meriva',
-         id
-    FROM "CarMaker" WHERE value = 'opel';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'mokka',
-         'Mokka',
-         id
-    FROM "CarMaker" WHERE value = 'opel';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'monterey',
-         'Monterey',
-         id
-    FROM "CarMaker" WHERE value = 'opel';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'movano',
-         'Movano',
-         id
-    FROM "CarMaker" WHERE value = 'opel';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'omega',
-         'Omega',
-         id
-    FROM "CarMaker" WHERE value = 'opel';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'signum',
-         'Signum',
-         id
-    FROM "CarMaker" WHERE value = 'opel';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'sintra',
-         'Sintra',
-         id
-    FROM "CarMaker" WHERE value = 'opel';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'tigra',
-         'Tigra',
-         id
-    FROM "CarMaker" WHERE value = 'opel';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'vectra',
-         'Vectra',
-         id
-    FROM "CarMaker" WHERE value = 'opel';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'vita',
-         'Vita',
-         id
-    FROM "CarMaker" WHERE value = 'opel';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'vivaro',
-         'Vivaro',
-         id
-    FROM "CarMaker" WHERE value = 'opel';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'zafira',
-         'Zafira',
-         id
-    FROM "CarMaker" WHERE value = 'opel';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'allante',
-         'Allante',
-         id
-    FROM "CarMaker" WHERE value = 'cad';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'bls',
-         'BLS',
-         id
-    FROM "CarMaker" WHERE value = 'cad';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'brougham',
-         'Brougham',
-         id
-    FROM "CarMaker" WHERE value = 'cad';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'catera',
-         'Catera',
-         id
-    FROM "CarMaker" WHERE value = 'cad';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'cts',
-         'CTS',
-         id
-    FROM "CarMaker" WHERE value = 'cad';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'ville',
-         'DE Ville',
-         id
-    FROM "CarMaker" WHERE value = 'cad';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'dts',
-         'DTS',
-         id
-    FROM "CarMaker" WHERE value = 'cad';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'eldorado',
-         'Eldorado',
-         id
-    FROM "CarMaker" WHERE value = 'cad';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'escalade',
-         'Escalade',
-         id
-    FROM "CarMaker" WHERE value = 'cad';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'fleetwood',
-         'Fleetwood',
-         id
-    FROM "CarMaker" WHERE value = 'cad';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'lse',
-         'LSE',
-         id
-    FROM "CarMaker" WHERE value = 'cad';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'seville',
-         'Seville',
-         id
-    FROM "CarMaker" WHERE value = 'cad';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'srx',
-         'SRX',
-         id
-    FROM "CarMaker" WHERE value = 'cad';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'sts',
-         'STS',
-         id
-    FROM "CarMaker" WHERE value = 'cad';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'xlr',
-         'XLR',
-         id
-    FROM "CarMaker" WHERE value = 'cad';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'caddy',
-         'Caddy',
-         id
-    FROM "CarMaker" WHERE value = 'vw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'caravelle',
-         'Caravelle',
-         id
-    FROM "CarMaker" WHERE value = 'vw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'amarok',
-         'Amarok',
-         id
-    FROM "CarMaker" WHERE value = 'vw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'crafter',
-         'Crafter',
-         id
-    FROM "CarMaker" WHERE value = 'vw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 't5',
-         'T5',
-         id
-    FROM "CarMaker" WHERE value = 'vw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'tiguan',
-         'Tiguan',
-         id
-    FROM "CarMaker" WHERE value = 'vw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'polo',
-         'Polo',
-         id
-    FROM "CarMaker" WHERE value = 'vw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'touareg',
-         'Touareg',
-         id
-    FROM "CarMaker" WHERE value = 'vw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'passat',
-         'Passat',
-         id
-    FROM "CarMaker" WHERE value = 'vw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'passatCC',
-         'Passat CC',
-         id
-    FROM "CarMaker" WHERE value = 'vw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'jetta',
-         'Jetta',
-         id
-    FROM "CarMaker" WHERE value = 'vw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'multivan',
-         'Multivan',
-         id
-    FROM "CarMaker" WHERE value = 'vw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'golf',
-         'Golf',
-         id
-    FROM "CarMaker" WHERE value = 'vw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'golfPlus',
-         'Golf Plus',
-         id
-    FROM "CarMaker" WHERE value = 'vw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'sharan',
-         'Sharan',
-         id
-    FROM "CarMaker" WHERE value = 'vw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'touran',
-         'Touran',
-         id
-    FROM "CarMaker" WHERE value = 'vw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'phaeton',
-         'Phaeton',
-         id
-    FROM "CarMaker" WHERE value = 'vw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'eos',
-         'Eos',
-         id
-    FROM "CarMaker" WHERE value = 'vw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'lupo',
-         'Lupo',
-         id
-    FROM "CarMaker" WHERE value = 'vw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'pointer',
-         'Pointer',
-         id
-    FROM "CarMaker" WHERE value = 'vw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'transporter',
-         'Transporter',
-         id
-    FROM "CarMaker" WHERE value = 'vw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'scirocco',
-         'Scirocco',
-         id
-    FROM "CarMaker" WHERE value = 'vw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'ford427',
-         '427',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'aerostar',
-         'Aerostar',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'cMax',
-         'Focus C-Max',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'aspire',
-         'Aspire',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'bronco',
-         'Bronco',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'sMax',
-         'S-Max',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'cMaxII',
-         'C-Max II',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'contour',
-         'Contour',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'cougar',
-         'Cougar',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'kuga',
-         'Kuga',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'crownVictoria',
-         'Crown Victoria',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'econoline',
-         'Econoline',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'escape',
-         'Escape',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'escort',
-         'Escort',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'escortCabrio',
-         'Escort Cabrio',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'escortClassic',
-         'Escort Classic',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'escortEstate',
-         'Escort Estate',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'escortHatchback',
-         'Escort Hatchback',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'escortTurnier',
-         'Escort Turnier',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'escortZX2',
-         'Escort ZX2',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'excursion',
-         'Excursion',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'expedition',
-         'Expedition',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'explorer',
-         'Explorer',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'faction',
-         'Faction',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'fairlane',
-         'Fairlane',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'falconGT',
-         'Falcon GT',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'fiesta',
-         'Fiesta',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'focus',
-         'Focus',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'fusion',
-         'Fusion',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'galaxy',
-         'Galaxy',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'fordGT',
-         'GT',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'ikon',
-         'Ikon',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'ka',
-         'Ka',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'ltd',
-         'LTD',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'maverick',
-         'Maverick',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'modelU',
-         'Model U',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'mondeo',
-         'Mondeo',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'mustang',
-         'Mustang',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'probe',
-         'Probe',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'puma',
-         'Puma',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'ranger',
-         'Ranger',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'scorpio',
-         'Scorpio',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'sierra',
-         'Sierra',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'shelbyGR',
-         'Shelby GR',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'sportKa',
-         'SportKa',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'streetKa',
-         'StreetKa',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'taurus',
-         'Taurus',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'thunderbird',
-         'Thunderbird',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'tourenoConnect',
-         'Tourneo Connect',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'transit',
-         'Transit',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'windstar',
-         'Windstar',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '1s',
-         '1 series',
-         id
-    FROM "CarMaker" WHERE value = 'bmw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '3s',
-         '3 series',
-         id
-    FROM "CarMaker" WHERE value = 'bmw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '5s',
-         '5 series',
-         id
-    FROM "CarMaker" WHERE value = 'bmw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '6s',
-         '6 series',
-         id
-    FROM "CarMaker" WHERE value = 'bmw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '7s',
-         '7 series',
-         id
-    FROM "CarMaker" WHERE value = 'bmw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '8s',
-         '8 series',
-         id
-    FROM "CarMaker" WHERE value = 'bmw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'm3',
-         'M3',
-         id
-    FROM "CarMaker" WHERE value = 'bmw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'm5',
-         'M5',
-         id
-    FROM "CarMaker" WHERE value = 'bmw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'x1',
-         'X1',
-         id
-    FROM "CarMaker" WHERE value = 'bmw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'x3',
-         'X3',
-         id
-    FROM "CarMaker" WHERE value = 'bmw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'x5',
-         'X5',
-         id
-    FROM "CarMaker" WHERE value = 'bmw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'x6',
-         'X6',
-         id
-    FROM "CarMaker" WHERE value = 'bmw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'xActivity',
-         'xActivity',
-         id
-    FROM "CarMaker" WHERE value = 'bmw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'z1',
-         'Z1',
-         id
-    FROM "CarMaker" WHERE value = 'bmw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'z3',
-         'Z3',
-         id
-    FROM "CarMaker" WHERE value = 'bmw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'z4',
-         'Z4',
-         id
-    FROM "CarMaker" WHERE value = 'bmw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'z8',
-         'Z8',
-         id
-    FROM "CarMaker" WHERE value = 'bmw';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '107',
-         '107',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '206',
-         '206',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '106',
-         '106',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '208',
-         '208',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '309',
-         '309',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '508',
-         '508',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '807',
-         '807',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '1007',
-         '1007',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '3008',
-         '3008',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '4007',
-         '4007',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '4008',
-         '4008',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '5008',
-         '5008',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '206+',
-         '206+',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'bipper',
-         'Bipper',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'boxer',
-         'Boxer',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'expert',
-         'Expert',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'ion',
-         'Ion',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'partner',
-         'Partner',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'rcz',
-         'RCZ',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '207',
-         '207',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '307',
-         '307',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '308',
-         '308',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '407',
-         '407',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '408',
-         '408',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '607',
-         '607',
-         id
-    FROM "CarMaker" WHERE value = 'peugeot';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'clio',
-         'Clio',
-         id
-    FROM "CarMaker" WHERE value = 'renault';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'laguna',
-         'Laguna',
-         id
-    FROM "CarMaker" WHERE value = 'renault';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'logan',
-         'Logan',
-         id
-    FROM "CarMaker" WHERE value = 'renault';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'megane',
-         'Megane',
-         id
-    FROM "CarMaker" WHERE value = 'renault';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'symbol',
-         'Symbol',
-         id
-    FROM "CarMaker" WHERE value = 'renault';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'twingo',
-         'Twingo',
-         id
-    FROM "CarMaker" WHERE value = 'renault';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'velSatis',
-         'Vel Satis',
-         id
-    FROM "CarMaker" WHERE value = 'renault';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'phantom',
-         'Phantom',
-         id
-    FROM "CarMaker" WHERE value = 'rolls';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '111',
-         '111',
-         id
-    FROM "CarMaker" WHERE value = 'rover';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '75',
-         '75',
-         id
-    FROM "CarMaker" WHERE value = 'rover';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'saab93',
-         '9-3',
-         id
-    FROM "CarMaker" WHERE value = 'saab';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'leon',
-         'Leon',
-         id
-    FROM "CarMaker" WHERE value = 'seat';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'fabia',
-         'Fabia',
-         id
-    FROM "CarMaker" WHERE value = 'skoda';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'octavia',
-         'Octavia',
-         id
-    FROM "CarMaker" WHERE value = 'skoda';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'superb',
-         'Superb',
-         id
-    FROM "CarMaker" WHERE value = 'skoda';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'fortwo',
-         'Fortwo',
-         id
-    FROM "CarMaker" WHERE value = 'smart';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'impreza',
-         'Impreza',
-         id
-    FROM "CarMaker" WHERE value = 'subaru';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'legacy',
-         'Legacy',
-         id
-    FROM "CarMaker" WHERE value = 'subaru';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'ignis',
-         'Ignis',
-         id
-    FROM "CarMaker" WHERE value = 'suzuki';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'liana',
-         'Liana',
-         id
-    FROM "CarMaker" WHERE value = 'suzuki';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'swift',
-         'Swift',
-         id
-    FROM "CarMaker" WHERE value = 'suzuki';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'sx4',
-         'SX4',
-         id
-    FROM "CarMaker" WHERE value = 'suzuki';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'vitara',
-         'Vitara',
-         id
-    FROM "CarMaker" WHERE value = 'suzuki';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'allion',
-         'Allion',
-         id
-    FROM "CarMaker" WHERE value = 'toyota';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'auris',
-         'Auris',
-         id
-    FROM "CarMaker" WHERE value = 'toyota';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'avensis',
-         'Avensis',
-         id
-    FROM "CarMaker" WHERE value = 'toyota';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'aygo',
-         'Aygo',
-         id
-    FROM "CarMaker" WHERE value = 'toyota';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'camry',
-         'Camry',
-         id
-    FROM "CarMaker" WHERE value = 'toyota';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'corolla',
-         'Corolla',
-         id
-    FROM "CarMaker" WHERE value = 'toyota';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'ist',
-         'Ist',
-         id
-    FROM "CarMaker" WHERE value = 'toyota';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'landCruiser1',
-         'Land Cruiser 1',
-         id
-    FROM "CarMaker" WHERE value = 'toyota';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'landCruiser105',
-         'Land Cruiser 105',
-         id
-    FROM "CarMaker" WHERE value = 'toyota';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'mark',
-         'Mark II',
-         id
-    FROM "CarMaker" WHERE value = 'toyota';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'chaser',
-         'Chaser',
-         id
-    FROM "CarMaker" WHERE value = 'toyota';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'cresta',
-         'Cresta',
-         id
-    FROM "CarMaker" WHERE value = 'toyota';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'rav4',
-         'RAV-4',
-         id
-    FROM "CarMaker" WHERE value = 'toyota';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'vitz',
-         'Vitz',
-         id
-    FROM "CarMaker" WHERE value = 'toyota';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'yaris',
-         'Yaris',
-         id
-    FROM "CarMaker" WHERE value = 'toyota';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'c30',
-         'C30',
-         id
-    FROM "CarMaker" WHERE value = 'volvo';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 's40',
-         'S40',
-         id
-    FROM "CarMaker" WHERE value = 'volvo';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 's60',
-         'S60',
-         id
-    FROM "CarMaker" WHERE value = 'volvo';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 's80',
-         'S80',
-         id
-    FROM "CarMaker" WHERE value = 'volvo';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'v50',
-         'V50',
-         id
-    FROM "CarMaker" WHERE value = 'volvo';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'h1',
-         'H1',
-         id
-    FROM "CarMaker" WHERE value = 'hum';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'h2',
-         'H2',
-         id
-    FROM "CarMaker" WHERE value = 'hum';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'h3',
-         'H3',
-         id
-    FROM "CarMaker" WHERE value = 'hum';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'shalanda',
-         'Shalanda',
-         id
-    FROM "CarMaker" WHERE value = 'maz';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '5516',
-         '5516',
-         id
-    FROM "CarMaker" WHERE value = 'maz';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '6430A9',
-         '6430A9',
-         id
-    FROM "CarMaker" WHERE value = 'maz';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT '4370',
-         '4370',
-         id
-    FROM "CarMaker" WHERE value = 'maz';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'bMax',
-         'B-Max',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'f250',
-         'F250',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'grandCMax',
-         'GRAND C-Max',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'f150',
-         'F150',
-         id
-    FROM "CarMaker" WHERE value = 'ford';
-
-INSERT INTO "CarModel" (value, label, parent)
-  SELECT 'С-Elysee',
-         'С-Elysee',
-         id
-    FROM "CarMaker" WHERE value = 'citroen';
+COPY "CarModel" (id, value, label, parent) FROM stdin;
+1	alfa147	147	9
+2	alfa166	166	9
+3	a2	A2	10
+4	a3	A3	10
+5	a4	A4	10
+6	a6	A6	10
+7	a8	A8	10
+8	arnage	Arnage	11
+9	continental	Continental Flying Spur	11
+10	chrysler300	300	12
+11	sebring	Sebring	12
+12	c1	C1	13
+13	c2	C2	13
+14	berlingo	Berlingo	13
+15	c15	C15	13
+16	c3Picasso	C3 Picasso	13
+17	c3Pluriel	C3 Pluriel	13
+18	c4Aircross	C4 Aircross	13
+19	c4Picasso	C4 Picasso	13
+20	c8	C8	13
+21	cCrosser	C-Crosser	13
+22	cZero	C-Zero	13
+23	ds3	DS3	13
+24	ds4	DS4	13
+25	ds5	DS5	13
+26	jumper	Jumper	13
+27	nemo	Nemo	13
+28	saxo	Saxo	13
+29	xsaraPicasso	Xsara Picasso	13
+30	zx	ZX	13
+31	evasionJumpy	Evasion/Jumpy	13
+32	c3	C3	13
+33	c4	C4	13
+34	c5	C5	13
+35	c6	C6	13
+36	xsara	Xsara	13
+37	alero	Alero	2
+38	aveo	Aveo	2
+39	beretta	Beretta	2
+40	blazer	Blazer	2
+41	camaro	Camaro	2
+42	capriceCh	Caprice	2
+43	captiva	Captiva	2
+44	cavalier	Cavalier	2
+45	celta	Celta	2
+46	cheyenne	Cheyenne	2
+47	cobaltCh	Cobalt	2
+48	colorado	Colorado	2
+49	wind	Corsa Wind	2
+50	corsica	Corsica	2
+51	corvette	Corvette	2
+52	cruze	Cruze	2
+53	epicaCh	Epica	2
+54	evanda	Evanda	2
+55	express	Express	2
+56	orlando	Orlando	2
+57	hhr	HHR	2
+58	impalaSS	Impala SS	2
+59	ipanemaGL	Ipanema GL	2
+60	jimmy	Jimmy	2
+61	lacetti	Lacetti	2
+62	lanosCh	Lanos	2
+63	impala	Impala	2
+64	lumina	Lumina	2
+65	malibu	Malibu	2
+66	metro	Metro	2
+67	monteCarlo	Monte Carlo	2
+68	monza	Monza	2
+69	niva	NIVA	2
+70	prism	Prism	2
+71	s10	S-10	2
+72	spark	Spark	2
+73	ss	SS	2
+74	suburban	Suburban	2
+75	tacuma	Tacuma	2
+76	tahoe	Tahoe	2
+77	trackerConv	Tracker Convertible	2
+78	trackerHard	Tracker Hardtop	2
+79	trailBlazer	Trail Blazer	2
+80	Trans	Trans Sport	2
+81	venture	Venture	2
+82	viva	Viva	2
+83	chairman	Chairman	14
+84	espero	Espero	14
+85	matiz	Matiz	14
+86	nexia	Nexia	14
+87	tosca	Tosca	14
+88	caliber	Caliber	15
+89	albea	Albea	16
+90	bravo	Bravo	16
+91	panda	Panda	16
+92	punto	Punto	16
+93	epica	Epica	17
+94	statesman	Statesman	17
+95	caprice	Caprice	17
+96	accord	Accord	18
+97	civic	Civic	18
+98	fit	Fit	18
+99	jazz	Jazz	18
+100	legend	Legend	18
+101	logo	Logo	18
+102	i10	i10	19
+103	i20	i20	19
+104	i30	i30	19
+105	centennial	Centennial	19
+106	equus	Equus	19
+107	cheryQQ	Chery QQ (Sweet)	19
+108	accent	Accent	19
+109	atos	Atos	19
+110	elantra	Elantra	19
+111	genesis	Genesis	19
+112	getz	Getz	19
+113	santaFe	Santa Fe new	19
+114	solaris	Solaris	19
+115	sonata	Sonata	19
+116	xg	XG	19
+117	sType	S-Type	20
+118	xf	XF	20
+119	xj	XJ	20
+120	xType	X-Type	20
+121	ceed	Cee'd	22
+122	cerato	Cerato	22
+123	magentis	Magentis	22
+124	opirus	Opirus	22
+125	picanto	Picanto	22
+126	rio	Rio	22
+127	spectra	Spectra	22
+128	2104	2104	7
+129	2107	2107	7
+130	2113Samara	2113 (Samara)	7
+131	2114Samara	2114 (Samara)	7
+132	2115Samara	2115 (Samara)	7
+133	2121Niva	2121 (Niva)	7
+134	granta	Granta	7
+135	kalina	Kalina	7
+136	priora	Priora	7
+137	largus	Largus	7
+138	thesis	Thesis	23
+139	defender	Defender	24
+140	discavery	Discavery	24
+141	freelander	Freelander	24
+142	range	Range Rover	24
+143	rangeEvoque	Range Rover Evoque	24
+144	rangeSport	Range Rover Sport	24
+145	gs	GS	25
+146	is	IS	25
+147	ls	LS	25
+148	quattroporte	Quattroporte	26
+149	mazda2	2	28
+150	mazda3	3	28
+151	mazda6	6	28
+152	demio	Demio	28
+153	aClass	A	29
+154	bClass	B	29
+155	cClass	C	29
+156	eClass	E	29
+157	sClass	S	29
+158	cls	CLS	29
+159	colt	Colt	31
+160	galant	Galant	31
+161	lancer	Lancer	31
+162	proudia	Proudia	31
+163	almera	Almera	32
+164	cedric	Cedric	32
+165	cima	Cima	32
+166	laurel	Laurel	32
+167	maxima	Maxima	32
+168	micra	Micra	32
+169	murano	Murano	32
+170	note	Note	32
+171	president	President	32
+172	primera	Primera	32
+173	pathfinder	Pathfinder	32
+174	teana	Teana	32
+175	xTrail	X-Trail	32
+176	tiida	Tiida	32
+177	ssangYong	Ssang Yong	32
+178	qashqai	Qashqai	32
+179	agila	Agila	3
+180	antara	Antara	3
+181	astra	Astra	3
+182	astragtc	Astra GTC	3
+183	calibra	Calibra	3
+184	combo	Combo	3
+185	corsa	Corsa	3
+186	frontera	Frontera	3
+187	insignia	Insignia	3
+188	kadett	Kadett	3
+189	meriva	Meriva	3
+190	mokka	Mokka	3
+191	monterey	Monterey	3
+192	movano	Movano	3
+193	omega	Omega	3
+194	signum	Signum	3
+195	sintra	Sintra	3
+196	tigra	Tigra	3
+197	vectra	Vectra	3
+198	vita	Vita	3
+199	vivaro	Vivaro	3
+200	zafira	Zafira	3
+201	allante	Allante	4
+202	bls	BLS	4
+203	brougham	Brougham	4
+204	catera	Catera	4
+205	cts	CTS	4
+206	ville	DE Ville	4
+207	dts	DTS	4
+208	eldorado	Eldorado	4
+209	escalade	Escalade	4
+210	fleetwood	Fleetwood	4
+211	lse	LSE	4
+212	seville	Seville	4
+213	srx	SRX	4
+214	sts	STS	4
+215	xlr	XLR	4
+216	caddy	Caddy	1
+217	caravelle	Caravelle	1
+218	amarok	Amarok	1
+219	crafter	Crafter	1
+220	t5	T5	1
+221	tiguan	Tiguan	1
+222	polo	Polo	1
+223	touareg	Touareg	1
+224	passat	Passat	1
+225	passatCC	Passat CC	1
+226	jetta	Jetta	1
+227	multivan	Multivan	1
+228	golf	Golf	1
+229	golfPlus	Golf Plus	1
+230	sharan	Sharan	1
+231	touran	Touran	1
+232	phaeton	Phaeton	1
+233	eos	Eos	1
+234	lupo	Lupo	1
+235	pointer	Pointer	1
+236	transporter	Transporter	1
+237	scirocco	Scirocco	1
+238	ford427	427	6
+239	aerostar	Aerostar	6
+240	cMax	Focus C-Max	6
+241	aspire	Aspire	6
+242	bronco	Bronco	6
+243	sMax	S-Max	6
+244	cMaxII	C-Max II	6
+245	contour	Contour	6
+246	cougar	Cougar	6
+247	kuga	Kuga	6
+248	crownVictoria	Crown Victoria	6
+249	econoline	Econoline	6
+250	escape	Escape	6
+251	escort	Escort	6
+252	escortCabrio	Escort Cabrio	6
+253	escortClassic	Escort Classic	6
+254	escortEstate	Escort Estate	6
+255	escortHatchback	Escort Hatchback	6
+256	escortTurnier	Escort Turnier	6
+257	escortZX2	Escort ZX2	6
+258	excursion	Excursion	6
+259	expedition	Expedition	6
+260	explorer	Explorer	6
+261	faction	Faction	6
+262	fairlane	Fairlane	6
+263	falconGT	Falcon GT	6
+264	fiesta	Fiesta	6
+265	focus	Focus	6
+266	fusion	Fusion	6
+267	galaxy	Galaxy	6
+268	fordGT	GT	6
+269	ikon	Ikon	6
+270	ka	Ka	6
+271	ltd	LTD	6
+272	maverick	Maverick	6
+273	modelU	Model U	6
+274	mondeo	Mondeo	6
+275	mustang	Mustang	6
+276	probe	Probe	6
+277	puma	Puma	6
+278	ranger	Ranger	6
+279	scorpio	Scorpio	6
+280	sierra	Sierra	6
+281	shelbyGR	Shelby GR	6
+282	sportKa	SportKa	6
+283	streetKa	StreetKa	6
+284	taurus	Taurus	6
+285	thunderbird	Thunderbird	6
+286	tourenoConnect	Tourneo Connect	6
+287	transit	Transit	6
+288	windstar	Windstar	6
+289	1s	1 series	8
+290	3s	3 series	8
+291	5s	5 series	8
+292	6s	6 series	8
+293	7s	7 series	8
+294	8s	8 series	8
+295	m3	M3	8
+296	m5	M5	8
+297	x1	X1	8
+298	x3	X3	8
+299	x5	X5	8
+300	x6	X6	8
+301	xActivity	xActivity	8
+302	z1	Z1	8
+303	z3	Z3	8
+304	z4	Z4	8
+305	z8	Z8	8
+306	107	107	33
+307	206	206	33
+308	106	106	33
+309	208	208	33
+310	309	309	33
+311	508	508	33
+312	807	807	33
+313	1007	1007	33
+314	3008	3008	33
+315	4007	4007	33
+316	4008	4008	33
+317	5008	5008	33
+318	206+	206+	33
+319	bipper	Bipper	33
+320	boxer	Boxer	33
+321	expert	Expert	33
+322	ion	Ion	33
+323	partner	Partner	33
+324	rcz	RCZ	33
+325	207	207	33
+326	307	307	33
+327	308	308	33
+328	407	407	33
+329	408	408	33
+330	607	607	33
+331	clio	Clio	34
+332	laguna	Laguna	34
+333	logan	Logan	34
+334	megane	Megane	34
+335	symbol	Symbol	34
+336	twingo	Twingo	34
+337	velSatis	Vel Satis	34
+338	phantom	Phantom	35
+339	111	111	36
+340	75	75	36
+341	saab93	9-3	37
+342	leon	Leon	39
+343	fabia	Fabia	40
+344	octavia	Octavia	40
+345	superb	Superb	40
+346	fortwo	Fortwo	41
+347	impreza	Impreza	42
+348	legacy	Legacy	42
+349	ignis	Ignis	43
+350	liana	Liana	43
+351	swift	Swift	43
+352	sx4	SX4	43
+353	vitara	Vitara	43
+354	allion	Allion	44
+355	auris	Auris	44
+356	avensis	Avensis	44
+357	aygo	Aygo	44
+358	camry	Camry	44
+359	corolla	Corolla	44
+360	ist	Ist	44
+361	landCruiser1	Land Cruiser 1	44
+362	landCruiser105	Land Cruiser 105	44
+363	mark	Mark II	44
+364	chaser	Chaser	44
+365	cresta	Cresta	44
+366	rav4	RAV-4	44
+367	vitz	Vitz	44
+368	yaris	Yaris	44
+369	c30	C30	45
+370	s40	S40	45
+371	s60	S60	45
+372	s80	S80	45
+373	v50	V50	45
+374	h1	H1	5
+375	h2	H2	5
+376	h3	H3	5
+377	shalanda	Shalanda	46
+378	5516	5516	46
+379	6430A9	6430A9	46
+380	4370	4370	46
+381	bMax	B-Max	6
+382	f250	F250	6
+383	grandCMax	GRAND C-Max	6
+384	f150	F150	6
+385	С-Elysee	С-Elysee	13
+386	wingle5	Wingle 5	47
+387	C20R	C20R	47
+388	C30	C30	47
+389	C50	C50	47
+390	Hover M2	Hover M2	47
+391	Hover M4	Hover M4	47
+392	Hover H6	Hover H6	47
+393	Hover H5-E	Hover H5-E	47
+\.

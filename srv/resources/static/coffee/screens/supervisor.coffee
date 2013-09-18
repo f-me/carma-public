@@ -2,14 +2,14 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
 
   dataTableOptions = ->
     aoColumns: utils
-      .repeat(10, null)
+      .repeat(11, null)
       .concat(utils.repeat(2, { bVisible: false}))
     bPaginate: true
     fnRowCallback: (nRow, aData, iDisplayIndex, iDisplayIndexFull) ->
       caseId = aData[0].split('/')[0]
       caseLnk = "<a style='color: black' href='/#case/#{caseId}'> #{aData[0]} </a>"
       duetime  = Date.parse aData[5]
-      srvStart = Date.parse aData[10]
+      srvStart = Date.parse aData[11]
       mktime = (n) ->
         d = new Date
         d.setMinutes(d.getMinutes() + n)
@@ -18,7 +18,7 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
       d120 = mktime 120
       d480 = mktime 480
       now  = new Date
-      name = aData[11]
+      name = aData[12]
 
       $('td:eq(0)', nRow).html caseLnk
 
@@ -46,13 +46,13 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
       if time < now
         set violet
 
-  objsToRows = (objs) ->
+  objsToRows = (res) ->
     n = global.dictValueCache['ActionNames']
     r = global.dictValueCache['ActionResults']
     u = global.dictValueCache['users']
     g = global.dictValueCache['Roles']
 
-    rows = for obj in objs
+    rows = for obj in res.actions
       if obj.parentId
         svcName = obj.parentId.split(':')[0]
         svcName = global.model(svcName).title
@@ -65,12 +65,21 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
         .toString("dd.MM.yyyy HH:mm:ss")
       srvStart = new Date(obj.times_expectedServiceStart * 1000)
         .toString("dd.MM.yyyy HH:mm:ss")
+      timeLabel =
+        if _.isEmpty obj.assignedTo
+          utils.timeFrom obj.ctime, res.reqTime
+        else
+          if _.isEmpty obj.closeTime
+            utils.timeFrom obj.assignTime, res.reqTime
+          else
+            utils.timeFrom obj.openTime, obj.closeTime
       [ "#{cid}/#{obj.id} (#{svcName or ''})"
       , closed
       , n[obj.name] || ''
       , u[obj.assignedTo] || ''
       , g[obj.targetGroup] || obj.targetGroup || ''
       , duetime || ''
+      , timeLabel
       , r[obj.result] || ''
       , obj.priority || ''
       , global.dictValueCache['DealerCities'][obj.city] || ''
@@ -95,7 +104,7 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
         select.push("targetGroup=#{opt.targetGroup}")
       select.push("duetimeFrom=#{opt.duetimeFrom}") if opt.duetimeFrom
       select.push("duetimeTo=#{opt.duetimeTo}") if opt.duetimeTo
-      objURL = "/allActions?#{select.join('&')}"
+      objURL = "/supervisor/allActions?#{select.join('&')}"
     else
       ""
 
@@ -145,6 +154,10 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
     table.dataTable.fnSort [[5,'asc']]
     $('select[name=supervisor-table_length]').val(100)
     $('select[name=supervisor-table_length]').change()
+
+    $.getJSON "/supervisor/actStats", (as) ->
+      $("#unassigned-orders").text(as.order)
+      $("#unassigned-controls").text(as.control)
 
   { constructor: screenSetup
   , template: tpl

@@ -99,7 +99,7 @@
     },
     {
       "meta": {
-        "dictionaryName": "Programs",
+        "dictionaryName": "VinFormats",
         "label": "Формат файлов VIN"
       },
       "type": "dictionary",

@@ -50,3 +50,21 @@ define ["model/main", "render/screen"], (main, render) ->
     _.find(
       global.model(modelName).fields,
       (f) -> return f.name == fieldName)
+
+  buildSorters: (model) ->
+    sorters = {}
+    mkSortFns = (name, fn) ->
+      sorters["#{name}SortAsc"]  = fn
+      sorters["#{name}SortDesc"] = { fn: fn, reverse: true }
+
+    ignoreType = (type) ->
+      _.contains ["reference", "nested-model", "json"], type
+    for f in model.fields when not ignoreType(f.type)
+      if f.type == "dictionary"
+        mkSortFns f.name, (k) -> k["#{f.name}Local"]()
+      else if f.type == "dictionary-many"
+        mkSortFns f.name, (k) -> _.pluck k["#{f.name}Locals"](), 'label'
+      else if f.type == "checkbox"
+        mkSortFns f.name, (k) -> k[f.name]() == true
+      else
+        mkSortFns f.name, k[f.name]

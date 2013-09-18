@@ -132,6 +132,7 @@ serveUserCake
       let homePage = case userRoles usr of
             rs | Role "front"      `elem` rs -> "/#call"
                | Role "back"       `elem` rs -> "/#back"
+               | Role "bo_control" `elem` rs -> "/#back"
                | Role "supervisor" `elem` rs -> "/#supervisor"
                | Role "parguy"     `elem` rs -> "/#partner"
                | Role "head"       `elem` rs -> "/#rkc"

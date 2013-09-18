@@ -3,11 +3,11 @@
         "orderService": [
             {
                 "value": "serviceOrdered",
-                "label": "Услуга заказана"
+                "label": "Услуга заказана, клиенту не дозвонились"
             },
             {
                 "value": "serviceOrderedSMS",
-                "label": "Услуга заказана (SMS)"
+                "label": "Услуга заказана, клиент оповещён (SMS)"
             },
             {
                 "value": "needPartner",
@@ -24,6 +24,10 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
+            },
+            {
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "callMeMaybe": [
@@ -34,6 +38,10 @@
             {
                 "value": "busyLine",
                 "label": "Не дозвонился"
+            },
+            {
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "tellMeMore": [
@@ -48,6 +56,10 @@
             {
                 "value": "okButNoService",
                 "label": "Коммуникация завершена, услуга не требуется"
+            },
+            {
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "orderServiceAnalyst": [
@@ -70,6 +82,10 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
+            },
+            {
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "needPartner": [
@@ -86,8 +102,8 @@
                 "label": "Клиент отказался от услуги"
             },
             {
-                "value": "bigDelay",
-                "label": "Отложить на 6 часов"
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "tellClient": [
@@ -110,6 +126,10 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
+            },
+            {
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "cancelService": [
@@ -128,6 +148,10 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
+            },
+            {
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "checkStatus": [
@@ -150,6 +174,10 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
+            },
+            {
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "tellDelayClient": [
@@ -166,12 +194,16 @@
                 "label": "Отказ от партнёра"
             },
             {
-                "value": "partnerNotOkCalncel",
+                "value": "partnerNotOkCancel",
                 "label": "Полный отказ от услуг"
             },
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
+            },
+            {
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "checkEndOfService": [
@@ -190,6 +222,10 @@
             {
                 "value": "serviceFinished",
                 "label": "Услуга успешно оказана"
+            },
+            {
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "complaintResolution": [
@@ -202,12 +238,8 @@
                 "label": "Претензия разрешена"
             },
             {
-                "value": "bigDelay",
-                "label": "Отложить на 6 часов"
-            },
-            {
-                "value": "weekDelay",
-                "label": "Отложить на неделю"
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "addBill": [
@@ -224,12 +256,8 @@
                 "label": "Вернуть в Backoffice"
             },
             {
-                "value": "bigDelay",
-                "label": "Отложить на 6 часов"
-            },
-            {
-                "value": "weekDelay",
-                "label": "Отложить на неделю"
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "parguyNeedInfo": [
@@ -238,12 +266,8 @@
                 "label": "Вернуть менеджеру по партнёрам"
             },
             {
-                "value": "bigDelay",
-                "label": "Отложить на 6 часов"
-            },
-            {
-                "value": "weekDelay",
-                "label": "Отложить на неделю"
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "headCheck": [
@@ -264,12 +288,8 @@
                 "label": "Ок (без проверки директором и бухгалтерией)"
             },
             {
-                "value": "bigDelay",
-                "label": "Отложить на 6 часов"
-            },
-            {
-                "value": "weekDelay",
-                "label": "Отложить на неделю"
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "directorCheck": [
@@ -286,12 +306,8 @@
                 "label": "Ок (без проверки бухгалтерией)"
             },
             {
-                "value": "bigDelay",
-                "label": "Отложить на 6 часов"
-            },
-            {
-                "value": "weekDelay",
-                "label": "Отложить на неделю"
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "accountCheck": [
@@ -304,12 +320,8 @@
                 "label": "Проверено бухгалтерией"
             },
             {
-                "value": "bigDelay",
-                "label": "Отложить на 6 часов"
-            },
-            {
-                "value": "weekDelay",
-                "label": "Отложить на неделю"
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "analystCheck": [
@@ -318,12 +330,8 @@
                 "label": "Проверено аналитиком"
             },
             {
-                "value": "bigDelay",
-                "label": "Отложить на 6 часов"
-            },
-            {
-                "value": "weekDelay",
-                "label": "Отложить на неделю"
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "getInfoDealerVW": [
@@ -340,12 +348,8 @@
                 "label": "Информация получена"
             },
             {
-                "value": "bigDelay",
-                "label": "Отложить на 6 часов"
-            },
-            {
-                "value": "weekDelay",
-                "label": "Отложить на неделю"
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "closeCase": [
@@ -366,12 +370,8 @@
                 "label": "Закрыть заявку позже"
             },
             {
-                "value": "bigDelay",
-                "label": "Отложить на 6 часов"
-            },
-            {
-                "value": "weekDelay",
-                "label": "Отложить на неделю"
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "dealerApproval": [
@@ -394,6 +394,10 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
+            },
+            {
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "carmakerApproval": [
@@ -416,6 +420,10 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
+            },
+            {
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "dealerConf": [
@@ -438,6 +446,10 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
+            },
+            {
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "mechanicConf": [
@@ -460,6 +472,10 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
+            },
+            {
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "tellDealerDenied": [
@@ -474,6 +490,10 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
+            },
+            {
+                "value": "defer",
+                "label": "Отложить"
             }
         ],
         "tellMakerDenied": [
@@ -488,6 +508,10 @@
             {
                 "value": "clientCanceledService",
                 "label": "Клиент отказался от услуги"
+            },
+            {
+                "value": "defer",
+                "label": "Отложить"
             }
         ]
     }

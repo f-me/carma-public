@@ -13,20 +13,8 @@
             "label": "Абакан"
         },
         {
-            "value": "Bratsk",
-            "label": "Братск"
-        },
-        {
-            "value": "UstIlimsk",
-            "label": "Усть-Илимск"
-        },
-        {
-            "value": "Buluzuk",
-            "label": "Бузулук"
-        },        
-        {
-            "value": "Noyabrsk",
-            "label": "Ноябрьск"
+            "value": "Aksay",
+            "label": "Аксай"
         },
         {
             "value": "Adler",
@@ -59,7 +47,7 @@
         {
             "value": "Almaty",
             "label": "Алматы"
-        },        
+        },
         {
             "value": "Al'met'evsk",
             "label": "Альметьевск"
@@ -135,7 +123,7 @@
         {
             "value": "Achinsk",
             "label": "Ачинск"
-        },        
+        },
         {
             "value": "Bajkal'sk",
             "label": "Байкальск"
@@ -147,7 +135,7 @@
         {
             "value": "Borisoglebsk",
             "label": "Борисоглебск"
-        },        
+        },
         {
             "value": "Balashikha",
             "label": "Балашиха"
@@ -187,7 +175,7 @@
         {
             "value": "Berezniki",
             "label": "Березники"
-        },        
+        },
         {
             "value": "Berezovskij",
             "label": "Березовский"
@@ -225,6 +213,10 @@
             "label": "Бор"
         },
         {
+            "value": "Bratsk",
+            "label": "Братск"
+        },
+        {
             "value": "Bronnitsy",
             "label": "Бронницы"
         },
@@ -241,6 +233,10 @@
             "label": "Буденовск"
         },
         {
+            "value": "Buluzuk",
+            "label": "Бузулук"
+        },
+        {
             "value": "Buinsk",
             "label": "Буинск"
         },
@@ -255,6 +251,10 @@
         {
             "value": "Velikij Ustyug",
             "label": "Великий Устюг"
+        },
+        {
+            "value": "Velikie Luki",
+            "label": "Великие Луки"
         },
         {
             "value": "Venev",
@@ -423,7 +423,7 @@
         {
             "value": "Dimitrovgrad",
             "label": "Димитровград"
-        },        
+        },
         {
             "value": "Divnogorsk",
             "label": "Дивногорск"
@@ -575,7 +575,7 @@
         {
             "value": "Izmail",
             "label": "Измаил"
-        },        
+        },
         {
             "value": "Joshkar-Ola",
             "label": "Йошкар-Ола"
@@ -735,7 +735,7 @@
         {
             "value": "Komsomol'skNaAmure",
             "label": "Комсомольск-на-Амуре"
-        },        
+        },
         {
             "value": "Kondopoga",
             "label": "Кондопога"
@@ -791,7 +791,7 @@
         {
             "value": "Krasnoznamensk",
             "label": "Краснознаменск"
-        },        
+        },
         {
             "value": "Krasnovishersk",
             "label": "Красновишерск"
@@ -1145,6 +1145,10 @@
             "label": "Ногинск"
         },
         {
+            "value": "Noyabrsk",
+            "label": "Ноябрьск"
+        },
+        {
             "value": "Nurlat",
             "label": "Нурлат"
         },
@@ -1255,7 +1259,7 @@
         {
             "value": "Petropavlovsk",
             "label": "Петропавловск-Камчатский"
-        },        
+        },
         {
             "value": "Petushki",
             "label": "Петушки"
@@ -1339,7 +1343,7 @@
         {
             "value": "Reutov",
             "label": "Реутов"
-        },        
+        },
         {
             "value": "Rzhev",
             "label": "Ржев"
@@ -1579,7 +1583,7 @@
         {
             "value": "Tobol`sk",
             "label": "Тобольск"
-        },        
+        },
         {
             "value": "Torzhok",
             "label": "Торжок"
@@ -1633,13 +1637,17 @@
             "label": "Уссурийск"
         },
         {
+            "value": "UstIlimsk",
+            "label": "Усть-Илимск"
+        },
+        {
             "value": "Ufa",
             "label": "Уфа"
         },
         {
             "value": "Uhta",
             "label": "Ухта"
-        },       
+        },
         {
             "value": "Uyar",
             "label": "Уяр"
@@ -1647,7 +1655,7 @@
         {
             "value": "UlanUde",
             "label": "Улан-Удэ"
-        },        
+        },
         {
             "value": "KHabarovsk",
             "label": "Хабаровск"

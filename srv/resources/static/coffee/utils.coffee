@@ -87,6 +87,47 @@ define ["model/utils"], (mu) ->
     for i in [0..tlen]
       temp += chars.charAt Math.floor Math.random() * chars.length
     return temp
+
+  isMatch = (q, str) -> !!~String(str).toLowerCase().indexOf(q.toLowerCase())
+
+  kvmCheckMatch = (q, kvm) ->
+    v = for f in kvm._meta.model.fields
+      if f.type == "dictionary"
+        isMatch(q, kvm["#{f.name}Local"]())
+      else if f.type == "dictionary-many"
+        checkMatch(q, _.pluck(kvm["#{f.name}Locals"](), 'label'))
+      else if f.type == "reference"
+        _.any kvm["#{f.name}References"](), (k) -> kvmCheckMatch(q, k)
+      else if f.type == "nested-model"
+        _.any kvm["#{f.name}Nested"](), (k) -> kvmCheckMatch(q, k)
+      else if f.type == "json" and f.meta?.jsonSchema == "dict-objects"
+        _.any kvm["#{f.name}Objects"](),
+              (k) -> _.any ['keyLocal', 'value', 'note'],
+                          (s) -> checkMatch(q, k[s]?())
+      else
+        checkMatch(q, kvm[f.name]())
+
+    _.any v
+
+  # deep check that anything in @val@ has @q@
+  checkMatch = (q, val) ->
+    if _.isArray val
+      _.any val, (a) -> checkMatch(q, a)
+    else if _.isObject val
+      _.any (checkMatch(q, v) for k, v of val), _.identity
+    else
+      !!~String(val).toLowerCase().indexOf(q.toLowerCase())
+  window.checkMatch = checkMatch
+
+  # Format a numeric value from seconds to hours and minutes
+  formatSec = (s) ->
+    mins = Math.round(s / 60 % 60)
+    hours = Math.round(s / 3600 % 3600)
+    if hours == 0
+      "#{mins}м"
+    else
+      "#{hours}ч #{mins}м"
+
   findCaseOrReferenceVM: findCaseOrReferenceVM
 
   # build global function from local to module one
@@ -159,9 +200,22 @@ define ["model/utils"], (mu) ->
       view: view_name
       field: field_name
 
+  # Calculate delta between two timestamps, return formatted and
+  # unformatted delta in a list. If second timestamp is omitted,
+  # current time is used.
+  timeFrom: (from, to) ->
+    return null if _.isEmpty from
+    from = new Date(from * 1000)
+    if _.isEmpty to
+      to = new Date()
+    else
+      to = new Date(to * 1000)
+    delta = (to - from) / 1000
+    return [formatSec delta, delta]
+
   # Format a numeric value from seconds to minutes
   formatSecToMin: (s) ->
-    Math.round(s / 60) + "m"
+    Math.round(s / 60) + "м"
 
   # Hide all views on center pane and show view for first reference
   # stored in <fieldName> of model loaded into <parentView> there
@@ -282,8 +336,13 @@ define ["model/utils"], (mu) ->
 
   splitVals: (v) ->
     return [] if not v or v == ""
+    # some times we send them as array right from backend
+    return v if _.isArray v
     v.split ','
 
   modelsFromUrl: modelsFromUrl
 
   reloadScreen: -> global.router.navigate modelsFromUrl(), { trigger: true }
+
+  checkMatch: checkMatch
+  kvmCheckMatch: kvmCheckMatch
