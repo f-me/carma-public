@@ -1627,6 +1627,16 @@
                 "value": "4370",
                 "label": "4370"
             }
+        ],
+        "greatWall": [
+            {"value": "wingle5", "label": "Wingle 5"},
+            {"value": "C20R", "label": "C20R"},
+            {"value": "C30", "label": "C30"},
+            {"value": "C50", "label": "C50"},
+            {"value": "Hover M2", "label": "Hover M2"},
+            {"value": "Hover M4", "label": "Hover M4"},
+            {"value": "Hover H6", "label": "Hover H6"},
+            {"value": "Hover H5-E", "label": "Hover H5-E"}
         ]
     }
 }

@@ -40,26 +40,11 @@ $$
   begin
     return query SELECT row_to_json(r) :: text
       FROM (
-        SELECT p.id
+        SELECT p.*
              , st_x(p.coords)
              , st_y(p.coords)
-             , p.isDealer
-             , p.isMobile
-             , p.isFree
-             , ST_Distance_Sphere(p.coords, ST_Point(xc, yc))
-                                              as distance
-             , coalesce(p.name, '')           as name
-             , coalesce(p.city, '')           as city
-             , coalesce(p.comment, '')        as comment
-             , coalesce(p.code, '')           as code
-             , coalesce(p.addrs  :: text, '') as addrs
-             , coalesce(p.phones :: text, '') as phones
-             , coalesce(p.emails :: text, '') as emails
-             , coalesce(p.personInCharge, '') as personInCharge
-             , p.makes                        as makes
-             , coalesce(s.priority2, '')      as priority2
-             , coalesce(s.priority3, '')      as priority3
-             , coalesce(s.servicename, '')    as servicename
+             , ST_Distance_Sphere(p.coords, ST_Point(xc, yc))      as distance
+             , array_to_json(array_agg(s.* :: partner_servicetbl)) as services
         FROM partnertbl p
         LEFT JOIN partner_servicetbl s
         ON  p.id = cast(split_part(s.parentid, ':', 2) as integer)
@@ -79,6 +64,7 @@ $$
               then me OR p.makes && ma
               else me OR array_dims(p.makes) IS NULL OR p.makes && ma
               end
+        GROUP BY p.id
       ) as r;
 
   end;

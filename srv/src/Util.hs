@@ -16,6 +16,7 @@ module Util
   ,stringToB
   , formatTimestamp
   , render
+  , projNow
   ) where
 
 import qualified Data.Map as Map
@@ -163,7 +164,7 @@ upCaseName = T.unwords . map upCaseWord . T.words
 
 
 -- | Simple templater (extracted from SMS module)
-render :: Map Text Text 
+render :: Map Text Text
        -- ^ Context.
        -> Text
        -- ^ Template. Context keys @like_this@ are referenced
@@ -188,3 +189,12 @@ formatTimestamp tm = case B.readInt tm of
       $ utcToLocalTime tz
       $ posixSecondsToUTCTime $ fromIntegral s
   _ -> return "???"
+
+
+-- | Get current UNIX timestamp, round and apply a function to it,
+-- then format the result as a bytestring.
+projNow :: (Show b, Integral a, Integral b) =>
+           (a -> b)
+        -> IO ByteString
+projNow fn =
+  (B.pack . show . fn . round . utcTimeToPOSIXSeconds) <$> getCurrentTime

@@ -6,6 +6,7 @@ define [ "lib/local-dict"
        , "lib/dealers-dict"
        , "lib/cardOwner-dict"
        , "lib/region-dict"
+       , "lib/model-dict"
        ], ->
 
   dicts = {}

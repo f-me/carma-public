@@ -65,7 +65,7 @@ data KeyVal = KeyVal {value :: Text, label :: Text}
 data FlatDict = FlatDict {f'entries :: [KeyVal]}
 data NestDict = NestDict {n'entries :: Map Text [KeyVal]}
 
-$(deriveFromJSON id ''KeyVal)
-$(deriveFromJSON (drop 2) ''FlatDict)
-$(deriveFromJSON (drop 2) ''NestDict)
+$(deriveFromJSON defaultOptions ''KeyVal)
+$(deriveFromJSON defaultOptions{fieldLabelModifier = drop 2} ''FlatDict)
+$(deriveFromJSON defaultOptions{fieldLabelModifier = drop 2} ''NestDict)
 

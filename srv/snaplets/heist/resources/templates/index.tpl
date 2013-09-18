@@ -48,13 +48,20 @@
     <!-- base 64 encode/decode library -->
     <script src="/s/js/3p/b64.js" />
 
-    <!-- typeahead menu -->
-    <script src="/s/js/gen/lib/th-menu.js" />
-    <!-- <script src="/s/js/gen/lib/local-dict.js" /> -->
+    <!-- Joseph Meyers md5 implementation -->
+    <script src="/s/js/3p/md5.js" />
 
-    <script src="/s/js/gen/customKoHandlers.js" />
+    <!-- global libs, that is not handled by require js -->
+    <!-- typeahead menu -->
+    <script src="/s/js/gen/globallibs/th-menu.js" />
+
+    <script src="/s/js/gen/globallibs/observableSet.js" />
+    <script src="/s/js/gen/globallibs/sorted.js" />
+
+    <script src="/s/js/gen/globallibs/customKoHandlers.js" />
 
     <!-- Model processing -->
+    <!-- FIXME: I think we should temove this already -->
     <script src="/s/js/search.js" />
     <!-- <script src="/s/js/gen/dictionaries.js" /> -->
     <!-- <script src="/s/js/gen/metamodel.js" /> -->
@@ -110,6 +117,11 @@
             </li>
             <!-- ko template: { name: 'nav-li-template' }-->
             <!-- /ko -->
+            <li>
+              <a id="send-bug-report" href="#">
+                <i class="icon-fire icon-white"></i>
+              </a>
+            </li>
           </ul>
           <ifLoggedIn>
             <ul class="nav pull-right">
@@ -736,6 +748,30 @@
             <option value="{{value}}">{{meta.label}}</option>
             {{/ dictionary.entries }}
           </select>
+        </div>
+      </div>
+    </script>
+
+    <!-- type=Bool field -->
+    <script type="text/template"
+            class="field-template"
+            id="Bool-field-template">
+      <div class="control-group">
+        <div class="controls">
+          <label class="checkbox inline">
+            <input type="checkbox"
+                   name="{{ name }}"
+                   {{# readonly }}disabled{{/ readonly }}
+                   data-bind="checked: {{ name }},
+                              valueUpdate: 'change',
+                              disabled: {{ name }}Disabled" />
+          {{ meta.label }}
+          {{# meta.infoText1 }}
+            <i class="icon icon-question-sign"
+               data-provide="popover"
+               data-content="{{ meta.infoText1 }}" />
+          {{/ meta.infoText1 }}
+          </label>
         </div>
       </div>
     </script>

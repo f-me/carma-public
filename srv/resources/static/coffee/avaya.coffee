@@ -68,6 +68,12 @@ class @AvayaWidget
 
 # FIXME: make a real dictionary from this
 lineInfo =
+  "PEUGEOT+Bosch":
+    greeting: "Пежо ассистанс, имя оператора, здравствуйте."
+    program: "peugeot"
+  "CITROEN+Bosch":
+    greeting: "Ситроен ассистанс, имя оператора, здравствуйте."
+    program: "citroen"
   "VW+BOSCH":
     greeting: "VW Гарантия мобильности, имя оператора, чем могу Вам помочь?"
     program: "vwMotor"
@@ -92,9 +98,6 @@ lineInfo =
   "ATLANT-M":
     greeting: "Атлант М Ассистанс, имя оператора, добрый день, чем могу Вам помочь?"
     program: "atlant"
-  "CHARTIS":
-    greeting: "Надёжный патруль Чартис, имя оператора, добрый день, чем могу Вам помочь?"
-    program: "Chartis Assistance" ## ???
   "VW AVILON":
     greeting: "Авилон ассистанс, имя оператора, добрый день, чем могу Вам помочь?"
     program: "avilon"
@@ -110,9 +113,6 @@ lineInfo =
   "FWC VNUKOVO":
     greeting: "Фольксваген Внуково Ассистанс, имя оператора, добрый день, чем могу Вам помочь?"
     program: "vnukovo"
-  "RN CART":
-    greeting: "Москва Помощь на Дорогах, имя оператора, добрый день, чем могу Вам помочь?"
-    program: "B2B / РН-карт-Москва Базовая" ## ???
   "UNICREDITBANK":
     greeting: "Русский АвтоМотоКлуб, имя оператора, добрый день! (Здравствуйте!)"
     program: "unicredit"

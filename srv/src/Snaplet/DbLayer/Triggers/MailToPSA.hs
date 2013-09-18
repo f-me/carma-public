@@ -44,6 +44,9 @@ sendMailToPSA actionId = do
     "tech":_
       -> (`elem` ["charge", "starter", "condition"])
       <$> get svcId "techType"
+    "consultation":_
+      -> (`elem` ["consOk","consOkAfter"])
+      <$> get svcId "result"
     "towage":_ -> return True
     _ -> return False
   caseId  <- get actionId "caseId"
@@ -134,6 +137,7 @@ sendMailActually actionId = do
           fld 4  "Job Type" <=== case B.split ':' svcId of
             "tech":_ -> "DEPA"
             "towage":_ -> "REMO"
+            "consultation":_ -> "TELE"
             _ -> error $ "Invalid jobType: " ++ show svcId
 
           dealerId <- lift $ get svcId "towDealer_partnerId"

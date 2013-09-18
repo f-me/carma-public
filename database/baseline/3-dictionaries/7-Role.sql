@@ -3,7 +3,6 @@ CREATE TABLE "Role"
   ,value text
   ,label text UNIQUE NOT NULL
   );
-INSERT INTO Dictionary (name) VALUES ('Role');
 
 INSERT INTO "Role" (value, label) VALUES ('all', 'Все');
 INSERT INTO "Role" (value, label) VALUES ('local', 'Локальный пользователь');

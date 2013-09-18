@@ -162,15 +162,19 @@ define [
       # need this timeout, so this event won't be fired on saved
       # model, after it's first fetch
       utils.sTout 3000, ->
-        kvm["dixi"].subscribe (v) ->
-          return unless v
+        subs = []
+        subs["always_true"] = kvm["dixi"].subscribe ->
+          kvm["dixi"](true)
+        subs["dialog"] = kvm["dixi"].subscribe (v) ->
+          subs["dialog"].dispose()
           findSame kvm, (r) ->
             return if _.isEmpty(r)
             txt = "В течении 30 дней уже были созданы контракты с
                    таким же vin или номером карты участника, их id:
                    #{_.pluck(r, 'id').join(', ')}. Всеравно сохранить?"
-            return if confirm(txt)
-            kvm["dixi"](false)
+            unless confirm(txt)
+              subs["always_true"].dispose()
+              kvm["dixi"](false)
 
       return kvm
 

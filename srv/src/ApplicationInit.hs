@@ -58,12 +58,17 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
                               chkAuthLocal . method GET    $ searchCallsByPhone)
          , ("/actionsFor/:id",chkAuthLocal . method GET    $ getActionsForCase)
          , ("/cancelsFor/:id",chkAuthLocal . method GET    $ getCancelsForCase)
-         , ("/littleMoreActions",
+         , ("/backoffice/littleMoreActions",
             chkAuthLocal . method PUT $ littleMoreActionsHandler)
-         , ("/allActions",    chkAuthLocal . method GET $ allActionsHandler)
-         , ("actions/unassigned",
+         , ("/backoffice/openAction/:actionid",
+            chkAuthLocal . method PUT $ openAction)
+         , ("/backoffice/unassigned",
             chkAuthLocal . method GET $ unassignedActionsHandler)
-         , ("actions/busyOps", chkAuthLocal . method GET $ busyOps)
+         , ("/supervisor/allActions",
+            chkAuthLocal . method GET $ allActionsHandler)
+         , ("/supervisor/busyOps",  chkAuthLocal . method GET $ busyOps)
+         , ("/supervisor/opStats",  chkAuthLocal . method GET $ opStats)
+         , ("/supervisor/actStats", chkAuthLocal . method GET $ actStats)
          , ("/allPartners",   chkAuthLocal . method GET  $ allPartnersHandler)
          , ("/partnersFor/:srv",
                               chkAuthLocal . method GET $ partnersForSrvHandler)
@@ -82,6 +87,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
                              chkAuth . method GET    $ findSameContract)
          , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)
          , ("/_/:model",      chkAuth . method POST   $ createHandler)
+         , ("/_/:model",      chkAuth . method GET    $ readManyHandler)
          , ("/_/:model/:id",  chkAuth . method GET    $ readHandler)
          , ("/_/:model/:id",  chkAuth . method PUT    $ updateHandler)
          , ("/_/:model/:id",  chkAuth . method DELETE $ deleteHandler)

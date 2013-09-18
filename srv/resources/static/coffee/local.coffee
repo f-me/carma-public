@@ -10,6 +10,7 @@ require [ "domready"
         , "json!/allUsers"
         , "utils"
         , "sendSms"
+        , "globallibs/bug-report"
         , "lstorePubSub"
         ], ( dom
            , main
@@ -21,10 +22,14 @@ require [ "domready"
            , users
            , u
            , sendSms
+           , bug
            , pubSub
            ) ->
 
+  bugReport = new bug.BugReport
+
   window.onerror = (msg, url, line) ->
+    bugReport.addError msg, url, line
     $.ajax
       type: "POST"
       url : "/errors"
@@ -33,6 +38,8 @@ require [ "domready"
 
   # this will be called on dom ready
   dom ->
+    bugReport.setElement $('#send-bug-report')
+
     dicts.users =
       entries:
         for i in users

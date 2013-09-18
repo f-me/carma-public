@@ -6,9 +6,6 @@ CREATE TABLE "ActionResult"
   ,UNIQUE (label, parent)
   );
 CREATE UNIQUE INDEX ON "ActionResult" (label) WHERE parent IS NULL;
-INSERT INTO Dictionary (name, parent)
-  SELECT 'ActionResult', id
-    FROM Dictionary WHERE name = 'ActionName';
 
 INSERT INTO "ActionResult" (value, label, parent)
   SELECT 'serviceOrdered',

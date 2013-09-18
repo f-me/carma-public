@@ -113,7 +113,7 @@ instance FromJSON Field where
       v .:? "type" .!= defaultFieldType <*>
       v .:? "groupName"                 <*>
       v .:? "meta"                      <*>
-      pure False
+      pure True
     parseJSON _          = error "Could not parse field properties"
 
 instance ToJSON Field where

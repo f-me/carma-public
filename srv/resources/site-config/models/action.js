@@ -50,6 +50,15 @@
     },
     {
       "meta": {
+        "label": "Отложить на",
+        "dictionaryName": "DeferTimes",
+        "regexp": "timespan"
+      },
+      "type": "dictionary",
+      "name": "deferBy"
+    },
+    {
+      "meta": {
         "addClass": "redirectOnChange",
         "label": "Результат",
         "dictionaryName": "ActionResults",
@@ -74,6 +83,13 @@
       "type": "datetime",
       "groupName": null,
       "name": "mtime"
+    },
+    {
+      "meta": {
+        "invisible": true
+      },
+      "type": "datetime",
+      "name": "assignTime"
     },
     {
       "meta": {
