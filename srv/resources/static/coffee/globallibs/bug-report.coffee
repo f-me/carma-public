@@ -24,11 +24,11 @@ define ["sync/datamap"], (m) ->
       models = []
 
       _.each global?.viewsWare, (view) ->
-        if view.knockVM
-          model = view.knockVM._meta.q.toJSON()
-          ftypes = view.knockVM._meta.q.ftypes
-          queue = m.c2sObj(view.knockVM._meta.q.q, ftypes)
-          queueBackup = m.c2sObj(view.knockVM._meta.q.qbackup, ftypes)
+        if q = view.knockVM?._meta?.q
+          ftypes = q.ftypes
+          model = q.toJSON()
+          queue = m.c2sObj(q.q, ftypes) if q.q
+          queueBackup = m.c2sObj(q.qbackup, ftypes) if q.qbackup
           models.push {model, queue, queueBackup}
 
       body = "#{@br}Ваша последовательность действий, при которой воспроизводится ошибка. Опишите пожалуйста максимально подробно."
