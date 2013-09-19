@@ -136,7 +136,7 @@ actions
             ])
           -- ,("contact_name",
           --   [\objId val -> set objId "contact_name" $ upCaseStr val])
-          -- ,("contact_ownerName", 
+          -- ,("contact_ownerName",
           --   [\objId val -> set objId "contact_ownerName" $ upCaseStr val])
           ,("city", [\objId val -> do
                       oldCity <- redisHGet objId "city"
@@ -257,8 +257,8 @@ updateCaseStatus caseId =
 -- has both `bo_control` and `back` roles. This will enable the action
 -- to be pulled from action pull by bo_control users.
 tryToPassChainToControl user action =
-    when (not 
-          (elem (Role "bo_control") (userRoles user) && 
+    when (not
+          (elem (Role "bo_control") (userRoles user) &&
            elem (Role "back") (userRoles user))) $
     clearAssignee action
 
@@ -282,7 +282,7 @@ serviceActions = Map.fromList
             |]) [kazeId]
           now <- dateNow id
           let (assignee, assignTime) =
-                  case relatedUser of 
+                  case relatedUser of
                     [[u]] -> (u, now)
                     _     -> ("", "")
           actionId <- new "action" $ Map.fromList
@@ -332,7 +332,7 @@ serviceActions = Map.fromList
             ,("closed", "0")
             ]
           tryToPassChainToControl u act1
-          
+
           upd kazeId "actions" $ addToList act1
           due <- dateNow (+ (14*24*60*60))
           act2 <- new "action" $ Map.fromList
@@ -508,7 +508,7 @@ serviceActions = Map.fromList
     ])
   ,("times_expectedDispatch",
     [\objId _ -> set objId "times_factServiceStart" ""
-    ])   
+    ])
   ,("times_expectedServiceEnd",
     [\objId _ -> set objId "times_factServiceEnd" ""
     ])
@@ -568,7 +568,7 @@ actionResultMap = Map.fromList
         (Just (hours, _):Just (minutes, _):_) ->
             when (0 <= hours && 0 <= minutes && minutes <= 59) $
                  dateNow (+ (60 * (hours * 60 + minutes)))
-                             >>= set objId "duetime" 
+                             >>= set objId "duetime"
         _ -> return ()
   )
   ,("needPartner",     \objId -> do
