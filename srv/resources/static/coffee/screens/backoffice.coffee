@@ -26,11 +26,10 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
       percent = current_cycle / poll_cycles * 100.0
       bar.css "width", percent + "%"
 
-      if current_cycle++ == poll_cycles
-        pullActions()
-        current_cycle = 0
-
       if pollersShouldTick
+        if current_cycle++ == poll_cycles
+          pullActions()
+          current_cycle = 0
         setTimeout worker, cycle_resolution
     worker()
 
