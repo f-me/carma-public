@@ -1,10 +1,9 @@
 define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
-  pollersShouldTick = true
+  onBackofficeScreen = true
 
   setupBackOffice = ->
-    pollersShouldTick = true
+    onBackofficeScreen = true
     setTimeout((->
-        updateUnassigned()
         tables = mkBoTable()        
         global.boData = { started: new Date, r: {} }
         # FIXME: remove this, when backend will be fast enough (it
@@ -26,7 +25,7 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
       percent = current_cycle / poll_cycles * 100.0
       bar.css "width", percent + "%"
 
-      if pollersShouldTick
+      if onBackofficeScreen
         if current_cycle++ == poll_cycles
           pullActions()
           current_cycle = 0
@@ -54,21 +53,10 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
               openCaseAction act.id, act.caseId.split(':')[1]
           setupBoTable res
 
-  # Update unassigned actions count and queue next update
-  updateUnassigned = ->
-    $.getJSON "/backoffice/unassigned", (r) ->
-      txt = if r[0] > 0
-          "Заказов услуг в очереди: #{r[0]}"
-        else
-          "В очереди нет заказов услуг"
-      if pollersShouldTick
-        $("#actions-queue-count").text txt
-        setTimeout(updateUnassigned, 3000)
-
   removeBackOffice = ->
     # Stop auto-polling backoffice-related server handlers when we
     # leave #back
-    pollersShouldTick = false
+    onBackofficeScreen = false
 
   mkBoTable = ->
     userTable = $("#back-user-table")
