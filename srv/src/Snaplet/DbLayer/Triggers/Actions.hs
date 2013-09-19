@@ -564,6 +564,12 @@ actionResultMap = Map.fromList
   ,("defer",           \objId -> do
       deferBy <- get objId "deferBy"
       set objId "deferBy" "" >> set objId "result" ""  >> set objId "closeTime" ""
+      name <- get objId "name"
+      when (name `elem` [ "orderService"
+                        , "callMeMaybe"
+                        , "tellMeMore"
+                        , "orderServiceAnalyst"]) $
+           clearAssignee objId
       case (map B.readInt $ B.split ':' deferBy) of
         (Just (hours, _):Just (minutes, _):_) ->
             when (0 <= hours && 0 <= minutes && minutes <= 59) $
@@ -657,7 +663,7 @@ actionResultMap = Map.fromList
          "needPartner"
          "Требуется найти партнёра для оказания услуги"
          "parguy" "1" (+60) objId
-     clearAssignee act
+     clearAssignee newAction
   )
   ,("serviceOrderedAnalyst", \objId -> do
     setServiceStatus objId "serviceOrdered"
@@ -766,7 +772,7 @@ actionResultMap = Map.fromList
       "Клиент предъявил претензию"
       "supervisor" "1" (+60)
       objId
-    clearAssignee act
+    clearAssignee act1
   )
   ,("billNotReady", \objId -> dateNow (+ (5*24*60*60))  >>= set objId "duetime")
   ,("billAttached", \objId -> do
