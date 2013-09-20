@@ -69,7 +69,7 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
         if _.isEmpty obj.assignedTo
           utils.timeFrom obj.ctime, res.reqTime
         else
-          if _.isEmpty obj.closeTime
+          if obj.closed == "0"
             utils.timeFrom obj.assignTime, res.reqTime
           else
             utils.timeFrom obj.openTime, obj.closeTime
