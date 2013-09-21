@@ -371,7 +371,7 @@ define [ "utils"
     q = new sync.DipQueue(kvm, model)
     kvm._meta.q = q
     kvm['id'](1) # just to make disabled observables work
-    kvm['choosenSort'] = ko.observableArray(["priority3"])
+    kvm['choosenSort'] = ko.observableArray(["priority2"])
     kvm['searchResults'] = ko.observable()
     kvm['searchH'] = ko.computed ->
       s = kvm['searchResults']()
@@ -433,6 +433,7 @@ define [ "utils"
           only: (v) ->
             sort = kvm['choosenSort']()[0]
             srvs = kvm['servicesLocals']()
+            return v.distanceFormatted() if sort == "distance"
             unless _.isEmpty srvs
               parseInt (_.find v.servicesNested(),
                        (s) -> s.servicename() == srvs[0].value)?[sort]?()
