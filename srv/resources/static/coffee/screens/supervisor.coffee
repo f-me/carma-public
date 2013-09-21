@@ -104,7 +104,7 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
         select.push("targetGroup=#{opt.targetGroup}")
       select.push("duetimeFrom=#{opt.duetimeFrom}") if opt.duetimeFrom
       select.push("duetimeTo=#{opt.duetimeTo}") if opt.duetimeTo
-      objURL = "/supervisor/allActions?#{select.join('&')}"
+      objURL = "/backoffice/allActions?#{select.join('&')}"
     else
       ""
 
