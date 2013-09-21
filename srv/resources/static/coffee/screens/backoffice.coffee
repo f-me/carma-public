@@ -1,15 +1,17 @@
 define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
-  pollersShouldTick = true
+  onBackofficeScreen = true
 
   setupBackOffice = ->
-    pollersShouldTick = true
+    onBackofficeScreen = true
     setTimeout((->
-        updateUnassigned()
-        tables = mkBoTable()        
+        tables = mkBoTable()
         global.boData = { started: new Date, r: {} }
+        params = "assignedTo=#{global.user.login}&closed=0"
         # FIXME: remove this, when backend will be fast enough (it
         # will, be sure)
-        setTimeout pullActions, 1500
+        setTimeout (-> $.getJSON("/backoffice/allActions?#{params}",
+                    (r) -> myActionsHandler r.actions)),
+                    1500
         setupPoller()
       ), 200)
 
@@ -26,50 +28,41 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
       percent = current_cycle / poll_cycles * 100.0
       bar.css "width", percent + "%"
 
-      if current_cycle++ == poll_cycles
-        pullActions()
-        current_cycle = 0
-
-      if pollersShouldTick
+      if onBackofficeScreen
+        if current_cycle++ == poll_cycles
+          pullActions()
+          current_cycle = 0
         setTimeout worker, cycle_resolution
     worker()
 
-  # Fetch /littleMoreActions response (possibly assigning new
-  # actions), redirect to case when an order action found or fill
-  # actions table for the current user
+  # Given /allActions or /littleMoreActions response, try to redirect
+  # to the first order-class action if the user has "back" role.
+  # Otherwise, just show all actions in the table.
+  myActionsHandler = (actions) ->
+    if !_.isEmpty actions
+      if _.contains global.user.roles, "back"
+        act = _.find actions, (a) ->
+          _.contains(
+            [ "orderService"
+            , "orderServiceAnalyst"
+            , "tellMeMore"
+            , "callMeMaybe"],
+            a.name)
+        if act?
+          openCaseAction act.id, act.caseId.split(':')[1]
+      setupBoTable actions
+
+  # Pull new actions for user
   pullActions = ->
     $.ajax
       type: "PUT"
       url: "/backoffice/littleMoreActions"
-      success:  (res) ->
-        if !_.isEmpty res
-          if _.contains global.user.roles, "back"
-            act = _.find res, (a) ->
-              _.contains(
-                [ "orderService"
-                , "orderServiceAnalyst"
-                , "tellMeMore"
-                , "callMeMaybe"],
-                a.name)
-            if act?
-              openCaseAction act.id, act.caseId.split(':')[1]
-          setupBoTable res
-
-  # Update unassigned actions count and queue next update
-  updateUnassigned = ->
-    $.getJSON "/backoffice/unassigned", (r) ->
-      txt = if r[0] > 0
-          "Заказов услуг в очереди: #{r[0]}"
-        else
-          "В очереди нет заказов услуг"
-      if pollersShouldTick
-        $("#actions-queue-count").text txt
-        setTimeout(updateUnassigned, 3000)
+      success: myActionsHandler
 
   removeBackOffice = ->
     # Stop auto-polling backoffice-related server handlers when we
     # leave #back
-    pollersShouldTick = false
+    onBackofficeScreen = false
 
   mkBoTable = ->
     userTable = $("#back-user-table")

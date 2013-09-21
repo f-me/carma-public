@@ -45,7 +45,7 @@ q = [sql|
      SELECT
           carVin
         , carSeller
-        , carMaker.label
+        , carMake.label
         , carModel.label
         , carPlateNum
         , to_char(carBuydate at time zone 'UTC', 'DD/MM/YYYY')
@@ -61,7 +61,7 @@ q = [sql|
         , client, clientCode, clientAddress
      FROM contracttbl c
      INNER JOIN programtbl p ON c.program::int4 = p.id
-     LEFT JOIN "CarMaker" carMaker ON carMaker.value = carMake
+     LEFT JOIN "CarMake"  carMake  ON carMake.value  = carMake
      LEFT JOIN "CarModel" carModel ON carModel.value = carModel
      WHERE c.id = ?
 |]

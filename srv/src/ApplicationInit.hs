@@ -64,7 +64,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
             chkAuthLocal . method PUT $ openAction)
          , ("/backoffice/unassigned",
             chkAuthLocal . method GET $ unassignedActionsHandler)
-         , ("/supervisor/allActions",
+         , ("/backoffice/allActions",
             chkAuthLocal . method GET $ allActionsHandler)
          , ("/supervisor/busyOps",  chkAuthLocal . method GET $ busyOps)
          , ("/supervisor/opStats",  chkAuthLocal . method GET $ opStats)

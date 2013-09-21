@@ -136,7 +136,7 @@ actions
             ])
           -- ,("contact_name",
           --   [\objId val -> set objId "contact_name" $ upCaseStr val])
-          -- ,("contact_ownerName", 
+          -- ,("contact_ownerName",
           --   [\objId val -> set objId "contact_ownerName" $ upCaseStr val])
           ,("city", [\objId val -> do
                       oldCity <- redisHGet objId "city"
@@ -215,7 +215,7 @@ fillFromContract vin objId = do
       carSeller, carDealerTO
       FROM contracttbl c LEFT JOIN programtbl p ON p.id::text = c.program
       WHERE isactive AND dixi AND carVin = ?
-      ORDER BY ctime DESC LIMIT 1
+      ORDER BY c.id DESC LIMIT 1
     |]) [vin]
   case res of
     [] -> return False
@@ -253,6 +253,18 @@ updateCaseStatus caseId =
           -> "s0" -- Front Office
         | otherwise -> "s1" -- Back Office
 
+-- | Clear assignee of control-class action chain head (which has
+-- `bo_control` in `targetGroup`) unless the user has both
+-- `bo_control` and `back` roles. This will enable the action to be
+-- pulled from action pull by bo_control users.
+tryToPassChainToControl user action =
+    when (not
+          (elem (Role "bo_control") (userRoles user) &&
+           elem (Role "back") (userRoles user))) $
+    clearAssignee action
+
+-- | Clear assignee and assignTime of an action.
+clearAssignee action = set action "assignedTo" "" >> set action "assignTime" ""
 
 serviceActions :: MonadTrigger m b => Map.Map ByteString [ObjectId -> ObjectId -> m b ()]
 serviceActions = Map.fromList
@@ -270,6 +282,10 @@ serviceActions = Map.fromList
               LIMIT 1
             |]) [kazeId]
           now <- dateNow id
+          let (assignee, assignTime) =
+                  case relatedUser of
+                    [[u]] -> (u, now)
+                    _     -> ("", "")
           actionId <- new "action" $ Map.fromList
             [("name", "orderService")
             ,("duetime", due)
@@ -279,8 +295,8 @@ serviceActions = Map.fromList
             ,("parentId", objId)
             ,("caseId", kazeId)
             ,("closed", "0")
-            ,("assignTime", now)
-            ,("assignedTo", case relatedUser of { [[u]] -> u; _ -> "" })
+            ,("assignTime", assignTime)
+            ,("assignedTo", assignee)
             ]
           upd kazeId "actions" $ addToList actionId
           sendSMS actionId "smsTpl:13"
@@ -316,11 +332,8 @@ serviceActions = Map.fromList
             ,("caseId", kazeId)
             ,("closed", "0")
             ]
-          when (not 
-                (elem (Role "bo_control") (userRoles u) && 
-                 elem (Role "back") (userRoles u))) $
-            set act1 "assignedTo" ""
-          
+          tryToPassChainToControl u act1
+
           upd kazeId "actions" $ addToList act1
           due <- dateNow (+ (14*24*60*60))
           act2 <- new "action" $ Map.fromList
@@ -496,7 +509,7 @@ serviceActions = Map.fromList
     ])
   ,("times_expectedDispatch",
     [\objId _ -> set objId "times_factServiceStart" ""
-    ])   
+    ])
   ,("times_expectedServiceEnd",
     [\objId _ -> set objId "times_factServiceEnd" ""
     ])
@@ -552,11 +565,17 @@ actionResultMap = Map.fromList
   ,("defer",           \objId -> do
       deferBy <- get objId "deferBy"
       set objId "deferBy" "" >> set objId "result" ""  >> set objId "closeTime" ""
+      name <- get objId "name"
+      when (name `elem` [ "orderService"
+                        , "callMeMaybe"
+                        , "tellMeMore"
+                        , "orderServiceAnalyst"]) $
+           clearAssignee objId
       case (map B.readInt $ B.split ':' deferBy) of
         (Just (hours, _):Just (minutes, _):_) ->
             when (0 <= hours && 0 <= minutes && minutes <= 59) $
                  dateNow (+ (60 * (hours * 60 + minutes)))
-                             >>= set objId "duetime" 
+                             >>= set objId "duetime"
         _ -> return ()
   )
   ,("needPartner",     \objId -> do
@@ -565,7 +584,7 @@ actionResultMap = Map.fromList
          "needPartner"
          "Требуется найти партнёра для оказания услуги"
          "parguy" "1" (+60) objId
-     set newAction "assignedTo" ""
+     clearAssignee newAction
   )
   ,("serviceOrdered", \objId -> do
     newPartnerMessage objId
@@ -580,7 +599,7 @@ actionResultMap = Map.fromList
       "Прикрепить счёт"
       "parguy" "1" (+14*24*60*60)
       objId
-    set act "assignedTo" ""
+    clearAssignee act
 
     sendMailToPSA objId
     isReducedMode >>= \case
@@ -593,10 +612,7 @@ actionResultMap = Map.fromList
           "Сообщить клиенту о договорённости"
           "bo_control" "1" (+60) objId
         Just u <- liftDb $ with auth currentUser
-        when (not 
-              (elem (Role "bo_control") (userRoles u) && 
-               elem (Role "back") (userRoles u))) $
-           set act "assignedTo" ""
+        tryToPassChainToControl u act
   )
   ,("serviceOrderedSMS", \objId -> do
     newPartnerMessage objId
@@ -620,10 +636,7 @@ actionResultMap = Map.fromList
           "bo_control" "3" (changeTime (+5*60) tm)
           objId
         Just u <- liftDb $ with auth currentUser
-        when (not 
-              (elem (Role "bo_control") (userRoles u) && 
-               elem (Role "back") (userRoles u))) $
-           set act "assignedTo" ""
+        tryToPassChainToControl u act
   )
   ,("partnerNotOk", void .
     replaceAction
@@ -636,14 +649,14 @@ actionResultMap = Map.fromList
       "orderServiceAnalyst"
       "Заказ услуги аналитиком"
       "back" "1" (+60) objId
-    set act "assignedTo" ""
+    clearAssignee act
   )
   ,("moveToBack", \objId -> do
     act <- replaceAction
       "orderService"
       "Заказ услуги оператором Back Office"
       "back" "1" (+60) objId
-    set act "assignedTo" ""
+    clearAssignee act
   )
   ,("needPartnerAnalyst",     \objId -> do
      setServiceStatus objId "needPartner"
@@ -651,7 +664,7 @@ actionResultMap = Map.fromList
          "needPartner"
          "Требуется найти партнёра для оказания услуги"
          "parguy" "1" (+60) objId
-     set newAction "assignedTo" ""
+     clearAssignee newAction
   )
   ,("serviceOrderedAnalyst", \objId -> do
     setServiceStatus objId "serviceOrdered"
@@ -667,10 +680,7 @@ actionResultMap = Map.fromList
           "Сообщить клиенту о договорённости"
           "bo_control" "1" (+60) objId
         Just u <- liftDb $ with auth currentUser
-        when (not 
-              (elem (Role "bo_control") (userRoles u) && 
-               elem (Role "back") (userRoles u))) $
-           set act "assignedTo" ""
+        tryToPassChainToControl u act
   )
   ,("dealerNotApproved", void .
     replaceAction
@@ -763,7 +773,7 @@ actionResultMap = Map.fromList
       "Клиент предъявил претензию"
       "supervisor" "1" (+60)
       objId
-    set act1 "assignedTo" ""
+    clearAssignee act1
   )
   ,("billNotReady", \objId -> dateNow (+ (5*24*60*60))  >>= set objId "duetime")
   ,("billAttached", \objId -> do
@@ -771,70 +781,70 @@ actionResultMap = Map.fromList
       "headCheck"
       "Проверка РКЦ"
       "op_checker" "1" (+360) objId
-    set act "assignedTo" ""
+    clearAssignee act
   )
   ,("parguyToBack", \objId -> do
     act <- replaceAction
       "parguyNeedInfo"
       "Менеджер по Партнёрам запросил доп. информацию"
       "bo_control" "3" (+360) objId
-    set act "assignedTo" ""
+    clearAssignee act
   )
   ,("backToParyguy", \objId -> do
     act <- replaceAction
       "addBill"
       "Прикрепить счёт"
       "parguy" "1" (+360) objId
-    set act "assignedTo" ""
+    clearAssignee act
   )
   ,("headToParyguy", \objId -> do
     act <- replaceAction
       "addBill"
       "На доработку МпП"
       "parguy" "1" (+360) objId
-    set act "assignedTo" ""
+    clearAssignee act
   )
   ,("confirm", \objId -> do
     act <- replaceAction
       "directorCheck"
       "Проверка директором"
       "director" "1" (+360) objId
-    set act "assignedTo" ""
+    clearAssignee act
   )
   ,("confirmWODirector", \objId -> do
     act <- replaceAction
       "accountCheck"
       "Проверка бухгалтерией"
       "account" "1" (+360) objId
-    set act "assignedTo" ""
+    clearAssignee act
   )
   ,("confirmFinal", \objId -> do
     act <- replaceAction
       "analystCheck"
       "Обработка аналитиком"
       "analyst" "1" (+360) objId
-    set act "assignedTo" ""
+    clearAssignee act
   )
   ,("directorToHead", \objId -> do
     act <- replaceAction
       "headCheck"
       "Проверка РКЦ"
       "op_checker" "1" (+360) objId
-    set act "assignedTo" ""
+    clearAssignee act
   )
   ,("directorConfirm", \objId -> do
     act <- replaceAction
       "accountCheck"
       "Проверка бухгалтерией"
       "account" "1" (+360) objId
-    set act "assignedTo" ""
+    clearAssignee act
   )
   ,("dirConfirmFinal", \objId -> do
     act <- replaceAction
       "analystCheck"
       "Обработка аналитиком"
       "analyst" "1" (+360) objId
-    set act "assignedTo" ""
+    clearAssignee act
   )
   ,("vwclosed", \objId -> do
     sendMailToPSA objId
@@ -856,14 +866,14 @@ actionResultMap = Map.fromList
       "analystCheck"
       "Обработка аналитиком"
       "analyst" "1" (+360) objId
-    set act "assignedTo" ""
+    clearAssignee act
   )
   ,("accountToDirector", \objId -> do
     act <- replaceAction
       "directorCheck"
       "Проверка директором"
       "director" "1" (+360) objId
-    set act "assignedTo" ""
+    clearAssignee act
   )
   ,("analystChecked", closeAction)
   ,("caseClosed", \objId -> do
@@ -963,7 +973,7 @@ closeServiceAndSendInfoVW objId = do
     "Закрыть заявку"
     "op_close" "3" (changeTime (+7*24*60*60) tm)
     objId
-  set act1 "assignedTo" ""
+  clearAssignee act1
   addParComment act1
 
   program <- get objId "caseId" >>= (`get` "program")
@@ -980,7 +990,7 @@ closeServiceAndSendInfoVW objId = do
       "Уточнить информацию о ремонте у дилера/партнёра (VW, PSA)"
       "op_dealer" "3" dueDelta
       objId
-    set act2 "assignedTo" ""
+    clearAssignee act2
     addParComment act2
 
 
