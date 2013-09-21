@@ -253,9 +253,10 @@ updateCaseStatus caseId =
           -> "s0" -- Front Office
         | otherwise -> "s1" -- Back Office
 
--- | Clear assignee of control-class action chain head unless the user
--- has both `bo_control` and `back` roles. This will enable the action
--- to be pulled from action pull by bo_control users.
+-- | Clear assignee of control-class action chain head (which has
+-- `bo_control` in `targetGroup`) unless the user has both
+-- `bo_control` and `back` roles. This will enable the action to be
+-- pulled from action pull by bo_control users.
 tryToPassChainToControl user action =
     when (not
           (elem (Role "bo_control") (userRoles user) &&
