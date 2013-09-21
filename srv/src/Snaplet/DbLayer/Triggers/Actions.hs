@@ -215,7 +215,7 @@ fillFromContract vin objId = do
       carSeller, carDealerTO
       FROM contracttbl c LEFT JOIN programtbl p ON p.id::text = c.program
       WHERE isactive AND dixi AND carVin = ?
-      ORDER BY id DESC LIMIT 1
+      ORDER BY c.id DESC LIMIT 1
     |]) [vin]
   case res of
     [] -> return False
