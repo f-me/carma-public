@@ -53,7 +53,8 @@ assignQ pri usr = fromString
   ++ "        THEN coalesce(svc.times_expectedServiceStart,act.duetime)"
   ++ "        ELSE act.duetime"
   ++ "        END) ASC"
-  ++ "    LIMIT 1)"
+  ++ "    LIMIT 1"
+  ++ "    FOR UPDATE)"
   ++ "  RETURNING id::text;"
   where
     uLogin = T.unpack $ userLogin usr
