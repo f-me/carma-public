@@ -204,8 +204,6 @@ fillFromContract vin objId = do
       carTransmission, carEngine, contractType, carCheckPeriod::text,
       extract (epoch from carBuyDate)::int8::text,
       extract (epoch from carCheckupDate)::int8::text,
-      extract (epoch from contractValidFromDate)::int8::text,
-      extract (epoch from contractValidUntilDate)::int8::text,
       carCheckupMilage::text, milageTO::text, cardNumber, carMakeYear::text,
       contractValidUntilMilage::text,
       extract (epoch from contractValidFromDate)::int8::text,
@@ -226,7 +224,7 @@ fillFromContract vin objId = do
       zipWithM_ (maybe (return ()) . (setIfEmpty objId))
         ["program", "car_make", "car_model", "car_plateNum" ,"car_color"
         ,"car_transmission","car_engine", "car_contractType", "car_checkPeriod"
-        ,"car_buyDate", "car_checkupDate", "car_serviceStart", "car_serviceEnd"
+        ,"car_buyDate", "car_checkupDate",
         ,"car_checkupMileage", "cardNumber_milageTO"
         ,"cardNumber_cardNumber", "car_makeYear", "cardNumber_validUntilMilage"
         ,"cardNumber_validFrom", "cardNumber_validUntil"
