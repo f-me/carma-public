@@ -30,7 +30,11 @@ library
     Carma.Model.Dictionary,
     Carma.Model.NewCaseField,
     Carma.Model.Program,
-    Carma.Model.Region
+    Carma.Model.Region,
+    Carma.Model.Wazzup,
+    Carma.Model.CaseSearch,
+    Carma.Search.Patch,
+    Carma.Search.Condition
 
   -- other-modules:       
   hs-source-dirs:    src
@@ -42,7 +46,8 @@ library
     postgresql-simple    == 0.3.*,
     text                 == 0.11.*,
     time                 == 1.4.*,
-    vector               == 0.10.*
+    vector               == 0.10.*,
+    bytestring           == 0.10.*
 
   extensions:
     DataKinds, KindSignatures, TypeOperators,
