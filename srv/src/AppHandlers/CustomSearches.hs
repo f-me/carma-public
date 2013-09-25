@@ -321,7 +321,7 @@ boUsers = do
       WHERE (lastlogout IS NULL OR lastlogout < lastactivity)
         AND now() - lastactivity < '20 min'
         AND roles && ARRAY[
-          'head','back','supervisor','parguy','account',
+          'head','back','supervisor','parguy','account', 'bo_control',
           'analyst','op_checker','op_close','op_dealer']
     |]
   writeJSON $ mkMap ["name", "login"] rows
