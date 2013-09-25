@@ -1,5 +1,17 @@
 <div>
-  ololo
+  <div id="search-section">
+      <form>
+        <fieldset>
+          <label>Дата (fuzzy)</label>
+          <input type="text" data-bind="value: callDate" />
+          <label>ФИО (fuzzy)</label>
+          <input type="text" data-bind="value: contact" />
+          <label>Город (full)</label>
+          <input type="text" data-bind="value: city" />
+        </fieldset>
+      </form>
+  </div>
+
   <table id="tbl" class="table table-striped table-hover">
     <thead>
       <tr data-bind="foreach: showFields">
