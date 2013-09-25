@@ -104,7 +104,7 @@ Executable carma
     time                        >= 1.1 && < 1.5,
     transformers                >= 0.2 && < 0.4,
     unordered-containers,
-    vector                      == 0.10.*,
+    vector                      >= 0.10 && < 0.10.9,
     vin-parser                  >= 0.7.1 && < 0.8,
     weather-api                 >= 0.4.3,
     xlsx                        >= 0.0.2.1 && < 0.1,
