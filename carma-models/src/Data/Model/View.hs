@@ -11,6 +11,8 @@ import qualified Data.Map as Map
 import Data.Aeson as Aeson
 import Data.Typeable
 
+import GHC.TypeLits
+
 import Data.Model
 import Data.Model.Sql
 import Data.Model.View.Types
@@ -44,6 +46,38 @@ defaultFieldView f = FieldView
   }
 
 
+modifyView
+  :: ModelView m -> [(Text, FieldView m -> FieldView m)]
+  -> ModelView m
+modifyView mv@(ModelView{fields}) fns
+  = mv {fields = map ((fMap' Map.!) . name) fields}
+  where
+    fMap = Map.fromList [(name f, f) | f <- fields]
+    fMap' = foldl' tr fMap fns
+    tr m (nm,fn) = Map.adjust fn nm m
+
+
+-- field modificators
+
+textarea
+  :: SingI name => (model -> Field Text (FOpt name desc))
+  -> (Text, FieldView m -> FieldView m)
+textarea fld
+  = (T.pack $ fieldName fld
+    ,\v -> v {fieldType = "textarea"}
+    )
+
+
+readonly
+  :: SingI name => (model -> Field typ (FOpt name desc))
+  -> (Text, FieldView m -> FieldView m)
+readonly fld
+  = (T.pack $ fieldName fld
+    ,\v -> v
+      {meta = Map.insert "readonly" (Aeson.Bool True) $ meta v
+      ,canWrite = False
+      }
+    )
 
 translateFieldType tr
   | show (typeRepTyCon tr) == "Maybe"
