@@ -1,7 +1,7 @@
 define [ "utils"
        , "model/main"
        , "text!tpl/screens/servicesSearch.html"
-       , "globallibs/resultsTable"
+       , "lib/resultsTable"
        ], (utils, main, tpl, rt) ->
 
   model =
