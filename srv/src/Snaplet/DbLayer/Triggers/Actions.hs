@@ -224,7 +224,7 @@ fillFromContract vin objId = do
       zipWithM_ (maybe (return ()) . (setIfEmpty objId))
         ["program", "car_make", "car_model", "car_plateNum" ,"car_color"
         ,"car_transmission","car_engine", "car_contractType", "car_checkPeriod"
-        ,"car_buyDate", "car_checkupDate",
+        ,"car_buyDate", "car_checkupDate"
         ,"car_checkupMileage", "cardNumber_milageTO"
         ,"cardNumber_cardNumber", "car_makeYear", "cardNumber_validUntilMilage"
         ,"cardNumber_validFrom", "cardNumber_validUntil"
