@@ -1,7 +1,8 @@
 define [ "utils"
        , "model/main"
        , "text!tpl/screens/servicesSearch.html"
-       ], (utils, main, tpl) ->
+       , "globallibs/resultsTable"
+       ], (utils, main, tpl, rt) ->
 
   model =
     name: "partnerSearch"
@@ -69,99 +70,23 @@ define [ "utils"
     searchKVM = main.buildKVM model, {}
     ko.applyBindings(searchKVM, $("#search-section")[0])
 
-    class TableResult
-      constructor: ->
-        @model = model
-        @kvms = [kvm1, kvm2]
+    rr = new rt.ResultsTable {model: model
+                            , searchKVM: searchKVM
+                            , maxFieldNum: 4
+                            , originFields: ['search', 'city', 'isDealer']
+                            , nonReplacedFields: ['caseId']
+                              }
+    rr.searchSortASC = ->
+      console.log "Started searchSortASC function"
+    rr.searchSortDSC = ->
+      console.log "Started searchSortDSC function"
+    rr.citySortASC = ->
+      console.log "Started citySortASC function"
+    rr.citySortDSC = ->
+      console.log "Started citySortDSC function"
 
-        # max number of fields in table
-        # it affects to the field replacement
-        @MAX_FIELD_NUM = 4
+    rr.rows = [kvm1, kvm2]
 
-        # fields what can't be replaced
-        @NON_REPLACED_FIELDS = ['caseId']
-
-        # filds displayed by default
-        @originFields = ['search', 'city', 'isDealer']
-
-        # currently showing fields
-        @showFields = ko.observableArray _.filter @model.fields, (f) =>
-          _.contains @originFields, f.name
-
-        # replaced fields
-        @hiddenFields = []
-
-        @searchKVM = searchKVM
-        @bindSearchKVM()
-
-      searchSortASC: ->
-        console.log "Started searchSortASC function"
-
-      searchSortDSC: ->
-        console.log "Started searchSortDSC function"
-
-      citySortASC: ->
-        console.log "Started citySortASC function"
-
-      citySortDSC: ->
-        console.log "Started citySortDSC function"
-
-      addField: (name, replace = true) ->
-        exists = _.some @showFields(), (f) -> f.name is name
-        unless exists
-          # if 'replace' is 'true' - put new field in place to first one
-          # but firstly try to replace one of the @originFields
-          if replace
-            @hideField @nextReplaceField()
-          field = _.find @model.fields, (f) -> f.name is name
-          @showFields.push field if field
-
-      addFields: (fields...) ->
-        _.each fields, (name) => @addField name, @tableFull()
-
-      removeField: (name) ->
-        @showFields.remove (f) -> f.name is name
-
-      removeFields: (fields...) ->
-        @showFields.remove (f) -> _.contains fields, f.name
-
-      hideField: (name) ->
-        @hiddenFields.push name
-        @removeField name
-
-      findField: (name) ->
-        field = _.find @model.fields, (f) -> f.name is name
-        searchType = field.meta.search
-        switch searchType
-          when 'full' then @hideField name
-          when 'fuzzy' then @addField name, @tableFull()
-          else throw new Error "Unknown model.field.meta.search=#{searchType}"
-
-      tableFull: ->
-        @showFields().length >= @MAX_FIELD_NUM
-
-      nextReplaceField: ->
-        showingFields = _.pluck @showFields(), 'name'
-        origins = _.intersection @originFields, showingFields
-        origins = _.without origins, @NON_REPLACED_FIELDS
-        if _.isEmpty origins
-          _.first showingFields
-        else
-          _.first origins
-
-      bindSearchKVM: ->
-        _.each @model.fields, (f) =>
-          @searchKVM[f.name].subscribe (newVal) =>
-            if newVal
-              @findField f.name
-            else
-              # nothing to search in this field
-              # it unused now, replace it
-              @removeField f.name
-              unless @tableFull() or _.isEmpty @hiddenFields
-                @addField @hiddenFields.pop(), false
-
-    rr = new TableResult
     global.rr = rr
     ko.applyBindings(rr, $("#tbl")[0])
 
