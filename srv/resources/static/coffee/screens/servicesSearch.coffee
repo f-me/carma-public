@@ -1,8 +1,8 @@
 define [ "utils"
        , "model/main"
        , "text!tpl/screens/servicesSearch.html"
-       , "lib/resultsTable"
-       ], (utils, main, tpl, rt) ->
+       , "lib/muTable"
+       ], (utils, main, tpl, muTable) ->
 
   model =
     name: "partnerSearch"
@@ -68,26 +68,18 @@ define [ "utils"
     setTpls kvm2
 
     searchKVM = main.buildKVM model, {}
-    ko.applyBindings(searchKVM, $("#search-section")[0])
 
-    rr = new rt.ResultsTable {model: model
-                            , searchKVM: searchKVM
-                            , maxFieldNum: 4
-                            , originFields: ['search', 'city', 'isDealer']
-                            , nonReplacedFields: ['caseId']
-                              }
-    rr.searchSortASC = ->
-      console.log "Started searchSortASC function"
-    rr.searchSortDSC = ->
-      console.log "Started searchSortDSC function"
-    rr.citySortASC = ->
-      console.log "Started citySortASC function"
-    rr.citySortDSC = ->
-      console.log "Started citySortDSC function"
+    mutableFields = new muTable.MuTable({
+        model: model
+      , searchKVM: searchKVM
+      , maxFieldNum: 4
+      , originFields: ['search', 'city', 'isDealer']
+      , nonReplacedFields: ['caseId']
+    }).showFields
 
-    rr.rows = [kvm1, kvm2]
-
-    global.rr = rr
-    ko.applyBindings(rr, $("#tbl")[0])
+    ko.applyBindings
+      rows: [kvm1, kvm2]
+      showFields: mutableFields
+      searchKVM: searchKVM
 
   template: tpl

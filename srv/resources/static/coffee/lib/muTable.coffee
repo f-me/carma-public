@@ -1,6 +1,6 @@
 define [], () ->
 
-  class ResultsTable
+  class MuTable
     constructor: (opts) ->
 
       # max number of fields in table
@@ -83,5 +83,5 @@ define [], () ->
       else
         _.first origins
 
-  ResultsTable: ResultsTable
+  MuTable: MuTable
 
