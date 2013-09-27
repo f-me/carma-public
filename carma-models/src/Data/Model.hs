@@ -4,7 +4,7 @@ module Data.Model
   ( Ident(..)
   , ident, identDesc
   , Model(..)
-  , Field, F
+  , Field(..), F
   , FOpt
   , FieldDesc(..)
   , fieldName
