@@ -61,7 +61,7 @@ define [ "utils"
 
         tableParams =
           tableName: "dict"
-          objURL: "/_/#{dictName}"
+          objURL: "/_/#{dictName}?limit=10000"
 
         table = screenman.addScreen(dictName, -> )
           .addTable(tableParams)
