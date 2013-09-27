@@ -27,6 +27,7 @@ library
     Carma.Model.CarMake,
     Carma.Model.CarModel,
     Carma.Model.Contract,
+    Carma.Model.FieldPermission,
     Carma.Model.Dictionary,
     Carma.Model.NewCaseField,
     Carma.Model.Program,
