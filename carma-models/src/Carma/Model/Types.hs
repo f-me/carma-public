@@ -1,19 +1,31 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, ViewPatterns #-}
 
 module Carma.Model.Types where
+
+import Control.Applicative
 
 import Data.Aeson
 import Data.String
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Time.Calendar (Day)
+
+import qualified Data.Vector as V
+import Data.Vector ((!))
+
+import Data.Time.Calendar (Day, toGregorian)
 import Data.Time.Format (parseTime)
 
-import Database.PostgreSQL.Simple.FromField (FromField)
-import Database.PostgreSQL.Simple.ToField   (ToField)
+import Database.PostgreSQL.Simple.FromField (FromField(..))
+import Database.PostgreSQL.Simple.ToField   (ToField(..), Action(..), inQuotes)
+
+import Data.ByteString.Internal (c2w, w2c)
+import Blaze.ByteString.Builder(Builder, fromByteString)
+import Blaze.ByteString.Builder.Char8(fromChar)
+import Blaze.Text.Int(integral)
+
 import Data.Aeson () -- (FromJSON, ToJSON)
 import Data.Typeable(Typeable)
-import Data.Monoid (Monoid)
+import Data.Monoid (Monoid, (<>))
 
 import Data.Model
 
@@ -32,3 +44,53 @@ newtype Model m => Dict m = Dict Text
                          FromJSON, ToJSON,
                          Typeable, Monoid, IsString)
 
+data DayInterval = DayInterval Day Day deriving Typeable
+
+instance Show DayInterval where
+  show (DayInterval begin end) = show begin ++ " | " ++ show end
+
+instance FromJSON DayInterval where
+  parseJSON (Array a)
+    | V.length a == 2 = parseInterval a
+    | otherwise       = fail $ "array should be 2 elements long"
+    where
+      parseInterval a =
+        DayInterval <$> parseJSON (a ! 0) <*> parseJSON (a ! 1)
+  parseJSON v =
+    fail $ "expecting Array, but got: " ++ show v
+
+instance ToJSON DayInterval where
+  toJSON = String . fromString . show
+
+instance FromField DayInterval where fromField = undefined
+instance ToField   DayInterval where
+  toField =
+    Plain . inQuotes . dayIntervalToBuilder
+
+dayIntervalToBuilder :: DayInterval -> Builder
+dayIntervalToBuilder (DayInterval begin end) =
+  let (b, e) = (dayToBuilder begin, dayToBuilder end)
+  in fromChar '[' <> b <> fromChar ',' <> e <> fromChar ']'
+
+-- | p assumes its input is in the range [0..9]
+p :: Integral n => n -> Builder
+p n = fromChar (w2c (fromIntegral (n + 48)))
+{-# INLINE p #-}
+
+-- | pad2 assumes its input is in the range [0..99]
+pad2 :: Integral n => n -> Builder
+pad2 n = let (a,b) = n `quotRem` 10 in p a <> p b
+{-# INLINE pad2 #-}
+
+-- | pad4 assumes its input is positive
+pad4 :: (Integral n, Show n) => n -> Builder
+pad4 abcd | abcd >= 10000 = integral abcd
+          | otherwise     = p a <> p b <> p c <> p d
+  where (ab,cd) = abcd `quotRem` 100
+        (a,b)   = ab   `quotRem` 10
+        (c,d)   = cd   `quotRem` 10
+{-# INLINE pad4 #-}
+
+dayToBuilder :: Day -> Builder
+dayToBuilder (toGregorian -> (y,m,d)) = do
+    pad4 y <> fromChar '-' <> pad2 m <> fromChar '-' <> pad2 d

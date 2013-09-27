@@ -26,6 +26,7 @@ import           Database.PostgreSQL.Simple.ToField (ToField(..))
 import           GHC.TypeLits
 
 import           Data.Model
+import           Carma.Model.Types
 import           Carma.Search.Patch
 
 type ConditionsHM m = HashMap
@@ -139,6 +140,18 @@ instance (Wrapable t, Typeable t, ToField t, SingI n, Model m)
                  map (wrap "%") $
                  replicate (length flds) v
       in Condition <$> q
+
+--------------------------------------------------------------------------------
+
+class Model m => InInterval f m where
+  inInterval  :: (m -> f) -> Connection -> Patch m -> IO (Condition m)
+
+instance (SingI n, Model m) => InInterval (F DayInterval n d) m where
+  inInterval acc conn patch = whenHave patch acc $ \(DayInterval b e) ->
+    let tbl = fromSing (sing :: Sing (TableName m))
+        fld = fromSing (sing :: Sing n)
+        q   = fromString $ tbl <> "." <> fld <> " BETWEEN ? AND ?"
+    in Condition <$> formatQuery conn q [b, e]
 
 --------------------------------------------------------------------------------
 

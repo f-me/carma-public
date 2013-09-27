@@ -30,7 +30,7 @@ data CaseSearch = CaseSearch
   , contact    :: F Text "contact" "Контакт имя"
   , owner      :: F Text "contact_ownerName" "Владалец"
   , address    :: F Text "caseAddress_address" "Адрес места поломки"
-  , callDate   :: F Day "callDate" "Дата звонка"
+  , callDate   :: F DayInterval "callDate" "Дата создания кейса"
   , city       :: F (Vector (Dict City))    "city"     "Город"
   , carMake    :: F (Vector (Dict CarMake)) "car_make" "Марка"
   , callTaker  :: F Text "callTaker" "Сотрудник принявший звонок"
@@ -48,4 +48,5 @@ caseConditions = fromList
   , ("phone", [fuzzyMany phone ["phone1","phone2","phone3","phone4"]])
   , ("city",  [full city])
   , ("comment", [fuzzy comment])
+  , ("callDate", [inInterval callDate])
   ]

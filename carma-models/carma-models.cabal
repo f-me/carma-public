@@ -48,7 +48,9 @@ library
     text                 == 0.11.*,
     time                 == 1.4.*,
     vector               == 0.10.*,
-    bytestring           == 0.10.*
+    bytestring           == 0.10.*,
+    blaze-builder        == 0.3.*,
+    blaze-textual        == 0.2.*
 
   extensions:
     DataKinds, KindSignatures, TypeOperators,
