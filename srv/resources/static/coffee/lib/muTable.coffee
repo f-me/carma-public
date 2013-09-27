@@ -16,29 +16,29 @@ define [], () ->
       # replaced fields
       @hiddenFields = []
 
-      @bindModel opts.model
-      @bindSearchKVM opts.searchKVM
+      unless opts.searchKVM or opts.searchKVM?._meta.model
+        throw new Error "Invalid value for searchKVM=#{opts.searchKVM}"
+      @searchKVM = opts.searchKVM
+      @model = @searchKVM._meta.model
+      do @bindModel
+      do @bindSearchKVM
 
-    bindModel: (@model) ->
+    bindModel: ->
       # currently showing fields
-      @showFields = if @model
-          ko.observableArray _.filter @model.fields, (f) =>
-            _.contains @originFields, f.name
-        else
-          ko.observableArray []
+      @showFields = ko.observableArray _.filter @model.fields, (f) =>
+        _.contains @originFields, f.name
 
-    bindSearchKVM: (@searchKVM) ->
-      if @searchKVM
-        _.each @model.fields, (f) =>
-          @searchKVM[f.name].subscribe (newVal) =>
-            if newVal
-              @processField f.name
-            else
-              # nothing to search in this field
-              # it unused now, replace it
-              @removeField f.name
-              unless @tableFull() or _.isEmpty @hiddenFields
-                @addField @hiddenFields.pop(), false
+    bindSearchKVM: ->
+      _.each @model.fields, (f) =>
+        @searchKVM[f.name].subscribe (newVal) =>
+          if newVal
+            @processField f.name
+          else
+            # nothing to search in this field
+            # it unused now, replace it
+            @removeField f.name
+            unless @tableFull() or _.isEmpty @hiddenFields
+              @addField @hiddenFields.pop(), false
 
     addField: (name, replace = true) ->
       exists = _.some @showFields(), (f) -> f.name is name

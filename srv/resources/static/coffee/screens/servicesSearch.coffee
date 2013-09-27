@@ -70,7 +70,6 @@ define [ "utils"
     searchKVM = main.buildKVM model, {}
 
     mutableFields = new muTable.MuTable({
-        model: model
       , searchKVM: searchKVM
       , maxFieldNum: 4
       , originFields: ['search', 'city', 'isDealer']
