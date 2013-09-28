@@ -122,7 +122,7 @@ define ["model/utils"], (mu) ->
   # Format a numeric value from seconds to hours and minutes
   formatSec = (s) ->
     mins = Math.round(s / 60 % 60)
-    hours = Math.round(s / 3600 % 3600)
+    hours = Math.floor(s / 3600 % 3600)
     if hours == 0
       "#{mins}м"
     else
