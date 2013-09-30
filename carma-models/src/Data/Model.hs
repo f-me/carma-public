@@ -5,6 +5,7 @@ module Data.Model
   , ident, identDesc
   , Model(..)
   , Field(..), F
+  , modelFieldsMap
   , FOpt
   , FieldDesc(..)
   , fieldName
@@ -19,6 +20,8 @@ import Control.Applicative
 import Data.Maybe (fromJust)
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Map (Map)
+import qualified Data.Map as Map
 import Data.Aeson.Types as Aeson
 import Database.PostgreSQL.Simple.FromRow (RowParser,field)
 import Database.PostgreSQL.Simple.FromField (FromField(..))
@@ -36,6 +39,9 @@ class (SingI (TableName m), Typeable m) => Model m where
 
 tableName :: forall model . Model model => model -> String
 tableName _ = fromSing (sing :: Sing (TableName model))
+
+modelFieldsMap :: Model m => Map Text (FieldDesc m)
+modelFieldsMap = Map.fromList [(fd_name f, f) | f <- modelFields]
 
 
 data Ident model = Ident {identVal :: Int}
