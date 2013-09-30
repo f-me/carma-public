@@ -80,7 +80,7 @@ applyDefaults model obj = do
   obj'' <- if model `elem` services
       then do
         return $ Map.union obj' $ Map.fromList
-          [("times_expectedServiceStart",   B.pack $ show $ ct + 50*60)
+          [("times_expectedServiceStart",   B.pack $ show $ ct + h)
           ,("times_factServiceStart",       B.pack $ show $ ct + h)
           ,("times_expectedServiceEnd",     B.pack $ show $ ct + 2*h)
           ,("times_expectedServiceClosure", B.pack $ show $ ct + 12*h)
