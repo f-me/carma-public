@@ -7,11 +7,12 @@ import Data.Typeable
 import Data.Vector
 
 import Data.Model.View
+import Carma.Model.City (City)
 
 
 data Region = Region
-  { label  :: F Text "label"  "Название региона"
-  , cities :: F Text "cities" "Города в регионе"
+  { label  :: F Text                  "label"  "Название региона"
+  , cities :: F (Vector (Ident City)) "cities" "Города в регионе"
   } deriving Typeable
 
 

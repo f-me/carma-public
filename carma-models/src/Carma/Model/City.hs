@@ -30,9 +30,10 @@ instance FromField Coords where
 
 
 data City = City
-  {city     :: F Text         "city"     "Название"
-  ,coords   :: F Coords       "coords"   "Координаты"
-  ,timezone :: F Text         "timezone" "Часовой пояс"
+  {label    :: F Text         "label"     "Название"
+  ,value    :: F Text         "value"    "Внутреннее название"
+--  ,coords   :: F Coords       "coords"   "Координаты"
+  ,timezone :: F (Maybe Text) "timezone" "Часовой пояс"
   }
   deriving Typeable
 

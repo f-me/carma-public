@@ -4,6 +4,7 @@
 module Data.Model.View where
 
 import Data.List
+import Data.Maybe (fromJust)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Map (Map)
@@ -30,6 +31,7 @@ defaultFieldView :: FieldDesc m -> FieldView m
 defaultFieldView f = FieldView
   { name      = fd_name f
   , fieldType = translateFieldType $ fd_type f
+  , canWrite  = True
   , meta      = Map.fromList
     $  [("label", Aeson.String $ fd_desc f)]
     ++ case fd_name f of
@@ -41,8 +43,13 @@ defaultFieldView f = FieldView
         ,("dictionaryType", "ModelDict")
         ,("bounded", Aeson.Bool True)
         ]
+      ["Vector", "(Ident", model] ->
+        [("dictionaryName", Aeson.String
+          $ fromJust $ T.stripSuffix ")" $ T.pack model)
+        ,("dictionaryType", "ModelDict")
+        ,("bounded", Aeson.Bool True)
+        ]
       _ -> []
-  , canWrite  = True
   }
 
 
@@ -86,6 +93,6 @@ translateFieldType tr
     "Int"  -> "int"
     "Text" -> "text"
     "Bool" -> "Bool"
-    t | "Vector" `isPrefixOf` t -> "multi-dict"
-      | "Ident " `isPrefixOf` t -> "dictionary" -- dictionary ?
+    t | "Vector" `isPrefixOf` t -> "dictionary-many"
+      | "Ident " `isPrefixOf` t -> "dictionary"
       | otherwise -> error $ "translateFieldType: unkonwn type " ++ t
