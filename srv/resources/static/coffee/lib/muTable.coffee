@@ -16,6 +16,9 @@ define [], () ->
       # replaced fields
       @hiddenFields = []
 
+      # fields currently in search
+      @inSearchFields = []
+
       unless opts.searchKVM or opts.searchKVM?._meta.model
         throw new Error "Invalid value for searchKVM=#{opts.searchKVM}"
       @searchKVM = opts.searchKVM
@@ -32,13 +35,16 @@ define [], () ->
       _.each @model.fields, (f) =>
         @searchKVM[f.name].subscribe (newVal) =>
           if newVal
+            @inSearchFields.push f.name
             @processField f.name
           else
             # nothing to search in this field
             # it unused now, replace it
+            if (index = @inSearchFields.indexOf f.name) > -1
+              @inSearchFields.splice index, 1
             @removeField f.name
             unless @tableFull() or _.isEmpty @hiddenFields
-              @addField @hiddenFields.pop(), false
+              @addField @lastHiddenField(), false
 
     addField: (name, replace = true) ->
       exists = _.some @showFields(), (f) -> f.name is name
@@ -47,17 +53,28 @@ define [], () ->
         # but firstly try to replace one of the @originFields
         if replace
           @hideField @nextReplaceField()
-        field = _.find @model.fields, (f) -> f.name is name
-        @showFields.push field if field
+        if field = (_.find @model.fields, (f) -> f.name is name)
+          # if field has searchFields add them to table
+          # otherwise add the field itself
+          sfNames = @searchFields name
+          unless _.isEmpty sfNames
+            @addFields sfNames
+          else
+            @showFields.push field
 
     addFields: (fields...) ->
+      fields = _.flatten fields
       _.each fields, (name) => @addField name, @tableFull()
 
     removeField: (name) ->
-      @showFields.remove (f) -> f.name is name
+      names = @searchFields name
+      unless _.isEmpty names
+        @showFields.remove (f) -> _.contains names, f.name
+      else
+        @showFields.remove (f) -> f.name is name
 
     removeFields: (fields...) ->
-      @showFields.remove (f) -> _.contains fields, f.name
+      _.each fields, (name) => @removeField name
 
     hideField: (name) ->
       @hiddenFields.push name
@@ -71,6 +88,10 @@ define [], () ->
         when 'fuzzy' then @addField name, @tableFull()
         else throw new Error "Unknown model.field.meta.search=#{searchType}"
 
+    searchFields: (name) ->
+      field = _.find @model.fields, (f) -> f.name is name
+      field?.meta?.searchFields or []
+
     tableFull: ->
       @showFields().length >= @maxFieldNum
 
@@ -82,6 +103,12 @@ define [], () ->
         _.first showingFields
       else
         _.first origins
+
+    lastHiddenField: ->
+      hiddens = _.without @hiddenFields, @inSearchFields
+      last = _.first hiddens
+      @hiddenFields = _.without @hiddenFields, last
+      last
 
   MuTable: MuTable
 

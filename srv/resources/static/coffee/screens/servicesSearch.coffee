@@ -23,6 +23,15 @@ define [ "utils"
       , meta:
           label: "Дата и время"
           search: "fuzzy"
+          searchFields: ['callDateDay', 'callDateYear']
+      },
+      { name: "callDateDay"
+      , meta:
+          label: "День"
+      },
+      { name: "callDateYear"
+      , meta:
+          label: "Год"
       },
       { name: "city"
       , type: "dictionary"
@@ -50,20 +59,26 @@ define [ "utils"
       kvm._meta.tpls[f.name] = tpl
 
   constructor: ->
+    date1 = new Date 1380193258500
     kvm1 = main.buildKVM model,
       fetched:
         search  : "qwqweqwe"
         contact : "Stan"
-        callDate: "1379591833"
+        callDate: do date1.getTime
+        callDateDay : do date1.getDay
+        callDateYear: do date1.getFullYear
         city    : "Moskva"
         isDealer: true
     setTpls kvm1
 
+    date2 = new Date 1380293358500
     kvm2 = main.buildKVM model,
       fetched:
         search  : "111"
         contact : "Kenny"
-        callDate: "1379551233"
+        callDate: do date2.getTime
+        callDateDay : do date2.getDay
+        callDateYear: do date2.getFullYear
         city    : "Sankt-Peterburg"
         isDealer: false
     setTpls kvm2
