@@ -1,26 +1,41 @@
 define [ "utils"
        , "model/main"
        , "model/utils"
+       , "lib/muTable"
        , "text!tpl/screens/servicesSearch.html"
-       ], (utils, main, mutils, tpl) ->
+       ], (utils, main, mutils, muTable, tpl) ->
 
   model =
     name: "partnerSearch"
     title: "Экран поиска партнеров"
     fields: [
       { name: "search"
-      , meta: { label: "Поиск", nosearch: true }
+      , meta:
+          label: "Поиск"
+          nosearch: true
+      },
+      { name: "contact"
+      , meta:
+          label: "ФИО"
+          search: "fuzzy"
+      },
+      { name: "callDate"
+      , meta:
+          label: "Дата и время"
+          search: "fuzzy"
       },
       { name: "city"
       , type: "dictionary"
       , meta:
           dictionaryName: "DealerCities"
           label: "Город"
+          search: "full"
       },
       { name: "isDealer"
       , type: "checkbox"
-      , meta: { label: "Дилер" }
-      },
+      , meta:
+          label: "Дилер"
+      }
     ]
 
   setTpls = (kvm) ->
@@ -34,23 +49,12 @@ define [ "utils"
    in #{kvm._meta.model.name}")
       kvm._meta.tpls[f.name] = tpl
 
-  showFields = (model, flds) ->
-    ko.observableArray _.filter model.fields, (f) -> _.contains flds, f.name
-
-  window.addFields = (flds, fldNames) ->
-    fs = _.filter model.fields, (f) -> f.name == fldName
-    return unless fs
-    flds.push(f) for f in fs
-
-  window.delField = (flds, fldName) ->
-    fs = _.filter model.fields, (f) -> f.name == fldName
-    return unless fs
-    flds.removeAll(fs)
-
   constructor: ->
     kvm1 = main.buildKVM model,
       fetched:
         search  : "qwqweqwe"
+        contact : "Stan"
+        callDate: "1379591833"
         city    : "Moskva"
         isDealer: true
     setTpls kvm1
@@ -58,16 +62,24 @@ define [ "utils"
     kvm2 = main.buildKVM model,
       fetched:
         search  : "111"
+        contact : "Kenny"
+        callDate: "1379551233"
         city    : "Sankt-Peterburg"
         isDealer: false
     setTpls kvm2
 
-    rr =
-      model     : model
-      kvms      : ko.sorted { kvms: [kvm1, kvm2], sorters: mutils.buildSorters(model)}
-      showFields: showFields model, ['search', 'city']
+    searchKVM = main.buildKVM model, {}
 
-    global.rr = rr
-    ko.applyBindings(rr, $("#tbl")[0])
+    mutableFields = new muTable.MuTable({
+      , searchKVM: searchKVM
+      , maxFieldNum: 4
+      , originFields: ['search', 'city', 'isDealer']
+      , nonReplacedFields: ['caseId']
+    }).showFields
+
+    ko.applyBindings
+      kvms: ko.sorted { kvms: [kvm1, kvm2], sorters: mutils.buildSorters(model)}
+      showFields: mutableFields
+      searchKVM: searchKVM
 
   template: tpl
