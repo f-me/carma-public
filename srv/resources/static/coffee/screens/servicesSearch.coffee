@@ -1,7 +1,8 @@
 define [ "utils"
        , "model/main"
+       , "model/utils"
        , "text!tpl/screens/servicesSearch.html"
-       ], (utils, main, tpl) ->
+       ], (utils, main, mutils, tpl) ->
 
   model =
     name: "partnerSearch"
@@ -63,16 +64,8 @@ define [ "utils"
 
     rr =
       model     : model
-      kvms      : [kvm1, kvm2]
+      kvms      : ko.sorted { kvms: [kvm1, kvm2], sorters: mutils.buildSorters(model)}
       showFields: showFields model, ['search', 'city']
-      searchSortASC: () ->
-        console.log "Started searchSortASC function"
-      searchSortDSC: () ->
-        console.log "Started searchSortDSC function"
-      citySortASC: () ->
-        console.log "Started citySortASC function"
-      citySortDSC: () ->
-        console.log "Started citySortDSC function"
 
     global.rr = rr
     ko.applyBindings(rr, $("#tbl")[0])
