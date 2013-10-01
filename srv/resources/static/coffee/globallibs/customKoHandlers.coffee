@@ -74,3 +74,12 @@ ko.bindingHandlers.sort =
            .find('i')
            .removeClass()
            .addClass(defaultClass)
+
+ko.bindingHandlers.renderField =
+  init: (el, acc, allBindigns, fld, ctx) ->
+    tplid = fld.meta.widget
+    tplid = "#{fld.type || 'text'}"
+    tpl = Mustache.render $("##{tplid}-field-template").html(), fld
+    ko.utils.setHtml el, tpl
+    ko.applyBindingsToDescendants(ctx.$root, el)
+    return { controlsDescendantBindings: true }

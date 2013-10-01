@@ -45,6 +45,13 @@ define [ "utils"
       , meta:
           label: "Дилер"
       }
+      { name: "showField"
+      , type: "dictionary"
+      , meta:
+          label: "Добавить критерий поиска"
+          noadd: true
+          dictionaryType: "HiddenFieldsDict"
+      }
     ]
 
   setTpls = (kvm) ->
@@ -85,6 +92,8 @@ define [ "utils"
 
     searchKVM = main.buildKVM model, {}
 
+    global.k = searchKVM
+
     mutableFields = new muTable.MuTable({
       , searchKVM: searchKVM
       , maxFieldNum: 4
@@ -92,9 +101,20 @@ define [ "utils"
       , nonReplacedFields: ['caseId']
     }).showFields
 
-    ko.applyBindings
+    ctx =
       kvms: ko.sorted { kvms: [kvm1, kvm2], sorters: mutils.buildSorters(model)}
       showFields: mutableFields
       searchKVM: searchKVM
+
+    ko.applyBindings ctx, $("#search-results")[0]
+
+    fnames = ko.observableSet(["showField", "contact", "callDate"])
+    searchKVM._meta.showFields = ko.computed
+      read: ->  _.filter searchKVM._meta.model.fields,
+                        (f) -> _.contains fnames(), f.name
+      write: (v) -> fnames(v)
+
+    ko.applyBindings searchKVM, $("#search-conditions")[0]
+
 
   template: tpl

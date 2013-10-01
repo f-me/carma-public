@@ -32,19 +32,20 @@ define [], () ->
         _.contains @originFields, f.name
 
     bindSearchKVM: ->
-      _.each @model.fields, (f) =>
-        @searchKVM[f.name].subscribe (newVal) =>
-          if newVal
-            @inSearchFields.push f.name
-            @processField f.name
-          else
-            # nothing to search in this field
-            # it unused now, replace it
-            if (index = @inSearchFields.indexOf f.name) > -1
-              @inSearchFields.splice index, 1
-            @removeField f.name
-            unless @tableFull() or _.isEmpty @hiddenFields
-              @addField @lastHiddenField(), false
+      for f in @model.fields when f.meta?.search and not f.meta?.nosearch
+        do (f) =>
+          @searchKVM[f.name].subscribe (newVal) =>
+            if newVal
+              @inSearchFields.push f.name
+              @processField f.name
+            else
+              # nothing to search in this field
+              # it unused now, replace it
+              if (index = @inSearchFields.indexOf f.name) > -1
+                @inSearchFields.splice index, 1
+              @removeField f.name
+              unless @tableFull() or _.isEmpty @hiddenFields
+                @addField @lastHiddenField(), false
 
     addField: (name, replace = true) ->
       exists = _.some @showFields(), (f) -> f.name is name
@@ -111,4 +112,3 @@ define [], () ->
       last
 
   MuTable: MuTable
-
