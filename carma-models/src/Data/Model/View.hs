@@ -48,6 +48,7 @@ defaultFieldView f = FieldView
           $ fromJust $ T.stripSuffix ")" $ T.pack model)
         ,("dictionaryType", "ModelDict")
         ,("bounded", Aeson.Bool True)
+        ,("widget", "dictionary-many")
         ]
       _ -> []
   }
@@ -93,6 +94,6 @@ translateFieldType tr
     "Int"  -> "int"
     "Text" -> "text"
     "Bool" -> "Bool"
-    t | "Vector" `isPrefixOf` t -> "dictionary-many"
+    t | "Vector" `isPrefixOf` t -> "dictionary-set"
       | "Ident " `isPrefixOf` t -> "dictionary"
       | otherwise -> error $ "translateFieldType: unkonwn type " ++ t
