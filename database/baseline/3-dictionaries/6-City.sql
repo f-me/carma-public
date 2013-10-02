@@ -1,7 +1,8 @@
 CREATE TABLE "City"
   (id    SERIAL PRIMARY KEY
-  ,value text
+  ,value text UNIQUE NOT NULL
   ,label text UNIQUE NOT NULL
+  ,timezone text
   );
 
 INSERT INTO "City" (value, label) VALUES
@@ -1337,3 +1338,6 @@ INSERT INTO "City" (value, label) VALUES
  ('YAsnogorsk'
  ,'Ясногорск');
 
+
+GRANT ALL ON "City" TO carma_db_sync;
+GRANT ALL ON "City" TO carma_search;

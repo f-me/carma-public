@@ -139,8 +139,11 @@ define ["utils", "dictionaries"], (u, d) ->
         (r) -> $("#city-towage-average-time").text(u.formatSecToMin(r[0]))
 
   regionHook: (model, knockVM) ->
-    RegionDict = new d.dicts['RegionDict']
     knockVM['region'] = ko.computed
       read: ->
-        RegionDict.getLab knockVM['city']()
-
+        res = ''
+        city = knockVM.city()
+        if city
+          $.bgetJSON "/regionByCity/#{city}",
+            (r) -> res = r.join ','
+        res
