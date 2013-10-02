@@ -134,7 +134,8 @@ define [ "utils"
   # - <field>Remove field value is a function, which recieve
   # value and remove it from list
   dictManyHook: (m, k) ->
-    for f in m.fields when f.type == "dictionary-many"
+    isMany = (t) -> t == 'dictionary-many' or t == 'dictionary-set'
+    for f in m.fields when isMany f.type
       do (f) ->
         n         = f.name
         dictName  = f.meta.dictionaryName

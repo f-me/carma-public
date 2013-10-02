@@ -288,7 +288,7 @@ actStatsOrderQ :: Query
 actStatsOrderQ = [sql|
   SELECT count(*)::text
   FROM actiontbl
-  WHERE assignedTo IS NULL OR assignedTo = ''
+  WHERE assignedTo IS NULL OR assignedTo = '' AND closed = 'f'
   AND name = ANY('{ "orderService", "orderServiceAnalyst"
                   , "tellMeMore", "callMeMaybe"}');
   |]
@@ -297,7 +297,7 @@ actStatsControlQ :: Query
 actStatsControlQ = [sql|
   SELECT count(*)::text
   FROM actiontbl
-  WHERE assignedTo IS NULL OR assignedTo = ''
+  WHERE assignedTo IS NULL OR assignedTo = '' AND closed = 'f'
   AND name = ANY('{ "tellClient", "checkStatus"
                   , "tellDelayClient", "checkEndOfService"
                   , "getInfoDealerVW"}');
@@ -321,7 +321,7 @@ boUsers = do
       WHERE (lastlogout IS NULL OR lastlogout < lastactivity)
         AND now() - lastactivity < '20 min'
         AND roles && ARRAY[
-          'head','back','supervisor','parguy','account',
+          'head','back','supervisor','parguy','account', 'bo_control',
           'analyst','op_checker','op_close','op_dealer']
     |]
   writeJSON $ mkMap ["name", "login"] rows

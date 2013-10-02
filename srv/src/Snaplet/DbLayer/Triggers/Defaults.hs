@@ -87,7 +87,7 @@ applyDefaults model obj = do
           ,("times_factServiceClosure",     B.pack $ show $ ct + 12*h)
           ,("times_expectedDealerInfo",     B.pack $ show $ ct + 7*d)
           ,("times_factDealerInfo",         B.pack $ show $ ct + 7*d)
-          ,("times_expectedDispatch",       B.pack $ show $ ct + 5 * m)
+          ,("times_expectedDispatch",       B.pack $ show $ ct + 10 * m)
           ,("createTime",                   B.pack $ show $ ct)
           ,("marginalCost",                 setSrvMCost model obj' kase' dict)
           ,("urgentService",                "notUrgent")

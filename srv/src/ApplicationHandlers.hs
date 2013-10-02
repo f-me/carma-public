@@ -573,6 +573,22 @@ towAvgTime = do
           writeJSON (map head rows :: [Maybe Double])
     _ -> error "Could not read city from request"
 
+
+getRegionByCity :: AppHandler ()
+getRegionByCity = do
+  getParam "city" >>= \case
+    Just city -> do
+      res <- withPG pg_search $ \c -> query c
+        [sql|
+          SELECT r.label
+          FROM "Region" r, "City" c
+          WHERE c.id = ANY(r.cities) AND c.value = ?
+        |]
+        [city]
+      writeJSON (res :: [[ByteString]])
+    _ -> error "Could not read city from request"
+
+
 smsProcessingHandler :: AppHandler ()
 smsProcessingHandler = scope "sms" $ do
   res <- with db DB.smsProcessing
