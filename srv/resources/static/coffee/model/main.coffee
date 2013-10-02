@@ -18,7 +18,7 @@
 # user object is stored in global hash and contains data about
 # current user.
 define [ "model/render"
-       , "lib/local-dict"
+       , "dictionaries/local-dict"
        , "sync/crud"
        ],
        (render, dict, sync) ->

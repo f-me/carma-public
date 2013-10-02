@@ -1,5 +1,5 @@
-define ["lib/local-dict"], (m) ->
-  class ComputedDict extends m.dict
+define ["dictionaries/local-dict"], (ld) ->
+  class ComputedDict extends ld.dict
     constructor: (@opts) ->
       [f, a] = @opts.dict.split ':'
       fn    = @[f.trim()]

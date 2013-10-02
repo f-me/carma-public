@@ -1,5 +1,5 @@
-define ["lib/local-dict", ], (m) ->
-  class DealersDict extends m.dict
+define ["dictionaries/local-dict", ], (ld) ->
+  class DealersDict extends ld.dict
     constructor: (@opts) ->
       @kvm = opts.kvm
       @cacheByVal = {}

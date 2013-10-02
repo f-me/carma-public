@@ -1,7 +1,7 @@
 define [ "utils"
        , "model/main"
        , "model/utils"
-       , "lib/muTable"
+       , "dictionaries/muTable"
        , "text!tpl/screens/servicesSearch.html"
        ], (utils, main, mutils, muTable, tpl) ->
 
