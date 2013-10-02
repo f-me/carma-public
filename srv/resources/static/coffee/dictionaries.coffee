@@ -7,6 +7,7 @@ define [ "lib/local-dict"
        , "lib/cardOwner-dict"
        , "lib/region-dict"
        , "lib/model-dict"
+       , "dictionaries/hiddenFields"
        ], ->
 
   dicts = {}

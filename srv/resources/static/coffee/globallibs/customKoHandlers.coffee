@@ -55,7 +55,7 @@ ko.bindingHandlers.sort =
         $(el).find('i').removeClass()
         $(el).find('i').addClass 'icon-arrow-up'
         # launch sorting
-        ctx.$root["#{name()}SortASC"]()
+        ctx.$root.kvms.set_sorter "#{name()}SortAsc"
       ,
       () ->
         # reset icon for others columns
@@ -64,7 +64,7 @@ ko.bindingHandlers.sort =
         $(el).find('i').removeClass()
         $(el).find('i').addClass 'icon-arrow-down'
         # launch sorting
-        ctx.$root["#{name()}SortDSC"]()
+        ctx.$root.kvms.set_sorter "#{name()}SortDesc"
     )
 
     # reset icon to default (without sorting) for all column headers
@@ -74,3 +74,12 @@ ko.bindingHandlers.sort =
            .find('i')
            .removeClass()
            .addClass(defaultClass)
+
+ko.bindingHandlers.renderField =
+  init: (el, acc, allBindigns, fld, ctx) ->
+    tplid = fld.meta.widget
+    tplid = "#{fld.type || 'text'}"
+    tpl = Mustache.render $("##{tplid}-field-template").html(), fld
+    ko.utils.setHtml el, tpl
+    ko.applyBindingsToDescendants(ctx.$root, el)
+    return { controlsDescendantBindings: true }

@@ -21,6 +21,7 @@ define [], ->
     JSON.parse(v)
 
   c2sTypes =
+    'dictionary-set': (v) -> _.map v.split(','), (v) -> parseInt v
     checkbox  : (v) -> if v then "1" else "0"
     Bool      : (v) -> v
     dictionary: (v) -> if _.isNull v then '' else v
@@ -29,6 +30,7 @@ define [], ->
     json      : JSON.stringify
 
   s2cTypes =
+    'dictionary-set': (v) -> v.join(',')
     checkbox  : (v) -> v == "1"
     Bool      : (v) -> v
     dictionary: (v) -> v
