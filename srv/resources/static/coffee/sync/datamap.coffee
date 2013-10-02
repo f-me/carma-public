@@ -28,6 +28,7 @@ define [], ->
     date      : c2sDate("dd.MM.yyyy")
     datetime  : c2sDate("dd.MM.yyyy HH:mm")
     json      : JSON.stringify
+    'interval-date': (v) -> v
 
   s2cTypes =
     'dictionary-set': (v) -> v.join(',')
@@ -37,6 +38,7 @@ define [], ->
     date      : s2cDate("dd.MM.yyyy")
     datetime  : s2cDate("dd.MM.yyyy HH:mm")
     json      : s2cJson
+    'interval-date': (v) -> v
 
   defaultc2s = (v) -> if _.isNull(v) then "" else String(v)
   c2s = (val, type) -> (c2sTypes[type] || defaultc2s)(val)

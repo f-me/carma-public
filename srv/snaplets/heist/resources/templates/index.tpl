@@ -488,6 +488,42 @@
       </div>
     </script>
 
+    <script type="text/template"
+            class="field-template"
+            id="interval-date-field-template">
+
+      <label>{{ meta.label }} (Диапазон)</label>
+      <div class="row-fluid horizontal-form">
+          <div class="input-append date span4"
+               data-provide="datepicker"
+               data-autoshow-datepicker="true"
+               data-date-format="dd.mm.yyyy"
+               data-date-weekstart="1">
+            <input type="text"
+                   class="pane-span focusable"
+                   autocomplete="off"
+                   name="{{ name }}Begin"
+                   data-bind="value: {{ name }}Begin,
+                              valueUpdate: 'change'" />
+            <span class="add-on"><i class="icon icon-calendar" /></span>
+          </div>
+          <div class="span1" />
+          <div class="input-append date span4"
+               data-provide="datepicker"
+               data-autoshow-datepicker="true"
+               data-date-format="dd.mm.yyyy"
+               data-date-weekstart="1">
+            <input type="text"
+                   class="pane-span focusable"
+                   autocomplete="off"
+                   name="{{ name }}End"
+                   data-bind="value: {{ name }}End,
+                              valueUpdate: 'change'" />
+            <span class="add-on"><i class="icon icon-calendar" /></span>
+          </div>
+      </div>
+    </script>
+
     <!-- Like text-field-template but with call button -->
     <!-- FIXME: this template differs from the picker-field-template
          only in icon class. Seems that it is reasonable to parametrize it.
