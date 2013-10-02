@@ -44,31 +44,30 @@ newtype Model m => Dict m = Dict Text
                          FromJSON, ToJSON,
                          Typeable, Monoid, IsString)
 
-data DayInterval = DayInterval Day Day deriving Typeable
+data (Typeable t, Show t) => Interval t = Interval t t deriving Typeable
 
-instance Show DayInterval where
-  show (DayInterval begin end) = show begin ++ " | " ++ show end
+instance (Typeable t, Show t) => Show (Interval t) where
+  show (Interval begin end) = show begin ++ " | " ++ show end
 
-instance FromJSON DayInterval where
+instance (FromJSON t, Typeable t, Show t) => FromJSON (Interval t) where
   parseJSON (Array a)
     | V.length a == 2 = parseInterval a
     | otherwise       = fail $ "array should be 2 elements long"
     where
       parseInterval a =
-        DayInterval <$> parseJSON (a ! 0) <*> parseJSON (a ! 1)
+        Interval <$> parseJSON (a ! 0) <*> parseJSON (a ! 1)
   parseJSON v =
     fail $ "expecting Array, but got: " ++ show v
 
-instance ToJSON DayInterval where
-  toJSON = String . fromString . show
+instance (Typeable t, ToJSON t, Show t) => ToJSON (Interval t) where
+  toJSON (Interval begin end) = Array $ V.fromList [toJSON begin, toJSON end]
 
-instance FromField DayInterval where fromField = undefined
-instance ToField   DayInterval where
-  toField =
-    Plain . inQuotes . dayIntervalToBuilder
+instance FromField (Interval t) where fromField = undefined
+instance ToField   (Interval Day) where
+  toField = Plain . inQuotes . dayIntervalToBuilder
 
-dayIntervalToBuilder :: DayInterval -> Builder
-dayIntervalToBuilder (DayInterval begin end) =
+dayIntervalToBuilder :: Interval Day -> Builder
+dayIntervalToBuilder (Interval begin end) =
   let (b, e) = (dayToBuilder begin, dayToBuilder end)
   in fromChar '[' <> b <> fromChar ',' <> e <> fromChar ']'
 

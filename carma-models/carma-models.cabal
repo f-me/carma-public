@@ -34,9 +34,7 @@ library
     Carma.Model.Program,
     Carma.Model.Region,
     Carma.Model.Wazzup,
-    Carma.Model.CaseSearch,
-    Carma.Search.Patch,
-    Carma.Search.Condition
+    Carma.Model.CaseSearch
 
   -- other-modules:       
   hs-source-dirs:    src
