@@ -52,17 +52,27 @@ instance Show RolePerms where
         concat [r, " [", show $ Set.size perms, "]"]
 
 
--- | Sort all raw permissions by roles.
-toRolePerms :: [Permission] -> [RolePerms]
-toRolePerms perms =
-    map (\(k, v) -> RolePerms k v) $
+-- | Sort raw permissions into an associative list
+toPermMap :: (Ord k, Ord v) => 
+             (Permission -> k) 
+          -> (Permission -> v) 
+          -> [Permission] 
+          -> [(k, Set.Set v)]
+toPermMap keyFun valFun perms =
     Map.toList $
     List.foldl' addPerm Map.empty perms
     where
-      addPerm set (Permission (role, model, field, canRead, canWrite)) =
-          Map.insertWith Set.union role
-          (Set.singleton (model, field, fromRaw canRead, fromRaw canWrite))
-          set
+      addPerm set p =
+          Map.insertWith Set.union (keyFun p) (Set.singleton $ valFun p) set
+
+
+-- | Sort all raw permissions by roles.
+toRolePerms :: [Permission] -> [RolePerms]
+toRolePerms =
+    map (\(k, v) -> RolePerms k v) .
+    toPermMap (\(Permission (role, _, _, _, _)) -> role)
+              (\(Permission (_, model, field, cr, cw)) ->
+               (model, field, fromRaw cr, fromRaw cw))
 
 
 -- | A set of (possibly quantum) roles for a field
@@ -82,17 +92,14 @@ instance Show FieldPerms where
     show (FieldPerms m f perms) =
         concat [m, "/", f, " [", show $ Set.size perms, "]"]
 
--- | Sort all raw permissions by fields.
+
+-- | Sort all raw permissions by roles.
 toFieldPerms :: [Permission] -> [FieldPerms]
-toFieldPerms perms =
-    map (\((m, f), v) -> FieldPerms m f v) $
-    Map.toList $
-    List.foldl' addPerm Map.empty perms
-    where
-      addPerm set (Permission (role, model, field, canRead, canWrite)) =
-          Map.insertWith Set.union (model, field)
-          (Set.singleton (role, fromRaw canRead, fromRaw canWrite))
-          set
+toFieldPerms =
+    map (\((m, f), v) -> FieldPerms m f v) .
+    toPermMap (\(Permission (_, model, field, _, _)) -> (model, field))
+              (\(Permission (role, _, _, cr, cw)) ->
+               (role, fromRaw cr, fromRaw cw))
 
 
 main = do
@@ -105,5 +112,5 @@ main = do
   conn <- connect pgInfo
   perms <- query_ conn
            [sql|SELECT role, model, field, r, w FROM "FieldPermission";|]
-  print (clusterize (toFieldPerms perms) 3)
+  print (clusterize (toFieldPerms perms) 5)
   return ()
