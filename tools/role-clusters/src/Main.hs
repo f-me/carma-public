@@ -174,6 +174,15 @@ toFieldPerms =
                (role, (fromRaw cr, fromRaw cw)))
 
 
+printAll :: (Show e, Show (Key e), MaskContainer e) => [PE e] -> IO ()
+printAll l =
+    let
+        ls = map (\(PE e) -> e) l
+        totaled = map (\f -> setMasks (Map.fromList (totalize (fullKeySet ls) f)) f) ls
+    in
+      mapM_ (\t -> putStrLn $ show t ++ " [" ++ (show $ getMasks t) ++ "]") totaled
+
+
 main = do
   a <- getArgs
   let (pgInfo, mode, algo, threshold) =
@@ -183,16 +192,18 @@ main = do
                  mode,
                  algo,
                  threshold)
-            _ -> error "Usage: role-clusters HOST PORT USER PW DB ('role'|'field') ('min'|'km') THRESHOLD|NUM"
+            _ -> error "Usage: role-clusters HOST PORT USER PW DB (role|field) (min|km|print) THRESHOLD|NUM"
   conn <- connect pgInfo
   perms <- query_ conn
            [sql|SELECT role, model, field, r, w FROM "FieldPermission";|]
   case (algo, mode) of
-    ("min", "role")  -> print $ clusterize (toRolePerms perms) $ read threshold
-    ("min", "field") -> print $ clusterize (toFieldPerms perms) $ read threshold
-    ("km", "role")   -> print =<< clusterizeMeans
-                        (toRolePerms perms) (read threshold) 0.01 100
-    ("km", "field")  -> print =<< clusterizeMeans
-                        (toFieldPerms perms) (read threshold) 0.01 100
-    (_, _)           -> print "Unknown mode"
+    ("print", "role")  -> printAll (toRolePerms perms)
+    ("print", "field") -> printAll (toFieldPerms perms)
+    ("min", "role")    -> print $ clusterize (toRolePerms perms) $ read threshold
+    ("min", "field")   -> print $ clusterize (toFieldPerms perms) $ read threshold
+    ("km", "role")     -> print =<< clusterizeMeans
+                          (toRolePerms perms) (read threshold) 0.01 100
+    ("km", "field")    -> print =<< clusterizeMeans
+                          (toFieldPerms perms) (read threshold) 0.01 100
+    (_, _)             -> print "Unknown mode"
   return ()
