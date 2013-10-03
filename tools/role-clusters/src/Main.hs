@@ -135,7 +135,11 @@ instance MaskContainer FieldPerms where
 
 
 -- | A wrapper for clusterizable mask containers.
-newtype PE e = PE e deriving (Eq, Ord, Show)
+newtype PE e = PE e deriving (Eq, Ord)
+
+
+instance Show e => Show (PE e) where
+    show (PE e) = show e
 
 
 instance MaskContainer e => Element (PE e) where
@@ -151,7 +155,9 @@ instance MaskContainer e => Element (PE e) where
             -- Add all available roles to FieldPerms
             totaled = map (totalize $ fullKeySet l) l
         in
-          PE $ scale (1 / fromIntegral n) $ List.foldl1' add l
+          PE $ if (length l == 1)
+               then head l
+               else scale (1 / fromIntegral n) $ List.foldl1' add l
 
 
 instance Show FieldPerms where
@@ -170,18 +176,23 @@ toFieldPerms =
 
 main = do
   a <- getArgs
-  let (pgInfo, mode, threshold) =
+  let (pgInfo, mode, algo, threshold) =
           case a of
-            (host:port:user:pw:db:mode:threshold:_) ->
+            (host:port:user:pw:db:mode:algo:threshold:_) ->
                 (ConnectInfo host (read port) user pw db,
                  mode,
-                 read threshold)
-            _ -> error "Usage: role-clusters HOST PORT USER PW DB ('r'|'f') THRESHOLD"
+                 algo,
+                 threshold)
+            _ -> error "Usage: role-clusters HOST PORT USER PW DB ('role'|'field') ('min'|'km') THRESHOLD|NUM"
   conn <- connect pgInfo
   perms <- query_ conn
            [sql|SELECT role, model, field, r, w FROM "FieldPermission";|]
-  case mode of
-    "r" -> print $ clusterize (toRolePerms perms) threshold
-    "f" -> print $ clusterize (toFieldPerms perms) threshold
-    _   -> print "Unknown mode"
+  case (algo, mode) of
+    ("min", "role")  -> print $ clusterize (toRolePerms perms) $ read threshold
+    ("min", "field") -> print $ clusterize (toFieldPerms perms) $ read threshold
+    ("km", "role")   -> print =<< clusterizeMeans
+                        (toRolePerms perms) (read threshold) 0.01 100
+    ("km", "field")  -> print =<< clusterizeMeans 
+                        (toFieldPerms perms) (read threshold) 0.01 100
+    (_, _)           -> print "Unknown mode"
   return ()

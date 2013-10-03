@@ -20,4 +20,5 @@ executable role-clusters
   build-depends:
     base               == 4.6.*,
     containers         == 0.5.*,
-    postgresql-simple  == 0.3.*
+    postgresql-simple  == 0.3.*,
+    random             == 1.0.*
