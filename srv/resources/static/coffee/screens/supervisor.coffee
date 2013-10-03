@@ -116,6 +116,21 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
     options = {permEl, focusClass, refs, forceRender}
     main.modelSetup(modelName) viewName, args, options
 
+  # Update unassigned action counts using currently selected duetime
+  # limits
+  updateActStats = () ->
+    dateFrom = Date.parse $('#date-min').val()
+    dateTo = Date.parse $('#date-max').val()
+    select = []
+    if dateFrom and dateTo
+        duetimeFrom = utils.toUnix dateFrom
+        select.push("duetimeFrom=#{duetimeFrom}") if duetimeFrom
+        duetimeTo = utils.toUnix dateTo
+        select.push("duetimeTo=#{duetimeTo}") if duetimeTo
+    $.getJSON "/supervisor/actStats?#{select.join('&')}", (as) ->
+      $("#unassigned-orders").text(as.order)
+      $("#unassigned-controls").text(as.control)
+
   screenSetup = (viewName, args) ->
     dateFrom = (new Date).addDays(-14)
     dateTo = (new Date).addDays(+7)
@@ -148,6 +163,7 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
 
     $('#reload').click ->
       objURL = do formatObjURL
+      updateActStats()
       table.setObjs objURL unless objURL is ""
 
 
@@ -155,9 +171,7 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
     $('select[name=supervisor-table_length]').val(100)
     $('select[name=supervisor-table_length]').change()
 
-    $.getJSON "/supervisor/actStats", (as) ->
-      $("#unassigned-orders").text(as.order)
-      $("#unassigned-controls").text(as.control)
+    updateActStats()
 
   { constructor: screenSetup
   , template: tpl
