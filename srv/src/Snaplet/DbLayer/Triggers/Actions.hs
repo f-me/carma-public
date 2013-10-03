@@ -115,9 +115,11 @@ actions
         ,("case", Map.fromList
           [("caseStatus", [\kazeId st -> case st of
             "s0.5" -> do
+              now <- dateNow id
               due <- dateNow (+ (1*60))
               actionId <- new "action" $ Map.fromList
                 [("name", "tellMeMore")
+                ,("ctime", now)                 
                 ,("duetime", due)
                 ,("description", utf8 "Требуется дополнительная обработка кейса")
                 ,("targetGroup", "back")
@@ -286,6 +288,7 @@ serviceActions = Map.fromList
                     _     -> ("", "")
           actionId <- new "action" $ Map.fromList
             [("name", "orderService")
+            ,("ctime", now)
             ,("duetime", due)
             ,("description", utf8 "Заказать услугу")
             ,("targetGroup", "back")
@@ -299,10 +302,12 @@ serviceActions = Map.fromList
           upd kazeId "actions" $ addToList actionId
           sendSMS actionId "smsTpl:13"
       "recallClient" -> do
+          now <- dateNow id        
           due <- dateNow (+ (15*60))
           kazeId <- get objId "parentId"
           actionId <- new "action" $ Map.fromList
             [("name", "tellMeMore")
+            ,("ctime", now)
             ,("duetime", due)
             ,("description", utf8  "Заказ услуги (требуется дополнительная информация)")
             ,("targetGroup", "back")
@@ -321,6 +326,7 @@ serviceActions = Map.fromList
           now <- dateNow id
           act1 <- new "action" $ Map.fromList
             [("name", "tellClient")
+            ,("ctime", now)
             ,("duetime", due)
             ,("assignTime", now)
             ,("description", utf8 "Сообщить клиенту о договорённости")
@@ -333,9 +339,11 @@ serviceActions = Map.fromList
           tryToPassChainToControl u act1
 
           upd kazeId "actions" $ addToList act1
+          now <- dateNow id          
           due <- dateNow (+ (14*24*60*60))
           act2 <- new "action" $ Map.fromList
             [("name", "addBill")
+            ,("ctime", now)
             ,("duetime", due)
             ,("description", utf8 "Прикрепить счёт")
             ,("targetGroup", "parguy")
@@ -347,10 +355,12 @@ serviceActions = Map.fromList
             ]
           upd kazeId "actions" $ addToList act2
       "mechanicConf" -> do
+          now <- dateNow id
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
           actionId <- new "action" $ Map.fromList
             [("name", "mechanicConf")
+            ,("ctime", now)
             ,("duetime", due)
             ,("description", utf8 "Требуется конференция с механиком")
             ,("targetGroup", "bo_control")
@@ -362,10 +372,12 @@ serviceActions = Map.fromList
           upd kazeId "actions" $ addToList actionId
           sendSMS actionId "smsTpl:13"
       "dealerConf" -> do
+          now <- dateNow id        
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
           actionId <- new "action" $ Map.fromList
             [("name", "dealerConf")
+            ,("ctime", now)
             ,("duetime", due)
             ,("description", utf8 "Требуется конференция с дилером")
             ,("targetGroup", "bo_control")
@@ -377,10 +389,12 @@ serviceActions = Map.fromList
           upd kazeId "actions" $ addToList actionId
           sendSMS actionId "smsTpl:13"
       "pleaseCheck" -> do
+          now <- dateNow id        
           due <- dateNow (+ (5*60))
           kazeId <- get objId "parentId"
           actionId <- new "action" $ Map.fromList
             [("name", "checkStatus")
+            ,("ctime", now)
             ,("duetime", due)
             ,("description",
                 utf8 "Клиент попросил уточнить, когда начётся оказание услуги")
@@ -392,10 +406,12 @@ serviceActions = Map.fromList
             ]
           upd kazeId "actions" $ addToList actionId
       "dealerConformation" -> do
+          now <- dateNow id
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
           actionId <- new "action" $ Map.fromList
             [("name", "dealerApproval")
+            ,("ctime", now)
             ,("duetime", due)
             ,("description", utf8 "Требуется согласование с дилером")
             ,("targetGroup", "bo_control")
@@ -406,10 +422,12 @@ serviceActions = Map.fromList
             ]
           upd kazeId "actions" $ addToList actionId
       "makerConformation" -> do
+          now <- dateNow id        
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
           actionId <- new "action" $ Map.fromList
             [("name", "carmakerApproval")
+            ,("ctime", now)
             ,("duetime", due)
             ,("description", utf8 "Требуется согласование с заказчиком программы")
             ,("targetGroup", "bo_control")
@@ -420,10 +438,12 @@ serviceActions = Map.fromList
             ]
           upd kazeId "actions" $ addToList actionId
       "clientCanceled" -> do
+          now <- dateNow id
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
           actionId <- new "action" $ Map.fromList
             [("name", "cancelService")
+            ,("ctime", now)
             ,("duetime", due)
             ,("description", utf8 "Клиент отказался от услуги (сообщил об этом оператору Front Office)")
             ,("targetGroup", "bo_control")
@@ -449,6 +469,7 @@ serviceActions = Map.fromList
             kazeId <- get objId "parentId"
             actionId <- new "action" $ Map.fromList
               [("name", "complaintResolution")
+              ,("ctime", now)
               ,("duetime", due)
               ,("description", utf8 "Клиент предъявил претензию")
               ,("targetGroup", "supervisor")
@@ -1006,6 +1027,7 @@ replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
   now <- dateNow id
   actionId <- new "action" $ Map.fromList
     [("name", actionName)
+    ,("ctime", now)     
     ,("description", utf8 actionDesc)
     ,("targetGroup", targetGroup)
     ,("assignedTo", assignee)
