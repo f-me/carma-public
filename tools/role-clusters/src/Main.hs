@@ -1,9 +1,8 @@
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TypeFamilies #-}
 
 import Control.Monad
 import Data.Maybe
@@ -46,67 +45,15 @@ addMask (Q q1, Q q2) (Q q1', Q q2') = (Q (q1 + q1'), Q (q2 + q2'))
 
 
 -- | Datatypes storing a map of keyed r/w access masks.
-class (Ord (Key e)) => MaskContainer e where
+class (Ord e, Ord (Key e)) => MaskContainer e where
     type Key e
     getMasks :: e -> Map.Map (Key e) Mask
     setMasks :: Map.Map (Key e) Mask -> e -> e
 
 
--- | A set of (possibly quantum) permissions for a role
-data RolePerms = RolePerms { role  :: String
-                           , rPerms :: Map.Map (String, String) Mask
-                           }
-                 deriving (Eq, Ord)
-
-
-instance Element RolePerms where
-    type Distance RolePerms = Int
-
-
-instance Show RolePerms where
-    show (RolePerms r perms) =
-        concat [r, " [", show $ Map.size perms, "]"]
-
-
--- | Sort raw permissions into an associative list
-toPermMap :: (Ord k, Ord s, Ord v) =>
-             (Permission -> k)
-          -> (Permission -> (s, v))
-          -> [Permission]
-          -> [(k, Map.Map s v)]
-toPermMap keyFun valFun perms =
-    Map.toList $
-    List.foldl' addPerm Map.empty perms
-    where
-      addPerm set p =
-          Map.insertWith Map.union (keyFun p)
-                 ((\(s, v) -> Map.singleton s v) $ valFun p) set
-
-
--- | Sort all raw permissions by roles.
-toRolePerms :: [Permission] -> [RolePerms]
-toRolePerms =
-    map (\(k, v) -> RolePerms k v) .
-    toPermMap (\(Permission (role, _, _, _, _)) -> role)
-              (\(Permission (_, model, field, cr, cw)) ->
-               ((model, field), (fromRaw cr, fromRaw cw)))
-
-
--- | A set of (possibly quantum) roles for a field
-data FieldPerms = FieldPerms { model :: String
-                             , field :: String
-                             , fPerms :: Map.Map String Mask
-                             }
-                 deriving (Eq, Ord)
-
-
-instance MaskContainer FieldPerms where
-    type Key FieldPerms = String
-    getMasks     = fPerms
-    setMasks e f = f{fPerms = e}
-
-
--- | Add access masks. Remember to rescale.
+-- | Add two access masks.
+--
+-- Remember to rescale afterwards.
 add :: MaskContainer e => e -> e -> e
 add f1 f2 = setMasks (Map.unionWith addMask (getMasks f1) (getMasks f2)) f1
 
@@ -131,20 +78,81 @@ totalize fullSet f =
       fp = getMasks f
 
 
-instance Element FieldPerms where
-    type Distance FieldPerms = Double
-    distance f1 f2 =
+-- | A set of (possibly quantum) field permissions for a role
+data RolePerms = RolePerms { role  :: String
+                           , rPerms :: Map.Map (String, String) Mask
+                           }
+                 deriving (Eq, Ord)
+
+
+instance MaskContainer RolePerms where
+    type Key RolePerms = (String, String)
+    getMasks     = rPerms
+    setMasks e f = f{rPerms = e}
+
+
+instance Show RolePerms where
+    show (RolePerms r perms) =
+        concat [r, " [", show $ Map.size perms, "]"]
+
+
+-- | Sort raw permissions into an associative list
+toPermMap :: (Ord k, Ord s, Ord v) =>
+             (Permission -> k)
+          -> (Permission -> (s, v))
+          -> [Permission]
+          -> [(k, Map.Map s v)]
+toPermMap keyFun valFun perms =
+    Map.toList $
+    List.foldl' addPerm Map.empty perms
+    where
+      addPerm set p =
+          Map.insertWith Map.union (keyFun p)
+                 ((\(s, v) -> Map.singleton s v) $ valFun p) set
+
+
+-- | Sort all raw permissions by roles.
+toRolePerms :: [Permission] -> [PE RolePerms]
+toRolePerms =
+    map (\(k, v) -> PE $ RolePerms k v) .
+    toPermMap (\(Permission (role, _, _, _, _)) -> role)
+              (\(Permission (_, model, field, cr, cw)) ->
+               ((model, field), (fromRaw cr, fromRaw cw)))
+
+
+-- | A set of (possibly quantum) roles for a field
+data FieldPerms = FieldPerms { model :: String
+                             , field :: String
+                             , fPerms :: Map.Map String Mask
+                             }
+                 deriving (Eq, Ord)
+
+
+instance MaskContainer FieldPerms where
+    type Key FieldPerms = String
+    getMasks     = fPerms
+    setMasks e f = f{fPerms = e}
+
+
+-- | A wrapper for clusterizable mask containers.
+newtype PE e = PE e deriving (Eq, Ord, Show)
+
+
+instance MaskContainer e => Element (PE e) where
+    type Distance (PE e) = Double
+    distance (PE f1) (PE f2) =
         sqrt $
         List.foldl' (\s (Q e1, Q e2) -> s + e1 ** 2 + e2 ** 2) 0
-        (Map.elems $ fPerms (add f1 (scale (-1) f2)))
+        (Map.elems $ getMasks (add f1 (scale (-1) f2)))
     average s =
         let
-            l = Set.toList s
+            l = map (\(PE e) -> e) $ Set.toList s
             n = Set.size s
             -- Add all available roles to FieldPerms
             totaled = map (totalize $ fullKeySet l) l
         in
-          scale (1 / fromIntegral n) $ List.foldl1' add l
+          PE $ scale (1 / fromIntegral n) $ List.foldl1' add l
+
 
 instance Show FieldPerms where
     show (FieldPerms m f perms) =
@@ -152,9 +160,9 @@ instance Show FieldPerms where
 
 
 -- | Sort all raw permissions by roles.
-toFieldPerms :: [Permission] -> [FieldPerms]
+toFieldPerms :: [Permission] -> [PE FieldPerms]
 toFieldPerms =
-    map (\((m, f), v) -> FieldPerms m f v) .
+    map (\((m, f), v) -> PE $ FieldPerms m f v) .
     toPermMap (\(Permission (_, model, field, _, _)) -> (model, field))
               (\(Permission (role, _, _, cr, cw)) ->
                (role, (fromRaw cr, fromRaw cw)))
@@ -162,13 +170,18 @@ toFieldPerms =
 
 main = do
   a <- getArgs
-  let pgInfo =
+  let (pgInfo, mode, threshold) =
           case a of
-            (host:port:user:pw:db:_) ->
-                ConnectInfo host (read port) user pw db
-            _ -> error "Usage: role-clusters HOST PORT USER PW DB"
+            (host:port:user:pw:db:mode:threshold:_) ->
+                (ConnectInfo host (read port) user pw db,
+                 mode,
+                 read threshold)
+            _ -> error "Usage: role-clusters HOST PORT USER PW DB ('r'|'f') THRESHOLD"
   conn <- connect pgInfo
   perms <- query_ conn
            [sql|SELECT role, model, field, r, w FROM "FieldPermission";|]
-  print (clusterize (toFieldPerms perms) 3.0)
+  case mode of
+    "r" -> print $ clusterize (toRolePerms perms) threshold
+    "f" -> print $ clusterize (toFieldPerms perms) threshold
+    _   -> print "Unknown mode"
   return ()
