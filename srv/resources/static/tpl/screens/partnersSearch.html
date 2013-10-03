@@ -117,7 +117,7 @@
                 <li data-bind="visible: id() == $parent.selectedPartner()">
                   <button type="button"
                           class="btn btn-danger"
-                          data-bind="click: $parent.showPartnerCancelDialog">
+                          data-bind="click: $parent.showPartnerCancelDialog, clickBubble: false">
                     <i class="icon-list-alt icon-white"></i>
                     Отказ
                   </button>
