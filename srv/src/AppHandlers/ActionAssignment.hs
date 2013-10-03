@@ -54,7 +54,7 @@ assignQ pri usr = fromString
   ++ "        ELSE act.duetime"
   ++ "        END) ASC"
   ++ "    LIMIT 1"
-  ++ "    FOR UPDATE)"
+  ++ "    FOR UPDATE OF act)"
   ++ "  RETURNING id::text;"
   where
     uLogin = T.unpack $ userLogin usr
