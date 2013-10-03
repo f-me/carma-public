@@ -288,7 +288,7 @@ actStatsOrderQ :: Query
 actStatsOrderQ = [sql|
   SELECT count(*)::text
   FROM actiontbl
-  WHERE assignedTo IS NULL OR assignedTo = '' AND closed = 'f'
+  WHERE (assignedTo IS NULL OR assignedTo = '') AND closed = 'f'
   AND name = ANY('{ "orderService", "orderServiceAnalyst"
                   , "tellMeMore", "callMeMaybe"}');
   |]
@@ -297,7 +297,7 @@ actStatsControlQ :: Query
 actStatsControlQ = [sql|
   SELECT count(*)::text
   FROM actiontbl
-  WHERE assignedTo IS NULL OR assignedTo = '' AND closed = 'f'
+  WHERE (assignedTo IS NULL OR assignedTo = '') AND closed = 'f'
   AND name = ANY('{ "tellClient", "checkStatus"
                   , "tellDelayClient", "checkEndOfService"
                   , "getInfoDealerVW"}');
