@@ -178,9 +178,17 @@ printAll :: (Show e, Show (Key e), MaskContainer e) => [PE e] -> IO ()
 printAll l =
     let
         ls = map (\(PE e) -> e) l
-        totaled = map (\f -> setMasks (Map.fromList (totalize (fullKeySet ls) f)) f) ls
-    in
-      mapM_ (\t -> putStrLn $ show t ++ " [" ++ (show $ getMasks t) ++ "]") totaled
+        keys = fullKeySet ls
+        totaled = map (\f -> setMasks (Map.fromList (totalize keys f)) f) ls
+        prettify :: Mask -> String
+        prettify (Q 0.0, Q 0.0) = "N"
+        prettify (Q 1.0, Q 0.0) = "R"
+        prettify (Q 1.0, Q 1.0) = "RW"
+        prettify x = "x"
+    in do
+      print keys
+      mapM_ (\t -> putStrLn $
+             show t ++ (show $ map prettify $ Map.elems $ getMasks t)) totaled
 
 
 main = do
