@@ -184,9 +184,9 @@ printAll l =
         prettify (Q 0.0, Q 0.0) = "N"
         prettify (Q 1.0, Q 0.0) = "R"
         prettify (Q 1.0, Q 1.0) = "RW"
-        prettify x = "x"
+        prettify x = show x
     in do
-      print keys
+      print $ Map.keys $ getMasks $ head totaled
       mapM_ (\t -> putStrLn $
              show t ++ (show $ map prettify $ Map.elems $ getMasks t)) totaled
 
