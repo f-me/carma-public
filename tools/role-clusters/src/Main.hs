@@ -192,7 +192,7 @@ main = do
     ("min", "field") -> print $ clusterize (toFieldPerms perms) $ read threshold
     ("km", "role")   -> print =<< clusterizeMeans
                         (toRolePerms perms) (read threshold) 0.01 100
-    ("km", "field")  -> print =<< clusterizeMeans 
+    ("km", "field")  -> print =<< clusterizeMeans
                         (toFieldPerms perms) (read threshold) 0.01 100
     (_, _)           -> print "Unknown mode"
   return ()
