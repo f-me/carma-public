@@ -18,5 +18,5 @@ data Wazzup = Wazzup
 
 instance Model Wazzup where
   type TableName Wazzup = "Wazzup"
-  modelFields = getModelFields Wazzup
+  modelInfo = mkModelInfo Wazzup
   modelView _ = defaultView

@@ -8,9 +8,10 @@ module Data.Model.Sql
   ,eq
   ) where
 
-import Text.Printf
+import Text.Printf (printf)
 import Data.String (fromString)
 import Data.List (intersperse)
+import Data.Text (Text)
 import qualified Data.Text as T
 
 import Database.PostgreSQL.Simple
@@ -43,7 +44,7 @@ selectJSON
 selectJSON q c = select q c >>= return
   . map
     ( Aeson.object
-    . zip (map T.pack $ queryProjection q)
+    . zip (queryProjection q)
     . toValueList
     )
 
@@ -51,7 +52,7 @@ mkSelect :: SqlQ q => q -> (Query, QArg q)
 mkSelect q =
   (fromString
     $ printf "SELECT %s FROM %s"
-      (concat $ intersperse ", " $ queryProjection q)
+      (T.unpack $ T.intercalate ", " $ queryProjection q)
       (show $ queryFrom q)
     ++ case queryPredicate q of
       [] -> ""
@@ -64,9 +65,9 @@ class (ToRow (QArg q), Model (QMod q)) => SqlQ q where
   type QRes q
   type QArg q
   type QMod q
-  queryProjection :: q -> [String]
+  queryProjection :: q -> [Text]
   queryPredicate  :: q -> [String]
-  queryFrom       :: q -> String
+  queryFrom       :: q -> Text
   queryArgs       :: q -> QArg q
 
 
@@ -78,7 +79,7 @@ instance (Model m, SingI nm, FromField t)
     type QMod (m -> Field t (FOpt nm desc)) = m
     queryProjection f = [fieldName f]
     queryPredicate  f = []
-    queryFrom       _ = tableName (undefined :: m)
+    queryFrom       _ = tableName (modelInfo :: ModelInfo m)
     queryArgs       _ = ()
 
 instance (Model m, SingI nm, FromField t, SqlQ q, QMod q ~ m)
@@ -89,7 +90,7 @@ instance (Model m, SingI nm, FromField t, SqlQ q, QMod q ~ m)
     type QMod ((m -> Field t (FOpt nm desc)) :. q) = m
     queryProjection (f :. q) = fieldName f : queryProjection q
     queryPredicate  (f :. q) = queryPredicate q
-    queryFrom       _        = tableName (undefined :: m)
+    queryFrom       _        = tableName (modelInfo :: ModelInfo m)
     queryArgs       (f :. q) = queryArgs q
 
 -- NB!
@@ -109,7 +110,7 @@ instance (Model m, ToField t) => SqlQ (SqlP m t) where
   type QMod (SqlP m t) = m
   queryProjection _ = []
   queryPredicate  p = [printf "%s %s ?" (sqlP_fieldName p) (sqlP_op p)]
-  queryFrom       _ = tableName (undefined :: m)
+  queryFrom       _ = tableName (modelInfo :: ModelInfo m)
   queryArgs       p = Only $ sqlP_argValue p
 
 instance (Model m, ToField t, SqlQ q, QMod q ~ m)
@@ -122,7 +123,7 @@ instance (Model m, ToField t, SqlQ q, QMod q ~ m)
     queryPredicate   (p :. q)
       = printf "%s %s ?" (sqlP_fieldName p) (sqlP_op p)
       : queryPredicate q
-    queryFrom        _        = tableName (undefined :: m)
+    queryFrom        _        = tableName (modelInfo :: ModelInfo m)
     queryArgs        (p :. q) = Only (sqlP_argValue p) :. queryArgs q
 
 
@@ -130,4 +131,4 @@ eq
   :: (Model m, SingI nm)
   => (m -> Field t (FOpt nm desc)) -> t
   -> SqlP m t
-eq f v = SqlP (fieldName f) v "="
+eq f v = SqlP (T.unpack $ fieldName f) v "="

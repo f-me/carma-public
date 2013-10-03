@@ -26,7 +26,7 @@ data Program = Program
 
 instance Model Program where
   type TableName Program = "programtbl"
-  modelFields = getModelFields Program
+  modelInfo = mkModelInfo Program
   modelView _ = defaultView
 
 -- known programs

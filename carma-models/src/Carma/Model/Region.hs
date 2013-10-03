@@ -18,5 +18,5 @@ data Region = Region
 
 instance Model Region where
   type TableName Region = "Region"
-  modelFields = getModelFields Region
+  modelInfo = mkModelInfo Region
   modelView _ = defaultView

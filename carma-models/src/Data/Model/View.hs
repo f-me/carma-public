@@ -14,16 +14,19 @@ import Data.Typeable
 
 import GHC.TypeLits
 
-import Data.Model
+import Data.Model as Model
 import Data.Model.Sql
 import Data.Model.View.Types
 
 
 defaultView :: forall m . Model m => ModelView m
 defaultView = ModelView
-  { modelName = T.pack $ tableName (undefined :: m)
+  { modelName = Model.modelName (modelInfo :: ModelInfo m)
   , title = ""
-  , fields = [defaultFieldView f | f <- modelFields :: [FieldDesc m]]
+  , fields
+    = [defaultFieldView f
+      | f <- modelFields (modelInfo :: ModelInfo m)
+      , fd_name f /= "id"]
   }
 
 
@@ -71,16 +74,14 @@ textarea
   :: SingI name => (model -> Field Text (FOpt name desc))
   -> (Text, FieldView m -> FieldView m)
 textarea fld
-  = (T.pack $ fieldName fld
-    ,\v -> v {fieldType = "textarea"}
-    )
+  = (fieldName fld, \v -> v {fieldType = "textarea"})
 
 
 readonly
   :: SingI name => (model -> Field typ (FOpt name desc))
   -> (Text, FieldView m -> FieldView m)
 readonly fld
-  = (T.pack $ fieldName fld
+  = (fieldName fld
     ,\v -> v
       {meta = Map.insert "readonly" (Aeson.Bool True) $ meta v
       ,canWrite = False

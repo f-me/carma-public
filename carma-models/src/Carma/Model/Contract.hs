@@ -54,5 +54,5 @@ data Contract = Contract
 
 instance Model Contract where
   type TableName Contract = "Contract"
-  modelFields = getModelFields Contract
+  modelInfo = mkModelInfo Contract
   modelView _ = defaultView

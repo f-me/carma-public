@@ -16,5 +16,5 @@ data CarMake = CarMake
 
 instance Model CarMake where
   type TableName CarMake = "CarMake"
-  modelFields = getModelFields CarMake
+  modelInfo = mkModelInfo CarMake
   modelView _ = defaultView

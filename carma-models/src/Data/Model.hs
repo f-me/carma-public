@@ -4,15 +4,11 @@ module Data.Model
   ( Ident(..)
   , ident, identDesc
   , Model(..)
+  , ModelInfo(..), mkModelInfo
   , Field(..), F
-  , modelFieldsMap
   , FOpt
   , FieldDesc(..)
   , fieldName
-  , tableName
-  , getModelFields
-  -- from Data.Model.View.Types
-  , ModelView(..)
   ) where
 
 
@@ -20,10 +16,10 @@ import Control.Applicative
 import Data.Maybe (fromJust)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Map (Map)
-import qualified Data.Map as Map
+import Data.HashMap.Strict (HashMap)
+import qualified Data.HashMap.Strict as HashMap
 import Data.Aeson.Types as Aeson
-import Database.PostgreSQL.Simple.FromRow (RowParser,field)
+import Database.PostgreSQL.Simple.FromRow   (RowParser,field)
 import Database.PostgreSQL.Simple.FromField (FromField(..))
 import Database.PostgreSQL.Simple.ToField   (ToField(..), Action)
 import Data.Dynamic
@@ -32,16 +28,28 @@ import GHC.TypeLits
 import Data.Model.View.Types
 
 
+data ModelInfo m = ModelInfo
+  { modelName      :: Text
+  , tableName      :: Text
+  , modelFields    :: [FieldDesc m]
+  , modelFieldsMap :: HashMap Text (FieldDesc m)
+  }
+
+mkModelInfo :: forall m ctr . (Model m, GetModelFields m ctr) => ctr -> ModelInfo m
+mkModelInfo ctr = ModelInfo
+  { modelName      = T.pack $ show $ typeOf (undefined :: m)
+  , tableName      = T.pack $ fromSing (sing :: Sing (TableName m))
+  , modelFields    = mfs
+  , modelFieldsMap = HashMap.fromList [(fd_name f, f) | f <- mfs]
+  }
+  where
+    mfs = identDesc : getModelFields ctr
+
+
 class (SingI (TableName m), Typeable m) => Model m where
   type TableName m :: Symbol
-  modelFields :: [FieldDesc m]
+  modelInfo :: ModelInfo m
   modelView :: Text -> ModelView m
-
-tableName :: forall model . Model model => model -> String
-tableName _ = fromSing (sing :: Sing (TableName model))
-
-modelFieldsMap :: Model m => Map Text (FieldDesc m)
-modelFieldsMap = Map.fromList [(fd_name f, f) | f <- modelFields]
 
 
 data Ident model = Ident {identVal :: Int}
@@ -70,9 +78,9 @@ data Field typ opt = Field
 type F t n d = Field t (FOpt n d)
 
 
-fieldName :: SingI name => (model -> Field typ (FOpt name desc)) -> String
+fieldName :: SingI name => (model -> Field typ (FOpt name desc)) -> Text
 fieldName (_ :: model -> Field typ (FOpt name desc))
-  = fromSing (sing :: Sing name)
+  = T.pack $ fromSing (sing :: Sing name)
 
 
 ident :: m -> F (Ident m) "id" ""

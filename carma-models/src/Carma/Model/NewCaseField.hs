@@ -31,5 +31,5 @@ data NewCaseField = NewCaseField
 
 instance Model NewCaseField where
   type TableName NewCaseField = "NewCaseField"
-  modelFields = getModelFields NewCaseField
+  modelInfo = mkModelInfo NewCaseField
   modelView _ = modifyView defaultView [textarea info, readonly field]

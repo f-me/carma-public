@@ -32,7 +32,7 @@ get
   => Patch m -> (m -> Field t (FOpt name desc)) -> Maybe t
 get (Patch m) f
   = fromJust . fromDynamic
-  <$> HashMap.lookup (T.pack $ fieldName f) m
+  <$> HashMap.lookup (fieldName f) m
 
 
 instance Model m => FromJSON (Patch m) where
@@ -40,8 +40,7 @@ instance Model m => FromJSON (Patch m) where
     = Patch . HashMap.fromList
     <$> mapM parseField (HashMap.toList o)
     where
-      fields :: HashMap Text (FieldDesc m)
-      fields = HashMap.fromList [(fd_name f, f) | f <- modelFields]
+      fields = modelFieldsMap (modelInfo :: ModelInfo m)
       parseField (name, val) = case HashMap.lookup name fields of
         Nothing -> fail $ "Unexpected field: " ++ show name
         Just p  -> (name,) <$> fd_parseJSON p val
@@ -51,22 +50,20 @@ instance Model m => FromJSON (Patch m) where
 instance Model m => ToJSON (Patch m) where
   toJSON (Patch m) = object [(k, toJS k v) | (k,v) <- HashMap.toList m]
     where
-      fields :: HashMap Text (FieldDesc m)
-      fields = HashMap.fromList [(fd_name f, f) | f <- identDesc : modelFields]
+      fields = modelFieldsMap (modelInfo :: ModelInfo m)
       toJS k = fd_toJSON $ fields HashMap.! k
 
 
 instance Model m => FromRow (Patch m) where
   fromRow = Patch . HashMap.fromList <$> sequence
     [(fd_name f,) <$> fd_fromField f
-    | f <- identDesc : modelFields :: [FieldDesc m]
+    | f <- modelFields (modelInfo :: ModelInfo m)
     ]
 
 instance Model m => ToRow (Patch m) where
   toRow (Patch m) = map fieldToRow $ HashMap.toList m
     where
-      fields :: HashMap Text (FieldDesc m)
-      fields = HashMap.fromList [(fd_name f, f) | f <- modelFields]
+      fields = modelFieldsMap (modelInfo :: ModelInfo m)
       fieldToRow (nm, val) = case HashMap.lookup nm fields of
         Nothing -> error $ "BUG: unexpected field " ++ show nm
         Just f  -> fd_toField f val

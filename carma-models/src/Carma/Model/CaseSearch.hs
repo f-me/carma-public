@@ -36,5 +36,5 @@ data CaseSearch = CaseSearch
 
 instance Model CaseSearch where
   type TableName CaseSearch = "casetbl"
-  modelFields = getModelFields CaseSearch
+  modelInfo = mkModelInfo CaseSearch
   modelView _ = defaultView

@@ -39,5 +39,5 @@ data City = City
 
 instance Model City where
   type TableName City = "City"
-  modelFields = getModelFields City
+  modelInfo = mkModelInfo City
   modelView _ = defaultView

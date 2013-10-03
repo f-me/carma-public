@@ -35,8 +35,8 @@ test = HM.fromList
 
 data Predicate
   = Predicate
-    { tableName :: String
-    , fieldName :: String
+    { tableName :: Text
+    , fieldName :: Text
     , matchType :: MatchType
     , escapeVal
       :: PG.Connection -> PG.Query -> Aeson.Value
@@ -53,7 +53,7 @@ one
     ,SingI nm, SingI desc, Model m)
   => (m -> F t nm desc) -> [Predicate]
 one f = Predicate
-  { tableName = Model.tableName (undefined :: m)
+  { tableName = Model.tableName (modelInfo :: ModelInfo m)
   , fieldName = Model.fieldName f
   , matchType = MatchExact
   , escapeVal = \conn qTpl val ->
@@ -96,13 +96,13 @@ renderPredicate conn pMap vals = do
         $ case matchType of
           MatchExact
             -> printf "%s.%s = ?"
-              (show tableName) fieldName
+              (show tableName) (T.unpack fieldName)
           MatchFuzzy
             -> printf "%s.%s ilike ('%' || ? || '%')"
-              (show tableName) fieldName
+              (show tableName) (T.unpack fieldName)
           MatchArray
             -> printf "%s.%s = ANY(?)"
-              (show tableName) fieldName
+              (show tableName) (T.unpack fieldName)
 
   let renderConjunct (key,val) = case HM.lookup key pMap of
         Nothing -> return $ Left
