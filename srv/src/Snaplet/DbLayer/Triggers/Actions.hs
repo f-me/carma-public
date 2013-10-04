@@ -465,6 +465,7 @@ serviceActions = Map.fromList
     [\objId val ->
         case val of
           "notSatis" -> do
+            now <- dateNow id
             due <- dateNow (+ (1*60))
             kazeId <- get objId "parentId"
             actionId <- new "action" $ Map.fromList
