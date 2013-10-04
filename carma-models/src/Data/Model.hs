@@ -9,6 +9,8 @@ module Data.Model
   , FOpt
   , FieldDesc(..)
   , fieldName
+  -- from Data.Model.View.Types
+  , ModelView(..)
   ) where
 
 
