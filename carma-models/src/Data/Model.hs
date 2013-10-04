@@ -27,7 +27,7 @@ import Database.PostgreSQL.Simple.ToField   (ToField(..), Action)
 import Data.Dynamic
 import GHC.TypeLits
 
-import Data.Model.View.Types
+import Data.Model.View.Types hiding (modelName)
 
 
 data ModelInfo m = ModelInfo
