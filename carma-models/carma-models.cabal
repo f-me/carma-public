@@ -35,6 +35,7 @@ library
     Carma.Model.Region,
     Carma.Model.Wazzup,
     Carma.Model.CaseSearch
+    Carma.Model.Case
 
   -- other-modules:       
   hs-source-dirs:    src
