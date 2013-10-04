@@ -3,7 +3,7 @@ module Carma.Model.City where
 
 
 import Data.Aeson
-import Data.Text
+import Data.Text (Text)
 import Data.Typeable
 import Database.PostgreSQL.Simple.ToField   (ToField(..))
 import Database.PostgreSQL.Simple.FromField (FromField(..))
@@ -30,7 +30,7 @@ instance FromField Coords where
 
 
 data City = City
-  {label    :: F Text         "label"     "Название"
+  {label    :: F Text         "label"    "Название"
   ,value    :: F Text         "value"    "Внутреннее название"
 --  ,coords   :: F Coords       "coords"   "Координаты"
   ,timezone :: F (Maybe Text) "timezone" "Часовой пояс"

@@ -33,8 +33,9 @@ library
     Carma.Model.NewCaseField,
     Carma.Model.Program,
     Carma.Model.Region,
+    Carma.Model.SmsTemplate,
     Carma.Model.Wazzup,
-    Carma.Model.CaseSearch
+    Carma.Model.CaseSearch,
     Carma.Model.Case
 
   -- other-modules:       
