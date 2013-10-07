@@ -1524,7 +1524,6 @@
           <b>Регион:</b>
           <span data-bind="text: region" />
         </p>
-        <br />
         <p data-bind="visible: cityLocal">
           <b>Расчётное значение ожидания эвакуатора в
             г.&nbsp;<span data-bind="text: cityLocal"/>:</b>
@@ -1533,7 +1532,7 @@
         <div class="program">
           <div id="case-comments">
             <legend> Комментарий </legend>
-            <textarea  id="case-comments-i" rows="7"  />
+            <textarea  id="case-comments-i" rows="2"  />
             <button    id="case-comments-b" class="btn">
               Добавить комментарий
             </button>
