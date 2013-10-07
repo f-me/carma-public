@@ -1,7 +1,16 @@
 
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Data.Model.View where
+module Data.Model.View
+  (defaultView
+  ,defaultFieldView
+  ,modifyView
+  ,textarea
+  ,readonly
+  -- from Data.Model.View.Types
+  ,FieldView(..)
+  ,ModelView(..)
+  ) where
 
 import Data.List
 import Data.Maybe (fromJust)

@@ -13,6 +13,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
+import qualified Data.Map as Map
 import Data.Vector (Vector)
 
 import Data.Aeson as Aeson
@@ -23,27 +24,23 @@ import Text.Printf
 import GHC.TypeLits
 
 import Data.Model as Model
-
-{-
-test = HM.fromList
-  [("id",    one ident)
-  ,("phone", fuzzy $ matchAny [one Case.phone1, one Case.phone2])
-  ,("city",  listOf Case.city)
-  ]
--}
+import Data.Model.View
 
 
-data Predicate
+data Predicate m
   = Predicate
     { tableName :: Text
     , fieldName :: Text
+    , fieldDesc :: FieldDesc m
     , matchType :: MatchType
     , escapeVal
       :: PG.Connection -> PG.Query -> Aeson.Value
       -> IO (Either String Text)
     }
 
-data MatchType = MatchExact | MatchFuzzy | MatchArray
+data MatchType
+  = MatchExact | MatchFuzzy | MatchArray
+  deriving Show
 
 
 -- FIXME: check if field type \in {Text, Int, ..}
@@ -51,10 +48,11 @@ one
   :: forall m t nm desc
   . (FromJSON t, ToField t
     ,SingI nm, SingI desc, Model m)
-  => (m -> F t nm desc) -> [Predicate]
+  => (m -> F t nm desc) -> [Predicate m]
 one f = Predicate
   { tableName = Model.tableName (modelInfo :: ModelInfo m)
   , fieldName = Model.fieldName f
+  , fieldDesc = modelFieldsMap modelInfo HM.! Model.fieldName f
   , matchType = MatchExact
   , escapeVal = \conn qTpl val ->
       case fromJSON val :: Aeson.Result t of
@@ -71,22 +69,22 @@ listOf
   :: forall m t nm desc
   . (FromJSON t, ToField t
     ,SingI nm, SingI desc, Model m)
-  => (m -> F t nm desc) -> [Predicate]
+  => (m -> F t nm desc) -> [Predicate m]
 listOf _
   = map (\p -> p {matchType = MatchArray})
   $ one (undefined :: m -> F (Vector t) nm desc)
 
 
-fuzzy :: [Predicate] -> [Predicate]
+fuzzy :: [Predicate m] -> [Predicate m]
 fuzzy = map (\p -> p {matchType = MatchFuzzy})
 
 
-matchAny :: [[Predicate]] -> [Predicate]
+matchAny :: [[Predicate m]] -> [Predicate m]
 matchAny = concat
 
 
 renderPredicate
-  :: PG.Connection -> HashMap Text [Predicate] -> Aeson.Object
+  :: PG.Connection -> HashMap Text [Predicate m] -> Aeson.Object
   -> IO (Either String Text)
 renderPredicate conn pMap vals = do
   let parenthize s = T.concat ["(", s, ")"]
@@ -117,3 +115,21 @@ renderPredicate conn pMap vals = do
   return $ case partitionEithers cjs of
     (errs@(_:_), _) -> Left $ show errs
     ([], res)       -> Right $ T.intercalate " AND " $ map parenthize res
+
+
+searchView :: [(Text, [Predicate m])] -> ModelView m
+searchView flds = ModelView
+  { modelName = "search"
+  , title = "Поиск"
+  , fields
+    = [ v
+        {name = nm
+        ,meta = Map.insert
+          "matchType"
+          (Aeson.String $ T.pack $ show $ matchType p)
+          (meta v)
+        }
+      | (nm,p:_) <- flds
+      , let v = defaultFieldView $ fieldDesc p
+      ]
+  }
