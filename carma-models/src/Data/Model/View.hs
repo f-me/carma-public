@@ -23,10 +23,11 @@ import Data.Typeable
 
 import GHC.TypeLits
 
+import Data.Vector (Vector)
+
 import Data.Model as Model
 import Data.Model.Sql
 import Data.Model.View.Types
-
 
 defaultView :: forall m . Model m => ModelView m
 defaultView = ModelView
@@ -42,7 +43,7 @@ defaultView = ModelView
 defaultFieldView :: FieldDesc m -> FieldView m
 defaultFieldView f = FieldView
   { name      = fd_name f
-  , fieldType = translateFieldType $ fd_type f
+  , fieldType =  (\FieldDesc{fd_realType = t} -> translateFieldType t) f
   , canWrite  = True
   , meta      = Map.fromList
     $  [("label", Aeson.String $ fd_desc f)]
@@ -96,14 +97,3 @@ readonly fld
       ,canWrite = False
       }
     )
-
-translateFieldType tr
-  | show (typeRepTyCon tr) == "Maybe"
-    = translateFieldType (head $ typeRepArgs tr)
-  | otherwise = case show tr of
-    "Int"  -> "int"
-    "Text" -> "text"
-    "Bool" -> "Bool"
-    t | "Vector" `isPrefixOf` t -> "dictionary-set"
-      | "Ident " `isPrefixOf` t -> "dictionary"
-      | otherwise -> error $ "translateFieldType: unkonwn type " ++ t
