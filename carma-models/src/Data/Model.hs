@@ -2,7 +2,7 @@
 
 module Data.Model
   ( Ident(..)
-  , ident, identDesc
+  , ident, identDesc, IdentF
   , Model(..)
   , ModelInfo(..), mkModelInfo
   , Field(..), F
@@ -84,6 +84,8 @@ fieldName :: SingI name => (model -> Field typ (FOpt name desc)) -> Text
 fieldName (_ :: model -> Field typ (FOpt name desc))
   = T.pack $ fromSing (sing :: Sing name)
 
+
+type IdentF m = m -> F (Ident m) "id" ""
 
 ident :: m -> F (Ident m) "id" ""
 ident _ = Field

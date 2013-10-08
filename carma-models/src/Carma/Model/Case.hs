@@ -63,16 +63,16 @@ data Case = Case
     :: F Text "contact_ownerEmail" "Email"
   , program
     :: F (Ident Program) "program" "Программа"
-    --  , car_vin
-    --    :: F Text "car_vin" "VIN"
+  , car_vin
+    :: F Text "car_vin" "VIN"
   , car_make
     :: F (Ident CarMake) "car_make" "Марка"
   , car_model
     :: F (Ident CarModel) "car_model" "Модель"
     --  , car_seller
     --    :: F Text "car_seller" "Дилер, продавший автомобиль"
-    --  , car_plateNum
-    --    :: F Text "car_plateNum" "Госномер"
+  , car_plateNum
+    :: F Text "car_plateNum" "Госномер"
     --  , car_makeYear
     --    :: F Text "car_makeYear" "Год производства автомобиля"
     -- , car_color
@@ -115,8 +115,8 @@ data Case = Case
     --    :: F Text "car_modelCode" "Код модели автомобиля"
     --  , car_faultCode
     --    :: F Text "car_faultCode" "Код неиправности автомобиля"
-    --  , cardNumber_cardNumber
-    --    :: F Text "cardNumber_cardNumber" "Номер карты участника"
+  , cardNumber_cardNumber
+    :: F Text "cardNumber_cardNumber" "Номер карты участника"
   , cardNumber_validFrom
     :: F Day "cardNumber_validFrom" "Дата регистрации в программе"
   , cardNumber_validUntil

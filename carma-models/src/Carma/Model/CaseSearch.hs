@@ -1,40 +1,46 @@
-module Carma.Model.CaseSearch where
+module Carma.Model.CaseSearch
+  (caseSearchPredicate
+  ,caseSearchView
+  ) where
 
-import Data.Typeable
 import Data.Text (Text)
-import Data.Vector (Vector)
-import Data.HashMap.Strict (fromList)
-
-import Data.Time.Calendar (Day)
+import Data.Aeson as Aeson
+import qualified Data.HashMap.Strict as HM
+import Database.PostgreSQL.Simple as PG
 
 import Data.Model
 import Data.Model.View
+import Data.Model.Search
 
-import Carma.Model.CarMake (CarMake)
-import Carma.Model.City    (City)
-import Carma.Model.Program (Program)
-import Carma.Model.Wazzup  (Wazzup)
-import Carma.Model.Types
+import Carma.Model.Case as Case
 
 
-data CaseSearch = CaseSearch
-  { caseId     :: F Int  "id" "Кейс"
-  , vin        :: F Text "car_vin" "VIN"
-  , cardNumber :: F Text "cardNumber" "Карта участника"
-  , plateNum   :: F Text "car_platenum" "Госномер"
-  , phone      :: F Text "phone" "Телефон"
-  , program    :: F (Vector (Dict Program)) "program" "Программа"
-  , contact    :: F Text "contact" "Контакт имя"
-  , owner      :: F Text "contact_ownerName" "Владалец"
-  , address    :: F Text "caseAddress_address" "Адрес места поломки"
-  , callDate   :: F (Interval Day) "callDate" "Дата создания кейса"
-  , city       :: F (Vector (Dict City))    "city"     "Город"
-  , carMake    :: F (Vector (Dict CarMake)) "car_make" "Марка"
-  , callTaker  :: F Text "callTaker" "Сотрудник принявший звонок"
-  , comment    :: F (Vector (Dict Wazzup)) "comment" "Что случилось"
-  } deriving (Typeable)
+caseSearchParams :: [(Text, [Predicate Case])]
+caseSearchParams
+  = [("caseId",     one (ident :: IdentF Case))
+    ,("vin",        fuzzy $ one Case.car_vin)
+    ,("cardNumber", fuzzy $ one Case.cardNumber_cardNumber)
+    ,("plateNum",   fuzzy $ one Case.car_plateNum)
+    ,("phone",      fuzzy $ matchAny
+      [one Case.contact_phone1, one Case.contact_phone2
+      ,one Case.contact_phone3, one Case.contact_phone4
+      ,one Case.contact_ownerPhone1, one Case.contact_ownerPhone2
+      ,one Case.contact_ownerPhone3, one Case.contact_ownerPhone4
+      ])
+    ,("program",    listOf Case.program)
+    ,("city",       listOf Case.city)
+    ,("carMake",    listOf Case.car_make)
+    ]
 
-instance Model CaseSearch where
-  type TableName CaseSearch = "casetbl"
-  modelInfo = mkModelInfo CaseSearch
-  modelView _ = defaultView
+
+caseSearchPredicate
+  :: PG.Connection -> Aeson.Value -> IO (Either String Text)
+caseSearchPredicate c v = case v of
+  Aeson.Object o -> renderPredicate c params o
+  _ -> return $ Left $ "Object expected but found: " ++ show v
+  where
+    params = HM.fromList caseSearchParams
+
+
+caseSearchView :: ModelView Case
+caseSearchView = searchView caseSearchParams
