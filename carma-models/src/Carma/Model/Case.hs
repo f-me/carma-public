@@ -35,6 +35,7 @@ caseSearchParams
     ,("program",    listOf Case.program)
     ,("city",       listOf Case.city)
     ,("carMake",    listOf Case.car_make)
+    ,("callDate",   interval Case.callDate)
     ]
 
 caseSearchPredicate

@@ -17,7 +17,7 @@ import Carma.Model.City     (City)
 
 data Case = Case
   { callDate
-    :: F UTCTime "callDate" "Дата звонка"
+    :: F Day "callDate" "Дата звонка" -- FIXME: it's UTCTime actually
   , vwcreatedate
     :: F UTCTime "vwcreatedate" "Дата звонка"
   , callTaker

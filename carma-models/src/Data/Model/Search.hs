@@ -16,6 +16,8 @@ import qualified Data.HashMap.Strict as HM
 import qualified Data.Map as Map
 import Data.Vector (Vector)
 
+import Data.Time.Calendar (Day)
+
 import Data.Aeson as Aeson
 import Database.PostgreSQL.Simple as PG
 import Database.PostgreSQL.Simple.ToField (ToField)
@@ -25,7 +27,7 @@ import GHC.TypeLits
 
 import Data.Model as Model
 import Data.Model.View
-
+import Carma.Model.Types
 
 data Predicate m
   = Predicate
@@ -39,7 +41,7 @@ data Predicate m
     }
 
 data MatchType
-  = MatchExact | MatchFuzzy | MatchArray
+  = MatchExact | MatchFuzzy | MatchArray | MatchInterval
   deriving Show
 
 
@@ -82,6 +84,13 @@ fuzzy = map (\p -> p {matchType = MatchFuzzy})
 matchAny :: [[Predicate m]] -> [Predicate m]
 matchAny = concat
 
+interval
+ :: forall m nm desc
+ . (SingI nm, SingI desc, Model m)
+ => (m -> F Day nm desc) -> [Predicate m]
+interval _
+ = map (\p -> p {matchType = MatchInterval})
+ $ one (undefined :: m -> F (Interval Day) nm desc)
 
 renderPredicate
   :: PG.Connection -> HashMap Text [Predicate m] -> Aeson.Object
@@ -101,6 +110,9 @@ renderPredicate conn pMap vals = do
           MatchArray
             -> printf "%s.%s = ANY(?)"
               (show tableName) (T.unpack fieldName)
+          MatchInterval
+            -> printf "%s.%s <@ ?"
+               (show tableName) (T.unpack fieldName)
 
   let renderConjunct (key,val) = case HM.lookup key pMap of
         Nothing -> return $ Left
