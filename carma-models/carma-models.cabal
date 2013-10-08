@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                carma-models
-version:             0.2.3.0
+version:             0.2.3.1
 -- synopsis:            
 -- description:         
 license:             MIT
@@ -35,8 +35,8 @@ library
     Carma.Model.Region,
     Carma.Model.SmsTemplate,
     Carma.Model.Wazzup,
-    Carma.Model.CaseSearch,
-    Carma.Model.Case
+    Carma.Model.Case,
+    Carma.Model.Case.Type
 
   -- other-modules:       
   hs-source-dirs:    src
@@ -61,3 +61,5 @@ library
     OverloadedStrings, TupleSections,
     NamedFieldPuns, RecordWildCards,
     LambdaCase
+
+  ghc-options: -Wall
