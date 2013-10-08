@@ -35,32 +35,32 @@ data Case = Case
     --   :: F (Ident Diagnosis3) "diagnosis3" "Описание причины неисправности"
     -- , diagnosis4
     --   :: F (Ident Diagnosis4) "diagnosis4" "Рекомендация"
-  , carContact_name
-    :: F Text "carContact_name" "Звонящий"
-  , carContact_phone1
-    :: F Text "carContact_phone1" "Контактные телефоны"
-  , carContact_phone2
-    :: F Text "carContact_phone2" ""
-  , carContact_phone3
-    :: F Text "carContact_phone3" ""
-  , carContact_phone4
-    :: F Text "carContact_phone4" ""
-  , carContact_email
-    :: F Text "carContact_email" "Email"
-  , carContact_contactOwner
-    :: F Bool "carContact_contactOwner" "Звонящий владелец?"
-  , carContact_ownerName
-    :: F Text "carContact_ownerName" "Владелец"
-  , carContact_ownerPhone1
-    :: F Text "carContact_ownerPhone1" "Контактные телефоны"
-  , carContact_ownerPhone2
-    :: F Text "carContact_ownerPhone2" ""
-  , carContact_ownerPhone3
-    :: F Text "carContact_ownerPhone3" ""
-  , carContact_ownerPhone4
-    :: F Text "carContact_ownerPhone4" ""
-  , carContact_ownerEmail
-    :: F Text "carContact_ownerEmail" "Email"
+  , contact_name
+    :: F Text "contact_name" "Звонящий"
+  , contact_phone1
+    :: F Text "contact_phone1" "Контактные телефоны"
+  , contact_phone2
+    :: F Text "contact_phone2" ""
+  , contact_phone3
+    :: F Text "contact_phone3" ""
+  , contact_phone4
+    :: F Text "contact_phone4" ""
+  , contact_email
+    :: F Text "contact_email" "Email"
+  , contact_contactOwner
+    :: F Bool "contact_contactOwner" "Звонящий владелец?"
+  , contact_ownerName
+    :: F Text "contact_ownerName" "Владелец"
+  , contact_ownerPhone1
+    :: F Text "contact_ownerPhone1" "Контактные телефоны"
+  , contact_ownerPhone2
+    :: F Text "contact_ownerPhone2" ""
+  , contact_ownerPhone3
+    :: F Text "contact_ownerPhone3" ""
+  , contact_ownerPhone4
+    :: F Text "contact_ownerPhone4" ""
+  , contact_ownerEmail
+    :: F Text "contact_ownerEmail" "Email"
   , program
     :: F (Ident Program) "program" "Программа"
     --  , car_vin
@@ -135,14 +135,14 @@ data Case = Case
     --   :: F (Ident VINChecked) "vinChecked" "Участие в программе"
   , city
     :: F (Ident City) "city" "Город"
-    --  , address_address
-    --    :: F Text "address_address" "Адрес"
-    --  , address_comment
-    --    :: F Text "address_comment" "Примечания"
-    --  , address_coords
-    --    :: F Text "address_coords" "Координаты"
-    --  , address_map
-    --    :: F Text "address_map" ""
+    --  , caseAddress_address
+    --    :: F Text "caseAddress_address" "Адрес"
+    --  , caseAddress_comment
+    --    :: F Text "caseAddress_comment" "Примечания"
+    --  , caseAddress_coords
+    --    :: F Text "caseAddress_coords" "Координаты"
+    --  , caseAddress_map
+    --    :: F Text "caseAddress_map" ""
     --  , temperature
     --    :: F Text "temperature" "Температура"
   , repair
