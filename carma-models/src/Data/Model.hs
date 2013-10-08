@@ -161,7 +161,7 @@ instance TranslateFieldType Text where
   translateFieldType _ = "text"
 
 instance TranslateFieldType Bool where
-  translateFieldType _ = "bool"
+  translateFieldType _ = "Bool"
 
 instance TranslateFieldType Day where
   translateFieldType _ = "date"
