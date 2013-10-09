@@ -3,57 +3,59 @@ define [ "utils"
        , "model/utils"
        , "dictionaries/muTable"
        , "text!tpl/screens/servicesSearch.html"
-       ], (utils, main, mutils, muTable, tpl) ->
+       , "json!cfg/model/Case?view=search"
+       , "sync/servicesSearch"
+       ], (utils, main, mutils, muTable, tpl, model, sync) ->
 
-  model =
-    name: "partnerSearch"
-    title: "Экран поиска партнеров"
-    fields: [
-      { name: "search"
-      , meta:
-          label: "Поиск"
-          nosearch: true
-      },
-      { name: "contact"
-      , meta:
-          label: "ФИО"
-          search: "fuzzy"
-      },
-      { name: "callDate"
-      , type: "interval-date"
-      , meta:
-          label: "Дата и время"
-          search: "fuzzy"
-          searchFields: ['callDateDay', 'callDateYear']
-      },
-      { name: "callDateDay"
-      , meta:
-          label: "День"
-      },
-      { name: "callDateYear"
-      , meta:
-          label: "Год"
-      },
-      { name: "city"
-      , type: "dictionary"
-      , meta:
-          dictionaryName: "DealerCities"
-          label: "Город"
-          search: "full"
-      },
-      { name: "isDealer"
-      , type: "checkbox"
-      , meta:
-          label: "Дилер"
-      }
-      { name: "showField"
-      , type: "dictionary"
-      , meta:
-          label: "Добавить критерий поиска"
-          noadd: true
-          dictionaryType: "HiddenFieldsDict"
-      }
-    ]
+  # model =
+  #   name: "partnerSearch"
+  #   title: "Экран поиска партнеров"
+  #   fields: [
+  #     { name: "search"
+  #     , meta:
+  #         label: "Поиск"
+  #         nosearch: true
+  #     },
+  #     { name: "contact"
+  #     , meta:
+  #         label: "ФИО"
+  #         search: "fuzzy"
+  #     },
+  #     { name: "callDate"
+  #     , type: "interval-date"
+  #     , meta:
+  #         label: "Дата и время"
+  #         search: "fuzzy"
+  #         searchFields: ['callDateDay', 'callDateYear']
+  #     },
+  #     { name: "callDateDay"
+  #     , meta:
+  #         label: "День"
+  #     },
+  #     { name: "callDateYear"
+  #     , meta:
+  #         label: "Год"
+  #     },
+  #     { name: "city"
+  #     , type: "dictionary"
+  #     , meta:
+  #         dictionaryName: "DealerCities"
+  #         label: "Город"
+  #         search: "full"
+  #     },
+  #     { name: "isDealer"
+  #     , type: "checkbox"
+  #     , meta:
+  #         label: "Дилер"
+  #     }
+  #     { name: "showField"
+  #     , type: "dictionary"
+  #     , meta:
+  #         label: "Добавить критерий поиска"
+  #         noadd: true
+  #         dictionaryType: "HiddenFieldsDict"
+  #     }
+  #   ]
 
   setTpls = (kvm) ->
     kvm._meta.tpls = {}
@@ -109,12 +111,43 @@ define [ "utils"
 
     ko.applyBindings ctx, $("#search-results")[0]
 
-    fnames = ko.observableSet(["showField", "contact", "callDate"])
+# Кейс
+# Телефон
+# Госномер
+# Контакт
+# VIN
+# Карта участника
+# Адрес места поломки
+# Дата звонка
+# Город
+# Сотрудник принявший звонок
+# Услуга
+# Марка
+# Модель
+# Партнёр
+# Дилер, куда эвакуируют автомобиль
+# Программа
+# Что случилось?
+# Неисправность со слов клиента
+
+
+
+    fnames = ko.observableSet( [ "showField"
+                               , "car_vin"
+                               , "callDate"
+                               , "caseid"
+                               , "phone"
+                               , "car_plateNum"
+                               , "caseAddress_address"
+                               , "city"
+                               ] )
     searchKVM._meta.showFields = ko.computed
       read: ->  _.filter searchKVM._meta.model.fields,
                         (f) -> _.contains fnames(), f.name
       write: (v) -> fnames(v)
 
+    q = new sync.ServicesSearchQ(searchKVM, model)
+    searchKVM._meta.q = q
     ko.applyBindings searchKVM, $("#search-conditions")[0]
 
   template: tpl

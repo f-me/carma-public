@@ -79,6 +79,7 @@ ko.bindingHandlers.renderField =
   init: (el, acc, allBindigns, fld, ctx) ->
     tplid = fld.meta.widget
     tplid = "#{fld.type || 'text'}"
+    tplid = "dictionary-many" if fld.type == "dictionary-set"
     tpl = Mustache.render $("##{tplid}-field-template").html(), fld
     ko.utils.setHtml el, tpl
     ko.applyBindingsToDescendants(ctx.$root, el)
