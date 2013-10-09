@@ -48,13 +48,13 @@ data MatchType
 -- FIXME: check if field type \in {Text, Int, ..}
 one
   :: forall m t nm desc
-  . (FromJSON t, ToField t
+  . (FromJSON t, ToField t, TranslateFieldType t
     ,SingI nm, SingI desc, Model m)
   => (m -> F t nm desc) -> [Predicate m]
 one f = Predicate
   { tableName = Model.tableName (modelInfo :: ModelInfo m)
   , fieldName = Model.fieldName f
-  , fieldDesc = modelFieldsMap modelInfo HM.! Model.fieldName f
+  , fieldDesc = setDescType $ modelFieldsMap modelInfo HM.! Model.fieldName f
   , matchType = MatchExact
   , escapeVal = \conn qTpl val ->
       case fromJSON val :: Aeson.Result t of
@@ -65,7 +65,10 @@ one f = Predicate
             Left e  -> Left $ show (e :: PG.FormatError)
             Right q -> Right $ T.decodeUtf8 q
   } : []
-
+  where
+    setDescType :: FieldDesc m -> FieldDesc m
+    setDescType FieldDesc{..} =
+      FieldDesc{ fd_realType = undefined :: t, .. }
 
 listOf
   :: forall m t nm desc
@@ -103,16 +106,16 @@ renderPredicate conn pMap vals = do
         $ case matchType of
           MatchExact
             -> printf "%s.%s = ?"
-              (show tableName) (T.unpack fieldName)
+              (T.unpack tableName) (T.unpack fieldName)
           MatchFuzzy
             -> printf "%s.%s ilike ('%%' || ? || '%%')"
-              (show tableName) (T.unpack fieldName)
+              (T.unpack tableName) (T.unpack fieldName)
           MatchArray
             -> printf "%s.%s = ANY(?)"
-              (show tableName) (T.unpack fieldName)
+              (T.unpack tableName) (T.unpack fieldName)
           MatchInterval
             -> printf "%s.%s <@ ?"
-               (show tableName) (T.unpack fieldName)
+               (T.unpack tableName) (T.unpack fieldName)
 
   let renderConjunct (key,val) = case HM.lookup key pMap of
         Nothing -> return $ Left

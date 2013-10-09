@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, ViewPatterns #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, ViewPatterns, ScopedTypeVariables #-}
 
 module Carma.Model.Types where
 
@@ -93,3 +93,7 @@ pad4 abcd | abcd >= 10000 = integral abcd
 dayToBuilder :: Day -> Builder
 dayToBuilder (toGregorian -> (y,m,d)) = do
     pad4 y <> fromChar '-' <> pad2 m <> fromChar '-' <> pad2 d
+
+instance TranslateFieldType f => TranslateFieldType (Interval f) where
+  translateFieldType _ =
+    "interval-" `T.append` translateFieldType (undefined :: f)

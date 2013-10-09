@@ -3,9 +3,11 @@ module Carma.Model.Case
        (Case(..)
        ,caseSearchPredicate
        ,caseSearchView
+       ,buildCaseSearchQ
        ) where
 
-import Data.Text
+import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Aeson as Aeson
 
 import qualified Data.HashMap.Strict as HM
@@ -13,7 +15,7 @@ import Database.PostgreSQL.Simple as PG
 
 import Data.Model
 import Data.Model.View
-import Data.Model.Search
+import Data.Model.Search as S
 
 import Carma.Model.Types()
 
@@ -23,9 +25,9 @@ import Carma.Model.Case.Type as Case
 caseSearchParams :: [(Text, [Predicate Case])]
 caseSearchParams
   = [("caseId",     one (ident :: IdentF Case))
-    ,("vin",        fuzzy $ one Case.car_vin)
-    ,("cardNumber", fuzzy $ one Case.cardNumber_cardNumber)
-    ,("plateNum",   fuzzy $ one Case.car_plateNum)
+    ,("car_vin",        fuzzy $ one Case.car_vin)
+    ,("cardNumber_cardNumber", fuzzy $ one Case.cardNumber_cardNumber)
+    ,("car_plateNum",   fuzzy $ one Case.car_plateNum)
     ,("phone",      fuzzy $ matchAny
       [one Case.contact_phone1, one Case.contact_phone2
       ,one Case.contact_phone3, one Case.contact_phone4
@@ -44,7 +46,8 @@ caseSearchPredicate c v = case v of
   Aeson.Object o -> renderPredicate c params o
   _ -> return $ Left $ "Object expected but found: " ++ show v
   where
-    params = HM.fromList caseSearchParams
+    params = HM.fromList $ map chTable caseSearchParams
+    chTable (nm, ps) = (nm, map (\p -> p{ S.tableName = "servicesview" }) ps)
 
 caseSearchView :: ModelView Case
 caseSearchView = searchView caseSearchParams
@@ -56,3 +59,14 @@ instance Model Case where
     case v of
       "search" -> caseSearchView
       _        -> defaultView
+
+buildCaseSearchQ :: Connection -> Int -> Aeson.Value
+                    -> IO (Either String Text)
+buildCaseSearchQ conn limit v  = do
+  ps <- caseSearchPredicate conn v
+  return $ ps >>= return . wrapPredicates
+  where
+    wrapPredicates p = wrapJson $ T.concat [pre, p, post]
+    pre  = "SELECT * FROM servicesview where "
+    post = " LIMIT " `T.append ` (T.pack $ show limit)
+    wrapJson t = T.concat ["SELECT row_to_json(r) FROM ( ", t ," ) r"]

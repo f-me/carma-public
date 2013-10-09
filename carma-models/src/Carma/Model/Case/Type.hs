@@ -132,8 +132,8 @@ data Case = Case
     --   :: F (Ident VINChecked) "vinChecked" "Участие в программе"
   , city
     :: F (Ident City) "city" "Город"
-    --  , caseAddress_address
-    --    :: F Text "caseAddress_address" "Адрес"
+  , caseAddress_address
+    :: F Text "caseAddress_address" "Адрес"
     --  , caseAddress_comment
     --    :: F Text "caseAddress_comment" "Примечания"
     --  , caseAddress_coords
