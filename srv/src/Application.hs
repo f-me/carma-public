@@ -44,7 +44,7 @@ data App = App
     , feLog       :: Log
     , runtimeFlags:: TVar (Set RuntimeFlag)
     , _authDb     :: Snaplet Postgres
-    , _search     :: Snaplet Search
+    , _search     :: Snaplet (Search App)
     }
 
 
