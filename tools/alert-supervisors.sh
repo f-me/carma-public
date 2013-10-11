@@ -91,7 +91,9 @@ UNASSIGNED="
   LEFT JOIN \"City\" ON casetbl.city = \"City\".value
   LEFT JOIN programtbl ON casetbl.program = programtbl.value
   WHERE
-    name = ANY ('{orderService, callMeMaybe, orderServiceAnalyst}')
+    NOT closed
+    AND ctime > (now() at time zone 'UTC')::date - 7
+    AND name = ANY ('{orderService, callMeMaybe, orderServiceAnalyst}')
     AND assigntime IS NULL
     AND now() at time zone 'UTC' > ('5 minutes'::interval + ctime)
 "
@@ -113,7 +115,9 @@ OUTSTANDING="
   LEFT JOIN \"City\" ON casetbl.city = \"City\".value
   LEFT JOIN programtbl ON casetbl.program = programtbl.value
   WHERE
-    name = ANY ('{orderService, callMeMaybe, orderServiceAnalyst}')
+    NOT closed
+    AND ctime > (now() at time zone 'UTC')::date - 7
+    AND name = ANY ('{orderService, callMeMaybe, orderServiceAnalyst}')
     AND (assigntime IS NOT NULL AND closetime IS NULL)
     AND now() at time zone 'UTC' > ('15 minutes'::interval + assigntime)
 "
