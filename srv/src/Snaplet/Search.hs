@@ -13,6 +13,7 @@ import Data.Pool
 import Data.Text (Text)
 import qualified Data.Text             as T
 import qualified Data.ByteString.Char8 as B
+import Text.Printf
 
 import qualified Data.Aeson as Aeson
 
@@ -85,45 +86,59 @@ data Projection
 
 
 
-caseSearch :: SearchHandler b ()
+caseSearch :: SearchHandler b (Either String [Aeson.Value])
 caseSearch = do
   Just usr <- with auth currentUser
   let Just uid = userId usr
+  lim      <- getLimit
   args     <- getJsonBody
-  res      <- withPG $ \c -> do
-      cse_fields <- modelFields uid "case" c
-      svc_fields <- modelFields uid "service" c
-      let proj
-            =  [ProjField "casetbl"    f (T.append "cse_" f) | f <- cse_fields]
-            ++ [ProjField "servicetbl" f (T.append "svc_" f) | f <- svc_fields]
-            ++ [ProjFn
-                (T.concat
-                  ["(case when s.type = 'towage' then"
-                  ," (select towaddress_address"
-                  ,"  from towagetbl where id = s.id limit 1)"
-                  ," else '' end)"
-                  ])
-                "svc_towAddr"]
-      caseSearchPredicate c args >>= \case
-        Left err -> return $ Left err
-        Right pred -> mkQuery proj pred
+  withPG $ \c -> do
+    cse_fields <- modelFields uid "case" c
+    svc_fields <- modelFields uid "service" c
+    let proj
+          =  [ProjField "casetbl"    f (T.append "cse_" f) | f <- cse_fields]
+          ++ [ProjField "servicetbl" f (T.append "svc_" f) | f <- svc_fields]
+          ++ [ProjFn
+              (T.concat
+                ["(case when servicetbl.type = 'towage' then"
+                ," (select towaddress_address"
+                ,"  from towagetbl t where t.id = servicetbl.id limit 1)"
+                ," else '' end)"
+                ])
+              "svc_towAddr"]
+    caseSearchPredicate c args >>= \case
+      Left err -> return $ Left err
+      Right pred -> Right . join <$> query_ c
+        (mkQuery proj pred lim
           (T.concat
             ["casetbl JOIN servicetbl ON"
             ," split_part(servicetbl.parentId, ':', 2)::int = casetbl.id"
-            ])
-  either (finishWithError 500) writeJSON res
+            ]))
+
+search :: SearchHandler b (Either String [Aeson.Value]) -> SearchHandler b ()
+search = (>>= either (finishWithError 500) writeJSON)
 
 
 mkQuery
-   :: [Projection] -> Text -> Text
-   -> IO (Either String Query)
-mkQuery proj pred from = undefined
+   :: [Projection] -> Text -> Int -> Text
+   -> Query
+mkQuery proj pred lim from
+  = fromString
+  $ printf "SELECT row_to_json(r) FROM (SELECT %s FROM %s WHERE %s LIMIT %i) r"
+    (T.unpack $ T.intercalate ", " $ map mkProj proj)
+    (T.unpack from)
+    (T.unpack pred)
+    lim
+  where
+    mkProj = \case
+      ProjField t f a -> T.concat [t, ".", f, " as ", a]
+      ProjFn f a      -> T.concat ["(", f, ") as ", a]
 
 
 searchInit
   :: Pool Connection -> Snaplet (AuthManager b) -> SnapletInit b (Search b)
 searchInit conn sessionMgr = makeSnaplet "search" "Search snaplet" Nothing $ do
-  addRoutes [("services", method POST services)]
+  addRoutes [("services", method POST $ search caseSearch)]
   return $ Search conn sessionMgr
 
 
