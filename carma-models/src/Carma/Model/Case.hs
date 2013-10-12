@@ -1,6 +1,6 @@
 
 module Carma.Model.Case
-       (Case(..), Predicate
+       (Case(..)
        ,caseSearchPredicate
        ,caseSearchView
        ,buildCaseSearchQ
@@ -46,8 +46,7 @@ caseSearchPredicate c v = case v of
   Aeson.Object o -> renderPredicate c params o
   _ -> return $ Left $ "Object expected but found: " ++ show v
   where
-    params = HM.fromList $ map chTable caseSearchParams
-    chTable (nm, ps) = (nm, map (\p -> p{ S.tableName = "servicesview" }) ps)
+    params = HM.fromList caseSearchParams
 
 caseSearchView :: ModelView Case
 caseSearchView = searchView caseSearchParams
