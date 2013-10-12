@@ -105,6 +105,7 @@ define ["model/utils", "utils"], (mu, u) ->
   carIcon = "/s/img/car-icon.png"
   towIcon = "/s/img/tow-icon.png"
   busyTowIcon = "/s/img/busy-tow-icon.png"
+  staleTowIcon = "/s/img/stale-tow-icon.png"
   partnerIcon = "/s/img/partner-icon.png"
   dealerIcon = "/s/img/dealer-icon.png"
 
@@ -507,6 +508,7 @@ define ["model/utils", "utils"], (mu, u) ->
   , carIcon               : carIcon
   , towIcon               : towIcon
   , busyTowIcon           : busyTowIcon
+  , staleTowIcon          : staleTowIcon
   , partnerIcon           : partnerIcon
   , dealerIcon            : dealerIcon
   , hlIconName            : hlIconName

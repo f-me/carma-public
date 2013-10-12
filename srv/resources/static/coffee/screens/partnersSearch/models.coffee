@@ -80,6 +80,12 @@ define [], ->
       { name: "isfree"
       , meta: { label: "Свободен?" }
       },
+      { name: "stale"
+      , meta: { label: "Последнее обновление координат больше часа назад" }
+      },
+      { name: "ico"
+      , meta: { label: "Иконка" }
+      },      
       { name: "ismobile"
       , meta: { label: "Мобильный партнер" }
       },
