@@ -21,6 +21,7 @@ import Carma.Model.FieldPermission (FieldPermission)
 import Carma.Model.NewCaseField    (NewCaseField)
 import Carma.Model.Program         (Program)
 import Carma.Model.Region          (Region)
+import Carma.Model.Role            (Role)
 import Carma.Model.SmsTemplate     (SmsTemplate)
 import Carma.Model.Case            (Case)
 
@@ -38,6 +39,7 @@ dispatch model fn = Map.lookup model modelMap
       ,add (undefined :: NewCaseField)
       ,add (undefined :: Program)
       ,add (undefined :: Region)
+      ,add (undefined :: Role)
       ,add (undefined :: SmsTemplate)
       ,add (undefined :: Case)
       ]
