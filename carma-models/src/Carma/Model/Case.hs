@@ -1,6 +1,6 @@
 
 module Carma.Model.Case
-       (Case(..)
+       (Case(..), Predicate
        ,caseSearchPredicate
        ,caseSearchView
        ,buildCaseSearchQ
@@ -25,9 +25,9 @@ import Carma.Model.Case.Type as Case
 caseSearchParams :: [(Text, [Predicate Case])]
 caseSearchParams
   = [("caseId",     one (ident :: IdentF Case))
-    ,("car_vin",        fuzzy $ one Case.car_vin)
-    ,("cardNumber_cardNumber", fuzzy $ one Case.cardNumber_cardNumber)
-    ,("car_plateNum",   fuzzy $ one Case.car_plateNum)
+    ,("vin",        fuzzy $ one Case.car_vin)
+    ,("cardNumber", fuzzy $ one Case.cardNumber_cardNumber)
+    ,("plateNum",   fuzzy $ one Case.car_plateNum)
     ,("phone",      fuzzy $ matchAny
       [one Case.contact_phone1, one Case.contact_phone2
       ,one Case.contact_phone3, one Case.contact_phone4
