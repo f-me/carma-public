@@ -8,6 +8,7 @@ INSERT INTO "Role" (value, label) VALUES ('all', 'Все');
 INSERT INTO "Role" (value, label) VALUES ('local', 'Локальный пользователь');
 INSERT INTO "Role" (value, label) VALUES ('front', 'Оператор Front Office');
 INSERT INTO "Role" (value, label) VALUES ('back', 'Оператор Back Office');
+INSERT INTO "Role" (value, label) VALUES ('bo_control', 'Контроль услуг');
 INSERT INTO "Role" (value, label) VALUES ('head', 'Глава РКЦ');
 INSERT INTO "Role" (value, label) VALUES ('parguy', 'Менеджер по партнёрам');
 INSERT INTO "Role" (value, label) VALUES ('manager', 'Менеджер по счетам');
@@ -25,4 +26,5 @@ INSERT INTO "Role" (value, label) VALUES ('op_close', 'Аналитик по з�
 INSERT INTO "Role" (value, label) VALUES ('op_dealer', 'Аналитик по работе с дилерами');
 INSERT INTO "Role" (value, label) VALUES ('contract_admin', 'Администратор контрактов');
 INSERT INTO "Role" (value, label) VALUES ('contract_user', 'Пользователь экрана контрактов');
+INSERT INTO "Role" (value, label) VALUES ('partners_user', 'Пользователь экрана ДиП');
 INSERT INTO "Role" (value, label) VALUES ('vwfake', 'Секретная роль vwfake');
