@@ -93,7 +93,7 @@ UNASSIGNED="
   WHERE
     NOT closed
     AND ctime > (now() at time zone 'UTC')::date - 7
-    AND name = ANY ('{orderService, callMeMaybe, orderServiceAnalyst}')
+    AND name = ANY ('{orderService, callMeMaybe, orderServiceAnalyst, tellMeMore}')
     AND assigntime IS NULL
     AND now() at time zone 'UTC' > ('5 minutes'::interval + ctime)
 "
@@ -117,7 +117,7 @@ OUTSTANDING="
   WHERE
     NOT closed
     AND ctime > (now() at time zone 'UTC')::date - 7
-    AND name = ANY ('{orderService, callMeMaybe, orderServiceAnalyst}')
+    AND name = ANY ('{orderService, callMeMaybe, orderServiceAnalyst, tellMeMore}')
     AND (assigntime IS NOT NULL AND closetime IS NULL)
     AND now() at time zone 'UTC' > ('15 minutes'::interval + assigntime)
 "
