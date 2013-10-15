@@ -47,6 +47,7 @@ define ["model/utils"], (mu) ->
     return dict if dict
     return eval(d)
 
+  String.prototype.capitalize = -> @charAt(0).toUpperCase() + @slice(1)
 
   bindRemove = (parent, field, cb) ->
     for i in parent["#{field}Reference"]()

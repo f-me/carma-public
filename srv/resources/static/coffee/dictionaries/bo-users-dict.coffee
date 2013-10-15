@@ -1,5 +1,5 @@
-define ["lib/local-dict", ], (m) ->
-  class BoUsersDict extends m.dict
+define ["dictionaries/local-dict"], (ld) ->
+  class BoUsersDict extends ld.dict
     constructor: (@opts) ->
       @opts['dict'] = 'users'
       super

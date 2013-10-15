@@ -3,7 +3,7 @@ define [ "utils"
        , "model/utils"
        , "model/main"
        , "screenman"
-       , "lib/model-dict"
+       , "dictionaries/model-dict"
        ],
   (utils, tpl, mu, main, screenman, modelDict) ->
 

@@ -1,4 +1,4 @@
-define ["lib/meta-dict"], (m) ->
+define ["dictionaries/meta-dict"], (m) ->
   class LocalDict extends m.dict
     constructor: (@opts) ->
       @dict   = @opts.dict

@@ -253,7 +253,7 @@ opStatsQ = [sql|
 -- >   reqTime: 123892,
 -- >   stats: [{login:.., aName:.., caseId:.., openTime:.., closeTime:..}, ..]
 -- > }
---       
+--
 -- fields `aName`, `caseId`, `openTime`, `closeTime` and `reqTime`.
 opStats :: AppHandler ()
 opStats = do
@@ -288,27 +288,45 @@ actStatsOrderQ :: Query
 actStatsOrderQ = [sql|
   SELECT count(*)::text
   FROM actiontbl
-  WHERE assignedTo IS NULL OR assignedTo = '' AND closed = 'f'
+  WHERE (assignedTo IS NULL OR assignedTo = '') AND closed = 'f'
   AND name = ANY('{ "orderService", "orderServiceAnalyst"
-                  , "tellMeMore", "callMeMaybe"}');
+                  , "tellMeMore", "callMeMaybe"}')
+  AND (? OR extract (epoch from duetime) >= ?)
+  AND (? OR extract (epoch from duetime) <= ?);
   |]
 
 actStatsControlQ :: Query
 actStatsControlQ = [sql|
   SELECT count(*)::text
   FROM actiontbl
-  WHERE assignedTo IS NULL OR assignedTo = '' AND closed = 'f'
+  WHERE (assignedTo IS NULL OR assignedTo = '') AND closed = 'f'
   AND name = ANY('{ "tellClient", "checkStatus"
                   , "tellDelayClient", "checkEndOfService"
-                  , "getInfoDealerVW"}');
+                  , "getInfoDealerVW"}')
+  AND (? OR extract (epoch from duetime) >= ?)
+  AND (? OR extract (epoch from duetime) <= ?);
   |]
 
 -- | Serve JSON object with fields `order` and `control`, each
--- containing a number of unassigned actions in that category.
+-- containing a number of unassigned actions in that category. Accepts
+-- `duetimeFrom` and `duetimeTo` request parameters.
 actStats :: AppHandler ()
 actStats = do
-  (Only orders:_) <- withPG pg_search $ \c -> query_ c actStatsOrderQ
-  (Only controls:_) <- withPG pg_search $ \c -> query_ c actStatsControlQ
+  f <- getParam "duetimeFrom"
+  t <- getParam "duetimeTo"
+  let (fromF, fromDate) =
+        case f of
+          Just val -> (False, val)
+          Nothing -> (True, "0")
+  let (toF, toDate) =
+        case t of
+          Just val -> (False, val)
+          Nothing -> (True, "0")
+  let flags = (fromF, fromDate, toF, toDate)
+  (Only orders:_) <- withPG pg_search $
+                     \c -> query c actStatsOrderQ flags
+  (Only controls:_) <- withPG pg_search $
+                       \c -> query c actStatsControlQ flags
   writeJSON $ M.fromList
                 ([ ("order", orders)
                  , ("control", controls)] :: [(ByteString, ByteString)])

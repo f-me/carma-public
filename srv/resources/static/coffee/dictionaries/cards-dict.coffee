@@ -1,5 +1,5 @@
 # Card numbers dropdown list
-define ["lib/meta-dict"], (m) ->
+define ["dictionaries/meta-dict"], (m) ->
   class CardsDict extends m.dict
     find: (q, cb) ->
       program = global.viewsWare["case-form"].knockVM["program"]()

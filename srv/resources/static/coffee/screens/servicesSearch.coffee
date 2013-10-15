@@ -1,7 +1,7 @@
 define [ "utils"
        , "model/main"
        , "model/utils"
-       , "lib/muTable"
+       , "dictionaries/muTable"
        , "text!tpl/screens/servicesSearch.html"
        ], (utils, main, mutils, muTable, tpl) ->
 
@@ -20,6 +20,7 @@ define [ "utils"
           search: "fuzzy"
       },
       { name: "callDate"
+      , type: "interval-date"
       , meta:
           label: "Дата и время"
           search: "fuzzy"
@@ -60,9 +61,9 @@ define [ "utils"
       type  = f.type
       type ?= "text"
       tpl = $("##{type}-txt-template").html()
-      unless tpl
-        throw new Error("Can't find template for #{type}
-   in #{kvm._meta.model.name}")
+      return unless tpl
+   #      throw new Error("Can't find template for #{type}
+   # in #{kvm._meta.model.name}")
       kvm._meta.tpls[f.name] = tpl
 
   constructor: ->
@@ -115,6 +116,5 @@ define [ "utils"
       write: (v) -> fnames(v)
 
     ko.applyBindings searchKVM, $("#search-conditions")[0]
-
 
   template: tpl
