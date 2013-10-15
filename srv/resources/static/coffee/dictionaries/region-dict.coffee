@@ -1,5 +1,5 @@
-define ["lib/local-dict", ], (m) ->
-  class RegionDict extends m.dict
+define ["dictionaries/local-dict", ], (ld) ->
+  class RegionDict extends ld.dict
     constructor: () ->
       @dict   = 'region'
       $.bgetJSON "/all/#{@dict}", (rsp) =>

@@ -488,6 +488,42 @@
       </div>
     </script>
 
+    <script type="text/template"
+            class="field-template"
+            id="interval-date-field-template">
+
+      <label>{{ meta.label }} (Диапазон)</label>
+      <div class="row-fluid horizontal-form">
+          <div class="input-append date span4"
+               data-provide="datepicker"
+               data-autoshow-datepicker="true"
+               data-date-format="dd.mm.yyyy"
+               data-date-weekstart="1">
+            <input type="text"
+                   class="pane-span focusable"
+                   autocomplete="off"
+                   name="{{ name }}Begin"
+                   data-bind="value: {{ name }}Begin,
+                              valueUpdate: 'change'" />
+            <span class="add-on"><i class="icon icon-calendar" /></span>
+          </div>
+          <div class="span1" />
+          <div class="input-append date span4"
+               data-provide="datepicker"
+               data-autoshow-datepicker="true"
+               data-date-format="dd.mm.yyyy"
+               data-date-weekstart="1">
+            <input type="text"
+                   class="pane-span focusable"
+                   autocomplete="off"
+                   name="{{ name }}End"
+                   data-bind="value: {{ name }}End,
+                              valueUpdate: 'change'" />
+            <span class="add-on"><i class="icon icon-calendar" /></span>
+          </div>
+      </div>
+    </script>
+
     <!-- Like text-field-template but with call button -->
     <!-- FIXME: this template differs from the picker-field-template
          only in icon class. Seems that it is reasonable to parametrize it.
@@ -1488,51 +1524,20 @@
           <b>Регион:</b>
           <span data-bind="text: region" />
         </p>
-        <br />
         <p data-bind="visible: cityLocal">
           <b>Расчётное значение ожидания эвакуатора в
             г.&nbsp;<span data-bind="text: cityLocal"/>:</b>
           <span id="city-towage-average-time" />
         </p>
         <div class="program">
-          <h1 data-bind="text: programLocal"></h1>
-          <div data-bind="html:programDesc"></div>
-          <br />
-          <br />
-          <div data-bind="foreach: servicesDescs">
-            <dt data-bind="text: title"></dt>
-            <dd data-bind="html: description"></dd>
+          <div id="case-comments">
+            <legend> Комментарий </legend>
+            <textarea  id="case-comments-i" rows="2"  />
+            <button    id="case-comments-b" class="btn">
+              Добавить комментарий
+            </button>
           </div>
-          <br />
-          <!-- <h4 data-bind="visible: filesInfo">Загруженные файлы:</h4> -->
-
-          <!-- <ul class="unstyled" -->
-          <!--     data-bind="foreach: filesInfo, setdata: files"> -->
-          <!--   <li> -->
-          <!--     <a data-bind="attr: { href: url }, text: name" /> -->
-          <!--     <i class="icon icon-remove" -->
-          <!--        data-bind="setdata: name" -->
-          <!--        onclick="deleteFile(this)"/> -->
-          <!--   </li> -->
-          <!-- </ul> -->
-
-          <!-- <dl data-bind="foreach: servicesReference"> -->
-          <!--   <dt data-bind="text: modelTitle"> -->
-          <!--     <dd> -->
-          <!--       <ul class="unstyled" -->
-          <!--           data-bind="foreach: filesInfo, setdata: files"> -->
-          <!--         <li> -->
-          <!--           <a data-bind="attr: { href: url }, text: name" /> -->
-          <!--           <i class="icon icon-remove" -->
-          <!--              data-bind="setdata: name" -->
-          <!--              onclick="deleteFile(this)"/> -->
-          <!--         </li> -->
-          <!--       </ul> -->
-          <!--     </dd> -->
-          <!--   </dt> -->
-          <!-- </dl> -->
-
-          <h4>История звонков</h4>
+          <legend>История звонков</legend>
           <table id="call-searchtable" class="table table-striped table-bordered">
             <thead>
               <tr>
@@ -1545,15 +1550,6 @@
             </thead>
             <tbody/>
           </table>
-
-        </div>
-        <div id="case-comments">
-          <label> Комментарий </label>
-          <textarea  id="case-comments-i" rows="7"  />
-          <br />
-          <button    id="case-comments-b" class="btn">
-            Добавить комментарий
-          </button>
         </div>
       </fieldset>
     </script>

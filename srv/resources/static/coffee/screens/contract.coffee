@@ -123,11 +123,12 @@ define [
 
     logoSetup = (args) ->
       $.getJSON "/_/program/#{args.program}", (instance) ->
-        logofn = instance.logo?.split(',')?[0]
-        logourl= "/s/fileupload/program/#{args.program}/logo/#{logofn}"
-        $("#logo").attr "src", logourl if logofn
-        $("#help-program").text(instance.label)
-        $("#help-text").text(instance.help)
+        attachURLPart = instance.logo.replace ':', '/'
+        $.getJSON "/_/#{attachURLPart}", (attachment) ->
+          logourl= "/s/fileupload/#{attachURLPart}/#{attachment.filename}"
+          $("#logo").attr "src", logourl
+          $("#help-program").text(instance.label)
+          $("#help-text").text(instance.help)
 
     modelSetup = (modelName, viewName, args, programModel) ->
       if args.id

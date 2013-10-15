@@ -80,7 +80,7 @@
     },
     { "type"    : "dropdown",
       "name"    : "more",
-      "label"   : "Еще",
+      "label"   : "Ещё",
       "permissions": ["front","back","bo_control","head","parguy","supervisor","director","analyst","account","admin","programman"],
       "screens" : [
         { "name"  : "vin",

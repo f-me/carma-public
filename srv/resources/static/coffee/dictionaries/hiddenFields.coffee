@@ -1,4 +1,4 @@
-define ["lib/local-dict"], (ld) ->
+define ["dictionaries/local-dict"], (ld) ->
   class HiddenFieldsDict extends ld.dict
     constructor: ({kvm}) ->
       @flds = _.reject kvm._meta.model.fields, (f) -> f.meta?.noadd

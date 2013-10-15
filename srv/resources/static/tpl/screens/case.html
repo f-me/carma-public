@@ -40,6 +40,26 @@
     <div class="control-group">
       <div class="controls">
         <span class="accordion" id="case-actions-references" />
+        <span class="accordion" id="case-program-description">
+          <h3 data-bind="text: programLocal"></h3>
+          <address data-bind="html:programDesc"></address>
+          <div data-bind="foreach: servicesDescs">
+            <div class="accordion-group">
+              <div class="accordion-heading">
+                <a class="accordion-toggle"
+                   data-toggle="collapse"
+                   data-parent="#case-program-description"
+                   data-bind="text: title, attr: {href: '#case-desc-' + $index()}">
+                </a>
+              </div>
+              <div data-bind="attr: {id: 'case-desc-' + $index()}"
+                   class="accordion-body collapse">
+                <div class="accordion-inner" data-bind="html: description">
+                </div>
+              </div>
+            </div>
+          </div>
+        </span>
       </div>
     </div>
   </form>

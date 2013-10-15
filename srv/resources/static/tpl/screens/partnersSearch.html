@@ -105,19 +105,12 @@
                   <span data-bind="visible: distance">
                     (<span data-bind="text: distanceFormatted" />&nbsp;км)
                   </span>
-                  <!-- ko if: ismobile -->
-                  <!-- ko if: isfree -->
-                  <img src="s/img/tow-icon.png" width="30px" height="30px"/>
-                  <!-- /ko -->
-                  <!-- ko ifnot: isfree -->
-                  <img src="s/img/busy-tow-icon.png" width="30px" height="30px"/>
-                  <!-- /ko -->
-                  <!-- /ko -->
+                  <img data-bind="attr: {'src': ico}" width="30px" height="30px"/>
                 </li>
                 <li data-bind="visible: id() == $parent.selectedPartner()">
                   <button type="button"
                           class="btn btn-danger"
-                          data-bind="click: $parent.showPartnerCancelDialog">
+                          data-bind="click: $parent.showPartnerCancelDialog, clickBubble: false">
                     <i class="icon-list-alt icon-white"></i>
                     Отказ
                   </button>

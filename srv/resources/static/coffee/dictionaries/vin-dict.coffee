@@ -1,4 +1,4 @@
-define ["lib/meta-dict", ], (m) ->
+define ["dictionaries/meta-dict", ], (m) ->
   class VinDict extends m.dict
     find: (q, cb) ->
       return cb({}) if q.length < 5

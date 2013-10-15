@@ -18,7 +18,7 @@
 # user object is stored in global hash and contains data about
 # current user.
 define [ "model/render"
-       , "lib/local-dict"
+       , "dictionaries/local-dict"
        , "sync/crud"
        ],
        (render, dict, sync) ->
@@ -194,6 +194,25 @@ define [ "model/render"
         kvm['dixiDisabled'](false) unless kvm['dixi']()
       else
         kvm['dixiDisabled'](true)
+
+    for f in fields when /interval/.test(f.type)
+      do (f) ->
+        proxy = { begin: null, end: null }
+        updateInterval = ->
+          if proxy.begin != null and proxy.end != null
+            kvm[f.name]([proxy.begin, proxy.end])
+        kvm["#{f.name}Begin"] = ko.computed
+          read: -> proxy.begin
+          write: (v) ->
+            proxy.begin = v
+            updateInterval()
+
+        kvm["#{f.name}End"] = ko.computed
+          read: -> proxy.end
+          write: (v) ->
+            proxy.end = v
+            updateInterval()
+
 
     hooks = queueOptions?.hooks or ['*', model.name]
     applyHooks global.hooks.observable, hooks, model, kvm
