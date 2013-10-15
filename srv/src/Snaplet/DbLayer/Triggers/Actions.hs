@@ -564,6 +564,9 @@ actionActions = Map.fromList
     ,\objId val -> maybe (return ()) ($objId)
       $ Map.lookup val actionResultMap
     ])
+   ("assignedTo",
+    [\objId -> dateNow id >>= set objId "assignTime"
+    ])
   ,("closed",
     [\objId -> \case
       "1" -> closeAction objId
