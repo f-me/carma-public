@@ -564,8 +564,8 @@ actionActions = Map.fromList
     ,\objId val -> maybe (return ()) ($objId)
       $ Map.lookup val actionResultMap
     ])
-   ("assignedTo",
-    [\objId -> dateNow id >>= set objId "assignTime"
+  ,("assignedTo",
+    [\objId _val -> dateNow id >>= set objId "assignTime"
     ])
   ,("closed",
     [\objId -> \case
