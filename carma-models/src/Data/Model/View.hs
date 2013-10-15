@@ -43,7 +43,7 @@ defaultView = ModelView
 defaultFieldView :: FieldDesc m -> FieldView m
 defaultFieldView f = FieldView
   { name      = fd_name f
-  , fieldType =  (\FieldDesc{fd_realType = t} -> translateFieldType t) f
+  , fieldType = fd_coffeeType f
   , canWrite  = True
   , meta      = Map.fromList
     $  [("label", Aeson.String $ fd_desc f)]

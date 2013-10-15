@@ -28,6 +28,8 @@ import Data.Typeable(Typeable)
 import Data.Monoid (Monoid, (<>))
 
 import Data.Model
+import Data.Model.Types
+import Data.Model.CoffeeType
 
 instance FromJSON Day where
   parseJSON (String s)
@@ -94,6 +96,6 @@ dayToBuilder :: Day -> Builder
 dayToBuilder (toGregorian -> (y,m,d)) = do
     pad4 y <> fromChar '-' <> pad2 m <> fromChar '-' <> pad2 d
 
-instance TranslateFieldType f => TranslateFieldType (Interval f) where
-  translateFieldType _ =
-    "interval-" `T.append` translateFieldType (undefined :: f)
+instance CoffeeType t => CoffeeType (Interval t) where
+  coffeeType = Wrap
+    $ "interval-" `T.append` unWrap (coffeeType :: Wrap t Text)
