@@ -3,35 +3,43 @@
 
 module Data.Model.Search where
 
-import Control.Applicative
-import Control.Exception
+import           Control.Applicative
+import           Control.Exception
 
-import Data.Either (partitionEithers)
-import Data.String (fromString)
-import Data.Text (Text)
+import           Data.Maybe (catMaybes)
+import           Data.Either (partitionEithers)
+import           Data.String (fromString)
+import           Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import Data.HashMap.Strict (HashMap)
+
+import           Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
+
 import qualified Data.Map as Map
-import Data.Vector (Vector)
 
-import Data.Time.Calendar (Day)
+import           Data.Vector (Vector, fromList)
+import qualified Data.Vector as V
 
-import Data.Aeson as Aeson
-import Database.PostgreSQL.Simple as PG
-import Database.PostgreSQL.Simple.ToField (ToField)
+import           Data.Time.Calendar (Day)
 
-import Text.Printf
-import GHC.TypeLits
+import           Data.Aeson as Aeson
+import           Database.PostgreSQL.Simple as PG
+import           Database.PostgreSQL.Simple.ToField (ToField)
 
-import Data.Model as Model
-import Data.Model.View
-import Carma.Model.Types
+import           Text.Printf
+import           GHC.TypeLits
+
+import           Data.Model as Model hiding (fieldName, modelName)
+import qualified Data.Model      as Model
+import qualified Data.Model.View as View
+import           Carma.Model.Types
+
 
 data Predicate m
   = Predicate
     { tableName :: Text
+    , modelName :: Text
     , fieldName :: Text
     , fieldDesc :: FieldDesc m
     , matchType :: MatchType
@@ -53,6 +61,7 @@ one
   => (m -> F t nm desc) -> [Predicate m]
 one f = Predicate
   { tableName = Model.tableName (modelInfo :: ModelInfo m)
+  , modelName = Model.modelName (modelInfo :: ModelInfo m)
   , fieldName = Model.fieldName f
   , fieldDesc = setDescType $ modelFieldsMap modelInfo HM.! Model.fieldName f
   , matchType = MatchExact
@@ -134,17 +143,33 @@ renderPredicate conn pMap vals = do
 
 searchView :: [(Text, [Predicate m])] -> ModelView m
 searchView flds = ModelView
-  { modelName = "search"
-  , title = "Поиск"
-  , fields
+  { View.modelName = "search"
+  , View.title = "Поиск"
+  , View.fields
     = [ v
-        {name = nm
-        ,meta = Map.insert
-          "matchType"
-          (Aeson.String $ T.pack $ show $ matchType p)
-          (meta v)
+        {View.name = nm
+        ,View.meta = Map.insert
+                "search"
+                (buildSearchMeta ps)
+                (View.meta v)
         }
-      | (nm,p:_) <- flds
-      , let v = defaultFieldView $ fieldDesc p
+      | (nm, ps@(p:_)) <- flds
+      , let v = View.defaultFieldView $ fieldDesc p
       ]
   }
+  where
+    buildSearchMeta ps@(p:_) =
+      Aeson.Object $ HM.fromList
+        [ ( "matchType"
+          , Aeson.String $ T.pack $ show $ matchType p
+          )
+          ,("original"
+          , Aeson.Array $ V.fromList $ concatNames ps
+          )
+        ]
+    concatNames []     = []
+    concatNames (p:ps) = (buildOriginal p) : concatNames ps
+    buildOriginal p = Aeson.Object $ HM.fromList
+      [ ("name",  Aeson.String $ fieldName p)
+      , ("model", Aeson.String $ modelName p)
+      ]
