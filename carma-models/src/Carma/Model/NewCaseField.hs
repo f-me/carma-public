@@ -4,7 +4,6 @@ module Carma.Model.NewCaseField where
 import Data.Text
 import Data.Model
 import Data.Typeable
-import Data.Vector (Vector)
 
 import Data.Model.View
 import Carma.Model.Program (Program)

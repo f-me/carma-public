@@ -18,8 +18,8 @@ import Data.Time.Format (parseTime)
 import Database.PostgreSQL.Simple.FromField (FromField(..))
 import Database.PostgreSQL.Simple.ToField   (ToField(..), Action(..), inQuotes)
 
-import Data.ByteString.Internal (c2w, w2c)
-import Blaze.ByteString.Builder(Builder, fromByteString)
+import Data.ByteString.Internal (w2c)
+import Blaze.ByteString.Builder(Builder)
 import Blaze.ByteString.Builder.Char8(fromChar)
 import Blaze.Text.Int(integral)
 
@@ -56,8 +56,8 @@ instance (FromJSON t, Typeable t, Show t) => FromJSON (Interval t) where
     | V.length a == 2 = parseInterval a
     | otherwise       = fail $ "array should be 2 elements long"
     where
-      parseInterval a =
-        Interval <$> parseJSON (a ! 0) <*> parseJSON (a ! 1)
+      parseInterval x =
+        Interval <$> parseJSON (x ! 0) <*> parseJSON (x ! 1)
   parseJSON v =
     fail $ "expecting Array, but got: " ++ show v
 

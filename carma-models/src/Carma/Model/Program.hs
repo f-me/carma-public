@@ -30,7 +30,7 @@ instance Model Program where
   modelView _ = defaultView
 
 -- known programs
-citroen = Ident 56 :: Ident Program
-peugeot = Ident 57 :: Ident Program
-vwMotor = Ident 63 :: Ident Program
-vwCargo = Ident 64 :: Ident Program
+-- citroen = Ident 56 :: Ident Program
+-- peugeot = Ident 57 :: Ident Program
+-- vwMotor = Ident 63 :: Ident Program
+-- vwCargo = Ident 64 :: Ident Program

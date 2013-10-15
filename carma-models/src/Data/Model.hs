@@ -18,13 +18,12 @@ import Control.Applicative
 import Data.Maybe (fromJust)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
 import Data.Aeson.Types as Aeson
 
 import Database.PostgreSQL.Simple.FromRow   (RowParser,field)
 import Database.PostgreSQL.Simple.FromField (FromField(..))
-import Database.PostgreSQL.Simple.ToField   (ToField(..), Action)
+import Database.PostgreSQL.Simple.ToField   (ToField(..))
 import Data.Dynamic
 import GHC.TypeLits
 

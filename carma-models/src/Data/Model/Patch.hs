@@ -12,10 +12,8 @@ import Data.Aeson.Types
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
 import Data.Text (Text)
-import qualified Data.Text as T
 
 import Database.PostgreSQL.Simple.FromRow
-import Database.PostgreSQL.Simple.ToField
 import Database.PostgreSQL.Simple.ToRow
 
 import Data.Maybe (fromJust)

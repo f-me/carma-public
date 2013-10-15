@@ -16,17 +16,12 @@ import Data.List
 import Data.Maybe (fromJust)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Aeson as Aeson
-import Data.Typeable
 
 import GHC.TypeLits
 
-import Data.Vector (Vector)
-
 import Data.Model as Model
-import Data.Model.Sql
 import Data.Model.View.Types
 
 defaultView :: forall m . Model m => ModelView m

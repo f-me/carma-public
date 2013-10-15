@@ -16,7 +16,6 @@ import Data.String
 import Text.Printf
 
 import qualified Data.Text as T
-import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HashMap
 import Database.PostgreSQL.Simple
 

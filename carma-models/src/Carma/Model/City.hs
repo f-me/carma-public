@@ -17,7 +17,7 @@ data Coords = Coords -- {lon :: Double, lat :: Double}
   deriving Typeable
 
 instance FromJSON Coords where
-  parseJSON v = return Coords
+  parseJSON _ = return Coords
 
 instance ToJSON Coords where
   toJSON (Coords) = object []
