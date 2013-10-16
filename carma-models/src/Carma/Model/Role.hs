@@ -7,11 +7,12 @@ import Data.Model.View
 
 
 data Role = Role
-  { label :: F Text "label"  ""
-  , value :: F Text "value"  ""
+  { label :: F Text "label"  "Название роли"
+  , value :: F Text "value"  "Внутреннее название роли"
   } deriving Typeable
+
 
 instance Model Role where
   type TableName Role = "Role"
   modelInfo = mkModelInfo Role
-  modelView _ = defaultView
+  modelView _ = modifyView defaultView [readonly value]
