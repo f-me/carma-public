@@ -1,61 +1,21 @@
 define [ "utils"
        , "model/main"
        , "model/utils"
-       , "dictionaries/muTable"
+       , "search/model"
+       , "screens/servicesSearch/model"
        , "text!tpl/screens/servicesSearch.html"
-       , "json!cfg/model/Case?view=search"
+       , "json!/cfg/model/Case?view=search"
+       , "json!/cfg/model/Case"
        , "sync/servicesSearch"
-       ], (utils, main, mutils, muTable, tpl, model, sync) ->
-
-  # model =
-  #   name: "partnerSearch"
-  #   title: "Экран поиска партнеров"
-  #   fields: [
-  #     { name: "search"
-  #     , meta:
-  #         label: "Поиск"
-  #         nosearch: true
-  #     },
-  #     { name: "contact"
-  #     , meta:
-  #         label: "ФИО"
-  #         search: "fuzzy"
-  #     },
-  #     { name: "callDate"
-  #     , type: "interval-date"
-  #     , meta:
-  #         label: "Дата и время"
-  #         search: "fuzzy"
-  #         searchFields: ['callDateDay', 'callDateYear']
-  #     },
-  #     { name: "callDateDay"
-  #     , meta:
-  #         label: "День"
-  #     },
-  #     { name: "callDateYear"
-  #     , meta:
-  #         label: "Год"
-  #     },
-  #     { name: "city"
-  #     , type: "dictionary"
-  #     , meta:
-  #         dictionaryName: "DealerCities"
-  #         label: "Город"
-  #         search: "full"
-  #     },
-  #     { name: "isDealer"
-  #     , type: "checkbox"
-  #     , meta:
-  #         label: "Дилер"
-  #     }
-  #     { name: "showField"
-  #     , type: "dictionary"
-  #     , meta:
-  #         label: "Добавить критерий поиска"
-  #         noadd: true
-  #         dictionaryType: "HiddenFieldsDict"
-  #     }
-  #   ]
+       ], ( utils
+          , main
+          , mutils
+          , smodel
+          , ssmodel
+          , tpl
+          , model
+          , kase
+          , sync) ->
 
   setTpls = (kvm) ->
     kvm._meta.tpls = {}
@@ -64,49 +24,23 @@ define [ "utils"
       type ?= "text"
       tpl = $("##{type}-txt-template").html()
       return unless tpl
-   #      throw new Error("Can't find template for #{type}
-   # in #{kvm._meta.model.name}")
       kvm._meta.tpls[f.name] = tpl
 
   constructor: ->
-    date1 = new Date 1380193258500
-    kvm1 = main.buildKVM model,
-      fetched:
-        search  : "qwqweqwe"
-        contact : "Stan"
-        callDate: do date1.getTime
-        callDateDay : do date1.getDay
-        callDateYear: do date1.getFullYear
-        city    : "Moskva"
-        isDealer: true
-    setTpls kvm1
-
-    date2 = new Date 1380293358500
-    kvm2 = main.buildKVM model,
-      fetched:
-        search  : "111"
-        contact : "Kenny"
-        callDate: do date2.getTime
-        callDateDay : do date2.getDay
-        callDateYear: do date2.getFullYear
-        city    : "Sankt-Peterburg"
-        isDealer: false
-    setTpls kvm2
-
     searchKVM = main.buildKVM model, {}
 
-    global.k = searchKVM
-
-    mutableFields = new muTable.MuTable({
-      , searchKVM: searchKVM
-      , maxFieldNum: 4
-      , originFields: ['search', 'city', 'isDealer']
-      , nonReplacedFields: ['caseId']
-    }).showFields
+    tg = smodel.transformFields searchKVM, [kase]
+    rfields = smodel.mkFieldsDynView searchKVM, tg,
+      [ { model: 'Case', name: 'id', fixed: true }
+      , { model: 'Case', name: 'city'    }
+      , { model: 'Case', name: 'car_vin' }
+      , { model: 'Case', name: 'program' }
+      ]
+    console.log tg
 
     ctx =
-      kvms: ko.sorted { kvms: [kvm1, kvm2], sorters: mutils.buildSorters(model)}
-      showFields: mutableFields
+      kvms: ko.sorted { kvms: [], sorters: mutils.buildSorters(model)}
+      showFields: rfields
       searchKVM: searchKVM
 
     ko.applyBindings ctx, $("#search-results")[0]
@@ -146,8 +80,6 @@ define [ "utils"
                         (f) -> _.contains fnames(), f.name
       write: (v) -> fnames(v)
 
-    q = new sync.ServicesSearchQ(searchKVM, model)
-    searchKVM._meta.q = q
     ko.applyBindings searchKVM, $("#search-conditions")[0]
 
   template: tpl

@@ -2,9 +2,10 @@
   <div id="search-results" class="span9">
     <table id="tbl" class="table table-striped table-hover">
       <thead>
-        <tr data-bind="foreach: showFields">
+        <tr data-bind="foreach: showFields.fields">
           <th>
-            <button class="btn btn-link" data-bind="text: meta.label, sort: name">
+            <button class="btn btn-link"
+                    data-bind="text: $root.showFields.labels[$data], sort: name">
             </button>
           </th>
         </tr>

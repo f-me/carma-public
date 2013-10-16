@@ -47,6 +47,20 @@ define ["model/utils"], (mu) ->
     return dict if dict
     return eval(d)
 
+  # Converts lists into objects. Pass either a single array of `[key, value]`
+  # pairs, or two parallel arrays of the same length -- one of keys, and one of
+  # the corresponding values.
+  _.object = (list, values) ->
+    return {} if  _.isEmpty list
+    if values
+      _.object _.zip list, values
+    else
+      _.foldl list, ((a, [k, v]) -> a[k] = v; return a), {}
+
+  window.arrToObj = (key, val, f = _.identity) ->
+    keys = if _.isFunction key then _.map val, key else _.pluck val, key
+    _.object _.zip keys, (_.map val, f)
+
   String.prototype.capitalize = -> @charAt(0).toUpperCase() + @slice(1)
 
   bindRemove = (parent, field, cb) ->

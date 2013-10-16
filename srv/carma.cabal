@@ -62,7 +62,7 @@ Executable carma
     base                        >= 4 && < 5,
     bytestring                  >= 0.9.1 && < 0.11,
     bytestring-lexing           == 0.4.*,
-    carma-models                >= 0.2.3.2 && < 0.3,
+    carma-models                >= 0.2.5 && < 0.3,
     carma-http                  >= 0.3.4 && < 0.4,
     carma-sync                  >= 0.1.7 && < 0.2,
     carma-partner-import        == 0.4,
