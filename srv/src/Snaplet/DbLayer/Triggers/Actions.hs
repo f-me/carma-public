@@ -214,7 +214,7 @@ fillFromContract vin objId = do
       extract (epoch from warrantyEnd)::int8::text,
       carSeller, carDealerTO
       FROM contracttbl c LEFT JOIN programtbl p ON p.id::text = c.program
-      WHERE isactive AND dixi AND carVin = ?
+      WHERE isactive AND dixi AND lower(carVin) like lower(?)
       ORDER BY c.id DESC LIMIT 1
     |]) [vin]
   case res of
