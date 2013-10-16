@@ -5,16 +5,14 @@ define [ "utils"
        , "screens/servicesSearch/model"
        , "text!tpl/screens/servicesSearch.html"
        , "json!/cfg/model/Case?view=search"
-       , "json!/cfg/model/Case"
        , "sync/servicesSearch"
        ], ( utils
           , main
           , mutils
           , smodel
-          , ssmodel
+          , ssmodels
           , tpl
           , model
-          , kase
           , sync) ->
 
   setTpls = (kvm) ->
@@ -29,7 +27,7 @@ define [ "utils"
   constructor: ->
     searchKVM = main.buildKVM model, {}
 
-    tg = smodel.transformFields searchKVM, [kase]
+    tg = smodel.transformFields searchKVM, ssmodels
     rfields = smodel.mkFieldsDynView searchKVM, tg,
       [ { model: 'Case', name: 'id', fixed: true }
       , { model: 'Case', name: 'city'    }

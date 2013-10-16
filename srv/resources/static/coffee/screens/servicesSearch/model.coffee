@@ -1,6 +1,9 @@
-define [], ->
-  resultFields:
-    case: [
+define [ "json!/cfg/model/Case"]
+       ,(ms...) ->
+  allModels = arrToObj 'name', ms
+
+  resultFields =
+    Case: [
       "id"
       "contact_phone1"
       "contact_phone2"
@@ -18,10 +21,15 @@ define [], ->
       "car_make"
       "car_model"
       ]
-    service: [
+    Service: [
       "type"
       "contractor_partner"
       ]
-    towage: [
+    Towage: [
       "towdealer_address"
       ]
+
+  all = $.extend true, {}, allModels
+  for n,m of all
+    m.fields = _.filter m.fields, (f) -> _.contains resultFields[n], f.name
+  return all

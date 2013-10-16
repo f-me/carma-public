@@ -55,7 +55,7 @@ define [], ->
     convn = (m) -> (f) -> "#{m.name}_#{f.name}"
     labels = {}
     fh     = {}
-    for m in models
+    for n,m of models
       $.extend labels, (arrToObj (convn m), m.fields, (f) -> f.meta.label)
       $.extend fh,     (arrToObj (convn m), m.fields, (f) -> [f])
 
