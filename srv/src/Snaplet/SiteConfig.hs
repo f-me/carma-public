@@ -92,11 +92,12 @@ stripModel u m = do
   let withPG f = gets pg_search >>= liftIO . (`withResource` f)
   readableFields <- withPG $ \c -> query c [sql|
     select p.field, max(p.w::int)::bool
-      from "FieldPermission" p, usermetatbl u
+      from "FieldPermission" p, "Role" r, usermetatbl u
       where u.uid = ?::int
         and p.model = ?
         and p.r = true
-        and p.role = ANY (u.roles)
+        and r.id = p.role
+        and r.value = ANY (u.roles)
       group by p.field
     |]
     (unUid uid, modelName m)
