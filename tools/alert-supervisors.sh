@@ -5,6 +5,7 @@ DB_NAME=${1:-carma}
 SUBJECT="[Действия] - Сообщение от CaRMa"
 EMAIL_TO="supervisor@ruamc.ru, support@formalmethods.ru"
 EMAIL_FROM="carma@ruamc.ru"
+EMAIL_SENDER="psa@ruamc.ru"
 
 run_query () {
   psql -c "$1" \
@@ -61,7 +62,7 @@ EOF
 }
 
 send_message () {
-/usr/sbin/sendmail -t << EOF
+/usr/sbin/sendmail -t -r $EMAIL_SENDER << EOF
 From: $EMAIL_FROM
 To: $EMAIL_TO
 Subject: $SUBJECT
@@ -79,9 +80,9 @@ UNASSIGNED="
     replace(caseid, 'case:', 'http://carma:8000/#case/'),
     split_part(caseid, ':', 2),
     assignedto,
-    date_trunc('seconds', now() at time zone 'UTC' - ('5 minutes'::interval + ctime)),
+    date_trunc('seconds', now() at time zone 'UTC' - ctime),
     \"ActionName\".label,
-    duetime,
+    duetime at time zone 'UTC',
     \"City\".label,
     programtbl.label
   FROM
@@ -93,6 +94,7 @@ UNASSIGNED="
   WHERE
     NOT closed
     AND ctime > (now() at time zone 'UTC')::date - 7
+    AND now() at time zone 'UTC' > duetime
     AND name = ANY ('{orderService, callMeMaybe, orderServiceAnalyst, tellMeMore}')
     AND assigntime IS NULL
     AND now() at time zone 'UTC' > ('5 minutes'::interval + ctime)
@@ -103,9 +105,9 @@ OUTSTANDING="
     replace(caseid, 'case:', 'http://carma:8000/#case/'),
     split_part(caseid, ':', 2),
     assignedto,
-    date_trunc('seconds', now() at time zone 'UTC' - ('15 minutes'::interval + assigntime)),
+    date_trunc('seconds', now() at time zone 'UTC' - assigntime),
     \"ActionName\".label,
-    duetime,
+    duetime at time zone 'UTC',
     \"City\".label,
     programtbl.label
   FROM
@@ -117,6 +119,7 @@ OUTSTANDING="
   WHERE
     NOT closed
     AND ctime > (now() at time zone 'UTC')::date - 7
+    AND now() at time zone 'UTC' > ('10 minutes'::interval + duetime)
     AND name = ANY ('{orderService, callMeMaybe, orderServiceAnalyst, tellMeMore}')
     AND (assigntime IS NOT NULL AND closetime IS NULL)
     AND now() at time zone 'UTC' > ('15 minutes'::interval + assigntime)
