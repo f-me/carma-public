@@ -13,17 +13,18 @@ import qualified Data.Map as Map
 import Data.Typeable
 
 import Data.Model
-import Carma.Model.Dictionary      (Dictionary)
-import Carma.Model.CarMake         (CarMake)
-import Carma.Model.CarModel        (CarModel)
-import Carma.Model.City            (City)
-import Carma.Model.FieldPermission (FieldPermission)
-import Carma.Model.NewCaseField    (NewCaseField)
-import Carma.Model.Program         (Program)
-import Carma.Model.Region          (Region)
-import Carma.Model.Role            (Role)
-import Carma.Model.SmsTemplate     (SmsTemplate)
-import Carma.Model.Case            (Case)
+import Carma.Model.Dictionary          (Dictionary)
+import Carma.Model.CarMake             (CarMake)
+import Carma.Model.CarModel            (CarModel)
+import Carma.Model.City                (City)
+import Carma.Model.FieldPermission     (FieldPermission)
+import Carma.Model.NewCaseField        (NewCaseField)
+import Carma.Model.DefaultNewCaseField (DefaultNewCaseField)
+import Carma.Model.Program             (Program)
+import Carma.Model.Region              (Region)
+import Carma.Model.Role                (Role)
+import Carma.Model.SmsTemplate         (SmsTemplate)
+import Carma.Model.Case                (Case)
 
 dispatch :: forall a . Text -> (forall m . Model m => m -> a) -> Maybe a
 dispatch model fn = Map.lookup model modelMap
@@ -37,6 +38,7 @@ dispatch model fn = Map.lookup model modelMap
       ,add (undefined :: City)
       ,add (undefined :: FieldPermission)
       ,add (undefined :: NewCaseField)
+      ,add (undefined :: DefaultNewCaseField)
       ,add (undefined :: Program)
       ,add (undefined :: Region)
       ,add (undefined :: Role)
