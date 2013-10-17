@@ -38,7 +38,7 @@ import System.FilePath
 import System.IO
 import System.Locale
 
-import Database.PostgreSQL.Simple (Query, query_, query)
+import Database.PostgreSQL.Simple (Query, query_, query, execute)
 import Database.PostgreSQL.Simple.SqlQQ
 import qualified Snap.Snaplet.PostgresqlSimple as PS
 import Data.Pool (withResource)
@@ -673,6 +673,28 @@ setRuntimeFlags = do
     upd s (k,True)  = Set.insert (read k) s
     upd s (k,False) = Set.delete (read k) s
     -- upd _ kv = error $ "Unexpected runtime flag: " ++ show kv
+
+restoreProgramDefaults :: AppHandler ()
+restoreProgramDefaults = do
+  Just pgm <- getParam "pgm"
+  withPG pg_search $ \c -> do
+    validPgm <- query c
+      [sql| SELECT 1 FROM programtbl WHERE id = ?::int |]
+      [pgm]
+    case validPgm of
+      [[1::Int]] -> do
+        void $ execute c
+          [sql| DELETE FROM "NewCaseField" where program = ? |]
+          [pgm]
+        void $ execute c
+          [sql|
+            INSERT INTO "NewCaseField"
+                (program, field, label, info, required, r, w)
+              SELECT ?::int, field, label, info, required, r, w
+              FROM "DefaultNewCaseField"
+            |]
+          [pgm]
+      _ -> error $ "invalid program " ++ show pgm
 
 
 errorsHandler :: AppHandler ()

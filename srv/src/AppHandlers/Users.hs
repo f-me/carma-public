@@ -9,6 +9,7 @@ Combinators and helpers for user permission checking.
 module AppHandlers.Users
     ( chkAuth
     , chkAuthLocal
+    , chkAuthAdmin
     , chkAuthPartner
     , claimUserActivity
     , claimUserLogout
@@ -40,6 +41,8 @@ localRole = Role "local"
 partnerRole :: Role
 partnerRole = Role "partner"
 
+adminRole :: Role
+adminRole = Role "admin"
 
 ------------------------------------------------------------------------------
 -- | Deny requests from unauthenticated users.
@@ -52,6 +55,8 @@ chkAuth h = chkAuthRoles alwaysPass h
 chkAuthLocal :: AppHandler () -> AppHandler ()
 chkAuthLocal f = chkAuthRoles (hasAnyOfRoles [localRole]) f
 
+chkAuthAdmin :: AppHandler () -> AppHandler ()
+chkAuthAdmin f = chkAuthRoles (hasAnyOfRoles [adminRole]) f
 
 ------------------------------------------------------------------------------
 -- | Deny requests from unauthenticated or non-partner users.

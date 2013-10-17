@@ -124,6 +124,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
             chkAuthLocal . method GET $ printServiceHandler)
          , ("/runtimeFlags",  chkAuthLocal . method GET  $ getRuntimeFlags)
          , ("/runtimeFlags",  chkAuthLocal . method PUT  $ setRuntimeFlags)
+         , ("/restoreProgramDefaults/:pgm",
+            chkAuthAdmin . method PUT $ restoreProgramDefaults)
          , ("/errors",        method POST errorsHandler)
          ]
 

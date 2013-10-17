@@ -7,8 +7,12 @@ CREATE TABLE "NewCaseField" (
     info     text NOT NULL DEFAULT '',
     required bool NOT NULL DEFAULT false,
     r        bool NOT NULL DEFAULT false,
-    w        bool NOT NULL DEFAULT false
+    w        bool NOT NULL DEFAULT false,
+    UNIQUE (field, program)
 );
+
+GRANT ALL ON "DefaultNewCaseField" TO carma_db_sync;
+GRANT ALL ON "DefaultNewCaseField" TO carma_search;
 
 insert into "NewCaseField" (program, field, label, r, w, required) values
   (1,'parentId', 'Ссылка на кейс', true, true, false)

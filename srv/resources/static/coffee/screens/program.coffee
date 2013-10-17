@@ -33,13 +33,18 @@ define [ "model/main"
       .setObjsToRowsConverter(objsToRows)
       .on("click.datatable", "tr", ->
         id = @children[0].innerText
-        modelSetup modelName, viewName, {id}
+        kvm = modelSetup modelName, viewName, {id}
         global.viewsWare["#{modelName}-view"].knockVM)
     screenman.showScreen modelName
 
 
     $('#program-permissions').find('.btn-success').on 'click', ->
       table.dataTable.fnAddData [[ kvm['id'](), kvm['label']() ]]
+
+    $("#restore-defaults-btn").on 'click', ->
+      $.ajax
+        type: 'PUT'
+        url: "/restoreProgramDefaults/#{kvm['id']()}"
 
   constructor: screenSetup
   destructor: ->
