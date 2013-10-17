@@ -70,6 +70,7 @@ import Util as U hiding (render)
 import RuntimeFlag
 
 import Carma.Model
+import qualified Carma.Model.Role as Role
 import Data.Model.Patch (Patch)
 import qualified Data.Model.Patch.Sql as Patch
 
@@ -459,8 +460,8 @@ vinUploadData = scope "vin" $ scope "upload" $ do
       let Aeson.String userPgms' = HM.lookupDefault "" "programs" $ userMeta u'
           userPgms = B.split ',' $ T.encodeUtf8 userPgms'
       when (not $ 
-            (elem (Role "partner") (userRoles u') && elem pgmId userPgms) ||
-            (elem (Role "programman") (userRoles u'))) $
+            (elem (Role $ roleIdent Role.partner) (userRoles u') && elem pgmId userPgms) ||
+            (elem (Role $ roleIdent Role.programman) (userRoles u'))) $
             handleError 403
 
       -- Find out which format is used for this program

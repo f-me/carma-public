@@ -1,4 +1,6 @@
-define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
+define [ "utils"
+       , "lib/ident/role"
+       , "text!tpl/screens/back.html"], (utils, role, tpl) ->
   onBackofficeScreen = true
 
   setupBackOffice = ->
@@ -40,7 +42,7 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
   # Otherwise, just show all actions in the table.
   myActionsHandler = (actions) ->
     if !_.isEmpty actions
-      if _.contains global.user.roles, "back"
+      if _.contains global.user.roles, role.back
         act = _.find actions, (a) ->
           _.contains(
             [ "orderService"

@@ -22,27 +22,20 @@ import Data.Aeson
 import qualified Data.HashMap.Strict as HM
 
 import Snap
-import Snap.Snaplet.Auth hiding (session)
+import Snap.Snaplet.Auth hiding (Role, session)
+import qualified Snap.Snaplet.Auth as Snap (Role(..))
 import Snap.Snaplet.PostgresqlSimple
+
+import Data.Model
+import Carma.Model.Role as Role
 
 import Application
 import AppHandlers.Util
 import AppHandlers.UserAchievements
 import Snaplet.Auth.PGUsers
 
+import Util (roleIdent)
 
-------------------------------------------------------------------------------
--- | Users with this role are considered local (not be confused with
--- users from localhost).
-localRole :: Role
-localRole = Role "local"
-
-
-partnerRole :: Role
-partnerRole = Role "partner"
-
-adminRole :: Role
-adminRole = Role "admin"
 
 ------------------------------------------------------------------------------
 -- | Deny requests from unauthenticated users.
@@ -53,10 +46,12 @@ chkAuth h = chkAuthRoles alwaysPass h
 ------------------------------------------------------------------------------
 -- | Deny requests from unauthenticated or non-local users.
 chkAuthLocal :: AppHandler () -> AppHandler ()
-chkAuthLocal f = chkAuthRoles (hasAnyOfRoles [localRole]) f
+chkAuthLocal f = chkAuthRoles (hasAnyOfRoles [Role.local]) f
+
 
 chkAuthAdmin :: AppHandler () -> AppHandler ()
-chkAuthAdmin f = chkAuthRoles (hasAnyOfRoles [adminRole]) f
+chkAuthAdmin f = chkAuthRoles (hasAnyOfRoles [Role.admin]) f
+
 
 ------------------------------------------------------------------------------
 -- | Deny requests from unauthenticated or non-partner users.
@@ -64,12 +59,14 @@ chkAuthAdmin f = chkAuthRoles (hasAnyOfRoles [adminRole]) f
 -- Auth checker for partner screens
 chkAuthPartner :: AppHandler () -> AppHandler ()
 chkAuthPartner f =
-  chkAuthRoles (hasAnyOfRoles [partnerRole, Role "head", Role "supervisor"]) f
+  chkAuthRoles (hasAnyOfRoles [ Role.partner
+                              , Role.head
+                              , Role.supervisor]) f
 
 
 ------------------------------------------------------------------------------
 -- | A predicate for a list of user roles.
-type RoleChecker = [Role] -> Bool
+type RoleChecker = [Snap.Role] -> Bool
 
 
 ------------------------------------------------------------------------------
@@ -78,14 +75,16 @@ alwaysPass :: RoleChecker
 alwaysPass = const True
 
 
-hasAnyOfRoles :: [Role] -> RoleChecker
+hasAnyOfRoles :: [Ident Role] -> RoleChecker
 hasAnyOfRoles authRoles =
-    \userRoles -> any (flip elem authRoles) userRoles
+    \userRoles -> any (flip elem ar) userRoles
+        where ar = map (\i -> Snap.Role $ roleIdent i) authRoles
 
 
-hasNoneOfRoles :: [Role] -> RoleChecker
+hasNoneOfRoles :: [Ident Role] -> RoleChecker
 hasNoneOfRoles authRoles =
-    \userRoles -> not $ any (flip elem authRoles) userRoles
+    \userRoles -> not $ any (flip elem ar) userRoles
+        where ar = map (\i -> Snap.Role $ roleIdent i) authRoles
 
 
 ------------------------------------------------------------------------------
@@ -134,13 +133,13 @@ serveUserCake
     Just u'  -> do
       usr <- with db $ replaceMetaRolesFromPG u'
       achievements <- userAchievements usr
-      let homePage = case userRoles usr of
-            rs | Role "front"      `elem` rs -> "/#call"
-               | Role "back"       `elem` rs -> "/#back"
-               | Role "bo_control" `elem` rs -> "/#back"
-               | Role "supervisor" `elem` rs -> "/#supervisor"
-               | Role "parguy"     `elem` rs -> "/#partner"
-               | Role "head"       `elem` rs -> "/#rkc"
+      let homePage = case map (\(Snap.Role r) -> r) $ userRoles usr of
+            rs | (roleIdent Role.front)      `elem` rs -> "/#call"
+               | (roleIdent Role.back)       `elem` rs -> "/#back"
+               | (roleIdent Role.bo_control) `elem` rs -> "/#back"
+               | (roleIdent Role.supervisor) `elem` rs -> "/#supervisor"
+               | (roleIdent Role.parguy)     `elem` rs -> "/#partner"
+               | (roleIdent Role.head)       `elem` rs -> "/#rkc"
                | otherwise                   -> ""
       writeJSON $ usr
         {userMeta

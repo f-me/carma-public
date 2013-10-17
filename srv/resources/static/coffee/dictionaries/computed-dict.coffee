@@ -1,4 +1,5 @@
-define ["dictionaries/local-dict"], (ld) ->
+define ["dictionaries/local-dict"
+       ,"lib/ident/role"], (ld, role) ->
   class ComputedDict extends ld.dict
     constructor: (@opts) ->
       [f, a] = @opts.dict.split ':'
@@ -42,11 +43,11 @@ define ["dictionaries/local-dict"], (ld) ->
           , vinFormat: obj.vinFormat
           }
         @source =
-          if _.contains global.user.roles, "partner"
+          if _.contains global.user.roles, role.partner
             _.filter(all_pgms,
                     (e) -> _.contains user_pgms, e.value)
           else
-            if _.contains global.user.roles, "programman"
+            if _.contains global.user.roles, role.programman
               all_pgms
             else
               []

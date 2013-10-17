@@ -92,12 +92,11 @@ stripModel u m = do
   let withPG f = gets pg_search >>= liftIO . (`withResource` f)
   readableFields <- withPG $ \c -> query c [sql|
     select p.field, max(p.w::int)::bool
-      from "FieldPermission" p, "Role" r, usermetatbl u
+      from "FieldPermission" p, usermetatbl u
       where u.uid = ?::int
         and p.model = ?
         and p.r = true
-        and r.id = p.role
-        and r.value = ANY (u.roles)
+        and p.role::text = ANY (u.roles)
       group by p.field
     |]
     (unUid uid, modelName m)
@@ -113,11 +112,17 @@ serveDictionaries = do
   let withPG f = gets pg_search >>= liftIO . (`withResource` f)
   programs <- withPG $ selectJSON
     (Program.value :. Program.label :. eq Program.active True)
-  roles <- withPG $ selectJSON (Role.value :. Role.label)
+  roles <- withPG $ selectJSON $
+           (Model.ident :: Model.IdentF Role.Role) :.
+           Role.label
+  let roles' =
+          map (\(Aeson.Object o) ->
+               Aeson.Object $ HM.insert "value" (o HM.! "id") o)
+          roles
   Aeson.Object dictMap <- gets dictionaries
   writeJSON $ Aeson.Object
     $ HM.insert "Roles"
-      (Aeson.object [("entries", Aeson.Array $ V.fromList roles)])
+      (Aeson.object [("entries", Aeson.Array $ V.fromList roles')])
     $ HM.insert "Programs"
       (Aeson.object [("entries", Aeson.Array $ V.fromList programs)])
       dictMap

@@ -20,6 +20,7 @@ import AppHandlers.Util
 import Utils.HttpErrors
 import Util
 
+import qualified Carma.Model.Role as Role
 
 type MBS = Maybe ByteString
 
@@ -242,7 +243,7 @@ opStatsQ = [sql|
   usermetatbl u
   WHERE ca.row_number = 1
   AND u.login = ca.assignedTo
-  AND ('back' = ANY (u.roles) OR 'bo_control' = ANY (u.roles))
+  AND (? :: text = ANY (u.roles) OR ? :: text = ANY (u.roles))
   ORDER BY closeTime;
   |]
 
@@ -257,7 +258,8 @@ opStatsQ = [sql|
 -- fields `aName`, `caseId`, `openTime`, `closeTime` and `reqTime`.
 opStats :: AppHandler ()
 opStats = do
-  rows <- withPG pg_search $ \c -> query_ c opStatsQ
+  rows <- withPG pg_search $ 
+          \c -> query c opStatsQ (Role.back, Role.bo_control)
   let obj = mkMap [ "login"
                   , "aName"
                   , "caseId"
