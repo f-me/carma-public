@@ -43,12 +43,6 @@
           "label" : "Операторы",
           "type"  : "li",
           "permissions": ["head","supervisor","vwfake","admin","programman"]
-        },
-        {
-          "name" : "editSms",
-          "label" : "Редактирование шаблонов смс",
-          "type" : "li",
-          "permissions" : ["head", "supervisor", "admin", "programman"]
         }
       ]
     },
