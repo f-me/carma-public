@@ -68,49 +68,49 @@ class @AvayaWidget
 
 # FIXME: make a real dictionary from this
 lineInfo =
-  "PEUGEOT+Bosch":
+  "PEUGEOT+B":
     greeting: "Пежо ассистанс, имя оператора, здравствуйте."
     program: "peugeot"
-  "CITROEN+Bosch":
+  "CITROEN+B":
     greeting: "Ситроен ассистанс, имя оператора, здравствуйте."
     program: "citroen"
-  "VW+BOSCH":
+  "VW+B":
     greeting: "VW Гарантия мобильности, имя оператора, чем могу Вам помочь?"
     program: "vwMotor"
-  "GM KOREA":
+  "GMKOR+B":
     greeting: "GM ассистанс, добрый день, чем могу Вам помочь?"
     program: "chevyko"
-  "GM+BOSCH":
+  "GM+B":
     greeting: "GM ассистанс, добрый день, чем могу Вам помочь?"
     program: "opel"
-  "FORD+BOSCH":
+  "FORD+B":
     greeting: "Ford помощь на дорогах, имя оператора, добрый день, чем могу Вам помочь?"
     program: "ford"
-  "ARC CLUBS":
+  "ARC CLUBS+B":
     greeting: "Русский АвтоМотоКлуб, имя оператора, добрый день! (Здравствуйте!)"
     program: "arc"
-  "RAMC B2C":
+  "RAMC B2C+B":
     greeting: "Русский АвтоМотоКлуб, имя оператора, добрый день! (Здравствуйте!)"
     program: "b2cSt"
-  "RUS-LAN":
+  "RUS-LAN+B":
     greeting: "Рус-Лан ассистанс, имя оператора, добрый день, чем могу Вам помочь?"
     program: "ruslan"
-  "ATLANT-M":
+  "ATLANT-M+B":
     greeting: "Атлант М Ассистанс, имя оператора, добрый день, чем могу Вам помочь?"
     program: "atlant"
-  "VW AVILON":
+  "AVILON+B":
     greeting: "Авилон ассистанс, имя оператора, добрый день, чем могу Вам помочь?"
     program: "avilon"
-  "NEZAVISIMOST":
+  "NEZAVISIMOST+B":
     greeting: "Независимость Ассистанс, имя оператора, добрый день, чем могу Вам помочь?"
     program: "nz"
-  "EUROPLAN":
+  "EUROPLAN+B":
     greeting: "Европлан Ассистанс, имя оператора, добрый день, чем могу Вам помочь?"
     program: "euro"
-  "MAPFRE":
+  "MAPFRE+B":
     greeting: "Ассистанс центр МАПФРЕ УОРРЭНТИ, добрый день, чем могу Вам помочь?"
     program: "map"
-  "FWC VNUKOVO":
+  "VW VNUKOVO+B":
     greeting: "Фольксваген Внуково Ассистанс, имя оператора, добрый день, чем могу Вам помочь?"
     program: "vnukovo"
   "UNICREDITBANK":
@@ -119,9 +119,9 @@ lineInfo =
   "VTB 24":
     greeting: "Русский АвтоМотоКлуб, имя оператора, добрый день! (Здравствуйте!)"
     program: "vtb24"
-  "RAMC":
+  "RAMC 1/2+B":
     greeting: "Русский АвтоМотоКлуб, имя оператора, добрый день! (Здравствуйте!)"
     program: ""
-  "RAMC 2":
+  "RAMC 1/2+B":
     greeting: "Русский АвтоМотоКлуб, имя оператора, добрый день! (Здравствуйте!)"
     program: ""
