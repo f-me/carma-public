@@ -226,10 +226,11 @@ selectContracts = do
       extract (epoch from contractValidUntilDate at time zone 'UTC')::int8::text,
       contractValidUntilMilage::text, milageTO::text, cardOwner, manager,
       carSeller, carDealerTO,
-      u.realname
-      FROM contracttbl c, usermetatbl u
+      u2.realname
+      FROM contracttbl c, usermetatbl u, usermetatbl u2
       WHERE dixi
         AND u.login = ? AND ? = ANY (u.programs)
+        AND c.owner = u2.uid::text
         AND (coalesce(u.isDealer,false) = false OR c.owner = u.uid::text)
         AND c.program = ? AND date(ctime) between ? AND ?
       ORDER BY c.id DESC
