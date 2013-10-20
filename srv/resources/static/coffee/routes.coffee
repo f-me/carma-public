@@ -18,7 +18,6 @@ define [
   "screens/contract"
   "screens/editVin"
   "screens/newVin"
-  "screens/editSms"
   "screens/program"
   "screens/partnersSearch"
   "screens/servicesSearch"
@@ -42,7 +41,6 @@ define [
      , contract
      , editVin
      , newVin
-     , editSms
      , program
      , partnersSearch
      , servicesSearch
@@ -123,10 +121,6 @@ define [
         "template": "editVin-screen-template"
         "views":
           "vin-form": editVin
-      "editSms":
-        "template": "editSms-screen-template"
-        "views":
-          "smsTpl-form": editSms
       "printSrv":
         "template": "printSrv-screen-template"
         "views":
@@ -171,7 +165,6 @@ define [
         "rkc"            : "rkc"
         "rkcOps"         : "rkcOps"
         "rkcFront"       : "rkcFront"
-        "editSms"        : "editSms"
         "program"        : "program"
         "program/:id"    : "loadProgram"
         "printSrv/:model/:id" : "printSrv"
@@ -207,7 +200,6 @@ define [
       rkc           :      -> r.renderScreen("rkc", rkc)
       rkcOps        :      -> r.renderScreen("rkcOps", rkcOps)
       rkcFront      :      -> r.renderScreen("rkcFront", rkcFront)
-      editSms       :      -> r.renderScreen("editSms", editSms)
       program       :      -> r.renderScreen("program", program)
       loadProgram   : (id) -> r.renderScreen("program", program, {"id": id})
       printSrv      : (model,id) ->
