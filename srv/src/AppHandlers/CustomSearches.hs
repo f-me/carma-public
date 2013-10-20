@@ -91,12 +91,19 @@ selectPartners city isActive isDealer makes = do
         ]
   return $ mkMap fields rows
 
+
+-- | Read closed, assignedTo, targetGroup (comma-separated),
+-- duetimeFrom, duetimeTo (timestamps) parameters and serve a list of
+-- matched actions.
 allActionsHandler :: AppHandler ()
 allActionsHandler = do
+  let getRoles = do
+          tg <- getParam "targetGroup"
+          return $ B.split ',' <$> tg
   acts <- join (selectActions
           <$> getParam "closed"
           <*> getParam "assignedTo"
-          <*> getParam "targetGroup"
+          <*> getRoles
           <*> getParam "duetimeFrom"
           <*> getParam "duetimeTo")
   dn <- liftIO $ projNow id
@@ -105,7 +112,7 @@ allActionsHandler = do
                        ]
 
 selectActions
-  :: MBS -> MBS -> MBS -> MBS -> MBS
+  :: MBS -> MBS -> Maybe [ByteString] -> MBS -> MBS
   -> AppHandler [Map ByteString ByteString]
 selectActions mClosed mAssignee mRoles mFrom mTo = do
   let actQ = [sql|
@@ -129,16 +136,16 @@ selectActions mClosed mAssignee mRoles mFrom mTo = do
      WHERE c.id::text = substring(a.caseId, ':(.*)')
      AND (? OR closed = ?)
      AND (? OR assignedTo = ?)
-     AND (? OR targetGroup = ?)
+     AND (? OR targetGroup IN ?)
      AND (? OR extract (epoch from duetime) >= ?)
      AND (? OR extract (epoch from duetime) <= ?);
      |]
   rows <- withPG pg_search $ \c -> query c actQ $
-          (sqlFlagPair False            (== "1") mClosed)               :.
-          (sqlFlagPair (""::ByteString) id       mAssignee)             :.
-          (sqlFlagPair (""::ByteString) id       mRoles)                :.
-          (sqlFlagPair 0                fst      (mFrom >>= B.readInt)) :.
-          (sqlFlagPair 0                fst      (mTo >>= B.readInt))
+          (sqlFlagPair False   (== "1") mClosed)               :.
+          (sqlFlagPair ("")    id       mAssignee)             :.
+          (sqlFlagPair (In []) (In)     mRoles)                :.
+          (sqlFlagPair 0       fst      (mFrom >>= B.readInt)) :.
+          (sqlFlagPair 0       fst      (mTo >>= B.readInt))
   let fields
         = [ "id", "caseId", "parentId", "closed", "name"
           , "assignedTo", "targetGroup", "duetime"
