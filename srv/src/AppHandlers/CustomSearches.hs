@@ -107,31 +107,38 @@ allActionsHandler = do
 selectActions
   :: MBS -> MBS -> MBS -> MBS -> MBS
   -> AppHandler [Map ByteString ByteString]
-selectActions mClosed mAssignee mRole mFrom mTo = do
-  rows <- withPG pg_search $ \c -> query_ c $ fromString
-    $  "SELECT a.id::text, a.caseId, a.parentId,"
-    ++ "       (a.closed::int)::text, a.name, a.assignedTo, a.targetGroup,"
-    ++ "       (extract (epoch from a.duetime at time zone 'UTC')::int8)::text, "
-    ++ "       (extract (epoch from a.ctime at time zone 'UTC')::int8)::text, "
-    ++ "       (extract (epoch from a.assigntime at time zone 'UTC')::int8)::text, "
-    ++ "       (extract (epoch from a.opentime at time zone 'UTC')::int8)::text, "
-    ++ "       (extract (epoch from a.closetime at time zone 'UTC')::int8)::text, "
-    ++ "       a.result, a.priority, a.description, a.comment,"
-    ++ "       c.city, c.program,"
-    ++ "       (extract (epoch from"
-    ++ "         coalesce(s.times_expectedServiceStart, a.duetime)"
-    ++ "          at time zone 'UTC')::int8)::text"
-    ++ "  FROM "
-    ++ "    (actiontbl a LEFT JOIN servicetbl s"
-    ++ "      ON  s.id::text = substring(a.parentid, ':(.*)')"
-    ++ "      AND s.type::text = substring(a.parentId, '(.*):')),"
-    ++ "    casetbl c WHERE true"
-    ++ "                   AND c.id::text = substring(a.caseId, ':(.*)')"
-    ++ (maybe "" (\x -> "  AND closed = " ++ toBool x) mClosed)
-    ++ (maybe "" (\x -> "  AND assignedTo = " ++ quote x) mAssignee)
-    ++ (maybe "" (\x -> "  AND targetGroup = " ++ quote x) mRole)
-    ++ (maybe "" (\x -> "  AND extract (epoch from duetime) >= " ++ int x) mFrom)
-    ++ (maybe "" (\x -> "  AND extract (epoch from duetime) <= " ++ int x) mTo)
+selectActions mClosed mAssignee mRoles mFrom mTo = do
+  let actQ = [sql|
+     SELECT a.id::text, a.caseId, a.parentId,
+           (a.closed::int)::text, a.name, a.assignedTo, a.targetGroup,
+           (extract (epoch from a.duetime at time zone 'UTC')::int8)::text,
+           (extract (epoch from a.ctime at time zone 'UTC')::int8)::text,
+           (extract (epoch from a.assigntime at time zone 'UTC')::int8)::text,
+           (extract (epoch from a.opentime at time zone 'UTC')::int8)::text,
+           (extract (epoch from a.closetime at time zone 'UTC')::int8)::text,
+           a.result, a.priority, a.description, a.comment,
+           c.city, c.program,
+           (extract (epoch from
+             coalesce(s.times_expectedServiceStart, a.duetime)
+              at time zone 'UTC')::int8)::text
+     FROM
+       (actiontbl a LEFT JOIN servicetbl s
+         ON  s.id::text = substring(a.parentid, ':(.*)')
+         AND s.type::text = substring(a.parentId, '(.*):')),
+       casetbl c
+     WHERE c.id::text = substring(a.caseId, ':(.*)')
+     AND (? OR closed = ?)
+     AND (? OR assignedTo = ?)
+     AND (? OR targetGroup = ?)
+     AND (? OR extract (epoch from duetime) >= ?)
+     AND (? OR extract (epoch from duetime) <= ?);
+     |]
+  rows <- withPG pg_search $ \c -> query c actQ $
+          (sqlFlagPair False            (== "1") mClosed)               :.
+          (sqlFlagPair (""::ByteString) id       mAssignee)             :.
+          (sqlFlagPair (""::ByteString) id       mRoles)                :.
+          (sqlFlagPair 0                fst      (mFrom >>= B.readInt)) :.
+          (sqlFlagPair 0                fst      (mTo >>= B.readInt))
   let fields
         = [ "id", "caseId", "parentId", "closed", "name"
           , "assignedTo", "targetGroup", "duetime"
@@ -258,7 +265,7 @@ opStatsQ = [sql|
 -- fields `aName`, `caseId`, `openTime`, `closeTime` and `reqTime`.
 opStats :: AppHandler ()
 opStats = do
-  rows <- withPG pg_search $ 
+  rows <- withPG pg_search $
           \c -> query c opStatsQ (Role.back, Role.bo_control)
   let obj = mkMap [ "login"
                   , "aName"
