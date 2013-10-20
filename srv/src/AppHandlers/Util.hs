@@ -54,8 +54,10 @@ mkMap fields = map $ Map.fromList . zip fields . map (maybe "" id)
 -- if Nothing is provided and False otherwise. Similar to 'maybe'.
 --
 -- This is handy when used with Postgres 'query' in order to support
--- optional select query conditions:
+-- optional select query conditions which are ignored when Nothing is
+-- provided:
 --
+-- > mval <- getParam "someParam"
 -- > query "SELECT * FROM foo WHERE (? AND field = ?);"
 -- >       (sqlFlagPair ""::ByteString id mval)
 sqlFlagPair :: b 
