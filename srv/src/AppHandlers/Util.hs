@@ -8,9 +8,6 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
 
-import Database.PostgreSQL.Simple.Types
-import Database.PostgreSQL.Simple.ToField
-
 import Data.Aeson as Aeson
 
 import Snap
