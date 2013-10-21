@@ -27,6 +27,7 @@ define [ "hooks/common"
                , k.cityStatsHook
                , k.regionHook
                , k.vinExpiredHook
+               , k.vwfakeHook
                ]
 
       "consultation" : [ s.openPartnerSearch ]

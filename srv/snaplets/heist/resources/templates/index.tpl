@@ -420,6 +420,7 @@
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
            {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
+           {{# meta.visibility }}data-bind="visible: {{name}}Visible"{{/ meta.visibility}}
            >
         <div class="control-label">
           <label>{{ meta.label }}

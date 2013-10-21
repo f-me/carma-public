@@ -1,4 +1,4 @@
-define ["utils", "dictionaries"], (u, d) ->
+define ["utils", "dictionaries", "lib/ident/role"], (u, d, role) ->
   fillEventsHistory = (knockVM) -> ->
     t = $("#call-searchtable")
     st = t.dataTable()
@@ -160,3 +160,6 @@ define ["utils", "dictionaries"], (u, d) ->
           expired = true
       expired
 
+  vwfakeHook: (model, knockVM) ->
+    knockVM['callDateVisible'] = ko.computed ->
+      not _.contains global.user.roles, role.vwfake
