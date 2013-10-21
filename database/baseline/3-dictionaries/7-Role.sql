@@ -4,6 +4,8 @@ CREATE TABLE "Role"
   ,label text UNIQUE NOT NULL
   );
 
+GRANT SELECT ON "Role" TO carma_db_sync;
+
 INSERT INTO "Role" (id, value, label) VALUES
   (1, 'all', 'Все')
 , (2, 'local', 'Локальный пользователь')
