@@ -75,15 +75,9 @@ modelFields uid modelName c
             (select * from svc_model union select * from model_name) m
           where (model || 'tbl') = m.table
             and field ilike f.column
-            and p.role = r.role
-            and r
+            and p.role = r.role::int
+            and p.r
       |]
-
-
-data Projection
-  = ProjField {proj_table, proj_field, proj_alias :: Text}
-  | ProjFn    {proj_fn, proj_alias :: Text}
-
 
 
 caseSearch :: SearchHandler b (Either String [Aeson.Value])
@@ -95,44 +89,42 @@ caseSearch = do
   withPG $ \c -> do
     cse_fields <- modelFields uid "case" c
     svc_fields <- modelFields uid "service" c
-    let proj
-          =  [ProjField "casetbl"    f (T.append "cse_" f) | f <- cse_fields]
-          ++ [ProjField "servicetbl" f (T.append "svc_" f) | f <- svc_fields]
-          ++ [ProjFn
-              (T.concat
-                ["(case when servicetbl.type = 'towage' then"
-                ," (select towaddress_address"
-                ,"  from towagetbl t where t.id = servicetbl.id limit 1)"
-                ," else '' end)"
-                ])
-              "svc_towAddr"]
     caseSearchPredicate c args >>= \case
       Left err -> return $ Left err
-      Right pred -> Right . join <$> query_ c
-        (mkQuery proj pred lim
-          (T.concat
-            ["casetbl JOIN servicetbl ON"
-            ," split_part(servicetbl.parentId, ':', 2)::int = casetbl.id"
-            ]))
+      Right pred
+         -> Right . join
+        <$> query_ c (mkQuery cse_fields svc_fields pred lim)
+
 
 search :: SearchHandler b (Either String [Aeson.Value]) -> SearchHandler b ()
 search = (>>= either (finishWithError 500) writeJSON)
 
 
 mkQuery
-   :: [Projection] -> Text -> Int -> Text
+   :: [Text] -> [Text] -> Text -> Int
    -> Query
-mkQuery proj pred lim from
-  = fromString
-  $ printf "SELECT row_to_json(r) FROM (SELECT %s FROM %s WHERE %s LIMIT %i) r"
-    (T.unpack $ T.intercalate ", " $ map mkProj proj)
-    (T.unpack from)
+mkQuery caseProj svcProj pred lim
+  = fromString $ printf ("with"
+      ++ " result(cid,styp,sid) as"
+      ++ "   (select casetbl.id, servicetbl.type, servicetbl.id"
+      ++ "     from casetbl join servicetbl"
+      ++ "       on split_part(servicetbl.parentId, ':', 2)::int = casetbl.id"
+      ++ "     where (%s)),"
+      ++ " json_result as"
+      ++ "   (select"
+      ++ "     row_to_json(c.*) as \"case\", row_to_json(s.*) as \"service\""
+      ++ "     from result r,"
+      ++ "       (select %s from casetbl) as c,"
+      ++ "       (select %s from servicetbl) as s"
+      ++ "     where c.id = r.cid"
+      ++ "       and s.id = r.sid and s.type = r.styp)"
+      ++ " select row_to_json(r) from json_result r limit %i;")
     (T.unpack pred)
+    (T.unpack $ T.intercalate ", " $ map mkProj caseProj)
+    (T.unpack $ T.intercalate ", " $ map mkProj svcProj)
     lim
   where
-    mkProj = \case
-      ProjField t f a -> T.concat [t, ".", f, " as ", a]
-      ProjFn f a      -> T.concat ["(", f, ") as ", a]
+    mkProj f = T.concat [f, " as \"", f, "\""]
 
 
 searchInit
