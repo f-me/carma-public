@@ -1,4 +1,4 @@
-define [ "json!/cfg/model/Case"]
+define [ "json!/cfg/model/Case", "utils"]
        ,(ms...) ->
   allModels = arrToObj 'name', ms
 

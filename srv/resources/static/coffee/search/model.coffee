@@ -1,4 +1,4 @@
-define [], ->
+define ["utils"], ->
 
   class FieldsDynView
     constructor: (@searchKVM, {@labels, @groups}, @defaults) ->
@@ -60,7 +60,7 @@ define [], ->
       $.extend fh,     (arrToObj (convn m), m.fields, (f) -> [f])
 
     groups  = $.extend true, {}, fh
-    for f in searchKVM._meta.model.fields
+    for f in searchKVM._meta.model.fields when not f.meta?.nosearch?
       groups[f.name] = _.map f.meta.search.original, (n) ->
         delete groups["#{n.model}_#{n.name}"]
         fh["#{n.model}_#{n.name}"]

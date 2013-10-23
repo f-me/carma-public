@@ -77,10 +77,26 @@ ko.bindingHandlers.sort =
 
 ko.bindingHandlers.renderField =
   init: (el, acc, allBindigns, fld, ctx) ->
-    tplid = fld.meta.widget
-    tplid = "#{fld.type || 'text'}"
-    tplid = "dictionary-many" if fld.type == "dictionary-set"
-    tpl = Mustache.render $("##{tplid}-field-template").html(), fld
+    return if acc().meta.invisible
+    tplid = acc().meta.widget
+    tplid = "#{acc().type || 'text'}"
+    tplid = "dictionary-many" if acc().type == "dictionary-set"
+    tpl   = Mustache.render $("##{tplid}-field-template").html(), acc()
+
+    if ctx.$root.wrapFields
+      # use some magick: wrap with div, so parser can grab all content
+      # and serialize and parse again to make copy of template, so we
+      # can populate ".content" part of the copy
+      wrap = $("<div/>").html($("##{ctx.$root.wrapFields}-template").html())
+      wrap.find(".content").html($(tpl))
+      # use special context for wrappers, so we will know what field we are
+      # rendering
+      context = { kvm: ctx.$root.kvm, fld: fld }
+
+    tpl = wrap.html() if wrap
+
+    # use default context for usual fields so we can use default templates
+    context ?= ctx.$root.kvm
     ko.utils.setHtml el, tpl
-    ko.applyBindingsToDescendants(ctx.$root, el)
+    ko.applyBindingsToDescendants(context, el)
     return { controlsDescendantBindings: true }
