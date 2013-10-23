@@ -1,4 +1,10 @@
-define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"], (utils, main, tpl, screenman) ->
+define ["utils"
+      , "model/main"
+      , "text!tpl/screens/supervisor.html"
+      , "screenman"
+      , "hooks/common"
+      , "lib/ident/role"
+      ], (utils, main, tpl, screenman, hook, role) ->
 
   dataTableOptions = ->
     aoColumns: utils
@@ -77,7 +83,7 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
       , closed
       , n[obj.name] || ''
       , u[obj.assignedTo] || ''
-      , g[obj.targetGroup] || obj.targetGroup || ''
+      , g[role[obj.targetGroup]] || obj.targetGroup || ''
       , duetime || ''
       , timeLabel
       , r[obj.result] || ''
@@ -88,13 +94,13 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
       , obj.name || ''
       ]
 
-  formatObjURL = ->
+  formatObjURL = (roles) ->
     dateFrom = Date.parse $('#date-min').val()
     dateTo = Date.parse $('#date-max').val()
     if dateFrom and dateTo
       opt =
         closed: $('#closed').val()
-        targetGroup: $('#role').val()
+        targetGroup: roles
         duetimeFrom: utils.toUnix dateFrom
         duetimeTo  : utils.toUnix dateTo
 
@@ -115,6 +121,33 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
     forceRender = ["assignedTo", "priority", "closed", "targetGroup"]
     options = {permEl, focusClass, refs, forceRender}
     main.modelSetup(modelName) viewName, args, options
+
+  roleFieldSetup = ->
+    roleModel =
+      fields: [
+        name: "roles"
+        type: "dictionary-many"
+        meta:
+          label: "Роли"
+          dictionaryName: "Roles"
+      ]
+
+    roleKVM = main.buildKVM roleModel, {}
+    hook.dictManyHook roleModel, roleKVM
+    tpl = $('#dictionary-many-field-template').html()
+    $('#roles').html(Mustache.render tpl, roleModel.fields[0])
+    ko.applyBindings roleKVM, $('#roles')[0]
+    roleKVM.roles role.back
+    roleKVM
+
+  formatRoles = (roleKVM) ->
+    rolesNums = roleKVM.roles().split ','
+    roles = _.reduce role, (memo, num, key) ->
+      if _.contains rolesNums, "#{num}"
+        memo.push key
+      memo
+    , []
+    roles.join(',')
 
   # Update unassigned action counts using currently selected duetime
   # limits
@@ -137,13 +170,9 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
     $('#date-min').val dateFrom.toString('dd.MM.yyyy HH:mm')
     $('#date-max').val dateTo.toString('dd.MM.yyyy HH:mm')
 
-    # deep copy
-    r = $.extend(true, {}, global.dictionaries.Roles)
-    r.entries.unshift {value: "all", label: "Все роли"}
-    ko.applyBindings r, $('#role')[0]
-    $('#role').val 'back'
+    roleKVM = roleFieldSetup()
 
-    objURL = do formatObjURL
+    objURL = formatObjURL formatRoles roleKVM
     tableParams =
       tableName: "supervisor"
       objURL: objURL
@@ -162,7 +191,7 @@ define ["utils", "model/main", "text!tpl/screens/supervisor.html", "screenman"],
     screenman.showScreen modelName
 
     $('#reload').click ->
-      objURL = do formatObjURL
+      objURL = formatObjURL formatRoles roleKVM
       updateActStats()
       table.setObjs objURL unless objURL is ""
 
