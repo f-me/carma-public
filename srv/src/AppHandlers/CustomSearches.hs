@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module AppHandlers.CustomSearches where
@@ -19,6 +20,7 @@ import Application
 import AppHandlers.Util
 import Utils.HttpErrors
 import Util
+import qualified Data.Vector as V
 
 import qualified Carma.Model.Role as Role
 
@@ -301,25 +303,12 @@ busyOps = do
   rows <- withPG pg_search $ \c -> query_ c busyOpsQ
   writeJSON $ mkMap [ "login", "count"] rows
 
-actStatsOrderQ :: Query
-actStatsOrderQ = [sql|
+actStatsQ :: Query
+actStatsQ = [sql|
   SELECT count(*)::text
   FROM actiontbl
   WHERE (assignedTo IS NULL OR assignedTo = '') AND closed = 'f'
-  AND name = ANY('{ "orderService", "orderServiceAnalyst"
-                  , "tellMeMore", "callMeMaybe"}')
-  AND (? OR extract (epoch from duetime) >= ?)
-  AND (? OR extract (epoch from duetime) <= ?);
-  |]
-
-actStatsControlQ :: Query
-actStatsControlQ = [sql|
-  SELECT count(*)::text
-  FROM actiontbl
-  WHERE (assignedTo IS NULL OR assignedTo = '') AND closed = 'f'
-  AND name = ANY('{ "tellClient", "checkStatus"
-                  , "tellDelayClient", "checkEndOfService"
-                  , "getInfoDealerVW"}')
+  AND name = ANY (?)
   AND (? OR extract (epoch from duetime) >= ?)
   AND (? OR extract (epoch from duetime) <= ?);
   |]
@@ -340,10 +329,24 @@ actStats = do
           Just val -> (False, val)
           Nothing -> (True, "0")
   let flags = (fromF, fromDate, toF, toDate)
-  (Only orders:_) <- withPG pg_search $
-                     \c -> query c actStatsOrderQ flags
-  (Only controls:_) <- withPG pg_search $
-                       \c -> query c actStatsControlQ flags
+      orderNames :: [ByteString]
+      orderNames = [ "orderService"
+                   , "orderServiceAnalyst"
+                   , "tellMeMore"
+                   , "callMeMaybe"
+                   ]
+      controlNames :: [ByteString]
+      controlNames = [ "tellClient"
+                     , "checkStatus"
+                     , "tellDelayClient"
+                     , "checkEndOfService"
+                     ]
+  (Only orders:_) <- 
+      withPG pg_search $
+      \c -> query c actStatsQ ((Only $ V.fromList orderNames) :. flags)
+  (Only controls:_) <- 
+      withPG pg_search $
+      \c -> query c actStatsQ ((Only $ V.fromList controlNames) :. flags)
   writeJSON $ M.fromList
                 ([ ("order", orders)
                  , ("control", controls)] :: [(ByteString, ByteString)])
