@@ -83,7 +83,7 @@ define ["utils"
       , closed
       , n[obj.name] || ''
       , u[obj.assignedTo] || ''
-      , g[role[obj.targetGroup]] || obj.targetGroup || ''
+      , g[obj.targetGroup] || obj.targetGroup || ''
       , duetime || ''
       , timeLabel
       , r[obj.result] || ''
@@ -140,15 +140,6 @@ define ["utils"
     roleKVM.roles role.back
     roleKVM
 
-  formatRoles = (roleKVM) ->
-    rolesNums = roleKVM.roles().split ','
-    roles = _.reduce role, (memo, num, key) ->
-      if _.contains rolesNums, "#{num}"
-        memo.push key
-      memo
-    , []
-    roles.join(',')
-
   # Update unassigned action counts using currently selected duetime
   # limits
   updateActStats = () ->
@@ -172,7 +163,7 @@ define ["utils"
 
     roleKVM = roleFieldSetup()
 
-    objURL = formatObjURL formatRoles roleKVM
+    objURL = formatObjURL roleKVM.roles()
     tableParams =
       tableName: "supervisor"
       objURL: objURL
@@ -191,7 +182,7 @@ define ["utils"
     screenman.showScreen modelName
 
     $('#reload').click ->
-      objURL = formatObjURL formatRoles roleKVM
+      objURL = formatObjURL roleKVM.roles()
       updateActStats()
       table.setObjs objURL unless objURL is ""
 
