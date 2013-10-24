@@ -21,6 +21,6 @@ data FieldPermission = FieldPermission
 
 
 instance Model FieldPermission where
-  type TableName FieldPermission = "NewCaseField"
+  type TableName FieldPermission = "FieldPermission"
   modelInfo = mkModelInfo FieldPermission
   modelView _ = modifyView defaultView [readonly field, readonly model]
