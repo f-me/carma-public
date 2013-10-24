@@ -24,6 +24,7 @@ import Carma.Model.Program             (Program)
 import Carma.Model.Region              (Region)
 import Carma.Model.Role                (Role)
 import Carma.Model.SmsTemplate         (SmsTemplate)
+import Carma.Model.Sms                 (Sms)
 import Carma.Model.Case                (Case)
 
 dispatch :: forall a . Text -> (forall m . Model m => m -> a) -> Maybe a
@@ -43,5 +44,6 @@ dispatch model fn = Map.lookup model modelMap
       ,add (undefined :: Region)
       ,add (undefined :: Role)
       ,add (undefined :: SmsTemplate)
+      ,add (undefined :: Sms)
       ,add (undefined :: Case)
       ]

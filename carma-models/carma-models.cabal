@@ -38,6 +38,7 @@ library
     Carma.Model.Region,
     Carma.Model.Role,
     Carma.Model.SmsTemplate,
+    Carma.Model.Sms,
     Carma.Model.Wazzup,
     Carma.Model.Case,
     Carma.Model.Case.Type

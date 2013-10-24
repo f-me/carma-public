@@ -7,6 +7,7 @@ module Data.Model.View
   ,modifyView
   ,textarea
   ,readonly
+  ,invisible
   -- from Data.Model.View.Types
   ,FieldView(..)
   ,ModelView(..)
@@ -90,5 +91,15 @@ readonly fld
     ,\v -> v
       {meta = Map.insert "readonly" (Aeson.Bool True) $ meta v
       ,canWrite = False
+      }
+    )
+
+invisible
+  :: SingI name => (model -> Field typ (FOpt name desc))
+  -> (Text, FieldView m -> FieldView m)
+invisible fld
+  = (fieldName fld
+    ,\v -> v
+      {meta = Map.insert "invisible" (Aeson.Bool True) $ meta v
       }
     )
