@@ -1005,7 +1005,7 @@ closeServiceAndSendInfoVW objId = do
   program <- get objId "caseId" >>= (`get` "program")
   st <- getServiceType objId
   when (program `elem` ["vwMotor", "vwcargo", "peugeot", "citroen"]) $ do
-    dueDelta <- if program `elem` ["peugeot", "citroen"] && st == Just "tech"
+    dueDelta <- if st == Just "tech"
                 then do
                   fse <- getService objId "times_factServiceEnd"
                   return $ changeTime (+5*60) fse
