@@ -144,7 +144,7 @@ define [
           refs: [])
 
       kvm['isActiveDisableDixi'](true)
-      if _.find(global.user.roles, (r) -> r == role.contract_user)
+      if _.find(global.user.roles, (r) -> r == role.partner)
         kvm['commentDisableDixi'](true)  if kvm['commentDisabled']
       if _.find(global.user.roles, (r) -> r == role.contract_admin)
         kvm['disableDixi'](true)

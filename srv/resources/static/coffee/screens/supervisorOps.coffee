@@ -29,9 +29,8 @@ define  [ "utils"
        $.getJSON "/supervisor/opStats", (os) ->
         dt.fnClearTable()
         backRe = new RegExp(role.back)
-        controlRe = new RegExp(role.bo_control)
         
-        rows = for u in us when (backRe.test u.roles || controlRe.test u.roles)
+        rows = for u in us when (backRe.test u.roles)
           do (u) ->
             koUser =
               boCities: ko.observable u.boCities

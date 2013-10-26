@@ -46,11 +46,11 @@ chkAuth h = chkAuthRoles alwaysPass h
 ------------------------------------------------------------------------------
 -- | Deny requests from unauthenticated or non-local users.
 chkAuthLocal :: AppHandler () -> AppHandler ()
-chkAuthLocal f = chkAuthRoles (hasAnyOfRoles [Role.local]) f
+chkAuthLocal f = chkAuthRoles (hasNoneOfRoles [Role.partner]) f
 
 
 chkAuthAdmin :: AppHandler () -> AppHandler ()
-chkAuthAdmin f = chkAuthRoles (hasAnyOfRoles [Role.admin]) f
+chkAuthAdmin f = chkAuthRoles (hasAnyOfRoles [Role.lovAdmin]) f
 
 
 ------------------------------------------------------------------------------

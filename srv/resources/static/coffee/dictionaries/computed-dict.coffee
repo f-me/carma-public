@@ -47,7 +47,7 @@ define ["dictionaries/local-dict"
             _.filter(all_pgms,
                     (e) -> _.contains user_pgms, e.value)
           else
-            if _.contains global.user.roles, role.programman
+            if _.contains global.user.roles, role.vinAdmin
               all_pgms
             else
               []

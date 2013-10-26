@@ -1,3 +1,12 @@
+CREATE TEMPORARY TABLE "FieldPermission_tmp"
+  (role  text
+  ,model text
+  ,field text
+  ,r     bool
+  ,w     bool
+  ,UNIQUE (role,model,field)
+  );
+
 CREATE TABLE "FieldPermission"
   (id    SERIAL PRIMARY KEY
   ,role  int4 REFERENCES "Role"
@@ -8,12512 +17,1452 @@ CREATE TABLE "FieldPermission"
   ,UNIQUE (role,model,field)
   );
 
-COPY "FieldPermission" (id, role, model, field, r, w) FROM stdin;
-1	1	action	parentId	t	t
-2	1	action	caseId	t	t
-134	1	tickets	parentId	t	t
-135	1	towage	parentId	t	t
-136	1	transportation	parentId	t	t
-137	1	usermeta	uid	t	t
-138	1	usermeta	isActive	t	t
-140	1	usermeta	login	t	t
-252	3	averageCommissioner	times_repairEndDate	t	t
-253	3	bank	createTime	t	f
-254	3	bank	payType	t	t
-255	3	bank	falseCall	t	t
-376	3	consultation	payment_costTranscript	t	t
-377	3	consultation	payment_calculatedCost	t	f
-378	3	consultation	payment_overcosted	t	f
-379	3	consultation	payment_limitedCost	t	f
-380	3	consultation	payment_paidByRUAMC	t	t
-381	3	consultation	payment_paidByClient	t	t
-386	3	consultation	times_expectedServiceStart	t	t
-395	3	continue	createTime	t	f
-489	3	deliverClient	cost_serviceTarifOptions	t	t
-490	3	deliverClient	payment_partnerCost	t	t
-491	3	deliverClient	payment_costTranscript	t	t
-492	3	deliverClient	payment_calculatedCost	t	f
-493	3	deliverClient	payment_overcosted	t	f
-494	3	deliverClient	payment_limitedCost	t	f
-495	3	deliverClient	payment_paidByRUAMC	t	t
-496	3	deliverClient	payment_paidByClient	t	t
-602	3	information	whatToSay1	t	t
-603	3	information	contact2	t	t
-604	3	information	contactPhone2	t	t
-605	3	information	whatToSay2	t	t
-606	3	information	contact3	t	t
-607	3	information	contactPhone3	t	t
-608	3	information	whatToSay3	t	t
-609	3	information	status	t	t
-610	3	information	clientSatisfied	t	f
-717	3	rent	carClass	t	t
-718	3	rent	marginalCost	t	f
-719	3	rent	providedFor	t	t
-720	3	rent	rentedMake	t	t
-721	3	rent	rentedModel	t	t
-722	3	rent	status	t	t
-723	3	rent	clientSatisfied	t	f
-724	3	rent	warrantyCase	t	f
-725	3	rent	files	t	t
-726	3	rent	assignedTo	t	f
-727	3	rent	falseCallPercent	t	f
-728	3	rent	cost_countedCost	t	t
-729	3	rent	urgentService	t	t
-730	3	rent	cost_counted	t	t
-731	3	rent	cost_serviceTarifOptions	t	t
-840	3	taxi	times_expectedServiceStart	t	t
-841	3	taxi	times_factServiceStart	t	t
-842	3	taxi	times_expectedServiceEnd	t	t
-843	3	taxi	times_factServiceEnd	t	t
-844	3	taxi	times_expectedServiceFinancialClosure	t	t
-845	3	taxi	times_factServiceFinancialClosure	t	t
-846	3	taxi	times_expectedServiceClosure	t	t
-847	3	taxi	times_factServiceClosure	t	t
-848	3	taxi	times_repairEndDate	t	t
-849	3	tech1	createTime	t	f
-850	3	tech1	payType	t	t
-851	3	tech1	falseCall	t	t
-852	3	tech1	clientCancelReason	t	t
-853	3	tech1	requestType	t	t
-854	3	tech1	whatToSay1	t	t
-959	3	tickets	times_expectedServiceStart	t	t
-960	3	tickets	times_factServiceStart	t	t
-1069	3	transportation	times_repairEndDate	t	t
-1070	3	vin	program	t	t
-1071	4	action	comment	t	t
-1072	4	action	result	t	t
-1073	4	action	assignedTo	t	t
-1074	4	action	targetGroup	t	t
-1075	4	action	priority	t	t
-1076	4	action	closed	t	t
-1077	4	averageCommissioner	createTime	t	f
-1119	4	bank	createTime	t	f
-1187	4	case	contact_phone4	t	t
-1188	4	case	contact_ownerName	t	t
-1189	4	case	contact_contactOwner	t	t
-1190	4	case	contact_ownerEmail	t	t
-1191	4	case	contact_ownerPhone1	t	t
-1192	4	case	contact_ownerPhone2	t	t
-1193	4	case	contact_ownerPhone3	t	t
-1194	4	case	contact_ownerPhone4	t	t
-1195	4	case	car_vin	t	t
-1305	4	deliverCar	payType	t	t
-1306	4	deliverCar	falseCall	t	t
-1307	4	deliverCar	clientCancelReason	t	t
-1308	4	deliverCar	marginalCost	t	f
-1309	4	deliverCar	status	t	t
-1311	4	deliverCar	warrantyCase	t	t
-1415	4	deliverParts	times_factServiceEnd	t	t
-1416	4	deliverParts	times_expectedServiceFinancialClosure	t	t
-1417	4	deliverParts	times_factServiceFinancialClosure	t	t
-1418	4	deliverParts	times_expectedServiceClosure	t	t
-1419	4	deliverParts	times_factServiceClosure	t	t
-1420	4	deliverParts	times_repairEndDate	t	t
-1421	4	hotel	createTime	t	f
-1422	4	hotel	payType	t	t
-1531	4	insurance	times_expectedServiceStart	t	t
-1532	4	insurance	times_factServiceStart	t	t
-1533	4	insurance	times_expectedServiceEnd	t	t
-1534	4	insurance	times_factServiceEnd	t	t
-1535	4	insurance	times_expectedServiceFinancialClosure	t	t
-1536	4	insurance	times_factServiceFinancialClosure	t	t
-1537	4	insurance	times_expectedServiceClosure	t	t
-1538	4	insurance	times_factServiceClosure	t	t
-1653	4	sober	toAddress_address	t	t
-1654	4	sober	toAddress_coords	t	t
-1655	4	sober	toAddress_city	t	t
-1656	4	sober	toAddress_comment	t	t
-1662	4	sober	times_expectedServiceStart	t	t
-1663	4	sober	times_factServiceStart	t	t
-1664	4	sober	times_expectedServiceEnd	t	t
-1665	4	sober	times_factServiceEnd	t	t
-1666	4	sober	times_expectedServiceFinancialClosure	t	t
-1667	4	sober	times_factServiceFinancialClosure	t	t
-1668	4	sober	times_expectedServiceClosure	t	t
-1669	4	sober	times_factServiceClosure	t	t
-1671	4	taxi	createTime	t	f
-1782	4	tech	times_expectedServiceStart	t	t
-1783	4	tech	times_factServiceStart	t	t
-1784	4	tech	times_expectedServiceEnd	t	t
-1785	4	tech	times_factServiceEnd	t	t
-1786	4	tech	times_expectedServiceFinancialClosure	t	t
-1787	4	tech	times_factServiceFinancialClosure	t	t
-1788	4	tech	times_expectedServiceClosure	t	t
-1789	4	tech	times_factServiceClosure	t	t
-1790	4	tech	times_repairEndDate	t	t
-1791	4	tickets	createTime	t	f
-2030	6	call	callDate	t	t
-2409	6	insurance	files	t	t
-2935	11	bank	files	t	t
-3257	11	hotel	files	t	t
-3376	11	ken	createTime	t	f
-4355	12	rent	clientSatisfied	t	t
-4728	13	action	comment	t	t
-5062	13	deliverParts	payType	t	t
-5486	13	tech	bill_billNumber	t	f
-5942	24	deliverClient	payType	t	t
-6740	7	consultation	createTime	t	f
-7079	7	ken	createTime	t	f
-8808	16	hotel	payType	t	t
-8892	16	insurance	payType	t	t
-9469	17	case	dealerCause	t	t
-9864	17	ken	createTime	t	f
-10010	17	taxi	clientSatisfied	t	t
-10336	10	case	callDate	t	f
-10477	10	contract	owner	t	f
-10575	10	information	createTime	t	f
-11371	4	hotel	contractor_coords	t	t
-11592	1	tech1	contractor_partnerCancel	t	t
-11593	1	tech1	contractor_address	t	t
-11594	1	tickets	contractor_partner	t	t
-11595	1	tickets	contractor_partnerId	t	t
-11596	1	tickets	contractor_partnerTable	t	t
-11597	1	tickets	contractor_partnerMap	t	t
-11598	1	tickets	contractor_coords	t	t
-11599	1	tickets	contractor_partnerCancel	t	t
-11600	1	tickets	contractor_address	t	t
-11601	1	transportation	contractor_partner	t	t
-11602	1	transportation	contractor_partnerId	t	t
-11603	1	transportation	contractor_partnerTable	t	t
-11731	5	case	contact_phone1	t	t
-11732	5	action	comment	t	t
-11733	5	action	result	t	t
-11734	5	action	assignedTo	t	t
-11735	5	action	targetGroup	t	t
-11736	5	action	priority	t	t
-11737	5	action	closed	t	t
-11738	5	averageCommissioner	createTime	t	f
-11739	5	averageCommissioner	payType	t	t
-11740	5	averageCommissioner	falseCall	t	t
-11741	5	averageCommissioner	clientCancelReason	t	t
-11742	5	averageCommissioner	requestType	t	t
-11743	5	averageCommissioner	whatToSay1	t	t
-11744	5	averageCommissioner	activity	t	t
-11745	5	averageCommissioner	commMilage	t	t
-11746	5	averageCommissioner	status	t	t
-11747	5	averageCommissioner	clientSatisfied	t	t
-11748	5	averageCommissioner	warrantyCase	t	t
-11749	5	averageCommissioner	files	t	t
-11750	5	averageCommissioner	assignedTo	t	f
-11751	5	averageCommissioner	commAddress_address	t	t
-11752	5	averageCommissioner	commAddress_coords	t	t
-11823	5	case	diagnosis2	t	t
-11824	5	case	diagnosis3	t	t
-11825	5	case	diagnosis4	t	t
-11826	5	case	program	t	t
-11827	5	case	vinChecked	t	t
-11828	5	case	city	t	t
-11935	5	continue	payment_partnerCost	t	t
-11936	5	continue	payment_costTranscript	t	t
-11937	5	continue	payment_calculatedCost	t	f
-11938	5	continue	payment_overcosted	t	f
-11939	5	continue	payment_limitedCost	t	f
-11940	5	continue	payment_paidByRUAMC	t	t
-11941	5	continue	payment_paidByClient	t	t
-11942	5	continue	deliverFrom_address	t	t
-11943	5	continue	deliverFrom_coords	t	t
-12037	5	deliverClient	times_factServiceEnd	t	t
-12038	5	deliverClient	times_expectedServiceFinancialClosure	t	t
-12039	5	deliverClient	times_factServiceFinancialClosure	t	t
-12040	5	deliverClient	times_expectedServiceClosure	t	t
-12043	5	deliverParts	createTime	t	f
-12143	5	information	payment_costTranscript	t	t
-12144	5	information	payment_calculatedCost	t	f
-12145	5	information	payment_overcosted	t	f
-12146	5	information	payment_limitedCost	t	f
-12147	5	information	payment_paidByRUAMC	t	t
-12148	5	information	payment_paidByClient	t	t
-12149	5	information	times_expectedServiceStart	t	t
-12157	5	information	times_repairEndDate	t	t
-12254	5	rent	urgentService	t	t
-12255	5	rent	cost_counted	t	t
-12256	5	rent	cost_serviceTarifOptions	t	t
-12257	5	rent	rentAddress_address	t	t
-12258	5	rent	rentAddress_coords	t	t
-12259	5	rent	rentAddress_city	t	t
-12260	5	rent	rentAddress_comment	t	t
-12261	5	rent	towDealer_partner	t	t
-12262	5	rent	towDealer_partnerTable	t	t
-12263	5	rent	towDealer_address	t	t
-12269	5	rent	payment_partnerCost	t	t
-12270	5	rent	payment_costTranscript	t	t
-12271	5	rent	payment_calculatedCost	t	f
-12272	5	rent	payment_overcosted	t	f
-12273	5	rent	payment_limitedCost	t	f
-12274	5	rent	payment_paidByRUAMC	t	t
-12365	5	taxi	times_expectedServiceStart	t	t
-12366	5	taxi	times_factServiceStart	t	t
-12367	5	taxi	times_expectedServiceEnd	t	t
-12368	5	taxi	times_factServiceEnd	t	t
-12369	5	taxi	times_expectedServiceFinancialClosure	t	t
-12370	5	taxi	times_factServiceFinancialClosure	t	t
-12371	5	taxi	times_expectedServiceClosure	t	t
-12372	5	taxi	times_factServiceClosure	t	t
-12373	5	taxi	times_repairEndDate	t	t
-12374	5	tech1	createTime	t	f
-12375	5	tech1	payType	t	t
-12597	5	vin	program	t	t
-12683	5	taxi	contractor_partner	t	t
-12684	5	taxi	contractor_partnerId	t	t
-12685	5	taxi	contractor_partnerTable	t	t
-12686	5	taxi	contractor_partnerMap	t	t
-12687	5	taxi	contractor_coords	t	t
-12688	5	taxi	contractor_partnerCancel	t	t
-12689	5	taxi	contractor_address	t	t
-12690	5	tech1	contractor_partner	t	t
-12691	5	tech1	contractor_partnerId	t	t
-12692	5	tech1	contractor_partnerTable	t	t
-12693	5	tech1	contractor_partnerMap	t	t
-12694	5	tech1	contractor_coords	t	t
-12695	5	tech1	contractor_partnerCancel	t	t
-12696	5	tech1	contractor_address	t	t
-12697	5	tickets	contractor_partner	t	t
-12698	5	tickets	contractor_partnerId	t	t
-12699	5	tickets	contractor_partnerTable	t	t
-12700	5	tickets	contractor_partnerMap	t	t
-12701	5	tickets	contractor_coords	t	t
-12702	5	tickets	contractor_partnerCancel	t	t
-12703	5	tickets	contractor_address	t	t
-12704	5	transportation	contractor_partner	t	t
-12705	5	transportation	contractor_partnerId	t	t
-12706	5	transportation	contractor_partnerTable	t	t
-12707	5	transportation	contractor_partnerMap	t	t
-12708	5	transportation	contractor_coords	t	t
-12709	5	transportation	contractor_partnerCancel	t	t
-12710	5	transportation	contractor_address	t	t
-12711	5	sober	contractor_partner	t	t
-12712	5	sober	contractor_partnerId	t	t
-12713	5	sober	contractor_partnerTable	t	t
-3	1	action	name	t	f
-4	1	action	description	t	f
-5	1	action	duetime	t	t
-6	1	action	ctime	t	f
-7	1	action	mtime	t	f
-8	1	action	openTime	t	f
-10	1	averageCommissioner	parentId	t	t
-11	1	bank	parentId	t	t
-12	1	call	callDate	t	t
-13	1	call	callTaker	t	t
-14	1	call	program	t	t
-15	1	call	wazzup	t	t
-16	1	call	callerName_name	t	t
-17	1	call	callerName_phone1	t	t
-18	1	call	callerName_phone2	t	t
-19	1	call	callerName_phone3	t	t
-20	1	call	callerName_phone4	t	t
-21	1	call	callerName_email	t	t
-22	1	call	callerName_contactOwner	t	t
-23	1	call	callerName_ownerName	t	t
-24	1	call	callerName_ownerPhone1	t	t
-25	1	call	callerName_ownerPhone2	t	t
-26	1	call	callerName_ownerPhone3	t	t
-27	1	call	callerName_ownerPhone4	t	t
-28	1	call	callerName_ownerEmail	t	t
-29	1	call	callerType	t	t
-30	1	call	city	t	t
-31	1	call	carMake	t	t
-32	1	call	carModel	t	t
-33	1	call	callType	t	t
-34	1	case	services	t	t
-35	1	case	actions	t	t
-36	1	consultation	parentId	t	t
-37	1	continue	parentId	t	t
-38	1	contract	isActive	t	t
-39	1	contract	dixi	t	t
-40	1	cost_serviceTarifOption	parentId	t	t
-41	1	cost_serviceTarifOption	tarifOptionId	t	t
-42	1	cost_serviceTarifOption	optionName	t	t
-43	1	cost_serviceTarifOption	price	t	t
-44	1	cost_serviceTarifOption	count	t	t
-45	1	cost_serviceTarifOption	cost	t	t
-46	1	cost_serviceTarifOption	price1	t	t
-47	1	cost_serviceTarifOption	price2	t	t
-48	1	deliverCar	parentId	t	t
-49	1	deliverClient	parentId	t	t
-50	1	deliverParts	parentId	t	t
-51	1	hotel	parentId	t	t
-52	1	information	parentId	t	t
-53	1	insurance	parentId	t	t
-54	1	ken	parentId	t	t
-55	1	partnerCancel	ctime	t	t
-56	1	partnerCancel	caseId	t	t
-57	1	partnerCancel	partnerId	t	t
-58	1	partnerCancel	serviceId	t	t
-59	1	partnerCancel	owner	t	t
-60	1	partnerCancel	partnerCancelReason	t	t
-61	1	partnerCancel	comment	t	t
-63	1	partner	isActive	t	t
-64	1	partner	isDealer	t	t
-65	1	partner	isMobile	t	t
-66	1	partner	name	t	t
-67	1	partner	code	t	t
-68	1	partner	city	t	t
-69	1	partner	makes	t	t
-70	1	partner	addrDeJure	t	t
-71	1	partner	addrDeFacto	t	t
-72	1	partner	coords	t	t
-73	1	partner	workingTime	t	t
-74	1	partner	phone1	t	t
-75	1	partner	fax	t	t
-76	1	partner	closeTicketPhone	t	t
-77	1	partner	closeTicketEmail	t	t
-78	1	partner	personInCharge	t	t
-79	1	partner	serviceAddress	t	t
-80	1	partner	servicePhone	t	t
-81	1	partner	serviceWorking	t	t
-82	1	partner	salesAddress	t	t
-83	1	partner	salesPhone	t	t
-84	1	partner	salesWorking	t	t
-85	1	partner	taxScheme	t	t
-86	1	partner	isPayBackConfirmed	t	t
-87	1	partner	mtime	t	t
-88	1	partner	services	t	t
-89	1	partner	comment	t	t
-90	1	partnerMessage	caseId	t	t
-91	1	partnerMessage	partnerId	t	t
-92	1	partnerMessage	message	t	t
-93	1	partner_service	parentId	t	t
-94	1	partner_service	priority1	t	t
-95	1	partner_service	priority2	t	t
-96	1	partner_service	priority3	t	t
-97	1	partner_service	serviceName	t	t
-98	1	partner_service	falseCallPercent	t	t
-99	1	partner_service	tarifOptions	t	t
-100	1	program	active	t	t
-101	1	program	label	t	t
-102	1	program	client	t	t
-103	1	program	clientCode	t	t
-104	1	program	clientAddress	t	t
-105	1	program	services	t	t
-106	1	program	carCheckPeriodDefault	t	t
-107	1	program	duedateDefault	t	t
-108	1	program	contracts	t	t
-109	1	program	programPermissions	t	t
-110	1	program	vinFormat	t	t
-111	1	program	logo	t	t
-112	1	program	help	t	t
-113	1	programPermissions	parentId	t	t
-114	1	programPermissions	contractField	t	t
-115	1	programPermissions	showTable	t	t
-116	1	programPermissions	showForm	t	t
-117	1	rent	parentId	t	t
-118	1	sms	caseId	t	t
-119	1	sms	phone	t	t
-120	1	sms	template	t	t
-121	1	sms	msg	t	t
-122	1	smsTpl	name	t	t
-123	1	smsTpl	text	t	t
-124	1	smsTpl	smsReciever	t	t
-125	1	smsTpl	isActive	t	t
-126	1	sober	parentId	t	t
-127	1	tarifOption	parentId	t	t
-128	1	tarifOption	optionName	t	t
-129	1	tarifOption	price1	t	t
-130	1	tarifOption	price2	t	t
-131	1	taxi	parentId	t	t
-132	1	tech1	parentId	t	t
-133	1	tech	parentId	t	t
-139	1	usermeta	realName	t	t
-141	1	usermeta	password	t	t
-142	1	usermeta	roles	t	t
-143	1	usermeta	programs	t	t
-144	1	usermeta	boCities	t	t
-145	1	usermeta	boPrograms	t	t
-146	1	usermeta	isDealer	t	t
-147	1	usermeta	workPhone	t	t
-148	1	usermeta	workPhoneSuffix	t	t
-149	1	usermeta	mobilePhone	t	t
-150	1	usermeta	homePhone	t	t
-151	1	usermeta	email	t	t
-152	1	usermeta	birthday	t	t
-153	1	usermeta	position	t	t
-154	1	usermeta	lastactivity	t	t
-155	1	usermeta	lastlogout	t	t
-156	1	vin	car_checkPeriod	t	t
-157	1	vin	car_buyDate	t	t
-158	1	vin	car_engine	t	t
-159	1	vin	car_class	t	t
-160	1	vin	car_liters	t	t
-161	1	vin	car_makeYear	t	t
-162	1	vin	car_model	t	t
-163	1	vin	car_plateNum	t	t
-164	1	vin	car_dims	t	t
-165	1	vin	car_contractType	t	t
-166	1	vin	car_transmission	t	t
-167	1	vin	car_warrantyEnd	t	t
-168	1	vin	car_make	t	t
-169	1	vin	car_vin	t	t
-170	1	vin	car_color	t	t
-171	1	vin	car_mileage	t	t
-172	1	vin	car_checkupDate	t	t
-173	1	vin	car_checkupMileage	t	t
-174	1	vin	car_warrantyStart	t	t
-175	1	vin	car_seller	t	t
-176	1	vin	car_weight	t	t
-177	1	vin	car_dealerTO	t	t
-179	1	vin	car_capacity	t	t
-180	1	vin	car_makeCode	t	t
-181	1	vin	car_modelCode	t	t
-182	1	vin	car_faultCode	t	t
-183	1	vin	cardNumber_cardNumber	t	t
-184	1	vin	cardNumber_validUntilMilage	t	t
-185	1	vin	cardNumber_validFrom	t	t
-186	1	vin	cardNumber_milageTO	t	t
-188	1	vin	cardNumber_validUntil	t	t
-189	1	vin	cardNumber_serviceInterval	t	t
-190	1	vin	cardNumber_manager	t	t
-191	1	vin	contact_phone2	t	t
-192	1	vin	contact_name	t	t
-193	1	vin	contact_phone1	t	t
-194	1	vin	contact_contactOwner	t	t
-195	1	vin	contact_ownerPhone3	t	t
-196	1	vin	contact_ownerEmail	t	t
-197	1	vin	contact_email	t	t
-198	1	vin	contact_ownerPhone1	t	t
-199	1	vin	contact_phone3	t	t
-200	1	vin	contact_ownerPhone2	t	t
-201	1	vin	contact_ownerName	t	t
-202	1	vin	contact_ownerPhone4	t	t
-203	1	vin	contact_phone4	t	t
-204	1	vin	program	t	t
-205	3	action	comment	t	t
-206	3	action	result	t	t
-207	3	action	assignedTo	t	f
-208	3	action	targetGroup	t	f
-209	3	action	priority	t	f
-210	3	action	closed	t	f
-211	3	averageCommissioner	createTime	t	f
-212	3	averageCommissioner	payType	t	t
-213	3	averageCommissioner	falseCall	t	t
-214	3	averageCommissioner	clientCancelReason	t	t
-215	3	averageCommissioner	requestType	t	t
-216	3	averageCommissioner	whatToSay1	t	t
-217	3	averageCommissioner	activity	t	t
-218	3	averageCommissioner	commMilage	t	t
-219	3	averageCommissioner	status	t	t
-220	3	averageCommissioner	clientSatisfied	t	f
-221	3	averageCommissioner	warrantyCase	t	f
-222	3	averageCommissioner	files	t	t
-223	3	averageCommissioner	assignedTo	t	f
-224	3	averageCommissioner	commAddress_address	t	t
-225	3	averageCommissioner	commAddress_coords	t	t
-226	3	averageCommissioner	commAddress_city	t	t
-227	3	averageCommissioner	commAddress_comment	t	t
-228	3	averageCommissioner	urgentService	t	t
-229	3	averageCommissioner	payment_expectedCost	t	t
-230	3	averageCommissioner	cost_countedCost	t	t
-231	3	averageCommissioner	cost_counted	t	t
-232	3	averageCommissioner	cost_serviceTarifOptions	t	t
-233	3	averageCommissioner	payment_partnerCost	t	t
-234	3	averageCommissioner	payment_costTranscript	t	t
-235	3	averageCommissioner	payment_calculatedCost	t	f
-236	3	averageCommissioner	payment_overcosted	t	f
-237	3	averageCommissioner	payment_limitedCost	t	f
-238	3	averageCommissioner	payment_paidByRUAMC	t	t
-239	3	averageCommissioner	payment_paidByClient	t	t
-244	3	averageCommissioner	times_expectedServiceStart	t	t
-245	3	averageCommissioner	times_factServiceStart	t	t
-246	3	averageCommissioner	times_expectedServiceEnd	t	t
-247	3	averageCommissioner	times_factServiceEnd	t	t
-248	3	averageCommissioner	times_expectedServiceFinancialClosure	t	t
-249	3	averageCommissioner	times_factServiceFinancialClosure	t	t
-250	3	averageCommissioner	times_expectedServiceClosure	t	t
-251	3	averageCommissioner	times_factServiceClosure	t	t
-487	3	deliverClient	urgentService	t	t
-600	3	information	contact1	t	t
-256	3	bank	clientCancelReason	t	t
-257	3	bank	requestType	t	t
-258	3	bank	whatToSay1	t	t
-259	3	bank	activity	t	t
-260	3	bank	status	t	t
-261	3	bank	clientSatisfied	t	f
-262	3	bank	warrantyCase	t	f
-263	3	bank	files	t	t
-264	3	bank	assignedTo	t	f
-265	3	bank	urgentService	t	t
-266	3	bank	payment_expectedCost	t	t
-267	3	bank	cost_countedCost	t	t
-268	3	bank	cost_counted	t	t
-269	3	bank	cost_serviceTarifOptions	t	t
-270	3	bank	payment_partnerCost	t	t
-271	3	bank	payment_costTranscript	t	t
-272	3	bank	payment_calculatedCost	t	f
-273	3	bank	payment_overcosted	t	f
-274	3	bank	payment_limitedCost	t	f
-275	3	bank	payment_paidByRUAMC	t	t
-276	3	bank	payment_paidByClient	t	t
-281	3	bank	times_expectedServiceStart	t	t
-282	3	bank	times_factServiceStart	t	t
-283	3	bank	times_expectedServiceEnd	t	t
-284	3	bank	times_factServiceEnd	t	t
-285	3	bank	times_expectedServiceFinancialClosure	t	t
-286	3	bank	times_factServiceFinancialClosure	t	t
-287	3	bank	times_expectedServiceClosure	t	t
-288	3	bank	times_factServiceClosure	t	t
-289	3	bank	times_repairEndDate	t	t
-290	3	call	callDate	t	f
-291	3	call	callTaker	t	f
-292	3	case	callDate	t	f
-293	3	case	callTaker	t	f
-294	3	case	comment	t	t
-295	3	case	diagnosis1	t	t
-296	3	case	diagnosis2	t	t
-297	3	case	diagnosis3	t	t
-298	3	case	diagnosis4	t	t
-299	3	case	program	t	t
-300	3	case	vinChecked	t	t
-301	3	case	city	t	t
-302	3	case	temperature	t	t
-303	3	case	repair	t	f
-304	3	case	dealerCause	t	f
-305	3	case	caseStatus	t	t
-306	3	case	claim	t	t
-307	3	case	betaComment	t	t
-308	3	case	files	t	t
-309	3	case	comments	t	t
-310	3	case	caseAddress_address	t	t
-311	3	case	contact_name	t	t
-312	3	case	cardNumber_cardNumber	t	t
-313	3	case	caseAddress_map	t	t
-314	3	case	caseAddress_coords	t	t
-315	3	case	caseAddress_city	t	t
-316	3	case	caseAddress_comment	t	t
-317	3	case	contact_email	t	t
-318	3	case	contact_phone1	t	t
-319	3	case	contact_phone2	t	t
-320	3	case	contact_phone3	t	t
-321	3	case	contact_phone4	t	t
-322	3	case	contact_ownerName	t	t
-323	3	case	contact_contactOwner	t	t
-324	3	case	contact_ownerEmail	t	t
-325	3	case	contact_ownerPhone1	t	t
-326	3	case	contact_ownerPhone2	t	t
-327	3	case	contact_ownerPhone3	t	t
-328	3	case	contact_ownerPhone4	t	t
-329	3	case	car_vin	t	t
-330	3	case	car_seller	t	t
-331	3	case	car_make	t	t
-332	3	case	car_model	t	t
-333	3	case	car_plateNum	t	t
-334	3	case	car_color	t	t
-335	3	case	car_transmission	t	t
-336	3	case	car_engine	t	t
-337	3	case	car_liters	t	t
-338	3	case	car_capacity	t	t
-339	3	case	car_dims	t	t
-340	3	case	car_weight	t	t
-341	3	case	car_checkPeriod	t	t
-342	3	case	car_class	t	t
-343	3	case	car_buyDate	t	t
-344	3	case	car_mileage	t	t
-345	3	case	car_checkupDate	t	t
-346	3	case	car_checkupMileage	t	t
-347	3	case	car_dealerTO	t	t
-348	3	case	car_makeYear	t	t
-349	3	case	car_warrantyStart	t	t
-350	3	case	car_warrantyEnd	t	t
-351	3	case	car_contractType	t	t
-352	3	case	cardNumber_validFrom	t	f
-353	3	case	cardNumber_validUntil	t	f
-354	3	case	cardNumber_validUntilMilage	t	f
-355	3	case	cardNumber_milageTO	t	f
-356	3	case	cardNumber_serviceInterval	t	f
-358	3	case	cardNumber_manager	t	f
-359	3	consultation	createTime	t	f
-360	3	consultation	payType	t	t
-361	3	consultation	falseCall	t	t
-362	3	consultation	clientCancelReason	t	t
-363	3	consultation	consType	t	t
-364	3	consultation	whatToSay1	t	t
-365	3	consultation	status	t	t
-366	3	consultation	result	t	t
-367	3	consultation	clientSatisfied	t	f
-368	3	consultation	warrantyCase	t	f
-369	3	consultation	files	t	t
-370	3	consultation	assignedTo	t	f
-371	3	consultation	cost_countedCost	t	t
-372	3	consultation	cost_counted	t	t
-373	3	consultation	cost_serviceTarifOptions	t	t
-374	3	consultation	urgentService	t	t
-375	3	consultation	payment_partnerCost	t	t
-488	3	deliverClient	cost_counted	t	t
-601	3	information	contactPhone1	t	t
-387	3	consultation	times_factServiceStart	t	t
-388	3	consultation	times_expectedServiceEnd	t	t
-389	3	consultation	times_factServiceEnd	t	t
-390	3	consultation	times_expectedServiceFinancialClosure	t	t
-391	3	consultation	times_factServiceFinancialClosure	t	t
-392	3	consultation	times_expectedServiceClosure	t	t
-393	3	consultation	times_factServiceClosure	t	t
-394	3	consultation	times_repairEndDate	t	t
-396	3	continue	payType	t	t
-397	3	continue	falseCall	t	t
-398	3	continue	clientCancelReason	t	t
-399	3	continue	deliveryType	t	t
-400	3	continue	status	t	t
-401	3	continue	clientSatisfied	t	f
-402	3	continue	warrantyCase	t	f
-403	3	continue	files	t	t
-404	3	continue	assignedTo	t	f
-405	3	continue	urgentService	t	t
-406	3	continue	payment_expectedCost	t	t
-407	3	continue	cost_countedCost	t	t
-408	3	continue	cost_counted	t	t
-409	3	continue	cost_serviceTarifOptions	t	t
-410	3	continue	payment_partnerCost	t	t
-411	3	continue	payment_costTranscript	t	t
-412	3	continue	payment_calculatedCost	t	f
-413	3	continue	payment_overcosted	t	f
-414	3	continue	payment_limitedCost	t	f
-415	3	continue	payment_paidByRUAMC	t	t
-416	3	continue	payment_paidByClient	t	t
-417	3	continue	deliverFrom_address	t	t
-418	3	continue	deliverFrom_coords	t	t
-419	3	continue	deliverFrom_city	t	t
-420	3	continue	deliverFrom_comment	t	t
-421	3	continue	deliverTo_address	t	t
-422	3	continue	deliverTo_coords	t	t
-423	3	continue	deliverTo_city	t	t
-424	3	continue	deliverTo_comment	t	t
-429	3	continue	times_expectedServiceStart	t	t
-430	3	continue	times_factServiceStart	t	t
-431	3	continue	times_expectedServiceEnd	t	t
-432	3	continue	times_factServiceEnd	t	t
-433	3	continue	times_expectedServiceFinancialClosure	t	t
-434	3	continue	times_factServiceFinancialClosure	t	t
-435	3	continue	times_expectedServiceClosure	t	t
-436	3	continue	times_factServiceClosure	t	t
-437	3	continue	times_repairEndDate	t	t
-438	3	deliverCar	createTime	t	f
-439	3	deliverCar	payType	t	t
-440	3	deliverCar	falseCall	t	t
-441	3	deliverCar	clientCancelReason	t	t
-442	3	deliverCar	marginalCost	t	f
-443	3	deliverCar	status	t	t
-444	3	deliverCar	clientSatisfied	t	f
-445	3	deliverCar	warrantyCase	t	f
-446	3	deliverCar	files	t	t
-447	3	deliverCar	service_tarifOptions	t	t
-448	3	deliverCar	assignedTo	t	f
-449	3	deliverCar	falseCallPercent	t	f
-450	3	deliverCar	toAddress_address	t	t
-451	3	deliverCar	toAddress_coords	t	t
-452	3	deliverCar	toAddress_city	t	t
-453	3	deliverCar	toAddress_comment	t	t
-454	3	deliverCar	urgentService	t	t
-455	3	deliverCar	cost_countedCost	t	t
-456	3	deliverCar	cost_counted	t	t
-457	3	deliverCar	cost_serviceTarifOptions	t	t
-458	3	deliverCar	payment_partnerCost	t	t
-459	3	deliverCar	payment_costTranscript	t	t
-460	3	deliverCar	payment_calculatedCost	t	f
-461	3	deliverCar	payment_overcosted	t	f
-462	3	deliverCar	payment_limitedCost	t	f
-463	3	deliverCar	payment_payType	t	t
-464	3	deliverCar	payment_paidByRUAMC	t	t
-465	3	deliverCar	payment_paidByClient	t	t
-466	3	deliverCar	times_expectedServiceStart	t	t
-467	3	deliverCar	times_factServiceStart	t	t
-468	3	deliverCar	times_expectedServiceEnd	t	t
-469	3	deliverCar	times_factServiceEnd	t	t
-470	3	deliverCar	times_expectedServiceFinancialClosure	t	t
-471	3	deliverCar	times_factServiceFinancialClosure	t	t
-472	3	deliverCar	times_expectedServiceClosure	t	t
-473	3	deliverCar	times_factServiceClosure	t	t
-474	3	deliverCar	times_repairEndDate	t	t
-475	3	deliverClient	createTime	t	f
-476	3	deliverClient	payType	t	t
-477	3	deliverClient	falseCall	t	t
-478	3	deliverClient	clientCancelReason	t	t
-479	3	deliverClient	deliveryType	t	t
-480	3	deliverClient	status	t	t
-481	3	deliverClient	clientSatisfied	t	f
-482	3	deliverClient	warrantyCase	t	f
-483	3	deliverClient	files	t	t
-484	3	deliverClient	assignedTo	t	f
-485	3	deliverClient	falseCallPercent	t	f
-486	3	deliverClient	cost_countedCost	t	t
-497	3	deliverClient	deliverFrom_address	t	t
-498	3	deliverClient	deliverFrom_coords	t	t
-499	3	deliverClient	deliverFrom_city	t	t
-500	3	deliverClient	deliverFrom_comment	t	t
-501	3	deliverClient	deliverTo_address	t	t
-502	3	deliverClient	deliverTo_coords	t	t
-503	3	deliverClient	deliverTo_city	t	t
-504	3	deliverClient	deliverTo_comment	t	t
-509	3	deliverClient	times_expectedServiceStart	t	t
-510	3	deliverClient	times_factServiceStart	t	f
-511	3	deliverClient	times_expectedServiceEnd	t	f
-512	3	deliverClient	times_factServiceEnd	t	f
-513	3	deliverClient	times_expectedServiceFinancialClosure	t	f
-514	3	deliverClient	times_factServiceFinancialClosure	t	f
-515	3	deliverClient	times_expectedServiceClosure	t	f
-516	3	deliverClient	times_factServiceClosure	t	f
-517	3	deliverClient	times_repairEndDate	t	f
-518	3	deliverParts	createTime	t	f
-519	3	deliverParts	payType	t	t
-520	3	deliverParts	falseCall	t	t
-521	3	deliverParts	clientCancelReason	t	t
-522	3	deliverParts	parts	t	t
-523	3	deliverParts	marginalCost	t	f
-524	3	deliverParts	status	t	t
-525	3	deliverParts	clientSatisfied	t	f
-526	3	deliverParts	warrantyCase	t	f
-527	3	deliverParts	files	t	t
-528	3	deliverParts	service_tarifOptions	t	t
-529	3	deliverParts	assignedTo	t	f
-530	3	deliverParts	falseCallPercent	t	f
-531	3	deliverParts	toAddress_address	t	t
-532	3	deliverParts	toAddress_coords	t	t
-533	3	deliverParts	toAddress_city	t	t
-534	3	deliverParts	toAddress_comment	t	t
-535	3	deliverParts	cost_countedCost	t	t
-536	3	deliverParts	urgentService	t	t
-537	3	deliverParts	cost_counted	t	t
-538	3	deliverParts	cost_serviceTarifOptions	t	t
-539	3	deliverParts	payment_partnerCost	t	t
-540	3	deliverParts	payment_costTranscript	t	t
-541	3	deliverParts	payment_calculatedCost	t	f
-542	3	deliverParts	payment_overcosted	t	f
-543	3	deliverParts	payment_limitedCost	t	f
-544	3	deliverParts	payment_paidByRUAMC	t	t
-545	3	deliverParts	payment_paidByClient	t	t
-546	3	deliverParts	times_expectedServiceStart	t	t
-547	3	deliverParts	times_factServiceStart	t	t
-548	3	deliverParts	times_expectedServiceEnd	t	t
-549	3	deliverParts	times_factServiceEnd	t	t
-550	3	deliverParts	times_expectedServiceFinancialClosure	t	t
-551	3	deliverParts	times_factServiceFinancialClosure	t	t
-552	3	deliverParts	times_expectedServiceClosure	t	t
-553	3	deliverParts	times_factServiceClosure	t	t
-554	3	deliverParts	times_repairEndDate	t	t
-555	3	hotel	createTime	t	f
-556	3	hotel	payType	t	t
-557	3	hotel	falseCall	t	t
-558	3	hotel	clientCancelReason	t	t
-559	3	hotel	marginalCost	t	f
-560	3	hotel	providedFor	t	t
-561	3	hotel	status	t	t
-562	3	hotel	clientSatisfied	t	f
-563	3	hotel	warrantyCase	t	f
-564	3	hotel	files	t	t
-565	3	hotel	service_tarifOptions	t	t
-566	3	hotel	assignedTo	t	f
-567	3	hotel	payment_partnerCost	t	t
-568	3	hotel	payment_costTranscript	t	t
-569	3	hotel	payment_calculatedCost	t	f
-570	3	hotel	payment_overcosted	t	f
-571	3	hotel	payment_limitedCost	t	f
-572	3	hotel	payment_paidByRUAMC	t	t
-573	3	hotel	payment_paidByClient	t	t
-574	3	hotel	cost_countedCost	t	t
-575	3	hotel	urgentService	t	t
-576	3	hotel	cost_counted	t	t
-577	3	hotel	cost_serviceTarifOptions	t	t
-578	3	hotel	caseAddress_address	t	t
-579	3	hotel	caseAddress_coords	t	t
-580	3	hotel	caseAddress_city	t	t
-581	3	hotel	caseAddress_comment	t	t
-587	3	hotel	times_expectedServiceStart	t	t
-588	3	hotel	times_factServiceStart	t	t
-589	3	hotel	times_expectedServiceEnd	t	t
-590	3	hotel	times_factServiceEnd	t	t
-591	3	hotel	times_expectedServiceFinancialClosure	t	t
-592	3	hotel	times_factServiceFinancialClosure	t	t
-593	3	hotel	times_expectedServiceClosure	t	t
-594	3	hotel	times_factServiceClosure	t	t
-595	3	hotel	times_repairEndDate	t	t
-596	3	information	createTime	t	f
-597	3	information	payType	t	t
-598	3	information	falseCall	t	t
-599	3	information	clientCancelReason	t	t
-611	3	information	warrantyCase	t	f
-612	3	information	files	t	t
-613	3	information	assignedTo	t	f
-614	3	information	falseCallPercent	t	f
-615	3	information	urgentService	t	t
-616	3	information	payment_expectedCost	t	t
-617	3	information	payment_partnerCost	t	t
-618	3	information	payment_costTranscript	t	t
-619	3	information	payment_calculatedCost	t	f
-620	3	information	payment_overcosted	t	f
-621	3	information	payment_limitedCost	t	f
-622	3	information	payment_paidByRUAMC	t	t
-623	3	information	payment_paidByClient	t	t
-624	3	information	times_expectedServiceStart	t	t
-625	3	information	times_factServiceStart	t	t
-626	3	information	times_expectedServiceEnd	t	t
-627	3	information	times_factServiceEnd	t	t
-628	3	information	times_expectedServiceFinancialClosure	t	t
-629	3	information	times_factServiceFinancialClosure	t	t
-630	3	information	times_expectedServiceClosure	t	t
-631	3	information	times_factServiceClosure	t	t
-632	3	information	times_repairEndDate	t	t
-633	3	insurance	createTime	t	f
-634	3	insurance	payType	t	t
-635	3	insurance	falseCall	t	t
-636	3	insurance	clientCancelReason	t	t
-637	3	insurance	requestType	t	t
-638	3	insurance	whatToSay1	t	t
-639	3	insurance	activity	t	t
-640	3	insurance	commMilage	t	t
-641	3	insurance	status	t	t
-642	3	insurance	clientSatisfied	t	f
-643	3	insurance	warrantyCase	t	f
-644	3	insurance	files	t	t
-645	3	insurance	assignedTo	t	f
-646	3	insurance	commAddress_address	t	t
-647	3	insurance	commAddress_coords	t	t
-648	3	insurance	commAddress_city	t	t
-649	3	insurance	commAddress_comment	t	t
-650	3	insurance	cost_countedCost	t	t
-651	3	insurance	urgentService	t	t
-652	3	insurance	cost_counted	t	t
-653	3	insurance	cost_serviceTarifOptions	t	t
-654	3	insurance	payment_partnerCost	t	t
-655	3	insurance	payment_costTranscript	t	t
-656	3	insurance	payment_calculatedCost	t	f
-657	3	insurance	payment_overcosted	t	f
-658	3	insurance	payment_limitedCost	t	f
-659	3	insurance	payment_paidByRUAMC	t	t
-660	3	insurance	payment_paidByClient	t	t
-665	3	insurance	times_expectedServiceStart	t	t
-666	3	insurance	times_factServiceStart	t	t
-667	3	insurance	times_expectedServiceEnd	t	t
-668	3	insurance	times_factServiceEnd	t	t
-669	3	insurance	times_expectedServiceFinancialClosure	t	t
-670	3	insurance	times_factServiceFinancialClosure	t	t
-671	3	insurance	times_expectedServiceClosure	t	t
-672	3	insurance	times_factServiceClosure	t	t
-673	3	insurance	times_repairEndDate	t	t
-674	3	ken	createTime	t	f
-675	3	ken	payType	t	t
-676	3	ken	falseCall	t	t
-677	3	ken	clientCancelReason	t	t
-678	3	ken	requestType	t	t
-679	3	ken	whatToSay1	t	t
-680	3	ken	activity	t	t
-681	3	ken	status	t	t
-682	3	ken	clientSatisfied	t	f
-683	3	ken	warrantyCase	t	f
-684	3	ken	files	t	t
-685	3	ken	assignedTo	t	f
-686	3	ken	falseCallPercent	t	f
-687	3	ken	cost_countedCost	t	t
-688	3	ken	urgentService	t	t
-689	3	ken	cost_counted	t	t
-690	3	ken	cost_serviceTarifOptions	t	t
-691	3	ken	payment_partnerCost	t	t
-692	3	ken	payment_costTranscript	t	t
-693	3	ken	payment_calculatedCost	t	f
-694	3	ken	payment_overcosted	t	f
-695	3	ken	payment_limitedCost	t	f
-696	3	ken	payment_paidByRUAMC	t	t
-697	3	ken	payment_paidByClient	t	t
-702	3	ken	times_expectedServiceStart	t	t
-703	3	ken	times_factServiceStart	t	t
-704	3	ken	times_expectedServiceEnd	t	t
-705	3	ken	times_factServiceEnd	t	t
-706	3	ken	times_expectedServiceFinancialClosure	t	t
-707	3	ken	times_factServiceFinancialClosure	t	t
-708	3	ken	times_expectedServiceClosure	t	t
-709	3	ken	times_factServiceClosure	t	t
-710	3	ken	times_repairEndDate	t	t
-711	3	partner	comment	t	t
-712	3	rent	createTime	t	f
-713	3	rent	payType	t	t
-714	3	rent	falseCall	t	t
-715	3	rent	clientCancelReason	t	t
-716	3	rent	vinRent	t	f
-732	3	rent	rentAddress_address	t	t
-733	3	rent	rentAddress_coords	t	t
-734	3	rent	rentAddress_city	t	t
-735	3	rent	rentAddress_comment	t	t
-736	3	rent	towDealer_partner	t	t
-737	3	rent	towDealer_partnerTable	t	t
-738	3	rent	towDealer_address	t	t
-744	3	rent	payment_partnerCost	t	t
-745	3	rent	payment_costTranscript	t	t
-746	3	rent	payment_calculatedCost	t	f
-747	3	rent	payment_overcosted	t	f
-748	3	rent	payment_limitedCost	t	f
-749	3	rent	payment_paidByRUAMC	t	t
-750	3	rent	payment_paidByClient	t	t
-751	3	rent	times_expectedServiceStart	t	t
-752	3	rent	times_factServiceStart	t	t
-753	3	rent	times_expectedServiceEnd	t	t
-754	3	rent	times_factServiceEnd	t	t
-755	3	rent	times_expectedServiceFinancialClosure	t	t
-756	3	rent	times_factServiceFinancialClosure	t	t
-757	3	rent	times_expectedServiceClosure	t	t
-758	3	rent	times_factServiceClosure	t	t
-759	3	rent	times_repairEndDate	t	t
-760	3	sober	createTime	t	f
-761	3	sober	payType	t	t
-762	3	sober	falseCall	t	t
-763	3	sober	clientCancelReason	t	t
-764	3	sober	marginalCost	t	f
-765	3	sober	multidrive	t	t
-766	3	sober	status	t	t
-767	3	sober	clientSatisfied	t	f
-768	3	sober	warrantyCase	t	f
-769	3	sober	files	t	t
-770	3	sober	service_tarifOptions	t	t
-771	3	sober	assignedTo	t	f
-772	3	sober	cost_countedCost	t	t
-773	3	sober	urgentService	t	t
-774	3	sober	cost_counted	t	t
-775	3	sober	cost_serviceTarifOptions	t	t
-776	3	sober	payment_partnerCost	t	t
-777	3	sober	payment_costTranscript	t	t
-778	3	sober	payment_calculatedCost	t	f
-779	3	sober	payment_overcosted	t	f
-780	3	sober	payment_limitedCost	t	f
-781	3	sober	payment_paidByRUAMC	t	t
-782	3	sober	payment_paidByClient	t	t
-783	3	sober	fromAddress_address	t	t
-784	3	sober	fromAddress_coords	t	t
-785	3	sober	fromAddress_city	t	t
-786	3	sober	fromAddress_comment	t	t
-787	3	sober	toAddress_address	t	t
-788	3	sober	toAddress_coords	t	t
-789	3	sober	toAddress_city	t	t
-790	3	sober	toAddress_comment	t	t
-796	3	sober	times_expectedServiceStart	t	t
-797	3	sober	times_factServiceStart	t	t
-798	3	sober	times_expectedServiceEnd	t	t
-799	3	sober	times_factServiceEnd	t	t
-800	3	sober	times_expectedServiceFinancialClosure	t	t
-801	3	sober	times_factServiceFinancialClosure	t	t
-802	3	sober	times_expectedServiceClosure	t	t
-803	3	sober	times_factServiceClosure	t	t
-804	3	sober	times_repairEndDate	t	t
-805	3	taxi	createTime	t	f
-806	3	taxi	payType	t	t
-807	3	taxi	falseCall	t	t
-808	3	taxi	clientCancelReason	t	t
-809	3	taxi	marginalCost	t	f
-810	3	taxi	status	t	t
-811	3	taxi	clientSatisfied	t	f
-812	3	taxi	warrantyCase	t	f
-813	3	taxi	files	t	t
-814	3	taxi	service_tarifOptions	t	t
-815	3	taxi	assignedTo	t	f
-816	3	taxi	falseCallPercent	t	f
-817	3	taxi	cost_countedCost	t	t
-818	3	taxi	urgentService	t	t
-819	3	taxi	cost_counted	t	t
-820	3	taxi	cost_serviceTarifOptions	t	t
-821	3	taxi	payment_partnerCost	t	t
-822	3	taxi	payment_costTranscript	t	t
-823	3	taxi	payment_calculatedCost	t	f
-824	3	taxi	payment_overcosted	t	f
-825	3	taxi	payment_limitedCost	t	f
-826	3	taxi	payment_paidByRUAMC	t	t
-827	3	taxi	payment_paidByClient	t	t
-828	3	taxi	taxiFrom_address	t	t
-829	3	taxi	taxiFrom_coords	t	t
-830	3	taxi	taxiFrom_city	t	t
-831	3	taxi	taxiFrom_comment	t	t
-832	3	taxi	taxiTo_address	t	t
-833	3	taxi	taxiTo_coords	t	t
-834	3	taxi	taxiTo_city	t	t
-835	3	taxi	taxiTo_comment	t	t
-855	3	tech1	activity	t	t
-856	3	tech1	status	t	t
-857	3	tech1	clientSatisfied	t	f
-858	3	tech1	warrantyCase	t	f
-859	3	tech1	files	t	t
-860	3	tech1	cost_countedCost	t	t
-861	3	tech1	urgentService	t	t
-862	3	tech1	cost_counted	t	t
-863	3	tech1	cost_serviceTarifOptions	t	t
-864	3	tech1	payment_partnerCost	t	t
-865	3	tech1	payment_costTranscript	t	t
-866	3	tech1	payment_calculatedCost	t	f
-867	3	tech1	payment_overcosted	t	f
-868	3	tech1	payment_limitedCost	t	f
-869	3	tech1	payment_paidByRUAMC	t	t
-870	3	tech1	payment_paidByClient	t	t
-875	3	tech1	times_expectedServiceStart	t	t
-876	3	tech1	times_factServiceStart	t	t
-877	3	tech1	times_expectedServiceEnd	t	t
-878	3	tech1	times_factServiceEnd	t	t
-879	3	tech1	times_expectedServiceFinancialClosure	t	t
-880	3	tech1	times_factServiceFinancialClosure	t	t
-881	3	tech1	times_expectedServiceClosure	t	t
-882	3	tech1	times_factServiceClosure	t	t
-883	3	tech1	times_repairEndDate	t	t
-884	3	tech	createTime	t	f
-885	3	tech	payType	t	t
-886	3	tech	falseCall	t	t
-887	3	tech	clientCancelReason	t	t
-888	3	tech	techType	t	t
-889	3	tech	marginalCost	t	f
-890	3	tech	suburbanMilage	t	t
-891	3	tech	status	t	t
-892	3	tech	clientSatisfied	t	f
-893	3	tech	warrantyCase	t	f
-894	3	tech	files	t	t
-895	3	tech	service_tarifOptions	t	t
-896	3	tech	assignedTo	t	f
-897	3	tech	falseCallPercent	t	f
-898	3	tech	payment_partnerCost	t	t
-899	3	tech	payment_costTranscript	t	t
-900	3	tech	payment_calculatedCost	t	f
-901	3	tech	payment_overcosted	t	f
-902	3	tech	payment_limitedCost	t	f
-903	3	tech	cost_countedCost	t	t
-904	3	tech	urgentService	t	t
-905	3	tech	cost_counted	t	t
-906	3	tech	cost_serviceTarifOptions	t	t
-907	3	tech	payment_paidByRUAMC	t	t
-908	3	tech	payment_paidByClient	t	t
-916	3	tech	times_expectedServiceStart	t	t
-917	3	tech	times_factServiceStart	t	t
-918	3	tech	times_expectedServiceEnd	t	t
-919	3	tech	times_factServiceEnd	t	t
-920	3	tech	times_expectedServiceFinancialClosure	t	t
-921	3	tech	times_factServiceFinancialClosure	t	t
-922	3	tech	times_expectedServiceClosure	t	t
-923	3	tech	times_factServiceClosure	t	t
-924	3	tech	times_repairEndDate	t	t
-925	3	tickets	createTime	t	f
-926	3	tickets	payType	t	t
-927	3	tickets	falseCall	t	t
-928	3	tickets	clientCancelReason	t	t
-929	3	tickets	deliveryType	t	t
-930	3	tickets	status	t	t
-931	3	tickets	clientSatisfied	t	f
-932	3	tickets	warrantyCase	t	f
-933	3	tickets	files	t	t
-934	3	tickets	assignedTo	t	f
-935	3	tickets	falseCallPercent	t	f
-936	3	tickets	cost_countedCost	t	t
-937	3	tickets	ticketsFrom_address	t	t
-938	3	tickets	ticketsFrom_coords	t	t
-939	3	tickets	ticketsFrom_city	t	t
-940	3	tickets	ticketsFrom_comment	t	t
-941	3	tickets	ticketsTo_address	t	t
-942	3	tickets	ticketsTo_coords	t	t
-943	3	tickets	ticketsTo_city	t	t
-944	3	tickets	ticketsTo_comment	t	t
-945	3	tickets	urgentService	t	t
-946	3	tickets	cost_counted	t	t
-947	3	tickets	cost_serviceTarifOptions	t	t
-948	3	tickets	payment_partnerCost	t	t
-949	3	tickets	payment_costTranscript	t	t
-950	3	tickets	payment_calculatedCost	t	f
-951	3	tickets	payment_overcosted	t	f
-952	3	tickets	payment_limitedCost	t	f
-953	3	tickets	payment_paidByRUAMC	t	t
-954	3	tickets	payment_paidByClient	t	t
-961	3	tickets	times_expectedServiceEnd	t	t
-962	3	tickets	times_factServiceEnd	t	t
-963	3	tickets	times_expectedServiceFinancialClosure	t	t
-964	3	tickets	times_factServiceFinancialClosure	t	t
-965	3	tickets	times_expectedServiceClosure	t	t
-966	3	tickets	times_factServiceClosure	t	t
-967	3	tickets	times_repairEndDate	t	t
-968	3	towage	createTime	t	f
-969	3	towage	payType	t	t
-970	3	towage	falseCall	t	t
-971	3	towage	clientCancelReason	t	t
-972	3	towage	towerType	t	t
-973	3	towage	towType	t	t
-974	3	towage	vandalism	t	t
-975	3	towage	accident	t	t
-976	3	towage	dealerDistance	t	t
-977	3	towage	marginalCost	t	f
-978	3	towage	wheelsUnblocked	t	t
-979	3	towage	canNeutral	t	t
-980	3	towage	towingPointPresent	t	t
-981	3	towage	manipulatorPossible	t	t
-982	3	towage	suburbanMilage	t	t
-983	3	towage	status	t	t
-984	3	towage	clientSatisfied	t	f
-985	3	towage	warrantyCase	t	f
-986	3	towage	files	t	t
-987	3	towage	service_tarifOptions	t	t
-988	3	towage	assignedTo	t	f
-989	3	towage	falseCallPercent	t	f
-990	3	towage	cost_countedCost	t	t
-991	3	towage	urgentService	t	t
-992	3	towage	cost_counted	t	t
-993	3	towage	cost_serviceTarifOptions	t	t
-994	3	towage	towAddress_address	t	t
-995	3	towage	towAddress_coords	t	t
-996	3	towage	towAddress_city	t	t
-997	3	towage	towAddress_comment	t	t
-998	3	towage	towAddress_map	t	t
-999	3	towage	payment_partnerCost	t	t
-1000	3	towage	payment_costTranscript	t	t
-1001	3	towage	payment_calculatedCost	t	f
-1002	3	towage	payment_overcosted	t	f
-1003	3	towage	payment_limitedCost	t	f
-1004	3	towage	payment_paidByRUAMC	t	t
-1005	3	towage	payment_paidByClient	t	t
-1006	3	towage	towerAddress_address	t	t
-1007	3	towage	towerAddress_coords	t	t
-1008	3	towage	towerAddress_city	t	t
-1009	3	towage	towerAddress_comment	t	t
-1010	3	towage	towerAddress_map	t	t
-1011	3	towage	towDealer_partner	t	t
-1012	3	towage	towDealer_partnerId	t	t
-1013	3	towage	towDealer_partnerTable	t	t
-1014	3	towage	towDealer_partnerMap	t	t
-1015	3	towage	towDealer_coords	t	t
-1016	3	towage	towDealer_address	t	t
-1017	3	towage	contractor_partner	t	t
-1018	3	towage	contractor_partnerId	t	t
-1019	3	towage	contractor_partnerTable	t	t
-1020	3	towage	contractor_partnerMap	t	t
-1021	3	towage	contractor_coords	t	t
-1022	3	towage	contractor_partnerCancel	t	t
-1023	3	towage	contractor_address	t	t
-1024	3	towage	times_expectedServiceStart	t	t
-1025	3	towage	times_factServiceStart	t	t
-1026	3	towage	times_expectedServiceEnd	t	t
-1027	3	towage	times_factServiceEnd	t	t
-1028	3	towage	times_expectedServiceFinancialClosure	t	t
-1029	3	towage	times_factServiceFinancialClosure	t	t
-1030	3	towage	times_expectedServiceClosure	t	t
-1031	3	towage	times_factServiceClosure	t	t
-1032	3	transportation	createTime	t	f
-1033	3	transportation	payType	t	t
-1034	3	transportation	falseCall	t	t
-1035	3	transportation	clientCancelReason	t	t
-1036	3	transportation	transportType	t	t
-1037	3	transportation	status	t	t
-1038	3	transportation	clientSatisfied	t	f
-1039	3	transportation	warrantyCase	t	f
-1040	3	transportation	files	t	t
-1041	3	transportation	assignedTo	t	f
-1042	3	transportation	falseCallPercent	t	f
-1043	3	transportation	cost_countedCost	t	t
-1044	3	transportation	urgentService	t	t
-1045	3	transportation	cost_counted	t	t
-1046	3	transportation	cost_serviceTarifOptions	t	t
-1047	3	transportation	caseAddress_address	t	t
-1048	3	transportation	caseAddress_coords	t	t
-1049	3	transportation	caseAddress_city	t	t
-1050	3	transportation	caseAddress_comment	t	t
-1051	3	transportation	fromToAddress_address	t	t
-1052	3	transportation	fromToAddress_coords	t	t
-1053	3	transportation	fromToAddress_city	t	t
-1054	3	transportation	fromToAddress_comment	t	t
-1055	3	transportation	payment_partnerCost	t	t
-1056	3	transportation	payment_costTranscript	t	t
-1057	3	transportation	payment_calculatedCost	t	f
-1058	3	transportation	payment_overcosted	t	f
-1059	3	transportation	payment_paidByRUAMC	t	t
-1060	3	transportation	payment_paidByClient	t	t
-1061	3	transportation	times_expectedServiceStart	t	t
-1062	3	transportation	times_factServiceStart	t	t
-1063	3	transportation	times_expectedServiceEnd	t	t
-1064	3	transportation	times_factServiceEnd	t	t
-1065	3	transportation	times_expectedServiceFinancialClosure	t	t
-1066	3	transportation	times_factServiceFinancialClosure	t	t
-1067	3	transportation	times_expectedServiceClosure	t	t
-1184	4	case	contact_phone1	t	t
-1068	3	transportation	times_factServiceClosure	t	t
-1078	4	averageCommissioner	payType	t	t
-1079	4	averageCommissioner	falseCall	t	t
-1080	4	averageCommissioner	clientCancelReason	t	t
-1081	4	averageCommissioner	requestType	t	t
-1082	4	averageCommissioner	whatToSay1	t	t
-1083	4	averageCommissioner	activity	t	t
-1084	4	averageCommissioner	commMilage	t	t
-1085	4	averageCommissioner	status	t	t
-1086	4	averageCommissioner	clientSatisfied	t	t
-1087	4	averageCommissioner	warrantyCase	t	t
-1088	4	averageCommissioner	files	t	t
-1089	4	averageCommissioner	assignedTo	t	f
-1090	4	averageCommissioner	commAddress_address	t	t
-1091	4	averageCommissioner	commAddress_coords	t	t
-1092	4	averageCommissioner	commAddress_city	t	t
-1093	4	averageCommissioner	commAddress_comment	t	t
-1094	4	averageCommissioner	urgentService	t	t
-1095	4	averageCommissioner	payment_expectedCost	t	t
-1096	4	averageCommissioner	cost_countedCost	t	t
-1097	4	averageCommissioner	cost_counted	t	t
-1098	4	averageCommissioner	cost_serviceTarifOptions	t	t
-1099	4	averageCommissioner	payment_partnerCost	t	t
-1100	4	averageCommissioner	payment_costTranscript	t	t
-1101	4	averageCommissioner	payment_calculatedCost	t	f
-1102	4	averageCommissioner	payment_overcosted	t	f
-1103	4	averageCommissioner	payment_limitedCost	t	f
-1104	4	averageCommissioner	payment_paidByRUAMC	t	t
-1105	4	averageCommissioner	payment_paidByClient	t	t
-1110	4	averageCommissioner	times_expectedServiceStart	t	t
-1111	4	averageCommissioner	times_factServiceStart	t	t
-1112	4	averageCommissioner	times_expectedServiceEnd	t	t
-1113	4	averageCommissioner	times_factServiceEnd	t	t
-1114	4	averageCommissioner	times_expectedServiceFinancialClosure	t	t
-1115	4	averageCommissioner	times_factServiceFinancialClosure	t	t
-1116	4	averageCommissioner	times_expectedServiceClosure	t	t
-1117	4	averageCommissioner	times_factServiceClosure	t	t
-1118	4	averageCommissioner	times_repairEndDate	t	t
-1120	4	bank	payType	t	t
-1121	4	bank	falseCall	t	t
-1122	4	bank	clientCancelReason	t	t
-1123	4	bank	requestType	t	t
-1124	4	bank	whatToSay1	t	t
-1125	4	bank	activity	t	t
-1126	4	bank	status	t	t
-1127	4	bank	clientSatisfied	t	t
-1128	4	bank	warrantyCase	t	t
-1129	4	bank	files	t	t
-1130	4	bank	assignedTo	t	f
-1131	4	bank	urgentService	t	t
-1132	4	bank	payment_expectedCost	t	t
-1133	4	bank	cost_countedCost	t	t
-1134	4	bank	cost_counted	t	t
-1135	4	bank	cost_serviceTarifOptions	t	t
-1136	4	bank	payment_partnerCost	t	t
-1137	4	bank	payment_costTranscript	t	t
-1138	4	bank	payment_calculatedCost	t	f
-1139	4	bank	payment_overcosted	t	f
-1140	4	bank	payment_limitedCost	t	f
-1141	4	bank	payment_paidByRUAMC	t	t
-1142	4	bank	payment_paidByClient	t	t
-1147	4	bank	times_expectedServiceStart	t	t
-1148	4	bank	times_factServiceStart	t	t
-1149	4	bank	times_expectedServiceEnd	t	t
-1150	4	bank	times_factServiceEnd	t	t
-1151	4	bank	times_expectedServiceFinancialClosure	t	t
-1152	4	bank	times_factServiceFinancialClosure	t	t
-1153	4	bank	times_expectedServiceClosure	t	t
-1154	4	bank	times_factServiceClosure	t	t
-1155	4	bank	times_repairEndDate	t	t
-1156	4	call	callDate	t	f
-1157	4	call	callTaker	t	f
-1158	4	case	callDate	t	f
-1159	4	case	callTaker	t	f
-1160	4	case	comment	t	t
-1161	4	case	diagnosis1	t	t
-1162	4	case	diagnosis2	t	t
-1163	4	case	diagnosis3	t	t
-1164	4	case	diagnosis4	t	t
-1165	4	case	program	t	t
-1166	4	case	vinChecked	t	t
-1167	4	case	city	t	t
-1168	4	case	temperature	t	t
-1169	4	case	repair	t	f
-1170	4	case	dealerCause	t	t
-1171	4	case	caseStatus	t	t
-1172	4	case	claim	t	t
-1173	4	case	betaComment	t	t
-1174	4	case	files	t	t
-1175	4	case	comments	t	t
-1176	4	case	caseAddress_address	t	t
-1177	4	case	contact_name	t	t
-1178	4	case	cardNumber_cardNumber	t	t
-1179	4	case	caseAddress_map	t	t
-1180	4	case	caseAddress_coords	t	t
-1181	4	case	caseAddress_city	t	t
-1182	4	case	caseAddress_comment	t	t
-1183	4	case	contact_email	t	t
-1185	4	case	contact_phone2	t	t
-1186	4	case	contact_phone3	t	t
-1196	4	case	car_seller	t	t
-1197	4	case	car_make	t	t
-1198	4	case	car_model	t	t
-1199	4	case	car_plateNum	t	t
-1200	4	case	car_color	t	t
-1201	4	case	car_transmission	t	t
-1202	4	case	car_engine	t	t
-1203	4	case	car_liters	t	t
-1204	4	case	car_capacity	t	t
-1205	4	case	car_dims	t	t
-1206	4	case	car_weight	t	t
-1207	4	case	car_checkPeriod	t	t
-1208	4	case	car_class	t	t
-1209	4	case	car_buyDate	t	t
-1210	4	case	car_mileage	t	t
-1211	4	case	car_checkupDate	t	t
-1212	4	case	car_checkupMileage	t	t
-1213	4	case	car_dealerTO	t	t
-1214	4	case	car_makeYear	t	t
-1215	4	case	car_warrantyStart	t	t
-1216	4	case	car_warrantyEnd	t	t
-1217	4	case	car_contractType	t	t
-1218	4	case	cardNumber_validFrom	t	f
-1219	4	case	cardNumber_validUntil	t	f
-1220	4	case	cardNumber_validUntilMilage	t	f
-1221	4	case	cardNumber_milageTO	t	f
-1222	4	case	cardNumber_serviceInterval	t	f
-1224	4	case	cardNumber_manager	t	f
-1225	4	consultation	createTime	t	f
-1226	4	consultation	payType	t	t
-1227	4	consultation	falseCall	t	t
-1228	4	consultation	clientCancelReason	t	t
-1229	4	consultation	consType	t	t
-1230	4	consultation	whatToSay1	t	t
-1231	4	consultation	status	t	t
-1232	4	consultation	result	t	t
-1233	4	consultation	clientSatisfied	t	t
-1234	4	consultation	warrantyCase	t	t
-1235	4	consultation	files	t	t
-1236	4	consultation	assignedTo	t	f
-1237	4	consultation	cost_countedCost	t	t
-1238	4	consultation	cost_counted	t	t
-1239	4	consultation	cost_serviceTarifOptions	t	t
-1240	4	consultation	urgentService	t	t
-1241	4	consultation	payment_partnerCost	t	t
-1242	4	consultation	payment_costTranscript	t	t
-1243	4	consultation	payment_calculatedCost	t	f
-1244	4	consultation	payment_overcosted	t	f
-1245	4	consultation	payment_limitedCost	t	f
-1246	4	consultation	payment_paidByRUAMC	t	t
-1247	4	consultation	payment_paidByClient	t	t
-1252	4	consultation	times_expectedServiceStart	t	t
-1253	4	consultation	times_factServiceStart	t	t
-1254	4	consultation	times_expectedServiceEnd	t	t
-1255	4	consultation	times_factServiceEnd	t	t
-1256	4	consultation	times_expectedServiceFinancialClosure	t	t
-1257	4	consultation	times_factServiceFinancialClosure	t	t
-1258	4	consultation	times_expectedServiceClosure	t	t
-1259	4	consultation	times_factServiceClosure	t	t
-1260	4	consultation	times_repairEndDate	t	t
-1261	4	continue	createTime	t	f
-1262	4	continue	payType	t	t
-1263	4	continue	falseCall	t	t
-1264	4	continue	clientCancelReason	t	t
-1265	4	continue	deliveryType	t	t
-1266	4	continue	status	t	t
-1267	4	continue	clientSatisfied	t	t
-1268	4	continue	warrantyCase	t	t
-1269	4	continue	files	t	t
-1270	4	continue	assignedTo	t	f
-1271	4	continue	urgentService	t	t
-1272	4	continue	payment_expectedCost	t	t
-1273	4	continue	cost_countedCost	t	t
-1274	4	continue	cost_counted	t	t
-1275	4	continue	cost_serviceTarifOptions	t	t
-1276	4	continue	payment_partnerCost	t	t
-1277	4	continue	payment_costTranscript	t	t
-1278	4	continue	payment_calculatedCost	t	f
-1279	4	continue	payment_overcosted	t	f
-1280	4	continue	payment_limitedCost	t	f
-1281	4	continue	payment_paidByRUAMC	t	t
-1282	4	continue	payment_paidByClient	t	t
-1283	4	continue	deliverFrom_address	t	t
-1284	4	continue	deliverFrom_coords	t	t
-1285	4	continue	deliverFrom_city	t	t
-1286	4	continue	deliverFrom_comment	t	t
-1287	4	continue	deliverTo_address	t	t
-1288	4	continue	deliverTo_coords	t	t
-1289	4	continue	deliverTo_city	t	t
-1290	4	continue	deliverTo_comment	t	t
-1295	4	continue	times_expectedServiceStart	t	t
-1296	4	continue	times_factServiceStart	t	t
-1297	4	continue	times_expectedServiceEnd	t	t
-1298	4	continue	times_factServiceEnd	t	t
-1299	4	continue	times_expectedServiceFinancialClosure	t	t
-1300	4	continue	times_factServiceFinancialClosure	t	t
-1301	4	continue	times_expectedServiceClosure	t	t
-1302	4	continue	times_factServiceClosure	t	t
-1303	4	continue	times_repairEndDate	t	t
-1304	4	deliverCar	createTime	t	f
-1310	4	deliverCar	clientSatisfied	t	t
-1312	4	deliverCar	files	t	t
-1313	4	deliverCar	service_tarifOptions	t	t
-1314	4	deliverCar	assignedTo	t	f
-1315	4	deliverCar	falseCallPercent	t	f
-1316	4	deliverCar	toAddress_address	t	t
-1317	4	deliverCar	toAddress_coords	t	t
-1318	4	deliverCar	toAddress_city	t	t
-1319	4	deliverCar	toAddress_comment	t	t
-1320	4	deliverCar	urgentService	t	t
-1321	4	deliverCar	cost_countedCost	t	t
-1322	4	deliverCar	cost_counted	t	t
-1323	4	deliverCar	cost_serviceTarifOptions	t	t
-1324	4	deliverCar	payment_partnerCost	t	t
-1325	4	deliverCar	payment_costTranscript	t	t
-1326	4	deliverCar	payment_calculatedCost	t	f
-1327	4	deliverCar	payment_overcosted	t	f
-1328	4	deliverCar	payment_limitedCost	t	f
-1329	4	deliverCar	payment_payType	t	t
-1330	4	deliverCar	payment_paidByRUAMC	t	t
-1331	4	deliverCar	payment_paidByClient	t	t
-1332	4	deliverCar	times_expectedServiceStart	t	t
-1333	4	deliverCar	times_factServiceStart	t	t
-1334	4	deliverCar	times_expectedServiceEnd	t	t
-1335	4	deliverCar	times_factServiceEnd	t	t
-1336	4	deliverCar	times_expectedServiceFinancialClosure	t	t
-1337	4	deliverCar	times_factServiceFinancialClosure	t	t
-1338	4	deliverCar	times_expectedServiceClosure	t	t
-1339	4	deliverCar	times_factServiceClosure	t	t
-1340	4	deliverCar	times_repairEndDate	t	t
-1341	4	deliverClient	createTime	t	f
-1342	4	deliverClient	payType	t	t
-1343	4	deliverClient	falseCall	t	t
-1344	4	deliverClient	clientCancelReason	t	t
-1345	4	deliverClient	deliveryType	t	t
-1346	4	deliverClient	status	t	t
-1347	4	deliverClient	clientSatisfied	t	t
-1348	4	deliverClient	warrantyCase	t	t
-1349	4	deliverClient	files	t	t
-1350	4	deliverClient	assignedTo	t	f
-1351	4	deliverClient	falseCallPercent	t	f
-1352	4	deliverClient	cost_countedCost	t	t
-1353	4	deliverClient	urgentService	t	t
-1354	4	deliverClient	cost_counted	t	t
-1355	4	deliverClient	cost_serviceTarifOptions	t	t
-1356	4	deliverClient	payment_partnerCost	t	t
-1357	4	deliverClient	payment_costTranscript	t	t
-1358	4	deliverClient	payment_calculatedCost	t	f
-1359	4	deliverClient	payment_overcosted	t	f
-1360	4	deliverClient	payment_limitedCost	t	f
-1361	4	deliverClient	payment_paidByRUAMC	t	t
-1362	4	deliverClient	payment_paidByClient	t	t
-1363	4	deliverClient	deliverFrom_address	t	t
-1364	4	deliverClient	deliverFrom_coords	t	t
-1365	4	deliverClient	deliverFrom_city	t	t
-1366	4	deliverClient	deliverFrom_comment	t	t
-1367	4	deliverClient	deliverTo_address	t	t
-1368	4	deliverClient	deliverTo_coords	t	t
-1369	4	deliverClient	deliverTo_city	t	t
-1370	4	deliverClient	deliverTo_comment	t	t
-1375	4	deliverClient	times_expectedServiceStart	t	t
-1376	4	deliverClient	times_factServiceStart	t	t
-1377	4	deliverClient	times_expectedServiceEnd	t	t
-1378	4	deliverClient	times_factServiceEnd	t	t
-1379	4	deliverClient	times_expectedServiceFinancialClosure	t	t
-1380	4	deliverClient	times_factServiceFinancialClosure	t	t
-1381	4	deliverClient	times_expectedServiceClosure	t	t
-1382	4	deliverClient	times_factServiceClosure	t	t
-1383	4	deliverClient	times_repairEndDate	t	t
-1384	4	deliverParts	createTime	t	f
-1385	4	deliverParts	payType	t	t
-1386	4	deliverParts	falseCall	t	t
-1387	4	deliverParts	clientCancelReason	t	t
-1388	4	deliverParts	parts	t	t
-1389	4	deliverParts	marginalCost	t	f
-1390	4	deliverParts	status	t	t
-1391	4	deliverParts	clientSatisfied	t	t
-1392	4	deliverParts	warrantyCase	t	t
-1393	4	deliverParts	files	t	t
-1394	4	deliverParts	service_tarifOptions	t	t
-1395	4	deliverParts	assignedTo	t	f
-1396	4	deliverParts	falseCallPercent	t	f
-1397	4	deliverParts	toAddress_address	t	t
-1398	4	deliverParts	toAddress_coords	t	t
-1399	4	deliverParts	toAddress_city	t	t
-1400	4	deliverParts	toAddress_comment	t	t
-1401	4	deliverParts	cost_countedCost	t	t
-1402	4	deliverParts	urgentService	t	t
-1403	4	deliverParts	cost_counted	t	t
-1404	4	deliverParts	cost_serviceTarifOptions	t	t
-1405	4	deliverParts	payment_partnerCost	t	t
-1406	4	deliverParts	payment_costTranscript	t	t
-1407	4	deliverParts	payment_calculatedCost	t	f
-1408	4	deliverParts	payment_overcosted	t	f
-1409	4	deliverParts	payment_limitedCost	t	f
-1410	4	deliverParts	payment_paidByRUAMC	t	t
-1411	4	deliverParts	payment_paidByClient	t	t
-1412	4	deliverParts	times_expectedServiceStart	t	t
-1413	4	deliverParts	times_factServiceStart	t	t
-1414	4	deliverParts	times_expectedServiceEnd	t	t
-1423	4	hotel	falseCall	t	t
-1424	4	hotel	clientCancelReason	t	t
-1425	4	hotel	marginalCost	t	f
-1426	4	hotel	providedFor	t	t
-1427	4	hotel	status	t	t
-1428	4	hotel	clientSatisfied	t	t
-1429	4	hotel	warrantyCase	t	t
-1430	4	hotel	files	t	t
-1431	4	hotel	service_tarifOptions	t	t
-1432	4	hotel	assignedTo	t	f
-1433	4	hotel	payment_partnerCost	t	t
-1434	4	hotel	payment_costTranscript	t	t
-1435	4	hotel	payment_calculatedCost	t	f
-1436	4	hotel	payment_overcosted	t	f
-1437	4	hotel	payment_limitedCost	t	f
-1438	4	hotel	payment_paidByRUAMC	t	t
-1439	4	hotel	payment_paidByClient	t	t
-1440	4	hotel	cost_countedCost	t	t
-1441	4	hotel	urgentService	t	t
-1442	4	hotel	cost_counted	t	t
-1443	4	hotel	cost_serviceTarifOptions	t	t
-1444	4	hotel	caseAddress_address	t	t
-1445	4	hotel	caseAddress_coords	t	t
-1446	4	hotel	caseAddress_city	t	t
-1447	4	hotel	caseAddress_comment	t	t
-1453	4	hotel	times_expectedServiceStart	t	t
-1454	4	hotel	times_factServiceStart	t	t
-1455	4	hotel	times_expectedServiceEnd	t	t
-1456	4	hotel	times_factServiceEnd	t	t
-1457	4	hotel	times_expectedServiceFinancialClosure	t	t
-1458	4	hotel	times_factServiceFinancialClosure	t	t
-1459	4	hotel	times_expectedServiceClosure	t	t
-1460	4	hotel	times_factServiceClosure	t	t
-1461	4	hotel	times_repairEndDate	t	t
-1462	4	information	createTime	t	f
-1463	4	information	payType	t	t
-1464	4	information	falseCall	t	t
-1465	4	information	clientCancelReason	t	t
-1466	4	information	contact1	t	t
-1467	4	information	contactPhone1	t	t
-1468	4	information	whatToSay1	t	t
-1469	4	information	contact2	t	t
-1470	4	information	contactPhone2	t	t
-1471	4	information	whatToSay2	t	t
-1472	4	information	contact3	t	t
-1473	4	information	contactPhone3	t	t
-1474	4	information	whatToSay3	t	t
-1475	4	information	status	t	t
-1476	4	information	clientSatisfied	t	t
-1477	4	information	warrantyCase	t	t
-1478	4	information	files	t	t
-1479	4	information	assignedTo	t	f
-1480	4	information	falseCallPercent	t	f
-1481	4	information	urgentService	t	t
-1482	4	information	payment_expectedCost	t	t
-1483	4	information	payment_partnerCost	t	t
-1484	4	information	payment_costTranscript	t	t
-1485	4	information	payment_calculatedCost	t	f
-1486	4	information	payment_overcosted	t	f
-1487	4	information	payment_limitedCost	t	f
-1488	4	information	payment_paidByRUAMC	t	t
-1489	4	information	payment_paidByClient	t	t
-1490	4	information	times_expectedServiceStart	t	t
-1491	4	information	times_factServiceStart	t	t
-1492	4	information	times_expectedServiceEnd	t	t
-1493	4	information	times_factServiceEnd	t	t
-1494	4	information	times_expectedServiceFinancialClosure	t	t
-1495	4	information	times_factServiceFinancialClosure	t	t
-1496	4	information	times_expectedServiceClosure	t	t
-1497	4	information	times_factServiceClosure	t	t
-1498	4	information	times_repairEndDate	t	t
-1499	4	insurance	createTime	t	f
-1500	4	insurance	payType	t	t
-1501	4	insurance	falseCall	t	t
-1502	4	insurance	clientCancelReason	t	t
-1503	4	insurance	requestType	t	t
-1504	4	insurance	whatToSay1	t	t
-1505	4	insurance	activity	t	t
-1506	4	insurance	commMilage	t	t
-1507	4	insurance	status	t	t
-1508	4	insurance	clientSatisfied	t	t
-1509	4	insurance	warrantyCase	t	t
-1510	4	insurance	files	t	t
-1511	4	insurance	assignedTo	t	f
-1512	4	insurance	commAddress_address	t	t
-1513	4	insurance	commAddress_coords	t	t
-1514	4	insurance	commAddress_city	t	t
-1515	4	insurance	commAddress_comment	t	t
-1516	4	insurance	cost_countedCost	t	t
-1517	4	insurance	urgentService	t	t
-1518	4	insurance	cost_counted	t	t
-1519	4	insurance	cost_serviceTarifOptions	t	t
-1520	4	insurance	payment_partnerCost	t	t
-1521	4	insurance	payment_costTranscript	t	t
-1522	4	insurance	payment_calculatedCost	t	f
-1523	4	insurance	payment_overcosted	t	f
-1524	4	insurance	payment_limitedCost	t	f
-1525	4	insurance	payment_paidByRUAMC	t	t
-1526	4	insurance	payment_paidByClient	t	t
-1539	4	insurance	times_repairEndDate	t	t
-1540	4	ken	createTime	t	f
-1541	4	ken	payType	t	t
-1542	4	ken	falseCall	t	t
-1543	4	ken	clientCancelReason	t	t
-1544	4	ken	requestType	t	t
-1545	4	ken	whatToSay1	t	t
-1546	4	ken	activity	t	t
-1547	4	ken	status	t	t
-1548	4	ken	clientSatisfied	t	t
-1549	4	ken	warrantyCase	t	t
-1550	4	ken	files	t	t
-1551	4	ken	assignedTo	t	f
-1552	4	ken	falseCallPercent	t	f
-1553	4	ken	cost_countedCost	t	t
-1554	4	ken	urgentService	t	t
-1555	4	ken	cost_counted	t	t
-1556	4	ken	cost_serviceTarifOptions	t	t
-1557	4	ken	payment_partnerCost	t	t
-1558	4	ken	payment_costTranscript	t	t
-1559	4	ken	payment_calculatedCost	t	f
-1560	4	ken	payment_overcosted	t	f
-1561	4	ken	payment_limitedCost	t	f
-1562	4	ken	payment_paidByRUAMC	t	t
-1563	4	ken	payment_paidByClient	t	t
-1568	4	ken	times_expectedServiceStart	t	t
-1569	4	ken	times_factServiceStart	t	t
-1570	4	ken	times_expectedServiceEnd	t	t
-1571	4	ken	times_factServiceEnd	t	t
-1572	4	ken	times_expectedServiceFinancialClosure	t	t
-1573	4	ken	times_factServiceFinancialClosure	t	t
-1574	4	ken	times_expectedServiceClosure	t	t
-1575	4	ken	times_factServiceClosure	t	t
-1576	4	ken	times_repairEndDate	t	t
-1577	4	partner	comment	t	t
-1578	4	rent	createTime	t	f
-1579	4	rent	payType	t	t
-1580	4	rent	falseCall	t	t
-1581	4	rent	clientCancelReason	t	t
-1582	4	rent	vinRent	t	t
-1583	4	rent	carClass	t	t
-1584	4	rent	marginalCost	t	f
-1585	4	rent	providedFor	t	t
-1586	4	rent	rentedMake	t	t
-1587	4	rent	rentedModel	t	t
-1588	4	rent	status	t	t
-1589	4	rent	clientSatisfied	t	t
-1590	4	rent	warrantyCase	t	t
-1591	4	rent	files	t	t
-1592	4	rent	assignedTo	t	f
-1593	4	rent	falseCallPercent	t	f
-1594	4	rent	cost_countedCost	t	t
-1595	4	rent	urgentService	t	t
-1596	4	rent	cost_counted	t	t
-1597	4	rent	cost_serviceTarifOptions	t	t
-1598	4	rent	rentAddress_address	t	t
-1599	4	rent	rentAddress_coords	t	t
-1600	4	rent	rentAddress_city	t	t
-1601	4	rent	rentAddress_comment	t	t
-1602	4	rent	towDealer_partner	t	t
-1603	4	rent	towDealer_partnerTable	t	t
-1604	4	rent	towDealer_address	t	t
-1610	4	rent	payment_partnerCost	t	t
-1611	4	rent	payment_costTranscript	t	t
-1612	4	rent	payment_calculatedCost	t	f
-1613	4	rent	payment_overcosted	t	f
-1614	4	rent	payment_limitedCost	t	f
-1615	4	rent	payment_paidByRUAMC	t	t
-1616	4	rent	payment_paidByClient	t	t
-1617	4	rent	times_expectedServiceStart	t	t
-1618	4	rent	times_factServiceStart	t	t
-1619	4	rent	times_expectedServiceEnd	t	t
-1620	4	rent	times_factServiceEnd	t	t
-1621	4	rent	times_expectedServiceFinancialClosure	t	t
-1622	4	rent	times_factServiceFinancialClosure	t	t
-1623	4	rent	times_expectedServiceClosure	t	t
-1624	4	rent	times_factServiceClosure	t	t
-1625	4	rent	times_repairEndDate	t	t
-1626	4	sober	createTime	t	f
-1627	4	sober	payType	t	t
-1628	4	sober	falseCall	t	t
-1629	4	sober	clientCancelReason	t	t
-1630	4	sober	marginalCost	t	f
-1631	4	sober	multidrive	t	t
-1632	4	sober	status	t	t
-1633	4	sober	clientSatisfied	t	t
-1634	4	sober	warrantyCase	t	t
-1635	4	sober	files	t	t
-1636	4	sober	service_tarifOptions	t	t
-1637	4	sober	assignedTo	t	f
-1638	4	sober	cost_countedCost	t	t
-1639	4	sober	urgentService	t	t
-1640	4	sober	cost_counted	t	t
-1641	4	sober	cost_serviceTarifOptions	t	t
-1642	4	sober	payment_partnerCost	t	t
-1643	4	sober	payment_costTranscript	t	t
-1644	4	sober	payment_calculatedCost	t	f
-1645	4	sober	payment_overcosted	t	f
-1646	4	sober	payment_limitedCost	t	f
-1647	4	sober	payment_paidByRUAMC	t	t
-1648	4	sober	payment_paidByClient	t	t
-1649	4	sober	fromAddress_address	t	t
-1650	4	sober	fromAddress_coords	t	t
-1651	4	sober	fromAddress_city	t	t
-1652	4	sober	fromAddress_comment	t	t
-1670	4	sober	times_repairEndDate	t	t
-1672	4	taxi	payType	t	t
-1673	4	taxi	falseCall	t	t
-1674	4	taxi	clientCancelReason	t	t
-1675	4	taxi	marginalCost	t	f
-1676	4	taxi	status	t	t
-1677	4	taxi	clientSatisfied	t	t
-1678	4	taxi	warrantyCase	t	t
-1679	4	taxi	files	t	t
-1680	4	taxi	service_tarifOptions	t	t
-1681	4	taxi	assignedTo	t	f
-1682	4	taxi	falseCallPercent	t	f
-1683	4	taxi	cost_countedCost	t	t
-1684	4	taxi	urgentService	t	t
-1685	4	taxi	cost_counted	t	t
-1686	4	taxi	cost_serviceTarifOptions	t	t
-1687	4	taxi	payment_partnerCost	t	t
-1688	4	taxi	payment_costTranscript	t	t
-1689	4	taxi	payment_calculatedCost	t	f
-1690	4	taxi	payment_overcosted	t	f
-1691	4	taxi	payment_limitedCost	t	f
-1692	4	taxi	payment_paidByRUAMC	t	t
-1693	4	taxi	payment_paidByClient	t	t
-1694	4	taxi	taxiFrom_address	t	t
-1695	4	taxi	taxiFrom_coords	t	t
-1696	4	taxi	taxiFrom_city	t	t
-1697	4	taxi	taxiFrom_comment	t	t
-1698	4	taxi	taxiTo_address	t	t
-1699	4	taxi	taxiTo_coords	t	t
-1700	4	taxi	taxiTo_city	t	t
-1701	4	taxi	taxiTo_comment	t	t
-1706	4	taxi	times_expectedServiceStart	t	t
-1707	4	taxi	times_factServiceStart	t	t
-1708	4	taxi	times_expectedServiceEnd	t	t
-1709	4	taxi	times_factServiceEnd	t	t
-1710	4	taxi	times_expectedServiceFinancialClosure	t	t
-1711	4	taxi	times_factServiceFinancialClosure	t	t
-1712	4	taxi	times_expectedServiceClosure	t	t
-1713	4	taxi	times_factServiceClosure	t	t
-1714	4	taxi	times_repairEndDate	t	t
-1715	4	tech1	createTime	t	f
-1716	4	tech1	payType	t	t
-1717	4	tech1	falseCall	t	t
-1718	4	tech1	clientCancelReason	t	t
-1719	4	tech1	requestType	t	t
-1720	4	tech1	whatToSay1	t	t
-1721	4	tech1	activity	t	t
-1722	4	tech1	status	t	t
-1723	4	tech1	clientSatisfied	t	t
-1724	4	tech1	warrantyCase	t	t
-1725	4	tech1	files	t	t
-1726	4	tech1	cost_countedCost	t	t
-1727	4	tech1	urgentService	t	t
-1728	4	tech1	cost_counted	t	t
-1729	4	tech1	cost_serviceTarifOptions	t	t
-1730	4	tech1	payment_partnerCost	t	t
-1731	4	tech1	payment_costTranscript	t	t
-1732	4	tech1	payment_calculatedCost	t	f
-1733	4	tech1	payment_overcosted	t	f
-1734	4	tech1	payment_limitedCost	t	f
-1735	4	tech1	payment_paidByRUAMC	t	t
-1736	4	tech1	payment_paidByClient	t	t
-1741	4	tech1	times_expectedServiceStart	t	t
-1742	4	tech1	times_factServiceStart	t	t
-1743	4	tech1	times_expectedServiceEnd	t	t
-1744	4	tech1	times_factServiceEnd	t	t
-1745	4	tech1	times_expectedServiceFinancialClosure	t	t
-1746	4	tech1	times_factServiceFinancialClosure	t	t
-1747	4	tech1	times_expectedServiceClosure	t	t
-1748	4	tech1	times_factServiceClosure	t	t
-1749	4	tech1	times_repairEndDate	t	t
-1750	4	tech	createTime	t	f
-1751	4	tech	payType	t	t
-1752	4	tech	falseCall	t	t
-1753	4	tech	clientCancelReason	t	t
-1754	4	tech	techType	t	t
-1755	4	tech	marginalCost	t	f
-1756	4	tech	suburbanMilage	t	t
-1757	4	tech	status	t	t
-1758	4	tech	clientSatisfied	t	t
-1759	4	tech	warrantyCase	t	t
-1760	4	tech	files	t	t
-1761	4	tech	service_tarifOptions	t	t
-1762	4	tech	assignedTo	t	f
-1763	4	tech	falseCallPercent	t	f
-1764	4	tech	payment_partnerCost	t	t
-1765	4	tech	payment_costTranscript	t	t
-1766	4	tech	payment_calculatedCost	t	f
-1767	4	tech	payment_overcosted	t	f
-1768	4	tech	payment_limitedCost	t	f
-1769	4	tech	cost_countedCost	t	t
-1770	4	tech	urgentService	t	t
-1771	4	tech	cost_counted	t	t
-1772	4	tech	cost_serviceTarifOptions	t	t
-1773	4	tech	payment_paidByRUAMC	t	t
-1774	4	tech	payment_paidByClient	t	t
-1792	4	tickets	payType	t	t
-1793	4	tickets	falseCall	t	t
-1794	4	tickets	clientCancelReason	t	t
-1795	4	tickets	deliveryType	t	t
-1796	4	tickets	status	t	t
-1797	4	tickets	clientSatisfied	t	t
-1798	4	tickets	warrantyCase	t	t
-1799	4	tickets	files	t	t
-1800	4	tickets	assignedTo	t	f
-1801	4	tickets	falseCallPercent	t	f
-1802	4	tickets	cost_countedCost	t	t
-1803	4	tickets	ticketsFrom_address	t	t
-1804	4	tickets	ticketsFrom_coords	t	t
-1805	4	tickets	ticketsFrom_city	t	t
-1806	4	tickets	ticketsFrom_comment	t	t
-1807	4	tickets	ticketsTo_address	t	t
-1808	4	tickets	ticketsTo_coords	t	t
-1809	4	tickets	ticketsTo_city	t	t
-1810	4	tickets	ticketsTo_comment	t	t
-1811	4	tickets	urgentService	t	t
-1812	4	tickets	cost_counted	t	t
-1813	4	tickets	cost_serviceTarifOptions	t	t
-1814	4	tickets	payment_partnerCost	t	t
-1815	4	tickets	payment_costTranscript	t	t
-1816	4	tickets	payment_calculatedCost	t	f
-1817	4	tickets	payment_overcosted	t	f
-1818	4	tickets	payment_limitedCost	t	f
-1819	4	tickets	payment_paidByRUAMC	t	t
-1820	4	tickets	payment_paidByClient	t	t
-1825	4	tickets	times_expectedServiceStart	t	t
-1826	4	tickets	times_factServiceStart	t	t
-1827	4	tickets	times_expectedServiceEnd	t	t
-1828	4	tickets	times_factServiceEnd	t	t
-1829	4	tickets	times_expectedServiceFinancialClosure	t	t
-1830	4	tickets	times_factServiceFinancialClosure	t	t
-1831	4	tickets	times_expectedServiceClosure	t	t
-1832	4	tickets	times_factServiceClosure	t	t
-1833	4	tickets	times_repairEndDate	t	t
-1834	4	towage	createTime	t	f
-1835	4	towage	payType	t	t
-1836	4	towage	falseCall	t	t
-1837	4	towage	clientCancelReason	t	t
-1838	4	towage	towerType	t	t
-1839	4	towage	towType	t	t
-1840	4	towage	vandalism	t	t
-1841	4	towage	accident	t	t
-1842	4	towage	dealerDistance	t	t
-1843	4	towage	marginalCost	t	f
-1844	4	towage	wheelsUnblocked	t	t
-1845	4	towage	canNeutral	t	t
-1846	4	towage	towingPointPresent	t	t
-1847	4	towage	manipulatorPossible	t	t
-1848	4	towage	suburbanMilage	t	t
-1849	4	towage	repairEndDate	t	t
-1850	4	towage	status	t	t
-1851	4	towage	clientSatisfied	t	t
-1852	4	towage	warrantyCase	t	t
-1853	4	towage	files	t	t
-1854	4	towage	service_tarifOptions	t	t
-1855	4	towage	assignedTo	t	f
-1856	4	towage	falseCallPercent	t	f
-1857	4	towage	cost_countedCost	t	t
-1858	4	towage	urgentService	t	t
-1859	4	towage	cost_counted	t	t
-1860	4	towage	cost_serviceTarifOptions	t	t
-1861	4	towage	towAddress_address	t	t
-1862	4	towage	towAddress_coords	t	t
-1863	4	towage	towAddress_city	t	t
-1864	4	towage	towAddress_comment	t	t
-1865	4	towage	towAddress_map	t	t
-1866	4	towage	payment_partnerCost	t	t
-1867	4	towage	payment_costTranscript	t	t
-1868	4	towage	payment_calculatedCost	t	f
-1869	4	towage	payment_overcosted	t	f
-1870	4	towage	payment_limitedCost	t	f
-1871	4	towage	payment_paidByRUAMC	t	t
-1872	4	towage	payment_paidByClient	t	t
-1873	4	towage	towerAddress_address	t	t
-1874	4	towage	towerAddress_coords	t	t
-1875	4	towage	towerAddress_city	t	t
-1876	4	towage	towerAddress_comment	t	t
-1877	4	towage	towerAddress_map	t	t
-1878	4	towage	towDealer_partner	t	t
-1879	4	towage	towDealer_partnerId	t	t
-1880	4	towage	towDealer_partnerTable	t	t
-1881	4	towage	towDealer_partnerMap	t	t
-1882	4	towage	towDealer_coords	t	t
-1883	4	towage	towDealer_address	t	t
-1884	4	towage	contractor_partner	t	t
-1885	4	towage	contractor_partnerId	t	t
-1886	4	towage	contractor_partnerTable	t	t
-1887	4	towage	contractor_partnerMap	t	t
-1888	4	towage	contractor_coords	t	t
-1889	4	towage	contractor_partnerCancel	t	t
-1890	4	towage	contractor_address	t	t
-1891	4	towage	times_expectedServiceStart	t	t
-1892	4	towage	times_factServiceStart	t	t
-1893	4	towage	times_expectedServiceEnd	t	t
-1894	4	towage	times_factServiceEnd	t	t
-1895	4	towage	times_expectedServiceFinancialClosure	t	t
-1896	4	towage	times_factServiceFinancialClosure	t	t
-1897	4	towage	times_expectedServiceClosure	t	t
-1898	4	towage	times_factServiceClosure	t	t
-1899	4	transportation	createTime	t	f
-1900	4	transportation	payType	t	t
-1901	4	transportation	falseCall	t	t
-1902	4	transportation	clientCancelReason	t	t
-1903	4	transportation	transportType	t	t
-1904	4	transportation	status	t	t
-1905	4	transportation	clientSatisfied	t	t
-1906	4	transportation	warrantyCase	t	t
-1907	4	transportation	files	t	t
-1908	4	transportation	assignedTo	t	f
-1909	4	transportation	falseCallPercent	t	f
-1910	4	transportation	cost_countedCost	t	t
-1911	4	transportation	urgentService	t	t
-1912	4	transportation	cost_counted	t	t
-1913	4	transportation	cost_serviceTarifOptions	t	t
-1914	4	transportation	caseAddress_address	t	t
-1915	4	transportation	caseAddress_coords	t	t
-1916	4	transportation	caseAddress_city	t	t
-1917	4	transportation	caseAddress_comment	t	t
-1918	4	transportation	fromToAddress_address	t	t
-1919	4	transportation	fromToAddress_coords	t	t
-1920	4	transportation	fromToAddress_city	t	t
-1921	4	transportation	fromToAddress_comment	t	t
-1922	4	transportation	payment_partnerCost	t	t
-1923	4	transportation	payment_costTranscript	t	t
-1924	4	transportation	payment_calculatedCost	t	f
-1925	4	transportation	payment_overcosted	t	f
-1926	4	transportation	payment_limitedCost	t	f
-1927	4	transportation	payment_paidByRUAMC	t	t
-1928	4	transportation	payment_paidByClient	t	t
-1929	4	transportation	times_expectedServiceStart	t	t
-1930	4	transportation	times_factServiceStart	t	t
-1931	4	transportation	times_expectedServiceEnd	t	t
-1932	4	transportation	times_factServiceEnd	t	t
-1933	4	transportation	times_expectedServiceFinancialClosure	t	t
-1934	4	transportation	times_factServiceFinancialClosure	t	t
-1935	4	transportation	times_expectedServiceClosure	t	t
-1936	4	transportation	times_factServiceClosure	t	t
-1937	4	transportation	times_repairEndDate	t	t
-1938	4	vin	program	t	t
-1939	6	action	comment	t	t
-1940	6	action	result	t	t
-1941	6	action	assignedTo	t	t
-1942	6	action	targetGroup	t	t
-1943	6	action	priority	t	t
-1944	6	action	closed	t	t
-1945	6	averageCommissioner	createTime	t	f
-1946	6	averageCommissioner	payType	t	t
-1947	6	averageCommissioner	falseCall	t	t
-1948	6	averageCommissioner	clientCancelReason	t	t
-1949	6	averageCommissioner	requestType	t	t
-1950	6	averageCommissioner	whatToSay1	t	t
-1951	6	averageCommissioner	activity	t	t
-1952	6	averageCommissioner	commMilage	t	t
-1953	6	averageCommissioner	status	t	t
-1954	6	averageCommissioner	clientSatisfied	t	t
-1955	6	averageCommissioner	warrantyCase	t	t
-1956	6	averageCommissioner	files	t	t
-1957	6	averageCommissioner	assignedTo	t	f
-1958	6	averageCommissioner	commAddress_address	t	t
-1959	6	averageCommissioner	commAddress_coords	t	t
-1960	6	averageCommissioner	commAddress_city	t	t
-1961	6	averageCommissioner	commAddress_comment	t	t
-1962	6	averageCommissioner	urgentService	t	t
-1963	6	averageCommissioner	payment_expectedCost	t	t
-1964	6	averageCommissioner	cost_countedCost	t	t
-1965	6	averageCommissioner	cost_counted	t	t
-1966	6	averageCommissioner	cost_serviceTarifOptions	t	t
-1967	6	averageCommissioner	payment_partnerCost	t	t
-1968	6	averageCommissioner	payment_costTranscript	t	t
-1969	6	averageCommissioner	payment_calculatedCost	t	f
-1970	6	averageCommissioner	payment_overcosted	t	f
-1971	6	averageCommissioner	payment_limitedCost	t	f
-1972	6	averageCommissioner	payment_paidByRUAMC	t	t
-1973	6	averageCommissioner	payment_paidByClient	t	t
-1974	6	averageCommissioner	contractor_partner	t	t
-1975	6	averageCommissioner	contractor_partnerTable	t	t
-1976	6	averageCommissioner	contractor_partnerCancel	t	t
-1977	6	averageCommissioner	contractor_address	t	t
-1978	6	averageCommissioner	bill_billNumber	t	f
-1979	6	averageCommissioner	bill_billingCost	t	f
-1980	6	averageCommissioner	bill_billingDate	t	f
-1981	6	averageCommissioner	times_expectedServiceStart	t	t
-1982	6	averageCommissioner	times_factServiceStart	t	t
-1983	6	averageCommissioner	times_expectedServiceEnd	t	t
-1984	6	averageCommissioner	times_factServiceEnd	t	t
-1985	6	averageCommissioner	times_expectedServiceFinancialClosure	t	t
-1986	6	averageCommissioner	times_factServiceFinancialClosure	t	t
-1987	6	averageCommissioner	times_expectedServiceClosure	t	t
-1988	6	averageCommissioner	times_factServiceClosure	t	t
-1989	6	averageCommissioner	times_repairEndDate	t	t
-1990	6	bank	createTime	t	f
-1991	6	bank	payType	t	t
-1992	6	bank	falseCall	t	t
-1993	6	bank	clientCancelReason	t	t
-1994	6	bank	requestType	t	t
-1995	6	bank	whatToSay1	t	t
-1996	6	bank	activity	t	t
-1997	6	bank	status	t	t
-1998	6	bank	clientSatisfied	t	t
-1999	6	bank	warrantyCase	t	t
-2000	6	bank	files	t	t
-2001	6	bank	assignedTo	t	f
-2002	6	bank	urgentService	t	t
-2003	6	bank	payment_expectedCost	t	t
-2004	6	bank	cost_countedCost	t	t
-2005	6	bank	cost_counted	t	t
-2006	6	bank	cost_serviceTarifOptions	t	t
-2007	6	bank	payment_partnerCost	t	t
-2008	6	bank	payment_costTranscript	t	t
-2009	6	bank	payment_calculatedCost	t	f
-2010	6	bank	payment_overcosted	t	f
-2011	6	bank	payment_limitedCost	t	f
-2012	6	bank	payment_paidByRUAMC	t	t
-2013	6	bank	payment_paidByClient	t	t
-2014	6	bank	contractor_partner	t	t
-2015	6	bank	contractor_partnerTable	t	t
-2016	6	bank	contractor_partnerCancel	t	t
-2017	6	bank	contractor_address	t	t
-2018	6	bank	bill_billNumber	t	f
-2019	6	bank	bill_billingCost	t	f
-2020	6	bank	bill_billingDate	t	f
-2021	6	bank	times_expectedServiceStart	t	t
-2022	6	bank	times_factServiceStart	t	t
-2023	6	bank	times_expectedServiceEnd	t	t
-2024	6	bank	times_factServiceEnd	t	t
-2025	6	bank	times_expectedServiceFinancialClosure	t	t
-2026	6	bank	times_factServiceFinancialClosure	t	t
-2027	6	bank	times_expectedServiceClosure	t	t
-2028	6	bank	times_factServiceClosure	t	t
-2029	6	bank	times_repairEndDate	t	t
-2031	6	call	callTaker	t	f
-2032	6	case	callDate	t	t
-2033	6	case	callTaker	t	f
-2034	6	case	comment	t	t
-2035	6	case	diagnosis1	t	t
-2036	6	case	diagnosis2	t	t
-2037	6	case	diagnosis3	t	t
-2038	6	case	diagnosis4	t	t
-2039	6	case	program	t	t
-2040	6	case	vinChecked	t	t
-2041	6	case	city	t	t
-2042	6	case	temperature	t	t
-2043	6	case	repair	t	t
-2044	6	case	accord	t	t
-2045	6	case	dealerCause	t	t
-2046	6	case	caseStatus	t	t
-2047	6	case	psaExportNeeded	t	t
-2048	6	case	psaExported	t	t
-2049	6	case	claim	t	t
-2050	6	case	betaComment	t	t
-2051	6	case	files	t	t
-2052	6	case	comments	t	t
-2053	6	case	caseAddress_address	t	t
-2054	6	case	contact_name	t	t
-2055	6	case	cardNumber_cardNumber	t	t
-2056	6	case	caseAddress_map	t	t
-2057	6	case	caseAddress_coords	t	t
-2058	6	case	caseAddress_city	t	t
-2059	6	case	caseAddress_comment	t	t
-2060	6	case	contact_email	t	t
-2061	6	case	contact_phone1	t	t
-2062	6	case	contact_phone2	t	t
-2063	6	case	contact_phone3	t	t
-2064	6	case	contact_phone4	t	t
-2065	6	case	contact_ownerName	t	t
-2066	6	case	contact_contactOwner	t	t
-2067	6	case	contact_ownerEmail	t	t
-2068	6	case	contact_ownerPhone1	t	t
-2069	6	case	contact_ownerPhone2	t	t
-2070	6	case	contact_ownerPhone3	t	t
-2071	6	case	contact_ownerPhone4	t	t
-2072	6	case	car_vin	t	t
-2073	6	case	car_seller	t	t
-2074	6	case	car_make	t	t
-2075	6	case	car_model	t	t
-2076	6	case	car_plateNum	t	t
-2077	6	case	car_color	t	t
-2078	6	case	car_transmission	t	t
-2079	6	case	car_engine	t	t
-2080	6	case	car_liters	t	t
-2081	6	case	car_capacity	t	t
-2082	6	case	car_dims	t	t
-2083	6	case	car_weight	t	t
-2084	6	case	car_checkPeriod	t	t
-2085	6	case	car_class	t	t
-2086	6	case	car_buyDate	t	t
-2087	6	case	car_mileage	t	t
-2088	6	case	car_checkupDate	t	t
-2089	6	case	car_checkupMileage	t	t
-2090	6	case	car_dealerTO	t	t
-2091	6	case	car_makeYear	t	t
-2092	6	case	car_warrantyStart	t	t
-2093	6	case	car_warrantyEnd	t	t
-2094	6	case	car_contractType	t	t
-2095	6	case	cardNumber_validFrom	t	f
-2096	6	case	cardNumber_validUntil	t	f
-2097	6	case	cardNumber_validUntilMilage	t	f
-2098	6	case	cardNumber_milageTO	t	f
-2099	6	case	cardNumber_serviceInterval	t	f
-2101	6	case	cardNumber_manager	t	f
-2102	6	consultation	createTime	t	f
-2103	6	consultation	payType	t	t
-2104	6	consultation	falseCall	t	t
-2105	6	consultation	clientCancelReason	t	t
-2106	6	consultation	consType	t	t
-2107	6	consultation	whatToSay1	t	t
-2108	6	consultation	orderNumber	t	t
-2109	6	consultation	status	t	t
-2110	6	consultation	result	t	t
-2111	6	consultation	clientSatisfied	t	t
-2112	6	consultation	warrantyCase	t	t
-2113	6	consultation	files	t	t
-2114	6	consultation	assignedTo	t	f
-2115	6	consultation	cost_countedCost	t	t
-2116	6	consultation	cost_counted	t	t
-2117	6	consultation	cost_serviceTarifOptions	t	t
-2118	6	consultation	urgentService	t	t
-2119	6	consultation	payment_partnerCost	t	t
-2120	6	consultation	payment_costTranscript	t	t
-2121	6	consultation	payment_calculatedCost	t	f
-2122	6	consultation	payment_overcosted	t	f
-2123	6	consultation	payment_limitedCost	t	f
-2124	6	consultation	payment_paidByRUAMC	t	t
-2125	6	consultation	payment_paidByClient	t	t
-2126	6	consultation	contractor_partner	t	t
-2127	6	consultation	contractor_partnerTable	t	t
-2128	6	consultation	contractor_partnerCancel	t	t
-2129	6	consultation	contractor_address	t	t
-2130	6	consultation	bill_billNumber	t	f
-2131	6	consultation	bill_billingCost	t	f
-2132	6	consultation	bill_billingDate	t	f
-2133	6	consultation	times_expectedServiceStart	t	t
-2134	6	consultation	times_factServiceStart	t	t
-2135	6	consultation	times_expectedServiceEnd	t	t
-2136	6	consultation	times_factServiceEnd	t	t
-2137	6	consultation	times_expectedServiceFinancialClosure	t	t
-2138	6	consultation	times_factServiceFinancialClosure	t	t
-2139	6	consultation	times_expectedServiceClosure	t	t
-2140	6	consultation	times_factServiceClosure	t	t
-2141	6	consultation	times_repairEndDate	t	t
-2142	6	continue	createTime	t	f
-2143	6	continue	payType	t	t
-2144	6	continue	falseCall	t	t
-2145	6	continue	clientCancelReason	t	t
-2146	6	continue	deliveryType	t	t
-2147	6	continue	status	t	t
-2148	6	continue	clientSatisfied	t	t
-2149	6	continue	warrantyCase	t	t
-2150	6	continue	files	t	t
-2151	6	continue	assignedTo	t	f
-2152	6	continue	urgentService	t	t
-2153	6	continue	payment_expectedCost	t	t
-2154	6	continue	cost_countedCost	t	t
-2155	6	continue	cost_counted	t	t
-2156	6	continue	cost_serviceTarifOptions	t	t
-2157	6	continue	payment_partnerCost	t	t
-2158	6	continue	payment_costTranscript	t	t
-2159	6	continue	payment_calculatedCost	t	f
-2160	6	continue	payment_overcosted	t	f
-2161	6	continue	payment_limitedCost	t	f
-2162	6	continue	payment_paidByRUAMC	t	t
-2163	6	continue	payment_paidByClient	t	t
-2164	6	continue	deliverFrom_address	t	t
-2165	6	continue	deliverFrom_coords	t	t
-2166	6	continue	deliverFrom_city	t	t
-2167	6	continue	deliverFrom_comment	t	t
-2168	6	continue	deliverTo_address	t	t
-2169	6	continue	deliverTo_coords	t	t
-2170	6	continue	deliverTo_city	t	t
-2171	6	continue	deliverTo_comment	t	t
-2172	6	continue	contractor_partner	t	t
-2173	6	continue	contractor_partnerTable	t	t
-2174	6	continue	contractor_partnerCancel	t	t
-2175	6	continue	contractor_address	t	t
-2176	6	continue	bill_billNumber	t	f
-2177	6	continue	bill_billingCost	t	f
-2178	6	continue	bill_billingDate	t	f
-2179	6	continue	times_expectedServiceStart	t	t
-2180	6	continue	times_factServiceStart	t	t
-2181	6	continue	times_expectedServiceEnd	t	t
-2182	6	continue	times_factServiceEnd	t	t
-2183	6	continue	times_expectedServiceFinancialClosure	t	t
-2184	6	continue	times_factServiceFinancialClosure	t	t
-2185	6	continue	times_expectedServiceClosure	t	t
-2186	6	continue	times_factServiceClosure	t	t
-2187	6	continue	times_repairEndDate	t	t
-2188	6	deliverCar	createTime	t	f
-2189	6	deliverCar	payType	t	t
-2190	6	deliverCar	falseCall	t	t
-2191	6	deliverCar	clientCancelReason	t	t
-2192	6	deliverCar	marginalCost	t	f
-2193	6	deliverCar	status	t	t
-2194	6	deliverCar	clientSatisfied	t	t
-2195	6	deliverCar	warrantyCase	t	t
-2196	6	deliverCar	files	t	t
-2197	6	deliverCar	service_tarifOptions	t	t
-2198	6	deliverCar	assignedTo	t	f
-2199	6	deliverCar	falseCallPercent	t	f
-2200	6	deliverCar	toAddress_address	t	t
-2201	6	deliverCar	toAddress_coords	t	t
-2202	6	deliverCar	toAddress_city	t	t
-2203	6	deliverCar	toAddress_comment	t	t
-2204	6	deliverCar	urgentService	t	t
-2205	6	deliverCar	cost_countedCost	t	t
-2206	6	deliverCar	cost_counted	t	t
-2207	6	deliverCar	cost_serviceTarifOptions	t	t
-2208	6	deliverCar	payment_partnerCost	t	t
-2209	6	deliverCar	payment_costTranscript	t	t
-2210	6	deliverCar	payment_calculatedCost	t	f
-2211	6	deliverCar	payment_overcosted	t	f
-2212	6	deliverCar	payment_limitedCost	t	f
-2213	6	deliverCar	payment_payType	t	t
-2214	6	deliverCar	payment_paidByRUAMC	t	t
-2215	6	deliverCar	payment_paidByClient	t	t
-2216	6	deliverCar	bill_billNumber	t	f
-2217	6	deliverCar	bill_billingCost	t	f
-2218	6	deliverCar	bill_billingDate	t	f
-2219	6	deliverCar	times_expectedServiceStart	t	t
-2220	6	deliverCar	times_factServiceStart	t	t
-2221	6	deliverCar	times_expectedServiceEnd	t	t
-2222	6	deliverCar	times_factServiceEnd	t	t
-2223	6	deliverCar	times_expectedServiceFinancialClosure	t	t
-2224	6	deliverCar	times_factServiceFinancialClosure	t	t
-2225	6	deliverCar	times_expectedServiceClosure	t	t
-2226	6	deliverCar	times_factServiceClosure	t	t
-2227	6	deliverCar	times_repairEndDate	t	t
-2228	6	deliverClient	createTime	t	f
-2229	6	deliverClient	payType	t	t
-2230	6	deliverClient	falseCall	t	t
-2231	6	deliverClient	clientCancelReason	t	t
-2232	6	deliverClient	deliveryType	t	t
-2233	6	deliverClient	status	t	t
-2234	6	deliverClient	clientSatisfied	t	t
-2235	6	deliverClient	warrantyCase	t	t
-2236	6	deliverClient	files	t	t
-2237	6	deliverClient	assignedTo	t	f
-2238	6	deliverClient	falseCallPercent	t	f
-2239	6	deliverClient	cost_countedCost	t	t
-2240	6	deliverClient	urgentService	t	t
-2241	6	deliverClient	cost_counted	t	t
-2242	6	deliverClient	cost_serviceTarifOptions	t	t
-2243	6	deliverClient	payment_partnerCost	t	t
-2244	6	deliverClient	payment_costTranscript	t	t
-2245	6	deliverClient	payment_calculatedCost	t	f
-2246	6	deliverClient	payment_overcosted	t	f
-2247	6	deliverClient	payment_limitedCost	t	f
-2248	6	deliverClient	payment_paidByRUAMC	t	t
-2249	6	deliverClient	payment_paidByClient	t	t
-2250	6	deliverClient	deliverFrom_address	t	t
-2251	6	deliverClient	deliverFrom_coords	t	t
-2252	6	deliverClient	deliverFrom_city	t	t
-2253	6	deliverClient	deliverFrom_comment	t	t
-2254	6	deliverClient	deliverTo_address	t	t
-2255	6	deliverClient	deliverTo_coords	t	t
-2256	6	deliverClient	deliverTo_city	t	t
-2257	6	deliverClient	deliverTo_comment	t	t
-2258	6	deliverClient	contractor_partner	t	t
-2259	6	deliverClient	contractor_partnerTable	t	t
-2260	6	deliverClient	contractor_partnerCancel	t	t
-2261	6	deliverClient	contractor_address	t	t
-2262	6	deliverClient	bill_billNumber	t	f
-2263	6	deliverClient	bill_billingCost	t	f
-2264	6	deliverClient	bill_billingDate	t	f
-2265	6	deliverClient	times_expectedServiceStart	t	t
-2266	6	deliverClient	times_factServiceStart	t	t
-2267	6	deliverClient	times_expectedServiceEnd	t	t
-2268	6	deliverClient	times_factServiceEnd	t	t
-2269	6	deliverClient	times_expectedServiceFinancialClosure	t	t
-2270	6	deliverClient	times_factServiceFinancialClosure	t	t
-2271	6	deliverClient	times_expectedServiceClosure	t	t
-2272	6	deliverClient	times_factServiceClosure	t	t
-2273	6	deliverClient	times_repairEndDate	t	t
-2274	6	deliverParts	createTime	t	f
-2275	6	deliverParts	payType	t	t
-2276	6	deliverParts	falseCall	t	t
-2277	6	deliverParts	clientCancelReason	t	t
-2278	6	deliverParts	parts	t	t
-2279	6	deliverParts	marginalCost	t	f
-2280	6	deliverParts	status	t	t
-2281	6	deliverParts	clientSatisfied	t	t
-2282	6	deliverParts	warrantyCase	t	t
-2283	6	deliverParts	files	t	t
-2284	6	deliverParts	service_tarifOptions	t	t
-2285	6	deliverParts	assignedTo	t	f
-2286	6	deliverParts	falseCallPercent	t	f
-2287	6	deliverParts	toAddress_address	t	t
-2288	6	deliverParts	toAddress_coords	t	t
-2289	6	deliverParts	toAddress_city	t	t
-2290	6	deliverParts	toAddress_comment	t	t
-2291	6	deliverParts	cost_countedCost	t	t
-2292	6	deliverParts	urgentService	t	t
-2293	6	deliverParts	cost_counted	t	t
-2294	6	deliverParts	cost_serviceTarifOptions	t	t
-2295	6	deliverParts	payment_partnerCost	t	t
-2296	6	deliverParts	payment_costTranscript	t	t
-2297	6	deliverParts	payment_calculatedCost	t	f
-2298	6	deliverParts	payment_overcosted	t	f
-2299	6	deliverParts	payment_limitedCost	t	f
-2300	6	deliverParts	payment_paidByRUAMC	t	t
-2301	6	deliverParts	payment_paidByClient	t	t
-2302	6	deliverParts	bill_billNumber	t	f
-2303	6	deliverParts	bill_billingCost	t	f
-2304	6	deliverParts	bill_billingDate	t	f
-2305	6	deliverParts	times_expectedServiceStart	t	t
-2306	6	deliverParts	times_factServiceStart	t	t
-2307	6	deliverParts	times_expectedServiceEnd	t	t
-2308	6	deliverParts	times_factServiceEnd	t	t
-2309	6	deliverParts	times_expectedServiceFinancialClosure	t	t
-2310	6	deliverParts	times_factServiceFinancialClosure	t	t
-2311	6	deliverParts	times_expectedServiceClosure	t	t
-2312	6	deliverParts	times_factServiceClosure	t	t
-2313	6	deliverParts	times_repairEndDate	t	t
-2314	6	hotel	createTime	t	f
-2315	6	hotel	payType	t	t
-2316	6	hotel	falseCall	t	t
-2317	6	hotel	clientCancelReason	t	t
-2318	6	hotel	marginalCost	t	f
-2319	6	hotel	providedFor	t	t
-2320	6	hotel	status	t	t
-2321	6	hotel	clientSatisfied	t	t
-2322	6	hotel	warrantyCase	t	t
-2323	6	hotel	files	t	t
-2324	6	hotel	service_tarifOptions	t	t
-2325	6	hotel	assignedTo	t	f
-2326	6	hotel	payment_partnerCost	t	t
-2327	6	hotel	payment_costTranscript	t	t
-2328	6	hotel	payment_calculatedCost	t	f
-2329	6	hotel	payment_overcosted	t	f
-2330	6	hotel	payment_limitedCost	t	f
-2331	6	hotel	payment_paidByRUAMC	t	t
-2332	6	hotel	payment_paidByClient	t	t
-2333	6	hotel	cost_countedCost	t	t
-2334	6	hotel	urgentService	t	t
-2335	6	hotel	cost_counted	t	t
-2336	6	hotel	cost_serviceTarifOptions	t	t
-2337	6	hotel	caseAddress_address	t	t
-2338	6	hotel	caseAddress_coords	t	t
-2339	6	hotel	caseAddress_city	t	t
-2340	6	hotel	caseAddress_comment	t	t
-2341	6	hotel	contractor_partner	t	t
-2342	6	hotel	contractor_partnerId	t	t
-2343	6	hotel	contractor_partnerTable	t	t
-2344	6	hotel	contractor_partnerCancel	t	t
-2345	6	hotel	contractor_address	t	t
-2346	6	hotel	bill_billNumber	t	f
-2347	6	hotel	bill_billingCost	t	f
-2348	6	hotel	bill_billingDate	t	f
-2349	6	hotel	times_expectedServiceStart	t	t
-2350	6	hotel	times_factServiceStart	t	t
-2351	6	hotel	times_expectedServiceEnd	t	t
-2352	6	hotel	times_factServiceEnd	t	t
-2353	6	hotel	times_expectedServiceFinancialClosure	t	t
-2354	6	hotel	times_factServiceFinancialClosure	t	t
-2355	6	hotel	times_expectedServiceClosure	t	t
-2356	6	hotel	times_factServiceClosure	t	t
-2357	6	hotel	times_repairEndDate	t	t
-2358	6	information	createTime	t	f
-2359	6	information	payType	t	t
-2360	6	information	falseCall	t	t
-2361	6	information	clientCancelReason	t	t
-2362	6	information	contact1	t	t
-2363	6	information	contactPhone1	t	t
-2364	6	information	whatToSay1	t	t
-2365	6	information	contact2	t	t
-2366	6	information	contactPhone2	t	t
-2367	6	information	whatToSay2	t	t
-2368	6	information	contact3	t	t
-2369	6	information	contactPhone3	t	t
-2370	6	information	whatToSay3	t	t
-2371	6	information	status	t	t
-2372	6	information	clientSatisfied	t	t
-2373	6	information	warrantyCase	t	t
-2374	6	information	files	t	t
-2375	6	information	assignedTo	t	f
-2376	6	information	falseCallPercent	t	f
-2377	6	information	urgentService	t	t
-2378	6	information	payment_expectedCost	t	t
-2379	6	information	payment_partnerCost	t	t
-2380	6	information	payment_costTranscript	t	t
-2381	6	information	payment_calculatedCost	t	f
-2382	6	information	payment_overcosted	t	f
-2383	6	information	payment_limitedCost	t	f
-2384	6	information	payment_paidByRUAMC	t	t
-2385	6	information	payment_paidByClient	t	t
-2386	6	information	bill_billNumber	t	f
-2387	6	information	bill_billingCost	t	f
-2388	6	information	bill_billingDate	t	f
-2389	6	information	times_expectedServiceStart	t	t
-2390	6	information	times_factServiceStart	t	t
-2391	6	information	times_expectedServiceEnd	t	t
-2392	6	information	times_factServiceEnd	t	t
-2393	6	information	times_expectedServiceFinancialClosure	t	t
-2394	6	information	times_factServiceFinancialClosure	t	t
-2395	6	information	times_expectedServiceClosure	t	t
-2396	6	information	times_factServiceClosure	t	t
-2397	6	information	times_repairEndDate	t	t
-2398	6	insurance	createTime	t	f
-2399	6	insurance	payType	t	t
-2400	6	insurance	falseCall	t	t
-2401	6	insurance	clientCancelReason	t	t
-2402	6	insurance	requestType	t	t
-2403	6	insurance	whatToSay1	t	t
-2404	6	insurance	activity	t	t
-2405	6	insurance	commMilage	t	t
-2406	6	insurance	status	t	t
-2407	6	insurance	clientSatisfied	t	t
-2408	6	insurance	warrantyCase	t	t
-2410	6	insurance	assignedTo	t	f
-2411	6	insurance	commAddress_address	t	t
-2412	6	insurance	commAddress_coords	t	t
-2413	6	insurance	commAddress_city	t	t
-2414	6	insurance	commAddress_comment	t	t
-2415	6	insurance	cost_countedCost	t	t
-2416	6	insurance	urgentService	t	t
-2417	6	insurance	cost_counted	t	t
-2418	6	insurance	cost_serviceTarifOptions	t	t
-2419	6	insurance	payment_partnerCost	t	t
-2420	6	insurance	payment_costTranscript	t	t
-2421	6	insurance	payment_calculatedCost	t	f
-2422	6	insurance	payment_overcosted	t	f
-2423	6	insurance	payment_limitedCost	t	f
-2424	6	insurance	payment_paidByRUAMC	t	t
-2425	6	insurance	payment_paidByClient	t	t
-2426	6	insurance	contractor_partner	t	t
-2427	6	insurance	contractor_partnerTable	t	t
-2428	6	insurance	contractor_partnerCancel	t	t
-2429	6	insurance	contractor_address	t	t
-2430	6	insurance	bill_billNumber	t	f
-2431	6	insurance	bill_billingCost	t	f
-2432	6	insurance	bill_billingDate	t	f
-2433	6	insurance	times_expectedServiceStart	t	t
-2434	6	insurance	times_factServiceStart	t	t
-2435	6	insurance	times_expectedServiceEnd	t	t
-2436	6	insurance	times_factServiceEnd	t	t
-2437	6	insurance	times_expectedServiceFinancialClosure	t	t
-2438	6	insurance	times_factServiceFinancialClosure	t	t
-2439	6	insurance	times_expectedServiceClosure	t	t
-2440	6	insurance	times_factServiceClosure	t	t
-2441	6	insurance	times_repairEndDate	t	t
-2442	6	ken	createTime	t	f
-2443	6	ken	payType	t	t
-2444	6	ken	falseCall	t	t
-2445	6	ken	clientCancelReason	t	t
-2446	6	ken	requestType	t	t
-2447	6	ken	whatToSay1	t	t
-2448	6	ken	activity	t	t
-2449	6	ken	status	t	t
-2450	6	ken	clientSatisfied	t	t
-2451	6	ken	warrantyCase	t	t
-2452	6	ken	files	t	t
-2453	6	ken	assignedTo	t	f
-2454	6	ken	falseCallPercent	t	f
-2455	6	ken	cost_countedCost	t	t
-2456	6	ken	urgentService	t	t
-2457	6	ken	cost_counted	t	t
-2458	6	ken	cost_serviceTarifOptions	t	t
-2459	6	ken	payment_partnerCost	t	t
-2460	6	ken	payment_costTranscript	t	t
-2461	6	ken	payment_calculatedCost	t	f
-2462	6	ken	payment_overcosted	t	f
-2463	6	ken	payment_limitedCost	t	f
-2464	6	ken	payment_paidByRUAMC	t	t
-2465	6	ken	payment_paidByClient	t	t
-2466	6	ken	contractor_partner	t	t
-2467	6	ken	contractor_partnerTable	t	t
-2468	6	ken	contractor_partnerCancel	t	t
-2469	6	ken	contractor_address	t	t
-2470	6	ken	bill_billNumber	t	f
-2471	6	ken	bill_billingCost	t	f
-2472	6	ken	bill_billingDate	t	f
-2473	6	ken	times_expectedServiceStart	t	t
-2474	6	ken	times_factServiceStart	t	t
-2475	6	ken	times_expectedServiceEnd	t	t
-2476	6	ken	times_factServiceEnd	t	t
-2477	6	ken	times_expectedServiceFinancialClosure	t	t
-2478	6	ken	times_factServiceFinancialClosure	t	t
-2479	6	ken	times_expectedServiceClosure	t	t
-2480	6	ken	times_factServiceClosure	t	t
-2481	6	ken	times_repairEndDate	t	t
-2482	6	partner	comment	t	t
-2483	6	programPermissions	contractField	t	t
-2484	6	programPermissions	showTable	t	t
-2485	6	programPermissions	showForm	t	t
-2486	6	rent	createTime	t	f
-2487	6	rent	payType	t	t
-2488	6	rent	falseCall	t	t
-2489	6	rent	clientCancelReason	t	t
-2490	6	rent	vinRent	t	t
-2491	6	rent	carClass	t	t
-2492	6	rent	marginalCost	t	f
-2493	6	rent	providedFor	t	t
-2494	6	rent	rentedMake	t	t
-2495	6	rent	rentedModel	t	t
-2496	6	rent	status	t	t
-2497	6	rent	clientSatisfied	t	t
-2498	6	rent	orderNumber	t	t
-2499	6	rent	warrantyCase	t	t
-2500	6	rent	files	t	t
-2501	6	rent	assignedTo	t	f
-2502	6	rent	falseCallPercent	t	f
-2503	6	rent	cost_countedCost	t	t
-2504	6	rent	urgentService	t	t
-2505	6	rent	cost_counted	t	t
-2506	6	rent	cost_serviceTarifOptions	t	t
-2507	6	rent	rentAddress_address	t	t
-2508	6	rent	rentAddress_coords	t	t
-2509	6	rent	rentAddress_city	t	t
-2510	6	rent	rentAddress_comment	t	t
-2511	6	rent	towDealer_partner	t	t
-2512	6	rent	towDealer_partnerTable	t	t
-2513	6	rent	towDealer_address	t	t
-2514	6	rent	contractor_partner	t	t
-2515	6	rent	contractor_partnerId	t	t
-2516	6	rent	contractor_partnerTable	t	t
-2517	6	rent	contractor_partnerCancel	t	t
-2518	6	rent	contractor_address	t	t
-2519	6	rent	payment_partnerCost	t	t
-2520	6	rent	payment_costTranscript	t	t
-2521	6	rent	payment_calculatedCost	t	f
-2522	6	rent	payment_overcosted	t	f
-2523	6	rent	payment_limitedCost	t	f
-2524	6	rent	payment_paidByRUAMC	t	t
-2525	6	rent	payment_paidByClient	t	t
-2526	6	rent	bill_billNumber	t	f
-2527	6	rent	bill_billingCost	t	f
-2528	6	rent	bill_billingDate	t	f
-2529	6	rent	times_expectedServiceStart	t	t
-2530	6	rent	times_factServiceStart	t	t
-2531	6	rent	times_expectedServiceEnd	t	t
-2532	6	rent	times_factServiceEnd	t	t
-2533	6	rent	times_expectedServiceFinancialClosure	t	t
-2534	6	rent	times_factServiceFinancialClosure	t	t
-2535	6	rent	times_expectedServiceClosure	t	t
-2536	6	rent	times_factServiceClosure	t	t
-2537	6	rent	times_repairEndDate	t	t
-2538	6	sober	createTime	t	f
-2539	6	sober	payType	t	t
-2540	6	sober	falseCall	t	t
-2541	6	sober	clientCancelReason	t	t
-2542	6	sober	marginalCost	t	f
-2543	6	sober	multidrive	t	t
-2544	6	sober	status	t	t
-2545	6	sober	clientSatisfied	t	t
-2546	6	sober	warrantyCase	t	t
-2547	6	sober	files	t	t
-2548	6	sober	service_tarifOptions	t	t
-2549	6	sober	assignedTo	t	f
-2550	6	sober	cost_countedCost	t	t
-2551	6	sober	urgentService	t	t
-2552	6	sober	cost_counted	t	t
-2553	6	sober	cost_serviceTarifOptions	t	t
-2554	6	sober	payment_partnerCost	t	t
-2555	6	sober	payment_costTranscript	t	t
-2556	6	sober	payment_calculatedCost	t	f
-2557	6	sober	payment_overcosted	t	f
-2558	6	sober	payment_limitedCost	t	f
-2559	6	sober	payment_paidByRUAMC	t	t
-2560	6	sober	payment_paidByClient	t	t
-2561	6	sober	fromAddress_address	t	t
-2562	6	sober	fromAddress_coords	t	t
-2563	6	sober	fromAddress_city	t	t
-2564	6	sober	fromAddress_comment	t	t
-2565	6	sober	toAddress_address	t	t
-2566	6	sober	toAddress_coords	t	t
-2567	6	sober	toAddress_city	t	t
-2568	6	sober	toAddress_comment	t	t
-2569	6	sober	contractor_partner	t	t
-2570	6	sober	contractor_partnerId	t	t
-2571	6	sober	contractor_partnerTable	t	t
-2572	6	sober	contractor_partnerCancel	t	t
-2573	6	sober	contractor_address	t	t
-2574	6	sober	bill_billNumber	t	f
-2575	6	sober	bill_billingCost	t	f
-2576	6	sober	bill_billingDate	t	f
-2577	6	sober	times_expectedServiceStart	t	t
-2578	6	sober	times_factServiceStart	t	t
-2579	6	sober	times_expectedServiceEnd	t	t
-2580	6	sober	times_factServiceEnd	t	t
-2581	6	sober	times_expectedServiceFinancialClosure	t	t
-2582	6	sober	times_factServiceFinancialClosure	t	t
-2583	6	sober	times_expectedServiceClosure	t	t
-2584	6	sober	times_factServiceClosure	t	t
-2585	6	sober	times_repairEndDate	t	t
-2586	6	taxi	createTime	t	f
-2587	6	taxi	payType	t	t
-2588	6	taxi	falseCall	t	t
-2589	6	taxi	clientCancelReason	t	t
-2590	6	taxi	marginalCost	t	f
-2591	6	taxi	status	t	t
-2592	6	taxi	clientSatisfied	t	t
-2593	6	taxi	warrantyCase	t	t
-2594	6	taxi	files	t	t
-2595	6	taxi	service_tarifOptions	t	t
-2596	6	taxi	assignedTo	t	f
-2597	6	taxi	falseCallPercent	t	f
-2598	6	taxi	cost_countedCost	t	t
-2599	6	taxi	urgentService	t	t
-2600	6	taxi	cost_counted	t	t
-2601	6	taxi	cost_serviceTarifOptions	t	t
-2602	6	taxi	payment_partnerCost	t	t
-2603	6	taxi	payment_costTranscript	t	t
-2604	6	taxi	payment_calculatedCost	t	f
-2605	6	taxi	payment_overcosted	t	f
-2606	6	taxi	payment_limitedCost	t	f
-2607	6	taxi	payment_paidByRUAMC	t	t
-2608	6	taxi	payment_paidByClient	t	t
-2609	6	taxi	taxiFrom_address	t	t
-2610	6	taxi	taxiFrom_coords	t	t
-2611	6	taxi	taxiFrom_city	t	t
-2612	6	taxi	taxiFrom_comment	t	t
-2613	6	taxi	taxiTo_address	t	t
-2614	6	taxi	taxiTo_coords	t	t
-2615	6	taxi	taxiTo_city	t	t
-2616	6	taxi	taxiTo_comment	t	t
-2617	6	taxi	contractor_partner	t	t
-2618	6	taxi	contractor_partnerTable	t	t
-2619	6	taxi	contractor_partnerCancel	t	t
-2620	6	taxi	contractor_address	t	t
-2621	6	taxi	bill_billNumber	t	f
-2622	6	taxi	bill_billingCost	t	f
-2623	6	taxi	bill_billingDate	t	f
-2624	6	taxi	times_expectedServiceStart	t	t
-2625	6	taxi	times_factServiceStart	t	t
-2626	6	taxi	times_expectedServiceEnd	t	t
-2627	6	taxi	times_factServiceEnd	t	t
-2628	6	taxi	times_expectedServiceFinancialClosure	t	t
-2629	6	taxi	times_factServiceFinancialClosure	t	t
-2630	6	taxi	times_expectedServiceClosure	t	t
-2631	6	taxi	times_factServiceClosure	t	t
-2632	6	taxi	times_repairEndDate	t	t
-2633	6	tech1	createTime	t	f
-2634	6	tech1	payType	t	t
-2635	6	tech1	falseCall	t	t
-2636	6	tech1	clientCancelReason	t	t
-2637	6	tech1	requestType	t	t
-2638	6	tech1	whatToSay1	t	t
-2639	6	tech1	activity	t	t
-2640	6	tech1	status	t	t
-2641	6	tech1	clientSatisfied	t	t
-2642	6	tech1	warrantyCase	t	t
-2643	6	tech1	files	t	t
-2644	6	tech1	cost_countedCost	t	t
-2645	6	tech1	urgentService	t	t
-2646	6	tech1	cost_counted	t	t
-2647	6	tech1	cost_serviceTarifOptions	t	t
-2648	6	tech1	payment_partnerCost	t	t
-2649	6	tech1	payment_costTranscript	t	t
-2650	6	tech1	payment_calculatedCost	t	f
-2651	6	tech1	payment_overcosted	t	f
-2652	6	tech1	payment_limitedCost	t	f
-2653	6	tech1	payment_paidByRUAMC	t	t
-2654	6	tech1	payment_paidByClient	t	t
-2655	6	tech1	contractor_partner	t	t
-2656	6	tech1	contractor_partnerTable	t	t
-2657	6	tech1	contractor_partnerCancel	t	t
-2658	6	tech1	contractor_address	t	t
-2659	6	tech1	bill_billNumber	t	f
-2660	6	tech1	bill_billingCost	t	f
-2661	6	tech1	bill_billingDate	t	f
-2662	6	tech1	times_expectedServiceStart	t	t
-2663	6	tech1	times_factServiceStart	t	t
-2664	6	tech1	times_expectedServiceEnd	t	t
-2665	6	tech1	times_factServiceEnd	t	t
-2666	6	tech1	times_expectedServiceFinancialClosure	t	t
-2667	6	tech1	times_factServiceFinancialClosure	t	t
-2668	6	tech1	times_expectedServiceClosure	t	t
-2669	6	tech1	times_factServiceClosure	t	t
-2670	6	tech1	times_repairEndDate	t	t
-2671	6	tech	createTime	t	f
-2672	6	tech	payType	t	t
-2673	6	tech	falseCall	t	t
-2674	6	tech	clientCancelReason	t	t
-2675	6	tech	techType	t	t
-2676	6	tech	marginalCost	t	f
-2677	6	tech	suburbanMilage	t	t
-2678	6	tech	orderNumber	t	t
-2679	6	tech	status	t	t
-2680	6	tech	clientSatisfied	t	t
-2681	6	tech	warrantyCase	t	t
-2682	6	tech	files	t	t
-2683	6	tech	service_tarifOptions	t	t
-2684	6	tech	assignedTo	t	f
-2685	6	tech	falseCallPercent	t	f
-2686	6	tech	payment_partnerCost	t	t
-2687	6	tech	payment_costTranscript	t	t
-2688	6	tech	payment_calculatedCost	t	f
-2689	6	tech	payment_overcosted	t	f
-2690	6	tech	payment_limitedCost	t	f
-2691	6	tech	cost_countedCost	t	t
-2692	6	tech	urgentService	t	t
-2693	6	tech	cost_counted	t	t
-2694	6	tech	cost_serviceTarifOptions	t	t
-2695	6	tech	payment_paidByRUAMC	t	t
-2696	6	tech	payment_paidByClient	t	t
-2697	6	tech	contractor_partner	t	t
-2698	6	tech	contractor_partnerId	t	t
-2699	6	tech	contractor_partnerTable	t	t
-2700	6	tech	contractor_partnerMap	t	t
-2701	6	tech	contractor_coords	t	t
-2702	6	tech	contractor_partnerCancel	t	t
-2703	6	tech	contractor_address	t	t
-2704	6	tech	bill_billNumber	t	f
-2705	6	tech	bill_billingCost	t	f
-2706	6	tech	bill_billingDate	t	f
-2707	6	tech	times_expectedServiceStart	t	t
-2708	6	tech	times_factServiceStart	t	t
-2709	6	tech	times_expectedServiceEnd	t	t
-2710	6	tech	times_factServiceEnd	t	t
-2711	6	tech	times_expectedServiceFinancialClosure	t	t
-2712	6	tech	times_factServiceFinancialClosure	t	t
-2713	6	tech	times_expectedServiceClosure	t	t
-2714	6	tech	times_factServiceClosure	t	t
-2715	6	tech	times_repairEndDate	t	t
-2716	6	tickets	createTime	t	f
-2717	6	tickets	payType	t	t
-2718	6	tickets	falseCall	t	t
-2719	6	tickets	clientCancelReason	t	t
-2720	6	tickets	deliveryType	t	t
-2721	6	tickets	status	t	t
-2722	6	tickets	clientSatisfied	t	t
-2723	6	tickets	warrantyCase	t	t
-2724	6	tickets	files	t	t
-2725	6	tickets	assignedTo	t	f
-2726	6	tickets	falseCallPercent	t	f
-2727	6	tickets	cost_countedCost	t	t
-2728	6	tickets	ticketsFrom_address	t	t
-2729	6	tickets	ticketsFrom_coords	t	t
-2730	6	tickets	ticketsFrom_city	t	t
-2731	6	tickets	ticketsFrom_comment	t	t
-2732	6	tickets	ticketsTo_address	t	t
-2733	6	tickets	ticketsTo_coords	t	t
-2734	6	tickets	ticketsTo_city	t	t
-2735	6	tickets	ticketsTo_comment	t	t
-2736	6	tickets	urgentService	t	t
-2737	6	tickets	cost_counted	t	t
-2738	6	tickets	cost_serviceTarifOptions	t	t
-2739	6	tickets	payment_partnerCost	t	t
-2740	6	tickets	payment_costTranscript	t	t
-2741	6	tickets	payment_calculatedCost	t	f
-2742	6	tickets	payment_overcosted	t	f
-2743	6	tickets	payment_limitedCost	t	f
-2744	6	tickets	payment_paidByRUAMC	t	t
-2745	6	tickets	payment_paidByClient	t	t
-2746	6	tickets	contractor_partner	t	t
-2747	6	tickets	contractor_partnerTable	t	t
-2748	6	tickets	contractor_partnerCancel	t	t
-2749	6	tickets	contractor_address	t	t
-2750	6	tickets	bill_billNumber	t	f
-2751	6	tickets	bill_billingCost	t	f
-2752	6	tickets	bill_billingDate	t	f
-2753	6	tickets	times_expectedServiceStart	t	t
-2754	6	tickets	times_factServiceStart	t	t
-2755	6	tickets	times_expectedServiceEnd	t	t
-2756	6	tickets	times_factServiceEnd	t	t
-2757	6	tickets	times_expectedServiceFinancialClosure	t	t
-2758	6	tickets	times_factServiceFinancialClosure	t	t
-2759	6	tickets	times_expectedServiceClosure	t	t
-2760	6	tickets	times_factServiceClosure	t	t
-2761	6	tickets	times_repairEndDate	t	t
-2762	6	towage	createTime	t	f
-2763	6	towage	payType	t	t
-2764	6	towage	falseCall	t	t
-2765	6	towage	clientCancelReason	t	t
-2766	6	towage	towerType	t	t
-2767	6	towage	towType	t	t
-2768	6	towage	vandalism	t	t
-2769	6	towage	accident	t	t
-2770	6	towage	dealerDistance	t	t
-2771	6	towage	marginalCost	t	f
-2772	6	towage	wheelsUnblocked	t	t
-2773	6	towage	canNeutral	t	t
-2774	6	towage	towingPointPresent	t	t
-2775	6	towage	manipulatorPossible	t	t
-2776	6	towage	suburbanMilage	t	t
-2777	6	towage	orderNumber	t	t
-2778	6	towage	repairEndDate	t	t
-2779	6	towage	status	t	t
-2780	6	towage	clientSatisfied	t	t
-2781	6	towage	warrantyCase	t	t
-2782	6	towage	files	t	t
-2783	6	towage	service_tarifOptions	t	t
-2784	6	towage	assignedTo	t	f
-2785	6	towage	falseCallPercent	t	f
-2786	6	towage	cost_countedCost	t	t
-2787	6	towage	urgentService	t	t
-2788	6	towage	cost_counted	t	t
-2789	6	towage	cost_serviceTarifOptions	t	t
-2790	6	towage	towAddress_address	t	t
-2791	6	towage	towAddress_coords	t	t
-2792	6	towage	towAddress_city	t	t
-2793	6	towage	towAddress_comment	t	t
-2794	6	towage	towAddress_map	t	t
-2795	6	towage	payment_partnerCost	t	t
-2796	6	towage	payment_costTranscript	t	t
-2797	6	towage	payment_calculatedCost	t	f
-2798	6	towage	payment_overcosted	t	f
-2799	6	towage	payment_limitedCost	t	f
-2800	6	towage	payment_paidByRUAMC	t	t
-2801	6	towage	payment_paidByClient	t	t
-2802	6	towage	towerAddress_address	t	t
-2803	6	towage	towerAddress_coords	t	t
-2804	6	towage	towerAddress_city	t	t
-2805	6	towage	towerAddress_comment	t	t
-2806	6	towage	towerAddress_map	t	t
-2807	6	towage	towDealer_partner	t	t
-2808	6	towage	towDealer_partnerId	t	t
-2809	6	towage	towDealer_partnerTable	t	t
-2810	6	towage	towDealer_partnerMap	t	t
-2811	6	towage	towDealer_coords	t	t
-2812	6	towage	towDealer_address	t	t
-2813	6	towage	contractor_partner	t	t
-2814	6	towage	contractor_partnerId	t	t
-2815	6	towage	contractor_partnerTable	t	t
-2816	6	towage	contractor_partnerMap	t	t
-2817	6	towage	contractor_coords	t	t
-2818	6	towage	contractor_partnerCancel	t	t
-2819	6	towage	contractor_address	t	t
-2820	6	towage	bill_billNumber	t	f
-2821	6	towage	bill_billingCost	t	f
-2822	6	towage	bill_billingDate	t	f
-2823	6	towage	times_expectedServiceStart	t	t
-2824	6	towage	times_factServiceStart	t	t
-2825	6	towage	times_expectedServiceEnd	t	t
-2826	6	towage	times_factServiceEnd	t	t
-2827	6	towage	times_expectedServiceFinancialClosure	t	t
-2828	6	towage	times_factServiceFinancialClosure	t	t
-2829	6	towage	times_expectedServiceClosure	t	t
-2830	6	towage	times_factServiceClosure	t	t
-2831	6	transportation	createTime	t	f
-2832	6	transportation	payType	t	t
-2833	6	transportation	falseCall	t	t
-2834	6	transportation	clientCancelReason	t	t
-2835	6	transportation	transportType	t	t
-2836	6	transportation	status	t	t
-2837	6	transportation	clientSatisfied	t	t
-2838	6	transportation	warrantyCase	t	t
-2839	6	transportation	files	t	t
-2840	6	transportation	assignedTo	t	f
-2841	6	transportation	falseCallPercent	t	f
-2842	6	transportation	cost_countedCost	t	t
-2843	6	transportation	urgentService	t	t
-2844	6	transportation	cost_counted	t	t
-2845	6	transportation	cost_serviceTarifOptions	t	t
-2846	6	transportation	caseAddress_address	t	t
-2847	6	transportation	caseAddress_coords	t	t
-2848	6	transportation	caseAddress_city	t	t
-2849	6	transportation	caseAddress_comment	t	t
-2850	6	transportation	fromToAddress_address	t	t
-2851	6	transportation	fromToAddress_coords	t	t
-2852	6	transportation	fromToAddress_city	t	t
-2853	6	transportation	fromToAddress_comment	t	t
-2854	6	transportation	payment_partnerCost	t	t
-2855	6	transportation	payment_costTranscript	t	t
-2856	6	transportation	payment_calculatedCost	t	f
-2857	6	transportation	payment_overcosted	t	f
-2858	6	transportation	payment_limitedCost	t	f
-2859	6	transportation	payment_paidByRUAMC	t	t
-2860	6	transportation	payment_paidByClient	t	t
-2861	6	transportation	bill_billNumber	t	f
-2862	6	transportation	bill_billingCost	t	f
-2863	6	transportation	bill_billingDate	t	f
-2864	6	transportation	times_expectedServiceStart	t	t
-2865	6	transportation	times_factServiceStart	t	t
-2866	6	transportation	times_expectedServiceEnd	t	t
-2867	6	transportation	times_factServiceEnd	t	t
-2868	6	transportation	times_expectedServiceFinancialClosure	t	t
-2869	6	transportation	times_factServiceFinancialClosure	t	t
-2870	6	transportation	times_expectedServiceClosure	t	t
-2871	6	transportation	times_factServiceClosure	t	t
-2872	6	transportation	times_repairEndDate	t	t
-2873	6	vin	program	t	t
-2874	11	action	comment	t	t
-2875	11	action	result	t	t
-2876	11	action	assignedTo	t	t
-2877	11	action	targetGroup	t	t
-2878	11	action	priority	t	t
-2879	11	action	closed	t	t
-2880	11	averageCommissioner	createTime	t	f
-2881	11	averageCommissioner	payType	t	t
-2882	11	averageCommissioner	falseCall	t	t
-2883	11	averageCommissioner	clientCancelReason	t	t
-2884	11	averageCommissioner	requestType	t	t
-2885	11	averageCommissioner	whatToSay1	t	t
-2886	11	averageCommissioner	activity	t	t
-2887	11	averageCommissioner	commMilage	t	t
-2888	11	averageCommissioner	status	t	t
-2889	11	averageCommissioner	clientSatisfied	t	t
-2890	11	averageCommissioner	warrantyCase	t	t
-2891	11	averageCommissioner	files	t	t
-2892	11	averageCommissioner	assignedTo	t	f
-2893	11	averageCommissioner	commAddress_address	t	t
-2894	11	averageCommissioner	commAddress_coords	t	t
-2895	11	averageCommissioner	commAddress_city	t	t
-2896	11	averageCommissioner	commAddress_comment	t	t
-2897	11	averageCommissioner	urgentService	t	t
-2898	11	averageCommissioner	payment_expectedCost	t	t
-2899	11	averageCommissioner	cost_countedCost	t	t
-2900	11	averageCommissioner	cost_counted	t	t
-2901	11	averageCommissioner	cost_serviceTarifOptions	t	t
-2902	11	averageCommissioner	payment_partnerCost	t	t
-2903	11	averageCommissioner	payment_costTranscript	t	t
-2904	11	averageCommissioner	payment_calculatedCost	t	f
-2905	11	averageCommissioner	payment_overcosted	t	f
-2906	11	averageCommissioner	payment_limitedCost	t	f
-2907	11	averageCommissioner	payment_paidByRUAMC	t	t
-2908	11	averageCommissioner	payment_paidByClient	t	t
-2909	11	averageCommissioner	contractor_partner	t	t
-2910	11	averageCommissioner	contractor_partnerTable	t	t
-2911	11	averageCommissioner	contractor_partnerCancel	t	t
-2912	11	averageCommissioner	contractor_address	t	t
-2913	11	averageCommissioner	bill_billNumber	t	f
-2914	11	averageCommissioner	bill_billingCost	t	f
-2915	11	averageCommissioner	bill_billingDate	t	f
-2916	11	averageCommissioner	times_expectedServiceStart	t	t
-2917	11	averageCommissioner	times_factServiceStart	t	t
-2918	11	averageCommissioner	times_expectedServiceEnd	t	t
-2919	11	averageCommissioner	times_factServiceEnd	t	t
-2920	11	averageCommissioner	times_expectedServiceFinancialClosure	t	t
-2921	11	averageCommissioner	times_factServiceFinancialClosure	t	t
-2922	11	averageCommissioner	times_expectedServiceClosure	t	t
-2923	11	averageCommissioner	times_factServiceClosure	t	t
-2924	11	averageCommissioner	times_repairEndDate	t	t
-2925	11	bank	createTime	t	f
-2926	11	bank	payType	t	t
-2927	11	bank	falseCall	t	t
-2928	11	bank	clientCancelReason	t	t
-2929	11	bank	requestType	t	t
-2930	11	bank	whatToSay1	t	t
-2931	11	bank	activity	t	t
-2932	11	bank	status	t	t
-2933	11	bank	clientSatisfied	t	t
-2934	11	bank	warrantyCase	t	t
-2936	11	bank	assignedTo	t	f
-2937	11	bank	urgentService	t	t
-2938	11	bank	payment_expectedCost	t	t
-2939	11	bank	cost_countedCost	t	t
-2940	11	bank	cost_counted	t	t
-2941	11	bank	cost_serviceTarifOptions	t	t
-2942	11	bank	payment_partnerCost	t	t
-2943	11	bank	payment_costTranscript	t	t
-2944	11	bank	payment_calculatedCost	t	f
-2945	11	bank	payment_overcosted	t	f
-2946	11	bank	payment_limitedCost	t	f
-2947	11	bank	payment_paidByRUAMC	t	t
-2948	11	bank	payment_paidByClient	t	t
-2949	11	bank	contractor_partner	t	t
-2950	11	bank	contractor_partnerTable	t	t
-2951	11	bank	contractor_partnerCancel	t	t
-2952	11	bank	contractor_address	t	t
-2953	11	bank	bill_billNumber	t	f
-2954	11	bank	bill_billingCost	t	f
-2955	11	bank	bill_billingDate	t	f
-2956	11	bank	times_expectedServiceStart	t	t
-2957	11	bank	times_factServiceStart	t	t
-2958	11	bank	times_expectedServiceEnd	t	t
-2959	11	bank	times_factServiceEnd	t	t
-2960	11	bank	times_expectedServiceFinancialClosure	t	t
-2961	11	bank	times_factServiceFinancialClosure	t	t
-2962	11	bank	times_expectedServiceClosure	t	t
-2963	11	bank	times_factServiceClosure	t	t
-2964	11	bank	times_repairEndDate	t	t
-2965	11	call	callDate	t	t
-2966	11	call	callTaker	t	f
-2967	11	case	callDate	t	t
-2968	11	case	callTaker	t	f
-2969	11	case	comment	t	t
-2970	11	case	diagnosis1	t	t
-2971	11	case	diagnosis2	t	t
-2972	11	case	diagnosis3	t	t
-2973	11	case	diagnosis4	t	t
-2974	11	case	program	t	t
-2975	11	case	vinChecked	t	t
-2976	11	case	city	t	t
-2977	11	case	temperature	t	t
-2978	11	case	repair	t	t
-2979	11	case	accord	t	t
-2980	11	case	dealerCause	t	t
-2981	11	case	caseStatus	t	t
-2982	11	case	psaExportNeeded	t	t
-2983	11	case	psaExported	t	t
-2984	11	case	claim	t	t
-2985	11	case	betaComment	t	t
-2986	11	case	files	t	t
-2987	11	case	comments	t	t
-2988	11	case	caseAddress_address	t	t
-2989	11	case	contact_name	t	t
-2990	11	case	cardNumber_cardNumber	t	t
-2991	11	case	caseAddress_map	t	t
-2992	11	case	caseAddress_coords	t	t
-2993	11	case	caseAddress_city	t	t
-2994	11	case	caseAddress_comment	t	t
-2995	11	case	contact_email	t	t
-2996	11	case	contact_phone1	t	t
-2997	11	case	contact_phone2	t	t
-2998	11	case	contact_phone3	t	t
-2999	11	case	contact_phone4	t	t
-3000	11	case	contact_ownerName	t	t
-3001	11	case	contact_contactOwner	t	t
-3002	11	case	contact_ownerEmail	t	t
-3003	11	case	contact_ownerPhone1	t	t
-3004	11	case	contact_ownerPhone2	t	t
-3005	11	case	contact_ownerPhone3	t	t
-3006	11	case	contact_ownerPhone4	t	t
-3007	11	case	car_vin	t	t
-3008	11	case	car_seller	t	t
-3009	11	case	car_make	t	t
-3010	11	case	car_model	t	t
-3011	11	case	car_plateNum	t	t
-3012	11	case	car_color	t	t
-3013	11	case	car_transmission	t	t
-3014	11	case	car_engine	t	t
-3015	11	case	car_liters	t	t
-3016	11	case	car_capacity	t	t
-3017	11	case	car_dims	t	t
-3018	11	case	car_weight	t	t
-3019	11	case	car_checkPeriod	t	t
-3020	11	case	car_class	t	t
-3021	11	case	car_buyDate	t	t
-3022	11	case	car_mileage	t	t
-3023	11	case	car_checkupDate	t	t
-3024	11	case	car_checkupMileage	t	t
-3025	11	case	car_dealerTO	t	t
-3026	11	case	car_makeYear	t	t
-3027	11	case	car_warrantyStart	t	t
-3028	11	case	car_warrantyEnd	t	t
-3029	11	case	car_contractType	t	t
-3030	11	case	cardNumber_validFrom	t	f
-3031	11	case	cardNumber_validUntil	t	f
-3032	11	case	cardNumber_validUntilMilage	t	f
-3033	11	case	cardNumber_milageTO	t	f
-3034	11	case	cardNumber_serviceInterval	t	f
-3036	11	case	cardNumber_manager	t	f
-3037	11	consultation	createTime	t	f
-3038	11	consultation	payType	t	t
-3039	11	consultation	falseCall	t	t
-3040	11	consultation	clientCancelReason	t	t
-3041	11	consultation	consType	t	t
-3042	11	consultation	whatToSay1	t	t
-3043	11	consultation	status	t	t
-3044	11	consultation	result	t	t
-3045	11	consultation	clientSatisfied	t	t
-3046	11	consultation	warrantyCase	t	t
-3047	11	consultation	files	t	t
-3048	11	consultation	assignedTo	t	f
-3049	11	consultation	cost_countedCost	t	t
-3050	11	consultation	cost_counted	t	t
-3051	11	consultation	cost_serviceTarifOptions	t	t
-3052	11	consultation	urgentService	t	t
-3053	11	consultation	payment_partnerCost	t	t
-3054	11	consultation	payment_costTranscript	t	t
-3055	11	consultation	payment_calculatedCost	t	f
-3056	11	consultation	payment_overcosted	t	f
-3057	11	consultation	payment_limitedCost	t	f
-3058	11	consultation	payment_paidByRUAMC	t	t
-3059	11	consultation	payment_paidByClient	t	t
-3060	11	consultation	contractor_partner	t	t
-3061	11	consultation	contractor_partnerTable	t	t
-3062	11	consultation	contractor_partnerCancel	t	t
-3063	11	consultation	contractor_address	t	t
-3064	11	consultation	bill_billNumber	t	f
-3065	11	consultation	bill_billingCost	t	f
-3066	11	consultation	bill_billingDate	t	f
-3067	11	consultation	times_expectedServiceStart	t	t
-3068	11	consultation	times_factServiceStart	t	t
-3069	11	consultation	times_expectedServiceEnd	t	t
-3070	11	consultation	times_factServiceEnd	t	t
-3071	11	consultation	times_expectedServiceFinancialClosure	t	t
-3072	11	consultation	times_factServiceFinancialClosure	t	t
-3073	11	consultation	times_expectedServiceClosure	t	t
-3074	11	consultation	times_factServiceClosure	t	t
-3075	11	consultation	times_repairEndDate	t	t
-3076	11	continue	createTime	t	f
-3077	11	continue	payType	t	t
-3078	11	continue	falseCall	t	t
-3079	11	continue	clientCancelReason	t	t
-3080	11	continue	deliveryType	t	t
-3081	11	continue	status	t	t
-3082	11	continue	clientSatisfied	t	t
-3083	11	continue	warrantyCase	t	t
-3084	11	continue	files	t	t
-3085	11	continue	assignedTo	t	f
-3086	11	continue	urgentService	t	t
-3087	11	continue	payment_expectedCost	t	t
-3088	11	continue	cost_countedCost	t	t
-3089	11	continue	cost_counted	t	t
-3090	11	continue	cost_serviceTarifOptions	t	t
-3091	11	continue	payment_partnerCost	t	t
-3092	11	continue	payment_costTranscript	t	t
-3093	11	continue	payment_calculatedCost	t	f
-3094	11	continue	payment_overcosted	t	f
-3095	11	continue	payment_limitedCost	t	f
-3096	11	continue	payment_paidByRUAMC	t	t
-3097	11	continue	payment_paidByClient	t	t
-3098	11	continue	deliverFrom_address	t	t
-3099	11	continue	deliverFrom_coords	t	t
-3100	11	continue	deliverFrom_city	t	t
-3101	11	continue	deliverFrom_comment	t	t
-3102	11	continue	deliverTo_address	t	t
-3103	11	continue	deliverTo_coords	t	t
-3104	11	continue	deliverTo_city	t	t
-3105	11	continue	deliverTo_comment	t	t
-3106	11	continue	contractor_partner	t	t
-3107	11	continue	contractor_partnerTable	t	t
-3108	11	continue	contractor_partnerCancel	t	t
-3109	11	continue	contractor_address	t	t
-3110	11	continue	bill_billNumber	t	f
-3111	11	continue	bill_billingCost	t	f
-3112	11	continue	bill_billingDate	t	f
-3113	11	continue	times_expectedServiceStart	t	t
-3114	11	continue	times_factServiceStart	t	t
-3115	11	continue	times_expectedServiceEnd	t	t
-3116	11	continue	times_factServiceEnd	t	t
-3117	11	continue	times_expectedServiceFinancialClosure	t	t
-3118	11	continue	times_factServiceFinancialClosure	t	t
-3119	11	continue	times_expectedServiceClosure	t	t
-3120	11	continue	times_factServiceClosure	t	t
-3121	11	continue	times_repairEndDate	t	t
-3122	11	deliverCar	createTime	t	f
-3123	11	deliverCar	payType	t	t
-3124	11	deliverCar	falseCall	t	t
-3125	11	deliverCar	clientCancelReason	t	t
-3126	11	deliverCar	marginalCost	t	f
-3127	11	deliverCar	status	t	t
-3128	11	deliverCar	clientSatisfied	t	t
-3129	11	deliverCar	warrantyCase	t	t
-3130	11	deliverCar	files	t	t
-3131	11	deliverCar	service_tarifOptions	t	t
-3132	11	deliverCar	assignedTo	t	f
-3133	11	deliverCar	falseCallPercent	t	f
-3134	11	deliverCar	toAddress_address	t	t
-3135	11	deliverCar	toAddress_coords	t	t
-3136	11	deliverCar	toAddress_city	t	t
-3137	11	deliverCar	toAddress_comment	t	t
-3138	11	deliverCar	urgentService	t	t
-3139	11	deliverCar	cost_countedCost	t	t
-3140	11	deliverCar	cost_counted	t	t
-3141	11	deliverCar	cost_serviceTarifOptions	t	t
-3142	11	deliverCar	payment_partnerCost	t	t
-3143	11	deliverCar	payment_costTranscript	t	t
-3144	11	deliverCar	payment_calculatedCost	t	f
-3145	11	deliverCar	payment_overcosted	t	f
-3146	11	deliverCar	payment_limitedCost	t	f
-3147	11	deliverCar	payment_payType	t	t
-3148	11	deliverCar	payment_paidByRUAMC	t	t
-3149	11	deliverCar	payment_paidByClient	t	t
-3150	11	deliverCar	bill_billNumber	t	f
-3151	11	deliverCar	bill_billingCost	t	f
-3152	11	deliverCar	bill_billingDate	t	f
-3153	11	deliverCar	times_expectedServiceStart	t	t
-3154	11	deliverCar	times_factServiceStart	t	t
-3155	11	deliverCar	times_expectedServiceEnd	t	t
-3156	11	deliverCar	times_factServiceEnd	t	t
-3157	11	deliverCar	times_expectedServiceFinancialClosure	t	t
-3158	11	deliverCar	times_factServiceFinancialClosure	t	t
-3159	11	deliverCar	times_expectedServiceClosure	t	t
-3160	11	deliverCar	times_factServiceClosure	t	t
-3161	11	deliverCar	times_repairEndDate	t	t
-3162	11	deliverClient	createTime	t	f
-3163	11	deliverClient	payType	t	t
-3164	11	deliverClient	falseCall	t	t
-3165	11	deliverClient	clientCancelReason	t	t
-3166	11	deliverClient	deliveryType	t	t
-3167	11	deliverClient	status	t	t
-3168	11	deliverClient	clientSatisfied	t	t
-3169	11	deliverClient	warrantyCase	t	t
-3170	11	deliverClient	files	t	t
-3171	11	deliverClient	assignedTo	t	f
-3172	11	deliverClient	falseCallPercent	t	f
-3173	11	deliverClient	cost_countedCost	t	t
-3174	11	deliverClient	urgentService	t	t
-3175	11	deliverClient	cost_counted	t	t
-3176	11	deliverClient	cost_serviceTarifOptions	t	t
-3177	11	deliverClient	payment_partnerCost	t	t
-3178	11	deliverClient	payment_costTranscript	t	t
-3179	11	deliverClient	payment_calculatedCost	t	f
-3180	11	deliverClient	payment_overcosted	t	f
-3181	11	deliverClient	payment_limitedCost	t	f
-3182	11	deliverClient	payment_paidByRUAMC	t	t
-3183	11	deliverClient	payment_paidByClient	t	t
-3184	11	deliverClient	deliverFrom_address	t	t
-3185	11	deliverClient	deliverFrom_coords	t	t
-3186	11	deliverClient	deliverFrom_city	t	t
-3187	11	deliverClient	deliverFrom_comment	t	t
-3188	11	deliverClient	deliverTo_address	t	t
-3189	11	deliverClient	deliverTo_coords	t	t
-3190	11	deliverClient	deliverTo_city	t	t
-3191	11	deliverClient	deliverTo_comment	t	t
-3192	11	deliverClient	contractor_partner	t	t
-3193	11	deliverClient	contractor_partnerTable	t	t
-3194	11	deliverClient	contractor_partnerCancel	t	t
-3195	11	deliverClient	contractor_address	t	t
-3196	11	deliverClient	bill_billNumber	t	f
-3197	11	deliverClient	bill_billingCost	t	f
-3198	11	deliverClient	bill_billingDate	t	f
-3199	11	deliverClient	times_expectedServiceStart	t	t
-3200	11	deliverClient	times_factServiceStart	t	t
-3201	11	deliverClient	times_expectedServiceEnd	t	t
-3202	11	deliverClient	times_factServiceEnd	t	t
-3203	11	deliverClient	times_expectedServiceFinancialClosure	t	t
-3204	11	deliverClient	times_factServiceFinancialClosure	t	t
-3205	11	deliverClient	times_expectedServiceClosure	t	t
-3206	11	deliverClient	times_factServiceClosure	t	t
-3207	11	deliverClient	times_repairEndDate	t	t
-3208	11	deliverParts	createTime	t	f
-3209	11	deliverParts	payType	t	t
-3210	11	deliverParts	falseCall	t	t
-3211	11	deliverParts	clientCancelReason	t	t
-3212	11	deliverParts	parts	t	t
-3213	11	deliverParts	marginalCost	t	f
-3214	11	deliverParts	status	t	t
-3215	11	deliverParts	clientSatisfied	t	t
-3216	11	deliverParts	warrantyCase	t	t
-3217	11	deliverParts	files	t	t
-3218	11	deliverParts	service_tarifOptions	t	t
-3219	11	deliverParts	assignedTo	t	f
-3220	11	deliverParts	falseCallPercent	t	f
-3221	11	deliverParts	toAddress_address	t	t
-3222	11	deliverParts	toAddress_coords	t	t
-3223	11	deliverParts	toAddress_city	t	t
-3224	11	deliverParts	toAddress_comment	t	t
-3225	11	deliverParts	cost_countedCost	t	t
-3226	11	deliverParts	urgentService	t	t
-3227	11	deliverParts	cost_counted	t	t
-3228	11	deliverParts	cost_serviceTarifOptions	t	t
-3229	11	deliverParts	payment_partnerCost	t	t
-3230	11	deliverParts	payment_costTranscript	t	t
-3231	11	deliverParts	payment_calculatedCost	t	f
-3232	11	deliverParts	payment_overcosted	t	f
-3233	11	deliverParts	payment_limitedCost	t	f
-3234	11	deliverParts	payment_paidByRUAMC	t	t
-3235	11	deliverParts	payment_paidByClient	t	t
-3236	11	deliverParts	bill_billNumber	t	f
-3237	11	deliverParts	bill_billingCost	t	f
-3238	11	deliverParts	bill_billingDate	t	f
-3239	11	deliverParts	times_expectedServiceStart	t	t
-3240	11	deliverParts	times_factServiceStart	t	t
-3241	11	deliverParts	times_expectedServiceEnd	t	t
-3242	11	deliverParts	times_factServiceEnd	t	t
-3243	11	deliverParts	times_expectedServiceFinancialClosure	t	t
-3244	11	deliverParts	times_factServiceFinancialClosure	t	t
-3245	11	deliverParts	times_expectedServiceClosure	t	t
-3246	11	deliverParts	times_factServiceClosure	t	t
-3247	11	deliverParts	times_repairEndDate	t	t
-3248	11	hotel	createTime	t	f
-3249	11	hotel	payType	t	t
-3250	11	hotel	falseCall	t	t
-3251	11	hotel	clientCancelReason	t	t
-3252	11	hotel	marginalCost	t	f
-3253	11	hotel	providedFor	t	t
-3254	11	hotel	status	t	t
-3255	11	hotel	clientSatisfied	t	t
-3256	11	hotel	warrantyCase	t	t
-3258	11	hotel	service_tarifOptions	t	t
-3259	11	hotel	assignedTo	t	f
-3260	11	hotel	payment_partnerCost	t	t
-3261	11	hotel	payment_costTranscript	t	t
-3262	11	hotel	payment_calculatedCost	t	f
-3263	11	hotel	payment_overcosted	t	f
-3264	11	hotel	payment_limitedCost	t	f
-3265	11	hotel	payment_paidByRUAMC	t	t
-3266	11	hotel	payment_paidByClient	t	t
-3267	11	hotel	cost_countedCost	t	t
-3268	11	hotel	urgentService	t	t
-3269	11	hotel	cost_counted	t	t
-3270	11	hotel	cost_serviceTarifOptions	t	t
-3271	11	hotel	caseAddress_address	t	t
-3272	11	hotel	caseAddress_coords	t	t
-3273	11	hotel	caseAddress_city	t	t
-3274	11	hotel	caseAddress_comment	t	t
-3275	11	hotel	contractor_partner	t	t
-3276	11	hotel	contractor_partnerId	t	t
-3277	11	hotel	contractor_partnerTable	t	t
-3278	11	hotel	contractor_partnerCancel	t	t
-3279	11	hotel	contractor_address	t	t
-3280	11	hotel	bill_billNumber	t	f
-3281	11	hotel	bill_billingCost	t	f
-3282	11	hotel	bill_billingDate	t	f
-3283	11	hotel	times_expectedServiceStart	t	t
-3284	11	hotel	times_factServiceStart	t	t
-3285	11	hotel	times_expectedServiceEnd	t	t
-3286	11	hotel	times_factServiceEnd	t	t
-3287	11	hotel	times_expectedServiceFinancialClosure	t	t
-3288	11	hotel	times_factServiceFinancialClosure	t	t
-3289	11	hotel	times_expectedServiceClosure	t	t
-3290	11	hotel	times_factServiceClosure	t	t
-3291	11	hotel	times_repairEndDate	t	t
-3292	11	information	createTime	t	f
-3293	11	information	payType	t	t
-3294	11	information	falseCall	t	t
-3295	11	information	clientCancelReason	t	t
-3296	11	information	contact1	t	t
-3297	11	information	contactPhone1	t	t
-3298	11	information	whatToSay1	t	t
-3299	11	information	contact2	t	t
-3300	11	information	contactPhone2	t	t
-3301	11	information	whatToSay2	t	t
-3302	11	information	contact3	t	t
-3303	11	information	contactPhone3	t	t
-3304	11	information	whatToSay3	t	t
-3305	11	information	status	t	t
-3306	11	information	clientSatisfied	t	t
-3307	11	information	warrantyCase	t	t
-3308	11	information	files	t	t
-3309	11	information	assignedTo	t	f
-3310	11	information	falseCallPercent	t	f
-3311	11	information	urgentService	t	t
-3312	11	information	payment_expectedCost	t	t
-3313	11	information	payment_partnerCost	t	t
-3314	11	information	payment_costTranscript	t	t
-3315	11	information	payment_calculatedCost	t	f
-3316	11	information	payment_overcosted	t	f
-3317	11	information	payment_limitedCost	t	f
-3318	11	information	payment_paidByRUAMC	t	t
-3319	11	information	payment_paidByClient	t	t
-3320	11	information	bill_billNumber	t	f
-3321	11	information	bill_billingCost	t	f
-3322	11	information	bill_billingDate	t	f
-3323	11	information	times_expectedServiceStart	t	t
-3324	11	information	times_factServiceStart	t	t
-3325	11	information	times_expectedServiceEnd	t	t
-3326	11	information	times_factServiceEnd	t	t
-3327	11	information	times_expectedServiceFinancialClosure	t	t
-3328	11	information	times_factServiceFinancialClosure	t	t
-3329	11	information	times_expectedServiceClosure	t	t
-3330	11	information	times_factServiceClosure	t	t
-3331	11	information	times_repairEndDate	t	t
-3332	11	insurance	createTime	t	f
-3333	11	insurance	payType	t	t
-3334	11	insurance	falseCall	t	t
-3335	11	insurance	clientCancelReason	t	t
-3336	11	insurance	requestType	t	t
-3337	11	insurance	whatToSay1	t	t
-3338	11	insurance	activity	t	t
-3339	11	insurance	commMilage	t	t
-3340	11	insurance	status	t	t
-3341	11	insurance	clientSatisfied	t	t
-3342	11	insurance	warrantyCase	t	t
-3343	11	insurance	files	t	t
-3344	11	insurance	assignedTo	t	f
-3345	11	insurance	commAddress_address	t	t
-3346	11	insurance	commAddress_coords	t	t
-3347	11	insurance	commAddress_city	t	t
-3348	11	insurance	commAddress_comment	t	t
-3349	11	insurance	cost_countedCost	t	t
-3350	11	insurance	urgentService	t	t
-3351	11	insurance	cost_counted	t	t
-3352	11	insurance	cost_serviceTarifOptions	t	t
-3353	11	insurance	payment_partnerCost	t	t
-3354	11	insurance	payment_costTranscript	t	t
-3355	11	insurance	payment_calculatedCost	t	f
-3356	11	insurance	payment_overcosted	t	f
-3357	11	insurance	payment_limitedCost	t	f
-3358	11	insurance	payment_paidByRUAMC	t	t
-3359	11	insurance	payment_paidByClient	t	t
-3360	11	insurance	contractor_partner	t	t
-3361	11	insurance	contractor_partnerTable	t	t
-3362	11	insurance	contractor_partnerCancel	t	t
-3363	11	insurance	contractor_address	t	t
-3364	11	insurance	bill_billNumber	t	f
-3365	11	insurance	bill_billingCost	t	f
-3366	11	insurance	bill_billingDate	t	f
-3367	11	insurance	times_expectedServiceStart	t	t
-3368	11	insurance	times_factServiceStart	t	t
-3369	11	insurance	times_expectedServiceEnd	t	t
-3370	11	insurance	times_factServiceEnd	t	t
-3371	11	insurance	times_expectedServiceFinancialClosure	t	t
-3372	11	insurance	times_factServiceFinancialClosure	t	t
-3373	11	insurance	times_expectedServiceClosure	t	t
-3374	11	insurance	times_factServiceClosure	t	t
-3375	11	insurance	times_repairEndDate	t	t
-3377	11	ken	payType	t	t
-3378	11	ken	falseCall	t	t
-3379	11	ken	clientCancelReason	t	t
-3380	11	ken	requestType	t	t
-3381	11	ken	whatToSay1	t	t
-3382	11	ken	activity	t	t
-3383	11	ken	status	t	t
-3384	11	ken	clientSatisfied	t	t
-3385	11	ken	warrantyCase	t	t
-3386	11	ken	files	t	t
-3387	11	ken	assignedTo	t	f
-3388	11	ken	falseCallPercent	t	f
-3389	11	ken	cost_countedCost	t	t
-3390	11	ken	urgentService	t	t
-3391	11	ken	cost_counted	t	t
-3392	11	ken	cost_serviceTarifOptions	t	t
-3393	11	ken	payment_partnerCost	t	t
-3394	11	ken	payment_costTranscript	t	t
-3395	11	ken	payment_calculatedCost	t	f
-3396	11	ken	payment_overcosted	t	f
-3397	11	ken	payment_limitedCost	t	f
-3398	11	ken	payment_paidByRUAMC	t	t
-3399	11	ken	payment_paidByClient	t	t
-3400	11	ken	contractor_partner	t	t
-3401	11	ken	contractor_partnerTable	t	t
-3402	11	ken	contractor_partnerCancel	t	t
-3403	11	ken	contractor_address	t	t
-3404	11	ken	bill_billNumber	t	f
-3405	11	ken	bill_billingCost	t	f
-3406	11	ken	bill_billingDate	t	f
-3407	11	ken	times_expectedServiceStart	t	t
-3408	11	ken	times_factServiceStart	t	t
-3409	11	ken	times_expectedServiceEnd	t	t
-3410	11	ken	times_factServiceEnd	t	t
-3411	11	ken	times_expectedServiceFinancialClosure	t	t
-3412	11	ken	times_factServiceFinancialClosure	t	t
-3413	11	ken	times_expectedServiceClosure	t	t
-3414	11	ken	times_factServiceClosure	t	t
-3415	11	ken	times_repairEndDate	t	t
-3416	11	partner	comment	t	t
-3417	11	rent	createTime	t	f
-3418	11	rent	payType	t	t
-3419	11	rent	falseCall	t	t
-3420	11	rent	clientCancelReason	t	t
-3421	11	rent	vinRent	t	t
-3422	11	rent	carClass	t	t
-3423	11	rent	marginalCost	t	f
-3424	11	rent	providedFor	t	t
-3425	11	rent	rentedMake	t	t
-3426	11	rent	rentedModel	t	t
-3427	11	rent	status	t	t
-3428	11	rent	clientSatisfied	t	t
-3429	11	rent	warrantyCase	t	t
-3430	11	rent	files	t	t
-3431	11	rent	assignedTo	t	f
-3432	11	rent	falseCallPercent	t	f
-3433	11	rent	cost_countedCost	t	t
-3434	11	rent	urgentService	t	t
-3435	11	rent	cost_counted	t	t
-3436	11	rent	cost_serviceTarifOptions	t	t
-3437	11	rent	rentAddress_address	t	t
-3438	11	rent	rentAddress_coords	t	t
-3439	11	rent	rentAddress_city	t	t
-3440	11	rent	rentAddress_comment	t	t
-3441	11	rent	towDealer_partner	t	t
-3442	11	rent	towDealer_partnerTable	t	t
-3443	11	rent	towDealer_address	t	t
-3444	11	rent	contractor_partner	t	t
-3445	11	rent	contractor_partnerId	t	t
-3446	11	rent	contractor_partnerTable	t	t
-3447	11	rent	contractor_partnerCancel	t	t
-3448	11	rent	contractor_address	t	t
-3449	11	rent	payment_partnerCost	t	t
-3450	11	rent	payment_costTranscript	t	t
-3451	11	rent	payment_calculatedCost	t	f
-3452	11	rent	payment_overcosted	t	f
-3453	11	rent	payment_limitedCost	t	f
-3454	11	rent	payment_paidByRUAMC	t	t
-3455	11	rent	payment_paidByClient	t	t
-3456	11	rent	bill_billNumber	t	f
-3457	11	rent	bill_billingCost	t	f
-3458	11	rent	bill_billingDate	t	f
-3459	11	rent	times_expectedServiceStart	t	t
-3460	11	rent	times_factServiceStart	t	t
-3461	11	rent	times_expectedServiceEnd	t	t
-3462	11	rent	times_factServiceEnd	t	t
-3463	11	rent	times_expectedServiceFinancialClosure	t	t
-3464	11	rent	times_factServiceFinancialClosure	t	t
-3465	11	rent	times_expectedServiceClosure	t	t
-3466	11	rent	times_factServiceClosure	t	t
-3467	11	rent	times_repairEndDate	t	t
-3468	11	sober	createTime	t	f
-3469	11	sober	payType	t	t
-3470	11	sober	falseCall	t	t
-3471	11	sober	clientCancelReason	t	t
-3472	11	sober	marginalCost	t	f
-3473	11	sober	multidrive	t	t
-3474	11	sober	status	t	t
-3475	11	sober	clientSatisfied	t	t
-3476	11	sober	warrantyCase	t	t
-3477	11	sober	files	t	t
-3478	11	sober	service_tarifOptions	t	t
-3479	11	sober	assignedTo	t	f
-3480	11	sober	cost_countedCost	t	t
-3481	11	sober	urgentService	t	t
-3482	11	sober	cost_counted	t	t
-3483	11	sober	cost_serviceTarifOptions	t	t
-3484	11	sober	payment_partnerCost	t	t
-3485	11	sober	payment_costTranscript	t	t
-3486	11	sober	payment_calculatedCost	t	f
-3487	11	sober	payment_overcosted	t	f
-3488	11	sober	payment_limitedCost	t	f
-3489	11	sober	payment_paidByRUAMC	t	t
-3490	11	sober	payment_paidByClient	t	t
-3491	11	sober	fromAddress_address	t	t
-3492	11	sober	fromAddress_coords	t	t
-3493	11	sober	fromAddress_city	t	t
-3494	11	sober	fromAddress_comment	t	t
-3495	11	sober	toAddress_address	t	t
-3496	11	sober	toAddress_coords	t	t
-3497	11	sober	toAddress_city	t	t
-3498	11	sober	toAddress_comment	t	t
-3499	11	sober	contractor_partner	t	t
-3500	11	sober	contractor_partnerId	t	t
-3501	11	sober	contractor_partnerTable	t	t
-3502	11	sober	contractor_partnerCancel	t	t
-3503	11	sober	contractor_address	t	t
-3504	11	sober	bill_billNumber	t	f
-3505	11	sober	bill_billingCost	t	f
-3506	11	sober	bill_billingDate	t	f
-3507	11	sober	times_expectedServiceStart	t	t
-3508	11	sober	times_factServiceStart	t	t
-3509	11	sober	times_expectedServiceEnd	t	t
-3510	11	sober	times_factServiceEnd	t	t
-3511	11	sober	times_expectedServiceFinancialClosure	t	t
-3512	11	sober	times_factServiceFinancialClosure	t	t
-3513	11	sober	times_expectedServiceClosure	t	t
-3514	11	sober	times_factServiceClosure	t	t
-3515	11	sober	times_repairEndDate	t	t
-3516	11	taxi	createTime	t	f
-3517	11	taxi	payType	t	t
-3518	11	taxi	falseCall	t	t
-3519	11	taxi	clientCancelReason	t	t
-3520	11	taxi	marginalCost	t	f
-3521	11	taxi	status	t	t
-3522	11	taxi	clientSatisfied	t	t
-3523	11	taxi	warrantyCase	t	t
-3524	11	taxi	files	t	t
-3525	11	taxi	service_tarifOptions	t	t
-3526	11	taxi	assignedTo	t	f
-3527	11	taxi	falseCallPercent	t	f
-3528	11	taxi	cost_countedCost	t	t
-3529	11	taxi	urgentService	t	t
-3530	11	taxi	cost_counted	t	t
-3531	11	taxi	cost_serviceTarifOptions	t	t
-3532	11	taxi	payment_partnerCost	t	t
-3533	11	taxi	payment_costTranscript	t	t
-3534	11	taxi	payment_calculatedCost	t	f
-3535	11	taxi	payment_overcosted	t	f
-3536	11	taxi	payment_limitedCost	t	f
-3537	11	taxi	payment_paidByRUAMC	t	t
-3538	11	taxi	payment_paidByClient	t	t
-3539	11	taxi	taxiFrom_address	t	t
-3540	11	taxi	taxiFrom_coords	t	t
-3541	11	taxi	taxiFrom_city	t	t
-3542	11	taxi	taxiFrom_comment	t	t
-3543	11	taxi	taxiTo_address	t	t
-3544	11	taxi	taxiTo_coords	t	t
-3545	11	taxi	taxiTo_city	t	t
-3546	11	taxi	taxiTo_comment	t	t
-3547	11	taxi	contractor_partner	t	t
-3548	11	taxi	contractor_partnerTable	t	t
-3549	11	taxi	contractor_partnerCancel	t	t
-3550	11	taxi	contractor_address	t	t
-3551	11	taxi	bill_billNumber	t	f
-3552	11	taxi	bill_billingCost	t	f
-3553	11	taxi	bill_billingDate	t	f
-3554	11	taxi	times_expectedServiceStart	t	t
-3555	11	taxi	times_factServiceStart	t	t
-3556	11	taxi	times_expectedServiceEnd	t	t
-3557	11	taxi	times_factServiceEnd	t	t
-3558	11	taxi	times_expectedServiceFinancialClosure	t	t
-3559	11	taxi	times_factServiceFinancialClosure	t	t
-3560	11	taxi	times_expectedServiceClosure	t	t
-3561	11	taxi	times_factServiceClosure	t	t
-3562	11	taxi	times_repairEndDate	t	t
-3563	11	tech1	createTime	t	f
-3564	11	tech1	payType	t	t
-3565	11	tech1	falseCall	t	t
-3566	11	tech1	clientCancelReason	t	t
-3567	11	tech1	requestType	t	t
-3568	11	tech1	whatToSay1	t	t
-3569	11	tech1	activity	t	t
-3570	11	tech1	status	t	t
-3571	11	tech1	clientSatisfied	t	t
-3572	11	tech1	warrantyCase	t	t
-3573	11	tech1	files	t	t
-3574	11	tech1	cost_countedCost	t	t
-3575	11	tech1	urgentService	t	t
-3576	11	tech1	cost_counted	t	t
-3577	11	tech1	cost_serviceTarifOptions	t	t
-3578	11	tech1	payment_partnerCost	t	t
-3579	11	tech1	payment_costTranscript	t	t
-3580	11	tech1	payment_calculatedCost	t	f
-3581	11	tech1	payment_overcosted	t	f
-3582	11	tech1	payment_limitedCost	t	f
-3583	11	tech1	payment_paidByRUAMC	t	t
-3584	11	tech1	payment_paidByClient	t	t
-3585	11	tech1	contractor_partner	t	t
-3586	11	tech1	contractor_partnerTable	t	t
-3587	11	tech1	contractor_partnerCancel	t	t
-3588	11	tech1	contractor_address	t	t
-3589	11	tech1	bill_billNumber	t	f
-3590	11	tech1	bill_billingCost	t	f
-3591	11	tech1	bill_billingDate	t	f
-3592	11	tech1	times_expectedServiceStart	t	t
-3593	11	tech1	times_factServiceStart	t	t
-3594	11	tech1	times_expectedServiceEnd	t	t
-3595	11	tech1	times_factServiceEnd	t	t
-3596	11	tech1	times_expectedServiceFinancialClosure	t	t
-3597	11	tech1	times_factServiceFinancialClosure	t	t
-3598	11	tech1	times_expectedServiceClosure	t	t
-3599	11	tech1	times_factServiceClosure	t	t
-3600	11	tech1	times_repairEndDate	t	t
-3601	11	tech	createTime	t	f
-3602	11	tech	payType	t	t
-3603	11	tech	falseCall	t	t
-3604	11	tech	clientCancelReason	t	t
-3605	11	tech	techType	t	t
-3606	11	tech	marginalCost	t	f
-3607	11	tech	suburbanMilage	t	t
-3608	11	tech	status	t	t
-3609	11	tech	clientSatisfied	t	t
-3610	11	tech	warrantyCase	t	t
-3611	11	tech	files	t	t
-3612	11	tech	service_tarifOptions	t	t
-3613	11	tech	assignedTo	t	f
-3614	11	tech	falseCallPercent	t	f
-3615	11	tech	payment_partnerCost	t	t
-3616	11	tech	payment_costTranscript	t	t
-3617	11	tech	payment_calculatedCost	t	f
-3618	11	tech	payment_overcosted	t	f
-3619	11	tech	payment_limitedCost	t	f
-3620	11	tech	cost_countedCost	t	t
-3621	11	tech	urgentService	t	t
-3622	11	tech	cost_counted	t	t
-3623	11	tech	cost_serviceTarifOptions	t	t
-3624	11	tech	payment_paidByRUAMC	t	t
-3625	11	tech	payment_paidByClient	t	t
-3626	11	tech	contractor_partner	t	t
-3627	11	tech	contractor_partnerId	t	t
-3628	11	tech	contractor_partnerTable	t	t
-3629	11	tech	contractor_partnerMap	t	t
-3630	11	tech	contractor_coords	t	t
-3631	11	tech	contractor_partnerCancel	t	t
-3632	11	tech	contractor_address	t	t
-3633	11	tech	bill_billNumber	t	f
-3634	11	tech	bill_billingCost	t	f
-3635	11	tech	bill_billingDate	t	f
-3636	11	tech	times_expectedServiceStart	t	t
-3637	11	tech	times_factServiceStart	t	t
-3638	11	tech	times_expectedServiceEnd	t	t
-3639	11	tech	times_factServiceEnd	t	t
-3640	11	tech	times_expectedServiceFinancialClosure	t	t
-3641	11	tech	times_factServiceFinancialClosure	t	t
-3642	11	tech	times_expectedServiceClosure	t	t
-3643	11	tech	times_factServiceClosure	t	t
-3644	11	tech	times_repairEndDate	t	t
-3645	11	tickets	createTime	t	f
-3646	11	tickets	payType	t	t
-3647	11	tickets	falseCall	t	t
-3648	11	tickets	clientCancelReason	t	t
-3649	11	tickets	deliveryType	t	t
-3650	11	tickets	status	t	t
-3651	11	tickets	clientSatisfied	t	t
-3652	11	tickets	warrantyCase	t	t
-3653	11	tickets	files	t	t
-3654	11	tickets	assignedTo	t	f
-3655	11	tickets	falseCallPercent	t	f
-3656	11	tickets	cost_countedCost	t	t
-3657	11	tickets	ticketsFrom_address	t	t
-3658	11	tickets	ticketsFrom_coords	t	t
-3659	11	tickets	ticketsFrom_city	t	t
-3660	11	tickets	ticketsFrom_comment	t	t
-3661	11	tickets	ticketsTo_address	t	t
-3662	11	tickets	ticketsTo_coords	t	t
-3663	11	tickets	ticketsTo_city	t	t
-3664	11	tickets	ticketsTo_comment	t	t
-3665	11	tickets	urgentService	t	t
-3666	11	tickets	cost_counted	t	t
-3667	11	tickets	cost_serviceTarifOptions	t	t
-3668	11	tickets	payment_partnerCost	t	t
-3669	11	tickets	payment_costTranscript	t	t
-3670	11	tickets	payment_calculatedCost	t	f
-3671	11	tickets	payment_overcosted	t	f
-3672	11	tickets	payment_limitedCost	t	f
-3673	11	tickets	payment_paidByRUAMC	t	t
-3674	11	tickets	payment_paidByClient	t	t
-3675	11	tickets	contractor_partner	t	t
-3676	11	tickets	contractor_partnerTable	t	t
-3677	11	tickets	contractor_partnerCancel	t	t
-3678	11	tickets	contractor_address	t	t
-3679	11	tickets	bill_billNumber	t	f
-3680	11	tickets	bill_billingCost	t	f
-3681	11	tickets	bill_billingDate	t	f
-3682	11	tickets	times_expectedServiceStart	t	t
-3683	11	tickets	times_factServiceStart	t	t
-3684	11	tickets	times_expectedServiceEnd	t	t
-3685	11	tickets	times_factServiceEnd	t	t
-3686	11	tickets	times_expectedServiceFinancialClosure	t	t
-3687	11	tickets	times_factServiceFinancialClosure	t	t
-3688	11	tickets	times_expectedServiceClosure	t	t
-3689	11	tickets	times_factServiceClosure	t	t
-3690	11	tickets	times_repairEndDate	t	t
-3691	11	towage	createTime	t	f
-3692	11	towage	payType	t	t
-3693	11	towage	falseCall	t	t
-3694	11	towage	clientCancelReason	t	t
-3695	11	towage	towerType	t	t
-3696	11	towage	towType	t	t
-3697	11	towage	vandalism	t	t
-3698	11	towage	accident	t	t
-3699	11	towage	dealerDistance	t	t
-3700	11	towage	marginalCost	t	f
-3701	11	towage	wheelsUnblocked	t	t
-3702	11	towage	canNeutral	t	t
-3703	11	towage	towingPointPresent	t	t
-3704	11	towage	manipulatorPossible	t	t
-3705	11	towage	suburbanMilage	t	t
-3706	11	towage	repairEndDate	t	t
-3707	11	towage	status	t	t
-3708	11	towage	clientSatisfied	t	t
-3709	11	towage	warrantyCase	t	t
-3710	11	towage	files	t	t
-3711	11	towage	service_tarifOptions	t	t
-3712	11	towage	assignedTo	t	f
-3713	11	towage	falseCallPercent	t	f
-3714	11	towage	cost_countedCost	t	t
-3715	11	towage	urgentService	t	t
-3716	11	towage	cost_counted	t	t
-3717	11	towage	cost_serviceTarifOptions	t	t
-3718	11	towage	towAddress_address	t	t
-3719	11	towage	towAddress_coords	t	t
-3720	11	towage	towAddress_city	t	t
-3721	11	towage	towAddress_comment	t	t
-3722	11	towage	towAddress_map	t	t
-3723	11	towage	payment_partnerCost	t	t
-3724	11	towage	payment_costTranscript	t	t
-3725	11	towage	payment_calculatedCost	t	f
-3726	11	towage	payment_overcosted	t	f
-3727	11	towage	payment_limitedCost	t	f
-3728	11	towage	payment_paidByRUAMC	t	t
-3729	11	towage	payment_paidByClient	t	t
-3730	11	towage	towerAddress_address	t	t
-3731	11	towage	towerAddress_coords	t	t
-3732	11	towage	towerAddress_city	t	t
-3733	11	towage	towerAddress_comment	t	t
-3734	11	towage	towerAddress_map	t	t
-3735	11	towage	towDealer_partner	t	t
-3736	11	towage	towDealer_partnerId	t	t
-3737	11	towage	towDealer_partnerTable	t	t
-3738	11	towage	towDealer_partnerMap	t	t
-3739	11	towage	towDealer_coords	t	t
-3740	11	towage	towDealer_address	t	t
-3741	11	towage	contractor_partner	t	t
-3742	11	towage	contractor_partnerId	t	t
-3743	11	towage	contractor_partnerTable	t	t
-3744	11	towage	contractor_partnerMap	t	t
-3745	11	towage	contractor_coords	t	t
-3746	11	towage	contractor_partnerCancel	t	t
-3747	11	towage	contractor_address	t	t
-3748	11	towage	bill_billNumber	t	f
-3749	11	towage	bill_billingCost	t	f
-3750	11	towage	bill_billingDate	t	f
-3751	11	towage	times_expectedServiceStart	t	t
-3752	11	towage	times_factServiceStart	t	t
-3753	11	towage	times_expectedServiceEnd	t	t
-3754	11	towage	times_factServiceEnd	t	t
-3755	11	towage	times_expectedServiceFinancialClosure	t	t
-3756	11	towage	times_factServiceFinancialClosure	t	t
-3757	11	towage	times_expectedServiceClosure	t	t
-3758	11	towage	times_factServiceClosure	t	t
-3759	11	transportation	createTime	t	f
-3760	11	transportation	payType	t	t
-3761	11	transportation	falseCall	t	t
-3762	11	transportation	clientCancelReason	t	t
-3763	11	transportation	transportType	t	t
-3764	11	transportation	status	t	t
-3765	11	transportation	clientSatisfied	t	t
-3766	11	transportation	warrantyCase	t	t
-3767	11	transportation	files	t	t
-3768	11	transportation	assignedTo	t	f
-3769	11	transportation	falseCallPercent	t	f
-3770	11	transportation	cost_countedCost	t	t
-3771	11	transportation	urgentService	t	t
-3772	11	transportation	cost_counted	t	t
-3773	11	transportation	cost_serviceTarifOptions	t	t
-3774	11	transportation	caseAddress_address	t	t
-3775	11	transportation	caseAddress_coords	t	t
-3776	11	transportation	caseAddress_city	t	t
-3777	11	transportation	caseAddress_comment	t	t
-3778	11	transportation	fromToAddress_address	t	t
-3779	11	transportation	fromToAddress_coords	t	t
-3780	11	transportation	fromToAddress_city	t	t
-3781	11	transportation	fromToAddress_comment	t	t
-3782	11	transportation	payment_partnerCost	t	t
-3783	11	transportation	payment_costTranscript	t	t
-3784	11	transportation	payment_calculatedCost	t	f
-3785	11	transportation	payment_overcosted	t	f
-3786	11	transportation	payment_limitedCost	t	f
-3787	11	transportation	payment_paidByRUAMC	t	t
-3788	11	transportation	payment_paidByClient	t	t
-3789	11	transportation	bill_billNumber	t	f
-3790	11	transportation	bill_billingCost	t	f
-3791	11	transportation	bill_billingDate	t	f
-3792	11	transportation	times_expectedServiceStart	t	t
-3793	11	transportation	times_factServiceStart	t	t
-3794	11	transportation	times_expectedServiceEnd	t	t
-3795	11	transportation	times_factServiceEnd	t	t
-3796	11	transportation	times_expectedServiceFinancialClosure	t	t
-3797	11	transportation	times_factServiceFinancialClosure	t	t
-3798	11	transportation	times_expectedServiceClosure	t	t
-3799	11	transportation	times_factServiceClosure	t	t
-3800	11	transportation	times_repairEndDate	t	t
-3801	12	action	comment	t	t
-3802	12	action	result	t	t
-3803	12	action	assignedTo	t	t
-3804	12	action	targetGroup	t	t
-3805	12	action	priority	t	t
-3806	12	action	closed	t	t
-3807	12	averageCommissioner	createTime	t	f
-3808	12	averageCommissioner	payType	t	t
-3809	12	averageCommissioner	falseCall	t	t
-3810	12	averageCommissioner	clientCancelReason	t	t
-3811	12	averageCommissioner	requestType	t	t
-3812	12	averageCommissioner	whatToSay1	t	t
-3813	12	averageCommissioner	activity	t	t
-3814	12	averageCommissioner	commMilage	t	t
-3815	12	averageCommissioner	status	t	t
-3816	12	averageCommissioner	clientSatisfied	t	t
-3817	12	averageCommissioner	warrantyCase	t	t
-3818	12	averageCommissioner	files	t	t
-3819	12	averageCommissioner	assignedTo	t	f
-3820	12	averageCommissioner	commAddress_address	t	t
-3821	12	averageCommissioner	commAddress_coords	t	t
-3822	12	averageCommissioner	commAddress_city	t	t
-3823	12	averageCommissioner	commAddress_comment	t	t
-3824	12	averageCommissioner	urgentService	t	t
-3825	12	averageCommissioner	payment_expectedCost	t	t
-3826	12	averageCommissioner	cost_countedCost	t	t
-3827	12	averageCommissioner	cost_counted	t	t
-3828	12	averageCommissioner	cost_serviceTarifOptions	t	t
-3829	12	averageCommissioner	payment_partnerCost	t	t
-3830	12	averageCommissioner	payment_costTranscript	t	t
-3831	12	averageCommissioner	payment_calculatedCost	t	f
-3832	12	averageCommissioner	payment_overcosted	t	f
-3833	12	averageCommissioner	payment_limitedCost	t	f
-3834	12	averageCommissioner	payment_paidByRUAMC	t	t
-3835	12	averageCommissioner	payment_paidByClient	t	t
-3836	12	averageCommissioner	contractor_partner	t	t
-3837	12	averageCommissioner	contractor_partnerTable	t	t
-3838	12	averageCommissioner	contractor_partnerCancel	t	t
-3839	12	averageCommissioner	contractor_address	t	t
-3840	12	averageCommissioner	bill_billNumber	t	f
-3841	12	averageCommissioner	bill_billingCost	t	f
-3842	12	averageCommissioner	bill_billingDate	t	f
-3843	12	averageCommissioner	times_expectedServiceStart	t	t
-3844	12	averageCommissioner	times_factServiceStart	t	t
-3845	12	averageCommissioner	times_expectedServiceEnd	t	t
-3846	12	averageCommissioner	times_factServiceEnd	t	t
-3847	12	averageCommissioner	times_expectedServiceFinancialClosure	t	t
-3848	12	averageCommissioner	times_factServiceFinancialClosure	t	t
-3849	12	averageCommissioner	times_expectedServiceClosure	t	t
-3850	12	averageCommissioner	times_factServiceClosure	t	t
-3851	12	averageCommissioner	times_repairEndDate	t	t
-3852	12	bank	createTime	t	f
-3853	12	bank	payType	t	t
-3854	12	bank	falseCall	t	t
-3855	12	bank	clientCancelReason	t	t
-3856	12	bank	requestType	t	t
-3857	12	bank	whatToSay1	t	t
-3858	12	bank	activity	t	t
-3859	12	bank	status	t	t
-3860	12	bank	clientSatisfied	t	t
-3861	12	bank	warrantyCase	t	t
-3862	12	bank	files	t	t
-3863	12	bank	assignedTo	t	f
-3864	12	bank	urgentService	t	t
-3865	12	bank	payment_expectedCost	t	t
-3866	12	bank	cost_countedCost	t	t
-3867	12	bank	cost_counted	t	t
-3868	12	bank	cost_serviceTarifOptions	t	t
-3869	12	bank	payment_partnerCost	t	t
-3870	12	bank	payment_costTranscript	t	t
-3871	12	bank	payment_calculatedCost	t	f
-3872	12	bank	payment_overcosted	t	f
-3873	12	bank	payment_limitedCost	t	f
-3874	12	bank	payment_paidByRUAMC	t	t
-3875	12	bank	payment_paidByClient	t	t
-3876	12	bank	contractor_partner	t	t
-3877	12	bank	contractor_partnerTable	t	t
-3878	12	bank	contractor_partnerCancel	t	t
-3879	12	bank	contractor_address	t	t
-3880	12	bank	bill_billNumber	t	f
-3881	12	bank	bill_billingCost	t	f
-3882	12	bank	bill_billingDate	t	f
-3883	12	bank	times_expectedServiceStart	t	t
-3884	12	bank	times_factServiceStart	t	t
-3885	12	bank	times_expectedServiceEnd	t	t
-3886	12	bank	times_factServiceEnd	t	t
-3887	12	bank	times_expectedServiceFinancialClosure	t	t
-3888	12	bank	times_factServiceFinancialClosure	t	t
-3889	12	bank	times_expectedServiceClosure	t	t
-3890	12	bank	times_factServiceClosure	t	t
-3891	12	bank	times_repairEndDate	t	t
-3892	12	call	callDate	t	t
-3893	12	call	callTaker	t	f
-3894	12	case	callDate	t	t
-3895	12	case	callTaker	t	f
-3896	12	case	comment	t	t
-3897	12	case	diagnosis1	t	t
-3898	12	case	diagnosis2	t	t
-3899	12	case	diagnosis3	t	t
-3900	12	case	diagnosis4	t	t
-3901	12	case	program	t	t
-3902	12	case	vinChecked	t	t
-3903	12	case	city	t	t
-3904	12	case	temperature	t	t
-3905	12	case	repair	t	t
-3906	12	case	accord	t	t
-3907	12	case	dealerCause	t	t
-3908	12	case	caseStatus	t	t
-3909	12	case	psaExportNeeded	t	t
-3910	12	case	psaExported	t	t
-3911	12	case	claim	t	t
-3912	12	case	betaComment	t	t
-3913	12	case	files	t	t
-3914	12	case	comments	t	t
-3915	12	case	caseAddress_address	t	t
-3916	12	case	contact_name	t	t
-3917	12	case	cardNumber_cardNumber	t	t
-3918	12	case	caseAddress_map	t	t
-3919	12	case	caseAddress_coords	t	t
-3920	12	case	caseAddress_city	t	t
-3921	12	case	caseAddress_comment	t	t
-3922	12	case	contact_email	t	t
-3923	12	case	contact_phone1	t	t
-3924	12	case	contact_phone2	t	t
-3925	12	case	contact_phone3	t	t
-3926	12	case	contact_phone4	t	t
-3927	12	case	contact_ownerName	t	t
-3928	12	case	contact_contactOwner	t	t
-3929	12	case	contact_ownerEmail	t	t
-3930	12	case	contact_ownerPhone1	t	t
-3931	12	case	contact_ownerPhone2	t	t
-3932	12	case	contact_ownerPhone3	t	t
-3933	12	case	contact_ownerPhone4	t	t
-3934	12	case	car_vin	t	t
-3935	12	case	car_seller	t	t
-3936	12	case	car_make	t	t
-3937	12	case	car_model	t	t
-3938	12	case	car_plateNum	t	t
-3939	12	case	car_color	t	t
-3940	12	case	car_transmission	t	t
-3941	12	case	car_engine	t	t
-3942	12	case	car_liters	t	t
-3943	12	case	car_capacity	t	t
-3944	12	case	car_dims	t	t
-3945	12	case	car_weight	t	t
-3946	12	case	car_checkPeriod	t	t
-3947	12	case	car_class	t	t
-3948	12	case	car_buyDate	t	t
-3949	12	case	car_mileage	t	t
-3950	12	case	car_checkupDate	t	t
-3951	12	case	car_checkupMileage	t	t
-3952	12	case	car_dealerTO	t	t
-3953	12	case	car_makeYear	t	t
-3954	12	case	car_warrantyStart	t	t
-3955	12	case	car_warrantyEnd	t	t
-3956	12	case	car_contractType	t	t
-3957	12	case	cardNumber_validFrom	t	f
-3958	12	case	cardNumber_validUntil	t	f
-3959	12	case	cardNumber_validUntilMilage	t	f
-3960	12	case	cardNumber_milageTO	t	f
-3961	12	case	cardNumber_serviceInterval	t	f
-3963	12	case	cardNumber_manager	t	f
-3964	12	consultation	createTime	t	f
-3965	12	consultation	payType	t	t
-3966	12	consultation	falseCall	t	t
-3967	12	consultation	clientCancelReason	t	t
-3968	12	consultation	consType	t	t
-3969	12	consultation	whatToSay1	t	t
-3970	12	consultation	status	t	t
-3971	12	consultation	result	t	t
-3972	12	consultation	clientSatisfied	t	t
-3973	12	consultation	warrantyCase	t	t
-3974	12	consultation	files	t	t
-3975	12	consultation	assignedTo	t	f
-3976	12	consultation	cost_countedCost	t	t
-3977	12	consultation	cost_counted	t	t
-3978	12	consultation	cost_serviceTarifOptions	t	t
-3979	12	consultation	urgentService	t	t
-3980	12	consultation	payment_partnerCost	t	t
-3981	12	consultation	payment_costTranscript	t	t
-3982	12	consultation	payment_calculatedCost	t	f
-3983	12	consultation	payment_overcosted	t	f
-3984	12	consultation	payment_limitedCost	t	f
-3985	12	consultation	payment_paidByRUAMC	t	t
-3986	12	consultation	payment_paidByClient	t	t
-3987	12	consultation	contractor_partner	t	t
-3988	12	consultation	contractor_partnerTable	t	t
-3989	12	consultation	contractor_partnerCancel	t	t
-3990	12	consultation	contractor_address	t	t
-3991	12	consultation	bill_billNumber	t	f
-3992	12	consultation	bill_billingCost	t	f
-3993	12	consultation	bill_billingDate	t	f
-3994	12	consultation	times_expectedServiceStart	t	t
-3995	12	consultation	times_factServiceStart	t	t
-3996	12	consultation	times_expectedServiceEnd	t	t
-3997	12	consultation	times_factServiceEnd	t	t
-3998	12	consultation	times_expectedServiceFinancialClosure	t	t
-3999	12	consultation	times_factServiceFinancialClosure	t	t
-4000	12	consultation	times_expectedServiceClosure	t	t
-4001	12	consultation	times_factServiceClosure	t	t
-4002	12	consultation	times_repairEndDate	t	t
-4003	12	continue	createTime	t	f
-4004	12	continue	payType	t	t
-4005	12	continue	falseCall	t	t
-4006	12	continue	clientCancelReason	t	t
-4007	12	continue	deliveryType	t	t
-4008	12	continue	status	t	t
-4009	12	continue	clientSatisfied	t	t
-4010	12	continue	warrantyCase	t	t
-4011	12	continue	files	t	t
-4012	12	continue	assignedTo	t	f
-4013	12	continue	urgentService	t	t
-4014	12	continue	payment_expectedCost	t	t
-4015	12	continue	cost_countedCost	t	t
-4016	12	continue	cost_counted	t	t
-4017	12	continue	cost_serviceTarifOptions	t	t
-4018	12	continue	payment_partnerCost	t	t
-4019	12	continue	payment_costTranscript	t	t
-4020	12	continue	payment_calculatedCost	t	f
-4021	12	continue	payment_overcosted	t	f
-4022	12	continue	payment_limitedCost	t	f
-4023	12	continue	payment_paidByRUAMC	t	t
-4024	12	continue	payment_paidByClient	t	t
-4025	12	continue	deliverFrom_address	t	t
-4026	12	continue	deliverFrom_coords	t	t
-4027	12	continue	deliverFrom_city	t	t
-4028	12	continue	deliverFrom_comment	t	t
-4029	12	continue	deliverTo_address	t	t
-4030	12	continue	deliverTo_coords	t	t
-4031	12	continue	deliverTo_city	t	t
-4032	12	continue	deliverTo_comment	t	t
-4033	12	continue	contractor_partner	t	t
-4034	12	continue	contractor_partnerTable	t	t
-4035	12	continue	contractor_partnerCancel	t	t
-4036	12	continue	contractor_address	t	t
-4037	12	continue	bill_billNumber	t	f
-4038	12	continue	bill_billingCost	t	f
-4039	12	continue	bill_billingDate	t	f
-4040	12	continue	times_expectedServiceStart	t	t
-4041	12	continue	times_factServiceStart	t	t
-4042	12	continue	times_expectedServiceEnd	t	t
-4043	12	continue	times_factServiceEnd	t	t
-4044	12	continue	times_expectedServiceFinancialClosure	t	t
-4045	12	continue	times_factServiceFinancialClosure	t	t
-4046	12	continue	times_expectedServiceClosure	t	t
-4047	12	continue	times_factServiceClosure	t	t
-4048	12	continue	times_repairEndDate	t	t
-4049	12	deliverCar	createTime	t	f
-4050	12	deliverCar	payType	t	t
-4051	12	deliverCar	falseCall	t	t
-4052	12	deliverCar	clientCancelReason	t	t
-4053	12	deliverCar	marginalCost	t	f
-4054	12	deliverCar	status	t	t
-4055	12	deliverCar	clientSatisfied	t	t
-4056	12	deliverCar	warrantyCase	t	t
-4057	12	deliverCar	files	t	t
-4058	12	deliverCar	service_tarifOptions	t	t
-4059	12	deliverCar	assignedTo	t	f
-4060	12	deliverCar	falseCallPercent	t	f
-4061	12	deliverCar	toAddress_address	t	t
-4062	12	deliverCar	toAddress_coords	t	t
-4063	12	deliverCar	toAddress_city	t	t
-4064	12	deliverCar	toAddress_comment	t	t
-4065	12	deliverCar	urgentService	t	t
-4066	12	deliverCar	cost_countedCost	t	t
-4067	12	deliverCar	cost_counted	t	t
-4068	12	deliverCar	cost_serviceTarifOptions	t	t
-4069	12	deliverCar	payment_partnerCost	t	t
-4070	12	deliverCar	payment_costTranscript	t	t
-4071	12	deliverCar	payment_calculatedCost	t	f
-4072	12	deliverCar	payment_overcosted	t	f
-4073	12	deliverCar	payment_limitedCost	t	f
-4074	12	deliverCar	payment_payType	t	t
-4075	12	deliverCar	payment_paidByRUAMC	t	t
-4076	12	deliverCar	payment_paidByClient	t	t
-4077	12	deliverCar	bill_billNumber	t	f
-4078	12	deliverCar	bill_billingCost	t	f
-4079	12	deliverCar	bill_billingDate	t	f
-4080	12	deliverCar	times_expectedServiceStart	t	t
-4081	12	deliverCar	times_factServiceStart	t	t
-4196	12	hotel	cost_counted	t	t
-4082	12	deliverCar	times_expectedServiceEnd	t	t
-4083	12	deliverCar	times_factServiceEnd	t	t
-4084	12	deliverCar	times_expectedServiceFinancialClosure	t	t
-4085	12	deliverCar	times_factServiceFinancialClosure	t	t
-4086	12	deliverCar	times_expectedServiceClosure	t	t
-4087	12	deliverCar	times_factServiceClosure	t	t
-4088	12	deliverCar	times_repairEndDate	t	t
-4089	12	deliverClient	createTime	t	f
-4090	12	deliverClient	payType	t	t
-4091	12	deliverClient	falseCall	t	t
-4092	12	deliverClient	clientCancelReason	t	t
-4093	12	deliverClient	deliveryType	t	t
-4094	12	deliverClient	status	t	t
-4095	12	deliverClient	clientSatisfied	t	t
-4096	12	deliverClient	warrantyCase	t	t
-4097	12	deliverClient	files	t	t
-4098	12	deliverClient	assignedTo	t	f
-4099	12	deliverClient	falseCallPercent	t	f
-4100	12	deliverClient	cost_countedCost	t	t
-4101	12	deliverClient	urgentService	t	t
-4102	12	deliverClient	cost_counted	t	t
-4103	12	deliverClient	cost_serviceTarifOptions	t	t
-4104	12	deliverClient	payment_partnerCost	t	t
-4105	12	deliverClient	payment_costTranscript	t	t
-4106	12	deliverClient	payment_calculatedCost	t	f
-4107	12	deliverClient	payment_overcosted	t	f
-4108	12	deliverClient	payment_limitedCost	t	f
-4109	12	deliverClient	payment_paidByRUAMC	t	t
-4110	12	deliverClient	payment_paidByClient	t	t
-4111	12	deliverClient	deliverFrom_address	t	t
-4112	12	deliverClient	deliverFrom_coords	t	t
-4113	12	deliverClient	deliverFrom_city	t	t
-4114	12	deliverClient	deliverFrom_comment	t	t
-4115	12	deliverClient	deliverTo_address	t	t
-4116	12	deliverClient	deliverTo_coords	t	t
-4117	12	deliverClient	deliverTo_city	t	t
-4118	12	deliverClient	deliverTo_comment	t	t
-4119	12	deliverClient	contractor_partner	t	t
-4120	12	deliverClient	contractor_partnerTable	t	t
-4121	12	deliverClient	contractor_partnerCancel	t	t
-4122	12	deliverClient	contractor_address	t	t
-4123	12	deliverClient	bill_billNumber	t	f
-4124	12	deliverClient	bill_billingCost	t	f
-4125	12	deliverClient	bill_billingDate	t	f
-4126	12	deliverClient	times_expectedServiceStart	t	t
-4127	12	deliverClient	times_factServiceStart	t	t
-4128	12	deliverClient	times_expectedServiceEnd	t	t
-4129	12	deliverClient	times_factServiceEnd	t	t
-4130	12	deliverClient	times_expectedServiceFinancialClosure	t	t
-4131	12	deliverClient	times_factServiceFinancialClosure	t	t
-4353	12	rent	rentedModel	t	t
-4132	12	deliverClient	times_expectedServiceClosure	t	t
-4133	12	deliverClient	times_factServiceClosure	t	t
-4134	12	deliverClient	times_repairEndDate	t	t
-4135	12	deliverParts	createTime	t	f
-4136	12	deliverParts	payType	t	t
-4137	12	deliverParts	falseCall	t	t
-4138	12	deliverParts	clientCancelReason	t	t
-4139	12	deliverParts	parts	t	t
-4140	12	deliverParts	marginalCost	t	f
-4141	12	deliverParts	status	t	t
-4142	12	deliverParts	clientSatisfied	t	t
-4143	12	deliverParts	warrantyCase	t	t
-4144	12	deliverParts	files	t	t
-4145	12	deliverParts	service_tarifOptions	t	t
-4146	12	deliverParts	assignedTo	t	f
-4147	12	deliverParts	falseCallPercent	t	f
-4148	12	deliverParts	toAddress_address	t	t
-4149	12	deliverParts	toAddress_coords	t	t
-4150	12	deliverParts	toAddress_city	t	t
-4151	12	deliverParts	toAddress_comment	t	t
-4152	12	deliverParts	cost_countedCost	t	t
-4153	12	deliverParts	urgentService	t	t
-4154	12	deliverParts	cost_counted	t	t
-4155	12	deliverParts	cost_serviceTarifOptions	t	t
-4156	12	deliverParts	payment_partnerCost	t	t
-4157	12	deliverParts	payment_costTranscript	t	t
-4158	12	deliverParts	payment_calculatedCost	t	f
-4159	12	deliverParts	payment_overcosted	t	f
-4160	12	deliverParts	payment_limitedCost	t	f
-4161	12	deliverParts	payment_paidByRUAMC	t	t
-4162	12	deliverParts	payment_paidByClient	t	t
-4163	12	deliverParts	bill_billNumber	t	f
-4164	12	deliverParts	bill_billingCost	t	f
-4165	12	deliverParts	bill_billingDate	t	f
-4166	12	deliverParts	times_expectedServiceStart	t	t
-4167	12	deliverParts	times_factServiceStart	t	t
-4168	12	deliverParts	times_expectedServiceEnd	t	t
-4169	12	deliverParts	times_factServiceEnd	t	t
-4170	12	deliverParts	times_expectedServiceFinancialClosure	t	t
-4171	12	deliverParts	times_factServiceFinancialClosure	t	t
-4172	12	deliverParts	times_expectedServiceClosure	t	t
-4173	12	deliverParts	times_factServiceClosure	t	t
-4174	12	deliverParts	times_repairEndDate	t	t
-4175	12	hotel	createTime	t	f
-4176	12	hotel	payType	t	t
-4177	12	hotel	falseCall	t	t
-4178	12	hotel	clientCancelReason	t	t
-4179	12	hotel	marginalCost	t	f
-4180	12	hotel	providedFor	t	t
-4181	12	hotel	status	t	t
-4182	12	hotel	clientSatisfied	t	t
-4183	12	hotel	warrantyCase	t	t
-4184	12	hotel	files	t	t
-4185	12	hotel	service_tarifOptions	t	t
-4186	12	hotel	assignedTo	t	f
-4187	12	hotel	payment_partnerCost	t	t
-4188	12	hotel	payment_costTranscript	t	t
-4189	12	hotel	payment_calculatedCost	t	f
-4190	12	hotel	payment_overcosted	t	f
-4191	12	hotel	payment_limitedCost	t	f
-4192	12	hotel	payment_paidByRUAMC	t	t
-4193	12	hotel	payment_paidByClient	t	t
-4194	12	hotel	cost_countedCost	t	t
-4195	12	hotel	urgentService	t	t
-4197	12	hotel	cost_serviceTarifOptions	t	t
-4198	12	hotel	caseAddress_address	t	t
-4199	12	hotel	caseAddress_coords	t	t
-4200	12	hotel	caseAddress_city	t	t
-4201	12	hotel	caseAddress_comment	t	t
-4202	12	hotel	contractor_partner	t	t
-4203	12	hotel	contractor_partnerId	t	t
-4204	12	hotel	contractor_partnerTable	t	t
-4205	12	hotel	contractor_partnerCancel	t	t
-4206	12	hotel	contractor_address	t	t
-4207	12	hotel	bill_billNumber	t	f
-4208	12	hotel	bill_billingCost	t	f
-4209	12	hotel	bill_billingDate	t	f
-4210	12	hotel	times_expectedServiceStart	t	t
-4211	12	hotel	times_factServiceStart	t	t
-4212	12	hotel	times_expectedServiceEnd	t	t
-4213	12	hotel	times_factServiceEnd	t	t
-4214	12	hotel	times_expectedServiceFinancialClosure	t	t
-4215	12	hotel	times_factServiceFinancialClosure	t	t
-4216	12	hotel	times_expectedServiceClosure	t	t
-4217	12	hotel	times_factServiceClosure	t	t
-4218	12	hotel	times_repairEndDate	t	t
-4219	12	information	createTime	t	f
-4220	12	information	payType	t	t
-4221	12	information	falseCall	t	t
-4222	12	information	clientCancelReason	t	t
-4223	12	information	contact1	t	t
-4224	12	information	contactPhone1	t	t
-4225	12	information	whatToSay1	t	t
-4226	12	information	contact2	t	t
-4227	12	information	contactPhone2	t	t
-4228	12	information	whatToSay2	t	t
-4229	12	information	contact3	t	t
-4230	12	information	contactPhone3	t	t
-4231	12	information	whatToSay3	t	t
-4232	12	information	status	t	t
-4233	12	information	clientSatisfied	t	t
-4234	12	information	warrantyCase	t	t
-4235	12	information	files	t	t
-4236	12	information	assignedTo	t	f
-4237	12	information	falseCallPercent	t	f
-4238	12	information	urgentService	t	t
-4239	12	information	payment_expectedCost	t	t
-4240	12	information	payment_partnerCost	t	t
-4354	12	rent	status	t	t
-4241	12	information	payment_costTranscript	t	t
-4242	12	information	payment_calculatedCost	t	f
-4243	12	information	payment_overcosted	t	f
-4244	12	information	payment_limitedCost	t	f
-4245	12	information	payment_paidByRUAMC	t	t
-4246	12	information	payment_paidByClient	t	t
-4247	12	information	bill_billNumber	t	f
-4248	12	information	bill_billingCost	t	f
-4249	12	information	bill_billingDate	t	f
-4250	12	information	times_expectedServiceStart	t	t
-4251	12	information	times_factServiceStart	t	t
-4252	12	information	times_expectedServiceEnd	t	t
-4253	12	information	times_factServiceEnd	t	t
-4254	12	information	times_expectedServiceFinancialClosure	t	t
-4255	12	information	times_factServiceFinancialClosure	t	t
-4256	12	information	times_expectedServiceClosure	t	t
-4257	12	information	times_factServiceClosure	t	t
-4258	12	information	times_repairEndDate	t	t
-4259	12	insurance	createTime	t	f
-4260	12	insurance	payType	t	t
-4261	12	insurance	falseCall	t	t
-4262	12	insurance	clientCancelReason	t	t
-4263	12	insurance	requestType	t	t
-4264	12	insurance	whatToSay1	t	t
-4265	12	insurance	activity	t	t
-4266	12	insurance	commMilage	t	t
-4267	12	insurance	status	t	t
-4268	12	insurance	clientSatisfied	t	t
-4269	12	insurance	warrantyCase	t	t
-4270	12	insurance	files	t	t
-4271	12	insurance	assignedTo	t	f
-4272	12	insurance	commAddress_address	t	t
-4273	12	insurance	commAddress_coords	t	t
-4274	12	insurance	commAddress_city	t	t
-4275	12	insurance	commAddress_comment	t	t
-4276	12	insurance	cost_countedCost	t	t
-4277	12	insurance	urgentService	t	t
-4278	12	insurance	cost_counted	t	t
-4279	12	insurance	cost_serviceTarifOptions	t	t
-4280	12	insurance	payment_partnerCost	t	t
-4281	12	insurance	payment_costTranscript	t	t
-4282	12	insurance	payment_calculatedCost	t	f
-4283	12	insurance	payment_overcosted	t	f
-4284	12	insurance	payment_limitedCost	t	f
-4285	12	insurance	payment_paidByRUAMC	t	t
-4286	12	insurance	payment_paidByClient	t	t
-4287	12	insurance	contractor_partner	t	t
-4288	12	insurance	contractor_partnerTable	t	t
-4289	12	insurance	contractor_partnerCancel	t	t
-4290	12	insurance	contractor_address	t	t
-4291	12	insurance	bill_billNumber	t	f
-4292	12	insurance	bill_billingCost	t	f
-4293	12	insurance	bill_billingDate	t	f
-4294	12	insurance	times_expectedServiceStart	t	t
-4295	12	insurance	times_factServiceStart	t	t
-4296	12	insurance	times_expectedServiceEnd	t	t
-4297	12	insurance	times_factServiceEnd	t	t
-4298	12	insurance	times_expectedServiceFinancialClosure	t	t
-4299	12	insurance	times_factServiceFinancialClosure	t	t
-4300	12	insurance	times_expectedServiceClosure	t	t
-4301	12	insurance	times_factServiceClosure	t	t
-4302	12	insurance	times_repairEndDate	t	t
-4303	12	ken	createTime	t	f
-4304	12	ken	payType	t	t
-4305	12	ken	falseCall	t	t
-4306	12	ken	clientCancelReason	t	t
-4307	12	ken	requestType	t	t
-4308	12	ken	whatToSay1	t	t
-4309	12	ken	activity	t	t
-4310	12	ken	status	t	t
-4311	12	ken	clientSatisfied	t	t
-4312	12	ken	warrantyCase	t	t
-4313	12	ken	files	t	t
-4314	12	ken	assignedTo	t	f
-4315	12	ken	falseCallPercent	t	f
-4316	12	ken	cost_countedCost	t	t
-4317	12	ken	urgentService	t	t
-4318	12	ken	cost_counted	t	t
-4319	12	ken	cost_serviceTarifOptions	t	t
-4320	12	ken	payment_partnerCost	t	t
-4321	12	ken	payment_costTranscript	t	t
-4322	12	ken	payment_calculatedCost	t	f
-4323	12	ken	payment_overcosted	t	f
-4324	12	ken	payment_limitedCost	t	f
-4325	12	ken	payment_paidByRUAMC	t	t
-4326	12	ken	payment_paidByClient	t	t
-4327	12	ken	contractor_partner	t	t
-4328	12	ken	contractor_partnerTable	t	t
-4329	12	ken	contractor_partnerCancel	t	t
-4330	12	ken	contractor_address	t	t
-4331	12	ken	bill_billNumber	t	f
-4332	12	ken	bill_billingCost	t	f
-4333	12	ken	bill_billingDate	t	f
-4334	12	ken	times_expectedServiceStart	t	t
-4335	12	ken	times_factServiceStart	t	t
-4336	12	ken	times_expectedServiceEnd	t	t
-4337	12	ken	times_factServiceEnd	t	t
-4338	12	ken	times_expectedServiceFinancialClosure	t	t
-4339	12	ken	times_factServiceFinancialClosure	t	t
-4340	12	ken	times_expectedServiceClosure	t	t
-4341	12	ken	times_factServiceClosure	t	t
-4342	12	ken	times_repairEndDate	t	t
-4343	12	partner	comment	t	t
-4344	12	rent	createTime	t	f
-4345	12	rent	payType	t	t
-4346	12	rent	falseCall	t	t
-4347	12	rent	clientCancelReason	t	t
-4348	12	rent	vinRent	t	t
-4349	12	rent	carClass	t	t
-4350	12	rent	marginalCost	t	f
-4351	12	rent	providedFor	t	t
-4352	12	rent	rentedMake	t	t
-4356	12	rent	warrantyCase	t	t
-4357	12	rent	files	t	t
-4358	12	rent	assignedTo	t	f
-4359	12	rent	falseCallPercent	t	f
-4360	12	rent	cost_countedCost	t	t
-4361	12	rent	urgentService	t	t
-4362	12	rent	cost_counted	t	t
-4363	12	rent	cost_serviceTarifOptions	t	t
-4364	12	rent	rentAddress_address	t	t
-4365	12	rent	rentAddress_coords	t	t
-4366	12	rent	rentAddress_city	t	t
-4367	12	rent	rentAddress_comment	t	t
-4368	12	rent	towDealer_partner	t	t
-4369	12	rent	towDealer_partnerTable	t	t
-4370	12	rent	towDealer_address	t	t
-4371	12	rent	contractor_partner	t	t
-4372	12	rent	contractor_partnerId	t	t
-4373	12	rent	contractor_partnerTable	t	t
-4374	12	rent	contractor_partnerCancel	t	t
-4375	12	rent	contractor_address	t	t
-4376	12	rent	payment_partnerCost	t	t
-4377	12	rent	payment_costTranscript	t	t
-4378	12	rent	payment_calculatedCost	t	f
-4379	12	rent	payment_overcosted	t	f
-4380	12	rent	payment_limitedCost	t	f
-4381	12	rent	payment_paidByRUAMC	t	t
-4382	12	rent	payment_paidByClient	t	t
-4383	12	rent	bill_billNumber	t	f
-4384	12	rent	bill_billingCost	t	f
-4385	12	rent	bill_billingDate	t	f
-4386	12	rent	times_expectedServiceStart	t	t
-4387	12	rent	times_factServiceStart	t	t
-4388	12	rent	times_expectedServiceEnd	t	t
-4389	12	rent	times_factServiceEnd	t	t
-4390	12	rent	times_expectedServiceFinancialClosure	t	t
-4391	12	rent	times_factServiceFinancialClosure	t	t
-4392	12	rent	times_expectedServiceClosure	t	t
-4393	12	rent	times_factServiceClosure	t	t
-4394	12	rent	times_repairEndDate	t	t
-4395	12	sober	createTime	t	f
-4396	12	sober	payType	t	t
-4397	12	sober	falseCall	t	t
-4398	12	sober	clientCancelReason	t	t
-4399	12	sober	marginalCost	t	f
-4400	12	sober	multidrive	t	t
-4401	12	sober	status	t	t
-4402	12	sober	clientSatisfied	t	t
-4403	12	sober	warrantyCase	t	t
-4404	12	sober	files	t	t
-4405	12	sober	service_tarifOptions	t	t
-4406	12	sober	assignedTo	t	f
-4407	12	sober	cost_countedCost	t	t
-4408	12	sober	urgentService	t	t
-4409	12	sober	cost_counted	t	t
-4410	12	sober	cost_serviceTarifOptions	t	t
-4411	12	sober	payment_partnerCost	t	t
-4412	12	sober	payment_costTranscript	t	t
-4413	12	sober	payment_calculatedCost	t	f
-4414	12	sober	payment_overcosted	t	f
-4415	12	sober	payment_limitedCost	t	f
-4416	12	sober	payment_paidByRUAMC	t	t
-4417	12	sober	payment_paidByClient	t	t
-4418	12	sober	fromAddress_address	t	t
-4419	12	sober	fromAddress_coords	t	t
-4420	12	sober	fromAddress_city	t	t
-4421	12	sober	fromAddress_comment	t	t
-4422	12	sober	toAddress_address	t	t
-4423	12	sober	toAddress_coords	t	t
-4424	12	sober	toAddress_city	t	t
-4425	12	sober	toAddress_comment	t	t
-4426	12	sober	contractor_partner	t	t
-4427	12	sober	contractor_partnerId	t	t
-4428	12	sober	contractor_partnerTable	t	t
-4429	12	sober	contractor_partnerCancel	t	t
-4430	12	sober	contractor_address	t	t
-4431	12	sober	bill_billNumber	t	f
-4432	12	sober	bill_billingCost	t	f
-4433	12	sober	bill_billingDate	t	f
-4434	12	sober	times_expectedServiceStart	t	t
-4435	12	sober	times_factServiceStart	t	t
-4436	12	sober	times_expectedServiceEnd	t	t
-4437	12	sober	times_factServiceEnd	t	t
-4438	12	sober	times_expectedServiceFinancialClosure	t	t
-4439	12	sober	times_factServiceFinancialClosure	t	t
-4440	12	sober	times_expectedServiceClosure	t	t
-4441	12	sober	times_factServiceClosure	t	t
-4442	12	sober	times_repairEndDate	t	t
-4443	12	taxi	createTime	t	f
-4444	12	taxi	payType	t	t
-4445	12	taxi	falseCall	t	t
-4446	12	taxi	clientCancelReason	t	t
-4447	12	taxi	marginalCost	t	f
-4448	12	taxi	status	t	t
-4449	12	taxi	clientSatisfied	t	t
-4450	12	taxi	warrantyCase	t	t
-4451	12	taxi	files	t	t
-4452	12	taxi	service_tarifOptions	t	t
-4453	12	taxi	assignedTo	t	f
-4454	12	taxi	falseCallPercent	t	f
-4455	12	taxi	cost_countedCost	t	t
-4456	12	taxi	urgentService	t	t
-4457	12	taxi	cost_counted	t	t
-4458	12	taxi	cost_serviceTarifOptions	t	t
-4459	12	taxi	payment_partnerCost	t	t
-4460	12	taxi	payment_costTranscript	t	t
-4461	12	taxi	payment_calculatedCost	t	f
-4462	12	taxi	payment_overcosted	t	f
-4463	12	taxi	payment_limitedCost	t	f
-4464	12	taxi	payment_paidByRUAMC	t	t
-4465	12	taxi	payment_paidByClient	t	t
-4466	12	taxi	taxiFrom_address	t	t
-4467	12	taxi	taxiFrom_coords	t	t
-4468	12	taxi	taxiFrom_city	t	t
-4469	12	taxi	taxiFrom_comment	t	t
-4470	12	taxi	taxiTo_address	t	t
-4471	12	taxi	taxiTo_coords	t	t
-4472	12	taxi	taxiTo_city	t	t
-4473	12	taxi	taxiTo_comment	t	t
-4474	12	taxi	contractor_partner	t	t
-4475	12	taxi	contractor_partnerTable	t	t
-4476	12	taxi	contractor_partnerCancel	t	t
-4477	12	taxi	contractor_address	t	t
-4478	12	taxi	bill_billNumber	t	f
-4479	12	taxi	bill_billingCost	t	f
-4480	12	taxi	bill_billingDate	t	f
-4481	12	taxi	times_expectedServiceStart	t	t
-4482	12	taxi	times_factServiceStart	t	t
-4483	12	taxi	times_expectedServiceEnd	t	t
-4484	12	taxi	times_factServiceEnd	t	t
-4485	12	taxi	times_expectedServiceFinancialClosure	t	t
-4486	12	taxi	times_factServiceFinancialClosure	t	t
-4487	12	taxi	times_expectedServiceClosure	t	t
-4488	12	taxi	times_factServiceClosure	t	t
-4489	12	taxi	times_repairEndDate	t	t
-4490	12	tech1	createTime	t	f
-4491	12	tech1	payType	t	t
-4492	12	tech1	falseCall	t	t
-4493	12	tech1	clientCancelReason	t	t
-4494	12	tech1	requestType	t	t
-4495	12	tech1	whatToSay1	t	t
-4496	12	tech1	activity	t	t
-4497	12	tech1	status	t	t
-4498	12	tech1	clientSatisfied	t	t
-4499	12	tech1	warrantyCase	t	t
-4500	12	tech1	files	t	t
-4501	12	tech1	cost_countedCost	t	t
-4502	12	tech1	urgentService	t	t
-4503	12	tech1	cost_counted	t	t
-4504	12	tech1	cost_serviceTarifOptions	t	t
-4505	12	tech1	payment_partnerCost	t	t
-4506	12	tech1	payment_costTranscript	t	t
-4507	12	tech1	payment_calculatedCost	t	f
-4508	12	tech1	payment_overcosted	t	f
-4509	12	tech1	payment_limitedCost	t	f
-4510	12	tech1	payment_paidByRUAMC	t	t
-4511	12	tech1	payment_paidByClient	t	t
-4512	12	tech1	contractor_partner	t	t
-4513	12	tech1	contractor_partnerTable	t	t
-4514	12	tech1	contractor_partnerCancel	t	t
-4515	12	tech1	contractor_address	t	t
-4516	12	tech1	bill_billNumber	t	f
-4517	12	tech1	bill_billingCost	t	f
-4518	12	tech1	bill_billingDate	t	f
-4519	12	tech1	times_expectedServiceStart	t	t
-4520	12	tech1	times_factServiceStart	t	t
-4521	12	tech1	times_expectedServiceEnd	t	t
-4522	12	tech1	times_factServiceEnd	t	t
-4523	12	tech1	times_expectedServiceFinancialClosure	t	t
-4524	12	tech1	times_factServiceFinancialClosure	t	t
-4525	12	tech1	times_expectedServiceClosure	t	t
-4526	12	tech1	times_factServiceClosure	t	t
-4527	12	tech1	times_repairEndDate	t	t
-4528	12	tech	createTime	t	f
-4529	12	tech	payType	t	t
-4530	12	tech	falseCall	t	t
-4531	12	tech	clientCancelReason	t	t
-4532	12	tech	techType	t	t
-4533	12	tech	marginalCost	t	f
-4534	12	tech	suburbanMilage	t	t
-4535	12	tech	status	t	t
-4536	12	tech	clientSatisfied	t	t
-4537	12	tech	warrantyCase	t	t
-4538	12	tech	files	t	t
-4539	12	tech	service_tarifOptions	t	t
-4540	12	tech	assignedTo	t	f
-4541	12	tech	falseCallPercent	t	f
-4542	12	tech	payment_partnerCost	t	t
-4543	12	tech	payment_costTranscript	t	t
-4544	12	tech	payment_calculatedCost	t	f
-4545	12	tech	payment_overcosted	t	f
-4546	12	tech	payment_limitedCost	t	f
-4547	12	tech	cost_countedCost	t	t
-4548	12	tech	urgentService	t	t
-4549	12	tech	cost_counted	t	t
-4550	12	tech	cost_serviceTarifOptions	t	t
-4551	12	tech	payment_paidByRUAMC	t	t
-4552	12	tech	payment_paidByClient	t	t
-4553	12	tech	contractor_partner	t	t
-4554	12	tech	contractor_partnerId	t	t
-4555	12	tech	contractor_partnerTable	t	t
-4556	12	tech	contractor_partnerMap	t	t
-4557	12	tech	contractor_coords	t	t
-4558	12	tech	contractor_partnerCancel	t	t
-4559	12	tech	contractor_address	t	t
-4560	12	tech	bill_billNumber	t	f
-4561	12	tech	bill_billingCost	t	f
-4562	12	tech	bill_billingDate	t	f
-4563	12	tech	times_expectedServiceStart	t	t
-4564	12	tech	times_factServiceStart	t	t
-4565	12	tech	times_expectedServiceEnd	t	t
-4566	12	tech	times_factServiceEnd	t	t
-4567	12	tech	times_expectedServiceFinancialClosure	t	t
-4568	12	tech	times_factServiceFinancialClosure	t	t
-4569	12	tech	times_expectedServiceClosure	t	t
-4570	12	tech	times_factServiceClosure	t	t
-4571	12	tech	times_repairEndDate	t	t
-4572	12	tickets	createTime	t	f
-4573	12	tickets	payType	t	t
-4574	12	tickets	falseCall	t	t
-4575	12	tickets	clientCancelReason	t	t
-4576	12	tickets	deliveryType	t	t
-4577	12	tickets	status	t	t
-4578	12	tickets	clientSatisfied	t	t
-4579	12	tickets	warrantyCase	t	t
-4580	12	tickets	files	t	t
-4581	12	tickets	assignedTo	t	f
-4582	12	tickets	falseCallPercent	t	f
-4583	12	tickets	cost_countedCost	t	t
-4584	12	tickets	ticketsFrom_address	t	t
-4585	12	tickets	ticketsFrom_coords	t	t
-4586	12	tickets	ticketsFrom_city	t	t
-4587	12	tickets	ticketsFrom_comment	t	t
-4588	12	tickets	ticketsTo_address	t	t
-4589	12	tickets	ticketsTo_coords	t	t
-4590	12	tickets	ticketsTo_city	t	t
-4591	12	tickets	ticketsTo_comment	t	t
-4592	12	tickets	urgentService	t	t
-4593	12	tickets	cost_counted	t	t
-4594	12	tickets	cost_serviceTarifOptions	t	t
-4595	12	tickets	payment_partnerCost	t	t
-4596	12	tickets	payment_costTranscript	t	t
-4597	12	tickets	payment_calculatedCost	t	f
-4598	12	tickets	payment_overcosted	t	f
-4599	12	tickets	payment_limitedCost	t	f
-4600	12	tickets	payment_paidByRUAMC	t	t
-4601	12	tickets	payment_paidByClient	t	t
-4602	12	tickets	contractor_partner	t	t
-4603	12	tickets	contractor_partnerTable	t	t
-4604	12	tickets	contractor_partnerCancel	t	t
-4605	12	tickets	contractor_address	t	t
-4606	12	tickets	bill_billNumber	t	f
-4607	12	tickets	bill_billingCost	t	f
-4608	12	tickets	bill_billingDate	t	f
-4609	12	tickets	times_expectedServiceStart	t	t
-4610	12	tickets	times_factServiceStart	t	t
-4611	12	tickets	times_expectedServiceEnd	t	t
-4612	12	tickets	times_factServiceEnd	t	t
-4613	12	tickets	times_expectedServiceFinancialClosure	t	t
-4614	12	tickets	times_factServiceFinancialClosure	t	t
-4615	12	tickets	times_expectedServiceClosure	t	t
-4616	12	tickets	times_factServiceClosure	t	t
-4617	12	tickets	times_repairEndDate	t	t
-4618	12	towage	createTime	t	f
-4619	12	towage	payType	t	t
-4620	12	towage	falseCall	t	t
-4621	12	towage	clientCancelReason	t	t
-4622	12	towage	towerType	t	t
-4623	12	towage	towType	t	t
-4624	12	towage	vandalism	t	t
-4625	12	towage	accident	t	t
-4626	12	towage	dealerDistance	t	t
-4627	12	towage	marginalCost	t	f
-4628	12	towage	wheelsUnblocked	t	t
-4629	12	towage	canNeutral	t	t
-4630	12	towage	towingPointPresent	t	t
-4631	12	towage	manipulatorPossible	t	t
-4632	12	towage	suburbanMilage	t	t
-4633	12	towage	repairEndDate	t	t
-4634	12	towage	status	t	t
-4635	12	towage	clientSatisfied	t	t
-4636	12	towage	warrantyCase	t	t
-4637	12	towage	files	t	t
-4638	12	towage	service_tarifOptions	t	t
-4639	12	towage	assignedTo	t	f
-4640	12	towage	falseCallPercent	t	f
-4641	12	towage	cost_countedCost	t	t
-4642	12	towage	urgentService	t	t
-4643	12	towage	cost_counted	t	t
-4644	12	towage	cost_serviceTarifOptions	t	t
-4645	12	towage	towAddress_address	t	t
-4646	12	towage	towAddress_coords	t	t
-4647	12	towage	towAddress_city	t	t
-4648	12	towage	towAddress_comment	t	t
-4649	12	towage	towAddress_map	t	t
-4650	12	towage	payment_partnerCost	t	t
-4651	12	towage	payment_costTranscript	t	t
-4652	12	towage	payment_calculatedCost	t	f
-4653	12	towage	payment_overcosted	t	f
-4654	12	towage	payment_limitedCost	t	f
-4655	12	towage	payment_paidByRUAMC	t	t
-4656	12	towage	payment_paidByClient	t	t
-4657	12	towage	towerAddress_address	t	t
-4658	12	towage	towerAddress_coords	t	t
-4659	12	towage	towerAddress_city	t	t
-4660	12	towage	towerAddress_comment	t	t
-4661	12	towage	towerAddress_map	t	t
-4662	12	towage	towDealer_partner	t	t
-4663	12	towage	towDealer_partnerId	t	t
-4664	12	towage	towDealer_partnerTable	t	t
-4665	12	towage	towDealer_partnerMap	t	t
-4666	12	towage	towDealer_coords	t	t
-4667	12	towage	towDealer_address	t	t
-4668	12	towage	contractor_partner	t	t
-4669	12	towage	contractor_partnerId	t	t
-4670	12	towage	contractor_partnerTable	t	t
-4671	12	towage	contractor_partnerMap	t	t
-4672	12	towage	contractor_coords	t	t
-4673	12	towage	contractor_partnerCancel	t	t
-4674	12	towage	contractor_address	t	t
-4675	12	towage	bill_billNumber	t	f
-4676	12	towage	bill_billingCost	t	f
-4677	12	towage	bill_billingDate	t	f
-4678	12	towage	times_expectedServiceStart	t	t
-4679	12	towage	times_factServiceStart	t	t
-4680	12	towage	times_expectedServiceEnd	t	t
-4681	12	towage	times_factServiceEnd	t	t
-4682	12	towage	times_expectedServiceFinancialClosure	t	t
-4683	12	towage	times_factServiceFinancialClosure	t	t
-4684	12	towage	times_expectedServiceClosure	t	t
-4685	12	towage	times_factServiceClosure	t	t
-4686	12	transportation	createTime	t	f
-4687	12	transportation	payType	t	t
-4688	12	transportation	falseCall	t	t
-4689	12	transportation	clientCancelReason	t	t
-4690	12	transportation	transportType	t	t
-4691	12	transportation	status	t	t
-4692	12	transportation	clientSatisfied	t	t
-4693	12	transportation	warrantyCase	t	t
-4694	12	transportation	files	t	t
-4695	12	transportation	assignedTo	t	f
-4799	13	bank	payment_overcosted	t	f
-4696	12	transportation	falseCallPercent	t	f
-4697	12	transportation	cost_countedCost	t	t
-4698	12	transportation	urgentService	t	t
-4699	12	transportation	cost_counted	t	t
-4700	12	transportation	cost_serviceTarifOptions	t	t
-4701	12	transportation	caseAddress_address	t	t
-4702	12	transportation	caseAddress_coords	t	t
-4703	12	transportation	caseAddress_city	t	t
-4704	12	transportation	caseAddress_comment	t	t
-4705	12	transportation	fromToAddress_address	t	t
-4706	12	transportation	fromToAddress_coords	t	t
-4707	12	transportation	fromToAddress_city	t	t
-4708	12	transportation	fromToAddress_comment	t	t
-4709	12	transportation	payment_partnerCost	t	t
-4710	12	transportation	payment_costTranscript	t	t
-4711	12	transportation	payment_calculatedCost	t	f
-4712	12	transportation	payment_overcosted	t	f
-4713	12	transportation	payment_limitedCost	t	f
-4714	12	transportation	payment_paidByRUAMC	t	t
-4715	12	transportation	payment_paidByClient	t	t
-4716	12	transportation	bill_billNumber	t	f
-4717	12	transportation	bill_billingCost	t	f
-4718	12	transportation	bill_billingDate	t	f
-4719	12	transportation	times_expectedServiceStart	t	t
-4720	12	transportation	times_factServiceStart	t	t
-4721	12	transportation	times_expectedServiceEnd	t	t
-4722	12	transportation	times_factServiceEnd	t	t
-4723	12	transportation	times_expectedServiceFinancialClosure	t	t
-4724	12	transportation	times_factServiceFinancialClosure	t	t
-4725	12	transportation	times_expectedServiceClosure	t	t
-4726	12	transportation	times_factServiceClosure	t	t
-4727	12	transportation	times_repairEndDate	t	t
-4729	13	action	result	t	t
-4730	13	action	assignedTo	t	t
-4731	13	action	targetGroup	t	t
-4732	13	action	priority	t	t
-4733	13	action	closed	t	t
-4734	13	averageCommissioner	createTime	t	f
-4735	13	averageCommissioner	payType	t	t
-4736	13	averageCommissioner	falseCall	t	t
-4737	13	averageCommissioner	clientCancelReason	t	t
-4738	13	averageCommissioner	requestType	t	t
-4739	13	averageCommissioner	whatToSay1	t	t
-4740	13	averageCommissioner	activity	t	t
-4741	13	averageCommissioner	commMilage	t	t
-4742	13	averageCommissioner	status	t	t
-4743	13	averageCommissioner	clientSatisfied	t	t
-4744	13	averageCommissioner	warrantyCase	t	t
-4745	13	averageCommissioner	files	t	t
-4746	13	averageCommissioner	assignedTo	t	f
-4747	13	averageCommissioner	commAddress_address	t	t
-4748	13	averageCommissioner	commAddress_coords	t	t
-4749	13	averageCommissioner	commAddress_city	t	t
-4750	13	averageCommissioner	commAddress_comment	t	t
-4751	13	averageCommissioner	urgentService	t	t
-4752	13	averageCommissioner	payment_expectedCost	t	t
-4753	13	averageCommissioner	cost_countedCost	t	t
-4754	13	averageCommissioner	cost_counted	t	t
-4755	13	averageCommissioner	cost_serviceTarifOptions	t	t
-4756	13	averageCommissioner	payment_partnerCost	t	t
-4757	13	averageCommissioner	payment_costTranscript	t	t
-4758	13	averageCommissioner	payment_calculatedCost	t	f
-4759	13	averageCommissioner	payment_overcosted	t	f
-4760	13	averageCommissioner	payment_limitedCost	t	f
-4761	13	averageCommissioner	payment_paidByRUAMC	t	t
-4762	13	averageCommissioner	payment_paidByClient	t	t
-4763	13	averageCommissioner	contractor_partner	t	t
-4764	13	averageCommissioner	contractor_partnerTable	t	t
-4765	13	averageCommissioner	contractor_partnerCancel	t	t
-4766	13	averageCommissioner	contractor_address	t	t
-4767	13	averageCommissioner	bill_billNumber	t	f
-4768	13	averageCommissioner	bill_billingCost	t	f
-4769	13	averageCommissioner	bill_billingDate	t	f
-4770	13	averageCommissioner	times_expectedServiceStart	t	t
-4771	13	averageCommissioner	times_factServiceStart	t	t
-4772	13	averageCommissioner	times_expectedServiceEnd	t	t
-4773	13	averageCommissioner	times_factServiceEnd	t	t
-4774	13	averageCommissioner	times_expectedServiceFinancialClosure	t	t
-4775	13	averageCommissioner	times_factServiceFinancialClosure	t	t
-4776	13	averageCommissioner	times_expectedServiceClosure	t	t
-4777	13	averageCommissioner	times_factServiceClosure	t	t
-4778	13	averageCommissioner	times_repairEndDate	t	t
-4779	13	bank	createTime	t	f
-4780	13	bank	payType	t	t
-4781	13	bank	falseCall	t	t
-4782	13	bank	clientCancelReason	t	t
-4783	13	bank	requestType	t	t
-4784	13	bank	whatToSay1	t	t
-4785	13	bank	activity	t	t
-4786	13	bank	status	t	t
-4787	13	bank	clientSatisfied	t	t
-4788	13	bank	warrantyCase	t	t
-4789	13	bank	files	t	t
-4790	13	bank	assignedTo	t	f
-4791	13	bank	urgentService	t	t
-4792	13	bank	payment_expectedCost	t	t
-4793	13	bank	cost_countedCost	t	t
-4794	13	bank	cost_counted	t	t
-4795	13	bank	cost_serviceTarifOptions	t	t
-4796	13	bank	payment_partnerCost	t	t
-4797	13	bank	payment_costTranscript	t	t
-4798	13	bank	payment_calculatedCost	t	f
-4800	13	bank	payment_limitedCost	t	f
-4801	13	bank	payment_paidByRUAMC	t	t
-4802	13	bank	payment_paidByClient	t	t
-4803	13	bank	contractor_partner	t	t
-4804	13	bank	contractor_partnerTable	t	t
-4805	13	bank	contractor_partnerCancel	t	t
-4806	13	bank	contractor_address	t	t
-4807	13	bank	bill_billNumber	t	f
-4808	13	bank	bill_billingCost	t	f
-4809	13	bank	bill_billingDate	t	f
-4810	13	bank	times_expectedServiceStart	t	t
-4811	13	bank	times_factServiceStart	t	t
-4812	13	bank	times_expectedServiceEnd	t	t
-4813	13	bank	times_factServiceEnd	t	t
-4814	13	bank	times_expectedServiceFinancialClosure	t	t
-4815	13	bank	times_factServiceFinancialClosure	t	t
-4816	13	bank	times_expectedServiceClosure	t	t
-4817	13	bank	times_factServiceClosure	t	t
-4818	13	bank	times_repairEndDate	t	t
-4819	13	call	callDate	t	t
-4820	13	call	callTaker	t	f
-4821	13	case	callDate	t	t
-4822	13	case	callTaker	t	f
-4823	13	case	comment	t	t
-4824	13	case	diagnosis1	t	t
-4825	13	case	diagnosis2	t	t
-4826	13	case	diagnosis3	t	t
-4827	13	case	diagnosis4	t	t
-4828	13	case	program	t	t
-4829	13	case	vinChecked	t	t
-4830	13	case	city	t	t
-4831	13	case	temperature	t	t
-4832	13	case	repair	t	t
-4833	13	case	accord	t	t
-4834	13	case	dealerCause	t	t
-4835	13	case	caseStatus	t	t
-4836	13	case	psaExported	t	t
-4837	13	case	claim	t	t
-4838	13	case	betaComment	t	t
-4839	13	case	files	t	t
-4840	13	case	comments	t	t
-4841	13	case	caseAddress_address	t	t
-4842	13	case	contact_name	t	t
-4843	13	case	cardNumber_cardNumber	t	t
-4844	13	case	caseAddress_map	t	t
-4845	13	case	caseAddress_coords	t	t
-4846	13	case	caseAddress_city	t	t
-4847	13	case	caseAddress_comment	t	t
-4848	13	case	contact_email	t	t
-4849	13	case	contact_phone1	t	t
-4850	13	case	contact_phone2	t	t
-4851	13	case	contact_phone3	t	t
-4852	13	case	contact_phone4	t	t
-4853	13	case	contact_ownerName	t	t
-4854	13	case	contact_contactOwner	t	t
-4855	13	case	contact_ownerEmail	t	t
-4856	13	case	contact_ownerPhone1	t	t
-4857	13	case	contact_ownerPhone2	t	t
-4858	13	case	contact_ownerPhone3	t	t
-4859	13	case	contact_ownerPhone4	t	t
-4860	13	case	car_vin	t	t
-4861	13	case	car_seller	t	t
-4862	13	case	car_make	t	t
-4863	13	case	car_model	t	t
-4864	13	case	car_plateNum	t	t
-4865	13	case	car_color	t	t
-4866	13	case	car_transmission	t	t
-4867	13	case	car_engine	t	t
-4868	13	case	car_liters	t	t
-4869	13	case	car_capacity	t	t
-4870	13	case	car_dims	t	t
-4871	13	case	car_weight	t	t
-4872	13	case	car_checkPeriod	t	t
-4873	13	case	car_class	t	t
-4874	13	case	car_buyDate	t	t
-4875	13	case	car_mileage	t	t
-4876	13	case	car_checkupDate	t	t
-4877	13	case	car_checkupMileage	t	t
-4878	13	case	car_dealerTO	t	t
-4879	13	case	car_makeYear	t	t
-4880	13	case	car_warrantyStart	t	t
-4881	13	case	car_warrantyEnd	t	t
-4882	13	case	car_contractType	t	t
-4883	13	case	cardNumber_validFrom	t	f
-4884	13	case	cardNumber_validUntil	t	f
-4885	13	case	cardNumber_validUntilMilage	t	f
-4886	13	case	cardNumber_milageTO	t	f
-4887	13	case	cardNumber_serviceInterval	t	f
-4889	13	case	cardNumber_manager	t	f
-4890	13	consultation	createTime	t	f
-4891	13	consultation	payType	t	t
-4892	13	consultation	falseCall	t	t
-4893	13	consultation	clientCancelReason	t	t
-4894	13	consultation	consType	t	t
-4895	13	consultation	whatToSay1	t	t
-4896	13	consultation	status	t	t
-4897	13	consultation	result	t	t
-4898	13	consultation	clientSatisfied	t	t
-4899	13	consultation	warrantyCase	t	t
-4900	13	consultation	files	t	t
-4901	13	consultation	assignedTo	t	f
-4902	13	consultation	cost_countedCost	t	t
-4903	13	consultation	cost_counted	t	t
-4904	13	consultation	cost_serviceTarifOptions	t	t
-4905	13	consultation	urgentService	t	t
-4906	13	consultation	payment_partnerCost	t	t
-4907	13	consultation	payment_costTranscript	t	t
-4908	13	consultation	payment_calculatedCost	t	f
-4909	13	consultation	payment_overcosted	t	f
-4910	13	consultation	payment_limitedCost	t	f
-4911	13	consultation	payment_paidByRUAMC	t	t
-4912	13	consultation	payment_paidByClient	t	t
-4913	13	consultation	contractor_partner	t	t
-4914	13	consultation	contractor_partnerTable	t	t
-4915	13	consultation	contractor_partnerCancel	t	t
-4916	13	consultation	contractor_address	t	t
-4917	13	consultation	bill_billNumber	t	f
-4918	13	consultation	bill_billingCost	t	f
-4919	13	consultation	bill_billingDate	t	f
-5483	13	tech	contractor_coords	t	t
-4920	13	consultation	times_expectedServiceStart	t	t
-4921	13	consultation	times_factServiceStart	t	t
-4922	13	consultation	times_expectedServiceEnd	t	t
-4923	13	consultation	times_factServiceEnd	t	t
-4924	13	consultation	times_expectedServiceFinancialClosure	t	t
-4925	13	consultation	times_factServiceFinancialClosure	t	t
-4926	13	consultation	times_expectedServiceClosure	t	t
-4927	13	consultation	times_factServiceClosure	t	t
-4928	13	consultation	times_repairEndDate	t	t
-4929	13	continue	createTime	t	f
-4930	13	continue	payType	t	t
-4931	13	continue	falseCall	t	t
-4932	13	continue	clientCancelReason	t	t
-4933	13	continue	deliveryType	t	t
-4934	13	continue	status	t	t
-4935	13	continue	clientSatisfied	t	t
-4936	13	continue	warrantyCase	t	t
-4937	13	continue	files	t	t
-4938	13	continue	assignedTo	t	f
-4939	13	continue	urgentService	t	t
-4940	13	continue	payment_expectedCost	t	t
-4941	13	continue	cost_countedCost	t	t
-4942	13	continue	cost_counted	t	t
-4943	13	continue	cost_serviceTarifOptions	t	t
-4944	13	continue	payment_partnerCost	t	t
-4945	13	continue	payment_costTranscript	t	t
-4946	13	continue	payment_calculatedCost	t	f
-4947	13	continue	payment_overcosted	t	f
-4948	13	continue	payment_limitedCost	t	f
-4949	13	continue	payment_paidByRUAMC	t	t
-4950	13	continue	payment_paidByClient	t	t
-4951	13	continue	deliverFrom_address	t	t
-4952	13	continue	deliverFrom_coords	t	t
-4953	13	continue	deliverFrom_city	t	t
-4954	13	continue	deliverFrom_comment	t	t
-4955	13	continue	deliverTo_address	t	t
-4956	13	continue	deliverTo_coords	t	t
-4957	13	continue	deliverTo_city	t	t
-4958	13	continue	deliverTo_comment	t	t
-4959	13	continue	contractor_partner	t	t
-4960	13	continue	contractor_partnerTable	t	t
-4961	13	continue	contractor_partnerCancel	t	t
-4962	13	continue	contractor_address	t	t
-4963	13	continue	bill_billNumber	t	f
-4964	13	continue	bill_billingCost	t	f
-4965	13	continue	bill_billingDate	t	f
-4966	13	continue	times_expectedServiceStart	t	t
-4967	13	continue	times_factServiceStart	t	t
-4968	13	continue	times_expectedServiceEnd	t	t
-4969	13	continue	times_factServiceEnd	t	t
-4970	13	continue	times_expectedServiceFinancialClosure	t	t
-4971	13	continue	times_factServiceFinancialClosure	t	t
-4972	13	continue	times_expectedServiceClosure	t	t
-4973	13	continue	times_factServiceClosure	t	t
-4974	13	continue	times_repairEndDate	t	t
-4975	13	deliverCar	createTime	t	f
-4976	13	deliverCar	payType	t	t
-4977	13	deliverCar	falseCall	t	t
-4978	13	deliverCar	clientCancelReason	t	t
-4979	13	deliverCar	marginalCost	t	f
-4980	13	deliverCar	status	t	t
-4981	13	deliverCar	clientSatisfied	t	t
-4982	13	deliverCar	warrantyCase	t	t
-4983	13	deliverCar	files	t	t
-4984	13	deliverCar	service_tarifOptions	t	t
-4985	13	deliverCar	assignedTo	t	f
-4986	13	deliverCar	falseCallPercent	t	f
-4987	13	deliverCar	toAddress_address	t	t
-4988	13	deliverCar	toAddress_coords	t	t
-4989	13	deliverCar	toAddress_city	t	t
-4990	13	deliverCar	toAddress_comment	t	t
-4991	13	deliverCar	urgentService	t	t
-4992	13	deliverCar	cost_countedCost	t	t
-4993	13	deliverCar	cost_counted	t	t
-4994	13	deliverCar	cost_serviceTarifOptions	t	t
-4995	13	deliverCar	payment_partnerCost	t	t
-4996	13	deliverCar	payment_costTranscript	t	t
-4997	13	deliverCar	payment_calculatedCost	t	f
-4998	13	deliverCar	payment_overcosted	t	f
-4999	13	deliverCar	payment_limitedCost	t	f
-5000	13	deliverCar	payment_payType	t	t
-5001	13	deliverCar	payment_paidByRUAMC	t	t
-5002	13	deliverCar	payment_paidByClient	t	t
-5003	13	deliverCar	bill_billNumber	t	f
-5004	13	deliverCar	bill_billingCost	t	f
-5005	13	deliverCar	bill_billingDate	t	f
-5006	13	deliverCar	times_expectedServiceStart	t	t
-5007	13	deliverCar	times_factServiceStart	t	t
-5008	13	deliverCar	times_expectedServiceEnd	t	t
-5009	13	deliverCar	times_factServiceEnd	t	t
-5010	13	deliverCar	times_expectedServiceFinancialClosure	t	t
-5011	13	deliverCar	times_factServiceFinancialClosure	t	t
-5012	13	deliverCar	times_expectedServiceClosure	t	t
-5013	13	deliverCar	times_factServiceClosure	t	t
-5014	13	deliverCar	times_repairEndDate	t	t
-5015	13	deliverClient	createTime	t	f
-5016	13	deliverClient	payType	t	t
-5017	13	deliverClient	falseCall	t	t
-5018	13	deliverClient	clientCancelReason	t	t
-5019	13	deliverClient	deliveryType	t	t
-5020	13	deliverClient	status	t	t
-5021	13	deliverClient	clientSatisfied	t	t
-5022	13	deliverClient	warrantyCase	t	t
-5023	13	deliverClient	files	t	t
-5024	13	deliverClient	assignedTo	t	f
-5025	13	deliverClient	falseCallPercent	t	f
-5026	13	deliverClient	cost_countedCost	t	t
-5027	13	deliverClient	urgentService	t	t
-5028	13	deliverClient	cost_counted	t	t
-5029	13	deliverClient	cost_serviceTarifOptions	t	t
-5030	13	deliverClient	payment_partnerCost	t	t
-5031	13	deliverClient	payment_costTranscript	t	t
-5032	13	deliverClient	payment_calculatedCost	t	f
-5033	13	deliverClient	payment_overcosted	t	f
-5034	13	deliverClient	payment_limitedCost	t	f
-5035	13	deliverClient	payment_paidByRUAMC	t	t
-5036	13	deliverClient	payment_paidByClient	t	t
-5037	13	deliverClient	deliverFrom_address	t	t
-5038	13	deliverClient	deliverFrom_coords	t	t
-5039	13	deliverClient	deliverFrom_city	t	t
-5040	13	deliverClient	deliverFrom_comment	t	t
-5041	13	deliverClient	deliverTo_address	t	t
-5042	13	deliverClient	deliverTo_coords	t	t
-5043	13	deliverClient	deliverTo_city	t	t
-5044	13	deliverClient	deliverTo_comment	t	t
-5045	13	deliverClient	contractor_partner	t	t
-5046	13	deliverClient	contractor_partnerTable	t	t
-5047	13	deliverClient	contractor_partnerCancel	t	t
-5048	13	deliverClient	contractor_address	t	t
-5049	13	deliverClient	bill_billNumber	t	f
-5050	13	deliverClient	bill_billingCost	t	f
-5051	13	deliverClient	bill_billingDate	t	f
-5052	13	deliverClient	times_expectedServiceStart	t	t
-5053	13	deliverClient	times_factServiceStart	t	t
-5054	13	deliverClient	times_expectedServiceEnd	t	t
-5055	13	deliverClient	times_factServiceEnd	t	t
-5056	13	deliverClient	times_expectedServiceFinancialClosure	t	t
-5057	13	deliverClient	times_factServiceFinancialClosure	t	t
-5058	13	deliverClient	times_expectedServiceClosure	t	t
-5059	13	deliverClient	times_factServiceClosure	t	t
-5060	13	deliverClient	times_repairEndDate	t	t
-5061	13	deliverParts	createTime	t	f
-5063	13	deliverParts	falseCall	t	t
-5064	13	deliverParts	clientCancelReason	t	t
-5065	13	deliverParts	parts	t	t
-5066	13	deliverParts	marginalCost	t	f
-5067	13	deliverParts	status	t	t
-5068	13	deliverParts	clientSatisfied	t	t
-5069	13	deliverParts	warrantyCase	t	t
-5070	13	deliverParts	files	t	t
-5071	13	deliverParts	service_tarifOptions	t	t
-5072	13	deliverParts	assignedTo	t	f
-5073	13	deliverParts	falseCallPercent	t	f
-5074	13	deliverParts	toAddress_address	t	t
-5075	13	deliverParts	toAddress_coords	t	t
-5076	13	deliverParts	toAddress_city	t	t
-5077	13	deliverParts	toAddress_comment	t	t
-5078	13	deliverParts	cost_countedCost	t	t
-5079	13	deliverParts	urgentService	t	t
-5080	13	deliverParts	cost_counted	t	t
-5081	13	deliverParts	cost_serviceTarifOptions	t	t
-5082	13	deliverParts	payment_partnerCost	t	t
-5083	13	deliverParts	payment_costTranscript	t	t
-5084	13	deliverParts	payment_calculatedCost	t	f
-5085	13	deliverParts	payment_overcosted	t	f
-5086	13	deliverParts	payment_limitedCost	t	f
-5087	13	deliverParts	payment_paidByRUAMC	t	t
-5088	13	deliverParts	payment_paidByClient	t	t
-5089	13	deliverParts	bill_billNumber	t	f
-5090	13	deliverParts	bill_billingCost	t	f
-5091	13	deliverParts	bill_billingDate	t	f
-5092	13	deliverParts	times_expectedServiceStart	t	t
-5093	13	deliverParts	times_factServiceStart	t	t
-5094	13	deliverParts	times_expectedServiceEnd	t	t
-5095	13	deliverParts	times_factServiceEnd	t	t
-5096	13	deliverParts	times_expectedServiceFinancialClosure	t	t
-5097	13	deliverParts	times_factServiceFinancialClosure	t	t
-5098	13	deliverParts	times_expectedServiceClosure	t	t
-5099	13	deliverParts	times_factServiceClosure	t	t
-5100	13	deliverParts	times_repairEndDate	t	t
-5101	13	hotel	createTime	t	f
-5102	13	hotel	payType	t	t
-5103	13	hotel	falseCall	t	t
-5104	13	hotel	clientCancelReason	t	t
-5105	13	hotel	marginalCost	t	f
-5106	13	hotel	providedFor	t	t
-5107	13	hotel	status	t	t
-5108	13	hotel	clientSatisfied	t	t
-5109	13	hotel	warrantyCase	t	t
-5110	13	hotel	files	t	t
-5111	13	hotel	service_tarifOptions	t	t
-5112	13	hotel	assignedTo	t	f
-5113	13	hotel	payment_partnerCost	t	t
-5114	13	hotel	payment_costTranscript	t	t
-5115	13	hotel	payment_calculatedCost	t	f
-5116	13	hotel	payment_overcosted	t	f
-5117	13	hotel	payment_limitedCost	t	f
-5118	13	hotel	payment_paidByRUAMC	t	t
-5119	13	hotel	payment_paidByClient	t	t
-5120	13	hotel	cost_countedCost	t	t
-5121	13	hotel	urgentService	t	t
-5122	13	hotel	cost_counted	t	t
-5123	13	hotel	cost_serviceTarifOptions	t	t
-5124	13	hotel	caseAddress_address	t	t
-5125	13	hotel	caseAddress_coords	t	t
-5126	13	hotel	caseAddress_city	t	t
-5127	13	hotel	caseAddress_comment	t	t
-5128	13	hotel	contractor_partner	t	t
-5129	13	hotel	contractor_partnerId	t	t
-5130	13	hotel	contractor_partnerTable	t	t
-5131	13	hotel	contractor_partnerCancel	t	t
-5132	13	hotel	contractor_address	t	t
-5133	13	hotel	bill_billNumber	t	f
-5134	13	hotel	bill_billingCost	t	f
-5135	13	hotel	bill_billingDate	t	f
-5136	13	hotel	times_expectedServiceStart	t	t
-5137	13	hotel	times_factServiceStart	t	t
-5138	13	hotel	times_expectedServiceEnd	t	t
-5139	13	hotel	times_factServiceEnd	t	t
-5140	13	hotel	times_expectedServiceFinancialClosure	t	t
-5141	13	hotel	times_factServiceFinancialClosure	t	t
-5142	13	hotel	times_expectedServiceClosure	t	t
-5143	13	hotel	times_factServiceClosure	t	t
-5144	13	hotel	times_repairEndDate	t	t
-5145	13	information	createTime	t	f
-5146	13	information	payType	t	t
-5147	13	information	falseCall	t	t
-5148	13	information	clientCancelReason	t	t
-5149	13	information	contact1	t	t
-5150	13	information	contactPhone1	t	t
-5151	13	information	whatToSay1	t	t
-5152	13	information	contact2	t	t
-5153	13	information	contactPhone2	t	t
-5154	13	information	whatToSay2	t	t
-5155	13	information	contact3	t	t
-5156	13	information	contactPhone3	t	t
-5157	13	information	whatToSay3	t	t
-5158	13	information	status	t	t
-5159	13	information	clientSatisfied	t	t
-5160	13	information	warrantyCase	t	t
-5161	13	information	files	t	t
-5162	13	information	assignedTo	t	f
-5163	13	information	falseCallPercent	t	f
-5164	13	information	urgentService	t	t
-5165	13	information	payment_expectedCost	t	t
-5166	13	information	payment_partnerCost	t	t
-5167	13	information	payment_costTranscript	t	t
-5168	13	information	payment_calculatedCost	t	f
-5169	13	information	payment_overcosted	t	f
-5170	13	information	payment_limitedCost	t	f
-5171	13	information	payment_paidByRUAMC	t	t
-5172	13	information	payment_paidByClient	t	t
-5173	13	information	bill_billNumber	t	f
-5174	13	information	bill_billingCost	t	f
-5175	13	information	bill_billingDate	t	f
-5176	13	information	times_expectedServiceStart	t	t
-5177	13	information	times_factServiceStart	t	t
-5178	13	information	times_expectedServiceEnd	t	t
-5179	13	information	times_factServiceEnd	t	t
-5180	13	information	times_expectedServiceFinancialClosure	t	t
-5181	13	information	times_factServiceFinancialClosure	t	t
-5182	13	information	times_expectedServiceClosure	t	t
-5183	13	information	times_factServiceClosure	t	t
-5184	13	information	times_repairEndDate	t	t
-5185	13	insurance	createTime	t	f
-5186	13	insurance	payType	t	t
-5187	13	insurance	falseCall	t	t
-5188	13	insurance	clientCancelReason	t	t
-5189	13	insurance	requestType	t	t
-5190	13	insurance	whatToSay1	t	t
-5191	13	insurance	activity	t	t
-5192	13	insurance	commMilage	t	t
-5193	13	insurance	status	t	t
-5194	13	insurance	clientSatisfied	t	t
-5195	13	insurance	warrantyCase	t	t
-5196	13	insurance	files	t	t
-5197	13	insurance	assignedTo	t	f
-5198	13	insurance	commAddress_address	t	t
-5199	13	insurance	commAddress_coords	t	t
-5200	13	insurance	commAddress_city	t	t
-5201	13	insurance	commAddress_comment	t	t
-5202	13	insurance	cost_countedCost	t	t
-5203	13	insurance	urgentService	t	t
-5204	13	insurance	cost_counted	t	t
-5205	13	insurance	cost_serviceTarifOptions	t	t
-5206	13	insurance	payment_partnerCost	t	t
-5207	13	insurance	payment_costTranscript	t	t
-5208	13	insurance	payment_calculatedCost	t	f
-5209	13	insurance	payment_overcosted	t	f
-5210	13	insurance	payment_limitedCost	t	f
-5211	13	insurance	payment_paidByRUAMC	t	t
-5212	13	insurance	payment_paidByClient	t	t
-5213	13	insurance	contractor_partner	t	t
-5214	13	insurance	contractor_partnerTable	t	t
-5215	13	insurance	contractor_partnerCancel	t	t
-5216	13	insurance	contractor_address	t	t
-5217	13	insurance	bill_billNumber	t	f
-5218	13	insurance	bill_billingCost	t	f
-5219	13	insurance	bill_billingDate	t	f
-5220	13	insurance	times_expectedServiceStart	t	t
-5221	13	insurance	times_factServiceStart	t	t
-5222	13	insurance	times_expectedServiceEnd	t	t
-5223	13	insurance	times_factServiceEnd	t	t
-5224	13	insurance	times_expectedServiceFinancialClosure	t	t
-5225	13	insurance	times_factServiceFinancialClosure	t	t
-5226	13	insurance	times_expectedServiceClosure	t	t
-5227	13	insurance	times_factServiceClosure	t	t
-5228	13	insurance	times_repairEndDate	t	t
-5229	13	ken	createTime	t	f
-5230	13	ken	payType	t	t
-5231	13	ken	falseCall	t	t
-5232	13	ken	clientCancelReason	t	t
-5233	13	ken	requestType	t	t
-5234	13	ken	whatToSay1	t	t
-5235	13	ken	activity	t	t
-5236	13	ken	status	t	t
-5237	13	ken	clientSatisfied	t	t
-5238	13	ken	warrantyCase	t	t
-5239	13	ken	files	t	t
-5240	13	ken	assignedTo	t	f
-5241	13	ken	falseCallPercent	t	f
-5242	13	ken	cost_countedCost	t	t
-5243	13	ken	urgentService	t	t
-5244	13	ken	cost_counted	t	t
-5245	13	ken	cost_serviceTarifOptions	t	t
-5246	13	ken	payment_partnerCost	t	t
-5247	13	ken	payment_costTranscript	t	t
-5598	13	towage	contractor_coords	t	t
-5248	13	ken	payment_calculatedCost	t	f
-5249	13	ken	payment_overcosted	t	f
-5250	13	ken	payment_limitedCost	t	f
-5251	13	ken	payment_paidByRUAMC	t	t
-5252	13	ken	payment_paidByClient	t	t
-5253	13	ken	contractor_partner	t	t
-5254	13	ken	contractor_partnerTable	t	t
-5255	13	ken	contractor_partnerCancel	t	t
-5256	13	ken	contractor_address	t	t
-5257	13	ken	bill_billNumber	t	f
-5258	13	ken	bill_billingCost	t	f
-5259	13	ken	bill_billingDate	t	f
-5260	13	ken	times_expectedServiceStart	t	t
-5261	13	ken	times_factServiceStart	t	t
-5262	13	ken	times_expectedServiceEnd	t	t
-5263	13	ken	times_factServiceEnd	t	t
-5264	13	ken	times_expectedServiceFinancialClosure	t	t
-5265	13	ken	times_factServiceFinancialClosure	t	t
-5266	13	ken	times_expectedServiceClosure	t	t
-5267	13	ken	times_factServiceClosure	t	t
-5268	13	ken	times_repairEndDate	t	t
-5269	13	partner	comment	t	t
-5270	13	rent	createTime	t	f
-5271	13	rent	payType	t	t
-5272	13	rent	falseCall	t	t
-5273	13	rent	clientCancelReason	t	t
-5274	13	rent	vinRent	t	t
-5275	13	rent	carClass	t	t
-5276	13	rent	marginalCost	t	f
-5277	13	rent	providedFor	t	t
-5278	13	rent	rentedMake	t	t
-5279	13	rent	rentedModel	t	t
-5280	13	rent	status	t	t
-5281	13	rent	clientSatisfied	t	t
-5282	13	rent	warrantyCase	t	t
-5283	13	rent	files	t	t
-5284	13	rent	assignedTo	t	f
-5285	13	rent	falseCallPercent	t	f
-5286	13	rent	cost_countedCost	t	t
-5287	13	rent	urgentService	t	t
-5288	13	rent	cost_counted	t	t
-5289	13	rent	cost_serviceTarifOptions	t	t
-5290	13	rent	rentAddress_address	t	t
-5291	13	rent	rentAddress_coords	t	t
-5292	13	rent	rentAddress_city	t	t
-5293	13	rent	rentAddress_comment	t	t
-5294	13	rent	towDealer_partner	t	t
-5295	13	rent	towDealer_partnerTable	t	t
-5296	13	rent	towDealer_address	t	t
-5297	13	rent	contractor_partner	t	t
-5298	13	rent	contractor_partnerId	t	t
-5299	13	rent	contractor_partnerTable	t	t
-5300	13	rent	contractor_partnerCancel	t	t
-5301	13	rent	contractor_address	t	t
-5302	13	rent	payment_partnerCost	t	t
-5303	13	rent	payment_costTranscript	t	t
-5304	13	rent	payment_calculatedCost	t	f
-5305	13	rent	payment_overcosted	t	f
-5306	13	rent	payment_limitedCost	t	f
-5307	13	rent	payment_paidByRUAMC	t	t
-5308	13	rent	payment_paidByClient	t	t
-5309	13	rent	bill_billNumber	t	f
-5310	13	rent	bill_billingCost	t	f
-5311	13	rent	bill_billingDate	t	f
-5312	13	rent	times_expectedServiceStart	t	t
-5313	13	rent	times_factServiceStart	t	t
-5314	13	rent	times_expectedServiceEnd	t	t
-5315	13	rent	times_factServiceEnd	t	t
-5316	13	rent	times_expectedServiceFinancialClosure	t	t
-5317	13	rent	times_factServiceFinancialClosure	t	t
-5318	13	rent	times_expectedServiceClosure	t	t
-5319	13	rent	times_factServiceClosure	t	t
-5320	13	rent	times_repairEndDate	t	t
-5321	13	sober	createTime	t	f
-5322	13	sober	payType	t	t
-5323	13	sober	falseCall	t	t
-5324	13	sober	clientCancelReason	t	t
-5325	13	sober	marginalCost	t	f
-5326	13	sober	multidrive	t	t
-5327	13	sober	status	t	t
-5328	13	sober	clientSatisfied	t	t
-5329	13	sober	warrantyCase	t	t
-5330	13	sober	files	t	t
-5331	13	sober	service_tarifOptions	t	t
-5332	13	sober	assignedTo	t	f
-5333	13	sober	cost_countedCost	t	t
-5334	13	sober	urgentService	t	t
-5335	13	sober	cost_counted	t	t
-5336	13	sober	cost_serviceTarifOptions	t	t
-5337	13	sober	payment_partnerCost	t	t
-5338	13	sober	payment_costTranscript	t	t
-5339	13	sober	payment_calculatedCost	t	f
-5340	13	sober	payment_overcosted	t	f
-5341	13	sober	payment_limitedCost	t	f
-5342	13	sober	payment_paidByRUAMC	t	t
-5343	13	sober	payment_paidByClient	t	t
-5344	13	sober	fromAddress_address	t	t
-5345	13	sober	fromAddress_coords	t	t
-5346	13	sober	fromAddress_city	t	t
-5347	13	sober	fromAddress_comment	t	t
-5348	13	sober	toAddress_address	t	t
-5349	13	sober	toAddress_coords	t	t
-5350	13	sober	toAddress_city	t	t
-5351	13	sober	toAddress_comment	t	t
-5352	13	sober	contractor_partner	t	t
-5353	13	sober	contractor_partnerId	t	t
-5354	13	sober	contractor_partnerTable	t	t
-5355	13	sober	contractor_partnerCancel	t	t
-5356	13	sober	contractor_address	t	t
-5357	13	sober	bill_billNumber	t	f
-5358	13	sober	bill_billingCost	t	f
-5359	13	sober	bill_billingDate	t	f
-5360	13	sober	times_expectedServiceStart	t	t
-5361	13	sober	times_factServiceStart	t	t
-5362	13	sober	times_expectedServiceEnd	t	t
-5363	13	sober	times_factServiceEnd	t	t
-5364	13	sober	times_expectedServiceFinancialClosure	t	t
-5365	13	sober	times_factServiceFinancialClosure	t	t
-5366	13	sober	times_expectedServiceClosure	t	t
-5367	13	sober	times_factServiceClosure	t	t
-5368	13	sober	times_repairEndDate	t	t
-5369	13	taxi	createTime	t	f
-5370	13	taxi	payType	t	t
-5371	13	taxi	falseCall	t	t
-5372	13	taxi	clientCancelReason	t	t
-5373	13	taxi	marginalCost	t	f
-5374	13	taxi	status	t	t
-5375	13	taxi	clientSatisfied	t	t
-5376	13	taxi	warrantyCase	t	t
-5377	13	taxi	files	t	t
-5378	13	taxi	service_tarifOptions	t	t
-5379	13	taxi	assignedTo	t	f
-5380	13	taxi	falseCallPercent	t	f
-5381	13	taxi	cost_countedCost	t	t
-5382	13	taxi	urgentService	t	t
-5383	13	taxi	cost_counted	t	t
-5384	13	taxi	cost_serviceTarifOptions	t	t
-5385	13	taxi	payment_partnerCost	t	t
-5386	13	taxi	payment_costTranscript	t	t
-5387	13	taxi	payment_calculatedCost	t	f
-5388	13	taxi	payment_overcosted	t	f
-5389	13	taxi	payment_limitedCost	t	f
-5390	13	taxi	payment_paidByRUAMC	t	t
-5391	13	taxi	payment_paidByClient	t	t
-5392	13	taxi	taxiFrom_address	t	t
-5393	13	taxi	taxiFrom_coords	t	t
-5394	13	taxi	taxiFrom_city	t	t
-5395	13	taxi	taxiFrom_comment	t	t
-5396	13	taxi	taxiTo_address	t	t
-5397	13	taxi	taxiTo_coords	t	t
-5398	13	taxi	taxiTo_city	t	t
-5399	13	taxi	taxiTo_comment	t	t
-5400	13	taxi	contractor_partner	t	t
-5401	13	taxi	contractor_partnerTable	t	t
-5402	13	taxi	contractor_partnerCancel	t	t
-5403	13	taxi	contractor_address	t	t
-5404	13	taxi	bill_billNumber	t	f
-5405	13	taxi	bill_billingCost	t	f
-5406	13	taxi	bill_billingDate	t	f
-5407	13	taxi	times_expectedServiceStart	t	t
-5408	13	taxi	times_factServiceStart	t	t
-5409	13	taxi	times_expectedServiceEnd	t	t
-5410	13	taxi	times_factServiceEnd	t	t
-5411	13	taxi	times_expectedServiceFinancialClosure	t	t
-5412	13	taxi	times_factServiceFinancialClosure	t	t
-5413	13	taxi	times_expectedServiceClosure	t	t
-5414	13	taxi	times_factServiceClosure	t	t
-5415	13	taxi	times_repairEndDate	t	t
-5416	13	tech1	createTime	t	f
-5417	13	tech1	payType	t	t
-5418	13	tech1	falseCall	t	t
-5419	13	tech1	clientCancelReason	t	t
-5420	13	tech1	requestType	t	t
-5421	13	tech1	whatToSay1	t	t
-5422	13	tech1	activity	t	t
-5423	13	tech1	status	t	t
-5424	13	tech1	clientSatisfied	t	t
-5425	13	tech1	warrantyCase	t	t
-5426	13	tech1	files	t	t
-5427	13	tech1	cost_countedCost	t	t
-5428	13	tech1	urgentService	t	t
-5429	13	tech1	cost_counted	t	t
-5430	13	tech1	cost_serviceTarifOptions	t	t
-5431	13	tech1	payment_partnerCost	t	t
-5432	13	tech1	payment_costTranscript	t	t
-5433	13	tech1	payment_calculatedCost	t	f
-5434	13	tech1	payment_overcosted	t	f
-5435	13	tech1	payment_limitedCost	t	f
-5436	13	tech1	payment_paidByRUAMC	t	t
-5437	13	tech1	payment_paidByClient	t	t
-5438	13	tech1	contractor_partner	t	t
-5439	13	tech1	contractor_partnerTable	t	t
-5440	13	tech1	contractor_partnerCancel	t	t
-5441	13	tech1	contractor_address	t	t
-5442	13	tech1	bill_billNumber	t	f
-5443	13	tech1	bill_billingCost	t	f
-5444	13	tech1	bill_billingDate	t	f
-5445	13	tech1	times_expectedServiceStart	t	t
-5446	13	tech1	times_factServiceStart	t	t
-5447	13	tech1	times_expectedServiceEnd	t	t
-5448	13	tech1	times_factServiceEnd	t	t
-5449	13	tech1	times_expectedServiceFinancialClosure	t	t
-5450	13	tech1	times_factServiceFinancialClosure	t	t
-5451	13	tech1	times_expectedServiceClosure	t	t
-5452	13	tech1	times_factServiceClosure	t	t
-5453	13	tech1	times_repairEndDate	t	t
-5454	13	tech	createTime	t	f
-5455	13	tech	payType	t	t
-5456	13	tech	falseCall	t	t
-5457	13	tech	clientCancelReason	t	t
-5458	13	tech	techType	t	t
-5459	13	tech	marginalCost	t	f
-5460	13	tech	suburbanMilage	t	t
-5461	13	tech	status	t	t
-5462	13	tech	clientSatisfied	t	t
-5463	13	tech	warrantyCase	t	t
-5464	13	tech	files	t	t
-5465	13	tech	service_tarifOptions	t	t
-5466	13	tech	assignedTo	t	f
-5467	13	tech	falseCallPercent	t	f
-5468	13	tech	payment_partnerCost	t	t
-5469	13	tech	payment_costTranscript	t	t
-5470	13	tech	payment_calculatedCost	t	f
-5471	13	tech	payment_overcosted	t	f
-5472	13	tech	payment_limitedCost	t	f
-5473	13	tech	cost_countedCost	t	t
-5474	13	tech	urgentService	t	t
-5475	13	tech	cost_counted	t	t
-5476	13	tech	cost_serviceTarifOptions	t	t
-5477	13	tech	payment_paidByRUAMC	t	t
-5478	13	tech	payment_paidByClient	t	t
-5479	13	tech	contractor_partner	t	t
-5480	13	tech	contractor_partnerId	t	t
-5481	13	tech	contractor_partnerTable	t	t
-5482	13	tech	contractor_partnerMap	t	t
-5484	13	tech	contractor_partnerCancel	t	t
-5485	13	tech	contractor_address	t	t
-5487	13	tech	bill_billingCost	t	f
-5488	13	tech	bill_billingDate	t	f
-5489	13	tech	times_expectedServiceStart	t	t
-5490	13	tech	times_factServiceStart	t	t
-5491	13	tech	times_expectedServiceEnd	t	t
-5492	13	tech	times_factServiceEnd	t	t
-5493	13	tech	times_expectedServiceFinancialClosure	t	t
-5494	13	tech	times_factServiceFinancialClosure	t	t
-5495	13	tech	times_expectedServiceClosure	t	t
-5496	13	tech	times_factServiceClosure	t	t
-5497	13	tech	times_repairEndDate	t	t
-5498	13	tickets	createTime	t	f
-5499	13	tickets	payType	t	t
-5500	13	tickets	falseCall	t	t
-5501	13	tickets	clientCancelReason	t	t
-5502	13	tickets	deliveryType	t	t
-5503	13	tickets	status	t	t
-5504	13	tickets	clientSatisfied	t	t
-5505	13	tickets	warrantyCase	t	t
-5506	13	tickets	files	t	t
-5507	13	tickets	assignedTo	t	f
-5508	13	tickets	falseCallPercent	t	f
-5509	13	tickets	cost_countedCost	t	t
-5510	13	tickets	ticketsFrom_address	t	t
-5511	13	tickets	ticketsFrom_coords	t	t
-5512	13	tickets	ticketsFrom_city	t	t
-5513	13	tickets	ticketsFrom_comment	t	t
-5514	13	tickets	ticketsTo_address	t	t
-5515	13	tickets	ticketsTo_coords	t	t
-5516	13	tickets	ticketsTo_city	t	t
-5517	13	tickets	ticketsTo_comment	t	t
-5518	13	tickets	urgentService	t	t
-5519	13	tickets	cost_counted	t	t
-5520	13	tickets	cost_serviceTarifOptions	t	t
-5521	13	tickets	payment_partnerCost	t	t
-5522	13	tickets	payment_costTranscript	t	t
-5523	13	tickets	payment_calculatedCost	t	f
-5524	13	tickets	payment_overcosted	t	f
-5525	13	tickets	payment_limitedCost	t	f
-5526	13	tickets	payment_paidByRUAMC	t	t
-5527	13	tickets	payment_paidByClient	t	t
-5528	13	tickets	contractor_partner	t	t
-5529	13	tickets	contractor_partnerTable	t	t
-5530	13	tickets	contractor_partnerCancel	t	t
-5531	13	tickets	contractor_address	t	t
-5532	13	tickets	bill_billNumber	t	f
-5533	13	tickets	bill_billingCost	t	f
-5534	13	tickets	bill_billingDate	t	f
-5535	13	tickets	times_expectedServiceStart	t	t
-5536	13	tickets	times_factServiceStart	t	t
-5537	13	tickets	times_expectedServiceEnd	t	t
-5538	13	tickets	times_factServiceEnd	t	t
-5539	13	tickets	times_expectedServiceFinancialClosure	t	t
-5540	13	tickets	times_factServiceFinancialClosure	t	t
-5541	13	tickets	times_expectedServiceClosure	t	t
-5542	13	tickets	times_factServiceClosure	t	t
-5543	13	tickets	times_repairEndDate	t	t
-5544	13	towage	createTime	t	f
-5545	13	towage	payType	t	t
-5546	13	towage	falseCall	t	t
-5547	13	towage	clientCancelReason	t	t
-5548	13	towage	towerType	t	t
-5549	13	towage	towType	t	t
-5550	13	towage	vandalism	t	t
-5551	13	towage	accident	t	t
-5552	13	towage	dealerDistance	t	t
-5553	13	towage	marginalCost	t	f
-5554	13	towage	wheelsUnblocked	t	t
-5555	13	towage	canNeutral	t	t
-5556	13	towage	towingPointPresent	t	t
-5557	13	towage	manipulatorPossible	t	t
-5558	13	towage	suburbanMilage	t	t
-5559	13	towage	repairEndDate	t	t
-5560	13	towage	status	t	t
-5561	13	towage	clientSatisfied	t	t
-5562	13	towage	warrantyCase	t	t
-5563	13	towage	files	t	t
-5564	13	towage	service_tarifOptions	t	t
-5565	13	towage	assignedTo	t	f
-5566	13	towage	falseCallPercent	t	f
-5567	13	towage	cost_countedCost	t	t
-5568	13	towage	urgentService	t	t
-5569	13	towage	cost_counted	t	t
-5570	13	towage	cost_serviceTarifOptions	t	t
-5571	13	towage	towAddress_address	t	t
-5572	13	towage	towAddress_coords	t	t
-5573	13	towage	towAddress_city	t	t
-5574	13	towage	towAddress_comment	t	t
-5575	13	towage	towAddress_map	t	t
-5576	13	towage	payment_partnerCost	t	t
-5577	13	towage	payment_costTranscript	t	t
-5578	13	towage	payment_calculatedCost	t	f
-5579	13	towage	payment_overcosted	t	f
-5580	13	towage	payment_limitedCost	t	f
-5581	13	towage	payment_paidByRUAMC	t	t
-5582	13	towage	payment_paidByClient	t	t
-5583	13	towage	towerAddress_address	t	t
-5584	13	towage	towerAddress_coords	t	t
-5585	13	towage	towerAddress_city	t	t
-5586	13	towage	towerAddress_comment	t	t
-5587	13	towage	towerAddress_map	t	t
-5588	13	towage	towDealer_partner	t	t
-5589	13	towage	towDealer_partnerId	t	t
-5590	13	towage	towDealer_partnerTable	t	t
-5591	13	towage	towDealer_partnerMap	t	t
-5592	13	towage	towDealer_coords	t	t
-5593	13	towage	towDealer_address	t	t
-5594	13	towage	contractor_partner	t	t
-5595	13	towage	contractor_partnerId	t	t
-5596	13	towage	contractor_partnerTable	t	t
-5597	13	towage	contractor_partnerMap	t	t
-5599	13	towage	contractor_partnerCancel	t	t
-5600	13	towage	contractor_address	t	t
-5601	13	towage	bill_billNumber	t	f
-5602	13	towage	bill_billingCost	t	f
-5603	13	towage	bill_billingDate	t	f
-5604	13	towage	times_expectedServiceStart	t	t
-5605	13	towage	times_factServiceStart	t	t
-5606	13	towage	times_expectedServiceEnd	t	t
-5607	13	towage	times_factServiceEnd	t	t
-5608	13	towage	times_expectedServiceFinancialClosure	t	t
-5609	13	towage	times_factServiceFinancialClosure	t	t
-5610	13	towage	times_expectedServiceClosure	t	t
-5611	13	towage	times_factServiceClosure	t	t
-5612	13	transportation	createTime	t	f
-5613	13	transportation	payType	t	t
-5614	13	transportation	falseCall	t	t
-5615	13	transportation	clientCancelReason	t	t
-5616	13	transportation	transportType	t	t
-5617	13	transportation	status	t	t
-5618	13	transportation	clientSatisfied	t	t
-5619	13	transportation	warrantyCase	t	t
-5620	13	transportation	files	t	t
-5621	13	transportation	assignedTo	t	f
-5622	13	transportation	falseCallPercent	t	f
-5623	13	transportation	cost_countedCost	t	t
-5624	13	transportation	urgentService	t	t
-5625	13	transportation	cost_counted	t	t
-5626	13	transportation	cost_serviceTarifOptions	t	t
-5627	13	transportation	caseAddress_address	t	t
-5628	13	transportation	caseAddress_coords	t	t
-5629	13	transportation	caseAddress_city	t	t
-5630	13	transportation	caseAddress_comment	t	t
-5631	13	transportation	fromToAddress_address	t	t
-5632	13	transportation	fromToAddress_coords	t	t
-5633	13	transportation	fromToAddress_city	t	t
-5634	13	transportation	fromToAddress_comment	t	t
-5635	13	transportation	payment_partnerCost	t	t
-5636	13	transportation	payment_costTranscript	t	t
-5637	13	transportation	payment_calculatedCost	t	f
-5638	13	transportation	payment_overcosted	t	f
-5639	13	transportation	payment_limitedCost	t	f
-5640	13	transportation	payment_paidByRUAMC	t	t
-5641	13	transportation	payment_paidByClient	t	t
-5642	13	transportation	bill_billNumber	t	f
-5643	13	transportation	bill_billingCost	t	f
-5644	13	transportation	bill_billingDate	t	f
-5645	13	transportation	times_expectedServiceStart	t	t
-5646	13	transportation	times_factServiceStart	t	t
-5647	13	transportation	times_expectedServiceEnd	t	t
-5648	13	transportation	times_factServiceEnd	t	t
-5649	13	transportation	times_expectedServiceFinancialClosure	t	t
-5650	13	transportation	times_factServiceFinancialClosure	t	t
-5651	13	transportation	times_expectedServiceClosure	t	t
-5652	13	transportation	times_factServiceClosure	t	t
-5653	13	transportation	times_repairEndDate	t	t
-5654	24	action	comment	t	t
-5655	24	action	result	t	t
-5656	24	action	assignedTo	t	t
-5657	24	action	targetGroup	t	t
-5658	24	action	priority	t	t
-5659	24	action	closed	t	t
-5660	24	averageCommissioner	createTime	t	f
-5661	24	averageCommissioner	payType	t	t
-5662	24	averageCommissioner	falseCall	t	t
-5663	24	averageCommissioner	clientCancelReason	t	t
-5664	24	averageCommissioner	requestType	t	t
-5665	24	averageCommissioner	whatToSay1	t	t
-5666	24	averageCommissioner	activity	t	t
-5667	24	averageCommissioner	commMilage	t	t
-5668	24	averageCommissioner	status	t	t
-5669	24	averageCommissioner	clientSatisfied	t	t
-5670	24	averageCommissioner	warrantyCase	t	t
-5671	24	averageCommissioner	files	t	t
-5672	24	averageCommissioner	assignedTo	t	f
-5673	24	averageCommissioner	commAddress_address	t	t
-5674	24	averageCommissioner	commAddress_coords	t	t
-5675	24	averageCommissioner	commAddress_city	t	t
-5676	24	averageCommissioner	commAddress_comment	t	t
-5677	24	averageCommissioner	urgentService	t	t
-5678	24	averageCommissioner	payment_expectedCost	t	t
-5679	24	averageCommissioner	cost_countedCost	t	t
-5680	24	averageCommissioner	cost_counted	t	t
-5681	24	averageCommissioner	cost_serviceTarifOptions	t	t
-5682	24	averageCommissioner	payment_partnerCost	t	t
-5683	24	averageCommissioner	payment_costTranscript	t	t
-5684	24	averageCommissioner	payment_calculatedCost	t	f
-5685	24	averageCommissioner	payment_overcosted	t	f
-5686	24	averageCommissioner	payment_limitedCost	t	f
-5687	24	averageCommissioner	payment_paidByRUAMC	t	t
-5688	24	averageCommissioner	payment_paidByClient	t	t
-5689	24	averageCommissioner	contractor_partner	t	t
-5690	24	averageCommissioner	contractor_partnerTable	t	t
-5691	24	averageCommissioner	contractor_partnerCancel	t	t
-5692	24	averageCommissioner	contractor_address	t	t
-5693	24	averageCommissioner	bill_billNumber	t	f
-5694	24	averageCommissioner	bill_billingCost	t	f
-5695	24	averageCommissioner	bill_billingDate	t	f
-5696	24	averageCommissioner	times_expectedServiceStart	t	t
-5697	24	averageCommissioner	times_factServiceStart	t	t
-5698	24	averageCommissioner	times_expectedServiceEnd	t	t
-5699	24	averageCommissioner	times_factServiceEnd	t	t
-5700	24	averageCommissioner	times_expectedServiceFinancialClosure	t	t
-5825	24	consultation	warrantyCase	t	t
-5701	24	averageCommissioner	times_factServiceFinancialClosure	t	t
-5702	24	averageCommissioner	times_expectedServiceClosure	t	t
-5703	24	averageCommissioner	times_factServiceClosure	t	t
-5704	24	averageCommissioner	times_repairEndDate	t	t
-5705	24	bank	createTime	t	f
-5706	24	bank	payType	t	t
-5707	24	bank	falseCall	t	t
-5708	24	bank	clientCancelReason	t	t
-5709	24	bank	requestType	t	t
-5710	24	bank	whatToSay1	t	t
-5711	24	bank	activity	t	t
-5712	24	bank	status	t	t
-5713	24	bank	clientSatisfied	t	t
-5714	24	bank	warrantyCase	t	t
-5715	24	bank	files	t	t
-5716	24	bank	assignedTo	t	f
-5717	24	bank	urgentService	t	t
-5718	24	bank	payment_expectedCost	t	t
-5719	24	bank	cost_countedCost	t	t
-5720	24	bank	cost_counted	t	t
-5721	24	bank	cost_serviceTarifOptions	t	t
-5722	24	bank	payment_partnerCost	t	t
-5723	24	bank	payment_costTranscript	t	t
-5724	24	bank	payment_calculatedCost	t	f
-5725	24	bank	payment_overcosted	t	f
-5726	24	bank	payment_limitedCost	t	f
-5727	24	bank	payment_paidByRUAMC	t	t
-5728	24	bank	payment_paidByClient	t	t
-5729	24	bank	contractor_partner	t	t
-5730	24	bank	contractor_partnerTable	t	t
-5731	24	bank	contractor_partnerCancel	t	t
-5732	24	bank	contractor_address	t	t
-5733	24	bank	bill_billNumber	t	f
-5734	24	bank	bill_billingCost	t	f
-5735	24	bank	bill_billingDate	t	f
-5736	24	bank	times_expectedServiceStart	t	t
-5737	24	bank	times_factServiceStart	t	t
-5738	24	bank	times_expectedServiceEnd	t	t
-5739	24	bank	times_factServiceEnd	t	t
-5740	24	bank	times_expectedServiceFinancialClosure	t	t
-5741	24	bank	times_factServiceFinancialClosure	t	t
-5742	24	bank	times_expectedServiceClosure	t	t
-5743	24	bank	times_factServiceClosure	t	t
-5744	24	bank	times_repairEndDate	t	t
-5745	24	call	callDate	t	t
-5746	24	call	callTaker	t	f
-5747	24	case	vwcreatedate	t	t
-5748	24	case	callTaker	t	f
-5749	24	case	comment	t	t
-5750	24	case	diagnosis1	t	t
-5751	24	case	diagnosis2	t	t
-5752	24	case	diagnosis3	t	t
-5753	24	case	diagnosis4	t	t
-5754	24	case	program	t	t
-5755	24	case	vinChecked	t	t
-5756	24	case	city	t	t
-5757	24	case	temperature	t	t
-5758	24	case	repair	t	t
-5759	24	case	accord	t	t
-5760	24	case	dealerCause	t	t
-5761	24	case	caseStatus	t	t
-5762	24	case	psaExported	t	t
-5763	24	case	claim	t	t
-5764	24	case	betaComment	t	t
-5765	24	case	files	t	t
-5766	24	case	comments	t	t
-5767	24	case	caseAddress_address	t	t
-5768	24	case	contact_name	t	t
-5769	24	case	cardNumber_cardNumber	t	t
-5770	24	case	caseAddress_map	t	t
-5771	24	case	caseAddress_coords	t	t
-5772	24	case	caseAddress_city	t	t
-5773	24	case	caseAddress_comment	t	t
-5774	24	case	contact_email	t	t
-5775	24	case	contact_phone1	t	t
-5776	24	case	contact_phone2	t	t
-5777	24	case	contact_phone3	t	t
-5778	24	case	contact_phone4	t	t
-5779	24	case	contact_ownerName	t	t
-5780	24	case	contact_contactOwner	t	t
-5781	24	case	contact_ownerEmail	t	t
-5782	24	case	contact_ownerPhone1	t	t
-5783	24	case	contact_ownerPhone2	t	t
-5784	24	case	contact_ownerPhone3	t	t
-5785	24	case	contact_ownerPhone4	t	t
-5786	24	case	car_vin	t	t
-5787	24	case	car_seller	t	t
-5788	24	case	car_make	t	t
-5789	24	case	car_model	t	t
-5790	24	case	car_plateNum	t	t
-5791	24	case	car_color	t	t
-5792	24	case	car_transmission	t	t
-5793	24	case	car_engine	t	t
-5794	24	case	car_liters	t	t
-5795	24	case	car_capacity	t	t
-5796	24	case	car_dims	t	t
-5797	24	case	car_weight	t	t
-5798	24	case	car_checkPeriod	t	t
-5799	24	case	car_class	t	t
-5800	24	case	car_buyDate	t	t
-5801	24	case	car_mileage	t	t
-5802	24	case	car_checkupDate	t	t
-5803	24	case	car_checkupMileage	t	t
-5804	24	case	car_dealerTO	t	t
-5805	24	case	car_makeYear	t	t
-5806	24	case	car_warrantyStart	t	t
-5807	24	case	car_warrantyEnd	t	t
-5808	24	case	car_contractType	t	t
-5809	24	case	cardNumber_validFrom	t	f
-5810	24	case	cardNumber_validUntil	t	f
-5811	24	case	cardNumber_validUntilMilage	t	f
-5812	24	case	cardNumber_milageTO	t	f
-5813	24	case	cardNumber_serviceInterval	t	f
-5815	24	case	cardNumber_manager	t	f
-5816	24	consultation	createTime	t	f
-5817	24	consultation	payType	t	t
-5818	24	consultation	falseCall	t	t
-5819	24	consultation	clientCancelReason	t	t
-5820	24	consultation	consType	t	t
-5821	24	consultation	whatToSay1	t	t
-5822	24	consultation	status	t	t
-5823	24	consultation	result	t	t
-5824	24	consultation	clientSatisfied	t	t
-5826	24	consultation	files	t	t
-5827	24	consultation	assignedTo	t	f
-5828	24	consultation	cost_countedCost	t	t
-5829	24	consultation	cost_counted	t	t
-5830	24	consultation	cost_serviceTarifOptions	t	t
-5831	24	consultation	urgentService	t	t
-5832	24	consultation	payment_partnerCost	t	t
-5833	24	consultation	payment_costTranscript	t	t
-5834	24	consultation	payment_calculatedCost	t	f
-5835	24	consultation	payment_overcosted	t	f
-5836	24	consultation	payment_limitedCost	t	f
-5837	24	consultation	payment_paidByRUAMC	t	t
-5838	24	consultation	payment_paidByClient	t	t
-5839	24	consultation	contractor_partner	t	t
-5840	24	consultation	contractor_partnerTable	t	t
-5841	24	consultation	contractor_partnerCancel	t	t
-5842	24	consultation	contractor_address	t	t
-5843	24	consultation	bill_billNumber	t	f
-5844	24	consultation	bill_billingCost	t	f
-5845	24	consultation	bill_billingDate	t	f
-5846	24	consultation	times_expectedServiceStart	t	t
-5847	24	consultation	times_factServiceStart	t	t
-5848	24	consultation	times_expectedServiceEnd	t	t
-5849	24	consultation	times_factServiceEnd	t	t
-5850	24	consultation	times_expectedServiceFinancialClosure	t	t
-5851	24	consultation	times_factServiceFinancialClosure	t	t
-5852	24	consultation	times_expectedServiceClosure	t	t
-5853	24	consultation	times_factServiceClosure	t	t
-5854	24	consultation	times_repairEndDate	t	t
-5855	24	continue	createTime	t	f
-5856	24	continue	payType	t	t
-5857	24	continue	falseCall	t	t
-5858	24	continue	clientCancelReason	t	t
-5859	24	continue	deliveryType	t	t
-5860	24	continue	status	t	t
-5861	24	continue	clientSatisfied	t	t
-5862	24	continue	warrantyCase	t	t
-5863	24	continue	files	t	t
-5864	24	continue	assignedTo	t	f
-5865	24	continue	urgentService	t	t
-5866	24	continue	payment_expectedCost	t	t
-5867	24	continue	cost_countedCost	t	t
-5868	24	continue	cost_counted	t	t
-5869	24	continue	cost_serviceTarifOptions	t	t
-5870	24	continue	payment_partnerCost	t	t
-5871	24	continue	payment_costTranscript	t	t
-5872	24	continue	payment_calculatedCost	t	f
-5873	24	continue	payment_overcosted	t	f
-5874	24	continue	payment_limitedCost	t	f
-5875	24	continue	payment_paidByRUAMC	t	t
-5876	24	continue	payment_paidByClient	t	t
-5877	24	continue	deliverFrom_address	t	t
-5878	24	continue	deliverFrom_coords	t	t
-5879	24	continue	deliverFrom_city	t	t
-5880	24	continue	deliverFrom_comment	t	t
-5881	24	continue	deliverTo_address	t	t
-5882	24	continue	deliverTo_coords	t	t
-5883	24	continue	deliverTo_city	t	t
-5884	24	continue	deliverTo_comment	t	t
-5885	24	continue	contractor_partner	t	t
-5886	24	continue	contractor_partnerTable	t	t
-5887	24	continue	contractor_partnerCancel	t	t
-5888	24	continue	contractor_address	t	t
-5889	24	continue	bill_billNumber	t	f
-5890	24	continue	bill_billingCost	t	f
-5891	24	continue	bill_billingDate	t	f
-5892	24	continue	times_expectedServiceStart	t	t
-5893	24	continue	times_factServiceStart	t	t
-5894	24	continue	times_expectedServiceEnd	t	t
-5895	24	continue	times_factServiceEnd	t	t
-5896	24	continue	times_expectedServiceFinancialClosure	t	t
-5897	24	continue	times_factServiceFinancialClosure	t	t
-5898	24	continue	times_expectedServiceClosure	t	t
-5899	24	continue	times_factServiceClosure	t	t
-5900	24	continue	times_repairEndDate	t	t
-5901	24	deliverCar	createTime	t	f
-5902	24	deliverCar	payType	t	t
-5903	24	deliverCar	falseCall	t	t
-5904	24	deliverCar	clientCancelReason	t	t
-5905	24	deliverCar	marginalCost	t	f
-5906	24	deliverCar	status	t	t
-5907	24	deliverCar	clientSatisfied	t	t
-5908	24	deliverCar	warrantyCase	t	t
-5909	24	deliverCar	files	t	t
-5910	24	deliverCar	service_tarifOptions	t	t
-5911	24	deliverCar	assignedTo	t	f
-5912	24	deliverCar	falseCallPercent	t	f
-5913	24	deliverCar	toAddress_address	t	t
-5914	24	deliverCar	toAddress_coords	t	t
-5915	24	deliverCar	toAddress_city	t	t
-5916	24	deliverCar	toAddress_comment	t	t
-5917	24	deliverCar	urgentService	t	t
-5918	24	deliverCar	cost_countedCost	t	t
-5919	24	deliverCar	cost_counted	t	t
-5920	24	deliverCar	cost_serviceTarifOptions	t	t
-5921	24	deliverCar	payment_partnerCost	t	t
-5922	24	deliverCar	payment_costTranscript	t	t
-5923	24	deliverCar	payment_calculatedCost	t	f
-5924	24	deliverCar	payment_overcosted	t	f
-5925	24	deliverCar	payment_limitedCost	t	f
-5926	24	deliverCar	payment_payType	t	t
-5927	24	deliverCar	payment_paidByRUAMC	t	t
-5928	24	deliverCar	payment_paidByClient	t	t
-5929	24	deliverCar	bill_billNumber	t	f
-5930	24	deliverCar	bill_billingCost	t	f
-5931	24	deliverCar	bill_billingDate	t	f
-5932	24	deliverCar	times_expectedServiceStart	t	t
-5933	24	deliverCar	times_factServiceStart	t	t
-5934	24	deliverCar	times_expectedServiceEnd	t	t
-5935	24	deliverCar	times_factServiceEnd	t	t
-5936	24	deliverCar	times_expectedServiceFinancialClosure	t	t
-5937	24	deliverCar	times_factServiceFinancialClosure	t	t
-5938	24	deliverCar	times_expectedServiceClosure	t	t
-5939	24	deliverCar	times_factServiceClosure	t	t
-5940	24	deliverCar	times_repairEndDate	t	t
-5941	24	deliverClient	createTime	t	f
-5943	24	deliverClient	falseCall	t	t
-5944	24	deliverClient	clientCancelReason	t	t
-5945	24	deliverClient	deliveryType	t	t
-5946	24	deliverClient	status	t	t
-5947	24	deliverClient	clientSatisfied	t	t
-5948	24	deliverClient	warrantyCase	t	t
-5949	24	deliverClient	files	t	t
-5950	24	deliverClient	assignedTo	t	f
-5951	24	deliverClient	falseCallPercent	t	f
-5952	24	deliverClient	cost_countedCost	t	t
-5953	24	deliverClient	urgentService	t	t
-5954	24	deliverClient	cost_counted	t	t
-5955	24	deliverClient	cost_serviceTarifOptions	t	t
-5956	24	deliverClient	payment_partnerCost	t	t
-5957	24	deliverClient	payment_costTranscript	t	t
-5958	24	deliverClient	payment_calculatedCost	t	f
-5959	24	deliverClient	payment_overcosted	t	f
-5960	24	deliverClient	payment_limitedCost	t	f
-5961	24	deliverClient	payment_paidByRUAMC	t	t
-5962	24	deliverClient	payment_paidByClient	t	t
-5963	24	deliverClient	deliverFrom_address	t	t
-5964	24	deliverClient	deliverFrom_coords	t	t
-5965	24	deliverClient	deliverFrom_city	t	t
-5966	24	deliverClient	deliverFrom_comment	t	t
-5967	24	deliverClient	deliverTo_address	t	t
-5968	24	deliverClient	deliverTo_coords	t	t
-5969	24	deliverClient	deliverTo_city	t	t
-5970	24	deliverClient	deliverTo_comment	t	t
-5971	24	deliverClient	contractor_partner	t	t
-5972	24	deliverClient	contractor_partnerTable	t	t
-5973	24	deliverClient	contractor_partnerCancel	t	t
-5974	24	deliverClient	contractor_address	t	t
-5975	24	deliverClient	bill_billNumber	t	f
-5976	24	deliverClient	bill_billingCost	t	f
-5977	24	deliverClient	bill_billingDate	t	f
-5978	24	deliverClient	times_expectedServiceStart	t	t
-5979	24	deliverClient	times_factServiceStart	t	t
-5980	24	deliverClient	times_expectedServiceEnd	t	t
-5981	24	deliverClient	times_factServiceEnd	t	t
-5982	24	deliverClient	times_expectedServiceFinancialClosure	t	t
-5983	24	deliverClient	times_factServiceFinancialClosure	t	t
-5984	24	deliverClient	times_expectedServiceClosure	t	t
-5985	24	deliverClient	times_factServiceClosure	t	t
-5986	24	deliverClient	times_repairEndDate	t	t
-5987	24	deliverParts	createTime	t	f
-5988	24	deliverParts	payType	t	t
-5989	24	deliverParts	falseCall	t	t
-5990	24	deliverParts	clientCancelReason	t	t
-5991	24	deliverParts	parts	t	t
-5992	24	deliverParts	marginalCost	t	f
-5993	24	deliverParts	status	t	t
-5994	24	deliverParts	clientSatisfied	t	t
-5995	24	deliverParts	warrantyCase	t	t
-5996	24	deliverParts	files	t	t
-5997	24	deliverParts	service_tarifOptions	t	t
-5998	24	deliverParts	assignedTo	t	f
-5999	24	deliverParts	falseCallPercent	t	f
-6000	24	deliverParts	toAddress_address	t	t
-6001	24	deliverParts	toAddress_coords	t	t
-6002	24	deliverParts	toAddress_city	t	t
-6003	24	deliverParts	toAddress_comment	t	t
-6004	24	deliverParts	cost_countedCost	t	t
-6005	24	deliverParts	urgentService	t	t
-6006	24	deliverParts	cost_counted	t	t
-6007	24	deliverParts	cost_serviceTarifOptions	t	t
-6008	24	deliverParts	payment_partnerCost	t	t
-6009	24	deliverParts	payment_costTranscript	t	t
-6010	24	deliverParts	payment_calculatedCost	t	f
-6011	24	deliverParts	payment_overcosted	t	f
-6012	24	deliverParts	payment_limitedCost	t	f
-6013	24	deliverParts	payment_paidByRUAMC	t	t
-6014	24	deliverParts	payment_paidByClient	t	t
-6015	24	deliverParts	bill_billNumber	t	f
-6016	24	deliverParts	bill_billingCost	t	f
-6017	24	deliverParts	bill_billingDate	t	f
-6018	24	deliverParts	times_expectedServiceStart	t	t
-6019	24	deliverParts	times_factServiceStart	t	t
-6020	24	deliverParts	times_expectedServiceEnd	t	t
-6021	24	deliverParts	times_factServiceEnd	t	t
-6022	24	deliverParts	times_expectedServiceFinancialClosure	t	t
-6023	24	deliverParts	times_factServiceFinancialClosure	t	t
-6024	24	deliverParts	times_expectedServiceClosure	t	t
-6025	24	deliverParts	times_factServiceClosure	t	t
-6026	24	deliverParts	times_repairEndDate	t	t
-6027	24	hotel	createTime	t	f
-6028	24	hotel	payType	t	t
-6029	24	hotel	falseCall	t	t
-6030	24	hotel	clientCancelReason	t	t
-6031	24	hotel	marginalCost	t	f
-6032	24	hotel	providedFor	t	t
-6033	24	hotel	status	t	t
-6034	24	hotel	clientSatisfied	t	t
-6035	24	hotel	warrantyCase	t	t
-6036	24	hotel	files	t	t
-6037	24	hotel	service_tarifOptions	t	t
-6038	24	hotel	assignedTo	t	f
-6039	24	hotel	payment_partnerCost	t	t
-6040	24	hotel	payment_costTranscript	t	t
-6041	24	hotel	payment_calculatedCost	t	f
-6042	24	hotel	payment_overcosted	t	f
-6043	24	hotel	payment_limitedCost	t	f
-6044	24	hotel	payment_paidByRUAMC	t	t
-6045	24	hotel	payment_paidByClient	t	t
-6046	24	hotel	cost_countedCost	t	t
-6047	24	hotel	urgentService	t	t
-6048	24	hotel	cost_counted	t	t
-6049	24	hotel	cost_serviceTarifOptions	t	t
-6050	24	hotel	caseAddress_address	t	t
-6051	24	hotel	caseAddress_coords	t	t
-6052	24	hotel	caseAddress_city	t	t
-6053	24	hotel	caseAddress_comment	t	t
-6054	24	hotel	contractor_partner	t	t
-6055	24	hotel	contractor_partnerId	t	t
-6056	24	hotel	contractor_partnerTable	t	t
-6057	24	hotel	contractor_partnerCancel	t	t
-6058	24	hotel	contractor_address	t	t
-6059	24	hotel	bill_billNumber	t	f
-6060	24	hotel	bill_billingCost	t	f
-6061	24	hotel	bill_billingDate	t	f
-6062	24	hotel	times_expectedServiceStart	t	t
-6063	24	hotel	times_factServiceStart	t	t
-6064	24	hotel	times_expectedServiceEnd	t	t
-6065	24	hotel	times_factServiceEnd	t	t
-6066	24	hotel	times_expectedServiceFinancialClosure	t	t
-6067	24	hotel	times_factServiceFinancialClosure	t	t
-6068	24	hotel	times_expectedServiceClosure	t	t
-6069	24	hotel	times_factServiceClosure	t	t
-6070	24	hotel	times_repairEndDate	t	t
-6071	24	information	createTime	t	f
-6072	24	information	payType	t	t
-6073	24	information	falseCall	t	t
-6074	24	information	clientCancelReason	t	t
-6075	24	information	contact1	t	t
-6076	24	information	contactPhone1	t	t
-6077	24	information	whatToSay1	t	t
-6078	24	information	contact2	t	t
-6079	24	information	contactPhone2	t	t
-6080	24	information	whatToSay2	t	t
-6081	24	information	contact3	t	t
-6082	24	information	contactPhone3	t	t
-6083	24	information	whatToSay3	t	t
-6084	24	information	status	t	t
-6085	24	information	clientSatisfied	t	t
-6086	24	information	warrantyCase	t	t
-6087	24	information	files	t	t
-6088	24	information	assignedTo	t	f
-6089	24	information	falseCallPercent	t	f
-6090	24	information	urgentService	t	t
-6091	24	information	payment_expectedCost	t	t
-6092	24	information	payment_partnerCost	t	t
-6093	24	information	payment_costTranscript	t	t
-6094	24	information	payment_calculatedCost	t	f
-6095	24	information	payment_overcosted	t	f
-6096	24	information	payment_limitedCost	t	f
-6097	24	information	payment_paidByRUAMC	t	t
-6098	24	information	payment_paidByClient	t	t
-6099	24	information	bill_billNumber	t	f
-6100	24	information	bill_billingCost	t	f
-6101	24	information	bill_billingDate	t	f
-6102	24	information	times_expectedServiceStart	t	t
-6103	24	information	times_factServiceStart	t	t
-6104	24	information	times_expectedServiceEnd	t	t
-6105	24	information	times_factServiceEnd	t	t
-6106	24	information	times_expectedServiceFinancialClosure	t	t
-6107	24	information	times_factServiceFinancialClosure	t	t
-6108	24	information	times_expectedServiceClosure	t	t
-6109	24	information	times_factServiceClosure	t	t
-6110	24	information	times_repairEndDate	t	t
-6111	24	insurance	createTime	t	f
-6112	24	insurance	payType	t	t
-6113	24	insurance	falseCall	t	t
-6114	24	insurance	clientCancelReason	t	t
-6115	24	insurance	requestType	t	t
-6116	24	insurance	whatToSay1	t	t
-6117	24	insurance	activity	t	t
-6118	24	insurance	commMilage	t	t
-6119	24	insurance	status	t	t
-6120	24	insurance	clientSatisfied	t	t
-6121	24	insurance	warrantyCase	t	t
-6122	24	insurance	files	t	t
-6123	24	insurance	assignedTo	t	f
-6124	24	insurance	commAddress_address	t	t
-6125	24	insurance	commAddress_coords	t	t
-6126	24	insurance	commAddress_city	t	t
-6127	24	insurance	commAddress_comment	t	t
-6128	24	insurance	cost_countedCost	t	t
-6129	24	insurance	urgentService	t	t
-6130	24	insurance	cost_counted	t	t
-6131	24	insurance	cost_serviceTarifOptions	t	t
-6132	24	insurance	payment_partnerCost	t	t
-6133	24	insurance	payment_costTranscript	t	t
-6134	24	insurance	payment_calculatedCost	t	f
-6135	24	insurance	payment_overcosted	t	f
-6136	24	insurance	payment_limitedCost	t	f
-6137	24	insurance	payment_paidByRUAMC	t	t
-6138	24	insurance	payment_paidByClient	t	t
-6139	24	insurance	contractor_partner	t	t
-6140	24	insurance	contractor_partnerTable	t	t
-6141	24	insurance	contractor_partnerCancel	t	t
-6142	24	insurance	contractor_address	t	t
-6143	24	insurance	bill_billNumber	t	f
-6144	24	insurance	bill_billingCost	t	f
-6145	24	insurance	bill_billingDate	t	f
-6146	24	insurance	times_expectedServiceStart	t	t
-6147	24	insurance	times_factServiceStart	t	t
-6148	24	insurance	times_expectedServiceEnd	t	t
-6149	24	insurance	times_factServiceEnd	t	t
-6150	24	insurance	times_expectedServiceFinancialClosure	t	t
-6151	24	insurance	times_factServiceFinancialClosure	t	t
-6152	24	insurance	times_expectedServiceClosure	t	t
-6153	24	insurance	times_factServiceClosure	t	t
-6154	24	insurance	times_repairEndDate	t	t
-6155	24	ken	createTime	t	f
-6156	24	ken	payType	t	t
-6157	24	ken	falseCall	t	t
-6158	24	ken	clientCancelReason	t	t
-6159	24	ken	requestType	t	t
-6160	24	ken	whatToSay1	t	t
-6161	24	ken	activity	t	t
-6162	24	ken	status	t	t
-6163	24	ken	clientSatisfied	t	t
-6164	24	ken	warrantyCase	t	t
-6165	24	ken	files	t	t
-6166	24	ken	assignedTo	t	f
-6167	24	ken	falseCallPercent	t	f
-6168	24	ken	cost_countedCost	t	t
-6169	24	ken	urgentService	t	t
-6170	24	ken	cost_counted	t	t
-6171	24	ken	cost_serviceTarifOptions	t	t
-6172	24	ken	payment_partnerCost	t	t
-6173	24	ken	payment_costTranscript	t	t
-6174	24	ken	payment_calculatedCost	t	f
-6175	24	ken	payment_overcosted	t	f
-6176	24	ken	payment_limitedCost	t	f
-6177	24	ken	payment_paidByRUAMC	t	t
-6178	24	ken	payment_paidByClient	t	t
-6179	24	ken	contractor_partner	t	t
-6180	24	ken	contractor_partnerTable	t	t
-6181	24	ken	contractor_partnerCancel	t	t
-6182	24	ken	contractor_address	t	t
-6183	24	ken	bill_billNumber	t	f
-6184	24	ken	bill_billingCost	t	f
-6185	24	ken	bill_billingDate	t	f
-6186	24	ken	times_expectedServiceStart	t	t
-6187	24	ken	times_factServiceStart	t	t
-6188	24	ken	times_expectedServiceEnd	t	t
-6189	24	ken	times_factServiceEnd	t	t
-6190	24	ken	times_expectedServiceFinancialClosure	t	t
-6191	24	ken	times_factServiceFinancialClosure	t	t
-6192	24	ken	times_expectedServiceClosure	t	t
-6193	24	ken	times_factServiceClosure	t	t
-6194	24	ken	times_repairEndDate	t	t
-6195	24	partner	comment	t	t
-6196	24	rent	createTime	t	f
-6197	24	rent	payType	t	t
-6198	24	rent	falseCall	t	t
-6199	24	rent	clientCancelReason	t	t
-6200	24	rent	vinRent	t	t
-6201	24	rent	carClass	t	t
-6202	24	rent	marginalCost	t	f
-6203	24	rent	providedFor	t	t
-6204	24	rent	rentedMake	t	t
-6205	24	rent	rentedModel	t	t
-6206	24	rent	status	t	t
-6207	24	rent	clientSatisfied	t	t
-6208	24	rent	warrantyCase	t	t
-6209	24	rent	files	t	t
-6210	24	rent	assignedTo	t	f
-6211	24	rent	falseCallPercent	t	f
-6212	24	rent	cost_countedCost	t	t
-6213	24	rent	urgentService	t	t
-6214	24	rent	cost_counted	t	t
-6215	24	rent	cost_serviceTarifOptions	t	t
-6216	24	rent	rentAddress_address	t	t
-6217	24	rent	rentAddress_coords	t	t
-6218	24	rent	rentAddress_city	t	t
-6219	24	rent	rentAddress_comment	t	t
-6220	24	rent	towDealer_partner	t	t
-6221	24	rent	towDealer_partnerTable	t	t
-6222	24	rent	towDealer_address	t	t
-6223	24	rent	contractor_partner	t	t
-6224	24	rent	contractor_partnerId	t	t
-6225	24	rent	contractor_partnerTable	t	t
-6226	24	rent	contractor_partnerCancel	t	t
-6227	24	rent	contractor_address	t	t
-6228	24	rent	payment_partnerCost	t	t
-6229	24	rent	payment_costTranscript	t	t
-6230	24	rent	payment_calculatedCost	t	f
-6231	24	rent	payment_overcosted	t	f
-6232	24	rent	payment_limitedCost	t	f
-6233	24	rent	payment_paidByRUAMC	t	t
-6234	24	rent	payment_paidByClient	t	t
-6235	24	rent	bill_billNumber	t	f
-6236	24	rent	bill_billingCost	t	f
-6237	24	rent	bill_billingDate	t	f
-6238	24	rent	times_expectedServiceStart	t	t
-6239	24	rent	times_factServiceStart	t	t
-6240	24	rent	times_expectedServiceEnd	t	t
-6241	24	rent	times_factServiceEnd	t	t
-6242	24	rent	times_expectedServiceFinancialClosure	t	t
-6243	24	rent	times_factServiceFinancialClosure	t	t
-6244	24	rent	times_expectedServiceClosure	t	t
-6245	24	rent	times_factServiceClosure	t	t
-6246	24	rent	times_repairEndDate	t	t
-6247	24	sober	createTime	t	f
-6248	24	sober	payType	t	t
-6249	24	sober	falseCall	t	t
-6250	24	sober	clientCancelReason	t	t
-6251	24	sober	marginalCost	t	f
-6252	24	sober	multidrive	t	t
-6253	24	sober	status	t	t
-6254	24	sober	clientSatisfied	t	t
-6255	24	sober	warrantyCase	t	t
-6256	24	sober	files	t	t
-6257	24	sober	service_tarifOptions	t	t
-6258	24	sober	assignedTo	t	f
-6259	24	sober	cost_countedCost	t	t
-6260	24	sober	urgentService	t	t
-6261	24	sober	cost_counted	t	t
-6262	24	sober	cost_serviceTarifOptions	t	t
-6263	24	sober	payment_partnerCost	t	t
-6264	24	sober	payment_costTranscript	t	t
-6265	24	sober	payment_calculatedCost	t	f
-6266	24	sober	payment_overcosted	t	f
-6267	24	sober	payment_limitedCost	t	f
-6268	24	sober	payment_paidByRUAMC	t	t
-6269	24	sober	payment_paidByClient	t	t
-6270	24	sober	fromAddress_address	t	t
-6271	24	sober	fromAddress_coords	t	t
-6272	24	sober	fromAddress_city	t	t
-6273	24	sober	fromAddress_comment	t	t
-6274	24	sober	toAddress_address	t	t
-6275	24	sober	toAddress_coords	t	t
-6276	24	sober	toAddress_city	t	t
-6277	24	sober	toAddress_comment	t	t
-6278	24	sober	contractor_partner	t	t
-6279	24	sober	contractor_partnerId	t	t
-6280	24	sober	contractor_partnerTable	t	t
-6281	24	sober	contractor_partnerCancel	t	t
-6282	24	sober	contractor_address	t	t
-6283	24	sober	bill_billNumber	t	f
-6284	24	sober	bill_billingCost	t	f
-6285	24	sober	bill_billingDate	t	f
-6286	24	sober	times_expectedServiceStart	t	t
-6287	24	sober	times_factServiceStart	t	t
-6288	24	sober	times_expectedServiceEnd	t	t
-6289	24	sober	times_factServiceEnd	t	t
-6290	24	sober	times_expectedServiceFinancialClosure	t	t
-6291	24	sober	times_factServiceFinancialClosure	t	t
-6292	24	sober	times_expectedServiceClosure	t	t
-6293	24	sober	times_factServiceClosure	t	t
-6294	24	sober	times_repairEndDate	t	t
-6295	24	taxi	createTime	t	f
-6296	24	taxi	payType	t	t
-6297	24	taxi	falseCall	t	t
-6298	24	taxi	clientCancelReason	t	t
-6299	24	taxi	marginalCost	t	f
-6300	24	taxi	status	t	t
-6301	24	taxi	clientSatisfied	t	t
-6302	24	taxi	warrantyCase	t	t
-6303	24	taxi	files	t	t
-6304	24	taxi	service_tarifOptions	t	t
-6305	24	taxi	assignedTo	t	f
-6306	24	taxi	falseCallPercent	t	f
-6307	24	taxi	cost_countedCost	t	t
-6308	24	taxi	urgentService	t	t
-6309	24	taxi	cost_counted	t	t
-6310	24	taxi	cost_serviceTarifOptions	t	t
-6311	24	taxi	payment_partnerCost	t	t
-6312	24	taxi	payment_costTranscript	t	t
-6313	24	taxi	payment_calculatedCost	t	f
-6314	24	taxi	payment_overcosted	t	f
-6315	24	taxi	payment_limitedCost	t	f
-6316	24	taxi	payment_paidByRUAMC	t	t
-6317	24	taxi	payment_paidByClient	t	t
-6318	24	taxi	taxiFrom_address	t	t
-6319	24	taxi	taxiFrom_coords	t	t
-6320	24	taxi	taxiFrom_city	t	t
-6321	24	taxi	taxiFrom_comment	t	t
-6322	24	taxi	taxiTo_address	t	t
-6323	24	taxi	taxiTo_coords	t	t
-6324	24	taxi	taxiTo_city	t	t
-6325	24	taxi	taxiTo_comment	t	t
-6326	24	taxi	contractor_partner	t	t
-6327	24	taxi	contractor_partnerTable	t	t
-6328	24	taxi	contractor_partnerCancel	t	t
-6329	24	taxi	contractor_address	t	t
-6330	24	taxi	bill_billNumber	t	f
-6331	24	taxi	bill_billingCost	t	f
-6332	24	taxi	bill_billingDate	t	f
-6333	24	taxi	times_expectedServiceStart	t	t
-6334	24	taxi	times_factServiceStart	t	t
-6335	24	taxi	times_expectedServiceEnd	t	t
-6336	24	taxi	times_factServiceEnd	t	t
-6337	24	taxi	times_expectedServiceFinancialClosure	t	t
-6338	24	taxi	times_factServiceFinancialClosure	t	t
-6339	24	taxi	times_expectedServiceClosure	t	t
-6340	24	taxi	times_factServiceClosure	t	t
-6341	24	taxi	times_repairEndDate	t	t
-6342	24	tech1	createTime	t	f
-6343	24	tech1	payType	t	t
-6344	24	tech1	falseCall	t	t
-6345	24	tech1	clientCancelReason	t	t
-6346	24	tech1	requestType	t	t
-6347	24	tech1	whatToSay1	t	t
-6348	24	tech1	activity	t	t
-6349	24	tech1	status	t	t
-6350	24	tech1	clientSatisfied	t	t
-6351	24	tech1	warrantyCase	t	t
-6352	24	tech1	files	t	t
-6353	24	tech1	cost_countedCost	t	t
-6354	24	tech1	urgentService	t	t
-6355	24	tech1	cost_counted	t	t
-6356	24	tech1	cost_serviceTarifOptions	t	t
-6357	24	tech1	payment_partnerCost	t	t
-6358	24	tech1	payment_costTranscript	t	t
-6359	24	tech1	payment_calculatedCost	t	f
-6360	24	tech1	payment_overcosted	t	f
-6361	24	tech1	payment_limitedCost	t	f
-6362	24	tech1	payment_paidByRUAMC	t	t
-6363	24	tech1	payment_paidByClient	t	t
-6364	24	tech1	contractor_partner	t	t
-6365	24	tech1	contractor_partnerTable	t	t
-6366	24	tech1	contractor_partnerCancel	t	t
-6367	24	tech1	contractor_address	t	t
-6368	24	tech1	bill_billNumber	t	f
-6369	24	tech1	bill_billingCost	t	f
-6370	24	tech1	bill_billingDate	t	f
-6371	24	tech1	times_expectedServiceStart	t	t
-6372	24	tech1	times_factServiceStart	t	t
-6373	24	tech1	times_expectedServiceEnd	t	t
-6374	24	tech1	times_factServiceEnd	t	t
-6375	24	tech1	times_expectedServiceFinancialClosure	t	t
-6376	24	tech1	times_factServiceFinancialClosure	t	t
-6377	24	tech1	times_expectedServiceClosure	t	t
-6378	24	tech1	times_factServiceClosure	t	t
-6379	24	tech1	times_repairEndDate	t	t
-6380	24	tech	createTime	t	f
-6381	24	tech	payType	t	t
-6382	24	tech	falseCall	t	t
-6383	24	tech	clientCancelReason	t	t
-6384	24	tech	techType	t	t
-6385	24	tech	marginalCost	t	f
-6386	24	tech	suburbanMilage	t	t
-6387	24	tech	status	t	t
-6388	24	tech	clientSatisfied	t	t
-6389	24	tech	warrantyCase	t	t
-6390	24	tech	files	t	t
-6391	24	tech	service_tarifOptions	t	t
-6392	24	tech	assignedTo	t	f
-6393	24	tech	falseCallPercent	t	f
-6394	24	tech	payment_partnerCost	t	t
-6395	24	tech	payment_costTranscript	t	t
-6396	24	tech	payment_calculatedCost	t	f
-6397	24	tech	payment_overcosted	t	f
-6398	24	tech	payment_limitedCost	t	f
-6399	24	tech	cost_countedCost	t	t
-6400	24	tech	urgentService	t	t
-6401	24	tech	cost_counted	t	t
-6402	24	tech	cost_serviceTarifOptions	t	t
-6403	24	tech	payment_paidByRUAMC	t	t
-6404	24	tech	payment_paidByClient	t	t
-6405	24	tech	contractor_partner	t	t
-6406	24	tech	contractor_partnerId	t	t
-6407	24	tech	contractor_partnerTable	t	t
-6408	24	tech	contractor_partnerMap	t	t
-6409	24	tech	contractor_coords	t	t
-6410	24	tech	contractor_partnerCancel	t	t
-6411	24	tech	contractor_address	t	t
-6412	24	tech	bill_billNumber	t	f
-6413	24	tech	bill_billingCost	t	f
-6414	24	tech	bill_billingDate	t	f
-6415	24	tech	times_expectedServiceStart	t	t
-6416	24	tech	times_factServiceStart	t	t
-6417	24	tech	times_expectedServiceEnd	t	t
-6418	24	tech	times_factServiceEnd	t	t
-6419	24	tech	times_expectedServiceFinancialClosure	t	t
-6420	24	tech	times_factServiceFinancialClosure	t	t
-6421	24	tech	times_expectedServiceClosure	t	t
-6422	24	tech	times_factServiceClosure	t	t
-6423	24	tech	times_repairEndDate	t	t
-6424	24	tickets	createTime	t	f
-6425	24	tickets	payType	t	t
-6426	24	tickets	falseCall	t	t
-6427	24	tickets	clientCancelReason	t	t
-6428	24	tickets	deliveryType	t	t
-6429	24	tickets	status	t	t
-6430	24	tickets	clientSatisfied	t	t
-6431	24	tickets	warrantyCase	t	t
-6432	24	tickets	files	t	t
-6433	24	tickets	assignedTo	t	f
-6434	24	tickets	falseCallPercent	t	f
-6435	24	tickets	cost_countedCost	t	t
-6436	24	tickets	ticketsFrom_address	t	t
-6437	24	tickets	ticketsFrom_coords	t	t
-6438	24	tickets	ticketsFrom_city	t	t
-6439	24	tickets	ticketsFrom_comment	t	t
-6440	24	tickets	ticketsTo_address	t	t
-6441	24	tickets	ticketsTo_coords	t	t
-6442	24	tickets	ticketsTo_city	t	t
-6443	24	tickets	ticketsTo_comment	t	t
-6444	24	tickets	urgentService	t	t
-6445	24	tickets	cost_counted	t	t
-6446	24	tickets	cost_serviceTarifOptions	t	t
-6447	24	tickets	payment_partnerCost	t	t
-6448	24	tickets	payment_costTranscript	t	t
-6449	24	tickets	payment_calculatedCost	t	f
-6450	24	tickets	payment_overcosted	t	f
-6451	24	tickets	payment_limitedCost	t	f
-6452	24	tickets	payment_paidByRUAMC	t	t
-6453	24	tickets	payment_paidByClient	t	t
-6454	24	tickets	contractor_partner	t	t
-6455	24	tickets	contractor_partnerTable	t	t
-6456	24	tickets	contractor_partnerCancel	t	t
-6457	24	tickets	contractor_address	t	t
-6458	24	tickets	bill_billNumber	t	f
-6459	24	tickets	bill_billingCost	t	f
-6460	24	tickets	bill_billingDate	t	f
-6461	24	tickets	times_expectedServiceStart	t	t
-6462	24	tickets	times_factServiceStart	t	t
-6463	24	tickets	times_expectedServiceEnd	t	t
-6464	24	tickets	times_factServiceEnd	t	t
-6465	24	tickets	times_expectedServiceFinancialClosure	t	t
-6466	24	tickets	times_factServiceFinancialClosure	t	t
-6467	24	tickets	times_expectedServiceClosure	t	t
-6468	24	tickets	times_factServiceClosure	t	t
-6469	24	tickets	times_repairEndDate	t	t
-6470	24	towage	createTime	t	f
-6471	24	towage	payType	t	t
-6472	24	towage	falseCall	t	t
-6473	24	towage	clientCancelReason	t	t
-6474	24	towage	towerType	t	t
-6475	24	towage	towType	t	t
-6476	24	towage	vandalism	t	t
-6477	24	towage	accident	t	t
-6478	24	towage	dealerDistance	t	t
-6479	24	towage	marginalCost	t	f
-6480	24	towage	wheelsUnblocked	t	t
-6481	24	towage	canNeutral	t	t
-6482	24	towage	towingPointPresent	t	t
-6483	24	towage	manipulatorPossible	t	t
-6484	24	towage	suburbanMilage	t	t
-6485	24	towage	repairEndDate	t	t
-6486	24	towage	status	t	t
-6487	24	towage	clientSatisfied	t	t
-6488	24	towage	warrantyCase	t	t
-6489	24	towage	files	t	t
-6490	24	towage	service_tarifOptions	t	t
-6491	24	towage	assignedTo	t	f
-6492	24	towage	falseCallPercent	t	f
-6493	24	towage	cost_countedCost	t	t
-6494	24	towage	urgentService	t	t
-6495	24	towage	cost_counted	t	t
-6496	24	towage	cost_serviceTarifOptions	t	t
-6497	24	towage	towAddress_address	t	t
-6498	24	towage	towAddress_coords	t	t
-6499	24	towage	towAddress_city	t	t
-6500	24	towage	towAddress_comment	t	t
-6501	24	towage	towAddress_map	t	t
-6502	24	towage	payment_partnerCost	t	t
-6503	24	towage	payment_costTranscript	t	t
-6504	24	towage	payment_calculatedCost	t	f
-6505	24	towage	payment_overcosted	t	f
-6506	24	towage	payment_limitedCost	t	f
-6507	24	towage	payment_paidByRUAMC	t	t
-6508	24	towage	payment_paidByClient	t	t
-6509	24	towage	towerAddress_address	t	t
-6510	24	towage	towerAddress_coords	t	t
-6511	24	towage	towerAddress_city	t	t
-6512	24	towage	towerAddress_comment	t	t
-6513	24	towage	towerAddress_map	t	t
-6514	24	towage	towDealer_partner	t	t
-6515	24	towage	towDealer_partnerId	t	t
-6516	24	towage	towDealer_partnerTable	t	t
-6517	24	towage	towDealer_partnerMap	t	t
-6518	24	towage	towDealer_coords	t	t
-6519	24	towage	towDealer_address	t	t
-6520	24	towage	contractor_partner	t	t
-6521	24	towage	contractor_partnerId	t	t
-6522	24	towage	contractor_partnerTable	t	t
-6523	24	towage	contractor_partnerMap	t	t
-6524	24	towage	contractor_coords	t	t
-6525	24	towage	contractor_partnerCancel	t	t
-6526	24	towage	contractor_address	t	t
-6527	24	towage	bill_billNumber	t	f
-6528	24	towage	bill_billingCost	t	f
-6529	24	towage	bill_billingDate	t	f
-6530	24	towage	times_expectedServiceStart	t	t
-6531	24	towage	times_factServiceStart	t	t
-6532	24	towage	times_expectedServiceEnd	t	t
-6533	24	towage	times_factServiceEnd	t	t
-6534	24	towage	times_expectedServiceFinancialClosure	t	t
-6535	24	towage	times_factServiceFinancialClosure	t	t
-6536	24	towage	times_expectedServiceClosure	t	t
-6537	24	towage	times_factServiceClosure	t	t
-6538	24	transportation	createTime	t	f
-6539	24	transportation	payType	t	t
-6540	24	transportation	falseCall	t	t
-6541	24	transportation	clientCancelReason	t	t
-6542	24	transportation	transportType	t	t
-6543	24	transportation	status	t	t
-6544	24	transportation	clientSatisfied	t	t
-6545	24	transportation	warrantyCase	t	t
-6546	24	transportation	files	t	t
-6547	24	transportation	assignedTo	t	f
-6548	24	transportation	falseCallPercent	t	f
-6549	24	transportation	cost_countedCost	t	t
-6550	24	transportation	urgentService	t	t
-6551	24	transportation	cost_counted	t	t
-6552	24	transportation	cost_serviceTarifOptions	t	t
-6553	24	transportation	caseAddress_address	t	t
-6554	24	transportation	caseAddress_coords	t	t
-6555	24	transportation	caseAddress_city	t	t
-6556	24	transportation	caseAddress_comment	t	t
-6557	24	transportation	fromToAddress_address	t	t
-6558	24	transportation	fromToAddress_coords	t	t
-6559	24	transportation	fromToAddress_city	t	t
-6560	24	transportation	fromToAddress_comment	t	t
-6561	24	transportation	payment_partnerCost	t	t
-6562	24	transportation	payment_costTranscript	t	t
-6563	24	transportation	payment_calculatedCost	t	f
-6564	24	transportation	payment_overcosted	t	f
-6565	24	transportation	payment_limitedCost	t	f
-6566	24	transportation	payment_paidByRUAMC	t	t
-6567	24	transportation	payment_paidByClient	t	t
-6568	24	transportation	bill_billNumber	t	f
-6569	24	transportation	bill_billingCost	t	f
-6570	24	transportation	bill_billingDate	t	f
-6571	24	transportation	times_expectedServiceStart	t	t
-6572	24	transportation	times_factServiceStart	t	t
-6573	24	transportation	times_expectedServiceEnd	t	t
-6574	24	transportation	times_factServiceEnd	t	t
-6575	24	transportation	times_expectedServiceFinancialClosure	t	t
-6576	24	transportation	times_factServiceFinancialClosure	t	t
-6577	24	transportation	times_expectedServiceClosure	t	t
-6578	24	transportation	times_factServiceClosure	t	t
-6579	24	transportation	times_repairEndDate	t	t
-6580	7	action	comment	t	t
-6581	7	action	result	t	t
-6582	7	action	assignedTo	t	t
-6583	7	action	targetGroup	t	t
-6584	7	action	priority	t	t
-6585	7	action	closed	t	t
-6586	7	averageCommissioner	createTime	t	f
-6587	7	averageCommissioner	payType	t	t
-6588	7	averageCommissioner	falseCall	t	t
-6589	7	averageCommissioner	clientCancelReason	t	t
-6590	7	averageCommissioner	requestType	t	t
-6591	7	averageCommissioner	whatToSay1	t	f
-6592	7	averageCommissioner	activity	t	t
-6593	7	averageCommissioner	commMilage	t	t
-6594	7	averageCommissioner	status	t	t
-6595	7	averageCommissioner	clientSatisfied	t	t
-6596	7	averageCommissioner	warrantyCase	t	t
-6597	7	averageCommissioner	files	t	t
-6598	7	averageCommissioner	assignedTo	t	f
-6599	7	averageCommissioner	commAddress_address	t	t
-6600	7	averageCommissioner	commAddress_coords	t	t
-6601	7	averageCommissioner	commAddress_city	t	t
-6602	7	averageCommissioner	commAddress_comment	t	t
-6603	7	averageCommissioner	urgentService	t	t
-6604	7	averageCommissioner	payment_expectedCost	t	t
-6605	7	averageCommissioner	cost_countedCost	t	t
-6606	7	averageCommissioner	cost_counted	t	t
-6607	7	averageCommissioner	cost_serviceTarifOptions	t	t
-6608	7	averageCommissioner	payment_partnerCost	t	t
-6609	7	averageCommissioner	payment_costTranscript	t	t
-6610	7	averageCommissioner	payment_calculatedCost	t	t
-6611	7	averageCommissioner	payment_overcosted	t	t
-6612	7	averageCommissioner	payment_limitedCost	t	f
-6613	7	averageCommissioner	payment_paidByRUAMC	t	t
-6614	7	averageCommissioner	payment_paidByClient	t	t
-6615	7	averageCommissioner	contractor_partner	t	t
-6616	7	averageCommissioner	contractor_partnerTable	t	t
-6617	7	averageCommissioner	contractor_partnerCancel	t	t
-6739	7	case	cardNumber_manager	t	f
-6618	7	averageCommissioner	contractor_address	t	t
-6619	7	averageCommissioner	bill_billNumber	t	t
-6620	7	averageCommissioner	bill_billingCost	t	t
-6621	7	averageCommissioner	bill_billingDate	t	t
-6622	7	averageCommissioner	times_expectedServiceStart	t	t
-6623	7	averageCommissioner	times_factServiceStart	t	t
-6624	7	averageCommissioner	times_expectedServiceEnd	t	t
-6625	7	averageCommissioner	times_factServiceEnd	t	t
-6626	7	averageCommissioner	times_expectedServiceFinancialClosure	t	t
-6627	7	averageCommissioner	times_factServiceFinancialClosure	t	t
-6628	7	averageCommissioner	times_expectedServiceClosure	t	t
-6629	7	averageCommissioner	times_factServiceClosure	t	t
-6630	7	averageCommissioner	times_repairEndDate	t	t
-6631	7	bank	createTime	t	f
-6632	7	bank	payType	t	t
-6633	7	bank	falseCall	t	t
-6634	7	bank	clientCancelReason	t	t
-6635	7	bank	requestType	t	t
-6636	7	bank	whatToSay1	t	f
-6637	7	bank	activity	t	t
-6638	7	bank	status	t	t
-6639	7	bank	clientSatisfied	t	t
-6640	7	bank	warrantyCase	t	t
-6641	7	bank	files	t	t
-6642	7	bank	assignedTo	t	f
-6643	7	bank	urgentService	t	t
-6644	7	bank	payment_expectedCost	t	t
-6645	7	bank	cost_countedCost	t	t
-6646	7	bank	cost_counted	t	t
-6647	7	bank	cost_serviceTarifOptions	t	t
-6648	7	bank	payment_partnerCost	t	t
-6649	7	bank	payment_costTranscript	t	t
-6650	7	bank	payment_calculatedCost	t	t
-6651	7	bank	payment_overcosted	t	t
-6652	7	bank	payment_limitedCost	t	f
-6653	7	bank	payment_paidByRUAMC	t	t
-6654	7	bank	payment_paidByClient	t	t
-6655	7	bank	contractor_partner	t	t
-6656	7	bank	contractor_partnerTable	t	t
-6657	7	bank	contractor_partnerCancel	t	t
-6658	7	bank	contractor_address	t	t
-6659	7	bank	bill_billNumber	t	t
-6660	7	bank	bill_billingCost	t	t
-6661	7	bank	bill_billingDate	t	t
-6662	7	bank	times_expectedServiceStart	t	t
-6663	7	bank	times_factServiceStart	t	t
-6664	7	bank	times_expectedServiceEnd	t	t
-6665	7	bank	times_factServiceEnd	t	t
-6666	7	bank	times_expectedServiceFinancialClosure	t	t
-6667	7	bank	times_factServiceFinancialClosure	t	t
-6668	7	bank	times_expectedServiceClosure	t	t
-6669	7	bank	times_factServiceClosure	t	t
-6670	7	bank	times_repairEndDate	t	t
-6671	7	call	callDate	t	t
-6672	7	call	callTaker	t	f
-6673	7	case	callDate	t	t
-6674	7	case	callTaker	t	f
-6675	7	case	comment	t	t
-6676	7	case	diagnosis1	t	t
-6677	7	case	diagnosis2	t	t
-6678	7	case	program	t	t
-6679	7	case	vinChecked	t	t
-6680	7	case	city	t	t
-6681	7	case	temperature	t	t
-6682	7	case	repair	t	t
-6683	7	case	accord	t	t
-6684	7	case	dealerCause	t	t
-6685	7	case	caseStatus	t	t
-6686	7	case	psaExported	t	t
-6687	7	case	claim	t	t
-6688	7	case	betaComment	t	t
-6689	7	case	files	t	t
-6690	7	case	comments	t	t
-6691	7	case	caseAddress_address	t	t
-6692	7	case	contact_name	t	t
-6693	7	case	cardNumber_cardNumber	t	t
-6694	7	case	caseAddress_map	t	t
-6695	7	case	caseAddress_coords	t	t
-6696	7	case	caseAddress_city	t	t
-6697	7	case	caseAddress_comment	t	t
-6698	7	case	contact_email	t	t
-6699	7	case	contact_phone1	t	t
-6700	7	case	contact_phone2	t	t
-6701	7	case	contact_phone3	t	t
-6702	7	case	contact_phone4	t	t
-6703	7	case	contact_ownerName	t	t
-6704	7	case	contact_contactOwner	t	t
-6705	7	case	contact_ownerEmail	t	t
-6706	7	case	contact_ownerPhone1	t	t
-6707	7	case	contact_ownerPhone2	t	t
-6708	7	case	contact_ownerPhone3	t	t
-6709	7	case	contact_ownerPhone4	t	t
-6710	7	case	car_vin	t	t
-6711	7	case	car_seller	t	t
-6712	7	case	car_make	t	t
-6713	7	case	car_model	t	t
-6714	7	case	car_plateNum	t	t
-6715	7	case	car_color	t	t
-6716	7	case	car_transmission	t	t
-6717	7	case	car_engine	t	t
-6718	7	case	car_liters	t	t
-6719	7	case	car_capacity	t	t
-6720	7	case	car_dims	t	t
-6721	7	case	car_weight	t	t
-6722	7	case	car_checkPeriod	t	t
-6723	7	case	car_class	t	t
-6724	7	case	car_buyDate	t	t
-6725	7	case	car_mileage	t	t
-6726	7	case	car_checkupDate	t	t
-6727	7	case	car_checkupMileage	t	t
-6728	7	case	car_dealerTO	t	t
-6729	7	case	car_makeYear	t	t
-6730	7	case	car_warrantyStart	t	t
-6731	7	case	car_warrantyEnd	t	t
-6732	7	case	car_contractType	t	t
-6733	7	case	cardNumber_validFrom	t	f
-6734	7	case	cardNumber_validUntil	t	f
-6735	7	case	cardNumber_validUntilMilage	t	f
-6736	7	case	cardNumber_milageTO	t	f
-6737	7	case	cardNumber_serviceInterval	t	f
-6741	7	consultation	payType	t	t
-6742	7	consultation	falseCall	t	t
-6743	7	consultation	clientCancelReason	t	t
-6744	7	consultation	consType	t	t
-6745	7	consultation	whatToSay1	t	f
-6746	7	consultation	status	t	t
-6747	7	consultation	result	t	t
-6748	7	consultation	clientSatisfied	t	t
-6749	7	consultation	warrantyCase	t	t
-6750	7	consultation	files	t	t
-6751	7	consultation	assignedTo	t	f
-6752	7	consultation	cost_countedCost	t	t
-6753	7	consultation	cost_counted	t	t
-6754	7	consultation	cost_serviceTarifOptions	t	t
-6755	7	consultation	urgentService	t	t
-6756	7	consultation	payment_partnerCost	t	t
-6757	7	consultation	payment_costTranscript	t	t
-6758	7	consultation	payment_calculatedCost	t	t
-6759	7	consultation	payment_overcosted	t	t
-6760	7	consultation	payment_limitedCost	t	f
-6761	7	consultation	payment_paidByRUAMC	t	t
-6762	7	consultation	payment_paidByClient	t	t
-6763	7	consultation	contractor_partner	t	t
-6764	7	consultation	contractor_partnerTable	t	t
-6765	7	consultation	contractor_partnerCancel	t	t
-6766	7	consultation	contractor_address	t	t
-6767	7	consultation	bill_billNumber	t	t
-6768	7	consultation	bill_billingCost	t	t
-6769	7	consultation	bill_billingDate	t	t
-6770	7	consultation	times_expectedServiceStart	t	t
-6771	7	consultation	times_factServiceStart	t	t
-6772	7	consultation	times_expectedServiceEnd	t	t
-6773	7	consultation	times_factServiceEnd	t	t
-6774	7	consultation	times_expectedServiceFinancialClosure	t	t
-6775	7	consultation	times_factServiceFinancialClosure	t	t
-6776	7	consultation	times_expectedServiceClosure	t	t
-6777	7	consultation	times_factServiceClosure	t	t
-6778	7	consultation	times_repairEndDate	t	t
-6779	7	continue	createTime	t	f
-6780	7	continue	payType	t	t
-6781	7	continue	falseCall	t	t
-6782	7	continue	clientCancelReason	t	t
-6783	7	continue	deliveryType	t	t
-6784	7	continue	status	t	t
-6785	7	continue	clientSatisfied	t	t
-6786	7	continue	warrantyCase	t	t
-6787	7	continue	files	t	t
-6788	7	continue	assignedTo	t	f
-6789	7	continue	urgentService	t	t
-6790	7	continue	payment_expectedCost	t	t
-6791	7	continue	cost_countedCost	t	t
-6792	7	continue	cost_counted	t	t
-6793	7	continue	cost_serviceTarifOptions	t	t
-6794	7	continue	payment_partnerCost	t	t
-6795	7	continue	payment_costTranscript	t	t
-6796	7	continue	payment_calculatedCost	t	t
-6797	7	continue	payment_overcosted	t	t
-6798	7	continue	payment_limitedCost	t	f
-6799	7	continue	payment_paidByRUAMC	t	t
-6800	7	continue	payment_paidByClient	t	t
-6801	7	continue	deliverFrom_address	t	t
-6802	7	continue	deliverFrom_coords	t	t
-6803	7	continue	deliverFrom_city	t	t
-6804	7	continue	deliverFrom_comment	t	t
-6805	7	continue	deliverTo_address	t	t
-6806	7	continue	deliverTo_coords	t	t
-6807	7	continue	deliverTo_city	t	t
-6808	7	continue	deliverTo_comment	t	t
-6809	7	continue	contractor_partner	t	t
-6810	7	continue	contractor_partnerTable	t	t
-6811	7	continue	contractor_partnerCancel	t	t
-6812	7	continue	contractor_address	t	t
-6813	7	continue	bill_billNumber	t	t
-6814	7	continue	bill_billingCost	t	t
-6815	7	continue	bill_billingDate	t	t
-6816	7	continue	times_expectedServiceStart	t	t
-6817	7	continue	times_factServiceStart	t	t
-6818	7	continue	times_expectedServiceEnd	t	t
-6819	7	continue	times_factServiceEnd	t	t
-6820	7	continue	times_expectedServiceFinancialClosure	t	t
-6821	7	continue	times_factServiceFinancialClosure	t	t
-6822	7	continue	times_expectedServiceClosure	t	t
-6823	7	continue	times_factServiceClosure	t	t
-6824	7	continue	times_repairEndDate	t	t
-6825	7	deliverCar	createTime	t	f
-6826	7	deliverCar	payType	t	t
-6827	7	deliverCar	falseCall	t	t
-6828	7	deliverCar	clientCancelReason	t	t
-6829	7	deliverCar	marginalCost	t	f
-6830	7	deliverCar	status	t	t
-6831	7	deliverCar	clientSatisfied	t	t
-6832	7	deliverCar	warrantyCase	t	t
-6833	7	deliverCar	files	t	t
-6834	7	deliverCar	service_tarifOptions	t	t
-6835	7	deliverCar	assignedTo	t	f
-6836	7	deliverCar	falseCallPercent	t	f
-6837	7	deliverCar	toAddress_address	t	t
-6838	7	deliverCar	toAddress_coords	t	t
-6839	7	deliverCar	toAddress_city	t	t
-6840	7	deliverCar	toAddress_comment	t	t
-6841	7	deliverCar	urgentService	t	t
-6842	7	deliverCar	cost_countedCost	t	t
-6843	7	deliverCar	cost_counted	t	t
-6844	7	deliverCar	cost_serviceTarifOptions	t	t
-6845	7	deliverCar	payment_partnerCost	t	t
-6846	7	deliverCar	payment_costTranscript	t	t
-6847	7	deliverCar	payment_calculatedCost	t	t
-6848	7	deliverCar	payment_overcosted	t	t
-6849	7	deliverCar	payment_limitedCost	t	f
-6850	7	deliverCar	payment_payType	t	t
-6851	7	deliverCar	payment_paidByRUAMC	t	t
-6852	7	deliverCar	payment_paidByClient	t	t
-6853	7	deliverCar	bill_billNumber	t	t
-6854	7	deliverCar	bill_billingCost	t	t
-6855	7	deliverCar	bill_billingDate	t	t
-6856	7	deliverCar	times_expectedServiceStart	t	t
-6857	7	deliverCar	times_factServiceStart	t	t
-6858	7	deliverCar	times_expectedServiceEnd	t	t
-6859	7	deliverCar	times_factServiceEnd	t	t
-6860	7	deliverCar	times_expectedServiceFinancialClosure	t	t
-6861	7	deliverCar	times_factServiceFinancialClosure	t	t
-6862	7	deliverCar	times_expectedServiceClosure	t	t
-6863	7	deliverCar	times_factServiceClosure	t	t
-6864	7	deliverCar	times_repairEndDate	t	t
-6865	7	deliverClient	createTime	t	f
-6866	7	deliverClient	payType	t	t
-6867	7	deliverClient	falseCall	t	t
-6868	7	deliverClient	clientCancelReason	t	t
-6869	7	deliverClient	deliveryType	t	t
-6870	7	deliverClient	status	t	t
-6871	7	deliverClient	clientSatisfied	t	t
-6872	7	deliverClient	warrantyCase	t	t
-6873	7	deliverClient	files	t	t
-6874	7	deliverClient	assignedTo	t	f
-6875	7	deliverClient	falseCallPercent	t	f
-6876	7	deliverClient	cost_countedCost	t	t
-6877	7	deliverClient	urgentService	t	t
-6878	7	deliverClient	cost_counted	t	t
-6879	7	deliverClient	cost_serviceTarifOptions	t	t
-6880	7	deliverClient	payment_partnerCost	t	t
-6881	7	deliverClient	payment_costTranscript	t	t
-6882	7	deliverClient	payment_calculatedCost	t	t
-6883	7	deliverClient	payment_overcosted	t	t
-6884	7	deliverClient	payment_limitedCost	t	f
-6885	7	deliverClient	payment_paidByRUAMC	t	t
-6886	7	deliverClient	payment_paidByClient	t	t
-6887	7	deliverClient	deliverFrom_address	t	t
-6888	7	deliverClient	deliverFrom_coords	t	t
-6889	7	deliverClient	deliverFrom_city	t	t
-6890	7	deliverClient	deliverFrom_comment	t	t
-6891	7	deliverClient	deliverTo_address	t	t
-6892	7	deliverClient	deliverTo_coords	t	t
-6893	7	deliverClient	deliverTo_city	t	t
-6894	7	deliverClient	deliverTo_comment	t	t
-6895	7	deliverClient	contractor_partner	t	t
-6896	7	deliverClient	contractor_partnerTable	t	t
-6897	7	deliverClient	contractor_partnerCancel	t	t
-6898	7	deliverClient	contractor_address	t	t
-6899	7	deliverClient	bill_billNumber	t	t
-6900	7	deliverClient	bill_billingCost	t	t
-6901	7	deliverClient	bill_billingDate	t	t
-6902	7	deliverClient	times_expectedServiceStart	t	t
-6903	7	deliverClient	times_factServiceStart	t	t
-6904	7	deliverClient	times_expectedServiceEnd	t	t
-6905	7	deliverClient	times_factServiceEnd	t	t
-6906	7	deliverClient	times_expectedServiceFinancialClosure	t	t
-6907	7	deliverClient	times_factServiceFinancialClosure	t	t
-6908	7	deliverClient	times_expectedServiceClosure	t	t
-6909	7	deliverClient	times_factServiceClosure	t	t
-6910	7	deliverClient	times_repairEndDate	t	t
-6911	7	deliverParts	createTime	t	f
-6912	7	deliverParts	payType	t	t
-6913	7	deliverParts	falseCall	t	t
-6914	7	deliverParts	clientCancelReason	t	t
-6915	7	deliverParts	parts	t	t
-6916	7	deliverParts	marginalCost	t	f
-6917	7	deliverParts	status	t	t
-6918	7	deliverParts	clientSatisfied	t	t
-6919	7	deliverParts	warrantyCase	t	t
-6920	7	deliverParts	files	t	t
-6921	7	deliverParts	service_tarifOptions	t	t
-6922	7	deliverParts	assignedTo	t	f
-6923	7	deliverParts	falseCallPercent	t	f
-6924	7	deliverParts	toAddress_address	t	t
-6925	7	deliverParts	toAddress_coords	t	t
-6926	7	deliverParts	toAddress_city	t	t
-6927	7	deliverParts	toAddress_comment	t	t
-6928	7	deliverParts	cost_countedCost	t	t
-6929	7	deliverParts	urgentService	t	t
-6930	7	deliverParts	cost_counted	t	t
-6931	7	deliverParts	cost_serviceTarifOptions	t	t
-6932	7	deliverParts	payment_partnerCost	t	t
-6933	7	deliverParts	payment_costTranscript	t	t
-6934	7	deliverParts	payment_calculatedCost	t	t
-6935	7	deliverParts	payment_overcosted	t	t
-6936	7	deliverParts	payment_limitedCost	t	f
-6937	7	deliverParts	payment_paidByRUAMC	t	t
-6938	7	deliverParts	payment_paidByClient	t	t
-6939	7	deliverParts	bill_billNumber	t	t
-6940	7	deliverParts	bill_billingCost	t	t
-6941	7	deliverParts	bill_billingDate	t	t
-6942	7	deliverParts	times_expectedServiceStart	t	t
-6943	7	deliverParts	times_factServiceStart	t	t
-6944	7	deliverParts	times_expectedServiceEnd	t	t
-6945	7	deliverParts	times_factServiceEnd	t	t
-7178	7	sober	clientSatisfied	t	t
-6946	7	deliverParts	times_expectedServiceFinancialClosure	t	t
-6947	7	deliverParts	times_factServiceFinancialClosure	t	t
-6948	7	deliverParts	times_expectedServiceClosure	t	t
-6949	7	deliverParts	times_factServiceClosure	t	t
-6950	7	deliverParts	times_repairEndDate	t	t
-6951	7	hotel	createTime	t	f
-6952	7	hotel	payType	t	t
-6953	7	hotel	falseCall	t	t
-6954	7	hotel	clientCancelReason	t	t
-6955	7	hotel	marginalCost	t	f
-6956	7	hotel	providedFor	t	t
-6957	7	hotel	status	t	t
-6958	7	hotel	clientSatisfied	t	t
-6959	7	hotel	warrantyCase	t	t
-6960	7	hotel	files	t	t
-6961	7	hotel	service_tarifOptions	t	t
-6962	7	hotel	assignedTo	t	f
-6963	7	hotel	payment_partnerCost	t	t
-6964	7	hotel	payment_costTranscript	t	t
-6965	7	hotel	payment_calculatedCost	t	t
-6966	7	hotel	payment_overcosted	t	t
-6967	7	hotel	payment_limitedCost	t	f
-6968	7	hotel	payment_paidByRUAMC	t	t
-6969	7	hotel	payment_paidByClient	t	t
-6970	7	hotel	cost_countedCost	t	t
-6971	7	hotel	urgentService	t	t
-6972	7	hotel	cost_counted	t	t
-6973	7	hotel	cost_serviceTarifOptions	t	t
-6974	7	hotel	caseAddress_address	t	t
-6975	7	hotel	caseAddress_coords	t	t
-6976	7	hotel	caseAddress_city	t	t
-6977	7	hotel	caseAddress_comment	t	t
-6978	7	hotel	contractor_partner	t	t
-6979	7	hotel	contractor_partnerId	t	t
-6980	7	hotel	contractor_partnerTable	t	t
-6981	7	hotel	contractor_partnerCancel	t	t
-6982	7	hotel	contractor_address	t	t
-6983	7	hotel	bill_billNumber	t	t
-6984	7	hotel	bill_billingCost	t	t
-6985	7	hotel	bill_billingDate	t	t
-6986	7	hotel	times_expectedServiceStart	t	t
-6987	7	hotel	times_factServiceStart	t	t
-6988	7	hotel	times_expectedServiceEnd	t	t
-6989	7	hotel	times_factServiceEnd	t	t
-6990	7	hotel	times_expectedServiceFinancialClosure	t	t
-6991	7	hotel	times_factServiceFinancialClosure	t	t
-6992	7	hotel	times_expectedServiceClosure	t	t
-6993	7	hotel	times_factServiceClosure	t	t
-6994	7	hotel	times_repairEndDate	t	t
-6995	7	information	createTime	t	f
-6996	7	information	payType	t	t
-6997	7	information	falseCall	t	t
-6998	7	information	clientCancelReason	t	t
-6999	7	information	contact1	t	f
-7000	7	information	contactPhone1	t	f
-7001	7	information	whatToSay1	t	f
-7002	7	information	contact2	t	f
-7003	7	information	contactPhone2	t	f
-7004	7	information	whatToSay2	t	f
-7005	7	information	contact3	t	f
-7006	7	information	contactPhone3	t	f
-7007	7	information	whatToSay3	t	f
-7008	7	information	status	t	t
-7009	7	information	clientSatisfied	t	t
-7010	7	information	warrantyCase	t	t
-7011	7	information	files	t	t
-7012	7	information	assignedTo	t	f
-7013	7	information	falseCallPercent	t	f
-7014	7	information	urgentService	t	t
-7015	7	information	payment_expectedCost	t	t
-7016	7	information	payment_partnerCost	t	t
-7017	7	information	payment_costTranscript	t	t
-7018	7	information	payment_calculatedCost	t	f
-7019	7	information	payment_overcosted	t	f
-7020	7	information	payment_limitedCost	t	f
-7021	7	information	payment_paidByRUAMC	t	t
-7022	7	information	payment_paidByClient	t	t
-7023	7	information	bill_billNumber	t	t
-7024	7	information	bill_billingCost	t	t
-7025	7	information	bill_billingDate	t	t
-7026	7	information	times_expectedServiceStart	t	t
-7027	7	information	times_factServiceStart	t	t
-7028	7	information	times_expectedServiceEnd	t	t
-7029	7	information	times_factServiceEnd	t	t
-7030	7	information	times_expectedServiceFinancialClosure	t	t
-7031	7	information	times_factServiceFinancialClosure	t	t
-7032	7	information	times_expectedServiceClosure	t	t
-7033	7	information	times_factServiceClosure	t	t
-7034	7	information	times_repairEndDate	t	t
-7035	7	insurance	createTime	t	f
-7036	7	insurance	payType	t	t
-7037	7	insurance	falseCall	t	t
-7038	7	insurance	clientCancelReason	t	t
-7039	7	insurance	requestType	t	t
-7040	7	insurance	whatToSay1	t	f
-7041	7	insurance	activity	t	t
-7042	7	insurance	commMilage	t	t
-7043	7	insurance	status	t	t
-7044	7	insurance	clientSatisfied	t	t
-7045	7	insurance	warrantyCase	t	t
-7046	7	insurance	files	t	t
-7047	7	insurance	assignedTo	t	f
-7048	7	insurance	commAddress_address	t	t
-7049	7	insurance	commAddress_coords	t	t
-7050	7	insurance	commAddress_city	t	t
-7051	7	insurance	commAddress_comment	t	t
-7052	7	insurance	cost_countedCost	t	t
-7053	7	insurance	urgentService	t	t
-7054	7	insurance	cost_counted	t	t
-7055	7	insurance	cost_serviceTarifOptions	t	t
-7056	7	insurance	payment_partnerCost	t	t
-7057	7	insurance	payment_costTranscript	t	t
-7058	7	insurance	payment_calculatedCost	t	t
-7059	7	insurance	payment_overcosted	t	t
-7060	7	insurance	payment_limitedCost	t	f
-7061	7	insurance	payment_paidByRUAMC	t	t
-7062	7	insurance	payment_paidByClient	t	t
-7063	7	insurance	contractor_partner	t	t
-7064	7	insurance	contractor_partnerTable	t	t
-7065	7	insurance	contractor_partnerCancel	t	t
-7066	7	insurance	contractor_address	t	t
-7067	7	insurance	bill_billNumber	t	t
-7068	7	insurance	bill_billingCost	t	t
-7069	7	insurance	bill_billingDate	t	t
-7070	7	insurance	times_expectedServiceStart	t	t
-7071	7	insurance	times_factServiceStart	t	t
-7072	7	insurance	times_expectedServiceEnd	t	t
-7073	7	insurance	times_factServiceEnd	t	t
-7074	7	insurance	times_expectedServiceFinancialClosure	t	t
-7075	7	insurance	times_factServiceFinancialClosure	t	t
-7076	7	insurance	times_expectedServiceClosure	t	t
-7077	7	insurance	times_factServiceClosure	t	t
-7078	7	insurance	times_repairEndDate	t	t
-7080	7	ken	payType	t	t
-7081	7	ken	falseCall	t	t
-7082	7	ken	clientCancelReason	t	t
-7083	7	ken	requestType	t	t
-7084	7	ken	whatToSay1	t	f
-7085	7	ken	activity	t	t
-7086	7	ken	status	t	t
-7087	7	ken	clientSatisfied	t	t
-7088	7	ken	warrantyCase	t	t
-7089	7	ken	files	t	t
-7090	7	ken	assignedTo	t	f
-7091	7	ken	falseCallPercent	t	f
-7092	7	ken	cost_countedCost	t	t
-7093	7	ken	urgentService	t	t
-7094	7	ken	cost_counted	t	t
-7095	7	ken	cost_serviceTarifOptions	t	t
-7096	7	ken	payment_partnerCost	t	t
-7097	7	ken	payment_costTranscript	t	t
-7098	7	ken	payment_calculatedCost	t	t
-7099	7	ken	payment_overcosted	t	t
-7100	7	ken	payment_limitedCost	t	f
-7101	7	ken	payment_paidByRUAMC	t	t
-7102	7	ken	payment_paidByClient	t	t
-7103	7	ken	contractor_partner	t	t
-7104	7	ken	contractor_partnerTable	t	t
-7105	7	ken	contractor_partnerCancel	t	t
-7106	7	ken	contractor_address	t	t
-7107	7	ken	bill_billNumber	t	t
-7108	7	ken	bill_billingCost	t	t
-7109	7	ken	bill_billingDate	t	t
-7110	7	ken	times_expectedServiceStart	t	t
-7111	7	ken	times_factServiceStart	t	t
-7112	7	ken	times_expectedServiceEnd	t	t
-7113	7	ken	times_factServiceEnd	t	t
-7114	7	ken	times_expectedServiceFinancialClosure	t	t
-7115	7	ken	times_factServiceFinancialClosure	t	t
-7116	7	ken	times_expectedServiceClosure	t	t
-7117	7	ken	times_factServiceClosure	t	t
-7118	7	ken	times_repairEndDate	t	t
-7119	7	partner	comment	t	t
-7120	7	rent	createTime	t	f
-7121	7	rent	payType	t	t
-7122	7	rent	falseCall	t	t
-7123	7	rent	clientCancelReason	t	t
-7124	7	rent	vinRent	t	t
-7125	7	rent	carClass	t	t
-7126	7	rent	marginalCost	t	f
-7127	7	rent	providedFor	t	t
-7128	7	rent	rentedMake	t	t
-7129	7	rent	rentedModel	t	t
-7130	7	rent	status	t	t
-7131	7	rent	clientSatisfied	t	t
-7132	7	rent	warrantyCase	t	t
-7133	7	rent	files	t	t
-7134	7	rent	assignedTo	t	f
-7135	7	rent	falseCallPercent	t	f
-7136	7	rent	cost_countedCost	t	t
-7137	7	rent	urgentService	t	t
-7138	7	rent	cost_counted	t	t
-7139	7	rent	cost_serviceTarifOptions	t	t
-7140	7	rent	rentAddress_address	t	t
-7141	7	rent	rentAddress_coords	t	t
-7142	7	rent	rentAddress_city	t	t
-7143	7	rent	rentAddress_comment	t	t
-7144	7	rent	towDealer_partner	t	t
-7145	7	rent	towDealer_partnerTable	t	t
-7146	7	rent	towDealer_address	t	t
-7147	7	rent	contractor_partner	t	t
-7148	7	rent	contractor_partnerId	t	t
-7149	7	rent	contractor_partnerTable	t	t
-7150	7	rent	contractor_partnerCancel	t	t
-7151	7	rent	contractor_address	t	t
-7152	7	rent	payment_partnerCost	t	t
-7153	7	rent	payment_costTranscript	t	t
-7154	7	rent	payment_calculatedCost	t	t
-7155	7	rent	payment_overcosted	t	t
-7156	7	rent	payment_limitedCost	t	f
-7157	7	rent	payment_paidByRUAMC	t	t
-7158	7	rent	payment_paidByClient	t	t
-7159	7	rent	bill_billNumber	t	t
-7160	7	rent	bill_billingCost	t	t
-7161	7	rent	bill_billingDate	t	t
-7162	7	rent	times_expectedServiceStart	t	t
-7163	7	rent	times_factServiceStart	t	t
-7164	7	rent	times_expectedServiceEnd	t	t
-7165	7	rent	times_factServiceEnd	t	t
-7166	7	rent	times_expectedServiceFinancialClosure	t	t
-7167	7	rent	times_factServiceFinancialClosure	t	t
-7168	7	rent	times_expectedServiceClosure	t	t
-7169	7	rent	times_factServiceClosure	t	t
-7170	7	rent	times_repairEndDate	t	t
-7171	7	sober	createTime	t	f
-7172	7	sober	payType	t	t
-7173	7	sober	falseCall	t	t
-7174	7	sober	clientCancelReason	t	t
-7175	7	sober	marginalCost	t	f
-7176	7	sober	multidrive	t	t
-7177	7	sober	status	t	t
-7179	7	sober	warrantyCase	t	t
-7180	7	sober	files	t	t
-7181	7	sober	service_tarifOptions	t	t
-7182	7	sober	assignedTo	t	f
-7183	7	sober	cost_countedCost	t	t
-7184	7	sober	urgentService	t	t
-7185	7	sober	cost_counted	t	t
-7186	7	sober	cost_serviceTarifOptions	t	t
-7187	7	sober	payment_partnerCost	t	t
-7188	7	sober	payment_costTranscript	t	t
-7189	7	sober	payment_calculatedCost	t	t
-7190	7	sober	payment_overcosted	t	t
-7191	7	sober	payment_limitedCost	t	f
-7192	7	sober	payment_paidByRUAMC	t	t
-7193	7	sober	payment_paidByClient	t	t
-7194	7	sober	fromAddress_address	t	t
-7195	7	sober	fromAddress_coords	t	t
-7196	7	sober	fromAddress_city	t	t
-7197	7	sober	fromAddress_comment	t	t
-7198	7	sober	toAddress_address	t	t
-7199	7	sober	toAddress_coords	t	t
-7200	7	sober	toAddress_city	t	t
-7201	7	sober	toAddress_comment	t	t
-7202	7	sober	contractor_partner	t	t
-7203	7	sober	contractor_partnerId	t	t
-7204	7	sober	contractor_partnerTable	t	t
-7205	7	sober	contractor_partnerCancel	t	t
-7206	7	sober	contractor_address	t	t
-7207	7	sober	bill_billNumber	t	t
-7208	7	sober	bill_billingCost	t	t
-7209	7	sober	bill_billingDate	t	t
-7210	7	sober	times_expectedServiceStart	t	t
-7211	7	sober	times_factServiceStart	t	t
-7212	7	sober	times_expectedServiceEnd	t	t
-7213	7	sober	times_factServiceEnd	t	t
-7214	7	sober	times_expectedServiceFinancialClosure	t	t
-7215	7	sober	times_factServiceFinancialClosure	t	t
-7216	7	sober	times_expectedServiceClosure	t	t
-7217	7	sober	times_factServiceClosure	t	t
-7218	7	sober	times_repairEndDate	t	t
-7219	7	taxi	createTime	t	f
-7220	7	taxi	payType	t	t
-7221	7	taxi	falseCall	t	t
-7222	7	taxi	clientCancelReason	t	t
-7223	7	taxi	marginalCost	t	f
-7224	7	taxi	status	t	t
-7225	7	taxi	clientSatisfied	t	t
-7226	7	taxi	warrantyCase	t	t
-7227	7	taxi	files	t	t
-7228	7	taxi	service_tarifOptions	t	t
-7229	7	taxi	assignedTo	t	f
-7230	7	taxi	falseCallPercent	t	f
-7231	7	taxi	cost_countedCost	t	t
-7232	7	taxi	urgentService	t	t
-7233	7	taxi	cost_counted	t	t
-7234	7	taxi	cost_serviceTarifOptions	t	t
-7235	7	taxi	payment_partnerCost	t	t
-7236	7	taxi	payment_costTranscript	t	t
-7237	7	taxi	payment_calculatedCost	t	t
-7238	7	taxi	payment_overcosted	t	t
-7239	7	taxi	payment_limitedCost	t	f
-7240	7	taxi	payment_paidByRUAMC	t	t
-7241	7	taxi	payment_paidByClient	t	t
-7242	7	taxi	taxiFrom_address	t	t
-7243	7	taxi	taxiFrom_coords	t	t
-7244	7	taxi	taxiFrom_city	t	t
-7245	7	taxi	taxiFrom_comment	t	t
-7246	7	taxi	taxiTo_address	t	t
-7247	7	taxi	taxiTo_coords	t	t
-7248	7	taxi	taxiTo_city	t	t
-7249	7	taxi	taxiTo_comment	t	t
-7250	7	taxi	contractor_partner	t	t
-7251	7	taxi	contractor_partnerTable	t	t
-7252	7	taxi	contractor_partnerCancel	t	t
-7253	7	taxi	contractor_address	t	t
-7254	7	taxi	bill_billNumber	t	t
-7255	7	taxi	bill_billingCost	t	t
-7256	7	taxi	bill_billingDate	t	t
-7257	7	taxi	times_expectedServiceStart	t	t
-7258	7	taxi	times_factServiceStart	t	t
-7259	7	taxi	times_expectedServiceEnd	t	t
-7260	7	taxi	times_factServiceEnd	t	t
-7261	7	taxi	times_expectedServiceFinancialClosure	t	t
-7262	7	taxi	times_factServiceFinancialClosure	t	t
-7263	7	taxi	times_expectedServiceClosure	t	t
-7264	7	taxi	times_factServiceClosure	t	t
-7265	7	taxi	times_repairEndDate	t	t
-7266	7	tech1	createTime	t	f
-7267	7	tech1	payType	t	t
-7268	7	tech1	falseCall	t	t
-7269	7	tech1	clientCancelReason	t	t
-7270	7	tech1	requestType	t	t
-7271	7	tech1	whatToSay1	t	f
-7272	7	tech1	activity	t	t
-7273	7	tech1	status	t	t
-7274	7	tech1	clientSatisfied	t	t
-7275	7	tech1	warrantyCase	t	t
-7276	7	tech1	files	t	t
-7277	7	tech1	cost_countedCost	t	t
-7278	7	tech1	urgentService	t	t
-7279	7	tech1	cost_counted	t	t
-7280	7	tech1	cost_serviceTarifOptions	t	t
-7281	7	tech1	payment_partnerCost	t	t
-7282	7	tech1	payment_costTranscript	t	t
-7283	7	tech1	payment_calculatedCost	t	t
-7284	7	tech1	payment_overcosted	t	t
-7285	7	tech1	payment_limitedCost	t	f
-7286	7	tech1	payment_paidByRUAMC	t	t
-7287	7	tech1	payment_paidByClient	t	t
-7288	7	tech1	contractor_partner	t	t
-7289	7	tech1	contractor_partnerTable	t	t
-7290	7	tech1	contractor_partnerCancel	t	t
-7291	7	tech1	contractor_address	t	t
-7292	7	tech1	bill_billNumber	t	t
-7293	7	tech1	bill_billingCost	t	t
-7294	7	tech1	bill_billingDate	t	t
-7295	7	tech1	times_expectedServiceStart	t	t
-7296	7	tech1	times_factServiceStart	t	t
-7297	7	tech1	times_expectedServiceEnd	t	t
-7298	7	tech1	times_factServiceEnd	t	t
-7299	7	tech1	times_expectedServiceFinancialClosure	t	t
-7300	7	tech1	times_factServiceFinancialClosure	t	t
-7301	7	tech1	times_expectedServiceClosure	t	t
-7302	7	tech1	times_factServiceClosure	t	t
-7303	7	tech1	times_repairEndDate	t	t
-7304	7	tech	createTime	t	f
-7305	7	tech	payType	t	t
-7306	7	tech	falseCall	t	t
-7307	7	tech	clientCancelReason	t	t
-7308	7	tech	techType	t	t
-7309	7	tech	marginalCost	t	f
-7310	7	tech	suburbanMilage	t	t
-7311	7	tech	status	t	t
-7312	7	tech	clientSatisfied	t	t
-7313	7	tech	warrantyCase	t	t
-7314	7	tech	files	t	t
-7315	7	tech	service_tarifOptions	t	t
-7316	7	tech	assignedTo	t	f
-7317	7	tech	falseCallPercent	t	f
-7318	7	tech	payment_partnerCost	t	t
-7319	7	tech	payment_costTranscript	t	t
-7320	7	tech	payment_calculatedCost	t	t
-7321	7	tech	payment_overcosted	t	t
-7322	7	tech	payment_limitedCost	t	f
-7323	7	tech	cost_countedCost	t	t
-7324	7	tech	urgentService	t	t
-7325	7	tech	cost_counted	t	t
-7326	7	tech	cost_serviceTarifOptions	t	t
-7327	7	tech	payment_paidByRUAMC	t	t
-7328	7	tech	payment_paidByClient	t	t
-7329	7	tech	contractor_partner	t	t
-7330	7	tech	contractor_partnerId	t	t
-7331	7	tech	contractor_partnerTable	t	t
-7332	7	tech	contractor_partnerMap	t	t
-7333	7	tech	contractor_coords	t	t
-7334	7	tech	contractor_partnerCancel	t	t
-7335	7	tech	contractor_address	t	t
-7336	7	tech	bill_billNumber	t	t
-7337	7	tech	bill_billingCost	t	t
-7338	7	tech	bill_billingDate	t	t
-7339	7	tech	times_expectedServiceStart	t	t
-7340	7	tech	times_factServiceStart	t	t
-7341	7	tech	times_expectedServiceEnd	t	t
-7342	7	tech	times_factServiceEnd	t	t
-7343	7	tech	times_expectedServiceFinancialClosure	t	t
-7344	7	tech	times_factServiceFinancialClosure	t	t
-7345	7	tech	times_expectedServiceClosure	t	t
-7346	7	tech	times_factServiceClosure	t	t
-7347	7	tech	times_repairEndDate	t	t
-7348	7	tickets	createTime	t	f
-7349	7	tickets	payType	t	t
-7350	7	tickets	falseCall	t	t
-7351	7	tickets	clientCancelReason	t	t
-7352	7	tickets	deliveryType	t	t
-7353	7	tickets	status	t	t
-7354	7	tickets	clientSatisfied	t	t
-7355	7	tickets	warrantyCase	t	t
-7356	7	tickets	files	t	t
-7357	7	tickets	assignedTo	t	f
-7358	7	tickets	falseCallPercent	t	f
-7359	7	tickets	cost_countedCost	t	t
-7360	7	tickets	ticketsFrom_address	t	t
-7361	7	tickets	ticketsFrom_coords	t	t
-7362	7	tickets	ticketsFrom_city	t	t
-7363	7	tickets	ticketsFrom_comment	t	t
-7364	7	tickets	ticketsTo_address	t	t
-7365	7	tickets	ticketsTo_coords	t	t
-7366	7	tickets	ticketsTo_city	t	t
-7367	7	tickets	ticketsTo_comment	t	t
-7368	7	tickets	urgentService	t	t
-7369	7	tickets	cost_counted	t	t
-7370	7	tickets	cost_serviceTarifOptions	t	t
-7371	7	tickets	payment_partnerCost	t	t
-7372	7	tickets	payment_costTranscript	t	t
-7373	7	tickets	payment_calculatedCost	t	t
-7374	7	tickets	payment_overcosted	t	t
-7375	7	tickets	payment_limitedCost	t	f
-7376	7	tickets	payment_paidByRUAMC	t	t
-7377	7	tickets	payment_paidByClient	t	t
-7378	7	tickets	contractor_partner	t	t
-7379	7	tickets	contractor_partnerTable	t	t
-7380	7	tickets	contractor_partnerCancel	t	t
-7381	7	tickets	contractor_address	t	t
-7382	7	tickets	bill_billNumber	t	t
-7383	7	tickets	bill_billingCost	t	t
-7384	7	tickets	bill_billingDate	t	t
-7385	7	tickets	times_expectedServiceStart	t	t
-7386	7	tickets	times_factServiceStart	t	t
-7387	7	tickets	times_expectedServiceEnd	t	t
-7388	7	tickets	times_factServiceEnd	t	t
-7389	7	tickets	times_expectedServiceFinancialClosure	t	t
-7390	7	tickets	times_factServiceFinancialClosure	t	t
-7391	7	tickets	times_expectedServiceClosure	t	t
-7392	7	tickets	times_factServiceClosure	t	t
-7393	7	tickets	times_repairEndDate	t	t
-7394	7	towage	createTime	t	f
-7395	7	towage	payType	t	t
-7396	7	towage	falseCall	t	t
-7397	7	towage	clientCancelReason	t	t
-7398	7	towage	towerType	t	t
-7399	7	towage	towType	t	t
-7400	7	towage	vandalism	t	t
-7401	7	towage	accident	t	t
-7402	7	towage	dealerDistance	t	t
-7403	7	towage	marginalCost	t	f
-7404	7	towage	wheelsUnblocked	t	t
-7405	7	towage	canNeutral	t	t
-7406	7	towage	towingPointPresent	t	t
-7407	7	towage	manipulatorPossible	t	t
-7408	7	towage	suburbanMilage	t	t
-7409	7	towage	repairEndDate	t	t
-7410	7	towage	status	t	t
-7411	7	towage	clientSatisfied	t	t
-7412	7	towage	warrantyCase	t	t
-7413	7	towage	files	t	t
-7414	7	towage	service_tarifOptions	t	t
-7415	7	towage	assignedTo	t	f
-7416	7	towage	falseCallPercent	t	f
-7417	7	towage	cost_countedCost	t	t
-7418	7	towage	urgentService	t	t
-7419	7	towage	cost_counted	t	t
-7420	7	towage	cost_serviceTarifOptions	t	t
-7421	7	towage	towAddress_address	t	t
-7422	7	towage	towAddress_coords	t	t
-7423	7	towage	towAddress_city	t	t
-7424	7	towage	towAddress_comment	t	t
-7425	7	towage	towAddress_map	t	t
-7426	7	towage	payment_partnerCost	t	t
-7427	7	towage	payment_costTranscript	t	t
-7428	7	towage	payment_calculatedCost	t	t
-7429	7	towage	payment_overcosted	t	t
-7430	7	towage	payment_limitedCost	t	f
-7431	7	towage	payment_paidByRUAMC	t	t
-7432	7	towage	payment_paidByClient	t	t
-7433	7	towage	towerAddress_address	t	t
-7434	7	towage	towerAddress_coords	t	t
-7435	7	towage	towerAddress_city	t	t
-7436	7	towage	towerAddress_comment	t	t
-7437	7	towage	towerAddress_map	t	t
-7438	7	towage	towDealer_partner	t	t
-7439	7	towage	towDealer_partnerId	t	t
-7440	7	towage	towDealer_partnerTable	t	t
-7441	7	towage	towDealer_partnerMap	t	t
-7442	7	towage	towDealer_coords	t	t
-7443	7	towage	towDealer_address	t	t
-7444	7	towage	contractor_partner	t	t
-7445	7	towage	contractor_partnerId	t	t
-7446	7	towage	contractor_partnerTable	t	t
-7447	7	towage	contractor_partnerMap	t	t
-7448	7	towage	contractor_coords	t	t
-7449	7	towage	contractor_partnerCancel	t	t
-7450	7	towage	contractor_address	t	t
-7451	7	towage	bill_billNumber	t	t
-7452	7	towage	bill_billingCost	t	t
-7453	7	towage	bill_billingDate	t	t
-7454	7	towage	times_expectedServiceStart	t	t
-7455	7	towage	times_factServiceStart	t	t
-7456	7	towage	times_expectedServiceEnd	t	t
-7457	7	towage	times_factServiceEnd	t	t
-7458	7	towage	times_expectedServiceFinancialClosure	t	t
-7459	7	towage	times_factServiceFinancialClosure	t	t
-7460	7	towage	times_expectedServiceClosure	t	t
-7461	7	towage	times_factServiceClosure	t	t
-7462	7	transportation	createTime	t	f
-7463	7	transportation	payType	t	t
-7464	7	transportation	falseCall	t	t
-7465	7	transportation	clientCancelReason	t	t
-7466	7	transportation	transportType	t	t
-7467	7	transportation	status	t	t
-7468	7	transportation	clientSatisfied	t	t
-7469	7	transportation	warrantyCase	t	t
-7470	7	transportation	files	t	t
-7471	7	transportation	assignedTo	t	f
-7472	7	transportation	falseCallPercent	t	f
-7473	7	transportation	cost_countedCost	t	t
-7474	7	transportation	urgentService	t	t
-7475	7	transportation	cost_counted	t	t
-7476	7	transportation	cost_serviceTarifOptions	t	t
-7477	7	transportation	caseAddress_address	t	t
-7478	7	transportation	caseAddress_coords	t	t
-7479	7	transportation	caseAddress_city	t	t
-7480	7	transportation	caseAddress_comment	t	t
-7481	7	transportation	fromToAddress_address	t	t
-7482	7	transportation	fromToAddress_coords	t	t
-7483	7	transportation	fromToAddress_city	t	t
-7484	7	transportation	fromToAddress_comment	t	t
-7485	7	transportation	payment_partnerCost	t	t
-7486	7	transportation	payment_costTranscript	t	t
-7487	7	transportation	payment_calculatedCost	t	t
-7488	7	transportation	payment_overcosted	t	t
-7489	7	transportation	payment_limitedCost	t	f
-7490	7	transportation	payment_paidByRUAMC	t	t
-7491	7	transportation	payment_paidByClient	t	t
-7492	7	transportation	bill_billNumber	t	t
-7493	7	transportation	bill_billingCost	t	t
-7494	7	transportation	bill_billingDate	t	t
-7495	7	transportation	times_expectedServiceStart	t	t
-7496	7	transportation	times_factServiceStart	t	t
-7497	7	transportation	times_expectedServiceEnd	t	t
-7498	7	transportation	times_factServiceEnd	t	t
-7499	7	transportation	times_expectedServiceFinancialClosure	t	t
-7500	7	transportation	times_factServiceFinancialClosure	t	t
-7501	7	transportation	times_expectedServiceClosure	t	t
-7502	7	transportation	times_factServiceClosure	t	t
-7503	7	transportation	times_repairEndDate	t	t
-7504	7	vin	program	t	t
-7505	15	action	comment	t	t
-7506	15	action	result	t	t
-7507	15	action	assignedTo	t	t
-7508	15	action	targetGroup	t	t
-7509	15	action	priority	t	t
-7510	15	action	closed	t	t
-7511	15	averageCommissioner	createTime	t	f
-7512	15	averageCommissioner	payType	t	t
-7513	15	averageCommissioner	falseCall	t	t
-7514	15	averageCommissioner	clientCancelReason	t	t
-7515	15	averageCommissioner	requestType	t	t
-7516	15	averageCommissioner	whatToSay1	t	t
-7517	15	averageCommissioner	activity	t	t
-7518	15	averageCommissioner	commMilage	t	t
-7519	15	averageCommissioner	status	t	t
-7520	15	averageCommissioner	clientSatisfied	t	t
-7521	15	averageCommissioner	warrantyCase	t	t
-7522	15	averageCommissioner	files	t	t
-7523	15	averageCommissioner	assignedTo	t	f
-7524	15	averageCommissioner	commAddress_address	t	t
-7525	15	averageCommissioner	commAddress_coords	t	t
-7526	15	averageCommissioner	commAddress_city	t	t
-7527	15	averageCommissioner	commAddress_comment	t	t
-7528	15	averageCommissioner	urgentService	t	t
-7529	15	averageCommissioner	payment_expectedCost	t	t
-7530	15	averageCommissioner	cost_countedCost	t	t
-7531	15	averageCommissioner	cost_counted	t	t
-7532	15	averageCommissioner	cost_serviceTarifOptions	t	t
-7649	15	case	car_checkPeriod	t	t
-7533	15	averageCommissioner	payment_partnerCost	t	t
-7534	15	averageCommissioner	payment_costTranscript	t	t
-7535	15	averageCommissioner	payment_calculatedCost	t	f
-7536	15	averageCommissioner	payment_overcosted	t	f
-7537	15	averageCommissioner	payment_limitedCost	t	f
-7538	15	averageCommissioner	payment_paidByRUAMC	t	t
-7539	15	averageCommissioner	payment_paidByClient	t	t
-7540	15	averageCommissioner	contractor_partner	t	t
-7541	15	averageCommissioner	contractor_partnerTable	t	t
-7542	15	averageCommissioner	contractor_partnerCancel	t	t
-7543	15	averageCommissioner	contractor_address	t	t
-7544	15	averageCommissioner	bill_billNumber	t	f
-7545	15	averageCommissioner	bill_billingCost	t	f
-7546	15	averageCommissioner	bill_billingDate	t	f
-7547	15	averageCommissioner	times_expectedServiceStart	t	t
-7548	15	averageCommissioner	times_factServiceStart	t	t
-7549	15	averageCommissioner	times_expectedServiceEnd	t	t
-7550	15	averageCommissioner	times_factServiceEnd	t	t
-7551	15	averageCommissioner	times_expectedServiceFinancialClosure	t	t
-7552	15	averageCommissioner	times_factServiceFinancialClosure	t	t
-7553	15	averageCommissioner	times_expectedServiceClosure	t	t
-7554	15	averageCommissioner	times_factServiceClosure	t	t
-7555	15	averageCommissioner	times_repairEndDate	t	t
-7556	15	bank	createTime	t	f
-7557	15	bank	payType	t	t
-7558	15	bank	falseCall	t	t
-7559	15	bank	clientCancelReason	t	t
-7560	15	bank	requestType	t	t
-7561	15	bank	whatToSay1	t	t
-7562	15	bank	activity	t	t
-7563	15	bank	status	t	t
-7564	15	bank	clientSatisfied	t	t
-7565	15	bank	warrantyCase	t	t
-7566	15	bank	files	t	t
-7567	15	bank	assignedTo	t	f
-7568	15	bank	urgentService	t	t
-7569	15	bank	payment_expectedCost	t	t
-7570	15	bank	cost_countedCost	t	t
-7571	15	bank	cost_counted	t	t
-7572	15	bank	cost_serviceTarifOptions	t	t
-7573	15	bank	payment_partnerCost	t	t
-7574	15	bank	payment_costTranscript	t	t
-7575	15	bank	payment_calculatedCost	t	f
-7576	15	bank	payment_overcosted	t	f
-7577	15	bank	payment_limitedCost	t	f
-7578	15	bank	payment_paidByRUAMC	t	t
-7579	15	bank	payment_paidByClient	t	t
-7580	15	bank	contractor_partner	t	t
-7581	15	bank	contractor_partnerTable	t	t
-7582	15	bank	contractor_partnerCancel	t	t
-7583	15	bank	contractor_address	t	t
-7584	15	bank	bill_billNumber	t	f
-7585	15	bank	bill_billingCost	t	f
-7586	15	bank	bill_billingDate	t	f
-7587	15	bank	times_expectedServiceStart	t	t
-7588	15	bank	times_factServiceStart	t	t
-7589	15	bank	times_expectedServiceEnd	t	t
-7590	15	bank	times_factServiceEnd	t	t
-7591	15	bank	times_expectedServiceFinancialClosure	t	t
-7592	15	bank	times_factServiceFinancialClosure	t	t
-7593	15	bank	times_expectedServiceClosure	t	t
-7594	15	bank	times_factServiceClosure	t	t
-7595	15	bank	times_repairEndDate	t	t
-7596	15	call	callDate	t	t
-7597	15	call	callTaker	t	f
-7598	15	case	callDate	t	t
-7599	15	case	callTaker	t	f
-7600	15	case	comment	t	t
-7601	15	case	diagnosis1	t	t
-7602	15	case	diagnosis2	t	t
-7603	15	case	diagnosis3	t	t
-7604	15	case	diagnosis4	t	t
-7605	15	case	program	t	t
-7606	15	case	vinChecked	t	t
-7607	15	case	city	t	t
-7608	15	case	temperature	t	t
-7609	15	case	repair	t	t
-7610	15	case	accord	t	t
-7611	15	case	dealerCause	t	t
-7612	15	case	caseStatus	t	t
-7613	15	case	psaExported	t	t
-7614	15	case	claim	t	t
-7615	15	case	betaComment	t	t
-7616	15	case	files	t	t
-7617	15	case	comments	t	t
-7618	15	case	caseAddress_address	t	t
-7619	15	case	contact_name	t	t
-7620	15	case	cardNumber_cardNumber	t	t
-7621	15	case	caseAddress_map	t	t
-7622	15	case	caseAddress_coords	t	t
-7623	15	case	caseAddress_city	t	t
-7624	15	case	caseAddress_comment	t	t
-7625	15	case	contact_email	t	t
-7626	15	case	contact_phone1	t	t
-7627	15	case	contact_phone2	t	t
-7628	15	case	contact_phone3	t	t
-7629	15	case	contact_phone4	t	t
-7630	15	case	contact_ownerName	t	t
-7631	15	case	contact_contactOwner	t	t
-7632	15	case	contact_ownerEmail	t	t
-7633	15	case	contact_ownerPhone1	t	t
-7634	15	case	contact_ownerPhone2	t	t
-7635	15	case	contact_ownerPhone3	t	t
-7636	15	case	contact_ownerPhone4	t	t
-7637	15	case	car_vin	t	t
-7638	15	case	car_seller	t	t
-7639	15	case	car_make	t	t
-7640	15	case	car_model	t	t
-7641	15	case	car_plateNum	t	t
-7642	15	case	car_color	t	t
-7643	15	case	car_transmission	t	t
-7644	15	case	car_engine	t	t
-7645	15	case	car_liters	t	t
-7646	15	case	car_capacity	t	t
-7647	15	case	car_dims	t	t
-7648	15	case	car_weight	t	t
-7650	15	case	car_class	t	t
-7651	15	case	car_buyDate	t	t
-7652	15	case	car_mileage	t	t
-7653	15	case	car_checkupDate	t	t
-7654	15	case	car_checkupMileage	t	t
-7655	15	case	car_dealerTO	t	t
-7656	15	case	car_makeYear	t	t
-7657	15	case	car_warrantyStart	t	t
-7658	15	case	car_warrantyEnd	t	t
-7659	15	case	car_contractType	t	t
-7660	15	case	cardNumber_validFrom	t	f
-7661	15	case	cardNumber_validUntil	t	f
-7662	15	case	cardNumber_validUntilMilage	t	f
-7663	15	case	cardNumber_milageTO	t	f
-7664	15	case	cardNumber_serviceInterval	t	f
-7666	15	case	cardNumber_manager	t	f
-7667	15	consultation	createTime	t	f
-7668	15	consultation	payType	t	t
-7669	15	consultation	falseCall	t	t
-7670	15	consultation	clientCancelReason	t	t
-7671	15	consultation	consType	t	t
-7672	15	consultation	whatToSay1	t	t
-7673	15	consultation	status	t	t
-7674	15	consultation	result	t	t
-7675	15	consultation	clientSatisfied	t	t
-7676	15	consultation	warrantyCase	t	t
-7677	15	consultation	files	t	t
-7678	15	consultation	assignedTo	t	f
-7679	15	consultation	cost_countedCost	t	t
-7680	15	consultation	cost_counted	t	t
-7681	15	consultation	cost_serviceTarifOptions	t	t
-7682	15	consultation	urgentService	t	t
-7683	15	consultation	payment_partnerCost	t	t
-7684	15	consultation	payment_costTranscript	t	t
-7685	15	consultation	payment_calculatedCost	t	f
-7686	15	consultation	payment_overcosted	t	f
-7687	15	consultation	payment_limitedCost	t	f
-7688	15	consultation	payment_paidByRUAMC	t	t
-7689	15	consultation	payment_paidByClient	t	t
-7690	15	consultation	contractor_partner	t	t
-7691	15	consultation	contractor_partnerTable	t	t
-7692	15	consultation	contractor_partnerCancel	t	t
-7693	15	consultation	contractor_address	t	t
-7694	15	consultation	bill_billNumber	t	f
-7695	15	consultation	bill_billingCost	t	f
-7696	15	consultation	bill_billingDate	t	f
-7697	15	consultation	times_expectedServiceStart	t	t
-7698	15	consultation	times_factServiceStart	t	t
-7699	15	consultation	times_expectedServiceEnd	t	t
-7700	15	consultation	times_factServiceEnd	t	t
-7701	15	consultation	times_expectedServiceFinancialClosure	t	t
-7702	15	consultation	times_factServiceFinancialClosure	t	t
-7703	15	consultation	times_expectedServiceClosure	t	t
-7704	15	consultation	times_factServiceClosure	t	t
-7705	15	consultation	times_repairEndDate	t	t
-7706	15	continue	createTime	t	f
-7707	15	continue	payType	t	t
-7708	15	continue	falseCall	t	t
-7709	15	continue	clientCancelReason	t	t
-7710	15	continue	deliveryType	t	t
-7711	15	continue	status	t	t
-7712	15	continue	clientSatisfied	t	t
-7713	15	continue	warrantyCase	t	t
-7714	15	continue	files	t	t
-7715	15	continue	assignedTo	t	f
-7716	15	continue	urgentService	t	t
-7717	15	continue	payment_expectedCost	t	t
-7718	15	continue	cost_countedCost	t	t
-7719	15	continue	cost_counted	t	t
-7720	15	continue	cost_serviceTarifOptions	t	t
-7721	15	continue	payment_partnerCost	t	t
-7722	15	continue	payment_costTranscript	t	t
-7723	15	continue	payment_calculatedCost	t	f
-7724	15	continue	payment_overcosted	t	f
-7725	15	continue	payment_limitedCost	t	f
-7726	15	continue	payment_paidByRUAMC	t	t
-7727	15	continue	payment_paidByClient	t	t
-7728	15	continue	deliverFrom_address	t	t
-7729	15	continue	deliverFrom_coords	t	t
-7730	15	continue	deliverFrom_city	t	t
-7731	15	continue	deliverFrom_comment	t	t
-7732	15	continue	deliverTo_address	t	t
-7733	15	continue	deliverTo_coords	t	t
-7734	15	continue	deliverTo_city	t	t
-7735	15	continue	deliverTo_comment	t	t
-7736	15	continue	contractor_partner	t	t
-7737	15	continue	contractor_partnerTable	t	t
-7738	15	continue	contractor_partnerCancel	t	t
-7739	15	continue	contractor_address	t	t
-7740	15	continue	bill_billNumber	t	f
-7741	15	continue	bill_billingCost	t	f
-7742	15	continue	bill_billingDate	t	f
-7743	15	continue	times_expectedServiceStart	t	t
-7744	15	continue	times_factServiceStart	t	t
-7745	15	continue	times_expectedServiceEnd	t	t
-7746	15	continue	times_factServiceEnd	t	t
-7747	15	continue	times_expectedServiceFinancialClosure	t	t
-7748	15	continue	times_factServiceFinancialClosure	t	t
-7749	15	continue	times_expectedServiceClosure	t	t
-7857	15	deliverParts	cost_counted	t	t
-7750	15	continue	times_factServiceClosure	t	t
-7751	15	continue	times_repairEndDate	t	t
-7752	15	deliverCar	createTime	t	f
-7753	15	deliverCar	payType	t	t
-7754	15	deliverCar	falseCall	t	t
-7755	15	deliverCar	clientCancelReason	t	t
-7756	15	deliverCar	marginalCost	t	f
-7757	15	deliverCar	status	t	t
-7758	15	deliverCar	clientSatisfied	t	t
-7759	15	deliverCar	warrantyCase	t	t
-7760	15	deliverCar	files	t	t
-7761	15	deliverCar	service_tarifOptions	t	t
-7762	15	deliverCar	assignedTo	t	f
-7763	15	deliverCar	falseCallPercent	t	f
-7764	15	deliverCar	toAddress_address	t	t
-7765	15	deliverCar	toAddress_coords	t	t
-7766	15	deliverCar	toAddress_city	t	t
-7767	15	deliverCar	toAddress_comment	t	t
-7768	15	deliverCar	urgentService	t	t
-7769	15	deliverCar	cost_countedCost	t	t
-7770	15	deliverCar	cost_counted	t	t
-7771	15	deliverCar	cost_serviceTarifOptions	t	t
-7772	15	deliverCar	payment_partnerCost	t	t
-7773	15	deliverCar	payment_costTranscript	t	t
-7774	15	deliverCar	payment_calculatedCost	t	f
-7775	15	deliverCar	payment_overcosted	t	f
-7776	15	deliverCar	payment_limitedCost	t	f
-7777	15	deliverCar	payment_payType	t	t
-7778	15	deliverCar	payment_paidByRUAMC	t	t
-7779	15	deliverCar	payment_paidByClient	t	t
-7780	15	deliverCar	bill_billNumber	t	f
-7781	15	deliverCar	bill_billingCost	t	f
-7782	15	deliverCar	bill_billingDate	t	f
-7783	15	deliverCar	times_expectedServiceStart	t	t
-7784	15	deliverCar	times_factServiceStart	t	t
-7785	15	deliverCar	times_expectedServiceEnd	t	t
-7786	15	deliverCar	times_factServiceEnd	t	t
-7787	15	deliverCar	times_expectedServiceFinancialClosure	t	t
-7788	15	deliverCar	times_factServiceFinancialClosure	t	t
-7789	15	deliverCar	times_expectedServiceClosure	t	t
-7790	15	deliverCar	times_factServiceClosure	t	t
-7791	15	deliverCar	times_repairEndDate	t	t
-7792	15	deliverClient	createTime	t	f
-7793	15	deliverClient	payType	t	t
-7794	15	deliverClient	falseCall	t	t
-7795	15	deliverClient	clientCancelReason	t	t
-7796	15	deliverClient	deliveryType	t	t
-7797	15	deliverClient	status	t	t
-7798	15	deliverClient	clientSatisfied	t	t
-7799	15	deliverClient	warrantyCase	t	t
-7800	15	deliverClient	files	t	t
-7801	15	deliverClient	assignedTo	t	f
-7802	15	deliverClient	falseCallPercent	t	f
-7803	15	deliverClient	cost_countedCost	t	t
-7804	15	deliverClient	urgentService	t	t
-7805	15	deliverClient	cost_counted	t	t
-7806	15	deliverClient	cost_serviceTarifOptions	t	t
-7807	15	deliverClient	payment_partnerCost	t	t
-7808	15	deliverClient	payment_costTranscript	t	t
-7809	15	deliverClient	payment_calculatedCost	t	f
-7810	15	deliverClient	payment_overcosted	t	f
-7811	15	deliverClient	payment_limitedCost	t	f
-7812	15	deliverClient	payment_paidByRUAMC	t	t
-7813	15	deliverClient	payment_paidByClient	t	t
-7814	15	deliverClient	deliverFrom_address	t	t
-7815	15	deliverClient	deliverFrom_coords	t	t
-7816	15	deliverClient	deliverFrom_city	t	t
-7817	15	deliverClient	deliverFrom_comment	t	t
-7818	15	deliverClient	deliverTo_address	t	t
-7819	15	deliverClient	deliverTo_coords	t	t
-7820	15	deliverClient	deliverTo_city	t	t
-7821	15	deliverClient	deliverTo_comment	t	t
-7822	15	deliverClient	contractor_partner	t	t
-7823	15	deliverClient	contractor_partnerTable	t	t
-7824	15	deliverClient	contractor_partnerCancel	t	t
-7825	15	deliverClient	contractor_address	t	t
-7826	15	deliverClient	bill_billNumber	t	f
-7827	15	deliverClient	bill_billingCost	t	f
-7828	15	deliverClient	bill_billingDate	t	f
-7829	15	deliverClient	times_expectedServiceStart	t	t
-7830	15	deliverClient	times_factServiceStart	t	t
-7831	15	deliverClient	times_expectedServiceEnd	t	t
-7832	15	deliverClient	times_factServiceEnd	t	t
-7833	15	deliverClient	times_expectedServiceFinancialClosure	t	t
-7834	15	deliverClient	times_factServiceFinancialClosure	t	t
-7835	15	deliverClient	times_expectedServiceClosure	t	t
-7836	15	deliverClient	times_factServiceClosure	t	t
-7837	15	deliverClient	times_repairEndDate	t	t
-7838	15	deliverParts	createTime	t	f
-7839	15	deliverParts	payType	t	t
-7840	15	deliverParts	falseCall	t	t
-7841	15	deliverParts	clientCancelReason	t	t
-7842	15	deliverParts	parts	t	t
-7843	15	deliverParts	marginalCost	t	f
-7844	15	deliverParts	status	t	t
-7845	15	deliverParts	clientSatisfied	t	t
-7846	15	deliverParts	warrantyCase	t	t
-7847	15	deliverParts	files	t	t
-7848	15	deliverParts	service_tarifOptions	t	t
-7849	15	deliverParts	assignedTo	t	f
-7850	15	deliverParts	falseCallPercent	t	f
-7851	15	deliverParts	toAddress_address	t	t
-7852	15	deliverParts	toAddress_coords	t	t
-7853	15	deliverParts	toAddress_city	t	t
-7854	15	deliverParts	toAddress_comment	t	t
-7855	15	deliverParts	cost_countedCost	t	t
-7856	15	deliverParts	urgentService	t	t
-7858	15	deliverParts	cost_serviceTarifOptions	t	t
-7859	15	deliverParts	payment_partnerCost	t	t
-7860	15	deliverParts	payment_costTranscript	t	t
-7861	15	deliverParts	payment_calculatedCost	t	f
-7862	15	deliverParts	payment_overcosted	t	f
-7863	15	deliverParts	payment_limitedCost	t	f
-7864	15	deliverParts	payment_paidByRUAMC	t	t
-7865	15	deliverParts	payment_paidByClient	t	t
-7866	15	deliverParts	bill_billNumber	t	f
-7867	15	deliverParts	bill_billingCost	t	f
-7868	15	deliverParts	bill_billingDate	t	f
-7869	15	deliverParts	times_expectedServiceStart	t	t
-7870	15	deliverParts	times_factServiceStart	t	t
-7871	15	deliverParts	times_expectedServiceEnd	t	t
-7872	15	deliverParts	times_factServiceEnd	t	t
-7873	15	deliverParts	times_expectedServiceFinancialClosure	t	t
-7874	15	deliverParts	times_factServiceFinancialClosure	t	t
-7875	15	deliverParts	times_expectedServiceClosure	t	t
-7876	15	deliverParts	times_factServiceClosure	t	t
-7877	15	deliverParts	times_repairEndDate	t	t
-7878	15	hotel	createTime	t	f
-7879	15	hotel	payType	t	t
-7880	15	hotel	falseCall	t	t
-7881	15	hotel	clientCancelReason	t	t
-7882	15	hotel	marginalCost	t	f
-7883	15	hotel	providedFor	t	t
-7884	15	hotel	status	t	t
-7885	15	hotel	clientSatisfied	t	t
-7886	15	hotel	warrantyCase	t	t
-7887	15	hotel	files	t	t
-7888	15	hotel	service_tarifOptions	t	t
-7889	15	hotel	assignedTo	t	f
-7890	15	hotel	payment_partnerCost	t	t
-7891	15	hotel	payment_costTranscript	t	t
-7892	15	hotel	payment_calculatedCost	t	f
-7893	15	hotel	payment_overcosted	t	f
-7894	15	hotel	payment_limitedCost	t	f
-7895	15	hotel	payment_paidByRUAMC	t	t
-7896	15	hotel	payment_paidByClient	t	t
-7897	15	hotel	cost_countedCost	t	t
-7898	15	hotel	urgentService	t	t
-7899	15	hotel	cost_counted	t	t
-7900	15	hotel	cost_serviceTarifOptions	t	t
-7901	15	hotel	caseAddress_address	t	t
-7902	15	hotel	caseAddress_coords	t	t
-7903	15	hotel	caseAddress_city	t	t
-7904	15	hotel	caseAddress_comment	t	t
-7905	15	hotel	contractor_partner	t	t
-7906	15	hotel	contractor_partnerId	t	t
-7907	15	hotel	contractor_partnerTable	t	t
-7908	15	hotel	contractor_partnerCancel	t	t
-7909	15	hotel	contractor_address	t	t
-7910	15	hotel	bill_billNumber	t	f
-7911	15	hotel	bill_billingCost	t	f
-7912	15	hotel	bill_billingDate	t	f
-7913	15	hotel	times_expectedServiceStart	t	t
-7914	15	hotel	times_factServiceStart	t	t
-7915	15	hotel	times_expectedServiceEnd	t	t
-7916	15	hotel	times_factServiceEnd	t	t
-7917	15	hotel	times_expectedServiceFinancialClosure	t	t
-7918	15	hotel	times_factServiceFinancialClosure	t	t
-7919	15	hotel	times_expectedServiceClosure	t	t
-7920	15	hotel	times_factServiceClosure	t	t
-7921	15	hotel	times_repairEndDate	t	t
-7922	15	information	createTime	t	f
-7923	15	information	payType	t	t
-7924	15	information	falseCall	t	t
-7925	15	information	clientCancelReason	t	t
-7926	15	information	contact1	t	t
-7927	15	information	contactPhone1	t	t
-7928	15	information	whatToSay1	t	t
-7929	15	information	contact2	t	t
-7930	15	information	contactPhone2	t	t
-7931	15	information	whatToSay2	t	t
-7932	15	information	contact3	t	t
-7933	15	information	contactPhone3	t	t
-7934	15	information	whatToSay3	t	t
-7935	15	information	status	t	t
-7936	15	information	clientSatisfied	t	t
-7937	15	information	warrantyCase	t	t
-7938	15	information	files	t	t
-7939	15	information	assignedTo	t	f
-7940	15	information	falseCallPercent	t	f
-7941	15	information	urgentService	t	t
-7942	15	information	payment_expectedCost	t	t
-7943	15	information	payment_partnerCost	t	t
-7944	15	information	payment_costTranscript	t	t
-7945	15	information	payment_calculatedCost	t	f
-7946	15	information	payment_overcosted	t	f
-7947	15	information	payment_limitedCost	t	f
-7948	15	information	payment_paidByRUAMC	t	t
-7949	15	information	payment_paidByClient	t	t
-7950	15	information	bill_billNumber	t	f
-7951	15	information	bill_billingCost	t	f
-7952	15	information	bill_billingDate	t	f
-7953	15	information	times_expectedServiceStart	t	t
-7954	15	information	times_factServiceStart	t	t
-7955	15	information	times_expectedServiceEnd	t	t
-7956	15	information	times_factServiceEnd	t	t
-7957	15	information	times_expectedServiceFinancialClosure	t	t
-7958	15	information	times_factServiceFinancialClosure	t	t
-7959	15	information	times_expectedServiceClosure	t	t
-7960	15	information	times_factServiceClosure	t	t
-7961	15	information	times_repairEndDate	t	t
-7962	15	insurance	createTime	t	f
-7963	15	insurance	payType	t	t
-7964	15	insurance	falseCall	t	t
-7965	15	insurance	clientCancelReason	t	t
-7966	15	insurance	requestType	t	t
-7967	15	insurance	whatToSay1	t	t
-7968	15	insurance	activity	t	t
-7969	15	insurance	commMilage	t	t
-7970	15	insurance	status	t	t
-7971	15	insurance	clientSatisfied	t	t
-7972	15	insurance	warrantyCase	t	t
-7973	15	insurance	files	t	t
-7974	15	insurance	assignedTo	t	f
-7975	15	insurance	commAddress_address	t	t
-7976	15	insurance	commAddress_coords	t	t
-7977	15	insurance	commAddress_city	t	t
-7978	15	insurance	commAddress_comment	t	t
-7979	15	insurance	cost_countedCost	t	t
-7980	15	insurance	urgentService	t	t
-7981	15	insurance	cost_counted	t	t
-7982	15	insurance	cost_serviceTarifOptions	t	t
-7983	15	insurance	payment_partnerCost	t	t
-7984	15	insurance	payment_costTranscript	t	t
-7985	15	insurance	payment_calculatedCost	t	f
-7986	15	insurance	payment_overcosted	t	f
-7987	15	insurance	payment_limitedCost	t	f
-7988	15	insurance	payment_paidByRUAMC	t	t
-7989	15	insurance	payment_paidByClient	t	t
-7990	15	insurance	contractor_partner	t	t
-7991	15	insurance	contractor_partnerTable	t	t
-7992	15	insurance	contractor_partnerCancel	t	t
-7993	15	insurance	contractor_address	t	t
-7994	15	insurance	bill_billNumber	t	f
-7995	15	insurance	bill_billingCost	t	f
-7996	15	insurance	bill_billingDate	t	f
-7997	15	insurance	times_expectedServiceStart	t	t
-7998	15	insurance	times_factServiceStart	t	t
-7999	15	insurance	times_expectedServiceEnd	t	t
-8000	15	insurance	times_factServiceEnd	t	t
-8001	15	insurance	times_expectedServiceFinancialClosure	t	t
-8002	15	insurance	times_factServiceFinancialClosure	t	t
-8003	15	insurance	times_expectedServiceClosure	t	t
-8004	15	insurance	times_factServiceClosure	t	t
-8005	15	insurance	times_repairEndDate	t	t
-8006	15	ken	createTime	t	f
-8007	15	ken	payType	t	t
-8008	15	ken	falseCall	t	t
-8009	15	ken	clientCancelReason	t	t
-8010	15	ken	requestType	t	t
-8011	15	ken	whatToSay1	t	t
-8012	15	ken	activity	t	t
-8013	15	ken	status	t	t
-8014	15	ken	clientSatisfied	t	t
-8015	15	ken	warrantyCase	t	t
-8016	15	ken	files	t	t
-8017	15	ken	assignedTo	t	f
-8018	15	ken	falseCallPercent	t	f
-8019	15	ken	cost_countedCost	t	t
-8020	15	ken	urgentService	t	t
-8021	15	ken	cost_counted	t	t
-8022	15	ken	cost_serviceTarifOptions	t	t
-8023	15	ken	payment_partnerCost	t	t
-8024	15	ken	payment_costTranscript	t	t
-8025	15	ken	payment_calculatedCost	t	f
-8026	15	ken	payment_overcosted	t	f
-8027	15	ken	payment_limitedCost	t	f
-8028	15	ken	payment_paidByRUAMC	t	t
-8029	15	ken	payment_paidByClient	t	t
-8030	15	ken	contractor_partner	t	t
-8031	15	ken	contractor_partnerTable	t	t
-8032	15	ken	contractor_partnerCancel	t	t
-8033	15	ken	contractor_address	t	t
-8034	15	ken	bill_billNumber	t	f
-8035	15	ken	bill_billingCost	t	f
-8036	15	ken	bill_billingDate	t	f
-8037	15	ken	times_expectedServiceStart	t	t
-8038	15	ken	times_factServiceStart	t	t
-8039	15	ken	times_expectedServiceEnd	t	t
-8040	15	ken	times_factServiceEnd	t	t
-8041	15	ken	times_expectedServiceFinancialClosure	t	t
-8042	15	ken	times_factServiceFinancialClosure	t	t
-8043	15	ken	times_expectedServiceClosure	t	t
-8044	15	ken	times_factServiceClosure	t	t
-8045	15	ken	times_repairEndDate	t	t
-8046	15	partner	comment	t	t
-8047	15	rent	createTime	t	f
-8048	15	rent	payType	t	t
-8049	15	rent	falseCall	t	t
-8050	15	rent	clientCancelReason	t	t
-8051	15	rent	vinRent	t	t
-8052	15	rent	carClass	t	t
-8053	15	rent	marginalCost	t	f
-8054	15	rent	providedFor	t	t
-8055	15	rent	rentedMake	t	t
-8056	15	rent	rentedModel	t	t
-8057	15	rent	status	t	t
-8058	15	rent	clientSatisfied	t	t
-8059	15	rent	warrantyCase	t	t
-8060	15	rent	files	t	t
-8061	15	rent	assignedTo	t	f
-8062	15	rent	falseCallPercent	t	f
-8063	15	rent	cost_countedCost	t	t
-8064	15	rent	urgentService	t	t
-8065	15	rent	cost_counted	t	t
-8066	15	rent	cost_serviceTarifOptions	t	t
-8067	15	rent	rentAddress_address	t	t
-8068	15	rent	rentAddress_coords	t	t
-8069	15	rent	rentAddress_city	t	t
-8070	15	rent	rentAddress_comment	t	t
-8071	15	rent	towDealer_partner	t	t
-8072	15	rent	towDealer_partnerTable	t	t
-8073	15	rent	towDealer_address	t	t
-8074	15	rent	contractor_partner	t	t
-8075	15	rent	contractor_partnerId	t	t
-8076	15	rent	contractor_partnerTable	t	t
-8077	15	rent	contractor_partnerCancel	t	t
-8078	15	rent	contractor_address	t	t
-8079	15	rent	payment_partnerCost	t	t
-8080	15	rent	payment_costTranscript	t	t
-8081	15	rent	payment_calculatedCost	t	f
-8082	15	rent	payment_overcosted	t	f
-8083	15	rent	payment_limitedCost	t	f
-8084	15	rent	payment_paidByRUAMC	t	t
-8085	15	rent	payment_paidByClient	t	t
-8086	15	rent	bill_billNumber	t	f
-8087	15	rent	bill_billingCost	t	f
-8088	15	rent	bill_billingDate	t	f
-8089	15	rent	times_expectedServiceStart	t	t
-8090	15	rent	times_factServiceStart	t	t
-8091	15	rent	times_expectedServiceEnd	t	t
-8092	15	rent	times_factServiceEnd	t	t
-8093	15	rent	times_expectedServiceFinancialClosure	t	t
-8094	15	rent	times_factServiceFinancialClosure	t	t
-8095	15	rent	times_expectedServiceClosure	t	t
-8096	15	rent	times_factServiceClosure	t	t
-8097	15	rent	times_repairEndDate	t	t
-8098	15	sober	createTime	t	f
-8099	15	sober	payType	t	t
-8100	15	sober	falseCall	t	t
-8101	15	sober	clientCancelReason	t	t
-8102	15	sober	marginalCost	t	f
-8103	15	sober	multidrive	t	t
-8104	15	sober	status	t	t
-8105	15	sober	clientSatisfied	t	t
-8106	15	sober	warrantyCase	t	t
-8107	15	sober	files	t	t
-8108	15	sober	service_tarifOptions	t	t
-8109	15	sober	assignedTo	t	f
-8110	15	sober	cost_countedCost	t	t
-8111	15	sober	urgentService	t	t
-8112	15	sober	cost_counted	t	t
-8113	15	sober	cost_serviceTarifOptions	t	t
-8114	15	sober	payment_partnerCost	t	t
-8115	15	sober	payment_costTranscript	t	t
-8116	15	sober	payment_calculatedCost	t	f
-8117	15	sober	payment_overcosted	t	f
-8118	15	sober	payment_limitedCost	t	f
-8119	15	sober	payment_paidByRUAMC	t	t
-8120	15	sober	payment_paidByClient	t	t
-8121	15	sober	fromAddress_address	t	t
-8122	15	sober	fromAddress_coords	t	t
-8123	15	sober	fromAddress_city	t	t
-8124	15	sober	fromAddress_comment	t	t
-8125	15	sober	toAddress_address	t	t
-8126	15	sober	toAddress_coords	t	t
-8127	15	sober	toAddress_city	t	t
-8128	15	sober	toAddress_comment	t	t
-8129	15	sober	contractor_partner	t	t
-8130	15	sober	contractor_partnerId	t	t
-8131	15	sober	contractor_partnerTable	t	t
-8132	15	sober	contractor_partnerCancel	t	t
-8133	15	sober	contractor_address	t	t
-8134	15	sober	bill_billNumber	t	f
-8135	15	sober	bill_billingCost	t	f
-8136	15	sober	bill_billingDate	t	f
-8137	15	sober	times_expectedServiceStart	t	t
-8138	15	sober	times_factServiceStart	t	t
-8139	15	sober	times_expectedServiceEnd	t	t
-8140	15	sober	times_factServiceEnd	t	t
-8141	15	sober	times_expectedServiceFinancialClosure	t	t
-8142	15	sober	times_factServiceFinancialClosure	t	t
-8143	15	sober	times_expectedServiceClosure	t	t
-8144	15	sober	times_factServiceClosure	t	t
-8145	15	sober	times_repairEndDate	t	t
-8146	15	taxi	createTime	t	f
-8147	15	taxi	payType	t	t
-8148	15	taxi	falseCall	t	t
-8149	15	taxi	clientCancelReason	t	t
-8150	15	taxi	marginalCost	t	f
-8151	15	taxi	status	t	t
-8152	15	taxi	clientSatisfied	t	t
-8153	15	taxi	warrantyCase	t	t
-8154	15	taxi	files	t	t
-8155	15	taxi	service_tarifOptions	t	t
-8156	15	taxi	assignedTo	t	f
-8157	15	taxi	falseCallPercent	t	f
-8158	15	taxi	cost_countedCost	t	t
-8159	15	taxi	urgentService	t	t
-8160	15	taxi	cost_counted	t	t
-8161	15	taxi	cost_serviceTarifOptions	t	t
-8162	15	taxi	payment_partnerCost	t	t
-8163	15	taxi	payment_costTranscript	t	t
-8164	15	taxi	payment_calculatedCost	t	f
-8165	15	taxi	payment_overcosted	t	f
-8166	15	taxi	payment_limitedCost	t	f
-8167	15	taxi	payment_paidByRUAMC	t	t
-8168	15	taxi	payment_paidByClient	t	t
-8169	15	taxi	taxiFrom_address	t	t
-8170	15	taxi	taxiFrom_coords	t	t
-8171	15	taxi	taxiFrom_city	t	t
-8172	15	taxi	taxiFrom_comment	t	t
-8173	15	taxi	taxiTo_address	t	t
-8174	15	taxi	taxiTo_coords	t	t
-8175	15	taxi	taxiTo_city	t	t
-8176	15	taxi	taxiTo_comment	t	t
-8177	15	taxi	contractor_partner	t	t
-8178	15	taxi	contractor_partnerTable	t	t
-8179	15	taxi	contractor_partnerCancel	t	t
-8180	15	taxi	contractor_address	t	t
-8181	15	taxi	bill_billNumber	t	f
-8182	15	taxi	bill_billingCost	t	f
-8183	15	taxi	bill_billingDate	t	f
-8184	15	taxi	times_expectedServiceStart	t	t
-8185	15	taxi	times_factServiceStart	t	t
-8186	15	taxi	times_expectedServiceEnd	t	t
-8187	15	taxi	times_factServiceEnd	t	t
-8188	15	taxi	times_expectedServiceFinancialClosure	t	t
-8189	15	taxi	times_factServiceFinancialClosure	t	t
-8190	15	taxi	times_expectedServiceClosure	t	t
-8191	15	taxi	times_factServiceClosure	t	t
-8192	15	taxi	times_repairEndDate	t	t
-8193	15	tech1	createTime	t	f
-8194	15	tech1	payType	t	t
-8195	15	tech1	falseCall	t	t
-8196	15	tech1	clientCancelReason	t	t
-8197	15	tech1	requestType	t	t
-8198	15	tech1	whatToSay1	t	t
-8199	15	tech1	activity	t	t
-8200	15	tech1	status	t	t
-8201	15	tech1	clientSatisfied	t	t
-8202	15	tech1	warrantyCase	t	t
-8203	15	tech1	files	t	t
-8204	15	tech1	cost_countedCost	t	t
-8205	15	tech1	urgentService	t	t
-8206	15	tech1	cost_counted	t	t
-8207	15	tech1	cost_serviceTarifOptions	t	t
-8208	15	tech1	payment_partnerCost	t	t
-8209	15	tech1	payment_costTranscript	t	t
-8210	15	tech1	payment_calculatedCost	t	f
-8211	15	tech1	payment_overcosted	t	f
-8212	15	tech1	payment_limitedCost	t	f
-8213	15	tech1	payment_paidByRUAMC	t	t
-8214	15	tech1	payment_paidByClient	t	t
-8215	15	tech1	contractor_partner	t	t
-8216	15	tech1	contractor_partnerTable	t	t
-8217	15	tech1	contractor_partnerCancel	t	t
-8218	15	tech1	contractor_address	t	t
-8219	15	tech1	bill_billNumber	t	f
-8220	15	tech1	bill_billingCost	t	f
-8221	15	tech1	bill_billingDate	t	f
-8222	15	tech1	times_expectedServiceStart	t	t
-8223	15	tech1	times_factServiceStart	t	t
-8224	15	tech1	times_expectedServiceEnd	t	t
-8225	15	tech1	times_factServiceEnd	t	t
-8226	15	tech1	times_expectedServiceFinancialClosure	t	t
-8227	15	tech1	times_factServiceFinancialClosure	t	t
-8228	15	tech1	times_expectedServiceClosure	t	t
-8229	15	tech1	times_factServiceClosure	t	t
-8230	15	tech1	times_repairEndDate	t	t
-8231	15	tech	createTime	t	f
-8232	15	tech	payType	t	t
-8233	15	tech	falseCall	t	t
-8234	15	tech	clientCancelReason	t	t
-8235	15	tech	techType	t	t
-8236	15	tech	marginalCost	t	f
-8237	15	tech	suburbanMilage	t	t
-8238	15	tech	status	t	t
-8239	15	tech	clientSatisfied	t	t
-8240	15	tech	warrantyCase	t	t
-8241	15	tech	files	t	t
-8242	15	tech	service_tarifOptions	t	t
-8243	15	tech	assignedTo	t	f
-8244	15	tech	falseCallPercent	t	f
-8245	15	tech	payment_partnerCost	t	t
-8246	15	tech	payment_costTranscript	t	t
-8247	15	tech	payment_calculatedCost	t	f
-8248	15	tech	payment_overcosted	t	f
-8249	15	tech	payment_limitedCost	t	f
-8250	15	tech	cost_countedCost	t	t
-8251	15	tech	urgentService	t	t
-8252	15	tech	cost_counted	t	t
-8253	15	tech	cost_serviceTarifOptions	t	t
-8254	15	tech	payment_paidByRUAMC	t	t
-8255	15	tech	payment_paidByClient	t	t
-8256	15	tech	contractor_partner	t	t
-8257	15	tech	contractor_partnerId	t	t
-8258	15	tech	contractor_partnerTable	t	t
-8259	15	tech	contractor_partnerMap	t	t
-8260	15	tech	contractor_coords	t	t
-8261	15	tech	contractor_partnerCancel	t	t
-8262	15	tech	contractor_address	t	t
-8263	15	tech	bill_billNumber	t	f
-8264	15	tech	bill_billingCost	t	f
-8265	15	tech	bill_billingDate	t	f
-8266	15	tech	times_expectedServiceStart	t	t
-8267	15	tech	times_factServiceStart	t	t
-8268	15	tech	times_expectedServiceEnd	t	t
-8269	15	tech	times_factServiceEnd	t	t
-8270	15	tech	times_expectedServiceFinancialClosure	t	t
-8271	15	tech	times_factServiceFinancialClosure	t	t
-8272	15	tech	times_expectedServiceClosure	t	t
-8273	15	tech	times_factServiceClosure	t	t
-8274	15	tech	times_repairEndDate	t	t
-8275	15	tickets	createTime	t	f
-8276	15	tickets	payType	t	t
-8277	15	tickets	falseCall	t	t
-8278	15	tickets	clientCancelReason	t	t
-8279	15	tickets	deliveryType	t	t
-8280	15	tickets	status	t	t
-8281	15	tickets	clientSatisfied	t	t
-8282	15	tickets	warrantyCase	t	t
-8283	15	tickets	files	t	t
-8284	15	tickets	assignedTo	t	f
-8285	15	tickets	falseCallPercent	t	f
-8286	15	tickets	cost_countedCost	t	t
-8287	15	tickets	ticketsFrom_address	t	t
-8288	15	tickets	ticketsFrom_coords	t	t
-8289	15	tickets	ticketsFrom_city	t	t
-8290	15	tickets	ticketsFrom_comment	t	t
-8291	15	tickets	ticketsTo_address	t	t
-8292	15	tickets	ticketsTo_coords	t	t
-8293	15	tickets	ticketsTo_city	t	t
-8294	15	tickets	ticketsTo_comment	t	t
-8295	15	tickets	urgentService	t	t
-8296	15	tickets	cost_counted	t	t
-8297	15	tickets	cost_serviceTarifOptions	t	t
-8298	15	tickets	payment_partnerCost	t	t
-8299	15	tickets	payment_costTranscript	t	t
-8300	15	tickets	payment_calculatedCost	t	f
-8301	15	tickets	payment_overcosted	t	f
-8302	15	tickets	payment_limitedCost	t	f
-8303	15	tickets	payment_paidByRUAMC	t	t
-8304	15	tickets	payment_paidByClient	t	t
-8305	15	tickets	contractor_partner	t	t
-8306	15	tickets	contractor_partnerTable	t	t
-8307	15	tickets	contractor_partnerCancel	t	t
-8308	15	tickets	contractor_address	t	t
-8309	15	tickets	bill_billNumber	t	f
-8310	15	tickets	bill_billingCost	t	f
-8311	15	tickets	bill_billingDate	t	f
-8312	15	tickets	times_expectedServiceStart	t	t
-8313	15	tickets	times_factServiceStart	t	t
-8314	15	tickets	times_expectedServiceEnd	t	t
-8315	15	tickets	times_factServiceEnd	t	t
-8316	15	tickets	times_expectedServiceFinancialClosure	t	t
-8317	15	tickets	times_factServiceFinancialClosure	t	t
-8318	15	tickets	times_expectedServiceClosure	t	t
-8319	15	tickets	times_factServiceClosure	t	t
-8320	15	tickets	times_repairEndDate	t	t
-8321	15	towage	createTime	t	f
-8322	15	towage	payType	t	t
-8323	15	towage	falseCall	t	t
-8324	15	towage	clientCancelReason	t	t
-8325	15	towage	towerType	t	t
-8326	15	towage	towType	t	t
-8327	15	towage	vandalism	t	t
-8328	15	towage	accident	t	t
-8329	15	towage	dealerDistance	t	t
-8330	15	towage	marginalCost	t	f
-8331	15	towage	wheelsUnblocked	t	t
-8332	15	towage	canNeutral	t	t
-8333	15	towage	towingPointPresent	t	t
-8334	15	towage	manipulatorPossible	t	t
-8335	15	towage	suburbanMilage	t	t
-8336	15	towage	repairEndDate	t	t
-8337	15	towage	status	t	t
-8338	15	towage	clientSatisfied	t	t
-8339	15	towage	warrantyCase	t	t
-8340	15	towage	files	t	t
-8341	15	towage	service_tarifOptions	t	t
-8342	15	towage	assignedTo	t	f
-8343	15	towage	falseCallPercent	t	f
-8344	15	towage	cost_countedCost	t	t
-8345	15	towage	urgentService	t	t
-8346	15	towage	cost_counted	t	t
-8347	15	towage	cost_serviceTarifOptions	t	t
-8348	15	towage	towAddress_address	t	t
-8349	15	towage	towAddress_coords	t	t
-8350	15	towage	towAddress_city	t	t
-8351	15	towage	towAddress_comment	t	t
-8352	15	towage	towAddress_map	t	t
-8353	15	towage	payment_partnerCost	t	t
-8354	15	towage	payment_costTranscript	t	t
-8355	15	towage	payment_calculatedCost	t	f
-8356	15	towage	payment_overcosted	t	f
-8357	15	towage	payment_limitedCost	t	f
-8358	15	towage	payment_paidByRUAMC	t	t
-8359	15	towage	payment_paidByClient	t	t
-8360	15	towage	towerAddress_address	t	t
-8361	15	towage	towerAddress_coords	t	t
-8362	15	towage	towerAddress_city	t	t
-8363	15	towage	towerAddress_comment	t	t
-8364	15	towage	towerAddress_map	t	t
-8365	15	towage	towDealer_partner	t	t
-8366	15	towage	towDealer_partnerId	t	t
-8367	15	towage	towDealer_partnerTable	t	t
-8368	15	towage	towDealer_partnerMap	t	t
-8369	15	towage	towDealer_coords	t	t
-8370	15	towage	towDealer_address	t	t
-8371	15	towage	contractor_partner	t	t
-8372	15	towage	contractor_partnerId	t	t
-8373	15	towage	contractor_partnerTable	t	t
-8374	15	towage	contractor_partnerMap	t	t
-8375	15	towage	contractor_coords	t	t
-8376	15	towage	contractor_partnerCancel	t	t
-8377	15	towage	contractor_address	t	t
-8378	15	towage	bill_billNumber	t	f
-8379	15	towage	bill_billingCost	t	f
-8380	15	towage	bill_billingDate	t	f
-8381	15	towage	times_expectedServiceStart	t	t
-8382	15	towage	times_factServiceStart	t	t
-8383	15	towage	times_expectedServiceEnd	t	t
-8384	15	towage	times_factServiceEnd	t	t
-8385	15	towage	times_expectedServiceFinancialClosure	t	t
-8386	15	towage	times_factServiceFinancialClosure	t	t
-8387	15	towage	times_expectedServiceClosure	t	t
-8388	15	towage	times_factServiceClosure	t	t
-8389	15	transportation	createTime	t	f
-8390	15	transportation	payType	t	t
-8391	15	transportation	falseCall	t	t
-8392	15	transportation	clientCancelReason	t	t
-8393	15	transportation	transportType	t	t
-8394	15	transportation	status	t	t
-8395	15	transportation	clientSatisfied	t	t
-8396	15	transportation	warrantyCase	t	t
-8397	15	transportation	files	t	t
-8398	15	transportation	assignedTo	t	f
-8399	15	transportation	falseCallPercent	t	f
-8400	15	transportation	cost_countedCost	t	t
-8401	15	transportation	urgentService	t	t
-8402	15	transportation	cost_counted	t	t
-8403	15	transportation	cost_serviceTarifOptions	t	t
-8404	15	transportation	caseAddress_address	t	t
-8405	15	transportation	caseAddress_coords	t	t
-8406	15	transportation	caseAddress_city	t	t
-8407	15	transportation	caseAddress_comment	t	t
-8408	15	transportation	fromToAddress_address	t	t
-8409	15	transportation	fromToAddress_coords	t	t
-8410	15	transportation	fromToAddress_city	t	t
-8411	15	transportation	fromToAddress_comment	t	t
-8412	15	transportation	payment_partnerCost	t	t
-8413	15	transportation	payment_costTranscript	t	t
-8414	15	transportation	payment_calculatedCost	t	f
-8415	15	transportation	payment_overcosted	t	f
-8416	15	transportation	payment_limitedCost	t	f
-8417	15	transportation	payment_paidByRUAMC	t	t
-8418	15	transportation	payment_paidByClient	t	t
-8419	15	transportation	bill_billNumber	t	f
-8420	15	transportation	bill_billingCost	t	f
-8421	15	transportation	bill_billingDate	t	f
-8422	15	transportation	times_expectedServiceStart	t	t
-8423	15	transportation	times_factServiceStart	t	t
-8424	15	transportation	times_expectedServiceEnd	t	t
-8425	15	transportation	times_factServiceEnd	t	t
-8538	16	case	dealerCause	t	t
-8426	15	transportation	times_expectedServiceFinancialClosure	t	t
-8427	15	transportation	times_factServiceFinancialClosure	t	t
-8428	15	transportation	times_expectedServiceClosure	t	t
-8429	15	transportation	times_factServiceClosure	t	t
-8430	15	transportation	times_repairEndDate	t	t
-8431	15	vin	program	t	f
-8432	16	action	comment	t	t
-8433	16	action	result	t	t
-8434	16	action	assignedTo	t	t
-8435	16	action	targetGroup	t	t
-8436	16	action	priority	t	t
-8437	16	action	closed	t	t
-8438	16	averageCommissioner	createTime	t	f
-8439	16	averageCommissioner	payType	t	t
-8440	16	averageCommissioner	falseCall	t	t
-8441	16	averageCommissioner	clientCancelReason	t	t
-8442	16	averageCommissioner	requestType	t	t
-8443	16	averageCommissioner	whatToSay1	t	t
-8444	16	averageCommissioner	activity	t	t
-8445	16	averageCommissioner	commMilage	t	t
-8446	16	averageCommissioner	status	t	t
-8447	16	averageCommissioner	clientSatisfied	t	t
-8448	16	averageCommissioner	warrantyCase	t	t
-8449	16	averageCommissioner	files	t	t
-8450	16	averageCommissioner	assignedTo	t	f
-8451	16	averageCommissioner	commAddress_address	t	t
-8452	16	averageCommissioner	commAddress_coords	t	t
-8453	16	averageCommissioner	commAddress_city	t	t
-8454	16	averageCommissioner	commAddress_comment	t	t
-8455	16	averageCommissioner	urgentService	t	t
-8456	16	averageCommissioner	payment_expectedCost	t	t
-8457	16	averageCommissioner	cost_countedCost	t	t
-8458	16	averageCommissioner	cost_counted	t	t
-8459	16	averageCommissioner	cost_serviceTarifOptions	t	t
-8460	16	averageCommissioner	payment_partnerCost	t	t
-8461	16	averageCommissioner	payment_costTranscript	t	t
-8462	16	averageCommissioner	payment_calculatedCost	t	f
-8463	16	averageCommissioner	payment_overcosted	t	f
-8464	16	averageCommissioner	payment_limitedCost	t	f
-8465	16	averageCommissioner	payment_paidByRUAMC	t	t
-8466	16	averageCommissioner	payment_paidByClient	t	t
-8467	16	averageCommissioner	contractor_partner	t	t
-8468	16	averageCommissioner	contractor_partnerTable	t	t
-8469	16	averageCommissioner	contractor_partnerCancel	t	t
-8470	16	averageCommissioner	contractor_address	t	t
-8471	16	averageCommissioner	bill_billNumber	t	f
-8472	16	averageCommissioner	bill_billingCost	t	f
-8473	16	averageCommissioner	bill_billingDate	t	f
-8474	16	averageCommissioner	times_expectedServiceStart	t	t
-8475	16	averageCommissioner	times_factServiceStart	t	t
-8476	16	averageCommissioner	times_expectedServiceEnd	t	t
-8477	16	averageCommissioner	times_factServiceEnd	t	t
-8478	16	averageCommissioner	times_expectedServiceFinancialClosure	t	t
-8479	16	averageCommissioner	times_factServiceFinancialClosure	t	t
-8480	16	averageCommissioner	times_expectedServiceClosure	t	t
-8481	16	averageCommissioner	times_factServiceClosure	t	t
-8482	16	averageCommissioner	times_repairEndDate	t	t
-8483	16	bank	createTime	t	f
-8484	16	bank	payType	t	t
-8485	16	bank	falseCall	t	t
-8486	16	bank	clientCancelReason	t	t
-8487	16	bank	requestType	t	t
-8488	16	bank	whatToSay1	t	t
-8489	16	bank	activity	t	t
-8490	16	bank	status	t	t
-8491	16	bank	clientSatisfied	t	t
-8492	16	bank	warrantyCase	t	t
-8493	16	bank	files	t	t
-8494	16	bank	assignedTo	t	f
-8495	16	bank	urgentService	t	t
-8496	16	bank	payment_expectedCost	t	t
-8497	16	bank	cost_countedCost	t	t
-8498	16	bank	cost_counted	t	t
-8499	16	bank	cost_serviceTarifOptions	t	t
-8500	16	bank	payment_partnerCost	t	t
-8501	16	bank	payment_costTranscript	t	t
-8502	16	bank	payment_calculatedCost	t	f
-8503	16	bank	payment_overcosted	t	f
-8504	16	bank	payment_limitedCost	t	f
-8505	16	bank	payment_paidByRUAMC	t	t
-8506	16	bank	payment_paidByClient	t	t
-8507	16	bank	contractor_partner	t	t
-8508	16	bank	contractor_partnerTable	t	t
-8509	16	bank	contractor_partnerCancel	t	t
-8510	16	bank	contractor_address	t	t
-8511	16	bank	bill_billNumber	t	f
-8512	16	bank	bill_billingCost	t	f
-8513	16	bank	bill_billingDate	t	f
-8514	16	bank	times_expectedServiceStart	t	t
-8515	16	bank	times_factServiceStart	t	t
-8516	16	bank	times_expectedServiceEnd	t	t
-8517	16	bank	times_factServiceEnd	t	t
-8518	16	bank	times_expectedServiceFinancialClosure	t	t
-8519	16	bank	times_factServiceFinancialClosure	t	t
-8520	16	bank	times_expectedServiceClosure	t	t
-8521	16	bank	times_factServiceClosure	t	t
-8522	16	bank	times_repairEndDate	t	t
-8523	16	call	callDate	t	t
-8524	16	call	callTaker	t	f
-8525	16	case	callDate	t	t
-8526	16	case	callTaker	t	f
-8527	16	case	comment	t	t
-8528	16	case	diagnosis1	t	t
-8529	16	case	diagnosis2	t	t
-8530	16	case	diagnosis3	t	t
-8531	16	case	diagnosis4	t	t
-8532	16	case	program	t	t
-8533	16	case	vinChecked	t	t
-8534	16	case	city	t	t
-8535	16	case	temperature	t	t
-8536	16	case	repair	t	t
-8537	16	case	accord	t	t
-8539	16	case	caseStatus	t	t
-8540	16	case	psaExportNeeded	t	t
-8541	16	case	psaExported	t	t
-8542	16	case	claim	t	t
-8543	16	case	betaComment	t	t
-8544	16	case	files	t	t
-8545	16	case	comments	t	t
-8546	16	case	caseAddress_address	t	t
-8547	16	case	contact_name	t	t
-8548	16	case	cardNumber_cardNumber	t	t
-8549	16	case	caseAddress_map	t	t
-8550	16	case	caseAddress_coords	t	t
-8551	16	case	caseAddress_city	t	t
-8552	16	case	caseAddress_comment	t	t
-8553	16	case	contact_email	t	t
-8554	16	case	contact_phone1	t	t
-8555	16	case	contact_phone2	t	t
-8556	16	case	contact_phone3	t	t
-8557	16	case	contact_phone4	t	t
-8558	16	case	contact_ownerName	t	t
-8559	16	case	contact_contactOwner	t	t
-8560	16	case	contact_ownerEmail	t	t
-8561	16	case	contact_ownerPhone1	t	t
-8562	16	case	contact_ownerPhone2	t	t
-8563	16	case	contact_ownerPhone3	t	t
-8564	16	case	contact_ownerPhone4	t	t
-8565	16	case	car_vin	t	t
-8566	16	case	car_seller	t	t
-8567	16	case	car_make	t	t
-8568	16	case	car_model	t	t
-8569	16	case	car_plateNum	t	t
-8570	16	case	car_color	t	t
-8571	16	case	car_transmission	t	t
-8572	16	case	car_engine	t	t
-8573	16	case	car_liters	t	t
-8574	16	case	car_capacity	t	t
-8575	16	case	car_dims	t	t
-8576	16	case	car_weight	t	t
-8577	16	case	car_checkPeriod	t	t
-8578	16	case	car_class	t	t
-8579	16	case	car_buyDate	t	t
-8580	16	case	car_mileage	t	t
-8581	16	case	car_checkupDate	t	t
-8582	16	case	car_checkupMileage	t	t
-8583	16	case	car_dealerTO	t	t
-8584	16	case	car_makeYear	t	t
-8585	16	case	car_warrantyStart	t	t
-8586	16	case	car_warrantyEnd	t	t
-8587	16	case	car_contractType	t	t
-8588	16	case	cardNumber_validFrom	t	f
-8589	16	case	cardNumber_validUntil	t	f
-8590	16	case	cardNumber_validUntilMilage	t	f
-8591	16	case	cardNumber_milageTO	t	f
-8592	16	case	cardNumber_serviceInterval	t	f
-8594	16	case	cardNumber_manager	t	f
-8595	16	consultation	createTime	t	f
-8596	16	consultation	payType	t	t
-8597	16	consultation	falseCall	t	t
-8598	16	consultation	clientCancelReason	t	t
-8599	16	consultation	consType	t	t
-8600	16	consultation	whatToSay1	t	t
-8601	16	consultation	orderNumber	t	t
-8602	16	consultation	status	t	t
-8603	16	consultation	result	t	t
-8604	16	consultation	clientSatisfied	t	t
-8605	16	consultation	warrantyCase	t	t
-8606	16	consultation	files	t	t
-8607	16	consultation	assignedTo	t	f
-8608	16	consultation	cost_countedCost	t	t
-8609	16	consultation	cost_counted	t	t
-8610	16	consultation	cost_serviceTarifOptions	t	t
-8611	16	consultation	urgentService	t	t
-8612	16	consultation	payment_partnerCost	t	t
-8613	16	consultation	payment_costTranscript	t	t
-8614	16	consultation	payment_calculatedCost	t	f
-8615	16	consultation	payment_overcosted	t	f
-8616	16	consultation	payment_limitedCost	t	f
-8617	16	consultation	payment_paidByRUAMC	t	t
-8618	16	consultation	payment_paidByClient	t	t
-8619	16	consultation	contractor_partner	t	t
-8620	16	consultation	contractor_partnerTable	t	t
-8621	16	consultation	contractor_partnerCancel	t	t
-8622	16	consultation	contractor_address	t	t
-8623	16	consultation	bill_billNumber	t	f
-8624	16	consultation	bill_billingCost	t	f
-8625	16	consultation	bill_billingDate	t	f
-8626	16	consultation	times_expectedServiceStart	t	t
-8627	16	consultation	times_factServiceStart	t	t
-8628	16	consultation	times_expectedServiceEnd	t	t
-8629	16	consultation	times_factServiceEnd	t	t
-8630	16	consultation	times_expectedServiceFinancialClosure	t	t
-8631	16	consultation	times_factServiceFinancialClosure	t	t
-8632	16	consultation	times_expectedServiceClosure	t	t
-8633	16	consultation	times_factServiceClosure	t	t
-8634	16	consultation	times_repairEndDate	t	t
-8635	16	continue	createTime	t	f
-8636	16	continue	payType	t	t
-8637	16	continue	falseCall	t	t
-8638	16	continue	clientCancelReason	t	t
-8639	16	continue	deliveryType	t	t
-8640	16	continue	status	t	t
-8641	16	continue	clientSatisfied	t	t
-8642	16	continue	warrantyCase	t	t
-8643	16	continue	files	t	t
-8644	16	continue	assignedTo	t	f
-8645	16	continue	urgentService	t	t
-8646	16	continue	payment_expectedCost	t	t
-8647	16	continue	cost_countedCost	t	t
-8648	16	continue	cost_counted	t	t
-8649	16	continue	cost_serviceTarifOptions	t	t
-8650	16	continue	payment_partnerCost	t	t
-8651	16	continue	payment_costTranscript	t	t
-8652	16	continue	payment_calculatedCost	t	f
-8653	16	continue	payment_overcosted	t	f
-8654	16	continue	payment_limitedCost	t	f
-8655	16	continue	payment_paidByRUAMC	t	t
-8656	16	continue	payment_paidByClient	t	t
-8997	16	rent	rentAddress_address	t	t
-8657	16	continue	deliverFrom_address	t	t
-8658	16	continue	deliverFrom_coords	t	t
-8659	16	continue	deliverFrom_city	t	t
-8660	16	continue	deliverFrom_comment	t	t
-8661	16	continue	deliverTo_address	t	t
-8662	16	continue	deliverTo_coords	t	t
-8663	16	continue	deliverTo_city	t	t
-8664	16	continue	deliverTo_comment	t	t
-8665	16	continue	contractor_partner	t	t
-8666	16	continue	contractor_partnerTable	t	t
-8667	16	continue	contractor_partnerCancel	t	t
-8668	16	continue	contractor_address	t	t
-8669	16	continue	bill_billNumber	t	f
-8670	16	continue	bill_billingCost	t	f
-8671	16	continue	bill_billingDate	t	f
-8672	16	continue	times_expectedServiceStart	t	t
-8673	16	continue	times_factServiceStart	t	t
-8674	16	continue	times_expectedServiceEnd	t	t
-8675	16	continue	times_factServiceEnd	t	t
-8676	16	continue	times_expectedServiceFinancialClosure	t	t
-8677	16	continue	times_factServiceFinancialClosure	t	t
-8678	16	continue	times_expectedServiceClosure	t	t
-8679	16	continue	times_factServiceClosure	t	t
-8680	16	continue	times_repairEndDate	t	t
-8681	16	deliverCar	createTime	t	f
-8682	16	deliverCar	payType	t	t
-8683	16	deliverCar	falseCall	t	t
-8684	16	deliverCar	clientCancelReason	t	t
-8685	16	deliverCar	marginalCost	t	f
-8686	16	deliverCar	status	t	t
-8687	16	deliverCar	clientSatisfied	t	t
-8688	16	deliverCar	warrantyCase	t	t
-8689	16	deliverCar	files	t	t
-8690	16	deliverCar	service_tarifOptions	t	t
-8691	16	deliverCar	assignedTo	t	f
-8692	16	deliverCar	falseCallPercent	t	f
-8693	16	deliverCar	toAddress_address	t	t
-8694	16	deliverCar	toAddress_coords	t	t
-8695	16	deliverCar	toAddress_city	t	t
-8696	16	deliverCar	toAddress_comment	t	t
-8697	16	deliverCar	urgentService	t	t
-8698	16	deliverCar	cost_countedCost	t	t
-8699	16	deliverCar	cost_counted	t	t
-8700	16	deliverCar	cost_serviceTarifOptions	t	t
-8701	16	deliverCar	payment_partnerCost	t	t
-8702	16	deliverCar	payment_costTranscript	t	t
-8703	16	deliverCar	payment_calculatedCost	t	f
-8704	16	deliverCar	payment_overcosted	t	f
-8705	16	deliverCar	payment_limitedCost	t	f
-8706	16	deliverCar	payment_payType	t	t
-8707	16	deliverCar	payment_paidByRUAMC	t	t
-8708	16	deliverCar	payment_paidByClient	t	t
-8709	16	deliverCar	bill_billNumber	t	f
-8710	16	deliverCar	bill_billingCost	t	f
-8711	16	deliverCar	bill_billingDate	t	f
-8712	16	deliverCar	times_expectedServiceStart	t	t
-8713	16	deliverCar	times_factServiceStart	t	t
-8714	16	deliverCar	times_expectedServiceEnd	t	t
-8715	16	deliverCar	times_factServiceEnd	t	t
-8716	16	deliverCar	times_expectedServiceFinancialClosure	t	t
-8717	16	deliverCar	times_factServiceFinancialClosure	t	t
-8718	16	deliverCar	times_expectedServiceClosure	t	t
-8719	16	deliverCar	times_factServiceClosure	t	t
-8720	16	deliverCar	times_repairEndDate	t	t
-8721	16	deliverClient	createTime	t	f
-8722	16	deliverClient	payType	t	t
-8723	16	deliverClient	falseCall	t	t
-8724	16	deliverClient	clientCancelReason	t	t
-8725	16	deliverClient	deliveryType	t	t
-8726	16	deliverClient	status	t	t
-8727	16	deliverClient	clientSatisfied	t	t
-8728	16	deliverClient	warrantyCase	t	t
-8729	16	deliverClient	files	t	t
-8730	16	deliverClient	assignedTo	t	f
-8731	16	deliverClient	falseCallPercent	t	f
-8732	16	deliverClient	cost_countedCost	t	t
-8733	16	deliverClient	urgentService	t	t
-8734	16	deliverClient	cost_counted	t	t
-8735	16	deliverClient	cost_serviceTarifOptions	t	t
-8736	16	deliverClient	payment_partnerCost	t	t
-8737	16	deliverClient	payment_costTranscript	t	t
-8738	16	deliverClient	payment_calculatedCost	t	f
-8739	16	deliverClient	payment_overcosted	t	f
-8740	16	deliverClient	payment_limitedCost	t	f
-8741	16	deliverClient	payment_paidByRUAMC	t	t
-8742	16	deliverClient	payment_paidByClient	t	t
-8743	16	deliverClient	deliverFrom_address	t	t
-8744	16	deliverClient	deliverFrom_coords	t	t
-8745	16	deliverClient	deliverFrom_city	t	t
-8746	16	deliverClient	deliverFrom_comment	t	t
-8747	16	deliverClient	deliverTo_address	t	t
-8748	16	deliverClient	deliverTo_coords	t	t
-8749	16	deliverClient	deliverTo_city	t	t
-8750	16	deliverClient	deliverTo_comment	t	t
-8751	16	deliverClient	contractor_partner	t	t
-8752	16	deliverClient	contractor_partnerTable	t	t
-8753	16	deliverClient	contractor_partnerCancel	t	t
-8754	16	deliverClient	contractor_address	t	t
-8755	16	deliverClient	bill_billNumber	t	f
-8756	16	deliverClient	bill_billingCost	t	f
-8757	16	deliverClient	bill_billingDate	t	f
-8758	16	deliverClient	times_expectedServiceStart	t	t
-8759	16	deliverClient	times_factServiceStart	t	t
-8760	16	deliverClient	times_expectedServiceEnd	t	t
-8761	16	deliverClient	times_factServiceEnd	t	t
-8762	16	deliverClient	times_expectedServiceFinancialClosure	t	t
-8763	16	deliverClient	times_factServiceFinancialClosure	t	t
-8764	16	deliverClient	times_expectedServiceClosure	t	t
-8765	16	deliverClient	times_factServiceClosure	t	t
-8766	16	deliverClient	times_repairEndDate	t	t
-8767	16	deliverParts	createTime	t	f
-8768	16	deliverParts	payType	t	t
-8769	16	deliverParts	falseCall	t	t
-8770	16	deliverParts	clientCancelReason	t	t
-8771	16	deliverParts	parts	t	t
-8772	16	deliverParts	marginalCost	t	f
-8773	16	deliverParts	status	t	t
-8774	16	deliverParts	clientSatisfied	t	t
-8775	16	deliverParts	warrantyCase	t	t
-8776	16	deliverParts	files	t	t
-8777	16	deliverParts	service_tarifOptions	t	t
-8778	16	deliverParts	assignedTo	t	f
-8891	16	insurance	createTime	t	f
-8779	16	deliverParts	falseCallPercent	t	f
-8780	16	deliverParts	toAddress_address	t	t
-8781	16	deliverParts	toAddress_coords	t	t
-8782	16	deliverParts	toAddress_city	t	t
-8783	16	deliverParts	toAddress_comment	t	t
-8784	16	deliverParts	cost_countedCost	t	t
-8785	16	deliverParts	urgentService	t	t
-8786	16	deliverParts	cost_counted	t	t
-8787	16	deliverParts	cost_serviceTarifOptions	t	t
-8788	16	deliverParts	payment_partnerCost	t	t
-8789	16	deliverParts	payment_costTranscript	t	t
-8790	16	deliverParts	payment_calculatedCost	t	f
-8791	16	deliverParts	payment_overcosted	t	f
-8792	16	deliverParts	payment_limitedCost	t	f
-8793	16	deliverParts	payment_paidByRUAMC	t	t
-8794	16	deliverParts	payment_paidByClient	t	t
-8795	16	deliverParts	bill_billNumber	t	f
-8796	16	deliverParts	bill_billingCost	t	f
-8797	16	deliverParts	bill_billingDate	t	f
-8798	16	deliverParts	times_expectedServiceStart	t	t
-8799	16	deliverParts	times_factServiceStart	t	t
-8800	16	deliverParts	times_expectedServiceEnd	t	t
-8801	16	deliverParts	times_factServiceEnd	t	t
-8802	16	deliverParts	times_expectedServiceFinancialClosure	t	t
-8803	16	deliverParts	times_factServiceFinancialClosure	t	t
-8804	16	deliverParts	times_expectedServiceClosure	t	t
-8805	16	deliverParts	times_factServiceClosure	t	t
-8806	16	deliverParts	times_repairEndDate	t	t
-8807	16	hotel	createTime	t	f
-8809	16	hotel	falseCall	t	t
-8810	16	hotel	clientCancelReason	t	t
-8811	16	hotel	marginalCost	t	f
-8812	16	hotel	providedFor	t	t
-8813	16	hotel	status	t	t
-8814	16	hotel	clientSatisfied	t	t
-8815	16	hotel	warrantyCase	t	t
-8816	16	hotel	files	t	t
-8817	16	hotel	service_tarifOptions	t	t
-8818	16	hotel	assignedTo	t	f
-8819	16	hotel	payment_partnerCost	t	t
-8820	16	hotel	payment_costTranscript	t	t
-8821	16	hotel	payment_calculatedCost	t	f
-8822	16	hotel	payment_overcosted	t	f
-8823	16	hotel	payment_limitedCost	t	f
-8824	16	hotel	payment_paidByRUAMC	t	t
-8825	16	hotel	payment_paidByClient	t	t
-8826	16	hotel	cost_countedCost	t	t
-8827	16	hotel	urgentService	t	t
-8828	16	hotel	cost_counted	t	t
-8829	16	hotel	cost_serviceTarifOptions	t	t
-8830	16	hotel	caseAddress_address	t	t
-8831	16	hotel	caseAddress_coords	t	t
-8832	16	hotel	caseAddress_city	t	t
-8833	16	hotel	caseAddress_comment	t	t
-8834	16	hotel	contractor_partner	t	t
-8835	16	hotel	contractor_partnerId	t	t
-8836	16	hotel	contractor_partnerTable	t	t
-8837	16	hotel	contractor_partnerCancel	t	t
-8838	16	hotel	contractor_address	t	t
-8839	16	hotel	bill_billNumber	t	f
-8840	16	hotel	bill_billingCost	t	f
-8841	16	hotel	bill_billingDate	t	f
-8842	16	hotel	times_expectedServiceStart	t	t
-8843	16	hotel	times_factServiceStart	t	t
-8844	16	hotel	times_expectedServiceEnd	t	t
-8845	16	hotel	times_factServiceEnd	t	t
-8846	16	hotel	times_expectedServiceFinancialClosure	t	t
-8847	16	hotel	times_factServiceFinancialClosure	t	t
-8848	16	hotel	times_expectedServiceClosure	t	t
-8849	16	hotel	times_factServiceClosure	t	t
-8850	16	hotel	times_repairEndDate	t	t
-8851	16	information	createTime	t	f
-8852	16	information	payType	t	t
-8853	16	information	falseCall	t	t
-8854	16	information	clientCancelReason	t	t
-8855	16	information	contact1	t	t
-8856	16	information	contactPhone1	t	t
-8857	16	information	whatToSay1	t	t
-8858	16	information	contact2	t	t
-8859	16	information	contactPhone2	t	t
-8860	16	information	whatToSay2	t	t
-8861	16	information	contact3	t	t
-8862	16	information	contactPhone3	t	t
-8863	16	information	whatToSay3	t	t
-8864	16	information	status	t	t
-8865	16	information	clientSatisfied	t	t
-8866	16	information	warrantyCase	t	t
-8867	16	information	files	t	t
-8868	16	information	assignedTo	t	f
-8869	16	information	falseCallPercent	t	f
-8870	16	information	urgentService	t	t
-8871	16	information	payment_expectedCost	t	t
-8872	16	information	payment_partnerCost	t	t
-8873	16	information	payment_costTranscript	t	t
-8874	16	information	payment_calculatedCost	t	f
-8875	16	information	payment_overcosted	t	f
-8876	16	information	payment_limitedCost	t	f
-8877	16	information	payment_paidByRUAMC	t	t
-8878	16	information	payment_paidByClient	t	t
-8879	16	information	bill_billNumber	t	f
-8880	16	information	bill_billingCost	t	f
-8881	16	information	bill_billingDate	t	f
-8882	16	information	times_expectedServiceStart	t	t
-8883	16	information	times_factServiceStart	t	t
-8884	16	information	times_expectedServiceEnd	t	t
-8885	16	information	times_factServiceEnd	t	t
-8886	16	information	times_expectedServiceFinancialClosure	t	t
-8887	16	information	times_factServiceFinancialClosure	t	t
-8888	16	information	times_expectedServiceClosure	t	t
-8889	16	information	times_factServiceClosure	t	t
-8890	16	information	times_repairEndDate	t	t
-8893	16	insurance	falseCall	t	t
-8894	16	insurance	clientCancelReason	t	t
-8895	16	insurance	requestType	t	t
-8896	16	insurance	whatToSay1	t	t
-8897	16	insurance	activity	t	t
-8898	16	insurance	commMilage	t	t
-8899	16	insurance	status	t	t
-8900	16	insurance	clientSatisfied	t	t
-8901	16	insurance	warrantyCase	t	t
-8902	16	insurance	files	t	t
-8903	16	insurance	assignedTo	t	f
-8904	16	insurance	commAddress_address	t	t
-8905	16	insurance	commAddress_coords	t	t
-8906	16	insurance	commAddress_city	t	t
-8907	16	insurance	commAddress_comment	t	t
-8908	16	insurance	cost_countedCost	t	t
-8909	16	insurance	urgentService	t	t
-8910	16	insurance	cost_counted	t	t
-8911	16	insurance	cost_serviceTarifOptions	t	t
-8912	16	insurance	payment_partnerCost	t	t
-8913	16	insurance	payment_costTranscript	t	t
-8914	16	insurance	payment_calculatedCost	t	f
-8915	16	insurance	payment_overcosted	t	f
-8916	16	insurance	payment_limitedCost	t	f
-8917	16	insurance	payment_paidByRUAMC	t	t
-8918	16	insurance	payment_paidByClient	t	t
-8919	16	insurance	contractor_partner	t	t
-8920	16	insurance	contractor_partnerTable	t	t
-8921	16	insurance	contractor_partnerCancel	t	t
-8922	16	insurance	contractor_address	t	t
-8923	16	insurance	bill_billNumber	t	f
-8924	16	insurance	bill_billingCost	t	f
-8925	16	insurance	bill_billingDate	t	f
-8926	16	insurance	times_expectedServiceStart	t	t
-8927	16	insurance	times_factServiceStart	t	t
-8928	16	insurance	times_expectedServiceEnd	t	t
-8929	16	insurance	times_factServiceEnd	t	t
-8930	16	insurance	times_expectedServiceFinancialClosure	t	t
-8931	16	insurance	times_factServiceFinancialClosure	t	t
-8932	16	insurance	times_expectedServiceClosure	t	t
-8933	16	insurance	times_factServiceClosure	t	t
-8934	16	insurance	times_repairEndDate	t	t
-8935	16	ken	createTime	t	f
-8936	16	ken	payType	t	t
-8937	16	ken	falseCall	t	t
-8938	16	ken	clientCancelReason	t	t
-8939	16	ken	requestType	t	t
-8940	16	ken	whatToSay1	t	t
-8941	16	ken	activity	t	t
-8942	16	ken	status	t	t
-8943	16	ken	clientSatisfied	t	t
-8944	16	ken	warrantyCase	t	t
-8945	16	ken	files	t	t
-8946	16	ken	assignedTo	t	f
-8947	16	ken	falseCallPercent	t	f
-8948	16	ken	cost_countedCost	t	t
-8949	16	ken	urgentService	t	t
-8950	16	ken	cost_counted	t	t
-8951	16	ken	cost_serviceTarifOptions	t	t
-8952	16	ken	payment_partnerCost	t	t
-8953	16	ken	payment_costTranscript	t	t
-8954	16	ken	payment_calculatedCost	t	f
-8955	16	ken	payment_overcosted	t	f
-8956	16	ken	payment_limitedCost	t	f
-8957	16	ken	payment_paidByRUAMC	t	t
-8958	16	ken	payment_paidByClient	t	t
-8959	16	ken	contractor_partner	t	t
-8960	16	ken	contractor_partnerTable	t	t
-8961	16	ken	contractor_partnerCancel	t	t
-8962	16	ken	contractor_address	t	t
-8963	16	ken	bill_billNumber	t	f
-8964	16	ken	bill_billingCost	t	f
-8965	16	ken	bill_billingDate	t	f
-8966	16	ken	times_expectedServiceStart	t	t
-8967	16	ken	times_factServiceStart	t	t
-8968	16	ken	times_expectedServiceEnd	t	t
-8969	16	ken	times_factServiceEnd	t	t
-8970	16	ken	times_expectedServiceFinancialClosure	t	t
-8971	16	ken	times_factServiceFinancialClosure	t	t
-8972	16	ken	times_expectedServiceClosure	t	t
-8973	16	ken	times_factServiceClosure	t	t
-8974	16	ken	times_repairEndDate	t	t
-8975	16	partner	comment	t	t
-8976	16	rent	createTime	t	f
-8977	16	rent	payType	t	t
-8978	16	rent	falseCall	t	t
-8979	16	rent	clientCancelReason	t	t
-8980	16	rent	vinRent	t	t
-8981	16	rent	carClass	t	t
-8982	16	rent	marginalCost	t	f
-8983	16	rent	providedFor	t	t
-8984	16	rent	rentedMake	t	t
-8985	16	rent	rentedModel	t	t
-8986	16	rent	status	t	t
-8987	16	rent	clientSatisfied	t	t
-8988	16	rent	orderNumber	t	t
-8989	16	rent	warrantyCase	t	t
-8990	16	rent	files	t	t
-8991	16	rent	assignedTo	t	f
-8992	16	rent	falseCallPercent	t	f
-8993	16	rent	cost_countedCost	t	t
-8994	16	rent	urgentService	t	t
-8995	16	rent	cost_counted	t	t
-8996	16	rent	cost_serviceTarifOptions	t	t
-8998	16	rent	rentAddress_coords	t	t
-8999	16	rent	rentAddress_city	t	t
-9000	16	rent	rentAddress_comment	t	t
-9001	16	rent	towDealer_partner	t	t
-9002	16	rent	towDealer_partnerTable	t	t
-9003	16	rent	towDealer_address	t	t
-9004	16	rent	contractor_partner	t	t
-9005	16	rent	contractor_partnerId	t	t
-9006	16	rent	contractor_partnerTable	t	t
-9007	16	rent	contractor_partnerCancel	t	t
-9008	16	rent	contractor_address	t	t
-9009	16	rent	payment_partnerCost	t	t
-9010	16	rent	payment_costTranscript	t	t
-9011	16	rent	payment_calculatedCost	t	f
-9012	16	rent	payment_overcosted	t	f
-9013	16	rent	payment_limitedCost	t	f
-9014	16	rent	payment_paidByRUAMC	t	t
-9015	16	rent	payment_paidByClient	t	t
-9016	16	rent	bill_billNumber	t	f
-9017	16	rent	bill_billingCost	t	f
-9018	16	rent	bill_billingDate	t	f
-9019	16	rent	times_expectedServiceStart	t	t
-9020	16	rent	times_factServiceStart	t	t
-9021	16	rent	times_expectedServiceEnd	t	t
-9022	16	rent	times_factServiceEnd	t	t
-9023	16	rent	times_expectedServiceFinancialClosure	t	t
-9024	16	rent	times_factServiceFinancialClosure	t	t
-9025	16	rent	times_expectedServiceClosure	t	t
-9026	16	rent	times_factServiceClosure	t	t
-9027	16	rent	times_repairEndDate	t	t
-9028	16	sober	createTime	t	f
-9029	16	sober	payType	t	t
-9030	16	sober	falseCall	t	t
-9031	16	sober	clientCancelReason	t	t
-9032	16	sober	marginalCost	t	f
-9033	16	sober	multidrive	t	t
-9034	16	sober	status	t	t
-9035	16	sober	clientSatisfied	t	t
-9036	16	sober	warrantyCase	t	t
-9037	16	sober	files	t	t
-9038	16	sober	service_tarifOptions	t	t
-9039	16	sober	assignedTo	t	f
-9040	16	sober	cost_countedCost	t	t
-9041	16	sober	urgentService	t	t
-9042	16	sober	cost_counted	t	t
-9043	16	sober	cost_serviceTarifOptions	t	t
-9044	16	sober	payment_partnerCost	t	t
-9045	16	sober	payment_costTranscript	t	t
-9046	16	sober	payment_calculatedCost	t	f
-9047	16	sober	payment_overcosted	t	f
-9048	16	sober	payment_limitedCost	t	f
-9049	16	sober	payment_paidByRUAMC	t	t
-9050	16	sober	payment_paidByClient	t	t
-9051	16	sober	fromAddress_address	t	t
-9052	16	sober	fromAddress_coords	t	t
-9053	16	sober	fromAddress_city	t	t
-9054	16	sober	fromAddress_comment	t	t
-9055	16	sober	toAddress_address	t	t
-9056	16	sober	toAddress_coords	t	t
-9057	16	sober	toAddress_city	t	t
-9058	16	sober	toAddress_comment	t	t
-9059	16	sober	contractor_partner	t	t
-9060	16	sober	contractor_partnerId	t	t
-9061	16	sober	contractor_partnerTable	t	t
-9062	16	sober	contractor_partnerCancel	t	t
-9063	16	sober	contractor_address	t	t
-9064	16	sober	bill_billNumber	t	f
-9065	16	sober	bill_billingCost	t	f
-9066	16	sober	bill_billingDate	t	f
-9067	16	sober	times_expectedServiceStart	t	t
-9068	16	sober	times_factServiceStart	t	t
-9069	16	sober	times_expectedServiceEnd	t	t
-9070	16	sober	times_factServiceEnd	t	t
-9071	16	sober	times_expectedServiceFinancialClosure	t	t
-9072	16	sober	times_factServiceFinancialClosure	t	t
-9073	16	sober	times_expectedServiceClosure	t	t
-9074	16	sober	times_factServiceClosure	t	t
-9075	16	sober	times_repairEndDate	t	t
-9076	16	taxi	createTime	t	f
-9077	16	taxi	payType	t	t
-9078	16	taxi	falseCall	t	t
-9079	16	taxi	clientCancelReason	t	t
-9080	16	taxi	marginalCost	t	f
-9081	16	taxi	status	t	t
-9082	16	taxi	clientSatisfied	t	t
-9083	16	taxi	warrantyCase	t	t
-9084	16	taxi	files	t	t
-9085	16	taxi	service_tarifOptions	t	t
-9086	16	taxi	assignedTo	t	f
-9087	16	taxi	falseCallPercent	t	f
-9088	16	taxi	cost_countedCost	t	t
-9089	16	taxi	urgentService	t	t
-9090	16	taxi	cost_counted	t	t
-9091	16	taxi	cost_serviceTarifOptions	t	t
-9092	16	taxi	payment_partnerCost	t	t
-9093	16	taxi	payment_costTranscript	t	t
-9094	16	taxi	payment_calculatedCost	t	f
-9095	16	taxi	payment_overcosted	t	f
-9096	16	taxi	payment_limitedCost	t	f
-9097	16	taxi	payment_paidByRUAMC	t	t
-9098	16	taxi	payment_paidByClient	t	t
-9099	16	taxi	taxiFrom_address	t	t
-9100	16	taxi	taxiFrom_coords	t	t
-9101	16	taxi	taxiFrom_city	t	t
-9102	16	taxi	taxiFrom_comment	t	t
-9103	16	taxi	taxiTo_address	t	t
-9104	16	taxi	taxiTo_coords	t	t
-9105	16	taxi	taxiTo_city	t	t
-9106	16	taxi	taxiTo_comment	t	t
-9107	16	taxi	contractor_partner	t	t
-9108	16	taxi	contractor_partnerTable	t	t
-9109	16	taxi	contractor_partnerCancel	t	t
-9110	16	taxi	contractor_address	t	t
-9111	16	taxi	bill_billNumber	t	f
-9112	16	taxi	bill_billingCost	t	f
-9113	16	taxi	bill_billingDate	t	f
-9114	16	taxi	times_expectedServiceStart	t	t
-9115	16	taxi	times_factServiceStart	t	t
-9116	16	taxi	times_expectedServiceEnd	t	t
-9117	16	taxi	times_factServiceEnd	t	t
-9118	16	taxi	times_expectedServiceFinancialClosure	t	t
-9119	16	taxi	times_factServiceFinancialClosure	t	t
-9120	16	taxi	times_expectedServiceClosure	t	t
-9121	16	taxi	times_factServiceClosure	t	t
-9122	16	taxi	times_repairEndDate	t	t
-9123	16	tech1	createTime	t	f
-9124	16	tech1	payType	t	t
-9125	16	tech1	falseCall	t	t
-9126	16	tech1	clientCancelReason	t	t
-9127	16	tech1	requestType	t	t
-9128	16	tech1	whatToSay1	t	t
-9129	16	tech1	activity	t	t
-9130	16	tech1	status	t	t
-9131	16	tech1	clientSatisfied	t	t
-9132	16	tech1	warrantyCase	t	t
-9133	16	tech1	files	t	t
-9134	16	tech1	cost_countedCost	t	t
-9135	16	tech1	urgentService	t	t
-9136	16	tech1	cost_counted	t	t
-9137	16	tech1	cost_serviceTarifOptions	t	t
-9138	16	tech1	payment_partnerCost	t	t
-9139	16	tech1	payment_costTranscript	t	t
-9140	16	tech1	payment_calculatedCost	t	f
-9141	16	tech1	payment_overcosted	t	f
-9142	16	tech1	payment_limitedCost	t	f
-9143	16	tech1	payment_paidByRUAMC	t	t
-9144	16	tech1	payment_paidByClient	t	t
-9145	16	tech1	contractor_partner	t	t
-9146	16	tech1	contractor_partnerTable	t	t
-9147	16	tech1	contractor_partnerCancel	t	t
-9148	16	tech1	contractor_address	t	t
-9149	16	tech1	bill_billNumber	t	f
-9150	16	tech1	bill_billingCost	t	f
-9151	16	tech1	bill_billingDate	t	f
-9152	16	tech1	times_expectedServiceStart	t	t
-9153	16	tech1	times_factServiceStart	t	t
-9154	16	tech1	times_expectedServiceEnd	t	t
-9155	16	tech1	times_factServiceEnd	t	t
-9156	16	tech1	times_expectedServiceFinancialClosure	t	t
-9157	16	tech1	times_factServiceFinancialClosure	t	t
-9158	16	tech1	times_expectedServiceClosure	t	t
-9159	16	tech1	times_factServiceClosure	t	t
-9160	16	tech1	times_repairEndDate	t	t
-9161	16	tech	createTime	t	f
-9162	16	tech	payType	t	t
-9163	16	tech	falseCall	t	t
-9164	16	tech	clientCancelReason	t	t
-9165	16	tech	techType	t	t
-9166	16	tech	marginalCost	t	f
-9167	16	tech	suburbanMilage	t	t
-9168	16	tech	orderNumber	t	t
-9169	16	tech	status	t	t
-9170	16	tech	clientSatisfied	t	t
-9171	16	tech	warrantyCase	t	t
-9172	16	tech	files	t	t
-9173	16	tech	service_tarifOptions	t	t
-9174	16	tech	assignedTo	t	f
-9175	16	tech	falseCallPercent	t	f
-9176	16	tech	payment_partnerCost	t	t
-9177	16	tech	payment_costTranscript	t	t
-9178	16	tech	payment_calculatedCost	t	f
-9179	16	tech	payment_overcosted	t	f
-9180	16	tech	payment_limitedCost	t	f
-9181	16	tech	cost_countedCost	t	t
-9182	16	tech	urgentService	t	t
-9183	16	tech	cost_counted	t	t
-9184	16	tech	cost_serviceTarifOptions	t	t
-9185	16	tech	payment_paidByRUAMC	t	t
-9186	16	tech	payment_paidByClient	t	t
-9187	16	tech	contractor_partner	t	t
-9188	16	tech	contractor_partnerId	t	t
-9189	16	tech	contractor_partnerTable	t	t
-9190	16	tech	contractor_partnerMap	t	t
-9191	16	tech	contractor_coords	t	t
-9192	16	tech	contractor_partnerCancel	t	t
-9193	16	tech	contractor_address	t	t
-9194	16	tech	bill_billNumber	t	f
-9195	16	tech	bill_billingCost	t	f
-9196	16	tech	bill_billingDate	t	f
-9197	16	tech	times_expectedServiceStart	t	t
-9198	16	tech	times_factServiceStart	t	t
-9199	16	tech	times_expectedServiceEnd	t	t
-9200	16	tech	times_factServiceEnd	t	t
-9201	16	tech	times_expectedServiceFinancialClosure	t	t
-9202	16	tech	times_factServiceFinancialClosure	t	t
-9203	16	tech	times_expectedServiceClosure	t	t
-9204	16	tech	times_factServiceClosure	t	t
-9205	16	tech	times_repairEndDate	t	t
-9206	16	tickets	createTime	t	f
-9207	16	tickets	payType	t	t
-9208	16	tickets	falseCall	t	t
-9209	16	tickets	clientCancelReason	t	t
-9210	16	tickets	deliveryType	t	t
-9211	16	tickets	status	t	t
-9212	16	tickets	clientSatisfied	t	t
-9213	16	tickets	warrantyCase	t	t
-9214	16	tickets	files	t	t
-9215	16	tickets	assignedTo	t	f
-9216	16	tickets	falseCallPercent	t	f
-9217	16	tickets	cost_countedCost	t	t
-9218	16	tickets	ticketsFrom_address	t	t
-9219	16	tickets	ticketsFrom_coords	t	t
-9220	16	tickets	ticketsFrom_city	t	t
-9221	16	tickets	ticketsFrom_comment	t	t
-9222	16	tickets	ticketsTo_address	t	t
-9223	16	tickets	ticketsTo_coords	t	t
-9224	16	tickets	ticketsTo_city	t	t
-9225	16	tickets	ticketsTo_comment	t	t
-9226	16	tickets	urgentService	t	t
-9227	16	tickets	cost_counted	t	t
-9228	16	tickets	cost_serviceTarifOptions	t	t
-9229	16	tickets	payment_partnerCost	t	t
-9230	16	tickets	payment_costTranscript	t	t
-9231	16	tickets	payment_calculatedCost	t	f
-9232	16	tickets	payment_overcosted	t	f
-9233	16	tickets	payment_limitedCost	t	f
-9234	16	tickets	payment_paidByRUAMC	t	t
-9235	16	tickets	payment_paidByClient	t	t
-9236	16	tickets	contractor_partner	t	t
-9237	16	tickets	contractor_partnerTable	t	t
-9238	16	tickets	contractor_partnerCancel	t	t
-9239	16	tickets	contractor_address	t	t
-9240	16	tickets	bill_billNumber	t	f
-9241	16	tickets	bill_billingCost	t	f
-9242	16	tickets	bill_billingDate	t	f
-9243	16	tickets	times_expectedServiceStart	t	t
-9244	16	tickets	times_factServiceStart	t	t
-9245	16	tickets	times_expectedServiceEnd	t	t
-9246	16	tickets	times_factServiceEnd	t	t
-9247	16	tickets	times_expectedServiceFinancialClosure	t	t
-9248	16	tickets	times_factServiceFinancialClosure	t	t
-9249	16	tickets	times_expectedServiceClosure	t	t
-9250	16	tickets	times_factServiceClosure	t	t
-9251	16	tickets	times_repairEndDate	t	t
-9252	16	towage	createTime	t	f
-9253	16	towage	payType	t	t
-9254	16	towage	falseCall	t	t
-9255	16	towage	clientCancelReason	t	t
-9256	16	towage	towerType	t	t
-9257	16	towage	towType	t	t
-9258	16	towage	vandalism	t	t
-9259	16	towage	accident	t	t
-9260	16	towage	dealerDistance	t	t
-9261	16	towage	marginalCost	t	f
-9262	16	towage	wheelsUnblocked	t	t
-9263	16	towage	canNeutral	t	t
-9264	16	towage	towingPointPresent	t	t
-9265	16	towage	manipulatorPossible	t	t
-9266	16	towage	suburbanMilage	t	t
-9267	16	towage	orderNumber	t	t
-9268	16	towage	repairEndDate	t	t
-9269	16	towage	status	t	t
-9270	16	towage	clientSatisfied	t	t
-9271	16	towage	warrantyCase	t	t
-9272	16	towage	files	t	t
-9273	16	towage	service_tarifOptions	t	t
-9274	16	towage	assignedTo	t	f
-9275	16	towage	falseCallPercent	t	f
-9276	16	towage	cost_countedCost	t	t
-9277	16	towage	urgentService	t	t
-9278	16	towage	cost_counted	t	t
-9279	16	towage	cost_serviceTarifOptions	t	t
-9280	16	towage	towAddress_address	t	t
-9281	16	towage	towAddress_coords	t	t
-9282	16	towage	towAddress_city	t	t
-9283	16	towage	towAddress_comment	t	t
-9284	16	towage	towAddress_map	t	t
-9285	16	towage	payment_partnerCost	t	t
-9286	16	towage	payment_costTranscript	t	t
-9287	16	towage	payment_calculatedCost	t	f
-9288	16	towage	payment_overcosted	t	f
-9289	16	towage	payment_limitedCost	t	f
-9290	16	towage	payment_paidByRUAMC	t	t
-9291	16	towage	payment_paidByClient	t	t
-9292	16	towage	towerAddress_address	t	t
-9293	16	towage	towerAddress_coords	t	t
-9294	16	towage	towerAddress_city	t	t
-9295	16	towage	towerAddress_comment	t	t
-9296	16	towage	towerAddress_map	t	t
-9297	16	towage	towDealer_partner	t	t
-9298	16	towage	towDealer_partnerId	t	t
-9299	16	towage	towDealer_partnerTable	t	t
-9300	16	towage	towDealer_partnerMap	t	t
-9301	16	towage	towDealer_coords	t	t
-9302	16	towage	towDealer_address	t	t
-9303	16	towage	contractor_partner	t	t
-9304	16	towage	contractor_partnerId	t	t
-9305	16	towage	contractor_partnerTable	t	t
-9306	16	towage	contractor_partnerMap	t	t
-9307	16	towage	contractor_coords	t	t
-9308	16	towage	contractor_partnerCancel	t	t
-9309	16	towage	contractor_address	t	t
-9310	16	towage	bill_billNumber	t	f
-9311	16	towage	bill_billingCost	t	f
-9312	16	towage	bill_billingDate	t	f
-9313	16	towage	times_expectedServiceStart	t	t
-9314	16	towage	times_factServiceStart	t	t
-9315	16	towage	times_expectedServiceEnd	t	t
-9316	16	towage	times_factServiceEnd	t	t
-9317	16	towage	times_expectedServiceFinancialClosure	t	t
-9318	16	towage	times_factServiceFinancialClosure	t	t
-9319	16	towage	times_expectedServiceClosure	t	t
-9320	16	towage	times_factServiceClosure	t	t
-9321	16	transportation	createTime	t	f
-9322	16	transportation	payType	t	t
-9323	16	transportation	falseCall	t	t
-9324	16	transportation	clientCancelReason	t	t
-9325	16	transportation	transportType	t	t
-9326	16	transportation	status	t	t
-9327	16	transportation	clientSatisfied	t	t
-9328	16	transportation	warrantyCase	t	t
-9329	16	transportation	files	t	t
-9330	16	transportation	assignedTo	t	f
-9331	16	transportation	falseCallPercent	t	f
-9332	16	transportation	cost_countedCost	t	t
-9333	16	transportation	urgentService	t	t
-9334	16	transportation	cost_counted	t	t
-9335	16	transportation	cost_serviceTarifOptions	t	t
-9336	16	transportation	caseAddress_address	t	t
-9337	16	transportation	caseAddress_coords	t	t
-9338	16	transportation	caseAddress_city	t	t
-9339	16	transportation	caseAddress_comment	t	t
-9340	16	transportation	fromToAddress_address	t	t
-9341	16	transportation	fromToAddress_coords	t	t
-9342	16	transportation	fromToAddress_city	t	t
-9343	16	transportation	fromToAddress_comment	t	t
-9344	16	transportation	payment_partnerCost	t	t
-9345	16	transportation	payment_costTranscript	t	t
-9346	16	transportation	payment_calculatedCost	t	f
-9347	16	transportation	payment_overcosted	t	f
-9348	16	transportation	payment_limitedCost	t	f
-9349	16	transportation	payment_paidByRUAMC	t	t
-9350	16	transportation	payment_paidByClient	t	t
-9565	17	continue	payType	t	t
-9351	16	transportation	bill_billNumber	t	f
-9352	16	transportation	bill_billingCost	t	f
-9353	16	transportation	bill_billingDate	t	f
-9354	16	transportation	times_expectedServiceStart	t	t
-9355	16	transportation	times_factServiceStart	t	t
-9356	16	transportation	times_expectedServiceEnd	t	t
-9357	16	transportation	times_factServiceEnd	t	t
-9358	16	transportation	times_expectedServiceFinancialClosure	t	t
-9359	16	transportation	times_factServiceFinancialClosure	t	t
-9360	16	transportation	times_expectedServiceClosure	t	t
-9361	16	transportation	times_factServiceClosure	t	t
-9362	16	transportation	times_repairEndDate	t	t
-9363	17	action	comment	t	t
-9364	17	action	result	t	t
-9365	17	action	assignedTo	t	t
-9366	17	action	targetGroup	t	t
-9367	17	action	priority	t	t
-9368	17	action	closed	t	t
-9369	17	averageCommissioner	createTime	t	f
-9370	17	averageCommissioner	payType	t	t
-9371	17	averageCommissioner	falseCall	t	t
-9372	17	averageCommissioner	clientCancelReason	t	t
-9373	17	averageCommissioner	requestType	t	t
-9374	17	averageCommissioner	whatToSay1	t	t
-9375	17	averageCommissioner	activity	t	t
-9376	17	averageCommissioner	commMilage	t	t
-9377	17	averageCommissioner	status	t	t
-9378	17	averageCommissioner	clientSatisfied	t	t
-9379	17	averageCommissioner	warrantyCase	t	t
-9380	17	averageCommissioner	files	t	t
-9381	17	averageCommissioner	assignedTo	t	f
-9382	17	averageCommissioner	commAddress_address	t	t
-9383	17	averageCommissioner	commAddress_coords	t	t
-9384	17	averageCommissioner	commAddress_city	t	t
-9385	17	averageCommissioner	commAddress_comment	t	t
-9386	17	averageCommissioner	urgentService	t	t
-9387	17	averageCommissioner	payment_expectedCost	t	t
-9388	17	averageCommissioner	cost_countedCost	t	t
-9389	17	averageCommissioner	cost_counted	t	t
-9390	17	averageCommissioner	cost_serviceTarifOptions	t	t
-9391	17	averageCommissioner	payment_partnerCost	t	t
-9392	17	averageCommissioner	payment_costTranscript	t	t
-9393	17	averageCommissioner	payment_calculatedCost	t	f
-9394	17	averageCommissioner	payment_overcosted	t	f
-9395	17	averageCommissioner	payment_limitedCost	t	f
-9396	17	averageCommissioner	payment_paidByRUAMC	t	t
-9397	17	averageCommissioner	payment_paidByClient	t	t
-9398	17	averageCommissioner	contractor_partner	t	t
-9399	17	averageCommissioner	contractor_partnerTable	t	t
-9400	17	averageCommissioner	contractor_partnerCancel	t	t
-9401	17	averageCommissioner	contractor_address	t	t
-9402	17	averageCommissioner	bill_billNumber	t	f
-9403	17	averageCommissioner	bill_billingCost	t	f
-9404	17	averageCommissioner	bill_billingDate	t	f
-9405	17	averageCommissioner	times_expectedServiceStart	t	t
-9406	17	averageCommissioner	times_factServiceStart	t	t
-9407	17	averageCommissioner	times_expectedServiceEnd	t	t
-9408	17	averageCommissioner	times_factServiceEnd	t	t
-9409	17	averageCommissioner	times_expectedServiceFinancialClosure	t	t
-9657	17	deliverClient	warrantyCase	t	t
-9410	17	averageCommissioner	times_factServiceFinancialClosure	t	t
-9411	17	averageCommissioner	times_expectedServiceClosure	t	t
-9412	17	averageCommissioner	times_factServiceClosure	t	t
-9413	17	averageCommissioner	times_repairEndDate	t	t
-9414	17	bank	createTime	t	f
-9415	17	bank	payType	t	t
-9416	17	bank	falseCall	t	t
-9417	17	bank	clientCancelReason	t	t
-9418	17	bank	requestType	t	t
-9419	17	bank	whatToSay1	t	t
-9420	17	bank	activity	t	t
-9421	17	bank	status	t	t
-9422	17	bank	clientSatisfied	t	t
-9423	17	bank	warrantyCase	t	t
-9424	17	bank	files	t	t
-9425	17	bank	assignedTo	t	f
-9426	17	bank	urgentService	t	t
-9427	17	bank	payment_expectedCost	t	t
-9428	17	bank	cost_countedCost	t	t
-9429	17	bank	cost_counted	t	t
-9430	17	bank	cost_serviceTarifOptions	t	t
-9431	17	bank	payment_partnerCost	t	t
-9432	17	bank	payment_costTranscript	t	t
-9433	17	bank	payment_calculatedCost	t	f
-9434	17	bank	payment_overcosted	t	f
-9435	17	bank	payment_limitedCost	t	f
-9436	17	bank	payment_paidByRUAMC	t	t
-9437	17	bank	payment_paidByClient	t	t
-9438	17	bank	contractor_partner	t	t
-9439	17	bank	contractor_partnerTable	t	t
-9440	17	bank	contractor_partnerCancel	t	t
-9441	17	bank	contractor_address	t	t
-9442	17	bank	bill_billNumber	t	f
-9443	17	bank	bill_billingCost	t	f
-9444	17	bank	bill_billingDate	t	f
-9445	17	bank	times_expectedServiceStart	t	t
-9446	17	bank	times_factServiceStart	t	t
-9447	17	bank	times_expectedServiceEnd	t	t
-9448	17	bank	times_factServiceEnd	t	t
-9449	17	bank	times_expectedServiceFinancialClosure	t	t
-9450	17	bank	times_factServiceFinancialClosure	t	t
-9451	17	bank	times_expectedServiceClosure	t	t
-9452	17	bank	times_factServiceClosure	t	t
-9453	17	bank	times_repairEndDate	t	t
-9454	17	call	callDate	t	t
-9455	17	call	callTaker	t	f
-9456	17	case	callDate	t	t
-9457	17	case	callTaker	t	f
-9458	17	case	comment	t	t
-9459	17	case	diagnosis1	t	t
-9460	17	case	diagnosis2	t	t
-9461	17	case	diagnosis3	t	t
-9462	17	case	diagnosis4	t	t
-9463	17	case	program	t	t
-9464	17	case	vinChecked	t	t
-9465	17	case	city	t	t
-9466	17	case	temperature	t	t
-9467	17	case	repair	t	t
-9468	17	case	accord	t	t
-9470	17	case	caseStatus	t	f
-9471	17	case	psaExported	t	t
-9472	17	case	claim	t	t
-9473	17	case	betaComment	t	t
-9474	17	case	files	t	t
-9475	17	case	comments	t	t
-9476	17	case	caseAddress_address	t	t
-9477	17	case	contact_name	t	t
-9478	17	case	cardNumber_cardNumber	t	t
-9479	17	case	caseAddress_map	t	t
-9480	17	case	caseAddress_coords	t	t
-9481	17	case	caseAddress_city	t	t
-9482	17	case	caseAddress_comment	t	t
-9483	17	case	contact_email	t	t
-9484	17	case	contact_phone1	t	t
-9485	17	case	contact_phone2	t	t
-9486	17	case	contact_phone3	t	t
-9487	17	case	contact_phone4	t	t
-9488	17	case	contact_ownerName	t	t
-9489	17	case	contact_contactOwner	t	t
-9490	17	case	contact_ownerEmail	t	t
-9491	17	case	contact_ownerPhone1	t	t
-9492	17	case	contact_ownerPhone2	t	t
-9493	17	case	contact_ownerPhone3	t	t
-9494	17	case	contact_ownerPhone4	t	t
-9495	17	case	car_vin	t	t
-9496	17	case	car_seller	t	t
-9497	17	case	car_make	t	t
-9498	17	case	car_model	t	t
-9499	17	case	car_plateNum	t	t
-9500	17	case	car_color	t	t
-9501	17	case	car_transmission	t	t
-9502	17	case	car_engine	t	t
-9503	17	case	car_liters	t	t
-9504	17	case	car_capacity	t	t
-9505	17	case	car_dims	t	t
-9506	17	case	car_weight	t	t
-9507	17	case	car_checkPeriod	t	t
-9508	17	case	car_class	t	t
-9509	17	case	car_buyDate	t	t
-9510	17	case	car_mileage	t	t
-9511	17	case	car_checkupDate	t	t
-9512	17	case	car_checkupMileage	t	t
-9513	17	case	car_dealerTO	t	t
-9514	17	case	car_makeYear	t	t
-9515	17	case	car_warrantyStart	t	t
-9516	17	case	car_warrantyEnd	t	t
-9517	17	case	car_contractType	t	t
-9518	17	case	cardNumber_validFrom	t	f
-9519	17	case	cardNumber_validUntil	t	f
-9520	17	case	cardNumber_validUntilMilage	t	f
-9521	17	case	cardNumber_milageTO	t	f
-9522	17	case	cardNumber_serviceInterval	t	f
-9524	17	case	cardNumber_manager	t	f
-9525	17	consultation	createTime	t	f
-9526	17	consultation	payType	t	t
-9527	17	consultation	falseCall	t	t
-9528	17	consultation	clientCancelReason	t	t
-9529	17	consultation	consType	t	t
-9530	17	consultation	whatToSay1	t	t
-9531	17	consultation	status	t	t
-9532	17	consultation	result	t	t
-9533	17	consultation	clientSatisfied	t	t
-9534	17	consultation	warrantyCase	t	t
-9535	17	consultation	files	t	t
-9536	17	consultation	assignedTo	t	f
-9537	17	consultation	cost_countedCost	t	t
-9538	17	consultation	cost_counted	t	t
-9539	17	consultation	cost_serviceTarifOptions	t	t
-9540	17	consultation	urgentService	t	t
-9541	17	consultation	payment_partnerCost	t	t
-9542	17	consultation	payment_costTranscript	t	t
-9543	17	consultation	payment_calculatedCost	t	f
-9544	17	consultation	payment_overcosted	t	f
-9545	17	consultation	payment_limitedCost	t	f
-9546	17	consultation	payment_paidByRUAMC	t	t
-9547	17	consultation	payment_paidByClient	t	t
-9548	17	consultation	contractor_partner	t	t
-9549	17	consultation	contractor_partnerTable	t	t
-9550	17	consultation	contractor_partnerCancel	t	t
-9551	17	consultation	contractor_address	t	t
-9552	17	consultation	bill_billNumber	t	f
-9553	17	consultation	bill_billingCost	t	f
-9554	17	consultation	bill_billingDate	t	f
-9555	17	consultation	times_expectedServiceStart	t	t
-9556	17	consultation	times_factServiceStart	t	t
-9557	17	consultation	times_expectedServiceEnd	t	t
-9558	17	consultation	times_factServiceEnd	t	t
-9559	17	consultation	times_expectedServiceFinancialClosure	t	t
-9560	17	consultation	times_factServiceFinancialClosure	t	t
-9561	17	consultation	times_expectedServiceClosure	t	t
-9562	17	consultation	times_factServiceClosure	t	t
-9563	17	consultation	times_repairEndDate	t	t
-9564	17	continue	createTime	t	f
-9566	17	continue	falseCall	t	t
-9567	17	continue	clientCancelReason	t	t
-9568	17	continue	deliveryType	t	t
-9569	17	continue	status	t	t
-9570	17	continue	clientSatisfied	t	t
-9571	17	continue	warrantyCase	t	t
-9572	17	continue	files	t	t
-9573	17	continue	assignedTo	t	f
-9574	17	continue	urgentService	t	t
-9575	17	continue	payment_expectedCost	t	t
-9576	17	continue	cost_countedCost	t	t
-9577	17	continue	cost_counted	t	t
-9578	17	continue	cost_serviceTarifOptions	t	t
-9579	17	continue	payment_partnerCost	t	t
-9580	17	continue	payment_costTranscript	t	t
-9581	17	continue	payment_calculatedCost	t	f
-9582	17	continue	payment_overcosted	t	f
-9583	17	continue	payment_limitedCost	t	f
-9584	17	continue	payment_paidByRUAMC	t	t
-9585	17	continue	payment_paidByClient	t	t
-9586	17	continue	deliverFrom_address	t	t
-9587	17	continue	deliverFrom_coords	t	t
-9588	17	continue	deliverFrom_city	t	t
-9589	17	continue	deliverFrom_comment	t	t
-9590	17	continue	deliverTo_address	t	t
-9591	17	continue	deliverTo_coords	t	t
-9592	17	continue	deliverTo_city	t	t
-9593	17	continue	deliverTo_comment	t	t
-9594	17	continue	contractor_partner	t	t
-9595	17	continue	contractor_partnerTable	t	t
-9596	17	continue	contractor_partnerCancel	t	t
-9597	17	continue	contractor_address	t	t
-9598	17	continue	bill_billNumber	t	f
-9599	17	continue	bill_billingCost	t	f
-9600	17	continue	bill_billingDate	t	f
-9601	17	continue	times_expectedServiceStart	t	t
-9602	17	continue	times_factServiceStart	t	t
-9603	17	continue	times_expectedServiceEnd	t	t
-9604	17	continue	times_factServiceEnd	t	t
-9605	17	continue	times_expectedServiceFinancialClosure	t	t
-9606	17	continue	times_factServiceFinancialClosure	t	t
-9607	17	continue	times_expectedServiceClosure	t	t
-9608	17	continue	times_factServiceClosure	t	t
-9609	17	continue	times_repairEndDate	t	t
-9610	17	deliverCar	createTime	t	f
-9611	17	deliverCar	payType	t	t
-9612	17	deliverCar	falseCall	t	t
-9613	17	deliverCar	clientCancelReason	t	t
-9614	17	deliverCar	marginalCost	t	f
-9615	17	deliverCar	status	t	t
-9616	17	deliverCar	clientSatisfied	t	t
-9617	17	deliverCar	warrantyCase	t	t
-9618	17	deliverCar	files	t	t
-9619	17	deliverCar	service_tarifOptions	t	t
-9620	17	deliverCar	assignedTo	t	f
-9621	17	deliverCar	falseCallPercent	t	f
-9622	17	deliverCar	toAddress_address	t	t
-9623	17	deliverCar	toAddress_coords	t	t
-9624	17	deliverCar	toAddress_city	t	t
-9625	17	deliverCar	toAddress_comment	t	t
-9626	17	deliverCar	urgentService	t	t
-9627	17	deliverCar	cost_countedCost	t	t
-9628	17	deliverCar	cost_counted	t	t
-9629	17	deliverCar	cost_serviceTarifOptions	t	t
-9630	17	deliverCar	payment_partnerCost	t	t
-9631	17	deliverCar	payment_costTranscript	t	t
-9632	17	deliverCar	payment_calculatedCost	t	f
-9633	17	deliverCar	payment_overcosted	t	f
-9634	17	deliverCar	payment_limitedCost	t	f
-9635	17	deliverCar	payment_payType	t	t
-9636	17	deliverCar	payment_paidByRUAMC	t	t
-9637	17	deliverCar	payment_paidByClient	t	t
-9638	17	deliverCar	bill_billNumber	t	f
-9639	17	deliverCar	bill_billingCost	t	f
-9640	17	deliverCar	bill_billingDate	t	f
-9641	17	deliverCar	times_expectedServiceStart	t	t
-9642	17	deliverCar	times_factServiceStart	t	t
-9643	17	deliverCar	times_expectedServiceEnd	t	t
-9644	17	deliverCar	times_factServiceEnd	t	t
-9645	17	deliverCar	times_expectedServiceFinancialClosure	t	t
-9646	17	deliverCar	times_factServiceFinancialClosure	t	t
-9647	17	deliverCar	times_expectedServiceClosure	t	t
-9648	17	deliverCar	times_factServiceClosure	t	t
-9649	17	deliverCar	times_repairEndDate	t	t
-9650	17	deliverClient	createTime	t	f
-9651	17	deliverClient	payType	t	t
-9652	17	deliverClient	falseCall	t	t
-9653	17	deliverClient	clientCancelReason	t	t
-9654	17	deliverClient	deliveryType	t	t
-9655	17	deliverClient	status	t	t
-9656	17	deliverClient	clientSatisfied	t	t
-9658	17	deliverClient	files	t	t
-9659	17	deliverClient	assignedTo	t	f
-9660	17	deliverClient	falseCallPercent	t	f
-9661	17	deliverClient	cost_countedCost	t	t
-9662	17	deliverClient	urgentService	t	t
-9663	17	deliverClient	cost_counted	t	t
-9664	17	deliverClient	cost_serviceTarifOptions	t	t
-9665	17	deliverClient	payment_partnerCost	t	t
-9666	17	deliverClient	payment_costTranscript	t	t
-9667	17	deliverClient	payment_calculatedCost	t	f
-9668	17	deliverClient	payment_overcosted	t	f
-9669	17	deliverClient	payment_limitedCost	t	f
-9670	17	deliverClient	payment_paidByRUAMC	t	t
-9671	17	deliverClient	payment_paidByClient	t	t
-9672	17	deliverClient	deliverFrom_address	t	t
-9673	17	deliverClient	deliverFrom_coords	t	t
-9674	17	deliverClient	deliverFrom_city	t	t
-9675	17	deliverClient	deliverFrom_comment	t	t
-9676	17	deliverClient	deliverTo_address	t	t
-9677	17	deliverClient	deliverTo_coords	t	t
-9678	17	deliverClient	deliverTo_city	t	t
-9679	17	deliverClient	deliverTo_comment	t	t
-9680	17	deliverClient	contractor_partner	t	t
-9681	17	deliverClient	contractor_partnerTable	t	t
-9682	17	deliverClient	contractor_partnerCancel	t	t
-9683	17	deliverClient	contractor_address	t	t
-9684	17	deliverClient	bill_billNumber	t	f
-9685	17	deliverClient	bill_billingCost	t	f
-9686	17	deliverClient	bill_billingDate	t	f
-9687	17	deliverClient	times_expectedServiceStart	t	t
-9688	17	deliverClient	times_factServiceStart	t	t
-9689	17	deliverClient	times_expectedServiceEnd	t	t
-9690	17	deliverClient	times_factServiceEnd	t	t
-9691	17	deliverClient	times_expectedServiceFinancialClosure	t	t
-9692	17	deliverClient	times_factServiceFinancialClosure	t	t
-9693	17	deliverClient	times_expectedServiceClosure	t	t
-9694	17	deliverClient	times_factServiceClosure	t	t
-9695	17	deliverClient	times_repairEndDate	t	t
-9696	17	deliverParts	createTime	t	f
-9697	17	deliverParts	payType	t	t
-9698	17	deliverParts	falseCall	t	t
-9699	17	deliverParts	clientCancelReason	t	t
-9700	17	deliverParts	parts	t	t
-9701	17	deliverParts	marginalCost	t	f
-9702	17	deliverParts	status	t	t
-9703	17	deliverParts	clientSatisfied	t	t
-9704	17	deliverParts	warrantyCase	t	t
-9705	17	deliverParts	files	t	t
-9706	17	deliverParts	service_tarifOptions	t	t
-9707	17	deliverParts	assignedTo	t	f
-9708	17	deliverParts	falseCallPercent	t	f
-9709	17	deliverParts	toAddress_address	t	t
-9710	17	deliverParts	toAddress_coords	t	t
-9711	17	deliverParts	toAddress_city	t	t
-9712	17	deliverParts	toAddress_comment	t	t
-9713	17	deliverParts	cost_countedCost	t	t
-9714	17	deliverParts	urgentService	t	t
-9715	17	deliverParts	cost_counted	t	t
-9716	17	deliverParts	cost_serviceTarifOptions	t	t
-9717	17	deliverParts	payment_partnerCost	t	t
-9718	17	deliverParts	payment_costTranscript	t	t
-9719	17	deliverParts	payment_calculatedCost	t	f
-9720	17	deliverParts	payment_overcosted	t	f
-9721	17	deliverParts	payment_limitedCost	t	f
-9722	17	deliverParts	payment_paidByRUAMC	t	t
-9723	17	deliverParts	payment_paidByClient	t	t
-9724	17	deliverParts	bill_billNumber	t	f
-9725	17	deliverParts	bill_billingCost	t	f
-9726	17	deliverParts	bill_billingDate	t	f
-9727	17	deliverParts	times_expectedServiceStart	t	t
-9728	17	deliverParts	times_factServiceStart	t	t
-9729	17	deliverParts	times_expectedServiceEnd	t	t
-9730	17	deliverParts	times_factServiceEnd	t	t
-9731	17	deliverParts	times_expectedServiceFinancialClosure	t	t
-9732	17	deliverParts	times_factServiceFinancialClosure	t	t
-9733	17	deliverParts	times_expectedServiceClosure	t	t
-9734	17	deliverParts	times_factServiceClosure	t	t
-9735	17	deliverParts	times_repairEndDate	t	t
-9736	17	hotel	createTime	t	f
-9737	17	hotel	payType	t	t
-9738	17	hotel	falseCall	t	t
-9739	17	hotel	clientCancelReason	t	t
-9740	17	hotel	marginalCost	t	f
-9741	17	hotel	providedFor	t	t
-9742	17	hotel	status	t	t
-9743	17	hotel	clientSatisfied	t	t
-9744	17	hotel	warrantyCase	t	t
-9745	17	hotel	files	t	t
-9746	17	hotel	service_tarifOptions	t	t
-9747	17	hotel	assignedTo	t	f
-9748	17	hotel	payment_partnerCost	t	t
-9749	17	hotel	payment_costTranscript	t	t
-9750	17	hotel	payment_calculatedCost	t	f
-9751	17	hotel	payment_overcosted	t	f
-9752	17	hotel	payment_limitedCost	t	f
-9753	17	hotel	payment_paidByRUAMC	t	t
-9754	17	hotel	payment_paidByClient	t	t
-9755	17	hotel	cost_countedCost	t	t
-9756	17	hotel	urgentService	t	t
-9757	17	hotel	cost_counted	t	t
-9758	17	hotel	cost_serviceTarifOptions	t	t
-9759	17	hotel	caseAddress_address	t	t
-9760	17	hotel	caseAddress_coords	t	t
-9761	17	hotel	caseAddress_city	t	t
-9762	17	hotel	caseAddress_comment	t	t
-9763	17	hotel	contractor_partner	t	t
-9764	17	hotel	contractor_partnerId	t	t
-9765	17	hotel	contractor_partnerTable	t	t
-9766	17	hotel	contractor_partnerCancel	t	t
-9767	17	hotel	contractor_address	t	t
-9768	17	hotel	bill_billNumber	t	f
-9769	17	hotel	bill_billingCost	t	f
-9770	17	hotel	bill_billingDate	t	f
-9771	17	hotel	times_expectedServiceStart	t	t
-9772	17	hotel	times_factServiceStart	t	t
-9773	17	hotel	times_expectedServiceEnd	t	t
-9774	17	hotel	times_factServiceEnd	t	t
-9775	17	hotel	times_expectedServiceFinancialClosure	t	t
-9776	17	hotel	times_factServiceFinancialClosure	t	t
-9777	17	hotel	times_expectedServiceClosure	t	t
-9778	17	hotel	times_factServiceClosure	t	t
-9779	17	hotel	times_repairEndDate	t	t
-9780	17	information	createTime	t	f
-9781	17	information	payType	t	t
-9782	17	information	falseCall	t	t
-9783	17	information	clientCancelReason	t	t
-9784	17	information	contact1	t	t
-9785	17	information	contactPhone1	t	t
-9786	17	information	whatToSay1	t	t
-9787	17	information	contact2	t	t
-9788	17	information	contactPhone2	t	t
-9789	17	information	whatToSay2	t	t
-9790	17	information	contact3	t	t
-9791	17	information	contactPhone3	t	t
-9792	17	information	whatToSay3	t	t
-9793	17	information	status	t	t
-9794	17	information	clientSatisfied	t	t
-9795	17	information	warrantyCase	t	t
-9796	17	information	files	t	t
-9797	17	information	assignedTo	t	f
-9798	17	information	falseCallPercent	t	f
-9799	17	information	urgentService	t	t
-9800	17	information	payment_expectedCost	t	t
-9801	17	information	payment_partnerCost	t	t
-9802	17	information	payment_costTranscript	t	t
-9803	17	information	payment_calculatedCost	t	f
-9804	17	information	payment_overcosted	t	f
-9805	17	information	payment_limitedCost	t	f
-9806	17	information	payment_paidByRUAMC	t	t
-9807	17	information	payment_paidByClient	t	t
-9808	17	information	bill_billNumber	t	f
-9809	17	information	bill_billingCost	t	f
-9810	17	information	bill_billingDate	t	f
-9811	17	information	times_expectedServiceStart	t	t
-9812	17	information	times_factServiceStart	t	t
-9813	17	information	times_expectedServiceEnd	t	t
-9814	17	information	times_factServiceEnd	t	t
-9815	17	information	times_expectedServiceFinancialClosure	t	t
-9816	17	information	times_factServiceFinancialClosure	t	t
-9817	17	information	times_expectedServiceClosure	t	t
-9818	17	information	times_factServiceClosure	t	t
-9819	17	information	times_repairEndDate	t	t
-9820	17	insurance	createTime	t	f
-9821	17	insurance	payType	t	t
-9822	17	insurance	falseCall	t	t
-9823	17	insurance	clientCancelReason	t	t
-9824	17	insurance	requestType	t	t
-9825	17	insurance	whatToSay1	t	t
-9826	17	insurance	activity	t	t
-9827	17	insurance	commMilage	t	t
-9828	17	insurance	status	t	t
-9829	17	insurance	clientSatisfied	t	t
-9830	17	insurance	warrantyCase	t	t
-9831	17	insurance	files	t	t
-9832	17	insurance	assignedTo	t	f
-9833	17	insurance	commAddress_address	t	t
-9834	17	insurance	commAddress_coords	t	t
-9835	17	insurance	commAddress_city	t	t
-9836	17	insurance	commAddress_comment	t	t
-9837	17	insurance	cost_countedCost	t	t
-9838	17	insurance	urgentService	t	t
-9839	17	insurance	cost_counted	t	t
-9840	17	insurance	cost_serviceTarifOptions	t	t
-9841	17	insurance	payment_partnerCost	t	t
-9842	17	insurance	payment_costTranscript	t	t
-9843	17	insurance	payment_calculatedCost	t	f
-9844	17	insurance	payment_overcosted	t	f
-9845	17	insurance	payment_limitedCost	t	f
-9846	17	insurance	payment_paidByRUAMC	t	t
-9847	17	insurance	payment_paidByClient	t	t
-9848	17	insurance	contractor_partner	t	t
-9849	17	insurance	contractor_partnerTable	t	t
-9850	17	insurance	contractor_partnerCancel	t	t
-9851	17	insurance	contractor_address	t	t
-9852	17	insurance	bill_billNumber	t	f
-9853	17	insurance	bill_billingCost	t	f
-9854	17	insurance	bill_billingDate	t	f
-9855	17	insurance	times_expectedServiceStart	t	t
-9856	17	insurance	times_factServiceStart	t	t
-9857	17	insurance	times_expectedServiceEnd	t	t
-9858	17	insurance	times_factServiceEnd	t	t
-9859	17	insurance	times_expectedServiceFinancialClosure	t	t
-9860	17	insurance	times_factServiceFinancialClosure	t	t
-9861	17	insurance	times_expectedServiceClosure	t	t
-9862	17	insurance	times_factServiceClosure	t	t
-9863	17	insurance	times_repairEndDate	t	t
-9865	17	ken	payType	t	t
-9866	17	ken	falseCall	t	t
-9867	17	ken	clientCancelReason	t	t
-9868	17	ken	requestType	t	t
-9869	17	ken	whatToSay1	t	t
-9870	17	ken	activity	t	t
-9871	17	ken	status	t	t
-9872	17	ken	clientSatisfied	t	t
-9873	17	ken	warrantyCase	t	t
-9874	17	ken	files	t	t
-9875	17	ken	assignedTo	t	f
-9876	17	ken	falseCallPercent	t	f
-9877	17	ken	cost_countedCost	t	t
-9878	17	ken	urgentService	t	t
-9879	17	ken	cost_counted	t	t
-9880	17	ken	cost_serviceTarifOptions	t	t
-9881	17	ken	payment_partnerCost	t	t
-9882	17	ken	payment_costTranscript	t	t
-9883	17	ken	payment_calculatedCost	t	f
-9884	17	ken	payment_overcosted	t	f
-9885	17	ken	payment_limitedCost	t	f
-9886	17	ken	payment_paidByRUAMC	t	t
-9887	17	ken	payment_paidByClient	t	t
-9888	17	ken	contractor_partner	t	t
-9889	17	ken	contractor_partnerTable	t	t
-9890	17	ken	contractor_partnerCancel	t	t
-9891	17	ken	contractor_address	t	t
-9892	17	ken	bill_billNumber	t	f
-9893	17	ken	bill_billingCost	t	f
-9894	17	ken	bill_billingDate	t	f
-9895	17	ken	times_expectedServiceStart	t	t
-9896	17	ken	times_factServiceStart	t	t
-9897	17	ken	times_expectedServiceEnd	t	t
-9898	17	ken	times_factServiceEnd	t	t
-9899	17	ken	times_expectedServiceFinancialClosure	t	t
-9900	17	ken	times_factServiceFinancialClosure	t	t
-9901	17	ken	times_expectedServiceClosure	t	t
-9902	17	ken	times_factServiceClosure	t	t
-9903	17	ken	times_repairEndDate	t	t
-9904	17	partner	comment	t	t
-9905	17	rent	createTime	t	f
-9906	17	rent	payType	t	t
-9907	17	rent	falseCall	t	t
-9908	17	rent	clientCancelReason	t	t
-9909	17	rent	vinRent	t	t
-9910	17	rent	carClass	t	t
-9911	17	rent	marginalCost	t	f
-9912	17	rent	providedFor	t	t
-9913	17	rent	rentedMake	t	t
-9914	17	rent	rentedModel	t	t
-9915	17	rent	status	t	t
-9916	17	rent	clientSatisfied	t	t
-9917	17	rent	warrantyCase	t	t
-9918	17	rent	files	t	t
-9919	17	rent	assignedTo	t	f
-9920	17	rent	falseCallPercent	t	f
-9921	17	rent	cost_countedCost	t	t
-9922	17	rent	urgentService	t	t
-9923	17	rent	cost_counted	t	t
-9924	17	rent	cost_serviceTarifOptions	t	t
-9925	17	rent	rentAddress_address	t	t
-9926	17	rent	rentAddress_coords	t	t
-9927	17	rent	rentAddress_city	t	t
-9928	17	rent	rentAddress_comment	t	t
-9929	17	rent	towDealer_partner	t	t
-9930	17	rent	towDealer_partnerTable	t	t
-9931	17	rent	towDealer_address	t	t
-9932	17	rent	contractor_partner	t	t
-9933	17	rent	contractor_partnerId	t	t
-9934	17	rent	contractor_partnerTable	t	t
-9935	17	rent	contractor_partnerCancel	t	t
-9936	17	rent	contractor_address	t	t
-9937	17	rent	payment_partnerCost	t	t
-9938	17	rent	payment_costTranscript	t	t
-9939	17	rent	payment_calculatedCost	t	f
-9940	17	rent	payment_overcosted	t	f
-9941	17	rent	payment_limitedCost	t	f
-9942	17	rent	payment_paidByRUAMC	t	t
-9943	17	rent	payment_paidByClient	t	t
-9944	17	rent	bill_billNumber	t	f
-9945	17	rent	bill_billingCost	t	f
-9946	17	rent	bill_billingDate	t	f
-9947	17	rent	times_expectedServiceStart	t	t
-9948	17	rent	times_factServiceStart	t	t
-9949	17	rent	times_expectedServiceEnd	t	t
-9950	17	rent	times_factServiceEnd	t	t
-9951	17	rent	times_expectedServiceFinancialClosure	t	t
-9952	17	rent	times_factServiceFinancialClosure	t	t
-9953	17	rent	times_expectedServiceClosure	t	t
-9954	17	rent	times_factServiceClosure	t	t
-9955	17	rent	times_repairEndDate	t	t
-9956	17	sober	createTime	t	f
-9957	17	sober	payType	t	t
-9958	17	sober	falseCall	t	t
-9959	17	sober	clientCancelReason	t	t
-9960	17	sober	marginalCost	t	f
-9961	17	sober	multidrive	t	t
-9962	17	sober	status	t	t
-9963	17	sober	clientSatisfied	t	t
-9964	17	sober	warrantyCase	t	t
-9965	17	sober	files	t	t
-9966	17	sober	service_tarifOptions	t	t
-9967	17	sober	assignedTo	t	f
-9968	17	sober	cost_countedCost	t	t
-9969	17	sober	urgentService	t	t
-9970	17	sober	cost_counted	t	t
-9971	17	sober	cost_serviceTarifOptions	t	t
-9972	17	sober	payment_partnerCost	t	t
-9973	17	sober	payment_costTranscript	t	t
-9974	17	sober	payment_calculatedCost	t	f
-9975	17	sober	payment_overcosted	t	f
-9976	17	sober	payment_limitedCost	t	f
-9977	17	sober	payment_paidByRUAMC	t	t
-9978	17	sober	payment_paidByClient	t	t
-9979	17	sober	fromAddress_address	t	t
-9980	17	sober	fromAddress_coords	t	t
-9981	17	sober	fromAddress_city	t	t
-9982	17	sober	fromAddress_comment	t	t
-9983	17	sober	toAddress_address	t	t
-9984	17	sober	toAddress_coords	t	t
-9985	17	sober	toAddress_city	t	t
-9986	17	sober	toAddress_comment	t	t
-9987	17	sober	contractor_partner	t	t
-9988	17	sober	contractor_partnerId	t	t
-9989	17	sober	contractor_partnerTable	t	t
-9990	17	sober	contractor_partnerCancel	t	t
-9991	17	sober	contractor_address	t	t
-9992	17	sober	bill_billNumber	t	f
-9993	17	sober	bill_billingCost	t	f
-9994	17	sober	bill_billingDate	t	f
-9995	17	sober	times_expectedServiceStart	t	t
-9996	17	sober	times_factServiceStart	t	t
-9997	17	sober	times_expectedServiceEnd	t	t
-9998	17	sober	times_factServiceEnd	t	t
-9999	17	sober	times_expectedServiceFinancialClosure	t	t
-10000	17	sober	times_factServiceFinancialClosure	t	t
-10001	17	sober	times_expectedServiceClosure	t	t
-10002	17	sober	times_factServiceClosure	t	t
-10003	17	sober	times_repairEndDate	t	t
-10004	17	taxi	createTime	t	f
-10005	17	taxi	payType	t	t
-10006	17	taxi	falseCall	t	t
-10007	17	taxi	clientCancelReason	t	t
-10008	17	taxi	marginalCost	t	f
-10009	17	taxi	status	t	t
-10011	17	taxi	warrantyCase	t	t
-10012	17	taxi	files	t	t
-10013	17	taxi	service_tarifOptions	t	t
-10014	17	taxi	assignedTo	t	f
-10015	17	taxi	falseCallPercent	t	f
-10016	17	taxi	cost_countedCost	t	t
-10017	17	taxi	urgentService	t	t
-10018	17	taxi	cost_counted	t	t
-10019	17	taxi	cost_serviceTarifOptions	t	t
-10020	17	taxi	payment_partnerCost	t	t
-10021	17	taxi	payment_costTranscript	t	t
-10022	17	taxi	payment_calculatedCost	t	f
-10023	17	taxi	payment_overcosted	t	f
-10024	17	taxi	payment_limitedCost	t	f
-10025	17	taxi	payment_paidByRUAMC	t	t
-10026	17	taxi	payment_paidByClient	t	t
-10027	17	taxi	taxiFrom_address	t	t
-10028	17	taxi	taxiFrom_coords	t	t
-10029	17	taxi	taxiFrom_city	t	t
-10030	17	taxi	taxiFrom_comment	t	t
-10031	17	taxi	taxiTo_address	t	t
-10032	17	taxi	taxiTo_coords	t	t
-10033	17	taxi	taxiTo_city	t	t
-10034	17	taxi	taxiTo_comment	t	t
-10035	17	taxi	contractor_partner	t	t
-10036	17	taxi	contractor_partnerTable	t	t
-10037	17	taxi	contractor_partnerCancel	t	t
-10038	17	taxi	contractor_address	t	t
-10039	17	taxi	bill_billNumber	t	f
-10040	17	taxi	bill_billingCost	t	f
-10041	17	taxi	bill_billingDate	t	f
-10042	17	taxi	times_expectedServiceStart	t	t
-10043	17	taxi	times_factServiceStart	t	t
-10044	17	taxi	times_expectedServiceEnd	t	t
-10045	17	taxi	times_factServiceEnd	t	t
-10046	17	taxi	times_expectedServiceFinancialClosure	t	t
-10047	17	taxi	times_factServiceFinancialClosure	t	t
-10048	17	taxi	times_expectedServiceClosure	t	t
-10049	17	taxi	times_factServiceClosure	t	t
-10050	17	taxi	times_repairEndDate	t	t
-10051	17	tech1	createTime	t	f
-10052	17	tech1	payType	t	t
-10053	17	tech1	falseCall	t	t
-10054	17	tech1	clientCancelReason	t	t
-10055	17	tech1	requestType	t	t
-10056	17	tech1	whatToSay1	t	t
-10057	17	tech1	activity	t	t
-10058	17	tech1	status	t	t
-10059	17	tech1	clientSatisfied	t	t
-10060	17	tech1	warrantyCase	t	t
-10061	17	tech1	files	t	t
-10062	17	tech1	cost_countedCost	t	t
-10063	17	tech1	urgentService	t	t
-10064	17	tech1	cost_counted	t	t
-10065	17	tech1	cost_serviceTarifOptions	t	t
-10066	17	tech1	payment_partnerCost	t	t
-10067	17	tech1	payment_costTranscript	t	t
-10068	17	tech1	payment_calculatedCost	t	f
-10069	17	tech1	payment_overcosted	t	f
-10070	17	tech1	payment_limitedCost	t	f
-10071	17	tech1	payment_paidByRUAMC	t	t
-10072	17	tech1	payment_paidByClient	t	t
-10073	17	tech1	contractor_partner	t	t
-10074	17	tech1	contractor_partnerTable	t	t
-10075	17	tech1	contractor_partnerCancel	t	t
-10076	17	tech1	contractor_address	t	t
-10077	17	tech1	bill_billNumber	t	f
-10078	17	tech1	bill_billingCost	t	f
-10079	17	tech1	bill_billingDate	t	f
-10080	17	tech1	times_expectedServiceStart	t	t
-10081	17	tech1	times_factServiceStart	t	t
-10082	17	tech1	times_expectedServiceEnd	t	t
-10083	17	tech1	times_factServiceEnd	t	t
-10084	17	tech1	times_expectedServiceFinancialClosure	t	t
-10085	17	tech1	times_factServiceFinancialClosure	t	t
-10086	17	tech1	times_expectedServiceClosure	t	t
-10087	17	tech1	times_factServiceClosure	t	t
-10088	17	tech1	times_repairEndDate	t	t
-10089	17	tech	createTime	t	f
-10090	17	tech	payType	t	t
-10091	17	tech	falseCall	t	t
-10092	17	tech	clientCancelReason	t	t
-10093	17	tech	techType	t	t
-10094	17	tech	marginalCost	t	f
-10095	17	tech	suburbanMilage	t	t
-10096	17	tech	status	t	t
-10097	17	tech	clientSatisfied	t	t
-10098	17	tech	warrantyCase	t	t
-10099	17	tech	files	t	t
-10100	17	tech	service_tarifOptions	t	t
-10101	17	tech	assignedTo	t	f
-10102	17	tech	falseCallPercent	t	f
-10103	17	tech	payment_partnerCost	t	t
-10104	17	tech	payment_costTranscript	t	t
-10105	17	tech	payment_calculatedCost	t	f
-10106	17	tech	payment_overcosted	t	f
-10107	17	tech	payment_limitedCost	t	f
-10108	17	tech	cost_countedCost	t	t
-10109	17	tech	urgentService	t	t
-10110	17	tech	cost_counted	t	t
-10111	17	tech	cost_serviceTarifOptions	t	t
-10112	17	tech	payment_paidByRUAMC	t	t
-10113	17	tech	payment_paidByClient	t	t
-10114	17	tech	contractor_partner	t	t
-10115	17	tech	contractor_partnerId	t	t
-10116	17	tech	contractor_partnerTable	t	t
-10117	17	tech	contractor_partnerMap	t	t
-10118	17	tech	contractor_coords	t	t
-10119	17	tech	contractor_partnerCancel	t	t
-10120	17	tech	contractor_address	t	t
-10121	17	tech	bill_billNumber	t	f
-10122	17	tech	bill_billingCost	t	f
-10123	17	tech	bill_billingDate	t	f
-10124	17	tech	times_expectedServiceStart	t	t
-10125	17	tech	times_factServiceStart	t	t
-10126	17	tech	times_expectedServiceEnd	t	t
-10127	17	tech	times_factServiceEnd	t	t
-10128	17	tech	times_expectedServiceFinancialClosure	t	t
-10129	17	tech	times_factServiceFinancialClosure	t	t
-10130	17	tech	times_expectedServiceClosure	t	t
-10131	17	tech	times_factServiceClosure	t	t
-10132	17	tech	times_repairEndDate	t	t
-10133	17	tickets	createTime	t	f
-10134	17	tickets	payType	t	t
-10135	17	tickets	falseCall	t	t
-10136	17	tickets	clientCancelReason	t	t
-10137	17	tickets	deliveryType	t	t
-10138	17	tickets	status	t	t
-10139	17	tickets	clientSatisfied	t	t
-10140	17	tickets	warrantyCase	t	t
-10141	17	tickets	files	t	t
-10142	17	tickets	assignedTo	t	f
-10143	17	tickets	falseCallPercent	t	f
-10144	17	tickets	cost_countedCost	t	t
-10145	17	tickets	ticketsFrom_address	t	t
-10146	17	tickets	ticketsFrom_coords	t	t
-10147	17	tickets	ticketsFrom_city	t	t
-10148	17	tickets	ticketsFrom_comment	t	t
-10149	17	tickets	ticketsTo_address	t	t
-10150	17	tickets	ticketsTo_coords	t	t
-10151	17	tickets	ticketsTo_city	t	t
-10152	17	tickets	ticketsTo_comment	t	t
-10153	17	tickets	urgentService	t	t
-10154	17	tickets	cost_counted	t	t
-10155	17	tickets	cost_serviceTarifOptions	t	t
-10156	17	tickets	payment_partnerCost	t	t
-10157	17	tickets	payment_costTranscript	t	t
-10158	17	tickets	payment_calculatedCost	t	f
-10159	17	tickets	payment_overcosted	t	f
-10160	17	tickets	payment_limitedCost	t	f
-10161	17	tickets	payment_paidByRUAMC	t	t
-10162	17	tickets	payment_paidByClient	t	t
-10163	17	tickets	contractor_partner	t	t
-10164	17	tickets	contractor_partnerTable	t	t
-10165	17	tickets	contractor_partnerCancel	t	t
-10166	17	tickets	contractor_address	t	t
-10167	17	tickets	bill_billNumber	t	f
-10168	17	tickets	bill_billingCost	t	f
-10169	17	tickets	bill_billingDate	t	f
-10170	17	tickets	times_expectedServiceStart	t	t
-10171	17	tickets	times_factServiceStart	t	t
-10172	17	tickets	times_expectedServiceEnd	t	t
-10173	17	tickets	times_factServiceEnd	t	t
-10174	17	tickets	times_expectedServiceFinancialClosure	t	t
-10175	17	tickets	times_factServiceFinancialClosure	t	t
-10176	17	tickets	times_expectedServiceClosure	t	t
-10177	17	tickets	times_factServiceClosure	t	t
-10178	17	tickets	times_repairEndDate	t	t
-10179	17	towage	createTime	t	f
-10180	17	towage	payType	t	t
-10181	17	towage	falseCall	t	t
-10182	17	towage	clientCancelReason	t	t
-10183	17	towage	towerType	t	t
-10184	17	towage	towType	t	t
-10185	17	towage	vandalism	t	t
-10186	17	towage	accident	t	t
-10187	17	towage	dealerDistance	t	t
-10188	17	towage	marginalCost	t	f
-10189	17	towage	wheelsUnblocked	t	t
-10190	17	towage	canNeutral	t	t
-10191	17	towage	towingPointPresent	t	t
-10192	17	towage	manipulatorPossible	t	t
-10193	17	towage	suburbanMilage	t	t
-10194	17	towage	repairEndDate	t	t
-10195	17	towage	status	t	t
-10196	17	towage	clientSatisfied	t	t
-10197	17	towage	warrantyCase	t	t
-10198	17	towage	files	t	t
-10199	17	towage	service_tarifOptions	t	t
-10200	17	towage	assignedTo	t	f
-10201	17	towage	falseCallPercent	t	f
-10202	17	towage	cost_countedCost	t	t
-10203	17	towage	urgentService	t	t
-10204	17	towage	cost_counted	t	t
-10205	17	towage	cost_serviceTarifOptions	t	t
-10206	17	towage	towAddress_address	t	t
-10207	17	towage	towAddress_coords	t	t
-10208	17	towage	towAddress_city	t	t
-10209	17	towage	towAddress_comment	t	t
-10210	17	towage	towAddress_map	t	t
-10211	17	towage	payment_partnerCost	t	t
-10212	17	towage	payment_costTranscript	t	t
-10213	17	towage	payment_calculatedCost	t	f
-10214	17	towage	payment_overcosted	t	f
-10215	17	towage	payment_limitedCost	t	f
-10216	17	towage	payment_paidByRUAMC	t	t
-10217	17	towage	payment_paidByClient	t	t
-10218	17	towage	towerAddress_address	t	t
-10219	17	towage	towerAddress_coords	t	t
-10220	17	towage	towerAddress_city	t	t
-10221	17	towage	towerAddress_comment	t	t
-10222	17	towage	towerAddress_map	t	t
-10223	17	towage	towDealer_partner	t	t
-10224	17	towage	towDealer_partnerId	t	t
-10225	17	towage	towDealer_partnerTable	t	t
-10226	17	towage	towDealer_partnerMap	t	t
-10227	17	towage	towDealer_coords	t	t
-10228	17	towage	towDealer_address	t	t
-10229	17	towage	contractor_partner	t	t
-10230	17	towage	contractor_partnerId	t	t
-10231	17	towage	contractor_partnerTable	t	t
-10232	17	towage	contractor_partnerMap	t	t
-10233	17	towage	contractor_coords	t	t
-10234	17	towage	contractor_partnerCancel	t	t
-10235	17	towage	contractor_address	t	t
-10236	17	towage	bill_billNumber	t	f
-10237	17	towage	bill_billingCost	t	f
-10238	17	towage	bill_billingDate	t	f
-10239	17	towage	times_expectedServiceStart	t	t
-10240	17	towage	times_factServiceStart	t	t
-10241	17	towage	times_expectedServiceEnd	t	t
-10242	17	towage	times_factServiceEnd	t	t
-10243	17	towage	times_expectedServiceFinancialClosure	t	t
-10244	17	towage	times_factServiceFinancialClosure	t	t
-10245	17	towage	times_expectedServiceClosure	t	t
-10246	17	towage	times_factServiceClosure	t	t
-10247	17	transportation	createTime	t	f
-10248	17	transportation	payType	t	t
-10249	17	transportation	falseCall	t	t
-10250	17	transportation	clientCancelReason	t	t
-10251	17	transportation	transportType	t	t
-10252	17	transportation	status	t	t
-10253	17	transportation	clientSatisfied	t	t
-10254	17	transportation	warrantyCase	t	t
-10255	17	transportation	files	t	t
-10256	17	transportation	assignedTo	t	f
-10257	17	transportation	falseCallPercent	t	f
-10258	17	transportation	cost_countedCost	t	t
-10259	17	transportation	urgentService	t	t
-10260	17	transportation	cost_counted	t	t
-10261	17	transportation	cost_serviceTarifOptions	t	t
-10262	17	transportation	caseAddress_address	t	t
-10263	17	transportation	caseAddress_coords	t	t
-10264	17	transportation	caseAddress_city	t	t
-10265	17	transportation	caseAddress_comment	t	t
-10266	17	transportation	fromToAddress_address	t	t
-10267	17	transportation	fromToAddress_coords	t	t
-10268	17	transportation	fromToAddress_city	t	t
-10269	17	transportation	fromToAddress_comment	t	t
-10270	17	transportation	payment_partnerCost	t	t
-10271	17	transportation	payment_costTranscript	t	t
-10272	17	transportation	payment_calculatedCost	t	f
-10273	17	transportation	payment_overcosted	t	f
-10274	17	transportation	payment_limitedCost	t	f
-10275	17	transportation	payment_paidByRUAMC	t	t
-10276	17	transportation	payment_paidByClient	t	t
-10277	17	transportation	bill_billNumber	t	f
-10278	17	transportation	bill_billingCost	t	f
-10279	17	transportation	bill_billingDate	t	f
-10280	17	transportation	times_expectedServiceStart	t	t
-10281	17	transportation	times_factServiceStart	t	t
-10282	17	transportation	times_expectedServiceEnd	t	t
-10283	17	transportation	times_factServiceEnd	t	t
-10284	17	transportation	times_expectedServiceFinancialClosure	t	t
-10285	17	transportation	times_factServiceFinancialClosure	t	t
-10286	17	transportation	times_expectedServiceClosure	t	t
-10287	17	transportation	times_factServiceClosure	t	t
-10288	17	transportation	times_repairEndDate	t	t
-10289	10	averageCommissioner	createTime	t	f
-10290	10	averageCommissioner	payType	t	f
-10291	10	averageCommissioner	falseCall	t	f
-10292	10	averageCommissioner	clientCancelReason	t	f
-10293	10	averageCommissioner	requestType	t	f
-10294	10	averageCommissioner	whatToSay1	t	f
-10295	10	averageCommissioner	activity	t	f
-10296	10	averageCommissioner	commMilage	t	f
-10297	10	averageCommissioner	status	t	f
-10298	10	averageCommissioner	clientSatisfied	t	f
-10299	10	averageCommissioner	warrantyCase	t	f
-10300	10	averageCommissioner	files	t	f
-10301	10	averageCommissioner	assignedTo	t	f
-10302	10	averageCommissioner	commAddress_address	t	f
-10303	10	averageCommissioner	commAddress_coords	t	f
-10304	10	averageCommissioner	commAddress_city	t	f
-10305	10	averageCommissioner	commAddress_comment	t	f
-10306	10	averageCommissioner	cost_countedCost	t	f
-10307	10	averageCommissioner	cost_counted	t	f
-10308	10	averageCommissioner	cost_serviceTarifOptions	t	f
-10309	10	averageCommissioner	contractor_partner	t	f
-10310	10	averageCommissioner	contractor_partnerTable	t	f
-10311	10	averageCommissioner	contractor_partnerCancel	t	f
-10312	10	averageCommissioner	contractor_address	t	f
-10313	10	averageCommissioner	times_expectedServiceStart	t	f
-10314	10	bank	createTime	t	f
-10315	10	bank	payType	t	f
-10316	10	bank	falseCall	t	f
-10317	10	bank	clientCancelReason	t	f
-10318	10	bank	requestType	t	f
-10319	10	bank	whatToSay1	t	f
-10320	10	bank	activity	t	f
-10321	10	bank	status	t	f
-10322	10	bank	clientSatisfied	t	f
-10323	10	bank	warrantyCase	t	f
-10324	10	bank	files	t	f
-10325	10	bank	assignedTo	t	f
-10326	10	bank	cost_countedCost	t	f
-10327	10	bank	cost_counted	t	f
-10328	10	bank	cost_serviceTarifOptions	t	f
-10329	10	bank	contractor_partner	t	f
-10330	10	bank	contractor_partnerTable	t	f
-10331	10	bank	contractor_partnerCancel	t	f
-10332	10	bank	contractor_address	t	f
-10333	10	bank	times_expectedServiceStart	t	f
-10334	10	call	callDate	t	f
-10335	10	call	callTaker	t	f
-10337	10	case	callTaker	t	f
-10338	10	case	comment	t	f
-10339	10	case	diagnosis1	t	f
-10340	10	case	diagnosis2	t	f
-10341	10	case	diagnosis3	t	f
-10342	10	case	diagnosis4	t	f
-10343	10	case	program	t	f
-10344	10	case	vinChecked	t	f
-10345	10	case	city	t	f
-10346	10	case	temperature	t	f
-10347	10	case	repair	t	f
-10348	10	case	dealerCause	t	f
-10349	10	case	caseStatus	t	f
-10350	10	case	claim	t	f
-10351	10	case	betaComment	t	f
-10352	10	case	files	t	f
-10353	10	case	comments	t	f
-10354	10	case	caseAddress_address	t	f
-10355	10	case	contact_name	t	f
-10356	10	case	cardNumber_cardNumber	t	f
-10357	10	case	caseAddress_map	t	f
-10358	10	case	caseAddress_coords	t	f
-10359	10	case	caseAddress_city	t	f
-10360	10	case	caseAddress_comment	t	f
-10361	10	case	contact_email	t	f
-10362	10	case	contact_phone1	t	f
-10363	10	case	contact_phone2	t	f
-10364	10	case	contact_phone3	t	f
-10365	10	case	contact_phone4	t	f
-10366	10	case	contact_ownerName	t	f
-10367	10	case	contact_contactOwner	t	f
-10368	10	case	contact_ownerEmail	t	f
-10369	10	case	contact_ownerPhone1	t	f
-10370	10	case	contact_ownerPhone2	t	f
-10371	10	case	contact_ownerPhone3	t	f
-10372	10	case	contact_ownerPhone4	t	f
-10373	10	case	car_vin	t	f
-10374	10	case	car_seller	t	f
-10375	10	case	car_make	t	f
-10376	10	case	car_model	t	f
-10377	10	case	car_plateNum	t	f
-10378	10	case	car_color	t	f
-10379	10	case	car_transmission	t	f
-10380	10	case	car_engine	t	f
-10381	10	case	car_liters	t	f
-10382	10	case	car_capacity	t	f
-10383	10	case	car_dims	t	f
-10384	10	case	car_weight	t	f
-10385	10	case	car_checkPeriod	t	f
-10386	10	case	car_class	t	f
-10387	10	case	car_buyDate	t	f
-10388	10	case	car_mileage	t	f
-10389	10	case	car_checkupDate	t	f
-10390	10	case	car_checkupMileage	t	f
-10391	10	case	car_dealerTO	t	f
-10392	10	case	car_makeYear	t	f
-10393	10	case	car_warrantyStart	t	f
-10394	10	case	car_warrantyEnd	t	f
-10395	10	case	car_contractType	t	f
-10396	10	case	cardNumber_validFrom	t	f
-10397	10	case	cardNumber_validUntil	t	f
-10398	10	case	cardNumber_validUntilMilage	t	f
-10399	10	case	cardNumber_milageTO	t	f
-10400	10	case	cardNumber_serviceInterval	t	f
-10402	10	case	cardNumber_manager	t	f
-10403	10	consultation	createTime	t	f
-10404	10	consultation	payType	t	f
-10405	10	consultation	falseCall	t	f
-10406	10	consultation	clientCancelReason	t	f
-10407	10	consultation	consType	t	f
-10408	10	consultation	whatToSay1	t	f
-10409	10	consultation	status	t	f
-10410	10	consultation	result	t	f
-10411	10	consultation	clientSatisfied	t	f
-10412	10	consultation	warrantyCase	t	f
-10413	10	consultation	files	t	f
-10414	10	consultation	assignedTo	t	f
-10415	10	consultation	cost_countedCost	t	f
-10416	10	consultation	cost_counted	t	f
-10417	10	consultation	cost_serviceTarifOptions	t	f
-10418	10	consultation	contractor_partner	t	f
-10419	10	consultation	contractor_partnerTable	t	f
-10420	10	consultation	contractor_partnerCancel	t	f
-10421	10	consultation	contractor_address	t	f
-10422	10	consultation	times_expectedServiceStart	t	f
-10423	10	continue	createTime	t	f
-10424	10	continue	payType	t	f
-10425	10	continue	falseCall	t	f
-10426	10	continue	clientCancelReason	t	f
-10427	10	continue	deliveryType	t	f
-10428	10	continue	status	t	f
-10429	10	continue	clientSatisfied	t	f
-10430	10	continue	warrantyCase	t	f
-10431	10	continue	files	t	f
-10432	10	continue	assignedTo	t	f
-10433	10	continue	cost_countedCost	t	f
-10434	10	continue	cost_counted	t	f
-10435	10	continue	cost_serviceTarifOptions	t	f
-10436	10	continue	deliverFrom_address	t	f
-10437	10	continue	deliverFrom_coords	t	f
-10438	10	continue	deliverFrom_city	t	f
-10439	10	continue	deliverFrom_comment	t	f
-10440	10	continue	deliverTo_address	t	f
-10441	10	continue	deliverTo_coords	t	f
-10442	10	continue	deliverTo_city	t	f
-10443	10	continue	deliverTo_comment	t	f
-10444	10	continue	contractor_partner	t	f
-10445	10	continue	contractor_partnerTable	t	f
-10446	10	continue	contractor_partnerCancel	t	f
-10447	10	continue	contractor_address	t	f
-10448	10	continue	times_expectedServiceStart	t	f
-10449	10	contract	ctime	t	t
-10450	10	contract	program	t	t
-10451	10	contract	carVin	t	t
-10452	10	contract	carSeller	t	t
-10453	10	contract	carMake	t	t
-10454	10	contract	carModel	t	t
-10455	10	contract	carPlateNum	t	t
-10456	10	contract	carMakeYear	t	t
-10457	10	contract	carColor	t	t
-10458	10	contract	carBuyDate	t	t
-10459	10	contract	carCheckupDate	t	t
-10460	10	contract	carDealerTO	t	t
-10461	10	contract	carCheckupMilage	t	t
-10462	10	contract	carTransmission	t	t
-10463	10	contract	carEngine	t	t
-10464	10	contract	contractType	t	t
-10465	10	contract	cardNumber	t	t
-10466	10	contract	contractValidFromDate	t	t
-10467	10	contract	contractValidUntilDate	t	t
-10468	10	contract	milageTO	t	t
-10469	10	contract	contractValidUntilMilage	t	t
-10470	10	contract	cardOwner	t	t
-10471	10	contract	techType	t	t
-10472	10	contract	orderNumber	t	t
-10473	10	contract	manager	t	t
-10474	10	contract	warrantyStart	t	t
-10475	10	contract	warrantyEnd	t	t
-10476	10	contract	comment	t	t
-10478	10	deliverCar	createTime	t	f
-10479	10	deliverCar	payType	t	f
-10480	10	deliverCar	falseCall	t	f
-10481	10	deliverCar	clientCancelReason	t	f
-10482	10	deliverCar	marginalCost	t	f
-10483	10	deliverCar	status	t	f
-10484	10	deliverCar	clientSatisfied	t	f
-10485	10	deliverCar	warrantyCase	t	f
-10486	10	deliverCar	files	t	f
-10487	10	deliverCar	service_tarifOptions	t	f
-10488	10	deliverCar	assignedTo	t	f
-10489	10	deliverCar	falseCallPercent	t	f
-10490	10	deliverCar	toAddress_address	t	f
-10491	10	deliverCar	toAddress_coords	t	f
-10492	10	deliverCar	toAddress_city	t	f
-10493	10	deliverCar	toAddress_comment	t	f
-10494	10	deliverCar	urgentService	t	f
-10495	10	deliverCar	cost_countedCost	t	f
-10496	10	deliverCar	cost_counted	t	f
-10497	10	deliverCar	cost_serviceTarifOptions	t	f
-10498	10	deliverCar	times_expectedServiceStart	t	f
-10499	10	deliverClient	createTime	t	f
-10500	10	deliverClient	payType	t	f
-10501	10	deliverClient	falseCall	t	f
-10502	10	deliverClient	clientCancelReason	t	f
-10503	10	deliverClient	deliveryType	t	f
-10504	10	deliverClient	status	t	f
-10505	10	deliverClient	clientSatisfied	t	f
-10506	10	deliverClient	warrantyCase	t	f
-10507	10	deliverClient	files	t	f
-10508	10	deliverClient	assignedTo	t	f
-10509	10	deliverClient	falseCallPercent	t	f
-10510	10	deliverClient	cost_countedCost	t	f
-10511	10	deliverClient	urgentService	t	f
-10512	10	deliverClient	cost_counted	t	f
-10513	10	deliverClient	cost_serviceTarifOptions	t	f
-10514	10	deliverClient	deliverFrom_address	t	f
-10515	10	deliverClient	deliverFrom_coords	t	f
-10516	10	deliverClient	deliverFrom_city	t	f
-10517	10	deliverClient	deliverFrom_comment	t	f
-10518	10	deliverClient	deliverTo_address	t	f
-10519	10	deliverClient	deliverTo_coords	t	f
-10520	10	deliverClient	deliverTo_city	t	f
-10521	10	deliverClient	deliverTo_comment	t	f
-10522	10	deliverClient	contractor_partner	t	f
-10523	10	deliverClient	contractor_partnerTable	t	f
-10524	10	deliverClient	contractor_partnerCancel	t	f
-10525	10	deliverClient	contractor_address	t	f
-10526	10	deliverClient	times_expectedServiceStart	t	f
-10527	10	deliverParts	createTime	t	f
-10528	10	deliverParts	payType	t	f
-10529	10	deliverParts	falseCall	t	f
-10530	10	deliverParts	clientCancelReason	t	f
-10531	10	deliverParts	parts	t	f
-10532	10	deliverParts	marginalCost	t	f
-10533	10	deliverParts	status	t	f
-10534	10	deliverParts	clientSatisfied	t	f
-10535	10	deliverParts	warrantyCase	t	f
-10536	10	deliverParts	files	t	f
-10537	10	deliverParts	service_tarifOptions	t	f
-10538	10	deliverParts	assignedTo	t	f
-10539	10	deliverParts	falseCallPercent	t	f
-10540	10	deliverParts	toAddress_address	t	f
-10541	10	deliverParts	toAddress_coords	t	f
-10542	10	deliverParts	toAddress_city	t	f
-10543	10	deliverParts	toAddress_comment	t	f
-10544	10	deliverParts	cost_countedCost	t	f
-10545	10	deliverParts	urgentService	t	f
-10546	10	deliverParts	cost_counted	t	f
-10547	10	deliverParts	cost_serviceTarifOptions	t	f
-10548	10	deliverParts	times_expectedServiceStart	t	f
-10549	10	hotel	createTime	t	f
-10550	10	hotel	payType	t	f
-10551	10	hotel	falseCall	t	f
-10552	10	hotel	clientCancelReason	t	f
-10553	10	hotel	marginalCost	t	f
-10554	10	hotel	providedFor	t	f
-10555	10	hotel	status	t	f
-10556	10	hotel	clientSatisfied	t	f
-10557	10	hotel	warrantyCase	t	f
-10558	10	hotel	files	t	f
-10559	10	hotel	service_tarifOptions	t	f
-10560	10	hotel	assignedTo	t	f
-10561	10	hotel	cost_countedCost	t	f
-10562	10	hotel	urgentService	t	f
-10563	10	hotel	cost_counted	t	f
-10564	10	hotel	cost_serviceTarifOptions	t	f
-10565	10	hotel	caseAddress_address	t	f
-10566	10	hotel	caseAddress_coords	t	f
-10567	10	hotel	caseAddress_city	t	f
-10568	10	hotel	caseAddress_comment	t	f
-10569	10	hotel	contractor_partner	t	f
-10570	10	hotel	contractor_partnerId	t	f
-10571	10	hotel	contractor_partnerTable	t	f
-10572	10	hotel	contractor_partnerCancel	t	f
-10573	10	hotel	contractor_address	t	f
-10574	10	hotel	times_expectedServiceStart	t	f
-10576	10	information	payType	t	f
-10577	10	information	falseCall	t	f
-10578	10	information	clientCancelReason	t	f
-10579	10	information	contact1	t	f
-10580	10	information	contactPhone1	t	f
-10581	10	information	whatToSay1	t	f
-10582	10	information	contact2	t	f
-10583	10	information	contactPhone2	t	f
-10584	10	information	whatToSay2	t	f
-10585	10	information	contact3	t	f
-10586	10	information	contactPhone3	t	f
-10587	10	information	whatToSay3	t	f
-10588	10	information	status	t	f
-10589	10	information	clientSatisfied	t	f
-10590	10	information	warrantyCase	t	f
-10591	10	information	files	t	f
-10592	10	information	assignedTo	t	f
-10593	10	information	falseCallPercent	t	f
-10594	10	information	times_expectedServiceStart	t	f
-10595	10	insurance	createTime	t	f
-10596	10	insurance	payType	t	f
-10597	10	insurance	falseCall	t	f
-10598	10	insurance	clientCancelReason	t	f
-10599	10	insurance	requestType	t	f
-10600	10	insurance	whatToSay1	t	f
-10601	10	insurance	activity	t	f
-10602	10	insurance	commMilage	t	f
-10603	10	insurance	status	t	f
-10604	10	insurance	clientSatisfied	t	f
-10605	10	insurance	warrantyCase	t	f
-10606	10	insurance	files	t	f
-10607	10	insurance	assignedTo	t	f
-10608	10	insurance	commAddress_address	t	f
-10609	10	insurance	commAddress_coords	t	f
-10610	10	insurance	commAddress_city	t	f
-10611	10	insurance	commAddress_comment	t	f
-10612	10	insurance	cost_countedCost	t	f
-10613	10	insurance	urgentService	t	f
-10614	10	insurance	cost_counted	t	f
-10615	10	insurance	cost_serviceTarifOptions	t	f
-10616	10	insurance	contractor_partner	t	f
-10617	10	insurance	contractor_partnerTable	t	f
-10618	10	insurance	contractor_partnerCancel	t	f
-10619	10	insurance	contractor_address	t	f
-10620	10	insurance	times_expectedServiceStart	t	f
-10621	10	ken	createTime	t	f
-10622	10	ken	payType	t	f
-10623	10	ken	falseCall	t	f
-10624	10	ken	clientCancelReason	t	f
-10625	10	ken	requestType	t	f
-10626	10	ken	whatToSay1	t	f
-10627	10	ken	activity	t	f
-10628	10	ken	status	t	f
-10629	10	ken	clientSatisfied	t	f
-10630	10	ken	warrantyCase	t	f
-10631	10	ken	files	t	f
-10632	10	ken	assignedTo	t	f
-10633	10	ken	falseCallPercent	t	f
-10634	10	ken	cost_countedCost	t	f
-10635	10	ken	urgentService	t	f
-10636	10	ken	cost_counted	t	f
-10637	10	ken	cost_serviceTarifOptions	t	f
-10638	10	ken	contractor_partner	t	f
-10639	10	ken	contractor_partnerTable	t	f
-10640	10	ken	contractor_partnerCancel	t	f
-10641	10	ken	contractor_address	t	f
-10642	10	ken	times_expectedServiceStart	t	f
-10643	10	partner	comment	t	f
-10644	10	rent	createTime	t	f
-10645	10	rent	payType	t	f
-10646	10	rent	falseCall	t	f
-10647	10	rent	clientCancelReason	t	f
-10648	10	rent	vinRent	t	f
-10649	10	rent	carClass	t	f
-10650	10	rent	marginalCost	t	f
-10651	10	rent	providedFor	t	f
-10652	10	rent	rentedMake	t	f
-10653	10	rent	rentedModel	t	f
-10654	10	rent	status	t	f
-10655	10	rent	clientSatisfied	t	f
-10656	10	rent	warrantyCase	t	f
-10657	10	rent	files	t	f
-10658	10	rent	assignedTo	t	f
-10659	10	rent	falseCallPercent	t	f
-10660	10	rent	cost_countedCost	t	f
-10661	10	rent	urgentService	t	f
-10662	10	rent	cost_counted	t	f
-10663	10	rent	cost_serviceTarifOptions	t	f
-10664	10	rent	rentAddress_address	t	f
-10665	10	rent	rentAddress_coords	t	f
-10666	10	rent	rentAddress_city	t	f
-10667	10	rent	rentAddress_comment	t	f
-10668	10	rent	towDealer_partner	t	f
-10669	10	rent	towDealer_partnerTable	t	f
-10670	10	rent	towDealer_address	t	f
-10671	10	rent	contractor_partner	t	f
-10672	10	rent	contractor_partnerId	t	f
-10673	10	rent	contractor_partnerTable	t	f
-10674	10	rent	contractor_partnerCancel	t	f
-10675	10	rent	contractor_address	t	f
-10676	10	rent	times_expectedServiceStart	t	f
-10677	10	sober	createTime	t	f
-10678	10	sober	payType	t	f
-10679	10	sober	falseCall	t	f
-10680	10	sober	clientCancelReason	t	f
-10681	10	sober	marginalCost	t	f
-10682	10	sober	multidrive	t	f
-10683	10	sober	status	t	f
-10684	10	sober	clientSatisfied	t	f
-10685	10	sober	warrantyCase	t	f
-10686	10	sober	files	t	f
-10687	10	sober	service_tarifOptions	t	f
-10688	10	sober	assignedTo	t	f
-10689	10	sober	cost_countedCost	t	f
-10690	10	sober	urgentService	t	f
-10691	10	sober	cost_counted	t	f
-10692	10	sober	cost_serviceTarifOptions	t	f
-10693	10	sober	fromAddress_address	t	f
-10694	10	sober	fromAddress_coords	t	f
-10695	10	sober	fromAddress_city	t	f
-10696	10	sober	fromAddress_comment	t	f
-10697	10	sober	toAddress_address	t	f
-10698	10	sober	toAddress_coords	t	f
-10699	10	sober	toAddress_city	t	f
-10700	10	sober	toAddress_comment	t	f
-10701	10	sober	contractor_partner	t	f
-10702	10	sober	contractor_partnerId	t	f
-10703	10	sober	contractor_partnerTable	t	f
-10704	10	sober	contractor_partnerCancel	t	f
-10705	10	sober	contractor_address	t	f
-10706	10	sober	times_expectedServiceStart	t	f
-10707	10	taxi	createTime	t	f
-10708	10	taxi	payType	t	f
-10709	10	taxi	falseCall	t	f
-10710	10	taxi	clientCancelReason	t	f
-10711	10	taxi	marginalCost	t	f
-10712	10	taxi	status	t	f
-10713	10	taxi	clientSatisfied	t	f
-10714	10	taxi	warrantyCase	t	f
-10715	10	taxi	files	t	f
-10716	10	taxi	service_tarifOptions	t	f
-10717	10	taxi	assignedTo	t	f
-10718	10	taxi	falseCallPercent	t	f
-10719	10	taxi	cost_countedCost	t	f
-10720	10	taxi	urgentService	t	f
-10721	10	taxi	cost_counted	t	f
-10722	10	taxi	cost_serviceTarifOptions	t	f
-10723	10	taxi	taxiFrom_address	t	f
-10724	10	taxi	taxiFrom_coords	t	f
-10725	10	taxi	taxiFrom_city	t	f
-10726	10	taxi	taxiFrom_comment	t	f
-10727	10	taxi	taxiTo_address	t	f
-10728	10	taxi	taxiTo_coords	t	f
-10729	10	taxi	taxiTo_city	t	f
-10730	10	taxi	taxiTo_comment	t	f
-10731	10	taxi	contractor_partner	t	f
-10732	10	taxi	contractor_partnerTable	t	f
-10733	10	taxi	contractor_partnerCancel	t	f
-10734	10	taxi	contractor_address	t	f
-10735	10	taxi	times_expectedServiceStart	t	f
-10736	10	tech1	createTime	t	f
-10737	10	tech1	payType	t	f
-10738	10	tech1	falseCall	t	f
-10739	10	tech1	clientCancelReason	t	f
-10740	10	tech1	requestType	t	f
-10741	10	tech1	whatToSay1	t	f
-10742	10	tech1	activity	t	f
-10743	10	tech1	status	t	f
-10744	10	tech1	clientSatisfied	t	f
-10745	10	tech1	warrantyCase	t	f
-10746	10	tech1	files	t	f
-10747	10	tech1	cost_countedCost	t	f
-10748	10	tech1	urgentService	t	f
-10749	10	tech1	cost_counted	t	f
-10750	10	tech1	cost_serviceTarifOptions	t	f
-10751	10	tech1	contractor_partner	t	f
-10752	10	tech1	contractor_partnerTable	t	f
-10753	10	tech1	contractor_partnerCancel	t	f
-10754	10	tech1	contractor_address	t	f
-10755	10	tech1	times_expectedServiceStart	t	f
-10756	10	tech	createTime	t	f
-10757	10	tech	payType	t	f
-10758	10	tech	falseCall	t	f
-10759	10	tech	clientCancelReason	t	f
-10760	10	tech	techType	t	f
-10761	10	tech	marginalCost	t	f
-10762	10	tech	suburbanMilage	t	f
-10763	10	tech	status	t	f
-10764	10	tech	clientSatisfied	t	f
-10765	10	tech	warrantyCase	t	f
-10766	10	tech	files	t	f
-10767	10	tech	service_tarifOptions	t	f
-10768	10	tech	assignedTo	t	f
-10769	10	tech	falseCallPercent	t	f
-10770	10	tech	cost_countedCost	t	f
-10771	10	tech	urgentService	t	f
-10772	10	tech	cost_counted	t	f
-10773	10	tech	cost_serviceTarifOptions	t	f
-10774	10	tech	contractor_partner	t	f
-10775	10	tech	contractor_partnerId	t	f
-10776	10	tech	contractor_partnerTable	t	f
-10777	10	tech	contractor_partnerMap	t	f
-10778	10	tech	contractor_coords	t	f
-10779	10	tech	contractor_partnerCancel	t	f
-10780	10	tech	contractor_address	t	f
-10781	10	tech	times_expectedServiceStart	t	f
-10782	10	tickets	createTime	t	f
-10783	10	tickets	payType	t	f
-10784	10	tickets	falseCall	t	f
-10785	10	tickets	clientCancelReason	t	f
-10786	10	tickets	deliveryType	t	f
-10787	10	tickets	status	t	f
-10788	10	tickets	clientSatisfied	t	f
-10789	10	tickets	warrantyCase	t	f
-10790	10	tickets	files	t	f
-10791	10	tickets	assignedTo	t	f
-10792	10	tickets	falseCallPercent	t	f
-10793	10	tickets	cost_countedCost	t	f
-10794	10	tickets	ticketsFrom_address	t	f
-10795	10	tickets	ticketsFrom_coords	t	f
-10796	10	tickets	ticketsFrom_city	t	f
-10797	10	tickets	ticketsFrom_comment	t	f
-10798	10	tickets	ticketsTo_address	t	f
-10799	10	tickets	ticketsTo_coords	t	f
-10800	10	tickets	ticketsTo_city	t	f
-10801	10	tickets	ticketsTo_comment	t	f
-10802	10	tickets	urgentService	t	f
-10803	10	tickets	cost_counted	t	f
-10804	10	tickets	cost_serviceTarifOptions	t	f
-10805	10	tickets	contractor_partner	t	f
-10806	10	tickets	contractor_partnerTable	t	f
-10807	10	tickets	contractor_partnerCancel	t	f
-10808	10	tickets	contractor_address	t	f
-10809	10	tickets	times_expectedServiceStart	t	f
-10810	10	towage	createTime	t	f
-10811	10	towage	payType	t	f
-10812	10	towage	falseCall	t	f
-10813	10	towage	clientCancelReason	t	f
-10814	10	towage	towerType	t	f
-10815	10	towage	towType	t	f
-10816	10	towage	vandalism	t	f
-10817	10	towage	accident	t	f
-10818	10	towage	dealerDistance	t	f
-10819	10	towage	marginalCost	t	f
-10820	10	towage	wheelsUnblocked	t	f
-10821	10	towage	canNeutral	t	f
-10822	10	towage	towingPointPresent	t	f
-10823	10	towage	manipulatorPossible	t	f
-10824	10	towage	suburbanMilage	t	f
-10825	10	towage	status	t	f
-10826	10	towage	clientSatisfied	t	f
-10827	10	towage	warrantyCase	t	f
-10828	10	towage	files	t	f
-10829	10	towage	service_tarifOptions	t	f
-10830	10	towage	assignedTo	t	f
-10831	10	towage	falseCallPercent	t	f
-10832	10	towage	cost_countedCost	t	f
-10833	10	towage	urgentService	t	f
-10834	10	towage	cost_counted	t	f
-10835	10	towage	cost_serviceTarifOptions	t	f
-10836	10	towage	towAddress_address	t	f
-10837	10	towage	towAddress_coords	t	f
-10838	10	towage	towAddress_city	t	f
-10839	10	towage	towAddress_comment	t	f
-10840	10	towage	towAddress_map	t	f
-10841	10	towage	towerAddress_address	t	f
-10842	10	towage	towerAddress_coords	t	f
-10843	10	towage	towerAddress_city	t	f
-10844	10	towage	towerAddress_comment	t	f
-10845	10	towage	towerAddress_map	t	f
-10846	10	towage	towDealer_partner	t	f
-10847	10	towage	towDealer_partnerId	t	f
-10848	10	towage	towDealer_partnerTable	t	f
-10849	10	towage	towDealer_partnerMap	t	f
-10850	10	towage	towDealer_coords	t	f
-10851	10	towage	towDealer_address	t	f
-10852	10	towage	contractor_partner	t	f
-10853	10	towage	contractor_partnerId	t	f
-10854	10	towage	contractor_partnerTable	t	f
-10855	10	towage	contractor_partnerMap	t	f
-10856	10	towage	contractor_coords	t	f
-10857	10	towage	contractor_partnerCancel	t	f
-10858	10	towage	contractor_address	t	f
-10859	10	towage	times_expectedServiceStart	t	f
-10860	10	transportation	createTime	t	f
-10861	10	transportation	payType	t	f
-10862	10	transportation	falseCall	t	f
-10863	10	transportation	clientCancelReason	t	f
-10864	10	transportation	transportType	t	f
-10865	10	transportation	status	t	f
-10866	10	transportation	clientSatisfied	t	f
-10867	10	transportation	warrantyCase	t	f
-10868	10	transportation	files	t	f
-10869	10	transportation	assignedTo	t	f
-10870	10	transportation	falseCallPercent	t	f
-10871	10	transportation	cost_countedCost	t	f
-10872	10	transportation	urgentService	t	f
-10873	10	transportation	cost_counted	t	f
-10874	10	transportation	cost_serviceTarifOptions	t	f
-10875	10	transportation	caseAddress_address	t	f
-10876	10	transportation	caseAddress_coords	t	f
-10877	10	transportation	caseAddress_city	t	f
-10878	10	transportation	caseAddress_comment	t	f
-10879	10	transportation	fromToAddress_address	t	f
-10880	10	transportation	fromToAddress_coords	t	f
-10881	10	transportation	fromToAddress_city	t	f
-10882	10	transportation	fromToAddress_comment	t	f
-10883	10	transportation	times_expectedServiceStart	t	f
-10884	10	vin	program	t	f
-10885	8	averageCommissioner	paid	t	f
-10886	8	averageCommissioner	scan	t	f
-10887	8	averageCommissioner	original	t	f
-10888	8	bank	paid	t	f
-10889	8	bank	scan	t	f
-10890	8	bank	original	t	f
-10891	8	consultation	paid	t	f
-10892	8	consultation	scan	t	f
-10893	8	consultation	original	t	f
-10894	8	continue	paid	t	f
-10895	8	continue	scan	t	f
-10896	8	continue	original	t	f
-10897	8	deliverCar	paid	t	f
-10898	8	deliverCar	scan	t	f
-10899	8	deliverCar	original	t	f
-10900	8	deliverClient	paid	t	f
-10901	8	deliverClient	scan	t	f
-10902	8	deliverClient	original	t	f
-10903	8	deliverParts	paid	t	f
-10904	8	deliverParts	scan	t	f
-10905	8	deliverParts	original	t	f
-10906	8	hotel	paid	t	f
-10907	8	hotel	scan	t	f
-10908	8	hotel	original	t	f
-10909	8	information	paid	t	f
-10910	8	information	scan	t	f
-10911	8	information	original	t	f
-10912	8	insurance	paid	t	f
-10913	8	insurance	scan	t	f
-10914	8	insurance	original	t	f
-10915	8	ken	paid	t	f
-10916	8	ken	scan	t	f
-10917	8	ken	original	t	f
-10918	8	rent	paid	t	f
-10919	8	rent	scan	t	f
-10920	8	rent	original	t	f
-10921	8	sober	paid	t	f
-10922	8	sober	scan	t	f
-10923	8	sober	original	t	f
-10924	8	taxi	paid	t	f
-10925	8	taxi	scan	t	f
-10926	8	taxi	original	t	f
-10927	8	tech1	paid	t	f
-10928	8	tech1	scan	t	f
-10929	8	tech1	original	t	f
-10930	8	tech	paid	t	f
-10931	8	tech	scan	t	f
-10932	8	tech	original	t	f
-10933	8	tickets	paid	t	f
-10934	8	tickets	scan	t	f
-10935	8	tickets	original	t	f
-10936	8	towage	paid	t	f
-10937	8	towage	scan	t	f
-10938	8	towage	original	t	f
-10939	8	transportation	paid	t	f
-10940	8	transportation	scan	t	f
-10941	8	transportation	original	t	f
-10942	9	averageCommissioner	paid	t	t
-10943	9	averageCommissioner	scan	t	t
-10944	9	averageCommissioner	original	t	t
-10945	9	bank	paid	t	t
-10946	9	bank	scan	t	t
-10947	9	bank	original	t	t
-10948	9	consultation	paid	t	t
-10949	9	consultation	scan	t	t
-10950	9	consultation	original	t	t
-10951	9	continue	paid	t	t
-10952	9	continue	scan	t	t
-10953	9	continue	original	t	t
-10954	9	deliverCar	paid	t	t
-10955	9	deliverCar	scan	t	t
-10956	9	deliverCar	original	t	t
-10957	9	deliverClient	paid	t	t
-10958	9	deliverClient	scan	t	t
-10959	9	deliverClient	original	t	t
-10960	9	deliverParts	paid	t	t
-10961	9	deliverParts	scan	t	t
-10962	9	deliverParts	original	t	t
-10963	9	hotel	paid	t	t
-10964	9	hotel	scan	t	t
-10965	9	hotel	original	t	t
-10966	9	information	paid	t	t
-10967	9	information	scan	t	t
-10968	9	information	original	t	t
-10969	9	insurance	paid	t	t
-10970	9	insurance	scan	t	t
-10971	9	insurance	original	t	t
-10972	9	ken	paid	t	t
-10973	9	ken	scan	t	t
-10974	9	ken	original	t	t
-10975	9	rent	paid	t	t
-10976	9	rent	scan	t	t
-10977	9	rent	original	t	t
-10978	9	sober	paid	t	t
-10979	9	sober	scan	t	t
-10980	9	sober	original	t	t
-10981	9	taxi	paid	t	t
-10982	9	taxi	scan	t	t
-10983	9	taxi	original	t	t
-10984	9	tech1	paid	t	t
-10985	9	tech1	scan	t	t
-10986	9	tech1	original	t	t
-10987	9	tech	paid	t	t
-10988	9	tech	scan	t	t
-10989	9	tech	original	t	t
-10990	9	tickets	paid	t	t
-10991	9	tickets	scan	t	t
-10992	9	tickets	original	t	t
-10993	9	towage	paid	t	t
-10994	9	towage	scan	t	t
-10995	9	towage	original	t	t
-10996	9	transportation	paid	t	t
-10997	9	transportation	scan	t	t
-10998	9	transportation	original	t	t
-10999	14	case	caseStatus	t	t
-11000	14	case	psaExportNeeded	t	t
-11001	14	case	psaExported	t	f
-11002	14	consultation	orderNumber	t	t
-11003	14	rent	orderNumber	t	t
-11004	14	tech	orderNumber	t	t
-11005	14	towage	orderNumber	t	t
-11006	15	attachment	filename	t	t
-11007	16	attachment	filename	t	t
-11008	13	attachment	filename	t	t
-11009	4	attachment	filename	t	t
-11010	12	attachment	filename	t	t
-11011	3	attachment	filename	t	t
-11012	6	attachment	filename	t	t
-11013	7	attachment	filename	t	t
-11014	10	attachment	filename	t	f
-11015	17	attachment	filename	t	t
-11016	11	attachment	filename	t	t
-11017	24	attachment	filename	t	t
-187	1	vin	cardNumber_cardOwner	t	t
-357	3	case	cardNumber_cardOwner	t	t
-1223	4	case	cardNumber_cardOwner	t	t
-2100	6	case	cardNumber_cardOwner	t	t
-3035	11	case	cardNumber_cardOwner	t	t
-3962	12	case	cardNumber_cardOwner	t	t
-4888	13	case	cardNumber_cardOwner	t	t
-5814	24	case	cardNumber_cardOwner	t	t
-6738	7	case	cardNumber_cardOwner	t	t
-7665	15	case	cardNumber_cardOwner	t	t
-8593	16	case	cardNumber_cardOwner	t	t
-9523	17	case	cardNumber_cardOwner	t	t
-10401	10	case	cardNumber_cardOwner	t	t
-11018	3	towage	companion	t	t
-11019	4	towage	companion	t	t
-11020	6	towage	companion	t	t
-11021	11	towage	companion	t	t
-11022	12	towage	companion	t	t
-11023	13	towage	companion	t	t
-11024	24	towage	companion	t	t
-11025	7	towage	companion	t	t
-11026	15	towage	companion	t	t
-11027	16	towage	companion	t	t
-11028	17	towage	companion	t	t
-11029	10	towage	companion	t	f
-11030	1	partner	phones	t	t
-11031	1	partner	emails	t	t
-11032	1	partner	addrs	t	t
-11033	6	partner	phones	t	t
-11034	6	partner	emails	t	t
-11035	6	partner	addrs	t	t
-11036	7	partner	phones	t	t
-11037	7	partner	emails	t	t
-11038	7	partner	addrs	t	t
-11039	17	partner	phones	t	t
-11040	17	partner	emails	t	t
-11041	17	partner	addrs	t	t
-11042	11	partner	phones	t	t
-11043	11	partner	emails	t	t
-11044	11	partner	addrs	t	t
-11045	13	partner	phones	t	t
-11046	13	partner	emails	t	t
-11047	13	partner	addrs	t	t
-11048	3	averageCommissioner	times_expectedDispatch	t	t
-11049	3	bank	times_expectedDispatch	t	t
-11050	3	consultation	times_expectedDispatch	t	t
-11051	3	continue	times_expectedDispatch	t	t
-11052	3	deliverCar	times_expectedDispatch	t	t
-11053	3	deliverClient	times_expectedDispatch	t	t
-11054	3	deliverParts	times_expectedDispatch	t	t
-11055	3	hotel	times_expectedDispatch	t	t
-11056	3	information	times_expectedDispatch	t	t
-11057	3	insurance	times_expectedDispatch	t	t
-11058	3	ken	times_expectedDispatch	t	t
-11059	3	rent	times_expectedDispatch	t	t
-11060	3	sober	times_expectedDispatch	t	t
-11061	3	taxi	times_expectedDispatch	t	t
-11062	3	tech1	times_expectedDispatch	t	t
-11063	3	tech	times_expectedDispatch	t	t
-11064	3	tickets	times_expectedDispatch	t	t
-11065	3	towage	times_expectedDispatch	t	t
-11066	3	transportation	times_expectedDispatch	t	t
-11067	4	averageCommissioner	times_expectedDispatch	t	t
-11068	4	bank	times_expectedDispatch	t	t
-11069	4	consultation	times_expectedDispatch	t	t
-11070	4	continue	times_expectedDispatch	t	t
-11071	4	deliverCar	times_expectedDispatch	t	t
-11072	4	deliverClient	times_expectedDispatch	t	t
-11073	4	deliverParts	times_expectedDispatch	t	t
-11074	4	hotel	times_expectedDispatch	t	t
-11075	4	information	times_expectedDispatch	t	t
-11076	4	insurance	times_expectedDispatch	t	t
-11077	4	ken	times_expectedDispatch	t	t
-11078	4	rent	times_expectedDispatch	t	t
-11079	4	sober	times_expectedDispatch	t	t
-11080	4	taxi	times_expectedDispatch	t	t
-11081	4	tech1	times_expectedDispatch	t	t
-11082	4	tech	times_expectedDispatch	t	t
-11083	4	tickets	times_expectedDispatch	t	t
-11084	4	towage	times_expectedDispatch	t	t
-11085	4	transportation	times_expectedDispatch	t	t
-11086	6	averageCommissioner	times_expectedDispatch	t	t
-11087	6	bank	times_expectedDispatch	t	t
-11088	6	consultation	times_expectedDispatch	t	t
-11089	6	continue	times_expectedDispatch	t	t
-11090	6	deliverCar	times_expectedDispatch	t	t
-11091	6	deliverClient	times_expectedDispatch	t	t
-11092	6	deliverParts	times_expectedDispatch	t	t
-11093	6	hotel	times_expectedDispatch	t	t
-11094	6	information	times_expectedDispatch	t	t
-11095	6	insurance	times_expectedDispatch	t	t
-11096	6	ken	times_expectedDispatch	t	t
-11097	6	rent	times_expectedDispatch	t	t
-11098	6	sober	times_expectedDispatch	t	t
-11099	6	taxi	times_expectedDispatch	t	t
-11100	6	tech1	times_expectedDispatch	t	t
-11101	6	tech	times_expectedDispatch	t	t
-11102	6	tickets	times_expectedDispatch	t	t
-11103	6	towage	times_expectedDispatch	t	t
-11104	6	transportation	times_expectedDispatch	t	t
-11105	11	averageCommissioner	times_expectedDispatch	t	t
-11106	11	bank	times_expectedDispatch	t	t
-11107	11	consultation	times_expectedDispatch	t	t
-11108	11	continue	times_expectedDispatch	t	t
-11109	11	deliverCar	times_expectedDispatch	t	t
-11110	11	deliverClient	times_expectedDispatch	t	t
-11111	11	deliverParts	times_expectedDispatch	t	t
-11112	11	hotel	times_expectedDispatch	t	t
-11113	11	information	times_expectedDispatch	t	t
-11114	11	insurance	times_expectedDispatch	t	t
-11115	11	ken	times_expectedDispatch	t	t
-11116	11	rent	times_expectedDispatch	t	t
-11117	11	sober	times_expectedDispatch	t	t
-11118	11	taxi	times_expectedDispatch	t	t
-11119	11	tech1	times_expectedDispatch	t	t
-11120	11	tech	times_expectedDispatch	t	t
-11121	11	tickets	times_expectedDispatch	t	t
-11122	11	towage	times_expectedDispatch	t	t
-11123	11	transportation	times_expectedDispatch	t	t
-11124	12	averageCommissioner	times_expectedDispatch	t	t
-11125	12	bank	times_expectedDispatch	t	t
-11126	12	consultation	times_expectedDispatch	t	t
-11127	12	continue	times_expectedDispatch	t	t
-11128	12	deliverCar	times_expectedDispatch	t	t
-11129	12	deliverClient	times_expectedDispatch	t	t
-11130	12	deliverParts	times_expectedDispatch	t	t
-11131	12	hotel	times_expectedDispatch	t	t
-11132	12	information	times_expectedDispatch	t	t
-11133	12	insurance	times_expectedDispatch	t	t
-11134	12	ken	times_expectedDispatch	t	t
-11135	12	rent	times_expectedDispatch	t	t
-11136	12	sober	times_expectedDispatch	t	t
-11137	12	taxi	times_expectedDispatch	t	t
-11138	12	tech1	times_expectedDispatch	t	t
-11139	12	tech	times_expectedDispatch	t	t
-11140	12	tickets	times_expectedDispatch	t	t
-11141	12	towage	times_expectedDispatch	t	t
-11142	12	transportation	times_expectedDispatch	t	t
-11143	13	averageCommissioner	times_expectedDispatch	t	t
-11144	13	bank	times_expectedDispatch	t	t
-11145	13	consultation	times_expectedDispatch	t	t
-11146	13	continue	times_expectedDispatch	t	t
-11147	13	deliverCar	times_expectedDispatch	t	t
-11148	13	deliverClient	times_expectedDispatch	t	t
-11149	13	deliverParts	times_expectedDispatch	t	t
-11150	13	hotel	times_expectedDispatch	t	t
-11151	13	information	times_expectedDispatch	t	t
-11152	13	insurance	times_expectedDispatch	t	t
-11153	13	ken	times_expectedDispatch	t	t
-11154	13	rent	times_expectedDispatch	t	t
-11155	13	sober	times_expectedDispatch	t	t
-11156	13	taxi	times_expectedDispatch	t	t
-11157	13	tech1	times_expectedDispatch	t	t
-11158	13	tech	times_expectedDispatch	t	t
-11159	13	tickets	times_expectedDispatch	t	t
-11160	13	towage	times_expectedDispatch	t	t
-11161	13	transportation	times_expectedDispatch	t	t
-11162	24	averageCommissioner	times_expectedDispatch	t	t
-11163	24	bank	times_expectedDispatch	t	t
-11164	24	consultation	times_expectedDispatch	t	t
-11165	24	continue	times_expectedDispatch	t	t
-11166	24	deliverCar	times_expectedDispatch	t	t
-11167	24	deliverClient	times_expectedDispatch	t	t
-11168	24	deliverParts	times_expectedDispatch	t	t
-11169	24	hotel	times_expectedDispatch	t	t
-11170	24	information	times_expectedDispatch	t	t
-11171	24	insurance	times_expectedDispatch	t	t
-11172	24	ken	times_expectedDispatch	t	t
-11173	24	rent	times_expectedDispatch	t	t
-11174	24	sober	times_expectedDispatch	t	t
-11175	24	taxi	times_expectedDispatch	t	t
-11176	24	tech1	times_expectedDispatch	t	t
-11177	24	tech	times_expectedDispatch	t	t
-11178	24	tickets	times_expectedDispatch	t	t
-11179	24	towage	times_expectedDispatch	t	t
-11180	24	transportation	times_expectedDispatch	t	t
-11181	7	averageCommissioner	times_expectedDispatch	t	t
-11182	7	bank	times_expectedDispatch	t	t
-11183	7	consultation	times_expectedDispatch	t	t
-11184	7	continue	times_expectedDispatch	t	t
-11185	7	deliverCar	times_expectedDispatch	t	t
-11186	7	deliverClient	times_expectedDispatch	t	t
-11187	7	deliverParts	times_expectedDispatch	t	t
-11188	7	hotel	times_expectedDispatch	t	t
-11189	7	information	times_expectedDispatch	t	t
-11190	7	insurance	times_expectedDispatch	t	t
-11191	7	ken	times_expectedDispatch	t	t
-11192	7	rent	times_expectedDispatch	t	t
-11193	7	sober	times_expectedDispatch	t	t
-11194	7	taxi	times_expectedDispatch	t	t
-11195	7	tech1	times_expectedDispatch	t	t
-11196	7	tech	times_expectedDispatch	t	t
-11197	7	tickets	times_expectedDispatch	t	t
-11198	7	towage	times_expectedDispatch	t	t
-11199	7	transportation	times_expectedDispatch	t	t
-11200	15	averageCommissioner	times_expectedDispatch	t	t
-11201	15	bank	times_expectedDispatch	t	t
-11202	15	consultation	times_expectedDispatch	t	t
-11203	15	continue	times_expectedDispatch	t	t
-11204	15	deliverCar	times_expectedDispatch	t	t
-11205	15	deliverClient	times_expectedDispatch	t	t
-11206	15	deliverParts	times_expectedDispatch	t	t
-11207	15	hotel	times_expectedDispatch	t	t
-11208	15	information	times_expectedDispatch	t	t
-11209	15	insurance	times_expectedDispatch	t	t
-11210	15	ken	times_expectedDispatch	t	t
-11211	15	rent	times_expectedDispatch	t	t
-11212	15	sober	times_expectedDispatch	t	t
-11213	15	taxi	times_expectedDispatch	t	t
-11214	15	tech1	times_expectedDispatch	t	t
-11215	15	tech	times_expectedDispatch	t	t
-11216	15	tickets	times_expectedDispatch	t	t
-11217	15	towage	times_expectedDispatch	t	t
-11218	15	transportation	times_expectedDispatch	t	t
-11219	16	averageCommissioner	times_expectedDispatch	t	t
-11220	16	bank	times_expectedDispatch	t	t
-11221	16	consultation	times_expectedDispatch	t	t
-11222	16	continue	times_expectedDispatch	t	t
-11223	16	deliverCar	times_expectedDispatch	t	t
-11224	16	deliverClient	times_expectedDispatch	t	t
-11225	16	deliverParts	times_expectedDispatch	t	t
-11226	16	hotel	times_expectedDispatch	t	t
-11227	16	information	times_expectedDispatch	t	t
-11228	16	insurance	times_expectedDispatch	t	t
-11229	16	ken	times_expectedDispatch	t	t
-11230	16	rent	times_expectedDispatch	t	t
-11231	16	sober	times_expectedDispatch	t	t
-11232	16	taxi	times_expectedDispatch	t	t
-11233	16	tech1	times_expectedDispatch	t	t
-11234	16	tech	times_expectedDispatch	t	t
-11235	16	tickets	times_expectedDispatch	t	t
-11236	16	towage	times_expectedDispatch	t	t
-11237	16	transportation	times_expectedDispatch	t	t
-11238	17	averageCommissioner	times_expectedDispatch	t	t
-11239	17	bank	times_expectedDispatch	t	t
-11240	17	consultation	times_expectedDispatch	t	t
-11241	17	continue	times_expectedDispatch	t	t
-11242	17	deliverCar	times_expectedDispatch	t	t
-11243	17	deliverClient	times_expectedDispatch	t	t
-11244	17	deliverParts	times_expectedDispatch	t	t
-11245	17	hotel	times_expectedDispatch	t	t
-11246	17	information	times_expectedDispatch	t	t
-11247	17	insurance	times_expectedDispatch	t	t
-11248	17	ken	times_expectedDispatch	t	t
-11249	17	rent	times_expectedDispatch	t	t
-11250	17	sober	times_expectedDispatch	t	t
-11251	17	taxi	times_expectedDispatch	t	t
-11252	17	tech1	times_expectedDispatch	t	t
-11253	17	tech	times_expectedDispatch	t	t
-11254	17	tickets	times_expectedDispatch	t	t
-11255	17	towage	times_expectedDispatch	t	t
-11256	17	transportation	times_expectedDispatch	t	t
-11257	10	averageCommissioner	times_expectedDispatch	t	f
-11258	10	bank	times_expectedDispatch	t	f
-11259	10	consultation	times_expectedDispatch	t	f
-11260	10	continue	times_expectedDispatch	t	f
-11261	10	deliverCar	times_expectedDispatch	t	f
-11262	10	deliverClient	times_expectedDispatch	t	f
-11263	10	deliverParts	times_expectedDispatch	t	f
-11264	10	hotel	times_expectedDispatch	t	f
-11265	10	information	times_expectedDispatch	t	f
-11266	10	insurance	times_expectedDispatch	t	f
-11267	10	ken	times_expectedDispatch	t	f
-11268	10	rent	times_expectedDispatch	t	f
-11269	10	sober	times_expectedDispatch	t	f
-11270	10	taxi	times_expectedDispatch	t	f
-11271	10	tech1	times_expectedDispatch	t	f
-11272	10	tech	times_expectedDispatch	t	f
-11273	10	tickets	times_expectedDispatch	t	f
-11274	10	towage	times_expectedDispatch	t	f
-11275	10	transportation	times_expectedDispatch	t	f
-11276	3	bank	contractor_partner	t	t
-11277	3	bank	contractor_partnerId	t	t
-11278	3	bank	contractor_partnerTable	t	t
-11279	3	bank	contractor_partnerMap	t	t
-11280	3	bank	contractor_coords	t	t
-11281	3	bank	contractor_partnerCancel	t	t
-11282	3	bank	contractor_address	t	t
-11283	4	bank	contractor_partner	t	t
-11284	4	bank	contractor_partnerId	t	t
-11285	4	bank	contractor_partnerTable	t	t
-11286	4	bank	contractor_partnerMap	t	t
-11287	4	bank	contractor_coords	t	t
-11288	4	bank	contractor_partnerCancel	t	t
-11289	4	bank	contractor_address	t	t
-11290	3	consultation	contractor_partner	t	t
-11291	3	consultation	contractor_partnerId	t	t
-11292	3	consultation	contractor_partnerTable	t	t
-11293	3	consultation	contractor_partnerMap	t	t
-11294	3	consultation	contractor_coords	t	t
-11295	3	consultation	contractor_partnerCancel	t	t
-11296	3	consultation	contractor_address	t	t
-11297	4	consultation	contractor_partner	t	t
-11298	4	consultation	contractor_partnerId	t	t
-11299	4	consultation	contractor_partnerTable	t	t
-11300	4	consultation	contractor_partnerMap	t	t
-11301	4	consultation	contractor_coords	t	t
-11302	4	consultation	contractor_partnerCancel	t	t
-11303	4	consultation	contractor_address	t	t
-11304	3	continue	contractor_partner	t	t
-11305	3	continue	contractor_partnerId	t	t
-11306	3	continue	contractor_partnerTable	t	t
-11307	3	continue	contractor_partnerMap	t	t
-11308	3	continue	contractor_coords	t	t
-11309	3	continue	contractor_partnerCancel	t	t
-11310	3	continue	contractor_address	t	t
-11311	4	continue	contractor_partner	t	t
-11312	4	continue	contractor_partnerId	t	t
-11313	4	continue	contractor_partnerTable	t	t
-11314	4	continue	contractor_partnerMap	t	t
-11315	4	continue	contractor_coords	t	t
-11316	4	continue	contractor_partnerCancel	t	t
-11317	4	continue	contractor_address	t	t
-11318	3	deliverCar	contractor_partner	t	t
-11319	3	deliverCar	contractor_partnerId	t	t
-11320	3	deliverCar	contractor_partnerTable	t	t
-11321	3	deliverCar	contractor_partnerMap	t	t
-11322	3	deliverCar	contractor_coords	t	t
-11323	3	deliverCar	contractor_partnerCancel	t	t
-11324	3	deliverCar	contractor_address	t	t
-11325	4	deliverCar	contractor_partner	t	t
-11326	4	deliverCar	contractor_partnerId	t	t
-11327	4	deliverCar	contractor_partnerTable	t	t
-11328	4	deliverCar	contractor_partnerMap	t	t
-11329	4	deliverCar	contractor_coords	t	t
-11330	4	deliverCar	contractor_partnerCancel	t	t
-11331	4	deliverCar	contractor_address	t	t
-11332	3	deliverClient	contractor_partner	t	t
-11333	3	deliverClient	contractor_partnerId	t	t
-11334	3	deliverClient	contractor_partnerTable	t	t
-11335	3	deliverClient	contractor_partnerMap	t	t
-11336	3	deliverClient	contractor_coords	t	t
-11337	3	deliverClient	contractor_partnerCancel	t	t
-11338	3	deliverClient	contractor_address	t	t
-11339	4	deliverClient	contractor_partner	t	t
-11340	4	deliverClient	contractor_partnerId	t	t
-11341	4	deliverClient	contractor_partnerTable	t	t
-11342	4	deliverClient	contractor_partnerMap	t	t
-11343	4	deliverClient	contractor_coords	t	t
-11344	4	deliverClient	contractor_partnerCancel	t	t
-11345	4	deliverClient	contractor_address	t	t
-11346	3	deliverParts	contractor_partner	t	t
-11347	3	deliverParts	contractor_partnerId	t	t
-11348	3	deliverParts	contractor_partnerTable	t	t
-11349	3	deliverParts	contractor_partnerMap	t	t
-11350	3	deliverParts	contractor_coords	t	t
-11351	3	deliverParts	contractor_partnerCancel	t	t
-11352	3	deliverParts	contractor_address	t	t
-11353	4	deliverParts	contractor_partner	t	t
-11354	4	deliverParts	contractor_partnerId	t	t
-11355	4	deliverParts	contractor_partnerTable	t	t
-11356	4	deliverParts	contractor_partnerMap	t	t
-11357	4	deliverParts	contractor_coords	t	t
-11358	4	deliverParts	contractor_partnerCancel	t	t
-11359	4	deliverParts	contractor_address	t	t
-11360	3	hotel	contractor_partner	t	t
-11361	3	hotel	contractor_partnerId	t	t
-11362	3	hotel	contractor_partnerTable	t	t
-11363	3	hotel	contractor_partnerMap	t	t
-11364	3	hotel	contractor_coords	t	t
-11365	3	hotel	contractor_partnerCancel	t	t
-11366	3	hotel	contractor_address	t	t
-11367	4	hotel	contractor_partner	t	t
-11368	4	hotel	contractor_partnerId	t	t
-11369	4	hotel	contractor_partnerTable	t	t
-11370	4	hotel	contractor_partnerMap	t	t
-11372	4	hotel	contractor_partnerCancel	t	t
-11373	4	hotel	contractor_address	t	t
-11374	3	insurance	contractor_partner	t	t
-11375	3	insurance	contractor_partnerId	t	t
-11376	3	insurance	contractor_partnerTable	t	t
-11377	3	insurance	contractor_partnerMap	t	t
-11378	3	insurance	contractor_coords	t	t
-11379	3	insurance	contractor_partnerCancel	t	t
-11380	3	insurance	contractor_address	t	t
-11381	4	insurance	contractor_partner	t	t
-11382	4	insurance	contractor_partnerId	t	t
-11383	4	insurance	contractor_partnerTable	t	t
-11384	4	insurance	contractor_partnerMap	t	t
-11385	4	insurance	contractor_coords	t	t
-11386	4	insurance	contractor_partnerCancel	t	t
-11387	4	insurance	contractor_address	t	t
-11388	3	tech	contractor_partner	t	t
-11389	3	tech	contractor_partnerId	t	t
-11390	3	tech	contractor_partnerTable	t	t
-11391	3	tech	contractor_partnerMap	t	t
-11392	3	tech	contractor_coords	t	t
-11393	3	tech	contractor_partnerCancel	t	t
-11394	3	tech	contractor_address	t	t
-11395	4	tech	contractor_partner	t	t
-11396	4	tech	contractor_partnerId	t	t
-11397	4	tech	contractor_partnerTable	t	t
-11398	4	tech	contractor_partnerMap	t	t
-11399	4	tech	contractor_coords	t	t
-11400	4	tech	contractor_partnerCancel	t	t
-11401	4	tech	contractor_address	t	t
-11402	3	taxi	contractor_partner	t	t
-11403	3	taxi	contractor_partnerId	t	t
-11404	3	taxi	contractor_partnerTable	t	t
-11405	3	taxi	contractor_partnerMap	t	t
-11406	3	taxi	contractor_coords	t	t
-11407	3	taxi	contractor_partnerCancel	t	t
-11408	3	taxi	contractor_address	t	t
-11409	4	taxi	contractor_partner	t	t
-11410	4	taxi	contractor_partnerId	t	t
-11411	4	taxi	contractor_partnerTable	t	t
-11412	4	taxi	contractor_partnerMap	t	t
-11413	4	taxi	contractor_coords	t	t
-11414	4	taxi	contractor_partnerCancel	t	t
-11415	4	taxi	contractor_address	t	t
-11416	3	tech1	contractor_partner	t	t
-11417	3	tech1	contractor_partnerId	t	t
-11418	3	tech1	contractor_partnerTable	t	t
-11419	3	tech1	contractor_partnerMap	t	t
-11420	3	tech1	contractor_coords	t	t
-11421	3	tech1	contractor_partnerCancel	t	t
-11422	3	tech1	contractor_address	t	t
-11423	4	tech1	contractor_partner	t	t
-11424	4	tech1	contractor_partnerId	t	t
-11425	4	tech1	contractor_partnerTable	t	t
-11426	4	tech1	contractor_partnerMap	t	t
-11427	4	tech1	contractor_coords	t	t
-11428	4	tech1	contractor_partnerCancel	t	t
-11429	4	tech1	contractor_address	t	t
-11430	3	tickets	contractor_partner	t	t
-11431	3	tickets	contractor_partnerId	t	t
-11432	3	tickets	contractor_partnerTable	t	t
-11433	3	tickets	contractor_partnerMap	t	t
-11434	3	tickets	contractor_coords	t	t
-11435	3	tickets	contractor_partnerCancel	t	t
-11436	3	tickets	contractor_address	t	t
-11437	4	tickets	contractor_partner	t	t
-11438	4	tickets	contractor_partnerId	t	t
-11439	4	tickets	contractor_partnerTable	t	t
-11440	4	tickets	contractor_partnerMap	t	t
-11441	4	tickets	contractor_coords	t	t
-11442	4	tickets	contractor_partnerCancel	t	t
-11443	4	tickets	contractor_address	t	t
-11444	3	transportation	contractor_partner	t	t
-11445	3	transportation	contractor_partnerId	t	t
-11446	3	transportation	contractor_partnerTable	t	t
-11447	3	transportation	contractor_partnerMap	t	t
-11448	3	transportation	contractor_coords	t	t
-11449	3	transportation	contractor_partnerCancel	t	t
-11450	3	transportation	contractor_address	t	t
-11451	4	transportation	contractor_partner	t	t
-11452	4	transportation	contractor_partnerId	t	t
-11453	4	transportation	contractor_partnerTable	t	t
-11454	4	transportation	contractor_partnerMap	t	t
-11455	4	transportation	contractor_coords	t	t
-11456	4	transportation	contractor_partnerCancel	t	t
-11457	4	transportation	contractor_address	t	t
-11458	3	sober	contractor_partner	t	t
-11459	3	sober	contractor_partnerId	t	t
-11460	3	sober	contractor_partnerTable	t	t
-11461	3	sober	contractor_partnerMap	t	t
-11462	3	sober	contractor_coords	t	t
-11463	3	sober	contractor_partnerCancel	t	t
-11464	3	sober	contractor_address	t	t
-11465	4	sober	contractor_partner	t	t
-11466	4	sober	contractor_partnerId	t	t
-11467	4	sober	contractor_partnerTable	t	t
-11468	4	sober	contractor_partnerMap	t	t
-11469	4	sober	contractor_coords	t	t
-11470	4	sober	contractor_partnerCancel	t	t
-11471	4	sober	contractor_address	t	t
-11472	3	ken	contractor_partner	t	t
-11473	3	ken	contractor_partnerId	t	t
-11474	3	ken	contractor_partnerTable	t	t
-11475	3	ken	contractor_partnerMap	t	t
-11476	3	ken	contractor_coords	t	t
-11477	3	ken	contractor_partnerCancel	t	t
-11478	3	ken	contractor_address	t	t
-11479	4	ken	contractor_partner	t	t
-11480	4	ken	contractor_partnerId	t	t
-11481	4	ken	contractor_partnerTable	t	t
-11482	4	ken	contractor_partnerMap	t	t
-11483	4	ken	contractor_coords	t	t
-11484	4	ken	contractor_partnerCancel	t	t
-11485	4	ken	contractor_address	t	t
-11486	3	rent	contractor_partner	t	t
-11487	3	rent	contractor_partnerId	t	t
-11488	3	rent	contractor_partnerTable	t	t
-11489	3	rent	contractor_partnerMap	t	t
-11490	3	rent	contractor_coords	t	t
-11491	3	rent	contractor_partnerCancel	t	t
-11492	3	rent	contractor_address	t	t
-11493	4	rent	contractor_partner	t	t
-11494	4	rent	contractor_partnerId	t	t
-11495	4	rent	contractor_partnerTable	t	t
-11496	4	rent	contractor_partnerMap	t	t
-11497	4	rent	contractor_coords	t	t
-11498	4	rent	contractor_partnerCancel	t	t
-11499	4	rent	contractor_address	t	t
-11500	3	averageCommissioner	contractor_partner	t	t
-11501	3	averageCommissioner	contractor_partnerId	t	t
-11502	3	averageCommissioner	contractor_partnerTable	t	t
-11503	3	averageCommissioner	contractor_partnerMap	t	t
-11504	3	averageCommissioner	contractor_coords	t	t
-11505	3	averageCommissioner	contractor_partnerCancel	t	t
-11506	3	averageCommissioner	contractor_address	t	t
-11507	4	averageCommissioner	contractor_partner	t	t
-11508	4	averageCommissioner	contractor_partnerId	t	t
-11509	4	averageCommissioner	contractor_partnerTable	t	t
-11510	4	averageCommissioner	contractor_partnerMap	t	t
-11511	4	averageCommissioner	contractor_coords	t	t
-11512	4	averageCommissioner	contractor_partnerCancel	t	t
-11513	4	averageCommissioner	contractor_address	t	t
-11514	1	call	coords	t	t
-11515	1	call	address	t	t
-11516	1	program	value	t	t
-11517	1	bank	contractor_partner	t	t
-11518	1	bank	contractor_partnerId	t	t
-11519	1	bank	contractor_partnerTable	t	t
-11520	1	bank	contractor_partnerMap	t	t
-11521	1	bank	contractor_coords	t	t
-11522	1	bank	contractor_partnerCancel	t	t
-11523	1	bank	contractor_address	t	t
-11524	1	consultation	contractor_partner	t	t
-11525	1	consultation	contractor_partnerId	t	t
-11526	1	consultation	contractor_partnerTable	t	t
-11527	1	consultation	contractor_partnerMap	t	t
-11528	1	consultation	contractor_coords	t	t
-11529	1	consultation	contractor_partnerCancel	t	t
-11530	1	consultation	contractor_address	t	t
-11531	1	continue	contractor_partner	t	t
-11532	1	continue	contractor_partnerId	t	t
-11533	1	continue	contractor_partnerTable	t	t
-11534	1	continue	contractor_partnerMap	t	t
-11535	1	continue	contractor_coords	t	t
-11536	1	continue	contractor_partnerCancel	t	t
-11537	1	continue	contractor_address	t	t
-11538	1	deliverCar	contractor_partner	t	t
-11539	1	deliverCar	contractor_partnerId	t	t
-11540	1	deliverCar	contractor_partnerTable	t	t
-11541	1	deliverCar	contractor_partnerMap	t	t
-11542	1	deliverCar	contractor_coords	t	t
-11543	1	deliverCar	contractor_partnerCancel	t	t
-11544	1	deliverCar	contractor_address	t	t
-11545	1	deliverClient	contractor_partner	t	t
-11546	1	deliverClient	contractor_partnerId	t	t
-11547	1	deliverClient	contractor_partnerTable	t	t
-11548	1	deliverClient	contractor_partnerMap	t	t
-11549	1	deliverClient	contractor_coords	t	t
-11550	1	deliverClient	contractor_partnerCancel	t	t
-11551	1	deliverClient	contractor_address	t	t
-11552	1	deliverParts	contractor_partner	t	t
-11553	1	deliverParts	contractor_partnerId	t	t
-11554	1	deliverParts	contractor_partnerTable	t	t
-11555	1	deliverParts	contractor_partnerMap	t	t
-11556	1	deliverParts	contractor_coords	t	t
-11557	1	deliverParts	contractor_partnerCancel	t	t
-11558	1	deliverParts	contractor_address	t	t
-11559	1	hotel	contractor_partner	t	t
-11560	1	hotel	contractor_partnerId	t	t
-11561	1	hotel	contractor_partnerTable	t	t
-11562	1	hotel	contractor_partnerMap	t	t
-11563	1	hotel	contractor_coords	t	t
-11564	1	hotel	contractor_partnerCancel	t	t
-11565	1	hotel	contractor_address	t	t
-11566	1	insurance	contractor_partner	t	t
-11567	1	insurance	contractor_partnerId	t	t
-11568	1	insurance	contractor_partnerTable	t	t
-11569	1	insurance	contractor_partnerMap	t	t
-11570	1	insurance	contractor_coords	t	t
-11571	1	insurance	contractor_partnerCancel	t	t
-11572	1	insurance	contractor_address	t	t
-11573	1	tech	contractor_partner	t	t
-11574	1	tech	contractor_partnerId	t	t
-11575	1	tech	contractor_partnerTable	t	t
-11576	1	tech	contractor_partnerMap	t	t
-11577	1	tech	contractor_coords	t	t
-11578	1	tech	contractor_partnerCancel	t	t
-11579	1	tech	contractor_address	t	t
-11580	1	taxi	contractor_partner	t	t
-11581	1	taxi	contractor_partnerId	t	t
-11582	1	taxi	contractor_partnerTable	t	t
-11583	1	taxi	contractor_partnerMap	t	t
-11584	1	taxi	contractor_coords	t	t
-11585	1	taxi	contractor_partnerCancel	t	t
-11586	1	taxi	contractor_address	t	t
-11587	1	tech1	contractor_partner	t	t
-11588	1	tech1	contractor_partnerId	t	t
-11589	1	tech1	contractor_partnerTable	t	t
-11590	1	tech1	contractor_partnerMap	t	t
-11591	1	tech1	contractor_coords	t	t
-11604	1	transportation	contractor_partnerMap	t	t
-11605	1	transportation	contractor_coords	t	t
-11606	1	transportation	contractor_partnerCancel	t	t
-11607	1	transportation	contractor_address	t	t
-11608	1	sober	contractor_partner	t	t
-11609	1	sober	contractor_partnerId	t	t
-11610	1	sober	contractor_partnerTable	t	t
-11611	1	sober	contractor_partnerMap	t	t
-11612	1	sober	contractor_coords	t	t
-11613	1	sober	contractor_partnerCancel	t	t
-11614	1	sober	contractor_address	t	t
-11615	1	ken	contractor_partner	t	t
-11616	1	ken	contractor_partnerId	t	t
-11617	1	ken	contractor_partnerTable	t	t
-11618	1	ken	contractor_partnerMap	t	t
-11619	1	ken	contractor_coords	t	t
-11620	1	ken	contractor_partnerCancel	t	t
-11621	1	ken	contractor_address	t	t
-11622	1	rent	contractor_partner	t	t
-11623	1	rent	contractor_partnerId	t	t
-11624	1	rent	contractor_partnerTable	t	t
-11625	1	rent	contractor_partnerMap	t	t
-11626	1	rent	contractor_coords	t	t
-11627	1	rent	contractor_partnerCancel	t	t
-11628	1	rent	contractor_address	t	t
-11629	1	averageCommissioner	contractor_partner	t	t
-11630	1	averageCommissioner	contractor_partnerId	t	t
-11631	1	averageCommissioner	contractor_partnerTable	t	t
-11632	1	averageCommissioner	contractor_partnerMap	t	t
-11633	1	averageCommissioner	contractor_coords	t	t
-11634	1	averageCommissioner	contractor_partnerCancel	t	t
-11635	1	averageCommissioner	contractor_address	t	t
-11636	17	rent	towDealer_partnerId	t	t
-11637	6	rent	towDealer_partnerId	t	t
-11638	12	rent	towDealer_partnerId	t	t
-11639	13	rent	towDealer_partnerId	t	t
-11640	4	rent	towDealer_partnerId	t	t
-11641	11	rent	towDealer_partnerId	t	t
-11642	7	rent	towDealer_partnerId	t	t
-11643	15	rent	towDealer_partnerId	t	t
-11644	3	rent	towDealer_partnerId	t	t
-11645	24	rent	towDealer_partnerId	t	t
-11646	16	rent	towDealer_partnerId	t	t
-11647	10	rent	towDealer_partnerId	t	t
-11648	1	region	label	t	t
-11649	1	region	cities	t	t
-11653	1	Dictionary	name	t	t
-11654	1	Dictionary	description	t	t
-11655	1	Dictionary	majorFields	t	t
-11688	1	CarMake	value	t	t
-11689	1	CarMake	label	t	t
-11690	1	CarModel	value	t	t
-11691	1	CarModel	label	t	t
-11692	1	CarModel	parent	t	t
-11695	1	Dictionary	parent	t	t
-11697	1	NewCaseField	field	t	t
-11698	1	NewCaseField	program	t	t
-11699	1	NewCaseField	name	t	t
-11700	1	NewCaseField	r	t	t
-11701	1	NewCaseField	w	t	t
-11753	5	averageCommissioner	commAddress_city	t	t
-11754	5	averageCommissioner	commAddress_comment	t	t
-11755	5	averageCommissioner	urgentService	t	t
-11756	5	averageCommissioner	payment_expectedCost	t	t
-11757	5	averageCommissioner	cost_countedCost	t	t
-11758	5	averageCommissioner	cost_counted	t	t
-11759	5	averageCommissioner	cost_serviceTarifOptions	t	t
-11760	5	averageCommissioner	payment_partnerCost	t	t
-11761	5	averageCommissioner	payment_costTranscript	t	t
-11762	5	averageCommissioner	payment_calculatedCost	t	f
-11763	5	averageCommissioner	payment_overcosted	t	f
-11764	5	averageCommissioner	payment_limitedCost	t	f
-11765	5	averageCommissioner	payment_paidByRUAMC	t	t
-11766	5	averageCommissioner	payment_paidByClient	t	t
-11771	5	averageCommissioner	times_expectedServiceStart	t	t
-11772	5	averageCommissioner	times_factServiceStart	t	t
-11773	5	averageCommissioner	times_expectedServiceEnd	t	t
-11774	5	averageCommissioner	times_factServiceEnd	t	t
-11775	5	averageCommissioner	times_expectedServiceFinancialClosure	t	t
-11776	5	averageCommissioner	times_factServiceFinancialClosure	t	t
-11777	5	averageCommissioner	times_expectedServiceClosure	t	t
-11778	5	averageCommissioner	times_factServiceClosure	t	t
-11779	5	averageCommissioner	times_repairEndDate	t	t
-11780	5	bank	createTime	t	f
-11781	5	bank	payType	t	t
-11782	5	bank	falseCall	t	t
-11783	5	bank	clientCancelReason	t	t
-11784	5	bank	requestType	t	t
-11785	5	bank	whatToSay1	t	t
-11786	5	bank	activity	t	t
-11787	5	bank	status	t	t
-11788	5	bank	clientSatisfied	t	t
-11789	5	bank	warrantyCase	t	t
-11790	5	bank	files	t	t
-11791	5	bank	assignedTo	t	f
-11792	5	bank	urgentService	t	t
-11793	5	bank	payment_expectedCost	t	t
-11794	5	bank	cost_countedCost	t	t
-11795	5	bank	cost_counted	t	t
-11796	5	bank	cost_serviceTarifOptions	t	t
-11797	5	bank	payment_partnerCost	t	t
-11798	5	bank	payment_costTranscript	t	t
-11799	5	bank	payment_calculatedCost	t	f
-11800	5	bank	payment_overcosted	t	f
-11801	5	bank	payment_limitedCost	t	f
-11802	5	bank	payment_paidByRUAMC	t	t
-11803	5	bank	payment_paidByClient	t	t
-11808	5	bank	times_expectedServiceStart	t	t
-11809	5	bank	times_factServiceStart	t	t
-11810	5	bank	times_expectedServiceEnd	t	t
-11811	5	bank	times_factServiceEnd	t	t
-11812	5	bank	times_expectedServiceFinancialClosure	t	t
-11813	5	bank	times_factServiceFinancialClosure	t	t
-11814	5	bank	times_expectedServiceClosure	t	t
-11815	5	bank	times_factServiceClosure	t	t
-11816	5	bank	times_repairEndDate	t	t
-11817	5	call	callDate	t	f
-11818	5	call	callTaker	t	f
-11819	5	case	callDate	t	f
-11820	5	case	callTaker	t	f
-11821	5	case	comment	t	t
-11822	5	case	diagnosis1	t	t
-11829	5	case	temperature	t	t
-11830	5	case	repair	t	f
-11831	5	case	dealerCause	t	t
-11832	5	case	caseStatus	t	t
-11833	5	case	claim	t	t
-11834	5	case	betaComment	t	t
-11835	5	case	files	t	t
-11836	5	case	comments	t	t
-11837	5	case	caseAddress_address	t	t
-11838	5	case	contact_name	t	t
-11839	5	case	cardNumber_cardNumber	t	t
-11840	5	case	caseAddress_map	t	t
-11841	5	case	caseAddress_coords	t	t
-11842	5	case	caseAddress_city	t	t
-11843	5	case	caseAddress_comment	t	t
-11844	5	case	contact_email	t	t
-11845	5	case	contact_phone2	t	t
-11846	5	case	contact_phone3	t	t
-11847	5	case	contact_phone4	t	t
-11848	5	case	contact_ownerName	t	t
-11849	5	case	contact_contactOwner	t	t
-11850	5	case	contact_ownerEmail	t	t
-11851	5	case	contact_ownerPhone1	t	t
-11852	5	case	contact_ownerPhone2	t	t
-11853	5	case	contact_ownerPhone3	t	t
-11854	5	case	contact_ownerPhone4	t	t
-11855	5	case	car_vin	t	t
-11856	5	case	car_seller	t	t
-11857	5	case	car_make	t	t
-11858	5	case	car_model	t	t
-11859	5	case	car_plateNum	t	t
-11860	5	case	car_color	t	t
-11861	5	case	car_transmission	t	t
-11862	5	case	car_engine	t	t
-11863	5	case	car_liters	t	t
-11864	5	case	car_capacity	t	t
-11865	5	case	car_dims	t	t
-11866	5	case	car_weight	t	t
-11867	5	case	car_checkPeriod	t	t
-11868	5	case	car_class	t	t
-11869	5	case	car_buyDate	t	t
-11870	5	case	car_mileage	t	t
-11871	5	case	car_checkupDate	t	t
-11872	5	case	car_checkupMileage	t	t
-11873	5	case	car_dealerTO	t	t
-11874	5	case	car_makeYear	t	t
-11875	5	case	car_warrantyStart	t	t
-11876	5	case	car_warrantyEnd	t	t
-11877	5	case	car_contractType	t	t
-11878	5	case	cardNumber_validFrom	t	f
-11879	5	case	cardNumber_validUntil	t	f
-11880	5	case	cardNumber_validUntilMilage	t	f
-11881	5	case	cardNumber_milageTO	t	f
-11882	5	case	cardNumber_serviceInterval	t	f
-11883	5	case	cardNumber_manager	t	f
-11884	5	consultation	createTime	t	f
-11885	5	consultation	payType	t	t
-11886	5	consultation	falseCall	t	t
-11887	5	consultation	clientCancelReason	t	t
-11888	5	consultation	consType	t	t
-11889	5	consultation	whatToSay1	t	t
-11890	5	consultation	status	t	t
-11891	5	consultation	result	t	t
-11892	5	consultation	clientSatisfied	t	t
-11893	5	consultation	warrantyCase	t	t
-11894	5	consultation	files	t	t
-11895	5	consultation	assignedTo	t	f
-11896	5	consultation	cost_countedCost	t	t
-11897	5	consultation	cost_counted	t	t
-11898	5	consultation	cost_serviceTarifOptions	t	t
-11899	5	consultation	urgentService	t	t
-11900	5	consultation	payment_partnerCost	t	t
-11901	5	consultation	payment_costTranscript	t	t
-11902	5	consultation	payment_calculatedCost	t	f
-11903	5	consultation	payment_overcosted	t	f
-11904	5	consultation	payment_limitedCost	t	f
-11905	5	consultation	payment_paidByRUAMC	t	t
-11906	5	consultation	payment_paidByClient	t	t
-11911	5	consultation	times_expectedServiceStart	t	t
-11912	5	consultation	times_factServiceStart	t	t
-11913	5	consultation	times_expectedServiceEnd	t	t
-11914	5	consultation	times_factServiceEnd	t	t
-11915	5	consultation	times_expectedServiceFinancialClosure	t	t
-11916	5	consultation	times_factServiceFinancialClosure	t	t
-11917	5	consultation	times_expectedServiceClosure	t	t
-11918	5	consultation	times_factServiceClosure	t	t
-11919	5	consultation	times_repairEndDate	t	t
-11920	5	continue	createTime	t	f
-11921	5	continue	payType	t	t
-11922	5	continue	falseCall	t	t
-11923	5	continue	clientCancelReason	t	t
-11924	5	continue	deliveryType	t	t
-11925	5	continue	status	t	t
-11926	5	continue	clientSatisfied	t	t
-11927	5	continue	warrantyCase	t	t
-11928	5	continue	files	t	t
-11929	5	continue	assignedTo	t	f
-11930	5	continue	urgentService	t	t
-11931	5	continue	payment_expectedCost	t	t
-11932	5	continue	cost_countedCost	t	t
-11933	5	continue	cost_counted	t	t
-11934	5	continue	cost_serviceTarifOptions	t	t
-11944	5	continue	deliverFrom_city	t	t
-11945	5	continue	deliverFrom_comment	t	t
-11946	5	continue	deliverTo_address	t	t
-11947	5	continue	deliverTo_coords	t	t
-11948	5	continue	deliverTo_city	t	t
-11949	5	continue	deliverTo_comment	t	t
-11954	5	continue	times_expectedServiceStart	t	t
-11955	5	continue	times_factServiceStart	t	t
-11956	5	continue	times_expectedServiceEnd	t	t
-11957	5	continue	times_factServiceEnd	t	t
-11958	5	continue	times_expectedServiceFinancialClosure	t	t
-11959	5	continue	times_factServiceFinancialClosure	t	t
-11960	5	continue	times_expectedServiceClosure	t	t
-11961	5	continue	times_factServiceClosure	t	t
-11962	5	continue	times_repairEndDate	t	t
-11963	5	deliverCar	createTime	t	f
-11964	5	deliverCar	payType	t	t
-11965	5	deliverCar	falseCall	t	t
-11966	5	deliverCar	clientCancelReason	t	t
-11967	5	deliverCar	marginalCost	t	f
-11968	5	deliverCar	status	t	t
-11969	5	deliverCar	clientSatisfied	t	t
-11970	5	deliverCar	warrantyCase	t	t
-11971	5	deliverCar	files	t	t
-11972	5	deliverCar	service_tarifOptions	t	t
-11973	5	deliverCar	assignedTo	t	f
-11974	5	deliverCar	falseCallPercent	t	f
-11975	5	deliverCar	toAddress_address	t	t
-11976	5	deliverCar	toAddress_coords	t	t
-11977	5	deliverCar	toAddress_city	t	t
-11978	5	deliverCar	toAddress_comment	t	t
-11979	5	deliverCar	urgentService	t	t
-11980	5	deliverCar	cost_countedCost	t	t
-11981	5	deliverCar	cost_counted	t	t
-11982	5	deliverCar	cost_serviceTarifOptions	t	t
-11983	5	deliverCar	payment_partnerCost	t	t
-11984	5	deliverCar	payment_costTranscript	t	t
-11985	5	deliverCar	payment_calculatedCost	t	f
-11986	5	deliverCar	payment_overcosted	t	f
-11987	5	deliverCar	payment_limitedCost	t	f
-11988	5	deliverCar	payment_payType	t	t
-11989	5	deliverCar	payment_paidByRUAMC	t	t
-11990	5	deliverCar	payment_paidByClient	t	t
-11991	5	deliverCar	times_expectedServiceStart	t	t
-11992	5	deliverCar	times_factServiceStart	t	t
-11993	5	deliverCar	times_expectedServiceEnd	t	t
-11994	5	deliverCar	times_factServiceEnd	t	t
-11995	5	deliverCar	times_expectedServiceFinancialClosure	t	t
-11996	5	deliverCar	times_factServiceFinancialClosure	t	t
-11997	5	deliverCar	times_expectedServiceClosure	t	t
-11998	5	deliverCar	times_factServiceClosure	t	t
-11999	5	deliverCar	times_repairEndDate	t	t
-12000	5	deliverClient	createTime	t	f
-12001	5	deliverClient	payType	t	t
-12002	5	deliverClient	falseCall	t	t
-12003	5	deliverClient	clientCancelReason	t	t
-12004	5	deliverClient	deliveryType	t	t
-12005	5	deliverClient	status	t	t
-12006	5	deliverClient	clientSatisfied	t	t
-12007	5	deliverClient	warrantyCase	t	t
-12008	5	deliverClient	files	t	t
-12009	5	deliverClient	assignedTo	t	f
-12010	5	deliverClient	falseCallPercent	t	f
-12011	5	deliverClient	cost_countedCost	t	t
-12012	5	deliverClient	urgentService	t	t
-12013	5	deliverClient	cost_counted	t	t
-12014	5	deliverClient	cost_serviceTarifOptions	t	t
-12015	5	deliverClient	payment_partnerCost	t	t
-12016	5	deliverClient	payment_costTranscript	t	t
-12017	5	deliverClient	payment_calculatedCost	t	f
-12018	5	deliverClient	payment_overcosted	t	f
-12019	5	deliverClient	payment_limitedCost	t	f
-12020	5	deliverClient	payment_paidByRUAMC	t	t
-12021	5	deliverClient	payment_paidByClient	t	t
-12022	5	deliverClient	deliverFrom_address	t	t
-12023	5	deliverClient	deliverFrom_coords	t	t
-12024	5	deliverClient	deliverFrom_city	t	t
-12025	5	deliverClient	deliverFrom_comment	t	t
-12026	5	deliverClient	deliverTo_address	t	t
-12027	5	deliverClient	deliverTo_coords	t	t
-12028	5	deliverClient	deliverTo_city	t	t
-12029	5	deliverClient	deliverTo_comment	t	t
-12034	5	deliverClient	times_expectedServiceStart	t	t
-12035	5	deliverClient	times_factServiceStart	t	t
-12036	5	deliverClient	times_expectedServiceEnd	t	t
-12253	5	rent	cost_countedCost	t	t
-12041	5	deliverClient	times_factServiceClosure	t	t
-12042	5	deliverClient	times_repairEndDate	t	t
-12044	5	deliverParts	payType	t	t
-12045	5	deliverParts	falseCall	t	t
-12046	5	deliverParts	clientCancelReason	t	t
-12047	5	deliverParts	parts	t	t
-12048	5	deliverParts	marginalCost	t	f
-12049	5	deliverParts	status	t	t
-12050	5	deliverParts	clientSatisfied	t	t
-12051	5	deliverParts	warrantyCase	t	t
-12052	5	deliverParts	files	t	t
-12053	5	deliverParts	service_tarifOptions	t	t
-12054	5	deliverParts	assignedTo	t	f
-12055	5	deliverParts	falseCallPercent	t	f
-12056	5	deliverParts	toAddress_address	t	t
-12057	5	deliverParts	toAddress_coords	t	t
-12058	5	deliverParts	toAddress_city	t	t
-12059	5	deliverParts	toAddress_comment	t	t
-12060	5	deliverParts	cost_countedCost	t	t
-12061	5	deliverParts	urgentService	t	t
-12062	5	deliverParts	cost_counted	t	t
-12063	5	deliverParts	cost_serviceTarifOptions	t	t
-12064	5	deliverParts	payment_partnerCost	t	t
-12065	5	deliverParts	payment_costTranscript	t	t
-12066	5	deliverParts	payment_calculatedCost	t	f
-12067	5	deliverParts	payment_overcosted	t	f
-12068	5	deliverParts	payment_limitedCost	t	f
-12069	5	deliverParts	payment_paidByRUAMC	t	t
-12070	5	deliverParts	payment_paidByClient	t	t
-12071	5	deliverParts	times_expectedServiceStart	t	t
-12072	5	deliverParts	times_factServiceStart	t	t
-12073	5	deliverParts	times_expectedServiceEnd	t	t
-12074	5	deliverParts	times_factServiceEnd	t	t
-12075	5	deliverParts	times_expectedServiceFinancialClosure	t	t
-12076	5	deliverParts	times_factServiceFinancialClosure	t	t
-12077	5	deliverParts	times_expectedServiceClosure	t	t
-12078	5	deliverParts	times_factServiceClosure	t	t
-12079	5	deliverParts	times_repairEndDate	t	t
-12080	5	hotel	createTime	t	f
-12081	5	hotel	payType	t	t
-12082	5	hotel	falseCall	t	t
-12083	5	hotel	clientCancelReason	t	t
-12084	5	hotel	marginalCost	t	f
-12085	5	hotel	providedFor	t	t
-12086	5	hotel	status	t	t
-12087	5	hotel	clientSatisfied	t	t
-12088	5	hotel	warrantyCase	t	t
-12089	5	hotel	files	t	t
-12090	5	hotel	service_tarifOptions	t	t
-12091	5	hotel	assignedTo	t	f
-12092	5	hotel	payment_partnerCost	t	t
-12093	5	hotel	payment_costTranscript	t	t
-12094	5	hotel	payment_calculatedCost	t	f
-12095	5	hotel	payment_overcosted	t	f
-12096	5	hotel	payment_limitedCost	t	f
-12097	5	hotel	payment_paidByRUAMC	t	t
-12098	5	hotel	payment_paidByClient	t	t
-12099	5	hotel	cost_countedCost	t	t
-12100	5	hotel	urgentService	t	t
-12101	5	hotel	cost_counted	t	t
-12102	5	hotel	cost_serviceTarifOptions	t	t
-12103	5	hotel	caseAddress_address	t	t
-12104	5	hotel	caseAddress_coords	t	t
-12105	5	hotel	caseAddress_city	t	t
-12106	5	hotel	caseAddress_comment	t	t
-12112	5	hotel	times_expectedServiceStart	t	t
-12113	5	hotel	times_factServiceStart	t	t
-12114	5	hotel	times_expectedServiceEnd	t	t
-12115	5	hotel	times_factServiceEnd	t	t
-12116	5	hotel	times_expectedServiceFinancialClosure	t	t
-12117	5	hotel	times_factServiceFinancialClosure	t	t
-12118	5	hotel	times_expectedServiceClosure	t	t
-12119	5	hotel	times_factServiceClosure	t	t
-12120	5	hotel	times_repairEndDate	t	t
-12121	5	information	createTime	t	f
-12122	5	information	payType	t	t
-12123	5	information	falseCall	t	t
-12124	5	information	clientCancelReason	t	t
-12125	5	information	contact1	t	t
-12126	5	information	contactPhone1	t	t
-12127	5	information	whatToSay1	t	t
-12128	5	information	contact2	t	t
-12129	5	information	contactPhone2	t	t
-12130	5	information	whatToSay2	t	t
-12131	5	information	contact3	t	t
-12132	5	information	contactPhone3	t	t
-12133	5	information	whatToSay3	t	t
-12134	5	information	status	t	t
-12135	5	information	clientSatisfied	t	t
-12136	5	information	warrantyCase	t	t
-12137	5	information	files	t	t
-12138	5	information	assignedTo	t	f
-12139	5	information	falseCallPercent	t	f
-12140	5	information	urgentService	t	t
-12141	5	information	payment_expectedCost	t	t
-12142	5	information	payment_partnerCost	t	t
-12150	5	information	times_factServiceStart	t	t
-12151	5	information	times_expectedServiceEnd	t	t
-12152	5	information	times_factServiceEnd	t	t
-12153	5	information	times_expectedServiceFinancialClosure	t	t
-12154	5	information	times_factServiceFinancialClosure	t	t
-12155	5	information	times_expectedServiceClosure	t	t
-12156	5	information	times_factServiceClosure	t	t
-12158	5	insurance	createTime	t	f
-12159	5	insurance	payType	t	t
-12160	5	insurance	falseCall	t	t
-12161	5	insurance	clientCancelReason	t	t
-12162	5	insurance	requestType	t	t
-12163	5	insurance	whatToSay1	t	t
-12164	5	insurance	activity	t	t
-12165	5	insurance	commMilage	t	t
-12166	5	insurance	status	t	t
-12167	5	insurance	clientSatisfied	t	t
-12168	5	insurance	warrantyCase	t	t
-12169	5	insurance	files	t	t
-12170	5	insurance	assignedTo	t	f
-12171	5	insurance	commAddress_address	t	t
-12172	5	insurance	commAddress_coords	t	t
-12173	5	insurance	commAddress_city	t	t
-12174	5	insurance	commAddress_comment	t	t
-12175	5	insurance	cost_countedCost	t	t
-12176	5	insurance	urgentService	t	t
-12177	5	insurance	cost_counted	t	t
-12178	5	insurance	cost_serviceTarifOptions	t	t
-12179	5	insurance	payment_partnerCost	t	t
-12180	5	insurance	payment_costTranscript	t	t
-12181	5	insurance	payment_calculatedCost	t	f
-12182	5	insurance	payment_overcosted	t	f
-12183	5	insurance	payment_limitedCost	t	f
-12184	5	insurance	payment_paidByRUAMC	t	t
-12185	5	insurance	payment_paidByClient	t	t
-12190	5	insurance	times_expectedServiceStart	t	t
-12191	5	insurance	times_factServiceStart	t	t
-12192	5	insurance	times_expectedServiceEnd	t	t
-12193	5	insurance	times_factServiceEnd	t	t
-12194	5	insurance	times_expectedServiceFinancialClosure	t	t
-12195	5	insurance	times_factServiceFinancialClosure	t	t
-12196	5	insurance	times_expectedServiceClosure	t	t
-12197	5	insurance	times_factServiceClosure	t	t
-12198	5	insurance	times_repairEndDate	t	t
-12199	5	ken	createTime	t	f
-12200	5	ken	payType	t	t
-12201	5	ken	falseCall	t	t
-12202	5	ken	clientCancelReason	t	t
-12203	5	ken	requestType	t	t
-12204	5	ken	whatToSay1	t	t
-12205	5	ken	activity	t	t
-12206	5	ken	status	t	t
-12207	5	ken	clientSatisfied	t	t
-12208	5	ken	warrantyCase	t	t
-12209	5	ken	files	t	t
-12210	5	ken	assignedTo	t	f
-12211	5	ken	falseCallPercent	t	f
-12212	5	ken	cost_countedCost	t	t
-12213	5	ken	urgentService	t	t
-12214	5	ken	cost_counted	t	t
-12215	5	ken	cost_serviceTarifOptions	t	t
-12216	5	ken	payment_partnerCost	t	t
-12217	5	ken	payment_costTranscript	t	t
-12218	5	ken	payment_calculatedCost	t	f
-12219	5	ken	payment_overcosted	t	f
-12220	5	ken	payment_limitedCost	t	f
-12221	5	ken	payment_paidByRUAMC	t	t
-12222	5	ken	payment_paidByClient	t	t
-12227	5	ken	times_expectedServiceStart	t	t
-12228	5	ken	times_factServiceStart	t	t
-12229	5	ken	times_expectedServiceEnd	t	t
-12230	5	ken	times_factServiceEnd	t	t
-12231	5	ken	times_expectedServiceFinancialClosure	t	t
-12232	5	ken	times_factServiceFinancialClosure	t	t
-12233	5	ken	times_expectedServiceClosure	t	t
-12234	5	ken	times_factServiceClosure	t	t
-12235	5	ken	times_repairEndDate	t	t
-12236	5	partner	comment	t	t
-12237	5	rent	createTime	t	f
-12238	5	rent	payType	t	t
-12239	5	rent	falseCall	t	t
-12240	5	rent	clientCancelReason	t	t
-12241	5	rent	vinRent	t	t
-12242	5	rent	carClass	t	t
-12243	5	rent	marginalCost	t	f
-12244	5	rent	providedFor	t	t
-12245	5	rent	rentedMake	t	t
-12246	5	rent	rentedModel	t	t
-12247	5	rent	status	t	t
-12248	5	rent	clientSatisfied	t	t
-12249	5	rent	warrantyCase	t	t
-12250	5	rent	files	t	t
-12251	5	rent	assignedTo	t	f
-12252	5	rent	falseCallPercent	t	f
-12275	5	rent	payment_paidByClient	t	t
-12276	5	rent	times_expectedServiceStart	t	t
-12277	5	rent	times_factServiceStart	t	t
-12278	5	rent	times_expectedServiceEnd	t	t
-12279	5	rent	times_factServiceEnd	t	t
-12280	5	rent	times_expectedServiceFinancialClosure	t	t
-12281	5	rent	times_factServiceFinancialClosure	t	t
-12282	5	rent	times_expectedServiceClosure	t	t
-12283	5	rent	times_factServiceClosure	t	t
-12284	5	rent	times_repairEndDate	t	t
-12285	5	sober	createTime	t	f
-12286	5	sober	payType	t	t
-12287	5	sober	falseCall	t	t
-12288	5	sober	clientCancelReason	t	t
-12289	5	sober	marginalCost	t	f
-12290	5	sober	multidrive	t	t
-12291	5	sober	status	t	t
-12292	5	sober	clientSatisfied	t	t
-12293	5	sober	warrantyCase	t	t
-12294	5	sober	files	t	t
-12295	5	sober	service_tarifOptions	t	t
-12296	5	sober	assignedTo	t	f
-12297	5	sober	cost_countedCost	t	t
-12298	5	sober	urgentService	t	t
-12299	5	sober	cost_counted	t	t
-12300	5	sober	cost_serviceTarifOptions	t	t
-12301	5	sober	payment_partnerCost	t	t
-12302	5	sober	payment_costTranscript	t	t
-12303	5	sober	payment_calculatedCost	t	f
-12304	5	sober	payment_overcosted	t	f
-12305	5	sober	payment_limitedCost	t	f
-12306	5	sober	payment_paidByRUAMC	t	t
-12307	5	sober	payment_paidByClient	t	t
-12308	5	sober	fromAddress_address	t	t
-12309	5	sober	fromAddress_coords	t	t
-12310	5	sober	fromAddress_city	t	t
-12311	5	sober	fromAddress_comment	t	t
-12312	5	sober	toAddress_address	t	t
-12313	5	sober	toAddress_coords	t	t
-12314	5	sober	toAddress_city	t	t
-12315	5	sober	toAddress_comment	t	t
-12321	5	sober	times_expectedServiceStart	t	t
-12322	5	sober	times_factServiceStart	t	t
-12323	5	sober	times_expectedServiceEnd	t	t
-12324	5	sober	times_factServiceEnd	t	t
-12325	5	sober	times_expectedServiceFinancialClosure	t	t
-12326	5	sober	times_factServiceFinancialClosure	t	t
-12327	5	sober	times_expectedServiceClosure	t	t
-12328	5	sober	times_factServiceClosure	t	t
-12329	5	sober	times_repairEndDate	t	t
-12330	5	taxi	createTime	t	f
-12331	5	taxi	payType	t	t
-12332	5	taxi	falseCall	t	t
-12333	5	taxi	clientCancelReason	t	t
-12334	5	taxi	marginalCost	t	f
-12335	5	taxi	status	t	t
-12336	5	taxi	clientSatisfied	t	t
-12337	5	taxi	warrantyCase	t	t
-12338	5	taxi	files	t	t
-12339	5	taxi	service_tarifOptions	t	t
-12340	5	taxi	assignedTo	t	f
-12341	5	taxi	falseCallPercent	t	f
-12342	5	taxi	cost_countedCost	t	t
-12343	5	taxi	urgentService	t	t
-12344	5	taxi	cost_counted	t	t
-12345	5	taxi	cost_serviceTarifOptions	t	t
-12346	5	taxi	payment_partnerCost	t	t
-12347	5	taxi	payment_costTranscript	t	t
-12348	5	taxi	payment_calculatedCost	t	f
-12349	5	taxi	payment_overcosted	t	f
-12350	5	taxi	payment_limitedCost	t	f
-12351	5	taxi	payment_paidByRUAMC	t	t
-12352	5	taxi	payment_paidByClient	t	t
-12353	5	taxi	taxiFrom_address	t	t
-12354	5	taxi	taxiFrom_coords	t	t
-12355	5	taxi	taxiFrom_city	t	t
-12356	5	taxi	taxiFrom_comment	t	t
-12357	5	taxi	taxiTo_address	t	t
-12358	5	taxi	taxiTo_coords	t	t
-12359	5	taxi	taxiTo_city	t	t
-12360	5	taxi	taxiTo_comment	t	t
-12376	5	tech1	falseCall	t	t
-12377	5	tech1	clientCancelReason	t	t
-12378	5	tech1	requestType	t	t
-12379	5	tech1	whatToSay1	t	t
-12380	5	tech1	activity	t	t
-12381	5	tech1	status	t	t
-12382	5	tech1	clientSatisfied	t	t
-12383	5	tech1	warrantyCase	t	t
-12384	5	tech1	files	t	t
-12385	5	tech1	cost_countedCost	t	t
-12386	5	tech1	urgentService	t	t
-12387	5	tech1	cost_counted	t	t
-12388	5	tech1	cost_serviceTarifOptions	t	t
-12389	5	tech1	payment_partnerCost	t	t
-12390	5	tech1	payment_costTranscript	t	t
-12391	5	tech1	payment_calculatedCost	t	f
-12392	5	tech1	payment_overcosted	t	f
-12393	5	tech1	payment_limitedCost	t	f
-12394	5	tech1	payment_paidByRUAMC	t	t
-12395	5	tech1	payment_paidByClient	t	t
-12400	5	tech1	times_expectedServiceStart	t	t
-12401	5	tech1	times_factServiceStart	t	t
-12402	5	tech1	times_expectedServiceEnd	t	t
-12403	5	tech1	times_factServiceEnd	t	t
-12404	5	tech1	times_expectedServiceFinancialClosure	t	t
-12405	5	tech1	times_factServiceFinancialClosure	t	t
-12406	5	tech1	times_expectedServiceClosure	t	t
-12407	5	tech1	times_factServiceClosure	t	t
-12408	5	tech1	times_repairEndDate	t	t
-12409	5	tech	createTime	t	f
-12410	5	tech	payType	t	t
-12411	5	tech	falseCall	t	t
-12412	5	tech	clientCancelReason	t	t
-12413	5	tech	techType	t	t
-12414	5	tech	marginalCost	t	f
-12415	5	tech	suburbanMilage	t	t
-12416	5	tech	status	t	t
-12417	5	tech	clientSatisfied	t	t
-12418	5	tech	warrantyCase	t	t
-12419	5	tech	files	t	t
-12420	5	tech	service_tarifOptions	t	t
-12421	5	tech	assignedTo	t	f
-12422	5	tech	falseCallPercent	t	f
-12423	5	tech	payment_partnerCost	t	t
-12424	5	tech	payment_costTranscript	t	t
-12425	5	tech	payment_calculatedCost	t	f
-12426	5	tech	payment_overcosted	t	f
-12427	5	tech	payment_limitedCost	t	f
-12428	5	tech	cost_countedCost	t	t
-12429	5	tech	urgentService	t	t
-12430	5	tech	cost_counted	t	t
-12431	5	tech	cost_serviceTarifOptions	t	t
-12432	5	tech	payment_paidByRUAMC	t	t
-12433	5	tech	payment_paidByClient	t	t
-12441	5	tech	times_expectedServiceStart	t	t
-12442	5	tech	times_factServiceStart	t	t
-12443	5	tech	times_expectedServiceEnd	t	t
-12444	5	tech	times_factServiceEnd	t	t
-12445	5	tech	times_expectedServiceFinancialClosure	t	t
-12446	5	tech	times_factServiceFinancialClosure	t	t
-12447	5	tech	times_expectedServiceClosure	t	t
-12448	5	tech	times_factServiceClosure	t	t
-12449	5	tech	times_repairEndDate	t	t
-12450	5	tickets	createTime	t	f
-12451	5	tickets	payType	t	t
-12452	5	tickets	falseCall	t	t
-12453	5	tickets	clientCancelReason	t	t
-12454	5	tickets	deliveryType	t	t
-12455	5	tickets	status	t	t
-12456	5	tickets	clientSatisfied	t	t
-12457	5	tickets	warrantyCase	t	t
-12458	5	tickets	files	t	t
-12459	5	tickets	assignedTo	t	f
-12460	5	tickets	falseCallPercent	t	f
-12461	5	tickets	cost_countedCost	t	t
-12462	5	tickets	ticketsFrom_address	t	t
-12463	5	tickets	ticketsFrom_coords	t	t
-12464	5	tickets	ticketsFrom_city	t	t
-12465	5	tickets	ticketsFrom_comment	t	t
-12466	5	tickets	ticketsTo_address	t	t
-12467	5	tickets	ticketsTo_coords	t	t
-12468	5	tickets	ticketsTo_city	t	t
-12469	5	tickets	ticketsTo_comment	t	t
-12470	5	tickets	urgentService	t	t
-12471	5	tickets	cost_counted	t	t
-12472	5	tickets	cost_serviceTarifOptions	t	t
-12473	5	tickets	payment_partnerCost	t	t
-12474	5	tickets	payment_costTranscript	t	t
-12475	5	tickets	payment_calculatedCost	t	f
-12476	5	tickets	payment_overcosted	t	f
-12477	5	tickets	payment_limitedCost	t	f
-12478	5	tickets	payment_paidByRUAMC	t	t
-12479	5	tickets	payment_paidByClient	t	t
-12484	5	tickets	times_expectedServiceStart	t	t
-12485	5	tickets	times_factServiceStart	t	t
-12486	5	tickets	times_expectedServiceEnd	t	t
-12487	5	tickets	times_factServiceEnd	t	t
-12488	5	tickets	times_expectedServiceFinancialClosure	t	t
-12489	5	tickets	times_factServiceFinancialClosure	t	t
-12490	5	tickets	times_expectedServiceClosure	t	t
-12491	5	tickets	times_factServiceClosure	t	t
-12492	5	tickets	times_repairEndDate	t	t
-12493	5	towage	createTime	t	f
-12494	5	towage	payType	t	t
-12495	5	towage	falseCall	t	t
-12496	5	towage	clientCancelReason	t	t
-12497	5	towage	towerType	t	t
-12498	5	towage	towType	t	t
-12499	5	towage	vandalism	t	t
-12500	5	towage	accident	t	t
-12501	5	towage	dealerDistance	t	t
-12502	5	towage	marginalCost	t	f
-12503	5	towage	wheelsUnblocked	t	t
-12504	5	towage	canNeutral	t	t
-12505	5	towage	towingPointPresent	t	t
-12506	5	towage	manipulatorPossible	t	t
-12507	5	towage	suburbanMilage	t	t
-12508	5	towage	repairEndDate	t	t
-12509	5	towage	status	t	t
-12510	5	towage	clientSatisfied	t	t
-12511	5	towage	warrantyCase	t	t
-12512	5	towage	files	t	t
-12513	5	towage	service_tarifOptions	t	t
-12514	5	towage	assignedTo	t	f
-12515	5	towage	falseCallPercent	t	f
-12516	5	towage	cost_countedCost	t	t
-12517	5	towage	urgentService	t	t
-12518	5	towage	cost_counted	t	t
-12519	5	towage	cost_serviceTarifOptions	t	t
-12520	5	towage	towAddress_address	t	t
-12521	5	towage	towAddress_coords	t	t
-12522	5	towage	towAddress_city	t	t
-12523	5	towage	towAddress_comment	t	t
-12524	5	towage	towAddress_map	t	t
-12525	5	towage	payment_partnerCost	t	t
-12526	5	towage	payment_costTranscript	t	t
-12527	5	towage	payment_calculatedCost	t	f
-12528	5	towage	payment_overcosted	t	f
-12529	5	towage	payment_limitedCost	t	f
-12530	5	towage	payment_paidByRUAMC	t	t
-12531	5	towage	payment_paidByClient	t	t
-12532	5	towage	towerAddress_address	t	t
-12533	5	towage	towerAddress_coords	t	t
-12534	5	towage	towerAddress_city	t	t
-12535	5	towage	towerAddress_comment	t	t
-12536	5	towage	towerAddress_map	t	t
-12537	5	towage	towDealer_partner	t	t
-12538	5	towage	towDealer_partnerId	t	t
-12539	5	towage	towDealer_partnerTable	t	t
-12540	5	towage	towDealer_partnerMap	t	t
-12541	5	towage	towDealer_coords	t	t
-12542	5	towage	towDealer_address	t	t
-12543	5	towage	contractor_partner	t	t
-12544	5	towage	contractor_partnerId	t	t
-12545	5	towage	contractor_partnerTable	t	t
-12546	5	towage	contractor_partnerMap	t	t
-12547	5	towage	contractor_coords	t	t
-12548	5	towage	contractor_partnerCancel	t	t
-12549	5	towage	contractor_address	t	t
-12550	5	towage	times_expectedServiceStart	t	t
-12551	5	towage	times_factServiceStart	t	t
-12552	5	towage	times_expectedServiceEnd	t	t
-12553	5	towage	times_factServiceEnd	t	t
-12554	5	towage	times_expectedServiceFinancialClosure	t	t
-12555	5	towage	times_factServiceFinancialClosure	t	t
-12556	5	towage	times_expectedServiceClosure	t	t
-12557	5	towage	times_factServiceClosure	t	t
-12558	5	transportation	createTime	t	f
-12559	5	transportation	payType	t	t
-12560	5	transportation	falseCall	t	t
-12561	5	transportation	clientCancelReason	t	t
-12562	5	transportation	transportType	t	t
-12563	5	transportation	status	t	t
-12564	5	transportation	clientSatisfied	t	t
-12565	5	transportation	warrantyCase	t	t
-12566	5	transportation	files	t	t
-12567	5	transportation	assignedTo	t	f
-12568	5	transportation	falseCallPercent	t	f
-12569	5	transportation	cost_countedCost	t	t
-12570	5	transportation	urgentService	t	t
-12571	5	transportation	cost_counted	t	t
-12572	5	transportation	cost_serviceTarifOptions	t	t
-12573	5	transportation	caseAddress_address	t	t
-12574	5	transportation	caseAddress_coords	t	t
-12575	5	transportation	caseAddress_city	t	t
-12576	5	transportation	caseAddress_comment	t	t
-12577	5	transportation	fromToAddress_address	t	t
-12578	5	transportation	fromToAddress_coords	t	t
-12579	5	transportation	fromToAddress_city	t	t
-12580	5	transportation	fromToAddress_comment	t	t
-12581	5	transportation	payment_partnerCost	t	t
-12582	5	transportation	payment_costTranscript	t	t
-12583	5	transportation	payment_calculatedCost	t	f
-12584	5	transportation	payment_overcosted	t	f
-12585	5	transportation	payment_limitedCost	t	f
-12586	5	transportation	payment_paidByRUAMC	t	t
-12587	5	transportation	payment_paidByClient	t	t
-12588	5	transportation	times_expectedServiceStart	t	t
-12589	5	transportation	times_factServiceStart	t	t
-12590	5	transportation	times_expectedServiceEnd	t	t
-12591	5	transportation	times_factServiceEnd	t	t
-12592	5	transportation	times_expectedServiceFinancialClosure	t	t
-12593	5	transportation	times_factServiceFinancialClosure	t	t
-12594	5	transportation	times_expectedServiceClosure	t	t
-12595	5	transportation	times_factServiceClosure	t	t
-12596	5	transportation	times_repairEndDate	t	t
-12598	5	attachment	filename	t	t
-12599	5	case	cardNumber_cardOwner	t	t
-12600	5	towage	companion	t	t
-12601	5	averageCommissioner	times_expectedDispatch	t	t
-12602	5	bank	times_expectedDispatch	t	t
-12603	5	consultation	times_expectedDispatch	t	t
-12604	5	continue	times_expectedDispatch	t	t
-12605	5	deliverCar	times_expectedDispatch	t	t
-12606	5	deliverClient	times_expectedDispatch	t	t
-12607	5	deliverParts	times_expectedDispatch	t	t
-12608	5	hotel	times_expectedDispatch	t	t
-12609	5	information	times_expectedDispatch	t	t
-12610	5	insurance	times_expectedDispatch	t	t
-12611	5	ken	times_expectedDispatch	t	t
-12612	5	rent	times_expectedDispatch	t	t
-12613	5	sober	times_expectedDispatch	t	t
-12614	5	taxi	times_expectedDispatch	t	t
-12615	5	tech1	times_expectedDispatch	t	t
-12616	5	tech	times_expectedDispatch	t	t
-12617	5	tickets	times_expectedDispatch	t	t
-12618	5	towage	times_expectedDispatch	t	t
-12619	5	transportation	times_expectedDispatch	t	t
-12620	5	bank	contractor_partner	t	t
-12621	5	bank	contractor_partnerId	t	t
-12622	5	bank	contractor_partnerTable	t	t
-12623	5	bank	contractor_partnerMap	t	t
-12624	5	bank	contractor_coords	t	t
-12625	5	bank	contractor_partnerCancel	t	t
-12626	5	bank	contractor_address	t	t
-12627	5	consultation	contractor_partner	t	t
-12628	5	consultation	contractor_partnerId	t	t
-12629	5	consultation	contractor_partnerTable	t	t
-12630	5	consultation	contractor_partnerMap	t	t
-12631	5	consultation	contractor_coords	t	t
-12632	5	consultation	contractor_partnerCancel	t	t
-12633	5	consultation	contractor_address	t	t
-12634	5	continue	contractor_partner	t	t
-12635	5	continue	contractor_partnerId	t	t
-12636	5	continue	contractor_partnerTable	t	t
-12637	5	continue	contractor_partnerMap	t	t
-12638	5	continue	contractor_coords	t	t
-12639	5	continue	contractor_partnerCancel	t	t
-12640	5	continue	contractor_address	t	t
-12641	5	deliverCar	contractor_partner	t	t
-12642	5	deliverCar	contractor_partnerId	t	t
-12643	5	deliverCar	contractor_partnerTable	t	t
-12644	5	deliverCar	contractor_partnerMap	t	t
-12645	5	deliverCar	contractor_coords	t	t
-12646	5	deliverCar	contractor_partnerCancel	t	t
-12647	5	deliverCar	contractor_address	t	t
-12648	5	deliverClient	contractor_partner	t	t
-12649	5	deliverClient	contractor_partnerId	t	t
-12650	5	deliverClient	contractor_partnerTable	t	t
-12651	5	deliverClient	contractor_partnerMap	t	t
-12652	5	deliverClient	contractor_coords	t	t
-12653	5	deliverClient	contractor_partnerCancel	t	t
-12654	5	deliverClient	contractor_address	t	t
-12655	5	deliverParts	contractor_partner	t	t
-12656	5	deliverParts	contractor_partnerId	t	t
-12657	5	deliverParts	contractor_partnerTable	t	t
-12658	5	deliverParts	contractor_partnerMap	t	t
-12659	5	deliverParts	contractor_coords	t	t
-12660	5	deliverParts	contractor_partnerCancel	t	t
-12661	5	deliverParts	contractor_address	t	t
-12662	5	hotel	contractor_partner	t	t
-12663	5	hotel	contractor_partnerId	t	t
-12664	5	hotel	contractor_partnerTable	t	t
-12665	5	hotel	contractor_partnerMap	t	t
-12666	5	hotel	contractor_coords	t	t
-12667	5	hotel	contractor_partnerCancel	t	t
-12668	5	hotel	contractor_address	t	t
-12669	5	insurance	contractor_partner	t	t
-12670	5	insurance	contractor_partnerId	t	t
-12671	5	insurance	contractor_partnerTable	t	t
-12672	5	insurance	contractor_partnerMap	t	t
-12673	5	insurance	contractor_coords	t	t
-12674	5	insurance	contractor_partnerCancel	t	t
-12675	5	insurance	contractor_address	t	t
-12676	5	tech	contractor_partner	t	t
-12677	5	tech	contractor_partnerId	t	t
-12678	5	tech	contractor_partnerTable	t	t
-12679	5	tech	contractor_partnerMap	t	t
-12680	5	tech	contractor_coords	t	t
-12681	5	tech	contractor_partnerCancel	t	t
-12682	5	tech	contractor_address	t	t
-12714	5	sober	contractor_partnerMap	t	t
-12715	5	sober	contractor_coords	t	t
-12716	5	sober	contractor_partnerCancel	t	t
-12717	5	sober	contractor_address	t	t
-12718	5	ken	contractor_partner	t	t
-12719	5	ken	contractor_partnerId	t	t
-12720	5	ken	contractor_partnerTable	t	t
-12721	5	ken	contractor_partnerMap	t	t
-12722	5	ken	contractor_coords	t	t
-12723	5	ken	contractor_partnerCancel	t	t
-12724	5	ken	contractor_address	t	t
-12725	5	rent	contractor_partner	t	t
-12726	5	rent	contractor_partnerId	t	t
-12727	5	rent	contractor_partnerTable	t	t
-12728	5	rent	contractor_partnerMap	t	t
-12729	5	rent	contractor_coords	t	t
-12730	5	rent	contractor_partnerCancel	t	t
-12731	5	rent	contractor_address	t	t
-12732	5	averageCommissioner	contractor_partner	t	t
-12733	5	averageCommissioner	contractor_partnerId	t	t
-12734	5	averageCommissioner	contractor_partnerTable	t	t
-12735	5	averageCommissioner	contractor_partnerMap	t	t
-12736	5	averageCommissioner	contractor_coords	t	t
-12737	5	averageCommissioner	contractor_partnerCancel	t	t
-12738	5	averageCommissioner	contractor_address	t	t
-12739	5	rent	towDealer_partnerId	t	t
-12751	1	NewCaseField	label	t	t
-12754	3	action	deferBy	t	t
-12755	4	action	deferBy	t	t
-12756	6	action	deferBy	t	t
-12757	11	action	deferBy	t	t
-12758	12	action	deferBy	t	t
-12759	13	action	deferBy	t	t
-12760	24	action	deferBy	t	t
-12761	7	action	deferBy	t	t
-12762	15	action	deferBy	t	t
-12763	16	action	deferBy	t	t
-12764	17	action	deferBy	t	t
-12765	5	action	deferBy	t	t
-12769	1	NewCaseField	id	t	f
-12770	1	CarModel	id	t	f
-12771	1	CarMake	id	t	f
-9	1	action	closeTime	f	f
-12777	1	Region	id	t	t
-12778	1	Region	label	t	t
-12779	1	Region	cities	t	t
-12780	1	City	id	t	t
-12781	1	City	value	t	t
-12782	1	City	label	t	t
-12783	1	City	timezone	t	t
+COPY "FieldPermission_tmp" (role, model, field, r, w) FROM stdin;
+supervisor	action	assignedTo	t	t
+back	action	assignedTo	t	f
+supervisor	action	caseId	t	f
+back	action	caseId	t	f
+supervisor	action	closed	t	t
+back	action	closed	t	f
+supervisor	action	comment	t	t
+back	action	comment	t	t
+supervisor	action	ctime	t	f
+back	action	ctime	t	f
+supervisor	action	deferBy	t	t
+back	action	deferBy	t	t
+supervisor	action	description	t	f
+back	action	description	t	f
+supervisor	action	duetime	t	t
+back	action	duetime	t	f
+supervisor	action	name	t	f
+back	action	name	t	f
+supervisor	action	parentId	t	f
+back	action	parentId	t	f
+supervisor	action	priority	t	t
+back	action	priority	t	f
+supervisor	action	result	t	t
+back	action	result	t	t
+supervisor	action	targetGroup	t	t
+back	action	targetGroup	t	f
+core	averageCommissioner	activity	t	t
+core	averageCommissioner	assignedTo	t	f
+billManager	averageCommissioner	bill_billingCost	t	t
+billManager	averageCommissioner	bill_billingDate	t	t
+billManager	averageCommissioner	bill_billNumber	t	t
+core	averageCommissioner	clientCancelReason	t	t
+core	averageCommissioner	clientSatisfied	t	t
+core	averageCommissioner	commAddress_address	t	t
+core	averageCommissioner	commAddress_city	t	t
+core	averageCommissioner	commAddress_comment	t	t
+core	averageCommissioner	commAddress_coords	t	t
+core	averageCommissioner	commMilage	t	t
+core	averageCommissioner	contractor_address	t	t
+core	averageCommissioner	contractor_coords	t	t
+core	averageCommissioner	contractor_partner	t	t
+core	averageCommissioner	contractor_partnerCancel	t	t
+core	averageCommissioner	contractor_partnerId	t	t
+core	averageCommissioner	contractor_partnerMap	t	t
+core	averageCommissioner	contractor_partnerTable	t	t
+core	averageCommissioner	cost_counted	t	t
+core	averageCommissioner	cost_countedCost	t	t
+core	averageCommissioner	cost_serviceTarifOptions	t	t
+core	averageCommissioner	createTime	t	f
+core	averageCommissioner	falseCall	t	t
+core	averageCommissioner	files	t	t
+billManager	averageCommissioner	original	t	t
+billChecker	averageCommissioner	original	t	f
+billManager	averageCommissioner	paid	t	t
+billChecker	averageCommissioner	paid	t	f
+core	averageCommissioner	parentId	t	f
+front	averageCommissioner	payment_calculatedCost	t	f
+core	averageCommissioner	payment_costTranscript	t	t
+core	averageCommissioner	payment_expectedCost	t	t
+front	averageCommissioner	payment_limitedCost	t	f
+front	averageCommissioner	payment_overcosted	t	f
+core	averageCommissioner	payment_paidByClient	t	t
+core	averageCommissioner	payment_paidByRUAMC	t	t
+core	averageCommissioner	payment_partnerCost	t	t
+core	averageCommissioner	payType	t	t
+core	averageCommissioner	requestType	t	t
+billManager	averageCommissioner	scan	t	t
+billChecker	averageCommissioner	scan	t	f
+core	averageCommissioner	status	t	t
+core	averageCommissioner	times_expectedDispatch	t	t
+core	averageCommissioner	times_expectedServiceClosure	t	t
+core	averageCommissioner	times_expectedServiceEnd	t	t
+core	averageCommissioner	times_expectedServiceFinancialClosure	t	t
+core	averageCommissioner	times_expectedServiceStart	t	t
+core	averageCommissioner	times_factServiceClosure	t	t
+core	averageCommissioner	times_factServiceEnd	t	t
+core	averageCommissioner	times_factServiceFinancialClosure	t	t
+core	averageCommissioner	times_factServiceStart	t	t
+core	averageCommissioner	times_repairEndDate	t	t
+core	averageCommissioner	urgentService	t	t
+core	averageCommissioner	warrantyCase	t	t
+core	averageCommissioner	whatToSay1	t	t
+core	bank	activity	t	t
+core	bank	assignedTo	t	f
+billManager	bank	bill_billingCost	t	t
+billManager	bank	bill_billingDate	t	t
+billManager	bank	bill_billNumber	t	t
+core	bank	clientCancelReason	t	t
+core	bank	clientSatisfied	t	t
+core	bank	contractor_address	t	t
+core	bank	contractor_coords	t	t
+core	bank	contractor_partner	t	t
+core	bank	contractor_partnerCancel	t	t
+core	bank	contractor_partnerId	t	t
+core	bank	contractor_partnerMap	t	t
+core	bank	contractor_partnerTable	t	t
+core	bank	cost_counted	t	t
+core	bank	cost_countedCost	t	t
+core	bank	cost_serviceTarifOptions	t	t
+core	bank	createTime	t	f
+core	bank	falseCall	t	t
+core	bank	files	t	t
+billManager	bank	original	t	t
+billChecker	bank	original	t	f
+billManager	bank	paid	t	t
+billChecker	bank	paid	t	f
+core	bank	parentId	t	f
+front	bank	payment_calculatedCost	t	f
+core	bank	payment_costTranscript	t	t
+core	bank	payment_expectedCost	t	t
+front	bank	payment_limitedCost	t	f
+front	bank	payment_overcosted	t	f
+core	bank	payment_paidByClient	t	t
+core	bank	payment_paidByRUAMC	t	t
+core	bank	payment_partnerCost	t	t
+core	bank	payType	t	t
+core	bank	requestType	t	t
+billManager	bank	scan	t	t
+billChecker	bank	scan	t	f
+core	bank	status	t	t
+core	bank	times_expectedDispatch	t	t
+core	bank	times_expectedServiceClosure	t	t
+core	bank	times_expectedServiceEnd	t	t
+core	bank	times_expectedServiceFinancialClosure	t	t
+core	bank	times_expectedServiceStart	t	t
+core	bank	times_factServiceClosure	t	t
+core	bank	times_factServiceEnd	t	t
+core	bank	times_factServiceFinancialClosure	t	t
+core	bank	times_factServiceStart	t	t
+core	bank	times_repairEndDate	t	t
+core	bank	urgentService	t	t
+core	bank	warrantyCase	t	t
+core	bank	whatToSay1	t	t
+call	call	address	t	t
+call	call	callDate	t	t
+call	call	callerName_contactOwner	t	t
+call	call	callerName_email	t	t
+call	call	callerName_name	t	t
+call	call	callerName_ownerEmail	t	t
+call	call	callerName_ownerName	t	t
+call	call	callerName_ownerPhone1	t	t
+call	call	callerName_ownerPhone2	t	t
+call	call	callerName_ownerPhone3	t	t
+call	call	callerName_ownerPhone4	t	t
+call	call	callerName_phone1	t	t
+call	call	callerName_phone2	t	t
+call	call	callerName_phone3	t	t
+call	call	callerName_phone4	t	t
+call	call	callerType	t	t
+call	call	callTaker	t	t
+call	call	callType	t	t
+call	call	carMake	t	t
+call	call	carModel	t	t
+call	call	city	t	t
+call	call	coords	t	t
+call	call	program	t	t
+call	call	wazzup	t	t
+lovViewer	CarMake	label	t	f
+lovAdmin	CarMake	label	t	t
+lovViewer	CarMake	value	t	f
+lovAdmin	CarMake	value	t	t
+lovViewer	CarModel	label	t	f
+lovAdmin	CarModel	label	t	t
+lovViewer	CarModel	parent	t	f
+lovAdmin	CarModel	parent	t	t
+lovViewer	CarModel	value	t	f
+lovAdmin	CarModel	value	t	t
+psaanalyst	case	accord	t	t
+core	case	actions	t	f
+core	case	betaComment	t	t
+core	case	callDate	t	f
+head	case	callDate	t	t
+core	case	callTaker	t	f
+core	case	car_buyDate	t	t
+core	case	car_capacity	t	t
+core	case	car_checkPeriod	t	t
+core	case	car_checkupDate	t	t
+core	case	car_checkupMileage	t	t
+core	case	car_class	t	t
+core	case	car_color	t	t
+core	case	car_contractType	t	t
+core	case	car_dealerTO	t	t
+core	case	car_dims	t	t
+core	case	car_engine	t	t
+core	case	car_liters	t	t
+core	case	car_make	t	t
+core	case	car_makeYear	t	t
+core	case	car_mileage	t	t
+core	case	car_model	t	t
+core	case	car_plateNum	t	t
+core	case	car_seller	t	t
+core	case	car_transmission	t	t
+core	case	car_vin	t	t
+core	case	car_warrantyEnd	t	t
+core	case	car_warrantyStart	t	t
+core	case	car_weight	t	t
+core	case	cardNumber_cardNumber	t	t
+core	case	cardNumber_cardOwner	t	t
+core	case	cardNumber_manager	t	t
+core	case	cardNumber_milageTO	t	t
+core	case	cardNumber_serviceInterval	t	t
+core	case	cardNumber_validFrom	t	t
+core	case	cardNumber_validUntil	t	t
+core	case	cardNumber_validUntilMilage	t	t
+core	case	caseAddress_address	t	t
+core	case	caseAddress_city	t	t
+core	case	caseAddress_comment	t	t
+core	case	caseAddress_coords	t	t
+core	case	caseAddress_map	t	t
+core	case	caseStatus	t	t
+core	case	city	t	t
+core	case	claim	t	t
+core	case	comment	t	t
+core	case	comments	t	t
+core	case	contact_contactOwner	t	t
+core	case	contact_email	t	t
+core	case	contact_name	t	t
+core	case	contact_ownerEmail	t	t
+core	case	contact_ownerName	t	t
+core	case	contact_ownerPhone1	t	t
+core	case	contact_ownerPhone2	t	t
+core	case	contact_ownerPhone3	t	t
+core	case	contact_ownerPhone4	t	t
+core	case	contact_phone1	t	t
+core	case	contact_phone2	t	t
+core	case	contact_phone3	t	t
+core	case	contact_phone4	t	t
+core	case	dealerCause	t	f
+analyst	case	dealerCause	t	t
+core	case	diagnosis1	t	t
+core	case	diagnosis2	t	t
+core	case	diagnosis3	t	t
+core	case	diagnosis4	t	t
+core	case	files	t	t
+core	case	program	t	t
+psaanalyst	case	psaExported	t	t
+psaanalyst	case	psaExportNeeded	t	t
+core	case	repair	t	f
+analyst	case	repair	t	t
+core	case	services	t	t
+core	case	temperature	t	t
+core	case	vinChecked	t	t
+vwfake	case	vwcreatedate	t	t
+lovViewer	City	id	t	f
+lovAdmin	City	id	t	t
+lovViewer	City	label	t	f
+lovAdmin	City	label	t	t
+lovViewer	City	timezone	t	f
+lovAdmin	City	timezone	t	t
+lovViewer	City	value	t	f
+lovAdmin	City	value	t	t
+core	consultation	assignedTo	t	f
+billManager	consultation	bill_billingCost	t	t
+billManager	consultation	bill_billingDate	t	t
+billManager	consultation	bill_billNumber	t	t
+core	consultation	clientCancelReason	t	t
+core	consultation	clientSatisfied	t	t
+core	consultation	consType	t	t
+core	consultation	contractor_address	t	t
+core	consultation	contractor_coords	t	t
+core	consultation	contractor_partner	t	t
+core	consultation	contractor_partnerCancel	t	t
+core	consultation	contractor_partnerId	t	t
+core	consultation	contractor_partnerMap	t	t
+core	consultation	contractor_partnerTable	t	t
+core	consultation	cost_counted	t	t
+core	consultation	cost_countedCost	t	t
+core	consultation	cost_serviceTarifOptions	t	t
+core	consultation	createTime	t	f
+core	consultation	falseCall	t	t
+core	consultation	files	t	t
+psaanalyst	consultation	orderNumber	t	t
+billManager	consultation	original	t	t
+billChecker	consultation	original	t	f
+billManager	consultation	paid	t	t
+billChecker	consultation	paid	t	f
+core	consultation	parentId	t	f
+front	consultation	payment_calculatedCost	t	f
+core	consultation	payment_costTranscript	t	t
+front	consultation	payment_limitedCost	t	f
+front	consultation	payment_overcosted	t	f
+core	consultation	payment_paidByClient	t	t
+core	consultation	payment_paidByRUAMC	t	t
+core	consultation	payment_partnerCost	t	t
+core	consultation	payType	t	t
+core	consultation	result	t	t
+billManager	consultation	scan	t	t
+billChecker	consultation	scan	t	f
+core	consultation	status	t	t
+core	consultation	times_expectedDispatch	t	t
+core	consultation	times_expectedServiceClosure	t	t
+core	consultation	times_expectedServiceEnd	t	t
+core	consultation	times_expectedServiceFinancialClosure	t	t
+core	consultation	times_expectedServiceStart	t	t
+core	consultation	times_factServiceClosure	t	t
+core	consultation	times_factServiceEnd	t	t
+core	consultation	times_factServiceFinancialClosure	t	t
+core	consultation	times_factServiceStart	t	t
+core	consultation	times_repairEndDate	t	t
+core	consultation	urgentService	t	t
+core	consultation	warrantyCase	t	t
+core	consultation	whatToSay1	t	t
+core	continue	assignedTo	t	f
+billManager	continue	bill_billingCost	t	t
+billManager	continue	bill_billingDate	t	t
+billManager	continue	bill_billNumber	t	t
+core	continue	clientCancelReason	t	t
+core	continue	clientSatisfied	t	t
+core	continue	contractor_address	t	t
+core	continue	contractor_coords	t	t
+core	continue	contractor_partner	t	t
+core	continue	contractor_partnerCancel	t	t
+core	continue	contractor_partnerId	t	t
+core	continue	contractor_partnerMap	t	t
+core	continue	contractor_partnerTable	t	t
+core	continue	cost_counted	t	t
+core	continue	cost_countedCost	t	t
+core	continue	cost_serviceTarifOptions	t	t
+core	continue	createTime	t	f
+core	continue	deliverFrom_address	t	t
+core	continue	deliverFrom_city	t	t
+core	continue	deliverFrom_comment	t	t
+core	continue	deliverFrom_coords	t	t
+core	continue	deliverTo_address	t	t
+core	continue	deliverTo_city	t	t
+core	continue	deliverTo_comment	t	t
+core	continue	deliverTo_coords	t	t
+core	continue	deliveryType	t	t
+core	continue	falseCall	t	t
+core	continue	files	t	t
+billManager	continue	original	t	t
+billChecker	continue	original	t	f
+billManager	continue	paid	t	t
+billChecker	continue	paid	t	f
+core	continue	parentId	t	f
+front	continue	payment_calculatedCost	t	f
+core	continue	payment_costTranscript	t	t
+core	continue	payment_expectedCost	t	t
+front	continue	payment_limitedCost	t	f
+front	continue	payment_overcosted	t	f
+core	continue	payment_paidByClient	t	t
+core	continue	payment_paidByRUAMC	t	t
+core	continue	payment_partnerCost	t	t
+core	continue	payType	t	t
+billManager	continue	scan	t	t
+billChecker	continue	scan	t	f
+core	continue	status	t	t
+core	continue	times_expectedDispatch	t	t
+core	continue	times_expectedServiceClosure	t	t
+core	continue	times_expectedServiceEnd	t	t
+core	continue	times_expectedServiceFinancialClosure	t	t
+core	continue	times_expectedServiceStart	t	t
+core	continue	times_factServiceClosure	t	t
+core	continue	times_factServiceEnd	t	t
+core	continue	times_factServiceFinancialClosure	t	t
+core	continue	times_factServiceStart	t	t
+core	continue	times_repairEndDate	t	t
+core	continue	urgentService	t	t
+core	continue	warrantyCase	t	t
+partner	contract	carBuyDate	t	t
+contract_admin	contract	carBuyDate	t	t
+partner	contract	carCheckupDate	t	t
+contract_admin	contract	carCheckupDate	t	t
+partner	contract	carCheckupMilage	t	t
+contract_admin	contract	carCheckupMilage	t	t
+partner	contract	carColor	t	t
+contract_admin	contract	carColor	t	t
+partner	contract	carDealerTO	t	t
+contract_admin	contract	carDealerTO	t	t
+partner	contract	cardNumber	t	t
+contract_admin	contract	cardNumber	t	t
+partner	contract	cardOwner	t	t
+contract_admin	contract	cardOwner	t	t
+partner	contract	carEngine	t	t
+contract_admin	contract	carEngine	t	t
+partner	contract	carMake	t	t
+contract_admin	contract	carMake	t	t
+partner	contract	carMakeYear	t	t
+contract_admin	contract	carMakeYear	t	t
+partner	contract	carModel	t	t
+contract_admin	contract	carModel	t	t
+partner	contract	carPlateNum	t	t
+contract_admin	contract	carPlateNum	t	t
+partner	contract	carSeller	t	t
+contract_admin	contract	carSeller	t	t
+partner	contract	carTransmission	t	t
+contract_admin	contract	carTransmission	t	t
+partner	contract	carVin	t	t
+contract_admin	contract	carVin	t	t
+partner	contract	comment	t	t
+contract_admin	contract	comment	t	t
+partner	contract	contractType	t	t
+contract_admin	contract	contractType	t	t
+partner	contract	contractValidFromDate	t	t
+contract_admin	contract	contractValidFromDate	t	t
+partner	contract	contractValidUntilDate	t	t
+contract_admin	contract	contractValidUntilDate	t	t
+partner	contract	contractValidUntilMilage	t	t
+contract_admin	contract	contractValidUntilMilage	t	t
+partner	contract	ctime	t	t
+contract_admin	contract	ctime	t	t
+partner	contract	dixi	t	t
+contract_admin	contract	dixi	t	t
+partner	contract	isActive	t	t
+contract_admin	contract	isActive	t	t
+partner	contract	manager	t	t
+contract_admin	contract	manager	t	t
+partner	contract	milageTO	t	t
+contract_admin	contract	milageTO	t	t
+partner	contract	orderNumber	t	t
+contract_admin	contract	orderNumber	t	t
+partner	contract	owner	t	f
+contract_admin	contract	owner	t	f
+partner	contract	program	t	f
+contract_admin	contract	program	t	f
+partner	contract	techType	t	t
+contract_admin	contract	techType	t	t
+partner	contract	warrantyEnd	t	t
+contract_admin	contract	warrantyEnd	t	t
+partner	contract	warrantyStart	t	t
+contract_admin	contract	warrantyStart	t	t
+core	cost_serviceTarifOption	cost	t	t
+core	cost_serviceTarifOption	count	t	t
+core	cost_serviceTarifOption	optionName	t	t
+core	cost_serviceTarifOption	parentId	t	f
+core	cost_serviceTarifOption	price	t	t
+core	cost_serviceTarifOption	price1	t	t
+core	cost_serviceTarifOption	price2	t	t
+core	cost_serviceTarifOption	tarifOptionId	t	t
+core	deliverCar	assignedTo	t	f
+billManager	deliverCar	bill_billingCost	t	t
+billManager	deliverCar	bill_billingDate	t	t
+billManager	deliverCar	bill_billNumber	t	t
+core	deliverCar	clientCancelReason	t	t
+core	deliverCar	clientSatisfied	t	t
+core	deliverCar	contractor_address	t	t
+core	deliverCar	contractor_coords	t	t
+core	deliverCar	contractor_partner	t	t
+core	deliverCar	contractor_partnerCancel	t	t
+core	deliverCar	contractor_partnerId	t	t
+core	deliverCar	contractor_partnerMap	t	t
+core	deliverCar	contractor_partnerTable	t	t
+core	deliverCar	cost_counted	t	t
+core	deliverCar	cost_countedCost	t	t
+core	deliverCar	cost_serviceTarifOptions	t	t
+core	deliverCar	createTime	t	f
+core	deliverCar	falseCall	t	t
+core	deliverCar	falseCallPercent	t	f
+core	deliverCar	files	t	t
+core	deliverCar	marginalCost	t	f
+billManager	deliverCar	original	t	t
+billChecker	deliverCar	original	t	f
+billManager	deliverCar	paid	t	t
+billChecker	deliverCar	paid	t	f
+core	deliverCar	parentId	t	f
+front	deliverCar	payment_calculatedCost	t	f
+core	deliverCar	payment_costTranscript	t	t
+front	deliverCar	payment_limitedCost	t	f
+front	deliverCar	payment_overcosted	t	f
+core	deliverCar	payment_paidByClient	t	t
+core	deliverCar	payment_paidByRUAMC	t	t
+core	deliverCar	payment_partnerCost	t	t
+core	deliverCar	payment_payType	t	t
+core	deliverCar	payType	t	t
+billManager	deliverCar	scan	t	t
+billChecker	deliverCar	scan	t	f
+core	deliverCar	service_tarifOptions	t	t
+core	deliverCar	status	t	t
+core	deliverCar	times_expectedDispatch	t	t
+core	deliverCar	times_expectedServiceClosure	t	t
+core	deliverCar	times_expectedServiceEnd	t	t
+core	deliverCar	times_expectedServiceFinancialClosure	t	t
+core	deliverCar	times_expectedServiceStart	t	t
+core	deliverCar	times_factServiceClosure	t	t
+core	deliverCar	times_factServiceEnd	t	t
+core	deliverCar	times_factServiceFinancialClosure	t	t
+core	deliverCar	times_factServiceStart	t	t
+core	deliverCar	times_repairEndDate	t	t
+core	deliverCar	toAddress_address	t	t
+core	deliverCar	toAddress_city	t	t
+core	deliverCar	toAddress_comment	t	t
+core	deliverCar	toAddress_coords	t	t
+core	deliverCar	urgentService	t	t
+core	deliverCar	warrantyCase	t	t
+core	deliverClient	assignedTo	t	f
+billManager	deliverClient	bill_billingCost	t	t
+billManager	deliverClient	bill_billingDate	t	t
+billManager	deliverClient	bill_billNumber	t	t
+core	deliverClient	clientCancelReason	t	t
+core	deliverClient	clientSatisfied	t	t
+core	deliverClient	contractor_address	t	t
+core	deliverClient	contractor_coords	t	t
+core	deliverClient	contractor_partner	t	t
+core	deliverClient	contractor_partnerCancel	t	t
+core	deliverClient	contractor_partnerId	t	t
+core	deliverClient	contractor_partnerMap	t	t
+core	deliverClient	contractor_partnerTable	t	t
+core	deliverClient	cost_counted	t	t
+core	deliverClient	cost_countedCost	t	t
+core	deliverClient	cost_serviceTarifOptions	t	t
+core	deliverClient	createTime	t	f
+core	deliverClient	deliverFrom_address	t	t
+core	deliverClient	deliverFrom_city	t	t
+core	deliverClient	deliverFrom_comment	t	t
+core	deliverClient	deliverFrom_coords	t	t
+core	deliverClient	deliverTo_address	t	t
+core	deliverClient	deliverTo_city	t	t
+core	deliverClient	deliverTo_comment	t	t
+core	deliverClient	deliverTo_coords	t	t
+core	deliverClient	deliveryType	t	t
+core	deliverClient	falseCall	t	t
+core	deliverClient	falseCallPercent	t	f
+core	deliverClient	files	t	t
+billManager	deliverClient	original	t	t
+billChecker	deliverClient	original	t	f
+billManager	deliverClient	paid	t	t
+billChecker	deliverClient	paid	t	f
+core	deliverClient	parentId	t	f
+front	deliverClient	payment_calculatedCost	t	f
+core	deliverClient	payment_costTranscript	t	t
+front	deliverClient	payment_limitedCost	t	f
+front	deliverClient	payment_overcosted	t	f
+core	deliverClient	payment_paidByClient	t	t
+core	deliverClient	payment_paidByRUAMC	t	t
+core	deliverClient	payment_partnerCost	t	t
+core	deliverClient	payType	t	t
+billManager	deliverClient	scan	t	t
+billChecker	deliverClient	scan	t	f
+core	deliverClient	status	t	t
+core	deliverClient	times_expectedDispatch	t	t
+core	deliverClient	times_expectedServiceClosure	t	t
+core	deliverClient	times_expectedServiceEnd	t	t
+core	deliverClient	times_expectedServiceFinancialClosure	t	t
+core	deliverClient	times_expectedServiceStart	t	t
+core	deliverClient	times_factServiceClosure	t	t
+core	deliverClient	times_factServiceEnd	t	t
+core	deliverClient	times_factServiceFinancialClosure	t	t
+core	deliverClient	times_factServiceStart	t	t
+core	deliverClient	times_repairEndDate	t	t
+core	deliverClient	urgentService	t	t
+core	deliverClient	warrantyCase	t	t
+core	deliverParts	assignedTo	t	f
+billManager	deliverParts	bill_billingCost	t	t
+billManager	deliverParts	bill_billingDate	t	t
+billManager	deliverParts	bill_billNumber	t	t
+core	deliverParts	clientCancelReason	t	t
+core	deliverParts	clientSatisfied	t	t
+core	deliverParts	contractor_address	t	t
+core	deliverParts	contractor_coords	t	t
+core	deliverParts	contractor_partner	t	t
+core	deliverParts	contractor_partnerCancel	t	t
+core	deliverParts	contractor_partnerId	t	t
+core	deliverParts	contractor_partnerMap	t	t
+core	deliverParts	contractor_partnerTable	t	t
+core	deliverParts	cost_counted	t	t
+core	deliverParts	cost_countedCost	t	t
+core	deliverParts	cost_serviceTarifOptions	t	t
+core	deliverParts	createTime	t	f
+core	deliverParts	falseCall	t	t
+core	deliverParts	falseCallPercent	t	f
+core	deliverParts	files	t	t
+core	deliverParts	marginalCost	t	f
+billManager	deliverParts	original	t	t
+billChecker	deliverParts	original	t	f
+billManager	deliverParts	paid	t	t
+billChecker	deliverParts	paid	t	f
+core	deliverParts	parentId	t	f
+core	deliverParts	parts	t	t
+front	deliverParts	payment_calculatedCost	t	f
+core	deliverParts	payment_costTranscript	t	t
+front	deliverParts	payment_limitedCost	t	f
+front	deliverParts	payment_overcosted	t	f
+core	deliverParts	payment_paidByClient	t	t
+core	deliverParts	payment_paidByRUAMC	t	t
+core	deliverParts	payment_partnerCost	t	t
+core	deliverParts	payType	t	t
+billManager	deliverParts	scan	t	t
+billChecker	deliverParts	scan	t	f
+core	deliverParts	service_tarifOptions	t	t
+core	deliverParts	status	t	t
+core	deliverParts	times_expectedDispatch	t	t
+core	deliverParts	times_expectedServiceClosure	t	t
+core	deliverParts	times_expectedServiceEnd	t	t
+core	deliverParts	times_expectedServiceFinancialClosure	t	t
+core	deliverParts	times_expectedServiceStart	t	t
+core	deliverParts	times_factServiceClosure	t	t
+core	deliverParts	times_factServiceEnd	t	t
+core	deliverParts	times_factServiceFinancialClosure	t	t
+core	deliverParts	times_factServiceStart	t	t
+core	deliverParts	times_repairEndDate	t	t
+core	deliverParts	toAddress_address	t	t
+core	deliverParts	toAddress_city	t	t
+core	deliverParts	toAddress_comment	t	t
+core	deliverParts	toAddress_coords	t	t
+core	deliverParts	urgentService	t	t
+core	deliverParts	warrantyCase	t	t
+core	Dictionary	description	t	t
+lovViewer	Dictionary	description	t	f
+lovAdmin	Dictionary	description	t	t
+core	Dictionary	majorFields	t	t
+lovViewer	Dictionary	majorFields	t	f
+lovAdmin	Dictionary	majorFields	t	t
+core	Dictionary	name	t	t
+lovViewer	Dictionary	name	t	f
+lovAdmin	Dictionary	name	t	t
+core	Dictionary	parent	t	t
+lovViewer	Dictionary	parent	t	f
+lovAdmin	Dictionary	parent	t	t
+core	hotel	assignedTo	t	f
+billManager	hotel	bill_billingCost	t	t
+billManager	hotel	bill_billingDate	t	t
+billManager	hotel	bill_billNumber	t	t
+core	hotel	caseAddress_address	t	t
+core	hotel	caseAddress_city	t	t
+core	hotel	caseAddress_comment	t	t
+core	hotel	caseAddress_coords	t	t
+core	hotel	clientCancelReason	t	t
+core	hotel	clientSatisfied	t	t
+core	hotel	contractor_address	t	t
+core	hotel	contractor_coords	t	t
+core	hotel	contractor_partner	t	t
+core	hotel	contractor_partnerCancel	t	t
+core	hotel	contractor_partnerId	t	t
+core	hotel	contractor_partnerMap	t	t
+core	hotel	contractor_partnerTable	t	t
+core	hotel	cost_counted	t	t
+core	hotel	cost_countedCost	t	t
+core	hotel	cost_serviceTarifOptions	t	t
+core	hotel	createTime	t	f
+core	hotel	falseCall	t	t
+core	hotel	files	t	t
+core	hotel	marginalCost	t	f
+billManager	hotel	original	t	t
+billChecker	hotel	original	t	f
+billManager	hotel	paid	t	t
+billChecker	hotel	paid	t	f
+core	hotel	parentId	t	f
+front	hotel	payment_calculatedCost	t	f
+core	hotel	payment_costTranscript	t	t
+front	hotel	payment_limitedCost	t	f
+front	hotel	payment_overcosted	t	f
+core	hotel	payment_paidByClient	t	t
+core	hotel	payment_paidByRUAMC	t	t
+core	hotel	payment_partnerCost	t	t
+core	hotel	payType	t	t
+core	hotel	providedFor	t	t
+billManager	hotel	scan	t	t
+billChecker	hotel	scan	t	f
+core	hotel	service_tarifOptions	t	t
+core	hotel	status	t	t
+core	hotel	times_expectedDispatch	t	t
+core	hotel	times_expectedServiceClosure	t	t
+core	hotel	times_expectedServiceEnd	t	t
+core	hotel	times_expectedServiceFinancialClosure	t	t
+core	hotel	times_expectedServiceStart	t	t
+core	hotel	times_factServiceClosure	t	t
+core	hotel	times_factServiceEnd	t	t
+core	hotel	times_factServiceFinancialClosure	t	t
+core	hotel	times_factServiceStart	t	t
+core	hotel	times_repairEndDate	t	t
+core	hotel	urgentService	t	t
+core	hotel	warrantyCase	t	t
+core	information	assignedTo	t	f
+billManager	information	bill_billingCost	t	t
+billManager	information	bill_billingDate	t	t
+billManager	information	bill_billNumber	t	t
+core	information	clientCancelReason	t	t
+core	information	clientSatisfied	t	t
+core	information	contact1	t	t
+core	information	contact2	t	t
+core	information	contact3	t	t
+core	information	contactPhone1	t	t
+core	information	contactPhone2	t	t
+core	information	contactPhone3	t	t
+core	information	createTime	t	f
+core	information	falseCall	t	t
+core	information	falseCallPercent	t	f
+core	information	files	t	t
+billManager	information	original	t	t
+billChecker	information	original	t	f
+billManager	information	paid	t	t
+billChecker	information	paid	t	f
+core	information	parentId	t	f
+front	information	payment_calculatedCost	t	f
+core	information	payment_costTranscript	t	t
+core	information	payment_expectedCost	t	t
+front	information	payment_limitedCost	t	f
+front	information	payment_overcosted	t	f
+core	information	payment_paidByClient	t	t
+core	information	payment_paidByRUAMC	t	t
+core	information	payment_partnerCost	t	t
+core	information	payType	t	t
+billManager	information	scan	t	t
+billChecker	information	scan	t	f
+core	information	status	t	t
+core	information	times_expectedDispatch	t	t
+core	information	times_expectedServiceClosure	t	t
+core	information	times_expectedServiceEnd	t	t
+core	information	times_expectedServiceFinancialClosure	t	t
+core	information	times_expectedServiceStart	t	t
+core	information	times_factServiceClosure	t	t
+core	information	times_factServiceEnd	t	t
+core	information	times_factServiceFinancialClosure	t	t
+core	information	times_factServiceStart	t	t
+core	information	times_repairEndDate	t	t
+core	information	urgentService	t	t
+core	information	warrantyCase	t	t
+core	information	whatToSay1	t	t
+core	information	whatToSay2	t	t
+core	information	whatToSay3	t	t
+core	insurance	activity	t	t
+core	insurance	assignedTo	t	f
+billManager	insurance	bill_billingCost	t	t
+billManager	insurance	bill_billingDate	t	t
+billManager	insurance	bill_billNumber	t	t
+core	insurance	clientCancelReason	t	t
+core	insurance	clientSatisfied	t	t
+core	insurance	commAddress_address	t	t
+core	insurance	commAddress_city	t	t
+core	insurance	commAddress_comment	t	t
+core	insurance	commAddress_coords	t	t
+core	insurance	commMilage	t	t
+core	insurance	contractor_address	t	t
+core	insurance	contractor_coords	t	t
+core	insurance	contractor_partner	t	t
+core	insurance	contractor_partnerCancel	t	t
+core	insurance	contractor_partnerId	t	t
+core	insurance	contractor_partnerMap	t	t
+core	insurance	contractor_partnerTable	t	t
+core	insurance	cost_counted	t	t
+core	insurance	cost_countedCost	t	t
+core	insurance	cost_serviceTarifOptions	t	t
+core	insurance	createTime	t	f
+core	insurance	falseCall	t	t
+core	insurance	files	t	t
+billManager	insurance	original	t	t
+billChecker	insurance	original	t	f
+billManager	insurance	paid	t	t
+billChecker	insurance	paid	t	f
+core	insurance	parentId	t	f
+front	insurance	payment_calculatedCost	t	f
+core	insurance	payment_costTranscript	t	t
+front	insurance	payment_limitedCost	t	f
+front	insurance	payment_overcosted	t	f
+core	insurance	payment_paidByClient	t	t
+core	insurance	payment_paidByRUAMC	t	t
+core	insurance	payment_partnerCost	t	t
+core	insurance	payType	t	t
+core	insurance	requestType	t	t
+billManager	insurance	scan	t	t
+billChecker	insurance	scan	t	f
+core	insurance	status	t	t
+core	insurance	times_expectedDispatch	t	t
+core	insurance	times_expectedServiceClosure	t	t
+core	insurance	times_expectedServiceEnd	t	t
+core	insurance	times_expectedServiceFinancialClosure	t	t
+core	insurance	times_expectedServiceStart	t	t
+core	insurance	times_factServiceClosure	t	t
+core	insurance	times_factServiceEnd	t	t
+core	insurance	times_factServiceFinancialClosure	t	t
+core	insurance	times_factServiceStart	t	t
+core	insurance	times_repairEndDate	t	t
+core	insurance	urgentService	t	t
+core	insurance	warrantyCase	t	t
+core	insurance	whatToSay1	t	t
+core	ken	activity	t	t
+core	ken	assignedTo	t	f
+billManager	ken	bill_billingCost	t	t
+billManager	ken	bill_billingDate	t	t
+billManager	ken	bill_billNumber	t	t
+core	ken	clientCancelReason	t	t
+core	ken	clientSatisfied	t	t
+core	ken	contractor_address	t	t
+core	ken	contractor_coords	t	t
+core	ken	contractor_partner	t	t
+core	ken	contractor_partnerCancel	t	t
+core	ken	contractor_partnerId	t	t
+core	ken	contractor_partnerMap	t	t
+core	ken	contractor_partnerTable	t	t
+core	ken	cost_counted	t	t
+core	ken	cost_countedCost	t	t
+core	ken	cost_serviceTarifOptions	t	t
+core	ken	createTime	t	f
+core	ken	falseCall	t	t
+core	ken	falseCallPercent	t	f
+core	ken	files	t	t
+billManager	ken	original	t	t
+billChecker	ken	original	t	f
+billManager	ken	paid	t	t
+billChecker	ken	paid	t	f
+core	ken	parentId	t	f
+front	ken	payment_calculatedCost	t	f
+core	ken	payment_costTranscript	t	t
+front	ken	payment_limitedCost	t	f
+front	ken	payment_overcosted	t	f
+core	ken	payment_paidByClient	t	t
+core	ken	payment_paidByRUAMC	t	t
+core	ken	payment_partnerCost	t	t
+core	ken	payType	t	t
+core	ken	requestType	t	t
+billManager	ken	scan	t	t
+billChecker	ken	scan	t	f
+core	ken	status	t	t
+core	ken	times_expectedDispatch	t	t
+core	ken	times_expectedServiceClosure	t	t
+core	ken	times_expectedServiceEnd	t	t
+core	ken	times_expectedServiceFinancialClosure	t	t
+core	ken	times_expectedServiceStart	t	t
+core	ken	times_factServiceClosure	t	t
+core	ken	times_factServiceEnd	t	t
+core	ken	times_factServiceFinancialClosure	t	t
+core	ken	times_factServiceStart	t	t
+core	ken	times_repairEndDate	t	t
+core	ken	urgentService	t	t
+core	ken	warrantyCase	t	t
+core	ken	whatToSay1	t	t
+lovViewer	NewCaseField	field	t	f
+lovAdmin	NewCaseField	field	t	t
+lovViewer	NewCaseField	info	t	f
+lovAdmin	NewCaseField	info	t	t
+lovViewer	NewCaseField	label	t	f
+lovAdmin	NewCaseField	label	t	t
+lovViewer	NewCaseField	program	t	f
+lovAdmin	NewCaseField	program	t	t
+lovViewer	NewCaseField	r	t	f
+lovAdmin	NewCaseField	r	t	t
+lovViewer	NewCaseField	required	t	f
+lovAdmin	NewCaseField	required	t	t
+lovViewer	NewCaseField	w	t	f
+lovAdmin	NewCaseField	w	t	t
+parguy	partner_service	falseCallPercent	t	t
+parguy	partner_service	parentId	t	t
+parguy	partner_service	priority1	t	t
+parguy	partner_service	priority2	t	t
+parguy	partner_service	priority3	t	t
+parguy	partner_service	serviceName	t	t
+parguy	partner_service	tarifOptions	t	t
+parguy	partner	addrDeFacto	t	t
+parguy	partner	addrDeJure	t	t
+parguy	partner	addrs	t	t
+parguy	partner	city	t	t
+parguy	partner	closeTicketEmail	t	t
+parguy	partner	closeTicketPhone	t	t
+parguy	partner	code	t	t
+parguy	partner	comment	t	t
+parguy	partner	coords	t	t
+parguy	partner	emails	t	t
+parguy	partner	fax	t	t
+parguy	partner	isActive	t	t
+parguy	partner	isDealer	t	t
+parguy	partner	isMobile	t	t
+parguy	partner	isPayBackConfirmed	t	t
+parguy	partner	makes	t	t
+parguy	partner	mtime	t	t
+parguy	partner	name	t	t
+parguy	partner	personInCharge	t	t
+parguy	partner	phone1	t	t
+parguy	partner	phones	t	t
+parguy	partner	salesAddress	t	t
+parguy	partner	salesPhone	t	t
+parguy	partner	salesWorking	t	t
+parguy	partner	serviceAddress	t	t
+parguy	partner	servicePhone	t	t
+parguy	partner	services	t	t
+parguy	partner	serviceWorking	t	t
+parguy	partner	taxScheme	t	t
+parguy	partner	workingTime	t	t
+core	partnerCancel	caseId	t	t
+core	partnerCancel	comment	t	t
+core	partnerCancel	ctime	t	t
+core	partnerCancel	owner	t	t
+core	partnerCancel	partnerCancelReason	t	t
+core	partnerCancel	partnerId	t	t
+core	partnerCancel	serviceId	t	t
+lovViewer	program	active	t	f
+lovAdmin	program	active	t	t
+lovViewer	program	carCheckPeriodDefault	t	f
+lovAdmin	program	carCheckPeriodDefault	t	t
+lovViewer	program	client	t	f
+lovAdmin	program	client	t	t
+lovViewer	program	clientAddress	t	f
+lovAdmin	program	clientAddress	t	t
+lovViewer	program	clientCode	t	f
+lovAdmin	program	clientCode	t	t
+lovViewer	program	contracts	t	f
+lovAdmin	program	contracts	t	t
+lovViewer	program	duedateDefault	t	f
+lovAdmin	program	duedateDefault	t	t
+lovViewer	program	help	t	f
+lovAdmin	program	help	t	t
+lovViewer	program	label	t	f
+lovAdmin	program	label	t	t
+lovViewer	program	logo	t	f
+lovAdmin	program	logo	t	t
+lovViewer	program	programPermissions	t	f
+lovAdmin	program	programPermissions	t	t
+lovViewer	program	services	t	f
+lovAdmin	program	services	t	t
+lovViewer	program	value	t	f
+lovAdmin	program	value	t	t
+lovViewer	program	vinFormat	t	f
+lovAdmin	program	vinFormat	t	t
+lovViewer	programPermissions	contractField	t	f
+lovAdmin	programPermissions	contractField	t	t
+lovViewer	programPermissions	parentId	t	f
+lovAdmin	programPermissions	parentId	t	f
+lovViewer	programPermissions	showForm	t	f
+lovAdmin	programPermissions	showForm	t	t
+lovViewer	programPermissions	showTable	t	f
+lovAdmin	programPermissions	showTable	t	t
+lovViewer	Region	cities	t	f
+lovAdmin	Region	cities	t	t
+lovViewer	Region	id	t	f
+lovAdmin	Region	id	t	t
+lovViewer	Region	label	t	f
+lovAdmin	Region	label	t	t
+core	rent	assignedTo	t	f
+billManager	rent	bill_billingCost	t	t
+billManager	rent	bill_billingDate	t	t
+billManager	rent	bill_billNumber	t	t
+core	rent	carClass	t	t
+core	rent	clientCancelReason	t	t
+core	rent	clientSatisfied	t	t
+core	rent	contractor_address	t	t
+core	rent	contractor_coords	t	t
+core	rent	contractor_partner	t	t
+core	rent	contractor_partnerCancel	t	t
+core	rent	contractor_partnerId	t	t
+core	rent	contractor_partnerMap	t	t
+core	rent	contractor_partnerTable	t	t
+core	rent	cost_counted	t	t
+core	rent	cost_countedCost	t	t
+core	rent	cost_serviceTarifOptions	t	t
+core	rent	createTime	t	f
+core	rent	falseCall	t	t
+core	rent	falseCallPercent	t	f
+core	rent	files	t	t
+core	rent	marginalCost	t	f
+psaanalyst	rent	orderNumber	t	t
+billManager	rent	original	t	t
+billChecker	rent	original	t	f
+billManager	rent	paid	t	t
+billChecker	rent	paid	t	f
+core	rent	parentId	t	f
+front	rent	payment_calculatedCost	t	f
+core	rent	payment_costTranscript	t	t
+front	rent	payment_limitedCost	t	f
+front	rent	payment_overcosted	t	f
+core	rent	payment_paidByClient	t	t
+core	rent	payment_paidByRUAMC	t	t
+core	rent	payment_partnerCost	t	t
+core	rent	payType	t	t
+core	rent	providedFor	t	t
+core	rent	rentAddress_address	t	t
+core	rent	rentAddress_city	t	t
+core	rent	rentAddress_comment	t	t
+core	rent	rentAddress_coords	t	t
+core	rent	rentedMake	t	t
+core	rent	rentedModel	t	t
+billManager	rent	scan	t	t
+billChecker	rent	scan	t	f
+core	rent	status	t	t
+core	rent	times_expectedDispatch	t	t
+core	rent	times_expectedServiceClosure	t	t
+core	rent	times_expectedServiceEnd	t	t
+core	rent	times_expectedServiceFinancialClosure	t	t
+core	rent	times_expectedServiceStart	t	t
+core	rent	times_factServiceClosure	t	t
+core	rent	times_factServiceEnd	t	t
+core	rent	times_factServiceFinancialClosure	t	t
+core	rent	times_factServiceStart	t	t
+core	rent	times_repairEndDate	t	t
+core	rent	towDealer_address	t	t
+core	rent	towDealer_partner	t	t
+core	rent	towDealer_partnerId	t	t
+core	rent	towDealer_partnerTable	t	t
+core	rent	urgentService	t	t
+core	rent	vinRent	t	t
+core	rent	warrantyCase	t	t
+core	sms	caseId	t	t
+core	sms	msg	t	t
+core	sms	phone	t	t
+core	sms	template	t	t
+lovViewer	smsTpl	isActive	t	f
+lovAdmin	smsTpl	isActive	t	t
+lovViewer	smsTpl	name	t	f
+lovAdmin	smsTpl	name	t	t
+lovViewer	smsTpl	smsReciever	t	f
+lovAdmin	smsTpl	smsReciever	t	t
+lovViewer	smsTpl	text	t	f
+lovAdmin	smsTpl	text	t	t
+core	sober	assignedTo	t	f
+billManager	sober	bill_billingCost	t	t
+billManager	sober	bill_billingDate	t	t
+billManager	sober	bill_billNumber	t	t
+core	sober	clientCancelReason	t	t
+core	sober	clientSatisfied	t	t
+core	sober	contractor_address	t	t
+core	sober	contractor_coords	t	t
+core	sober	contractor_partner	t	t
+core	sober	contractor_partnerCancel	t	t
+core	sober	contractor_partnerId	t	t
+core	sober	contractor_partnerMap	t	t
+core	sober	contractor_partnerTable	t	t
+core	sober	cost_counted	t	t
+core	sober	cost_countedCost	t	t
+core	sober	cost_serviceTarifOptions	t	t
+core	sober	createTime	t	f
+core	sober	falseCall	t	t
+core	sober	files	t	t
+core	sober	fromAddress_address	t	t
+core	sober	fromAddress_city	t	t
+core	sober	fromAddress_comment	t	t
+core	sober	fromAddress_coords	t	t
+core	sober	marginalCost	t	f
+core	sober	multidrive	t	t
+billManager	sober	original	t	t
+billChecker	sober	original	t	f
+billManager	sober	paid	t	t
+billChecker	sober	paid	t	f
+core	sober	parentId	t	f
+front	sober	payment_calculatedCost	t	f
+core	sober	payment_costTranscript	t	t
+front	sober	payment_limitedCost	t	f
+front	sober	payment_overcosted	t	f
+core	sober	payment_paidByClient	t	t
+core	sober	payment_paidByRUAMC	t	t
+core	sober	payment_partnerCost	t	t
+core	sober	payType	t	t
+billManager	sober	scan	t	t
+billChecker	sober	scan	t	f
+core	sober	service_tarifOptions	t	t
+core	sober	status	t	t
+core	sober	times_expectedDispatch	t	t
+core	sober	times_expectedServiceClosure	t	t
+core	sober	times_expectedServiceEnd	t	t
+core	sober	times_expectedServiceFinancialClosure	t	t
+core	sober	times_expectedServiceStart	t	t
+core	sober	times_factServiceClosure	t	t
+core	sober	times_factServiceEnd	t	t
+core	sober	times_factServiceFinancialClosure	t	t
+core	sober	times_factServiceStart	t	t
+core	sober	times_repairEndDate	t	t
+core	sober	toAddress_address	t	t
+core	sober	toAddress_city	t	t
+core	sober	toAddress_comment	t	t
+core	sober	toAddress_coords	t	t
+core	sober	urgentService	t	t
+core	sober	warrantyCase	t	t
+core	tarifOption	optionName	t	t
+core	tarifOption	parentId	t	f
+core	tarifOption	price1	t	t
+core	tarifOption	price2	t	t
+core	taxi	assignedTo	t	f
+billManager	taxi	bill_billingCost	t	t
+billManager	taxi	bill_billingDate	t	t
+billManager	taxi	bill_billNumber	t	t
+core	taxi	clientCancelReason	t	t
+core	taxi	clientSatisfied	t	t
+core	taxi	contractor_address	t	t
+core	taxi	contractor_coords	t	t
+core	taxi	contractor_partner	t	t
+core	taxi	contractor_partnerCancel	t	t
+core	taxi	contractor_partnerId	t	t
+core	taxi	contractor_partnerMap	t	t
+core	taxi	contractor_partnerTable	t	t
+core	taxi	cost_counted	t	t
+core	taxi	cost_countedCost	t	t
+core	taxi	cost_serviceTarifOptions	t	t
+core	taxi	createTime	t	f
+core	taxi	falseCall	t	t
+core	taxi	falseCallPercent	t	f
+core	taxi	files	t	t
+core	taxi	marginalCost	t	f
+billManager	taxi	original	t	t
+billChecker	taxi	original	t	f
+billManager	taxi	paid	t	t
+billChecker	taxi	paid	t	f
+core	taxi	parentId	t	t
+front	taxi	payment_calculatedCost	t	f
+core	taxi	payment_costTranscript	t	t
+front	taxi	payment_limitedCost	t	f
+front	taxi	payment_overcosted	t	f
+core	taxi	payment_paidByClient	t	t
+core	taxi	payment_paidByRUAMC	t	t
+core	taxi	payment_partnerCost	t	t
+core	taxi	payType	t	t
+billManager	taxi	scan	t	t
+billChecker	taxi	scan	t	f
+core	taxi	service_tarifOptions	t	t
+core	taxi	status	t	t
+core	taxi	taxiFrom_address	t	t
+core	taxi	taxiFrom_city	t	t
+core	taxi	taxiFrom_comment	t	t
+core	taxi	taxiFrom_coords	t	t
+core	taxi	taxiTo_address	t	t
+core	taxi	taxiTo_city	t	t
+core	taxi	taxiTo_comment	t	t
+core	taxi	taxiTo_coords	t	t
+core	taxi	times_expectedDispatch	t	t
+core	taxi	times_expectedServiceClosure	t	t
+core	taxi	times_expectedServiceEnd	t	t
+core	taxi	times_expectedServiceFinancialClosure	t	t
+core	taxi	times_expectedServiceStart	t	t
+core	taxi	times_factServiceClosure	t	t
+core	taxi	times_factServiceEnd	t	t
+core	taxi	times_factServiceFinancialClosure	t	t
+core	taxi	times_factServiceStart	t	t
+core	taxi	times_repairEndDate	t	t
+core	taxi	urgentService	t	t
+core	taxi	warrantyCase	t	t
+core	tech	assignedTo	t	f
+billManager	tech	bill_billingCost	t	t
+billManager	tech	bill_billingDate	t	t
+billManager	tech	bill_billNumber	t	t
+core	tech	clientCancelReason	t	t
+core	tech	clientSatisfied	t	t
+core	tech	contractor_address	t	t
+core	tech	contractor_coords	t	t
+core	tech	contractor_partner	t	t
+core	tech	contractor_partnerCancel	t	t
+core	tech	contractor_partnerId	t	t
+core	tech	contractor_partnerMap	t	t
+core	tech	contractor_partnerTable	t	t
+core	tech	cost_counted	t	t
+core	tech	cost_countedCost	t	t
+core	tech	cost_serviceTarifOptions	t	t
+core	tech	createTime	t	f
+core	tech	falseCall	t	t
+core	tech	falseCallPercent	t	f
+core	tech	files	t	t
+core	tech	marginalCost	t	f
+psaanalyst	tech	orderNumber	t	t
+billManager	tech	original	t	t
+billChecker	tech	original	t	f
+billManager	tech	paid	t	t
+billChecker	tech	paid	t	f
+core	tech	parentId	t	f
+front	tech	payment_calculatedCost	t	f
+core	tech	payment_costTranscript	t	t
+front	tech	payment_limitedCost	t	f
+front	tech	payment_overcosted	t	f
+core	tech	payment_paidByClient	t	t
+core	tech	payment_paidByRUAMC	t	t
+core	tech	payment_partnerCost	t	t
+core	tech	payType	t	t
+billManager	tech	scan	t	t
+billChecker	tech	scan	t	f
+core	tech	service_tarifOptions	t	t
+core	tech	status	t	t
+core	tech	suburbanMilage	t	t
+core	tech	techType	t	t
+core	tech	times_expectedDispatch	t	t
+core	tech	times_expectedServiceClosure	t	t
+core	tech	times_expectedServiceEnd	t	t
+core	tech	times_expectedServiceFinancialClosure	t	t
+core	tech	times_expectedServiceStart	t	t
+core	tech	times_factServiceClosure	t	t
+core	tech	times_factServiceEnd	t	t
+core	tech	times_factServiceFinancialClosure	t	t
+core	tech	times_factServiceStart	t	t
+core	tech	times_repairEndDate	t	t
+core	tech	urgentService	t	t
+core	tech	warrantyCase	t	t
+core	tech1	activity	t	t
+billManager	tech1	bill_billingCost	t	t
+billManager	tech1	bill_billingDate	t	t
+billManager	tech1	bill_billNumber	t	t
+core	tech1	clientCancelReason	t	t
+core	tech1	clientSatisfied	t	t
+core	tech1	contractor_address	t	t
+core	tech1	contractor_coords	t	t
+core	tech1	contractor_partner	t	t
+core	tech1	contractor_partnerCancel	t	t
+core	tech1	contractor_partnerId	t	t
+core	tech1	contractor_partnerMap	t	t
+core	tech1	contractor_partnerTable	t	t
+core	tech1	cost_counted	t	t
+core	tech1	cost_countedCost	t	t
+core	tech1	cost_serviceTarifOptions	t	t
+core	tech1	createTime	t	f
+core	tech1	falseCall	t	t
+core	tech1	files	t	t
+billManager	tech1	original	t	t
+billChecker	tech1	original	t	f
+billManager	tech1	paid	t	t
+billChecker	tech1	paid	t	f
+core	tech1	parentId	t	f
+front	tech1	payment_calculatedCost	t	f
+core	tech1	payment_costTranscript	t	t
+front	tech1	payment_limitedCost	t	f
+front	tech1	payment_overcosted	t	f
+core	tech1	payment_paidByClient	t	t
+core	tech1	payment_paidByRUAMC	t	t
+core	tech1	payment_partnerCost	t	t
+core	tech1	payType	t	t
+core	tech1	requestType	t	t
+billManager	tech1	scan	t	t
+billChecker	tech1	scan	t	f
+core	tech1	status	t	t
+core	tech1	times_expectedDispatch	t	t
+core	tech1	times_expectedServiceClosure	t	t
+core	tech1	times_expectedServiceEnd	t	t
+core	tech1	times_expectedServiceFinancialClosure	t	t
+core	tech1	times_expectedServiceStart	t	t
+core	tech1	times_factServiceClosure	t	t
+core	tech1	times_factServiceEnd	t	t
+core	tech1	times_factServiceFinancialClosure	t	t
+core	tech1	times_factServiceStart	t	t
+core	tech1	times_repairEndDate	t	t
+core	tech1	urgentService	t	t
+core	tech1	warrantyCase	t	t
+core	tech1	whatToSay1	t	t
+core	tickets	assignedTo	t	f
+billManager	tickets	bill_billingCost	t	t
+billManager	tickets	bill_billingDate	t	t
+billManager	tickets	bill_billNumber	t	t
+core	tickets	clientCancelReason	t	t
+core	tickets	clientSatisfied	t	t
+core	tickets	contractor_address	t	t
+core	tickets	contractor_coords	t	t
+core	tickets	contractor_partner	t	t
+core	tickets	contractor_partnerCancel	t	t
+core	tickets	contractor_partnerId	t	t
+core	tickets	contractor_partnerMap	t	t
+core	tickets	contractor_partnerTable	t	t
+core	tickets	cost_counted	t	t
+core	tickets	cost_countedCost	t	t
+core	tickets	cost_serviceTarifOptions	t	t
+core	tickets	createTime	t	f
+core	tickets	deliveryType	t	t
+core	tickets	falseCall	t	t
+core	tickets	falseCallPercent	t	f
+core	tickets	files	t	t
+billManager	tickets	original	t	t
+billChecker	tickets	original	t	f
+billManager	tickets	paid	t	t
+billChecker	tickets	paid	t	f
+core	tickets	parentId	t	f
+front	tickets	payment_calculatedCost	t	f
+core	tickets	payment_costTranscript	t	t
+front	tickets	payment_limitedCost	t	f
+front	tickets	payment_overcosted	t	f
+core	tickets	payment_paidByClient	t	t
+core	tickets	payment_paidByRUAMC	t	t
+core	tickets	payment_partnerCost	t	t
+core	tickets	payType	t	t
+billManager	tickets	scan	t	t
+billChecker	tickets	scan	t	f
+core	tickets	status	t	t
+core	tickets	ticketsFrom_address	t	t
+core	tickets	ticketsFrom_city	t	t
+core	tickets	ticketsFrom_comment	t	t
+core	tickets	ticketsFrom_coords	t	t
+core	tickets	ticketsTo_address	t	t
+core	tickets	ticketsTo_city	t	t
+core	tickets	ticketsTo_comment	t	t
+core	tickets	ticketsTo_coords	t	t
+core	tickets	times_expectedDispatch	t	t
+core	tickets	times_expectedServiceClosure	t	t
+core	tickets	times_expectedServiceEnd	t	t
+core	tickets	times_expectedServiceFinancialClosure	t	t
+core	tickets	times_expectedServiceStart	t	t
+core	tickets	times_factServiceClosure	t	t
+core	tickets	times_factServiceEnd	t	t
+core	tickets	times_factServiceFinancialClosure	t	t
+core	tickets	times_factServiceStart	t	t
+core	tickets	times_repairEndDate	t	t
+core	tickets	urgentService	t	t
+core	tickets	warrantyCase	t	t
+core	towage	accident	t	t
+core	towage	assignedTo	t	f
+billManager	towage	bill_billingCost	t	t
+billManager	towage	bill_billingDate	t	t
+billManager	towage	bill_billNumber	t	t
+core	towage	canNeutral	t	t
+core	towage	clientCancelReason	t	t
+core	towage	clientSatisfied	t	t
+core	towage	companion	t	t
+core	towage	contractor_address	t	t
+core	towage	contractor_coords	t	t
+core	towage	contractor_partner	t	t
+core	towage	contractor_partnerCancel	t	t
+core	towage	contractor_partnerId	t	t
+core	towage	contractor_partnerMap	t	t
+core	towage	contractor_partnerTable	t	t
+core	towage	cost_counted	t	t
+core	towage	cost_countedCost	t	t
+core	towage	cost_serviceTarifOptions	t	t
+core	towage	createTime	t	f
+core	towage	dealerDistance	t	t
+core	towage	falseCall	t	t
+core	towage	falseCallPercent	t	f
+core	towage	files	t	t
+core	towage	manipulatorPossible	t	t
+core	towage	marginalCost	t	f
+psaanalyst	towage	orderNumber	t	t
+billManager	towage	original	t	t
+billChecker	towage	original	t	f
+billManager	towage	paid	t	t
+billChecker	towage	paid	t	f
+core	towage	parentId	t	f
+front	towage	payment_calculatedCost	t	f
+core	towage	payment_costTranscript	t	t
+front	towage	payment_limitedCost	t	f
+front	towage	payment_overcosted	t	f
+core	towage	payment_paidByClient	t	t
+core	towage	payment_paidByRUAMC	t	t
+core	towage	payment_partnerCost	t	t
+core	towage	payType	t	t
+back	towage	repairEndDate	t	t
+billManager	towage	scan	t	t
+billChecker	towage	scan	t	f
+core	towage	service_tarifOptions	t	t
+core	towage	status	t	t
+core	towage	suburbanMilage	t	t
+core	towage	times_expectedDispatch	t	t
+core	towage	times_expectedServiceClosure	t	t
+core	towage	times_expectedServiceEnd	t	t
+core	towage	times_expectedServiceFinancialClosure	t	t
+core	towage	times_expectedServiceStart	t	t
+core	towage	times_factServiceClosure	t	t
+core	towage	times_factServiceEnd	t	t
+core	towage	times_factServiceFinancialClosure	t	t
+core	towage	times_factServiceStart	t	t
+core	towage	towAddress_address	t	t
+core	towage	towAddress_city	t	t
+core	towage	towAddress_comment	t	t
+core	towage	towAddress_coords	t	t
+core	towage	towAddress_map	t	t
+core	towage	towDealer_address	t	t
+core	towage	towDealer_coords	t	t
+core	towage	towDealer_partner	t	t
+core	towage	towDealer_partnerId	t	t
+core	towage	towDealer_partnerMap	t	t
+core	towage	towDealer_partnerTable	t	t
+core	towage	towerAddress_address	t	t
+core	towage	towerAddress_city	t	t
+core	towage	towerAddress_comment	t	t
+core	towage	towerAddress_coords	t	t
+core	towage	towerAddress_map	t	t
+core	towage	towerType	t	t
+core	towage	towingPointPresent	t	t
+core	towage	towType	t	t
+core	towage	urgentService	t	t
+core	towage	vandalism	t	t
+core	towage	warrantyCase	t	t
+core	towage	wheelsUnblocked	t	t
+core	transportation	assignedTo	t	f
+billManager	transportation	bill_billingCost	t	t
+billManager	transportation	bill_billingDate	t	t
+billManager	transportation	bill_billNumber	t	t
+core	transportation	caseAddress_address	t	t
+core	transportation	caseAddress_city	t	t
+core	transportation	caseAddress_comment	t	t
+core	transportation	caseAddress_coords	t	t
+core	transportation	clientCancelReason	t	t
+core	transportation	clientSatisfied	t	t
+core	transportation	contractor_address	t	t
+core	transportation	contractor_coords	t	t
+core	transportation	contractor_partner	t	t
+core	transportation	contractor_partnerCancel	t	t
+core	transportation	contractor_partnerId	t	t
+core	transportation	contractor_partnerMap	t	t
+core	transportation	contractor_partnerTable	t	t
+core	transportation	cost_counted	t	t
+core	transportation	cost_countedCost	t	t
+core	transportation	cost_serviceTarifOptions	t	t
+core	transportation	createTime	t	f
+core	transportation	falseCall	t	t
+core	transportation	falseCallPercent	t	f
+core	transportation	files	t	t
+core	transportation	fromToAddress_address	t	t
+core	transportation	fromToAddress_city	t	t
+core	transportation	fromToAddress_comment	t	t
+core	transportation	fromToAddress_coords	t	t
+billManager	transportation	original	t	t
+billChecker	transportation	original	t	f
+billManager	transportation	paid	t	t
+billChecker	transportation	paid	t	f
+core	transportation	parentId	t	f
+front	transportation	payment_calculatedCost	t	f
+core	transportation	payment_costTranscript	t	t
+back	transportation	payment_limitedCost	t	f
+front	transportation	payment_overcosted	t	f
+core	transportation	payment_paidByClient	t	t
+core	transportation	payment_paidByRUAMC	t	t
+core	transportation	payment_partnerCost	t	t
+core	transportation	payType	t	t
+billManager	transportation	scan	t	t
+billChecker	transportation	scan	t	f
+core	transportation	status	t	t
+core	transportation	times_expectedDispatch	t	t
+core	transportation	times_expectedServiceClosure	t	t
+core	transportation	times_expectedServiceEnd	t	t
+core	transportation	times_expectedServiceFinancialClosure	t	t
+core	transportation	times_expectedServiceStart	t	t
+core	transportation	times_factServiceClosure	t	t
+core	transportation	times_factServiceEnd	t	t
+core	transportation	times_factServiceFinancialClosure	t	t
+core	transportation	times_factServiceStart	t	t
+core	transportation	times_repairEndDate	t	t
+core	transportation	transportType	t	t
+core	transportation	urgentService	t	t
+core	transportation	warrantyCase	t	t
+userAdmin	usermeta	birthday	t	t
+userViewer	usermeta	birthday	t	f
+userAdmin	usermeta	boCities	t	t
+userViewer	usermeta	boCities	t	f
+userAdmin	usermeta	boPrograms	t	t
+userViewer	usermeta	boPrograms	t	f
+userAdmin	usermeta	email	t	t
+userViewer	usermeta	email	t	f
+userAdmin	usermeta	homePhone	t	t
+userViewer	usermeta	homePhone	t	f
+userAdmin	usermeta	isActive	t	t
+userViewer	usermeta	isActive	t	f
+userAdmin	usermeta	isDealer	t	t
+userViewer	usermeta	isDealer	t	f
+userAdmin	usermeta	lastactivity	t	t
+userViewer	usermeta	lastactivity	t	f
+userAdmin	usermeta	lastlogout	t	t
+userViewer	usermeta	lastlogout	t	f
+userAdmin	usermeta	login	t	t
+userViewer	usermeta	login	t	f
+userAdmin	usermeta	mobilePhone	t	t
+userViewer	usermeta	mobilePhone	t	f
+userAdmin	usermeta	password	t	t
+userViewer	usermeta	password	t	f
+userAdmin	usermeta	position	t	t
+userViewer	usermeta	position	t	f
+userAdmin	usermeta	programs	t	t
+userViewer	usermeta	programs	t	f
+userAdmin	usermeta	realName	t	t
+userViewer	usermeta	realName	t	f
+userAdmin	usermeta	roles	t	t
+userViewer	usermeta	roles	t	f
+userAdmin	usermeta	uid	t	t
+userViewer	usermeta	uid	t	f
+userAdmin	usermeta	workPhone	t	t
+userViewer	usermeta	workPhone	t	f
+userAdmin	usermeta	workPhoneSuffix	t	t
+userViewer	usermeta	workPhoneSuffix	t	f
 \.
+
+INSERT INTO "FieldPermission" (role, model, field, r, w)
+(SELECT r.id, fp.model, fp.field, fp.r, fp.w FROM "FieldPermission_tmp" fp, "Role" r
+ WHERE r.value = fp.role);

@@ -38,11 +38,11 @@ define [ "utils"
     worker()
 
   # Given /allActions or /littleMoreActions response, try to redirect
-  # to the first order-class action if the user has "back" role.
+  # to the first order-class action if the user has "bo_order" role.
   # Otherwise, just show all actions in the table.
   myActionsHandler = (actions) ->
     if !_.isEmpty actions
-      if _.contains global.user.roles, role.back
+      if _.contains global.user.roles, role.bo_order
         act = _.find actions, (a) ->
           _.contains(
             [ "orderService"

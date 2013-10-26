@@ -461,7 +461,7 @@ vinUploadData = scope "vin" $ scope "upload" $ do
           userPgms = B.split ',' $ T.encodeUtf8 userPgms'
       when (not $ 
             (elem (Role $ roleIdent Role.partner) (userRoles u') && elem pgmId userPgms) ||
-            (elem (Role $ roleIdent Role.programman) (userRoles u'))) $
+            (elem (Role $ roleIdent Role.vinAdmin) (userRoles u'))) $
             handleError 403
 
       -- Find out which format is used for this program
