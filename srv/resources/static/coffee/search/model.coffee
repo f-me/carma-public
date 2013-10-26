@@ -33,6 +33,7 @@ define ["utils"], ->
       @addFree()
 
     addField:    (f) ->
+      return if _.contains @dynamic(), f
       @dynamic.shift()
       @dynamic.push(f)
 
