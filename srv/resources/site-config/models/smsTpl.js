@@ -1,46 +1,44 @@
 {
-    "name": "smsTpl",
-    "title": "Шаблон смс",
-    "canCreate": true,
-    "canRead": true,
-    "canUpdate": true,
-    "canDelete": true,
-    "fields": [
-      {
-        "name":"name",
-        "canRead": true,
-        "canWrite": true,
-        "meta": {
-            "label": "Имя шаблона"
-        }
+  "fields": [
+    {
+      "meta": {
+        "label": "Имя шаблона"
       },
-      {
-        "name":"text",
-        "canRead": true,
-        "canWrite": true,
-        "type": "textarea",
-        "meta": {
-            "label": "Текст"
-        }
+      "type": null,
+      "groupName": null,
+      "name": "name"
+    },
+    {
+      "meta": {
+        "label": "Текст"
       },
-      {
-        "name": "smsReciever",
-        "canRead": true,
-        "canWrite": true,
-        "type": "dictionary",
-        "meta": {
-          "dictionaryName": "SmsRecieverNames",
-          "label": "Кому отправлять"
-        }
+      "type": "textarea",
+      "groupName": null,
+      "name": "text"
+    },
+    {
+      "meta": {
+        "dictionaryName": "SmsRecieverNames",
+        "label": "Кому отправлять"
       },
-      {
-        "name": "isActive",
-        "type": "checkbox",
-        "canRead": true,
-        "canWrite": true,
-        "meta": {
-            "label": "Активный"
-        }
-      }
-    ]
+      "type": "dictionary",
+      "groupName": null,
+      "name": "smsReciever"
+    },
+    {
+      "meta": {
+        "label": "Активный"
+      },
+      "type": "checkbox",
+      "groupName": null,
+      "name": "isActive"
+    }
+  ],
+  "applications": [],
+  "canDelete": true,
+  "canUpdate": true,
+  "canRead": true,
+  "canCreate": true,
+  "title": "Шаблон смс",
+  "name": "smsTpl"
 }

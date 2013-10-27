@@ -1,11 +1,11 @@
 Name:                carma
 Version:             0.1.0.1
-Synopsis:            Call center assistance system
-Description:         Project Description Here
+Synopsis:            CRM
+Description:         Customer relationship management and call center assistance system
 License:             AllRightsReserved
 Author:              Formal Methods
-Maintainer:          maintainer@example.com
-Stability:           Experimental
+Maintainer:          dev@formalmethods.ru
+Stability:           Do not touch anything
 Category:            Web
 Cabal-version:       >=1.6
 Build-type:          Custom
@@ -23,10 +23,12 @@ Executable carma
     ApplicationInit,
     ApplicationHandlers,
     AppHandlers.Users,
+    AppHandlers.UserAchievements,
     AppHandlers.Util,
     AppHandlers.ActionAssignment,
     AppHandlers.CustomSearches,
-    AppHandlers.PSA
+    AppHandlers.PSA,
+    AppHandlers.PSA.Base,
     Snaplet.DbLayer,
     Snaplet.DbLayer.RedisCRUD,
     Snaplet.DbLayer.PostgresCRUD,
@@ -45,7 +47,6 @@ Executable carma
     Snaplet.SiteConfig.Dictionaries,
     Snaplet.SiteConfig.Types,
     Snaplet.SiteConfig.Models,
-    Snaplet.SiteConfig.Permissions,
     Snaplet.SiteConfig.SpecialPermissions,
     Snaplet.FileUpload,
     Snaplet.Geo,
@@ -56,13 +57,17 @@ Executable carma
     Util
 
   Build-depends:
-    aeson                       == 0.6.*,
+    aeson                       >= 0.6.2 && < 0.7,
     attoparsec                  == 0.10.*,
     base                        >= 4 && < 5,
     bytestring                  >= 0.9.1 && < 0.11,
     bytestring-lexing           == 0.4.*,
-    carma-sync                  >= 0.1.4 && < 0.2,
-    carma-partner-import        >= 0.3.0.2 && < 0.4,
+    carma-models                >= 0.2.3 && < 0.3,
+    carma-http                  >= 0.3.4 && < 0.4,
+    carma-sync                  >= 0.1.7 && < 0.2,
+    carma-partner-import        == 0.4,
+    comonad                     == 3.0.*,
+    semigroupoids               == 3.0.*,
     configurator                == 0.2.*,
     containers                  == 0.5.*,
     directory                   == 1.2.*,
@@ -70,27 +75,29 @@ Executable carma
     fdds                        >= 0.1.0.1 && < 0.2,
     filepath                    == 1.3.*,
     haskell-src                 == 1.0.*,
+    hashable                    >= 1.1 && < 1.2,
     hedis                       == 0.6.*,
-    heist                       == 0.11.*,
+    heist                       == 0.12.*,
     hformat                     == 0.1.*,
     HTTP                        == 4000.2.*,
-    lens                        == 3.8.*,
+    lens                        >= 3.8 && < 3.10,
     MissingH                    == 1.2.*,
     MonadCatchIO-transformers   >= 0.2 && < 0.4,
     mtl                         == 2.1.*,
-    mime-mail                   == 0.4.*,
+    mime-mail                   == 0.4.1.2,
     network                     == 2.4.*,
     old-locale                  == 1.0.*,
     postgresql-simple           == 0.3.*,
-    postgresql-sync-map         >= 0.4.0.0 && < 0.5,
+    postgresql-sync-map         >= 0.4.0.1 && < 0.5,
+    pureMD5                     == 2.1.*,
     resource-pool-catchio       >= 0.2 && < 0.3,
     simple-log                  == 0.3.*,
-    snap                        == 0.11.*,
+    snap                        == 0.12.*,
     snap-core                   == 0.9.*,
-    snap-extras                 == 0.5.*,
+    snap-extras                 == 0.6.*,
     snap-loader-static          >= 0.9.0.1 && < 0.10,
     snap-server                 == 0.9.*,
-    snaplet-postgresql-simple   == 0.3.*,
+    snaplet-postgresql-simple   >= 0.3 && < 0.5,
     snaplet-redis               == 0.1.*,
     snaplet-simple-log          == 0.3.*,
     stm                         == 2.4.*,
@@ -98,9 +105,9 @@ Executable carma
     time                        >= 1.1 && < 1.5,
     transformers                >= 0.2 && < 0.4,
     unordered-containers,
-    vector                      == 0.10.*,
-    vin-parser                  >= 0.2.0.1 && < 0.3,
-    weather-api                 >= 0.4.1,
+    vector                      >= 0.10 && < 0.10.9,
+    vin-parser                  >= 0.7.1 && < 0.8,
+    weather-api                 >= 0.4.3,
     xlsx                        >= 0.0.2.1 && < 0.1,
     process-extras              == 0.2.*
 
@@ -113,6 +120,7 @@ Executable carma
     RecordWildCards,
     NamedFieldPuns,
     TupleSections,
+    QuasiQuotes,
     LambdaCase
 
   if flag(development)
@@ -122,4 +130,3 @@ Executable carma
     ghc-options: -threaded -w
   else
     ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -O2
-

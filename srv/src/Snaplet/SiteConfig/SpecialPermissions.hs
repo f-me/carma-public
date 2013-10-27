@@ -37,5 +37,9 @@ stripContract model pid field = do
       getPerms progid conn = M.fromList <$>
         (query conn (q field) [progid] :: IO [(ByteString, ByteString)])
       filterFields perms flds = filter (isCanShow perms) flds
-      isCanShow perms f =
-        fromMaybe False $ M.lookup (name f) perms >>= return . ("t" ==)
+      isCanShow perms f  = fromMaybe False $ check perms (name f)
+      check perms "dixi"     = return True
+      check perms "isActive" = return True
+      check perms "program"  = return True
+      check perms "ctime"    = return True
+      check perms name   = M.lookup name perms >>= return . ("t" ==)

@@ -2,7 +2,7 @@
 module Snaplet.DbLayer.Triggers.SMS where
 
 import Control.Applicative
-import Control.Monad.Trans (lift,liftIO)
+import Control.Monad.Trans (liftIO)
 import Control.Monad
 import Control.Exception
 
@@ -11,8 +11,8 @@ import qualified Data.ByteString as B
 import Data.Text (Text)
 import qualified Data.Text.Encoding as T
 import qualified Data.Text as T
-import Data.Map (Map)
 import qualified Data.Map as Map
+import Data.Maybe
 import Data.Time
 import System.Locale
 
@@ -21,18 +21,7 @@ import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
 import DictionaryCache
 
-
-
-render :: Map Text Text -> Text -> Text
-render varMap = T.concat . loop
-  where
-    loop tpl = case T.breakOn "$" tpl of
-      (txt, "") -> [txt]
-      (txt, tpl') -> case T.breakOn "$" $ T.tail tpl' of
-        (expr, "")    -> [txt, evalVar expr]
-        (expr, tpl'') -> txt : evalVar expr : loop (T.tail tpl'')
-
-    evalVar v = Map.findWithDefault v v varMap
+import Util as U
 
 
 formatDate :: String -> IO Text
@@ -59,38 +48,40 @@ sendSMS actId tplId = do
         $ Map.findWithDefault "RAMC" program
         $ smsTokenVal dic Map.! "program_from_name"
 
-  eSvcTm <- svcId `get` "times_expectedServiceStart"
-  eSvcStart <- liftIO $ formatDate $ T.unpack $ T.decodeUtf8 eSvcTm
-  fSvcTm <- svcId `get` "times_factServiceStart"
-  fSvcStart <- liftIO $ formatDate $ T.unpack $ T.decodeUtf8 fSvcTm
+  let pInfo  = Map.lookup program $ smsTokenVal dic Map.! "program_info"
+  let pCInfo = Map.lookup program $ smsTokenVal dic Map.! "program_contact_info"
+  when (isJust pInfo && isJust pCInfo) $ do
+    eSvcTm <- svcId `get` "times_expectedServiceStart"
+    eSvcStart <- liftIO $ formatDate $ T.unpack $ T.decodeUtf8 eSvcTm
+    fSvcTm <- svcId `get` "times_factServiceStart"
+    fSvcStart <- liftIO $ formatDate $ T.unpack $ T.decodeUtf8 fSvcTm
 
-  let varMap = Map.fromList
-        [("program_info", (smsTokenVal dic Map.! "program_info") Map.! program)
-        ,("program_contact_info",
-            (smsTokenVal dic Map.! "program_contact_info") Map.! program)
-         -- TODO Use actual realName from user meta
-        ,("case.backoperator_name", opName)
-        ,("case.city", Map.findWithDefault "Город" cityVal $ city dic)
-        ,("case.id", (!!1) . T.splitOn ":" $ T.decodeUtf8 caseId)
-        ,("service.times_factServiceStart", fSvcStart)
-        ,("service.times_expectedServiceStart", eSvcStart)
-        ]
-  templateText <- T.decodeUtf8 <$> tplId `get` "text"
-  let msg = T.encodeUtf8 $ render varMap templateText
+    let varMap = Map.fromList
+          [("program_info", fromJust pInfo)
+          ,("program_contact_info", fromJust pCInfo)
+           -- TODO Use actual realName from user meta
+          ,("case.backoperator_name", opName)
+          ,("case.city", Map.findWithDefault "Город" cityVal $ city dic)
+          ,("case.id", (!!1) . T.splitOn ":" $ T.decodeUtf8 caseId)
+          ,("service.times_factServiceStart", fSvcStart)
+          ,("service.times_expectedServiceStart", eSvcStart)
+          ]
+    templateText <- T.decodeUtf8 <$> tplId `get` "text"
+    let msg = T.encodeUtf8 $ U.render varMap templateText
 
-  now <- dateNow id
-  smsId <- new "sms" $ Map.fromList
-    [("ctime", now)
-    ,("caseId", caseId)
-    ,("svcId", svcId)
-    ,("phone", phone)
-    ,("template", tplId)
-    ,("auto", "true")
-    ,("msg", msg)
-    ,("sender", sender)
-    ]
-  Right _ <- redisLPush "smspost" [smsId]
-  return ()
+    now <- dateNow id
+    smsId <- new "sms" $ Map.fromList
+      [("ctime", now)
+      ,("caseId", caseId)
+      ,("svcId", svcId)
+      ,("phone", phone)
+      ,("template", tplId)
+      ,("auto", "true")
+      ,("msg", msg)
+      ,("sender", sender)
+      ]
+    Right _ <- redisLPush "smspost" [smsId]
+    return ()
 
 updateSMS :: MonadTrigger m b => ObjectId -> m b ()
 updateSMS smsId = do
@@ -111,7 +102,7 @@ updateSMS smsId = do
     _ <- get smsId "template"
     tmp <- T.decodeUtf8 <$> (get smsId "template" >>= (`get` "text"))
     when (msg == "" && tmp /= "") $ do
-      let txt = T.encodeUtf8 $ render varMap tmp
+      let txt = T.encodeUtf8 $ U.render varMap tmp
       set smsId "msg" txt
 
     phone <- get smsId "phone"

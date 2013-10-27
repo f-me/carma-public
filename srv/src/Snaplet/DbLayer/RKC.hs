@@ -19,7 +19,7 @@ import Data.Monoid
 import Data.List (intersect, sort, nub)
 import Data.String
 import qualified Data.List as L (groupBy)
-import qualified Data.Map as M
+import qualified Data.HashMap.Strict as HM
 import Data.Time
 import Data.Function
 import qualified Data.Text as T
@@ -36,7 +36,6 @@ import Snaplet.DbLayer.ARC
 
 import Snap.Snaplet.SimpleLog hiding ((%=))
 
-import Util
 
 -------------------------------------------------------------------------------
 -- | query fmt
@@ -458,7 +457,13 @@ rkc (UsersList usrs) filt@(Filter fromDate toDate program city partner) = scope 
       ifNotNull city $ equals "casetbl" "city",
       ifNotNull partner $ equalsTo "servicetbl" "trim(servicetbl.contractor_partner)"]
     usrs' = sort $ nub $ map toUsr usrs
-    toUsr m = (maybe "" T.decodeUtf8 $ M.lookup "value" m, maybe "" T.decodeUtf8 $ M.lookup "label" m)
+    -- Build value-label pair from UserMeta, used to map logins to
+    -- realNames
+    toUsr m = (k, v)
+        where
+          k = T.decodeUtf8 $ m HM.! "value"
+          v = T.decodeUtf8 $ m HM.! "label"
+        
 
 rkcFront :: (PS.HasPostgres m, MonadLog m) => Filter -> m Value
 rkcFront filt@(Filter fromDate toDate program city _) = scope "rkc" $ scope "front" $ do
@@ -474,9 +479,10 @@ rkcFront filt@(Filter fromDate toDate program city _) = scope "rkc" $ scope "fro
       " (calldate >= ?) and (calldate < ?) and (calldate is not null) $program $city",
       " group by callertype, calltype order by callertype, calltype"]
     opCallsq = concat [
-      "select calltaker, count(*) from calltbl where",
+      "select u.realName, count(*) from calltbl c, usermetatbl u where",
+      " u.login = c.calltaker and",
       " (calldate >= ?) and (calldate < ?) and (calldate is not null) $program $city",
-      " group by calltaker order by calltaker"]
+      " group by u.realName order by u.realName"]
     opCasesq = concat [
       "select calltaker, count(*) from casetbl where",
       " (calldate >= ?) and (calldate < ?) and (calldate is not null) $program $city",
@@ -568,19 +574,24 @@ SELECT extract(epoch from avg(max)) FROM actiontimes;
 -- Parametrized in the same way as 'procAvgTimeQuery'.
 towStartAvgTimeQuery :: PS.Query
 towStartAvgTimeQuery = [sql|
-WITH actiontimes AS (
- SELECT (max(s.times_factServiceStart - a.ctime))
- FROM actiontbl a, casetbl c, servicetbl s
- WHERE a.parentid = concat(s.type, ':', s.id)
- AND cast(split_part(a.caseid, ':', 2) as integer)=c.id
- AND a.name='orderService'
- AND a.ctime < s.times_factServiceStart
- AND (s.type='towage' OR s.type='tech')
- AND (? or c.program = ?)
- AND (? or c.city = ?)
- AND (? or s.contractor_partner = ?)
- AND c.calldate >= ?
- AND c.calldate < ?
- GROUP BY a.parentid)
-SELECT extract(epoch from avg(max)) FROM actiontimes;
+WITH
+ services AS (
+  SELECT type, id, parentid, times_factServiceStart, times_expectedDispatch,
+         contractor_partner, suburbanmilage
+    FROM techtbl
+  UNION ALL
+  SELECT type, id, parentid, times_factServiceStart, times_expectedDispatch,
+         contractor_partner, suburbanmilage
+    FROM towagetbl)
+SELECT extract(epoch from avg(s.times_factServiceStart - s.times_expectedDispatch))
+FROM casetbl c, services s
+WHERE cast(split_part(s.parentid, ':', 2) as integer)=c.id
+AND (s.times_factServiceStart > s.times_expectedDispatch)
+AND (s.type='towage' OR s.type='tech')
+AND (? or c.program = ?)
+AND (? or c.city = ?)
+AND (? or s.contractor_partner = ?)
+AND s.suburbanmilage = '0'
+AND c.calldate >= ?
+AND c.calldate < ?;
 |]

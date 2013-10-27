@@ -130,9 +130,21 @@
                 "label": "+74956406690"
             },
             {
-                "value": "b2c",
+                "value": "b2cPl",
                 "label": "+78002507262"
             },
+            {
+                "value": "b2cPr",
+                "label": "+78002507262"
+            },
+            {
+                "value": "b2cSt",
+                "label": "+78002507262"
+            },
+            {
+                "value": "b2cL",
+                "label": "+78002507262"
+            },            
             {
                 "value": "unicredit",
                 "label": "+78002507300"
@@ -186,6 +198,10 @@
                 "label": "+78002501218"
             },
             {
+                "value": "gmofficial",
+                "label": "+78002501218"
+            },
+            {
                 "value": "vmMotor",
                 "label": "+78007007011"
             },
@@ -218,6 +234,10 @@
                 "label": "+74956406690"
             },
             {
+                "value": "castrol",
+                "label": "+74956406690"
+            },
+            {
                 "value": "ruslan",
                 "label": "+78002504357"
             },
@@ -241,7 +261,7 @@
         "program_from_name": [
             {
                 "value": "aston",
-                "label": "Aston Martin"
+                "label": "AstonMartin"
             },
             {
                 "value": "bentley",
@@ -274,7 +294,7 @@
             },
             {
                 "value": "avtoC",
-                "label": "Avto-T"
+                "label": "AvtoT"
             },
             {
                 "value": "arval",
@@ -325,6 +345,10 @@
                 "label": "Assistance"
             },
             {
+                "value": "castrol",
+                "label": "Castrol"
+            },
+            {
                 "value": "covidien",
                 "label": "Covidien"
             },
@@ -365,9 +389,21 @@
                 "label": "Autoprestus"
             },
             {
-                "value": "b2c",
+                "value": "b2cPl",
                 "label": "RAMC"
             },
+            {
+                "value": "b2cPr",
+                "label": "RAMC"
+            },
+            {
+                "value": "b2cSt",
+                "label": "RAMC"
+            },
+            {
+                "value": "b2cL",
+                "label": "RAMC"
+            },            
             {
                 "value": "unicredit",
                 "label": "Unicreditbank"
@@ -382,7 +418,7 @@
             },
             {
                 "value": "bp",
-                "label": "BP Assistance"
+                "label": "BPAssistance"
             },
             {
                 "value": "chartis",
@@ -422,6 +458,10 @@
             },
             {
                 "value": "opel",
+                "label": "GM"
+            },
+            {
+                "value": "gmofficial",
                 "label": "GM"
             },
             {
@@ -527,6 +567,10 @@
                 "label": "ДЦ Автоимпорт"
             },
             {
+                "value": "castrol",
+                "label": "B2C/ Кастрол"
+            },
+            {
                 "value": "tvd",
                 "label": "ДЦ ТВД-Авто"
             },
@@ -603,9 +647,21 @@
                 "label": "Автопрестус"
             },
             {
-                "value": "b2c",
-                "label": "B2C Карты"
+                "value": "b2cPl",
+                "label": "РАМК"
             },
+            {
+                "value": "b2cPr",
+                "label": "РАМК"
+            },
+            {
+                "value": "b2cL",
+                "label": "РАМК"
+            },
+            {
+                "value": "b2cSt",
+                "label": "РАМК"
+            },            
             {
                 "value": "unicredit",
                 "label": "ЮниКредитбанк"
@@ -656,6 +712,10 @@
             },
             {
                 "value": "opel",
+                "label": "GM Assistance"
+            },
+            {
+                "value": "gmofficial",
                 "label": "GM Assistance"
             },
             {

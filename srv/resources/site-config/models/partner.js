@@ -1,216 +1,187 @@
- {
-    "name": "partner",
-    "title": "Партнёр",
-    "canCreate": true,
-    "canRead": true,
-    "canUpdate": ["parguy"],
-    "canDelete": ["parguy"],
-     "applications": [
-         {
-            "targets": true,
-            "canWrite": true,
-            "canRead": true
-         }
-    ],
-    "fields": [
-        {
-            "name": "isActive",
-            "type": "checkbox",
-            "meta": {
-                "label": "Партнёр активен"
-            }
-        },
-        {
-            "name": "isDealer",
-            "type": "checkbox",
-            "meta": {
-                "label": "Дилер"
-            }
-        },
-        {
-            "name": "isMobile",
-            "type": "checkbox",
-            "meta": {
-                "label": "Мобильный партнёр"
-            }
-        },
-        {
-            "name": "name",
-            "index": true,
-            "meta": {
-                "label": "Название"
-            }
-        },
-        {
-            "name": "code",
-            "meta": {
-                "label": "Код"
-            }
-        },
-        {
-            "name": "city",
-            "type": "dictionary",
-            "meta": {
-                "label": "Город",
-                "dictionaryName": "DealerCities"
-            }
-        },
-        {
-            "name": "makes",
-            "meta": {
-                "dictionaryName": "CarMakers",
-                "required": true,
-                "bounded": true,
-                "label": "Обслуживаемые марки"
-            },
-            "type": "dictionary-many"
-        },
-        {
-            "name": "addrDeJure",
-            "meta": {
-                "label": "Юридический адрес"
-            }
-        },
-        {
-            "name": "addrDeFacto",
-            "meta": {
-                "label": "Фактический адрес"
-            }
-        },
-        {
-            "name": "coords",
-            "type": "coords",
-            "meta": {
-                "widget": "picker",
-                "label": "Координаты фактического адреса",
-                "infoText": "coords",
-                "picker": "mapPicker",
-                "targetAddr": "addrDeFacto",
-                "targetCoords": "coords",
-                "currentBlipType": "partner"
-            }
-        },
-        {
-            "name": "workingTime",
-            "meta": {
-                "label": "Время работы"
-            }
-        },
-        {
-            "name": "phone1",
-            "meta": {
-                "label": "Телефоны диспетчерской"
-            }
-        },
-        {
-            "name": "fax",
-            "meta": {
-                "label": "Факс"
-            }
-        },
-        {
-            "name": "closeTicketPhone",
-            "meta": {
-                "label": "Телефон для закрытия заявок"
-            }
-        },
-        {
-            "name": "closeTicketEmail",
-            "meta": {
-                "label": "Email для закрытия заявок",
-                "regexp": "email"
-            }
-        },
-        {
-            "name": "personInCharge",
-            "meta": {
-                "label": "Ответственное лицо"
-            }
-        },
-        {
-            "name": "serviceAddress",
-            "meta": {
-                "label": "Адрес сервисного отдела"
-            }
-        },
-        {
-            "name": "servicePhone",
-            "meta": {
-                "label": "Телефон сервисного отдела",
-                "regexp": "phone"
-            }
-        },
-        {
-            "name": "serviceWorking",
-            "meta": {
-                "label": "Время работы сервисного отдела"
-            }
-        },
-        {
-            "name": "salesAddress",
-            "meta": {
-                "label": "Адрес отдела продаж"
-            }
-        },
-        {
-            "name": "salesPhone",
-            "meta": {
-                "label": "Телефон отдела продаж",
-                "regexp": "phone"
-            }
-        },
-        {
-            "name": "salesWorking",
-            "meta": {
-                "label": "Время работы отдела продаж"
-            }
-        },
-        {
-            "name": "taxScheme",
-            "type": "dictionary",
-            "meta": {
-                "dictionaryName": "TaxSchemes",
-                "label": "Форма налогообложения"
-            }
-        },
-        {
-            "name": "isPayBackConfirmed",
-            "type": "checkbox",
-            "meta": {
-                "label": "Соглашение о вознаграждении"
-            }
-        },
-        {
-            "name": "mtime",
-            "type": "datetime",
-            "canRead": true,
-            "meta": {
-                "invisible": true
-            }
-        },
-        {
-            "name": "services",
-            "type": "reference"
-        },
-        {
-            "name": "comment",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head", "supervisor", "director", "analyst", "parguy", "account", "admin", "programman",
-                "parguy"
-            ],
-            "meta": {
-                "label": "Комментарий"
-            },
-            "type": "textarea"
-        }
-    ]
+{
+  "fields": [
+    {
+      "meta": {
+        "label": "Партнёр активен"
+      },
+      "type": "checkbox",
+      "groupName": null,
+      "name": "isActive"
+    },
+    {
+      "meta": {
+        "label": "Дилер"
+      },
+      "type": "checkbox",
+      "groupName": null,
+      "name": "isDealer"
+    },
+    {
+      "meta": {
+        "label": "Мобильный партнёр"
+      },
+      "type": "checkbox",
+      "groupName": null,
+      "name": "isMobile"
+    },
+    {
+      "meta": {
+        "label": "Свободен",
+        "invisible": true
+      },
+      "type": "checkbox",
+      "name": "isFree"
+    },
+    {
+      "meta": {
+        "label": "Название"
+      },
+      "type": null,
+      "groupName": null,
+      "name": "name"
+    },
+    {
+      "meta": {
+        "label": "Код"
+      },
+      "type": null,
+      "groupName": null,
+      "name": "code"
+    },
+    {
+      "meta": {
+        "label": "Город",
+        "dictionaryName": "DealerCities"
+      },
+      "type": "dictionary",
+      "groupName": null,
+      "name": "city"
+    },
+    {
+      "meta": {
+        "dictionaryName": "CarMakers",
+        "required": true,
+        "bounded": true,
+        "label": "Обслуживаемые марки"
+      },
+      "type": "dictionary-many",
+      "groupName": null,
+      "name": "makes"
+    },
+    {
+      "meta": {
+         "label": "Телефоны",
+         "jsonSchema": "dict-objects",
+         "dictionaryName": "PhoneTypes",
+         "noteLabel": "Время работы",
+         "showNote": true,
+         "regexp": "phone",
+         "addLabel": "Добавить телефон и время работы",
+         "widget": "dict-objects"
+      },
+      "type": "json",
+      "name": "phones"
+    },
+    {
+      "meta": {
+        "widget": "picker",
+        "label": "Координаты фактического адреса",
+        "required": true,
+        "infoText": "coords",
+        "picker": "mapPicker",
+        "cityField": "city",
+        "targetAddr": "factAddr",
+        "targetCoords": "coords",
+        "currentBlipType": "partner"
+      },
+      "type": "coords",
+      "groupName": null,
+      "name": "coords"
+    },
+    {
+      "meta": {
+        "label": "Адреса",
+        "jsonSchema": "dict-objects",
+        "dictionaryName": "AddressTypes",
+        "addLabel": "Добавить адрес",
+        "widget": "dict-objects"
+      },
+      "type": "json",
+      "name": "addrs"
+    },
+    {
+      "meta": {
+        "label": "E-mail",
+        "jsonSchema": "dict-objects",
+        "dictionaryName": "EmailTypes",
+        "regexp": "email",
+        "addLabel": "Добавить e-mail",
+        "widget": "dict-objects"
+      },
+      "type": "json",
+      "name": "emails"
+    },
+    {
+      "meta": {
+        "label": "Ответственное лицо"
+      },
+      "type": null,
+      "groupName": null,
+      "name": "personInCharge"
+    },
+    {
+      "meta": {
+        "dictionaryName": "TaxSchemes",
+        "label": "Форма налогообложения"
+      },
+      "type": "dictionary",
+      "groupName": null,
+      "name": "taxScheme"
+    },
+    {
+      "meta": {
+        "label": "Соглашение о вознаграждении"
+      },
+      "type": "checkbox",
+      "groupName": null,
+      "name": "isPayBackConfirmed"
+    },
+    {
+      "meta": {
+        "invisible": true
+      },
+      "type": "datetime",
+      "groupName": null,
+      "name": "mtime"
+    },
+    {
+      "meta": {
+        "reference-widget": "partner_services",
+        "model": "partner_service",
+        "reference-label": "Добавить услугу"
+      },
+      "type": "reference",
+      "groupName": null,
+      "name": "services"
+    },
+    {
+      "meta": {
+        "label": "Комментарий"
+      },
+      "type": "textarea",
+      "groupName": null,
+      "name": "comment"
+    }
+  ],
+  "applications": [],
+  "canDelete": [
+    "parguy"
+  ],
+  "canUpdate": [
+    "parguy"
+  ],
+  "canRead": true,
+  "canCreate": true,
+  "title": "Партнёр",
+  "name": "partner"
 }

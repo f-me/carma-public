@@ -1,771 +1,750 @@
 {
-    "car": [
-        {
-            "name": "vin",
-            "meta": {
-                "label": "VIN",
-                "transform": "uppercase",
-                "required": true,
-                "regexp": "vin"
-            }
-        },
-        {
-            "name": "seller",
-            "meta": {
-                "label": "Дилер, продавший автомобиль",
-                "required": true                
-            }
-        },
-        {
-            "name": "make",
-            "meta": {
-                "dictionaryName": "CarMakers",
-                "required": true,
-                "bounded": true,
-                "label": "Марка"
-            },
-            "type": "dictionary"
-        },
-        {
-            "name": "model",
-            "meta": {
-                "dictionaryName": "CarModels",
-                "required": true,
-                "bounded": true,
-                "label": "Модель"
-            },
-            "type": "dictionary"
-        },
-        {
-            "name": "plateNum",
-            "meta": {
-                "transform": "uppercase",
-                "label": "Госномер",
-                "required": true,
-                "regexp": "plateNum"
-            },
-            "index": true,
-            "indexCollate": true
-        },
-        {
-            "name": "makeYear",
-            "meta": {
-                "label": "Год производства автомобиля",
-                "sqltype": "integer"
-            }
-        },
-        {
-            "name": "color",
-            "meta": {
-                "dictionaryName": "Colors",
-                "required": true,
-                "bounded": true,
-                "label": "Цвет"
-            },
-            "type": "dictionary"
-        },
-        {
-            "name": "buyDate",
-            "type": "date",
-            "meta": {
-                "label": "Дата покупки",
-                "required": true
-            }
-        },
-        {
-            "name": "checkupDate",
-            "type": "date",
-            "meta": {
-                "label": "Дата последнего ТО",
-                "required": true
-            }
-        },
-        {
-            "name": "dealerTO",
-            "meta": {
-                "label": "Дилер у которого проходило последнее ТО",
-                "required": true
-            }
-        },
-        {
-            "name": "mileage",
-            "meta": {
-                "label": "Текущий пробег",
-                "required": true,
-                "sqltype": "integer"
-            }
-        },
-        {
-            "name": "checkupMileage",
-            "meta": {
-                "label": "Пробег на последнем ТО",
-                "required": true,
-                "sqltype": "integer"
-            }
-        },
-        {
-            "name": "warrantyStart",
-            "type": "date",
-            "meta": {
-                "label": "Дата начала действия программы"
-            }
-        },
-        {
-            "name": "warrantyEnd",
-            "type": "date",
-            "meta": {
-                "label": "Дата окончания действия программы"
-            }
-        },
-        {
-            "name": "contractType",
-            "meta": {
-                "label": "Тип контракта",
-                "dictionaryName": "ContractType",
-                "bounded": true
-            },
-            "type": "dictionary"
-        },        
-        {
-            "name": "transmission",
-            "meta": {
-                "label": "Коробка передач",
-                "dictionaryName": "Transmission",
-                "required": true,
-                "widget": "radio"
-            },
-            "type": "dictionary"
-        },
-        {
-            "name": "engine",
-            "meta": {
-                "label": "Тип двигателя",
-                "dictionaryName": "EngineType",
-                "widget": "radio"
-            },
-            "type": "dictionary"
-        },
-        {
-            "name": "liters",
-            "meta": {
-                "label": "Объём двигателя"
-            }
-        },
-        {
-            "name": "capacity",
-            "meta": {
-                "label": "Вместимость"
-            }
-        },
-        {
-            "name": "dims",
-            "meta": {
-                "label": "Габариты"
-            }
-        },
-        {
-            "name": "weight",
-            "meta": {
-                "label": "Масса"
-            }
-        },
-        {
-            "name": "checkPeriod",
-            "meta": {
-                "label": "Межсервисный интервал",
-                "sqltype": "integer"
-            }
-        },
-        {
-            "name": "class",
-            "type": "dictionary",
-            "meta": {
-                "label": "Класс автомобиля",
-                "dictionaryName": "CarClasses"
-            }
-        },
-        {
-            "name": "makeCode",
-            "meta": {
-                "label": "Код марки автомобиля"
-            }
-        },
-        {
-            "name": "modelCode",
-            "meta": {
-                "label": "Код модели автомобиля"
-            }
-        },
-        {
-            "name": "faultCode",
-            "meta": {
-                "label": "Код неиправности автомобиля"
-            }
-        }
-    ],
-    "cardNumber": [
-        {
-            "name": "cardNumber",
-            "type": "picker",
-            "meta": {
-                "label": "Номер карты участника"
-            }
-        },
-        {
-            "name": "validFrom",
-            "type": "date",
-            "meta": {
-                "label": "Дата регистрации в программе"
-            }
-        },
-        {
-            "name": "validUntil",
-            "type": "date",
-            "meta": {
-                "label": "Программа действует до (дата)"
-            }
-        },
-        {
-            "name": "validUntilMilage",
-            "meta": {
-                "label": "Программа действует до (пробег)",
-                "sqltype": "integer"
-            }
-        },
-        {
-            "name": "milageTO",
-            "meta": {
-                "label": "Пробег при регистрации в программе",
-                "sqltype": "integer"
-            }
-        },
-        {
-            "name": "serviceInterval",
-            "meta": {
-                "label": "Межсервисный интервал",
-                "sqltype": "integer"
-            }
-        },
-        {
-            "name": "cardOwner",
-            "meta": {
-                "label": "ФИО владельца карты"
-            }
-        },
-        {
-            "name": "manager",
-            "meta": {
-                "label": "ФИО менеджера"
-            }
-        }
-    ],
-    "contact": [
-        {
-            "name": "name",
-            "meta": {
-                "transform": "capitalize",
-                "label": "ФИО"
-            },
-            "index": true,
-            "indexCollate": true
-        },
-        {
-            "name": "phone1",
-            "meta": {
-                "label": "Контактные телефоны",
-                "picker": "callPlease",
-                "regexp": "phone"
-            },
-            "type": "phone",
-            "index": true,
-            "indexCollate": true
-        },
-        {
-            "name": "phone2",
-            "meta": {
-                "picker": "callPlease",
-                "regexp": "phone"
-            },
-            "type": "phone",
-            "index": true
-        },
-        {
-            "name": "phone3",
-            "meta": {
-                "picker": "callPlease",
-                "regexp": "phone"
-            },
-            "type": "phone",
-            "index": true
-        },
-        {
-            "name": "phone4",
-            "meta": {
-                "picker": "callPlease",
-                "regexp": "phone"
-            },
-            "type": "phone",
-            "index": true
-        },
-        {
-            "name": "email",
-            "meta": {
-                "label": "Email",
-                "regexp": "email"
-            },
-            "index": true
-        }
-    ],
-    "carContact": [
-        {
-            "name": "name",
-            "meta": {
-                "transform": "capitalize",
-                "label": "Звонящий"
-            },
-            "index": true,
-            "indexCollate": true
-        },
-        {
-            "name": "phone1",
-            "meta": {
-                "label": "Контактные телефоны",
-                "picker": "callPlease",
-                "regexp": "phone"
-            },
-            "type": "phone",
-            "index": true,
-            "indexCollate": true
-        },
-        {
-            "name": "phone2",
-            "meta": {
-                "picker": "callPlease",
-                "regexp": "phone"
-            },
-            "type": "phone",
-            "index": true
-        },
-        {
-            "name": "phone3",
-            "meta": {
-                "picker": "callPlease",
-                "regexp": "phone"
-            },
-            "type": "phone",
-            "index": true
-        },
-        {
-            "name": "phone4",
-            "meta": {
-                "picker": "callPlease",
-                "regexp": "phone"
-            },
-            "type": "phone",
-            "index": true
-        },
-        {
-            "name": "email",
-            "meta": {
-                "label": "Email",
-                "regexp": "email"
-            },
-            "index": true
-        },
-        {
-            "name": "contactOwner",
-            "type": "checkbox",
-            "meta": {
-                "label": "Звонящий владелец?",
-                "infoText": "owner"
-            }
-        },        
-        {
-            "name": "ownerName",
-            "meta": {
-                "transform": "capitalize",
-                "label": "Владелец"
-            },
-            "index": true,
-            "indexCollate": true
-        },
-        {
-            "name": "ownerPhone1",
-            "meta": {
-                "label": "Контактные телефоны",
-                "picker": "callPlease",
-                "regexp": "phone"
-            },
-            "type": "phone",
-            "index": true,
-            "indexCollate": true
-        },
-        {
-            "name": "ownerPhone2",
-            "meta": {
-                "picker": "callPlease",
-                "regexp": "phone"
-            },
-            "type": "phone",
-            "index": true
-        },
-        {
-            "name": "ownerPhone3",
-            "meta": {
-                "picker": "callPlease",
-                "regexp": "phone"
-            },
-            "type": "phone",
-            "index": true
-        },
-        {
-            "name": "ownerPhone4",
-            "meta": {
-                "picker": "callPlease",
-                "regexp": "phone"
-            },
-            "type": "phone",
-            "index": true
-        },
-        {
-            "name": "ownerEmail",
-            "meta": {
-                "label": "Email",
-                "regexp": "email"
-            },
-            "index": true
-        }        
-    ],
-    
-    "payment": [
-        {
-            "name": "expectedCost",
-            "meta": {
-                "label": "Ожидаемая стоимость (число)",
-                "infoText": "expextedValue",
-                "sqltype": "integer"
-            }
-        },
-        {
-            "name": "costTranscript",
-            "meta": {
-                "label": "Расшифровка стоимости"
-            }
-        },        
-        {
-            "name": "partnerCost",
-            "meta": {
-                "label": "Стоимость со слов партнёра (число)",
-                "sqltype": "integer"
-            }
-        },
-        {
-            "name": "calculatedCost",
-            "meta": {
-                "label": "Рассчётная стоимость",
-                "sqltype": "integer"
-            }
-        },
-        {
-            "name": "limitedCost",
-            "meta": {
-                "label": "Предельная стоимость",
-                "sqltype": "integer"
-            }
-        },
-        {
-            "name": "overcosted",
-            "type": "checkbox",
-            "meta": {
-                "label": "Стоимость превышена?"
-            }
-        },
-        {
-            "name": "paidByRUAMC",
-            "meta": {
-                "label": "Оплата РАМК"
-            }
-        },
-        {
-            "name": "paidByClient",
-            "meta": {
-                "label": "Оплата Клиент"
-            }
-        }
-    ],
-    "bill": [
-        {
-            "name": "billNumber",
-            "meta": {
-                "label": "Номер счёта"
-            }
-        },
-        {
-            "name": "billingCost",
-            "meta": {
-                "label": "Сумма по счёту",
-                "sqltype": "integer"
-            }
-        },
-        {
-            "name": "billingDate",
-            "type": "date",
-            "meta": {
-                "regexp": "date",
-                "label": "Дата выставления счёта",
-                "infoText": "date"
-            }
-        }
-    ],
-    "times": [
-        {
-            "name": "expectedServiceStart",
-            "type": "datetime",
-            "meta": {
-                "label": "Ожидаемое время начала оказания услуги",
-                "infoText": "datetime",
-                "regexp": "datetime"
-            }
-        },
-        {
-            "name": "factServiceStart",
-            "type": "datetime",
-            "meta": {
-                "label": "Фактическое время начала оказания услуги",
-                "infoText": "datetime",
-                "regexp": "datetime"
-            }
-        },
-        {
-            "name": "expectedServiceEnd",
-            "type": "datetime",
-            "meta": {
-                "label": "Ожидаемое время окончания оказания услуги",
-                "infoText": "datetime",
-                "regexp": "datetime"
-            }
-        },
-        {
-            "name": "factServiceEnd",
-            "type": "datetime",
-            "meta": {
-                "label": "Фактическое время окончания оказания услуги",
-                "infoText": "datetime",
-                "regexp": "datetime"
-            }
-        },
-        {
-            "name": "expectedDealerInfo",
-            "type": "datetime",
-            "meta": {
-                "label": "Ожидаемое время получения информации от дилера",
-                "infoText": "datetime",
-                "regexp": "datetime"
-            }
-        },
-        {
-            "name": "factDealerInfo",
-            "type": "datetime",
-            "meta": {
-                "label": "Фактическое время получения информации от дилера",
-                "infoText": "datetime",
-                "regexp": "datetime"
-            }
-        },
-        {
-            "name": "expectedServiceClosure",
-            "type": "datetime",
-            "meta": {
-                "label": "Ожидаемое время закрытия услуги",
-                "infoText": "datetime",
-                "regexp": "datetime"
-            }
-        },
-        {
-            "name": "factServiceClosure",
-            "type": "datetime",
-            "meta": {
-                "label": "Фактическое время закрытия услуги",
-                "infoText": "datetime",
-                "regexp": "datetime"
-            }
-        }
-    ],
-    "address": [
-        {
-            "name": "address",
-            "type": "picker",
-            "meta": {
-                "label": "Адрес",
-                "picker": "geoPicker"
-            }
-        },
-        {
-            "name": "comment",
-            "meta": {
-                "label": "Примечания"
-            }
-        },
-        {
-            "name": "coords",
-            "type": "picker",
-            "meta": {
-                "infoText": "coords",
-                "label": "Координаты",
-                "picker": "reverseGeoPicker"
-            }
-        },
-        {
-            "name": "map",
-            "type": "map"
-        }
-    ],
-    "partner": [
-        {
-            "name": "partner",
-            "meta": {
-                "label": "Партнёр"
-            }
-        },
-        {
-            "name": "partnerId",
-            "meta": {
-                "invisible": true
-            }
-        },
-        {
-            "name": "address",
-            "meta": {
-                "label": "Адрес"
-            }
-        },
-        {
-            "name": "coords",
-            "meta": {
-                "label": "Координаты",
-                "invisible": true
-            }
-        },
-        {
-            "name": "partnerTable",
-            "type": "partnerTable"
-        },
-        {
-            "name": "partnerMap",
-            "type": "map",
-            "meta": {
-                "targetCoords": "case-form/caseAddress_coords"
-            }
-        }
-    ],
-    "vinContact": [
-        {
-            "name": "name",
-            "meta": {
-                "transform": "capitalize",
-                "label": "ФИО"
-            },
-            "index": true,
-            "indexCollate": true
-        },
-        {
-            "name": "phone1",
-            "meta": {
-                "label": "Контактные телефоны",
-                "picker": "callPlease",
-                "regexp": "phone"
-            },
-            "type": "phone",
-            "index": true,
-            "indexCollate": true
-        },
-        {
-            "name": "email",
-            "meta": {
-                "label": "Email",
-                "regexp": "email"
-            },
-            "index": true
-        }
-    ],
-    "vinCar": [
-        {
-            "name": "make",
-            "meta": {
-                "dictionaryName": "CarMakers",
-                "required": true,
-                "label": "Марка"
-            },
-            "type": "dictionary"
-        },
-        {
-            "name": "model",
-            "meta": {
-                "dictionaryName": "CarModels",
-                "required": true,
-                "label": "Модель"
-            },
-            "type": "dictionary"
-        },
-        {
-            "name": "plateNum",
-            "meta": {
-                "transform": "uppercase",
-                "label": "Госномер",
-                "required": true,
-                "regexp": "plateNum"
-            },
-            "index": true,
-            "indexCollate": true
-        },
-        {
-            "name": "makeYear",
-            "meta": {
-                "label": "Год производства автомобиля",
-                "sqltype": "integer"
-            }
-        },
-        {
-            "name": "color",
-            "meta": {
-                "dictionaryName": "Colors",
-                "required": true,
-                "label": "Цвет"
-            },
-            "type": "dictionary"
-        },
-        {
-            "name": "buyDate",
-            "type": "date",
-            "meta": {
-                "label": "Дата покупки",
-                "required": true
-            }
-        },
-        {
-            "name": "checkupDate",
-            "type": "date",
-            "meta": {
-                "label": "Дата последнего ТО",
-                "required": true
-            }
-        }
-    ],
-    "countedCost": [
-        {
-                "name": "counted",
-                "meta": {
-                   "label": "Расчетная стоимость",
-                   "readonly": true,
-                   "sqltype": "decimal(12,4)"
-                }
-        },
-        {
-            "name": "serviceTarifOptions",
-            "type": "reference",
-            "meta": {
-                    "label": "Тарифные опции"
-            }
-        }
-    ]
+  "countedCost": [
+    {
+      "meta": {
+        "sqltype": "decimal(12,4)",
+        "readonly": true,
+        "label": "Расчётная стоимость"
+      },
+      "name": "counted"
+    },
+    {
+      "meta": {
+        "label": "Тарифные опции"
+      },
+      "type": "reference",
+      "name": "serviceTarifOptions"
+    }
+  ],
+  "vinCar": [
+    {
+      "type": "dictionary",
+      "meta": {
+        "label": "Марка",
+        "required": true,
+        "dictionaryName": "CarMakers"
+      },
+      "name": "make"
+    },
+    {
+      "type": "dictionary",
+      "meta": {
+        "label": "Модель",
+        "required": true,
+        "dictionaryName": "CarModels"
+      },
+      "name": "model"
+    },
+    {
+      "meta": {
+        "regexp": "plateNum",
+        "required": true,
+        "label": "Госномер",
+        "transform": "uppercase"
+      },
+      "name": "plateNum"
+    },
+    {
+      "meta": {
+        "sqltype": "integer",
+        "label": "Год производства автомобиля"
+      },
+      "name": "makeYear"
+    },
+    {
+      "type": "dictionary",
+      "meta": {
+        "label": "Цвет",
+        "required": true,
+        "dictionaryName": "Colors"
+      },
+      "name": "color"
+    },
+    {
+      "meta": {
+        "required": true,
+        "label": "Дата покупки"
+      },
+      "type": "date",
+      "name": "buyDate"
+    },
+    {
+      "meta": {
+        "required": true,
+        "label": "Дата последнего ТО"
+      },
+      "type": "date",
+      "name": "checkupDate"
+    }
+  ],
+  "vinContact": [
+    {
+      "meta": {
+        "label": "ФИО",
+        "transform": "capitalize"
+      },
+      "name": "name"
+    },
+    {
+      "type": "phone",
+      "meta": {
+        "regexp": "phone",
+        "picker": "callPlease",
+        "label": "Контактные телефоны"
+      },
+      "name": "phone1"
+    },
+    {
+      "meta": {
+        "regexp": "email",
+        "label": "Email"
+      },
+      "name": "email"
+    }
+  ],
+  "partner": [
+    {
+      "meta": {
+        "widget": "partner",
+        "label": "Партнёр"
+      },
+      "name": "partner"
+    },
+    {
+      "meta": {
+        "invisible": true
+      },
+      "name": "partnerId"
+    },
+    {
+      "meta": {
+        "label": "Адрес"
+      },
+      "name": "address"
+    },
+    {
+      "meta": {
+        "invisible": true,
+        "label": "Координаты"
+      },
+      "name": "coords"
+    }
+  ],
+  "car": [
+    {
+      "meta": {
+        "regexp": "vin",
+        "required": true,
+        "transform": "uppercase",
+        "label": "VIN",
+        "dictionaryType": "VinDict"
+      },
+      "type": "dictionary",
+      "name": "vin"
+    },
+    {
+      "type": "dictionary",
+      "meta": {
+        "label": "Марка",
+        "bounded": true,
+        "required": true,
+        "dictionaryName": "CarMakers"
+      },
+      "name": "make"
+    },
+    {
+      "type": "dictionary",
+      "meta": {
+        "label": "Модель",
+        "bounded": true,
+        "required": true,
+        "dictionaryName": "CarModels"
+      },
+      "name": "model"
+    },
+    {
+      "meta": {
+        "required": true,
+        "label": "Дилер, продавший автомобиль",
+        "bounded": true,
+        "dictionaryType": "DealersDict"
+      },
+      "type": "dictionary",
+      "name": "seller"
+    },
+    {
+      "meta": {
+        "regexp": "plateNum",
+        "required": true,
+        "label": "Госномер",
+        "transform": "uppercase"
+      },
+      "name": "plateNum"
+    },
+    {
+      "meta": {
+        "sqltype": "integer",
+        "label": "Год производства автомобиля"
+      },
+      "name": "makeYear"
+    },
+    {
+      "type": "dictionary",
+      "meta": {
+        "label": "Цвет",
+        "bounded": true,
+        "required": true,
+        "dictionaryName": "Colors"
+      },
+      "name": "color"
+    },
+    {
+      "meta": {
+        "required": true,
+        "regexp": "date",
+        "label": "Дата покупки"
+      },
+      "type": "date",
+      "name": "buyDate"
+    },
+    {
+      "meta": {
+        "label": "Дата последнего ТО"
+      },
+      "type": "date",
+      "name": "checkupDate"
+    },
+    {
+      "meta": {
+        "required": true,
+        "label": "Дилер у которого проходило последнее ТО",
+        "bounded": true,
+        "dictionaryType": "DealersDict"
+      },
+      "type": "dictionary",
+      "name": "dealerTO"
+    },
+    {
+      "meta": {
+        "sqltype": "integer",
+        "required": true,
+        "label": "Текущий пробег"
+      },
+      "name": "mileage"
+    },
+    {
+      "meta": {
+        "sqltype": "integer",
+        "required": true,
+        "label": "Пробег на последнем ТО"
+      },
+      "name": "checkupMileage"
+    },
+    {
+      "meta": {
+        "label": "Дата начала действия программы"
+      },
+      "type": "date",
+      "name": "warrantyStart"
+    },
+    {
+      "meta": {
+        "label": "Дата окончания действия программы"
+      },
+      "type": "date",
+      "name": "warrantyEnd"
+    },
+    {
+      "type": "dictionary",
+      "meta": {
+        "bounded": true,
+        "dictionaryName": "ContractType",
+        "label": "Тип контракта"
+      },
+      "name": "contractType"
+    },
+    {
+      "type": "dictionary",
+      "meta": {
+        "widget": "radio",
+        "required": true,
+        "dictionaryName": "Transmission",
+        "label": "Коробка передач"
+      },
+      "name": "transmission"
+    },
+    {
+      "type": "dictionary",
+      "meta": {
+        "widget": "radio",
+        "dictionaryName": "EngineType",
+        "label": "Тип двигателя"
+      },
+      "name": "engine"
+    },
+    {
+      "meta": {
+        "label": "Объём двигателя"
+      },
+      "name": "liters"
+    },
+    {
+      "meta": {
+        "label": "Вместимость"
+      },
+      "name": "capacity"
+    },
+    {
+      "meta": {
+        "label": "Габариты"
+      },
+      "name": "dims"
+    },
+    {
+      "meta": {
+        "label": "Масса"
+      },
+      "name": "weight"
+    },
+    {
+      "meta": {
+        "sqltype": "integer",
+        "label": "Межсервисный интервал"
+      },
+      "name": "checkPeriod"
+    },
+    {
+      "meta": {
+        "dictionaryName": "CarClasses",
+        "label": "Класс автомобиля"
+      },
+      "type": "dictionary",
+      "name": "class"
+    },
+    {
+      "meta": {
+        "label": "Код марки автомобиля"
+      },
+      "name": "makeCode"
+    },
+    {
+      "meta": {
+        "label": "Код модели автомобиля"
+      },
+      "name": "modelCode"
+    },
+    {
+      "meta": {
+        "label": "Код неиправности автомобиля"
+      },
+      "name": "faultCode"
+    }
+  ],
+  "cardNumber": [
+    {
+      "meta": {
+        "label": "Номер карты участника",
+        "dictionaryType": "CardsDict"
+      },
+      "type": "dictionary",
+      "name": "cardNumber"
+    },
+    {
+      "meta": {
+        "label": "Дата регистрации в программе"
+      },
+      "type": "date",
+      "name": "validFrom"
+    },
+    {
+      "meta": {
+        "label": "Программа действует до (дата)"
+      },
+      "type": "date",
+      "name": "validUntil"
+    },
+    {
+      "meta": {
+        "sqltype": "integer",
+        "label": "Программа действует до (пробег)"
+      },
+      "name": "validUntilMilage"
+    },
+    {
+      "meta": {
+        "sqltype": "integer",
+        "label": "Пробег при регистрации в программе"
+      },
+      "name": "milageTO"
+    },
+    {
+      "meta": {
+        "sqltype": "integer",
+        "label": "Межсервисный интервал"
+      },
+      "name": "serviceInterval"
+    },
+    {
+      "meta": {
+        "label": "ФИО владельца карты",
+        "dictionaryType": "CardOwnerDict"
+      },
+      "type": "dictionary",
+      "name": "cardOwner"
+    },
+    {
+      "meta": {
+        "label": "ФИО менеджера"
+      },
+      "name": "manager"
+    }
+  ],
+  "contact": [
+    {
+      "meta": {
+        "label": "ФИО",
+        "transform": "capitalize"
+      },
+      "name": "name"
+    },
+    {
+      "type": "phone",
+      "meta": {
+        "regexp": "phone",
+        "picker": "callPlease",
+        "label": "Контактные телефоны"
+      },
+      "name": "phone1"
+    },
+    {
+      "type": "phone",
+      "meta": {
+        "regexp": "phone",
+        "picker": "callPlease"
+      },
+      "name": "phone2"
+    },
+    {
+      "type": "phone",
+      "meta": {
+        "regexp": "phone",
+        "picker": "callPlease"
+      },
+      "name": "phone3"
+    },
+    {
+      "type": "phone",
+      "meta": {
+        "regexp": "phone",
+        "picker": "callPlease"
+      },
+      "name": "phone4"
+    },
+    {
+      "meta": {
+        "regexp": "email",
+        "label": "Email"
+      },
+      "name": "email"
+    }
+  ],
+  "carContact": [
+    {
+      "meta": {
+        "label": "Звонящий",
+        "transform": "capitalize"
+      },
+      "name": "name"
+    },
+    {
+      "type": "phone",
+      "meta": {
+        "regexp": "phone",
+        "picker": "callPlease",
+        "label": "Контактные телефоны"
+      },
+      "name": "phone1"
+    },
+    {
+      "type": "phone",
+      "meta": {
+        "regexp": "phone",
+        "picker": "callPlease"
+      },
+      "name": "phone2"
+    },
+    {
+      "type": "phone",
+      "meta": {
+        "regexp": "phone",
+        "picker": "callPlease"
+      },
+      "name": "phone3"
+    },
+    {
+      "type": "phone",
+      "meta": {
+        "regexp": "phone",
+        "picker": "callPlease"
+      },
+      "name": "phone4"
+    },
+    {
+      "meta": {
+        "regexp": "email",
+        "label": "Email"
+      },
+      "name": "email"
+    },
+    {
+      "meta": {
+        "infoText": "owner",
+        "label": "Звонящий владелец?"
+      },
+      "type": "checkbox",
+      "name": "contactOwner"
+    },
+    {
+      "meta": {
+        "label": "Владелец",
+        "transform": "capitalize"
+      },
+      "name": "ownerName"
+    },
+    {
+      "type": "phone",
+      "meta": {
+        "regexp": "phone",
+        "picker": "callPlease",
+        "label": "Контактные телефоны"
+      },
+      "name": "ownerPhone1"
+    },
+    {
+      "type": "phone",
+      "meta": {
+        "regexp": "phone",
+        "picker": "callPlease"
+      },
+      "name": "ownerPhone2"
+    },
+    {
+      "type": "phone",
+      "meta": {
+        "regexp": "phone",
+        "picker": "callPlease"
+      },
+      "name": "ownerPhone3"
+    },
+    {
+      "type": "phone",
+      "meta": {
+        "regexp": "phone",
+        "picker": "callPlease"
+      },
+      "name": "ownerPhone4"
+    },
+    {
+      "meta": {
+        "regexp": "email",
+        "label": "Email"
+      },
+      "name": "ownerEmail"
+    }
+  ],
+  "payment": [
+    {
+      "meta": {
+        "sqltype": "integer",
+        "infoText": "expextedValue",
+        "label": "Ожидаемая стоимость (число)"
+      },
+      "name": "expectedCost"
+    },
+    {
+      "meta": {
+        "label": "Расшифровка стоимости"
+      },
+      "name": "costTranscript"
+    },
+    {
+      "meta": {
+        "sqltype": "integer",
+        "label": "Стоимость со слов партнёра (число)"
+      },
+      "name": "partnerCost"
+    },
+    {
+      "meta": {
+        "sqltype": "integer",
+        "label": "Расчётная стоимость"
+      },
+      "name": "calculatedCost"
+    },
+    {
+      "meta": {
+        "sqltype": "integer",
+        "label": "Предельная стоимость"
+      },
+      "name": "limitedCost"
+    },
+    {
+      "meta": {
+        "label": "Стоимость превышена?"
+      },
+      "type": "checkbox",
+      "name": "overcosted"
+    },
+    {
+      "meta": {
+        "label": "Оплата РАМК"
+      },
+      "name": "paidByRUAMC"
+    },
+    {
+      "meta": {
+        "label": "Оплата Клиент"
+      },
+      "name": "paidByClient"
+    }
+  ],
+  "bill": [
+    {
+      "meta": {
+        "label": "Номер счёта"
+      },
+      "name": "billNumber"
+    },
+    {
+      "meta": {
+        "sqltype": "integer",
+        "label": "Сумма по счёту"
+      },
+      "name": "billingCost"
+    },
+    {
+      "meta": {
+        "infoText": "date",
+        "label": "Дата выставления счёта",
+        "regexp": "date"
+      },
+      "type": "date",
+      "name": "billingDate"
+    }
+  ],
+  "times": [
+    {
+      "meta": {
+        "regexp": "datetime",
+        "infoText": "datetime",
+        "required": true,
+        "label": "Ожидаемое время начала оказания услуги"
+      },
+      "type": "datetime",
+      "name": "expectedServiceStart"
+    },
+    {
+      "meta": {
+        "regexp": "datetime",
+        "infoText": "datetime",
+        "label": "Время выезда партнёра"
+      },
+      "type": "datetime",
+      "name": "expectedDispatch"
+    },
+    {
+      "meta": {
+        "regexp": "datetime",
+        "infoText": "datetime",
+        "label": "Фактическое время начала оказания услуги"
+      },
+      "type": "datetime",
+      "name": "factServiceStart"
+    },
+    {
+      "meta": {
+        "regexp": "datetime",
+        "infoText": "datetime",
+        "required": true,
+        "label": "Ожидаемое время окончания оказания услуги"
+      },
+      "type": "datetime",
+      "name": "expectedServiceEnd"
+    },
+    {
+      "meta": {
+        "regexp": "datetime",
+        "infoText": "datetime",
+        "label": "Фактическое время окончания оказания услуги"
+      },
+      "type": "datetime",
+      "name": "factServiceEnd"
+    },
+    {
+      "meta": {
+        "regexp": "datetime",
+        "infoText": "datetime",
+        "label": "Ожидаемое время получения информации от дилера"
+      },
+      "type": "datetime",
+      "name": "expectedDealerInfo"
+    },
+    {
+      "meta": {
+        "regexp": "datetime",
+        "infoText": "datetime",
+        "label": "Фактическое время получения информации от дилера"
+      },
+      "type": "datetime",
+      "name": "factDealerInfo"
+    },
+    {
+      "meta": {
+        "regexp": "datetime",
+        "infoText": "datetime",
+        "required": true,
+        "label": "Ожидаемое время закрытия услуги"
+      },
+      "type": "datetime",
+      "name": "expectedServiceClosure"
+    },
+    {
+      "meta": {
+        "regexp": "datetime",
+        "infoText": "datetime",
+        "label": "Фактическое время закрытия услуги"
+      },
+      "type": "datetime",
+      "name": "factServiceClosure"
+    }
+  ],
+  "address": [
+    {
+      "meta": {
+        "picker": "geoPicker",
+        "label": "Адрес"
+      },
+      "type": "picker",
+      "name": "address"
+    },
+    {
+      "meta": {
+        "label": "Примечания"
+      },
+      "name": "comment"
+    },
+    {
+      "meta": {
+        "picker": "reverseGeoPicker",
+        "label": "Координаты",
+        "infoText": "coords"
+      },
+      "type": "picker",
+      "name": "coords"
+    },
+    {
+      "type": "map",
+      "name": "map"
+    }
+  ]
 }

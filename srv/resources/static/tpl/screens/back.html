@@ -1,8 +1,12 @@
 <!-- Backoffice screen -->
 <div class="span9">
-  <button id="bo-littleMoreAction">Больше действий!</button>
+  <div style="width:30%">
+    Ждём новых действий…
+    <div class="progress progress-striped active">
+      <div id="bo-wait-progress" class="bar" style="width: 0%;"></div>
+    </div>
+  </div>
 </div>
-<h4 id="actions-queue-count" />
 <table id="back-user-table" class="table table-striped table-bordered">
   <thead>
     <tr>

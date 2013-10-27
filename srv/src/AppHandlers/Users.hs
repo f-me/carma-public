@@ -10,17 +10,23 @@ module AppHandlers.Users
     ( chkAuth
     , chkAuthLocal
     , chkAuthPartner
-    , claimActivity
+    , claimUserActivity
+    , claimUserLogout
     , serveUserCake
     )
 
 where
 
+import Data.Aeson
+import qualified Data.HashMap.Strict as HM
+
 import Snap
 import Snap.Snaplet.Auth hiding (session)
+import Snap.Snaplet.PostgresqlSimple
 
 import Application
 import AppHandlers.Util
+import AppHandlers.UserAchievements
 import Snaplet.Auth.PGUsers
 
 
@@ -38,7 +44,7 @@ partnerRole = Role "partner"
 ------------------------------------------------------------------------------
 -- | Deny requests from unauthenticated users.
 chkAuth :: AppHandler () -> AppHandler ()
-chkAuth h = chkAuthRoles alwaysPass (claimActivity >> h)
+chkAuth h = chkAuthRoles alwaysPass h
 
 
 ------------------------------------------------------------------------------
@@ -90,7 +96,7 @@ chkAuthRoles roleCheck handler = do
   then with auth currentUser >>= maybe
        (handleError 401)
        (\u -> do
-          uRoles <- with authDb $ userRolesPG u
+          uRoles <- with db $ userRolesPG u
           if roleCheck uRoles
           then handler
           else handleError 401)
@@ -98,18 +104,42 @@ chkAuthRoles roleCheck handler = do
   else handler
 
 
-claimActivity :: AppHandler ()
-claimActivity
-  = with auth currentUser
-  >>= maybe (return ()) (void . addToLoggedUsers)
+claimUserActivity :: AppHandler ()
+claimUserActivity = with auth currentUser >>= \case
+  Nothing -> return ()
+  Just u  -> void $ execute
+    "UPDATE usermetatbl SET lastactivity = NOW() WHERE login = ?"
+    [userLogin u]
+
+claimUserLogout :: AppHandler ()
+claimUserLogout = with auth currentUser >>= \case
+  Nothing -> return ()
+  Just u  -> void $ execute
+    "UPDATE usermetatbl SET lastlogout = NOW() WHERE login = ?"
+    [userLogin u]
 
 
 ------------------------------------------------------------------------------
 -- | Serve user account data back to client.
 serveUserCake :: AppHandler ()
-serveUserCake = ifTop $
-  with auth currentUser >>= maybe
-           (error "impossible happened")
-           (\u -> do
-              u' <- with authDb $ replaceMetaRolesFromPG u
-              writeJSON u')
+serveUserCake
+  = ifTop $ with auth currentUser
+  >>= \case
+    Nothing -> handleError 401
+    Just u'  -> do
+      usr <- with db $ replaceMetaRolesFromPG u'
+      achievements <- userAchievements usr
+      let homePage = case userRoles usr of
+            rs | Role "front"      `elem` rs -> "/#call"
+               | Role "back"       `elem` rs -> "/#back"
+               | Role "bo_control" `elem` rs -> "/#back"
+               | Role "supervisor" `elem` rs -> "/#supervisor"
+               | Role "parguy"     `elem` rs -> "/#partner"
+               | Role "head"       `elem` rs -> "/#rkc"
+               | otherwise                   -> ""
+      writeJSON $ usr
+        {userMeta
+          = HM.insert "achievements" (toJSON achievements)
+          $ HM.insert "homepage" homePage
+          $ userMeta usr
+        }

@@ -9,9 +9,13 @@
             "label": "Заказ услуги через мобильное приложение"
         },
         {
+            "value": "tellMeMore",
+            "label": "Заказ услуги (требуется дополнительная информация)"
+        },
+        {
             "value": "orderServiceAnalyst",
             "label": "Заказ услуги аналитиком"
-        },        
+        },
         {
             "value": "needPartner",
             "label": "Требуется партнёр"
@@ -63,7 +67,7 @@
         {
             "value": "analystCheck",
             "label": "Проверка аналитиком"
-        },        
+        },
         {
             "value": "getInfoDealerVW",
             "label": "Уточнить информацию о ремонте у дилера/партнёра (VW, PSA)"

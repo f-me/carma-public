@@ -4,7 +4,6 @@ module ApplicationInit (appInit) where
 import Control.Applicative
 import Control.Monad.IO.Class
 
-import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.ByteString (ByteString)
 import Data.Configurator
@@ -22,12 +21,16 @@ import Snap.Snaplet.Auth hiding (session)
 import Snap.Snaplet.Auth.Backends.PostgresqlSimple
 import Snap.Snaplet.PostgresqlSimple (pgsInit)
 import Snap.Snaplet.Session.Backends.CookieSession
-import Snap.Util.FileServe (serveDirectory, serveFile)
+import Snap.Util.FileServe ( serveFile
+                           , simpleDirectoryConfig
+                           , serveDirectoryWith
+                           , DirectoryConfig(..)
+                           )
 ------------------------------------------------------------------------------
 import Snap.Snaplet.Vin
 import Snaplet.SiteConfig
 import Snaplet.DbLayer
-import Snaplet.FileUpload
+import qualified Snaplet.FileUpload as FU
 import Snaplet.Geo
 ------------------------------------------------------------------------------
 import Application
@@ -37,7 +40,7 @@ import AppHandlers.CustomSearches
 import AppHandlers.PSA
 import AppHandlers.ContractGenerator
 import AppHandlers.Users
-
+import AppHandlers.Screens
 
 ------------------------------------------------------------------------------
 -- | The application's routes.
@@ -46,38 +49,46 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/login/",        method GET loginForm)
          , ("/login/",        method POST doLogin)
          , ("/logout/",       doLogout)
-         , ("/s/",            serveDirectory "resources/static")
+         , ("/s/",            serveDirectoryWith dconf "resources/static")
          , ("/s/screens",     serveFile "resources/site-config/screens.json")
+         , ("/screens",       method GET $ getScreens)
          , ("/report",        chkAuthLocal . method GET  $ report)
-         , ("/all/:model",    chkAuthLocal . method GET  $ readAllHandler)
+         , ("/all/:model",    chkAuth . method GET  $ readAllHandler)
          , ("/callsByPhone/:phone",
                               chkAuthLocal . method GET    $ searchCallsByPhone)
          , ("/actionsFor/:id",chkAuthLocal . method GET    $ getActionsForCase)
-         , ("/littleMoreActions",
-                              chkAuthLocal . method PUT    $ littleMoreActionsHandler)
-         , ("/allActions",    chkAuthLocal . method GET    $ allActionsHandler)
-         , ("actions/unassigned",
-                              chkAuthLocal . method GET    $ unassignedActionsHandler)
-         , ("actions/busyOps",
-                              chkAuthLocal . method GET    $ busyOps)
-         , ("/allPartners",   chkAuthLocal . method GET    $ allPartnersHandler)
+         , ("/cancelsFor/:id",chkAuthLocal . method GET    $ getCancelsForCase)
+         , ("/backoffice/littleMoreActions",
+            chkAuthLocal . method PUT $ littleMoreActionsHandler)
+         , ("/backoffice/openAction/:actionid",
+            chkAuthLocal . method PUT $ openAction)
+         , ("/backoffice/unassigned",
+            chkAuthLocal . method GET $ unassignedActionsHandler)
+         , ("/backoffice/allActions",
+            chkAuthLocal . method GET $ allActionsHandler)
+         , ("/supervisor/busyOps",  chkAuthLocal . method GET $ busyOps)
+         , ("/supervisor/opStats",  chkAuthLocal . method GET $ opStats)
+         , ("/supervisor/actStats", chkAuthLocal . method GET $ actStats)
+         , ("/allPartners",   chkAuthLocal . method GET  $ allPartnersHandler)
          , ("/partnersFor/:srv",
-                              chkAuthLocal . method GET    $ partnersForSrvHandler)
+                              chkAuthLocal . method GET $ partnersForSrvHandler)
          , ("/psaCases/",
-                              chkAuthLocal . method GET    $ psaCases)
+                              chkAuthLocal . method GET $ psaCasesHandler)
          , ("/psaCases/:program",
-                              chkAuthLocal . method GET    $ psaCases)
+                              chkAuthLocal . method GET $ psaCasesHandler)
          , ("/repTowages/:id",
-                              chkAuthLocal . method GET    $ repTowages)
+                              chkAuthLocal . method GET $ repTowagesHandler)
+         , ("/cardOwnerLookup", chkAuth . method GET  $ cardOwnerLookup)
          , ("/allContracts/:program",
                               chkAuth . method GET   $ selectContracts)
-         , ("/getContract/:id",
-                              chkAuth . method GET   $ selectContract)
          , ("/renderContract",
                               chkAuth . method GET    $ renderContractHandler)
+         , ("contracts/findSame",
+                             chkAuth . method GET    $ findSameContract)
          , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)
          , ("/_version/",     chkAuth . method GET    $ serveGitStats)
          , ("/_/:model",      chkAuth . method POST   $ createHandler)
+         , ("/_/:model",      chkAuth . method GET    $ readManyHandler)
          , ("/_/:model/:id",  chkAuth . method GET    $ readHandler)
          , ("/_/:model/:id",  chkAuth . method PUT    $ updateHandler)
          , ("/_/:model/:id",  chkAuth . method DELETE $ deleteHandler)
@@ -85,7 +96,10 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
                               chkAuthLocal . method POST $ findOrCreateHandler)
          , ("/_/report/",     chkAuthLocal . method POST   $ createReportHandler)
          , ("/_/report/:id",  chkAuthLocal . method DELETE $ deleteReportHandler)
-         , ("/search/:model", chkAuthLocal . method GET  $ searchHandler)
+         , ("/searchCases",   chkAuthLocal . method GET  $ searchCases)
+         , ("/latestCases",   chkAuthLocal . method GET  $ getLatestCases)
+         , ("/regionByCity/:city",
+                              chkAuthLocal . method GET  $ getRegionByCity)
          , ("/stats/towAvgTime/:city",
             chkAuthLocal . method GET  $ towAvgTime)
          , ("/rkc",           chkAuthLocal . method GET  $ rkcHandler)
@@ -93,14 +107,17 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/rkc/front",     chkAuthLocal . method GET $ rkcFrontHandler)
          , ("/rkc/partners",  chkAuthLocal . method GET $ rkcPartners)
          , ("/arc/:year/:month", chkAuthLocal . method GET $ arcReportHandler)
-         , ("/usersList",     chkAuth . method GET  $ serveUsersList)
-         , ("/userMeta/:usr", chkAuthLocal . method PUT  $ setUserMeta)
-         , ("/activeUsers",   chkAuthLocal . method GET  $ getActiveUsers)
+         , ("/allUsers",      chkAuth . method GET  $ serveUsersList)
+         , ("/boUsers",       chkAuth . method GET  $ boUsers)
+         , ("/dealers/:make", chkAuth . method GET  $ allDealersForMake)
          , ("/partner/upload.csv",
             chkAuthLocal . method POST $ partnerUploadData)
-         , ("/vin/upload",    chkAuthLocal . method POST $ vinUploadData)
-         , ("/vin/state",     chkAuthLocal . method GET  $ vinStateRead)
-         , ("/vin/state",     chkAuthLocal . method POST $ vinStateRemove)
+         , ("/vin/upload",    chkAuth . method POST $ vinUploadData)
+         , ("/vin/state",     chkAuth . method GET  $ vinStateRead)
+         , ("/vin/state",     chkAuth . method POST $ vinStateRemove)
+         , ("/vin/reverseLookup/:vin", chkAuth . method GET  $ vinReverseLookup)
+         , ("contracts/findByCard/:program/:cardNumber",
+            chkAuth . method GET    $ cardNumberLookup)
          , ("/opts/:model/:id/", chkAuthLocal . method GET $ getSrvTarifOptions)
          , ("/smspost",       chkAuthLocal . method POST $ smspost)
          , ("/sms/processing", chkAuthLocal . method GET $ smsProcessingHandler)
@@ -111,6 +128,10 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
          , ("/errors",        method POST errorsHandler)
          ]
 
+dconf :: DirectoryConfig (Handler App App)
+dconf = simpleDirectoryConfig{preServeHook = h}
+  where
+    h _ = modifyResponse $ setHeader "Cache-Control" "no-cache, must-revalidate"
 
 ------------------------------------------------------------------------------
 -- | The application initializer.
@@ -119,13 +140,11 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   cfg <- getSnapletUserConfig
 
   h <- nestSnaplet "heist" heist $ heistInit "resources/templates"
-  addAuthSplices auth
+  addAuthSplices h auth
 
   sesKey <- liftIO $
             lookupDefault "resources/private/client_session_key.aes"
                           cfg "session-key"
-
-  logdUsrs <- liftIO $ newTVarIO Map.empty
 
   runtimeFlags <- liftIO $ newTVarIO Set.empty
 
@@ -155,14 +174,15 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   pga <- liftIO $ createPool (Pg.connect cInfoActass) Pg.close 1 5 20
 
   c <- nestSnaplet "cfg" siteConfig $
-       initSiteConfig "resources/site-config" pgs authDb
+       initSiteConfig "resources/site-config" pgs
 
   v <- nestSnaplet "vin" vin vinInit
-  fu <- nestSnaplet "upload" fileUpload fileUploadInit
+  fu <- nestSnaplet "upload" fileUpload $ FU.fileUploadInit db
   g <- nestSnaplet "geo" geo geoInit
 
   l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10)
        [logger text (file "log/frontend.log")]
 
   addRoutes routes
-  return $ App h s authMgr logdUsrs c d pgs pga v fu g l runtimeFlags ad
+  wrapSite (claimUserActivity>>)
+  return $ App h s authMgr c d pgs pga v fu g l runtimeFlags ad

@@ -12,25 +12,22 @@
 #
 # Screen rendering is called through router.
 #
-# Dictionaries are used by UI to map predefined keys to readable
-# values (see knockBackbone).
-#
 # modelHooks — a hash with lists of hooks called at the end of
 # modelSetup for respective model.
 #
 # user object is stored in global hash and contains data about
 # current user.
-define [ "model/meta"
-       , "model/render"
-       , "dictionaries"
+define [ "model/render"
+       , "dictionaries/local-dict"
+       , "sync/crud"
        ],
-       (metamodel, render, dict) ->
+       (render, dict, sync) ->
   mainSetup = ( localScreens
                    , localRouter
                    , localDictionaries
                    , hooks
                    , user
-                   , models) ->
+                   , pubSub) ->
     Screens = localScreens
 
     dictCache = dict.buildCache(localDictionaries)
@@ -47,8 +44,19 @@ define [ "model/meta"
         dictValueCache: dictCache.valueCache
         hooks: hooks
         user: user
-        models: models
+        model: do ->
+          modelCache = {}
+          (name, arg) ->
+            url = "/cfg/model/#{name}"
+            url = url + "?arg=#{arg}" if arg
+            if not modelCache[url]
+              $.ajax url,
+                async: false
+                dataType: 'json'
+                success: (m) -> modelCache[url] = m
+            modelCache[url]
         activeScreen: null
+        pubSub: pubSub
         # viewsWare is for bookkeeping of views in current screen.
         #
         # Hash keys are DOM tree element IDs associated with the
@@ -58,10 +66,6 @@ define [ "model/meta"
         # - model (model definition);
         #
         # - modelName;
-        #
-        # - mkBackboneModel (Backbone constructor);
-        #
-        # - bbInstance (Backbone model);
         #
         # - knockVM (Knockout ViewModel bound to view);
         #
@@ -78,7 +82,7 @@ define [ "model/meta"
 
     Backbone.history.start({pushState: false})
 
-  # Backbone-Knockout bridge
+  # Knockout model builder
   #
   # Sets additional observables in Knockout model:
   #
@@ -87,67 +91,132 @@ define [ "model/meta"
   # - maybeId; («—» if Backbone id is not available yet)
   #
   # - modelTitle;
-  #
-  # - <field>Local for dictionary fields: reads as label, writes real
-  #   value back to Backbone model;
-  knockBackbone = (instance, viewName, model) ->
-    knockVM = new kb.ViewModel(instance)
+  buildKVM = (model, options) ->
+
+    {elName, fetched, queue, queueOptions, models} = options
+
+    fields    = model.fields
+    required  = (f for f in fields when f.meta?.required)
+
+    # Build kvm with fetched data if have one
+    kvm = {}
+    kvm["_meta"] = { model: model, cid: _.uniqueId("#{model.name}_") }
+
+    # build observables for real model fields
+    kvm[f.name] = ko.observable(null) for f in fields
+
+    # set id only when it wasn't set from from prefetched data
+    kvm['id'] = ko.observable(fetched?['id'])
+
+    # set queue if have one, and sync it with backend
+    kvm._meta.q = new queue(kvm, model, queueOptions) if queue
+    kvm[f.name](fetched[f.name]) for f in fields when fetched?[f.name]
 
     # Set extra observable for inverse of every required
     # parameters, with name <fieldName>Not
-    for f in instance.requiredFields
-      knockVM[f + "Not"] =
-        kb.observable instance,
-                      key: f
-                      read: (k) -> not instance.get(k)
-
-    for f in instance.referenceFields
+    for f in required
       do (f) ->
-        knockVM[f + 'Reference'] =
+        n = f.name
+        kvm["#{n}Not"] = ko.computed -> kvm["#{n}Regexp"]?() or not kvm[n]()
+
+    # Setup reference fields: they will be stored in <name>Reference as array
+    # of kvm models
+    for f in fields when f.type == "reference"
+      do (f) ->
+        kvm["#{f.name}Reference"] =
           ko.computed
             read: ->
-              knockBackbone(i, null, i.model) for i in (knockVM[f]() or [])
+              # FIXME: this will be evaluated on every write
+              # so reference kvms is better be cached or there will be
+              # get on every new reference creation
+              return [] unless kvm[f.name]()
+              rs = kvm[f.name]().split(',')
+              return [] unless rs
+              ms = (m.split(':') for m in rs)
+              for m in ms
+                k = buildKVM global.model(m[0], queueOptions?.modelArg),
+                  fetched: {id: m[1]}
+                  queue:   queue
+                k.parent = kvm
+                k
             write: (v) ->
-              knockVM[f](i.model() for i in v)
+              ks = ("#{k._meta.model.name}:#{k.id()}" for k in v).join(',')
+              kvm[f.name](ks)
 
-    knockVM["model"]     = ko.computed { read: -> instance            }
-    knockVM["modelName"] = ko.computed { read: -> instance.model.name }
-    knockVM["modelDesc"] = ko.computed { read: -> model               }
+        # setup reference add button
+        if f.meta?.model
+          # define add-reference-button ko.bindingHandlers.bindClick function
+          kvm["add#{f.name}"] = ->
+            opts =
+              modelName: f.meta.model
+              options:
+                modelArg: queueOptions?.modelArg
+            addRef kvm, f.name, opts, (kvm) -> focusRef(kvm)
 
-    knockVM["modelTitle"] = kb.observable instance,
-                                          key : "title"
-                                          read: (k) -> instance.title
+    kvm["maybeId"] = ko.computed -> kvm['id']() or "—"
 
-    knockVM["maybeId"] =
-      kb.observable instance,
-                    key : "id"
-                    read: (k) -> if instance.isNew() then "—" else instance.id
+    for f in fields when f.type == "nested-model"
+      do (f) ->
+        kvm["#{f.name}Nested"] = ko.computed ->
+          _.map (_.compact kvm[f.name]()), (fetched) ->
+            buildKVM models[f.meta.modelName],
+              fetched: fetched
+              models: models
 
-    if instance.name == "action"
-      knockVM["actionNameLocal"] =
-        ko.computed
+    # disable dixi filed for model
+    kvm['disableDixi'] = ko.observable(false)
+
+    # - <field>Disabled fields: used to make field look like readonly
+    for f in fields
+      do (f) ->
+        name = f.name
+        disabled = ko.observable(false)
+        readonly = f.meta?.readonly
+        kvm["#{name}DisableDixi"] = ko.observable(false)
+        kvm["#{name}Disabled"]    = ko.computed
           read: ->
-            actName = global.dictValueCache.ActionNames[knockVM.name()]
-            svcId   = knockVM.parentId()
-            if svcId
-              modelName = svcId.split(':')[0]
-              svcName = model.title
-              actName = actName + " (#{svcName})"
-            actName
+            mbid = parseInt(kvm["maybeId"]())
+            return true if readonly
+            dixi = kvm['dixi']?() and not kvm["#{name}DisableDixi"]()
+            (not _.isNaN mbid)   and
+            (dixi or disabled()) and not
+            kvm['disableDixi']()
+          write: (a) ->
+            disabled(not not a)
 
-    for f of instance.fieldHash
-      knockVM["#{f}Disabled"] = ko.computed
-        read: ->
-          mbid = parseInt(knockVM["maybeId"]())
-          dixi = if knockVM["dixi"] then knockVM["dixi"]()
-          (not _.isNaN mbid) and dixi
-        write: (a) -> null
+    # make dixi button disabled
+    # until all required fields are filled
+    kvm['disableDixiU'] = ko.computed ->
+      return unless kvm['dixi']
+      notFlds = (not kvm["#{f.name}Not"]() for f in required)
+      isFilled = _.all notFlds, _.identity
+      if isFilled
+        kvm['dixiDisabled'](false) unless kvm['dixi']()
+      else
+        kvm['dixiDisabled'](true)
 
-    applyHooks global.hooks.observable,
-               ['*', instance.model.name],
-               instance, knockVM, viewName
+    for f in fields when /interval/.test(f.type)
+      do (f) ->
+        proxy = { begin: null, end: null }
+        updateInterval = ->
+          if proxy.begin != null and proxy.end != null
+            kvm[f.name]([proxy.begin, proxy.end])
+        kvm["#{f.name}Begin"] = ko.computed
+          read: -> proxy.begin
+          write: (v) ->
+            proxy.begin = v
+            updateInterval()
 
-    return knockVM
+        kvm["#{f.name}End"] = ko.computed
+          read: -> proxy.end
+          write: (v) ->
+            proxy.end = v
+            updateInterval()
+
+
+    hooks = queueOptions?.hooks or ['*', model.name]
+    applyHooks global.hooks.observable, hooks, model, kvm
+    return kvm
 
   #/ Model functions.
 
@@ -168,10 +237,12 @@ define [ "model/meta"
   #   which will be ko.applyBindings'd to with model after it's
   #   finished loading, in addition to elName;
   #
+  # FIXME: remove fetchcb info from here or update to actual implemented info
   # - fetchCb: function to be bound to "change" event of Backbone
   #   instance. Use this to update references of parent model when
   #   referenced instance views are set up.
   #
+  # FIXME: is this is still used?
   # - refs: Describe what references model has and where to render
   #   their views. This key is an array of objects:
   #
@@ -207,60 +278,50 @@ define [ "model/meta"
   # global.modelHooks[modelName] is called with model view name as
   # argument.
 
-  modelSetup = (modelName, modelHref) ->
+  # model parameter is used here when we need some customized model
+  # maybe with filtered some fields or something
+  modelSetup = (modelName, model) ->
     return (elName, args, options) ->
+      model = global.model(modelName, options.modelArg) if not model
+      [kvm, q] = buildModel(model, args, options, elName)
 
-      # save copy of models
-      models = $.extend true, {}, global.models
-      if modelHref
-        $.ajax modelHref,
-          async: false
-          dataType: 'json'
-          success: (m) -> models[modelName] = m
-
-      [mkBackboneModel, instance, knockVM] =
-        buildModel(modelName, models, args, options)
-
-      depViews = setupView(elName, knockVM,  options)
+      depViews = setupView(elName, kvm,  options)
 
       # Bookkeeping
       global.viewsWare[elName] =
-        model           : models[modelName]
-        bbInstance      : instance
-        modelName       : modelName
-        knockVM         : knockVM
+        model           : model
+        modelName       : model.name
+        knockVM         : kvm
         depViews        : depViews
 
       # update url here, because only top level models made with modelSetup
-      knockVM["maybeId"].subscribe ->
-        global.router.navigate "#{knockVM.modelName()}/#{knockVM.id()}",
+      kvm["maybeId"].subscribe -> kvm["updateUrl"]()
+
+      screenName = options.screenName or modelName
+      kvm["updateUrl"] = ->
+        global.router.navigate "#{screenName}/#{kvm.id()}",
                                { trigger: false }
 
-      applyHooks(global.hooks.model, ['*', modelName], elName)
-      return knockVM
+      hooks = options.hooks or ['*', model.name]
+      applyHooks global.hooks.model, hooks, elName
+      return kvm
 
-  buildModel = (modelName, models, args, options) ->
-      mkBackboneModel =
-        metamodel.backbonizeModel(models, modelName, options)
-      instance = new mkBackboneModel(args)
-      knockVM = knockBackbone(instance, null, models[modelName])
-
-      # External fetch callback
-      instance.bind("change", options.fetchCb) if _.isFunction(options.fetchCb)
-
-      # Wait a bit to populate model fields and bind form
-      # elements without PUT-backs to server
-      #
-      # TODO First POST is still broken somewhy.
-
-      return [mkBackboneModel, instance, knockVM]
+  buildModel = (model, args, options, elName) ->
+      kvm = buildKVM model,
+        elName: elName
+        queue: sync.CrudQueue
+        queueOptions: options
+        fetched: args
+      return [kvm, kvm._meta.q]
 
   buildNewModel = (modelName, args, options, cb) ->
-    [mkBackboneModel, instance, knockVM] =
-      buildModel(modelName, global.models, args, options)
-    Backbone.Model.prototype.save.call instance, {},
-      success: (model, resp) ->
-        cb(mkBackboneModel, model, knockVM)
+    model = global.model(modelName, options.modelArg)
+    [knockVM, q] = buildModel(model, args, options)
+    if _.isFunction cb
+      q.save -> cb(model, knockVM)
+    else
+      q.save()
+    return [knockVM, q]
 
   bindDepViews = (knockVM, parentView, depViews) ->
     for k, v of depViews
@@ -274,39 +335,61 @@ define [ "model/meta"
   setupView = (elName, knockVM,  options) ->
     tpls = render.getTemplates("reference-template")
     depViews = render.kvm(elName, knockVM,  options)
-
-    # Bind the model to Knockout UI
-    ko.applyBindings(knockVM, el(elName)) if el(elName)
     # Bind group subforms (note that refs are bound
     # separately)
     bindDepViews(knockVM, elName, depViews)
     # Bind extra views if provided
     ko.applyBindings knockVM, el(v) for k, v of options.slotsee when el(v)
 
+    # Bind the model to Knockout UI
+    ko.applyBindings(knockVM, el(elName)) if el(elName)
+
     knockVM['view'] = elName
 
-    for f in knockVM.model().referenceFields
+    for f in knockVM._meta.model.fields when f.type == 'reference'
       do (f) ->
         pview = $("##{knockVM['view']}")
-        refsForest = getrForest(knockVM, f)
+        refsForest = getrForest(knockVM, f.name)
         $("##{refsForest}").empty()
-        knockVM[f + 'Reference'].subscribe (newValue) ->
-          refsForest = getrForest(knockVM, f)
-          $("##{refsForest}").empty()
-          for r in newValue
-            refBook = render.mkRefContainer(r, f, refsForest, tpls)
-            v = setupView refBook.refView, r,
-              permEl: refBook.refView + "-perms"
-              groupsForest: options.groupsForest
-              slotsee: [refBook.refView + "-link"]
-            global.viewsWare[refBook.refView] = {}
-            global.viewsWare[refBook.refView].depViews = v
-
+        knockVM["#{f.name}Reference"].subscribe (newValue) ->
+          renderRefs(knockVM, f, tpls, options)
+        renderRefs(knockVM, f, tpls, options)
     return depViews
 
+  renderRefs = (knockVM, f, tpls, options) ->
+    refsForest = getrForest(knockVM, f.name)
+    $("##{refsForest}").empty()
+    for r in knockVM["#{f.name}Reference"]()
+      refBook = render.mkRefContainer(r, f, refsForest, tpls)
+      v = setupView refBook.refView, r,
+        permEl: refBook.refView + "-perms"
+        groupsForest: options.groupsForest
+        slotsee: [refBook.refView + "-link"]
+      global.viewsWare[refBook.refView] = {}
+      global.viewsWare[refBook.refView].depViews = v
+
+  addRef = (knockVM, field, ref, cb) ->
+    field = "#{field}Reference" unless /Reference$/.test(field)
+    thisId = knockVM._meta.model.name + ":" + knockVM.id()
+    ref.args = _.extend({"parentId":thisId}, ref.args)
+    buildNewModel ref.modelName, ref.args, ref.options or {},
+      (model, refKVM) ->
+        newVal = knockVM[field]().concat refKVM
+        knockVM[field](newVal)
+        cb(_.last knockVM[field]()) if _.isFunction(cb)
+
+  focusRef = (kvm) ->
+    e = $('#' + kvm['view'])
+    e.parent().prev()[0].scrollIntoView()
+    e.find('input')[0].focus()
+    e.find('input').parents(".accordion-body").first().collapse('show')
+
+
   getrForest = (kvm, fld) ->
-    fcid = "#{kvm.modelName()}-#{kvm.model().cid}-#{fld}-references"
-    fold = "#{kvm.modelName()}-#{fld}-references"
+    modelName = kvm._meta.model.name
+    cid       = kvm._meta.cid
+    fcid = "#{modelName}-#{cid}-#{fld}-references"
+    fold = "#{modelName}-#{fld}-references"
     if $("##{fcid}")[0]
       return fcid
     else
@@ -319,4 +402,7 @@ define [ "model/meta"
   { setup         : mainSetup
   , modelSetup    : modelSetup
   , buildNewModel : buildNewModel
+  , buildKVM      : buildKVM
+  , addRef        : addRef
+  , focusRef      : focusRef
   }

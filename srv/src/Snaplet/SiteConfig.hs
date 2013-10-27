@@ -1,5 +1,5 @@
-{-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE TemplateHaskell #-}
+
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Snaplet.SiteConfig
   ( SiteConfig
@@ -8,93 +8,128 @@ module Snaplet.SiteConfig
 
 import Control.Applicative
 import Control.Monad
-import Control.Lens
 import Control.Monad.State
 import Data.Maybe
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import qualified Data.Map as M
 import qualified Data.Aeson as Aeson
-import           Data.ByteString (ByteString)
+import qualified Data.HashMap.Strict as HM
+import qualified Data.Vector as V
 
 import Data.Pool
 import Database.PostgreSQL.Simple as Pg
+import Database.PostgreSQL.Simple.SqlQQ
 
 import Snap.Core
 import Snap.Snaplet
 import Snap.Snaplet.Auth
-import Snap.Snaplet.PostgresqlSimple
 
 ----------------------------------------------------------------------
 import Snaplet.Auth.Class
-import Snaplet.Auth.PGUsers
 
 import Snaplet.SiteConfig.Config
-import Snaplet.SiteConfig.Permissions
 import Snaplet.SiteConfig.SpecialPermissions
 import Snaplet.SiteConfig.Models
+import Snaplet.SiteConfig.FakeModels
 import Snaplet.SiteConfig.Dictionaries
 
 import Utils.HttpErrors
 
+import Data.Model.Sql
+import qualified Data.Model as Model
+import qualified Carma.Model as Model
+import qualified Carma.Model.Program as Program
+
+
+writeJSON :: Aeson.ToJSON v => v -> Handler a b ()
+writeJSON v = do
+  modifyResponse $ setContentType "application/json"
+  writeLBS $ Aeson.encode v
+
+
 serveModel :: HasAuth b => Handler b (SiteConfig b) ()
 serveModel = do
+  Just name  <- getParam "name"
+  model <- getParam "arg" >>= \arg ->
+    case T.splitOn ":" . T.decodeUtf8 <$> arg of
+      Just ["newCase",pgm] -> fmap Just
+        $ case name of
+          "case" -> newCase pgm
+          _      -> newSvc pgm name
+      _ -> case Model.dispatch (T.decodeUtf8 name) viewForModel of
+        Just res -> return res
+        Nothing  -> M.lookup name <$> gets models
+
   mcu   <- withAuth currentUser
-  name  <- fromJust <$> getParam "name"
-  model <- M.lookup name <$> gets models
   case return (,) `ap` mcu `ap` model of
-    Nothing -> do
-      modifyResponse $ setResponseCode 401
-      getResponse >>= finishWith
-    Just (cu, m) -> do
-      cu' <- (gets authDb >>=) . flip withTop $ replaceMetaRolesFromPG cu
-      modifyResponse $ setContentType "application/json"
-      writeModel name (stripModel (Right cu') m)
+    Nothing -> finishWithError 401 ""
+    Just (cu, m) -> stripModel cu m >>= writeModel
 
-writeModel :: ByteString -> Model -> Handler b (SiteConfig b) ()
-writeModel "contract" model = do
-  field <- fromMaybe "showform" <$> getParam "field"
-  pid   <- getParam "pid"
-  when (pid == Nothing) $ finishWithError 401 "need pid param"
-  model' <- stripContract model (fromJust pid) field
-  writeLBS $ Aeson.encode model'
+viewForModel :: forall m . Model.Model m => m -> Maybe Model
+viewForModel _
+  = Aeson.decode $ Aeson.encode (Model.modelView "" :: Model.ModelView m)
 
-writeModel _          model = writeLBS $ Aeson.encode model
+writeModel :: Model -> Handler b (SiteConfig b) ()
+writeModel model
+  = writeJSON
+  =<< case modelName model of
+    "contract" -> do
+      field <- fromMaybe "showform" <$> getParam "field"
+      when (field /= "showform" && field /= "showtable") $
+        finishWithError 403 "field param should have showform of showtable value"
+      pid   <- getParam "pid"
+      when (pid == Nothing) $ finishWithError 403 "need pid param"
+      stripContract model (fromJust pid) field
+    _ -> return model
 
-serveModels :: HasAuth b => Handler b (SiteConfig b) ()
-serveModels = do
-  mcu <- withAuth currentUser
-  case mcu of
-    Nothing -> do
-      modifyResponse $ setResponseCode 401
-      getResponse >>= finishWith
-    Just cu -> do
-      cu' <- (gets authDb >>=) . flip withTop $ replaceMetaRolesFromPG cu
-      ms <- gets models
-      modifyResponse $ setContentType "application/json"
-      writeLBS $ Aeson.encode
-               $ M.map (stripModel $ Right cu') ms
+
+
+stripModel :: AuthUser -> Model -> Handler b (SiteConfig b) Model
+stripModel u m = do
+  let Just uid = userId u
+  let withPG f = gets pg_search >>= liftIO . (`withResource` f)
+  readableFields <- withPG $ \c -> query c [sql|
+    select p.field, max(p.w::int)::bool
+      from "FieldPermission" p, usermetatbl u
+      where u.uid = ?::int
+        and p.model = ?
+        and p.r = true
+        and p.role = ANY (u.roles)
+      group by p.field
+    |]
+    (unUid uid, modelName m)
+  let fieldsMap = M.fromList readableFields
+  let fieldFilter f fs = case M.lookup (name f) fieldsMap of
+        Nothing -> fs
+        Just wr -> f {canWrite = canWrite f && wr} : fs
+  return $ m {fields = foldr fieldFilter [] $ fields m}
 
 
 serveDictionaries :: Handler b (SiteConfig b) ()
-serveDictionaries = ifTop $ do
-  ds <- gets dictionaries
-  modifyResponse $ setContentType "application/json"
-  writeLBS $ Aeson.encode ds
+serveDictionaries = do
+  let withPG f = gets pg_search >>= liftIO . (`withResource` f)
+  programs <- withPG $ selectJSON
+    (Program.value :. Program.label :. eq Program.active True)
+  Aeson.Object dictMap <- gets dictionaries
+  writeJSON $ Aeson.Object
+    $ HM.insert "Programs"
+      (Aeson.object [("entries", Aeson.Array $ V.fromList programs)])
+      dictMap
+
 
 initSiteConfig :: HasAuth b
                   => FilePath
                   -> Pool Pg.Connection
-                  -> Lens' b (Snaplet Postgres)
-                  -- ^ Lens to a snaplet with Postgres DB used to check
-                  -- user roles.
                   -> SnapletInit b (SiteConfig b)
-initSiteConfig cfgDir pg_pool authDb = makeSnaplet
+initSiteConfig cfgDir pg_pool = makeSnaplet
   "site-config" "Site configuration storage"
-  Nothing $ do -- ?
+  Nothing $ do
     addRoutes
-      [("models",       method GET serveModels)
-      ,("model/:name",  method GET serveModel)
+      [("model/:name",  method GET serveModel)
       ,("dictionaries", method GET serveDictionaries)
       ]
-    (mdls, dicts) <- liftIO $ 
-                     (,) <$> loadModels cfgDir <*> loadDictionaries cfgDir
-    return $ SiteConfig mdls dicts pg_pool authDb
+    liftIO $ SiteConfig
+      <$> loadModels cfgDir
+      <*> loadDictionaries cfgDir
+      <*> pure pg_pool

@@ -1,5 +1,18 @@
 <div class="table-and-details">
   <div class="left class nice-scrollbar pane">
+    <div id="logo-help" class="form-inline well">
+      <div class="media">
+        <a class="pull-left" href="#">
+          <img class="media-object" data-src="holder.js/260x180"
+            style="width: 260px; height: 180px;"
+            id="logo"/>
+        </a>
+        <div class="media-body">
+          <h4 id="help-program"></h4>
+          <p id="help-text"></p>
+        </div>
+      </div>
+    </div>
     <div id="table-filter" class="form-inline well">
       <label>Дата создания:</label>
       <div class="row-fluid">
@@ -35,8 +48,9 @@
 
   <div class="right nice-scrollbar pane">
     <form class="form-vertical">
-      <button class="btn btn-action" type="button"
-              onclick="location.hash=location.hash.replace(/\/\d*$/,'');location.reload(true);">
+      <button class="btn btn-action"
+              type="button"
+              id="new-contract-btn">
         <i class="icon icon-plus"></i>Добавить контракт
       </button>
       <p>
@@ -44,6 +58,7 @@
         <a id="render-contract" href="#" target="_blank">Договор.pdf</a>
       </p>
       <div id="contract-form" />
+      <div id="vin-form" />
     </form>
   </div>
 </div>

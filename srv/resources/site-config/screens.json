@@ -1,46 +1,48 @@
-{ "screens" : [
+[
     { "name"  : "sms",
       "type"  : "sms",
-      "permissions" : ["front","back","head","parguy","supervisor","director","analyst","parguy","account","admin","programman"]
+      "permissions" : ["front","back","bo_control","head","parguy","vwfake","supervisor","director","analyst","parguy","account","admin","programman"]
     },
-    { "name"  : "contract/1",
-      "label" : "Контракты РУС ЛАН",
-      "type"  : "li",
-      "permissions": ["ruslan"]
+    { "name" : "contracts",
+      "label": "Экраны контрактов",
+      "type" : "dropdown",
+      "permissions": ["admin", "partner", "contract_admin", "contract_user"],
+      "screens": []
     },
-    { "name"  : "contract/2",
-      "label" : "Контракты VW",
-      "type"  : "li",
-      "permissions": ["vwpartner"]
+    { "name" : "vin",
+      "label": "Загрузка VIN",
+      "type" : "li",
+      "permissions": ["partner"]
     },
     { "name"  : "call",
       "label" : "Звонок",
       "type"  : "li",
-      "permissions": ["front","back","head","parguy","supervisor","director","analyst","parguy","account","admin","programman"]
+      "permissions": ["front","back","bo_control","vwfake","head","parguy","supervisor","director","analyst","parguy","account","admin","programman"]
     },
     { "name"  :"case",
       "label" : "Кейс",
       "type"  : "li",
-      "permissions": ["front","back","head","parguy","supervisor","director","analyst","account","admin","programman"]
+      "permissions": ["front","back","bo_control","vwfake","head","parguy","supervisor","director","analyst","account","admin","programman"]
     },
     { "name"  : "back",
       "label" : "Бэкофис",
       "type"  : "li",
-      "permissions": ["front","back","head","parguy","supervisor","analyst"]
+      "permissions": ["front","back","bo_control","vwfake","head","parguy","supervisor","analyst"]
     },
     { "type": "dropdown",
+      "name": "supervisorList",
       "label": "Супервизор",
-      "permissions": ["head","supervisor","admin","programman"],
+      "permissions": ["head","supervisor","vwfake","admin","programman"],
       "screens": [
         { "name"  : "supervisor",
           "label" : "Действия",
           "type"  : "li",
-          "permissions": ["head","supervisor","admin","programman"]
+          "permissions": ["head","supervisor","vwfake","admin","programman"]
         },
         { "name"  : "supervisorOps",
           "label" : "Операторы",
           "type"  : "li",
-          "permissions": ["head","supervisor","admin","programman"]
+          "permissions": ["head","supervisor","vwfake","admin","programman"]
         },
         {
           "name" : "editSms",
@@ -52,32 +54,34 @@
     },
     {
       "type": "dropdown",
+      "name": "rkcList",
       "label": "Экран РКЦ",
-      "permissions": ["head", "supervisor", "admin", "programman"],
+      "permissions": ["head", "supervisor", "vwfake", "admin", "programman"],
       "screens": [
         {
           "name": "rkc",
           "label": "Услуги",
           "type": "li",
-          "permissions": ["head", "supervisor", "admin", "programman"]
+          "permissions": ["head", "supervisor", "vwfake", "admin", "programman"]
         },
         {
           "name": "rkcOps",
           "label": "Операторы",
           "type": "li",
-          "permissions": ["head", "supervisor", "admin", "programman"]
+          "permissions": ["head", "supervisor", "vwfake", "admin", "programman"]
         },
         {
           "name": "rkcFront",
           "label": "Front Office",
           "type": "li",
-          "permissions": ["head", "supervisor", "admin", "programman"]
+          "permissions": ["head", "supervisor", "vwfake", "admin", "programman"]
         }
       ]
     },
     { "type"    : "dropdown",
+      "name"    : "more",
       "label"   : "Еще",
-      "permissions": ["front","back","head","parguy","supervisor","director","analyst","account","admin","programman"],
+      "permissions": ["front","back","bo_control","head","parguy","supervisor","director","analyst","account","admin","programman"],
       "screens" : [
         { "name"  : "vin",
           "label" : "Обновление базы VIN и партнёров",
@@ -89,15 +93,20 @@
           "type"  : "li",
           "permissions": ["head","parguy","programman","supervisor","analyst"]
         },
-        { "name"  : "user",
+        { "name"  : "usermeta",
           "label" : "Редактирование пользователей",
           "type"  : "li",
-          "permissions": ["admin"]
+          "permissions": ["admin", "head", "supervisor", "programman"]
+        },
+        { "name"  : "uploads",
+          "label" : "Загрузка файлов",
+          "type"  : "li",
+          "permissions": ["admin", "head", "accManager"]
         },
         { "name"  : "reports",
           "label" : "Отчёты",
           "type"  : "li",
-          "permissions": ["front","back","head","parguy","supervisor","director","analyst","account","admin","programman"]
+          "permissions": ["front","back","bo_control","head","parguy","supervisor","director","analyst","account","admin","programman"]
         },
         { "name"  : "newVin",
           "label" : "Редактирование VIN",
@@ -108,8 +117,18 @@
           "label" : "Редактирование программ",
           "type"  : "li",
           "permissions": ["admin", "head", "programman"]
+        },
+        { "name"  : "partnersSearch",
+          "label" : "Дилеры и партнеры",
+          "type"  : "li",
+          "permissions": ["partners_user"]
+        },
+        { "name"  : "dict",
+          "label" : "Редактирование справочников",
+          "type"  : "li",
+          "permissions": ["admin", "head"]
         }
       ]
     }
-  ]
-}
+]
+

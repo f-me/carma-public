@@ -2,8 +2,11 @@ define [
   "screens/backoffice"
   "screens/call"
   "screens/case"
+  "screens/newCase"
+  "screens/dictionaries"
   "screens/partners"
   "screens/user"
+  "screens/uploads"
   "screens/printService"
   "screens/rkc"
   "screens/rkcFront"
@@ -17,12 +20,17 @@ define [
   "screens/newVin"
   "screens/editSms"
   "screens/program"
+  "screens/partnersSearch"
+  "screens/servicesSearch"
   "render/screen"
   ], ( bo
      , call
      , kase
+     , newCase
+     , dictionaries
      , partner
      , user
+     , uploads
      , print
      , rkc
      , rkcFront
@@ -36,12 +44,22 @@ define [
      , newVin
      , editSms
      , program
+     , partnersSearch
+     , servicesSearch
      , r) ->
     localScreens: ->
       "case":
         "template": "case-screen-template"
         "views":
           "case-form": kase
+      "newCase":
+        "template": "case-screen-template"
+        "views":
+          "case-form": newCase
+      "dictionaries":
+        "template": "dictionaries-screen-template"
+        "views":
+          "dictionaries-view": dictionaries
       "search":
         "template": "search-screen-template"
         "views":
@@ -67,6 +85,10 @@ define [
         "template": "user-screen-template"
         "views":
           "user-view": user
+      "uploads":
+        "template": "uploads-screen-template"
+        "views":
+          "user-view": uploads
       "supervisor":
         "template": "supervisor-screen-template"
         "views":
@@ -113,14 +135,24 @@ define [
         "template": "program-screen-template"
         "views":
           "program-view": program
+      "partnersSearch":
+        "views":
+          "search-view": partnersSearch
+      "servicesSearch":
+        "views":
+          "search-view": servicesSearch
 
     # Setup routing
     localRouter: Backbone.Router.extend
       # Must _not_ end with trailing slashes
       routes:
         "case/:id"       : "loadCase"
-        "case"           : "newCase"
+        "newCase/:p/:id" : "loadNewCase"
+        "dict"           : "dictAll"
+        "dict/:dict"     : "dictOne"
+        "dict/:dict/:id" : "dictEditEntry"
         "search"         : "search"
+        "uploads"        : "uploads"
         "vin"            : "vin"
         "back"           : "back"
         "call/:id"       : "loadCall"
@@ -130,8 +162,8 @@ define [
         "contract/:p/:id": "getContract"
         "partner"        : "newPartner"
         "partner/:id"    : "loadPartner"
-        "user"           : "newUser"
-        "user/:id"       : "loadUser"
+        "usermeta"       : "newUser"
+        "usermeta/:id"   : "loadUser"
         "editVin/:id"    : "editVin"
         "newVin"         : "newVin"
         "supervisor"     : "supervisor"
@@ -143,10 +175,19 @@ define [
         "program"        : "program"
         "program/:id"    : "loadProgram"
         "printSrv/:model/:id" : "printSrv"
+        "partnersSearch"        : "partnersSearch"
+        "partnersSearch/:model" : "partnersSearchModel"
+        "servicesSearch"        : "servicesSearch"
 
       loadCase      : (id) -> r.renderScreen("case", kase, {"id": id})
-      newCase       :      -> r.renderScreen("case", kase, {"id": null})
-      search        :      -> renderScreen("search")
+      loadNewCase   : (p,id) ->
+                              r.renderScreen("newCase", newCase, {"program":p, "id": id})
+      dictAll       :      -> r.renderScreen("dictionaries", dictionaries, {})
+      dictOne       : (dict) ->
+                              r.renderScreen("dictionaries", dictionaries, {dict})
+      dictEditEntry : (dict,id) ->
+                              r.renderScreen("dictionaries", dictionaries, {dict, id})
+      uploads       :      -> r.renderScreen("uploads", uploads)
       back          :      -> r.renderScreen("back", bo)
       vin           :      -> r.renderScreen("vin", vin)
       newPartner    :      -> r.renderScreen("partner", partner, {"id": null})
@@ -156,10 +197,9 @@ define [
       loadCall      : (id) -> r.renderScreen("call", call, {"id": id})
       call          :      -> r.renderScreen("call", call, {"id": null})
       reports       :      -> r.renderScreen("reports", report)
-      newContract   :(p)   -> r.renderScreen "contract", contract,
-                                {"program": p, "id": null}
-      getContract   :(p,id) -> r.renderScreen "contract", contract,
-                                {"program": p, "id": id}
+      newContract   : (p)  -> r.renderScreen "contract", contract, {"program": p, "id": null}
+      getContract   : (p,id) ->
+                              r.renderScreen "contract", contract, {"program": p, "id": id}
       editVin       : (id) -> r.renderScreen("editVin", editVin, {"id": id})
       newVin        :      -> r.renderScreen("newVin", newVin, {"id": null})
       supervisor    :      -> r.renderScreen("supervisor", supervisor)
@@ -170,5 +210,9 @@ define [
       editSms       :      -> r.renderScreen("editSms", editSms)
       program       :      -> r.renderScreen("program", program)
       loadProgram   : (id) -> r.renderScreen("program", program, {"id": id})
-      printSrv      : (model, id) ->
+      printSrv      : (model,id) ->
         r.renderScreen "printSrv", print, {model: model, id: id}
+      partnersSearch     : -> r.renderScreen("partnersSearch", partnersSearch)
+      partnersSearchModel: (model) ->
+        r.renderScreen "partnersSearch", partnersSearch, {model: model}
+      servicesSearch     : -> r.renderScreen("servicesSearch", servicesSearch)

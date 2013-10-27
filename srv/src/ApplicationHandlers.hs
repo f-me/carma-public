@@ -1,5 +1,5 @@
 {-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module ApplicationHandlers where
 -- FIXME: reexport AppHandlers/* & remove import AppHandlers.* from AppInit
@@ -16,26 +16,23 @@ import Control.Concurrent.STM
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Encoding.Error as T
--- import qualified Data.Text.Lazy as LT
--- import qualified Data.Text.Lazy.Encoding as LT
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.Aeson as Aeson
+import Data.Aeson (object, (.=))
 import Data.List
 import Data.Map (Map)
+import qualified Data.HashMap.Strict as HM
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.String
-import qualified Data.HashMap.Strict as HashMap
 
 import Data.Maybe
 import Data.Ord (comparing)
 
 import Data.Time
-
-import Data.Aeson (object, (.=))
 
 import System.FilePath
 import System.IO
@@ -43,6 +40,8 @@ import System.Locale
 
 import Database.PostgreSQL.Simple (Query, query_, query)
 import Database.PostgreSQL.Simple.SqlQQ
+import qualified Snap.Snaplet.PostgresqlSimple as PS
+import Data.Pool (withResource)
 
 import Snap
 import Snap.Http.Server.Config as S
@@ -54,7 +53,7 @@ import Snap.Util.FileServe (serveFile, serveFileAs)
 
 ------------------------------------------------------------------------------
 import Carma.Partner
-import WeatherApi (getWeather', tempC, Config)
+import WeatherApi (getWeather', tempC)
 -----------------------------------------------------------------------------
 import Snaplet.Auth.PGUsers
 import qualified Snaplet.DbLayer as DB
@@ -62,14 +61,19 @@ import qualified Snaplet.DbLayer.Types as DB
 import qualified Snaplet.DbLayer.ARC as ARC
 import qualified Snaplet.DbLayer.RKC as RKC
 import qualified Snaplet.DbLayer.Dictionary as Dict
-import Snaplet.FileUpload (finished, tmp, doUpload', doDeleteAll')
+import Snaplet.FileUpload (tmp, doUpload)
 ------------------------------------------------------------------------------
 import Application
 import AppHandlers.Util
-import Util as U
+import AppHandlers.Users
+import Util as U hiding (render)
 import RuntimeFlag
 
 import GitStats
+
+import Carma.Model
+import Data.Model.Patch (Patch)
+import qualified Data.Model.Patch.Sql as Patch
 
 ------------------------------------------------------------------------------
 -- | Render empty form for model.
@@ -80,7 +84,7 @@ indexPage = ifTop $ render "index"
 ------------------------------------------------------------------------------
 -- | Serve a JSON object with build-time Git information.
 serveGitStats :: AppHandler ()
-serveGitStats = 
+serveGitStats =
     writeJSON $
     Aeson.object [ "gitCommitHash" .= gitCommitHash
                  , "gitCommitTime" .= gitCommitTime
@@ -115,29 +119,13 @@ doLogin = ifTop $ do
   l <- fromMaybe "" <$> getParam "login"
   p <- fromMaybe "" <$> getParam "password"
   r <- isJust <$> getParam "remember"
-  res <- with auth $ loginByUsername l (ClearText p) r
-  case res of
-    Left _ -> redirectToLogin
-    Right u -> do
-      creds <- (,)
-        <$> getParam "avayaExt"
-        <*> getParam "avayaPwd"
-      _ <- case creds of
-        ~(Just ext, Just pwd) -> with auth $ saveUser
-          u {userMeta
-            = HashMap.insert "avayaExt" (Aeson.toJSON ext)
-            $ HashMap.insert "avayaPwd" (Aeson.toJSON pwd)
-            $ userMeta u
-            }
-      _ <- addToLoggedUsers u
-
-      redirect "/"
+  res <- with auth $ loginByUsername (T.decodeUtf8 l) (ClearText p) r
+  either (const redirectToLogin) (const $ redirect "/") res
 
 
 doLogout :: AppHandler ()
 doLogout = ifTop $ do
-  Just u <- with auth currentUser
-  rmFromLoggedUsers u
+  claimUserLogout
   with auth logout
   redirectToLogin
 
@@ -153,21 +141,68 @@ smspost = do
 
 ------------------------------------------------------------------------------
 -- | CRUD
+
+-- FIXME: this is way too slow
+readInt :: (Read i, Integral i) => ByteString -> i
+readInt = read . read . show
+
+readIdent :: ByteString -> Ident m
+readIdent = Ident . readInt
+
+
 createHandler :: AppHandler ()
-createHandler = logResp $ do
+createHandler = do
   Just model <- getParam "model"
-  commit <- getJSONBody
-  logReq commit
-  with db $ DB.create model commit
-  -- FIXME: try/catch & handle/log error
+  let createModel :: forall m . Model m => m -> AppHandler Aeson.Value
+      createModel _ = do
+        commit <- getJSONBody :: AppHandler (Patch m)
+        s <- PS.getPostgresState
+        i <- liftIO $ withResource (PS.pgPool s) (Patch.create commit)
+        return $ Aeson.object ["id" .= i]
+  case Carma.Model.dispatch (T.decodeUtf8 model) createModel of
+    Just fn -> logResp $ fn
+    Nothing -> logResp $ do
+      commit <- getJSONBody
+      logReq commit
+      with db $ DB.create model commit
+
 
 readHandler :: AppHandler ()
 readHandler = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
-  res <- with db $ DB.read model objId
-  -- FIXME: try/catch & handle/log error
-  writeJSON res
+  let readModel :: forall m . Model m => m -> AppHandler ()
+      readModel _ = do
+        res <- with db $ do
+          let ident = readIdent objId :: Ident m
+          s <- PS.getPostgresState
+          liftIO $ withResource (PS.pgPool s) (Patch.read ident)
+        case res of
+          [obj] -> writeJSON obj
+          []    -> handleError 404
+          _     -> error $ "BUG in readHandler: " ++ show (Aeson.encode res)
+  case Carma.Model.dispatch (T.decodeUtf8 model) readModel of
+    Just fn -> fn
+    _ -> with db (DB.read model objId) >>= \case
+      obj | Map.null obj -> handleError 404
+          | otherwise    -> writeJSON obj
+
+
+readManyHandler :: AppHandler ()
+readManyHandler = do
+  Just model  <- getParam "model"
+  limit  <- fromMaybe 2000 . fmap readInt <$> getParam "limit"
+  offset <- fromMaybe   0 . fmap readInt <$> getParam "offset"
+  let readModel :: forall m . Model m => m -> AppHandler ()
+      readModel _ = do
+        res <- with db $ do
+          s   <- PS.getPostgresState
+          liftIO $ withResource (PS.pgPool s) (Patch.readMany limit offset)
+        writeJSON (res :: [Patch m])
+  case Carma.Model.dispatch (T.decodeUtf8 model) readModel of
+    Just fn -> fn
+    _       -> handleError 404
+
 
 readAllHandler :: AppHandler ()
 readAllHandler = do
@@ -191,13 +226,32 @@ readAllHandler = do
     flt prm = \obj -> all (selectParse obj) $ B.split ',' prm
 
 updateHandler :: AppHandler ()
-updateHandler = logResp $ do
+updateHandler = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
-  commit <- getJSONBody
-  logReq commit
-  -- Need this hack, or server won't return updated "cost_counted"
-  with db $ DB.update model objId $ Map.delete "cost_counted" commit
+  let updateModel :: forall m . Model m => m -> AppHandler ()
+      updateModel _ = do
+        let ident = readIdent objId :: Ident m
+        commit <- getJSONBody :: AppHandler (Patch m)
+        res <- with db $ do
+          s   <- PS.getPostgresState
+          liftIO $ withResource (PS.pgPool s) (Patch.update ident commit)
+        case res of
+          0 -> handleError 404
+          _ -> writeJSON $ Aeson.object []
+
+  case Carma.Model.dispatch (T.decodeUtf8 model) updateModel of
+    Just fn -> fn
+    Nothing -> do
+      commit <- getJSONBody
+      logReq commit
+      with db (DB.read model objId) >>= \case
+        obj | Map.null obj -> handleError 404
+            | otherwise    -> logResp $ with db
+                $ DB.update model objId
+                -- Need this hack, or server won't return updated "cost_counted"
+                $ Map.delete "cost_counted" commit
+
 
 deleteHandler :: AppHandler ()
 deleteHandler = do
@@ -205,22 +259,6 @@ deleteHandler = do
   Just objId <- getParam "id"
   res        <- with db $ DB.delete model objId
   writeJSON res
-
-searchHandler :: AppHandler ()
-searchHandler = scope "searchHandler" $ do
-  Just q <- getParam "q"
-  Just m <- getParam "model"
-  Just fs <- getParam "fields"
-  Just sel <- getParam "select"
-  let
-    getInt v = do
-      s <- v
-      (x, _) <- B.readInt s
-      return x
-    sels = B.split ',' sel
-  lim <- liftM (maybe 100 id . getInt) $ getParam "limit"
-  res <- with db $ DB.searchFullText m (B.split ',' fs) sels q lim
-  writeJSON $ map (Map.fromList . zip sels) res
 
 -- rkc helpers
 getFromTo :: AppHandler (Maybe UTCTime, Maybe UTCTime)
@@ -258,52 +296,29 @@ rkcHandler = scope "rkc" $ scope "handler" $ do
       RKC.filterCity = c,
       RKC.filterPartner = part }
 
-  usrs <- with authDb usersListPG
+  usrs <- with db usersListPG
   info <- with db $ RKC.rkc usrs flt'
   writeJSON info
 
 rkcWeatherHandler :: AppHandler ()
 rkcWeatherHandler = scope "rkc" $ scope "handler" $ scope "weather" $ do
-  Just u <- with auth currentUser
-  cities <- case HashMap.lookup "weathercities" (userMeta u) of
-    Nothing -> return defaultCities
-    Just cities' -> case Aeson.fromJSON cities' of
-      Aeson.Success r -> return r
-      Aeson.Error _ -> do
-        log Error "Can't read weather cities"
-        return defaultCities
+  let defaults = ["Moskva", "Sankt-Peterburg"]
+  cities <- (fromMaybe defaults . (>>= (Aeson.decode . LB.fromStrict)))
+    <$> getParam "cities"
 
-  toRemove <- maybeToList . fmap U.bToString <$> getParam "remove"
-  toAdd <- maybeToList . fmap U.bToString <$> getParam "add"
+  log Trace $ T.concat ["Cities: ", fromString $ intercalate ", " cities]
 
-  let
-    newCities = nub $ (cities ++ toAdd) \\ toRemove
-
-  _ <- with auth $ saveUser $ u {
-    userMeta = HashMap.insert "weathercities"
-                              (Aeson.toJSON newCities)
-                              (userMeta u)
-    }
-
-  log Trace $ T.concat ["Cities: ", fromString $ intercalate ", " newCities]
   conf <- with db $ gets DB.weather
+  let weatherForCity = liftIO . getWeather' conf . filter (/= '\'')
+  let toTemp t city = Aeson.object [
+        "city" .= city,
+        "temp" .= either (const "-") (show.tempC) t]
 
-  temps <- mapM (liftIO . weatherForCity conf) newCities
+  temps <- mapM weatherForCity cities
   writeJSON $ Aeson.object [
-    "weathers" .= zipWith toTemp temps newCities]
+    "weather" .= zipWith toTemp temps cities]
 
-  where
-    weatherForCity :: WeatherApi.Config -> String -> IO (Either String Double)
-    weatherForCity conf city = liftM (either (Left . show) (Right . tempC)) $
-      getWeather' conf $ filter (/= '\'') city
 
-    defaultCities :: [String]
-    defaultCities = ["Moskva", "Sankt-Peterburg"]
-
-    toTemp :: Either String Double -> String -> Aeson.Value
-    toTemp t city = Aeson.object [
-      "city" .= city,
-      "temp" .= either (const "-") show t]
 
 rkcFrontHandler :: AppHandler ()
 rkcFrontHandler = scope "rkc" $ scope "handler" $ scope "front" $ do
@@ -337,14 +352,9 @@ rkcPartners = scope "rkc" $ scope "handler" $ scope "partners" $ do
   res <- with db $ RKC.partners (RKC.filterFrom flt') (RKC.filterTo flt')
   writeJSON res
 
-logtest :: AppHandler ()
-logtest = do
-  r <- getRequest
-  log Fatal $ T.decodeUtf8 $ rqURI r
 
 arcReportHandler :: AppHandler ()
 arcReportHandler = scope "arc" $ scope "handler" $ do
-  logtest
   year <- tryParam B.readInteger "year"
   month <- tryParam B.readInt "month"
   dicts <- scope "dictionaries" . Dict.loadDictionaries $ "resources/site-config/dictionaries"
@@ -416,14 +426,14 @@ createReportHandler :: AppHandler ()
 createReportHandler = do
   res <- with db $ DB.create "report" $ Map.empty
   let Just objId = Map.lookup "id" res
-  (f:_)      <- with fileUpload
-    $ doUpload' "report" (U.bToString objId) "templates"
+  f <- with fileUpload $ 
+       doUpload $ "report" </> (U.bToString objId) </> "templates"
   Just name  <- getParam "name"
   -- we have to update all model params after fileupload,
   -- because in multipart/form-data requests we do not have
   -- params as usual, see Snap.Util.FileUploads.setProcessFormInputs
   _ <- with db $ DB.update "report" objId $
-    Map.fromList [ ("templates", T.encodeUtf8 $ T.pack f)
+    Map.fromList [ ("templates", T.encodeUtf8 $ T.pack $ takeFileName f)
                  , ("name",      name) ]
   redirect "/#reports"
 
@@ -431,28 +441,11 @@ deleteReportHandler :: AppHandler ()
 deleteReportHandler = do
   Just objId  <- getParam "id"
   with db $ DB.delete "report" objId
-  with fileUpload $ doDeleteAll' "report" $ U.bToString objId
+  -- TODO Rewrite this using CRUD triggers
+  -- with fileUpload $ doDeleteAll' "report" $ U.bToString objId
 
 serveUsersList :: AppHandler ()
-serveUsersList = with authDb usersListPG >>= writeJSON
-
-setUserMeta :: AppHandler ()
-setUserMeta = do
-  Just login <- fmap T.decodeUtf8 <$> getParam "usr"
-  Aeson.Object commit <- getJSONBody
-  let [(key, val)] = HashMap.toList commit
-  _ <- with auth $ do
-    Just u <-  withBackend $ liftIO . (`lookupByLogin` login)
-    saveUser $ u {userMeta = HashMap.insert key val $ userMeta u}
-  writeBS "ok"
-
-
-
-getActiveUsers :: AppHandler ()
-getActiveUsers = do
-  tvar <- gets loggedUsers
-  logdUsers <- liftIO $ readTVarIO tvar
-  writeJSON $ Map.keys logdUsers
+serveUsersList = with db usersListPG >>= writeJSON
 
 
 ------------------------------------------------------------------------------
@@ -460,18 +453,41 @@ getActiveUsers = do
 vinUploadData :: AppHandler ()
 vinUploadData = scope "vin" $ scope "upload" $ do
   log Trace "Uploading data"
-  (f:_) <- with fileUpload $ doUpload' "report" "upload" "data"
-  log Trace $ T.concat ["Uploaded to file: ", T.pack f]
+  fPath <- with fileUpload $ doUpload "vin-upload-data"
+
+  let fName = takeFileName fPath
+
+  log Trace $ T.concat ["Uploaded to file: ", T.pack fName]
   prog <- getParam "program"
   case prog of
     Nothing -> log Error "Program not specified"
-    Just p -> do
-      log Info $ T.concat ["Uploading ", T.pack f]
-      log Trace $ T.concat ["Program: ", T.decodeUtf8 p]
-      log Trace $ T.concat ["Initializing state for file: ", T.pack f]
-      with vin $ initUploadState f
-      log Trace $ T.concat ["Uploading data from file: ", T.pack f]
-      with vin $ uploadData (T.unpack . T.decodeUtf8 $ p) f
+    Just pgmId -> do
+      log Info $ T.concat ["Uploading ", T.pack fName]
+      log Trace $ T.concat ["Program: ", T.decodeUtf8 pgmId]
+
+      -- Check if this program is available for user
+      Just u <- with auth currentUser
+      u' <- with db $ replaceMetaRolesFromPG u
+      let Aeson.String userPgms' = HM.lookupDefault "" "programs" $ userMeta u'
+          userPgms = B.split ',' $ T.encodeUtf8 userPgms'
+      when (not $ 
+            (elem (Role "partner") (userRoles u') && elem pgmId userPgms) ||
+            (elem (Role "programman") (userRoles u'))) $
+            handleError 403
+
+      -- Find out which format is used for this program
+      progObj <- with db $ DB.read "program" pgmId
+      let vF = Map.findWithDefault "" "vinFormat" progObj
+
+      log Trace $ T.concat ["VIN format: ", T.decodeUtf8 vF]
+
+      log Trace $ T.concat ["Initializing state for file: ", T.pack fName]
+      with vin $ initUploadState fName
+      log Trace $ T.concat ["Uploading data from file: ", T.pack fName]
+
+      -- Set current user as owner
+      let Just (UserId uid) = userId u
+      with vin $ uploadData (T.encodeUtf8 uid) pgmId (T.unpack . T.decodeUtf8 $ vF) fPath
 
 vinStateRead :: AppHandler ()
 vinStateRead = scope "vin" $ scope "state" $ scope "get" $ do
@@ -496,21 +512,19 @@ partnerUploadData = scope "partner" $ scope "upload" $ do
   let carmaPort = case getPort sCfg of
                     Just n -> n
                     Nothing -> error "No port"
-  finishedPath <- with fileUpload $ gets finished
   tmpPath <- with fileUpload $ gets tmp
   (tmpName, _) <- liftIO $ openTempFile tmpPath "last-pimp.csv"
 
   log Trace "Uploading data"
-  (fileName:_) <- with fileUpload $ doUpload' "report" "upload" "data"
+  inPath <- with fileUpload $ doUpload "partner-upload-data"
 
-  let inPath = finishedPath </> "report" </> "upload" </> "data" </> fileName
-      outPath = tmpPath </> tmpName
+  let outPath = tmpPath </> tmpName
 
   log Trace $ T.pack $ "Input file " ++ inPath
   log Trace $ T.pack $ "Output file " ++ outPath
 
   log Trace "Loading dictionaries from CaRMa"
-  Just dicts <- liftIO $ loadIntegrationDicts $ Left carmaPort
+  Just dicts <- liftIO $ loadIntegrationDicts carmaPort
   log Trace "Processing data"
   liftIO $ processData carmaPort inPath outPath dicts
   log Trace "Serve processing report"
@@ -571,30 +585,85 @@ towAvgTime = do
           writeJSON (map head rows :: [Maybe Double])
     _ -> error "Could not read city from request"
 
+
+getRegionByCity :: AppHandler ()
+getRegionByCity = do
+  getParam "city" >>= \case
+    Just city -> do
+      res <- withPG pg_search $ \c -> query c
+        [sql|
+          SELECT r.label
+          FROM "Region" r, "City" c
+          WHERE c.id = ANY(r.cities) AND c.value = ?
+        |]
+        [city]
+      writeJSON (res :: [[ByteString]])
+    _ -> error "Could not read city from request"
+
+
 smsProcessingHandler :: AppHandler ()
 smsProcessingHandler = scope "sms" $ do
   res <- with db DB.smsProcessing
   writeJSON $ object [
     "processing" .= res]
 
+-- | Read @actionid@ request parameter and set @openTime@ of that
+-- action to current time.
+openAction :: AppHandler ()
+openAction = do
+  aid <- getParam "actionid"
+  case aid of
+    Nothing -> error "Could not read actionid parameter"
+    Just i -> do
+      dn <- liftIO $ projNow id
+      res <- with db $ DB.update "action" i $
+                       Map.singleton "openTime" dn
+      writeJSON res
+
+lookupSrvQ = [sql|
+  SELECT c.id::text
+       , c.comment
+       , c.owner
+       , c.partnerid
+       , (extract (epoch from c.ctime at time zone 'UTC')::int8)::text
+       , c.partnercancelreason
+       , p.name
+       , c.serviceid
+  FROM partnercanceltbl c
+  LEFT JOIN partnertbl p
+  ON p.id::text = substring(c.partnerid, ':(.*)')
+  WHERE c.serviceid = ?
+|]
+
 printServiceHandler :: AppHandler ()
 printServiceHandler = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
   srv     <- with db $ DB.read model objId
-  kase    <- with db $ DB.read' $ fromJust $ Map.lookup "parentId" srv
+  kase    <- with db $ DB.read' $ fromMaybe "" $ Map.lookup "parentId" srv
   actions <- with db $ mapM DB.read' $
              B.split ',' $ Map.findWithDefault "" "actions" kase
   let modelId = B.concat [model, ":", objId]
-      action = head' $ filter ((Just modelId ==) . Map.lookup "parentId") $ actions
-  writeJSON $ Map.fromList [ ("action" :: ByteString, action)
-                           , ("kase",   kase)
-                           , ("service", srv)
+      action  = head' $ filter ((Just modelId ==) . Map.lookup "parentId")
+                      $ actions
+  rows <- withPG pg_search $ \conn -> query conn lookupSrvQ [modelId]
+  writeJSON $ Map.fromList [ ("action" :: ByteString, [action])
+                           , ("kase",    [kase])
+                           , ("service", [srv])
+                           , ("cancels", cancelMap rows)
                            ]
     where
       head' []     = Map.empty
-      head' (x:_) = x
-
+      head' (x:_)  = x
+      cancelMap rows = mkMap [ "id"
+                             , "comment"
+                             , "owner"
+                             , "partnerid"
+                             , "ctime"
+                             , "partnerCancelReason"
+                             , "partnerName"
+                             , "serviceid"
+                             ] rows
 
 getRuntimeFlags :: AppHandler ()
 getRuntimeFlags
@@ -630,8 +699,8 @@ unassignedActionsHandler = do
   r <- withPG pg_search
        $ \c -> query_ c $ fromString
                $  " SELECT count(1) FROM actiontbl"
-               ++ " WHERE name = 'orderService'"
-               ++ " AND assignedTo is null"
+               ++ " WHERE name IN ('orderService', 'callMeMaybe', 'tellMeMore')"
+               ++ " AND (assignedTo = '' OR assignedTo is null)"
                ++ " AND closed = false"
   writeJSON $ join (r :: [[Integer]])
 

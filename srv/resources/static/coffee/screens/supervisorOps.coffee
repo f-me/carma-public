@@ -11,37 +11,70 @@ define  [ "utils"
 
       t = $("#supervisorOps-table")
       return if t.hasClass("dataTable")
+
       dt = utils.mkDataTable t,
         bPaginate: false
-        aoColumns: [{}, {}, {}, {}, {bVisible: false}]
+        aoColumns: utils.repeat(7,null).concat [{bVisible: false}]
         fnCreatedRow: (nRow, aData) ->
           tpl = $('#dictionary-many-field-template').html()
           $('td:eq(2)', nRow).html(
             Mustache.render tpl, userModel.fieldHash.boCities)
           $('td:eq(3)', nRow).html(
             Mustache.render tpl, userModel.fieldHash.boPrograms)
-          ko.applyBindings aData[4], nRow
+          ko.applyBindings aData[7], nRow
 
 
-      $.getJSON "/usersList", (us) ->
+      $.getJSON "/allUsers", (us) ->
+       $.getJSON "/supervisor/opStats", (os) ->
         dt.fnClearTable()
-        rows = for u in us when /back/.test u.roles
+
+        rows = for u in us when (/back/.test u.roles ||
+                                 /bo_control/.test u.roles)
           do (u) ->
             koUser =
               boCities: ko.observable u.boCities
+              boCitiesDisabled: ko.observable false
               boPrograms: ko.observable u.boPrograms
+              boProgramsDisabled: ko.observable false
 
             hook.dictManyHook userModel, koUser
+            login = u.value
+
+            stats = os.stats[login]
+            if stats              
+              [idle, [formattedTs, ts]] =
+                if _.isEmpty stats.closeTime
+                  [false, (utils.timeFrom stats.openTime, os.reqTime)]
+                else
+                  [true, (utils.timeFrom stats.closeTime, os.reqTime)]
+                  
+              [caseLink, actionLabel] =
+                if idle
+                  ["нет", null]
+                else
+                  cid = stats.caseId.split(':')[1]
+                  [ "<a href=\"/#case/#{cid}\" target=\"_blank\">#{cid}</a>"
+                  , global.dictValueCache['ActionNames'][stats.aName]
+                  ]
+
+              rowStats =
+                [ caseLink
+                , formattedTs
+                , actionLabel
+                ]
+            else
+              rowStats = [null, null, null]
+
             row =
               [ u.value, u.label
               , arrStr(koUser.boCitiesLocals())
               , arrStr(koUser.boProgramsLocals())
-              , koUser]
+              ].concat(rowStats).concat([koUser])
 
             update = (fName) -> (val) ->
               $.ajax
                 type: "PUT"
-                url: "/userMeta/#{u.value}"
+                url: "/_/usermeta/#{u.mid}"
                 data: "{\"#{fName}\": \"#{val}\"}"
               row[2] = arrStr(koUser.boCitiesLocals())
               row[3] = arrStr(koUser.boProgramsLocals())
@@ -57,10 +90,10 @@ define  [ "utils"
         updateBusy()
 
   updateBusy = ->
-    $.getJSON "actions/busyOps", (d) ->
+    $.getJSON "/supervisor/busyOps", (d) ->
       ops = {}
       for i in d
-        ops[i.name] = i.count
+        ops[i.login] = i.count
       $("#supervisorOps-table tr").each (i,e) ->
         $(e).children('td').css('background-color', '')
         if ops[ $($(e).find('td')[0]).text() ] > 5
@@ -72,13 +105,18 @@ define  [ "utils"
 
   userModel =
     dictManyFields: ['boCities', 'boPrograms']
-    fieldHash:
-      boCities:
-        name: 'boCities'
-        meta: {dictionaryName: 'DealerCities'}
-      boPrograms:
-        name: 'boPrograms'
-        meta: {dictionaryName: 'Programs'}
+    fields: [
+      { name: 'boCities'
+      , meta: {dictionaryName: 'DealerCities'}
+      , type: "dictionary-many" },
+      { name: 'boPrograms'
+      , meta: {dictionaryName: 'Programs'}
+      , type: "dictionary-many"
+      } ]
+
+  userModel['fieldHash'] = {}
+  for f in userModel.fields
+    userModel['fieldHash'][f.name] = f
 
   removeSupervisorOpsScreen = -> tick = false
 

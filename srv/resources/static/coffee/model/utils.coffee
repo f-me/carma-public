@@ -3,22 +3,21 @@ define ["model/main", "render/screen"], (main, render) ->
   elementView = (elt) -> _.last($(elt).parents("[id*=view]"))
 
   # Save instance loaded in view
-  saveInstance = (viewName) -> global.viewsWare[viewName].bbInstance.save()
+  saveInstance = (viewName) -> global.viewsWare[viewName].knockVM._meta.q.save()
 
   window.saveInstance = saveInstance
 
-  addReference: (knockVM, field, ref, cb) ->
-    field = field + 'Reference' unless /Reference$/.test(field)
-    thisId = knockVM.modelName() + ":" + knockVM.id()
-    ref.args = _.extend({"parentId":thisId}, ref.args)
-    main.buildNewModel ref.modelName, ref.args, ref.options or {},
-      (mkBackboneModel, instance, refKVM) ->
-        newVal = knockVM[field]().concat refKVM
-        knockVM[field](newVal)
-        cb(_.last knockVM[field]()) if _.isFunction(cb)
+  # FIXME: remove this function definition
+  # and correct module dependencies
+  addReference: main.addRef
+
+  # FIXME: remove this function definition
+  # and correct module dependencies
+  focusReference: main.focusRef
 
   removeReference: (knockVM, field, ref) ->
     field = field + 'Reference' unless /Reference$/.test(field)
+    ref['parentId']?('')
     knockVM[field] _.without(knockVM[field](), ref)
 
   # Load existing model instance
@@ -49,5 +48,25 @@ define ["model/main", "render/screen"], (main, render) ->
   # Get field object for named model and field
   modelField: (modelName, fieldName) ->
     _.find(
-      global.models[modelName].fields,
+      global.model(modelName).fields,
       (f) -> return f.name == fieldName)
+
+  buildSorters: (model) ->
+    sorters = {}
+    mkSortFns = (name, fn) ->
+      sorters["#{name}SortAsc"]  = fn
+      sorters["#{name}SortDesc"] = { fn: fn, reverse: true }
+
+    ignoreType = (type) ->
+      _.contains ["reference", "nested-model", "json"], type
+    for f in model.fields when not ignoreType(f.type)
+      do (f) ->
+        if f.type == "dictionary"
+          mkSortFns f.name, (k) -> k["#{f.name}Local"]()
+        else if f.type == "dictionary-many"
+          mkSortFns f.name, (k) -> _.pluck k["#{f.name}Locals"](), 'label'
+        else if f.type == "checkbox"
+          mkSortFns f.name, (k) -> k[f.name]() == true
+        else
+          mkSortFns f.name, (k) -> k[f.name]
+    return sorters

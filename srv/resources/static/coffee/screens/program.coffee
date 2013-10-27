@@ -2,61 +2,45 @@ define [ "model/main"
          "model/utils"
          "utils"
          "text!tpl/screens/program.html"
+         "screenman"
        ],
-(main, mu, utils, tpl) ->
-  this.addNewPermissionToProgram = (name) ->
-    p = global.viewsWare["program-view"].knockVM
-    mu.addReference p,
-                 'programPermissions',
-                 {modelName: 'programPermissions'},
-                 afterAddSrv(p)
+(main, mu, utils, tpl, screenman) ->
 
-  afterAddSrv = (parent) -> (k) -> utils.focusRef k
+  modelSetup = (modelName, viewName, args) ->
+    permEl = "#{modelName}-permissions"
+    focusClass = "focusable"
+    refs = []
+    slotsee = ["#{modelName}-files"]
+    options = {permEl, focusClass, refs, slotsee}
+    main.modelSetup(modelName) viewName, args, options
 
-  constructor: (viewName, args) ->
-    f = $("#program-files").html()
-    kvm = main.modelSetup("program") viewName, args,
-                          permEl: "program-permissions"
-                          focusClass: "focusable"
-                          slotsee: ["program-files"]
-                          refs: []
+  objsToRows = (objs) ->
+    rows = for obj in objs
+      [obj.id.split(':')[1]
+      ,obj.label   || ''
+      ]
 
-    $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
-    $.fn.dataTableExt.oStdClasses.sFilter = "dataTables_filter form-inline"
+  screenSetup = (viewName, args) ->
+    modelName = "program"
+    kvm = modelSetup modelName, viewName, args
 
-    t = $("#program-table");
-    return if t.hasClass("dataTable")
-    utils.mkDataTable(t)
+    tableParams =
+      tableName: "program"
+      objURL: "/all/program"
 
-    kvm['maybeId'].subscribe ->
-      t.dataTable().fnAddData [[ kvm['id'](), kvm['label']() ]]
+    table = screenman.addScreen(modelName, -> )
+      .addTable(tableParams)
+      .setObjsToRowsConverter(objsToRows)
+      .on("click.datatable", "tr", ->
+        id = @children[0].innerText
+        modelSetup modelName, viewName, {id}
+        global.viewsWare["#{modelName}-view"].knockVM)
+    screenman.showScreen modelName
 
-    t.on "click.datatable", "tr", ->
-      $("#program-files").html(f)
-      id = this.children[0].innerText
-      kvm = main.modelSetup("program") viewName, {"id": id},
-                            permEl: "program-permissions"
-                            focusClass: "focusable"
-                            slotsee: ["program-files"]
-                            refs: []
 
-      k = global.viewsWare['program-view'].knockVM
+    $('#program-permissions').find('.btn-success').on 'click', ->
+      table.dataTable.fnAddData [[ kvm['id'](), kvm['label']() ]]
 
-    $.getJSON "/all/program",
-        (objs) ->
-            dt = t.dataTable()
-            dt.fnClearTable()
-            rows = for obj in objs
-                [obj.id.split(':')[1]
-                ,obj.label   || ''
-                ]
-            dt.fnAddData(rows)
-
-    $("#program-add-programPermissions-container").html(
-      Mustache.render $("#add-ref-button-template").html(),
-              fn:    "addNewPermissionToProgram();"
-              label: "Добавить ограничение на поле контракта"
-    )
-
+  constructor: screenSetup
   destructor: ->
   template: tpl

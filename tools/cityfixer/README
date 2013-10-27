@@ -1,0 +1,28 @@
+Z. The script uses CaRMa HTTP API for reading and updating the DB.
+CaRMa /_/ routes must be accessible from the localhost.
+
+0. Set CARMA_PORT environment variable (if left unset, default of 8000
+is used):
+
+    export CARMA_PORT=8000
+
+1. cityfixer.sh writes cityfixer-****.result.txt file:
+
+    bash cityfixer.sh
+    …
+    Writing result list to cityfixer-BjwfCO.result.txt
+
+Examine .log shown after script run for anomalies.
+
+2. Result file is processed by carma-http.awk into a list of curl
+invocation lines:
+
+    awk -f carma-http.awk cityfixer-BjwfCO.result.txt > result-commands
+
+3. Finally, perform all the queries:
+
+    cat result-commands | parallel -j4
+
+       or simply
+    
+    bash result-commands

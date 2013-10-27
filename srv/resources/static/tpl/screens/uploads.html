@@ -1,0 +1,113 @@
+<!-- Import VINs screen -->
+<div id="uploads-form">
+  <div class="central-form">
+    <fieldset>
+      <legend>Загрузка файлов</legend>
+      <form id="upload-files-form">
+        <label for="upload-files">
+          Выберите файлы для загрузки
+          <span id="upload-files-tip"
+                data-html="true"
+                data-placement="right"
+                title="Каждый файл будет прикреплён к кейсам, номера которых
+                       перечислены в начале его имени до первого дефиса,
+                       например: <i>75521,78214-Акт315.pdf</i> →
+                       кейсы 75521 и 78214"
+                >
+            <i class="icon icon-question-sign" />
+          </span>
+        </label>
+
+        <!-- File chooser widget -->
+        <div style="float: left; width: 80%" 
+             class="input-append" id="upload-files">
+          <input type="file"
+                 id="upload-dialog"
+                 style="display:none;"
+                 multiple
+                 />
+          <input type="text"
+                 style="width: 75%;"
+                 id="upload-names"
+                 disabled
+                 />
+          <button class="btn" id="upload-browse-btn">
+            <i class="icon icon-folder-open" />&nbsp;Обзор
+          </button>
+          <button class="btn btn-primary" id="upload-send">
+            <i class="icon icon-upload icon-white" />&nbsp;Загрузить
+          </button>
+        </div>
+
+        <!-- Cleanup button -->
+        <div style="float: right;">
+          <span id="upload-cleanup-tip"
+                data-html="true"
+                title="Скрыть все успешно загруженные файлы">
+            <button class="btn btn-small btn-success"
+                    id="upload-cleanup">
+              <i class="icon icon-white icon-ok" />
+            </button>
+          </span>
+        </div>
+      </form>
+      <div style="clear: both;"
+           id="uploaded-files"
+           style="overflow-y: scroll;" />
+    </fieldset>
+   </div>
+</div>
+<!-- File upload progress bar template -->
+<script type="text/template"
+        id="upload-box-template">
+  <div class="alert alert-info upload-box">
+    <button class="close" data-dismiss="alert">
+      &times;
+    </button>
+
+    <div>
+      <a target="_blank"
+         data-bind="attr: { href: 's/fileupload/attachment/' + aid() + '/' + filename()}">
+        <i class="icon icon-download-alt" /><b data-bind="text: filename" />
+      </a>
+    </div>
+
+    <div data-bind="visible: dupe">
+      Такой же файл уже загружался ранее
+    </div>
+
+    <div data-bind="text: msg" />
+
+    <div data-bind="visible: cases().length > 0">
+      Прикреплён к кейсам<span data-bind="visible: cases().length > 3">
+        (всего <span data-bind="text: cases().length"/>)</span>:
+      <span class="case-numbers" data-bind="foreach: cases">
+        <a data-bind="attr: { href: '/#case/' + $data }" target="_blank">
+          <i class="icon icon-file" /><b data-bind="text: $data" /></a><a
+             href="#" class="detach-button text-error"
+             data-bind="attr: { 'data-target': $data }">×</a>
+      </span>
+    </div>
+
+    <form class="attach-form" style="display: none; height: 15px">
+      <input type="text"
+             pattern="\d+"
+             class="attach-field"
+             placeholder="Введите номер кейса и Enter" />
+    </form>
+    <div style="text-size:smaller;" data-bind="visible: attach">
+      <a href="#" class="attach-button"><i class="icon icon-plus" />Добавить кейс</a>
+    </div>
+
+    <div data-bind="visible: unknown().length > 0">
+      Следующие кейсы не найдены<span data-bind="visible: unknown().length > 3">
+        (всего <span data-bind="text: unknown().length"/>)</span>:
+      <span data-bind="foreach: unknown">
+        <i class="icon icon-trash" /><b data-bind="text: $data" />
+      </span>
+    </div>
+
+    <div class="progress progress-striped active">
+      <div class="bar" style="width: 0%;"></div>
+    </div>
+</script>

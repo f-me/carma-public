@@ -39,12 +39,8 @@ body {
   text-align: left;
 }
 
-#call-searchtable_filter {
+#search-query {
   width: 30%;
-}
-
-#call-searchtable_filter input {
-  width: 90%;
 }
 
 #left {
@@ -215,6 +211,35 @@ textarea.pane-span,
 }
 
 .checkbutton label input {
-    position:absolute;
-    top:-20px;
+  display: none;
+}
+
+#partnerMapModal {
+  left: 35%;
+  width: 65%;
+}
+
+table.dataTable tr.selected-row {
+  background-color: #ffc0c0;
+}
+
+table.dataTable tr.selected-row td {
+  background-color: #ffc0c0;
+}
+
+table.dataTable tr.selected-row td.sorting_1 {
+  background-color: #ffc0c0;
+}
+
+.central-form {
+  width: 60%;
+  margin-left:20%;
+}
+
+.selected-partner {
+  border-right: 4px solid #ff9999
+}
+
+.disabled-partner {
+  color: #aaaaaa
 }

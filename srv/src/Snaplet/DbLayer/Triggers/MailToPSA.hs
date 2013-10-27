@@ -1,6 +1,6 @@
 
 module Snaplet.DbLayer.Triggers.MailToPSA
-  (sendMailToPSA
+  ( sendMailToPSA
   ) where
 
 import Prelude hiding (log)
@@ -44,6 +44,9 @@ sendMailToPSA actionId = do
     "tech":_
       -> (`elem` ["charge", "starter", "condition"])
       <$> get svcId "techType"
+    "consultation":_
+      -> (`elem` ["consOk","consOkAfter"])
+      <$> get svcId "result"
     "towage":_ -> return True
     _ -> return False
   caseId  <- get actionId "caseId"
@@ -71,7 +74,7 @@ sendMailActually actionId = do
             "peugeot" -> "RUMC01R"
             "citroen" -> "FRRM01R"
             _ -> error $ "Invalid program: " ++ show program
-          fld 2   "Country Сode" <=== "RU"
+          fld 2   "Country Code" <=== "RU"
           fld 9   "Task Id"      <===
             case B.readInt $ B.dropWhile (not.isDigit) caseId of
               Just (n,"") -> T.pack $ printf "M%08d" n
@@ -134,6 +137,7 @@ sendMailActually actionId = do
           fld 4  "Job Type" <=== case B.split ':' svcId of
             "tech":_ -> "DEPA"
             "towage":_ -> "REMO"
+            "consultation":_ -> "TELE"
             _ -> error $ "Invalid jobType: " ++ show svcId
 
           dealerId <- lift $ get svcId "towDealer_partnerId"

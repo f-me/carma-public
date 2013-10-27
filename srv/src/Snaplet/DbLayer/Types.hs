@@ -25,11 +25,11 @@ import DictionaryCache
 import RuntimeFlag
 
 type ObjectId = ByteString
-type Object = Map FieldName ByteString
-type ObjectMap = Map ObjectId Object
-type ModelName = ByteString
 type FieldName = ByteString
 type FieldValue = ByteString
+type Object = Map FieldName FieldValue
+type ObjectMap = Map ObjectId Object
+type ModelName = ByteString
 
 type ProgramName = ByteString
 type RKCName     = ByteString
@@ -45,7 +45,6 @@ data DbLayer b = DbLayer
     ,_postgres :: Snaplet Postgres
     ,_dbLog    :: Snaplet SimpleLog
     ,_auth     :: Snaplet (AuthManager b)
-    ,triggers  :: TriggersConfig
     ,fdds      :: Fdds.Conf
     ,syncRelations :: SM.Relations
     ,syncTables :: [TableDesc]
@@ -54,10 +53,6 @@ data DbLayer b = DbLayer
     ,rkcDict   :: RKCCalc
     ,runtimeFlags :: TVar RuntimeFlags
     }
-
-data TriggersConfig = TriggersConfig
-  {recommendations :: Map ModelName (Map FieldName (Map FieldValue Object))
-  }
 
 makeLenses ''DbLayer
 

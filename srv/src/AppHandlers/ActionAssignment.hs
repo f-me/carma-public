@@ -2,15 +2,11 @@ module AppHandlers.ActionAssignment where
 
 import Prelude hiding (log)
 import Control.Monad
-import Control.Applicative
 import Data.String (fromString)
 
-import Data.List (intercalate)
 import qualified Data.Map as Map
-import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import qualified Data.ByteString.Char8 as B
 
 import Snap
 import Snap.Snaplet.Auth
@@ -21,70 +17,72 @@ import Database.PostgreSQL.Simple
 import Application
 import AppHandlers.CustomSearches
 import AppHandlers.Util
+import Util
 
-import Snaplet.Auth.PGUsers
 
-
-assignQ :: Int -> AuthUser -> UserMeta -> [Text] -> Query
-assignQ pri usr meta logdUsers = fromString
-  $  "UPDATE actiontbl SET assignedTo = '" ++ uLogin ++ "'"
+assignQ :: Int -> AuthUser -> Query
+assignQ pri usr = fromString
+  $  "WITH activeUsers AS ("
+  ++ "  SELECT login"
+  ++ "  FROM usermetatbl"
+  ++ "  WHERE (lastlogout IS NULL OR lastlogout < lastactivity)"
+  ++ "    AND now() - lastactivity < '30 min') "
+  ++ "UPDATE actiontbl SET assignedTo = '" ++ uLogin ++ "'"
   ++ "  WHERE id = (SELECT act.id"
-  ++ "    FROM (actiontbl act LEFT JOIN servicetbl svc"
-  ++ "      ON  svc.type::text = substring(act.parentId, '(.*):')"
-  ++ "      AND svc.id::text = substring(act.parentId, ':(.*)')),"
-  ++ "      casetbl c"
-  ++ "    WHERE closed = false"
+  ++ "    FROM ((SELECT * FROM actiontbl WHERE closed = false) act"
+  ++ "      LEFT JOIN servicetbl svc"
+  ++ "      ON svc.type || ':' || svc.id = act.parentId),"
+  ++ "      casetbl c, usermetatbl u"
+  ++ "    WHERE u.login = '" ++ uLogin ++ "'"
   ++ "    AND c.id::text = substring(act.caseId, ':(.*)')"
   ++ "    AND priority = '" ++ show pri ++ "'"
   ++ "    AND duetime at time zone 'UTC' - now() < interval '30 minutes'"
-  ++ "    AND targetGroup IN ('" ++ uRoles ++ "')"
+  ++ "    AND targetGroup = ANY (u.roles)"
   ++ "    AND (assignedTo IS NULL"
-  ++ "         OR assignedTo NOT IN ('" ++ logdUsersList ++ "'))"
+  ++ "         OR assignedTo NOT IN (SELECT login FROM activeUsers))"
+  ++ "    AND (coalesce("
+  ++ "            array_length(u.boPrograms, 1),"
+  ++ "            array_length(u.boCities, 1)) is null"
+  ++ "         OR (c.program = ANY (u.boPrograms) OR c.city = ANY (u.boCities)))"
   ++ "    ORDER BY"
-  ++ maybe "" (\set -> "(c.program IN ('" ++ set ++ "')) DESC,") programSet
-  ++ maybe "" (\set -> "(c.city IN ('" ++ set ++ "')) DESC,") citySet
+  ++ "      (u.boPrograms IS NOT NULL AND c.program = ANY (u.boPrograms)) DESC,"
+  ++ "      (u.boCities   IS NOT NULL AND c.city    = ANY (u.boCities)) DESC,"
   ++ "      (act.name IN ('orderService', 'orderServiceAnalyst')"
   ++ "        AND coalesce(svc.urgentService, 'notUrgent') <> 'notUrgent') DESC,"
   ++ "      (CASE WHEN act.name IN ('orderService', 'orderServiceAnalyst')"
   ++ "        THEN coalesce(svc.times_expectedServiceStart,act.duetime)"
   ++ "        ELSE act.duetime"
   ++ "        END) ASC"
-  ++ "    LIMIT 1)"
+  ++ "    LIMIT 1"
+  ++ "    FOR UPDATE OF act)"
   ++ "  RETURNING id::text;"
   where
     uLogin = T.unpack $ userLogin usr
-    uRoles = intercalate "','" [B.unpack r | Role r <- metaRoles meta]
-    logdUsersList = T.unpack $ T.intercalate "','" logdUsers
-    mkSet = B.unpack . B.intercalate "','"
-    citySet = case boCities meta of
-      Just c | not $ null c -> Just $ mkSet c
-      _ -> Nothing
-    programSet = case boPrograms meta of
-      Just p | not $ null p -> Just $ mkSet p
-      _ -> Nothing
 
 
 littleMoreActionsHandler :: AppHandler ()
 littleMoreActionsHandler = scoper "littleMoreActions" $ do
-  Just cUsr <- with auth currentUser
-  -- Use PG roles to assign actions and PG meta for city&program filters
-  cUsr' <- with authDb $ replaceMetaRolesFromPG cUsr
-  Just meta <- with authDb $ userMetaPG cUsr
-  logdUsers <- map (userLogin.snd) . Map.elems <$> addToLoggedUsers cUsr'
+  Just cUsr' <- with auth currentUser
 
-  actIds1 <- withPG pg_actass (`query_` assignQ 1 cUsr' meta logdUsers)
-  actIds2 <- withPG pg_actass (`query_` assignQ 2 cUsr' meta logdUsers)
-  actIds3 <- withPG pg_actass (`query_` assignQ 3 cUsr' meta logdUsers)
-  let actIds = actIds1 ++ actIds2 ++ actIds3
+  actIds'   <- withPG pg_actass (`query_` assignQ 1 cUsr')
+  actIds''  <- case actIds' of
+                 []  -> withPG pg_actass (`query_` assignQ 2 cUsr')
+                 _   -> return actIds'
+  actIds''' <- case actIds'' of
+                 []  -> withPG pg_actass (`query_` assignQ 3 cUsr')
+                 _   -> return actIds''
 
   let uLogin = T.encodeUtf8 $ userLogin cUsr'
-  with db $ forM_ actIds $ \[actId] ->
+  now <- liftIO $ projNow id
+  with db $ forM_ actIds''' $ \[actId] ->
       DB.update "action" actId
-        $ Map.singleton "assignedTo" uLogin
+        $ Map.fromList [("assignedTo", uLogin)
+                       ,("assignTime", now)
+                       ]
 
-  when (not $ null actIds) $ log Info $ fromString
+  when (not $ null actIds''') $ log Info $ fromString
     $ "New actions for " ++ show uLogin
-    ++ ": " ++ show actIds
+    ++ ": " ++ show actIds'''
 
   selectActions (Just "0") (Just uLogin) Nothing Nothing Nothing
     >>= writeJSON

@@ -26,6 +26,8 @@ import Snaplet.DbLayer.Types
 import qualified Snaplet.DbLayer.RedisCRUD as Redis
 import qualified Database.Redis as Redis
 
+import qualified Util as U
+
 import System.Log.Simple
 
 data TriggerContext = TriggerContext
@@ -101,5 +103,5 @@ instance MonadTrigger TriggerMonad b where
         logObject "del" $ object [
             "keys" .= keys]
         runRedisDB redis $ Redis.del keys
-    dateNow fn = TriggerMonad $ liftIO $ fmap (B.pack . show . fn . round . utcTimeToPOSIXSeconds) getCurrentTime
+    dateNow fn = TriggerMonad $ liftIO $ U.projNow fn
     liftDb act = TriggerMonad $ lift act

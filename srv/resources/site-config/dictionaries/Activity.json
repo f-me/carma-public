@@ -7,6 +7,10 @@
         {
             "value": "conferencing",
             "label": "Конференц-связь"
-        }
+        },
+        {
+            "value": "departure",
+            "label": "Выезд"
+        }        
     ]
 }

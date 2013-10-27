@@ -1,12 +1,15 @@
-define ["utils", "model/utils"], (u, mu) ->
-  partnerOptsHook: (i, knockVM) ->
-    knockVM['contractor_partner'].subscribe (n) ->
+define [ "utils"
+       , "model/utils"
+       , "screens/partnersSearch"
+       ], (u, mu, pSearch) ->
+  partnerOptsHook: (model, knockVM) ->
+    knockVM['contractor_partner']?.subscribe (n) ->
       return unless knockVM['view']
       v = global.viewsWare[knockVM['view']].depViews['cost_counted'][0]
       $("##{v}").find(".add-opt-btn").remove()
-      model = knockVM.modelName()
+      model = knockVM._meta.model.name
       u.sTout 1000, ->
-        $.getJSON "/opts/#{knockVM.modelName()}/#{knockVM.id()}", (opts)->
+        $.getJSON "/opts/#{model}/#{knockVM.id()}", (opts)->
           return if _.isEmpty opts
           tr = Mustache.render(
                 $('#tarif-opt-sel-template').html(),
@@ -34,19 +37,20 @@ define ["utils", "model/utils"], (u, mu) ->
                 $("##{(_.last r)['view']}").parent().collapse("show")
           u.bindDelete knockVM, 'cost_serviceTarifOptions'
 
-  srvOptUpd: (instance, knockVM) ->
-    knockVM['payType'].subscribe (n) ->
+  srvOptUpd: (model, knockVM) ->
+    knockVM['payType']?.subscribe (n) ->
       u.sTout 500, ->
         for o in knockVM['cost_serviceTarifOptionsReference']()
           do (o) ->
             o.model().fetch()
 
-  costsMark: (instance, knockVM) ->
-    knockVM['marginalCost'].subscribe -> mbMark()
+  costsMark: (model, knockVM) ->
+    knockVM['marginalCost']?.subscribe -> mbMark()
 
-    knockVM['cost_counted'].subscribe -> mbMark()
+    knockVM['cost_counted']?.subscribe -> mbMark()
     mbMark = ->
       v = knockVM.view
+      # FIXME: change this to observables
       mc = $("##{v}").find('[name=marginalCost]').parents('.control-group')
       cc = $("##{v}").find('[name=cost_counted]').parents('.control-group')
       mf = parseFloat(knockVM['marginalCost']())
@@ -57,3 +61,36 @@ define ["utils", "model/utils"], (u, mu) ->
       else
         mc.removeClass('error')
         cc.removeClass('error')
+
+  # sync with partner search screen
+  openPartnerSearch: (model, kvm) ->
+    # subscibe partner fields to partnersSearch screen events
+    for f in model.fields when f.meta?.widget == "partner"
+      do (f) ->
+        n = pSearch.subName f.name, model.name, kvm.id()
+        global.pubSub.sub n, (val) ->
+          kvm[f.name](val.name)
+          kvm["#{f.name}Id"]?("partner:#{val.id}")
+          addr = u.getKeyedJsonValue (JSON.parse val.addrs), "fact"
+          field_basename = f.name.split('_')[0]
+          kvm["#{field_basename}_address"]?(addr || "")
+          kvm["#{field_basename}_coords"]? val.coords
+          if (field_basename == "towDealer") && val.distanceFormatted?
+            kvm["dealerDistance"](val.distanceFormatted)
+          kvm['parent']['fillEventHistory']()
+
+    # this fn should be called from click event, in other case
+    # it will be blocked by chrome policies
+    kvm['openPartnerSearch'] = (field) ->
+      # serialize current case and service
+      srvId = "#{kvm._meta.model.name}:#{kvm.id()}"
+      srv  =
+        id: srvId
+        data: kvm._meta.q.toRawObj()
+      kase =
+        id: "case:#{kvm.parent.id()}"
+        data: kvm.parent._meta.q.toRawObj()
+
+      localStorage[pSearch.storeKey] =
+        JSON.stringify {case: kase, service: srv, field: field}
+      pSearch.open('case')

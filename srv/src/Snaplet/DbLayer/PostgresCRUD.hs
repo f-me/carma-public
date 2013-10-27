@@ -4,7 +4,6 @@ module Snaplet.DbLayer.PostgresCRUD (
     loadRelations,
     createIO,
     insert, update, updateMany, insertUpdate, insertUpdateMany,
-    search,
     generateReport
     ) where
 
@@ -21,14 +20,16 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import Data.ByteString (ByteString)
 import Data.Char
-import Data.List (isPrefixOf, find, elemIndex)
-import Data.String
-import qualified Data.ByteString.Char8 as C8
-import qualified Data.ByteString.Lazy.Char8 as L8
+import Data.List (elemIndex)
+import qualified Data.ByteString.Lazy as LB
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import qualified Data.Text.Lazy as L
+import qualified Data.Text.Lazy.Encoding as L
 import Data.Time
 import Data.Time.Clock.POSIX
+import qualified Data.HashMap.Strict as HM
+import qualified Data.Vector  as V
 
 import qualified Database.PostgreSQL.Simple as P
 import qualified Snap.Snaplet.PostgresqlSimple as PS
@@ -39,6 +40,7 @@ import Database.PostgreSQL.Sync.JSON ()
 import qualified Database.PostgreSQL.Report as R
 import qualified Database.PostgreSQL.Report.Xlsx as R
 import System.Locale
+import Text.Printf
 
 import Snaplet.DbLayer.Dictionary
 import Snap.Snaplet.SimpleLog
@@ -63,6 +65,7 @@ functions tz dict = [
     R.onString "UPPER" (map toUpper),
     R.onString "LOWER" (map toLower),
     R.onString "PHONE" phoneFmt,
+    R.function "COMMENT" composeComment,
     R.function "CONCAT" concatFields,
     R.functionMaybe "LOOKUP" lookupField,
     R.function "IF" ifFun,
@@ -75,7 +78,7 @@ functions tz dict = [
     R.uses ["servicesview.falseCall"] $ R.constFunction "FALSECALL" falseFun,
     R.uses ["servicesview.falseCall"] $ R.constFunction "BILL" billFun,
     R.uses ["servicesview.clientSatisfied"] $ R.constFunction "SATISFIED" satisfiedFun,
-    R.uses ["servicesview.diagnosis1", "servicesview.type"] $ R.constFunction "FAULTCODE" faultFun,
+    R.uses ["servicesview.diagnosis2", "servicesview.diagnosis3", "servicesview.type"] $ R.constFunction "FAULTCODE" faultFun,
     R.uses ["servicesview.car_make"] $ R.constFunction "VEHICLEMAKE" vehicleMakeFun,
     R.uses ["servicesview.car_make", "servicesview.car_model"] $ R.constFunction "VEHICLEMODEL" vehicleModelFun,
     R.uses ["servicesview.caseid", "servicesview.services", "servicesview.id", "servicesview.type"] $ R.constFunction "SERVICEID" serviceId,
@@ -84,28 +87,41 @@ functions tz dict = [
         capitalize "" = ""
         capitalize (c:cs) = toUpper c : map toLower cs
 
-        phoneFmt s
-            | ("+7" `isPrefixOf` s) && all isDigit (drop 2 s) && length s == 12 = unwords ["+7", "(" ++ substr 2 3 s ++ ")", substr 5 3 s, substr 8 2 s, substr 10 2 s]
-            | otherwise = s
-        
-        substr f l = take l . drop f
-        
+        phoneFmt ('+':'7': xs@[a,b,c,d,e,f,g,h,i,j])
+          | all isDigit xs
+            = printf "+7 (%s) %s %s %s" [a,b,c] [d,e,f] [g,h] [i,j]
+        phoneFmt s = s
+
+        composeComment = S.StringValue . \case
+          [S.StringValue s]
+            -> case A.decode $ L.encodeUtf8 $ L.pack s of
+              Just (A.Array a) -> concatMap mkComment $ V.toList a
+              _ -> ""
+          _ -> ""
+         where
+          mkComment = \case
+            A.Object o -> case HM.lookup "comment" o of
+              Just (A.String s) -> T.unpack s ++ "\n--\n"
+              _ -> ""
+            _ -> ""
+
         concatFields fs = S.StringValue $ concat $ mapMaybe fromStringField fs
         fromStringField (S.StringValue s) = Just s
         fromStringField _ = Nothing
 
-        lookupField [] = Nothing
-        lookupField fs = tryLook <|> justLast where
+        lookupField fs = lookupFieldWithDefault (last fs) fs
+
+        lookupFieldWithDefault _   [] = Nothing
+        lookupFieldWithDefault def fs = tryLook <|> Just def where
             tryLook = do
                 ks <- mapM (fmap T.pack . fromStringField) fs
                 fmap (S.StringValue . T.unpack) $ lookAny ks dict
-            justLast = Just $ last fs
-        
+
         ifFun [i, t, f]
             | i `elem` [S.StringValue "1", S.StringValue "true", S.StringValue "Y", S.IntValue 1, S.BoolValue True] = t
             | otherwise = f
         ifFun _ = S.StringValue ""
-        
+
         toPosix :: S.FieldValue -> Maybe POSIXTime
         toPosix (S.TimeValue t) = Just t
         toPosix (S.StringValue s) = case reads s of
@@ -164,11 +180,15 @@ functions tz dict = [
                 _ -> ""
             
         faultFun fs = do
-            d <- M.lookup "servicesview.diagnosis1" fs
-            s <- M.lookup "servicesview.type" fs
-            (S.StringValue d') <- lookupField [S.StringValue "FaultCode", S.StringValue "diagnosis1", d]
-            (S.StringValue s') <- lookupField [S.StringValue "FaultCode", S.StringValue "service", s]
-            return $ S.StringValue $ d' ++ "09" ++ s'
+            d2 <- M.lookup "servicesview.diagnosis2" fs
+            d3 <- M.lookup "servicesview.diagnosis3" fs
+            s  <- M.lookup "servicesview.type" fs
+            (S.StringValue d2') <- lookupFieldWithDefault (S.StringValue "150")
+                                      [S.StringValue "FaultCode", S.StringValue "diagnosis2", d2]
+            (S.StringValue d3') <- lookupFieldWithDefault (S.StringValue "09")
+                                      [S.StringValue "FaultCode", S.StringValue "diagnosis3", d3]
+            (S.StringValue s')  <- lookupField [S.StringValue "FaultCode", S.StringValue "service", s]
+            return $ S.StringValue $ d2' ++ d3' ++ s'
             
         vehicleMakeFun fs = do
             m <- M.lookup "servicesview.car_make" fs
@@ -214,15 +234,10 @@ escope s act = catch (scope_ s act) onError where
     onError :: (MonadLog m) => E.SomeException -> m ()
     onError _ = return ()
 
-escopev :: (MonadLog m) => T.Text -> a -> m a -> m a
-escopev s v act = catch (scope_ s act) (onError v) where
-    onError :: (MonadLog m) => a -> E.SomeException -> m a
-    onError x _ = return x
-
 loadRelations :: FilePath -> Log -> IO S.Relations
 loadRelations f l = withLog l $ do
     log Trace "Loading relations"
-    liftIO $ fmap (fromMaybe (error "Unable to load relations") . A.decode) $ L8.readFile f
+    liftIO $ fmap (fromMaybe (error "Unable to load relations") . A.decode) $ LB.readFile f
 
 createIO :: [MT.TableDesc] -> Log -> IO ()
 createIO tbls l = do
@@ -262,74 +277,6 @@ updateMany descs m = scope "updateMany" $ forM_ (M.toList m) $ uncurry update' w
 insertUpdateMany :: (PS.HasPostgres m, MonadLog m) => [MT.TableDesc] -> M.Map (ByteString, ByteString) (M.Map ByteString ByteString) -> m ()
 insertUpdateMany descs m = scope "insertUpdateMany" $ forM_ (M.toList m) $ uncurry insertUpdate' where
     insertUpdate' (mdlName, mdlId) = insertUpdate descs mdlName mdlId
-
--- FIXME: ARC has same function
-query :: (PS.HasPostgres m, MonadLog m, PS.ToRow q, PS.FromRow r) => PS.Query -> q -> m [r]
-query s v = do
-    bs <- PS.formatQuery s v
-    log Trace $ T.concat ["query: ", T.decodeUtf8 bs]
-    PS.query s v
-
--- TODO: Use model field names and convert them by models
-search :: (PS.HasPostgres m, MonadLog m) => [MT.TableDesc] -> ByteString -> [ByteString] -> [ByteString] -> ByteString -> Int -> m [[S.FieldValue]]
-search descs mname fs sels q lim = liftIO getCurrentTimeZone >>= search' where
-    search' tz = escopev "search" [] search'' where
-        search''
-            | C8.null q = do
-                log Warning "Empty query"
-                return []
-            | otherwise = do
-                log Trace $ T.concat ["Search query: ", T.decodeUtf8 q]
-                log Trace $ T.concat ["Search limit: ", T.pack $ show lim]
-                log Trace $ T.concat ["Search fields: ", T.intercalate ", " (map T.decodeUtf8 fs)]
-                log Trace $ T.concat ["Search select fields: ", T.intercalate ", " (map T.decodeUtf8 sels)]
-                res <- query (fromString . T.unpack . T.decodeUtf8 $ searchQuery) argsS
-                log Debug $ T.concat ["Found ", T.pack (show $ length res), " results"]
-                return res
-
-        tzHours = timeZoneMinutes tz `div` 60
-
-        desc = fromMaybe err $ find ((== mname) . fromString . MT.tableModel) descs where
-            err = error $ "Unknown model " ++ T.unpack (T.decodeUtf8 mname)
-
-        columnDescs = MT.tableFlatFields desc
-
-        -- Columns to search in
-        rs = map (T.encodeUtf8 . T.pack . wrapColumn . T.unpack . T.decodeUtf8) fs where
-            wrapColumn f = fromMaybe err $ do
-                tp <- fmap MT.columnType $ find ((== f) . fromString . MT.columnName) columnDescs
-                return $ case tp of
-                    "timestamp" -> "to_char(" ++ f ++ " + '" ++ show tzHours ++ ":00','DD.MM.YYYY')"
-                    _ -> f ++ "::text"
-                where
-                    err = error $ "Unknown column: " ++ f
-
-        -- Columns to select
-        cols = map (\s -> C8.concat [fromString $ MT.tableName desc, ".", s]) sels
-
-        qs = C8.words q
-        -- (row like ?)
-        like :: ByteString -> ByteString
-        like row = C8.concat ["(lower(", row, ") like lower(?))"]
-        -- ((row1 like ?) or (row2 like ?) or ...)
-        likes :: [ByteString] -> ByteString
-        likes rows = C8.concat ["(", C8.intercalate " or " (map like rows), ")"]
-        -- (like or like...) and (like or like...) and...
-        whereClause :: [ByteString] -> [ByteString] -> (ByteString, [ByteString])
-        whereClause [] _ = (C8.empty, [])
-        whereClause _ [] = (C8.empty, [])
-        whereClause rows querys = (whereString, whereArgs) where
-            queryCount = length querys
-            rowCount = length rows
-            whereString = C8.intercalate " and " $ replicate queryCount (likes rows)
-            -- [q1, q1, q1, q1, q2, q2, q2, q2, ...]
-            --  <- rowCount ->  <- rowCount ->  ...
-            whereArgs = concatMap (replicate rowCount) (map procentize querys)
-            procentize s = C8.concat ["%", s, "%"]
-
-        (whereS, argsS) = whereClause rs qs
-
-        searchQuery = C8.concat ["select ", C8.intercalate ", " cols, " from ", fromString (MT.tableName desc), " where ", whereS, " limit ", C8.pack (show lim)]
 
 generateReport :: (PS.HasPostgres m, MonadLog m) => [MT.TableDesc] -> [S.Condition] -> (T.Text -> [T.Text]) -> FilePath -> FilePath -> m ()
 generateReport tbls relations superCond tpl fileName = scope "generate" $ do

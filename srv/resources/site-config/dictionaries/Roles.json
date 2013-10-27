@@ -13,8 +13,8 @@
             "label": "Оператор Back Office"
         },
         {
-            "value": "analyst",
-            "label": "Аналитик"
+            "value": "bo_control",
+            "label": "Контроль кейса"
         },
         {
             "value": "head",
@@ -24,6 +24,14 @@
             "value": "parguy",
             "label": "Менеджер по партнёрам"
         },
+        {
+            "value": "manager",
+            "label": "Менеджер по счетам"
+        },
+        {
+            "value": "accManager",
+            "label": "Управляющий счетами"
+        },        
         {
             "value": "partner",
             "label": "Партнёр"
@@ -40,6 +48,10 @@
             "value": "analyst",
             "label": "Аналитик"
         },
+        {
+            "value": "psaanalyst",
+            "label": "Аналитик PSA"
+        },             
         {
             "value": "account",
             "label": "Бухгалтер"
@@ -63,6 +75,26 @@
         {
             "value": "op_dealer",
             "label": "Аналитик по работе с дилерами"
+        },
+        {
+            "value": "contract_admin",
+            "label": "Администратор контрактов"
+        },
+        {
+            "value": "contract_user",
+            "label": "Пользователь экрана контрактов"
+        },
+        {
+            "value": "partners_user",
+            "label": "Пользователь экрана ДиП"
+        },        
+        {
+            "value": "vwfake",
+            "label": "vwfake"
+        },
+        {
+            "value": "all",
+            "label": "Все"
         }
     ]
 }

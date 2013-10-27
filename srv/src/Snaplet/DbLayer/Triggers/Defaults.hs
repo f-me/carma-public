@@ -8,12 +8,14 @@ import Data.Functor
 import Data.Map (Map)
 import qualified Data.Map as Map
 import qualified Data.ByteString.Char8 as B
+import qualified Data.Text.Encoding as T
 import Data.Time.Clock (getCurrentTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 import Data.Time.Format (formatTime)
 import Data.Maybe
 import System.Locale (defaultTimeLocale)
 import Snap
+import Snap.Snaplet.Auth
 
 import qualified Database.Redis       as Redis
 import qualified Snap.Snaplet.RedisDB as Redis
@@ -29,18 +31,32 @@ applyDefaults model obj = do
               <$> getCurrentTime
   cy <- liftIO $ formatTime defaultTimeLocale "%Y"
               <$> getCurrentTime
-  let h  = 60*60 :: Int
+  let m  = 60 :: Int
+      h  = 60 * m
       d  = 24 * h
-      y  = d * 365
+      y  = 365 * d
       cd = Map.insert "callDate" (B.pack $ show ct) obj
   obj' <- case model of
     "partner" -> return
-              $ Map.insert "isActive" "0"
-              $ Map.insert "isDealer" "0"
+              $ Map.insertWith (flip const) "isActive" "0"
+              $ Map.insertWith (flip const) "isDealer" "0"
+              $ Map.insertWith (flip const) "isMobile" "0"
               $ obj
     "case" -> return cd
-    "call" -> return cd
+    "call" -> do
+          Just u <- with auth currentUser
+          let login = T.encodeUtf8 $ userLogin u
+          return $ Map.insert "callTaker" login cd
     "cost_serviceTarifOption" -> return $ Map.insert "count" "1" obj
+    "contract" ->
+      -- Store user id in owner field if it's not present
+      case Map.lookup "owner" obj of
+        Nothing -> do
+          Just u <- with auth currentUser
+          let Just (UserId uid) = userId u
+          return $ Map.insert "owner" (T.encodeUtf8 uid) obj
+        _ -> return obj
+
     "taxi" -> do
       let parentId = obj Map.! "parentId"
       Right caseAddr <- Redis.runRedisDB redis
@@ -62,7 +78,7 @@ applyDefaults model obj = do
   let kase' = either (\_ -> Map.empty) Map.fromList kase
 
   obj'' <- if model `elem` services
-      then
+      then do
         return $ Map.union obj' $ Map.fromList
           [("times_expectedServiceStart",   B.pack $ show $ ct + h)
           ,("times_factServiceStart",       B.pack $ show $ ct + h)
@@ -71,6 +87,7 @@ applyDefaults model obj = do
           ,("times_factServiceClosure",     B.pack $ show $ ct + 12*h)
           ,("times_expectedDealerInfo",     B.pack $ show $ ct + 7*d)
           ,("times_factDealerInfo",         B.pack $ show $ ct + 7*d)
+          ,("times_expectedDispatch",       B.pack $ show $ ct + 10 * m)
           ,("createTime",                   B.pack $ show $ ct)
           ,("marginalCost",                 setSrvMCost model obj' kase' dict)
           ,("urgentService",                "notUrgent")
@@ -160,7 +177,7 @@ defaults = Map.fromList
   ,("tech1", serviceDefaults)
   ,("consultation", serviceDefaults)
   ,("rent", Map.union serviceDefaults $ Map.fromList
-    [("carProvidedFor", "0")
+    [("providedFor", "0")
     ])
   ,("sober", Map.union serviceDefaults $ Map.fromList
     [("multidrive", "0")
@@ -171,6 +188,13 @@ defaults = Map.fromList
     ])
   ,("transportation", Map.union serviceDefaults $ Map.fromList
     [("transportType", "continue")
+    ])
+  ,("programPermissions", Map.fromList
+    [ ("showTable", "1")
+    , ("showForm",  "1")
+    ])
+  ,("contract", Map.fromList
+    [("isActive", "1")
     ])
   ]
 

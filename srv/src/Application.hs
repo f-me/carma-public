@@ -2,10 +2,7 @@
 
 module Application where
 
-import Data.Text (Text)
-import Data.Map (Map)
 import Data.Set (Set)
-import Data.Time.Clock (UTCTime)
 import Control.Concurrent.STM
 import Control.Lens
 
@@ -24,7 +21,7 @@ import Snaplet.SiteConfig
 import Snaplet.SiteConfig.Class
 import Snaplet.DbLayer.Types (DbLayer)
 import Snap.Snaplet.Vin
-import Snaplet.FileUpload
+import Snaplet.FileUpload hiding (db)
 import Snaplet.Geo
 import Snap.Snaplet.SimpleLog
 
@@ -36,13 +33,12 @@ data App = App
     { _heist      :: Snaplet (Heist App)
     , _session    :: Snaplet SessionManager
     , _auth       :: Snaplet (AuthManager App)
-    , loggedUsers :: TVar (Map Text (UTCTime, AuthUser))
     , _siteConfig :: Snaplet (SiteConfig App)
     , _db         :: Snaplet (DbLayer App)
     , pg_search   :: Pool Pg.Connection
     , pg_actass   :: Pool Pg.Connection
     , _vin        :: Snaplet Vin
-    , _fileUpload :: Snaplet FileUpload
+    , _fileUpload :: Snaplet (FileUpload App)
     , _geo        :: Snaplet Geo
     , feLog       :: Log
     , runtimeFlags:: TVar (Set RuntimeFlag)
@@ -65,6 +61,9 @@ instance HasSiteConfig App where
 
 instance MonadLog (Handler App App) where
   askLog = with db askLog
+
+instance HasPostgres (Handler b App) where
+  getPostgresState = with authDb get
 
 
 withPG

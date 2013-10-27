@@ -1,13 +1,24 @@
-define ["text!tpl/screens/vin.html", "utils"], (tpl, u) ->
+define [ "text!tpl/screens/vin.html"
+       , "utils"
+       , "dictionaries"
+       ], (tpl, u, d) ->
   this.setupVinForm = (viewName, args) ->
-    $el(viewName).html($el("vin-form-template").html())
+    vin_html = $el("vin-form-template").html()
+    partner_html = $el("partner-form-template").html()
+
+    # Do not show partner bulk upload form when the screen is accessed
+    # by portal users, use appropriate set of programs.
+    dict = (n) -> new d.dicts["ComputedDict"]({ dict: n })
+    programs = dict('vinPrograms').source
+    if _.contains(global.user.roles, "partner")
+      all_html = vin_html
+    else
+      all_html = vin_html + partner_html
+
+
+    $el(viewName).html(all_html)
+
     global.viewsWare[viewName] = {}
-
-    programs = for v in global.dictionaries.Programs.entries
-      p =
-        id: v.value
-        name: v.label
-
     ko.applyBindings(programs, el("vin-program-select"))
 
     setInterval(getVinAlerts, 1000)
@@ -19,11 +30,14 @@ define ["text!tpl/screens/vin.html", "utils"], (tpl, u) ->
 
   this.doVin = ->
     form     = $el("vin-import-form")[0]
-    formData = new FormData(form)
+    formData = new FormData()
+    pid = $("#vin-program-select").val()
+    vinFile = $("#vin-upload-file")[0].files[0]
+    formData.append("file", vinFile)
 
     $.ajax(
       type        : "POST"
-      url         : "/vin/upload"
+      url         : "/vin/upload?program=" + pid
       data        : formData
       contentType : false
       processData : false

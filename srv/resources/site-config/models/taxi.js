@@ -1,920 +1,246 @@
 {
-    "name": "taxi",
-    "title": "Такси",
-    "canCreate": true,
-    "canRead": true,
-    "canUpdate": true,
-    "canDelete": true,
-    "applications": [
-        {
-            "targets": [
-                "taxiFrom_address"
-            ],
-            "meta": {
-                "label": "Где забрать"
-            }
-        },
-        {
-            "targets": [
-                "taxiTo_address"
-            ],
-            "meta": {
-                "label": "Куда доставить"
-            }
-        },
-        {
-            "targets": [
-                "contractor_partner"
-            ],
-            "meta": {
-                "label": "Партнёр"
-            }
-        },
-        {
-            "targets": [
-                "cost_countedCost"
-            ],
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy",
-                "account"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ]
-
-        },
-        {
-            "targets": [
-                "urgentService",
-                "cost_counted",
-                "cost_serviceTarifOptions"
-            ],
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy",
-                "account"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ]
-        },
-        {
-            "targets": [
-                "payment_partnerCost",
-                "payment_costTranscript"
-            ],
-            "canRead": [
-                "back",
-                "front",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy",
-                "account"
-            ],
-            "canWrite": [
-                "back",
-                "front",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ]
-        },
-        {
-            "targets": [
-                "payment_calculatedCost",
-                "payment_overcosted"
-            ],
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "parguy"
-            ]
-        },
-        {
-            "targets": [
-                "payment_limitedCost"
-            ],
-            "canRead": [
-                "back",
-                "front",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ]
-        },
-        {
-            "targets": [
-                "payment_paidByRUAMC",
-                "payment_paidByClient"
-            ],
-            "canRead": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "back",
-                "front",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ]
-        },
-        {
-            "targets": [
-                "taxiFrom_address",
-                "taxiFrom_coords",
-                "taxiFrom_city",
-                "taxiFrom_comment"
-            ],
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ]
-        },
-        {
-            "targets": [
-                "taxiTo_address",
-                "taxiTo_coords",
-                "taxiTo_city",
-                "taxiTo_comment"
-            ],
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ]
-        },
-        {
-            "targets": [
-                "contractor_partner",
-                "contractor_partnerTable",
-                "contractor_address"
-            ],
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy",
-                "account"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ]
-        },
-        {
-            "targets": [
-                "bill_billNumber",
-                "bill_billingCost",
-                "bill_billingDate"
-            ],
-            "canRead": [
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "parguy"
-            ]
-        },
-        {
-            "targets": [
-                "times_expectedServiceStart"
-            ],
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ]
-        },
-        {
-            "targets": [
-                "times_factServiceStart",
-                "times_expectedServiceEnd",
-                "times_factServiceEnd",
-                "times_expectedServiceFinancialClosure",
-                "times_factServiceFinancialClosure",
-                "times_expectedServiceClosure",
-                "times_factServiceClosure",
-                "times_repairEndDate"
-            ],
-            "canRead": [
-                "back",
-                "front",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "canWrite": [
-                "back",
-                "front",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ]
-        }
-    ],
-    "fields": [
-        {
-            "name": "parentId",
-            "canRead": true,
-            "canWrite": true,
-            "meta": {
-                "invisible": true
-            }
-        },
-        {
-            "name": "createTime",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy",
-                "account"
-            ],
-            "type": "datetime",
-            "meta": {
-                "label": "Дата создания услуги",
-                "readonly": true
-            }
-        },
-        {
-            "name": "payType",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy",
-                "account"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "type": "dictionary",
-            "meta": {
-                "dictionaryName": "PaymentTypes",
-                "bounded": true,
-                "label": "Тип оплаты"
-            }
-        },
-        {
-            "name": "payment",
-            "groupName": "payment"
-        },
-        {
-            "name": "times",
-            "groupName": "times"
-        },
-        {
-            "name": "falseCall",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "type": "dictionary",
-            "meta": {
-                "dictionaryName": "FalseStatuses",
-                "bounded": true,
-                "label": "Ложный вызов",
-                "infoText": "falsecall"
-            }
-        },
-        {
-            "name": "clientCancelReason",
-            "type": "dictionary",
-            "meta": {
-              "dictionaryName": "ClientCancelReason",
-              "label": "Причина отказа клиента"
-            }
-        },
-        {
-            "name": "falseCallPercent",
-            "canRead":  [ ],
-            "canWrite": [ ],
-            "meta": {
-                "invisible": true
-            }
-        },
-        {
-            "name": "bill",
-            "groupName": "bill"
-        },
-        {
-            "name": "taxiFrom",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "groupName": "address",
-            "meta": {
-                "label": "Где забрать"
-            }
-        },
-        {
-            "name": "taxiTo",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "groupName": "address",
-            "meta": {
-                "label": "Куда доставить"
-            }
-        },
-        {
-            "name": "contractor",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy",
-                "account"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "groupName": "partner",
-            "meta": {
-                "label": "Название партнёра"
-            }
-        },
-        {
-            "name": "cost",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy",
-                "account"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "groupName": "countedCost",
-            "meta": {
-                "label": "Расчетная стоимость"
-            }
-        },
-        {
-            "name": "marginalCost",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [ ],
-            "meta": {
-                "label": "Предельная стоимость",
-                "readonly": true
-            }
-        },
-        {
-            "name": "urgentService",
-            "type": "dictionary",
-            "meta": {
-                "bounded": false,
-                "dictionaryName": "UrgentServiceReason",
-                "label": "Приоритетная услуга"
-            }
-        },
-        {
-            "name": "status",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy",
-                "account"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "type": "dictionary",
-            "meta": {
-                "label": "Статус услуги",
-                "bounded": true,
-                "dictionaryName": "ServiceStatuses"
-            }
-        },
-        {
-            "name": "clientSatisfied",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman"
-            ],
-            "type": "dictionary",
-            "meta": {
-                "dictionaryName": "Satisfaction",
-                "label": "Клиент доволен"
-            }
-        },
-        {
-            "name": "warrantyCase",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "canWrite": [
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "type": "checkbox",
-            "meta": {
-                "label": "Гарантийный случай"
-            }
-        },
-        {
-            "name": "files",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy",
-                "account"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "type": "files",
-            "meta": {
-                "label": "Прикрепленные файлы"
-            }
-        },
-        {
-            "name": "service_tarifOptions",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy",
-                "account"
-            ],
-            "canWrite": [
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy"
-            ],
-            "type": "reference",
-            "meta": {
-                "invisible": true
-            }
-        },
-        {
-            "name": "assignedTo",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy",
-                "account"
-            ],
-            "canWrite": [],
-            "meta": {
-                "invisible": true,
-                "readonly": true
-            }
-        },
-        {
-            "name": "falseCallPercent",
-            "canRead": [
-                "partner",
-                "front",
-                "back",
-                "head",
-                "supervisor",
-                "director",
-                "analyst",
-                "parguy",
-                "account",
-                "admin",
-                "programman",
-                "parguy",
-                "account"
-            ],
-            "canWrite": [],
-            "meta": {
-                "invisible": true,
-                "readonly": true
-            }
-        }
-    ]
+  "fields": [
+    {
+      "meta": {
+        "invisible": true
+      },
+      "type": null,
+      "groupName": null,
+      "name": "parentId"
+    },
+    {
+      "meta": {
+        "label": "Дата создания услуги",
+        "readonly": true
+      },
+      "type": "datetime",
+      "groupName": null,
+      "name": "createTime"
+    },
+    {
+      "meta": {
+        "dictionaryName": "PaymentTypes",
+        "bounded": true,
+        "label": "Тип оплаты"
+      },
+      "type": "dictionary",
+      "groupName": null,
+      "name": "payType"
+    },
+    {
+      "meta": null,
+      "type": null,
+      "groupName": "payment",
+      "name": "payment"
+    },
+    {
+      "meta": null,
+      "type": null,
+      "groupName": "times",
+      "name": "times"
+    },
+    {
+      "meta": {
+        "dictionaryName": "FalseStatuses",
+        "bounded": true,
+        "label": "Ложный вызов",
+        "infoText": "falsecall"
+      },
+      "type": "dictionary",
+      "groupName": null,
+      "name": "falseCall"
+    },
+    {
+      "meta": {
+        "dictionaryName": "ClientCancelReason",
+        "label": "Причина отказа клиента"
+      },
+      "type": "dictionary",
+      "groupName": null,
+      "name": "clientCancelReason"
+    },
+    {
+      "meta": {
+        "invisible": true
+      },
+      "type": null,
+      "groupName": null,
+      "name": "falseCallPercent"
+    },
+    {
+      "meta": null,
+      "type": null,
+      "groupName": "bill",
+      "name": "bill"
+    },
+    {
+      "meta": {
+        "label": "Где забрать"
+      },
+      "type": null,
+      "groupName": "address",
+      "name": "taxiFrom"
+    },
+    {
+      "meta": {
+        "label": "Куда доставить"
+      },
+      "type": null,
+      "groupName": "address",
+      "name": "taxiTo"
+    },
+    {
+      "meta": {
+        "label": "Название партнёра"
+      },
+      "type": null,
+      "groupName": "partner",
+      "name": "contractor"
+    },
+    {
+      "meta": {
+        "label": "Расчетная стоимость"
+      },
+      "type": null,
+      "groupName": "countedCost",
+      "name": "cost"
+    },
+    {
+      "meta": {
+        "label": "Предельная стоимость",
+        "readonly": true
+      },
+      "type": null,
+      "groupName": null,
+      "name": "marginalCost"
+    },
+    {
+      "meta": {
+        "label": "Оплата"
+      },
+      "type": "checkbox",
+      "groupName": null,
+      "name": "paid"
+    },
+    {
+      "meta": {
+        "label": "Скан загружен"
+      },
+      "type": "checkbox",
+      "groupName": null,
+      "name": "scan"
+    },
+    {
+      "meta": {
+        "label": "Оригинал получен"
+      },
+      "type": "checkbox",
+      "groupName": null,
+      "name": "original"
+    },
+    {
+      "meta": {
+        "bounded": false,
+        "dictionaryName": "UrgentServiceReason",
+        "label": "Приоритетная услуга"
+      },
+      "type": "dictionary",
+      "groupName": null,
+      "name": "urgentService"
+    },
+    {
+      "meta": {
+        "label": "Статус услуги",
+        "bounded": true,
+        "dictionaryName": "ServiceStatuses"
+      },
+      "type": "dictionary",
+      "groupName": null,
+      "name": "status"
+    },
+    {
+      "meta": {
+        "dictionaryName": "Satisfaction",
+        "label": "Клиент доволен"
+      },
+      "type": "dictionary",
+      "groupName": null,
+      "name": "clientSatisfied"
+    },
+    {
+      "meta": {
+        "label": "Гарантийный случай"
+      },
+      "type": "checkbox",
+      "groupName": null,
+      "name": "warrantyCase"
+    },
+    {
+      "meta": {
+        "label": "Прикрепленные файлы",
+        "widget": "inline-uploader"
+      },
+      "type": "reference",
+      "groupName": null,
+      "name": "files"
+    },
+    {
+      "meta": {
+        "invisible": true
+      },
+      "type": "reference",
+      "groupName": null,
+      "name": "service_tarifOptions"
+    },
+    {
+      "meta": {
+        "invisible": true,
+        "readonly": true
+      },
+      "type": null,
+      "groupName": null,
+      "name": "assignedTo"
+    },
+    {
+      "meta": {
+        "invisible": true,
+        "readonly": true
+      },
+      "type": null,
+      "groupName": null,
+      "name": "falseCallPercent"
+    }
+  ],
+  "applications": [
+    {
+      "meta": {
+        "label": "Где забрать"
+      },
+      "targets": [
+        "taxiFrom_address"
+      ]
+    },
+    {
+      "meta": {
+        "label": "Куда доставить"
+      },
+      "targets": [
+        "taxiTo_address"
+      ]
+    },
+    {
+      "meta": {
+        "label": "Партнёр"
+      },
+      "targets": [
+        "contractor_partner"
+      ]
+    }
+  ],
+  "canDelete": true,
+  "canUpdate": true,
+  "canRead": true,
+  "canCreate": true,
+  "title": "Такси",
+  "name": "taxi"
 }

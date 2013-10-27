@@ -1,36 +1,68 @@
 define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
-  unassignedShouldTick = true
+  onBackofficeScreen = true
 
   setupBackOffice = ->
-    unassignedShouldTick = true
+    onBackofficeScreen = true
     setTimeout((->
-        updateUnassigned()
-
-        $('#bo-littleMoreAction').on('click.bo', ->
-          $.ajax
-            type: "PUT"
-            url: "/littleMoreActions"
-            success: setupBoTable)
-
         tables = mkBoTable()
         global.boData = { started: new Date, r: {} }
         params = "assignedTo=#{global.user.login}&closed=0"
-        $.getJSON("/allActions?#{params}", setupBoTable)
+        # FIXME: remove this, when backend will be fast enough (it
+        # will, be sure)
+        setTimeout (-> $.getJSON("/backoffice/allActions?#{params}",
+                    (r) -> myActionsHandler r.actions)),
+                    1500
+        setupPoller()
       ), 200)
 
-  updateUnassigned = ->
-    $.getJSON "/actions/unassigned", (r) ->
-      txt = if r[0] > 0
-          "Заказов услуг в очереди: #{r[0]}"
-        else
-          "В очереди нет заказов услуг"
-      if unassignedShouldTick
-        $("#actions-queue-count").text txt
-        setTimeout(updateUnassigned, 3000)
+  # Install automatic actions poller
+  setupPoller = ->
+    # In ms
+    cycle_resolution = 500
+    # Poll server every n cycles
+    poll_cycles = 30
+
+    current_cycle = 0
+    bar = $("#bo-wait-progress")
+    worker = ->
+      percent = current_cycle / poll_cycles * 100.0
+      bar.css "width", percent + "%"
+
+      if onBackofficeScreen
+        if current_cycle++ == poll_cycles
+          pullActions()
+          current_cycle = 0
+        setTimeout worker, cycle_resolution
+    worker()
+
+  # Given /allActions or /littleMoreActions response, try to redirect
+  # to the first order-class action if the user has "back" role.
+  # Otherwise, just show all actions in the table.
+  myActionsHandler = (actions) ->
+    if !_.isEmpty actions
+      if _.contains global.user.roles, "back"
+        act = _.find actions, (a) ->
+          _.contains(
+            [ "orderService"
+            , "orderServiceAnalyst"
+            , "tellMeMore"
+            , "callMeMaybe"],
+            a.name)
+        if act?
+          openCaseAction act.id, act.caseId.split(':')[1]
+      setupBoTable actions
+
+  # Pull new actions for user
+  pullActions = ->
+    $.ajax
+      type: "PUT"
+      url: "/backoffice/littleMoreActions"
+      success: myActionsHandler
 
   removeBackOffice = ->
-    unassignedShouldTick = false
-    $('#bo-littleMoreAction').off 'click.bo'
+    # Stop auto-polling backoffice-related server handlers when we
+    # leave #back
+    onBackofficeScreen = false
 
   mkBoTable = ->
     userTable = $("#back-user-table")
@@ -78,20 +110,21 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
     userTable.on("click.datatable", "tr", ->
       colText = this.children[0].innerText
       [_,caseId,actId] = colText.match(/(\d+)\/(\d+)/)
-      now = Math.round((new Date).getTime() / 1000)
-      $.ajax
-        type: "PUT"
-        url: "/_/action/#{actId}"
-        data: "{\"openTime\":\"#{now}\"}"
-      window.location.hash = "case/#{caseId}"
+      openCaseAction actId, caseId
     )
     return [userTable]
+
+  # Start working on an action and redirect to its case
+  openCaseAction = (actId, caseId) ->
+    $.ajax
+      type: "PUT"
+      url: "/backoffice/openAction/#{actId}"
+    window.location.hash = "case/#{caseId}"
 
   setupBoTable = (actions) ->
       userTable = $("#back-user-table")
       addActions(actions,  userTable.dataTable())
       boNotify handleBoUpdate(userTable)
-
 
   addActions = (actions, table) ->
     table.fnClearTable()
@@ -99,7 +132,7 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
       cid = act.caseId.split(':')[1]
       if act.parentId
         svcName = act.parentId.split(':')[0]
-        svcName = global.models[svcName].title
+        svcName = global.model(svcName).title
       id = "#{cid}/#{act.id} (#{svcName or ''})"
       duetime  = new Date(act.duetime * 1000).toString("dd.MM.yyyy HH:mm:ss")
       srvStart = new Date(act.times_expectedServiceStart * 1000)

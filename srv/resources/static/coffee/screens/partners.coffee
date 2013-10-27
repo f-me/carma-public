@@ -1,95 +1,75 @@
-define [ "hooks/partner"
-       , "utils"
+define [ "utils"
        , "text!tpl/screens/partner.html"
        , "model/utils"
        , "model/main"
+       , "screenman"
        ],
-  (p, utils, tpl, mu, main) ->
-    setupPartnersForm = (viewName, args) ->
+  (utils, tpl, mu, main, screenman) ->
+
+    modelSetup = (modelName, viewName, args) ->
+      permEl = "#{modelName}-permissions"
+      focusClass = "focusable"
       refs = [field: "services"
              ,forest: "partner-services-references"
              ]
-      kvm = main.modelSetup("partner") viewName, args,
-                            permEl: "partner-permissions"
-                            focusClass: "focusable"
-                            refs: refs
+      slotsee = ["map-address"]
+      options = {permEl, focusClass, refs, slotsee}
+      main.modelSetup(modelName) viewName, args, options
 
-      utils.build_global_fn 'addNewServiceToPartner', ['screens/partners']
-      $("#partner-add-service-container").html(
-        Mustache.render $("#add-ref-button-template").html(),
-                fn:    "addNewServiceToPartner();"
-                label: "Добавить услугу"
-      )
+    objsToRows = (objs) ->
+      dict = global.dictValueCache['DealerCities']
+      rows = for obj in objs
+        [obj.id
+        ,obj.name       || ''
+        ,dict[obj.city] || obj.city || ''
+        ,obj.comment    || ''
+        ]
+
+    screenSetup = (viewName, args) ->
+      modelName = "partner"
+      kvm = modelSetup modelName, viewName, args
 
       # I need this object because I can't clean foreach binding, once
       # it's created, to use this proxy object to keep current partner's
       # allerts
       global.alertObj = { kvm: ko.observable(kvm)}
       ko.applyBindings(global.alertObj, $("#partner-errors")[0])
-      setTimeout(->
-        $.fn.dataTableExt.oStdClasses.sLength = "dataTables_length form-inline"
-        $.fn.dataTableExt.oStdClasses.sFilter = "dataTables_filter form-inline"
 
-        t = $("#partner-table");
-        return if t.hasClass("dataTable")
-        utils.mkDataTable(t)
+      tableParams =
+        tableName: "partner"
+        objURL: "/allPartners"
 
-        t.on("click.datatable", "tr", ->
-          id = this.children[0].innerText
-          kvm = main.modelSetup("partner") viewName, {"id": id},
-                                permEl: "partner-permissions"
-                                focusClass: "focusable"
-                                refs: refs
-          k = global.viewsWare['partner-view'].knockVM
-          global.alertObj.kvm(kvm)
+      table = screenman.addScreen(modelName, -> )
+        .addTable(tableParams)
+        .setObjsToRowsConverter(objsToRows)
+      table
+        .on("click.datatable", "tr", ->
+          if (table.dataTable.fnGetPosition this) != null
+            id = @children[0].innerText
+            kvm = modelSetup modelName, viewName, {id}
+            global.alertObj.kvm(kvm)
 
-          k['servicesReference'].subscribe ->
-            addTarifStuff i for i in k['servicesReference']()
         )
-        dict = global.dictValueCache['DealerCities']
-        $.getJSON("/allPartners",
-            (objs) ->
-                dt = t.dataTable()
-                dt.fnClearTable()
-                rows = for obj in objs
-                    [obj.id
-                    ,obj.name       || ''
-                    ,dict[obj.city] || obj.city
-                    ,obj.comment    || ''
-                    ]
-                dt.fnAddData(rows)
-        ))
+      screenman.showScreen modelName
 
-    addNewServiceToPartner = (name) ->
-      p = global.viewsWare["partner-view"].knockVM
-      mu.addReference p,
-                   'services',
-                   {modelName: 'partner_service'},
-                   afterAddSrv(p)
+      $('#partner-permissions').find('.btn-success').on 'click', ->
+        obj =
+          addrDeFacto:
+                _.filter(kvm["addrsObjects"](),
+                        (svm) -> svm.key() == "fact")[0]?.value()
+          city: kvm.city()
+          comment: kvm.comment()
+          id: kvm.id()
+          isDealer: kvm.isDealer()
+          isMobile: kvm.isMobile()
+          name: kvm.name()
+        table.dataTable.fnAddData objsToRows [obj]
 
-    afterAddSrv = (parent) -> (k) ->
-      utils.focusRef k
-
-    addTarifStuff = (p) ->
-      view = $("##{p['view']}")
-      button = Mustache.render $("#add-ref-button-template").html(),
-        fn:    ""
-        label: "Добавить опцию"
-      view.children().last().after button
-      view.children().last().click -> genNewTarif p
-
-    genNewTarif = (kvm) ->
-      mu.addReference kvm, 'tarifOptions', { modelName: 'tarifOption' },
-        (k) ->
-          utils.bindRemove kvm, 'tarifOptions'
-          utils.focusRef k
-
-    releasePartnersForm = () ->
+    screenRelease = () ->
       ko.cleanNode($("#partner-errors")[0])
       delete global.alertObj
 
-    { constructor: setupPartnersForm
-    , destructor : releasePartnersForm
+    { constructor: screenSetup
+    , destructor : screenRelease
     , template: tpl
-    , addNewServiceToPartner: addNewServiceToPartner
     }

@@ -12,7 +12,7 @@ import Data.Maybe (fromMaybe)
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as LB
 
-import Data.List (foldl', foldl1')
+import Data.List (foldl')
 import Data.Map (Map)
 import qualified Data.Map as M
 
@@ -30,12 +30,6 @@ data Permissions = Roles [B.ByteString]
                  deriving (Show)
 
 
-data FieldTargets = Fields [FieldName]
-                  | AllFields
-                  | NoneFields
-                  deriving (Show)
-
-
 -- | Map of field annotations which are transparently handled by
 -- server without any logic.
 type FieldMeta = Map FieldName Aeson.Value
@@ -46,19 +40,13 @@ data Field = Field { name           :: FieldName
                    , fieldType      :: B.ByteString
                    , groupName      :: Maybe B.ByteString
                    , meta           :: Maybe FieldMeta
-                   , _canRead       :: Permissions
-                   , _canWrite      :: Permissions
+                   , canWrite       :: Bool
                    } deriving (Show)
-makeLenses ''Field
 
 -- | A list of properties to be applied to named fields.
-data Application = Application { targets    :: FieldTargets
-                               , apMeta     :: Maybe FieldMeta
-                               , _apRead    :: Maybe Permissions
-                               , _apWrite   :: Maybe Permissions
+data Application = Application { targets    :: [FieldName]
+                               , apMeta     :: FieldMeta
                                } deriving (Show)
-makeLenses ''Application
-
 
 
 -- | Model describes fields and permissions.
@@ -69,7 +57,6 @@ makeLenses ''Application
 data Model = Model { modelName      :: ModelName
                    , title          :: B.ByteString
                    , fields         :: [Field]
-                   , defaults       :: M.Map FieldName FieldValue
                    , applications   :: [Application]
                    , _canCreateM    :: Permissions
                    , _canReadM      :: Permissions
@@ -88,7 +75,6 @@ instance FromJSON Model where
         v .:  "name"                      <*>
         v .:  "title"                     <*>
         v .:  "fields"                    <*>
-        v .:? "defaults"     .!= M.empty  <*>
         v .:? "applications" .!= []       <*>
         v .:? "canCreate"    .!= Nobody   <*>
         v .:? "canRead"      .!= Nobody   <*>
@@ -102,7 +88,6 @@ instance ToJSON Model where
       [ "name"       .= modelName mdl
       , "title"      .= title mdl
       , "fields"     .= fields mdl
-      , "defaults"   .= defaults mdl
       , "canCreate"  .= _canCreateM mdl
       , "canRead"    .= _canReadM mdl
       , "canUpdate"  .= _canUpdateM mdl
@@ -128,8 +113,7 @@ instance FromJSON Field where
       v .:? "type" .!= defaultFieldType <*>
       v .:? "groupName"                 <*>
       v .:? "meta"                      <*>
-      v .:? "canRead"  .!= Nobody       <*>
-      v .:? "canWrite" .!= Nobody
+      pure True
     parseJSON _          = error "Could not parse field properties"
 
 instance ToJSON Field where
@@ -137,25 +121,15 @@ instance ToJSON Field where
       [ "name"          .= name f
       , "type"          .= fieldType f
       , "groupName"     .= groupName f
-      , "canRead"       .= _canRead f
-      , "canWrite"      .= _canWrite f
+      , "canWrite"      .= canWrite f
       , "meta"          .= meta f
       ]
 
 
-instance FromJSON FieldTargets where
-    parseJSON (Bool True)  = return AllFields
-    parseJSON (Bool False) = return NoneFields
-    parseJSON v@(Array _)  = Fields <$> parseJSON v
-    parseJSON _            = error "Could not application targets"
-
-
 instance FromJSON Application where
     parseJSON (Object v) = Application  <$>
-      v .:? "targets" .!= NoneFields    <*>
-      v .:? "meta"                      <*>
-      v .:? "canRead"                   <*>
-      v .:? "canWrite"
+      v .: "targets"  <*>
+      v .: "meta"
     parseJSON _          = error "Could not parse application entry"
 
 
@@ -190,48 +164,27 @@ spliceGroups groups model =
 
 -- | Perform all applications in model.
 doApplications :: Model -> Model
-doApplications model =
-    let
+doApplications model
+    = model{fields = foldl' processField (fields model) (applications model)}
+    where
         -- Update values in old meta with those specified in
         -- application meta
-        mergeFieldsMeta :: Maybe FieldMeta -> Field -> Field
-        mergeFieldsMeta (Just patchMeta) original =
-            let 
-                oldMeta = fromMaybe M.empty (meta original)
-                -- TODO Monoid is out there
-                newMeta =
-                    M.foldlWithKey' (\o k v -> M.insert k v o) oldMeta patchMeta
-            in
-              original{meta = Just newMeta}
-        mergeFieldsMeta Nothing original = original
+        mergeFieldsMeta :: FieldMeta -> Field -> Field
+        mergeFieldsMeta patchMeta original = original
+          {meta = Just $ M.foldlWithKey'
+            (\o k v -> M.insert k v o)
+            (fromMaybe M.empty $ meta original)
+            patchMeta
+          }
 
         -- Try to perform application for fields in list.
         processField :: [Field] -> Application -> [Field]
-        processField (f:fs) ap =
-            let
-                -- List of setters to apply to field which will update
-                -- it with application values
-                patchBits :: [Field -> Field]
-                patchBits = [mergeFieldsMeta (apMeta ap)] ++
-                          map (\(from, to) -> 
-                                   maybe id (to .~) (ap ^. from))
-                          [ (apRead,  canRead)
-                          , (apWrite, canWrite)
-                          ]
-                patch = foldl1' (.) patchBits
-                -- Meta field is merged separately
-                newF = case targets ap of
-                         AllFields -> patch f
-                         Fields ts -> if (elem (name f) ts)
-                                      then patch f
-                                      else f
-                         _ -> f
-            in
-              newF:(processField fs ap)
+        processField (f:fs) ap = newF : processField fs ap
+            where
+                newF = if name f `elem` targets ap
+                       then mergeFieldsMeta (apMeta ap) f
+                       else f
         processField [] _ = []
-    in
-      model{fields = foldl' processField (fields model) (applications model)}
-
 
 
 parseFile :: FromJSON a => FilePath -> IO (Maybe a)

@@ -23,29 +23,11 @@
     </button>
 
   <div class="form-vertical">
+
     <div id="program-view" />
 
-    <div id="program-files">
-      <h4 data-bind="visible: contractsInfo">Загруженные шаблоны:</h4>
-      <ul class="unstyled"
-          data-bind="foreach: contractsInfo, setdata: contracts">
-        <li>
-          <a data-bind="attr: { href: url }, text: name" />
-          <i class="icon icon-remove"
-             data-bind="setdata: name"
-             onclick="deleteFile(this)"/>
-        </li>
-      </ul>
-    </div>
-
-    <div class="control-group">
-      <div class="control-label">
-        <label>Поля контракта</label>
-      </div>
-      <div id="program-add-programPermissions-container"/>
-    </div>
-
     <div id="program-permissions" />
+
   </div>
 </div>
 </div>

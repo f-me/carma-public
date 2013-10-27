@@ -94,6 +94,10 @@
                 "label": "C-Crosser"
             },
             {
+                "value": "C-Elysee",
+                "label": "C-Elysee"
+            },
+            {
                 "value": "cZero",
                 "label": "C-Zero"
             },
@@ -1026,6 +1030,10 @@
                 "label": "Bronco"
             },
             {
+                "value": "bMax",
+                "label": "B-Max"
+            },
+            {
                 "value": "sMax",
                 "label": "S-Max"
             },
@@ -1098,6 +1106,14 @@
                 "label": "Explorer"
             },
             {
+                "value": "f250",
+                "label": "F250"
+            },
+            {
+                "value": "f150",
+                "label": "F150"
+            },
+            {
                 "value": "faction",
                 "label": "Faction"
             },
@@ -1126,8 +1142,12 @@
                 "label": "Galaxy"
             },
             {
+                "value": "grandCMax",
+                "label": "GRAND C-MAX"
+            },
+            {
                 "value": "fordGT",
-                "label": "Ford GT"
+                "label": "GT"
             },
             {
                 "value": "ikon",
@@ -1199,7 +1219,7 @@
             },
             {
                 "value": "tourenoConnect",
-                "label": "Toureno Connect"
+                "label": "Tourneo Connect"
             },
             {
                 "value": "transit",
@@ -1607,6 +1627,16 @@
                 "value": "4370",
                 "label": "4370"
             }
+        ],
+        "greatWall": [
+            {"value": "wingle5", "label": "Wingle 5"},
+            {"value": "C20R", "label": "C20R"},
+            {"value": "C30", "label": "C30"},
+            {"value": "C50", "label": "C50"},
+            {"value": "Hover M2", "label": "Hover M2"},
+            {"value": "Hover M4", "label": "Hover M4"},
+            {"value": "Hover H6", "label": "Hover H6"},
+            {"value": "Hover H5-E", "label": "Hover H5-E"}
         ]
     }
 }

@@ -183,6 +183,10 @@
         {
             "value": "maz",
             "label": "Maz"
+        },
+        {
+            "value": "greatWall",
+            "label": "Great Wall"
         }
     ]
 }

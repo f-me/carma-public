@@ -1,10 +1,10 @@
 {
    "entries" : [
-      {
-         "value" : "ctime",
-         "label" : "Дата создания записи"
-      },
-      {
+     {
+         "value" : "isActive",
+         "label" : "Активен"
+     },
+     {
          "value" : "program",
          "label" : "Программа"
       },
@@ -113,8 +113,12 @@
          "label" : "Дата окончания действия программы"
       },
       {
-         "value" : "dixi",
-         "label" : "Сохранить"
+          "value" : "comment",
+          "label" : "Комментарий"
+      },
+      {
+          "value" : "owner",
+          "label" : "Дилер"
       }
    ]
 }

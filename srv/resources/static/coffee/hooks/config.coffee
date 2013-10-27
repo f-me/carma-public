@@ -2,25 +2,105 @@ define [ "hooks/common"
        , "hooks/case"
        , "hooks/services"
        , "hooks/partner"
+       , "hooks/actions"
        ],
-       (c, k, s, p) ->
+       (c, k, s, p, a) ->
   model:
       "*"    : [c.stdElCb]
   observable:
       "*"    : [ c.regexpKbHook
                , c.dictionaryKbHook
                , c.dictManyHook
-               , c.filesKbHook
+               , c.fileKbHook
                , c.dateTimeHook
+               , c.jsonDictObjsHook
                ]
-      "case" : [k.descsKbHook, k.eventsHistoryKbHook, k.cityStatsHook]
-      "tarifOption": [c.tarifOptNameDef]
-      "partner": [p.bindRemoveService, p.serviceRepeat]
-      "partner_service": [p.bindTitleServiceName, p.partnerServiceRepeat]
-      "cost_serviceTarifOption": [c.tarifOptNameDef]
-      "rent"  : [s.partnerOptsHook, s.srvOptUpd, s.costsMark]
-      "tech"  : [s.partnerOptsHook, s.srvOptUpd, s.costsMark]
-      "taxi"  : [s.partnerOptsHook, s.srvOptUpd, s.costsMark]
-      "sober" : [s.partnerOptsHook, s.srvOptUpd]
-      "hotel" : [s.partnerOptsHook, s.srvOptUpd, s.costsMark]
-      "towage": [s.partnerOptsHook, s.srvOptUpd, s.costsMark, c.distHook]
+
+      "action" : [a.nameLocal]
+
+      "averageCommissioner" : [ s.openPartnerSearch ]
+
+      "bank" : [ s.openPartnerSearch ]
+
+      "case" : [ k.descsKbHook
+               , k.eventsHistoryKbHook
+               , k.cityStatsHook
+               , k.regionHook
+               ]
+
+      "consultation" : [ s.openPartnerSearch ]
+
+      "continue" : [ s.openPartnerSearch ]
+
+      "cost_serviceTarifOption" : [c.tarifOptNameDef]
+
+      "deliverClient" : [ s.openPartnerSearch ]
+
+      "hotel" : [ s.partnerOptsHook
+                , s.srvOptUpd
+                , s.costsMark
+                , s.openPartnerSearch
+                ]
+
+      "insurance" : [ s.openPartnerSearch ]
+
+      "ken" : [ s.openPartnerSearch ]
+
+      "partner" : [p.bindRemoveService, p.serviceRepeat, p.factAddr]
+
+      "partner_service" : [ p.bindTitleServiceName
+                          , p.partnerServiceRepeat
+                          ]
+
+      "rent" : [ s.partnerOptsHook
+               , s.srvOptUpd
+               , s.costsMark
+               , s.openPartnerSearch
+               ]
+
+      "sober" : [ s.partnerOptsHook
+                , s.srvOptUpd
+                , s.openPartnerSearch
+                ]
+
+      "tarifOption" : [c.tarifOptNameDef]
+
+      "taxi" : [ s.partnerOptsHook
+               , s.srvOptUpd
+               , s.costsMark
+               , s.openPartnerSearch
+               ]
+
+      "tech" : [ s.partnerOptsHook
+               , s.srvOptUpd
+               , s.costsMark
+               , s.openPartnerSearch
+               ]
+
+      "transportation" : [ s.partnerOptsHook
+                         , s.srvOptUpd
+                         , s.costsMark
+                         , s.openPartnerSearch
+                         ]
+
+      "deliverParts" : [ s.partnerOptsHook
+                       , s.srvOptUpd
+                       , s.costsMark
+                       , s.openPartnerSearch
+                       ]
+
+      "deliverCar" : [ s.partnerOptsHook
+                     , s.srvOptUpd
+                     , s.costsMark
+                     , s.openPartnerSearch
+                     ]
+
+      "tech1" : [ s.openPartnerSearch ]
+
+      "tickets" : [ s.openPartnerSearch ]
+
+      "towage" : [ s.partnerOptsHook
+                 , s.srvOptUpd
+                 , s.costsMark
+                 , s.openPartnerSearch
+                 ]

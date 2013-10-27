@@ -19,21 +19,19 @@
     <script src="/s/js/3p/bootstrap.min.js" />
     <script src="/s/js/3p/bootstrap-datepicker.js" />
     <script src="/s/js/3p/bootstrap-typeahead.js" />
+    <script src="/s/js/3p/bootstrap-tagautocomplete.js" />
 
     <!-- Tabular display -->
     <script src="/s/js/3p/jquery.dataTables.min.js" />
 
     <!-- Responsive UI javascript library -->
-    <script src="/s/js/3p/knockout-2.0.0.js" />
+    <script src="/s/js/3p/knockout-2.2.1.js" />
 
     <!-- Utility library, Backbone dependency -->
     <script src="/s/js/3p/underscore-1.3.1.min.js" />
 
     <!-- Loose MVC -->
     <script src="/s/js/3p/backbone-0.9.1.min.js" />
-
-    <!-- Knockback is a Knockout + Backbone glue -->
-    <script src="/s/js/3p/knockback-0.13.min.js" />
 
     <!-- Simple templates -->
     <script src="/s/js/3p/mustache.js" />
@@ -50,9 +48,20 @@
     <!-- base 64 encode/decode library -->
     <script src="/s/js/3p/b64.js" />
 
-    <script src="/s/js/gen/customKoHandlers.js" />
+    <!-- Joseph Meyers md5 implementation -->
+    <script src="/s/js/3p/md5.js" />
+
+    <!-- global libs, that is not handled by require js -->
+    <!-- typeahead menu -->
+    <script src="/s/js/gen/globallibs/th-menu.js" />
+
+    <script src="/s/js/gen/globallibs/observableSet.js" />
+    <script src="/s/js/gen/globallibs/sorted.js" />
+
+    <script src="/s/js/gen/globallibs/customKoHandlers.js" />
 
     <!-- Model processing -->
+    <!-- FIXME: I think we should temove this already -->
     <script src="/s/js/search.js" />
     <!-- <script src="/s/js/gen/dictionaries.js" /> -->
     <!-- <script src="/s/js/gen/metamodel.js" /> -->
@@ -108,15 +117,27 @@
             </li>
             <!-- ko template: { name: 'nav-li-template' }-->
             <!-- /ko -->
+            <li>
+              <a id="send-bug-report" href="#">
+                <i class="icon-fire icon-white"></i>
+              </a>
+            </li>
           </ul>
           <ifLoggedIn>
             <ul class="nav pull-right">
               <li class="divider-vertical" />
+              <li id="navbar-achievements" class="dropdown" style="display: none">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                  <i class="icon-star icon-white" />
+                </a>
+                <ul class="dropdown-menu">
+                </ul>
+              </li>
               <li class="dropdown">
                 <a href="#"
                    class="dropdown-toggle"
                    data-toggle="dropdown">
-                  <i class="icon-user icon-white" />&nbsp;<loggedInUser />
+                  <i id="icon-user" class="icon-user icon-white" />&nbsp;<loggedInUser />
                   <b class="caret"></b>
                 </a>
                 <ul class="dropdown-menu">
@@ -201,14 +222,15 @@
             class="view-template">
       <div style="text-align:center;">
       <fieldset>
-        <legend>Загрузка данных</legend>
+        <legend>Загрузка VIN</legend>
         <form id="vin-import-form" onsubmit="doVin(); return false;">
           <p>
             <select name="program" id="vin-program-select" data-bind="foreach: $data">
-              <option data-bind="value: id, text: name" />
+              <option data-bind="value: value, text: label" />
             </select>
             <input type="file"
                    name="file"
+                   id="vin-upload-file"
                    accept="text/csv|application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
           </p>
           <button class="btn btn-success" type="submit">
@@ -218,6 +240,11 @@
       </fieldset>
       <div id="vin-alert-container" />
       </div>
+    </script>
+    
+    <script type="text/template"
+            id="partner-form-template"
+            class="view-template">
       <div style="text-align:center;">
       <fieldset>
         <legend>Обновление базы партнёров</legend>
@@ -334,8 +361,55 @@
                  {{/ meta.transform }}
                  {{# readonly }}readonly{{/ readonly }}
                  data-bind="value: {{ name }},
+                            {{# meta.koupdate }}
+                            valueUpdate: '{{meta.koupdate}}',
+                            {{/ meta.koupdate }}
+                            {{^ meta.koupdate }}
                             valueUpdate: 'afterkeydown',
+                            {{/ meta.koupdate }}
                             readonly: {{ name }}Disabled" />
+        </div>
+      </div>
+    </script>
+
+    <script type="text/template"
+            class="field-template"
+            id="password-field-template">
+      <div class="control-group"
+           {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
+           {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
+           >
+        <div class="control-label">
+          <label>{{ meta.label }}
+            {{# meta.infoText1 }}
+              <i class="icon icon-question-sign"
+                 data-provide="popover"
+                 data-content="{{ meta.infoText1 }}" />
+            {{/ meta.infoText1 }}
+          </label>
+        </div>
+        <div class="controls">
+          <input type="text"
+                 class="pane-span focusable"
+                 autocomplete="off"
+                 name="{{ name }}"
+                 {{# meta.transform }}
+                    style="text-transform:{{meta.transform}};"
+                 {{/ meta.transform }}
+                 {{# readonly }}readonly{{/ readonly }}
+                 placeholder="********"
+                 data-bind="value: {{ name }},
+                            valueUpdate: 'afterkeydown',
+                            readonly: {{ name }}Disabled"/>
+          <div class="text-right">
+            <button class="btn btn-info"
+                    type="button"
+                    onclick="doPick('passwordPicker',
+                                    '{{ name }}',
+                                    event.target);">
+              <i class="icon-refresh" /> Создать пароль
+            </button>
+          </div>
         </div>
       </div>
     </script>
@@ -401,11 +475,52 @@
                    name="{{ name }}"
                    {{# readonly }}readonly{{/ readonly }}
                    data-bind="value: {{ name }},
+                              {{# meta.koupdate }}
+                              valueUpdate: '{{meta.koupdate}}',
+                              {{/ meta.koupdate }}
+                              {{^ meta.koupdate }}
                               valueUpdate: 'afterkeydown',
+                              {{/ meta.koupdate }}
                               readonly: {{ name }}Disabled" />
             <span class="add-on"><i class="icon icon-calendar" /></span>
           </div>
         </div>
+      </div>
+    </script>
+
+    <script type="text/template"
+            class="field-template"
+            id="interval-date-field-template">
+
+      <label>{{ meta.label }} (Диапазон)</label>
+      <div class="row-fluid horizontal-form">
+          <div class="input-append date span4"
+               data-provide="datepicker"
+               data-autoshow-datepicker="true"
+               data-date-format="dd.mm.yyyy"
+               data-date-weekstart="1">
+            <input type="text"
+                   class="pane-span focusable"
+                   autocomplete="off"
+                   name="{{ name }}Begin"
+                   data-bind="value: {{ name }}Begin,
+                              valueUpdate: 'change'" />
+            <span class="add-on"><i class="icon icon-calendar" /></span>
+          </div>
+          <div class="span1" />
+          <div class="input-append date span4"
+               data-provide="datepicker"
+               data-autoshow-datepicker="true"
+               data-date-format="dd.mm.yyyy"
+               data-date-weekstart="1">
+            <input type="text"
+                   class="pane-span focusable"
+                   autocomplete="off"
+                   name="{{ name }}End"
+                   data-bind="value: {{ name }}End,
+                              valueUpdate: 'change'" />
+            <span class="add-on"><i class="icon icon-calendar" /></span>
+          </div>
       </div>
     </script>
 
@@ -483,22 +598,14 @@
                    {{# readonly }}readonly{{/ readonly }}
                    autocomplete="off"
                    name="{{ name }}"
-                   data-source="global.dictionaries['{{meta.dictionaryName}}']"
-                   data-bind=" value: {{ name }}Local,
-                              valueUpdate: 'change'
-                              {{# meta.dictionaryParent }},
-                              attr: { 'data-parent': {{ meta.dictionaryParent }} }
-                              {{/ meta.dictionaryParent }},
+                   data-bind="value: {{ name }}Local,
+                              valueUpdate: 'change',
                               disabled: {{ name }}Disabled,
-                              pickerDisable: {{ name }}Disabled"
-                   {{^readonly}}
-                   data-provide="typeahead"
-                   {{/readonly}}
+                              pickerDisable: {{ name }}Disabled,
+                              bindDict: '{{ name }}'"
                    />
             <span class="add-on">
-              <i class="icon icon-chevron-down"
-                {{^readonly}}data-provide="typeahead-toggle"{{/readonly}}
-              />
+              <i class="icon icon-chevron-down" />
             </span>
           </div>
           {{# meta.targetCategory }}
@@ -548,22 +655,16 @@
                    {{# readonly }}readonly{{/ readonly }}
                    autocomplete="off"
                    name="{{ name }}"
-                   data-source="global.dictionaries['{{meta.dictionaryName}}']"
                    data-bind="value: {{ name }}Many,
-                              valueUpdate: 'change'
-                              {{# meta.dictionaryParent }},
-                              attr: { 'data-parent': {{ meta.dictionaryParent }} }
-                              {{/ meta.dictionaryParent }},
+                              valueUpdate: 'change',
                               disabled: {{ name }}Disabled,
-                              pickerDisable: {{ name }}Disabled"
+                              pickerDisable: {{ name }}Disabled,
+                              bindDict: '{{ name }}'"
 
-                   {{^readonly}}
-                   data-provide="typeahead"
-                   {{/readonly}}
+
                    />
             <span class="add-on">
               <i class="icon icon-chevron-down"
-                {{^readonly}}data-provide="typeahead-toggle"{{/readonly}}
               />
             </span>
           </div>
@@ -643,7 +744,7 @@
           </label>
         </div>
         <div class="controls">
-          {{# dictionary.entries }}
+          {{# dictionary.source }}
             <label class="radio">
               <!-- Mustache.js contexts support bubbling -->
               <input type="radio"
@@ -654,7 +755,7 @@
                      ></input>
               {{ label }}
             </label>
-          {{/ dictionary.entries }}
+          {{/ dictionary.source }}
         </div>
       </div>
     </script>
@@ -687,6 +788,31 @@
       </div>
     </script>
 
+    <!-- type=Bool field -->
+    <script type="text/template"
+            class="field-template"
+            id="Bool-field-template">
+      <div class="control-group">
+        <div class="controls">
+          <label class="checkbox inline">
+            <input type="checkbox"
+                   name="{{ name }}"
+                   {{# readonly }}disabled{{/ readonly }}
+                   data-bind="checked: {{ name }},
+                              valueUpdate: 'change',
+                              disabled: {{ name }}Disabled" />
+          {{ meta.label }}
+          {{# meta.infoText1 }}
+            <i class="icon icon-question-sign"
+               data-provide="popover"
+               data-content="{{ meta.infoText1 }}" />
+          {{/ meta.infoText1 }}
+          </label>
+        </div>
+      </div>
+    </script>
+
+    <!-- type=checkbox field -->
     <script type="text/template"
             class="field-template"
             id="checkbox-field-template">
@@ -736,6 +862,7 @@
       </div>
     </script>
 
+    <!-- OpenLayers map container field -->
     <script type="text/template"
             class="field-template"
             id="map-field-template">
@@ -770,6 +897,7 @@
       <table id="{{name}}" class="table table-striped table-bordered">
         <thead>
           <tr>
+            <th></th>
             <th>Название</th>
             <th>Город</th>
             <th>Адрес</th>
@@ -788,9 +916,72 @@
     <script type="text/template"
             class="field-template"
             id="reference-field-template">
+        <div class="control-group">
+
+          <div class="control-label">
+            <label></label>
+          </div>
+
+          <div class="controls">
+            <span class="accordion"
+                  id="{{ modelName }}-{{ cid }}-{{ name }}-references" />
+          </div>
+
+          {{# meta.model}}
+          <div id="add-reference-button" class="controls">
+            <button class="dropdown-toggle btn btn-action"
+                    data-bind="bindClick: add{{ name }}"
+                    type="button">
+              <i class="icon icon-plus"></i>&nbsp;{{ meta.reference-label }}
+            </button>
+          </div>
+          {{/ meta.model}}
+
+        </div>
+    </script>
+
+    <!-- Container field template for attachment reference list, with
+         upload form. See also files-reference-template for each item
+         template. -->
+    <script type="text/template"
+            class="field-template"
+            id="inline-uploader-field-template">
       <div class="controls">
-        <span class="accordion"
-              id="{{ modelName }}-{{ cid }}-{{ name }}-references" />
+        <div class="accordion accordion-group">
+          <label>{{ meta.label }}</label>
+          <div id="{{ modelName }}-{{ cid }}-{{ name }}-references" />
+          <form data-bind="attr: { action: '/upload/{{ modelName }}/'+maybeId()+'/{{ name }}'},
+                           {{#meta.single-uploader}}
+                           visible: _.isEmpty({{name}}()),
+                           {{/meta.single-uploader}}
+                           setdata: {{ name }}"
+                style="margin-bottom: 0;">
+            <!-- File chooser widget -->
+            <div class="input-append" style="width:100%">
+              <input type="file"
+                     class="upload-dialog"
+                     onchange="$(this).siblings('.upload-names').val($(this).val());"
+                     data-bind="disabled: {{ name }}Disabled"
+                     style="display:none;" />
+              <input type="text"
+                     class="upload-names"
+                     style="width: 50%;"
+                     disabled
+                     />
+              <a class="btn"
+                 data-bind="disabled: {{ name }}Disabled"
+                 onclick="$(this).siblings('.upload-dialog').click();"
+                 >
+                <i class="icon icon-folder-open" />&nbsp;Обзор
+              </a>
+              <a class="btn btn-primary"
+                 data-bind="disabled: {{ name }}Disabled"
+                 onClick="inlineUploadFile($(this).closest('form'));">
+                <i class="icon icon-upload icon-white" />&nbsp;Загрузить
+              </a>
+            </div>
+          </form>
+        </div>
       </div>
     </script>
 
@@ -857,10 +1048,10 @@
                id="{{ refView }}-link">
             <a class="icon icon-remove" />
             <a
-               data-bind="text: modelTitle">
+               data-bind="text: _meta.model.title">
                Услуга…
             </a>
-            <a data-bind="attr: { href: '#printSrv/'+modelName()+'/'+id() }"
+            <a data-bind="attr: { href: '#printSrv/'+_meta.model.name+'/'+id() }"
                target="_blank">
               [Печать]
           </a>
@@ -876,6 +1067,54 @@
 
           </div>
         </div>
+      </div>
+    </script>
+
+    <script type="text/template"
+            class="reference-template"
+            id="partner_services-reference-template">
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <div class="accordion-toggle"
+               data-target="#{{ refView }}-head"
+               data-toggle="collapse"
+               id="{{ refView }}-link">
+            <a class="icon icon-remove" />
+            <a
+               data-bind="text: serviceNameLocal">
+               Тариф
+            </a>
+
+          </div>
+        </div>
+
+        <div id="{{ refView }}-head"
+             class="accordion-body collapse in">
+          <div class="accordion-inner {{ refClass }}"
+               id="{{ refView }}">
+            <!-- Instance contents are rendered here -->
+
+          </div>
+        </div>
+      </div>
+    </script>
+
+    <!-- 
+         Attachment list reference template. By convention, such
+         fields are named "files". See also file-field-template.
+    -->
+    <script type="text/template"
+            class="reference-template"
+            id="files-reference-template">
+      <div>
+        <a href="#"
+           class="detach-button text-error"
+           onClick="inlineDetachFile($(this))"
+           data-attachment="{{ refId }}"
+           data-field="{{ refField }}">×</a>
+        <span class="{{ refClass }}"
+              id="{{ refView }}" />
+        <!-- Attachment contents are rendered here -->
       </div>
     </script>
 
@@ -1003,6 +1242,81 @@
       </div>
     </script>
 
+    <!-- Template for fields with unknown type -->
+    <script type="text/template"
+            class="field-template"
+            id="dict-objects-field-template">
+      <div class="control-group">
+        <div class="control-label">
+          <label>{{ meta.label }}
+            {{# meta.infoText1 }}
+            <i class="icon icon-question-sign"
+               data-provide="popover"
+               data-content="{{ meta.infoText1 }}" />
+            {{/ meta.infoText1 }}
+          </label>
+        </div>
+        <ul data-bind="foreach: {{ name }}Objects">
+          <li>
+          <div class="control-group"
+               {{# meta.regexp }}data-bind="css: { warning: regexp }"{{/ meta.regexp}}
+               >
+            <div class="control-label">
+              <label>
+                <span data-bind="text: keyLocal" />
+                <a href="#" class="text-error"
+                   data-bind="click: $parent.{{name}}DeleteObj">×</a>
+              </label>
+            </div>
+            <div class="controls">
+                <input type="text"
+                       class="pane-span focusable"
+                       autocomplete="off"
+                       {{# meta.transform }}
+                       style="text-transform:{{meta.transform}};"
+                       {{/ meta.transform }}
+                       {{# readonly }}readonly{{/ readonly }}
+                       data-bind="value: value,
+                                  valueUpdate: 'afterkeydown'" />
+            </div>
+          </div>
+          {{# meta.showNote }}
+          <div class="control-group">
+            <div class="control-label">
+              <label>{{ meta.noteLabel }}</label>
+            </div>
+            <div class="controls">
+              <input type="text"
+                     class="pane-span focusable"
+                     autocomplete="off"
+                     {{# readonly }}readonly{{/ readonly }}
+                     data-bind="value: note,
+                                valueUpdate: 'afterkeydown'" />
+            </div>
+          </div>
+          {{/ meta.showNote }}
+          </li>
+        </ul>
+
+        <ul class="nav nav-pills">
+          <li class="dropup">
+            <button class="dropdown-toggle btn btn-action"
+                    type="button"
+                    data-toggle="dropdown">
+              <i class="icon icon-plus" />&nbsp;{{ meta.addLabel }}
+            </button>
+            <ul class="dropdown-menu" data-bind="foreach: {{name}}KeyDictionary">
+              <li>
+                <a data-bind="text: label,
+                              click: $parent.{{name}}AddObj"
+                   href="#" />
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </script>
+
     <!-- Form controls wrt user permissions -->
     <script type="text/template"
             id="permission-template">
@@ -1033,7 +1347,7 @@
     <script type="text/template"
             id="service-picker-template">
       <ul class="nav nav-pills">
-        <li class="dropup">
+        <li class="drop{{drop}}">
           <button class="dropdown-toggle btn btn-action"
                   type="button"
                   data-toggle="dropdown">
@@ -1044,6 +1358,30 @@
             <li>
               <a href="#"
                  onclick="addService('{{value}}'); return false;">
+                <i class="icon-{{icon}} icon-black" />
+                {{ label }}
+              </a>
+            </li>
+            {{/ dictionary.entries }}
+          </ul>
+        </li>
+      </ul>
+    </script>
+
+    <script type="text/template"
+            id="newService-picker-template">
+      <ul class="nav nav-pills">
+        <li class="drop{{drop}}">
+          <button class="dropdown-toggle btn btn-action"
+                  type="button"
+                  data-toggle="dropdown">
+            <i class="icon icon-plus" />Добавить услугу
+          </button>
+          <ul class="dropdown-menu">
+            {{# dictionary.entries }}
+            <li>
+              <a href="#"
+                 onclick="addNewService('{{value}}'); return false;">
                 <i class="icon-{{icon}} icon-black" />
                 {{ label }}
               </a>
@@ -1071,21 +1409,9 @@
     <!-- File upload template -->
     <script type="text/template"
             class="field-template"
-            id="files-field-template">
-      <label>{{ meta.label }}</label>
-      <form data-bind="attr: { action: {{name}}UploadUrl }, setdata: {{name}}"
-            method="post"
-            enctype="multipart/form-data">
-        <input type="file"
-               name="files"
-               data-bind="disabled: {{ name }}Disabled"
-               />
-        <input type="button"
-               value="Загрузить"
-               onClick="uploadFile(this)"
-               data-bind="disabled: {{ name }}Disabled"
-               />
-      </form>
+            id="file-field-template">
+      <i class="icon icon-file" />
+      <a class="file-name" data-bind="attr: { href: {{ name }}Url }, text: {{ name }}"/>
     </script>
 
     <script type="text/template"
@@ -1097,6 +1423,80 @@
       </button>
     </script>
 
+    <!-- Modal dialog template -->
+    <script type="text/template"
+            class="field-template"
+            id="modalDialog-field-template">
+      <div id="{{ id }}-modal" class="modal hide fade">
+        <div class="modal-header">
+          <button type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-hidden="true">&times;</button>
+          <h3>{{ title }}</h3>
+        </div>
+        <div id="{{ id }}-alert-container" class="alert">
+          <button type="button" class="close">&times;</button>
+          <div class="alert-message"></div>
+        </div>
+        <div id="{{ id }}-form" class="modal-body"/>
+          <div class="modal-footer">
+            <button id="{{ id }}-save"
+                class="btn btn-primary">{{ saveLabel }}</button>
+            <button class="btn"
+                data-dismiss="modal"
+                aria-hidden="true">{{ cancelLabel}}</button>
+          </div>
+        </div>
+      </div>
+    </script>
+
+    <script type="text/template"
+            class="field-template"
+            id="partner-field-template">
+      <div class="control-group"
+           {{# meta.required }}
+           data-bind="css: { error: {{name}}Not }"
+           {{/ meta.required}}
+           >
+        <div class="control-label">
+          <label>{{ meta.label }}
+            {{# meta.infoText1 }}
+              <i class="icon icon-question-sign"
+                 data-provide="popover"
+                 data-content="{{ meta.infoText1 }}" />
+            {{/ meta.infoText1 }}
+          </label>
+        </div>
+        <div class="controls input-append">
+          <input type="text"
+                 class="pane-span focusable"
+                 name="{{ name }}"
+                 disabled
+                 data-bind="value: {{ name }}" />
+          <span class="add-on">
+            <i class="icon icon-search"
+               data-bind="click: openPartnerSearch.bind($data, '{{ name }}')" />
+          </span>
+        </div>
+      </div>
+    </script>
+
+    <!-- Modal dialog launch button -->
+    <script type="text/template"
+            class="field-template"
+            id="modalDialogButton-field-template">
+      <div class="control-group">
+        <div class="controls checkbutton">
+          <label class="inline">
+            <button type="button"
+                class="btn btn-danger"
+                data-bind="disabled: {{ name }}Disabled, click: {{meta.click}}"
+                >{{ meta.label}}</button>
+          </label>
+        </div>
+      </div>
+    </script>
 
     <!-- Default case group view template -->
     <script type="text/template"
@@ -1120,51 +1520,24 @@
           <span data-bind="text: caseAddress_address"/><br/>
           <span data-bind="text: caseAddress_comment"/>
         </p>
-        <br />
+        <p data-bind="visible: cityLocal">
+          <b>Регион:</b>
+          <span data-bind="text: region" />
+        </p>
         <p data-bind="visible: cityLocal">
           <b>Расчётное значение ожидания эвакуатора в
             г.&nbsp;<span data-bind="text: cityLocal"/>:</b>
           <span id="city-towage-average-time" />
         </p>
         <div class="program">
-          <h1 data-bind="text: programLocal"></h1>
-          <div data-bind="html:programDesc"></div>
-          <br />
-          <br />
-          <div data-bind="foreach: servicesDescs">
-            <dt data-bind="text: title"></dt>
-            <dd data-bind="html: description"></dd>
+          <div id="case-comments">
+            <legend> Комментарий </legend>
+            <textarea  id="case-comments-i" rows="2"  />
+            <button    id="case-comments-b" class="btn">
+              Добавить комментарий
+            </button>
           </div>
-          <br />
-          <h4 data-bind="visible: filesInfo">Загруженные файлы:</h4>
-
-          <ul class="unstyled"
-              data-bind="foreach: filesInfo, setdata: files">
-            <li>
-              <a data-bind="attr: { href: url }, text: name" />
-              <i class="icon icon-remove"
-                 data-bind="setdata: name"
-                 onclick="deleteFile(this)"/>
-            </li>
-          </ul>
-
-          <dl data-bind="foreach: servicesReference">
-            <dt data-bind="text: modelTitle">
-              <dd>
-                <ul class="unstyled"
-                    data-bind="foreach: filesInfo, setdata: files">
-                  <li>
-                    <a data-bind="attr: { href: url }, text: name" />
-                    <i class="icon icon-remove"
-                       data-bind="setdata: name"
-                       onclick="deleteFile(this)"/>
-                  </li>
-                </ul>
-              </dd>
-            </dt>
-          </dl>
-
-          <h4>История звонков</h4>
+          <legend>История звонков</legend>
           <table id="call-searchtable" class="table table-striped table-bordered">
             <thead>
               <tr>
@@ -1177,15 +1550,6 @@
             </thead>
             <tbody/>
           </table>
-
-        </div>
-        <div id="case-comments">
-          <label> Комментарий </label>
-          <textarea  id="case-comments-i" rows="7"  />
-          <br />
-          <button    id="case-comments-b" class="btn">
-            Добавить комментарий
-          </button>
         </div>
       </fieldset>
     </script>
@@ -1193,8 +1557,8 @@
 
     <!-- navigation menu templates -->
     <script type="text/html" id="nav-li-template">
-      <!-- ko if: $data.screens -->
-        <!-- ko foreach: screens -->
+      <!-- ko if: $data -->
+        <!-- ko foreach: $data -->
           <!-- ko if: type == 'li' -->
             <li data-bind="if: type == 'li',
                            attr: { id: name + '-screen-nav' }">
@@ -1218,7 +1582,7 @@
                 <b class="caret"></b>
               </a>
               <ul class="dropdown-menu"
-                  data-bind="template: { name: 'nav-li-template' }">
+                  data-bind="template: { name: 'nav-li-template', data: screens }">
               </ul>
             </li>
 
@@ -1244,15 +1608,5 @@
         <input type="button" class="btn reload" value="Обновить стоимость" />
       </div>
     </script>
-
-    <script type="text/template" id="partner-popup-template">
-      <div><strong>{{ name }}</strong></div>
-      <div>{{ addrDeFacto }}</div>
-      <div>{{ phone1 }}</div>
-      <div>{{ workingTime }}</div>
-      <div><a class="btn btn-mini btn-primary"
-              onclick="pickPartnerBlip('{{ parentView }}', '{{ mapId }}', '{{ id }}', '{{ name }}', '{{ addrDeFacto }}', '{{ coords }}', '{{ partnerIdField }}', '{{ partnerField }}', '{{ partnerAddrField }}', '{{ partnerCoordsField }}');">Выбрать</a></div>
-    </script>
-
   </body>
 </html>

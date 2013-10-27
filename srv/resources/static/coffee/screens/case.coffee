@@ -3,8 +3,9 @@ define [ "utils"
        , "text!tpl/screens/case.html"
        , "model/utils"
        , "model/main"
+       , "sync/datamap"
        ],
-  (utils, hotkeys, tpl, mu, main) ->
+  (utils, hotkeys, tpl, mu, main, dm) ->
     utils.build_global_fn 'pickPartnerBlip', ['map']
 
     # Case view (renders to #left, #center and #right as well)
@@ -12,44 +13,32 @@ define [ "utils"
 
     setupCaseModel = (viewName, args) ->
 
-      # Default values
-      # FIXME: User's name and creation date are better to be assigned by
-      # the server.
-
-
-      # Render list of required fields in right pane
-      #
-      # bbInstance is available only after model has been loaded. The
-      # only way to execute custom code inside modelSetup is using
-      # fetchCb option. By the time slotsee's are bound, fetchCb may
-      # not have been called yet, thus we explicitly use applyBindings
-      # here.
-      fetchCb =  () ->
-        instance = global.viewsWare[viewName].bbInstance
-        ctx =
-          "fields": _.map(instance.requiredFields, (f) -> instance.fieldHash[f])
-        setCommentsHandler()
-
-        $("#empty-fields-placeholder").html(
-          Mustache.render($("#empty-fields-template").html(), ctx))
-
-        ko.applyBindings(global.viewsWare[viewName].knockVM,
-                         el("empty-fields"))
-
-      main.modelSetup("case") viewName, args,
+      kvm = main.modelSetup("case") viewName, args,
                          permEl       : "case-permissions"
                          focusClass   : "focusable"
-                         slotsee      : ["case-number"]
+                         slotsee      : ["case-number", "case-program-description"]
                          groupsForest : "center"
-                         fetchCb      : fetchCb
+                         defaultGroup : "default-case"
+
+      ctx = {fields: (f for f in kvm._meta.model.fields when f.meta?.required)}
+      setCommentsHandler()
+
+      $("#empty-fields-placeholder").html(
+          Mustache.render($("#empty-fields-template").html(), ctx))
+
+      ko.applyBindings(kvm, el("empty-fields"))
+
 
       # Render service picker
       #
       # We use Bootstrap's glyphs if "icon" key is set in dictionary
       # entry.
       $("#service-picker-container").html(
-        Mustache.render($("#service-picker-template").html(),
-                        {dictionary: global.dictionaries["Services"]}))
+        Mustache.render(
+          $("#service-picker-template").html(),
+            {dictionary: global.dictionaries["Services"]
+            ,drop: 'up'
+            }))
 
       $("body").on("change.input", ".redirectOnChange", () ->
           setTimeout(( -> window.location.hash = "back"), 500))
@@ -57,18 +46,14 @@ define [ "utils"
       utils.mkDataTable $('#call-searchtable')
       hotkeys.setup()
       kvm = global.viewsWare[viewName].knockVM
-      for i of kvm when /.*Not$/.test(i) or i == 'actions'
-        do (i) -> kvm[i].subscribe -> mbEnableActionResult(kvm)
 
-    mbEnableActionResult = (kvm) ->
-      nots = (i for i of kvm when /.*Not$/.test i)
-      if (_.any nots, (e) -> kvm[e]())
-        $("[name=result]").attr('disabled', 'disabled')
-        $("[name=result]").next().find("i").removeAttr("data-provide")
-      else
-        $("[name=result]").removeAttr 'disabled'
-        $("[name=result]").next().find("i")
-          .attr("data-provide", "typeahead-toggle")
+      do (kvm) ->
+        ko.computed ->
+          nots = (i for i of kvm when /.*Not$/.test i)
+          if (_.any nots, (e) -> kvm[e]())
+            k["resultDisabled"](true)  for k in kvm["actionsReference"]()
+          else
+            k["resultDisabled"](false) for k in kvm["actionsReference"]()
 
     setCommentsHandler = ->
       $("#case-comments-b").on 'click', ->
@@ -99,113 +84,61 @@ define [ "utils"
 
     utils.build_global_fn 'addService', ['screens/case']
 
-    makeCase = () ->
-      v = global.viewsWare['call-form'].knockVM
-      args =
-        contact_name:   v['callerName_name']()
-        contact_phone1: v['callerName_phone1']()
-        contact_phone2: v['callerName_phone2']()
-        contact_phone3: v['callerName_phone3']()
-        contact_phone4: v['callerName_phone4']()
-        contact_email:  v['callerName_email']()
-        contact_contactOwner: v['callerName_contactOwner']()
-        contact_ownerName:    v['callerName_ownerName']()
-        contact_ownerPhone1:  v['callerName_ownerPhone1']()
-        contact_ownerPhone2:  v['callerName_ownerPhone2']()
-        contact_ownerPhone3:  v['callerName_ownerPhone3']()
-        contact_ownerPhone4:  v['callerName_ownerPhone4']()
-        contact_ownerEmail:   v['callerName_ownerEmail']()
-        program:        v['program']()
-        city:           v['city']()
-        car_make:       v['make']()
-        comment:        v['wazzup']()
-        callTaker: global.user.meta.realName
-      main.buildNewModel 'case', args, {},
-        (a, b, k) ->
-          global.router.navigate("case/#{k.id()}", { trigger: true })
-
-
 
     removeCaseMain = ->
       $("body").off "change.input"
+      $('.navbar').css "-webkit-transform", ""
 
-    # get partners and show them in table
-    # this is called from local.coffe:showCase
-    initPartnerTables = ($view,parentView) ->
-      m = $view[0].id.match(/(\w*)_partner-view/)
-      partnerType = m[1]
-      table = $view.find("table##{partnerType}_partnerTable")
-      kase = global.viewsWare["case-form"].knockVM
-      svc = utils.findCaseOrReferenceVM(parentView)
-      # this options for datatable will hide priorities columns for dealer table
-      tblOpts = if partnerType is "contractor"
-                  {}
-               else
-                  { aoColumns: utils
-                      .repeat(5, null)
-                      .concat(utils.repeat(3, { bVisible: false}))
-                  }
+    # Load case data from contract, possibly ignoring a set of given
+    # case fields
+    loadContract = (cid, ignored_fields) ->
+      date = (v) -> dm.s2c v, "date"
+      fieldMap =
+        [ { from: "carVin", to: "car_vin" }
+        , { from: "carMake", to: "car_make" }
+        , { from: "carModel", to: "car_model" }
+        , { from: "carPlateNum", to: "car_plateNum" }
+        , { from: "carColor", to: "car_color" }
+        , { from: "carTransmission", to: "car_transmission" }
+        , { from: "carEngine", to: "car_engine" }
+        , { from: "contractType", to: "car_contractType" }
+        , { from: "carCheckPeriod", to: "car_checkPeriod" }
+        , { from: "carBuyDate", to: "car_buyDate", proj: date }
+        , { from: "carCheckupDate", to: "car_checkupDate", proj: date }
+        , { from: "carCheckupMilage", to: "car_checkupMileage" }
+        , { from: "milageTO", to: "cardNumber_milageTO" }
+        , { from: "cardNumber", to: "cardNumber_cardNumber" }
+        , { from: "carMakeYear", to: "car_makeYear" }
+        , { from: "contractValidUntilMilage", to: "cardNumber_validUntilMilage" }
+        , { from: "contractValidFromDate", to: "cardNumber_validFrom", proj: date }
+        , { from: "contractValidUntilDate", to: "cardNumber_validUntil", proj: date }
+        , { from: "warrantyStart", to: "car_warrantyStart", proj: date }
+        , { from: "warrantyEnd", to: "car_warrantyEnd", proj: date }
+        , { from: "carSeller", to: "car_seller" }
+        , { from: "carDealerTO", to: "car_dealerTO" }
+        ]
 
-      unless table.hasClass("dataTable")
-        utils.mkDataTable table, $.extend(tblOpts, {sScrollY: "200px"})
-        table.on "click.datatable", "tr", ->
-          name = this.children[0].innerText
-          city = this.children[1].innerText
-          addr = this.children[2].innerText
-          svc["#{partnerType}_partner"](name)
-          svc["#{partnerType}_address"]("#{city}, #{addr}")
-          svc["#{partnerType}_partnerId"]($(this).attr('partnerid'))
+      kvm = global.viewsWare["case-form"].knockVM
+      
+      $.getJSON "/_/contract/#{cid}", (res) ->
+        for field in _.filter fieldMap, ((f) -> !_.contains ignored_fields, f.to)
+          do (field) ->
+            # Do not splice unknown contract fields, do not overwrite
+            # existing case fields
+            if res[field.from]? && _.isEmpty kvm[field.to]()
+              if field.proj?
+                kvm[field.to] field.proj res[field.from]
+              else
+                kvm[field.to] res[field.from]
 
-      table = table.dataTable()
-      # hope that contractor_partner is the only partner
-      dealer = if partnerType is "contractor" then 0 else 1
-      select = ["isActive=1", "isDealer=#{dealer}"]
-      select.push("city=#{kase.city()}") if kase.city()
-      select.push("makes=#{kase.car_make()}")  if kase.car_make()
-      url    = if partnerType is "contractor"
-                  "/partnersFor/#{svc.modelName()}?#{select.join('&')}"
-               else
-                  "/allPartners?#{select.join('&')}"
-      dict = global.dictValueCache['DealerCities']
-      $.getJSON url, (objs) ->
-        # Store partner cache for use with maps
-        cache = {}
-        rows = for p in objs
-          p.name = p.name.trim()
-          cache[p.id] = p
-          [p.name        || '',
-           dict[p.city]  || '',
-           p.addrDeFacto || '',
-           p.phone1      || '',
-           p.workingTime || '',
-           p.priority2   || '',
-           p.priority3   || '',
-           p.priority1   || '',
-           p.id]
-        # this last id will never be shown, but I need this, to add
-        # partnerid as attribute of the row to pass it then to
-        # the service kvm
-        table.data("cache", cache)
-        table.fnClearTable()
-        table.fnSort [[5, "asc"]]
-        r = table.fnAddData(rows)
-        n = table.fnSettings().aoData[ r[0] ]
-        # this will set partnerid attribute to each row
-        # FIXME: find better way to do this
-        for i in r
-          s  = table.fnSettings().aoData[ i ]
-          tr = s.nTr
-          id = s._aData[8]
-          $(tr).attr('partnerid', "partner:#{id}")
+    loadContractCard = (cid) -> loadContract cid, ["cardNumber_cardNumber"]
 
-    #############################################################################
-    # kb hooks
-
+    # Globalize loader so that cards-dict can use it
+    utils.build_global_fn 'loadContractCard', ['screens/case']
 
     { constructor       : setupCaseMain
     , destructor        : removeCaseMain
     , template          : tpl
     , addService        : addService
-    , makeCase          : makeCase
-    , initPartnerTables : initPartnerTables
+    , loadContractCard  : loadContractCard
     }

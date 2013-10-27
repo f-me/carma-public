@@ -1,144 +1,156 @@
 {
-    "name": "action",
-    "title": "Действие",
-    "canCreate": true,
-    "canRead": true,
-    "canUpdate": true,
-    "canDelete": true,
-    "fields": [
-      {
-        "name":"parentId",
-        "canRead": true,
-        "canWrite": true,
-        "meta": {
-          "invisible": true
-        }
+  "fields": [
+    {
+      "meta": {
+        "invisible": true
       },
-      {
-        "name":"caseId",
-        "canRead": true,
-        "canWrite": true,
-        "meta": {
-          "invisible": true
-        }
+      "type": null,
+      "groupName": null,
+      "name": "parentId"
+    },
+    {
+      "meta": {
+        "invisible": true
       },
-      {
-        "name": "name",
-        "canRead": true,
-        "type": "dictionary",
-        "meta": {
-          "dictionaryName": "ActionNames",
-          "invisible": true
-        }
+      "type": null,
+      "groupName": null,
+      "name": "caseId"
+    },
+    {
+      "meta": {
+        "dictionaryName": "ActionNames",
+        "invisible": true
       },
-      {
-        "name": "description",
-        "type": "statictext",
-        "canRead": true
+      "type": "dictionary",
+      "groupName": null,
+      "name": "name"
+    },
+    {
+      "meta": null,
+      "type": "statictext",
+      "groupName": null,
+      "name": "description"
+    },
+    {
+      "meta": {
+        "label": "Ожидаемое время выполнения",
+        "readonly": true
       },
-      {
-        "name": "duetime",
-        "type": "datetime",
-        "canRead": true,
-        "canWrite": true,
-        "meta": {
-          "label": "Ожидаемое время выполнения",
-    	  "readonly": true
-        }
+      "type": "datetime",
+      "groupName": null,
+      "name": "duetime"
+    },
+    {
+      "meta": {
+        "label": "Комментарий"
       },
-      {
-        "name": "comment",
-        "type": "textarea",
-        "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
-        "canWrite":["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
-        "meta": {
-          "label": "Комментарий"
-        }
+      "type": "textarea",
+      "groupName": null,
+      "name": "comment"
+    },
+    {
+      "meta": {
+        "label": "Отложить на",
+        "dictionaryName": "DeferTimes",
+        "regexp": "timespan"
       },
-      {
-        "name": "result",
-        "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
-        "canWrite":["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"], 
-        "type": "dictionary",
-        "meta": {
-          "addClass": "redirectOnChange",
-          "label": "Результат",
-          "dictionaryName": "ActionResults",
-          "dictionaryParent": "name"
-        }
+      "type": "dictionary",
+      "name": "deferBy"
+    },
+    {
+      "meta": {
+        "addClass": "redirectOnChange",
+        "label": "Результат",
+        "dictionaryName": "ActionResults",
+        "dictionaryParent": "name"
       },
-      {
-        "name": "ctime",
-        "type": "datetime",
-        "canRead": true,
-        "meta": {
-          "invisible": true
-        }
+      "type": "dictionary",
+      "groupName": null,
+      "name": "result"
+    },
+    {
+      "meta": {
+        "invisible": true
       },
-      {
-        "name": "mtime",
-        "type": "datetime",
-        "canRead": true,
-        "meta": {
-          "invisible": true
-        }
+      "type": "datetime",
+      "groupName": null,
+      "name": "ctime"
+    },
+    {
+      "meta": {
+        "invisible": true
       },
-      {
-        "name": "openTime",
-        "type": "datetime",
-        "canRead": true,
-        "meta": {
-          "invisible": true
-        }
+      "type": "datetime",
+      "groupName": null,
+      "name": "mtime"
+    },
+    {
+      "meta": {
+        "invisible": true
       },
-      {
-        "name": "closeTime",
-        "type": "datetime",
-        "canRead": true,
-        "meta": {
-          "invisible": true
-        }
+      "type": "datetime",
+      "name": "assignTime"
+    },
+    {
+      "meta": {
+        "invisible": true
       },
-      {
-        "name": "assignedTo",
-        "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
-        "canWrite":["back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"], 
-        "type": "dictionary",
-        "meta": {
-            "label": "Ответственный",
-            "invisible": true,
-            "dictionaryName": "users_with_roles: head, back, supervisor, parguy, account, analyst, op_checker, op_close, op_dealer"
-        }
+      "type": "datetime",
+      "groupName": null,
+      "name": "openTime"
+    },
+    {
+      "meta": {
+        "invisible": true
       },
-      {
-        "name": "targetGroup",
-        "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
-        "canWrite":["back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"], 
-        "type": "dictionary",
-        "meta": {
-            "label": "Роль",
-            "invisible": true,
-            "dictionaryName": "Roles"
-        }
+      "type": "datetime",
+      "groupName": null,
+      "name": "closeTime"
+    },
+    {
+      "meta": {
+        "label": "Ответственный",
+        "invisible": true,
+        "dictionaryType": "BoUsersDict"
       },
-      {
-        "name": "priority",
-        "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
-        "canWrite":["back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"], 
-        "meta": {
-            "label": "Приоритет",
-            "invisible": true
-        }
+      "type": "dictionary",
+      "groupName": null,
+      "name": "assignedTo"
+    },
+    {
+      "meta": {
+        "label": "Роль",
+        "invisible": true,
+        "dictionaryName": "Roles"
       },
-      {
-        "name": "closed",
-        "canRead": ["front","back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman", "account", "parguy"],
-        "canWrite":["back","head", "supervisor", "director", "analyst","parguy", "account", "admin", "programman"], 
-        "type": "checkbox",
-        "meta": {
-            "label": "Закрыто",
-            "invisible": true
-        }
-      }
-    ]
+      "type": "dictionary",
+      "groupName": null,
+      "name": "targetGroup"
+    },
+    {
+      "meta": {
+        "label": "Приоритет",
+        "invisible": true
+      },
+      "type": null,
+      "groupName": null,
+      "name": "priority"
+    },
+    {
+      "meta": {
+        "label": "Закрыто",
+        "invisible": true
+      },
+      "type": "checkbox",
+      "groupName": null,
+      "name": "closed"
+    }
+  ],
+  "applications": [],
+  "canDelete": true,
+  "canUpdate": true,
+  "canRead": true,
+  "canCreate": true,
+  "title": "Действие",
+  "name": "action"
 }

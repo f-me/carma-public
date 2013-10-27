@@ -1,10 +1,11 @@
 define [ "utils"
        , "hotkeys"
        , "model/main"
+       , "screens/partnersSearch"
        , "text!tpl/screens/call.html"
-       ], (utils, hotkeys, main, tpl) ->
+       ], (utils, hotkeys, main, pSearch, tpl) ->
 
-  utils.build_global_fn 'makeCase', ['screens/case']
+  utils.build_global_fn 'makeCase', ['screens/newCase']
   utils.build_global_fn 'reloadScreen', ['utils']
 
   setupCallForm = (viewName, args) ->
@@ -13,24 +14,43 @@ define [ "utils"
                        slotsee    : ["call-number"]
                        focusClass : "focusable"
                        groupsForest : "center"
-    knockVM['callTaker'](global.user.meta.realName)
     $('input[name="callDate"]').parents('.control-group').hide()
     $('input[name="callTaker"]').parents('.control-group').hide()
-    searchTable = $("#call-searchtable")
+    searchTable = $("#call-scrn-searchtable")
     st = utils.mkDataTable searchTable,
       bFilter : false
       fnRowCallback: (nRow) -> $($(nRow).children()[1]).addClass("capitalize")
     searchTable.on("click.datatable", "tr", ->
-      id = this.children[0].innerText
-      window.location.hash = "case/" + id
+      if (searchTable.fnGetPosition this) != null
+        id = this.children[0].innerText
+        window.location.hash = "case/" + id
     )
 
-    $('#search-query').keypress(_.debounce((-> dtSearch st), 1500))
-    $('#search-query').change(-> dtSearch st)
+    isProgramDefined = -> 
+      p = knockVM.program()
+      p && p != ''
+    $('#new-case').prop 'disabled', not isProgramDefined()
+    knockVM.program.subscribe (pgm) ->
+      $('#new-case').prop 'disabled', not isProgramDefined()
+
+    $('#search-help').popover
+      content: "Справка по поиску"
+
+    sq = $('#search-query')
+    sq.tagautocomplete
+      character: '!'
+      source:    {entries: ['!Кейс:', '!VIN:', '!Госномер:', '!Тел:']}
+
+    e = jQuery.Event 'keypress'
+    e.which = 61
+    sq.keypress(_.debounce((-> dtSearch st), 1500))
+      .change(-> sq.trigger e)
+      .focus(-> sq.trigger e)
 
     st.fnSort [[2, "desc"]]
-    dtSearchQ st, new Date().toString("dd.MM.yyyy")
+    dtSearch st
     hotkeys.setup()
+    $("#search-partner").on 'click', partnerSearchClick
 
   fillTable = (st, objs) ->
     st.fnClearTable()
@@ -49,13 +69,25 @@ define [ "utils"
     st.fnAddData(rows)
 
   dtSearch = (st) ->
-    dtSearchQ st, $('#search-query').val()
+    q = $('#search-query').val().trim()
+    q = q.replace '+', ''
+    url = if q.length == 0 then "/latestCases" else "/searchCases?q=#{q}"
+    $.getJSON url, (objs) -> fillTable st, objs
 
-  dtSearchQ = (st, q) ->
-    fields = "id,contact_name,callDate,contact_phone1,car_plateNum,car_vin,program,comment"
-    searchIn = "id,callDate,comment,callTaker,betaComment,caseStatus,city,dealerCause,contact_name,contact_phone1,contact_phone2,contact_phone3,contact_phone4,contact_ownerEmail,contact_ownerName,contact_ownerPhone1,contact_ownerPhone2,contact_ownerPhone3,contact_ownerPhone4,car_vin,car_plateNum,car_make,car_model,car_makeYear,car_buyDate,car_color,car_checkupDate,car_seller,car_dealerTO,cardNumber_cardNumber,cardNumber_cardOwner,caseAddress_address,program"
-    $.getJSON("/search/case?q=#{q}&fields=#{searchIn}&select=#{fields}&limit=120", (objs) ->
-      fillTable(st, objs))
+  partnerSearchClick = ->
+    kvm = global.viewsWare['call-form'].knockVM
+    if kvm.callerType() == "client" or _.isEmpty kvm.callerType()
+      kvm.callerType("client")
+      kvm.callType("switchDealer")
+
+    # Subscribe call model to updates to coords & address fields
+    for f in ["coords", "address"]
+      do (f) ->
+        n = pSearch.subName f, "call", kvm.id()
+        global.pubSub.sub n, kvm[f]
+      
+    localStorage[pSearch.storeKey] = JSON.stringify kvm._meta.q.toRawObj()
+    pSearch.open('call')
 
   { constructor: setupCallForm
   , template: tpl

@@ -2,6 +2,23 @@ define ["model/utils"], (mu) ->
   # jquery -> html(as string) conversion, with selected element
   jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
 
+  # Synchronous JSON request
+  $.bgetJSON = (url, cb) ->
+    $.ajax
+      type     : 'GET'
+      url      : url
+      dataType : 'json'
+      success  : cb
+      async    : false
+
+  $.putJSON = (url, obj) ->
+    $.ajax
+      type        : "PUT"
+      url         : url
+      data        : JSON.stringify obj
+      processData : false
+      contentType : "application/json"
+
   # Find VM of reference in a case by its view name.
   findCaseOrReferenceVM = (view) ->
     kase = global.viewsWare["case-form"].knockVM
@@ -25,21 +42,12 @@ define ["model/utils"], (mu) ->
       $span.fadeOut(2000))
     , 500)
 
-  window.users_with_roles = (roles) ->
-    f = _.filter global.all_users, (u) ->
-      not _.isEmpty(_.intersection(roles, u.roles.split ','))
-    entries: for i in f
-      { value: i.value, label: "#{i.label} (#{i.value})" }
-
-
   window.getDictionary = (d) ->
-    console.log 'dicts', d
     dict = global.dictionaries[d]
-    console.log 'found dict', dict
     return dict if dict
-    console.log 'gonna eval'
     return eval(d)
 
+  String.prototype.capitalize = -> @charAt(0).toUpperCase() + @slice(1)
 
   bindRemove = (parent, field, cb) ->
     for i in parent["#{field}Reference"]()
@@ -71,6 +79,55 @@ define ["model/utils"], (mu) ->
     s
 
   modelsFromUrl = -> window.location.hash.match(/#(.*)\/.*/)[1]
+
+  # Generate a random password of given length (default 10)
+  genPassword = (len) ->
+    chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz123456789"
+    temp = ""
+    tlen = len || 10
+    for i in [0..tlen]
+      temp += chars.charAt Math.floor Math.random() * chars.length
+    return temp
+
+  isMatch = (q, str) -> !!~String(str).toLowerCase().indexOf(q.toLowerCase())
+
+  kvmCheckMatch = (q, kvm) ->
+    v = for f in kvm._meta.model.fields
+      if f.type == "dictionary"
+        isMatch(q, kvm["#{f.name}Local"]())
+      else if f.type == "dictionary-many"
+        checkMatch(q, _.pluck(kvm["#{f.name}Locals"](), 'label'))
+      else if f.type == "reference"
+        _.any kvm["#{f.name}References"](), (k) -> kvmCheckMatch(q, k)
+      else if f.type == "nested-model"
+        _.any kvm["#{f.name}Nested"](), (k) -> kvmCheckMatch(q, k)
+      else if f.type == "json" and f.meta?.jsonSchema == "dict-objects"
+        _.any kvm["#{f.name}Objects"](),
+              (k) -> _.any ['keyLocal', 'value', 'note'],
+                          (s) -> checkMatch(q, k[s]?())
+      else
+        checkMatch(q, kvm[f.name]())
+
+    _.any v
+
+  # deep check that anything in @val@ has @q@
+  checkMatch = (q, val) ->
+    if _.isArray val
+      _.any val, (a) -> checkMatch(q, a)
+    else if _.isObject val
+      _.any (checkMatch(q, v) for k, v of val), _.identity
+    else
+      !!~String(val).toLowerCase().indexOf(q.toLowerCase())
+  window.checkMatch = checkMatch
+
+  # Format a numeric value from seconds to hours and minutes
+  formatSec = (s) ->
+    mins = Math.round(s / 60 % 60)
+    hours = Math.floor(s / 3600 % 3600)
+    if hours == 0
+      "#{mins}м"
+    else
+      "#{hours}ч #{mins}м"
 
   findCaseOrReferenceVM: findCaseOrReferenceVM
 
@@ -112,12 +169,15 @@ define ["model/utils"], (mu) ->
   # field groups. If the view name is "case-form", then return knockVM
   # for case.
   findVM: (view) ->
-    vw = global.viewsWare[view]
-    if vw and vw.parentView?
+    if global.viewsWare["case-form"]
+      vw = global.viewsWare[view]
+      if vw and vw.parentView?
         # Find VM of a group rendered in a view.
         findCaseOrReferenceVM(vw.parentView)
+      else
+        findCaseOrReferenceVM(view)
     else
-      findCaseOrReferenceVM(view)
+      global.viewsWare[view].knockVM
 
   # Strip whitespace from string
   stripWs: (s) -> do (s) -> s.replace(/\s+/g, '')
@@ -141,9 +201,22 @@ define ["model/utils"], (mu) ->
       view: view_name
       field: field_name
 
+  # Calculate delta between two timestamps, return formatted and
+  # unformatted delta in a list. If second timestamp is omitted,
+  # current time is used.
+  timeFrom: (from, to) ->
+    return null if _.isEmpty from
+    from = new Date(from * 1000)
+    if _.isEmpty to
+      to = new Date()
+    else
+      to = new Date(to * 1000)
+    delta = (to - from) / 1000
+    return [formatSec delta, delta]
+
   # Format a numeric value from seconds to minutes
   formatSecToMin: (s) ->
-    Math.round(s / 60) + "m"
+    Math.round(s / 60) + "м"
 
   # Hide all views on center pane and show view for first reference
   # stored in <fieldName> of model loaded into <parentView> there
@@ -155,11 +228,6 @@ define ["model/utils"], (mu) ->
     $(".complex-field").hide()
 
     view.show ->
-      isDealerView = depViewName.match(/towDealer_partner-view/)
-      isPartnerView = depViewName.match(/contractor_partner-view/)
-      if isDealerView or isPartnerView
-        require ["screens/case"], (c) -> c.initPartnerTables view, parentView
-
       require ["map"], (map) ->
         map.initOSM(e, parentView) for e in view.find(".osMap")
 
@@ -175,9 +243,14 @@ define ["model/utils"], (mu) ->
     require ["map"], (map) ->
       pickers =
         callPlease: (modelName) ->
-          bb = global.viewsWare["call-form"].bbInstance
-          number = bb.get(modelName)
+          kvm = global.viewsWare["call-form"].knockVM
+          number = kvm[modelName]?()
           global.avayaPhone && global.avayaPhone.call(number)
+        # Set a field to a new randomly generated password
+        passwordPicker   : (fieldName, el) ->
+          viewName = mu.elementView($(el)).id
+          kvm = global.viewsWare[viewName].knockVM
+          kvm[fieldName] genPassword()
         geoPicker        : map.geoPicker
         reverseGeoPicker : map.reverseGeoPicker
         mapPicker        : map.mapPicker
@@ -195,15 +268,50 @@ define ["model/utils"], (mu) ->
     return if acc.hasClass('in')
     acc.collapse('show')
 
+  # Add selected-row class to a datatables row, remove this class from
+  # all other rows in the same table
+  highlightDataTableRow: (tr) ->
+    tr.siblings(".selected-row").removeClass("selected-row")
+    tr.addClass("selected-row")
+
   getWeather: (city, cb) ->
     url = "/#{city}"
     $.getJSON "/weather/#{city}", (data) -> cb(data)
 
-  focusRef: (kvm) ->
-    e = $('#' + kvm['view'])
-    e.parent().prev()[0].scrollIntoView()
-    e.find('input')[0].focus()
-    e.find('input').parents(".accordion-body").first().collapse('show')
+  # Extract value of the first object from "dict-objects"-field JSON
+  # contents with matching "key". If no such entries found, return
+  # null.
+  getKeyedJsonValue: (json, key) ->
+    if json?.length > 0
+      o = _.find json, (o) -> o.key == key
+      if o?
+        o.value
+      else
+        null
+
+  # Set value of the first object from "dict-objects"-field JSON
+  # contents with matching "key" (create it if no object matches key),
+  # return new JSON string.
+  setKeyedJsonValue: (json, key, value) ->
+    newObj =
+      key: key
+      value: value
+    if json?
+      o = _.find json, (o) -> o.key == key
+      if o?
+        o.value = value
+      else
+        json = json.concat [newObj]
+    else
+      json = [newObj]
+    json
+
+  # Transform distance in meters to km
+  formatDistance: (dist) -> Math.round ((parseInt dist) / 1000)
+
+  # FIXME: remove this function definition
+  # and correct module dependencies
+  focusRef: mu.focusReference
 
   bindRemove: bindRemove
 
@@ -212,7 +320,7 @@ define ["model/utils"], (mu) ->
       deleteCb = (args...) -> cb(args) if _.isFunction cb
       $.ajax
         'type'     : 'DELETE'
-        'url'      : "/_/#{kvm.modelName()}/#{kvm.id()}"
+        'url'      : "/_/#{kvm._meta.model.name}/#{kvm.id()}"
         'success'  : -> deleteCb
         'error'    : (xhr) ->
           if xhr.status == 404
@@ -229,8 +337,13 @@ define ["model/utils"], (mu) ->
 
   splitVals: (v) ->
     return [] if not v or v == ""
+    # some times we send them as array right from backend
+    return v if _.isArray v
     v.split ','
 
   modelsFromUrl: modelsFromUrl
 
   reloadScreen: -> global.router.navigate modelsFromUrl(), { trigger: true }
+
+  checkMatch: checkMatch
+  kvmCheckMatch: kvmCheckMatch
