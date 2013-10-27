@@ -69,8 +69,6 @@ import AppHandlers.Users
 import Util as U hiding (render)
 import RuntimeFlag
 
-import GitStats
-
 import Carma.Model
 import Data.Model.Patch (Patch)
 import qualified Data.Model.Patch.Sql as Patch
@@ -79,17 +77,6 @@ import qualified Data.Model.Patch.Sql as Patch
 -- | Render empty form for model.
 indexPage :: AppHandler ()
 indexPage = ifTop $ render "index"
-
-
-------------------------------------------------------------------------------
--- | Serve a JSON object with build-time Git information.
-serveGitStats :: AppHandler ()
-serveGitStats =
-    writeJSON $
-    Aeson.object [ "gitCommitHash" .= gitCommitHash
-                 , "gitCommitTime" .= gitCommitTime
-                 ]
-
 
 ------------------------------------------------------------------------------
 -- | Redirect using 303 See Other to login form.

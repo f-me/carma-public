@@ -41,6 +41,7 @@ import AppHandlers.PSA
 import AppHandlers.ContractGenerator
 import AppHandlers.Users
 import AppHandlers.Screens
+import AppHandlers.GitStats
 
 ------------------------------------------------------------------------------
 -- | The application's routes.
@@ -87,6 +88,7 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
                              chkAuth . method GET    $ findSameContract)
          , ("/_whoami/",      chkAuth . method GET    $ serveUserCake)
          , ("/_version/",     chkAuth . method GET    $ serveGitStats)
+         , ("/_releases/",    chkAuth . method GET    $ serveReleases)
          , ("/_/:model",      chkAuth . method POST   $ createHandler)
          , ("/_/:model",      chkAuth . method GET    $ readManyHandler)
          , ("/_/:model/:id",  chkAuth . method GET    $ readHandler)

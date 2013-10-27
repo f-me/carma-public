@@ -109,7 +109,10 @@ Executable carma
     vin-parser                  >= 0.7.1 && < 0.8,
     weather-api                 >= 0.4.3,
     xlsx                        >= 0.0.2.1 && < 0.1,
-    process-extras              == 0.2.*
+    process-extras              == 0.2.*,
+    process                     == 1.1.*,
+    blaze-markup                == 0.5.*,
+    blaze-html                  == 0.6.*
 
   if !os(windows)
     build-depends:
