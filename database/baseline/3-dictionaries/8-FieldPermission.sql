@@ -191,19 +191,16 @@ lovViewer	Role	value	t	f
 lovAdmin	Role	value	t	f
 lovViewer	Role	isBack	t	f
 lovAdmin	Role	isBack	t	t
-
 lovAdmin	FieldPermission	role	t	f
 lovAdmin	FieldPermission	model	t	f
 lovAdmin	FieldPermission	field	t	f
 lovAdmin	FieldPermission	r	t	t
 lovAdmin	FieldPermission	w	t	t
-
 lovViewer	FieldPermission	role	t	f
 lovViewer	FieldPermission	model	t	f
 lovViewer	FieldPermission	field	t	f
 lovViewer	FieldPermission	r	t	f
 lovViewer	FieldPermission	w	t	f
-
 psaanalyst	case	accord	t	t
 core	case	actions	t	f
 core	case	betaComment	t	t
