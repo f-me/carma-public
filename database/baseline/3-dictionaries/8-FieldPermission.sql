@@ -285,6 +285,14 @@ lovViewer	City	timezone	t	f
 lovAdmin	City	timezone	t	t
 lovViewer	City	value	t	f
 lovAdmin	City	value	t	t
+lovViewer	SmsTemplate	id	t	f
+lovAdmin	SmsTemplate	id	t	f
+lovViewer	SmsTemplate	label	t	f
+lovAdmin	SmsTemplate	label	t	f
+lovViewer	SmsTemplate	text	t	f
+lovAdmin	SmsTemplate	text	t	t
+lovViewer	SmsTemplate	isActive	t	f
+lovAdmin	SmsTemplate	isActive	t	t
 core	consultation	assignedTo	t	f
 billManager	consultation	bill_billingCost	t	t
 billManager	consultation	bill_billingDate	t	t
