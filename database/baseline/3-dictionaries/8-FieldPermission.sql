@@ -1466,3 +1466,6 @@ userViewer	usermeta	workPhoneSuffix	t	f
 INSERT INTO "FieldPermission" (role, model, field, r, w)
 (SELECT r.id, fp.model, fp.field, fp.r, fp.w FROM "FieldPermission_tmp" fp, "Role" r
  WHERE r.value = fp.role);
+
+GRANT ALL ON "FieldPermission" TO carma_search;
+GRANT ALL ON "FieldPermission" TO carma_db_sync;
