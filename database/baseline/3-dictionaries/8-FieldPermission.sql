@@ -185,6 +185,12 @@ lovViewer	CarModel	parent	t	f
 lovAdmin	CarModel	parent	t	t
 lovViewer	CarModel	value	t	f
 lovAdmin	CarModel	value	t	t
+lovViewer	Role	label	t	f
+lovAdmin	Role	label	t	t
+lovViewer	Role	value	t	f
+lovAdmin	Role	value	t	f
+lovViewer	Role	isBack	t	f
+lovAdmin	Role	isBack	t	t
 psaanalyst	case	accord	t	t
 core	case	actions	t	f
 core	case	betaComment	t	t
