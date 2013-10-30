@@ -129,7 +129,9 @@ define ["utils"
         type: "dictionary-many"
         meta:
           label: "Роли"
-          dictionaryName: "Roles"
+          dictionaryType: "ComputedDict"
+          dictionaryName: "backofficeRoles"
+          bounded: true
       ]
 
     roleKVM = main.buildKVM roleModel, {}

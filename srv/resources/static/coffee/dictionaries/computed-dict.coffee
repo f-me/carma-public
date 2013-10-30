@@ -10,6 +10,12 @@ define ["dictionaries/local-dict"
 
     getLab: (val) -> @dictValues()[val]
 
+    # List of Role instances with isBack=true (used on #supervisor)
+    backofficeRoles: =>
+      $.bgetJSON "/_/Role", (objs) =>
+        @source = for obj in (_.filter objs, (o) -> o.isBack)
+          { value: obj.id, label: obj.label || '' }
+
     # Dictionary of all user-created programs, used in case model
     # (TODO backwards-compatible hack for #711)
     casePrograms: =>
