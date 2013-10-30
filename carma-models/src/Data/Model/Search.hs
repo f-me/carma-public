@@ -21,7 +21,7 @@ import qualified Data.Map as Map
 import           Data.Vector (Vector, fromList)
 import qualified Data.Vector as V
 
-import           Data.Time.Calendar (Day)
+import           Data.Time.Clock (UTCTime)
 
 import           Data.Aeson as Aeson
 import           Database.PostgreSQL.Simple as PG
@@ -96,10 +96,10 @@ matchAny = concat
 interval
  :: forall m nm desc
  . (SingI nm, SingI desc, Model m)
- => (m -> F Day nm desc) -> [Predicate m]
+ => (m -> F UTCTime nm desc) -> [Predicate m]
 interval _
  = map (\p -> p {matchType = MatchInterval})
- $ one (undefined :: m -> F (Interval Day) nm desc)
+ $ one (undefined :: m -> F (Interval UTCTime) nm desc)
 
 renderPredicate
   :: PG.Connection -> HashMap Text [Predicate m] -> Aeson.Object
