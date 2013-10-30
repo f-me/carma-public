@@ -1,4 +1,4 @@
-UPDATE actiontbl SET targetGroup = '14' WHERE targetGroup = '4';
+UPDATE actiontbl SET targetGroup = '23' WHERE targetGroup = '4';
 UPDATE actiontbl SET targetGroup = '24' WHERE targetGroup = '5';
 UPDATE actiontbl SET targetGroup = '29' WHERE targetGroup = '7';
 UPDATE actiontbl SET targetGroup = '13' WHERE targetGroup = '18';
