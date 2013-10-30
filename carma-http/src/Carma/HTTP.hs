@@ -296,18 +296,22 @@ getAllKeyedJsonValues field key =
 setKeyedJsonValue :: FieldValue
                   -- ^ Contents of JSON field using dict-objects
                   -- schema.
-                  -> FieldValue
-                  -- ^ Key.
+                  -> Either FieldValue FieldValue
+                  -- ^ Key. When Right, the value is written to key
+                  -- itself, otherwise key's note is used.
                   -> FieldValue
                   -- ^ Value.
                   -> FieldValue
-setKeyedJsonValue field key value =
+setKeyedJsonValue field selector value =
   let
     parsed :: Maybe [M.HashMap FieldName FieldValue]
     parsed = decode' $ BSL.fromStrict field
+    (key, subField) = case selector of
+                    Right s -> (s, "value")
+                    Left s  -> (s, "note")
     newEntry = M.fromList $
                [ ("key", key)
-               , ("value", value)
+               , (subField, value)
                ]
     keyPred o = fromMaybe "" (M.lookup "key" o) == key
   in
