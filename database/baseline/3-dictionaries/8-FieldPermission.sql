@@ -1485,10 +1485,10 @@ userAdmin	usermeta	workPhone	t	t
 userViewer	usermeta	workPhone	t	f
 userAdmin	usermeta	workPhoneSuffix	t	t
 userViewer	usermeta	workPhoneSuffix	t	f
-lovViewer	ProgramInfo	label	t	f
-lovAdmin	ProgramInfo	label	t	t
-lovViewer	ProgramInfo	value	t	f
-lovAdmin	ProgramInfo	value	t	t
+lovViewer	ProgramInfo	info	t	f
+lovAdmin	ProgramInfo	info	t	t
+lovViewer	ProgramInfo	program	t	f
+lovAdmin	ProgramInfo	program	t	t
 lovViewer	ServiceInfo	program	t	f
 lovAdmin	ServiceInfo	program	t	t
 lovViewer	ServiceInfo	service	t	f
