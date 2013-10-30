@@ -2,15 +2,14 @@ define ["utils"], ->
 
   class FieldsDynView
     constructor: (@searchKVM, {@labels, @groups}, @defaults) ->
-      fixed   = _.chain(@defaults)
-        .filter((f) -> f.fixed)
-        .map((f) -> "#{f.model}_#{f.name}")
-        .value()
+      d = _.difference (_.pluck @defaults, 'name'), (_.keys @groups)
+      # console.log _.keys @groups
+      unless _.isEmpty d
+        throw new Error("Unknown groups: #{d}, available: #{_.keys @groups}")
 
-      dyndefs = _.chain(@defaults)
-        .reject((f) -> f.fixed)
-        .map((f) -> "#{f.model}_#{f.name}")
-        .value()
+      fixed   = _.chain(@defaults).filter((f) -> f.fixed).pluck('name').value()
+
+      dyndefs = _.chain(@defaults).reject((f) -> f.fixed).pluck('name').value()
 
       @dynamic    = ko.observableArray dyndefs
       @showFields = ko.computed => fixed.concat @dynamic()
@@ -48,6 +47,7 @@ define ["utils"], ->
     name:  s.split('_')[1..-1].join('_')
 
   mkFieldsDynView: (searchKVM, {labels, groups}, defaults) ->
+    # console.log (new FieldsDynView searchKVM, {labels, groups}, defaults).showFields()
     labels: labels
     groups: groups
     fields: (new FieldsDynView searchKVM, {labels, groups}, defaults).showFields

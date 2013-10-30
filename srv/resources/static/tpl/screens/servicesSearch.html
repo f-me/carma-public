@@ -12,8 +12,8 @@
       </thead>
       <tbody>
         <!-- ko foreach: kvms -->
-        <tr data-bind="foreach: $root.showFields">
-          <td data-bind="render: $parent" />
+        <tr data-bind="foreach: $root.showFields.fields">
+          <td data-bind="renderGroup: $parent" />
         </tr>
         <!-- /ko -->
       </tbody>
@@ -39,22 +39,20 @@
   </div>
 </script>
 
-
-<script type="text/template" id="dictionary-txt-template">
-  <div data-bind="text: $parent[name + 'Local']" />
+<script type="text/template" id="group-ro-template">
+  <div data-bind="foreach: fields" >
+    <div data-bind="render: $data" />
+  </div>
 </script>
 
-<script type="text/template" id="dictionary-txt-template">
-  <!-- ko text: $parent[name + 'Local'] -->
-  <!-- /ko -->
+<script type="text/template" id="dictionary-ro-template">
+  <div data-bind="text: kvm[name + 'Local']" />
 </script>
 
-<script type="text/template" id="text-txt-template">
-  <!-- ko text: $parent[name] -->
-  <!-- /ko -->
+<script type="text/template" id="text-ro-template">
+  <div data-bind="text: kvm[name]" />
 </script>
 
-<script type="text/template" id="checkbox-txt-template">
-  <!-- ko text: $parent[name]() ? '✓' : '' -->
-  <!-- /ko -->
+<script type="text/template" id="checkbox-ro-template">
+  <div data-bind="text: kvm[name]() ? '✓' : ''" />
 </script>

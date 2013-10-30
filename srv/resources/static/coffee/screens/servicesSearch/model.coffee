@@ -1,6 +1,7 @@
 define [ "json!/cfg/model/Case", "utils"]
        ,(ms...) ->
-  allModels = arrToObj 'name', ms
+
+  allModels = arrToObj 'name', ms[0...-1]
 
   resultFields =
     Case: [
@@ -29,7 +30,8 @@ define [ "json!/cfg/model/Case", "utils"]
       "towdealer_address"
       ]
 
+  # make deep copy of required models, so we wont brake them somewhere
   all = $.extend true, {}, allModels
   for n,m of all
     m.fields = _.filter m.fields, (f) -> _.contains resultFields[n], f.name
-  return all
+  arrToObj 'name', all

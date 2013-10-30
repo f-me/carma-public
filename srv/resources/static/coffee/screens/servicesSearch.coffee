@@ -44,21 +44,6 @@ define [ "utils"
   constructor: ->
     searchKVM = main.buildKVM model, {}
 
-    tg = smodel.transformFields searchKVM, ssmodels
-    rfields = smodel.mkFieldsDynView searchKVM, tg,
-      [ { model: 'Case', name: 'id', fixed: true }
-      , { model: 'Case', name: 'city'    }
-      , { model: 'Case', name: 'car_vin' }
-      , { model: 'Case', name: 'program' }
-      ]
-
-    ctx =
-      kvms: ko.sorted { kvms: [], sorters: mutils.buildSorters(model)}
-      showFields: rfields
-      searchKVM: searchKVM
-
-    ko.applyBindings ctx, $("#search-results")[0]
-
 # Кейс
 # Телефон
 # Госномер
@@ -96,11 +81,66 @@ define [ "utils"
                           , "city"
                           ] )
 
+    unionFields = (mkvms) ->
+      fs = {}
+      for k,kvm of mkvms
+        for f in kvm._meta.model.fields
+          fs["#{k}_#{f.name}"] = kvm[f.name]
+      return fs
+
+    robs = ko.observable([])
+    searchKVM.searchResults = ko.computed
+      read: -> _.map robs(), unionFields
+      write: (v) -> robs(buildKVMS ssmodels, fixNames ssmodels, v)
+
+    # We receiving all fieldnames in lowercase (at least for now)
+    # so we have to translate them into normal ones according to
+    # their model
+    fixNames = (ssmodels, v) -> _.map v, (v) -> fixName ssmodels, v
+
+    fixName = (models, rawInst) ->
+      fixed = {}
+      for m, fs of models
+        fnames = _.pluck fs.fields, 'name'
+        fields = {}
+        for fn in fnames
+          fields[fn] = rawInst[m.toLowerCase()][fn.toLowerCase()]
+        fixed[m] = fields
+      return fixed
+
+    buildKVMS = (models, raws) -> _.map raws, (r) -> buildKVM models, r
+
+    buildKVM = (models, rs) ->
+      r = {}
+      for n, m of models
+        r[n] = main.buildKVM m, { fetched: rs[n] }
+      return r
+
+    q = new sync.ServicesSearchQ(searchKVM)
+    searchKVM._meta.q = q
 
     ko.applyBindings { kvm: searchKVM, wrapFields: "search-wrap"},
                      $("#search-conditions")[0]
 
     ko.applyBindings { kvm: searchKVM, f: _.last(searchKVM._meta.model.fields) },
                      $("#show-field")[0]
+
+    # all about results
+    tg = smodel.transformFields searchKVM, ssmodels
+    rfields = smodel.mkFieldsDynView searchKVM, tg,
+      [ { name: 'Case_id', fixed: true }
+      , { name: 'city'    }
+      , { name: 'vin' }
+      , { name: 'program' }
+      ]
+
+    ctx =
+      kvms: ko.sorted
+        kvms: searchKVM.searchResults
+        sorters: mutils.buildSorters(model)
+      showFields: rfields
+      searchKVM: searchKVM
+
+    ko.applyBindings ctx, $("#search-results")[0]
 
   template: tpl

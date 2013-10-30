@@ -35,11 +35,6 @@ ko.bindingHandlers.bindDict =
     $(el).next().on 'click', th.drawAll
 
 
-ko.bindingHandlers.render =
-  init: (el, acc, allBindigns, ctx) ->
-    tpl = acc()._meta.tpls[ctx.name]
-    ko.utils.setHtml el, tpl
-
 ko.bindingHandlers.sort =
   update: (el, name, allBindings, viewModel, ctx) ->
     # add icon to show sorting direction
@@ -100,3 +95,19 @@ ko.bindingHandlers.renderField =
     ko.utils.setHtml el, tpl
     ko.applyBindingsToDescendants(context, el)
     return { controlsDescendantBindings: true }
+
+ko.bindingHandlers.renderGroup =
+  init: (el, acc, allBindigns, fld, ctx) ->
+    group = ctx.$root.showFields.groups[fld]
+    fs = _.map group, (g) -> acc()[g]
+    ko.utils.setHtml el, $("#group-ro-template").html()
+    ko.applyBindingsToDescendants({ fields: fs }, el)
+    return { controlsDescendantBindings: true }
+
+ko.bindingHandlers.render =
+  init: (el, acc, allBindigns, ctx) ->
+    console.log acc()
+    fn = acc().field.name
+    tpl = $("##{fn}-ro-template").html()
+    # tpl = acc()._meta.tpls[ctx.name]
+    ko.utils.setHtml el, tpl
