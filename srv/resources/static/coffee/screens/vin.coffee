@@ -11,7 +11,7 @@ define [ "text!tpl/screens/vin.html"
     # by portal users, use appropriate set of programs.
     dict = (n) -> new d.dicts["ComputedDict"]({ dict: n })
     programs = dict('vinPrograms').source
-    if _.contains(global.user.roles, role.psaanalyst)
+    if !_.contains(global.user.roles, role.psaanalyst)
       all_html = vin_html
     else
       all_html = vin_html + partner_html
