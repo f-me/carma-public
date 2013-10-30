@@ -10,7 +10,7 @@ require [ "domready"
         , "json!/allUsers"
         , "utils"
         , "sendSms"
-        , "dictionaries/bug-report"
+        , "lib/bug-report"
         , "lstorePubSub"
         ], ( dom
            , main

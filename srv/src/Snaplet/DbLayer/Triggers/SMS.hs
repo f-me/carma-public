@@ -1,4 +1,4 @@
-
+{-# LANGUAGE QuasiQuotes #-}
 module Snaplet.DbLayer.Triggers.SMS where
 
 import Control.Applicative
@@ -10,6 +10,7 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString as B
 import Data.Text (Text)
 import qualified Data.Text.Encoding as T
+import qualified Data.Text.Read as T
 import qualified Data.Text as T
 import qualified Data.Map as Map
 import Data.Maybe
@@ -19,8 +20,13 @@ import System.Locale
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
-import DictionaryCache
 
+import qualified Snap.Snaplet.PostgresqlSimple as PG
+import Database.PostgreSQL.Simple.SqlQQ
+import Data.Model as Model
+import Carma.Model.SmsTemplate (SmsTemplate)
+
+import DictionaryCache
 import Util as U
 
 
@@ -32,8 +38,13 @@ formatDate unix = do
     Left  _  -> "неизвестно"
 
 
+parseInt :: ByteString -> Int
+parseInt txt = res
+  where
+    Right (res,_) =  T.decimal $ T.decodeUtf8 txt
 
-sendSMS :: MonadTrigger m b => ByteString -> ByteString -> m b ()
+
+sendSMS :: MonadTrigger m b => ByteString -> Model.Ident SmsTemplate -> m b ()
 sendSMS actId tplId = do
   dic <- liftDb $ getDict id
 
@@ -66,7 +77,9 @@ sendSMS actId tplId = do
           ,("service.times_factServiceStart", fSvcStart)
           ,("service.times_expectedServiceStart", eSvcStart)
           ]
-    templateText <- T.decodeUtf8 <$> tplId `get` "text"
+    [[templateText]] <- liftDb $ PG.query
+      [sql| select text from "SmsTemplate" where id = ? |]
+      [tplId]
     let msg = T.encodeUtf8 $ U.render varMap templateText
 
     now <- dateNow id
@@ -75,7 +88,7 @@ sendSMS actId tplId = do
       ,("caseId", caseId)
       ,("svcId", svcId)
       ,("phone", phone)
-      ,("template", tplId)
+      ,("template", T.encodeUtf8 $ T.pack $ show $ identVal tplId)
       ,("auto", "true")
       ,("msg", msg)
       ,("sender", sender)
@@ -98,9 +111,13 @@ updateSMS smsId = do
       >>= add "case.contact_name" caseId "contact_name"
       >>= add "case.caseAddress_address" caseId "caseAddress_address"
 
-    msg <- get smsId "msg"
     _ <- get smsId "template"
-    tmp <- T.decodeUtf8 <$> (get smsId "template" >>= (`get` "text"))
+    tplId <- get smsId "template"
+    [[tmp]] <- liftDb $ PG.query
+      [sql| select text from "SmsTemplate" where id = ?::int |]
+      [tplId]
+
+    msg <- get smsId "msg"
     when (msg == "" && tmp /= "") $ do
       let txt = T.encodeUtf8 $ U.render varMap tmp
       set smsId "msg" txt

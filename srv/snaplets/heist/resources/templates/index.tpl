@@ -420,6 +420,7 @@
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
            {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
+           {{# meta.visibility }}data-bind="visible: {{name}}Visible"{{/ meta.visibility}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -994,6 +995,43 @@
             class="field-template"
             id="group-field-template">
       <div class="control-group">
+        <div class="control-label">
+          <label>{{ meta.label }}
+            {{# meta.infoText1 }}
+              <i class="icon icon-question-sign"
+                 data-provide="popover"
+                 data-content="{{ meta.infoText1 }}" />
+            {{/ meta.infoText1 }}
+          </label>
+        </div>
+        <div class="controls">
+          <div class="input-append">
+            <input type="text"
+                   name= {{ name }}
+                   class="pane-span"
+                   autocomplete="off"
+                   {{# meta.transform }}
+                      style="text-transform:{{meta.transform}};"
+                   {{/ meta.transform }}
+                   onfocus="showComplex('{{ viewName }}', '{{ name }}');"
+                   {{# readonly }}readonly{{/ readonly }}
+                   data-bind="value: {{ name }},
+                              valueUpdate: 'afterkeydown',
+                              disabled: {{ name }}Disabled" />
+            <span class="add-on">
+              <i onclick="showComplex('{{ viewName }}', '{{ name }}');"
+                 class="icon icon-share" />
+            </span>
+          </div>
+        </div>
+      </div>
+    </script>
+
+    <script type="text/template"
+            class="field-template"
+            id="vin-field-template">
+      <div class="control-group"
+           data-bind="css: { 'vin-expired': vinExpired }">
         <div class="control-label">
           <label>{{ meta.label }}
             {{# meta.infoText1 }}

@@ -55,7 +55,8 @@
     },
     {
       "meta": {
-        "dictionaryName": "smsTpl",
+        "dictionaryType": "ModelDict",
+        "dictionaryName": "SmsTemplate",
         "label": "Шаблон"
       },
       "type": "dictionary",

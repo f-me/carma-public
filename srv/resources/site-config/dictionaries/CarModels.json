@@ -517,7 +517,7 @@
         "kia": [
             {
                 "value": "ceed",
-                "label": "Cee'd"
+                "label": "Ceed"
             },
             {
                 "value": "cerato",
@@ -528,9 +528,17 @@
                 "label": "Magentis"
             },
             {
+                "value": "mohave",
+                "label": "Mohave"
+            },            
+            {
                 "value": "opirus",
                 "label": "Opirus"
             },
+            {
+                "value": "optima",
+                "label": "Optima"
+            },            
             {
                 "value": "picanto",
                 "label": "Picanto"
@@ -539,6 +547,26 @@
                 "value": "rio",
                 "label": "Rio"
             },
+            {
+                "value": "quoris",
+                "label": "Quoris"
+            },
+            {
+                "value": "venga",
+                "label": "Venga"
+            },
+            {
+                "value": "soul",
+                "label": "Soul"
+            },
+            {
+                "value": "sportage",
+                "label": "Sportage"
+            },
+            {
+                "value": "sorento",
+                "label": "Sorento"
+            },            
             {
                 "value": "spectra",
                 "label": "Spectra"

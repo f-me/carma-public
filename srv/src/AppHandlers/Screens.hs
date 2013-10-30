@@ -91,8 +91,18 @@ processScreens ss rls prms = reverse $ foldl prcScr [] ss
 readScreens :: IO (Either String Screens)
 readScreens = eitherDecode <$> L8.readFile "resources/site-config/screens.json"
 
+-- | Select user roles and programs. User roles are converted to
+-- internal values since screens.json references roles by values and
+-- currently we have no way to extract ident by string on Haskell side
+-- (FIXME)
 q :: Query
-q = [sql| SELECT roles, programs FROM usermetatbl WHERE uid = ? |]
+q = [sql|
+WITH u AS
+(SELECT unnest(roles) AS id, programs FROM usermetatbl WHERE uid = ?)
+SELECT DISTINCT s.roles, u.programs FROM
+(SELECT array_agg(value) AS roles FROM u, "Role" r
+ WHERE r.id=u.id::integer) s, u;
+|]
 
 qProgram :: Query
 qProgram = [sql| SELECT id::text, label FROM programtbl WHERE id::text in ? |]

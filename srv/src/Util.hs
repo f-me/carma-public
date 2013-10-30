@@ -17,6 +17,7 @@ module Util
   , formatTimestamp
   , render
   , projNow
+  , roleIdent
   ) where
 
 import qualified Data.Map as Map
@@ -49,6 +50,9 @@ import Data.Attoparsec.Combinator (many1, choice)
 import qualified Data.Attoparsec.ByteString.Char8 as A
 
 import Text.Printf (printf)
+
+import qualified Data.Model as Model
+import qualified Carma.Model.Role as Role
 
 
 data JSONParseException
@@ -198,3 +202,7 @@ projNow :: (Show b, Integral a, Integral b) =>
         -> IO ByteString
 projNow fn =
   (B.pack . show . fn . round . utcTimeToPOSIXSeconds) <$> getCurrentTime
+
+
+roleIdent :: Model.Ident Role.Role -> ByteString
+roleIdent (Model.Ident v) = B.pack $ show v

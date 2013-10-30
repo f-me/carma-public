@@ -1,28 +1,45 @@
 CREATE TABLE "Role"
   (id    SERIAL PRIMARY KEY
-  ,value text
+  ,value text UNIQUE NOT NULL
   ,label text UNIQUE NOT NULL
+  ,isBack bool
   );
 
-INSERT INTO "Role" (value, label) VALUES ('all', 'Все');
-INSERT INTO "Role" (value, label) VALUES ('local', 'Локальный пользователь');
-INSERT INTO "Role" (value, label) VALUES ('front', 'Оператор Front Office');
-INSERT INTO "Role" (value, label) VALUES ('back', 'Оператор Back Office');
-INSERT INTO "Role" (value, label) VALUES ('head', 'Глава РКЦ');
-INSERT INTO "Role" (value, label) VALUES ('parguy', 'Менеджер по партнёрам');
-INSERT INTO "Role" (value, label) VALUES ('manager', 'Менеджер по счетам');
-INSERT INTO "Role" (value, label) VALUES ('accManager', 'Управляющий счетами');
-INSERT INTO "Role" (value, label) VALUES ('partner', 'Партнёр');
-INSERT INTO "Role" (value, label) VALUES ('supervisor', 'Супервизор');
-INSERT INTO "Role" (value, label) VALUES ('director', 'Директор');
-INSERT INTO "Role" (value, label) VALUES ('analyst', 'Аналитик');
-INSERT INTO "Role" (value, label) VALUES ('psaanalyst', 'Аналитик PSA');
-INSERT INTO "Role" (value, label) VALUES ('account', 'Бухгалтер');
-INSERT INTO "Role" (value, label) VALUES ('admin', 'Администратор');
-INSERT INTO "Role" (value, label) VALUES ('programman', 'Менеджер по программам');
-INSERT INTO "Role" (value, label) VALUES ('op_checker', 'Аналитик по проверке кейсов');
-INSERT INTO "Role" (value, label) VALUES ('op_close', 'Аналитик по закрытию кейсов');
-INSERT INTO "Role" (value, label) VALUES ('op_dealer', 'Аналитик по работе с дилерами');
-INSERT INTO "Role" (value, label) VALUES ('contract_admin', 'Администратор контрактов');
-INSERT INTO "Role" (value, label) VALUES ('contract_user', 'Пользователь экрана контрактов');
-INSERT INTO "Role" (value, label) VALUES ('vwfake', 'Секретная роль vwfake');
+GRANT SELECT ON "Role" TO carma_db_sync;
+
+INSERT INTO "Role" (id, value, label,isBack) VALUES
+  (1, 'core', 'Экран кейса и базовые поля','f')
+, (2, 'call', 'Звонок','f')
+, (3, 'parguy', 'Администрирование партнёров','f')
+, (4, 'userAdmin', 'Администрирование пользователей','f')
+, (5, 'userViewer', 'Просмотр справочника пользователей','f')
+, (6, 'lovAdmin', 'Администрирование справочников','f')
+, (7, 'lovViewer', 'Просмотр справочников','f')
+, (8, 'reportManager', 'Аналитик по отчётам','f')
+, (9, 'billManager', 'Управляющий счетами','f')
+, (10, 'billChecker', 'Менеджер по счетам','f')
+, (11, 'vinAdmin', 'Администрирование VIN','f')
+, (12, 'supervisor', 'Супервизор','f')
+, (13, 'head', 'Глава РКЦ','t')
+, (14, 'back', 'Работа с бэкофисом','f')
+, (15, 'psaanalyst', 'Аналитик PSA','f')
+, (16, 'searchCase', 'Поиск услуг','f')
+, (17, 'searchCall', 'Поиск звонков','f')
+, (18, 'searchContract', 'Поиск контрактов','f')
+, (19, 'partner', 'Пользователь экрана контрактов','f')
+, (20, 'contract_admin', 'Администратор контрактов','f')
+, (21, 'dealer', 'Дилер','f')
+
+, (22, 'bo_qa', 'БО: Менеджер по качеству','t')
+, (23, 'bo_order', 'БО: Заказ услуги','t')
+, (24, 'bo_control', 'БО: Контроль услуги','t')
+, (25, 'bo_account', 'БО: Бухгалтер','t')
+, (26, 'bo_director', 'БО: Директор','t')
+, (27, 'bo_analyst', 'БО: Аналитик','t')
+, (28, 'bo_bill', 'БО: Операции со счетами','t')
+, (29, 'bo_parguy', 'БО: Менеджер по партнёрам','t')
+, (30, 'bo_close', 'БО: Закрытие кейсов','t')
+, (31, 'bo_dealer', 'БО: Аналитик по работе с дилерами','t')
+, (32, 'vwfake', 'Секретная роль vwfake','f')
+, (33, 'front', 'Оператор Front Office','f')
+;

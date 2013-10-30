@@ -1,9 +1,10 @@
 define [
     "utils",
     "model/main",
+    "lib/ident/role",
     "text!tpl/screens/contract.html",
     "screenman"],
-  (utils, main, tpl, screenman) ->
+  (utils, main, role, tpl, screenman) ->
 
     reformatDate = (date)->
       [_, d, m, y] = date.match(/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/)
@@ -143,9 +144,9 @@ define [
           refs: [])
 
       kvm['isActiveDisableDixi'](true)
-      if _.find(global.user.roles, (r) -> r == 'contract_user')
+      if _.find(global.user.roles, (r) -> r == role.partner)
         kvm['commentDisableDixi'](true)  if kvm['commentDisabled']
-      if _.find(global.user.roles, (r) -> r == 'contract_admin')
+      if _.find(global.user.roles, (r) -> r == role.contract_admin)
         kvm['disableDixi'](true)
 
       kvm["updateUrl"] = ->

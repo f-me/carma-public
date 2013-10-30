@@ -40,6 +40,7 @@ import Data.Model.Sql
 import qualified Data.Model as Model
 import qualified Carma.Model as Model
 import qualified Carma.Model.Program as Program
+import qualified Carma.Model.Role as Role
 
 
 writeJSON :: Aeson.ToJSON v => v -> Handler a b ()
@@ -96,7 +97,7 @@ stripModel u m = do
       where u.uid = ?::int
         and p.model = ?
         and p.r = true
-        and p.role = ANY (u.roles)
+        and p.role::text = ANY (u.roles)
       group by p.field
     |]
     (unUid uid, modelName m)
@@ -112,8 +113,17 @@ serveDictionaries = do
   let withPG f = gets pg_search >>= liftIO . (`withResource` f)
   programs <- withPG $ selectJSON
     (Program.value :. Program.label :. eq Program.active True)
+  roles <- withPG $ selectJSON $
+           (Model.ident :: Model.IdentF Role.Role) :.
+           Role.label
+  let roles' =
+          map (\(Aeson.Object o) ->
+               Aeson.Object $ HM.insert "value" (o HM.! "id") o)
+          roles
   Aeson.Object dictMap <- gets dictionaries
   writeJSON $ Aeson.Object
+    $ HM.insert "Roles"
+      (Aeson.object [("entries", Aeson.Array $ V.fromList roles')])
     $ HM.insert "Programs"
       (Aeson.object [("entries", Aeson.Array $ V.fromList programs)])
       dictMap

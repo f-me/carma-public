@@ -43,6 +43,7 @@ $$
         SELECT p.*
              , st_x(p.coords)
              , st_y(p.coords)
+             , now() at time zone 'UTC' > ('01:00' + p.mtime)      as stale
              , ST_Distance_Sphere(p.coords, ST_Point(xc, yc))      as distance
              , array_to_json(array_agg(s.* :: partner_servicetbl)) as services
         FROM partnertbl p

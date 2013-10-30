@@ -3,7 +3,7 @@ define [ "utils"
        , "model/main"
        , "sync/dipq"
        , "dictionaries"
-       , "dictionaries/time"
+       , "lib/time"
        , "partnerCancel"
        , "screens/partnersSearch/models"
        , "sync/metaq"
@@ -281,10 +281,13 @@ define [ "utils"
         do (p) ->
           # Pick partner icon
           if p.ismobile()
-            if p.isfree()
-              ico = map.towIcon
+            if p.stale()
+              ico = map.staleTowIcon
             else
-              ico = map.busyTowIcon
+              if p.isfree()
+                ico = map.towIcon
+              else
+                ico = map.busyTowIcon
           else
             if p.isdealer()
               ico = map.dealerIcon
@@ -294,6 +297,8 @@ define [ "utils"
           if p.id() == kvm["selectedPartner"]()
             ico = map.hlIconName(ico)
 
+          p.ico(ico)
+          
           coords = new OpenLayers.LonLat p.st_x(), p.st_y()
           # Add blip to map
           mark = new OpenLayers.Marker(

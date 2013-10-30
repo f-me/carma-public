@@ -134,6 +134,7 @@
     {
       "meta": {
         "regexp": "vin",
+        "widget": "vin",
         "required": true,
         "transform": "uppercase",
         "label": "VIN",

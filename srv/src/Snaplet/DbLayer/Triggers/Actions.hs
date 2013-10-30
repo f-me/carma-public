@@ -45,6 +45,9 @@ import Snap.Snaplet.SimpleLog
 
 import Carma.HTTP (read1Reference)
 
+import qualified Carma.Model.Role as Role
+import qualified Carma.Model.SmsTemplate as SmsTemplate
+
 import Util as U
 import qualified  Utils.RKCCalc as RKC
 
@@ -122,7 +125,7 @@ actions
                 ,("ctime", now)                 
                 ,("duetime", due)
                 ,("description", utf8 "Требуется дополнительная обработка кейса")
-                ,("targetGroup", "back")
+                ,("targetGroup", roleIdent Role.bo_order)
                 ,("priority", "1")
                 ,("caseId", kazeId)
                 ,("closed", "0")
@@ -214,7 +217,7 @@ fillFromContract vin objId = do
       extract (epoch from warrantyEnd)::int8::text,
       carSeller, carDealerTO
       FROM contracttbl c LEFT JOIN programtbl p ON p.id::text = c.program
-      WHERE isactive AND dixi AND carVin = ?
+      WHERE isactive AND dixi AND lower(carVin) like lower(?)
       ORDER BY c.id DESC LIMIT 1
     |]) [vin]
   case res of
@@ -255,12 +258,12 @@ updateCaseStatus caseId =
 
 -- | Clear assignee of control-class action chain head (which has
 -- `bo_control` in `targetGroup`) unless the user has both
--- `bo_control` and `back` roles. This will enable the action to be
+-- `bo_control` and `bo_order` roles. This will enable the action to be
 -- pulled from action pull by bo_control users.
 tryToPassChainToControl user action =
     when (not
-          (elem (Role "bo_control") (userRoles user) &&
-           elem (Role "back") (userRoles user))) $
+          (elem (Role $ roleIdent Role.bo_control) (userRoles user) &&
+           elem (Role $ roleIdent Role.bo_order) (userRoles user))) $
     clearAssignee action
 
 -- | Clear assignee and assignTime of an action.
@@ -291,7 +294,7 @@ serviceActions = Map.fromList
             ,("ctime", now)
             ,("duetime", due)
             ,("description", utf8 "Заказать услугу")
-            ,("targetGroup", "back")
+            ,("targetGroup", roleIdent Role.bo_order)
             ,("priority", "1")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -300,7 +303,7 @@ serviceActions = Map.fromList
             ,("assignedTo", assignee)
             ]
           upd kazeId "actions" $ addToList actionId
-          sendSMS actionId "smsTpl:13"
+          sendSMS actionId SmsTemplate.create
       "recallClient" -> do
           now <- dateNow id        
           due <- dateNow (+ (15*60))
@@ -310,14 +313,14 @@ serviceActions = Map.fromList
             ,("ctime", now)
             ,("duetime", due)
             ,("description", utf8  "Заказ услуги (требуется дополнительная информация)")
-            ,("targetGroup", "back")
+            ,("targetGroup", roleIdent Role.bo_order)
             ,("priority", "1")
             ,("parentId", objId)
             ,("caseId", kazeId)
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
-          sendSMS actionId "smsTpl:13"
+          sendSMS actionId SmsTemplate.create
       "serviceOrdered" -> do
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
@@ -330,7 +333,7 @@ serviceActions = Map.fromList
             ,("duetime", due)
             ,("assignTime", now)
             ,("description", utf8 "Сообщить клиенту о договорённости")
-            ,("targetGroup", "bo_control")
+            ,("targetGroup", roleIdent Role.bo_control)
             ,("priority", "1")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -346,7 +349,7 @@ serviceActions = Map.fromList
             ,("ctime", now)
             ,("duetime", due)
             ,("description", utf8 "Прикрепить счёт")
-            ,("targetGroup", "parguy")
+            ,("targetGroup", roleIdent Role.bo_bill)
             ,("priority", "1")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -363,14 +366,14 @@ serviceActions = Map.fromList
             ,("ctime", now)
             ,("duetime", due)
             ,("description", utf8 "Требуется конференция с механиком")
-            ,("targetGroup", "bo_control")
+            ,("targetGroup", roleIdent Role.bo_control)
             ,("priority", "2")
             ,("parentId", objId)
             ,("caseId", kazeId)
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
-          sendSMS actionId "smsTpl:13"
+          sendSMS actionId SmsTemplate.create
       "dealerConf" -> do
           now <- dateNow id        
           due <- dateNow (+ (1*60))
@@ -380,14 +383,14 @@ serviceActions = Map.fromList
             ,("ctime", now)
             ,("duetime", due)
             ,("description", utf8 "Требуется конференция с дилером")
-            ,("targetGroup", "bo_control")
+            ,("targetGroup", roleIdent Role.bo_control)
             ,("priority", "2")
             ,("parentId", objId)
             ,("caseId", kazeId)
             ,("closed", "0")
             ]
           upd kazeId "actions" $ addToList actionId
-          sendSMS actionId "smsTpl:13"
+          sendSMS actionId SmsTemplate.create
       "pleaseCheck" -> do
           now <- dateNow id        
           due <- dateNow (+ (5*60))
@@ -398,7 +401,7 @@ serviceActions = Map.fromList
             ,("duetime", due)
             ,("description",
                 utf8 "Клиент попросил уточнить, когда начётся оказание услуги")
-            ,("targetGroup", "bo_control")
+            ,("targetGroup", roleIdent Role.bo_control)
             ,("priority", "3")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -414,7 +417,7 @@ serviceActions = Map.fromList
             ,("ctime", now)
             ,("duetime", due)
             ,("description", utf8 "Требуется согласование с дилером")
-            ,("targetGroup", "bo_control")
+            ,("targetGroup", roleIdent Role.bo_control)
             ,("priority", "2")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -430,7 +433,7 @@ serviceActions = Map.fromList
             ,("ctime", now)
             ,("duetime", due)
             ,("description", utf8 "Требуется согласование с заказчиком программы")
-            ,("targetGroup", "bo_control")
+            ,("targetGroup", roleIdent Role.bo_control)
             ,("priority", "2")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -446,7 +449,7 @@ serviceActions = Map.fromList
             ,("ctime", now)
             ,("duetime", due)
             ,("description", utf8 "Клиент отказался от услуги (сообщил об этом оператору Front Office)")
-            ,("targetGroup", "bo_control")
+            ,("targetGroup", roleIdent Role.bo_control)
             ,("priority", "1")
             ,("parentId", objId)
             ,("caseId", kazeId)
@@ -473,7 +476,7 @@ serviceActions = Map.fromList
               ,("ctime", now)
               ,("duetime", due)
               ,("description", utf8 "Клиент предъявил претензию")
-              ,("targetGroup", "supervisor")
+              ,("targetGroup", roleIdent Role.bo_qa)
               ,("priority", "1")
               ,("parentId", objId)
               ,("caseId", kazeId)
@@ -554,7 +557,7 @@ actionActions = Map.fromList
          void $ replaceAction
              "orderService"
              "Заказать услугу"
-             "back" "1" (+5*60) objId
+             (roleIdent Role.bo_order) "1" (+5*60) objId
 
     ,\objId _al -> do
       dateNow id >>= set objId "closeTime"
@@ -563,6 +566,9 @@ actionActions = Map.fromList
 
     ,\objId val -> maybe (return ()) ($objId)
       $ Map.lookup val actionResultMap
+    ])
+  ,("assignedTo",
+    [\objId _val -> dateNow id >>= set objId "assignTime"
     ])
   ,("closed",
     [\objId -> \case
@@ -578,7 +584,7 @@ actionResultMap = Map.fromList
   [("busyLine",        \objId -> dateNow (+ (5*60))  >>= set objId "duetime" >> set objId "result" "")
   ,("callLater",       \objId -> dateNow (+ (30*60)) >>= set objId "duetime" >> set objId "result" "")
   ,("partnerNotFound", \objId -> dateNow (+ (2*60*60)) >>= set objId "duetime" >> set objId "result" "")
-  ,("clientCanceledService", \objId -> closeAction objId >> sendSMS objId "smsTpl:2" >> sendMailToPSA objId)
+  ,("clientCanceledService", \objId -> closeAction objId >> sendSMS objId SmsTemplate.cancel >> sendMailToPSA objId)
   ,("unassignPlease",  \objId -> set objId "assignedTo" "" >> set objId "result" "")
   -- Defer an action by an amount of time specified in deferBy field
   -- in HH:MM format
@@ -603,7 +609,7 @@ actionResultMap = Map.fromList
      newAction <- replaceAction
          "needPartner"
          "Требуется найти партнёра для оказания услуги"
-         "parguy" "1" (+60) objId
+         (roleIdent Role.bo_parguy) "1" (+60) objId
      clearAssignee newAction
   )
   ,("serviceOrdered", \objId -> do
@@ -617,7 +623,7 @@ actionResultMap = Map.fromList
     act <- replaceAction
       "addBill"
       "Прикрепить счёт"
-      "parguy" "1" (+14*24*60*60)
+      (roleIdent Role.bo_bill) "1" (+14*24*60*60)
       objId
     clearAssignee act
 
@@ -630,13 +636,13 @@ actionResultMap = Map.fromList
         act <- replaceAction
           "tellClient"
           "Сообщить клиенту о договорённости"
-          "bo_control" "1" (+60) objId
+          (roleIdent Role.bo_control) "1" (+60) objId
         Just u <- liftDb $ with auth currentUser
         tryToPassChainToControl u act
   )
   ,("serviceOrderedSMS", \objId -> do
     newPartnerMessage objId
-    sendSMS objId "smsTpl:1"
+    sendSMS objId SmsTemplate.order
 
     setServiceStatus objId "serviceOrdered"
     svcId    <- get objId "parentId"
@@ -653,7 +659,7 @@ actionResultMap = Map.fromList
         act <- replaceAction
           "checkStatus"
           "Уточнить статус оказания услуги"
-          "bo_control" "3" (changeTime (+5*60) tm)
+          (roleIdent Role.bo_control) "3" (changeTime (+5*60) tm)
           objId
         Just u <- liftDb $ with auth currentUser
         tryToPassChainToControl u act
@@ -662,20 +668,20 @@ actionResultMap = Map.fromList
     replaceAction
       "cancelService"
       "Требуется отказаться от заказанной услуги"
-      "bo_control" "1" (+60)
+      (roleIdent Role.bo_control) "1" (+60)
   )
   ,("moveToAnalyst", \objId -> do
     act <- replaceAction
       "orderServiceAnalyst"
       "Заказ услуги аналитиком"
-      "back" "1" (+60) objId
+      (roleIdent Role.bo_order) "1" (+60) objId
     clearAssignee act
   )
   ,("moveToBack", \objId -> do
     act <- replaceAction
       "orderService"
       "Заказ услуги оператором Back Office"
-      "back" "1" (+60) objId
+      (roleIdent Role.bo_order) "1" (+60) objId
     clearAssignee act
   )
   ,("needPartnerAnalyst",     \objId -> do
@@ -683,7 +689,7 @@ actionResultMap = Map.fromList
      newAction <- replaceAction
          "needPartner"
          "Требуется найти партнёра для оказания услуги"
-         "parguy" "1" (+60) objId
+         (roleIdent Role.bo_parguy) "1" (+60) objId
      clearAssignee newAction
   )
   ,("serviceOrderedAnalyst", \objId -> do
@@ -698,7 +704,7 @@ actionResultMap = Map.fromList
         act <- replaceAction
           "tellClient"
           "Сообщить клиенту о договорённости"
-          "bo_control" "1" (+60) objId
+          (roleIdent Role.bo_control) "1" (+60) objId
         Just u <- liftDb $ with auth currentUser
         tryToPassChainToControl u act
   )
@@ -706,20 +712,20 @@ actionResultMap = Map.fromList
     replaceAction
       "tellDealerDenied"
       "Сообщить об отказе дилера"
-      "bo_control" "3" (+60)
+      (roleIdent Role.bo_control) "3" (+60)
   )
   ,("carmakerNotApproved", void .
     replaceAction
       "tellMakerDenied"
       "Сообщить об отказе автопроизводителя"
-      "bo_control" "3" (+60)
+      (roleIdent Role.bo_control) "3" (+60)
   )
   ,("partnerNotOkCancel", \objId -> do
       setServiceStatus objId "cancelService"
       void $ replaceAction
          "cancelService"
          "Требуется отказаться от заказанной услуги"
-         "bo_control" "1" (+60) objId
+         (roleIdent Role.bo_control) "1" (+60) objId
   )
   ,("partnerOk", \objId ->
     isReducedMode >>= \case
@@ -729,7 +735,7 @@ actionResultMap = Map.fromList
         void $ replaceAction
           "checkStatus"
           "Уточнить статус оказания услуги"
-          "bo_control" "3" (changeTime (+5*60) tm)
+          (roleIdent Role.bo_control) "3" (changeTime (+5*60) tm)
           objId
   )
   ,("serviceDelayed", \objId -> do
@@ -737,7 +743,7 @@ actionResultMap = Map.fromList
     void $ replaceAction
       "tellDelayClient"
       "Сообщить клиенту о задержке начала оказания услуги"
-      "bo_control" "1" (+60)
+      (roleIdent Role.bo_control) "1" (+60)
       objId
   )
   ,("serviceInProgress", \objId -> do
@@ -749,7 +755,7 @@ actionResultMap = Map.fromList
         void $ replaceAction
           "checkEndOfService"
           "Уточнить у клиента окончено ли оказание услуги"
-          "bo_control" "3" (changeTime (+5*60) tm)
+          (roleIdent Role.bo_control) "3" (changeTime (+5*60) tm)
           objId
   )
   ,("prescheduleService", \objId -> do
@@ -761,7 +767,7 @@ actionResultMap = Map.fromList
         void $ replaceAction
           "checkEndOfService"
           "Уточнить у клиента окончено ли оказание услуги"
-          "bo_control" "3" (+60)
+          (roleIdent Role.bo_control) "3" (+60)
           objId
   )
   ,("serviceStillInProgress", \objId ->
@@ -777,12 +783,12 @@ actionResultMap = Map.fromList
     void $ replaceAction
       "checkStatus"
       "Уточнить статус оказания услуги"
-      "bo_control" "3" (changeTime (+5*60) tm)
+      (roleIdent Role.bo_control) "3" (changeTime (+5*60) tm)
       objId
   )
   ,("serviceFinished", \objId -> do
     closeServiceAndSendInfoVW objId
-    sendSMS objId "smsTpl:3"
+    sendSMS objId SmsTemplate.complete
     sendMailToDealer objId
   )
   ,("complaint", \objId -> do
@@ -791,7 +797,7 @@ actionResultMap = Map.fromList
     act1 <- replaceAction
       "complaintResolution"
       "Клиент предъявил претензию"
-      "supervisor" "1" (+60)
+      (roleIdent Role.bo_qa) "1" (+60)
       objId
     clearAssignee act1
   )
@@ -800,70 +806,70 @@ actionResultMap = Map.fromList
     act <- replaceAction
       "headCheck"
       "Проверка РКЦ"
-      "op_checker" "1" (+360) objId
+      (roleIdent Role.head) "1" (+360) objId
     clearAssignee act
   )
   ,("parguyToBack", \objId -> do
     act <- replaceAction
       "parguyNeedInfo"
       "Менеджер по Партнёрам запросил доп. информацию"
-      "bo_control" "3" (+360) objId
+      (roleIdent Role.bo_control) "3" (+360) objId
     clearAssignee act
   )
   ,("backToParyguy", \objId -> do
     act <- replaceAction
       "addBill"
       "Прикрепить счёт"
-      "parguy" "1" (+360) objId
+      (roleIdent Role.bo_bill) "1" (+360) objId
     clearAssignee act
   )
   ,("headToParyguy", \objId -> do
     act <- replaceAction
       "addBill"
       "На доработку МпП"
-      "parguy" "1" (+360) objId
+      (roleIdent Role.bo_bill) "1" (+360) objId
     clearAssignee act
   )
   ,("confirm", \objId -> do
     act <- replaceAction
       "directorCheck"
       "Проверка директором"
-      "director" "1" (+360) objId
+      (roleIdent Role.bo_director) "1" (+360) objId
     clearAssignee act
   )
   ,("confirmWODirector", \objId -> do
     act <- replaceAction
       "accountCheck"
       "Проверка бухгалтерией"
-      "account" "1" (+360) objId
+      (roleIdent Role.bo_account) "1" (+360) objId
     clearAssignee act
   )
   ,("confirmFinal", \objId -> do
     act <- replaceAction
       "analystCheck"
       "Обработка аналитиком"
-      "analyst" "1" (+360) objId
+      (roleIdent Role.bo_analyst) "1" (+360) objId
     clearAssignee act
   )
   ,("directorToHead", \objId -> do
     act <- replaceAction
       "headCheck"
       "Проверка РКЦ"
-      "op_checker" "1" (+360) objId
+      (roleIdent Role.head) "1" (+360) objId
     clearAssignee act
   )
   ,("directorConfirm", \objId -> do
     act <- replaceAction
       "accountCheck"
       "Проверка бухгалтерией"
-      "account" "1" (+360) objId
+      (roleIdent Role.bo_account) "1" (+360) objId
     clearAssignee act
   )
   ,("dirConfirmFinal", \objId -> do
     act <- replaceAction
       "analystCheck"
       "Обработка аналитиком"
-      "analyst" "1" (+360) objId
+      (roleIdent Role.bo_analyst) "1" (+360) objId
     clearAssignee act
   )
   ,("vwclosed", \objId -> do
@@ -885,14 +891,14 @@ actionResultMap = Map.fromList
     act <- replaceAction
       "analystCheck"
       "Обработка аналитиком"
-      "analyst" "1" (+360) objId
+      (roleIdent Role.bo_analyst) "1" (+360) objId
     clearAssignee act
   )
   ,("accountToDirector", \objId -> do
     act <- replaceAction
       "directorCheck"
       "Проверка директором"
-      "director" "1" (+360) objId
+      (roleIdent Role.bo_director) "1" (+360) objId
     clearAssignee act
   )
   ,("analystChecked", closeAction)
@@ -907,12 +913,12 @@ actionResultMap = Map.fromList
   ,("falseCallWBill", \objId -> do
      setService objId "falseCall" "bill"
      closeAction objId
-     sendSMS objId "smsTpl:2"
+     sendSMS objId SmsTemplate.cancel
   )
   ,("falseCallWOBill", \objId -> do
      setService objId "falseCall" "nobill"
      closeAction objId
-     sendSMS objId "smsTpl:2"
+     sendSMS objId SmsTemplate.cancel
   )
   ,("clientNotified", \objId -> do
      setServiceStatus objId "serviceClosed"
@@ -991,7 +997,7 @@ closeServiceAndSendInfoVW objId = do
   act1 <- replaceAction
     "closeCase"
     "Закрыть заявку"
-    "op_close" "3" (changeTime (+7*24*60*60) tm)
+    (roleIdent Role.bo_close) "3" (changeTime (+7*24*60*60) tm)
     objId
   clearAssignee act1
   addParComment act1
@@ -999,7 +1005,7 @@ closeServiceAndSendInfoVW objId = do
   program <- get objId "caseId" >>= (`get` "program")
   st <- getServiceType objId
   when (program `elem` ["vwMotor", "vwcargo", "peugeot", "citroen"]) $ do
-    dueDelta <- if program `elem` ["peugeot", "citroen"] && st == Just "tech"
+    dueDelta <- if st == Just "tech"
                 then do
                   fse <- getService objId "times_factServiceEnd"
                   return $ changeTime (+5*60) fse
@@ -1008,7 +1014,7 @@ closeServiceAndSendInfoVW objId = do
     act2 <- replaceAction
       "getInfoDealerVW"
       "Уточнить информацию о ремонте у дилера/партнёра (VW, PSA)"
-      "op_dealer" "3" dueDelta
+      (roleIdent Role.bo_dealer) "3" dueDelta
       objId
     clearAssignee act2
     addParComment act2

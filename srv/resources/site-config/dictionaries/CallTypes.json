@@ -48,6 +48,10 @@
             {
                 "value": "switchDealer",
                 "label": "Переключение/Дилер"
+            },
+            {
+                "value": "switchJurist",
+                "label": "Переключение/Переключен на юриста"
             },            
             {
                 "value": "switchIn",

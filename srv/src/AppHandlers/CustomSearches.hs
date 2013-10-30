@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module AppHandlers.CustomSearches where
@@ -19,7 +20,9 @@ import Application
 import AppHandlers.Util
 import Utils.HttpErrors
 import Util
+import qualified Data.Vector as V
 
+import qualified Carma.Model.Role as Role
 
 type MBS = Maybe ByteString
 
@@ -90,12 +93,19 @@ selectPartners city isActive isDealer makes = do
         ]
   return $ mkMap fields rows
 
+
+-- | Read closed, assignedTo, targetGroup (comma-separated),
+-- duetimeFrom, duetimeTo (timestamps) parameters and serve a list of
+-- matched actions.
 allActionsHandler :: AppHandler ()
 allActionsHandler = do
+  let getRoles = do
+          tg <- getParam "targetGroup"
+          return $ B.split ',' <$> tg
   acts <- join (selectActions
           <$> getParam "closed"
           <*> getParam "assignedTo"
-          <*> getParam "targetGroup"
+          <*> getRoles
           <*> getParam "duetimeFrom"
           <*> getParam "duetimeTo")
   dn <- liftIO $ projNow id
@@ -104,33 +114,40 @@ allActionsHandler = do
                        ]
 
 selectActions
-  :: MBS -> MBS -> MBS -> MBS -> MBS
+  :: MBS -> MBS -> Maybe [ByteString] -> MBS -> MBS
   -> AppHandler [Map ByteString ByteString]
-selectActions mClosed mAssignee mRole mFrom mTo = do
-  rows <- withPG pg_search $ \c -> query_ c $ fromString
-    $  "SELECT a.id::text, a.caseId, a.parentId,"
-    ++ "       (a.closed::int)::text, a.name, a.assignedTo, a.targetGroup,"
-    ++ "       (extract (epoch from a.duetime at time zone 'UTC')::int8)::text, "
-    ++ "       (extract (epoch from a.ctime at time zone 'UTC')::int8)::text, "
-    ++ "       (extract (epoch from a.assigntime at time zone 'UTC')::int8)::text, "
-    ++ "       (extract (epoch from a.opentime at time zone 'UTC')::int8)::text, "
-    ++ "       (extract (epoch from a.closetime at time zone 'UTC')::int8)::text, "
-    ++ "       a.result, a.priority, a.description, a.comment,"
-    ++ "       c.city, c.program,"
-    ++ "       (extract (epoch from"
-    ++ "         coalesce(s.times_expectedServiceStart, a.duetime)"
-    ++ "          at time zone 'UTC')::int8)::text"
-    ++ "  FROM "
-    ++ "    (actiontbl a LEFT JOIN servicetbl s"
-    ++ "      ON  s.id::text = substring(a.parentid, ':(.*)')"
-    ++ "      AND s.type::text = substring(a.parentId, '(.*):')),"
-    ++ "    casetbl c WHERE true"
-    ++ "                   AND c.id::text = substring(a.caseId, ':(.*)')"
-    ++ (maybe "" (\x -> "  AND closed = " ++ toBool x) mClosed)
-    ++ (maybe "" (\x -> "  AND assignedTo = " ++ quote x) mAssignee)
-    ++ (maybe "" (\x -> "  AND targetGroup = " ++ quote x) mRole)
-    ++ (maybe "" (\x -> "  AND extract (epoch from duetime) >= " ++ int x) mFrom)
-    ++ (maybe "" (\x -> "  AND extract (epoch from duetime) <= " ++ int x) mTo)
+selectActions mClosed mAssignee mRoles mFrom mTo = do
+  let actQ = [sql|
+     SELECT a.id::text, a.caseId, a.parentId,
+           (a.closed::int)::text, a.name, a.assignedTo, a.targetGroup,
+           (extract (epoch from a.duetime at time zone 'UTC')::int8)::text,
+           (extract (epoch from a.ctime at time zone 'UTC')::int8)::text,
+           (extract (epoch from a.assigntime at time zone 'UTC')::int8)::text,
+           (extract (epoch from a.opentime at time zone 'UTC')::int8)::text,
+           (extract (epoch from a.closetime at time zone 'UTC')::int8)::text,
+           a.result, a.priority, a.description, a.comment,
+           c.city, c.program,
+           (extract (epoch from
+             coalesce(s.times_expectedServiceStart, a.duetime)
+              at time zone 'UTC')::int8)::text
+     FROM
+       (actiontbl a LEFT JOIN servicetbl s
+         ON  s.id::text = substring(a.parentid, ':(.*)')
+         AND s.type::text = substring(a.parentId, '(.*):')),
+       casetbl c
+     WHERE c.id::text = substring(a.caseId, ':(.*)')
+     AND (? OR closed = ?)
+     AND (? OR assignedTo = ?)
+     AND (? OR targetGroup IN ?)
+     AND (? OR extract (epoch from duetime) >= ?)
+     AND (? OR extract (epoch from duetime) <= ?);
+     |]
+  rows <- withPG pg_search $ \c -> query c actQ $
+          (sqlFlagPair False   (== "1") mClosed)               :.
+          (sqlFlagPair ("")    id       mAssignee)             :.
+          (sqlFlagPair (In []) (In)     mRoles)                :.
+          (sqlFlagPair 0       fst      (mFrom >>= B.readInt)) :.
+          (sqlFlagPair 0       fst      (mTo >>= B.readInt))
   let fields
         = [ "id", "caseId", "parentId", "closed", "name"
           , "assignedTo", "targetGroup", "duetime"
@@ -211,10 +228,11 @@ selectContracts = do
       extract (epoch from contractValidUntilDate at time zone 'UTC')::int8::text,
       contractValidUntilMilage::text, milageTO::text, cardOwner, manager,
       carSeller, carDealerTO,
-      u.realname
-      FROM contracttbl c, usermetatbl u
+      u2.realname
+      FROM contracttbl c, usermetatbl u, usermetatbl u2
       WHERE dixi
         AND u.login = ? AND ? = ANY (u.programs)
+        AND c.owner = u2.uid::text
         AND (coalesce(u.isDealer,false) = false OR c.owner = u.uid::text)
         AND c.program = ? AND date(ctime) between ? AND ?
       ORDER BY c.id DESC
@@ -242,7 +260,7 @@ opStatsQ = [sql|
   usermetatbl u
   WHERE ca.row_number = 1
   AND u.login = ca.assignedTo
-  AND ('back' = ANY (u.roles) OR 'bo_control' = ANY (u.roles))
+  AND (? :: text = ANY (u.roles) OR ? :: text = ANY (u.roles))
   ORDER BY closeTime;
   |]
 
@@ -257,7 +275,8 @@ opStatsQ = [sql|
 -- fields `aName`, `caseId`, `openTime`, `closeTime` and `reqTime`.
 opStats :: AppHandler ()
 opStats = do
-  rows <- withPG pg_search $ \c -> query_ c opStatsQ
+  rows <- withPG pg_search $
+          \c -> query c opStatsQ (Role.back, Role.bo_control)
   let obj = mkMap [ "login"
                   , "aName"
                   , "caseId"
@@ -284,25 +303,12 @@ busyOps = do
   rows <- withPG pg_search $ \c -> query_ c busyOpsQ
   writeJSON $ mkMap [ "login", "count"] rows
 
-actStatsOrderQ :: Query
-actStatsOrderQ = [sql|
+actStatsQ :: Query
+actStatsQ = [sql|
   SELECT count(*)::text
   FROM actiontbl
   WHERE (assignedTo IS NULL OR assignedTo = '') AND closed = 'f'
-  AND name = ANY('{ "orderService", "orderServiceAnalyst"
-                  , "tellMeMore", "callMeMaybe"}')
-  AND (? OR extract (epoch from duetime) >= ?)
-  AND (? OR extract (epoch from duetime) <= ?);
-  |]
-
-actStatsControlQ :: Query
-actStatsControlQ = [sql|
-  SELECT count(*)::text
-  FROM actiontbl
-  WHERE (assignedTo IS NULL OR assignedTo = '') AND closed = 'f'
-  AND name = ANY('{ "tellClient", "checkStatus"
-                  , "tellDelayClient", "checkEndOfService"
-                  , "getInfoDealerVW"}')
+  AND name = ANY (?)
   AND (? OR extract (epoch from duetime) >= ?)
   AND (? OR extract (epoch from duetime) <= ?);
   |]
@@ -323,10 +329,24 @@ actStats = do
           Just val -> (False, val)
           Nothing -> (True, "0")
   let flags = (fromF, fromDate, toF, toDate)
-  (Only orders:_) <- withPG pg_search $
-                     \c -> query c actStatsOrderQ flags
-  (Only controls:_) <- withPG pg_search $
-                       \c -> query c actStatsControlQ flags
+      orderNames :: [ByteString]
+      orderNames = [ "orderService"
+                   , "orderServiceAnalyst"
+                   , "tellMeMore"
+                   , "callMeMaybe"
+                   ]
+      controlNames :: [ByteString]
+      controlNames = [ "tellClient"
+                     , "checkStatus"
+                     , "tellDelayClient"
+                     , "checkEndOfService"
+                     ]
+  (Only orders:_) <- 
+      withPG pg_search $
+      \c -> query c actStatsQ ((Only $ V.fromList orderNames) :. flags)
+  (Only controls:_) <- 
+      withPG pg_search $
+      \c -> query c actStatsQ ((Only $ V.fromList controlNames) :. flags)
   writeJSON $ M.fromList
                 ([ ("order", orders)
                  , ("control", controls)] :: [(ByteString, ByteString)])
