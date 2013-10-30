@@ -1485,6 +1485,22 @@ userAdmin	usermeta	workPhone	t	t
 userViewer	usermeta	workPhone	t	f
 userAdmin	usermeta	workPhoneSuffix	t	t
 userViewer	usermeta	workPhoneSuffix	t	f
+lovViewer	ProgramInfo	label	t	f
+lovAdmin	ProgramInfo	label	t	t
+lovViewer	ProgramInfo	value	t	f
+lovAdmin	ProgramInfo	value	t	t
+lovViewer	ServiceInfo	program	t	f
+lovAdmin	ServiceInfo	program	t	t
+lovViewer	ServiceInfo	service	t	f
+lovAdmin	ServiceInfo	service	t	t
+lovViewer	ServiceInfo	info	t	f
+lovAdmin	ServiceInfo	info	t	t
+lovViewer	Services	label	t	f
+lovAdmin	Services	label	t	t
+lovViewer	Services	value	t	f
+lovAdmin	Services	value	t	t
+lovViewer	Services	icon	t	f
+lovAdmin	Services	icon	t	t
 \.
 
 INSERT INTO "FieldPermission" (role, model, field, r, w)
