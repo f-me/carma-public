@@ -139,11 +139,11 @@
             },
             {
                 "value": "falseCallWBill",
-                "label": "Ложный вызов, с выставлением счета"
+                "label": "Ложный вызов, с выставлением счёта"
             },
             {
                 "value": "falseCallWOBill",
-                "label": "Ложный вызов, без выставления счета"
+                "label": "Ложный вызов, без выставления счёта"
             },
             {
                 "value": "clientCanceledService",
