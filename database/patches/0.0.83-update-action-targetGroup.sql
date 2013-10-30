@@ -1,0 +1,12 @@
+UPDATE actiontbl SET targetGroup = '14' WHERE targetGroup = '4';
+UPDATE actiontbl SET targetGroup = '24' WHERE targetGroup = '5';
+UPDATE actiontbl SET targetGroup = '29' WHERE targetGroup = '7';
+UPDATE actiontbl SET targetGroup = '13' WHERE targetGroup = '18';
+UPDATE actiontbl SET targetGroup = '13' WHERE targetGroup = '6';
+UPDATE actiontbl SET targetGroup = '26' WHERE targetGroup = '12';
+UPDATE actiontbl SET targetGroup = '27' WHERE targetGroup = '13';
+UPDATE actiontbl SET targetGroup = '31' WHERE targetGroup = '20';
+UPDATE actiontbl SET targetGroup = '25' WHERE targetGroup = '15';
+UPDATE actiontbl SET targetGroup = '33' WHERE targetGroup = '3';
+UPDATE actiontbl SET targetGroup = '30' WHERE targetGroup = '19';
+UPDATE actiontbl SET targetGroup = '22' WHERE targetGroup = '11';
