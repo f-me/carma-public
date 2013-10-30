@@ -1,18 +1,21 @@
-{-# LANGUAGE QuasiQuotes, TemplateHaskell #-}
+{-# LANGUAGE QuasiQuotes, TemplateHaskell, ScopedTypeVariables #-}
 
 module Snaplet.Search (Search, searchInit)  where
 
 import Prelude hiding (pred)
 import Control.Applicative
+import Control.Monad
 import Control.Monad.State
 import Control.Lens hiding (from)
 
+import Data.Monoid
 import Data.Maybe
 import Data.String (fromString)
 import Data.Pool
 import Data.Text (Text)
 import qualified Data.Text             as T
 import qualified Data.ByteString.Char8 as B
+import qualified Data.ByteString.Lazy as LB
 import Text.Printf
 
 import qualified Data.Aeson as Aeson
@@ -75,7 +78,7 @@ modelFields uid modelName c
             (select * from svc_model union select * from model_name) m
           where (model || 'tbl') = m.table
             and field ilike f.column
-            and p.role = r.role::int
+            and p.role = r.role
             and p.r
       |]
 
@@ -91,10 +94,11 @@ caseSearch = do
     svc_fields <- modelFields uid "service" c
     caseSearchPredicate c args >>= \case
       Left err -> return $ Left err
-      Right pred
-         -> Right . join
-        <$> query_ c (mkQuery cse_fields svc_fields pred lim)
-
+      Right pred -> do
+        s :: [[LB.ByteString]] <- query_ c (mkQuery cse_fields svc_fields pred lim)
+        return (sequence $ map (Aeson.eitherDecode . head) s)
+        -- -> Right . join
+        --    <$> query_ c (mkQuery cse_fields svc_fields pred lim)
 
 search :: SearchHandler b (Either String [Aeson.Value]) -> SearchHandler b ()
 search = (>>= either (finishWithError 500) writeJSON)
@@ -118,7 +122,7 @@ mkQuery caseProj svcProj pred lim
       ++ "       (select %s from servicetbl) as s"
       ++ "     where c.id = r.cid"
       ++ "       and s.id = r.sid and s.type = r.styp)"
-      ++ " select row_to_json(r) from json_result r limit %i;")
+      ++ " select row_to_json(r) :: text from json_result r limit %i;")
     (T.unpack pred)
     (T.unpack $ T.intercalate ", " $ map mkProj caseProj)
     (T.unpack $ T.intercalate ", " $ map mkProj svcProj)
