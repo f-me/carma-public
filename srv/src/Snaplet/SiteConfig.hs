@@ -40,6 +40,8 @@ import Data.Model.Sql
 import qualified Data.Model as Model
 import qualified Carma.Model as Model
 import qualified Carma.Model.Program as Program
+import qualified Carma.Model.ProgramInfo as ProgramInfo
+import qualified Carma.Model.ServiceInfo as ServiceInfo
 import qualified Carma.Model.Role as Role
 
 
@@ -119,12 +121,22 @@ serveDictionaries = do
           map (\(Aeson.Object o) ->
                Aeson.Object $ HM.insert "value" (o HM.! "id") o)
           roles
+
+  programInfos <- withPG
+    $ selectJSON (ProgramInfo.program :. ProgramInfo.info)
+  serviceInfos <- withPG
+    $ selectJSON (ServiceInfo.program :. ServiceInfo.service :. ServiceInfo.info)
+
   Aeson.Object dictMap <- gets dictionaries
   writeJSON $ Aeson.Object
     $ HM.insert "Roles"
       (Aeson.object [("entries", Aeson.Array $ V.fromList roles')])
     $ HM.insert "Programs"
       (Aeson.object [("entries", Aeson.Array $ V.fromList programs)])
+    $ HM.insert "ProgramInfo"
+      (Aeson.object [("entries", Aeson.Array $ V.fromList programInfos)])
+    $ HM.insert "ServiceInfo"
+      (Aeson.object [("entries", Aeson.Array $ V.fromList serviceInfos)])
       dictMap
 
 
