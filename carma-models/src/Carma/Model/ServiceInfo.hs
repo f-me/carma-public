@@ -19,5 +19,6 @@ data ServiceInfo = ServiceInfo
 instance Model ServiceInfo where
   type TableName ServiceInfo = "ServiceInfo"
   modelInfo = mkModelInfo ServiceInfo
-  modelView _ = modifyView defaultView [readonly program, readonly service]
+  modelView _ = modifyView defaultView
+    [readonly program, readonly service, textarea info]
 

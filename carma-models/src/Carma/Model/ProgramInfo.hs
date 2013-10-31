@@ -18,5 +18,5 @@ data ProgramInfo = ProgramInfo
 instance Model ProgramInfo where
   type TableName ProgramInfo = "ProgramInfo"
   modelInfo = mkModelInfo ProgramInfo
-  modelView _ = modifyView defaultView [readonly program]
+  modelView _ = modifyView defaultView [readonly program, textarea info]
 
