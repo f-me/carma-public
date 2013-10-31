@@ -42,7 +42,9 @@ library
     Carma.Model.Sms,
     Carma.Model.Wazzup,
     Carma.Model.Case,
-    Carma.Model.Case.Type
+    Carma.Model.Case.Type,
+    Carma.Model.ProgramInfo,
+    Carma.Model.ServiceInfo
 
   -- other-modules:
   hs-source-dirs:    src
