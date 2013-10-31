@@ -9,11 +9,6 @@
       "permissions": ["partner", "contract_admin"],
       "screens": []
     },
-    { "name" : "vin",
-      "label": "Загрузка VIN",
-      "type" : "li",
-      "permissions": ["vinAdmin"]
-    },
     { "name"  : "call",
       "label" : "Звонок",
       "type"  : "li",
@@ -75,12 +70,12 @@
     { "type"    : "dropdown",
       "name"    : "more",
       "label"   : "Ещё",
-      "permissions": ["reportManager", "billManager", "userAdmin", "userViewer", "parguy", "vinAdmin", "lovAdmin", "lovViewer", "core"],
+      "permissions": ["reportManager", "billManager", "userAdmin", "userViewer", "parguy", "vinAdmin", "psaanalyst", "lovAdmin", "lovViewer", "core"],
       "screens" : [
         { "name"  : "vin",
           "label" : "Обновление базы VIN и партнёров",
           "type"  : "li",
-          "permissions": ["vinAdmin"]
+          "permissions": ["vinAdmin", "psaanalyst"]
         },
         { "name"  : "partner",
           "label" : "Редактирование партнёров",
