@@ -11,10 +11,13 @@ define [ "text!tpl/screens/vin.html"
     # by portal users, use appropriate set of programs.
     dict = (n) -> new d.dicts["ComputedDict"]({ dict: n })
     programs = dict('vinPrograms').source
-    if !_.contains(global.user.roles, role.psaanalyst)
-      all_html = vin_html
-    else
-      all_html = bulk_partner_html
+    all_html = ""
+
+    if _.contains global.user.roles, role.psaanalyst
+      all_html += bulk_partner_html
+
+    if _.contains global.user.roles, role.vinAdmin
+      all_html += vin_html
 
 
     $el(viewName).html(all_html)
