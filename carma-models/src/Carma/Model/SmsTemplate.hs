@@ -10,26 +10,27 @@ import Data.Model.View
 
 
 data SmsTemplate = SmsTemplate
-  { label    :: F Text "label"    "Название шаблона"
-  , isActive :: F Bool "isActive" "Активный?"
-  , text     :: F Text "text"     "Текст шаблона"
+  {ident    :: PK Int SmsTemplate
+  ,label    :: F Text "label"    "Название шаблона"
+  ,isActive :: F Bool "isActive" "Активный?"
+  ,text     :: F Text "text"     "Текст шаблона"
   }
   deriving Typeable
 
 instance Model SmsTemplate where
   type TableName SmsTemplate = "SmsTemplate"
-  modelInfo = mkModelInfo SmsTemplate
+  modelInfo = mkModelInfo SmsTemplate ident
   modelView _ = modifyView defaultView [textarea text]
 
 
-order :: Ident SmsTemplate
+order :: IdentI SmsTemplate
 order = Ident 1
 
-cancel :: Ident SmsTemplate
+cancel :: IdentI SmsTemplate
 cancel = Ident 2
 
-complete :: Ident SmsTemplate
+complete :: IdentI SmsTemplate
 complete = Ident 3
 
-create :: Ident SmsTemplate
+create :: IdentI SmsTemplate
 create = Ident 13

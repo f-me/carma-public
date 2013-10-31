@@ -23,7 +23,7 @@ import Data.Model
 import Data.Model.Patch
 
 
-create :: forall m . Model m => Patch m -> Connection -> IO (Ident m)
+create :: forall m . Model m => Patch m -> Connection -> IO (IdentI m)
 create p c = head . head <$> query c (fromString q) p
   where
     mInfo = modelInfo :: ModelInfo m
@@ -38,7 +38,7 @@ create p c = head . head <$> query c (fromString q) p
       (T.unpack $ T.intercalate ", " $ replicate (length insFields) "?")
 
 
-read :: forall m . Model m => Ident m -> Connection -> IO [Patch m]
+read :: forall m . Model m => IdentI m -> Connection -> IO [Patch m]
 read (Ident i) c = query c (fromString q) [i]
   where
     mInfo = modelInfo :: ModelInfo m
@@ -59,7 +59,7 @@ readMany lim off c = query_ c (fromString q)
       lim off
 
 
-update :: forall m . Model m => Ident m -> Patch m -> Connection -> IO Int64
+update :: forall m . Model m => IdentI m -> Patch m -> Connection -> IO Int64
 update (Ident i) p c = execute c (fromString q) p
   where
     mInfo = modelInfo :: ModelInfo m

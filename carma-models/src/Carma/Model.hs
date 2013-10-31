@@ -3,7 +3,7 @@
 {-# LANGUAGE Rank2Types #-}
 module Carma.Model
   (Model
-  ,Ident(..)
+  ,Ident(..), IdentI, IdentT
   ,dispatch
   ) where
 

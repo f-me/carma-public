@@ -21,20 +21,20 @@ import Data.Model.Types
 -- > mkIdents 'Role [("all", 5)]
 -- all = Ident 5 :: Ident Role
 -- idents = HM.fromList [("all", all)]
-mkIdents :: (Q Type) 
-         -> [(String, Integer)] 
+mkIdents :: (Q Type)
+         -> [(String, Integer)]
          -> Q [Dec]
 mkIdents modelTy names = do
-    Just identTy <- lookupTypeName "Ident"
+    Just identTy <- lookupTypeName "IdentI"
     let list = mkName "idents"
         defTy = (conT identTy) `appT` modelTy
-    identDefs <- forM names $ 
+    identDefs <- forM names $
       \(nm, i) -> do
         let nm' = mkName nm
         -- Type sig
         s <- sigD nm' defTy
         -- Value def
-        d <- valD (varP nm') 
+        d <- valD (varP nm')
              (normalB ((conE 'Ident) `appE` (litE $ integerL i))) []
         return [s, d]
     idMapTy  <- sigD list [t|HM.HashMap String $defTy|]

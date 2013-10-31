@@ -42,5 +42,5 @@ instance CoffeeType t => CoffeeType (Maybe t) where
 instance CoffeeType (Vector t) where
   coffeeType = Wrap "dictionary-set"
 
-instance CoffeeType (Ident t) where
+instance CoffeeType (Ident x t) where
   coffeeType = Wrap "dictionary"

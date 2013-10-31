@@ -11,14 +11,15 @@ import Data.Model.View
 import Carma.Model.Program (Program)
 
 data ServiceInfo = ServiceInfo
-  { program :: F (Ident Program) "program" "Программа"
-  , service :: F Text            "service" "Услуга"
-  , info    :: F Text            "info"    "Условия"
+  {ident   :: PK Int ServiceInfo
+  ,program :: F (IdentI Program) "program" "Программа"
+  ,service :: F Text             "service" "Услуга"
+  ,info    :: F Text             "info"    "Условия"
   } deriving Typeable
 
 instance Model ServiceInfo where
   type TableName ServiceInfo = "ServiceInfo"
-  modelInfo = mkModelInfo ServiceInfo
+  modelInfo = mkModelInfo ServiceInfo ident
   modelView _ = modifyView defaultView
     [readonly program, readonly service, textarea info]
 

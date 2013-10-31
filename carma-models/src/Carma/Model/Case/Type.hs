@@ -15,14 +15,15 @@ import Carma.Model.City     (City)
 
 
 data Case = Case
-  { callDate
+  { ident :: PK Int Case
+  , callDate
     :: F UTCTime "callDate" "Дата звонка" -- FIXME: it's UTCTime actually
   , vwcreatedate
     :: F UTCTime "vwcreatedate" "Дата звонка"
   , callTaker
     :: F Text "callTaker" "Сотрудник РАМК"
   , comment
-    :: F (Ident Wazzup) "comment" "Что случилось"
+    :: F (IdentT Wazzup) "comment" "Что случилось"
     -- , diagnosis1
     --   :: F (Ident Diagnosis1) "diagnosis1" "Система"
     -- , diagnosis2
@@ -58,13 +59,13 @@ data Case = Case
   , contact_ownerEmail
     :: F (Maybe Text) "contact_ownerEmail" "Email"
   , program
-    :: F (Ident Program) "program" "Программа"
+    :: F (IdentT Program) "program" "Программа"
   , car_vin
     :: F (Maybe Text) "car_vin" "VIN"
   , car_make
-    :: F (Ident CarMake) "car_make" "Марка"
+    :: F (IdentT CarMake) "car_make" "Марка"
   , car_model
-    :: F (Ident CarModel) "car_model" "Модель"
+    :: F (IdentT CarModel) "car_model" "Модель"
     --  , car_seller
     --    :: F (Maybe Text) "car_seller" "Дилер, продавший автомобиль"
   , car_plateNum
@@ -130,7 +131,7 @@ data Case = Case
     -- , vinChecked
     --   :: F (Ident VINChecked) "vinChecked" "Участие в программе"
   , city
-    :: F (Ident City) "city" "Город"
+    :: F (IdentT City) "city" "Город"
   , caseAddress_address
     :: F (Maybe Text) "caseAddress_address" "Адрес"
     --  , caseAddress_comment

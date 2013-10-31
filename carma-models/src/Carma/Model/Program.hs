@@ -8,9 +8,10 @@ import Data.Model.View
 
 
 data Program = Program
-  { label                 :: F Text            "label"  ""
-  , value                 :: F Text            "value"  ""
-  , active                :: F Bool            "active" ""
+  {ident                 :: PK Int Program
+  ,label                 :: F Text            "label"  ""
+  ,value                 :: F Text            "value"  ""
+  ,active                :: F Bool            "active" ""
 --  , client                :: Field "client"
 --  , clientCode            :: Field "clientCode"
 --  , clientAddress         :: Field "clientAddress"
@@ -26,7 +27,7 @@ data Program = Program
 
 instance Model Program where
   type TableName Program = "programtbl"
-  modelInfo = mkModelInfo Program
+  modelInfo = mkModelInfo Program ident
   modelView _ = defaultView
 
 -- known programs

@@ -11,21 +11,22 @@ import Carma.Model.SmsTemplate (SmsTemplate)
 
 
 data Sms = Sms
-  { ctime    :: F UTCTime      "ctime"    "Время создания сообщения"
-  , mtime    :: F UTCTime      "mtime"    "Время последнего изменения сообщения (или статуса)"
-  , status   :: F Text         "status"   "Статус отправки сообщения"
-  , caseRef  :: F (Maybe Text) "caseRef"  "Номер кейса"
-  , phone    :: F Text         "phone"    "Телефон получателя"
-  , sender   :: F Text         "sender"   "Подпись отправителя"
-  , template :: F (Ident SmsTemplate)
-                               "template" "Шаблон сообщения"
-  , msgText  :: F Text         "msgText"  "Текст сообщения"
+  {ident    :: PK Int Sms
+  ,ctime    :: F UTCTime      "ctime"    "Время создания сообщения"
+  ,mtime    :: F UTCTime      "mtime"    "Время последнего изменения сообщения (или статуса)"
+  ,status   :: F Text         "status"   "Статус отправки сообщения"
+  ,caseRef  :: F (Maybe Text) "caseRef"  "Номер кейса"
+  ,phone    :: F Text         "phone"    "Телефон получателя"
+  ,sender   :: F Text         "sender"   "Подпись отправителя"
+  ,template :: F (IdentI SmsTemplate)
+                              "template" "Шаблон сообщения"
+  ,msgText  :: F Text         "msgText"  "Текст сообщения"
   } deriving Typeable
 
 
 instance Model Sms where
   type TableName Sms = "Sms"
-  modelInfo = mkModelInfo Sms
+  modelInfo = mkModelInfo Sms ident
   modelView _ = modifyView defaultView
     [invisible ctime
     ,invisible mtime

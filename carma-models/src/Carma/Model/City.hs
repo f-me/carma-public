@@ -30,7 +30,8 @@ instance FromField Coords where
 
 
 data City = City
-  {label    :: F Text         "label"    "Название"
+  {ident    :: PK Int City
+  ,label    :: F Text         "label"    "Название"
   ,value    :: F Text         "value"    "Внутреннее название"
 --  ,coords   :: F Coords       "coords"   "Координаты"
   ,timezone :: F (Maybe Text) "timezone" "Часовой пояс"
@@ -39,5 +40,5 @@ data City = City
 
 instance Model City where
   type TableName City = "City"
-  modelInfo = mkModelInfo City
+  modelInfo = mkModelInfo City ident
   modelView _ = defaultView

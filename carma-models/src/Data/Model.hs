@@ -1,11 +1,10 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Data.Model
-  ( Ident(..)
-  , ident, identDesc, IdentF
+  ( Ident(..), IdentI, IdentT
   , Model(..)
   , ModelInfo(..), mkModelInfo
-  , Field(..), F
+  , Field(..), F, PK
   , FOpt
   , FieldDesc(..)
   , fieldName
@@ -32,15 +31,19 @@ import Data.Model.View.Types hiding (modelName)
 import Data.Model.CoffeeType
 
 
-mkModelInfo :: forall m ctr . (Model m, GetModelFields m ctr) => ctr -> ModelInfo m
-mkModelInfo ctr = ModelInfo
-  { modelName      = T.pack $ show $ typeOf (undefined :: m)
-  , tableName      = T.pack $ fromSing (sing :: Sing (TableName m))
-  , modelFields    = mfs
-  , modelFieldsMap = HashMap.fromList [(fd_name f, f) | f <- mfs]
-  }
-  where
-    mfs = identDesc : getModelFields ctr
+mkModelInfo
+  :: forall m ctr pkTy pkNm pkDesc
+  . (Model m, GetModelFields m ctr)
+  => ctr -> (m -> F (Ident pkTy m) pkNm pkDesc)
+  -> ModelInfo m
+mkModelInfo ctr _pkF =
+  let mfs = getModelFields ctr
+  in ModelInfo
+    { modelName      = T.pack $ show $ typeOf (undefined :: m)
+    , tableName      = T.pack $ fromSing (sing :: Sing (TableName m))
+    , modelFields    = mfs
+    , modelFieldsMap = HashMap.fromList [(fd_name f, f) | f <- mfs]
+    }
 
 
 class (SingI (TableName m), Typeable m) => Model m where
@@ -49,8 +52,8 @@ class (SingI (TableName m), Typeable m) => Model m where
   modelView :: Text -> ModelView m
 
 
-instance Model m => Show (Ident m) where
-  show (Ident x :: Ident m) = "Ident " ++ modelName ++ " " ++ show x
+instance (Model m, Show t) => Show (Ident t m) where
+  show (Ident x :: Ident t m) = "Ident " ++ modelName ++ " " ++ show x
     where
       modelName = show $ typeOf (undefined :: m)
 
@@ -58,29 +61,12 @@ instance Model m => Show (Ident m) where
 data FOpt (name :: Symbol) (desc :: Symbol) = FOpt
 data Field typ opt = Field
 type F t n d = Field t (FOpt n d)
+type PK t m  = Field (Ident t m) (FOpt "id" "object id")
 
 
 fieldName :: SingI name => (model -> Field typ (FOpt name desc)) -> Text
 fieldName (_ :: model -> Field typ (FOpt name desc))
   = T.pack $ fromSing (sing :: Sing name)
-
-
-type IdentF m = m -> F (Ident m) "id" ""
-
-ident :: m -> F (Ident m) "id" ""
-ident _ = Field
-
-identDesc :: forall m . Model m => FieldDesc m
-identDesc = FieldDesc
-  {fd_name       = "id"
-  ,fd_desc       = "Object id"
-  ,fd_type       = typeOf (undefined :: Ident m)
-  ,fd_parseJSON  = \v -> toDyn <$> (parseJSON v :: Parser (Ident m))
-  ,fd_toJSON     = \d -> toJSON  (fromJust $ fromDynamic d :: Ident m)
-  ,fd_fromField  = toDyn <$> (field :: RowParser (Ident m))
-  ,fd_toField    = \d -> toField (fromJust $ fromDynamic d :: Ident m)
-  ,fd_coffeeType = unWrap (coffeeType :: Wrap (Ident m) Text)
-  }
 
 
 class GetModelFields m ctr where

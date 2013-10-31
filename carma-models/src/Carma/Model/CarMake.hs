@@ -8,13 +8,14 @@ import Data.Model.View
 
 
 data CarMake = CarMake
-  {value :: F Text            "value" "value"
-  ,label :: F Text            "label" "Марка"
+  {ident :: PK Int CarMake
+  ,value :: F Text "value" "value"
+  ,label :: F Text "label" "Марка"
   }
   deriving Typeable
 
 
 instance Model CarMake where
   type TableName CarMake = "CarMake"
-  modelInfo = mkModelInfo CarMake
+  modelInfo = mkModelInfo CarMake ident
   modelView _ = defaultView

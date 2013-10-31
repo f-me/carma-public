@@ -11,12 +11,13 @@ import Carma.Model.City (City)
 
 
 data Region = Region
-  { label  :: F Text                  "label"  "Название региона"
-  , cities :: F (Vector (Ident City)) "cities" "Города в регионе"
+  {ident  :: PK Int Region
+  ,label  :: F Text                   "label"  "Название региона"
+  ,cities :: F (Vector (IdentI City)) "cities" "Города в регионе"
   } deriving Typeable
 
 
 instance Model Region where
   type TableName Region = "Region"
-  modelInfo = mkModelInfo Region
+  modelInfo = mkModelInfo Region ident
   modelView _ = defaultView

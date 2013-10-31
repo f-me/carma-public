@@ -18,13 +18,12 @@ import Data.Model.View
 import Data.Model.Search as S
 
 import Carma.Model.Types()
-
 import Carma.Model.Case.Type as Case
 
 
 caseSearchParams :: [(Text, [Predicate Case])]
 caseSearchParams
-  = [("caseId",     one (ident :: IdentF Case))
+  = [("caseId",     one Case.ident)
     ,("vin",        fuzzy $ one Case.car_vin)
     ,("cardNumber", fuzzy $ one Case.cardNumber_cardNumber)
     ,("plateNum",   fuzzy $ one Case.car_plateNum)
@@ -53,7 +52,7 @@ caseSearchView = searchView caseSearchParams
 
 instance Model Case where
   type TableName Case = "casetbl"
-  modelInfo   = mkModelInfo Case
+  modelInfo   = mkModelInfo Case Case.ident
   modelView v =
     case v of
       "search" -> caseSearchView

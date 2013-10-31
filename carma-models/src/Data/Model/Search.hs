@@ -3,10 +3,8 @@
 
 module Data.Model.Search where
 
-import           Control.Applicative
 import           Control.Exception
 
-import           Data.Maybe (catMaybes)
 import           Data.Either (partitionEithers)
 import           Data.String (fromString)
 import           Data.Text (Text)
@@ -18,7 +16,7 @@ import qualified Data.HashMap.Strict as HM
 
 import qualified Data.Map as Map
 
-import           Data.Vector (Vector, fromList)
+import           Data.Vector (Vector)
 import qualified Data.Vector as V
 
 import           Data.Time.Clock (UTCTime)

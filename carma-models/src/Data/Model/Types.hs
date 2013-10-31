@@ -14,19 +14,23 @@ import Data.Dynamic
 data Wrap t a = Wrap {unWrap :: a}
 
 
-data Ident model = Ident {identVal :: Int}
+data Ident t model = Ident {identVal :: t}
   deriving (Typeable, Eq)
 
-instance FromField (Ident m) where
+type IdentI m = Ident Int m
+type IdentT m = Ident Text m
+
+
+instance FromField t => FromField (Ident t m) where
   fromField f x = Ident `fmap` fromField f x
 
-instance FromJSON (Ident m) where
+instance FromJSON t => FromJSON (Ident t m) where
   parseJSON = fmap Ident . parseJSON
 
-instance ToJSON (Ident m) where
+instance ToJSON t => ToJSON (Ident t m) where
   toJSON (Ident i) = toJSON i
 
-instance ToField (Ident m) where
+instance ToField t => ToField (Ident t m) where
   toField (Ident i) = toField i
 
 

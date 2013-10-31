@@ -10,18 +10,19 @@ import Data.Model.View
 import Data.Model.TH
 
 data Role = Role
-  { label  :: F Text "label"  "Название роли"
-  , value  :: F Text "value"  "Внутреннее название роли"
-  , isBack :: F Bool "isBack" "Роль бэкофиса"
+  {ident  :: PK Int Role
+  ,label  :: F Text "label"  "Название роли"
+  ,value  :: F Text "value"  "Внутреннее название роли"
+  ,isBack :: F Bool "isBack" "Роль бэкофиса"
   } deriving Typeable
 
 
 instance Model Role where
   type TableName Role = "Role"
-  modelInfo = mkModelInfo Role
+  modelInfo = mkModelInfo Role ident
   modelView _ = modifyView defaultView [readonly value]
 
-mkIdents [t|Role|] 
+mkIdents [t|Role|]
  [ ("core", 1)
  , ("call", 2)
  , ("parguy", 3)

@@ -11,14 +11,15 @@ import Carma.Model.CarMake (CarMake)
 
 
 data CarModel = CarModel
-  {value :: F Text             "value"   "value"
+  {ident :: PK Int CarModel
+  ,value :: F Text             "value"   "value"
   ,label :: F Text             "label"   "Модель"
-  ,parent:: F (Ident CarMake)  "parent"  "Марка машины"
+  ,parent:: F (IdentI CarMake) "parent"  "Марка машины"
   }
   deriving Typeable
 
 
 instance Model CarModel where
   type TableName CarModel = "CarModel"
-  modelInfo = mkModelInfo CarModel
+  modelInfo = mkModelInfo CarModel ident
   modelView _ = defaultView

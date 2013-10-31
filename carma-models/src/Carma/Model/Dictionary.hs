@@ -11,19 +11,21 @@ import Data.Model.View
 
 
 data Dictionary = Dictionary
-  { name
-    :: F Text                       "name"        "Название"
-  , description
-    :: F Text                       "description" "Описание"
-  , parent
-    :: F (Maybe (Ident Dictionary)) "parent"      "Родительский словарь"
-  , majorFields
-    :: F (Vector Text)              "majorFields" "Важные поля"
+  {ident
+    :: PK Int Dictionary
+  ,name
+    :: F Text                        "name"        "Название"
+  ,description
+    :: F Text                        "description" "Описание"
+  ,parent
+    :: F (Maybe (IdentI Dictionary)) "parent"      "Родительский словарь"
+  ,majorFields
+    :: F (Vector Text)               "majorFields" "Важные поля"
   }
   deriving Typeable
 
 
 instance Model Dictionary where
   type TableName Dictionary = "Dictionary"
-  modelInfo = mkModelInfo Dictionary
+  modelInfo = mkModelInfo Dictionary ident
   modelView _ = defaultView
