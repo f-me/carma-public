@@ -44,7 +44,7 @@ parseInt txt = res
     Right (res,_) =  T.decimal $ T.decodeUtf8 txt
 
 
-sendSMS :: MonadTrigger m b => ByteString -> Model.Ident SmsTemplate -> m b ()
+sendSMS :: MonadTrigger m b => ByteString -> Model.IdentI SmsTemplate -> m b ()
 sendSMS actId tplId = do
   dic <- liftDb $ getDict id
 

@@ -135,7 +135,7 @@ smspost = do
 readInt :: (Read i, Integral i) => ByteString -> i
 readInt = read . read . show
 
-readIdent :: ByteString -> Ident m
+readIdent :: ByteString -> IdentI m
 readIdent = Ident . readInt
 
 
@@ -163,7 +163,7 @@ readHandler = do
   let readModel :: forall m . Model m => m -> AppHandler ()
       readModel _ = do
         res <- with db $ do
-          let ident = readIdent objId :: Ident m
+          let ident = readIdent objId :: IdentI m
           s <- PS.getPostgresState
           liftIO $ withResource (PS.pgPool s) (Patch.read ident)
         case res of
@@ -220,7 +220,7 @@ updateHandler = do
   Just objId <- getParam "id"
   let updateModel :: forall m . Model m => m -> AppHandler ()
       updateModel _ = do
-        let ident = readIdent objId :: Ident m
+        let ident = readIdent objId :: IdentI m
         commit <- getJSONBody :: AppHandler (Patch m)
         res <- with db $ do
           s   <- PS.getPostgresState

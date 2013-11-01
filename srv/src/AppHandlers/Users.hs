@@ -75,13 +75,13 @@ alwaysPass :: RoleChecker
 alwaysPass = const True
 
 
-hasAnyOfRoles :: [Ident Role] -> RoleChecker
+hasAnyOfRoles :: [IdentI Role] -> RoleChecker
 hasAnyOfRoles authRoles =
     \userRoles -> any (flip elem ar) userRoles
         where ar = map (\i -> Snap.Role $ roleIdent i) authRoles
 
 
-hasNoneOfRoles :: [Ident Role] -> RoleChecker
+hasNoneOfRoles :: [IdentI Role] -> RoleChecker
 hasNoneOfRoles authRoles =
     \userRoles -> not $ any (flip elem ar) userRoles
         where ar = map (\i -> Snap.Role $ roleIdent i) authRoles

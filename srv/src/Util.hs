@@ -197,12 +197,10 @@ formatTimestamp tm = case B.readInt tm of
 
 -- | Get current UNIX timestamp, round and apply a function to it,
 -- then format the result as a bytestring.
-projNow :: (Show b, Integral a, Integral b) =>
-           (a -> b)
-        -> IO ByteString
+projNow :: (Int -> Int) -> IO ByteString
 projNow fn =
   (B.pack . show . fn . round . utcTimeToPOSIXSeconds) <$> getCurrentTime
 
 
-roleIdent :: Model.Ident Role.Role -> ByteString
+roleIdent :: Model.IdentI Role.Role -> ByteString
 roleIdent (Model.Ident v) = B.pack $ show v

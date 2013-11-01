@@ -113,10 +113,8 @@ serveDictionaries :: Handler b (SiteConfig b) ()
 serveDictionaries = do
   let withPG f = gets pg_search >>= liftIO . (`withResource` f)
   programs <- withPG $ selectJSON
-    (Model.ident :. Program.value :. Program.label :. eq Program.active True)
-  roles <- withPG $ selectJSON $
-           (Model.ident :: Model.IdentF Role.Role) :.
-           Role.label
+    (Program.ident :. Program.value :. Program.label :. eq Program.active True)
+  roles <- withPG $ selectJSON (Role.ident :. Role.label)
   let roles' =
           map (\(Aeson.Object o) ->
                Aeson.Object $ HM.insert "value" (o HM.! "id") o)
