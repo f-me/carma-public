@@ -47,12 +47,12 @@ defaultFieldView f = FieldView
       "id" -> [("invisible", Aeson.Bool True)]
       _ -> []
     ++ case words $ show $ fd_type f of
-      ["Ident", model] ->
+      ["Ident", "Int", model] ->
         [("dictionaryName", Aeson.String $ T.pack model)
         ,("dictionaryType", "ModelDict")
         ,("bounded", Aeson.Bool True)
         ]
-      ["Vector", "(Ident", model] ->
+      ["Vector", "(Ident", "Int", model] ->
         [("dictionaryName", Aeson.String
           $ fromJust $ T.stripSuffix ")" $ T.pack model)
         ,("dictionaryType", "ModelDict")
