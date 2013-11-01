@@ -39,7 +39,7 @@ define [ "utils"
         majorFields = [{name:'id', label:'#', tr: (v) -> v}]
         for f in dict.majorFields
           fDesc = _.find dictModel.fields, (mf) -> mf.name == f
-          if fDesc
+          if fDesc && fDesc.type != 'ident'
             tr = (v) -> v
             if fDesc.type == 'dictionary'
               d = new modelDict.dict {dict: fDesc.meta.dictionaryName}
