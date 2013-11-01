@@ -33,14 +33,15 @@ import Data.Model.CoffeeType
 
 mkModelInfo
   :: forall m ctr pkTy pkNm pkDesc
-  . (Model m, GetModelFields m ctr)
+  . (Model m, GetModelFields m ctr, SingI pkNm)
   => ctr -> (m -> F (Ident pkTy m) pkNm pkDesc)
   -> ModelInfo m
-mkModelInfo ctr _pkF =
+mkModelInfo ctr pk =
   let mfs = getModelFields ctr
   in ModelInfo
     { modelName      = T.pack $ show $ typeOf (undefined :: m)
     , tableName      = T.pack $ fromSing (sing :: Sing (TableName m))
+    , primKeyName    = fieldName pk
     , modelFields    = mfs
     , modelFieldsMap = HashMap.fromList [(fd_name f, f) | f <- mfs]
     }

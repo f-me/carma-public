@@ -26,26 +26,32 @@ import Data.Model as Model
 import Data.Model.View.Types
 
 defaultView :: forall m . Model m => ModelView m
-defaultView = ModelView
-  { modelName = Model.modelName (modelInfo :: ModelInfo m)
-  , title = ""
-  , fields
-    = [defaultFieldView f
-      | f <- modelFields (modelInfo :: ModelInfo m)
-      , fd_name f /= "id"]
-  }
+defaultView
+  = modifyView mv
+    [(primKeyName mi, \v -> v
+      {fieldType = "ident"
+      ,canWrite  = False
+      ,meta = Map.insert "invisible" (Aeson.Bool True) $ meta v
+      })]
+  where
+    mi = modelInfo :: ModelInfo m
+    mv = ModelView
+      { modelName = Model.modelName mi
+      , title = ""
+      , fields
+        = [defaultFieldView f
+          | f <- modelFields mi
+          , fd_name f /= primKeyName mi]
+      }
 
 
-defaultFieldView :: FieldDesc m -> FieldView m
+defaultFieldView :: forall m . Model m => FieldDesc m -> FieldView m
 defaultFieldView f = FieldView
   { name      = fd_name f
   , fieldType = fd_coffeeType f
   , canWrite  = True
   , meta      = Map.fromList
     $  [("label", Aeson.String $ fd_desc f)]
-    ++ case fd_name f of
-      "id" -> [("invisible", Aeson.Bool True)]
-      _ -> []
     ++ case words $ show $ fd_type f of
       ["Ident", "Int", model] ->
         [("dictionaryName", Aeson.String $ T.pack model)

@@ -136,7 +136,7 @@ renderPredicate conn pMap vals = do
     ([], res)       -> Right $ T.intercalate " AND " $ map parenthize res
 
 
-searchView :: [(Text, [Predicate m])] -> ModelView m
+searchView :: Model m => [(Text, [Predicate m])] -> ModelView m
 searchView flds = ModelView
   { View.modelName = "search"
   , View.title = "Поиск"

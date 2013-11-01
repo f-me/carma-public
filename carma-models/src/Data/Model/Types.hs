@@ -37,6 +37,7 @@ instance ToField t => ToField (Ident t m) where
 data ModelInfo m = ModelInfo
   { modelName      :: Text
   , tableName      :: Text
+  , primKeyName    :: Text
   , modelFields    :: [FieldDesc m]
   , modelFieldsMap :: HashMap Text (FieldDesc m)
   }
