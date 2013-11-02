@@ -30,6 +30,7 @@ import           GHC.TypeLits
 
 import           Data.Model as Model hiding (fieldName, modelName)
 import           Data.Model.CoffeeType
+import           Data.Model.Types ((:@), Wrap(..))
 import qualified Data.Model      as Model
 import qualified Data.Model.View as View
 import           Carma.Model.Types
@@ -40,7 +41,7 @@ data Predicate m
     { tableName :: Text
     , modelName :: Text
     , fieldName :: Text
-    , fieldDesc :: FieldDesc m
+    , fieldDesc :: FieldDesc :@ m
     , matchType :: MatchType
     , escapeVal
       :: PG.Connection -> PG.Query -> Aeson.Value
@@ -58,21 +59,23 @@ one
   . (FromJSON t, ToField t, CoffeeType t
     ,SingI nm, SingI desc, Model m)
   => (m -> F t nm desc) -> [Predicate m]
-one f = Predicate
-  { tableName = Model.tableName (modelInfo :: ModelInfo m)
-  , modelName = Model.modelName (modelInfo :: ModelInfo m)
-  , fieldName = Model.fieldName f
-  , fieldDesc = modelFieldsMap modelInfo HM.! Model.fieldName f
-  , matchType = MatchExact
-  , escapeVal = \conn qTpl val ->
-      case fromJSON val :: Aeson.Result t of
-        Error err -> return $ Left $ "Aeson error: " ++ err
-        Success pgVal
-          -> try (PG.formatQuery conn qTpl (Only pgVal))
-          >>= return . \case
-            Left e  -> Left $ show (e :: PG.FormatError)
-            Right q -> Right $ T.decodeUtf8 q
-  } : []
+one f =
+  let mi = modelInfo :: ModelInfo m
+  in Predicate
+    { tableName = Model.tableName mi
+    , modelName = Model.modelName mi
+    , fieldName = Model.fieldName f
+    , fieldDesc = Wrap $ modelFieldsMap mi HM.! Model.fieldName f
+    , matchType = MatchExact
+    , escapeVal = \conn qTpl val ->
+        case fromJSON val :: Aeson.Result t of
+          Error err -> return $ Left $ "Aeson error: " ++ err
+          Success pgVal
+            -> try (PG.formatQuery conn qTpl (Only pgVal))
+            >>= return . \case
+              Left e  -> Left $ show (e :: PG.FormatError)
+              Right q -> Right $ T.decodeUtf8 q
+    } : []
 
 listOf
   :: forall m t nm desc
@@ -149,7 +152,7 @@ searchView flds = ModelView
                 (View.meta v)
         }
       | (nm, ps@(p:_)) <- flds
-      , let v = View.defaultFieldView $ fieldDesc p
+      , let v = View.defaultFieldView $ unWrap $ fieldDesc p
       ]
   }
   where

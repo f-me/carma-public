@@ -12,6 +12,7 @@ import Data.Dynamic
 
 
 data Wrap t a = Wrap {unWrap :: a}
+type a :@ t = Wrap t a
 
 
 data Ident t model = Ident {identVal :: t}
@@ -38,11 +39,11 @@ data ModelInfo m = ModelInfo
   { modelName      :: Text
   , tableName      :: Text
   , primKeyName    :: Text
-  , modelFields    :: [FieldDesc m]
-  , modelFieldsMap :: HashMap Text (FieldDesc m)
+  , modelFields    :: [FieldDesc]
+  , modelFieldsMap :: HashMap Text (FieldDesc)
   }
 
-data FieldDesc m = FieldDesc
+data FieldDesc = FieldDesc
   {fd_name       :: Text
   ,fd_desc       :: Text
   ,fd_type       :: TypeRep

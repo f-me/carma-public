@@ -6,14 +6,14 @@ import Data.Map (Map)
 import Data.Aeson as Aeson
 
 
-data FieldView m = FieldView
+data FieldView = FieldView
   { name      :: Text
   , fieldType :: Text
   , meta      :: Map Text Aeson.Value
   , canWrite  :: Bool
   }
 
-instance ToJSON (FieldView m) where
+instance ToJSON FieldView where
   toJSON f = object
     [ "name"     .= name f
     , "type"     .= fieldType f
@@ -24,7 +24,7 @@ instance ToJSON (FieldView m) where
 data ModelView m = ModelView
   { modelName :: Text
   , title     :: Text
-  , fields    :: [FieldView m]
+  , fields    :: [FieldView]
   }
 
 instance ToJSON (ModelView m) where

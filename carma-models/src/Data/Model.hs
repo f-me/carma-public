@@ -37,7 +37,7 @@ mkModelInfo
   => ctr -> (m -> F (Ident pkTy m) pkNm pkDesc)
   -> ModelInfo m
 mkModelInfo ctr pk =
-  let mfs = getModelFields ctr
+  let mfs = unWrap $ (getModelFields ctr :: [FieldDesc] :@ m)
   in ModelInfo
     { modelName      = T.pack $ show $ typeOf (undefined :: m)
     , tableName      = T.pack $ fromSing (sing :: Sing (TableName m))
@@ -71,25 +71,27 @@ fieldName (_ :: model -> Field typ (FOpt name desc))
 
 
 class GetModelFields m ctr where
-  getModelFields :: ctr -> [FieldDesc m]
+  getModelFields :: ctr -> Wrap m [FieldDesc]
 
 instance
     (GetModelFields m ctr, SingI nm, SingI desc, CoffeeType t
     ,FromJSON t, ToJSON t, FromField t, ToField t, Typeable t)
     => GetModelFields m (Field t (FOpt nm desc) -> ctr)
   where
-    getModelFields f
-      = FieldDesc
-        {fd_name      = T.pack $ fromSing (sing :: Sing nm)
-        ,fd_desc      = T.pack $ fromSing (sing :: Sing desc)
-        ,fd_type      = typeOf   (undefined :: t)
-        ,fd_parseJSON = \v -> toDyn <$> (parseJSON v :: Parser t)
-        ,fd_toJSON    = \d -> toJSON  (fromJust $ fromDynamic d :: t)
-        ,fd_fromField = toDyn <$> (field :: RowParser t)
-        ,fd_toField   = \d -> toField (fromJust $ fromDynamic d :: t)
-        ,fd_coffeeType = unWrap (coffeeType :: Wrap t Text)
-        }
-      : getModelFields (f Field)
+    getModelFields f = Wrap
+      $ fd
+      : unWrap (getModelFields (f Field) :: [FieldDesc] :@ m)
+      where
+        fd = FieldDesc
+          {fd_name      = T.pack $ fromSing (sing :: Sing nm)
+          ,fd_desc      = T.pack $ fromSing (sing :: Sing desc)
+          ,fd_type      = typeOf   (undefined :: t)
+          ,fd_parseJSON = \v -> toDyn <$> (parseJSON v :: Parser t)
+          ,fd_toJSON    = \d -> toJSON  (fromJust $ fromDynamic d :: t)
+          ,fd_fromField = toDyn <$> (field :: RowParser t)
+          ,fd_toField   = \d -> toField (fromJust $ fromDynamic d :: t)
+          ,fd_coffeeType = unWrap (coffeeType :: Wrap t Text)
+          }
 
 instance GetModelFields m m where
-  getModelFields _ = []
+  getModelFields _ = Wrap []
