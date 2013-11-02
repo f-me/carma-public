@@ -1,4 +1,4 @@
-define ["model/utils"], (mu) ->
+define ["model/utils", "lib/ident/role"], (mu, role) ->
   # jquery -> html(as string) conversion, with selected element
   jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
 
@@ -128,6 +128,11 @@ define ["model/utils"], (mu) ->
       "#{mins}м"
     else
       "#{hours}ч #{mins}м"
+
+  # Return true if user may access case/service-related actions
+  canReadActions: () ->
+    (_.contains global.user.roles, role.back) ||
+    (_.contains global.user.roles, role.supervisor)
 
   findCaseOrReferenceVM: findCaseOrReferenceVM
 
