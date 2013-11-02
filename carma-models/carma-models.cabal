@@ -64,7 +64,7 @@ library
 
   extensions:
     DataKinds, KindSignatures, TypeOperators,
-    TypeFamilies,
+    TypeFamilies, EmptyDataDecls,
     MultiParamTypeClasses, FlexibleInstances, FlexibleContexts,
     DeriveDataTypeable,
     OverloadedStrings, TupleSections,

@@ -3,6 +3,7 @@
 module Data.Model
   ( Ident(..), IdentI, IdentT
   , Model(..)
+  , NoParent
   , ModelInfo(..), mkModelInfo
   , Field(..), F, PK
   , FOpt
@@ -33,22 +34,32 @@ import Data.Model.CoffeeType
 
 mkModelInfo
   :: forall m ctr pkTy pkNm pkDesc
-  . (Model m, GetModelFields m ctr, SingI pkNm)
+  . (Model m, Model (Parent m), GetModelFields m ctr, SingI pkNm)
   => ctr -> (m -> F (Ident pkTy m) pkNm pkDesc)
   -> ModelInfo m
 mkModelInfo ctr pk =
-  let mfs = unWrap $ (getModelFields ctr :: [FieldDesc] :@ m)
+  let parentFlds
+        = if typeOf (undefined :: Parent m) == typeOf (undefined :: NoParent)
+          then []
+          else modelFields (modelInfo :: ModelInfo (Parent m))
+      modelFlds
+        = parentFlds
+        ++ unWrap (getModelFields ctr :: [FieldDesc] :@ m)
   in ModelInfo
     { modelName      = T.pack $ show $ typeOf (undefined :: m)
     , tableName      = T.pack $ fromSing (sing :: Sing (TableName m))
     , primKeyName    = fieldName pk
-    , modelFields    = mfs
-    , modelFieldsMap = HashMap.fromList [(fd_name f, f) | f <- mfs]
+    , modelFields    = modelFlds
+    , modelFieldsMap = HashMap.fromList [(fd_name f, f) | f <- modelFlds]
     }
 
 
-class (SingI (TableName m), Typeable m) => Model m where
+class (SingI (TableName m), Typeable m, Typeable (Parent m)) => Model m where
   type TableName m :: Symbol
+
+  type Parent m
+  type Parent m = NoParent
+
   modelInfo :: ModelInfo m
   modelView :: Text -> ModelView m
 
@@ -57,6 +68,14 @@ instance (Model m, Show t) => Show (Ident t m) where
   show (Ident x :: Ident t m) = "Ident " ++ modelName ++ " " ++ show x
     where
       modelName = show $ typeOf (undefined :: m)
+
+
+data NoParent deriving Typeable
+instance Model NoParent where
+  type TableName NoParent = "(undefined)"
+  type Parent NoParent = NoParent
+  modelInfo = error "ModelInfo NoParent"
+  modelView = error "ModelView NoParent"
 
 
 data FOpt (name :: Symbol) (desc :: Symbol) = FOpt
