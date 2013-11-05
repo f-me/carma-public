@@ -170,8 +170,20 @@ define ["model/utils"], (mu) ->
   modelMethod: (modelName, method) -> "/_/#{modelName}/#{method}"
 
   getServiceDesc: (program, service) ->
-    si  = global.dictionaries['ServiceInfo'][program]?[service]
-    si ?= global.dictionaries['ServiceInfo']['default']?[service]
+    p = @findProgram program
+    si = _.find global.dictionaries['ServiceInfo'].entries, (info) ->
+      info.program == p.id and info.service == service
+    si?.info or ""
+
+  getProgramDesc: (program) ->
+    p = @findProgram program
+    pi = _.find global.dictionaries['ProgramInfo'].entries, (info) ->
+      info.program == p.id
+    pi?.info or ""
+
+  findProgram: (name) ->
+    _.find global.dictionaries['Programs'].entries, (program) ->
+      program.value == name
 
   # Scroll case field into view and focus
   focusField: (name) ->

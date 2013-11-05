@@ -75,13 +75,13 @@ alwaysPass :: RoleChecker
 alwaysPass = const True
 
 
-hasAnyOfRoles :: [Ident Role] -> RoleChecker
+hasAnyOfRoles :: [IdentI Role] -> RoleChecker
 hasAnyOfRoles authRoles =
     \userRoles -> any (flip elem ar) userRoles
         where ar = map (\i -> Snap.Role $ roleIdent i) authRoles
 
 
-hasNoneOfRoles :: [Ident Role] -> RoleChecker
+hasNoneOfRoles :: [IdentI Role] -> RoleChecker
 hasNoneOfRoles authRoles =
     \userRoles -> not $ any (flip elem ar) userRoles
         where ar = map (\i -> Snap.Role $ roleIdent i) authRoles
@@ -134,12 +134,12 @@ serveUserCake
       usr <- with db $ replaceMetaRolesFromPG u'
       achievements <- userAchievements usr
       let homePage = case map (\(Snap.Role r) -> r) $ userRoles usr of
-            rs | (roleIdent Role.front)      `elem` rs -> "/#call"
+            rs | (roleIdent Role.head)       `elem` rs -> "/#rkc"
+               | (roleIdent Role.supervisor) `elem` rs -> "/#supervisor"
+               | (roleIdent Role.front)      `elem` rs -> "/#call"
                | (roleIdent Role.back)       `elem` rs -> "/#back"
                | (roleIdent Role.bo_control) `elem` rs -> "/#back"
-               | (roleIdent Role.supervisor) `elem` rs -> "/#supervisor"
                | (roleIdent Role.parguy)     `elem` rs -> "/#partner"
-               | (roleIdent Role.head)       `elem` rs -> "/#rkc"
                | otherwise                   -> ""
       writeJSON $ usr
         {userMeta

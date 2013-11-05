@@ -80,7 +80,6 @@ instance HasPostgres (Handler b GeoApp) where
 
 routes :: [(ByteString, Handler b GeoApp ())]
 routes = [ ("/geo/partner/:pid", method PUT $ updatePosition)
-         , ("/geo/partner/:pid", method GET $ getMessage)
          , ("/geo/partnersAround/:coords", method GET $ partnersAround)
          , ("/geo/case/", method POST $ newCase)
          ]
@@ -195,29 +194,9 @@ updatePartnerData pid lon lat free addr mtime =
         Just newFactAddr -> do
           pData <- runCarma $ readInstance "partner" pid
           let oldAddrs = fromMaybe "" $ HM.lookup partnerAddress pData
-              newAddrs = setKeyedJsonValue oldAddrs "fact" newFactAddr
+              newAddrs = setKeyedJsonValue oldAddrs (Right "fact") newFactAddr
           return $ HM.insert partnerAddress newAddrs body
       runCarma $ updateInstance "partner" pid body' >> return ()
-
-
-------------------------------------------------------------------------------
--- | Used to fetch messages for a partner with id supplied as a query
--- parameter.
-getMessageQuery :: Query
-getMessageQuery = [sql|
-SELECT message FROM partnerMessageTbl
-WHERE partnerId=? order by ctime desc limit 1;
-|]
-
-
-getMessage :: Handler b GeoApp ()
-getMessage = do
-  Just pid <- getParam "pid"
-  let partnerId = BS.append "partner:" pid
-  res <- query getMessageQuery $ Only partnerId
-  case res of
-    (Only msg):_ -> writeLBS msg
-    _ -> writeLBS "{}"
 
 
 ------------------------------------------------------------------------------

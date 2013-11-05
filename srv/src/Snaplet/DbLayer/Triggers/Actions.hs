@@ -613,8 +613,6 @@ actionResultMap = Map.fromList
      clearAssignee newAction
   )
   ,("serviceOrdered", \objId -> do
-    newPartnerMessage objId
-
     setServiceStatus objId "serviceOrdered"
     svcId    <- get objId "parentId"
     assignee <- get objId "assignedTo"
@@ -641,7 +639,6 @@ actionResultMap = Map.fromList
         tryToPassChainToControl u act
   )
   ,("serviceOrderedSMS", \objId -> do
-    newPartnerMessage objId
     sendSMS objId SmsTemplate.order
 
     setServiceStatus objId "serviceOrdered"
@@ -958,31 +955,6 @@ getServiceType :: MonadTrigger m b =>
 getServiceType actId = do
   v <- get actId "parentId"
   return $ fst <$> read1Reference v
-
-newPartnerMessage objId = do
-  svcId <- get objId "parentId"
-  partnerId <- get svcId "contractor_partner"
-  kazeId <- get svcId "parentId"
-  now <- dateNow id
-
-  addr   <- get kazeId "caseAddress_address"
-  name   <- get kazeId "contact_name"
-  phone  <- get kazeId "contact_phone1"
-  carNum <- get kazeId "car_plateNum"
-
-  let msg = Aeson.object
-        ["addr"   .= addr
-        ,"name"   .= name
-        ,"phone"  .= phone
-        ,"carNum" .= carNum
-        ]
-
-  void $ new "partnerMessage" $ Map.fromList
-    [("ctime", now)
-    ,("caseId", kazeId)
-    ,("partnerId", partnerId)
-    ,("message", L.toStrict $ Aeson.encode msg)
-    ]
 
 
 closeServiceAndSendInfoVW objId = do

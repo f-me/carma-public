@@ -5,7 +5,8 @@ CREATE TABLE "Role"
   ,isBack bool
   );
 
-GRANT SELECT ON "Role" TO carma_db_sync;
+GRANT SELECT ON "Role" TO carma_search;
+GRANT ALL ON "Role" TO carma_db_sync;
 
 INSERT INTO "Role" (id, value, label,isBack) VALUES
   (1, 'core', 'Экран кейса и базовые поля','f')

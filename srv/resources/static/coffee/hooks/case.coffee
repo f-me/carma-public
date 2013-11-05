@@ -120,7 +120,7 @@ define ["utils", "dictionaries", "lib/ident/role"], (u, d, role) ->
         _.chain(s).map((x) -> mkServicesDescs(p,x)).compact().value()
     knockVM['programDesc'] = ko.computed
       read: ->
-        global.dictionaries['ProgramInfo'][knockVM['program']()]
+        u.getProgramDesc knockVM['program']()
 
   eventsHistoryKbHook: (model, knockVM) ->
     fillEventsHistory(knockVM)()
@@ -149,7 +149,7 @@ define ["utils", "dictionaries", "lib/ident/role"], (u, d, role) ->
         res
 
   vinExpiredHook: (model, knockVM) ->
-    knockVM['vinExpired'] = ko.computed ->
+    knockVM['car_vinExpired'] = ko.computed ->
       expired = false
       if knockVM['car_warrantyStart']() and knockVM['car_warrantyEnd']()
         startDate = Date.parseExact knockVM['car_warrantyStart'](), "dd.MM.yyyy"
