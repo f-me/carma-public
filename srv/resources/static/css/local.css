@@ -244,6 +244,6 @@ table.dataTable tr.selected-row td.sorting_1 {
   color: #aaaaaa
 }
 
-.vin-expired input {
-  background-color: #fcf8e3;
+.expired input {
+  background-color: #faa732;
 }

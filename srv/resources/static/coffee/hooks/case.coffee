@@ -149,7 +149,7 @@ define ["utils", "dictionaries", "lib/ident/role"], (u, d, role) ->
         res
 
   vinExpiredHook: (model, knockVM) ->
-    knockVM['vinExpired'] = ko.computed ->
+    knockVM['car_vinExpired'] = ko.computed ->
       expired = false
       if knockVM['car_warrantyStart']() and knockVM['car_warrantyEnd']()
         startDate = Date.parseExact knockVM['car_warrantyStart'](), "dd.MM.yyyy"
