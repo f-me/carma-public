@@ -59,25 +59,24 @@ define ["utils", "dictionaries", "lib/ident/role"], (u, d, role) ->
       console.log "[#{status}] Can't load calls for '#{phone}' (#{error})"
     )
 
-    if u.canReadActions()
-      $.getJSON( "/actionsFor/#{knockVM.id()}" )
-      .done( (actions) ->
-        rows = for r in actions
-          result = dict.ActionResults[r.result] or ''
-          name = dict.ActionNames[r.name] or ''
-          aTo  = global.dictValueCache['users'][r.assignedTo] or
-                 r.assignedTo or ''
-          time = if r.closeTime
-                 new Date(r.closeTime * 1000).toString("dd.MM.yyyy HH:mm")
-          row = [ time or ''
-                , aTo
-                , name
-                , r.comment or ''
-                , result ]
-        st.fnAddData rows
-      ).fail( (jqXHR, status, error) ->
-        console.log "[#{status}] Can't load actions for '#{knockVM.id()}' (#{error})"
-      )
+    $.getJSON( "/actionsFor/#{knockVM.id()}" )
+    .done( (actions) ->
+      rows = for r in actions
+        result = dict.ActionResults[r.result] or ''
+        name = dict.ActionNames[r.name] or ''
+        aTo  = global.dictValueCache['users'][r.assignedTo] or
+               r.assignedTo or ''
+        time = if r.closeTime
+               new Date(r.closeTime * 1000).toString("dd.MM.yyyy HH:mm")
+        row = [ time or ''
+              , aTo
+              , name
+              , r.comment or ''
+              , result ]
+      st.fnAddData rows
+    ).fail( (jqXHR, status, error) ->
+      console.log "[#{status}] Can't load actions for '#{knockVM.id()}' (#{error})"
+    )
 
     $.getJSON( "/cancelsFor/#{knockVM.id()}" )
     .done( (cancels) ->
