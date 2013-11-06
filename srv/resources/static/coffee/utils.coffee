@@ -156,16 +156,20 @@ define ["model/utils"], (mu) ->
   modelMethod: (modelName, method) -> "/_/#{modelName}/#{method}"
 
   getServiceDesc: (program, service) ->
-    p = @findProgram program
-    si = _.find global.dictionaries['ServiceInfo'].entries, (info) ->
-      info.program == p.id and info.service == service
-    si?.info or ""
+    if p = @findProgram program
+      si = _.find global.dictionaries['ServiceInfo'].entries, (info) ->
+        info.program == p.id and info.service == service
+      si?.info or ""
+    else
+      ""
 
   getProgramDesc: (program) ->
-    p = @findProgram program
-    pi = _.find global.dictionaries['ProgramInfo'].entries, (info) ->
-      info.program == p.id
-    pi?.info or ""
+    if p = @findProgram program
+      pi = _.find global.dictionaries['ProgramInfo'].entries, (info) ->
+        info.program == p.id
+      pi?.info or ""
+    else
+      ""
 
   findProgram: (name) ->
     _.find global.dictionaries['Programs'].entries, (program) ->
