@@ -42,10 +42,6 @@ define ["utils"], ->
       d = _.difference f, t
       @dynamic.pop d[0]
 
-  fromname = (s) ->
-    model: s.split('_')[0]
-    name:  s.split('_')[1..-1].join('_')
-
   mkFieldsDynView: (searchKVM, {labels, groups}, defaults) ->
     # console.log (new FieldsDynView searchKVM, {labels, groups}, defaults).showFields()
     labels: labels
@@ -53,18 +49,24 @@ define ["utils"], ->
     fields: (new FieldsDynView searchKVM, {labels, groups}, defaults).showFields
 
   transformFields: (searchKVM, models) ->
-    convn = (m) -> (f) -> "#{m.name}_#{f.name}"
     labels = {}
     fh     = {}
+    groups = {}
     for n,m of models
-      $.extend labels, (arrToObj (convn m), m.fields, (f) -> f.meta.label)
-      $.extend fh,     (arrToObj (convn m), m.fields, (f) -> [f])
+      labels[n] = arrToObj 'name', m.fields, (f) -> f.meta.label
+      fh[n]     = arrToObj 'name', m.fields, (f) -> f
+      for f in m.fields
+        groups["#{n}_#{f.name}"] ?= {}
+        groups["#{n}_#{f.name}"][n] ?= []
+        groups["#{n}_#{f.name}"][n].push f
 
-    groups  = $.extend true, {}, fh
     for f in searchKVM._meta.model.fields when not f.meta?.nosearch?
-      groups[f.name] = _.map f.meta.search.original, (n) ->
-        delete groups["#{n.model}_#{n.name}"]
-        fh["#{n.model}_#{n.name}"]
+      groups["#{f.name}"] = {}
+      for o in f.meta.search.original
+        if "#{o.model}_#{o.name}" != f.name
+          delete groups["#{o.model}_#{o.name}"]
+        groups["#{f.name}"][o.model] ?= []
+        groups["#{f.name}"][o.model].push fh[o.model][o.name]
 
       labels[f.name] = f.meta.label if f.meta?.label? and not labels[f.name]
     return { labels: labels, groups: groups }

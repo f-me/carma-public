@@ -21,6 +21,7 @@ define [ "json!/cfg/model/Case", "utils"]
       "city"
       "car_make"
       "car_model"
+      "cardNumber_cardNumber"
       ]
     Service: [
       "type"

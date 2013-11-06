@@ -109,7 +109,7 @@ define [ "model/render"
         kvm[f.name].field = f
 
     # set id only when it wasn't set from from prefetched data
-    kvm['id'] = ko.observable(fetched?['id'])
+    kvm['id'] = ko.observable(fetched?['id']) unless _.isFunction kvm['id']
 
     # set queue if have one, and sync it with backend
     kvm._meta.q = new queue(kvm, model, queueOptions) if queue

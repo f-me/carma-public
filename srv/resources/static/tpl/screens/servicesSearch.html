@@ -46,13 +46,13 @@
 </script>
 
 <script type="text/template" id="dictionary-ro-template">
-  <div data-bind="text: kvm[name + 'Local']" />
+  <div data-bind="text: kvm[field.name + 'Local']" />
 </script>
 
 <script type="text/template" id="text-ro-template">
-  <div data-bind="text: kvm[name]" />
+  <div data-bind="text: kvm[field.name]" />
 </script>
 
 <script type="text/template" id="checkbox-ro-template">
-  <div data-bind="text: kvm[name]() ? '✓' : ''" />
+  <div data-bind="text: kvm[field.name]() ? '✓' : ''" />
 </script>

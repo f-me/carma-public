@@ -99,15 +99,17 @@ ko.bindingHandlers.renderField =
 ko.bindingHandlers.renderGroup =
   init: (el, acc, allBindigns, fld, ctx) ->
     group = ctx.$root.showFields.groups[fld]
-    fs = _.map group, (g) -> acc()[g]
+    fs = []
+    for modelName, fields of group
+      fs.push({kvm: acc()[modelName], field: fld}) for fld in fields
+
     ko.utils.setHtml el, $("#group-ro-template").html()
-    ko.applyBindingsToDescendants({ fields: fs }, el)
+    ko.applyBindingsToDescendants({ fields: fs}, el)
     return { controlsDescendantBindings: true }
 
 ko.bindingHandlers.render =
   init: (el, acc, allBindigns, ctx) ->
-    console.log acc()
-    fn = acc().field.name
-    tpl = $("##{fn}-ro-template").html()
-    # tpl = acc()._meta.tpls[ctx.name]
-    ko.utils.setHtml el, tpl
+    tplName = acc().field.type || 'text'
+    ko.utils.setHtml el, $("##{tplName}-ro-template").html()
+    ko.applyBindingsToDescendants({kvm: acc().kvm, field: acc().field}, el)
+    return { controlsDescendantBindings: true }

@@ -81,16 +81,9 @@ define [ "utils"
                           , "city"
                           ] )
 
-    unionFields = (mkvms) ->
-      fs = {}
-      for k,kvm of mkvms
-        for f in kvm._meta.model.fields
-          fs["#{k}_#{f.name}"] = kvm[f.name]
-      return fs
-
     robs = ko.observable([])
     searchKVM.searchResults = ko.computed
-      read: -> _.map robs(), unionFields
+      read: -> robs()
       write: (v) -> robs(buildKVMS ssmodels, fixNames ssmodels, v)
 
     # We receiving all fieldnames in lowercase (at least for now)
