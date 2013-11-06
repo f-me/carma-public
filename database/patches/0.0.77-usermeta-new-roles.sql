@@ -11,7 +11,7 @@ UPDATE usermetatbl u SET roles=u.roles || array['26','14','1']
 FROM usermetatbl_tmp t WHERE '12'=ANY(t.roles)
 AND t.id=u.id;
 
-UPDATE usermetatbl u SET roles=u.roles || array['27','14','1']
+UPDATE usermetatbl u SET roles=u.roles || array['8', '27','14','1']
 FROM usermetatbl_tmp t WHERE '13'=ANY(t.roles)
 AND t.id=u.id;
 
@@ -94,7 +94,6 @@ AND t.id=u.id;
 UPDATE usermetatbl u SET roles=u.roles || array['15', '1']
 FROM usermetatbl_tmp t WHERE '14'=ANY(t.roles)
 AND t.id=u.id;
-
 
 DROP FUNCTION IF EXISTS array_unique(anyarray);
 
