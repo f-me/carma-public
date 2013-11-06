@@ -27,7 +27,7 @@ library
     bytestring             == 0.10.*,
     carma-dict             == 0.1.*,
     HTTP                   == 4000.2.*,
-    lens                   >= 3.8 && < 3.10,
+    lens                   >= 3.8 && < 3.11,
     network                == 2.4.*,
     transformers           == 0.3.*,
     unordered-containers   == 0.2.*
