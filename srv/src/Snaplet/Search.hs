@@ -78,7 +78,7 @@ modelFields uid modelName c
             (select * from svc_model union select * from model_name) m
           where (model || 'tbl') = m.table
             and field ilike f.column
-            and p.role = r.role
+            and p.role = r.role :: int
             and p.r
       |]
 
