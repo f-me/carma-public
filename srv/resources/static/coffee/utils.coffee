@@ -131,8 +131,7 @@ define ["model/utils", "lib/ident/role"], (mu, role) ->
 
   # Return true if user may access case/service-related actions
   canReadActions: () ->
-    (_.contains global.user.roles, role.back) ||
-    (_.contains global.user.roles, role.supervisor)
+    _.some (global.model "case").fields, (f) -> f.name == 'actions'
 
   findCaseOrReferenceVM: findCaseOrReferenceVM
 
