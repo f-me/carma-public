@@ -23,7 +23,7 @@ import Carma.Model.Case.Type as Case
 
 caseSearchParams :: [(Text, [Predicate Case])]
 caseSearchParams
-  = [("caseId",     one Case.ident)
+  = [("Case_id",     one Case.ident)
     ,("vin",        fuzzy $ one Case.car_vin)
     ,("cardNumber", fuzzy $ one Case.cardNumber_cardNumber)
     ,("plateNum",   fuzzy $ one Case.car_plateNum)

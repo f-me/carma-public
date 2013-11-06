@@ -19,11 +19,11 @@ data Case = Case
   , callDate
     :: F UTCTime "callDate" "Дата звонка" -- FIXME: it's UTCTime actually
   , vwcreatedate
-    :: F UTCTime "vwcreatedate" "Дата звонка"
+    :: F (Maybe UTCTime) "vwcreatedate" "Дата звонка"
   , callTaker
-    :: F Text "callTaker" "Сотрудник РАМК"
+    :: F (Maybe Text)    "callTaker" "Сотрудник РАМК"
   , comment
-    :: F (IdentT Wazzup) "comment" "Что случилось"
+    :: F (Maybe (IdentT Wazzup)) "comment" "Что случилось"
     -- , diagnosis1
     --   :: F (Ident Diagnosis1) "diagnosis1" "Система"
     -- , diagnosis2
@@ -45,7 +45,7 @@ data Case = Case
   , contact_email
     :: F (Maybe Text) "contact_email" "Email"
   , contact_contactOwner
-    :: F Bool "contact_contactOwner" "Звонящий владелец?"
+    :: F (Maybe Bool) "contact_contactOwner" "Звонящий владелец?"
   , contact_ownerName
     :: F (Maybe Text) "contact_ownerName" "Владелец"
   , contact_ownerPhone1
@@ -59,13 +59,13 @@ data Case = Case
   , contact_ownerEmail
     :: F (Maybe Text) "contact_ownerEmail" "Email"
   , program
-    :: F (IdentT Program) "program" "Программа"
+    :: F (Maybe (IdentT Program))  "program" "Программа"
   , car_vin
     :: F (Maybe Text) "car_vin" "VIN"
   , car_make
-    :: F (IdentT CarMake) "car_make" "Марка"
+    :: F (Maybe (IdentT CarMake)) "car_make" "Марка"
   , car_model
-    :: F (IdentT CarModel) "car_model" "Модель"
+    :: F (Maybe (IdentT CarModel)) "car_model" "Модель"
     --  , car_seller
     --    :: F (Maybe Text) "car_seller" "Дилер, продавший автомобиль"
   , car_plateNum
@@ -75,9 +75,9 @@ data Case = Case
     -- , car_color
     --   :: F (Ident Colors) "car_color" "Цвет"
   , car_buyDate
-    :: F UTCTime "car_buyDate" "Дата покупки"
+    :: F (Maybe UTCTime) "car_buyDate" "Дата покупки"
   , car_checkupDate
-    :: F UTCTime "car_checkupDate" "Дата последнего ТО"
+    :: F (Maybe UTCTime) "car_checkupDate" "Дата последнего ТО"
     --  , car_dealerTO
     --    :: F (Maybe Text) "car_dealerTO" "Дилер у которого проходило последнее ТО"
     --  , car_mileage
@@ -85,9 +85,9 @@ data Case = Case
     --  , car_checkupMileage
     --    :: F (Maybe Text) "car_checkupMileage" "Пробег на последнем ТО"
   , car_warrantyStart
-    :: F UTCTime "car_warrantyStart" "Дата начала действия программы"
+    :: F (Maybe UTCTime) "car_warrantyStart" "Дата начала действия программы"
   , car_warrantyEnd
-    :: F UTCTime "car_warrantyEnd" "Дата окончания действия программы"
+    :: F (Maybe UTCTime) "car_warrantyEnd" "Дата окончания действия программы"
     -- , car_contractType
     --   :: F (Ident ContractType) "car_contractType" "Тип контракта"
     -- , car_transmission
@@ -115,9 +115,9 @@ data Case = Case
   , cardNumber_cardNumber
     :: F (Maybe Text) "cardNumber_cardNumber" "Номер карты участника"
   , cardNumber_validFrom
-    :: F UTCTime "cardNumber_validFrom" "Дата регистрации в программе"
+    :: F (Maybe UTCTime) "cardNumber_validFrom" "Дата регистрации в программе"
   , cardNumber_validUntil
-    :: F UTCTime "cardNumber_validUntil" "Программа действует до (дата)"
+    :: F (Maybe UTCTime) "cardNumber_validUntil" "Программа действует до (дата)"
     --  , cardNumber_validUntilMilage
     --    :: F (Maybe Text) "cardNumber_validUntilMilage" "Программа действует до (пробег)"
     --  , cardNumber_milageTO
@@ -126,12 +126,12 @@ data Case = Case
     --    :: F (Maybe Text) "cardNumber_serviceInterval" "Межсервисный интервал"
     --  , cardNumber_cardOwner
     --    :: F (Maybe Text) "cardNumber_cardOwner" "ФИО владельца карты"
-    --  , cardNumber_manager
+    --  , cardNumber_managerr
     --    :: F (Maybe Text) "cardNumber_manager" "ФИО менеджера"
     -- , vinChecked
     --   :: F (Ident VINChecked) "vinChecked" "Участие в программе"
   , city
-    :: F (IdentT City) "city" "Город"
+    :: F (Maybe (IdentT City)) "city" "Город"
   , caseAddress_address
     :: F (Maybe Text) "caseAddress_address" "Адрес"
     --  , caseAddress_comment
@@ -143,7 +143,7 @@ data Case = Case
     --  , temperature
     --    :: F (Maybe Text) "temperature" "Температура"
   , repair
-    :: F UTCTime "repair" "Дата починки"
+    :: F (Maybe UTCTime) "repair" "Дата починки"
     --  , accord
     --    :: F (Maybe Text) "accord" "Номер согласования"
     --  , dealerCause
@@ -151,9 +151,9 @@ data Case = Case
     -- , caseStatus
     --   :: F (Ident CaseStatuses) "caseStatus" "Статус кейса"
   , psaExportNeeded
-    :: F Bool "psaExportNeeded" "Требуется выгрузка в PSA"
+    :: F (Maybe Bool) "psaExportNeeded" "Требуется выгрузка в PSA"
   , psaExported
-    :: F Bool "psaExported" "Выгружен в PSA"
+    :: F (Maybe Bool) "psaExported" "Выгружен в PSA"
     --  , claim
     --    :: F Text "claim" "Претензия / Благодарность"
     --  , services
