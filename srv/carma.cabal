@@ -66,7 +66,7 @@ Executable carma
     carma-models                >= 0.3.0 && < 0.4,
     carma-http                  == 0.4.*,
     carma-sync                  >= 0.1.8 && < 0.2,
-    carma-partner-import        == 0.5.*,
+    carma-partner-import        >= 0.5.1 && < 0.6,
     configurator                == 0.2.*,
     containers                  == 0.5.*,
     directory                   == 1.2.*,
