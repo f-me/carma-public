@@ -40,6 +40,7 @@ data ModelInfo m = ModelInfo
   , tableName      :: Text
   , primKeyName    :: Text
   , modelFields    :: [FieldDesc]
+  , modelOnlyFields:: [FieldDesc]
   , modelFieldsMap :: HashMap Text (FieldDesc)
   }
 

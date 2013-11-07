@@ -42,14 +42,14 @@ mkModelInfo ctr pk =
         = if typeOf (undefined :: Parent m) == typeOf (undefined :: NoParent)
           then []
           else modelFields (modelInfo :: ModelInfo (Parent m))
-      modelFlds
-        = parentFlds
-        ++ unWrap (getModelFields ctr :: [FieldDesc] :@ m)
+      modelOnlyFlds = unWrap (getModelFields ctr :: [FieldDesc] :@ m)
+      modelFlds = parentFlds ++ modelOnlyFlds
   in ModelInfo
     { modelName      = T.pack $ show $ typeOf (undefined :: m)
     , tableName      = T.pack $ fromSing (sing :: Sing (TableName m))
     , primKeyName    = fieldName pk
     , modelFields    = modelFlds
+    , modelOnlyFields= modelOnlyFlds
     , modelFieldsMap = HashMap.fromList [(fd_name f, f) | f <- modelFlds]
     }
 
