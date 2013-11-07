@@ -6,10 +6,15 @@ CREATE VIEW partnercancelview AS
        , substring(pc.serviceid, ':(.*)') as service
        , substring(pc.serviceid, '(.*):') as type
        , c.city
-  FROM      partnercanceltbl pc
+       , r.label as region
+  FROM partnercanceltbl pc
   LEFT JOIN partnertbl       p
   ON p.id::text = substring(pc.partnerid, ':(.*)')
   LEFT JOIN casetbl          c
-  ON c.id::text = substring(pc.caseid   , ':(.*)');
+  ON c.id::text = substring(pc.caseid   , ':(.*)')
+  LEFT OUTER JOIN "City" city
+  ON c.city = city.value
+  LEFT OUTER JOIN "Region" r
+  ON city.id = ANY(r.cities);
 
 GRANT SELECT ON partnercancelview TO carma_db_sync;
