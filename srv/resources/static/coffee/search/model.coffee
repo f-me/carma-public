@@ -61,12 +61,12 @@ define ["utils"], ->
         groups["#{n}_#{f.name}"][n].push f
 
     for f in searchKVM._meta.model.fields when not f.meta?.nosearch?
-      groups["#{f.name}"] = {}
+      groups[f.name] = {}
       for o in f.meta.search.original
         if "#{o.model}_#{o.name}" != f.name
           delete groups["#{o.model}_#{o.name}"]
-        groups["#{f.name}"][o.model] ?= []
-        groups["#{f.name}"][o.model].push fh[o.model][o.name]
+        groups[f.name][o.model] ?= []
+        groups[f.name][o.model].push fh[o.model][o.name]
 
       labels[f.name] = f.meta.label if f.meta?.label? and not labels[f.name]
     return { labels: labels, groups: groups }
