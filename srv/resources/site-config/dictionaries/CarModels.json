@@ -514,7 +514,57 @@
                 "label": "X-Type"
             }
         ],
+        "Infinity": [
+            {
+                "value": "FX",
+                "label": "FX"
+            },
+            {
+                "value": "EX",
+                "label": "EX"
+            },
+            {
+                "value": "G",
+                "label": "G"
+            },
+            {
+                "value": "JX",
+                "label": "JX"
+            },
+            {
+                "value": "QX56",
+                "label": "QX56"
+            },
+            {
+                "value": "QX4",
+                "label": "QX4"
+            },
+            {
+                "value": "M",
+                "label": "M"
+            },
+            {
+                "value": "J30",
+                "label": "J30"
+            },
+            {
+                "value": "Q",
+                "label": "Q"
+            },
+            {
+                "value": "QX50",
+                "label": "QX50"
+            },
+            {
+                "value": "QX70",
+                "label": "QX70"
+            }
+        ],
         "kia": [
+            {
+                "value": "Carnival",
+                "label": "Carnival"
+            },
             {
                 "value": "ceed",
                 "label": "Ceed"
@@ -530,7 +580,7 @@
             {
                 "value": "mohave",
                 "label": "Mohave"
-            },            
+            },
             {
                 "value": "opirus",
                 "label": "Opirus"
@@ -538,7 +588,7 @@
             {
                 "value": "optima",
                 "label": "Optima"
-            },            
+            },
             {
                 "value": "picanto",
                 "label": "Picanto"
@@ -546,6 +596,10 @@
             {
                 "value": "rio",
                 "label": "Rio"
+            },
+            {
+                "value": "ProCeed",
+                "label": "Pro Ceed"
             },
             {
                 "value": "quoris",
@@ -566,7 +620,7 @@
             {
                 "value": "sorento",
                 "label": "Sorento"
-            },            
+            },
             {
                 "value": "spectra",
                 "label": "Spectra"
