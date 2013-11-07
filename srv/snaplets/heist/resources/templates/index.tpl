@@ -493,34 +493,43 @@
             class="field-template"
             id="interval-date-field-template">
 
-      <label>{{ meta.label }} (Диапазон)</label>
-      <div class="row-fluid horizontal-form">
-          <div class="input-append date span4"
-               data-provide="datepicker"
-               data-autoshow-datepicker="true"
-               data-date-format="dd.mm.yyyy"
-               data-date-weekstart="1">
-            <input type="text"
-                   class="pane-span focusable"
-                   autocomplete="off"
-                   name="{{ name }}Begin"
-                   data-bind="value: {{ name }}Begin,
-                              valueUpdate: 'change'" />
-            <span class="add-on"><i class="icon icon-calendar" /></span>
+      <div class="control-group">
+          <div class="control-label">
+            <label>{{ meta.label }} (Диапазон)</label>
           </div>
-          <div class="span1" />
-          <div class="input-append date span4"
-               data-provide="datepicker"
-               data-autoshow-datepicker="true"
-               data-date-format="dd.mm.yyyy"
-               data-date-weekstart="1">
-            <input type="text"
-                   class="pane-span focusable"
-                   autocomplete="off"
-                   name="{{ name }}End"
-                   data-bind="value: {{ name }}End,
-                              valueUpdate: 'change'" />
-            <span class="add-on"><i class="icon icon-calendar" /></span>
+          <div class="controls">
+            <div class="row-fluid">
+              <div class="span4">
+                <div class="input-append date"
+                     data-provide="datepicker"
+                     data-autoshow-datepicker="true"
+                     data-date-format="dd.mm.yyyy"
+                     data-date-weekstart="1">
+                  <input type="text"
+                         class="pane-span focusable"
+                         autocomplete="off"
+                         name="{{ name }}Begin"
+                         data-bind="value: {{ name }}Begin,
+                                    valueUpdate: 'change'" />
+                  <span class="add-on"><i class="icon icon-calendar" /></span>
+                </div>
+              </div>
+              <div class="span4 offset1">
+                <div class="input-append date"
+                     data-provide="datepicker"
+                     data-autoshow-datepicker="true"
+                     data-date-format="dd.mm.yyyy"
+                     data-date-weekstart="1">
+                  <input type="text"
+                         class="pane-span focusable"
+                         autocomplete="off"
+                         name="{{ name }}End"
+                         data-bind="value: {{ name }}End,
+                                    valueUpdate: 'change'" />
+                  <span class="add-on"><i class="icon icon-calendar" /></span>
+                </div>
+              </div>
+            </div>
           </div>
       </div>
     </script>
