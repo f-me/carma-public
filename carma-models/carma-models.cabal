@@ -25,6 +25,7 @@ library
     Data.Model.TH,
     Data.Model.View,
     Data.Model.View.Types,
+
     Carma.Model,
     Carma.Model.Types,
     Carma.Model.City,
@@ -43,6 +44,8 @@ library
     Carma.Model.Wazzup,
     Carma.Model.Case,
     Carma.Model.Case.Type,
+    Carma.Model.Service,
+    Carma.Model.Service.Towage,
     Carma.Model.ProgramInfo,
     Carma.Model.ServiceInfo
 
