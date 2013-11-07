@@ -19,7 +19,7 @@ import Data.Model.Types
 -- hashmap mapping String labels to produced declarations.
 --
 -- > mkIdents 'Role [("all", 5)]
--- all = Ident 5 :: Ident Role
+-- all = Ident 5 :: IdentI Role
 -- idents = HM.fromList [("all", all)]
 mkIdents :: (Q Type)
          -> [(String, Integer)]
