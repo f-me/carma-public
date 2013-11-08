@@ -40,10 +40,7 @@ defaultView
     mv = ModelView
       { modelName = Model.modelName mi
       , title = ""
-      , fields
-        = [defaultFieldView f
-          | f <- modelFields mi
-          , fd_name f /= primKeyName mi]
+      , fields = map defaultFieldView $ modelFields mi
       }
 
 
