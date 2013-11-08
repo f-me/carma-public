@@ -8,7 +8,7 @@ with
 
 select
   t.table_name,
-  c.column_name
+  string_agg(c.column_name :: text, ';')
 from information_schema.tables as t
 inner join information_schema.columns as c
 on c.table_name = t.table_name
@@ -22,8 +22,9 @@ and (r.parent is null or
      (c.column_name not in
        (select column_name
         from information_schema.columns
-        where table_name = r.parent)));
+        where table_name = r.parent)))
 
+group by t.table_name
 EOF
 )
 
@@ -31,9 +32,15 @@ commands=""
 
 for i in `$PSQL -tA -c "$sql" `; do
     IFS='|' read -a arr <<< "$i"
-    c="ALTER TABLE ${arr[0]} ALTER COLUMN ${arr[1]} TYPE timestamptz"
+    IFS=';' read -a cs  <<< "${arr[1]}"
+    alts="ALTER COLUMN ${cs[0]} TYPE timestamptz"
+    for c in ${cs[@]:1}; do
+        alts="$alts, ALTER COLUMN $c TYPE timestamptz"
+    done
+    c="ALTER TABLE ${arr[0]} $alts"
     commands="$commands $c;"
 done
+
 $PSQL -c "DROP VIEW servicesview"
 $PSQL -c "DROP VIEW partnercancelview"
 $PSQL -c "$commands"
