@@ -202,7 +202,8 @@ lovViewer	FieldPermission	field	t	f
 lovViewer	FieldPermission	r	t	f
 lovViewer	FieldPermission	w	t	f
 psaanalyst	case	accord	t	t
-core	case	actions	t	f
+back	case	actions	t	f
+supervisor	case	actions	t	f
 core	case	betaComment	t	t
 core	case	callDate	t	f
 head	case	callDate	t	t

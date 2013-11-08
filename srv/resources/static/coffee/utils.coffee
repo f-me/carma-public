@@ -1,4 +1,4 @@
-define ["model/utils"], (mu) ->
+define ["model/utils", "lib/ident/role"], (mu, role) ->
   # jquery -> html(as string) conversion, with selected element
   jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
 
@@ -143,6 +143,10 @@ define ["model/utils"], (mu) ->
     else
       "#{hours}ч #{mins}м"
 
+  # Return true if user may access case/service-related actions
+  canReadActions: () ->
+    _.some (global.model "case").fields, (f) -> f.name == 'actions'
+
   findCaseOrReferenceVM: findCaseOrReferenceVM
 
   # build global function from local to module one
@@ -170,16 +174,20 @@ define ["model/utils"], (mu) ->
   modelMethod: (modelName, method) -> "/_/#{modelName}/#{method}"
 
   getServiceDesc: (program, service) ->
-    p = @findProgram program
-    si = _.find global.dictionaries['ServiceInfo'].entries, (info) ->
-      info.program == p.id and info.service == service
-    si?.info or ""
+    if p = @findProgram program
+      si = _.find global.dictionaries['ServiceInfo'].entries, (info) ->
+        info.program == p.id and info.service == service
+      si?.info or ""
+    else
+      ""
 
   getProgramDesc: (program) ->
-    p = @findProgram program
-    pi = _.find global.dictionaries['ProgramInfo'].entries, (info) ->
-      info.program == p.id
-    pi?.info or ""
+    if p = @findProgram program
+      pi = _.find global.dictionaries['ProgramInfo'].entries, (info) ->
+        info.program == p.id
+      pi?.info or ""
+    else
+      ""
 
   findProgram: (name) ->
     _.find global.dictionaries['Programs'].entries, (program) ->

@@ -77,6 +77,10 @@
             "label": "Hyundai"
         },
         {
+            "value": "Infinity",
+            "label": "Infinity"
+        },
+        {
             "value": "jaguar",
             "label": "Jaguar"
         },

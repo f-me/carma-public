@@ -126,7 +126,7 @@ define ["utils", "dictionaries", "lib/ident/role"], (u, d, role) ->
     fillEventsHistory(knockVM)()
     knockVM['fillEventHistory'] = fillEventsHistory(knockVM)
     knockVM['contact_phone1'].subscribe fillEventsHistory(knockVM)
-    knockVM['actions'].subscribe fillEventsHistory(knockVM)
+    knockVM['actions']?.subscribe fillEventsHistory(knockVM)
     knockVM['comments'].subscribe fillEventsHistory(knockVM)
 
   # Display daily service stats in central pane when `city` field of
