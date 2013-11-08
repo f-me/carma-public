@@ -32,10 +32,12 @@
 </div>
 
 <script type="text/template" id="search-wrap-template">
-  <div data-bind="click: function () { kvm.showFields.del(fld) }" >
-    delete this
-  </div>
-  <div class="content" data-bind="with: kvm">
+  <div class="row-fluid">
+    <div class="span1" data-bind="click: function () { kvm.showFields.del(fld) }" >
+      <label><i class="icon-remove"></i></label>
+    </div>
+    <div class="content span11" data-bind="with: kvm">
+    </div>
   </div>
 </script>
 
