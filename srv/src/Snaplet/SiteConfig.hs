@@ -68,7 +68,12 @@ serveModel = do
   mcu   <- withAuth currentUser
   case return (,) `ap` mcu `ap` model of
     Nothing -> finishWithError 401 ""
-    Just (cu, m) -> stripModel cu m >>= writeModel
+    Just (cu, m) ->
+      case name of
+        ("Case") -> writeModel m
+        ("Service") -> writeModel m
+        ("Towage") -> writeModel m
+        _        -> stripModel cu m >>= writeModel
 
 viewForModel :: forall m . Model.Model m => T.Text -> m -> Maybe Model
 viewForModel name _
