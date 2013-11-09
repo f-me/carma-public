@@ -8,21 +8,13 @@ import Data.Model.View
 
 
 data Program = Program
-  {ident                 :: PK Int Program
-  ,label                 :: F Text            "label"  ""
-  ,value                 :: F Text            "value"  ""
-  ,active                :: F Bool            "active" ""
---  , client                :: Field "client"
---  , clientCode            :: Field "clientCode"
---  , clientAddress         :: Field "clientAddress"
---  , services              :: Field "services"
---  , carCheckPeriodDefault :: Field "carCheckPeriodDefault"
---  , carCheckPeriodDefault :: Field "duedateDefault"
---  , contracts             :: Field "contracts"
---  , programPermissions    :: Field "programPermissions"
---  , vinFormat             :: Field "vinFormat"
---  , logo                  :: Field "logo"
---  , help                  :: Field "help"
+  { ident                 :: PK Int Program
+  , label                 :: F Text            "label"  ""
+  , value                 :: F Text            "value"  ""
+  , active                :: F Bool            "active" ""
+  , client                :: F Text            "client" ""
+  , clientCode            :: F Text            "clientCode" ""
+  , clientAddress         :: F Text            "clientAddress" ""
   } deriving Typeable
 
 instance Model Program where
