@@ -119,7 +119,7 @@ define ["utils", "text!tpl/screens/back.html"], (utils, tpl) ->
     $.ajax
       type: "PUT"
       url: "/backoffice/openAction/#{actId}"
-    window.location.hash = "case/#{caseId}"
+      success: () -> window.location.hash = "case/#{caseId}"
 
   setupBoTable = (actions) ->
       userTable = $("#back-user-table")
