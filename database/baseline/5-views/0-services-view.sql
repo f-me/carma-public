@@ -116,7 +116,7 @@ create view servicesview as
         t.towType,
         t.towAddress_address,
 
-        a.assignedTo as backoperator,
+        t.assignedTo as backoperator,
 
         p1.code as partner_code,
         p2.code as dealer_code,
@@ -130,55 +130,8 @@ create view servicesview as
         left outer join partnertbl p3 on c.car_seller = p3.id::text
         left outer join partnertbl p4 on c.car_dealerTO = p4.id::text
       , servicetbl s
-        left outer join (
-            select   id
-                   , type
-                   , towDealer_partner
-                   , null as suburbanMilage
-                   , providedFor
-                   , null as repairEndDate
-                   , null as techType
-                   , null as towType
-                   , null as towAddress_address
-                   , towDealer_partnerId
-            from renttbl
-            union all
-            select   id
-                   , type
-                   , towDealer_partner
-                   , suburbanMilage
-                   , null as providedFor
-                   , repairEndDate
-                   , null as techType
-                   , towType
-                   , towAddress_address
-                   , towDealer_partnerId from towagetbl
-            union all
-            select   id
-                   , type
-                   , null as towDealer_partner
-                   , suburbanMilage
-                   , null as providedFor
-                   , null as repairEndDate
-                   , techType
-                   , null as towType
-                   , null as towAddress_address
-                   , null as towDealer_partnerId from techtbl
-            union all
-            select   id
-                   , type
-                   , null as towDealer_partner
-                   , null as suburbanMilage
-                   , providedFor
-                   , null as repairEndDate
-                   , null as techType
-                   , null as towType
-                   , null as towAddress_address
-                   , null as towDealer_partnerId from hoteltbl
-            ) t
+        left outer join allservicesview t
             on t.id = s.id and t.type = s.type
-        left outer join actiontbl a
-        on s.type || ':' || s.id = a.parentId and a.name = 'orderService'
         left outer join partnertbl p1
         on s.contractor_partnerId = 'partner:' || p1.id
         left outer join partnertbl p2
