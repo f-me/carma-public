@@ -44,6 +44,6 @@ done
 $PSQL -c "DROP VIEW servicesview"
 $PSQL -c "DROP VIEW partnercancelview"
 $PSQL -c "$commands"
-$PSQL -f baseline/5-views/0-services-view.sql
+$PSQL -f baseline/5-views/2-services-view.sql
 $PSQL -c "GRANT SELECT ON servicesview TO carma_db_sync"
 $PSQL -f baseline/5-views/1-partnercancel-view.sql
