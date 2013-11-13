@@ -86,6 +86,7 @@ core	averageCommissioner	payType	t	t
 core	averageCommissioner	requestType	t	t
 billManager	averageCommissioner	scan	t	t
 billChecker	averageCommissioner	scan	t	f
+core	attachment	filename	t	f
 core	averageCommissioner	status	t	t
 core	averageCommissioner	times_expectedDispatch	t	t
 core	averageCommissioner	times_expectedServiceClosure	t	t
