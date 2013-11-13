@@ -381,3 +381,27 @@ define ["model/utils", "lib/ident/role"], (mu, role) ->
 
   checkMatch: checkMatch
   kvmCheckMatch: kvmCheckMatch
+
+  parseUrlParams: (uri) ->
+    fromUrlParams url.substring(url.indexOf('?') + 1)
+
+  fromUrlParams: (str) ->
+    dec = decodeURIComponent
+    return {} if _.isEmpty str
+    prms = {}
+    for q in str.split('&')
+      [n, v] = q.split '='
+      prms[dec n] = dec v
+    return prms
+
+  getUrlParams: ->
+    url = document.location.href
+    @fromUrlParams url.split("?")[1]
+
+  setUrlParams: (prms) ->
+    [url, currPrms] = document.location.href.split("?")
+    scr = global.router.current()
+    nparams = $.extend (@fromUrlParams currPrms), prms
+    enc = encodeURIComponent
+    q = (("#{enc k}=#{enc v}" for k, v of nparams).join("&"))
+    global.router.navigate "#{scr}?#{q}"

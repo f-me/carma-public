@@ -6,6 +6,7 @@ define [ "utils"
        , "text!tpl/screens/servicesSearch.html"
        , "json!/cfg/model/Case?view=search"
        , "sync/servicesSearch"
+       , "lib/state-url"
        ], ( utils
           , main
           , mutils
@@ -13,7 +14,8 @@ define [ "utils"
           , ssmodels
           , tpl
           , model
-          , sync) ->
+          , sync
+          , State) ->
 
   model.fields = model.fields.concat [
     {
@@ -135,5 +137,7 @@ define [ "utils"
       searchKVM: searchKVM
 
     ko.applyBindings ctx, $("#search-results")[0]
+
+    State.load State.statify searchKVM
 
   template: tpl

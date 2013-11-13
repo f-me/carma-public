@@ -170,7 +170,7 @@ define [
         "printSrv/:model/:id" : "printSrv"
         "partnersSearch"        : "partnersSearch"
         "partnersSearch/:model" : "partnersSearchModel"
-        "servicesSearch"        : "servicesSearch"
+        "servicesSearch*any"    : "servicesSearch"
 
       loadCase      : (id) -> r.renderScreen("case", kase, {"id": id})
       loadNewCase   : (p,id) ->
@@ -208,3 +208,19 @@ define [
       partnersSearchModel: (model) ->
         r.renderScreen "partnersSearch", partnersSearch, {model: model}
       servicesSearch     : -> r.renderScreen("servicesSearch", servicesSearch)
+
+      current : ->
+        Router   = this
+        fragment = Backbone.history.fragment
+        routes   = ([k,v] for k, v of Router.routes)
+        # route = null
+        # params = null
+
+        matched = _.find routes, (handler) ->
+          route = if _.isRegExp(handler[0])
+              handler[0]
+            else
+              Router._routeToRegExp(handler[0])
+          return route.test(fragment)
+
+        return matched[1]
