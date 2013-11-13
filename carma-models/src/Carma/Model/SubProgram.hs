@@ -31,6 +31,6 @@ data SubProgram = SubProgram
   } deriving Typeable
 
 instance Model SubProgram where
-  type TableName SubProgram = "subprogramtbl"
+  type TableName SubProgram = "SubProgram"
   modelInfo = mkModelInfo SubProgram ident
   modelView _ = defaultView

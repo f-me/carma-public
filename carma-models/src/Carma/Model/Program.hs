@@ -18,7 +18,7 @@ data Program = Program
   } deriving Typeable
 
 instance Model Program where
-  type TableName Program = "programtbl"
+  type TableName Program = "Program"
   modelInfo = mkModelInfo Program ident
   modelView _ = defaultView
 
