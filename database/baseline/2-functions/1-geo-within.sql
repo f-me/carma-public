@@ -55,6 +55,8 @@ $$
                                                , ST_Point(x2, y2))
                                  , 4326)
         AND   p.isActive = 't'
+        AND   ((p.isMobile <> 't') OR (p.isMobile is NULL) OR 
+               (now() at time zone 'UTC' <= ('01:00' + p.mtime)))
         AND   (ce  OR p.city        = ANY(ca))
         AND   (se  OR s.servicename = ANY(sa))
         AND   (p2e OR s.priority2   = ANY(p2a))

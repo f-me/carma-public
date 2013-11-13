@@ -47,7 +47,7 @@ function exec_file {
   if [[ "sql" == $ext ]] ; then
     $PSQL -f $FILE
   elif [[ "sh" == $ext ]] ;  then
-    bash $FILE
+    bash -e $FILE
   fi
 }
 

@@ -70,6 +70,7 @@ import Data.Functor
 import qualified Data.HashMap.Strict as HM
 import Data.List
 import qualified Data.Map as M
+import Data.Maybe
 import Data.Text.Encoding
 import Data.Text.ICU.Convert
 
@@ -166,25 +167,17 @@ instance ExportMonad CaseExport where
       let twgPred = \s@(mn, _, _) ->
                       mn == "towage" &&
                       (not $ falseService s)
-          towages = filter twgPred servs
           notMistake = \(_, _, d) ->
                          dataField0 "status" d /= "mistake"
-      -- Include order number of the first (possibly non-exportable)
-      -- service, include contractor code of the first non-false
-      -- towage service (if present).
-      fields <-
-          case filter notMistake servs of
-            [] -> return []
-            ((_, _, d):_) ->
-                do
-                  let oNum = dataField0 "orderNumber" d
-                  case towages of
-                    [] -> return [oNum]
-                    (s:_) ->
-                        do
-                          pCode <- contractorCode s towagePid
-                          return [oNum, pCode]
-      pushComment $ BS.intercalate " " fields
+      -- Include order number of the first non-mistake service,
+      -- include contractor code of the first non-false towage service
+      -- (if present).
+          oNum = find notMistake servs >>=
+                 \(_, _, d) -> return $ dataField0 "orderNumber" d
+      pCode <- case find twgPred servs of
+                 Just s -> contractorCode s towagePid >>= (return . Just)
+                 Nothing -> return Nothing
+      pushComment $ BS.intercalate " " $ catMaybes [oNum, pCode]
 
 
 -- | Add an entry to export log.
