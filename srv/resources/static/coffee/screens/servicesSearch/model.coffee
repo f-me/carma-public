@@ -1,5 +1,8 @@
-define [ "json!/cfg/model/Case", "utils"]
-       ,(ms...) ->
+define [ "utils"
+       , "json!/cfg/model/Case"
+       , "json!/cfg/model/Service"
+       , "json!/cfg/model/Towage"
+       ] ,(Utils, ms...) ->
 
   allModels = arrToObj 'name', ms[0...-1]
 

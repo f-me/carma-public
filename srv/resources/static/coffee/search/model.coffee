@@ -43,7 +43,6 @@ define ["utils"], ->
       @dynamic.pop d[0]
 
   mkFieldsDynView: (searchKVM, {labels, groups}, defaults) ->
-    # console.log (new FieldsDynView searchKVM, {labels, groups}, defaults).showFields()
     labels: labels
     groups: groups
     fields: (new FieldsDynView searchKVM, {labels, groups}, defaults).showFields
