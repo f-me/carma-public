@@ -1,19 +1,13 @@
 
 module Carma.Model.Service where
 
-import Control.Applicative
 import Data.Text
 import Data.Typeable
 import Data.Time.Clock (UTCTime)
-import Data.Aeson
-import Database.PostgreSQL.Simple.ToField   (ToField(..))
-import Database.PostgreSQL.Simple.FromField (FromField(..))
 
 import Data.Model
 import Data.Model.View
-import Data.Model.Types
-import Data.Model.CoffeeType
-
+import Carma.Model.Types (Reference)
 
 data Service = Service
   { ident                        :: PK Int Service
@@ -103,20 +97,6 @@ data Service = Service
                                  ""
   }
   deriving Typeable
-
-
-data Reference = Reference Text deriving Typeable
-instance CoffeeType Reference where
-  coffeeType = Wrap "reference"
-instance FromJSON Reference where
-  parseJSON fld = Reference <$> parseJSON fld
-instance ToJSON Reference where
-  toJSON (Reference txt) = toJSON txt
-instance ToField Reference where
-  toField (Reference txt) = toField txt
-instance FromField Reference where
-  fromField fld m = Reference <$> fromField fld m
-
 
 instance Model Service where
   type TableName Service = "servicetbl"

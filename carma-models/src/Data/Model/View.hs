@@ -8,12 +8,15 @@ module Data.Model.View
   ,textarea
   ,readonly
   ,invisible
+  ,dict, dictOpt, DictOpt(..)
+  ,mainToo
+  ,widget
   -- from Data.Model.View.Types
   ,FieldView(..)
   ,ModelView(..)
   ) where
 
-import Data.List
+import Data.List (foldl')
 import Data.Maybe (fromJust)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -89,23 +92,75 @@ textarea fld = Wrap
   ,\v -> v {fieldType = "textarea"})
 
 
+setMeta
+  :: SingI name
+  => Text -> Aeson.Value
+  -> (m -> Field typ (FOpt name desc))
+  -> (Text, FieldView -> FieldView) :@ m
+setMeta key val fld = Wrap
+  (fieldName fld
+  ,\v -> v {meta = Map.insert key val $ meta v}
+  )
+
+
 readonly
   :: SingI name => (m -> Field typ (FOpt name desc))
   -> (Text, FieldView -> FieldView) :@ m
-readonly fld = Wrap
-  (fieldName fld
-  ,\v -> v
-    {meta = Map.insert "readonly" (Aeson.Bool True) $ meta v
-    ,canWrite = False
-    }
-  )
+readonly = setMeta "readonly" (Aeson.Bool True)
 
 invisible
   :: SingI name => (m -> Field typ (FOpt name desc))
   -> (Text, FieldView -> FieldView) :@ m
-invisible fld = Wrap
+invisible = setMeta "invisible" (Aeson.Bool True)
+
+
+data DictOpt = DictOpt
+  {dictName    :: Text
+  ,dictType    :: Maybe Text
+  ,dictBounded :: Bool
+  ,dictTgtCat  :: Maybe Text
+  ,dictParent  :: Maybe Text
+  }
+
+dictOpt :: Text -> DictOpt
+dictOpt nm = DictOpt
+  {dictName    = nm
+  ,dictType    = Nothing
+  ,dictBounded = False
+  ,dictTgtCat  = Nothing
+  ,dictParent  = Nothing
+  }
+
+dict
+  :: SingI name
+  => (m -> Field typ (FOpt name desc)) -- FIXME: typ ~ Ident xx
+  -> DictOpt
+  -> (Text, FieldView -> FieldView) :@ m
+dict fld (DictOpt{..}) = Wrap
   (fieldName fld
-  ,\v -> v
-    {meta = Map.insert "invisible" (Aeson.Bool True) $ meta v
-    }
+  ,us (setMeta "dictionaryName" (Aeson.String dictName) fld)
+    . maybe id
+      (\v -> us $ setMeta "dictionaryType" (Aeson.String v) fld)
+      dictType
+    . us (setMeta "bounded" (Aeson.Bool dictBounded) fld)
+    . maybe id
+      (\v -> us $ setMeta "targetCategory" (Aeson.String v) fld)
+      dictTgtCat
+    . maybe id
+      (\v -> us $ setMeta "dictionaryParent" (Aeson.String v) fld)
+      dictParent
   )
+  where
+    us = snd . unWrap
+
+widget
+  :: SingI name
+  => Text -> (m -> Field typ (FOpt name desc))
+  -> (Text, FieldView -> FieldView) :@ m
+widget nm = setMeta "widget" (Aeson.String nm)
+
+mainToo
+  :: SingI name
+  => (m -> Field typ (FOpt name desc))
+  -> (Text, FieldView -> FieldView) :@ m
+mainToo = setMeta "mainToo" (Aeson.Bool True)
