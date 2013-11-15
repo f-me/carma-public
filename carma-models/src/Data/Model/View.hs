@@ -11,6 +11,7 @@ module Data.Model.View
   ,dict, dictOpt, DictOpt(..)
   ,mainToo
   ,widget
+  ,modifyByName
   -- from Data.Model.View.Types
   ,FieldView(..)
   ,ModelView(..)
@@ -138,3 +139,7 @@ mainToo
   => (m -> Field typ (FOpt name desc))
   -> (Text, FieldView -> FieldView) :@ m
 mainToo = setMeta "mainToo" (Aeson.Bool True)
+
+modifyByName :: Text -> (FieldView -> FieldView)
+             -> (Text, FieldView -> FieldView) :@ m
+modifyByName name fn = Wrap (name, fn)
