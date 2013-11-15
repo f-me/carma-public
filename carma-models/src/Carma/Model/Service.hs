@@ -7,7 +7,7 @@ import Data.Time.Clock (UTCTime)
 
 import Data.Model
 import Data.Model.View
-import Carma.Model.Types (Reference)
+import Carma.Model.LegacyTypes (Reference,Checkbox)
 
 data Service = Service
   { ident                        :: PK Int Service
@@ -27,7 +27,7 @@ data Service = Service
                                  "Расчётная стоимость"
   , payment_limitedCost          :: F Text "payment_limitedCost"
                                  "Предельная стоимость"
-  , payment_overcosted           :: F Bool "payment_overcosted"
+  , payment_overcosted           :: F Checkbox "payment_overcosted"
                                  "Стоимость превышена?"
   , payment_paidByRUAMC          :: F Text "payment_paidByRUAMC"
                                  "Оплата РАМК"
@@ -75,11 +75,11 @@ data Service = Service
   , marginalCost                 :: F Text "marginalCost"
                                  "Предельная стоимость"
 
-  , paid                         :: F Bool "paid"
+  , paid                         :: F Checkbox "paid"
                                  "Оплата"
-  , scan                         :: F Bool "scan"
+  , scan                         :: F Checkbox "scan"
                                  "Скан загружен"
-  , original                     :: F Bool "original"
+  , original                     :: F Checkbox "original"
                                  "Оригинал получен"
   , urgentService                :: F Text {-FIXME-} "urgentService"
                                  "Приоритетная услуга"
@@ -87,7 +87,7 @@ data Service = Service
                                  "Статус услуги"
   , clientSatisfied              :: F Text {-FIXME-} "clientSatisfied"
                                  "Клиент доволен"
-  , warrantyCase                 :: F Bool "warrantyCase"
+  , warrantyCase                 :: F Checkbox "warrantyCase"
                                  "Гарантийный случай"
   , files                        :: F Reference "files"
                                  "Прикрепленные файлы"

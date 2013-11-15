@@ -7,13 +7,12 @@ import Data.Time.Clock    (UTCTime)
 
 import Data.Model
 
-import Carma.Model.Types    (Reference)
 import Carma.Model.Program  (Program)
 import Carma.Model.CarMake  (CarMake)
 import Carma.Model.CarModel (CarModel)
 import Carma.Model.Wazzup   (Wazzup)
 import Carma.Model.City     (City)
-import Carma.Model.LegacyDicts
+import Carma.Model.LegacyTypes
 
 
 data Case = Case
@@ -47,7 +46,7 @@ data Case = Case
   , contact_email
     :: F (Maybe Text) "contact_email" "Email"
   , contact_contactOwner
-    :: F Bool          "contact_contactOwner" "Звонящий владелец?"
+    :: F Checkbox     "contact_contactOwner" "Звонящий владелец?"
   , contact_ownerName
     :: F (Maybe Text) "contact_ownerName" "Владелец"
   , contact_ownerPhone1
@@ -77,9 +76,9 @@ data Case = Case
   , car_color
      :: F (Maybe (IdentT Color)) "car_color" "Цвет"
   , car_buyDate
-    :: F (Maybe UTCTime) "car_buyDate" "Дата покупки"
+    :: F (Maybe LegacyDate) "car_buyDate" "Дата покупки"
   , car_checkupDate
-    :: F (Maybe UTCTime) "car_checkupDate" "Дата последнего ТО"
+    :: F (Maybe LegacyDate) "car_checkupDate" "Дата последнего ТО"
   , car_dealerTO
     :: F (Maybe Text) "car_dealerTO" "Дилер у которого проходило последнее ТО"
   , car_mileage
@@ -87,9 +86,9 @@ data Case = Case
   , car_checkupMileage
     :: F (Maybe Text) "car_checkupMileage" "Пробег на последнем ТО"
   , car_warrantyStart
-    :: F (Maybe UTCTime) "car_warrantyStart" "Дата начала действия программы"
+    :: F (Maybe LegacyDate) "car_warrantyStart" "Дата начала действия программы"
   , car_warrantyEnd
-    :: F (Maybe UTCTime) "car_warrantyEnd" "Дата окончания действия программы"
+    :: F (Maybe LegacyDate) "car_warrantyEnd" "Дата окончания действия программы"
   , car_contractType
     :: F (Maybe Text) {-(Ident ContractType)-} "car_contractType" "Тип контракта"
   , car_transmission
@@ -117,9 +116,9 @@ data Case = Case
   , cardNumber_cardNumber
     :: F (Maybe Text) "cardNumber_cardNumber" "Номер карты участника"
   , cardNumber_validFrom
-    :: F (Maybe UTCTime) "cardNumber_validFrom" "Дата регистрации в программе"
+    :: F (Maybe LegacyDate) "cardNumber_validFrom" "Дата регистрации в программе"
   , cardNumber_validUntil
-    :: F (Maybe UTCTime) "cardNumber_validUntil" "Программа действует до (дата)"
+    :: F (Maybe LegacyDate) "cardNumber_validUntil" "Программа действует до (дата)"
   , cardNumber_validUntilMilage
     :: F (Maybe Text) "cardNumber_validUntilMilage" "Программа действует до (пробег)"
   , cardNumber_milageTO
@@ -145,7 +144,7 @@ data Case = Case
   , temperature
     :: F (Maybe Text) "temperature" "Температура"
   , repair
-    :: F (Maybe UTCTime) "repair" "Дата починки"
+    :: F (Maybe LegacyDate) "repair" "Дата починки"
   , accord
     :: F (Maybe Text) "accord" "Номер согласования"
   , dealerCause
@@ -153,9 +152,9 @@ data Case = Case
   , caseStatus
     :: F Text {-(Ident CaseStatuses)-} "caseStatus" "Статус кейса"
   , psaExportNeeded
-    :: F Bool "psaExportNeeded" "Требуется выгрузка в PSA"
+    :: F Checkbox "psaExportNeeded" "Требуется выгрузка в PSA"
   , psaExported
-    :: F Bool "psaExported" "Выгружен в PSA"
+    :: F Checkbox "psaExported" "Выгружен в PSA"
   , claim
     :: F (Maybe Text) "claim" "Претензия / Благодарность"
   , services

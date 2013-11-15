@@ -153,16 +153,3 @@ dayToBuilder (toGregorian -> (y,m,d)) = do
 instance CoffeeType t => CoffeeType (Interval t) where
   coffeeType = Wrap
     $ "interval-" `T.append` unWrap (coffeeType :: Wrap t Text)
-
--- -- --
-data Reference = Reference Text deriving Typeable
-instance CoffeeType Reference where
-  coffeeType = Wrap "reference"
-instance FromJSON Reference where
-  parseJSON fld = Reference <$> parseJSON fld
-instance ToJSON Reference where
-  toJSON (Reference txt) = toJSON txt
-instance ToField Reference where
-  toField (Reference txt) = toField txt
-instance FromField Reference where
-  fromField fld m = Reference <$> fromField fld m
