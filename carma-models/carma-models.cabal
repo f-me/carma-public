@@ -17,14 +17,12 @@ library
   exposed-modules:
     Data.Model,
     Data.Model.Types,
-    Data.Model.CoffeeType,
     Data.Model.Patch,
     Data.Model.Patch.Sql,
     Data.Model.Search,
     Data.Model.Sql,
     Data.Model.TH,
     Data.Model.View,
-    Data.Model.View.Types,
 
     Carma.Model,
     Carma.Model.Types,

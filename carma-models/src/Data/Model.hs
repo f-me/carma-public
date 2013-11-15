@@ -28,8 +28,6 @@ import Data.Dynamic
 import GHC.TypeLits
 
 import Data.Model.Types
-import Data.Model.View.Types hiding (modelName)
-import Data.Model.CoffeeType
 
 
 mkModelInfo
@@ -78,12 +76,6 @@ instance Model NoParent where
   modelView = error "ModelView NoParent"
 
 
-data FOpt (name :: Symbol) (desc :: Symbol) = FOpt
-data Field typ opt = Field
-type F t n d = Field t (FOpt n d)
-type PK t m  = Field (Ident t m) (FOpt "id" "object id")
-
-
 fieldName :: SingI name => (model -> Field typ (FOpt name desc)) -> Text
 fieldName (_ :: model -> Field typ (FOpt name desc))
   = T.pack $ fromSing (sing :: Sing name)
@@ -93,7 +85,7 @@ class GetModelFields m ctr where
   getModelFields :: ctr -> Wrap m [FieldDesc]
 
 instance
-    (GetModelFields m ctr, SingI nm, SingI desc, CoffeeType t
+    (GetModelFields m ctr, SingI nm, SingI desc, DefaultFieldView t
     ,FromJSON t, ToJSON t, FromField t, ToField t, Typeable t)
     => GetModelFields m (Field t (FOpt nm desc) -> ctr)
   where
@@ -109,7 +101,7 @@ instance
           ,fd_toJSON    = \d -> toJSON  (fromJust $ fromDynamic d :: t)
           ,fd_fromField = toDyn <$> (field :: RowParser t)
           ,fd_toField   = \d -> toField (fromJust $ fromDynamic d :: t)
-          ,fd_coffeeType = unWrap (coffeeType :: Wrap t Text)
+          ,fd_view      = defaultFieldView (const Field :: m -> F t nm desc)
           }
 
 instance GetModelFields m m where

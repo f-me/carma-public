@@ -65,7 +65,7 @@ instance Model Case where
   modelView v =
     case v of
       "search" -> searchView caseSearchParams
-      _        -> m {View.modelName = "case"}
+      _        -> m {mv_modelName = "case"}
         where
           m = modifyView defaultView
             [readonly callDate

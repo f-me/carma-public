@@ -12,7 +12,6 @@ import Data.Time.Clock.POSIX
 import Data.Time.Clock (UTCTime)
 
 import Data.Model.Types
-import Data.Model.CoffeeType
 
 data Diagnosis1 = Diagnosis1 deriving Typeable
 data Diagnosis2 = Diagnosis2 deriving Typeable
@@ -22,8 +21,6 @@ data Color = Color deriving Typeable
 
 
 data Reference = Reference Text deriving Typeable
-instance CoffeeType Reference where
-  coffeeType = Wrap "reference"
 instance FromJSON Reference where
   parseJSON fld = Reference <$> parseJSON fld
 instance ToJSON Reference where
@@ -35,8 +32,6 @@ instance FromField Reference where
 
 
 data PickerField = PickerField Text deriving Typeable
-instance CoffeeType PickerField where
-  coffeeType = Wrap "picker"
 instance FromJSON PickerField where
   parseJSON fld = PickerField <$> parseJSON fld
 instance ToJSON PickerField where
@@ -48,8 +43,6 @@ instance FromField PickerField where
 
 
 data MapField = MapField Text deriving Typeable
-instance CoffeeType MapField where
-  coffeeType = Wrap "map"
 instance FromJSON MapField where
   parseJSON fld = MapField <$> parseJSON fld
 instance ToJSON MapField where
@@ -61,8 +54,6 @@ instance FromField MapField where
 
 
 data Checkbox = Checkbox Bool deriving Typeable
-instance CoffeeType Checkbox where
-  coffeeType = Wrap "checkbox"
 instance FromJSON Checkbox where
   parseJSON fld = Checkbox . (==("1"::Text)) <$> parseJSON fld
 instance ToJSON Checkbox where
@@ -74,8 +65,6 @@ instance FromField Checkbox where
 
 
 data LegacyDate = LegacyDate UTCTime deriving Typeable
-instance CoffeeType LegacyDate where
-  coffeeType = Wrap "date"
 instance FromJSON LegacyDate where
   parseJSON fld = parseJSON fld >>= \txt -> case T.decimal txt of
     Right (res, "") -> return $ LegacyDate $ posixSecondsToUTCTime (fromInteger res)

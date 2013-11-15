@@ -7,6 +7,7 @@ import Data.Time.Clock (UTCTime)
 
 import Data.Model
 import Data.Model.View
+import Carma.Model.Types()
 import Carma.Model.LegacyTypes (Reference,Checkbox)
 
 data Service = Service

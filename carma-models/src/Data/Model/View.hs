@@ -17,9 +17,7 @@ module Data.Model.View
   ) where
 
 import Data.List (foldl')
-import Data.Maybe (fromJust)
 import Data.Text (Text)
-import qualified Data.Text as T
 import qualified Data.Map as Map
 import Data.Aeson as Aeson
 
@@ -27,57 +25,32 @@ import GHC.TypeLits
 
 import Data.Model.Types
 import Data.Model as Model
-import Data.Model.View.Types
+
 
 defaultView :: forall m . Model m => ModelView m
 defaultView
   = modifyView mv
     [Wrap
       (primKeyName mi, \v -> v
-        {fieldType = "ident"
-        ,canWrite  = False
-        ,meta = Map.insert "invisible" (Aeson.Bool True) $ meta v
+        {fv_type = "ident"
+        ,fv_canWrite  = False
+        ,fv_meta = Map.insert "invisible" (Aeson.Bool True) $ fv_meta v
       })]
   where
     mi = modelInfo :: ModelInfo m
     mv = ModelView
-      { modelName = Model.modelName mi
-      , title = ""
-      , fields = map defaultFieldView $ modelFields mi
+      { mv_modelName = Model.modelName mi
+      , mv_title = ""
+      , mv_fields = map fd_view $ modelFields mi
       }
-
-
-defaultFieldView :: FieldDesc -> FieldView
-defaultFieldView f = FieldView
-  { name      = fd_name f
-  , fieldType = fd_coffeeType f
-  , canWrite  = True
-  , meta      = Map.fromList
-    $  [("label", Aeson.String $ fd_desc f)]
-    ++ case words $ show $ fd_type f of
-      ["Ident", "Int", model] ->
-        [("dictionaryName", Aeson.String $ T.pack model)
-        ,("dictionaryType", "ModelDict")
-        ,("bounded", Aeson.Bool True)
-        ]
-      ["Vector", "(Ident", "Int", model] ->
-        [("dictionaryName", Aeson.String
-          $ fromJust $ T.stripSuffix ")" $ T.pack model)
-        ,("dictionaryType", "ModelDict")
-        ,("bounded", Aeson.Bool True)
-        ,("widget", "dictionary-many")
-        ]
-      _ -> []
-  }
-
 
 modifyView
   :: ModelView m -> [(Text, FieldView -> FieldView) :@ m]
   -> ModelView m
-modifyView mv@(ModelView{fields}) fns
-  = mv {fields = map ((fMap' Map.!) . name) fields}
+modifyView mv@(ModelView{mv_fields}) fns
+  = mv {mv_fields = map ((fMap' Map.!) . fv_name) mv_fields}
   where
-    fMap = Map.fromList [(name f, f) | f <- fields]
+    fMap = Map.fromList [(fv_name f, f) | f <- mv_fields]
     fMap' = foldl' tr fMap fns
     tr m (Wrap (nm, fn)) = Map.adjust fn nm m
 
@@ -89,7 +62,7 @@ textarea
   -> (Text, FieldView -> FieldView) :@ m
 textarea fld = Wrap
   (fieldName fld
-  ,\v -> v {fieldType = "textarea"})
+  ,\v -> v {fv_type = "textarea"})
 
 
 setMeta
@@ -99,7 +72,7 @@ setMeta
   -> (Text, FieldView -> FieldView) :@ m
 setMeta key val fld = Wrap
   (fieldName fld
-  ,\v -> v {meta = Map.insert key val $ meta v}
+  ,\v -> v {fv_meta = Map.insert key val $ fv_meta v}
   )
 
 

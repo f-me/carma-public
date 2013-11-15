@@ -9,8 +9,9 @@ import Data.String
 import Data.Text (Text)
 import qualified Data.Text as T
 
+import Data.Int (Int16, Int32)
 import qualified Data.Vector as V
-import Data.Vector ((!))
+import Data.Vector (Vector, (!))
 
 import Data.Time
 import Data.Fixed (Pico)
@@ -28,10 +29,11 @@ import Data.Typeable(Typeable)
 import Data.Monoid (Monoid, (<>))
 
 import Unsafe.Coerce
+import GHC.TypeLits
 
 import Data.Model
 import Data.Model.Types
-import Data.Model.CoffeeType
+import Carma.Model.LegacyTypes
 
 instance FromJSON Day where
   parseJSON (String s)
@@ -150,6 +152,61 @@ dayToBuilder :: Day -> Builder
 dayToBuilder (toGregorian -> (y,m,d)) = do
     pad4 y <> fromChar '-' <> pad2 m <> fromChar '-' <> pad2 d
 
+{-
 instance CoffeeType t => CoffeeType (Interval t) where
   coffeeType = Wrap
     $ "interval-" `T.append` unWrap (coffeeType :: Wrap t Text)
+-}
+
+-- default filed view
+
+defFieldView :: (SingI nm, SingI desc) => (m -> F t nm desc) -> FieldView
+defFieldView f = undefined
+
+instance DefaultFieldView t => DefaultFieldView (Maybe t) where
+  defaultFieldView (f :: m -> F (Maybe t) nm desc)
+    = defFieldView (undefined :: m -> F t nm desc)
+
+
+instance DefaultFieldView UTCTime where
+  defaultFieldView f = (defFieldView f)
+
+instance DefaultFieldView Bool where
+  defaultFieldView f = (defFieldView f)
+
+instance DefaultFieldView Int where
+  defaultFieldView f = (defFieldView f)
+
+instance DefaultFieldView Int16 where
+  defaultFieldView f = (defFieldView f)
+
+instance DefaultFieldView Int32 where
+  defaultFieldView f = (defFieldView f)
+
+instance DefaultFieldView Day where
+  defaultFieldView f = (defFieldView f)
+
+
+instance DefaultFieldView PickerField where
+  defaultFieldView f = (defFieldView f)
+
+instance DefaultFieldView MapField where
+  defaultFieldView f = (defFieldView f)
+
+instance DefaultFieldView Reference where
+  defaultFieldView f = (defFieldView f)
+
+instance DefaultFieldView Checkbox where
+  defaultFieldView f = (defFieldView f)
+
+instance DefaultFieldView LegacyDate where
+  defaultFieldView f = (defFieldView f)
+
+instance Typeable tag => DefaultFieldView (Ident t tag) where
+  defaultFieldView f = (defFieldView f)
+
+instance DefaultFieldView Text where
+  defaultFieldView f = (defFieldView f)
+
+instance DefaultFieldView (Vector t) where
+  defaultFieldView f = (defFieldView f)

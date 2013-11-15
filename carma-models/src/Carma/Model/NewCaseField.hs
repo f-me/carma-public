@@ -5,6 +5,7 @@ import Data.Text
 import Data.Typeable
 import Data.Model
 import Data.Model.View
+import Carma.Model.Types()
 import Carma.Model.Program (Program)
 
 

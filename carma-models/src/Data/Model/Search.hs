@@ -28,11 +28,10 @@ import           Database.PostgreSQL.Simple.ToField (ToField)
 import           Text.Printf
 import           GHC.TypeLits
 
-import           Data.Model as Model hiding (fieldName, modelName)
-import           Data.Model.CoffeeType
-import           Data.Model.Types ((:@), Wrap(..))
-import qualified Data.Model      as Model
-import qualified Data.Model.View as View
+import           Data.Model hiding (fieldName, modelName)
+import qualified Data.Model as Model
+import           Data.Model.Types hiding (modelName)
+import           Data.Model.View as View
 import           Carma.Model.Types
 
 
@@ -56,7 +55,7 @@ data MatchType
 -- FIXME: check if field type \in {Text, Int, ..}
 one
   :: forall m t nm desc
-  . (FromJSON t, ToField t, CoffeeType t
+  . (FromJSON t, ToField t
     ,SingI nm, SingI desc, Model m)
   => (m -> F t nm desc) -> [Predicate m]
 one f =
@@ -141,18 +140,18 @@ renderPredicate conn pMap vals = do
 
 searchView :: Model m => [(Text, [Predicate m])] -> ModelView m
 searchView flds = ModelView
-  { View.modelName = "search"
-  , View.title = "Поиск"
-  , View.fields
+  { mv_modelName = "search"
+  , mv_title = "Поиск"
+  , mv_fields
     = [ v
-        {View.name = nm
-        ,View.meta = Map.insert
+        {fv_name = nm
+        ,fv_meta = Map.insert
                 "search"
                 (buildSearchMeta ps)
-                (View.meta v)
+                (fv_meta v)
         }
       | (nm, ps@(p:_)) <- flds
-      , let v = View.defaultFieldView $ unWrap $ fieldDesc p
+      , let v = fd_view $ unWrap $ fieldDesc p
       ]
   }
   where
