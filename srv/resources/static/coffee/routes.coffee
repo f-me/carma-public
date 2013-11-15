@@ -21,6 +21,7 @@ define [
   "screens/program"
   "screens/partnersSearch"
   "screens/servicesSearch"
+  "screens/contractsSearch"
   "render/screen"
   ], ( bo
      , call
@@ -44,6 +45,7 @@ define [
      , program
      , partnersSearch
      , servicesSearch
+     , contractsSearch
      , r) ->
     localScreens: ->
       "case":
@@ -135,6 +137,9 @@ define [
       "servicesSearch":
         "views":
           "search-view": servicesSearch
+      "contractsSearch":
+        "views":
+          "search-view": contractsSearch
 
     # Setup routing
     localRouter: Backbone.Router.extend
@@ -171,6 +176,7 @@ define [
         "partnersSearch"        : "partnersSearch"
         "partnersSearch/:model" : "partnersSearchModel"
         "servicesSearch*any"    : "servicesSearch"
+        "contractsSearch*any"   : "contractsSearch"
 
       loadCase      : (id) -> r.renderScreen("case", kase, {"id": id})
       loadNewCase   : (p,id) ->
@@ -208,6 +214,7 @@ define [
       partnersSearchModel: (model) ->
         r.renderScreen "partnersSearch", partnersSearch, {model: model}
       servicesSearch     : -> r.renderScreen("servicesSearch", servicesSearch)
+      contractsSearch    : -> r.renderScreen("contractsSearch", contractsSearch)
 
       current : ->
         Router   = this
