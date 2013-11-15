@@ -28,6 +28,8 @@ import Carma.Model.Sms                 (Sms)
 import Carma.Model.Case                (Case)
 import Carma.Model.ProgramInfo         (ProgramInfo)
 import Carma.Model.ServiceInfo         (ServiceInfo)
+import Carma.Model.Service             (Service)
+import Carma.Model.Service.Towage      (Towage)
 
 dispatch :: forall a . Text -> (forall m . Model m => m -> a) -> Maybe a
 dispatch model fn = Map.lookup model modelMap
@@ -50,4 +52,6 @@ dispatch model fn = Map.lookup model modelMap
       ,add (undefined :: Case)
       ,add (undefined :: ProgramInfo)
       ,add (undefined :: ServiceInfo)
+      ,add (undefined :: Service)
+      ,add (undefined :: Towage)
       ]
