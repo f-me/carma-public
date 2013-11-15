@@ -26,6 +26,7 @@ library
 
     Carma.Model,
     Carma.Model.Types,
+    Carma.Model.LegacyTypes,
     Carma.Model.City,
     Carma.Model.CarMake,
     Carma.Model.CarModel,
