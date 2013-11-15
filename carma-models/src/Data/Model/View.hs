@@ -44,6 +44,7 @@ defaultView
       , mv_fields = map fd_view $ modelFields mi
       }
 
+
 modifyView
   :: ModelView m -> [(Text, FieldView -> FieldView) :@ m]
   -> ModelView m

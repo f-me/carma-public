@@ -28,9 +28,9 @@ import           Database.PostgreSQL.Simple.ToField (ToField)
 import           Text.Printf
 import           GHC.TypeLits
 
-import           Data.Model hiding (fieldName, modelName)
+import           Data.Model hiding (fieldName, modelName, fieldDesc)
 import qualified Data.Model as Model
-import           Data.Model.Types hiding (modelName)
+import           Data.Model.Types hiding (modelName, fieldDesc)
 import           Data.Model.View as View
 import           Carma.Model.Types
 

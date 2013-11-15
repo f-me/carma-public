@@ -8,7 +8,7 @@ module Data.Model
   , Field(..), F, PK
   , FOpt
   , FieldDesc(..)
-  , fieldName
+  , fieldName, fieldDesc
   -- from Data.Model.View.Types
   , ModelView(..)
   ) where
@@ -76,9 +76,15 @@ instance Model NoParent where
   modelView = error "ModelView NoParent"
 
 
-fieldName :: SingI name => (model -> Field typ (FOpt name desc)) -> Text
-fieldName (_ :: model -> Field typ (FOpt name desc))
-  = T.pack $ fromSing (sing :: Sing name)
+fieldName
+  :: forall m t name desc
+  . SingI name => (m -> Field t (FOpt name desc)) -> Text
+fieldName _ = T.pack $ fromSing (sing :: Sing name)
+
+fieldDesc
+  :: forall m t name desc
+  . SingI desc => (m -> Field t (FOpt name desc)) -> Text
+fieldDesc _ = T.pack $ fromSing (sing :: Sing desc)
 
 
 class GetModelFields m ctr where

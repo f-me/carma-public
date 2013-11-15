@@ -1,10 +1,11 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, ViewPatterns, ScopedTypeVariables #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, ViewPatterns, ScopedTypeVariables, RankNTypes #-}
 
 module Carma.Model.Types where
 
 import Control.Applicative
 
-import Data.Aeson
+import Data.Aeson as Aeson
 import Data.String
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -12,6 +13,7 @@ import qualified Data.Text as T
 import Data.Int (Int16, Int32)
 import qualified Data.Vector as V
 import Data.Vector (Vector, (!))
+import qualified Data.Map as Map
 
 import Data.Time
 import Data.Fixed (Pico)
@@ -24,8 +26,7 @@ import Blaze.ByteString.Builder(Builder, fromByteString)
 import Blaze.ByteString.Builder.Char8(fromChar)
 import Blaze.Text.Int(integral)
 
-import Data.Aeson () -- (FromJSON, ToJSON)
-import Data.Typeable(Typeable)
+import Data.Typeable
 import Data.Monoid (Monoid, (<>))
 
 import Unsafe.Coerce
@@ -159,10 +160,6 @@ instance CoffeeType t => CoffeeType (Interval t) where
 -}
 
 -- default filed view
-
-defFieldView :: (SingI nm, SingI desc) => (m -> F t nm desc) -> FieldView
-defFieldView f = undefined
-
 instance DefaultFieldView t => DefaultFieldView (Maybe t) where
   defaultFieldView (f :: m -> F (Maybe t) nm desc)
     = defFieldView (undefined :: m -> F t nm desc)
@@ -170,43 +167,100 @@ instance DefaultFieldView t => DefaultFieldView (Maybe t) where
 
 instance DefaultFieldView UTCTime where
   defaultFieldView f = (defFieldView f)
+    {fv_type = "datetime"
+    }
 
 instance DefaultFieldView Bool where
   defaultFieldView f = (defFieldView f)
+    {fv_type = "Bool"
+    }
 
 instance DefaultFieldView Int where
   defaultFieldView f = (defFieldView f)
+    {fv_type = "int"
+    }
 
 instance DefaultFieldView Int16 where
   defaultFieldView f = (defFieldView f)
+    {fv_type = "int"
+    }
 
 instance DefaultFieldView Int32 where
   defaultFieldView f = (defFieldView f)
-
-instance DefaultFieldView Day where
-  defaultFieldView f = (defFieldView f)
-
-
-instance DefaultFieldView PickerField where
-  defaultFieldView f = (defFieldView f)
-
-instance DefaultFieldView MapField where
-  defaultFieldView f = (defFieldView f)
-
-instance DefaultFieldView Reference where
-  defaultFieldView f = (defFieldView f)
-
-instance DefaultFieldView Checkbox where
-  defaultFieldView f = (defFieldView f)
-
-instance DefaultFieldView LegacyDate where
-  defaultFieldView f = (defFieldView f)
-
-instance Typeable tag => DefaultFieldView (Ident t tag) where
-  defaultFieldView f = (defFieldView f)
+    {fv_type = "int"
+    }
 
 instance DefaultFieldView Text where
   defaultFieldView f = (defFieldView f)
+    {fv_type = "text"
+    }
 
-instance DefaultFieldView (Vector t) where
+instance DefaultFieldView Day where
   defaultFieldView f = (defFieldView f)
+    {fv_type = "date"
+    }
+
+instance DefaultFieldView PickerField where
+  defaultFieldView f = (defFieldView f)
+    {fv_type = "picker"
+    }
+
+instance DefaultFieldView MapField where
+  defaultFieldView f = (defFieldView f)
+    {fv_type = "map"
+    }
+
+instance DefaultFieldView Reference where
+  defaultFieldView f = (defFieldView f)
+    {fv_type = "reference"
+    }
+
+instance DefaultFieldView Checkbox where
+  defaultFieldView f = (defFieldView f)
+    {fv_type = "checkbox"
+    }
+
+instance DefaultFieldView LegacyDate where
+  defaultFieldView f = (defFieldView f)
+    {fv_type = "date"
+    }
+
+instance Typeable tag => DefaultFieldView (Ident t tag) where
+  defaultFieldView f = (defFieldView f)
+    {fv_type = "dictionary"
+    ,fv_meta
+      = Map.insert "dictionaryName" (Aeson.String $ typeName (undefined :: tag))
+      $ Map.insert "dictionaryType" "ModelDict"
+      $ Map.insert "bounded" (Aeson.Bool True)
+      $ fv_meta $ defFieldView f
+    }
+
+instance DefaultFieldView (Vector Text) where
+  defaultFieldView f = (defFieldView f)
+    {fv_type = "dictionary-many"
+    }
+
+instance Typeable tag => DefaultFieldView (Vector (Ident t tag)) where
+  defaultFieldView f = (defFieldView f)
+    {fv_type = "dictionary-set"
+    ,fv_meta
+      = Map.insert "dictionaryName" (Aeson.String $ typeName (undefined :: tag))
+      $ Map.insert "dictionaryType" "ModelDict"
+      $ Map.insert "bounded" (Aeson.Bool True)
+      $ Map.insert "widget" "dictionary-many"
+      $ fv_meta $ defFieldView f
+    }
+
+
+typeName :: forall t . Typeable t => t -> Text
+typeName _ = T.pack $ tyConName $ typeRepTyCon $ typeOf (undefined :: t)
+
+defFieldView :: (SingI nm, SingI desc) => (m -> F t nm desc) -> FieldView
+defFieldView f = FieldView
+  {fv_name = fieldName f
+  ,fv_type = "undefined"
+  ,fv_canWrite = True
+  ,fv_meta = Map.fromList
+    [("label", Aeson.String $ fieldDesc f)
+    ]
+  }
