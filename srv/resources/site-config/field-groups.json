@@ -323,6 +323,15 @@
       "name": "class"
     },
     {
+      "type": "dictionary",
+      "meta": {
+        "label": "Физическое / Юридическое лицо",
+        "bounded": true,
+        "dictionaryName": "LegalForms"
+      },
+      "name": "form"
+    },    
+    {
       "meta": {
         "label": "Код марки автомобиля"
       },
