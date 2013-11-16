@@ -36,6 +36,7 @@ library
     Carma.Model.LegacyDicts,
     Carma.Model.NewCaseField,
     Carma.Model.DefaultNewCaseField,
+    Carma.Model.ConstructorFieldOption,
     Carma.Model.Program,
     Carma.Model.Region,
     Carma.Model.Role,
