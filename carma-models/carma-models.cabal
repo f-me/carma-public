@@ -33,7 +33,6 @@ library
     Carma.Model.Contract,
     Carma.Model.FieldPermission,
     Carma.Model.Dictionary,
-    Carma.Model.LegacyDicts,
     Carma.Model.NewCaseField,
     Carma.Model.DefaultNewCaseField,
     Carma.Model.ConstructorFieldOption,
