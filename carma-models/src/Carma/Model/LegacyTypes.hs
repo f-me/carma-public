@@ -18,7 +18,8 @@ data Diagnosis2 = Diagnosis2 deriving Typeable
 data Diagnosis3 = Diagnosis3 deriving Typeable
 data Diagnosis4 = Diagnosis4 deriving Typeable
 data Color = Color deriving Typeable
-
+data Activity = Activity deriving Typeable
+data RequestType = RequestType deriving Typeable
 
 data Reference = Reference Text deriving Typeable
 instance FromJSON Reference where

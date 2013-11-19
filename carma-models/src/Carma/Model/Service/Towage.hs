@@ -77,5 +77,5 @@ instance Model Towage where
   type TableName Towage = "towagetbl"
   type Parent Towage = Service
   modelInfo = mkModelInfo Towage ident
-  modelView _ = defaultView
+  modelView _ = (defaultView :: ModelView Towage) {mv_title = "Эвакуация"}
 

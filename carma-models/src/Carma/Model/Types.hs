@@ -178,6 +178,9 @@ instance DefaultFieldView Bool where
 instance DefaultFieldView Int where
   defaultFieldView f = (defFieldView f)
     {fv_type = "int"
+    ,fv_meta
+      = Map.insert "sqltype" (Aeson.String "integer")
+      $ fv_meta $ defFieldView f
     }
 
 instance DefaultFieldView Int16 where
@@ -198,6 +201,9 @@ instance DefaultFieldView Text where
 instance DefaultFieldView Day where
   defaultFieldView f = (defFieldView f)
     {fv_type = "date"
+    ,fv_meta
+      = Map.insert "regexp" (Aeson.String "date")
+      $ fv_meta $ defFieldView f
     }
 
 instance DefaultFieldView PickerField where

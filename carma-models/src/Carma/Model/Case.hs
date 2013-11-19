@@ -65,7 +65,8 @@ instance Model Case where
   modelView v =
     case v of
       "search" -> searchView caseSearchParams
-      _        -> modifyView defaultView
+      _        -> modifyView
+        ((defaultView :: ModelView Case) {mv_title = "Кейс"})
             [readonly callDate
             ,readonly callTaker
 
