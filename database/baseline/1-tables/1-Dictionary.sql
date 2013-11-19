@@ -16,7 +16,8 @@ INSERT INTO "Dictionary" (id, name, description, parent, majorFields) VALUES
 , (6, 'SmsTemplate', 'Шаблон СМС', null, ARRAY['id', 'label'])
 , (7, 'Role', 'Роли', null, ARRAY['id', 'value', 'label'])
 , (8, 'ProgramInfo', 'Информация о программах', null, ARRAY['id', 'program', 'info'])
-, (9, 'ServiceInfo', 'Информация об услугах', null, ARRAY['id', 'program', 'service', 'info'])
+, (9, 'ServiceNames', 'Услуги', null, ARRAY['id', 'value', 'label', 'icon'])
+, (10, 'ServiceInfo', 'Информация об услугах', null, ARRAY['id', 'program', 'service', 'info'])
 ;
 
 GRANT SELECT ON "Dictionary" TO carma_db_sync;
