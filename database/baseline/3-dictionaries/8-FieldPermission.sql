@@ -1503,6 +1503,9 @@ lovViewer	ServiceNames	value	t	f
 lovAdmin	ServiceNames	value	t	t
 lovViewer	ServiceNames	icon	t	f
 lovAdmin	ServiceNames	icon	t	t
+core	case	id	t	f
+core	service	id	t	f
+core	service	type	t	f
 \.
 
 INSERT INTO "FieldPermission" (role, model, field, r, w)

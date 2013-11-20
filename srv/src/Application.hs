@@ -24,6 +24,7 @@ import Snap.Snaplet.Vin
 import Snaplet.FileUpload hiding (db)
 import Snaplet.Geo
 import Snap.Snaplet.SimpleLog
+import Snaplet.Search
 
 import RuntimeFlag
 
@@ -43,6 +44,7 @@ data App = App
     , feLog       :: Log
     , runtimeFlags:: TVar (Set RuntimeFlag)
     , _authDb     :: Snaplet Postgres
+    , _search     :: Snaplet (Search App)
     }
 
 

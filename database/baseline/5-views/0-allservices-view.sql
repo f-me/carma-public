@@ -5,7 +5,7 @@ SELECT averagecommissionertbl."id"
 	,averagecommissionertbl.contractor_partner "towdealer_partner"
 	,averagecommissionertbl.suburbanmilage
 	,NULL::TEXT AS providedfor
-	,NULL::TIMESTAMP WITHOUT TIME ZONE AS repairenddate
+	,NULL::TIMESTAMP WITH TIME ZONE AS repairenddate
 	,NULL::TEXT AS techtype
 	,NULL::TEXT AS towtype
 	,averagecommissionertbl.contractor_address "towaddress_address"
@@ -20,7 +20,7 @@ SELECT banktbl."id"
 	,banktbl.contractor_partner "towdealer_partner"
 	,banktbl.suburbanmilage
 	,NULL::TEXT AS providedfor
-	,NULL::TIMESTAMP WITHOUT TIME ZONE AS repairenddate
+	,NULL::TIMESTAMP WITH TIME ZONE AS repairenddate
 	,NULL::TEXT AS "techtype"
 	,NULL::TEXT AS towtype
 	,NULL::TEXT AS "towaddress_address"
@@ -35,7 +35,7 @@ SELECT consultationtbl."id"
 	,consultationtbl.contractor_partner "towdealer_partner"
 	,consultationtbl.suburbanmilage
 	,NULL::TEXT AS providedfor
-	,NULL::TIMESTAMP WITHOUT TIME ZONE AS repairenddate
+	,NULL::TIMESTAMP WITH TIME ZONE AS repairenddate
 	,consultationtbl.constype "techtype"
 	,NULL::TEXT AS towtype
 	,NULL::TEXT AS "towaddress_address"
@@ -50,7 +50,7 @@ SELECT deliverclienttbl."id"
 	,deliverclienttbl.contractor_partner "towdealer_partner"
 	,deliverclienttbl.suburbanmilage
 	,NULL::TEXT AS providedfor
-	,NULL::TIMESTAMP WITHOUT TIME ZONE AS repairenddate
+	,NULL::TIMESTAMP WITH TIME ZONE AS repairenddate
 	,deliverclienttbl.deliverytype "techtype"
 	,NULL::TEXT AS towtype
 	,deliverclienttbl.contractor_address "towaddress_address"
@@ -65,7 +65,7 @@ SELECT informationtbl."id"
 	,informationtbl.contractor_partner "towdealer_partner"
 	,informationtbl.suburbanmilage
 	,NULL::TEXT AS providedfor
-	,NULL::TIMESTAMP WITHOUT TIME ZONE AS repairenddate
+	,NULL::TIMESTAMP WITH TIME ZONE AS repairenddate
 	,NULL::TEXT AS techtype
 	,NULL::TEXT AS towtype
 	,informationtbl.contractor_address "towaddress_address"
@@ -80,7 +80,7 @@ SELECT deliverpartstbl."id"
 	,deliverpartstbl.contractor_partner "towdealer_partner"
 	,deliverpartstbl.suburbanmilage
 	,NULL::TEXT AS providedfor
-	,NULL::TIMESTAMP WITHOUT TIME ZONE AS repairenddate
+	,NULL::TIMESTAMP WITH TIME ZONE AS repairenddate
 	,NULL::TEXT AS techtype
 	,NULL::TEXT AS towtype
 	,deliverpartstbl.contractor_address "towaddress_address"
@@ -95,7 +95,7 @@ SELECT hoteltbl."id"
 	,hoteltbl.contractor_partner "towdealer_partner"
 	,hoteltbl.suburbanmilage
 	,hoteltbl.providedfor
-	,NULL::TIMESTAMP WITHOUT TIME ZONE AS repairenddate
+	,NULL::TIMESTAMP WITH TIME ZONE AS repairenddate
 	,NULL::TEXT AS techtype
 	,NULL::TEXT AS towtype
 	,hoteltbl.contractor_address "towaddress_address"
@@ -110,7 +110,7 @@ SELECT insurancetbl."id"
 	,insurancetbl.contractor_partner "towdealer_partner"
 	,insurancetbl.suburbanmilage
 	,NULL::TEXT AS providedfor
-	,NULL::TIMESTAMP WITHOUT TIME ZONE AS repairenddate
+	,NULL::TIMESTAMP WITH TIME ZONE AS repairenddate
 	,NULL::TEXT AS techtype
 	,NULL::TEXT AS towtype
 	,insurancetbl.contractor_address "towaddress_address"
@@ -125,7 +125,7 @@ SELECT sobertbl."id"
 	,sobertbl.contractor_partner "towdealer_partner"
 	,sobertbl.suburbanmilage
 	,NULL::TEXT AS providedfor
-	,NULL::TIMESTAMP WITHOUT TIME ZONE AS repairenddate
+	,NULL::TIMESTAMP WITH TIME ZONE AS repairenddate
 	,NULL::TEXT AS techtype
 	,NULL::TEXT AS towtype
 	,sobertbl.contractor_address "towaddress_address"
@@ -140,7 +140,7 @@ SELECT renttbl.ID
 	,renttbl.towdealer_partner
 	,NULL::TEXT AS suburbanmilage
 	,renttbl.providedfor
-	,NULL::TIMESTAMP WITHOUT TIME ZONE AS repairenddate
+	,NULL::TIMESTAMP WITH TIME ZONE AS repairenddate
 	,NULL::TEXT AS techtype
 	,NULL::TEXT AS towtype
 	,NULL::TEXT AS towaddress_address
@@ -170,7 +170,7 @@ SELECT techtbl.ID
 	,NULL::TEXT AS towdealer_partner
 	,techtbl.suburbanmilage
 	,NULL::TEXT AS providedfor
-	,NULL::TIMESTAMP WITHOUT TIME ZONE AS repairenddate
+	,NULL::TIMESTAMP WITH TIME ZONE AS repairenddate
 	,techtbl.techtype
 	,NULL::TEXT AS towtype
 	,NULL::TEXT AS towaddress_address
