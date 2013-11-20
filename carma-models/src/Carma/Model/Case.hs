@@ -64,7 +64,8 @@ instance Model Case where
   modelInfo   = mkModelInfo Case Case.ident
   modelView v =
     case v of
-      "search" -> searchView caseSearchParams
+      "search" -> modifyView (searchView caseSearchParams)
+                  [modifyByName "Case_id" (\v -> v { fv_type = "text" })]
       _        -> modifyView
         ((defaultView :: ModelView Case) {mv_title = "Кейс"})
             [readonly callDate
