@@ -10,6 +10,7 @@ import Database.PostgreSQL.Simple.FromField (FromField(..))
 
 import Data.Model
 import Data.Model.View
+import Carma.Model.Types()
 
 
 -- FIXME: Carma.Types

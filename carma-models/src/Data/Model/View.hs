@@ -8,15 +8,17 @@ module Data.Model.View
   ,textarea
   ,readonly
   ,invisible
+  ,dict, dictOpt, DictOpt(..)
+  ,mainToo
+  ,widget
+  ,modifyByName
   -- from Data.Model.View.Types
   ,FieldView(..)
   ,ModelView(..)
   ) where
 
-import Data.List
-import Data.Maybe (fromJust)
+import Data.List (foldl')
 import Data.Text (Text)
-import qualified Data.Text as T
 import qualified Data.Map as Map
 import Data.Aeson as Aeson
 
@@ -24,57 +26,33 @@ import GHC.TypeLits
 
 import Data.Model.Types
 import Data.Model as Model
-import Data.Model.View.Types
+
 
 defaultView :: forall m . Model m => ModelView m
 defaultView
   = modifyView mv
     [Wrap
       (primKeyName mi, \v -> v
-        {fieldType = "ident"
-        ,canWrite  = False
-        ,meta = Map.insert "invisible" (Aeson.Bool True) $ meta v
+        {fv_type = "ident"
+        ,fv_canWrite  = False
+        ,fv_meta = Map.insert "invisible" (Aeson.Bool True) $ fv_meta v
       })]
   where
     mi = modelInfo :: ModelInfo m
     mv = ModelView
-      { modelName = Model.modelName mi
-      , title = ""
-      , fields = map defaultFieldView $ modelFields mi
+      { mv_modelName = Model.modelName mi
+      , mv_title = ""
+      , mv_fields = map fd_view $ modelFields mi
       }
-
-
-defaultFieldView :: FieldDesc -> FieldView
-defaultFieldView f = FieldView
-  { name      = fd_name f
-  , fieldType = fd_coffeeType f
-  , canWrite  = True
-  , meta      = Map.fromList
-    $  [("label", Aeson.String $ fd_desc f)]
-    ++ case words $ show $ fd_type f of
-      ["Ident", "Int", model] ->
-        [("dictionaryName", Aeson.String $ T.pack model)
-        ,("dictionaryType", "ModelDict")
-        ,("bounded", Aeson.Bool True)
-        ]
-      ["Vector", "(Ident", "Int", model] ->
-        [("dictionaryName", Aeson.String
-          $ fromJust $ T.stripSuffix ")" $ T.pack model)
-        ,("dictionaryType", "ModelDict")
-        ,("bounded", Aeson.Bool True)
-        ,("widget", "dictionary-many")
-        ]
-      _ -> []
-  }
 
 
 modifyView
   :: ModelView m -> [(Text, FieldView -> FieldView) :@ m]
   -> ModelView m
-modifyView mv@(ModelView{fields}) fns
-  = mv {fields = map ((fMap' Map.!) . name) fields}
+modifyView mv@(ModelView{mv_fields}) fns
+  = mv {mv_fields = map ((fMap' Map.!) . fv_name) mv_fields}
   where
-    fMap = Map.fromList [(name f, f) | f <- fields]
+    fMap = Map.fromList [(fv_name f, f) | f <- mv_fields]
     fMap' = foldl' tr fMap fns
     tr m (Wrap (nm, fn)) = Map.adjust fn nm m
 
@@ -86,26 +64,82 @@ textarea
   -> (Text, FieldView -> FieldView) :@ m
 textarea fld = Wrap
   (fieldName fld
-  ,\v -> v {fieldType = "textarea"})
+  ,\v -> v {fv_type = "textarea"})
+
+
+setMeta
+  :: SingI name
+  => Text -> Aeson.Value
+  -> (m -> Field typ (FOpt name desc))
+  -> (Text, FieldView -> FieldView) :@ m
+setMeta key val fld = Wrap
+  (fieldName fld
+  ,\v -> v {fv_meta = Map.insert key val $ fv_meta v}
+  )
 
 
 readonly
   :: SingI name => (m -> Field typ (FOpt name desc))
   -> (Text, FieldView -> FieldView) :@ m
-readonly fld = Wrap
-  (fieldName fld
-  ,\v -> v
-    {meta = Map.insert "readonly" (Aeson.Bool True) $ meta v
-    ,canWrite = False
-    }
-  )
+readonly = setMeta "readonly" (Aeson.Bool True)
 
 invisible
   :: SingI name => (m -> Field typ (FOpt name desc))
   -> (Text, FieldView -> FieldView) :@ m
-invisible fld = Wrap
+invisible = setMeta "invisible" (Aeson.Bool True)
+
+
+data DictOpt = DictOpt
+  {dictName    :: Text
+  ,dictType    :: Maybe Text
+  ,dictBounded :: Bool
+  ,dictTgtCat  :: Maybe Text
+  ,dictParent  :: Maybe Text
+  }
+
+dictOpt :: Text -> DictOpt
+dictOpt nm = DictOpt
+  {dictName    = nm
+  ,dictType    = Nothing
+  ,dictBounded = False
+  ,dictTgtCat  = Nothing
+  ,dictParent  = Nothing
+  }
+
+dict
+  :: SingI name
+  => (m -> Field typ (FOpt name desc)) -- FIXME: typ ~ Ident xx
+  -> DictOpt
+  -> (Text, FieldView -> FieldView) :@ m
+dict fld (DictOpt{..}) = Wrap
   (fieldName fld
-  ,\v -> v
-    {meta = Map.insert "invisible" (Aeson.Bool True) $ meta v
-    }
+  ,us (setMeta "dictionaryName" (Aeson.String dictName) fld)
+    . maybe id
+      (\v -> us $ setMeta "dictionaryType" (Aeson.String v) fld)
+      dictType
+    . us (setMeta "bounded" (Aeson.Bool dictBounded) fld)
+    . maybe id
+      (\v -> us $ setMeta "targetCategory" (Aeson.String v) fld)
+      dictTgtCat
+    . maybe id
+      (\v -> us $ setMeta "dictionaryParent" (Aeson.String v) fld)
+      dictParent
   )
+  where
+    us = snd . unWrap
+
+widget
+  :: SingI name
+  => Text -> (m -> Field typ (FOpt name desc))
+  -> (Text, FieldView -> FieldView) :@ m
+widget nm = setMeta "widget" (Aeson.String nm)
+
+mainToo
+  :: SingI name
+  => (m -> Field typ (FOpt name desc))
+  -> (Text, FieldView -> FieldView) :@ m
+mainToo = setMeta "mainToo" (Aeson.Bool True)
+
+modifyByName :: Text -> (FieldView -> FieldView)
+             -> (Text, FieldView -> FieldView) :@ m
+modifyByName name fn = Wrap (name, fn)

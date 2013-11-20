@@ -9,25 +9,27 @@ import Data.Model
 import Data.Model.View
 
 import Carma.Model.Types ()
+import Carma.Model.LegacyTypes (Reference)
 import Carma.Model.Program hiding (ident)
-import Carma.Model.Service hiding (ident)
+import Carma.Model.ServiceNames hiding (ident)
 
 data SubProgram = SubProgram
   { ident        :: PK Int SubProgram
-  , parent       :: F (IdentI Program) "parent"    "Программа"
-  , mailAddr     :: F Text             "mailAddr"  "Mail для отправки писем"
-  , mailPass     :: F Text             "mailPass"  "Пароль для отправки писем"
-  , contacts     :: F Text             "contacts"  "Контактные лица"
-  , services     :: F (Vector (IdentI Service))
+  , parent       :: F (IdentI Program)         "parent"    "Программа"
+  , label        :: F Text                     "label"     "Название"
+  , mailAddr     :: F (Maybe Text)             "mailAddr"  "Mail для отправки писем"
+  , mailPass     :: F (Maybe Text)             "mailPass"  "Пароль для отправки писем"
+  , contacts     :: F (Maybe Text)             "contacts"  "Контактные лица"
+  , services     :: F (Vector (IdentI ServiceNames))
                     "services"  "Услуги, предоставляемые по программе"
-  , checkPeriod  :: F Int
+  , checkPeriod  :: F (Maybe Int)
                     "checkPeriod"  "Межсервисный интервал по умолчанию"
-  , validUntil   :: F Day
+  , validUntil   :: F (Maybe Day)
                     "validUntil"   "Срок действия программы по умолчанию"
-  , contract     :: F Reference        "contract" "Шаблон договора"
-  , logo         :: F Reference        "logo" "Логотип"
-  , help         :: F Text             "help" "Справка"
-  , dealerHelp   :: F Text             "dealerHelp" "Справка для дилеров"
+  , contract     :: F (Maybe Reference)        "contract" "Шаблон договора"
+  , logo         :: F (Maybe Reference)        "logo" "Логотип"
+  , help         :: F (Maybe Text)             "help" "Справка"
+  , dealerHelp   :: F (Maybe Text)             "dealerHelp" "Справка для дилеров"
   } deriving Typeable
 
 instance Model SubProgram where

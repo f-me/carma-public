@@ -7,6 +7,7 @@ import Data.Model
 import Data.Typeable
 
 import Data.Model.View
+import Carma.Model.Types()
 import Carma.Model.SmsTemplate (SmsTemplate)
 
 

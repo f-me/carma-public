@@ -5,7 +5,7 @@ import Data.Text
 import Data.Typeable
 import Data.Model
 import Data.Model.View
-
+import Carma.Model.Types()
 
 data CarMake = CarMake
   {ident :: PK Int CarMake

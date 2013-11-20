@@ -5,16 +5,16 @@ import Data.Text
 import Data.Typeable
 import Data.Model
 import Data.Model.View
-
+import Carma.Model.Types()
 
 data Program = Program
   { ident                 :: PK Int Program
-  , label                 :: F Text            "label"  ""
-  , value                 :: F Text            "value"  ""
-  , active                :: F Bool            "active" ""
-  , client                :: F Text            "client" ""
-  , clientCode            :: F Text            "clientCode" ""
-  , clientAddress         :: F Text            "clientAddress" ""
+  , label                 :: F Text            "label"  "Название"
+  , value                 :: F Text            "value"  "Внутренняя метка"
+  , active                :: F Bool            "active" "Активна"
+  , client                :: F (Maybe Text)    "client" "Заказчик"
+  , clientAddress         :: F (Maybe Text)    "clientAddress" "Адрес заказчика"
+  , clientCode            :: F (Maybe Text)    "clientCode" "Код заказчика"
   } deriving Typeable
 
 instance Model Program where

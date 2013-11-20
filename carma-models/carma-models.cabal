@@ -17,17 +17,16 @@ library
   exposed-modules:
     Data.Model,
     Data.Model.Types,
-    Data.Model.CoffeeType,
     Data.Model.Patch,
     Data.Model.Patch.Sql,
-    Data.Model.Search,
     Data.Model.Sql,
     Data.Model.TH,
     Data.Model.View,
-    Data.Model.View.Types,
 
     Carma.Model,
+    Carma.Model.Search,
     Carma.Model.Types,
+    Carma.Model.LegacyTypes,
     Carma.Model.City,
     Carma.Model.CarMake,
     Carma.Model.CarModel,
@@ -36,6 +35,7 @@ library
     Carma.Model.Dictionary,
     Carma.Model.NewCaseField,
     Carma.Model.DefaultNewCaseField,
+    Carma.Model.ConstructorFieldOption,
     Carma.Model.Program,
     Carma.Model.SubProgram,
     Carma.Model.Region,
@@ -47,12 +47,15 @@ library
     Carma.Model.Case.Type,
 
     Carma.Model.Service,
-    Carma.Model.Service.Towage,
+    Carma.Model.Service.AverageCommissioner,
+    Carma.Model.Service.Bank,
     Carma.Model.Service.Tech,
     Carma.Model.Service.TechInspect,
+    Carma.Model.Service.Towage,
 
     Carma.Model.ProgramInfo,
-    Carma.Model.ServiceInfo
+    Carma.Model.ServiceInfo,
+    Carma.Model.ServiceNames
 
   -- other-modules:
   hs-source-dirs:    src

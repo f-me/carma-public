@@ -1,19 +1,14 @@
 
 module Carma.Model.Service where
 
-import Control.Applicative
 import Data.Text
 import Data.Typeable
 import Data.Time.Clock (UTCTime)
-import Data.Aeson
-import Database.PostgreSQL.Simple.ToField   (ToField(..))
-import Database.PostgreSQL.Simple.FromField (FromField(..))
 
 import Data.Model
 import Data.Model.View
-import Data.Model.Types
-import Data.Model.CoffeeType
-
+import Carma.Model.Types()
+import Carma.Model.LegacyTypes (Reference,Checkbox)
 
 data Service = Service
   { ident                        :: PK Int Service
@@ -33,7 +28,7 @@ data Service = Service
                                  "Расчётная стоимость"
   , payment_limitedCost          :: F Text "payment_limitedCost"
                                  "Предельная стоимость"
-  , payment_overcosted           :: F Bool "payment_overcosted"
+  , payment_overcosted           :: F Checkbox "payment_overcosted"
                                  "Стоимость превышена?"
   , payment_paidByRUAMC          :: F Text "payment_paidByRUAMC"
                                  "Оплата РАМК"
@@ -81,11 +76,11 @@ data Service = Service
   , marginalCost                 :: F Text "marginalCost"
                                  "Предельная стоимость"
 
-  , paid                         :: F Bool "paid"
+  , paid                         :: F Checkbox "paid"
                                  "Оплата"
-  , scan                         :: F Bool "scan"
+  , scan                         :: F Checkbox "scan"
                                  "Скан загружен"
-  , original                     :: F Bool "original"
+  , original                     :: F Checkbox "original"
                                  "Оригинал получен"
   , urgentService                :: F Text {-FIXME-} "urgentService"
                                  "Приоритетная услуга"
@@ -93,7 +88,7 @@ data Service = Service
                                  "Статус услуги"
   , clientSatisfied              :: F Text {-FIXME-} "clientSatisfied"
                                  "Клиент доволен"
-  , warrantyCase                 :: F Bool "warrantyCase"
+  , warrantyCase                 :: F Checkbox "warrantyCase"
                                  "Гарантийный случай"
   , files                        :: F Reference "files"
                                  "Прикрепленные файлы"
@@ -103,20 +98,6 @@ data Service = Service
                                  ""
   }
   deriving Typeable
-
-
-data Reference = Reference Text deriving Typeable
-instance CoffeeType Reference where
-  coffeeType = Wrap "reference"
-instance FromJSON Reference where
-  parseJSON fld = Reference <$> parseJSON fld
-instance ToJSON Reference where
-  toJSON (Reference txt) = toJSON txt
-instance ToField Reference where
-  toField (Reference txt) = toField txt
-instance FromField Reference where
-  fromField fld m = Reference <$> fromField fld m
-
 
 instance Model Service where
   type TableName Service = "servicetbl"
