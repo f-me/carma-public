@@ -266,6 +266,15 @@ instance Typeable tag => DefaultFieldView (Vector (Ident t tag)) where
       $ fv_meta $ defFieldView f
     }
 
+instance DefaultFieldView (Interval UTCTime) where
+  defaultFieldView f = (defFieldView f) {fv_type = "interval-datetime"}
+
+instance DefaultFieldView (Vector t) => DefaultFieldView (Vector (Maybe t))
+  where
+  defaultFieldView (f :: m -> F (Vector (Maybe t)) nm desc) =
+   defaultFieldView (undefined :: m -> F (Vector t) nm desc)
+
+
 
 typeName :: forall t . Typeable t => t -> Text
 typeName _ = T.pack $ tyConName $ typeRepTyCon $ typeOf (undefined :: t)

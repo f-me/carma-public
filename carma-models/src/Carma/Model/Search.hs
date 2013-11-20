@@ -1,7 +1,7 @@
 
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Data.Model.Search where
+module Carma.Model.Search where
 
 import           Control.Exception
 
@@ -55,7 +55,7 @@ data MatchType
 -- FIXME: check if field type \in {Text, Int, ..}
 one
   :: forall m t nm desc
-  . (FromJSON t, ToField t
+  . (FromJSON t, ToField t, DefaultFieldView t
     ,SingI nm, SingI desc, Model m)
   => (m -> F t nm desc) -> [Predicate m]
 one f =
@@ -64,7 +64,8 @@ one f =
     { tableName = Model.tableName mi
     , modelName = Model.modelName mi
     , fieldName = Model.fieldName f
-    , fieldDesc = Wrap $ modelFieldsMap mi HM.! Model.fieldName f
+    , fieldDesc = Wrap $ (modelFieldsMap mi HM.! Model.fieldName f)
+        { fd_view = defaultFieldView (const Field :: m -> F t nm desc) }
     , matchType = MatchExact
     , escapeVal = \conn qTpl val ->
         case fromJSON val :: Aeson.Result t of
@@ -78,7 +79,7 @@ one f =
 
 listOf
   :: forall m t nm desc
-  . (FromJSON t, ToField t
+  . (FromJSON t, ToField t, DefaultFieldView (Vector t)
     ,SingI nm, SingI desc, Model m)
   => (m -> F t nm desc) -> [Predicate m]
 listOf _

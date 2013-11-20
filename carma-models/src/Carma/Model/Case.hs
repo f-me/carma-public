@@ -14,8 +14,8 @@ import Database.PostgreSQL.Simple as PG
 
 import Data.Model as Model
 import Data.Model.View as View
-import Data.Model.Search as S
 
+import Carma.Model.Search as S
 import Carma.Model.Types()
 import Carma.Model.Case.Type as Case
 
