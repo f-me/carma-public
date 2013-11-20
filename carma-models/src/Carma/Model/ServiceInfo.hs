@@ -5,6 +5,8 @@ module Carma.Model.ServiceInfo where
 import Data.Text (Text)
 import Data.Typeable
 
+import Carma.Model.Types()
+
 import Data.Model
 import Data.Model.View
 
