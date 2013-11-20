@@ -162,7 +162,7 @@ instance CoffeeType t => CoffeeType (Interval t) where
 -- default filed view
 instance DefaultFieldView t => DefaultFieldView (Maybe t) where
   defaultFieldView (f :: m -> F (Maybe t) nm desc)
-    = defFieldView (undefined :: m -> F t nm desc)
+    = defaultFieldView (undefined :: m -> F t nm desc)
 
 
 instance DefaultFieldView UTCTime where
@@ -231,12 +231,21 @@ instance DefaultFieldView LegacyDate where
     {fv_type = "date"
     }
 
-instance Typeable tag => DefaultFieldView (Ident t tag) where
+instance Typeable tag => DefaultFieldView (Ident Int tag) where
   defaultFieldView f = (defFieldView f)
     {fv_type = "dictionary"
     ,fv_meta
       = Map.insert "dictionaryName" (Aeson.String $ typeName (undefined :: tag))
       $ Map.insert "dictionaryType" "ModelDict"
+      $ Map.insert "bounded" (Aeson.Bool True)
+      $ fv_meta $ defFieldView f
+    }
+
+instance Typeable tag => DefaultFieldView (Ident Text tag) where
+  defaultFieldView f = (defFieldView f)
+    {fv_type = "dictionary"
+    ,fv_meta
+      = Map.insert "dictionaryName" (Aeson.String $ typeName (undefined :: tag))
       $ Map.insert "bounded" (Aeson.Bool True)
       $ fv_meta $ defFieldView f
     }
