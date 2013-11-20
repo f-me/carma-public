@@ -42,6 +42,7 @@ import qualified Carma.Model as Model
 import qualified Carma.Model.Program as Program
 import qualified Carma.Model.ProgramInfo as ProgramInfo
 import qualified Carma.Model.ServiceInfo as ServiceInfo
+import qualified Carma.Model.ServiceNames as ServiceNames
 import qualified Carma.Model.Role as Role
 
 
@@ -130,6 +131,8 @@ serveDictionaries = do
     $ selectJSON (ProgramInfo.program :. ProgramInfo.info)
   serviceInfos <- withPG
     $ selectJSON (ServiceInfo.program :. ServiceInfo.service :. ServiceInfo.info)
+  serviceNames <- withPG
+    $ selectJSON (ServiceNames.ident :. ServiceNames.value :. ServiceNames.label :. ServiceNames.icon)
 
   Aeson.Object dictMap <- gets dictionaries
   writeJSON $ Aeson.Object
@@ -141,8 +144,9 @@ serveDictionaries = do
       (Aeson.object [("entries", Aeson.Array $ V.fromList programInfos)])
     $ HM.insert "ServiceInfo"
       (Aeson.object [("entries", Aeson.Array $ V.fromList serviceInfos)])
+    $ HM.insert "ServiceNames"
+      (Aeson.object [("entries", Aeson.Array $ V.fromList serviceNames)])
       dictMap
-
 
 initSiteConfig :: HasAuth b
                   => FilePath
