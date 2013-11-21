@@ -186,6 +186,16 @@ lovViewer	CarModel	parent	t	f
 lovAdmin	CarModel	parent	t	t
 lovViewer	CarModel	value	t	f
 lovAdmin	CarModel	value	t	t
+lovViewer	SynCarMake	make	t	f
+lovAdmin	SynCarMake	make	t	t
+lovViewer	SynCarMake	label	t	f
+lovAdmin	SynCarMake	label	t	t
+lovViewer	SynCarModel	make	t	f
+lovAdmin	SynCarModel	make	t	t
+lovViewer	SynCarModel	model	t	f
+lovAdmin	SynCarModel	model	t	t
+lovViewer	SynCarModel	label	t	f
+lovAdmin	SynCarModel	label	t	t
 lovViewer	Role	label	t	f
 lovAdmin	Role	label	t	t
 lovViewer	Role	value	t	f
