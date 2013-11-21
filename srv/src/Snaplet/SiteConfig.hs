@@ -42,6 +42,7 @@ import qualified Carma.Model as Model
 import qualified Carma.Model.Program as Program
 import qualified Carma.Model.ProgramInfo as ProgramInfo
 import qualified Carma.Model.ServiceInfo as ServiceInfo
+import qualified Carma.Model.ServiceNames as ServiceNames
 import qualified Carma.Model.Role as Role
 
 
@@ -54,24 +55,30 @@ writeJSON v = do
 serveModel :: HasAuth b => Handler b (SiteConfig b) ()
 serveModel = do
   Just name  <- getParam "name"
+  view  <-  T.decodeUtf8 <$> fromMaybe "" <$> getParam "view"
   model <- getParam "arg" >>= \arg ->
     case T.splitOn ":" . T.decodeUtf8 <$> arg of
       Just ["newCase",pgm] -> fmap Just
         $ case name of
           "case" -> newCase pgm
           _      -> newSvc pgm name
-      _ -> case Model.dispatch (T.decodeUtf8 name) viewForModel of
+      _ -> case Model.dispatch (T.decodeUtf8 name) $ viewForModel view of
         Just res -> return res
         Nothing  -> M.lookup name <$> gets models
 
   mcu   <- withAuth currentUser
   case return (,) `ap` mcu `ap` model of
     Nothing -> finishWithError 401 ""
-    Just (cu, m) -> stripModel cu m >>= writeModel
+    Just (cu, m) ->
+      case name of
+        ("Case") -> writeModel m
+        ("Service") -> writeModel m
+        ("Towage") -> writeModel m
+        _        -> stripModel cu m >>= writeModel
 
-viewForModel :: forall m . Model.Model m => m -> Maybe Model
-viewForModel _
-  = Aeson.decode $ Aeson.encode (Model.modelView "" :: Model.ModelView m)
+viewForModel :: forall m . Model.Model m => T.Text -> m -> Maybe Model
+viewForModel name _
+  = Aeson.decode $ Aeson.encode (Model.modelView name :: Model.ModelView m)
 
 writeModel :: Model -> Handler b (SiteConfig b) ()
 writeModel model
@@ -124,6 +131,8 @@ serveDictionaries = do
     $ selectJSON (ProgramInfo.program :. ProgramInfo.info)
   serviceInfos <- withPG
     $ selectJSON (ServiceInfo.program :. ServiceInfo.service :. ServiceInfo.info)
+  serviceNames <- withPG
+    $ selectJSON (ServiceNames.ident :. ServiceNames.value :. ServiceNames.label :. ServiceNames.icon)
 
   Aeson.Object dictMap <- gets dictionaries
   writeJSON $ Aeson.Object
@@ -135,8 +144,9 @@ serveDictionaries = do
       (Aeson.object [("entries", Aeson.Array $ V.fromList programInfos)])
     $ HM.insert "ServiceInfo"
       (Aeson.object [("entries", Aeson.Array $ V.fromList serviceInfos)])
+    $ HM.insert "ServiceNames"
+      (Aeson.object [("entries", Aeson.Array $ V.fromList serviceNames)])
       dictMap
-
 
 initSiteConfig :: HasAuth b
                   => FilePath

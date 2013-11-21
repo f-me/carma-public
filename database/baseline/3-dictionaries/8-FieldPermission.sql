@@ -1531,12 +1531,15 @@ lovViewer	ServiceInfo	service	t	f
 lovAdmin	ServiceInfo	service	t	t
 lovViewer	ServiceInfo	info	t	f
 lovAdmin	ServiceInfo	info	t	t
-lovViewer	Services	label	t	f
-lovAdmin	Services	label	t	t
-lovViewer	Services	value	t	f
-lovAdmin	Services	value	t	t
-lovViewer	Services	icon	t	f
-lovAdmin	Services	icon	t	t
+lovViewer	ServiceNames	label	t	f
+lovAdmin	ServiceNames	label	t	t
+lovViewer	ServiceNames	value	t	f
+lovAdmin	ServiceNames	value	t	t
+lovViewer	ServiceNames	icon	t	f
+lovAdmin	ServiceNames	icon	t	t
+core	case	id	t	f
+core	service	id	t	f
+core	service	type	t	f
 \.
 
 INSERT INTO "FieldPermission" (role, model, field, r, w)

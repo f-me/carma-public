@@ -21,6 +21,7 @@ define [
   "screens/program"
   "screens/partnersSearch"
   "screens/servicesSearch"
+  "screens/contractsSearch"
   "render/screen"
   ], ( bo
      , call
@@ -44,6 +45,7 @@ define [
      , program
      , partnersSearch
      , servicesSearch
+     , contractsSearch
      , r) ->
     localScreens: ->
       "case":
@@ -135,6 +137,9 @@ define [
       "servicesSearch":
         "views":
           "search-view": servicesSearch
+      "contractsSearch":
+        "views":
+          "search-view": contractsSearch
 
     # Setup routing
     localRouter: Backbone.Router.extend
@@ -170,7 +175,8 @@ define [
         "printSrv/:model/:id" : "printSrv"
         "partnersSearch"        : "partnersSearch"
         "partnersSearch/:model" : "partnersSearchModel"
-        "servicesSearch"        : "servicesSearch"
+        "servicesSearch*any"    : "servicesSearch"
+        "contractsSearch*any"   : "contractsSearch"
 
       loadCase      : (id) -> r.renderScreen("case", kase, {"id": id})
       loadNewCase   : (p,id) ->
@@ -208,3 +214,20 @@ define [
       partnersSearchModel: (model) ->
         r.renderScreen "partnersSearch", partnersSearch, {model: model}
       servicesSearch     : -> r.renderScreen("servicesSearch", servicesSearch)
+      contractsSearch    : -> r.renderScreen("contractsSearch", contractsSearch)
+
+      current : ->
+        Router   = this
+        fragment = Backbone.history.fragment
+        routes   = ([k,v] for k, v of Router.routes)
+        # route = null
+        # params = null
+
+        matched = _.find routes, (handler) ->
+          route = if _.isRegExp(handler[0])
+              handler[0]
+            else
+              Router._routeToRegExp(handler[0])
+          return route.test(fragment)
+
+        return matched[1]

@@ -1,5 +1,7 @@
+DROP TABLE IF EXISTS "Services" CASCADE;
+DROP TABLE IF EXISTS "ServiceNames";
 
-CREATE TABLE "Services"
+CREATE TABLE "ServiceNames"
   (
     id       SERIAL PRIMARY KEY
   , label    text NOT NULL DEFAULT ''
@@ -7,10 +9,10 @@ CREATE TABLE "Services"
   , icon     text DEFAULT ''
   );
 
-GRANT ALL ON "Services" TO carma_db_sync;
-GRANT ALL ON "Services" TO carma_search;
+GRANT ALL ON "ServiceNames" TO carma_db_sync;
+GRANT ALL ON "ServiceNames" TO carma_search;
 
-INSERT INTO "Services" (value, label, icon) VALUES
+INSERT INTO "ServiceNames" (value, label, icon) VALUES
     ('tech', 'Техпомощь', 'cog')
   , ('towage', 'Эвакуация', '')
   , ('rent', 'Подменный автомобиль', 'road')

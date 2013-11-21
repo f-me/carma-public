@@ -6,7 +6,7 @@ CREATE TABLE "SubProgram"
   , contacts text
   , services int4[] DEFAULT array[]::int4[]
   , checkPeriod integer
-  , validUntil timestamp with timezone
+  , validUntil timestamp with time zone
   , contract text
   , logo text
   , help text

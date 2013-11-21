@@ -1,120 +1,110 @@
 define [ "utils"
        , "model/main"
        , "model/utils"
-       , "lib/muTable"
+       , "search/model"
+       , "search/utils"
+       , "screens/servicesSearch/model"
        , "text!tpl/screens/servicesSearch.html"
-       ], (utils, main, mutils, muTable, tpl) ->
+       , "json!/cfg/model/Case?view=search"
+       , "sync/servicesSearch"
+       , "lib/state-url"
+       ], ( utils
+          , main
+          , mutils
+          , smodel
+          , SUtils
+          , ssmodels
+          , tpl
+          , model
+          , sync
+          , State) ->
 
-  model =
-    name: "partnerSearch"
-    title: "Экран поиска партнеров"
-    fields: [
-      { name: "search"
-      , meta:
-          label: "Поиск"
-          nosearch: true
-      },
-      { name: "contact"
-      , meta:
-          label: "ФИО"
-          search: "fuzzy"
-      },
-      { name: "callDate"
-      , type: "interval-date"
-      , meta:
-          label: "Дата и время"
-          search: "fuzzy"
-          searchFields: ['callDateDay', 'callDateYear']
-      },
-      { name: "callDateDay"
-      , meta:
-          label: "День"
-      },
-      { name: "callDateYear"
-      , meta:
-          label: "Год"
-      },
-      { name: "city"
-      , type: "dictionary"
-      , meta:
-          dictionaryName: "DealerCities"
-          label: "Город"
-          search: "full"
-      },
-      { name: "isDealer"
-      , type: "checkbox"
-      , meta:
-          label: "Дилер"
-      }
-      { name: "showField"
-      , type: "dictionary"
-      , meta:
-          label: "Добавить критерий поиска"
-          noadd: true
-          dictionaryType: "HiddenFieldsDict"
-      }
-    ]
-
-  setTpls = (kvm) ->
-    kvm._meta.tpls = {}
-    for f in kvm._meta.model.fields
-      type  = f.type
-      type ?= "text"
-      tpl = $("##{type}-txt-template").html()
-      return unless tpl
-   #      throw new Error("Can't find template for #{type}
-   # in #{kvm._meta.model.name}")
-      kvm._meta.tpls[f.name] = tpl
+  model.fields = model.fields.concat [
+    {
+    , name: "showFields"
+    , meta:
+        noadd: true
+        nosearch: true
+    },
+    { name: "fieldsList"
+    , type: "dictionary"
+    , meta:
+        label: "Добавить критерий поиска"
+        noadd: true
+        nosearch: true
+        dictionaryType: "HiddenFieldsDict"
+    }
+  ]
 
   constructor: ->
-    date1 = new Date 1380193258500
-    kvm1 = main.buildKVM model,
-      fetched:
-        search  : "qwqweqwe"
-        contact : "Stan"
-        callDate: do date1.getTime
-        callDateDay : do date1.getDay
-        callDateYear: do date1.getFullYear
-        city    : "Moskva"
-        isDealer: true
-    setTpls kvm1
-
-    date2 = new Date 1380293358500
-    kvm2 = main.buildKVM model,
-      fetched:
-        search  : "111"
-        contact : "Kenny"
-        callDate: do date2.getTime
-        callDateDay : do date2.getDay
-        callDateYear: do date2.getFullYear
-        city    : "Sankt-Peterburg"
-        isDealer: false
-    setTpls kvm2
-
     searchKVM = main.buildKVM model, {}
 
-    global.k = searchKVM
+# Кейс
+# Телефон
+# Госномер
+# Контакт
+# VIN
+# Карта участника
+# Адрес места поломки
+# Дата звонка
+# Город
+# Сотрудник принявший звонок
+# Услуга
+# Марка
+# Модель
+# Партнёр
+# Дилер, куда эвакуируют автомобиль
+# Программа
+# Что случилось?
+# Неисправность со слов клиента
 
-    mutableFields = new muTable.MuTable({
-      , searchKVM: searchKVM
-      , maxFieldNum: 4
-      , originFields: ['search', 'city', 'isDealer']
-      , nonReplacedFields: ['caseId']
-    }).showFields
+    searchKVM.showFields.set = (fs) ->
+      searchKVM.showFields( _.filter searchKVM._meta.model.fields,
+                            (f) -> _.contains fs, f.name)
+
+    searchKVM.showFields.del = (fs) ->
+      searchKVM.showFields( _.reject searchKVM.showFields(),
+                           (f) -> _.contains fs, f.name)
+
+    searchKVM.showFields.set(
+                          [ "car_vin"
+                          , "callDate"
+                          , "caseid"
+                          , "phone"
+                          , "car_plateNum"
+                          , "caseAddress_address"
+                          , "city"
+                          ] )
+
+    searchKVM.searchResults = SUtils.mkResultObservable ssmodels
+
+    q = new sync.ServicesSearchQ(searchKVM)
+    searchKVM._meta.q = q
+
+    ko.applyBindings { kvm: searchKVM, wrapFields: "search-wrap"},
+                     $("#search-conditions")[0]
+
+    ko.applyBindings { kvm: searchKVM, f: _.last(searchKVM._meta.model.fields) },
+                     $("#show-field")[0]
+
+    # all about results
+    tg = smodel.transformFields searchKVM, ssmodels
+    rfields = smodel.mkFieldsDynView searchKVM, tg,
+      [ { name: 'Case_id', fixed: true }
+      , { name: 'city'    }
+      , { name: 'vin' }
+      , { name: 'program' }
+      ]
 
     ctx =
-      kvms: ko.sorted { kvms: [kvm1, kvm2], sorters: mutils.buildSorters(model)}
-      showFields: mutableFields
+      kvms: ko.sorted
+        kvms: searchKVM.searchResults
+        sorters: mutils.buildSorters(model)
+      showFields: rfields
       searchKVM: searchKVM
 
     ko.applyBindings ctx, $("#search-results")[0]
 
-    fnames = ko.observableSet(["showField", "contact", "callDate"])
-    searchKVM._meta.showFields = ko.computed
-      read: ->  _.filter searchKVM._meta.model.fields,
-                        (f) -> _.contains fnames(), f.name
-      write: (v) -> fnames(v)
-
-    ko.applyBindings searchKVM, $("#search-conditions")[0]
+    State.load State.statify searchKVM
 
   template: tpl

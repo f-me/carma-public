@@ -35,11 +35,6 @@ ko.bindingHandlers.bindDict =
     $(el).next().on 'click', th.drawAll
 
 
-ko.bindingHandlers.render =
-  init: (el, acc, allBindigns, ctx) ->
-    tpl = acc()._meta.tpls[ctx.name]
-    ko.utils.setHtml el, tpl
-
 ko.bindingHandlers.sort =
   update: (el, name, allBindings, viewModel, ctx) ->
     # add icon to show sorting direction
@@ -77,9 +72,44 @@ ko.bindingHandlers.sort =
 
 ko.bindingHandlers.renderField =
   init: (el, acc, allBindigns, fld, ctx) ->
-    tplid = fld.meta.widget
-    tplid = "#{fld.type || 'text'}"
-    tpl = Mustache.render $("##{tplid}-field-template").html(), fld
+    return if acc().meta.invisible
+    tplid = acc().meta.widget
+    tplid = "#{acc().type || 'text'}"
+    tplid = "dictionary-many" if acc().type == "dictionary-set"
+    tpl   = Mustache.render $("##{tplid}-field-template").html(), acc()
+
+    if ctx.$root.wrapFields
+      # use some magick: wrap with div, so parser can grab all content
+      # and serialize and parse again to make copy of template, so we
+      # can populate ".content" part of the copy
+      wrap = $("<div/>").html($("##{ctx.$root.wrapFields}-template").html())
+      wrap.find(".content").html($(tpl))
+      # use special context for wrappers, so we will know what field we are
+      # rendering
+      context = { kvm: ctx.$root.kvm, fld: fld }
+
+    tpl = wrap.html() if wrap
+
+    # use default context for usual fields so we can use default templates
+    context ?= ctx.$root.kvm
     ko.utils.setHtml el, tpl
-    ko.applyBindingsToDescendants(ctx.$root, el)
+    ko.applyBindingsToDescendants(context, el)
+    return { controlsDescendantBindings: true }
+
+ko.bindingHandlers.renderGroup =
+  init: (el, acc, allBindigns, fld, ctx) ->
+    group = ctx.$root.showFields.groups[fld]
+    fs = []
+    for modelName, fields of group
+      fs.push({kvm: acc()[modelName], field: fld}) for fld in fields
+
+    ko.utils.setHtml el, $("#group-ro-template").html()
+    ko.applyBindingsToDescendants({ fields: fs}, el)
+    return { controlsDescendantBindings: true }
+
+ko.bindingHandlers.render =
+  init: (el, acc, allBindigns, ctx) ->
+    tplName = acc().field.type || 'text'
+    ko.utils.setHtml el, $("##{tplName}-ro-template").html()
+    ko.applyBindingsToDescendants({kvm: acc().kvm, field: acc().field}, el)
     return { controlsDescendantBindings: true }
