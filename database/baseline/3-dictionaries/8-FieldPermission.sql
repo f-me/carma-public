@@ -932,6 +932,8 @@ lovViewer	Program	clientAddress	t	f
 lovAdmin	Program	clientAddress	t	t
 lovViewer	SubProgram	parent	t	f
 lovAdmin	SubProgram	parent	t	t
+lovViewer	SubProgram	label	t	f
+lovAdmin	SubProgram	label	t	t
 lovViewer	SubProgram	mailAddr	t	f
 lovAdmin	SubProgram	mailAddr	t	t
 lovViewer	SubProgram	mailPass	t	f
