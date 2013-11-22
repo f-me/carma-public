@@ -5,6 +5,7 @@ module Carma.Model.Search where
 
 import           Control.Exception
 
+import           Data.Typeable
 import           Data.Either (partitionEithers)
 import           Data.String (fromString)
 import           Data.Text (Text)
@@ -121,8 +122,10 @@ renderPredicate conn pMap vals = do
             -> printf "%s.%s = ANY(?)"
               (T.unpack tableName) (T.unpack fieldName)
           MatchInterval
-            -> printf "%s.%s <@ ?"
-               (T.unpack tableName) (T.unpack fieldName)
+            -> printf "%s.%s <@ ?::%s"
+               (T.unpack tableName)
+               (T.unpack fieldName)
+               (T.unpack $ hs2pgtype $ fd_type $ unWrap fieldDesc)
 
   let renderConjunct (key,val) = case HM.lookup key pMap of
         Nothing -> return $ Left
@@ -138,6 +141,11 @@ renderPredicate conn pMap vals = do
     (errs@(_:_), _) -> Left $ show errs
     ([], res)       -> Right $ T.intercalate " AND " $ map parenthize res
 
+hs2pgtype t =
+  let uint = typeOf (undefined :: Interval UTCTime)
+  in  case t of
+      uint -> "tstzrange"
+      _    -> error "Unknown type in hs2pgtype"
 
 searchView :: Model m => [(Text, [Predicate m])] -> ModelView m
 searchView flds = ModelView

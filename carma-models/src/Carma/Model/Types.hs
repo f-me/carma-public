@@ -16,6 +16,7 @@ import Data.Vector (Vector, (!))
 import qualified Data.Map as Map
 
 import Data.Time
+import Data.Time.Calendar (Day)
 import Data.Fixed (Pico)
 
 import Database.PostgreSQL.Simple.FromField (FromField(..))
@@ -268,6 +269,9 @@ instance Typeable tag => DefaultFieldView (Vector (Ident t tag)) where
 
 instance DefaultFieldView (Interval UTCTime) where
   defaultFieldView f = (defFieldView f) {fv_type = "interval-datetime"}
+
+instance DefaultFieldView (Interval Day) where
+  defaultFieldView f = (defFieldView f) {fv_type = "interval-date"}
 
 instance DefaultFieldView (Vector t) => DefaultFieldView (Vector (Maybe t))
   where
