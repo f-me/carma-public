@@ -718,7 +718,7 @@ INSERT INTO "City" (value, label) VALUES
  ,'Меленки');
 INSERT INTO "City" (value, label) VALUES
  ('Meliuz'
- ,'Мелиуз');
+ ,'Мелеуз');
 INSERT INTO "City" (value, label) VALUES
  ('Mendeleevsk'
  ,'Менделеевск');
@@ -1337,6 +1337,12 @@ INSERT INTO "City" (value, label) VALUES
 INSERT INTO "City" (value, label) VALUES
  ('YAsnogorsk'
  ,'Ясногорск');
+INSERT INTO "City" (value, label) VALUES
+ ('Aleisk'
+ ,'Алейск');
+INSERT INTO "City" (value, label) VALUES
+ ('Lesnoi'
+ ,'Лесной');
 
 
 GRANT ALL ON "City" TO carma_db_sync;

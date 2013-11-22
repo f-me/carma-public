@@ -7,6 +7,9 @@ CREATE TABLE "CarModel"
   );
 CREATE UNIQUE INDEX ON "CarModel" (label) WHERE parent IS NULL;
 
+GRANT ALL ON "CarModel" TO carma_search;
+GRANT ALL ON "CarModel" TO carma_db_sync;
+
 COPY "CarModel" (id, value, label, parent) FROM stdin;
 1	alfa147	147	9
 2	alfa166	166	9
@@ -247,7 +250,7 @@ COPY "CarModel" (id, value, label, parent) FROM stdin;
 237	scirocco	Scirocco	1
 238	ford427	427	6
 239	aerostar	Aerostar	6
-240	cMax	Focus C-Max	6
+240	cMax	C-Max	6
 241	aspire	Aspire	6
 242	bronco	Bronco	6
 243	sMax	S-Max	6
@@ -401,4 +404,9 @@ COPY "CarModel" (id, value, label, parent) FROM stdin;
 391	Hover M4	Hover M4	47
 392	Hover H6	Hover H6	47
 393	Hover H5-E	Hover H5-E	47
+394	cherokee	Grand Cherokee	21
+395	fordEdge	Edge	6
+396	usVehicles	US Vehicles	6
+397	avalanche	Avalanche	2
+398	juke	Juke	32
 \.

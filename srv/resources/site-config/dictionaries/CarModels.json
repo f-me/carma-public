@@ -168,6 +168,10 @@
                 "label": "Alero"
             },
             {
+                "value": "avalanche",
+                "label": "Avalanche"
+            },
+            {
                 "value": "aveo",
                 "label": "Aveo"
             },
@@ -796,6 +800,10 @@
                 "label": "Cima"
             },
             {
+                "value": "juke",
+                "label": "Juke"
+            },
+            {
                 "value": "laurel",
                 "label": "Laurel"
             },
@@ -1101,7 +1109,11 @@
             },
             {
                 "value": "cMax",
-                "label": "Focus C-Max"
+                "label": "C-Max"
+            },
+            {
+                "value": "fordEdge",
+                "label": "Edge"
             },
             {
                 "value": "aspire",
@@ -1310,6 +1322,10 @@
             {
                 "value": "windstar",
                 "label": "Windstar"
+            },
+            {
+                "value": "usVehicles",
+                "label": "US Vehicles"
             }
         ],
         "bmw": [
@@ -1719,6 +1735,9 @@
             {"value": "Hover M4", "label": "Hover M4"},
             {"value": "Hover H6", "label": "Hover H6"},
             {"value": "Hover H5-E", "label": "Hover H5-E"}
+        ],
+        "jeep": [
+            {"value": "cherokee", "label": "Grand Cherokee"}
         ]
     }
 }
