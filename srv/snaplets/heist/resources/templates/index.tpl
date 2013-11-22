@@ -40,7 +40,13 @@
     <script src="/s/js/3p/OpenLayers-2.11/OpenLayers.js" />
 
     <!-- 25Kb of date parsing and formatting -->
-    <script src="/s/js/3p/date-ru-RU.js" />
+    <!-- <script src="/s/js/3p/date-ru-RU.js" /> -->
+    <script src="/s/js/3p/date/core.js" />
+    <script src="/s/js/3p/date/ru-RU.js" />
+    <!-- <script src="/s/js/3p/date/date.js" /> -->
+    <script src="/s/js/3p/date/extras.js" />
+    <script src="/s/js/3p/date/parser.js" />
+    <script src="/s/js/3p/date/sugarpak.js" />
 
     <!-- masked input for datetime fields -->
     <script src="/s/js/3p/jquery.maskedinput-1.3.js" />
