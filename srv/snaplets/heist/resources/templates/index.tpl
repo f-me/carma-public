@@ -497,7 +497,7 @@
 
     <script type="text/template"
             class="field-template"
-            id="interval-date-field-template">
+            id="interval-datetime-field-template">
 
       <div class="control-group">
           <div class="control-label">

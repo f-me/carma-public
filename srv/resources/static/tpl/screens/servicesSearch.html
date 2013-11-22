@@ -58,3 +58,15 @@
 <script type="text/template" id="checkbox-ro-template">
   <div data-bind="text: kvm[field.name]() ? '✓' : ''" />
 </script>
+
+<script type="text/template" id="ident-ro-template">
+  <a data-bind="attr: {
+                href: '/#' + kvm._meta.model.name + '/' + kvm[field.name]()
+                },
+                text: kvm[field.name]()
+                " />
+</script>
+
+<script type="text/template" id="datetime-ro-template">
+  <div data-bind="text: kvm[field.name]()" />
+</script>

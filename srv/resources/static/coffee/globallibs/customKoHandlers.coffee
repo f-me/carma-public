@@ -110,6 +110,8 @@ ko.bindingHandlers.renderGroup =
 ko.bindingHandlers.render =
   init: (el, acc, allBindigns, ctx) ->
     tplName = acc().field.type || 'text'
-    ko.utils.setHtml el, $("##{tplName}-ro-template").html()
+    tpl = $("##{tplName}-ro-template").html()
+    console.error "Cant find template for #{tplName}" unless tpl
+    ko.utils.setHtml el, tpl
     ko.applyBindingsToDescendants({kvm: acc().kvm, field: acc().field}, el)
     return { controlsDescendantBindings: true }

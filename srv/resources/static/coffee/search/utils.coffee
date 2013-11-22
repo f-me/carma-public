@@ -1,4 +1,4 @@
-define ["model/main"], (Main) ->
+define ["model/main", "sync/datamap"], (Main, DataMap) ->
 
   # We receiving all fieldnames in lowercase (at least for now)
   # so we have to translate them into normal ones according to
@@ -11,7 +11,7 @@ define ["model/main"], (Main) ->
       fnames = _.pluck fs.fields, 'name'
       fields = {}
       for fn in fnames
-        fields[fn] = rawInst[m.toLowerCase()][fn.toLowerCase()]
+        fields[fn] = rawInst[m.toLowerCase()][fn]
       fixed[m] = fields
     return fixed
 
@@ -20,7 +20,8 @@ define ["model/main"], (Main) ->
   buildKVM = (models, rs) ->
     r = {}
     for n, m of models
-      r[n] = Main.buildKVM m, { fetched: rs[n] }
+      mapper = new DataMap.Mapper(m)
+      r[n] = Main.buildKVM m, { fetched: mapper.s2cObj rs[n] }
     return r
 
   mkResultObservable: (models) ->
