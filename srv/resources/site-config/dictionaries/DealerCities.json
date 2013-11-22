@@ -45,6 +45,10 @@
             "label": "Алексин"
         },
         {
+            "value": "Aleisk",
+            "label": "Алейск"
+        },
+        {
             "value": "Almaty",
             "label": "Алматы"
         },
@@ -877,6 +881,10 @@
             "label": "Лесное"
         },
         {
+            "value": "Lesnoi",
+            "label": "Лесной"
+        },
+        {
             "value": "Liga",
             "label": "Лига"
         },
@@ -954,7 +962,7 @@
         },
         {
             "value": "Meliuz",
-            "label": "Мелиуз"
+            "label": "Мелеуз"
         },
         {
             "value": "Mendeleevsk",
