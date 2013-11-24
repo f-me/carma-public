@@ -256,16 +256,13 @@ instance DefaultFieldView (Vector Text) where
     {fv_type = "dictionary-many"
     }
 
-instance Typeable tag => DefaultFieldView (Vector (Ident t tag)) where
-  defaultFieldView f = (defFieldView f)
-    {fv_type = "dictionary-set"
-    ,fv_meta
-      = Map.insert "dictionaryName" (Aeson.String $ typeName (undefined :: tag))
-      $ Map.insert "dictionaryType" "ModelDict"
-      $ Map.insert "bounded" (Aeson.Bool True)
-      $ Map.insert "widget" "dictionary-many"
-      $ fv_meta $ defFieldView f
-    }
+instance DefaultFieldView (Ident t tag) =>
+ DefaultFieldView (Vector (Ident t tag)) where
+  defaultFieldView (f :: m -> F (Vector (Ident t tag)) nm desc) =
+    let v = defaultFieldView (undefined :: m -> F (Ident t tag) nm desc)
+    in v{fv_type = "dictionary-set"
+        ,fv_meta = Map.insert "widget" "dictionary-many" $ fv_meta v
+        }
 
 instance DefaultFieldView (Interval UTCTime) where
   defaultFieldView f = (defFieldView f) {fv_type = "interval-datetime"}

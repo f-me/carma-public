@@ -64,53 +64,56 @@ instance Model Case where
   modelInfo   = mkModelInfo Case Case.ident
   modelView v =
     case v of
-      "search" -> modifyView (searchView caseSearchParams)
+      "search" -> modifyView (searchView caseSearchParams) $
                   [modifyByName "Case_id" (\v -> v { fv_type = "text" })]
+                  ++ caseMod
       _        -> modifyView
-        ((defaultView :: ModelView Case) {mv_title = "Кейс"})
-            [readonly callDate
-            ,readonly callTaker
+        ((defaultView :: ModelView Case) {mv_title = "Кейс"}) caseMod
 
-            ,dict comment $ dictOpt "Wazzup"
-            ,dict diagnosis1 $ dictOpt "Diagnosis1"
-            ,dict diagnosis2 $ (dictOpt "Diagnosis2")
+caseMod =
+  [readonly callDate
+  ,readonly callTaker
+
+  ,dict comment $ dictOpt "Wazzup"
+  ,dict diagnosis1 $ dictOpt "Diagnosis1"
+  ,dict diagnosis2 $ (dictOpt "Diagnosis2")
               {dictParent = Just $ Model.fieldName diagnosis1}
-            ,dict diagnosis3 $ (dictOpt "Diagnosis3")
+  ,dict diagnosis3 $ (dictOpt "Diagnosis3")
               {dictParent = Just $ Model.fieldName diagnosis2}
-            ,dict diagnosis4 $ (dictOpt "Diagnosis4")
+  ,dict diagnosis4 $ (dictOpt "Diagnosis4")
               {dictParent = Just $ Model.fieldName diagnosis3}
 
-            ,dict program $ (dictOpt "casePrograms")
+  ,dict program $ (dictOpt "casePrograms")
               { dictType    = Just "ComputedDict"
               , dictBounded = True
               , dictTgtCat  = Just "program"
               }
 
-            ,dict car_make $ (dictOpt "CarMake")
+  ,dict car_make $ (dictOpt "CarMake")
               {dictBounded = True}
-            ,dict car_model $ (dictOpt "CarModel")
+  ,dict car_model $ (dictOpt "CarModel")
               {dictBounded = True
               ,dictParent = Just $ Model.fieldName car_make}
-            ,dict car_seller (dictOpt "DealersDict")
+  ,dict car_seller (dictOpt "DealersDict")
               {dictBounded = True}
-            ,dict car_dealerTO (dictOpt "DealersDict")
+  ,dict car_dealerTO (dictOpt "DealersDict")
               {dictBounded = True}
-            ,dict car_color $ (dictOpt "Colors")
-            ,dict vinChecked $ (dictOpt "VINChecked")
+  ,dict car_color $ (dictOpt "Colors")
+  ,dict vinChecked $ (dictOpt "VINChecked")
               {dictBounded = True}
-            ,dict car_contractType $ (dictOpt "ContractType")
+  ,dict car_contractType $ (dictOpt "ContractType")
               {dictBounded = True}
 
-            ,dict car_transmission $ dictOpt "Transmission"
-            ,widget "radio" car_transmission
+  ,dict car_transmission $ dictOpt "Transmission"
+  ,widget "radio" car_transmission
 
-            ,dict car_engine $ dictOpt "EngineType"
-            ,widget "radio" car_engine
+  ,dict car_engine $ dictOpt "EngineType"
+  ,widget "radio" car_engine
 
-            ,dict city $ (dictOpt "DealerCities")
+  ,dict city $ (dictOpt "DealerCities")
               {dictBounded = True}
-            ,dict caseStatus $ (dictOpt "CaseStatuses")
+  ,dict caseStatus $ (dictOpt "CaseStatuses")
               {dictBounded = True}
-            ,invisible psaExportNeeded
-            ,invisible psaExported
-            ]
+  ,invisible psaExportNeeded
+  ,invisible psaExported
+  ]
