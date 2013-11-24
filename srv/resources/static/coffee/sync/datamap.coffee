@@ -24,8 +24,17 @@ define [], ->
     return null if _.isEmpty v
     JSON.parse(v)
 
+  c2sDictSet = (v) ->
+    vals = v.split(',')
+    ids = _.map vals, (v) -> parseInt v
+    # check type of keys, we have in dict, it may be Text or Int
+    if _.all ids, _.isNaN
+      vals
+    else
+      ids
+
   c2sTypes =
-    'dictionary-set': (v) -> _.map v.split(','), (v) -> parseInt v
+    'dictionary-set': c2sDictSet
     checkbox  : (v) -> if v then "1" else "0"
     Bool      : (v) -> v
     dictionary: (v) -> if _.isNull v then '' else v
