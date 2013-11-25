@@ -1,6 +1,7 @@
 module Carma.Model.SubProgram where
 
-import Data.Time.Calendar (Day)
+import Data.Aeson as A (Value(Bool))
+
 import Data.Text
 import Data.Typeable
 import Data.Vector
@@ -8,7 +9,7 @@ import Data.Vector
 import Data.Model
 import Data.Model.View
 
-import Carma.Model.Types ()
+import Carma.Model.Types (TInt)
 import Carma.Model.LegacyTypes (Reference)
 import Carma.Model.Program hiding (ident)
 import Carma.Model.ServiceNames hiding (ident)
@@ -24,9 +25,9 @@ data SubProgram = SubProgram
   , contacts     :: F (Maybe Text)             "contacts"  "Контактные лица"
   , services     :: F (Vector (IdentI ServiceNames))
                     "services"  "Услуги, предоставляемые по программе"
-  , checkPeriod  :: F (Maybe Int)
+  , checkPeriod  :: F (Maybe TInt)
                     "checkPeriod"  "Межсервисный интервал по умолчанию"
-  , validUntil   :: F (Maybe Int)
+  , validUntil   :: F (Maybe TInt)
                     "validUntil"   "Срок действия программы по умолчанию"
   , contract     :: F (Maybe Reference)        "contract" "Шаблон договора"
   , logo         :: F (Maybe Reference)        "logo" "Логотип"
@@ -37,4 +38,16 @@ data SubProgram = SubProgram
 instance Model SubProgram where
   type TableName SubProgram = "SubProgram"
   modelInfo = mkModelInfo SubProgram ident
-  modelView _ = defaultView
+  modelView _ = modifyView defaultView
+                [ setMeta "regexp" "number" checkPeriod
+                , setMeta "regexp" "number" validUntil
+                , widget "text" checkPeriod
+                , widget "text" validUntil
+                , textarea help
+                , textarea dealerHelp
+                , setMeta "widget" "inline-uploader" contract
+                , setMeta "reference-widget" "files" contract
+                , setMeta "widget" "inline-uploader" logo
+                , setMeta "reference-widget" "files" logo
+                , setMeta "single-uploader" (A.Bool True) logo
+                ]

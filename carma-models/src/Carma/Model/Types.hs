@@ -9,6 +9,7 @@ import Data.Aeson as Aeson
 import Data.String
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Text.Read
 
 import Data.Int (Int16, Int32)
 import qualified Data.Vector as V
@@ -78,6 +79,19 @@ instance ToField   (Interval UTCTime) where
 instance ToField   (Interval Day) where
   toField = Plain . inQuotes . dayIntervalToBuilder
 
+-- | Int wrapper compatible with CaRMa client which uses only strings
+-- in field values
+newtype TInt = TInt Int deriving (FromField, ToField, DefaultFieldView, Typeable)
+
+instance FromJSON TInt where
+    parseJSON (String t) = 
+        case decimal t of
+          Right (n, _) -> return $ TInt n
+          Left _       -> fail "Could not read integer"
+    parseJSON _ = empty
+
+instance ToJSON TInt where
+    toJSON (TInt n) = String $ T.pack $ show n
 
 utcTimeIntervalToBuilder :: Interval UTCTime -> Builder
 utcTimeIntervalToBuilder (Interval begin end) =
