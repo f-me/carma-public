@@ -57,7 +57,7 @@ define ["dictionaries/meta-dict"], (m) ->
 
     _retrieve: (name) ->
       dict = {entries: []}
-      $.ajax
+      @ajax
         url: "/all/#{name}?fields=id,name&select=isActive==1"
         dataType: "json"
         async: false
