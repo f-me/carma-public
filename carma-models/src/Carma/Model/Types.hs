@@ -232,6 +232,12 @@ instance DefaultFieldView LegacyDate where
     {fv_type = "date"
     }
 
+instance DefaultFieldView Phone where
+  defaultFieldView f = (defFieldView f)
+    {fv_type = "phone"
+    ,fv_meta = Map.insert "regexp" "phone" $ fv_meta $ defFieldView f
+    }
+
 instance Typeable tag => DefaultFieldView (Ident Int tag) where
   defaultFieldView f = (defFieldView f)
     {fv_type = "dictionary"
