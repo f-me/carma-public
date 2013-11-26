@@ -40,11 +40,13 @@ define [ "utils"
         for f in dict.majorFields
           fDesc = _.find dictModel.fields, (mf) -> mf.name == f
           if fDesc && fDesc.type != 'ident'
-            tr = (v) -> v
-            if fDesc.type == 'dictionary'
-              d = new modelDict.dict {dict: fDesc.meta.dictionaryName}
-              tr = (v) -> d.getLab v
-            majorFields.push {name: f, label: fDesc.meta.label, tr: tr}
+            tr = ->
+              if fDesc.type == 'dictionary'
+                d = new modelDict.dict {dict: fDesc.meta.dictionaryName}
+                (v) -> d.getLab v
+              else
+                (v) -> v
+            majorFields.push {name: f, label: fDesc.meta.label, tr: tr()}
 
         kvm = modelSetup dict, viewName, args
 
