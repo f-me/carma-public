@@ -19,4 +19,7 @@ data SynCarMake = SynCarMake
 instance Model SynCarMake where
   type TableName SynCarMake = "SynCarMake"
   modelInfo = mkModelInfo SynCarMake ident
-  modelView _ = defaultView
+  modelView _ = modifyView defaultView
+                [ required make
+                , required synonym
+                ]

@@ -21,4 +21,9 @@ data SynCarModel = SynCarModel
 instance Model SynCarModel where
   type TableName SynCarModel = "SynCarModel"
   modelInfo = mkModelInfo SynCarModel ident
-  modelView _ = defaultView
+  modelView _ = modifyView defaultView
+                [ setMeta "dictionaryParent" "make" model
+                , required make
+                , required model
+                , required synonym
+                ]

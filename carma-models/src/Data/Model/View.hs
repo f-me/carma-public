@@ -7,6 +7,7 @@ module Data.Model.View
   ,modifyView
   ,textarea
   ,readonly
+  ,required
   ,invisible
   ,dict, dictOpt, DictOpt(..)
   ,mainToo
@@ -92,6 +93,13 @@ readonly
   :: SingI name => (m -> Field typ (FOpt name desc))
   -> (Text, FieldView -> FieldView) :@ m
 readonly = setMeta "readonly" (Aeson.Bool True)
+
+
+required
+  :: SingI name => (m -> Field typ (FOpt name desc))
+  -> (Text, FieldView -> FieldView) :@ m
+required = setMeta "required" (Aeson.Bool True)
+
 
 invisible
   :: SingI name => (m -> Field typ (FOpt name desc))
