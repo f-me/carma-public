@@ -27,8 +27,8 @@ data SubProgram = SubProgram
                     "services"  "Услуги, предоставляемые по программе"
   , checkPeriod  :: F (Maybe TInt)
                     "checkPeriod"  "Межсервисный интервал по умолчанию"
-  , validUntil   :: F (Maybe TInt)
-                    "validUntil"   "Срок действия программы по умолчанию"
+  , validFor     :: F (Maybe TInt)
+                    "validFor"   "Срок действия программы по умолчанию"
   , contract     :: F (Maybe Reference)        "contract" "Шаблон договора"
   , logo         :: F (Maybe Reference)        "logo" "Логотип"
   , help         :: F (Maybe Text)             "help" "Справка"
