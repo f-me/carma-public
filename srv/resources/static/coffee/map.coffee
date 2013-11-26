@@ -40,7 +40,7 @@ define ["model/utils", "utils"], (mu, u) ->
   osmProj = new OpenLayers.Projection("EPSG:900913")
 
   # Build a place (structure with `coords` and `bounds` fields,
-  # containind OpenLayers LonLat and Bounds, respectively) from
+  # containing OpenLayers LonLat and Bounds, respectively) from
   # geoQuery response.
   #
   # Places use WSG projection for coordinates and bounds.
@@ -72,6 +72,12 @@ define ["model/utils", "utils"], (mu, u) ->
       29.4298095703125, 59.6337814331055,
       30.7591361999512, 60.2427024841309)
 
+  Samara =
+    coords: new OpenLayers.LonLat(50.19039, 53.200568)
+    bounds: new OpenLayers.Bounds(
+      49.959505, 53.198916,
+      50.44771, 53.416821)      
+
   # Build a place for city from geoQuery response (overrides
   # coordinates and boundaries for certain key cities)
   buildCityPlace = (res) ->
@@ -82,6 +88,8 @@ define ["model/utils", "utils"], (mu, u) ->
         Moscow
       when "337422"
         Petersburg
+      when "74728345"
+        Samara
       else
         buildPlace res
 
