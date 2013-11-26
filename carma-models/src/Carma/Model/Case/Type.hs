@@ -8,10 +8,7 @@ import Data.Time.Clock    (UTCTime)
 import Data.Model
 
 import Carma.Model.Program  (Program)
-import Carma.Model.CarMake  (CarMake)
-import Carma.Model.CarModel (CarModel)
 import Carma.Model.Wazzup   (Wazzup)
-import Carma.Model.City     (City)
 import Carma.Model.LegacyTypes
 
 
@@ -36,13 +33,13 @@ data Case = Case
   , contact_name
     :: F (Maybe Text) "contact_name" "Звонящий"
   , contact_phone1
-    :: F (Maybe Text) "contact_phone1" "Контактные телефоны"
+    :: F (Maybe Phone) "contact_phone1" "Контактные телефоны"
   , contact_phone2
-    :: F (Maybe Text) "contact_phone2" ""
+    :: F (Maybe Phone) "contact_phone2" ""
   , contact_phone3
-    :: F (Maybe Text) "contact_phone3" ""
+    :: F (Maybe Phone) "contact_phone3" ""
   , contact_phone4
-    :: F (Maybe Text) "contact_phone4" ""
+    :: F (Maybe Phone) "contact_phone4" ""
   , contact_email
     :: F (Maybe Text) "contact_email" "Email"
   , contact_contactOwner
@@ -50,13 +47,13 @@ data Case = Case
   , contact_ownerName
     :: F (Maybe Text) "contact_ownerName" "Владелец"
   , contact_ownerPhone1
-    :: F (Maybe Text) "contact_ownerPhone1" "Контактные телефоны"
+    :: F (Maybe Phone) "contact_ownerPhone1" "Контактные телефоны"
   , contact_ownerPhone2
-    :: F (Maybe Text) "contact_ownerPhone2" ""
+    :: F (Maybe Phone) "contact_ownerPhone2" ""
   , contact_ownerPhone3
-    :: F (Maybe Text) "contact_ownerPhone3" ""
+    :: F (Maybe Phone) "contact_ownerPhone3" ""
   , contact_ownerPhone4
-    :: F (Maybe Text) "contact_ownerPhone4" ""
+    :: F (Maybe Phone) "contact_ownerPhone4" ""
   , contact_ownerEmail
     :: F (Maybe Text) "contact_ownerEmail" "Email"
   , program
@@ -64,23 +61,23 @@ data Case = Case
   , car_vin
     :: F (Maybe Text) "car_vin" "VIN"
   , car_make
-    :: F (Maybe (IdentT CarMake)) "car_make" "Марка"
+    :: F (Maybe (IdentT CarMakers)) "car_make" "Марка"
   , car_model
-    :: F (Maybe (IdentT CarModel)) "car_model" "Модель"
+    :: F (Maybe (IdentT CarModels)) "car_model" "Модель"
   , car_seller
-    :: F (Maybe Text) "car_seller" "Дилер, продавший автомобиль"
+    :: F (Maybe (IdentT Partner)) "car_seller" "Дилер, продавший автомобиль"
   , car_plateNum
     :: F (Maybe Text) "car_plateNum" "Госномер"
   , car_makeYear
       :: F (Maybe Text) "car_makeYear" "Год производства автомобиля"
   , car_color
-     :: F (Maybe (IdentT Color)) "car_color" "Цвет"
+     :: F (Maybe (IdentT Colors)) "car_color" "Цвет"
   , car_buyDate
     :: F (Maybe LegacyDate) "car_buyDate" "Дата покупки"
   , car_checkupDate
     :: F (Maybe LegacyDate) "car_checkupDate" "Дата последнего ТО"
   , car_dealerTO
-    :: F (Maybe Text) "car_dealerTO" "Дилер у которого проходило последнее ТО"
+    :: F (Maybe (IdentT Partner)) "car_dealerTO" "Дилер у которого проходило последнее ТО"
   , car_mileage
     :: F (Maybe Text) "car_mileage" "Текущий пробег"
   , car_checkupMileage
@@ -90,11 +87,11 @@ data Case = Case
   , car_warrantyEnd
     :: F (Maybe LegacyDate) "car_warrantyEnd" "Дата окончания действия программы"
   , car_contractType
-    :: F (Maybe Text) {-(Ident ContractType)-} "car_contractType" "Тип контракта"
+    :: F (Maybe (IdentT ContractType)) "car_contractType" "Тип контракта"
   , car_transmission
-    :: F (Maybe Text) {-(Ident Transmission)-} "car_transmission" "Коробка передач"
+    :: F (Maybe (IdentT Transmission)) "car_transmission" "Коробка передач"
   , car_engine
-    :: F (Maybe Text) {-(Ident EngineType)-} "car_engine" "Тип двигателя"
+    :: F (Maybe (IdentT EngineType)) "car_engine" "Тип двигателя"
   , car_liters
     :: F (Maybe Text) "car_liters" "Объём двигателя"
   , car_capacity
@@ -106,7 +103,7 @@ data Case = Case
   , car_checkPeriod
      :: F (Maybe Text) "car_checkPeriod" "Межсервисный интервал"
   , car_class
-    :: F (Maybe Text) {-(Ident CarClasses)-} "car_class" "Класс автомобиля"
+    :: F (Maybe (IdentT CarClasses)) "car_class" "Класс автомобиля"
   , car_makeCode
     :: F (Maybe Text) "car_makeCode" "Код марки автомобиля"
   , car_modelCode
@@ -130,9 +127,9 @@ data Case = Case
   , cardNumber_managerr
     :: F (Maybe Text) "cardNumber_manager" "ФИО менеджера"
   , vinChecked
-    :: F (Maybe Text) {-(Ident VINChecked)-} "vinChecked" "Участие в программе"
+    :: F (Maybe (IdentT VINChecked)) "vinChecked" "Участие в программе"
   , city
-    :: F (Maybe (IdentT City)) "city" "Город"
+    :: F (Maybe (IdentT DealerCities)) "city" "Город"
   , caseAddress_address
     :: F (Maybe Text) "caseAddress_address" "Адрес"
   , caseAddress_comment
@@ -150,7 +147,7 @@ data Case = Case
   , dealerCause
     :: F (Maybe Text) "dealerCause" "Неисправность со слов дилера/партнёра"
   , caseStatus
-    :: F Text {-(Ident CaseStatuses)-} "caseStatus" "Статус кейса"
+    :: F (IdentT CaseStatuses) "caseStatus" "Статус кейса"
   , psaExportNeeded
     :: F Checkbox "psaExportNeeded" "Требуется выгрузка в PSA"
   , psaExported

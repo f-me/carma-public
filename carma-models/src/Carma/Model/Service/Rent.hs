@@ -21,7 +21,7 @@ data Rent = Rent
   , rentAddress_coords  :: F PickerField "rentAddress_coords" "Координаты"
   , rentAddress_map     :: F MapField "rentAddress_map" ""
   , vinRent             :: F Text "vinRent" "VIN подменного автомобиля"
-  , carClass            :: F (IdentT CarClass) "carClass" "Класс автомобиля"
+  , carClass            :: F (IdentT CarClasses) "carClass" "Класс автомобиля"
   , providedFor         :: F Text "providedFor"
                            "Срок, на который предоставлен автомобиль (дней)"
   , rentedMake          :: F (IdentT CarMakers) "rentedMake"

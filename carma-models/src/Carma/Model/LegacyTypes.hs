@@ -16,14 +16,22 @@ data Diagnosis1 = Diagnosis1 deriving Typeable
 data Diagnosis2 = Diagnosis2 deriving Typeable
 data Diagnosis3 = Diagnosis3 deriving Typeable
 data Diagnosis4 = Diagnosis4 deriving Typeable
-data Color = Color deriving Typeable
+data Colors = Color deriving Typeable
 data Activity = Activity deriving Typeable
 data RequestType = RequestType deriving Typeable
 data ConsultationType = ConsultationType deriving Typeable
 data DeliveryType = DeliveryType deriving Typeable
-data CarClass = CarClass deriving Typeable
+data CarClasses = CarClasses deriving Typeable
 data CarMakers = CarMakers deriving Typeable
 data CarModels = CarModels deriving Typeable
+data CaseStatuses = CaseStatuses deriving Typeable
+data VINChecked = VINChecked deriving Typeable
+data ContractType = ContractType deriving Typeable
+data Transmission = Transmission deriving Typeable
+data EngineType = EngineType deriving Typeable
+data DealerCities = DealerCities deriving Typeable
+data Partner = Partner deriving Typeable
+
 
 data Phone = Phone Text deriving Typeable
 instance FromJSON Phone where

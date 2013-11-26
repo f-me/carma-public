@@ -9,6 +9,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Aeson as Aeson
 
+import qualified Data.Map as Map
 import qualified Data.HashMap.Strict as HM
 import Database.PostgreSQL.Simple as PG
 
@@ -67,21 +68,33 @@ instance Model Case where
       "search" -> modifyView (searchView caseSearchParams) $
                   [modifyByName "Case_id" (\v -> v { fv_type = "text" })]
                   ++ caseMod
-      _        -> modifyView
-        ((defaultView :: ModelView Case) {mv_title = "Кейс"}) caseMod
+      "fullCase"
+        -> modifyView
+          ((defaultView :: ModelView Case) {mv_title = "Кейс"})
+          caseMod
+      "newCase"
+        -> setMainOnly
+          $ modifyView
+            ((defaultView :: ModelView Case) {mv_title = "Кейс"})
+            caseMod
+      where
+        setMainOnly mv = mv
+          {mv_fields =
+             [fv{fv_meta = Map.insert "mainToo" (Aeson.Bool True) $ fv_meta fv}
+             |fv <- mv_fields mv
+             ]
+          }
 
 caseMod =
   [readonly callDate
   ,readonly callTaker
 
-  ,dict comment $ dictOpt "Wazzup"
-  ,dict diagnosis1 $ dictOpt "Diagnosis1"
+  ,dict comment $ (dictOpt "Wazzup")
+              {dictBounded = False}
   ,dict diagnosis2 $ (dictOpt "Diagnosis2")
               {dictParent = Just $ Model.fieldName diagnosis1}
   ,dict diagnosis3 $ (dictOpt "Diagnosis3")
-              {dictParent = Just $ Model.fieldName diagnosis2}
   ,dict diagnosis4 $ (dictOpt "Diagnosis4")
-              {dictParent = Just $ Model.fieldName diagnosis3}
 
   ,dict program $ (dictOpt "casePrograms")
               { dictType    = Just "ComputedDict"
@@ -89,31 +102,26 @@ caseMod =
               , dictTgtCat  = Just "program"
               }
 
-  ,dict car_make $ (dictOpt "CarMake")
-              {dictBounded = True}
-  ,dict car_model $ (dictOpt "CarModel")
-              {dictBounded = True
-              ,dictParent = Just $ Model.fieldName car_make}
-  ,dict car_seller (dictOpt "DealersDict")
-              {dictBounded = True}
-  ,dict car_dealerTO (dictOpt "DealersDict")
-              {dictBounded = True}
-  ,dict car_color $ (dictOpt "Colors")
-  ,dict vinChecked $ (dictOpt "VINChecked")
-              {dictBounded = True}
-  ,dict car_contractType $ (dictOpt "ContractType")
-              {dictBounded = True}
+  ,transform "capitalize" contact_name
+  ,transform "capitalize" contact_ownerName
+  ,transform "uppercase"  car_vin
+  ,transform "uppercase"  car_plateNum
+  ,setMeta "regexp" "plateNum" car_plateNum
 
-  ,dict car_transmission $ dictOpt "Transmission"
+  ,setType "dictionary" car_vin
+  ,dict car_vin $ (dictOpt "")
+              {dictType = Just "VinDict"}
+  ,dict car_model $ (dictOpt "CarModels")
+              {dictParent = Just $ Model.fieldName car_make}
+  ,dict car_seller $ (dictOpt "")
+              {dictType = Just "DealersDict"}
+  ,dict car_dealerTO $ (dictOpt "")
+              {dictType = Just "DealersDict"}
+
   ,widget "radio" car_transmission
-
-  ,dict car_engine $ dictOpt "EngineType"
   ,widget "radio" car_engine
 
-  ,dict city $ (dictOpt "DealerCities")
-              {dictBounded = True}
-  ,dict caseStatus $ (dictOpt "CaseStatuses")
-              {dictBounded = True}
+  ,textarea claim
   ,invisible psaExportNeeded
   ,invisible psaExported
   ]
