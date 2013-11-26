@@ -52,4 +52,4 @@ define [], ->
           cache[url] = data
           succfn(data) if _.isFunction succfn
         h.success = newsucc
-        oldajax h
+        $.ajax h
