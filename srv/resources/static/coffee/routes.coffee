@@ -157,8 +157,9 @@ define [
         "call/:id"       : "loadCall"
         "call"           : "call"
         "reports"        : "reports"
-        "contract/:p"    : "newContract"
-        "contract/:p/:id": "getContract"
+        "contract"        : "contractAll"
+        "contract/:p"     : "contractOne"
+        "contract/:p/:id" : "contractEditEntry"
         "partner"        : "newPartner"
         "partner/:id"    : "loadPartner"
         "usermeta"       : "newUser"
@@ -196,9 +197,12 @@ define [
       loadCall      : (id) -> r.renderScreen("call", call, {"id": id})
       call          :      -> r.renderScreen("call", call, {"id": null})
       reports       :      -> r.renderScreen("reports", report)
-      newContract   : (p)  -> r.renderScreen "contract", contract, {"program": p, "id": null}
-      getContract   : (p,id) ->
-                              r.renderScreen "contract", contract, {"program": p, "id": id}
+      contractAll       :        ->
+                              r.renderScreen("contract", contract, {})
+      contractOne       : (p)    ->
+                              r.renderScreen("contract", contract, {"program": p, "id": null})
+      contractEditEntry : (p,id) ->
+                              r.renderScreen("contract", contract, {"program": p, "id": id})
       editVin       : (id) -> r.renderScreen("editVin", editVin, {"id": id})
       newVin        :      -> r.renderScreen("newVin", newVin, {"id": null})
       supervisor    :      -> r.renderScreen("supervisor", supervisor)

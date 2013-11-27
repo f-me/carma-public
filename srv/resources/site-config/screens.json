@@ -3,11 +3,10 @@
       "type"  : "sms",
       "permissions" : ["lovAdmin", "lovViewer"]
     },
-    { "name" : "contracts",
-      "label": "Экраны контрактов",
-      "type" : "dropdown",
-      "permissions": ["partner", "contract_admin"],
-      "screens": []
+    { "name" : "contract",
+      "label": "Контракты",
+      "type" : "li",
+      "permissions": ["partner", "contract_admin"]
     },
     { "name"  : "call",
       "label" : "Звонок",
