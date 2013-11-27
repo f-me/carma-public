@@ -77,6 +77,7 @@ instance Model Case where
           $ modifyView
             ((defaultView :: ModelView Case) {mv_title = "Кейс"})
             caseMod
+      _ -> defaultView
       where
         setMainOnly mv = mv
           {mv_fields =
