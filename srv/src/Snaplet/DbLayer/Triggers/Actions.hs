@@ -258,8 +258,8 @@ updateCaseStatus caseId =
 
 -- | Clear assignee of control-class action chain head (which has
 -- `bo_control` in `targetGroup`) unless the user has both
--- `bo_control` and `bo_order` roles. This will enable the action to be
--- pulled from action pull by bo_control users.
+-- `bo_control` and `bo_order` roles. This will enable the action to
+-- be pulled from action pool by bo_control users.
 tryToPassChainToControl user action =
     when (not
           (elem (Role $ roleIdent Role.bo_control) (userRoles user) &&
@@ -592,6 +592,7 @@ actionResultMap = Map.fromList
       deferBy <- get objId "deferBy"
       set objId "deferBy" "" >> set objId "result" ""  >> set objId "closeTime" ""
       name <- get objId "name"
+      -- Clear assignee when deferring order-class actions
       when (name `elem` [ "orderService"
                         , "callMeMaybe"
                         , "tellMeMore"
