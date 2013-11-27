@@ -400,7 +400,7 @@ serviceActions = Map.fromList
             ,("ctime", now)
             ,("duetime", due)
             ,("description",
-                utf8 "Клиент попросил уточнить, когда начётся оказание услуги")
+                utf8 "Клиент попросил уточнить, когда начнётся оказание услуги")
             ,("targetGroup", roleIdent Role.bo_control)
             ,("priority", "3")
             ,("parentId", objId)
