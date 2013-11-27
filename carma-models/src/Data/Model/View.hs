@@ -10,7 +10,11 @@ module Data.Model.View
   ,invisible
   ,dict, dictOpt, DictOpt(..)
   ,mainToo
+  ,mainOnly
+  ,transform
   ,widget
+  ,setType
+  ,setMeta
   ,modifyByName
   -- from Data.Model.View.Types
   ,FieldView(..)
@@ -59,8 +63,14 @@ modifyView mv@(ModelView{mv_fields}) fns
 
 -- field modificators
 
+setType
+  :: SingI name => Text -> (m -> Field t (FOpt name desc))
+  -> (Text, FieldView -> FieldView) :@ m
+setType typ fld = Wrap
+  (fieldName fld, \v -> v {fv_type = typ})
+
 textarea
-  :: SingI name => (m -> Field Text (FOpt name desc))
+  :: SingI name => (m -> Field t (FOpt name desc))
   -> (Text, FieldView -> FieldView) :@ m
 textarea fld = Wrap
   (fieldName fld
@@ -139,6 +149,19 @@ mainToo
   => (m -> Field typ (FOpt name desc))
   -> (Text, FieldView -> FieldView) :@ m
 mainToo = setMeta "mainToo" (Aeson.Bool True)
+
+mainOnly
+  :: SingI name
+  => (m -> Field typ (FOpt name desc))
+  -> (Text, FieldView -> FieldView) :@ m
+mainOnly = setMeta "mainOnly" (Aeson.Bool True)
+
+
+transform
+  :: SingI name
+  => Text -> (m -> Field typ (FOpt name desc))
+  -> (Text, FieldView -> FieldView) :@ m
+transform tr = setMeta "transform" (Aeson.String tr)
 
 modifyByName :: Text -> (FieldView -> FieldView)
              -> (Text, FieldView -> FieldView) :@ m

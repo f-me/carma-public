@@ -11,15 +11,38 @@ import Database.PostgreSQL.Simple.FromField (FromField(..))
 import Data.Time.Clock.POSIX
 import Data.Time.Clock (UTCTime)
 
-import Data.Model.Types
 
 data Diagnosis1 = Diagnosis1 deriving Typeable
 data Diagnosis2 = Diagnosis2 deriving Typeable
 data Diagnosis3 = Diagnosis3 deriving Typeable
 data Diagnosis4 = Diagnosis4 deriving Typeable
-data Color = Color deriving Typeable
+data Colors = Color deriving Typeable
 data Activity = Activity deriving Typeable
 data RequestType = RequestType deriving Typeable
+data ConsultationType = ConsultationType deriving Typeable
+data DeliveryType = DeliveryType deriving Typeable
+data CarClasses = CarClasses deriving Typeable
+data CarMakers = CarMakers deriving Typeable
+data CarModels = CarModels deriving Typeable
+data CaseStatuses = CaseStatuses deriving Typeable
+data VINChecked = VINChecked deriving Typeable
+data ContractType = ContractType deriving Typeable
+data Transmission = Transmission deriving Typeable
+data EngineType = EngineType deriving Typeable
+data DealerCities = DealerCities deriving Typeable
+data Partner = Partner deriving Typeable
+
+
+data Phone = Phone Text deriving Typeable
+instance FromJSON Phone where
+  parseJSON fld = Phone <$> parseJSON fld
+instance ToJSON Phone where
+  toJSON (Phone txt) = toJSON txt
+instance ToField Phone where
+  toField (Phone txt) = toField txt
+instance FromField Phone where
+  fromField fld m = Phone <$> fromField fld m
+
 
 data Reference = Reference Text deriving Typeable
 instance FromJSON Reference where
