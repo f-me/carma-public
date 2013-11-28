@@ -51,7 +51,7 @@ define ["sync/metaq", "sync/datamap"], (metaq, m) ->
     updadeKvm: (obj) =>
       @lastFetch = {}
       for k, v of obj
-        @lastFetch[k] = v
+        @lastFetch[k] = _.clone v
         @kvm[k]?(v)
 
     saveSuccessCb: (cb) => (json) =>
