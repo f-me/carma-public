@@ -460,10 +460,11 @@ define ["model/utils", "utils"], (mu, u) ->
     search = modal.find("#map-search-field")
     search_button = modal.find("#map-search-button")
 
+    addr_field = mu.modelField(model_name, field_name).meta["targetAddr"]
     city_field = mu.modelField(model_name, field_name).meta["cityField"]
 
     # Initialize search field with city if factAddr is empty
-    if city_field? && _.isEmpty kvm['factAddr']()
+    if city_field? && _.isEmpty kvm[addr_field]()
       city = kvm[city_field]()
       if city?.length > 0
         fixed_city = global.dictValueCache.DealerCities[city]
