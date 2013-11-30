@@ -40,9 +40,9 @@ instance Model SubProgram where
   modelInfo = mkModelInfo SubProgram ident
   modelView _ = modifyView defaultView
                 [ setMeta "regexp" "number" checkPeriod
-                , setMeta "regexp" "number" validUntil
+                , setMeta "regexp" "number" validFor
                 , widget "text" checkPeriod
-                , widget "text" validUntil
+                , widget "text" validFor
                 , textarea help
                 , textarea dealerHelp
                 , setMeta "widget" "inline-uploader" contract

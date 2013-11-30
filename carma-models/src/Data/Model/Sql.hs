@@ -3,14 +3,16 @@
 {-# LANGUAGE OverlappingInstances #-}
 
 module Data.Model.Sql
-  (select
-  ,selectJSON
-  ,eq
+  ( select
+  , selectJSON
+  , update
+  , eq
   ) where
 
 import Text.Printf (printf)
 import Data.String (fromString)
 import Data.List (intersperse)
+import Data.Int (Int64)
 import Data.Text (Text)
 import qualified Data.Text as T
 
@@ -27,6 +29,37 @@ import Data.Model
 
 select :: (FromRow (QRes q), SqlQ q) => q -> Connection -> IO [QRes q]
 select q c = uncurry (query c) $ mkSelect q
+
+
+update :: (SqlQ how, SqlQ which, QMod how ~ QMod which) =>
+          how 
+       -- ^ How to transform target set of rows.
+       -> which
+       -- ^ Which rows to select for UPDATE.
+       -> Connection -> IO Int64
+update how which c = uncurry (execute c) $ mkUpdate how which
+
+
+mkUpdate :: (SqlQ how, SqlQ which, QMod how ~ QMod which) =>
+            how -> which -> (Query, QArg how :. QArg which)
+mkUpdate how which =
+    let
+        predChunks :: String -> [String] -> String
+        predChunks glue ps = concat (intersperse glue ps)
+    in
+      case queryPredicate how of
+        [] -> error "No new field values provided"
+        news ->
+            (fromString
+             $ printf "UPDATE %s SET %s"
+             (show $ queryTbl how)
+             (predChunks ", " news)
+             ++ case queryPredicate which of
+                  []    -> ""
+                  conds -> " WHERE " ++ predChunks " AND " conds
+            , queryArgs how :. queryArgs which
+            )
+
 
 
 class ToValueList xs where
@@ -53,13 +86,12 @@ mkSelect q =
   (fromString
     $ printf "SELECT %s FROM %s"
       (T.unpack $ T.intercalate ", " $ queryProjection q)
-      (show $ queryFrom q)
+      (show $ queryTbl q)
     ++ case queryPredicate q of
       [] -> ""
       ps -> " WHERE " ++ concat (intersperse " AND " ps)
   ,queryArgs q
   )
-
 
 class (ToRow (QArg q), Model (QMod q)) => SqlQ q where
   type QRes q
@@ -67,7 +99,7 @@ class (ToRow (QArg q), Model (QMod q)) => SqlQ q where
   type QMod q
   queryProjection :: q -> [Text]
   queryPredicate  :: q -> [String]
-  queryFrom       :: q -> Text
+  queryTbl       :: q -> Text
   queryArgs       :: q -> QArg q
 
 
@@ -79,7 +111,7 @@ instance (Model m, SingI nm, FromField t)
     type QMod (m -> Field t (FOpt nm desc)) = m
     queryProjection f = [fieldName f]
     queryPredicate  f = []
-    queryFrom       _ = tableName (modelInfo :: ModelInfo m)
+    queryTbl       _ = tableName (modelInfo :: ModelInfo m)
     queryArgs       _ = ()
 
 instance (Model m, SingI nm, FromField t, SqlQ q, QMod q ~ m)
@@ -90,7 +122,7 @@ instance (Model m, SingI nm, FromField t, SqlQ q, QMod q ~ m)
     type QMod ((m -> Field t (FOpt nm desc)) :. q) = m
     queryProjection (f :. q) = fieldName f : queryProjection q
     queryPredicate  (f :. q) = queryPredicate q
-    queryFrom       _        = tableName (modelInfo :: ModelInfo m)
+    queryTbl       _        = tableName (modelInfo :: ModelInfo m)
     queryArgs       (f :. q) = queryArgs q
 
 -- NB!
@@ -110,7 +142,7 @@ instance (Model m, ToField t) => SqlQ (SqlP m t) where
   type QMod (SqlP m t) = m
   queryProjection _ = []
   queryPredicate  p = [printf "%s %s ?" (sqlP_fieldName p) (sqlP_op p)]
-  queryFrom       _ = tableName (modelInfo :: ModelInfo m)
+  queryTbl       _ = tableName (modelInfo :: ModelInfo m)
   queryArgs       p = Only $ sqlP_argValue p
 
 instance (Model m, ToField t, SqlQ q, QMod q ~ m)
@@ -123,7 +155,7 @@ instance (Model m, ToField t, SqlQ q, QMod q ~ m)
     queryPredicate   (p :. q)
       = printf "%s %s ?" (sqlP_fieldName p) (sqlP_op p)
       : queryPredicate q
-    queryFrom        _        = tableName (modelInfo :: ModelInfo m)
+    queryTbl        _        = tableName (modelInfo :: ModelInfo m)
     queryArgs        (p :. q) = Only (sqlP_argValue p) :. queryArgs q
 
 
