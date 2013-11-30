@@ -57,6 +57,8 @@ define ["model/utils", "lib/ident/role"], (mu, role) ->
     else
       _.foldl list, ((a, [k, v]) -> a[k] = v; return a), {}
 
+  _.pairs = (obj) -> [k, v] for k, v of obj
+
   window.arrToObj = (key, val, f = _.identity) ->
     keys = if _.isFunction key then _.map val, key else _.pluck val, key
     _.object _.zip keys, (_.map val, f)
@@ -405,3 +407,5 @@ define ["model/utils", "lib/ident/role"], (mu, role) ->
     enc = encodeURIComponent
     q = (("#{enc k}=#{enc v}" for k, v of nparams).join("&"))
     global.router.navigate "#{scr}?#{q}"
+
+  inject: (dest, src) -> dest[k] = v for k, v of src when not dest[k]

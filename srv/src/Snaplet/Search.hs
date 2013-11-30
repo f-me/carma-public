@@ -8,6 +8,7 @@ import Control.Monad
 import Control.Monad.State
 import Control.Lens hiding (from)
 
+import qualified Data.Map as M
 import Data.Monoid
 import Data.Maybe
 import Data.String (fromString)
@@ -39,7 +40,6 @@ data Search b = Search
 makeLenses ''Search
 
 type SearchHandler b t = Handler b (Search b) t
-
 
 services :: SearchHandler b ()
 services = do
@@ -83,11 +83,12 @@ modelFields uid modelName c
       |]
 
 
-caseSearch :: SearchHandler b (Either String [Aeson.Value])
+caseSearch :: SearchHandler b (Either String Aeson.Value)
 caseSearch = do
   Just usr <- with auth currentUser
   let Just uid = userId usr
   lim      <- getLimit
+  offset   <- getOffset
   args     <- getJsonBody
   withPG $ \c -> do
     cse_fields <- modelFields uid "case" c
@@ -95,19 +96,20 @@ caseSearch = do
     caseSearchPredicate c args >>= \case
       Left err -> return $ Left err
       Right pred -> do
-        s :: [[LB.ByteString]] <- query_ c (mkQuery cse_fields svc_fields pred lim)
-        return (sequence $ map (Aeson.eitherDecode . head) s)
+        s :: [[LB.ByteString]] <- query_ c
+                                  (mkQuery cse_fields svc_fields pred lim offset)
+        return $ return . reply lim offset =<< (sequence $ map (Aeson.eitherDecode . head) s)
         -- -> Right . join
         --    <$> query_ c (mkQuery cse_fields svc_fields pred lim)
 
-search :: SearchHandler b (Either String [Aeson.Value]) -> SearchHandler b ()
+search :: SearchHandler b (Either String Aeson.Value) -> SearchHandler b ()
 search = (>>= either (finishWithError 500) writeJSON)
 
 
 mkQuery
-   :: [Text] -> [Text] -> Text -> Int
+   :: [Text] -> [Text] -> Text -> Int -> Int
    -> Query
-mkQuery caseProj svcProj pred lim
+mkQuery caseProj svcProj pred lim offset
   = fromString $ printf ("with"
       ++ " result(cid,styp,sid) as"
       ++ "   (select casetbl.id, servicetbl.type, servicetbl.id"
@@ -122,11 +124,11 @@ mkQuery caseProj svcProj pred lim
       ++ "       (select %s from servicetbl) as s"
       ++ "     where c.id = r.cid"
       ++ "       and s.id = r.sid and s.type = r.styp)"
-      ++ " select row_to_json(r) :: text from json_result r limit %i;")
+      ++ " select row_to_json(r) :: text from json_result r limit %i offset %i;")
     (T.unpack pred)
     (T.unpack $ T.intercalate ", " $ map mkProj caseProj)
     (T.unpack $ T.intercalate ", " $ map mkProj svcProj)
-    lim
+    lim offset
   where
     mkProj f = T.concat [f, " as \"", f, "\""]
 
@@ -137,6 +139,14 @@ searchInit conn sessionMgr = makeSnaplet "search" "Search snaplet" Nothing $ do
   addRoutes [("services", method POST $ search caseSearch)]
   return $ Search conn sessionMgr
 
+reply :: Int -> Int -> [Aeson.Value] -> Aeson.Value
+reply lim offset val =
+  let next = if length val < lim then Nothing else Just (offset + lim)
+      prev = if offset <= 0      then Nothing else Just (offset - lim)
+  in Aeson.object [ ("values", Aeson.toJSON val)
+                  , ("next", Aeson.toJSON next)
+                  , ("prev", Aeson.toJSON prev)
+                  ]
 
 
 -- Utils
@@ -151,6 +161,11 @@ getLimit :: SearchHandler b Int
 getLimit
   = fromMaybe 10 . (>>= fmap fst . B.readInt)
   <$> getParam "limit"
+
+getOffset :: SearchHandler b Int
+getOffset
+  = fromMaybe 0 . (>>= fmap fst . B.readInt)
+  <$> getParam "offset"
 
 writeJSON :: Aeson.ToJSON v => v -> Handler a b ()
 writeJSON v = do

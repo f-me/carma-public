@@ -24,8 +24,12 @@ define ["model/main", "sync/datamap"], (Main, DataMap) ->
       r[n] = Main.buildKVM m, { fetched: mapper.s2cObj rs[n] }
     return r
 
-  mkResultObservable: (models) ->
+  mkResultObservable: (kvm, models) ->
     robs = ko.observable([])
     ko.computed
       read:      -> robs()
-      write: (v) -> robs(buildKVMS models, fixNames models, v)
+      write: ({values, next, prev}) ->
+        if kvm._meta.pager
+          kvm._meta.pager.next(next)
+          kvm._meta.pager.prev(prev)
+        robs(buildKVMS models, fixNames models, values)

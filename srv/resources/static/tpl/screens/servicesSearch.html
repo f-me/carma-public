@@ -21,6 +21,17 @@
   </div>
 
   <div class="span3" >
+    <div class="pager">
+      <a class="prev-page"
+         data-bind="click: prevPage">
+        &lt;&lt;
+      </a>
+      <span class="current-page" data-bind="text: page" ></span>
+      <a class="next"
+         data-bind="click: nextPage">
+        &gt;&gt;
+      </a>
+    </div>
     <div id="search-conditions"
          data-bind="foreach: kvm.showFields">
       <div data-bind="renderField: $data" />

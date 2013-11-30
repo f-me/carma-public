@@ -20,8 +20,9 @@
 define [ "model/render"
        , "dictionaries/local-dict"
        , "sync/crud"
+       , "lib/serialize"
        ],
-       (render, dict, sync) ->
+       (render, dict, sync, S) ->
   mainSetup = ( localScreens
                    , localRouter
                    , localDictionaries
@@ -216,6 +217,16 @@ define [ "model/render"
           write: (v) ->
             proxy.end = v
             updateInterval()
+
+    kvm.toJSON = ->
+      r = {}
+      for f in kvm._meta.model.fields when kvm[f.name]()
+        r[f.name] = kvm[f.name]()
+      r
+
+    kvm.fromJSON = (obj) ->
+      for f in kvm._meta.model.fields when obj[f.name]
+        kvm[f.name](obj[f.name])
 
 
     hooks = queueOptions?.hooks or ['*', model.name]

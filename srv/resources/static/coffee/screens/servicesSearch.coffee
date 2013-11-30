@@ -3,6 +3,7 @@ define [ "utils"
        , "model/utils"
        , "search/model"
        , "search/utils"
+       , "search/pager"
        , "screens/servicesSearch/model"
        , "text!tpl/screens/servicesSearch.html"
        , "json!/cfg/model/Case?view=search"
@@ -13,6 +14,7 @@ define [ "utils"
           , mutils
           , smodel
           , SUtils
+          , SPager
           , ssmodels
           , tpl
           , model
@@ -58,6 +60,9 @@ define [ "utils"
 # Что случилось?
 # Неисправность со слов клиента
 
+    SPager.buildPager searchKVM
+    ko.applyBindings searchKVM._meta.pager, $(".pager")[0]
+
     searchKVM.showFields.set = (fs) ->
       searchKVM.showFields( _.filter searchKVM._meta.model.fields,
                             (f) -> _.contains fs, f.name)
@@ -76,7 +81,7 @@ define [ "utils"
                           , "city"
                           ] )
 
-    searchKVM.searchResults = SUtils.mkResultObservable ssmodels
+    searchKVM.searchResults = SUtils.mkResultObservable searchKVM, ssmodels
 
     q = new sync.ServicesSearchQ(searchKVM)
     searchKVM._meta.q = q
@@ -105,6 +110,10 @@ define [ "utils"
 
     ko.applyBindings ctx, $("#search-results")[0]
 
-    State.load State.statify searchKVM
+    state = {kvm: searchKVM, pager: searchKVM._meta.pager }
+    State.load state
+
+    State.persistKVM 'kvm', state
+    searchKVM._meta.pager.offset.subscribe -> State.save state
 
   template: tpl
