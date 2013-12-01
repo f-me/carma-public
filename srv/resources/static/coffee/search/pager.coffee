@@ -19,8 +19,8 @@ define ["lib/serialize", "utils"], (Serialize, Utils) ->
       @next = ko.observable()
       @prev = ko.observable()
 
-    nextPage: => @offset(@next()) if @next()
-    prevPage: => @offset(@prev()) if @prev()
+    nextPage: => @offset(@next()) if _.isNumber @next()
+    prevPage: => @offset(@prev()) if _.isNumber @prev()
 
     toJSON: -> super(['kvm'])
 
