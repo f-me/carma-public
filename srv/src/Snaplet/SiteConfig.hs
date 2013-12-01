@@ -39,7 +39,7 @@ import Utils.HttpErrors
 import Data.Model.Sql
 import qualified Data.Model as Model
 import qualified Carma.Model as Model
-import qualified Carma.Model.Program as Program
+import qualified Carma.Model.SubProgram as SubProgram
 import qualified Carma.Model.ProgramInfo as ProgramInfo
 import qualified Carma.Model.ServiceInfo as ServiceInfo
 import qualified Carma.Model.ServiceNames as ServiceNames
@@ -119,8 +119,8 @@ stripModel u m = do
 serveDictionaries :: Handler b (SiteConfig b) ()
 serveDictionaries = do
   let withPG f = gets pg_search >>= liftIO . (`withResource` f)
-  programs <- withPG $ selectJSON
-    (Program.ident :. Program.value :. Program.label :. eq Program.active True)
+  subprograms <- withPG $ selectJSON
+    (SubProgram.ident :. SubProgram.value :. SubProgram.label :. eq SubProgram.active True)
   roles <- withPG $ selectJSON (Role.ident :. Role.label)
   let roles' =
           map (\(Aeson.Object o) ->
@@ -138,8 +138,8 @@ serveDictionaries = do
   writeJSON $ Aeson.Object
     $ HM.insert "Roles"
       (Aeson.object [("entries", Aeson.Array $ V.fromList roles')])
-    $ HM.insert "Programs"
-      (Aeson.object [("entries", Aeson.Array $ V.fromList programs)])
+    $ HM.insert "SubPrograms"
+      (Aeson.object [("entries", Aeson.Array $ V.fromList subprograms)])
     $ HM.insert "ProgramInfo"
       (Aeson.object [("entries", Aeson.Array $ V.fromList programInfos)])
     $ HM.insert "ServiceInfo"
