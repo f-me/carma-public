@@ -19,7 +19,7 @@ INSERT INTO "Role" (id, value, label,isBack) VALUES
 , (8, 'reportManager', 'Аналитик по отчётам','f')
 , (9, 'billManager', 'Управляющий счетами','f')
 , (10, 'billChecker', 'Менеджер по счетам','f')
-, (11, 'vinAdmin', 'Администрирование VIN','f')
+, (11, 'vinAdmin', 'Загрузка VIN','f')
 , (12, 'supervisor', 'Супервизор','f')
 , (13, 'head', 'Глава РКЦ','t')
 , (14, 'back', 'Работа с бэкофисом','f')
