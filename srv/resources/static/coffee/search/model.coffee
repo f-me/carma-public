@@ -3,7 +3,6 @@ define ["utils"], ->
   class FieldsDynView
     constructor: (@searchKVM, {@labels, @groups}, @defaults) ->
       d = _.difference (_.pluck @defaults, 'name'), (_.keys @groups)
-      # console.log _.keys @groups
       unless _.isEmpty d
         throw new Error("Unknown groups: #{d}, available: #{_.keys @groups}")
 
@@ -13,6 +12,9 @@ define ["utils"], ->
 
       @dynamic    = ko.observableArray dyndefs
       @showFields = ko.computed => fixed.concat @dynamic()
+      @hiddenFields = ko.computed =>
+        _.difference (_.keys @groups), @showFields()
+
       @sfieldsh   = arrToObj 'name', @searchKVM._meta.model.fields
 
       for f in @searchKVM._meta.model.fields when not f.meta?.nosearch?
@@ -43,9 +45,11 @@ define ["utils"], ->
       @dynamic.pop d[0]
 
   mkFieldsDynView: (searchKVM, {labels, groups}, defaults) ->
+    dynView = new FieldsDynView searchKVM, {labels, groups}, defaults
     labels: labels
     groups: groups
-    fields: (new FieldsDynView searchKVM, {labels, groups}, defaults).showFields
+    fields: dynView.showFields
+    hidden: dynView.hiddenFields
 
   transformFields: (searchKVM, models) ->
     labels = {}

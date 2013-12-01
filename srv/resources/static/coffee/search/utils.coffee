@@ -1,6 +1,6 @@
 define ["model/main", "sync/datamap"], (Main, DataMap) ->
 
-  # We receiving all fieldnames in lowercase (at least for now)
+  # We receiving all modelnames in lowercase (at least for now)
   # so we have to translate them into normal ones according to
   # their model
   fixNames = (ssmodels, v) -> _.map v, (v) -> fixName ssmodels, v

@@ -2,18 +2,40 @@
   <div id="search-results" class="span9">
     <table id="tbl" class="table table-striped table-hover">
       <thead>
-        <tr data-bind="foreach: showFields.fields">
+        <tr>
+          <th>
+          </th>
+          <!-- ko foreach: showFields.fields -->
           <th>
             <button class="btn btn-link"
                     data-bind="text: $root.showFields.labels[$data], sort: name">
             </button>
           </th>
+          <!-- /ko -->
         </tr>
       </thead>
       <tbody>
         <!-- ko foreach: kvms -->
-        <tr data-bind="foreach: $root.showFields.fields">
+        <tr>
+          <td data-bind="expand: $data">
+            +
+          </td>
+          <!-- ko foreach: $root.showFields.fields -->
           <td data-bind="renderGroup: $parent" />
+          <!-- /ko -->
+        </tr>
+        <tr style="display: none;">
+          <td data-bind="attr: { colspan: $root.showFields.fields().length + 1
+                               }">
+            <div class="hidden-container">
+              <table data-bind="foreach: $root.showFields.hidden">
+                <tr>
+                  <td data-bind="text: $root.showFields.labels[$data]" />
+                  <td data-bind="renderGroup: $parent" />
+                </tr>
+              </table>
+            </div>
+          <td>
         </tr>
         <!-- /ko -->
       </tbody>

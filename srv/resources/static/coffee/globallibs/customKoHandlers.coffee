@@ -115,3 +115,8 @@ ko.bindingHandlers.render =
     ko.utils.setHtml el, tpl
     ko.applyBindingsToDescendants({kvm: acc().kvm, field: acc().field}, el)
     return { controlsDescendantBindings: true }
+
+ko.bindingHandlers.expand =
+  init: (el, acc, allBindigns, ctx, koctx) ->
+    $(el).click ->
+      $(el).parent().next().toggle()
