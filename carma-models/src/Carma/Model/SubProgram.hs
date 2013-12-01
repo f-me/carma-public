@@ -16,6 +16,7 @@ import Carma.Model.ServiceNames hiding (ident)
 data SubProgram = SubProgram
   { ident        :: PK Int SubProgram
   , parent       :: F (IdentI Program)         "parent"    "Программа"
+  , active       :: F Bool                     "active"    "Активна"
   , label        :: F Text                     "label"     "Название"
   , mailAddr     :: F (Maybe Text)             "mailAddr"  "Mail для отправки писем"
   , mailPass     :: F (Maybe Text)             "mailPass"  "Пароль для отправки писем"
@@ -24,7 +25,7 @@ data SubProgram = SubProgram
                     "services"  "Услуги, предоставляемые по программе"
   , checkPeriod  :: F (Maybe Int)
                     "checkPeriod"  "Межсервисный интервал по умолчанию"
-  , validUntil   :: F (Maybe Day)
+  , validUntil   :: F (Maybe Int)
                     "validUntil"   "Срок действия программы по умолчанию"
   , contract     :: F (Maybe Reference)        "contract" "Шаблон договора"
   , logo         :: F (Maybe Reference)        "logo" "Логотип"
