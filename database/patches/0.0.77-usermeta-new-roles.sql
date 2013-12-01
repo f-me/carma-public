@@ -95,6 +95,10 @@ UPDATE usermetatbl u SET roles=u.roles || array['15', '1']
 FROM usermetatbl_tmp t WHERE '14'=ANY(t.roles)
 AND t.id=u.id;
 
+UPDATE usermetatbl u SET roles=u.roles || array['34']
+FROM usermetatbl_tmp t WHERE '23'=ANY(t.roles)
+AND t.id=u.id;
+
 DROP FUNCTION IF EXISTS array_unique(anyarray);
 
 CREATE FUNCTION array_unique(non_unique_array_vals anyarray)

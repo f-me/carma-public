@@ -43,4 +43,5 @@ INSERT INTO "Role" (id, value, label,isBack) VALUES
 , (31, 'bo_dealer', 'БО: Аналитик по работе с дилерами','t')
 , (32, 'vwfake', 'Секретная роль vwfake','f')
 , (33, 'front', 'Оператор Front Office','f')
+, (34, 'dpViewer', 'Пользователь экрана ДиП','f')
 ;

@@ -32,3 +32,4 @@ define [], ->
   bo_dealer: "31"
   vwfake: "32"
   front: "33"
+  dpViewer: "34"

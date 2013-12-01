@@ -109,7 +109,7 @@
         { "name"  : "partnersSearch",
           "label" : "Дилеры и партнеры",
           "type"  : "li",
-          "permissions": ["core"]
+          "permissions": ["dpViewer"]
         },
         { "name"  : "dict",
           "label" : "Редактирование справочников",
