@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                carma-models
-version:             0.5
+version:             0.5.1
 -- synopsis:
 -- description:
 license:             MIT
@@ -71,7 +71,8 @@ library
 
     Carma.Model.ProgramInfo,
     Carma.Model.ServiceInfo,
-    Carma.Model.ServiceNames
+    Carma.Model.ServiceNames,
+    Carma.Model.Colors
 
   -- other-modules:
   hs-source-dirs:    src
