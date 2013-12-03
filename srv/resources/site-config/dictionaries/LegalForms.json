@@ -1,0 +1,12 @@
+{
+    "entries": [
+        {
+            "value": "individual",
+            "label": "Физическое лицо"
+        },
+        {
+            "value": "corporation",
+            "label": "Юридическое лицо"
+        }
+    ]
+}
