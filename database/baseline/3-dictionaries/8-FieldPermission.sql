@@ -1549,6 +1549,10 @@ lovViewer	ServiceNames	value	t	f
 lovAdmin	ServiceNames	value	t	t
 lovViewer	ServiceNames	icon	t	f
 lovAdmin	ServiceNames	icon	t	t
+lovViewer	Colors	label	t	f
+lovAdmin	Colors	label	t	t
+lovViewer	Colors	value	t	f
+lovAdmin	Colors	value	t	t
 core	case	id	t	f
 core	service	id	t	f
 core	service	type	t	f
