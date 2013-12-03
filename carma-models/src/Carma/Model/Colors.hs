@@ -11,7 +11,7 @@ import Data.Model
 import Data.Model.View
 
 data Colors = Colors
-  {ident   :: PK Int Colors
+  {ident   :: PK Int Colors ""
   ,value   :: F Text "value" "Внутреннее название цвета"
   ,label   :: F Text "label" "Название цвета"
   } deriving Typeable
