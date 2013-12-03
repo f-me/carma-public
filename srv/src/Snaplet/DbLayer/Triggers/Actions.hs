@@ -122,7 +122,7 @@ actions
               due <- dateNow (+ (1*60))
               actionId <- new "action" $ Map.fromList
                 [("name", "tellMeMore")
-                ,("ctime", now)                 
+                ,("ctime", now)
                 ,("duetime", due)
                 ,("description", utf8 "Требуется дополнительная обработка кейса")
                 ,("targetGroup", roleIdent Role.bo_order)
@@ -238,7 +238,7 @@ fillFromContract vin objId = do
         row
       return True
 
--- | Aautomatically change case status according to statuses
+-- | Automatically change case status according to statuses
 -- of the contained services.
 updateCaseStatus :: MonadTrigger m b => ByteString -> m b ()
 updateCaseStatus caseId =
@@ -305,7 +305,7 @@ serviceActions = Map.fromList
           upd kazeId "actions" $ addToList actionId
           sendSMS actionId SmsTemplate.create
       "recallClient" -> do
-          now <- dateNow id        
+          now <- dateNow id
           due <- dateNow (+ (15*60))
           kazeId <- get objId "parentId"
           actionId <- new "action" $ Map.fromList
@@ -342,7 +342,7 @@ serviceActions = Map.fromList
           tryToPassChainToControl u act1
 
           upd kazeId "actions" $ addToList act1
-          now <- dateNow id          
+          now <- dateNow id
           due <- dateNow (+ (14*24*60*60))
           act2 <- new "action" $ Map.fromList
             [("name", "addBill")
@@ -375,7 +375,7 @@ serviceActions = Map.fromList
           upd kazeId "actions" $ addToList actionId
           sendSMS actionId SmsTemplate.create
       "dealerConf" -> do
-          now <- dateNow id        
+          now <- dateNow id
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
           actionId <- new "action" $ Map.fromList
@@ -392,7 +392,7 @@ serviceActions = Map.fromList
           upd kazeId "actions" $ addToList actionId
           sendSMS actionId SmsTemplate.create
       "pleaseCheck" -> do
-          now <- dateNow id        
+          now <- dateNow id
           due <- dateNow (+ (5*60))
           kazeId <- get objId "parentId"
           actionId <- new "action" $ Map.fromList
@@ -425,7 +425,7 @@ serviceActions = Map.fromList
             ]
           upd kazeId "actions" $ addToList actionId
       "makerConformation" -> do
-          now <- dateNow id        
+          now <- dateNow id
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
           actionId <- new "action" $ Map.fromList
@@ -1007,7 +1007,7 @@ replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
   now <- dateNow id
   actionId <- new "action" $ Map.fromList
     [("name", actionName)
-    ,("ctime", now)     
+    ,("ctime", now)
     ,("description", utf8 actionDesc)
     ,("targetGroup", targetGroup)
     ,("assignedTo", assignee)
