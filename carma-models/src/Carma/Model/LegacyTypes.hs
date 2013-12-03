@@ -31,6 +31,7 @@ data Transmission = Transmission deriving Typeable
 data EngineType = EngineType deriving Typeable
 data DealerCities = DealerCities deriving Typeable
 data Partner = Partner deriving Typeable
+data LegalForms = LegalForms deriving Typeable
 
 
 data Phone = Phone Text deriving Typeable

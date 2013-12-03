@@ -58,6 +58,7 @@ data Case = Case
     :: F (Maybe Text) "contact_ownerEmail" "Email"
   , program
     :: F (IdentT Program)  "program" "Программа"
+
   , car_vin
     :: F (Maybe Text) "car_vin" "VIN"
   , car_make
@@ -110,6 +111,9 @@ data Case = Case
     :: F (Maybe Text) "car_modelCode" "Код модели автомобиля"
   , car_faultCode
     :: F (Maybe Text) "car_faultCode" "Код неиправности автомобиля"
+  , car_legalForm
+    :: F (Maybe (IdentT LegalForms)) "car_legalForm" "Физическое / Юридическое лицо"
+
   , cardNumber_cardNumber
     :: F (Maybe Text) "cardNumber_cardNumber" "Номер карты участника"
   , cardNumber_validFrom
