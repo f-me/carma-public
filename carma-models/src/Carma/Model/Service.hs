@@ -11,7 +11,7 @@ import Carma.Model.Types()
 import Carma.Model.LegacyTypes (Reference,Checkbox)
 
 data Service = Service
-  { ident                        :: PK Int Service
+  { ident                        :: PK Int Service ""
   , svcType                      :: F Text "type"
                                  "service type"
   , parentId                     :: F Text "parentId"

@@ -11,7 +11,7 @@ import Data.Model.TH
 import Carma.Model.Types()
 
 data Role = Role
-  {ident  :: PK Int Role
+  {ident  :: PK Int Role ""
   ,label  :: F Text "label"  "Название роли"
   ,value  :: F Text "value"  "Внутреннее название роли"
   ,isBack :: F Bool "isBack" "Роль бэкофиса"

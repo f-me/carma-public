@@ -10,7 +10,7 @@ import Carma.Model.Program (Program)
 
 
 data NewCaseField = NewCaseField
-  {ident    :: PK Int NewCaseField
+  {ident    :: PK Int NewCaseField ""
   ,field    :: F Text             "field"    "Внутреннее название поля"
   ,program  :: F (IdentI Program) "program"  "Название программы"
   ,label    :: F Text             "label"    "Подпись к полю"

@@ -31,7 +31,7 @@ instance FromField Coords where
 
 
 data City = City
-  {ident    :: PK Int City
+  {ident    :: PK Int City ""
   ,label    :: F Text         "label"    "Название"
   ,value    :: F Text         "value"    "Внутреннее название"
 --  ,coords   :: F Coords       "coords"   "Координаты"

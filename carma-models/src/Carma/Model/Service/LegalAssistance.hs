@@ -11,7 +11,7 @@ import Carma.Model.Service (Service)
 
 
 data LegalAssistance = LegalAssistance
-  { ident :: PK Int LegalAssistance
+  { ident :: PK Int LegalAssistance ""
   , requestType :: F (IdentT RequestType) "requestType" "Тип запроса"
   , whatToSay1  :: F Text "whatToSay1" "Описание проблемы"
   , activity    :: F (IdentT Activity) "activity" "Тип действия"

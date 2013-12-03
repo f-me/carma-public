@@ -11,7 +11,7 @@ import Carma.Model.Types()
 
 
 data SmsTemplate = SmsTemplate
-  {ident    :: PK Int SmsTemplate
+  {ident    :: PK Int SmsTemplate ""
   ,label    :: F Text "label"    "Название шаблона"
   ,isActive :: F Bool "isActive" "Активный?"
   ,text     :: F Text "text"     "Текст шаблона"

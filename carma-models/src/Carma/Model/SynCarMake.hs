@@ -9,7 +9,7 @@ import Carma.Model.Types()
 import Carma.Model.CarMake (CarMake)
 
 data SynCarMake = SynCarMake
-  { ident   :: PK Int SynCarMake
+  { ident   :: PK Int SynCarMake ""
   , make    :: F (IdentI CarMake) "make" "Марка"
   , synonym :: F Text             "label"  "Синоним"
   }

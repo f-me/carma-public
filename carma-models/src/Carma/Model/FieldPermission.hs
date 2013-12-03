@@ -12,7 +12,7 @@ import Carma.Model.Role (Role)
 
 
 data FieldPermission = FieldPermission
-  {ident :: PK Int FieldPermission
+  {ident :: PK Int FieldPermission ""
   ,role  :: F (IdentI Role)  "role"  "Роль"
   ,model :: F Text          "model" "Модель"
   ,field :: F Text          "field" "Внутреннее название поля"

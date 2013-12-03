@@ -8,7 +8,7 @@ import Data.Model.View
 import Carma.Model.Types()
 
 data Program = Program
-  { ident                 :: PK Int Program
+  { ident                 :: PK Int Program ""
   , label                 :: F Text            "label"  "Название"
   , client                :: F (Maybe Text)    "client" "Заказчик"
   , clientAddress         :: F (Maybe Text)    "clientAddress" "Адрес заказчика"

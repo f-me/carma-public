@@ -15,7 +15,7 @@ import Carma.Model.Program hiding (ident)
 import Carma.Model.ServiceNames hiding (ident)
 
 data SubProgram = SubProgram
-  { ident        :: PK Int SubProgram
+  { ident        :: PK Int SubProgram ""
   , parent       :: F (IdentI Program)         "parent"    "Программа"
   , label        :: F Text                     "label"     "Название"
   , active       :: F Bool                     "active"    "Активна"

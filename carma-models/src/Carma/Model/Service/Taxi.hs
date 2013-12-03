@@ -10,7 +10,7 @@ import Carma.Model.LegacyTypes
 import Carma.Model.Service (Service)
 
 data Taxi = Taxi
-  { ident :: PK Int Taxi
+  { ident :: PK Int Taxi ""
   , taxiFrom_address :: F PickerField "taxiFrom_address" "Откуда везти"
   , taxiFrom_comment :: F Text        "taxiFrom_comment" "Примечания"
   , taxiFrom_coords  :: F PickerField "taxiFrom_coords" "Координаты"

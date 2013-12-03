@@ -8,7 +8,7 @@ import Data.Model.View
 import Carma.Model.Types()
 
 data CarMake = CarMake
-  {ident :: PK Int CarMake
+  {ident :: PK Int CarMake ""
   ,value :: F Text "value" "value"
   ,label :: F Text "label" "Марка"
   }

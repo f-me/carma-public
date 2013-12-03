@@ -11,7 +11,7 @@ import Carma.Model.Service (Service)
 
 
 data DeliverParts = DeliverParts
-  { ident :: PK Int DeliverParts
+  { ident :: PK Int DeliverParts ""
   , parts             :: F Text        "parts"             "Запчасти"
   , toAddress_address :: F PickerField "toAddress_address" "Куда везти"
   , toAddress_comment :: F Text        "toAddress_comment" "Примечания"

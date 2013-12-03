@@ -12,7 +12,7 @@ import Carma.Model.SmsTemplate (SmsTemplate)
 
 
 data Sms = Sms
-  {ident    :: PK Int Sms
+  {ident    :: PK Int Sms ""
   ,ctime    :: F UTCTime      "ctime"    "Время создания сообщения"
   ,mtime    :: F UTCTime      "mtime"    "Время последнего изменения сообщения (или статуса)"
   ,status   :: F Text         "status"   "Статус отправки сообщения"

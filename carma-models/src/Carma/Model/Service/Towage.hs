@@ -13,7 +13,7 @@ import Carma.Model.Service (Service)
 
 
 data Towage = Towage
-  { ident                    :: PK Int Towage
+  { ident                    :: PK Int Towage ""
   , towerType                :: F Text {-FIXME-} "towerType"
                              "Тип эвакуатора"
   , towType                  :: F Text {-FIXME-} "towType"

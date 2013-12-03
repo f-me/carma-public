@@ -41,7 +41,7 @@ instance ToField t => ToField (Ident t m) where
 data FOpt (name :: Symbol) (desc :: Symbol) = FOpt
 data Field typ opt = Field
 type F t n d = Field t (FOpt n d)
-type PK t m  = Field (Ident t m) (FOpt "id" "object id")
+type PK t m n = Field (Ident t m) (FOpt "id" n)
 
 
 data ModelInfo m = ModelInfo

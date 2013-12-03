@@ -12,7 +12,7 @@ import Carma.Model.Service (Service)
 
 
 data AverageCommissioner = AverageCommissioner
-  { ident :: PK Int AverageCommissioner
+  { ident :: PK Int AverageCommissioner ""
   , requestType :: F (Maybe (IdentT RequestType))
                    "requestType" "Тип запроса"
   , whatToSay1  :: F (Maybe Text)

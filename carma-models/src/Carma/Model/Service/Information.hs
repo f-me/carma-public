@@ -11,7 +11,7 @@ import Carma.Model.Service (Service)
 
 
 data Information = Information
-  { ident      :: PK Int Information
+  { ident      :: PK Int Information ""
   , contact1   :: F Text  "contact1"   "Контакт 1"
   , phone1     :: F Phone "phone1"     "Телефон 1"
   , whatToSay1 :: F Text  "whatToSay1" "Что сказать 1"

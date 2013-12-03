@@ -11,7 +11,7 @@ import Carma.Model.Service (Service)
 
 
 data SoberDriver = SoberDriver
-  { ident :: PK Int SoberDriver
+  { ident :: PK Int SoberDriver ""
   , fromAddress_address :: F PickerField "fromAddress_address" "Откуда везти"
   , fromAddress_comment :: F Text        "fromAddress_comment" "Примечания"
   , fromAddress_coords  :: F PickerField "fromAddress_coords" "Координаты"

@@ -13,7 +13,7 @@ import Carma.Model.LegacyTypes
 
 
 data Case = Case
-  { ident :: PK Int Case
+  { ident :: PK Int Case "Номер кейса"
   , callDate
     :: F UTCTime "callDate" "Дата звонка"
   , vwcreatedate

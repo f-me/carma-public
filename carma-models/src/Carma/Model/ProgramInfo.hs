@@ -13,7 +13,7 @@ import Data.Model.View
 import Carma.Model.Program (Program)
 
 data ProgramInfo = ProgramInfo
-  {ident   :: PK Int ProgramInfo
+  {ident   :: PK Int ProgramInfo ""
   ,program :: F (IdentI Program) "program" "Программа"
   ,info    :: F Text             "info"    "Условия"
   } deriving Typeable

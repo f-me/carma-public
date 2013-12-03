@@ -11,7 +11,7 @@ import Carma.Model.Service (Service)
 
 
 data Hotel = Hotel
-  { ident :: PK Int Hotel
+  { ident :: PK Int Hotel ""
   , caseAddress_address :: F PickerField "caseAddress_address" "Адрес кейса"
   , caseAddress_comment :: F Text        "caseAddress_comment" "Примечания"
   , caseAddress_coords  :: F PickerField "caseAddress_coords"  "Координаты"

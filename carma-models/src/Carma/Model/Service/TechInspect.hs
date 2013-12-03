@@ -10,7 +10,7 @@ import Carma.Model.Service (Service)
 
 
 data TechInspect = TechInspect
-  { ident       :: PK Int TechInspect
+  { ident       :: PK Int TechInspect ""
   , requestType :: F Text "requestType" "Тип запроса"
   , whatToSay1  :: F Text {-textarea-} "whatToSay1" "Описание проблемы"
   , activity    :: F Text {-dictionary-} "activity" "Тип действия"

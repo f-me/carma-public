@@ -11,7 +11,7 @@ import Carma.Model.Service (Service)
 
 
 data Rent = Rent
-  { ident :: PK Int Rent
+  { ident :: PK Int Rent ""
   , towDealer_partner   :: F Text "towDealer_partner" "Дилер"
   , towDealer_partnerId :: F Text "towDealer_partnerId" ""
   , towDealer_address   :: F Text "towDealer_address" "Адрес"

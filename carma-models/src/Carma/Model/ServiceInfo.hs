@@ -14,7 +14,7 @@ import Carma.Model.Program (Program)
 import Carma.Model.ServiceNames (ServiceNames)
 
 data ServiceInfo = ServiceInfo
-  {ident   :: PK Int ServiceInfo
+  {ident   :: PK Int ServiceInfo ""
   ,program :: F (IdentI Program)      "program" "Программа"
   ,service :: F (IdentI ServiceNames) "service" "Услуга"
   ,info    :: F Text                  "info"    "Условия"

@@ -11,7 +11,7 @@ import Carma.Model.City (City)
 
 
 data Region = Region
-  {ident  :: PK Int Region
+  {ident  :: PK Int Region ""
   ,label  :: F Text                   "label"  "Название региона"
   ,cities :: F (Vector (IdentI City)) "cities" "Города в регионе"
   } deriving Typeable

@@ -13,7 +13,7 @@ import Carma.Model.Types()
 
 data Dictionary = Dictionary
   {ident
-    :: PK Int Dictionary
+    :: PK Int Dictionary ""
   ,name
     :: F Text                        "name"        "Название"
   ,description

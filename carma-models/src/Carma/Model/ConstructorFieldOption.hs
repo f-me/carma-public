@@ -10,7 +10,7 @@ import Carma.Model.Program (Program)
 
 
 data ConstructorFieldOption = ConstructorFieldOption
-  {ident    :: PK Int ConstructorFieldOption
+  {ident    :: PK Int ConstructorFieldOption ""
   ,model    :: F Text  "model"    "Модель к которой относится поле"
   ,screen   :: F Text  "screen"   "Экран"
   ,program  :: F (Maybe Text) -- FIXME: (Maybe (IdentI Program))

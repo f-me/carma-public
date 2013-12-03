@@ -11,7 +11,7 @@ import Data.Model
 import Data.Model.View
 
 data ServiceNames = ServiceNames
-  {ident   :: PK Int ServiceNames
+  {ident   :: PK Int ServiceNames ""
   ,value   :: F Text "value" "Внутреннее название услуги"
   ,label   :: F Text "label" "Название услуги"
   ,icon    :: F Text "icon"  "Иконка"

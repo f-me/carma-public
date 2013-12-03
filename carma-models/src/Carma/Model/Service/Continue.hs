@@ -11,7 +11,7 @@ import Carma.Model.Service (Service)
 
 
 data Continue = Continue
-  { ident :: PK Int Continue
+  { ident :: PK Int Continue ""
   , deliveryType :: F (IdentT DeliveryType) "deliveryType" "Тип доставки"
 
   , deliverFrom_address :: F PickerField "deliverFrom_address" "Откуда везти"

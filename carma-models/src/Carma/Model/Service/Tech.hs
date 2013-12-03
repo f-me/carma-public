@@ -11,7 +11,7 @@ import Carma.Model.Service (Service)
 
 
 data Tech = Tech
-  { ident    :: PK Int Tech
+  { ident    :: PK Int Tech ""
   , techType :: F Text {-FIXME-} "techType" "Услуга"
   }
   deriving Typeable
