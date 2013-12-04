@@ -351,6 +351,8 @@ actStats = do
                 ([ ("order", orders)
                  , ("control", controls)] :: [(ByteString, ByteString)])
 
+-- | Serve users to which actions can be assigned
+-- (head/back/supervisor roles, active within last 20 minutes).
 boUsers :: AppHandler ()
 boUsers = do
   rows <- withPG pg_search $ \c -> query c [sql|
