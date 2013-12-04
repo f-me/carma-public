@@ -353,15 +353,13 @@ actStats = do
 
 boUsers :: AppHandler ()
 boUsers = do
-  rows <- withPG pg_search $ \c -> query_ c [sql|
+  rows <- withPG pg_search $ \c -> query c [sql|
     SELECT realname, login
       FROM usermetatbl
       WHERE (lastlogout IS NULL OR lastlogout < lastactivity)
         AND now() - lastactivity < '20 min'
-        AND roles && ARRAY[
-          'head','back','supervisor','parguy','account', 'bo_control',
-          'analyst','op_checker','op_close','op_dealer']
-    |]
+        AND roles && (?)::text[];
+    |] (Only $ V.fromList [Role.head, Role.back, Role.supervisor])
   writeJSON $ mkMap ["name", "login"] rows
 
 allDealersForMake :: AppHandler ()
