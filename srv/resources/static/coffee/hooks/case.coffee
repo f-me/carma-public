@@ -163,3 +163,12 @@ define ["utils", "dictionaries", "lib/ident/role"], (u, d, role) ->
   vwfakeHook: (model, knockVM) ->
     knockVM['callDateVisible'] = ko.computed ->
       not _.contains global.user.roles, role.vwfake
+
+  carModelInfoHook: (model, knockVM) ->
+    dict = new d.dicts.ModelDict
+      dict: 'CarModel'
+      meta:
+        dictionaryKey: 'value'
+        dictionaryLabel: 'info'
+    knockVM['car_modelInfo'] = ko.computed ->
+      dict.getLab knockVM['car_model']()

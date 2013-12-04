@@ -28,6 +28,7 @@ define [ "hooks/common"
                , k.regionHook
                , k.vinExpiredHook
                , k.vwfakeHook
+               , k.carModelInfoHook
                ]
 
       "consultation" : [ s.openPartnerSearch ]
