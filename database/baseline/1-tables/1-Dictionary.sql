@@ -8,7 +8,7 @@ CREATE TABLE "Dictionary"
 
 INSERT INTO "Dictionary" (id, name, description, parent, majorFields) VALUES
   (0, 'CarMake', 'Марка машины', null, ARRAY['id', 'label'])
-, (1, 'CarModel', 'Модель машины', 0, ARRAY['id', 'parent', 'label'])
+, (1, 'CarModel', 'Модель машины', 0, ARRAY['id', 'parent', 'label', 'info'])
 , (2, 'City', 'Город', 0, ARRAY['id', 'label'])
 , (3, 'Region', 'Регион', 0, ARRAY['id', 'label'])
 , (4, 'NewCaseField', 'Поля для экрана нового кейса', null, ARRAY['id', 'program', 'label'])

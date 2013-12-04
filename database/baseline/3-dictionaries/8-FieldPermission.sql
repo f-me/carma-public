@@ -186,6 +186,8 @@ lovViewer	CarModel	parent	t	f
 lovAdmin	CarModel	parent	t	t
 lovViewer	CarModel	value	t	f
 lovAdmin	CarModel	value	t	t
+lovViewer	CarModel	info	t	f
+lovAdmin	CarModel	info	t	t
 lovViewer	SynCarMake	make	t	f
 lovAdmin	SynCarMake	make	t	t
 lovViewer	SynCarMake	label	t	f

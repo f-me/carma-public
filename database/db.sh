@@ -5,7 +5,7 @@ export PSQL="psql $DB_NAME -v ON_ERROR_STOP=1"
 
 
 function get_db_version {
-  local QUERY="select A, B, C from version order by A, B, C desc limit 1;"
+  local QUERY="select A, B, C from version order by A desc, B desc, C desc limit 1;"
   local VERSION=`$PSQL -t -c "$QUERY" | tr -d ' '`
 
   local AB=${VERSION#*|}
