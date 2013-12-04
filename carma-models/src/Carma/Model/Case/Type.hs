@@ -70,49 +70,21 @@ data Case = Case
   , car_plateNum
     :: F (Maybe Text) "car_plateNum" "Госномер"
   , car_makeYear
-      :: F (Maybe Text) "car_makeYear" "Год производства автомобиля"
+    :: F (Maybe Text) "car_makeYear" "Год производства автомобиля"
   , car_color
-     :: F (Maybe (IdentT Colors)) "car_color" "Цвет"
+    :: F (Maybe (IdentT Colors)) "car_color" "Цвет"
   , car_buyDate
     :: F (Maybe LegacyDate) "car_buyDate" "Дата покупки"
-  , car_checkupDate
-    :: F (Maybe LegacyDate) "car_checkupDate" "Дата последнего ТО"
   , car_dealerTO
     :: F (Maybe (IdentT Partner)) "car_dealerTO" "Дилер у которого проходило последнее ТО"
-  , car_mileage
-    :: F (Maybe Text) "car_mileage" "Текущий пробег"
-  , car_checkupMileage
-    :: F (Maybe Text) "car_checkupMileage" "Пробег на последнем ТО"
-  , car_warrantyStart
-    :: F (Maybe LegacyDate) "car_warrantyStart" "Дата начала действия программы"
-  , car_warrantyEnd
-    :: F (Maybe LegacyDate) "car_warrantyEnd" "Дата окончания действия программы"
-  , car_contractType
-    :: F (Maybe (IdentT ContractType)) "car_contractType" "Тип контракта"
   , car_transmission
     :: F (Maybe (IdentT Transmission)) "car_transmission" "Коробка передач"
   , car_engine
     :: F (Maybe (IdentT EngineType)) "car_engine" "Тип двигателя"
   , car_liters
     :: F (Maybe Text) "car_liters" "Объём двигателя"
-  , car_capacity
-    :: F (Maybe Text) "car_capacity" "Вместимость"
-  , car_dims
-    :: F (Maybe Text) "car_dims" "Габариты"
-  , car_weight
-    :: F (Maybe Text) "car_weight" "Масса"
-  , car_checkPeriod
-     :: F (Maybe Text) "car_checkPeriod" "Межсервисный интервал"
   , car_class
     :: F (Maybe (IdentT CarClasses)) "car_class" "Класс автомобиля"
-  , car_makeCode
-    :: F (Maybe Text) "car_makeCode" "Код марки автомобиля"
-  , car_modelCode
-    :: F (Maybe Text) "car_modelCode" "Код модели автомобиля"
-  , car_faultCode
-    :: F (Maybe Text) "car_faultCode" "Код неиправности автомобиля"
-  , car_legalForm
-    :: F (Maybe (IdentT LegalForms)) "car_legalForm" "Физическое / Юридическое лицо"
 
   , cardNumber_cardNumber
     :: F (Maybe Text) "cardNumber_cardNumber" "Номер карты участника"
