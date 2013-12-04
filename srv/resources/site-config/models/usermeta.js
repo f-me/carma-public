@@ -56,8 +56,8 @@
     },
     {
       "meta": {
-        "label": "Программы",
-        "dictionaryName": "allPrograms",
+        "label": "Подпрограммы",
+        "dictionaryName": "usermetaPrograms",
         "dictionaryType": "ComputedDict"
       },
       "type": "dictionary-many",
