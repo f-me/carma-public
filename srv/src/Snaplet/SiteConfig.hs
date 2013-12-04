@@ -39,6 +39,8 @@ import Utils.HttpErrors
 import Data.Model.Sql
 import qualified Data.Model as Model
 import qualified Carma.Model as Model
+import qualified Carma.Model.OldProgram as OldProgram
+import qualified Carma.Model.Program as Program
 import qualified Carma.Model.SubProgram as SubProgram
 import qualified Carma.Model.ProgramInfo as ProgramInfo
 import qualified Carma.Model.ServiceInfo as ServiceInfo
@@ -120,13 +122,22 @@ stripModel u m = do
 serveDictionaries :: Handler b (SiteConfig b) ()
 serveDictionaries = do
   let withPG f = gets pg_search >>= liftIO . (`withResource` f)
-  subprograms <- withPG $ selectJSON
-    (SubProgram.ident :. SubProgram.value :. SubProgram.label :. eq SubProgram.active True)
+
   roles <- withPG $ selectJSON (Role.ident :. Role.label)
   let roles' =
           map (\(Aeson.Object o) ->
                Aeson.Object $ HM.insert "value" (o HM.! "id") o)
           roles
+
+  -- Load old programs dictionary proxy
+  oldPrograms <- withPG $ selectJSON
+    (OldProgram.ident :. OldProgram.value :. OldProgram.label :. eq OldProgram.active True)
+
+  -- TODO Calculate program active status from subprograms
+  programs <- withPG $ selectJSON
+    (Program.ident :. Program.label)
+  subprograms <- withPG $ selectJSON
+    (SubProgram.ident :. SubProgram.label :. eq SubProgram.active True)
 
   programInfos <- withPG
     $ selectJSON (ProgramInfo.program :. ProgramInfo.info)
@@ -141,7 +152,11 @@ serveDictionaries = do
   writeJSON $ Aeson.Object
     $ HM.insert "Roles"
       (Aeson.object [("entries", Aeson.Array $ V.fromList roles')])
-    $ HM.insert "SubPrograms"
+    $ HM.insert "Programs"
+      (Aeson.object [("entries", Aeson.Array $ V.fromList oldPrograms)])
+    $ HM.insert "Program"
+      (Aeson.object [("entries", Aeson.Array $ V.fromList programs)])
+    $ HM.insert "SubProgram"
       (Aeson.object [("entries", Aeson.Array $ V.fromList subprograms)])
     $ HM.insert "ProgramInfo"
       (Aeson.object [("entries", Aeson.Array $ V.fromList programInfos)])
