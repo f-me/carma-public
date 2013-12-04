@@ -45,7 +45,11 @@ define [], ->
       succfn = h.success
       if (cache[url])
         # console.log "cache hit: #{h.url}"
-        setTimeout (-> succfn cache[url]), 0 if _.isFunction succfn
+        return unless _.isFunction succfn
+        if h.async
+          setTimeout (-> succfn cache[url]), 0
+        else
+          succfn cache[url]
       else
         # console.log "cache miss: #{h.url}", cache
         newsucc = (data) ->
