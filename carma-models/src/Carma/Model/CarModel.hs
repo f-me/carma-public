@@ -14,6 +14,7 @@ data CarModel = CarModel
   {ident :: PK Int CarModel ""
   ,value :: F Text             "value"   "value"
   ,label :: F Text             "label"   "Модель"
+  ,info  :: F Text             "info"    "Информация о модели"
   ,parent:: F (IdentI CarMake) "parent"  "Марка машины"
   }
   deriving Typeable
@@ -22,4 +23,5 @@ data CarModel = CarModel
 instance Model CarModel where
   type TableName CarModel = "CarModel"
   modelInfo = mkModelInfo CarModel ident
-  modelView _ = defaultView
+  modelView _ = modifyView defaultView
+    [textarea info]
