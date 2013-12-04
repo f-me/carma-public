@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                carma-models
-version:             0.5.1
+version:             0.5.2
 -- synopsis:
 -- description:
 license:             MIT
@@ -38,6 +38,7 @@ library
     Carma.Model.NewCaseField,
     Carma.Model.DefaultNewCaseField,
     Carma.Model.ConstructorFieldOption,
+    Carma.Model.OldProgram,
     Carma.Model.Program,
     Carma.Model.SubProgram,
     Carma.Model.Region,
