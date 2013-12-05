@@ -17,120 +17,122 @@ CREATE TABLE "SubProgram"
   );
 
 CREATE TEMPORARY TABLE "SubProgram_tmp"
-  ( program text
+  ( id    SERIAL PRIMARY KEY
+  , program text
   , label text
   , value text
   );
 
-COPY "SubProgram_tmp" (program, label, value) FROM stdin;
-VW Гарантия Мобильности /B2B	Легковые	vwMotor
-VW Гарантия Мобильности /B2B	Коммерческие	vwcargo
-VW Гарантия Мобильности /B2B	Продлённая гарантия (коммерческие)	vwCarePoint
-VW ДТП	Основная	vwdtp
-GM Assistance /B2B	Opel (до 01.04.2011)	opeldo
-GM Assistance /B2B	Opel (c 01.04.2011)	opel
-GM Assistance /B2B	Cadillac (до 01.01.2012)	cadido2012
-GM Assistance /B2B	Cadillac (с 01.01.2012)	cad2012
-GM Assistance /B2B	Chevrolet NAV (Tahoe, Trail Blazer, Camaro)	chevyna
-GM Assistance /B2B	Cлужебные	gmofficial
-GM Assistance /B2B	Пресса	gmpress
-Chevrolet Korea	Основная	chevyko
-Ford - помощь на дорогах /B2B	Ford	ford
-Ford - помощь на дорогах /B2B	Ford new	fordnew
-Peugeot	Основная	peugeot
-Citroen	Основная	citroen
-Мапфре /B2B	Основная	map
-Мапфре Citroen /B2B	Основная	mapC
-KIA /B2B	Kia-помощь на дороге	KIA
-KIA /B2B	Мондиаль	kiamondial
-Европлан /B2B	Базовая	euro
-Европлан /B2B	Стандарт	euroVW
-Европлан /B2B	Премиум	euroFord
-Ковидиен /B2B	Стандарт	covidienVW
-Ковидиен /B2B	Премиум	covidienзprem
-Атлант-М /B2B	Годовая	atlant
-Атлант-М /B2B	От ТО до ТО	atlantot
-Вектор Лизинг /B2B	Легковые Базовая	vecbaz
-Вектор Лизинг /B2B	Легковые Стандарт	vecstan
-Вектор Лизинг /B2B	Легковые VIP	euroGM
-Вектор Лизинг /B2B	Коммерческие Базовая	corpse
-Вектор Лизинг /B2B	Коммерческие Стандарт	covidienFord
-Вектор Лизинг /B2B	Коммерческие VIP	covidienGM
-Нота Банк /B2C	Базовая	notabaz
-Нота Банк /B2C	Расширенная	notaras
-Нота Банк /B2C	Премиум-1	notaprem1
-Нота Банк /B2C	Премиум-2	notaprem2
-Нота Банк /B2C	Приоритет-1	notaprior1
-Нота Банк /B2C	Приоритет-2	notaprior2
-Друг Компании /B2C	Базовый	drugbaz
-Друг Компании /B2C	Стандарт	drugstan
-Друг Компании /B2C	Престиж	drugprest
-Друг Компании /B2C	Платинум	drugplat
-B2C карты	Старт	b2cstart
-B2C карты	Лайт	b2cL
-B2C карты	Стандарт	b2cSt
-B2C карты	Премиум	b2cPr
-B2C карты	Платинум	b2cplat
-B2C карты	Мото Стандарт	b2cmSt
-B2C карты	Мото Премиум	b2cmPr
-B2C карты	Мото Платинум	b2cmplat
-B2C карты	РАМК 	b2cramc
-РУС-ЛАН /B2B	Основная	ruslan
-Независимость BMW /B2B	Основная	nz
-АВИЛОН VW /B2B	Основная	avilon
-VW Центр Внуково /B2B	Основная	vnukovo
-Ирито	Базовая	irito
-Ирито	Продвинутая	iritoadv
-Aston Martin	Основная	aston
-Bentley	Основная	bentley
-Ночной Сервис Европкар/B2B	Основная	night
-AIG Надежный патруль /B2B	Основная	chartis
-Самара-Ассистанс /B2B	Основная	samaraAssis
-Лада Центр Белгород /B2B	Основная	lada
-RTR Hyundai /B2B	Основная	hyundai
-DAF NTS /B2B	Основная	daf
-ИП Трубкин /B2B	Основная	trub
-ARC B2B (Заявки от европейских клубов)	Основная	arc
-Интач B2B	Основная	intb2b
-Дженсер	Основная	gensernov
-Autoclub Europlan	Основная	autoeuroplan
-Цезарь Сателлит (заявки от сотрудников) /B2B	Основная	chezer
-3S-Telematica (заявки от сотрудников)/B2B	Основная	tele
-Авто-Цель (заявки от сотрудников) /B2B	Основная	avtoC
-АРВАЛ (заявки от сотрудников) /B2B	Основная	arval
-Автоимпорт (заявки от сотрудников) /B2B	Основная	auimp
-ТДВ-Авто (заявки от сотрудников) /B2B	Основная	tdv
-Блок Центр (заявки от сотрудников) /B2B	Основная	bm
-Автопрестус (заявки от сотрудников) /B2B	Основная	autopres
-Дженсер Ясенево (заявки от сотрудников) /B2B	Основная	jenser
-Интач-помощь на дорогах /B2C	Основная	int
-ВТБ24 /B2C	Основная	vtb24
-ВТБ24 Автокарта/B2C	Основная	avtoVTB24
-Петрокоммерц-Лукойл-Мастеркард /B2C	Основная	lyckoil
-Адвокард Драйвер Голд /B2C	Основная	advocard
-Юникредит/B2C	Основная	unicredit
-АК Барс Банк /B2C	Основная	akbars
-Кузьмиха Помощь на дорогах /B2C	Основная	kuz
-Castrol Помощь на дорогах /B2C	Основная	castrol
-ПАРИ /B2C	Основная	pari
-Росавтобанк /B2C	Основная	rosavto
-Цюрих /B2C	Основная	curih
-Петрол /B2C	Основная	fleetcor
-БАТ /B2C	Основная	bat
-МотоПипл /B2C	Основная	motop
-Эрго Русь /B2C	Основная	ergo
-АГ ассистанс /B2C	Основная	agass
-Шелл /B2C	Основная	shell
-Уралсиб /B2C	Основная	uralsib
-Сотрудник РАМК	Основная	ramcsotr
-Заказ билетов	Основная	tickets
-РАМК	Основная	ra
-Тестовая программа	Тест 1	test1
-Тестовая программа	Тест 2	test2
+COPY "SubProgram_tmp" (id, program, label, value) FROM stdin;
+1	VW Гарантия Мобильности /B2B	Легковые	vwMotor
+2	VW Гарантия Мобильности /B2B	Коммерческие	vwcargo
+3	PSA	Peugeot	peugeot
+4	PSA	Citroen	citroen
+5	VW Гарантия Мобильности /B2B	Продлённая гарантия (коммерческие)	vwCarePoint
+6	VW Гарантия Мобильности /B2B	ДТП	vwdtp
+7	GM Assistance /B2B	Opel (до 01.04.2011)	opeldo
+8	GM Assistance /B2B	Opel (c 01.04.2011)	opel
+9	GM Assistance /B2B	Cadillac (до 01.01.2012)	cadido2012
+10	GM Assistance /B2B	Cadillac (с 01.01.2012)	cad2012
+11	GM Assistance /B2B	Chevrolet NAV (Tahoe, Trail Blazer, Camaro)	chevyna
+12	GM Assistance /B2B	Cлужебные	gmofficial
+13	GM Assistance /B2B	Пресса	gmpress
+14	GM Assistance /B2B	Chevrolet Korea	chevyko
+15	Ford - помощь на дорогах /B2B	Ford	ford
+16	Ford - помощь на дорогах /B2B	Ford new	fordnew
+17	Мапфре /B2B	Основная	map
+18	Мапфре /B2B	Citroen	mapC
+19	KIA /B2B	Kia-помощь на дороге	KIA
+20	KIA /B2B	Мондиаль	kiamondial
+21	Европлан /B2B	Базовая	euro
+22	Европлан /B2B	Стандарт	euroVW
+23	Европлан /B2B	Премиум	euroFord
+24	Ковидиен /B2B	Стандарт	covidienVW
+25	Ковидиен /B2B	Премиум	covidienзprem
+26	Атлант-М /B2B	Годовая	atlant
+27	Атлант-М /B2B	От ТО до ТО	atlantot
+28	Вектор Лизинг /B2B	Легковые Базовая	vecbaz
+29	Вектор Лизинг /B2B	Легковые Стандарт	vecstan
+30	Вектор Лизинг /B2B	Легковые VIP	euroGM
+31	Вектор Лизинг /B2B	Коммерческие Базовая	corpse
+32	Вектор Лизинг /B2B	Коммерческие Стандарт	covidienFord
+33	Вектор Лизинг /B2B	Коммерческие VIP	covidienGM
+34	Нота Банк /B2C	Базовая	notabaz
+35	Нота Банк /B2C	Расширенная	notaras
+36	Нота Банк /B2C	Премиум-1	notaprem1
+37	Нота Банк /B2C	Премиум-2	notaprem2
+38	Нота Банк /B2C	Приоритет-1	notaprior1
+39	Нота Банк /B2C	Приоритет-2	notaprior2
+40	Друг Компании /B2C	Базовый	drugbaz
+41	Друг Компании /B2C	Стандарт	drugstan
+42	Друг Компании /B2C	Престиж	drugprest
+43	Друг Компании /B2C	Платинум	drugplat
+44	B2C карты	Старт	b2cstart
+45	B2C карты	Лайт	b2cL
+46	B2C карты	Стандарт	b2cSt
+47	B2C карты	Премиум	b2cPr
+48	B2C карты	Платинум	b2cplat
+49	B2C карты	Мото Стандарт	b2cmSt
+50	B2C карты	Мото Премиум	b2cmPr
+51	B2C карты	Мото Платинум	b2cmplat
+52	B2C карты	РАМК	b2cramc
+53	РУС-ЛАН /B2B	Основная	ruslan
+54	Независимость BMW /B2B	Основная	nz
+55	АВИЛОН VW /B2B	Основная	avilon
+56	VW Центр Внуково /B2B	Основная	vnukovo
+57	Ирито	Базовая	irito
+58	Ирито	Продвинутая	iritoadv
+59	Aston Martin	Основная	aston
+60	Bentley	Основная	bentley
+61	Ночной Сервис Европкар/B2B	Основная	night
+62	AIG Надежный патруль /B2B	Основная	chartis
+63	Самара-Ассистанс /B2B	Основная	samaraAssis
+64	Лада Центр Белгород /B2B	Основная	lada
+65	RTR Hyundai /B2B	Основная	hyundai
+66	DAF NTS /B2B	Основная	daf
+67	ИП Трубкин /B2B	Основная	trub
+68	ARC B2B (Заявки от европейских клубов)	Основная	arc
+69	Интач B2B	Основная	intb2b
+70	Дженсер	Основная	gensernov
+71	Autoclub Europlan	Основная	autoeuroplan
+72	Цезарь Сателлит (заявки от сотрудников) /B2B	Основная	chezer
+73	3S-Telematica (заявки от сотрудников)/B2B	Основная	tele
+74	Авто-Цель (заявки от сотрудников) /B2B	Основная	avtoC
+75	АРВАЛ (заявки от сотрудников) /B2B	Основная	arval
+76	Автоимпорт (заявки от сотрудников) /B2B	Основная	auimp
+77	ТДВ-Авто (заявки от сотрудников) /B2B	Основная	tdv
+78	Блок Центр (заявки от сотрудников) /B2B	Основная	bm
+79	Автопрестус (заявки от сотрудников) /B2B	Основная	autopres
+80	Дженсер Ясенево (заявки от сотрудников) /B2B	Основная	jenser
+81	Интач-помощь на дорогах /B2C	Основная	int
+82	ВТБ24 /B2C	Основная	vtb24
+83	ВТБ24 Автокарта/B2C	Основная	avtoVTB24
+84	Петрокоммерц-Лукойл-Мастеркард /B2C	Основная	lyckoil
+85	Адвокард Драйвер Голд /B2C	Основная	advocard
+86	Юникредит/B2C	Основная	unicredit
+87	АК Барс Банк /B2C	Основная	akbars
+88	Кузьмиха Помощь на дорогах /B2C	Основная	kuz
+89	Castrol Помощь на дорогах /B2C	Основная	castrol
+90	ПАРИ /B2C	Основная	pari
+91	Росавтобанк /B2C	Основная	rosavto
+92	Цюрих /B2C	Основная	curih
+93	Петрол /B2C	Основная	fleetcor
+94	БАТ /B2C	Основная	bat
+95	МотоПипл /B2C	Основная	motop
+96	Эрго Русь /B2C	Основная	ergo
+97	АГ ассистанс /B2C	Основная	agass
+98	Шелл /B2C	Основная	shell
+99	Уралсиб /B2C	Основная	uralsib
+100	BP /B2B	Основная	bp
+101	Сотрудник РАМК	Основная	ramcsotr
+102	Заказ билетов	Основная	tickets
+103	РАМК	Основная	ra
+104	Тестовая программа	Тест 1	test1
+105	Тестовая программа	Тест 2	test2
 \.
 
-INSERT INTO "SubProgram" (label, parent, value)
-SELECT s.label, p.id, s.value FROM "SubProgram_tmp" s, "Program" p
+INSERT INTO "SubProgram" (id, label, parent, value)
+SELECT s.id, s.label, p.id, s.value FROM "SubProgram_tmp" s, "Program" p
 WHERE p.label = s.program;
 
 UPDATE "SubProgram" n
