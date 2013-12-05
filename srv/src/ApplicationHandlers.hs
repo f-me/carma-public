@@ -680,7 +680,7 @@ restoreProgramDefaults = do
   Just pgm <- getParam "pgm"
   withPG pg_search $ \c -> do
     validPgm <- query c
-      [sql| SELECT 1 FROM programtbl WHERE id = ?::int |]
+      [sql| SELECT 1 FROM "Program" WHERE id = ?::int |]
       [pgm]
     case validPgm of
       [[1::Int]] -> do

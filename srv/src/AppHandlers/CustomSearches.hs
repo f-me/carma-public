@@ -22,6 +22,7 @@ import Utils.HttpErrors
 import Util
 import qualified Data.Vector as V
 
+import qualified Carma.Model.Program as Program
 import qualified Carma.Model.Role as Role
 
 type MBS = Maybe ByteString
@@ -484,11 +485,10 @@ cardOwnerLookup :: AppHandler ()
 cardOwnerLookup = do
   cardOwner <- fromJust <$> getParam "q"
   res <- withPG pg_search $ \c -> query c (fromString $ [sql|
-     SELECT cardOwner FROM contracttbl c, programtbl p
+     SELECT cardOwner FROM contracttbl c
       WHERE isactive AND dixi
-        AND p.id::text = c.program
-        AND p.value = 'vtb24'
+        AND c.program = ?::text
         AND cardOwner ilike '%' || ? || '%'
         LIMIT 15
-    |]) [cardOwner]
+    |]) (Only Program.vtb24 :. Only cardOwner)
   writeJSON $ mkMap ["cardOwner"] res

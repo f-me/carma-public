@@ -33,6 +33,7 @@ import Snap.Snaplet.Auth
 import qualified Database.Redis as Redis
 import qualified Snaplet.DbLayer.RedisCRUD as RC
 import qualified Snap.Snaplet.PostgresqlSimple as PG
+import Snap.Snaplet.PostgresqlSimple ((:.)(..), Only(..))
 import Database.PostgreSQL.Simple.SqlQQ
 import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
@@ -45,6 +46,8 @@ import Snap.Snaplet.SimpleLog
 
 import Carma.HTTP (read1Reference)
 
+import qualified Carma.Model.Program as Program
+import qualified Carma.Model.SubProgram as SubProgram
 import qualified Carma.Model.Role as Role
 import qualified Carma.Model.SmsTemplate as SmsTemplate
 
@@ -157,12 +160,12 @@ actions
                   SELECT
                     extract (epoch from contractValidFromDate)::int8::text,
                     extract (epoch from contractValidUntilDate)::int8::text
-                    FROM contracttbl c, programtbl p
+                    FROM contracttbl c, "Program" p
                     WHERE isactive AND dixi
-                      AND p.id::text = c.program AND p.value = 'vtb24'
+                      AND p.id::text = c.program AND p.id = ?
                       AND c.cardOwner = ?
                     ORDER BY ctime DESC LIMIT 1
-                  |]) [cardOwner]
+                  |]) (Only Program.vtb24 :. Only cardOwner)
                 case res of
                   []    -> set objId "vinChecked" "vinNotFound"
                   row:_ -> do
@@ -976,8 +979,10 @@ closeServiceAndSendInfoVW objId = do
   addParComment act1
 
   program <- get objId "caseId" >>= (`get` "program")
+  subprogram <- get objId "caseId" >>= (`get` "subprogram")
   st <- getServiceType objId
-  when (program `elem` ["vwMotor", "vwcargo", "peugeot", "citroen"]) $ do
+  when (program `elem` (map identFv [Program.peugeot, Program.citroen]) ||
+        subprogram `elem` (map identFv [SubProgram.vwMotor, SubProgram.vwCargo])) $ do
     dueDelta <- if st == Just "tech"
                 then do
                   fse <- getService objId "times_factServiceEnd"
