@@ -26,6 +26,9 @@ import Network.Mail.Mime
 
 import Carma.HTTP
 
+import Carma.Model
+import qualified Carma.Model.Program as Program
+
 import AppHandlers.PSA.Base
 
 import Snap.Snaplet (getSnapletUserConfig)
@@ -111,7 +114,7 @@ sendMailToDealer actionId = do
   when (svcId /= "" && svcName == "towage") $ do
     caseId  <- get actionId "caseId"
     program <- get caseId   "program"
-    when (program `elem` ["peugeot", "citroen"]) $ do
+    when (program `elem` (map identFv [Program.peugeot, Program.citroen])) $ do
       payType <- get svcId "payType"
       when (payType `elem` ["ruamc", "mixed", "refund"]) $ do
         dealerId <- get svcId "towDealer_partnerId"
@@ -172,20 +175,19 @@ tryRepTowageMail caseRef = do
                   (Just (_, _), Just (cid, _)) -> do
                       prevRefs <- liftDb $ repTowages cid
                       program <- get caseRef "program"
-                      case (prevRefs, program) of
+                      let ident | program == identFv Program.citroen =
+                                   Just Program.citroen
+                                | program == identFv Program.peugeot =
+                                    Just Program.peugeot
+                                | otherwise = Nothing
+                      case (prevRefs, ident) of
                         ([], _) -> return ()
-                        (pr, "citroen") ->
-                          sendRepTowageMail caseRef svcRef (last pr) Citroen
-                        (pr, "peugeot") ->
-                          sendRepTowageMail caseRef svcRef (last pr) Peugeot
+                        (pr, Just i) ->
+                          sendRepTowageMail caseRef svcRef (last pr) i
                         _ -> return ()
                   _ -> return ()
             _ -> return ()
       _ -> return ()
-
-
-data PSAProgram = Citroen
-                | Peugeot
 
 
 -- | Send a mail to PSA, reporting on a repeated towage.
@@ -196,7 +198,7 @@ sendRepTowageMail :: MonadTrigger m b =>
                   -- ^ Towage service reference.
                   -> ByteString
                   -- ^ Reference to a previous service for this car.
-                  -> PSAProgram
+                  -> (IdentI Program.Program)
                   -> m b ()
 sendRepTowageMail caseRef towageRef prevRef program = do
   cfg      <- liftDb getSnapletUserConfig
@@ -227,10 +229,8 @@ sendRepTowageMail caseRef towageRef prevRef program = do
                  (TL.encodeUtf8 $ TL.fromStrict mailText)
 
       -- Pick recipient and subject line depending on case program
-      (mailTo, subjPrefix) =
-          case program of
-            Citroen -> (citrTo, "FRRM01R")
-            Peugeot -> (peugTo, "RUMC01R")
+      (mailTo, subjPrefix) | program == Program.citroen = (citrTo, "FRRM01R")
+                           | program == Program.peugeot = (peugTo, "RUMC01R")
       mailSubj = T.concat [subjPrefix, " ", vin]
 
   l <- liftDb askLog

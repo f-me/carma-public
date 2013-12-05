@@ -1,4 +1,3 @@
-
 module Snaplet.DbLayer.Triggers.MailToPSA
   ( sendMailToPSA
   ) where
@@ -30,6 +29,9 @@ import Data.Configurator (require)
 import Network.Mail.Mime
 
 import Snap.Snaplet (getSnapletUserConfig)
+
+import qualified Carma.Model.Program as Program
+
 import Snaplet.DbLayer.Types (getDict)
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
@@ -51,7 +53,8 @@ sendMailToPSA actionId = do
     _ -> return False
   caseId  <- get actionId "caseId"
   program <- get caseId   "program"
-  when (isValidSvc && program `elem` ["peugeot", "citroen"])
+  when (isValidSvc &&
+        program `elem` (map identFv [Program.peugeot, Program.citroen]))
     $ get svcId "payType" >>= \case
       "ruamc" -> sendMailActually actionId
       "mixed" -> sendMailActually actionId
@@ -68,12 +71,14 @@ sendMailActually actionId = do
     caseId  <- get actionId "caseId"
     program <- get caseId   "program"
 
+    let (acode, mcode) | program == identFv Program.peugeot = ("RUMC01R", "PEU")
+                       | program == identFv Program.citroen = ("FRRM01R", "CIT")
+                       | otherwise = error $ "Invalid program: " ++ show program
+
     let body = do
           fld 4   "BeginOfFile"     <=== "True"
-          fld 50  "Assistance Code" <=== case program of
-            "peugeot" -> "RUMC01R"
-            "citroen" -> "FRRM01R"
-            _ -> error $ "Invalid program: " ++ show program
+          fld 50  "Assistance Code" <=== acode
+
           fld 2   "Country Code" <=== "RU"
           fld 9   "Task Id"      <===
             case B.readInt $ B.dropWhile (not.isDigit) caseId of
@@ -84,10 +89,7 @@ sendMailActually actionId = do
             <$> lift (get caseId "callDate")
 
           fld 5   "Time of Incident" <=== tmFormat "%H:%M" callDate
-          fld 3   "Make"             <=== case program of
-            "peugeot" -> "PEU"
-            "citroen" -> "CIT"
-            _ -> error $ "Invalid program: " ++ show program
+          fld 3   "Make"             <=== mcode
 
           fld 13  "Model"   $ do
             mk <- get' caseId "car_make"
