@@ -17,7 +17,7 @@ module Util
   , formatTimestamp
   , render
   , projNow
-  , roleIdent
+  , identFv
   ) where
 
 import qualified Data.Map as Map
@@ -52,7 +52,6 @@ import qualified Data.Attoparsec.ByteString.Char8 as A
 import Text.Printf (printf)
 
 import qualified Data.Model as Model
-import qualified Carma.Model.Role as Role
 
 
 data JSONParseException
@@ -203,5 +202,5 @@ projNow fn =
 
 
 -- | Convert a Role Ident to untyped field value.
-roleIdent :: Model.IdentI Role.Role -> ByteString
-roleIdent (Model.Ident v) = B.pack $ show v
+identFv :: Model.Model m => Model.IdentI m -> ByteString
+identFv (Model.Ident v) = B.pack $ show v

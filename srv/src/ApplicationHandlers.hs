@@ -460,8 +460,8 @@ vinUploadData = scope "vin" $ scope "upload" $ do
       let Aeson.String userPgms' = HM.lookupDefault "" "programs" $ userMeta u'
           userPgms = B.split ',' $ T.encodeUtf8 userPgms'
       when (not $ 
-            (elem (Role $ roleIdent Role.partner) (userRoles u') && elem pgmId userPgms) ||
-            (elem (Role $ roleIdent Role.vinAdmin) (userRoles u'))) $
+            (elem (Role $ identFv Role.partner) (userRoles u') && elem pgmId userPgms) ||
+            (elem (Role $ identFv Role.vinAdmin) (userRoles u'))) $
             handleError 403
 
       -- Find out which format is used for this program

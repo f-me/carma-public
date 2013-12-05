@@ -34,7 +34,7 @@ import AppHandlers.Util
 import AppHandlers.UserAchievements
 import Snaplet.Auth.PGUsers
 
-import Util (roleIdent)
+import Util (identFv)
 
 
 ------------------------------------------------------------------------------
@@ -78,13 +78,13 @@ alwaysPass = const True
 hasAnyOfRoles :: [IdentI Role] -> RoleChecker
 hasAnyOfRoles authRoles =
     \userRoles -> any (flip elem ar) userRoles
-        where ar = map (\i -> Snap.Role $ roleIdent i) authRoles
+        where ar = map (\i -> Snap.Role $ identFv i) authRoles
 
 
 hasNoneOfRoles :: [IdentI Role] -> RoleChecker
 hasNoneOfRoles authRoles =
     \userRoles -> not $ any (flip elem ar) userRoles
-        where ar = map (\i -> Snap.Role $ roleIdent i) authRoles
+        where ar = map (\i -> Snap.Role $ identFv i) authRoles
 
 
 ------------------------------------------------------------------------------
@@ -134,12 +134,12 @@ serveUserCake
       usr <- with db $ replaceMetaRolesFromPG u'
       achievements <- userAchievements usr
       let homePage = case map (\(Snap.Role r) -> r) $ userRoles usr of
-            rs | (roleIdent Role.head)       `elem` rs -> "/#rkc"
-               | (roleIdent Role.supervisor) `elem` rs -> "/#supervisor"
-               | (roleIdent Role.front)      `elem` rs -> "/#call"
-               | (roleIdent Role.back)       `elem` rs -> "/#back"
-               | (roleIdent Role.bo_control) `elem` rs -> "/#back"
-               | (roleIdent Role.parguy)     `elem` rs -> "/#partner"
+            rs | (identFv Role.head)       `elem` rs -> "/#rkc"
+               | (identFv Role.supervisor) `elem` rs -> "/#supervisor"
+               | (identFv Role.front)      `elem` rs -> "/#call"
+               | (identFv Role.back)       `elem` rs -> "/#back"
+               | (identFv Role.bo_control) `elem` rs -> "/#back"
+               | (identFv Role.parguy)     `elem` rs -> "/#partner"
                | otherwise                   -> ""
       writeJSON $ usr
         {userMeta
