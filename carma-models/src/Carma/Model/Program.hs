@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 
 module Carma.Model.Program where
 
@@ -5,6 +6,8 @@ import Data.Text
 import Data.Typeable
 import Data.Model
 import Data.Model.View
+import Data.Model.TH
+
 import Carma.Model.Types()
 
 data Program = Program
@@ -20,8 +23,8 @@ instance Model Program where
   modelInfo = mkModelInfo Program ident
   modelView _ = defaultView
 
--- known programs
--- citroen = Ident 56 :: Ident Program
--- peugeot = Ident 57 :: Ident Program
--- vwMotor = Ident 63 :: Ident Program
--- vwCargo = Ident 64 :: Ident Program
+mkIdents [t|Program|]
+ [ ("peugeot", 1)
+ , ("citroen", 2)
+ , ("vtb24", 3)
+ ]
