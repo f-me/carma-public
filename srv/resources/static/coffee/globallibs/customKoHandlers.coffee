@@ -120,3 +120,16 @@ ko.bindingHandlers.expand =
   init: (el, acc, allBindigns, ctx, koctx) ->
     $(el).click ->
       $(el).parent().next().toggle()
+
+ko.bindingHandlers.eachNonEmpty =
+  init:  (el, acc, allBindigns, ctx, koctx) ->
+    fnames = acc()()
+    groups = _.map fnames, (f) -> koctx.$root.showFields.groups[f]
+    fns = _.reject fnames, (fname) ->
+      g = koctx.$root.showFields.groups[fname]
+      _.all (_.keys g), (m) ->
+        kvm = ctx[m]
+        _.all g[m], (f) -> _.isEmpty kvm[f.name]()
+    ofns = ko.observable fns
+    ko.bindingHandlers['foreach']['init'](el, ofns, allBindigns, ctx, koctx)
+    ko.bindingHandlers['foreach']['update'](el, ofns, allBindigns, ctx, koctx)
