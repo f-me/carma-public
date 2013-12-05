@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Carma.Model.SubProgram where
 
 import Data.Aeson as A (Value(Bool))
@@ -7,6 +9,7 @@ import Data.Typeable
 import Data.Vector
 
 import Data.Model
+import Data.Model.TH
 import Data.Model.View
 
 import Carma.Model.Types (TInt)
@@ -51,3 +54,8 @@ instance Model SubProgram where
                 , setMeta "reference-widget" "files" logo
                 , setMeta "single-uploader" (A.Bool True) logo
                 ]
+
+mkIdents [t|SubProgram|]
+ [ ("vwMotor", 1)
+ , ("vwCargo", 2)
+ ]
