@@ -24,7 +24,5 @@ instance Model Program where
   modelView _ = defaultView
 
 mkIdents [t|Program|]
- [ ("peugeot", 1)
- , ("citroen", 2)
- , ("vtb24", 3)
+ [ ("vtb24", 2)
  ]
