@@ -175,6 +175,7 @@ call	call	carModel	t	t
 call	call	city	t	t
 call	call	coords	t	t
 call	call	program	t	t
+call	call	subprogram	t	t
 call	call	wazzup	t	t
 lovViewer	CarMake	label	t	f
 lovAdmin	CarMake	label	t	t
@@ -283,6 +284,7 @@ core	case	diagnosis3	t	t
 core	case	diagnosis4	t	t
 core	case	files	t	t
 core	case	program	t	t
+core	case	subprogram	t	t
 psaanalyst	case	psaExported	t	t
 psaanalyst	case	psaExportNeeded	t	t
 core	case	repair	t	f
