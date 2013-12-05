@@ -7,13 +7,14 @@ CREATE TABLE "Program"
   );
 
 COPY "Program" (label) FROM stdin;
+Peugeot
+Citroen
+ВТБ24 /B2C
 VW Гарантия Мобильности /B2B
 VW ДТП
 GM Assistance /B2B
 Chevrolet Korea
 Ford - помощь на дорогах /B2B
-Peugeot
-Citroen
 Мапфре /B2B
 Мапфре Citroen /B2B
 KIA /B2B
@@ -52,7 +53,6 @@ Autoclub Europlan
 Автопрестус (заявки от сотрудников) /B2B
 Дженсер Ясенево (заявки от сотрудников) /B2B
 Интач-помощь на дорогах /B2C
-ВТБ24 /B2C
 ВТБ24 Автокарта/B2C
 Петрокоммерц-Лукойл-Мастеркард /B2C
 Адвокард Драйвер Голд /B2C

@@ -8,7 +8,6 @@
 
 module AppHandlers.PSA.Base
     ( psaQuery
-    , psaQuery0
     , rtQuery
     , rtQuery'
     , repTowages
@@ -24,25 +23,13 @@ import Database.PostgreSQL.Simple.SqlQQ
 import Snap.Snaplet.PostgresqlSimple
 
 
--- | Query used to select exportable case ids, parametrized by program
--- name, used by @/psaCases@.
+-- | Query used to select exportable case ids, parametrized by vector
+-- of program ids, used by @/psaCases@.
 psaQuery :: Query
 psaQuery = [sql|
 SELECT id FROM casetbl
 WHERE psaExportNeeded='yes'
-AND  (program=?)
-AND  (NOT psaexported='yes' OR psaexported IS NULL)
-AND  (calldate > car_warrantystart AND calldate < car_warrantyend);
-|]
-
-
--- | Non-parametric query for @/psaCases@, includes @citroen@ and
--- @peugeot@ programs.
-psaQuery0 :: Query
-psaQuery0 = [sql|
-SELECT id FROM casetbl
-WHERE psaExportNeeded='yes'
-AND  (program='citroen' OR program='peugeot')
+AND  (program = ANY (?::text[]))
 AND  (NOT psaexported='yes' OR psaexported IS NULL)
 AND  (calldate > car_warrantystart AND calldate < car_warrantyend);
 |]

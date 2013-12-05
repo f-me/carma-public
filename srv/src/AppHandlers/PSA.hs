@@ -12,24 +12,33 @@ module AppHandlers.PSA
 where
 
 import Data.ByteString.Char8 (readInt)
+import qualified Data.Vector as V
 import Snap.Snaplet.PostgresqlSimple
 import Snap
+
+import Carma.Model.Program as Program
 
 import AppHandlers.PSA.Base
 import AppHandlers.Util
 import Application
 
+import Util (identFv)
 
--- | Read program name from @program@ request parameter, serve JSON
--- list of case numbers for that program to be exported to SAGAI, as
--- selected by 'psaQuery'. If @program@ is not present, serve list of
--- all exportable case numbers according to 'psaQuery0'.
+
+-- | Read program name from @program@ request parameter (citroen or
+-- peugeot), serve JSON list of case numbers for that program to be
+-- exported to SAGAI, as selected by 'psaQuery'. If @program@ is not
+-- present, serve list of all exportable case numbers according to
+-- 'psaQuery0'.
 psaCasesHandler :: AppHandler ()
 psaCasesHandler = do
   program <- getParam "program"
-  rows <- with db $ case program of
-            Just p -> query psaQuery [p]
-            Nothing -> query_ psaQuery0
+  let pids = case program of
+               Just "citroen" -> [Program.citroen]
+               Just "peugeot" -> [Program.peugeot]
+               Just _         -> error "Program must be citroen or peugeot"
+               Nothing        -> [Program.citroen, Program.peugeot]
+  rows <- with db $ query psaQuery (Only $ V.fromList pids)
   writeJSON (map head rows :: [Int])
 
 
