@@ -1,4 +1,4 @@
-define ["model/utils", "lib/ident/role"], (mu, role) ->
+define ["model/utils", "dictionaries", "lib/ident/role"], (mu, d, role) ->
   # jquery -> html(as string) conversion, with selected element
   jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
 
@@ -175,25 +175,15 @@ define ["model/utils", "lib/ident/role"], (mu, role) ->
   # Model method HTTP access point wrt redson location
   modelMethod: (modelName, method) -> "/_/#{modelName}/#{method}"
 
-  getServiceDesc: (program, service) ->
-    if p = @findProgram program
-      si = _.find global.dictionaries['ServiceInfo'].entries, (info) ->
-        info.program == p.id and info.service == service
-      si?.info or ""
-    else
-      ""
+  getServiceDesc: (pid, service) ->
+    si = _.find global.dictionaries['ServiceInfo'].entries, (info) ->
+      info.program == pid and info.service == service
+    si?.info or ""
 
-  getProgramDesc: (program) ->
-    if p = @findProgram program
-      pi = _.find global.dictionaries['ProgramInfo'].entries, (info) ->
-        info.program == p.id
-      pi?.info or ""
-    else
-      ""
-
-  findProgram: (name) ->
-    _.find global.dictionaries['Programs'].entries, (program) ->
-      program.value == name
+  getProgramDesc: (pid) ->
+    pi = _.find global.dictionaries['ProgramInfo'].entries, (info) ->
+      info.program == pid
+    pi?.info or ""
 
   # Scroll case field into view and focus
   focusField: (name) ->
@@ -409,3 +399,9 @@ define ["model/utils", "lib/ident/role"], (mu, role) ->
     global.router.navigate "#{scr}?#{q}"
 
   inject: (dest, src) -> dest[k] = v for k, v of src when not dest[k]
+
+  newModelDict: (name, stringify) ->
+    new d.dicts.ModelDict
+      dict: name
+      meta:
+        dictionaryStringify: stringify

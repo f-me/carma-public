@@ -58,6 +58,8 @@ define ["utils"
     u = global.dictValueCache['users']
     g = global.dictValueCache['Roles']
 
+    progs = utils.newModelDict "Program", true
+
     rows = for obj in res.actions
       if obj.parentId
         svcName = obj.parentId.split(':')[0]
@@ -89,7 +91,7 @@ define ["utils"
       , r[obj.result] || ''
       , obj.priority || ''
       , global.dictValueCache['DealerCities'][obj.city] || ''
-      , global.dictValueCache['Programs'][obj.program] || ''
+      , progs.getLabe(obj.program) || ''
       , srvStart || ''
       , obj.name || ''
       ]

@@ -17,6 +17,7 @@ define ["utils", "dictionaries", "lib/ident/role"], (u, d, role) ->
     # FIXME: refactor all this, use sync/datamap at least for time
     st.fnClearTable()
     dict = global.dictValueCache
+    progs = u.newModelDict "Program", true
 
     $.getJSON( "/callsByPhone/#{phone}" )
     .done( (calls) ->
@@ -38,7 +39,7 @@ define ["utils", "dictionaries", "lib/ident/role"], (u, d, role) ->
         city = dict['DealerCities'][obj.city]
         comment.push("Город: #{city}") if city
 
-        program = global.dictionaries['Programs'][obj.program]
+        program = progs.getLab obj.program
         comment.push("Программа: #{program}") if program
 
         make = dict['CarMakers'][obj.make]
@@ -110,11 +111,11 @@ define ["utils", "dictionaries", "lib/ident/role"], (u, d, role) ->
 
   descsKbHook: (model, knockVM) ->
     mkServicesDescs = (p, s) ->
-      description: u.getServiceDesc(p ,s._meta.model.name)
+      description: u.getServiceDesc(p, s._meta.model.name)
       title:       s._meta.model.title
     knockVM['servicesDescs'] = ko.computed
       read: ->
-        p = knockVM['program']()
+        p = parseInt knockVM['program']()
         s = knockVM['servicesReference']()
         return [] unless p?
         _.chain(s).map((x) -> mkServicesDescs(p,x)).compact().value()

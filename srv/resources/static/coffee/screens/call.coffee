@@ -55,6 +55,7 @@ define [ "utils"
   fillTable = (st, objs) ->
     st.fnClearTable()
     dict = global.dictValueCache
+    progs = utils.newModelDict "Program", true
     rows = for obj in objs
       continue if obj.id.length > 10
       row = [obj.id.split(":")[1] || obj.id
@@ -63,7 +64,7 @@ define [ "utils"
             ,obj.contact_phone1 || ''
             ,(obj.car_plateNum || "").toUpperCase()
             ,(obj.car_vin || "").toUpperCase()
-            ,dict.Programs[obj.program] || obj.program || ''
+            ,progs.getLab(obj.program) || obj.program || ''
             ,dict.Wazzup[obj.comment] || obj.comment || ''
             ]
     st.fnAddData(rows)
