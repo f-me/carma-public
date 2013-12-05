@@ -74,13 +74,6 @@ COPY "Program" (id, label) FROM stdin;
 65	Тестовая программа
 \.
 
-UPDATE "Program" n
-SET client=p.client, 
-    clientaddress=p.clientaddress,
-    clientcode=p.clientcode
-FROM programtbl p
-WHERE n.label = p.label;
-
 GRANT ALL ON "Program" TO carma_db_sync;
 GRANT ALL ON "Program" TO carma_search;
 GRANT ALL ON "Program_id_seq" TO carma_db_sync;
