@@ -202,5 +202,6 @@ projNow fn =
   (B.pack . show . fn . round . utcTimeToPOSIXSeconds) <$> getCurrentTime
 
 
+-- | Convert a Role Ident to untyped field value.
 roleIdent :: Model.IdentI Role.Role -> ByteString
 roleIdent (Model.Ident v) = B.pack $ show v
