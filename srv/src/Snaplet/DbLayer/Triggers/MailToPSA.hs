@@ -30,7 +30,7 @@ import Network.Mail.Mime
 
 import Snap.Snaplet (getSnapletUserConfig)
 
-import qualified Carma.Model.Program as Program
+import qualified Carma.Model.SubProgram as SubProgram
 
 import Snaplet.DbLayer.Types (getDict)
 import Snaplet.DbLayer.Triggers.Types
@@ -52,9 +52,9 @@ sendMailToPSA actionId = do
     "towage":_ -> return True
     _ -> return False
   caseId  <- get actionId "caseId"
-  program <- get caseId   "program"
+  subprogram <- get caseId   "subprogram"
   when (isValidSvc &&
-        program `elem` (map identFv [Program.peugeot, Program.citroen]))
+        subprogram `elem` (map identFv [SubProgram.peugeot, SubProgram.citroen]))
     $ get svcId "payType" >>= \case
       "ruamc" -> sendMailActually actionId
       "mixed" -> sendMailActually actionId
@@ -69,11 +69,11 @@ sendMailActually actionId = do
 
     svcId   <- get actionId "parentId"
     caseId  <- get actionId "caseId"
-    program <- get caseId   "program"
+    subprogram <- get caseId   "subprogram"
 
-    let (acode, mcode) | program == identFv Program.peugeot = ("RUMC01R", "PEU")
-                       | program == identFv Program.citroen = ("FRRM01R", "CIT")
-                       | otherwise = error $ "Invalid program: " ++ show program
+    let (acode, mcode) | subprogram == identFv SubProgram.peugeot = ("RUMC01R", "PEU")
+                       | subprogram == identFv SubProgram.citroen = ("FRRM01R", "CIT")
+                       | otherwise = error $ "Invalid subprogram: " ++ show subprogram
 
     let body = do
           fld 4   "BeginOfFile"     <=== "True"
