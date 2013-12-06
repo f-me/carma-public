@@ -59,5 +59,5 @@ mkIdents [t|SubProgram|]
  [ ("vwMotor", 1)
  , ("vwCargo", 2)
  , ("peugeot", 3)
- , ("citroen", 4)  
+ , ("citroen", 4)
  ]
