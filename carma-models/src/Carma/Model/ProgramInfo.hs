@@ -10,12 +10,12 @@ import Carma.Model.Types()
 import Data.Model
 import Data.Model.View
 
-import Carma.Model.Program (Program)
+import Carma.Model.OldProgram (OldProgram)
 
 data ProgramInfo = ProgramInfo
   {ident   :: PK Int ProgramInfo ""
-  ,program :: F (IdentI Program) "program" "Программа"
-  ,info    :: F Text             "info"    "Условия"
+  ,program :: F (IdentI OldProgram) "program" "Программа"
+  ,info    :: F Text                "info"    "Условия"
   } deriving Typeable
 
 instance Model ProgramInfo where

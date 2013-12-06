@@ -10,12 +10,12 @@ import Carma.Model.Types()
 import Data.Model
 import Data.Model.View
 
-import Carma.Model.Program (Program)
+import Carma.Model.OldProgram (OldProgram)
 import Carma.Model.ServiceNames (ServiceNames)
 
 data ServiceInfo = ServiceInfo
   {ident   :: PK Int ServiceInfo ""
-  ,program :: F (IdentI Program)      "program" "Программа"
+  ,program :: F (IdentI OldProgram)   "program" "Программа"
   ,service :: F (IdentI ServiceNames) "service" "Услуга"
   ,info    :: F Text                  "info"    "Условия"
   } deriving Typeable
