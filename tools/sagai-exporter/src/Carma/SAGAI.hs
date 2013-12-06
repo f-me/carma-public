@@ -229,7 +229,7 @@ instance ExportMonad ServiceExport where
           -- Special handling for rental service cost calculation.
           Rent ->
               do
-                program <- caseField "program"
+                subprogram <- caseField "subprogram"
                 (_, _, d) <- getService
                 carClass <- dataField1 "carClass" d
                 -- Select costs table depending on whether the rent
@@ -244,7 +244,7 @@ instance ExportMonad ServiceExport where
                                   then rentCostsPSA
                                   else rentCosts
                           dailyCost =
-                              case M.lookup (program, carClass) costs of
+                              case M.lookup (subprogram, carClass) costs of
                                 Just dc -> dc
                                 -- Zero cost for unknown car classes.
                                 Nothing -> 0
@@ -521,11 +521,11 @@ rowBreak = push newline
 
 pdvField :: ExportField
 pdvField = do
-  fv <- caseField1 "program"
+  fv <- caseField1 "subprogram"
   case fv of
     "peugeot" -> push "RUMC01R01"
     "citroen" -> push "FRRM01R01"
-    _         -> exportError $ UnknownProgram fv
+    _         -> exportError $ UnknownSubprogram fv
 
 
 dtField :: ExportField
@@ -570,18 +570,18 @@ timestampToDate' input =
       Nothing -> exportError $ BadTime input
 
 
--- | Search for an entry in 'codesData' using program name of the case
--- and expense type, project the result to output.
+-- | Search for an entry in 'codesData' using subprogram name of the
+-- case and expense type, project the result to output.
 codeField :: ExportMonad m =>
              (CodeRow -> BS.ByteString)
           -- ^ Projection function used to produce output from the
           -- matching 'codesData' entry.
           -> m BS.ByteString
 codeField proj = do
-  program <- caseField "program"
+  subprogram <- caseField "subprogram"
   key <- expenseType
-  case M.lookup (program, key) codesData of
-    Nothing -> exportError $ UnknownProgram program
+  case M.lookup (subprogram, key) codesData of
+    Nothing -> exportError $ UnknownSubprogram subprogram
     Just c -> return $ proj c
 
 

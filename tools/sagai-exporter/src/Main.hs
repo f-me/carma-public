@@ -173,7 +173,8 @@ fetchExportDicts = do
 -- | Attempt to fetch a list of cases to be exported from CaRMa, as
 -- returned by @/psaCases@.
 fetchPSACaseNumbers :: Maybe String
-                    -- ^ Filter cases by this program name when set.
+                    -- ^ Filter cases by this subprogram name when
+                    -- set.
                     -> CarmaIO (Maybe [Int])
 fetchPSACaseNumbers pn = do
   uri <- methodURI ("psaCases/" ++ fromMaybe "" pn)
@@ -234,14 +235,14 @@ handleReadFunction fh ptr size nmemb _ = do
 
 
 -- | Holds all options passed from command-line.
-data Options = Options { carmaPort     :: Int
-                       , composPath    :: FilePath
-                       , ftpServer     :: Maybe String
-                       , remotePath    :: Maybe FilePath
-                       , encoding      :: String
-                       , caseProgram   :: Maybe String
-                       , argCases      :: [Int]
-                       , useSyslog     :: Bool
+data Options = Options { carmaPort      :: Int
+                       , composPath     :: FilePath
+                       , ftpServer      :: Maybe String
+                       , remotePath     :: Maybe FilePath
+                       , encoding       :: String
+                       , caseSubprogram :: Maybe String
+                       , argCases       :: [Int]
+                       , useSyslog      :: Bool
                        }
                deriving (Show, Data, Typeable)
 
@@ -272,12 +273,12 @@ main =
                    &= name "f"
                    &= help ("URL of an FTP server to upload the result to. " ++
                             "Must include URL scheme prefix.")
-                 , caseProgram = Nothing
+                 , caseSubprogram = Nothing
                    &= explicit
-                   &= name "program"
+                   &= name "subprogram"
                    &= name "o"
                    &= help ("When case id's are not provided explicitly, " ++
-                            "export only cases for the specified program")
+                            "export only cases for the specified subprogram")
                  , remotePath = Nothing
                    &= name "r"
                    &= help remotePathHelp
@@ -349,9 +350,9 @@ main =
                [] -> do
                  logInfo $
                      "Fetching case numbers from CaRMa (" ++
-                     maybe "all valid programs" (++ " program") caseProgram ++
-                     ")"
-                 lift $ fetchPSACaseNumbers caseProgram
+                     maybe "all valid subprograms" (++ " subprogram")
+                     caseSubprogram ++ ")"
+                 lift $ fetchPSACaseNumbers caseSubprogram
                l  -> do
                  logInfo $ "Using case numbers specified in the command line"
                  return $ Just l

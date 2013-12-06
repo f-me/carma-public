@@ -1,7 +1,6 @@
 name:                sagai-exporter
-version:             0.1.0.0
+version:             0.2
 synopsis:            SAGAI integration facilities for CaRMa
--- description:
 license:             BSD3
 license-file:        LICENSE
 author:              Dmitry Dzhus
@@ -9,7 +8,6 @@ maintainer:          dmitry@formalmethods.ru
 
 build-type:          Simple
 
--- Constraint on the version of Cabal needed to build this package.
 cabal-version:       >=1.8
 
 

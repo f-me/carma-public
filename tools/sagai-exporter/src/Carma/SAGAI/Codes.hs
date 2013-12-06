@@ -48,7 +48,7 @@ data CodeRow = CodeRow { cost             :: Double
                        }
 
 
--- | List of costs and I/C/D codes for all programs and expenses.
+-- | List of costs and I/C/D codes for all subprograms and expenses.
 --
 -- Costs for Rent expenses are ignored (see 'rentCostsPSA' &
 -- 'rentCosts' instead).
@@ -77,7 +77,7 @@ codesData = M.fromList
 
 -- | Daily costs for car rent service provided by PSA dealers.
 --
--- Map key is a @(program, carClass)@ tuple.
+-- Map key is a @(subprogram, carClass)@ tuple.
 rentCostsPSA :: M.Map (FieldValue, FieldValue) Double
 rentCostsPSA = M.fromList
     [ (("citroen", "psab"),  1729)
