@@ -34,6 +34,7 @@ import Snaplet.SiteConfig.Models
 import Snaplet.SiteConfig.FakeModels
 import Snaplet.SiteConfig.Dictionaries
 
+import AppHandlers.Util
 import Utils.HttpErrors
 
 import Data.Model.Sql
@@ -47,12 +48,6 @@ import qualified Carma.Model.ServiceInfo as ServiceInfo
 import qualified Carma.Model.ServiceNames as ServiceNames
 import qualified Carma.Model.Colors as Colors
 import qualified Carma.Model.Role as Role
-
-
-writeJSON :: Aeson.ToJSON v => v -> Handler a b ()
-writeJSON v = do
-  modifyResponse $ setContentType "application/json"
-  writeLBS $ Aeson.encode v
 
 
 serveModel :: HasAuth b => Handler b (SiteConfig b) ()

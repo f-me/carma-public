@@ -12,18 +12,17 @@ import Data.Aeson as Aeson
 
 import Snap
 
-import Application
 import Util
 import Data.List.Utils
 
 ------------------------------------------------------------------------------
 -- | Utility functions
-writeJSON :: Aeson.ToJSON v => v -> AppHandler ()
+writeJSON :: Aeson.ToJSON v => v -> Handler a b ()
 writeJSON v = do
   modifyResponse $ setContentType "application/json"
   writeLBS $ Aeson.encode v
 
-getJSONBody :: Aeson.FromJSON v => AppHandler v
+getJSONBody :: Aeson.FromJSON v => Handler a b v
 getJSONBody = Util.readJSONfromLBS <$> readRequestBody 4096
 
 
