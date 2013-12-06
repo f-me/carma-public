@@ -60,4 +60,5 @@ mkIdents [t|Role|]
  , ("vwfake", 32)
  , ("front", 33)
  , ("dpViewer", 34)
+ , ("programManager", 35)
  ]
