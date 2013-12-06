@@ -37,6 +37,11 @@ caseSearchParams
     ,("city",       listOf Case.city)
     ,("carMake",    listOf Case.car_make)
     ,("callDate",   interval Case.callDate)
+    ,("contact",    fuzzy $ matchAny
+                    [one Case.contact_name, one Case.contact_contactOwner])
+    ,("comment",    listOf Case.comment)
+    ,("address",    fuzzy $ one Case.caseAddress_address)
+    ,("callTaker",  fuzzy $ one Case.callTaker)
     ]
 
 caseSearchPredicate

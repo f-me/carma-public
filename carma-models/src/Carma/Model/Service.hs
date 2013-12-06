@@ -9,6 +9,7 @@ import Data.Model
 import Data.Model.View
 import Carma.Model.Types()
 import Carma.Model.LegacyTypes (Reference,Checkbox)
+import Carma.Model.Search as S
 
 data Service = Service
   { ident                        :: PK Int Service ""
@@ -103,3 +104,10 @@ instance Model Service where
   type TableName Service = "servicetbl"
   modelInfo = mkModelInfo Service ident
   modelView _ = defaultView
+
+serviceSearchParams :: [(Text, [Predicate Service])]
+serviceSearchParams
+  = [("Service_createtime",    interval createTime)
+    ,("contractor_partnerId", one contractor_partnerId)
+    ,("svcType", one svcType)
+    ]

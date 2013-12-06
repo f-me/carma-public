@@ -2,6 +2,7 @@ module Carma.Model.Case.Type where
 
 import Data.Text
 import Data.Typeable
+import Data.Vector
 
 import Data.Time.Clock    (UTCTime)
 
@@ -21,7 +22,7 @@ data Case = Case
   , callTaker
     :: F Text            "callTaker" "Сотрудник РАМК"
   , comment
-    :: F (Maybe (IdentT Wazzup)) "comment" "Что случилось"
+    :: F (Maybe Text) "comment" "Что случилось"
   , diagnosis1
     :: F (IdentT Diagnosis1) "diagnosis1" "Система"
   , diagnosis2
