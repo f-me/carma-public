@@ -16,15 +16,6 @@ define ["dictionaries/local-dict"
         @source = for obj in (_.filter objs, (o) -> o.isBack)
           { value: obj.id, label: obj.label || '' }
 
-    # Dictionary of all legacy user-created programs, used in case
-    # model (TODO backwards-compatible hack for #711 and prefinal
-    # release of #1451)
-    casePrograms: =>
-      @bgetJSON "/all/program", (objs) =>
-        valued_objs = _.filter objs, (p) -> !_.isEmpty(p.value)
-        @source = for obj in valued_objs
-          { value: obj.value, label: obj.label || '' }
-
     # Dictionary of all subprograms, with labels including parent
     # program name (used to assign users to subprograms)
     usermetaPrograms: =>

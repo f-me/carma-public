@@ -93,8 +93,9 @@
     {
       "meta": {
         "label": "Программа",
-        "dictionaryName": "casePrograms",
-        "dictionaryType": "ComputedDict",
+        "dictionaryName": "Program",
+        "dictionaryType": "ModelDict",
+        "dictionaryStringify": true,
         "required": true,
         "bounded": true,
         "targetCategory": "program",
@@ -103,6 +104,18 @@
       "type": "dictionary",
       "groupName": null,
       "name": "program"
+    },
+    {
+      "meta": {
+        "dictionaryName": "SubProgram",
+        "dictionaryType": "ModelDict",
+        "dictionaryStringify": true,
+        "dictionaryParent": "program",
+        "bounded": true,
+        "label": "Подпрограмма"
+      },
+      "type": "dictionary",
+      "name": "subprogram"
     },
     {
       "meta": null,

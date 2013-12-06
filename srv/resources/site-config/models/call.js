@@ -21,14 +21,27 @@
     },
     {
       "meta": {
-        "dictionaryName": "casePrograms",
-        "dictionaryType": "ComputedDict",
+        "dictionaryName": "Program",
+        "dictionaryType": "ModelDict",
+        "dictionaryStringify": true,
         "bounded": true,
         "label": "Программа"
       },
       "type": "dictionary",
       "groupName": null,
       "name": "program"
+    },
+    {
+      "meta": {
+        "dictionaryName": "SubProgram",
+        "dictionaryType": "ModelDict",
+        "dictionaryStringify": true,
+        "dictionaryParent": "program",
+        "bounded": true,
+        "label": "Подпрограмма"
+      },
+      "type": "dictionary",
+      "name": "subprogram"
     },
     {
       "meta": {
