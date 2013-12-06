@@ -46,7 +46,7 @@
     },
     {
       "meta": {
-        "label": "Роль в системе",
+        "label": "Роли в системе",
         "dictionaryName": "Roles",
         "bounded": true
       },
