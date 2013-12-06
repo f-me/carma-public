@@ -150,7 +150,7 @@ COPY "CarModel" (id, value, label, parent) FROM stdin;
 137	largus	Largus	7
 138	thesis	Thesis	23
 139	defender	Defender	24
-140	discavery	Discavery	24
+140	discavery	Discovery	24
 141	freelander	Freelander	24
 142	range	Range Rover	24
 143	rangeEvoque	Range Rover Evoque	24
