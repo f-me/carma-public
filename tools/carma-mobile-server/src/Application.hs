@@ -27,6 +27,7 @@ import Control.Monad.State hiding (ap)
 import Data.Aeson as Aeson
 import qualified Data.HashMap.Strict as HM
 
+import Data.Attoparsec.Number
 import Data.Attoparsec.ByteString.Char8
 
 import Data.ByteString.Char8 (ByteString)
@@ -57,6 +58,8 @@ import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple
 import Snap.Snaplet.RedisDB
 
+import Data.Model
+import Carma.Model.Program as Program
 
 import Carma.HTTP hiding (runCarma)
 import qualified Carma.HTTP as CH (runCarma)
@@ -178,9 +181,9 @@ updatePartnerData pid lon lat free addr mtime =
 
 
 ------------------------------------------------------------------------------
--- | Default program for created cases.
-defaultProgram :: ByteString
-defaultProgram = "ramc2"
+-- | Default program id for created cases.
+defaultProgram :: Int
+defaultProgram = n where (Ident n) = Program.ramc
 
 
 ------------------------------------------------------------------------------
@@ -208,11 +211,13 @@ newCase :: Handler b GeoApp ()
 newCase = do
   -- New case parameters
   rqb <- readRequestBody 4096
-  let -- Do not enforce typing on values when reading JSON
+  let progField = "program"
+      -- Do not enforce typing on values when reading JSON
       Just jsonRq0 :: Maybe (HM.HashMap ByteString Value) =
                       Aeson.decode rqb
       coords' = (,) <$> (HM.lookup "lon" jsonRq0) <*> (HM.lookup "lat" jsonRq0)
-      -- Now read all values but coords into ByteStrings
+      program = HM.lookup progField jsonRq0
+      -- Now read all values but coords and program into ByteStrings
       jsonRq = HM.map (\(String s) -> encodeUtf8 s) $
                HM.filter (\case
                           String _ -> True
@@ -237,13 +242,12 @@ newCase = do
         jsonRq
     _ -> return jsonRq
 
-
-
   -- Set default program (if not provided by client), then form a new
   -- case request to send to CaRMa
-  let setProg   = maybe (HM.insert "program" defaultProgram) (const id)
-                  (HM.lookup "program" jsonRq')
-      caseBody  = setProg $
+  let progValue = BS.pack $ show $ case program of
+                                     Just (Number (I n)) -> fromInteger n
+                                     _                   -> defaultProgram
+      caseBody  = HM.insert progField progValue $
                   HM.delete "lon" $
                   HM.delete "lat" $
                   HM.delete "car_vin" $ -- we'll insert it later to run trigger
