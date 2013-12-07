@@ -15,6 +15,17 @@ define ["dictionaries/local-dict"], (ld) ->
         @source = for obj in (_.filter objs, (o) -> o.isBack)
           { value: obj.id, label: obj.label || '' }
 
+    # Dictionary of all usermetas with programManager role (used on
+    # Program)
+    programManagers: =>
+      @bgetJSON "/_/Usermeta", (objs) =>
+        pms = _.filter objs, (o) ->
+          _.contains o.roles, String(global.idents("Role").programManager)
+        @source = for p in pms
+            { value: p.id
+            , label: (p.realName + ' — ' + p.login) || ''
+            }
+
     # Dictionary of all subprograms, with labels including parent
     # program name (used to assign users to subprograms)
     usermetaPrograms: =>
