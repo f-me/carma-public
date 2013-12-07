@@ -110,7 +110,10 @@ define  [ "utils"
       , meta: {dictionaryName: 'DealerCities'}
       , type: "dictionary-many" },
       { name: 'boPrograms'
-      , meta: {dictionaryName: 'Programs'}
+      , meta: { dictionaryName: 'Program'
+              , dictionaryType: 'ModelDict'
+              , dictionaryStringify: true
+              }
       , type: "dictionary-many"
       } ]
 

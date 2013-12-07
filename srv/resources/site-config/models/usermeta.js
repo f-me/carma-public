@@ -77,7 +77,10 @@
     {
       "meta": {
         "label": "boPrograms",
-        "dictionaryName": "Programs",
+        "dictionaryName": "Program",
+        "dictionaryType": "ModelDict",
+        "dictionaryStringify": true,
+        "bounded": true,
         "invisible": true
       },
       "type": "dictionary-many",
