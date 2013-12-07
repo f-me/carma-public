@@ -23,11 +23,12 @@ data Program = Program
                              "managers"  "Менеджеры по программе"
   } deriving Typeable
 
-instance Model Program where
-  type TableName Program = "Program"
-  modelInfo = mkModelInfo Program ident
-  modelView _ = defaultView
-
 mkIdents [t|Program|]
  [ ("vtb24", 2)
  ]
+
+instance Model Program where
+  type TableName Program = "Program"
+  idents = Carma.Model.Program.idents
+  modelInfo = mkModelInfo Program ident
+  modelView _ = defaultView

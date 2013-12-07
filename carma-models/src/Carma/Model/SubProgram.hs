@@ -38,8 +38,16 @@ data SubProgram = SubProgram
   , dealerHelp   :: F (Maybe Text)             "dealerHelp" "Справка для дилеров"
   } deriving Typeable
 
+mkIdents [t|SubProgram|]
+ [ ("vwMotor", 1)
+ , ("vwCargo", 2)
+ , ("peugeot", 3)
+ , ("citroen", 4)
+ ]
+
 instance Model SubProgram where
   type TableName SubProgram = "SubProgram"
+  idents = Carma.Model.SubProgram.idents
   modelInfo = mkModelInfo SubProgram ident
   modelView _ = modifyView defaultView
                 [ setMeta "regexp" "number" checkPeriod
@@ -54,10 +62,3 @@ instance Model SubProgram where
                 , setMeta "reference-widget" "files" logo
                 , setMeta "single-uploader" (A.Bool True) logo
                 ]
-
-mkIdents [t|SubProgram|]
- [ ("vwMotor", 1)
- , ("vwCargo", 2)
- , ("peugeot", 3)
- , ("citroen", 4)
- ]

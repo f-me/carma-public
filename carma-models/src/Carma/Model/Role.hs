@@ -17,12 +17,6 @@ data Role = Role
   ,isBack :: F Bool "isBack" "Роль бэкофиса"
   } deriving Typeable
 
-
-instance Model Role where
-  type TableName Role = "Role"
-  modelInfo = mkModelInfo Role ident
-  modelView _ = modifyView defaultView [readonly value]
-
 mkIdents [t|Role|]
  [ ("core", 1)
  , ("call", 2)
@@ -62,3 +56,9 @@ mkIdents [t|Role|]
  , ("dpViewer", 34)
  , ("programManager", 35)
  ]
+
+instance Model Role where
+  type TableName Role = "Role"
+  idents = Carma.Model.Role.idents
+  modelInfo = mkModelInfo Role ident
+  modelView _ = modifyView defaultView [readonly value]
