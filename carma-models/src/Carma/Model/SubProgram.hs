@@ -3,7 +3,6 @@
 module Carma.Model.SubProgram where
 
 import Data.Aeson as A (Value(Bool))
-
 import Data.Text
 import Data.Typeable
 import Data.Vector

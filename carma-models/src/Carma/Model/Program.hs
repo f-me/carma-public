@@ -2,6 +2,7 @@
 
 module Carma.Model.Program where
 
+import Data.Aeson as A (Value(Bool))
 import Data.Text
 import Data.Typeable
 import Data.Vector
@@ -31,4 +32,8 @@ instance Model Program where
   type TableName Program = "Program"
   idents = Carma.Model.Program.idents
   modelInfo = mkModelInfo Program ident
-  modelView _ = defaultView
+  modelView _ = modifyView defaultView
+                [ setMeta "dictionaryType" "ComputedDict" managers
+                , setMeta "dictionaryName" "programManagers" managers
+                , setMeta "bounded" (A.Bool True) managers
+                ]
