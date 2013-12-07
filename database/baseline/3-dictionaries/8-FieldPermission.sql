@@ -940,6 +940,8 @@ lovViewer	Program	clientAddress	t	f
 lovAdmin	Program	clientAddress	t	t
 lovViewer	Program	clientCode	t	f
 lovAdmin	Program	clientCode	t	t
+lovViewer	Program	managers	t	f
+lovAdmin	Program	managers	t	t
 lovViewer	SubProgram	parent	t	f
 lovAdmin	SubProgram	parent	t	t
 lovViewer	SubProgram	label	t	f

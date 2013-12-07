@@ -4,6 +4,7 @@ CREATE TABLE "Program"
   , client text
   , clientAddress text
   , clientCode text
+  , managers int4[] DEFAULT array[]::int4[]
   );
 
 COPY "Program" (id, label) FROM stdin;
