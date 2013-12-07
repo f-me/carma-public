@@ -113,6 +113,25 @@ stripModel u m = do
         Just wr -> f {canWrite = canWrite f && wr} : fs
   return $ m {fields = foldr fieldFilter [] $ fields m}
 
+-- | Serve available idents for a model (given in @name@ request
+-- parameter) as JSON object.
+serveIdents :: Handler b (SiteConfig b) ()
+serveIdents = do
+  nm <- getParam "name"
+  case nm of
+    Nothing -> error "Must provide model name"
+    Just name ->
+        let
+            fun :: Model.Model m =>
+                   m
+                -> HM.HashMap String (Model.IdentI m)
+            fun _ = Model.idents
+            idents' = Model.dispatch (T.decodeUtf8 name) (Aeson.encode . fun)
+        in
+          case idents' of
+            Just e -> (modifyResponse $ setContentType "application/json") >>
+                      writeLBS e
+            Nothing -> handleError 404
 
 serveDictionaries :: Handler b (SiteConfig b) ()
 serveDictionaries = do
@@ -172,8 +191,9 @@ initSiteConfig cfgDir pg_pool = makeSnaplet
   "site-config" "Site configuration storage"
   Nothing $ do
     addRoutes
-      [("model/:name",  method GET serveModel)
-      ,("dictionaries", method GET serveDictionaries)
+      [ ("model/:name",  method GET serveModel)
+      , ("idents/:name", method GET serveIdents)
+      , ("dictionaries", method GET serveDictionaries)
       ]
     liftIO $ SiteConfig
       <$> loadModels cfgDir

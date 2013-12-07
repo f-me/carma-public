@@ -21,8 +21,9 @@ define [ "model/render"
        , "dictionaries/local-dict"
        , "sync/crud"
        , "lib/serialize"
+       , "lib/idents"
        ],
-       (render, dict, sync, S) ->
+       (render, dict, sync, S, Idents) ->
   mainSetup = ( localScreens
                    , localRouter
                    , localDictionaries
@@ -32,6 +33,7 @@ define [ "model/render"
     Screens = localScreens
 
     dictCache = dict.buildCache(localDictionaries)
+    imgr = new Idents
 
     window.global =
         # «Screen» element which holds all views
@@ -45,6 +47,9 @@ define [ "model/render"
         dictValueCache: dictCache.valueCache
         hooks: hooks
         user: user
+        # Provided a model name, return available idents for that
+        # model
+        idents: (mn) -> imgr.getIdents mn
         model: do ->
           modelCache = {}
           (name, arg) ->
