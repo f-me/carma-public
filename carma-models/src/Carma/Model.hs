@@ -54,6 +54,7 @@ import Carma.Model.Service.Transportation (Transportation)
 import Carma.Model.Service.Tech           (Tech)
 import Carma.Model.Service.TechInspect    (TechInspect)
 import Carma.Model.Service.Towage         (Towage)
+import Carma.Model.Usermeta               (Usermeta)
 
 dispatch :: forall a . Text -> (forall m . Model m => m -> a) -> Maybe a
 dispatch model fn = Map.lookup model modelMap
@@ -102,4 +103,5 @@ dispatch model fn = Map.lookup model modelMap
       ,add (undefined :: Tech)
       ,add (undefined :: TechInspect)
       ,add (undefined :: Towage)
+      ,add (undefined :: Usermeta)
       ]
