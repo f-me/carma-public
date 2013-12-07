@@ -26,6 +26,7 @@ data Program = Program
 
 mkIdents [t|Program|]
  [ ("vtb24", 2)
+ , ("ramc", 64)
  ]
 
 instance Model Program where
