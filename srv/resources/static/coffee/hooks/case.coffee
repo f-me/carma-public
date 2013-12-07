@@ -109,8 +109,12 @@ define ["utils", "dictionaries", "lib/ident/role"], (u, d, role) ->
 
 
   descsKbHook: (model, knockVM) ->
+    srvDict = new d.dicts.ModelDict
+      dict: 'ServiceNames'
+      meta:
+        dictionaryLabel: 'value'
     mkServicesDescs = (p, s) ->
-      description: u.getServiceDesc(p ,s._meta.model.name)
+      description: u.getServiceDesc(p , srvDict.getVal s._meta.model.name)
       title:       s._meta.model.title
     knockVM['servicesDescs'] = ko.computed
       read: ->
