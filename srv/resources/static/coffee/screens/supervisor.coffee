@@ -3,8 +3,7 @@ define ["utils"
       , "text!tpl/screens/supervisor.html"
       , "screenman"
       , "hooks/common"
-      , "lib/ident/role"
-      ], (utils, main, tpl, screenman, hook, role) ->
+      ], (utils, main, tpl, screenman, hook) ->
 
   dataTableOptions = ->
     aoColumns: utils
@@ -141,7 +140,7 @@ define ["utils"
     tpl = $('#dictionary-many-field-template').html()
     $('#roles').html(Mustache.render tpl, roleModel.fields[0])
     ko.applyBindings roleKVM, $('#roles')[0]
-    roleKVM.roles role.bo_order
+    roleKVM.roles String(global.idents("Role").bo_order)
     roleKVM
 
   # Update unassigned action counts using currently selected duetime

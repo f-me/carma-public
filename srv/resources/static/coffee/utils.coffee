@@ -1,4 +1,4 @@
-define ["model/utils", "dictionaries", "lib/ident/role"], (mu, d, role) ->
+define ["model/utils", "dictionaries"], (mu, d) ->
   # jquery -> html(as string) conversion, with selected element
   jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
 

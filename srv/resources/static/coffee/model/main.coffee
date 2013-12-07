@@ -35,6 +35,9 @@ define [ "model/render"
     dictCache = dict.buildCache(localDictionaries)
     imgr = new Idents
 
+    # Convert user.roles to use integer ids
+    user.roles = _.map user.roles, (v) -> parseInt v
+
     window.global =
         # «Screen» element which holds all views
         topElement: $el("layout")

@@ -1,5 +1,4 @@
-define ["dictionaries/local-dict"
-       ,"lib/ident/role"], (ld, role) ->
+define ["dictionaries/local-dict"], (ld) ->
   class ComputedDict extends ld.dict
     constructor: (@opts) ->
       [f, a] = @opts.dict.split ':'
@@ -41,11 +40,11 @@ define ["dictionaries/local-dict"
         else
           []
       @source =
-        if _.contains global.user.roles, role.partner
+        if _.contains global.user.roles, global.idents("Role").partner
           _.filter(all_pgms,
                   (e) -> _.contains user_pgms, e.value)
         else
-          if _.contains global.user.roles, role.vinAdmin
+          if _.contains global.user.roles, global.idents("Role").vinAdmin
             all_pgms
           else
             []

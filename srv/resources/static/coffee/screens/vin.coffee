@@ -1,8 +1,7 @@
 define [ "text!tpl/screens/vin.html"
        , "utils"
-       , "lib/ident/role"
        , "dictionaries"
-       ], (tpl, u, role, d) ->
+       ], (tpl, u, d) ->
   this.setupVinForm = (viewName, args) ->
     vin_html = $el("vin-form-template").html()
     bulk_partner_html = $el("partner-form-template").html()
@@ -13,10 +12,10 @@ define [ "text!tpl/screens/vin.html"
     programs = dict('vinPrograms').source
     all_html = ""
 
-    if _.contains global.user.roles, role.psaanalyst
+    if _.contains global.user.roles, global.idents("Role").psaanalyst
       all_html += bulk_partner_html
 
-    if _.contains global.user.roles, role.vinAdmin
+    if _.contains global.user.roles, global.idents("Role").vinAdmin
       all_html += vin_html
 
 

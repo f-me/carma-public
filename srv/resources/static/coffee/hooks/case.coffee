@@ -1,4 +1,4 @@
-define ["utils", "dictionaries", "lib/ident/role"], (u, d, role) ->
+define ["utils", "dictionaries"], (u, d) ->
   fillEventsHistory = (knockVM) -> ->
     t = $("#call-searchtable")
     st = t.dataTable()
@@ -163,7 +163,7 @@ define ["utils", "dictionaries", "lib/ident/role"], (u, d, role) ->
 
   vwfakeHook: (model, knockVM) ->
     knockVM['callDateVisible'] = ko.computed ->
-      not _.contains global.user.roles, role.vwfake
+      not _.contains global.user.roles, global.idents("Role").vwfake
 
   carModelInfoHook: (model, knockVM) ->
     dict = new d.dicts.ModelDict
