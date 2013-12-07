@@ -43,8 +43,6 @@ library
     Carma.Model.SubProgram,
     Carma.Model.Region,
     Carma.Model.Role,
-    Carma.Model.SmsTemplate,
-    Carma.Model.Sms,
     Carma.Model.Wazzup,
     Carma.Model.Case,
     Carma.Model.Case.Type,
@@ -73,7 +71,12 @@ library
     Carma.Model.ProgramInfo,
     Carma.Model.ServiceInfo,
     Carma.Model.ServiceNames,
-    Carma.Model.Colors
+    Carma.Model.Colors,
+
+    Carma.Model.Sms,
+    Carma.Model.SmsTemplate,
+    Carma.Model.SmsTokenName,
+    Carma.Model.SmsTokenValue
 
   -- other-modules:
   hs-source-dirs:    src
