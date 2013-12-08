@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                carma-models
-version:             0.5.8
+version:             0.5.9
 -- synopsis:
 -- description:
 license:             MIT
@@ -40,6 +40,7 @@ library
     Carma.Model.ConstructorFieldOption,
     Carma.Model.OldProgram,
     Carma.Model.Program,
+    Carma.Model.ProgramType,
     Carma.Model.SubProgram,
     Carma.Model.Region,
     Carma.Model.Role,

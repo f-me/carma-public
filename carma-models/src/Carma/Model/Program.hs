@@ -12,6 +12,7 @@ import Data.Model.View
 import Data.Model.TH
 
 import Carma.Model.Types()
+import Carma.Model.ProgramType hiding (ident)
 import Carma.Model.Usermeta hiding (ident)
 
 data Program = Program
@@ -22,6 +23,8 @@ data Program = Program
   , clientCode            :: F (Maybe Text)    "clientCode" "Код заказчика"
   , managers              :: F (Vector (IdentI Usermeta))
                              "managers"  "Менеджеры по программе"
+  , pType                 :: F (Maybe (IdentI ProgramType))
+                             "pType"  "Тип программы"
   } deriving Typeable
 
 mkIdents [t|Program|]
