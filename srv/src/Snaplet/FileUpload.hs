@@ -194,8 +194,10 @@ uploadInField = do
   Just model <- getParam "model"
   Just objId <- getParam "id"
   Just field <- getParam "field"
-  (res, _, _, _) <- uploadInManyFields (const [(model, objId, field)]) Nothing
-  writeLBS $ A.encode $ res
+  (res, fails, _, _) <- uploadInManyFields (const [(model, objId, field)]) Nothing
+  if null fails
+  then writeLBS $ A.encode $ res
+  else error $ "Failed to upload in field: " ++ (show fails)
 
 -- | Return path to an attached file (prepended by finished uploads
 -- dir).
@@ -212,7 +214,7 @@ getAttachmentPath aid = do
     _ -> error $ "Broken attachment" ++ B8.unpack aid
 
 -- | Append a reference of form @attachment:213@ to a field of another
--- instance. This handler is thread-safe.
+-- instance, which must exist. This handler is thread-safe.
 attachToField :: ModelName
               -- ^ Name of target instance model.
               -> ObjectId
