@@ -31,6 +31,7 @@ import qualified Data.Text as T
 import Network.URI (parseURI)
 import qualified Fdds
 import Data.Configurator
+import Data.Configurator.Types
 
 import WeatherApi.WWOnline (initApi)
 
@@ -51,10 +52,10 @@ import qualified Carma.ModelTables as MT (loadTables)
 import Snaplet.DbLayer.Triggers
 import Snaplet.DbLayer.Dictionary (readRKCCalc)
 import DictionaryCache
-import Util
 import RuntimeFlag
 
-create :: ModelName -> Object -> Handler b (DbLayer b) (Map.Map FieldName ByteString)
+create :: ModelName -> Object
+       -> Handler b (DbLayer b) (Map.Map FieldName ByteString)
 create model commit = scoper "create" $ do
   tbls <- gets syncTables
   log Trace $ fromString $ "Model: " ++ show model
@@ -79,7 +80,8 @@ create model commit = scoper "create" $ do
   return $ Map.insert "id" objId
          $ obj Map.\\ commit
 
-findOrCreate :: ByteString -> ByteString -> Object -> Handler b (DbLayer b) (Map.Map ByteString ByteString)
+findOrCreate :: ModelName -> ObjectId -> Object
+             -> Handler b (DbLayer b) (Map.Map ByteString ByteString)
 findOrCreate model objId commit = do
   r <- read model objId
   case Map.toList r of
@@ -88,7 +90,8 @@ findOrCreate model objId commit = do
       Redis.create' redis model objId obj
     _  -> return r
 
-read :: ByteString -> ByteString -> Handler b (DbLayer b) (Map.Map ByteString ByteString)
+read :: ModelName -> ObjectId
+     -> Handler b (DbLayer b) (Map.Map ByteString ByteString)
 read model objId = do
   res <- Redis.read redis model objId
   -- FIXME: catch NotFound => search in postgres
@@ -97,7 +100,8 @@ read model objId = do
 read' :: ByteString -> Handler b (DbLayer b) (Map.Map ByteString ByteString)
 read' objId = Redis.read' redis objId
 
-update :: ByteString -> ByteString -> Object -> Handler b (DbLayer b) (Map.Map FieldName ByteString)
+update :: ModelName -> ObjectId -> Object
+       -> Handler b (DbLayer b) (Map.Map FieldName ByteString)
 update model objId commit = scoper "update" $ do
   tbls <- gets syncTables
   log Trace $ fromString $ "Model: " ++ show model
@@ -107,19 +111,19 @@ update model objId commit = scoper "update" $ do
   -- (Copy on write)
   changes <- triggerUpdate model objId commit
   Right _ <- Redis.updateMany redis changes
-  -- 
+  --
   let
     toPair [x, y] = Just (x, y)
     toPair _ = Nothing
 
-  let changes' = Map.mapWithKey (\(_,k) v -> Map.insert "id" k v) . Map.mapKeys fromJust . Map.filterWithKey (\k v -> isJust k) . Map.mapKeys (toPair . C8.split ':') $ changes
+  let changes' = Map.mapWithKey (\(_,k) v -> Map.insert "id" k v) . Map.mapKeys fromJust . Map.filterWithKey (\k _ -> isJust k) . Map.mapKeys (toPair . C8.split ':') $ changes
   log Trace $ fromString $ "Changes: " ++ show changes'
   Postgres.insertUpdateMany tbls changes'
   --
   let stripUnchanged orig = Map.filterWithKey (\k v -> Map.lookup k orig /= Just v)
   return $ stripUnchanged commit $ changes Map.! fullId
 
-delete :: ByteString -> ByteString -> Handler b (DbLayer b) ()
+delete :: ModelName -> ObjectId -> Handler b (DbLayer b) ()
 delete model objId = Redis.delete redis model objId
 
 
@@ -150,11 +154,11 @@ smsProcessing = runRedisDB redis $ do
 
 
 -- TODO Use lens to an external AuthManager
-initDbLayer :: Snaplet (AuthManager b) 
+initDbLayer :: Snaplet (AuthManager b)
             -> Lens' b (Snaplet Postgres)
             -- ^ Lens to a snaplet with Postgres DB used for user
             -- authorization.
-            -> TVar RuntimeFlags 
+            -> TVar RuntimeFlags
             -> FilePath
             -> SnapletInit b (DbLayer b)
 initDbLayer sessionMgr adb rtF cfgDir = makeSnaplet "db-layer" "Storage abstraction"
@@ -188,6 +192,7 @@ initDbLayer sessionMgr adb rtF cfgDir = makeSnaplet "db-layer" "Storage abstract
 
 ----------------------------------------------------------------------
 
+fddsConfig :: Config -> IO Fdds.Conf
 fddsConfig cfg = do
   uri   <- require cfg "fdds-uri"
   login <- require cfg "fdds-login"
