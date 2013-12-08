@@ -932,6 +932,8 @@ core	partnerCancel	owner	t	t
 core	partnerCancel	partnerCancelReason	t	t
 core	partnerCancel	partnerId	t	t
 core	partnerCancel	serviceId	t	t
+lovViewer	ProgramType	label	t	f
+lovAdmin	ProgramType	label	t	t
 lovViewer	Program	label	t	f
 lovAdmin	Program	label	t	t
 lovViewer	Program	client	t	f
@@ -942,6 +944,8 @@ lovViewer	Program	clientCode	t	f
 lovAdmin	Program	clientCode	t	t
 lovViewer	Program	managers	t	f
 lovAdmin	Program	managers	t	t
+lovViewer	Program	pType	t	f
+lovAdmin	Program	pType	t	t
 lovViewer	SubProgram	parent	t	f
 lovAdmin	SubProgram	parent	t	t
 lovViewer	SubProgram	label	t	f
