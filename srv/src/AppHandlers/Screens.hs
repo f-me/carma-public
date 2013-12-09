@@ -110,13 +110,11 @@ qProgram = [sql| SELECT id::text, label FROM programtbl WHERE id::text in ? |]
 getScreens :: AppHandler ()
 getScreens = do
   s  <- liftIO readScreens
-  cu <- fromJust <$> withAuth currentUser
-  [(roles, progIds)] <- with db $ query q (Only $ getUid $ userId cu)
+  (Just (UserId uid)) <- (userId . fromJust) <$> withAuth currentUser
+  [(roles, progIds)] <- with db $ query q (Only uid)
         :: Handler App App [([ByteString], Maybe [ByteString])]
   programs <- with db $ query qProgram (Only (In $ fromMaybe [] progIds))
         :: Handler App App [Program]
   case s of
     Right s' -> writeJSON $ processScreens s' roles programs
     Left err -> finishWithError 403 err
-    where
-      getUid (Just (UserId uid)) = uid

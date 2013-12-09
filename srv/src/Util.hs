@@ -26,7 +26,7 @@ import Data.Maybe
 
 import Control.Exception
 import Control.Applicative
-import Control.Monad.Trans (liftIO)
+import Control.Monad.IO.Class
 import Data.Typeable
 import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Lazy  as L
@@ -100,7 +100,7 @@ s2p "<"  = (<)
 s2p ">"  = (>)
 s2p ">=" = (>=)
 s2p "==" = (==)
-s2p s = error "Invalid argument of s2p"
+s2p _    = error "Invalid argument of s2p"
 
 selectParse :: Map ByteString ByteString -> ByteString -> Bool
 selectParse obj prm =
@@ -128,16 +128,6 @@ lookupNE :: Ord k => k -> Map k B.ByteString -> Maybe B.ByteString
 lookupNE key obj = Map.lookup key obj >>= lp
   where lp "" = Nothing
         lp v  = return v
-
-calcCost :: Map ByteString ByteString -> Map ByteString ByteString -> Maybe ByteString
-calcCost srv opt = getCost srv opt >>= calcCost'
-  where calcCost' cost = do
-          count <- lookupNE "count" opt >>= mbreadDouble
-          cost' <- mbreadDouble cost
-          return $ printBPrice $ cost' * count
-
-getCost :: Map ByteString ByteString -> Map ByteString ByteString -> Maybe ByteString
-getCost opt srv = getCostField srv >>= flip lookupNE opt
 
 getCostField :: Map ByteString ByteString -> Maybe ByteString
 getCostField srv = lookupNE "payType" srv >>= selectPrice
@@ -186,6 +176,7 @@ render varMap = T.concat . loop
 
 
 -- | Format timestamp as "DD/MM/YYYY".
+formatTimestamp :: MonadIO m => ByteString -> m Text
 formatTimestamp tm = case B.readInt tm of
   Just (s,"") -> do
     tz <- liftIO getCurrentTimeZone

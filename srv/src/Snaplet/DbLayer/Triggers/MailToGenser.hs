@@ -6,18 +6,14 @@ module Snaplet.DbLayer.Triggers.MailToGenser
   ) where
 
 
-import Control.Applicative
 import Control.Monad.Trans (liftIO)
 import Control.Monad
 import Control.Concurrent
 
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as B
 import Data.Text (Text)
 import qualified Data.Text.Encoding as T
 import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Encoding as TL
 
 import qualified Snap.Snaplet.PostgresqlSimple as PG
 import Database.PostgreSQL.Simple.SqlQQ
@@ -25,13 +21,12 @@ import Data.Configurator (require)
 import Network.Mail.Mime
 
 import Snap.Snaplet (getSnapletUserConfig)
-import Snaplet.DbLayer.Types (getDict)
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
-import DictionaryCache
 import Carma.HTTP
 
 
+q :: PG.Query
 q = [sql|
   with p as
     (select p.id, p.name, p.addr->>'value' as addr

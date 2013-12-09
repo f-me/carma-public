@@ -609,6 +609,7 @@ openAction = do
                        Map.singleton "openTime" dn
       writeJSON res
 
+lookupSrvQ :: Query
 lookupSrvQ = [sql|
   SELECT c.id::text
        , c.comment

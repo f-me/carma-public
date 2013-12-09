@@ -1,6 +1,5 @@
 module Snaplet.Auth.Class where
 
-import Control.Lens
 import Snap.Snaplet
 import Snap.Snaplet.Auth
 
