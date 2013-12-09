@@ -472,7 +472,7 @@ serviceActions = Map.fromList
         pgm     <- get caseId "program"
         let (svc:_) = B.split ':' objId
         when (svc == "towage"
-            && pgm == "gensernov"
+            && pgm == identFv Program.genser
             && payType == "ruamc"
             && val `elem`
               ["serviceOrdered", "serviceOk"
