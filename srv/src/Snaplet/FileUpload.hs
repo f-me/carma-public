@@ -37,6 +37,7 @@ import qualified Data.HashSet as HS
 import Database.PostgreSQL.Simple.SqlQQ
 import Data.Char
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 
 import System.Directory
 import System.FilePath
@@ -51,6 +52,7 @@ import Snaplet.Auth.Class
 import Snaplet.Auth.PGUsers
 
 import qualified Snaplet.DbLayer as DB
+import qualified Utils.NotDbLayer as NDB
 import Snaplet.DbLayer.Types
 
 import Util as U
@@ -133,7 +135,7 @@ uploadInManyFields flds nameFun = do
   let targets = flds fName
   results <-
       forM targets $ \t@(model, objId, field) -> do
-          e <- withDb $ DB.exists model objId
+          e <- withDb $ NDB.exists model objId
           if e
           then do
               attachToField model objId field $ B8.append "attachment:" aid
@@ -234,9 +236,10 @@ attachToField modelName instanceId field ref = do
     then retry
     else writeTVar l (HS.insert lockName hs)
   -- Append new ref to the target field
-  inst <- withDb $ DB.read modelName instanceId
-  let newRefs = addRef (M.findWithDefault "" field inst) ref
-  _  <- withDb $ DB.update modelName instanceId $ M.insert field newRefs inst
+  oldRefs <- NDB.fieldProj field <$> (withDb $ NDB.read modelName instanceId)
+  let newRefs = addRef oldRefs ref
+  _  <- withDb $ NDB.update modelName instanceId 
+        (NDB.fieldPatch field (A.String $ T.decodeUtf8 newRefs))
   -- Unlock the field
   liftIO $ atomically $ do
     hs <- readTVar l

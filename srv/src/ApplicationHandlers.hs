@@ -63,16 +63,18 @@ import qualified Snaplet.DbLayer.RKC as RKC
 import qualified Snaplet.DbLayer.Dictionary as Dict
 import Snaplet.FileUpload (tmp, doUpload)
 ------------------------------------------------------------------------------
-import Application
-import AppHandlers.Util
-import AppHandlers.Users
-import Util as U hiding (render)
-import RuntimeFlag
-
 import Carma.Model
 import qualified Carma.Model.Role as Role
 import Data.Model.Patch (Patch)
 import qualified Data.Model.Patch.Sql as Patch
+
+import Application
+import AppHandlers.Util
+import AppHandlers.Users
+import Util as U hiding (render)
+import Utils.NotDbLayer (readIdent)
+import RuntimeFlag
+
 
 ------------------------------------------------------------------------------
 -- | Render empty form for model.
@@ -135,9 +137,6 @@ smspost = do
 readInt :: (Read i, Integral i) => ByteString -> i
 readInt = read . read . show
 
-readIdent :: ByteString -> IdentI m
-readIdent = Ident . readInt
-
 
 createHandler :: AppHandler ()
 createHandler = do
@@ -170,6 +169,7 @@ readHandler = do
           [obj] -> writeJSON obj
           []    -> handleError 404
           _     -> error $ "BUG in readHandler: " ++ show (Aeson.encode res)
+  -- See also Utils.NotDbLayer.read
   case Carma.Model.dispatch (T.decodeUtf8 model) readModel of
     Just fn -> fn
     _ -> with db (DB.read model objId) >>= \case
@@ -228,7 +228,7 @@ updateHandler = do
         case res of
           0 -> handleError 404
           _ -> writeJSON $ Aeson.object []
-
+  -- See also Utils.NotDbLayer.update
   case Carma.Model.dispatch (T.decodeUtf8 model) updateModel of
     Just fn -> fn
     Nothing -> do
