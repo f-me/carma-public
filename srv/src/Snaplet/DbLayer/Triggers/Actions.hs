@@ -40,6 +40,7 @@ import Snaplet.DbLayer.Triggers.Dsl
 import Snaplet.DbLayer.Triggers.SMS
 import Snaplet.DbLayer.Triggers.MailToDealer
 import Snaplet.DbLayer.Triggers.MailToPSA
+import Snaplet.DbLayer.Triggers.MailToGenser
 
 import Snap.Snaplet.SimpleLog
 
@@ -462,6 +463,18 @@ serviceActions = Map.fromList
     ,\objId val -> do
       set objId "status" val -- push change to the commit stack
       get objId "parentId" >>= updateCaseStatus
+    ,\objId val -> do
+        caseId  <- get objId "parentId"
+        payType <- get objId "payType"
+        pgm     <- get caseId "program"
+        let (svc:_) = B.split ':' objId
+        when (svc == "towage"
+            && pgm == "gensernov"
+            && payType == "ruamc"
+            && val `elem`
+              ["serviceOrdered", "serviceOk"
+              ,"cancelService", "clientCanceled"])
+          $ sendMailToGenser objId
     ]
   )
   ,("clientSatisfied",
