@@ -3,6 +3,8 @@ module Snaplet.DbLayer.Triggers.Defaults
   (applyDefaults
   ) where 
 
+import Prelude hiding (id)
+
 import Control.Monad.IO.Class
 import Data.Functor
 import Data.Map (Map)

@@ -8,14 +8,12 @@ import Control.Monad.Trans
 import Control.Exception
 import Control.Applicative
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Lazy as L
 import qualified Data.ByteString.Char8 as B
 import qualified Data.Text          as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Map as Map
 import Data.Char
 import Data.Maybe
-import Data.Aeson as Aeson
 import Data.String (fromString)
 
 import qualified Fdds as Fdds
@@ -28,10 +26,6 @@ import System.Locale (defaultTimeLocale)
 
 import Snap (gets, with)
 import Snap.Snaplet.Auth
-import Snap.Snaplet.RedisDB
-import Snap.Snaplet.Auth
-import qualified Database.Redis as Redis
-import qualified Snaplet.DbLayer.RedisCRUD as RC
 import qualified Snap.Snaplet.PostgresqlSimple as PG
 import Snap.Snaplet.PostgresqlSimple ((:.)(..), Only(..))
 import Database.PostgreSQL.Simple.SqlQQ
@@ -55,6 +49,7 @@ import qualified Carma.Model.SmsTemplate as SmsTemplate
 import Util as U
 import qualified  Utils.RKCCalc as RKC
 
+services :: [ModelName]
 services =
   ["deliverCar"
   ,"deliverParts"
@@ -77,15 +72,19 @@ services =
   ,"consultation"
   ]
 
+add :: (Ord k1, Ord k2) =>
+       k1 -> k2 -> [a]
+    -> Map.Map k1 (Map.Map k2 [a])
+    -> Map.Map k1 (Map.Map k2 [a])
 add model field tgs = Map.unionWith (Map.unionWith (++)) $ Map.singleton model (Map.singleton field tgs)
 
 actions :: MonadTrigger m b => Map.Map ModelName (Map.Map FieldName [ObjectId -> FieldValue -> m b ()])
 -- actions :: TriggerMap a
 actions
-    = add "towage" "suburbanMilage" [\objId val -> setSrvMCost objId]
-    $ add "tech"   "suburbanMilage" [\objId val -> setSrvMCost objId]
-    $ add "rent"   "providedFor"    [\objId val -> setSrvMCost objId]
-    $ add "hotel"  "providedFor"    [\objId val -> setSrvMCost objId]
+    = add "towage" "suburbanMilage" [\objId _ -> setSrvMCost objId]
+    $ add "tech"   "suburbanMilage" [\objId _ -> setSrvMCost objId]
+    $ add "rent"   "providedFor"    [\objId _ -> setSrvMCost objId]
+    $ add "hotel"  "providedFor"    [\objId _ -> setSrvMCost objId]
     $ add "towage" "contractor_address" [
       \objId val -> set objId "towerAddress_address" val
       ]
@@ -102,7 +101,7 @@ actions
       $ [(s,serviceActions) | s <- services]
       ++[("sms", Map.fromList
         [("caseId",   [\smsId _ -> updateSMS smsId])
-        ,("template", [\smsId t -> updateSMS smsId])
+        ,("template", [\smsId _ -> updateSMS smsId])
         ,("msg",      [\smsId _ -> updateSMS smsId])
         ]
       )]
@@ -122,7 +121,7 @@ actions
         ,("case", Map.fromList
           [("caseStatus", [\kazeId st -> case st of
             "s0.5" -> do
-              now <- dateNow id
+              now <- dateNow Prelude.id
               due <- dateNow (+ (1*60))
               actionId <- new "action" $ Map.fromList
                 [("name", "tellMeMore")
@@ -241,14 +240,15 @@ fillFromContract vin objId = do
         ,"car_seller", "car_dealerTO"]
         row
       return True
+    _ -> error "fillFromContract: you broke SQL LIMIT"
 
 -- | Automatically change case status according to statuses
 -- of the contained services.
 updateCaseStatus :: MonadTrigger m b => ByteString -> m b ()
 updateCaseStatus caseId =
   set caseId "caseStatus" =<< do
-    services <- B.split ',' <$> get caseId "services"
-    statuses <- mapM (`get` "status") services
+    servs <- B.split ',' <$> get caseId "services"
+    statuses <- mapM (`get` "status") servs
     return $ case statuses of
       _ | all (`elem` ["serviceClosed","falseCall","mistake"]) statuses
           -> "s2" -- closed
@@ -264,6 +264,8 @@ updateCaseStatus caseId =
 -- `bo_control` in `targetGroup`) unless the user has both
 -- `bo_control` and `bo_order` roles. This will enable the action to
 -- be pulled from action pool by bo_control users.
+tryToPassChainToControl :: MonadTrigger m b =>
+                           AuthUser -> ObjectId -> m b ()
 tryToPassChainToControl user action =
     when (not
           (elem (Role $ identFv Role.bo_control) (userRoles user) &&
@@ -271,6 +273,7 @@ tryToPassChainToControl user action =
     clearAssignee action
 
 -- | Clear assignee and assignTime of an action.
+clearAssignee :: MonadTrigger m b => ObjectId -> m b ()
 clearAssignee action = set action "assignedTo" "" >> set action "assignTime" ""
 
 serviceActions :: MonadTrigger m b => Map.Map ByteString [ObjectId -> ObjectId -> m b ()]
@@ -329,7 +332,6 @@ serviceActions = Map.fromList
           due <- dateNow (+ (1*60))
           kazeId <- get objId "parentId"
           Just u <- liftDb $ with auth currentUser
-          currentUser <- maybe "" userLogin <$> getCurrentUser
           now <- dateNow id
           act1 <- new "action" $ Map.fromList
             [("name", "tellClient")
@@ -346,12 +348,12 @@ serviceActions = Map.fromList
           tryToPassChainToControl u act1
 
           upd kazeId "actions" $ addToList act1
-          now <- dateNow id
-          due <- dateNow (+ (14*24*60*60))
+          now2 <- dateNow id
+          due2 <- dateNow (+ (14*24*60*60))
           act2 <- new "action" $ Map.fromList
             [("name", "addBill")
-            ,("ctime", now)
-            ,("duetime", due)
+            ,("ctime", now2)
+            ,("duetime", due2)
             ,("description", utf8 "Прикрепить счёт")
             ,("targetGroup", identFv Role.bo_bill)
             ,("priority", "1")
@@ -502,14 +504,13 @@ serviceActions = Map.fromList
           _ -> return ()]
   )
   ,("contractor_partner",
-    [\objId val -> do
+    [\objId _ -> do
         opts <- get objId "cost_serviceTarifOptions"
         let ids = B.split ',' opts
-        redisDel ids
-        set objId "cost_serviceTarifOptions" ""
+        redisDel ids >> set objId "cost_serviceTarifOptions" ""
     ])
   ,("falseCall",
-    [\objId val -> set objId "cost_counted" =<< srvCostCounted objId])
+    [\objId _ -> set objId "cost_counted" =<< srvCostCounted objId])
   ,("contractor_partnerId",
     [\objId val -> do
         srvs <- get val "services" >>= return  . B.split ','
@@ -517,7 +518,7 @@ serviceActions = Map.fromList
         s <- filterM (\s -> get s "serviceName" >>= return . (m ==)) srvs
         case s of
           []     -> set objId "falseCallPercent" ""
-          (x:xs) -> get x "falseCallPercent" >>= set objId "falseCallPercent"
+          (x:_) -> get x "falseCallPercent" >>= set objId "falseCallPercent"
     ])
   ,("payType",
     [\objId val -> do
@@ -526,18 +527,17 @@ serviceActions = Map.fromList
           Just priceSel -> do
             ids <- get objId "cost_serviceTarifOptions" >>=
                          return . B.split ','
-            forM_ ids $ \id -> do
-              price <- get id priceSel >>= return . fromMaybe 0 . mbreadDouble
-              count <- get id "count" >>= return . fromMaybe 0 . mbreadDouble
-              set id "price" $  printBPrice price
-              set id "cost" =<< printBPrice <$> calcCost id
+            forM_ ids $ \oid -> do
+              price <- get oid priceSel >>= return . fromMaybe 0 . mbreadDouble
+              set oid "price" $  printBPrice price
+              set oid "cost" =<< printBPrice <$> calcCost oid
             srvCostCounted objId >>= set objId "cost_counted"
         ])
   ,("cost_serviceTarifOptions",
-    [\objId val -> set objId "cost_counted" =<< srvCostCounted objId ])
+    [\objId _ -> set objId "cost_counted" =<< srvCostCounted objId ])
    -- RKC calc
-  ,("suburbanMilage", [\objId val -> setSrvMCost objId])
-  ,("providedFor",    [\objId val -> setSrvMCost objId])
+  ,("suburbanMilage", [\objId _ -> setSrvMCost objId])
+  ,("providedFor",    [\objId _ -> setSrvMCost objId])
   ,("times_expectedServiceStart",
     [\objId val -> do
       let Just tm = fst <$> B.readInt val
@@ -560,6 +560,7 @@ serviceActions = Map.fromList
     ])
   ]
 
+resultSet1 :: [FieldValue]
 resultSet1 =
   ["partnerNotOk", "caseOver", "partnerFound"
   ,"carmakerApproved", "dealerApproved", "needService"
@@ -592,6 +593,7 @@ actionActions = Map.fromList
       "0" -> do
         kazeId <- get objId "caseId"
         upd kazeId "actions" $ addToList objId
+      _ -> error "action.closed not 0 or 1"
     ])
   ]
 
@@ -648,12 +650,12 @@ actionResultMap = Map.fromList
         closeServiceAndSendInfoVW objId
         sendMailToDealer objId
       False -> do
-        act <- replaceAction
+        act' <- replaceAction
           "tellClient"
           "Сообщить клиенту о договорённости"
           (identFv Role.bo_control) "1" (+60) objId
         Just u <- liftDb $ with auth currentUser
-        tryToPassChainToControl u act
+        tryToPassChainToControl u act'
   )
   ,("serviceOrderedSMS", \objId -> do
     sendSMS objId SmsTemplate.order
@@ -777,7 +779,6 @@ actionResultMap = Map.fromList
     isReducedMode >>= \case
       True -> closeAction objId
       False -> do
-        tm <- getService objId "times_expectedServiceEnd"
         void $ replaceAction
           "checkEndOfService"
           "Уточнить у клиента окончено ли оказание услуги"
@@ -949,24 +950,27 @@ changeTime fn x y = case B.readInt x of
   Just (r,"") -> fn r
   _ -> fn y
 
+setService :: MonadTrigger m b => ObjectId -> FieldName -> FieldValue -> m b ()
 setService objId field val = do
   svcId <- get objId "parentId"
   set svcId field val
 
 -- Due to disabled trigger recursion we need to call updateCaseStatus manually
 -- on each service.status change
+setServiceStatus :: MonadTrigger m b => ObjectId -> FieldName -> m b ()
 setServiceStatus actId val = do
   svcId <- get actId "parentId"
   set svcId "status" val
   get svcId "parentId" >>= updateCaseStatus
 
+getService :: MonadTrigger m b => ObjectId -> FieldName -> m b FieldValue
 getService objId field
   = get objId "parentId"
   >>= (`get` field)
 
 -- | Get the name of an action's service.
 getServiceType :: MonadTrigger m b =>
-                  FieldValue
+                  ObjectId
                -- ^ Action id.
                -> m b (Maybe String)
 getServiceType actId = do
@@ -974,6 +978,7 @@ getServiceType actId = do
   return $ fst <$> read1Reference v
 
 
+closeServiceAndSendInfoVW :: MonadTrigger m b => ObjectId -> m b ()
 closeServiceAndSendInfoVW objId = do
   setServiceStatus objId "serviceOk"
 
@@ -1011,12 +1016,20 @@ closeServiceAndSendInfoVW objId = do
     addParComment act2
 
 
-
+closeAction :: MonadTrigger m b => ObjectId -> m b ()
 closeAction objId = do
   kazeId <- get objId "caseId"
   upd kazeId "actions" $ dropFromList objId
   set objId "closed" "1"
 
+replaceAction :: MonadTrigger m b =>
+                 FieldValue 
+              -> String
+              -> FieldValue 
+              -> FieldValue 
+              -> (Int -> Int) 
+              -> ObjectId 
+              -> m b ObjectId
 replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
   assignee <- get objId "assignedTo"
   svcId <- get objId "parentId"
@@ -1041,7 +1054,7 @@ replaceAction actionName actionDesc targetGroup priority dueDelta objId = do
   return actionId
 
 requestFddsVin :: MonadTrigger m b => B.ByteString -> B.ByteString -> m b Bool
-requestFddsVin objId vin = do
+requestFddsVin _ vin = do
   let preparedVin = B.unpack $ B.map toUpper vin
   conf     <- liftDb $ gets fdds
   vinState <- liftIO Fdds.vinSearchInit
@@ -1072,6 +1085,7 @@ setWeather objId city = do
         ]
       return ()
 
+srvCostCounted :: MonadTrigger m b => ObjectId -> m b FieldValue
 srvCostCounted srvId = do
   falseCall        <- get srvId "falseCall"
   falseCallPercent <- get srvId "falseCallPercent" >>=
@@ -1082,20 +1096,21 @@ srvCostCounted srvId = do
     "bill" -> return $ printBPrice $ cost * (falseCallPercent / 100)
     _      -> return $ printBPrice cost
 
-calcCost id = do
-  p <- get id "price" >>= return . fromMaybe 0 . mbreadDouble
-  c <- get id "count" >>= return . fromMaybe 0 . mbreadDouble
+calcCost :: MonadTrigger m b => ObjectId -> m b Double
+calcCost objId = do
+  p <- get objId "price" >>= return . fromMaybe 0 . mbreadDouble
+  c <- get objId "count" >>= return . fromMaybe 0 . mbreadDouble
   return $ p * c
 
-setSrvMCost :: MonadTrigger m b => B.ByteString -> m b ()
-setSrvMCost id = do
-  obj    <- readObject id
+setSrvMCost :: MonadTrigger m b => ObjectId -> m b ()
+setSrvMCost objId = do
+  obj    <- readObject objId
   parent <- readObject $ fromJust $ Map.lookup "parentId" obj
   dict   <- liftDb $ gets rkcDict
-  set id "marginalCost" $ RKC.setSrvMCost srvName obj parent dict
+  set objId "marginalCost" $ RKC.setSrvMCost srvName obj parent dict
     where
       -- readR   = lift . RC.read' redis
-      srvName = head $ B.split ':' id
+      srvName = head $ B.split ':' objId
 
 setContractValidUntilMilage :: MonadTrigger m b =>
                                B.ByteString -> B.ByteString -> m b ()
