@@ -29,6 +29,7 @@ data Program = Program
 
 mkIdents [t|Program|]
  [ ("vtb24", 2)
+ , ("genser", 32)
  , ("ramc", 64)
  ]
 
