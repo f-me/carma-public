@@ -228,6 +228,7 @@ core	case	car_checkPeriod	t	t
 core	case	car_checkupDate	t	t
 core	case	car_checkupMileage	t	t
 core	case	car_class	t	t
+core	case	car_legalForm	t	t
 core	case	car_color	t	t
 core	case	car_contractType	t	t
 core	case	car_dealerTO	t	t
