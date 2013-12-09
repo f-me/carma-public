@@ -21,7 +21,7 @@ create view servicesview as
         c.contact_ownerphone3,
         c.contact_ownerphone4,
         c.contact_owneremail,
-        c.program,
+        pgm.value as program,
         pgm.label as programLabel,
         c.car_vin,
         c.car_make,
