@@ -326,6 +326,7 @@
       "type": "dictionary",
       "meta": {
         "label": "Физическое / Юридическое лицо",
+        "widget": "radio",
         "bounded": true,
         "dictionaryName": "LegalForms"
       },
