@@ -7,6 +7,7 @@ define [ "utils"
        , "screens/servicesSearch/model"
        , "text!tpl/screens/servicesSearch.html"
        , "json!/cfg/model/Case?view=search"
+       , "json!/cfg/model/Service?view=search"
        , "sync/servicesSearch"
        , "lib/state-url"
        ], ( utils
@@ -17,9 +18,13 @@ define [ "utils"
           , SPager
           , ssmodels
           , tpl
-          , model
+          , caseModel
+          , servicesModel
           , sync
           , State) ->
+
+  model = $.extend true, {}, caseModel
+  model.fields = model.fields.concat servicesModel.fields
 
   model.fields = model.fields.concat [
     {

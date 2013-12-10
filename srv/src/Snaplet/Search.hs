@@ -11,6 +11,7 @@ import Control.Lens hiding (from)
 import qualified Data.Map as M
 import Data.Monoid
 import Data.Maybe
+import Data.Either
 import Data.String (fromString)
 import Data.Pool
 import Data.Text (Text)
@@ -31,7 +32,8 @@ import Util
 import Utils.HttpErrors
 
 import Carma.Model.Case
-
+import Carma.Model.Service
+import Carma.Model.Search
 
 data Search b = Search
   {postgres :: Pool Connection
@@ -40,19 +42,6 @@ data Search b = Search
 makeLenses ''Search
 
 type SearchHandler b t = Handler b (Search b) t
-
-services :: SearchHandler b ()
-services = do
-  l <- getLimit
-  b <- getJsonBody
-  q <- withPG $ \c -> buildCaseSearchQ c l b
-  -- j <- withPG $ \c -> query_ c $ buildCaseSearchQ c l b
-  case q of
-    Left  v  -> writeBS $ B.pack v
-    Right q' -> do
-      v <- withPG $ \c -> query_ c $ fromString $ T.unpack q'
-      writeBS $ B.concat $ map B.concat v
-
 
 modelFields :: UserId -> Text -> PG.Connection -> IO [Text]
 modelFields uid modelName c
@@ -93,12 +82,15 @@ caseSearch = do
   withPG $ \c -> do
     cse_fields <- modelFields uid "case" c
     svc_fields <- modelFields uid "service" c
-    caseSearchPredicate c args >>= \case
-      Left err -> return $ Left err
-      Right pred -> do
-        s :: [[LB.ByteString]] <- query_ c
-                                  (mkQuery cse_fields svc_fields pred lim offset)
-        return $ return . reply lim offset =<< (sequence $ map (Aeson.eitherDecode . head) s)
+    casePreds  <- predicatesFromParams c args caseSearchParams
+    srvPreds   <- predicatesFromParams c args serviceSearchParams
+    case partitionEithers [casePreds, srvPreds] of
+      ([], preds) -> do
+        s :: [[LB.ByteString]] <-
+          query_ c (mkQuery cse_fields svc_fields (T.concat preds) lim offset)
+        return $ return . reply lim offset =<<
+          (sequence $ map (Aeson.eitherDecode . head) s)
+      (errs, _) -> return $ Left $ foldl (++) "" errs
         -- -> Right . join
         --    <$> query_ c (mkQuery cse_fields svc_fields pred lim)
 

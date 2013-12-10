@@ -28,7 +28,8 @@ define [ "utils"
       ]
     Service: [
       "type"
-      "contractor_partner"
+      "contractor_partnerId"
+      "createTime"
       ]
     Towage: [
       "towdealer_address"
