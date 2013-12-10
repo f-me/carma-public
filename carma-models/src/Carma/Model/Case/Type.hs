@@ -22,7 +22,7 @@ data Case = Case
   , callTaker
     :: F Text            "callTaker" "Сотрудник РАМК"
   , comment
-    :: F (Maybe Text) "comment" "Что случилось"
+    :: F (Maybe (Ident Text Wazzup)) "comment" "Что случилось"
   , diagnosis1
     :: F (IdentT Diagnosis1) "diagnosis1" "Система"
   , diagnosis2
