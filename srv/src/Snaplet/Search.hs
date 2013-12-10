@@ -125,11 +125,13 @@ mkQuery caseProj svcProj pred lim offset
       ++ "     where c.id = r.cid"
       ++ "       and s.id = r.sid and s.type = r.styp)"
       ++ " select row_to_json(r) :: text from json_result r limit %i offset %i;")
-    (T.unpack pred)
+    (T.unpack $ prePred pred)
     (T.unpack $ T.intercalate ", " $ map mkProj caseProj)
     (T.unpack $ T.intercalate ", " $ map mkProj svcProj)
     lim offset
   where
+    prePred "" = "true"
+    prePred p  = p
     mkProj f = T.concat [f, " as \"", f, "\""]
 
 
