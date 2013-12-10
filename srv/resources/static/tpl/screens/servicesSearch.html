@@ -28,7 +28,7 @@
           <td data-bind="attr: { colspan: $root.showFields.fields().length + 1
                                }">
             <div class="hidden-container"
-                 data-bind="eachNonEmpty: $root.showFields.hidden">
+                 data-bind="foreach: $root.showFields.hidden">
               <div style="float: left; margin-right: 1em">
                 <div style="float: left; margin-right: 0.3em" >
                      <b data-bind="text: $root.showFields.labels[$data] + ':'"/>
