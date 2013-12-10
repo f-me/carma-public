@@ -79,19 +79,13 @@ instance ToField   (Interval UTCTime) where
 instance ToField   (Interval Day) where
   toField = Plain . inQuotes . dayIntervalToBuilder
 
--- | Int wrapper compatible with CaRMa client which uses only strings
--- in field values
-newtype TInt = TInt Int deriving (FromField, ToField, DefaultFieldView, Typeable)
-
-instance FromJSON TInt where
-    parseJSON (String t) = 
-        case decimal t of
-          Right (n, _) -> return $ TInt n
-          Left _       -> fail "Could not read integer"
-    parseJSON _ = empty
-
-instance ToJSON TInt where
-    toJSON (TInt n) = String $ T.pack $ show n
+-- | Int wrapper which instructs CaRMa client to use JSON integers in
+-- commits.
+--
+-- This should be preferred integer type for use with new models until
+-- string-wrapped integers are no more used anywhere on the client.
+newtype TInt = TInt Int deriving (FromField, ToField,
+                                  FromJSON, ToJSON, Typeable)
 
 utcTimeIntervalToBuilder :: Interval UTCTime -> Builder
 utcTimeIntervalToBuilder (Interval begin end) =
@@ -188,6 +182,11 @@ instance DefaultFieldView UTCTime where
 instance DefaultFieldView Bool where
   defaultFieldView f = (defFieldView f)
     {fv_type = "Bool"
+    }
+
+instance DefaultFieldView TInt where
+  defaultFieldView f = (defFieldView f)
+    {fv_type = "Integer"
     }
 
 instance DefaultFieldView Int where
