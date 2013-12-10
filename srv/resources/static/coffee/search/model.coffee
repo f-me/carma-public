@@ -29,17 +29,17 @@ define ["utils"], ->
         when "MatchArray"    then @addField f
         when "MatchInterval" then @addField f
 
-    removeField: (f) ->
-      @showFields.remove (v) -> _.isEqual f, v
-      @addFree()
+    removeField: (f) =>
+      unless _.isEmpty(@dynamic.remove (v) -> _.isEqual f, v)
+        @addFree()
 
-    addField:    (f) ->
+    addField:    (f) =>
       return if _.contains @dynamic(), f
       @dynamic.shift()
       @dynamic.push(f)
 
-    addFree: ->
-      f = @showfields()
+    addFree: =>
+      f = @showFields()
       t = _.keys @groups
       d = _.difference f, t
       @dynamic.pop d[0]
