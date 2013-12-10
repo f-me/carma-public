@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                carma-models
-version:             0.5.10
+version:             0.5.11
 -- synopsis:
 -- description:
 license:             MIT
@@ -30,6 +30,8 @@ library
     Carma.Model.City,
     Carma.Model.CarMake,
     Carma.Model.CarModel,
+    Carma.Model.Engine,
+    Carma.Model.SynEngine,
     Carma.Model.SynCarMake,
     Carma.Model.SynCarModel,
     Carma.Model.Contract,
@@ -42,6 +44,8 @@ library
     Carma.Model.Program,
     Carma.Model.ProgramType,
     Carma.Model.SubProgram,
+    Carma.Model.Transmission,
+    Carma.Model.SynTransmission,
     Carma.Model.Region,
     Carma.Model.Role,
     Carma.Model.SmsTemplate,
