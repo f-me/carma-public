@@ -26,7 +26,7 @@ define ["sync/metaq", "sync/datamap", "map"], (metaq, m, map) ->
       req =  m.c2sObj(q, @ftypes)
 
       # have nothing to search, maybe user delete value
-      return if _.isEmpty req
+      return @kvm['searchResults']([]) if _.isEmpty req
       $.ajax
         url      : @requestUrl
         dataType : 'json'

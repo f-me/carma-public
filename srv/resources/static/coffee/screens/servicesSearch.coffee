@@ -41,25 +41,6 @@ define [ "utils"
   constructor: ->
     searchKVM = main.buildKVM model, {}
 
-# Кейс
-# Телефон
-# Госномер
-# Контакт
-# VIN
-# Карта участника
-# Адрес места поломки
-# Дата звонка
-# Город
-# Сотрудник принявший звонок
-# Услуга
-# Марка
-# Модель
-# Партнёр
-# Дилер, куда эвакуируют автомобиль
-# Программа
-# Что случилось?
-# Неисправность со слов клиента
-
     SPager.buildPager searchKVM
     ko.applyBindings searchKVM._meta.pager, $(".pager")[0]
 
@@ -68,6 +49,7 @@ define [ "utils"
                             (f) -> _.contains fs, f.name)
 
     searchKVM.showFields.del = (fs) ->
+      searchKVM[fs.name](null)
       searchKVM.showFields( _.reject searchKVM.showFields(),
                            (f) -> _.contains fs, f.name)
 
