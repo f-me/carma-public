@@ -51,6 +51,7 @@ instance Model SubProgram where
   modelView _ = modifyView defaultView
                 [ setMeta "regexp" "number" checkPeriod
                 , setMeta "regexp" "number" validFor
+                , setMeta "regexp" "email" mailAddr
                 , widget "text" checkPeriod
                 , widget "text" validFor
                 , textarea help
