@@ -1,7 +1,7 @@
 CREATE TABLE "SynCarModel"
   ( id    SERIAL PRIMARY KEY
-  , make  int4 REFERENCES "CarMake" ON DELETE SET NULL
-  , model int4 REFERENCES "CarModel" ON DELETE SET NULL
+  , make  int4 REFERENCES "CarMake"
+  , model int4 REFERENCES "CarModel"
   , label text UNIQUE NOT NULL
   );
 

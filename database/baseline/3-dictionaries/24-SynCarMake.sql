@@ -1,6 +1,6 @@
 CREATE TABLE "SynCarMake"
   ( id    SERIAL PRIMARY KEY
-  , make  int4 REFERENCES "CarMake" ON DELETE SET NULL
+  , make  int4 REFERENCES "CarMake"
   , label text UNIQUE NOT NULL
   );
 
