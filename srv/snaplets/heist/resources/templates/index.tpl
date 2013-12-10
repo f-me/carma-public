@@ -65,6 +65,7 @@
     <script src="/s/js/gen/globallibs/sorted.js" />
 
     <script src="/s/js/gen/globallibs/customKoHandlers.js" />
+    <script src="/s/js/gen/globallibs/utils.js" />
 
     <!-- Model processing -->
     <!-- FIXME: I think we should temove this already -->
