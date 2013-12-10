@@ -49,5 +49,5 @@ data Partner = Partner
 
 instance Model Partner where
   type TableName Partner = "partnertbl"
-  modelInfo = mkModelInfo City ident
+  modelInfo = mkModelInfo Partner ident
   modelView _ = defaultView
