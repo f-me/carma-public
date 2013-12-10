@@ -71,7 +71,7 @@ instance Model Case where
   modelView v =
     case v of
       "search" -> modifyView (searchView caseSearchParams) $
-                  [modifyByName "Case_id" (\v -> v { fv_type = "text" })]
+                  [modifyByName "Case_id" (\v -> v { fv_type = "ident" })]
                   ++ caseMod ++ caseDicts
       "fullCase"
         -> modifyView
