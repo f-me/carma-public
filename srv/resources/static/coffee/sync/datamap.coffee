@@ -37,6 +37,7 @@ define [], ->
     'dictionary-set': c2sDictSet
     checkbox  : (v) -> if v then "1" else "0"
     Bool      : (v) -> v
+    Integer   : (v) -> parseInt v
     dictionary: (v) -> if _.isNull v then '' else v
     date      : c2sDate("dd.MM.yyyy")
     datetime  : c2sDate("dd.MM.yyyy HH:mm")
@@ -48,6 +49,7 @@ define [], ->
     'dictionary-set': (v) -> v.join(',')
     checkbox  : (v) -> v == "1"
     Bool      : (v) -> v
+    Integer   : (v) -> v
     dictionary: (v) -> v
     date      : s2cDate("dd.MM.yyyy")
     datetime  : s2cDate("dd.MM.yyyy HH:mm")
