@@ -76,6 +76,7 @@ ko.bindingHandlers.renderField =
     tplid = acc().meta.widget
     tplid = "#{acc().type || 'text'}"
     tplid = "dictionary-many" if acc().type == "dictionary-set"
+    tplid = "text" if acc().type == "ident"
     tpl   = Mustache.render $("##{tplid}-field-template").html(), acc()
 
     if ctx.$root.wrapFields
