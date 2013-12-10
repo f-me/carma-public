@@ -65,7 +65,7 @@ data Service = Service
   , contractor_partner           :: F Text "contractor_partner"
                                  "Партнёр"
   , contractor_partnerId         :: F Text "contractor_partnerId"
-                                 ""
+                                 "Партнёр"
   , contractor_address           :: F Text "contractor_address"
                                  "Адрес"
   , contractor_coords            :: F Text "contractor_coords"
@@ -103,11 +103,25 @@ data Service = Service
 instance Model Service where
   type TableName Service = "servicetbl"
   modelInfo = mkModelInfo Service ident
-  modelView _ = defaultView
+  modelView "search" = modifyView (searchView serviceSearchParams)
+    [dict contractor_partnerId $ (dictOpt "allPartners")
+          { dictType    = Just "ComputedDict"
+          , dictBounded = True
+          }
+    ,setType "dictionary-set" contractor_partnerId
+    ]
+  modelView _ = modifyView defaultView
+    [dict contractor_partnerId $ (dictOpt "allPartners")
+          { dictType    = Just "ComputedDict"
+          , dictBounded = True
+          }
+    ,setType "dictionary" contractor_partnerId
+    ]
+
 
 serviceSearchParams :: [(Text, [Predicate Service])]
 serviceSearchParams
   = [("Service_createtime",    interval createTime)
-    ,("contractor_partnerId", one contractor_partnerId)
+    ,("contractor_partnerId", listOf contractor_partnerId)
     ,("svcType", one svcType)
     ]

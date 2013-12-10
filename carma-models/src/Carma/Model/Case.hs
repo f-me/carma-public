@@ -1,8 +1,7 @@
 
 module Carma.Model.Case
        (Case(..)
-       ,caseSearchPredicate
-       ,buildCaseSearchQ
+       ,caseSearchParams
        ) where
 
 import Data.Text (Text)
@@ -43,27 +42,6 @@ caseSearchParams
     ,("address",    fuzzy $ one Case.caseAddress_address)
     ,("callTaker",  fuzzy $ one Case.callTaker)
     ]
-
-caseSearchPredicate
-  :: PG.Connection -> Aeson.Value -> IO (Either String Text)
-caseSearchPredicate c v = case v of
-  Aeson.Object o -> renderPredicate c params o
-  _ -> return $ Left $ "Object expected but found: " ++ show v
-  where
-    params = HM.fromList caseSearchParams
-
-
-buildCaseSearchQ :: Connection -> Int -> Aeson.Value
-                    -> IO (Either String Text)
-buildCaseSearchQ conn limit v  = do
-  ps <- caseSearchPredicate conn v
-  return $ ps >>= return . wrapPredicates
-  where
-    wrapPredicates p = wrapJson $ T.concat [pre, p, post]
-    pre  = "SELECT * FROM servicesview where "
-    post = " LIMIT " `T.append ` (T.pack $ show limit)
-    wrapJson t = T.concat ["SELECT row_to_json(r) FROM ( ", t ," ) r"]
-
 
 instance Model Case where
   type TableName Case = "casetbl"
