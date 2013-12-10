@@ -16,7 +16,7 @@ define [ "utils"
       kvm = main.modelSetup("case") viewName, args,
                          permEl       : "case-permissions"
                          focusClass   : "focusable"
-                         slotsee      : ["case-number", "case-program-description"]
+                         slotsee      : ["case-number", "case-program-description", "case-car-description"]
                          groupsForest : "center"
                          defaultGroup : "default-case"
 

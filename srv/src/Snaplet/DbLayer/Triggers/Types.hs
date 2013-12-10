@@ -7,18 +7,12 @@ import Prelude hiding (log)
 import Control.Concurrent (myThreadId)
 import Control.Monad.State
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as B
 import Data.ByteString.Lazy (toStrict)
-import qualified Data.HashMap.Strict as HM
 import Data.Map (Map)
 import qualified Data.Map as Map
 
-import Data.Aeson (Value, encode, object, (.=), toJSON)
-import qualified Data.Aeson as A (Value(..), Object)
-import qualified Data.Text as T
+import Data.Aeson (Value, encode, object, (.=))
 import qualified Data.Text.Encoding as T
-import Data.Time.Clock (getCurrentTime)
-import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 
 import Snap.Snaplet
 import Snap.Snaplet.RedisDB (runRedisDB)

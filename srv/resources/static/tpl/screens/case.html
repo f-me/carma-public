@@ -40,6 +40,23 @@
     <div class="control-group">
       <div class="controls">
         <span class="accordion" id="case-actions-references" />
+        <span class="accordion" id="case-car-description">
+          <div class="accordion-group">
+            <div class="accordion-heading">
+              <a class="accordion-toggle"
+                 data-toggle="collapse"
+                 data-parent="#case-car-description"
+                 href="#case-car-model-info">
+                 Справка об автомобиле
+              </a>
+            </div>
+            <div id="case-car-model-info" class="accordion-body collapse">
+              <div class="accordion-inner"
+                   data-bind="html: car_modelInfo">
+              </div>
+            </div>
+          </div>
+        </span>
         <span class="accordion" id="case-program-description">
           <h3 data-bind="text: programLocal"></h3>
           <address data-bind="html:programDesc"></address>
