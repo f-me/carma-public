@@ -1,4 +1,4 @@
-define ["utils", "dictionaries"], (u, d) ->
+define ["utils", "dictionaries", "lib/ident/role"], (u, d, role) ->
   fillEventsHistory = (knockVM) -> ->
     t = $("#call-searchtable")
     st = t.dataTable()
@@ -109,8 +109,12 @@ define ["utils", "dictionaries"], (u, d) ->
 
 
   descsKbHook: (model, knockVM) ->
+    srvDict = new d.dicts.ModelDict
+      dict: 'ServiceNames'
+      meta:
+        dictionaryLabel: 'value'
     mkServicesDescs = (p, s) ->
-      description: u.getServiceDesc(p ,s._meta.model.name)
+      description: u.getServiceDesc(p , srvDict.getVal s._meta.model.name)
       title:       s._meta.model.title
     knockVM['servicesDescs'] = ko.computed
       read: ->
@@ -120,13 +124,13 @@ define ["utils", "dictionaries"], (u, d) ->
         _.chain(s).map((x) -> mkServicesDescs(p,x)).compact().value()
     knockVM['programDesc'] = ko.computed
       read: ->
-        global.dictionaries['ProgramInfo'][knockVM['program']()]
+        u.getProgramDesc knockVM['program']()
 
   eventsHistoryKbHook: (model, knockVM) ->
     fillEventsHistory(knockVM)()
     knockVM['fillEventHistory'] = fillEventsHistory(knockVM)
     knockVM['contact_phone1'].subscribe fillEventsHistory(knockVM)
-    knockVM['actions'].subscribe fillEventsHistory(knockVM)
+    knockVM['actions']?.subscribe fillEventsHistory(knockVM)
     knockVM['comments'].subscribe fillEventsHistory(knockVM)
 
   # Display daily service stats in central pane when `city` field of
@@ -147,3 +151,28 @@ define ["utils", "dictionaries"], (u, d) ->
           $.bgetJSON "/regionByCity/#{city}",
             (r) -> res = r.join ','
         res
+
+  vinExpiredHook: (model, knockVM) ->
+    knockVM['car_vinExpired'] = ko.computed ->
+      expired = false
+      if knockVM['car_warrantyStart']() and knockVM['car_warrantyEnd']()
+        startDate = Date.parseExact knockVM['car_warrantyStart'](), "dd.MM.yyyy"
+        endDate = Date.parseExact knockVM['car_warrantyEnd'](), "dd.MM.yyyy"
+        callDate = Date.parseExact knockVM['callDate'](), "dd.MM.yyyy HH:mm"
+        if callDate < startDate or callDate > endDate
+          knockVM['vinChecked'] 'vinExpired'
+          expired = true
+      expired
+
+  vwfakeHook: (model, knockVM) ->
+    knockVM['callDateVisible'] = ko.computed ->
+      not _.contains global.user.roles, role.vwfake
+
+  carModelInfoHook: (model, knockVM) ->
+    dict = new d.dicts.ModelDict
+      dict: 'CarModel'
+      meta:
+        dictionaryKey: 'value'
+        dictionaryLabel: 'info'
+    knockVM['car_modelInfo'] = ko.computed ->
+      dict.getLab knockVM['car_model']()

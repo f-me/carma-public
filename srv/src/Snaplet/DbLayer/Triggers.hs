@@ -1,4 +1,4 @@
-
+{-# LANGUAGE ScopedTypeVariables #-}
 module Snaplet.DbLayer.Triggers
   (triggerUpdate
   ,triggerCreate
@@ -7,7 +7,6 @@ module Snaplet.DbLayer.Triggers
 
 import Data.Functor ((<$>))
 import Control.Monad (foldM)
-import Control.Monad.State (gets)
 import Control.Monad.Trans.State (execStateT)
 
 import qualified Data.Map as Map
@@ -18,7 +17,6 @@ import Snaplet.DbLayer.Types
 import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Defaults
 import Snaplet.DbLayer.Triggers.Actions
-import Snaplet.DbLayer.Triggers.Dsl
 import Snaplet.DbLayer.Triggers.Users
 
 
@@ -40,7 +38,7 @@ triggerUpdate model objId commit = do
   -- Seems that we don't need recursive triggers actually.
   -- There is only one place where they are used intentionally: filling car
   -- dimensions when car model is determined.
-  loop actions 1 emptyContext $ Map.singleton fullId commit''
+  loop actions (1 :: Int) emptyContext $ Map.singleton fullId commit''
   where
     loop _ 0 cxt changes = return $ unionMaps changes $ updates cxt
     loop cfg n cxt changes
@@ -69,12 +67,3 @@ matchingTriggers cfg updates
         model = fst $ B.break (==':') objId
         modelTriggers = Map.findWithDefault Map.empty model cfg
         applyTriggers tgs val = map (\t -> t objId val) tgs
-
-compileRecs :: MonadTrigger m b =>
-  Map.Map k (Map.Map s (Map.Map B.ByteString (Map.Map FieldName FieldValue))) ->
-  Map.Map k (Map.Map s [ObjectId -> B.ByteString -> m b ()])
-compileRecs = Map.map (Map.map mkT)
-  where
-    mkT m = [\objId val -> case Map.lookup val m of
-      Nothing -> return ()
-      Just upds -> mapM_ (uncurry $ set objId) $ Map.toList upds]

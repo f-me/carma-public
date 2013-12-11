@@ -1,19 +1,23 @@
 define [ "text!tpl/screens/vin.html"
        , "utils"
+       , "lib/ident/role"
        , "dictionaries"
-       ], (tpl, u, d) ->
+       ], (tpl, u, role, d) ->
   this.setupVinForm = (viewName, args) ->
     vin_html = $el("vin-form-template").html()
-    partner_html = $el("partner-form-template").html()
+    bulk_partner_html = $el("partner-form-template").html()
 
     # Do not show partner bulk upload form when the screen is accessed
     # by portal users, use appropriate set of programs.
     dict = (n) -> new d.dicts["ComputedDict"]({ dict: n })
     programs = dict('vinPrograms').source
-    if _.contains(global.user.roles, "psaanalyst")
-      all_html = vin_html
-    else
-      all_html = vin_html + partner_html
+    all_html = ""
+
+    if _.contains global.user.roles, role.psaanalyst
+      all_html += bulk_partner_html
+
+    if _.contains global.user.roles, role.vinAdmin
+      all_html += vin_html
 
 
     $el(viewName).html(all_html)

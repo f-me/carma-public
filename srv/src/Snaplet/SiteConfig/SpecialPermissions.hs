@@ -7,7 +7,6 @@ import           Data.Pool
 
 import           Control.Applicative
 
-import qualified Data.ByteString.Char8 as B8
 import           Data.String (fromString)
 
 import           Database.PostgreSQL.Simple (Query, query)
@@ -38,8 +37,8 @@ stripContract model pid field = do
         (query conn (q field) [progid] :: IO [(ByteString, ByteString)])
       filterFields perms flds = filter (isCanShow perms) flds
       isCanShow perms f  = fromMaybe False $ check perms (name f)
-      check perms "dixi"     = return True
-      check perms "isActive" = return True
-      check perms "program"  = return True
-      check perms "ctime"    = return True
-      check perms name   = M.lookup name perms >>= return . ("t" ==)
+      check _     "dixi"     = return True
+      check _     "isActive" = return True
+      check _     "program"  = return True
+      check _     "ctime"    = return True
+      check perms name       = M.lookup name perms >>= return . ("t" ==)

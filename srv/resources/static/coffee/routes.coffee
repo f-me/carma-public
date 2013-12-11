@@ -18,10 +18,10 @@ define [
   "screens/contract"
   "screens/editVin"
   "screens/newVin"
-  "screens/editSms"
   "screens/program"
   "screens/partnersSearch"
   "screens/servicesSearch"
+  "screens/contractsSearch"
   "render/screen"
   ], ( bo
      , call
@@ -42,10 +42,10 @@ define [
      , contract
      , editVin
      , newVin
-     , editSms
      , program
      , partnersSearch
      , servicesSearch
+     , contractsSearch
      , r) ->
     localScreens: ->
       "case":
@@ -123,10 +123,6 @@ define [
         "template": "editVin-screen-template"
         "views":
           "vin-form": editVin
-      "editSms":
-        "template": "editSms-screen-template"
-        "views":
-          "smsTpl-form": editSms
       "printSrv":
         "template": "printSrv-screen-template"
         "views":
@@ -141,6 +137,9 @@ define [
       "servicesSearch":
         "views":
           "search-view": servicesSearch
+      "contractsSearch":
+        "views":
+          "search-view": contractsSearch
 
     # Setup routing
     localRouter: Backbone.Router.extend
@@ -158,8 +157,9 @@ define [
         "call/:id"       : "loadCall"
         "call"           : "call"
         "reports"        : "reports"
-        "contract/:p"    : "newContract"
-        "contract/:p/:id": "getContract"
+        "contract"        : "contractAll"
+        "contract/:p"     : "contractOne"
+        "contract/:p/:id" : "contractEditEntry"
         "partner"        : "newPartner"
         "partner/:id"    : "loadPartner"
         "usermeta"       : "newUser"
@@ -171,13 +171,13 @@ define [
         "rkc"            : "rkc"
         "rkcOps"         : "rkcOps"
         "rkcFront"       : "rkcFront"
-        "editSms"        : "editSms"
         "program"        : "program"
         "program/:id"    : "loadProgram"
         "printSrv/:model/:id" : "printSrv"
         "partnersSearch"        : "partnersSearch"
         "partnersSearch/:model" : "partnersSearchModel"
-        "servicesSearch"        : "servicesSearch"
+        "servicesSearch*any"    : "servicesSearch"
+        "contractsSearch*any"   : "contractsSearch"
 
       loadCase      : (id) -> r.renderScreen("case", kase, {"id": id})
       loadNewCase   : (p,id) ->
@@ -197,9 +197,12 @@ define [
       loadCall      : (id) -> r.renderScreen("call", call, {"id": id})
       call          :      -> r.renderScreen("call", call, {"id": null})
       reports       :      -> r.renderScreen("reports", report)
-      newContract   : (p)  -> r.renderScreen "contract", contract, {"program": p, "id": null}
-      getContract   : (p,id) ->
-                              r.renderScreen "contract", contract, {"program": p, "id": id}
+      contractAll       :        ->
+                              r.renderScreen("contract", contract, {})
+      contractOne       : (p)    ->
+                              r.renderScreen("contract", contract, {"program": p, "id": null})
+      contractEditEntry : (p,id) ->
+                              r.renderScreen("contract", contract, {"program": p, "id": id})
       editVin       : (id) -> r.renderScreen("editVin", editVin, {"id": id})
       newVin        :      -> r.renderScreen("newVin", newVin, {"id": null})
       supervisor    :      -> r.renderScreen("supervisor", supervisor)
@@ -207,7 +210,6 @@ define [
       rkc           :      -> r.renderScreen("rkc", rkc)
       rkcOps        :      -> r.renderScreen("rkcOps", rkcOps)
       rkcFront      :      -> r.renderScreen("rkcFront", rkcFront)
-      editSms       :      -> r.renderScreen("editSms", editSms)
       program       :      -> r.renderScreen("program", program)
       loadProgram   : (id) -> r.renderScreen("program", program, {"id": id})
       printSrv      : (model,id) ->
@@ -216,3 +218,20 @@ define [
       partnersSearchModel: (model) ->
         r.renderScreen "partnersSearch", partnersSearch, {model: model}
       servicesSearch     : -> r.renderScreen("servicesSearch", servicesSearch)
+      contractsSearch    : -> r.renderScreen("contractsSearch", contractsSearch)
+
+      current : ->
+        Router   = this
+        fragment = Backbone.history.fragment
+        routes   = ([k,v] for k, v of Router.routes)
+        # route = null
+        # params = null
+
+        matched = _.find routes, (handler) ->
+          route = if _.isRegExp(handler[0])
+              handler[0]
+            else
+              Router._routeToRegExp(handler[0])
+          return route.test(fragment)
+
+        return matched[1]

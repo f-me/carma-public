@@ -1,7 +1,8 @@
 define  [ "utils"
         , "hooks/common"
+        , "lib/ident/role"
         , "text!tpl/screens/supervisorOps.html"
-        ], (utils, hook, tpl) ->
+        ], (utils, hook, role, tpl) ->
   # data = { tick: true }
   tick = true
   setupSupervisorOpsScreen = (viewName, args) ->
@@ -27,9 +28,9 @@ define  [ "utils"
       $.getJSON "/allUsers", (us) ->
        $.getJSON "/supervisor/opStats", (os) ->
         dt.fnClearTable()
-
-        rows = for u in us when (/back/.test u.roles ||
-                                 /bo_control/.test u.roles)
+        backRe = new RegExp(role.back)
+        
+        rows = for u in us when (backRe.test u.roles)
           do (u) ->
             koUser =
               boCities: ko.observable u.boCities

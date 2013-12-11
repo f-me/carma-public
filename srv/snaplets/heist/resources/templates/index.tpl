@@ -40,7 +40,13 @@
     <script src="/s/js/3p/OpenLayers-2.11/OpenLayers.js" />
 
     <!-- 25Kb of date parsing and formatting -->
-    <script src="/s/js/3p/date-ru-RU.js" />
+    <!-- <script src="/s/js/3p/date-ru-RU.js" /> -->
+    <script src="/s/js/3p/date/core.js" />
+    <script src="/s/js/3p/date/ru-RU.js" />
+    <!-- <script src="/s/js/3p/date/date.js" /> -->
+    <script src="/s/js/3p/date/extras.js" />
+    <script src="/s/js/3p/date/parser.js" />
+    <script src="/s/js/3p/date/sugarpak.js" />
 
     <!-- masked input for datetime fields -->
     <script src="/s/js/3p/jquery.maskedinput-1.3.js" />
@@ -420,6 +426,7 @@
       <div class="control-group"
            {{# meta.required }}data-bind="css: { error: {{name}}Not }"{{/ meta.required}}
            {{# meta.regexp }}data-bind="css: { warning: {{name}}Regexp }"{{/ meta.regexp}}
+           {{# meta.visibility }}data-bind="visible: {{name}}Visible"{{/ meta.visibility}}
            >
         <div class="control-label">
           <label>{{ meta.label }}
@@ -490,36 +497,45 @@
 
     <script type="text/template"
             class="field-template"
-            id="interval-date-field-template">
+            id="interval-datetime-field-template">
 
-      <label>{{ meta.label }} (Диапазон)</label>
-      <div class="row-fluid horizontal-form">
-          <div class="input-append date span4"
-               data-provide="datepicker"
-               data-autoshow-datepicker="true"
-               data-date-format="dd.mm.yyyy"
-               data-date-weekstart="1">
-            <input type="text"
-                   class="pane-span focusable"
-                   autocomplete="off"
-                   name="{{ name }}Begin"
-                   data-bind="value: {{ name }}Begin,
-                              valueUpdate: 'change'" />
-            <span class="add-on"><i class="icon icon-calendar" /></span>
+      <div class="control-group">
+          <div class="control-label">
+            <label>{{ meta.label }} (Диапазон)</label>
           </div>
-          <div class="span1" />
-          <div class="input-append date span4"
-               data-provide="datepicker"
-               data-autoshow-datepicker="true"
-               data-date-format="dd.mm.yyyy"
-               data-date-weekstart="1">
-            <input type="text"
-                   class="pane-span focusable"
-                   autocomplete="off"
-                   name="{{ name }}End"
-                   data-bind="value: {{ name }}End,
-                              valueUpdate: 'change'" />
-            <span class="add-on"><i class="icon icon-calendar" /></span>
+          <div class="controls">
+            <div class="row-fluid">
+              <div class="span4">
+                <div class="input-append date"
+                     data-provide="datepicker"
+                     data-autoshow-datepicker="true"
+                     data-date-format="dd.mm.yyyy"
+                     data-date-weekstart="1">
+                  <input type="text"
+                         class="pane-span focusable"
+                         autocomplete="off"
+                         name="{{ name }}Begin"
+                         data-bind="value: {{ name }}Begin,
+                                    valueUpdate: 'change'" />
+                  <span class="add-on"><i class="icon icon-calendar" /></span>
+                </div>
+              </div>
+              <div class="span4 offset1">
+                <div class="input-append date"
+                     data-provide="datepicker"
+                     data-autoshow-datepicker="true"
+                     data-date-format="dd.mm.yyyy"
+                     data-date-weekstart="1">
+                  <input type="text"
+                         class="pane-span focusable"
+                         autocomplete="off"
+                         name="{{ name }}End"
+                         data-bind="value: {{ name }}End,
+                                    valueUpdate: 'change'" />
+                  <span class="add-on"><i class="icon icon-calendar" /></span>
+                </div>
+              </div>
+            </div>
           </div>
       </div>
     </script>
@@ -565,6 +581,9 @@
             class="field-template"
             id="dictionary-field-template">
       <div class="control-group"
+           {{# meta.expired  }}
+             data-bind="css: { expired: {{name}}Expired }"
+           {{/ meta.expired  }}
            {{# meta.required }}
              data-bind="css: { error: {{name}}Not }"
            {{/ meta.required }}

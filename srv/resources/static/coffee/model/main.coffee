@@ -20,8 +20,9 @@
 define [ "model/render"
        , "dictionaries/local-dict"
        , "sync/crud"
+       , "lib/serialize"
        ],
-       (render, dict, sync) ->
+       (render, dict, sync, S) ->
   mainSetup = ( localScreens
                    , localRouter
                    , localDictionaries
@@ -103,10 +104,13 @@ define [ "model/render"
     kvm["_meta"] = { model: model, cid: _.uniqueId("#{model.name}_") }
 
     # build observables for real model fields
-    kvm[f.name] = ko.observable(null) for f in fields
+    for f in fields
+      do (f) ->
+        kvm[f.name] = ko.observable(null)
+        kvm[f.name].field = f
 
     # set id only when it wasn't set from from prefetched data
-    kvm['id'] = ko.observable(fetched?['id'])
+    kvm['id'] = ko.observable(fetched?['id']) unless _.isFunction kvm['id']
 
     # set queue if have one, and sync it with backend
     kvm._meta.q = new queue(kvm, model, queueOptions) if queue
@@ -201,17 +205,28 @@ define [ "model/render"
         updateInterval = ->
           if proxy.begin != null and proxy.end != null
             kvm[f.name]([proxy.begin, proxy.end])
+        kvm[f.name].subscribe (v) -> proxy.begin = v[0]; proxy.end = v[1]
         kvm["#{f.name}Begin"] = ko.computed
-          read: -> proxy.begin
+          read: -> kvm[f.name](); proxy.begin
           write: (v) ->
             proxy.begin = v
             updateInterval()
 
         kvm["#{f.name}End"] = ko.computed
-          read: -> proxy.end
+          read: -> kvm[f.name](); proxy.end
           write: (v) ->
             proxy.end = v
             updateInterval()
+
+    kvm.toJSON = ->
+      r = {}
+      for f in kvm._meta.model.fields when kvm[f.name]()
+        r[f.name] = kvm[f.name]()
+      r
+
+    kvm.fromJSON = (obj) ->
+      for f in kvm._meta.model.fields when obj[f.name]
+        kvm[f.name](obj[f.name])
 
 
     hooks = queueOptions?.hooks or ['*', model.name]

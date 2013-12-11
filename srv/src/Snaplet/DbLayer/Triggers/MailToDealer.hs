@@ -204,6 +204,7 @@ sendRepTowageMail caseRef towageRef prevRef program = do
   mailFrom <- liftIO $ require cfg "reptowage-smtp-from"
   citrTo   <- liftIO $ require cfg "reptowage-citroen-recipients"
   peugTo   <- liftIO $ require cfg "reptowage-peugeot-recipients"
+  copyTo   <- liftIO $ require cfg "psa-smtp-copyto"
   bodyTpl  <- liftIO $ require cfg "reptowage-template"
 
   -- Gather data and render mail body
@@ -238,7 +239,7 @@ sendRepTowageMail caseRef towageRef prevRef program = do
   -- Fire off mail-sending process
   void $ liftIO $ forkIO $
        scoperLog l (T.append "sendRepTowageMail " $ T.decodeUtf8 caseRef) $
-       sendEximMail mailFrom mailTo mailSubj mailBody
+       sendEximMail mailFrom (T.concat [mailTo, ",", copyTo]) mailSubj mailBody
 
 
 -- | Send a mail using exim.

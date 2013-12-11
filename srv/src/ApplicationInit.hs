@@ -32,6 +32,7 @@ import Snaplet.SiteConfig
 import Snaplet.DbLayer
 import qualified Snaplet.FileUpload as FU
 import Snaplet.Geo
+import Snaplet.Search
 ------------------------------------------------------------------------------
 import Application
 import ApplicationHandlers
@@ -124,6 +125,8 @@ routes = [ ("/",              method GET $ authOrLogin indexPage)
             chkAuthLocal . method GET $ printServiceHandler)
          , ("/runtimeFlags",  chkAuthLocal . method GET  $ getRuntimeFlags)
          , ("/runtimeFlags",  chkAuthLocal . method PUT  $ setRuntimeFlags)
+         , ("/restoreProgramDefaults/:pgm",
+            chkAuthAdmin . method PUT $ restoreProgramDefaults)
          , ("/errors",        method POST errorsHandler)
          ]
 
@@ -182,6 +185,7 @@ appInit = makeSnaplet "app" "Forms application" Nothing $ do
   l <- liftIO $ newLog (fileCfg "resources/site-config/db-log.cfg" 10)
        [logger text (file "log/frontend.log")]
 
+  search <- nestSnaplet "search" search $ searchInit pgs authMgr
   addRoutes routes
   wrapSite (claimUserActivity>>)
-  return $ App h s authMgr c d pgs pga v fu g l runtimeFlags ad
+  return $ App h s authMgr c d pgs pga v fu g l runtimeFlags ad search

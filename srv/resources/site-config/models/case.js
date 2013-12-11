@@ -3,7 +3,8 @@
     {
       "meta": {
         "label": "Дата звонка",
-        "readonly": true
+        "readonly": true,
+        "visibility": true
       },
       "type": "datetime",
       "groupName": null,

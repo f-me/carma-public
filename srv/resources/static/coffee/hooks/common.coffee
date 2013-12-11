@@ -233,7 +233,8 @@ define [ "utils"
             kvm[n] full
             noloop = false
 
-          # An observable bound to a field in a JSON object
+          # An observable bound to an entry in a JSON object. Rebuild
+          # the whole parent field value on updates
           subfieldObservable = (sf) ->
             # Initial value
             kob = ko.observable obj[sf]
@@ -274,6 +275,9 @@ define [ "utils"
             kvm[nP].removeAll()
             if newValue?.length > 0
               for i in [0...newValue.length]
+                # Using objItem established a bi-directional
+                # dependency between parent field value (JSON) and
+                # entries in it (edited by client)
                 kvm[nP].push objItem newValue[i], i
 
         # Add new empty object provided an entry from the associated
