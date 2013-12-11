@@ -211,6 +211,12 @@ lovViewer	SynTransmission	transmission	t	f
 lovAdmin	SynTransmission	transmission	t	t
 lovViewer	SynTransmission	label	t	f
 lovAdmin	SynTransmission	label	t	t
+lovViewer	LegalForm	label	t	f
+lovAdmin	LegalForm	label	t	t
+lovViewer	CheckType	label	t	f
+lovAdmin	CheckType	label	t	t
+lovViewer	CarClass	label	t	f
+lovAdmin	CarClass	label	t	t
 lovViewer	Role	label	t	f
 lovAdmin	Role	label	t	t
 lovViewer	Role	value	t	f
