@@ -31,6 +31,7 @@ import qualified Data.Text as T
 import Network.URI (parseURI)
 import qualified Fdds
 import Data.Configurator
+import Data.Configurator.Types
 
 import WeatherApi.WWOnline (initApi)
 
@@ -51,7 +52,6 @@ import qualified Carma.ModelTables as MT (loadTables)
 import Snaplet.DbLayer.Triggers
 import Snaplet.DbLayer.Dictionary (readRKCCalc)
 import DictionaryCache
-import Util
 import RuntimeFlag
 
 create :: ModelName -> Object -> Handler b (DbLayer b) (Map.Map FieldName ByteString)
@@ -112,7 +112,7 @@ update model objId commit = scoper "update" $ do
     toPair [x, y] = Just (x, y)
     toPair _ = Nothing
 
-  let changes' = Map.mapWithKey (\(_,k) v -> Map.insert "id" k v) . Map.mapKeys fromJust . Map.filterWithKey (\k v -> isJust k) . Map.mapKeys (toPair . C8.split ':') $ changes
+  let changes' = Map.mapWithKey (\(_,k) v -> Map.insert "id" k v) . Map.mapKeys fromJust . Map.filterWithKey (\k _ -> isJust k) . Map.mapKeys (toPair . C8.split ':') $ changes
   log Trace $ fromString $ "Changes: " ++ show changes'
   Postgres.insertUpdateMany tbls changes'
   --
@@ -188,6 +188,7 @@ initDbLayer sessionMgr adb rtF cfgDir = makeSnaplet "db-layer" "Storage abstract
 
 ----------------------------------------------------------------------
 
+fddsConfig :: Config -> IO Fdds.Conf
 fddsConfig cfg = do
   uri   <- require cfg "fdds-uri"
   login <- require cfg "fdds-login"

@@ -1,4 +1,4 @@
-define ["model/utils"], (mu) ->
+define ["model/utils", "lib/ident/role"], (mu, role) ->
   # jquery -> html(as string) conversion, with selected element
   jQuery.fn.outerHTML = () -> jQuery("<div>").append(this.clone()).html()
 
@@ -46,6 +46,22 @@ define ["model/utils"], (mu) ->
     dict = global.dictionaries[d]
     return dict if dict
     return eval(d)
+
+  # Converts lists into objects. Pass either a single array of `[key, value]`
+  # pairs, or two parallel arrays of the same length -- one of keys, and one of
+  # the corresponding values.
+  _.object = (list, values) ->
+    return {} if  _.isEmpty list
+    if values
+      _.object _.zip list, values
+    else
+      _.foldl list, ((a, [k, v]) -> a[k] = v; return a), {}
+
+  _.pairs = (obj) -> [k, v] for k, v of obj
+
+  window.arrToObj = (key, val, f = _.identity) ->
+    keys = if _.isFunction key then _.map val, key else _.pluck val, key
+    _.object _.zip keys, (_.map val, f)
 
   String.prototype.capitalize = -> @charAt(0).toUpperCase() + @slice(1)
 
@@ -129,6 +145,10 @@ define ["model/utils"], (mu) ->
     else
       "#{hours}ч #{mins}м"
 
+  # Return true if user may access case/service-related actions
+  canReadActions: () ->
+    _.some (global.model "case").fields, (f) -> f.name == 'actions'
+
   findCaseOrReferenceVM: findCaseOrReferenceVM
 
   # build global function from local to module one
@@ -156,8 +176,24 @@ define ["model/utils"], (mu) ->
   modelMethod: (modelName, method) -> "/_/#{modelName}/#{method}"
 
   getServiceDesc: (program, service) ->
-    si  = global.dictionaries['ServiceInfo'][program]?[service]
-    si ?= global.dictionaries['ServiceInfo']['default']?[service]
+    if p = @findProgram program
+      si = _.find global.dictionaries['ServiceInfo'].entries, (info) ->
+        info.program == p.id and info.service == service
+      si?.info or ""
+    else
+      ""
+
+  getProgramDesc: (program) ->
+    if p = @findProgram program
+      pi = _.find global.dictionaries['ProgramInfo'].entries, (info) ->
+        info.program == p.id
+      pi?.info or ""
+    else
+      ""
+
+  findProgram: (name) ->
+    _.find global.dictionaries['Programs'].entries, (program) ->
+      program.value == name
 
   # Scroll case field into view and focus
   focusField: (name) ->
@@ -347,3 +383,29 @@ define ["model/utils"], (mu) ->
 
   checkMatch: checkMatch
   kvmCheckMatch: kvmCheckMatch
+
+  parseUrlParams: (uri) ->
+    fromUrlParams url.substring(url.indexOf('?') + 1)
+
+  fromUrlParams: (str) ->
+    dec = decodeURIComponent
+    return {} if _.isEmpty str
+    prms = {}
+    for q in str.split('&')
+      [n, v] = q.split '='
+      prms[dec n] = dec v
+    return prms
+
+  getUrlParams: ->
+    url = document.location.href
+    @fromUrlParams url.split("?")[1]
+
+  setUrlParams: (prms) ->
+    [url, currPrms] = document.location.href.split("?")
+    scr = global.router.current()
+    nparams = $.extend (@fromUrlParams currPrms), prms
+    enc = encodeURIComponent
+    q = (("#{enc k}=#{enc v}" for k, v of nparams).join("&"))
+    global.router.navigate "#{scr}?#{q}"
+
+  inject: (dest, src) -> dest[k] = v for k, v of src when not dest[k]

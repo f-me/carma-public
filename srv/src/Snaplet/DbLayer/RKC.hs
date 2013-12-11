@@ -37,10 +37,6 @@ import Snaplet.DbLayer.ARC
 import Snap.Snaplet.SimpleLog hiding ((%=))
 
 
--------------------------------------------------------------------------------
--- | query fmt
-fquery_ :: (PS.HasPostgres m, MonadLog m, PS.FromRow r) => String -> FormatArgs -> m [r]
-fquery_ fmt args = query_ (fromString $ T.unpack $ format fmt args)
 
 fquery :: (PS.HasPostgres m, MonadLog m, PS.ToRow q, PS.FromRow r) => String -> FormatArgs -> q -> m [r]
 fquery fmt args v = query (fromString $ T.unpack $ format fmt args) v
@@ -57,11 +53,6 @@ equals tbl col val = preQuery [] [tbl] [T.concat [tbl, ".", col, " = ?"]] [] [] 
 
 equalsTo :: T.Text -> T.Text -> T.Text -> PreQuery
 equalsTo tbl expr val = preQuery [] [tbl] [T.concat [expr, " = ?"]] [] [] [val]
-
-withinToday :: T.Text -> T.Text -> PreQuery
-withinToday tbl col = thisDay `mappend` notNull tbl col where
-  thisDay = preQuery_ [] [tbl] [equalsNow] [] []
-  equalsNow = T.concat ["date_trunc('day', ", tbl, ".", col, " + '4 hours') = date_trunc('day', now())"]
 
 betweenTime :: UTCTime -> UTCTime -> T.Text -> T.Text -> PreQuery
 betweenTime from to tbl col = mconcat [
@@ -109,11 +100,6 @@ serviceCaseRel = cond ["casetbl", "servicetbl"] "'case:' || casetbl.id = service
 
 consultationCaseRel :: PreQuery
 consultationCaseRel = cond ["casetbl", "consultationtbl"] "'case:' || casetbl.id = consultationtbl.parentId"
-
-mechanic :: PreQuery
-mechanic = equals "calltbl" "callType" "client" `mappend` inList "calltbl" "callerType" [
-  "mechanicConsOk",
-  "mechanicConsNotOk"]
 
 towageTech :: PreQuery
 towageTech = inList "servicetbl" "type" ["towage", "tech"]
@@ -203,7 +189,7 @@ mintQuery qs = do
         (PS.Only r:_) -> return r
 
 caseSummary :: (PS.HasPostgres m, MonadLog m) => Filter -> PreQuery -> m Value
-caseSummary filt@(Filter fromDate toDate program city partner) constraints = scope "caseSummary" $ do
+caseSummary (Filter fromDate toDate program city partner) constraints = scope "caseSummary" $ do
   log Trace "Loading summary"
   [t, m, d, dur, calc, lim, sat] <- sequence [
     trace "total" (run count),
@@ -270,7 +256,7 @@ caseServices fromDate toDate constraints names = scope "caseServices" $ do
     todayAndGroup p = trace "result" $ runQuery_ $ mconcat [select "servicetbl" "type", p, constraints, betweenTime fromDate toDate "servicetbl" "createTime", groupBy "servicetbl" "type"]  
 
 rkcCase :: (PS.HasPostgres m, MonadLog m) => Filter -> PreQuery -> [T.Text] -> m Value
-rkcCase filt@(Filter fromDate toDate program city partner) constraints services = scope "rkcCase" $ do
+rkcCase filt@(Filter fromDate toDate _ _ _) constraints services = scope "rkcCase" $ do
   s <- caseSummary filt (mconcat [doneServices, constraints])
   ss <- caseServices fromDate toDate (mconcat [constraints, doneServices]) services
   return $ object [
@@ -535,9 +521,6 @@ partners fromDate toDate = scope "rkc" $ scope "partners" $ do
 
   ps <- trace "result" $ queryFmt q [] [asLocal fromDate, asLocal toDate]
   return $ toJSON (mapMaybe PS.fromOnly ps :: [T.Text])
-
-queryFmt_ :: (PS.HasPostgres m, MonadLog m, PS.FromRow r) => [String] -> FormatArgs -> m [r]
-queryFmt_ lns args = query_ (fromString $ T.unpack $ format (concat lns) args)
 
 queryFmt :: (PS.HasPostgres m, MonadLog m, PS.ToRow q, PS.FromRow r) => [String] -> FormatArgs -> q -> m [r]
 queryFmt lns args = query (fromString $ T.unpack $ format (concat lns) args)

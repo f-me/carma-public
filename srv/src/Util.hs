@@ -17,6 +17,7 @@ module Util
   , formatTimestamp
   , render
   , projNow
+  , roleIdent
   ) where
 
 import qualified Data.Map as Map
@@ -25,7 +26,7 @@ import Data.Maybe
 
 import Control.Exception
 import Control.Applicative
-import Control.Monad.Trans (liftIO)
+import Control.Monad.IO.Class
 import Data.Typeable
 import           Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Lazy  as L
@@ -49,6 +50,9 @@ import Data.Attoparsec.Combinator (many1, choice)
 import qualified Data.Attoparsec.ByteString.Char8 as A
 
 import Text.Printf (printf)
+
+import qualified Data.Model as Model
+import qualified Carma.Model.Role as Role
 
 
 data JSONParseException
@@ -96,7 +100,7 @@ s2p "<"  = (<)
 s2p ">"  = (>)
 s2p ">=" = (>=)
 s2p "==" = (==)
-s2p s = error "Invalid argument of s2p"
+s2p _    = error "Invalid argument of s2p"
 
 selectParse :: Map ByteString ByteString -> ByteString -> Bool
 selectParse obj prm =
@@ -124,16 +128,6 @@ lookupNE :: Ord k => k -> Map k B.ByteString -> Maybe B.ByteString
 lookupNE key obj = Map.lookup key obj >>= lp
   where lp "" = Nothing
         lp v  = return v
-
-calcCost :: Map ByteString ByteString -> Map ByteString ByteString -> Maybe ByteString
-calcCost srv opt = getCost srv opt >>= calcCost'
-  where calcCost' cost = do
-          count <- lookupNE "count" opt >>= mbreadDouble
-          cost' <- mbreadDouble cost
-          return $ printBPrice $ cost' * count
-
-getCost :: Map ByteString ByteString -> Map ByteString ByteString -> Maybe ByteString
-getCost opt srv = getCostField srv >>= flip lookupNE opt
 
 getCostField :: Map ByteString ByteString -> Maybe ByteString
 getCostField srv = lookupNE "payType" srv >>= selectPrice
@@ -182,6 +176,7 @@ render varMap = T.concat . loop
 
 
 -- | Format timestamp as "DD/MM/YYYY".
+formatTimestamp :: MonadIO m => ByteString -> m Text
 formatTimestamp tm = case B.readInt tm of
   Just (s,"") -> do
     tz <- liftIO getCurrentTimeZone
@@ -193,8 +188,10 @@ formatTimestamp tm = case B.readInt tm of
 
 -- | Get current UNIX timestamp, round and apply a function to it,
 -- then format the result as a bytestring.
-projNow :: (Show b, Integral a, Integral b) =>
-           (a -> b)
-        -> IO ByteString
+projNow :: (Int -> Int) -> IO ByteString
 projNow fn =
   (B.pack . show . fn . round . utcTimeToPOSIXSeconds) <$> getCurrentTime
+
+
+roleIdent :: Model.IdentI Role.Role -> ByteString
+roleIdent (Model.Ident v) = B.pack $ show v

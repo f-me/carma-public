@@ -21,4 +21,5 @@ define [ "dictionaries/local-dict"
       kvm   : kvm
       dict  : meta.dictionaryName
       parent: meta.dictionaryParent
+      meta  : meta
     new dicts[type || 'LocalDict'](opts)

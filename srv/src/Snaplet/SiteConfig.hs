@@ -39,7 +39,13 @@ import Utils.HttpErrors
 import Data.Model.Sql
 import qualified Data.Model as Model
 import qualified Carma.Model as Model
+import qualified Carma.Model.OldProgram as OldProgram
 import qualified Carma.Model.Program as Program
+import qualified Carma.Model.SubProgram as SubProgram
+import qualified Carma.Model.ProgramInfo as ProgramInfo
+import qualified Carma.Model.ServiceInfo as ServiceInfo
+import qualified Carma.Model.ServiceNames as ServiceNames
+import qualified Carma.Model.Colors as Colors
 import qualified Carma.Model.Role as Role
 
 
@@ -52,24 +58,30 @@ writeJSON v = do
 serveModel :: HasAuth b => Handler b (SiteConfig b) ()
 serveModel = do
   Just name  <- getParam "name"
+  view  <-  T.decodeUtf8 <$> fromMaybe "" <$> getParam "view"
   model <- getParam "arg" >>= \arg ->
     case T.splitOn ":" . T.decodeUtf8 <$> arg of
       Just ["newCase",pgm] -> fmap Just
         $ case name of
           "case" -> newCase pgm
           _      -> newSvc pgm name
-      _ -> case Model.dispatch (T.decodeUtf8 name) viewForModel of
+      _ -> case Model.dispatch (T.decodeUtf8 name) $ viewForModel view of
         Just res -> return res
         Nothing  -> M.lookup name <$> gets models
 
   mcu   <- withAuth currentUser
   case return (,) `ap` mcu `ap` model of
     Nothing -> finishWithError 401 ""
-    Just (cu, m) -> stripModel cu m >>= writeModel
+    Just (cu, m) ->
+      case name of
+        ("Case") -> writeModel m
+        ("Service") -> writeModel m
+        ("Towage") -> writeModel m
+        _        -> stripModel cu m >>= writeModel
 
-viewForModel :: forall m . Model.Model m => m -> Maybe Model
-viewForModel _
-  = Aeson.decode $ Aeson.encode (Model.modelView "" :: Model.ModelView m)
+viewForModel :: forall m . Model.Model m => T.Text -> m -> Maybe Model
+viewForModel name _
+  = Aeson.decode $ Aeson.encode (Model.modelView name :: Model.ModelView m)
 
 writeModel :: Model -> Handler b (SiteConfig b) ()
 writeModel model
@@ -96,7 +108,7 @@ stripModel u m = do
       where u.uid = ?::int
         and p.model = ?
         and p.r = true
-        and p.role = ANY (u.roles)
+        and p.role::text = ANY (u.roles)
       group by p.field
     |]
     (unUid uid, modelName m)
@@ -110,15 +122,50 @@ stripModel u m = do
 serveDictionaries :: Handler b (SiteConfig b) ()
 serveDictionaries = do
   let withPG f = gets pg_search >>= liftIO . (`withResource` f)
+
+  roles <- withPG $ selectJSON (Role.ident :. Role.label)
+  let roles' =
+          map (\(Aeson.Object o) ->
+               Aeson.Object $ HM.insert "value" (o HM.! "id") o)
+          roles
+
+  -- Load old programs dictionary proxy
+  oldPrograms <- withPG $ selectJSON
+    (OldProgram.ident :. OldProgram.value :. OldProgram.label :. eq OldProgram.active True)
+
+  -- TODO Calculate program active status from subprograms
   programs <- withPG $ selectJSON
-    (Program.value :. Program.label :. eq Program.active True)
-  roles <- withPG $ selectJSON (Role.value :. Role.label)
+    (Program.ident :. Program.label)
+  subprograms <- withPG $ selectJSON
+    (SubProgram.ident :. SubProgram.label :. eq SubProgram.active True)
+
+  programInfos <- withPG
+    $ selectJSON (ProgramInfo.program :. ProgramInfo.info)
+  serviceInfos <- withPG
+    $ selectJSON (ServiceInfo.program :. ServiceInfo.service :. ServiceInfo.info)
+  serviceNames <- withPG
+    $ selectJSON (ServiceNames.ident :. ServiceNames.value :. ServiceNames.label :. ServiceNames.icon)
+  colors <- withPG
+    $ selectJSON (Colors.ident :. Colors.value :. Colors.label)
+
   Aeson.Object dictMap <- gets dictionaries
   writeJSON $ Aeson.Object
     $ HM.insert "Roles"
-      (Aeson.object [("entries", Aeson.Array $ V.fromList roles)])
+      (Aeson.object [("entries", Aeson.Array $ V.fromList roles')])
     $ HM.insert "Programs"
+      (Aeson.object [("entries", Aeson.Array $ V.fromList oldPrograms)])
+    $ HM.insert "Program"
       (Aeson.object [("entries", Aeson.Array $ V.fromList programs)])
+    $ HM.insert "SubProgram"
+      (Aeson.object [("entries", Aeson.Array $ V.fromList subprograms)])
+    $ HM.insert "ProgramInfo"
+      (Aeson.object [("entries", Aeson.Array $ V.fromList programInfos)])
+    $ HM.insert "ServiceInfo"
+      (Aeson.object [("entries", Aeson.Array $ V.fromList serviceInfos)])
+    $ HM.insert "ServiceNames"
+      (Aeson.object [("entries", Aeson.Array $ V.fromList serviceNames)])
+    $ HM.insert "Colors"
+      (Aeson.object [("entries", Aeson.Array $ V.fromList colors)])
       dictMap
 
 

@@ -96,17 +96,6 @@ intQuery qs = do
             log Debug $ T.concat ["Int query result: ", T.pack (show r)]
             return r
 
-str :: String -> String
-str = id
-
-withinDay :: T.Text -> T.Text -> [T.Text]
-withinDay st field = [
-    T.concat [field, " - '", st, "' < '1 day'"],
-    T.concat [field, " - '", st, "' >= '0 days'"]]
-
-programs :: Dictionary -> [(T.Text, [T.Text])]
-programs = maybe [] (map (id &&& (return . id))) . keys ["Programs"]
-
 -- | Create ARC report for year and month
 -- select count(*) from calltbl where (date_trunc('day', calltbl.callDate) = TIMESTAMP '2012-08-06');
 -- select count (*) from casetbl, servicetbl where ('case:' || casetbl.id = servicetbl.parentId) and (servicetbl.type = 'tech') and (date_trunc('day', servicetbl.createTime) = TIMESTAMP '2012-08-06');
@@ -132,7 +121,7 @@ arcReport d year month = scope "arc" $ do
 
         groupByProgram :: [(Integer, T.Text, Integer)] -> [(T.Text, [(Integer, Integer)])]
         groupByProgram = map (first head) . map unzip . groupBy ((==) `on` fst) . map reorder where
-            reorder (cnt, pname, d) = (pname, (d, cnt))
+            reorder (cnt, pname, d') = (pname, (d', cnt))
 
         fillZeroDays :: [(Integer, Integer)] -> [Integer]
         fillZeroDays dayCounts = map (\i -> fromMaybe 0 (lookup i dayCounts)) [1..toInteger daysCount]

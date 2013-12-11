@@ -1,9 +1,9 @@
-
+{-# LANGUAGE ScopedTypeVariables #-}
 module Snaplet.DbLayer.Triggers.Dsl where 
 
 import Control.Applicative
 import Control.Monad (when)
-import Control.Monad.Trans (lift,liftIO)
+import Control.Monad.Trans (liftIO)
 import qualified Control.Monad.State as ST
 import Control.Concurrent.STM
 
@@ -13,8 +13,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 
 import Data.Time.Clock (getCurrentTime)
-import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
-import System.Locale (defaultTimeLocale)
+import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds)
 
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -66,7 +65,7 @@ upd objId field fn = get objId field >>= set objId field . fn
 
 new :: MonadTrigger m b => ModelName -> Object -> m b ObjectId
 new model obj = do
-  ct <- liftIO $ round . utcTimeToPOSIXSeconds
+  ct <- liftIO $ (round :: POSIXTime -> Int) . utcTimeToPOSIXSeconds
         <$> getCurrentTime
   let obj' = Map.insert "ctime" (B.pack $ show ct) obj
   intId <- createObject model obj'

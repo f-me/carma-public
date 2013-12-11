@@ -1,9 +1,11 @@
 define [
     "utils",
     "model/main",
+    "lib/ident/role",
     "text!tpl/screens/contract.html",
-    "screenman"],
-  (utils, main, tpl, screenman) ->
+    "screenman",
+    "dictionaries"],
+  (utils, main, role, tpl, screenman, d) ->
 
     reformatDate = (date)->
       [_, d, m, y] = date.match(/([0-9]{2})\/([0-9]{2})\/([0-9]{4})/)
@@ -123,12 +125,13 @@ define [
 
     logoSetup = (args) ->
       $.getJSON "/_/program/#{args.program}", (instance) ->
-        attachURLPart = instance.logo.replace ':', '/'
-        $.getJSON "/_/#{attachURLPart}", (attachment) ->
-          logourl= "/s/fileupload/#{attachURLPart}/#{attachment.filename}"
-          $("#logo").attr "src", logourl
-          $("#help-program").text(instance.label)
-          $("#help-text").text(instance.help)
+        if instance.logo
+          attachURLPart = instance.logo.replace ':', '/'
+          $.getJSON "/_/#{attachURLPart}", (attachment) ->
+            logourl= "/s/fileupload/#{attachURLPart}/#{attachment.filename}"
+            $("#logo").attr "src", logourl
+            $("#help-program").text(instance.label)
+            $("#help-text").text(instance.help)
 
     modelSetup = (modelName, viewName, args, programModel) ->
       if args.id
@@ -143,9 +146,9 @@ define [
           refs: [])
 
       kvm['isActiveDisableDixi'](true)
-      if _.find(global.user.roles, (r) -> r == 'contract_user')
+      if _.find(global.user.roles, (r) -> r == role.partner)
         kvm['commentDisableDixi'](true)  if kvm['commentDisabled']
-      if _.find(global.user.roles, (r) -> r == 'contract_admin')
+      if _.find(global.user.roles, (r) -> r == role.contract_admin)
         kvm['disableDixi'](true)
 
       kvm["updateUrl"] = ->
@@ -232,9 +235,22 @@ define [
         screenman.showScreen modelName
 
     screenSetup = (viewName, args) ->
-      programURL = "/cfg/model/contract?pid=#{args.program}"
-      $.getJSON programURL, (programModel) ->
-        programSetup viewName, args, programModel, programURL
+      programs = [{id: null, name: 'Выберите программу' }]
+      programDict = new d.dicts["ComputedDict"]({ dict: "vinPrograms" })
+      _.each programDict.source, (program) ->
+        programs.push {id: program.value, name: program.label}
+      ko.applyBindings(programs, el("program-select"))
+
+      if args.program
+        $('#program-select').val(args.program)
+        programURL = "/cfg/model/contract?pid=#{args.program}"
+        $.getJSON programURL, (programModel) ->
+          programSetup viewName, args, programModel, programURL
+
+      $('#program-select').change ->
+        if @value
+          location.hash="contract/#{@value}"
+          location.reload true
 
     template: tpl
     constructor: screenSetup

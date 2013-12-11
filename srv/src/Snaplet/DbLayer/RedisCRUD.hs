@@ -1,7 +1,7 @@
 {-# LANGUAGE Rank2Types #-}
 module Snaplet.DbLayer.RedisCRUD where
 
-import Prelude hiding (read)
+import Prelude hiding (id, read)
 import Control.Lens
 import Control.Monad (forM)
 import Data.ByteString (ByteString)

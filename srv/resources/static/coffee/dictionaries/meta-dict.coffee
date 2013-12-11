@@ -1,5 +1,5 @@
-define [], ->
-  class MetaDict
+define ["lib/ajax"], (Ajax)->
+  class MetaDict extends Ajax
     constructor: (@opts) ->
 
     getVal: _.identity

@@ -135,6 +135,7 @@
       "meta": {
         "regexp": "vin",
         "required": true,
+        "expired": true,
         "transform": "uppercase",
         "label": "VIN",
         "dictionaryType": "VinDict"
@@ -320,6 +321,16 @@
       },
       "type": "dictionary",
       "name": "class"
+    },
+    {
+      "type": "dictionary",
+      "meta": {
+        "label": "Физическое / Юридическое лицо",
+        "widget": "radio",
+        "bounded": true,
+        "dictionaryName": "LegalForms"
+      },
+      "name": "legalForm"
     },
     {
       "meta": {
