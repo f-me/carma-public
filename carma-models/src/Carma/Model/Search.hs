@@ -157,6 +157,13 @@ predicatesFromParams c v modelParams = case v of
     params = HM.fromList modelParams
     filterParams o = HM.intersection o params
 
+concatPredStrings :: [Text] -> Text
+concatPredStrings [] = "true"
+concatPredStrings ps =
+  case T.intercalate " AND " $ filter (/= "") ps of
+    "" -> "true"
+    v  -> v
+
 searchView :: Model m => [(Text, [Predicate m])] -> ModelView m
 searchView flds = ModelView
   { mv_modelName = "search"
