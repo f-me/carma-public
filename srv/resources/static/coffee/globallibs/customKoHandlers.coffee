@@ -118,13 +118,26 @@ ko.bindingHandlers.render =
     ko.applyBindingsToDescendants({kvm: acc().kvm, field: acc().field}, el)
     return { controlsDescendantBindings: true }
 
+ko.bindingHandlers.expandAll =
+  init: (el, acc, allBindigns, ctx, koctx) ->
+    $(el).append("<label><i class='icon-plus-sign'></i></label>")
+    $(el).click ->
+      expanded = $(el).find('i').hasClass('icon-minus-sign')
+      $(el).closest('table').find('.expand-contoller').each (key, tr) ->
+        if expanded is $(tr).hasClass('expanded')
+          $(tr).trigger 'click'
+      $(el).find('i').toggleClass('icon-plus-sign').toggleClass('icon-minus-sign')
+
 ko.bindingHandlers.expand =
   init: (el, acc, allBindigns, ctx, koctx) ->
+    $(el).append("<label><i class='icon-plus-sign'></i></label>")
     $(el).click ->
-      $(el).parent().next().toggle()
+      $(el).parent().next().toggleClass('hidden')
+      $(el).toggleClass('expanded')
+      $(el).find('i').toggleClass('icon-plus-sign').toggleClass('icon-minus-sign')
 
 ko.bindingHandlers.eachNonEmpty =
-  init:  (el, acc, allBindigns, ctx, koctx) ->
+  init: (el, acc, allBindigns, ctx, koctx) ->
     fnames = acc()()
     groups = _.map fnames, (f) -> koctx.$root.showFields.groups[f]
     fns = _.reject fnames, (fname) ->
