@@ -1,3 +1,6 @@
+-- Merge opeldo & opel programs
+UPDATE casetbl SET program = 'opel' WHERE program = 'opeldo';
+
 -- Migrate cases with known programs
 WITH remap AS 
 (SELECT old.value, p.id AS pid, sp.id AS sid
