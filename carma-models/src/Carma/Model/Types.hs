@@ -225,9 +225,10 @@ instance DefaultFieldView Text where
 
 instance DefaultFieldView Day where
   defaultFieldView f = (defFieldView f)
-    {fv_type = "date"
-    ,fv_meta
-      = Map.insert "regexp" (Aeson.String "date")
+    { fv_type = "Day"
+    , fv_meta
+      = Map.insert "regexp" "date"
+      $ Map.insert "widget" "date"
       $ fv_meta $ defFieldView f
     }
 

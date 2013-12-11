@@ -13,6 +13,7 @@ import Carma.Model.CarModel (CarModel)
 
 data SynCarModel = SynCarModel
   { ident   :: PK Int SynCarModel ""
+  -- TODO Redundant f-me/carma#1468
   , make    :: F (IdentI CarMake)  "make"  "Марка"
   , model   :: F (IdentI CarModel) "model" "Модель"
   , synonym :: F Text              "label" "Синоним"

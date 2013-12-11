@@ -10,7 +10,7 @@ import Carma.Model.Types()
 
 data Engine = Engine
   { ident    :: PK Int Engine   "Тип двигателя"
-  , label    :: F Text          "label"  "Тип"
+  , label    :: F Text          "label" "Тип"
   } deriving Typeable
 
 instance Model Engine where
