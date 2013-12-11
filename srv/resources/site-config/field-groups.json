@@ -210,13 +210,6 @@
     },
     {
       "meta": {
-        "label": "Дата последнего ТО"
-      },
-      "type": "date",
-      "name": "checkupDate"
-    },
-    {
-      "meta": {
         "required": true,
         "label": "Дилер у которого проходило последнее ТО",
         "bounded": true,
@@ -224,45 +217,6 @@
       },
       "type": "dictionary",
       "name": "dealerTO"
-    },
-    {
-      "meta": {
-        "sqltype": "integer",
-        "required": true,
-        "label": "Текущий пробег"
-      },
-      "name": "mileage"
-    },
-    {
-      "meta": {
-        "sqltype": "integer",
-        "required": true,
-        "label": "Пробег на последнем ТО"
-      },
-      "name": "checkupMileage"
-    },
-    {
-      "meta": {
-        "label": "Дата начала действия программы"
-      },
-      "type": "date",
-      "name": "warrantyStart"
-    },
-    {
-      "meta": {
-        "label": "Дата окончания действия программы"
-      },
-      "type": "date",
-      "name": "warrantyEnd"
-    },
-    {
-      "type": "dictionary",
-      "meta": {
-        "bounded": true,
-        "dictionaryName": "ContractType",
-        "label": "Тип контракта"
-      },
-      "name": "contractType"
     },
     {
       "type": "dictionary",
@@ -291,64 +245,11 @@
     },
     {
       "meta": {
-        "label": "Вместимость"
-      },
-      "name": "capacity"
-    },
-    {
-      "meta": {
-        "label": "Габариты"
-      },
-      "name": "dims"
-    },
-    {
-      "meta": {
-        "label": "Масса"
-      },
-      "name": "weight"
-    },
-    {
-      "meta": {
-        "sqltype": "integer",
-        "label": "Межсервисный интервал"
-      },
-      "name": "checkPeriod"
-    },
-    {
-      "meta": {
         "dictionaryName": "CarClasses",
         "label": "Класс автомобиля"
       },
       "type": "dictionary",
       "name": "class"
-    },
-    {
-      "type": "dictionary",
-      "meta": {
-        "label": "Физическое / Юридическое лицо",
-        "widget": "radio",
-        "bounded": true,
-        "dictionaryName": "LegalForms"
-      },
-      "name": "legalForm"
-    },
-    {
-      "meta": {
-        "label": "Код марки автомобиля"
-      },
-      "name": "makeCode"
-    },
-    {
-      "meta": {
-        "label": "Код модели автомобиля"
-      },
-      "name": "modelCode"
-    },
-    {
-      "meta": {
-        "label": "Код неиправности автомобиля"
-      },
-      "name": "faultCode"
     }
   ],
   "cardNumber": [
