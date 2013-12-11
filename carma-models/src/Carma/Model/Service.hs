@@ -7,13 +7,14 @@ import Data.Time.Clock (UTCTime)
 
 import Data.Model
 import Data.Model.View
+import Carma.Model.ServiceNames (ServiceNames)
 import Carma.Model.Types()
 import Carma.Model.LegacyTypes (Reference,Checkbox)
 import Carma.Model.Search as S
 
 data Service = Service
   { ident                        :: PK Int Service ""
-  , svcType                      :: F Text "type"
+  , svcType                      :: F (IdentT ServiceNames) "type"
                                  "Сервис"
   , parentId                     :: F Text "parentId"
                                  ""
@@ -121,7 +122,7 @@ instance Model Service where
 
 serviceSearchParams :: [(Text, [Predicate Service])]
 serviceSearchParams
-  = [("Service_createtime",    interval createTime)
+  = [("Service_createtime",   interval createTime)
     ,("contractor_partnerId", listOf contractor_partnerId)
-    ,("svcType", one svcType)
+    ,("svcType",              listOf svcType)
     ]
