@@ -4,7 +4,7 @@ define [ "utils"
        , "json!/cfg/model/Towage"
        ] ,(Utils, ms...) ->
 
-  allModels = arrToObj 'name', ms[0...-1]
+  allModels = arrToObj 'name', ms
 
   resultFields =
     Case: [
@@ -32,7 +32,7 @@ define [ "utils"
       "createTime"
       ]
     Towage: [
-      "towdealer_address"
+      "towDealer_partnerId"
       ]
 
   # make deep copy of required models, so we wont brake them somewhere

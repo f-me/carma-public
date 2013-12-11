@@ -8,6 +8,7 @@ define [ "utils"
        , "text!tpl/screens/servicesSearch.html"
        , "json!/cfg/model/Case?view=search"
        , "json!/cfg/model/Service?view=search"
+       , "json!/cfg/model/Towage?view=search"
        , "sync/servicesSearch"
        , "lib/state-url"
        ], ( utils
@@ -20,11 +21,14 @@ define [ "utils"
           , tpl
           , caseModel
           , servicesModel
+          , towageModel
           , sync
           , State) ->
 
   model = $.extend true, {}, caseModel
-  model.fields = model.fields.concat servicesModel.fields
+  model.fields = model.fields
+    .concat(servicesModel.fields)
+    .concat(towageModel.fields)
 
   model.fields = model.fields.concat [
     {

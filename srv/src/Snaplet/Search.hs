@@ -33,6 +33,7 @@ import Utils.HttpErrors
 
 import Carma.Model.Case
 import Carma.Model.Service
+import Carma.Model.Service.Towage
 import Carma.Model.Search
 
 data Search b = Search
@@ -82,12 +83,15 @@ caseSearch = do
   withPG $ \c -> do
     cse_fields <- modelFields uid "case" c
     svc_fields <- modelFields uid "service" c
+    tow_fields <- modelFields uid "towage" c
     casePreds  <- predicatesFromParams c args caseSearchParams
     srvPreds   <- predicatesFromParams c args serviceSearchParams
-    case partitionEithers [casePreds, srvPreds] of
+    towPreds   <- predicatesFromParams c args towageSearchParams
+    case partitionEithers [casePreds, srvPreds, towPreds] of
       ([], preds) -> do
         s :: [[LB.ByteString]] <-
-          query_ c (mkQuery cse_fields svc_fields (T.concat preds) lim offset)
+          query_ c (mkQuery cse_fields svc_fields tow_fields
+                    (concatPredStrings preds) lim offset)
         return $ return . reply lim offset =<<
           (sequence $ map (Aeson.eitherDecode . head) s)
       (errs, _) -> return $ Left $ foldl (++) "" errs
@@ -99,31 +103,36 @@ search = (>>= either (finishWithError 500) writeJSON)
 
 
 mkQuery
-   :: [Text] -> [Text] -> Text -> Int -> Int
+   :: [Text] -> [Text] -> [Text] -> Text -> Int -> Int
    -> Query
-mkQuery caseProj svcProj pred lim offset
+mkQuery caseProj svcProj towProj pred lim offset
   = fromString $ printf ("with"
       ++ " result(cid,styp,sid) as"
       ++ "   (select casetbl.id, servicetbl.type, servicetbl.id"
       ++ "     from casetbl join servicetbl"
       ++ "       on split_part(servicetbl.parentId, ':', 2)::int = casetbl.id"
+      ++ "     join towagetbl"
+      ++ "       on servicetbl.id = towagetbl.id"
       ++ "     where (%s)),"
       ++ " json_result as"
       ++ "   (select"
-      ++ "     row_to_json(c.*) as \"case\", row_to_json(s.*) as \"service\""
+      ++ "     row_to_json(c.*) as \"case\","
+      ++ "     row_to_json(s.*) as \"service\","
+      ++ "     row_to_json(t.*) as \"towage\""
       ++ "     from result r,"
       ++ "       (select %s from casetbl) as c,"
-      ++ "       (select %s from servicetbl) as s"
+      ++ "       (select %s from servicetbl) as s,"
+      ++ "       (select %s from towagetbl) as t"
       ++ "     where c.id = r.cid"
-      ++ "       and s.id = r.sid and s.type = r.styp)"
+      ++ "       and s.id = r.sid and s.type = r.styp"
+      ++ "       and s.id = t.id)"
       ++ " select row_to_json(r) :: text from json_result r limit %i offset %i;")
-    (T.unpack $ prePred pred)
+    (T.unpack pred)
     (T.unpack $ T.intercalate ", " $ map mkProj caseProj)
     (T.unpack $ T.intercalate ", " $ map mkProj svcProj)
+    (T.unpack $ T.intercalate ", " $ map mkProj towProj)
     lim offset
   where
-    prePred "" = "true"
-    prePred p  = p
     mkProj f = T.concat [f, " as \"", f, "\""]
 
 
