@@ -9,7 +9,6 @@ import Data.Aeson as Aeson
 import Data.String
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Text.Read
 
 import Data.Int (Int16, Int32)
 import qualified Data.Vector as V
@@ -17,7 +16,6 @@ import Data.Vector (Vector, (!))
 import qualified Data.Map as Map
 
 import Data.Time
-import Data.Time.Calendar (Day)
 import Data.Fixed (Pico)
 
 import Database.PostgreSQL.Simple.FromField (FromField(..))
@@ -186,7 +184,20 @@ instance DefaultFieldView Bool where
 
 instance DefaultFieldView TInt where
   defaultFieldView f = (defFieldView f)
-    {fv_type = "Integer"
+    { fv_type = "Integer"
+    , fv_meta
+      = Map.insert "regexp" "number"
+      $ Map.insert "widget" "text"
+      $ fv_meta $ defFieldView f
+    }
+
+instance DefaultFieldView Double where
+  defaultFieldView f = (defFieldView f)
+    { fv_type = "Double"
+    , fv_meta
+      = Map.insert "regexp" "double"
+      $ Map.insert "widget" "text"
+      $ fv_meta $ defFieldView f
     }
 
 instance DefaultFieldView Int where
