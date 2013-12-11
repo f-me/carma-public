@@ -12,6 +12,15 @@ define [], ->
       console.error("datamap: can't parse date '#{v}' with '#{fmt}'")
       ""
 
+  iso8601date = "yyyy-MM-dd"
+
+  c2sDay = (fmt) -> (v) ->
+    date = Date.parseExact(v, fmt)
+    if date
+      date.toString(iso8601date)
+    else
+      console.error("datamap: can't parse date '#{v}' in ISO-8601")
+
   s2cDate = (fmt) -> (v) ->
     return null if _.isEmpty v
     d = undefined
@@ -19,6 +28,10 @@ define [], ->
     return d.toString(fmt) if isFinite d
     d = Date.parseExact(v, "yyyy-MM-dd HH:mm:ssz")
     return d.toString(fmt) if isFinite d
+
+  s2cDay = (fmt) -> (v) ->
+    return null if _.isEmpty v
+    new Date.parseExact(v, iso8601date).toString(fmt)
 
   s2cJson = (v) ->
     return null if _.isEmpty v
@@ -39,6 +52,7 @@ define [], ->
     Bool      : (v) -> v
     Integer   : (v) -> parseInt v
     Double    : (v) -> parseFloat v.replace ',', '.'
+    Day       : c2sDay("dd.MM.yyyy")
     dictionary: (v) -> if _.isNull v then '' else v
     date      : c2sDate("dd.MM.yyyy")
     datetime  : c2sDate("dd.MM.yyyy HH:mm")
@@ -52,6 +66,7 @@ define [], ->
     Bool      : (v) -> v
     Integer   : (v) -> v
     Double    : (v) -> v
+    Day       : s2cDay("dd.MM.yyyy")
     dictionary: (v) -> v
     date      : s2cDate("dd.MM.yyyy")
     datetime  : s2cDate("dd.MM.yyyy HH:mm")
