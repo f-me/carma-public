@@ -74,7 +74,7 @@
         { "name"  : "vin",
           "label" : "Обновление базы VIN и партнёров",
           "type"  : "li",
-          "permissions": ["vinAdmin", "psaanalyst"]
+          "permissions": ["partner", "vinAdmin", "psaanalyst"]
         },
         { "name"  : "partner",
           "label" : "Редактирование партнёров",
