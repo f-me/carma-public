@@ -40,7 +40,6 @@ import Utils.HttpErrors
 import Data.Model.Sql
 import qualified Data.Model as Model
 import qualified Carma.Model as Model
-import qualified Carma.Model.OldProgram as OldProgram
 import qualified Carma.Model.Program as Program
 import qualified Carma.Model.SubProgram as SubProgram
 import qualified Carma.Model.ProgramInfo as ProgramInfo
@@ -143,10 +142,6 @@ serveDictionaries = do
                Aeson.Object $ HM.insert "value" (o HM.! "id") o)
           roles
 
-  -- Load old programs dictionary proxy
-  oldPrograms <- withPG $ selectJSON
-    (OldProgram.ident :. OldProgram.value :. OldProgram.label :. eq OldProgram.active True)
-
   -- TODO Calculate program active status from subprograms
   programs <- withPG $ selectJSON
     (Program.ident :. Program.label)
@@ -166,8 +161,6 @@ serveDictionaries = do
   writeJSON $ Aeson.Object
     $ HM.insert "Roles"
       (Aeson.object [("entries", Aeson.Array $ V.fromList roles')])
-    $ HM.insert "Programs"
-      (Aeson.object [("entries", Aeson.Array $ V.fromList oldPrograms)])
     $ HM.insert "Program"
       (Aeson.object [("entries", Aeson.Array $ V.fromList programs)])
     $ HM.insert "SubProgram"
