@@ -31,6 +31,7 @@ INSERT INTO "Dictionary" (id, name, description, parent, majorFields) VALUES
 , (21, 'LegalForm', 'Формы организации', null, ARRAY['id', 'label'])
 , (22, 'CheckType', 'Вид ТО', null, ARRAY['id', 'label'])
 , (23, 'CarClass', 'Классы автомобилей', null, ARRAY['id', 'label'])
+, (24, 'VinFormat', 'Форматы VIN', null, ARRAY['id', 'label'])
 ;
 
 GRANT SELECT ON "Dictionary" TO carma_db_sync;
