@@ -1,3 +1,6 @@
+-- Merge opeldo & opel programs
+UPDATE calltbl SET program = 'opel' WHERE program = 'opeldo';
+
 -- Migrate calls with known programs
 WITH remap AS 
 (SELECT old.value, p.id AS pid, sp.id AS sid
