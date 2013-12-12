@@ -55,14 +55,14 @@ data Contract = Contract
   , startMileage     :: F (Maybe TInt)
                         "startMileage"
                         "Пробег при регистрации в программе"
-    -- This is not redundant as car model may be unknown/unrecognized.
+  -- This is not redundant as car model may be unknown/unrecognized.
   , make             :: F (Maybe (IdentI CarMake))
                         "make"
                         "Марка"
   , model            :: F (Maybe (IdentI CarModel))
                         "model"
                         "Модель"
-    -- TODO New Year (pun intended) field type
+  -- TODO New Year (pun intended) field type
   , makeYear         :: F (Maybe TInt)
                         "makeYear"
                         "Год производства автомобиля"
