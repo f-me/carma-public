@@ -75,7 +75,7 @@ data Contract = Contract
   , transmission     :: F (Maybe (IdentI Transmission))
                         "transmission"
                         "Коробка передач"
-  , engineVolume     :: F (Maybe Double)
+  , engineVolume     :: F (Maybe Text)
                         "engineVolume"
                         "Объём двигателя"
   , engineType       :: F (Maybe (IdentI Engine))
