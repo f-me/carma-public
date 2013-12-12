@@ -11,11 +11,12 @@ import Carma.Model.CarMake (CarMake)
 
 
 data CarModel = CarModel
-  {ident :: PK Int CarModel ""
-  ,value :: F Text             "value"   "value"
-  ,label :: F Text             "label"   "Модель"
-  ,info  :: F Text             "info"    "Информация о модели"
-  ,parent:: F (IdentI CarMake) "parent"  "Марка машины"
+  { ident    :: PK Int CarModel ""
+  , value    :: F Text             "value"    "value"
+  , label    :: F Text             "label"    "Модель"
+  , info     :: F Text             "info"     "Информация о модели"
+  , parent   :: F (IdentI CarMake) "parent"   "Марка машины"
+  , synonyms :: F (Vector Text)    "synonyms" "Синонимы"
   }
   deriving Typeable
 

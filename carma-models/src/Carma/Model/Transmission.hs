@@ -9,8 +9,9 @@ import Data.Model.View
 import Carma.Model.Types()
 
 data Transmission = Transmission
-  { ident :: PK Int Transmission "Коробка передач"
-  , label :: F Text              "label" "Тип"
+  { ident    :: PK Int Transmission "Коробка передач"
+  , label    :: F Text "label" "Тип"
+  , synonyms :: F (Vector Text) "synonyms" "Синонимы"
   } deriving Typeable
 
 instance Model Transmission where
