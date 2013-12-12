@@ -20,7 +20,7 @@ define [
   "screens/newVin"
   "screens/program"
   "screens/partnersSearch"
-  "screens/servicesSearch"
+  # "screens/servicesSearch"
   "screens/contractsSearch"
   "render/screen"
   ], ( bo
@@ -44,7 +44,7 @@ define [
      , newVin
      , program
      , partnersSearch
-     , servicesSearch
+     # , servicesSearch
      , contractsSearch
      , r) ->
     localScreens: ->
@@ -134,9 +134,9 @@ define [
       "partnersSearch":
         "views":
           "search-view": partnersSearch
-      "servicesSearch":
-        "views":
-          "search-view": servicesSearch
+      # "servicesSearch":
+      #   "views":
+      #     "search-view": servicesSearch
       "contractsSearch":
         "views":
           "search-view": contractsSearch
@@ -176,7 +176,7 @@ define [
         "printSrv/:model/:id" : "printSrv"
         "partnersSearch"        : "partnersSearch"
         "partnersSearch/:model" : "partnersSearchModel"
-        "servicesSearch*any"    : "servicesSearch"
+        # "servicesSearch*any"    : "servicesSearch"
         "contractsSearch*any"   : "contractsSearch"
 
       loadCase      : (id) -> r.renderScreen("case", kase, {"id": id})
@@ -217,7 +217,7 @@ define [
       partnersSearch     : -> r.renderScreen("partnersSearch", partnersSearch)
       partnersSearchModel: (model) ->
         r.renderScreen "partnersSearch", partnersSearch, {model: model}
-      servicesSearch     : -> r.renderScreen("servicesSearch", servicesSearch)
+      # servicesSearch     : -> r.renderScreen("servicesSearch", servicesSearch)
       contractsSearch    : -> r.renderScreen("contractsSearch", contractsSearch)
 
       current : ->

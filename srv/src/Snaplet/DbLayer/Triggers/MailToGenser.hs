@@ -25,7 +25,6 @@ import Snaplet.DbLayer.Triggers.Types
 import Snaplet.DbLayer.Triggers.Dsl
 import Carma.HTTP
 
-
 q :: PG.Query
 q = [sql|
   with p as
@@ -93,14 +92,16 @@ sendMailToGenser svcId = do
     dms <- get dealerId "emails"
     case getAllKeyedJsonValues dms "list" of
       [] -> return ()
-      mailTo :_ -> do
+      partnerMail :_ -> do
         cfg      <- liftDb getSnapletUserConfig
+        mailCopy <- liftIO $ require cfg "genser-smtp-copy"
         mailFrom <- liftIO $ require cfg "genser-smtp-from"
+        let mailTo = T.intercalate "," [T.decodeUtf8 partnerMail, mailCopy]
         [(subjTxt, bodyTxt)] <- liftDb $ PG.query q [svcId]
         let body = Part "text/plain; charset=utf-8"
                    QuotedPrintableText Nothing [] bodyTxt
         void $ liftIO $ forkIO
-          $ sendEximMail mailFrom (T.decodeUtf8 mailTo) subjTxt body
+          $ sendEximMail mailFrom mailTo subjTxt body
 
 
 sendEximMail :: Text -> Text -> Text -> Part -> IO ()
