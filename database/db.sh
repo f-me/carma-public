@@ -44,7 +44,7 @@ function exec_file {
   local FILE=$1
   echo ... $FILE
   ext=${FILE##*.}
-  COMMIT=$(git log -n 1 --pretty=format:%h -- ${FILE})
+  COMMIT=$(git log -n 1 --no-merges --pretty=format:%h -- ${FILE})
   TMP=$(mktemp -d)
   cd ..
   git --work-tree="${TMP}" checkout ${COMMIT} -- database/
