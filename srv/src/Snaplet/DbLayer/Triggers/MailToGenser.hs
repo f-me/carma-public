@@ -6,6 +6,7 @@ module Snaplet.DbLayer.Triggers.MailToGenser
   ) where
 
 
+import Prelude hiding (log)
 import Control.Monad.Trans (liftIO)
 import Control.Monad
 import Control.Concurrent
@@ -19,6 +20,7 @@ import qualified Snap.Snaplet.PostgresqlSimple as PG
 import Database.PostgreSQL.Simple.SqlQQ
 import Data.Configurator (require)
 import Network.Mail.Mime
+import System.Log.Simple
 
 import Snap.Snaplet (getSnapletUserConfig)
 import Snaplet.DbLayer.Triggers.Types
@@ -87,6 +89,7 @@ q = [sql|
 
 sendMailToGenser :: MonadTrigger m b => ByteString -> m b ()
 sendMailToGenser svcId = do
+  liftDb $ log Trace (T.pack $ "sendMailToGenser(" ++ show svcId ++ ")")
   dealerId <- get svcId "towDealer_partnerId"
   when (dealerId /= "") $ do
     dms <- get dealerId "emails"
@@ -100,6 +103,8 @@ sendMailToGenser svcId = do
         [(subjTxt, bodyTxt)] <- liftDb $ PG.query q [svcId]
         let body = Part "text/plain; charset=utf-8"
                    QuotedPrintableText Nothing [] bodyTxt
+
+        liftDb $ log Trace $ T.concat ["sendMailToGenser: ", subjTxt]
         void $ liftIO $ forkIO
           $ sendEximMail mailFrom mailTo subjTxt body
 
