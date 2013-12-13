@@ -16,8 +16,8 @@ import Carma.Model.Types ()
 
 data Partner = Partner
   { ident :: PK Int Partner "Партнёр"
-  , label :: F Text         "name" "Название"
-  , value :: F (Maybe Text) "code" "Код"
+  , name  :: F Text         "name" "Название"
+  , code  :: F (Maybe Text) "code" "Код"
   } deriving Typeable
 
 instance Model Partner where
