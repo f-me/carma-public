@@ -1,6 +1,7 @@
 CREATE TABLE "CheckType"
   ( id    SERIAL PRIMARY KEY
   , label text UNIQUE NOT NULL
+  , synonyms text[]
   );
 
 GRANT ALL ON "CheckType" TO carma_db_sync;

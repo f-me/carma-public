@@ -1,6 +1,7 @@
 CREATE TABLE "Transmission"
   ( id    SERIAL PRIMARY KEY
   , label text UNIQUE NOT NULL
+  , synonyms text[]
   );
 
 GRANT ALL ON "Transmission" TO carma_db_sync;

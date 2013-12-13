@@ -4,6 +4,7 @@ CREATE TABLE "CarModel"
   , label  text NOT NULL
   , parent int4 REFERENCES "CarMake" ON DELETE SET NULL
   , info   text NOT NULL DEFAULT ''
+  , synonyms text[]
   ,UNIQUE (label, parent)
   );
 CREATE UNIQUE INDEX ON "CarModel" (label) WHERE parent IS NULL;

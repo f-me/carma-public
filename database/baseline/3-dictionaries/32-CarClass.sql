@@ -1,6 +1,7 @@
 CREATE TABLE "CarClass"
   ( id    SERIAL PRIMARY KEY
   , label text UNIQUE NOT NULL
+  , synonyms text[]
   );
 
 GRANT ALL ON "CarClass" TO carma_db_sync;

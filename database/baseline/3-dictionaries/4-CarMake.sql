@@ -1,7 +1,8 @@
 CREATE TABLE "CarMake"
-  (id    SERIAL PRIMARY KEY
-  ,value text
-  ,label text UNIQUE NOT NULL
+  ( id    SERIAL PRIMARY KEY
+  , value text
+  , label text UNIQUE NOT NULL
+  , synonyms text[]
   );
 
 COPY "CarMake" (id, value, label) FROM stdin;

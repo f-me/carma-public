@@ -1,6 +1,7 @@
 CREATE TABLE "Engine"
   ( id    SERIAL PRIMARY KEY
   , label text UNIQUE NOT NULL
+  , synonyms text[]
   );
 
 GRANT ALL ON "Engine" TO carma_db_sync;
