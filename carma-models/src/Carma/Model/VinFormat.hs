@@ -189,6 +189,6 @@ data VinFormat = VinFormat
 instance Model VinFormat where
   type TableName VinFormat = "VinFormat"
   modelInfo = mkModelInfo VinFormat ident
-  modelView _ = modify defaultView
+  modelView _ = modifyView defaultView
                 [ setMeta "dictionaryParent" "makeDefault" modelDefault
                 ]
