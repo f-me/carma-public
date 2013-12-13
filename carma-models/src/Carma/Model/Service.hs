@@ -7,12 +7,14 @@ import Data.Time.Clock (UTCTime)
 
 import Data.Model
 import Data.Model.View
+import Carma.Model.ServiceNames (ServiceNames)
 import Carma.Model.Types()
 import Carma.Model.LegacyTypes (Reference,Checkbox)
+import Carma.Model.Search as S
 
 data Service = Service
   { ident                        :: PK Int Service ""
-  , svcType                      :: F Text "type"
+  , svcType                      :: F (IdentT ServiceNames) "type"
                                  "Сервис"
   , parentId                     :: F Text "parentId"
                                  ""
@@ -64,7 +66,7 @@ data Service = Service
   , contractor_partner           :: F Text "contractor_partner"
                                  "Партнёр"
   , contractor_partnerId         :: F Text "contractor_partnerId"
-                                 ""
+                                 "Партнёр"
   , contractor_address           :: F Text "contractor_address"
                                  "Адрес"
   , contractor_coords            :: F Text "contractor_coords"
@@ -102,4 +104,25 @@ data Service = Service
 instance Model Service where
   type TableName Service = "servicetbl"
   modelInfo = mkModelInfo Service ident
-  modelView _ = defaultView
+  modelView "search" = modifyView (searchView serviceSearchParams)
+    [dict contractor_partnerId $ (dictOpt "allPartners")
+          { dictType    = Just "ComputedDict"
+          , dictBounded = True
+          }
+    ,setType "dictionary-set" contractor_partnerId
+    ]
+  modelView _ = modifyView defaultView
+    [dict contractor_partnerId $ (dictOpt "allPartners")
+          { dictType    = Just "ComputedDict"
+          , dictBounded = True
+          }
+    ,setType "dictionary" contractor_partnerId
+    ]
+
+
+serviceSearchParams :: [(Text, [Predicate Service])]
+serviceSearchParams
+  = [("Service_createtime",   interval createTime)
+    ,("contractor_partnerId", listOf contractor_partnerId)
+    ,("svcType",              listOf svcType)
+    ]

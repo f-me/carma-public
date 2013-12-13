@@ -10,7 +10,7 @@ import Data.Model.View
 import Carma.Model.Types()
 import Carma.Model.LegacyTypes (PickerField, MapField)
 import Carma.Model.Service (Service)
-
+import Carma.Model.Search as S
 
 data Towage = Towage
   { ident                    :: PK Int Towage ""
@@ -25,7 +25,7 @@ data Towage = Towage
   , towDealer_partner        :: F Text "towDealer_partner"
                              "Дилер (куда эвакуируют автомобиль)"
   , towDealer_partnerId      :: F Text "towDealer_partnerId"
-                             ""
+                             "Дилер (куда эвакуируют автомобиль)"
   , towDealer_address        :: F Text "towDealer_address"
                              "Адрес"
   , towDealer_coords         :: F Text "towDealer_coords"
@@ -77,5 +77,14 @@ instance Model Towage where
   type TableName Towage = "towagetbl"
   type Parent Towage = Service
   modelInfo = mkModelInfo Towage ident
+  modelView "search" =  modifyView (searchView towageSearchParams)
+    [dict towDealer_partnerId $ (dictOpt "allPartners")
+          { dictType    = Just "ComputedDict"
+          , dictBounded = True
+          }
+    ,setType "dictionary-set" towDealer_partnerId
+    ]
   modelView _ = (defaultView :: ModelView Towage) {mv_title = "Эвакуация"}
 
+towageSearchParams :: [(Text, [Predicate Towage])]
+towageSearchParams = [("towDealer_partnerId", listOf towDealer_partnerId)]
