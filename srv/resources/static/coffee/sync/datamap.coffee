@@ -57,6 +57,7 @@ define [], ->
     date      : c2sDate("dd.MM.yyyy")
     datetime  : c2sDate("dd.MM.yyyy HH:mm")
     json      : JSON.stringify
+    ident     : (v) -> parseInt v
     'interval-datetime': (v) ->
       v.map (t) -> Date.parseExact(t, "dd.MM.yyyy")?.toString "yyyy-MM-ddTHH:mm:ss.0Z"
 

@@ -213,7 +213,9 @@ define [ "model/render"
         updateInterval = ->
           if proxy.begin != null and proxy.end != null
             kvm[f.name]([proxy.begin, proxy.end])
-        kvm[f.name].subscribe (v) -> proxy.begin = v[0]; proxy.end = v[1]
+        kvm[f.name].subscribe (v) ->
+          proxy.begin = if v then v[0] else null
+          proxy.end =   if v then v[1] else null
         kvm["#{f.name}Begin"] = ko.computed
           read: -> kvm[f.name](); proxy.begin
           write: (v) ->

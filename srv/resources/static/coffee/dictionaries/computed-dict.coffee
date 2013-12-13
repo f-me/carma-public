@@ -60,6 +60,11 @@ define ["dictionaries/local-dict"], (ld) ->
           else
             []
 
+    allPartners: =>
+      @bgetJSON "/all/partner", (objs) =>
+        @source = for o in objs when o.name
+          { value: o.id, label: o.name }
+
     Priorities: => @source = [1..3].map (e) -> s=String(e);{value:s,label:s}
 
   dict: ComputedDict

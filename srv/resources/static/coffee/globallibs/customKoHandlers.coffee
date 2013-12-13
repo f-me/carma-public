@@ -76,6 +76,7 @@ ko.bindingHandlers.renderField =
     tplid = acc().meta.widget
     tplid = "#{acc().type || 'text'}"
     tplid = "dictionary-many" if acc().type == "dictionary-set"
+    tplid = "text" if acc().type == "ident"
     tpl   = Mustache.render $("##{tplid}-field-template").html(), acc()
 
     if ctx.$root.wrapFields
@@ -109,6 +110,7 @@ ko.bindingHandlers.renderGroup =
 
 ko.bindingHandlers.render =
   init: (el, acc, allBindigns, ctx) ->
+    return unless acc().field
     tplName = acc().field.type || 'text'
     tpl = $("##{tplName}-ro-template").html()
     console.error "Cant find template for #{tplName}" unless tpl
@@ -116,7 +118,33 @@ ko.bindingHandlers.render =
     ko.applyBindingsToDescendants({kvm: acc().kvm, field: acc().field}, el)
     return { controlsDescendantBindings: true }
 
+ko.bindingHandlers.expandAll =
+  init: (el, acc, allBindigns, ctx, koctx) ->
+    $(el).append("<label><i class='icon-plus-sign'></i></label>")
+    $(el).click ->
+      expanded = $(el).find('i').hasClass('icon-minus-sign')
+      $(el).closest('table').find('.expand-contoller').each (key, tr) ->
+        if expanded is $(tr).hasClass('expanded')
+          $(tr).trigger 'click'
+      $(el).find('i').toggleClass('icon-plus-sign').toggleClass('icon-minus-sign')
+
 ko.bindingHandlers.expand =
   init: (el, acc, allBindigns, ctx, koctx) ->
+    $(el).append("<label><i class='icon-plus-sign'></i></label>")
     $(el).click ->
-      $(el).parent().next().toggle()
+      $(el).parent().next().toggleClass('hidden')
+      $(el).toggleClass('expanded')
+      $(el).find('i').toggleClass('icon-plus-sign').toggleClass('icon-minus-sign')
+
+ko.bindingHandlers.eachNonEmpty =
+  init: (el, acc, allBindigns, ctx, koctx) ->
+    fnames = acc()()
+    groups = _.map fnames, (f) -> koctx.$root.showFields.groups[f]
+    fns = _.reject fnames, (fname) ->
+      g = koctx.$root.showFields.groups[fname]
+      _.all (_.keys g), (m) ->
+        kvm = ctx[m]
+        _.all g[m], (f) -> _.isEmpty kvm[f.name]()
+    ofns = ko.observable fns
+    ko.bindingHandlers['foreach']['init'](el, ofns, allBindigns, ctx, koctx)
+    ko.bindingHandlers['foreach']['update'](el, ofns, allBindigns, ctx, koctx)

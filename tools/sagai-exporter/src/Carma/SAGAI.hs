@@ -406,9 +406,9 @@ falseService :: Service -> Bool
 falseService (_, _, d) = dataField0 "falseCall" d /= "none"
 
 
--- | True if a service must be exported to SAGAI.
+-- | True if service should be exported to SAGAI.
 exportable :: Service -> Bool
-exportable (mn, _, d) = statusOk && typeOk && payTypeOk
+exportable (mn, _, d) = statusOk && typeOk
     where
           -- Check model type
           typeOk =
@@ -419,8 +419,6 @@ exportable (mn, _, d) = statusOk && typeOk && payTypeOk
                 "tech"         -> elem (dataField0 "techType" d)
                                   ["charge", "condition", "starter"]
                 _        -> False
-          -- Check payment type
-          payTypeOk = dataField0 "payType" d == "ruamc"
           -- Check status and falseCall fields
           statusOk = (falseCall == "none" && status == "serviceClosed") ||
                      (falseCall == "bill" && status == "clientCanceled")

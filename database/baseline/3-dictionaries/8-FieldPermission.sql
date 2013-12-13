@@ -1843,6 +1843,7 @@ lovAdmin	Colors	value	t	t
 core	case	id	t	f
 core	service	id	t	f
 core	service	type	t	f
+core	towage	id	t	f
 \.
 
 INSERT INTO "FieldPermission" (role, model, field, r, w)
