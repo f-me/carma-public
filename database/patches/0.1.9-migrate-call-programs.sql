@@ -7,6 +7,5 @@ WITH remap AS
  FROM programtbl old, "Program" p, "SubProgram" sp
  WHERE sp.parent=p.id AND sp.value=old.value)
 UPDATE calltbl
-SET program = (SELECT pid::text FROM remap WHERE remap.value=calltbl.program),
- subprogram = (SELECT sid FROM remap WHERE remap.value=calltbl.program)
-FROM remap WHERE program IN (SELECT value FROM remap);
+SET program = remap.pid::text, subprogram = sid
+FROM remap WHERE program = remap.value;
