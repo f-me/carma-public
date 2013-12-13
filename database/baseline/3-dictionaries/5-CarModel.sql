@@ -1,8 +1,9 @@
 CREATE TABLE "CarModel"
-  (id     SERIAL PRIMARY KEY
-  ,value  text
-  ,label  text NOT NULL
-  ,parent int4 REFERENCES "CarMake" ON DELETE SET NULL
+  ( id     SERIAL PRIMARY KEY
+  , value  text
+  , label  text NOT NULL
+  , parent int4 REFERENCES "CarMake" ON DELETE SET NULL
+  , info   text NOT NULL DEFAULT ''
   ,UNIQUE (label, parent)
   );
 CREATE UNIQUE INDEX ON "CarModel" (label) WHERE parent IS NULL;
