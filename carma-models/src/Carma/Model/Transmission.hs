@@ -2,6 +2,7 @@ module Carma.Model.Transmission where
 
 import Data.Text
 import Data.Typeable
+import Data.Vector
 
 import Data.Model
 import Data.Model.View
