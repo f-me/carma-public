@@ -25,7 +25,7 @@ data SubProgram = SubProgram
   , mailAddr     :: F (Maybe Text)             "mailAddr"  "Mail для отправки писем"
   , mailPass     :: F (Maybe Text)             "mailPass"  "Пароль для отправки писем"
   , contacts     :: F (Maybe Text)             "contacts"  "Контактные лица"
-  , services     :: F (Vector (IdentI ServiceNames))
+  , services     :: F (Maybe (Vector (IdentI ServiceNames)))
                     "services"  "Услуги, предоставляемые по программе"
   , checkPeriod  :: F (Maybe TInt)
                     "checkPeriod"  "Межсервисный интервал по умолчанию"

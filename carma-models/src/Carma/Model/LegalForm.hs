@@ -12,7 +12,7 @@ import Carma.Model.Types()
 data LegalForm = LegalForm
   { ident    :: PK Int LegalForm   "Форма организации"
   , label    :: F Text             "label" "Форма"
-  , synonyms :: F (Vector Text)    "synonyms" "Синонимы"
+  , synonyms :: F (Maybe (Vector Text)) "synonyms" "Синонимы"
   } deriving Typeable
 
 instance Model LegalForm where

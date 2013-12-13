@@ -14,7 +14,7 @@ data CarMake = CarMake
   { ident    :: PK Int CarMake ""
   , value    :: F Text "value" "value"
   , label    :: F Text "label" "Марка"
-  , synonyms :: F (Vector Text) "synonyms" "Синонимы"
+  , synonyms :: F (Maybe (Vector Text)) "synonyms" "Синонимы"
   }
   deriving Typeable
 

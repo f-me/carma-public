@@ -21,7 +21,7 @@ data Program = Program
   , client                :: F (Maybe Text)    "client" "Заказчик"
   , clientAddress         :: F (Maybe Text)    "clientAddress" "Адрес заказчика"
   , clientCode            :: F (Maybe Text)    "clientCode" "Код заказчика"
-  , managers              :: F (Vector (IdentI Usermeta))
+  , managers              :: F (Maybe (Vector (IdentI Usermeta)))
                              "managers"  "Менеджеры по программе"
   , pType                 :: F (Maybe (IdentI ProgramType))
                              "pType"  "Тип программы"

@@ -12,7 +12,7 @@ import Carma.Model.Types()
 data CarClass = CarClass
   { ident    :: PK Int CarClass "Класс автомобиля"
   , label    :: F Text          "label" "Класс"
-  , synonyms :: F (Vector Text) "synonyms" "Синонимы"
+  , synonyms :: F (Maybe (Vector Text)) "synonyms" "Синонимы"
   } deriving Typeable
 
 instance Model CarClass where
