@@ -4,7 +4,7 @@ CREATE TABLE "Program"
   , client text
   , clientAddress text
   , clientCode text
-  , managers int4[] DEFAULT array[]::int4[]
+  , managers int4[] -- ELEMENT REFERENCES
   , pType int4 REFERENCES "ProgramType"
   );
 
