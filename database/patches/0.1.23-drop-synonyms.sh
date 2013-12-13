@@ -5,10 +5,10 @@ $PSQL -c 'drop table "SynCarModel"'
 $PSQL -c 'drop table "SynEngine"'
 $PSQL -c 'drop table "SynTransmission"'
 
-$PSQL -c 'drop table "CarMake"'
-$PSQL -f baseline/3-dictionaries/4-CarMake.sql
 $PSQL -c 'drop table "CarModel"'
 $PSQL -f baseline/3-dictionaries/5-CarModel.sql
+$PSQL -c 'drop table "CarMake"'
+$PSQL -f baseline/3-dictionaries/4-CarMake.sql
 $PSQL -c 'drop table "Engine"'
 $PSQL -f baseline/3-dictionaries/27-Engine.sql
 $PSQL -c 'drop table "Transmission"'
