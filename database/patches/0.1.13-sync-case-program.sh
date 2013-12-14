@@ -2,8 +2,8 @@
 
 REDIS=$(mktemp /tmp/redisXXXXXX)
 
-TABLE="calltbl"
-MODEL="call"
+TABLE="casetbl"
+MODEL="case"
 FIELD="program"
 FIELDSIZE=${#FIELD}
 
