@@ -69,7 +69,8 @@ data Contract = Contract
   , carClass         :: F (Maybe (IdentI CarClass))
                         "carClass"
                         "Класс автомобиля"
-  , color            :: F (Maybe (IdentI Colors))
+  -- TODO Unbounded dictionary #1305
+  , color            :: F (Maybe (IdentT Colors))
                         "color"
                         "Цвет"
   , transmission     :: F (Maybe (IdentI Transmission))
