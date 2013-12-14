@@ -90,7 +90,7 @@ define ["utils"
       , r[obj.result] || ''
       , obj.priority || ''
       , global.dictValueCache['DealerCities'][obj.city] || ''
-      , progs.getLabe(obj.program) || ''
+      , progs.getLab(obj.program) || ''
       , srvStart || ''
       , obj.name || ''
       ]
