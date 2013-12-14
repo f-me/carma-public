@@ -14,9 +14,9 @@ CREATE TABLE "Contract"
   , model int4 REFERENCES "CarModel"
   , makeYear int2
   , carClass int4 REFERENCES "CarClass"
-  , color int4 REFERENCES "Colors"
+  , color text
   , transmission int4 REFERENCES "Transmission"
-  , engineVolume float
+  , engineVolume text
   , engineType int4 REFERENCES "Engine"
   , buyDate date
   , seller int4 REFERENCES partnertbl
