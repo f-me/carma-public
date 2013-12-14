@@ -39,6 +39,7 @@ library
     Carma.Model.DefaultNewCaseField,
     Carma.Model.ConstructorFieldOption,
     Carma.Model.OldProgram,
+    Carma.Model.Partner,
     Carma.Model.Program,
     Carma.Model.SubProgram,
     Carma.Model.Region,
