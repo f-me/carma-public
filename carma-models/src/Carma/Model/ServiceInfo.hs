@@ -1,4 +1,3 @@
-
 module Carma.Model.ServiceInfo where
 
 
@@ -15,7 +14,7 @@ import Carma.Model.ServiceNames (ServiceNames)
 
 data ServiceInfo = ServiceInfo
   {ident   :: PK Int ServiceInfo ""
-  ,program :: F (IdentI Program)      "program" "Программа"
+  ,program :: F (IdentI Program)   "program" "Программа"
   ,service :: F (IdentI ServiceNames) "service" "Услуга"
   ,info    :: F Text                  "info"    "Условия"
   } deriving Typeable
@@ -25,4 +24,3 @@ instance Model ServiceInfo where
   modelInfo = mkModelInfo ServiceInfo ident
   modelView _ = modifyView defaultView
     [readonly program, readonly service, textarea info]
-

@@ -31,8 +31,6 @@ import Carma.Model.LegalForm              (LegalForm)
 import Carma.Model.Program                (Program)
 import Carma.Model.Region                 (Region)
 import Carma.Model.Role                   (Role)
-import Carma.Model.SmsTemplate            (SmsTemplate)
-import Carma.Model.Sms                    (Sms)
 import Carma.Model.SubProgram             (SubProgram)
 import Carma.Model.VinFormat              (VinFormat)
 import Carma.Model.Case                   (Case)
@@ -41,6 +39,7 @@ import Carma.Model.ProgramInfo            (ProgramInfo)
 import Carma.Model.ProgramType            (ProgramType)
 import Carma.Model.ServiceInfo            (ServiceInfo)
 import Carma.Model.ServiceNames           (ServiceNames)
+
 import Carma.Model.Service                (Service)
 import Carma.Model.Service.AverageCommissioner (AverageCommissioner)
 import Carma.Model.Service.Bank           (Bank)
@@ -62,6 +61,12 @@ import Carma.Model.Service.Tech           (Tech)
 import Carma.Model.Service.TechInspect    (TechInspect)
 import Carma.Model.Service.Towage         (Towage)
 import Carma.Model.Usermeta               (Usermeta)
+
+import Carma.Model.Sms                    (Sms)
+import Carma.Model.SmsTemplate            (SmsTemplate)
+import Carma.Model.SmsTokenName           (SmsTokenName)
+import Carma.Model.SmsTokenValue          (SmsTokenValue)
+
 
 dispatch :: forall a . Text -> (forall m . Model m => m -> a) -> Maybe a
 dispatch model fn = Map.lookup model modelMap
@@ -87,8 +92,6 @@ dispatch model fn = Map.lookup model modelMap
       ,add (undefined :: CarClass)
       ,add (undefined :: Transmission)
       ,add (undefined :: Role)
-      ,add (undefined :: SmsTemplate)
-      ,add (undefined :: Sms)
       ,add (undefined :: SubProgram)
       ,add (undefined :: VinFormat)
       ,add (undefined :: Case)
@@ -97,6 +100,7 @@ dispatch model fn = Map.lookup model modelMap
       ,add (undefined :: ProgramType)
       ,add (undefined :: ServiceInfo)
       ,add (undefined :: ServiceNames)
+
       ,add (undefined :: Service)
       ,add (undefined :: AverageCommissioner)
       ,add (undefined :: Bank)
@@ -118,4 +122,8 @@ dispatch model fn = Map.lookup model modelMap
       ,add (undefined :: TechInspect)
       ,add (undefined :: Towage)
       ,add (undefined :: Usermeta)
+      ,add (undefined :: Sms)
+      ,add (undefined :: SmsTemplate)
+      ,add (undefined :: SmsTokenName)
+      ,add (undefined :: SmsTokenValue)
       ]

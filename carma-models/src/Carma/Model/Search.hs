@@ -147,6 +147,23 @@ hs2pgtype t =
       uint -> "tstzrange"
       _    -> error "Unknown type in hs2pgtype"
 
+predicatesFromParams
+  ::PG.Connection -> Aeson.Value -> [(Text, [Predicate m])]
+    -> IO (Either String Text)
+predicatesFromParams c v modelParams = case v of
+  Aeson.Object o -> renderPredicate c params $ filterParams o
+  _ -> return $ Left $ "Object expected but found: " ++ show v
+  where
+    params = HM.fromList modelParams
+    filterParams o = HM.intersection o params
+
+concatPredStrings :: [Text] -> Text
+concatPredStrings [] = "true"
+concatPredStrings ps =
+  case T.intercalate " AND " $ filter (/= "") ps of
+    "" -> "true"
+    v  -> v
+
 searchView :: Model m => [(Text, [Predicate m])] -> ModelView m
 searchView flds = ModelView
   { mv_modelName = "search"
