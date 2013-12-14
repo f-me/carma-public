@@ -30,7 +30,7 @@ define ['dictionaries/local-dict',], (ld) ->
         else
           _.identity
 
-      $.bgetJSON "/_/#{@model}", (@items) =>
+      @bgetJSON "/_/#{@model}", (@items) =>
         if @parent and _.isFunction @kvm[@parent]
           @kvm[@parent].subscribe (val) =>
             fun = @fun
