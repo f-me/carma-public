@@ -15,7 +15,7 @@ import Carma.Model.Search as S
 data Service = Service
   { ident                        :: PK Int Service ""
   , svcType                      :: F (IdentT ServiceNames) "type"
-                                 "Сервис"
+                                 "Услуга"
   , parentId                     :: F Text "parentId"
                                  ""
   , createTime                   :: F UTCTime "createTime"
