@@ -117,7 +117,7 @@
           "permissions": ["lovAdmin", "lovViewer"]
         },
         { "name"  : "servicesSearch",
-          "label" : "Поиск сервисов",
+          "label" : "Поиск услуг",
           "type"  : "li",
           "permissions": ["searchCase"]
         }
