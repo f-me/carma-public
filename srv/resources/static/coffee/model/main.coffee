@@ -205,6 +205,8 @@ define [ "model/render"
         updateInterval = ->
           if proxy.begin and proxy.end
             kvm[f.name]([proxy.begin, proxy.end])
+          else
+            kvm[f.name](null)
         kvm[f.name].subscribe (v) ->
           proxy.begin = if v then v[0] else null
           proxy.end =   if v then v[1] else null
