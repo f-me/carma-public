@@ -116,7 +116,7 @@ renderPredicate conn pMap vals = do
             -> printf "%s.%s = ?"
               (T.unpack tableName) (T.unpack fieldName)
           MatchFuzzy
-            -> printf "lower(%s.%s) ilike ('%%' || lower(?) || '%%')"
+            -> printf "lower(%s.%s) like ('%%' || lower(?) || '%%')"
               (T.unpack tableName) (T.unpack fieldName)
           MatchArray
             -> printf "%s.%s = ANY(?)"
