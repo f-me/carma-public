@@ -63,13 +63,13 @@ define [ "utils"
                            (f) -> _.contains fs, f.name)
 
     searchKVM.showFields.set(
-                          [ "car_vin"
-                          , "callDate"
-                          , "caseid"
-                          , "phone"
-                          , "car_plateNum"
-                          , "caseAddress_address"
-                          , "city"
+                          [ "callDate"
+                            "createTime"
+                            "Case_id"
+                            "phone"
+                            "contact"
+                            "vin"
+                            "plateNum"
                           ] )
 
     searchKVM.searchResults = SUtils.mkResultObservable searchKVM, ssmodels
