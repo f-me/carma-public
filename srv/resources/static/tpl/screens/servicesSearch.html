@@ -14,10 +14,9 @@
           <!-- /ko -->
         </tr>
       </thead>
-      <tbody>
-        <!-- ko foreach: kvms -->
+      <tbody data-bind="foreach: {data: kvms, as: 'kvm'}">
         <tr>
-          <td class="expand-contoller" data-bind="expand: $data">
+          <td class="expand-contoller" data-bind="expand: kvm">
           </td>
           <!-- ko foreach: $root.showFields.fields -->
           <td data-bind="renderGroup: $parent">
@@ -25,16 +24,14 @@
           <!-- /ko -->
         </tr>
         <tr class="hidden">
-          <td data-bind="attr: { colspan: $root.showFields.fields().length + 1
-                               }">
-            <dl data-bind="foreach: $root.showFields.hidden">
+          <td data-bind="attr: {colspan: $root.showFields.fields().length + 1}">
+            <dl data-bind="eachNonEmpty: $root.showFields.hidden">
                 <dt data-bind="text: $root.showFields.labels[$data]"></dt>
                 <dd style="font-size: 16.25px; font-weight: 300; line-height: 1.25;"
                     data-bind="renderGroup: $parent"></dd>
             </dl>
           </td>
         </tr>
-        <!-- /ko -->
       </tbody>
     </table>
   </div>
