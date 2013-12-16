@@ -66,7 +66,7 @@ ko.bindingHandlers.sort =
     resetSort = (el, defaultClass) ->
       $(el).closest('thead')
            .children()
-           .find('i')
+           .find('.icon-arrow-down, .icon-arrow-up')
            .removeClass()
            .addClass(defaultClass)
 
