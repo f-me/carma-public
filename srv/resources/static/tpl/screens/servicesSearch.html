@@ -47,7 +47,7 @@
 <div class="row-fluid">
   <div class="pager span9">
     <ul>
-      <li data-bind="css: {disabled: !_.isNumber(prev())}">
+      <li data-bind="css: {fade: !_.isNumber(prev())}">
         <a data-bind="click: prevPage">
           &larr;
         </a>
@@ -56,7 +56,7 @@
         <a data-bind="text: page">
         </a>
       </li>
-      <li data-bind="css: {disabled: !next()}">
+      <li data-bind="css: {fade: !next()}">
         <a data-bind="click: nextPage">
           &rarr;
         </a>
