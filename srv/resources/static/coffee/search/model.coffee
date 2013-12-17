@@ -29,17 +29,17 @@ define ["utils"], ->
         when "MatchArray"    then @addField f
         when "MatchInterval" then @addField f
 
-    removeField: (f) ->
-      @showFields.remove (v) -> _.isEqual f, v
-      @addFree()
+    removeField: (f) =>
+      unless _.isEmpty(@dynamic.remove (v) -> _.isEqual f, v)
+        @addFree()
 
-    addField:    (f) ->
+    addField:    (f) =>
       return if _.contains @dynamic(), f
       @dynamic.shift()
       @dynamic.push(f)
 
-    addFree: ->
-      f = @showfields()
+    addFree: =>
+      f = @showFields()
       t = _.keys @groups
       d = _.difference f, t
       @dynamic.pop d[0]
@@ -56,12 +56,12 @@ define ["utils"], ->
     fh     = {}
     groups = {}
     for n,m of models
-      labels[n] = arrToObj 'name', m.fields, (f) -> f.meta.label
       fh[n]     = arrToObj 'name', m.fields, (f) -> f
       for f in m.fields
         groups["#{n}_#{f.name}"] ?= {}
         groups["#{n}_#{f.name}"][n] ?= []
         groups["#{n}_#{f.name}"][n].push f
+        labels["#{n}_#{f.name}"] = f.meta?.label if f.meta?.label
 
     for f in searchKVM._meta.model.fields when not f.meta?.nosearch?
       groups[f.name] = {}
@@ -71,5 +71,5 @@ define ["utils"], ->
         groups[f.name][o.model] ?= []
         groups[f.name][o.model].push fh[o.model][o.name]
 
-      labels[f.name] = f.meta.label if f.meta?.label? and not labels[f.name]
+      labels[f.name] = f.meta.label if f.meta?.label?
     return { labels: labels, groups: groups }

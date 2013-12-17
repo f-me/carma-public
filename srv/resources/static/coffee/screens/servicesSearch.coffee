@@ -7,6 +7,8 @@ define [ "utils"
        , "screens/servicesSearch/model"
        , "text!tpl/screens/servicesSearch.html"
        , "json!/cfg/model/Case?view=search"
+       , "json!/cfg/model/Service?view=search"
+       , "json!/cfg/model/Towage?view=search"
        , "sync/servicesSearch"
        , "lib/state-url"
        ], ( utils
@@ -17,9 +19,16 @@ define [ "utils"
           , SPager
           , ssmodels
           , tpl
-          , model
+          , caseModel
+          , servicesModel
+          , towageModel
           , sync
           , State) ->
+
+  model = $.extend true, {}, caseModel
+  model.fields = model.fields
+    .concat(servicesModel.fields)
+    .concat(towageModel.fields)
 
   model.fields = model.fields.concat [
     {
@@ -41,25 +50,6 @@ define [ "utils"
   constructor: ->
     searchKVM = main.buildKVM model, {}
 
-# Кейс
-# Телефон
-# Госномер
-# Контакт
-# VIN
-# Карта участника
-# Адрес места поломки
-# Дата звонка
-# Город
-# Сотрудник принявший звонок
-# Услуга
-# Марка
-# Модель
-# Партнёр
-# Дилер, куда эвакуируют автомобиль
-# Программа
-# Что случилось?
-# Неисправность со слов клиента
-
     SPager.buildPager searchKVM
     ko.applyBindings searchKVM._meta.pager, $(".pager")[0]
 
@@ -68,17 +58,18 @@ define [ "utils"
                             (f) -> _.contains fs, f.name)
 
     searchKVM.showFields.del = (fs) ->
+      searchKVM[fs.name](null)
       searchKVM.showFields( _.reject searchKVM.showFields(),
                            (f) -> _.contains fs, f.name)
 
     searchKVM.showFields.set(
-                          [ "car_vin"
-                          , "callDate"
-                          , "caseid"
-                          , "phone"
-                          , "car_plateNum"
-                          , "caseAddress_address"
-                          , "city"
+                          [ "callDate"
+                            "createTime"
+                            "Case_id"
+                            "phone"
+                            "contact"
+                            "vin"
+                            "plateNum"
                           ] )
 
     searchKVM.searchResults = SUtils.mkResultObservable searchKVM, ssmodels
@@ -96,9 +87,13 @@ define [ "utils"
     tg = smodel.transformFields searchKVM, ssmodels
     rfields = smodel.mkFieldsDynView searchKVM, tg,
       [ { name: 'Case_id', fixed: true }
-      , { name: 'city'    }
-      , { name: 'vin' }
-      , { name: 'program' }
+      , { name: 'contact'       }
+      , { name: 'callDate'      }
+      , { name: 'phone' }
+      , { name: 'plateNum'  }
+      , { name: 'vin'       }
+      , { name: 'program'       }
+      , { name: 'city'          }
       ]
 
     ctx =

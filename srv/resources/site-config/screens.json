@@ -115,6 +115,11 @@
           "label" : "Редактирование справочников",
           "type"  : "li",
           "permissions": ["lovAdmin", "lovViewer"]
+        },
+        { "name"  : "servicesSearch",
+          "label" : "Поиск услуг",
+          "type"  : "li",
+          "permissions": ["searchCase"]
         }
       ]
     }
