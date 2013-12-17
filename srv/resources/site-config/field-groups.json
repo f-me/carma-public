@@ -193,7 +193,7 @@
       "type": "dictionary",
       "meta": {
         "label": "Цвет",
-        "bounded": true,
+        "bounded": false,
         "required": true,
         "dictionaryName": "Colors"
       },
