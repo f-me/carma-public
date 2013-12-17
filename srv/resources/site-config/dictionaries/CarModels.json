@@ -23,6 +23,7 @@
                 "value": "a4",
                 "label": "A4"
             },
+            {"value": "A5", "label": "A5"},
             {
                 "value": "a6",
                 "label": "A6"
@@ -43,6 +44,7 @@
             }
         ],
         "chrysler": [
+            {"value": "Grand Voyager", "label": "Grand Voyager"},
             {
                 "value": "chrysler300",
                 "label": "300"
@@ -299,6 +301,7 @@
                 "value": "niva",
                 "label": "NIVA"
             },
+            {"value": "Rezzo", "label": "Rezzo"},
             {
                 "value": "prism",
                 "label": "Prism"
@@ -389,6 +392,8 @@
                 "value": "bravo",
                 "label": "Bravo"
             },
+            {"value": "Doblo", "label": "Doblo"},
+            {"value": "500", "label": "500"},
             {
                 "value": "panda",
                 "label": "Panda"
@@ -421,6 +426,7 @@
                 "value": "civic",
                 "label": "Civic"
             },
+            {"value": "CR-V", "label": "CR-V"},
             {
                 "value": "fit",
                 "label": "Fit"
@@ -451,6 +457,11 @@
                 "value": "i30",
                 "label": "i30"
             },
+            {"value": "IX35", "label": "IX35"},
+            {"value": "Porter", "label": "Porter"},
+            {"value": "Matrix", "label": "Matrix"},
+            {"value": "Tucson", "label": "Tucson"},
+            {"value": "H-1 Starex", "label": "H-1 Starex"},
             {
                 "value": "centennial",
                 "label": "Centennial"
@@ -737,6 +748,8 @@
                 "value": "mazda6",
                 "label": "6"
             },
+            {"value": "CX7", "label": "CX7"},
+            {"value": "MX5", "label": "MX5"},
             {
                 "value": "demio",
                 "label": "Demio"
@@ -769,6 +782,9 @@
             }
         ],
         "mitsubishi": [
+            {"value": "ASX", "label": "ASX"},
+            {"value": "Outlander", "label": "Outlander"},
+            {"value": "Outlander XL", "label": "Outlander XL"},
             {
                 "value": "colt",
                 "label": "Colt"
@@ -1009,6 +1025,8 @@
             }
         ],
         "vw": [
+            {
+                "value": "Beetle", "label": "Beetle"},
             {
                 "value": "caddy",
                 "label": "Caddy"
@@ -1415,6 +1433,7 @@
                 "value": "208",
                 "label": "208"
             },
+            {"value": "301", "label": "301"},
             {
                 "value": "309",
                 "label": "309"
@@ -1528,7 +1547,12 @@
             {
                 "value": "velSatis",
                 "label": "Vel Satis"
-            }
+            },
+            {"value": "Sandero", "label": "Sandero"},
+            {"value": "Latitude", "label": "Latitude"},
+            {"value": "Scenic", "label": "Scenic"},
+            {"value": "Fluence", "label": "Fluence"},
+            {"value": "Kangoo", "label": "Kangoo"}
         ],
         "rolls": [
             {
@@ -1553,12 +1577,15 @@
             }
         ],
         "seat": [
+            {"value": "Cordoba", "label": "Cordoba"},
             {
                 "value": "leon",
                 "label": "Leon"
             }
         ],
         "skoda": [
+            {"value": "Yeti", "label": "Yeti"},
+            {"value": "Roomster", "label": "Roomster"},
             {
                 "value": "fabia",
                 "label": "Fabia"
@@ -1579,6 +1606,7 @@
             }
         ],
         "subaru": [
+            {"value": "Forester", "label": "Forester"},
             {
                 "value": "impreza",
                 "label": "Impreza"
@@ -1601,6 +1629,7 @@
                 "value": "swift",
                 "label": "Swift"
             },
+            {"value": "Splash", "label": "Splash"},
             {
                 "value": "sx4",
                 "label": "SX4"
@@ -1608,7 +1637,8 @@
             {
                 "value": "vitara",
                 "label": "Vitara"
-            }
+            },
+            {"value": "Grand Vitara", "label": "Grand Vitara"}
         ],
         "toyota": [
             {
@@ -1648,6 +1678,10 @@
                 "label": "Land Cruiser 105"
             },
             {
+                "value": "Land Cruiser 200",
+                "label": "Land Cruiser 200"
+            },
+            {
                 "value": "mark",
                 "label": "Mark II"
             },
@@ -1661,7 +1695,7 @@
             },
             {
                 "value": "rav4",
-                "label": "RAV-4"
+                "label": "RAV4"
             },
             {
                 "value": "vitz",
@@ -1692,7 +1726,10 @@
             {
                 "value": "v50",
                 "label": "V50"
-            }
+            },
+            {"value": "V70", "label": "V70"},
+            {"value": "XC70", "label": "XC70"},
+            {"value": "XC90", "label": "XC90"}
         ],
         "hum": [
             {
@@ -1738,6 +1775,43 @@
         ],
         "jeep": [
             {"value": "cherokee", "label": "Grand Cherokee"}
+        ],
+        "Porsche": [
+            {"value": "911", "label": "911"},
+            {"value": "Cayenne", "label": "Cayenne"}
+        ],
+        "Ferrari": [
+            {"value": "California", "label": "California"}
+        ],
+        "Lifan": [
+            {"value": "214813", "label": "214813"},
+            {"value": "113300", "label": "113300"}
+        ],
+        "Geely": [
+            {"value": "MK", "label": "MK"}
+        ],
+        "Maxus": [
+            {"value": "LDV", "label": "LDV"}
+        ],
+        "GMC": [
+            {"value": "Terrain", "label": "Terrain"}
+        ],
+        "Chery": [
+            {"value": "A13", "label": "A13"},
+            {"value": "SUV T11", "label": "SUV T11"},
+            {"value": "S18D", "label": "S18D"}
+        ],
+        "SsangYong": [
+            {"value": "Actyon", "label": "Actyon"},
+            {"value": "Rexton", "label": "Rexton"},
+            {"value": "Kyron", "label": "Kyron"},
+            {"value": "Actyon Sports", "label": "Actyon Sports"},
+            {"value": "Stavic", "label": "Stavic"},
+            {"value": "Musso", "label": "Musso"},
+            {"value": "Rodius", "label": "Rodius"}
+        ],
+        "mini": [
+            {"value": "One", "label": "One"}
         ]
     }
 }
