@@ -11,6 +11,7 @@ import Control.Lens hiding (from)
 import qualified Data.Map as M
 import Data.Monoid
 import Data.Maybe
+import Data.Either
 import Data.String (fromString)
 import Data.Pool
 import Data.Text (Text)
@@ -31,7 +32,9 @@ import Util
 import Utils.HttpErrors
 
 import Carma.Model.Case
-
+import Carma.Model.Service
+import Carma.Model.Service.Towage
+import Carma.Model.Search
 
 data Search b = Search
   {postgres :: Pool Connection
@@ -40,19 +43,6 @@ data Search b = Search
 makeLenses ''Search
 
 type SearchHandler b t = Handler b (Search b) t
-
-services :: SearchHandler b ()
-services = do
-  l <- getLimit
-  b <- getJsonBody
-  q <- withPG $ \c -> buildCaseSearchQ c l b
-  -- j <- withPG $ \c -> query_ c $ buildCaseSearchQ c l b
-  case q of
-    Left  v  -> writeBS $ B.pack v
-    Right q' -> do
-      v <- withPG $ \c -> query_ c $ fromString $ T.unpack q'
-      writeBS $ B.concat $ map B.concat v
-
 
 modelFields :: UserId -> Text -> PG.Connection -> IO [Text]
 modelFields uid modelName c
@@ -93,12 +83,18 @@ caseSearch = do
   withPG $ \c -> do
     cse_fields <- modelFields uid "case" c
     svc_fields <- modelFields uid "service" c
-    caseSearchPredicate c args >>= \case
-      Left err -> return $ Left err
-      Right pred -> do
-        s :: [[LB.ByteString]] <- query_ c
-                                  (mkQuery cse_fields svc_fields pred lim offset)
-        return $ return . reply lim offset =<< (sequence $ map (Aeson.eitherDecode . head) s)
+    tow_fields <- modelFields uid "towage" c
+    casePreds  <- predicatesFromParams c args caseSearchParams
+    srvPreds   <- predicatesFromParams c args serviceSearchParams
+    towPreds   <- predicatesFromParams c args towageSearchParams
+    case partitionEithers [casePreds, srvPreds, towPreds] of
+      ([], preds) -> do
+        s :: [[LB.ByteString]] <-
+          query_ c (mkQuery cse_fields svc_fields tow_fields
+                    (concatPredStrings preds) lim offset)
+        return $ return . reply lim offset =<<
+          (sequence $ map (Aeson.eitherDecode . head) s)
+      (errs, _) -> return $ Left $ foldl (++) "" errs
         -- -> Right . join
         --    <$> query_ c (mkQuery cse_fields svc_fields pred lim)
 
@@ -107,27 +103,34 @@ search = (>>= either (finishWithError 500) writeJSON)
 
 
 mkQuery
-   :: [Text] -> [Text] -> Text -> Int -> Int
+   :: [Text] -> [Text] -> [Text] -> Text -> Int -> Int
    -> Query
-mkQuery caseProj svcProj pred lim offset
+mkQuery caseProj svcProj towProj pred lim offset
   = fromString $ printf ("with"
-      ++ " result(cid,styp,sid) as"
-      ++ "   (select casetbl.id, servicetbl.type, servicetbl.id"
+      ++ " result(cid,styp,sid, tid) as"
+      ++ "   (select casetbl.id, servicetbl.type, servicetbl.id, towagetbl.id"
       ++ "     from casetbl join servicetbl"
       ++ "       on split_part(servicetbl.parentId, ':', 2)::int = casetbl.id"
+      ++ "     join towagetbl"
+      ++ "       on servicetbl.id = towagetbl.id"
       ++ "     where (%s)),"
       ++ " json_result as"
       ++ "   (select"
-      ++ "     row_to_json(c.*) as \"case\", row_to_json(s.*) as \"service\""
+      ++ "     row_to_json(c.*) as \"case\","
+      ++ "     row_to_json(s.*) as \"service\","
+      ++ "     row_to_json(t.*) as \"towage\""
       ++ "     from result r,"
       ++ "       (select %s from casetbl) as c,"
-      ++ "       (select %s from servicetbl) as s"
+      ++ "       (select %s from servicetbl) as s,"
+      ++ "       (select %s from towagetbl) as t"
       ++ "     where c.id = r.cid"
-      ++ "       and s.id = r.sid and s.type = r.styp)"
+      ++ "       and s.id = r.sid and s.type = r.styp"
+      ++ "       and t.id = r.tid)"
       ++ " select row_to_json(r) :: text from json_result r limit %i offset %i;")
     (T.unpack pred)
     (T.unpack $ T.intercalate ", " $ map mkProj caseProj)
     (T.unpack $ T.intercalate ", " $ map mkProj svcProj)
+    (T.unpack $ T.intercalate ", " $ map mkProj towProj)
     lim offset
   where
     mkProj f = T.concat [f, " as \"", f, "\""]
