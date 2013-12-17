@@ -25,9 +25,13 @@
             "label": "Ford"
         },
         {
+            "value": "Ferrari",
+            "label": "Ferrari"
+        },
+        {
             "value": "lada",
             "label": "ВАЗ (Lada)"
-        },        
+        },
         {
             "value": "bmw",
             "label": "BMW"
@@ -43,6 +47,10 @@
         {
             "value": "bentley",
             "label": "Bentley"
+        },
+        {
+            "value": "Chery",
+            "label": "Chery"
         },
         {
             "value": "chrysler",
@@ -63,6 +71,14 @@
         {
             "value": "fiat",
             "label": "Fiat"
+        },
+        {
+            "value": "Geely",
+            "label": "Geely"
+        },
+        {
+            "value": "GMC",
+            "label": "GMC"
         },
         {
             "value": "holden",
@@ -105,8 +121,16 @@
             "label": "Lexus"
         },
         {
+            "value": "Lifan",
+            "label": "Lifan"
+        },
+        {
             "value": "maserati",
             "label": "Maserati"
+        },
+        {
+            "value": "Maxus",
+            "label": "Maxus"
         },
         {
             "value": "maybach",
@@ -135,6 +159,10 @@
         {
             "value": "peugeot",
             "label": "Peugeot"
+        },
+        {
+            "value": "Porsche",
+            "label": "Porsche"
         },
         {
             "value": "renault",
@@ -167,6 +195,10 @@
         {
             "value": "smart",
             "label": "Smart"
+        },
+        {
+            "value": "SsangYong",
+            "label": "SsangYong"
         },
         {
             "value": "subaru",
