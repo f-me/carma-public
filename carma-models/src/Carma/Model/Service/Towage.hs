@@ -77,14 +77,19 @@ instance Model Towage where
   type TableName Towage = "towagetbl"
   type Parent Towage = Service
   modelInfo = mkModelInfo Towage ident
-  modelView "search" =  modifyView (searchView towageSearchParams)
-    [dict towDealer_partnerId $ (dictOpt "allPartners")
+  modelView "search" = modifyView (searchView towageSearchParams)
+    $ (setType "dictionary-set" towDealer_partnerId) : viewModifier
+  modelView _ =
+    modifyView (defaultView :: ModelView Towage) {mv_title = "Эвакуация"}
+      $(setType "dictionary" towDealer_partnerId) : viewModifier
+
+viewModifier =
+  [dict towDealer_partnerId $ (dictOpt "allPartners")
           { dictType    = Just "ComputedDict"
           , dictBounded = True
           }
-    ,setType "dictionary-set" towDealer_partnerId
-    ]
-  modelView _ = (defaultView :: ModelView Towage) {mv_title = "Эвакуация"}
+  ]
+
 
 towageSearchParams :: [(Text, [Predicate Towage])]
 towageSearchParams = [("towDealer_partnerId", listOf towDealer_partnerId)]
