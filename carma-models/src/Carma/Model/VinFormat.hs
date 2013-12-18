@@ -27,8 +27,7 @@ data VinFormat = VinFormat
   , label                    :: F Text "label" "Название формата"
 
   , nameLoad                 :: F Bool "nameLoad" "Загружать поле «ФИО клиента»"
-  , nameTitle                :: F Text "nameTitle" "Заголовок поля «ФИО клиента»"
-  , nameColumns              :: F (Maybe (Vector Text)) "nameColumns" "Заголовки полей с ФИО для «ФИО клиента»"
+  , nameTitles               :: F (Maybe (Vector Text)) "nameTitles" "Заголовки полей с ФИО для «ФИО клиента»"
   , nameDefault              :: F (Maybe Text) "nameDefault" "Значение поля «ФИО клиента» по умолчанию"
   , nameRequired             :: F Bool "nameRequired" "Поле «ФИО клиента» обязательно"
 
@@ -165,8 +164,7 @@ data VinFormat = VinFormat
   , orderNumberRequired      :: F Bool "orderNumberRequired" "Поле «Номер заказ-наряда» обязательно"
 
   , managerNameLoad          :: F Bool "managerNameLoad" "Загружать поле «ФИО менеджера»"
-  , managerNameTitle         :: F Text "managerNameTitle" "Заголовок поля «ФИО менеджера»"
-  , managerNameColumns       :: F (Maybe (Vector Text)) "managerNameColumns" "Заголовки полей с ФИО для «ФИО менеджера»"
+  , managerNameTitles        :: F (Maybe (Vector Text)) "managerNameTitles" "Заголовки полей с ФИО для «ФИО менеджера»"
   , managerNameDefault       :: F (Maybe Text) "managerNameDefault" "Значение поля «ФИО менеджера» по умолчанию"
   , managerNameRequired      :: F Bool "managerNameRequired" "Поле «ФИО менеджера» обязательно"
 
