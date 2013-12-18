@@ -73,7 +73,7 @@ function update_db {
   local B=$DB_VERSION_B
   local C=$DB_VERSION_C
 
-  for f in `find patches -type f | sort -t. -k 1,1n -k 2,2n -k 3,3n` ; do
+  for f in `find patches -type f | sort -V` ; do
     get_patch_version $f
     local X=$PATCH_VERSION_A
     local Y=$PATCH_VERSION_B
