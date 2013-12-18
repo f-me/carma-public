@@ -14,7 +14,6 @@ import Carma.Model.CarClass     (CarClass)
 import Carma.Model.CarMake      (CarMake)
 import Carma.Model.CarModel     (CarModel)
 import Carma.Model.CheckType    (CheckType)
-import Carma.Model.Colors       (Colors)
 import Carma.Model.LegalForm    (LegalForm)
 import Carma.Model.Partner      (Partner)
 import Carma.Model.Transmission (Transmission)
@@ -27,7 +26,7 @@ data VinFormat = VinFormat
   , label                    :: F Text "label" "Название формата"
 
   , nameLoad                 :: F Bool "nameLoad" "Загружать поле «ФИО клиента»"
-  , nameTitles               :: F (Maybe (Vector Text)) "nameTitles" "Заголовки полей с ФИО для «ФИО клиента»"
+  , nameTitles               :: F (Vector Text) "nameTitles" "Заголовки полей с ФИО для «ФИО клиента»"
   , nameDefault              :: F (Maybe Text) "nameDefault" "Значение поля «ФИО клиента» по умолчанию"
   , nameRequired             :: F Bool "nameRequired" "Поле «ФИО клиента» обязательно"
 
@@ -90,18 +89,18 @@ data VinFormat = VinFormat
 
   , makeYearLoad             :: F Bool "makeYearLoad" "Загружать поле «Год производства автомобиля»"
   , makeYearTitle            :: F Text "makeYearTitle" "Заголовок поля «Год производства автомобиля»"
+  -- TODO New Year (pun intended) field type
   , makeYearDefault          :: F (Maybe TInt) "makeYearDefault" "Значение поля «Год производства автомобиля» по умолчанию"
   , makeYearRequired         :: F Bool "makeYearRequired" "Поле «Год производства автомобиля» обязательно"
 
   , carClassLoad             :: F Bool "carClassLoad" "Загружать поле «Класс автомобиля»"
   , carClassTitle            :: F Text "carClassTitle" "Заголовок поля «Класс автомобиля»"
-  -- TODO New Year (pun intended) field type
   , carClassDefault          :: F (Maybe (IdentI CarClass)) "carClassDefault" "Значение поля «Класс автомобиля» по умолчанию"
   , carClassRequired         :: F Bool "carClassRequired" "Поле «Класс автомобиля» обязательно"
 
   , colorLoad                :: F Bool "colorLoad" "Загружать поле «Цвет»"
   , colorTitle               :: F Text "colorTitle" "Заголовок поля «Цвет»"
-  , colorDefault             :: F (Maybe (IdentI Colors)) "colorDefault" "Значение поля «Цвет» по умолчанию"
+  , colorDefault             :: F (Maybe Text) "colorDefault" "Значение поля «Цвет» по умолчанию"
   , colorRequired            :: F Bool "colorRequired" "Поле «Цвет» обязательно"
 
   , transmissionLoad         :: F Bool "transmissionLoad" "Загружать поле «Коробка передач»"
@@ -111,7 +110,7 @@ data VinFormat = VinFormat
 
   , engineVolumeLoad         :: F Bool "engineVolumeLoad" "Загружать поле «Объём двигателя»"
   , engineVolumeTitle        :: F Text "engineVolumeTitle" "Заголовок поля «Объём двигателя»"
-  , engineVolumeDefault      :: F (Maybe Double) "engineVolumeDefault" "Значение поля «Объём двигателя» по умолчанию"
+  , engineVolumeDefault      :: F (Maybe Text) "engineVolumeDefault" "Значение поля «Объём двигателя» по умолчанию"
   , engineVolumeRequired     :: F Bool "engineVolumeRequired" "Поле «Объём двигателя» обязательно"
 
   , engineTypeLoad           :: F Bool "engineTypeLoad" "Загружать поле «Тип двигателя»"
@@ -133,14 +132,14 @@ data VinFormat = VinFormat
 
   , lastCheckDealerLoad      :: F Bool "lastCheckDealerLoad" "Загружать поле «Дилер, у которого проходило последнее ТО»"
   , lastCheckDealerTitle     :: F Text "lastCheckDealerTitle" "Заголовок названия дилера для поля «Дилер, у которого проходило последнее ТО»"
-  , lastCheckDealerCodeTitle :: F Text "lastCheckDealerCodeTitle" "Заголовок кода дилера для поля «Дилер, продавший автомобиль»"
+  , lastCheckDealerCodeTitle :: F Text "lastCheckDealerCodeTitle" "Заголовок кода дилера для поля «Дилер, у которого проходило последнее ТО»"
   , lastCheckDealerDefault   :: F (Maybe (IdentI Partner)) "lastCheckDealerDefault" "Значение поля «Дилер, у которого проходило последнее ТО» по умолчанию"
   , lastCheckDealerRequired  :: F Bool "lastCheckDealerRequired" "Поле «Дилер, у которого проходило последнее ТО» обязательно"
 
-  , lastCheckMileageLoad     :: F Bool "lastCheckMileageLoad" "Загружать поле «Пробег на последнем ТОLoad»"
-  , lastCheckMileageTitle    :: F Text "lastCheckMileageTitle" "Загружать поле «Пробег на последнем ТОTitle»"
-  , lastCheckMileageDefault  :: F (Maybe TInt) "lastCheckMileageDefault" "Значение поля «Пробег на последнем ТОTitle» по умолчанию"
-  , lastCheckMileageRequired :: F Bool "lastCheckMileageRequired" "Поле «Пробег на последнем ТОTitle» обязательно"
+  , lastCheckMileageLoad     :: F Bool "lastCheckMileageLoad" "Загружать поле «Пробег на последнем ТО»"
+  , lastCheckMileageTitle    :: F Text "lastCheckMileageTitle" "Загружать поле «Пробег на последнем ТО»"
+  , lastCheckMileageDefault  :: F (Maybe TInt) "lastCheckMileageDefault" "Значение поля «Пробег на последнем ТО» по умолчанию"
+  , lastCheckMileageRequired :: F Bool "lastCheckMileageRequired" "Поле «Пробег на последнем ТО» обязательно"
 
   , lastCheckDateLoad        :: F Bool "lastCheckDateLoad" "Загружать поле «Дата последнего ТО»"
   , lastCheckDateTitle       :: F Text "lastCheckDateTitle" "Заголовок поля «Дата последнего ТО»"
@@ -164,7 +163,7 @@ data VinFormat = VinFormat
   , orderNumberRequired      :: F Bool "orderNumberRequired" "Поле «Номер заказ-наряда» обязательно"
 
   , managerNameLoad          :: F Bool "managerNameLoad" "Загружать поле «ФИО менеджера»"
-  , managerNameTitles        :: F (Maybe (Vector Text)) "managerNameTitles" "Заголовки полей с ФИО для «ФИО менеджера»"
+  , managerNameTitles        :: F (Vector Text) "managerNameTitles" "Заголовки полей с ФИО для «ФИО менеджера»"
   , managerNameDefault       :: F (Maybe Text) "managerNameDefault" "Значение поля «ФИО менеджера» по умолчанию"
   , managerNameRequired      :: F Bool "managerNameRequired" "Поле «ФИО менеджера» обязательно"
 
@@ -173,9 +172,9 @@ data VinFormat = VinFormat
   , commentDefault           :: F (Maybe Text) "commentDefault" "Значение поля «Комментарий» по умолчанию"
   , commentRequired          :: F Bool "commentRequired" "Поле «Комментарий» обязательно"
 
-  , cardTypeLoad             :: F Bool "cardTypeLoad" "Загружать поле «Тип карты»"
-  , cardTypeTitle            :: F Text "cardTypeTitle" "Заголовок поля «Тип карты»"
-  , cardTypeRequired         :: F Bool "cardTypeRequired" "Поле «Тип карты» обязательно"
+  , subprogramLoad           :: F Bool "subprogramLoad" "Загружать поле «Подпрограмма»"
+  , subprogramTitle          :: F Text "subprogramTitle" "Заголовок поля «Подпрограмма»"
+  , subprogramRequired       :: F Bool "subprogramRequired" "Поле «Подпрограмма» обязательно"
 
   , legalFormLoad            :: F Bool "legalFormLoad" "Загружать поле «Физическое/юридическое лицо»"
   , legalFormTitle           :: F Text "legalFormTitle" "Заголовок поля «Физическое/юридическое лицо»"

@@ -29,22 +29,22 @@ data Partner = Partner
   , city     :: F (Maybe (IdentT City)) "city" "Город"
   , makes
     :: F (Maybe (Vector (IdentT CarMake))) "makes" "Обслуживаемые марки"
-  , phones
-   :: F (Maybe Text) {- json -} "phones" "Телефоны"
-  , coords
-   :: F (Maybe Text) {- coords -} "coords" "Координаты фактического адреса"
-  , addrs
-    :: F (Maybe Text) {- json -} "addrs" "Адреса"
-  , emails
-    :: F (Maybe Text) {- json -} "emails" "E-mail"
-  , personInCharge
-    :: F (Maybe Text) "personInCharge" "Ответственное лицо"
+--  , phones
+--   :: F (Maybe Text) {- json -} "phones" "Телефоны"
+--  , coords
+--   :: F (Maybe Text) {- coords -} "coords" "Координаты фактического адреса"
+--  , addrs
+--    :: F (Maybe Text) {- json -} "addrs" "Адреса"
+--  , emails
+--    :: F (Maybe Text) {- json -} "emails" "E-mail"
+--  , personInCharge
+--    :: F (Maybe Text) "personInCharge" "Ответственное лицо"
   -- , taxScheme
   --   :: F (Maybe (Ident TaxSchemes)) "taxScheme" "Форма налогообложения"
-  , isPayBackConfirmed
-    :: F (Maybe Bool) "isPayBackConfirmed" "Соглашение о вознаграждении"
-  , mtime
-    :: F (Maybe UTCTime) "mtime" ""
+--  , isPayBackConfirmed
+--    :: F (Maybe Bool) "isPayBackConfirmed" "Соглашение о вознаграждении"
+--  , mtime
+--    :: F (Maybe UTCTime) "mtime" ""
 --  , services
 --    :: F (Maybe Text) "services" ""
 --  , comment
