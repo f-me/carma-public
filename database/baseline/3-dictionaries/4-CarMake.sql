@@ -54,3 +54,8 @@ COPY "CarMake" (id, value, label) FROM stdin;
 46	maz	Maz
 47	greatWall	Great Wall
 \.
+
+GRANT ALL ON "CarMake" TO carma_db_sync;
+GRANT ALL ON "CarMake" TO carma_search;
+GRANT ALL ON "CarMake_id_seq" TO carma_db_sync;
+GRANT ALL ON "CarMake_id_seq" TO carma_search;

@@ -9,8 +9,8 @@ GRANT ALL ON "Transmission" TO carma_search;
 GRANT ALL ON "Transmission_id_seq" TO carma_db_sync;
 GRANT ALL ON "Transmission_id_seq" TO carma_search;
 
-COPY "Transmission" (id, label) FROM stdin;
-1	Автоматическая
-2	Механическая
-3	Роботизированная
+COPY "Transmission" (id, label,synonyms) FROM stdin;
+1	Автоматическая	{авт,ручн}
+2	Механическая	{мех}
+3	Роботизированная	\N
 \.
