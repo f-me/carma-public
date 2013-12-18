@@ -18,7 +18,7 @@ define [], ->
     d = new Date(v * 1000)
     return d.toString(fmt) if isFinite d
     d = Date.parseExact(v, "yyyy-MM-dd HH:mm:ssz")
-    return d.toString(fmt) if isFinite d
+    return d.toString(fmt) if not _.isNull(d) && isFinite d
 
   s2cJson = (v) ->
     return null if _.isEmpty v
