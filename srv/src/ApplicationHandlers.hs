@@ -146,7 +146,12 @@ createHandler = do
         commit <- getJSONBody :: AppHandler (Patch m)
         s <- PS.getPostgresState
         i <- liftIO $ withResource (PS.pgPool s) (Patch.create commit)
-        return $ Aeson.object ["id" .= i]
+        res <- liftIO $ withResource (PS.pgPool s) (Patch.read i)
+        -- TODO Cut out fields from original commit like DB.create
+        -- does
+        case (Aeson.decode $ Aeson.encode res) of
+          Just [obj] -> return obj
+          err   -> error $ "BUG in createHandler: " ++ show err
   case Carma.Model.dispatch (T.decodeUtf8 model) createModel of
     Just fn -> logResp $ fn
     Nothing -> logResp $ do
