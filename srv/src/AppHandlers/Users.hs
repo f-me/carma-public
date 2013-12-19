@@ -136,9 +136,8 @@ serveUserCake
       let homePage = case map (\(Snap.Role r) -> r) $ userRoles usr of
             rs | (roleIdent Role.head)       `elem` rs -> "/#rkc"
                | (roleIdent Role.supervisor) `elem` rs -> "/#supervisor"
-               | (roleIdent Role.front)      `elem` rs -> "/#call"
+               | (roleIdent Role.call)       `elem` rs -> "/#call"
                | (roleIdent Role.back)       `elem` rs -> "/#back"
-               | (roleIdent Role.bo_control) `elem` rs -> "/#back"
                | (roleIdent Role.parguy)     `elem` rs -> "/#partner"
                | otherwise                   -> ""
       writeJSON $ usr
