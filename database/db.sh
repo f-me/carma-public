@@ -44,17 +44,21 @@ function exec_file {
   local FILE=$1
   echo ... $FILE
   ext=${FILE##*.}
-  COMMIT=$(git log -n 1 --no-merges --pretty=format:%h -- ${FILE})
-  TMP=$(mktemp -d)
-  cd ..
-  git --work-tree="${TMP}" checkout ${COMMIT} -- database/
-  cd "${TMP}/database"
+  if [[ $2 = "--git" ]]; then
+      COMMIT=$(git log -n 1 --no-merges --pretty=format:%h -- ${FILE})
+      TMP=$(mktemp -d)
+      cd ..
+      git --work-tree="${TMP}" checkout ${COMMIT} -- database/
+      cd "${TMP}/database"
+  fi
   if [[ "sql" == $ext ]] ; then
     $PSQL -f $FILE
   elif [[ "sh" == $ext ]] ;  then
     bash -e $FILE
   fi
-  cd - && cd database
+  if [[ $2 = "--git" ]]; then
+     cd - && cd database
+  fi
 }
 
 
@@ -82,7 +86,7 @@ function update_db {
     if [[ ($X -gt $A) ||
           (($X -eq $A) && ($Y -gt $B)) ||
           (($X -eq $A) && ($Y -eq $B) && ($Z -gt $C)) ]] ; then
-      exec_file $f
+      exec_file $f $1
 
       $PSQL -c "insert into version (A,B,C) values ($X,$Y,$Z);"
     fi
@@ -175,9 +179,11 @@ EOF
 if [[ "$1" == "setup" ]] ; then
   setup_db
 elif [[ "$1" == "update" ]] ; then
+  update_db --git
+elif [[ "$1" == "update-devel" ]] ; then
   update_db
 elif [[ "$1" == "stat" ]] ; then
   db_stat
 else
-  echo "Usage: ./db.sh [setup|update|stat] db_name"
+  echo "Usage: ./db.sh [setup|update-devel|update|stat] db_name"
 fi
