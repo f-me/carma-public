@@ -316,7 +316,7 @@ newCase = do
       actBody = HM.fromList
                 [ (actionCaseId, caseIdReference caseId)
                 , ("name", "callMeMaybe")
-                , ("targetGroup", "back")
+                , ("targetGroup", "23") -- FIXME: hardcoded 'back' role id
                 , ("duetime", nowStr)
                 , ("priority", "1")
                 , ("closed", "0")
