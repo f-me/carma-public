@@ -64,7 +64,7 @@ q = [sql|
      INNER JOIN programtbl p ON c.program::int4 = p.id
      LEFT JOIN "CarMake"  carMake  ON carMake.value  = carMake
      LEFT JOIN "CarModel" carModel ON carModel.value = carModel
-     LEFT JOIN usermetatbl u ON u.id = c.owner
+     LEFT JOIN usermetatbl u ON u.id::text = c.owner
      WHERE c.id = ?
 |]
 
@@ -86,7 +86,7 @@ fields = [ "car_vin"
          , "client"
          , "clientCode"
          , "clientAddress"
-         , "realName"
+         , "owner"
          ]
 
 renderContractHandler :: AppHandler ()
