@@ -57,7 +57,8 @@ import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple
 import Snap.Snaplet.RedisDB
 
-
+import qualified Data.Model as Model
+import qualified Carma.Model.Role as Role
 import Carma.HTTP hiding (runCarma)
 import qualified Carma.HTTP as CH (runCarma)
 
@@ -249,6 +250,10 @@ actionIdReference :: Int -> ByteString
 actionIdReference n = BS.pack $ "action:" ++ (show n)
 
 
+roleIdent :: Model.IdentI Role.Role -> ByteString
+roleIdent (Model.Ident v) = BS.pack $ show v
+
+
 ------------------------------------------------------------------------------
 -- | Create a new case from a JSON object provided in request body.
 -- Perform reverse geocoding using coordinates from values under @lon@
@@ -316,7 +321,7 @@ newCase = do
       actBody = HM.fromList
                 [ (actionCaseId, caseIdReference caseId)
                 , ("name", "callMeMaybe")
-                , ("targetGroup", "back")
+                , ("targetGroup", roleIdent Role.bo_order)
                 , ("duetime", nowStr)
                 , ("priority", "1")
                 , ("closed", "0")
