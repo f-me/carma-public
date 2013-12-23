@@ -2,7 +2,7 @@ define ["model/main"], (main) ->
   setup: -> setTimeout(->
     $('#sms-send-modal').on('show', () ->
       refs = []
-      main.modelSetup("sms") "sms-send-form", {id:null},
+      main.modelSetup("Sms") "sms-send-form", {id:null},
                             focusClass: "focusable"
                             refs: refs
 
@@ -17,15 +17,15 @@ define ["model/main"], (main) ->
       vSms = global.viewsWare['sms-send-form']
       smsVM = vSms.knockVM
       smsVM['updateUrl'] = ->
-      smsVM.msg.subscribe (msg) ->
+      smsVM.msgText.subscribe (msg) ->
         buttonDisabled (msg == "" || smsVM.phoneRegexp())
 
       smsVM.phoneRegexp.subscribe (err) ->
-        buttonDisabled (err || smsVM.msg() == "")
+        buttonDisabled (err || smsVM.msgText() == "")
 
       vCase = global.viewsWare['case-form']
       if vCase
-        smsVM.caseId(vCase.knockVM.id())
+        smsVM.caseRef(vCase.knockVM.id())
 
       # we really need this because triggers do not trigger on `POST`
       # so, if {template:"xxx"} comes with POST (not with PUT), then
@@ -36,7 +36,7 @@ define ["model/main"], (main) ->
         .off('click')
         .on('click', () ->
           $('#sms-send-modal').modal('hide')
-          $.post('/smspost', {smsId: "sms:#{smsVM.id()}"})
+          smsVM.status 'please-send'
           )
     )
   ,1000)
