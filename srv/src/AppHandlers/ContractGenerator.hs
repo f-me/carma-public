@@ -86,6 +86,7 @@ fields = [ "car_vin"
          , "client"
          , "clientCode"
          , "clientAddress"
+         , "realName"
          ]
 
 renderContractHandler :: AppHandler ()
