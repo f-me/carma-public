@@ -59,10 +59,12 @@ q = [sql|
         , manager
         , to_char(warrantyStart at time zone 'UTC', 'DD/MM/YYYY')
         , client, clientCode, clientAddress
+        , u.realname
      FROM contracttbl c
      INNER JOIN programtbl p ON c.program::int4 = p.id
      LEFT JOIN "CarMake"  carMake  ON carMake.value  = carMake
      LEFT JOIN "CarModel" carModel ON carModel.value = carModel
+     LEFT JOIN usermetatbl u ON u.id = c.owner
      WHERE c.id = ?
 |]
 
