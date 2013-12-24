@@ -44,10 +44,20 @@ function exec_file {
   local FILE=$1
   echo ... $FILE
   ext=${FILE##*.}
+  if [[ $2 != "--dev" ]]; then
+      COMMIT=$(git log -n 1 --no-merges --pretty=format:%h -- ${FILE})
+      TMP=$(mktemp -d)
+      cd ..
+      git --work-tree="${TMP}" checkout ${COMMIT} -- database/
+      cd "${TMP}/database"
+  fi
   if [[ "sql" == $ext ]] ; then
     $PSQL -f $FILE
   elif [[ "sh" == $ext ]] ;  then
     bash -e $FILE
+  fi
+  if [[ $2 != "--dev" ]]; then
+     cd - && cd database
   fi
 }
 
@@ -66,17 +76,45 @@ function update_db {
   local A=$DB_VERSION_A
   local B=$DB_VERSION_B
   local C=$DB_VERSION_C
+  local DUPE=0
 
-  for f in `find patches -type f | sort -t. -k 1,1n -k 2,2n -k 3,3n` ; do
+  for d in `find patches -type f | sort -V | cut -d'-' -f1 | uniq -d` ; do
+    echo \*\*\* Multiple patches use version $(echo ${d} | cut -d'/' -f2)
+    DUPE=1
+  done
+
+  if [[ ${DUPE} == 1 ]] ; then
+    if [[ $1 != "--dev" ]]; then
+      echo !!! Resolve duplicates and try again
+      exit 1
+    fi
+  fi
+
+  for f in `find patches -type f | sort -V` ; do
     get_patch_version $f
     local X=$PATCH_VERSION_A
     local Y=$PATCH_VERSION_B
     local Z=$PATCH_VERSION_C
 
-    if [[ ($X -gt $A) ||
-          (($X -eq $A) && ($Y -gt $B)) ||
-          (($X -eq $A) && ($Y -eq $B) && ($Z -gt $C)) ]] ; then
-      exec_file $f
+    local count=$(${PSQL} -t -c "select count(1) from version where (A,B,C)=($X,$Y,$Z);" | tr -d ' ' | head -n 1)
+    if [[ $count == "0" ]] ; then
+      if [[ ($X -lt $A) ||
+            (($X -eq $A) && ($Y -lt $B)) ||
+            (($X -eq $A) && ($Y -eq $B) && ($Z -lt $C)) ]] ; then
+        if [[ $1 != "--dev" ]]; then
+          echo \*\*\* Patch $(echo ${f} | cut -d'/' -f2) was left behind
+          echo \*\*\* Apply it?
+          select yn in "Yes" "No"; do
+            case $yn in
+              Yes ) break;;
+              No ) continue 2;;
+            esac
+          done
+        else
+          continue 2
+        fi
+      fi
+      exec_file $f $1
 
       $PSQL -c "insert into version (A,B,C) values ($X,$Y,$Z);"
     fi
@@ -170,8 +208,10 @@ if [[ "$1" == "setup" ]] ; then
   setup_db
 elif [[ "$1" == "update" ]] ; then
   update_db
+elif [[ "$1" == "update-devel" ]] ; then
+  update_db --dev
 elif [[ "$1" == "stat" ]] ; then
   db_stat
 else
-  echo "Usage: ./db.sh [setup|update|stat] db_name"
+  echo "Usage: ./db.sh [setup|update-devel|update|stat] db_name"
 fi
