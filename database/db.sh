@@ -44,7 +44,7 @@ function exec_file {
   local FILE=$1
   echo ... $FILE
   ext=${FILE##*.}
-  if [[ $2 = "--git" ]]; then
+  if [[ $2 != "--dev" ]]; then
       COMMIT=$(git log -n 1 --no-merges --pretty=format:%h -- ${FILE})
       TMP=$(mktemp -d)
       cd ..
@@ -56,7 +56,7 @@ function exec_file {
   elif [[ "sh" == $ext ]] ;  then
     bash -e $FILE
   fi
-  if [[ $2 = "--git" ]]; then
+  if [[ $2 != "--dev" ]]; then
      cd - && cd database
   fi
 }
@@ -179,9 +179,9 @@ EOF
 if [[ "$1" == "setup" ]] ; then
   setup_db
 elif [[ "$1" == "update" ]] ; then
-  update_db --git
-elif [[ "$1" == "update-devel" ]] ; then
   update_db
+elif [[ "$1" == "update-devel" ]] ; then
+  update_db --dev
 elif [[ "$1" == "stat" ]] ; then
   db_stat
 else
