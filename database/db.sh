@@ -96,9 +96,24 @@ function update_db {
     local Y=$PATCH_VERSION_B
     local Z=$PATCH_VERSION_C
 
-    if [[ ($X -gt $A) ||
-          (($X -eq $A) && ($Y -gt $B)) ||
-          (($X -eq $A) && ($Y -eq $B) && ($Z -gt $C)) ]] ; then
+    local count=$(${PSQL} -t -c "select count(1) from version where (A,B,C)=($X,$Y,$Z);" | tr -d ' ' | head -n 1)
+    if [[ $count == "0" ]] ; then
+      if [[ ($X -lt $A) ||
+            (($X -eq $A) && ($Y -lt $B)) ||
+            (($X -eq $A) && ($Y -eq $B) && ($Z -lt $C)) ]] ; then
+        if [[ $1 != "--dev" ]]; then
+          echo \*\*\* Patch $(echo ${f} | cut -d'/' -f2) was left behind
+          echo \*\*\* Apply it?
+          select yn in "Yes" "No"; do
+            case $yn in
+              Yes ) break;;
+              No ) continue 2;;
+            esac
+          done
+        else
+          continue 2
+        fi
+      fi
       exec_file $f $1
 
       $PSQL -c "insert into version (A,B,C) values ($X,$Y,$Z);"
