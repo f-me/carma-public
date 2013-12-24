@@ -22,7 +22,7 @@ data Usermeta = Usermeta
   , value :: F (Maybe Text)           "realName" "ФИО пользователя"
   -- TODO String-wrapped list of Role ids (to be used until usermeta
   -- is fully migrated to new models)
-  , roles :: F (Vector (IdentT Role)) "roles" "Роли в системе"
+  , roles :: F (Maybe (Vector (IdentT Role))) "roles" "Роли в системе"
   } deriving Typeable
 
 instance Model Usermeta where
