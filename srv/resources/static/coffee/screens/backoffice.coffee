@@ -41,16 +41,15 @@ define [ "utils"
   # Otherwise, just show all actions in the table.
   myActionsHandler = (actions) ->
     if !_.isEmpty actions
-      if _.contains global.user.roles, global.idents("Role").bo_order
-        act = _.find actions, (a) ->
-          _.contains(
-            [ "orderService"
-            , "orderServiceAnalyst"
-            , "tellMeMore"
-            , "callMeMaybe"],
-            a.name)
-        if act?
-          openCaseAction act.id, act.caseId.split(':')[1]
+      act = _.find actions, (a) ->
+        _.contains(
+          [ "orderService"
+          , "orderServiceAnalyst"
+          , "tellMeMore"
+          , "callMeMaybe"],
+          a.name)
+      if act?
+        openCaseAction act.id, act.caseId.split(':')[1]
       setupBoTable actions
 
   # Pull new actions for user

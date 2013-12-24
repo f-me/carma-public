@@ -869,9 +869,11 @@
                               valueUpdate: 'change',
                               disabled: {{ name }}Disabled" />
             <span class="btn btn-success"
-                  data-bind="disabled: {{ name }}Disabled">
+                  data-bind="disabled: {{ name }}Disabled"
+                  onclick="successfulSave.call(this);">
               {{ meta.label }}
             </span>
+            <span class="save-result"/>
           {{# meta.infoText1 }}
             <i class="icon icon-question-sign"
                data-provide="popover"

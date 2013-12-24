@@ -66,7 +66,7 @@ ko.bindingHandlers.sort =
     resetSort = (el, defaultClass) ->
       $(el).closest('thead')
            .children()
-           .find('i')
+           .find('.icon-arrow-down, .icon-arrow-up')
            .removeClass()
            .addClass(defaultClass)
 
@@ -137,14 +137,19 @@ ko.bindingHandlers.expand =
       $(el).find('i').toggleClass('icon-plus-sign').toggleClass('icon-minus-sign')
 
 ko.bindingHandlers.eachNonEmpty =
-  init: (el, acc, allBindigns, ctx, koctx) ->
-    fnames = acc()()
-    groups = _.map fnames, (f) -> koctx.$root.showFields.groups[f]
+  nonEmpty: (fnames, ctx, koctx) ->
     fns = _.reject fnames, (fname) ->
       g = koctx.$root.showFields.groups[fname]
       _.all (_.keys g), (m) ->
         kvm = ctx[m]
-        _.all g[m], (f) -> _.isEmpty kvm[f.name]()
-    ofns = ko.observable fns
-    ko.bindingHandlers['foreach']['init'](el, ofns, allBindigns, ctx, koctx)
-    ko.bindingHandlers['foreach']['update'](el, ofns, allBindigns, ctx, koctx)
+        _.all g[m], (f) ->
+          if f
+            _.isEmpty kvm[f.name]()
+          else
+            true
+
+  init: (el, acc, allBindigns, ctx, koctx) ->
+    fnames = ko.utils.unwrapObservable acc()
+    fns = ko.bindingHandlers.eachNonEmpty.nonEmpty fnames, ctx, koctx
+    ko.applyBindingsToNode el, {foreach: fns}, koctx
+    { controlsDescendantBindings: true }

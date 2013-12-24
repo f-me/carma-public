@@ -107,8 +107,8 @@ mkQuery
    -> Query
 mkQuery caseProj svcProj towProj pred lim offset
   = fromString $ printf ("with"
-      ++ " result(cid,styp,sid) as"
-      ++ "   (select casetbl.id, servicetbl.type, servicetbl.id"
+      ++ " result(cid,styp,sid, tid) as"
+      ++ "   (select casetbl.id, servicetbl.type, servicetbl.id, towagetbl.id"
       ++ "     from casetbl join servicetbl"
       ++ "       on split_part(servicetbl.parentId, ':', 2)::int = casetbl.id"
       ++ "     join towagetbl"
@@ -125,7 +125,7 @@ mkQuery caseProj svcProj towProj pred lim offset
       ++ "       (select %s from towagetbl) as t"
       ++ "     where c.id = r.cid"
       ++ "       and s.id = r.sid and s.type = r.styp"
-      ++ "       and s.id = t.id)"
+      ++ "       and t.id = r.tid)"
       ++ " select row_to_json(r) :: text from json_result r limit %i offset %i;")
     (T.unpack pred)
     (T.unpack $ T.intercalate ", " $ map mkProj caseProj)

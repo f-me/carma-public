@@ -242,6 +242,28 @@ fillFromContract vin objId = do
       return True
     _ -> error "fillFromContract: you broke SQL LIMIT"
 
+
+-- | This is called when service status is changed in some trigger.
+onRecursiveServiceStatusChange
+  :: MonadTrigger m b => ByteString -> ByteString -> m b ()
+onRecursiveServiceStatusChange svcId val = do
+  caseId  <- get svcId "parentId"
+
+  -- Check if we need to send message to Genser
+  payType <- get svcId "payType"
+  pgm     <- get caseId "program"
+  let (svc:_) = B.split ':' svcId
+  when (svc == "towage"
+      && pgm == identFv Program.genser
+      && payType == "ruamc"
+      && val `elem`
+        ["serviceOrdered", "serviceOk"
+        ,"cancelService", "clientCanceled"])
+    $ sendMailToGenser svcId
+
+  updateCaseStatus caseId
+
+
 -- | Automatically change case status according to statuses
 -- of the contained services.
 updateCaseStatus :: MonadTrigger m b => ByteString -> m b ()
@@ -259,6 +281,7 @@ updateCaseStatus caseId =
         | any (== "creating") statuses
           -> "s0" -- Front Office
         | otherwise -> "s1" -- Back Office
+
 
 -- | Clear assignee of control-class action chain head (which has
 -- `bo_control` in `targetGroup`) unless the user has both
@@ -467,19 +490,7 @@ serviceActions = Map.fromList
     -- Sets corresponding case status.
     ,\objId val -> do
       set objId "status" val -- push change to the commit stack
-      get objId "parentId" >>= updateCaseStatus
-    ,\objId val -> do
-        caseId  <- get objId "parentId"
-        payType <- get objId "payType"
-        pgm     <- get caseId "program"
-        let (svc:_) = B.split ':' objId
-        when (svc == "towage"
-            && pgm == identFv Program.genser
-            && payType == "ruamc"
-            && val `elem`
-              ["serviceOrdered", "serviceOk"
-              ,"cancelService", "clientCanceled"])
-          $ sendMailToGenser objId
+      onRecursiveServiceStatusChange objId val
     ]
   )
   ,("clientSatisfied",
@@ -955,13 +966,14 @@ setService objId field val = do
   svcId <- get objId "parentId"
   set svcId field val
 
--- Due to disabled trigger recursion we need to call updateCaseStatus manually
+-- Due to disabled trigger recursion we need to call
+-- onRecursiveServiceStatusChange manually
 -- on each service.status change
 setServiceStatus :: MonadTrigger m b => ObjectId -> FieldName -> m b ()
 setServiceStatus actId val = do
   svcId <- get actId "parentId"
   set svcId "status" val
-  get svcId "parentId" >>= updateCaseStatus
+  onRecursiveServiceStatusChange svcId val
 
 getService :: MonadTrigger m b => ObjectId -> FieldName -> m b FieldValue
 getService objId field

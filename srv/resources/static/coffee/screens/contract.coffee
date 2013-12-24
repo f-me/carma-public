@@ -22,7 +22,7 @@ define [
       tableCols =
             [ { name: "id", label: "#" }
             , { name: "isActive"
-              , fn  : (c) -> if c.isActive == "true" then "✓" else ""
+              , fn  : (c) -> if c.isActive is "true" or c.isActive is "1" then "✓" else ""
               }
             , "ctime"
             , { name: "carVin", fn: (v) -> v.carVin }

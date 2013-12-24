@@ -63,13 +63,13 @@ define [ "utils"
                            (f) -> _.contains fs, f.name)
 
     searchKVM.showFields.set(
-                          [ "car_vin"
-                          , "callDate"
-                          , "caseid"
-                          , "phone"
-                          , "car_plateNum"
-                          , "caseAddress_address"
-                          , "city"
+                          [ "callDate"
+                            "createTime"
+                            "Case_id"
+                            "phone"
+                            "contact"
+                            "vin"
+                            "plateNum"
                           ] )
 
     searchKVM.searchResults = SUtils.mkResultObservable searchKVM, ssmodels
@@ -87,9 +87,13 @@ define [ "utils"
     tg = smodel.transformFields searchKVM, ssmodels
     rfields = smodel.mkFieldsDynView searchKVM, tg,
       [ { name: 'Case_id', fixed: true }
-      , { name: 'city'    }
-      , { name: 'vin' }
-      , { name: 'program' }
+      , { name: 'contact'       }
+      , { name: 'callDate'      }
+      , { name: 'phone' }
+      , { name: 'plateNum'  }
+      , { name: 'vin'       }
+      , { name: 'program'       }
+      , { name: 'city'          }
       ]
 
     ctx =

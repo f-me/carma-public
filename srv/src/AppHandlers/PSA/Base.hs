@@ -51,7 +51,7 @@ AND c.comment=(SELECT comment FROM parentcase);
 |]
 
 
--- | Recharges within previous 24 hours, parametrized by case id, used
+-- | Recharges within previous 48 hours, parametrized by case id, used
 -- in @/repTowages@.
 rtQuery' :: Query
 rtQuery' = [sql|
@@ -73,7 +73,7 @@ AND c.comment=(SELECT comment FROM parentcase);
 -- of towage/tech service references for the same car (as indicated by
 -- matching VIN and case comment) which occured within 30 day period
 -- prior to the case creation date or battery recharges of the same
--- car within previous 24 hours.
+-- car within previous 48 hours.
 repTowages :: HasPostgres m =>
               Int
            -- ^ Case ID.
