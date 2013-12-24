@@ -5,12 +5,8 @@ module Carma.Model.Case
        ) where
 
 import Data.Text (Text)
-import qualified Data.Text as T
 import Data.Aeson as Aeson
-
 import qualified Data.Map as Map
-import qualified Data.HashMap.Strict as HM
-import Database.PostgreSQL.Simple as PG
 
 import Data.Model as Model
 import Data.Model.View as View
@@ -54,7 +50,7 @@ instance Model Case where
       "fullCase"
         -> modifyView
           ((defaultView :: ModelView Case) {mv_title = "Кейс"})
-          caseMod
+          $ caseMod ++ caseDicts ++ caseRo
       "newCase"
         -> setMainOnly
           $ modifyView
@@ -102,6 +98,7 @@ caseRo = [
 caseMod = [
    transform "capitalize" contact_name
   ,transform "capitalize" contact_ownerName
+  ,transform "capitalize" cardNumber_cardOwner
   ,transform "uppercase"  car_vin
   ,transform "uppercase"  car_plateNum
   ,setMeta "regexp" "plateNum" car_plateNum
@@ -110,6 +107,9 @@ caseMod = [
   ,widget "radio" car_engine
 
   ,textarea claim
-  ,invisible psaExportNeeded
-  ,invisible psaExported
+  ,invisible comments
+  ,invisible services
+  ,invisible actions
   ]
+  ++ mapWidget caseAddress_address caseAddress_coords caseAddress_map
+  ++ [setMeta "cityField" (Aeson.String $ Model.fieldName city) caseAddress_map]

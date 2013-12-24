@@ -31,5 +31,8 @@ instance Model DeliverClient where
   type TableName DeliverClient = "deliverclienttbl"
   type Parent DeliverClient = Service
   modelInfo = mkModelInfo DeliverClient ident
-  modelView _ = (defaultView :: ModelView DeliverClient)
-    {mv_title = "Доставка клиента к отремонтированному автомобилю"}
+  modelView _ = modifyView
+    (defaultView :: ModelView DeliverClient)
+      {mv_title = "Доставка клиента к отремонтированному автомобилю"}
+    $ mapWidget deliverFrom_address deliverFrom_coords deliverFrom_map
+    ++ mapWidget deliverTo_address deliverTo_coords deliverTo_map

@@ -3,24 +3,23 @@ module Carma.Model.Service.Towage where
 
 import Data.Text
 import Data.Typeable
-import Data.Time.Clock    (UTCTime)
 
 import Data.Model
 import Data.Model.View
 import Carma.Model.Types()
-import Carma.Model.LegacyTypes (PickerField, MapField)
+import Carma.Model.LegacyTypes
 import Carma.Model.Service (Service)
 import Carma.Model.Search as S
 
 data Towage = Towage
   { ident                    :: PK Int Towage ""
-  , towerType                :: F Text {-FIXME-} "towerType"
+  , towerType                :: F (Maybe (IdentT TowerTypes)) "towerType"
                              "Тип эвакуатора"
-  , towType                  :: F Text {-FIXME-} "towType"
+  , towType                  :: F (Maybe (IdentT TowTypes)) "towType"
                              "Вид эвакуации"
-  , vandalism                :: F Bool "vandalism"
+  , vandalism                :: F Checkbox "vandalism"
                              "Случай вандализма"
-  , accident                 :: F Bool "accident"
+  , accident                 :: F Checkbox "accident"
                              "ДТП"
   , towDealer_partner        :: F Text "towDealer_partner"
                              "Дилер (куда эвакуируют автомобиль)"
@@ -51,21 +50,21 @@ data Towage = Towage
                              "towerAddress_coords" "Координаты"
   , towerAddress_map         :: F MapField "towerAddress_map"
                              ""
-  , wheelsUnblocked          :: F Text {-FIXME-} "wheelsUnblocked"
+  , wheelsUnblocked          :: F (IdentT (WheelsBlockedCount)) "wheelsUnblocked"
                              "Количество заблокированных колёс"
-  , canNeutral               :: F Bool "canNeutral"
+  , canNeutral               :: F Checkbox "canNeutral"
                              "Переключается на нейтральную передачу"
-  , towingPointPresent       :: F Bool "towingPointPresent"
+  , towingPointPresent       :: F Checkbox "towingPointPresent"
                              "Есть буксировочный крюк"
-  , manipulatorPossible      :: F Bool "manipulatorPossible"
+  , manipulatorPossible      :: F Checkbox "manipulatorPossible"
                              "Есть место для манипулятора"
-  , companion                :: F Bool "companion"
+  , companion                :: F Checkbox "companion"
                              "Клиент/Доверенное лицо будет сопровождать автомобиль"
   , suburbanMilage           :: F Text "suburbanMilage"
                              "Пробег эвакуатора за городом"
   , orderNumber              :: F Text "orderNumber"
                              "Номер заказ-наряда"
-  , repairEndDate            :: F UTCTime {-FIXME: day-} "repairEndDate"
+  , repairEndDate            :: F LegacyDate {-FIXME: day-} "repairEndDate"
                              "Дата окончания ремонта"
 
   -- insert {paid,scan,..} here
@@ -88,7 +87,10 @@ viewModifier =
           { dictType    = Just "ComputedDict"
           , dictBounded = True
           }
+  ,invisible towDealer_partnerId
   ]
+  ++ mapWidget towAddress_address towAddress_coords towAddress_map
+  ++ mapWidget towerAddress_address towerAddress_coords towerAddress_map
 
 
 towageSearchParams :: [(Text, [Predicate Towage])]

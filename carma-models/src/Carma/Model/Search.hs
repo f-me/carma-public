@@ -34,7 +34,7 @@ import qualified Data.Model as Model
 import           Data.Model.Types hiding (modelName, fieldDesc)
 import           Data.Model.View as View
 import           Carma.Model.Types
-
+import           Carma.Model.LegacyTypes (LegacyDatetime)
 
 data Predicate m
   = Predicate
@@ -98,7 +98,7 @@ matchAny = concat
 interval
  :: forall m nm desc
  . (SingI nm, SingI desc, Model m)
- => (m -> F UTCTime nm desc) -> [Predicate m]
+ => (m -> F LegacyDatetime nm desc) -> [Predicate m]
 interval _
  = map (\p -> p {matchType = MatchInterval})
  $ one (undefined :: m -> F (Interval UTCTime) nm desc)

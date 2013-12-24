@@ -10,6 +10,7 @@ module Data.Model.View
   ,required
   ,invisible
   ,dict, dictOpt, DictOpt(..)
+  ,mapWidget
   ,mainToo
   ,mainOnly
   ,transform
@@ -143,6 +144,31 @@ dict fld (DictOpt{..}) = Wrap
       (\v -> us $ setMeta "dictionaryParent" (Aeson.String v) fld)
       dictParent
   )
+  where
+    us = snd . unWrap
+
+mapWidget
+  :: (SingI n1, SingI n2, SingI n3)
+  => (m -> Field pickerField (FOpt n1 d1))
+  -> (m -> Field pickerField (FOpt n2 d2))
+  -> (m -> Field mapField    (FOpt n3 d3))
+  -> [(Text, FieldView -> FieldView) :@ m]
+mapWidget addr coords mapWid =
+  [Wrap (fieldName addr,  us $ setMeta "picker" "geoPicker" addr)
+  ,Wrap (fieldName addr,  us
+    $ setMeta "targetCoords" (Aeson.String $ fieldName coords) addr)
+  ,Wrap (fieldName addr,  us
+    $ setMeta "targetMap" (Aeson.String $ fieldName mapWid) addr)
+  ,Wrap (fieldName coords, us $ setMeta "picker" "reverseGeoPicker" coords)
+  ,Wrap (fieldName coords, us
+    $ setMeta "targetAddr" (Aeson.String $ fieldName addr) coords)
+  ,Wrap (fieldName coords, us
+    $ setMeta "targetMap" (Aeson.String $ fieldName mapWid) coords)
+  ,Wrap (fieldName mapWid, us
+    $ setMeta "targetCoords" (Aeson.String $ fieldName coords) mapWid)
+  ,Wrap (fieldName mapWid, us
+    $ setMeta "targetAddr" (Aeson.String $ fieldName addr) mapWid)
+  ]
   where
     us = snd . unWrap
 

@@ -23,5 +23,6 @@ instance Model DeliverCar where
   type TableName DeliverCar = "delivercartbl"
   type Parent DeliverCar = Service
   modelInfo = mkModelInfo DeliverCar ident
-  modelView _ = (defaultView :: ModelView DeliverCar)
-    {mv_title = "Доставка ТС"}
+  modelView _ = modifyView
+    (defaultView :: ModelView DeliverCar) {mv_title = "Доставка ТС"}
+    $ mapWidget toAddress_address toAddress_coords toAddress_map
