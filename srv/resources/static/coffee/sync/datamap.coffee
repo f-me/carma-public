@@ -62,7 +62,7 @@ define [], ->
       v.map (t) -> Date.parseExact(t, "dd.MM.yyyy")?.toString "yyyy-MM-ddTHH:mm:ss.0Z"
 
   s2cTypes =
-    'dictionary-set': (v) -> v.join(',')
+    'dictionary-set': (v) -> v?.join(',')
     checkbox  : (v) -> v == "1"
     Bool      : (v) -> v
     Integer   : (v) -> v
