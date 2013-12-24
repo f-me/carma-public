@@ -8,8 +8,9 @@ import Data.Time.Clock    (UTCTime)
 
 import Data.Model
 
-import Carma.Model.Program  (Program)
-import Carma.Model.Wazzup   (Wazzup)
+import Carma.Model.Program     (Program)
+import Carma.Model.SubProgram  (SubProgram)
+import Carma.Model.Wazzup      (Wazzup)
 import Carma.Model.LegacyTypes
 
 
@@ -58,7 +59,9 @@ data Case = Case
   , contact_ownerEmail
     :: F (Maybe Text) "contact_ownerEmail" "Email"
   , program
-    :: F (IdentT Program)  "program" "Программа"
+    :: F (Maybe (IdentT Program))  "program" "Программа"
+  , subprogram
+    :: F (Maybe (IdentI SubProgram))  "subprogram" "Подпрограмма"
 
   , car_vin
     :: F (Maybe Text) "car_vin" "VIN"

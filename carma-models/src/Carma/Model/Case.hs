@@ -76,13 +76,6 @@ caseDicts = [
               {dictParent = Just $ Model.fieldName diagnosis1}
   ,dict diagnosis3 $ (dictOpt "Diagnosis3")
   ,dict diagnosis4 $ (dictOpt "Diagnosis4")
-
-  ,dict program $ (dictOpt "casePrograms")
-              { dictType    = Just "ComputedDict"
-              , dictBounded = True
-              , dictTgtCat  = Just "program"
-              }
-
   ,setType "dictionary" car_vin
   ,dict car_vin $ (dictOpt "")
               {dictType = Just "VinDict"}
@@ -105,6 +98,11 @@ caseMod = [
   ,transform "uppercase"  car_vin
   ,transform "uppercase"  car_plateNum
   ,setMeta "regexp" "plateNum" car_plateNum
+
+  ,setMeta "dictionaryType" "ModelDict" program
+  ,setMeta "dictionaryStringify" (Aeson.Bool True) program
+  ,setMeta "dictionaryParent" "program" subprogram
+  ,setMeta "dictionaryStringify" (Aeson.Bool True) subprogram
 
   ,widget "radio" car_transmission
   ,widget "radio" car_engine
