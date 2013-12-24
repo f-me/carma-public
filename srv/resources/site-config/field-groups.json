@@ -135,7 +135,6 @@
       "meta": {
         "regexp": "vin",
         "required": true,
-        "expired": true,
         "transform": "uppercase",
         "label": "VIN",
         "dictionaryType": "VinDict"
