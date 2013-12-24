@@ -76,6 +76,19 @@ function update_db {
   local A=$DB_VERSION_A
   local B=$DB_VERSION_B
   local C=$DB_VERSION_C
+  local DUPE=0
+
+  for d in `find patches -type f | sort -V | cut -d'-' -f1 | uniq -d` ; do
+    echo \*\*\* Multiple patches use version $(echo ${d} | cut -d'/' -f2)
+    DUPE=1
+  done
+
+  if [[ ${DUPE} == 1 ]] ; then
+    if [[ $1 != "--dev" ]]; then
+      echo !!! Resolve duplicates and try again
+      exit 1
+    fi
+  fi
 
   for f in `find patches -type f | sort -V` ; do
     get_patch_version $f
