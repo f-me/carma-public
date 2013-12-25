@@ -92,7 +92,7 @@ data Contract = Contract
                         "lastCheckDealer"
                         "Дилер, у которого проходило последнее ТО"
   , lastCheckMileage :: F (Maybe TInt)
-                        "lastCheckDealer"
+                        "lastCheckMileage"
                         "Пробег на последнем ТО"
   , lastCheckDate    :: F (Maybe Day)
                         "lastCheckDate"
