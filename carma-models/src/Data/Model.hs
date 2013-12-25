@@ -8,7 +8,7 @@ module Data.Model
   , Field(..), F, PK
   , FOpt
   , FieldDesc(..)
-  , fieldName, fieldDesc
+  , fieldName, fieldDesc, fieldType
   -- from Data.Model.View.Types
   , ModelView(..)
   ) where
@@ -89,6 +89,11 @@ fieldDesc
   :: forall m t name desc
   . SingI desc => (m -> Field t (FOpt name desc)) -> Text
 fieldDesc _ = T.pack $ fromSing (sing :: Sing desc)
+
+fieldType
+  :: forall m t name desc
+  . Typeable t => (m -> Field t (FOpt name desc)) -> TypeRep
+fieldType _ = typeOf (undefined :: t)
 
 
 class GetModelFields m ctr where
