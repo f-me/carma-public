@@ -1,11 +1,19 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 module Carma.Model.Contract where
 
+import Data.Aeson
 import Data.Time.Calendar (Day)
 import Data.Time.Clock (UTCTime)
 import Data.Text
 import Data.Typeable
 
+import Database.PostgreSQL.Simple.FromField
+import Database.PostgreSQL.Simple.ToField
+
 import Data.Model
+import Data.Model.Types
 import Data.Model.View
 
 import Carma.Model.Types (TInt)
@@ -21,6 +29,15 @@ import Carma.Model.SubProgram   (SubProgram)
 import Carma.Model.Transmission (Transmission)
 import Carma.Model.Usermeta     (Usermeta)
 import Carma.Model.Engine       (Engine)
+
+
+
+-- | Transparent 'Day' wrapper so that @typeOf WDay@ points to this
+-- module (original name is hidden: @Data.Time.Calendar.Days.Day@).
+newtype WDay = WDay Day deriving (FromField, ToField,
+                                  FromJSON, ToJSON,
+                                  DefaultFieldView,
+                                  Typeable)
 
 
 data Contract = Contract
@@ -46,10 +63,10 @@ data Contract = Contract
   , plateNum         :: F (Maybe Text)
                         "plateNum"
                         "Госномер"
-  , validSince       :: F (Maybe Day)
+  , validSince       :: F (Maybe WDay)
                         "validSince"
                         "Дата регистрации в программе"
-  , validUntil       :: F (Maybe Day)
+  , validUntil       :: F (Maybe WDay)
                         "validUntil"
                         "Программа действует до (Дата)"
   , startMileage     :: F (Maybe TInt)
@@ -82,7 +99,7 @@ data Contract = Contract
   , engineType       :: F (Maybe (IdentI Engine))
                         "engineType"
                         "Тип двигателя"
-  , buyDate          :: F (Maybe Day)
+  , buyDate          :: F (Maybe WDay)
                         "buyDate"
                         "Дата покупки"
   , seller           :: F (Maybe (IdentI Partner))
@@ -94,7 +111,7 @@ data Contract = Contract
   , lastCheckMileage :: F (Maybe TInt)
                         "lastCheckMileage"
                         "Пробег на последнем ТО"
-  , lastCheckDate    :: F (Maybe Day)
+  , lastCheckDate    :: F (Maybe WDay)
                         "lastCheckDate"
                         "Дата последнего ТО"
   , checkPeriod      :: F (Maybe TInt)
