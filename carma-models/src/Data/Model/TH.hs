@@ -18,9 +18,14 @@ import Data.Model.Types
 -- | Generate a list of Ident declarations and bind `idents` to a
 -- hashmap mapping String labels to produced declarations.
 --
+-- Example:
+--
 -- > mkIdents 'Role [("all", 5)]
--- all = Ident 5 :: IdentI Role
--- idents = HM.fromList [("all", all)]
+--
+-- compiles to
+--
+-- > all = Ident 5 :: IdentI Role
+-- > idents = HM.fromList [("all", all)]
 mkIdents :: (Q Type)
          -> [(String, Integer)]
          -> Q [Dec]
