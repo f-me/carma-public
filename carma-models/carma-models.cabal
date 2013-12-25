@@ -1,5 +1,5 @@
 name:                carma-models
-version:             0.8
+version:             0.8.1
 synopsis:            Model definitions/CRUD for CaRMa
 -- description:
 license:             MIT
@@ -43,6 +43,7 @@ library
     Carma.Model.SubProgram,
     Carma.Model.Transmission,
     Carma.Model.VinFormat,
+    Carma.Model.VinFormat.Meta,
     Carma.Model.Region,
     Carma.Model.Role,
     Carma.Model.Wazzup,
@@ -90,7 +91,7 @@ library
     containers           == 0.5.*,
     unordered-containers == 0.2.*,
     postgresql-simple    == 0.3.*,
-    text                 == 0.11.*,
+    text                 >= 0.11 && < 1.1,
     template-haskell,
     time                 == 1.4.*,
     vector               == 0.10.*,
