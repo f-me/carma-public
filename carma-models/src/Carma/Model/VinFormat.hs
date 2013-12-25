@@ -1,6 +1,12 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Carma.Model.VinFormat where
+module Carma.Model.VinFormat
+    ( VinFormat(..)
+    , FF(..), FormatFieldType(..), VFAccessor(..)
+    , vinFormatAccessors
+    )
+
+where
 
 import Data.Text
 
@@ -12,7 +18,7 @@ import Carma.Model.Types (TInt)
 import Carma.Model.VinFormat.Meta
 
 import qualified Carma.Model.Contract as Contract
-import Carma.Model.Contract (WDay)
+import Carma.Model.Contract hiding (ident)
 
 import Carma.Model.CarClass     (CarClass)
 import Carma.Model.CarMake      (CarMake)
@@ -25,8 +31,7 @@ import Carma.Model.Transmission (Transmission)
 import Carma.Model.Engine       (Engine)
 
 
-mkVinFormat "VinFormat"
-             [ FF Name   Contract.name
+mkVinFormat  [ FF Name   Contract.name
              , FF Raw    Contract.email
              , FF Raw    Contract.vin
              , FF Raw    Contract.cardNumber

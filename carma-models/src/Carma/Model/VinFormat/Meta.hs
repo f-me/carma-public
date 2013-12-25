@@ -5,9 +5,10 @@ VinFormat macros and meta helpers.
 The idea is to list a set of annotated 'Contract' fields and generate
 VinFormat model from it. Each source field @f@ is spliced into several
 fields @fLoad@, @fRequired@ etc., depending on the annotation given
-for that field.
+for that field. A source field is mapped to a group of produced
+VinFormat accessors are available using 'VFAccessor' type.
 
-|-}
+-}
 
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -18,6 +19,7 @@ module Carma.Model.VinFormat.Meta
     ( FF(..)
     , FormatFieldType(..)
     , mkVinFormat
+    , VFAccessor(..)
     )
 
 where
@@ -57,7 +59,6 @@ data FormatFieldType = Raw
 -- | Annotated field of the 'Contract' model.
 data FF = forall t n d. (Typeable t, SingI n, SingI d) =>
           FF FormatFieldType (Contract -> F t n d)
-          deriving Typeable
 
 
 -- | Convert 'TypeRep' to Template Haskell 'Type'.
@@ -71,14 +72,16 @@ typeRepToType tr =
 
 
 -- | Generate VinFormat model. Haskell field accessor names equal
--- field names.
-mkVinFormat :: String
-            -- ^ VIN format type/constructor name.
-            -> [FF]
+-- field names. Also bind @vinFormatAccessors@ to a list of
+-- 'VFAccessor' values, one for every group of produced fields.
+mkVinFormat :: [FF]
             -- ^ Annotated subset of 'Contract' fields.
             -> Q [Dec]
-mkVinFormat vfTypeName formatFields =
+mkVinFormat formatFields =
     let
+        -- Type & constructor name
+        name = mkName "VinFormat"
+
         loadSuffix = "Load"
         requiredSuffix = "Required"
         titleSuffix (FF fft _) =
@@ -90,7 +93,6 @@ mkVinFormat vfTypeName formatFields =
         defaultSuffix = "Default"
 
         ns = strictType (return NotStrict)
-        name = mkName vfTypeName
 
         -- Primary key and label
         idnt = [ varStrictType (mkName "ident") $
@@ -110,63 +112,64 @@ mkVinFormat vfTypeName formatFields =
         -- Include specified fields of 'Contract' model in
         -- constructor. Collect names of fields that were produced
         -- from every source field.
-        fields :: [(FF, [VarStrictTypeQ])]
+        fields :: [(FF, String, String, [VarStrictTypeQ])]
         fields =
-            map 
+            map
             (\ff@(FF fft proj) ->
              let
-                 loadName = fnWithSuffix ff loadSuffix
-                 titleName = fnWithSuffix ff $ titleSuffix ff
+                 loadName     = fnWithSuffix ff loadSuffix
                  requiredName = fnWithSuffix ff requiredSuffix
+                 titleName    = fnWithSuffix ff $ titleSuffix ff
+                 codeName     = fnWithSuffix ff codeSuffix
+                 formatName   = fnWithSuffix ff formatSuffix
+                 defaultName  = fnWithSuffix ff defaultSuffix
              in
-               (,) ff $
-             -- *{Load,Required,Title(s)} fields
+               (,,,) ff loadName requiredName $
+             -- fLoad,fRequired,fTitle(s) fields
              [ varStrictType (mkName loadName) $
-               ns $
-                   [t|
-                F Bool
-                $(litT $ strTyLit loadName)
-                $(litT $ strTyLit $ fdFormatted ff "Загружать поле «%s»")|]
+                 ns $
+                 [t|
+                  F Bool
+                  $(litT $ strTyLit loadName)
+                  $(litT $ strTyLit $ fdFormatted ff "Загружать поле «%s»")|]
              , varStrictType (mkName requiredName) $
-               ns $
-               [t|
-                F Bool
-                $(litT $ strTyLit requiredName)
-                $(litT $ strTyLit $
-                  fdFormatted ff "Поле «%s» обязательно")|]
+                 ns $
+                 [t|
+                  F Bool
+                  $(litT $ strTyLit requiredName)
+                  $(litT $ strTyLit $
+                    fdFormatted ff "Поле «%s» обязательно")|]
              , varStrictType (mkName titleName) $
-               ns $
-               [t|
-                F $(case fft of
-                      Name -> [t|Vector Text|]
-                      _    -> [t|Text|])
-                $(litT $ strTyLit $ fnWithSuffix ff $ titleSuffix ff)
-                $(litT $ strTyLit $ titleName)|]
+                 ns $
+                 [t|
+                  F $(case fft of
+                        Name -> [t|Vector Text|]
+                        _    -> [t|Text|])
+                  $(litT $ strTyLit titleName)
+                  $(litT $ strTyLit $ fdFormatted ff "Заголовок поля «%s»")|]
              ]
              ++
-             -- Extra *CodeTitle field for Dealer fields
+             -- Extra fCodeTitle field for Dealer fields
              case fft of
                Dealer ->
-                   [ varStrictType
-                     (mkName $ fnWithSuffix ff codeSuffix) $
+                   [ varStrictType (mkName codeName) $
                      ns $
                      [t|
                       F Text
-                      $(litT $ strTyLit $ fnWithSuffix ff codeSuffix)
+                      $(litT $ strTyLit codeName)
                       $(litT $ strTyLit $ fdFormatted ff
                         "Заголовок кода дилера для поля «%s»")|]
-                   ]
+                     ]
                _ -> []
              ++
-             -- Extra *Format field for Date fields
+             -- Extra fFormat field for Date fields
              case fft of
                Date ->
-                   [ varStrictType
-                     (mkName $ fnWithSuffix ff formatSuffix) $
+                   [ varStrictType (mkName formatName) $
                      ns $
                      [t|
                       F (Maybe Text)
-                      $(litT $ strTyLit $ fnWithSuffix ff formatSuffix)
+                      $(litT $ strTyLit formatName)
                       $(litT $ strTyLit $ fdFormatted ff
                         "Формат даты для поля «%s»")|]
                    ]
@@ -176,32 +179,49 @@ mkVinFormat vfTypeName formatFields =
              case fft of
                Subprogram -> []
                _ ->
-                   [ varStrictType
-                     (mkName $ fnWithSuffix ff defaultSuffix) $
+                   [ varStrictType (mkName defaultName) $
                      ns $
                      [t|
                       F $(return $ typeRepToType $ fieldType proj)
-                      $(litT $ strTyLit $ fnWithSuffix ff defaultSuffix)
+                      $(litT $ strTyLit defaultName)
                       $(litT $ strTyLit $
                         fdFormatted ff "Значение поля «%s» по умолчанию")|]
                    ]
             )
             $
             formatFields
-        constructor = [recC name $ idnt ++ (concat $ map snd fields)]
+        constructor = [recC name $
+                       idnt ++ (concat $ map (\(_, _, _, vs) -> vs) fields)
+                      ]
+        vfAccs = map
+                 (\((FF fft proj), l, r, _) ->
+                      [e|
+                       VFAcc
+                       $(varE $ mkName $ T.unpack $ fieldName proj)
+                       $(varE $ mkName l)
+                       $(varE $ mkName r)
+                       |])
+                 fields
     in do
-      d <- dataD (cxt []) name [] constructor [''Typeable]
-      return [d]
+      d  <- dataD (cxt []) name [] constructor [''Typeable]
+      d' <- [d|
+             vinFormatAccessors :: [VFAccessor $(conT name)]
+             vinFormatAccessors = $(listE vfAccs)
+             |]
+      return $ [d] ++ d'
 
 
 -- | A set of VinFormat accessors produced from a single source
 -- 'Contract' field.
-data VFMeta = forall m n1 n2 n3 d1 d2 d3 v t n d.
-              Model m =>
-              VFMeta { load     :: m -> F Bool n1 d1
-                       -- ^ fLoad accessor.
-                     , required :: m -> F Bool n2 d2
-                       -- ^ fRequired accessor.
-                     , fft      :: FormatFieldType
-                     , proj     :: Contract -> F t n d
-                     }
+data VFAccessor m =
+    forall n1 n2 d1 d2 t n d.
+    (Typeable t, SingI n, SingI d,
+     SingI n1, SingI d1,
+     SingI n2, SingI d2) =>
+    VFAcc { proj     :: Contract -> F t n d
+          -- ^ Original field @f@.
+          , load     :: m -> F Bool n1 d1
+          -- ^ @fLoad@ accessor.
+          , required :: m -> F Bool n2 d2
+          -- ^ @fRequired@ accessor.
+          }
