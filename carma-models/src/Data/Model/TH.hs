@@ -25,9 +25,8 @@ mkIdents :: (Q Type)
          -> [(String, Integer)]
          -> Q [Dec]
 mkIdents modelTy names = do
-    Just identTy <- lookupTypeName "IdentI"
     let list = mkName "idents"
-        defTy = (conT identTy) `appT` modelTy
+        defTy = [t|IdentI $(modelTy)|]
     identDefs <- forM names $
       \(nm, i) -> do
         let nm' = mkName nm
@@ -35,7 +34,7 @@ mkIdents modelTy names = do
         s <- sigD nm' defTy
         -- Value def
         d <- valD (varP nm')
-             (normalB ((conE 'Ident) `appE` (litE $ integerL i))) []
+             (normalB [e|Ident $(litE $ integerL i)|]) []
         return [s, d]
     idMapTy  <- sigD list [t|HM.HashMap String $defTy|]
     let pairs = map (\(nm, _) -> tupE [litE $ stringL nm, varE $ mkName nm])
