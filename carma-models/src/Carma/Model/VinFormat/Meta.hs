@@ -109,10 +109,10 @@ mkVinFormat formatFields =
         fdFormatted (FF _ proj) format =
             printf format $ T.unpack $ fieldDesc proj
 
-        -- Include specified fields of 'Contract' model in
-        -- constructor. Collect names of fields that were produced
-        -- from every source field.
-        fields :: [(FF, String, String, [VarStrictTypeQ])]
+        -- Use specified fields of 'Contract' model in constructor.
+        -- Collect accessors that were produced from every source
+        -- field.
+        fields :: [(FF, (ExpQ, [VarStrictTypeQ]))]
         fields =
             map
             (\ff@(FF fft proj) ->
@@ -124,7 +124,13 @@ mkVinFormat formatFields =
                  formatName   = fnWithSuffix ff formatSuffix
                  defaultName  = fnWithSuffix ff defaultSuffix
              in
-               (,,,) ff loadName requiredName $
+               (,) ff $ (,)
+             [e|
+              VFAcc
+              $(varE $ mkName $ T.unpack $ fieldName proj)
+              $(varE $ mkName loadName)
+              $(varE $ mkName requiredName)
+              |] $
              -- fLoad,fRequired,fTitle(s) fields
              [ varStrictType (mkName loadName) $
                  ns $
@@ -190,29 +196,20 @@ mkVinFormat formatFields =
             )
             $
             formatFields
-        constructor = [recC name $
-                       idnt ++ (concat $ map (\(_, _, _, vs) -> vs) fields)
-                      ]
-        vfAccs = map
-                 (\((FF fft proj), l, r, _) ->
-                      [e|
-                       VFAcc
-                       $(varE $ mkName $ T.unpack $ fieldName proj)
-                       $(varE $ mkName l)
-                       $(varE $ mkName r)
-                       |])
-                 fields
+
+        constructor = [recC name $ idnt ++ (concat $ map (snd . snd) fields)]
+
+        vfas = map (fst . snd) fields
     in do
       d  <- dataD (cxt []) name [] constructor [''Typeable]
       d' <- [d|
              vinFormatAccessors :: [VFAccessor $(conT name)]
-             vinFormatAccessors = $(listE vfAccs)
-             |]
+             vinFormatAccessors = $(listE vfas)|]
       return $ [d] ++ d'
 
 
--- | A set of VinFormat accessors produced from a single source
--- 'Contract' field.
+-- | Base VinFormat accessors produced from a single source 'Contract'
+-- field, common to all field types.
 data VFAccessor m =
     forall n1 n2 d1 d2 t n d.
     (Typeable t, SingI n, SingI d,
