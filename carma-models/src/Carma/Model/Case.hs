@@ -60,7 +60,7 @@ instance Model Case where
       where
         setMainOnly mv = mv
           {mv_fields =
-             [fv{fv_meta = Map.insert "mainToo" (Aeson.Bool True) $ fv_meta fv}
+             [fv{fv_meta = Map.insert "mainOnly" (Aeson.Bool True) $ fv_meta fv}
              |fv <- mv_fields mv
              ]
           }

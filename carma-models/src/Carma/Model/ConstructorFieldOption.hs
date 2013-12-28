@@ -30,4 +30,4 @@ instance Model ConstructorFieldOption where
   type TableName ConstructorFieldOption = "ConstructorFieldOption"
   modelInfo = mkModelInfo ConstructorFieldOption ident
   modelView _ = modifyView defaultView
-    [textarea info, readonly field]
+    [textarea info, readonly field, invisible ord]
