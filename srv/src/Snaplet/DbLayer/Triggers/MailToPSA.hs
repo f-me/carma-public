@@ -111,14 +111,16 @@ sendMailActually actionId = do
           fld 150 "Component fault"  $ get' caseId "dealerCause"
 
           factServiceStart
-            <- fromMaybe (error "Invalid factServiceStart") . toLocalTime tz
+            <- toLocalTime tz
             <$> lift (get svcId "times_factServiceStart")
 
           partnerId <- lift $ get svcId "contractor_partnerId"
 
           fld 10 "Date of Opening"       <=== tmFormat "%d/%m/%Y" callDate
-          fld 10 "Date of Response"      <=== tmFormat "%d/%m/%Y" factServiceStart
-          fld 5  "Time of Response"      <=== tmFormat "%H:%M" factServiceStart
+          fld 10 "Date of Response"
+            <=== fromMaybe "" (tmFormat "%d/%m/%Y" <$> factServiceStart)
+          fld 5  "Time of Response"
+            <=== fromMaybe "" (tmFormat "%H:%M" <$> factServiceStart)
           fld 100 "Breakdown Location"   $ get' caseId "caseAddress_address"
           fld 20  "Breakdown Area"       $ tr (city dic) <$> get' caseId "city"
           fld 100 "Breakdown Service"    $ get' partnerId "name"
@@ -146,7 +148,7 @@ sendMailActually actionId = do
           fld 200 "Dealer Address 2"  <=== ""
           fld 200 "Dealer Address V"  <=== ""
           fld 20  "Dealer Tel Number" $ get' dealerId "phone1"
-          fld 4   "End Of File"      <=== "True"
+          fld 4   "End Of File"       <=== "True"
 
     bodyText <- TL.encodeUtf8 . TL.fromChunks <$> execWriterT body
     let bodyPart = Part "text/plain; charset=utf-8"
