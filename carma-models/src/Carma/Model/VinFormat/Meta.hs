@@ -10,9 +10,8 @@ VinFormat accessors are available using 'VFAccessor' type.
 
 -}
 
-{-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Carma.Model.VinFormat.Meta
@@ -57,8 +56,9 @@ data FormatFieldType = Raw
 
 
 -- | Annotated field of the 'Contract' model.
-data FF = forall t n d. (Typeable t, SingI n, SingI d) =>
-          FF FormatFieldType (Contract -> F t n d)
+data FF where
+    FF :: (Typeable t, SingI n, SingI d) =>
+          FormatFieldType -> (Contract -> F t n d) -> FF
 
 
 -- | Convert 'TypeRep' to Template Haskell 'Type'.
@@ -210,15 +210,11 @@ mkVinFormat formatFields =
 
 -- | Base VinFormat accessors produced from a single source 'Contract'
 -- field, common to all field types.
-data VFAccessor m =
-    forall n1 n2 d1 d2 t n d.
-    (Typeable t, SingI n, SingI d,
-     SingI n1, SingI d1,
-     SingI n2, SingI d2) =>
-    VFAcc { proj     :: Contract -> F t n d
-          -- ^ Original field @f@.
-          , load     :: m -> F Bool n1 d1
-          -- ^ @fLoad@ accessor.
-          , required :: m -> F Bool n2 d2
-          -- ^ @fRequired@ accessor.
-          }
+data VFAccessor m where
+    VFAcc :: { proj     :: (Typeable t, SingI n, SingI d) => Contract -> F t n d
+             -- ^ Original field @f@.
+             , load     :: (SingI n1, SingI d1) => m -> F Bool n1 d1
+             -- ^ @fLoad@ accessor.
+             , required :: (SingI n2, SingI d2) => m -> F Bool n2 d2
+             -- ^ @fRequired@ accessor.
+             } -> VFAccessor m
