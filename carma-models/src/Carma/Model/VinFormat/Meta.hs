@@ -12,6 +12,7 @@ source field has is mapped to a group of produced VinFormat accessors.
 
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 
@@ -19,13 +20,15 @@ module Carma.Model.VinFormat.Meta
     ( ContractField(..), FF(..)
     , FormatFieldType(..)
     , mkVinFormat
-    , VFAccessor(..)
+    , VFAccessor(..), ParamAcc(..)
     )
 
 where
 
+import Data.Singletons
+import Data.Singletons.TH
 import Data.Typeable
-import GHC.TypeLits as GHC
+import qualified GHC.TypeLits as GHC
 import Language.Haskell.TH
 
 import Data.Text as T (Text, unpack)
@@ -70,6 +73,7 @@ typeRepToType tr =
 -- Minimal definition includes 'nameFormat' and 'descFormat'.
 class VinFieldParameter a where
     type ParamType a
+    data ParamAcc a :: * -> *
     paramType  :: Typeable (ParamType a) =>
                   a -> ContractField -> TypeRep
     nameFormat :: a -> String
@@ -103,12 +107,18 @@ mkAcc a cf =
 
 data Load
 instance VinFieldParameter Load where
+    data ParamAcc Load m =
+        forall n d. (GHC.SingI n, GHC.SingI d) =>
+        LoadAcc (m -> F (ParamType Load) n d)
     nameFormat _ = "%sLoad"
     descFormat _ = "Загружать поле «%s»"
 
 
 data Required
 instance VinFieldParameter Required where
+    data ParamAcc Required m = 
+        forall n d. (GHC.SingI n, GHC.SingI d) =>
+        ReqAcc (m -> F (ParamType Required) n d)
     nameFormat _ = "%sRequired"
     descFormat _ = "Поле «%s» обязательно"
 
@@ -209,8 +219,8 @@ mkVinFormat formatFields =
              [e|
               VFAcc
               $(appE [e|CF|] (varE $ mkName $ T.unpack $ fieldName proj))
-              $(varE $ mkName loadName)
-              $(varE $ mkName requiredName)
+              $(appE [e|LoadAcc|] $ varE $ mkName loadName)
+              $(appE [e|ReqAcc|] $ varE $ mkName requiredName)
               |] $
              -- fLoad,fRequired,fTitle(s) fields
              [ mkAcc (undefined :: Load)     acc
@@ -248,15 +258,13 @@ mkVinFormat formatFields =
 
 
 -- | Base VinFormat accessors produced from a single source 'Contract'
--- field, common to all field types.
+-- field, common to all field types. Tagged with VinFormat type to
+-- properly instantiate accessor types.
 data VFAccessor m =
-    forall n1 n2 d1 d2.
-    (SingI n1, SingI d1,
-     SingI n2, SingI d2) =>
     VFAcc { proj     :: ContractField
           -- ^ Original field @f@.
-          , load     :: m -> F Bool n1 d1
+          , load     :: ParamAcc Load m
           -- ^ @fLoad@ accessor.
-          , required :: m -> F Bool n2 d2
+          , required :: ParamAcc Required m
           -- ^ @fRequired@ accessor.
           }
