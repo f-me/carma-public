@@ -77,8 +77,6 @@ class VinFieldParameter a where
 
     name       :: a -> ContractField -> String
     desc       :: a -> ContractField -> String
-    mkAcc      :: Typeable (ParamType a) =>
-                  a -> ContractField -> VarStrictTypeQ
 
     type ParamType a = Bool
     paramType _ _    = typeOf $ (undefined :: ParamType a)
@@ -88,16 +86,19 @@ class VinFieldParameter a where
     desc a cf  = fieldProjFormatter (\(CF f) -> T.unpack $ fieldDesc f) cf $
                  descFormat a
 
-    mkAcc a cf =
-        varStrictType (mkName n) $ ns $
-        [t|
-         F $(return $ typeRepToType t)
-         $(litT $ strTyLit n)
-         $(litT $ strTyLit d)|]
-        where
-          n = name a cf
-          d = desc a cf
-          t = paramType a cf
+
+mkAcc :: (VinFieldParameter a, Typeable (ParamType a)) =>
+         a -> ContractField -> VarStrictTypeQ
+mkAcc a cf =
+    varStrictType (mkName n) $ ns $
+    [t|
+     F $(return $ typeRepToType t)
+     $(litT $ strTyLit n)
+     $(litT $ strTyLit d)|]
+    where
+      n = name a cf
+      d = desc a cf
+      t = paramType a cf
 
 
 data Load
