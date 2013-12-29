@@ -127,9 +127,9 @@ instance VinFieldParameter Title where
     descFormat _ = "Заголовок поля «%s»"
 
 
-data NameTitles
-instance VinFieldParameter NameTitles where
-    type ParamType NameTitles = Vector Text
+data Titles
+instance VinFieldParameter Titles where
+    type ParamType Titles = Vector Text
     nameFormat _ = "%sTitles"
     descFormat _ = "Заголовки поля «%s»"
 
@@ -218,7 +218,7 @@ mkVinFormat formatFields =
              ]
              ++
              case fft of
-               Name -> [mkAcc (undefined :: NameTitles)  acc]
+               Name -> [mkAcc (undefined :: Titles)  acc]
                _    -> [mkAcc (undefined :: Title)       acc]
              ++
              -- Extra fCodeTitle field for Dealer fields, extra
