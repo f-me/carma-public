@@ -1,7 +1,7 @@
 [
     { "name"  : "sms",
       "type"  : "sms",
-      "permissions" : ["lovAdmin", "lovViewer"]
+      "permissions" : ["sms"]
     },
     { "name" : "contract",
       "label": "Контракты",
