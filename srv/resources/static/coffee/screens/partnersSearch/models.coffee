@@ -38,7 +38,7 @@ define [], ->
           dictionaryName: "Priorities"
           dictionaryType: "ComputedDict"
           bounded: false
-          label: "ПНГ"
+          label: "ПБЗ"
       },
       { name: "isDealer"
       , type: "checkbox"
@@ -85,7 +85,7 @@ define [], ->
       },
       { name: "ico"
       , meta: { label: "Иконка" }
-      },      
+      },
       { name: "ismobile"
       , meta: { label: "Мобильный партнер" }
       },

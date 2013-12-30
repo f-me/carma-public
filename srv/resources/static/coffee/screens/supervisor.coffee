@@ -37,7 +37,7 @@ define ["utils"
       set = (clr) -> $(nRow).children().css('background-color', clr)
 
       time = if name == 'orderService' or name == 'orderServiceAnalyst'
-               srvStart
+               srvStart || duetime
              else
                duetime
 

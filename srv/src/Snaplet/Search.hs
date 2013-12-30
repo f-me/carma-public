@@ -14,10 +14,11 @@ import Data.Maybe
 import Data.Either
 import Data.String (fromString)
 import Data.Pool
-import Data.Text (Text)
+import Data.Text (Text, toLower)
 import qualified Data.Text             as T
 import qualified Data.ByteString.Char8 as B
-import qualified Data.ByteString.Lazy as LB
+import qualified Data.ByteString.Lazy  as LB
+import qualified Data.HashMap.Strict   as HM
 import Text.Printf
 
 import qualified Data.Aeson as Aeson
@@ -89,51 +90,47 @@ caseSearch = do
     towPreds   <- predicatesFromParams c args towageSearchParams
     case partitionEithers [casePreds, srvPreds, towPreds] of
       ([], preds) -> do
-        s :: [[LB.ByteString]] <-
-          query_ c (mkQuery cse_fields svc_fields tow_fields
-                    (concatPredStrings preds) lim offset)
-        return $ return . reply lim offset =<<
-          (sequence $ map (Aeson.eitherDecode . head) s)
+        s :: [(Aeson.Value, Maybe Aeson.Value, Maybe Aeson.Value)]
+          <- query_ c (mkQuery (concatPredStrings preds) lim offset)
+        let s' = map (filterResults cse_fields svc_fields tow_fields) s
+        return $ Right $ reply lim offset $ merge s'
       (errs, _) -> return $ Left $ foldl (++) "" errs
-        -- -> Right . join
-        --    <$> query_ c (mkQuery cse_fields svc_fields pred lim)
+  where
+    filterResults cse svc _   (c, Just s, Nothing) =
+      (fltModel cse c, fltModel svc s, Aeson.Object HM.empty)
+    filterResults cse _    _  (c, Nothing, Nothing) =
+      (fltModel cse c, Aeson.Object HM.empty, Aeson.Object HM.empty)
+    filterResults cse svc tow (c, Just s, Just t) =
+      (fltModel cse c, fltModel svc s, fltModel tow t)
+    fltModel :: [Text] -> Aeson.Value -> Aeson.Value
+    fltModel fs (Aeson.Object o) = Aeson.Object $
+      foldl (\a k -> maybe a (\v -> HM.insert k v a) $ HM.lookup k o)
+        HM.empty $ map toLower fs -- use lowercase fieldsnames because
+                                  -- so will postgres
+    merge [] = []
+    merge (x:xs) = (merge' x) : merge xs
+    merge' (c, s, t) = Aeson.object [ ("case",    c)
+                                    , ("service", Aeson.toJSON s)
+                                    , ("towage",  Aeson.toJSON t)
+                                    ]
 
 search :: SearchHandler b (Either String Aeson.Value) -> SearchHandler b ()
 search = (>>= either (finishWithError 500) writeJSON)
 
 
-mkQuery
-   :: [Text] -> [Text] -> [Text] -> Text -> Int -> Int
-   -> Query
-mkQuery caseProj svcProj towProj pred lim offset
-  = fromString $ printf ("with"
-      ++ " result(cid,styp,sid, tid) as"
-      ++ "   (select casetbl.id, servicetbl.type, servicetbl.id, towagetbl.id"
-      ++ "     from casetbl join servicetbl"
+mkQuery :: Text -> Int -> Int -> Query
+mkQuery pred lim offset
+  = fromString $ printf
+      (  "    select row_to_json(casetbl.*),"
+      ++ "           row_to_json(servicetbl.*),"
+      ++ "           row_to_json(towagetbl.*)"
+      ++ "     from casetbl left join servicetbl"
       ++ "       on split_part(servicetbl.parentId, ':', 2)::int = casetbl.id"
-      ++ "     join towagetbl"
+      ++ "     left join towagetbl"
       ++ "       on servicetbl.id = towagetbl.id"
-      ++ "     where (%s)),"
-      ++ " json_result as"
-      ++ "   (select"
-      ++ "     row_to_json(c.*) as \"case\","
-      ++ "     row_to_json(s.*) as \"service\","
-      ++ "     row_to_json(t.*) as \"towage\""
-      ++ "     from result r,"
-      ++ "       (select %s from casetbl) as c,"
-      ++ "       (select %s from servicetbl) as s,"
-      ++ "       (select %s from towagetbl) as t"
-      ++ "     where c.id = r.cid"
-      ++ "       and s.id = r.sid and s.type = r.styp"
-      ++ "       and t.id = r.tid)"
-      ++ " select row_to_json(r) :: text from json_result r limit %i offset %i;")
-    (T.unpack pred)
-    (T.unpack $ T.intercalate ", " $ map mkProj caseProj)
-    (T.unpack $ T.intercalate ", " $ map mkProj svcProj)
-    (T.unpack $ T.intercalate ", " $ map mkProj towProj)
-    lim offset
-  where
-    mkProj f = T.concat [f, " as \"", f, "\""]
+      ++ "     where (%s) limit %i offset %i;"
+      )
+      (T.unpack pred) lim offset
 
 
 searchInit

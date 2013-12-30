@@ -6,7 +6,7 @@
     { "name" : "contract",
       "label": "Контракты",
       "type" : "li",
-      "permissions": ["partner", "contract_admin"]
+      "permissions": ["partner"]
     },
     { "name"  : "call",
       "label" : "Звонок",
