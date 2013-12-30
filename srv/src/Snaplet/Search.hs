@@ -90,12 +90,17 @@ caseSearch = do
     towPreds   <- predicatesFromParams c args towageSearchParams
     case partitionEithers [casePreds, srvPreds, towPreds] of
       ([], preds) -> do
-        s :: [(Aeson.Value, Maybe Aeson.Value, Maybe Aeson.Value)]
-          <- query_ c (mkQuery (concatPredStrings preds) lim offset)
-        let s' = map (filterResults cse_fields svc_fields tow_fields) s
+        s <- query_ c (mkQuery (concatPredStrings preds) lim offset)
+        let s' = map (filterResults cse_fields svc_fields tow_fields . parse) s
         return $ Right $ reply lim offset $ merge s'
       (errs, _) -> return $ Left $ foldl (++) "" errs
   where
+    -- FIXME: do something so Postgresql.Simple can parse json to Aeson.Value
+    parse (a, b, c) =
+      (fromMaybe (Aeson.object []) $ Aeson.decode a
+      ,Aeson.decode (fromMaybe "" b)
+      ,Aeson.decode (fromMaybe "" c)
+      )
     filterResults cse svc _   (c, Just s, Nothing) =
       (fltModel cse c, fltModel svc s, Aeson.Object HM.empty)
     filterResults cse _    _  (c, Nothing, Nothing) =
@@ -121,9 +126,9 @@ search = (>>= either (finishWithError 500) writeJSON)
 mkQuery :: Text -> Int -> Int -> Query
 mkQuery pred lim offset
   = fromString $ printf
-      (  "    select row_to_json(casetbl.*),"
-      ++ "           row_to_json(servicetbl.*),"
-      ++ "           row_to_json(towagetbl.*)"
+      (  "    select row_to_json(casetbl.*)    :: text,"
+      ++ "           row_to_json(servicetbl.*) :: text,"
+      ++ "           row_to_json(towagetbl.*)  :: text"
       ++ "     from casetbl left join servicetbl"
       ++ "       on split_part(servicetbl.parentId, ':', 2)::int = casetbl.id"
       ++ "     left join towagetbl"
