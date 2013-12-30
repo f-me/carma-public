@@ -12,6 +12,10 @@
 
     <link rel="stylesheet" href="/s/css/local.css" />
 
+    <!-- WYSIWYG -->
+    <link rel="stylesheet" href="/s/css/bootstrap-wysihtml5.css" />
+    <link rel="stylesheet" href="/s/css/wysiwyg-color.css" />
+
     <!-- DOM manipulation -->
     <script src="/s/js/3p/jquery-1.7.1.min.js" />
 
@@ -20,6 +24,11 @@
     <script src="/s/js/3p/bootstrap-datepicker.js" />
     <script src="/s/js/3p/bootstrap-typeahead.js" />
     <script src="/s/js/3p/bootstrap-tagautocomplete.js" />
+
+    <!-- WYSIWYG -->
+    <script src="/s/js/3p/wysihtml5.min.js" />
+    <script src="/s/js/3p/bootstrap-wysihtml5.min.js" />
+    <script src="/s/js/3p/bootstrap-wysihtml5.ru-RU.js" />
 
     <!-- Tabular display -->
     <script src="/s/js/3p/jquery.dataTables.min.js" />
@@ -869,9 +878,11 @@
                               valueUpdate: 'change',
                               disabled: {{ name }}Disabled" />
             <span class="btn btn-success"
-                  data-bind="disabled: {{ name }}Disabled">
+                  data-bind="disabled: {{ name }}Disabled"
+                  onclick="successfulSave.call(this);">
               {{ meta.label }}
             </span>
+            <span class="save-result"/>
           {{# meta.infoText1 }}
             <i class="icon icon-question-sign"
                data-provide="popover"

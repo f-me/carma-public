@@ -146,9 +146,10 @@ class ThMenu
   # this methos is for .add-on arrow on the field
   drawAll: =>
     return @ unless @$element
-    @dict.lookup "", (v) =>
-      return @.hide() if _.isEmpty v
-      return @.render(v).show()
+    unless @$element.is(':disabled')
+      @dict.lookup "", (v) =>
+        return @.hide() if _.isEmpty v
+        return @.render(v).show()
 
 
   keyup: (e) =>

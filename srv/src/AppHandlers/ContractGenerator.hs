@@ -48,21 +48,23 @@ q = [sql|
         , carMake.label
         , carModel.label
         , carPlateNum
-        , to_char(carBuydate at time zone 'UTC', 'DD/MM/YYYY')
+        , to_char(carBuydate, 'DD/MM/YYYY')
         , cardNumber::text
-        , to_char(contractValidFromDate at time zone 'UTC', 'DD/MM/YYYY')
-        , to_char(contractValidUntilDate at time zone 'UTC', 'DD/MM/YYYY')
+        , to_char(contractValidFromDate, 'DD/MM/YYYY')
+        , to_char(contractValidUntilDate, 'DD/MM/YYYY')
         , contractValidUntilMilage::text
         , milageTO::text
         , carCheckPeriod::text
         , cardOwner
         , manager
-        , to_char(warrantyStart at time zone 'UTC', 'DD/MM/YYYY')
+        , to_char(warrantyStart, 'DD/MM/YYYY')
         , client, clientCode, clientAddress
+        , u.realname
      FROM contracttbl c
      INNER JOIN programtbl p ON c.program::int4 = p.id
      LEFT JOIN "CarMake"  carMake  ON carMake.value  = carMake
      LEFT JOIN "CarModel" carModel ON carModel.value = carModel
+     LEFT JOIN usermetatbl u ON u.id::text = c.owner
      WHERE c.id = ?
 |]
 
@@ -84,6 +86,7 @@ fields = [ "car_vin"
          , "client"
          , "clientCode"
          , "clientAddress"
+         , "owner"
          ]
 
 renderContractHandler :: AppHandler ()

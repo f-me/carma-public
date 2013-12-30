@@ -69,7 +69,7 @@ define [ 'utils'
       $('body').off 'change.input'
       $('.navbar').css '-webkit-transform', ''
 
-    makeCase = () ->
+    makeCaseAux = () ->
       v = global.viewsWare['call-form'].knockVM
 
       callerType = v['callerType']()
@@ -106,6 +106,7 @@ define [ 'utils'
           "newCase/#{k.program()}/#{k.id()}",
           {trigger: true})
 
+    makeCase = _.throttle makeCaseAux, 2000, {trailing: false}
 
     addNewService = (name) ->
       kvm = global.viewsWare["case-form"].knockVM
