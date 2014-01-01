@@ -22,6 +22,14 @@ ko.bindingHandlers.readonly =
   update: (el, acc, allBindigns, kvm) ->
     $(el).attr('readonly', acc()())
 
+ko.bindingHandlers.sync =
+  update: (el, acc, allBindings) ->
+    isSync = ko.utils.unwrapObservable acc()
+    if isSync
+      $(el).fadeIn 'fast'
+    else
+      $(el).fadeOut 'slow'
+
 ko.bindingHandlers.pickerDisable =
   update: (el, acc, allBindigns, kvm) ->
     $(el).data('disabled', acc()())
