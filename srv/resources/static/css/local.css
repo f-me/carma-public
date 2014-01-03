@@ -274,3 +274,9 @@ table.dataTable tr.selected-row td.sorting_1 {
   from { -moz-transform: rotate( 0deg );   }
   to   { -moz-transform: rotate( 360deg ); }
 }
+
+.blur {
+  filter: blur(8px);
+  -webkit-filter: blur(8px);
+  -moz-filter: blur(8px);
+}

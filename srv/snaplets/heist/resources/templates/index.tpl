@@ -30,6 +30,10 @@
     <script src="/s/js/3p/bootstrap-wysihtml5.min.js" />
     <script src="/s/js/3p/bootstrap-wysihtml5.ru-RU.js" />
 
+    <!-- Spinner -->
+    <script src="/s/js/3p/spin.min.js" />
+    <script src="/s/js/3p/jquery.spin.js" />
+
     <!-- Tabular display -->
     <script src="/s/js/3p/jquery.dataTables.min.js" />
 
