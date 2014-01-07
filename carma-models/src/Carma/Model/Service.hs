@@ -100,22 +100,27 @@ data Service = Service
   }
   deriving Typeable
 
+
 instance Model Service where
   type TableName Service = "servicetbl"
   modelInfo = mkModelInfo Service ident
-  modelView "search" = modifyView (searchView serviceSearchParams)
-    [dict contractor_partnerId $ (dictOpt "allPartners")
-          { dictType    = Just "ComputedDict"
-          , dictBounded = True
-          }
-    ,setType "dictionary-set" contractor_partnerId
-    ]
-  modelView _ = modifyView defaultView
+  modelView "search" = modifyView (searchView serviceSearchParams) svcMod
+  modelView "newCase" = modifyView defaultView
+    $ svcMod
+    ++ [mainOnly times_expectedServiceStart
+       ,mainOnly times_expectedServiceEnd
+       ,mainOnly times_expectedDispatch
+       ]
+  modelView _ = modifyView defaultView svcMod
+
+
+svcMod =
     [dict contractor_partnerId $ (dictOpt "allPartners")
           { dictType    = Just "ComputedDict"
           , dictBounded = True
           }
     ,setType "dictionary" contractor_partnerId
+    ,invisible service_tarifOptions
     ]
 
 

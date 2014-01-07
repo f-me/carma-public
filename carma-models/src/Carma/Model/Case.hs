@@ -5,6 +5,7 @@ module Carma.Model.Case
        ) where
 
 import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Aeson as Aeson
 import qualified Data.Map as Map
 
@@ -62,6 +63,7 @@ instance Model Case where
           {mv_fields =
              [fv{fv_meta = Map.insert "mainOnly" (Aeson.Bool True) $ fv_meta fv}
              |fv <- mv_fields mv
+             ,not $ "caseAddress" `T.isPrefixOf` fv_name fv
              ]
           }
 
