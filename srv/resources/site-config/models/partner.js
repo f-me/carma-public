@@ -148,6 +148,14 @@
     },
     {
       "meta": {
+        "label": "Внешний код партнёра"
+      },
+      "type": "text",
+      "groupName": null,
+      "name": "foreignIdent"
+    },
+    {
+      "meta": {
         "invisible": true
       },
       "type": "datetime",
