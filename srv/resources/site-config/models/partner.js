@@ -150,7 +150,7 @@
       "meta": {
         "label": "Внешний код партнёра"
       },
-      "type": "text",
+      "type": null,
       "groupName": null,
       "name": "foreignIdent"
     },
