@@ -42,6 +42,8 @@ define [ "utils"
           location.reload true
 
       if args.dict
+        $('#dict-select').val(args.dict)
+
         dict = null
         majorFields = null
         $.bgetJSON "/_/Dictionary/#{args.dict}", (d) -> dict = d
