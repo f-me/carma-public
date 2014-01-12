@@ -11,7 +11,7 @@ From: $EMAIL_FROM
 To: $EMAIL_TO
 Subject: $1
 MIME-Version: 1.0
-Content-Type: text/html
+Content-Type: text/plain
 Content-Disposition: inline
 
 $2
@@ -38,7 +38,9 @@ EOF
 
 RESULT=`delete_duplicates`
 COUNT=`echo "$RESULT" | tail -n 1`
-if [[ "$COUNT" != 'DELETE 0' ]] ; then
+if [[ "$COUNT" == 'DELETE 1' ]] ; then
+  send_message "$COUNT service duplicate" "$RESULT"
+elif [[ "$COUNT" != 'DELETE 0' ]] ; then
   send_message "$COUNT service duplicates" "$RESULT"
 fi
 
