@@ -22,6 +22,26 @@ ko.bindingHandlers.readonly =
   update: (el, acc, allBindigns, kvm) ->
     $(el).attr('readonly', acc()())
 
+ko.bindingHandlers.sync =
+  update: (el, acc, allBindings) ->
+    isSync = ko.utils.unwrapObservable acc()
+    if isSync
+      $(el).fadeIn 'fast'
+    else
+      $(el).fadeOut 'slow'
+
+ko.bindingHandlers.spinner =
+  update: (el, acc, allBindings) ->
+    showSpinner = ko.utils.unwrapObservable acc()
+    if showSpinner
+      $(el).children(':not(.spinner)').each (index, element) ->
+        $(element).addClass "blur"
+      $(el).spin 'huge', '#777'
+    else
+      $(el).children(':not(.spinner)').each (index, element) ->
+        $(element).removeClass "blur"
+      $(el).spin false
+
 ko.bindingHandlers.pickerDisable =
   update: (el, acc, allBindigns, kvm) ->
     $(el).data('disabled', acc()())

@@ -42,6 +42,10 @@ define ["model/utils", "lib/ident/role"], (mu, role) ->
       $span.fadeOut(2000))
     , 500)
 
+  window.alertUser = (message) ->
+    tpl = Mustache.render $("#alert-template").html(), {message}
+    $('.container-fluid').prepend tpl
+
   window.getDictionary = (d) ->
     dict = global.dictionaries[d]
     return dict if dict

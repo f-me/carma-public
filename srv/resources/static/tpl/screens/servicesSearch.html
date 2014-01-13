@@ -1,5 +1,8 @@
 <div class="row-fluid">
-  <div id="search-results" class="span9">
+  <div id="search-results"
+       class="span9"
+       style="min-height: 480px;"
+       data-bind="spinner: $root.searchKVM.searchResultsSpinner">
     <table id="tbl" class="table table-striped table-bordered">
       <thead>
         <tr>
