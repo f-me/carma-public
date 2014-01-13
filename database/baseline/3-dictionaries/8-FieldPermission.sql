@@ -1001,8 +1001,6 @@ lovViewer	programPermissions	showTable	t	f
 lovAdmin	programPermissions	showTable	t	t
 lovViewer	Region	cities	t	f
 lovAdmin	Region	cities	t	t
-lovViewer	Region	id	t	f
-lovAdmin	Region	id	t	t
 lovViewer	Region	label	t	f
 lovAdmin	Region	label	t	t
 core	rent	assignedTo	t	f
