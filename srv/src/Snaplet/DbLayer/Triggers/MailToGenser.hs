@@ -68,9 +68,13 @@ q = [sql|
     || E'\nАдрес местонахождения автомобиля: '
         || coalesce(c.caseAddress_address, '')
     || E'\nВремя прибытия эвакуатора: '
-        || coalesce(to_char(t.times_factServiceStart at time zone 'MSK', 'YYYY-MM-DD HH24:MI:SS'), '')
+        || coalesce(to_char(t.times_expectedServiceStart at time zone 'MSK', 'YYYY-MM-DD HH24:MI:SS'), '')
     || E'\nСтоимость услуги, объявленная клиенту на этапе регистрации заявки: '
-        || coalesce(t.payment_partnercost::text, '-')
+        || case
+            when t.payment_paidByClient ~ E'^\\d{1,7}(\\.\\d{1,2}){0,1}$'
+            then t.payment_paidByClient::numeric
+            else 0
+          end
     || E'\nПризнак физическое лицо/юридическое лицо: '
         || (case c.car_legalForm
             when 'individual' then 'Физическое лицо'
