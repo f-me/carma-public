@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-$PSQL <<EOF | bash
+$PSQL -t <<EOF | bash
 select
   'curl -X PUT localhost:8000/_/action/'
     || id
