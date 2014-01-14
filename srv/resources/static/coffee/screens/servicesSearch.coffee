@@ -93,7 +93,6 @@ define [ "utils"
       , { name: 'plateNum'  }
       , { name: 'vin'       }
       , { name: 'program'       }
-      , { name: 'city'          }
       ]
 
     ctx =
