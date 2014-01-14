@@ -48,16 +48,16 @@ q = [sql|
         , carMake.label
         , carModel.label
         , carPlateNum
-        , to_char(carBuydate, 'DD/MM/YYYY')
+        , to_char(carBuydate at time zone 'MSK', 'DD/MM/YYYY')
         , cardNumber::text
-        , to_char(contractValidFromDate, 'DD/MM/YYYY')
-        , to_char(contractValidUntilDate, 'DD/MM/YYYY')
+        , to_char(contractValidFromDate at time zone 'MSK', 'DD/MM/YYYY')
+        , to_char(contractValidUntilDate at time zone 'MSK', 'DD/MM/YYYY')
         , contractValidUntilMilage::text
         , milageTO::text
         , carCheckPeriod::text
         , cardOwner
         , manager
-        , to_char(warrantyStart, 'DD/MM/YYYY')
+        , to_char(warrantyStart at time zone 'MSK', 'DD/MM/YYYY')
         , client, clientCode, clientAddress
         , u.realname
      FROM contracttbl c
