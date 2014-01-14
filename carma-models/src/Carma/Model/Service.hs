@@ -127,6 +127,6 @@ svcMod =
 serviceSearchParams :: [(Text, [Predicate Service])]
 serviceSearchParams
   = [("Service_createtime",   interval createTime)
-    ,("contractor_partnerId", listOf contractor_partnerId)
+    ,("contractor_partnerId", one contractor_partnerId)
     ,("svcType",              listOf svcType)
     ]

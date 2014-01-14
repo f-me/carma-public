@@ -35,9 +35,10 @@ caseSearchParams
     ,("callDate",   interval Case.callDate)
     ,("contact",    fuzzy $ matchAny
                     [one Case.contact_name, one Case.contact_ownerName])
-    ,("comment",    listOf Case.comment)
+    ,("comment",    fuzzy $ one Case.comment)
     ,("address",    fuzzy $ one Case.caseAddress_address)
     ,("callTaker",  fuzzy $ one Case.callTaker)
+    ,("files",      refExist Case.files)
     ]
 
 instance Model Case where
@@ -46,7 +47,13 @@ instance Model Case where
   modelView v =
     case v of
       "search" -> modifyView (searchView caseSearchParams) $
-                  [modifyByName "Case_id" (\v -> v { fv_type = "ident" })]
+                  [modifyByName "Case_id" (\v -> v { fv_type = "ident" })
+                  ,modifyByName "files"   (\v -> v { fv_type = "dictionary" })
+                  ,dict files $ (dictOpt "ExistDict")
+                              { dictType    = Just "ComputedDict"
+                              , dictBounded = True
+                              }
+                  ]
                   ++ caseMod ++ caseDicts
       "fullCase"
         -> modifyView

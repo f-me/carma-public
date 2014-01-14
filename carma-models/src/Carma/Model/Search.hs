@@ -34,7 +34,7 @@ import qualified Data.Model as Model
 import           Data.Model.Types hiding (modelName, fieldDesc)
 import           Data.Model.View as View
 import           Carma.Model.Types
-import           Carma.Model.LegacyTypes (LegacyDatetime)
+import           Carma.Model.LegacyTypes (LegacyDatetime, Reference)
 
 data Predicate m
   = Predicate
@@ -49,7 +49,7 @@ data Predicate m
     }
 
 data MatchType
-  = MatchExact | MatchFuzzy | MatchArray | MatchInterval
+  = MatchExact | MatchFuzzy | MatchArray | MatchInterval | MatchRefExist
   deriving Show
 
 
@@ -103,6 +103,14 @@ interval _
  = map (\p -> p {matchType = MatchInterval})
  $ one (undefined :: m -> F (Interval UTCTime) nm desc)
 
+refExist :: forall m nm desc
+ . (SingI nm, SingI desc, Model m)
+ => (m -> F Reference nm desc) -> [Predicate m]
+refExist v
+  = map (\p -> p {matchType = MatchRefExist})
+  $ one v
+
+
 renderPredicate
   :: PG.Connection -> HashMap Text [Predicate m] -> Aeson.Object
   -> IO (Either String Text)
@@ -126,6 +134,17 @@ renderPredicate conn pMap vals = do
                (T.unpack tableName)
                (T.unpack fieldName)
                (T.unpack $ hs2pgtype $ fd_type $ unWrap fieldDesc)
+          MatchRefExist
+            -> let fname :: String
+                     = printf "%s.%s" (T.unpack tableName) (T.unpack fieldName)
+               in printf ("case ? " ++
+                          "when 'yes'    then coalesce(%s, '') != '' " ++
+                          "when 'no'     then coalesce(%s, '') =  '' " ++
+                          "when 'unspec' then true "                   ++
+                          "end "
+                         )
+                  fname fname
+
 
   let renderConjunct (key,val) = case HM.lookup key pMap of
         Nothing -> return $ Left
