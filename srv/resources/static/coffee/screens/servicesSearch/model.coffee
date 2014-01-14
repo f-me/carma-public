@@ -27,6 +27,7 @@ define [ "utils"
       "car_make"
       "car_model"
       "cardNumber_cardNumber"
+      "comment"
       ]
     Service: [
       "type"
