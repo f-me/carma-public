@@ -42,9 +42,12 @@ define ["model/utils", "lib/ident/role"], (mu, role) ->
       $span.fadeOut(2000))
     , 500)
 
-  window.alertUser = (message) ->
-    tpl = Mustache.render $("#alert-template").html(), {message}
-    $('.container-fluid').prepend tpl
+  window.alertUser = (message, delay = 5000) ->
+    $alert = $(Mustache.render $("#alert-template").html(), {message})
+    $('.container-fluid').prepend $alert
+    setTimeout ->
+        $alert.fadeOut 'slow', -> $(@).remove()
+      , delay
 
   window.getDictionary = (d) ->
     dict = global.dictionaries[d]
