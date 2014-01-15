@@ -334,7 +334,7 @@
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
               <i class="icon-refresh icon-refresh-animate"
-                 data-bind="sync: {{ name }}Sync" />
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls">
@@ -372,7 +372,7 @@
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
               <i class="icon-refresh icon-refresh-animate"
-                 data-bind="sync: {{ name }}Sync" />
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls">
@@ -411,7 +411,7 @@
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
               <i class="icon-refresh icon-refresh-animate"
-                 data-bind="sync: {{ name }}Sync" />
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls">
@@ -456,7 +456,7 @@
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
               <i class="icon-refresh icon-refresh-animate"
-                 data-bind="sync: {{ name }}Sync" />
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls">
@@ -488,7 +488,7 @@
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
               <i class="icon-refresh icon-refresh-animate"
-                 data-bind="sync: {{ name }}Sync" />
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls">
@@ -623,7 +623,7 @@
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
               <i class="icon-refresh icon-refresh-animate"
-                 data-bind="sync: {{ name }}Sync" />
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls">
@@ -682,7 +682,7 @@
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
               <i class="icon-refresh icon-refresh-animate"
-                 data-bind="sync: {{ name }}Sync" />
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls">
@@ -750,7 +750,7 @@
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
               <i class="icon-refresh icon-refresh-animate"
-                 data-bind="sync: {{ name }}Sync" />
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls">
@@ -791,7 +791,7 @@
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
               <i class="icon-refresh icon-refresh-animate"
-                 data-bind="sync: {{ name }}Sync" />
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls">
@@ -824,7 +824,7 @@
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
               <i class="icon-refresh icon-refresh-animate"
-                 data-bind="sync: {{ name }}Sync" />
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls">
@@ -861,7 +861,7 @@
                data-content="{{ meta.infoText1 }}" />
           {{/ meta.infoText1 }}
             <i class="icon-refresh icon-refresh-animate"
-                 data-bind="sync: {{ name }}Sync" />
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
       </div>
@@ -887,7 +887,7 @@
                data-content="{{ meta.infoText1 }}" />
           {{/ meta.infoText1 }}
             <i class="icon-refresh icon-refresh-animate"
-                 data-bind="sync: {{ name }}Sync" />
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
       </div>
@@ -917,7 +917,7 @@
                data-content="{{ meta.infoText1 }}" />
           {{/ meta.infoText1 }}
             <i class="icon-refresh icon-refresh-animate"
-                 data-bind="sync: {{ name }}Sync" />
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
       </div>
@@ -1063,7 +1063,7 @@
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
               <i class="icon-refresh icon-refresh-animate"
-                 data-bind="sync: {{ name }}Sync" />
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls">
@@ -1318,7 +1318,7 @@
                data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
             <i class="icon-refresh icon-refresh-animate"
-                 data-bind="sync: {{ name }}Sync" />
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <ul data-bind="foreach: {{ name }}Objects">
@@ -1532,7 +1532,7 @@
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
               <i class="icon-refresh icon-refresh-animate"
-                 data-bind="sync: {{ name }}Sync" />
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls input-append">
