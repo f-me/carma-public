@@ -6,6 +6,7 @@ import Data.Typeable
 import Data.Model
 import Data.Model.View
 import Carma.Model.Types()
+import Carma.Model.Search (searchView, one)
 import Carma.Model.Program (Program)
 
 
@@ -29,5 +30,13 @@ data ConstructorFieldOption = ConstructorFieldOption
 instance Model ConstructorFieldOption where
   type TableName ConstructorFieldOption = "ConstructorFieldOption"
   modelInfo = mkModelInfo ConstructorFieldOption ident
-  modelView _ = modifyView defaultView
-    [textarea info, readonly field, invisible ord]
+  modelView = \case
+    "parents"
+      -> (searchView
+        [("screen",  one screen)
+        ,("program", one program)
+        ,("model",   one model)
+        ])
+        {mv_modelName = "ConstructorFieldOption"}
+    _ -> modifyView defaultView
+      [textarea info, readonly field, invisible ord]
