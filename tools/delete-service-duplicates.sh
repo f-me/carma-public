@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-EMAIL_TO="support@formalmethods.ru"
+EMAIL_TO="robots@formalmethods.ru"
 EMAIL_FROM="carma@ruamc.ru"
 EMAIL_SENDER="psa@ruamc.ru"
 

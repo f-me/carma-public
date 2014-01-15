@@ -3,7 +3,7 @@
 DB_NAME=${1:-carma}
 
 SUBJECT="[Действия] - Сообщение от CaRMa"
-EMAIL_TO="supervisor@ruamc.ru, support@formalmethods.ru"
+EMAIL_TO="supervisor@ruamc.ru, robots@formalmethods.ru"
 EMAIL_FROM="carma@ruamc.ru"
 EMAIL_SENDER="psa@ruamc.ru"
 
