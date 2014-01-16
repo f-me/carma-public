@@ -35,8 +35,10 @@ define  [ "utils"
             koUser =
               boCities: ko.observable u.boCities
               boCitiesDisabled: ko.observable false
+              boCitiesSync: ko.observable false
               boPrograms: ko.observable u.boPrograms
               boProgramsDisabled: ko.observable false
+              boProgramsSync: ko.observable false
 
             hook.dictManyHook userModel, koUser
             login = u.value
