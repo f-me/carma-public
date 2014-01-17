@@ -35,6 +35,8 @@ define [
             , "contractValidUntilMilage"
             , "manager"
             , "owner"
+            , "contractType"
+            , "cardNumber"
             ]
 
     findSame = (kvm, cb) ->
