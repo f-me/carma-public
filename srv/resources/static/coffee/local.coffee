@@ -75,18 +75,6 @@ require [ "domready"
     if user.login == "darya" or user.login == "e.balabanova"
       $('#icon-user').removeClass('icon-user').addClass('icon-heart')
 
-    # achievements
-    if user.meta.achievements.length
-      achv = $('#navbar-achievements')
-      achvLst = $('#navbar-achievements ul')
-      achTpl = (txt) ->
-        '<li class="disabled"><a><i class="icon-star icon"/>' +
-          '&nbsp;&nbsp;' + txt +
-          '</a></li>'
-      for a in user.meta.achievements
-        achvLst.append achTpl a
-      achv.show()
-
 
   u.build_global_fn 'showComplex', ['utils']
   u.build_global_fn 'hideComplex', ['utils']

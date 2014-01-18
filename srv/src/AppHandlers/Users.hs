@@ -31,7 +31,6 @@ import Carma.Model.Role as Role
 
 import Application
 import AppHandlers.Util
-import AppHandlers.UserAchievements
 import Snaplet.Auth.PGUsers
 
 import Util (roleIdent)
@@ -132,7 +131,6 @@ serveUserCake
     Nothing -> handleError 401
     Just u'  -> do
       usr <- with db $ replaceMetaRolesFromPG u'
-      achievements <- userAchievements usr
       let homePage = case map (\(Snap.Role r) -> r) $ userRoles usr of
             rs | (roleIdent Role.head)       `elem` rs -> "/#rkc"
                | (roleIdent Role.supervisor) `elem` rs -> "/#supervisor"
@@ -141,8 +139,5 @@ serveUserCake
                | (roleIdent Role.parguy)     `elem` rs -> "/#partner"
                | otherwise                   -> ""
       writeJSON $ usr
-        {userMeta
-          = HM.insert "achievements" (toJSON achievements)
-          $ HM.insert "homepage" homePage
-          $ userMeta usr
+        {userMeta = HM.insert "homepage" homePage $ userMeta usr
         }
