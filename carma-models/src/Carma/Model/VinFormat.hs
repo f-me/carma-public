@@ -2,7 +2,8 @@
 
 module Carma.Model.VinFormat
     ( VinFormat(..)
-    , FF(..), FormatFieldType(..), VFAccessor(..)
+    , ContractField(..), FF(..), FormatFieldType(..)
+    , VFAccessor(..), ParamAcc(..)
     , vinFormatAccessors
     )
 
@@ -12,6 +13,7 @@ import Data.Text
 
 import Data.Model
 import Data.Model.View
+import Data.Vector
 
 import Carma.Model.Types (TInt)
 

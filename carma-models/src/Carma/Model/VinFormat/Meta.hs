@@ -70,20 +70,20 @@ typeRepToType tr =
 
 -- | VIN format field parameter.
 --
--- Minimal definition includes 'nameFormat' and 'descFormat'.
-class VinFieldParameter a where
+-- Minimal definition requires 'ParamAcc', 'nameFormat' and
+-- 'descFormat'.
+class Typeable (ParamType a) => VinFieldParameter a where
     type ParamType a
-    data ParamAcc a :: * -> *
-    paramType  :: Typeable (ParamType a) =>
-                  a -> ContractField -> TypeRep
+    data ParamAcc a m
+
     nameFormat :: a -> String
     descFormat :: a -> String
 
+    -- | Unique name of accessor and database column.
     name       :: a -> ContractField -> String
     desc       :: a -> ContractField -> String
 
     type ParamType a = Bool
-    paramType _ _    = typeOf $ (undefined :: ParamType a)
 
     name a cf  = fieldProjFormatter (\(CF f) -> T.unpack $ fieldName f) cf $
                  nameFormat a
@@ -91,9 +91,9 @@ class VinFieldParameter a where
                  descFormat a
 
 
-mkAcc :: (VinFieldParameter a, Typeable (ParamType a)) =>
+mkAcc :: VinFieldParameter a =>
          a -> ContractField -> VarStrictTypeQ
-mkAcc a cf =
+mkAcc (a :: a) cf =
     varStrictType (mkName n) $ ns $
     [t|
      F $(return $ typeRepToType t)
@@ -102,7 +102,7 @@ mkAcc a cf =
     where
       n = name a cf
       d = desc a cf
-      t = paramType a cf
+      t = typeOf $ (undefined :: ParamType a)
 
 
 data Load
@@ -116,9 +116,9 @@ instance VinFieldParameter Load where
 
 data Required
 instance VinFieldParameter Required where
-    data ParamAcc Required m = 
+    data ParamAcc Required m =
         forall n d. (GHC.SingI n, GHC.SingI d) =>
-        ReqAcc (m -> F (ParamType Required) n d)
+        RequiredAcc (m -> F (ParamType Required) n d)
     nameFormat _ = "%sRequired"
     descFormat _ = "Поле «%s» обязательно"
 
@@ -151,11 +151,15 @@ instance VinFieldParameter DateFormat where
     descFormat _ = "Формат даты для поля «%s»"
 
 
-data Default
-instance VinFieldParameter Default where
-    paramType _ (CF acc) = fieldType acc
+data Default t
+instance Typeable t => VinFieldParameter (Default t) where
+    type ParamType (Default t) = t
     nameFormat _ = "%sDefault"
     descFormat _ = "Значение по умолчанию для поля «%s»"
+
+type family ExtraAccs (a :: FormatFieldType)
+
+type instance ExtraAccs a = ()
 
 
 -- | Semantic annotations for 'Contract' fields.
@@ -175,6 +179,9 @@ data FormatFieldType = Raw
                      | Dict
                      | Dealer
                      | Subprogram
+
+
+$(genSingletons [''FormatFieldType])
 
 
 -- | Annotated field of the 'Contract' model.
@@ -209,7 +216,7 @@ mkVinFormat formatFields =
         fields :: [(FF, (ExpQ, [VarStrictTypeQ]))]
         fields =
             map
-            (\ff@(FF fft proj) ->
+            (\ff@(FF fft (proj :: Contract -> F t n d)) ->
              let
                  acc = CF proj
                  loadName     = name (undefined :: Load)     acc
@@ -218,9 +225,10 @@ mkVinFormat formatFields =
                (,) ff $ (,)
              [e|
               VFAcc
+              $(appE [e|Sing|] 
               $(appE [e|CF|] (varE $ mkName $ T.unpack $ fieldName proj))
               $(appE [e|LoadAcc|] $ varE $ mkName loadName)
-              $(appE [e|ReqAcc|] $ varE $ mkName requiredName)
+              $(appE [e|RequiredAcc|] $ varE $ mkName requiredName)
               |] $
              -- fLoad,fRequired,fTitle(s) fields
              [ mkAcc (undefined :: Load)     acc
@@ -241,7 +249,7 @@ mkVinFormat formatFields =
              -- Default field except for Subprogram
              case fft of
                Subprogram -> []
-               _          -> [mkAcc (undefined :: Default) acc]
+               _          -> [mkAcc (undefined :: Default t) acc]
             )
             $
             formatFields
@@ -260,11 +268,13 @@ mkVinFormat formatFields =
 -- | Base VinFormat accessors produced from a single source 'Contract'
 -- field, common to all field types. Tagged with VinFormat type to
 -- properly instantiate accessor types.
-data VFAccessor m =
-    VFAcc { proj     :: ContractField
-          -- ^ Original field @f@.
-          , load     :: ParamAcc Load m
-          -- ^ @fLoad@ accessor.
-          , required :: ParamAcc Required m
-          -- ^ @fRequired@ accessor.
-          }
+data VFAccessor m where
+    VFAcc :: { tag      :: (SFormatFieldType a)
+             , proj     :: ContractField
+             -- ^ Original field @f@.
+             , load     :: ParamAcc Load m
+             -- ^ @fLoad@ accessor.
+             , required :: ParamAcc Required m
+             -- ^ @fRequired@ accessor.
+--             , extras   :: (ExtraAccs a)
+             } -> VFAccessor m
