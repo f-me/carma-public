@@ -14,6 +14,7 @@ Transformer wrappers
 module Carma.VIN.Base
     ( Import
     , Options(..)
+    , ImportContext(..)
     , ImportError(..)
     , runImport
     )
@@ -36,6 +37,8 @@ import Control.Monad.Trans.Writer
 import Database.PostgreSQL.Simple
 
 import Data.Model
+import Data.Model.Patch     as Patch
+import Data.Model.Patch.Sql as Patch
 
 import Carma.Model.Program    (Program)
 import Carma.Model.SubProgram (SubProgram)
@@ -62,6 +65,7 @@ data Options = Options
 
 data ImportContext = ImportContext
     { connection :: Connection
+    , vinFormat  :: Patch VinFormat
     }
 
 
@@ -70,6 +74,7 @@ data ImportContext = ImportContext
 data ImportError = IE String
                  | ConnectionFailed
                  | NoTarget
+                 | UnknownVinFormat
                    deriving Show
 
 
@@ -77,21 +82,29 @@ instance Error ImportError
 
 
 -- | Base monad.
-type Import = ReaderT ImportContext (ErrorT ImportError (ReaderT Options IO))
+type Import =
+    ReaderT ImportContext
+    (ErrorT ImportError
+     (ReaderT Options IO))
 
 
 -- | Perform VIN import action using the provided options.
 runImport :: Import a -> Options -> IO (Either ImportError a)
 runImport act opts =
     flip runReaderT opts $ runErrorT $ do
-      -- Check if we will possibly be able to obtain a subprogram to
-      -- store contracts in.
+      -- Check if we will be able to obtain a subprogram to store
+      -- contracts in.
       (,) <$> (lift $ asks program) <*> (lift $ asks subprogram) >>=
-              \case
-              (Nothing, Nothing) -> throwError NoTarget
-              -- Close connection when short-circuiting Import monad
-              _                  -> liftBaseOp
-                                    (bracket
-                                     (print "conn" >> (connect $ cInfo opts))
-                                     (\c -> close c >> print "Closed"))
-                                    (\c -> runReaderT act $ ImportContext c)
+        \case
+        (Nothing, Nothing) -> throwError NoTarget
+        (_, _)     -> do
+          fid <- lift $ asks format
+          -- Close connection when short-circuiting Import monad
+          liftBaseOp (bracket
+                      (connect $ cInfo opts)
+                      (\c -> close c)) $
+                      \c -> do
+                        vf <- liftIO $ Patch.read (Ident fid) c
+                        case vf of
+                          (vf':_) -> runReaderT act $ ImportContext c vf'
+                          _       -> throwError UnknownVinFormat

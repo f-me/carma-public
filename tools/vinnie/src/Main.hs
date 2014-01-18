@@ -38,7 +38,7 @@ main = do
                  &= program programName
     in do
       clArgs <- cmdArgs sample
-      res <- runImport (throwError (IE "FOO")) clArgs
+      res <- runImport vinImport clArgs
       case res of
         Left e -> print e
         Right a -> return ()
