@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                carma-models
-version:             0.6.2
+version:             0.6.3
 -- synopsis:
 -- description:
 license:             MIT

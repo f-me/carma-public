@@ -35,4 +35,5 @@ instance Model Sms where
     ,invisible status
     ,invisible sender
     ,textarea  msgText
+    ,setMeta "regexp" "phone" phone
     ]
