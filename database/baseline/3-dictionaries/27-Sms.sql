@@ -4,7 +4,7 @@ CREATE TABLE "Sms"
   ,ctime     timestamptz NOT NULL DEFAULT 'now()'
   ,mtime     timestamptz NOT NULL DEFAULT 'now()'
   ,status    text NOT NULL DEFAUlT 'draft'
-  ,caseRef   int4 -- REFERENCES "casetbl"
+  ,caseRef   text -- REFERENCES "casetbl"
   ,phone     text NOT NULL
   ,sender    text
   ,template  int4 REFERENCES "SmsTemplate"
