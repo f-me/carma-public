@@ -37,6 +37,7 @@ define [
             , "owner"
             , "contractType"
             , "cardNumber"
+            , "milageTO"
             ]
 
     findSame = (kvm, cb) ->
