@@ -2,13 +2,16 @@ CREATE TABLE "Role"
   (id    SERIAL PRIMARY KEY
   ,value text UNIQUE NOT NULL
   ,label text UNIQUE NOT NULL
-  ,isBack bool
+  ,isBack bool NOT NULL
   );
 
 GRANT SELECT ON "Role" TO carma_search;
 GRANT ALL ON "Role" TO carma_db_sync;
 
-INSERT INTO "Role" (id, value, label,isBack) VALUES
+GRANT ALL ON "Role_id_seq" TO carma_db_sync;
+GRANT ALL ON "Role_id_seq" TO carma_search;
+
+INSERT INTO "Role" (id, value, label, isBack) VALUES
   (1, 'core', 'Экран кейса и базовые поля','f')
 , (2, 'call', 'Звонок','f')
 , (3, 'parguy', 'Администрирование партнёров','f')
@@ -29,7 +32,6 @@ INSERT INTO "Role" (id, value, label,isBack) VALUES
 , (18, 'searchContract', 'Поиск контрактов','f')
 , (19, 'partner', 'Пользователь экрана контрактов','f')
 , (20, 'contract_admin', 'Администратор контрактов','f')
-, (21, 'dealer', 'Дилер','f')
 
 , (22, 'bo_qa', 'БО: Менеджер по качеству','t')
 , (23, 'bo_order', 'БО: Заказ услуги','t')
@@ -46,3 +48,5 @@ INSERT INTO "Role" (id, value, label,isBack) VALUES
 , (34, 'dpViewer', 'Пользователь экрана ДиП','f')
 , (40, 'sms', 'Отправка SMS','f')
 ;
+
+SELECT setval(pg_get_serial_sequence('"Role"', 'id'), max(id)) from "Role";
