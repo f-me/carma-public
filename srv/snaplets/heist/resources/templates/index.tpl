@@ -138,8 +138,8 @@
             <!-- ko template: { name: 'nav-li-template' }-->
             <!-- /ko -->
             <li>
-              <a id="send-bug-report" href="#">
-                <i class="icon-fire icon-white"></i>
+              <a id="send-bug-report">
+                <i class="icon icon-fire icon-white"></i>
               </a>
             </li>
           </ul>
