@@ -28,13 +28,23 @@ require [ "domready"
 
   bugReport = new bug.BugReport
 
-  window.onerror = (msg, url, line) ->
-    bugReport.addError msg, url, line
-    $.ajax
-      type: "POST"
-      url : "/errors"
-      data: "#{msg} #{url} #{line}"
-    return false
+  # collect errors in console to add them to the bug report
+  # and then send to server
+  do ->
+    reportBug = (msg, url, line) ->
+      bugReport.addError msg, url, line
+      $.ajax
+        type: "POST"
+        url : "/errors"
+        data: "#{msg} #{url} #{line}"
+
+    originConsoleError = console.error
+
+    console.error = (msg, url, line) ->
+      reportBug msg, url, line
+      originConsoleError.apply console, [msg, url, line]
+
+    window.onerror = console.error
 
   # this will be called on dom ready
   dom ->
