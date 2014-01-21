@@ -27,6 +27,7 @@ import Control.Monad.State hiding (ap)
 import Data.Aeson as Aeson
 import qualified Data.HashMap.Strict as HM
 
+import Data.Attoparsec.Number
 import Data.Attoparsec.ByteString.Char8
 
 import Data.ByteString.Char8 (ByteString)
@@ -57,8 +58,10 @@ import Snap.Snaplet
 import Snap.Snaplet.PostgresqlSimple
 import Snap.Snaplet.RedisDB
 
-import qualified Data.Model as Model
+import Data.Model as Model
+import Carma.Model.Program as Program
 import qualified Carma.Model.Role as Role
+
 import Carma.HTTP hiding (runCarma)
 import qualified Carma.HTTP as CH (runCarma)
 
@@ -96,31 +99,6 @@ runCarma action = do
 -- | Pack coordinates to a string of format @33.12,57.32@.
 coordsToString :: Double -> Double -> String
 coordsToString lon lat = (show lon) ++ "," ++ (show lat)
-
-
-------------------------------------------------------------------------------
--- | Name of address field in partner model (must contain JSON data
--- with dict-objects schema).
-partnerAddress :: ByteString
-partnerAddress = "addrs"
-
-
-------------------------------------------------------------------------------
--- | Name of coordinates field in partner model.
-partnerCoords :: ByteString
-partnerCoords = "coords"
-
-
-------------------------------------------------------------------------------
--- | Name of status field in partner model.
-partnerIsFree :: ByteString
-partnerIsFree = "isFree"
-
-
-------------------------------------------------------------------------------
--- | Name of modification time field in partner model.
-partnerMtime :: ByteString
-partnerMtime = "mtime"
 
 
 ------------------------------------------------------------------------------
@@ -180,12 +158,15 @@ updatePartnerData :: Int
                   -> Handler b GeoApp ()
 updatePartnerData pid lon lat free addr mtime =
     let
+        -- Name of address field in partner model (must contain JSON
+        -- data with dict-objects schema).
+        partnerAddress = "addrs"
         coordString = concat [show lon, ",", show lat]
         isFree = if free then "1" else "0"
         body = HM.fromList $
-               [ (partnerCoords, BS.pack coordString)
-               , (partnerIsFree, BS.pack isFree)
-               , (partnerMtime,
+               [ ("coords", BS.pack coordString)
+               , ("isFree", BS.pack isFree)
+               , ("mtime",
                   BS.pack $ formatTime defaultTimeLocale "%s" mtime)] ++
                (maybe [] (\a -> [(partnerAddress, a)]) addr)
     in do
@@ -201,57 +182,25 @@ updatePartnerData pid lon lat free addr mtime =
 
 
 ------------------------------------------------------------------------------
--- | Name of case coordinates field in case model.
-caseCoords :: ByteString
-caseCoords = "caseAddress_coords"
+-- | Default program id for created cases.
+defaultProgram :: Int
+defaultProgram = n where (Ident n) = Program.ramc
 
 
 ------------------------------------------------------------------------------
--- | Name of case address field in case model.
-caseAddress :: ByteString
-caseAddress = "caseAddress_address"
-
-
-------------------------------------------------------------------------------
--- | Name of case city field in case model.
-caseCity :: ByteString
-caseCity = "city"
-
-
-caseProgram :: ByteString
-caseProgram = "program"
-
-
-defaultProgram :: ByteString
-defaultProgram = "ramc2"
-
-
-------------------------------------------------------------------------------
--- | Name of case id field in action model.
-actionCaseId :: ByteString
-actionCaseId = "caseId"
-
-
-------------------------------------------------------------------------------
--- | Name of actions field in case model.
-caseActions :: ByteString
-caseActions = "actions"
-
-
-------------------------------------------------------------------------------
--- | Build reference to a case for use in 'actionCaseId'.
+-- | Build a reference to a case.
 caseIdReference :: Int -> ByteString
 caseIdReference n = BS.pack $ "case:" ++ (show n)
 
 
 ------------------------------------------------------------------------------
--- | Build reference to an action for use in 'caseActions'.
+-- | Build a reference to an action for use in @actions@ of case.
 actionIdReference :: Int -> ByteString
 actionIdReference n = BS.pack $ "action:" ++ (show n)
 
 
-roleIdent :: Model.IdentI Role.Role -> ByteString
-roleIdent (Model.Ident v) = BS.pack $ show v
+roleIdent :: IdentI Role.Role -> ByteString
+roleIdent (Ident v) = BS.pack $ show v
 
 
 ------------------------------------------------------------------------------
@@ -267,11 +216,13 @@ newCase :: Handler b GeoApp ()
 newCase = do
   -- New case parameters
   rqb <- readRequestBody 4096
-  let -- Do not enforce typing on values when reading JSON
+  let progField = "program"
+      -- Do not enforce typing on values when reading JSON
       Just jsonRq0 :: Maybe (HM.HashMap ByteString Value) =
                       Aeson.decode rqb
       coords' = (,) <$> (HM.lookup "lon" jsonRq0) <*> (HM.lookup "lat" jsonRq0)
-      -- Now read all values but coords into ByteStrings
+      program = HM.lookup progField jsonRq0
+      -- Now read all values but coords and program into ByteStrings
       jsonRq = HM.map (\(String s) -> encodeUtf8 s) $
                HM.filter (\case
                           String _ -> True
@@ -287,22 +238,21 @@ newCase = do
       (city, addr) ->
         return $
         -- Translate input city name to corresponding dictionary key
-        (maybe id (HM.insert caseCity) $ city >>= (flip valueOfLabel dict)) $
+        (maybe id (HM.insert "city") $ city >>= (flip valueOfLabel dict)) $
         -- Prepend street address with city name
-        (maybe id (\a -> HM.insert caseAddress
+        (maybe id (\a -> HM.insert "caseAddress_address"
                          (maybe a (\c -> BS.concat [c, ", ", a]) city))
                          addr) $
-        HM.insert caseCoords (BS.pack $ coordsToString lon lat) $
+        HM.insert "caseAddress_coords" (BS.pack $ coordsToString lon lat) $
         jsonRq
     _ -> return jsonRq
 
-
-
   -- Set default program (if not provided by client), then form a new
   -- case request to send to CaRMa
-  let setProg   = maybe (HM.insert caseProgram defaultProgram) (const id)
-                  (HM.lookup caseProgram jsonRq')
-      caseBody  = setProg $
+  let progValue = BS.pack $ show $ case program of
+                                     Just (Number (I n)) -> fromInteger n
+                                     _                   -> defaultProgram
+      caseBody  = HM.insert progField progValue $
                   HM.delete "lon" $
                   HM.delete "lat" $
                   HM.delete "car_vin" $ -- we'll insert it later to run trigger
@@ -319,7 +269,7 @@ newCase = do
             $  "Клиент заказал услугу с помощью мобильного приложения. "
             ++ "Требуется перезвонить ему и уточнить детали"
       actBody = HM.fromList
-                [ (actionCaseId, caseIdReference caseId)
+                [ ("caseId", caseIdReference caseId)
                 , ("name", "callMeMaybe")
                 , ("targetGroup", roleIdent Role.bo_order)
                 , ("duetime", nowStr)
@@ -333,7 +283,7 @@ newCase = do
   -- in the case.
   let actId = fst actResp
   runCarma $ updateInstance "case" caseId $ HM.fromList $
-          [ (caseActions, actionIdReference actId) ]
+          [ ("actions", actionIdReference actId) ]
           -- we update car_vin here to trigger vin-search (it's a bit
           -- easier than adding correct trigger handling on POST
           -- request)

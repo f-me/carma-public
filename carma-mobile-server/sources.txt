@@ -1,6 +1,6 @@
 ./
 https://github.com/f-me/carma-dict
 https://github.com/f-me/carma-http
-https://github.com/f-me/carma-models
+https://github.com/f-me/carma-models vin-refactoring
 https://github.com/f-me/postgresql-simple 0.3-stable
 https://github.com/f-me/snaplet-postgresql-simple
