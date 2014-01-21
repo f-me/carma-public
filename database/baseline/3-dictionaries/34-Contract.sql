@@ -21,8 +21,6 @@ CREATE TABLE "Contract"
   , buyDate date
   , seller int4 REFERENCES partnertbl
   , lastCheckDealer int4 REFERENCES partnertbl
-  , lastCheckMileage int4
-  , lastCheckDate date
   , checkPeriod int2
   , checkType int4 REFERENCES "CheckType"
   , orderNumber text

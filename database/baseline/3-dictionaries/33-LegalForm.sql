@@ -13,3 +13,5 @@ COPY "LegalForm" (id, label) FROM stdin;
 1	Физическое лицо
 2	Юридическое лицо
 \.
+
+SELECT setval(pg_get_serial_sequence('"LegalForm"', 'id'), max(id)) from "LegalForm";

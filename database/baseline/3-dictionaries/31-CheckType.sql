@@ -14,3 +14,5 @@ COPY "CheckType" (id, label) FROM stdin;
 2	Интервальный сервис
 3	Инспекционный сервис
 \.
+
+SELECT setval(pg_get_serial_sequence('"CheckType"', 'id'), max(id)) from "CheckType";

@@ -14,3 +14,5 @@ COPY "Transmission" (id, label,synonyms) FROM stdin;
 2	Механическая	{мех}
 3	Роботизированная	\N
 \.
+
+SELECT setval(pg_get_serial_sequence('"Transmission"', 'id'), max(id)) from "Transmission";

@@ -112,17 +112,6 @@ CREATE TABLE "VinFormat"
   , lastCheckDealerDefault   int4 REFERENCES partnertbl
   , lastCheckDealerRequired  bool NOT NULL DEFAULT TRUE
 
-  , lastCheckMileageLoad     bool NOT NULL DEFAULT TRUE
-  , lastCheckMileageTitle    text NOT NULL DEFAULT 'Пробег на последнем ТО'
-  , lastCheckMileageDefault  int4
-  , lastCheckMileageRequired bool NOT NULL DEFAULT TRUE
-
-  , lastCheckDateLoad        bool NOT NULL DEFAULT TRUE
-  , lastCheckDateTitle       text NOT NULL DEFAULT 'Дата последнего ТО'
-  , lastCheckDateFormat      text
-  , lastCheckDateDefault     date
-  , lastCheckDateRequired    bool NOT NULL DEFAULT TRUE
-
   , checkPeriodLoad          bool NOT NULL DEFAULT TRUE
   , checkPeriodTitle         text NOT NULL DEFAULT 'Межсервисный интервал'
   , checkPeriodDefault       int2
@@ -150,6 +139,7 @@ CREATE TABLE "VinFormat"
 
   , subprogramLoad           bool NOT NULL DEFAULT TRUE
   , subprogramTitle          text NOT NULL DEFAULT 'Подпрограмма'
+  , subprogramDefault        int4 REFERENCES "SubProgram"
   , subprogramRequired       bool NOT NULL DEFAULT TRUE
 
   , legalFormLoad            bool NOT NULL DEFAULT TRUE

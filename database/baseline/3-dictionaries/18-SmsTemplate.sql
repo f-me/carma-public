@@ -8,6 +8,8 @@ CREATE TABLE "SmsTemplate"
 
 GRANT ALL ON "SmsTemplate" TO carma_db_sync;
 GRANT ALL ON "SmsTemplate" TO carma_search;
+GRANT ALL ON "SmsTemplate_id_seq" TO carma_db_sync;
+GRANT ALL ON "SmsTemplate_id_seq" TO carma_search;
 
 insert into "SmsTemplate" (id, label, text, isActive) values
   (1, 'Сообщение о заказе услуги', 'Добрый день! Номер Вашей заявки $case.id$. Помощь прибудет к Вам в $service.times_expectedServiceStart$.', 't')
@@ -22,3 +24,5 @@ insert into "SmsTemplate" (id, label, text, isActive) values
 , (10,'Услуга "Трезвый водитель"', 'К вам прибыл Трезвый Водитель. Пожалуйста, перезвоните по номеру 88002501218 для подтверждения заказа услуги. Трезвый водитель будет вас ожидать в течении 15 минут, после чего заказ будет отменён', 't')
 , (13,'Сообщение при создании кейса', 'Спасибо за обращение в $program_info$. Номер заявки $case.id$.', 't')
 ;
+
+SELECT setval(pg_get_serial_sequence('"SmsTemplate"', 'id'), max(id)) from "SmsTemplate";

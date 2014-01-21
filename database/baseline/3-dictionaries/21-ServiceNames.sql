@@ -1,6 +1,3 @@
-DROP TABLE IF EXISTS "Services" CASCADE;
-DROP TABLE IF EXISTS "ServiceNames";
-
 CREATE TABLE "ServiceNames"
   (
     id       SERIAL PRIMARY KEY

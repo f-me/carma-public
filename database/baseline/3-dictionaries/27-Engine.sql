@@ -13,3 +13,5 @@ COPY "Engine" (id, label, synonyms) FROM stdin;
 1	Бензин	{TSI,FSI,TFSI,HPI,CGI,JTS,IDE,GDI}
 2	Дизель	{TDI,SDI,HDI,CRDI,TDCI,DCI,CDI,CDTI,JTD}
 \.
+
+SELECT setval(pg_get_serial_sequence('"Engine"', 'id'), max(id)) from "Engine";

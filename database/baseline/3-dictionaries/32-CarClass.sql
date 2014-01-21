@@ -21,3 +21,5 @@ COPY "CarClass" (id, label) FROM stdin;
 9	PSA M2
 10	PSA H
 \.
+
+SELECT setval(pg_get_serial_sequence('"CarClass"', 'id'), max(id)) from "CarClass";
