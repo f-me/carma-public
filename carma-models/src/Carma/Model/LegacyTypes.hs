@@ -32,7 +32,27 @@ data EngineType = EngineType deriving Typeable
 data DealerCities = DealerCities deriving Typeable
 data Partner = Partner deriving Typeable
 data LegalForms = LegalForms deriving Typeable
+data TechTypes = TechTypes deriving Typeable
+data TowerTypes = TowerTypes deriving Typeable
+data TowTypes = TowTypes deriving Typeable
+data WheelsBlockedCount = WheelsBlockedCount deriving Typeable
+data PaymentTypes = PaymentTypes deriving Typeable
+data ClientCancelReason = ClientCancelReason deriving Typeable
+data UrgentServiceReason = UrgentServiceReason deriving Typeable
+data Satisfaction = Satisfaction deriving Typeable
+data FalseStatuses = FalseStatuses deriving Typeable
+data ServiceStatuses = ServiceStatuses deriving Typeable
 
+
+data Json = Json Text deriving Typeable
+instance FromJSON Json where
+  parseJSON fld = Json <$> parseJSON fld
+instance ToJSON Json where
+  toJSON (Json txt) = toJSON txt
+instance ToField Json where
+  toField (Json txt) = toField txt
+instance FromField Json where
+  fromField fld m = Json <$> fromField fld m
 
 data Phone = Phone Text deriving Typeable
 instance FromJSON Phone where
@@ -56,7 +76,7 @@ instance FromField Reference where
   fromField fld m = Reference <$> fromField fld m
 
 
-data PickerField = PickerField Text deriving Typeable
+data PickerField = PickerField (Maybe Text) deriving Typeable
 instance FromJSON PickerField where
   parseJSON fld = PickerField <$> parseJSON fld
 instance ToJSON PickerField where
@@ -67,7 +87,7 @@ instance FromField PickerField where
   fromField fld m = PickerField <$> fromField fld m
 
 
-data MapField = MapField Text deriving Typeable
+data MapField = MapField (Maybe Text) deriving Typeable
 instance FromJSON MapField where
   parseJSON fld = MapField <$> parseJSON fld
 instance ToJSON MapField where
@@ -100,3 +120,15 @@ instance ToField LegacyDate where
   toField (LegacyDate utc) = toField utc
 instance FromField LegacyDate where
   fromField fld m = LegacyDate <$> fromField fld m
+
+data LegacyDatetime = LegacyDatetime UTCTime deriving Typeable
+instance FromJSON LegacyDatetime where
+  parseJSON fld = parseJSON fld >>= \txt -> case T.decimal txt of
+    Right (res, "") -> return $ LegacyDatetime $ posixSecondsToUTCTime (fromInteger res)
+    _ -> fail $ "LegacyDatetime.parseJSON: invalid date " ++ show txt
+instance ToJSON LegacyDatetime where
+  toJSON (LegacyDatetime utc) = toJSON $ show $ utcTimeToPOSIXSeconds utc
+instance ToField LegacyDatetime where
+  toField (LegacyDatetime utc) = toField utc
+instance FromField LegacyDatetime where
+  fromField fld m = LegacyDatetime <$> fromField fld m

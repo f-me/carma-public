@@ -9,6 +9,7 @@ import Data.Vector
 import Data.Model
 import Data.Model.View
 
+import Carma.Model.Search (searchView, one)
 import Carma.Model.CarMake (CarMake)
 
 
@@ -26,5 +27,7 @@ data CarModel = CarModel
 instance Model CarModel where
   type TableName CarModel = "CarModel"
   modelInfo = mkModelInfo CarModel ident
-  modelView _ = modifyView defaultView
-    [textarea info]
+  modelView = \case
+    "parents" -> (searchView [("parent", one parent)])
+      {mv_modelName = "CarModel"}
+    _ -> modifyView defaultView [textarea info]

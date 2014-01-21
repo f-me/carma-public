@@ -38,7 +38,6 @@ mkIdents [t|Role|]
  , ("searchContract", 18)
  , ("partner", 19)
  , ("contract_admin", 20)
- , ("dealer", 21)
 
  , ("bo_qa", 22)
  , ("bo_order", 23)

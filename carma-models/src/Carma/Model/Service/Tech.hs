@@ -1,18 +1,17 @@
 
 module Carma.Model.Service.Tech where
 
-
-import Data.Text
 import Data.Typeable
 
 import Data.Model
 import Data.Model.View
 import Carma.Model.Service (Service)
+import Carma.Model.LegacyTypes
 
 
 data Tech = Tech
   { ident    :: PK Int Tech ""
-  , techType :: F Text {-FIXME-} "techType" "Услуга"
+  , techType :: F (Maybe (IdentT TechTypes)) "techType" "Услуга"
   }
   deriving Typeable
 

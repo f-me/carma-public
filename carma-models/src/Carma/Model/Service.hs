@@ -3,24 +3,23 @@ module Carma.Model.Service where
 
 import Data.Text
 import Data.Typeable
-import Data.Time.Clock (UTCTime)
 
 import Data.Model
 import Data.Model.View
 import Carma.Model.ServiceNames (ServiceNames)
 import Carma.Model.Types()
-import Carma.Model.LegacyTypes (Reference,Checkbox)
+import Carma.Model.LegacyTypes
 import Carma.Model.Search as S
 
 data Service = Service
   { ident                        :: PK Int Service ""
   , svcType                      :: F (IdentT ServiceNames) "type"
-                                 "Сервис"
+                                 "Услуга"
   , parentId                     :: F Text "parentId"
                                  ""
-  , createTime                   :: F UTCTime "createTime"
+  , createTime                   :: F LegacyDatetime "createTime"
                                  "Дата создания услуги"
-  , payType                      :: F Text {-FIXME-} "payType"
+  , payType                      :: F (IdentT PaymentTypes) "payType"
                                  "Тип оплаты"
   , payment_costTranscript       :: F Text "payment_costTranscript"
                                  "Расшифровка стоимости"
@@ -36,23 +35,23 @@ data Service = Service
                                  "Оплата РАМК"
   , payment_paidByClient         :: F Text "payment_paidByClient"
                                  "Оплата Клиент"
-  , times_expectedServiceStart   :: F UTCTime "times_expectedServiceStart"
+  , times_expectedServiceStart   :: F (Maybe LegacyDatetime) "times_expectedServiceStart"
                                  "Ожидаемое время начала оказания услуги"
-  , times_expectedDispatch       :: F UTCTime "times_expectedDispatch"
+  , times_expectedDispatch       :: F (Maybe LegacyDatetime) "times_expectedDispatch"
                                  "Время выезда партнёра"
-  , times_factServiceStart       :: F UTCTime "times_factServiceStart"
+  , times_factServiceStart       :: F (Maybe LegacyDatetime) "times_factServiceStart"
                                  "Фактическое время начала оказания услуги"
-  , times_expectedServiceEnd     :: F UTCTime "times_expectedServiceEnd"
+  , times_expectedServiceEnd     :: F (Maybe LegacyDatetime) "times_expectedServiceEnd"
                                  "Ожидаемое время окончания оказания услуги"
-  , times_factServiceEnd         :: F UTCTime "times_factServiceEnd"
+  , times_factServiceEnd         :: F (Maybe LegacyDatetime) "times_factServiceEnd"
                                  "Фактическое время окончания оказания услуги"
-  , times_expectedServiceClosure :: F UTCTime "times_expectedServiceClosure"
+  , times_expectedServiceClosure :: F (Maybe LegacyDatetime) "times_expectedServiceClosure"
                                  "Ожидаемое время закрытия услуги"
-  , times_factServiceClosure     :: F UTCTime "times_factServiceClosure"
+  , times_factServiceClosure     :: F (Maybe LegacyDatetime) "times_factServiceClosure"
                                  "Фактическое время закрытия услуги"
-  , falseCall                    :: F Text {-FIXME-} "falseCall"
+  , falseCall                    :: F (IdentT FalseStatuses) "falseCall"
                                  "Ложный вызов"
-  , clientCancelReason           :: F Text {-FIXME-} "clientCancelReason"
+  , clientCancelReason           :: F (IdentT ClientCancelReason) "clientCancelReason"
                                  "Причина отказа клиента"
   , falseCallPercent             :: F Text "falseCallPercent"
                                  ""
@@ -60,7 +59,7 @@ data Service = Service
                                  "Номер счёта"
   , bill_billingCost             :: F Text "bill_billingCost"
                                  "Сумма по счёту"
-  , bill_billingDate             :: F UTCTime {-FIXME: day-} "bill_billingDate"
+  , bill_billingDate             :: F (Maybe LegacyDate) {-FIXME: day-} "bill_billingDate"
                                  "Дата выставления счёта"
 
   , contractor_partner           :: F Text "contractor_partner"
@@ -84,11 +83,11 @@ data Service = Service
                                  "Скан загружен"
   , original                     :: F Checkbox "original"
                                  "Оригинал получен"
-  , urgentService                :: F Text {-FIXME-} "urgentService"
+  , urgentService                :: F (IdentT UrgentServiceReason) "urgentService"
                                  "Приоритетная услуга"
-  , status                       :: F Text {-FIXME-} "status"
+  , status                       :: F (IdentT ServiceStatuses) "status"
                                  "Статус услуги"
-  , clientSatisfied              :: F Text {-FIXME-} "clientSatisfied"
+  , clientSatisfied              :: F (IdentT Satisfaction) "clientSatisfied"
                                  "Клиент доволен"
   , warrantyCase                 :: F Checkbox "warrantyCase"
                                  "Гарантийный случай"
@@ -101,28 +100,33 @@ data Service = Service
   }
   deriving Typeable
 
+
 instance Model Service where
   type TableName Service = "servicetbl"
   modelInfo = mkModelInfo Service ident
-  modelView "search" = modifyView (searchView serviceSearchParams)
-    [dict contractor_partnerId $ (dictOpt "allPartners")
-          { dictType    = Just "ComputedDict"
-          , dictBounded = True
-          }
-    ,setType "dictionary-set" contractor_partnerId
-    ]
-  modelView _ = modifyView defaultView
+  modelView "search" = modifyView (searchView serviceSearchParams) svcMod
+  modelView "newCase" = modifyView defaultView
+    $ svcMod
+    ++ [mainOnly times_expectedServiceStart
+       ,mainOnly times_expectedServiceEnd
+       ,mainOnly times_expectedDispatch
+       ]
+  modelView _ = modifyView defaultView svcMod
+
+
+svcMod =
     [dict contractor_partnerId $ (dictOpt "allPartners")
           { dictType    = Just "ComputedDict"
           , dictBounded = True
           }
     ,setType "dictionary" contractor_partnerId
+    ,invisible service_tarifOptions
     ]
 
 
 serviceSearchParams :: [(Text, [Predicate Service])]
 serviceSearchParams
   = [("Service_createtime",   interval createTime)
-    ,("contractor_partnerId", listOf contractor_partnerId)
+    ,("contractor_partnerId", one contractor_partnerId)
     ,("svcType",              listOf svcType)
     ]

@@ -27,5 +27,7 @@ instance Model Insurance where
   type TableName Insurance = "insurancetbl"
   type Parent Insurance = Service
   modelInfo = mkModelInfo Insurance ident
-  modelView _ = (defaultView :: ModelView Insurance)
-    {mv_title = "Сбор справок для страховой компании"}
+  modelView _ = modifyView
+    (defaultView :: ModelView Insurance)
+      {mv_title = "Сбор справок для страховой компании"}
+    $ mapWidget commAddress_address commAddress_coords commAddress_map

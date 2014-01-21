@@ -2,9 +2,6 @@ module Carma.Model.Case.Type where
 
 import Data.Text
 import Data.Typeable
-import Data.Vector
-
-import Data.Time.Clock    (UTCTime)
 
 import Data.Model
 
@@ -17,9 +14,9 @@ import Carma.Model.LegacyTypes
 data Case = Case
   { ident :: PK Int Case "Номер кейса"
   , callDate
-    :: F UTCTime "callDate" "Дата звонка"
+    :: F LegacyDatetime "callDate" "Дата звонка"
   , vwcreatedate
-    :: F (Maybe UTCTime) "vwcreatedate" "Дата звонка"
+    :: F (Maybe LegacyDatetime) "vwcreatedate" "Дата звонка"
   , callTaker
     :: F Text            "callTaker" "Сотрудник РАМК"
   , comment
@@ -111,13 +108,13 @@ data Case = Case
   , city
     :: F (Maybe (IdentT DealerCities)) "city" "Город"
   , caseAddress_address
-    :: F (Maybe Text) "caseAddress_address" "Адрес"
+    :: F PickerField "caseAddress_address" "Адрес места поломки"
   , caseAddress_comment
     :: F (Maybe Text) "caseAddress_comment" "Примечания"
   , caseAddress_coords
-    :: F (Maybe Text) "caseAddress_coords" "Координаты"
+    :: F PickerField "caseAddress_coords" "Координаты"
   , caseAddress_map
-    :: F (Maybe Text) "caseAddress_map" ""
+    :: F MapField "caseAddress_map" ""
   , temperature
     :: F (Maybe Text) "temperature" "Температура"
   , repair
@@ -139,7 +136,7 @@ data Case = Case
   , actions
     :: F Reference "actions" "Действия"
   , comments
-    :: F Text "comments" ""
+    :: F (Maybe Json) "comments" ""
   , files
     :: F Reference "files" "Прикрепленные файлы"
   } deriving Typeable

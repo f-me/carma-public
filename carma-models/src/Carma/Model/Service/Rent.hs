@@ -36,5 +36,6 @@ instance Model Rent where
   type TableName Rent = "renttbl"
   type Parent Rent = Service
   modelInfo = mkModelInfo Rent ident
-  modelView _ = (defaultView :: ModelView Rent)
-    {mv_title = "Подменный автомобиль"}
+  modelView _ = modifyView
+    (defaultView :: ModelView Rent) {mv_title = "Подменный автомобиль"}
+    $ mapWidget rentAddress_address rentAddress_coords rentAddress_map

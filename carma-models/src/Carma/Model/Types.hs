@@ -160,11 +160,6 @@ dayToBuilder :: Day -> Builder
 dayToBuilder (toGregorian -> (y,m,d)) = do
     pad4 y <> fromChar '-' <> pad2 m <> fromChar '-' <> pad2 d
 
-{-
-instance CoffeeType t => CoffeeType (Interval t) where
-  coffeeType = Wrap
-    $ "interval-" `T.append` unWrap (coffeeType :: Wrap t Text)
--}
 
 -- default filed view
 instance DefaultFieldView t => DefaultFieldView (Maybe t) where
@@ -173,14 +168,10 @@ instance DefaultFieldView t => DefaultFieldView (Maybe t) where
 
 
 instance DefaultFieldView UTCTime where
-  defaultFieldView f = (defFieldView f)
-    {fv_type = "datetime"
-    }
+  defaultFieldView f = (defFieldView f) {fv_type = "datetime"}
 
 instance DefaultFieldView Bool where
-  defaultFieldView f = (defFieldView f)
-    {fv_type = "Bool"
-    }
+  defaultFieldView f = (defFieldView f) {fv_type = "Bool"}
 
 instance DefaultFieldView TInt where
   defaultFieldView f = (defFieldView f)
@@ -209,19 +200,13 @@ instance DefaultFieldView Int where
     }
 
 instance DefaultFieldView Int16 where
-  defaultFieldView f = (defFieldView f)
-    {fv_type = "int"
-    }
+  defaultFieldView f = (defFieldView f) {fv_type = "int"}
 
 instance DefaultFieldView Int32 where
-  defaultFieldView f = (defFieldView f)
-    {fv_type = "int"
-    }
+  defaultFieldView f = (defFieldView f) {fv_type = "int"}
 
 instance DefaultFieldView Text where
-  defaultFieldView f = (defFieldView f)
-    {fv_type = "text"
-    }
+  defaultFieldView f = (defFieldView f) {fv_type = "text"}
 
 instance DefaultFieldView Day where
   defaultFieldView f = (defFieldView f)
@@ -233,29 +218,25 @@ instance DefaultFieldView Day where
     }
 
 instance DefaultFieldView PickerField where
-  defaultFieldView f = (defFieldView f)
-    {fv_type = "picker"
-    }
+  defaultFieldView f = (defFieldView f) {fv_type = "picker"}
 
 instance DefaultFieldView MapField where
-  defaultFieldView f = (defFieldView f)
-    {fv_type = "map"
-    }
+  defaultFieldView f = (defFieldView f) {fv_type = "map"}
 
 instance DefaultFieldView Reference where
-  defaultFieldView f = (defFieldView f)
-    {fv_type = "reference"
-    }
+  defaultFieldView f = (defFieldView f) {fv_type = "reference"}
 
 instance DefaultFieldView Checkbox where
-  defaultFieldView f = (defFieldView f)
-    {fv_type = "checkbox"
-    }
+  defaultFieldView f = (defFieldView f) {fv_type = "checkbox"}
 
 instance DefaultFieldView LegacyDate where
-  defaultFieldView f = (defFieldView f)
-    {fv_type = "date"
-    }
+  defaultFieldView f = (defFieldView f) {fv_type = "date"}
+
+instance DefaultFieldView LegacyDatetime where
+  defaultFieldView f = (defFieldView f) {fv_type = "datetime"}
+
+instance DefaultFieldView Json where
+  defaultFieldView f = (defFieldView f) {fv_type = "json"}
 
 instance DefaultFieldView Phone where
   defaultFieldView f = (defFieldView f)

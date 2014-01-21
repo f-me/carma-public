@@ -15,13 +15,13 @@ data Dictionary = Dictionary
   {ident
     :: PK Int Dictionary ""
   ,name
-    :: F Text                        "name"        "Название"
+    :: F Text                         "name"        "Название"
   ,description
-    :: F Text                        "description" "Описание"
+    :: F Text                         "description" "Описание"
   ,parent
-    :: F (Maybe (IdentI Dictionary)) "parent"      "Родительский словарь"
+    :: F (Vector (IdentI Dictionary)) "parent"      "Родительский словарь"
   ,majorFields
-    :: F (Vector Text)               "majorFields" "Важные поля"
+    :: F (Vector Text)                "majorFields" "Важные поля"
   }
   deriving Typeable
 

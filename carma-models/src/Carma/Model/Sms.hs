@@ -9,7 +9,7 @@ import Data.Typeable
 import Data.Model.View
 import Carma.Model.Types()
 import Carma.Model.SmsTemplate (SmsTemplate)
-
+import Carma.Model.LegacyTypes (Phone)
 
 data Sms = Sms
   {ident    :: PK Int Sms ""
@@ -17,11 +17,12 @@ data Sms = Sms
   ,mtime    :: F UTCTime      "mtime"    "Время последнего изменения сообщения (или статуса)"
   ,status   :: F Text         "status"   "Статус отправки сообщения"
   ,caseRef  :: F (Maybe Text) "caseRef"  "Номер кейса"
-  ,phone    :: F Text         "phone"    "Телефон получателя"
+  ,phone    :: F Phone        "phone"    "Телефон получателя"
   ,sender   :: F Text         "sender"   "Подпись отправителя"
-  ,template :: F (IdentI SmsTemplate)
+  ,template :: F (Maybe (IdentI SmsTemplate))
                               "template" "Шаблон сообщения"
   ,msgText  :: F Text         "msgText"  "Текст сообщения"
+  ,foreignId:: F (Maybe Text) "foreignId" "Идентификатор сообщения в sms-гейте"
   } deriving Typeable
 
 
@@ -34,4 +35,5 @@ instance Model Sms where
     ,invisible status
     ,invisible sender
     ,textarea  msgText
+    ,setMeta "regexp" "phone" phone
     ]
