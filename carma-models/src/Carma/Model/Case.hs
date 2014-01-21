@@ -7,10 +7,7 @@ module Carma.Model.Case
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Aeson as Aeson
-
 import qualified Data.Map as Map
-import qualified Data.HashMap.Strict as HM
-import Database.PostgreSQL.Simple as PG
 
 import Data.Model as Model
 import Data.Model.View as View
@@ -37,10 +34,11 @@ caseSearchParams
     ,("carMake",    listOf Case.car_make)
     ,("callDate",   interval Case.callDate)
     ,("contact",    fuzzy $ matchAny
-                    [one Case.contact_name, one Case.contact_contactOwner])
-    ,("comment",    listOf Case.comment)
+                    [one Case.contact_name, one Case.contact_ownerName])
+    ,("comment",    fuzzy $ one Case.comment)
     ,("address",    fuzzy $ one Case.caseAddress_address)
     ,("callTaker",  fuzzy $ one Case.callTaker)
+    ,("files",      refExist Case.files)
     ]
 
 instance Model Case where
@@ -49,12 +47,18 @@ instance Model Case where
   modelView v =
     case v of
       "search" -> modifyView (searchView caseSearchParams) $
-                  [modifyByName "Case_id" (\v -> v { fv_type = "ident" })]
+                  [modifyByName "Case_id" (\v -> v { fv_type = "ident" })
+                  ,modifyByName "files"   (\v -> v { fv_type = "dictionary" })
+                  ,dict files $ (dictOpt "ExistDict")
+                              { dictType    = Just "ComputedDict"
+                              , dictBounded = True
+                              }
+                  ]
                   ++ caseMod ++ caseDicts
       "fullCase"
         -> modifyView
           ((defaultView :: ModelView Case) {mv_title = "Кейс"})
-          caseMod
+          $ caseMod ++ caseDicts ++ caseRo
       "newCase"
         -> setMainOnly
           $ modifyView
@@ -64,8 +68,9 @@ instance Model Case where
       where
         setMainOnly mv = mv
           {mv_fields =
-             [fv{fv_meta = Map.insert "mainToo" (Aeson.Bool True) $ fv_meta fv}
+             [fv{fv_meta = Map.insert "mainOnly" (Aeson.Bool True) $ fv_meta fv}
              |fv <- mv_fields mv
+             ,not $ "caseAddress" `T.isPrefixOf` fv_name fv
              ]
           }
 
@@ -102,6 +107,7 @@ caseRo = [
 caseMod = [
    transform "capitalize" contact_name
   ,transform "capitalize" contact_ownerName
+  ,transform "capitalize" cardNumber_cardOwner
   ,transform "uppercase"  car_vin
   ,transform "uppercase"  car_plateNum
   ,setMeta "regexp" "plateNum" car_plateNum
@@ -110,6 +116,9 @@ caseMod = [
   ,widget "radio" car_engine
 
   ,textarea claim
-  ,invisible psaExportNeeded
-  ,invisible psaExported
+  ,invisible comments
+  ,invisible services
+  ,invisible actions
   ]
+  ++ mapWidget caseAddress_address caseAddress_coords caseAddress_map
+  ++ [setMeta "cityField" (Aeson.String $ Model.fieldName city) caseAddress_map]

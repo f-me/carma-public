@@ -21,7 +21,7 @@ data Tickets = Tickets
   , ticketsTo_coords    :: F PickerField "ticketsTo_coords" "Координаты"
   , ticketsTo_map       :: F MapField    "ticketsTo_map" ""
 
-  , deliveryType        :: F (IdentT DeliveryType) "deliveryType" "Тип доставки"
+  , deliveryType        :: F (Maybe (IdentT DeliveryType)) "deliveryType" "Тип доставки"
   }
   deriving Typeable
 
@@ -30,5 +30,7 @@ instance Model Tickets where
   type TableName Tickets = "ticketstbl"
   type Parent Tickets = Service
   modelInfo = mkModelInfo Tickets ident
-  modelView _ = (defaultView :: ModelView Tickets)
-    {mv_title = "Заказ билетов"}
+  modelView _ = modifyView
+    (defaultView :: ModelView Tickets) {mv_title = "Заказ билетов"}
+    $ mapWidget ticketsFrom_address ticketsFrom_coords ticketsFrom_map
+    ++ mapWidget ticketsTo_address ticketsTo_coords ticketsTo_map

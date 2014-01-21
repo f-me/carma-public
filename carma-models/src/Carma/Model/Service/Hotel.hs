@@ -25,5 +25,6 @@ instance Model Hotel where
   type TableName Hotel = "hoteltbl"
   type Parent Hotel = Service
   modelInfo = mkModelInfo Hotel ident
-  modelView _ = (defaultView :: ModelView Hotel)
-    {mv_title = "Гостиница"}
+  modelView _ = modifyView
+    (defaultView :: ModelView Hotel) {mv_title = "Гостиница"}
+    $ mapWidget caseAddress_address caseAddress_coords caseAddress_map
