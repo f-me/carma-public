@@ -7,6 +7,18 @@ define [ "utils"
        ],
   (utils, tpl, mu, main, screenman, modelDict) ->
 
+    textarea2wysiwyg = ->
+      # transform all textarea elements to wisiwyg
+      $("textarea").each (index) ->
+        id = "wisyhtml5-" + index
+        $(@).attr("id", id).wysihtml5
+          image: false,
+          html: true,
+          locale: "ru-RU",
+          events:
+            blur: ->
+              $("#" + id).trigger 'change'
+
     modelSetup = (dict, viewName, args) ->
       permEl = "permissions"
       focusClass = "focusable"
@@ -30,6 +42,8 @@ define [ "utils"
           location.reload true
 
       if args.dict
+        $('#dict-select').val(args.dict)
+
         dict = null
         majorFields = null
         $.bgetJSON "/_/Dictionary/#{args.dict}", (d) -> dict = d
@@ -71,6 +85,7 @@ define [ "utils"
           .on("click.datatable", "tr", ->
             id = @children[0].innerText
             k = modelSetup dict, viewName, {id}
+            textarea2wysiwyg()
             k['updateUrl']()
             k)
 
@@ -97,6 +112,8 @@ define [ "utils"
           $("#active-items-btn").show()
         else
           $("#active-items-btn").hide()
+
+        textarea2wysiwyg()
 
     constructor: screenSetup
     template: tpl

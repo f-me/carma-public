@@ -11,7 +11,7 @@ define ["model/main", "sync/datamap"], (Main, DataMap) ->
       fnames = _.pluck fs.fields, 'name'
       fields = {}
       for fn in fnames
-        fields[fn] = rawInst[m.toLowerCase()][fn]
+        fields[fn] = rawInst[m.toLowerCase()][fn.toLowerCase()]
       fixed[m] = fields
     return fixed
 

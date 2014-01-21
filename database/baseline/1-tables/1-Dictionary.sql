@@ -2,32 +2,32 @@ CREATE TABLE "Dictionary"
   (id          SERIAL PRIMARY KEY
   ,name        text UNIQUE NOT NULL
   ,description text
-  ,parent      int4 REFERENCES "Dictionary"
+  ,parent      int4[] default array[]::int4[]
   ,majorFields text[] default array[]::text[]
   );
 
 INSERT INTO "Dictionary" (id, name, description, parent, majorFields) VALUES
-  (0, 'CarMake', 'Марка машины', null, ARRAY['id', 'label'])
-, (1, 'CarModel', 'Модель машины', 0, ARRAY['id', 'parent', 'label', 'info'])
-, (2, 'City', 'Город', 0, ARRAY['id', 'label'])
-, (3, 'Region', 'Регион', 0, ARRAY['id', 'label'])
-, (4, 'NewCaseField', 'Поля для экрана нового кейса', null, ARRAY['id', 'program', 'label'])
-, (5, 'FieldPermission', 'Разрешения для полей', null, ARRAY['id', 'role', 'model', 'field'])
-, (6, 'SmsTemplate', 'Шаблон СМС', null, ARRAY['id', 'label'])
-, (7, 'Role', 'Роли', null, ARRAY['id', 'value', 'label'])
-, (8, 'ProgramInfo', 'Информация о программах', null, ARRAY['id', 'program', 'info'])
-, (9, 'ServiceNames', 'Услуги', null, ARRAY['id', 'value', 'label', 'icon'])
-, (10, 'ServiceInfo', 'Информация об услугах', null, ARRAY['id', 'program', 'service', 'info'])
-, (11, 'Program', 'Программа', null, ARRAY['id', 'label'])
-, (12, 'SubProgram', 'Подпрограмма', 11, ARRAY['id', 'parent', 'label'])
-, (13, 'VinFormat', 'Форматы VIN', null, ARRAY['id', 'label'])
-, (14, 'Colors', 'Цвета', null, ARRAY['id', 'value', 'label'])
-, (15, 'ProgramType', 'Типы программ', null, ARRAY['id', 'label'])
-, (16, 'Engine', 'Типы двигателя', null, ARRAY['id', 'label'])
-, (17, 'Transmission', 'Коробки передач', null, ARRAY['id', 'label'])
-, (18, 'LegalForm', 'Формы организации', null, ARRAY['id', 'label'])
-, (19, 'CheckType', 'Вид ТО', null, ARRAY['id', 'label'])
-, (20, 'CarClass', 'Классы автомобилей', null, ARRAY['id', 'label'])
+  (0, 'CarMake', 'Марка машины', ARRAY[]::int4[], ARRAY['id', 'label'])
+, (1, 'CarModel', 'Модель машины', ARRAY[0], ARRAY['id', 'parent', 'label', 'info'])
+, (2, 'City', 'Город', ARRAY[]::int4[], ARRAY['id', 'label'])
+, (3, 'Region', 'Регион', ARRAY[]::int4[], ARRAY['id', 'label'])
+, (4, 'NewCaseField', 'Поля для экрана нового кейса', ARRAY[]::int4[], ARRAY['id', 'program', 'label'])
+, (5, 'FieldPermission', 'Разрешения для полей', ARRAY[]::int4[], ARRAY['id', 'role', 'model', 'field'])
+, (6, 'SmsTemplate', 'Шаблон СМС', ARRAY[]::int4[], ARRAY['id', 'label'])
+, (7, 'Role', 'Роли', ARRAY[]::int4[], ARRAY['id', 'value', 'label'])
+, (8, 'ProgramInfo', 'Информация о программах', ARRAY[11], ARRAY['id', 'program', 'info'])
+, (9, 'ServiceNames', 'Услуги', ARRAY[]::int4[], ARRAY['id', 'value', 'label', 'icon'])
+, (10, 'ServiceInfo', 'Информация об услугах', ARRAY[11,9], ARRAY['id', 'program', 'service', 'info'])
+, (11, 'Program', 'Программа', ARRAY[]::int4[], ARRAY['id', 'label'])
+, (12, 'SubProgram', 'Подпрограмма', ARRAY[11], ARRAY['id', 'parent', 'label'])
+, (13, 'VinFormat', 'Форматы VIN', ARRAY[]::int4[], ARRAY['id', 'label'])
+, (14, 'Colors', 'Цвета', ARRAY[]::int4[], ARRAY['id', 'value', 'label'])
+, (15, 'ProgramType', 'Типы программ', ARRAY[]::int4[], ARRAY['id', 'label'])
+, (16, 'Engine', 'Типы двигателя', ARRAY[]::int4[], ARRAY['id', 'label'])
+, (17, 'Transmission', 'Коробки передач', ARRAY[]::int4[], ARRAY['id', 'label'])
+, (18, 'LegalForm', 'Формы организации', ARRAY[]::int4[], ARRAY['id', 'label'])
+, (19, 'CheckType', 'Вид ТО', ARRAY[]::int4[], ARRAY['id', 'label'])
+, (20, 'CarClass', 'Классы автомобилей', ARRAY[]::int4[], ARRAY['id', 'label'])
 ;
 
 GRANT SELECT ON "Dictionary" TO carma_db_sync;

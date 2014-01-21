@@ -16,6 +16,7 @@ define ["sync/metaq", "sync/datamap", "map"], (metaq, m, map) ->
             "#{@api}?limit=#{pager.limit()}&offset=#{pager.offset()}"
           @_search()
         pager.offset.valueHasMutated()
+      @kvm['searchResultsSpinner'] = ko.observable false
 
     _search: _.debounce((-> @search()), 300)
 
@@ -34,10 +35,23 @@ define ["sync/metaq", "sync/datamap", "map"], (metaq, m, map) ->
         data     : JSON.stringify req
         success  : @successCb
         error    : @errorCb
+        beforeSend : @showSpinner
 
-    successCb: (data) => @kvm['searchResults'](data)
+    showSpinner: =>
+      @kvm['searchResultsSpinner'] true
+
+    hideSpinner: (jqXHR, error) =>
+      if error
+        alertUser "Данные не были получены. Повторите поиск."
+      else
+        @kvm['searchResultsSpinner'] false
+
+    successCb: (data) =>
+      @kvm['searchResults'](data)
+      @hideSpinner()
 
     errorCb: (x, status) =>
+      @hideSpinner x, status
       console.error "ServicesSearchQ: search failed with
  '#{x.status}: #{x.statusText}'"
 

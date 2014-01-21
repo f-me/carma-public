@@ -12,6 +12,10 @@
 
     <link rel="stylesheet" href="/s/css/local.css" />
 
+    <!-- WYSIWYG -->
+    <link rel="stylesheet" href="/s/css/bootstrap-wysihtml5.css" />
+    <link rel="stylesheet" href="/s/css/wysiwyg-color.css" />
+
     <!-- DOM manipulation -->
     <script src="/s/js/3p/jquery-1.7.1.min.js" />
 
@@ -20,6 +24,15 @@
     <script src="/s/js/3p/bootstrap-datepicker.js" />
     <script src="/s/js/3p/bootstrap-typeahead.js" />
     <script src="/s/js/3p/bootstrap-tagautocomplete.js" />
+
+    <!-- WYSIWYG -->
+    <script src="/s/js/3p/wysihtml5.min.js" />
+    <script src="/s/js/3p/bootstrap-wysihtml5.min.js" />
+    <script src="/s/js/3p/bootstrap-wysihtml5.ru-RU.js" />
+
+    <!-- Spinner -->
+    <script src="/s/js/3p/spin.min.js" />
+    <script src="/s/js/3p/jquery.spin.js" />
 
     <!-- Tabular display -->
     <script src="/s/js/3p/jquery.dataTables.min.js" />
@@ -125,21 +138,14 @@
             <!-- ko template: { name: 'nav-li-template' }-->
             <!-- /ko -->
             <li>
-              <a id="send-bug-report" href="#">
-                <i class="icon-fire icon-white"></i>
+              <a id="send-bug-report">
+                <i class="icon icon-fire icon-white"></i>
               </a>
             </li>
           </ul>
           <ifLoggedIn>
             <ul class="nav pull-right">
               <li class="divider-vertical" />
-              <li id="navbar-achievements" class="dropdown" style="display: none">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                  <i class="icon-star icon-white" />
-                </a>
-                <ul class="dropdown-menu">
-                </ul>
-              </li>
               <li class="dropdown">
                 <a href="#"
                    class="dropdown-toggle"
@@ -248,7 +254,7 @@
       <div id="vin-alert-container" />
       </div>
     </script>
-    
+
     <script type="text/template"
             id="partner-form-template"
             class="view-template">
@@ -259,8 +265,8 @@
           <p>
             <input type="file" name="file" accept="text/csv" />
           </p>
-          <input formenctype="multipart/form-data" 
-                 type="submit" 
+          <input formenctype="multipart/form-data"
+                 type="submit"
                  class="btn btn-success">
           </input>
         </form>
@@ -320,6 +326,8 @@
                  data-provide="popover"
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
+              <i class="icon-refresh icon-refresh-animate"
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls">
@@ -356,6 +364,8 @@
                  data-provide="popover"
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
+              <i class="icon-refresh icon-refresh-animate"
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls">
@@ -393,6 +403,8 @@
                  data-provide="popover"
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
+              <i class="icon-refresh icon-refresh-animate"
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls">
@@ -436,6 +448,8 @@
                  data-provide="popover"
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
+              <i class="icon-refresh icon-refresh-animate"
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls">
@@ -466,6 +480,8 @@
                  data-provide="popover"
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
+              <i class="icon-refresh icon-refresh-animate"
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls">
@@ -599,6 +615,8 @@
                  data-provide="popover"
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
+              <i class="icon-refresh icon-refresh-animate"
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls">
@@ -656,6 +674,8 @@
                  data-provide="popover"
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
+              <i class="icon-refresh icon-refresh-animate"
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls">
@@ -722,6 +742,8 @@
                  data-provide="popover"
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
+              <i class="icon-refresh icon-refresh-animate"
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls">
@@ -761,6 +783,8 @@
                  data-provide="popover"
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
+              <i class="icon-refresh icon-refresh-animate"
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls">
@@ -792,6 +816,8 @@
                  data-provide="popover"
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
+              <i class="icon-refresh icon-refresh-animate"
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls">
@@ -827,6 +853,8 @@
                data-provide="popover"
                data-content="{{ meta.infoText1 }}" />
           {{/ meta.infoText1 }}
+            <i class="icon-refresh icon-refresh-animate"
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
       </div>
@@ -851,6 +879,8 @@
                data-provide="popover"
                data-content="{{ meta.infoText1 }}" />
           {{/ meta.infoText1 }}
+            <i class="icon-refresh icon-refresh-animate"
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
       </div>
@@ -879,6 +909,8 @@
                data-provide="popover"
                data-content="{{ meta.infoText1 }}" />
           {{/ meta.infoText1 }}
+            <i class="icon-refresh icon-refresh-animate"
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
       </div>
@@ -1023,6 +1055,8 @@
                  data-provide="popover"
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
+              <i class="icon-refresh icon-refresh-animate"
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls">
@@ -1121,7 +1155,7 @@
       </div>
     </script>
 
-    <!-- 
+    <!--
          Attachment list reference template. By convention, such
          fields are named "files". See also file-field-template.
     -->
@@ -1276,6 +1310,8 @@
                data-provide="popover"
                data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
+            <i class="icon-refresh icon-refresh-animate"
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <ul data-bind="foreach: {{ name }}Objects">
@@ -1488,6 +1524,8 @@
                  data-provide="popover"
                  data-content="{{ meta.infoText1 }}" />
             {{/ meta.infoText1 }}
+              <i class="icon-refresh icon-refresh-animate"
+                 data-bind="sync: {{ name }}Sync" style="display: none;" />
           </label>
         </div>
         <div class="controls input-append">
@@ -1628,6 +1666,14 @@
           {{/ opts }}
         </select>
         <input type="button" class="btn reload" value="Обновить стоимость" />
+      </div>
+    </script>
+
+    <script type="text/html" id="alert-template">
+      <div class="alert">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <strong>Внимание!</strong>
+        {{message}}
       </div>
     </script>
   </body>

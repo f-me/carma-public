@@ -86,7 +86,7 @@ define [ "utils"
       do (f) ->
         n = pSearch.subName f, "call", kvm.id()
         global.pubSub.sub n, kvm[f]
-      
+
     localStorage[pSearch.storeKey] = JSON.stringify kvm._meta.q.toRawObj()
     pSearch.open('call')
 

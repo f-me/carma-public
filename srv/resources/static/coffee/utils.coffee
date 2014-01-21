@@ -42,6 +42,13 @@ define ["model/utils", "dictionaries"], (mu, d) ->
       $span.fadeOut(2000))
     , 500)
 
+  window.alertUser = (message, delay = 5000) ->
+    $alert = $(Mustache.render $("#alert-template").html(), {message})
+    $('.container-fluid').prepend $alert
+    setTimeout ->
+        $alert.fadeOut 'slow', -> $(@).remove()
+      , delay
+
   window.getDictionary = (d) ->
     dict = global.dictionaries[d]
     return dict if dict

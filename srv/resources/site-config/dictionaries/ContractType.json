@@ -1,6 +1,30 @@
 {
     "entries": [
         {
+            "value": "basic",
+            "label": "BASIC в подарок"
+        },
+        {
+            "value": "advanced",
+            "label": "ADVANCED в подарок"
+        },
+        {
+            "value": "advancedClient",
+            "label": "ADVANCED за счет Клиента"
+        }, 
+        {
+            "value": "moreBasic",
+            "label": "Расширение BASIC->ADVANCED"
+        }, 
+        {
+            "value": "overBasic",
+            "label": "Просроченная регистрация BASIC"
+        }, 
+        {
+            "value": "overAdvanced",
+            "label": "Просроченная регистрация ADVANCED"
+        },         
+        {
             "value": "warranty",
             "label": "Гарантия"
         },

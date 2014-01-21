@@ -24,7 +24,6 @@ Executable carma
     ApplicationInit,
     ApplicationHandlers,
     AppHandlers.Users,
-    AppHandlers.UserAchievements,
     AppHandlers.Util,
     AppHandlers.ActionAssignment,
     AppHandlers.CustomSearches,

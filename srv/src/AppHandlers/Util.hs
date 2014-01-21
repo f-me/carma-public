@@ -22,8 +22,8 @@ writeJSON v = do
   modifyResponse $ setContentType "application/json"
   writeLBS $ Aeson.encode v
 
-getJSONBody :: Aeson.FromJSON v => Handler a b v
-getJSONBody = Util.readJSONfromLBS <$> readRequestBody 4096
+getJSONBody :: Aeson.FromJSON v => AppHandler v
+getJSONBody = Util.readJSONfromLBS <$> readRequestBody 32768
 
 
 handleError :: MonadSnap m => Int -> m ()

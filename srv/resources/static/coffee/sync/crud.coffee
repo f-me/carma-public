@@ -47,6 +47,18 @@ define ["sync/metaq", "sync/datamap"], (metaq, m) ->
         success  : @saveSuccessCb(cb)
         error    : @saveErrorCb
         data     : JSON.stringify m.c2sObj(@qbackup, @ftypes)
+        beforeSend : @showSyncAnim
+
+    showSyncAnim: =>
+      _.each (_.keys @qbackup), (fname) =>
+        @kvm["#{fname}Sync"] true
+
+    hideSyncAnim: (jqXHR, status) =>
+      if status
+        alertUser "Данные не были сохранены. Попробуйте сохранить изменения ещё раз."
+      else
+        _.each (_.keys @qbackup), (fname) =>
+          @kvm["#{fname}Sync"] false
 
     updadeKvm: (obj) =>
       @lastFetch = {}
@@ -57,11 +69,13 @@ define ["sync/metaq", "sync/datamap"], (metaq, m) ->
     saveSuccessCb: (cb) => (json) =>
       @persisted ||= true
       @updadeKvm(m.s2cObj(json, @ftypes))
+      @hideSyncAnim()
       @qbackup = {}
       cb(@kvm, @model)
 
     saveErrorCb: (x, status) =>
       @q = _.defaults(@q, @qbackup)
+      @hideSyncAnim(x, status)
       @qbackup = {}
       console.error "CRUD sync: save of '#{@model.name}:#{@kvm.id()}' failed
  with '#{x.status}: #{x.statusText}'"

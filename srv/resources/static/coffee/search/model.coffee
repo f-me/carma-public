@@ -21,6 +21,8 @@ define ["utils"], ->
         do (f) =>
           @searchKVM[f.name].subscribe (v) =>
             @updateFields(f.name) if (v)
+            # rewind to the first page of search results
+            @searchKVM._meta.pager.offset 0
 
     updateFields: (f) ->
       switch @sfieldsh[f].meta.search.matchType

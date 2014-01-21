@@ -28,13 +28,23 @@ require [ "domready"
 
   bugReport = new bug.BugReport
 
-  window.onerror = (msg, url, line) ->
-    bugReport.addError msg, url, line
-    $.ajax
-      type: "POST"
-      url : "/errors"
-      data: "#{msg} #{url} #{line}"
-    return false
+  # collect errors in console to add them to the bug report
+  # and then send to server
+  do ->
+    reportBug = (msg, url, line) ->
+      bugReport.addError msg, url, line
+      $.ajax
+        type: "POST"
+        url : "/errors"
+        data: "#{msg} #{url} #{line}"
+
+    originConsoleError = console.error
+
+    console.error = (msg, url, line) ->
+      reportBug msg, url, line
+      originConsoleError.apply console, [msg, url, line]
+
+    window.onerror = console.error
 
   # this will be called on dom ready
   dom ->
@@ -74,18 +84,6 @@ require [ "domready"
 
     if user.login == "darya" or user.login == "e.balabanova"
       $('#icon-user').removeClass('icon-user').addClass('icon-heart')
-
-    # achievements
-    if user.meta.achievements.length
-      achv = $('#navbar-achievements')
-      achvLst = $('#navbar-achievements ul')
-      achTpl = (txt) ->
-        '<li class="disabled"><a><i class="icon-star icon"/>' +
-          '&nbsp;&nbsp;' + txt +
-          '</a></li>'
-      for a in user.meta.achievements
-        achvLst.append achTpl a
-      achv.show()
 
 
   u.build_global_fn 'showComplex', ['utils']

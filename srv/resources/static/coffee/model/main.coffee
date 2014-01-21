@@ -131,6 +131,11 @@ define [ "model/render"
         n = f.name
         kvm["#{n}Not"] = ko.computed -> kvm["#{n}Regexp"]?() or not kvm[n]()
 
+    # Determines the sync state with the server
+    for f in fields
+      do (f) ->
+        kvm["#{f.name}Sync"] = ko.observable(false)
+
     # Setup reference fields: they will be stored in <name>Reference as array
     # of kvm models
     for f in fields when f.type == "reference"
