@@ -2,8 +2,8 @@
 
 module Carma.Model.VinFormat
     ( VinFormat(..)
-    , ContractField(..), FF(..), FormatFieldType(..)
-    , VFAccessor(..), ParamAcc(..)
+    , ContractField(..), FF(..)
+    , VFAccessor(..)
     , vinFormatAccessors
     )
 
@@ -29,45 +29,44 @@ import Carma.Model.CheckType    (CheckType)
 import Carma.Model.Colors       (Colors)
 import Carma.Model.LegalForm    (LegalForm)
 import Carma.Model.Partner      (Partner)
+import Carma.Model.SubProgram   (SubProgram)
 import Carma.Model.Transmission (Transmission)
 import Carma.Model.Engine       (Engine)
 
 
-mkVinFormat  [ FF Name   Contract.name
-             , FF Raw    Contract.email
-             , FF Raw    Contract.vin
-             , FF Raw    Contract.cardNumber
-             , FF Raw    Contract.codeWord
-             , FF Phone  Contract.phone
-             , FF Raw    Contract.plateNum
-             , FF Date   Contract.validSince
-             , FF Date   Contract.validUntil
-             , FF Number Contract.startMileage
-             , FF Dict   Contract.make
-             , FF Dict   Contract.model
-             , FF Number Contract.makeYear
-             , FF Dict   Contract.carClass
-             , FF Raw    Contract.color
-             , FF Dict   Contract.transmission
-             , FF Raw    Contract.engineVolume
-             , FF Dict   Contract.engineType
-             , FF Date   Contract.buyDate
-             , FF Dealer Contract.seller
-             , FF Dealer Contract.lastCheckDealer
-             , FF Number Contract.lastCheckMileage
-             , FF Date   Contract.lastCheckDate
-             , FF Number Contract.checkPeriod
-             , FF Dict   Contract.checkType
-             , FF Raw    Contract.orderNumber
-             , FF Name   Contract.managerName
-             , FF Raw    Contract.comment
-             , FF Dict   Contract.legalForm
-             , FF Subprogram Contract.subprogram
+mkVinFormat  [ FF SName   Contract.name
+             , FF SRaw    Contract.email
+             , FF SRaw    Contract.vin
+             , FF SRaw    Contract.cardNumber
+             , FF SRaw    Contract.codeWord
+             , FF SPhone  Contract.phone
+             , FF SRaw    Contract.plateNum
+             , FF SDate   Contract.validSince
+             , FF SDate   Contract.validUntil
+             , FF SNumber Contract.startMileage
+             , FF SDict   Contract.make
+             , FF SDict   Contract.model
+             , FF SNumber Contract.makeYear
+             , FF SDict   Contract.carClass
+             , FF SRaw    Contract.color
+             , FF SDict   Contract.transmission
+             , FF SRaw    Contract.engineVolume
+             , FF SDict   Contract.engineType
+             , FF SDate   Contract.buyDate
+             , FF SDealer Contract.seller
+             , FF SDealer Contract.lastCheckDealer
+             , FF SNumber Contract.lastCheckMileage
+             , FF SDate   Contract.lastCheckDate
+             , FF SNumber Contract.checkPeriod
+             , FF SDict   Contract.checkType
+             , FF SRaw    Contract.orderNumber
+             , FF SName   Contract.managerName
+             , FF SRaw    Contract.comment
+             , FF SDict   Contract.legalForm
+             , FF SSubprogram Contract.subprogram
              ]
 
 instance Model VinFormat where
   type TableName VinFormat = "VinFormat"
   modelInfo = mkModelInfo VinFormat ident
-  modelView _ = modifyView defaultView
-                [ setMeta "dictionaryParent" "makeDefault" modelDefault
-                ]
+  modelView _ = defaultView

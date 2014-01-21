@@ -11,25 +11,24 @@ source field has is mapped to a group of produced VinFormat accessors.
 -}
 
 {-# LANGUAGE GADTs #-}
-{-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Carma.Model.VinFormat.Meta
-    ( ContractField(..), FF(..)
-    , FormatFieldType(..)
+    ( FormatFieldType(..), Sing(..), SFFT(..)
+    , ContractField(..), FF(..)
     , mkVinFormat
-    , VFAccessor(..), ParamAcc(..)
+    , VFAccessor(..), FAccessor(..)
     )
 
 where
 
-import Data.Singletons
-import Data.Singletons.TH
+import Data.Data
 import Data.Typeable
+import Data.Singletons.TH
 import qualified GHC.TypeLits as GHC
-import Language.Haskell.TH
+import Language.Haskell.TH hiding (Name)
+
 
 import Data.Text as T (Text, unpack)
 import Text.Printf
@@ -70,30 +69,21 @@ typeRepToType tr =
 
 -- | VIN format field parameter.
 --
--- Minimal definition requires 'ParamAcc', 'nameFormat' and
--- 'descFormat'.
-class Typeable (ParamType a) => VinFieldParameter a where
-    type ParamType a
-    data ParamAcc a m
+-- Minimal definition includes 'nameFormat' and 'descFormat'.
+data FormatFieldParameter =
+    FFP { paramType  :: ContractField -> TypeRep
+        , nameFormat :: String
+        , descFormat :: String
+        }
 
-    nameFormat :: a -> String
-    descFormat :: a -> String
+name a cf = fieldProjFormatter (\(CF f) -> T.unpack $ fieldName f) cf $
+            nameFormat a
 
-    -- | Unique name of accessor and database column.
-    name       :: a -> ContractField -> String
-    desc       :: a -> ContractField -> String
+desc a cf = fieldProjFormatter (\(CF f) -> T.unpack $ fieldDesc f) cf $
+            descFormat a
 
-    type ParamType a = Bool
-
-    name a cf  = fieldProjFormatter (\(CF f) -> T.unpack $ fieldName f) cf $
-                 nameFormat a
-    desc a cf  = fieldProjFormatter (\(CF f) -> T.unpack $ fieldDesc f) cf $
-                 descFormat a
-
-
-mkAcc :: VinFieldParameter a =>
-         a -> ContractField -> VarStrictTypeQ
-mkAcc (a :: a) cf =
+mkAcc :: FormatFieldParameter -> ContractField -> VarStrictTypeQ
+mkAcc a cf =
     varStrictType (mkName n) $ ns $
     [t|
      F $(return $ typeRepToType t)
@@ -102,64 +92,25 @@ mkAcc (a :: a) cf =
     where
       n = name a cf
       d = desc a cf
-      t = typeOf $ (undefined :: ParamType a)
+      t = paramType a cf
 
 
-data Load
-instance VinFieldParameter Load where
-    data ParamAcc Load m =
-        forall n d. (GHC.SingI n, GHC.SingI d) =>
-        LoadAcc (m -> F (ParamType Load) n d)
-    nameFormat _ = "%sLoad"
-    descFormat _ = "Загружать поле «%s»"
+constTypeOf :: Typeable a => a -> (ContractField -> TypeRep)
+constTypeOf v = const $ typeOf v
 
 
-data Required
-instance VinFieldParameter Required where
-    data ParamAcc Required m =
-        forall n d. (GHC.SingI n, GHC.SingI d) =>
-        RequiredAcc (m -> F (ParamType Required) n d)
-    nameFormat _ = "%sRequired"
-    descFormat _ = "Поле «%s» обязательно"
-
-
-data CodeTitle
-instance VinFieldParameter CodeTitle where
-    type ParamType CodeTitle = Maybe Text
-    nameFormat _ = "%sCodeTitle"
-    descFormat _ = "Заголовок кода дилера для поля «%s»"
-
-
-data Title
-instance VinFieldParameter Title where
-    type ParamType Title = Text
-    nameFormat _ = "%sTitle"
-    descFormat _ = "Заголовок поля «%s»"
-
-
-data Titles
-instance VinFieldParameter Titles where
-    type ParamType Titles = Vector Text
-    nameFormat _ = "%sTitles"
-    descFormat _ = "Заголовки поля «%s»"
-
-
-data DateFormat
-instance VinFieldParameter DateFormat where
-    type ParamType DateFormat = Maybe Text
-    nameFormat _ = "%sFormat"
-    descFormat _ = "Формат даты для поля «%s»"
-
-
-data Default t
-instance Typeable t => VinFieldParameter (Default t) where
-    type ParamType (Default t) = t
-    nameFormat _ = "%sDefault"
-    descFormat _ = "Значение по умолчанию для поля «%s»"
-
-type family ExtraAccs (a :: FormatFieldType)
-
-type instance ExtraAccs a = ()
+loadParameter =
+    FFP (constTypeOf (undefined :: Bool)) "%sLoad" "Загружать поле «%s»"
+requiredParameter =
+    FFP (constTypeOf (undefined :: Bool)) "%sRequired" "Поле «%s» обязательно"
+codeTitleParameter =
+    FFP (constTypeOf (undefined :: Maybe Text)) "%sCodeTitle" "Заголовок кода дилера для поля «%s»"
+titleParameter =
+    FFP (constTypeOf (undefined :: Text)) "%sTitle" "Заголовок поля «%s»"
+titlesParameter =
+    FFP (constTypeOf (undefined :: Vector Text)) "%sTitles" "Заголовки поля «%s»"
+formatParameter =
+    FFP (constTypeOf (undefined :: Text)) "%sFormat" "Формат для поля «%s»"
 
 
 -- | Semantic annotations for 'Contract' fields.
@@ -179,15 +130,51 @@ data FormatFieldType = Raw
                      | Dict
                      | Dealer
                      | Subprogram
-
+                       deriving (Data, Typeable)
 
 $(genSingletons [''FormatFieldType])
+
+type SFFT a = SFormatFieldType a
+
+
+-- Bind format field types and their extra parameters.
+class FFTypeI a where
+    type TitleParameter a
+    type ExtraParameters a
+    titlePar :: a -> FormatFieldParameter
+    extraPars :: a -> [FormatFieldParameter]
+
+    type TitleParameter a = Text
+    type ExtraParameters a = ()
+    titlePar _ = titleParameter
+    extraPars _ = []
+
+
+instance FFTypeI (SFFT Raw)
+
+instance FFTypeI (SFFT Number)
+
+instance FFTypeI (SFFT Phone)
+
+instance FFTypeI (SFFT Date)
+
+instance FFTypeI (SFFT Name) where
+    type TitleParameter (SFFT Name) = Vector Text
+    titlePar _ = titlesParameter
+
+instance FFTypeI (SFFT Dict)
+
+instance FFTypeI (SFFT Dealer)
+
+instance FFTypeI (SFFT Subprogram)
 
 
 -- | Annotated field of the 'Contract' model.
 data FF where
-    FF :: (Typeable t, GHC.SingI n, GHC.SingI d) =>
-          FormatFieldType -> (Contract -> F t n d) -> FF
+    FF :: forall a t n d.
+          (FFTypeI (SFFT a),
+           Typeable t, GHC.SingI n, GHC.SingI d) =>
+          (SFFT a) -> (Contract -> F t n d) -> FF
 
 
 -- | Generate VinFormat model. Haskell field accessor names equal
@@ -202,7 +189,7 @@ mkVinFormat formatFields =
         typeName = mkName "VinFormat"
 
         -- Primary key and label
-        idnt = [ varStrictType (mkName "ident") $
+        basic = [ varStrictType (mkName "ident") $
                  ns $
                  appT (appT [t|PK Int|] (conT typeName)) [t|"Формат VIN"|]
                , varStrictType (mkName "label") $
@@ -216,45 +203,35 @@ mkVinFormat formatFields =
         fields :: [(FF, (ExpQ, [VarStrictTypeQ]))]
         fields =
             map
-            (\ff@(FF fft (proj :: Contract -> F t n d)) ->
+            (\ff@(FF fft proj) ->
              let
                  acc = CF proj
-                 loadName     = name (undefined :: Load)     acc
-                 requiredName = name (undefined :: Required) acc
+                 -- Lack of Data instance for singletons means that we
+                 -- need to reconstruct singleton from the name of
+                 -- demoted value constructor.
+                 fallenFft :: FormatFieldType
+                 fallenFft = fromSing fft
              in
                (,) ff $ (,)
              [e|
               VFAcc
-              $(appE [e|Sing|] 
               $(appE [e|CF|] (varE $ mkName $ T.unpack $ fieldName proj))
-              $(appE [e|LoadAcc|] $ varE $ mkName loadName)
-              $(appE [e|RequiredAcc|] $ varE $ mkName requiredName)
+              $(sigE [e|sing|] $
+                appT [t|SFFT|] $ conT $ mkName $ showConstr $ toConstr fallenFft)
+              $(appE [e|FAcc|] (varE $ mkName (name loadParameter acc)))
+              $(appE [e|FAcc|] (varE $ mkName (name requiredParameter acc)))
+              $(appE [e|FAcc|] (varE $ mkName (name (titlePar fft) acc)))
               |] $
              -- fLoad,fRequired,fTitle(s) fields
-             [ mkAcc (undefined :: Load)     acc
-             , mkAcc (undefined :: Required) acc
+             [ mkAcc loadParameter acc
+             , mkAcc requiredParameter  acc
+             , mkAcc (titlePar fft) acc
              ]
-             ++
-             case fft of
-               Name -> [mkAcc (undefined :: Titles)  acc]
-               _    -> [mkAcc (undefined :: Title)       acc]
-             ++
-             -- Extra fCodeTitle field for Dealer fields, extra
-             -- fFormat field for Date fields
-             case fft of
-               Dealer -> [mkAcc (undefined :: CodeTitle)  acc]
-               Date   -> [mkAcc (undefined :: DateFormat) acc]
-               _      -> []
-             ++
-             -- Default field except for Subprogram
-             case fft of
-               Subprogram -> []
-               _          -> [mkAcc (undefined :: Default t) acc]
             )
             $
             formatFields
 
-        constructor = [recC typeName $ idnt ++ (concat $ map (snd . snd) fields)]
+        constructor = [recC typeName $ basic ++ (concat $ map (snd . snd) fields)]
 
         vfas = map (fst . snd) fields
     in do
@@ -265,16 +242,18 @@ mkVinFormat formatFields =
       return $ [d] ++ d'
 
 
+data FAccessor m t = forall n d. FAcc (m -> F t n d)
+
+
 -- | Base VinFormat accessors produced from a single source 'Contract'
--- field, common to all field types. Tagged with VinFormat type to
--- properly instantiate accessor types.
-data VFAccessor m where
-    VFAcc :: { tag      :: (SFormatFieldType a)
-             , proj     :: ContractField
-             -- ^ Original field @f@.
-             , load     :: ParamAcc Load m
-             -- ^ @fLoad@ accessor.
-             , required :: ParamAcc Required m
-             -- ^ @fRequired@ accessor.
---             , extras   :: (ExtraAccs a)
-             } -> VFAccessor m
+-- field, common to all field types.
+data VFAccessor m =
+    forall a.
+    VFAcc { proj     :: ContractField
+          , tag      :: SFFT a
+          -- ^ Original field @f@.
+          , load     :: FAccessor m Bool
+          -- ^ @fLoad@ accessor.
+          , required :: FAccessor m Bool
+          , title    :: FAccessor m (TitleParameter (SFFT a))
+          }
