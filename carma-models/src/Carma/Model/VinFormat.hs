@@ -3,7 +3,7 @@
 module Carma.Model.VinFormat
     ( VinFormat(..)
     , ContractField(..), FF(..)
-    , VFAccessor(..)
+    , FormatFieldAccessor(..)
     , vinFormatAccessors
     )
 
