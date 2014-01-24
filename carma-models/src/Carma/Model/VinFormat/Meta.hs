@@ -99,7 +99,7 @@ instance FFParameterI (SFFP Required) where
 
 instance FFParameterI (SFFP CodeTitle) where
     type ParamType (SFFP CodeTitle) = Maybe Text
-    nameFormat _ = "%sCodeTitle" 
+    nameFormat _ = "%sCodeTitle"
     descFormat _ = "Заголовок кода дилера для поля «%s»"
 
 instance FFParameterI (SFFP Title) where
@@ -122,9 +122,11 @@ name :: FFParameterI a => a -> ContractField -> String
 name a cf = fieldProjFormatter (\(CF f) -> T.unpack $ fieldName f) cf $
             nameFormat a
 
+
 desc :: FFParameterI a => a -> ContractField -> String
 desc a cf = fieldProjFormatter (\(CF f) -> T.unpack $ fieldDesc f) cf $
             descFormat a
+
 
 mkAcc :: forall a.
          FFParameterI a => a -> ContractField -> VarStrictTypeQ
@@ -168,7 +170,6 @@ type SFFT a = SFormatFieldType a
 class (FFParameterI (TitleParameter a)) => FFTypeI a where
     type TitleParameter a
     type TitleParameter a = (SFFP Title)
-
 
 instance FFTypeI (SFFT Raw)
 
@@ -272,11 +273,12 @@ mkVinFormat formatFields =
 data FAccessor m t = forall n d. FAcc (m -> F t n d)
 
 
--- | Base VinFormat accessors produced from a single source 'Contract'
--- field, common to all field types.
-data VFAccessor m =
+-- | A group of VinFormat accessors produced from a single source
+-- 'Contract' field; existential container for 'FormatFieldType'
+-- singleton value to enable type refinement of accessor types.
+data FormatFieldAccessor m =
     forall a.
-    VFAcc { proj     :: ContractField
+    FFAcc { proj     :: ContractField
           , tag      :: SFFT a
           -- ^ Original field @f@.
           , load     :: FAccessor m Bool
