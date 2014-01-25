@@ -1808,7 +1808,13 @@
             {"value": "Actyon Sports", "label": "Actyon Sports"},
             {"value": "Stavic", "label": "Stavic"},
             {"value": "Musso", "label": "Musso"},
-            {"value": "Rodius", "label": "Rodius"}
+            {"value": "Rodius", "label": "Rodius"},
+            {"value": "Korando", "label": "Korando"}
+        ],
+        "daf": [
+            {"value": "XF", "label": "XF"},
+            {"value": "CF", "label": "CF"},
+            {"value": "LF", "label": "LF"}
         ],
         "mini": [
             {"value": "One", "label": "One"}
