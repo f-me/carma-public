@@ -41,13 +41,13 @@ import Carma.Model.Contract (Contract)
 
 
 -- | Existential wrapper for 'Contract' field accessors.
-data ContractField where
+data ContractField t where
     CF :: (Typeable t, GHC.SingI n, GHC.SingI d) =>
-          (Contract -> F t n d) -> ContractField
+          (Contract -> F t n d) -> ContractField t
 
 
-fieldProjFormatter :: (ContractField -> String)
-                   -> ContractField
+fieldProjFormatter :: (ContractField t -> String)
+                   -> ContractField t
                    -> String
                    -- ^ 'printf' format.
                    -> String
@@ -75,6 +75,7 @@ data FormatFieldParameter = Load
                           | Title
                           | MultiTitles
                           | Format
+                          | Default
 
 $(genSingletons [''FormatFieldParameter])
 
@@ -83,10 +84,13 @@ type SFFP a = SFormatFieldParameter a
 
 -- | Minimal definition includes 'nameFormat' and 'descFormat'.
 class Typeable (ParamType a) => FFParameterI a where
+    paramTypeRep :: a -> ContractField t -> TypeRep
     type ParamType a
+
     nameFormat :: a -> String
     descFormat :: a -> String
 
+    paramTypeRep _ _ = typeOf (undefined :: ParamType a)
     type ParamType a = Bool
 
 instance FFParameterI (SFFP Load) where
@@ -117,19 +121,23 @@ instance FFParameterI (SFFP Format) where
     nameFormat _ = "%sFormat"
     descFormat _ = "Формат для поля «%s»"
 
+instance FFParameterI (SFFP Default) where
+    paramTypeRep _ (CF f) = fieldType f
+    nameFormat _ = "%sDefault"
+    descFormat _ = "Значение поля «%s» по умолчанию"
 
-name :: FFParameterI a => a -> ContractField -> String
+
+name :: FFParameterI a => a -> ContractField t -> String
 name a cf = fieldProjFormatter (\(CF f) -> T.unpack $ fieldName f) cf $
             nameFormat a
 
 
-desc :: FFParameterI a => a -> ContractField -> String
+desc :: FFParameterI a => a -> ContractField t -> String
 desc a cf = fieldProjFormatter (\(CF f) -> T.unpack $ fieldDesc f) cf $
             descFormat a
 
 
-mkAcc :: forall a.
-         FFParameterI a => a -> ContractField -> VarStrictTypeQ
+mkAcc :: FFParameterI a => a -> ContractField t -> VarStrictTypeQ
 mkAcc a cf =
     varStrictType (mkName n) $ ns $
     [t|
@@ -139,7 +147,7 @@ mkAcc a cf =
     where
       n = name a cf
       d = desc a cf
-      t = typeOf (undefined :: ParamType a)
+      t = paramTypeRep a cf
 
 
 -- | Semantic annotations for 'Contract' fields.
@@ -245,11 +253,13 @@ mkVinFormat formatFields =
                 appT [t|SFFT|] $ conT $ mkName $ showConstr $ toConstr fallenFft)
               $(appE [e|FAcc|] (varE $ mkName (name SLoad acc)))
               $(appE [e|FAcc|] (varE $ mkName (name SRequired acc)))
+              $(appE [e|FAcc|] (varE $ mkName (name SDefault acc)))
               $(appE [e|FAcc|] (varE $ mkName (name (titlePar fft) acc)))
               |] $
              -- fLoad,fRequired,fTitle(s) fields
              [ mkAcc SLoad acc
-             , mkAcc SRequired  acc
+             , mkAcc SRequired acc
+             , mkAcc SDefault acc
              , mkAcc (titlePar fft) acc
              ]
             )
@@ -277,12 +287,15 @@ data FAccessor m t = forall n d. FAcc (m -> F t n d)
 -- 'Contract' field; existential container for 'FormatFieldType'
 -- singleton value to enable type refinement of accessor types.
 data FormatFieldAccessor m =
-    forall a.
-    FFAcc { proj     :: ContractField
-          , tag      :: SFFT a
+    forall a t.
+    FFAcc { proj     :: ContractField t
           -- ^ Original field @f@.
-          , load     :: FAccessor m Bool
+          , tag      :: SFFT a
+          , load     :: FAccessor m (ParamType (SFFP Load))
           -- ^ @fLoad@ accessor.
-          , required :: FAccessor m Bool
+          , required :: FAccessor m (ParamType (SFFP Required))
+          -- ^ @fRequired@ accessor.
+          , def      :: FAccessor m t
+          -- ^ @fDefault@ accessor.
           , title    :: FAccessor m (ParamType (TitleParameter (SFFT a)))
           }
