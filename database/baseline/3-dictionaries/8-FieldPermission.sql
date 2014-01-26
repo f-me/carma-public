@@ -486,15 +486,6 @@ lovAdmin	VinFormat	lastCheckDealerTitle	t	t
 lovAdmin	VinFormat	lastCheckDealerCodeTitle	t	t
 lovAdmin	VinFormat	lastCheckDealerDefault	t	t
 lovAdmin	VinFormat	lastCheckDealerRequired	t	t
-lovAdmin	VinFormat	lastCheckMileageLoad	t	t
-lovAdmin	VinFormat	lastCheckMileageTitle	t	t
-lovAdmin	VinFormat	lastCheckMileageDefault	t	t
-lovAdmin	VinFormat	lastCheckMileageRequired	t	t
-lovAdmin	VinFormat	lastCheckDateLoad	t	t
-lovAdmin	VinFormat	lastCheckDateTitle	t	t
-lovAdmin	VinFormat	lastCheckDateFormat	t	t
-lovAdmin	VinFormat	lastCheckDateDefault	t	t
-lovAdmin	VinFormat	lastCheckDateRequired	t	t
 lovAdmin	VinFormat	checkPeriodLoad	t	t
 lovAdmin	VinFormat	checkPeriodTitle	t	t
 lovAdmin	VinFormat	checkPeriodDefault	t	t
