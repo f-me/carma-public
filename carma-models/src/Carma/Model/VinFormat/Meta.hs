@@ -280,7 +280,8 @@ mkVinFormat formatFields =
       return $ [d] ++ d'
 
 
-data FAccessor m t = forall n d. FAcc (m -> F t n d)
+data FAccessor m t = forall n d. (GHC.SingI n, GHC.SingI d) => FAcc (m -> F t n d)
+                   deriving Typeable
 
 
 -- | A group of VinFormat accessors produced from a single source
@@ -291,6 +292,8 @@ data FormatFieldAccessor m =
     FFAcc { proj     :: ContractField t
           -- ^ Original field @f@.
           , tag      :: SFFT a
+          -- ^ Original annotation. Pattern matching on this field
+          -- will refine types of extra parameters.
           , load     :: FAccessor m (ParamType (SFFP Load))
           -- ^ @fLoad@ accessor.
           , required :: FAccessor m (ParamType (SFFP Required))
