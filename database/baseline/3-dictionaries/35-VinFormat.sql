@@ -39,13 +39,13 @@ CREATE TABLE "VinFormat"
 
   , validSinceLoad           bool NOT NULL DEFAULT TRUE
   , validSinceTitle          text NOT NULL DEFAULT 'Дата регистрации в программе'
-  , validSinceFormat         text
+  , validSinceFormat         text NOT NULL DEFAULT 'DD.MM.YYYY'
   , validSinceDefault        date
   , validSinceRequired       bool NOT NULL DEFAULT TRUE
 
   , validUntilLoad           bool NOT NULL DEFAULT TRUE
   , validUntilTitle          text NOT NULL DEFAULT 'Программа действует до (Дата)'
-  , validUntilFormat         text
+  , validUntilFormat         text NOT NULL DEFAULT 'DD.MM.YYYY'
   , validUntilDefault        date
   , validUntilRequired       bool NOT NULL DEFAULT TRUE
 
@@ -96,7 +96,7 @@ CREATE TABLE "VinFormat"
 
   , buyDateLoad              bool NOT NULL DEFAULT TRUE
   , buyDateTitle             text NOT NULL DEFAULT 'Дата покупки'
-  , buyDateFormat            text
+  , buyDateFormat            text NOT NULL DEFAULT 'DD.MM.YYYY'
   , buyDateDefault           date
   , buyDateRequired          bool NOT NULL DEFAULT TRUE
 
