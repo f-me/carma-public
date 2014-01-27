@@ -280,3 +280,8 @@ table.dataTable tr.selected-row td.sorting_1 {
   -webkit-filter: blur(8px);
   -moz-filter: blur(8px);
 }
+
+.alert {
+  position: relative;
+  z-index: 1030;
+}

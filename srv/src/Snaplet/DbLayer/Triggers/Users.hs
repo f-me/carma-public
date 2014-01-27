@@ -68,8 +68,14 @@ updateUsermetaTrigger objId obj = do
       case uRes of
         Nothing -> error $ "Could not find user with uid=" ++ show uid
         Just user -> do
-             let newLogin = fromMaybe (userLogin user) (decodeUtf8 <$> login')
-                 pwAction = maybe return (flip setPassword) password'
+             let newLogin = case login' of
+                              Just "" -> error "Login not set"
+                              Just l  -> decodeUtf8 l
+                              Nothing -> userLogin user
+                 pwAction = case password' of
+                              Just "" -> error "Password not set"
+                              Just s  -> flip setPassword s
+                              Nothing -> return
              -- Save new user data
              uRes' <- with auth $ withBackend $
                       \bk -> liftIO $ save bk =<<
@@ -77,7 +83,8 @@ updateUsermetaTrigger objId obj = do
              case uRes' of
                Left e -> error $
                          "Could not save login/password for user: " ++ show e
-               Right _ -> return $ M.delete "password" obj
+               Right _ -> return $ M.insert "login" (encodeUtf8 newLogin) $
+                                   M.delete "password" obj
 
 
 -- | Depending on @isActive@ field value, produce a function which

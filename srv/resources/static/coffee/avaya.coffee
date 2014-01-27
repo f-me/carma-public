@@ -58,6 +58,7 @@ class @AvayaWidget
       $("#search-query").change()
 
       vm = global.viewsWare['call-form'].knockVM
+      vm.callDate(new Date().toString("dd.MM.yyyy HH:mm"))
       vm.callerName_phone1(number)
       info = lineInfo[line]
       if info
