@@ -4,6 +4,8 @@ define ["sync/metaq", "sync/datamap", "map"], (metaq, m, map) ->
       @api = "/search/services"
       @requestUrl = @api
       @model = @kvm._meta.model
+      @searchFields = @options.defaultSort.fields
+      @searchOrder  = @options.defaultSort.order
       @ftypes  = {}
       @ftypes[f.name] = f.type for f in @model.fields
       for f in @model.fields when not f.meta?.nosearch
@@ -24,18 +26,23 @@ define ["sync/metaq", "sync/datamap", "map"], (metaq, m, map) ->
       q = {}
       for f in @model.fields when @kvm[f.name]() and not f.meta?.nosearch
         q[f.name] = @kvm[f.name]()
-      req =  m.c2sObj(q, @ftypes)
-
+      preds =  m.c2sObj(q, @ftypes)
+      sorts = { fields: @searchFields, order: @searchOrder }
       # have nothing to search, maybe user delete value
       # return @kvm['searchResults']([]) if _.isEmpty req
       $.ajax
         url      : @requestUrl
         dataType : 'json'
         type     : 'POST'
-        data     : JSON.stringify req
+        data     : JSON.stringify { predicates: preds, sorts: sorts }
         success  : @successCb
         error    : @errorCb
         beforeSend : @showSpinner
+
+    sort: (fs, ord) ->
+      @searchFields = fs
+      @searchOrder  = ord
+      @_search()
 
     showSpinner: =>
       @kvm['searchResultsSpinner'] true

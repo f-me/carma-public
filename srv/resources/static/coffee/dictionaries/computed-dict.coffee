@@ -65,4 +65,10 @@ define ["dictionaries/local-dict"
 
     Priorities: => @source = [1..3].map (e) -> s=String(e);{value:s,label:s}
 
+    ExistDict: =>
+      @source = [ {label: "Не задано", value: "unspec" }
+                , {label: "Есть",      value: "yes"    }
+                , {label: "Нет",       value: "no"     }
+                ]
+
   dict: ComputedDict
