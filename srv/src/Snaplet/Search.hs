@@ -1,4 +1,8 @@
-{-# LANGUAGE QuasiQuotes, TemplateHaskell, ScopedTypeVariables #-}
+{-# LANGUAGE QuasiQuotes,
+             TemplateHaskell,
+             ScopedTypeVariables,
+             DeriveGeneric
+ #-}
 
 module Snaplet.Search (Search, searchInit)  where
 
@@ -22,6 +26,7 @@ import qualified Data.HashMap.Strict   as HM
 import Text.Printf
 
 import qualified Data.Aeson as Aeson
+import           Data.Aeson (FromJSON)
 
 import Snap.Core
 import Snap.Snaplet
@@ -29,21 +34,48 @@ import Snap.Snaplet.Auth
 import Database.PostgreSQL.Simple as PG
 import Database.PostgreSQL.Simple.SqlQQ
 
+import GHC.Generics
+
 import Util
 import Utils.HttpErrors
 
+import qualified Data.Model       as M
+import qualified Data.Model.Types as M
+
+import Carma.Model
 import Carma.Model.Case
 import Carma.Model.Service
 import Carma.Model.Service.Towage
 import Carma.Model.Search
 
+
 data Search b = Search
   {postgres :: Pool Connection
   ,_auth    :: Snaplet (AuthManager b)
   }
+
 makeLenses ''Search
 
 type SearchHandler b t = Handler b (Search b) t
+
+
+data SearchReq = SearchReq { predicates :: Aeson.Value
+                           , sorts      :: SearchSorts
+                           } deriving (Show, Generic)
+
+instance FromJSON SearchReq
+
+data SearchSorts = SearchSorts { fields :: [SimpleField]
+                               , order  :: Text
+                               } deriving (Show, Generic)
+
+instance FromJSON SearchSorts
+
+data SimpleField = SimpleField { name :: Text, model :: Text }
+                 deriving (Show, Generic)
+
+instance FromJSON SimpleField
+
 
 modelFields :: UserId -> Text -> PG.Connection -> IO [Text]
 modelFields uid modelName c
@@ -81,21 +113,33 @@ caseSearch = do
   lim      <- getLimit
   offset   <- getOffset
   args     <- getJsonBody
+  let fs = fields $ sorts args
+      ord = order $ sorts args
+      ms = map (\(SimpleField n m) -> (n, dispatch m getModelTable )) fs
+      ms' = T.intercalate ", " $ map (printOrder ord) ms
   withPG $ \c -> do
     cse_fields <- modelFields uid "case" c
     svc_fields <- modelFields uid "service" c
     tow_fields <- modelFields uid "towage" c
-    casePreds  <- predicatesFromParams c args caseSearchParams
-    srvPreds   <- predicatesFromParams c args serviceSearchParams
-    towPreds   <- predicatesFromParams c args towageSearchParams
+    casePreds  <- predicatesFromParams c (predicates args) caseSearchParams
+    srvPreds   <- predicatesFromParams c (predicates args) serviceSearchParams
+    towPreds   <- predicatesFromParams c (predicates args) towageSearchParams
     case partitionEithers [casePreds, srvPreds, towPreds] of
       ([], preds) -> do
-        s <- query_ c (mkQuery (concatPredStrings preds) lim offset)
+        s <- query_ c (mkQuery (concatPredStrings preds) lim offset (renderOrder ms'))
         let s' = map (filterResults cse_fields svc_fields tow_fields . parse) s
         return $ Right $ reply lim offset $ merge s'
       (errs, _) -> return $ Left $ foldl (++) "" errs
   where
     -- FIXME: do something so Postgresql.Simple can parse json to Aeson.Value
+    getModelTable :: forall m.Model m => m -> Text
+    getModelTable _ = M.tableName (M.modelInfo :: M.ModelInfo m)
+    printOrder o (n, t) = T.pack $ printf "%s.%s %s"
+                          (T.unpack $ fromJust t)
+                          (T.unpack n)
+                          (T.unpack o)
+    renderOrder "" = ""
+    renderOrder v = T.pack $ printf "ORDER BY %s" $ T.unpack v
     parse (a, b, c) =
       (fromMaybe (Aeson.object []) $ Aeson.decode a
       ,Aeson.decode (fromMaybe "" b)
@@ -123,8 +167,8 @@ search :: SearchHandler b (Either String Aeson.Value) -> SearchHandler b ()
 search = (>>= either (finishWithError 500) writeJSON)
 
 
-mkQuery :: Text -> Int -> Int -> Query
-mkQuery pred lim offset
+mkQuery :: Text -> Int -> Int -> Text -> Query
+mkQuery pred lim offset ord
   = fromString $ printf
       (  "    select row_to_json(casetbl.*)    :: text,"
       ++ "           row_to_json(servicetbl.*) :: text,"
@@ -133,9 +177,9 @@ mkQuery pred lim offset
       ++ "       on split_part(servicetbl.parentId, ':', 2)::int = casetbl.id"
       ++ "     left join towagetbl"
       ++ "       on servicetbl.id = towagetbl.id"
-      ++ "     where (%s) limit %i offset %i;"
+      ++ "     where (%s) %s limit %i offset %i;"
       )
-      (T.unpack pred) lim offset
+      (T.unpack pred)  (T.unpack ord) lim offset
 
 
 searchInit
@@ -159,7 +203,7 @@ reply lim offset val =
 withPG :: (Connection -> IO a) -> SearchHandler b a
 withPG f = gets postgres >>= liftIO . (`withResource` f)
 
-getJsonBody :: SearchHandler b Aeson.Value
+getJsonBody :: Aeson.FromJSON v => SearchHandler b v
 getJsonBody = Util.readJSONfromLBS <$> readRequestBody 4096
 
 getLimit :: SearchHandler b Int

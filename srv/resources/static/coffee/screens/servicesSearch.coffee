@@ -74,7 +74,10 @@ define [ "utils"
 
     searchKVM.searchResults = SUtils.mkResultObservable searchKVM, ssmodels
 
-    q = new sync.ServicesSearchQ(searchKVM)
+    q = new sync.ServicesSearchQ searchKVM,
+      defaultSort:
+        fields: [ { model: "Case", name: "id" } ]
+        order: "desc"
     searchKVM._meta.q = q
 
     ko.applyBindings { kvm: searchKVM, wrapFields: "search-wrap"},
@@ -96,15 +99,19 @@ define [ "utils"
       ]
 
     ctx =
-      kvms: ko.sorted
-        kvms: searchKVM.searchResults
-        sorters: mutils.buildSorters(model)
+      kvms: searchKVM.searchResults
       showFields: rfields
       searchKVM: searchKVM
 
+    searchKVM.searchResults.set_sorter = (name, ord) -> searchKVM.sort(name, ord)
+
+    searchKVM.sort = (fname, ord) ->
+      fs = arrToObj 'name', searchKVM._meta.model.fields, (v) -> v.meta.search?.original
+      searchKVM._meta.q.sort(fs[fname], ord)
+
     ko.applyBindings ctx, $("#search-results")[0]
 
-    state = {kvm: searchKVM, pager: searchKVM._meta.pager }
+    state = { kvm: searchKVM, pager: searchKVM._meta.pager }
     State.load state
 
     State.persistKVM 'kvm', state
