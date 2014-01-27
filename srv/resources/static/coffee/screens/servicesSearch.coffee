@@ -87,12 +87,12 @@ define [ "utils"
     tg = smodel.transformFields searchKVM, ssmodels
     rfields = smodel.mkFieldsDynView searchKVM, tg,
       [ { name: 'Case_id', fixed: true }
-      , { name: 'contact'       }
-      , { name: 'callDate'      }
-      , { name: 'phone' }
-      , { name: 'plateNum'  }
-      , { name: 'vin'       }
-      , { name: 'program'       }
+      , { name: 'contact'              }
+      , { name: 'callDate'             }
+      , { name: 'phone'                }
+      , { name: "comment"              }
+      , { name: 'vin'                  }
+      , { name: 'program'              }
       ]
 
     ctx =
