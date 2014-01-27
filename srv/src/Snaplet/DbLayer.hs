@@ -164,7 +164,6 @@ initDbLayer sessionMgr adb rtF cfgDir = makeSnaplet "db-layer" "Storage abstract
     liftIO $ withLog l $ log Info "Server started"
     rels <- liftIO $ Postgres.loadRelations "resources/site-config/syncs.json" l
     tbls <- liftIO $ MT.loadTables "resources/site-config/models" "resources/site-config/field-groups.json"
-    liftIO $ Postgres.createIO tbls l
     cfg <- getSnapletUserConfig
     wkey <- liftIO $ lookupDefault "" cfg "weather-key"
 
