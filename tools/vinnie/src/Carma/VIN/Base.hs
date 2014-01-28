@@ -12,7 +12,8 @@ Transformer wrappers
 {-# LANGUAGE StandaloneDeriving #-}
 
 module Carma.VIN.Base
-    ( Import
+    ( ColumnTitle
+    , Import
     , Options(..)
     , ImportContext(..)
     , ImportError(..)
@@ -34,6 +35,7 @@ import Control.Monad.Trans.Reader
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Writer
 
+import Data.Text (Text)
 import Database.PostgreSQL.Simple
 
 import Data.Model
@@ -47,6 +49,9 @@ import Carma.Model.VinFormat  (VinFormat)
 
 
 deriving instance Data ConnectInfo
+
+
+type ColumnTitle = Text
 
 
 data Options = Options
@@ -71,12 +76,19 @@ data ImportContext = ImportContext
 
 -- | Critical VIN import errors which result in the whole process
 -- being interrupted.
-data ImportError = IE String
-                 | ConnectionFailed
+data ImportError = ConnectionFailed
                  | NoTarget
+                 | NoHeader
                  | UnknownVinFormat
-                   deriving Show
-
+                 | NoColumn Text [ColumnTitle]
+                 -- ^ The file misses one or several columns for a
+                 -- loadable required field.
+                 | DuplicateColumn Text
+                 -- ^ A loadable column is present more than once in
+                 -- the file.
+                 | NoTitle Text
+                 -- ^ Loadable required field has empty column title.
+                 deriving Show
 
 instance Error ImportError
 

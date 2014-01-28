@@ -19,12 +19,19 @@ executable vinnie
 
   build-depends:
     base              >= 4.6 && < 4.7,
-    carma-models      >= 0.8 && < 0.9,
+    blaze-builder     == 0.3.*,
+    bytestring        == 0.10.*,
+    carma-models      >= 0.8.2 && < 0.9,
     cmdargs           == 0.10.*,
+    conduit           == 1.0.*,
+    containers        == 0.5.*,
+    csv-conduit       == 0.5.*,
     lifted-base       == 0.2.*,
     monad-control     == 0.3.*,
     postgresql-simple == 0.3.*,
-    transformers      == 0.3.*
+    text              == 0.11.*,
+    transformers      == 0.3.*,
+    vector            == 0.10.*
 
   ghc-options:         -Wall
   hs-source-dirs:      src
