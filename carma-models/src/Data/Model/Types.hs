@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 
 module Data.Model.Types where
 
@@ -42,6 +43,11 @@ data FOpt (name :: Symbol) (desc :: Symbol) = FOpt
 data Field typ opt = Field
 type F t n d = Field t (FOpt n d)
 type PK t m n = Field (Ident t m) (FOpt "id" n)
+
+
+-- | Common constraint for higher-rank functions using field
+-- accessors.
+type FieldI t (n :: Symbol) (d :: Symbol) = (Typeable t, SingI n, SingI d) 
 
 
 data ModelInfo m = ModelInfo

@@ -2,8 +2,10 @@
 
 module Carma.Model.VinFormat
     ( VinFormat(..)
-    , ContractField(..), FF(..)
+    , Sing(..)
+    , ContractField(..)
     , FormatFieldAccessor(..)
+    , FormatFieldType(..)
     , vinFormatAccessors
     )
 
@@ -55,8 +57,6 @@ mkVinFormat  [ FF SName   Contract.name
              , FF SDate   Contract.buyDate
              , FF SDealer Contract.seller
              , FF SDealer Contract.lastCheckDealer
-             , FF SNumber Contract.lastCheckMileage
-             , FF SDate   Contract.lastCheckDate
              , FF SNumber Contract.checkPeriod
              , FF SDict   Contract.checkType
              , FF SRaw    Contract.orderNumber
