@@ -91,7 +91,7 @@ ffaTitles (FFAcc _ sTag _ _ _ tAcc) vf =
                  SPhone      -> textProj
                  SDate       -> textProj
                  SDict       -> textProj
-                 SDealer     -> textProj
+                 SDealer     -> vecProj
                  SSubprogram -> textProj
                  SName       -> vecProj
     in

@@ -73,7 +73,6 @@ typeRepToType tr =
 -- | VIN format field parameter.
 data FormatFieldParameter = Load
                           | Required
-                          | CodeTitle
                           | Format
                           | Default
 
@@ -107,11 +106,6 @@ instance FFParameterI (SFFP Load) where
 instance FFParameterI (SFFP Required) where
     nameFormat _ = "%sRequired"
     descFormat _ = "Поле «%s» обязательно"
-
-instance FFParameterI (SFFP CodeTitle) where
-    type ParamType (SFFP CodeTitle) = Maybe Text
-    nameFormat _ = "%sCodeTitle"
-    descFormat _ = "Заголовок кода дилера для поля «%s»"
 
 instance FFParameterI (SFFL Title) where
     type ParamType (SFFL Title) = Text
@@ -200,7 +194,8 @@ instance FFTypeI (SFFT Name) where
 
 instance FFTypeI (SFFT Dict)
 
-instance FFTypeI (SFFT Dealer)
+instance FFTypeI (SFFT Dealer) where
+    type TitleParameter (SFFT Dealer) = (SFFL MultiTitles)
 
 instance FFTypeI (SFFT Subprogram)
 
