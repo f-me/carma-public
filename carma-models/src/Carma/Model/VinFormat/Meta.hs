@@ -287,7 +287,7 @@ data FormatFieldAccessor m =
     forall a n1 d1 n2 d2 t n3 d3 n4 d4.
     (FieldI (ParamType (SFFP Load)) n1 d1,
      FieldI (ParamType (SFFP Required)) n2 d2,
-     ToField t, FieldI t n3 d3,
+     ToField t, Typeable t, FieldI t n3 d3,
      FieldI (ParamType (TitleParameter (SFFT a))) n4 d4) =>
     FFAcc { cf       :: ContractField t
           -- ^ Original field @f@.

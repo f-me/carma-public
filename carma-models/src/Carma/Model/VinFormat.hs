@@ -1,4 +1,5 @@
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Carma.Model.VinFormat
@@ -9,12 +10,14 @@ module Carma.Model.VinFormat
     , FormatFieldType(..)
     , vinFormatAccessors
     , ffaTitles
+    , identModelName
     )
 
 where
 
-import Data.Text
-import Data.Vector
+import Data.Text (Text, pack)
+import Data.Typeable
+import Data.Vector (Vector, toList)
 
 import Data.Model
 import Data.Model.Patch as Patch
@@ -96,3 +99,14 @@ ffaTitles (FFAcc _ sTag _ _ _ tAcc) vf =
                  SSubprogram -> textProj
     in
       proj $ Patch.get' vf tAcc
+
+
+-- | Extract target model name from an ident field (@Maybe (IdentI Model)@).
+--
+-- TODO Include TypeRep of the target model in FormatFieldAccessor
+-- when SDict is speciifed.
+identModelName :: forall m t n d. Typeable t => (m -> F t n d) -> Text
+identModelName _ =
+    pack $ show $
+    head $ tail $ typeRepArgs $
+    head $ typeRepArgs $ typeOf (undefined :: t)
