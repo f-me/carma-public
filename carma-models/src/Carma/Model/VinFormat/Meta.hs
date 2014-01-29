@@ -162,9 +162,9 @@ data FormatFieldType = Raw
                      | Phone
                      -- ^ Store as text after stripping non-digits and
                      -- leading plus sign.
-                     | Date
                      | Name
                      -- ^ Concatenate several columns and store as is.
+                     | Date
                      | Dict
                      | Dealer
                      | Subprogram
@@ -289,7 +289,7 @@ data FormatFieldAccessor m =
      FieldI (ParamType (SFFP Required)) n2 d2,
      ToField t, FieldI t n3 d3,
      FieldI (ParamType (TitleParameter (SFFT a))) n4 d4) =>
-    FFAcc { proj     :: ContractField t
+    FFAcc { cf       :: ContractField t
           -- ^ Original field @f@.
           , tag      :: SFFT a
           -- ^ Original annotation. Pattern matching on this field

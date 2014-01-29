@@ -89,10 +89,10 @@ ffaTitles (FFAcc _ sTag _ _ _ tAcc) vf =
                  SRaw        -> textProj
                  SNumber     -> textProj
                  SPhone      -> textProj
+                 SName       -> vecProj
                  SDate       -> textProj
                  SDict       -> textProj
                  SDealer     -> vecProj
                  SSubprogram -> textProj
-                 SName       -> vecProj
     in
       proj $ Patch.get' vf tAcc
