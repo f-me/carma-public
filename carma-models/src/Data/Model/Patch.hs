@@ -2,10 +2,11 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Data.Model.Patch
-  (Patch, untypedPatch
-  ,get
-  ) where
+    ( Patch, untypedPatch
+    , get, get'
+    )
 
+where
 
 import Control.Applicative
 import Data.Aeson.Types
@@ -31,6 +32,13 @@ get
 get (Patch m) f
   = fromJust . fromDynamic
   <$> HashMap.lookup (fieldName f) m
+
+
+get'
+  :: (Typeable t, SingI name)
+  => Patch m -> (m -> Field t (FOpt name desc)) -> t
+get' p f
+  = fromJust $ get p f
 
 
 instance Model m => FromJSON (Patch m) where
