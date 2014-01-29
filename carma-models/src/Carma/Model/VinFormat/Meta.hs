@@ -205,14 +205,11 @@ instance FFTypeI (SFFT Dealer)
 instance FFTypeI (SFFT Subprogram)
 
 
-titlePar :: (FFTypeI a) => a -> TitleParameter a
-titlePar = undefined
-
-
 -- | Annotated field of the 'Contract' model.
 data FF where
-    FF :: forall a t n d.
-          (FFTypeI (SFFT a), ToField t, FieldI t n d) =>
+    FF :: forall a v t n d.
+          (FFTypeI (SFFT a), TitleParameter (SFFT a) ~ SFFL v, SingI v,
+           ToField t, FieldI t n d) =>
           (SFFT a) -> (Contract -> F t n d) -> FF
 
 
@@ -240,10 +237,10 @@ mkVinFormat formatFields =
         -- Use specified fields of 'Contract' model in constructor.
         -- Collect accessors that were produced from every source
         -- field.
-        fields :: [(FF, (ExpQ, [VarStrictTypeQ]))]
+        fields :: [(ExpQ, [VarStrictTypeQ])]
         fields =
             map
-            (\ff@(FF fft proj) ->
+            (\(FF (fft :: SFFT a) proj) ->
              let
                  acc = CF proj
                  -- Lack of Data instance for singletons means that we
@@ -251,8 +248,9 @@ mkVinFormat formatFields =
                  -- demoted value constructor.
                  fallenFft :: FormatFieldType
                  fallenFft = fromSing fft
+                 titleSing = sing :: TitleParameter (SFFT a)
              in
-               (,) ff $ (,)
+               (,)
              [e|
               FFAcc
               $(appE [e|CF|] (varE $ mkName $ T.unpack $ fieldName proj))
@@ -261,13 +259,13 @@ mkVinFormat formatFields =
               $(varE $ mkName (name SLoad acc))
               $(varE $ mkName (name SRequired acc))
               $(varE $ mkName (name SDefault acc))
-              $(varE $ mkName (name (titlePar fft) acc))
+              $(varE $ mkName (name titleSing acc))
               |] $
              -- fLoad,fRequired,fTitle(s) fields
              [ mkAcc SLoad acc
              , mkAcc SRequired acc
              , mkAcc SDefault acc
-             , mkAcc (titlePar fft) acc
+             , mkAcc titleSing acc
              ]
             )
             $
@@ -275,10 +273,10 @@ mkVinFormat formatFields =
 
         constructor = [recC typeName $
                        basic ++
-                       (concat $ map (snd . snd) fields)
+                       (concat $ map snd fields)
                       ]
 
-        vfas = map (fst . snd) fields
+        vfas = map fst fields
     in do
       d  <- dataD (cxt []) typeName [] constructor [''Typeable]
       d' <- [d|
@@ -293,8 +291,8 @@ mkVinFormat formatFields =
 data FormatFieldAccessor m =
     forall a n1 d1 n2 d2 t n3 d3 n4 d4.
     (FieldI (ParamType (SFFP Load)) n1 d1,
-     FieldI (ParamType (SFFP Required)) n2 d2, 
-     ToField t, FieldI t n3 d3, 
+     FieldI (ParamType (SFFP Required)) n2 d2,
+     ToField t, FieldI t n3 d3,
      FieldI (ParamType (TitleParameter (SFFT a))) n4 d4) =>
     FFAcc { proj     :: ContractField t
           -- ^ Original field @f@.

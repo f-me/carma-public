@@ -1,3 +1,4 @@
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Carma.Model.VinFormat
@@ -7,15 +8,17 @@ module Carma.Model.VinFormat
     , FormatFieldAccessor(..)
     , FormatFieldType(..)
     , vinFormatAccessors
+    , ffaTitles
     )
 
 where
 
 import Data.Text
+import Data.Vector
 
 import Data.Model
+import Data.Model.Patch as Patch
 import Data.Model.View
-import Data.Vector
 
 import Carma.Model.Types (TInt)
 
@@ -70,3 +73,26 @@ instance Model VinFormat where
   type TableName VinFormat = "VinFormat"
   modelInfo = mkModelInfo VinFormat ident
   modelView _ = defaultView
+
+
+-- | Export a list of titles from a field.
+--
+-- TODO Refactor this so that we can match on TitleParameter singleton
+-- (requires witness that TitleParameter (SFFT a) ~ SFFL v).
+ffaTitles :: FormatFieldAccessor VinFormat -> Patch.Patch VinFormat -> [Text]
+ffaTitles (FFAcc _ sTag _ _ _ tAcc) vf =
+    let
+        textProj "" = []
+        textProj t  = [t]
+        vecProj v = Prelude.filter (/= "") $ toList v
+        proj = case sTag of
+                 SRaw        -> textProj
+                 SNumber     -> textProj
+                 SPhone      -> textProj
+                 SDate       -> textProj
+                 SDict       -> textProj
+                 SDealer     -> textProj
+                 SSubprogram -> textProj
+                 SName       -> vecProj
+    in
+      proj $ Patch.get' vf tAcc
