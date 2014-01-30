@@ -6,3 +6,6 @@ create index actiontbl_duetime_full_idx on actiontbl (duetime);
 
 DROP INDEX IF EXISTS casetbl_city_idx;
 create index casetbl_city_idx on casetbl (city);
+
+DROP INDEX IF EXISTS casetbl_legacyid_idx;
+create index casetbl_legacyid_idx on casetbl  (('case:' || casetbl.id));
