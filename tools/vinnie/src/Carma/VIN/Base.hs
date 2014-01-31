@@ -104,19 +104,13 @@ type Import =
 runImport :: Import a -> Options -> IO (Either ImportError a)
 runImport act opts =
     flip runReaderT opts $ runErrorT $ do
-      -- Check if we will be able to obtain a subprogram to store
-      -- contracts in.
-      (,) <$> (lift $ asks program) <*> (lift $ asks subprogram) >>=
-        \case
-        (Nothing, Nothing) -> throwError NoTarget
-        (_, _)     -> do
-          fid <- lift $ asks format
-          -- Close connection when short-circuiting Import monad
-          liftBaseOp (bracket
-                      (connect $ cInfo opts)
-                      (\c -> close c)) $
-                      \c -> do
-                        vf <- liftIO $ Patch.read (Ident fid) c
-                        case vf of
-                          (vf':_) -> runReaderT act $ ImportContext c vf'
-                          _       -> throwError UnknownVinFormat
+      fid <- lift $ asks format
+      -- Close connection when short-circuiting Import monad
+      liftBaseOp (bracket
+                  (connect $ cInfo opts)
+                  (\c -> close c)) $
+                  \c -> do
+                    vf <- liftIO $ Patch.read (Ident fid) c
+                    case vf of
+                      (vf':_) -> runReaderT act $ ImportContext c vf'
+                      _       -> throwError UnknownVinFormat

@@ -10,6 +10,7 @@ module Carma.VIN
 
 where
 
+import           Control.Applicative
 import           Control.Monad
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Class
@@ -37,14 +38,17 @@ import qualified Data.Text as T
 import           Data.Typeable
 import           Data.Vector as Vector (Vector, toList)
 import           Database.PostgreSQL.Simple
+import           Database.PostgreSQL.Simple.SqlQQ
 import           Database.PostgreSQL.Simple.Copy
 
 import           System.IO
 
 import           Data.Model
 import           Data.Model.Patch as Patch
-import           Carma.Model.VinFormat
 import           Carma.Model.LegalForm
+import           Carma.Model.Program
+import           Carma.Model.SubProgram
+import           Carma.Model.VinFormat
 
 import           Carma.VIN.Base
 import           Carma.VIN.SQL
@@ -88,7 +92,17 @@ skipBomInputHandle fileName = do
 
 -- | Get loadable fields of a format.
 loadable :: C VinFormat -> [FFA] -> [FFA]
-loadable vf = filter (\(FFAcc _ _ l _ _ _) -> Patch.get' vf l)
+loadable vf =
+    filter (\(FFAcc _ _ l _ _ _) -> Patch.get' vf l)
+
+
+-- | Check if a subprogram field is loadable.
+hasSubprogram :: C VinFormat -> [FFA] -> Bool
+hasSubprogram vf ffas = 
+    any (\case
+         (FFAcc _ SSubprogram _ _ _ _) -> True
+         _                             -> False) $
+    loadable vf ffas
 
 
 -- | Binds internal names and format accessors.
@@ -155,29 +169,31 @@ tmpDir = "/tmp"
 
 process :: Options
         -> ImportContext
+        -> (Int, Maybe Int)
+        -- ^ Program & subprogram ids.
         -> ([(ColumnTitle, InternalName)], [FFMapper])
         -- ^ Total column mapping and loadable fields mapping.
-        -> Connection
         -> IO ()
-process options context mapping conn = do
+process options context psid mapping = do
   let input           = infile options
       uid             = committer options
       vf              = vinFormat context
+      conn            = connection context
       interMap        = fst mapping
       internalHeadRow = map snd interMap
 
-  -- Read CSV into proto table
   execute_ conn $ makeProtoTable internalHeadRow
   execute_ conn installFunctions
+  execute_ conn makeQueueTable
+
+  -- Read CSV into proto table
   copy_ conn copyProtoStart
   BL.readFile input >>= mapM_ (putCopyData conn) . BL.toChunks
   res <- putCopyEnd conn
 
-  execute_ conn makeQueueTable
-
   -- Process in proto table, which matches CSV columns.
   let (protoActions, transferChunks :: [(Text, Text)]) =
-          unzip $ map (processField conn) $ snd mapping
+          unzip $ map (processField conn psid) $ snd mapping
   sequence_ protoActions
 
   -- Transfer to queue table, which matches Contract schema.
@@ -204,6 +220,7 @@ process options context mapping conn = do
                     execute conn markEmptyRequired (EmptyRequired fd, PT fn) >>
                     pass)
 
+  -- Set committer for contracts in queue
   execute conn setCommitter (Only uid)
 
   let contractNames =
@@ -211,6 +228,7 @@ process options context mapping conn = do
                 fieldName c) vinFormatAccessors)
       pt2 s = (PT $ sqlCommas s, PT $ sqlCommas s)
 
+  -- Finally, write new contracts to live table
   execute conn deleteDupes $ pt2 contractNames
   execute conn transferContracts $ pt2 $ "committer":contractNames
 
@@ -223,11 +241,15 @@ pass = return ()
 
 -- | Produce actions for proto processing and bits for proto-to-queue
 -- transfer.
-processField :: Connection -> FFMapper -> (IO (), (Text, Text))
-processField conn (FM iname (FFAcc (CF c) stag _ _ defAcc _) cols) =
+processField :: Connection
+             -> (Int, Maybe Int)
+             -- ^ Program & subprogram ids.
+             -> FFMapper
+             -> (IO (), (Text, Text))
+processField conn (pid, sid) (FM iname (FFAcc (CF c) stag _ _ defAcc _) cols) =
     case stag of
       SNumber ->
-          ( void $ protoUpdateWithFun conn iname 
+          ( void $ protoUpdateWithFun conn iname
             "regexp_replace" [iname, "'\\D'", "''", "'g'"]
           , (fn, sqlCast iname "int"))
       SPhone ->
@@ -251,6 +273,12 @@ processField conn (FM iname (FFAcc (CF c) stag _ _ defAcc _) cols) =
             protoUpdateWithFun conn iname "pg_temp.numordead" [iname] >>
             pass
           , (fn, sqlCast iname "int"))
+      SSubprogram ->
+          ( -- Try to recognize references to subprograms
+            protoSubprogramLookup conn pid sid iname  >>
+            protoUpdateWithFun conn iname "pg_temp.numordead" [iname] >>
+            pass
+          , (fn, sqlCast iname "int"))
       SDealer ->
           ( -- Try to recognize partner names/codes in all columns
             (forM_ allNames
@@ -270,8 +298,21 @@ vinImport :: Import ()
 vinImport = do
   vf <- asks vinFormat
   conn <- asks connection
+  (pid, sid) <- (,) <$> (getOption program) <*> (getOption subprogram)
   input <- getOption infile
   output <- getOption outfile
+
+  -- Figure out program id if only subprogram is provided.
+  (pid', sid') <-
+      case (pid, sid) of
+        (Nothing, Nothing) -> throwError NoTarget
+        (Just p,  Nothing) -> return (p, sid)
+        (_     ,  Just s)  -> do
+            res <- liftIO $ getProgram conn s
+            case res of
+              [Only p] -> return (p, Just s)
+              _        -> throwError NoTarget
+
 
   -- Read head row to find out original column order
   hr <- liftIO $ (runResourceT $
@@ -284,6 +325,12 @@ vinImport = do
     Just headRow -> do
         -- TODO Error on duplicate loadable columns
         mapping <- processTitles vf headRow
+        -- Fail if a specific subprogram is not set and it's not
+        -- loadable either. We check against the actual set of file
+        -- columns, not the format.
+        when (not $ (isJust sid') ||
+              (hasSubprogram vf $ map ffa $ snd mapping)) $
+             throwError NoTarget
         ctx <- ask
         opts <- lift $ lift $ ask
-        liftIO $ process opts ctx mapping conn
+        liftIO $ process opts ctx (pid', sid') mapping

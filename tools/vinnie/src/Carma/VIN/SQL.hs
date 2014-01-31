@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 module Carma.VIN.SQL
@@ -16,9 +17,11 @@ import qualified Data.Text as T
 import           Database.PostgreSQL.Simple
 import           Database.PostgreSQL.Simple.SqlQQ
 import           Database.PostgreSQL.Simple.ToField
+import           Database.PostgreSQL.Simple.ToRow
 
 import           Data.Model
 import           Carma.Model.Partner
+import           Carma.Model.Program
 import           Carma.Model.SubProgram
 
 import           Carma.VIN.Base
@@ -29,16 +32,28 @@ import           Carma.VIN.Base
 type InternalName = T.Text
 
 
+-- | Works almost like '(:.)' for 'ToField' instances. Start with `()`
+-- and append as many fields as needed:
+--
+-- > () :* f1 :* f2 :* f3
+--
+-- Initial `()` saves the type hassle.
+--
+-- This is copied from carma's Snaplet.Geo
+data a :* b = a :* b deriving (Eq, Ord, Show, Read)
+
+infixl 3 :*
+
+instance (ToRow a, ToField b) => ToRow (a :* b) where
+    toRow (a :* b) = toRow $ a :. (Only b)
+
+
 -- | Produce unique internal names from a CSV header.
 mkInternalNames :: [ColumnTitle] -> [InternalName]
 mkInternalNames ns =
     Data.List.take (length ns) $
     map (\(tpl, num) -> fromString (tpl ++ show num)) $
     zip (repeat "field") ([1..] :: [Int])
-
-
-subProgramTable :: T.Text
-subProgramTable = tableName $ (modelInfo :: ModelInfo SubProgram)
 
 
 -- | First argument of @concat_ws@, quoted.
@@ -52,6 +67,17 @@ sqlCast val t = T.concat [val, "::", t]
 
 sqlCommas :: [T.Text] -> T.Text
 sqlCommas ts = T.intercalate "," ts
+
+
+getProgram :: Connection -> Int -> IO [Only Int]
+getProgram conn sid =
+    query conn
+    [sql|
+     SELECT p.id FROM "?" p, "?" s
+     WHERE p.id = s.parent AND s.id = ?;
+     |] ( PT $ tableName $ (modelInfo :: ModelInfo Program)
+        , PT $ tableName $ (modelInfo :: ModelInfo SubProgram)
+        , sid)
 
 
 makeProtoTable :: [InternalName] -> Query
@@ -83,6 +109,7 @@ protoUpdateWithFun conn iname fun args =
 
 
 -- | Replace dictionary label references with dictionary element ids.
+-- Clear bad references.
 --
 -- TODO Eliminate the need for 3 identical query parameters.
 protoDictLookup :: Connection
@@ -114,7 +141,8 @@ protoDictLookup conn iname dictModelName =
         , PT iname)
 
 
--- | Replace partner label/code references with partner ids.
+-- | Replace partner label/code references with partner ids. Clear bad
+-- references.
 protoPartnerLookup :: Connection
                    -> InternalName
                    -> IO Int64
@@ -141,6 +169,48 @@ protoPartnerLookup conn iname =
         , PT iname)
         where
           partnerTable = tableName $ (modelInfo :: ModelInfo Partner)
+
+
+-- | Replace subprogram label references with subprogram ids. Only
+-- children of a provided program are selected. If no reference found,
+-- default to a provided subprogram .
+protoSubprogramLookup :: Connection
+                      -> Int
+                      -- ^ Program id.
+                      -> Maybe Int
+                      -- ^ Default subprogram id.
+                      -> InternalName
+                      -> IO Int64
+protoSubprogramLookup conn pid sid iname =
+    execute conn
+    [sql|
+     UPDATE vinnie_proto SET ?=? WHERE ? NOT IN
+     (SELECT
+      lower(trim(both ' ' from name))
+      FROM "?" s, "?" p WHERE s.parent = p.id AND p.id = ?);
+
+     WITH dict AS
+     (SELECT id AS did,
+      lower(trim(both ' ' from name, code)) AS label
+      FROM "?" s, "?" p WHERE s.parent = p.id)
+     UPDATE vinnie_proto SET ? = dict.did
+     FROM dict WHERE length(lower(trim(both ' ' from ?))) > 0 AND
+                     dict.label=lower(trim(both ' ' from ?));
+     |] (()
+         :* PT iname
+         :* sid
+         :* PT iname
+         :* PT subProgramTable
+         :* PT programTable
+         :* pid
+         :* PT subProgramTable
+         :* PT programTable
+         :* PT iname
+         :* PT iname
+         :* PT iname)
+        where
+          programTable = tableName $ (modelInfo :: ModelInfo Program)
+          subProgramTable = tableName $ (modelInfo :: ModelInfo SubProgram)
 
 
 -- | TODO Move @lower(trim(both ' ' from $1))@ to functions (when the
@@ -245,8 +315,11 @@ instance ToField PlainText where
 
 
 data RowError = EmptyRequired Text
+              | NoSubprogram
                 deriving Show
 
 instance ToField RowError where
     toField (EmptyRequired t) =
         toField $ T.concat ["Обязательное поле «", t, "» не распознано"]
+    toField NoSubprogram =
+        toField $ T.concat ["Подпрограмма не распознана"]
