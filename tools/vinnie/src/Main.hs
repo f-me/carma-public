@@ -1,8 +1,6 @@
-import Control.Monad
-import Data.Functor
+{-| CLI runner for VINNIE. -}
 
 import Database.PostgreSQL.Simple
-import Database.PostgreSQL.Simple.Copy
 
 import System.Console.CmdArgs.Implicit
 
@@ -10,9 +8,12 @@ import Carma.VIN
 import Carma.VIN.Base hiding            (program)
 import qualified Carma.VIN.Base as Base (program)
 
+
 programName :: String
 programName = "vinnie"
 
+
+main :: IO ()
 main = do
   let
         sample = Options

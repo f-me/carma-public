@@ -223,84 +223,42 @@ pass = return ()
 
 -- | Produce actions for proto processing and bits for proto-to-queue
 -- transfer.
---
--- TODO Should probably hide chunks of SQL function calls in
--- Carma.VIN.SQL module.
 processField :: Connection -> FFMapper -> (IO (), (Text, Text))
 processField conn (FM iname (FFAcc (CF c) stag _ _ defAcc _) cols) =
     case stag of
       SNumber ->
-          ( void $ execute conn protoUpdate
-            ( PT iname
-            , PT $ T.concat ["regexp_replace("
-                            , iname
-                            , ",'\\D','','g')"
-                            ])
+          ( void $ protoUpdateWithFun conn iname 
+            "regexp_replace" [iname, "'\\D'", "''", "'g'"]
           , (fn, sqlCast iname "int"))
       SPhone ->
-          ( void $ execute conn protoUpdate
-             ( PT iname
-             , PT $ T.concat ["concat('+',regexp_replace("
-                             , iname
-                             , ",'\\D','','g'))"
-                             ])
+          ( void $ protoUpdateWithFun conn iname
+            "'+'||regexp_replace" [iname, "'\\D'", "''", "'g'"]
           , (fn, sqlCast iname "text"))
       SName ->
           ( case cols of
-              -- Concatenate all columns into the first one
-              Just l@(_:_) ->
-                  void $ execute conn protoUpdate
-                  ( PT iname
-                  , PT $ T.concat [ "concat_ws("
-                                  , sqlCommas $ [joinSymbol, iname] ++ l
-                                  , ")"
-                                  ])
-              _ -> pass
+              Just l@(_:_) -> void $ protoUpdateWithFun conn iname "concat_ws"
+                              ([joinSymbol, iname] ++ l)
+              _            -> pass
           , (fn, sqlCast iname "text"))
       SRaw -> (pass, (fn, sqlCast iname "text"))
       SDate ->
           -- Delete all malformed dates
-          ( void $ execute conn protoUpdate
-            ( PT iname
-            , PT $ T.concat ["pg_temp.dateordead(", iname, ")"])
+          ( void $ protoUpdateWithFun conn iname "pg_temp.dateordead" [iname]
           , (fn, sqlCast iname "date"))
       SDict ->
           ( -- Try to recognize references to dictionary elements
-            execute conn protoDictLookup
-               ( PT iname
-               , PT iname
-               , PT $ identModelName defAcc
-               , PT $ identModelName defAcc
-               , PT iname
-               , PT iname
-               , PT iname) >>
-            execute conn protoUpdate
-               ( PT iname
-               , PT $ T.concat ["pg_temp.numordead(", iname, ")"]) >>
+            protoDictLookup conn iname (identModelName defAcc) >>
+            protoUpdateWithFun conn iname "pg_temp.numordead" [iname] >>
             pass
           , (fn, sqlCast iname "int"))
       SDealer ->
           ( -- Try to recognize partner names/codes in all columns
             (forM_ allNames
              (\n -> do
-                execute conn protoPartnerLookup
-                   ( PT n
-                   , PT n
-                   , PT partnerTable
-                   , PT partnerTable
-                   , PT n
-                   , PT n
-                   , PT n)
-                execute conn protoUpdate
-                   ( PT n
-                   , PT $ T.concat ["pg_temp.numordead(", n, ")"]))) >>
-            -- Pick the first match in every row
-            execute conn protoUpdate
-               ( PT iname
-               , PT $ T.concat [ "coalesce("
-                               , sqlCommas allNames
-                               , ")"
-                               ]) >>
+                protoPartnerLookup conn n
+                protoUpdateWithFun conn n "pg_temp.numordead" [n])) >>
+            -- Pick the first match
+            protoUpdateWithFun conn iname "coalesce" allNames >>
             pass
           , (fn, sqlCast iname "int"))
       where

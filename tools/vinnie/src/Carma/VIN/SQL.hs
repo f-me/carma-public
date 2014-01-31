@@ -7,6 +7,7 @@ where
 
 import qualified Blaze.ByteString.Builder.Char8 as BZ
 
+import           Data.Int
 import           Data.List
 import           Data.String
 import           Data.Text (Text)
@@ -36,10 +37,6 @@ mkInternalNames ns =
     zip (repeat "field") ([1..] :: [Int])
 
 
-partnerTable :: T.Text
-partnerTable = tableName $ (modelInfo :: ModelInfo Partner)
-
-
 subProgramTable :: T.Text
 subProgramTable = tableName $ (modelInfo :: ModelInfo SubProgram)
 
@@ -47,6 +44,14 @@ subProgramTable = tableName $ (modelInfo :: ModelInfo SubProgram)
 -- | First argument of @concat_ws@, quoted.
 joinSymbol :: T.Text
 joinSymbol = "' '"
+
+
+sqlCast :: T.Text -> T.Text -> T.Text
+sqlCast val t = T.concat [val, "::", t]
+
+
+sqlCommas :: [T.Text] -> T.Text
+sqlCommas ts = T.intercalate "," ts
 
 
 makeProtoTable :: [InternalName] -> Query
@@ -66,23 +71,31 @@ protoUpdate :: Query
 protoUpdate = [sql|UPDATE vinnie_proto SET ? = ?;|]
 
 
-sqlCast :: T.Text -> T.Text -> T.Text
-sqlCast val t = T.concat [val, "::", t]
+protoUpdateWithFun :: Connection
+                   -> InternalName
+                   -> Text
+                   -> [Text]
+                   -> IO Int64
+protoUpdateWithFun conn iname fun args =
+    execute conn protoUpdate
+                ( PT iname
+                , PT $ T.concat [fun, "(", sqlCommas args, ")"])
 
 
-sqlCommas :: [T.Text] -> T.Text
-sqlCommas ts = T.intercalate "," ts
-
-
--- | Replace dictionary label references with dictionary element id.
--- Query parameters: target dictionary table, field name (3 times).
+-- | Replace dictionary label references with dictionary element ids.
 --
 -- TODO Eliminate the need for 3 identical query parameters.
-protoDictLookup :: Query
-protoDictLookup =
+protoDictLookup :: Connection
+                -> InternalName
+                -- ^ Field name.
+                -> Text
+                -- ^ Dictionary table name.
+                -> IO Int64
+protoDictLookup conn iname dictModelName =
+    execute conn
     [sql|
      UPDATE vinnie_proto SET ?=null WHERE ? NOT IN
-     (SELECT 
+     (SELECT
       lower(trim(both ' ' from (unnest(ARRAY[label] || synonyms))))
       FROM "?");
      WITH dict AS
@@ -92,16 +105,24 @@ protoDictLookup =
      UPDATE vinnie_proto SET ? = dict.did
      FROM dict WHERE length(lower(trim(both ' ' from ?))) > 0 AND
                      dict.label=lower(trim(both ' ' from ?));
-     |]
+     |] ( PT iname
+        , PT iname
+        , PT dictModelName
+        , PT dictModelName
+        , PT iname
+        , PT iname
+        , PT iname)
 
 
--- | Replace partner label/code references with partner ids. Query
--- parameters: partner table name, field name (3 times).
-protoPartnerLookup :: Query
-protoPartnerLookup =
+-- | Replace partner label/code references with partner ids.
+protoPartnerLookup :: Connection
+                   -> InternalName
+                   -> IO Int64
+protoPartnerLookup conn iname =
+    execute conn
     [sql|
      UPDATE vinnie_proto SET ?=null WHERE ? NOT IN
-     (SELECT 
+     (SELECT
       lower(trim(both ' ' from (unnest(ARRAY[name, code]))))
       FROM "?");
      WITH dict AS
@@ -111,7 +132,15 @@ protoPartnerLookup =
      UPDATE vinnie_proto SET ? = dict.did
      FROM dict WHERE length(lower(trim(both ' ' from ?))) > 0 AND
                      dict.label=lower(trim(both ' ' from ?));
-     |]
+     |] ( PT iname
+        , PT iname
+        , PT partnerTable
+        , PT partnerTable
+        , PT iname
+        , PT iname
+        , PT iname)
+        where
+          partnerTable = tableName $ (modelInfo :: ModelInfo Partner)
 
 
 -- | TODO Move @lower(trim(both ' ' from $1))@ to functions (when the
@@ -185,14 +214,15 @@ markEmptyRequired =
      |]
 
 
--- | Add error to every row where a provided field is empty (used to
--- mark empty required fields). Parameters: list of all Contract model
--- field names (twice).
+-- | Delete all rows from the queue which are already present in
+-- Contract table. Parameters: list of all Contract model field names
+-- (twice).
 deleteDupes :: Query
 deleteDupes =
     [sql|
      DELETE FROM vinnie_queue
-     WHERE row_to_json(row(?))::text IN (SELECT row_to_json(row(?))::text FROM "Contract");
+     WHERE row_to_json(row(?))::text IN
+     (SELECT row_to_json(row(?))::text FROM "Contract");
      |]
 
 
@@ -207,6 +237,7 @@ transferContracts =
      |]
 
 
+-- | Text wrapper with a non-quoting 'ToField' instance.
 newtype PlainText = PT InternalName
 
 instance ToField PlainText where
@@ -214,7 +245,7 @@ instance ToField PlainText where
 
 
 data RowError = EmptyRequired Text
-              deriving Show
+                deriving Show
 
 instance ToField RowError where
     toField (EmptyRequired t) =
