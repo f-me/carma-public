@@ -43,12 +43,12 @@ import Carma.Model.Engine       (Engine)
 
 
 mkVinFormat  [ FF SName   Contract.name
-             , FF SRaw    Contract.email
-             , FF SRaw    Contract.vin
+             , FF SEmail  Contract.email
+             , FF SVIN    Contract.vin
              , FF SRaw    Contract.cardNumber
              , FF SRaw    Contract.codeWord
              , FF SPhone  Contract.phone
-             , FF SRaw    Contract.plateNum
+             , FF SPlate  Contract.plateNum
              , FF SDate   Contract.validSince
              , FF SDate   Contract.validUntil
              , FF SNumber Contract.startMileage
@@ -91,6 +91,9 @@ ffaTitles (FFAcc _ sTag _ _ _ tAcc) vf =
         proj = case sTag of
                  SRaw        -> textProj
                  SNumber     -> textProj
+                 SVIN        -> textProj
+                 SEmail      -> textProj
+                 SPlate      -> textProj
                  SPhone      -> textProj
                  SName       -> vecProj
                  SDate       -> textProj

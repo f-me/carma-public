@@ -159,6 +159,9 @@ data FormatFieldType = Raw
                      | Number
                      -- ^ Store as an integer after stripping
                      -- non-digits.
+                     | VIN
+                     | Email
+                     | Plate
                      | Phone
                      -- ^ Store as text after stripping non-digits and
                      -- leading plus sign.
@@ -184,6 +187,12 @@ class (FFParameterI (TitleParameter a)) => FFTypeI a where
 instance FFTypeI (SFFT Raw)
 
 instance FFTypeI (SFFT Number)
+
+instance FFTypeI (SFFT VIN)
+
+instance FFTypeI (SFFT Email)
+
+instance FFTypeI (SFFT Plate)
 
 instance FFTypeI (SFFT Phone)
 
