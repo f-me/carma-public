@@ -126,11 +126,11 @@ protoDictLookup conn iname dictModelName =
     execute conn
     [sql|
      UPDATE vinnie_proto SET ?=null WHERE ? NOT IN
-     (SELECT
+     (SELECT DISTINCT
       lower(trim(both ' ' from (unnest(ARRAY[label] || synonyms))))
       FROM "?");
      WITH dict AS
-     (SELECT id AS did,
+     (SELECT DISTINCT ON (label) id AS did,
       lower(trim(both ' ' from (unnest(ARRAY[label] || synonyms)))) AS label
       FROM "?")
      UPDATE vinnie_proto SET ? = dict.did
@@ -154,11 +154,11 @@ protoPartnerLookup conn iname =
     execute conn
     [sql|
      UPDATE vinnie_proto SET ?=null WHERE ? NOT IN
-     (SELECT
+     (SELECT DISTINCT
       lower(trim(both ' ' from (unnest(ARRAY[name, code]))))
       FROM "?");
      WITH dict AS
-     (SELECT id AS did,
+     (SELECT DISTINCT ON (label) id AS did,
       lower(trim(both ' ' from (unnest(ARRAY[name, code])))) AS label
       FROM "?")
      UPDATE vinnie_proto SET ? = dict.did
@@ -190,13 +190,13 @@ protoSubprogramLookup conn pid sid iname =
     [sql|
      UPDATE vinnie_proto SET ?=? WHERE ? NOT IN
      (SELECT
-      lower(trim(both ' ' from name))
+      lower(trim(both ' ' from s.label))
       FROM "?" s, "?" p WHERE s.parent = p.id AND p.id = ?);
 
      WITH dict AS
      (SELECT id AS did,
-      lower(trim(both ' ' from name, code)) AS label
-      FROM "?" s, "?" p WHERE s.parent = p.id)
+      lower(trim(both ' ' from label)) AS label
+      FROM "?" s)
      UPDATE vinnie_proto SET ? = dict.did
      FROM dict WHERE length(lower(trim(both ' ' from ?))) > 0 AND
                      dict.label=lower(trim(both ' ' from ?));
@@ -208,7 +208,6 @@ protoSubprogramLookup conn pid sid iname =
          :* PT programTable
          :* pid
          :* PT subProgramTable
-         :* PT programTable
          :* PT iname
          :* PT iname
          :* PT iname)
