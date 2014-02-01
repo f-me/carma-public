@@ -187,13 +187,11 @@ process options context psid mapping = do
       internalHeadRow = map snd interMap
   conn <- ask
 
-  makeProtoTable internalHeadRow
-  installFunctions
-  makeQueueTable
+  makeProtoTable internalHeadRow >> installFunctions >> makeQueueTable
 
   -- Read CSV into proto table
   liftIO $ do
-    copy_ conn copyProtoStart
+    copyProtoStart conn $ snd $ unzip $ fst mapping
     BL.readFile input >>= mapM_ (putCopyData conn) . BL.toChunks
     putCopyEnd conn
 
@@ -231,13 +229,8 @@ process options context psid mapping = do
                     execute markEmptyRequired (EmptyRequired fd, PT fn) >>
                     pass)
 
-  let contractNames =
-          (map (\(FFAcc (CF c) _ _ _ _ _) ->
-                fieldName c) vinFormatAccessors)
-
   -- Finally, write new contracts to live table
-  deleteDupes contractNames
-  transferContracts ("committer":contractNames)
+  deleteDupes >> transferContracts
 
   pass
 

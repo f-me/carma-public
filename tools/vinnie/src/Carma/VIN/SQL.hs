@@ -19,6 +19,7 @@ import qualified Data.Text as T
 
 import           Database.PostgreSQL.Simple hiding (execute, execute_)
 import qualified Database.PostgreSQL.Simple as PG (execute, execute_)
+import           Database.PostgreSQL.Simple.Copy
 import           Database.PostgreSQL.Simple.SqlQQ
 import           Database.PostgreSQL.Simple.ToField
 import           Database.PostgreSQL.Simple.ToRow
@@ -28,6 +29,7 @@ import           Carma.Model.Contract
 import           Carma.Model.Partner
 import           Carma.Model.Program
 import           Carma.Model.SubProgram
+import           Carma.Model.VinFormat
 
 import           Carma.VIN.Base
 
@@ -35,6 +37,13 @@ import           Carma.VIN.Base
 -- | Internal field name for a CSV column. It is neither external
 -- column title, nor Contract field name.
 type InternalName = T.Text
+
+
+-- | Text wrapper with a non-quoting 'ToField' instance.
+newtype PlainText = PT InternalName
+
+instance ToField PlainText where
+    toField (PT i) = Plain $ BZ.fromText i
 
 
 -- | Works almost like '(:.)' for 'ToField' instances. Start with `()`
@@ -76,6 +85,11 @@ mkInternalNames ns =
     zip (repeat "field") ([1..] :: [Int])
 
 
+-- | Name of id field which maps proto entries to queue.
+kid :: InternalName
+kid = "id"
+
+
 -- | First argument of @concat_ws@, quoted.
 joinSymbol :: T.Text
 joinSymbol = "' '"
@@ -100,20 +114,35 @@ getProgram conn sid =
         , sid)
 
 
-contractTable = PT $ tableName $ (modelInfo :: ModelInfo Contract)
+contractTable :: PlainText
+contractTable = PT $ tableName $
+                (modelInfo :: ModelInfo Contract)
+
+
+-- | Loadable Contract field names.
+contractFields :: [Text]
+contractFields =
+    map (\(FFAcc (CF c) _ _ _ _ _) -> fieldName c) vinFormatAccessors
 
 
 makeProtoTable :: [InternalName] -> ConnectedIO Int64
 makeProtoTable names =
-    execute_ $ fromString $
-    "CREATE TEMPORARY TABLE vinnie_proto (" ++
-    (intercalate "," $ map (\t -> (T.unpack t) ++ " text") names) ++
-    ");"
+    execute_ $ fromString $ concat
+    [ "CREATE TEMPORARY TABLE vinnie_proto ("
+    , intercalate "," $
+      (map (\t -> (T.unpack t) ++ " text") names) ++
+      [(T.unpack kid) ++ " serial"]
+    , ");"
+    ]
 
 
-copyProtoStart :: Query
-copyProtoStart =
-    [sql|COPY vinnie_proto FROM STDIN (FORMAT CSV, HEADER 1, DELIMITER ';');|]
+copyProtoStart :: Connection -> [InternalName] -> IO ()
+copyProtoStart conn inames =
+    copy conn
+    [sql|
+     COPY vinnie_proto (?)
+     FROM STDIN (FORMAT CSV, HEADER 1, DELIMITER ';');
+     |] (Only $ PT $ sqlCommas inames)
 
 
 protoUpdate :: Query
@@ -309,15 +338,15 @@ transferQueue :: [Text]
               -- ^ Internal column names of proto table, with type
               -- casting specifiers (@field17::int@).
               -> [Text]
-              -- ^ Contract model column names (@mileage@).
+              -- ^ Loadable Contract columns (@mileage@).
               -> ConnectedIO Int64
 transferQueue inames fnames =
     execute [sql|
      INSERT INTO vinnie_queue (?)
      SELECT ?
      FROM vinnie_proto;
-     |] ( PT $ sqlCommas fnames
-        , PT $ sqlCommas inames)
+     |] ( PT $ sqlCommas (kid:fnames)
+        , PT $ sqlCommas (kid:inames))
 
 
 -- | Set default values for a column in queue table. Parameters: field
@@ -341,39 +370,31 @@ markEmptyRequired =
 
 
 -- | Delete all rows from the queue which are already present in
--- Contract table. Parameters: list of all Contract model field names
--- (twice).
-deleteDupes :: [Text] -> ConnectedIO Int64
-deleteDupes fields =
+-- Contract table.
+deleteDupes :: ConnectedIO Int64
+deleteDupes =
     execute
     [sql|
      DELETE FROM vinnie_queue
      WHERE row_to_json(row(?))::text IN
      (SELECT row_to_json(row(?))::text FROM "?");
-     |] ( PT $ sqlCommas fields
-        , PT $ sqlCommas fields
+     |] ( PT $ sqlCommas contractFields
+        , PT $ sqlCommas contractFields
         , contractTable)
 
 
--- | Transfer all contracts w/o errors from queue to the real table.
--- Parameters: list of all Contract model field names (twice).
-transferContracts :: [Text] -> ConnectedIO Int64
-transferContracts fields =
+-- | Transfer all contracts w/o errors from queue to live Contract
+-- table.
+transferContracts :: ConnectedIO Int64
+transferContracts =
     execute
     [sql|
      INSERT INTO "?" (?)
      SELECT DISTINCT ?
      FROM vinnie_queue WHERE errors IS NULL;
      |] ( contractTable
-        , PT $ sqlCommas fields
-        , PT $ sqlCommas fields)
-
-
--- | Text wrapper with a non-quoting 'ToField' instance.
-newtype PlainText = PT InternalName
-
-instance ToField PlainText where
-    toField (PT i) = Plain $ BZ.fromText i
+        , PT $ sqlCommas $ "committer":contractFields
+        , PT $ sqlCommas $ "committer":contractFields)
 
 
 data RowError = EmptyRequired Text
