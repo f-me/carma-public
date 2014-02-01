@@ -201,6 +201,14 @@ process options context psid mapping = do
               (\(f, s) -> (PT $ sqlCommas f, PT $ sqlCommas s)) $
               unzip transferChunks
 
+  -- Set committer and subprogram. Note that if subprogram was not
+  -- recognized in a file row, it will be set to the subprogram
+  -- specified in import options.
+  --
+  -- TODO Probably the behavior should be different if subprogram is
+  -- loadable from file and required.
+  execute conn setSpecialDefaults (uid, snd psid)
+
   forM_ (vinFormatAccessors) $
         (\f@(FFAcc (CF c) _ _ reqAcc defAcc _) ->
              let
@@ -219,9 +227,6 @@ process options context psid mapping = do
                when (Patch.get' vf reqAcc) $
                     execute conn markEmptyRequired (EmptyRequired fd, PT fn) >>
                     pass)
-
-  -- Set committer for contracts in queue
-  execute conn setCommitter (Only uid)
 
   let contractNames =
           (map (\(FFAcc (CF c) _ _ _ _ _) ->
@@ -311,7 +316,6 @@ vinImport = do
             case res of
               [Only p] -> return (p, Just s)
               _        -> throwError NoTarget
-
 
   -- Read head row to find out original column order
   hr <- liftIO $ (runResourceT $

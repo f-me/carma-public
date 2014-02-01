@@ -81,7 +81,7 @@ getProgram conn sid =
         , sid)
 
 
-contractTableName = PT $ tableName $ (modelInfo :: ModelInfo Contract)
+contractTable = PT $ tableName $ (modelInfo :: ModelInfo Contract)
 
 
 makeProtoTable :: [InternalName] -> Query
@@ -114,21 +114,20 @@ protoUpdateWithFun conn iname fun args =
 
 -- | Replace dictionary label references with dictionary element ids.
 -- Clear bad references.
---
--- TODO Eliminate the need for 3 identical query parameters.
 protoDictLookup :: Connection
                 -> InternalName
                 -- ^ Field name.
                 -> Text
                 -- ^ Dictionary table name.
                 -> IO Int64
-protoDictLookup conn iname dictModelName =
+protoDictLookup conn iname dictTableName =
     execute conn
     [sql|
-     UPDATE vinnie_proto SET ?=null WHERE ? NOT IN
+     UPDATE vinnie_proto SET ?=null WHERE lower(trim(both ' ' from ?)) NOT IN
      (SELECT DISTINCT
       lower(trim(both ' ' from (unnest(ARRAY[label] || synonyms))))
       FROM "?");
+
      WITH dict AS
      (SELECT DISTINCT ON (label) id AS did,
       lower(trim(both ' ' from (unnest(ARRAY[label] || synonyms)))) AS label
@@ -138,8 +137,8 @@ protoDictLookup conn iname dictModelName =
                      dict.label=lower(trim(both ' ' from ?));
      |] ( PT iname
         , PT iname
-        , PT dictModelName
-        , PT dictModelName
+        , PT dictTableName
+        , PT dictTableName
         , PT iname
         , PT iname
         , PT iname)
@@ -153,10 +152,11 @@ protoPartnerLookup :: Connection
 protoPartnerLookup conn iname =
     execute conn
     [sql|
-     UPDATE vinnie_proto SET ?=null WHERE ? NOT IN
+     UPDATE vinnie_proto SET ?=null WHERE lower(trim(both ' ' from ?)) NOT IN
      (SELECT DISTINCT
       lower(trim(both ' ' from (unnest(ARRAY[name, code]))))
       FROM "?");
+
      WITH dict AS
      (SELECT DISTINCT ON (label) id AS did,
       lower(trim(both ' ' from (unnest(ARRAY[name, code])))) AS label
@@ -166,13 +166,13 @@ protoPartnerLookup conn iname =
                      dict.label=lower(trim(both ' ' from ?));
      |] ( PT iname
         , PT iname
-        , PT partnerTable
-        , PT partnerTable
+        , partnerTable
+        , partnerTable
         , PT iname
         , PT iname
         , PT iname)
         where
-          partnerTable = tableName $ (modelInfo :: ModelInfo Partner)
+          partnerTable = PT $ tableName $ (modelInfo :: ModelInfo Partner)
 
 
 -- | Replace subprogram label references with subprogram ids. Only
@@ -188,15 +188,15 @@ protoSubprogramLookup :: Connection
 protoSubprogramLookup conn pid sid iname =
     execute conn
     [sql|
-     UPDATE vinnie_proto SET ?=? WHERE ? NOT IN
+     UPDATE vinnie_proto SET ?=? WHERE lower(trim(both ' ' from ?)) NOT IN
      (SELECT
       lower(trim(both ' ' from s.label))
       FROM "?" s, "?" p WHERE s.parent = p.id AND p.id = ?);
 
      WITH dict AS
-     (SELECT id AS did,
-      lower(trim(both ' ' from label)) AS label
-      FROM "?" s)
+     (SELECT s.id AS did,
+      lower(trim(both ' ' from s.label)) AS label
+      FROM "?" s, "?" p WHERE s.parent = p.id AND p.id = ?)
      UPDATE vinnie_proto SET ? = dict.did
      FROM dict WHERE length(lower(trim(both ' ' from ?))) > 0 AND
                      dict.label=lower(trim(both ' ' from ?));
@@ -204,16 +204,18 @@ protoSubprogramLookup conn pid sid iname =
          :* PT iname
          :* sid
          :* PT iname
-         :* PT subProgramTable
-         :* PT programTable
+         :* subProgramTable
+         :* programTable
          :* pid
-         :* PT subProgramTable
+         :* subProgramTable
+         :* programTable
+         :* pid
          :* PT iname
          :* PT iname
          :* PT iname)
         where
-          programTable = tableName $ (modelInfo :: ModelInfo Program)
-          subProgramTable = tableName $ (modelInfo :: ModelInfo SubProgram)
+          programTable = PT $ tableName $ (modelInfo :: ModelInfo Program)
+          subProgramTable = PT $ tableName $ (modelInfo :: ModelInfo SubProgram)
 
 
 -- | TODO Move @lower(trim(both ' ' from $1))@ to functions (when the
@@ -252,11 +254,17 @@ makeQueueTable conn =
      CREATE TEMPORARY TABLE vinnie_queue
      AS (SELECT * FROM "?" WHERE 'f');
      ALTER TABLE vinnie_queue ADD COLUMN errors text[];
-     |] (Only contractTableName)
+     |] (Only contractTable)
 
 
-setCommitter :: Query
-setCommitter = [sql|UPDATE vinnie_queue SET committer = ?;|]
+-- | Set committer and subprogram (if not previously set) for
+-- contracts in queue.
+setSpecialDefaults :: Query
+setSpecialDefaults = 
+    [sql|
+     UPDATE vinnie_queue SET committer = ?;
+     UPDATE vinnie_queue SET subprogram = ? WHERE subprogram IS NULL;
+     |]
 
 
 transferQueue :: Query
@@ -300,7 +308,7 @@ deleteDupes conn fields =
      (SELECT row_to_json(row(?))::text FROM "?");
      |] ( PT $ sqlCommas fields
         , PT $ sqlCommas fields
-        , contractTableName)
+        , contractTable)
 
 
 -- | Transfer all contracts from queue to the real table. Parameters:
@@ -312,7 +320,7 @@ transferContracts conn fields =
      INSERT INTO "?" (?)
      SELECT DISTINCT ?
      FROM vinnie_queue;
-     |] ( contractTableName
+     |] ( contractTable
         , PT $ sqlCommas fields
         , PT $ sqlCommas fields)
 
