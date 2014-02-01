@@ -32,12 +32,13 @@ import           Data.Maybe
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 
+import           Data.String (fromString)
 import           Data.Text (Text)
 import qualified Data.Text as T
 
 import           Data.Typeable
 import           Data.Vector as Vector (Vector, toList)
-import           Database.PostgreSQL.Simple
+import           Database.PostgreSQL.Simple (Connection, Only(..))
 import           Database.PostgreSQL.Simple.SqlQQ
 import           Database.PostgreSQL.Simple.Copy
 
@@ -98,11 +99,15 @@ loadable vf =
 
 -- | Check if a subprogram field is loadable.
 hasSubprogram :: C VinFormat -> [FFA] -> Bool
-hasSubprogram vf ffas = 
+hasSubprogram vf ffas =
     any (\case
          (FFAcc _ SSubprogram _ _ _ _) -> True
          _                             -> False) $
     loadable vf ffas
+
+
+isRequired :: C VinFormat -> FFA -> Bool
+isRequired vf (FFAcc _ _ _ r _ _) = Patch.get' vf r
 
 
 -- | Binds internal names and format accessors.
@@ -111,7 +116,7 @@ data FFMapper =
        , ffa      :: FFA
        -- ^ Format smart accessor.
        , concats  :: (Maybe [InternalName])
-       -- ^ A list of fields to be concatenated to this field.
+       -- ^ Columns to be concatenated to this field.
        }
 
 
@@ -173,33 +178,31 @@ process :: Options
         -- ^ Program & subprogram ids.
         -> ([(ColumnTitle, InternalName)], [FFMapper])
         -- ^ Total column mapping and loadable fields mapping.
-        -> IO ()
+        -> ConnectedIO ()
 process options context psid mapping = do
   let input           = infile options
       uid             = committer options
       vf              = vinFormat context
-      conn            = connection context
       interMap        = fst mapping
       internalHeadRow = map snd interMap
+  conn <- ask
 
-  execute_ conn $ makeProtoTable internalHeadRow
-  execute_ conn installFunctions
-  makeQueueTable conn
+  makeProtoTable internalHeadRow
+  installFunctions
+  makeQueueTable
 
   -- Read CSV into proto table
-  copy_ conn copyProtoStart
-  BL.readFile input >>= mapM_ (putCopyData conn) . BL.toChunks
-  res <- putCopyEnd conn
+  liftIO $ do
+    copy_ conn copyProtoStart
+    BL.readFile input >>= mapM_ (putCopyData conn) . BL.toChunks
+    putCopyEnd conn
 
   -- Process in proto table, which matches CSV columns.
-  let (protoActions, transferChunks :: [(Text, Text)]) =
-          unzip $ map (processField conn psid) $ snd mapping
+  let (protoActions, transferChunks) =
+          unzip $ map (processField vf psid) $ snd mapping
   sequence_ protoActions
 
-  -- Transfer to queue table, which matches Contract schema.
-  execute conn transferQueue $
-              (\(f, s) -> (PT $ sqlCommas f, PT $ sqlCommas s)) $
-              unzip transferChunks
+  uncurry transferQueue (unzip transferChunks)
 
   -- Set committer and subprogram. Note that if subprogram was not
   -- recognized in a file row, it will be set to the subprogram
@@ -207,7 +210,7 @@ process options context psid mapping = do
   --
   -- TODO Probably the behavior should be different if subprogram is
   -- loadable from file and required.
-  execute conn setSpecialDefaults (uid, snd psid)
+  setSpecialDefaults uid (snd psid)
 
   forM_ (vinFormatAccessors) $
         (\f@(FFAcc (CF c) _ _ reqAcc defAcc _) ->
@@ -219,13 +222,13 @@ process options context psid mapping = do
                  dv = Patch.get' vf defAcc
              in do
                -- Set default values
-               execute conn setQueueDefaults (PT fn, dv, PT fn)
+               execute setQueueDefaults (PT fn, dv, PT fn)
                -- Write errors for empty required columns.
                --
                -- TODO Probably non-loadable required fields must be
                -- ignored here.
                when (Patch.get' vf reqAcc) $
-                    execute conn markEmptyRequired (EmptyRequired fd, PT fn) >>
+                    execute markEmptyRequired (EmptyRequired fd, PT fn) >>
                     pass)
 
   let contractNames =
@@ -233,71 +236,92 @@ process options context psid mapping = do
                 fieldName c) vinFormatAccessors)
 
   -- Finally, write new contracts to live table
-  deleteDupes conn contractNames
-  transferContracts conn $ "committer":contractNames
+  deleteDupes contractNames
+  transferContracts ("committer":contractNames)
 
   pass
 
 
-pass :: IO ()
+pass :: Monad m => m ()
 pass = return ()
 
 
--- | Produce actions for proto processing and bits for proto-to-queue
--- transfer.
-processField :: Connection
+-- | Produce an action for proto processing and bits for
+-- proto-to-queue transfer (@("field23::int", "mileage")@) of a given
+-- field.
+processField :: C VinFormat
              -> (Int, Maybe Int)
              -- ^ Program & subprogram ids.
              -> FFMapper
-             -> (IO (), (Text, Text))
-processField conn (pid, sid) (FM iname (FFAcc (CF c) stag _ _ defAcc _) cols) =
+             -> (ConnectedIO (), (Text, Text))
+processField vf (pid, sid) (FM iname f@(FFAcc (CF c) stag _ _ defAcc _) cols) =
     case stag of
+      SRaw -> (pass, (sqlCast iname "text", fn))
       SNumber ->
-          ( void $ protoUpdateWithFun conn iname
+          ( void $ protoUpdateWithFun iname
             "regexp_replace" [iname, "'\\D'", "''", "'g'"]
-          , (fn, sqlCast iname "int"))
+          , (sqlCast iname "int", fn))
+      -- TODO Perhaps mismatched regexp fields should always fail a
+      -- row, not only when the field is required
+      SVIN ->
+          ( when (isRequired vf f) $
+                 void $ protoCheckRegexp iname
+                          "^[0-9a-hj-npr-z]{17}$"
+          , (sqlCast iname "text", fn))
+      SEmail ->
+          ( when (isRequired vf f) $
+                 void $ protoCheckRegexp iname
+                          "^[\\w\\+\\.\\-]+@[\\w\\+\\.\\-]+\\.\\w+$"
+          , (sqlCast iname "text", fn))
+      SPlate ->
+          ( when (isRequired vf f) $
+                 void $ protoCheckRegexp iname $ fromString $
+                          "^[АВЕКМНОРСТУХавекмнорстух]\\d{3}" ++
+                          "[АВЕКМНОРСТУХавекмнорстух]{2}\\d{2,3}$"
+          , (sqlCast iname "text", fn))
       SPhone ->
-          ( void $ protoUpdateWithFun conn iname
+          ( void $ protoUpdateWithFun iname
             "'+'||regexp_replace" [iname, "'\\D'", "''", "'g'"]
-          , (fn, sqlCast iname "text"))
+          , (sqlCast iname "text", fn))
       SName ->
           ( case cols of
-              Just l@(_:_) -> void $ protoUpdateWithFun conn iname "concat_ws"
+              Just l@(_:_) -> void $ protoUpdateWithFun iname "concat_ws"
                               ([joinSymbol, iname] ++ l)
               _            -> pass
-          , (fn, sqlCast iname "text"))
-      SRaw -> (pass, (fn, sqlCast iname "text"))
+          , (sqlCast iname "text", fn))
       SDate ->
           -- Delete all malformed dates
-          ( void $ protoUpdateWithFun conn iname "pg_temp.dateordead" [iname]
-          , (fn, sqlCast iname "date"))
+          ( void $ protoUpdateWithFun iname "pg_temp.dateordead" [iname]
+          , (sqlCast iname "date", fn))
       SDict ->
           ( -- Try to recognize references to dictionary elements
-            protoDictLookup conn iname (identModelName defAcc) >>
-            protoUpdateWithFun conn iname "pg_temp.numordead" [iname] >>
+            protoDictLookup iname (identModelName defAcc) >>
+            protoUpdateWithFun iname "pg_temp.numordead" [iname] >>
             pass
-          , (fn, sqlCast iname "int"))
+          , (sqlCast iname "int", fn))
       SSubprogram ->
           ( -- Try to recognize references to subprograms
-            protoSubprogramLookup conn pid sid iname  >>
-            protoUpdateWithFun conn iname "pg_temp.numordead" [iname] >>
+            protoSubprogramLookup pid sid iname  >>
+            protoUpdateWithFun iname "pg_temp.numordead" [iname] >>
             pass
-          , (fn, sqlCast iname "int"))
+          , (sqlCast iname "int", fn))
       SDealer ->
           ( -- Try to recognize partner names/codes in all columns
             (forM_ allNames
              (\n -> do
-                protoPartnerLookup conn n
-                protoUpdateWithFun conn n "pg_temp.numordead" [n])) >>
+                protoPartnerLookup n
+                protoUpdateWithFun n "pg_temp.numordead" [n])) >>
             -- Pick the first match
-            protoUpdateWithFun conn iname "coalesce" allNames >>
+            protoUpdateWithFun iname "coalesce" allNames >>
             pass
-          , (fn, sqlCast iname "int"))
+          , (sqlCast iname "int", fn))
       where
         fn = fieldName c
         allNames = [iname] ++ fromMaybe [] cols
 
 
+
+-- | TODO Track import state.
 vinImport :: Import ()
 vinImport = do
   vf <- asks vinFormat
@@ -336,4 +360,4 @@ vinImport = do
              throwError NoTarget
         ctx <- ask
         opts <- lift $ lift $ ask
-        liftIO $ process opts ctx (pid', sid') mapping
+        liftIO $ runConnected (process opts ctx (pid', sid') mapping) conn

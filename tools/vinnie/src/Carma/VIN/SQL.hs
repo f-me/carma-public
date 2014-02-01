@@ -8,13 +8,17 @@ where
 
 import qualified Blaze.ByteString.Builder.Char8 as BZ
 
+import           Control.Monad.IO.Class
+import           Control.Monad.Trans.Reader
+
 import           Data.Int
 import           Data.List
 import           Data.String
 import           Data.Text (Text)
 import qualified Data.Text as T
 
-import           Database.PostgreSQL.Simple
+import           Database.PostgreSQL.Simple hiding (execute, execute_)
+import qualified Database.PostgreSQL.Simple as PG (execute, execute_)
 import           Database.PostgreSQL.Simple.SqlQQ
 import           Database.PostgreSQL.Simple.ToField
 import           Database.PostgreSQL.Simple.ToRow
@@ -47,6 +51,21 @@ infixl 3 :*
 
 instance (ToRow a, ToField b) => ToRow (a :* b) where
     toRow (a :* b) = toRow $ a :. (Only b)
+
+
+type ConnectedIO = ReaderT Connection IO
+
+
+execute :: ToRow p => Query -> p -> ConnectedIO Int64
+execute q p = ask >>= \conn -> liftIO $ PG.execute conn q p
+
+
+execute_ :: Query -> ConnectedIO Int64
+execute_ q = ask >>= \conn -> liftIO $ PG.execute_ conn q
+
+
+runConnected :: ConnectedIO a -> Connection -> IO a
+runConnected a conn = runReaderT a conn
 
 
 -- | Produce unique internal names from a CSV header.
@@ -84,9 +103,9 @@ getProgram conn sid =
 contractTable = PT $ tableName $ (modelInfo :: ModelInfo Contract)
 
 
-makeProtoTable :: [InternalName] -> Query
+makeProtoTable :: [InternalName] -> ConnectedIO Int64
 makeProtoTable names =
-    fromString $
+    execute_ $ fromString $
     "CREATE TEMPORARY TABLE vinnie_proto (" ++
     (intercalate "," $ map (\t -> (T.unpack t) ++ " text") names) ++
     ");"
@@ -101,27 +120,44 @@ protoUpdate :: Query
 protoUpdate = [sql|UPDATE vinnie_proto SET ? = ?;|]
 
 
-protoUpdateWithFun :: Connection
-                   -> InternalName
+protoUpdateWithFun :: InternalName
                    -> Text
                    -> [Text]
-                   -> IO Int64
-protoUpdateWithFun conn iname fun args =
-    execute conn protoUpdate
+                   -> ConnectedIO Int64
+protoUpdateWithFun iname fun args =
+    execute protoUpdate
                 ( PT iname
                 , PT $ T.concat [fun, "(", sqlCommas args, ")"])
 
 
+-- | Clear field values which do not match a regular expression (case
+-- insensitive).
+protoCheckRegexp :: Text
+                 -- ^ Field name.
+                 -> Text
+                 -- ^ Regular expression.
+                 -> ConnectedIO Int64
+protoCheckRegexp fname regexp =
+    execute
+    [sql|
+     UPDATE vinnie_proto SET ? = trim(both ' ' from ?);
+     UPDATE vinnie_proto SET ? = null WHERE ? !~* ?;
+     |] ( PT fname
+        , PT fname
+        , PT fname
+        , PT fname
+        , regexp)
+
+
 -- | Replace dictionary label references with dictionary element ids.
 -- Clear bad references.
-protoDictLookup :: Connection
-                -> InternalName
+protoDictLookup :: InternalName
                 -- ^ Field name.
                 -> Text
                 -- ^ Dictionary table name.
-                -> IO Int64
-protoDictLookup conn iname dictTableName =
-    execute conn
+                -> ConnectedIO Int64
+protoDictLookup iname dictTableName =
+    execute
     [sql|
      UPDATE vinnie_proto SET ?=null WHERE lower(trim(both ' ' from ?)) NOT IN
      (SELECT DISTINCT
@@ -146,11 +182,10 @@ protoDictLookup conn iname dictTableName =
 
 -- | Replace partner label/code references with partner ids. Clear bad
 -- references.
-protoPartnerLookup :: Connection
-                   -> InternalName
-                   -> IO Int64
-protoPartnerLookup conn iname =
-    execute conn
+protoPartnerLookup :: InternalName
+                   -> ConnectedIO Int64
+protoPartnerLookup iname =
+    execute
     [sql|
      UPDATE vinnie_proto SET ?=null WHERE lower(trim(both ' ' from ?)) NOT IN
      (SELECT DISTINCT
@@ -178,15 +213,14 @@ protoPartnerLookup conn iname =
 -- | Replace subprogram label references with subprogram ids. Only
 -- children of a provided program are selected. If no reference found,
 -- default to a provided subprogram .
-protoSubprogramLookup :: Connection
-                      -> Int
+protoSubprogramLookup :: Int
                       -- ^ Program id.
                       -> Maybe Int
                       -- ^ Default subprogram id.
                       -> InternalName
-                      -> IO Int64
-protoSubprogramLookup conn pid sid iname =
-    execute conn
+                      -> ConnectedIO Int64
+protoSubprogramLookup pid sid iname =
+    execute
     [sql|
      UPDATE vinnie_proto SET ?=? WHERE lower(trim(both ' ' from ?)) NOT IN
      (SELECT
@@ -220,8 +254,9 @@ protoSubprogramLookup conn pid sid iname =
 
 -- | TODO Move @lower(trim(both ' ' from $1))@ to functions (when the
 -- performance issue is resolved).
-installFunctions :: Query
+installFunctions :: ConnectedIO Int64
 installFunctions =
+    execute_
     [sql|
      CREATE OR REPLACE FUNCTION pg_temp.dateordead(text) RETURNS text AS $$
      DECLARE x DATE;
@@ -247,9 +282,9 @@ installFunctions =
 
 -- | Create a purgatory for new contracts with schema identical to
 -- Contract model table.
-makeQueueTable :: Connection -> IO Int64
-makeQueueTable conn =
-    execute conn
+makeQueueTable :: ConnectedIO Int64
+makeQueueTable =
+    execute
     [sql|
      CREATE TEMPORARY TABLE vinnie_queue
      AS (SELECT * FROM "?" WHERE 'f');
@@ -259,21 +294,30 @@ makeQueueTable conn =
 
 -- | Set committer and subprogram (if not previously set) for
 -- contracts in queue.
-setSpecialDefaults :: Query
-setSpecialDefaults = 
+setSpecialDefaults :: Int -> Maybe Int -> ConnectedIO Int64
+setSpecialDefaults cid sid =
+    execute
     [sql|
      UPDATE vinnie_queue SET committer = ?;
      UPDATE vinnie_queue SET subprogram = ? WHERE subprogram IS NULL;
-     |]
+     |] (cid, sid)
 
 
-transferQueue :: Query
-transferQueue =
-    [sql|
+-- | Transfer from proto table to queue table, casting text values
+-- from proto table to actual types used by Contract model.
+transferQueue :: [Text]
+              -- ^ Internal column names of proto table, with type
+              -- casting specifiers (@field17::int@).
+              -> [Text]
+              -- ^ Contract model column names (@mileage@).
+              -> ConnectedIO Int64
+transferQueue inames fnames =
+    execute [sql|
      INSERT INTO vinnie_queue (?)
      SELECT ?
      FROM vinnie_proto;
-     |]
+     |] ( PT $ sqlCommas fnames
+        , PT $ sqlCommas inames)
 
 
 -- | Set default values for a column in queue table. Parameters: field
@@ -299,9 +343,9 @@ markEmptyRequired =
 -- | Delete all rows from the queue which are already present in
 -- Contract table. Parameters: list of all Contract model field names
 -- (twice).
-deleteDupes :: Connection -> [Text] -> IO Int64
-deleteDupes conn fields =
-    execute conn
+deleteDupes :: [Text] -> ConnectedIO Int64
+deleteDupes fields =
+    execute
     [sql|
      DELETE FROM vinnie_queue
      WHERE row_to_json(row(?))::text IN
@@ -311,15 +355,15 @@ deleteDupes conn fields =
         , contractTable)
 
 
--- | Transfer all contracts from queue to the real table. Parameters:
--- list of all Contract model field names (twice).
-transferContracts :: Connection -> [Text] -> IO Int64
-transferContracts conn fields =
-    execute conn
+-- | Transfer all contracts w/o errors from queue to the real table.
+-- Parameters: list of all Contract model field names (twice).
+transferContracts :: [Text] -> ConnectedIO Int64
+transferContracts fields =
+    execute
     [sql|
      INSERT INTO "?" (?)
      SELECT DISTINCT ?
-     FROM vinnie_queue;
+     FROM vinnie_queue WHERE errors IS NULL;
      |] ( contractTable
         , PT $ sqlCommas fields
         , PT $ sqlCommas fields)
