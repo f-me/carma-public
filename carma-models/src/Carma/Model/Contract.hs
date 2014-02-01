@@ -108,12 +108,6 @@ data Contract = Contract
   , lastCheckDealer  :: F (Maybe (IdentI Partner))
                         "lastCheckDealer"
                         "Дилер, у которого проходило последнее ТО"
-  , lastCheckMileage :: F (Maybe TInt)
-                        "lastCheckMileage"
-                        "Пробег на последнем ТО"
-  , lastCheckDate    :: F (Maybe WDay)
-                        "lastCheckDate"
-                        "Дата последнего ТО"
   , checkPeriod      :: F (Maybe TInt)
                         "checkPeriod"
                         "Межсервисный интервал"
