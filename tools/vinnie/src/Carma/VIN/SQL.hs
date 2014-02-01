@@ -20,6 +20,7 @@ import           Database.PostgreSQL.Simple.ToField
 import           Database.PostgreSQL.Simple.ToRow
 
 import           Data.Model
+import           Carma.Model.Contract
 import           Carma.Model.Partner
 import           Carma.Model.Program
 import           Carma.Model.SubProgram
@@ -78,6 +79,9 @@ getProgram conn sid =
      |] ( PT $ tableName $ (modelInfo :: ModelInfo Program)
         , PT $ tableName $ (modelInfo :: ModelInfo SubProgram)
         , sid)
+
+
+contractTableName = PT $ tableName $ (modelInfo :: ModelInfo Contract)
 
 
 makeProtoTable :: [InternalName] -> Query
@@ -242,13 +246,14 @@ installFunctions =
 
 -- | Create a purgatory for new contracts with schema identical to
 -- Contract model table.
-makeQueueTable :: Query
-makeQueueTable =
+makeQueueTable :: Connection -> IO Int64
+makeQueueTable conn =
+    execute conn
     [sql|
      CREATE TEMPORARY TABLE vinnie_queue
-     AS (SELECT * FROM "Contract" WHERE 'f');
+     AS (SELECT * FROM "?" WHERE 'f');
      ALTER TABLE vinnie_queue ADD COLUMN errors text[];
-     |]
+     |] (Only contractTableName)
 
 
 setCommitter :: Query
@@ -287,24 +292,30 @@ markEmptyRequired =
 -- | Delete all rows from the queue which are already present in
 -- Contract table. Parameters: list of all Contract model field names
 -- (twice).
-deleteDupes :: Query
-deleteDupes =
+deleteDupes :: Connection -> [Text] -> IO Int64
+deleteDupes conn fields =
+    execute conn
     [sql|
      DELETE FROM vinnie_queue
      WHERE row_to_json(row(?))::text IN
-     (SELECT row_to_json(row(?))::text FROM "Contract");
-     |]
+     (SELECT row_to_json(row(?))::text FROM "?");
+     |] ( PT $ sqlCommas fields
+        , PT $ sqlCommas fields
+        , contractTableName)
 
 
 -- | Transfer all contracts from queue to the real table. Parameters:
 -- list of all Contract model field names (twice).
-transferContracts :: Query
-transferContracts =
+transferContracts :: Connection -> [Text] -> IO Int64
+transferContracts conn fields =
+    execute conn
     [sql|
-     INSERT INTO "Contract" (?)
-     SELECT ?
+     INSERT INTO "?" (?)
+     SELECT DISTINCT ?
      FROM vinnie_queue;
-     |]
+     |] ( contractTableName
+        , PT $ sqlCommas fields
+        , PT $ sqlCommas fields)
 
 
 -- | Text wrapper with a non-quoting 'ToField' instance.

@@ -184,7 +184,7 @@ process options context psid mapping = do
 
   execute_ conn $ makeProtoTable internalHeadRow
   execute_ conn installFunctions
-  execute_ conn makeQueueTable
+  makeQueueTable conn
 
   -- Read CSV into proto table
   copy_ conn copyProtoStart
@@ -226,11 +226,10 @@ process options context psid mapping = do
   let contractNames =
           (map (\(FFAcc (CF c) _ _ _ _ _) ->
                 fieldName c) vinFormatAccessors)
-      pt2 s = (PT $ sqlCommas s, PT $ sqlCommas s)
 
   -- Finally, write new contracts to live table
-  execute conn deleteDupes $ pt2 contractNames
-  execute conn transferContracts $ pt2 $ "committer":contractNames
+  deleteDupes conn contractNames
+  transferContracts conn $ "committer":contractNames
 
   pass
 
