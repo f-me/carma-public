@@ -1,8 +1,6 @@
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
 
 module Carma.VIN
     ( vinImport
@@ -26,31 +24,21 @@ import           Data.Conduit.Binary hiding (mapM_)
 import qualified Data.Conduit.List as CL
 import qualified Data.CSV.Conduit as CSV
 
-import           Data.Functor
-import           Data.Int
 import           Data.Maybe
 
 import           Data.List
 import qualified Data.Map as Map
-import qualified Data.Set as Set
 
 import           Data.String (fromString)
 import           Data.Text (Text)
-import qualified Data.Text as T
 
-import           Data.Typeable
-import           Data.Vector as Vector (Vector, toList)
-import           Database.PostgreSQL.Simple (Connection, Only(..))
-import           Database.PostgreSQL.Simple.SqlQQ
+import           Database.PostgreSQL.Simple (Only(..))
 import           Database.PostgreSQL.Simple.Copy
 
 import           System.IO
 
 import           Data.Model
 import           Data.Model.Patch as Patch
-import           Carma.Model.LegalForm
-import           Carma.Model.Program
-import           Carma.Model.SubProgram
 import           Carma.Model.VinFormat
 
 import           Carma.VIN.Base
@@ -170,10 +158,6 @@ processTitles vf csvHeader =
           interName t = interMap Map.! t
 
 
-tmpDir :: FilePath
-tmpDir = "/tmp"
-
-
 process :: (Int, Maybe Int)
         -- ^ Program & subprogram ids.
         -> ([(ColumnTitle, InternalName)], [FFMapper])
@@ -204,7 +188,7 @@ process psid mapping = do
   setSpecialDefaults uid (snd psid)
 
   forM_ (vinFormatAccessors) $
-        (\f@(FFAcc (CF c) _ _ reqAcc defAcc _) ->
+        (\(FFAcc (CF c) _ _ reqAcc defAcc _) ->
              let
                  fn = fieldName c
                  -- TODO Might use CSV titles here instead of Contract
