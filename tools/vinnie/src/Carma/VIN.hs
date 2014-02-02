@@ -12,6 +12,7 @@ where
 
 import           Control.Applicative
 import           Control.Monad
+import           Control.Monad.Fix
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Class
 import qualified Control.Monad.Trans.Error as E
@@ -19,7 +20,6 @@ import           Control.Monad.Trans.Reader
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
-import qualified Data.ByteString.Lazy as BL
 
 import           Data.Conduit
 import           Data.Conduit.Binary hiding (mapM_)
@@ -27,8 +27,10 @@ import qualified Data.Conduit.List as CL
 import qualified Data.CSV.Conduit as CSV
 
 import           Data.Functor
+import           Data.Int
 import           Data.Maybe
 
+import           Data.List
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 
@@ -68,7 +70,7 @@ type C a = Patch a
 
 
 -- | Default settings for VIN list CSV files: semicolon-separated
--- fields, quoted.
+-- fields, quoted. Must match those used in SQL COPY commands.
 csvSettings :: CSV.CSVSettings
 csvSettings = CSV.CSVSettings ';' (Just '"')
 
@@ -172,28 +174,19 @@ tmpDir :: FilePath
 tmpDir = "/tmp"
 
 
-process :: Options
-        -> ImportContext
-        -> (Int, Maybe Int)
+process :: (Int, Maybe Int)
         -- ^ Program & subprogram ids.
         -> ([(ColumnTitle, InternalName)], [FFMapper])
         -- ^ Total column mapping and loadable fields mapping.
-        -> ConnectedIO ()
-process options context psid mapping = do
-  let input           = infile options
-      uid             = committer options
-      vf              = vinFormat context
-      interMap        = fst mapping
-      internalHeadRow = map snd interMap
-  conn <- ask
+        -> Import ()
+process psid mapping = do
+  vf   <- asks vinFormat
+  uid  <- getOption committer
 
-  makeProtoTable internalHeadRow >> installFunctions >> makeQueueTable
+  let (columnTitles, internalNames) = unzip $ fst mapping
 
-  -- Read CSV into proto table
-  liftIO $ do
-    copyProtoStart conn $ snd $ unzip $ fst mapping
-    BL.readFile input >>= mapM_ (putCopyData conn) . BL.toChunks
-    putCopyEnd conn
+  makeProtoTables internalNames >> installFunctions >> makeQueueTable
+  getOption infile >>= flip copyProto internalNames
 
   -- Process in proto table, which matches CSV columns.
   let (protoActions, transferChunks) =
@@ -232,6 +225,23 @@ process options context psid mapping = do
   -- Finally, write new contracts to live table
   deleteDupes >> transferContracts
 
+  conn <- asks connection
+  output <- getOption outfile
+
+  copyReportStart internalNames
+  liftIO $ do
+    BS.writeFile output bom
+    -- Write report header, adding errors column title if not present
+    runResourceT $ yield (nub $ columnTitles ++ [errorsTitle]) $=
+                   CSV.fromCSV csvSettings $$
+                   sinkIOHandle (openFile output AppendMode)
+
+    -- Write COPY FROM data to outfile
+    fix $ \next ->
+        getCopyData conn >>= \case
+                    CopyOutRow s ->
+                        BS.appendFile output s >> next
+                    CopyOutDone n -> return n
   pass
 
 
@@ -246,7 +256,7 @@ processField :: C VinFormat
              -> (Int, Maybe Int)
              -- ^ Program & subprogram ids.
              -> FFMapper
-             -> (ConnectedIO (), (Text, Text))
+             -> (Import (), (Text, Text))
 processField vf (pid, sid) (FM iname f@(FFAcc (CF c) stag _ _ defAcc _) cols) =
     case stag of
       SRaw -> (pass, (sqlCast iname "text", fn))
@@ -294,7 +304,7 @@ processField vf (pid, sid) (FM iname f@(FFAcc (CF c) stag _ _ defAcc _) cols) =
           , (sqlCast iname "int", fn))
       SSubprogram ->
           ( -- Try to recognize references to subprograms
-            protoSubprogramLookup pid sid iname  >>
+            protoSubprogramLookup pid sid iname >>
             protoUpdateWithFun iname "pg_temp.numordead" [iname] >>
             pass
           , (sqlCast iname "int", fn))
@@ -313,7 +323,6 @@ processField vf (pid, sid) (FM iname f@(FFAcc (CF c) stag _ _ defAcc _) cols) =
         allNames = [iname] ++ fromMaybe [] cols
 
 
-
 -- | TODO Track import state.
 vinImport :: Import ()
 vinImport = do
@@ -321,7 +330,6 @@ vinImport = do
   conn <- asks connection
   (pid, sid) <- (,) <$> (getOption program) <*> (getOption subprogram)
   input <- getOption infile
-  output <- getOption outfile
 
   -- Figure out program id if only subprogram is provided.
   (pid', sid') <-
@@ -336,7 +344,7 @@ vinImport = do
 
   -- Read head row to find out original column order
   hr <- liftIO $ (runResourceT $
-        sourceFile input $=
+        sourceIOHandle (skipBomInputHandle input) $=
         CSV.intoCSV csvSettings $$
         CL.head :: IO (Maybe (CSV.Row Text)))
 
@@ -351,6 +359,4 @@ vinImport = do
         when (not $ (isJust sid') ||
               (hasSubprogram vf $ map ffa $ snd mapping)) $
              throwError NoTarget
-        ctx <- ask
-        opts <- lift $ lift $ ask
-        liftIO $ runConnected (process opts ctx (pid', sid') mapping) conn
+        process (pid', sid') mapping

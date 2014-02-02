@@ -11,6 +11,7 @@ import qualified Blaze.ByteString.Builder.Char8 as BZ
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Reader
 
+import qualified Data.ByteString.Lazy as BL
 import           Data.Int
 import           Data.List
 import           Data.String
@@ -19,7 +20,8 @@ import qualified Data.Text as T
 
 import           Database.PostgreSQL.Simple hiding (execute, execute_)
 import qualified Database.PostgreSQL.Simple as PG (execute, execute_)
-import           Database.PostgreSQL.Simple.Copy
+import           Database.PostgreSQL.Simple.Copy hiding (copy)
+import qualified Database.PostgreSQL.Simple.Copy as PG (copy)
 import           Database.PostgreSQL.Simple.SqlQQ
 import           Database.PostgreSQL.Simple.ToField
 import           Database.PostgreSQL.Simple.ToRow
@@ -62,27 +64,30 @@ instance (ToRow a, ToField b) => ToRow (a :* b) where
     toRow (a :* b) = toRow $ a :. (Only b)
 
 
-type ConnectedIO = ReaderT Connection IO
+execute :: ToRow p => Query -> p -> Import Int64
+execute q p = asks connection >>= \conn -> liftIO $ PG.execute conn q p
 
 
-execute :: ToRow p => Query -> p -> ConnectedIO Int64
-execute q p = ask >>= \conn -> liftIO $ PG.execute conn q p
+execute_ :: Query -> Import Int64
+execute_ q = asks connection >>= \conn -> liftIO $ PG.execute_ conn q
 
 
-execute_ :: Query -> ConnectedIO Int64
-execute_ q = ask >>= \conn -> liftIO $ PG.execute_ conn q
+copy :: ToRow p => Query -> p -> Import ()
+copy q p = asks connection >>= \conn -> liftIO $ PG.copy conn q p
 
 
-runConnected :: ConnectedIO a -> Connection -> IO a
-runConnected a conn = runReaderT a conn
+errorsTitle :: Text
+errorsTitle = "Ошибки"
 
 
 -- | Produce unique internal names from a CSV header.
 mkInternalNames :: [ColumnTitle] -> [InternalName]
-mkInternalNames ns =
-    Data.List.take (length ns) $
-    map (\(tpl, num) -> fromString (tpl ++ show num)) $
-    zip (repeat "field") ([1..] :: [Int])
+mkInternalNames columns =
+    map (\(col, num) ->
+             if col == errorsTitle
+             then "errors"
+             else fromString ("field" ++ show num)) $
+    zip columns ([1..] :: [Int])
 
 
 -- | Name of id field which maps proto entries to queue.
@@ -125,24 +130,54 @@ contractFields =
     map (\(FFAcc (CF c) _ _ _ _ _) -> fieldName c) vinFormatAccessors
 
 
-makeProtoTable :: [InternalName] -> ConnectedIO Int64
-makeProtoTable names =
-    execute_ $ fromString $ concat
-    [ "CREATE TEMPORARY TABLE vinnie_proto ("
-    , intercalate "," $
-      (map (\t -> (T.unpack t) ++ " text") names) ++
-      [(T.unpack kid) ++ " serial"]
-    , ");"
-    ]
+-- | Create temporary pristine and proto tables for CSV data.
+makeProtoTables :: [InternalName] -> Import ()
+makeProtoTables names =
+    execute_ (mkProto "vinnie_pristine") >>
+    execute_ (mkProto "vinnie_proto") >>
+    return ()
+    where
+      mkProto table = fromString $ concat
+                      [ "CREATE TEMPORARY TABLE "
+                      , table
+                      , " ("
+                      , intercalate "," $
+                        (map (\t -> (T.unpack t) ++ " text") names) ++
+                        [(T.unpack kid) ++ " serial"]
+                      , ");"
+                      ]
 
 
-copyProtoStart :: Connection -> [InternalName] -> IO ()
-copyProtoStart conn inames =
-    copy conn
+-- | Read CSV into pristine and proto tables.
+copyProto :: FilePath -> [InternalName] -> Import Int64
+copyProto input inames = do
+  copy [sql|
+        COPY vinnie_pristine (?)
+        FROM STDIN (FORMAT CSV, HEADER 1, DELIMITER ';');
+        |] (Only $ PT $ sqlCommas inames)
+  conn <- asks connection
+  n <- liftIO $ do
+         BL.readFile input >>= mapM_ (putCopyData conn) . BL.toChunks
+         putCopyEnd conn
+  execute_ [sql|
+            INSERT INTO vinnie_proto
+            SELECT *
+            FROM vinnie_pristine;
+            |]
+  return n
+
+
+-- | Initiate COPY FROM for report.
+copyReportStart :: [InternalName] -> Import ()
+copyReportStart inames =
+    copy
     [sql|
-     COPY vinnie_proto (?)
-     FROM STDIN (FORMAT CSV, HEADER 1, DELIMITER ';');
-     |] (Only $ PT $ sqlCommas inames)
+     COPY (SELECT ?, array_to_string(q.errors, ';')
+           FROM vinnie_pristine p, vinnie_queue q
+           WHERE p.id = q.id AND q.errors IS NOT NULL
+           ORDER BY p.id)
+     TO STDIN (FORMAT CSV, FORCE_QUOTE *, DELIMITER ';');
+     |] (Only $ PT $ sqlCommas $ delete "errors" inames)
 
 
 protoUpdate :: Query
@@ -152,7 +187,7 @@ protoUpdate = [sql|UPDATE vinnie_proto SET ? = ?;|]
 protoUpdateWithFun :: InternalName
                    -> Text
                    -> [Text]
-                   -> ConnectedIO Int64
+                   -> Import Int64
 protoUpdateWithFun iname fun args =
     execute protoUpdate
                 ( PT iname
@@ -165,7 +200,7 @@ protoCheckRegexp :: Text
                  -- ^ Field name.
                  -> Text
                  -- ^ Regular expression.
-                 -> ConnectedIO Int64
+                 -> Import Int64
 protoCheckRegexp fname regexp =
     execute
     [sql|
@@ -184,7 +219,7 @@ protoDictLookup :: InternalName
                 -- ^ Field name.
                 -> Text
                 -- ^ Dictionary table name.
-                -> ConnectedIO Int64
+                -> Import Int64
 protoDictLookup iname dictTableName =
     execute
     [sql|
@@ -211,8 +246,10 @@ protoDictLookup iname dictTableName =
 
 -- | Replace partner label/code references with partner ids. Clear bad
 -- references.
+--
+-- TODO Speed up first query.
 protoPartnerLookup :: InternalName
-                   -> ConnectedIO Int64
+                   -> Import Int64
 protoPartnerLookup iname =
     execute
     [sql|
@@ -247,7 +284,7 @@ protoSubprogramLookup :: Int
                       -> Maybe Int
                       -- ^ Default subprogram id.
                       -> InternalName
-                      -> ConnectedIO Int64
+                      -> Import Int64
 protoSubprogramLookup pid sid iname =
     execute
     [sql|
@@ -283,7 +320,7 @@ protoSubprogramLookup pid sid iname =
 
 -- | TODO Move @lower(trim(both ' ' from $1))@ to functions (when the
 -- performance issue is resolved).
-installFunctions :: ConnectedIO Int64
+installFunctions :: Import Int64
 installFunctions =
     execute_
     [sql|
@@ -311,7 +348,7 @@ installFunctions =
 
 -- | Create a purgatory for new contracts with schema identical to
 -- Contract model table.
-makeQueueTable :: ConnectedIO Int64
+makeQueueTable :: Import Int64
 makeQueueTable =
     execute
     [sql|
@@ -323,7 +360,7 @@ makeQueueTable =
 
 -- | Set committer and subprogram (if not previously set) for
 -- contracts in queue.
-setSpecialDefaults :: Int -> Maybe Int -> ConnectedIO Int64
+setSpecialDefaults :: Int -> Maybe Int -> Import Int64
 setSpecialDefaults cid sid =
     execute
     [sql|
@@ -339,7 +376,7 @@ transferQueue :: [Text]
               -- casting specifiers (@field17::int@).
               -> [Text]
               -- ^ Loadable Contract columns (@mileage@).
-              -> ConnectedIO Int64
+              -> Import Int64
 transferQueue inames fnames =
     execute [sql|
      INSERT INTO vinnie_queue (?)
@@ -371,7 +408,7 @@ markEmptyRequired =
 
 -- | Delete all rows from the queue which are already present in
 -- Contract table.
-deleteDupes :: ConnectedIO Int64
+deleteDupes :: Import Int64
 deleteDupes =
     execute
     [sql|
@@ -385,7 +422,7 @@ deleteDupes =
 
 -- | Transfer all contracts w/o errors from queue to live Contract
 -- table.
-transferContracts :: ConnectedIO Int64
+transferContracts :: Import Int64
 transferContracts =
     execute
     [sql|
