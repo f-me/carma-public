@@ -13,7 +13,7 @@ tested-with:         GHC == 7.6.3
 
 library
   exposed-modules:
-    Carma.VIN.Base
+    Carma.VIN
 
   build-depends:
     base              >= 4.6 && < 4.7,
