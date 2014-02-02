@@ -57,6 +57,7 @@ import Snaplet.DbLayer.Types
 
 import Util as U
 
+
 data FileUpload b = FU { cfg      :: UploadPolicy
                        , tmp      :: FilePath
                        , finished :: FilePath
@@ -67,22 +68,27 @@ data FileUpload b = FU { cfg      :: UploadPolicy
                        -- instances.
                        }
 
+
 routes :: [(ByteString, Handler b (FileUpload b) ())]
 routes = [ (":model/bulk/:field",      method POST uploadBulk)
          , (":model/:id/:field",       method POST uploadInField)
          ]
 
+
 -- | Lift a DbLayer handler action to FileUpload handler.
 withDb :: Handler b (DbLayer b) a -> Handler b (FileUpload b) a
 withDb = (gets db >>=) . flip withTop
+
 
 -- | SQL query used to select attachment id by hash. Parametrized by
 -- hash value.
 hashToAid :: Query
 hashToAid = [sql|SELECT id::text FROM attachmenttbl WHERE hash=?;|]
 
+
 -- | A field of an instance to attach an attachment to.
 type AttachmentTarget = (ModelName, ObjectId, FieldName)
+
 
 -- | Upload a file, create a new attachment (an instance of
 -- @attachment@ model), add references to it in a given set of other
@@ -149,6 +155,7 @@ uploadInManyFields flds nameFun = do
 
   return (obj, failedTargets, succTargets, dupe)
 
+
 -- | Upload and attach a file (as in 'uploadInManyFields'), but read a
 -- list of instance ids from the file name (@732,123,452-foo09.pdf@
 -- reads to @[732, 123, 452]@; all non-digit characters serve as
@@ -189,6 +196,7 @@ uploadBulk = do
                     then tail $ dropWhile (/= '-') fp
                     else fp
 
+
 -- | Upload and attach a file (as in 'uploadInManyFields') to a single
 -- instance, given by @model@, @id@ and @field@ request parameters.
 uploadInField :: Handler b (FileUpload b) ()
@@ -200,6 +208,7 @@ uploadInField = do
   if null fails
   then writeLBS $ A.encode $ res
   else error $ "Failed to upload in field: " ++ (show fails)
+
 
 -- | Return path to an attached file (prepended by finished uploads
 -- dir).
@@ -214,6 +223,7 @@ getAttachmentPath aid = do
                   fPath </> "attachment" </>
                   B8.unpack aid </> B8.unpack fName
     _ -> error $ "Broken attachment" ++ B8.unpack aid
+
 
 -- | Append a reference of form @attachment:213@ to a field of another
 -- instance, which must exist. This handler is thread-safe.
@@ -238,7 +248,7 @@ attachToField modelName instanceId field ref = do
   -- Append new ref to the target field
   oldRefs <- NDB.fieldProj field <$> (withDb $ NDB.read modelName instanceId)
   let newRefs = addRef oldRefs ref
-  _  <- withDb $ NDB.update modelName instanceId 
+  _  <- withDb $ NDB.update modelName instanceId
         (NDB.fieldPatch field (A.String $ T.decodeUtf8 newRefs))
   -- Unlock the field
   liftIO $ atomically $ do
@@ -249,6 +259,7 @@ attachToField modelName instanceId field ref = do
       addRef ""    r = r
       addRef val   r = BS.concat [val, ",", r]
       lockName = BS.concat [modelName, ":", instanceId, "/", field]
+
 
 -- | Store a file upload from the request, return full path to the
 -- uploaded file.
@@ -271,8 +282,10 @@ doUpload relPath = do
         return $ Just justFname)
   return $ root </> relPath </> head fns
 
+
 partPol :: UploadPolicy -> PartUploadPolicy
 partPol = allowWithMaximumSize . getMaximumFormInputSize
+
 
 fileUploadInit :: HasAuth b =>
                   Lens' b (Snaplet (DbLayer b))
