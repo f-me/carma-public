@@ -1,3 +1,11 @@
+{-|
+
+Main VIN import actions.
+
+TODO Give an outline of how it works (pristine, proto, queue tables).
+
+-}
+
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -18,15 +26,16 @@ import           Control.Monad.Trans.Reader
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as B8
+import qualified Data.ByteString.Lazy as BL
 
 import           Data.Conduit
 import           Data.Conduit.Binary hiding (mapM_)
 import qualified Data.Conduit.List as CL
 import qualified Data.CSV.Conduit as CSV
 
-import           Data.Maybe
-
+import           Data.Int
 import           Data.List
+import           Data.Maybe
 import qualified Data.Map as Map
 
 import           Data.String (fromString)
@@ -53,12 +62,56 @@ throwError :: ImportError -> Import a
 throwError err = lift $ E.throwError err
 
 
+-- | Perform VIN file import, write report.
+--
+-- Return how many rows were loaded and how many erroneous rows
+-- occured.
+--
+-- TODO Track import state.
+vinImport :: Import (Int64, Int64)
+vinImport = do
+  vf <- asks vinFormat
+  (pid, sid) <- (,) <$> (getOption program) <*> (getOption subprogram)
+  input <- getOption infile
+
+  -- Figure out program id if only subprogram is provided.
+  (pid', sid') <-
+      case (pid, sid) of
+        (Nothing, Nothing) -> throwError NoTarget
+        (Just p,  Nothing) -> return (p, sid)
+        (_     ,  Just s)  -> do
+            res <- getProgram s
+            case res of
+              [Only p] -> return (p, Just s)
+              _        -> throwError NoTarget
+
+  -- Read head row to find out original column order
+  hr <- liftIO $ (runResourceT $
+        sourceIOHandle (skipBomInputHandle input) $=
+        CSV.intoCSV csvSettings $$
+        CL.head :: IO (Maybe (CSV.Row Text)))
+
+  case hr of
+    Nothing -> throwError NoHeader
+    Just headRow -> do
+        -- TODO Error on duplicate loadable columns
+        mapping <- processTitles vf headRow
+        -- Fail if a specific subprogram is not set and it's not
+        -- loadable either. We check against the actual set of file
+        -- columns, not the format.
+        when (not $ (isJust sid') ||
+              (hasSubprogram vf $ map ffa $ snd mapping)) $
+             throwError NoTarget
+        process (pid', sid') mapping
+
+
 type FFA = FormatFieldAccessor VinFormat
 type C a = Patch a
 
 
 -- | Default settings for VIN list CSV files: semicolon-separated
--- fields, quoted. Must match those used in SQL COPY commands.
+-- fields, quoted. Must match those used in "Carma.VIN.SQL" COPY
+-- commands.
 csvSettings :: CSV.CSVSettings
 csvSettings = CSV.CSVSettings ';' (Just '"')
 
@@ -158,25 +211,37 @@ processTitles vf csvHeader =
           interName t = interMap Map.! t
 
 
+-- | Perform VIN file import using the provided mapping.
 process :: (Int, Maybe Int)
         -- ^ Program & subprogram ids.
         -> ([(ColumnTitle, InternalName)], [FFMapper])
         -- ^ Total column mapping and loadable fields mapping.
-        -> Import ()
+        -> Import (Int64, Int64)
 process psid mapping = do
   vf   <- asks vinFormat
   uid  <- getOption committer
 
+  -- Load CSV data into pristine and proto tables, which match CSV
+  -- file schema
   let (columnTitles, internalNames) = unzip $ fst mapping
+  createCSVTables internalNames
+  conn  <- asks connection
+  input <- getOption infile
+  copyPristineStart internalNames
+  inRows <- liftIO $ do
+              BL.readFile input >>= mapM_ (putCopyData conn) . BL.toChunks
+              putCopyEnd conn
+  pristineToProto
 
-  makeProtoTables internalNames >> installFunctions >> makeQueueTable
-  getOption infile >>= flip copyProto internalNames
+  installFunctions >> createQueueTable
 
-  -- Process in proto table, which matches CSV columns.
+  -- Process proto table
   let (protoActions, transferChunks) =
           unzip $ map (processField vf psid) $ snd mapping
   sequence_ protoActions
 
+  -- By now all values in proto are either suitable for Contract or
+  -- null. Queue table has only typed Contract fields.
   uncurry transferQueue (unzip transferChunks)
 
   -- Set committer and subprogram. Note that if subprogram was not
@@ -196,7 +261,12 @@ process psid mapping = do
                  fd = fieldDesc c
                  dv = Patch.get' vf defAcc
              in do
-               -- Set default values
+               -- Set default values.
+               --
+               -- TODO Loadable required field is overwritten with its
+               -- default value (when there's any) if no well-formed
+               -- value is supplied in the file. Probably this is not
+               -- expected.
                execute setQueueDefaults (PT fn, dv, PT fn)
                -- Write errors for empty required columns.
                --
@@ -207,26 +277,29 @@ process psid mapping = do
                     pass)
 
   -- Finally, write new contracts to live table
-  deleteDupes >> transferContracts
+  loaded <- deleteDupes >> transferContracts
 
-  conn <- asks connection
-  output <- getOption outfile
+  -- Count errors and write error report if there're any
+  errors <- countErrors
 
-  copyReportStart internalNames
-  liftIO $ do
-    BS.writeFile output bom
-    -- Write report header, adding errors column title if not present
-    runResourceT $ yield (nub $ columnTitles ++ [errorsTitle]) $=
-                   CSV.fromCSV csvSettings $$
-                   sinkIOHandle (openFile output AppendMode)
+  when (errors > 0) $ do
+       output <- getOption outfile
 
-    -- Write COPY FROM data to outfile
-    fix $ \next ->
-        getCopyData conn >>= \case
-                    CopyOutRow s ->
-                        BS.appendFile output s >> next
-                    CopyOutDone n -> return n
-  pass
+       copyReportStart internalNames
+       liftIO $ void $ do
+         BS.writeFile output bom
+         -- Write report header, adding errors column title if not present
+         runResourceT $ yield (nub $ columnTitles ++ [errorsTitle]) $=
+                        CSV.fromCSV csvSettings $$
+                        sinkIOHandle (openFile output AppendMode)
+
+         -- Write COPY FROM data to outfile
+         fix $ \next ->
+             getCopyData conn >>= \case
+                         CopyOutRow s ->
+                             BS.appendFile output s >> next
+                         CopyOutDone n -> return n
+  return (loaded, errors)
 
 
 pass :: Monad m => m ()
@@ -234,8 +307,7 @@ pass = return ()
 
 
 -- | Produce an action for proto processing and bits for
--- proto-to-queue transfer (@("field23::int", "mileage")@) of a given
--- field.
+-- proto-to-queue transfer (@("field23::int", "mileage")@) of a field.
 processField :: C VinFormat
              -> (Int, Maybe Int)
              -- ^ Program & subprogram ids.
@@ -305,42 +377,3 @@ processField vf (pid, sid) (FM iname f@(FFAcc (CF c) stag _ _ defAcc _) cols) =
       where
         fn = fieldName c
         allNames = [iname] ++ fromMaybe [] cols
-
-
--- | TODO Track import state.
-vinImport :: Import ()
-vinImport = do
-  vf <- asks vinFormat
-  conn <- asks connection
-  (pid, sid) <- (,) <$> (getOption program) <*> (getOption subprogram)
-  input <- getOption infile
-
-  -- Figure out program id if only subprogram is provided.
-  (pid', sid') <-
-      case (pid, sid) of
-        (Nothing, Nothing) -> throwError NoTarget
-        (Just p,  Nothing) -> return (p, sid)
-        (_     ,  Just s)  -> do
-            res <- liftIO $ getProgram conn s
-            case res of
-              [Only p] -> return (p, Just s)
-              _        -> throwError NoTarget
-
-  -- Read head row to find out original column order
-  hr <- liftIO $ (runResourceT $
-        sourceIOHandle (skipBomInputHandle input) $=
-        CSV.intoCSV csvSettings $$
-        CL.head :: IO (Maybe (CSV.Row Text)))
-
-  case hr of
-    Nothing -> throwError NoHeader
-    Just headRow -> do
-        -- TODO Error on duplicate loadable columns
-        mapping <- processTitles vf headRow
-        -- Fail if a specific subprogram is not set and it's not
-        -- loadable either. We check against the actual set of file
-        -- columns, not the format.
-        when (not $ (isJust sid') ||
-              (hasSubprogram vf $ map ffa $ snd mapping)) $
-             throwError NoTarget
-        process (pid', sid') mapping

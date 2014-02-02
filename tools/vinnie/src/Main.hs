@@ -41,5 +41,10 @@ main = do
       clArgs <- cmdArgs sample
       res <- runImport vinImport clArgs
       case res of
-        Left e -> print e
-        Right a -> return ()
+        Left e            -> print e
+        Right (good, bad) ->
+            print $ concat [ "Loaded: "
+                           , show good
+                           , ", errors: "
+                           , show bad
+                           ]

@@ -1,3 +1,10 @@
+{-|
+
+SQL helpers used during VIN import process.
+
+-}
+
+
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE QuasiQuotes #-}
@@ -11,16 +18,20 @@ import qualified Blaze.ByteString.Builder.Char8 as BZ
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Reader
 
-import qualified Data.ByteString.Lazy as BL
 import           Data.Int
 import           Data.List
 import           Data.String
 import           Data.Text (Text)
 import qualified Data.Text as T
 
-import           Database.PostgreSQL.Simple hiding (execute, execute_)
-import qualified Database.PostgreSQL.Simple as PG (execute, execute_)
-import           Database.PostgreSQL.Simple.Copy hiding (copy)
+import           Database.PostgreSQL.Simple hiding ( execute
+                                                   , execute_
+                                                   , query
+                                                   , query_)
+import qualified Database.PostgreSQL.Simple as PG ( execute
+                                                  , execute_
+                                                  , query
+                                                  , query_)
 import qualified Database.PostgreSQL.Simple.Copy as PG (copy)
 import           Database.PostgreSQL.Simple.SqlQQ
 import           Database.PostgreSQL.Simple.ToField
@@ -72,6 +83,14 @@ execute_ :: Query -> Import Int64
 execute_ q = asks connection >>= \conn -> liftIO $ PG.execute_ conn q
 
 
+query :: (FromRow r, ToRow p) => Query -> p -> Import [r]
+query q p = asks connection >>= \conn -> liftIO $ PG.query conn q p
+
+
+query_ :: (FromRow r) => Query -> Import [r]
+query_ q = asks connection >>= \conn -> liftIO $ PG.query_ conn q
+
+
 copy :: ToRow p => Query -> p -> Import ()
 copy q p = asks connection >>= \conn -> liftIO $ PG.copy conn q p
 
@@ -108,9 +127,11 @@ sqlCommas :: [T.Text] -> T.Text
 sqlCommas ts = T.intercalate "," ts
 
 
-getProgram :: Connection -> Int -> IO [Only Int]
-getProgram conn sid =
-    query conn
+getProgram :: Int
+           -- ^ Subprogram id.
+           -> Import [Only Int]
+getProgram sid =
+    query
     [sql|
      SELECT p.id FROM "?" p, "?" s
      WHERE p.id = s.parent AND s.id = ?;
@@ -131,8 +152,8 @@ contractFields =
 
 
 -- | Create temporary pristine and proto tables for CSV data.
-makeProtoTables :: [InternalName] -> Import ()
-makeProtoTables names =
+createCSVTables :: [InternalName] -> Import ()
+createCSVTables names =
     execute_ (mkProto "vinnie_pristine") >>
     execute_ (mkProto "vinnie_proto") >>
     return ()
@@ -148,23 +169,14 @@ makeProtoTables names =
                       ]
 
 
--- | Read CSV into pristine and proto tables.
-copyProto :: FilePath -> [InternalName] -> Import Int64
-copyProto input inames = do
-  copy [sql|
-        COPY vinnie_pristine (?)
-        FROM STDIN (FORMAT CSV, HEADER 1, DELIMITER ';');
-        |] (Only $ PT $ sqlCommas inames)
-  conn <- asks connection
-  n <- liftIO $ do
-         BL.readFile input >>= mapM_ (putCopyData conn) . BL.toChunks
-         putCopyEnd conn
-  execute_ [sql|
-            INSERT INTO vinnie_proto
-            SELECT *
-            FROM vinnie_pristine;
-            |]
-  return n
+-- | Read CSV into pristine table.
+copyPristineStart :: [InternalName] -> Import ()
+copyPristineStart inames =
+  copy
+  [sql|
+   COPY vinnie_pristine (?)
+   FROM STDIN (FORMAT CSV, HEADER 1, DELIMITER ';');
+   |] (Only $ PT $ sqlCommas inames)
 
 
 -- | Initiate COPY FROM for report.
@@ -178,6 +190,17 @@ copyReportStart inames =
            ORDER BY p.id)
      TO STDIN (FORMAT CSV, FORCE_QUOTE *, DELIMITER ';');
      |] (Only $ PT $ sqlCommas $ delete "errors" inames)
+
+
+-- | Copy pristine table data to proto.
+pristineToProto :: Import Int64
+pristineToProto =
+   execute_
+   [sql|
+    INSERT INTO vinnie_proto
+    SELECT *
+    FROM vinnie_pristine;
+    |]
 
 
 protoUpdate :: Query
@@ -348,8 +371,8 @@ installFunctions =
 
 -- | Create a purgatory for new contracts with schema identical to
 -- Contract model table.
-makeQueueTable :: Import Int64
-makeQueueTable =
+createQueueTable :: Import Int64
+createQueueTable =
     execute
     [sql|
      CREATE TEMPORARY TABLE vinnie_queue
@@ -404,6 +427,14 @@ markEmptyRequired =
      UPDATE vinnie_queue SET errors = errors || ARRAY[?]
      WHERE coalesce(length(lower(trim(both ' ' from (?::text)))) < 1, true);
      |]
+
+
+-- | Calculate how many erroneous rows are in queue table.
+countErrors :: Import Int64
+countErrors = do
+  [Only bad] <-
+      query_ [sql|SELECT count(1) FROM vinnie_queue WHERE errors IS NOT NULL;|]
+  return bad
 
 
 -- | Delete all rows from the queue which are already present in

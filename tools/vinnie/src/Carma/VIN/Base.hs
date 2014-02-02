@@ -1,8 +1,6 @@
 {-|
 
-Type and monadic layout of VIN import process.
-
-Transformer wrappers
+Basic types and monads of VIN import process.
 
 -}
 
