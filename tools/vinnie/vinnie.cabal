@@ -15,6 +15,10 @@ library
   exposed-modules:
     Carma.VIN
 
+  other-modules:
+    Carma.VIN.Base
+    Carma.VIN.SQL
+
   build-depends:
     base              >= 4.6 && < 4.7,
     blaze-builder     == 0.3.*,
@@ -36,10 +40,11 @@ library
 
 
 executable vinnie
-  main-is:             Main.hs
+  main-is:            Main.hs
 
   -- Modules included in this executable, other than Main.
-  -- other-modules:
+  other-modules:
+    Carma.VIN
 
   build-depends:
     base              >= 4.6 && < 4.7,
