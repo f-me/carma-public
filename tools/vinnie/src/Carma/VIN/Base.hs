@@ -20,9 +20,7 @@ module Carma.VIN.Base
 
 where
 
-import Control.Applicative
 import Data.Data
-import Data.Functor
 
 import Control.Exception.Lifted
 import Control.Monad.IO.Class
@@ -30,8 +28,6 @@ import Control.Monad.Trans.Class
 import Control.Monad.Trans.Control
 import Control.Monad.Trans.Error
 import Control.Monad.Trans.Reader
-import Control.Monad.Trans.State
-import Control.Monad.Trans.Writer
 
 import Data.Text (Text)
 import Database.PostgreSQL.Simple
@@ -40,9 +36,6 @@ import Data.Model
 import Data.Model.Patch     as Patch
 import Data.Model.Patch.Sql as Patch
 
-import Carma.Model.Program    (Program)
-import Carma.Model.SubProgram (SubProgram)
-import Carma.Model.Usermeta   (Usermeta)
 import Carma.Model.VinFormat  (VinFormat)
 
 

@@ -20,7 +20,6 @@ library
     blaze-builder     == 0.3.*,
     bytestring        == 0.10.*,
     carma-models      >= 0.9 && < 0.10,
-    cmdargs           == 0.10.*,
     conduit           == 1.0.*,
     containers        == 0.5.*,
     csv-conduit       == 0.5.*,
