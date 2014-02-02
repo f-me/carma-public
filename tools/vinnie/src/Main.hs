@@ -4,9 +4,8 @@ import Database.PostgreSQL.Simple
 
 import System.Console.CmdArgs.Implicit
 
-import Carma.VIN
-import Carma.VIN.Base hiding            (program)
-import qualified Carma.VIN.Base as Base (program)
+import Carma.VIN hiding           (program)
+import qualified Carma.VIN as VIN (program)
 
 
 programName :: String
@@ -33,13 +32,13 @@ main = do
                  , format = def
                    &= argPos 3
                    &= typ "FORMAT-ID"
-                 , Base.program = Nothing
+                 , VIN.program = Nothing
                  , subprogram = Nothing
                  }
                  &= program programName
     in do
       clArgs <- cmdArgs sample
-      res <- runImport vinImport clArgs
+      res <- doImport clArgs
       case res of
         Left e            -> print e
         Right (good, bad) ->

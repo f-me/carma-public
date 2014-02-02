@@ -11,7 +11,9 @@ TODO Give an outline of how it works (pristine, proto, queue tables).
 {-# LANGUAGE OverloadedStrings #-}
 
 module Carma.VIN
-    ( vinImport
+    ( doImport
+    , Options(..)
+    , ImportError(..)
     )
 
 where
@@ -54,6 +56,14 @@ import           Carma.VIN.Base
 import           Carma.VIN.SQL
 
 
+-- | Perform VIN file import, write report.
+--
+-- Return how many rows were loaded and how many erroneous rows
+-- occured.
+doImport :: Options -> IO (Either ImportError (Int64, Int64))
+doImport opts = runImport vinImport opts
+
+
 getOption :: (Options -> a) -> Import a
 getOption proj = lift $ lift $ asks proj
 
@@ -62,10 +72,7 @@ throwError :: ImportError -> Import a
 throwError err = lift $ E.throwError err
 
 
--- | Perform VIN file import, write report.
---
--- Return how many rows were loaded and how many erroneous rows
--- occured.
+-- | Main VIN file import action.
 --
 -- TODO Track import state.
 vinImport :: Import (Int64, Int64)
@@ -228,9 +235,9 @@ process psid mapping = do
   conn  <- asks connection
   input <- getOption infile
   copyPristineStart internalNames
-  inRows <- liftIO $ do
-              BL.readFile input >>= mapM_ (putCopyData conn) . BL.toChunks
-              putCopyEnd conn
+  liftIO $ do
+    BL.readFile input >>= mapM_ (putCopyData conn) . BL.toChunks
+    putCopyEnd conn
   pristineToProto
 
   installFunctions >> createQueueTable

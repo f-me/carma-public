@@ -11,6 +11,31 @@ build-type:          Simple
 cabal-version:       >=1.10
 tested-with:         GHC == 7.6.3
 
+library
+  exposed-modules:
+    Carma.VIN.Base
+
+  build-depends:
+    base              >= 4.6 && < 4.7,
+    blaze-builder     == 0.3.*,
+    bytestring        == 0.10.*,
+    carma-models      >= 0.9 && < 0.10,
+    cmdargs           == 0.10.*,
+    conduit           == 1.0.*,
+    containers        == 0.5.*,
+    csv-conduit       == 0.5.*,
+    lifted-base       == 0.2.*,
+    monad-control     == 0.3.*,
+    postgresql-simple == 0.3.*,
+    text              == 0.11.*,
+    transformers      == 0.3.*,
+    vector            == 0.10.*
+
+  ghc-options:         -Wall -fno-warn-unused-do-bind
+  hs-source-dirs:      src
+  default-language:    Haskell2010
+
+
 executable vinnie
   main-is:             Main.hs
 
