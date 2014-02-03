@@ -7,6 +7,7 @@ Basic types and monads of VIN import process.
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE StandaloneDeriving #-}
 
 module Carma.VIN.Base
@@ -20,7 +21,6 @@ module Carma.VIN.Base
 
 where
 
-import Data.Data
 
 import Control.Exception.Lifted
 import Control.Monad.IO.Class
@@ -29,7 +29,9 @@ import Control.Monad.Trans.Control
 import Control.Monad.Trans.Error
 import Control.Monad.Trans.Reader
 
-import Data.Text (Text)
+import Data.Aeson as A
+import Data.Data
+import Data.Text as T (Text, concat)
 import Database.PostgreSQL.Simple
 
 import Data.Model
@@ -67,8 +69,7 @@ data ImportContext = ImportContext
 
 -- | Critical VIN import errors which result in the whole process
 -- being interrupted.
-data ImportError = ConnectionFailed
-                 | NoTarget
+data ImportError = NoTarget
                  | NoHeader
                  | UnknownVinFormat
                  | NoColumn Text [ColumnTitle]
@@ -80,6 +81,19 @@ data ImportError = ConnectionFailed
                  | NoTitle Text
                  -- ^ Loadable required field has empty column title.
                  deriving Show
+
+instance ToJSON ImportError where
+    toJSON t = A.String $ case t of
+        NoTarget -> "Невозможно определить подпрограмму"
+        NoHeader -> "В файле отсутствует заголовок"
+        UnknownVinFormat -> "Неизвестный формат"
+        NoColumn v _ ->
+            T.concat ["Отсутствует колонка обязательного поля «", v, "»"]
+        DuplicateColumn v ->
+            T.concat ["Повторяющаяся колонка «", v, "»"]
+        NoTitle v ->
+            T.concat ["Не задан заголовок обязательного поля «", v, "»"]
+
 
 instance Error ImportError
 
