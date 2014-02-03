@@ -38,7 +38,7 @@ import WeatherApi.WWOnline (initApi)
 import Snap.Snaplet
 import Snap.Snaplet.Auth
 import Snap.Snaplet.PostgresqlSimple (Postgres, pgsInit)
-import Snap.Snaplet.RedisDB (redisDBInit, runRedisDB)
+import Snap.Snaplet.RedisDB (redisDBInitConf, runRedisDB)
 import Snap.Snaplet.SimpleLog
 import System.Log.Simple.Syslog
 import qualified Database.Redis as Redis hiding (exists)
@@ -172,8 +172,7 @@ initDbLayer sessionMgr adb rtF cfgDir = makeSnaplet "db-layer" "Storage abstract
           >>= newTVarIO
 
     DbLayer adb
-      <$> nestSnaplet "redis" redis
-            (redisDBInit Redis.defaultConnectInfo)
+      <$> nestSnaplet "redis" redis redisDBInitConf
       <*> nestSnaplet "pgsql" postgres pgsInit
       <*> nestSnaplet "dblog" dbLog (simpleLogInit_ l)
       <*> pure sessionMgr
